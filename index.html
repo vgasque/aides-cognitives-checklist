@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-fXmEXZ/7xMlklnccFukvi2BFga/SoFvJVseFnjv60b0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-YGAksaexJ+1Z6lt3nAwyV9ZxS66AyMpPtiWRN/G+7l0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2108,19 +2108,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      unique, sur « Minuteurs & compteurs » et « Repères posologiques », qui sont des `.rail-title`
      sans retrait. Mesuré avant : 18 / 20 / 23 px ; après : 18 partout. Les RANGÉES gardent leur
      retrait de 2 px : ce sont elles qui s'indentent sous leur titre, pas l'inverse. */
+  /* ⚠ UN SEUL ÉCART ENTRE UN TITRE ET SES RANGÉES (demande utilisateur, et « Surveiller ensuite
+     était trop collé à la ligne du dessus »). Les en-têtes de queue vivent DANS l'échelle, donc
+     ils y prennent la même marge basse que celui de tête (10 px) et une marge haute qui les
+     détache franchement de la section précédente (20 px) — quel qu'en soit le nombre. */
+  .rail-lad .rail-head{margin:20px 0 10px}
   .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:16px 0 2px;padding:0;line-height:1.35}
-  .pl-sech.cx{color:var(--critical)}
-  /* ⚠ LE LISERÉ ROUGE EST AUX RANGÉES, PAS AU TITRE (demande utilisateur, après essai de
-     l'inverse). Posé sur le GROUPE, il décalait l'intertitre du reste de la colonne — et un titre
-     est un repère de LECTURE, pas un objet du registre : ce qui est hors séquence, ce sont les
-     complications elles-mêmes. Le groupe ne porte donc plus qu'une marge haute. */
-  .pl-sec.cx{margin-top:16px}
-  .pl-sec.cx>.pl-sech{margin-top:0}
-  .pl-line.cxl{border-left:3px solid var(--critical-bd)}
   .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
   /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
-  .pl-line.wl .t,.pl-line.cxl .t{font-weight:600}
+  .pl-line.wl .t{font-weight:600}
   .pl-line.wl{cursor:default}
   /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
      paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
@@ -2598,10 +2595,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
   .cx-ext{font-size:12px;opacity:.9}
   .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}
-  /* Au pied, « Vérifier » prend la boîte des autres gestes de bloc — même cible, même filet :
-     trois actions de même rang se ressemblent. */
-  .ov-verify-foot{min-height:44px;padding:8px 14px;border:1px solid var(--line-strong);border-radius:8px;
-    background:var(--surface);color:var(--ink);font-size:13.5px;font-weight:700}
+  /* ⚠ LES TROIS GESTES DE BLOC PARTAGENT UNE SEULE BOÎTE (signalé à l'usage : « uniformise taille
+     texte / style boutons entre Complications, Noter l'heure et Vérifier »). Mesuré avant, ils
+     différaient sur TROIS axes : corps 13,5 / 13,5 / 12 px, rembourrage 8-14 / 8-12 / 6-10, et
+     trois traitements de fond. Le troisième perdait en plus contre `.ov-redo`, déclarée ailleurs
+     avec la même spécificité — le gabarit qu'on lui avait écrit ne s'appliquait qu'à moitié.
+     Ils sont de MÊME RANG (trois actions qu'on prend après avoir déroulé les étapes), donc même
+     boîte : 44 px de cible, 13,5/700, rembourrage et rayon identiques. SEUL LE REGISTRE DISTINGUE,
+     et il porte du sens : « Noter l'heure » est TONAL (le geste le plus fréquent), la complication
+     est en CONTOUR d'alerte — jamais remplie, un aplat rouge permanent désensibilise (v4.26.1) —,
+     « Vérifier » est neutre. Sélecteur en (0,2,0) pour battre `.ov-redo` quel que soit l'ordre :
+     pour une géométrie, ne jamais dépendre de la position dans la feuille. */
+  .cx-row .blk-act{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;
+    border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
+    font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
+  .cx-row .blk-act.cx-btn{border-color:var(--critical-bd);color:var(--critical);background:transparent}
+  .cx-row .blk-act.tk-add{border-color:var(--primary);color:var(--primary-dk);background:var(--primary-soft)}
+  .cx-row .blk-act:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
      commence, et l'écart le sépare de ce qui suit. */
   .flow-ctrl.cx-back-top{margin:0 0 10px}
@@ -2610,7 +2620,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     margin:14px 0 2px;padding:0 8px;font-size:11px;font-weight:800;letter-spacing:.07em;
     text-transform:uppercase;color:var(--critical)}
   .pl-cxh span{color:var(--ink-soft);font-weight:700}
-  .pl-line.cxl .n{color:var(--critical)}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -3670,11 +3679,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:var(--surface);border:1.5px solid var(--line-strong)}
   .pl-line.done .n{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
   .pl-line.cur .n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-  /* Le LOSANGE est le marqueur d'une décision : il n'a pas de numéro à porter (le tronc en a un,
-     la décision est un embranchement). Rien à masquer, donc — on n'émet rien. */
+  /* ⚠ LE LOSANGE A EXACTEMENT LE STYLE DE LA PASTILLE — même filet, même fond, mêmes états ;
+     seule la FORME change, et elle porte le numéro. Le carré tourné vit dans un `::before` À
+     L'INTÉRIEUR de la boîte : un élément de 26 px tourné à 45° en ferait 37 de diagonale et serait
+     rogné par la colonne (leçon v5.0.0). Le chiffre, lui, n'est PAS tourné — il se lit droit. */
   .pl-line.dec .n{border:0;background:none;position:relative}
   .pl-line.dec .n::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
-    margin:-8px 0 0 -8px;border:1.5px solid var(--verify-bd);border-radius:3px;transform:rotate(45deg)}
+    margin:-10px 0 0 -10px;border:1.5px solid var(--line-strong);background:var(--surface);
+    border-radius:3px;transform:rotate(45deg);z-index:-1}
+  .pl-line.dec.cur .n::before{background:var(--primary);border-color:var(--primary)}
+  .pl-line.dec.done .n::before{background:var(--ok);border-color:var(--ok)}
+  /* Les marqueurs de queue : la FORME dit le registre, l'encre reste celle de la colonne. */
+  .pl-line .n.mk{border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:800}
   .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl-line.cur .t{font-weight:800}
@@ -4750,9 +4766,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-lad{margin-top:6px}
     .rail-lad .pl-line{padding-left:2px}
     .rail-lad .pl-line:last-child{border-bottom:0}
-    .rail-lad .pl-line.d1{padding-left:16px}
-    .rail-lad .pl-line.d2{padding-left:28px}
-    .rail-lad .pl-line.d3{padding-left:40px}
+    /* ⚠ LA CHIP DE BRANCHE S'ALIGNE SUR LE MARQUEUR DU BLOC QU'ELLE OUVRE (signalé à l'usage :
+       « réaligne les tags des options aux numéros de blocs enfants »). Elle avait les retraits du
+       PLAN (20/32/48) alors que la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
+       exactement là où l'œil cherche une verticale. On aligne SANS ajouter de retrait : la chip
+       descend au retrait de la rangée, elle ne la pousse pas. */
+    .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1{padding-left:16px}
+    .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2{padding-left:28px}
+    .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3{padding-left:40px}
     .rail-lad .pl-line:is(.dec,.done){background:none}
     .rail-lad .pl-line:is(.dec,.cur,.done) .t{color:var(--ink)}
     .rail-lad .pl-line.cur .t{font-weight:800}
@@ -6490,9 +6511,9 @@ const cxRowHtml=(list,tip,curId,extra)=>{
   if(un&&curId&&un.target===curId)list=[];
   const btn=(un&&curId&&un.target===curId)?''
     :un
-    ?`<button type="button" class="cx-btn" data-cxgo="${esc(un.target)}" title="${un.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">⚡ ${esc(un.label)}${un.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`
-    :((list&&list.length)?`<button type="button" class="cx-btn" data-cxopen aria-expanded="${state.cxOpen?'true':'false'}" title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complications <span class="cx-n">${list.length}</span> <span class="cx-chev" aria-hidden="true">${state.cxOpen?'▴':'▾'}</span></button>`:'');
-  return `<div class="cx-row">${btn}${tip?`<button type="button" class="tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}${extra||''}</div>`
+    ?`<button type="button" class="blk-act cx-btn" data-cxgo="${esc(un.target)}" title="${un.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">⚡ ${esc(un.label)}${un.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`
+    :((list&&list.length)?`<button type="button" class="blk-act cx-btn" data-cxopen aria-expanded="${state.cxOpen?'true':'false'}" title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complications <span class="cx-n">${list.length}</span> <span class="cx-chev" aria-hidden="true">${state.cxOpen?'▴':'▾'}</span></button>`:'');
+  return `<div class="cx-row">${btn}${tip?`<button type="button" class="blk-act tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}${extra||''}</div>`
     +((!un&&state.cxOpen&&list&&list.length)?cxListHtml(list,curId):'');};
 /* ⚠ C — L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE. La doctrine QRH que ce dossier invoque porte sur
    l'INDEX UNIQUE (un objet plutôt qu'un bouton par urgence), pas sur la MODALITÉ : un dépliant est
@@ -13353,7 +13374,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        /* Do-Verify au pied : dans la rangée des gestes de bloc, avec « ⏱ Noter » et l'entrée sur
           complication — trois actions qui se prennent APRÈS avoir déroulé les étapes. */
        const verH=(!dec&&clean(stepsOf(b)).length)
-         ?`<button type="button" class="ov-redo ov-verify-foot" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'';
+         ?`<button type="button" class="blk-act" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'';
        const cxs=cxAll(f);
        if(cxs.length||tip||verH)ctl+=cxRowHtml(cxs,tip,id,verH);
        if(tip)ctl+=tkAckHtml(f);}}
@@ -13786,7 +13807,13 @@ function ovPlanLadderHtml(f,plan,num,md,off){
     {const ph=phaseOf(f,it.id);
      if(ph&&ph!==phCur){phCur=ph;h+=`<div class="pl-phase">${esc(ph)}</div>`;}}
     const open=!!state.ovFold['l:'+it.id];
-    h+=lbl+`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"><span class="n" aria-hidden="true">${dec?'':(m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·'))}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}</span><span class="g">${m.cur?'<b class="pl-here">ICI</b>':g}</span></div>`;
+    /* ⚠ LE LOSANGE PORTE SON NUMÉRO, ET IL A LE STYLE DES PASTILLES (demande utilisateur) : même
+       filet, même fond, mêmes états — seule la FORME change. La doctrine disait « la décision est
+       un embranchement, elle n'a pas de numéro à porter » ; or `flowPlan` lui en attribue un, il
+       est cité par le journal et par le statique, et le taire ici obligeait à compter les rangées
+       pour retrouver « le bloc 2 ». Et l'ambre part avec : c'était le seul registre du marqueur
+       dans une colonne désaturée. */
+    h+=lbl+`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"><span class="n" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}</span><span class="g">${m.cur?'<b class="pl-here">ICI</b>':g}</span></div>`;
     if(open){
       const det=dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
         :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
@@ -13795,11 +13822,11 @@ function ovPlanLadderHtml(f,plan,num,md,off){
   /* Section « À TOUT MOMENT » (v4.26.0) : les blocs de complication HORS tronc, SANS numéro de
      séquence (ils s'entrent par l'événement, pas par la position — les numéroter les ferait lire
      comme « l'étape d'après »). Tap = y aller (navigation, sémantique jumpToBlock du plan). */
-  {const det=cxDetached(f);
-   if(det.length){h+='<div class="pl-sec cx"><div class="pl-sech cx">⚡ À tout moment <span>· hors numérotation</span></div>';
-     det.forEach(c=>{const lp=latestPass(state.nav,state.navSeq,c.target);
-       h+=`<div class="pl-line cxl" data-plgo="${esc(c.target)}" role="button" tabindex="0"><span class="t">${esc(c.label)}${lp&&lp.total>1?`<span class="pl-x">×${lp.total}</span>`:''}</span><span class="g">${lp?'passé':''}</span></div>`;});
-     h+='</div>';}}
+  /* ⚠ « À TOUT MOMENT » A QUITTÉ CETTE COLONNE (v5.0.0, demande utilisateur : « c'est inutile »).
+     Elle ORIENTE dans la séquence — or une complication n'y est justement pas, et l'endroit où on
+     l'attend est la carte du bloc (bouton constant) ou la vue « Toute la fiche », qui la gardent
+     toutes deux. Une section de deux lignes qui n'aide pas à se repérer coûtait un en-tête, un
+     marqueur et une exception de mise en page. `.pl-sec.cx` et `.pl-line.cxl` sont PURGÉS. */
   /* « △ SURVEILLER — APRÈS LES GESTES » : les items de rôle `watch`. Ils vivent déjà dans le flux
      (étage « Surveillances & pièges ») ; ici c'est une COPIE d'orientation, inerte, à sa place
      chronologique — ce qui vient après. Registre ATTENTION, jamais rouge : on ne surveille pas ce
@@ -13808,9 +13835,11 @@ function ovPlanLadderHtml(f,plan,num,md,off){
      à droite. Une liste à puces aurait été une seconde grammaire dans la même colonne, pour des
      objets qui se lisent exactement pareil : un nom, un repère chiffré. */
   {const w=clean(listOf(f,'verify'));
-   if(w.length){h+='<div class="pl-sech">Surveiller après les gestes</div>'
+   /* « Surveiller ENSUITE » : sur 240 px, « après les gestes » passait sur deux lignes — un titre
+      haché n'est plus un titre (même règle que l'en-tête de zone, v4.59.0). */
+   if(w.length){h+=`<div class="rail-head"><span class="rail-title">Surveiller ensuite</span><span class="rail-n">${w.length}</span></div>`
      +w.map(x=>{const cr=stepCR(stepText(x));
-       return `<div class="pl-line wl"><span class="t">${fmt(cr.c)}</span><span class="g">${cr.r?esc(cr.r):''}</span></div>`;}).join('');}}
+       return `<div class="pl-line wl"><span class="n mk" aria-hidden="true">△</span><span class="t">${fmt(cr.c)}</span><span class="g">${cr.r?esc(cr.r):''}</span></div>`;}).join('');}}
   return h;}
 // Facteur de la taille du texte (réglage utilisateur = zoom CSS sur <html>) : les rectangles
 // mesurés (getBoundingClientRect) sont en pixels VISUELS (× zoom) alors que les styles posés
@@ -14473,12 +14502,12 @@ function ovParcoursHtml(f){
     h+='</section>';});
   /* Les deux sections hors séquence ferment la vue, dans le même ordre que la colonne. */
   {const det=cxDetached(f);
-   if(det.length)h+='<div class="pl-sech cx">⚡ À tout moment <span>· hors numérotation</span></div>'
+   if(det.length)h+='<div class="pl-sech">À tout moment</div>'
      +det.map(c=>`<section class="pc-card exc"><div class="pc-h"><span class="pc-n" aria-hidden="true">⚡</span><span class="pc-ht">${esc(c.label)}</span></div>`
        +((f.blocks.find(x=>x.id===c.target)?clean(stepsOf(f.blocks.find(x=>x.id===c.target))).map(item).join(''):'<div class="pc-foot">↗ ouvre une autre aide</div>'))
        +'</section>').join('');}
   {const w=clean(listOf(f,'verify'));
-   if(w.length)h+='<div class="pl-sech">Surveiller après les gestes</div>'
+   if(w.length)h+='<div class="pl-sech">Surveiller ensuite</div>'
      +`<section class="pc-card">${w.map(item).join('')}</section>`;}
   return `<div class="pc-wrap">${h}</div>`;}
 function staticSection(f){

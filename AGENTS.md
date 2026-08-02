@@ -3177,6 +3177,41 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **Ma formulation d'audit était fausse** : j'avais écrit « deux états vides seulement » en ne
   comptant qu'une classe. Le défaut n'était pas qu'il en manquait, c'est qu'il y en avait deux
   formes.
+- **LA COLONNE D'ORIENTATION — UN EN-TÊTE, UNE RANGÉE, UN MARQUEUR (v5.0.0, maquette C validée)** :
+  elle empilait **deux composants de titre** (`.rail-head` avec compte pour « Parcours inerte »,
+  `.pl-sech` texte seul — parfois sur deux lignes — pour les sections de queue) et **trois
+  anatomies de rangée** (pastille + titre + colonne droite ; liseré rouge et AUCUNE pastille ;
+  ni l'un ni l'autre). La seule section qui portait un registre coloré était donc aussi la seule
+  sans marqueur, dans une colonne dont toute la doctrine est la désaturation.
+  Désormais : **l'en-tête du rail droit partout** (titre + COMPTE — exigence ECAM : une zone qui
+  peut être tronquée annonce ce qu'elle contient), **un marqueur par rangée dans la même colonne**,
+  et **aucun liseré**. « Surveiller après les gestes » → « Surveiller ensuite » (sur 240 px
+  l'ancien passait sur deux lignes ; un titre haché n'est plus un titre).
+  **LE LOSANGE D'UNE DÉCISION PORTE SON NUMÉRO ET A LE STYLE DE LA PASTILLE** : même filet, même
+  fond, mêmes états — seule la FORME change. La doctrine disait « la décision est un embranchement,
+  elle n'a pas de numéro à porter » ; or `flowPlan` lui en attribue un, il est cité par le journal
+  et par le statique, et le taire obligeait à compter les rangées pour retrouver « le bloc 2 ».
+  L'ambre part avec : c'était le seul registre du marqueur dans une colonne désaturée.
+  **LES MARQUEURS DE QUEUE SONT NEUTRES** (demande utilisateur : « attention aux couleurs qui
+  peuvent détourner l'attention du bloc central ») — le registre y est porté par la FORME du glyphe.
+  ⚠ **« À TOUT MOMENT » A ENSUITE QUITTÉ LA COLONNE** (« c'est inutile ») : elle oriente dans la
+  SÉQUENCE, or une complication n'y est justement pas, et l'endroit où on l'attend est la carte du
+  bloc ou la vue « Toute la fiche », qui la gardent toutes deux. `.pl-sec.cx` et `.pl-line.cxl` sont
+  purgés ; `audit-complications` SUIT le composant plutôt que de disparaître avec lui (règle 14).
+  **Écart uniforme titre → rangées** : 10 px sous chaque titre, 20 px au-dessus.
+  **La chip de branche s'aligne sur le marqueur du bloc qu'elle ouvre** : elle portait les retraits
+  du PLAN (20/32/48) quand la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
+  exactement là où l'œil cherche une verticale. Aligné SANS ajouter de retrait.
+- **LES TROIS GESTES DE BLOC PARTAGENT UNE SEULE BOÎTE (v5.0.0, signalé à l'usage)** :
+  « ⚡ Complication », « ⏱ Noter l'heure » et « Vérifier » différaient sur TROIS axes — corps
+  13,5 / 13,5 / **12** px, rembourrage 8-14 / 8-12 / **6-10**, et trois traitements de fond. Le
+  troisième perdait en plus contre `.ov-redo`, déclarée ailleurs à spécificité égale : le gabarit
+  qu'on lui avait écrit ne s'appliquait qu'à moitié. Ils sont de MÊME RANG (trois actions qu'on
+  prend après avoir déroulé les étapes), donc même boîte — 44 px de cible, 13,5/700, rembourrage et
+  rayon identiques. **Seul le REGISTRE distingue, et il porte du sens** : « Noter l'heure » est
+  TONAL (le geste le plus fréquent), la complication est en CONTOUR d'alerte (jamais remplie — un
+  aplat rouge permanent désensibilise), « Vérifier » est neutre. Sélecteur en (0,2,0) pour battre
+  `.ov-redo` quel que soit l'ordre.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

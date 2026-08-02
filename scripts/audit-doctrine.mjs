@@ -1485,6 +1485,11 @@ for (const W of [320, 390]) {
     const indexAUn=!!document.querySelector('[data-cxopen]');
     /* ⚠ ON PART DE LOIN, EXPRÈS : le défaut signalé est que l'entrée ne ramenait pas EN HAUT du
        bloc d'excursion — un contrôle qui n'a pas défilé avant ne peut pas le voir. */
+    /* ⚠ ON RELÈVE LES TROIS GESTES AVANT D'ENTRER : une fois DANS la complication, son bouton
+       disparaît (on y est), et le témoin ne verrait plus que deux boîtes. */
+    const _actesAvant=[...document.querySelectorAll('.cx-row .blk-act')].map(e=>{
+      const c=getComputedStyle(e);
+      return {fs:c.fontSize,pad:c.padding,h:Math.round(e.getBoundingClientRect().height),col:c.color};});
     window.scrollTo(0,700);await wt(200);
     if(un){un.click();}await wt(900);
     const cur2=document.querySelector('.ov-block.cur');
@@ -1492,9 +1497,15 @@ for (const W of [320, 390]) {
     /* Entré sur l'unique événement : son bouton ne doit plus être proposé — on y EST. */
     const btnApres=!!document.querySelector('[data-cxgo]');
     const _c=document.querySelector('.ov-block.cur');
-    const _vp=document.querySelector('.ov-verify-foot');
+    const _vp=document.querySelector('.cx-row [data-ovverify]');
     const verPied=!!_vp,verTete=!!(_c&&_c.querySelector('.ov-head [data-ovverify]'));
     const verCible=_vp?Math.round(_vp.getBoundingClientRect().height):0;
+    const _ac=_actesAvant;
+    const actes={n:_ac.length,
+      fs:[...new Set(_ac.map(e=>e.fs))],
+      pad:[...new Set(_ac.map(e=>e.pad))],
+      h:[...new Set(_ac.map(e=>e.h))],
+      encres:new Set(_ac.map(e=>e.col)).size};
     const modale=[...document.querySelectorAll('.ai-modal.on')].length;
     const ret=document.querySelector('[data-cxback]'),carte=document.querySelector('.ov-block.cur');
     const rr=ret?ret.getBoundingClientRect():null,rc=carte?carte.getBoundingClientRect():null;
@@ -1525,7 +1536,7 @@ for (const W of [320, 390]) {
     const iciTxt=iciEl?iciEl.textContent.replace(/\s+/g,' ').trim():null;
     const iciDis=ap.filter(e=>e.disabled).length,autreTapable=ap.filter(e=>!e.disabled).length;
     return {unLbl,indexAUn,modale,items:items.length,tgLbl,modale2,cible,ext,referme,
-      btnApres,entreeY,verPied,verTete,verCible,iciTxt,iciDis,autreTapable,
+      btnApres,entreeY,verPied,verTete,verCible,actes,iciTxt,iciDis,autreTapable,
       retourY:rr?Math.round(rr.top):null,
       retourVisible:!!(rr&&rr.top>=0&&rr.bottom<=innerHeight),
       premier};});
@@ -1557,6 +1568,14 @@ for (const W of [320, 390]) {
   t(`${W} · « Vérifier » est au PIED de la carte, plus en tête`,
     r.verPied===true&&r.verTete===false, `pied=${r.verPied} tête=${r.verTete}`);
   t(`${W} · … avec une cible de 44 px`, r.verCible>=44, `${r.verCible} px`);
+  /* ⚠ LES TROIS GESTES DE BLOC PARTAGENT UNE SEULE BOÎTE (signalé à l'usage). Ils différaient sur
+     trois axes — corps 13,5 / 13,5 / 12 px, rembourrage 8-14 / 8-12 / 6-10, trois traitements de
+     fond —, et le troisième perdait en plus contre `.ov-redo` : le gabarit qu'on lui avait écrit ne
+     s'appliquait qu'à moitié. Seul le REGISTRE distingue désormais, et il porte du sens. */
+  t(`${W} · les trois gestes de bloc ont la MÊME boîte`,
+    r.actes.n===3&&r.actes.fs.length===1&&r.actes.pad.length===1&&r.actes.h.length===1,
+    `${r.actes.n} boutons · corps ${JSON.stringify(r.actes.fs)} · rembourrage ${JSON.stringify(r.actes.pad)} · hauteur ${JSON.stringify(r.actes.h)}`);
+  t(`${W} · … et trois registres distincts`, r.actes.encres===3, `${r.actes.encres} encres`);
   t(`${W} · entrer amène EN HAUT du bloc d'excursion`,
     r.entreeY!==null&&Math.abs(r.entreeY-8)<=4, `${r.entreeY} px sous le chrome collant`);
   t(`${W} · à UN événement, le bouton disparaît quand on y est`,
@@ -1677,6 +1696,28 @@ console.log('\n══ PARCOURS INERTE · registres et cohérence du groupe ═�
     return {chip:!!ch,chipBg:ch?getComputedStyle(ch).backgroundColor:'',chipInk:ch?getComputedStyle(ch).color:'',
       ambre:amb,ambreBg:ambBg,sec:!!sec,railSec:sec?getComputedStyle(sec).borderLeftWidth:'0px',
       railLigne:root.querySelector('.pl-line.cxl')?getComputedStyle(root.querySelector('.pl-line.cxl')).borderLeftWidth:'0px',
+      cxCol:root.querySelectorAll('.pl-line.cxl').length,
+      chipEcart:(()=>{const c=root.querySelector('.pl-brc');if(!c)return null;
+        const sp=c.querySelector('span'),nx=c.nextElementSibling;
+        const mk=nx&&nx.querySelector?nx.querySelector('.n'):null;
+        return (sp&&mk)?Math.round(sp.getBoundingClientRect().left-mk.getBoundingClientRect().left):null;})(),
+      ecarts:(()=>{const ns=[...root.querySelectorAll('.rail-head,.pl-line')];
+        const o=[];ns.forEach((e,i)=>{if(!e.classList.contains('rail-head'))return;
+          const nx=ns[i+1];if(nx)o.push(Math.round(nx.getBoundingClientRect().top-e.getBoundingClientRect().bottom));});
+        return o;})(),
+      marqueurs:(()=>{const ls=[...root.querySelectorAll('.pl-line')];
+        const sansMk=ls.filter(e=>!e.querySelector('.n')).length;
+        /* On ignore les rangées à fond plein (courante, faite) : leur encre est celle du fond. */
+        const enc=[...new Set(ls.filter(e=>!e.classList.contains('cur')&&!e.classList.contains('done'))
+          .map(e=>e.querySelector('.n')).filter(Boolean).map(e=>getComputedStyle(e).color))];
+        return {manquants:sansMk,encres:enc};})(),
+      /* ⚠ LA RÉFÉRENCE EST UNE PASTILLE AU REPOS : la rangée COURANTE est un aplat plein, son
+         filet vaut le primaire — la comparer au losange mesurait deux états, pas deux styles. */
+      pastilleFilet:(()=>{const p0=root.querySelector('.pl-line:not(.dec):not(.cxl):not(.wl):not(.cur):not(.done) .n');
+        return p0?getComputedStyle(p0).borderTopColor:'';})(),
+      losange:(()=>{const d=root.querySelector('.pl-line.dec .n');if(!d)return null;
+        const b4=getComputedStyle(d,'::before');
+        return {chiffre:d.textContent.trim(),filet:b4.borderTopColor,fond:b4.backgroundColor};})(),
       /* ⚠ TOUS LES INTERTITRES DE LA COLONNE PARTENT DU MÊME x (demande utilisateur) : « À tout
          moment » et « Surveiller » s'alignent sur « Parcours inerte » — et, en rail unique, sur
          « Minuteurs & compteurs » et « Repères posologiques », qui sont des `.rail-title` sans
@@ -1694,11 +1735,27 @@ console.log('\n══ PARCOURS INERTE · registres et cohérence du groupe ═�
   t('… et elle n’emprunte plus le registre ATTENTION',
     R.chip&&R.chipInk!==R.ambre&&R.chipBg!==R.ambreBg,
     `fond ${R.chipBg} · encre ${R.chipInk} (ambre ${R.ambre} / ${R.ambreBg})`);
-  /* ⚠ LE LISERÉ ROUGE EST AUX RANGÉES, PAS AU TITRE (demande utilisateur, après essai de
-     l'inverse) : posé sur le GROUPE il décalait l'intertitre du reste de la colonne, et un titre
-     est un repère de LECTURE, pas un objet du registre. */
-  t('le liseré rouge est aux rangées, pas au titre',
-    parseFloat(R.railSec)===0&&parseFloat(R.railLigne)>0, `groupe ${R.railSec} / rangée ${R.railLigne}`);
+  /* ⚠ « À TOUT MOMENT » A QUITTÉ LA COLONNE (v5.0.0, demande utilisateur : « c'est inutile »).
+     Elle ORIENTE dans la séquence — or une complication n'y est justement pas, et l'endroit où on
+     l'attend est la carte du bloc ou la vue « Toute la fiche », qui la gardent toutes deux. */
+  t('la colonne ne porte plus de section « à tout moment »',
+    R.cxCol===0&&parseFloat(R.railLigne)===0, `${R.cxCol} rangée(s), liseré ${R.railLigne}`);
+  /* ⚠ LA CHIP DE BRANCHE S'ALIGNE SUR LE MARQUEUR DU BLOC QU'ELLE OUVRE (signalé à l'usage) :
+     elle portait les retraits du PLAN (20/32/48) quand la colonne resserre les siens (16/28/40). */
+  if(R.chipEcart!==null)t('la chip de branche s’aligne sur le marqueur du bloc enfant',
+    Math.abs(R.chipEcart)<=1, `${R.chipEcart} px`);
+  /* ⚠ UN SEUL ÉCART ENTRE UN TITRE ET SES RANGÉES (demande utilisateur). */
+  t('chaque titre a le même écart avec ses rangées',
+    R.ecarts.length>=2&&[...new Set(R.ecarts)].length===1, JSON.stringify(R.ecarts));
+  /* ⚠ UNE SEULE ANATOMIE DE RANGÉE : chaque ligne porte un marqueur dans la MÊME colonne, et
+     l'encre reste celle de la colonne — la FORME dit le registre, pas la couleur. */
+  t('chaque rangée porte un marqueur, tous à la même encre',
+    R.marqueurs.manquants===0&&R.marqueurs.encres.length===1,
+    `${R.marqueurs.manquants} sans marqueur · encres ${JSON.stringify(R.marqueurs.encres)}`);
+  /* Le LOSANGE a le style de la pastille — même filet, même fond — et il PORTE son numéro. */
+  t('le losange d’une décision est chiffré et au style des pastilles',
+    !!(R.losange&&R.losange.chiffre&&R.losange.filet===R.pastilleFilet),
+    JSON.stringify(R.losange)+' vs filet pastille '+R.pastilleFilet);
   t('dans CHAQUE colonne, les intertitres partent du même x',
     R.xTitres.every(c=>c.length<=1), JSON.stringify(R.xTitres));
   await page.close();

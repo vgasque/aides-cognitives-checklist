@@ -79,13 +79,29 @@ const d5=await p.evaluate(async()=>{
  return {dec:cur.classList.contains('dec'),btn:!!cur.querySelector('[data-cxopen]')};});
 t('le déclencheur vit AUSSI sur un bloc de décision courant', d5.dec&&d5.btn, JSON.stringify(d5));
 console.log('=== échelle / statique / externe / sans ===');
-const d6=await p.evaluate(()=>{const lad=document.querySelector('.read-side .rail-lad');
- return {sec:!!document.querySelector('.pl-sech.cx'),
-  lignes:[...(lad?lad.querySelectorAll('.pl-line.cxl'):[])].length,
-  pollue:[...(lad?lad.querySelectorAll('.pl-line:not(.cxl) .t'):[])].some(x=>/Laryngo/.test(x.textContent))};});
-t('Échelle : section « À tout moment », tronc non pollué', d6.sec&&d6.lignes===1&&!d6.pollue, JSON.stringify(d6));
-const d7=await p.evaluate(async()=>{
- document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,600));
+/* ⚠ « À TOUT MOMENT » A QUITTÉ LA COLONNE D'ORIENTATION (v5.0.0, demande utilisateur : « c'est
+   inutile ») — elle oriente dans la SÉQUENCE, or une complication n'y est pas. Le contrôle suit le
+   composant plutôt que de disparaître avec lui (règle 14) : la section vit toujours dans la vue
+   « Toute la fiche », onglet Parcours, et c'est là qu'on vérifie les deux invariants — elle EXISTE,
+   et le tronc n'est pas pollué par son bloc. */
+const d6=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+ const lad=document.querySelector('.read-side .rail-lad');
+ const colonne={cx:lad?lad.querySelectorAll('.pl-line.cxl').length:0,
+   pollue:[...(lad?lad.querySelectorAll('.pl-line .t'):[])].some(x=>/Laryngo/.test(x.textContent))};
+ document.getElementById('allBtn').click();await w(700);
+ document.querySelector('[data-alltab="parcours"]').click();await w(600);
+ const sec=[...document.querySelectorAll('.pc-wrap .pl-sech')].some(x=>/tout moment/i.test(x.textContent));
+ const cartes=document.querySelectorAll('.pc-wrap .pc-card.exc').length;
+ document.getElementById('allBtn').click();await w(600);
+ return {colonne,sec,cartes};});
+t('la colonne d’orientation ne porte plus la section', d6.colonne.cx===0&&!d6.colonne.pollue, JSON.stringify(d6.colonne));
+t('« Toute la fiche » : section « À tout moment », une carte', d6.sec&&d6.cartes===1, JSON.stringify(d6));
+const d7=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+ document.getElementById('allBtn').click();await w(600);
+ /* ⚠ ON REVIENT À L'ONGLET « PAGE » : le contrôle précédent a laissé « Parcours » sélectionné, et
+    l'onglet n'est pas persisté mais il survit à la fermeture de la feuille. Sans cela on mesure la
+    vue en cartes en croyant mesurer le tableau. */
+ {const pg=document.querySelector('[data-alltab="page"]');if(pg)pg.click();}await w(600);
  const cell=document.querySelector('.sv-cell.sv-cx');
  return {band:!!document.querySelector('.sv-cxband'),num:cell?cell.querySelector('.sv-n').textContent.trim():null};});
 t('Statique : bande + cellule sans numéro (⚡)', d7.band&&d7.num==='⚡', JSON.stringify(d7));
