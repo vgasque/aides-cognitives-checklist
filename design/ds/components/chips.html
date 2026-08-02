@@ -1691,6 +1691,9 @@
   .blk .li input[data-sf]{padding-left:10px}
   .blk .li:is(.li-crit,.li-vigil) input[data-sf],
   .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{padding-left:24px}
+  /* Une rangée SIGNALÉE réserve déjà 24 px à sa marque : le débord GAUCHE du focus (margin -6px,
+     cf. MK-flux) déplacerait son texte — on l'annule pour elle seule, le droit reste en débord. */
+  .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{margin-left:0}
   .li-vigil .li-mk{color:var(--verify)}
   /* Le champ et sa marque forment un seul objet de la rangée : c'est LUI qui s'étire. */
   .li-fw{position:relative;flex:1;min-width:0;display:flex}
@@ -1712,7 +1715,11 @@
   /* Un champ porté par une ÉTAPE est FERMÉ, pas absent : mêmes traits que le patron `share-scribe`
      et que le déplacement modal — encre douce, filet neutre, fond de second plan, curseur refusé.
      Une seule grammaire de « fermé » dans tout le fichier. */
-  .ed-forget .li input:disabled{background:var(--surface-2);border-color:var(--line);
+  /* `[type=text]` porte la spécificité à (0,4,1) : depuis que la mise à NU au repos des rangées
+     de liste vaut (0,3,1), un champ FERMÉ doit gagner quel que soit l'ordre — sans quoi il
+     perdrait son fond « fermé » et se lirait comme un champ ouvert qui refuse (piège de cascade
+     n°5, encore lui). */
+  .ed-forget .li input[type=text]:disabled{background:var(--surface-2);border-color:var(--line);
     color:var(--ink-soft);cursor:not-allowed;-webkit-text-fill-color:var(--ink-soft);opacity:1}
   .fg-go{flex:none;color:var(--ink-soft)}
   .fg-go:hover{color:var(--ink);background:var(--surface-2)}
@@ -1770,10 +1777,13 @@
   .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
   .pc-r{flex:none;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
     border-radius:6px;padding:2px 6px}
-  .pc-it.crit{background:var(--critical-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px 0}
+  /* Boîte signalée : le rembourrage horizontal est COMPENSÉ par une marge négative (patron du
+     bleed d'ol.steps, v4.23.5) — la case reste sur la même verticale que les lignes normales,
+     la teinte déborde dans le rembourrage de la carte au lieu de décaler le contenu. */
+  .pc-it.crit{background:var(--critical-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
   .pc-it.crit .pc-t{color:var(--critical);font-weight:800}
   .pc-it.crit .pc-box{border-color:var(--critical-bd)}
-  .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px 0}
+  .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
   .pc-it.vig .pc-t{color:var(--verify);font-weight:800}
   .pc-it.vig .pc-box{border-color:var(--verify-bd)}
   .pc-foot{margin-top:6px;padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
@@ -2718,7 +2728,21 @@
   .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
   /* Date de validation non interprétée : on signale (bordure rouge) sans bloquer la saisie. */
   #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
-  .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1;min-width:0}
+  /* ═══ MK-flux ÉTENDU AUX LISTES (v5.0.0, demande utilisateur : « harmoniser avec les étapes
+     dans les blocs ») : même cycle que `.blk .li` — au REPOS la ligne est du TEXTE (aucun chrome,
+     poignée ⠿ visible à gauche : l'affordance ne se découvre pas au tap), à l'ÉDITION le champ se
+     dessine et les outils paraissent SOUS la ligne. `flex-wrap` est requis par `.li-tools`
+     (pleine largeur, order:3) ET par la marque `::before` du mode déplacement (v4.78.0).
+     ⚠ ORDRE DE DÉCLARATION PORTEUR : la mise à nu vaut (0,3,1), comme la teinte des rangées
+     signalées `.li.li-vigil input[type=text]` déclarée PLUS BAS — c'est l'ordre qui fait gagner
+     la teinte, et une rangée signalée garde sa boîte au repos (« normal = ligne, signalé =
+     boîte »). Ne pas remonter ces règles. */
+  .list-edit .li{display:flex;gap:8px;margin-bottom:2px;align-items:center;flex-wrap:wrap}.list-edit .li input{flex:1;min-width:0}
+  .list-edit .li input[type=text]{background:transparent;border-color:transparent;padding:8px 4px;font-size:16px}
+  /* Même débord compensé et même anneau que les étapes de bloc (cf. le bloc MK-flux là-bas). */
+  .list-edit .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:var(--shadow-primary-sm)}
+  .list-edit .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
+  .list-edit .li:focus-within .li-tools{display:inline-flex}
   .li-num{font-family:var(--mono);font-size:13.5px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
   /* Étape/ligne TYPÉE dans l'éditeur (v4.3.0) : le marqueur ⚠/△ ne vit plus DANS le champ texte
      (effaçable à la main = changement de type accidentel) — c'est l'ENCADRÉ du champ qui porte
@@ -3110,8 +3134,15 @@
      L'`<input>` reste DANS le DOM en permanence (il porte la valeur et l'auto-enregistrement) :
      c'est son HABILLAGE qui change. Rien à re-rendre au tap, donc rien qui saute. */
   .blk .li input[type=text]{background:transparent;border-color:transparent;padding:8px 4px;font-size:16px}
-  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;outline:none}
-  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px}
+  /* LE TEXTE NE BOUGE PAS QUAND LE CHAMP SE DESSINE (v5.0.0, signalé à l'usage : « le champ input
+     est décalé par rapport au texte ») : le rembourrage du focus (rangée 6 px + champ 4→10 px)
+     poussait le texte de ~12 px sous le doigt. Le chrome se dessine désormais en DÉBORD — padding
+     compensé par des marges négatives (patron du bleed d'ol.steps) : la boîte s'étend AUTOUR du
+     texte, qui reste au pixel. Le bas de rangée compense en plus l'écart de 2 px (-6+2=-4) pour
+     que les rangées suivantes ne bougent pas non plus. L'ombre teintée est l'ANNEAU de focus
+     (WCAG 2.4.7 — la sonde d'audit ne compte qu'outline/box-shadow, un bord seul ne suffit pas). */
+  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:var(--shadow-primary-sm)}
+  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
   /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
   .li-tools{display:none;gap:6px;flex:1 1 100%;order:3;margin-left:32px}
@@ -4688,6 +4719,15 @@
   .mi-lab{font-size:12px;color:var(--ink-soft)}
   .mi-sc{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:13.5px;font-weight:600;min-height:40px}
   .mi-sc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Réinsertion EXPLICITE (v5.0.0, signalé à l'usage : « on ne peut pas remettre la référence ») —
+     le tap sur la vignette existait depuis v4.4.3 mais n'était porté que par cursor:copy + title,
+     invisibles sur tactile et inaccessibles au clavier. Un vrai bouton, avec le mot. */
+  .mi-ins{border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:40px;padding:0 12px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;flex:none}
+  .mi-ins:hover{background:var(--surface-2)}
+  .mi-ins:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Une image absente du texte sera supprimée par le ménage de sortie (leaveGC) : on le DIT au
+     lieu de le laisser découvrir — registre ATTENTION (glyphe + mots, la couleur jamais seule). */
+  .mi-un{flex:1 1 100%;font-size:12px;font-weight:600;color:var(--verify)}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:var(--mono);font-size:13.5px;line-height:1.55;resize:vertical}

@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-B8CI+Rgm+vZkBn6bA6bv1bnSm/SuV3IYC9+X8dd5Zsg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-01u6EtUjpAnDyTbW1JCbeO+pBM+h4i2a+xVxi17GGtw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -1976,6 +1976,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .blk .li input[data-sf]{padding-left:10px}
   .blk .li:is(.li-crit,.li-vigil) input[data-sf],
   .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{padding-left:24px}
+  /* Une rangée SIGNALÉE réserve déjà 24 px à sa marque : le débord GAUCHE du focus (margin -6px,
+     cf. MK-flux) déplacerait son texte — on l'annule pour elle seule, le droit reste en débord. */
+  .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{margin-left:0}
   .li-vigil .li-mk{color:var(--verify)}
   /* Le champ et sa marque forment un seul objet de la rangée : c'est LUI qui s'étire. */
   .li-fw{position:relative;flex:1;min-width:0;display:flex}
@@ -1997,7 +2000,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Un champ porté par une ÉTAPE est FERMÉ, pas absent : mêmes traits que le patron `share-scribe`
      et que le déplacement modal — encre douce, filet neutre, fond de second plan, curseur refusé.
      Une seule grammaire de « fermé » dans tout le fichier. */
-  .ed-forget .li input:disabled{background:var(--surface-2);border-color:var(--line);
+  /* `[type=text]` porte la spécificité à (0,4,1) : depuis que la mise à NU au repos des rangées
+     de liste vaut (0,3,1), un champ FERMÉ doit gagner quel que soit l'ordre — sans quoi il
+     perdrait son fond « fermé » et se lirait comme un champ ouvert qui refuse (piège de cascade
+     n°5, encore lui). */
+  .ed-forget .li input[type=text]:disabled{background:var(--surface-2);border-color:var(--line);
     color:var(--ink-soft);cursor:not-allowed;-webkit-text-fill-color:var(--ink-soft);opacity:1}
   .fg-go{flex:none;color:var(--ink-soft)}
   .fg-go:hover{color:var(--ink);background:var(--surface-2)}
@@ -2055,10 +2062,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
   .pc-r{flex:none;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
     border-radius:6px;padding:2px 6px}
-  .pc-it.crit{background:var(--critical-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px 0}
+  /* Boîte signalée : le rembourrage horizontal est COMPENSÉ par une marge négative (patron du
+     bleed d'ol.steps, v4.23.5) — la case reste sur la même verticale que les lignes normales,
+     la teinte déborde dans le rembourrage de la carte au lieu de décaler le contenu. */
+  .pc-it.crit{background:var(--critical-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
   .pc-it.crit .pc-t{color:var(--critical);font-weight:800}
   .pc-it.crit .pc-box{border-color:var(--critical-bd)}
-  .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px 0}
+  .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
   .pc-it.vig .pc-t{color:var(--verify);font-weight:800}
   .pc-it.vig .pc-box{border-color:var(--verify-bd)}
   .pc-foot{margin-top:6px;padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
@@ -3003,7 +3013,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
   /* Date de validation non interprétée : on signale (bordure rouge) sans bloquer la saisie. */
   #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
-  .list-edit .li{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}.list-edit .li input{flex:1;min-width:0}
+  /* ═══ MK-flux ÉTENDU AUX LISTES (v5.0.0, demande utilisateur : « harmoniser avec les étapes
+     dans les blocs ») : même cycle que `.blk .li` — au REPOS la ligne est du TEXTE (aucun chrome,
+     poignée ⠿ visible à gauche : l'affordance ne se découvre pas au tap), à l'ÉDITION le champ se
+     dessine et les outils paraissent SOUS la ligne. `flex-wrap` est requis par `.li-tools`
+     (pleine largeur, order:3) ET par la marque `::before` du mode déplacement (v4.78.0).
+     ⚠ ORDRE DE DÉCLARATION PORTEUR : la mise à nu vaut (0,3,1), comme la teinte des rangées
+     signalées `.li.li-vigil input[type=text]` déclarée PLUS BAS — c'est l'ordre qui fait gagner
+     la teinte, et une rangée signalée garde sa boîte au repos (« normal = ligne, signalé =
+     boîte »). Ne pas remonter ces règles. */
+  .list-edit .li{display:flex;gap:8px;margin-bottom:2px;align-items:center;flex-wrap:wrap}.list-edit .li input{flex:1;min-width:0}
+  .list-edit .li input[type=text]{background:transparent;border-color:transparent;padding:8px 4px;font-size:16px}
+  /* Même débord compensé et même anneau que les étapes de bloc (cf. le bloc MK-flux là-bas). */
+  .list-edit .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:var(--shadow-primary-sm)}
+  .list-edit .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
+  .list-edit .li:focus-within .li-tools{display:inline-flex}
   .li-num{font-family:var(--mono);font-size:13.5px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
   /* Étape/ligne TYPÉE dans l'éditeur (v4.3.0) : le marqueur ⚠/△ ne vit plus DANS le champ texte
      (effaçable à la main = changement de type accidentel) — c'est l'ENCADRÉ du champ qui porte
@@ -3395,8 +3419,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      L'`<input>` reste DANS le DOM en permanence (il porte la valeur et l'auto-enregistrement) :
      c'est son HABILLAGE qui change. Rien à re-rendre au tap, donc rien qui saute. */
   .blk .li input[type=text]{background:transparent;border-color:transparent;padding:8px 4px;font-size:16px}
-  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;outline:none}
-  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px}
+  /* LE TEXTE NE BOUGE PAS QUAND LE CHAMP SE DESSINE (v5.0.0, signalé à l'usage : « le champ input
+     est décalé par rapport au texte ») : le rembourrage du focus (rangée 6 px + champ 4→10 px)
+     poussait le texte de ~12 px sous le doigt. Le chrome se dessine désormais en DÉBORD — padding
+     compensé par des marges négatives (patron du bleed d'ol.steps) : la boîte s'étend AUTOUR du
+     texte, qui reste au pixel. Le bas de rangée compense en plus l'écart de 2 px (-6+2=-4) pour
+     que les rangées suivantes ne bougent pas non plus. L'ombre teintée est l'ANNEAU de focus
+     (WCAG 2.4.7 — la sonde d'audit ne compte qu'outline/box-shadow, un bord seul ne suffit pas). */
+  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:var(--shadow-primary-sm)}
+  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
   /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
   .li-tools{display:none;gap:6px;flex:1 1 100%;order:3;margin-left:32px}
@@ -4973,6 +5004,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mi-lab{font-size:12px;color:var(--ink-soft)}
   .mi-sc{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:13.5px;font-weight:600;min-height:40px}
   .mi-sc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Réinsertion EXPLICITE (v5.0.0, signalé à l'usage : « on ne peut pas remettre la référence ») —
+     le tap sur la vignette existait depuis v4.4.3 mais n'était porté que par cursor:copy + title,
+     invisibles sur tactile et inaccessibles au clavier. Un vrai bouton, avec le mot. */
+  .mi-ins{border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:40px;padding:0 12px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;flex:none}
+  .mi-ins:hover{background:var(--surface-2)}
+  .mi-ins:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Une image absente du texte sera supprimée par le ménage de sortie (leaveGC) : on le DIT au
+     lieu de le laisser découvrir — registre ATTENTION (glyphe + mots, la couleur jamais seule). */
+  .mi-un{flex:1 1 100%;font-size:12px;font-weight:600;color:var(--verify)}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
   .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:var(--mono);font-size:13.5px;line-height:1.55;resize:vertical}
@@ -7546,7 +7586,12 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
       {id:b1,kind:'do',title:'Mesures immédiates',image:null,items:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local — noter l’heure','△ Allonger, jambes surélevées :: ne jamais verticaliser (désamorçage)','O₂ fort débit, voie veineuse, remplissage'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
       {id:bd,kind:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
       {id:b2,kind:'do',title:'Stabilisé',image:null,items:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null},
-      {id:bx,kind:'do',title:'Bronchospasme réfractaire',image:null,items:['△ Salbutamol nébulisé :: dose du protocole local','Réévaluer la ventilation, envisager l’intubation','Ne pas retarder l’adrénaline'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null},
+      /* PARCIMONIE PAR FICHE (v5.0.0, décision utilisateur — la règle que le prompt IA impose) :
+         1 à 2 « ⚠ » ET 1 à 2 « △ » sur la fiche ENTIÈRE. Ici : ⚠ = les deux adrénalines IM (le
+         geste qui sauve), △ = le désamorçage (le piège qui tue) et l'adrénaline IV titrée (là où
+         l'on se trompe). Le salbutamol reste une action NORMALE : sa dose se lit dans l'étape, un
+         troisième △ diluerait les deux qui priment. */
+      {id:bx,kind:'do',title:'Bronchospasme réfractaire',image:null,items:['Salbutamol nébulisé :: dose du protocole local','Réévaluer la ventilation, envisager l’intubation','Ne pas retarder l’adrénaline'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null},
       {id:b3,kind:'do',title:'Réfractaire',image:null,items:['⚠ 2ᵉ adrénaline IM :: à 5 min','Renforcer le remplissage','△ Adrénaline IV titrée :: équipe entraînée, protocole local','Renfort réanimation / SMUR'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd}
     ]});
   /* ★ ET ×2 SE POSENT SUR L'ITEM, PAS DANS LA CHAÎNE — c'est tout l'objet du modèle v4, et ces
@@ -7582,7 +7627,12 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
       {id:b1,kind:'do',title:'Reconnaissance & alerte',image:null,items:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','△ Relais du masseur :: toutes les 2 min — annoncer le changement','⚠ RCP immédiate :: 30:2 — sans délai'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
       {id:bd,kind:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}]},
       {id:b2,kind:'do',title:'Choquable (FV / TVsp)',image:null,items:['⚠ Choc immédiat :: puis reprise RCP 2 min','Adrénaline :: 1 mg après le 3ᵉ choc, puis / 3–5 min','Amiodarone :: 300 mg après le 3ᵉ choc'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
-      {id:b3,kind:'do',title:'Non choquable (AESP / asystolie)',image:null,items:['RCP 2 min sans interruption','⚠ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd}
+      /* PARCIMONIE PAR FICHE (v5.0.0) : 2 « ⚠ » (RCP immédiate — LE memory item —, choc immédiat)
+         et 2 « △ » (relais du masseur, moment de l'adrénaline en non choquable). L'adrénaline du
+         bloc non choquable est AMBRE, pas rouge : le risque n'est pas de l'oublier — c'est la
+         première drogue du bloc — mais de SE TROMPER de moment (immédiatement ici, après le 3ᵉ
+         choc côté choquable) : registre « c'est ICI qu'on se trompe ». */
+      {id:b3,kind:'do',title:'Non choquable (AESP / asystolie)',image:null,items:['RCP 2 min sans interruption','△ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd}
     ]});
   /* Même règle que la 1ʳᵉ fiche : le memory item de l'ACR est la RCP immédiate — c'est ce qui se
      fait de mémoire, avant d'ouvrir quoi que ce soit. Pas de ×2 ici : le geste est continu, pas un
@@ -10324,10 +10374,12 @@ function mdImagesHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);
     ${ims.map((im,i)=>`<div class="mi-row">
       <img class="mi-th" src="${im.data}" alt="" data-miref="${esc(im.id)}" title="Insérer une nouvelle référence à cette image">
       <span class="mi-cap">${esc(im.caption||'Image '+(i+1))}</span>
+      <button type="button" class="mi-ins" data-miref="${esc(im.id)}" title="Insère ![](img:…) à l'endroit du curseur — une image peut illustrer plusieurs passages">＋ Insérer dans le texte</button>
       <label class="mi-lab" for="miSc${i}">Taille</label>
       <select class="mi-sc" id="miSc${i}" data-miscale="${esc(im.id)}">
         ${MD_SCALES.map(s=>`<option value="${s}"${(im.scale||100)===s?' selected':''}>${s} %</option>`).join('')}
-      </select></div>`).join('')}</div>`;}
+      </select>
+      <span class="mi-un" data-miuse="${esc(im.id)}" hidden>△ absente du texte — sera retirée en quittant l'éditeur</span></div>`).join('')}</div>`;}
 let _mdPrevTimer=null;
 function renderProtocolEdit(){
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
@@ -10367,7 +10419,7 @@ function renderProtocolEdit(){
         <button type="button" class="mini mdc mdc-info" data-mdtool="c-note" aria-label="Encadré Information" title="Encadré INFORMATION (bleu) — > [!NOTE] texte">${uiIcon('info',15)}</button>
         <button type="button" class="mini mdc mdc-ok" data-mdtool="c-tip" aria-label="Encadré Confirmation" title="Encadré CONFIRMATION (vert) — > [!TIP] texte">${uiIcon('check',15,{sw:3})}</button>
         <button type="button" class="mini" data-mdtool="tbl" aria-label="Tableau" title="Tableau — | a | b | puis |---|---| (alignement : |:-:| centré, |---:| à droite)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/></svg></button>
-        <button type="button" class="mini" data-mdtool="img" aria-label="Insérer une image" title="Insérer une image (réduite et stockée hors ligne)">${uiIcon('img',16)}</button>
+        <button type="button" class="mini" data-mdtool="img" aria-label="Importer une image" title="Importer une NOUVELLE image (réduite et stockée hors ligne) — une image déjà importée se réinsère depuis la liste « Images insérées » sous le texte">${uiIcon('img',16)}</button>
       </div>
       <textarea id="p-body" rows="12" placeholder="## Indication&#10;- Critère 1&#10;- Critère 2&#10;&#10;Texte libre, **gras**, *italique*…">${esc(p.body)}</textarea>
       <details class="md-syn"><summary><span>Aide-mémoire de syntaxe</span></summary><p class="hint">Syntaxe : <code># titre</code> (##, ###), <code>- liste</code> / <code>1. liste</code> (sous-liste : 2 espaces devant), <code>- [ ] tâche</code> liste cochable (<code>- [x]</code> déjà cochée) — en lecture, les coches repartent à zéro à chaque ouverture, <code>&gt; citation</code>, <code>\`code\`</code> (bloc : <code>\`\`\`</code>), <code>---</code> séparateur, <code>**gras**</code>, <code>*italique*</code>, <code>==surligné==</code>, <code>[texte](https://…)</code>, <code>[texte](att:ID)</code> ouvre un document joint, <code>![légende](img:ID)</code> image (taille réglable ci-dessous).<br>Tableau : <code>| a | b |</code> puis, en 2ᵉ ligne, <code>|---|---|</code> — l'alignement se règle là (<code>|:-:|</code> centré, <code>|---:|</code> à droite). Un <code>|</code> dans une cellule s'écrit <code>\\|</code>.<br>Encadré coloré — syntaxe GitHub, tapable au clavier, le marqueur seul sur sa ligne puis le texte en dessous : <code>&gt; [!CAUTION]</code> alerte · <code>&gt; [!WARNING]</code> attention · <code>&gt; [!NOTE]</code> information · <code>&gt; [!TIP]</code> confirmation (les boutons ci-dessus les posent). Alias acceptés ici : <code>[!alerte]</code>, <code>[!attention]</code>, <code>[!info]</code>, <code>[!ok]</code>, et les glyphes ⚠ △ ℹ ✓.<br><span class="hint">Portabilité : les mots-clés en MAJUSCULES sont rendus en encadré par GitHub, GitLab, pandoc et Typora, et <code>- [ ]</code> en case native ; ailleurs, encadrés et tâches restent une citation ou un « [ ] tâche » lisibles — rien n'est jamais perdu.</span></p></details>
@@ -10403,8 +10455,14 @@ function renderProtocolEdit(){
   bindListEditors(p,renderProtocolEdit);   // Références (v4.2.2) — même composant que les fiches
   // Contenu rédigé : saisie -> brouillon + aperçu débouncé (même cadence que l'aperçu algorithme).
   const ta=document.getElementById('p-body');
-  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});},300);};
+  // « △ absente du texte » : même critère que le ménage de sortie (mdBlocks, ligne ![](img:ID)
+  // seule) — deux critères divergents diraient « présente » à une image que leaveGC supprimera.
+  // Peint sur place (le rendu n'est pas rejoué à la frappe), au rythme débouncé de l'aperçu.
+  const paintMiUse=()=>{const used=new Set();mdBlocks(p.body||'').forEach(b=>{if(b.t==='img')used.add(b.id);});
+    main.querySelectorAll('[data-miuse]').forEach(s=>{s.hidden=used.has(s.dataset.miuse);});};
+  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});paintMiUse();},300);};
   ta.addEventListener('input',()=>{p.body=ta.value;schedulePrev();});
+  paintMiUse();
   const imgInput=document.getElementById('imgInput');
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
     if(k==='b')wrapBold(ta);
@@ -10439,7 +10497,9 @@ function renderProtocolEdit(){
     im.scale=_scale(sel.value);
     const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});
     ta.dispatchEvent(new Event('input',{bubbles:false}));});   // auto-enregistrement du brouillon
-  // Vignette : insère une NOUVELLE référence à la même image (une image peut illustrer 2 passages).
+  // Vignette ET bouton « ＋ Insérer dans le texte » (même attribut data-miref) : insèrent une
+  // NOUVELLE référence à la même image (une image peut illustrer 2 passages). Le bouton est
+  // l'affordance visible — la vignette seule (cursor:copy + title) ne se découvrait pas.
   main.querySelectorAll('[data-miref]').forEach(th=>th.onclick=()=>{
     mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+th.dataset.miref+')\n');});
 
@@ -12180,9 +12240,11 @@ function tagAll(f,tags){
    PURE (testée) : elle ne lit que ce qu'on lui passe. */
 /* UNE CHIP N'EST PAS UN LIBELLÉ, C'EST UNE CIBLE DE POUCE (v5.0.0) : « Adrénaline IM, face
    antéro-latérale de cuisse :: dose du protocole local » ne tient sur aucune rangée et ne se lit
-   pas d'un coup d'œil. On abrège À L'AFFICHAGE seulement — la RÉFÉRENCE, elle, voyage entière et
-   se résout en toutes lettres dans le journal et le compte rendu (`tagLabel`). Abréger la donnée
-   serait perdre de l'information ; abréger la chip ne perd rien. PURE, testée. */
+   pas d'un coup d'œil. On abrège À L'AFFICHAGE seulement — la RÉFÉRENCE, elle, voyage entière :
+   abréger la donnée serait perdre de l'information ; abréger l'affichage ne perd rien. Depuis la
+   v5.0.0 (signalé à l'usage), le libellé RÉSOLU d'une ÉTAPE passe lui aussi par ce raccourci
+   (`tagLabel`) : recopier la ligne de geste entière dans le journal et le compte rendu ne se
+   relisait pas — le raccourci intelligent suffit en texte. PURE, testée. */
 function tagShort(l){
   let t=String(l||'').split('::')[0].replace(/\s*[—–(,;].*$/,'').trim();
   const w=t.split(/\s+/);if(w.length>3)t=w.slice(0,3).join(' ');
@@ -12208,7 +12270,12 @@ function tagLabel(ref,f,tags){
   if(r.type==='timer'){const t=(((f&&f.timers)||[]).find(x=>x.id===r.id));return (t&&t.label)||null;}
   if(r.type==='step'){const b=(((f&&f.blocks)||[]).find(x=>x.id===r.b));
     const st=b?stepsOf(b)[+r.i]:null;
-    return st?posoName(stepText(st)):null;}
+    /* LIBELLÉ COURT, PAS LA LIGNE ENTIÈRE (v5.0.0, signalé à l'usage) : une étape est une phrase
+       de geste (« Adrénaline IM, face antéro-latérale de cuisse :: dose… ») — recopiée telle
+       quelle dans le journal et le compte rendu, elle ne se relit pas d'un coup d'œil. Le
+       raccourci intelligent (`tagShort`) suffit EN TEXTE aussi : la référence, elle, reste
+       entière — c'est une résolution d'AFFICHAGE, rien n'est perdu dans la donnée. */
+    return st?tagShort(posoName(st)):null;}
   if(r.type==='poso'){const pp=listOf(f,'posology')[+r.i];return pp?posoName(pp):null;}
   if(r.type==='core'){const c=TAG_CORE.find(x=>x.k===r.k);return c?c.l:null;}
   if(r.type==='tag'){const t=sanitizeTags(tags).find(x=>x.k===r.k);return t?t.l:null;}
@@ -12339,7 +12406,8 @@ function bindTk(){
     // qui gagne (« renommage manuel : souverain », déjà la règle de `tkLabels`).
     if(ev.ref)delete ev.ref;
     persistLive(Runtime);
-    tkPaintSug(ev.id,e.target.value);}));
+    tkPaintSug(ev.id,e.target.value);
+    tkAckPaint();}));   // l'accusé de la carte du bloc montre le même évènement : il suit la frappe
   document.querySelectorAll('.tk-panel [data-tklab]').forEach(inp=>{
     inp.addEventListener('focus',e=>tkPaintSug(e.target.dataset.tklab,e.target.value));
     // Le repli est DIFFÉRÉ : sans cela, le `blur` provoqué par le tap sur une proposition
@@ -12422,8 +12490,8 @@ function tkPaintSug(id,q){
   z.innerHTML=hits.map(h=>{
     const perso=part&&h.src==='perso';
     return '<button type="button" class="tk-pick'+(perso?' own':'')+'" data-tkpick="'
-      +esc(JSON.stringify(h.ref))+'"'+(perso?' title="Votre vocabulaire : ce mot n’apparaîtra pas chez les autres participants"':'')
-      +'>'+esc(h.label)+(perso?'<span class="tk-own"> · vous seul</span>':'')+'</button>';}).join('');
+      +esc(JSON.stringify(h.ref))+'" title="'+(perso?'Votre vocabulaire : ce mot n’apparaîtra pas chez les autres participants':esc(h.label))+'"'
+      +'>'+esc(tagShort(h.label))+(perso?'<span class="tk-own"> · vous seul</span>':'')+'</button>';}).join('');
   z.hidden=false;}
 /* UN SEUL POINT D'ÉCRITURE D'UN REPÈRE (v5.0.0, lot M2) : le bouton du PANNEAU et celui de la
    CARTE DU BLOC appellent la même fonction. Deux copies auraient divergé — c'est déjà arrivé au
@@ -12442,19 +12510,38 @@ function tkAckHtml(f){
   const id=state.tkAck;if(!id)return '';
   const ev=(Runtime.events||[]).find(x=>x.id===id);if(!ev)return '';
   const lbl=tagLabel(ev.ref,f,myTags())||String(ev.label||'').trim();
+  /* « SANS ÉTIQUETTE » NE DISAIT PAS LA VÉRITÉ (signalé à l'usage) : même sans choisir, le
+     journal posera un libellé par DÉFAUT (« Action n », cf. tkLabels). On montre donc CE libellé,
+     avec la mention « par défaut » — l'utilisateur comprend qu'il peut ne rien faire. */
+  const defLbl=(()=>{const evs=(Runtime.events||[]).slice().sort((a,b)=>a.t-b.t);
+    return tkLabels(evs,f,myTags())[evs.indexOf(ev)]||'Action';})();
   const sug=tagSuggest(f,myTags(),(state.nav||[])[state.navPos]||null,4);
   const nEv=(Runtime.events||[]).length;
   const t0=(Runtime&&Runtime.startedAt)||0;
   const dep=t0?('T+'+fmtMs(Math.max(0,ev.t-t0))):fmtHMS(ev.t);
   return `<div class="tk-ack"><div class="tk-ack-h"><span class="tk-ack-t">${uiIcon('check',13,{sw:3})} ${esc(dep)} noté</span>`
-    +`<span class="tk-ack-l">${lbl?esc(lbl):'sans étiquette'}</span></div>`
+    +`<span class="tk-ack-l"${lbl?'':' title="Sans choix, ce libellé restera dans le journal"'}>${lbl?esc(lbl):esc(defLbl)+' · par défaut'}</span></div>`
     +`<div class="tk-ack-c">${sug.map(t=>`<button type="button" class="tk-pick" data-tkack="${esc(JSON.stringify(t.ref))}" title="${esc(t.label)}">${esc(tagShort(t.label))}</button>`).join('')}`
-    +`<button type="button" class="tk-pick more" data-tkmore title="Ouvrir le journal pour écrire un autre libellé">…</button></div>`
+    +`<button type="button" class="tk-pick more" data-tkmore title="Ouvrir le journal pour écrire un autre libellé">Autre…</button></div>`
     +`<button type="button" class="tk-ack-j" data-tkmore aria-expanded="${state.tkAckOpen?'true':'false'}">Journal des actions (${nEv}) ${state.tkAckOpen?'▴':'▾'}</button>`
     +(state.tkAckOpen?`<div class="tk-ack-l2">${(()=>{const evs=(Runtime.events||[]).slice().sort((a,b)=>a.t-b.t);
         const labs=tkLabels(evs,f,myTags());
         return evs.map((e,i)=>`<div class="tk-ack-r${e.voidAt?' vd':''}"><span>${esc(fmtHMS(e.t))}</span><b>${esc(labs[i])}</b></div>`).join('');})()}</div>`:'')
     +`</div>`;}
+/* REPEINTURE CHIRURGICALE DE L'ACCUSÉ (v5.0.0, signalé à l'usage : « quand je renomme depuis le
+   journal, le "sans étiquette" reste ; quand je corrige l'heure, la petite box du bloc ne suit
+   pas »). L'accusé vit dans la carte du bloc, le journal dans son panneau : deux vues du MÊME
+   évènement, et chacune ne repeignait qu'elle-même. On remplace le seul nœud `.tk-ack` — ses
+   gestes sont DÉLÉGUÉS sur `.ov-wrap`, donc rien à recâbler, et l'input du journal garde son
+   focus (un `renderOvOnly` par frappe serait la mauvaise arme). Appelée par `renderTkOnly`, donc
+   couverte pour TOUS les chemins qui passent par lui — correction d'heure, annulation, choix
+   d'une proposition, et les évènements `mark` DISTANTS d'une session partagée. */
+function tkAckPaint(){
+  const el=document.querySelector('.tk-ack');if(!el)return;
+  const h=tkAckHtml(Runtime.fiche);
+  if(!h){el.remove();return;}
+  const tmp=document.createElement('div');tmp.innerHTML=h;
+  el.replaceWith(tmp.firstElementChild);}
 function tkNoteNow(fromBlock){
   const ev={id:uid('e'),t:vfNow(),label:''};
   Runtime.events=Runtime.events||[];Runtime.events.push(ev);
@@ -12485,7 +12572,7 @@ function renderTkOnly(){
   const old=document.querySelector('.tk-panel');if(!old)return false;
   const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
   old.replaceWith(tmp.firstElementChild);
-  bindTk();return true;}
+  bindTk();tkAckPaint();return true;}
 
 /* ===== Read (mode crise / lecture) =====
    renderRead() : affiche la fiche active. De haut en bas : titre + méta, bandeau
@@ -14399,7 +14486,7 @@ function bindOverviewEvents(f){
     {const pk=t.closest('[data-tkack]');
      if(pk){const ev=(Runtime.events||[]).find(x=>x.id===state.tkAck);
        if(ev){try{ev.ref=tkRefNorm(JSON.parse(pk.dataset.tkack));}catch(e){}delete ev.label;persistLive(Runtime);}
-       renderOvOnly();return;}}
+       renderOvOnly();renderTkOnly();return;}}   // le panneau du journal montre le même évènement : son input doit suivre tout de suite
     if(t.closest('[data-tkmore]')){state.tkAckOpen=!state.tkAckOpen;renderOvOnly();return;}
     const cb2=t.closest('[data-cxback]');if(cb2){cxResume(f,cb2.dataset.cxback);return;}
     const nx=t.closest('[data-ovnext]');
@@ -15142,8 +15229,16 @@ function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
      l'ont vu (aucun des deux n'exerce un rendu). On dégrade au lieu de casser. */
   arr=Array.isArray(arr)?arr:[];
   const _src=(arr.length?arr:['']);
+  /* LA RANGÉE PARLE LA GRAMMAIRE DES ÉTAPES DE BLOC (v5.0.0, demande utilisateur : « mettre la
+     poignée ⠿ à gauche pour harmoniser avec les étapes dans les blocs, et rapprocher les deux
+     dessins »). MÊME anatomie, même cycle MK-flux : la poignée ⠿ à GAUCHE, premier objet de la
+     ligne (décision M1 — c'est là que l'œil la cherche avant d'avoir lu, et le chapeau « Ne pas
+     oublier » l'y met déjà) ; au REPOS la ligne est du TEXTE (le chrome vit dans le CSS, cf. le
+     bloc « MK-flux étendu aux listes ») ; les OUTILS (gras, bascule △, ✕) n'existent qu'en
+     édition, SOUS la ligne, dans `.li-tools` — ce qui leur donne gratuitement le remède
+     anti-vol-de-clic de la v4.77.0, dont le sélecteur est `.li-tools button`. */
   const rows=edGrabRows(key,_src,(v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
-  return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}${edGrabHandleL(key,i,_src.length,'la ligne')}<button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
+  return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${edGrabHandleL(key,i,_src.length,'la ligne')}${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}"><span class="li-tools">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}<span class="li-sp"></span><button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></span></div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
    « ＋ Rappel (1 restant) ». Le garde-fou ambre ne parle qu'AU-DELÀ de 4 — avant, le compte suffit
    et il informe sans alerter. C'est la différence entre un plafond qu'on voit approcher et une
    remontrance qu'on subit. */
@@ -15915,7 +16010,18 @@ function bindEditSide(kind){if(!document.getElementById('editSide'))return;
      textarea markdown : là, sans la colonne, l'auteur écrit vraiment à l'aveugle. Côté fiche
      la colonne porte le schéma, qui ne dépend que de la STRUCTURE (cf. editPreviewHtml). */
   if(kind==='fiche')return;
-  _editSideOn=()=>{clearTimeout(_editSideT);_editSideT=setTimeout(()=>{const s=document.getElementById('editSide');if(!s)return;s.innerHTML=editPreviewHtml(kind);wire();},300);};
+  /* ⚠ LA COLONNE PORTE AUSSI LE VOLET DE RELECTURE (signalé à l'usage : « l'onglet relecture
+     disparaît dès qu'on tape dans le contenu rédigé »). `s.innerHTML=editPreviewHtml(...)` seul
+     écrasait TOUT #editSide, donc #revPanel avec — le volet mourait à la première frappe. On
+     reconstruit les DEUX (le bilan doit de toute façon suivre la frappe : « référence vide »,
+     « à compléter » se recalculent sur le corps), en PRÉSERVANT l'état ouvert/replié du dépliant
+     — un panneau ne se referme que sur le geste de qui l'a ouvert (v4.74.0). */
+  _editSideOn=()=>{clearTimeout(_editSideT);_editSideT=setTimeout(()=>{const s=document.getElementById('editSide');if(!s)return;
+    const p=state.pdraft;
+    const dt=s.querySelector('#revPanel details.rev-panel');const open=dt?dt.open:null;
+    s.innerHTML=`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`+editPreviewHtml(kind);
+    const d2=s.querySelector('#revPanel details.rev-panel');if(d2&&open!=null)d2.open=open;
+    bindRevPanel();wire();},300);};
   main.addEventListener('input',_editSideOn);}
 /* ═══ « SCHÉMAS & CAPTURES » EST UN AGRÉGATEUR (v4.78.0, signalé à l'usage) ═══════════════════
    « Une image ajoutée depuis un bloc via + Image/Capture ne s'affiche pas dans le bloc schémas &
@@ -16345,7 +16451,9 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
   main.querySelectorAll('input[data-key]').forEach(inp=>inp.addEventListener('input',e=>{
     const k=e.target.dataset.key,i=+e.target.dataset.idx;
     const _a=edList(d,k).slice();
-    const pfx=e.target.hasAttribute('data-critlist')&&stepIsCrit(_a[i]||'')?'⚠ ':'';
+    /* ⚠ et △ sont TOUS DEUX re-posés : l'ancienne condition ne testait que `stepIsCrit`, si bien
+       qu'une frappe dans un repère « △ » perdait son registre en silence (défaut latent). */
+    const pfx=e.target.hasAttribute('data-critlist')?(stepIsCrit(_a[i]||'')?'⚠ ':(stepIsVigil(_a[i]||'')?'△ ':'')):'';
     _a[i]=pfx+e.target.value;edPut(d,k,_a);
     // Garde-fou memory items : recompté À LA FRAPPE (l'ajout/suppression de ligne re-rend, lui).
     if(k==='notForget'){const g=document.getElementById('nfGuard');if(g)g.textContent=nfGuardTxt(forgetAll(d));}
@@ -16355,7 +16463,12 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
     // d'une fiche antérieure est traité comme signalé et le geste le REMET à plat, d'où
     // stepIsCrit||stepIsVigil en test.
     const _a=edList(d,k).slice();const v=String(_a[i]||'');const on=stepIsCrit(v)||stepIsVigil(v);
-    _a[i]=on?stepText(v):('△ '+stepText(v));edPut(d,k,_a);rerender();});
+    _a[i]=on?stepText(v):('△ '+stepText(v));edPut(d,k,_a);rerender();
+    /* Le focus revient au champ de la rangée : depuis que les outils vivent en `:focus-within`
+       (grammaire MK-flux étendue aux listes), un re-rendu sans focus les ferait disparaître sous
+       le doigt du même geste — même leçon que la bascule ⚠/△ des étapes de bloc (v4.78.0). */
+    const f2=main.querySelector('.list-edit input[data-key="'+CSS.escape(k)+'"][data-idx="'+i+'"]');
+    if(f2)f2.focus({preventScroll:true});});
   main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const k=b.dataset.add;
     edPut(d,k,edList(d,k).concat(''));rerender();});
   main.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const k=b.dataset.rm;
@@ -17219,6 +17332,14 @@ TYPES D'ÉTAPES (préfixe au DÉBUT du libellé)
   qui priment vraiment, laisse les autres en action normale (une dose n'a pas besoin de △
   pour être lue — elle est déjà dans l'étape). Un bloc entièrement nu est parfaitement
   normal et souhaitable.
+- PLAFOND PAR FICHE, ET C'EST LE PLUS IMPORTANT : le plafond par bloc n'autorise PAS à
+  colorer chaque bloc. Sur la fiche ENTIÈRE, vise 1 à 2 étapes « ⚠ » AU TOTAL, et de même
+  1 à 2 étapes « △ » AU TOTAL : cible LE geste rouge et LE point ambre de la situation.
+  Seule une TRÈS GRANDE fiche (au-delà d'environ 6 blocs) peut en porter un peu plus —
+  et jamais au point de retrouver une couleur dans la majorité des blocs. RELECTURE
+  OBLIGATOIRE avant de répondre : compte les ⚠ puis les △ de la fiche finie ; au-delà de
+  2 de l'un ou de l'autre, demande-toi lesquels priment VRAIMENT et remets les autres en
+  action normale.
 - « ⚠ » = CRITIQUE, affichée en ROUGE : ce qui TUE si on l'oublie — memory item, geste
   vital time-critical dont l'omission ou le retard est immédiatement dangereux
   (ex. « ⚠ Adrénaline IM 0,5 mg — face antéro-latérale de cuisse »). 1 à 2 par bloc
@@ -17258,7 +17379,9 @@ Dans les DEUX cas la clé est "items" — jamais "steps", qui n'existe plus.
   · "expect"  la réponse attendue, "" si l'étape n'en appelle pas.
   · "level"   3 = ce qui TUE si on l'oublie (ex-« ⚠ ») · 2 = là où l'on se TROMPE, dose,
               dilution, voie, seuil (ex-« △ ») · 1 = étape ordinaire. Mettre 3 partout
-              détruit la valeur du 3 : sur un bloc de cinq étapes, une ou deux au plus.
+              détruit la valeur du 3 : sur un bloc de cinq étapes, une ou deux au plus —
+              et les PLAFONDS PAR FICHE de « TYPES D'ÉTAPES » (1 à 2 niveaux 3, 1 à 2
+              niveaux 2 sur la fiche entière) s'appliquent à l'identique.
   · "memory"  true = memory item : l'étape RESTE à sa place dans le bloc ET apparaît en
               tête de fiche dans « Ne pas oublier ». À réserver à ce qui doit être fait de
               mémoire avant même d'ouvrir la fiche — au plus deux ou trois par aide, et
