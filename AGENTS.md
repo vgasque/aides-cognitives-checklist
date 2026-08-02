@@ -19,6 +19,34 @@ vitale, sous stress : clarté et robustesse priment.
 > test hors-ligne complet (mode avion, PDF 50+ pages, iPhone). **Aucune autre dépendance runtime
 > n'est autorisée** ; tout nouveau fichier servi doit être ajouté à `ASSETS` (`sw.js`).
 
+### Mettre à jour un actif vendorisé (pdf.js, police) — la marche à suivre
+
+**⚠ CHANGER LES FICHIERS NE SUFFIT PAS À CHANGER CE QUI TOURNE (v5.0.0, audit).** Le service
+worker range pdf.js dans un cache versionné par pdf.js lui-même (`PDFJS_CACHE`), et son
+installation n'écrit **que ce qui manque** (`if (await c.match(a)) continue;`). Remplacer
+`vendor/pdfjs/` sans toucher `PDFJS_CACHE` laisse donc la clé inchangée, les entrées déjà
+présentes, et **rien n'est re-téléchargé** : chaque appareil déjà installé garde l'ANCIENNE
+bibliothèque, indéfiniment et sans un mot. Pour une bibliothèque qui analyse du contenu non
+maîtrisé — les PDF joints par l'utilisateur — c'est le pire mode de défaillance : la mise à jour
+de sécurité qui n'atteint personne. `scripts/check-vendor.mjs` relie désormais les deux sources et
+échoue si elles divergent (vérifié capable d'échouer sur les deux).
+
+1. Vérifier l'amont **et les avis de sécurité**, qui ne se déduisent pas du numéro de version :
+   `npm view pdfjs-dist version` et les *security advisories* de `mozilla/pdf.js`. Un avis dit
+   toujours sa **plage affectée** ET sa version de correction : lire les deux, une version plus
+   ancienne que la plage n'est pas concernée.
+2. Remplacer les fichiers (`legacy/build/pdf.min.mjs` → `pdf.min.js`, idem worker), **mettre à
+   jour `vendor/pdfjs/README.txt`** (c'est la seule trace de ce qui est réellement sur le disque)
+   **et `PDFJS_CACHE` dans `sw.js`**.
+3. `npm run check` (`check-vendor` + `check-sw`), puis le **test hors-ligne complet** : mode
+   avion, PDF de 50+ pages, iPhone — et sur un appareil **DÉJÀ INSTALLÉ**, seul cas où le piège
+   du cache se manifeste.
+
+Même discipline pour la police (`vendor/fonts/README.txt` annonce sa taille en octets ;
+`check-vendor` la compare au fichier). **`playwright` ne suit pas cette règle** : c'est une
+dépendance de DÉVELOPPEMENT, elle n'est ni servie, ni précachée, ni exécutée chez un utilisateur —
+`npm outdated` et `npm audit` suffisent, et la CI installe le lock à l'identique (`npm ci`).
+
 ## Si vous ne lisez qu'une chose
 
 Quinze règles qui ne se négocient pas. Le reste de ce fichier les explique et les étend ; **aucune
@@ -29,8 +57,9 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    notes et taguer. Ne JAMAIS éditer les numéros de version à la main (un décalage entre
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
-2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations ·
-   service worker · **entrées de fichier** · SQL · harnais · hashs CSP) et
+2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises **et stylées** ·
+   animations · service worker · **actifs vendorisés** · **entrées de fichier** · SQL · harnais ·
+   hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
    **La passe d'audit qui vaut avant un commit est la COMPLÈTE** (`npm run audit` sans argument) ;
    `npm run audit -- <noms>` n'est qu'un accélérateur d'itération et s'annonce « PARTIELLE ».
