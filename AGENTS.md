@@ -3474,6 +3474,21 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   borne au `svh`, sinon elle suit la barre d'outils et se déplace pendant qu'on s'en sert.
   Corollaire pour le geste : le mapping doigt → lettre est relevé UNE FOIS à la prise, jamais
   re-mesuré à chaque mouvement — insensible par construction à une géométrie qui bougerait demain.
+  **⚠ ET `svh` NE SUFFISAIT PAS — LE SECOND TERME EST LA MARGE BASSE DU MATÉRIEL (v5.0.2, signalé
+  à l'usage : « ça persiste en partie, surtout quand on scroll vers le bas sur le rail : il
+  remonte »)** : dans Safari iOS, `env(safe-area-inset-bottom)` n'est **pas une constante** — la
+  barre d'outils du bas COUVRE la bande de l'indicateur d'accueil, donc l'inset vaut 0 barre
+  déployée et saute à ~34 px dès qu'elle se replie, c'est-à-dire au défilement. La hauteur perdait
+  34 px et les lettres centrées remontaient de 17. Le terme est retiré : `100svh` est déjà la
+  hauteur *barre déployée*, son bord bas est donc au-dessus de cette barre, donc au-dessus de
+  l'indicateur. **EN APP INSTALLÉE l'arbitrage s'inverse** — sans barre d'outils, `svh` descend au
+  bord de l'écran, indicateur compris, mais l'inset y est CONSTANT : il est retranché sous
+  `@media (display-mode:standalone)`, et là seulement.
+  **RÈGLE : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est aussi suspect
+  que `--vvh`** — le vérifier avant de l'écrire.
+  ⚠ **ET LE TÉMOIN EST STATIQUE, DÉLIBÉRÉMENT** : les deux termes fautifs sont INVISIBLES en
+  headless (`--vvh` y vaut une hauteur qui ne varie jamais, l'inset y vaut 0 et aucune API ne le
+  simule) — un contrôle dynamique serait resté vert sur le défaut. On mesure la SOURCE.
   **⚠ UNE GOUTTIÈRE FANTÔME DE 68 px** : le rail réservait la hauteur de la **tab bar**, supprimée
   au lot M4 (`grep tabBar` : 0 occurrence). Invisible tant que les lettres étaient ancrées en
   haut ; en les centrant, ce vide décalait tout le rail. Corollaire de la règle 14 — **une
