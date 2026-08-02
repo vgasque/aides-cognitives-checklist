@@ -3458,6 +3458,22 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   0 px sur les trois gestes. Sa BOÎTE est stable : bornée par `--hdr-h` (constante dans une vue)
   en étroit, par la coque fixe de l'accueil en large ; un centrage dans une boîte qui ne bouge pas
   ne bouge pas non plus.
+  **⚠ ET C'EST `100svh`, SURTOUT PAS `--vvh` NI `dvh` (v5.0.1, signalé à l'usage : « il bouge sous
+  mon doigt alors qu'il est censé rester fixe »)** — la moitié « garantie » ci-dessus ne l'était
+  pas : le recentrage avait laissé la hauteur en `--vvh`, c'est-à-dire `visualViewport.height`, LA
+  mesure qui suit la barre d'outils du navigateur mobile. Le défaut de la v4.73.0 était donc revenu
+  tel quel, et par le pire chemin : le glisser fait DÉFILER, le défilement replie la barre, la
+  boîte grandit, les lettres descendent de la MOITIÉ de l'écart, la lettre visée change — un
+  asservissement qui s'entretient lui-même. `100svh` est le **small viewport**, la hauteur qu'a la
+  fenêtre barre d'outils DÉPLOYÉE : une constante. La boîte ne peut alors jamais dépasser le bord
+  visible, et le test de débordement de `bindAzRail` en devient plus fiable, n'étant plus mesuré
+  sur une hauteur qui change d'un instant à l'autre. Le clavier n'est pas un cas (le rail n'existe
+  qu'en RÉPERTOIRE ; saisir bascule sur la liste plate, où il n'est pas rendu).
+  **RÈGLE GÉNÉRALE** : `--vvh` est la mesure d'une surface qu'on veut voir ENTIÈREMENT MAINTENANT
+  (overlays, fenêtres, menu ⋯) ; une surface PERSISTANTE dont la position doit être APPRISE se
+  borne au `svh`, sinon elle suit la barre d'outils et se déplace pendant qu'on s'en sert.
+  Corollaire pour le geste : le mapping doigt → lettre est relevé UNE FOIS à la prise, jamais
+  re-mesuré à chaque mouvement — insensible par construction à une géométrie qui bougerait demain.
   **⚠ UNE GOUTTIÈRE FANTÔME DE 68 px** : le rail réservait la hauteur de la **tab bar**, supprimée
   au lot M4 (`grep tabBar` : 0 occurrence). Invisible tant que les lettres étaient ancrées en
   haut ; en les centrant, ce vide décalait tout le rail. Corollaire de la règle 14 — **une

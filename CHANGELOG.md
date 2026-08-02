@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [5.0.1] — 2026-08-02
+### Le rail A→Z cesse de bouger sous le doigt
+
+Signalé à l'usage, vidéo à l'appui : « il bouge sous mon doigt alors qu'il est censé rester fixe ».
+
+- **La hauteur du rail étroit passe de `--vvh` à `100svh`.** En voie étroite, le rail est
+  `position:fixed`, borné en haut par `--hdr-h` et en hauteur par `--vvh` —
+  c'est-à-dire `visualViewport.height`, **la mesure qui suit la barre d'outils du navigateur
+  mobile**. Or cette barre se replie précisément **pendant** un défilement : la boîte grandit, les
+  lettres centrées descendent de la moitié de l'écart, la lettre visée change sous le doigt, le
+  rail défile ailleurs — et comme viser une lettre FAIT défiler, l'asservissement s'entretient
+  lui-même. C'est le défaut de la v4.73.0, revenu avec le recentrage de la v5.0.0, qui avait gardé
+  la hauteur dynamique. `100svh` est le **small viewport** : la hauteur qu'a la fenêtre barre
+  d'outils déployée, donc une constante que ni le défilement ni le repli ne touchent. La boîte ne
+  peut jamais dépasser le bord visible (elle est bornée par le plus petit des deux états), et le
+  test de débordement de `bindAzRail` — celui qui masque le rail plutôt que de couper des lettres —
+  devient fiable, n'étant plus mesuré sur une hauteur qui change d'un instant à l'autre.
+  **Le centrage vertical est conservé** (décision de l'auteur, v5.0.0) : ce qui est corrigé est la
+  BOÎTE, pas l'alignement.
+- **Le mapping doigt → lettre est relevé UNE FOIS, à la prise.** Il était re-mesuré à chaque
+  mouvement : toute géométrie qui bougeait pendant le geste changeait la lettre visée sans que le
+  doigt bouge. La boîte étant désormais constante, ce relevé unique ne change plus rien en
+  pratique — il rend le geste insensible **par construction** à une géométrie qui bougerait demain,
+  et il tient la discipline du projet (dans une phase de lecture, on ne lit qu'une fois).
+- **Témoin** dans `audit-doctrine` (330 · 390 · 700 · 1000 · 1400 · 1600 px) : on simule le repli
+  de la barre en posant `--vvh`, et l'on mesure le déplacement de la **première** lettre — c'est
+  elle que le doigt vise. Vérifié capable d'échouer : avec l'ancienne règle, **60 px** de
+  déplacement sur les trois largeurs étroites ; 0 px après. 620 contrôles doctrine (614 avant).
+
 ## [5.0.0] — 2026-08-02
 ### Le modèle v4, la bibliothèque unique, et six échelles qui cessent d'être déclaratives
 

@@ -1988,6 +1988,23 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
         const b=r.getBoundingClientRect();
         return {droite:Math.round(window.innerWidth-b.right),h:Math.round(b.height),
           bas:Math.round(window.innerHeight-b.bottom)};})(),
+      /* ⚠ ET LA BOÎTE NE SUIT PAS LA BARRE D'OUTILS DU NAVIGATEUR (signalé à l'usage : « il bouge
+         sous mon doigt alors qu'il est censé rester fixe »). La hauteur du rail étroit passait par
+         `--vvh` = `visualViewport.height`, qui grandit quand la barre se replie AU DÉFILEMENT —
+         donc pendant qu'on se sert du rail. Les lettres centrées descendaient de la moitié de
+         l'écart et la lettre visée changeait sous le doigt. On simule le repli en posant `--vvh`
+         (le sondage de `_vvhSync` ne la réécrit pas : il sort tant que `vv.height` n'a pas bougé)
+         et l'on mesure le déplacement de la PREMIÈRE lettre — c'est elle que le doigt vise.
+         Vérifié capable d'échouer : avec l'ancienne règle en `--vvh`, 60 px de déplacement. */
+      railStable:(()=>{const r=document.getElementById('azRail');if(!r)return null;
+        const b0=r.querySelector('[data-azl]');if(!b0)return null;
+        const av=b0.getBoundingClientRect().top;
+        const rs=document.documentElement.style.getPropertyValue('--vvh');
+        document.documentElement.style.setProperty('--vvh',(window.innerHeight-120)+'px');
+        const ap=b0.getBoundingClientRect().top;
+        if(rs)document.documentElement.style.setProperty('--vvh',rs);
+        else document.documentElement.style.removeProperty('--vvh');
+        return Math.round(Math.abs(ap-av));})(),
       liseCat:!!document.querySelector('.dir-row[style*="--catcol"]'),
       pastille:document.querySelectorAll('.dir-row .cat-dot').length,
       live:!!document.querySelector('.dir-row.live'),
@@ -2045,7 +2062,10 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
     /* Et il ne réserve pas de place pour un objet disparu : la tab bar a été supprimée au lot M4,
        ses 68 px de gouttière étaient restés — invisibles tant que les lettres étaient ancrées en
        haut, décalant tout le rail dès qu'on les a centrées. */
-    t(`${W} · … sans gouttière fantôme sous lui`, r.railBox.bas<=24, `${r.railBox.bas} px sous le rail`);}
+    t(`${W} · … sans gouttière fantôme sous lui`, r.railBox.bas<=24, `${r.railBox.bas} px sous le rail`);
+    if(r.railStable!=null)
+      t(`${W} · … et ses lettres ne suivent pas la barre d'outils du navigateur`,
+        r.railStable<=1, `${r.railStable} px de déplacement`);}
   t(`${W} · « à compléter » n'a plus de fond de chip`,
     /rgba\(0, 0, 0, 0\)|transparent/.test(r.fondTodo||'transparent'), r.fondTodo);
   await page.close();
