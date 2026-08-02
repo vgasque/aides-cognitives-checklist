@@ -119,7 +119,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Couleur, registres, accents** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories |
 | **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » |
 | **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
-| **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
+| **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Accueil (bibliothèques)** | ACCUEIL « POSTE ACCÈS DIRECT » |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
 | **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
@@ -1125,6 +1125,46 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   on restaure la position laissée (`_scopeScroll`) et on suit les défilements, exactement comme les
   catégories (qui, elles, n'ont jamais eu de recentrage). Règle : une zone à défilement propre doit
   voir sa position CAPTURÉE avant un re-rendu et RESTAURÉE après — jamais recalculée.
+- **RÉENTRÉE — ON REVIENT SUR LE SOIN, PAS SUR LE PRÉAMBULE (v5.0.0, `landOnBout`)** : `render()`
+  posait `scrollTo(0,0)` à toute arrivée en lecture, sans distinguer les deux arrivées qui n'ont
+  rien à voir — OUVRIR une aide (on s'oriente avant d'agir : condition d'entrée QRH, le haut de
+  fiche est la bonne arrivée) et Y REVENIR alors qu'une session TOURNE (on reprend un geste
+  interrompu). **MESURÉ** sur la fiche d'exemple en boucle, après six avancées : la réouverture
+  depuis l'accueil déposait à **456 px du bout à 320 × 640** (355 à 390 × 844), **zéro étape
+  cochable** à l'écran à 320 et le contrôle « Continuer » hors écran aux deux formats. Après :
+  **8 px, 4 étapes cochables**. Le retour d'une FEUILLE (« Consulter », PDF) n'était pas concerné
+  et ne l'est toujours pas — `_bgUnlock` restaure déjà la position au pixel.
+  **CE N'EST PAS UN DÉFILEMENT AUTOMATIQUE (règle 11)** : la règle vise l'écran qui bouge tout seul
+  sous quelqu'un qui n'a rien demandé ; ici la page vient d'être rendue de neuf, il n'y a AUCUNE
+  position à préserver — on choisit le point d'arrivée d'une navigation demandée d'un tap. C'est la
+  distinction déjà tranchée pour `cxEnter` (« entrer sur une complication est une navigation
+  DEMANDÉE »). **MÊME RÈGLE DE VISIBILITÉ QU'`ovAdvanceRender`** : si le bout est déjà entièrement
+  à l'écran depuis le haut (aide courte, session à peine démarrée), rien ne bouge — un saut qui
+  n'apporte rien escamoterait le chapeau et les critères pour rien. Vaut aussi pour l'INVITÉ
+  (`crisisOnScreen` couvre les deux rôles). L'atterrissage est posé **après `syncHdrScroll()`** :
+  il se mesure contre `stickBase()`, dont les trois couches collantes viennent d'y être
+  resynchronisées — placé avant, il viserait la géométrie de la vue précédente.
+  ⚠ **LE TÉMOIN A DÛ ÊTRE CORRIGÉ DEUX FOIS, ET C'EST LA LEÇON** : « le bout est hors écran depuis
+  le haut » puis « 0 étape cochable depuis le haut » étaient tous deux FAUX à 390 px, où le haut de
+  la carte dépasse sous le pli et où deux de ses étapes se voient. Ce qu'on perdait réellement est
+  le **contrôle d'avancement**, et c'est lui que le contrefactuel mesure (on repose la page en haut
+  et l'on recompte). Un critère « rencontre son cas » mal choisi rend rouge un correctif juste.
+  **L'ORDRE DU JOURNAL N'A PAS ÉTÉ INVERSÉ, ET LA QUESTION EST TRANCHÉE PAR LA MESURE.** Le rebours
+  (le plus récent en haut) a été étudié : il achèterait exactement cette réentrée, en payant quatre
+  choses. (1) Il n'y a **rien à récupérer sur la croissance** — la condensation (`ovPresList` puis
+  ligne-bilan ECL) plafonne le journal : 13 passages tiennent en 3 cartes + 1 ligne et la distance
+  du bout au haut de page se STABILISE à 482 px dès le 4ᵉ passage. (2) Le sens du défilement
+  s'inverserait par rapport à l'avancement : mesuré sur 20 avancées, le chronologique demande
+  « descendre » 13 fois et « remonter » **0**, le rebours « remonter » 12 fois et « descendre »
+  **0** — pendant que l'historique, lui, continue de s'étendre vers le bas. (3) Le temps
+  descendrait DANS une carte (étapes puis « Continuer » au pied) et monterait ENTRE les cartes :
+  deux axes pour une séquence. (4) Plan, statique, schéma et compte rendu lisent tous vers le bas
+  via `flowPlan().order` — inverser le seul journal serait deux vocabulaires pour une même chose
+  (AC 120-71B §5.5), exactement ce que le retrait du rail ①②③ a supprimé au lot M2a.
+  **Ni ECAM ni AC 120-71B ne prescrivent d'ordre d'affichage d'un journal** : ils décrivent une
+  procédure, qui se lit de haut en bas parce que c'est le sens de lecture — le leur attribuer serait
+  la même erreur de source que « Do-Verify »/AC 120-71A. Ce qui EST contraignant est plus étroit :
+  les procédures se POSTENT (ECAM) et une même chose ne se dit pas de deux façons.
 - **ON ANIME LA COMPOSITION, JAMAIS LA MISE EN PAGE (v4.41.0, phase 3)** : une `transition` ou une
   `@keyframes` ne porte que sur `transform` et `opacity`. Animer `width`, `height`, `top`/`left`,
   `margin` ou `padding` force une passe de mise en page **par image**, pendant toute la durée de

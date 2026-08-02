@@ -2047,6 +2047,74 @@ console.log('\n══ aidRev · la révision lue pendant le soin ══');
   await page.close();
 }
 
+/* ── RÉENTRÉE · on revient sur le soin, pas sur le préambule ─────────────────────────────────
+   Mesuré avant correctif : rouvrir une aide dont la session TOURNE déposait à 456 px du bout à
+   320 × 640 (356 à 390 × 844), zéro étape cochable à l'écran. Le témoin mesure les DEUX moitiés,
+   et la seconde n'est pas décorative : ouvrir une aide SANS session doit continuer d'arriver en
+   HAUT DE FICHE (on s'oriente avant d'agir — condition d'entrée QRH). Un atterrissage qui
+   s'appliquerait partout remplacerait un défaut par son symétrique.
+   ⚠ ET IL VÉRIFIE QU'IL RENCONTRE SON CAS : sur une aide courte, le bout serait visible depuis le
+   haut de page et le contrôle resterait vert sans rien prouver. */
+console.log('\n══ RÉENTRÉE · rouvrir une session vive atterrit sur le bout ══');
+for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
+  const page = await br.newPage({viewport:{width:fmt.w,height:fmt.h},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  await demarrerSession(page);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=Runtime.fiche;
+    const bout=()=>{const c=[...document.querySelectorAll('.ov-block')];return c[c.length-1]||null;};
+    /* On avance pour CONSTITUER le cas : un journal d'un seul passage tiendrait à l'écran. */
+    for(let i=0;i<6;i++){
+      const nb=bout(); if(!nb)break;
+      nb.querySelectorAll('li[data-ck]:not(.done)').forEach(e=>e.click()); await w(120);
+      const opt=[...nb.querySelectorAll('[data-ovopt]')].find(o=>/Non/.test(o.textContent));
+      if(opt){opt.click(); await w(400); continue;}
+      const nx=nb.querySelector('[data-ovnext]');
+      if(nx&&!nx.hasAttribute('aria-disabled')){nx.click(); await w(400);} else break;}
+    // Réouverture depuis l'accueil, session vive.
+    state.view='library'; render(); await w(400);
+    openRead(f.id); await w(500);
+    const etapesVis=()=>{const b=stickBase();
+      return [...document.querySelectorAll('ol.steps li[data-ck]')]
+        .filter(e=>{const g=e.getBoundingClientRect();return g.top>=b-1&&g.bottom<=innerHeight+1;}).length;};
+    const b=stickBase();
+    const nb=bout(); const q=nb?nb.getBoundingClientRect():null;
+    const vive={aDefiler:q?Math.max(0,Math.round(q.top-b)):null,
+                etapes:etapesVis(), scrollY:Math.round(scrollY)};
+    /* CONTREFACTUEL — ce qu'on aurait SANS l'atterrissage : on remet en haut de page et l'on
+       recompte. C'est cela que l'utilisateur perdait, et c'est non circulaire : le contrôle ne
+       vaut que si l'arrivée en haut ne montrait effectivement aucune étape à cocher. */
+    scrollTo(0,0); await w(150);
+    vive.etapesDepuisLeHaut=etapesVis();
+    vive.aDefilerDepuisLeHaut=(()=>{const c=bout();
+      return c?Math.max(0,Math.round(c.getBoundingClientRect().top-stickBase())):null;})();
+    vive.continuerDepuisLeHaut=(()=>{const n=document.querySelector('[data-ovnext]');
+      if(!n)return null; const g=n.getBoundingClientRect();
+      return g.top>=stickBase()&&g.bottom<=innerHeight;})();
+    // NON-RÉGRESSION : une aide SANS session vive s'ouvre en haut.
+    const g=fiches.find(x=>x.id!==f.id);
+    let inerte=null;
+    if(g){state.view='library'; render(); await w(300); openRead(g.id); await w(500);
+          inerte=Math.round(scrollY);}
+    return {vive,inerte};});
+  const v=r.vive;
+  /* Le cas EXISTE si, arrivé en haut de page, on est loin du bout ET que le contrôle
+     d'avancement n'est pas atteignable. « 0 étape visible » serait trop fort : à 390 px le haut
+     de la carte du bout dépasse déjà sous le pli, deux de ses étapes se voient — mais « Continuer »
+     non, et c'est cela qu'on venait chercher. */
+  t(`${fmt.w}× le contrôle rencontre son cas (depuis le haut, avancement hors écran)`,
+    v.aDefilerDepuisLeHaut>100 && v.continuerDepuisLeHaut===false,
+    `${v.aDefilerDepuisLeHaut} px à défiler, Continuer visible=${v.continuerDepuisLeHaut}`);
+  t(`${fmt.w}× la réouverture atterrit sur le bout`, v.aDefiler!=null && v.aDefiler<=12,
+    `${v.aDefiler} px à défiler`);
+  t(`${fmt.w}× … avec au moins une étape cochable à l’écran`, v.etapes>=1, `${v.etapes} étape(s)`);
+  t(`${fmt.w}× une aide SANS session s’ouvre toujours en haut`, r.inerte===0, `scrollY=${r.inerte}`);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);

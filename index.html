@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-YGAksaexJ+1Z6lt3nAwyV9ZxS66AyMpPtiWRN/G+7l0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-B8CI+Rgm+vZkBn6bA6bv1bnSm/SuV3IYC9+X8dd5Zsg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -9258,6 +9258,7 @@ function render(){
   //      jamais pendant l'usage en crise (re-rendus à chaque coche/minuteur) ;
   //   -> édition : haut de page.
   const _fid=state.view==='read'&&state.fiche?state.fiche.id:null;
+  const _arriveeRead=state.view==='read'&&(_lastView!=='read'||_fid!==_lastFicheId);
   if(state.view==='library'){if(_lastView&&_lastView!=='library')window.scrollTo(0,_libScrollY);}
   else if(state.view!=='read'||_lastView!=='read'||_fid!==_lastFicheId)window.scrollTo(0,0);
   // ARRIVÉE sur un éditeur (création OU modification) : le haut de page est RÉ-AFFIRMÉ dans les
@@ -9280,7 +9281,41 @@ function render(){
   // évènement de scroll (on était déjà en haut) laissait sinon .ttl-on et les variables de
   // couches collantes hérités de la vue précédente — zone haute annoncée deux fois, ou pas du tout.
   syncHdrScroll();
+  // APRÈS syncHdrScroll, et pas avant : l'atterrissage se mesure contre `stickBase()`, dont les
+  // trois couches collantes viennent d'être resynchronisées. Posé plus haut, il viserait la
+  // géométrie de la vue précédente.
+  if(_arriveeRead)landOnBout();
 }
+/* ═══ RÉENTRÉE — ON REVIENT SUR LE SOIN, PAS SUR LE PRÉAMBULE (v5.0.0) ════════════════════════
+   Arriver en lecture posait `scrollTo(0,0)`, sans distinguer les deux arrivées qui n'ont rien à
+   voir : OUVRIR une aide (on s'oriente avant d'agir — condition d'entrée QRH, le haut de fiche
+   est la bonne arrivée) et Y REVENIR alors qu'une session TOURNE (on reprend un geste interrompu).
+   Mesuré sur la fiche d'exemple en boucle, après six avancées : la réouverture depuis l'accueil
+   déposait à 456 px du bout à 320 × 640, 356 px à 390 × 844 — le contrôle « Continuer » et les
+   cases à cocher hors écran, en pleine réanimation, à retrouver au défilement.
+   CE N'EST PAS UN DÉFILEMENT AUTOMATIQUE (règle 11). La règle vise l'écran qui BOUGE tout seul
+   sous quelqu'un qui n'a rien demandé ; ici la page vient d'être rendue de neuf, il n'y a aucune
+   position à préserver — on CHOISIT le point d'arrivée d'une navigation que l'utilisateur vient
+   de demander d'un tap. C'est la distinction déjà tranchée pour `cxEnter` (« entrer sur une
+   complication est une navigation DEMANDÉE ») et le point d'arrivée de `ovAdvanceRender`.
+   MÊME RÈGLE DE VISIBILITÉ QU'`ovAdvanceRender` : si le bout est déjà entièrement à l'écran depuis
+   le haut de page (aide courte, session à peine démarrée), on ne bouge pas — un saut qui n'apporte
+   rien est un saut de trop, et il escamoterait le chapeau et les critères pour rien.
+   L'atterrissage vaut aussi pour un INVITÉ (`crisisOnScreen` couvre les deux) : il suit un soin
+   qu'il n'a pas démarré, et rien ne justifie qu'il le retrouve moins vite que l'hôte. */
+function boutEl(){
+  // Le « bout » n'a pas le même porteur selon la densité affichée : la dernière carte du journal
+  // en « un bloc », la cellule marquée « ● ici » en « toute la fiche ». Une aide SANS algorithme
+  // n'en a pas — elle tient d'un écran, il n'y a rien à rejoindre.
+  const ov=main.querySelectorAll('.ov-block');
+  if(ov.length)return ov[ov.length-1];
+  return main.querySelector('.sv-cell.cur,.sv-band.cur');}
+function landOnBout(){
+  if(!crisisOnScreen())return false;   // aucune session à l'écran : le haut de fiche est l'arrivée
+  const el=boutEl();if(!el)return false;
+  const r=el.getBoundingClientRect();
+  if(r.top>=stickBase()-1&&r.bottom<=window.innerHeight+1)return false;   // déjà sous les yeux
+  ovScrollEl(el);return true;}
 // Re-rendu de l'ACCUEIL respectueux de l'onglet courant (Aides ↔ Protocoles). Tout code qui
 // rafraîchit la liste après une fenêtre (catégories, compte, bibliothèques…) passe par ici :
 // un renderFiches() direct affichait la liste des aides sous l'onglet Protocoles (bug v4.4.4).
