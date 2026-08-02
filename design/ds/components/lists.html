@@ -2313,6 +2313,10 @@
   /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
   .cx-ext{font-size:12px;opacity:.9}
   .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}
+  /* Au pied, « Vérifier » prend la boîte des autres gestes de bloc — même cible, même filet :
+     trois actions de même rang se ressemblent. */
+  .ov-verify-foot{min-height:44px;padding:8px 14px;border:1px solid var(--line-strong);border-radius:8px;
+    background:var(--surface);color:var(--ink);font-size:13.5px;font-weight:700}
   /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
      commence, et l'écart le sépare de ce qui suit. */
   .flow-ctrl.cx-back-top{margin:0 0 10px}
@@ -4116,6 +4120,16 @@
   .report-preview .kpi-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
   .ai-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
+  /* ⚠ UN SEUL DESSIN D'ÉTAT VIDE (v5.0.0, audit design, action 10). Il y en avait DEUX grammaires :
+     `.empty` — cadre pointillé, titre, action, pour un écran entier vide — et un simple paragraphe
+     (`.auth-msg` ou `.ai-note` selon l'endroit) posé au fil de l'eau dans les listes. La première
+     est juste ; la seconde n'était pas un composant, c'était deux classes empruntées à autre chose,
+     avec deux corps, deux couleurs et deux marges. `.empty-line` est le composant : une ligne
+     CENTRÉE, en encre douce, avec l'air qu'il faut autour — c'est ce que dit une liste vide, et
+     rien de plus. La distinction entre les deux reste celle du dossier : `.empty` quand l'écran
+     n'a rien d'autre à montrer et qu'il y a une ACTION à proposer ; `.empty-line` dans un panneau
+     ou une fenêtre, où le reste de l'interface tient déjà debout. */
+  .empty-line{text-align:center;padding:24px 16px;margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.45}
   /* Dialogue « Créer » (design exact du canvas, section 6) : fenêtre min(480px,100%) ; cartes de
      méthode 64px, bordure 1.5px srchBd, glyphe 20px + libellé + chevron › ; sous-écran IA :
      libellés d'étape « 1 · … », prompt monospace 180px max, « Copier » = SEUL bouton plein du
@@ -4424,11 +4438,6 @@
        complète, ce que l'ECAM interdit (il signale toujours le débordement). */
     .rail-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
       background:var(--tag-bg);border-radius:6px;padding:1px 6px}
-    .rail-exp{margin-left:auto;min-height:44px;padding:6px 8px;border:0;border-radius:8px;background:none;
-      color:var(--link);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-    .rail-exp .rx-ic{font-size:16.5px;line-height:1}
-    .rail-exp:hover{background:var(--primary-soft)}
-    .rail-exp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
     /* ÉCHELLE DÉSATURÉE : mêmes lignes que le Plan, mais l'état n'est plus porté que par le
        MARQUEUR (✓ vert = fait, ● bleu = ici, ⑂ ambre = décision). On retire les APLATS et les
        liserés colorés : le rail oriente, il ne doit pas rivaliser de saillance avec l'action.

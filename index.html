@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-Rw8MQ4Qgo0/bL91EV6RifW6mwy1ImIP3VUcWp0PPUDM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-fXmEXZ/7xMlklnccFukvi2BFga/SoFvJVseFnjv60b0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -2598,6 +2598,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
   .cx-ext{font-size:12px;opacity:.9}
   .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}
+  /* Au pied, « Vérifier » prend la boîte des autres gestes de bloc — même cible, même filet :
+     trois actions de même rang se ressemblent. */
+  .ov-verify-foot{min-height:44px;padding:8px 14px;border:1px solid var(--line-strong);border-radius:8px;
+    background:var(--surface);color:var(--ink);font-size:13.5px;font-weight:700}
   /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
      commence, et l'écart le sépare de ce qui suit. */
   .flow-ctrl.cx-back-top{margin:0 0 10px}
@@ -4401,6 +4405,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .report-preview .kpi-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
   .ai-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
+  /* ⚠ UN SEUL DESSIN D'ÉTAT VIDE (v5.0.0, audit design, action 10). Il y en avait DEUX grammaires :
+     `.empty` — cadre pointillé, titre, action, pour un écran entier vide — et un simple paragraphe
+     (`.auth-msg` ou `.ai-note` selon l'endroit) posé au fil de l'eau dans les listes. La première
+     est juste ; la seconde n'était pas un composant, c'était deux classes empruntées à autre chose,
+     avec deux corps, deux couleurs et deux marges. `.empty-line` est le composant : une ligne
+     CENTRÉE, en encre douce, avec l'air qu'il faut autour — c'est ce que dit une liste vide, et
+     rien de plus. La distinction entre les deux reste celle du dossier : `.empty` quand l'écran
+     n'a rien d'autre à montrer et qu'il y a une ACTION à proposer ; `.empty-line` dans un panneau
+     ou une fenêtre, où le reste de l'interface tient déjà debout. */
+  .empty-line{text-align:center;padding:24px 16px;margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.45}
   /* Dialogue « Créer » (design exact du canvas, section 6) : fenêtre min(480px,100%) ; cartes de
      méthode 64px, bordure 1.5px srchBd, glyphe 20px + libellé + chevron › ; sous-écran IA :
      libellés d'étape « 1 · … », prompt monospace 180px max, « Copier » = SEUL bouton plein du
@@ -4709,11 +4723,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        complète, ce que l'ECAM interdit (il signale toujours le débordement). */
     .rail-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
       background:var(--tag-bg);border-radius:6px;padding:1px 6px}
-    .rail-exp{margin-left:auto;min-height:44px;padding:6px 8px;border:0;border-radius:8px;background:none;
-      color:var(--link);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-    .rail-exp .rx-ic{font-size:16.5px;line-height:1}
-    .rail-exp:hover{background:var(--primary-soft)}
-    .rail-exp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
     /* ÉCHELLE DÉSATURÉE : mêmes lignes que le Plan, mais l'état n'est plus porté que par le
        MARQUEUR (✓ vert = fait, ● bleu = ici, ⑂ ambre = décision). On retire les APLATS et les
        liserés colorés : le rail oriente, il ne doit pas rivaliser de saillance avec l'action.
@@ -6476,14 +6485,14 @@ function flowPaintState(container,f){if(!container||!f)return;
    l'autre) — mais celui où l'on se trouve s'y annonce et n'est plus tapable, plutôt que d'être
    retiré : une liste dont les rangées bougent selon l'endroit où l'on est ne s'apprend pas. */
 const cxOne=list=>(list&&list.length===1)?list[0]:null;
-const cxRowHtml=(list,tip,curId)=>{
+const cxRowHtml=(list,tip,curId,extra)=>{
   const un=cxOne(list);
   if(un&&curId&&un.target===curId)list=[];
   const btn=(un&&curId&&un.target===curId)?''
     :un
     ?`<button type="button" class="cx-btn" data-cxgo="${esc(un.target)}" title="${un.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">⚡ ${esc(un.label)}${un.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`
     :((list&&list.length)?`<button type="button" class="cx-btn" data-cxopen aria-expanded="${state.cxOpen?'true':'false'}" title="Complications — à tout moment : interrompt le parcours, retour prévu">⚡ Complications <span class="cx-n">${list.length}</span> <span class="cx-chev" aria-hidden="true">${state.cxOpen?'▴':'▾'}</span></button>`:'');
-  return `<div class="cx-row">${btn}${tip?`<button type="button" class="tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}</div>`
+  return `<div class="cx-row">${btn}${tip?`<button type="button" class="tk-add tk-inblk" data-tknote>${uiIcon('stopwatch',13)} Noter l’heure</button>`:''}${extra||''}</div>`
     +((!un&&state.cxOpen&&list&&list.length)?cxListHtml(list,curId):'');};
 /* ⚠ C — L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE. La doctrine QRH que ce dossier invoque porte sur
    l'INDEX UNIQUE (un objet plutôt qu'un bouton par urgence), pas sur la MODALITÉ : un dépliant est
@@ -9966,6 +9975,9 @@ let _pfHits=[],_pfI=0,_pfQ='';
    d'identifiants seraient deux chemins à tenir pour un composant qui n'a qu'un état. Ce qui varie,
    c'est la RACINE où l'on cherche — d'où `_pfRoot`, posée par l'appelant. */
 let _pfRoot='.md-body';
+/* L'état vide « en ligne » : un seul point d'écriture, donc un seul dessin. `esc()` parce que
+   certains appelants composent leur phrase avec des données (nom de filtre, titre de fiche). */
+const emptyLine=txt=>`<p class="empty-line">${esc(txt)}</p>`;
 function protoFindHtml(ph,aria,cls){
   return `<div class="rt-find${cls?' '+cls:''}"><input type="search" id="pfQ" placeholder="${esc(ph||'Chercher dans la référence…')}" `
     +`aria-label="${esc(aria||'Chercher dans cette référence')}" autocomplete="off">`
@@ -13338,8 +13350,12 @@ function ovInstHtml(f,id,idx,topo,pres){
           les propositions d'intitulés apparaissent où elles apparaissaient déjà — dans le panneau
           immédiatement dessous, donc sous le doigt. Il ne paraît QU'AU BOUT du journal : noter
           l'heure depuis une carte passée daterait le présent au nom du passé. */
+       /* Do-Verify au pied : dans la rangée des gestes de bloc, avec « ⏱ Noter » et l'entrée sur
+          complication — trois actions qui se prennent APRÈS avoir déroulé les étapes. */
+       const verH=(!dec&&clean(stepsOf(b)).length)
+         ?`<button type="button" class="ov-redo ov-verify-foot" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'';
        const cxs=cxAll(f);
-       if(cxs.length||tip)ctl+=cxRowHtml(cxs,tip,id);
+       if(cxs.length||tip||verH)ctl+=cxRowHtml(cxs,tip,id,verH);
        if(tip)ctl+=tkAckHtml(f);}}
     bodyH=`${cxBackH}${imgH}${legH}${listeH}${ctl}`;
     count=steps.length?dn+'/'+steps.length:'—';}}
@@ -13349,8 +13365,16 @@ function ovInstHtml(f,id,idx,topo,pres){
   const verifying=state.ovVerify&&state.ovVerify.idx===idx;
   const btns=verifying
     ?`<button type="button" class="ov-redo" data-ovvx title="Quitter la vérification — l'état des cases est déjà enregistré">✕</button>`
-    :(((!dec&&clean(stepsOf(b)).length)?`<button type="button" class="ov-redo" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier</button>`:'')
-      +((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:''));
+    /* ⚠ « VÉRIFIER » A QUITTÉ L'EN-TÊTE POUR LE PIED (v5.0.0, demande utilisateur, après mesure).
+       Il vivait ici, à côté de « Vous êtes ici » — et cette rangée passe SOUS le titre à 320 px,
+       où elle coûte 54 px AU-DESSUS de la première case à cocher. Sa place logique est le pied :
+       la seconde passe (Do-Verify) commence quand la première est FINIE, elle ne la précède pas.
+       L'en-tête ne garde donc que ce qui dit OÙ l'on est ; le pied porte ce qui fait AVANCER, ce
+       qui RAMÈNE et ce qui RE-VÉRIFIE.
+       « ↺ Refaire » RESTE en tête, et ce n'est pas une inconséquence : il ne s'applique qu'aux
+       cartes PASSÉES, qui n'ont pas de pied d'action — l'en-tête y est le seul endroit possible.
+       Et pendant la passe, le ✕ reste en tête : c'est une sortie, pas une action de la liste. */
+    :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:'');
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n" aria-hidden="true">${complete?uiIcon('check',13,{sw:3.2,cls:''}):(topo[id]||((Runtime.cxBack||{})[seq]?'⚡':'·'))}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${(btns||tip)?`<div class="ov-acts">${tip?'<span class="ov-here">Vous êtes ici</span>':''}${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
    Le plan reste INERTE côté cochage (la trace vit dans le journal) et sert à NAVIGUER.
@@ -13680,7 +13704,15 @@ function railLadHtml(f){
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
   const off=offPathSet(f,state.nav,state.navPos);
-  return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span><button type="button" class="rail-exp" id="railPlanFull" aria-haspopup="dialog"><span class="rx-ic" aria-hidden="true">${uiIcon('expand',12)}</span> complet</button></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
+  /* ⚠ « ⤢ COMPLET » EST SUPPRIMÉ (v5.0.0, demande utilisateur, après vérification MESURÉE). Il
+     ouvrait la feuille `#planModal`, laquelle rend `ovPlanHtml` — c'est-à-dire EXACTEMENT ce que
+     cette colonne montre déjà : 8 rangées identiques, 281 caractères ici contre 326 là (l'écart
+     n'est que l'ellipse des titres). Sa seule valeur ajoutée était la LARGEUR (223 → 1280 px).
+     ⚠ ET L'ONGLET « PARCOURS » NE FAIT PAS DOUBLON AVEC ELLE, contrairement à ce qu'on pouvait
+     croire : il rend `ovParcoursHtml`, soit 7 CARTES et 22 items pour 1 321 caractères — un autre
+     objet, pas un autre habillage. C'est la FEUILLE qui doublonne la COLONNE.
+     La feuille reste joignable par le menu ⋯ « Se repérer » : rien n'est perdu, sauf un tap. */
+  return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
 /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un bloc,
    suivre un renvoi. Délégation propre au rail : il n'est pas dans `.ov-wrap`, donc les écouteurs du
    journal ne l'atteignent pas. Re-rendu ANCRÉ sur la ligne touchée (le rail ne doit pas sauter sous
@@ -13700,7 +13732,7 @@ function bindRailLad(){
   lad.onclick=e=>act(e.target);
   lad.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
     const t=e.target.closest('[data-plln],[data-plgo],[data-plref]');if(!t)return;e.preventDefault();act(t);};
-  {const rf=document.getElementById('railPlanFull');if(rf)rf.onclick=openPlanSheet;}}
+}
 /* REPEINDRE LE PLAN DU RAIL sur un re-rendu CIBLÉ. Le défilement propre de la colonne est
    PRÉSERVÉ (doctrine « DÉFILEMENT PRÉSERVÉ, PAS RECONSTRUIT », v4.23.5 : `.read-plan` et
    `.read-side` ont chacun leur `overflow-y`, et remplacer leur contenu remettrait `scrollTop` à
@@ -15250,7 +15282,7 @@ function renderAttPickList(){
   const q=txNorm(document.getElementById('attPickQ').value);
   const opts=attachablePdfs(_attPickCtx.entity).filter(o=>!q||txNorm(o.name+' '+o.from).includes(q));
   box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon('doc',16)}</span><span class="att-name">${esc(o.name)}<span class="att-from">${esc(o.from)}</span></span><span class="att-size">${fmtBytes(o.size)}</span></button>`).join('')
-    :'<p class="ai-note">Aucun document '+(q?'ne correspond au filtre.':'disponible.')+'</p>';
+    :emptyLine('Aucun document '+(q?'ne correspond au filtre.':'disponible.'));
   box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
     const ctx=_attPickCtx;const o=attachablePdfs(ctx.entity).find(x=>x.id===b.dataset.pick);
     closeAttPicker();
@@ -15297,7 +15329,7 @@ function renderRelPickList(){
     return;}
   const opts=relCandidates(_relPickCtx.entity).filter(o=>!q||txNorm(o.title+' '+o.code).includes(q));
   box.innerHTML=opts.length?opts.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(o.kind==='p'?'book':'doc',16)}</span><span class="att-name">${esc(o.title)}<span class="att-from">${o.kind==='p'?'Protocole':'Aide cognitive'}</span></span>${o.code?`<span class="att-size" style="font-family:var(--mono)">${esc(o.code)}</span>`:''}</button>`).join('')
-    :'<p class="ai-note">Aucune fiche '+(q?'ne correspond au filtre.':'disponible.')+'</p>';
+    :emptyLine('Aucune fiche '+(q?'ne correspond au filtre.':'disponible.'));
   box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
     const ctx=_relPickCtx;closeRelPicker();
     if(ctx){ctx.entity.links=ctx.entity.links||[];if(ctx.entity.links.indexOf(b.dataset.pick)<0)ctx.entity.links.push(b.dataset.pick);ctx.rerender();}});}
@@ -20348,7 +20380,7 @@ function diffFicheLines(cur,old){const a=flattenFiche(cur),b=flattenFiche(old);c
   return {removed:a.filter(x=>!sb.has(x)),added:b.filter(x=>!sa.has(x))};}
 function diffFiches(cur,old){if(!old)return '<p class="auth-msg err">Version illisible.</p>';
   const d=diffFicheLines(cur,old);
-  if(!d.added.length&&!d.removed.length)return '<p class="auth-msg">Aucune différence de contenu (les images ne sont pas comparées).</p>';
+  if(!d.added.length&&!d.removed.length)return emptyLine('Aucune différence de contenu (les images ne sont pas comparées).');
   return (d.added.length?'<p class="diff-h">Restaurer rétablirait :</p>'+d.added.map(x=>`<div class="diff-line add">+ ${esc(x)}</div>`).join(''):'')+
          (d.removed.length?'<p class="diff-h">Restaurer supprimerait :</p>'+d.removed.map(x=>`<div class="diff-line del">− ${esc(x)}</div>`).join(''):'')+
          '<p class="diff-note">Images non comparées. La version actuelle est sauvegardée avant toute restauration.</p>';}
@@ -20366,7 +20398,7 @@ function closeVersions(){versModal.classList.remove('on');}
 async function renderVersions(){const body=document.getElementById('versBody');if(!body)return;
   let list=[];try{list=await Data.getBackups(_versFiche);}catch(e){}
   list=(list||[]).sort((a,b)=>(b.at||0)-(a.at||0));
-  if(!list.length){body.innerHTML='<p class="auth-msg">Aucune version précédente conservée pour cette fiche.</p>';return;}
+  if(!list.length){body.innerHTML=emptyLine('Aucune version précédente conservée pour cette fiche.');return;}
   body.innerHTML=list.map(b=>`<div class="vers-row"><span class="vt">${esc(new Date(b.at).toLocaleString('fr-FR'))}</span><span class="vers-acts"><button class="btn sm" data-diff="${esc(b.bid)}">Comparer</button><button class="btn sm" data-restore="${esc(b.bid)}">Restaurer</button></span></div><div class="vers-diff" id="diff-${esc(b.bid)}" hidden></div>`).join('');
   // Comparaison : ce que RESTAURER cette version changerait par rapport à la fiche actuelle.
   body.querySelectorAll('[data-diff]').forEach(btn=>btn.onclick=()=>{
@@ -20400,7 +20432,7 @@ function closeSessHist(){sessModal.classList.remove('on');_sessFiche=null;}
 function renderSessHist(){const body=document.getElementById('sessBody');if(!body||!_sessFiche)return;
   const glob=_sessFiche==='*';
   const ss=sessions.filter(x=>(glob||x.ficheId===_sessFiche)&&x.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
-  if(!ss.length){body.innerHTML='<p class="auth-msg">'+(glob?'Aucune session archivée.':'Aucune session archivée pour cette fiche.')+'</p>';return;}
+  if(!ss.length){body.innerHTML=emptyLine((glob?'Aucune session archivée.':'Aucune session archivée pour cette fiche.'));return;}
   /* EXERCICES À PART (v4.27.0) : les répétitions ne se mêlent JAMAIS aux sessions cliniques —
      deux groupes, badge « ▲ EXERCICE » sur chaque rangée d'exercice. */
   const row=x=>`<div class="sess-row"><div class="si"><div class="sn">${x.exercise?'<span class="sess-exotag">▲ EXERCICE</span> ':''}${esc(x.name)}${x.live?' <span class="sess-livetag">en cours</span>':''}</div><div class="sd">${glob&&x.ficheTitle&&String(x.name||'').indexOf(x.ficheTitle)<0?esc(x.ficheTitle)+' · ':''}${esc(sessStamp(x.savedAt))}</div></div><div class="sess-acts"><button class="btn sm" data-resume="${esc(x.id)}" title="Rouvre la session là où elle en était (étapes cochées, minuteurs, compteurs)">Rouvrir</button><button class="btn sm" data-report="${esc(x.id)}" title="Compte-rendu imprimable">Compte-rendu</button><button class="mini del sess-del" data-delsess="${esc(x.id)}" aria-label="Supprimer la session « ${esc(x.name)} »" title="Supprimer la session (confirmation demandée)">×</button></div></div>`;
@@ -20447,7 +20479,7 @@ async function renderMembers(){const body=document.getElementById('membersBody')
     ${canRename?`<div class="dlg-actions"><button class="btn" id="libCancel">Annuler</button><button class="btn primary" id="libSave">Enregistrer</button></div>`:''}
     <div class="share-note" style="margin-top:10px">Bibliothèque partagée : les droits d'accès sont appliqués <strong>côté serveur</strong> ; elle reste consultable hors ligne une fois synchronisée.</div>
     <div class="field-label">Membres <span class="fl-n">· ${n}</span></div>
-    <div class="mem-list">${n?list.map(m=>`<div class="mem-row"><div class="mem-avatar">${esc(emailIni(m.email))}</div><div class="mem-info"><span class="mem-email">${esc(m.email)}${m.user_id===me?' <span class="mem-you">(vous)</span>':''}</span></div><div class="mem-act">${m.user_id===me?`<span class="ro-badge">${ROLE_FR[m.role]||esc(m.role)}</span>`:`<select data-role="${esc(m.user_id)}" aria-label="Rôle de ${esc(m.email)}">${roleOptions(m.role)}</select><button class="mini del" data-remove="${esc(m.user_id)}" title="Retirer de la bibliothèque" aria-label="Retirer ${esc(m.email)}">×</button>`}</div></div>`).join(''):'<p class="auth-msg">Aucun membre pour le moment.</p>'}</div>
+    <div class="mem-list">${n?list.map(m=>`<div class="mem-row"><div class="mem-avatar">${esc(emailIni(m.email))}</div><div class="mem-info"><span class="mem-email">${esc(m.email)}${m.user_id===me?' <span class="mem-you">(vous)</span>':''}</span></div><div class="mem-act">${m.user_id===me?`<span class="ro-badge">${ROLE_FR[m.role]||esc(m.role)}</span>`:`<select data-role="${esc(m.user_id)}" aria-label="Rôle de ${esc(m.email)}">${roleOptions(m.role)}</select><button class="mini del" data-remove="${esc(m.user_id)}" title="Retirer de la bibliothèque" aria-label="Retirer ${esc(m.email)}">×</button>`}</div></div>`).join(''):emptyLine('Aucun membre pour le moment.')}</div>
     ${isAdmin?`<div class="invite-row"><input id="memEmail" type="email" inputmode="email" autocomplete="off" placeholder="email@exemple.fr"><select id="memNewRole" aria-label="Rôle du nouveau membre">${roleOptions('editor')}</select><button class="btn-add" id="memInvite" title="Inviter (la personne doit s'être connectée une fois à l'app)" aria-label="Inviter ce membre">＋</button></div>
     <p class="roles-caption">Rôles : Lecteur (consulte) · Éditeur (rédige) · Admin (gère les membres). La personne doit s'être <b>connectée une fois</b> à l'app. Ajouts, rôles et retraits s'appliquent <b>immédiatement</b>.</p>`:''}
     <p class="auth-msg" id="memMsg"></p>

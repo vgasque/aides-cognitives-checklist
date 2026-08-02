@@ -1491,6 +1491,10 @@ for (const W of [320, 390]) {
     const entreeY=cur2?Math.round(cur2.getBoundingClientRect().top-stickBase()):null;
     /* Entré sur l'unique événement : son bouton ne doit plus être proposé — on y EST. */
     const btnApres=!!document.querySelector('[data-cxgo]');
+    const _c=document.querySelector('.ov-block.cur');
+    const _vp=document.querySelector('.ov-verify-foot');
+    const verPied=!!_vp,verTete=!!(_c&&_c.querySelector('.ov-head [data-ovverify]'));
+    const verCible=_vp?Math.round(_vp.getBoundingClientRect().height):0;
     const modale=[...document.querySelectorAll('.ai-modal.on')].length;
     const ret=document.querySelector('[data-cxback]'),carte=document.querySelector('.ov-block.cur');
     const rr=ret?ret.getBoundingClientRect():null,rc=carte?carte.getBoundingClientRect():null;
@@ -1521,7 +1525,7 @@ for (const W of [320, 390]) {
     const iciTxt=iciEl?iciEl.textContent.replace(/\s+/g,' ').trim():null;
     const iciDis=ap.filter(e=>e.disabled).length,autreTapable=ap.filter(e=>!e.disabled).length;
     return {unLbl,indexAUn,modale,items:items.length,tgLbl,modale2,cible,ext,referme,
-      btnApres,entreeY,iciTxt,iciDis,autreTapable,
+      btnApres,entreeY,verPied,verTete,verCible,iciTxt,iciDis,autreTapable,
       retourY:rr?Math.round(rr.top):null,
       retourVisible:!!(rr&&rr.top>=0&&rr.bottom<=innerHeight),
       premier};});
@@ -1546,6 +1550,13 @@ for (const W of [320, 390]) {
   /* ⚠ ENTRER AMÈNE EN HAUT DU BLOC (signalé à l'usage) : le défilement n'existait que dans UNE
      des trois branches de `cxEnter` — ni au premier geste de la session, ni en « Toute la fiche ».
      8 px sous les couches collantes, c'est la marge que `ovScrollEl` pose partout. */
+  /* ⚠ « VÉRIFIER » EST AU PIED, PAS EN TÊTE (demande utilisateur) : l'en-tête ne garde que ce qui
+     dit OÙ l'on est ; le pied porte ce qui fait avancer, ce qui ramène et ce qui re-vérifie. La
+     seconde passe commence quand la première est finie, elle ne la précède pas. Mesuré : en-tête
+     106 → 81 px, première étape 387 → 361. */
+  t(`${W} · « Vérifier » est au PIED de la carte, plus en tête`,
+    r.verPied===true&&r.verTete===false, `pied=${r.verPied} tête=${r.verTete}`);
+  t(`${W} · … avec une cible de 44 px`, r.verCible>=44, `${r.verCible} px`);
   t(`${W} · entrer amène EN HAUT du bloc d'excursion`,
     r.entreeY!==null&&Math.abs(r.entreeY-8)<=4, `${r.entreeY} px sous le chrome collant`);
   t(`${W} · à UN événement, le bouton disparaît quand on y est`,

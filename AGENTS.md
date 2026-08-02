@@ -3149,6 +3149,34 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   vue statique** (`renderOvOnly` n'y rend rien) : il amène désormais à la section « ⚡ À tout
   moment » du tableau. Entrer sur une complication est une NAVIGATION demandée, pas un tap sur ce
   qu'on a déjà sous les yeux : la règle « rien ne bouge sous le doigt » vise le second cas.
+- **« ⤢ COMPLET » EST SUPPRIMÉ (v5.0.0, demande utilisateur, après vérification MESURÉE)** : il
+  ouvrait la feuille `#planModal`, laquelle rend `ovPlanHtml` — c'est-à-dire **exactement ce que la
+  colonne montre déjà** : 8 rangées identiques, 281 caractères dans la colonne contre 326 dans la
+  feuille (l'écart n'est que l'ellipse des titres). Sa seule valeur ajoutée était la LARGEUR
+  (223 → 1280 px). ⚠ **Et l'onglet « Parcours » NE fait PAS doublon avec elle**, contrairement à ce
+  qu'on pouvait croire : il rend `ovParcoursHtml`, soit **7 cartes et 22 items pour 1 321
+  caractères** — un autre objet, pas un autre habillage. C'est la FEUILLE qui doublonne la COLONNE.
+  La feuille reste joignable par le menu ⋯ « Se repérer » : rien n'est perdu, sauf un tap.
+  `.rail-exp` est purgée avec le bouton (règle 14).
+- **« VÉRIFIER » DESCEND AU PIED DE LA CARTE (v5.0.0, demande utilisateur, après mesure)** : il
+  vivait dans l'EN-TÊTE, à côté de « Vous êtes ici » — et cette rangée passe SOUS le titre à
+  320 px, où elle coûtait **54 px au-dessus de la première case à cocher**. Sa place logique est le
+  pied : la seconde passe (Do-Verify) commence quand la première est FINIE, elle ne la précède pas.
+  L'en-tête ne garde que ce qui dit OÙ l'on est ; le pied porte ce qui fait AVANCER, ce qui RAMÈNE
+  et ce qui RE-VÉRIFIE. **« ↺ Refaire » RESTE en tête**, et ce n'est pas une inconséquence : il ne
+  s'applique qu'aux cartes PASSÉES, qui n'ont pas de pied d'action. Mesuré : en-tête **106 → 81 px**,
+  première étape **387 → 361** (cumul depuis le début de l'audit : **438 → 361**, soit 68 % → 56 %
+  de l'écran à 320 × 640).
+- **UN SEUL DESSIN D'ÉTAT VIDE (v5.0.0, audit design, action 10)** : il y en avait DEUX grammaires
+  — `.empty` (cadre pointillé, titre, action, pour un écran entier vide) et un simple paragraphe
+  posé au fil de l'eau, tantôt `.auth-msg` tantôt `.ai-note` selon l'endroit, donc deux corps, deux
+  couleurs et deux marges pour la même chose. `.empty-line` est le composant, `emptyLine()` son
+  point d'écriture unique. **La distinction entre les deux reste** : `.empty` quand l'écran n'a
+  rien d'autre à montrer ET qu'il y a une ACTION à proposer ; `.empty-line` dans un panneau ou une
+  fenêtre, où le reste de l'interface tient déjà debout.
+  ⚠ **Ma formulation d'audit était fausse** : j'avais écrit « deux états vides seulement » en ne
+  comptant qu'une classe. Le défaut n'était pas qu'il en manquait, c'est qu'il y en avait deux
+  formes.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
