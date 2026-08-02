@@ -3513,6 +3513,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ouverture du dialogue sur le bon type, disparition sous filtre) et une surface
   `état · bibliothèque vide` dans `audit-a11y` — l'accueil y était ouvert AVEC les fiches
   d'exemple, donc cet écran n'était mesuré nulle part.
+  **⚠ ET LA CARTE EST PLAFONNÉE À 780 px, CENTRÉE (signalé à l'usage : « ils prennent toute la
+  place en mode desktop »)** : elle s'étirait à ~1870 px sur un écran large, pour trois lignes de
+  texte — une ligne de cette longueur se lit mal, et l'état vide s'affirmait plus fort que
+  n'importe quel contenu réel de l'accueil, dont les rangées sont plafonnées et grillées. **780
+  n'est pas un pourcentage arbitraire** : c'est la largeur de lecture d'une référence et un palier
+  déclaré, la même valeur pour la même raison. `max-width` ne contraint QUE si la place existe :
+  mesuré, la carte occupe **100 % de son conteneur de 320 à 640 px** — le responsive est acquis
+  par construction, sans media query ni palier nouveau.
 - **LA COLONNE D'ORIENTATION — UN EN-TÊTE, UNE RANGÉE, UN MARQUEUR (v5.0.0, maquette C validée)** :
   elle empilait **deux composants de titre** (`.rail-head` avec compte pour « Parcours inerte »,
   `.pl-sech` texte seul — parfois sur deux lignes — pour les sections de queue) et **trois

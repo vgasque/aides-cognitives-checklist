@@ -1815,7 +1815,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bord d'appel pour l'œil, et c'est une liste qu'on parcourt, pas une accroche qu'on lit.
      Rembourrage ramené de 56 à 24 px : les 56 px existaient pour donner du corps à un état vide
      de trois mots — ici le contenu le donne, et deux cartes empilées doivent tenir sur un écran. */
-  .emp-intro{text-align:left;padding:24px 20px}
+  /* ⚠ LARGEUR PLAFONNÉE ET CENTRÉE (signalé à l'usage : « ils prennent toute la place en mode
+     desktop »). Mesuré à 1920 px, la carte s'étirait à ~1870 px pour trois lignes de texte — une
+     ligne de 1870 px se lit mal (l'œil perd le début de la suivante), et surtout l'état vide
+     s'affirmait plus fort que n'importe quel contenu réel de l'accueil, dont les rangées sont
+     plafonnées et grillées.
+     780 px, ce n'est PAS un pourcentage arbitraire : c'est la largeur de lecture d'une référence
+     et un palier déclaré du projet — la même valeur, pour la même raison (au-delà, une colonne de
+     texte cesse d'être confortable). La réduction demandée (~60 % sur un écran large) y tombe
+     naturellement.
+     `max-width` ne contraint QUE si la place existe : sous 780 px la carte occupe 100 % de son
+     conteneur, donc rien ne rétrécit sur téléphone — le responsive est acquis par construction,
+     sans media query ni palier nouveau. */
+  .emp-intro{text-align:left;padding:24px 20px;max-width:780px;margin-left:auto;margin-right:auto}
   .emp-intro>b{text-align:center;font-size:16.5px;color:var(--ink)}
   .emp-intro+.emp-intro{margin-top:12px}
   .emp-lede{margin:0 0 16px;text-align:center;font-size:13.5px;line-height:1.45}
