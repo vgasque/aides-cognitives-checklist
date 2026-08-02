@@ -1033,6 +1033,13 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
        Ce qui se mesure change donc de FORME mais pas de FOND : trois crans, « Tout » par défaut,
        chaque cran filtre ce qu'il annonce. La position de pastille est remplacée par l'état `on`,
        qui est le canal réel de la sélection sur une chip. */
+    /* ⚠ LES FILTRES SE REPLIENT AU REPOS depuis la v5.0.0 (audit design A3-1/A5-3) : tant
+       qu'aucun n'est posé, les trois rangées vivent derrière un déclencheur unique « Filtrer ».
+       Ce témoin mesure ce que font les CRANS, pas leur présence au repos — il déplie donc par le
+       VRAI geste, comme l'utilisateur. Sans cela il cliquait sur `null` et emportait la passe.
+       Le repli lui-même a ses propres témoins, juste en dessous. */
+    const deplier=async()=>{const b=document.querySelector('[data-filttog]');if(b){b.click();await w(450);}};
+    await deplier();
     const px=()=>{const e=document.querySelector('.typebar [data-section].on');return e?(e.dataset.section||null):null;};
     const crans=[...document.querySelectorAll('.typebar [data-section]')].map(e=>e.textContent.trim());
     const actif=(document.querySelector('.typebar [data-section].on')||{}).textContent||'';
@@ -1042,6 +1049,7 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
     document.querySelector('.typebar [data-section="protocols"]').click(); await w(500);
     const prot=n(),pProt=px();
     document.querySelector('.typebar [data-section="all"]').click(); await w(500);
+    await deplier();   // « Tout » = aucun filtre actif : la rangée s'est repliée, on la rouvre
     state.q='décontamination';render();await w(500);
     const q=n();state.q='';render();await w(400);
     return {crans,actif,tout,aides,prot,q,pTout,pAides,pProt,nF:fiches.length,nP:protocols.length,
@@ -1062,6 +1070,138 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
   /* M4 : la barre fixe du bas a disparu — 62 px rendus à l'accueil. Un reste d'émission ferait
      coexister deux commandes pour un même filtre (règle 14). */
   t('la tab bar basse est PURGÉE (aucune émission)', r.tabbar===0, `${r.tabbar} nœud(s)`);
+  await page.close();
+}
+
+/* AUDIT DESIGN A3-1 / A5-3 — LE REPLI DES FILTRES, ET SURTOUT SA CONTREPARTIE.
+   Le gain est réel (~90 px au premier écran, mesuré ci-dessous), mais le RISQUE l'est aussi, et
+   c'est lui qu'il faut garder : un filtre POSÉ qui se cacherait serait bien pire que trois
+   rangées permanentes — on chercherait une aide dans un corpus restreint sans savoir pourquoi
+   elle n'apparaît pas, ce qui est le pire mode de défaillance d'une bibliothèque de crise.
+   D'où la règle constante du dossier, mesurée ici : UN ÉTAT ACTIF NE SE CACHE JAMAIS. */
+/* AUDIT DESIGN A3-1 — UN TITRE LONG NE DÉBORDE JAMAIS DE SA BOÎTE.
+   Le lot a monté le titre de la rangée de répertoire de 15,5 à 16,5 px dans une boîte de hauteur
+   FIXE (71 px). Un palier de plus sur un contenu à hauteur bornée est exactement le genre de
+   changement qui rogne en silence : `.dir-sub` est en `overflow:hidden`, donc la rangée resterait
+   PROPRE pendant que la date disparaît. C'est le défaut déjà vécu sur la méta (v5.0.0) et sur les
+   deux rognages « que personne ne mesurait » (v4.55.3).
+   ⚠ ON CONSTRUIT UN CAS ADVERSE : mesurer les fiches d'exemple ne prouverait rien, leurs titres
+   tenant sur une ligne. C'est la leçon la plus redite de ce dossier — un contrôle qui ne rencontre
+   pas son cas ne le couvre pas. On mesure aussi la TUILE, dont la hauteur est FLUIDE et qui
+   entraîne toute sa rangée de grille : c'est par elle que le coût s'était réintroduit. */
+console.log('\n══ Audit design · titres longs, boîtes bornées ══');
+for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,130],[1246,130],[1600,130]]) {
+  const page = await br.newPage({viewport:{width:w,height:900},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r = await page.evaluate(async(zm)=>{const wt=m=>new Promise(r=>setTimeout(r,m));
+    const LONG='Anaphylaxie (choc anaphylactique avec un titre vraiment très long)';
+    applyZoom(zm);
+    fiches[0].title=LONG; if(fiches[1])fiches[1].title='ACR';
+    togglePin(fiches[0].id); if(fiches[1])togglePin(fiches[1].id);
+    await persist(); render(); await wt(700);
+    /* ⚠ RÈGLE 10 : sous zoom, getBoundingClientRect rend des px VISUELS (× zoom) alors que les
+       styles sont en px CSS. Toute mesure réinjectée se divise par --zf, sans quoi on lit 92 px
+       là où la boîte en fait 71 et l'on conclut à un débordement qui n'existe pas — piège tombé
+       en écrivant ce contrôle. */
+    const Z=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zf'))||1;
+    const scan=(selBox,selT)=>[...document.querySelectorAll(selBox)].map(b=>{
+      const t=b.querySelector(selT); if(!t)return null;
+      const bb=b.getBoundingClientRect(), tr=t.getBoundingClientRect();
+      const bas=[...b.children].map(c=>c.getBoundingClientRect().bottom)
+        .reduce((a,c)=>Math.max(a,c),tr.bottom);
+      const pb=parseFloat(getComputedStyle(b).paddingBottom)||0;
+      const lh=parseFloat(getComputedStyle(t).lineHeight)||1;
+      return {debord:Math.round((bas-(bb.bottom-pb))/Z), clip:b.scrollHeight-b.clientHeight,
+              h:Math.round(bb.height/Z), lignes:+((tr.height/Z)/lh).toFixed(2),
+              long:t.textContent.trim().length>40};}).filter(Boolean);
+    /* ⚠ ON MESURE LE <span> DU TITRE, PAS LE <button> : celui-ci porte un rembourrage compensé
+       et une line-height 'normal' — y compter des lignes rend un chiffre qui ne veut rien dire
+       (piège tombé en écrivant ce contrôle : 46 px / 1 = « 46 lignes »). */
+    const rows=scan('.dir-row','.dir-t'), tiles=scan('.qa-tile','.qa-t');
+    return {rows,tiles,
+      casRow:rows.some(x=>x.long), casTile:tiles.some(x=>x.long),
+      pireRow:Math.max(0,...rows.map(x=>x.debord)), clipRow:Math.max(0,...rows.map(x=>x.clip)),
+      pireTile:Math.max(0,...tiles.map(x=>x.debord)), clipTile:Math.max(0,...tiles.map(x=>x.clip)),
+      hTile:Math.max(0,...tiles.map(x=>x.h)),
+      lignesRow:Math.max(0,...rows.map(x=>x.lignes))};},zm);
+  t(`${w}/z${zm} · témoin : le cas adverse est constitué (titre long rendu)`,
+    r.casRow===true&&r.casTile===true, `rangée ${r.casRow}, tuile ${r.casTile}`);
+  t(`${w}/z${zm} · la rangée de répertoire ne déborde pas`, r.pireRow<=0, `${r.pireRow} px`);
+  /* Le débordement ne suffit pas : `.dir-sub` est en overflow:hidden, donc la boîte reste propre
+     pendant que la donnée disparaît. On mesure AUSSI le rognage réel. */
+  /* TOLÉRANCE D'UN PIXEL, ET ELLE EST MOTIVÉE : `scrollHeight`/`clientHeight` sont des ENTIERS,
+     alors que la rangée mesure 70,9976 px CSS sous zoom 130 %. WebKit rapporte alors 1 px d'écart
+     là où rien n'est perdu — vérifié par la mesure qui compte vraiment : la méta finit 6,5 px À
+     L'INTÉRIEUR de la boîte, et le titre tient en deux lignes. Chromium rapporte 0.
+     ⚠ La tolérance ne vaut QUE pour ce contrôle d'arrondi : `debord` et « deux lignes » restent
+     STRICTS, et ce sont eux qui portent le sens. Un vrai rognage se compte en dizaines de px
+     (le défaut d'origine en produisait un de 19). */
+  t(`${w}/z${zm} · … et ne rogne rien`, r.clipRow<=1, `${r.clipRow} px rognés`);
+  /* LE VRAI INVARIANT, et celui qui manquait : le titre tient en DEUX lignes. Le clamp hérité
+     est inerte dès que le display calculé n'est pas `-webkit-box` — c'est ce qui, à 130 %, faisait
+     passer un titre réel à trois lignes et poussait la méta hors du cadre (signalé à l'usage). */
+  t(`${w}/z${zm} · le titre tient en deux lignes`, r.lignesRow<=2.05, `${r.lignesRow} ligne(s)`);
+  t(`${w}/z${zm} · la tuile ne déborde pas`, r.pireTile<=0, `${r.pireTile} px`);
+  t(`${w}/z${zm} · … et ne rogne rien`, r.clipTile<=0, `${r.clipTile} px rognés`);
+  /* PLAFOND DE CROISSANCE : la tuile est fluide et tire sa rangée de grille avec elle. À 15,5 px
+     un titre de trois lignes la porte à ~103 px ; au-delà de 115 on aurait remplacé le gain de
+     l'audit par une dépense au même endroit. */
+  t(`${w}/z${zm} · … et sa croissance reste bornée`, r.hTile<=105, `${r.hTile} px`);
+  await page.close();
+}
+
+console.log('\n══ Audit design · le repli des filtres ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const rangees=()=>document.querySelectorAll('.typebar,.scopebar,.catbar').length;
+    const tog=()=>document.querySelector('[data-filttog]');
+    /* Le premier contenu CLINIQUE, c'est-à-dire le point que tout ce lot cherche à remonter. */
+    const yPremier=()=>{const e=document.querySelector('.dir-row .card-open');
+      return e?Math.round(e.getBoundingClientRect().top):null;};
+    await w(400);
+    const repliRangees=rangees(), repliTog=!!tog(), yRepli=yPremier();
+    tog().click(); await w(500);
+    const ouvRangees=rangees(), ouvTog=!!tog(), yOuvert=yPremier();
+    /* On pose un filtre : à partir de là, le repli doit devenir IMPOSSIBLE. */
+    document.querySelector('.typebar [data-section="fiches"]').click(); await w(500);
+    const actifRangees=rangees(), actifTog=!!tog();
+    const chipOn=!!document.querySelector('.typebar [data-section="fiches"].on');
+    /* Et il doit le rester après un re-rendu complet, pas seulement juste après le clic. */
+    render(); await w(500);
+    const apresRender=rangees(), apresTog=!!tog();
+    document.querySelector('.typebar [data-section="all"]').click(); await w(500);
+    return {repliRangees,repliTog,yRepli,ouvRangees,ouvTog,yOuvert,
+            actifRangees,actifTog,chipOn,apresRender,apresTog};});
+
+  /* TÉMOIN D'ABORD : sans rangées à déplier, tout ce qui suit mesurerait le vide.
+     ⚠ LE COMPTE DÉPEND DE L'ÉTAT DU COMPTE, et l'attendre à 3 était une erreur de la SONDE :
+     `.scopebar` n'est émise que CONNECTÉ (`Auth.signedIn()`), donc une session déconnectée —
+     celle de ce harnais — en porte DEUX (type, catégorie). On mesure donc l'INVARIANCE du
+     nombre entre « déplié » et « filtre actif », qui est la propriété qui compte, plutôt qu'un
+     chiffre en dur qui ne vaudrait que pour un état de connexion. */
+  t('témoin : le cas est constitué (des rangées existent une fois dépliées)',
+    r.ouvRangees>=2, `${r.ouvRangees} rangée(s)`);
+  t('au repos, les filtres sont repliés derrière UN déclencheur',
+    r.repliRangees===0&&r.repliTog===true, `${r.repliRangees} rangée(s), déclencheur ${r.repliTog}`);
+  t('le déclencheur les ouvre', r.ouvRangees>=2&&r.ouvTog===true, `${r.ouvRangees} rangée(s)`);
+  /* LE GAIN, MESURÉ — et on ne l'affirme pas, on le compare. */
+  t('… et le repli remonte bien le premier contenu clinique',
+    r.yRepli!==null&&r.yOuvert!==null&&(r.yOuvert-r.yRepli)>=40,
+    `${r.yRepli} px replié contre ${r.yOuvert} px déplié (${r.yOuvert-r.yRepli} px rendus)`);
+  /* LA CONTREPARTIE, ET C'EST LA GARANTIE QUI COMPTE. */
+  t('⚠ un filtre ACTIF n\'est jamais masqué', r.actifRangees===r.ouvRangees&&r.chipOn===true,
+    `${r.actifRangees} rangée(s) pour ${r.ouvRangees} dépliées, chip active ${r.chipOn}`);
+  t('… et le déclencheur DISPARAÎT alors (aucun bouton mort)', r.actifTog===false);
+  t('… et cela survit à un re-rendu complet', r.apresRender===r.ouvRangees&&r.apresTog===false,
+    `${r.apresRender} rangée(s), déclencheur ${r.apresTog}`);
   await page.close();
 }
 
@@ -1847,8 +1987,20 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   t(`${W} · témoin : plusieurs rangées sont mesurées`, r.n>=2, `${r.n}`);
   t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
   t(`${W} · … et rien n'en déborde`, r.deborde===0, `${r.deborde} rangée(s)`);
-  t(`${W} · le titre reste sur l'échelle typographique`,
-    r.corps.length===1&&['15.5px','15.5'].indexOf(r.corps[0])>=0, JSON.stringify(r.corps));
+  /* ⚠ 16,5 px DEPUIS L'AUDIT DESIGN v5.0.0 (A3-1) — et le contrôle EXPRIME DÉSORMAIS SON
+     INTENTION plutôt qu'un chiffre. Il figeait « 15,5 px » en dur, ce qui était la bonne
+     réaction à ce qui l'avait motivé (deux maquettes posant 15 puis 14,5 px, dont aucun n'est un
+     palier). Mais l'intention n'a jamais été « ce titre fait 15,5 » : c'est « ce titre est SUR
+     L'ÉCHELLE FERMÉE, et il ne redescend pas ». Un littéral rend le contrôle rouge sur un
+     changement JUSTE, ce qui pousse à le contourner — la pire chose qu'on puisse faire à un
+     garde-fou.
+     Le plancher est posé à 15,5 : le titre peut monter d'un palier, jamais redescendre sous
+     celui qui avait été mesuré et validé. La cohérence de VALEUR entre toutes les rangées reste
+     exigée (`r.corps.length===1`), c'est elle qui donne son rythme à l'annuaire. */
+  {const PALIERS_TXT=[11,12,13.5,15.5,16.5,18,19];
+   const v=parseFloat(String(r.corps[0]||''));
+   t(`${W} · le titre reste sur l'échelle typographique`,
+     r.corps.length===1&&PALIERS_TXT.indexOf(v)>=0&&v>=15.5, JSON.stringify(r.corps));}
   t(`${W} · le titre n'est pas tronqué sur les exemples`, r.tronques===0, `${r.tronques}`);
   t(`${W} · la catégorie vit dans le liseré, la pastille est purgée`,
     r.liseCat===true&&r.pastille===0, `liseré=${r.liseCat} pastilles=${r.pastille}`);

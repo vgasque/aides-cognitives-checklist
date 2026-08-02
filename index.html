@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-64H/l7LcgC0hNmke/7gC84mbTQwUT7VUkZUkyQmLMRI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-WBPSXfX7MGO8XQvfM2VDB21IL519L6z5hjXYF0BfaY0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -325,7 +325,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--done-ink:#5b6570;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-up:0 -2px 6px rgba(16,27,40,.07),0 -10px 28px rgba(16,27,40,.13);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-up:0 -2px 6px rgba(16,27,40,.07),0 -10px 28px rgba(16,27,40,.13);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -371,7 +371,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ENCRES ET REGISTRES INCHANGÉS : le noir est un changement de FOND, pas de sémantique — les
      rouges, ambres et verts gardent leurs valeurs, et l'a11y a été rejouée avec la palette
      réellement posée dans le fichier (301/301, contraste calculé sur le fond EFFECTIF). ===== */
-  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#b7c6d6;--line:#33363b;--line-hover:#4d5158;--bg:#0a0a0c;--surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#0e2038;--primary-100:#0e2038;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--done-ink:#4e6e58;--tag-bg:#1d1f24;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#000000;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--shadow-up:0 -2px 6px rgba(0,0,0,.5),0 -10px 28px rgba(0,0,0,.65);--hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;}
+  html[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#b7c6d6;--line:#33363b;--line-hover:#4d5158;--bg:#0a0a0c;--surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#0e2038;--primary-100:#0e2038;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--tag-bg:#1d1f24;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#000000;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--shadow-up:0 -2px 6px rgba(0,0,0,.5),0 -10px 28px rgba(0,0,0,.65);--hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;}
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
      règles de survol) ; --flow-hl-dk : trait de contre-inversion du SVG sombre (la couleur est
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
@@ -1172,18 +1172,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:429.98px){
     header.bar.home .brand-logo{width:30px;height:30px}
     header.bar.home .id-row{column-gap:8px}
-    /* Le mot-marque descend d'un cran (20 → 18px) : à 360px — largeur Android très répandue — il
-       manquait encore 14px, et rapetisser le glyphe davantage l'aurait rendu illisible. 18px reste
-       très au-dessus du plancher typographique de 11px, et c'est le seul endroit où l'app affiche
-       son nom. Sans ça, la rangée passait à la ligne et l'en-tête gagnait 38px. */
-    header.bar.home .brand .brand-name{font-size:18px}
+    /* ⚠ L'ABAISSEMENT DU MOT-MARQUE À 360 px N'EXISTE PLUS (v5.0.0, audit design A3-1) : il
+       descendait 20 → 18 px pour rendre 14 px à la rangée d'identité. La marque étant désormais à
+       16,5 px À TOUTES LES LARGEURS, cette règle ferait GRANDIR le mot sur écran étroit —
+       exactement l'inverse de son intention. Purgée avec sa cause (règle 14). */
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
-  /* 20px (v4.4.2) : la marque était trop discrète. Plafond dur — au-delà, « Aides cognitives »
-     se tronque sur iPhone SE/mini (375px : ~166px de logotype pour ~193px de budget) et la
-     hauteur de barre, fixée par le bouton Compte (40px), ne bouge pas. */
-  .brand .brand-name{margin:0;font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 16,5 px (v5.0.0, audit design A3-1 — était 20, et 18 sous 430 px). MESURÉ à l'accueil sur
+     390×844 : la marque était le plus gros objet de l'écran (18 px) devant le titre d'une aide
+     vitale (15,5). L'importance visuelle était inversement proportionnelle à l'importance réelle
+     — sous stress on ne lit pas, on scanne les masses, et la masse dominante était le nom du
+     logiciel, information de valeur nulle pour qui vient de l'ouvrir.
+     16,5 EST LE MÊME PALIER QUE `#brandTitle`, son RELAIS dans la barre en vue lecture : le même
+     libellé cesse ainsi de changer de corps selon la vue, comme il a cessé de changer de POLICE
+     en v4.73.0. La marque n'est pas effacée — elle cesse seulement de dominer le contenu, et
+     l'ancien plafond dur (troncature à 375 px) s'en trouve détendu d'autant. */
+  .brand .brand-name{margin:0;font-family:var(--serif);font-size:16.5px;font-weight:600;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #brandSub{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-top:2px}
   /* Accueil : le sous-titre est porté par les onglets. En lecture il accompagne le titre dans
      la barre UNE FOIS DÉFILÉ (« Aide cognitive » / « Protocole », cf. .titled/.ttl-on plus bas) ;
@@ -1264,7 +1269,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sys-banner .sb-txt{flex:1;min-width:0}
   .sys-banner .sb-act{background:none;border:0;color:var(--primary-dk);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:6px;cursor:pointer;flex:none}
   .sys-banner .sb-act:hover{background:var(--primary-100)}
-  .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;flex:none}
+  /* 15,5 px et non 19 (v5.0.0, audit design A3-1) : à l'accueil, cette croix était le plus
+     GROS glyphe de l'écran après la marque — le point focal d'un bandeau était son bouton
+     « fermer ». La CIBLE ne bouge pas (min 32×32, indépendante du corps). */
+  .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:15.5px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;flex:none}
   .sys-banner .sb-x:hover{background:var(--primary-100)}
   .sys-banner :is(.sb-act,.sb-x):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   body:not(.view-home) .sys-banner{display:none}
@@ -1343,7 +1351,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .scopebtn svg{vertical-align:-2px}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
-  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px}
+  /* Même corps que `.sb-x` : une seule croix de fermeture dans tout le fichier (v5.0.0). */
+  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15.5px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px}
   .notice-x:hover{background:rgba(0,0,0,.07)}
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
@@ -1361,7 +1370,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .share-note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
   .mem-section-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
   .mem-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
-  .mem-row{display:flex;align-items:center;gap:10px;padding:8px 10px;min-height:48px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+  .mem-row{display:flex;align-items:center;gap:10px;padding:8px 10px;min-height:48px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface)}
   .mem-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dk);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
   .mem-info{flex:1;min-width:0}
   .mem-email{font-size:13.5px;color:var(--ink);word-break:break-all}.mem-you{color:var(--ink-soft);font-weight:400}
@@ -1437,7 +1446,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .qa-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   /* E1 niveau 1 : une tuile d'accueil est du CONTENU (plat + filet) — l'ombre est rendue aux
      surfaces vives. Le fond `--bg` un cran plus profond (E7) la fait « porter » sans elle. */
-  .qa-tile{position:relative;display:flex;align-items:center;gap:10px;min-height:72px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px 12px 10px 18px;cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
+  .qa-tile{position:relative;display:flex;align-items:center;gap:10px;min-height:72px;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);padding:10px 12px 10px 18px;cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;color:var(--ink)}
   /* Le badge « ● En cours » vit À DROITE de la tuile, centré (maquette desktop) — glissé dans la
      sous-ligne de 11 px, il l'étirait et semblait rapporté (retour utilisateur v4.56.1). */
   .qa-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
@@ -1449,6 +1458,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ellipse — demande utilisateur « un peu plus de titre », 2 lignes tronquaient trop pour
      reconnaître la fiche (le nom accessible et l'info-bulle restent le texte complet). 15 px :
      un cran sous les 16 de la maquette, des caractères en plus par ligne au même encombrement. */
+  /* 15,5 px — ET NON 16,5 COMME LA RANGÉE DU RÉPERTOIRE (v5.0.0, audit design A3-1 : monté puis
+     REVENU, sur signalement à l'usage « les titres s'affichent sur trois lignes et dépassent »).
+     Les deux surfaces montrent le même objet, mais elles n'ont pas la même CONTRAINTE, et c'est
+     la contrainte qui décide du palier :
+       · la RANGÉE a un clamp à 2 lignes dans une boîte FIXE de 71 px, où la mesure montre 6 à
+         7 px de marge restante à 16,5 px — le titre grandit, la rangée ne bouge pas ;
+       · la TUILE a un clamp à 3 lignes et une hauteur FLUIDE. Mesuré à 16,5 px sur un titre long :
+         72 → **107 px**, et comme les tuiles sont des éléments de grille, la rangée ENTIÈRE suit —
+         une tuile à titre court passait elle aussi à 107. Rien n'était coupé (débord mesuré
+         négatif, clip 0), mais on payait ~35 px par rangée de tuiles, c'est-à-dire exactement le
+         budget vertical que ce lot cherche à rendre au contenu.
+     ET LE CONSTAT D'AUDIT NE S'APPLIQUE PAS ICI : il disait « la marque est plus grosse que le
+     contenu ». Dans une tuile, le titre est DÉJÀ l'élément dominant de sa propre carte — il n'y a
+     aucune inversion à corriger. Le clamp à 3 lignes est un réglage mesuré (v4.56.0, demande
+     utilisateur « un peu plus de titre ») : le monter à 16,5 le déréglait sans rien gagner. */
   .qa-t{font-size:15.5px;font-weight:750;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word}
   .qa-sub{display:flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;font-size:11px;color:var(--ink-soft)}
   .qa-sub>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1487,21 +1511,77 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      écarts (gap 10 → 5, retrait gauche 14 → 12) et sur le chrome du tag de nature, qui est du
      TEXTE et non une pastille. Mesuré après : 0 item tronqué de 360 à 1900 px, sauf 3 items à
      2 px dans la seule bande des quatre colonnes serrées. */
+  /* ⚠ DÉLIMITATION DES COMPOSANTS INTERACTIFS — `--line-strong`, PAS `--line` (v5.0.0, audit
+     design A1-3, WCAG 2.2 § 1.4.11). MESURÉ : en thème sombre, une carte (`--surface` #0d0d0f)
+     contre la page (`--bg` #0a0a0c) vaut **1,02:1** — autant dire rien — et il ne restait que le
+     filet `--line` à **1,60:1**. En clair : 1,18 et 1,39. Le TEXTE se lit parfaitement ; c'est le
+     COMPTAGE qui échoue — où finit une rangée, combien y en a-t-il — et c'est précisément ce que
+     1.4.11 protège.
+     `--line-strong` donne 3,93:1 en clair et 4,94:1 en sombre. Ce n'est pas un token neuf : la
+     doctrine l'assigne DÉJÀ aux « bordures de composants, contraste >= 3:1 » (cases à cocher,
+     champs de saisie) — on l'étend aux cartes CLIQUABLES, qui sont des composants au même titre.
+     ⚠ UN TOKEN `--line-card` A ÉTÉ ENVISAGÉ PUIS ÉCARTÉ : il aurait valu `var(--line-strong)`
+     dans les deux thèmes, c'est-à-dire un ALIAS — exactement le défaut relevé sur `--done-ink`
+     dans le même audit. On ne corrige pas une duplication en en créant une autre.
+     `--line` reste inchangé sur ses 160 autres usages (séparateurs, cadres non cliquables) : le
+     déplacer globalement garantissait des effets de bord pour un gain hors périmètre. */
   .dir-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
-    gap:4px;height:71px;padding:0 8px 0 12px;border:1px solid var(--line);border-radius:var(--radius-md);
+    gap:4px;height:71px;padding:0 8px 0 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);
     background:var(--surface);overflow:hidden}
-  .dir-row:hover{border-color:var(--line-hover);background:var(--surface-2)}
+  /* Le survol RENFORCE (`--ink-soft`) : depuis que la base est `--line-strong`, `--line-hover`
+     l'ÉCLAIRCISSAIT en thème clair — un survol qui efface le bord au lieu de l'affirmer. */
+  .dir-row:hover{border-color:var(--ink-soft);background:var(--surface-2)}
   .dir-main{flex:1;min-width:0}
   /* padding 6px compensé par marges négatives : la BOÎTE du bouton atteint 29px (cible WCAG
      2.5.8 mesurable ≥ 24 — le ::after étendu ne se mesure pas), le rendu ne bouge pas d'un px. */
-  .dir-row .card-open{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%;overflow:hidden;text-align:left;white-space:normal;line-height:1.15;background:none;border:0;padding:4px 0;margin:-4px 0;font-family:inherit;font-size:15.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer}
+  /* 16,5 px (v5.0.0, audit design A3-1) — le TITRE d'une aide était à 15,5 quand la MARQUE était
+     à 18/20 : l'objet le plus important de l'écran était plus petit que le nom du logiciel, qui
+     n'apprend rien à qui l'a déjà ouvert. Les deux se rejoignent désormais sur le même palier.
+     Coût en hauteur NUL : la rangée est à 71 px fixes et le contenu (2 lignes × 1,15 + méta) y
+     tient — c'est l'INTERLIGNE qui avait été resserré pour cette rangée, jamais la police. */
+  /* ⚠ LE CLAMP VIT SUR UN <span>, JAMAIS SUR LE <button> (v5.0.0 — défaut ANTÉRIEUR, présent
+     depuis la v4.56.0, trouvé en montant le corps du titre et signalé à l'usage : « les titres
+     s'affichent sur trois lignes et dépassent »).
+     `.card-open` est un BOUTON, et les navigateurs BLOCKIFIENT `display:-webkit-box` sur un
+     contrôle de formulaire : le display calculé vaut `flow-root`, mesuré, et `-webkit-line-clamp`
+     ne s'applique qu'à un conteneur `-webkit-box`. Le clamp à 2 lignes était donc INERTE depuis
+     son écriture — il ne « marchait » que parce que les titres d'exemple tenaient sur deux lignes.
+     Le monter à 16,5 px n'a pas créé le défaut : il l'a RÉVÉLÉ, en faisant passer des titres
+     réels à trois lignes dans une boîte de hauteur FIXE.
+     La TUILE ne l'avait pas, et c'est ce qui met sur la piste : elle clampe `.qa-t`, un <span>
+     INTERNE au bouton. On applique ici le même patron. Le bouton garde sa boîte, son rembourrage
+     compensé (donc sa cible mesurable ≥ 24 px, WCAG 2.5.8) et son nom de classe — quatorze
+     harnais ouvrent une fiche par `.card-open`, et un <span> à l'intérieur ne change ni son
+     `textContent` ni son `click()`. */
+  .dir-row .card-open{display:block;max-width:100%;overflow:hidden;text-align:left;white-space:normal;background:none;border:0;padding:4px 0;margin:-4px 0;font-family:inherit;font-size:16.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  /* ⚠ PAS DE `line-clamp` STANDARD À CÔTÉ DU `-webkit-line-clamp` (v5.0.0, mesuré) : déclarée
+     ensuite, la propriété moderne fait basculer Chromium sur son nouvel algorithme, qui
+     recalcule `display` en `flow-root` — donc DÉSACTIVE le clamp hérité sans rien mettre à sa
+     place. Mesuré : display calculé `flow-root`, trois lignes rendues pour un clamp à 2. On
+     s'en tient au trio hérité, seul universellement supporté sur les deux moteurs cibles. */
+  /* DEUX LIGNES, GARANTIES PAR LA HAUTEUR — et non par le seul `-webkit-line-clamp`.
+     Le clamp hérité donne l'ELLIPSE, qui est le rendu qu'on veut ; mais il ne s'applique qu'à
+     un conteneur `-webkit-box`, et MESURÉ dans cette page le display calculé du titre retombe
+     sur `flow-root` — le clamp était donc INERTE, et un titre long prenait trois lignes dans
+     une boîte de 71 px, poussant la méta hors du cadre (signalé à l'usage, capture à l'appui).
+     `max-height` ne dépend d'AUCUNE particularité de moteur : deux lignes, partout, toujours.
+     Les deux sont posées ensemble et ne se gênent pas — là où le clamp s'applique on gagne
+     l'ellipse, là où il ne s'applique pas la hauteur tient quand même la promesse.
+     ⚠ NE PAS AJOUTER la propriété standard `line-clamp` à côté : déclarée ensuite, elle fait
+     basculer Chromium sur son nouvel algorithme et recalcule `display` (essayé, mesuré). */
+  .dir-row .card-open .dir-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    max-height:2.3em;overflow:hidden;line-height:1.15}
   .dir-row .card-open::after{content:"";position:absolute;inset:0;border-radius:var(--radius-md)}
   .dir-row .card-open:focus-visible{outline:none}
   .dir-row:has(.card-open:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
   /* UNE SEULE LIGNE, ELLIPSÉE — et l'ordre est celui de l'importance, puisque c'est la QUEUE qui
      tombe : l'état d'abord (chrono vivant, statut, à compléter), puis le discriminant, puis la
      catégorie, et enfin le code et la date, qui sont ce qu'on peut perdre. */
-  .dir-sub{display:flex;align-items:center;gap:4px;margin-top:2px;min-width:0;font-size:11px;
+  /* 12 px (v5.0.0, audit design A5-1) — la méta du répertoire était le principal GISEMENT de
+     11 px de l'accueil (14 des 26 éléments visibles y étaient au plancher). Un plancher est une
+     exception motivée ; il ne peut pas être aussi le corps de texte de l'écran d'entrée. Les
+     étiquettes de ZONE (« Type », « Catég. », `.rail-n`) restent à 11 : là, c'est légitime. */
+  .dir-sub{display:flex;align-items:center;gap:4px;margin-top:2px;min-width:0;font-size:12px;
     color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* ⚠ CE QUI DÉBORDE NE DOIT PAS AFFAMER LE RESTE (signalé à l'usage : avec un code long, la
      DATE disparaissait). Ellipser la LIGNE entière fait tomber la queue — donc l'élément le moins
@@ -1586,8 +1666,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* < 640 px : les rangées d'une lettre deviennent une LISTE à filets dans une carte unique
      (maquette mobile) — mêmes nœuds, seul le conteneur change de peau. */
   @media (max-width:639.98px){
-    .dir-grid{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
-    .dir-row{border:0;border-top:1px solid var(--surface-2);border-radius:0}
+    .dir-grid{display:block;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);overflow:hidden}
+    /* Le séparateur interne passe de `--surface-2` à `--line` : une SURFACE employée comme
+       filet est invisible par construction (v5.0.0, A1-3). Le cadre, lui, est sur la carte. */
+    .dir-row{border:0;border-top:1px solid var(--line);border-radius:0}
     .dir-row::before{border-radius:0}
     .dir-row:first-child{border-top:0}
     .dir-row .card-open::after{border-radius:0}
@@ -2407,14 +2489,35 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Pas de filet sur la ligne qui suit une bande (la bande borne déjà la séparation). */
   ol.steps li:is(.crit,.vigil)+li{border-top:0}
   /* Étape COCHÉE : l'état « fait » s'aplatit avec la ligne — l'information est portée par la
-     COCHE verte pleine + texte grisé barré + opacité. La coche ENTRE avec le « pop » (canvas ;
-     transform seul, composité). Une étape SIGNALÉE cochée CONVERGE vers le vert doux (doctrine V5 :
-     l'urgence est traitée) : sa bande perd sa teinte d'alerte et son liseré passe au vert. */
-  ol.steps li.done{opacity:.6}
+     COCHE verte pleine + l'encre douce + la graisse (400 contre 600). La coche ENTRE avec le
+     « pop » (canvas ; transform seul, composité). Une étape SIGNALÉE cochée CONVERGE vers le vert
+     doux (doctrine V5 : l'urgence est traitée) : sa bande perd sa teinte d'alerte et son liseré
+     passe au vert.
+     ⚠ NI OPACITÉ NI BARRÉ (v5.0.0, audit design A1-1 — MESURÉ, et c'est la seule violation AA
+     qu'ait porté ce fichier). `opacity:.6` + `--done-ink` composaient un texte à **2,55:1 en
+     clair et 1,95:1 en SOMBRE**, quand l'étape non cochée juste en dessous mesure 17,36 / 16,65 :
+     un facteur 7 à 9 entre deux lignes voisines. L'exemption WCAG « composant inactif » ne joue
+     PAS — une étape cochée reste un `role="checkbox"` `tabindex="0"` décochable.
+     TROIS SOURCES CONVERGENTES, et la troisième est ce fichier lui-même. (a) ECAM : une action
+     accomplie passe au vert et RESTE pleinement lisible — le decluttering retire ce qui n'est
+     plus PERTINENT, il ne rend pas illisible ce qu'on vient de faire, précisément parce que la
+     relecture est le mécanisme de reprise. (b) AC 120-71B §5.4 + Degani & Wiener : « perdre sa
+     place est un mode de défaillance premier », ce que ce dossier cite déjà pour justifier
+     l'abandon du un-item-à-la-fois (v4.28.0) — une ligne à 1,95:1 barrée EST une ligne perdue.
+     (c) LA CONTRADICTION INTERNE : `.sv-stp li.done` porte le commentaire « texte JAMAIS barré
+     (relecture) » et `li.md-task.done` la même règle ; la vue de SOIN, seule des trois à compter
+     en crise, était la seule à barrer ET estomper. Deux vocabulaires pour une idée, ce qu'AC
+     120-71B §5.5 proscrit.
+     APRÈS : 5,93:1 en clair, 11,15:1 en sombre. Rien n'est perdu — la distinction fait/à faire
+     garde TROIS canaux (case verte pleine, graisse, encre), donc la couleur n'est jamais seule
+     (règle 8). Et l'exception `@media print` qui remettait `opacity:1` + `text-decoration:none`
+     A DISPARU avec la cause : l'écran et le papier disent enfin la même chose.
+     ⚠ Ne pas « restaurer » l'opacité pour retrouver du contraste d'état : le canal d'état est la
+     COCHE, pas l'effacement du texte. */
   ol.steps li:is(.crit,.vigil).done{background:var(--done-bg)}
   ol.steps li.done .box{background:var(--ok);border-color:var(--ok);color:var(--surface)}
   ol.steps li.done .box svg{animation:pop .25s ease}
-  ol.steps li.done .txt{text-decoration:line-through;color:var(--done-ink);font-weight:400}
+  ol.steps li.done .txt{color:var(--ink-soft);font-weight:400}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on svg{animation:pop .25s ease}
   ul.flat{list-style:none;margin:0;padding:0}
@@ -3528,7 +3631,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tmm-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cn-note{font-size:11px;color:var(--ink-soft);margin-top:4px}
   .tm-reset .tmr-lab,.tm-reset .tmr-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-  .tm-reset .tmr-hint{font-size:11px;font-weight:700;opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
+  /* ⚠ PLUS D'OPACITÉ SUR CE MOT (v5.0.0, audit design A1-2 — défaut PRÉEXISTANT, révélé par la
+     correction de la sonde). « MAINTENIR » est l'AFFORDANCE d'un geste destructif : c'est lui qui
+     dit qu'une remise à zéro exige un appui prolongé (doctrine « action destructrice en crise =
+     maintenir, pas un tap »). Il était à 11 px avec `opacity:.65`, soit **2,81:1 mesuré**, sous le
+     seuil AA — et personne ne pouvait le voir, la sonde de contraste ignorant l'opacité jusqu'à
+     cette version. L'information la plus utile du bouton était la moins lisible.
+     `--ink-soft` rend la même hiérarchie (le mot reste secondaire devant le libellé) sans payer
+     en contraste : c'est la règle déjà écrite pour `--soft` — la nuance passe par le TOKEN
+     d'encre, jamais par l'effacement. */
+  .tm-reset .tmr-hint{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em;margin-top:1px}
   .tm-reset.holding{background-color:var(--surface-2);background-image:linear-gradient(color-mix(in srgb,var(--alarm) 60%,transparent),color-mix(in srgb,var(--alarm) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill .8s linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .btn.sm{padding:8px 12px;font-size:13.5px;min-height:38px}.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -3548,7 +3660,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-nav>button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .flow-nav>button[disabled]{opacity:.4;cursor:default}
   .flow-nav>button[disabled]:hover{background:transparent}
-  .flow-nav .tmr-hint{font-size:11px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.07em}
+  /* Même correctif que ci-dessus : le jumeau du plein écran portait `opacity:.6`. */
+  .flow-nav .tmr-hint{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:14px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15.5px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
@@ -4578,6 +4691,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* DEUX GROUPES SUR UNE LIGNE, chacun avec son intitulé — et l'enroulement comme filet : à
      320 px avec plusieurs bibliothèques, deux groupes comprimés seraient illisibles. */
   .filterbar{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-bottom:8px}
+  /* REPLI DES FILTRES (v5.0.0, audit design A3-1/A5-3) — cf. `filterFoldHtml` pour la doctrine.
+     Le déclencheur reprend la grammaire des chips de filtre (`.scopebtn`) plutôt que celle des
+     boutons d'action : c'est un objet de la MÊME famille que ce qu'il déplie, pas une commande
+     de plus. Registre neutre au repos, registre de SÉLECTION quand il est ouvert — le même
+     couple que les chips actives, donc rien de nouveau à apprendre. */
+  .filterfold{display:flex;flex-direction:column;min-width:0}
+  .filt-tog{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:32px;
+    padding:0 12px;margin-bottom:8px;border:1px solid var(--line-strong);border-radius:18px;
+    background:var(--surface);color:var(--ink);font-family:inherit;font-size:12px;font-weight:600;
+    cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s}
+  .filt-tog:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .filt-tog.on{background:var(--primary-100);border-color:var(--primary);color:var(--primary-dk)}
+  .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
@@ -4964,7 +5090,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-tkbox svg{display:none}
   li.md-task.done .md-tkbox{background:var(--ok);border-color:var(--ok)}
   li.md-task.done .md-tkbox svg{display:block;animation:pop .25s ease}
-  li.md-task.done .md-tktxt{color:var(--done-ink)}
+  /* Même correctif que l'étape cochée (v5.0.0, A1-1) : `--done-ink` valait 3,11:1 en SOMBRE, sous
+     le seuil AA, sur du texte qu'on doit pouvoir relire — la doctrine des listes cochables le dit
+     en toutes lettres (« texte JAMAIS barré, on doit pouvoir relire »). `--ink-soft` : 5,93 / 11,15. */
+  li.md-task.done .md-tktxt{color:var(--ink-soft)}
   li.md-task[role="checkbox"]{cursor:pointer;touch-action:manipulation}
   li.md-task[role="checkbox"]:hover{background:var(--surface-2)}
   li.md-task[role="checkbox"]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -5313,7 +5442,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:20px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}ol.steps li.done{opacity:1}ol.steps li.done .txt{text-decoration:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -6122,7 +6251,7 @@ const sanitizeLibs=a=>(Array.isArray(a)?a:[]).slice(0,200).map(l=>({id:safeMetaI
 function profileCacheKey(){const u=Auth.user();return (u&&u.id)?('ac-profile-'+u.id):null;}
 function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify({libraries:myLibraries,isAppAdmin:myIsAppAdmin}));}catch(e){}}
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
-let state={view:'library',readStack:[],q:'',cat:'',scope:null,draft:null,fiche:null,edGrab:null,nav:[],navSeq:[],navPos:0,checked:{},verified:{},vgaps:{},showFlow:false,rtOpen:false,libLimit:LIB_PAGE,
+let state={view:'library',readStack:[],q:'',cat:'',scope:null,filtersOpen:false,draft:null,fiche:null,edGrab:null,nav:[],navSeq:[],navPos:0,checked:{},verified:{},vgaps:{},showFlow:false,rtOpen:false,libLimit:LIB_PAGE,
   noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
   section:'all',           // FILTRE DE TYPE (lot T9) : 'all' (défaut) | 'fiches' | 'protocols' — mémorisé par espace
   protocol:null,pdraft:null,   // protocole affiché (protocolRead) / brouillon (protocolEdit)
@@ -9639,6 +9768,10 @@ let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'inpu
    avec le chrome, on ne peut donc pas câbler bouton par bouton. */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.typebar [data-section]');
   if(b)setSection(b.dataset.section);});
+/* Repli des filtres (v5.0.0) : même délégation et même re-rendu que les chips elles-mêmes —
+   la position des rangées à défilement propre est déjà restaurée par `renderHomeList`. */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-filttog]');
+  if(b){state.filtersOpen=!state.filtersOpen;render();}});
 // Bascule visuelle d'un sélecteur segmenté (.seg) : classe d'état sur la RACINE + tabindex
 // itinérant. `root` = la racine .seg, `attr` = l'attribut data-* qui porte la valeur du segment.
 // Partagé par la tab bar (data-section) et le dialogue Créer (data-createkind) — un seul patron.
@@ -9842,6 +9975,30 @@ function scopeBarHtml(){
    plus large au plus étroit — Type, Biblio, Catég. Ce que cela rend : 62 px de hauteur permanents
    en bas de l'accueil (la place que la barre fixe réservait), et une grammaire de moins.
    La colonne gauche de l'accueil LARGE portait déjà les sections : rien n'y change. */
+/* ⚠ LES FILTRES SE REPLIENT TANT QU'AUCUN N'EST POSÉ (v5.0.0, audit design A3-1/A5-3).
+   MESURÉ à l'accueil sur 390×844 : 12 éléments de texte et 439 px — 52 % de l'écran — précédaient
+   le premier contenu clinique, dont ~90 px pour les trois rangées de filtres. Or filtrer est un
+   geste qu'on ne fait JAMAIS sous stress : en urgence on cherche un SUJET, on n'affine pas un
+   corpus. C'est le même diagnostic que celui qui a déclenché les lots T2–T5 sur la vue lecture
+   (« 68 % de l'écran avant la première case à cocher »), appliqué à l'écran qu'on ouvre EN PREMIER
+   et qui ne l'avait jamais reçu.
+   UN ÉTAT ACTIF NE SE CACHE JAMAIS — règle constante du dossier. Dès qu'un filtre est posé
+   (`filtersActive()`), les rangées sont RENDUES EN PERMANENCE et le déclencheur DISPARAÎT : il n'y
+   a plus rien à replier, et les chips actives sont elles-mêmes le moyen de revenir en arrière. Un
+   bouton qui ne peut plus rien basculer serait un bouton mort.
+   `state.filtersOpen` VIT LE TEMPS DE LA PAGE : ni persisté, ni synchronisé — c'est une
+   consultation, pas un réglage (même statut que `state.allTab` et `state.cxOpen`). Il n'est
+   PAS remis à zéro au retour de fiche, et c'est délibéré : replier sous le doigt de quelqu'un
+   qui vient d'ouvrir les filtres puis de consulter une aide serait le punir de son geste.
+   L'ORDRE ET LES LIBELLÉS des trois rangées sont INCHANGÉS (biblio → type → catég., lot M4b) :
+   ce lot ne touche qu'à leur PRÉSENCE au repos. */
+function filtersActive(){return state.section!=='all'||!!state.scope||!!state.cat;}
+function filterFoldHtml(){
+  const bars=filterbarHtml()+catbarHtml();
+  if(!bars)return '';
+  if(filtersActive())return `<div class="filterfold">${bars}</div>`;
+  const open=!!state.filtersOpen;
+  return `<div class="filterfold"><button class="filt-tog${open?' on':''}" data-filttog aria-expanded="${open?'true':'false'}">${uiIcon('filter',13)}Filtrer</button>${open?bars:''}</div>`;}
 /* La rangée de filtres COURTS : bibliothèque puis type, du plus large au plus étroit. */
 function filterbarHtml(){
   const sc=scopeBarHtml(),ty=typebarHtml();
@@ -10034,7 +10191,7 @@ function renderHomeList(cfg){
       ELLE S'ENROULE SI ELLE NE TIENT PAS : sur le plancher de 320 px avec plusieurs
       bibliothèques, deux groupes sur une ligne se comprimeraient l'un l'autre — mieux vaut deux
       lignes lisibles qu'une ligne illisible, et l'enroulement ne coûte que ce qu'il rend. */
-   hc.innerHTML=wide?'':(filterbarHtml()+catbarHtml());hc.hidden=wide||!hc.innerHTML;
+   hc.innerHTML=wide?'':filterFoldHtml();hc.hidden=wide||!hc.innerHTML;
    const nsr=hc.querySelector('.scopebar .chiprow');if(nsr&&_scopeRowX)nsr.scrollLeft=_scopeRowX;}
   rescueFooter();
   /* ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c). Deux régimes :
@@ -10150,7 +10307,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       return `
       <div class="dir-row${isLive?' live':''}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
-          <button class="card-open" data-open="${f.id}">${esc(f.title)||'Sans titre'}</button>
+          <button class="card-open" data-open="${f.id}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
           <span class="dir-sub">${dirKindHtml('f')}${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
         </div>
@@ -10237,7 +10394,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
       return `
       <div class="dir-row"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
-          <button class="card-open" data-open="${p.id}">${esc(p.title)||'Sans titre'}</button>
+          <button class="card-open" data-open="${p.id}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
           <span class="dir-sub">${dirKindHtml('p')}${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q):''}
         </div>
@@ -11046,6 +11203,10 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   flow:'<rect x="9" y="3" width="6" height="4.5" rx="1"/><rect x="2.5" y="16.5" width="6" height="4.5" rx="1"/><rect x="15.5" y="16.5" width="6" height="4.5" rx="1"/><path d="M12 7.5v3.5M5.5 16.5V11h13v5.5"/>',
   belloff:'<path d="M13.7 21a2 2 0 01-3.4 0"/><path d="M18.6 13c-.4-1.4-.6-3-.6-5a6 6 0 00-9.3-5"/><path d="M6.3 6.3C6.1 6.9 6 7.4 6 8c0 7-3 9-3 9h14"/><path d="M2 2l20 20"/>',
   moon:'<path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/>',
+  // Filtre (v5.0.0) : ENTONNOIR, et surtout pas trois traits horizontaux — « ladder » est
+  // déjà un rail surmonté de lignes indentées, et deux dessins quasi identiques dans la même
+  // interface sont ce que la v4.28.0 a proscrit.
+  filter:'<path d="M3.5 5h17l-6.5 7.6V20l-4 1.5v-8.9z"/>',
   // Échelle des blocs (v4.28.0 — remplace l'ex-icône « plan », quasi identique à « flow » :
   // deux dessins à nœud + deux branches côte à côte dans le menu se confondaient) : un RAIL
   // vertical + lignes indentées — c'est la vue Échelle elle-même, impossible à confondre.

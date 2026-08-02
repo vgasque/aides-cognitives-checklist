@@ -64,8 +64,27 @@ const AUDIT = `(() => {
       if(ownText(el)&&el.textContent.trim()){
         // plancher typographique (règle projet)
         if(fs&&fs<11) out.typo.push({sel:el.className||el.tagName,px:fs,txt:el.textContent.trim().slice(0,28)});
-        // contraste du texte
-        const fg=parse(cs.color); if(fg){
+        /* contraste du texte
+           ATTENTION — L'OPACITE HERITEE COMPTE (v5.0.0, audit design A1-2). C'etait un defaut de
+           la SONDE, pas de l'application, et il la rendait aveugle partout a la fois : la passe
+           composait bien l'alpha de la COULEUR (une notation rgba), mais ignorait la propriete
+           opacity sur l'element et sur ses ancetres. Or opacity compose le rendu exactement comme
+           un alpha : getComputedStyle continue de rapporter l'encre PLEINE, si bien qu'un texte
+           reellement peint a 2,55:1 etait mesure a 5,93 et declare conforme.
+           C'est ce qui a laisse passer l'ETAPE COCHEE (opacity .6 + --done-ink), c'est-a-dire
+           l'etat le plus frequent de l'application. Le defaut n'etait donc pas qu'il manquait un
+           etat a la liste : c'est que l'instrument ne POUVAIT PAS le voir. Ajouter l'etat sans
+           corriger la sonde aurait produit un vert de plus, et un vert faux.
+           On multiplie les opacites jusqu'a la racine, puis on compose l'encre sur son fond
+           effectif. Une valeur inferieure a 1 sur un ANCETRE compte autant que sur l'element :
+           c'est le groupe entier qui est peint en transparence.
+           NOTE DE MAINTENANCE : ce bloc vit dans un litteral gabarit (la sonde est une chaine
+           evaluee dans la page). Aucun accent grave ni sequence dollar-accolade ici, sous peine
+           de refermer le gabarit — erreur commise en ecrivant ce commentaire. */
+        const opAcc=(()=>{let o=1,n=el;while(n&&n.nodeType===1){o*=px(getComputedStyle(n).opacity);n=n.parentElement;}return o;})();
+        const fg0=parse(cs.color);
+        const fg=fg0?{r:fg0.r,g:fg0.g,b:fg0.b,a:fg0.a*opAcc}:null;
+        if(fg){
           const eff=fg.a<1?over(fg,bgOf(el)):fg;
           const rr=ratio(eff,bgOf(el));
           const big=fs>=24||(fs>=18.66&&px(cs.fontWeight)>=700);
@@ -258,6 +277,54 @@ const SURFACES = [
       renderOvOnly(); await new Promise(r=>setTimeout(r,350));
       const b=document.querySelector('[data-cxopen]'); if(b)b.click();
       await new Promise(r=>setTimeout(r,450)); } },
+  /* ═══ ÉTATS D'ITEM (v5.0.0, audit design A1-2) ═══
+     LES CINQ ÉTATS DE SURFACE ci-dessus mesuraient des ÉCRANS après un geste. Aucun ne mesurait
+     l'état d'un ITEM — et c'est par là qu'une violation AA a survécu à 443 contrôles verts :
+     l'étape COCHÉE, c'est-à-dire l'état le plus fréquent de toute l'application (en réanimation,
+     la moitié des lignes à l'écran le sont), composait un texte à 2,55:1 en clair et 1,95:1 en
+     SOMBRE. Le harnais ouvrait la fiche, mesurait des lignes vierges, et concluait.
+     « Un contrôle qui ne rencontre pas son cas ne le couvre pas » est la leçon la plus redite de
+     ce dossier ; elle n'avait pas été appliquée à la couverture du harnais lui-même. */
+  { nom:'état · étape cochée', w:390, prep:'read', must:'ol.steps li.done .txt', fn: async()=>{
+      /* On coche par le VRAI geste (clic sur la rangée), jamais en posant `.done` à la main :
+         c'est `applyCheck` qui écrit l'état, et une classe posée de force mesurerait un rendu
+         que l'application ne produit pas. Deux étapes, dont une SIGNALÉE si elle existe — la
+         boîte teintée `.crit` change le fond effectif, donc le contraste à mesurer. */
+      const li=[...document.querySelectorAll('ol.steps li[data-ck]')];
+      if(li[0])li[0].click();
+      const sig=li.find(e=>e.classList.contains('crit')||e.classList.contains('vigil'));
+      if(sig)sig.click(); else if(li[1])li[1].click();
+      /* La transition d'état dure 250 ms : mesurer avant, c'est mesurer une couleur en vol. */
+      await new Promise(r=>setTimeout(r,600)); } },
+  { nom:'état · trace do-verify', w:390, prep:'read', must:'.stp-vf', fn: async()=>{
+      /* La passe Do-Verify laisse DEUX marqueurs DURABLES et distincts de `checked` (v4.23.0) :
+         « ✓✓ constaté » (`.stp-vf.ok`) et « △ écart » (`.stp-vf.gap`), peints sur la rangée par
+         `paintStepTrace`. On mesure la TRACE, c'est-à-dire ce qui reste APRÈS la passe — c'est
+         elle qu'on relit au débriefing, et elle vit sur la liste ordinaire.
+         ⚠ Il faut SORTIR de la passe (`data-ovvx`) : pendant, les rangées sont des `.vstp`, un
+         autre composant. Mesurer là aurait couvert l'écran de passe et laissé la trace dehors —
+         exactement le trou que ces entrées existent pour fermer. */
+      const v=document.querySelector('[data-ovverify]'); if(v)v.click();
+      await new Promise(r=>setTimeout(r,450));
+      const ok=document.querySelector('[data-ovvok]'); if(ok)ok.click();
+      await new Promise(r=>setTimeout(r,350));
+      const gap=document.querySelector('[data-ovvgap]'); if(gap)gap.click();
+      await new Promise(r=>setTimeout(r,350));
+      const x=document.querySelector('[data-ovvx]'); if(x)x.click();
+      await new Promise(r=>setTimeout(r,600)); } },
+  { nom:'état · bloc hors chemin', w:1280, prep:'read', must:'.pl-line.off,.sv-cell.off,[class*="off"]', fn: async()=>{
+      /* Le « hors chemin » est signalé par une encre douce PLUS la mention en toutes lettres —
+         jamais par l'opacité seule (le harnais a une sonde dédiée pour ça). Il faut donc une
+         DÉCISION dont une branche a été prise pour que l'autre devienne hors chemin. */
+      const o=document.querySelector('[data-ovopt]'); if(o)o.click();
+      await new Promise(r=>setTimeout(r,700)); } },
+  { nom:'état · contrôles fermés (scribe)', w:390, prep:'read', must:'body.share-scribe', fn: async()=>{
+      /* La grammaire de « fermé » du fichier — encre douce, filet neutre, `--surface-2`, ombre
+         retirée — sert TROIS régimes (scribe, mode déplacement, lien mort). WCAG 1.4.3 exempte
+         les composants inactifs du seuil, mais la sonde vérifie le reste de la surface, et
+         surtout que le grisé ne déborde pas sur le contenu CLINIQUE, qui doit rester lisible. */
+      document.body.classList.add('share-scribe');
+      await new Promise(r=>setTimeout(r,400)); } },
   { nom:'état · lien de partage mort', w:390, prep:'read', must:'.share-dead,[data-sharedead],#srLive', fn: async()=>{
       if(typeof Share!=='undefined'&&Share.freeze){Share.mode='guest';Share.freeze('over');}
       await new Promise(r=>setTimeout(r,500)); } },

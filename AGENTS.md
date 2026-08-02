@@ -404,7 +404,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   de `stepTxtHtml`, + étiquette `.sr-only`) : depuis que le normal est plat, `⚠` rouge et `△`
   ambre ne se distingueraient QUE par la hue sans lui (WCAG 1.4.1) ; NON passé au mode lecteur
   (`.vstp`, dont le `△` signifie « écart »). Étape COCHÉE = aplatie (plus de fond de boîte pour
-  une normale — la coche verte + texte grisé barré + opacité suffisent ; une étape signalée
+  une normale — la coche verte, l'encre douce et la graisse suffisent ; **NI OPACITÉ NI BARRÉ,
+  cf. « UNE ÉTAPE COCHÉE RESTE LISIBLE » plus bas — la formulation d'origine disait « texte grisé
+  barré + opacité » et c'est elle qui produisait 1,95:1** ; une étape signalée
   cochée garde sa boîte au cadre vert doux). Le filet d'une ligne juste après une boîte est
   supprimé (la boîte a déjà sa bordure basse), mais deux boîtes consécutives gardent chacune la
   leur (`:is(.crit,.vigil)+li:not(.crit):not(.vigil)`). **Un REPÈRE POSOLOGIQUE est toujours ambre** (jamais rouge,
@@ -1046,6 +1048,134 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   enfant ait à être positionné. **`#crisisBand` garde l'ancienne mécanique**, et ce n'est pas une
   inconséquence : il est `position:relative` **sans `z-index`**, donc pas un contexte
   d'empilement — un `z-index:-1` y passerait sous son propre fond et la hachure disparaîtrait.
+- **UNE ÉTAPE COCHÉE RESTE LISIBLE — NI OPACITÉ NI BARRÉ (v5.0.0, audit design A1-1 ; RÈGLE
+  ROUVERTE, et c'était la SEULE violation AA du fichier)** : `ol.steps li.done{opacity:.6}` plus
+  `--done-ink` et `line-through` composaient un texte à **2,55:1 en clair et 1,95:1 en SOMBRE**,
+  quand l'étape non cochée juste en dessous mesure 17,36 / 16,65 — un facteur 7 à 9 entre deux
+  lignes voisines, sur **l'état le plus fréquent de toute l'application** (en réanimation, la
+  moitié des lignes à l'écran sont cochées). L'exemption WCAG « composant inactif » ne joue PAS :
+  une étape cochée reste un `role="checkbox"` `tabindex="0"` décochable.
+  **TROIS SOURCES CONVERGENTES, ET LA TROISIÈME EST CE FICHIER.** (a) **ECAM** : une action
+  accomplie passe au vert et RESTE pleinement lisible — le decluttering retire ce qui n'est plus
+  PERTINENT, il ne rend pas illisible ce qu'on vient de faire, parce que la relecture est le
+  mécanisme de reprise. (b) **AC 120-71B §5.4 + Degani & Wiener** : « perdre sa place est un mode
+  de défaillance premier », que ce dossier cite déjà pour justifier l'abandon du un-item-à-la-fois
+  (v4.28.0) — une ligne à 1,95:1 barrée EST une ligne perdue. (c) **LA CONTRADICTION INTERNE** :
+  `.sv-stp li.done` porte le commentaire « coché = ✓ vert, texte JAMAIS barré (relecture) » et les
+  listes cochables des références disent « on doit pouvoir relire » ; la vue de SOIN, seule des
+  trois à compter en crise, était la seule à barrer ET estomper. Deux vocabulaires pour une idée,
+  ce qu'AC 120-71B §5.5 proscrit.
+  APRÈS : **5,93:1 en clair, 11,15:1 en sombre**. Rien n'est perdu — la distinction fait/à faire
+  garde TROIS canaux (case verte pleine, graisse 400 contre 600, encre douce), donc la couleur
+  n'est jamais seule (règle 8). L'exception `@media print` qui remettait `opacity:1` et
+  `text-decoration:none` **a disparu avec sa cause** : l'écran et le papier disent la même chose.
+  `--done-ink` est PURGÉ (règle 14) — il valait exactement `--ink-soft` en clair, et 3,11:1 en
+  sombre sur les listes cochables des références, où il portait la même violation.
+- **⚠ LE HARNAIS D'ACCESSIBILITÉ IGNORAIT `opacity` — ET C'EST POUR ÇA QUE 443 CONTRÔLES ÉTAIENT
+  VERTS SUR UNE VIOLATION (v5.0.0, audit design A1-2)** : la sonde composait bien l'alpha de la
+  COULEUR (`rgba(…)`) mais lisait `getComputedStyle().color` sans tenir compte de la propriété
+  `opacity` de l'élément ni de ses ancêtres. Or `opacity` compose le rendu exactement comme un
+  alpha : un texte réellement peint à 2,55:1 était mesuré à 5,93 et déclaré conforme, **partout
+  dans l'application à la fois**. Le défaut n'était donc pas qu'il manquait un état à la liste :
+  **l'instrument ne POUVAIT PAS le voir**, et ajouter l'état sans corriger la sonde n'aurait
+  produit qu'un vert de plus, et un vert faux. On multiplie désormais les opacités jusqu'à la
+  racine avant de composer.
+  **CE QUE LA CORRECTION A RÉVÉLÉ IMMÉDIATEMENT**, et qui était là depuis longtemps : « MAINTENIR »
+  (`.tmr-hint`), l'affordance qui dit qu'une remise à zéro exige un appui prolongé, était à 11 px
+  avec `opacity:.65` — **2,81:1**. L'information la plus utile du bouton était la moins lisible.
+  Corrigée par l'ENCRE (`--ink-soft`), jamais par l'effacement : c'est la règle déjà écrite pour
+  `--soft`.
+  **CINQ ÉTATS D'ITEM ENTRENT DANS LE HARNAIS** (étape cochée, trace do-verify, bloc hors chemin,
+  contrôles fermés du scribe, plus les cinq états de surface d'avant), chacun avec son `must:` qui
+  échoue bruyamment si l'état ne se construit pas — ce qui est arrivé à l'écriture, et c'est ce
+  qu'on veut. **Vérifié capable d'échouer** : défaut réintroduit → rouge sur les deux moteurs,
+  fichier restauré à l'octet. 443 → 499 contrôles.
+- **LE PREMIER GARDE-FOU DE DISTRIBUTION : LE QUOTA DU PLANCHER (v5.0.0, audit design A5-1)** —
+  les six échelles fermées répondent toutes à « cette valeur est-elle ADMISE ? » ; aucune ne
+  répondait à « **est-elle TROP UTILISÉE ?** ». C'est par là que le plancher typographique a
+  glissé : **173 déclarations à 11 px sur ~520**, soit la taille la plus utilisée de toute la
+  feuille, devant 13,5 px (138) et 12 px (107) — 81 % des corps à 13,5 px ou moins, et **14 des 26
+  éléments visibles de l'accueil au plancher**. Chaque déclaration prise isolément était
+  parfaitement légale, donc rien ne pouvait le voir. Or un plancher est une EXCEPTION MOTIVÉE :
+  employé 173 fois, ce n'est plus un plancher, c'est le corps de texte du produit.
+  `check-type` porte désormais un **CLIQUET** (`PLANCHER_MAX`), posé au niveau ATTEINT : la valeur
+  ne peut que descendre, l'augmenter est un échec bruyant, la baisser est un geste explicite. Même
+  dispositif qu'`audit-budget` pour la répartition d'écran. **⚠ CE QU'IL NE MESURE PAS** : une
+  DÉCLARATION n'est pas un ÉLÉMENT À L'ÉCRAN — c'est un proxy statique, il empêche la dérive de
+  s'aggraver, il ne prouve pas qu'elle a cessé. Vérifié capable d'échouer.
+- **L'ACCUEIL — LA MARQUE NE DOMINE PLUS LE CONTENU (v5.0.0, audit design A3-1)** : mesuré à
+  390 × 844, **12 éléments de texte et 439 px sur 844 (52 % de l'écran) précédaient le premier
+  contenu clinique**, et le plus gros glyphe après la marque était un **« × » de fermeture à
+  19 px** quand le titre d'une aide vitale faisait 15,5. L'importance visuelle était inversement
+  proportionnelle à l'importance réelle — sous stress on ne lit pas, on scanne les masses, et la
+  masse dominante était le nom du logiciel, information de valeur nulle pour qui vient de
+  l'ouvrir. C'est le diagnostic qui a déclenché les lots T2–T5 sur la vue LECTURE, jamais posé sur
+  l'écran qu'on ouvre EN PREMIER.
+  Trois gestes, aucun composant nouveau : **marque 20/18 → 16,5 px** (le palier de `#brandTitle`,
+  son relais dans la barre — le même libellé cesse de changer de corps selon la vue, comme il a
+  cessé de changer de police en v4.73.0 ; l'abaissement à 18 px sous 430 px est PURGÉ, il ferait
+  désormais GRANDIR le mot) ; **titre de rangée 15,5 → 16,5** ; **méta 11 → 12** (le principal
+  gisement de plancher de l'accueil) ; **croix de bandeau 19 → 15,5**, cible inchangée.
+  **⚠ LA TUILE RESTE À 15,5, ET CE N'EST PAS UNE INCOHÉRENCE** (montée puis REVENUE, signalée à
+  l'usage) : la RANGÉE a un clamp à 2 lignes dans une boîte FIXE de 71 px où la mesure laisse 6 à
+  7 px ; la TUILE a un clamp à 3 lignes et une hauteur FLUIDE — mesuré, 16,5 px la portait de 72 à
+  **107 px** et, les tuiles étant des éléments de grille, la rangée ENTIÈRE suivait. C'est la
+  CONTRAINTE qui décide du palier. Et le constat d'audit ne s'y applique pas : dans une tuile, le
+  titre est déjà l'élément dominant de sa carte.
+- **⚠ UN `-webkit-line-clamp` SUR UN `<button>` NE S'APPLIQUE PAS — ET IL ÉTAIT INERTE DEPUIS LA
+  v4.56.0 (v5.0.0, signalé à l'usage, capture à l'appui)** : `.dir-row .card-open` portait
+  `display:-webkit-box; -webkit-line-clamp:2`, mais le display CALCULÉ y valait `flow-root`. Le
+  clamp ne « marchait » que parce que les titres tenaient sur deux lignes ; monter le corps à
+  16,5 px ne l'a pas cassé, il l'a **révélé** — un titre réel passait à trois lignes dans une
+  boîte de hauteur FIXE et poussait la méta hors du cadre. La TUILE ne l'avait pas, et c'est ce
+  qui met sur la piste : elle clampe `.qa-t`, un `<span>` INTERNE. Le titre de rangée vit donc
+  désormais dans un `<span class="dir-t">` — le bouton garde sa boîte, son rembourrage compensé
+  (cible ≥ 24 px) et son nom de classe, que quatorze harnais utilisent pour ouvrir une fiche.
+  **⚠ NE PAS AJOUTER la propriété standard `line-clamp` à côté de l'héritée** : déclarée ensuite,
+  elle fait basculer Chromium sur son nouvel algorithme et recalcule `display` (essayé, mesuré —
+  erreur commise puis retirée). Un `max-height` double la garantie sans dépendre d'aucun moteur.
+  **⚠ ET LE PIÈGE DE MESURE QUI VA AVEC** : sous zoom, `getBoundingClientRect` rend des px VISUELS
+  (71 × 1,3 ≈ 92) — on lit un débordement qui n'existe pas si l'on oublie de diviser par `--zf`
+  (règle 10). Le témoin le fait ; il mesure le `<span>`, jamais le `<button>` (dont la
+  `line-height` vaut `normal`), et il balaie **130 %**, seule taille où le défaut se produisait.
+  Vérifié capable d'échouer sur le défaut d'origine, aux deux moteurs.
+- **LES CARTES CLIQUABLES SE DÉLIMITENT AVEC `--line-strong` (v5.0.0, audit design A1-3,
+  WCAG 2.2 § 1.4.11)** : mesuré, en thème sombre une carte (`--surface` #0d0d0f) contre la page
+  (`--bg` #0a0a0c) vaut **1,02:1**, et il ne restait que le filet `--line` à **1,60:1** (clair :
+  1,18 et 1,39). Le TEXTE se lit parfaitement ; c'est le COMPTAGE qui échoue — où finit une
+  rangée, combien y en a-t-il —, et c'est précisément ce que 1.4.11 protège. `--line-strong` donne
+  3,93:1 en clair et 4,94:1 en sombre, et ce n'est pas un token neuf : la doctrine l'assigne DÉJÀ
+  aux « bordures de composants ». Posé sur `.dir-row`, `.qa-tile`, `.mem-row` et le cadre de
+  `.dir-grid` en voie étroite, dont le séparateur interne passe de `--surface-2` à `--line` (une
+  SURFACE employée comme filet est invisible par construction). Le survol passe à `--ink-soft` :
+  `--line-hover` ÉCLAIRCISSAIT le bord en thème clair une fois la base renforcée.
+  **⚠ UN TOKEN `--line-card` A ÉTÉ ÉCRIT PUIS ÉCARTÉ** : il valait `var(--line-strong)` dans les
+  deux thèmes, c'est-à-dire un ALIAS — exactement le défaut relevé sur `--done-ink` dans le même
+  audit. On ne corrige pas une duplication en en créant une autre.
+- **LES FILTRES SE REPLIENT TANT QU'AUCUN N'EST POSÉ (v5.0.0, audit design A3-1/A5-3)** : les
+  trois rangées (biblio, type, catégorie) coûtaient ~90 px permanents au premier écran pour un
+  geste qu'on ne fait JAMAIS sous stress — en urgence on cherche un SUJET, on n'affine pas un
+  corpus. Elles vivent derrière un déclencheur unique « Filtrer », qui reprend la grammaire des
+  chips (`.scopebtn`) et non celle des boutons d'action : c'est un objet de la même famille que ce
+  qu'il déplie. **UN ÉTAT ACTIF NE SE CACHE JAMAIS** — dès qu'un filtre est posé, les rangées sont
+  rendues en permanence et le déclencheur DISPARAÎT (plus rien à basculer, donc aucun bouton
+  mort) ; les chips actives sont elles-mêmes le moyen de revenir en arrière. Un filtre caché
+  serait bien pire que trois rangées permanentes : on chercherait une aide dans un corpus
+  restreint sans savoir pourquoi elle n'apparaît pas. `state.filtersOpen` VIT LE TEMPS DE LA PAGE
+  (ni persisté ni synchronisé, même statut que `state.allTab`) et n'est PAS remis à zéro au retour
+  de fiche : replier sous le doigt de quelqu'un qui vient de les ouvrir serait le punir de son
+  geste. L'ordre et les libellés sont INCHANGÉS (lot M4b) ; seule leur présence au repos change.
+  **⚠ UN TÉMOIN DE T9 A DÛ APPRENDRE À DÉPLIER** : il cliquait une chip désormais repliée et
+  emportait la passe entière. Un contrôle qui mesure ce que font les CRANS doit passer par le VRAI
+  geste, comme l'utilisateur.
+- **⚠ UN TÉMOIN QUI FIGE UN CHIFFRE ROUGIT SUR UN CHANGEMENT JUSTE (v5.0.0)** : le contrôle du
+  titre de rangée exigeait `15.5px` en dur — bonne réaction à ce qui l'avait motivé (deux
+  maquettes posant 15 puis 14,5 px, dont aucun n'est un palier), mauvaise expression de son
+  intention, qui a toujours été « ce titre est SUR L'ÉCHELLE FERMÉE et il ne redescend pas ». Un
+  littéral pousse à contourner le garde-fou, ce qui est la pire chose qu'on puisse lui faire. Il
+  vérifie désormais l'appartenance à l'échelle plus un PLANCHER, et garde l'exigence de cohérence
+  entre toutes les rangées, qui est ce qui donne son rythme à l'annuaire.
+
 - **UNE ATTRIBUTION S'AMARRE À CE QU'ELLE DÉCRIT (v4.55.4)** : « avancé par ‹rôle› » était un
   drapeau GLOBAL qu'un seul site du fichier effaçait — `cxEnter`, l'entrée sur complication.
   Aucun avancement ordinaire ne l'effaçait : posée une fois (typiquement par le backlog rattrapé
