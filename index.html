@@ -250,7 +250,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-WWFIa8wlGeuGr54tU6XhWoO3eBkm9raL9QAs0VorAmA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-64H/l7LcgC0hNmke/7gC84mbTQwUT7VUkZUkyQmLMRI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
 /* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
@@ -4506,10 +4506,38 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crt-copy{min-height:42px;padding:0 16px;border:0;border-radius:8px;background:var(--primary);color:var(--on-primary);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .crt-copy:hover{background:var(--primary-hi)}
   .crt-copy:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .crt-drop{display:flex;align-items:center;justify-content:center;gap:8px;min-height:84px;width:100%;border:1.5px dashed var(--line-strong);border-radius:11px;background:none;color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;text-align:center;padding:20px}
-  .crt-drop.pad-lg{padding:24px 20px}
-  .crt-drop.on,.crt-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
-  .crt-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
+     Elle remplace `.crt-drop` (PURGÉ avec son balisage, règle 14) ET les boutons `.add-line`
+     des sections qui joignent un fichier. Le geste au clic est INCHANGÉ : elle a seulement gagné
+     le glisser-déposer, qui n'existait nulle part ailleurs que dans le dialogue « Créer ».
+     Elle porte DEUX lignes : ce qu'elle fait, et ce qu'elle accepte (`UP_KINDS[kind].ind`).
+     La seconde n'est pas décorative — c'est ce qui rend un refus compréhensible AVANT qu'il
+     arrive, et elle vient de la même ligne de table que la signature vérifiée. */
+  .up-drop{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin-top:4px;
+    padding:10px 14px;border:1.5px dashed var(--line-strong);border-radius:11px;background:none;
+    color:var(--primary-dk);font-family:inherit;text-align:left;cursor:pointer}
+  .up-drop.mt{margin-top:10px}
+  .up-drop.pad-lg{min-height:96px;padding:20px;justify-content:center;text-align:center}
+  .up-ic{flex:none;font-size:18px;line-height:1}
+  .up-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .up-t{font-size:13.5px;font-weight:700}
+  .up-d{font-size:11px;font-weight:600;color:var(--ink-soft)}
+  .up-drop.on,.up-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
+  .up-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* FENÊTRE DE DÉPÔT — annonciateur pur. `pointer-events:none` : le fichier traverse et atteint
+     la zone du dessous ; sans cela l'overlay volerait tous les dépôts et il faudrait lui
+     apprendre la géométrie des zones qu'il recouvre. z-index 96 : au-dessus des fenêtres (55),
+     SOUS le flash d'alarme (99) — une alerte de soin ne se laisse jamais recouvrir. */
+  .up-drag{position:fixed;inset:0;z-index:96;display:none;align-items:center;justify-content:center;
+    padding:24px;background:var(--scrim);pointer-events:none}
+  .up-drag.on{display:flex}
+  .up-drag-card{max-width:420px;padding:24px;border:2px dashed var(--primary);border-radius:14px;
+    background:var(--surface);box-shadow:var(--shadow-lg);text-align:center}
+  .up-drag.none .up-drag-card{border-color:var(--line-strong)}
+  .up-drag-ic{display:block;font-size:34px;line-height:1;color:var(--primary)}
+  .up-drag.none .up-drag-ic{color:var(--ink-soft)}
+  .up-drag-t{margin:12px 0 0;font-size:16.5px;font-weight:800;color:var(--ink)}
+  .up-drag-d{margin:6px 0 0;font-size:12px;font-weight:600;color:var(--ink-soft)}
   .crt-note{font-size:11px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
@@ -5465,7 +5493,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- Vérification hors-ligne des documents PDF (v4.20.0, besoin SMUR : savoir AVANT de
          partir sans réseau si tous les PDF référencés sont bien SUR l'appareil). -->
     <div class="storage-gauge att-offline" id="attOffline" hidden></div>
-    <input type="file" id="importFile" accept="application/json,.json,application/zip,.zip" hidden></footer>
+    <!-- SÉLECTEUR DE FICHIER UNIQUE (v5.0.0) : son `accept` est posé par `pickFile` depuis
+         UP_KINDS, donc toujours d'accord avec la signature que la porte vérifiera. Il y en avait
+         cinq, chacun avec son propre `accept` écrit à la main. -->
+    <input type="file" id="upInput" hidden></footer>
 </div>
 <!-- Tab bar de section (accueil < 780px, V5) : élément STATIQUE, pastille glissante ; en large
      la colonne gauche de l'accueil porte les sections. Fixée en bas, au pouce (canvas turn 6). -->
@@ -5473,6 +5504,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div id="screenFlash"></div>
 <!-- Zone d'annonce pour lecteurs d'écran (fin de minuteur, alarmes) : invisible, aria-live. -->
 <div id="srLive" class="sr-only" role="alert" aria-live="assertive"></div>
+<!-- FENÊTRE DE DÉPÔT (v5.0.0) — ANNONCIATEUR SEUL, `pointer-events:none` : elle dit ce que
+     l'écran accepte pendant un glisser réel, mais c'est la zone du dessous (ou le garde global)
+     qui reçoit le fichier. Elle n'apparaît jamais sur mobile, où le glisser-déposer n'existe
+     pas : coût nul là où l'app est réellement utilisée. -->
+<div id="upDrag" class="up-drag" aria-hidden="true"><div class="up-drag-card">
+  <span class="up-drag-ic" aria-hidden="true">⤓</span>
+  <p class="up-drag-t" id="upDragT"></p>
+  <p class="up-drag-d" id="upDragD"></p></div></div>
 <div id="alerts"></div>
 <!-- MODE LECTEUR (v4.11.0) : challenge-response en binôme (AC 120-71B) — un challenge à la
      fois, plein écran, piloté sur le BOUT du journal (mêmes clés de cochage, mêmes chemins
@@ -6450,6 +6489,203 @@ function safeAttachment(a){if(!a||typeof a!=='object')return null;
   let name=safeFileName(a.name)||'document.pdf';
   if(!/\.pdf$/i.test(name))name=name.slice(0,146)+'.pdf';
   return {id,name,size:Math.max(0,Math.min(MAX_PDF_BYTES,Math.round(Number(a.size))||0))};}
+/* ═══════ ENTRÉES DE FICHIER : UNE TABLE FERMÉE, UNE PORTE (v5.0.0) ══════════════════════════
+   Quatre chemins d'upload cohabitaient avec quatre niveaux de rigueur — le PDF vérifiait sa
+   signature, l'import vérifiait la sienne, les DEUX chemins d'image ne vérifiaient qu'un
+   `accept`, c'est-à-dire une INDICATION donnée au sélecteur de fichier et jamais une garantie
+   (un fichier renommé, ou tout dépôt par glisser, la traverse). Et ils avaient déjà DIVERGÉ :
+   60 images maximum côté référence, aucun plafond côté aide, aucun plafond du tout à l'import.
+   C'est le motif que ce dossier a payé quatre fois (MUTE_SEL, les verbes de partage, la liste
+   des placards, les deux listes de capacités) : deux endroits qui doivent s'accorder finissent
+   par ne plus s'accorder, et l'écart est SILENCIEUX.
+   CE QUI REND LA RÈGLE EXÉCUTOIRE : l'`accept` AFFICHÉ et la signature VÉRIFIÉE sortent de la
+   MÊME ligne de la table. « Un champ de PDF n'accepte ni JSON ni image » cesse d'être une
+   intention pour devenir une propriété du code — on ne peut plus changer l'un sans l'autre.
+   TROIS NATURES, ET PAS UNE DE PLUS : un document (pdf), une illustration (image), un fichier de
+   données (data). Une quatrième s'ajoute ICI, ou nulle part. */
+const MAX_IMG_BYTES=25*1024*1024;      // AVANT réduction — downscale() ramène ensuite à ≤ 1180 px
+const MAX_IMPORT_BYTES=40*1024*1024;   // l'archive est bornée ensuite par ZIP_MAX_TOTAL/ZIP_MAX_ENTRY
+const MAX_IMG_PER_ENTITY=60;           // par aide OU par référence (c'était 60 d'un côté, rien de l'autre)
+/* Comparaison d'octets à une position donnée — outil des sniffeurs. PURE. */
+const _sigAt=(u8,off,b)=>{if(!u8||u8.length<off+b.length)return false;for(let i=0;i<b.length;i++)if(u8[off+i]!==b[i])return false;return true;};
+const _cc=s=>{const a=[];for(let i=0;i<s.length;i++)a.push(s.charCodeAt(i));return a;};
+/* Format d'image reconnu par sa SIGNATURE — PUR (testé). Rend le nom du format, ou null.
+   ⚠ LE HEIC EST DANS LA LISTE, ET CE N'EST PAS UN DÉTAIL : c'est le format de la photothèque
+   iPhone, donc de la cible principale déclarée. Une liste blanche PNG/JPEG/WebP aurait cassé
+   « joindre une photo » sur iOS, en silence — la seule vraie régression qu'aurait pu produire ce
+   chantier. Un navigateur qui ne sait pas le décoder retombe sur « illisible » via downscale(),
+   comportement strictement inchangé.
+   ⚠ ET LE SVG N'Y EST PAS, DÉLIBÉRÉMENT : seul format image porteur de contenu ACTIF (script,
+   références externes) et seul à pouvoir n'avoir AUCUNE dimension intrinsèque — il produisait
+   alors un canvas 0×0, donc une image vide enregistrée sans un mot. L'ancien `accept="image/*"`
+   l'admettait. Ce n'est pas une régression : c'est une classe de question qu'on ferme. */
+function imgKind(u8){
+  if(!u8)return null;
+  if(_sigAt(u8,0,[0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A]))return 'png';
+  if(_sigAt(u8,0,[0xFF,0xD8,0xFF]))return 'jpeg';
+  if(_sigAt(u8,0,_cc('RIFF'))&&_sigAt(u8,8,_cc('WEBP')))return 'webp';
+  if(_sigAt(u8,0,_cc('GIF87a'))||_sigAt(u8,0,_cc('GIF89a')))return 'gif';
+  // HEIC/HEIF : conteneur ISO-BMFF — boîte « ftyp » à l'offset 4, marque de format à l'offset 8.
+  if(_sigAt(u8,4,_cc('ftyp'))){const m=String.fromCharCode(u8[8]||0,u8[9]||0,u8[10]||0,u8[11]||0);
+    if(['heic','heix','heim','heis','hevc','hevx','mif1','msf1'].indexOf(m)>=0)return 'heic';}
+  return null;}
+/* Fichier de DONNÉES — PUR (testé). Le .zip a une signature (« PK\x03\x04 ») ; le .json n'en a
+   pas, on lit donc sa TÊTE : BOM et blancs retirés, le premier caractère signifiant doit ouvrir
+   un objet, un tableau, ou une clôture de bloc de code (le prompt IA produit des ``` que
+   stripJsonFences retire ensuite). Ce n'est pas un parse — c'est ce qui suffit à refuser un PDF
+   ou une image renommés « .json », et le parse réel vient de toute façon après. */
+function dataKind(u8){
+  if(!u8)return null;
+  if(_sigAt(u8,0,[0x50,0x4B,3,4]))return 'zip';
+  let i=_sigAt(u8,0,[0xEF,0xBB,0xBF])?3:0;
+  while(i<u8.length&&u8[i]<=0x20)i++;
+  const c=u8[i];
+  return (c===0x7B||c===0x5B||c===0x60)?'json':null;}
+/* LA TABLE. `accept` = ce que le sélecteur de fichier PROPOSE ; `sniff` = ce que la porte
+   VÉRIFIE ; `max` = le plafond. Les trois sur la même ligne, donc indissociables.
+   `un` et `ind` sont les mots montrés à l'utilisateur — la zone NOMME ce qu'elle accepte, ce qui
+   rend un refus compréhensible avant même qu'il arrive. */
+const UP_KINDS={
+  pdf:  {accept:'application/pdf,.pdf', sniff:isPdfBytes, max:MAX_PDF_BYTES,
+         un:'un PDF', ind:'PDF'},
+  image:{accept:'image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif',
+         sniff:u8=>!!imgKind(u8), max:MAX_IMG_BYTES,
+         un:'une image', ind:'PNG · JPEG · WebP · HEIC'},
+  data: {accept:'application/json,.json,application/zip,.zip', sniff:u8=>!!dataKind(u8),
+         max:MAX_IMPORT_BYTES, un:'un fichier .json ou .zip', ind:'.json · .zip'}};
+/* Nature RÉELLE d'un fichier d'après ses octets — sert au ROUTAGE d'un dépôt : c'est le CONTENU
+   qui décide où il va, jamais l'extension ni la zone visée. Aucune ambiguïté entre les trois
+   (un PDF commence par « % », un zip par « PK », un JSON par « { » ou « [ »). */
+function upDetect(u8){const o=['pdf','image','data'];for(let i=0;i<o.length;i++)if(UP_KINDS[o[i]].sniff(u8))return o[i];return null;}
+const upShortName=n=>{const s=safeFileName(n)||'ce fichier';return s.length>44?s.slice(0,41)+'…':s;};
+/* Lecture de la TÊTE seule (64 octets) : la signature suffit, et un fichier de 40 Mo n'a aucune
+   raison d'être chargé en mémoire pour être refusé. */
+async function upHead(file){try{return new Uint8Array(await file.slice(0,64).arrayBuffer());}catch(e){return null;}}
+/* ══ LA PORTE ══ Tout ce qui entre passe ici — sélecteur de fichier comme glisser-déposer.
+   Ordre volontaire : la TAILLE d'abord (on refuse sans lire un octet), la SIGNATURE ensuite.
+   Rend {ok:true,file} ou {ok:false,why} ; `why` est une phrase destinée à l'utilisateur, parce
+   qu'un fichier refusé EN SILENCE est pire qu'un fichier accepté à tort — on croit avoir joint
+   quelque chose, et on ne le découvre qu'au moment où l'on en a besoin. */
+async function acceptFile(kind,file){
+  const K=UP_KINDS[kind];
+  if(!K)return {ok:false,why:'Type d’entrée inconnu.'};
+  if(!file)return {ok:false,why:'Fichier illisible.'};
+  const nom=upShortName(file.name);
+  if(!file.size)return {ok:false,why:'« '+nom+' » est vide.'};
+  if(file.size>K.max)return {ok:false,why:'« '+nom+' » est trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(K.max)+' maximum.'};
+  const head=await upHead(file);
+  if(!head||!head.length)return {ok:false,why:'« '+nom+' » est illisible.'};
+  if(!K.sniff(head)){const autre=upDetect(head);
+    return {ok:false,why:'Ici, on n’accepte que '+K.un+' ('+K.ind+') — « '+nom+' » '
+      +(autre&&autre!==kind?'est '+UP_KINDS[autre].un+'.':'n’en est pas un.')};}
+  return {ok:true,file};}
+/* ══ CE QUI PASSE LA PORTE ══ Point d'entrée unique des DEUX gestes (sélecteur et dépôt) : la
+   validation ne peut donc pas être contournée par l'un en étant faite par l'autre.
+   AUCUNE TRONCATURE SILENCIEUSE : on prenait `files[0]` et rien d'autre — déposer cinq documents
+   en ajoutait UN sans un mot. Le compte des ignorés se dit, comme le « +n » du quai. */
+async function upTake(kind,fileList,onFiles){
+  const files=Array.prototype.slice.call(fileList||[]);
+  const ok=[],bad=[];
+  for(const f of files){const r=await acceptFile(kind,f);if(r.ok)ok.push(f);else bad.push(r.why);}
+  if(bad.length){
+    const msg='⚠ '+(bad.length>1?bad.length+' fichiers ignorés — '+bad[0]:bad[0]);
+    // `direct` : c'est la RÉPONSE à un geste qu'on vient de faire, pas une nouvelle qui s'impose
+    // à quelqu'un qui n'a rien demandé (règle 11, distinction posée en v4.55.4).
+    toast(msg,8000,true);announce(msg);}
+  if(ok.length&&onFiles)await onFiles(ok);
+  return ok.length;}
+/* ── Le sélecteur de fichier : UN SEUL <input>, réutilisé ──────────────────────────────────
+   Il y en avait CINQ déclarés dans trois gabarits (deux `imgInput`, deux `pdfInput`, un
+   `importFile`) : cinq `accept` à tenir cohérents avec quatre vérifications éparses.
+   ⚠ Le `.click()` doit partir DANS LA MÊME TÂCHE que le geste de l'utilisateur, sinon
+   l'activation utilisateur est perdue et le navigateur refuse d'ouvrir le sélecteur (leçon
+   v4.71.0) : `pickFile` est SYNCHRONE jusqu'au clic, toute la validation vient après. */
+let _upCtx=null;
+function pickFile(kind,onFiles,multiple){
+  const K=UP_KINDS[kind],el=document.getElementById('upInput');
+  if(!K||!el)return;
+  el.accept=K.accept;el.multiple=!!multiple;_upCtx={kind,onFiles};el.click();}
+{const _ui=document.getElementById('upInput');
+ if(_ui)_ui.onchange=async e=>{const files=Array.prototype.slice.call(e.target.files||[]);
+   e.target.value='';const c=_upCtx;_upCtx=null;
+   if(files.length&&c)await upTake(c.kind,files,c.onFiles);};}
+/* ── La zone de dépôt : UN composant, trois natures ────────────────────────────────────────
+   VISIBLE EN PERMANENCE là où l'on joint un fichier (décision utilisateur) et toujours ouvrable
+   au CLIC : le geste d'avant n'a pas changé, il a seulement gagné une seconde façon de se faire.
+   Elle NOMME ce qu'elle accepte — un champ qui dit « PDF » et refuse un JSON est compréhensible ;
+   un champ muet qui refuse est une panne. */
+function upDropHtml(kind,id,label,extra){
+  const K=UP_KINDS[kind];if(!K)return '';
+  return `<button type="button" class="up-drop${extra||''}" id="${esc(id)}" data-upkind="${esc(kind)}">`
+    +`<span class="up-ic" aria-hidden="true">⤓</span>`
+    +`<span class="up-tx"><span class="up-t">${esc(label)}</span>`
+    +`<span class="up-d">${esc(K.ind)} — glissez ici ou cliquez</span></span></button>`;}
+function bindUpDrop(el,kind,onFiles,multiple){
+  if(!el)return;
+  el.onclick=()=>pickFile(kind,onFiles,multiple);
+  el.ondragenter=e=>{if(upHasFiles(e))el.classList.add('on');};
+  el.ondragover=e=>{if(!upHasFiles(e))return;e.preventDefault();e.stopPropagation();el.classList.add('on');};
+  el.ondragleave=()=>el.classList.remove('on');
+  el.ondrop=async e=>{if(!upHasFiles(e))return;
+    // stopPropagation : le garde global n'a pas à repasser derrière une zone qui a fait le travail.
+    e.preventDefault();e.stopPropagation();
+    el.classList.remove('on');upDragHide();
+    await upTake(kind,e.dataTransfer.files,onFiles);};}
+/* ── Ce que l'ÉCRAN COURANT sait recevoir ──────────────────────────────────────────────────
+   Reposé par chaque rendu de vue (`render()` remet à zéro, chaque binder déclare le sien). La
+   fenêtre de dépôt n'a donc RIEN à savoir des vues : elle lit ce registre. Et un écran qui
+   n'accepte rien le DIT, au lieu de laisser le navigateur naviguer vers le fichier.
+   Conséquence utile : un dépôt fonctionne même quand la SECTION correspondante n'est pas rendue
+   (elle est masquée quand elle est vide, v4.76.0) — la cible est déclarée par le binder, pas
+   par la présence d'un bouton à l'écran. */
+let _upTargets=Object.create(null);
+function upTargets(t){_upTargets=t||Object.create(null);}
+function upTarget(kind,fn){if(UP_KINDS[kind]&&typeof fn==='function')_upTargets[kind]=fn;}
+function upKindsIci(){return Object.keys(_upTargets).filter(k=>UP_KINDS[k]&&typeof _upTargets[k]==='function');}
+/* ── LA FENÊTRE DE DÉPÔT, QUI EST AUSSI LE GARDE ───────────────────────────────────────────
+   Avant ce chantier, un fichier lâché à côté d'une zone faisait NAVIGUER le navigateur vers ce
+   fichier : l'écran d'édition — ou une session de soin en cours — disparaissait. Le danger
+   devient la fonctionnalité : la fenêtre n'existe que pendant un glisser RÉEL, elle annonce ce
+   que l'écran accepte, et le dépôt hors cible est neutralisé au lieu d'emporter la page.
+   ⚠ ELLE EST `pointer-events:none` — un ANNONCIATEUR, pas un récepteur. Sans cela, elle volerait
+   tous les dépôts et il faudrait lui apprendre la géométrie des zones qu'elle recouvre.
+   ⚠ ET TOUT EST GATÉ SUR `Files` : MK5-b amorce « prendre / poser » sur un `dragstart` de
+   poignée (v4.75.0). Sans ce garde, glisser une poignée ⠿ ouvrirait la fenêtre de dépôt — deux
+   gestes qui se ressemblent se déclencheraient l'un l'autre. Un glisser de TEXTE non plus. */
+const upHasFiles=e=>{const dt=e&&e.dataTransfer;if(!dt||!dt.types)return false;
+  for(let i=0;i<dt.types.length;i++)if(dt.types[i]==='Files')return true;return false;};
+let _upDragN=0;
+function upDragShow(){
+  const el=document.getElementById('upDrag');if(!el)return;
+  const t=document.getElementById('upDragT'),d=document.getElementById('upDragD'),ks=upKindsIci();
+  if(ks.length){t.textContent='Déposez '+ks.map(k=>UP_KINDS[k].un).join(' ou ')+' ici';
+    d.textContent=ks.map(k=>UP_KINDS[k].ind).join('  ·  ');}
+  else{t.textContent='Rien ne se dépose sur cet écran';
+    d.textContent='Ouvrez un éditeur pour joindre un document ou une image.';}
+  el.classList.toggle('none',!ks.length);el.classList.add('on');}
+function upDragHide(){_upDragN=0;const el=document.getElementById('upDrag');if(el)el.classList.remove('on');}
+/* Le compteur d'entrées/sorties : passer sur un enfant émet `dragleave` sur le parent PUIS
+   `dragenter` sur l'enfant — sans compteur, la fenêtre clignoterait à chaque frontière. */
+window.addEventListener('dragenter',e=>{if(!upHasFiles(e))return;_upDragN++;if(_upDragN===1)upDragShow();});
+window.addEventListener('dragleave',e=>{if(!upHasFiles(e))return;_upDragN=Math.max(0,_upDragN-1);if(!_upDragN)upDragHide();});
+window.addEventListener('dragover',e=>{if(upHasFiles(e))e.preventDefault();});
+window.addEventListener('drop',async e=>{
+  if(!upHasFiles(e)){upDragHide();return;}
+  e.preventDefault();upDragHide();   // LE GARDE — sans lui, le navigateur quitte l'app
+  const files=Array.prototype.slice.call((e.dataTransfer&&e.dataTransfer.files)||[]);
+  if(!files.length)return;
+  const ks=upKindsIci();
+  if(!ks.length){const m='⚠ Rien ne se dépose sur cet écran.';toast(m,6000,true);announce(m);return;}
+  // ROUTAGE PAR LE TYPE SNIFFÉ, jamais par la zone visée ni par l'extension : un PDF va aux
+  // documents, une image à la galerie, et ce que l'écran n'accepte pas est nommé.
+  const par=Object.create(null),refus=[];
+  for(const f of files){const h=await upHead(f),k=h?upDetect(h):null;
+    if(k&&ks.indexOf(k)>=0)(par[k]=par[k]||[]).push(f);else refus.push(upShortName(f.name));}
+  if(refus.length){const m='⚠ '+(refus.length>1?refus.length+' fichiers ignorés':'« '+refus[0]+' » ignoré')
+    +' — cet écran accepte '+ks.map(k=>UP_KINDS[k].un).join(' ou ')+'.';
+    toast(m,8000,true);announce(m);}
+  const kk=Object.keys(par);
+  for(let i=0;i<kk.length;i++)await upTake(kk[i],par[kk[i]],_upTargets[kk[i]]);});
 const sarr=(a,max)=>(Array.isArray(a)?a:[]).slice(0,max||1000).map(x=>sstr(x,4000));
 // Date de validation : on n'accepte QUE le mois/année. parseValidation() est tolérant en entrée
 // ("jan 2026", "janv 2026", "01/2026", "2026/01", "1-2026", "202601"…) et renvoie TOUJOURS le format
@@ -9293,6 +9529,10 @@ function render(){
   // Chrome d'en-tête + classes de vue (toggles crise/accueil/largeurs, bandeau titre, boutons
   // Créer/Enregistrer/Aperçu, recherche, pied nomade) : extrait pour que render() se lise comme
   // « capture du défilement -> chrome -> dispatch de vue -> défilement final » (audit v4.1.0).
+  /* Cibles de dépôt remises à zéro AVANT le dispatch : chaque vue déclare les siennes, et
+     QUITTER une vue passe toujours par ici (les re-rendus directs — renderEditor() après un
+     geste — restent dans la même vue, donc ne peuvent pas laisser traîner la cible d'une autre). */
+  upTargets(null);
   applyViewChrome();
   if(state.view==='library')renderLibrary();
   else if(state.view==='edit')renderEditor();
@@ -9369,7 +9609,13 @@ function landOnBout(){
 // Re-rendu de l'ACCUEIL respectueux de l'onglet courant (Aides ↔ Protocoles). Tout code qui
 // rafraîchit la liste après une fenêtre (catégories, compte, bibliothèques…) passe par ici :
 // un renderFiches() direct affichait la liste des aides sous l'onglet Protocoles (bug v4.4.4).
-function renderLibrary(){state.section==='protocols'?renderProtocols():(state.section==='fiches'?renderFiches():renderAll());}
+function renderLibrary(){
+  /* Un .json ou un .zip lâché sur la bibliothèque s'importe — c'est l'écran où cela a un sens, et
+     c'est le seul type qu'il accepte (une image lâchée ici est nommée et refusée, plutôt que de
+     faire quitter l'app comme avant). Comme tout import, il arrive en BROUILLON : jamais
+     « Validée » d'office, quel que soit le chemin emprunté. */
+  upTarget('data',files=>{importForceDraft=true;readImportFile(files[0]);});
+  state.section==='protocols'?renderProtocols():(state.section==='fiches'?renderFiches():renderAll());}
 // Titre courant dans la barre (fiche/protocole, lecture ou édition) : classe .titled tant qu'il
 // est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
 // écouteur de scroll ci-dessous) : en haut de page, le corps porte déjà le titre — jamais deux
@@ -10368,9 +10614,13 @@ function mdInsertAt(inp,text){const v=inp.value;const a=inp.selectionStart==null
    (jamais tapée dans le texte — le champ resterait effaçable à la main, et un ancien client
    perdrait l'image ; cf. la doctrine « marqueur d'étape hors du champ », v4.3.0).
    Un tap sur une vignette insère aussi sa référence dans le texte (image réutilisable). */
+/* ⚠ CETTE SECTION EXISTE MÊME VIDE, contrairement à la règle « présent dans la porte ⇔ masqué
+   quand vide » (v4.76.0) — et l'exception est nommée : l'image N'EST PAS dans la porte « ＋ »
+   d'une référence (ED_PALETTE_P ne liste que corps, document, renvoi, source). Sa seule entrée
+   était le bouton ⧉ de la barre d'outils ; la zone de dépôt est la seconde, et une zone qui
+   n'apparaîtrait qu'une fois la première image posée ne servirait jamais à poser la première. */
 function mdImagesHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);
-  if(!ims.length)return '';
-  return `<div class="md-imgs"><div class="sub2">Images insérées <span class="hint">taille d'affichage — s'applique au-dessus de 560 px de large</span></div>
+  return `<div class="md-imgs"><div class="sub2">Images${ims.length?' insérées':''} ${ims.length?`<span class="hint">taille d'affichage — s'applique au-dessus de 560 px de large</span>`:''}</div>
     ${ims.map((im,i)=>`<div class="mi-row">
       <img class="mi-th" src="${im.data}" alt="" data-miref="${esc(im.id)}" title="Insérer une nouvelle référence à cette image">
       <span class="mi-cap">${esc(im.caption||'Image '+(i+1))}</span>
@@ -10379,7 +10629,8 @@ function mdImagesHtml(p){const ims=(p.images||[]).filter(im=>im&&im.data);
       <select class="mi-sc" id="miSc${i}" data-miscale="${esc(im.id)}">
         ${MD_SCALES.map(s=>`<option value="${s}"${(im.scale||100)===s?' selected':''}>${s} %</option>`).join('')}
       </select>
-      <span class="mi-un" data-miuse="${esc(im.id)}" hidden>△ absente du texte — sera retirée en quittant l'éditeur</span></div>`).join('')}</div>`;}
+      <span class="mi-un" data-miuse="${esc(im.id)}" hidden>△ absente du texte — sera retirée en quittant l'éditeur</span></div>`).join('')}
+    ${upDropHtml('image','pImgDrop','Ajouter une image / capture',ims.length?' mt':'')}</div>`;}
 let _mdPrevTimer=null;
 function renderProtocolEdit(){
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
@@ -10436,9 +10687,7 @@ function renderProtocolEdit(){
     <button type="button" class="add-line ed-door" id="edAddOpenP"><span class="edd-p" aria-hidden="true">＋</span><span class="edd-l">Ajouter à cette référence</span><span class="edd-c">document · voir aussi · référence</span></button>
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>`}
     ${isNew?'':'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer ce protocole</button></div>'}
-    ${wideEdit?`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${editPreviewHtml('proto')}</aside></div>`:''}
-    <input type="file" id="imgInput" accept="image/*" hidden>
-    <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
+    ${wideEdit?`</div><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(p,reviewNotesProto(p))}</div>${editPreviewHtml('proto')}</aside></div>`:''}`;
   bindEditorExit({kind:'p',list:()=>protocols,getDraft:()=>state.pdraft,setDraft:v=>{state.pdraft=migrateProtocol(v);},clearDraft:()=>{state.pdraft=null;},
     /* Ménage de SORTIE : une image que plus aucune ligne du corps ne référence est du poids
        mort. Destructif, donc jamais pendant la frappe — retirer une référence pour la
@@ -10463,7 +10712,7 @@ function renderProtocolEdit(){
   const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});paintMiUse();},300);};
   ta.addEventListener('input',()=>{p.body=ta.value;schedulePrev();});
   paintMiUse();
-  const imgInput=document.getElementById('imgInput');
+  const takeImg=pImgTaker(p,ta);
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
     if(k==='b')wrapBold(ta);
     else if(k==='i')mdWrapSel(ta,'*');
@@ -10483,13 +10732,11 @@ function renderProtocolEdit(){
     else if(k==='tbl')mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'\n| Colonne | Colonne |\n|---|---|\n| … | … |\n');
     else if(k==='code')mdWrapSel(ta,'`');
     else if(k==='link'){const v=ta.value,a=ta.selectionStart||0,e2=ta.selectionEnd||0;const sel=v.slice(a,e2)||'texte';ta.value=v.slice(0,a)+'['+sel+'](https://)'+v.slice(e2);ta.focus();const c=a+sel.length+3;ta.setSelectionRange(c,c+8);ta.dispatchEvent(new Event('input',{bubbles:false}));}
-    else if(k==='img')imgInput.click();});
-  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
-    const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}
-    if((p.images||[]).length>=60){toast('⚠ 60 images maximum par protocole.');return;}
-    const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});
-    mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');
-    renderProtocolEdit();};
+    else if(k==='img')pickFile('image',takeImg,true);});
+  // La zone de dépôt permanente de la section « Images », plus la cible d'un dépôt fait
+  // n'importe où dans l'éditeur : le bouton ⧉ de la barre d'outils reste, il n'est plus seul.
+  bindUpDrop(document.getElementById('pImgDrop'),'image',takeImg,true);
+  upTarget('image',takeImg);
   // Taille PAR IMAGE : écrit dans le modèle (p.images[i].scale) et rafraîchit l'aperçu — le texte
   // du protocole n'est jamais touché (la référence ![](img:ID) reste identique).
   main.querySelectorAll('[data-miscale]').forEach(sel=>sel.onchange=()=>{
@@ -15417,28 +15664,65 @@ function attachablePdfs(f){const have=new Set((f.docs||[]).map(a=>a.id));const s
 function attFieldsetHtml(entity){
   return `<fieldset class="field ed-card"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
       ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
-      <button class="add-line" id="addPdf">+ Ajouter un PDF (${fmtBytes(MAX_PDF_BYTES)} max)</button>
+      ${upDropHtml('pdf','addPdf','Ajouter un PDF ('+fmtBytes(MAX_PDF_BYTES)+' max)')}
       ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
       :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
 // Écouteurs du fieldset Documents. Le BLOB est écrit immédiatement dans IndexedDB (il ne transite
 // jamais par le brouillon ni par le JSON) ; le brouillon ne reçoit que {id,name,size}. Les ids
 // ajoutés pendant cette édition sont tracés (draftNewAtts) -> purge si « Quitter sans enregistrer ».
+/* Preneur de documents — la taille et la signature %PDF- ont DÉJÀ été vérifiées par la porte
+   (`acceptFile`), il ne reste ici que ce qui est propre au stockage : lecture complète en
+   ArrayBuffer (fiable partout, cf. IDB.putAtt), plafond de NOMBRE, écriture, traçage pour la
+   purge « Quitter sans enregistrer ». UN SEUL re-rendu à la fin, quel que soit le nombre de
+   documents déposés. */
+function upPdfTaker(entity,rerender){
+  return async files=>{
+    let n=0;
+    for(const file of files){
+      if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.',6000,true);break;}
+      let buf=null;try{buf=await file.arrayBuffer();}catch(err){}
+      if(!buf){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
+      const id=uid('a');
+      try{await IDB.putAtt({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
+      catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000,true);break;}
+      draftNewAtts.push(id);
+      entity.docs=entity.docs||[];entity.docs.push({id,name:safeFileName(file.name)||'document.pdf',size:buf.byteLength});
+      n++;}
+    if(n)rerender();};}
+/* Preneurs d'IMAGES — ils vivent auprès du preneur de documents parce qu'ils partagent la porte,
+   pas parce qu'ils partagent un éditeur. `downscale()` reste la seconde barrière et la plus
+   utile : le canvas RÉ-ENCODE, donc les octets d'origine n'atteignent jamais le stockage et les
+   métadonnées (EXIF, position GPS d'une photo de terrain) partent avec.
+   ⚠ Le plafond de NOMBRE est vérifié AVANT la réduction, qui est l'opération coûteuse — il l'était
+   après côté référence, et n'existait pas du tout côté aide. */
+function edImgTaker(f,bid){
+  return async files=>{
+    let n=0;
+    for(const file of files){
+      if(!bid&&(f.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par aide.',6000,true);break;}
+      const r=await downscale(file);
+      if(!r){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
+      // « + Image » d'un BLOC : un bloc n'en porte qu'une, le dépôt multiple n'a pas de sens ici.
+      if(bid){const b=(f.blocks||[]).find(x=>x.id===bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}n++;break;}
+      f.images=f.images||[];f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});n++;}
+    if(n){edSyncGallery(f);renderEditor();}};}
+function pImgTaker(p,ta){
+  return async files=>{
+    let n=0;
+    for(const file of files){
+      if((p.images||[]).length>=MAX_IMG_PER_ENTITY){toast('⚠ '+MAX_IMG_PER_ENTITY+' images maximum par référence.',6000,true);break;}
+      const r=await downscale(file);
+      if(!r){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
+      const id=uid('i');p.images=p.images||[];p.images.push({id,data:r.data,w:r.w,h:r.h,caption:'',scale:100});
+      mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+'![](img:'+id+')\n');
+      n++;}
+    if(n)renderProtocolEdit();};}
 function bindAttEditor(entity,rerender){
-  const pdfInput=document.getElementById('pdfInput');
-  {const ap=document.getElementById('addPdf');
-   if(ap)ap.onclick=()=>{if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}pdfInput.click();};}
-  if(pdfInput)pdfInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;
-    if(file.size>MAX_PDF_BYTES){toast('⚠ Document trop volumineux ('+fmtBytes(file.size)+') : '+fmtBytes(MAX_PDF_BYTES)+' maximum.');return;}
-    // Lecture COMPLÈTE en ArrayBuffer dès l'ajout (stockage fiable partout, cf. IDB.putAtt) +
-    // CONTENU vérifié (signature %PDF-, cf. isPdfBytes) en plus du type déclaré.
-    let buf=null;try{buf=await file.arrayBuffer();}catch(err){}
-    if(!buf||!isPdfBytes(new Uint8Array(buf))){toast('⚠ Ce fichier n\'est pas un PDF valide.');return;}
-    const id=uid('a');
-    try{await IDB.putAtt({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
-    catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000);return;}
-    draftNewAtts.push(id);
-    entity.docs=entity.docs||[];entity.docs.push({id,name:safeFileName(file.name)||'document.pdf',size:buf.byteLength});
-    rerender();};
+  const take=upPdfTaker(entity,rerender);
+  bindUpDrop(document.getElementById('addPdf'),'pdf',take,true);
+  // Déclaré même si le fieldset n'est pas rendu (il est masqué quand il est vide, v4.76.0) :
+  // déposer un PDF dans un éditeur doit marcher, section visible ou non.
+  upTarget('pdf',take);
   main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.docs||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
   main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.docs.splice(+b.dataset.attrm,1);rerender();});
   {const ab=document.getElementById('attAddBtn');if(ab)ab.onclick=()=>openAttPicker(entity,rerender);}}
@@ -15568,10 +15852,11 @@ function edGrabLabel(f){const g=state.edGrab;if(!g)return '';
    « ＋ Étape » et ⏎ s'en chargent. L'INTENTION PÉDAGOGIQUE de MK4 (« les registres s'apprennent
    ici, avant la crise ») n'est pas perdue pour autant : elle vit dans le dépliant `.crit-guide`
    en tête de chaque bloc, c'est-à-dire à l'endroit exact où l'on choisit le registre. */
-/* `_edImgMode` vit au MODULE et non dans `bindEditorEvents` (v4.76.0) : la porte « ＋ » doit
-   pouvoir ouvrir le sélecteur de fichier alors que la section « Schémas & captures » est MASQUÉE
-   (donc son bouton absent), et une variable de fermeture n'était pas atteignable de là. */
-let _edImgMode={kind:null,bid:null};
+/* `_edImgMode` est PURGÉ (v5.0.0, règle 14). Ce drapeau de module existait parce qu'un seul
+   `<input type="file">` servait plusieurs destinations et qu'il fallait, au retour de son
+   `onchange`, se rappeler laquelle : galerie, bloc, ou protocole. La porte prend désormais un
+   CALLBACK (`pickFile(kind, onFiles)`) — la destination voyage avec le geste au lieu d'être
+   mémorisée à côté, et il n'y a plus d'état à remettre à zéro ni à oublier de remettre à zéro. */
 /* ═══ LOT 3 (v4.76.0) — LA PORTE « ＋ » DEVIENT CELLE DE L'AIDE ENTIÈRE ════════════════════════
    Signalé à l'usage : « le bouton s'arrête avant les blocs minuteurs & compteurs, repères
    posologiques, schémas et captures, documents PDF… ce qui n'est pas logique ». Le constat était
@@ -15643,10 +15928,10 @@ function edAdd(f,kind){
      `renderEditor()` est synchrone —, sinon l'activation utilisateur serait perdue et le
      navigateur refuserait d'ouvrir le sélecteur. */
   if(kind==='att'){const b=document.getElementById('addPdf');
-    if(b)b.click();else{const pi=document.getElementById('pdfInput');if(pi)pi.click();}
+    if(b)b.click();else pickFile('pdf',upPdfTaker(f,renderEditor),true);
     return;}
   if(kind==='img'){const b=document.getElementById('addImg');
-    if(b)b.click();else{_edImgMode={kind:'gallery'};const ii=document.getElementById('imgInput');if(ii)ii.click();}
+    if(b)b.click();else pickFile('image',edImgTaker(f,null),true);
     return;}
   /* On amène l'auteur SUR ce qu'il vient de créer : une porte qui demande un geste pour ouvrir
      et un autre pour retrouver son résultat n'a rien simplifié. Ancrage direct, jamais animé
@@ -15707,7 +15992,7 @@ function edAddProto(p,kind){
   /* Le document ouvre le SÉLECTEUR DE FICHIER : le clic doit partir DANS LA MÊME TÂCHE que celui
      de la palette (`renderProtocolEdit` est synchrone), sinon l'activation utilisateur est perdue
      et le navigateur refuse d'ouvrir le sélecteur (leçon v4.71.0). */
-  if(kind==='att'){_edImgMode={kind:'proto'};pdfInput.click();return;}
+  if(kind==='att'){pickFile('pdf',upPdfTaker(p,renderProtocolEdit),true);return;}
   if(kind==='rel'){openRelPicker(p,renderProtocolEdit);return;}
   if(kind==='ref'){p.sources=(Array.isArray(p.sources)?p.sources:[]).concat('');}
   if(kind==='body'&&!String(p.body||'').trim())p.body=' ';
@@ -16122,7 +16407,7 @@ function renderEditor(){
     antérieurs ne sauraient pas lire. Associer duplique donc l'image ; retoucher la vignette de la
     galerie APRÈS coup ne suivra pas dans le bloc. */}
     ${(f.images||[]).length?`<fieldset class="field ed-card"><label>Schémas & captures <span class="hint">stockées hors ligne dans l'app</span></label><div class="gallery">${(f.images||[]).map((im,i)=>{const porteur=(f.blocks||[]).find(b=>b.image===im.data);
-      return `<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…"><select class="gblk" data-imgblk="${i}" aria-label="Bloc qui affiche cette image"><option value="">— Aucun bloc —</option>${(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${porteur&&porteur.id===b.id?' selected':''}>${esc((stripBold(b.title||'')).trim()||(b.kind==='decision'?'Décision':'Sans titre'))}</option>`).join('')}</select><button class="btn sm danger" data-imgdel="${i}">Retirer</button></div>`;}).join('')}</div><button class="add-line" id="addImg" style="margin-top:10px">+ Ajouter une image / capture</button></fieldset>`:''}
+      return `<div class="gthumb"><img src="${im.data}" alt="" loading="lazy" decoding="async"><input type="text" class="gcap" data-imgcap="${i}" value="${esc(im.caption||'')}" placeholder="Légende…"><select class="gblk" data-imgblk="${i}" aria-label="Bloc qui affiche cette image"><option value="">— Aucun bloc —</option>${(f.blocks||[]).map(b=>`<option value="${esc(b.id)}"${porteur&&porteur.id===b.id?' selected':''}>${esc((stripBold(b.title||'')).trim()||(b.kind==='decision'?'Décision':'Sans titre'))}</option>`).join('')}</select><button class="btn sm danger" data-imgdel="${i}">Retirer</button></div>`;}).join('')}</div>${upDropHtml('image','addImg','Ajouter une image / capture',' mt')}</fieldset>`:''}
     ${(f.docs||[]).length?attFieldsetHtml(f):''}
     ${(f.sources||[]).length?listEditor('Références','sources de la fiche','sources',f.sources,false,{shell:'ed-card'}):''}
     ${relFieldsetHtml(f)}
@@ -16143,9 +16428,7 @@ function renderEditor(){
     inchangé : il n'y a alors pas de seconde colonne où le mettre. */}
     ${wideEdit?'':`<div id="revPanel">${reviewPanelHtml(f)}</div>`}
     ${fiches.some(x=>x.id===f.id)?'<div class="ed-del"><button class="btn danger" id="delBtn">Supprimer cette fiche</button></div>':''}
-    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(f)}</div>${editPreviewHtml('fiche')}</aside></div>`:''}
-    <input type="file" id="imgInput" accept="image/*" hidden>
-    <input type="file" id="pdfInput" accept="application/pdf,.pdf" hidden>`;
+    ${wideEdit?`</div><aside class="ed-struct">${edStructHtml(f)}</aside><aside class="read-side" id="editSide"><div id="revPanel">${reviewPanelHtml(f)}</div>${editPreviewHtml('fiche')}</aside></div>`:''}`;
   bindEditorEvents(f);
   bindRevPanel();   // K2 : ancrage des remarques de relecture
   /* K11 : taper une ligne de STRUCTURE amène son bloc au centre et le fait clignoter — jamais de
@@ -16195,8 +16478,12 @@ function bindEditorEvents(f){
   syncPhaseList(state.draft);
   bindListEditors();
   // images
-  const imgInput=document.getElementById('imgInput');
-  {const ai=document.getElementById('addImg');if(ai)ai.onclick=()=>{_edImgMode={kind:'gallery'};imgInput.click();};}
+  /* Images de l'aide. La GALERIE est l'agrégateur (v4.78.0) : c'est elle qui reçoit un dépôt, et
+     le sélecteur de bloc de chaque vignette fait le rattachement. Déclaré même si le fieldset
+     « Schémas & captures » n'est pas rendu (masqué quand vide) — déposer une image dans un
+     éditeur doit marcher, section visible ou non. */
+  bindUpDrop(document.getElementById('addImg'),'image',edImgTaker(f,null),true);
+  upTarget('image',edImgTaker(f,null));
   /* RETIRER UNE IMAGE LA RETIRE PARTOUT (v4.78.0, signalé à l'usage : « cliquer sur retirer une
      image ne la retire pas, elle apparaît toujours dans la liste »). Défaut DIRECT de l'agrégateur
      ajouté plus haut : on la sortait de `f.images`, mais un bloc la portait encore dans `b.image`,
@@ -16377,14 +16664,12 @@ function bindEditorEvents(f){
        collision de noms que la leçon v4.23.2 proscrit. */
     card.querySelectorAll('[data-optdel]').forEach(btn=>btn.onclick=()=>{b.options.splice(+btn.dataset.optdel,1);if(!b.options.length)b.options.push({label:'',target:''});renderEditor();});
     card.querySelectorAll('.optedit').forEach(row=>{const oi=+row.dataset.oi;const lab=row.querySelector('[data-of]');if(lab)lab.addEventListener('input',e=>{b.options[oi].label=e.target.value;scheduleFlowPreview(f);});const tgt=row.querySelector('select[data-target]');if(tgt)tgt.addEventListener('change',e=>{b.options[oi].target=e.target.value||'';renderEditor();});});
-    const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>{_edImgMode={kind:'block',bid};imgInput.click();};
+    const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>pickFile('image',edImgTaker(f,bid),false);
     const bd2=card.querySelector('[data-bimgdel]');if(bd2)bd2.onclick=()=>{b.image=null;renderEditor();};
     /* POSER. Un objet retiré puis réinséré : l'index de destination est corrigé quand la source
        précède la cible DANS LA MÊME liste — sans quoi tout dépôt « vers le bas » atterrirait une
        place trop loin (le classique du splice). */
     const bd=card.querySelector('[data-bdel]');if(bd)bd.onclick=()=>{f.blocks=f.blocks.filter(x=>x.id!==bid);f.blocks.forEach(x=>{if(x.next===bid)x.next=null;if(x.options)x.options.forEach(o=>{if(o.target===bid)o.target='';});});if(f.start===bid)f.start=f.blocks[0]?f.blocks[0].id:null;if(!f.blocks.length){const nb={id:uid('b'),kind:'do',title:'Prise en charge',steps:[''],image:null,next:null};f.blocks.push(nb);f.start=nb.id;}renderEditor();};});
-  imgInput.onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;const r=await downscale(file);if(!r){toast('⚠ Image illisible.');return;}if(_edImgMode.kind==='gallery')f.images.push({id:uid('i'),data:r.data,w:r.w,h:r.h,caption:''});else{const b=f.blocks.find(x=>x.id===_edImgMode.bid);if(b){b.image=r.data;b.imageW=r.w;b.imageH=r.h;}}
-    edSyncGallery(f);renderEditor();};
     /* ⚠ SIGNALÉ À L'USAGE : « il n'est plus possible de déplacer un bloc ». Diagnostic : ce
        binder tourne PAR CARTE (`main.querySelectorAll('.blk').forEach(card=>…)`), or les
        interstices de niveau BLOC (`data-drop="B:n"`) sont émis ENTRE les cartes — donc frères,
@@ -17519,14 +17804,18 @@ async function openCreateDlg(){try{if(document.activeElement&&document.activeEle
   updateCreateSeg();renderCreateDlg('methods',await getDraftPark());createModal.classList.add('on');}
 function closeCreateDlg(){createModal.classList.remove('on');}
 function crtCard(id,glyph,t,d){return `<button class="crt-card" id="${id}"><span class="crt-ic" aria-hidden="true">${glyph}</span><span><span class="crt-t">${t}</span><br><span class="crt-d">${d}</span></span><span class="crt-chev" aria-hidden="true">›</span></button>`;}
-// Zone de dépôt : clic = sélecteur de fichier, glisser-déposer = lecture directe. Tout import
-// passé par le dialogue arrive en BROUILLON ; openAfter n'ouvre la fiche que pour la méthode IA.
+/* Zone de dépôt du dialogue « Créer » — désormais le composant PARTAGÉ (`bindUpDrop`), donc la
+   même validation que partout ailleurs : un PDF ou une image lâchés ici sont refusés EN LE
+   DISANT, là où l'ancienne zone les passait à `readImportFile` qui répondait « Fichier illisible ».
+   Tout import passé par le dialogue arrive en BROUILLON ; `openAfter` n'ouvre la fiche que pour
+   la méthode IA. Un seul fichier : importer deux bibliothèques d'un geste n'a pas de sens, et
+   les questions de destination/fusion sont posées PAR import.
+   ⚠ Les drapeaux et la fermeture du dialogue vivent dans le callback, donc APRÈS le choix du
+   fichier : les deux chemins (clic et dépôt) se comportent enfin pareil, et annuler le sélecteur
+   ne laisse plus le dialogue fermé sans rien avoir importé. */
 function bindCreateDrop(el,openAfter){
-  el.onclick=()=>{pendingOpenImport=openAfter;importForceDraft=true;closeCreateDlg();document.getElementById('importFile').click();};
-  el.ondragover=e=>{e.preventDefault();el.classList.add('on');};
-  el.ondragleave=()=>el.classList.remove('on');
-  el.ondrop=e=>{e.preventDefault();el.classList.remove('on');const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(!f)return;pendingOpenImport=openAfter;importForceDraft=true;closeCreateDlg();readImportFile(f);};
-}
+  bindUpDrop(el,'data',files=>{
+    pendingOpenImport=openAfter;importForceDraft=true;closeCreateDlg();readImportFile(files[0]);},false);}
 function renderCreateDlg(screen,park){
   const proto=state.section==='protocols';
   // Le segment ne vit que sur l'écran des méthodes (les sous-écrans IA / import sont propres au
@@ -17541,7 +17830,7 @@ function renderCreateDlg(screen,park){
       <div class="crt-prompt" id="crtPrompt" tabindex="0"></div>
       <div class="ai-actions"><button class="crt-copy" id="crtCopy">Copier le prompt</button></div>
       <div class="crt-step">2 · Importez le fichier</div>
-      <button class="crt-drop" id="crtDrop">⤓ Glissez le fichier .json ici — ou cliquez pour choisir</button>
+      ${upDropHtml('data','crtDrop','Importer le fichier généré')}
       <p class="crt-note">L'aide arrive en <strong>○ Brouillon</strong> : relisez et validez chaque posologie avant publication. Vous restez responsable du contenu.</p>`;
     document.getElementById('crtPrompt').textContent=AI_PROMPT;
     document.getElementById('crtBack').onclick=async()=>renderCreateDlg('methods',await getDraftPark());
@@ -17555,7 +17844,7 @@ function renderCreateDlg(screen,park){
   if(screen==='import'){
     body.innerHTML=`
       <button class="crt-back" id="crtBack">‹ Autres méthodes</button>
-      <button class="crt-drop pad-lg" id="crtDrop" style="margin-top:10px">⤓ Glissez le fichier .json ou .zip ici — ou cliquez pour choisir</button>
+      ${upDropHtml('data','crtDrop','Importer un fichier',' pad-lg mt')}
       <p class="crt-note">Un export de l'app (.json, ou .zip avec les documents PDF) ou une génération IA (.json). Tout le contenu importé arrive en <strong>○ Brouillon</strong> — jamais « Validée » d'office.</p>`;
     document.getElementById('crtBack').onclick=async()=>renderCreateDlg('methods',await getDraftPark());
     bindCreateDrop(document.getElementById('crtDrop'),false);
@@ -17933,7 +18222,10 @@ function readImportFile(file){const r=new FileReader();
     // ou d'exécution, pas de fichier — message honnête, et ce qui a déjà été importé est conservé.
     catch(err){pendingOpenImport=false;toast('⚠ Import interrompu ('+(sstr((err&&err.message)||'',120)||'erreur inattendue')+') — les éléments déjà importés sont conservés.',9000);}};
   r.readAsArrayBuffer(file);}   // ArrayBuffer : nécessaire au .zip ; le .json est décodé en UTF-8
-document.getElementById('importFile').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)readImportFile(file);};
+/* L'UNIQUE entrée d'import est le dialogue « Créer », et elle passe par la porte : la taille est
+   donc bornée AVANT lecture (`MAX_IMPORT_BYTES`). Il n'y avait aucun plafond, et
+   `readAsArrayBuffer` sur un fichier de plusieurs centaines de Mo tue l'onglet sur téléphone —
+   en pleine édition, sans rien dire. */
 
 /* ===== Compte & synchronisation (Supabase) =====
    Authentification par CODE e-mail (OTP) via l'API GoTrue, en `fetch` direct (AUCUNE
@@ -21012,6 +21304,7 @@ if(location.search.indexOf('__acdebug')>=0){
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+    imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,

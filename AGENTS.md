@@ -30,7 +30,7 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    `APP_VERSION` et `CACHE` casse la mise à jour du service worker). **Jamais de `git push` sans
    demande explicite.**
 2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises · animations ·
-   service worker · SQL · harnais · hashs CSP) et
+   service worker · **entrées de fichier** · SQL · harnais · hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
    **La passe d'audit qui vaut avant un commit est la COMPLÈTE** (`npm run audit` sans argument) ;
    `npm run audit -- <noms>` n'est qu'un accélérateur d'itération et s'annonce « PARTIELLE ».
@@ -122,7 +122,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Accueil (bibliothèques)** | ACCUEIL « POSTE ACCÈS DIRECT » |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
-| **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · Nommage SQL · (et les points 4 à 6 ci-dessus) |
+| **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE · Nommage SQL · (et les points 4 à 6 ci-dessus) |
 | **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ |
 | **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
 
@@ -297,6 +297,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
     l'époque comptait les `$$` et vérifiait la PARITÉ — or un `$$` amputé ne matche plus le
     motif, il disparaît du compte des deux côtés et la parité reste vraie. Un contrôle aveugle au
     défaut qu'il prétend couvrir ne vaut rien (leçon v4.31.1, redite ici au prix fort).
+  `check-upload.mjs` (v5.0.0) tient la porte des ENTRÉES DE FICHIER : un seul
+  `<input type="file">` dans tout le fichier (il y en avait cinq), aucun `accept` écrit à la main
+  (il vient de `UP_KINDS`, sur la même ligne que la signature qui sera vérifiée), aucun `accept`
+  fourre-tout du genre « image/étoile » — c'est par là que le SVG entrait —, cinq champs par
+  nature, et **le compte des sites qui lisent `.files`** : un quatrième serait, par construction,
+  un chemin d'upload qui ne passe pas par `acceptFile`, c'est-à-dire le défaut d'avant ce chantier
+  en train de revenir. Il neutralise les commentaires avant de mesurer (le fichier CITE la règle à
+  plusieurs endroits) et cette approximation tombe du bon côté : sur-neutraliser fait ÉCHOUER, pas
+  passer sous silence. Vérifié capable d'échouer sur ses cinq points, fichier restauré à l'octet.
   `check-harnais.mjs` (v5.0.0) rend auto-exécutoire la discipline née avec le lanceur parallèle :
   (1) tout `scripts/audit-*.mjs` sur disque figure dans `HARNAIS` (audit-run.mjs) et
   réciproquement — un harnais créé mais non listé ne tournerait JAMAIS dans `npm run audit`, et le
@@ -2104,8 +2113,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   seul trait la distinguait ; elle reste TONALE, jamais remplie (l'unique bouton rempli de l'écran
   est « ▶ Essayer »). **Elle redescend dans le flux pendant un déplacement** (`.ed-door.flat`) :
   collée, elle masque le dernier « Poser ici », et « créer » n'a rien à faire sous le doigt de qui
-  cherche où POSER. Piège résolu au passage : `_edImgMode` a dû monter au MODULE, la porte devant
-  ouvrir le sélecteur de fichier alors que la section « Schémas » est masquée (son bouton absent).
+  cherche où POSER. Piège résolu au passage : `_edImgMode` avait dû monter au MODULE, la porte
+  devant ouvrir le sélecteur de fichier alors que la section « Schémas » est masquée (son bouton
+  absent). **`_edImgMode` est PURGÉ en v5.0.0** (chantier des entrées de fichier) : la destination
+  voyage désormais avec le geste — `pickFile(kind, onFiles)` prend un callback — au lieu d'être
+  mémorisée à côté dans un drapeau qu'il fallait penser à remettre à zéro.
 - **UNE IMAGE S'ASSOCIE À UN BLOC DEPUIS LA GALERIE (v4.76.0, demande utilisateur)** : on ne pouvait
   joindre une image QUE depuis un bloc — partir de l'image était impossible, alors que c'est l'ordre
   naturel quand on vient d'en importer trois. Un `<select>` par vignette liste les blocs, montre
@@ -2587,8 +2599,10 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   câblait jamais : **déplacer un bloc ne faisait rien**, tandis que déplacer une ÉTAPE (interstice
   INTERNE à la carte) fonctionnait. La moitié du geste marchait, ce qui rendait le défaut
   déroutant. Binder hissé au niveau de `main` et SORTI de la boucle. ⚠ Piège rencontré en le
-  déplaçant : **`imgInput.onchange` existe DEUX fois** dans le fichier (fiche et protocole) — une
-  ancre textuelle a fait atterrir le binder dans la mauvaise portée, trouvé à la sonde.
+  déplaçant : **`imgInput.onchange` existait DEUX fois** dans le fichier (fiche et protocole) — une
+  ancre textuelle a fait atterrir le binder dans la mauvaise portée, trouvé à la sonde. (Cette
+  duplication n'existe plus depuis le chantier des entrées de fichier, v5.0.0 : un seul `<input>`,
+  un seul point d'entrée.)
 - **UN ÉLÉMENT TOURNÉ DÉBORDE SA PROPRE BOÎTE (v5.0.0)** : 26 px de côté font 36,8 px de diagonale,
   soit 5,4 px de chaque côté — le losange d'une décision était rogné par la colonne (−3 px mesurés).
   On tourne un **pseudo-élément plus petit à l'intérieur** d'une boîte qui, elle, ne bouge pas.
@@ -3689,6 +3703,51 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   dans `docs/deploiement-et-conformite.md` (§ 1.1).
 - Toute donnée importée/chargée passe par `migrate()` / `sanitizeCats()` (point d'entrée unique de
   compatibilité et de sécurité) ; nouveaux champs = facultatifs, avec défaut posé dans `migrate()`.
+- **TOUTE ENTRÉE DE FICHIER PASSE PAR `UP_KINDS` ET `acceptFile` (v5.0.0, chantier des uploads)** :
+  quatre chemins cohabitaient avec quatre niveaux de rigueur — le PDF vérifiait sa signature,
+  l'import la sienne, les DEUX chemins d'image ne vérifiaient qu'un `accept`, **c'est-à-dire une
+  INDICATION donnée au sélecteur de fichier et jamais une garantie** (ni un renommage ni un dépôt
+  ne la respectent). Et ils avaient déjà divergé : 60 images maximum côté référence, aucun plafond
+  côté aide, **aucun plafond du tout à l'import**.
+  **CE QUI REND LA RÈGLE EXÉCUTOIRE** : l'`accept` AFFICHÉ, la SIGNATURE vérifiée et le PLAFOND
+  sortent de la **même ligne** de `UP_KINDS`. « Un champ de PDF n'accepte ni JSON ni image » cesse
+  d'être une intention pour devenir une propriété du code — on ne peut plus changer l'un sans
+  l'autre. **Trois natures, pas une de plus** (`pdf` · `image` · `data`) ; une quatrième s'ajoute
+  LÀ, ou nulle part. Un seul `<input type="file">` dans tout le fichier (il y en avait cinq), et
+  `pickFile(kind, onFiles)` prend un **callback** : la destination voyage avec le geste, ce qui a
+  permis de purger `_edImgMode` (règle 14).
+  **⚠ LE HEIC EST DANS LA LISTE BLANCHE, ET CE N'EST PAS UN DÉTAIL** : c'est le format de la
+  photothèque iPhone, donc de la cible principale déclarée — une liste PNG/JPEG/WebP aurait cassé
+  « joindre une photo » sur iOS **en silence**, seule vraie régression qu'aurait pu produire ce
+  chantier. **⚠ ET LE SVG N'Y EST PAS, DÉLIBÉRÉMENT** : seul format image à contenu ACTIF, et seul
+  à pouvoir n'avoir aucune dimension intrinsèque (il produisait alors un canvas 0×0, donc une image
+  vide enregistrée sans un mot). L'ancien `accept="image/*"` l'admettait.
+  **LA SECONDE BARRIÈRE RESTE `downscale()`**, et c'est la plus utile : le canvas RÉ-ENCODE, donc
+  les octets d'origine n'atteignent jamais le stockage et les métadonnées (EXIF, position GPS d'une
+  photo de terrain) partent avec. La porte ne la remplace pas, elle la précède.
+  **AUCUNE TRONCATURE SILENCIEUSE** : on prenait `files[0]` et rien d'autre — déposer cinq documents
+  en ajoutait UN sans un mot. Le compte des ignorés se dit, comme le « +n » du quai. Et **un refus
+  se dit toujours** (`toast(msg, ms, true)` + `announce`) : un fichier refusé en silence est pire
+  qu'un fichier accepté à tort, on croit avoir joint quelque chose.
+- **LE DÉPÔT HORS ZONE EST NEUTRALISÉ — LE DANGER EST DEVENU LA FONCTIONNALITÉ (v5.0.0)** : il n'y
+  avait **aucun garde global**, si bien qu'un fichier lâché à 3 px d'une zone faisait NAVIGUER le
+  navigateur vers ce fichier — l'écran d'édition, ou une session de soin en cours, disparaissait.
+  La fenêtre `#upDrag` n'existe que pendant un glisser RÉEL, annonce ce que l'écran accepte, et le
+  `preventDefault` de `window.drop` fait le reste.
+  **ELLE EST `pointer-events:none` — UN ANNONCIATEUR, PAS UN RÉCEPTEUR** : sans cela elle volerait
+  tous les dépôts et il faudrait lui apprendre la géométrie des zones qu'elle recouvre. Le fichier
+  traverse et atteint la zone du dessous ; le garde ne ramasse que ce qui tombe à côté.
+  **⚠ TOUT EST GATÉ SUR `dataTransfer.types` CONTENANT `Files`** : MK5-b amorce « prendre / poser »
+  sur un `dragstart` de poignée (v4.75.0) — sans ce garde, glisser une poignée ⠿ ouvrirait la
+  fenêtre de dépôt, deux gestes qui se ressemblent se déclenchant l'un l'autre.
+  **LE ROUTAGE SE FAIT PAR LE TYPE SNIFFÉ**, jamais par la zone visée ni par l'extension : dans un
+  éditeur, un PDF va aux documents et une image à la galerie. Les cibles sont déclarées par les
+  BINDERS (`upTarget`) et non par la présence d'un bouton — un dépôt marche donc même quand la
+  section est masquée parce qu'elle est vide (v4.76.0). `render()` les remet à zéro avant le
+  dispatch. **Coût NUL sur mobile**, où le glisser-déposer n'existe pas : la fenêtre ne s'y ouvre
+  jamais, et les zones restent ouvrables au clic — aucun tap ajouté à aucun geste.
+  Harnais : `scripts/audit-upload.mjs` (39 contrôles, écrit AVANT les correctifs — rouge à 4/27,
+  vert à 39/39 ; vérifié capable d'échouer en réintroduisant les deux défauts).
 - **Documents PDF** : le PDF vit en ArrayBuffer dans le store IndexedDB `attachments` (base v5 ; Blob historique accepté en lecture), JAMAIS en
   base64 dans la fiche ni dans l'export JSON ; la fiche ne porte que `attachments:[{id,name,size}]`
   (validé par `safeAttachment` — id jamais régénéré, entrée invalide rejetée ; plafonds

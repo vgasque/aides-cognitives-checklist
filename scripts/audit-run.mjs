@@ -42,6 +42,7 @@ const HARNAIS = [
   { nom: 'audit-partage',       poids: 89 },
   { nom: 'audit-k5',            poids: 67 },
   { nom: 'audit-complications', poids: 13 },
+  { nom: 'audit-upload',        poids: 12 },
   { nom: 'audit-qr',            poids: 12 },
   { nom: 'audit-exercice',      poids: 12 },
   { nom: 'audit-modeseg',       poids: 6 },

@@ -977,6 +977,63 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('l’archive intacte reste lisible (aucune borne déclenchée à tort)',
      (await A.zipParse(z)).length, 3);}
 
+  /* ═══ ENTRÉES DE FICHIER — LA TABLE ET SES SIGNATURES (v5.0.0) ═══════════════════════════
+     Ces fonctions sont la SEULE chose qui distingue un champ d'un autre : l'`accept` d'un
+     `<input>` est une indication donnée au sélecteur de fichier, jamais une garantie — il ne
+     survit ni à un renommage ni à un glisser-déposer. Ce qui suit est donc le contrôle réel. */
+  group('Entrées de fichier — signatures et table fermée (v5.0.0)');
+  {const B=a=>new Uint8Array(a);
+   const A2=t=>{const o=[];for(let i=0;i<t.length;i++)o.push(t.charCodeAt(i));return B(o);};
+   // Images : la signature, jamais l'extension ni le type déclaré.
+   eq('PNG reconnu', A.imgKind(B([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,0,0,0,13])), 'png');
+   eq('JPEG reconnu', A.imgKind(B([0xFF,0xD8,0xFF,0xE0,0,16])), 'jpeg');
+   eq('WebP reconnu', A.imgKind(B([0x52,0x49,0x46,0x46,0,0,0,0,0x57,0x45,0x42,0x50])), 'webp');
+   eq('GIF reconnu', A.imgKind(A2('GIF89a....')), 'gif');
+   // HEIC : c'est le format de la photothèque iPhone, donc de la cible principale déclarée.
+   // Une liste blanche qui l'oublierait casserait « joindre une photo » sur iOS, en silence.
+   eq('HEIC reconnu (photothèque iPhone)', A.imgKind(B([0,0,0,0x18,0x66,0x74,0x79,0x70,0x68,0x65,0x69,0x63])), 'heic');
+   eq('HEIF « mif1 » reconnu', A.imgKind(B([0,0,0,0x18,0x66,0x74,0x79,0x70,0x6D,0x69,0x66,0x31])), 'heic');
+   // Le SVG est le SEUL format image porteur de contenu actif, et le seul à pouvoir n'avoir
+   // aucune dimension intrinsèque (canvas 0×0). `accept="image/*"` l'admettait.
+   eq('SVG refusé', A.imgKind(A2('<svg xmlns="http://www.w3.org/2000/svg">')), null);
+   eq('un PDF n’est pas une image', A.imgKind(A2('%PDF-1.7')), null);
+   eq('octets vides : aucun format', A.imgKind(B([])), null);
+
+   // Données : le zip a une signature, le JSON n'en a pas — on lit sa tête.
+   eq('ZIP reconnu', A.dataKind(B([0x50,0x4B,3,4,20,0])), 'zip');
+   eq('JSON objet reconnu', A.dataKind(A2('{"version":3}')), 'json');
+   eq('JSON tableau reconnu', A.dataKind(A2('[{"id":1}]')), 'json');
+   eq('JSON précédé de blancs reconnu', A.dataKind(A2('\n\t  {"a":1}')), 'json');
+   eq('JSON avec BOM reconnu', A.dataKind(B([0xEF,0xBB,0xBF,0x7B,0x22,0x61,0x22])), 'json');
+   // Le prompt IA produit des clôtures ``` que stripJsonFences retire ensuite : la tête doit
+   // donc les accepter, sinon une génération recopiée fidèlement serait refusée à la porte.
+   eq('bloc de code ``` accepté (le prompt IA en produit)', A.dataKind(A2('```json\n{"a":1}')), 'json');
+   eq('un PDF renommé .json est refusé', A.dataKind(A2('%PDF-1.7')), null);
+   eq('du texte libre est refusé', A.dataKind(A2('bonjour')), null);
+
+   // Détection croisée : c'est elle qui ROUTE un fichier déposé n'importe où dans un éditeur.
+   eq('routage : PDF', A.upDetect(A2('%PDF-1.4')), 'pdf');
+   eq('routage : image', A.upDetect(B([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A])), 'image');
+   eq('routage : données', A.upDetect(A2('{"fiches":[]}')), 'data');
+   eq('routage : rien de connu', A.upDetect(A2('bonjour')), null);
+
+   // LA TABLE : accept, sniff et plafond indissociables — c'est ce qui empêche l'accept affiché
+   // et la vérification faite de diverger, la panne silencieuse que ce chantier corrige.
+   const kinds=Object.keys(A.UP_KINDS);
+   eq('trois natures, pas une de plus', kinds.sort(), ['data','image','pdf']);
+   ok('chaque nature porte accept + sniff + plafond',
+     kinds.every(k=>{const K=A.UP_KINDS[k];return K.accept&&typeof K.sniff==='function'&&K.max>0;}));
+   ok('aucun accept fourre-tout',
+     !kinds.some(k=>/image\/\*|\*\/\*/.test(A.UP_KINDS[k].accept)));
+   ok('chaque nature nomme ce qu’elle accepte (la zone le montre à l’écran)',
+     kinds.every(k=>A.UP_KINDS[k].un&&A.UP_KINDS[k].ind));
+
+   // Nom de fichier montré dans un refus : borné, sans séparateur de chemin (safeFileName).
+   eq('nom long tronqué', A.upShortName('a'.repeat(80)).length, 42);
+   eq('nom vide : formule neutre', A.upShortName(''), 'ce fichier');
+   ok('séparateurs de chemin retirés', A.upShortName('../../etc/passwd').indexOf('/')<0,
+     A.upShortName('../../etc/passwd'));}
+
   group('Code QR — encodeur du code d’appariement');
   // LA TABLE RECOUPÉE PAR LA GÉOMÉTRIE. Le seul tableau recopié de l'encodeur, ce sont 20 nombres
   // (correction par bloc et nombre de blocs, versions 1 à 10). Tout le reste se dérive : le total

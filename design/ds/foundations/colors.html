@@ -4221,10 +4221,38 @@
   .crt-copy{min-height:42px;padding:0 16px;border:0;border-radius:8px;background:var(--primary);color:var(--on-primary);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .crt-copy:hover{background:var(--primary-hi)}
   .crt-copy:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .crt-drop{display:flex;align-items:center;justify-content:center;gap:8px;min-height:84px;width:100%;border:1.5px dashed var(--line-strong);border-radius:11px;background:none;color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;text-align:center;padding:20px}
-  .crt-drop.pad-lg{padding:24px 20px}
-  .crt-drop.on,.crt-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
-  .crt-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
+     Elle remplace `.crt-drop` (PURGÉ avec son balisage, règle 14) ET les boutons `.add-line`
+     des sections qui joignent un fichier. Le geste au clic est INCHANGÉ : elle a seulement gagné
+     le glisser-déposer, qui n'existait nulle part ailleurs que dans le dialogue « Créer ».
+     Elle porte DEUX lignes : ce qu'elle fait, et ce qu'elle accepte (`UP_KINDS[kind].ind`).
+     La seconde n'est pas décorative — c'est ce qui rend un refus compréhensible AVANT qu'il
+     arrive, et elle vient de la même ligne de table que la signature vérifiée. */
+  .up-drop{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin-top:4px;
+    padding:10px 14px;border:1.5px dashed var(--line-strong);border-radius:11px;background:none;
+    color:var(--primary-dk);font-family:inherit;text-align:left;cursor:pointer}
+  .up-drop.mt{margin-top:10px}
+  .up-drop.pad-lg{min-height:96px;padding:20px;justify-content:center;text-align:center}
+  .up-ic{flex:none;font-size:18px;line-height:1}
+  .up-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .up-t{font-size:13.5px;font-weight:700}
+  .up-d{font-size:11px;font-weight:600;color:var(--ink-soft)}
+  .up-drop.on,.up-drop:hover{border-color:var(--primary);background:var(--primary-soft)}
+  .up-drop:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* FENÊTRE DE DÉPÔT — annonciateur pur. `pointer-events:none` : le fichier traverse et atteint
+     la zone du dessous ; sans cela l'overlay volerait tous les dépôts et il faudrait lui
+     apprendre la géométrie des zones qu'il recouvre. z-index 96 : au-dessus des fenêtres (55),
+     SOUS le flash d'alarme (99) — une alerte de soin ne se laisse jamais recouvrir. */
+  .up-drag{position:fixed;inset:0;z-index:96;display:none;align-items:center;justify-content:center;
+    padding:24px;background:var(--scrim);pointer-events:none}
+  .up-drag.on{display:flex}
+  .up-drag-card{max-width:420px;padding:24px;border:2px dashed var(--primary);border-radius:14px;
+    background:var(--surface);box-shadow:var(--shadow-lg);text-align:center}
+  .up-drag.none .up-drag-card{border-color:var(--line-strong)}
+  .up-drag-ic{display:block;font-size:34px;line-height:1;color:var(--primary)}
+  .up-drag.none .up-drag-ic{color:var(--ink-soft)}
+  .up-drag-t{margin:12px 0 0;font-size:16.5px;font-weight:800;color:var(--ink)}
+  .up-drag-d{margin:6px 0 0;font-size:12px;font-weight:600;color:var(--ink-soft)}
   .crt-note{font-size:11px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
      voile) — fenêtre centrée min(480px,100%) au-dessus. La visionneuse PDF a déjà son plein écran. */
