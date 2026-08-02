@@ -3124,6 +3124,31 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **Piège de témoin rencontré** : la première version rouvrait l'index puis cliquait la rangée
   courante — laquelle est justement DÉSACTIVÉE. Le clic ne faisait rien et le tap suivant
   REFERMAIT l'index : zéro rangée mesurée. On mesure l'état là où il existe DÉJÀ.
+- **L'ACCENT SE CONFINE À L'AVATAR (v5.0.0, audit design — l'auteur a défendu la fonction, et il a
+  raison)** : sur un ordinateur PARTAGÉ, reconnaître d'un coup d'œil à quel compte appartient cette
+  fenêtre est un vrai besoin, et les initiales du bouton Compte ne se lisent pas de loin. **Ce qui
+  change est la PORTÉE, pas la fonction** : l'accent teintait l'accueil ENTIER et l'en-tête de
+  toutes les vues — soit la seule couleur du produit qui ne portait aucun sens, dans un système
+  dont la règle fondatrice est que la couleur en porte toujours un, et **70 hex sur 104**. Réduit
+  au DISQUE de l'avatar, il en porte un : « cette fenêtre appartient au compte X ». La
+  reconnaissance périphérique est conservée (un disque coloré à position constante), la concurrence
+  avec les registres disparaît partout ailleurs, et la palette d'accent tombe à **10 hex**.
+  Un token `--accent` par accent et par thème, une seule règle qui le consomme.
+- **TOUS LES INTERTITRES DE LA COLONNE D'ORIENTATION PARTENT DU MÊME x (v5.0.0, demande
+  utilisateur)** : « ⚡ À tout moment » et « Surveiller après les gestes » s'alignent sur
+  « Parcours inerte » — et, en rail unique, sur « Minuteurs & compteurs » et « Repères
+  posologiques ». Mesuré avant : 18 / 20 / 23 px ; après : 18 partout, dans les deux régimes.
+  **ET LE LISERÉ ROUGE EST AUX RANGÉES, PAS AU TITRE** (après essai de l'inverse) : posé sur le
+  GROUPE il décalait l'intertitre du reste de la colonne, et un titre est un repère de LECTURE,
+  pas un objet du registre — ce qui est hors séquence, ce sont les complications elles-mêmes.
+- **ENTRER SUR UNE COMPLICATION AMÈNE EN HAUT DU BLOC (v5.0.0, signalé à l'usage)** : le
+  défilement n'existait que dans UNE des trois branches de `cxEnter` — ni au tout premier geste de
+  la session (qui re-rend tout), ni en mode « Toute la fiche », où l'on restait exactement où l'on
+  était. Une seule fabrique (`cxScrollTo`) sert les deux vues : deux défilements écrits séparément
+  finiraient par diverger, et l'un des deux manquait déjà. **Et le menu ⋯ n'avait AUCUN effet en
+  vue statique** (`renderOvOnly` n'y rend rien) : il amène désormais à la section « ⚡ À tout
+  moment » du tableau. Entrer sur une complication est une NAVIGATION demandée, pas un tap sur ce
+  qu'on a déjà sous les yeux : la règle « rien ne bouge sous le doigt » vise le second cas.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

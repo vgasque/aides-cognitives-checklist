@@ -1483,7 +1483,12 @@ for (const W of [320, 390]) {
     const un=document.querySelector('[data-cxgo]');
     const unLbl=un?un.textContent.replace(/\s+/g,' ').trim():null;
     const indexAUn=!!document.querySelector('[data-cxopen]');
-    if(un){un.scrollIntoView({block:'center'});await wt(200);un.click();}await wt(800);
+    /* ⚠ ON PART DE LOIN, EXPRÈS : le défaut signalé est que l'entrée ne ramenait pas EN HAUT du
+       bloc d'excursion — un contrôle qui n'a pas défilé avant ne peut pas le voir. */
+    window.scrollTo(0,700);await wt(200);
+    if(un){un.click();}await wt(900);
+    const cur2=document.querySelector('.ov-block.cur');
+    const entreeY=cur2?Math.round(cur2.getBoundingClientRect().top-stickBase()):null;
     /* Entré sur l'unique événement : son bouton ne doit plus être proposé — on y EST. */
     const btnApres=!!document.querySelector('[data-cxgo]');
     const modale=[...document.querySelectorAll('.ai-modal.on')].length;
@@ -1516,7 +1521,7 @@ for (const W of [320, 390]) {
     const iciTxt=iciEl?iciEl.textContent.replace(/\s+/g,' ').trim():null;
     const iciDis=ap.filter(e=>e.disabled).length,autreTapable=ap.filter(e=>!e.disabled).length;
     return {unLbl,indexAUn,modale,items:items.length,tgLbl,modale2,cible,ext,referme,
-      btnApres,iciTxt,iciDis,autreTapable,
+      btnApres,entreeY,iciTxt,iciDis,autreTapable,
       retourY:rr?Math.round(rr.top):null,
       retourVisible:!!(rr&&rr.top>=0&&rr.bottom<=innerHeight),
       premier};});
@@ -1538,6 +1543,11 @@ for (const W of [320, 390]) {
      encore. À DEUX ou plus l'index reste — on peut vouloir passer d'un événement à l'autre —, mais
      celui où l'on se trouve s'y ANNONCE et n'est plus tapable : une liste dont les rangées bougent
      selon l'endroit où l'on est ne s'apprend pas. */
+  /* ⚠ ENTRER AMÈNE EN HAUT DU BLOC (signalé à l'usage) : le défilement n'existait que dans UNE
+     des trois branches de `cxEnter` — ni au premier geste de la session, ni en « Toute la fiche ».
+     8 px sous les couches collantes, c'est la marge que `ovScrollEl` pose partout. */
+  t(`${W} · entrer amène EN HAUT du bloc d'excursion`,
+    r.entreeY!==null&&Math.abs(r.entreeY-8)<=4, `${r.entreeY} px sous le chrome collant`);
   t(`${W} · à UN événement, le bouton disparaît quand on y est`,
     r.btnApres===false, `présent=${r.btnApres}`);
   t(`${W} · à DEUX, la rangée où l'on est se dit et n'est plus tapable`,
@@ -1656,26 +1666,30 @@ console.log('\n══ PARCOURS INERTE · registres et cohérence du groupe ═�
     return {chip:!!ch,chipBg:ch?getComputedStyle(ch).backgroundColor:'',chipInk:ch?getComputedStyle(ch).color:'',
       ambre:amb,ambreBg:ambBg,sec:!!sec,railSec:sec?getComputedStyle(sec).borderLeftWidth:'0px',
       railLigne:root.querySelector('.pl-line.cxl')?getComputedStyle(root.querySelector('.pl-line.cxl')).borderLeftWidth:'0px',
-      /* ⚠ ON COMPARE LE DÉBUT DU TEXTE, PAS LE BORD DE LA BOÎTE : l'intertitre d'un groupe vit
-         dans un conteneur à rail (bordure + rembourrage), donc sa boîte commence ailleurs alors
-         que son texte, lui, doit tomber sur la même colonne que celui des rangées. */
-      alignSh:(()=>{if(!sh||!ln)return null;
-        const x=e=>e.getBoundingClientRect().left+parseFloat(getComputedStyle(e).paddingLeft)
-          +parseFloat(getComputedStyle(e).borderLeftWidth);
-        return Math.round(x(sh)-x(ln));})()};});
+      /* ⚠ TOUS LES INTERTITRES DE LA COLONNE PARTENT DU MÊME x (demande utilisateur) : « À tout
+         moment » et « Surveiller » s'alignent sur « Parcours inerte » — et, en rail unique, sur
+         « Minuteurs & compteurs » et « Repères posologiques », qui sont des `.rail-title` sans
+         retrait. On compare le début du TEXTE, pas le bord de la boîte. */
+      /* ⚠ PAR COLONNE, PAS EN BLOC : en cockpit il y a DEUX colonnes (le plan à gauche, le rail à
+         droite) — les mélanger mesurerait l'écart entre deux colonnes, pas un alignement. */
+      xTitres:(()=>{const x=e=>{const c=getComputedStyle(e);
+          return Math.round(e.getBoundingClientRect().left+parseFloat(c.paddingLeft)+parseFloat(c.borderLeftWidth));};
+        const cols=[[...root.querySelectorAll('.rail-title,.pl-sech')]];
+        const side=document.querySelector('.read-side');
+        if(side&&side!==root)cols.push([...side.querySelectorAll('.rail-title,.pl-sech')]);
+        return cols.filter(c=>c.length).map(c=>[...new Set(c.map(x))]);})()};});
   t('témoin : une chip de branche est mesurée', R.chip===true, String(R.chip));
   /* On compare l'ENCRE RÉSOLUE, on ne se fie pas au nom du token (douzième piège, v4.76.0). */
   t('… et elle n’emprunte plus le registre ATTENTION',
     R.chip&&R.chipInk!==R.ambre&&R.chipBg!==R.ambreBg,
     `fond ${R.chipBg} · encre ${R.chipInk} (ambre ${R.ambre} / ${R.ambreBg})`);
-  if(R.sec){
-    t('« à tout moment » : le rail borde le GROUPE, pas chaque rangée',
-      parseFloat(R.railSec)>0&&parseFloat(R.railLigne)===0, `groupe ${R.railSec} / rangée ${R.railLigne}`);
-  }
-  /* Tolérance de 3 px : c'est l'épaisseur du RAIL du groupe, le seul retrait qui subsiste — un
-     liseré coûte cette largeur partout ailleurs dans le dossier. Au-delà, c'est un rembourrage
-     qu'on a ajouté sans le vouloir. */
-  t('l’intertitre s’aligne sur les rangées', R.alignSh!==null&&Math.abs(R.alignSh)<=3, `${R.alignSh} px`);
+  /* ⚠ LE LISERÉ ROUGE EST AUX RANGÉES, PAS AU TITRE (demande utilisateur, après essai de
+     l'inverse) : posé sur le GROUPE il décalait l'intertitre du reste de la colonne, et un titre
+     est un repère de LECTURE, pas un objet du registre. */
+  t('le liseré rouge est aux rangées, pas au titre',
+    parseFloat(R.railSec)===0&&parseFloat(R.railLigne)>0, `groupe ${R.railSec} / rangée ${R.railLigne}`);
+  t('dans CHAQUE colonne, les intertitres partent du même x',
+    R.xTitres.every(c=>c.length<=1), JSON.stringify(R.xTitres));
   await page.close();
 }
 

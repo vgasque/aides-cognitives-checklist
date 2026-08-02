@@ -100,16 +100,29 @@
      seulement, elles ne descendent pas dans main).
      5 accents AA (primaire >= 4.5:1 sur blanc) ; pas de vert/ambre/rouge (registres réservés).
      Dérivés soft/100/200/300 par color-mix — mêmes proportions que la palette clinique. */
-  body.view-home[data-accent="teal"],body[data-accent="teal"] header.bar{--primary:#0f766e;--primary-dk:#0b5952;--primary-hi:#0c6b62;--link:#0f766e;--primary-soft:color-mix(in srgb,#0f766e 11%,#fff);--primary-100:color-mix(in srgb,#0f766e 16%,#fff);--primary-200:color-mix(in srgb,#0f766e 31%,#fff);--primary-300:color-mix(in srgb,#0f766e 47%,#fff)}
-  [data-theme="dark"] body.view-home[data-accent="teal"],[data-theme="dark"] body[data-accent="teal"] header.bar{--primary:#0d9488;--primary-dk:#7edcd2;--primary-hi:#11a996;--link:#7edcd2;--primary-soft:color-mix(in srgb,#0d9488 27%,#0c1420);--primary-100:color-mix(in srgb,#0d9488 27%,#0c1420);--primary-200:color-mix(in srgb,#0d9488 46%,#0c1420);--primary-300:color-mix(in srgb,#0d9488 46%,#0c1420)}
-  body.view-home[data-accent="violet"],body[data-accent="violet"] header.bar{--primary:#6d28d9;--primary-dk:#5b21b6;--primary-hi:#6423c9;--link:#6d28d9;--primary-soft:color-mix(in srgb,#6d28d9 11%,#fff);--primary-100:color-mix(in srgb,#6d28d9 16%,#fff);--primary-200:color-mix(in srgb,#6d28d9 31%,#fff);--primary-300:color-mix(in srgb,#6d28d9 47%,#fff)}
-  [data-theme="dark"] body.view-home[data-accent="violet"],[data-theme="dark"] body[data-accent="violet"] header.bar{--primary:#8b5cf6;--primary-dk:#c4b5fd;--primary-hi:#9d70f8;--link:#c4b5fd;--primary-soft:color-mix(in srgb,#8b5cf6 27%,#0c1420);--primary-100:color-mix(in srgb,#8b5cf6 27%,#0c1420);--primary-200:color-mix(in srgb,#8b5cf6 46%,#0c1420);--primary-300:color-mix(in srgb,#8b5cf6 46%,#0c1420)}
-  body.view-home[data-accent="indigo"],body[data-accent="indigo"] header.bar{--primary:#4338ca;--primary-dk:#3730a3;--primary-hi:#3d34b8;--link:#4338ca;--primary-soft:color-mix(in srgb,#4338ca 11%,#fff);--primary-100:color-mix(in srgb,#4338ca 16%,#fff);--primary-200:color-mix(in srgb,#4338ca 31%,#fff);--primary-300:color-mix(in srgb,#4338ca 47%,#fff)}
-  [data-theme="dark"] body.view-home[data-accent="indigo"],[data-theme="dark"] body[data-accent="indigo"] header.bar{--primary:#6366f1;--primary-dk:#a5b4fc;--primary-hi:#767ef5;--link:#a5b4fc;--primary-soft:color-mix(in srgb,#6366f1 27%,#0c1420);--primary-100:color-mix(in srgb,#6366f1 27%,#0c1420);--primary-200:color-mix(in srgb,#6366f1 46%,#0c1420);--primary-300:color-mix(in srgb,#6366f1 46%,#0c1420)}
-  body.view-home[data-accent="framboise"],body[data-accent="framboise"] header.bar{--primary:#be185d;--primary-dk:#9d174d;--primary-hi:#ad1755;--link:#be185d;--primary-soft:color-mix(in srgb,#be185d 11%,#fff);--primary-100:color-mix(in srgb,#be185d 16%,#fff);--primary-200:color-mix(in srgb,#be185d 31%,#fff);--primary-300:color-mix(in srgb,#be185d 47%,#fff)}
-  [data-theme="dark"] body.view-home[data-accent="framboise"],[data-theme="dark"] body[data-accent="framboise"] header.bar{--primary:#db2777;--primary-dk:#f9a8d4;--primary-hi:#e13a85;--link:#f9a8d4;--primary-soft:color-mix(in srgb,#db2777 27%,#0c1420);--primary-100:color-mix(in srgb,#db2777 27%,#0c1420);--primary-200:color-mix(in srgb,#db2777 46%,#0c1420);--primary-300:color-mix(in srgb,#db2777 46%,#0c1420)}
-  body.view-home[data-accent="ardoise"],body[data-accent="ardoise"] header.bar{--primary:#475569;--primary-dk:#334155;--primary-hi:#3f4c5f;--link:#475569;--primary-soft:color-mix(in srgb,#475569 11%,#fff);--primary-100:color-mix(in srgb,#475569 16%,#fff);--primary-200:color-mix(in srgb,#475569 31%,#fff);--primary-300:color-mix(in srgb,#475569 47%,#fff)}
-  [data-theme="dark"] body.view-home[data-accent="ardoise"],[data-theme="dark"] body[data-accent="ardoise"] header.bar{--primary:#64748b;--primary-dk:#cbd5e1;--primary-hi:#718299;--link:#cbd5e1;--primary-soft:color-mix(in srgb,#64748b 27%,#0c1420);--primary-100:color-mix(in srgb,#64748b 27%,#0c1420);--primary-200:color-mix(in srgb,#64748b 46%,#0c1420);--primary-300:color-mix(in srgb,#64748b 46%,#0c1420)}
+  /* ⚠ L'ACCENT SE CONFINE À L'AVATAR (v5.0.0, audit design — l'auteur a défendu la fonction, et
+     il a raison : sur un ordinateur PARTAGÉ, reconnaître d'un coup d'œil à quel compte appartient
+     cette fenêtre est un vrai besoin, et les initiales du bouton Compte ne se lisent pas de loin).
+     CE QUI CHANGE EST LA PORTÉE, PAS LA FONCTION. L'accent teintait l'accueil ENTIER et l'en-tête
+     de toutes les vues — soit la seule couleur du produit qui ne portait aucun sens, dans un
+     système dont la règle fondatrice est que la couleur en porte toujours un, et 70 hex sur 104.
+     Réduit au DISQUE de l'avatar, il en porte un : « cette fenêtre appartient au compte X ». La
+     reconnaissance périphérique est conservée — un disque coloré à position constante —, la
+     concurrence avec les registres disparaît partout ailleurs, et la palette tombe à 10 hex.
+     L'encre reste blanche : les cinq teintes sont choisies AA sur blanc, donc l'inverse tient. */
+  body[data-accent="teal"]{--accent:#0f766e}
+  body[data-accent="violet"]{--accent:#6d28d9}
+  body[data-accent="indigo"]{--accent:#4338ca}
+  body[data-accent="framboise"]{--accent:#be185d}
+  body[data-accent="ardoise"]{--accent:#475569}
+  [data-theme="dark"] body[data-accent="teal"]{--accent:#0d9488}
+  [data-theme="dark"] body[data-accent="violet"]{--accent:#8b5cf6}
+  [data-theme="dark"] body[data-accent="indigo"]{--accent:#6366f1}
+  [data-theme="dark"] body[data-accent="framboise"]{--accent:#db2777}
+  [data-theme="dark"] body[data-accent="ardoise"]{--accent:#64748b}
+  /* Le disque de l'avatar EST l'accent : une seule surface, une seule règle. */
+  body[data-accent] .bar-acct.on{background:var(--accent);border-color:var(--accent);color:var(--on-primary)}
+  body[data-accent] .bar-acct.on .acct-ini{color:var(--on-primary)}
   /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
   /* Vocabulaire du journal (v4.52.0) — édité à froid, dans la fenêtre Compte. Champs à 16 px :
      sous ce seuil, Safari iOS zoome au focus et les taps se perdent (règle 9). */
@@ -1805,21 +1818,21 @@
      pas de 9 (première correction : j'avais aligné sur le retrait de la carte de LECTURE, ce qui
      décalait l'intertitre de 7 px dans la colonne désaturée, exactement le défaut signalé, à
      l'envers). On mesure, on n'extrapole pas d'une surface à l'autre. */
+  /* ⚠ TOUS LES INTERTITRES DE LA COLONNE PARTENT DU MÊME x (demande utilisateur) : « ⚡ À tout
+     moment » et « Surveiller après les gestes » s'alignent sur « Parcours inerte » — et, en rail
+     unique, sur « Minuteurs & compteurs » et « Repères posologiques », qui sont des `.rail-title`
+     sans retrait. Mesuré avant : 18 / 20 / 23 px ; après : 18 partout. Les RANGÉES gardent leur
+     retrait de 2 px : ce sont elles qui s'indentent sous leur titre, pas l'inverse. */
   .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);margin:16px 0 2px;padding:0 2px;line-height:1.35}
+    color:var(--ink-soft);margin:16px 0 2px;padding:0;line-height:1.35}
   .pl-sech.cx{color:var(--critical)}
-  /* ⚠ UN RAIL POUR LE GROUPE, PAS UNE BORDURE PAR RANGÉE (signalé à l'usage : « la bordure rouge
-     sort un peu de nulle part, il faudrait plus de cohérence »). Le liseré commençait sous
-     l'intertitre, donc APRÈS le mot qui annonce le groupe : il paraissait surgir. Il court
-     désormais du titre à la dernière rangée — c'est le GROUPE qui est hors séquence, pas chaque
-     ligne prise séparément —, et il reprend la grammaire des cartes du dossier : un liseré
-     gauche qui borde ce qu'il qualifie. */
-  /* Le rail est le SEUL retrait du groupe : y ajouter un rembourrage décalait son contenu de
-     10 px par rapport aux rangées voisines — mesuré, et c'est ce qui se lisait comme « à tout
-     moment plus à droite que le reste ». Reste l'épaisseur du rail lui-même, 3 px, qui est ce
-     qu'un liseré coûte partout ailleurs dans le dossier. */
-  .pl-sec.cx{border-left:3px solid var(--critical-bd);border-radius:3px;margin-top:16px}
+  /* ⚠ LE LISERÉ ROUGE EST AUX RANGÉES, PAS AU TITRE (demande utilisateur, après essai de
+     l'inverse). Posé sur le GROUPE, il décalait l'intertitre du reste de la colonne — et un titre
+     est un repère de LECTURE, pas un objet du registre : ce qui est hors séquence, ce sont les
+     complications elles-mêmes. Le groupe ne porte donc plus qu'une marge haute. */
+  .pl-sec.cx{margin-top:16px}
   .pl-sec.cx>.pl-sech{margin-top:0}
+  .pl-line.cxl{border-left:3px solid var(--critical-bd)}
   .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
   /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
   .pl-line.wl .t,.pl-line.cxl .t{font-weight:600}
