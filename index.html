@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-0QGYdNLfQmExydsSkQ0WL7tCbQuk7OhVnF5L56rsNCI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-Cik7MZWeUBK92yt6Dkc91ekuU2/NJkxAyRrixqXyhe8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1798,17 +1798,30 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        défile, la barre bouge, les lettres se décalent sous le doigt, la lettre visée change, le
        rail défile ailleurs.
        La boîte est bornée par `top` — c'est-à-dire `--hdr-h`, que l'en-tête garde CONSTANTE dans
-       une vue donnée (« sans changer sa hauteur », § header.bar) — et par le bas de fenêtre.
-       Et la hauteur passe par `--vvh`, la seule mesure qu'iOS ne fausse pas : la boîte s'arrête au
-       bord réellement visible, ce qui rend fiable le test de débordement de `bindAzRail`.
+       une vue donnée (« sans changer sa hauteur », § header.bar) — et par une hauteur qui, elle
+       aussi, doit être CONSTANTE.
+       ⚠ ET C'EST `svh`, SURTOUT PAS `--vvh` NI `dvh` (correctif, signalé à l'usage : « il bouge
+       sous mon doigt alors qu'il est censé rester fixe »). Le centrage a été rétabli à la demande
+       de l'auteur en gardant la hauteur `--vvh` — c'est-à-dire `visualViewport.height`, LA mesure
+       qui suit la barre d'outils du navigateur mobile. Le défaut de la v4.73.0 est donc revenu
+       tel quel, et par le pire chemin : le glisser fait DÉFILER la page, le défilement replie la
+       barre, `--vvh` grandit, la boîte grandit, les lettres centrées descendent de la MOITIÉ de
+       l'écart, la lettre sous le doigt change, le rail défile ailleurs — un asservissement qui
+       s'entretient lui-même. `100svh` est le SMALL viewport : la hauteur que la fenêtre a barre
+       d'outils DÉPLOYÉE, donc une constante que ni le défilement ni le repli ne touchent. La
+       boîte ne peut alors jamais dépasser le bord visible (elle est bornée par le plus petit des
+       deux états) et le test de débordement de `bindAzRail` reste fiable — il l'est même plus,
+       n'étant plus mesuré sur une hauteur qui change d'un instant à l'autre.
+       Le clavier n'est pas un cas : le rail n'existe qu'en RÉPERTOIRE, et saisir dans la
+       recherche bascule sur la liste plate, où il n'est pas rendu.
        ⚠ LES 68 px RÉSERVÉS EN BAS ÉTAIENT UN VESTIGE DE LA TAB BAR, supprimée au lot M4 — mesuré,
        le rail s'arrêtait 68 px au-dessus du bord pour un objet qui n'existe plus (`grep tabBar` :
        0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
     .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
-    @supports (height:100dvh){
-      .azrail{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 12px - env(safe-area-inset-bottom))}
+    @supports (height:100svh){
+      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px - env(safe-area-inset-bottom))}
     }
     body.view-home main.azr-on .home-main{padding-right:24px}
   }
@@ -6034,7 +6047,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.0';
+const APP_VERSION='5.0.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10273,11 +10286,22 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
     if(sc)sc.scrollTop+=(g.getBoundingClientRect().top-sc.getBoundingClientRect().top)/zoomF()-8;
     else window.scrollBy(0,(g.getBoundingClientRect().top-stickBase())/zoomF()-8);};
   rail.querySelectorAll('[data-azl]').forEach(b=>b.onclick=()=>jump(b.dataset.azl));
+  /* LE MAPPING DOIGT → LETTRE EST RELEVÉ UNE FOIS, À LA PRISE (v5.0.1). Il était re-mesuré à
+     chaque mouvement : si la géométrie du rail bougeait pendant le geste, la lettre visée
+     changeait sans que le doigt bouge, et comme viser une lettre FAIT DÉFILER la page, la boucle
+     s'entretenait (dossier `svh` ci-dessus, § .azrail). La hauteur de la boîte est désormais
+     constante, donc ce relevé unique ne devrait plus rien changer — mais il rend le geste
+     INSENSIBLE par construction à toute géométrie qui bougerait demain, et il tient la
+     discipline du projet : dans une phase de lecture, on ne lit qu'une fois. */
+  let geo=null;
+  const snap=()=>{geo=[...rail.querySelectorAll('[data-azl]')]
+    .map(b=>({L:b.dataset.azl,top:b.getBoundingClientRect().top}));};
   const scrub=e=>{let cur=null;
-    rail.querySelectorAll('[data-azl]').forEach(b=>{if(e.clientY>=b.getBoundingClientRect().top-2)cur=b.dataset.azl;});
+    (geo||[]).forEach(g=>{if(e.clientY>=g.top-2)cur=g.L;});
     if(cur)jump(cur);};
-  rail.onpointerdown=e=>{e.preventDefault();try{rail.setPointerCapture(e.pointerId);}catch(_){}scrub(e);};
-  rail.onpointermove=e=>{if(e.buttons>0)scrub(e);};
+  rail.onpointerdown=e=>{e.preventDefault();try{rail.setPointerCapture(e.pointerId);}catch(_){}snap();scrub(e);};
+  rail.onpointermove=e=>{if(e.buttons>0&&geo)scrub(e);};
+  rail.onpointerup=rail.onpointercancel=()=>{geo=null;};
 }
 /* ----- ACCUEIL GÉNÉRIQUE fiches/protocoles — même patron que _pullTable/_pushTable : le
    squelette (barre bibliothèques, recherche + Créer, catégories, résultats croisés, pagination

@@ -1453,17 +1453,30 @@
        défile, la barre bouge, les lettres se décalent sous le doigt, la lettre visée change, le
        rail défile ailleurs.
        La boîte est bornée par `top` — c'est-à-dire `--hdr-h`, que l'en-tête garde CONSTANTE dans
-       une vue donnée (« sans changer sa hauteur », § header.bar) — et par le bas de fenêtre.
-       Et la hauteur passe par `--vvh`, la seule mesure qu'iOS ne fausse pas : la boîte s'arrête au
-       bord réellement visible, ce qui rend fiable le test de débordement de `bindAzRail`.
+       une vue donnée (« sans changer sa hauteur », § header.bar) — et par une hauteur qui, elle
+       aussi, doit être CONSTANTE.
+       ⚠ ET C'EST `svh`, SURTOUT PAS `--vvh` NI `dvh` (correctif, signalé à l'usage : « il bouge
+       sous mon doigt alors qu'il est censé rester fixe »). Le centrage a été rétabli à la demande
+       de l'auteur en gardant la hauteur `--vvh` — c'est-à-dire `visualViewport.height`, LA mesure
+       qui suit la barre d'outils du navigateur mobile. Le défaut de la v4.73.0 est donc revenu
+       tel quel, et par le pire chemin : le glisser fait DÉFILER la page, le défilement replie la
+       barre, `--vvh` grandit, la boîte grandit, les lettres centrées descendent de la MOITIÉ de
+       l'écart, la lettre sous le doigt change, le rail défile ailleurs — un asservissement qui
+       s'entretient lui-même. `100svh` est le SMALL viewport : la hauteur que la fenêtre a barre
+       d'outils DÉPLOYÉE, donc une constante que ni le défilement ni le repli ne touchent. La
+       boîte ne peut alors jamais dépasser le bord visible (elle est bornée par le plus petit des
+       deux états) et le test de débordement de `bindAzRail` reste fiable — il l'est même plus,
+       n'étant plus mesuré sur une hauteur qui change d'un instant à l'autre.
+       Le clavier n'est pas un cas : le rail n'existe qu'en RÉPERTOIRE, et saisir dans la
+       recherche bascule sur la liste plate, où il n'est pas rendu.
        ⚠ LES 68 px RÉSERVÉS EN BAS ÉTAIENT UN VESTIGE DE LA TAB BAR, supprimée au lot M4 — mesuré,
        le rail s'arrêtait 68 px au-dessus du bord pour un objet qui n'existe plus (`grep tabBar` :
        0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
     .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
-    @supports (height:100dvh){
-      .azrail{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 12px - env(safe-area-inset-bottom))}
+    @supports (height:100svh){
+      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px - env(safe-area-inset-bottom))}
     }
     body.view-home main.azr-on .home-main{padding-right:24px}
   }
