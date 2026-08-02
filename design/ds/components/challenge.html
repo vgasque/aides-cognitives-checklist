@@ -995,13 +995,6 @@
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .search input{width:100%;padding:10px 12px 10px 40px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--input-bg);color:var(--ink)}
   .search input:focus{outline:2px solid var(--primary);border-color:transparent}
-  .btn-new{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:var(--shadow-primary);transition:background .12s,transform .06s}
-  .btn-new:hover{background:var(--primary-hi)}.btn-new:active{transform:translateY(1px)}
-  /* UN SEUL bouton rempli par écran : quand l'accueil affiche déjà « Reprendre » (session en
-     cours, bleu plein), « Créer » (autorat, action rare) passe en TONAL — la crise garde la
-     saillance. Tokens seulement : suit les deux thèmes. */
-  .btn-new.tonal{background:var(--primary-soft);color:var(--primary-dk);box-shadow:none}
-  .btn-new.tonal:hover{background:var(--primary-100)}
   .catbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
   .catbar .chiprow{flex:1;min-width:0}
   /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page.
@@ -1124,7 +1117,6 @@
   /* Fenêtre Compte : « Exporter mes données » ne tient pas sur une ligne en demi-largeur de
      téléphone (159px à 12.5px/700 — sous le plancher 11px il déborde encore) -> la paire
      s'empile en pleine largeur sous 430px, comme « Synchroniser maintenant » juste au-dessus. */
-  @media (max-width:429.98px){.dlg-actions.acct-two{flex-direction:column}}
   .dlg-actions .btn:not(.primary){border:1.5px solid var(--line-hover);background:transparent;color:var(--ink)}
   .dlg-actions .btn.primary{box-shadow:var(--shadow-primary-sm)}
   .dlg-actions .btn.primary.is-locked{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:none;cursor:default}
@@ -1446,7 +1438,6 @@
   .tag.stale{background:var(--verify-soft);color:var(--verify)}
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
-  .tag.sess{background:var(--tag-bg);color:var(--tag-ink)}
   /* K6 — le DISCRIMINANT : pilule à CONTOUR, distincte des statuts (pleins) et des catégories
      (qui portent une pastille). Ce n'est ni un état ni un classement : c'est une partie du NOM,
      celle qui doit survivre à la troncature. */
@@ -1697,7 +1688,7 @@
   aside.ref-toc .links b{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;
     text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
   aside.ref-toc .related-row{flex-direction:column;align-items:stretch;gap:4px}
-  aside.ref-toc .at-row,aside.ref-toc .btn.sm{width:100%}
+  aside.ref-toc .btn.sm{width:100%}
   /* ⚠ ENCORE UN OBJET COLLÉ À LA LIGNE DU DESSUS (signalé à l'usage). Le champ n'avait AUCUN
      rembourrage haut : il touchait l'intitulé « Rechercher », alors qu'il en avait 8 en bas. On
      égalise — et la leçon vaut au-delà de ce champ : quand un objet est encadré par deux traits,
@@ -1829,8 +1820,6 @@
   .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line)}
   .eds-ph:first-child{margin-top:0;padding-top:0;border-top:0}
-  .ph-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.07em;
-    text-transform:uppercase;background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:2px 6px}
   /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
      colonne : elle ORIENTE, la colonne d'action AGIT — deux surfaces ne se disputent pas le
      regard au même niveau de saillance. */
@@ -2015,7 +2004,6 @@
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
-  .cp-body{min-width:0}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
      seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
   .cp-h{margin:6px 0 10px}
@@ -2415,7 +2403,6 @@
   .cx-btn:hover{background:var(--critical-soft)}
   .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cx-btn .cx-n{font-family:var(--mono);font-size:12px;background:var(--critical-soft);border-radius:999px;padding:1px 6px}
-  .cx-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px}
   .cx-item{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--critical-bd);border-radius:8px;background:transparent;font-family:inherit;text-align:left;cursor:pointer}
   .cx-item:hover{background:var(--critical-soft)}
   .cx-item:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -2457,10 +2444,6 @@
      commence, et l'écart le sépare de ce qui suit. */
   .flow-ctrl.cx-back-top{margin:0 0 10px}
   .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
-  .pl-cxh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;
-    margin:14px 0 2px;padding:0 8px;font-size:11px;font-weight:800;letter-spacing:.07em;
-    text-transform:uppercase;color:var(--critical)}
-  .pl-cxh span{color:var(--ink-soft);font-weight:700}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -2606,8 +2589,9 @@
      démarrer la session » avant), et c'est LUI qui fait avancer le soin. Un second aplat bleu dans
      le rail mettait un horodatage au même niveau de saillance qu'un geste de checklist.
      Il passe donc TONAL — registre de l'action, sans la prééminence : `--primary-soft` + bordure,
-     exactement la grammaire de `.btn-new.tonal` quand « Reprendre » lui prend le remplissage. Rien
-     ne change de sa cible (44 px) ni de sa place. */
+     c'est-à-dire la grammaire que prend TOUT bouton d'action quand un autre lui prend le
+     remplissage (règle « un seul bouton rempli par écran », v4.0.3). Rien ne change de sa cible
+     (44 px) ni de sa place. */
   .tk-add{background:var(--primary-soft);color:var(--primary-dk);border:1px solid var(--primary);border-radius:var(--radius-sm);min-height:44px;padding:8px 12px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
   /* UNE SEULE règle de survol (v4.78.0, signalé à l'usage : « le hover de Noter l'heure s'affiche
      en bleu foncé »). En passant le bouton en tonal j'avais ajouté `:hover{--primary-100}` SANS
@@ -3325,7 +3309,6 @@
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   .optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
-  .add-blocks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
   .btn{padding:10px 16px;border-radius:var(--radius-md);font-size:13.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
   .btn:active{transform:translateY(1px)}
   .btn:hover{background:var(--surface-2);border-color:var(--line-hover)}.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary);box-shadow:var(--shadow-primary)}.btn.primary:hover{background:var(--primary-hi);border-color:var(--primary-hi)}
@@ -3380,12 +3363,6 @@
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:14px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15.5px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
-  /* Bascule Dynamique ↔ Statique : composant .seg à pastille glissante. Contrairement au segmenté
-     du dialogue « Créer »,
-     ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
-     donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
-     segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
-  .seg.seg-replay .seg-pill{transition:none}
   /* Entrée du contenu à la bascule de mode (v4.21.0) : mêmes keyframes/durée/courbe que la
      bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
      NON BLOQUANT, la vue reste utilisable pendant les 300 ms, aucune attente imposée).
@@ -3592,7 +3569,6 @@
   .pl-line .g b.tk{color:var(--ok)}
   .pl-line .g .fin{color:var(--ok);font-weight:700}
   .pl-line .pl-ref{color:var(--link);font-weight:700;cursor:pointer;padding:0 1px}
-  .pl-line .pl-bl2{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:6px;padding:0 4px}
   .pl-line.dec .t{color:var(--verify)}
   .pl-line.cur{background:var(--primary-soft)}
   .pl-line.cur .t{color:var(--primary-dk)}
@@ -3856,7 +3832,6 @@
      ses ids et écouteurs restent vivants — cf. placeFooter()). */
   .home-side footer.tools{margin-top:auto;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--line);padding:12px 2px 2px;margin-top:auto}
   /* Registres du libellé de stockage — partagés par les DEUX pieds (sidebar et vues de lecture). */
-  .storage-gauge .pers-ok,.crisis-footer .pers-ok{color:var(--ok);font-weight:600}
   .storage-gauge .pers-warn,.crisis-footer .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   /* (La taille du texte vit dans la fenêtre Compte depuis V5 — plus de bouton Aa au pied de page.) */
@@ -5211,10 +5186,11 @@
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
   .ds-type>small{display:block;font:600 10px/1 var(--mono);color:var(--ink-soft);margin-bottom:4px}
-  /* Le mode lecteur est un plein écran fixe (#readerMode{position:fixed;inset:0}) : on le
-   * ramène dans le flux pour l'aperçu, sans toucher à son CSS interne (rm-*). */
-  .ds-reader #readerMode{position:static;inset:auto;display:flex;height:470px;z-index:auto;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .ds-reader .rm-top{padding-top:9px}
+  /* (L'habillage .ds-reader, qui ramenait le mode lecteur plein écran dans le flux de l'aperçu,
+   * est PARTI AVEC LUI — la surface a été retirée au lot T14, v5.0.0. Ce build publiait encore sa
+   * fiche : on montrait un composant inexistant, dont plus aucune classe rm-* n'avait de règle.
+   * Même défaut que la démo planDemo corrigée en v4.31.1 — règle 14, la purge emporte la doc.
+   * ⚠ Ce bloc vit DANS un littéral gabarit : pas de backticks ici, ils le termineraient. */
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
@@ -5230,15 +5206,8 @@
     <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
     <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
   </div>
-  <div class="ds-reader">
-    <div id="readerMode" class="on">
-      <div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl">Intubation en séquence rapide</span><span class="rm-time">03:41</span><button class="fz fz-r">Quitter ✕</button></div>
-      <div class="rm-block"><span>Bloc · Préparation</span><span>2/5</span></div>
-      <div class="rm-body"><p class="rm-hint">Lisez à voix haute — l’exécutant répond, vous validez</p><p class="rm-ch crit">Adrénaline prête</p><div class="rm-r">1 mg / 10 mL</div><div class="rm-sp"></div><button type="button" class="rm-ok">Répondu — conforme ✓</button><button type="button" class="rm-gap">△ Écart — passer sans cocher</button></div>
-    </div>
-  </div>
 </div>
-<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. ③ MODE LECTEUR (binôme, plein écran) : UN challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du journal — fin de bloc = mêmes règles que « Continuer » (jamais d’avance tant que tout n’est pas confirmé, « Revoir » ramène au 1ᵉʳ écart) ; z-index 92 SOUS #screenFlash (99) : le flash d’alarme reste visible. Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
+<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. (③ Le MODE LECTEUR plein écran a été RETIRÉ au lot T14, v5.0.0 : mesuré, il ne gagnait qu’à 320 px et perdait à 390, son propre chrome coûtant plus qu’il ne rendait — et sa justification s’était érodée dans sa propre doctrine, la v4.28.0 ayant abandonné le « un item à la fois » et la v4.62.0 unifié la structure. Ce que la surface portait vit dans la carte de bloc : même pilule de réponse, même passe Do-Verify, même liste.) Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
 <div style="max-width:560px">
@@ -5253,13 +5222,6 @@
     <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
     <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
   </div>
-  <div class="ds-reader">
-    <div id="readerMode" class="on">
-      <div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl">Intubation en séquence rapide</span><span class="rm-time">03:41</span><button class="fz fz-r">Quitter ✕</button></div>
-      <div class="rm-block"><span>Bloc · Préparation</span><span>2/5</span></div>
-      <div class="rm-body"><p class="rm-hint">Lisez à voix haute — l’exécutant répond, vous validez</p><p class="rm-ch crit">Adrénaline prête</p><div class="rm-r">1 mg / 10 mL</div><div class="rm-sp"></div><button type="button" class="rm-ok">Répondu — conforme ✓</button><button type="button" class="rm-gap">△ Écart — passer sans cocher</button></div>
-    </div>
-  </div>
 </div>
-<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. ③ MODE LECTEUR (binôme, plein écran) : UN challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du journal — fin de bloc = mêmes règles que « Continuer » (jamais d’avance tant que tout n’est pas confirmé, « Revoir » ramène au 1ᵉʳ écart) ; z-index 92 SOUS #screenFlash (99) : le flash d’alarme reste visible. Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
+<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. (③ Le MODE LECTEUR plein écran a été RETIRÉ au lot T14, v5.0.0 : mesuré, il ne gagnait qu’à 320 px et perdait à 390, son propre chrome coûtant plus qu’il ne rendait — et sa justification s’était érodée dans sa propre doctrine, la v4.28.0 ayant abandonné le « un item à la fois » et la v4.62.0 unifié la structure. Ce que la surface portait vit dans la carte de bloc : même pilule de réponse, même passe Do-Verify, même liste.) Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p></div>
 </body></html>

@@ -88,7 +88,11 @@ while ((m = rx.exec(css))) {
    BAISSER LE PLAFOND est la façon normale de faire descendre la dette : traiter un gisement de
    11 px (une méta, une rangée), constater le nouveau compte, et reposer PLANCHER_MAX dessus. */
 const PLANCHER = 11;
-const PLANCHER_MAX = 169;
+/* 169 -> 166 (v5.0.0, audit) : la passe inverse de `check-classes` a fait tomber dix règles mortes,
+   dont trois au plancher (`.ph-chip`, `.pl-cxh`, `.pl-bl2`). Trois déclarations de moins qui ne
+   coûtent rien à personne — du CSS que plus aucun gabarit n'émettait. On repose donc le cliquet
+   sur le niveau ATTEINT : le laisser à 169 rouvrirait trois places pour une dérive future. */
+const PLANCHER_MAX = 166;
 const auPlancher = (css.match(/font-size:\s*11px/g) || []).length;
 
 if (!fautes.length && auPlancher > PLANCHER_MAX) {

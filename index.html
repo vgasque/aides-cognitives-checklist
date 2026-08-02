@@ -244,18 +244,42 @@
 <meta name="theme-color" content="#ffffff">
 <!-- Referrer-Policy en <meta> : c'est le SEUL des cinq en-têtes de `_headers` qui ait un
      équivalent balise, donc le seul récupérable là où `_headers` est ignoré (GitHub Pages,
-     intranet nu — cf. docs/deploiement-et-conformite.md § 1.1). HSTS, nosniff, X-Frame-Options
-     et frame-ancestors n'existent qu'en en-tête HTTP : rien à faire côté document. -->
+     intranet nu — cf. docs/deploiement-et-conformite.md § 1.1). HSTS et nosniff n'existent qu'en
+     en-tête HTTP : rien à faire côté document. X-Frame-Options et frame-ancestors non plus — mais
+     ce qu'ils protègent, lui, se rattrape en JavaScript (voir le garde d'encadrement ci-dessous). -->
 <meta name="referrer" content="no-referrer">
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Eo1MPWra+DJX+w64+XvOEJ19j3c4oZ/SVU5KYQcjhqY=' 'sha256-WBPSXfX7MGO8XQvfM2VDB21IL519L6z5hjXYF0BfaY0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-eREZuKaAEc/cGKpIgIpTAVMPNq0Zi/0H/tG30yDamFw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
+     PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
+     Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
+     est inopérant en <meta>. L'app était donc encadrable en production, sans rien pour le dire.
+     Ce que ça permet concrètement : encadrer l'app, poser une interface par-dessus, et faire
+     traverser à un utilisateur connecté un geste destructeur en deux clics — la confirmation est
+     encadrée elle aussi, donc cliquable elle aussi (« Terminer la session », « Supprimer la
+     bibliothèque », déconnexion).
+     Le geste est celui de la CSP <meta> : reprendre en document ce que l'hébergeur ne sert pas.
+     ⚠ ON NE CASSE PAS L'AFFICHAGE : pas de `top.location=…` (redirection forcée d'une page tierce,
+     que les navigateurs bloquent sans activation utilisateur et qui ferait de l'app un outil de
+     navigation). On NEUTRALISE : le document reste lisible, mais rien n'y est cliquable, et il DIT
+     pourquoi — un écran inerte sans explication est ce que la doctrine proscrit partout ailleurs.
+     ⚠ IL EST EN TÊTE, avant tout autre script : un garde qui s'exécuterait après le premier rendu
+     laisserait une fenêtre d'interaction, si courte soit-elle. -->
+<script>try{if(window.top!==window.self){document.documentElement.setAttribute('data-framed','1');
+  document.addEventListener('DOMContentLoaded',function(){
+    var d=document.createElement('div');d.id='framedWarn';
+    d.textContent='Cette application ne peut pas être affichée à l’intérieur d’un autre site. Ouvrez-la directement.';
+    document.body.appendChild(d);},{once:true});}}catch(e){}</script>
 <!-- Thème appliqué AVANT le rendu (évite le flash clair en mode sombre). Défaut = préférence système. -->
 <script>try{var _m=localStorage.getItem('ac-theme')||'auto';var _d=(_m==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):_m);document.documentElement.setAttribute('data-theme',_d);
-/* La couleur de la barre système suit le thème AVANT le premier rendu (valeurs = --bg des deux
-   thèmes, recalées ensuite par setThemeColorMeta à chaque rendu). */
-var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribute('content',_d==='dark'?'#121d2b':'#ffffff');}catch(e){}</script>
+/* La couleur de la barre système suit le thème AVANT le premier rendu, puis `setThemeColorMeta`
+   la recale à chaque rendu. Valeurs = la SURFACE DE L'EN-TÊTE des deux thèmes (`header.bar` est
+   en `--surface`) : la barre système prolonge l'en-tête, elle ne prolonge pas la page. Elles
+   DOIVENT rester égales à celles de `THEME_COLOR`, plus bas — `check-colors` vérifie les deux
+   sites ensemble, parce que c'est leur DÉSACCORD qui se voit (un flash au premier rendu). */
+var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribute('content',_d==='dark'?'#0d0d0f':'#ffffff');}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Aides cog.">
@@ -1280,13 +1304,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
   .search input{width:100%;padding:10px 12px 10px 40px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--input-bg);color:var(--ink)}
   .search input:focus{outline:2px solid var(--primary);border-color:transparent}
-  .btn-new{background:var(--primary);color:var(--on-primary);border:0;border-radius:var(--radius-md);padding:0 16px;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:var(--shadow-primary);transition:background .12s,transform .06s}
-  .btn-new:hover{background:var(--primary-hi)}.btn-new:active{transform:translateY(1px)}
-  /* UN SEUL bouton rempli par écran : quand l'accueil affiche déjà « Reprendre » (session en
-     cours, bleu plein), « Créer » (autorat, action rare) passe en TONAL — la crise garde la
-     saillance. Tokens seulement : suit les deux thèmes. */
-  .btn-new.tonal{background:var(--primary-soft);color:var(--primary-dk);box-shadow:none}
-  .btn-new.tonal:hover{background:var(--primary-100)}
   .catbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
   .catbar .chiprow{flex:1;min-width:0}
   /* Une seule ligne défilable horizontalement -> vue d'ensemble sans allonger la page.
@@ -1409,7 +1426,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Fenêtre Compte : « Exporter mes données » ne tient pas sur une ligne en demi-largeur de
      téléphone (159px à 12.5px/700 — sous le plancher 11px il déborde encore) -> la paire
      s'empile en pleine largeur sous 430px, comme « Synchroniser maintenant » juste au-dessus. */
-  @media (max-width:429.98px){.dlg-actions.acct-two{flex-direction:column}}
   .dlg-actions .btn:not(.primary){border:1.5px solid var(--line-hover);background:transparent;color:var(--ink)}
   .dlg-actions .btn.primary{box-shadow:var(--shadow-primary-sm)}
   .dlg-actions .btn.primary.is-locked{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:none;cursor:default}
@@ -1731,7 +1747,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tag.stale{background:var(--verify-soft);color:var(--verify)}
   /* Tags informatifs des cartes : NEUTRES (audit v4.5) — la couleur reste au danger, au vert
      session et au liseré de catégorie. */
-  .tag.sess{background:var(--tag-bg);color:var(--tag-ink)}
   /* K6 — le DISCRIMINANT : pilule à CONTOUR, distincte des statuts (pleins) et des catégories
      (qui portent une pastille). Ce n'est ni un état ni un classement : c'est une partie du NOM,
      celle qui doit survivre à la troncature. */
@@ -1982,7 +1997,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   aside.ref-toc .links b{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;
     text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
   aside.ref-toc .related-row{flex-direction:column;align-items:stretch;gap:4px}
-  aside.ref-toc .at-row,aside.ref-toc .btn.sm{width:100%}
+  aside.ref-toc .btn.sm{width:100%}
   /* ⚠ ENCORE UN OBJET COLLÉ À LA LIGNE DU DESSUS (signalé à l'usage). Le champ n'avait AUCUN
      rembourrage haut : il touchait l'intitulé « Rechercher », alors qu'il en avait 8 en bas. On
      égalise — et la leçon vaut au-delà de ce champ : quand un objet est encadré par deux traits,
@@ -2114,8 +2129,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line)}
   .eds-ph:first-child{margin-top:0;padding-top:0;border-top:0}
-  .ph-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.07em;
-    text-transform:uppercase;background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:2px 6px}
   /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
      colonne : elle ORIENTE, la colonne d'action AGIT — deux surfaces ne se disputent pas le
      regard au même niveau de saillance. */
@@ -2300,7 +2313,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
-  .cp-body{min-width:0}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
      seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
   .cp-h{margin:6px 0 10px}
@@ -2700,7 +2712,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-btn:hover{background:var(--critical-soft)}
   .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cx-btn .cx-n{font-family:var(--mono);font-size:12px;background:var(--critical-soft);border-radius:999px;padding:1px 6px}
-  .cx-note{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px}
   .cx-item{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--critical-bd);border-radius:8px;background:transparent;font-family:inherit;text-align:left;cursor:pointer}
   .cx-item:hover{background:var(--critical-soft)}
   .cx-item:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -2742,10 +2753,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      commence, et l'écart le sépare de ce qui suit. */
   .flow-ctrl.cx-back-top{margin:0 0 10px}
   .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
-  .pl-cxh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;
-    margin:14px 0 2px;padding:0 8px;font-size:11px;font-weight:800;letter-spacing:.07em;
-    text-transform:uppercase;color:var(--critical)}
-  .pl-cxh span{color:var(--ink-soft);font-weight:700}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -2891,8 +2898,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      démarrer la session » avant), et c'est LUI qui fait avancer le soin. Un second aplat bleu dans
      le rail mettait un horodatage au même niveau de saillance qu'un geste de checklist.
      Il passe donc TONAL — registre de l'action, sans la prééminence : `--primary-soft` + bordure,
-     exactement la grammaire de `.btn-new.tonal` quand « Reprendre » lui prend le remplissage. Rien
-     ne change de sa cible (44 px) ni de sa place. */
+     c'est-à-dire la grammaire que prend TOUT bouton d'action quand un autre lui prend le
+     remplissage (règle « un seul bouton rempli par écran », v4.0.3). Rien ne change de sa cible
+     (44 px) ni de sa place. */
   .tk-add{background:var(--primary-soft);color:var(--primary-dk);border:1px solid var(--primary);border-radius:var(--radius-sm);min-height:44px;padding:8px 12px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
   /* UNE SEULE règle de survol (v4.78.0, signalé à l'usage : « le hover de Noter l'heure s'affiche
      en bleu foncé »). En passant le bouton en tonal j'avais ajouté `:hover{--primary-100}` SANS
@@ -3610,7 +3618,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   .optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
-  .add-blocks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
   .btn{padding:10px 16px;border-radius:var(--radius-md);font-size:13.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s,transform .06s;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
   .btn:active{transform:translateY(1px)}
   .btn:hover{background:var(--surface-2);border-color:var(--line-hover)}.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary);box-shadow:var(--shadow-primary)}.btn.primary:hover{background:var(--primary-hi);border-color:var(--primary-hi)}
@@ -3665,12 +3672,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:14px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15.5px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
-  /* Bascule Dynamique ↔ Statique : composant .seg à pastille glissante. Contrairement au segmenté
-     du dialogue « Créer »,
-     ce segment est RE-RENDU (render complet à la bascule) — le glissement de la pastille est
-     donc REJOUÉ par le handler (v4.21.0 : .seg-replay la pose sans transition sur l'ancien
-     segment, reflow, retrait -> la transition .seg-pill joue comme sur la tab bar). */
-  .seg.seg-replay .seg-pill{transition:none}
   /* Entrée du contenu à la bascule de mode (v4.21.0) : mêmes keyframes/durée/courbe que la
      bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
      NON BLOQUANT, la vue reste utilisable pendant les 300 ms, aucune attente imposée).
@@ -3877,7 +3878,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-line .g b.tk{color:var(--ok)}
   .pl-line .g .fin{color:var(--ok);font-weight:700}
   .pl-line .pl-ref{color:var(--link);font-weight:700;cursor:pointer;padding:0 1px}
-  .pl-line .pl-bl2{flex:none;font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd);border-radius:6px;padding:0 4px}
   .pl-line.dec .t{color:var(--verify)}
   .pl-line.cur{background:var(--primary-soft)}
   .pl-line.cur .t{color:var(--primary-dk)}
@@ -4141,7 +4141,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ses ids et écouteurs restent vivants — cf. placeFooter()). */
   .home-side footer.tools{margin-top:auto;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--line);padding:12px 2px 2px;margin-top:auto}
   /* Registres du libellé de stockage — partagés par les DEUX pieds (sidebar et vues de lecture). */
-  .storage-gauge .pers-ok,.crisis-footer .pers-ok{color:var(--ok);font-weight:600}
   .storage-gauge .pers-warn,.crisis-footer .pers-warn{color:var(--verify)}
   .tlink{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   /* (La taille du texte vit dans la fenêtre Compte depuis V5 — plus de bouton Aa au pied de page.) */
@@ -5479,6 +5478,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (prefers-contrast:more){
     :root,html[data-theme="dark"]{--line:var(--line-strong);--ink-soft:var(--ink)}
   }
+  /* ===== GARDE D'ENCADREMENT (v5.0.0, audit) =====
+     Ce que le document peut faire là où `frame-ancestors` n'est pas servi (GitHub Pages est la
+     production déclarée et ignore `_headers`). Le clickjacking consiste à superposer une interface
+     à une page encadrée pour faire cliquer autre chose que ce qu'on croit : on retire donc la
+     seule chose qui compte, la CAPACITÉ DE CLIQUER — tout le document devient inerte, la bannière
+     exceptée. Le contenu RESTE LISIBLE : un encadrement cross-origin ne le laisse de toute façon
+     pas lire à l'attaquant, et le masquer ne protégerait de rien tout en donnant à croire à une
+     panne. La bannière DIT la cause et la conduite à tenir — un écran inerte muet est ce que la
+     doctrine proscrit partout ailleurs (cf. le bandeau de lien mort de l'invité).
+     Registre ALERTE en CONTOUR, pas en aplat : c'est une condition anormale, pas un geste vital. */
+  html[data-framed] body>*:not(#framedWarn){pointer-events:none}
+  #framedWarn{position:fixed;left:0;right:0;top:0;z-index:100;padding:12px 16px;
+    background:var(--critical-soft);color:var(--critical);border-bottom:1px solid var(--critical-bd);
+    font-size:13.5px;font-weight:700;text-align:center}
 </style>
 </head>
 <body>
@@ -10666,29 +10679,11 @@ function renderProtocolRead(){
     document.getElementById('hdrBack').onclick=backToEdit;
     {const b=document.getElementById('hdrBadge');b.hidden=false;b.textContent='Mode aperçu';}
   }else{
-    // Même pile d'origine que la lecture de fiche (v4.28.0) — un protocole ouvert depuis une
-    // fiche (« Voir aussi ») ramène à la fiche, garde anti double-tap comprise.
-    const org=(state.readStack||[])[state.readStack.length-1];
-    const ot=org?(org.kind==='p'?protocols.find(x=>x.id===org.id&&!x.deletedAt):fiches.find(x=>x.id===org.id&&!x.deletedAt)):null;
-    if(org&&!ot)state.readStack.pop();
-    /* LE LIBELLÉ NE PARAÎT QUE S'IL NOMME QUELQUE CHOSE (v5.0.0, proposition utilisateur —
-       mesurée, et déplacée là où elle mord). Sous 560 px il n'est PAS affiché : il n'y avait donc
-       rien à récupérer là où la place manque. AU-DESSUS, il en prend 95 et FAIT RÉTRÉCIR le
-       titre — mesuré 204 px de titre à 430, mais 179 seulement à 560, sur un écran pourtant plus
-       large. Or « Bibliothèque » est la destination PAR DÉFAUT d'une flèche de retour : elle se
-       devine, et la nommer ne dit rien qu'on ne sache. Le TITRE D'UNE FICHE D'ORIGINE, lui, dit
-       d'où l'on vient (pile de retour, v4.28.0) et vaut sa largeur. Le libellé suit donc
-       l'information, pas la place : présent quand la pile n'est pas vide, absent sinon. */
-    {const lb=document.getElementById('hdrBackLbl');
-     lb.textContent=ot?(ot.title||'Retour'):'';lb.hidden=!ot;}
-    document.getElementById('hdrBack').onclick=()=>{
-      if(Date.now()-_backGuardT<700)return;
-      if(ot){_backGuardT=Date.now();state.readStack.pop();
-        const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}
-        state.protocol=null;
-        if(org.kind==='p')openProtocolRead(org.id);else openRead(org.id);
-        _backAnim();
-      }else{state.view='library';state.protocol=null;render();}};
+    /* Même pile d'origine que la lecture de fiche (v4.28.0) — une référence ouverte depuis une
+       fiche (« Voir aussi ») ramène à la fiche, garde anti double-tap comprise.
+       PAS de `flushSessions` ici, et c'est une DÉCISION, pas un oubli : une référence est un
+       élément de CONSULTATION, elle n'a rien à enregistrer (cf. `bindHdrBack`). */
+    bindHdrBack({flushSessions:false});
   }
   // Menu ⋯ (SPEC §4) — a remplacé la barre « Autorat » de bas de page.
   if(!preview)setMoreMenu([
@@ -10951,6 +10946,54 @@ function pushReadStack(o){state.readStack=state.readStack||[];
   const top=state.readStack[state.readStack.length-1];
   if(top&&top.id===o.id)return;
   state.readStack.push(o);if(state.readStack.length>8)state.readStack.shift();}
+/* LE « ‹ » D'UNE VUE DE LECTURE — UNE SEULE FABRIQUE (v5.0.0, audit) ==========================
+   Ce gestionnaire était écrit DEUX FOIS, dans `renderRead` et `renderProtocolRead` : vingt lignes
+   identiques, commentaire de huit lignes compris. Et, comme toujours, les deux copies avaient
+   commencé à diverger — la version protocole ne remettait pas `state.showFlow` à zéro (bénin :
+   `openRead` le fait) et n'appelait pas `persistAllLive` (voulu : voir plus bas). Le dépôt a payé
+   ce motif trois fois — cœur de cochage (v4.42.0), verbes du lecteur (v4.55.0), retour
+   d'excursion (`cxBackHtml`, v5.0.0) : un gabarit écrit deux fois finit par diverger, et la
+   divergence est SILENCIEUSE.
+
+   `flushSessions` — LA SEULE DIFFÉRENCE ENTRE LES DEUX APPELANTS, ET ELLE EST NOMMÉE, pas
+   héritée d'un oubli. Quitter une FICHE force l'écriture des sessions vives (`persistLive` est
+   temporisé de 700 ms : on ne laisse pas une coche en l'air derrière soi). Quitter une RÉFÉRENCE
+   ne force rien, parce qu'une référence N'A RIEN À ENREGISTRER — ses coches sont éphémères par
+   construction (`state.protoTasks`, remis à zéro à chaque ouverture), elle ne touche aucun champ
+   du modèle, et c'est cette propriété qui rend le geste sans conséquence. Confondre les deux
+   ferait croire qu'une référence cochée garde une trace de soin. (Décision utilisateur, v5.0.0.)
+
+   L'APPELANT N'A PLUS À SAVOIR CE QU'IL FAUT REMETTRE À ZÉRO : `openRead` ne nettoie pas
+   `state.protocol` et `openProtocolRead` ne nettoie pas `state.fiche` — chacun comptait sur son
+   appelant, ce qui est exactement le genre de dette qu'une fabrique unique absorbe. */
+function bindHdrBack(opts){
+  const flushSessions=!!(opts&&opts.flushSessions);
+  /* « ‹ » : l'ORIGINE d'abord (pile v4.28.0), la bibliothèque sinon. Garde anti double-tap
+     700 ms : deux taps nerveux ne traversent JAMAIS deux niveaux — on ne se retrouve pas à la
+     bibliothèque sans l'avoir voulu. */
+  const org=(state.readStack||[])[state.readStack.length-1];
+  const ot=org?(org.kind==='p'?protocols.find(x=>x.id===org.id&&!x.deletedAt):fiches.find(x=>x.id===org.id&&!x.deletedAt)):null;
+  if(org&&!ot)state.readStack.pop();   // origine supprimée entre-temps : repli bibliothèque
+  /* LE LIBELLÉ NE PARAÎT QUE S'IL NOMME QUELQUE CHOSE (v5.0.0, proposition utilisateur —
+     mesurée, et déplacée là où elle mord). Sous 560 px il n'est PAS affiché : il n'y avait donc
+     rien à récupérer là où la place manque. AU-DESSUS, il en prend 95 et FAIT RÉTRÉCIR le
+     titre — mesuré 204 px de titre à 430, mais 179 seulement à 560, sur un écran pourtant plus
+     large. Or « Bibliothèque » est la destination PAR DÉFAUT d'une flèche de retour : elle se
+     devine, et la nommer ne dit rien qu'on ne sache. Le TITRE D'UNE FICHE D'ORIGINE, lui, dit
+     d'où l'on vient (pile de retour, v4.28.0) et vaut sa largeur. Le libellé suit donc
+     l'information, pas la place : présent quand la pile n'est pas vide, absent sinon. */
+  {const lb=document.getElementById('hdrBackLbl');
+   lb.textContent=ot?(ot.title||'Retour'):'';lb.hidden=!ot;}
+  document.getElementById('hdrBack').onclick=()=>{
+    if(Date.now()-_backGuardT<700)return;
+    if(flushSessions)persistAllLive();
+    state.fiche=null;state.protocol=null;state.showFlow=false;
+    if(ot){_backGuardT=Date.now();state.readStack.pop();
+      const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}
+      if(org.kind==='p')openProtocolRead(org.id);else openRead(org.id);
+      _backAnim();
+    }else{state.view='library';render();}};
+}
 function openRel(id){
   const tf=fiches.some(x=>x.id===id&&!x.deletedAt);
   const tp=!tf&&protocols.some(x=>x.id===id&&!x.deletedAt);
@@ -13395,31 +13438,10 @@ function bindReadEvents(f,blk,cur){
        Le mot qui compte est donc ce qu'elle ne fait PAS. */
     {const b=document.getElementById('hdrBadge');b.hidden=false;b.textContent='Essai — rien n’est enregistré';}
   }else{
-    /* « ‹ » : l'ORIGINE d'abord (pile v4.28.0), la bibliothèque sinon. Garde anti double-tap
-       700 ms (même mécanique que le retour d'aperçu) : deux taps nerveux ne traversent JAMAIS
-       deux niveaux — on ne se retrouve pas à la bibliothèque sans l'avoir voulu. */
-    const org=(state.readStack||[])[state.readStack.length-1];
-    const ot=org?(org.kind==='p'?protocols.find(x=>x.id===org.id&&!x.deletedAt):fiches.find(x=>x.id===org.id&&!x.deletedAt)):null;
-    if(org&&!ot)state.readStack.pop();   // origine supprimée entre-temps : repli bibliothèque
-    /* LE LIBELLÉ NE PARAÎT QUE S'IL NOMME QUELQUE CHOSE (v5.0.0, proposition utilisateur —
-       mesurée, et déplacée là où elle mord). Sous 560 px il n'est PAS affiché : il n'y avait donc
-       rien à récupérer là où la place manque. AU-DESSUS, il en prend 95 et FAIT RÉTRÉCIR le
-       titre — mesuré 204 px de titre à 430, mais 179 seulement à 560, sur un écran pourtant plus
-       large. Or « Bibliothèque » est la destination PAR DÉFAUT d'une flèche de retour : elle se
-       devine, et la nommer ne dit rien qu'on ne sache. Le TITRE D'UNE FICHE D'ORIGINE, lui, dit
-       d'où l'on vient (pile de retour, v4.28.0) et vaut sa largeur. Le libellé suit donc
-       l'information, pas la place : présent quand la pile n'est pas vide, absent sinon. */
-    {const lb=document.getElementById('hdrBackLbl');
-     lb.textContent=ot?(ot.title||'Retour'):'';lb.hidden=!ot;}
-    document.getElementById('hdrBack').onclick=()=>{
-      if(Date.now()-_backGuardT<700)return;
-      persistAllLive();
-      if(ot){_backGuardT=Date.now();state.readStack.pop();
-        const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}
-        if(org.kind==='p'){state.fiche=null;state.showFlow=false;openProtocolRead(org.id);}
-        else openRead(org.id);
-        _backAnim();
-      }else{state.view='library';state.fiche=null;state.showFlow=false;render();}};
+    /* Quitter une FICHE force l'écriture des sessions vives : `persistLive` est temporisé de
+       700 ms, on ne laisse pas une coche en l'air derrière soi. (Une RÉFÉRENCE, elle, n'a rien à
+       enregistrer — cf. `bindHdrBack`.) */
+    bindHdrBack({flushSessions:true});
   }
   // Confirmation diagnostique repliable (V5) : bascule mémorisée pour la fiche affichée.
   {const ct=document.getElementById('confToggle');if(ct)ct.onclick=()=>{const cur=state.confOpen!==undefined?state.confOpen:!Runtime.started;state.confOpen=!cur;render();};}
@@ -14004,8 +14026,10 @@ bindModalDismiss(planModal,closePlanSheet);
 {const pb=document.getElementById('planBtn');if(pb)pb.onclick=openPlanSheet;}
 /* BASCULE DE MODE (v4.25.0) — câblée UNE SEULE FOIS : #modeSeg vit dans la rangée de commandes,
    hors de `main`, donc il survit aux re-rendus (comme les boutons du quai). Plus besoin de
-   rejouer le glissement de la pastille (.seg-replay) : l'élément n'étant plus reconstruit, la
-   transition CSS de .seg-pill se joue naturellement — et reste inerte sous prefers-reduced-motion.
+   rejouer le glissement de la pastille : l'élément n'étant plus reconstruit, la transition CSS de
+   .seg-pill se joue naturellement — et reste inerte sous prefers-reduced-motion. (Le contournement
+   d'alors, une classe `.seg-replay` qui reposait la pastille sans transition, est PURGÉ avec la
+   dernière surface qui le demandait — v5.0.0, audit.)
    Le contenu entre dans le sens du geste, comme avant. */
 {const seg=document.getElementById('allBtn');
  if(seg){const go=m=>{
@@ -18922,8 +18946,10 @@ function bindTagsPref(body){
       const last=ins[ins.length-1];if(last){last.focus();last.select();}},60);};}}
 function bindAccountPrefs(body){
   /* LA PASTILLE GLISSE, DONC ON NE RE-REND PAS. Un `renderAuth()` reconstruirait le sélecteur et
-     la pastille SAUTERAIT à sa nouvelle place — c'est exactement le défaut que `.seg-replay`
-     avait dû contourner ailleurs. Rien d'autre de la fenêtre ne dépend du zoom (il vit sur
+     la pastille SAUTERAIT à sa nouvelle place — c'est exactement le défaut qu'un rejeu de
+     glissement avait dû contourner ailleurs, tant que la bascule de mode était re-rendue
+     (contournement PURGÉ en v5.0.0 avec sa dernière surface). Rien d'autre de la fenêtre ne
+     dépend du zoom (il vit sur
      `<html>` et sur `--zf`), donc on peint sur place : la transition CSS fait le reste, et le
      glisser au doigt marche comme sur Guidé/Statique. */
   {const zs=body.querySelector('#zoomSeg');
@@ -19145,9 +19171,22 @@ function setThemeColorMeta(col){
   if(old&&old.getAttribute('content')===col)return;
   if(old)old.remove();
   const m=document.createElement('meta');m.name='theme-color';m.content=col;document.head.appendChild(m);}
-// Couleur nominale de la barre d'état pour le thème courant (restaurée après le flash d'alarme) :
-// l'en-tête est CLAIR sur toutes les vues (le mode crise se signale par le bandeau, pas la barre).
-function themeColorCurrent(){return document.documentElement.getAttribute('data-theme')==='dark'?'#121d2b':'#ffffff';}
+/* Couleur nominale de la barre d'état pour le thème courant (restaurée après le flash d'alarme) :
+   l'en-tête est CLAIR sur toutes les vues (le mode crise se signale par le bandeau, pas la barre).
+
+   LA BARRE SYSTÈME EST PEINTE À LA SURFACE DE L'EN-TÊTE (décision utilisateur, v5.0.0) — c'est
+   `header.bar{background:var(--surface)}`, et non `--bg` : la barre prolonge l'en-tête, pas la
+   page. Les valeurs sont donc les DEUX `--surface`, tenues par `THEME_COLOR` — la seule table de
+   couleurs du JS qui doive suivre un token, et à ce titre la seule que `check-colors` vérifie
+   ligne à ligne (les autres littéraux du JS sont des copies FIGÉES, exemptées par leur nom).
+
+   ⚠ CE COMMENTAIRE A DÉJÀ MENTI UNE FOIS. Il annonçait « valeurs = --bg des deux thèmes » et
+   rendait `#121d2b` en sombre — la valeur de `--bg` AVANT la v4.71.0. `--bg` étant passé à
+   `#0a0a0c`, la barre d'état d'un iPhone en thème sombre était peinte d'un bleu marine qui
+   n'existait plus nulle part dans l'application, sur 44 px, juste au-dessus de l'annonciateur de
+   mode. Le garde-fou couleurs ne pouvait pas le voir : son périmètre s'arrêtait au <style>. */
+const THEME_COLOR={light:'#ffffff',dark:'#0d0d0f'};   // = --surface (clair / sombre)
+function themeColorCurrent(){return THEME_COLOR[document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'];}
 // Cycle : Auto -> Clair -> Sombre -> Auto.
 document.getElementById('hdrTheme').onclick=()=>{const cur=localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto';applyTheme(cur==='auto'?'light':cur==='light'?'dark':'auto');schedulePrefsPush();};
 /* ===== Menu ⋯ d'en-tête (SPEC gestion §4) =====

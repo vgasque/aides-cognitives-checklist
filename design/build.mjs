@@ -54,10 +54,11 @@ const dsCss = `
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
   .ds-type>small{display:block;font:600 10px/1 var(--mono);color:var(--ink-soft);margin-bottom:4px}
-  /* Le mode lecteur est un plein écran fixe (#readerMode{position:fixed;inset:0}) : on le
-   * ramène dans le flux pour l'aperçu, sans toucher à son CSS interne (rm-*). */
-  .ds-reader #readerMode{position:static;inset:auto;display:flex;height:470px;z-index:auto;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .ds-reader .rm-top{padding-top:9px}
+  /* (L'habillage .ds-reader, qui ramenait le mode lecteur plein écran dans le flux de l'aperçu,
+   * est PARTI AVEC LUI — la surface a été retirée au lot T14, v5.0.0. Ce build publiait encore sa
+   * fiche : on montrait un composant inexistant, dont plus aucune classe rm-* n'avait de règle.
+   * Même défaut que la démo planDemo corrigée en v4.31.1 — règle 14, la purge emporte la doc.
+   * ⚠ Ce bloc vit DANS un littéral gabarit : pas de backticks ici, ils le termineraient. */
 `;
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -462,15 +463,8 @@ const challengeDemo = `
     <div class="vstp vcur"><span class="vst">▸</span><span class="txt">Aspiration fonctionnelle <span class="stp-r">testée</span></span></div>
     <div class="v-act"><button type="button" class="v-ok">Constaté ✓</button><button type="button" class="v-gap">△ Écart</button></div>
   </div>
-  <div class="ds-reader">
-    <div id="readerMode" class="on">
-      <div class="rm-top"><span class="rm-tag">■ Mode lecteur</span><span class="rm-ttl">Intubation en séquence rapide</span><span class="rm-time">03:41</span><button class="fz fz-r">Quitter ✕</button></div>
-      <div class="rm-block"><span>Bloc · Préparation</span><span>2/5</span></div>
-      <div class="rm-body"><p class="rm-hint">Lisez à voix haute — l’exécutant répond, vous validez</p><p class="rm-ch crit">Adrénaline prête</p><div class="rm-r">1 mg / 10 mL</div><div class="rm-sp"></div><button type="button" class="rm-ok">Répondu — conforme ✓</button><button type="button" class="rm-gap">△ Écart — passer sans cocher</button></div>
-    </div>
-  </div>
 </div>
-<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. ③ MODE LECTEUR (binôme, plein écran) : UN challenge à la fois (26 px, réponse mono 20 px, zone verte ≥ 72 px), piloté sur le BOUT du journal — fin de bloc = mêmes règles que « Continuer » (jamais d’avance tant que tout n’est pas confirmé, « Revoir » ramène au 1ᵉʳ écart) ; z-index 92 SOUS #screenFlash (99) : le flash d’alarme reste visible. Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p>`;
+<p class="ds-cap">Trois briques, AUCUN champ modèle ajouté (export v3 inchangé, ancien client lisible). ① « challenge :: réponse » = séparateur explicite DANS la chaîne d’étape (même philosophie que ⚠/△ : opt-in) — stepCR pure, appliquée APRÈS stepText ; rendu en pilule mono .stp-r = réponse ATTENDUE (readback ✓ vert au cochage, porté par le CSS seul), .pl-r dans le plan, .sv-r NEUTRE dans le statique. ② MODE VÉRIFICATION (Do-Verify) : la passe redéroule TOUTES les étapes, déjà cochées comprises — « Constaté ✓ » coche la MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ; décocher reste un geste manuel du parcours) ; résumé final = liste des non-cochées. (③ Le MODE LECTEUR plein écran a été RETIRÉ au lot T14, v5.0.0 : mesuré, il ne gagnait qu’à 320 px et perdait à 390, son propre chrome coûtant plus qu’il ne rendait — et sa justification s’était érodée dans sa propre doctrine, la v4.28.0 ayant abandonné le « un item à la fois » et la v4.62.0 unifié la structure. Ce que la surface portait vit dans la carte de bloc : même pilule de réponse, même passe Do-Verify, même liste.) Garde-fou télégraphique non bloquant (stepGuardTxt) : bloc &gt; 7 étapes ou challenge &gt; 110 caractères, la réponse ne comptant pas.</p>`;
 
 /* ---- Fiches ---- */
 const cards = [
