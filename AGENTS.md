@@ -2849,6 +2849,23 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   sur deux lignes** et une **méta sur une seule**, ellipsée — dont l'ORDRE est celui de
   l'importance, puisque c'est la QUEUE qui tombe : état (chrono, statut, à compléter), puis
   discriminant, puis catégorie, et enfin code et date, qui sont ce qu'on peut perdre.
+  **⚠ LES 71 px SONT LE RYTHME DE L'ANNUAIRE, PAS UNE PROPRIÉTÉ DE LA RANGÉE (v5.0.0, signalé à
+  l'usage : « en mode recherche le texte dépasse des cartes d'accueil »)** : ils ont été posés sur
+  un contenu BORNÉ par construction — titre à 2 lignes, méta à 1. En RECHERCHE la rangée porte EN
+  PLUS l'extrait contextuel (`.card-snip`, 2 lignes), et la boîte ne peut pas le contenir : mesuré
+  à 360 px, `.dir-main` atteint **81 à 99 px pour 71 disponibles**, l'extrait dépassant de 10 à
+  29 px. Il était donc CLIPÉ en plein milieu d'une ligne (`overflow:hidden`) — et la rangée étant
+  centrée, le titre l'était aussi par le haut : on promettait un extrait et on le rendait
+  illisible. La liste de recherche **n'est pas le répertoire** (elle est plate, triée par
+  pertinence, et son contenu est variable par nature) : sous `.dir-grid.flat`, la rangée reprend sa
+  hauteur naturelle. **Le rythme n'est pas abandonné pour autant** — `min-height` garde le pas de
+  71 px, donc une rangée SANS extrait (le cas nominal d'une recherche par titre, où
+  `searchSnippet` rend une chaîne vide) ne bouge pas d'un pixel, et l'extrait RÉSERVE ses deux
+  lignes : il n'existe que DEUX hauteurs possibles, jamais N. Spécificité (0,3,0), pour gagner sur
+  `.dir-row` et sa variante < 640 px quel que soit l'ordre de déclaration. Témoins dans
+  `audit-doctrine` (320/360/390/700/1400 px) : ils **rencontrent leur cas deux fois** — un extrait
+  doit être RENDU, et il doit faire deux lignes, sinon on mesurerait une rangée ordinaire ou un
+  extrait qui tenait de toute façon. Vérifiés capables d'échouer (règle retirée → 5 rouges).
   **⚠ LE CORPS RESTE SUR L'ÉCHELLE FERMÉE**, et c'est la contrainte qui a fait échouer DEUX
   maquettes de ma main (15 px et 14,5 px — aucun n'étant un palier ; l'auteur l'a vu, pas moi).
   Le titre est à **15,5 px**, un palier : ce qui se resserre pour tenir en 71 px est l'**INTERLIGNE**

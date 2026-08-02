@@ -2038,6 +2038,55 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   await page.close();
 }
 
+/* L'EXTRAIT DE RECHERCHE TIENT DANS SA RANGÉE (v5.0.0, signalé à l'usage : « en mode recherche
+   le texte dépasse des cartes d'accueil »). La boucle ci-dessus mesure le RÉPERTOIRE, où la
+   rangée porte un contenu borné (titre + méta) et tient ses 71 px fixes ; en RECHERCHE elle porte
+   EN PLUS l'extrait contextuel, et la hauteur fixe le clippait en plein milieu d'une ligne —
+   défaut invisible au témoin du répertoire, qui n'entre jamais dans ce mode.
+   ⚠ LE CONTRÔLE DOIT RENCONTRER SON CAS, deux fois : il faut qu'un extrait soit RENDU (une
+   recherche par titre n'en produit aucun — `searchSnippet` rend alors une chaîne vide, et l'on
+   mesurerait une rangée ordinaire), et il faut qu'il soit assez long pour DÉBORDER (un extrait
+   d'une ligne tiendrait dans les 71 px et le témoin resterait vert sur le défaut). D'où le terme
+   « adrénaline », qui matche dans le CORPS des deux fiches d'exemple. */
+console.log('\n══ ACCUEIL · l\'extrait de recherche tient dans sa rangée ══');
+for (const W of [320, 360, 390, 700, 1400]) {
+  const page = await br.newPage({viewport:{width:W,height:844}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  // Le VRAI geste : on tape dans le champ de l'en-tête (poser `state.q` à la main court-circuite
+  // l'écouteur et le re-rendu, donc mesurerait un écran que personne n'obtient).
+  await page.click('#hdrSearch');
+  await page.type('#hdrSearch','adrénaline',{delay:15});
+  await page.waitForFunction(()=>document.querySelectorAll('.card-snip').length>0,null,{timeout:4000})
+    .catch(()=>{});
+  const r = await page.evaluate(()=>{
+    const rows=[...document.querySelectorAll('.dir-grid.flat .dir-row')];
+    return {n:rows.length, snips:document.querySelectorAll('.card-snip').length,
+      /* Le contenu tient-il dans la boîte ? `.dir-row` est en `overflow:hidden` : la rangée reste
+         PROPRE à l'écran pendant que le texte disparaît — on mesure donc le débordement, jamais
+         l'aspect. */
+      debordeH:rows.filter(x=>x.scrollHeight>x.clientHeight+1).length,
+      /* Et l'extrait lui-même ne doit pas passer sous le bord bas de sa rangée. */
+      snipHors:rows.filter(x=>{const s=x.querySelector('.card-snip');
+        return s&&s.getBoundingClientRect().bottom>x.getBoundingClientRect().bottom+0.5;}).length,
+      /* Rencontre-t-on le cas ? Un extrait sur DEUX lignes est ce qui débordait. */
+      deuxLignes:[...document.querySelectorAll('.card-snip')]
+        .filter(s=>s.getBoundingClientRect().height>=parseFloat(getComputedStyle(s).lineHeight)*1.8).length,
+      /* Le pas de 71 px reste le PLANCHER : la recherche ne rétrécit pas la rangée. */
+      minH:Math.min(...rows.map(x=>Math.round(x.getBoundingClientRect().height))),
+      /* Deux hauteurs au plus (avec extrait / sans) — jamais N : le rythme n'est pas abandonné. */
+      hauteurs:[...new Set(rows.map(x=>Math.round(x.getBoundingClientRect().height)))]};});
+  t(`${W} · témoin : des extraits sont rendus`, r.snips>=1, `${r.snips} sur ${r.n} rangée(s)`);
+  t(`${W} · témoin : au moins un extrait fait deux lignes`, r.deuxLignes>=1, `${r.deuxLignes}`);
+  t(`${W} · l'extrait ne déborde pas de sa rangée`, r.debordeH===0&&r.snipHors===0,
+    `${r.debordeH} rangée(s) débordent, ${r.snipHors} extrait(s) hors cadre`);
+  t(`${W} · … et la rangée garde son pas de 71 px au minimum`, r.minH>=71,
+    `${r.minH} px — hauteurs ${JSON.stringify(r.hauteurs)}`);
+  await page.close();
+}
+
 console.log('\n══ RÉGRESSIONS · déplacement, flèches, losange ══');
 {
   const page = await br.newPage({viewport:{width:1280,height:1000}});
