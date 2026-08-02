@@ -1,5 +1,163 @@
 # Journal des modifications
 
+## [5.0.0] — 2026-08-02
+### Le modèle v4, la bibliothèque unique, et six échelles qui cessent d'être déclaratives
+
+Première **majeure** depuis la 4.0.0, et la première **rupture de format** du projet. Elle regroupe
+83 livraisons faites sous le numéro 4.79.0 : le chantier v5 était conçu pour sortir d'un seul
+tenant, parce que ses lots se conditionnent les uns les autres — le modèle v4 rend énonçable la
+bibliothèque unique, qui rend énonçable le retrait du rail ①②③.
+
+---
+
+#### ⚠ AVANT DE DÉPLOYER — deux gestes, dans cet ordre
+
+**1. Convertir les données.** La règle 12 (« ne jamais supprimer un champ du modèle ») a été
+**levée explicitement par l'auteur**, et ce qui la remplace exige un chemin de reprise écrit AVANT
+la rupture : c'est `docs/conversion-v3-vers-v4.md`. Mesuré : une aide v3 lue par la v5 **perd les
+étapes de ses blocs**, en silence — les listes du haut de fiche (critères, « Ne pas oublier »,
+surveillances, posologie, différentiels) sont, elles, récupérées. Et la perte devient définitive à
+la première écriture, l'éditeur enregistrant en continu depuis la v4.72.0.
+
+La conversion d'un fichier ne convertit ni la base, ni l'IndexedDB des autres appareils. Le
+contrôle à passer avant de publier :
+
+```sql
+select count(*) filter (where data->'items' is null) as reste_v3, count(*) as total
+from public.cognitive_aids;
+```
+
+Tant que `reste_v3` n'est pas à zéro, déployer exposerait les autres membres des bibliothèques
+partagées à des fiches vides.
+
+**2. Rejouer `supabase/schema.sql`.** Renommage de table (bloc idempotent + vues de compatibilité
+`security_invoker`), colonnes `discriminant` et items dans la liste blanche du partage. Sans lui,
+un invité recevrait des blocs pleins d'identifiants ne résolvant vers rien — c'est-à-dire une
+checklist vide en pleine réanimation, sans le moindre signal.
+
+---
+
+#### Le modèle v4 — l'item devient un objet à identité
+
+Une étape était une **chaîne à une position** (`b.steps[3]`), et le projet l'a payé deux fois : un
+compte rendu de soin qui nomme le mauvais geste après une insertion, et l'impossibilité d'accrocher
+quoi que ce soit à une étape autrement que par son rang — c'est-à-dire par la chose même qui bouge.
+
+`f.items[]` est désormais **le pool** des items de l'aide, toutes portées confondues, et un bloc ne
+porte plus que des **identifiants**. Les cinq listes v3 (`confirmation`, `notForget`, `verify`,
+`posology`, `differentials`) n'existent plus comme champs : ce sont des **rôles**
+(`entry`, `do`, `watch`, `dose`, `ddx`). Le préfixe `⚠`/`△` devient `level` 1-3 — ordonné, donc
+comparable —, et `::` devient `do`/`expect`.
+
+Deux propriétés qu'une chaîne ne pouvait pas porter apparaissent : **`memory`** (★, l'étape reste
+dans son bloc *et* rejoint « Ne pas oublier ») et **`dual`** (×2, le double contrôle qu'exige
+AC 120-71B §5.2.2.5 — la seule exigence explicite de la doctrine que le modèle ne savait pas
+exprimer). Plus `phase` (héritée du bloc précédent), `discriminant`, `onDue`, `aidRev`.
+
+Renommages de l'étape C : `libraryId`→`library`, `validation`→`validatedAt`,
+`references`→`sources`, `attachments`→`docs`, `related`→`links`, `localInfo`→`local`,
+`complications`→`excursions` ; le bloc passe de `type` à `kind`, et l'aide **se déclare**
+(`v:4`, `kind:'procedure'|'reference'`).
+
+#### La bibliothèque est unique, le type est un filtre
+
+Choisir « Aides » ou « Protocoles » était une **décision préalable** : il fallait savoir de quel
+type était ce qu'on cherchait avant de pouvoir le chercher. Or le type est une propriété de
+l'auteur, pas du lecteur, qui cherche un sujet. Le répertoire A→Z réunit les deux, le type devient
+un filtre à trois crans (« Tout » par défaut), et la **tab bar basse disparaît** — 62 px de hauteur
+permanents rendus.
+
+Côté serveur, la table `fiches` devient `cognitive_aids` : un nom qui ment coûte plus cher qu'un
+renommage, et celui-ci se fait par un bloc idempotent doublé de vues de compatibilité.
+
+#### La vue de crise — l'action passe devant l'orientation
+
+Mesuré à 320 × 640, session démarrée : la première étape cochable naissait à **y = 721 px pour un
+pli à 640**. Zéro ligne à cocher à l'écran au moment de démarrer un soin. Une checklist qui
+n'affiche aucune ligne actionnable n'est pas une checklist, c'est un sommaire.
+
+Le **rail ①②③** est retiré partout (deux numérotations concurrentes dans la même colonne sont deux
+vocabulaires pour situer un même geste), le chapeau « Ne pas oublier » se replie une fois la
+session démarrée, le journal des actions remonte sous la carte du bloc, et le bandeau-titre
+disparaît en crise ordinaire — la barre porte déjà le titre en permanence. Cumul mesuré : première
+étape à **361 px** au lieu de 438, soit 56 % de l'écran au lieu de 68 %.
+
+Le sélecteur « Guidé / Statique » est remplacé par un **axe de densité** — « Un bloc » / « Toute la
+fiche », cette dernière à trois onglets (Parcours, Page SFAR, Schéma). Un segmenté **remplace la
+vue et ne ramène personne** : on prend du recul, et si l'on n'y repense pas on termine le soin dans
+un format qu'on n'avait pas choisi. Le contrôle **nomme sa destination** (« ⤢ Tout voir » /
+« ↩ Un bloc »), à position constante, et une excursion **n'écrit pas la préférence** — le format
+par défaut se règle à froid, dans Compte › Affichage.
+
+Le **mode lecteur est retiré** : mesuré, il ne gagnait qu'à 320 px (63 % de l'écran aux étapes
+contre 36 %) et **perdait à 390** (47 % contre 59 %). Sa doctrine avait d'ailleurs été abandonnée
+dès la v4.28.0.
+
+#### Le design system cesse d'être déclaratif
+
+Quatre échelles fermées deviennent **auto-exécutoires**, parce que partout où une règle est restée
+déclarative, elle a fui : l'espacement n'avait **aucun token** (1 356 déclarations de 1 à 26 px),
+les rayons avaient **dix-neuf valeurs pour trois tokens**, et les paliers de largeur comptaient
+**douze valeurs réelles pour neuf déclarées** — dont un palier déclaré qui n'existait nulle part.
+
+S'y ajoute un **quota du plancher typographique** : 11 px était employé **173 fois sur ~520
+déclarations**, soit la taille la plus utilisée de toute la feuille. Un plancher employé 173 fois
+n'est plus un plancher, c'est le corps de texte du produit. Chaque déclaration prise isolément
+était pourtant légale — rien ne pouvait le voir.
+
+L'**accent** est confiné au disque de l'avatar : il teintait l'accueil entier et l'en-tête de
+toutes les vues, c'est-à-dire la seule couleur du produit qui ne portait **aucun sens**, dans un
+système dont la règle fondatrice est que la couleur en porte toujours un. 70 hex sur 104 ; il en
+reste 10. Le thème sombre descend à `#0a0a0c` (le noir pur maximise la halation autour du texte
+clair — gênant pour les personnes astigmates).
+
+Et **une étape cochée redevient lisible** : `opacity:.6` + barré + encre douce composaient un texte
+à **2,55:1 en clair et 1,95:1 en sombre**, sur l'état le plus fréquent de toute l'application. La
+sonde d'accessibilité ne pouvait pas le voir — elle composait l'alpha des couleurs mais ignorait la
+propriété `opacity`. Après : **5,93 et 11,15**.
+
+#### Les garde-fous
+
+Sept contrôles neufs, tous statiques donc joués à chaque commit : `check-space`, `check-radius`,
+`check-paliers`, `check-upload`, `check-harnais`, `check-icons`, plus `audit-budget` — **le premier
+harnais qui mesure une répartition** et non une propriété isolée (chrome permanent ≤ 30 % de la
+hauteur, au moins une étape cochable visible sans défiler).
+
+`audit-a11y` mesure désormais des **états** et non seulement des surfaces : il ouvrait tout au
+repos, et deux violations AA vivaient à l'écran sans qu'il les voie. `npm run audit` passe à un
+lanceur **parallèle à rapport agrégé** : la chaîne `&&` payait la somme des durées (9 min 42 s) et
+son fail-fast cachait tout ce qui suivait le premier rouge.
+
+#### Sécurité et données
+
+Toute entrée de fichier passe par **une seule porte** (`UP_KINDS` + `acceptFile`) : quatre chemins
+cohabitaient avec quatre niveaux de rigueur, et deux d'entre eux ne vérifiaient qu'un `accept` —
+c'est-à-dire une indication donnée au sélecteur, jamais une garantie. Le SVG en est exclu
+délibérément (seul format image à contenu actif) ; le HEIC y entre (c'est le format de la
+photothèque iPhone). Le **dépôt hors zone** est neutralisé : un fichier lâché à 3 px d'une zone
+faisait naviguer le navigateur vers ce fichier, effaçant l'écran — y compris une session en cours.
+
+Et **mettre à jour pdf.js ne mettait pas pdf.js à jour** : le service worker le range dans un cache
+versionné par lui-même et n'écrit que ce qui manque. Remplacer les fichiers sans toucher la clé
+laissait chaque appareil déjà installé avec l'ancienne bibliothèque, indéfiniment et sans un mot —
+le pire mode de défaillance pour un composant qui analyse du contenu non maîtrisé.
+
+#### Identité
+
+La marque devient un **chronomètre coché à onglet** : le temps, la validation et le protocole dans
+un seul signe. Toutes les icônes servies sont régénérées depuis **une géométrie unique**
+(`scripts/build-icons.mjs`) — dix rasters dessinés à la main divergent.
+
+---
+
+#### Vérification
+
+`npm run check` (13 contrôles) · `npm test` **880 tests, 0 échec, sur Chromium ET WebKit** ·
+`npm run audit` **18/18 harnais** (a11y 513, doctrine 614, partage 291) · `design:check` à jour.
+
+Chaque correctif de ce chantier a été **vérifié capable d'échouer** — défaut réintroduit, contrôle
+rouge, fichier restauré à l'octet : un garde-fou qui ne peut pas échouer ne prouve rien.
+
 ## [4.79.0] — 2026-07-30
 ### Ce qui est inerte pendant un déplacement en a enfin l'air
 
@@ -1286,34 +1444,3 @@ Vérifié par une sonde dédiée sur **Chromium et WebKit** : repos sans cadre n
 visible, outils sous la ligne et champ ≥ 16 px en édition, ⏎ qui crée une étape vide avec le focus
 dedans, disparition au blur, palette sans « Étape ». Plus 794 tests × 2 moteurs, a11y 301/301,
 doctrine 112/112. Rien à rejouer côté serveur.
-
-## [4.66.0] — 2026-07-29
-### Deux défauts d'usage de l'éditeur sur smartphone — signalés, puis mesurés
-
-### La rangée d'outils poussait le contenu
-Signalé : « c'est compliqué sur smartphone, la bande attention/déplacer/supprimer qui apparaît
-prend beaucoup de place ». Mesuré : la rangée faisait passer l'étape de **43 à 123 px** — et
-surtout elle **poussait le contenu à l'instant précis où le doigt entrait dans le champ**, ce que
-la doctrine du projet interdit (« rien ne bouge sous le doigt »).
-
-Les outils se **révèlent** désormais au lieu d'apparaître : `visibility` et non `display`. Leur
-espace est réservé en permanence, donc la hauteur de la rangée et la largeur du champ ne changent
-**jamais** — seule l'encre paraît. C'est le précédent des pilules d'option du mode statique,
-masquées en `visibility:hidden` précisément pour que l'espace cesse d'osciller. `pointer-events`
-suit la visibilité : un bouton invisible ne capte pas le tap voisin.
-
-Les pixels rendus au champ sous 400 px viennent du **cadre** (rembourrage du bloc 14 → 9 px, case
-26 → 22 px), jamais d'une cible tactile — les boutons gardent 32 px. Le champ passe de 161 à
-**173 px**, et la rangée reste à **43 px, focus ou non**.
-
-### Le bouton « déplacer » faisait sauter l'écran de 326 px
-Signalé aussi. Deux causes cumulées : le re-rendu insère les interstices de dépôt **au-dessus** du
-point regardé, et un `scrollIntoView` visait ensuite le bandeau « en main » — qui est *sticky*,
-donc déjà visible sans qu'on défile.
-
-Prendre et poser passent maintenant par **`keepAnchor`**, la mécanique d'ancrage du projet :
-l'objet pris ne bouge plus que de **0,7 px**, le bloc receveur de **0,6 px**. Les cibles
-apparaissent autour de ce que l'auteur regarde, au lieu de l'emporter ailleurs.
-
-Vérifié : 794 tests × 2 moteurs, a11y 301/301, doctrine 112/112, aucun débordement horizontal à
-390 px. Rien à rejouer côté serveur.
