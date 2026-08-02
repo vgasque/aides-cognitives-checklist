@@ -105,8 +105,11 @@ disponibles hors ligne dès l'installation.
 - Le bleu de marque ne circule pas dans le CSS de l'app : les couleurs d'interface restent les
   tokens `:root` d'`index.html`.
 
-> ⚠ **DEUX SCRIPTS VESTIGES, à traiter** : `scripts/build-favicons.mjs` et
-> `scripts/build-app-icons.mjs` lisent encore `design/icons/icon-rounded-preview.svg` et
-> `design/icons/icon-master-white-glyph.svg`, **supprimés avec le dossier** — ils échouent donc
-> si on les lance, et ils décrivent l'ancienne marque. `build-icons.mjs` les remplace tous les
-> deux. Ils n'ont jamais eu de point d'entrée `npm`, ce qui explique que rien ne l'ait signalé.
+> **Un seul script, et c'est récent.** `scripts/build-favicons.mjs` et
+> `scripts/build-app-icons.mjs` ont été SUPPRIMÉS : ils lisaient encore
+> `design/icons/icon-rounded-preview.svg` et `design/icons/icon-master-white-glyph.svg`, partis
+> avec le dossier — ils **échouaient donc si on les lançait**, et ils dessinaient l'ancienne
+> marque. `build-icons.mjs` produit toutes leurs sorties (vérifié fichier par fichier), plus
+> `icon-monochrome-512.png` et `logo-glyph.svg` : aucune capacité perdue. N'ayant jamais eu de
+> point d'entrée `npm`, rien n'avait signalé qu'ils étaient morts — c'est le corollaire de la
+> règle 14 : une suppression de dossier emporte ce qui le LIT, pas seulement ce qui le cite.
