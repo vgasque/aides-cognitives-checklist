@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-zwMIiWOBDwzNAB0AdVsam0LAjeLYA61hJVXBLIAWZZU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-2JPMWB8U96WQ5lyK6gbJUix0No9p05QUpJo4tqum9yk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10437,7 +10437,17 @@ function renderHomeList(cfg){
   // sont des frères posés AU-DESSUS (z-index) : leurs taps n'atteignent jamais ce bouton.
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>cfg.open(el.dataset.open);});
   {const hj=document.getElementById('homeJoin');if(hj)hj.onclick=()=>openJoinScreen(hj.dataset.code||'');}
-  if(cfg.bind)cfg.bind();
+  /* ⚠ LE BINDER REÇOIT SA CONFIGURATION (v5.0.0, signalé à l'usage : « fermer la croix d'un
+     bandeau efface une des deux invites »). Les binders re-rendaient par `renderFiches()` EN
+     DUR — or la vue « Tout » réutilise celui des fiches (`bind:cfgF.bind`) : fermer un bandeau,
+     épingler, ou terminer une session depuis l'accueil BASCULAIT l'affichage sur les aides
+     seules, alors que `state.section` valait toujours 'all'. L'écran et l'état divergeaient : le
+     filtre affichait « Tout », l'écran montrait les aides, et une des deux cartes d'état vide
+     disparaissait — le symptôme visible d'un défaut plus large.
+     `cfg.rerender` existait dans les trois configurations depuis le lot T9 et n'était utilisé
+     nulle part. C'est la doctrine du fichier appliquée : « corriger le chrome d'accueil =
+     corriger ICI, une seule fois » — un binder qui nomme une vue en dur la contredit. */
+  if(cfg.bind)cfg.bind(cfg);
   {const row=document.getElementById('homeChrome').querySelector('.catbar .chiprow');if(row&&_catRowX)row.scrollLeft=_catRowX;}
   placeFooter();   // accueil large : le pied de page (version/synchro/stockage) vit en bas de la sidebar
 }
@@ -10510,15 +10520,17 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
     remainLbl:n=>'restante'+(n>1?'s':''),
     kinds:['fiches'],
     empty:{title:'Aucune fiche',libRead:'Cette bibliothèque partagée est vide.'},
-    bind:()=>{
-      {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}renderFiches();};}
+    /* `cfg` : la configuration COURANTE — jamais `renderFiches` en dur, cf. le commentaire de
+       `renderHomeList`. Ce binder sert AUSSI la vue « Tout », qui doit se re-rendre en « Tout ». */
+    bind:(cfg)=>{const redo=(cfg&&cfg.rerender)||renderFiches;
+      {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}redo();};}
       {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
-      {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}renderFiches();};}
+      {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}redo();};}
       main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
-      main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmEndSession(R)){endSession(R);if(Runtime.ficheId===id)resetRuntime();renderFiches();}});
-      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderFiches();});
+      main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmEndSession(R)){endSession(R);if(Runtime.ficheId===id)resetRuntime();redo();}});
+      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);redo();});
       {const br=document.getElementById('lsrReport');if(br)br.onclick=()=>{if(lastEndedSession)exportSessionReport(lastEndedSession.id);};
-       const bx=document.getElementById('lsrX');if(bx)bx.onclick=()=>{lastEndedSession=null;renderFiches();};}
+       const bx=document.getElementById('lsrX');if(bx)bx.onclick=()=>{lastEndedSession=null;redo();};}
       }};}
 function renderFiches(){renderHomeList(_homeCfgF());}
 /* ----- Vues PROTOCOLES : liste (renderProtocols), lecture (renderProtocolRead), édition
@@ -10597,7 +10609,8 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     remainLbl:n=>'restant'+(n>1?'s':''),
     kinds:['protocols'],
     empty:{title:'Aucun protocole',libRead:'Cette bibliothèque partagée ne contient pas encore de protocole.'},
-    bind:()=>{main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);renderProtocols();});}};}
+    bind:(cfg)=>{const redo=(cfg&&cfg.rerender)||renderProtocols;
+      main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);redo();});}};}
 function renderProtocols(){renderHomeList(_homeCfgP());}
 // ----- Miniatures des documents PDF (v4.4.4) : la 1re page en vignette dans la liste
 // « Documents » des vues lecture (fiche ET protocole) — reconnaître un document d'un coup d'œil
@@ -18961,7 +18974,7 @@ function renderAuthDelete(body,u){
               // Échec du déplacement : on NE bascule PAS d'espace (les fiches restent visibles
               // ici, exportables) ; le compte, lui, est déjà supprimé -> parcours standard.
               if(moved){try{localStorage.setItem('ac-space','');}catch(e){}location.reload();return;}}
-            _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderFiches();toast('Votre compte a été supprimé.');
+            _authDelete=false;_authStep={mode:'email',email:'',msg:'',msgcls:''};renderAuth();setSyncChip();if(state.view==='library')renderLibrary();toast('Votre compte a été supprimé.');
           }catch(e){
             // Refus serveur « recent otp verification required » (défense en profondeur de la RPC,
             // voir supabase/schema.sql) : le code a plus de 10 min -> inviter à en recevoir un neuf.

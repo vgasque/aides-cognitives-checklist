@@ -2038,6 +2038,53 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   await page.close();
 }
 
+/* UN GESTE DE CHROME NE CHANGE PAS DE VUE (v5.0.0, signalé à l'usage : « fermer la croix d'un
+   bandeau efface une des deux invites »). Les binders de l'accueil re-rendaient par
+   `renderFiches()` EN DUR, et la vue « Tout » réutilise celui des fiches : fermer un bandeau,
+   épingler, ou terminer une session BASCULAIT l'affichage sur les aides seules pendant que
+   `state.section` valait toujours 'all' — l'écran et l'état divergeaient.
+   ⚠ LE CONTRÔLE DOIT RENCONTRER SON CAS : il faut un PROTOCOLE dans la bibliothèque, sinon
+   « Tout » et « Aides » affichent la même chose et le témoin reste vert sur le défaut. Les deux
+   fiches d'exemple sont toutes deux des aides. */
+console.log('\n══ ACCUEIL · un geste de chrome ne change pas de vue ══');
+{
+  const page = await br.newPage({viewport:{width:1100,height:950}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await page.evaluate(async()=>{
+    protocols.push(migrateProtocol({id:'pT',title:'Référence témoin',kind:'reference',body:'# x'}));
+    await Data.putProtocol(protocols[protocols.length-1]);
+    state.section='all';render();});
+  await page.waitForTimeout(500);
+  const etat=()=>page.evaluate(()=>({section:state.section,
+    rangees:document.querySelectorAll('.dir-row').length,
+    natures:[...new Set([...document.querySelectorAll('.dir-kind')].map(e=>e.textContent.trim()))]}));
+  const av=await etat();
+  t('témoin : la vue « Tout » montre les DEUX natures',
+    av.section==='all'&&av.natures.length===2, JSON.stringify(av));
+  await page.click('[data-pin]');await page.waitForTimeout(600);
+  const ap=await etat();
+  t('épingler ne bascule pas sur les aides seules',
+    ap.section==='all'&&ap.rangees===av.rangees&&ap.natures.length===2, JSON.stringify(ap));
+  /* Et la croix d'un bandeau, le geste EXACT qui a été signalé. */
+  await page.evaluate(()=>{fiches.length=0;protocols.length=0;
+    try{localStorage.removeItem('ac-notice-hidden');}catch(e){}
+    state.section='all';render();});
+  await page.waitForTimeout(450);
+  const c0=await page.evaluate(()=>document.querySelectorAll('.emp-intro').length);
+  const x=await page.$('#noticeX');
+  if(!x)t('témoin : un bandeau fermable est présent', false, 'aucune croix');
+  else{
+    t('témoin : un bandeau fermable est présent, et les 2 cartes sont là', c0===2, `${c0} carte(s)`);
+    await x.click();await page.waitForTimeout(500);
+    const c1=await page.evaluate(()=>({n:document.querySelectorAll('.emp-intro').length,s:state.section}));
+    t('fermer un bandeau n\'efface pas une des deux invites',
+      c1.n===2&&c1.s==='all', JSON.stringify(c1));}
+  await page.close();
+}
+
 /* L'ÉTAT VIDE N'OFFRE QUE CE QU'ON PEUT CRÉER LÀ (v5.0.0, signalé à l'usage : en vue « Tout »,
    le titre était neutre mais le texte et le bouton étaient ceux des AIDES seules). Le nombre de
    cartes doit être exactement le nombre de types créables dans la vue courante, et le bouton
