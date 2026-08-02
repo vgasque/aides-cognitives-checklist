@@ -3447,6 +3447,35 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **Ma formulation d'audit était fausse** : j'avais écrit « deux états vides seulement » en ne
   comptant qu'une classe. Le défaut n'était pas qu'il en manquait, c'est qu'il y en avait deux
   formes.
+- **LE RAIL A→Z EST CENTRÉ VERTICALEMENT (v5.0.0, demande utilisateur — REVIREMENT ASSUMÉ de
+  l'ancrage en haut)** : la v4.73.0 puis la v5.0.0 l'avaient ancré en `flex-start` sur un défaut
+  signalé (« sa position bouge sans cesse »). ⚠ **CE QUE LE CENTRAGE RÉOUVRE, ET IL FAUT LE
+  SAVOIR** : la position des lettres dépend alors de LEUR NOMBRE — filtrer ou chercher en change
+  la quantité et déplace la colonne. C'est INHÉRENT au centrage, aucune technique ne l'évite ;
+  c'est un arbitrage de l'auteur, pas un oubli. **CE QUI RESTE GARANTI** est l'autre moitié du
+  problème d'origine, et c'est ce que les témoins mesurent : le rail ne bouge NI au défilement NI
+  pendant qu'on s'en sert (clic, glisser) — vérifié à six largeurs de 320 à 1440 px, déplacement
+  0 px sur les trois gestes. Sa BOÎTE est stable : bornée par `--hdr-h` (constante dans une vue)
+  en étroit, par la coque fixe de l'accueil en large ; un centrage dans une boîte qui ne bouge pas
+  ne bouge pas non plus.
+  **⚠ UNE GOUTTIÈRE FANTÔME DE 68 px** : le rail réservait la hauteur de la **tab bar**, supprimée
+  au lot M4 (`grep tabBar` : 0 occurrence). Invisible tant que les lettres étaient ancrées en
+  haut ; en les centrant, ce vide décalait tout le rail. Corollaire de la règle 14 — **une
+  suppression emporte ce qui RÉSERVE sa place, pas seulement ce qui la cite.**
+  ⚠ **LE TÉMOIN A CHANGÉ DE PROPRIÉTÉ, PAS DE SUJET** : il exigeait `justify-content:flex-start`,
+  un LITTÉRAL CSS — donc un témoin qui rougit sur un changement JUSTE et pousse à le contourner
+  (leçon déjà payée sur le corps du titre de rangée). Il mesure désormais ce qui reste vrai :
+  collé à droite, et sans gouttière fantôme.
+- **LE LOGO EST CENTRÉ ENTRE LE BORD ET LE MOT-MARQUE (v5.0.0, demande utilisateur)** : mesuré,
+  **18 px du bord contre 8-10 du texte** — il collait au texte. Trois contraintes posées par
+  l'auteur : ne pas élargir le logo, ne pas déplacer le texte, ne bouger que le logo. La SEULE
+  façon de les tenir toutes les trois est un décalage **HORS FLUX** (`position:relative; left`) —
+  une marge négative décalerait le logo mais le flex ramènerait le texte avec lui, et élargir sa
+  boîte pour l'y centrer pousserait le texte à droite. La valeur est la MOITIÉ de l'écart à
+  combler, donc elle suit le gap de la rangée (4 px, 5 px sous 430 px où le gap tombe à 8).
+  `left` n'entre pas dans l'échelle d'espacement : ce n'est ni une marge ni un rembourrage, c'est
+  une correction OPTIQUE dérivée de deux valeurs qui, elles, sont sur l'échelle. Vérifié par
+  comparaison directe avant/après : position du texte et largeur du logo **inchangées au pixel**.
 - **L'IMPORT REFUSAIT LE FICHIER QUE L'APPLICATION FAIT FABRIQUER (v5.0.0, signalé à l'usage :
   « .zip ou .json de v4 → Fichier illisible »)** — mesuré sur un export RÉEL de l'auteur, 18 aides
   converties. **DEUX défauts, et le second était SILENCIEUX.**

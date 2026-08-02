@@ -878,7 +878,19 @@
      le master SANS tuile, seul son canal alpha sert) est posé en masque sur un aplat de couleur.
      Il suit ainsi le THÈME et l'ACCENT par construction, au lieu d'être un bleu fixe qui jurait
      avec les accents violet/framboise et pesait en thème sombre. */
+  /* CENTRÉ ENTRE LE BORD ET LE MOT-MARQUE (v5.0.0, demande utilisateur — mesuré : 18 px du bord
+     de la barre contre 10 du texte, donc collé au texte).
+     ⚠ LE DÉCALAGE EST HORS FLUX (`position:relative`), et c'est la SEULE façon de tenir les trois
+     contraintes posées : ne pas élargir le logo, ne pas déplacer le texte, ne bouger que le logo.
+     Une marge négative le décalerait bien, mais le flex ramènerait le texte avec lui ; élargir sa
+     boîte pour l'y centrer pousserait le texte vers la droite. Un décalage visuel ne touche ni
+     l'un ni l'autre.
+     La valeur est la MOITIÉ de l'écart à combler — (18 − gap) / 2 — donc elle suit le gap de la
+     rangée, qui tombe à 8 px sous 430 px : 4 px en général, 5 px en étroit. `left` n'entre pas
+     dans l'échelle d'espacement (ce n'est ni une marge ni un rembourrage) : c'est une correction
+     OPTIQUE, dérivée de deux valeurs qui, elles, sont sur l'échelle. */
   .brand-logo{display:none;flex:none;width:34px;height:34px;background-color:currentColor;
+    position:relative;left:-4px;
     -webkit-mask:url(logo-glyph.svg) center/contain no-repeat;mask:url(logo-glyph.svg) center/contain no-repeat}
   header.bar.home .brand-logo{display:block}
   /* PETITS ÉCRANS : le logo ne doit RIEN coûter en hauteur d'en-tête. Mesuré à 375px (iPhone SE),
@@ -888,7 +900,7 @@
      34 → 30px (‑4) et l'écart de colonne 10 → 8px (‑2 par écart). Le logo n'étant pas interactif,
      aucune règle de cible tactile ne s'y applique. */
   @media (max-width:429.98px){
-    header.bar.home .brand-logo{width:30px;height:30px}
+    header.bar.home .brand-logo{width:30px;height:30px;left:-5px}
     header.bar.home .id-row{column-gap:8px}
     /* ⚠ L'ABAISSEMENT DU MOT-MARQUE À 360 px N'EXISTE PLUS (v5.0.0, audit design A3-1) : il
        descendait 20 → 18 px pour rendre 14 px à la rangée d'identité. La marque étant désormais à
@@ -1415,7 +1427,16 @@
   /* Rembourrage ASYMÉTRIQUE d'un pixel, à dessein : le filet gauche de la variante large est à
      l'intérieur de la boîte (box-sizing global), donc un rembourrage égal décalait les lettres
      d'un pixel vers la droite. Mesuré, puis compensé — « centré » veut dire centré. */
-  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
+  /* CENTRÉ VERTICALEMENT, COLLÉ À DROITE (v5.0.0, demande utilisateur — revirement assumé de
+     l'ancrage en haut). ⚠ CE QUE LE CENTRAGE COÛTE, ET IL FAUT LE SAVOIR : la position des
+     lettres dépend alors de LEUR NOMBRE — filtrer ou chercher en change la quantité et déplace
+     la colonne. C'est le défaut signalé en v5.0.0 (« sa position bouge sans cesse ») ; il est
+     INHÉRENT au centrage, aucune technique ne l'évite, et c'est un arbitrage de l'auteur.
+     CE QUI RESTE GARANTI, parce que c'était l'autre moitié du problème : le rail ne bouge NI au
+     défilement NI pendant qu'on s'en sert. Sa BOÎTE est stable — en étroit elle est bornée par
+     `--hdr-h` (constante dans une vue) et par le bas de fenêtre, en large elle occupe la coque
+     fixe de l'accueil. Un centrage dans une boîte qui, elle, ne bouge pas, ne bouge pas non plus. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
   .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 4px;min-height:24px;min-width:24px;border-radius:6px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -1431,13 +1452,18 @@
        déjà établi pour les overlays). Le glisser en devient un asservissement instable : le rail
        défile, la barre bouge, les lettres se décalent sous le doigt, la lettre visée change, le
        rail défile ailleurs.
-       Ancrées EN HAUT, leur position ne dépend plus que de `top` — c'est-à-dire de `--hdr-h`, que
-       l'en-tête garde CONSTANTE dans une vue donnée (« sans changer sa hauteur », § header.bar).
+       La boîte est bornée par `top` — c'est-à-dire `--hdr-h`, que l'en-tête garde CONSTANTE dans
+       une vue donnée (« sans changer sa hauteur », § header.bar) — et par le bas de fenêtre.
        Et la hauteur passe par `--vvh`, la seule mesure qu'iOS ne fausse pas : la boîte s'arrête au
-       bord réellement visible, ce qui rend fiable le test de débordement de `bindAzRail`. */
-    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(68px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px;justify-content:flex-start}
+       bord réellement visible, ce qui rend fiable le test de débordement de `bindAzRail`.
+       ⚠ LES 68 px RÉSERVÉS EN BAS ÉTAIENT UN VESTIGE DE LA TAB BAR, supprimée au lot M4 — mesuré,
+       le rail s'arrêtait 68 px au-dessus du bord pour un objet qui n'existe plus (`grep tabBar` :
+       0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
+       vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
+       ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
+    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
     @supports (height:100dvh){
-      .azrail{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 6px - 68px - env(safe-area-inset-bottom))}
+      .azrail{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1) - var(--hdr-h,64px) - 12px - env(safe-area-inset-bottom))}
     }
     body.view-home main.azr-on .home-main{padding-right:24px}
   }

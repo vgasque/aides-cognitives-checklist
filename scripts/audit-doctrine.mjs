@@ -1977,9 +1977,17 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
       chipsX:(()=>{const rs=[...document.querySelectorAll('#homeChrome .chiprow')]
         .map(r=>r.firstElementChild&&Math.round(r.firstElementChild.getBoundingClientRect().left))
         .filter(v=>v!=null);return [...new Set(rs)];})(),
-      /* Le rail alphabétique est ancré en HAUT : sa position ne doit pas dépendre du NOMBRE de
-         lettres — sinon un filtre déplace toute la colonne. */
-      railJc:(()=>{const r=document.getElementById('azRail');return r?getComputedStyle(r).justifyContent:'—';})(),
+      /* ⚠ CE TÉMOIN A CHANGÉ DE PROPRIÉTÉ, PAS DE SUJET (v5.0.0, demande utilisateur : centrer
+         le rail). Il exigeait `justify-content:flex-start` — un LITTÉRAL CSS, donc un témoin qui
+         rougit sur un changement JUSTE et pousse à le contourner (leçon déjà payée sur le corps
+         du titre de rangée). Son intention n'a jamais été « la valeur vaut flex-start » : c'est
+         « le rail ne bouge pas ». Le centrage rend la position dépendante du NOMBRE de lettres —
+         arbitrage assumé de l'auteur, donc plus mesurable — mais l'autre moitié reste vraie et
+         c'est elle qu'on mesure désormais : la boîte est STABLE et le rail COLLÉ À DROITE. */
+      railBox:(()=>{const r=document.getElementById('azRail');if(!r)return null;
+        const b=r.getBoundingClientRect();
+        return {droite:Math.round(window.innerWidth-b.right),h:Math.round(b.height),
+          bas:Math.round(window.innerHeight-b.bottom)};})(),
       liseCat:!!document.querySelector('.dir-row[style*="--catcol"]'),
       pastille:document.querySelectorAll('.dir-row .cat-dot').length,
       live:!!document.querySelector('.dir-row.live'),
@@ -2032,7 +2040,12 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   if(W<780)t(`${W} · les rangées de filtres sont alignées`, r.chipsX.length<=1, JSON.stringify(r.chipsX));
   /* LE RAIL A-T-IL UNE POSITION QUI NE DÉPEND PAS DE SON CONTENU ? `center` la fait dépendre du
      nombre de lettres — c'est le défaut signalé (« sa position bouge sans cesse »). */
-  if(r.railJc!=='—')t(`${W} · le rail alphabétique est ancré en haut`, r.railJc==='flex-start', r.railJc);
+  if(r.railBox){
+    t(`${W} · le rail alphabétique reste COLLÉ à droite`, r.railBox.droite===0, JSON.stringify(r.railBox));
+    /* Et il ne réserve pas de place pour un objet disparu : la tab bar a été supprimée au lot M4,
+       ses 68 px de gouttière étaient restés — invisibles tant que les lettres étaient ancrées en
+       haut, décalant tout le rail dès qu'on les a centrées. */
+    t(`${W} · … sans gouttière fantôme sous lui`, r.railBox.bas<=24, `${r.railBox.bas} px sous le rail`);}
   t(`${W} · « à compléter » n'a plus de fond de chip`,
     /rgba\(0, 0, 0, 0\)|transparent/.test(r.fondTodo||'transparent'), r.fondTodo);
   await page.close();
