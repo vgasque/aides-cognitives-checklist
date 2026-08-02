@@ -157,6 +157,11 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   bout. Corollaire de méthode : après toute édition du CSS, ne pas se fier au vert de `check-colors`
   et `check-type`, qui travaillent au motif et ne voient pas une règle disparue. Puis **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
   typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées),
+  **espacement** (`check-space.mjs`, v5.0.0 — 1 356 déclarations, échelle fermée à 21 valeurs,
+  migration à ≤ 1 px de déplacement : c'était la moitié du système sans aucun garde-fou),
+  **rayons** (`check-radius.mjs`, v5.0.0 — dix-neuf valeurs distinctes pour trois tokens, ramenées
+  à sept), et `check-type` couvre désormais AUSSI la bande d'AFFICHAGE (≥ 20 px : 20 · 24 · 26 ·
+  34 · 40),
   **paliers de largeur** (`check-paliers.mjs`, v5.0.0 — l'échelle responsive cesse d'être
   déclarative ; cf. « Largeurs & échelles fermées »), et
   **fraîcheur des hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
@@ -1376,8 +1381,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   compte-rendu** (F6) : durée totale en mono 40 px + compteurs de la fiche en tuiles neutres
   (plafond 4 ; les compteurs à ZÉRO sont montrés — « 0 choc » est une information de débriefing,
   souvent LA question), identique à l'écran et à l'impression.
-- **LE SOMBRE DESCEND À #000, SURFACES EN GRIS NEUTRE (v4.71.0, décision utilisateur sur maquette
-  comparative)** : `--bg` #0c1420 → **#000000**, surfaces #0d0d0f / #070708 / #191a1d, filets
+- **LE SOMBRE DESCEND PRESQUE À ZÉRO, SURFACES EN GRIS NEUTRE (v4.71.0, décision utilisateur sur
+  maquette comparative — puis **#0a0a0c au lieu de #000000 en v5.0.0**, sur validation explicite de
+  l'audit design : le noir PUR maximise la halation autour du texte clair sur OLED, un effet gênant
+  pour les personnes astigmates ; #0a0a0c garde le bénéfice perçu du « vrai noir » sans elle, et
+  l'argument du gris neutre — sur un fond aussi sombre, toute couleur porte un sens — tient
+  identiquement. ⚠ C'est UN TOKEN : revenir à #000 est un mot si l'essai à l'écran déplaît)** :
+  `--bg` #0c1420 → **#0a0a0c**, surfaces #0d0d0f / #070708 / #191a1d, filets
   #33363b, `--input-bg` #000, plus les hors-teintes de survol (`--hover-dk`) — sans elles le
   « gris pur » se lirait bleu au premier passage de souris. **CE QUE LE NOIR OBLIGE À DÉPLACER,
   et c'est le vrai travail** : sur #000 une OMBRE NE DIT PLUS RIEN (assombrir du noir ne produit
@@ -3075,6 +3085,32 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   rencontrent (cible ≥ 44 ET halo ≤ rembourrage droit de la rangée, sinon l'épingle sort du cadre),
   et c'est la BOÎTE qui monte à 28 px : 28 + 2 × 8 = 44 pile. **C'est exactement ce qu'une échelle
   fermée doit provoquer — un déplacement mécanique se VOIT, il ne se subit pas.**
+- **LE PRÉAMBULE AVANT LA PREMIÈRE ÉTAPE — DEUX TITRES REDONDANTS EN SESSION (v5.0.0, audit
+  design, action 3)** : mesuré à 320 × 640, session démarrée, la première case à cocher naissait à
+  **y = 438 px**, soit **68 % de l'écran** consommés avant la première ligne actionnable. Deux
+  titres y disaient la même chose que la carte qu'ils surmontent — l'intitulé de l'étage COURANT
+  (« Prise en charge ») et le sous-titre « Parcours » — alors que la carte porte déjà son numéro et
+  son titre. Ils disparaissent **en session seulement** : hors session ils restent, parce qu'on
+  s'oriente avant d'agir et que les étages sont alors une vraie séquence à lire.
+  **Mesuré après : 387 px (−51), 60 % de l'écran à 320, et 2 étapes entièrement visibles au lieu
+  d'1 — 5 au lieu de 4 à 390 px.**
+  **CE QUI RESTE, ET QUI N'EST PAS À MOI DE TRANCHER** : la rangée d'en-tête de carte
+  (« Vous êtes ici » + « Vérifier ») coûte **54 px à 320 px** parce qu'elle passe sous le titre.
+  Déplacer « Vérifier » au pied de la carte — sa place logique, la seconde passe commençant quand
+  la première est finie — rendrait ces 54 px et amènerait le préambule sous 340. C'est un
+  déplacement de geste, donc une décision de conception.
+- **ACTION 7 (DÉSATURER LES CATÉGORIES) : MESURÉE, PUIS REFUSÉE — et c'est la mesure qui l'a
+  refusée (v5.0.0)**. L'objectif était d'éloigner les treize couleurs de catégorie des registres
+  (la rouge « Urgences » #b6382f est la plus proche de `--critical-bd`). Une désaturation d'ensemble
+  (× 0,72, luminance bornée) l'éloigne bien — mais **elle rapproche deux catégories l'une de
+  l'autre au point de les confondre** (écart minimal 32,4 → **11,6**) et **fait tomber le contraste
+  des pastilles en thème sombre à 2,29**, sous le seuil de 3:1 des composants (WCAG 1.4.11). Une
+  recherche sous contraintes (≥ 45 d'écart aux autres catégories, ≥ 4,5:1 en clair, ≥ 3:1 en
+  sombre) ne trouve **aucune** position meilleure pour la rouge : la palette est déjà à sa limite
+  de distinction. **Le remède serait donc pire que le mal**, et la protection existante n'est pas
+  la couleur mais la RÈGLE (la catégorie est un liseré et une pastille, jamais un signal ; elle est
+  toujours nommée en toutes lettres). À rouvrir seulement si l'on accepte de réduire le NOMBRE de
+  catégories offertes.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.
