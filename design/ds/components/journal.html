@@ -582,7 +582,15 @@
      l'en-tête, au-dessus de l'état, parce que le MODE gouverne l'existence de « Se repérer ». */
   #crisisCtrl{position:sticky;top:var(--hdr-h,64px);z-index:16;background:var(--surface);border-bottom:1px solid var(--line)}
   #crisisCtrl[hidden]{display:none}
+  /* ⚠ LES TROIS RANGÉES DU HAUT PARTENT DU MÊME x (signalé à l'usage : « aligne le compteur de
+     session sur Tout voir »). Mesuré : à 900 px, « Tout voir » était à 10, la session à 18 et le
+     contenu à 18 — c'est donc la RANGÉE DE COMMANDES qui était décalée, pas la session, et la
+     demande s'inverse : on aligne les commandes sur les deux autres. Sous 780 px, l'inverse : la
+     session était à 0, alignée sur rien, et on ne peut pas la porter à 18 sans voler 14 px à une
+     rangée dont chaque pixel est compté à 320 (cf. `fitCtrlRow`) — elle prend donc le retrait des
+     commandes, palier par palier. Une verticale au-dessus de 780, une au-dessous : jamais deux. */
   #crisisCtrl .dock-in{align-items:center;gap:8px;padding:6px 10px}
+  #crisisDock .dock-in{padding-inline:10px}
   /* L'ESPACE fait la séparation des deux natures — le mode (un état, on le lit) puis les
      ouvertures (des actions, on les vise). Aucun trait ajouté : la proximité de Gestalt suffit,
      et un trait de moins vaut mieux qu'un trait de plus sur un écran de crise.
@@ -726,6 +734,7 @@
      APRÈS les règles 429.98 px (spécificité égale : l'ordre décide — 4ᵉ piège de cascade du
      projet, cf. .cbt-n v4.23.5). Harnais : audit-doctrine « rangée de commandes sans rognage ». */
   html.zw400 #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
+  html.zw400 #crisisDock .dock-in{padding-inline:8px}
   html.zw400 .dock-plan{padding:0 8px;gap:4px}
   html.zw400 .dock-plan .dp-ic svg{width:11px;height:11px}
   /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
@@ -746,6 +755,7 @@
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
      projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
   html.zw360 #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
+  html.zw360 #crisisDock .dock-in{padding-inline:4px}
   html.zw360 .dock-plan{padding:0 4px}
   /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE — ET C'EST MESURÉ, PAS SEUILLÉ
      (v4.73.1). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
@@ -837,7 +847,10 @@
      position FIXE quel que soit leur nombre ; les minuteurs coulent à droite, le blanc part au
      bord droit (barre d'outils normale). Aucun vide central, aucun élément qui se déplace. */
   @media (min-width:780px){
+    /* ≥ 780 px : les commandes rejoignent le retrait du contenu (18 px), que le quai avait déjà. */
     .dock-in{padding:0 18px;align-items:center;gap:10px}
+    #crisisCtrl .dock-in{padding:6px 18px}
+    #crisisDock .dock-in{padding-inline:18px}
     /* overflow:visible : en bande étroite `overflow:hidden` cache le trop-plein d'un intitulé ;
        en cartes détachées il rognerait au contraire les coins arrondis et bordures de la 1ʳᵉ. */
     #cbTimers{flex:0 1 auto;gap:10px;padding:6px 0;align-items:center;overflow:visible}

@@ -3212,6 +3212,14 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   TONAL (le geste le plus fréquent), la complication est en CONTOUR d'alerte (jamais remplie — un
   aplat rouge permanent désensibilise), « Vérifier » est neutre. Sélecteur en (0,2,0) pour battre
   `.ov-redo` quel que soit l'ordre.
+- **LES DEUX RANGÉES COLLANTES PARTENT DU MÊME x (v5.0.0, signalé à l'usage : « aligne le compteur
+  de session sur Tout voir »)** — et la mesure a inversé la demande au-dessus de 780 px. Relevé :
+  à 900, « Tout voir » à **10**, la session à **18**, le contenu à **18** : c'est donc la RANGÉE DE
+  COMMANDES qui était décalée, pas le quai, et l'on aligne les commandes sur les deux autres.
+  **Sous 780 px, l'inverse** : la session était à **0**, alignée sur rien — et on ne peut pas la
+  porter à 18 sans voler 14 px à une rangée dont chaque pixel est compté à 320 (cf. `fitCtrlRow`) ;
+  elle prend donc le retrait des commandes, palier par palier (4 / 8 / 10). **Une verticale
+  au-dessus de 780, une au-dessous — jamais deux.** Vérifié à sept largeurs, aucun débordement.
 - **En-têtes V5** : rangée principale unique (`.id-row` : retour ‹, marque, recherche FIXE de
   l'accueil, badge de statut, Créer, thème, compte, + `#hdrCrisis` en crise). Le sélecteur de
   section vit dans la tab bar basse (< 780) ou la colonne gauche (≥ 780), jamais dans la barre.

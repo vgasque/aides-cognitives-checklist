@@ -231,7 +231,10 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
         const din=document.querySelector('#crisisCtrl .dock-in');
         const db=din.getBoundingClientRect(),ds=getComputedStyle(din);
         const zf=(parseFloat(document.documentElement.style.zoom)||100)/100;
+        const _ab=document.getElementById('allBtn'),_sg=document.querySelector('#crisisDock .seg');
         return {right:+right.toFixed(1),vw:innerWidth,
+          xCtrl:_ab?Math.round(_ab.getBoundingClientRect().left):null,
+          xDock:_sg?Math.round(_sg.getBoundingClientRect().left):null,
           bordInterne:+(db.right-parseFloat(ds.paddingRight)*zf).toFixed(1),
           eff:Math.round(innerWidth/zf),
           libelles:btns.map(b=>b.textContent.trim()).join('|')};},z);
@@ -244,6 +247,12 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
          stress »). On exige que chaque bouton porte encore du texte.
          Le premier libellé est celui de la DESTINATION du bouton d'excursion : « Tout voir » à
          l'aller, « Un bloc » au retour (lot A, v5.0.0) — l'un OU l'autre, jamais les deux. */
+      /* ⚠ LES DEUX RANGÉES COLLANTES PARTENT DU MÊME x (signalé à l'usage : « aligne le compteur
+         de session sur Tout voir »). Mesuré avant : commandes à 10, session à 18 au-dessus de
+         780 px, et session à 0 en dessous — deux verticales, jamais la même. */
+      t(`${w} px à ${z} % : commandes et quai partent du même x`,
+        r.xCtrl!==null&&r.xDock!==null&&Math.abs(r.xCtrl-r.xDock)<=1,
+        `commandes ${r.xCtrl} px · quai ${r.xDock} px`);
       t(`${w} px à ${z} % : les libellés sont intacts`,
         /Tout voir|Un bloc/.test(r.libelles)&&/Consulter/.test(r.libelles),
         r.libelles);
