@@ -109,33 +109,69 @@
   - Les minuteurs sont rafraîchis par un unique setInterval(tickAll, 300)
     qui met à jour le DOM par id (sans re-rendu complet) et déclenche les alertes.
 
-  MODÈLE DE DONNÉES (une fiche)
-  -----------------------------
+  MODÈLE DE DONNÉES v4 (une AIDE COGNITIVE)
+  -----------------------------------------
+  ⚠ CE BLOC DÉCRIVAIT ENCORE LE MODÈLE v3 JUSQU'EN v5.0.0 (`type`, `steps[]`, les cinq listes,
+  `libraryId`…) — c'est-à-dire le premier texte que ce fichier demande de lire. Après un
+  renommage, les COMMENTAIRES sont aussi suspects que les comparaisons à l'ancienne valeur.
   {
-    id, title, category(=id de catégorie ou ''), validation('AAAA-MM'),
-    localInfo, order(tri),
-    confirmation[], verify[], notForget[], differentials[], references[],
-    images:   [{ id, data(base64 WebP/JPEG réduit), caption }],
-    attachments: [{ id, name, size }]  (MÉTADONNÉES d'un document PDF joint ; le PDF lui-même
-              est un ARRAYBUFFER dans le store IndexedDB 'attachments' — jamais en base64 dans la
-              fiche, jamais dans l'export JSON ; l'export .zip (v4.5.0) peut l'embarquer en
-              fichier séparé documents/<id>.pdf. Un même id peut être référencé par PLUSIEURS
-              fiches (document partagé) ; le blob n'est supprimé que quand plus aucune entité ne
-              le référence — gcAttachments au démarrage),
-    timers:   [{ id, label, type:'stopwatch'|'interval', seconds, autoloop }],
+    v: 4, kind: 'procedure',            // l'aide se DÉCLARE : un fichier dit ce qu'il est
+    id, title, discriminant(60 c. — « adulte », « pédiatrique » : ce que la troncature
+              mange en premier, donc JAMAIS dans la chaîne du titre), code,
+    category(=id de catégorie ou ''), status('validated'|'review'|'draft'),
+    validatedAt('AAAA-MM'), local, order(tri),
+
+    items:    [{ id, role:'entry'|'do'|'watch'|'dose'|'ddx', do, expect, level:1|2|3,
+                 memory(bool), dual(bool), note }],
+              // LE POOL — la liste de TOUS les items de l'aide, toutes portées confondues.
+              // Les cinq listes v3 (confirmation/notForget/verify/posology/differentials)
+              // n'existent plus comme champs : ce sont des RÔLES. Un item a une IDENTITÉ,
+              // donc un compte rendu ne se décale plus quand on insère une ligne, et l'on
+              // peut lui accrocher `memory` (★, rejoint « Ne pas oublier ») et `dual` (×2).
+              // level 3 = ⚠ vital, 2 = △ vigilance, 1 = ordinaire. `expect` = la réponse
+              // attendue (ex-séparateur « :: »).
+              // ⚠ MUTATION : jamais `bItems(b).splice(...)` — bItems rend une COPIE résolue.
+              // Trois verbes, et pas un quatrième : bItemAdd / bItemDel / bItemMove.
+
+    images:   [{ id, data(base64 WebP/JPEG réduit), w, h, caption, scale }],
+              // w/h = dimensions intrinsèques (0 si inconnue) : elles réservent l'espace en
+              // lecture (anti-CLS). ⚠ Les images de BLOC portent les mêmes grandeurs sous
+              // d'AUTRES noms (imageW/imageH) — `edSyncGallery` fait le pont dans les deux sens.
+    docs:     [{ id, name, size }]  (MÉTADONNÉES d'un document PDF joint ; le PDF lui-même
+              est un ARRAYBUFFER dans le store IndexedDB 'attachments' — nom de STORE inchangé,
+              le renommer casserait le stockage local. Jamais en base64 dans la fiche, jamais
+              dans l'export JSON ; l'export .zip (v4.5.0) peut l'embarquer en fichier séparé
+              documents/<id>.pdf. Un même id peut être référencé par PLUSIEURS entités
+              (document partagé) ; le blob n'est supprimé que quand plus rien ne le référence
+              — gcAttachments au démarrage),
+    sources:  [ … ],                    // références bibliographiques (ex-`references`) :
+                                        // métadonnée, PAS du contenu de crise, donc pas un rôle
+    links:    [ idFiche|idProtocole ],  // « Voir aussi » (ex-`related`)
+    excursions:[{ label, target }],     // complications « à tout moment » (ex-`complications`)
+    timers:   [{ id, label, type:'stopwatch'|'interval', seconds, autoloop,
+                 onDue(120 c.) }],      // onDue = l'ACTION annoncée à l'échéance ; un
+                                        // chronomètre n'arrive jamais à échéance, donc n'en a pas
     counters: [{ id, label, step, start, timerId }],   // timerId (v4.5, facultatif) : « ＋ » relance ce minuteur
     start:    id du bloc de départ,
-    blocks:   [ bloc 'steps'    { id, type, title, steps[], image, imageW, imageH (dimensions
-                                  intrinsèques de l'image, 0 si inconnue — réservent l'espace
-                                  en lecture, anti-CLS), next(idBloc|null),
+    blocks:   [ bloc 'do'       { id, kind, title, phase(facultatif, HÉRITÉ du bloc précédent),
+                                  items[ ids du pool ], image, imageW, imageH (mêmes
+                                  dimensions que ci-dessus, autre nom), next(idBloc|null),
                                   nextLbl (v4.5, facultatif : destination annoncée par le
                                   bouton Continuer — repli = titre du bloc suivant) }
-              | bloc 'decision' { id, type, title, question, image,
+              | bloc 'decision' { id, kind, title, phase, question, image,
                                   options:[{ label, target(idBloc) }] } ],
+              // ⚠ `kind` (et non `type`) ; le cas GÉNÉRAL se teste par `!== 'decision'`, jamais
+              // par égalité à 'do' — une comparaison à une valeur renommée ne LÈVE rien, elle
+              // se tait (les flèches du schéma ont disparu ainsi).
     // Métadonnées de synchronisation (rétrocompatibles, défauts posés par migrate()) :
-    updatedAt(ms), deletedAt(ms|null tombstone), ownerId(uuid|null), libraryId(id|null)
+    updatedAt(ms), deletedAt(ms|null tombstone), ownerId(uuid|null), library(id|null)
     // (`dirty` = marqueur LOCAL "à pousser", jamais exporté ni importé)
   }
+  RÉFÉRENCE (protocole) : mêmes champs COMMUNS (id, title, code, category, status,
+    validatedAt, images, docs, sources, links, order + métadonnées de synchro), plus `body`
+    (mini-Markdown) et `kind:'reference'`. PAS de blocks, PAS d'items, PAS de start, PAS de
+    timers ni de counters — donc pas d'imageW/imageH : ses images n'existent que dans la
+    galerie, en w/h.
   Catégorie : { id, name, color(hex), libraryId(null=Perso | id de bibliothèque) }
                (collection séparée, store 'meta' ; synchronisée PAR bibliothèque).
   ESPACES LOCAUX PAR COMPTE : tout le stockage local (base IndexedDB, clés localStorage,

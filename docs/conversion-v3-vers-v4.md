@@ -120,7 +120,9 @@ de l'aide. ("references" ne disparaît pas : il devient "sources", cf. RÈGLE 1.
   · "hors" — voir RÈGLE 4.
   · Un bloc "decision" garde "question" et "options", et n'a PAS de "items" (tableau vide).
     Chaque option devient { "label": "…", "concl": "", "target": "…" } — "concl" toujours "".
-  · "next", "nextLbl", "image" : inchangés.
+  · "next", "nextLbl", "image", "imageW", "imageH" : inchangés. ⚠ NE SUPPRIME PAS "imageW" et
+    "imageH" même s'ils valent 0 : ce sont les dimensions intrinsèques de l'image, qui RÉSERVENT
+    sa place au chargement — sans elles la page saute sous les yeux quand l'image arrive.
 
 ═══ RÈGLE 4 — « hors » SE CALCULE, IL NE SE DEVINE PAS ═══
 
