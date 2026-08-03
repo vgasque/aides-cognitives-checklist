@@ -1195,17 +1195,82 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   geste qu'on ne fait JAMAIS sous stress — en urgence on cherche un SUJET, on n'affine pas un
   corpus. Elles vivent derrière un déclencheur unique « Filtrer », qui reprend la grammaire des
   chips (`.scopebtn`) et non celle des boutons d'action : c'est un objet de la même famille que ce
-  qu'il déplie. **UN ÉTAT ACTIF NE SE CACHE JAMAIS** — dès qu'un filtre est posé, les rangées sont
-  rendues en permanence et le déclencheur DISPARAÎT (plus rien à basculer, donc aucun bouton
-  mort) ; les chips actives sont elles-mêmes le moyen de revenir en arrière. Un filtre caché
-  serait bien pire que trois rangées permanentes : on chercherait une aide dans un corpus
-  restreint sans savoir pourquoi elle n'apparaît pas. `state.filtersOpen` VIT LE TEMPS DE LA PAGE
+  qu'il déplie. **UN ÉTAT ACTIF NE SE CACHE JAMAIS** — un filtre caché serait bien pire que trois
+  rangées permanentes : on chercherait une aide dans un corpus restreint sans savoir pourquoi elle
+  n'apparaît pas. `state.filtersOpen` VIT LE TEMPS DE LA PAGE
   (ni persisté ni synchronisé, même statut que `state.allTab`) et n'est PAS remis à zéro au retour
   de fiche : replier sous le doigt de quelqu'un qui vient de les ouvrir serait le punir de son
   geste. L'ordre et les libellés sont INCHANGÉS (lot M4b) ; seule leur présence au repos change.
   **⚠ UN TÉMOIN DE T9 A DÛ APPRENDRE À DÉPLIER** : il cliquait une chip désormais repliée et
   emportait la passe entière. Un contrôle qui mesure ce que font les CRANS doit passer par le VRAI
   geste, comme l'utilisateur.
+  **L'ÉTAT ACTIF A CHANGÉ DE PORTEUR — LE DÉCLENCHEUR NE DISPARAÎT PLUS (v5.0.3, signalé à
+  l'usage : « le bouton filtrer ne s'affiche pas toujours quand on a sélectionné »)** : la v5.0.0
+  tenait la règle ci-dessus en FORÇANT les rangées ouvertes dès qu'un filtre agissait et en
+  RETIRANT le déclencheur (« plus rien à basculer, donc aucun bouton mort »). Elle achetait donc la
+  garantie au prix d'un contrôle qui apparaît et disparaît selon l'état — exactement ce que la
+  constance positionnelle proscrit (v4.31.0 : « une commande qui apparaît/disparaît romprait la
+  constance ») — et le gain de ~90 px n'existait plus dès qu'on avait filtré quoi que ce soit.
+  **CE QUI REMPLACE LE FORÇAGE** : le déclencheur PORTE l'état. Registre de sélection PLEIN plus
+  le **NOMBRE** de filtres posés (`filtersCount`), donc la couleur n'est jamais seule (règle 8) —
+  un chiffre n'est pas une couleur —, et le nom accessible le dit en toutes lettres. L'état actif
+  n'est pas caché : il est porté par un objet PERMANENT et IMMOBILE au lieu de trois rangées
+  permanentes, et l'on ne peut toujours pas se retrouver dans un corpus restreint sans savoir
+  pourquoi. Replier avec un filtre actif redevient donc permis.
+  **ET IL DÉMÉNAGE CONTRE LA RECHERCHE** (proposition utilisateur) : les deux répondent à la même
+  question — restreindre ce qu'on voit —, et posé là il ne coûte plus une ligne au premier écran.
+  **GLYPHE SEUL**, la place horizontale d'une rangée d'en-tête étant la plus disputée du produit :
+  mesuré à 320 px, 38 px de bouton (45 avec le chiffre) et 0 px de débordement. Il est **STATIQUE**
+  comme le champ (il vit hors de `main`, `syncFiltTog` le PEINT au lieu de le reconstruire) : sa
+  position s'apprend une fois pour toutes, et c'est le **bord droit** qui est constant — il grossit
+  du chiffre, il ne se déplace pas. **Il n'existe qu'en voie ÉTROITE** : en large les filtres vivent
+  dans la colonne gauche, déjà visible, et un bouton pour déplier ce qui est déplié serait mort.
+- **⚠ L'EN-TÊTE D'ACCUEIL N'AVAIT JAMAIS ÉTÉ MESURÉ À 320 px (v5.0.3, signalé à l'usage :
+  « pourquoi ça ne passe pas en 320 px ? »)** : la v4.43.0 a déclaré ce plancher SERVI et l'a
+  mesuré sur la rangée de crise et sur la barre des éditeurs — jamais sur l'écran qu'on ouvre en
+  PREMIER. Mesuré : logo 30 + mot-marque 126 + actions 136 = 292 px, plus deux écarts, soit 308 px
+  pour 284 disponibles. `.id-row` est en `flex-wrap`, et **le flex CASSE LA LIGNE avant de
+  rétrécir** (leçon v4.23.4) : le déficit ne se voit donc PAS comme un débordement, il se paie en
+  38 px de HAUTEUR d'en-tête, là où elle est la plus rare. Recette sur les écarts et la taille des
+  boutons — ni le mot-marque ni le logo, que l'audit A3-1 vient de calibrer — plus un **halo porté
+  de 4 à 6 px** : rétrécir le DESSIN sans rétrécir la CIBLE est tout l'objet d'un halo en zone
+  haute (44 px conservés au pixel). En-tête **148 → 106 px**.
+  **ET C'EST LA MARGE QU'ON MESURE, PAS LE TENU-DE-PEU** : à 360 px la rangée tenait avec **6 px**
+  de réserve, et le mot-marque mesure **126 px sur Chromium complet contre 136 sur le headless
+  shell** — 10 px d'écart pour le même code, davantage que la réserve. Un booléen « ça tient »
+  reste vert jusqu'au dernier pixel puis casse d'un coup ; le témoin exige donc ≥ 8 px, et un
+  palier LÉGER à 400 px (les écarts seuls) porte la réserve de 6 à 22 px. **Toute addition à cette
+  rangée se re-mesure ainsi**, jamais à l'œil.
+  **⚠ DIX-NEUVIÈME PIÈGE DE CASCADE, rencontré en l'écrivant** : `header.bar.home .id-row` vaut
+  (0,3,1) — la MÊME spécificité que la règle `column-gap` du bloc 429.98. Déclaré au-dessus, le
+  bloc était silencieusement sans effet (8 px obtenus pour 4 demandés) ; il vit donc APRÈS, comme
+  la v4.43.0 l'avait déjà fait pour la barre des éditeurs.
+- **LA GOUTTIÈRE DU RAIL A→Z N'EST PAS UN TAMPON ANTI-FAUSSE-MANŒUVRE (v5.0.3, question
+  utilisateur : « l'espace entre les cartes et le rail me paraît grand — est-ce fait exprès ? »)** :
+  en voie étroite le rail est `position:fixed`, donc sans rembourrage réservé il RECOUVRIRAIT le
+  bord droit des rangées, c'est-à-dire l'épingle. Il n'en fallait jamais 24 px — le rail fait 27 px
+  de large et mord déjà sur les 18 px de marge de page, il n'en faut que **9** pour ne rien
+  couvrir ; le reste était du vide. **16 px** laissent 8 px entre la carte et le rail et 9 px entre
+  la ZONE TACTILE de l'épingle (halo compris, qui finit 4 px avant le bord de la carte) et la
+  première lettre : la seule contrainte réelle est que les deux cibles ne se TOUCHENT pas, et c'est
+  elle que le témoin mesure — des deux côtés (rien de couvert, rien d'adjacent).
+- **⚠ `check-space` NEUTRALISE LES COMMENTAIRES DEPUIS LA v5.0.3** : il les lisait, et cette
+  feuille CITE ses propres déclarations à longueur de commentaires doctrinaux. Un `column-gap:8px`
+  écrit dans une explication faisait courir la capture `[^;}]+` jusqu'à l'accolade suivante — donc
+  à travers le commentaire ET la règle d'après, où elle ramassait le `359.98px` d'une media query
+  et le signalait comme un espacement de « 98 px ». Les commentaires deviennent des espaces de
+  MÊME LONGUEUR (indices et numéros de ligne intacts). Même précaution que `check-upload`, pour la
+  même raison : **un contrôle qui lit les commentaires d'un fichier qui documente ses propres
+  règles finira par mesurer la doctrine au lieu du code.**
+- **LA CROIX D'EFFACEMENT DE LA RECHERCHE (v5.0.3, demande utilisateur)** : elle vit DANS la boîte
+  du champ (`.srch-box`, le repère de position absolue — la rangée porte en plus le déclencheur de
+  filtre, s'ancrer sur elle poserait la croix au bord du BOUTON). Sa place est **réservée en
+  permanence** par un `padding-right` constant : elle paraît et disparaît à la frappe, et un
+  rembourrage qui bougerait ferait sauter le texte sous le curseur. **Peinte à la FRAPPE, pas au
+  rendu** — le rendu de la recherche est débouncé de 150 ms, et une croix qui paraîtrait un sixième
+  de seconde après la lettre se lirait comme une latence ; le témoin mesure donc AVANT le débounce,
+  sans quoi il resterait vert sur ce défaut (vérifié capable d'échouer). **Le focus RESTE dans le
+  champ** : on efface pour retaper, pas pour partir.
 - **⚠ UN TÉMOIN QUI FIGE UN CHIFFRE ROUGIT SUR UN CHANGEMENT JUSTE (v5.0.0)** : le contrôle du
   titre de rangée exigeait `15.5px` en dur — bonne réaction à ce qui l'avait motivé (deux
   maquettes posant 15 puis 14,5 px, dont aucun n'est un palier), mauvaise expression de son
