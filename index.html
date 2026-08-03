@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-KU14C2VU9vmNHTxau6vfF3r2pEIThDjNpP3Ufr3ACJk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-KfF1ZY+XqkbZoxA+g1O0o+1JZcGJDW1jIdQIlvzLwUw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1819,7 +1819,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
-    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
+    .azrail{position:fixed;right:0;top:var(--azr-top,calc(var(--hdr-h,64px) + 6px));bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
     /* ⚠ ET LA MARGE BASSE DU MATÉRIEL EST LE SECOND TERME QUI BOUGE — `svh` NE SUFFISAIT PAS
        (signalé à l'usage : « ça persiste en partie, surtout quand on scroll vers le bas sur le
        rail : il remonte »). Dans Safari iOS, `env(safe-area-inset-bottom)` n'est PAS une
@@ -1835,12 +1835,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        RÈGLE : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est aussi
        suspect que `--vvh` — le vérifier avant de l'écrire. */
     @supports (height:100svh){
-      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px)}
+      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px)}
       @media (display-mode:standalone){
-        .azrail{height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px - var(--sab,0px))}
+        .azrail{height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px - var(--sab,0px))}
       }
     }
     body.view-home main.azr-on .home-main{padding-right:24px}
+    /* ⚠ ET LA CAUSE RESTANTE N'EST PAS UNE MESURE, C'EST LE REBOND DE FIN DE PAGE (signalé à
+       l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le
+       bounce »). Pendant le rubber-band, WebKit TRANSLATE le document ET les éléments
+       `position:fixed` : le rail part avec le rebond, puis revient — sous le doigt qui le vise.
+       Aucune formule ne s'en protège, et c'est pour cela que les trois correctifs précédents ne
+       pouvaient pas y suffire : ce n'est pas une valeur qui change, c'est une transformation
+       appliquée au rendu, par le compositeur, en dehors de toute mesure lisible en JS.
+       `overscroll-behavior-y:none` supprime le rebond DU DOCUMENT. Il est borné à l'accueil en
+       voie étroite — le seul endroit où une surface FIXE se vise au pixel et à la cadence du
+       doigt ; ailleurs le rebond reste, c'est une affordance native qui dit « fin de liste ».
+       En voie large l'accueil est une coque fixe (le document ne défile pas) et le rail y est
+       `absolute` dans le flux : il n'a jamais été concerné.
+       ⚠ La déclaration vit sur `html` (via `:has()`) ET sur `body` : la propagation vers le
+       viewport se fait depuis la racine, et la poser sur le corps seul est sans effet. */
+    html:has(body.view-home),body.view-home{overscroll-behavior-y:none}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */
@@ -10293,15 +10308,52 @@ function bindHomeChrome(rerender){
    colonne .home-main (accueil large, coque fixe) ou la fenêtre (étroit). Toute mesure rect est
    en px VISUELS (× zoom du réglage de taille du texte) : réinjectée en scroll, elle se divise
    par zoomF() (règle v4.13.1). */
+/* LA BOÎTE DU RAIL EST POSÉE UNE FOIS PAR RENDU, JAMAIS À CHAQUE ÉVÉNEMENT DE DÉFILEMENT
+   (v5.0.2). C'était la DERNIÈRE entrée dynamique de sa géométrie : le haut valait `--hdr-h`, une
+   propriété que `syncHdrScroll` RÉÉCRIT à chaque scroll depuis un `getBoundingClientRect()` de
+   l'en-tête COLLANT. Sur Blink, un sticky est repositionné avant l'évènement, donc la mesure est
+   toujours juste (vérifié à la sonde : `--hdr-h` constante sur toute la course). Sur iOS, où le
+   défilement et le repositionnement des collants sont composités, rien ne garantit que cette
+   lecture soit celle de la frame en cours — et le rail, lui, est FIXE : la moindre valeur
+   transitoire lui déplace le haut ET la hauteur, donc son centre.
+   Le haut est donc MESURÉ au rendu et gelé dans `--azr-top` ; le CSS n'y consomme plus rien qui
+   s'écrive au défilement. Repose au redimensionnement et à la rotation — les deux seuls moments
+   où la hauteur d'en-tête peut réellement changer sans re-rendu. Le repli CSS garde
+   `--hdr-h` : il ne sert qu'à la toute première peinture, avant que le JS ait mesuré. */
+function azrPoseBox(){const rail=document.getElementById('azRail');if(!rail)return;
+  const hb=document.querySelector('header.bar');
+  rail.style.setProperty('--azr-top',
+    (hb?Math.round(hb.getBoundingClientRect().bottom/zoomF()):64)+6+'px');}
+window.addEventListener('resize',azrPoseBox);
+window.addEventListener('orientationchange',()=>setTimeout(azrPoseBox,350));
 function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)return;
+  azrPoseBox();
   // Débordement : si toutes les lettres ne tiennent pas en hauteur (petit écran en paysage),
   // le rail DISPARAÎT — jamais de lettres coupées (une lettre cachée serait injoignable en
   // silence) ni de cibles rétrécies sous 24 px. Mesure après pose (rAF : géométrie stabilisée).
   requestAnimationFrame(()=>{if(rail.isConnected&&rail.scrollHeight>rail.clientHeight+2){rail.hidden=true;main.classList.remove('azr-on');}});
+  /* UN SAUT SE CALCULE EN ABSOLU, JAMAIS EN RELATIF (v5.0.2, signalé à l'usage : « ça continue de
+     bugger en descendant vers le bas sur le rail — il remonte », EN PWA, donc sans barre d'outils
+     ni marge basse qui bougent : ni `--vvh` ni l'inset n'expliquent plus rien).
+     Le saut était un DÉPLACEMENT RELATIF (`scrollBy`, `scrollTop +=`) dont le pas se déduisait
+     d'un `getBoundingClientRect()` — c'est-à-dire de la position DÉJÀ RENDUE — puis s'ajoutait à
+     la position COURANTE. Sur Blink les deux sont la même chose : le défilement est synchrone,
+     et la sonde le confirme (course monotone, 0 oscillation). **Sur iOS le défilement est
+     ASYNCHRONE** : pendant un glisser, le rect peut refléter une position que le compositeur n'a
+     pas encore appliquée alors que `scrollY` est déjà à jour. On ajoute alors un pas déjà
+     parcouru — on dépasse —, le mouvement suivant calcule un pas NÉGATIF pour corriger, et à
+     60 évènements par seconde cela devient une oscillation : on descend, ça remonte.
+     La cible est donc calculée dans les OFFSETS DE MISE EN PAGE, qui ne dépendent d'aucune
+     position de défilement, et posée en ABSOLU (`scrollTo` / `scrollTop =`). Deux appels pour la
+     même lettre visent alors exactement le même point : idempotent par construction, donc rien à
+     accumuler et rien à corriger. Les offsets sont en px CSS non zoomés — ce que `scrollTo`
+     attend —, seul `stickBase()` est une mesure VISUELLE et se divise par `zoomF()` (règle
+     v4.13.1). */
+  const offY=el=>{let y=0,e=el;while(e){y+=e.offsetTop;e=e.offsetParent;}return y;};
   const jump=L=>{const g=main.querySelector(`[data-azg="${CSS.escape(L)}"]`);if(!g)return;
     const sc=mqHomeWide.matches?main.querySelector('.home-main'):null;
-    if(sc)sc.scrollTop+=(g.getBoundingClientRect().top-sc.getBoundingClientRect().top)/zoomF()-8;
-    else window.scrollBy(0,(g.getBoundingClientRect().top-stickBase())/zoomF()-8);};
+    if(sc)sc.scrollTop=Math.max(0,Math.round(offY(g)-offY(sc)-8));
+    else window.scrollTo(0,Math.max(0,Math.round(offY(g)-stickBase()/zoomF()-8)));};
   rail.querySelectorAll('[data-azl]').forEach(b=>b.onclick=()=>jump(b.dataset.azl));
   /* LE MAPPING DOIGT → LETTRE EST RELEVÉ UNE FOIS, À LA PRISE (v5.0.1). Il était re-mesuré à
      chaque mouvement : si la géométrie du rail bougeait pendant le geste, la lettre visée

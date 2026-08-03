@@ -1474,7 +1474,7 @@
        0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
-    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
+    .azrail{position:fixed;right:0;top:var(--azr-top,calc(var(--hdr-h,64px) + 6px));bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
     /* ⚠ ET LA MARGE BASSE DU MATÉRIEL EST LE SECOND TERME QUI BOUGE — `svh` NE SUFFISAIT PAS
        (signalé à l'usage : « ça persiste en partie, surtout quand on scroll vers le bas sur le
        rail : il remonte »). Dans Safari iOS, `env(safe-area-inset-bottom)` n'est PAS une
@@ -1490,12 +1490,27 @@
        RÈGLE : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est aussi
        suspect que `--vvh` — le vérifier avant de l'écrire. */
     @supports (height:100svh){
-      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px)}
+      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px)}
       @media (display-mode:standalone){
-        .azrail{height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px - var(--sab,0px))}
+        .azrail{height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px - var(--sab,0px))}
       }
     }
     body.view-home main.azr-on .home-main{padding-right:24px}
+    /* ⚠ ET LA CAUSE RESTANTE N'EST PAS UNE MESURE, C'EST LE REBOND DE FIN DE PAGE (signalé à
+       l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le
+       bounce »). Pendant le rubber-band, WebKit TRANSLATE le document ET les éléments
+       `position:fixed` : le rail part avec le rebond, puis revient — sous le doigt qui le vise.
+       Aucune formule ne s'en protège, et c'est pour cela que les trois correctifs précédents ne
+       pouvaient pas y suffire : ce n'est pas une valeur qui change, c'est une transformation
+       appliquée au rendu, par le compositeur, en dehors de toute mesure lisible en JS.
+       `overscroll-behavior-y:none` supprime le rebond DU DOCUMENT. Il est borné à l'accueil en
+       voie étroite — le seul endroit où une surface FIXE se vise au pixel et à la cadence du
+       doigt ; ailleurs le rebond reste, c'est une affordance native qui dit « fin de liste ».
+       En voie large l'accueil est une coque fixe (le document ne défile pas) et le rail y est
+       `absolute` dans le flux : il n'a jamais été concerné.
+       ⚠ La déclaration vit sur `html` (via `:has()`) ET sur `body` : la propagation vers le
+       viewport se fait depuis la racine, et la poser sur le corps seul est sans effet. */
+    html:has(body.view-home),body.view-home{overscroll-behavior-y:none}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */

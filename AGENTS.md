@@ -3489,6 +3489,46 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ⚠ **ET LE TÉMOIN EST STATIQUE, DÉLIBÉRÉMENT** : les deux termes fautifs sont INVISIBLES en
   headless (`--vvh` y vaut une hauteur qui ne varie jamais, l'inset y vaut 0 et aucune API ne le
   simule) — un contrôle dynamique serait resté vert sur le défaut. On mesure la SOURCE.
+  **⚠ ET CE N'ÉTAIT TOUJOURS PAS LA CAUSE — signalé DEPUIS LA PWA, donc sans barre d'outils ni
+  inset qui bougent (v5.0.2, second correctif)** : les deux points ci-dessus étaient justes et ne
+  pouvaient rien expliquer chez quelqu'un dont l'environnement n'a ni l'un ni l'autre. Deux
+  entrées dynamiques restaient, toutes deux INVISIBLES sur Blink :
+  **(1) UN SAUT SE CALCULE EN ABSOLU, JAMAIS EN RELATIF.** Le saut était un déplacement RELATIF
+  (`scrollBy`, `scrollTop +=`) dont le pas se déduisait d'un `getBoundingClientRect()` — la
+  position DÉJÀ RENDUE — puis s'ajoutait à la position COURANTE. Sur Blink les deux sont la même
+  chose (défilement synchrone ; sonde : course monotone, 0 oscillation). **Sur iOS le défilement
+  est ASYNCHRONE** : le rect peut refléter une position que le compositeur n'a pas appliquée alors
+  que `scrollY` est à jour — on ajoute un pas déjà parcouru, on dépasse, le mouvement suivant
+  corrige en négatif, et à 60 Hz c'est une oscillation : **on descend, ça remonte**. La cible se
+  calcule donc dans les OFFSETS DE MISE EN PAGE (indépendants de tout défilement) et se pose en
+  absolu — idempotent par construction. **RÈGLE : un geste RÉPÉTÉ à la cadence du doigt ne se
+  déplace jamais en relatif ; un pas relatif suppose que la mesure et la position sont de la même
+  frame, ce qu'aucun moteur ne garantit.**
+  **(2) LA BOÎTE EST GELÉE DANS `--azr-top`, POSÉE AU RENDU.** Le haut valait `--hdr-h`, propriété
+  que `syncHdrScroll` RÉÉCRIT à chaque défilement depuis un rect de l'en-tête COLLANT. Sur Blink un
+  sticky est repositionné avant l'évènement, la mesure est donc toujours juste (vérifié :
+  constante sur toute la course) ; sur iOS, où défilement et collants sont composités, rien ne le
+  garantit — et le rail étant FIXE, une valeur transitoire lui déplace le haut ET la hauteur, donc
+  son centre. Reposée au redimensionnement et à la rotation seulement ; le repli CSS garde
+  `--hdr-h` pour la toute première peinture.
+  **CE QUI EST MESURÉ** : géométrie INCHANGÉE au repos (168/670 px à 390), atterrissage à 8 px
+  sous les couches collantes, et **deux sauts de suite ne déplacent plus rien** — l'idempotence
+  est ce qui casse l'oscillation, et c'est la seule moitié du dossier qu'un moteur headless sait
+  voir.
+  **⚠ ET LA CAUSE RESTANTE N'EST PAS UNE MESURE — C'EST LE REBOND DE FIN DE PAGE (v5.0.2, signalé
+  à l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le bounce »)** :
+  pendant le rubber-band, WebKit TRANSLATE le document ET les éléments `position:fixed` — le rail
+  part avec le rebond puis revient, sous le doigt qui le vise. Ce n'est pas une valeur qui change,
+  c'est une transformation appliquée au rendu par le compositeur, **en dehors de toute mesure
+  lisible en JS** : voilà pourquoi aucune des trois corrections de formule ne pouvait suffire.
+  `overscroll-behavior-y:none` supprime le rebond DU DOCUMENT, et il est **borné à l'accueil en
+  voie étroite** — le seul endroit où une surface FIXE se vise au pixel et à la cadence du doigt.
+  Ailleurs le rebond RESTE (affordance native « fin de liste ») ; en voie large l'accueil est une
+  coque fixe et le rail y est `absolute`, donc jamais concerné ; les fenêtres gardent leur
+  `contain`. ⚠ La déclaration vit sur `html` (via `:has()`) ET sur `body` : la propagation vers le
+  viewport part de la racine, la poser sur le corps seul est sans effet.
+  **RÈGLE : une surface FIXE qu'on VISE doit vivre dans un document sans rebond** — sinon le
+  compositeur la déplace pendant qu'on s'en sert, et rien, côté application, ne peut le voir.
   **⚠ UNE GOUTTIÈRE FANTÔME DE 68 px** : le rail réservait la hauteur de la **tab bar**, supprimée
   au lot M4 (`grep tabBar` : 0 occurrence). Invisible tant que les lettres étaient ancrées en
   haut ; en les centrant, ce vide décalait tout le rail. Corollaire de la règle 14 — **une

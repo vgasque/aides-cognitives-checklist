@@ -2098,6 +2098,80 @@ console.log('\n══ ACCUEIL · le rail A→Z ne suit aucune mesure mouvante �
   t('… et l\'app INSTALLÉE, elle, la retranche (aucune barre d\'outils, inset constant)',
     /display-mode:standalone/.test(bloc) && /--sab/.test(bloc.split('@media (display-mode:standalone)')[1]||''),
     bloc.includes('display-mode:standalone') ? 'branche présente' : 'branche absente');
+  /* UN SAUT SE CALCULE EN ABSOLU, JAMAIS EN RELATIF. Un pas relatif déduit d'un rect DÉJÀ RENDU
+     puis ajouté à la position COURANTE suppose que les deux sont de la même frame — vrai sur
+     Blink (défilement synchrone), faux sur iOS, où l'écart devient une oscillation à 60 Hz :
+     on descend, ça remonte. Statique là encore, parce qu'aucun moteur headless ne reproduit un
+     défilement asynchrone : un contrôle dynamique resterait vert sur le défaut. */
+  /* ⚠ ON NEUTRALISE LES COMMENTAIRES AVANT DE MESURER : le code CITE la règle (« jamais
+     `scrollBy` »), et un contrôle qui lit sa propre justification échoue sur du texte. Patron
+     `check-upload` ; l'approximation tombe du bon côté — sur-neutraliser fait échouer, jamais
+     passer sous silence. */
+  const fn = ((src.match(/function bindAzRail\(\)[\s\S]*?\n\}/) || [''])[0])
+    .replace(/\/\*[\s\S]*?\*\//g,' ').replace(/(^|\n)\s*\/\/[^\n]*/g,'$1');
+  t('témoin : le corps de bindAzRail est bien trouvé', /const jump=/.test(fn), `${fn.length} caractères`);
+  t('… le saut du rail ne se calcule jamais en relatif',
+    !/scrollBy|scrollTop\s*\+=/.test(fn), (fn.match(/scrollBy|scrollTop\s*\+=/g) || []).join(' '));
+  /* Et la BOÎTE ne consomme plus `--hdr-h` autrement qu'en repli de première peinture : c'est une
+     propriété que `syncHdrScroll` réécrit à CHAQUE défilement, depuis un rect d'élément collant. */
+  t('… et sa boîte est gelée dans --azr-top, posée au rendu',
+    /top:var\(--azr-top,/.test(src) && /--azr-top/.test(horsStandalone)
+      && /rail\.style\.setProperty\('--azr-top'/.test(src),
+    `haut=${/top:var\(--azr-top,/.test(src)} hauteur=${/--azr-top/.test(horsStandalone)}`);
+}
+/* ET LE SAUT RESTE JUSTE — un calcul absolu qui viserait mal serait pire que le pas relatif
+   qu'il remplace. On mesure les deux propriétés qui comptent : la lettre atterrit JUSTE SOUS les
+   couches collantes (c'est la promesse du geste), et deux appels de suite ne déplacent RIEN
+   (l'idempotence est ce qui casse l'oscillation). Les deux voies de défilement sont couvertes :
+   la fenêtre en étroit, la colonne `.home-main` en large. */
+for (const W of [390, 1100]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    /* Le rail n'existe qu'à partir de deux lettres distinctes : sans ce répertoire construit, le
+       contrôle ne rencontrerait pas son cas. */
+    for(let i=0;i<12;i++)fiches.push(migrate({id:'zaz'+i,
+      title:String.fromCharCode(67+i)+' fiche de répertoire '+i,blocks:[]}));
+    state.view='library';render();await w(400);
+    const rail=document.getElementById('azRail');if(!rail)return null;
+    const sc=matchMedia('(min-width:780px)').matches?document.querySelector('main .home-main'):null;
+    const pos=()=>sc?Math.round(sc.scrollTop):Math.round(window.scrollY);
+    const go=async L=>{[...rail.querySelectorAll('[data-azl]')].find(x=>x.dataset.azl===L).click();
+      await w(120);return pos();};
+    const out={n:0,ecarts:[],derives:0};
+    for(const L of [...rail.querySelectorAll('[data-azl]')].map(x=>x.dataset.azl).slice(0,5)){
+      const a1=await go(L);
+      const g=document.querySelector(`[data-azg="${L}"]`);
+      const haut=sc?g.getBoundingClientRect().top-sc.getBoundingClientRect().top
+        :g.getBoundingClientRect().top-document.querySelector('header.bar').getBoundingClientRect().bottom;
+      const a2=await go(L),a3=await go(L);
+      out.n++;out.ecarts.push(Math.round(haut));if(a1!==a2||a2!==a3)out.derives++;}
+    return out;});
+  if(r){
+    t(`${W} · témoin : des lettres sont réellement parcourues`, r.n>=3, `${r.n}`);
+    t(`${W} · la lettre visée atterrit sous les couches collantes`,
+      r.ecarts.every(v=>v>=0&&v<=24), JSON.stringify(r.ecarts));
+    t(`${W} · … et deux sauts de suite ne déplacent plus rien`, r.derives===0, `${r.derives} dérive(s)`);}
+  /* LE REBOND DE FIN DE PAGE EST SUPPRIMÉ SUR L'ACCUEIL ÉTROIT, ET LÀ SEULEMENT : pendant le
+     rubber-band, WebKit translate les éléments `position:fixed` — le rail part avec, sous le
+     doigt. Ailleurs le rebond RESTE (affordance native « fin de liste »), et les fenêtres gardent
+     leur `contain`. C'est la portée qu'on mesure, pas seulement la présence. */
+  const o = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const lire=()=>getComputedStyle(document.documentElement).overscrollBehaviorY;
+    state.view='library';render();await w(250);
+    const accueil=lire();
+    openRead(fiches[0].id);await w(350);
+    return {accueil,lecture:lire(),
+      modale:(()=>{const m=document.querySelector('.ai-modal');
+        return m?getComputedStyle(m).overscrollBehaviorY:null;})()};});
+  t(`${W} · le rebond de fin de page ${W<780?'est supprimé':'reste'} sur l'accueil`,
+    o.accueil===(W<780?'none':'auto'), o.accueil);
+  t(`${W} · … et il reste partout ailleurs`, o.lecture==='auto', o.lecture);
+  t(`${W} · … les fenêtres gardant leur « contain »`, o.modale==='contain', String(o.modale));
+  await page.close();
 }
 
 /* UN GESTE DE CHROME NE CHANGE PAS DE VUE (v5.0.0, signalé à l'usage : « fermer la croix d'un
