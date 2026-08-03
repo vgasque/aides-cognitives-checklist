@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-Cik7MZWeUBK92yt6Dkc91ekuU2/NJkxAyRrixqXyhe8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-KU14C2VU9vmNHTxau6vfF3r2pEIThDjNpP3Ufr3ACJk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1820,8 +1820,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
     .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
+    /* ⚠ ET LA MARGE BASSE DU MATÉRIEL EST LE SECOND TERME QUI BOUGE — `svh` NE SUFFISAIT PAS
+       (signalé à l'usage : « ça persiste en partie, surtout quand on scroll vers le bas sur le
+       rail : il remonte »). Dans Safari iOS, `env(safe-area-inset-bottom)` n'est PAS une
+       constante : la barre d'outils du bas COUVRE la bande de l'indicateur d'accueil, donc
+       l'inset vaut 0 tant qu'elle est déployée et saute à ~34 px dès qu'elle se replie — c'est-
+       à-dire au défilement, exactement comme `--vvh`. La hauteur perdait alors 34 px et les
+       lettres centrées REMONTAIENT de 17 px, au mot près ce qui a été rapporté. Le retirer ne
+       découvre rien : `100svh` est déjà la hauteur BARRE DÉPLOYÉE, son bord bas se situe donc
+       au-dessus de cette barre, donc au-dessus de l'indicateur.
+       EN APP INSTALLÉE, l'arbitrage s'inverse et c'est pourquoi la règle est dédoublée : sans
+       barre d'outils, `svh` descend jusqu'au bord de l'écran, indicateur compris — mais l'inset y
+       est CONSTANT, faute de chrome qui bouge. On le retranche là, et là seulement.
+       RÈGLE : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est aussi
+       suspect que `--vvh` — le vérifier avant de l'écrire. */
     @supports (height:100svh){
-      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px - env(safe-area-inset-bottom))}
+      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px)}
+      @media (display-mode:standalone){
+        .azrail{height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px - var(--sab,0px))}
+      }
     }
     body.view-home main.azr-on .home-main{padding-right:24px}
   }
@@ -6047,7 +6064,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.1';
+const APP_VERSION='5.0.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

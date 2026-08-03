@@ -1,6 +1,7 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
 import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession} from './harness.mjs';
+import { readFile } from 'node:fs/promises';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();
@@ -2069,6 +2070,34 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   t(`${W} · « à compléter » n'a plus de fond de chip`,
     /rgba\(0, 0, 0, 0\)|transparent/.test(r.fondTodo||'transparent'), r.fondTodo);
   await page.close();
+}
+
+/* LA HAUTEUR DU RAIL ÉTROIT NE CITE AUCUNE MESURE QUI BOUGE AU DÉFILEMENT (v5.0.1).
+   ⚠ CE TÉMOIN EST STATIQUE, ET C'EST DÉLIBÉRÉ : les deux termes fautifs sont invisibles en
+   headless — `--vvh` y vaut la hauteur de la fenêtre, qui ne varie jamais faute de barre
+   d'outils, et `env(safe-area-inset-bottom)` y vaut 0, qu'aucune API ne permet de simuler. Un
+   contrôle dynamique resterait donc VERT sur le défaut signalé (« il remonte quand on scroll »),
+   c'est-à-dire exactement le pire cas du dossier. On mesure donc la SOURCE : dans une hauteur qui
+   doit être constante, `--vvh`, `dvh`/`lvh` et l'inset bas sont proscrits — le second parce qu'il
+   n'est pas constant dans Safari iOS (la barre d'outils du bas couvre la bande de l'indicateur
+   d'accueil : 0 barre déployée, ~34 px barre repliée).
+   L'exception est NOMMÉE et bornée : en `display-mode:standalone`, il n'y a pas de barre
+   d'outils, l'inset y est constant et il DOIT être retranché. */
+console.log('\n══ ACCUEIL · le rail A→Z ne suit aucune mesure mouvante ══');
+{
+  const src = await readFile(ROOT + 'index.html', 'utf8');
+  const bloc = (src.match(/@supports \(height:100svh\)\{[\s\S]*?\n    \}/) || [''])[0];
+  t('témoin : la règle de hauteur du rail étroit est bien trouvée',
+    /\.azrail\{bottom:auto;height:/.test(bloc), `${bloc.length} caractères`);
+  const horsStandalone = bloc.split('@media (display-mode:standalone)')[0];
+  t('… sa hauteur ne cite ni --vvh ni dvh/lvh', !/--vvh|dvh|lvh/.test(horsStandalone),
+    horsStandalone.replace(/\s+/g,' ').slice(0,160));
+  t('… ni la marge basse du matériel, qui saute au repli de la barre d\'outils',
+    !/safe-area-inset-bottom|--sab/.test(horsStandalone),
+    horsStandalone.replace(/\s+/g,' ').slice(0,160));
+  t('… et l\'app INSTALLÉE, elle, la retranche (aucune barre d\'outils, inset constant)',
+    /display-mode:standalone/.test(bloc) && /--sab/.test(bloc.split('@media (display-mode:standalone)')[1]||''),
+    bloc.includes('display-mode:standalone') ? 'branche présente' : 'branche absente');
 }
 
 /* UN GESTE DE CHROME NE CHANGE PAS DE VUE (v5.0.0, signalé à l'usage : « fermer la croix d'un

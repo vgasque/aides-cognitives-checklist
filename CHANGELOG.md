@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [5.0.2] — 2026-08-02
+### Le rail A→Z, deuxième terme : la marge basse du matériel
+
+Signalé à l'usage après la v5.0.1 : « ça persiste en partie, surtout quand on scroll vers le bas
+sur le rail — il remonte ». La v5.0.1 avait traité `--vvh` et laissé, dans la même formule, un
+second terme qui bouge exactement pour la même raison.
+
+- **`env(safe-area-inset-bottom)` n'est pas une constante dans Safari iOS.** La barre d'outils du
+  bas COUVRE la bande de l'indicateur d'accueil : l'inset vaut **0 tant qu'elle est déployée** et
+  saute à **~34 px dès qu'elle se replie** — c'est-à-dire au défilement. La hauteur du rail perdait
+  alors 34 px et les lettres centrées **remontaient de 17 px**, au mot près ce qui a été rapporté.
+  Le terme est retiré : `100svh` est déjà la hauteur *barre déployée*, son bord bas se situe donc
+  au-dessus de cette barre, donc au-dessus de l'indicateur — on ne découvre rien.
+- **En app INSTALLÉE, l'arbitrage s'inverse, et c'est pourquoi la règle est dédoublée** : sans
+  barre d'outils, `svh` descend jusqu'au bord de l'écran, indicateur compris — mais l'inset y est
+  constant, faute de chrome qui bouge. Il est retranché sous `@media (display-mode:standalone)`,
+  et là seulement.
+- **Règle générale** : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est
+  aussi suspect que `--vvh`.
+- **Témoin STATIQUE, et c'est délibéré** (4 contrôles) : les deux termes fautifs sont **invisibles
+  en headless** — `--vvh` y vaut une hauteur qui ne varie jamais faute de barre d'outils, et
+  l'inset y vaut 0, qu'aucune API ne permet de simuler. Un contrôle dynamique serait donc resté
+  VERT sur le défaut, le pire cas du dossier. On mesure la SOURCE : la hauteur du rail étroit ne
+  cite ni `--vvh`, ni `dvh`/`lvh`, ni l'inset bas hors de la branche `standalone`. Vérifié capable
+  d'échouer (terme réintroduit → rouge, fichier restauré à l'octet). 624 contrôles doctrine.
+
 ## [5.0.1] — 2026-08-02
 ### Le rail A→Z cesse de bouger sous le doigt
 
