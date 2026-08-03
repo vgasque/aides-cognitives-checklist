@@ -53,26 +53,45 @@ const e1b=await p.evaluate(async()=>{
  return {dl,dd};});
 t('hachures LISIBLES dans les deux thèmes (delta bande/bande ≥ 30, clair ET sombre)', e1b.dl>=30&&e1b.dd>=30, JSON.stringify(e1b));
 // UN PLACARD EST UN PLACARD (v5.0.5, signalé à l'usage) : porté par DEUX boîtes — l'en-tête et le
-// bandeau —, il ne doit pas se briser à leur frontière. La continuité tient à un seul mot,
-// `background-attachment:fixed`, qui fait calculer les deux dégradés depuis l'origine du VIEWPORT
-// au lieu du coin de chaque élément. Le piège qu'on garde ici est SILENCIEUX : une variante écrite
-// avec le raccourci `background` remettrait l'ancrage à `scroll` et ne casserait QUE ce placard-là.
-// Les trois variantes sont donc mesurées, après avoir vérifié qu'une hachure est bien posée —
-// sans ce préalable on lirait « none / none » et on le déclarerait aligné.
+// bandeau —, il ne doit pas se briser à leur frontière.
+// ⚠ ON MESURE LA PROPRIÉTÉ, PAS LE MÉCANISME. La première version de ce témoin exigeait
+// `background-attachment:fixed`, c'est-à-dire la solution du jour ; elle serait donc passée au
+// rouge le jour où l'on a dû en changer (WebKit ne repeint pas un fond fixé en même temps qu'il
+// défile — vert en headless, faux sur l'appareil). Ce qui reste vrai quel que soit le moyen, c'est
+// que les deux GRILLES de tuiles partent du même point de l'écran : on recompose donc l'origine de
+// chacune (coin de sa boîte de rembourrage + background-position) et on compare la phase, modulo
+// le côté de la tuile. Et l'on vérifie que la tuile est RACCORDABLE — bandes en pourcentage, deux
+// périodes par tuile —, sans quoi un décalage coudrait à chaque report.
+// ⚠ Il rencontre son cas d'abord : sans hachure posée on lirait « none / none » et on déclarerait
+// aligné un placard qui n'existe pas.
 const e1d=await p.evaluate(()=>{
  const h=document.querySelector('header.bar'),cb=document.getElementById('crisisBand');
+ // Boîte du ::before (inset:0) = boîte de REMBOURRAGE du parent, bordures déduites.
+ const org=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e),b=getComputedStyle(e,'::before');
+  const p=b.backgroundPosition.split(' ');
+  const px=parseFloat(p[0])||0,py=parseFloat(p[1]!==undefined?p[1]:p[0])||0;
+  return {x:r.left+parseFloat(s.borderLeftWidth)+px, y:r.top+parseFloat(s.borderTopWidth)+py,
+   img:b.backgroundImage, tuile:parseFloat(b.backgroundSize)||0};};
  const out={};
  for(const c of ['exo','inv','ess']){
   for(const e of [h,cb]){e.classList.remove('exo','inv','ess');e.classList.add(c);}
-  const a=getComputedStyle(h,'::before'),z=getComputedStyle(cb,'::before');
-  out[c]={pose:a.backgroundImage.includes('repeating')&&z.backgroundImage.includes('repeating'),
-   fixe:a.backgroundAttachment==='fixed'&&z.backgroundAttachment==='fixed',
-   meme:a.backgroundImage===z.backgroundImage&&a.backgroundPosition===z.backgroundPosition&&a.backgroundSize===z.backgroundSize};
+  const a=org(h),z=org(cb),T=a.tuile||1;
+  const ph=v=>Math.min(((v%T)+T)%T, T-((v%T)+T)%T);
+  out[c]={pose:/repeating/.test(a.img)&&/repeating/.test(z.img),
+   meme:a.img===z.img&&a.tuile===z.tuile&&a.tuile>0,
+   // Deux périodes par tuile exprimées en % de la ligne de dégradé : c'est ce qui la rend
+   // raccordable à n'importe quelle taille, sans jamais écrire √2 dans la feuille.
+   raccord:/50%\)?$/.test(a.img.trim())||a.img.includes('50%'),
+   dx:+ph(z.x-a.x).toFixed(2), dy:+ph(z.y-a.y).toFixed(2)};
  }
  for(const e of [h,cb]){e.classList.remove('inv','ess');e.classList.add('exo');}
  return out;});
-t('la hachure TRAVERSE la frontière en-tête/bandeau (ancrage viewport, 3 placards)',
-  ['exo','inv','ess'].every(c=>e1d[c].pose&&e1d[c].fixe&&e1d[c].meme), JSON.stringify(e1d));
+t('le contrôle rencontre son cas : les 3 placards posent bien une hachure',
+  ['exo','inv','ess'].every(c=>e1d[c].pose), JSON.stringify(e1d));
+t('la hachure TRAVERSE la frontière en-tête/bandeau (grilles en phase, 3 placards)',
+  ['exo','inv','ess'].every(c=>e1d[c].meme&&e1d[c].dx<=1&&e1d[c].dy<=1), JSON.stringify(e1d));
+t('… et la tuile est RACCORDABLE (période en % de la ligne, pas en px)',
+  ['exo','inv','ess'].every(c=>e1d[c].raccord), JSON.stringify(e1d));
 const e2=await p.evaluate(async()=>{
  document.querySelector('.ov-block.cur ol.steps li').click();await new Promise(r=>setTimeout(r,400));
  return {started:Runtime.started,strip:document.getElementById('cbTimers').textContent,

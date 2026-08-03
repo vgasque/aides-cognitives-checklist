@@ -2515,20 +2515,39 @@
      ÉLÉMENT. Un placard est UN placard, porté par deux boîtes (l'en-tête et le bandeau) ; chacune
      générait pourtant son dégradé depuis SON propre coin haut-gauche, si bien que les rayures se
      brisaient net à la frontière — deux textures voisines au lieu d'une seule qui traverse.
-     `background-attachment:fixed` fait calculer les deux depuis l'origine du VIEWPORT : la
-     continuité devient une propriété du calcul, pas une valeur à tenir à jour. Écartés à la
-     mesure : un décalage par `background-position:0 calc(-1*var(--hdr-h))` serait juste au repos
-     et FAUX dès le premier pixel de défilement (le bandeau glisse sous la barre, son offset
-     d'écran change à chaque frame), et il ferait en plus apparaître une couture de pavage, la
-     hauteur de l'en-tête n'ayant aucune raison d'être un multiple de la période (22 px sur l'axe,
-     soit 31,11 px en vertical). Vérifié aux deux moteurs, à l'arrêt et en cours de défilement.
-     Effet de bord VOULU : le bandeau glisse, sa texture ne bouge pas — le seul mouvement reste le
-     geste de défilement, et aucune ligne ne se met à courir sous les yeux (ECAM).
-     ⚠ TOUTE VARIANTE DE HACHURE S'ÉCRIT DONC EN `background-image`, jamais avec le raccourci
-     `background`, qui remettrait `background-attachment` à `scroll` et casserait l'alignement de
-     ce placard-là seulement — donc en silence. */
+     ⚠ PREMIÈRE TENTATIVE, `background-attachment:fixed`, RETIRÉE SUR SIGNALEMENT — et l'erreur
+     de méthode vaut d'être gardée. L'ancrage au viewport est le raisonnement JUSTE (deux boîtes
+     dont l'écart change à chaque frame ne peuvent partager une phase que via un repère commun qui
+     ne soit ni l'une ni l'autre), il était vert aux deux moteurs en headless, et il est FAUX SUR
+     L'APPAREIL : « celui d'en haut bouge lors du scroll ; et ils ne sont pas toujours synchronisés ».
+     WebKit ne repeint pas un fond fixé en même temps qu'il défile — la texture retarde, glisse,
+     puis se recale. Même famille que le dossier « bande basse iOS » et que le rebond du rail A→Z :
+     ce que le compositeur fait du rendu n'est visible dans AUCUNE mesure de la page, donc un
+     harnais vert ne dit rien ici. On n'ancre plus à un repère que l'on ne contrôle pas.
+     CE QUI TIENT SA PLACE — chaque hachure appartient à SA barre, et l'on cale la phase de celle
+     du bas sur celle du haut par un décalage MESURÉ, `--hdr-h`. Les deux boîtes de dégradé sont
+     les boîtes de rembourrage des deux barres : même bord gauche, et un écart vertical qui vaut
+     exactement la hauteur de l'en-tête. Un `background-position` de cette valeur les met en phase,
+     sans un octet de JS et sans que rien ne dépende du défilement.
+     ⚠ CE QUE CE DÉCALAGE EXIGE, ET QUI EST LE VRAI TRAVAIL : un décalage PAVE, or un dégradé
+     répétitif est dimensionné sur sa boîte et sa phase s'ancre à son coin BAS-DROIT — deux boîtes
+     de hauteurs différentes ne sont donc jamais en phase, et le pavage coudrait à chaque report.
+     On fixe donc une TUILE CARRÉE (`background-size`) et l'on exprime les bandes en POURCENTAGE de
+     la ligne de dégradé : à −45° cette ligne vaut côté × √2, et une période de 50 % en met deux
+     par tuile, exactement — la tuile est raccordable par construction, à n'importe quelle taille,
+     sans jamais écrire √2 dans une feuille de style. 31 px de côté redonnent la période d'origine
+     (21,9 px pour 22) au dixième de pixel près, et un entier pave net à 1×, 2× et 3×.
+     RESTE la contrepartie, assumée et bornée : la phase n'est commune qu'au repos. Dès qu'on
+     défile, chaque texture suit SA barre — c'est ce que fait une texture peinte sur un objet, rien
+     ne bouge tout seul, et le bandeau part de toute façon sous la barre en moins de 60 px.
+     ⚠ TOUTE VARIANTE DE HACHURE S'ÉCRIT EN `background-image`, jamais avec le raccourci
+     `background`, qui remettrait `background-size` et `background-position` à leur défaut et
+     casserait l'alignement de ce placard-là seulement — donc en silence. */
   #crisisBand{position:relative}
-  #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);background-attachment:fixed;opacity:0;transition:opacity .3s ease;pointer-events:none}
+  #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(-45deg,var(--surface) 0,var(--surface) 31.818%,var(--primary-soft) 31.818%,var(--primary-soft) 50%);background-size:31px 31px;opacity:0;transition:opacity .3s ease;pointer-events:none}
+  /* La boîte du dégradé du bandeau commence exactement une hauteur d'en-tête plus bas que celle de
+     la barre : on remonte la tuile d'autant, les deux grilles coïncident. */
+  #crisisBand::before{background-position:0 calc(-1 * var(--hdr-h,64px))}
   #crisisBand.exo::before{opacity:1}
   header.bar.exo::before{opacity:1}
   #crisisBand>*{position:relative;z-index:1}
@@ -2566,10 +2585,11 @@
      n'a que 2,1 px de marge à 320 px.
      PRIORITÉ : l'exercice l'emporte toujours (il protège d'une méprise clinique) ; un essai ne
      peut de toute façon pas être un invité (`previewFrom` l'exclut). */
-  /* `background-image` et non le raccourci `background` : le raccourci REMETTRAIT
-     `background-attachment` à `scroll` et ce placard perdrait l'ancrage au viewport qui aligne la
-     hachure de l'en-tête sur celle du bandeau (cf. la règle de base ci-dessus). */
-  #crisisBand.ess::before,header.bar.ess::before{background-image:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-3) 14px,var(--surface-3) 22px)}
+  /* `background-image` et non le raccourci `background` : le raccourci remettrait `background-size`
+     et `background-position` à leur défaut, et ce placard-là perdrait la mise en phase de sa
+     hachure avec celle de l'en-tête (cf. la règle de base ci-dessus). Bandes en POURCENTAGE pour
+     la même raison qu'elle : c'est ce qui rend la tuile raccordable. */
+  #crisisBand.ess::before,header.bar.ess::before{background-image:repeating-linear-gradient(-45deg,var(--surface) 0,var(--surface) 31.818%,var(--surface-3) 31.818%,var(--surface-3) 50%)}
   #crisisBand.ess::before,header.bar.ess::before{opacity:1}
 
   /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,

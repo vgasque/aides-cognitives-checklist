@@ -1065,6 +1065,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   GARDE LA PRIORITÉ** et ce n'est pas négociable : « ceci est une répétition » prime sur « vous
   suivez » — le premier protège d'une méprise clinique, le second est une information de rôle que
   le quai porte en permanence de toute façon.
+- **UN PLACARD EST UN PLACARD, ET SA HACHURE TRAVERSE (v5.0.5, signalé à l'usage)** : il est porté
+  par DEUX boîtes — l'en-tête et le bandeau —, dont chacune générait son dégradé depuis SON propre
+  coin, si bien que les rayures se brisaient net à la frontière. Chaque hachure appartient à SA
+  barre et l'on met la seconde en phase par un décalage MESURÉ (`background-position` de la valeur
+  de `--hdr-h` : les deux boîtes de rembourrage ont le même bord gauche, et un écart vertical qui
+  vaut exactement la hauteur de l'en-tête). Un décalage PAVE, or un dégradé répétitif se dimensionne
+  sur sa boîte et sa phase s'ancre à son coin BAS-DROIT : la tuile est donc CARRÉE
+  (`background-size:31px`) et ses bandes s'expriment en **pourcentage de la ligne de dégradé** —
+  une période de 50 % en met deux par tuile exactement, ce qui la rend raccordable à n'importe
+  quelle taille sans jamais écrire √2 dans une feuille de style. Contrepartie assumée : la phase
+  n'est commune qu'au REPOS ; en défilant, chaque texture suit sa barre, ce que fait toute texture
+  peinte sur un objet. **⚠ Une variante de hachure s'écrit en `background-image`**, jamais avec le
+  raccourci `background`, qui remettrait taille et position à leur défaut — et ne casserait QUE ce
+  placard-là, donc en silence.
+  **⚠ ET LA LEÇON DE MÉTHODE, PAYÉE UNE VERSION** : la première solution était
+  `background-attachment:fixed` — l'ancrage au viewport, qui est le raisonnement JUSTE (deux boîtes
+  dont l'écart change à chaque frame ne partagent une phase que par un repère tiers), vert aux deux
+  moteurs en headless, et **faux sur l'appareil** : WebKit ne repeint pas un fond fixé en même temps
+  qu'il défile, la texture retarde puis se recale. Même famille que le rebond du rail A→Z et que le
+  dossier « bande basse iOS » : **ce que le compositeur fait du rendu n'est visible dans AUCUNE
+  mesure de la page**, donc un harnais vert ne prouve rien sur cette classe de propriétés — on
+  n'ancre jamais à un repère qu'on ne contrôle pas. Corollaire pour les témoins : mesurer la
+  PROPRIÉTÉ (les deux grilles partent du même point) et non le MÉCANISME du jour, sinon le témoin
+  rougit le jour où l'on doit en changer.
 - **RÉPONDRE À UN GESTE N'EST PAS INTERROMPRE (v4.55.4)** : la règle 11 (« aucune notification
   flottante en session ») vise ce qui **ARRIVE** — erreur de synchro, conflit, nouvelle de fond :
   ce qui s'impose à quelqu'un qui n'a rien demandé, au pire moment. Elle retenait aussi la
