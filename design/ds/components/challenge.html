@@ -1508,9 +1508,17 @@
        doigt ; ailleurs le rebond reste, c'est une affordance native qui dit « fin de liste ».
        En voie large l'accueil est une coque fixe (le document ne défile pas) et le rail y est
        `absolute` dans le flux : il n'a jamais été concerné.
-       ⚠ La déclaration vit sur `html` (via `:has()`) ET sur `body` : la propagation vers le
-       viewport se fait depuis la racine, et la poser sur le corps seul est sans effet. */
-    html:has(body.view-home),body.view-home{overscroll-behavior-y:none}
+       ⚠ La déclaration vit sur `html` ET sur `body` : la propagation vers le viewport se fait
+       depuis la racine, et la poser sur le corps seul est sans effet.
+       ⚠⚠ ET ELLE NE DURE QUE LE GESTE (signalé à l'usage : « le scroll des cartes n'est plus très
+       ergonomique, s'arrête, est lent »). Posée en permanence sur l'accueil, elle corrigeait bien
+       le rail — mais sur WebKit `overscroll-behavior` ne supprime pas que le REBOND : il ampute
+       aussi l'INERTIE, donc le défilement des cartes, c'est-à-dire le geste le plus fréquent de
+       l'écran, payait le confort d'un geste rare. La classe est posée au `pointerdown` sur le
+       rail et retirée au relâchement : hors visée, le défilement du document est exactement celui
+       du système, rebond et inertie compris. C'est aussi la portée JUSTE — le rebond n'a besoin
+       d'être supprimé que pendant qu'on VISE une surface fixe. */
+    html.azr-aim,html.azr-aim body{overscroll-behavior-y:none}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */

@@ -3529,6 +3529,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   viewport part de la racine, la poser sur le corps seul est sans effet.
   **RÈGLE : une surface FIXE qu'on VISE doit vivre dans un document sans rebond** — sinon le
   compositeur la déplace pendant qu'on s'en sert, et rien, côté application, ne peut le voir.
+  **⚠ MAIS LA SUPPRESSION NE DURE QUE LE GESTE (signalé à l'usage : « le scroll des cartes n'est
+  plus très ergonomique, s'arrête, est lent »)** : posée en permanence sur l'accueil, la règle
+  corrigeait le rail et cassait le défilement — sur WebKit, `overscroll-behavior` n'ampute pas que
+  le REBOND, il ampute aussi l'INERTIE. Le geste le plus fréquent de l'écran payait alors le
+  confort d'un geste rare. La classe `azr-aim` est posée au `pointerdown` du rail (donc AVANT que
+  WebKit ne fige les propriétés du défileur pour la séquence tactile — les évènements pointeur y
+  précèdent les tactiles) et retirée au relâchement ; un FILET la retire au niveau du document en
+  capture et au passage en arrière-plan, une classe restée posée étant le défaut d'origine en pire,
+  parce que rien ne le dirait. C'est aussi la portée JUSTE : le rebond ne gêne que pendant qu'on
+  vise.
   **⚠ UNE GOUTTIÈRE FANTÔME DE 68 px** : le rail réservait la hauteur de la **tab bar**, supprimée
   au lot M4 (`grep tabBar` : 0 occurrence). Invisible tant que les lettres étaient ancrées en
   haut ; en les centrant, ce vide décalait tout le rail. Corollaire de la règle 14 — **une
