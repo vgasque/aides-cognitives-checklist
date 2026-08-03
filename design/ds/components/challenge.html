@@ -1474,7 +1474,7 @@
        0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
-    .azrail{position:fixed;right:0;top:calc(var(--hdr-h,64px) + 6px);bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
+    .azrail{position:fixed;right:0;top:var(--azr-top,calc(var(--hdr-h,64px) + 6px));bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
     /* ⚠ ET LA MARGE BASSE DU MATÉRIEL EST LE SECOND TERME QUI BOUGE — `svh` NE SUFFISAIT PAS
        (signalé à l'usage : « ça persiste en partie, surtout quand on scroll vers le bas sur le
        rail : il remonte »). Dans Safari iOS, `env(safe-area-inset-bottom)` n'est PAS une
@@ -1490,9 +1490,9 @@
        RÈGLE : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est aussi
        suspect que `--vvh` — le vérifier avant de l'écrire. */
     @supports (height:100svh){
-      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px)}
+      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px)}
       @media (display-mode:standalone){
-        .azrail{height:calc(100svh / var(--zf,1) - var(--hdr-h,64px) - 12px - var(--sab,0px))}
+        .azrail{height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px - var(--sab,0px))}
       }
     }
     body.view-home main.azr-on .home-main{padding-right:24px}

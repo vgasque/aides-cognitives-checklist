@@ -24,7 +24,39 @@ second terme qui bouge exactement pour la même raison.
   l'inset y vaut 0, qu'aucune API ne permet de simuler. Un contrôle dynamique serait donc resté
   VERT sur le défaut, le pire cas du dossier. On mesure la SOURCE : la hauteur du rail étroit ne
   cite ni `--vvh`, ni `dvh`/`lvh`, ni l'inset bas hors de la branche `standalone`. Vérifié capable
-  d'échouer (terme réintroduit → rouge, fichier restauré à l'octet). 624 contrôles doctrine.
+  d'échouer (terme réintroduit → rouge, fichier restauré à l'octet).
+
+#### Et la vraie cause, signalée **depuis la PWA** — donc sans barre d'outils ni inset qui bougent
+
+Les deux points ci-dessus étaient justes mais **ne pouvaient pas expliquer** le défaut chez
+quelqu'un qui n'a ni barre d'outils ni marge basse variable. Deux dernières entrées dynamiques
+restaient, toutes deux invisibles sur Blink et toutes deux actives en PWA.
+
+- **Un saut se calcule désormais en ABSOLU, jamais en relatif.** Le saut était un déplacement
+  RELATIF (`scrollBy`, `scrollTop +=`) dont le pas se déduisait d'un `getBoundingClientRect()` —
+  c'est-à-dire de la position **déjà rendue** — puis s'ajoutait à la position **courante**. Sur
+  Blink les deux sont la même chose, le défilement étant synchrone : la sonde le confirme (course
+  monotone de 0 à 1908 px, aucune oscillation). **Sur iOS le défilement est asynchrone** : pendant
+  un glisser, le rect peut refléter une position que le compositeur n'a pas encore appliquée alors
+  que `scrollY` est déjà à jour. On ajoute alors un pas déjà parcouru — on dépasse —, le mouvement
+  suivant calcule un pas négatif pour corriger, et à 60 évènements par seconde cela devient une
+  **oscillation : on descend, ça remonte**. La cible est calculée dans les offsets de mise en page
+  (indépendants de toute position de défilement) et posée en absolu : deux appels pour la même
+  lettre visent exactement le même point, **idempotent par construction**.
+- **La boîte du rail est gelée dans `--azr-top`, posée au rendu.** C'était la dernière entrée
+  dynamique de sa géométrie : le haut valait `--hdr-h`, propriété que `syncHdrScroll` **réécrit à
+  chaque défilement** depuis un rect de l'en-tête **collant**. Sur Blink un sticky est repositionné
+  avant l'évènement, donc la mesure est toujours juste (vérifié : `--hdr-h` constante sur toute la
+  course) ; sur iOS, où défilement et collants sont composités, rien ne le garantit — et le rail
+  étant FIXE, une seule valeur transitoire lui déplace le haut **et** la hauteur, donc son centre.
+  Le haut est mesuré au rendu, puis reposé au redimensionnement et à la rotation seulement.
+- **Géométrie inchangée au repos**, mesuré avant/après : boîte à 168 px de haut sur 670 px de
+  haut à 390 px, saut atterrissant à 8 px sous les couches collantes dans les deux dispositions.
+- **Témoins** (9 de plus) : statiques pour ce qu'aucun moteur headless ne reproduit (le saut ne
+  cite ni `scrollBy` ni `scrollTop +=` ; la boîte passe par `--azr-top`), dynamiques pour ce qui
+  se mesure (la lettre atterrit sous les couches collantes ; **deux sauts de suite ne déplacent
+  plus rien**, l'idempotence étant ce qui casse l'oscillation), à 390 et 1100 px — les deux voies
+  de défilement. Vérifiés capables d'échouer, fichier restauré à l'octet. 633 contrôles doctrine.
 
 ## [5.0.1] — 2026-08-02
 ### Le rail A→Z cesse de bouger sous le doigt
