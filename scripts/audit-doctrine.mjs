@@ -2155,21 +2155,39 @@ for (const W of [390, 1100]) {
     t(`${W} · la lettre visée atterrit sous les couches collantes`,
       r.ecarts.every(v=>v>=0&&v<=24), JSON.stringify(r.ecarts));
     t(`${W} · … et deux sauts de suite ne déplacent plus rien`, r.derives===0, `${r.derives} dérive(s)`);}
-  /* LE REBOND DE FIN DE PAGE EST SUPPRIMÉ SUR L'ACCUEIL ÉTROIT, ET LÀ SEULEMENT : pendant le
+  /* LE REBOND N'EST SUPPRIMÉ QUE PENDANT LA VISÉE, ET C'EST LA PORTÉE QU'ON MESURE. Pendant le
      rubber-band, WebKit translate les éléments `position:fixed` — le rail part avec, sous le
-     doigt. Ailleurs le rebond RESTE (affordance native « fin de liste »), et les fenêtres gardent
-     leur `contain`. C'est la portée qu'on mesure, pas seulement la présence. */
+     doigt. Mais `overscroll-behavior` n'ampute pas que le rebond sur WebKit : il ampute aussi
+     l'INERTIE, donc le posé en permanence faisait payer le geste le plus fréquent de l'écran (le
+     défilement des cartes) pour un geste rare. Trois états à vérifier — AU REPOS le défilement du
+     document est celui du système, PENDANT la visée le rebond est supprimé, APRÈS il revient. */
   const o = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const lire=()=>getComputedStyle(document.documentElement).overscrollBehaviorY;
     state.view='library';render();await w(250);
-    const accueil=lire();
+    const rail=document.getElementById('azRail');
+    const repos=lire();
+    let vise=null,apres=null;
+    if(rail){const b=rail.querySelector('[data-azl]').getBoundingClientRect();
+      rail.dispatchEvent(new PointerEvent('pointerdown',
+        {bubbles:true,clientX:b.left+2,clientY:b.top+2,pointerId:1,buttons:1}));
+      vise=lire();
+      rail.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:1}));
+      await w(60);apres=lire();}
     openRead(fiches[0].id);await w(350);
-    return {accueil,lecture:lire(),
+    return {repos,vise,apres,lecture:lire(),
       modale:(()=>{const m=document.querySelector('.ai-modal');
         return m?getComputedStyle(m).overscrollBehaviorY:null;})()};});
-  t(`${W} · le rebond de fin de page ${W<780?'est supprimé':'reste'} sur l'accueil`,
-    o.accueil===(W<780?'none':'auto'), o.accueil);
-  t(`${W} · … et il reste partout ailleurs`, o.lecture==='auto', o.lecture);
+  t(`${W} · au repos, le défilement du document est celui du système`, o.repos==='auto', o.repos);
+  if(o.vise!=null){
+    /* ⚠ EN VOIE LARGE, RIEN NE DOIT CHANGER MÊME PENDANT LA VISÉE : le document n'y défile pas
+       (l'accueil est une coque fixe, seule `.home-main` défile) et le rail y est `absolute` dans
+       le flux, donc le rebond ne l'a jamais déplacé. La règle est bornée au palier étroit, et
+       c'est cette BORNE que le contrôle mesure — sans elle on supprimerait un rebond natif là où
+       il ne gêne personne. */
+    t(`${W} · … le rebond ${W<780?"n'est supprimé que PENDANT la visée du rail":'reste intact même pendant la visée (rail dans le flux)'}`,
+      o.vise===(W<780?'none':'auto'), String(o.vise));
+    t(`${W} · … et il revient dès le relâchement`, o.apres==='auto', String(o.apres));}
+  t(`${W} · … il reste partout ailleurs`, o.lecture==='auto', o.lecture);
   t(`${W} · … les fenêtres gardant leur « contain »`, o.modale==='contain', String(o.modale));
   await page.close();
 }

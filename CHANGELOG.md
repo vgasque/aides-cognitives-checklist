@@ -69,16 +69,26 @@ précédents ne pouvait suffire.
   change : c'est une transformation appliquée au rendu, par le compositeur, **en dehors de toute
   mesure lisible en JS**. Aucune formule de hauteur ne s'en protège, et aucun moteur headless ne
   la reproduit.
-- **`overscroll-behavior-y:none`, borné à l'accueil en voie étroite** — le seul endroit où une
-  surface FIXE se vise au pixel et à la cadence du doigt. Partout ailleurs le rebond RESTE : c'est
-  une affordance native qui dit « fin de liste », et rien ne justifie de la retirer là où personne
-  ne vise. En voie large l'accueil est une coque fixe (le document ne défile pas) et le rail y est
-  `absolute` dans le flux : il n'a jamais été concerné. Les fenêtres gardent leur `contain`.
-  La déclaration vit sur `html` (via `:has()`) **et** sur `body` : la propagation vers le viewport
-  se fait depuis la racine, la poser sur le corps seul est sans effet.
-- **Témoins** (6 de plus) : celui-ci **se mesure**, et c'est la PORTÉE qu'on mesure, pas seulement
-  la présence — supprimé sur l'accueil étroit, conservé en lecture, conservé à 1100 px, `contain`
-  intact sur les fenêtres. Vérifié capable d'échouer. 639 contrôles doctrine.
+- **`overscroll-behavior-y:none`, et SEULEMENT PENDANT LA VISÉE** (`html.azr-aim`, posée au
+  `pointerdown` sur le rail, retirée au relâchement). ⚠ Le premier jet la posait en permanence sur
+  l'accueil : le rail était corrigé, mais **sur WebKit `overscroll-behavior` n'ampute pas que le
+  rebond — il ampute aussi l'INERTIE** (signalé à l'usage : « le scroll des cartes n'est plus très
+  ergonomique, s'arrête, est lent »). Le geste le plus fréquent de l'écran payait donc le confort
+  d'un geste rare. Bornée au geste, la règle a aussi la portée juste : le rebond n'a besoin d'être
+  supprimé que pendant qu'on vise une surface fixe. Elle est posée au `pointerdown` — donc avant
+  que WebKit ne fige les propriétés du défileur pour la séquence tactile, les évènements pointeur
+  y précédant les évènements tactiles — et un **filet** la retire au niveau du document (en
+  capture) et au passage en arrière-plan : une classe restée posée serait le défaut d'origine, en
+  pire, parce que rien ne le dirait.
+- **Borné au palier étroit** : en voie large l'accueil est une coque fixe (le document ne défile
+  pas) et le rail y est `absolute` dans le flux — le rebond ne l'a jamais déplacé. Les fenêtres
+  gardent leur `contain`. La déclaration vit sur `html` **et** sur `body` : la propagation vers le
+  viewport se fait depuis la racine, la poser sur le corps seul est sans effet.
+- **Témoins** (9 de plus) : ceux-ci **se mesurent**, et c'est la PORTÉE qui est vérifiée, pas la
+  présence — au repos le défilement du document est celui du système, pendant la visée le rebond
+  est supprimé, au relâchement il revient ; intact en lecture, intact à 1100 px même pendant la
+  visée, `contain` intact sur les fenêtres. Vérifiés capables d'échouer dans les deux sens (règle
+  retirée → rouge ; règle reposée en permanence → rouge sur « au repos »). 643 contrôles doctrine.
 
 ## [5.0.1] — 2026-08-02
 ### Le rail A→Z cesse de bouger sous le doigt
