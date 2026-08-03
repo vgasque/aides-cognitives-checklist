@@ -4282,6 +4282,26 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   fois** dans `index.html`, mais l'immense majorité désigne le **store IndexedDB**, pas la table
   Supabase. Renommer au motif ne casserait pas la synchro, il casserait le stockage LOCAL et
   exigerait une montée de version de base. Ne remplacer que ce qui porte `/rest/v1/` ou `table:`.
+  **⚠ ET C'EST EXACTEMENT LÀ QUE LE RENOMMAGE A COÛTÉ (v5.0.4, signalé à l'usage : « Erreur
+  synchronisation — One of the specified object stores was not found »)** : `table:` était l'un des
+  cinq appels à remplacer, mais `cfg.table` de `_pullTable` servait à DEUX choses — la table REST
+  **et** le store LOCAL où la page est écrite (`Data.applyRows`). Le renommer côté REST a donc
+  envoyé le pull des aides écrire dans un store `cognitive_aids` qui n'existe nulle part, et **la
+  synchronisation ENTIÈRE échouait** dès la première page portant une ligne. Les deux noms sont
+  désormais distincts (`cfg.store`, défaut = `cfg.table`).
+  **LE DÉFAUT JUMEAU ÉTAIT SILENCIEUX, ET C'EST LE PLUS INSTRUCTIF** : dans le repli KV,
+  `store==='protocols'?'protocols_v1':'fiches_v1'` faisait tomber **tout le reste** dans les
+  fiches — le pull de l'historique de sessions (v4.54.0) y rangeait ses sessions dans la
+  bibliothèque, sans un mot. `SYNC_KV_KEY` est une table explicite et **un nom inconnu ÉCHOUE
+  bruyamment**, comme le fait IndexedDB : corrompre en silence est la pire des deux options, et
+  c'est ce qui a laissé ce défaut vivre pendant que l'autre criait.
+  **RÈGLE, ET ELLE VAUT POUR TOUT RENOMMAGE** : chercher les endroits où l'ancien nom servait à
+  DEUX choses, pas seulement ceux qui le citent. `scripts/check-stores.mjs` (dans `npm run check`)
+  la rend auto-exécutoire : tout store visé par la synchro existe dans le schéma d'`openSpaceDb`
+  (le schéma fait autorité — aucune liste recopiée), et `SYNC_KV_KEY` couvre exactement les stores
+  écrits. Vérifié capable d'échouer dans les deux sens. **Aucun garde-fou ne pouvait le voir
+  avant** : `npm run check` ne lisait pas ce couplage, et **aucun harnais n'exerce un pull réel** —
+  le seul point du dossier où une fonction critique n'est mesurée que par ses parties pures.
 - **v3 A QUITTÉ L'APPLICATION — ÉTAPE D (v5.0.0).** Sont partis : le **miroir `b.steps`** (regénéré
   à chaque écriture depuis l'étape T6), les fonctions **`v3ToV4` / `v4ToV3`** et `V4_PERTES`, la
   **détection de format** dans `migrate`, et les quatre-vingts témoins qui mesuraient la conversion

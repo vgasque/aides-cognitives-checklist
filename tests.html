@@ -1807,6 +1807,23 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('… et 2 protocoles',(r4.protocols||[]).length,2);
   }
 
+  group('Synchro — table REST ≠ store local (v5.0.4)');
+  {
+    /* Signalé à l'usage : « Erreur synchronisation — One of the specified object stores was not
+       found ». `_pullTable` faisait servir `cfg.table` à la fois de table REST et de store local ;
+       le lot T9 a renommé la table Supabase `fiches` -> `cognitive_aids` sans pouvoir renommer le
+       store IndexedDB, et le pull des aides écrivait dès lors dans un store inexistant. Ce qui est
+       testable ici est la table du repli KV — la moitié du défaut qui, elle, était SILENCIEUSE :
+       l'ancienne ligne rangeait tout ce qui n'était pas « protocols » dans les fiches, sessions
+       rapatriées comprises. Le couplage lui-même est tenu par `scripts/check-stores.mjs`. */
+    eq('les trois stores synchronisés ont leur clé',[A.kvStoreKey('fiches'),A.kvStoreKey('protocols'),A.kvStoreKey('sessions')],['fiches_v1','protocols_v1','sessions_v1']);
+    /* Le point du correctif : un nom inconnu ÉCHOUE, il ne retombe pas sur les fiches. */
+    let leve=false;try{A.kvStoreKey('cognitive_aids');}catch(e){leve=true;}
+    ok('un nom de table REST n’est pas un store : refus bruyant',leve);
+    let leve2=false;try{A.kvStoreKey('__proto__');}catch(e){leve2=true;}
+    ok('« __proto__ » ne traverse pas la table (règle 6)',leve2);
+  }
+
   group('Journal des actions — repères référentiels');
   {const f={counters:[{id:'c1',label:'Chocs'},{id:'c2',label:'Adrénaline'}]};
    const ev=[

@@ -1,5 +1,40 @@
 # Journal des modifications
 
+## [5.0.4] — 2026-08-03
+### La table distante et le store local sont deux noms, pas un
+
+Signalé à l'usage : « Erreur synchronisation : Erreur inattendue — Failed to execute 'transaction'
+on 'IDBDatabase': One of the specified object stores was not found ». La synchronisation des aides
+échouait **entièrement**, dès la première page rapatriée portant une ligne.
+
+- **La cause.** `_pullTable(cfg)` faisait servir `cfg.table` à DEUX choses : la table REST
+  (`/rest/v1/<table>`) et le store LOCAL où la page est écrite (`Data.applyRows`). C'était vrai
+  tant que les deux noms coïncidaient. Le lot T9 (v5.0.0) a renommé la table Supabase
+  `fiches` → `cognitive_aids` — décision motivée, et qui ne pouvait PAS renommer le store
+  IndexedDB, une montée de version de base cassant le stockage local. Le pull des aides demandait
+  donc une transaction sur un store `cognitive_aids` qui n'existe nulle part. Les deux noms sont
+  désormais distincts (`cfg.store`, défaut = `cfg.table`), et le pull des aides écrit dans
+  `fiches`.
+- **Le défaut jumeau, silencieux, trouvé au passage.** Dans le repli localStorage,
+  `KV.applyRows` faisait `store==='protocols' ? 'protocols_v1' : 'fiches_v1'` : **tout le reste
+  tombait dans les fiches**. Le pull de l'historique de sessions (v4.54.0) y rangeait donc ses
+  sessions dans la bibliothèque, sans un mot — là où IndexedDB, lui, avait au moins crié. Une
+  table explicite (`SYNC_KV_KEY`) remplace le repli par défaut, et **un nom inconnu échoue
+  bruyamment** : corrompre en silence est la pire des deux options, et c'est précisément ce qui a
+  laissé ce défaut vivre. `kvStoreKey` est PURE (testée), et `__proto__` ne traverse pas la table
+  (règle 6).
+- **`scripts/check-stores.mjs` (dans `npm run check`) rend le couplage auto-exécutoire**, dans les
+  deux sens : tout store visé par une écriture de synchro existe RÉELLEMENT dans le schéma créé
+  par `openSpaceDb` (le schéma fait autorité — aucune liste recopiée, une liste recopiée diverge) ;
+  tout nom de store écrit en toutes lettres ailleurs existe aussi ; et `SYNC_KV_KEY` couvre
+  exactement les stores que la synchro écrit. **Vérifié capable d'échouer** dans les deux sens
+  (défaut d'origine réintroduit → rouge ; entrée KV retirée → rouge ; fichier restauré à l'octet).
+- **Pourquoi rien ne l'avait vu.** Aucun harnais n'exerce un pull réel, et `npm run check` ne
+  lisait pas ce couplage : c'est la leçon constante du dossier — partout où une règle est restée
+  DÉCLARATIVE (« `cfg.table` = le store local », écrit en commentaire), elle a fini par fuir.
+  Corollaire du renommage : **après un renommage, chercher les endroits où l'ancien nom servait à
+  DEUX choses**, pas seulement les endroits qui le citent.
+
 ## [5.0.3] — 2026-08-03
 ### Le déclencheur de filtre déménage contre la recherche, et cesse de disparaître
 
@@ -1508,145 +1543,3 @@ réelle, c'est-à-dire par le chemin de l'auteur.
 808 tests × 2 moteurs, a11y 301/301, doctrine 112/112, complications 20/20, exercice 20/20,
 lecteur 14/14, QR 9/9, partage 296/296 (+2), historique 16/16 — **les quatorze harnais de bout en
 bout, `npm run audit` en sortie 0**. Rien à rejouer côté serveur.
-
-## [4.70.0] — 2026-07-29
-### Fin de la phase K — le minuteur dans sa carte, le poste d'écriture, le discriminant
-
-> **⚠ Cette version exige de rejouer `supabase/schema.sql`** — la première du chantier dans ce
-> cas. La liste blanche des champs de fiche du serveur doit connaître `discriminant`, sinon il est
-> filtré à l'arrivée et l'invité voit une fiche sans son discriminant.
-
-### K7 — le minuteur se règle dans sa carte, et l'alarme dit l'action
-La rangée de champs devient la **carte du rail** : nom en casse de phrase, précision en méta,
-durée, type. S'y ajoute **« à l'échéance »** — nouveau champ `onDue`, facultatif, défaut vide.
-
-C'est le point important : `onTimerFired` annonce désormais **l'action** quand l'auteur l'a
-écrite, au lieu du seul nom. Une alarme qui nomme le minuteur dit **quoi a sonné**, jamais **quoi
-faire** — poser l'action au pied de l'alerte est la règle ECAM, et c'est l'auteur qui la connaît,
-pas l'application. Sans `onDue`, le comportement est inchangé.
-
-### K11 — le poste d'écriture à 1200 px
-**Structure | la fiche | aperçu.** La colonne structure **est** le futur « Se repérer » de la
-fiche : l'auteur ne dessine jamais le plan, il découle de la structure. Une ligne par bloc, son
-compte d'étapes, un tap pour ancrer le bloc au centre.
-
-Elle **n'agit jamais** : ni champ, ni geste destructeur — la même règle que le plan inerte en
-lecture. Elle est posée *après* la colonne de travail dans le DOM et ramenée à gauche par `order`,
-pour que ni lecteur d'écran ni tabulation ne la traversent avant d'atteindre les champs. Palier
-1200, comme le cockpit de lecture.
-
-### K6 — le discriminant a son champ
-« adulte », « pédiatrique », « femme enceinte » : c'est **lui** que la troncature mange en
-premier, et deux titres identiques sur un écran de crise sont un piège. Champ `discriminant`,
-facultatif, 60 caractères.
-
-- **Aucune migration ne devine.** On ne découpe pas le titre d'un auteur pour en extraire un
-  discriminant supposé — ce serait réécrire son texte.
-- **Affiché là où le titre se tronque** : rangée du répertoire, tuile d'accès direct, et bandeau
-  de crise — dans sa propre pilule, jamais dans la chaîne qui se coupe.
-- **Il voyage** (client et serveur). Il fait partie du **nom** : un invité lisant « Arrêt
-  cardiaque » là où l'hôte lit « adulte » serait exposé au piège même que ce champ supprime. La
-  règle 15 (« aucun texte libre ne traverse le réseau ») vise ce qu'on **saisit pendant un soin**
-  — repères, notes, contexte local — pas l'identité de l'aide, dont le titre et le code voyagent
-  déjà.
-
-Vérifié : 808 tests × 2 moteurs, a11y 301/301, doctrine 112/112, partage 294/294, `check-sql`
-(19 capacités identiques client/serveur).
-
-## [4.69.0] — 2026-07-29
-### Identité compacte, volet de relecture d'une ligne, et les raccourcis à la frappe
-
-### La ligne Identité
-Le **titre domine** (16,5 px, la taille qu'il aura en lecture), le **code** le suit en pilule mono
-— c'est l'identité de crise, elle se lit d'un coup d'œil sans se confondre avec le titre — et
-« Identité ▾ » n'est plus une étiquette posée *devant* mais le **déclencheur à droite** : le mot
-ne prend la place du titre que là où il agit.
-
-### Le volet de relecture
-Il devient un **dépliant d'une ligne** : replié, le compte et les cibles abrégées ; déplié, ses
-rangées d'ancrage. Il dit **combien** il reste à relire, pas une seconde fois **quoi** — le détail
-vit sous la ligne qu'il vise depuis la v4.68.0.
-
-### K10 — les raccourcis à la frappe
-« ! » ou « ? » en tête d'étape, suivis d'une espace, **posent le registre** (⚠ / △) et
-**disparaissent du texte**. Le champ est réécrit sur place, la rangée reçoit sa classe, aucun
-re-rendu.
-
-Un éditeur markdown **libre** reste refusé : il casserait les registres, le style télégraphique et
-l'une-action-par-ligne. C'est la **vitesse** du texte qu'on récupère, pas sa liberté. Deux
-caractères, et **seulement en tête** : un « ? » au milieu d'une phrase (« Rythme choquable ? »)
-n'est pas un raccourci — l'oublier transformerait le texte d'un auteur sans qu'il comprenne
-pourquoi.
-
-**Piège majeur découvert à la mesure** : `STEP_CRIT_RX` reconnaît **déjà** « ! » comme marqueur
-critique (format historique, documenté). Déduire le registre du modèle *avant* d'évaluer le
-raccourci le rendait donc inatteignable — et laissait le « ! » dans le texte, cumulé avec le ⚠ :
-« ⚠ ! Choc immédiat », mesuré. Le raccourci s'évalue **avant**.
-
-Vérifié : **808 tests × 2 moteurs** (+7), a11y 301/301, doctrine 112/112. Rien à rejouer côté
-serveur.
-
-## [4.68.0] — 2026-07-29
-### Le dessin des box et des boutons de l'éditeur, d'après la maquette
-
-- **L'en-tête de bloc porte la pastille numérotée de la lecture** — ronde et bleue, losange ambre
-  pour une décision — au lieu d'une pilule « ÉTAPES ». C'est le même repère qu'en crise.
-- **Le chapeau porte son compte « n/4 »**, et la porte dit ce qui **reste** :
-  « ＋ Rappel (1 restant) ». Un plafond qu'on voit approcher informe ; il n'a pas à crier avant
-  d'être franchi — le garde-fou ambre ne parle qu'**au-delà** de 4.
-- **Le ✕ s'écarte des réglages.** Un geste destructeur ne se met jamais au contact d'un
-  interrupteur d'état : sinon le pouce corrige et supprime du même geste.
-- **La poignée ⠿ vit à droite de la ligne et reste visible au repos** : c'est une affordance de
-  réordonnancement, elle ne se découvre pas au tap.
-- **Le champ actif porte la bordure d'accent.** En thème sombre, `--input-bg` seul est trop proche
-  du fond de la rangée pour se voir — c'est le trait qui dit « ici on écrit ».
-
-### La remarque vit sous la ligne qu'elle vise
-Le volet du pied dit **combien** il reste à relire ; il ne dit pas **où** pendant qu'on écrit.
-`stepNote` (pure, testée) rend la remarque qui concerne une étape, affichée sous elle et
-seulement en édition — au repos, la page reste du texte.
-
-Corollaire appliqué : `stepGuardTxt(steps,'bloc')` ne rend plus que la remarque de **bloc** (son
-nombre d'étapes). Afficher la même remarque d'étape à deux endroits pour un seul défaut, c'était
-du bruit — et cela se voyait à l'écran.
-
-Vérifié : **801 tests × 2 moteurs** (+7), a11y 301/301, doctrine 112/112. Rien à rejouer côté
-serveur.
-
-## [4.67.0] — 2026-07-29
-### L'éditeur d'étapes en quatre états — au repos, aucun chrome
-
-Deux tentatives ont échoué avant celle-ci, et il faut savoir pourquoi : la v4.64 mettait les
-outils sous le champ au focus (43 → 123 px, et ils poussaient le contenu à l'instant où le doigt
-y entrait) ; la v4.66 réservait leur espace en permanence (plus rien ne bougeait, mais le champ
-tombait à 173 px et chaque étape gardait son cadre — l'écran restait un formulaire dense).
-
-La maquette retenue règle le problème **en amont**.
-
-**1 · Repos — aucun chrome.** La ligne est du **texte** : ni bordure, ni fond, ni outils.
-Exactement ce que le soignant lira. **38 px de hauteur, champ à 295 px** (contre 173). La rangée
-entière est la cible : un tap n'importe où passe en édition.
-
-**2 · Édition.** Le texte devient champ (≥ 16 px, donc pas de zoom iOS), curseur en place, et les
-outils apparaissent **sous la ligne**. Une seule étape est en édition à la fois : la page au repos
-reste aussi calme que la fiche en lecture. L'`<input>` reste dans le DOM en permanence — il porte
-la valeur et l'auto-enregistrement ; c'est son **habillage** qui change, donc rien à re-rendre au
-tap et rien qui saute.
-
-**3 · ⏎ = item suivant.** Une checklist **se dicte** : la saisie en rafale ne doit jamais passer
-par un menu. Entrée crée l'étape **juste en dessous**, vide, focus dedans, en étape **normale** —
-les registres ⚠ et △ se posent après, par l'interrupteur, parce qu'on écrit d'abord et qu'on
-qualifie ensuite. Et **un champ quitté vide fait disparaître l'item, sans dialogue** : jamais
-pendant la frappe (effacer pour reformuler supprimerait la ligne sous le doigt), jamais la
-dernière (un bloc garde une ligne où écrire), jamais pendant un déplacement.
-
-**4 · Un « + » = une portée.** La palette ne vit qu'**entre** les blocs et ne liste que les objets
-de niveau bloc — « Étape » n'y figure pas : dans un bloc, « + Étape » et ⏎ s'en chargent. La
-position du bouton choisit la portée **à la place de l'auteur**, qui n'a jamais à se demander où
-va atterrir ce qu'il ajoute. Chaque type dit sa **conséquence** en deux mots (« 2 branches »,
-« durée + libellé »), pas sa définition.
-
-Vérifié par une sonde dédiée sur **Chromium et WebKit** : repos sans cadre ni outils avec poignée
-visible, outils sous la ligne et champ ≥ 16 px en édition, ⏎ qui crée une étape vide avec le focus
-dedans, disparition au blur, palette sans « Étape ». Plus 794 tests × 2 moteurs, a11y 301/301,
-doctrine 112/112. Rien à rejouer côté serveur.

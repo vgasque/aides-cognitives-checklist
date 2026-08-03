@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-4w4EF58M7BrW+tl/bW96sB2SaZ7FCZcbpH3li7807rM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-CSxZTUb72ik/zCfWcNnnHICa/Hx8P5mDdlFWwy6IdUE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6168,7 +6168,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.3';
+const APP_VERSION='5.0.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6253,6 +6253,17 @@ window.addEventListener('storage',e=>{if(e.key==='ac-space')location.reload();})
 // Filet de sûreté (app critique) : on conserve les N dernières versions d'une fiche avant écrasement,
 // pour pouvoir comparer/restaurer (écrit lors d'un CONFLIT de synchro et avant une restauration).
 const BACKUP_MAX=5;
+/* NOM DE STORE LOCAL -> CLÉ localStorage du repli KV. Cette table existe parce que l'ancienne
+   ligne (`store==='protocols'?'protocols_v1':'fiches_v1'`) faisait tomber TOUT LE RESTE dans les
+   fiches, en silence : le pull de l'historique de sessions (table 'sessions', v4.54.0) écrivait
+   ses sessions dans `fiches_v1`. Un nom inconnu ÉCHOUE désormais bruyamment — c'est exactement
+   ce que fait IndexedDB (« object store not found »), et c'est ce qui a permis de trouver le
+   défaut jumeau du renommage `fiches` -> `cognitive_aids` (lot T9). Un repli silencieux sur les
+   fiches est la pire des deux options : il corrompt la bibliothèque au lieu de le dire.
+   PURE (testée via ?__actest). */
+const SYNC_KV_KEY={fiches:'fiches_v1',protocols:'protocols_v1',sessions:'sessions_v1'};
+function kvStoreKey(store){const k=Object.prototype.hasOwnProperty.call(SYNC_KV_KEY,store)?SYNC_KV_KEY[store]:null;
+  if(!k)throw new Error('store local inconnu : '+store);return k;}
 const KV={
   /* `_ram` : repli MÉMOIRE forcé, et non plus seulement subi. Il existait déjà comme dernier
      recours quand localStorage refuse d'écrire ; il devient un CHOIX explicite pour l'entrée
@@ -6276,9 +6287,9 @@ const KV={
   async putProtocol(p){const a=await this._r('protocols_v1',[]);const i=a.findIndex(x=>x.id===p.id);if(i>=0)a[i]=p;else a.push(p);await this._w('protocols_v1',a);},
   async delProtocol(id){const a=await this._r('protocols_v1',[]);await this._w('protocols_v1',a.filter(x=>x.id!==id));},
   // Écritures GROUPÉES du pull de synchro (page entière en UNE lecture + UNE écriture ; même
-  // signature que IDB.applyRows). store : 'fiches' ou 'protocols'.
+  // signature que IDB.applyRows). `store` est un nom de store LOCAL (cf. SYNC_KV_KEY).
   async applyRows(store,puts,dels){if(!puts.length&&!dels.length)return;
-    const key=store==='protocols'?'protocols_v1':'fiches_v1';const a=await this._r(key,[]);
+    const key=kvStoreKey(store);const a=await this._r(key,[]);
     const del=new Set(dels);const rep=new Map(puts.map(o=>[o.id,o]));
     const out=a.filter(x=>!del.has(x.id)).map(x=>rep.has(x.id)?rep.get(x.id):x);
     const seen=new Set(out.map(x=>x.id));puts.forEach(o=>{if(!seen.has(o.id))out.push(o);});
@@ -20221,10 +20232,19 @@ const Sync={
   // PULL GÉNÉRIQUE d'une table {id, data jsonb, updated_at, deleted_at} — comportement
   // STRICTEMENT identique à l'historique des fiches ; les spécificités (archivage de version,
   // nettoyage de la note personnelle) sont injectées par `cfg`.
-  //   cfg = { table (= store local : écritures groupées via Data.applyRows), cursorKey,
+  //   cfg = { table (table REST), store? (store LOCAL, défaut = table), cursorKey,
   //           getAllLocal, fromRow, addMem/replaceMem/dropMem (tableau en mémoire),
   //           backup?, onRemoteDelete? }
+  /* ⚠ LA TABLE DISTANTE ET LE STORE LOCAL SONT DEUX NOMS, PAS UN (v5.0.4, signalé à l'usage :
+     « Erreur synchronisation — One of the specified object stores was not found »). `cfg.table`
+     servait aux DEUX, ce qui était vrai tant que les noms coïncidaient. Le lot T9 (v5.0.0) a
+     renommé la table Supabase `fiches` -> `cognitive_aids` — pour de bonnes raisons, et en ne
+     touchant PAS au store IndexedDB (renommer un store exige une montée de version de base) —
+     et le pull des aides a dès lors écrit dans un store nommé `cognitive_aids`, qui n'existe
+     nulle part : la synchro ENTIÈRE échouait à la première page portant une ligne. Le défaut est
+     resté invisible aux garde-fous parce qu'aucun harnais n'exerce un pull réel. */
   async _pullTable(cfg){
+    const store=cfg.store||cfg.table;
     const cur=localStorage.getItem(spaceKey(cfg.cursorKey));
     // Recouvrement de 2 s + application idempotente (LWW) -> aucun enregistrement manqué aux bornes.
     let since=cur?new Date((Date.parse(cur)||0)-2000).toISOString():'1970-01-01T00:00:00Z';
@@ -20272,7 +20292,7 @@ const Sync={
       const puts=[],dels=[];
       for(const row of rows){const rts=Date.parse(row.updated_at)||0;if(rts>maxTs)maxTs=rts;
         await applyRow(row,puts,dels);}
-      await Data.applyRows(cfg.table,puts,dels);
+      await Data.applyRows(store,puts,dels);
       applied+=puts.length+dels.length;
       if(rows.length<PAGE)break;
       const next=new Date(maxTs).toISOString();if(next===since)break;since=next;
@@ -20296,7 +20316,7 @@ const Sync={
         const rows=await rest('GET','/rest/v1/'+cfg.table+'?select=*&id=in.('+missed.slice(i,i+60).join(',')+')')||[];
         const puts=[],dels=[];
         for(const row of rows)await applyRow(row,puts,dels);
-        await Data.applyRows(cfg.table,puts,dels);
+        await Data.applyRows(store,puts,dels);
         applied+=puts.length+dels.length;
       }
     }
@@ -20320,7 +20340,7 @@ const Sync={
     // inchangé : la nouvelle version arrive à la RÉOUVERTURE, jamais en cours de geste.
     if(applied&&!document.body.classList.contains('crisis-live'))render();
     return conflicts;},
-  async _pull(){return this._pullTable({table:'cognitive_aids',cursorKey:this._cursorKey,
+  async _pull(){return this._pullTable({table:'cognitive_aids',store:'fiches',cursorKey:this._cursorKey,
     getAllLocal:()=>Data.getAll(),fromRow:ficheFromRow,
     addMem:f=>fiches.push(f),
     dropMem:id=>{const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);},
@@ -22018,7 +22038,7 @@ if(location.search.indexOf('__actest')>=0){
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
+    kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
