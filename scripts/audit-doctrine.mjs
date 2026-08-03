@@ -1326,6 +1326,49 @@ console.log('\n══ En-tête d\'accueil · une seule ligne jusqu\'à 320 px �
   }
 }
 
+/* LE VERROU DE MARQUE SE MESURE SUR L'ENCRE, PAS SUR LA BOÎTE (v5.0.5, signalé à l'usage).
+   `logo-glyph.svg` porte son propre blanc — un cinquième de la boîte à gauche : caler le
+   rectangle sur la marge de page laissait le DESSIN 6 px plus loin, et l'écart au mot-marque
+   valait 14,5 px quand celui au bord n'en valait que 2, d'où une marque qui flotte au lieu de
+   faire lockup. Le témoin relit donc les insets d'encre AU CANVAS (si le glyphe est redessiné,
+   la mesure suit — un inset écrit en dur périmerait au premier retracé) et vérifie les deux
+   propriétés : l'encre commence à la marge de page, et la respiration du verrou reste
+   proportionnée au dessin. ⚠ Il rencontre son cas d'abord : hors accueil, le logo n'existe pas. */
+console.log('\n══ Accueil · le verrou logo + mot-marque ══');
+{
+  for(const w of [320,390,430,1280]){
+    const page = await br.newPage({viewport:{width:w,height:760},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await page.waitForTimeout(250);
+    const r = await page.evaluate(async ()=>{
+      const l=document.querySelector('.brand-logo');
+      if(!l||!l.offsetParent) return {pose:false};
+      const img=new Image();img.src='logo-glyph.svg';await img.decode();
+      const N=256,c=document.createElement('canvas');c.width=c.height=N;
+      const x=c.getContext('2d');x.drawImage(img,0,0,N,N);
+      const d=x.getImageData(0,0,N,N).data;
+      let x0=N,x1=-1;
+      for(let j=0;j<N;j++)for(let i=0;i<N;i++)
+        if(d[(j*N+i)*4+3]>12){if(i<x0)x0=i;if(i>x1)x1=i;}
+      const rl=l.getBoundingClientRect(),rb=document.querySelector('.brand').getBoundingClientRect();
+      const pad=parseFloat(getComputedStyle(document.querySelector('header.bar')).paddingLeft);
+      const encre={g:rl.left+rl.width*(x0/N), d:rl.right-rl.width*((N-1-x1)/N)};
+      return {pose:true, blanc:+((x0/N)*100).toFixed(1), marge:pad,
+        deltaG:+(encre.g-pad).toFixed(2), ecart:+(rb.left-encre.d).toFixed(2),
+        haut:+(rl.height*((x1-x0+1)/N)).toFixed(1)};});
+    t(`${w} px · le contrôle rencontre son cas (logo affiché, masque à blanc réel)`,
+      r.pose===true&&r.blanc>5, JSON.stringify(r));
+    t(`${w} px · l'ENCRE du logo commence à la marge de page`,
+      Math.abs(r.deltaG)<=1, `${r.deltaG} px d'écart à la marge de ${r.marge}`);
+    t(`${w} px · … et le verrou respire sans se disloquer (0,25–0,6 × la largeur d'encre)`,
+      r.ecart>=r.haut*0.25&&r.ecart<=r.haut*0.6, `${r.ecart} px pour ${r.haut} px d'encre`);
+    await page.close();
+  }
+}
+
 /* LE RAIL A→Z NE COUVRE JAMAIS UNE CARTE (v5.0.3, question utilisateur sur l'écart). En voie
    étroite il est `position:fixed` : la gouttière réservée n'est pas un tampon anti-fausse-manœuvre,
    c'est ce qui l'empêche de recouvrir le bord droit des rangées — donc l'épingle. La resserrer se

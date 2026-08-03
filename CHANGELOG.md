@@ -1,5 +1,58 @@
 # Journal des modifications
 
+## [5.0.5] — 2026-08-03
+### Le placard cesse de se briser, le logo se cale sur son dessin
+
+Trois retours d'usage, tous sur des repères visuels que le code posait sur la mauvaise référence.
+
+- **La hachure traverse la frontière des deux barres d'en-tête** (signalé à l'usage, capture à
+  l'appui). Un placard est UN placard — porté par deux boîtes, l'en-tête et le bandeau —, mais
+  chacune générait son dégradé depuis SON propre coin haut-gauche : les rayures se brisaient net à
+  la jointure, deux textures voisines au lieu d'une seule qui traverse.
+  `background-attachment:fixed` fait calculer les deux depuis l'origine du **viewport** : la
+  continuité devient une propriété du calcul, pas une valeur à tenir à jour.
+  **Écartés à la mesure** : un décalage par `background-position:0 calc(-1*var(--hdr-h))` serait
+  juste au repos et FAUX dès le premier pixel de défilement — le bandeau glisse sous la barre, son
+  offset d'écran change à chaque frame — et il ferait en plus apparaître une couture de pavage, la
+  hauteur d'en-tête n'ayant aucune raison d'être un multiple de la période (22 px sur l'axe, soit
+  31,11 px en vertical). Effet de bord voulu : le bandeau glisse, sa texture ne bouge pas — aucune
+  ligne ne se met à courir sous les yeux (ECAM).
+  **⚠ Le piège gardé est SILENCIEUX** : la variante d'essai écrivait sa hachure avec le raccourci
+  `background`, qui remet `background-attachment` à `scroll` — elle seule aurait perdu l'alignement.
+  Toute variante s'écrit donc en `background-image`. Témoin dans `audit-exercice` sur les **trois**
+  placards (exercice · invité · essai) et dans les deux thèmes, après avoir vérifié qu'une hachure
+  est bien posée : sans ce préalable on lirait « none / none » et on le déclarerait aligné.
+  Vérifié capable d'échouer dans les deux sens ; alignement mesuré à l'arrêt ET en cours de
+  défilement, sur Chromium et WebKit.
+- **Un logo se cale sur son DESSIN, jamais sur sa boîte** (signalé à l'usage : « rapproche le logo
+  de “Aides cognitives”, ça fait très étrange »). La v5.0.0 le CENTRAIT dans le blanc de gauche :
+  bonne intention — il paraissait collé au texte —, mauvais repère. Centrer une marque dans une
+  gouttière la fait flotter, alors qu'un logo et son mot-marque se lisent comme UN objet ; et la
+  mesure disait déjà l'inverse de l'impression, l'écart optique au texte valant **14,5 px** quand
+  celui au bord n'en valait que **2**.
+  **La cause est dans le masque** : `logo-glyph.svg` porte son propre blanc — mesuré au canvas,
+  l'encre occupe x ∈ [181, 889] sur 1024, soit **17,7 % à gauche et 13,1 % à droite**. La boîte de
+  34 px n'a donc jamais été le logo : on calait un rectangle dont un cinquième était vide. On la
+  rogne sur l'encre par deux marges négatives prises sur l'échelle d'espacement, et les deux
+  demandes tombent ensemble — l'encre commence **exactement à la marge de page**, donc alignée sur
+  les rangées du répertoire dessous, et le `column-gap` de la rangée devient l'écart optique RÉEL
+  (14,5 → 10 px). Rien n'est ajouté ni élargi : le rognage **rend 10 px** à la rangée d'identité,
+  celle qui se dispute chaque pixel à 320. Sous 400 px, où le `column-gap` tombe à 4 px pour rendre
+  de la largeur à toute la rangée, le rognage de droite est annulé : cet écart-là n'est pas une
+  gouttière entre deux objets, c'est la respiration d'un seul, et elle reste proportionnée au
+  dessin (8 px optiques, pour 4 px repris sur les 10 rendus).
+  Témoin dans `audit-doctrine` (320 · 390 · 430 · 1280) : il **relit les insets d'encre au canvas**
+  — un inset écrit en dur périmerait au premier retracé du glyphe — et vérifie d'abord qu'il
+  rencontre son cas, le logo n'existant que sur l'accueil. Vérifié capable d'échouer (6 rouges).
+- **Le réglage « Couleur d'accent » cesse de promettre ce qu'il ne fait plus.** Il annonçait
+  « colore l'accueil et les en-têtes — jamais le contenu de crise », alors que la v5.0.0 a confiné
+  l'accent au seul disque de l'avatar. La phrase dit désormais ce qui se passe, et le « En savoir
+  plus » dit POURQUOI la portée est si étroite : ici une couleur porte toujours un sens, et une
+  teinte répandue sur l'écran entrerait en concurrence avec les registres. Deux commentaires de
+  code qui portaient encore l'ancienne portée — dont l'en-tête de la section des palettes, que le
+  bloc suivant contredisait mot pour mot — sont remis d'aplomb : une doctrine qui affirme un état
+  révolu est pire qu'une doctrine absente.
+
 ## [5.0.4] — 2026-08-03
 ### La table distante et le store local sont deux noms, pas un
 

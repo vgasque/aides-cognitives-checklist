@@ -52,6 +52,27 @@ const e1b=await p.evaluate(async()=>{
  document.documentElement.dataset.theme='light';await new Promise(r=>setTimeout(r,120));
  return {dl,dd};});
 t('hachures LISIBLES dans les deux thèmes (delta bande/bande ≥ 30, clair ET sombre)', e1b.dl>=30&&e1b.dd>=30, JSON.stringify(e1b));
+// UN PLACARD EST UN PLACARD (v5.0.5, signalé à l'usage) : porté par DEUX boîtes — l'en-tête et le
+// bandeau —, il ne doit pas se briser à leur frontière. La continuité tient à un seul mot,
+// `background-attachment:fixed`, qui fait calculer les deux dégradés depuis l'origine du VIEWPORT
+// au lieu du coin de chaque élément. Le piège qu'on garde ici est SILENCIEUX : une variante écrite
+// avec le raccourci `background` remettrait l'ancrage à `scroll` et ne casserait QUE ce placard-là.
+// Les trois variantes sont donc mesurées, après avoir vérifié qu'une hachure est bien posée —
+// sans ce préalable on lirait « none / none » et on le déclarerait aligné.
+const e1d=await p.evaluate(()=>{
+ const h=document.querySelector('header.bar'),cb=document.getElementById('crisisBand');
+ const out={};
+ for(const c of ['exo','inv','ess']){
+  for(const e of [h,cb]){e.classList.remove('exo','inv','ess');e.classList.add(c);}
+  const a=getComputedStyle(h,'::before'),z=getComputedStyle(cb,'::before');
+  out[c]={pose:a.backgroundImage.includes('repeating')&&z.backgroundImage.includes('repeating'),
+   fixe:a.backgroundAttachment==='fixed'&&z.backgroundAttachment==='fixed',
+   meme:a.backgroundImage===z.backgroundImage&&a.backgroundPosition===z.backgroundPosition&&a.backgroundSize===z.backgroundSize};
+ }
+ for(const e of [h,cb]){e.classList.remove('inv','ess');e.classList.add('exo');}
+ return out;});
+t('la hachure TRAVERSE la frontière en-tête/bandeau (ancrage viewport, 3 placards)',
+  ['exo','inv','ess'].every(c=>e1d[c].pose&&e1d[c].fixe&&e1d[c].meme), JSON.stringify(e1d));
 const e2=await p.evaluate(async()=>{
  document.querySelector('.ov-block.cur ol.steps li').click();await new Promise(r=>setTimeout(r,400));
  return {started:Runtime.started,strip:document.getElementById('cbTimers').textContent,

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-CSxZTUb72ik/zCfWcNnnHICa/Hx8P5mDdlFWwy6IdUE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-y1OisDcdawoFaoZH4eB8XwstuCib+JOtxIO9boRroSM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -439,12 +439,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html[data-theme="dark"]{color-scheme:dark;}
   html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   /* ===== PALETTES D'ACCENT (par utilisateur, connecté seulement) =====
-     Identité de session : remplace la famille bleue sur L'ACCUEIL ENTIER et sur L'EN-TÊTE de
-     toutes les vues (l'identité reste visible partout) — le CONTENU des fiches en crise, des
-     protocoles et des éditeurs garde le bleu clinique canonique (variables posées sur header.bar
-     seulement, elles ne descendent pas dans main).
-     5 accents AA (primaire >= 4.5:1 sur blanc) ; pas de vert/ambre/rouge (registres réservés).
-     Dérivés soft/100/200/300 par color-mix — mêmes proportions que la palette clinique. */
+     Identité de session, et RIEN d'autre : l'accent ne colore que le DISQUE de l'avatar (cf. le
+     bloc ci-dessous). Il ne descend ni dans l'accueil, ni dans l'en-tête, ni dans aucun contenu :
+     le bleu clinique et les registres restent seuls maîtres de la couleur partout.
+     5 accents AA (>= 4.5:1 sur blanc, donc l'encre blanche du disque tient aussi) ; pas de
+     vert/ambre/rouge, qui sont des registres. Aucun dérivé soft/100/200/300 : une seule surface
+     à peindre n'en demande aucun. */
   /* ⚠ L'ACCENT SE CONFINE À L'AVATAR (v5.0.0, audit design — l'auteur a défendu la fonction, et
      il a raison : sur un ordinateur PARTAGÉ, reconnaître d'un coup d'œil à quel compte appartient
      cette fenêtre est un vrai besoin, et les initiales du bouton Compte ne se lisent pas de loin).
@@ -1235,19 +1235,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      le master SANS tuile, seul son canal alpha sert) est posé en masque sur un aplat de couleur.
      Il suit ainsi le THÈME et l'ACCENT par construction, au lieu d'être un bleu fixe qui jurait
      avec les accents violet/framboise et pesait en thème sombre. */
-  /* CENTRÉ ENTRE LE BORD ET LE MOT-MARQUE (v5.0.0, demande utilisateur — mesuré : 18 px du bord
-     de la barre contre 10 du texte, donc collé au texte).
-     ⚠ LE DÉCALAGE EST HORS FLUX (`position:relative`), et c'est la SEULE façon de tenir les trois
-     contraintes posées : ne pas élargir le logo, ne pas déplacer le texte, ne bouger que le logo.
-     Une marge négative le décalerait bien, mais le flex ramènerait le texte avec lui ; élargir sa
-     boîte pour l'y centrer pousserait le texte vers la droite. Un décalage visuel ne touche ni
-     l'un ni l'autre.
-     La valeur est la MOITIÉ de l'écart à combler — (18 − gap) / 2 — donc elle suit le gap de la
-     rangée, qui tombe à 8 px sous 430 px : 4 px en général, 5 px en étroit. `left` n'entre pas
-     dans l'échelle d'espacement (ce n'est ni une marge ni un rembourrage) : c'est une correction
-     OPTIQUE, dérivée de deux valeurs qui, elles, sont sur l'échelle. */
+  /* ⚠ UN LOGO SE CALE SUR SON DESSIN, JAMAIS SUR SA BOÎTE (v5.0.5, signalé à l'usage : « rapproche
+     le logo de “Aides cognitives”, ça fait très étrange »). La v5.0.0 le CENTRAIT dans le blanc de
+     gauche (`position:relative; left:-4px`) : bonne intention — il paraissait collé au texte —,
+     mauvais repère. Centrer une marque dans une gouttière la fait FLOTTER, alors qu'un logo et son
+     mot-marque se lisent comme UN objet ; et la mesure disait déjà l'inverse de l'impression :
+     l'écart optique au texte valait 14,5 px quand celui au bord n'en valait que 2.
+     LA CAUSE EST DANS LE MASQUE : `logo-glyph.svg` porte son propre blanc — mesuré au canvas,
+     l'encre occupe x ∈ [181, 889] sur 1024, soit **17,7 % à gauche et 13,1 % à droite** (6,0 et
+     4,5 px à 34 ; 5,3 et 3,9 à 30). La boîte de 34 px n'a donc jamais été le logo : on calait un
+     rectangle dont un cinquième était vide.
+     ON ROGNE DONC LA BOÎTE SUR L'ENCRE, par deux marges négatives prises sur l'échelle
+     d'espacement (−6 / −4, les deux insets arrondis au cran). Deux conséquences, et ce sont les
+     deux demandes : l'encre commence **exactement à la marge de page** — donc alignée sur les
+     rangées du répertoire dessous, ce qu'on attend d'un logo —, et le `column-gap` de la rangée
+     devient l'écart optique RÉEL (14,5 → 10 px à 34). Rien n'est ajouté ni élargi : le rognage
+     REND 10 px de largeur à la rangée d'identité, celle qui se dispute chaque pixel à 320.
+     Les valeurs valent pour les deux tailles (à 30 px l'écart au cran est de 0,7 px, invisible) :
+     un second jeu par palier ferait deux vérités pour un seul dessin. */
   .brand-logo{display:none;flex:none;width:34px;height:34px;background-color:currentColor;
-    position:relative;left:-4px;
+    margin-left:-6px;margin-right:-4px;
     -webkit-mask:url(logo-glyph.svg) center/contain no-repeat;mask:url(logo-glyph.svg) center/contain no-repeat}
   header.bar.home .brand-logo{display:block}
   /* PETITS ÉCRANS : le logo ne doit RIEN coûter en hauteur d'en-tête. Mesuré à 375px (iPhone SE),
@@ -1257,7 +1264,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      34 → 30px (‑4) et l'écart de colonne 10 → 8px (‑2 par écart). Le logo n'étant pas interactif,
      aucune règle de cible tactile ne s'y applique. */
   @media (max-width:429.98px){
-    header.bar.home .brand-logo{width:30px;height:30px;left:-5px}
+    header.bar.home .brand-logo{width:30px;height:30px}
     header.bar.home .id-row{column-gap:8px}
     /* ⚠ L'ABAISSEMENT DU MOT-MARQUE À 360 px N'EXISTE PLUS (v5.0.0, audit design A3-1) : il
        descendait 20 → 18 px pour rendre 14 px à la rangée d'identité. La marque étant désormais à
@@ -1291,6 +1298,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:399.98px){
     header.bar.home .id-row{column-gap:4px}
     header.bar.home .hdr-acts{gap:4px}
+    /* L'ÉCART DU VERROU RESTE UN ÉCART DE VERROU. Le `column-gap` tombe à 4 px pour rendre de la
+       largeur à toute la rangée ; appliqué au couple logo + mot-marque, il les fait se toucher
+       (3,9 px optiques mesurés) — or leur écart n'est pas une gouttière entre deux objets, c'est
+       la respiration D'UN objet, et elle doit rester proportionnée au dessin (~0,4 × sa hauteur
+       d'encre, comme les 10 px de la rangée large). On annule donc le rognage de droite, et pas
+       davantage : 8 px optiques, pour 4 px pris sur les 10 que le rognage vient de rendre. */
+    header.bar.home .brand-logo{margin-right:0}
   }
   @media (max-width:359.98px){
     header.bar.home .id-row{column-gap:4px}
@@ -2841,9 +2855,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'opacité — l'entrée/sortie du mode ET le passage bandeau → en-tête au défilement se font
      en ~300 ms au lieu d'un aplat instantané ; le fondu est neutralisé par la règle globale
      prefers-reduced-motion (transition:none). Les enfants passent en z-index:1 : le ::before
-     est AU-DESSUS du fond de l'élément, jamais au-dessus de son contenu. */
+     est AU-DESSUS du fond de l'élément, jamais au-dessus de son contenu.
+     v5.0.5 (signalé à l'usage, capture à l'appui) — LA HACHURE EST ANCRÉE AU VIEWPORT, PAS À SON
+     ÉLÉMENT. Un placard est UN placard, porté par deux boîtes (l'en-tête et le bandeau) ; chacune
+     générait pourtant son dégradé depuis SON propre coin haut-gauche, si bien que les rayures se
+     brisaient net à la frontière — deux textures voisines au lieu d'une seule qui traverse.
+     `background-attachment:fixed` fait calculer les deux depuis l'origine du VIEWPORT : la
+     continuité devient une propriété du calcul, pas une valeur à tenir à jour. Écartés à la
+     mesure : un décalage par `background-position:0 calc(-1*var(--hdr-h))` serait juste au repos
+     et FAUX dès le premier pixel de défilement (le bandeau glisse sous la barre, son offset
+     d'écran change à chaque frame), et il ferait en plus apparaître une couture de pavage, la
+     hauteur de l'en-tête n'ayant aucune raison d'être un multiple de la période (22 px sur l'axe,
+     soit 31,11 px en vertical). Vérifié aux deux moteurs, à l'arrêt et en cours de défilement.
+     Effet de bord VOULU : le bandeau glisse, sa texture ne bouge pas — le seul mouvement reste le
+     geste de défilement, et aucune ligne ne se met à courir sous les yeux (ECAM).
+     ⚠ TOUTE VARIANTE DE HACHURE S'ÉCRIT DONC EN `background-image`, jamais avec le raccourci
+     `background`, qui remettrait `background-attachment` à `scroll` et casserait l'alignement de
+     ce placard-là seulement — donc en silence. */
   #crisisBand{position:relative}
-  #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);opacity:0;transition:opacity .3s ease;pointer-events:none}
+  #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--primary-soft) 14px,var(--primary-soft) 22px);background-attachment:fixed;opacity:0;transition:opacity .3s ease;pointer-events:none}
   #crisisBand.exo::before{opacity:1}
   header.bar.exo::before{opacity:1}
   #crisisBand>*{position:relative;z-index:1}
@@ -2881,7 +2911,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      n'a que 2,1 px de marge à 320 px.
      PRIORITÉ : l'exercice l'emporte toujours (il protège d'une méprise clinique) ; un essai ne
      peut de toute façon pas être un invité (`previewFrom` l'exclut). */
-  #crisisBand.ess::before,header.bar.ess::before{background:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-3) 14px,var(--surface-3) 22px)}
+  /* `background-image` et non le raccourci `background` : le raccourci REMETTRAIT
+     `background-attachment` à `scroll` et ce placard perdrait l'ancrage au viewport qui aligne la
+     hachure de l'en-tête sur celle du bandeau (cf. la règle de base ci-dessus). */
+  #crisisBand.ess::before,header.bar.ess::before{background-image:repeating-linear-gradient(-45deg,var(--surface),var(--surface) 14px,var(--surface-3) 14px,var(--surface-3) 22px)}
   #crisisBand.ess::before,header.bar.ess::before{opacity:1}
 
   /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,
@@ -6168,7 +6201,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.4';
+const APP_VERSION='5.0.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -19407,7 +19440,7 @@ function accountPrefsHtml(slot){
     <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « ⤢ Tout voir » montre la fiche entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div></div>
-    <div class="st-hint" style="margin-bottom:4px">Colore l'accueil et les en-têtes — <b>jamais le contenu de crise</b>.<details class="acct-more"><summary>En savoir plus</summary>Elle identifie votre session d'un coup d'œil sur un appareil partagé ; le contenu des fiches en crise et des protocoles garde le bleu clinique, pour que les registres de couleur ne changent jamais de sens.</details></div>`:''}
+    <div class="st-hint" style="margin-bottom:4px">Colore le <b>disque de votre compte</b>, en haut à droite — et rien d'autre.<details class="acct-more"><summary>En savoir plus</summary>Sur un appareil partagé, il dit d'un coup d'œil à quel compte appartient cette fenêtre. L'accent s'arrête là : dans cette application une couleur porte toujours un sens — rouge ce qui tue si on l'oublie, ambre là où l'on se trompe, vert ce qui est confirmé — et une teinte répandue sur l'écran entrerait en concurrence avec eux.</details></div>`:''}
     ${Auth.signedIn()?sessSyncPrefHtml():''}
     ${tagsPrefHtml()}</div>`;}
 /* ═══ HISTORIQUE SYNCHRONISÉ — LA BASCULE, ET CE QU'ELLE DIT ══════════════════════════════════
@@ -19657,8 +19690,9 @@ bindModalDismiss(syncErrModal,closeSyncErr);
 
 Auth._load();
 /* ===== Couleur d'accent par utilisateur (connecté seulement) =====
-   Identité de session : l'ACCUEIL prend l'accent choisi ; les vues cliniques (fiches en crise,
-   protocoles, éditeurs) restent au bleu clinique — le CSS ne cible que body.view-home. */
+   Identité de session : l'accent ne peint QUE le disque du bouton Compte (v5.0.0) — le CSS ne
+   cible que `.bar-acct.on`. Le drapeau `body[data-accent]` reste posé sur le corps parce que
+   c'est la portée d'un réglage d'utilisateur, pas parce que quelque chose d'autre s'y teinte. */
 const ACCENT_IDS=['','teal','violet','indigo','framboise','ardoise'];
 const ACCENT_LBL={'':'Bleu clinique',teal:'Sarcelle',violet:'Violet',indigo:'Indigo',framboise:'Framboise',ardoise:'Ardoise'};
 function currentAccent(){try{const a=localStorage.getItem(spaceKey('ac-accent'))||'';return ACCENT_IDS.indexOf(a)>=0?a:'';}catch(e){return '';}}
