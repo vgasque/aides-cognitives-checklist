@@ -12,7 +12,16 @@
    budgets d'écran) plutôt que par relecture. */
 import { readFileSync } from 'node:fs';
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+/* ⚠ LES COMMENTAIRES SONT NEUTRALISÉS AVANT MESURE (v5.0.3) — le contrôle les lisait, et la
+   feuille CITE ses propres déclarations à longueur de commentaires doctrinaux. Un `column-gap:8px`
+   écrit dans une explication faisait courir la capture `[^;}]+` jusqu'à l'accolade suivante,
+   c'est-à-dire à travers le commentaire ET la règle d'après : elle y ramassait le `359.98px` d'une
+   media query et le signalait comme un espacement de « 98 px ». Faux positif à coup sûr, sur une
+   phrase qui ne pose rien. On remplace chaque commentaire par des espaces DE MÊME LONGUEUR :
+   indices et numéros de ligne restent exacts, donc les messages continuent de désigner le bon
+   endroit. Même précaution que `check-upload`, pour la même raison. */
+const brut = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+const css = brut.replace(/\/\*[\s\S]*?\*\//g, c => c.replace(/[^\n]/g, ' '));
 
 const ECHELLE = [0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72, 96];
 const PROPS = /\b(padding|margin|gap|row-gap|column-gap|padding-top|padding-right|padding-bottom|padding-left|margin-top|margin-right|margin-bottom|margin-left)\s*:\s*([^;}]+)/g;

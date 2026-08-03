@@ -1163,24 +1163,60 @@ console.log('\n══ Audit design · le repli des filtres ══');
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const rangees=()=>document.querySelectorAll('.typebar,.scopebar,.catbar').length;
-    const tog=()=>document.querySelector('[data-filttog]');
+    const tog=()=>{const b=document.getElementById('filtTog');return b&&!b.hidden?b:null;};
+    /* On mesure le BORD DROIT : le déclencheur grossit du chiffre qu'il porte, mais il est le
+       dernier objet de sa rangée — sa position apprise est celle de son bord droit. */
+    const bordD=()=>{const b=tog();return b?Math.round(b.getBoundingClientRect().right):null;};
+    const etat=()=>{const b=tog();if(!b)return null;
+      const n=document.getElementById('filtN');
+      return {act:b.classList.contains('act'),n:n&&!n.hidden?n.textContent:'',lbl:b.getAttribute('aria-label')||''};};
     /* Le premier contenu CLINIQUE, c'est-à-dire le point que tout ce lot cherche à remonter. */
     const yPremier=()=>{const e=document.querySelector('.dir-row .card-open');
       return e?Math.round(e.getBoundingClientRect().top):null;};
     await w(400);
-    const repliRangees=rangees(), repliTog=!!tog(), yRepli=yPremier();
+    const repliRangees=rangees(), repliTog=!!tog(), yRepli=yPremier(), xRepli=bordD();
+    if(!repliTog)return {repliRangees,repliTog,yRepli,xRepli,geo:null,ouvRangees:0,ouvTog:false,yOuvert:null,
+      actifRangees:0,actifTog:false,actifEtat:null,chipOn:false,apresRender:0,apresTog:false,apresEtat:null,
+      repliActifRangees:0,repliActifEtat:null,xRepliActif:null,avaitCat:false,deuxEtat:null,zeroEtat:null};
+    /* LE DÉCLENCHEUR EST CONTRE LA RECHERCHE (v5.0.3) : même rangée, à sa droite, sans la
+       recouvrir — c'est ce qui lui rend la ligne qu'il coûtait au premier écran. */
+    const geo=(()=>{const b=tog(),q=document.getElementById('q');
+      if(!b||!q)return null;const rb=b.getBoundingClientRect(),rq=q.getBoundingClientRect();
+      return {memeRangee:Math.abs((rb.top+rb.height/2)-(rq.top+rq.height/2))<=6,
+              aDroite:Math.round(rb.left-rq.right), h:Math.round(rb.height), w:Math.round(rb.width),
+              /* Il fait la HAUTEUR du champ, pas une hauteur écrite : celle du champ varie avec le
+                 pointeur (43 px tactile, 42 au pointeur fin), aucun nombre en dur ne serait juste. */
+              hChamp:Math.round(rq.height),
+              dyHaut:Math.round(rb.top-rq.top), dyBas:Math.round(rq.bottom-rb.bottom),
+              dansEcran:Math.round(rb.right)<=innerWidth};})();
     tog().click(); await w(500);
     const ouvRangees=rangees(), ouvTog=!!tog(), yOuvert=yPremier();
-    /* On pose un filtre : à partir de là, le repli doit devenir IMPOSSIBLE. */
+    /* On pose un filtre : à partir de là, le déclencheur doit le DIRE, et ne jamais s'en aller. */
     document.querySelector('.typebar [data-section="fiches"]').click(); await w(500);
-    const actifRangees=rangees(), actifTog=!!tog();
+    const actifRangees=rangees(), actifTog=!!tog(), actifEtat=etat();
     const chipOn=!!document.querySelector('.typebar [data-section="fiches"].on');
     /* Et il doit le rester après un re-rendu complet, pas seulement juste après le clic. */
     render(); await w(500);
-    const apresRender=rangees(), apresTog=!!tog();
-    document.querySelector('.typebar [data-section="all"]').click(); await w(500);
-    return {repliRangees,repliTog,yRepli,ouvRangees,ouvTog,yOuvert,
-            actifRangees,actifTog,chipOn,apresRender,apresTog};});
+    const apresRender=rangees(), apresTog=!!tog(), apresEtat=etat();
+    /* PUIS ON REPLIE ALORS QU'UN FILTRE AGIT : les rangées s'en vont, l'ÉTAT reste annoncé.
+       ⚠ Chaque geste est GARDÉ : un déclencheur absent est précisément le défaut que ce bloc
+       mesure — le laisser lever ferait planter le harnais, et « un harnais qui plante en emporte
+       cinq » (v4.70.1). On veut un ROUGE lisible, pas une exception. */
+    tog()?.click(); await w(500);
+    const repliActifRangees=rangees(), repliActifEtat=etat(), xRepliActif=bordD();
+    /* Deux filtres : le chiffre COMPTE, il ne se contente pas d'exister.
+       ⚠ Les chips sont re-rendues à chaque geste : on RE-INTERROGE le DOM, une référence gardée
+       d'avant le clic désignerait un nœud détaché et le geste ne ferait rien. */
+    tog()?.click(); await w(400);
+    const cat2=[...document.querySelectorAll('.catbar [data-cat]')].find(b=>b.dataset.cat);
+    const avaitCat=!!cat2; if(cat2)cat2.click(); await w(500);
+    const deuxEtat=etat();
+    document.querySelector('.typebar [data-section="all"]').click(); await w(400);
+    document.querySelector('.catbar [data-cat=""]')?.click(); await w(500);
+    const zeroEtat=etat();
+    return {repliRangees,repliTog,yRepli,xRepli,geo,ouvRangees,ouvTog,yOuvert,
+            actifRangees,actifTog,actifEtat,chipOn,apresRender,apresTog,apresEtat,
+            repliActifRangees,repliActifEtat,xRepliActif,avaitCat,deuxEtat,zeroEtat};});
 
   /* TÉMOIN D'ABORD : sans rangées à déplier, tout ce qui suit mesurerait le vide.
      ⚠ LE COMPTE DÉPEND DE L'ÉTAT DU COMPTE, et l'attendre à 3 était une erreur de la SONDE :
@@ -1197,12 +1233,184 @@ console.log('\n══ Audit design · le repli des filtres ══');
   t('… et le repli remonte bien le premier contenu clinique',
     r.yRepli!==null&&r.yOuvert!==null&&(r.yOuvert-r.yRepli)>=40,
     `${r.yRepli} px replié contre ${r.yOuvert} px déplié (${r.yOuvert-r.yRepli} px rendus)`);
-  /* LA CONTREPARTIE, ET C'EST LA GARANTIE QUI COMPTE. */
-  t('⚠ un filtre ACTIF n\'est jamais masqué', r.actifRangees===r.ouvRangees&&r.chipOn===true,
-    `${r.actifRangees} rangée(s) pour ${r.ouvRangees} dépliées, chip active ${r.chipOn}`);
-  t('… et le déclencheur DISPARAÎT alors (aucun bouton mort)', r.actifTog===false);
-  t('… et cela survit à un re-rendu complet', r.apresRender===r.ouvRangees&&r.apresTog===false,
-    `${r.apresRender} rangée(s), déclencheur ${r.apresTog}`);
+  /* v5.0.3 — LE DÉCLENCHEUR VIT CONTRE LA RECHERCHE. La v5.0.0 le posait dans le flux, au-dessus
+     du contenu : une ligne permanente pour un geste rare. */
+  t('il vit sur la rangée de recherche, à sa droite',
+    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.aDroite<=16&&r.geo.dansEcran,
+    JSON.stringify(r.geo));
+  /* Cible ≥ 32 px hors mode crise (règle 9) — le halo ::after l'étend encore de 4 px. */
+  t('… et sa cible reste réglementaire', !!r.geo&&r.geo.h>=32&&r.geo.w>=32,
+    r.geo?`${r.geo.w}×${r.geo.h} px`:'—');
+  /* SIGNALÉ À L'USAGE (v5.0.3) : une hauteur FIXE de 36 px laissait 4 px de jeu en haut et en bas,
+     le champ montant à 43 px sur écran tactile. Deux objets voisins d'une même rangée qui ne
+     s'alignent ni en haut ni en bas se lisent comme deux objets sans rapport. */
+  t('… et il fait exactement la hauteur du champ',
+    !!r.geo&&Math.abs(r.geo.h-r.geo.hChamp)<=1&&Math.abs(r.geo.dyHaut)<=1&&Math.abs(r.geo.dyBas)<=1,
+    r.geo?`${r.geo.h} px contre ${r.geo.hChamp} px (jeu ${r.geo.dyHaut}/${r.geo.dyBas})`:'—');
+  /* LA CONTREPARTIE, ET C'EST LA GARANTIE QUI COMPTE (v5.0.3 : elle a CHANGÉ DE PORTEUR).
+     La v5.0.0 forçait les rangées ouvertes dès qu'un filtre agissait, et retirait le
+     déclencheur — donc un contrôle qui apparaît et disparaît selon l'état. L'état actif est
+     désormais porté par le déclencheur LUI-MÊME : couleur + CHIFFRE + nom accessible, à position
+     constante dans l'en-tête. Il ne peut donc plus se cacher, et le bouton ne peut plus mourir. */
+  t('⚠ un filtre ACTIF est annoncé par le déclencheur, qui RESTE',
+    r.actifTog===true&&!!r.actifEtat&&r.actifEtat.act===true&&r.actifEtat.n==='1'&&r.chipOn===true,
+    `${JSON.stringify(r.actifEtat)}, chip active ${r.chipOn}`);
+  /* RÈGLE 8 : la couleur n'est jamais seule — le chiffre et le nom accessible portent l'info. */
+  t('… et pas par la seule couleur (chiffre + nom accessible)',
+    !!r.actifEtat&&/1 actif/.test(r.actifEtat.lbl), r.actifEtat?r.actifEtat.lbl:'—');
+  t('… et cela survit à un re-rendu complet',
+    r.apresRender===r.ouvRangees&&r.apresTog===true&&!!r.apresEtat&&r.apresEtat.act===true,
+    `${r.apresRender} rangée(s), déclencheur ${r.apresTog} ${JSON.stringify(r.apresEtat)}`);
+  /* CE QUI REMPLACE LE FORÇAGE : replier avec un filtre actif est permis, mais l'annonce demeure —
+     on ne peut pas se retrouver dans un corpus restreint sans savoir pourquoi. */
+  t('replier avec un filtre actif garde l\'annonce',
+    r.repliActifRangees===0&&!!r.repliActifEtat&&r.repliActifEtat.act===true&&r.repliActifEtat.n==='1',
+    `${r.repliActifRangees} rangée(s), ${JSON.stringify(r.repliActifEtat)}`);
+  /* CONSTANCE POSITIONNELLE : il grossit du chiffre, son bord droit ne bouge d'aucun état. */
+  t('… et sa position ne bouge pas d\'un état à l\'autre',
+    r.xRepli!==null&&r.xRepliActif!==null&&Math.abs(r.xRepli-r.xRepliActif)<=1,
+    `${r.xRepli} px puis ${r.xRepliActif} px`);
+  /* TÉMOIN : sans seconde dimension filtrable, on mesurerait « 1 » en croyant mesurer « 2 ». */
+  t('témoin : une seconde dimension de filtre existe', r.avaitCat===true);
+  t('le chiffre COMPTE les filtres posés',
+    !!r.deuxEtat&&r.deuxEtat.n==='2'&&!!r.zeroEtat&&r.zeroEtat.act===false&&r.zeroEtat.n==='',
+    `deux → ${JSON.stringify(r.deuxEtat)} ; aucun → ${JSON.stringify(r.zeroEtat)}`);
+  await page.close();
+}
+
+/* CROIX D'EFFACEMENT DE LA RECHERCHE (v5.0.3, demande utilisateur). Trois propriétés, et la
+   troisième est celle qu'on oublie : effacer sans rendre le focus oblige à re-viser le champ. */
+/* L'EN-TÊTE D'ACCUEIL TIENT SUR UNE LIGNE JUSQU'AU PLANCHER SERVI (v5.0.3, signalé à l'usage).
+   `.id-row` est en `flex-wrap` : le flex CASSE LA LIGNE avant de rétrécir, donc un déficit de
+   quelques pixels ne se voit pas comme un débordement — il se paie en HAUTEUR d'en-tête, sur le
+   seul écran où elle est la plus rare. C'est exactement ce qui se produisait à 320 px, et ce que
+   la v4.43.0 avait mesuré partout SAUF ici. On mesure donc l'alignement des deux blocs, pas un
+   débordement qui n'arrivera jamais. */
+console.log('\n══ En-tête d\'accueil · une seule ligne jusqu\'à 320 px ══');
+{
+  for(const w of [320,360,375,390,430]){
+    const page = await br.newPage({viewport:{width:w,height:700},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await page.waitForTimeout(300);
+    const r = await page.evaluate(()=>{
+      const io=s=>{const v=parseFloat(s);return isNaN(v)?0:v;};
+      const brand=document.querySelector('.brand').getBoundingClientRect();
+      const acts=document.querySelector('.hdr-acts').getBoundingClientRect();
+      /* Les cibles sont mesurées HALO COMPRIS : c'est le patron admis en zone haute pour ne pas
+         épaissir la rangée (doctrine « halo sur les contrôles 36 px de la barre »). */
+      const cib=[...document.querySelectorAll('.hdr-new,.hdr-theme,.bar-acct')].map(e=>{
+        const b=e.getBoundingClientRect(),a=getComputedStyle(e,'::after');
+        return Math.min(Math.round(b.width-io(a.left)-io(a.right)),Math.round(b.height-io(a.top)-io(a.bottom)));});
+      const deb=Math.max(0,...[...document.querySelector('.id-row').children].filter(e=>e.offsetParent)
+        .map(e=>Math.round(e.getBoundingClientRect().right)-innerWidth));
+      /* ⚠ ON MESURE AUSSI LA MARGE, ET C'EST ELLE QUI PRÉVIENT. « Une seule ligne » est un
+         booléen : il reste vert jusqu'au dernier pixel, puis casse d'un coup en +38 px de hauteur.
+         La largeur du mot-marque dépend en plus du RENDU de la police — mesurée à 126 px sur
+         Chromium complet et 136 sur le headless shell, soit 10 px d'écart pour le même code, et
+         la marge d'origine était de 4. On exige donc une réserve, pas seulement un tenu-de-peu. */
+      const row=document.querySelector('.id-row').getBoundingClientRect();
+      const logo=document.querySelector('.brand-logo').getBoundingClientRect();
+      const g=parseFloat(getComputedStyle(document.querySelector('.id-row')).columnGap)||0;
+      return {uneLigne:Math.abs((brand.top+brand.height/2)-(acts.top+acts.height/2))<=8,
+        cible:Math.min(...cib), debord:deb,
+        marge:Math.round(row.width-(logo.width+brand.width+acts.width+2*g)),
+        hdr:Math.round(document.querySelector('header.bar').getBoundingClientRect().height)};});
+    t(`${w} px · marque et actions sur la MÊME ligne`, r.uneLigne===true, `en-tête ${r.hdr} px`);
+    t(`${w} px · … avec une réserve, pas au pixel près`, r.marge>=8, `${r.marge} px de marge`);
+    t(`${w} px · … sans rien pousser hors de l'écran`, r.debord===0, `${r.debord} px`);
+    t(`${w} px · … et les cibles restent à 44 px (halo compris)`, r.cible>=44, `${r.cible} px`);
+    await page.close();
+  }
+}
+
+/* LE RAIL A→Z NE COUVRE JAMAIS UNE CARTE (v5.0.3, question utilisateur sur l'écart). En voie
+   étroite il est `position:fixed` : la gouttière réservée n'est pas un tampon anti-fausse-manœuvre,
+   c'est ce qui l'empêche de recouvrir le bord droit des rangées — donc l'épingle. La resserrer se
+   mesure des DEUX côtés : assez pour ne rien couvrir, assez pour que les deux cibles ne se
+   touchent pas. */
+console.log('\n══ Accueil · la gouttière du rail A→Z ══');
+{
+  for(const w of [320,390,430,640,779]){
+    const page = await br.newPage({viewport:{width:w,height:760},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    /* Le rail exige au moins deux lettres distinctes : les fiches d'exemple n'en donnent pas
+       assez, on construit donc le cas au lieu de mesurer un écran sans rail. */
+    await page.evaluate(async()=>{const f=JSON.parse(JSON.stringify(fiches[0]));
+      for(const ti of ['Bradycardie','Choc septique','Dyspnée','Hémorragie','Intubation']){
+        const n=JSON.parse(JSON.stringify(f));n.id='x'+ti.slice(0,3);n.title=ti;fiches.push(migrate(n));}
+      render();await new Promise(r=>setTimeout(r,400));});
+    await page.waitForTimeout(300);
+    const r = await page.evaluate(()=>{
+      const rail=document.querySelector('.azrail');
+      if(!rail)return {rail:false};
+      const io=s=>{const v=parseFloat(s);return isNaN(v)?0:v;};
+      const rl=rail.getBoundingClientRect().left;
+      const rows=[...document.querySelectorAll('.dir-row')];
+      const cartes=rows.map(e=>Math.round(rl-e.getBoundingClientRect().right));
+      const cibles=[...document.querySelectorAll('.dir-row button')].map(e=>{
+        const b=e.getBoundingClientRect(),h=getComputedStyle(e,'::before');
+        return Math.round(rl-(b.right-io(h.right)));});
+      return {rail:true,nRangs:rows.length,pireCarte:Math.min(...cartes),pireCible:Math.min(...cibles)};});
+    t(`${w} px · témoin : le rail est bien rendu`, r.rail===true&&r.nRangs>=3,
+      r.rail?`${r.nRangs} rangée(s)`:'aucun rail');
+    t(`${w} px · il ne recouvre AUCUNE rangée`, r.pireCarte>0, `${r.pireCarte} px au plus près`);
+    /* Borne basse : deux zones tactiles voisines qui se touchent produisent la fausse manœuvre
+       que la question redoutait — c'est CETTE distance qu'il faut tenir, pas une marge d'aspect. */
+    t(`${w} px · … et laisse la zone tactile de l'épingle libre`, r.pireCible>=4,
+      `${r.pireCible} px`);
+    await page.close();
+  }
+}
+
+console.log('\n══ Recherche · la croix d\'effacement ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const vis=()=>page.evaluate(()=>{const x=document.getElementById('qClear');return !!x&&!x.hidden;});
+  const nRows=()=>page.evaluate(()=>document.querySelectorAll('.dir-row').length);
+  const repos=await vis(), toutes=await nRows();
+  /* ⚠ ON MESURE AVANT LE DÉBOUNCE (150 ms) : le re-rendu repeint tout, donc attendre le laisserait
+     vert même si la croix ne se peignait qu'au rendu — c'est-à-dire une croix qui paraît un sixième
+     de seconde après la lettre qu'on vient de taper. C'est la frappe qui doit la poser. */
+  await page.fill('#q','anaphyl');
+  const surLeChamp=await vis();
+  await page.waitForTimeout(350);
+  const saisie=await vis(), filtre=await nRows();
+  /* Elle ne doit pas RECOUVRIR le texte saisi : sa place est réservée par le rembourrage. */
+  const geo=await page.evaluate(()=>{const x=document.getElementById('qClear'),q=document.getElementById('q');
+    const rx=x.getBoundingClientRect(),rq=q.getBoundingClientRect();
+    const pr=parseFloat(getComputedStyle(q).paddingRight);
+    /* La cible se mesure HALO COMPRIS (::after), comme le fait audit-a11y : c'est le patron du
+       dossier pour ne pas épaissir une rangée dense. */
+    const a=getComputedStyle(x,'::after');
+    const io=s=>{const v=parseFloat(s);return isNaN(v)?0:v;};
+    return {dansChamp:rx.right<=rq.right+1&&rx.left>=rq.left,
+            reserve:Math.round(pr)>=Math.round(rx.width),
+            w:Math.round(rx.width-io(a.left)-io(a.right)),h:Math.round(rx.height-io(a.top)-io(a.bottom)),
+            pr:Math.round(pr)};});
+  await page.click('#qClear'); await page.waitForTimeout(350);
+  const apres=await vis(), rendu=await nRows();
+  const foc=await page.evaluate(()=>document.activeElement&&document.activeElement.id);
+  const val=await page.inputValue('#q');
+  t('témoin : la recherche restreint bien la liste', toutes>filtre&&filtre>=0,
+    `${toutes} rangée(s) puis ${filtre}`);
+  t('aucune croix tant qu\'il n\'y a rien à effacer', repos===false);
+  t('elle paraît dès la frappe, sans attendre le re-rendu', surLeChamp===true);
+  t('… et elle y reste après le re-rendu', saisie===true);
+  t('… dans le champ, sans recouvrir le texte', geo.dansChamp&&geo.reserve, JSON.stringify(geo));
+  t('… avec une cible ≥ 24 px (halo compris)', geo.w>=24&&geo.h>=24, `${geo.w}×${geo.h} px`);
+  t('elle efface la saisie ET la recherche', val===''&&apres===false&&rendu===toutes,
+    `valeur ${JSON.stringify(val)}, ${rendu} rangée(s) pour ${toutes}`);
+  t('… et rend le focus au champ', foc==='q', `focus : ${foc}`);
   await page.close();
 }
 

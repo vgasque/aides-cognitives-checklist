@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-E8WJfAQMRxGh+mZ6FEyRKo74RQPVl5QoQ4/J2A4h7Pw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-4w4EF58M7BrW+tl/bW96sB2SaZ7FCZcbpH3li7807rM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -863,15 +863,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-badge[hidden]{display:none}
   /* Recherche FIXE dans l'en-tête (accueil, V5, canvas turn 6) : en ligne dans la rangée en
      large, rangée propre (pleine largeur) en étroit — elle reste sous le doigt au défilement. */
-  .hdr-search{display:none;position:relative;align-items:center;min-width:0}
+  .hdr-search{display:none;position:relative;align-items:center;gap:8px;min-width:0}
   header.bar.home .hdr-search{display:flex;flex:3 1 220px;max-width:640px}
   /* Styles exacts du canvas (accueil, section 6) : bordure 2px srchBd (--line-hover) — plus
      marquée que les cartes à 1px, c'est l'élément interactif principal de l'en-tête ; fond =
      MÊME surface que les cartes ; glyphe ⌕ intégré au placeholder ; pas d'ombre (~40px). */
-  .hdr-search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
-  .hdr-search input{width:100%;padding:8px 12px 8px 32px;border:2px solid var(--line-hover);border-radius:8px;background:var(--surface);color:var(--ink);font-size:15.5px;white-space:nowrap;overflow:hidden}
+  /* La RANGÉE porte le champ et le déclencheur de filtre ; la BOÎTE (.srch-box) porte le champ,
+     sa loupe et sa croix — c'est elle le repère de position absolue, sinon la croix se poserait
+     au bord de la rangée, c'est-à-dire au bord du BOUTON. */
+  .srch-box{position:relative;display:flex;align-items:center;flex:1 1 auto;min-width:0}
+  .hdr-search .srch-box>svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
+  .hdr-search input{width:100%;padding:8px 32px 8px 32px;border:2px solid var(--line-hover);border-radius:8px;background:var(--surface);color:var(--ink);font-size:15.5px;white-space:nowrap;overflow:hidden}
   .hdr-search input:focus{outline:2px solid var(--primary);border-color:transparent}
-  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:10px 12px 10px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
+  /* La place de la croix est RÉSERVÉE en permanence (padding-right constant) : elle apparaît et
+     disparaît à la frappe, et un rembourrage qui bougerait ferait sauter le texte sous le curseur. */
+  .srch-x{position:absolute;right:6px;display:grid;place-items:center;width:26px;height:26px;border:0;
+    border-radius:50%;background:transparent;color:var(--ink-soft);cursor:pointer;padding:0}
+  .srch-x[hidden]{display:none}
+  .srch-x::after{content:"";position:absolute;inset:-6px}   /* cible ≥ 32px sans épaissir la rangée */
+  .srch-x:hover{background:var(--surface-2);color:var(--ink)}
+  .srch-x:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:10px 32px 10px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
   /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
   #homeChrome{order:6;width:100%;min-width:0}
   #homeChrome[hidden]{display:none}
@@ -1251,6 +1263,45 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        descendait 20 → 18 px pour rendre 14 px à la rangée d'identité. La marque étant désormais à
        16,5 px À TOUTES LES LARGEURS, cette règle ferait GRANDIR le mot sur écran étroit —
        exactement l'inverse de son intention. Purgée avec sa cause (règle 14). */
+  }
+  /* ⚠ 320 px — L'ACCUEIL N'AVAIT JAMAIS REÇU LA RECETTE (v5.0.3, signalé à l'usage : « pourquoi ça
+     ne passe pas en 320 px ? »). La v4.43.0 a déclaré ce plancher SERVI et l'a mesuré sur la rangée
+     de crise et sur la barre des éditeurs — jamais sur l'en-tête d'ACCUEIL, qui est pourtant le
+     premier écran ouvert. Mesuré : logo 30 + mot-marque 126 + actions 136 = 292 px, plus deux
+     écarts de 8, soit 308 px pour 284 disponibles. `.id-row` est en `flex-wrap`, et le flex CASSE
+     LA LIGNE avant de rétrécir (leçon v4.23.4) : les trois boutons ronds tombaient sur une seconde
+     rangée et l'en-tête payait **38 px de haut**, là où la hauteur est la plus rare.
+     24 px manquaient, la recette en rend 28, et elle ne touche NI le mot-marque NI le logo — que
+     l'audit A3-1 vient de calibrer : écarts (−8, −8) et taille des boutons (−12). 36 px reste
+     au-dessus du plancher de 32 px (règle 9, hors crise) et le halo `::after` porte la cible à
+     44 px : c'est exactement ce que la doctrine admet en zone haute pour ne pas l'épaissir.
+     ⚠ DIX-NEUVIÈME PIÈGE DE CASCADE, rencontré en l'écrivant : `header.bar.home .id-row` vaut
+     (0,3,1) — la MÊME spécificité que la règle `column-gap:8px` du bloc 429.98 juste au-dessus.
+     Placé plus haut dans la feuille, ce bloc était silencieusement sans effet (mesuré : 8 px
+     obtenus pour 4 demandés). Il est donc déclaré APRÈS, comme la v4.43.0 l'avait déjà fait pour
+     la barre des éditeurs — pour une GÉOMÉTRIE, on ne dépend jamais de l'ordre sans le dire. */
+  /* ⚠ 400 px — LE PALIER INTERMÉDIAIRE, TROUVÉ PAR LA MESURE DE LA MARGE. À 360 px la rangée
+     tenait sur une ligne avec **6 px** de réserve : vrai aujourd'hui, faux au premier rendu de
+     police un peu plus large. Le mot-marque mesure d'ailleurs 126 px sur Chromium complet et
+     **136 sur le headless shell** — 10 px d'écart pour le même code, soit davantage que la
+     réserve. Un booléen « ça tient » reste donc vert jusqu'au dernier pixel puis casse d'un coup
+     en +38 px de hauteur : c'est la MARGE qu'il faut tenir, et le témoin la mesure.
+     Recette LÉGÈRE ici — les écarts seuls (−8, −8), les boutons gardent leur taille : 22 px de
+     réserve à 360 au lieu de 6. La recette complète reste réservée au plancher de 320. */
+  @media (max-width:399.98px){
+    header.bar.home .id-row{column-gap:4px}
+    header.bar.home .hdr-acts{gap:4px}
+  }
+  @media (max-width:359.98px){
+    header.bar.home .id-row{column-gap:4px}
+    header.bar.home .hdr-acts{gap:2px}
+    header.bar.home :is(.hdr-new,.hdr-theme,.bar-acct){width:32px;height:32px}
+    /* LA CIBLE NE DESCEND PAS AVEC LE BOUTON : le halo passe de 4 à 6 px, donc 32 + 12 = 44 px,
+       la cible d'origine au pixel près. C'est tout l'objet d'un halo en zone haute — rétrécir le
+       DESSIN sans rétrécir la CIBLE. Règle propre plutôt qu'un membre de plus dans la liste
+       générique `:is(.hdr-new,…)::after` : (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre
+       (dix-septième piège de cascade, où un membre de cette liste écrasait un halo particulier). */
+    header.bar.home :is(.hdr-new,.hdr-theme,.bar-acct)::after{inset:-6px}
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
@@ -1840,7 +1891,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
         .azrail{height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px - var(--sab,0px))}
       }
     }
-    body.view-home main.azr-on .home-main{padding-right:24px}
+    /* ⚠ CE N'EST PAS UN TAMPON ANTI-FAUSSE-MANŒUVRE, C'EST UNE RÉSERVATION (v5.0.3, question
+       utilisateur : « l'espace entre les cartes et le rail me paraît grand — est-ce fait exprès
+       pour ne pas cliquer sans faire exprès sur une carte ? »). En voie étroite le rail est
+       `position:fixed` : sans rembourrage réservé il RECOUVRIRAIT le bord droit des rangées, donc
+       l'épingle ☆. Il ne fallait donc jamais 24 px — le rail fait 27 px de large et mord déjà sur
+       les 18 px de marge de page, il n'en faut que 9 pour ne rien couvrir. Le reste était du vide.
+       16 px laissent 7 px entre la carte et le rail, et 11 px entre la ZONE TACTILE de l'épingle
+       (halo compris, qui finit 4 px avant le bord de la carte) et la première lettre : les deux
+       cibles ne se touchent pas, ce qui est la seule contrainte réelle. 8 px rendus à chaque
+       rangée, à toutes les largeurs étroites. */
+    body.view-home main.azr-on .home-main{padding-right:16px}
     /* ⚠ ET LA CAUSE RESTANTE N'EST PAS UNE MESURE, C'EST LE REBOND DE FIN DE PAGE (signalé à
        l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le
        bounce »). Pendant le rubber-band, WebKit TRANSLATE le document ET les éléments
@@ -4869,19 +4930,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* DEUX GROUPES SUR UNE LIGNE, chacun avec son intitulé — et l'enroulement comme filet : à
      320 px avec plusieurs bibliothèques, deux groupes comprimés seraient illisibles. */
   .filterbar{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-bottom:8px}
-  /* REPLI DES FILTRES (v5.0.0, audit design A3-1/A5-3) — cf. `filterFoldHtml` pour la doctrine.
-     Le déclencheur reprend la grammaire des chips de filtre (`.scopebtn`) plutôt que celle des
-     boutons d'action : c'est un objet de la MÊME famille que ce qu'il déplie, pas une commande
-     de plus. Registre neutre au repos, registre de SÉLECTION quand il est ouvert — le même
-     couple que les chips actives, donc rien de nouveau à apprendre. */
+  /* REPLI DES FILTRES (v5.0.0, audit design A3-1/A5-3 ; DÉCLENCHEUR DÉMÉNAGÉ EN v5.0.3) —
+     cf. `filterFoldHtml` pour la doctrine. Il vit désormais CONTRE la recherche, dans l'en-tête :
+     il ne coûte plus une ligne au premier écran, et il est GLYPHE SEUL, la place horizontale
+     d'une rangée d'en-tête étant la plus disputée du produit. Registre neutre au repos, registre
+     de SÉLECTION quand il est ouvert — le même couple que les chips, donc rien à apprendre —
+     et registre de SÉLECTION PLEIN, avec le NOMBRE de filtres posés, dès qu'un filtre agit :
+     la couleur n'est jamais seule (règle 8), c'est le chiffre qui porte l'information. */
   .filterfold{display:flex;flex-direction:column;min-width:0}
-  .filt-tog{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:32px;
-    padding:0 12px;margin-bottom:8px;border:1px solid var(--line-strong);border-radius:18px;
-    background:var(--surface);color:var(--ink);font-family:inherit;font-size:12px;font-weight:600;
-    cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s}
-  .filt-tog:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  /* ⚠ SA HAUTEUR EST CELLE DU CHAMP, ET ELLE NE PEUT PAS ÊTRE ÉCRITE (signalé à l'usage : « la
+     taille du bouton filtre est moins longue que le champ de recherche — c'est voulu ? » — non).
+     Une hauteur FIXE de 36 px, celle des contrôles ronds de l'en-tête, laissait 4 px de jeu en haut
+     comme en bas : le champ monte à 43 px sur écran TACTILE (police de 16 px, plancher de la règle
+     9) et redescend à 38 px au pointeur fin — il n'existe donc aucun nombre juste à écrire ici.
+     `align-self:stretch` fait porter la hauteur par la RANGÉE, quelle que soit celle du champ, et
+     `min-height` garde la cible réglementaire si la rangée devenait un jour plus courte. */
+  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;
+    position:relative;min-width:38px;align-self:stretch;min-height:36px;padding:0 8px;border:1px solid var(--line-strong);
+    border-radius:8px;background:var(--surface);color:var(--ink-soft);font-family:inherit;
+    font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;
+    cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
+  .filt-tog[hidden]{display:none}
+  .filt-tog::after{content:"";position:absolute;inset:-4px}
+  .filt-tog:hover{background:var(--surface-2);border-color:var(--ink-soft);color:var(--ink)}
   .filt-tog.on{background:var(--primary-100);border-color:var(--primary);color:var(--primary-dk)}
+  .filt-tog.act{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+  .filt-tog.act:hover{background:var(--primary-hi);border-color:var(--primary-hi);color:var(--on-primary)}
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .filt-n[hidden]{display:none}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
@@ -5688,7 +5764,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          #crisisBand passé sous la barre (.ttl-on) — elle en prend le relais. L'annonce d'état ne
          disparaît donc JAMAIS. (Les minuteurs, eux, n'ont pas de relais : leur rangée est
          COLLANTE et ne quitte jamais l'écran.) -->
-    <div class="hdr-search" id="hdrSearch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"></div>
+    <!-- LE DÉCLENCHEUR DE FILTRE VIT CONTRE LA RECHERCHE (v5.0.3) : les deux répondent à la même
+         question — « restreindre ce que je vois » —, et posé là il ne coûte plus une ligne à
+         l'accueil. Il est STATIQUE comme le champ : il survit aux re-rendus, donc sa position est
+         apprise une fois pour toutes. Croix d'effacement DANS la boîte du champ (v5.0.3) : elle
+         appartient à la saisie, pas à la rangée. -->
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3.5 5h17l-6.5 7.6V20l-4 1.5v-8.9z" stroke-linejoin="round"/></svg><span class="filt-n" id="filtN" hidden></span></button></div>
     <div class="hdr-acts">
     <!-- H (audit design v4.58.0, concept B) : L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT.
          Avant, il vivait à droite de la bande-titre quand elle était dépliée, puis sautait au
@@ -6087,7 +6168,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.2';
+const APP_VERSION='5.0.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9814,7 +9895,10 @@ function applyViewChrome(){
    else hn.hidden=true;}
   // Recherche FIXE de l'en-tête : valeur resynchronisée (bascule de section, filtres) sans
   // écraser une saisie en cours (champ focalisé = source de vérité).
-  {const qi=document.getElementById('q');if(state.view==='library'&&document.activeElement!==qi&&qi.value!==state.q)qi.value=state.q;}
+  {const qi=document.getElementById('q');if(state.view==='library'&&document.activeElement!==qi&&qi.value!==state.q)qi.value=state.q;
+   // La croix suit la VALEUR DU CHAMP, jamais `state.q` : entre la frappe et le re-rendu débouncé
+   // de 150 ms, les deux diffèrent — et c'est le champ que l'on a sous les yeux.
+   syncQClear();}
   // Titre au défilement (.titled) : protocoles, éditeurs — et DEPUIS v4.23.0 la fiche en crise,
   // dont le titre passe dans la rangée d'identité quand #crisisBand est passé dessous (le bandeau
   // le portait seul auparavant, parce qu'il ne défilait pas).
@@ -9989,9 +10073,21 @@ function updateHdrSec(){document.querySelectorAll('.typebar [data-section]').for
 // Recherche FIXE de l'en-tête (V5) : champ STATIQUE (jamais re-rendu -> le focus survit aux
 // re-rendus), débouncé 150 ms — re-filtrer à chaque frappe ferait ramer la saisie sur mobile.
 {const qi=document.getElementById('q');
- qi.addEventListener('input',e=>{if(state.view!=='library')return;
+ qi.addEventListener('input',e=>{syncQClear();if(state.view!=='library')return;
    state.q=e.target.value;state.libLimit=LIB_PAGE;
    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{if(state.view==='library')render();},150);});}
+/* CROIX D'EFFACEMENT (v5.0.3, demande utilisateur) : elle n'existe QUE s'il y a quelque chose à
+   effacer — un bouton mort permanent au bord du champ le rétrécirait pour rien. Peinte à la
+   FRAPPE (pas au rendu débouncé), sinon elle paraîtrait 150 ms après le premier caractère. */
+function syncQClear(){const qi=document.getElementById('q'),x=document.getElementById('qClear');
+  if(x)x.hidden=!qi||!qi.value;}
+{const x=document.getElementById('qClear');
+ x.addEventListener('click',()=>{const qi=document.getElementById('q');
+   qi.value='';syncQClear();
+   // Le focus RESTE dans le champ : on efface pour retaper, pas pour partir.
+   qi.focus();
+   if(state.view!=='library')return;
+   state.q='';state.libLimit=LIB_PAGE;clearTimeout(_qDebounce);render();});}
 // Bascule étroit/large (seuil 780px de l'échelle fermée) : l'accueil change de STRUCTURE
 // (chips + tab bar <-> colonne gauche) -> re-rendu au franchissement du seuil.
 const mqHomeWide=window.matchMedia('(min-width:780px)');
@@ -10187,13 +10283,44 @@ function scopeBarHtml(){
    qui vient d'ouvrir les filtres puis de consulter une aide serait le punir de son geste.
    L'ORDRE ET LES LIBELLÉS des trois rangées sont INCHANGÉS (biblio → type → catég., lot M4b) :
    ce lot ne touche qu'à leur PRÉSENCE au repos. */
-function filtersActive(){return state.section!=='all'||!!state.scope||!!state.cat;}
+function filtersActive(){return filtersCount()>0;}
+/* COMBIEN de filtres agissent — c'est ce chiffre que porte le déclencheur (v5.0.3). Le type
+   compte pour un dès qu'il quitte « Tout », la bibliothèque dès qu'elle quitte « Perso ». */
+function filtersCount(){return (state.section!=='all'?1:0)+(state.scope?1:0)+(state.cat?1:0);}
+/* LE DÉCLENCHEUR NE DISPARAÎT PLUS, ET L'ÉTAT ACTIF N'EST PLUS CACHÉ POUR AUTANT (v5.0.3,
+   signalé à l'usage : « le bouton filtrer ne s'affiche pas toujours quand on a sélectionné »).
+   La v5.0.0 le RETIRAIT dès qu'un filtre agissait, et forçait les rangées ouvertes en permanence,
+   pour tenir la règle « un état actif ne se cache jamais » — au prix d'un contrôle qui apparaît
+   et disparaît selon l'état, c'est-à-dire de la constance positionnelle, et de ~90 px rendus au
+   premier écran seulement tant qu'on n'avait rien filtré.
+   CE QUI REMPLACE LE FORÇAGE : le déclencheur PORTE l'état. Posé dans l'en-tête, il est visible
+   sans défiler, à position CONSTANTE, et il dit combien de filtres agissent — registre de
+   sélection PLEIN plus le CHIFFRE (règle 8 : la couleur n'est jamais seule ; un chiffre n'est pas
+   une couleur). L'état actif n'est donc pas caché, il est porté par un objet permanent au lieu de
+   trois rangées permanentes — et l'on ne peut plus se retrouver dans un corpus restreint sans
+   savoir pourquoi, ce que la règle protège réellement.
+   Les rangées, elles, ne s'affichent QUE si l'on a demandé à les voir. */
 function filterFoldHtml(){
   const bars=filterbarHtml()+catbarHtml();
-  if(!bars)return '';
-  if(filtersActive())return `<div class="filterfold">${bars}</div>`;
-  const open=!!state.filtersOpen;
-  return `<div class="filterfold"><button class="filt-tog${open?' on':''}" data-filttog aria-expanded="${open?'true':'false'}">${uiIcon('filter',13)}Filtrer</button>${open?bars:''}</div>`;}
+  if(!bars||!state.filtersOpen)return '';
+  return `<div class="filterfold">${bars}</div>`;}
+/* Le déclencheur est STATIQUE (il vit dans l'en-tête, hors de tout re-rendu) : on ne le
+   reconstruit pas, on le PEINT. `avail` = il y a quelque chose à déplier ici — sinon la seule
+   chose honnête est de ne rien montrer (aucun bouton mort). */
+function syncFiltTog(avail){
+  const b=document.getElementById('filtTog'),n=document.getElementById('filtN');
+  if(!b)return;
+  b.hidden=!avail;
+  if(!avail)return;
+  const open=!!state.filtersOpen,k=filtersCount();
+  b.classList.toggle('on',open&&!k);
+  b.classList.toggle('act',k>0);
+  b.setAttribute('aria-expanded',open?'true':'false');
+  n.hidden=!k;n.textContent=k?String(k):'';
+  // UN SEUL libellé pour l'info-bulle et le nom accessible : deux formulations pour un même
+  // bouton seraient deux vocabulaires pour une même chose (AC 120-71B §5.5).
+  const lbl=(open?'Masquer les filtres':'Afficher les filtres')+(k?` — ${k} actif${k>1?'s':''}`:'');
+  b.setAttribute('aria-label',lbl);b.title=lbl;}
 /* La rangée de filtres COURTS : bibliothèque puis type, du plus large au plus étroit. */
 function filterbarHtml(){
   const sc=scopeBarHtml(),ty=typebarHtml();
@@ -10497,6 +10624,9 @@ function renderHomeList(cfg){
       bibliothèques, deux groupes sur une ligne se comprimeraient l'un l'autre — mieux vaut deux
       lignes lisibles qu'une ligne illisible, et l'enroulement ne coûte que ce qu'il rend. */
    hc.innerHTML=wide?'':filterFoldHtml();hc.hidden=wide||!hc.innerHTML;
+   /* Le déclencheur n'existe qu'en voie ÉTROITE : en large les filtres vivent dans la colonne
+      gauche, déjà visible — un bouton pour déplier ce qui est déjà déplié serait un bouton mort. */
+   syncFiltTog(!wide&&!!(filterbarHtml()+catbarHtml()));
    const nsr=hc.querySelector('.scopebar .chiprow');if(nsr&&_scopeRowX)nsr.scrollLeft=_scopeRowX;}
   rescueFooter();
   /* ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c). Deux régimes :
