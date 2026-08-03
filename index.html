@@ -1841,6 +1841,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
       }
     }
     body.view-home main.azr-on .home-main{padding-right:24px}
+    /* ⚠ ET LA CAUSE RESTANTE N'EST PAS UNE MESURE, C'EST LE REBOND DE FIN DE PAGE (signalé à
+       l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le
+       bounce »). Pendant le rubber-band, WebKit TRANSLATE le document ET les éléments
+       `position:fixed` : le rail part avec le rebond, puis revient — sous le doigt qui le vise.
+       Aucune formule ne s'en protège, et c'est pour cela que les trois correctifs précédents ne
+       pouvaient pas y suffire : ce n'est pas une valeur qui change, c'est une transformation
+       appliquée au rendu, par le compositeur, en dehors de toute mesure lisible en JS.
+       `overscroll-behavior-y:none` supprime le rebond DU DOCUMENT. Il est borné à l'accueil en
+       voie étroite — le seul endroit où une surface FIXE se vise au pixel et à la cadence du
+       doigt ; ailleurs le rebond reste, c'est une affordance native qui dit « fin de liste ».
+       En voie large l'accueil est une coque fixe (le document ne défile pas) et le rail y est
+       `absolute` dans le flux : il n'a jamais été concerné.
+       ⚠ La déclaration vit sur `html` (via `:has()`) ET sur `body` : la propagation vers le
+       viewport se fait depuis la racine, et la poser sur le corps seul est sans effet. */
+    html:has(body.view-home),body.view-home{overscroll-behavior-y:none}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */

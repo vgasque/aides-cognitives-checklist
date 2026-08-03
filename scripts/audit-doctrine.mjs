@@ -2155,6 +2155,22 @@ for (const W of [390, 1100]) {
     t(`${W} · la lettre visée atterrit sous les couches collantes`,
       r.ecarts.every(v=>v>=0&&v<=24), JSON.stringify(r.ecarts));
     t(`${W} · … et deux sauts de suite ne déplacent plus rien`, r.derives===0, `${r.derives} dérive(s)`);}
+  /* LE REBOND DE FIN DE PAGE EST SUPPRIMÉ SUR L'ACCUEIL ÉTROIT, ET LÀ SEULEMENT : pendant le
+     rubber-band, WebKit translate les éléments `position:fixed` — le rail part avec, sous le
+     doigt. Ailleurs le rebond RESTE (affordance native « fin de liste »), et les fenêtres gardent
+     leur `contain`. C'est la portée qu'on mesure, pas seulement la présence. */
+  const o = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const lire=()=>getComputedStyle(document.documentElement).overscrollBehaviorY;
+    state.view='library';render();await w(250);
+    const accueil=lire();
+    openRead(fiches[0].id);await w(350);
+    return {accueil,lecture:lire(),
+      modale:(()=>{const m=document.querySelector('.ai-modal');
+        return m?getComputedStyle(m).overscrollBehaviorY:null;})()};});
+  t(`${W} · le rebond de fin de page ${W<780?'est supprimé':'reste'} sur l'accueil`,
+    o.accueil===(W<780?'none':'auto'), o.accueil);
+  t(`${W} · … et il reste partout ailleurs`, o.lecture==='auto', o.lecture);
+  t(`${W} · … les fenêtres gardant leur « contain »`, o.modale==='contain', String(o.modale));
   await page.close();
 }
 

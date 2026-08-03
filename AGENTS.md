@@ -3515,6 +3515,20 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   sous les couches collantes, et **deux sauts de suite ne déplacent plus rien** — l'idempotence
   est ce qui casse l'oscillation, et c'est la seule moitié du dossier qu'un moteur headless sait
   voir.
+  **⚠ ET LA CAUSE RESTANTE N'EST PAS UNE MESURE — C'EST LE REBOND DE FIN DE PAGE (v5.0.2, signalé
+  à l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le bounce »)** :
+  pendant le rubber-band, WebKit TRANSLATE le document ET les éléments `position:fixed` — le rail
+  part avec le rebond puis revient, sous le doigt qui le vise. Ce n'est pas une valeur qui change,
+  c'est une transformation appliquée au rendu par le compositeur, **en dehors de toute mesure
+  lisible en JS** : voilà pourquoi aucune des trois corrections de formule ne pouvait suffire.
+  `overscroll-behavior-y:none` supprime le rebond DU DOCUMENT, et il est **borné à l'accueil en
+  voie étroite** — le seul endroit où une surface FIXE se vise au pixel et à la cadence du doigt.
+  Ailleurs le rebond RESTE (affordance native « fin de liste ») ; en voie large l'accueil est une
+  coque fixe et le rail y est `absolute`, donc jamais concerné ; les fenêtres gardent leur
+  `contain`. ⚠ La déclaration vit sur `html` (via `:has()`) ET sur `body` : la propagation vers le
+  viewport part de la racine, la poser sur le corps seul est sans effet.
+  **RÈGLE : une surface FIXE qu'on VISE doit vivre dans un document sans rebond** — sinon le
+  compositeur la déplace pendant qu'on s'en sert, et rien, côté application, ne peut le voir.
   **⚠ UNE GOUTTIÈRE FANTÔME DE 68 px** : le rail réservait la hauteur de la **tab bar**, supprimée
   au lot M4 (`grep tabBar` : 0 occurrence). Invisible tant que les lettres étaient ancrées en
   haut ; en les centrant, ce vide décalait tout le rail. Corollaire de la règle 14 — **une

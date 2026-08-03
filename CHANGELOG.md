@@ -56,7 +56,29 @@ restaient, toutes deux invisibles sur Blink et toutes deux actives en PWA.
   cite ni `scrollBy` ni `scrollTop +=` ; la boîte passe par `--azr-top`), dynamiques pour ce qui
   se mesure (la lettre atterrit sous les couches collantes ; **deux sauts de suite ne déplacent
   plus rien**, l'idempotence étant ce qui casse l'oscillation), à 390 et 1100 px — les deux voies
-  de défilement. Vérifiés capables d'échouer, fichier restauré à l'octet. 633 contrôles doctrine.
+  de défilement. Vérifiés capables d'échouer, fichier restauré à l'octet.
+
+#### Et la cause restante n'est pas une mesure : c'est le REBOND de fin de page
+
+Signalé à l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le
+bounce ». C'est l'observation qui manquait — et elle explique pourquoi aucun des correctifs
+précédents ne pouvait suffire.
+
+- **Pendant le rubber-band, WebKit TRANSLATE le document *et* les éléments `position:fixed`.** Le
+  rail part avec le rebond, puis revient — sous le doigt qui le vise. Ce n'est pas une valeur qui
+  change : c'est une transformation appliquée au rendu, par le compositeur, **en dehors de toute
+  mesure lisible en JS**. Aucune formule de hauteur ne s'en protège, et aucun moteur headless ne
+  la reproduit.
+- **`overscroll-behavior-y:none`, borné à l'accueil en voie étroite** — le seul endroit où une
+  surface FIXE se vise au pixel et à la cadence du doigt. Partout ailleurs le rebond RESTE : c'est
+  une affordance native qui dit « fin de liste », et rien ne justifie de la retirer là où personne
+  ne vise. En voie large l'accueil est une coque fixe (le document ne défile pas) et le rail y est
+  `absolute` dans le flux : il n'a jamais été concerné. Les fenêtres gardent leur `contain`.
+  La déclaration vit sur `html` (via `:has()`) **et** sur `body` : la propagation vers le viewport
+  se fait depuis la racine, la poser sur le corps seul est sans effet.
+- **Témoins** (6 de plus) : celui-ci **se mesure**, et c'est la PORTÉE qu'on mesure, pas seulement
+  la présence — supprimé sur l'accueil étroit, conservé en lecture, conservé à 1100 px, `contain`
+  intact sur les fenêtres. Vérifié capable d'échouer. 639 contrôles doctrine.
 
 ## [5.0.1] — 2026-08-02
 ### Le rail A→Z cesse de bouger sous le doigt
