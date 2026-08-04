@@ -1,5 +1,43 @@
 # Journal des modifications
 
+## [5.0.8] — 2026-08-04
+### Le chapeau se glisse entre les critères et le bouton
+
+Question posée : « remonter *Confirmer le diagnostic* au-dessus de *Ne pas oublier* — est-ce
+incompatible ECAM/QRH ? ». **Non — c'est l'ordre canonique, et c'est celui d'avant qui s'en
+écartait.** Un QRH imprime le titre et la condition d'entrée au-dessus des recall items ; sur ECAM
+le titre de l'alerte — qui *est* la condition — précède les lignes d'action. La séquence est
+condition → memory items → read-and-do ; on avait memory items → condition.
+
+- **Le chapeau ne passe pas SOUS le bouton, et c'est tout l'arbitrage.** Le descendre simplement
+  sous l'étage de la condition d'entrée le mettrait *après* « Confirmé — démarrer la session », le
+  bouton vivant dans cet étage : on l'aurait rangé derrière le geste qu'il doit précéder. Il se
+  glisse donc **entre les deux** — la lecture devient exactement celle du QRH, et le bouton porte
+  l'acquittement des deux.
+- **Une fois la session démarrée, rien ne change de ce qui existait** : le chapeau replié revient
+  en tête et la condition d'entrée descend avec son étage (T3 + T5). Le débat ne portait que sur
+  l'écran d'avant.
+- **⚠ Ce que cela coûte, mesuré, et il faut le savoir** : le chapeau quitte le premier écran dès
+  que les critères sont longs (fiche à 8 critères, 390 × 844 : il naissait à y = 130, il naît à
+  y = 813). Sur une fiche ordinaire il y reste **entier** (571 → 786 à 390 × 844). Et comme le
+  bouton flotte quand il est sous le pli (v4.73.0), on peut démarrer sans avoir défilé jusqu'aux
+  memory items.
+- **Ce qui rend ce coût acceptable est le lot T7** : un memory item ★ **reste dans son bloc** — le
+  chapeau *agrège*, il ne possède pas. Rien n'est perdu : l'item se re-vérifie à sa place dans la
+  checklist, ce qui est précisément le geste QRH (réciter de mémoire, puis confirmer sur la liste).
+- **La condition est la présence du BOUTON, pas l'état de la session** : chez l'invité et en aperçu
+  d'essai `sessStartH` est vide — une séquence qui mène à un bouton absent n'a rien à ordonner, et
+  le chapeau reprend sa place en tête. Idem sur une fiche sans critères, et en mode statique, où le
+  tableau porte déjà son propre ordre (`svExtras`).
+- **⚠ La constante est déclarée avant le `if(useSv)`** : la coque de `main.innerHTML` la lit aussi
+  (c'est elle qui décide si le chapeau est encore rendu en tête de colonne). Posée dans la branche,
+  elle aurait été hors de portée — même zone morte temporelle que celle payée au lot T3.
+- Témoins dans `audit-doctrine` (6 contrôles) : ordre critères → chapeau → bouton, chapeau rendu
+  **une seule fois**, retour en tête en session, et la branche sans critères. Vérifiés capables
+  d'échouer. La fixture de la section « démarrage » a dû être **rallongée à onze critères** : avec
+  le chapeau descendu, huit ne suffisaient plus à faire défiler à 390 px, et le contrôle ne
+  rencontrait donc plus son cas.
+
 ## [5.0.7] — 2026-08-04
 ### Démarrer une session dépose sur le haut du premier bloc
 

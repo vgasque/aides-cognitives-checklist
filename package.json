@@ -1,6 +1,6 @@
 {
   "name": "aides-cognitives-checklist",
-  "version": "5.0.7",
+  "version": "5.0.8",
   "description": "PWA d'aides cognitives cliniques, hors-ligne, sans dépendance runtime.",
   "private": true,
   "scripts": {

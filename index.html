@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-tXfkAZ6l43lCc1axhLPJga/1XBppeMolV9G8Sns8lTI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-rxE2+cUdKC21dta1OWqfmEX7mlX4SQnANru0dvDao/0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6221,7 +6221,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.7';
+const APP_VERSION='5.0.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13824,6 +13824,10 @@ function renderRead(){
      rail ne parlait qu'à lui-même. La PERMUTATION, elle, reste conditionnée au démarrage :
      avant d'agir on s'oriente, et la condition d'entrée QRH se lit d'abord. */
   const agirDabord=Runtime.started&&!useSv;
+  /* DÉCLARÉ ICI, AVANT LE `if(useSv)` : la coque de `main.innerHTML` le lit aussi (c'est LUI qui
+     décide si le chapeau est encore rendu en tête de colonne). Posé dans la branche, il serait
+     hors de portée — même zone morte que celle payée au lot T3. */
+  const fsAvantBouton=!useSv&&!!confBlockH&&!!sessStartH&&!!forgetStrip;
   const stages=[];
   if(useSv){
     // v4.14.0 : STATIQUE = document complet en tableau (confirmation, chapeau, algorithme,
@@ -13832,7 +13836,31 @@ function renderRead(){
     // (condition d'entrée QRH : on confirme le tableau avant d'agir) — pas ici.
     stages.push({cls:'on',head:'',body:(wideRead||state.rtOpen==='dock'?'':rtH)+navHtml+(wideRead?'':tkH)+localH+(wideRead?'':posH)});
   }else{
-  if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
+  /* ═══ LE CHAPEAU SE GLISSE ENTRE LES CRITÈRES ET LE BOUTON (v5.0.7, décision utilisateur) ═════
+     Question posée : « remonter confirmer le diagnostic au-dessus de ne pas oublier — est-ce
+     incompatible ECAM/QRH ? ». Non : c'est l'ordre CANONIQUE, et c'est l'ordre d'avant qui s'en
+     écartait. Un QRH imprime le titre et la CONDITION D'ENTRÉE au-dessus des recall items ; sur
+     ECAM le titre de l'alerte — qui EST la condition — précède les lignes d'action. La séquence
+     est condition → memory items → read-and-do ; on avait memory items → condition.
+     ⚠ LE CHAPEAU NE PASSE PAS SOUS LE BOUTON, ET C'EST TOUT L'ARBITRAGE. Le descendre simplement
+     sous l'étage de la condition d'entrée le mettrait APRÈS « Confirmé — démarrer la session »,
+     puisque le bouton vit dans cet étage : on l'aurait rangé derrière le geste qu'il doit
+     précéder. Il se glisse donc ENTRE les deux — la lecture devient exactement celle du QRH, et le
+     bouton porte l'acquittement des deux.
+     CE QUE CELA COÛTE, MESURÉ, ET IL FAUT LE SAVOIR : le chapeau quitte le premier écran dès que
+     les critères sont longs (fiche à 8 critères, 390 × 844 : il naissait à y = 130, il naît à
+     y = 813). Sur une fiche ordinaire il y reste entier (571 → 786 à 390 × 844). Et comme le
+     bouton FLOTTE quand il est sous le pli (v4.73.0), on peut démarrer sans avoir défilé jusqu'aux
+     memory items. Ce qui rend le coût acceptable est le lot T7 : un memory item ★ RESTE dans son
+     bloc — le chapeau AGRÈGE, il ne possède pas. Rien n'est perdu, l'item se re-vérifie à sa place
+     dans la checklist, ce qui est précisément le geste QRH (réciter de mémoire, puis confirmer).
+     LA CONDITION EST LA PRÉSENCE DU BOUTON, pas l'état de la session : chez l'invité et en aperçu
+     d'essai `sessStartH` est vide (le geste d'entrée n'existe pas), et une séquence qui mène à un
+     bouton absent n'a rien à ordonner — le chapeau reprend alors sa place en tête. Une fois la
+     session DÉMARRÉE, rien ne change de ce qui existait : le chapeau replié revient en tête et la
+     condition d'entrée descend avec son étage (T5). */
+  if(confBlockH)stages.push({cls:started?'done':'on',head:'',
+    body:confBlockH+(fsAvantBouton?forgetStrip:'')+sessStartH});
   /* T2 (v5.0.0) — LE JOURNAL DES ACTIONS REMONTE. Il vivait en FIN de colonne : mesuré, le bouton
      « Noter l'heure » était à y = 1588 px sur un écran de 844 (744 px sous le pli) et à 1829 px sur
      640. C'est le geste de traçabilité le plus fréquent d'une réanimation, et c'était le plus loin
@@ -13895,7 +13923,7 @@ function renderRead(){
     ${shareOverHtml()}
     ${modeTopSegH}
     ${dockPanel}
-    ${useSv?'':forgetStrip}
+    ${(useSv||fsAvantBouton)?'':forgetStrip}
     ${pathH}
     ${annexRowHtml(f)}
     ${preview?'':noteBlockHtml(f.id,started)}

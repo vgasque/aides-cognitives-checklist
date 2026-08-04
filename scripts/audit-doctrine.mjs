@@ -2864,7 +2864,10 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
         'Atteinte digestive : douleurs abdominales, vomissements répétés, diarrhée',
         'Deux organes atteints ou plus après exposition suffisent au diagnostic',
         'Hypotension isolée après exposition à un allergène connu du patient',
-        'En cas de doute, traiter comme une anaphylaxie — le retard est le facteur de gravité'],
+        'En cas de doute, traiter comme une anaphylaxie — le retard est le facteur de gravité',
+        'Bronchospasme résistant aux bêta-2 inhalés chez un patient jusque-là stable',
+        'Œdème laryngé : dysphonie, sensation de gorge serrée, tirage inspiratoire',
+        'Collapsus sans étiologie évidente dans les minutes suivant une injection'],
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',next:'b2',items:ITEMS.a},
               {id:'b2',kind:'do',title:'Réévaluation à 5 min',items:ITEMS.b}]});
     await Data.put(f);fiches.push(f);
@@ -2910,7 +2913,10 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
         'Atteinte digestive : douleurs abdominales, vomissements répétés, diarrhée',
         'Deux organes atteints ou plus après exposition suffisent au diagnostic',
         'Hypotension isolée après exposition à un allergène connu du patient',
-        'En cas de doute, traiter comme une anaphylaxie — le retard est le facteur de gravité'],
+        'En cas de doute, traiter comme une anaphylaxie — le retard est le facteur de gravité',
+        'Bronchospasme résistant aux bêta-2 inhalés chez un patient jusque-là stable',
+        'Œdème laryngé : dysphonie, sensation de gorge serrée, tirage inspiratoire',
+        'Collapsus sans étiologie évidente dans les minutes suivant une injection'],
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await w(450);
@@ -2944,6 +2950,60 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
       haut:c?Math.round(c.getBoundingClientRect().top-stickBase()):null};});
   t(`390× fiche courte : le démarrage ne déplace pas la page`, r.saut===0, `${r.saut} px`);
   t(`390× … et le haut de la carte y était déjà`, r.haut!=null&&r.haut>=0, `${r.haut} px`);
+  await page.close();
+}
+
+/* ── LE CHAPEAU ENTRE LES CRITÈRES ET LE BOUTON (v5.0.8) ────────────────────────────────────
+   Séquence QRH : condition d'entrée → memory items → geste d'entrée. Trois propriétés, et la
+   deuxième est celle qui distingue cette variante de « descendre le chapeau » tout court : il ne
+   passe JAMAIS sous le bouton, sinon on l'aurait rangé derrière le geste qu'il doit précéder.
+   La troisième est la non-régression : une fois la session démarrée, le chapeau replié revient en
+   tête (T3 + T5) — rien de ce qui existait ne change. */
+console.log('\n══ CHAPEAU · condition d’entrée → memory items → bouton ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    await w(300);
+    const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};
+    const avant={conf:Y('.conf-block'),fs:Y('.forget-strip'),btn:Y('#sessStart'),
+      n:document.querySelectorAll('.forget-strip').length};
+    document.getElementById('sessStart').click();await w(600);
+    const apres={fs:Y('.forget-strip'),carte:Y('.ov-block'),
+      n:document.querySelectorAll('.forget-strip').length,
+      replie:!!document.querySelector('.forget-strip.fs-foldable')};
+    return {avant,apres};});
+  const a=r.avant,b=r.apres;
+  t('hors session : les critères viennent EN PREMIER',
+    a.conf!=null&&a.fs!=null&&a.conf<a.fs, `conf ${a.conf}, chapeau ${a.fs}`);
+  t('hors session : le chapeau reste AU-DESSUS du bouton',
+    a.fs!=null&&a.btn!=null&&a.fs<a.btn, `chapeau ${a.fs}, bouton ${a.btn}`);
+  t('le chapeau n’est rendu QU’UNE fois', a.n===1&&b.n===1, `${a.n} avant, ${b.n} après`);
+  t('en session : le chapeau replié revient en tête, au-dessus de la carte',
+    b.fs!=null&&b.carte!=null&&b.fs<b.carte&&b.replie===true,
+    `chapeau ${b.fs}, carte ${b.carte}, repliable=${b.replie}`);
+  await page.close();
+}
+{ /* SANS CRITÈRES, il n'y a pas de séquence à ordonner : le chapeau reprend sa place en tête —
+     c'est la même condition qui protège l'invité et l'aperçu d'essai, où le bouton n'existe pas. */
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async(ITEMS)=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=migrate({id:'zsanscrit',title:'Sonde sans critères',start:'b1',
+      notForget:['Appeler à l’aide','Adrénaline prête'],confirmation:[],
+      blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
+    await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
+    const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};
+    return {conf:!!document.querySelector('.conf-block'),fs:Y('.forget-strip'),btn:Y('#sessStart')};},
+    items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition']));
+  t('témoin : la fiche sans critères n’a pas de condition d’entrée', r.conf===false);
+  t('sans critères : le chapeau reste en tête, au-dessus du bouton',
+    r.fs!=null&&r.btn!=null&&r.fs<r.btn, `chapeau ${r.fs}, bouton ${r.btn}`);
   await page.close();
 }
 

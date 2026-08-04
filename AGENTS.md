@@ -1431,6 +1431,29 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   procédure, qui se lit de haut en bas parce que c'est le sens de lecture — le leur attribuer serait
   la même erreur de source que « Do-Verify »/AC 120-71A. Ce qui EST contraignant est plus étroit :
   les procédures se POSTENT (ECAM) et une même chose ne se dit pas de deux façons.
+- **LE CHAPEAU SE GLISSE ENTRE LES CRITÈRES ET LE BOUTON (v5.0.8, décision utilisateur)** : la
+  séquence hors session est désormais **condition d'entrée → memory items → geste d'entrée**, qui
+  est l'ordre CANONIQUE — un QRH imprime le titre et la condition AU-DESSUS des recall items, et
+  sur ECAM le titre de l'alerte (qui EST la condition) précède les lignes d'action. C'est l'ordre
+  d'avant (memory items → condition) qui s'en écartait.
+  **⚠ LE CHAPEAU NE PASSE PAS SOUS LE BOUTON, ET C'EST TOUT L'ARBITRAGE** : le descendre sous
+  l'ÉTAGE de la condition d'entrée le mettrait APRÈS « Confirmé — démarrer la session », puisque le
+  bouton vit dans cet étage — on l'aurait rangé derrière le geste qu'il doit précéder.
+  **CE QUE CELA COÛTE, MESURÉ** : le chapeau quitte le premier écran dès que les critères sont
+  longs (8 critères, 390 × 844 : y = 130 → **y = 813**) ; sur une fiche ordinaire il y reste ENTIER
+  (571 → 786). Et le bouton FLOTTANT (v4.73.0) permet de démarrer sans avoir défilé jusqu'à lui.
+  **CE QUI REND CE COÛT ACCEPTABLE EST LE LOT T7** : un memory item ★ RESTE dans son bloc — le
+  chapeau AGRÈGE, il ne possède pas ; l'item se re-vérifie à sa place dans la checklist, ce qui est
+  le geste QRH (réciter de mémoire, puis confirmer sur la liste). Si un jour le chapeau redevenait
+  le SEUL porteur des memory items, cet arbitrage serait à rouvrir.
+  **LA CONDITION EST LA PRÉSENCE DU BOUTON, PAS L'ÉTAT DE LA SESSION** : chez l'invité et en aperçu
+  d'essai `sessStartH` est vide, et une séquence qui mène à un bouton absent n'a rien à ordonner —
+  le chapeau reprend alors sa place en tête (idem sans critères, idem en statique). **En session,
+  rien ne change de ce qui existait** : le chapeau replié revient en tête et la condition d'entrée
+  descend avec son étage (T3 + T5) — le débat ne portait que sur l'écran d'AVANT.
+  **⚠ LA CONSTANTE SE DÉCLARE AVANT LE `if(useSv)`** : la coque de `main.innerHTML` la lit aussi
+  (c'est elle qui décide si le chapeau est encore rendu en tête de colonne) — posée dans la
+  branche, elle serait en zone morte, la faute exacte payée au lot T3.
 - **LE DÉMARRAGE DÉPOSE SUR LE HAUT DU PREMIER BLOC (v5.0.7, signalé à l'usage)** : presser
   « Confirmé — démarrer la session » retire ou rétrécit TOUT ce qui est au-dessus du doigt — chapeau
   replié en une ligne (T3), condition d'entrée refermée, « Prise en charge » remontée en tête (T5) —
