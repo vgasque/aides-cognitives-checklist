@@ -1,5 +1,89 @@
 # Journal des modifications
 
+## [5.0.9] — 2026-08-04
+### Quatre défauts d'affichage signalés à l'usage, et l'un d'eux n'était mesurable par aucun harnais
+
+- **La réponse attendue enroule au lieu d'écraser le geste** (vue « Toute la fiche » › Parcours,
+  capture à l'appui). `.pc-r` était `flex:none` dans une rangée qui n'enroulait pas : le seul objet
+  compressible était donc l'**action** (`.pc-t`, `min-width:0`). Mesuré sur un cas adverse à
+  320 px — « Curariser… » tombait à quelques pixels de large pendant que la pilule sortait de la
+  carte. On perdait ainsi l'information principale *et* la secondaire. Le remède est déjà écrit
+  dans ce fichier pour ce défaut exact, sur la feuille « Consulter » (`.rs-v`) : la pilule prend sa
+  propre ligne, alignée sur le texte. **Une seule grammaire — on enroule, on ne tronque jamais.**
+- **Chaque branche d'une décision porte son étiquette, et une branche sans carte n'est plus
+  muette.** L'étiquette était mise en attente puis posée devant la première *carte* de la branche —
+  or `flowPlan` n'en émet pas toujours : une branche qui rejoint le point de convergence ou qui
+  reboucle sur un bloc déjà décrit ne produit qu'un renvoi. Mesuré sur la fiche d'exemple
+  Anaphylaxie : seule « NON — RÉFRACTAIRE » s'affichait, « OUI — STABILISÉ » n'a **jamais** été
+  rendue. L'étiquette s'émet désormais à l'ouverture de la branche (même position dans le cas
+  nominal, présente dans les autres), et le renvoi se dessine — « → n », « ↺ n », « ▪ fin », le
+  vocabulaire abrégé de l'Échelle — mais **seulement quand la branche n'a pas de carte** : sinon le
+  pied de la carte précédente le dit déjà, et l'on écrirait deux fois la même chose. Tout y reste
+  **inerte** (doctrine du plan, vérifiée).
+- **⚡ Les cibles de complication se reconnaissent dans le schéma** (proposition de l'auteur :
+  « mettre un éclair et en rouge ? »). Le SVG était la **seule** des quatre vues de structure où
+  une cible de complication se dessinait comme un bloc d'étapes ordinaire — donc comme *l'étape
+  d'après*, le défaut exact mesuré en v4.26.0 (« 5 Laryngospasme »). L'Échelle, le tableau Statique
+  et la vue Parcours ont toutes leur section « À tout moment ». Registre **ALERTE en CONTOUR**
+  (v4.26.1) : bandeau d'en-tête teinté, liseré et cadre rouges, **corps du bloc inchangé** — un
+  aplat rouge permanent désensibilise au rouge, qui appartient ici aux étapes vitales dessinées à
+  l'intérieur. La couleur n'est jamais seule (règle 8) : pastille « ⚡ À TOUT MOMENT » en toutes
+  lettres, reprise dans le nom accessible du nœud. L'éclair est un **tracé** et non le caractère
+  « ⚡ », qui sortirait en emoji couleur sur iOS dans un dessin qui n'a d'autre couleur que ses
+  registres.
+- **Un bloc complet l'est sur toute sa bordure** (« uniquement le bord gauche devient vert et pas
+  le reste »). `.done` n'écrivait que `border-left-color` : un bloc **courant et complet** portait
+  un cadre bleu avec une seule arête verte — deux registres sur un même trait, exactement ce que la
+  v4.24.0 a corrigé en sens inverse pour la décision. Et c'est la configuration **nominale** : on
+  finit de cocher le bloc où l'on est. La carte *repliée* le faisait déjà (`.closed.done`) — le
+  même bloc changeait donc de registre selon qu'il était plié. Pas de fond teinté sur la carte
+  ouverte, qui est la colonne d'action et porte des étapes ⚠/△ dont la boîte doit rester lisible ;
+  une **décision reste exclue**, son ambre prime sur l'état.
+
+### ⚠ Le chrome collant ne se dérive plus d'une position de défilement
+
+« Barre d'en-tête inférieure, scroll pas très réactif, beaucoup d'à-coups » — vidéo à l'appui, où
+les deux rangées collantes se désolidarisent de l'en-tête et laissent une bande vide à leur place.
+
+`--hdr-h` est le `top` collant de la rangée de commandes, donc du quai empilé dessus. Il était
+dérivé du **`bottom`** de l'en-tête, c'est-à-dire d'une *position*. Or, au rebond de fin de course,
+iOS **translate tout le document**, en-tête collant compris : `bottom` grandit, `--hdr-h` grandit
+avec lui, les deux rangées descendent — puis reviennent. À la cadence du doigt, c'est le
+tremblement filmé. C'est la **hauteur** qu'il fallait mesurer : elle ne dépend d'aucun défilement,
+et c'est la seule des deux qui exprime ce que la valeur veut dire. Idem pour `--stick-top`, devenu
+une somme de hauteurs ; `stickBase()` garde ses rectangles là où c'est juste — `ovScrollEl`, qui
+vise une position d'écran à l'instant du saut.
+
+Même famille que le rail A→Z (v5.0.2) et que la hachure des placards (v5.0.6) : **on n'ancre
+jamais à un repère qu'on ne contrôle pas**, et ce que le compositeur fait du rendu n'est visible
+dans aucune mesure de la page — un harnais Blink reste vert. Le témoin **déplace** donc l'en-tête
+sans changer sa hauteur, stand-in fidèle de ce que fait le compositeur, et vérifie que la géométrie
+du chrome ne bouge pas d'un pixel (vérifié capable d'échouer : défaut réintroduit → 3 rouges).
+
+Bénéfice second, et il compte autant : la valeur devenant **constante**, la garde d'écriture
+devient un vrai no-op — on cesse d'invalider le style de tout le document (une propriété
+personnalisée posée sur `<html>`) à chaque évènement de défilement. Et la passe est désormais
+**coalescée par image** au lieu d'être branchée sur l'évènement : elle lit quatre rectangles puis
+écrit trois propriétés, un couple lecture/écriture qu'on n'intercale plus dans le pipeline de
+défilement (même discipline que `svPaintArrows`, v4.14.10). L'appel direct de `render()` reste
+synchrone — `landOnBout` se mesure contre `stickBase()`, qui doit avoir été resynchronisé avant.
+
+### Témoins
+
+`audit-doctrine` : trois sections neuves (15 contrôles) — le parcours sur un cas **adverse
+construit** (réponse longue, branche qui reboucle, à 320 px : sur les fiches d'exemple aucune
+réponse ne déborde, le contrôle serait resté vert sur le défaut), la géométrie du chrome sous
+déplacement, et les quatre côtés d'un bloc complet. `audit-complications` : 5 contrôles sur le
+schéma, dont un qui vérifie d'abord que le nœud **existe** — et l'on y mesure la *propriété* (le
+nœud se distingue par un mot ET par le registre, aucun autre ne l'emprunte), jamais la valeur d'un
+hex isolé, qui rougirait sur un changement de token qui serait juste.
+
+**⚠ Une leçon de méthode, payée à l'écriture.** Le correctif du bloc complet a d'abord été livré
+inerte : le commentaire qui l'explique portait un **`*/` en trop**, le texte restait à nu et le
+parseur avalait la règle suivante — le défaut de cascade décrit dans `AGENTS.md` depuis la
+v4.74.2, reproduit à la lettre. C'est la mesure qui l'a dit, pas la relecture ; `check-syntax` le
+nomme précisément (« fermeur de commentaire sans ouvreur »), il suffisait de le lancer avant.
+
 ## [5.0.8] — 2026-08-04
 ### Le chapeau se glisse entre les critères et le bouton
 

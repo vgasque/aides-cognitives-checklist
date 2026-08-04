@@ -1454,6 +1454,78 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **⚠ LA CONSTANTE SE DÉCLARE AVANT LE `if(useSv)`** : la coque de `main.innerHTML` la lit aussi
   (c'est elle qui décide si le chapeau est encore rendu en tête de colonne) — posée dans la
   branche, elle serait en zone morte, la faute exacte payée au lot T3.
+- **UNE GÉOMÉTRIE DE CHROME NE SE DÉRIVE JAMAIS D'UNE POSITION DE DÉFILEMENT (v5.0.9, signalé à
+  l'usage en PWA : « barre d'en-tête inférieure, scroll pas très réactif, beaucoup d'à-coups »,
+  vidéo à l'appui)** : `--hdr-h` est le `top` collant de `#crisisCtrl`, donc du quai empilé dessus,
+  et il était dérivé du **`bottom`** de l'en-tête. Au rebond de fin de course, iOS TRANSLATE tout
+  le document, en-tête collant compris : `bottom` grandit, `--hdr-h` grandit avec lui, les deux
+  rangées descendent puis reviennent — à la cadence du doigt, c'est un tremblement, et sur
+  certaines images la rangée de commandes laisse une bande vide à sa place. On mesure la
+  **HAUTEUR**, qui ne dépend d'aucun défilement ; `--stick-top` devient une SOMME DE HAUTEURS
+  (`stickHeight()`). **`stickBase()` reste et garde ses rectangles** là où c'est juste :
+  `ovScrollEl`, qui vise une position d'écran à l'instant du saut. Même famille que le rail A→Z
+  (v5.0.2) et la hachure des placards (v5.0.6) — **on n'ancre jamais à un repère qu'on ne contrôle
+  pas**, et ce que le compositeur fait du rendu n'est visible dans AUCUNE mesure de la page, donc
+  un harnais Blink reste vert : le témoin DÉPLACE l'en-tête sans changer sa hauteur (stand-in
+  fidèle) et vérifie que la géométrie ne bouge pas d'un pixel.
+  **BÉNÉFICE SECOND, ET IL COMPTE AUTANT** : la valeur devenant CONSTANTE, la garde d'écriture
+  devient un vrai no-op — on cesse d'invalider le style de tout le document (une propriété
+  personnalisée posée sur `<html>`) à chaque évènement de défilement. Et la passe est **coalescée
+  par IMAGE** (`requestAnimationFrame`) au lieu d'être branchée sur l'évènement : elle lit quatre
+  rectangles puis écrit trois propriétés, couple lecture/écriture qu'on n'intercale plus dans le
+  pipeline de défilement (discipline de `svPaintArrows`, v4.14.10). ⚠ L'appel DIRECT de
+  `syncHdrScroll()` reste SYNCHRONE — `render()` en dépend, `landOnBout` se mesurant contre
+  `stickBase()` juste après.
+- **LE PARCOURS MONTRE TOUT CE QU'IL PROMET (v5.0.9, trois signalements à l'usage)** :
+  (a) **la réponse attendue enroule au lieu d'écraser le geste** — `.pc-r` était `flex:none` dans
+  une rangée qui n'enroulait pas, donc le seul objet compressible était le GESTE (`.pc-t`,
+  `min-width:0`) : mesuré, il tombait à quelques pixels pendant que la pilule sortait de la carte,
+  et l'on perdait l'information principale ET la secondaire. Le remède est déjà écrit dans le
+  fichier pour ce défaut exact, sur la feuille « Consulter » (`.rs-v`) : la pilule prend sa propre
+  ligne, avec le retrait de la case. Une seule grammaire — **on enroule, on ne tronque jamais**.
+  (b) **chaque branche porte son étiquette** — elle était mise en attente puis posée devant la
+  première CARTE de la branche, or `flowPlan` n'en émet pas toujours (une branche qui rejoint le
+  point de convergence, ou qui reboucle sur un bloc déjà décrit, ne produit qu'un `link`). Mesuré
+  sur la fiche d'exemple Anaphylaxie : « OUI — STABILISÉ » n'était JAMAIS rendue. `bropen` précède
+  toujours immédiatement le contenu de sa branche : émettre là met l'étiquette exactement où elle
+  était, et AUSSI dans les cas où elle manquait.
+  (c) **une branche sans carte affiche son renvoi** (« → n », « ↺ n », « ▪ fin » — le vocabulaire
+  abrégé de l'Échelle) au lieu de RIEN, dans une vue qui promet la fiche entière. ⚠ Uniquement
+  quand la branche n'a PAS de carte : sinon le pied de la carte précédente (`.pc-foot`) le dit
+  déjà, et l'on écrirait deux fois la même chose sur deux lignes qui se suivent. Tout y reste
+  INERTE (doctrine du plan, re-vérifiée avec le reste).
+  ⚠ **LE TÉMOIN CONSTRUIT SON CAS** : sur les fiches d'exemple aucune réponse attendue ne déborde
+  et une seule branche est sans carte — il serait resté vert sur les trois défauts.
+- **⚡ LES CIBLES DE COMPLICATION SE RECONNAISSENT DANS LE SCHÉMA (v5.0.9, proposition de
+  l'auteur : « mettre un éclair et en rouge ? »)** : le SVG était la SEULE des quatre vues de
+  structure où une cible de complication se dessinait comme un bloc d'étapes ordinaire — donc comme
+  l'étape d'après, le défaut exact mesuré en v4.26.0 (« 5 Laryngospasme ») ; l'Échelle, le Statique
+  et la vue Parcours ont toutes leur section « À tout moment ». Registre **ALERTE EN CONTOUR**
+  (v4.26.1) : bandeau d'en-tête teinté, liseré et cadre rouges, **corps du bloc INCHANGÉ** — un
+  aplat rouge permanent désensibilise au rouge, qui appartient ici aux étapes vitales dessinées à
+  l'intérieur. La couleur n'est jamais seule (règle 8) : pastille « ⚡ À TOUT MOMENT » en toutes
+  lettres, reprise dans le nom accessible du nœud. ⚠ **L'éclair est un TRACÉ**, pas le caractère
+  « ⚡ » : celui-ci sort en emoji COULEUR sur iOS, dans un dessin qui n'a pas d'autre couleur que
+  ses registres (même arbitrage que le trombone de la porte « ＋ », v4.71.0). ⚠ Et la réachabilité
+  est calculée SUR PLACE dans `_buildFlowSVG`, jamais par `cxDetached` : celui-ci appelle
+  `flowPlan`, dont le cache est indexé par OBJET fiche et que l'éditeur — qui mute son brouillon en
+  place — ne doit jamais peupler.
+- **UN BLOC COMPLET L'EST SUR TOUTE SA BORDURE (v5.0.9, signalé à l'usage : « uniquement le bord
+  gauche devient vert et pas le reste »)** : `.ov-block.done` n'écrivait que `border-left-color`,
+  si bien qu'un bloc COURANT ET COMPLET portait un cadre bleu avec une seule arête verte — deux
+  registres sur un même trait, exactement ce que la v4.24.0 a corrigé en sens inverse pour la
+  décision. Et c'est la configuration NOMINALE : on finit de cocher le bloc où l'on est. La carte
+  REPLIÉE le faisait déjà (`.closed.done`) — le même bloc changeait donc de registre selon qu'il
+  était plié. La POSITION reste portée sans ambiguïté par la pilule « VOUS ÊTES ICI » : un canal
+  par signification. **PAS DE FOND TEINTÉ** sur la carte ouverte, contrairement à `.closed.done` :
+  c'est la colonne d'ACTION, ses étapes ⚠/△ doivent garder leur boîte lisible sur `--surface` ;
+  repliée, la carte n'est plus qu'un statut d'une ligne et l'aplat y dit « c'est fait ». **UNE
+  DÉCISION EST EXCLUE** (`:not(.dec)`) : son ambre prime sur l'état.
+  ⚠ **ET LE PIÈGE DE CASCADE A ÉTÉ REJOUÉ EN L'ÉCRIVANT** : le commentaire qui explique cette
+  règle portait un `*/` EN TROP, le texte restait à nu et le parseur **avalait la règle suivante**
+  — le correctif était livré INERTE, et `.done` ne peignait plus rien du tout. C'est la mesure qui
+  l'a dit, pas la relecture. `check-syntax` le nomme précisément (« fermeur de commentaire sans
+  ouvreur, le parseur avalera la règle suivante ») : il suffisait de le lancer avant de mesurer.
 - **LE DÉMARRAGE DÉPOSE SUR LE HAUT DU PREMIER BLOC (v5.0.7, signalé à l'usage)** : presser
   « Confirmé — démarrer la session » retire ou rétrécit TOUT ce qui est au-dessus du doigt — chapeau
   replié en une ligne (T3), condition d'entrée refermée, « Prise en charge » remontée en tête (T5) —

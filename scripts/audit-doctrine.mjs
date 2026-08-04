@@ -3007,6 +3007,135 @@ console.log('\n══ CHAPEAU · condition d’entrée → memory items → bout
   await page.close();
 }
 
+/* ── LE PARCOURS MONTRE TOUT CE QU'IL PROMET (v5.0.9) ───────────────────────────────────────
+   Trois défauts signalés à l'usage, tous dans l'onglet « Parcours » de « Toute la fiche ».
+   (1) La réponse attendue était `flex:none` dans une rangée qui n'enroulait pas : le seul objet
+   compressible était le GESTE, qui tombait à quelques pixels pendant que la pilule sortait de la
+   carte. Le témoin CONSTRUIT SON CAS — une réponse volontairement longue, sur l'écran le plus
+   étroit servi : sur les fiches d'exemple, aucune réponse ne déborde et le contrôle serait resté
+   vert sur le défaut. (2) L'étiquette d'une branche n'était posée que devant sa première CARTE,
+   or une branche qui ne fait que boucler n'en a pas : elle disparaissait. (3) Cette branche-là
+   n'affichait alors RIEN, dans une vue qui promet la fiche entière.
+   L'INERTIE reste mesurée avec eux : rien de tout cela n'introduit un geste. */
+console.log('\n══ PARCOURS · la réponse enroule, la branche se nomme ══');
+{
+  const page = await br.newPage({viewport:{width:320,height:640},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async(ITEMS)=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    /* Fiche ADVERSE : une décision dont UNE branche boucle (donc sans carte), et une réponse
+       attendue plus longue que la carte n'est large. */
+    const f=migrate({id:'zparcours',title:'Sonde parcours',start:'b1',
+      blocks:[{id:'b1',kind:'do',title:'Mesures',items:ITEMS,next:'b2'},
+        {id:'b2',kind:'decision',title:'Réévaluation',question:'Amélioration ?',
+          options:[{label:'Oui — stabilisé',target:'b3'},{label:'Non — réfractaire',target:'b1'}]},
+        {id:'b3',kind:'do',title:'Suite',items:[],next:null}]});
+    await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
+    document.getElementById('sessStart').click();await w(500);
+    document.getElementById('allBtn').click();await w(600);
+    document.querySelector('[data-alltab="parcours"]').click();await w(600);
+    const wrap=document.querySelector('.pc-wrap');if(!wrap)return {err:'pas de .pc-wrap'};
+    const deb=[],ecr=[];let avecR=0;
+    wrap.querySelectorAll('.pc-card').forEach(c=>{const cb=c.getBoundingClientRect();
+      c.querySelectorAll('.pc-it').forEach(it=>{
+        const tx=it.querySelector('.pc-t'),rp=it.querySelector('.pc-r');
+        if(tx&&tx.getBoundingClientRect().width<60)ecr.push(tx.textContent.slice(0,24));
+        if(!rp)return;avecR++;const rb=rp.getBoundingClientRect();
+        if(rb.right>cb.right+.5||rb.left<cb.left-.5)deb.push({t:(tx||{}).textContent,d:Math.round(rb.right-cb.right)});});});
+    const avant=state.checked&&JSON.stringify(state.checked);
+    const it0=wrap.querySelector('.pc-it');if(it0)it0.click();await w(150);
+    return {deb,ecr,avecR,
+      brc:[...wrap.querySelectorAll('.pl-brc')].map(x=>x.textContent.trim()),
+      jmp:[...wrap.querySelectorAll('.pc-jmp')].map(x=>x.textContent.trim()),
+      ck:wrap.querySelectorAll('[data-ck]').length,
+      inerte:JSON.stringify(state.checked)===avant};},
+    items(['⚠ Curariser :: succinylcholine, après vérification de la kaliémie et du délai de jeûne',
+      'Ventilation :: PaCO2 35–45 mmHg']));
+  t('témoin : le cas est RENCONTRÉ (des réponses attendues sont rendues)', r.avecR>=2, JSON.stringify({avecR:r.avecR,err:r.err}));
+  t('la réponse attendue ne sort jamais de sa carte', (r.deb||[]).length===0, JSON.stringify(r.deb));
+  t('… et elle n’écrase pas le geste', (r.ecr||[]).length===0, JSON.stringify(r.ecr));
+  t('CHAQUE branche de la décision porte son étiquette',
+    (r.brc||[]).length===2&&/OUI/.test(r.brc[0])&&/NON/.test(r.brc[1]), JSON.stringify(r.brc));
+  /* Les DEUX branches de cette fiche sont sans carte — l'une rejoint le point de convergence
+     (« → »), l'autre reboucle sur un bloc déjà décrit (« ↺ ») : les deux formes de renvoi que
+     `flowPlan` sait émettre, donc les deux qui disparaissaient. */
+  t('une branche sans carte affiche son renvoi au lieu de rien',
+    (r.jmp||[]).length===2&&r.jmp.some(x=>/^→/.test(x))&&r.jmp.some(x=>/^↺/.test(x)), JSON.stringify(r.jmp));
+  t('la vue reste INERTE (aucun data-ck, rien ne se coche)', r.ck===0&&r.inerte===true, JSON.stringify({ck:r.ck,inerte:r.inerte}));
+  await page.close();
+}
+
+/* ── LE CHROME COLLANT NE SUIT PAS LE DÉFILEMENT (v5.0.9) ───────────────────────────────────
+   `--hdr-h` est le `top` collant de la rangée de commandes, donc du quai empilé dessus ; il était
+   dérivé du `bottom` de l'en-tête, c'est-à-dire d'une POSITION. Au rebond de fin de course, iOS
+   TRANSLATE tout le document, en-tête collant compris : les deux rangées descendaient puis
+   revenaient, à la cadence du doigt (signalé à l'usage, vidéo à l'appui).
+   ⚠ CE QUE LE COMPOSITEUR FAIT DU RENDU N'EST VISIBLE DANS AUCUNE MESURE DE LA PAGE, et Blink ne
+   rebondit pas : un contrôle qui se contenterait de défiler resterait vert sur le défaut. On
+   DÉPLACE donc l'en-tête sans changer sa hauteur — le stand-in fidèle de ce que fait le
+   compositeur — et l'on vérifie que la géométrie du chrome ne bouge pas d'un pixel. */
+console.log('\n══ CHROME · une géométrie ne se dérive pas d’une position ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  await demarrerSession(page);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const V=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const T=id=>{const e=document.getElementById(id);return e?getComputedStyle(e).top:null;};
+    syncHdrScroll();await w(60);
+    const avant={h:V('--hdr-h'),s:V('--stick-top'),ctrl:T('crisisCtrl'),dock:T('crisisDock')};
+    const hb=document.querySelector('header.bar'),old=hb.style.transform;
+    hb.style.transform='translateY(64px)';syncHdrScroll();await w(60);
+    const pendant={h:V('--hdr-h'),s:V('--stick-top'),ctrl:T('crisisCtrl'),dock:T('crisisDock')};
+    hb.style.transform=old;syncHdrScroll();await w(60);
+    const apres={h:V('--hdr-h'),s:V('--stick-top')};
+    /* Le témoin doit rencontrer son cas : sans déplacement mesurable, il ne prouverait rien. */
+    return {avant,pendant,apres,decale:64};});
+  const a=r.avant,b=r.pendant;
+  t('témoin : le chrome a une géométrie non nulle à mesurer',
+    !!a.h&&a.h!=='0px'&&!!a.ctrl&&a.ctrl!=='auto', JSON.stringify(a));
+  t('--hdr-h ne bouge pas quand l’en-tête est déplacé', a.h===b.h, `${a.h} → ${b.h}`);
+  t('--stick-top ne bouge pas non plus', a.s===b.s, `${a.s} → ${b.s}`);
+  t('… donc les deux rangées collantes ne se décalent pas',
+    a.ctrl===b.ctrl&&a.dock===b.dock, JSON.stringify({avant:[a.ctrl,a.dock],pendant:[b.ctrl,b.dock]}));
+  t('l’état revient à l’identique', r.apres.h===a.h&&r.apres.s===a.s, JSON.stringify(r.apres));
+  await page.close();
+}
+
+/* ── UN BLOC COMPLET L'EST SUR TOUTE SA BORDURE (v5.0.9, signalé à l'usage) ─────────────────
+   `.done` n'écrivait que le liseré gauche : un bloc courant ET complet portait un cadre bleu avec
+   une seule arête verte. La carte REPLIÉE le faisait déjà — le même bloc changeait donc de
+   registre selon qu'il était plié. Une DÉCISION reste exclue : son ambre prime sur l'état. */
+console.log('\n══ BLOC COMPLET · le registre tient sur les quatre côtés ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  await demarrerSession(page);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const cs=()=>{const s=document.querySelector('.ov-block.cur');if(!s)return null;const c=getComputedStyle(s);
+      return {cls:s.className,top:c.borderTopColor,right:c.borderRightColor,bottom:c.borderBottomColor,left:c.borderLeftColor};};
+    const avant=cs();
+    let sec=document.querySelector('.ov-block.cur');
+    const n=sec.querySelectorAll('[data-ck]').length;
+    for(let i=0;i<n;i++){const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>!x.classList.contains('done'));
+      if(!li)break;li.click();await w(80);}
+    return {avant,apres:cs(),n};});
+  const a=r.avant,b=r.apres;
+  t('témoin : le bloc n’était PAS complet au départ', !/\bdone\b/.test(a.cls)&&r.n>0, JSON.stringify({cls:a.cls,n:r.n}));
+  t('… et il l’est après avoir tout coché', /\bdone\b/.test(b.cls), b.cls);
+  t('les quatre côtés passent au même registre',
+    b.top===b.right&&b.right===b.bottom&&b.bottom===b.left, JSON.stringify(b));
+  t('… et ce registre est bien celui du liseré « fait »', b.top!==a.top&&b.top===b.left, `${a.top} → ${b.top}`);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);

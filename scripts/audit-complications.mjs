@@ -103,6 +103,27 @@ const d7=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
  const cell=document.querySelector('.sv-cell.sv-cx');
  return {band:!!document.querySelector('.sv-cxband'),num:cell?cell.querySelector('.sv-n').textContent.trim():null};});
 t('Statique : bande + cellule sans numéro (⚡)', d7.band&&d7.num==='⚡', JSON.stringify(d7));
+/* LE SCHÉMA DIT AUSSI « À TOUT MOMENT » (v5.0.9). Il était la SEULE des quatre vues de structure
+   où une cible de complication se dessinait comme un bloc d'étapes ordinaire — donc comme l'étape
+   d'après, le défaut mesuré en v4.26.0. On mesure la PROPRIÉTÉ (le nœud se distingue par un mot
+   ET par le registre, et les autres nœuds ne l'empruntent pas), jamais la valeur d'un hex isolé —
+   un témoin qui figerait la teinte rougirait sur un changement de token qui serait juste. */
+const dsvg=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+ {const sc=document.querySelector('[data-alltab="schema"]');if(sc)sc.click();}await w(700);
+ const svg=document.querySelector('#allSheet .flow-scroll svg')||document.querySelector('.flow-scroll svg');
+ if(!svg)return {err:'pas de svg'};
+ const lire=g=>({lab:g.getAttribute('aria-label')||'',
+   mots:[...g.querySelectorAll('text')].map(t=>t.textContent).join(' | '),
+   bd:(g.querySelector('.fn-bd')||{getAttribute:()=>null}).getAttribute('stroke')});
+ const tous=[...svg.querySelectorAll('.fnode')].map(lire);
+ const cx=tous.find(n=>/Laryngospasme/.test(n.lab)),autres=tous.filter(n=>!/Laryngospasme/.test(n.lab));
+ return {n:tous.length,cx,autresCadres:[...new Set(autres.map(a=>a.bd))],
+   autresMots:autres.filter(a=>/TOUT MOMENT/.test(a.mots)).length};});
+t('… et le contrôle RENCONTRE SON CAS (le nœud existe dans le schéma)', !!(dsvg.cx), JSON.stringify(dsvg&&dsvg.err));
+t('Schéma : la cible ⚡ porte « À TOUT MOMENT » en toutes lettres', !!(dsvg.cx&&/TOUT MOMENT/.test(dsvg.cx.mots)), JSON.stringify(dsvg.cx&&dsvg.cx.mots));
+t('… et l’annonce au lecteur d’écran le dit aussi', !!(dsvg.cx&&/tout moment/i.test(dsvg.cx.lab)), JSON.stringify(dsvg.cx&&dsvg.cx.lab));
+t('… son cadre passe au registre ALERTE, les autres NON', !!(dsvg.cx&&dsvg.cx.bd&&!dsvg.autresCadres.includes(dsvg.cx.bd)), JSON.stringify({cx:dsvg.cx&&dsvg.cx.bd,autres:dsvg.autresCadres}));
+t('… et aucun autre nœud n’emprunte le mot', dsvg.autresMots===0, ''+dsvg.autresMots);
 const d8=await p.evaluate(async()=>{
  document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,500));
  document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));

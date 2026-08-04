@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-rxE2+cUdKC21dta1OWqfmEX7mlX4SQnANru0dvDao/0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-+5VNb+5UDe7vMThkag1eql548V4aYZsJnchGqHwm0G0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2405,12 +2405,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pc-n.ok{background:var(--ok);color:var(--on-primary);border:0}
   .pc-ht{flex:1;min-width:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
   /* L'item : case INERTE (aucun `data-ck`, `aria-hidden`), texte, valeur attendue en pilule mono. */
-  .pc-it{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+  /* ⚠ LA RÉPONSE ATTENDUE PREND SA PROPRE LIGNE (v5.0.9, signalé à l'usage, capture à l'appui) :
+     `.pc-r` était `flex:none` dans une rangée qui n'ENROULAIT PAS, donc le seul objet compressible
+     était le GESTE (`.pc-t`, `min-width:0`) — mesuré, « Curariser… » tombait à 12 px de large
+     (« C ») pendant que la pilule sortait de la carte de 260 px. On perdait ainsi l'information
+     principale ET la secondaire. Le remède est déjà écrit dans ce fichier, pour ce défaut exact,
+     sur la feuille « Consulter » : `.rs-v` (`flex:1 1 100%` + retrait de la case). Une seule
+     grammaire — on enroule, on ne tronque jamais (doctrine des renvois de l'Échelle, v4.55.3 :
+     « dans un PLAN, une branche cachée est une branche qu'on ne saura pas prendre »).
+     Le retrait de 32 px = la case (22) plus l'écart (10) : la pilule s'aligne sur le texte. */
+  .pc-it{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
   .pc-it:last-of-type{border-bottom:0}
   .pc-box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--line-strong)}
   .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
-  .pc-r{flex:none;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
-    border-radius:6px;padding:2px 6px}
+  .pc-r{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
+    border-radius:6px;padding:2px 6px;overflow-wrap:anywhere}
   /* Boîte signalée : le rembourrage horizontal est COMPENSÉ par une marge négative (patron du
      bleed d'ol.steps, v4.23.5) — la case reste sur la même verticale que les lignes normales,
      la teinte déborde dans le rembourrage de la carte au lieu de décaler le contenu. */
@@ -2420,8 +2429,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
   .pc-it.vig .pc-t{color:var(--verify);font-weight:800}
   .pc-it.vig .pc-box{border-color:var(--verify-bd)}
-  .pc-foot{margin-top:6px;padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
+  /* Le pied d'une carte et le renvoi d'une branche SANS carte (boucle ou fin) disent la MÊME
+     chose — « et ensuite, où ? » — et partagent donc une seule déclaration : deux boîtes mono à
+     un palier d'écart se liraient comme deux niveaux là où il n'y en a qu'un (et le quota du
+     plancher typographique n'a pas à payer une redite). Seuls les retraits diffèrent : le renvoi
+     s'aligne sur l'étiquette de branche qu'il suit. Inerte — la vue entière l'est. */
+  .pc-foot,.pc-jmp{padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
     font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+  .pc-foot{margin-top:6px}
+  .pc-jmp{margin:0 0 8px}
+  .pc-jmp.d1{margin-left:20px}.pc-jmp.d2{margin-left:32px}.pc-jmp.d3{margin-left:48px}
+  .pc-jmp.loop{color:var(--link);background:var(--primary-soft)}
   .pc-q{font-size:13.5px;font-weight:700;color:var(--verify);margin:2px 0 6px}
   .pc-opts{display:flex;flex-wrap:wrap;gap:6px}
   .pc-opt{font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);
@@ -4001,7 +4019,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      qu'ECAM interdit. La POSITION reste portée, sans ambiguïté et toujours en bleu, par la pilule
      « VOUS ÊTES ICI » (`.ov-here`), qui n'apparaît que sur `.cur` : un canal par signification. */
   .ov-block.dec.cur{border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  /* ⚠ UN BLOC COMPLET L'EST SUR TOUTE SA BORDURE (v5.0.9, signalé à l'usage : « bloc d'étape où
+     on a coché toutes les étapes : uniquement le bord gauche devient vert et pas le reste »).
+     `.done` n'écrivait que `border-left-color`, si bien qu'un bloc courant ET complet portait un
+     cadre BLEU avec une seule arête verte — deux registres sur un même trait, exactement ce que
+     la v4.24.0 a corrigé en sens inverse pour la décision. Et c'est la configuration NOMINALE :
+     on finit de cocher le bloc où l'on est. La carte REPLIÉE le faisait déjà (`.closed.done`) ;
+     ouverte, elle ne le faisait pas — un bloc changeait donc de registre selon qu'il était plié.
+     Le cadre entier passe au registre CONFIRMATION ; la POSITION reste portée sans ambiguïté par
+     la pilule « VOUS ÊTES ICI », un canal par signification (v4.24.0).
+     PAS DE FOND TEINTÉ ici, contrairement à `.closed.done` : la carte ouverte est la colonne
+     d'ACTION et porte des étapes ⚠/△ dont la boîte teintée doit rester lisible sur `--surface` ;
+     repliée, elle n'est plus qu'un statut d'une ligne et l'aplat y dit « c'est fait ».
+     UNE DÉCISION EST EXCLUE : son registre ambre prime sur l'état (v4.24.0, même raisonnement
+     qu'au-dessus) — elle garde son cadre et ne prend que son liseré vert, comme avant. */
   .ov-block.done{border-left-color:var(--done-line)}
+  .ov-block.done:not(.dec){border-color:var(--done-line)}
   /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
      n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
   /* v4.13.1 : l'en-tête d'instance PEUT se replier sur deux rangées — en étroit, les boutons
@@ -6221,7 +6254,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.8';
+const APP_VERSION='5.0.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10234,8 +10267,24 @@ function syncHdrScroll(){
   // de cette rangée collante. Division par zoomF() — getBoundingClientRect rend des px VISUELS
   // (× zoom du réglage de taille du texte) alors que `top` se consomme en px CSS (règle v4.13.1).
   const _hb=document.querySelector('header.bar');
-  const _hbB=_hb.getBoundingClientRect().bottom;
-  {const h=Math.round(_hbB/zoomF())+'px';
+  const _hbR=_hb.getBoundingClientRect(),_hbB=_hbR.bottom;
+  /* ⚠ ON MESURE LA HAUTEUR DE L'EN-TÊTE, JAMAIS SA POSITION (v5.0.9, signalé à l'usage en PWA :
+     « barre d'en-tête inférieure, scroll pas très réactif, beaucoup d'à-coups » — vidéo à
+     l'appui, où les deux rangées collantes se désolidarisent de l'en-tête et laissent une bande
+     vide à leur place). `--hdr-h` est le `top` collant de `#crisisCtrl`, donc du quai qui s'empile
+     dessus : le dériver du `bottom` de l'en-tête revenait à asservir la GÉOMÉTRIE du chrome à la
+     POSITION DE DÉFILEMENT. Or, au rebond de fin de course (rubber-band iOS), le compositeur
+     TRANSLATE tout le document, en-tête collant compris : `bottom` grandit, `--hdr-h` grandit avec
+     lui, les deux rangées descendent — puis reviennent. À la cadence du doigt, c'est le
+     tremblement filmé. Même famille que le rail A→Z (v5.0.2) et que la hachure des placards
+     (v5.0.6) : **on n'ancre jamais à un repère qu'on ne contrôle pas**, et ce que le compositeur
+     fait du rendu n'est visible dans AUCUNE mesure de la page — un harnais Blink reste vert.
+     La HAUTEUR, elle, ne dépend d'aucun défilement : c'est la seule des deux qui exprime ce que
+     la valeur veut dire. Bénéfice second, et il compte autant : la valeur devenant CONSTANTE, la
+     garde d'écriture ci-dessous devient un vrai no-op — on cesse d'invalider le style de tout le
+     document (une propriété personnalisée posée sur `<html>`) à chaque évènement de défilement.
+     `bottom` reste calculé, mais pour le SEUL usage qui parle de position : le relais du titre. */
+  {const h=Math.round(_hbR.height/zoomF())+'px';
    if(_hdrHCss!==h){_hdrHCss=h;document.documentElement.style.setProperty('--hdr-h',h);}}
   // --ctrl-h : hauteur de la rangée de COMMANDES, mesurée — c'est le décalage supplémentaire
   // auquel la rangée d'ÉTAT vient se coller. Deux couches collantes empilées : chacune doit
@@ -10246,7 +10295,10 @@ function syncHdrScroll(){
   // --stick-top : bas de TOUT ce qui est déjà collé en haut (en-tête + quai de crise). Le rail
   // de lecture s'y accroche ; sans ça il passerait sous le quai. Même mesure que la base
   // d'épinglage d'ovPlanPin — une seule vérité pour « où commence la zone libre ».
-  {const v=Math.round(stickBase()/zoomF())+'px';
+  /* Même règle : `--stick-top` est le `top` collant du rail, donc une SOMME DE HAUTEURS, pas le
+     bas observé d'une pile qui peut être translatée. `stickBase()` garde ses rectangles là où
+     c'est juste — `ovScrollEl`, qui vise une position d'écran à l'instant du saut. */
+  {const v=Math.round(stickHeight()/zoomF())+'px';
    if(_stickCss!==v){_stickCss=v;document.documentElement.style.setProperty('--stick-top',v);}}
   const _cb=document.getElementById('crisisBand');
   /* Le bandeau n'existe plus en lecture : le relais est donc PERMANENT dès qu'une fiche est
@@ -10266,7 +10318,17 @@ function syncHdrScroll(){
       en tête, juste sous Confirmation/Éliminer. */
    if(ss&&!ss.closest('.sv-tb'))ss.classList.toggle('afloat',ss.getBoundingClientRect().top>=window.innerHeight-2);}
 }
-window.addEventListener('scroll',syncHdrScroll,{passive:true});
+/* UNE PASSE PAR IMAGE, PAS PAR ÉVÈNEMENT (v5.0.9). `syncHdrScroll` LIT quatre rectangles puis
+   ÉCRIT trois propriétés sur `<html>` ; branchée directement sur l'évènement, elle intercale ce
+   couple lecture/écriture dans le pipeline de défilement, aussi souvent que le moteur émet. C'est
+   la discipline déjà écrite pour `svPaintArrows` (v4.14.10) : on groupe, et une image n'a besoin
+   que d'une passe. L'appel DIRECT reste synchrone — `render()` en dépend (`landOnBout` se mesure
+   contre `stickBase()`, qui doit avoir été resynchronisé AVANT). */
+let _hdrRaf=0;
+window.addEventListener('scroll',()=>{
+  if(_hdrRaf)return;
+  _hdrRaf=requestAnimationFrame(()=>{_hdrRaf=0;syncHdrScroll();});
+},{passive:true});
 /* BUG WEBKIT — PISTES DE GRILLE FIGÉES AU REDIMENSIONNEMENT (v4.56.2, signalé à l'usage,
    REPRODUIT à la sonde sur WebKit seul : rétrécir puis ré-élargir la fenêtre en continu).
    Quand un changement du nombre de colonnes d'une grille auto-fill fait ré-enrouler la
@@ -11938,7 +12000,28 @@ function buildFlowSVG(f,cache){
 function _buildFlowSVG(f){
   const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:var(--ink-soft);font-size:13px">Aucun bloc.</div>';
   const byId=Object.create(null);blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
-  const C={blocks,byId,start};
+  /* ⚡ LES CIBLES DE COMPLICATION SE RECONNAISSENT DANS LE SCHÉMA (v5.0.9, proposition de
+     l'auteur : « mettre un éclair et en rouge ? »). Elles y étaient dessinées comme un bloc
+     d'étapes ORDINAIRE, posé dans une rangée de plus : le schéma était donc la SEULE des quatre
+     vues de structure à ne pas dire qu'on n'y entre pas par la séquence — l'Échelle, le tableau
+     Statique et la vue Parcours ont toutes leur section « À tout moment ». Un bloc hors séquence
+     qui ressemble à l'étape d'après est précisément le défaut mesuré en v4.26.0 (« 5
+     Laryngospasme » se lisait comme le cinquième temps du soin).
+     REGISTRE ALERTE EN CONTOUR, JAMAIS EN APLAT (v4.26.1) : bandeau d'en-tête teinté, liseré et
+     cadre rouges, corps du bloc INCHANGÉ — un aplat rouge permanent désensibilise au rouge, qui
+     appartient ici aux étapes vitales dessinées à l'intérieur. Et la couleur n'est jamais seule
+     (règle 8) : l'éclair est accompagné de « À TOUT MOMENT » en toutes lettres.
+     La réachabilité est calculée ICI, sans passer par `cxDetached` : celui-ci appelle `flowPlan`,
+     dont le cache est indexé par OBJET fiche et que l'éditeur — qui mute son brouillon en place —
+     ne doit jamais peupler. Même critère, aucun cache. */
+  const cxIds=new Set();
+  {const decl=(Array.isArray(f.excursions)?f.excursions:[]).map(c=>c&&c.target).filter(t=>t&&byId[t]);
+   if(decl.length){const vus=new Set([start]),q=[start];
+     while(q.length){const b=byId[q.shift()];
+       ((b.kind!=='decision')?[b.next]:(b.options||[]).map(o=>o&&o.target))
+         .forEach(t=>{if(t&&byId[t]&&!vus.has(t)){vus.add(t);q.push(t);}});}
+     decl.forEach(t=>{if(!vus.has(t))cxIds.add(t);});}}
+  const C={blocks,byId,start,cx:cxIds};
   flowMeasure(C);   // 1. dimensions de chaque bloc (texte enroulé, jamais tronqué)
   flowPlace(C);     // 2. niveaux (BFS) + ordre dans la rangée (barycentre) + positions
   flowRoute(C);     // 3. arêtes (avant / retour / latérales / auto-réf) + pastilles d'étiquette
@@ -11953,10 +12036,12 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
   // éviter l'espace vide à droite du texte.
   const LAY={};
   blocks.forEach(b=>{const dec=b.kind==='decision';const isStart=b.id===start;
+    const isCx=!!(C.cx&&C.cx.has(b.id));
     const headerLines=wrapText(b.title||(dec?'Décision':'Étapes'),TITLE_MAX);
     // Bloc de départ : on RÉSERVE un bandeau en haut de l'en-tête pour la pastille « DÉPART »,
-    // afin que le titre s'affiche EN DESSOUS et ne soit jamais masqué.
-    const startStrip=isStart?17:0;
+    // afin que le titre s'affiche EN DESSOUS et ne soit jamais masqué. Une cible de COMPLICATION
+    // réserve le même bandeau, pour la même raison, avec sa pastille « ⚡ À TOUT MOMENT ».
+    const startStrip=(isStart||isCx)?17:0;
     const headerH=Math.max(TH,headerLines.length*TLH+12)+startStrip;const items=[];
     if(dec){if(b.question)items.push({kind:'q',lines:wrapText(stripBold(b.question),TXT_MAX)});(b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',num:i+1,lines:wrapText(stripBold(o.label)||('Option '+(i+1)),TXT_MAX-3)}));}
     else{clean(stepsOf(b)).forEach((s,i)=>{const cr=stepCR(stepText(s));items.push({kind:'step',num:i+1,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-3)});});}
@@ -11965,7 +12050,7 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
     items.forEach(it=>it.lines.forEach((l,li)=>{const pre=(it.kind==='step'||it.kind==='opt')?(li===0?String(it.num).length+2:1.5):0;mxc=Math.max(mxc,l.length+pre);}));
     let base=Math.round(mxc*CW)+22;
     const img=b.image||null;// image du bloc (déjà validée par migrate -> safeImg)
-    LAY[b.id]={dec,headerLines,headerH,startStrip,items,img,h:headerH+HPAD+cl*LH+(img?(IMG_GAP+IMG_H):0)+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
+    LAY[b.id]={dec,cx:isCx,headerLines,headerH,startStrip,items,img,h:headerH+HPAD+cl*LH+(img?(IMG_GAP+IMG_H):0)+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
   C.LAY=LAY;}
 // 2. PLACEMENT : BFS en couches depuis le départ, ordre par barycentre des parents, rangées
 // centrées -> C.pos / C.botOfY / C.totalW / C.totalH.
@@ -12174,20 +12259,27 @@ function flowRoute(C){const{blocks,byId,pos,botOfY}=C;const{HG,VG,SLOOP}=FLOWK;
 // 4. DESSIN des blocs (fond clippé, bandeau d'en-tête, pastille DÉPART, items, vignette d'image,
 // halo bleu du bloc courant) -> chaîne des nœuds.
 function flowNodesSVG(C){const{blocks,pos,LAY,start}=C;const{LH,TLH,HPAD,IMG_H,IMG_PAD,IMG_GAP}=FLOWK;
-  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,isS=b.id===start,W=p.w,cid='cp'+b.id;
-    const fill=dec?'#fdf9ec':'#f7fafd',stroke=dec?'#e3cf9c':'#c5d2df',tcol=dec?'#7a5900':'#101b28';const h=p.h,hh=L.headerH;
+  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,cx=L.cx,isS=b.id===start,W=p.w,cid='cp'+b.id;
+    /* Registre ALERTE en CONTOUR pour une cible de complication : le CORPS garde le fond neutre
+       des blocs d'étapes, seuls le bandeau, le liseré et le cadre passent au rouge. */
+    const fill=dec?'#fdf9ec':'#f7fafd',stroke=cx?'#c43d34':(dec?'#e3cf9c':'#c5d2df'),tcol=cx?'#a32e1f':(dec?'#7a5900':'#101b28');const h=p.h,hh=L.headerH;
     // HALO du bloc courant : baké MASQUÉ dans chaque nœud (révélé par la classe .fn-cur posée par
     // flowPaintState — v4.7.0 : plus de reconstruction du SVG à la navigation). Marqué .flow-hl :
     // en SOMBRE, le CSS contre l'inversion globale ET pilote teinte/opacité (adaptation instantanée).
     let g=`<rect class="flow-hl flow-hl-glow" x="-5" y="-5" width="${W+10}" height="${h+10}" rx="15" fill="none" stroke="#1f5fa6" stroke-width="6" opacity="0.13"/>`;
     // Fonds CLIPPÉS au contour arrondi : le bandeau d'en-tête et le liseré gauche suivent le coin
     // arrondi et ne dépassent pas de la bordure, tracée par-dessus.
-    g+=`<clipPath id="${cid}"><rect width="${W}" height="${h}" rx="10"/></clipPath><g clip-path="url(#${cid})"><rect width="${W}" height="${h}" fill="${fill}"/><rect width="${W}" height="${hh}" fill="${dec?'#f6eccb':'#dfe9f4'}"/>${dec?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#7a5900"/>`:`<rect x="0" y="0" width="4" height="${hh}" fill="#1f5fa6"/>`}</g>`;
+    g+=`<clipPath id="${cid}"><rect width="${W}" height="${h}" rx="10"/></clipPath><g clip-path="url(#${cid})"><rect width="${W}" height="${h}" fill="${fill}"/><rect width="${W}" height="${hh}" fill="${cx?'#fbe9e4':(dec?'#f6eccb':'#dfe9f4')}"/>${(dec&&!cx)?`<circle cx="13" cy="${Math.round(hh/2)}" r="4" fill="#7a5900"/>`:`<rect x="0" y="0" width="4" height="${hh}" fill="${cx?'#c43d34':'#1f5fa6'}"/>`}</g>`;
     const strip=L.startStrip||0;
     // Titre centré DANS l'espace situé sous le bandeau « DÉPART » (strip) -> jamais masqué.
     const hy0=strip+(hh-strip-L.headerLines.length*TLH)/2;
     L.headerLines.forEach((ln,i)=>{g+=`<text x="${W/2+2}" y="${Math.round(hy0+i*TLH+TLH-4)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="system-ui">${esc(ln)}</text>`;});
     if(isS)g+=`<rect x="${W/2-28}" y="2.5" width="56" height="14" rx="7" fill="#1f5fa6"/><text x="${W/2}" y="12.5" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text>`;
+    /* Pastille « ⚡ À TOUT MOMENT » — CONTOUR (fond blanc, cadre et encre rouges), symétrique de
+       la pastille DÉPART pour la géométrie et opposée pour le registre. L'éclair est un TRACÉ et
+       non le caractère « ⚡ » : celui-ci sort en emoji COULEUR sur iOS, dans un dessin qui n'a pas
+       d'autre couleur que ses registres (même arbitrage que le trombone de la porte « ＋ »). */
+    if(cx)g+=`<g transform="translate(${W/2-49},2.5)"><rect width="98" height="14" rx="7" fill="#fff" stroke="#c43d34" stroke-width="1.1"/><path d="M11.5 3.2 L7.6 8.1 L10.2 8.1 L9 11.2 L12.9 6.3 L10.3 6.3 z" fill="#a32e1f"/><text x="55" y="10.5" text-anchor="middle" font-size="8.5" font-weight="700" fill="#a32e1f" font-family="system-ui" letter-spacing="0.5">À TOUT MOMENT</text></g>`;
     let iy=hh+HPAD;
     L.items.forEach(it=>{it.lines.forEach((ln,li)=>{const y=iy+12;
       if(it.kind==='q'){g+=`<text x="10" y="${y}" font-size="10.5" font-style="italic" fill="#7a5900" font-family="system-ui">${esc(ln)}</text>`;}
@@ -12210,7 +12302,7 @@ function flowNodesSVG(C){const{blocks,pos,LAY,start}=C;const{LH,TLH,HPAD,IMG_H,I
     // Nœud INTERACTIF (v4.7.0) : taper = ALLER à ce bloc (jamais de cochage dans le SVG) ;
     // accessible clavier (tabindex + role) — les écouteurs sont posés par bindSvgNav en LECTURE
     // seulement (l'aperçu de l'éditeur reste inerte).
-    nodes+=`<g class="fnode" data-fnode="${esc(b.id)}" transform="translate(${p.x},${p.y})" tabindex="0" role="button" aria-label="${esc(stripBold(b.title||(dec?'Décision':'Étapes')))} — aller à ce bloc">${g}</g>`;});
+    nodes+=`<g class="fnode" data-fnode="${esc(b.id)}" transform="translate(${p.x},${p.y})" tabindex="0" role="button" aria-label="${cx?'À tout moment — ':''}${esc(stripBold(b.title||(dec?'Décision':'Étapes')))} — aller à ce bloc">${g}</g>`;});
   return nodes;}
 
 /* ===== CODE QR (encodeur) =====
@@ -15076,6 +15168,18 @@ function stickBase(){
   return Math.max(hb?hb.getBoundingClientRect().bottom:60,
     (ct&&!ct.hidden)?ct.getBoundingClientRect().bottom:0,
     (dk&&!dk.hidden)?dk.getBoundingClientRect().bottom:0);}
+/* HAUTEUR de la pile collante — la même chose que `stickBase()` quand la page est au repos, mais
+   INSENSIBLE À TOUT DÉPLACEMENT de cette pile (v5.0.9). Les trois couches se collent l'une sous
+   l'autre : leur bas, une fois épinglées, vaut la somme de leurs hauteurs. C'est cette valeur qui
+   doit alimenter une propriété CSS de géométrie (`--stick-top`) ; le `bottom` observé, lui, ne
+   vaut que pour une décision prise MAINTENANT à l'écran (cf. `ovScrollEl`). */
+function stickHeight(){
+  const hb=document.querySelector('header.bar');
+  const ct=document.getElementById('crisisCtrl');
+  const dk=document.getElementById('crisisDock');
+  return (hb?hb.getBoundingClientRect().height:60)
+    +((ct&&!ct.hidden)?ct.getBoundingClientRect().height:0)
+    +((dk&&!dk.hidden)?dk.getBoundingClientRect().height:0);}
 function ovScrollEl(el){if(!el)return;
   window.scrollTo(0,Math.max(0,Math.round(window.scrollY+el.getBoundingClientRect().top-stickBase()-8)));}
 /* Défilement DANS un conteneur, sans toucher à la page. `scrollIntoView` remonte TOUS les
@@ -15613,14 +15717,40 @@ function ovParcoursHtml(f){
        +ent.map(item).join('')
        +(ddx.length?`<div class="pc-foot">Ça ne colle pas ? → ${ddx.length} diagnostic${ddx.length>1?'s':''} à éliminer</div>`:'')
        +'</section>';}}
-  let depth=0;const pend=[];
+  /* ⚠ L'ÉTIQUETTE DE BRANCHE S'ÉMET À L'OUVERTURE DE LA BRANCHE, PAS DEVANT SA PREMIÈRE CARTE
+     (v5.0.9, signalé à l'usage : « pour les blocs conditionnels tous les tags d'option ne
+     s'affichent pas — le premier oui mais les suivants pas toujours »). Elle était MISE EN ATTENTE
+     (`pend[depth]`) puis posée devant le premier `block` de la branche — or une branche n'en
+     contient pas toujours : `flowPlan` émet un `link` seul quand la cible est le point de
+     convergence ou un bloc déjà décrit (boucle), et un `end` quand la branche n'a pas de cible.
+     Mesuré sur la fiche d'exemple Anaphylaxie : la branche « Oui — stabilisé » n'émet qu'un
+     `link`, son étiquette n'était donc JAMAIS rendue et seule « NON — RÉFRACTAIRE » s'affichait.
+     `bropen` précède toujours immédiatement le contenu de sa branche : émettre là met l'étiquette
+     exactement où elle était, et la met AUSSI dans les cas où elle manquait.
+     ET LES RENVOIS SE RENDENT (même défaut, autre moitié) : une branche qui ne fait que boucler
+     n'affichait RIEN DU TOUT — dans une vue qui promet « toute la fiche », une branche sans
+     contenu visible est une branche qu'on ne saura pas prendre. Même vocabulaire abrégé que
+     l'Échelle : « → n », « ↺ n », « ▪ fin ». Tout y reste INERTE (doctrine du plan). */
+  let depth=0,prev='';
+  const jmp=(d,txt,loop)=>`<div class="pc-jmp d${Math.min(d,3)}${loop?' loop':''}">${txt}</div>`;
+  const titreDe=id=>{const b=(f.blocks||[]).find(x=>x.id===id);return b?esc(stripBold(b.title||'')):'';};
   plan.items.forEach(it=>{
-    if(it.k==='bropen'){depth++;pend[depth]=it.label;return;}
-    if(it.k==='brclose'){pend[depth]=null;depth--;return;}
+    if(it.k==='bropen'){depth++;prev='bropen';
+      h+=`<div class="pl-brc d${Math.min(depth,3)}"><span>${esc(String(stripBold(it.label||'')).trim().toUpperCase().slice(0,22))}</span></div>`;return;}
+    if(it.k==='brclose'){depth--;prev='brclose';return;}
+    /* Un renvoi n'est rendu que si la branche N'A PAS DE CARTE : sinon le pied de la carte
+       précédente (`.pc-foot`) porte déjà « → n » ou « ▪ fin », et l'on écrirait deux fois la
+       même chose sur deux lignes qui se suivent. On ne rend donc que le cas qui, sans cela,
+       n'affiche RIEN — la branche réduite à une boucle ou à une fin. */
+    if(it.k==='link'||it.k==='end'){
+      if(prev!=='bropen')return;prev=it.k;
+      h+=it.k==='end'?jmp(depth,'▪ fin de prise en charge')
+        :jmp(depth,(it.back?'↺ reprendre à ':'→ ')+(num[it.to]||'?')+' '+titreDe(it.to),it.back);
+      return;}
     if(it.k!=='block')return;
+    prev='block';
     const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
     const dec=b.kind==='decision',m=md[it.id]||{};
-    if(pend[depth]){h+=`<div class="pl-brc d${Math.min(depth,3)}"><span>${esc(String(stripBold(pend[depth])).trim().toUpperCase().slice(0,22))}</span></div>`;pend[depth]=null;}
     h+=`<section class="pc-card d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}">`
       +`<div class="pc-h"><span class="pc-n${m.complete?' ok':''}" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span>`
       +`<span class="pc-ht">${esc(b.title)||(dec?'Décision':'Étapes')}</span>${m.cur?'<b class="pl-here">ICI</b>':''}</div>`;
