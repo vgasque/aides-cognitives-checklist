@@ -2060,12 +2060,21 @@
   .pc-n.ok{background:var(--ok);color:var(--on-primary);border:0}
   .pc-ht{flex:1;min-width:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
   /* L'item : case INERTE (aucun `data-ck`, `aria-hidden`), texte, valeur attendue en pilule mono. */
-  .pc-it{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+  /* ⚠ LA RÉPONSE ATTENDUE PREND SA PROPRE LIGNE (v5.0.9, signalé à l'usage, capture à l'appui) :
+     `.pc-r` était `flex:none` dans une rangée qui n'ENROULAIT PAS, donc le seul objet compressible
+     était le GESTE (`.pc-t`, `min-width:0`) — mesuré, « Curariser… » tombait à 12 px de large
+     (« C ») pendant que la pilule sortait de la carte de 260 px. On perdait ainsi l'information
+     principale ET la secondaire. Le remède est déjà écrit dans ce fichier, pour ce défaut exact,
+     sur la feuille « Consulter » : `.rs-v` (`flex:1 1 100%` + retrait de la case). Une seule
+     grammaire — on enroule, on ne tronque jamais (doctrine des renvois de l'Échelle, v4.55.3 :
+     « dans un PLAN, une branche cachée est une branche qu'on ne saura pas prendre »).
+     Le retrait de 32 px = la case (22) plus l'écart (10) : la pilule s'aligne sur le texte. */
+  .pc-it{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
   .pc-it:last-of-type{border-bottom:0}
   .pc-box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--line-strong)}
   .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
-  .pc-r{flex:none;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
-    border-radius:6px;padding:2px 6px}
+  .pc-r{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
+    border-radius:6px;padding:2px 6px;overflow-wrap:anywhere}
   /* Boîte signalée : le rembourrage horizontal est COMPENSÉ par une marge négative (patron du
      bleed d'ol.steps, v4.23.5) — la case reste sur la même verticale que les lignes normales,
      la teinte déborde dans le rembourrage de la carte au lieu de décaler le contenu. */
@@ -2075,8 +2084,17 @@
   .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
   .pc-it.vig .pc-t{color:var(--verify);font-weight:800}
   .pc-it.vig .pc-box{border-color:var(--verify-bd)}
-  .pc-foot{margin-top:6px;padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
+  /* Le pied d'une carte et le renvoi d'une branche SANS carte (boucle ou fin) disent la MÊME
+     chose — « et ensuite, où ? » — et partagent donc une seule déclaration : deux boîtes mono à
+     un palier d'écart se liraient comme deux niveaux là où il n'y en a qu'un (et le quota du
+     plancher typographique n'a pas à payer une redite). Seuls les retraits diffèrent : le renvoi
+     s'aligne sur l'étiquette de branche qu'il suit. Inerte — la vue entière l'est. */
+  .pc-foot,.pc-jmp{padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
     font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+  .pc-foot{margin-top:6px}
+  .pc-jmp{margin:0 0 8px}
+  .pc-jmp.d1{margin-left:20px}.pc-jmp.d2{margin-left:32px}.pc-jmp.d3{margin-left:48px}
+  .pc-jmp.loop{color:var(--link);background:var(--primary-soft)}
   .pc-q{font-size:13.5px;font-weight:700;color:var(--verify);margin:2px 0 6px}
   .pc-opts{display:flex;flex-wrap:wrap;gap:6px}
   .pc-opt{font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);
@@ -3656,7 +3674,22 @@
      qu'ECAM interdit. La POSITION reste portée, sans ambiguïté et toujours en bleu, par la pilule
      « VOUS ÊTES ICI » (`.ov-here`), qui n'apparaît que sur `.cur` : un canal par signification. */
   .ov-block.dec.cur{border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  /* ⚠ UN BLOC COMPLET L'EST SUR TOUTE SA BORDURE (v5.0.9, signalé à l'usage : « bloc d'étape où
+     on a coché toutes les étapes : uniquement le bord gauche devient vert et pas le reste »).
+     `.done` n'écrivait que `border-left-color`, si bien qu'un bloc courant ET complet portait un
+     cadre BLEU avec une seule arête verte — deux registres sur un même trait, exactement ce que
+     la v4.24.0 a corrigé en sens inverse pour la décision. Et c'est la configuration NOMINALE :
+     on finit de cocher le bloc où l'on est. La carte REPLIÉE le faisait déjà (`.closed.done`) ;
+     ouverte, elle ne le faisait pas — un bloc changeait donc de registre selon qu'il était plié.
+     Le cadre entier passe au registre CONFIRMATION ; la POSITION reste portée sans ambiguïté par
+     la pilule « VOUS ÊTES ICI », un canal par signification (v4.24.0).
+     PAS DE FOND TEINTÉ ici, contrairement à `.closed.done` : la carte ouverte est la colonne
+     d'ACTION et porte des étapes ⚠/△ dont la boîte teintée doit rester lisible sur `--surface` ;
+     repliée, elle n'est plus qu'un statut d'une ligne et l'aplat y dit « c'est fait ».
+     UNE DÉCISION EST EXCLUE : son registre ambre prime sur l'état (v4.24.0, même raisonnement
+     qu'au-dessus) — elle garde son cadre et ne prend que son liseré vert, comme avant. */
   .ov-block.done{border-left-color:var(--done-line)}
+  .ov-block.done:not(.dec){border-color:var(--done-line)}
   /* Hors chemin (branche écartée par une décision) : ATTÉNUÉ mais JAMAIS verrouillé — l'estompe
      n'est jamais seule, la mention « hors chemin » l'accompagne (WCAG 1.4.1). */
   /* v4.13.1 : l'en-tête d'instance PEUT se replier sur deux rangées — en étroit, les boutons
