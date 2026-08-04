@@ -1431,6 +1431,27 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   procédure, qui se lit de haut en bas parce que c'est le sens de lecture — le leur attribuer serait
   la même erreur de source que « Do-Verify »/AC 120-71A. Ce qui EST contraignant est plus étroit :
   les procédures se POSTENT (ECAM) et une même chose ne se dit pas de deux façons.
+- **LE DÉMARRAGE DÉPOSE SUR LE HAUT DU PREMIER BLOC (v5.0.7, signalé à l'usage)** : presser
+  « Confirmé — démarrer la session » retire ou rétrécit TOUT ce qui est au-dessus du doigt — chapeau
+  replié en une ligne (T3), condition d'entrée refermée, « Prise en charge » remontée en tête (T5) —
+  sans que le défilement bouge : on atterrissait AU MILIEU de la carte du bloc. Mesuré sur le cas
+  pour lequel `.sess-start.afloat` existe (8 critères d'entrée, lus en défilant) : haut de carte à
+  **−206 px à 320 × 640** et **+20 px à 390 × 844** (98 px SOUS l'en-tête collant) — numéro, titre et
+  « Vous êtes ici » invisibles. Après : **+8 px sous le quai**, 2 → 5 étapes cochables à 320.
+  **CE N'EST PAS UN DÉFILEMENT AUTOMATIQUE (règle 11)** : la page vient d'être rendue de neuf, il n'y
+  a aucune position à préserver — c'est le point d'arrivée d'une navigation DEMANDÉE d'un tap, même
+  arbitrage que `landOnBout` et `cxEnter`. UN SEUL POINT D'ÉCRITURE (`startSessionGesture`), partagé
+  par le bouton du parcours et celui du tableau statique.
+  **⚠ CE CHEMIN EST CELUI DU BOUTON, JAMAIS CELUI DU COCHAGE** : un démarrage IMPLICITE passe par
+  `renderKeepAnchor` et doit continuer de ne pas déplacer d'un pixel l'élément touché (v4.4.0).
+  **⚠ ET LA RÈGLE DE VISIBILITÉ DE `landOnBout` A ÉTÉ ESSAYÉE PUIS MESURÉE FAUSSE ICI** : elle exige
+  la carte ENTIÈRE à l'écran, or une carte de bloc dépasse presque toujours le pli (615 px sur 640) —
+  elle défilait donc même quand le haut était DÉJÀ à sa place, et laissait la page décalée pour les
+  gestes suivants (deux témoins de dépliant l'ont dit, à **−51 px** : le panneau du quai ne se posait
+  plus sous le quai). On ne garantit que ce que l'usage demande : LE HAUT de la carte sous les couches
+  collantes, et rien ne bouge s'il y est déjà. **Les trois densités ont chacune leur porteur** —
+  `.ov-block`, `.sv-cell.cur`, `.nav-wrap` (fiche sans algorithme) : oublier le troisième, c'est ne
+  rien faire précisément sur les fiches mono-bloc, sans que rien ne le dise.
 - **ON ANIME LA COMPOSITION, JAMAIS LA MISE EN PAGE (v4.41.0, phase 3)** : une `transition` ou une
   `@keyframes` ne porte que sur `transform` et `opacity`. Animer `width`, `height`, `top`/`left`,
   `margin` ou `padding` force une passe de mise en page **par image**, pendant toute la durée de

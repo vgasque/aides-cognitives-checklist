@@ -1,5 +1,43 @@
 # Journal des modifications
 
+## [5.0.7] — 2026-08-04
+### Démarrer une session dépose sur le haut du premier bloc
+
+Signalé à l'usage : « lorsqu'on clique sur *démarrer la session*, s'assurer que le haut du premier
+bloc d'étapes soit visible ».
+
+- **Ce que le geste fait disparaître au-dessus du doigt.** Presser « Confirmé — démarrer la
+  session » replie le chapeau « Ne pas oublier » en une ligne (T3), referme la condition d'entrée
+  (acquittement par l'action) et remonte l'étage « Prise en charge » en tête (T5). Le défilement,
+  lui, ne bougeait pas : on atterrissait **au milieu** de la carte du bloc, son numéro, son titre
+  et « Vous êtes ici » au-dessus du pli, à l'instant précis où le soin commence.
+- **Mesuré, sur le cas pour lequel `.sess-start.afloat` existe** — une condition d'entrée longue
+  (8 critères), qu'on lit en défilant pendant que le bouton suit, flottant : après le clic, le haut
+  de la carte tombait à **−206 px à 320 × 640** (324 px au-dessus des couches collantes) et à
+  **+20 px à 390 × 844**, soit 98 px *sous* l'en-tête collant. Après : **+8 px sous le quai** dans
+  les deux formats, et **2 → 5 étapes cochables** entièrement visibles à 320 px.
+- **Ce n'est pas un défilement automatique (règle 11).** La règle vise l'écran qui bouge sous
+  quelqu'un qui n'a rien demandé ; ici la page vient d'être rendue de neuf et le geste est une
+  navigation demandée d'un tap — même arbitrage que `landOnBout` à la réentrée et que `cxEnter`.
+- **Un seul point d'écriture** (`startSessionGesture`), partagé par le bouton du parcours et son
+  homologue du tableau statique — les deux copies faisaient déjà la même chose à la ligne près.
+- **⚠ Ce chemin est celui du BOUTON, jamais celui du cochage** : un démarrage implicite (cocher une
+  étape, armer un minuteur) passe par `renderKeepAnchor` et continue de ne pas déplacer d'un pixel
+  l'élément touché (invariant ECAM v4.4.0).
+- **⚠ Et la règle de visibilité de `landOnBout` a été essayée puis mesurée fausse ici** : elle exige
+  la carte ENTIÈRE à l'écran, or une carte de bloc dépasse presque toujours le pli (615 px sur 640).
+  Elle défilait donc même quand le haut était déjà à sa place, y compris sur les fiches courtes, et
+  laissait la page décalée pour les gestes suivants — **deux témoins de dépliant l'ont dit, à
+  −51 px** (le panneau du quai ne se posait plus sous le quai). On ne garantit que ce que l'usage
+  demande : **le HAUT** de la carte sous les couches collantes, et rien ne bouge s'il y est déjà.
+- **Les trois densités ont chacune leur porteur** : `.ov-block` (journal), `.sv-cell.cur`
+  (statique), `.nav-wrap` (vue guidée d'une fiche sans algorithme) — oublier le troisième, c'était
+  ne rien faire précisément sur les fiches mono-bloc, sans que rien ne le dise.
+- Témoins dans `audit-doctrine` (11 contrôles) : le cas est **construit** (les fiches d'exemple ne
+  le rencontrent pas), il est prouvé par **contrefactuel** (on repose la page où elle était au clic
+  et l'on remesure), la vue guidée a le sien, et la **non-régression** est l'autre moitié — sur une
+  fiche courte, le démarrage ne déplace pas la page d'un pixel. Vérifiés capables d'échouer.
+
 ## [5.0.6] — 2026-08-03
 ### La hachure ne s'ancre plus à un repère qu'on ne contrôle pas
 
