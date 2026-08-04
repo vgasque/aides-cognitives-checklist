@@ -1431,6 +1431,50 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   procédure, qui se lit de haut en bas parce que c'est le sens de lecture — le leur attribuer serait
   la même erreur de source que « Do-Verify »/AC 120-71A. Ce qui EST contraignant est plus étroit :
   les procédures se POSTENT (ECAM) et une même chose ne se dit pas de deux façons.
+- **LE CHAPEAU SE GLISSE ENTRE LES CRITÈRES ET LE BOUTON (v5.0.8, décision utilisateur)** : la
+  séquence hors session est désormais **condition d'entrée → memory items → geste d'entrée**, qui
+  est l'ordre CANONIQUE — un QRH imprime le titre et la condition AU-DESSUS des recall items, et
+  sur ECAM le titre de l'alerte (qui EST la condition) précède les lignes d'action. C'est l'ordre
+  d'avant (memory items → condition) qui s'en écartait.
+  **⚠ LE CHAPEAU NE PASSE PAS SOUS LE BOUTON, ET C'EST TOUT L'ARBITRAGE** : le descendre sous
+  l'ÉTAGE de la condition d'entrée le mettrait APRÈS « Confirmé — démarrer la session », puisque le
+  bouton vit dans cet étage — on l'aurait rangé derrière le geste qu'il doit précéder.
+  **CE QUE CELA COÛTE, MESURÉ** : le chapeau quitte le premier écran dès que les critères sont
+  longs (8 critères, 390 × 844 : y = 130 → **y = 813**) ; sur une fiche ordinaire il y reste ENTIER
+  (571 → 786). Et le bouton FLOTTANT (v4.73.0) permet de démarrer sans avoir défilé jusqu'à lui.
+  **CE QUI REND CE COÛT ACCEPTABLE EST LE LOT T7** : un memory item ★ RESTE dans son bloc — le
+  chapeau AGRÈGE, il ne possède pas ; l'item se re-vérifie à sa place dans la checklist, ce qui est
+  le geste QRH (réciter de mémoire, puis confirmer sur la liste). Si un jour le chapeau redevenait
+  le SEUL porteur des memory items, cet arbitrage serait à rouvrir.
+  **LA CONDITION EST LA PRÉSENCE DU BOUTON, PAS L'ÉTAT DE LA SESSION** : chez l'invité et en aperçu
+  d'essai `sessStartH` est vide, et une séquence qui mène à un bouton absent n'a rien à ordonner —
+  le chapeau reprend alors sa place en tête (idem sans critères, idem en statique). **En session,
+  rien ne change de ce qui existait** : le chapeau replié revient en tête et la condition d'entrée
+  descend avec son étage (T3 + T5) — le débat ne portait que sur l'écran d'AVANT.
+  **⚠ LA CONSTANTE SE DÉCLARE AVANT LE `if(useSv)`** : la coque de `main.innerHTML` la lit aussi
+  (c'est elle qui décide si le chapeau est encore rendu en tête de colonne) — posée dans la
+  branche, elle serait en zone morte, la faute exacte payée au lot T3.
+- **LE DÉMARRAGE DÉPOSE SUR LE HAUT DU PREMIER BLOC (v5.0.7, signalé à l'usage)** : presser
+  « Confirmé — démarrer la session » retire ou rétrécit TOUT ce qui est au-dessus du doigt — chapeau
+  replié en une ligne (T3), condition d'entrée refermée, « Prise en charge » remontée en tête (T5) —
+  sans que le défilement bouge : on atterrissait AU MILIEU de la carte du bloc. Mesuré sur le cas
+  pour lequel `.sess-start.afloat` existe (8 critères d'entrée, lus en défilant) : haut de carte à
+  **−206 px à 320 × 640** et **+20 px à 390 × 844** (98 px SOUS l'en-tête collant) — numéro, titre et
+  « Vous êtes ici » invisibles. Après : **+8 px sous le quai**, 2 → 5 étapes cochables à 320.
+  **CE N'EST PAS UN DÉFILEMENT AUTOMATIQUE (règle 11)** : la page vient d'être rendue de neuf, il n'y
+  a aucune position à préserver — c'est le point d'arrivée d'une navigation DEMANDÉE d'un tap, même
+  arbitrage que `landOnBout` et `cxEnter`. UN SEUL POINT D'ÉCRITURE (`startSessionGesture`), partagé
+  par le bouton du parcours et celui du tableau statique.
+  **⚠ CE CHEMIN EST CELUI DU BOUTON, JAMAIS CELUI DU COCHAGE** : un démarrage IMPLICITE passe par
+  `renderKeepAnchor` et doit continuer de ne pas déplacer d'un pixel l'élément touché (v4.4.0).
+  **⚠ ET LA RÈGLE DE VISIBILITÉ DE `landOnBout` A ÉTÉ ESSAYÉE PUIS MESURÉE FAUSSE ICI** : elle exige
+  la carte ENTIÈRE à l'écran, or une carte de bloc dépasse presque toujours le pli (615 px sur 640) —
+  elle défilait donc même quand le haut était DÉJÀ à sa place, et laissait la page décalée pour les
+  gestes suivants (deux témoins de dépliant l'ont dit, à **−51 px** : le panneau du quai ne se posait
+  plus sous le quai). On ne garantit que ce que l'usage demande : LE HAUT de la carte sous les couches
+  collantes, et rien ne bouge s'il y est déjà. **Les trois densités ont chacune leur porteur** —
+  `.ov-block`, `.sv-cell.cur`, `.nav-wrap` (fiche sans algorithme) : oublier le troisième, c'est ne
+  rien faire précisément sur les fiches mono-bloc, sans que rien ne le dise.
 - **ON ANIME LA COMPOSITION, JAMAIS LA MISE EN PAGE (v4.41.0, phase 3)** : une `transition` ou une
   `@keyframes` ne porte que sur `transform` et `opacity`. Animer `width`, `height`, `top`/`left`,
   `margin` ou `padding` force une passe de mise en page **par image**, pendant toute la durée de

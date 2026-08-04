@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-HnMUbRJIYC9UR4YdQQfbvsdso/Ry+VdI+xYrGWujFBM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-rxE2+cUdKC21dta1OWqfmEX7mlX4SQnANru0dvDao/0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6221,7 +6221,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.6';
+const APP_VERSION='5.0.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13824,6 +13824,10 @@ function renderRead(){
      rail ne parlait qu'à lui-même. La PERMUTATION, elle, reste conditionnée au démarrage :
      avant d'agir on s'oriente, et la condition d'entrée QRH se lit d'abord. */
   const agirDabord=Runtime.started&&!useSv;
+  /* DÉCLARÉ ICI, AVANT LE `if(useSv)` : la coque de `main.innerHTML` le lit aussi (c'est LUI qui
+     décide si le chapeau est encore rendu en tête de colonne). Posé dans la branche, il serait
+     hors de portée — même zone morte que celle payée au lot T3. */
+  const fsAvantBouton=!useSv&&!!confBlockH&&!!sessStartH&&!!forgetStrip;
   const stages=[];
   if(useSv){
     // v4.14.0 : STATIQUE = document complet en tableau (confirmation, chapeau, algorithme,
@@ -13832,7 +13836,31 @@ function renderRead(){
     // (condition d'entrée QRH : on confirme le tableau avant d'agir) — pas ici.
     stages.push({cls:'on',head:'',body:(wideRead||state.rtOpen==='dock'?'':rtH)+navHtml+(wideRead?'':tkH)+localH+(wideRead?'':posH)});
   }else{
-  if(confBlockH)stages.push({cls:started?'done':'on',head:'',body:confBlockH+sessStartH});
+  /* ═══ LE CHAPEAU SE GLISSE ENTRE LES CRITÈRES ET LE BOUTON (v5.0.7, décision utilisateur) ═════
+     Question posée : « remonter confirmer le diagnostic au-dessus de ne pas oublier — est-ce
+     incompatible ECAM/QRH ? ». Non : c'est l'ordre CANONIQUE, et c'est l'ordre d'avant qui s'en
+     écartait. Un QRH imprime le titre et la CONDITION D'ENTRÉE au-dessus des recall items ; sur
+     ECAM le titre de l'alerte — qui EST la condition — précède les lignes d'action. La séquence
+     est condition → memory items → read-and-do ; on avait memory items → condition.
+     ⚠ LE CHAPEAU NE PASSE PAS SOUS LE BOUTON, ET C'EST TOUT L'ARBITRAGE. Le descendre simplement
+     sous l'étage de la condition d'entrée le mettrait APRÈS « Confirmé — démarrer la session »,
+     puisque le bouton vit dans cet étage : on l'aurait rangé derrière le geste qu'il doit
+     précéder. Il se glisse donc ENTRE les deux — la lecture devient exactement celle du QRH, et le
+     bouton porte l'acquittement des deux.
+     CE QUE CELA COÛTE, MESURÉ, ET IL FAUT LE SAVOIR : le chapeau quitte le premier écran dès que
+     les critères sont longs (fiche à 8 critères, 390 × 844 : il naissait à y = 130, il naît à
+     y = 813). Sur une fiche ordinaire il y reste entier (571 → 786 à 390 × 844). Et comme le
+     bouton FLOTTE quand il est sous le pli (v4.73.0), on peut démarrer sans avoir défilé jusqu'aux
+     memory items. Ce qui rend le coût acceptable est le lot T7 : un memory item ★ RESTE dans son
+     bloc — le chapeau AGRÈGE, il ne possède pas. Rien n'est perdu, l'item se re-vérifie à sa place
+     dans la checklist, ce qui est précisément le geste QRH (réciter de mémoire, puis confirmer).
+     LA CONDITION EST LA PRÉSENCE DU BOUTON, pas l'état de la session : chez l'invité et en aperçu
+     d'essai `sessStartH` est vide (le geste d'entrée n'existe pas), et une séquence qui mène à un
+     bouton absent n'a rien à ordonner — le chapeau reprend alors sa place en tête. Une fois la
+     session DÉMARRÉE, rien ne change de ce qui existait : le chapeau replié revient en tête et la
+     condition d'entrée descend avec son étage (T5). */
+  if(confBlockH)stages.push({cls:started?'done':'on',head:'',
+    body:confBlockH+(fsAvantBouton?forgetStrip:'')+sessStartH});
   /* T2 (v5.0.0) — LE JOURNAL DES ACTIONS REMONTE. Il vivait en FIN de colonne : mesuré, le bouton
      « Noter l'heure » était à y = 1588 px sur un écran de 844 (744 px sous le pli) et à 1829 px sur
      640. C'est le geste de traçabilité le plus fréquent d'une réanimation, et c'était le plus loin
@@ -13895,7 +13923,7 @@ function renderRead(){
     ${shareOverHtml()}
     ${modeTopSegH}
     ${dockPanel}
-    ${useSv?'':forgetStrip}
+    ${(useSv||fsAvantBouton)?'':forgetStrip}
     ${pathH}
     ${annexRowHtml(f)}
     ${preview?'':noteBlockHtml(f.id,started)}
@@ -13985,7 +14013,7 @@ function bindReadEvents(f,blk,cur){
   // « Confirmé — démarrer » REPLIE délibérément l'étape ① (acquittement par l'action, ECAM) —
   // à la différence du démarrage implicite par cochage, qui FIGE l'état ouvert (ensureStarted)
   // pour ne pas déplacer le contenu sous le doigt.
-  {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{state.confOpen=false;if(ensureStarted())render();};}
+  {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{startSessionGesture();};}
   // « Tableau atypique ? » (étape ①) : saute aux Diagnostics différentiels (étape ③) —
   // défilement INSTANTANÉ (pas de smooth : geste volontaire, prefers-reduced-motion respecté).
   // « Tableau atypique ? » (étape ①) : les différentiels vivent désormais dans la feuille
@@ -15664,6 +15692,46 @@ function staticSection(f){
 // des repères de lecture, pas des blocs de l'algorithme).
 // Bouton de démarrage de session — partagé entre le parcours (dynamique) et le tableau
 // statique, où il vit SOUS Confirmation/Éliminer (v4.14.2, condition d'entrée QRH).
+/* ═══ LE DÉMARRAGE DÉPOSE SUR LE HAUT DU PREMIER BLOC (v5.0.7, signalé à l'usage) ═════════════
+   Presser « Confirmé — démarrer la session » fait DISPARAÎTRE ou RÉTRÉCIR tout ce qui est au-dessus
+   du doigt — le chapeau se replie en une ligne (T3), la condition d'entrée se referme (acquittement
+   par l'action), et l'étage « Prise en charge » remonte en tête (T5). Le défilement, lui, ne bougeait
+   pas : on atterrissait donc AU MILIEU de la carte du bloc, titre et premières étapes AU-DESSUS du
+   pli, au moment précis où l'on commence le soin.
+   MESURÉ sur une fiche à condition d'entrée longue (8 critères — le cas pour lequel `.sess-start.afloat`
+   existe : on défile pour les lire, le bouton suit) : après le clic, le haut de la carte tombait à
+   −206 px à 320 × 640 (324 px au-dessus des couches collantes) et à +20 px à 390 × 844, soit 98 px
+   SOUS l'en-tête collant — dans les deux cas le numéro du bloc, son titre et « Vous êtes ici »
+   étaient invisibles.
+   CE N'EST PAS UN DÉFILEMENT AUTOMATIQUE (règle 11) : la règle vise l'écran qui bouge sous quelqu'un
+   qui n'a rien demandé. Ici la page vient d'être rendue de neuf et le geste est une navigation
+   DEMANDÉE d'un tap — même arbitrage que `landOnBout` à la réentrée et que `cxEnter`. Et c'est
+   littéralement `landOnBout` qu'on rappelle : à cet instant le « bout » du journal EST la carte du
+   bloc de départ (un seul passage), donc aucune seconde mécanique d'atterrissage à faire diverger,
+   et sa règle de visibilité s'applique telle quelle — carte déjà entièrement à l'écran, rien ne bouge.
+   ⚠ CE CHEMIN EST CELUI DU BOUTON, JAMAIS CELUI DU COCHAGE : un démarrage IMPLICITE (cocher une
+   étape, armer un minuteur) passe par `renderKeepAnchor` et doit continuer de ne pas déplacer d'un
+   pixel l'élément touché (invariant ECAM v4.4.0, mesuré par `audit-doctrine`).
+   ⚠ ET CE N'EST PAS LA RÈGLE DE VISIBILITÉ DE `landOnBout`, QUI A ÉTÉ ESSAYÉE ET MESURÉE FAUSSE
+   ICI : elle exige la carte ENTIÈRE à l'écran, or une carte de bloc dépasse presque toujours le
+   pli (615 px mesurés sur 640) — elle aurait donc défilé même quand le haut était DÉJÀ à sa
+   place, y compris sur les fiches courtes où rien ne le demandait, et laissé la page décalée pour
+   les gestes suivants (deux témoins de dépliant l'ont dit, à −51 px). Ce qu'on garantit est ce
+   que l'usage demande, et rien de plus : LE HAUT de la carte sous les couches collantes. */
+function startSessionGesture(){
+  state.confOpen=false;
+  if(!ensureStarted())return false;
+  render();
+  /* Les TROIS densités ont chacune leur porteur de « bloc courant » : `boutEl` couvre le journal
+     (`.ov-block`) et le statique (`.sv-cell.cur`) ; une fiche SANS algorithme est rendue en vue
+     guidée, où le bloc est `.nav-wrap` — l'oublier, c'est ne rien faire précisément sur les fiches
+     mono-bloc, sans que rien ne le dise. */
+  const el=boutEl()||main.querySelector('.nav-wrap');
+  if(el){const st=stickBase(),r=el.getBoundingClientRect();
+    // Hors de vue par le haut (masqué par les couches collantes) ou trop bas pour qu'on en voie
+    // quoi que ce soit d'utile : on l'amène sous le quai. Sinon on ne touche à rien.
+    if(r.top<st-1||r.top>window.innerHeight-64)ovScrollEl(el);}
+  return true;}
 function sessStartHtml(f){
   if(state.previewFrom||Runtime.started)return '';
   /* CHEZ L'INVITÉ, CE BOUTON EST MORT (v4.47.0). Il ne démarre rien : `ensureStarted` refuse de
@@ -16015,7 +16083,7 @@ function bindStaticEvents(f){
        return;}}
     // v4.14.2 : le bouton « démarrer » vit dans le tableau (sous Confirmation/Éliminer) —
     // même geste que son homologue du parcours (délégation : survit à renderSvOnly).
-    if(t.closest('#sessStart')){state.confOpen=false;if(ensureStarted())render();return;}
+    if(t.closest('#sessStart')){startSessionGesture();return;}
     const jr=t.closest('[data-svref]');
     if(jr){const el=wrap.querySelector('[data-svgo="'+CSS.escape(jr.dataset.svref)+'"]');
       if(el){ovScrollEl(el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}

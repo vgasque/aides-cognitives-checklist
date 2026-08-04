@@ -2835,6 +2835,178 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
   await page.close();
 }
 
+/* ── DÉMARRAGE · on atterrit sur le HAUT du premier bloc (v5.0.7) ────────────────────────────
+   Presser « Confirmé — démarrer la session » retire ou rétrécit tout ce qui est au-dessus du
+   doigt (chapeau replié, condition d'entrée refermée, « Prise en charge » remontée en tête) sans
+   que le défilement bouge : on atterrissait au MILIEU de la carte du bloc, titre et premières
+   étapes au-dessus du pli.
+   ⚠ LE CAS SE CONSTRUIT, IL NE SE RENCONTRE PAS SUR LES FICHES D'EXEMPLE : il faut une condition
+   d'entrée assez longue pour qu'on ait DÉFILÉ en la lisant (c'est le cas pour lequel
+   `.sess-start.afloat` existe). Le témoin le vérifie par un CONTREFACTUEL — on repose la page où
+   elle était au clic et l'on remesure : sans l'atterrissage, le haut de la carte est bien
+   au-dessus des couches collantes.
+   ET LA NON-RÉGRESSION EST L'AUTRE MOITIÉ : sur une fiche courte, où le haut de la carte est déjà
+   à sa place, rien ne doit bouger — un atterrissage inconditionnel déplacerait la page pour tout
+   le monde et laisserait les gestes suivants décalés. */
+console.log('\n══ DÉMARRAGE · le haut du premier bloc est visible ══');
+for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
+  const page = await br.newPage({viewport:{width:fmt.w,height:fmt.h},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async(ITEMS)=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=migrate({id:'zstart',title:'Sonde critères longs',start:'b1',
+      notForget:['Appeler à l’aide','Adrénaline prête','Vérifier voie et site','Prévenir la régulation'],
+      confirmation:['Début brutal après exposition à un allergène connu ou probable',
+        'Atteinte cutanéo-muqueuse : urticaire généralisée, angio-œdème, prurit',
+        'Atteinte respiratoire : dyspnée, sibilants, stridor, désaturation < 92 %',
+        'Atteinte cardiovasculaire : hypotension, tachycardie, marbrures, malaise',
+        'Atteinte digestive : douleurs abdominales, vomissements répétés, diarrhée',
+        'Deux organes atteints ou plus après exposition suffisent au diagnostic',
+        'Hypotension isolée après exposition à un allergène connu du patient',
+        'En cas de doute, traiter comme une anaphylaxie — le retard est le facteur de gravité',
+        'Bronchospasme résistant aux bêta-2 inhalés chez un patient jusque-là stable',
+        'Œdème laryngé : dysphonie, sensation de gorge serrée, tirage inspiratoire',
+        'Collapsus sans étiologie évidente dans les minutes suivant une injection'],
+      blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',next:'b2',items:ITEMS.a},
+              {id:'b2',kind:'do',title:'Réévaluation à 5 min',items:ITEMS.b}]});
+    await Data.put(f);fiches.push(f);
+    openRead(f.id);await w(450);
+    // On LIT les critères : défilement jusqu'au bas de la condition d'entrée, puis on démarre.
+    const cb=document.querySelector('.conf-block').getBoundingClientRect();
+    scrollTo(0,Math.max(0,Math.round(scrollY+cb.bottom-innerHeight+60)));await w(150);
+    const yClic=Math.round(scrollY);
+    document.getElementById('sessStart').click();await w(600);
+    const carte=()=>{const c=[...document.querySelectorAll('.ov-block')];return c[c.length-1]||null;};
+    const haut=()=>{const c=carte();return c?Math.round(c.getBoundingClientRect().top-stickBase()):null;};
+    const apres=haut();
+    const etapes=(()=>{const b=stickBase();
+      return [...document.querySelectorAll('ol.steps li[data-ck]')]
+        .filter(e=>{const g=e.getBoundingClientRect();return g.top>=b-1&&g.bottom<=innerHeight+1;}).length;})();
+    // CONTREFACTUEL : la page reposée où elle était au clic — ce qu'on avait avant le correctif.
+    scrollTo(0,yClic);await w(150);
+    const sans=haut();
+    return {apres,sans,etapes};},
+    {a:items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition','O2 haut débit au masque',
+      'Voie veineuse de gros calibre','Décubitus, jambes surélevées']),
+     b:items(['Réévaluer TA, SpO2, conscience','△ Seconde dose si non-amélioration'])});
+  t(`${fmt.w}× le contrôle rencontre son cas (sans atterrissage, le haut est masqué)`,
+    r.sans!=null && r.sans<-20, `${r.sans} px sous les couches collantes`);
+  t(`${fmt.w}× le haut de la carte du bloc est visible après démarrage`,
+    r.apres!=null && r.apres>=-1 && r.apres<=12, `${r.apres} px`);
+  t(`${fmt.w}× … avec au moins une étape cochable à l’écran`, r.etapes>=1, `${r.etapes} étape(s)`);
+  await page.close();
+}
+{ /* La VUE GUIDÉE a un autre porteur (`.nav-wrap`, une fiche sans algorithme n'a pas de journal) :
+     l'oublier ne ferait rien précisément sur les fiches mono-bloc, sans que rien ne le dise. */
+  const page = await br.newPage({viewport:{width:320,height:640},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async(ITEMS)=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=migrate({id:'zmono',title:'Sonde mono-bloc',start:'b1',
+      notForget:['Appeler à l’aide','Adrénaline prête','Vérifier voie et site','Prévenir la régulation'],
+      confirmation:['Début brutal après exposition à un allergène connu ou probable',
+        'Atteinte cutanéo-muqueuse : urticaire généralisée, angio-œdème, prurit',
+        'Atteinte respiratoire : dyspnée, sibilants, stridor, désaturation < 92 %',
+        'Atteinte cardiovasculaire : hypotension, tachycardie, marbrures, malaise',
+        'Atteinte digestive : douleurs abdominales, vomissements répétés, diarrhée',
+        'Deux organes atteints ou plus après exposition suffisent au diagnostic',
+        'Hypotension isolée après exposition à un allergène connu du patient',
+        'En cas de doute, traiter comme une anaphylaxie — le retard est le facteur de gravité',
+        'Bronchospasme résistant aux bêta-2 inhalés chez un patient jusque-là stable',
+        'Œdème laryngé : dysphonie, sensation de gorge serrée, tirage inspiratoire',
+        'Collapsus sans étiologie évidente dans les minutes suivant une injection'],
+      blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
+    await Data.put(f);fiches.push(f);
+    openRead(f.id);await w(450);
+    const cb=document.querySelector('.conf-block').getBoundingClientRect();
+    scrollTo(0,Math.max(0,Math.round(scrollY+cb.bottom-innerHeight+60)));await w(150);
+    const yClic=Math.round(scrollY);
+    document.getElementById('sessStart').click();await w(600);
+    const h=()=>{const c=document.querySelector('.nav-wrap');
+      return c?Math.round(c.getBoundingClientRect().top-stickBase()):null;};
+    const apres=h(); scrollTo(0,yClic); await w(150);
+    return {apres,sans:h(),guide:!!document.querySelector('.nav-wrap')&&!document.querySelector('.ov-block')};},
+    items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition','O2 haut débit au masque']));
+  t(`320× témoin : la fiche mono-bloc rend bien la vue guidée`, r.guide===true);
+  t(`320× guidé : le contrôle rencontre son cas (sans atterrissage, le haut est masqué)`,
+    r.sans!=null&&r.sans<-20, `${r.sans} px`);
+  t(`320× guidé : le haut du bloc est visible après démarrage`,
+    r.apres!=null&&r.apres>=-1&&r.apres<=12, `${r.apres} px`);
+  await page.close();
+}
+{ // NON-RÉGRESSION — fiche courte : le haut est déjà à sa place, rien ne bouge.
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const y0=Math.round(scrollY);
+    document.getElementById('sessStart').click();await w(600);
+    const c=[...document.querySelectorAll('.ov-block')].pop();
+    return {saut:Math.round(scrollY)-y0,
+      haut:c?Math.round(c.getBoundingClientRect().top-stickBase()):null};});
+  t(`390× fiche courte : le démarrage ne déplace pas la page`, r.saut===0, `${r.saut} px`);
+  t(`390× … et le haut de la carte y était déjà`, r.haut!=null&&r.haut>=0, `${r.haut} px`);
+  await page.close();
+}
+
+/* ── LE CHAPEAU ENTRE LES CRITÈRES ET LE BOUTON (v5.0.8) ────────────────────────────────────
+   Séquence QRH : condition d'entrée → memory items → geste d'entrée. Trois propriétés, et la
+   deuxième est celle qui distingue cette variante de « descendre le chapeau » tout court : il ne
+   passe JAMAIS sous le bouton, sinon on l'aurait rangé derrière le geste qu'il doit précéder.
+   La troisième est la non-régression : une fois la session démarrée, le chapeau replié revient en
+   tête (T3 + T5) — rien de ce qui existait ne change. */
+console.log('\n══ CHAPEAU · condition d’entrée → memory items → bouton ══');
+{
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    await w(300);
+    const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};
+    const avant={conf:Y('.conf-block'),fs:Y('.forget-strip'),btn:Y('#sessStart'),
+      n:document.querySelectorAll('.forget-strip').length};
+    document.getElementById('sessStart').click();await w(600);
+    const apres={fs:Y('.forget-strip'),carte:Y('.ov-block'),
+      n:document.querySelectorAll('.forget-strip').length,
+      replie:!!document.querySelector('.forget-strip.fs-foldable')};
+    return {avant,apres};});
+  const a=r.avant,b=r.apres;
+  t('hors session : les critères viennent EN PREMIER',
+    a.conf!=null&&a.fs!=null&&a.conf<a.fs, `conf ${a.conf}, chapeau ${a.fs}`);
+  t('hors session : le chapeau reste AU-DESSUS du bouton',
+    a.fs!=null&&a.btn!=null&&a.fs<a.btn, `chapeau ${a.fs}, bouton ${a.btn}`);
+  t('le chapeau n’est rendu QU’UNE fois', a.n===1&&b.n===1, `${a.n} avant, ${b.n} après`);
+  t('en session : le chapeau replié revient en tête, au-dessus de la carte',
+    b.fs!=null&&b.carte!=null&&b.fs<b.carte&&b.replie===true,
+    `chapeau ${b.fs}, carte ${b.carte}, repliable=${b.replie}`);
+  await page.close();
+}
+{ /* SANS CRITÈRES, il n'y a pas de séquence à ordonner : le chapeau reprend sa place en tête —
+     c'est la même condition qui protège l'invité et l'aperçu d'essai, où le bouton n'existe pas. */
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async(ITEMS)=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=migrate({id:'zsanscrit',title:'Sonde sans critères',start:'b1',
+      notForget:['Appeler à l’aide','Adrénaline prête'],confirmation:[],
+      blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
+    await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
+    const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};
+    return {conf:!!document.querySelector('.conf-block'),fs:Y('.forget-strip'),btn:Y('#sessStart')};},
+    items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition']));
+  t('témoin : la fiche sans critères n’a pas de condition d’entrée', r.conf===false);
+  t('sans critères : le chapeau reste en tête, au-dessus du bouton',
+    r.fs!=null&&r.btn!=null&&r.fs<r.btn, `chapeau ${r.fs}, bouton ${r.btn}`);
+  await page.close();
+}
+
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
 process.exit(ko?1:0);
