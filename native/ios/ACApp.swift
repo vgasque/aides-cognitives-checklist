@@ -31,14 +31,14 @@ import UserNotifications
    signature modifiée). Le JS la lit dans `Native.shell` ; un futur manifeste OTA pourra exiger un
    minimum, de sorte qu'un contenu récent refuse de s'installer sur une coquille trop ancienne
    plutôt que de démarrer dégradé sans le dire. */
-let SHELL_VERSION = 1
+let SHELL_VERSION = 2
 let SCHEME = "aidescog"
 
 /* LES VERBES QUE CETTE COQUILLE SAIT FAIRE — la liste est ANNONCÉE au JS, jamais devinée par lui.
    C'est tout le contrat de compatibilité : le contenu demande `Native.can(verbe)` avant d'agir et
    retombe sur le comportement web si la réponse est non. Ajouter un verbe = l'ajouter ICI et
    monter SHELL_VERSION. */
-let VERBES = ["haptic", "print.page", "print.html", "notify.ask", "timers.sync"]
+let VERBES = ["haptic", "print.page", "print.html", "notify.ask", "timers.sync", "boot.ok"]
 
 func mimeFor(_ ext: String) -> String {
   switch ext.lowercased() {
@@ -62,8 +62,9 @@ func mimeFor(_ ext: String) -> String {
    message ne dise pourquoi — la visionneuse de documents mourrait en silence. C'est le premier
    endroit à regarder si un PDF cesse de s'ouvrir. */
 final class WebRootHandler: NSObject, WKURLSchemeHandler {
-  let racine: URL
-  init(racine: URL) { self.racine = racine }
+  weak var vc: RootVC?
+  init(vc: RootVC?) { self.vc = vc }
+  private var racine: URL { vc?.racineServie ?? URL(fileURLWithPath: "/") }
 
   func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
     guard let url = task.request.url else { task.didFinish(); return }
@@ -126,6 +127,12 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
          `UIMarkupTextPrintFormatter`, dont le support CSS est trop pauvre pour ce document. */
       guard let html = arg?["html"] as? String else { replyHandler(nil, nil); return }
       vc?.imprimerHTML(html, titre: (arg?["titre"] as? String) ?? "Compte rendu")
+      replyHandler(true, nil)
+
+    case "boot.ok":
+      /* LE SIGNAL QUI REND L'OTA ACCEPTABLE. Sans lui, un payload accepté mais qui ne démarre pas
+         laisserait l'application inutilisable hors ligne, en intervention, sans recours. */
+      OTA.demarrageConfirme()
       replyHandler(true, nil)
 
     case "notify.ask":
@@ -201,9 +208,13 @@ final class RootVC: UIViewController, WKNavigationDelegate {
     super.viewDidLoad()
     pont.vc = self
 
-    let racine = Bundle.main.resourceURL!.appendingPathComponent("web").standardizedFileURL
+    /* La racine est décidée UNE SEULE FOIS ici : un contenu qui changerait en cours de session
+       remplacerait l'application sous les doigts de quelqu'un qui déroule un soin. */
+    let racine = OTA.racineAuDemarrage(
+      bundle: Bundle.main.resourceURL!.appendingPathComponent("web").standardizedFileURL)
     let cfg = WKWebViewConfiguration()
-    cfg.setURLSchemeHandler(WebRootHandler(racine: racine), forURLScheme: SCHEME)
+    racineServie = racine
+    cfg.setURLSchemeHandler(WebRootHandler(vc: self), forURLScheme: SCHEME)
     /* PERSISTANT — jamais `nonPersistent()`, qui viderait IndexedDB à chaque lancement, donc
        toute la bibliothèque. C'est l'erreur la plus coûteuse possible dans ce fichier. */
     cfg.websiteDataStore = .default()
@@ -244,6 +255,51 @@ final class RootVC: UIViewController, WKNavigationDelegate {
     view.addSubview(web)
 
     web.load(URLRequest(url: URL(string: "\(SCHEME)://app/index.html")!))
+
+    /* MONTRE DE PROBATION : si le contenu fraîchement appliqué n'a pas confirmé son démarrage en
+       8 s, on revient à la version précédente et l'on recharge — immédiatement, sans attendre que
+       l'utilisateur pense à forcer la fermeture de l'application. C'est ce qui rend l'OTA
+       acceptable sur un outil de crise : le pire cas coûte quelques secondes d'écran vide, jamais
+       une application inutilisable hors ligne et sans recours. */
+    if OTA.enProbation {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) { [weak self] in
+        guard let self = self, OTA.enProbation, let u = OTA.replierMaintenant() else { return }
+        self.racineServie = u
+        self.web.reload()
+      }
+    }
+  }
+  /* La racine est une VARIABLE parce que le repli doit pouvoir la changer — mais elle ne bouge
+     JAMAIS autrement : le gestionnaire de schéma la relit à chaque requête, et un contenu qui
+     changerait en cours de session remplacerait l'application sous les doigts. */
+  var racineServie: URL = URL(fileURLWithPath: "/")
+
+  /* RECHERCHE D'UNE MISE À JOUR — APRÈS le démarrage du contenu, jamais avant. L'application doit
+     être utilisable immédiatement, hors ligne et sans attendre quoi que ce soit du réseau : c'est
+     la propriété qui la rend utilisable en intervention. La recherche est donc un arrière-plan
+     pur, et son échec ne se voit nulle part.
+     ⚠ LA VERSION SERVIE VIENT DU CONTENU LUI-MÊME (`APP_VERSION`), pas d'une valeur que la
+     coquille aurait mémorisée : après un repli, la mémoire de la coquille et ce qui tourne
+     réellement pourraient diverger — et l'on cesserait alors de proposer la mise à jour qui
+     corrige précisément le problème. */
+  func chercherMaj(_ w: WKWebView) {
+    guard OTA.base != nil else { return }
+    w.evaluateJavaScript("(typeof APP_VERSION==='string')?APP_VERSION:''") { v, _ in
+      let servie = (v as? String) ?? ""
+      guard !servie.isEmpty else { return }
+      OTA.chercher(versionServie: servie) { nouvelle in
+        guard let n = nouvelle else { return }
+        /* On réutilise le bandeau système EXISTANT (écrivain unique) : le canal change, la
+           surface non. Créer une seconde façon de dire « une nouvelle version est là » est ce que
+           la doctrine v4.70.1 proscrit. Et le mot est « redémarrer », pas « recharger » : la
+           bascule a lieu au prochain lancement, jamais sous les doigts de quelqu'un qui déroule
+           un soin. */
+        let t = "Nouvelle version disponible (v\(n)) — redémarrez l’application pour l’utiliser."
+          .replacingOccurrences(of: "'", with: "\\'")
+        w.evaluateJavaScript("try{sysBannerShow('\(t)','Plus tard',sysBannerDismiss)}catch(e){}",
+                             completionHandler: nil)
+      }
+    }
   }
 
   /* TRACE DE DÉVELOPPEMENT, sur argument de lancement seulement (`-acdiag`). Elle existe parce
@@ -251,6 +307,7 @@ final class RootVC: UIViewController, WKNavigationDelegate {
      « le bouton ne fait rien », symptôme qui ne désigne pas sa cause. À lancer par
      `simctl launch --console-pty <udid> fr.aidescognitives.app -acdiag`. */
   func webView(_ w: WKWebView, didFinish nav: WKNavigation!) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { self.chercherMaj(w) }
     guard CommandLine.arguments.contains("-acdiag") else { return }
     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
       w.evaluateJavaScript("""

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-k8hIHrplAgIwuj8tzA0eaF2nLRakyl0EKhDtRrc+Wlc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-TPRCPRdZ3+GuWzYXx7byFbxwlxEsHQEinfrdtQWu44E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -22722,6 +22722,15 @@ if(location.search.indexOf('__actest')>=0){
      démarrage — c'est `sysBannerShow` qui repose son libellé ET son handler à chaque message, et
      c'est précisément ce qui empêche un message de porter l'action du précédent. */
   document.getElementById('sbX').onclick=sysBannerDismiss;
+  /* SIGNAL DE DÉMARRAGE À LA COQUILLE NATIVE — c'est lui qui rend l'OTA acceptable.
+     Une mise à jour de contenu est appliquée en probation : sans ce signal, la coquille revient
+     au payload précédent au lancement suivant. Un contenu qui ne démarre pas ne peut donc pas
+     rendre l'application inutilisable hors ligne, en intervention, sans recours — c'est la seule
+     raison pour laquelle on s'autorise à remplacer le contenu d'une application de crise.
+     ⚠ POSÉ ICI, APRÈS LE CÂBLAGE DU CHROME ET AVANT `load()` : plus tôt on confirmerait un
+     démarrage qui n'a pas eu lieu, plus tard (dans `load()`) un échec de stockage — qui a son
+     propre filet et son propre écran — ferait retomber à tort sur l'ancien contenu. */
+  if(Native.can('boot.ok'))Native.call('boot.ok');
   let deferredPrompt=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
   document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};

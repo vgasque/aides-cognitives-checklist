@@ -1,0 +1,86 @@
+{
+  "version": "5.1.2",
+  "minShell": 1,
+  "fichiers": [
+    {
+      "p": "./apple-touch-icon.png",
+      "sha256": "3ee03a4003604c6e26226c63bf7078dcefea006a1b2e698bc94f062c641c1a75",
+      "taille": 4522
+    },
+    {
+      "p": "./favicon-16.png",
+      "sha256": "09ad4efe36d544a59acba4a18b6b63e80bca418d67e7f80a50c463f92897c0ce",
+      "taille": 592
+    },
+    {
+      "p": "./favicon-32.png",
+      "sha256": "633674e889b4d8874fa731a4e69a872946de1feca8bc07c2fa613cd4de9dbeaf",
+      "taille": 1215
+    },
+    {
+      "p": "./favicon.ico",
+      "sha256": "05d6f716a213efdd41730a27f2b8ed86c5701d6d7372e2c1b6268ad6db3cefdb",
+      "taille": 3678
+    },
+    {
+      "p": "./favicon.svg",
+      "sha256": "21331f265047267df924ea14c9d1b26158c287fda955de0c218d155b93ffa132",
+      "taille": 519
+    },
+    {
+      "p": "./icon-192-maskable.png",
+      "sha256": "042aa4f5613bfa53897f84a00c0dff9a30b86faa1f525ca37e8b8e01fec23dc5",
+      "taille": 4363
+    },
+    {
+      "p": "./icon-192.png",
+      "sha256": "81dbb033e75b9f404a348a913e522f742dda179c9cfdaa424cdee65a6edd2162",
+      "taille": 4789
+    },
+    {
+      "p": "./icon-512-maskable.png",
+      "sha256": "e77e8ae1d006349965cb0df409db17e4eea1ef599fc137806c5798465588a8da",
+      "taille": 11999
+    },
+    {
+      "p": "./icon-512.png",
+      "sha256": "227d21370107e058cfd90c3f21b35bf7d99db0bcc1a4b9cb6708bf596cabcd54",
+      "taille": 13899
+    },
+    {
+      "p": "./icon-monochrome-512.png",
+      "sha256": "41c0992da67adf931ff557e1669095a4bd84b797169008c4140f1bfcb2cc5690",
+      "taille": 9602
+    },
+    {
+      "p": "./index.html",
+      "sha256": "3e9544e57187d19c18fda9321b9db2dfa47e903e1fbce63daf8071b1186f4b07",
+      "taille": 1988316
+    },
+    {
+      "p": "./logo-glyph.svg",
+      "sha256": "84e5cacdc25305bba2ad57e481a181a8bcd5e9ee805303371244303fe34d9639",
+      "taille": 461
+    },
+    {
+      "p": "./manifest.webmanifest",
+      "sha256": "265c36171f8d6848ecb4cffc4028069037814241841b00406339197576a5f7cc",
+      "taille": 1143
+    },
+    {
+      "p": "./vendor/fonts/source-serif-4-latin-600.woff2",
+      "sha256": "d6175042a842343da89c28e9b3105e6f22859c2acdd3d8730f4c45e523b2d42b",
+      "taille": 21488
+    },
+    {
+      "p": "./vendor/pdfjs/pdf.min.js",
+      "sha256": "44ec6f011027ee77791386b66c14876a5fc29e20bf0433c07c6726fff7212b72",
+      "taille": 398237
+    },
+    {
+      "p": "./vendor/pdfjs/pdf.worker.min.js",
+      "sha256": "bd88805178a26c729db8c0107a5b630cb900ec070f4d8c7529a3e45530afd41d",
+      "taille": 1417586
+    }
+  ]
+}

@@ -53,6 +53,11 @@ fi
 #       CSP d'index.html + _headers. DOIT tourner APRÈS la synchro de version. Idempotent.
 node scripts/csp-hashes.mjs || { echo "Injection des hashs CSP échouée — publication interrompue."; exit 1; }
 
+# MANIFESTE OTA — APRÈS les hashs CSP, et ce n'est pas indifférent : le manifeste porte
+# l'empreinte d'`index.html`, qui change quand les hashs y sont injectés. Généré avant, il
+# décrirait un fichier qui n'existe plus, et AUCUN appareil n'accepterait la mise à jour.
+node scripts/ota-manifest.mjs || { echo "Manifeste OTA échoué — publication interrompue."; exit 1; }
+
 # 3ter. Resynchroniser design/ds/ avec le CSS d'index.html (généré, jamais édité à la main).
 #        Non bloquant : la régénération reste dans l'arbre de travail et part avec le commit de
 #        version. Évite la dérive doc/code (les 15 fiches avaient pris 18 versions de retard).
