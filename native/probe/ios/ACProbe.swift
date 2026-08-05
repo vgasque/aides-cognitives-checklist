@@ -133,6 +133,59 @@ try {
          + (navigator.serviceWorker?.controller ? ', page CONTRÔLÉE' : ', non contrôlée');
 } catch (e) { out.sw = 'refusé : ' + e.message; }
 
+/* (5) `window.print()` IMPRIME-T-IL ? Sa PRÉSENCE ne le dit pas : une fonction qui ne fait rien
+   existe tout autant qu'une fonction qui agit. Ce qui décide, c'est si les évènements
+   `beforeprint`/`afterprint` sont ÉMIS — car toute la préparation du document imprimé de
+   l'application vit dans ces deux écouteurs. S'ils ne partent pas, `window.print()` imprimerait
+   l'écran de crise REPLIÉ au lieu du compte rendu, et il faut un pont. */
+out.print = await new Promise(res => {
+  let avant = false, apres = false, leve = null;
+  const fa = () => { avant = true; }, fb = () => { apres = true; };
+  window.addEventListener('beforeprint', fa);
+  window.addEventListener('afterprint', fb);
+  const t0 = performance.now();
+  try { window.print(); } catch (e) { leve = e.name + ' : ' + e.message; }
+  const dt = Math.round(performance.now() - t0);
+  setTimeout(() => {
+    window.removeEventListener('beforeprint', fa);
+    window.removeEventListener('afterprint', fb);
+    res(`beforeprint ${avant} · afterprint ${apres} · retour en ${dt}ms · exception ${leve || 'aucune'}`);
+  }, 2000);
+});
+
+/* (6) `navigator.wakeLock` : PRÉSENCE ≠ OBTENTION. C'est la demande qui tranche — si elle est
+   accordée, l'écran qui s'éteint en pleine réanimation se corrige sans une ligne de Swift ; si
+   elle est refusée, il faut `isIdleTimerDisabled` et donc un pont. */
+try {
+  if (!navigator.wakeLock) out.wakeLock = 'API absente';
+  else {
+    const s = await navigator.wakeLock.request('screen');
+    out.wakeLock = `ACCORDÉ (type ${s.type}, released ${s.released})`;
+    await s.release();
+    out.wakeLock += ` · release ok (released ${s.released})`;
+  }
+} catch (e) { out.wakeLock = `REFUSÉ SANS GESTE : ${e.name} — ${e.message}`; }
+
+/* ⚠ UN REFUS ICI NE TRANCHE PAS. `NotAllowedError` peut vouloir dire « le moteur ne l'accorde
+   pas » OU « il manque une activation utilisateur transitoire » — et la différence décide de
+   tout : dans le second cas l'application a des gestes à revendre (démarrer une session EST un
+   tap) et aucun pont n'est nécessaire. On re-demande donc DEPUIS UN VRAI CLIC. */
+window.__wl = null;
+const bouton = document.createElement('button');
+bouton.id = '__wlbtn';
+bouton.textContent = 'SONDE WAKE LOCK — TAPER';
+bouton.style.cssText = 'position:fixed;inset:auto 0 0 0;z-index:99999;height:120px;'
+  + 'font-size:20px;font-weight:700;background:#17477f;color:#fff;border:0';
+bouton.onclick = async () => {
+  try {
+    const s = await navigator.wakeLock.request('screen');
+    window.__wl = `ACCORDÉ APRÈS GESTE (type ${s.type}, released ${s.released})`;
+    await s.release();
+    window.__wl += ' · release ok';
+  } catch (e) { window.__wl = `REFUSÉ MÊME APRÈS GESTE : ${e.name} — ${e.message}`; }
+};
+document.body.appendChild(bouton);
+
 out.idb = await new Promise(res => { try {
   const rq = indexedDB.open('__ac_probe__', 1);
   rq.onupgradeneeded = () => rq.result.createObjectStore('s');
@@ -174,7 +227,7 @@ final class VC: UIViewController, WKNavigationDelegate {
         case .success(let v):
           if let d = v as? [String: Any] {
             for k in ["booted", "origin", "secureContext", "safeArea", "sab",
-                      "hauteurs", "unitesVh", "zoom", "api", "sw", "idb"] {
+                      "hauteurs", "unitesVh", "zoom", "api", "print", "wakeLock", "sw", "idb"] {
               dire(String(format: "  %-14@ %@", k as NSString,
                           String(describing: d[k] ?? "—") as NSString))
             }
@@ -182,7 +235,23 @@ final class VC: UIViewController, WKNavigationDelegate {
         case .failure(let e):
           dire("  ✗ la sonde a échoué : \(e.localizedDescription)")
         }
-        dire("──FIN──")
+        dire("──ATTENTE TAP (bouton bleu en bas)──")
+        // On interroge jusqu'à ce que le clic réel ait répondu — 40 × 500 ms.
+        var n = 0
+        func sonder() {
+          n += 1
+          w.evaluateJavaScript("window.__wl") { v, _ in
+            if let s = v as? String {
+              dire(String(format: "  %-14@ %@", "wakeLockGeste" as NSString, s as NSString))
+              dire("──FIN──")
+            } else if n < 40 {
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { sonder() }
+            } else {
+              dire("  wakeLockGeste  (aucun tap reçu en 20 s)"); dire("──FIN──")
+            }
+          }
+        }
+        sonder()
       }
     }
   }

@@ -67,22 +67,42 @@ les trois unités de fenêtre coïncident. Toute la classe de défauts qui a co�
 1. **`navigator.share` et `canShare` sont PRÉSENTS.** Le plan les donnait pour absents en WKWebView
    iOS et prévoyait un pont pour `dlBlob`. Il n'est **pas nécessaire** : le chemin de partage
    existant fonctionne tel quel dans la coquille.
-2. **`navigator.wakeLock` est PRÉSENT.** Le plan affirmait que l'API « n'est de toute façon pas
-   disponible en PWA iOS » et prévoyait `isIdleTimerDisabled`. ⚠ Présence n'est pas obtention : il
-   reste à vérifier qu'une `request('screen')` est réellement ACCORDÉE. Si oui, l'écran qui s'éteint
-   en pleine réanimation se corrige **sans une ligne de Swift**.
+2. **`navigator.wakeLock` fonctionne — il exige seulement un GESTE.** Mesuré dans les deux
+   conditions, parce que la distinction décidait du pont :
+
+   | Appel | Résultat |
+   |---|---|
+   | sans activation utilisateur | `NotAllowedError — Permission was denied` |
+   | **depuis un vrai clic** | **ACCORDÉ** (`type screen`, `released false`), `release()` ok |
+
+   Le refus initial était donc un artefact de la sonde, pas une limite du moteur — conclure de la
+   première ligne aurait fait écrire un pont inutile. L'application a des gestes à revendre
+   (démarrer une session EST un tap) : **l'écran qui s'éteint en pleine réanimation se corrige sans
+   une ligne de Swift.** ⚠ Deux contraintes à retenir pour l'implémentation : la demande doit partir
+   d'un geste, et un verrou est **automatiquement relâché quand la page passe en arrière-plan** — il
+   faut donc le reprendre sur `visibilitychange`, et le piloter par `crisisOnScreen()`.
 3. **`serviceWorker` est totalement ABSENT** sous le schéma personnalisé (sur macOS l'API existait
    mais n'enregistrait rien). Le chemin est donc inerte par construction : la garde `Platform.web`
    reste de la propreté, elle ne corrige aucun conflit.
 
-Inchangé, et conforme au plan : **`Notification` et `vibrate` sont absents** — ce sont les deux
-ponts réellement nécessaires, avec les notifications locales pour les alarmes en arrière-plan.
+**`window.print()` est un NO-OP SILENCIEUX, et c'est tranché** : `beforeprint` **false**,
+`afterprint` **false**, retour en **0-1 ms**, aucune exception. La fonction existe et ne fait rien —
+la présence ne disait donc rien, il fallait mesurer les évènements. Comme toute la préparation du
+document imprimé vit dans ces deux écouteurs, `window.print()` seul imprimerait l'écran de crise
+REPLIÉ au lieu du compte rendu. **Un pont est nécessaire**, et l'extraction
+`printPrepare`/`printRestore` (déjà livrée) est exactement ce qui permet de le brancher sans rien
+réécrire.
 
-⚠ **`window.print` EXISTE comme fonction, ce qui ne dit pas qu'il IMPRIME.** La sonde n'a mesuré
-que sa présence ; le plan retient de WebKit iOS qu'il ne l'implémente pas et n'émet ni `beforeprint`
-ni `afterprint`. **Ce point n'est pas tranché** — c'est la première chose à mesurer au lot 1, et
-l'extraction `printPrepare`/`printRestore` (déjà livrée) est justement ce qui permettra d'en sortir
-sans rien réécrire.
+### Le pont se réduit à trois verbes
+
+| Besoin | Verdict |
+|---|---|
+| Notifications locales (alarmes en arrière-plan) | **pont** — `Notification` absent |
+| Haptique | **pont** — `vibrate` absent |
+| Impression | **pont** — `print` no-op |
+| Partage de fichier | ~~pont~~ — `navigator.share` présent |
+| Wake lock | ~~pont~~ — accordé après geste |
+| Mise à jour | canal OTA (le service worker est inerte) |
 
 ### Vérifié à l'écran, pas seulement à la sonde
 
@@ -105,5 +125,6 @@ Restent non mesurés, et ils demandent un **appareil réel** :
 - **tout ce que fait le compositeur** — rebond, hachures des placards, sticky au défilement — que le
   dossier documente comme **invisible à toute mesure de la page** (leçons v5.0.2, v5.0.5, v5.0.9).
   Un simulateur ne le dit pas mieux qu'un harnais headless : il faut un appareil et un œil ;
-- **`window.print`** : présent, comportement non vérifié (voir ci-dessus) ;
-- **`navigator.wakeLock`** : présent, obtention non vérifiée.
+- **le wake lock en conditions réelles** : accordé sur un tap dans une page de sonde ; reste à
+  vérifier qu'il TIENT sur une session longue et qu'il se reprend correctement après un passage en
+  arrière-plan — ce qu'aucune mesure ponctuelle ne dit.
