@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-4Xvpk61FkCAdtjg17sNiLJBRb3rGOCMrKwYOmnHfiTY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-8qRWxysp52t3Jn2509CHbgRkPJ/MSCKAuLY87lhWlOY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7703,6 +7703,35 @@ function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1
    éditoriale). Tant que #sysBanner est visible, la notice attend son tour ; l'acquittement du
    bandeau re-rend l'accueil pour la laisser paraître. */
 function sysBannerOn(){const b=document.getElementById('sysBanner');return !!(b&&!b.hidden);}
+/* ÉCRIVAIN UNIQUE DU BANDEAU SYSTÈME — et il corrige un défaut RÉEL (extraction, portage natif).
+   TROIS sites écrivaient dans #sysBanner en recopiant la même séquence DOM : les fiches d'exemple
+   (« J'ai compris »), la mise à jour du service worker (« Recharger »), et l'arrivée d'un code de
+   partage (« Rejoindre »). Or DEUX d'entre eux réécrivaient le LIBELLÉ et le `onclick` de #sbReload
+   sans jamais les restaurer, alors que le câblage d'origine était fait UNE SEULE FOIS au démarrage.
+   Séquence réelle, pas théorique : premier lancement -> bandeau « J'ai compris » -> l'utilisateur
+   acquitte -> plus tard une nouvelle version s'active -> le bandeau annonce « Nouvelle version
+   disponible » avec un bouton qui dit encore « J'ai compris » et qui se contente de MASQUER, sans
+   recharger. Idem après un code de partage, où le bouton reste « Rejoindre » et OUVRE L'ÉCRAN
+   D'APPARIEMENT à la place. Le canal le plus persistant de l'app promettait une action et en
+   faisait une autre.
+   Le remède n'est pas d'ajouter une restauration à chaque site — ce serait la liste tenue en double
+   que ce dépôt a déjà payée quatre fois — mais de n'avoir qu'un écrivain, qui repose TOUJOURS les
+   trois choses (texte, libellé, action). Un appelant qui oublie un argument retombe sur le défaut
+   historique (« Recharger »), jamais sur le libellé du message précédent.
+   C'est aussi ce qui donnera au canal de mise à jour natif sa surface sans en créer une seconde :
+   dire deux fois la même chose sur deux canaux est ce que la doctrine v4.70.1 proscrit. */
+function sysBannerShow(txt,actLabel,onAct){
+  const b=document.getElementById('sysBanner');if(!b)return false;
+  b.querySelector('.sb-txt').textContent=txt;
+  const a=document.getElementById('sbReload');
+  if(a){a.textContent=actLabel||'Recharger';a.onclick=onAct||(()=>location.reload());}
+  b.hidden=false;return true;}
+/* Acquittement : masque, et re-rend l'accueil pour que la notice auteur prenne le créneau libéré
+   (cf. sysBannerOn). Le prédicat est la CLASSE body.view-home — la même que celle qui gouverne la
+   visibilité CSS du bandeau ; `state.view` vaut 'library' sur l'accueil, un test sur lui serait
+   silencieusement toujours faux. */
+function sysBannerDismiss(){const b=document.getElementById('sysBanner');if(!b)return;
+  b.hidden=true;if(document.body.classList.contains('view-home'))render();}
 function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden'))==='1';}catch(e){return false;}}
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
@@ -8470,15 +8499,11 @@ async function addSeedFiches(){
      jusqu'à ce qu'on ait lu les fiches. Le bandeau système est exactement ce canal — « information
      persistante, visible sur l'accueil seulement » (v4.20.0) — et il vit AU-DESSUS du contenu au
      lieu de le couvrir. */
-  {const b=document.getElementById('sysBanner');
-   /* Texte FUSIONNÉ avec la notice auteur (un seul créneau, cf. sysBannerOn) : les deux messages
-      énonçaient la même responsabilité éditoriale en deux formulations. L'acquittement re-rend
-      l'accueil pour que la notice, si elle n'est pas masquée, prenne le créneau libéré. */
-   if(b){b.querySelector('.sb-txt').textContent='2 fiches d’exemple ajoutées. Relisez-les et validez-les : vous êtes responsable du contenu clinique.';
-     const a=document.getElementById('sbReload');
-     a.textContent='J’ai compris';a.onclick=()=>{b.hidden=true;if(document.body.classList.contains('view-home'))render();};
-     b.hidden=false;}
-   else toast('2 fiches d’exemple ajoutées. Relisez-les et validez-les : vous êtes responsable du contenu clinique.',8000);}
+  /* Texte FUSIONNÉ avec la notice auteur (un seul créneau, cf. sysBannerOn) : les deux messages
+     énonçaient la même responsabilité éditoriale en deux formulations. L'acquittement re-rend
+     l'accueil pour que la notice, si elle n'est pas masquée, prenne le créneau libéré. */
+  {const msg='2 fiches d’exemple ajoutées. Relisez-les et validez-les : vous êtes responsable du contenu clinique.';
+   if(!sysBannerShow(msg,'J’ai compris',sysBannerDismiss))toast(msg,8000);}
   render();}
 // Identifiant de catégorie DÉTERMINISTE, dérivé du nom : deux appareils qui créent « Anesthésie »
 // obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro (des ids aléatoires
@@ -9433,14 +9458,22 @@ function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('a
 // n'est ni relancé ni réarmé (acquittement par l'action, pas par un « OK » de plus).
 // Session PAS sous les yeux (autre vue, autre fiche, app en arrière-plan) : là, banderole
 // cliquable + flash écran + notification système — l'alerte doit être ROUTÉE vers l'utilisateur.
+/* CE QU'UNE ALARME DIT — SOURCE UNIQUE (extrait d'`onTimerFired`).
+   K7 : l'alarme annonce L'ACTION quand l'auteur l'a écrite (`onDue`), le NOM sinon. Une alarme qui
+   dit seulement quoi a sonné laisse la décision entière à qui l'entend ; l'ECAM pose l'action au
+   pied de l'alerte. Le nom reste dans le libellé complet, jamais perdu.
+   Extrait en fonction parce que la même phrase doit être dite par des canaux qui ne se voient pas
+   les uns les autres — le bandeau, le lecteur d'écran, la notification système, et demain une
+   alarme programmée hors de la page. Deux formulations du même événement seraient deux
+   vocabulaires pour une chose (AC 120-71B §5.5), et la divergence serait SILENCIEUSE : personne
+   ne compare le texte d'une notification à celui d'une banderole. */
+function timerAlertText(t){
+  const nom=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
+  return (t.onDue||'').trim()?(nom+' — '+String(t.onDue).trim()):nom;}
 function onTimerFired(R,t){beep();
   const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
   const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';
-  /* K7 : l'alarme annonce L'ACTION quand l'auteur l'a écrite (`onDue`), le NOM sinon. Une alarme
-     qui dit seulement quoi a sonné laisse la décision entière à qui l'entend ; l'ECAM pose
-     l'action au pied de l'alerte. Le nom reste dans le libellé complet, jamais perdu. */
-  const nom=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
-  const tl=(t.onDue||'').trim()?(nom+' — '+String(t.onDue).trim()):nom;
+  const tl=timerAlertText(t);
   if(activeVisible){flash(t.id);}   // carte clignotée si visible + flash écran bref (cf. flash())
   else{showBanner(R.ficheId,ft,tl);flashScreen();
     // L'alerte ROUTÉE était muette pour un lecteur d'écran (v4.42.0, WCAG 4.1.3) : la banderole
@@ -20168,17 +20201,32 @@ let _printSaved=null;
    gardé que par la VUE : un invité qui faisait Partager → Imprimer sur iOS obtenait la fiche
    ENTIÈRE, mise en page pour le papier. Tant que cette fenêtre restait ouverte, l'argument
    d'étanchéité contre l'export n'était pas recevable. */
-window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)return;
-  try{if(Share.mode==='guest')return;}catch(e){}
+/* LA PRÉPARATION DU PAPIER EST UNE FONCTION, PAS UN GESTIONNAIRE (extraction).
+   Elle vivait ENTIÈREMENT dans les écouteurs `beforeprint`/`afterprint`, ce qui la rendait
+   inatteignable pour tout chemin d'impression qui ne les émet pas — et il en existe : WebKit iOS
+   n'implémente pas `window.print()` et n'émet NI l'un NI l'autre. Un jour où l'impression passera
+   par le système plutôt que par le moteur, appeler `print()` sans `printPrepare()` imprimerait
+   l'écran de crise REPLIÉ au lieu du compte rendu — le document promis, absent, sans un mot.
+   Extraite, la préparation reste identique pour le web (les écouteurs ci-dessous l'appellent, et
+   rien d'autre ne change) et devient disponible pour les autres.
+   ⚠ `printPrepare` porte AUSSI la garde d'étanchéité de l'invité : la court-circuiter rouvrirait
+   exactement la fenêtre que cette garde ferme (cf. le commentaire ci-dessus). Tout chemin
+   d'impression passe par elle, jamais à côté. */
+function printPrepare(){
+  if(state.view!=='read'||!state.fiche)return false;
+  try{if(Share.mode==='guest')return false;}catch(e){}
   _printSaved={confOpen:state.confOpen,showFlow:state.showFlow,readMode:state.readMode};
   // La vue d'ensemble (journal + PLAN complet avec étapes) est le format imprimé ; les blocs
   // repliés sont rouverts par CSS @media print — aucun état de repli à toucher.
   // 'plan' FORCÉ (jamais la préférence) : sur papier la structure imprimée est le plan Détails —
   // ni l'échelle ni le SVG (règle inchangée depuis v4.18.0).
-  state.confOpen=true;state.showFlow=true;state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();});
-window.addEventListener('afterprint',()=>{_printingOv=false;if(!_printSaved)return;
+  state.confOpen=true;state.showFlow=true;state.ovVerify=null;_printingOv=true;if(hasFlow(state.fiche))state.readMode='overview';render();
+  return true;}
+function printRestore(){_printingOv=false;if(!_printSaved)return;
   state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;_printSaved=null;
-  if(state.view==='read'&&state.fiche)render();});
+  if(state.view==='read'&&state.fiche)render();}
+window.addEventListener('beforeprint',printPrepare);
+window.addEventListener('afterprint',printRestore);
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la
 // police). Préférence par appareil. Cycle 100/110/125 % — suffisant sans casser la mise en page.
 // Tailles S / M / L / XL (V5, canvas turn 6) — appliquées à toute l'app, par utilisateur.
@@ -22445,9 +22493,8 @@ if(location.search.indexOf('__actest')>=0){
       // bandeau système PERSISTANT (registre INFORMATION, taxonomie V5) : visible jusqu'à action
       // ou rejet, seulement sur l'accueil (body.view-home — il ATTEND le retour à l'accueil).
       if(v===APP_VERSION)toast('Application mise à jour (v'+APP_VERSION+') — vous utilisez déjà la nouvelle version.',9000);
-      else{const b=document.getElementById('sysBanner');
-        b.querySelector('.sb-txt').textContent='Nouvelle version disponible'+(v?' (v'+v+')':'')+' — rechargez la page pour l\'utiliser.';
-        b.hidden=false;}});
+      else sysBannerShow('Nouvelle version disponible'+(v?' (v'+v+')':'')+' — rechargez la page pour l\'utiliser.',
+                         'Recharger',()=>location.reload());});
     // OBLIGATOIRE avec addEventListener : démarre la file des messages du worker (sans cet appel
     // — ou sans passer par `onmessage =` — le navigateur retient les messages indéfiniment).
     if(navigator.serviceWorker.startMessages)navigator.serviceWorker.startMessages();
@@ -22461,14 +22508,10 @@ if(location.search.indexOf('__actest')>=0){
       setInterval(upd,60*60*1000);
     }).catch(()=>{});
   });}
-  // Bandeau système : actions câblées une fois (élément statique du squelette).
-  {const sb=document.getElementById('sysBanner');
-   document.getElementById('sbReload').onclick=()=>location.reload();
-   // Fermer le bandeau libère le créneau de message : sur l'accueil, on re-rend pour que la
-   // notice auteur (si non masquée) le prenne — cf. sysBannerOn. Le prédicat est la classe
-   // body.view-home, la MÊME que celle qui gouverne la visibilité CSS du bandeau (state.view
-   // vaut 'library' sur l'accueil — un test sur lui serait silencieusement toujours faux).
-   document.getElementById('sbX').onclick=()=>{sb.hidden=true;if(document.body.classList.contains('view-home'))render();};}
+  /* Bandeau système : seul le ✕ est câblé ici. Le bouton d'ACTION (#sbReload) n'est plus câblé au
+     démarrage — c'est `sysBannerShow` qui repose son libellé ET son handler à chaque message, et
+     c'est précisément ce qui empêche un message de porter l'action du précédent. */
+  document.getElementById('sbX').onclick=sysBannerDismiss;
   let deferredPrompt=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
   document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};
@@ -22486,11 +22529,11 @@ if(location.search.indexOf('__actest')>=0){
   function shareEntryArrived(){
     if(!SHARE_JOIN)return;
     if(!crisisOnScreen()){openJoinScreen();return;}
-    const b=document.getElementById('sysBanner');if(!b)return;
-    b.querySelector('.sb-txt').textContent='Un code de session partagée a été reçu.';
-    const a=document.getElementById('sbReload');
-    a.textContent='Rejoindre';a.onclick=()=>{b.hidden=true;openJoinScreen();};
-    b.hidden=false;}
+    /* Masquage SANS re-rendu ici (pas `sysBannerDismiss`) : on est en crise à l'écran par
+       construction — c'est la condition d'entrée de cette branche — donc rien à re-rendre, et
+       surtout rien à bouger sous les doigts de quelqu'un qui déroule un soin (règle 11). */
+    sysBannerShow('Un code de session partagée a été reçu.','Rejoindre',()=>{
+      const b=document.getElementById('sysBanner');if(b)b.hidden=true;openJoinScreen();});}
   /* L'APP EST DÉJÀ OUVERTE ET UN CODE ARRIVE : par un lien tapé (hashchange) ou par
      `launchQueue`, que le manifeste rend possible depuis v4.43.0 (`launch_handler:
      focus-existing`) et que RIEN ne consommait — sur PWA installée, un lien entrant était donc
