@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-k6PDbQQ8AEr9f64zmG/O6plFFrhhGbU0YynTxb+7dxo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-4xG8nAJxnnp2Wq0NhSlibGU47dN4+8LmYqVw5/2O3CM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6319,19 +6319,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.1.0';
+const APP_VERSION='5.1.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
 const LIB_PAGE=60;
 // Palette de catégories (index réutilisé cycliquement) : chaque teinte respecte WCAG AA
 // (contraste >= 4.5:1) en pastille (texte coloré sur fond teinté à 15 %) comme en chip
-// sélectionnée (texte blanc). Le vermillon #b6382f (V5, canvas turn 6 : catégorie « Urgences »,
-// assombri depuis le #c43d34 du canvas pour tenir 4.5:1 en pastille) est assumé pour les
+// sélectionnée (texte blanc). Le vermillon #b23240 (ex-#b6382f, re-résolution OKLCH v5.1.1 :
+// écarté du rouge d'alerte --critical-bd, dont il n'était qu'à dE_OK 3,1) est assumé pour les
 // catégories d'urgence — les STATUTS, eux, sont achromatiques depuis V5.
 // Pas de bleu --primary (#1f5fa6) : une catégorie sélectionnée ressemblerait à un bouton
 // d'action primaire ; l'ex-teal de la marque (#0d5b56) reprend cette place, désormais libre.
-const PALETTE=['#b6382f','#8d5c39','#806311','#4f6b1e','#1d7449','#0e6b78','#006d98','#45556b','#0d5b56','#4b3fa6','#755a96','#7a2f6b','#95516c'];
+// RE-RÉSOLUTION PERCEPTUELLE (action 7 rouverte en OKLCH, v5.1.1) : SIX teintes déplacées, à
+// problème NOMMÉ chacune — 0 (collision --critical-bd, dE_OK 3,1), 2 (collision --verify, 3,0 :
+// l'olive se lisait comme le registre ambre), 4 (collision --ok, 3,3), 5 et 6 (paire confusable,
+// 5,1 entre elles), 9 (contraste sombre 2,37 -> 3,10). Déplacements MINUSCULES (dE_OK 1,3 à 2,8,
+// sauf l'indigo 9 à 6,2 pour son contraste) : une catégorie déjà choisie reste reconnaissable, et
+// le caractère sourd de la palette est conservé (chroma quasi inchangée). CONTRAINTES = CELLES DU
+// TEST DE RÉGRESSION #3 (tests.html), pas « sur blanc » : texte couleur sur teinte 15 % >= 4.5 ET
+// blanc sur couleur pleine >= 4.5 — un premier jet contraint « sur blanc » a produit trois teintes
+// que la suite refusait (3,74-3,95) ; le solveur applique donc tint15/chip à l'identique.
+// Plancher des distances (paires + registres) : 3,0 -> 4,0. Les couleurs DÉJÀ STOCKÉES ne
+// changent pas (la couleur vit dans la catégorie) : seuls les nouveaux choix voient la palette.
+// TROIS teintes restent < 3:1 sur surface sombre (#45556b, #0d5b56, #7a2f6b) : aucun candidat
+// conforme n'existe dans le budget de reconnaissabilité (vérifié au solveur, pas supposé) —
+// atténué par la règle « la couleur n'est jamais seule » (le nom est toujours en toutes lettres).
+const PALETTE=['#b23240','#8d5c39','#786824','#4f6b1e','#096e50','#226a71','#1f6f96','#45556b','#0d5b56','#5156b6','#755a96','#7a2f6b','#95516c'];
 /* ===== Backends (stockage LOCAL) =====
    Trois implémentations interchangeables exposant la MÊME interface.
    `Data` (plus bas) pointera vers celle retenue par chooseBackend().
@@ -8522,7 +8536,16 @@ async function remapCatsDeterministic(){const map={};const byNew={};const kept=[
   if(!Object.keys(map).length)return;
   const changed=[];fiches.forEach(f=>{if(f.category&&map[f.category]){f.category=map[f.category];changed.push(f);}});
   await saveCats(null);for(const f of changed)await persist(f);}
-function defaultCats(){return[['Anesthésie','#0e6b78'],['Cardiologie','#95516c'],['Pédiatrie','#1d7449'],['Réanimation','#006d98'],['Régulation','#4b3fa6'],['SMUR','#8d5c39'],['SSE','#806311'],['Urgences','#1f5fa6']].map(([name,color])=>({id:detCatId(name),name,color,library:null}));}
+/* Les couleurs par défaut suivent la PALETTE re-résolue (v5.1.1) : une nouvelle installation
+   reçoit les teintes corrigées ; une installation existante garde les siennes (la couleur est
+   STOCKÉE dans la catégorie — c'est la propriété qui rend la correction sans rupture).
+   « URGENCES » PORTE LE VERMILLON DE PALETTE, PLUS LE BLEU --primary : le #1f5fa6 datait de la
+   création de defaultCats (v3.0.0, avant toute règle) et a SURVÉCU par oubli au commit v4.1.0 —
+   celui-là même qui a posé « pas de bleu --primary : une catégorie sélectionnée ressemblerait à
+   un bouton d'action primaire » et déclaré le vermillon « assumé pour les catégories d'urgence »
+   (vérifié à l'historique git : de23710 ne touche pas defaultCats). La règle vaut pour le jeu
+   par défaut comme pour le nuancier. */
+function defaultCats(){return[['Anesthésie','#226a71'],['Cardiologie','#95516c'],['Pédiatrie','#096e50'],['Réanimation','#1f6f96'],['Régulation','#5156b6'],['SMUR','#8d5c39'],['SSE','#786824'],['Urgences','#b23240']].map(([name,color])=>({id:detCatId(name),name,color,library:null}));}
 function migrateCategories(){const changed=[];const byName={};categories.forEach(c=>byName[c.name.toLowerCase()]=c.id);let pi=categories.length;
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],library:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}

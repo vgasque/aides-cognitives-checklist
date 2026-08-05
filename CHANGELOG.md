@@ -1,5 +1,41 @@
 # Journal des modifications
 
+## [5.1.1] — 2026-08-05
+### La palette de catégories re-résolue en espace perceptuel — six teintes corrigées, à problème nommé chacune
+
+L'action 7 de l'audit v5.0.0 (« désaturer les catégories ») avait été refusée sur mesure — à
+raison pour une désaturation d'ensemble. Rejouée en OKLCH (point 1 de l'audit direction A), la
+bonne métrique montre que le problème était PONCTUEL, pas global : trois catégories étaient
+perceptuellement COLLÉES à un registre d'alerte, deux l'étaient entre elles, et quatre passaient
+sous 3:1 sur surface sombre.
+
+- **Ce qui était mesuré (dE_OK, distance OKLab ×100)** : l'olive #806311 à **3,0** du registre
+  ambre `--verify` — au premier regard, une catégorie pouvait se lire comme un signal de
+  vigilance ; le vermillon à 3,1 de `--critical-bd` ; le vert #1d7449 à 3,3 de `--ok` ; les deux
+  sarcelle/bleu à 5,1 l'une de l'autre ; et #45556b, #0d5b56, #4b3fa6, #7a2f6b entre 2,26 et
+  2,56:1 sur le sombre (la couleur stockée est rendue brute dans les deux thèmes).
+- **La correction est chirurgicale** : six teintes bougent (0, 2, 4, 5, 6, 9), sept sont
+  intactes. Déplacements minuscules — dE_OK 1,3 à 2,8, sauf l'indigo (6,2) qui devait remonter
+  pour son contraste sombre (2,37 → 3,10). Plancher des distances : **3,0 → 4,0**. Le caractère
+  sourd de la palette est conservé (chroma quasi inchangée) : un premier solveur qui maximisait
+  librement les distances proposait des néons, et a été corrigé en objectif lexicographique sur
+  les plus petites distances.
+- **⚠ Les contraintes de clair sont celles du test de régression #3**, pas « sur blanc » : texte
+  couleur sur sa teinte à 15 % ≥ 4,5:1 ET blanc sur couleur pleine ≥ 4,5:1. Un premier jet
+  contraint « sur blanc » a produit trois teintes que `npm test` a refusées (3,74-3,95) — le
+  garde-fou a fait son travail, et le solveur reprend désormais `tint15`/`ratio` à l'identique.
+- **Sans rupture par construction** : la couleur vit dans la catégorie stockée — les choix
+  existants ne changent pas d'un pixel ; seuls le nuancier proposé et `defaultCats` (nouvelles
+  installations) sont corrigés. Trois teintes restent < 3:1 en sombre (#45556b, #0d5b56,
+  #7a2f6b) : aucun candidat conforme n'existe dans le budget de reconnaissabilité (vérifié au
+  solveur) — dit, pas caché, et atténué par la règle « la couleur n'est jamais seule ».
+- **Et « Urgences » par défaut porte enfin le vermillon.** `defaultCats()` lui donnait `#1f5fa6` —
+  le bleu `--primary` — depuis sa création en v3.0.0 ; la règle « pas de bleu primaire pour une
+  catégorie » posée en v4.1.0 avait corrigé le nuancier **sans toucher le jeu par défaut**
+  (vérifié à l'historique : le commit de la règle ne modifie pas `defaultCats`). Aligné sur
+  `#b23240`, la couleur que la doctrine destine nommément aux catégories d'urgence — nouvelles
+  installations seulement, aucune migration des catégories existantes.
+
 ## [5.1.0] — 2026-08-05
 ### Direction « Instrument clinique » — six lots de matière issus d'un audit UX externe, aucun contrôle déplacé
 

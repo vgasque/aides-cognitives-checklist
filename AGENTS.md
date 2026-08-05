@@ -370,7 +370,8 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   (ex. « Terminer » une session : archivante et réversible, mais stoppe les minuteurs — registre
   du rouge « raccrocher » ; ne pas le « corriger » en ambre). TROIS ROUGES distincts, ne pas
   les fusionner : `--critical` #a32e1f = TEXTE/icônes vital-destructif ; `--critical-bd`
-  #c43d34 = BORDURES des cartes/bandeaux rouges ; PALETTE « Urgences » #b6382f = couleur de
+  #c43d34 = BORDURES des cartes/bandeaux rouges ; PALETTE « Urgences » #b23240 (ex-#b6382f,
+  re-résolution OKLCH v5.1.1 — écarté de --critical-bd, dont il n'était qu'à dE_OK 3,1) = couleur de
   CATÉGORIE (liseré/pastille, jamais un signal d'alerte) ; états (pastilles compte/synchro) :
   ok = `--ok`, attente = `--verify`, erreur = `--critical`, inactif = `--line-strong`, synchro
   EN COURS = anneau tournant (`.acct-dot.busy`, v4.5.3 : activité ≠ alerte — mouvement discret,
@@ -3618,6 +3619,32 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   la couleur mais la RÈGLE (la catégorie est un liseré et une pastille, jamais un signal ; elle est
   toujours nommée en toutes lettres). À rouvrir seulement si l'on accepte de réduire le NOMBRE de
   catégories offertes.
+  **ROUVERTE EN OKLCH ET TRANCHÉE PAR LA MESURE (v5.1.1, audit direction A, point 1)** : la
+  conclusion de v5.0.0 était juste pour une désaturation D'ENSEMBLE, mais la métrique sRGB
+  masquait que le problème était PONCTUEL. Re-mesuré en dE_OK (distance OKLab ×100) : trois
+  COLLISIONS DE REGISTRE (l'olive #806311 à **3,0** de `--verify` — perceptuellement le registre
+  ambre —, le vermillon à 3,1 de `--critical-bd`, le vert #1d7449 à 3,3 de `--ok`), une PAIRE
+  confusable (les deux sarcelle/bleu à 5,1 l'une de l'autre) et **quatre teintes sous 3:1 sur
+  surface sombre** (2,26 à 2,56 — la couleur stockée est rendue BRUTE dans les deux thèmes).
+  Correction CHIRURGICALE au solveur sous contraintes : seules les SIX teintes à problème nommé
+  bougent (0, 2, 4, 5, 6, 9), déplacement borné à dE_OK ≤ 8 — et les retenus sont MINUSCULES
+  (1,3 à 2,8, sauf l'indigo 9 à 6,2 pour son contraste sombre) —, chroma quasi inchangée (le
+  caractère sourd est voulu — un premier solveur qui maximisait les distances librement proposait
+  des néons : objectif corrigé en lexicographique sur les plus petites distances).
+  **⚠ LES CONTRAINTES DE CLAIR SONT CELLES DU TEST DE RÉGRESSION #3, PAS « SUR BLANC »** : texte
+  couleur sur sa teinte à 15 % ≥ 4,5 ET blanc sur couleur pleine ≥ 4,5 (`tint15`/`ratio` de
+  tests.html, repris à l'identique dans le solveur). Un premier jet contraint « sur blanc » a
+  produit trois teintes que `npm test` refusait (3,74-3,95) — le garde-fou a fait exactement son
+  travail, et la leçon est générale : un solveur de couleurs REPREND les contraintes du test qui
+  le jugera, il ne les redevine pas. **Plancher des distances : 3,0 → 4,0** (cat2~verify 3,0→4,0,
+  cat0~critical-bd 3,1→4,9, paire sarcelle 5,1→5,9) ; le sombre de la n° 9 passe de 2,37 à 3,10.
+  **TROIS teintes restent < 3:1 en sombre** (#45556b, #0d5b56, #7a2f6b) : le solveur ne trouve
+  AUCUN candidat conforme dans le budget de reconnaissabilité — dit, pas caché, et atténué par
+  « la couleur n'est jamais seule ». **SANS RUPTURE par construction** : la couleur vit DANS la
+  catégorie stockée — les choix existants ne changent pas, seuls la palette proposée et
+  `defaultCats` (nouvelles installations) sont corrigés. Corollaire assumé : la pastille `.sw.on`
+  d'une catégorie ancienne ne se surligne plus dans le nuancier (sa couleur n'y figure plus) —
+  cosmétique, et préférable à réécrire les données.
 - **ON NE PROPOSE PAS D'ENTRER LÀ OÙ L'ON EST DÉJÀ (v5.0.0, signalé à l'usage : « j'ai cliqué sur
   complication bronchospasme réfractaire, et sur la fiche j'ai encore le bouton bronchospasme
   réfractaire »)** : à UN SEUL événement, le bouton PORTE son nom depuis le lot B — le voir pendant
