@@ -170,21 +170,9 @@ try {
    pas » OU « il manque une activation utilisateur transitoire » — et la différence décide de
    tout : dans le second cas l'application a des gestes à revendre (démarrer une session EST un
    tap) et aucun pont n'est nécessaire. On re-demande donc DEPUIS UN VRAI CLIC. */
-window.__wl = null;
-const bouton = document.createElement('button');
-bouton.id = '__wlbtn';
-bouton.textContent = 'SONDE WAKE LOCK — TAPER';
-bouton.style.cssText = 'position:fixed;inset:auto 0 0 0;z-index:99999;height:120px;'
-  + 'font-size:20px;font-weight:700;background:#17477f;color:#fff;border:0';
-bouton.onclick = async () => {
-  try {
-    const s = await navigator.wakeLock.request('screen');
-    window.__wl = `ACCORDÉ APRÈS GESTE (type ${s.type}, released ${s.released})`;
-    await s.release();
-    window.__wl += ' · release ok';
-  } catch (e) { window.__wl = `REFUSÉ MÊME APRÈS GESTE : ${e.name} — ${e.message}`; }
-};
-document.body.appendChild(bouton);
+// Le bouton de sonde a été retiré : l'obtention après geste est mesurée (cf. README).
+// On observe désormais le verrou de L'APPLICATION, piloté par de vrais taps.
+window.__wl = 'observation';
 
 out.idb = await new Promise(res => { try {
   const rq = indexedDB.open('__ac_probe__', 1);
@@ -235,23 +223,22 @@ final class VC: UIViewController, WKNavigationDelegate {
         case .failure(let e):
           dire("  ✗ la sonde a échoué : \(e.localizedDescription)")
         }
-        dire("──ATTENTE TAP (bouton bleu en bas)──")
-        // On interroge jusqu'à ce que le clic réel ait répondu — 40 × 500 ms.
+        dire("──TRACE DU VERROU (30 relevés à 2 s) — piloter l'app pendant ce temps──")
+        /* On TRACE au lieu de prendre un instantané : un relevé unique dit l'état d'un moment
+           qu'on ne contrôle pas, et l'on conclurait de ce que faisait l'écran à cet instant. La
+           BASCULE false -> true au démarrage de session est ce qu'on cherche à voir. */
         var n = 0
-        func sonder() {
+        var dernier = ""
+        func tracer() {
           n += 1
-          w.evaluateJavaScript("window.__wl") { v, _ in
-            if let s = v as? String {
-              dire(String(format: "  %-14@ %@", "wakeLockGeste" as NSString, s as NSString))
-              dire("──FIN──")
-            } else if n < 40 {
-              DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { sonder() }
-            } else {
-              dire("  wakeLockGeste  (aucun tap reçu en 20 s)"); dire("──FIN──")
-            }
+          w.evaluateJavaScript("(typeof _wake!=='undefined'&&!!_wake)+'|'+(typeof crisisOnScreen==='function'?crisisOnScreen():'?')") { v, _ in
+            let s = (v as? String) ?? "?"
+            if s != dernier { dernier = s; dire("  [\(n)] verrou=\(s.split(separator: "|")[0]) crise=\(s.split(separator: "|").count > 1 ? s.split(separator: "|")[1] : "?")") }
+            if n < 30 { DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { tracer() } }
+            else { dire("──FIN──") }
           }
         }
-        sonder()
+        tracer()
       }
     }
   }

@@ -50,6 +50,7 @@ const HARNAIS = [
   { nom: 'audit-budget',        poids: 5 },
   { nom: 'audit-verify-live',   poids: 5 },
   { nom: 'audit-retour',        poids: 4 },
+  { nom: 'audit-wakelock',      poids: 12 },
   { nom: 'audit-verify',        poids: 4 },
   { nom: 'audit-stockage',      poids: 4 },
   { nom: 'audit-zoom-scroll',   poids: 3 },

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-LulndQhhjjGnPX14Q4vPLwdBWgw+lmdkjo/UMhzS1Mg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-MnsufxazRBDlT6UJ26R2vjdWb741ECkuenYb8RXUxPo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6318,6 +6318,34 @@ const Platform=(()=>{
     standalone:native||mq('(display-mode: standalone)')||navigator.standalone===true
   };})();
 const IS_TOUCH=Platform.touch;   // alias historique — 2 sites d'usage, conservés tels quels.
+/* LE PONT NATIF — ET SON CONTRAT DE COMPATIBILITÉ (portage natif, lot 1).
+   La coquille se met à jour par l'App Store ; le monofichier, lui, arrive par OTA en minutes.
+   Un contenu publié demain peut donc atterrir sur une coquille d'il y a six mois. Si le JS
+   appelait un verbe qu'elle ignore, le geste partirait dans le vide — SANS un mot, ce qui est le
+   pire mode de défaillance de ce dossier.
+   D'où la règle : **la coquille ANNONCE ce qu'elle sait faire** (`window.__acNative.verbes`, posé
+   à documentStart), et chaque couture demande `Native.can(verbe)` AVANT d'agir. Un verbe inconnu
+   n'est pas une erreur à rattraper, c'est une capacité absente : la couture retombe alors sur le
+   comportement web, qui existe déjà et qui marche. Une coquille ancienne dégrade donc en douceur
+   au lieu de casser, et l'on peut publier un contenu qui exploite un verbe neuf sans attendre que
+   tout le parc ait suivi.
+   ⚠ NE PAS remplacer `can()` par un try/catch autour de l'appel : `postMessage` ne dit pas si le
+   verbe a été COMPRIS, seulement s'il a été remis. On ne saurait pas distinguer « fait » de
+   « tombé dans le vide » — exactement ce qu'on cherche à éviter. */
+const Native=(()=>{
+  const info=(Platform.native&&window.__acNative)||null;
+  const canal=Platform.pont;
+  const on=!!(Platform.native&&canal&&info);
+  const verbes=new Set((info&&info.verbes)||[]);
+  return {
+    on,
+    shell:on?(info.shell||0):0,          // version de la coquille, pour les notes de version
+    can:v=>on&&verbes.has(v),
+    /* Rend la promesse de la coquille (WKScriptMessageHandlerWithReply) quand le verbe existe,
+       et `null` sinon — jamais une exception : un appelant en pleine crise n'a rien à rattraper. */
+    call(v,arg){ if(!on||!verbes.has(v))return null;
+      try{ return canal.postMessage({verbe:v,arg:arg===undefined?null:arg}); }catch(e){ return null; } }
+  };})();
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
 const LIB_PAGE=60;
@@ -9447,6 +9475,54 @@ function requestNotifyPermission(){try{if('Notification'in window&&Notification.
 // vibration possible depuis le web sur iPhone (le flash d'écran sert d'alerte de secours).
 // Sur Android, la vibration exige une activation utilisateur préalable : on l'amorce dans
 // ensureAudio (déclenché au 1er geste : démarrage d'un minuteur, bouton son).
+/* ═══ L'ÉCRAN NE S'ÉTEINT PAS PENDANT UN SOIN (lot 1 du portage — mesuré, pas supposé) ═══════
+   L'application n'avait AUCUN wake lock : en pleine réanimation guidée, l'écran s'éteignait tout
+   seul au bout du délai système, et il fallait le rallumer d'une main déjà prise. Le portage natif
+   prévoyait un pont Swift (`isIdleTimerDisabled`) — la mesure sur WKWebView iOS l'a rendu inutile :
+     · sans activation utilisateur : `NotAllowedError — Permission was denied` ;
+     · depuis un VRAI clic         : ACCORDÉ (`type screen`), `release()` ok.
+   Le refus n'était donc pas une limite du moteur mais l'absence de geste, et l'application a des
+   gestes à revendre : démarrer une session EST un tap. C'est du JavaScript, donc la PWA en
+   bénéficie aussi — Chrome, Edge et Safari récents exposent l'API.
+
+   TROIS SITES, ET CHACUN A SA RAISON. La demande exige un geste, la libération non :
+     · `ensureStarted` — le premier geste de session, le plus sûr des contextes d'activation ;
+     · `tickAll`       — le réconciliateur : il LIBÈRE dès que la crise quitte l'écran, et
+                         retente l'obtention (bridée à 3 s) après un retour au premier plan, où
+                         le verrou a été relâché PAR LE SYSTÈME ;
+     · un `pointerup` de secours — si la reprise sans geste est refusée, le premier tap de
+                         l'utilisateur la rattrape, sans qu'il ait rien à faire de particulier.
+   ⚠ NE PAS demander le verrou depuis `tickAll` SANS bride : un `request()` sans geste échoue, et
+   le tenter 3,3 fois par seconde produirait un flot de promesses rejetées pour rien.
+   ⚠ ET LE VERROU SE PERD TOUT SEUL au passage en arrière-plan : c'est la spécification, pas un
+   défaut — d'où la reprise, et d'où le fait qu'on ne peut jamais SUPPOSER le tenir. */
+let _wake=null,_wakeNext=0;
+function wakeWanted(){
+  try{ return crisisOnScreen()&&document.visibilityState==='visible'; }catch(e){ return false; }}
+function wakeSync(geste){
+  if(!navigator.wakeLock)return;
+  if(!wakeWanted()){
+    if(_wake){const s=_wake;_wake=null;try{s.release();}catch(e){}}
+    return;}
+  if(_wake)return;
+  const now=Date.now();
+  if(!geste&&now<_wakeNext)return;
+  _wakeNext=now+3000;
+  navigator.wakeLock.request('screen').then(s=>{
+    // La crise a pu quitter l'écran pendant l'attente : on ne garde pas un verrou devenu injustifié.
+    if(!wakeWanted()){try{s.release();}catch(e){}return;}
+    _wake=s;s.addEventListener('release',()=>{if(_wake===s)_wake=null;});
+  }).catch(()=>{});}
+/* LE SEUL SITE D'OBTENTION, ET IL EST SUR `click` — PAS `pointerup`.
+   L'ordre des évènements décide : `pointerup` précède le `click`, donc au tap qui DÉMARRE la
+   session il s'exécuterait AVANT le gestionnaire de l'application — `crisisOnScreen()` serait
+   encore faux et le verrou ne serait pris qu'au tap SUIVANT. `click` bulle après, la crise est
+   déjà à l'écran, et l'activation utilisateur court toujours.
+   Un seul site couvre ainsi TOUTES les entrées en session — bouton de démarrage, cochage,
+   minuteur, compteur, horodatage, réouverture d'une fiche vive — au lieu d'une liste de
+   chemins à tenir à jour, dont ce dossier a déjà montré qu'elle finit toujours par diverger.
+   Ne s'active que si le verrou MANQUE : un tap ordinaire ne déclenche rien. */
+document.addEventListener('click',()=>{if(!_wake)wakeSync(true);},{passive:true});
 const VIBE_OK='vibrate'in navigator;let vibePrimed=false;
 function buzz(p){if(!VIBE_OK)return;try{navigator.vibrate(p);}catch(e){}}
 /* D10 (audit design v4.56) : ACQUITTEMENT HAPTIQUE d'un geste ACCOMPLI — cochage, incrément.
@@ -9551,6 +9627,7 @@ function timerDisplay(t,now){
 let _tickWasActive=false;
 function tickAll(){
   if(window._vvhSync)_vvhSync();   // resynchro --vvh (v4.29.7) — avant le garde d'activité
+  wakeSync();   // réconciliation du wake lock — AVANT le retour anticipé, sinon on ne libère jamais
   const active=Object.keys(liveSessions).length>0||(state.view==='read'&&!!Runtime.fiche);
   /* Le chrono des rangées de l'accueil se repeint ICI, sur place — jamais par un re-rendu :
      reconstruire l'annuaire chaque seconde détruirait le nœud sous le doigt (leçon du quai). */

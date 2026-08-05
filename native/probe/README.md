@@ -78,9 +78,16 @@ les trois unités de fenêtre coïncident. Toute la classe de défauts qui a co�
    Le refus initial était donc un artefact de la sonde, pas une limite du moteur — conclure de la
    première ligne aurait fait écrire un pont inutile. L'application a des gestes à revendre
    (démarrer une session EST un tap) : **l'écran qui s'éteint en pleine réanimation se corrige sans
-   une ligne de Swift.** ⚠ Deux contraintes à retenir pour l'implémentation : la demande doit partir
-   d'un geste, et un verrou est **automatiquement relâché quand la page passe en arrière-plan** — il
-   faut donc le reprendre sur `visibilitychange`, et le piloter par `crisisOnScreen()`.
+   une ligne de Swift.**
+
+   **Livré, et vérifié de bout en bout sur le simulateur avec de VRAIS taps** (la sonde trace le
+   verrou de l'application pendant qu'on la pilote — le bouton de mesure d'origine a été retiré une
+   fois la question tranchée) : `[1] verrou=false crise=false` → `[16] verrou=true crise=true` à la
+   reprise de session. La logique a son harnais permanent, `scripts/audit-wakelock.mjs`.
+   ⚠ Deux contraintes retenues à l'implémentation : la demande part d'un `click` — **pas d'un
+   `pointerup`, qui précède le gestionnaire de l'application et prendrait le verrou un tap trop
+   tard** — et un verrou est **automatiquement relâché en arrière-plan**, d'où la reprise par le
+   réconciliateur.
 3. **`serviceWorker` est totalement ABSENT** sous le schéma personnalisé (sur macOS l'API existait
    mais n'enregistrait rien). Le chemin est donc inerte par construction : la garde `Platform.web`
    reste de la propreté, elle ne corrige aucun conflit.
