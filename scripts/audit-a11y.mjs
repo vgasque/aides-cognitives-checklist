@@ -370,6 +370,10 @@ for (const theme of ['light','dark']) {
       f.sources=['Réanimation — recommandations 2023.'];
       if(kind==='edit'){openEdit(id);await new Promise(r=>setTimeout(r,350));return;}
       c.click();
+      /* VT (direction A, lot 7) : sous startViewTransition le rendu d'openRead est différé d'une
+         frame — on attend la CONDITION réelle (le bouton existe), pas un délai fixe : c'est la
+         discipline d'amorce()/ouvrirFiche(), que cette sonde inline n'appliquait pas. */
+      for(let i=0;i<40&&!document.getElementById('sessStart');i++)await new Promise(r=>setTimeout(r,50));
       document.getElementById('sessStart').click();
       await new Promise(r=>setTimeout(r,300));
       /* LOT T8 (v5.0.0) — le bouton « Se repérer » a QUITTÉ la rangée de commandes : son Échelle

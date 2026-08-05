@@ -1,5 +1,56 @@
 # Journal des modifications
 
+## [5.1.0] — 2026-08-05
+### Direction « Instrument clinique » — six lots de matière issus d'un audit UX externe, aucun contrôle déplacé
+
+Un audit UX/direction artistique complet (7 axes, mesures sur l'application réelle à 320/390/1280,
+deux thèmes) a conclu que l'interface était conforme et confortable, et a proposé une direction de
+modernisation « Instrument clinique », validée sur prototype comparatif A/B. Tout ce qui suit est
+de la MATIÈRE : aucune position de contrôle ne change, aucune règle de sûreté n'est touchée.
+
+- **Une seule voix système à la fois.** Mesuré à 390×844 : au premier lancement, le bandeau
+  « 2 fiches d'exemple ajoutées » et la notice « Vous êtes l'auteur… » s'empilaient — premier
+  contenu clinique à 39 % de l'écran, et les deux textes énonçaient la même responsabilité
+  éditoriale. Le bandeau absorbe désormais le texte de la notice ; tant qu'il est visible, la
+  notice attend son tour et paraît à l'acquittement (« J'ai compris » ou ✕). ⚠ La garde teste la
+  classe `body.view-home` — le même prédicat que la visibilité CSS du bandeau — et non
+  `state.view`, qui vaut `'library'` sur l'accueil (payé à la première livraison).
+- **La recherche est un creux.** Le champ passe sur `--surface-2` avec un filet d'1 px (les 2 px
+  de bordure rendus au rembourrage) : une zone de saisie se distingue d'une carte de contenu par
+  le renfoncement — et en sombre `--surface-2` est plus foncé que la surface, le creux tient dans
+  les deux thèmes. Le placeholder garde sa phrase entière et s'**ellipse** quand la place manque,
+  au lieu de se couper en plein mot (défaut mesuré à 390 px).
+- **Les lettres du répertoire parlent serif.** La lettre de classement (`.dir-l`) passe en Source
+  Serif 4 13,5 px/600 — la police et la graisse déjà embarquées : un index d'ouvrage, pas du
+  chrome. Le rail A→Z reste en mono (cibles minuscules, la lisibilité prime).
+- **Une seule famille d'ombres en clair.** Les élévations du thème clair (`--shadow`, `-lg`,
+  `-up`, `-dock`, `-bar`) sont teintées primaire (23,71,127), comme l'étaient déjà les boutons
+  remplis ; les voiles restent à l'encre (un voile assombrit, il n'élève pas) et le sombre garde
+  ses ombres noires.
+- **Neuf variantes tonales suivent leur base.** `--primary-soft/-100/-200`, `--ok-soft`,
+  `--done-bg`, `--tag-bg` (clair) et leurs pendantes sombres se **dérivent** par `color-mix`
+  (`@supports`, repli hex intact), aux pourcentages mesurés qui reproduisent le hex actuel à
+  ≤ 4/255 par canal — aucun changement visible, mais changer une base met à jour sa famille.
+  `--primary-300`, `--critical-soft` et `--verify-soft` restent en hex : leur écart au mélange
+  pur (Δ 5 à 16) est un accord de teinte voulu.
+- **Au palier cockpit (≥ 1200 px), le chrome s'efface derrière ses contrôles.** Mesuré à
+  1280 px : la rangée de commandes était une bande blanche de bord à bord au contenu arrêté à
+  x = 256 (1024 px de vide). Les deux rangées collantes prennent le fond de page ; boutons et
+  cartes, qui portent déjà leurs bordures, se lisent comme des contrôles posés sur la page.
+- **Pilote View Transitions.** Les traversées accueil → fiche (sans session vive) et
+  fiche → bibliothèque se font en fondu de 180 ms piloté par le moteur (`vtWrap`) — trois
+  gardes : API présente (sinon comportement d'avant au caractère près), aucune crise à l'écran
+  (le mouvement reste réservé à l'alarme), et `prefers-reduced-motion` coupe tout. ⚠ Sous VT le
+  rendu est asynchrone d'une frame : deux sondes qui lisaient le DOM juste après un clic de
+  carte ont été mises au standard du dépôt (attente de condition réelle, discipline `amorce()`).
+- **L'écran de bienvenue étroit est composé.** Le glyphe de marque (masque `logo-glyph.svg`,
+  couleur de filet, décoratif) habite les ~430 px de vide mesurés entre le texte et
+  « Commencer » ; `text-wrap:balance` équilibre les titres non clampés.
+- **Étudiés et écartés, avec la raison** (consignée dans AGENTS.md) : entrées `@starting-style`
+  (les keyframes `veilIn`/`riseIn`/`menuIn` couvrent déjà le besoin), duplication des neutres en
+  oklch (une copie par token est la liste tenue en double de v4.37.0), scrims dérivés de
+  `--ink` (en sombre l'encre est claire : le voile deviendrait blanchâtre).
+
 ## [5.0.10] — 2026-08-05
 ### Une connexion IndexedDB fermée n'est plus une panne : elle se reprend toute seule
 

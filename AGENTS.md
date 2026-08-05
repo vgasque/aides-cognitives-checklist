@@ -4618,7 +4618,60 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   tout usage clinique ») et doit tenir jusqu'à lecture. Le bandeau système est exactement ce canal —
   « information persistante, visible sur l'accueil seulement » (v4.20.0) — et il vit AU-DESSUS du
   contenu au lieu de le couvrir : **recouvrement mesuré à 0 %**.
-- **J0-D5 — L'ÉCRAN DE BIENVENUE NE FAIT PLUS LE TOUR DU PRODUIT, ET LE GAIN N'EST PAS CELUI QU'ON
+- **DIRECTION A « INSTRUMENT CLINIQUE » (audit UX post-v5.0.10) — six lots de matière, aucun
+  contrôle déplacé.**
+  (1) **UN SEUL CRÉNEAU DE MESSAGE SYSTÈME À LA FOIS** : mesuré à 390×844, le bandeau J0-D6 et la
+  notice auteur s'empilaient au premier lancement — premier contenu clinique à **39 % de
+  l'écran**, et les deux textes énonçaient la même responsabilité éditoriale. Le texte du bandeau
+  ABSORBE la notice (« Relisez-les et validez-les : vous êtes responsable du contenu clinique ») ;
+  tant que `#sysBanner` est visible, la notice attend (`sysBannerOn()`), et l'acquittement re-rend
+  l'accueil pour la laisser paraître. ⚠ Le prédicat des gardes est la CLASSE `body.view-home` —
+  la même que la visibilité CSS du bandeau ; `state.view` vaut `'library'` sur l'accueil, un test
+  sur lui serait silencieusement toujours faux (payé à la première livraison). Ne pas réintroduire
+  un second bandeau simultané.
+  (2) **LA RECHERCHE EST UN CREUX** (`--surface-2`, filet 1 px — les 2 px de bordure rendus au
+  rembourrage, paliers d'espacement respectés) : une zone de SAISIE se distingue d'une carte de
+  contenu par le renfoncement, et en sombre `--surface-2` est PLUS FONCÉ que la surface, le creux
+  tient dans les deux thèmes. **Le placeholder GARDE sa phrase entière** (décision utilisateur —
+  première version raccourcie à « Rechercher », annulée) : quand la place manque il s'ELLIPSE
+  (`text-overflow:ellipsis`, y compris `::placeholder`) au lieu de se couper en plein mot (défaut
+  mesuré à 390 px).
+  (3) **LA LETTRE DE CLASSEMENT DU RÉPERTOIRE EST EN SERIF** (13,5 px/600 — `var(--serif)`, donc
+  la Source Serif 4 DÉJÀ embarquée dans `vendor/fonts/`, aucun actif nouveau) : un index
+  d'ouvrage, pas du chrome. Le rail A→Z reste en mono (cibles minuscules, la lisibilité prime).
+  (4) **LES ÉLÉVATIONS DU THÈME CLAIR SONT TEINTÉES PRIMAIRE** (23,71,127 — comme l'étaient déjà
+  `--shadow-primary`) : une seule famille d'ombres au lieu de deux encres ; les VOILES restent à
+  l'encre (un voile assombrit, il n'élève pas), le sombre garde ses ombres noires (sur #0a0a0c
+  une teinte est invisible).
+  (5) **NEUF VARIANTES TONALES SE DÉRIVENT DE LEUR BASE** (`@supports color-mix`, bloc après les
+  tokens sombres) : les pourcentages sont MESURÉS pour reproduire le hex actuel à ≤ 4/255 par
+  canal — aucun changement visible, mais changer une base met à jour sa famille sur tout moteur
+  moderne. **Les écarts plus grands sont des ACCORDS DE TEINTE et restent en hex** :
+  `--primary-300` (Δ 8,8), `--critical-soft` (5,2), `--verify-soft` (9,5) en clair, les `-soft`
+  rouge/ambre du sombre (6-16). Le repli hex de `:root` est un INSTANTANÉ : changer une base
+  exige de re-régler les hex pour les moteurs sans color-mix. Les ACCENTS ne sont pas concernés
+  (spécificité).
+  (6) **AU PALIER COCKPIT (≥ 1200), LE CHROME S'EFFACE DERRIÈRE SES CONTRÔLES** : mesuré à
+  1280 px, la rangée de commandes était une bande blanche de bord à bord au contenu arrêté à
+  x=256 (1024 px de vide). `#crisisCtrl` et `#crisisDock` prennent le fond de PAGE
+  (`border-bottom-color:transparent` — les hauteurs ne bougent pas d'un pixel), boutons et cartes
+  portant déjà leurs bordures. Aucune position ne change.
+  (7) **PILOTE VIEW TRANSITIONS** (`vtWrap`) : traversée accueil→fiche (sans session vive) et
+  fiche→bibliothèque en fondu de 180 ms piloté par l'UA. Trois gardes : API présente (sinon rendu
+  direct — comportement d'avant au caractère près), `!crisisOnScreen()` (en session, le mouvement
+  est réservé à l'alarme), et reduced-motion. ⚠ Sous VT le rendu est ASYNCHRONE d'une frame : ne
+  jamais l'employer dans un chemin qui relit le DOM juste après ; le retour de PILE garde
+  `_backAnim`, qui anime déjà.
+  **DEUX LOTS ÉTUDIÉS ET NON LIVRÉS, avec la raison** : les entrées `@starting-style` — l'app a
+  DÉJÀ `veilIn`/`riseIn`/`menuIn` (keyframes d'entrée des fenêtres et du menu ⋯), un second
+  mécanisme pour la même chose serait la divergence que ce dépôt combat ; la duplication des
+  neutres en oklch — une copie par token est la liste tenue en double de v4.37.0 (la dérivation
+  color-mix du point 5 obtient le bénéfice sans la copie). `text-wrap:balance` est posé sur les
+  titres NON clampés seulement (`.ai-top h3`, `.empty b`) : sur un titre clampé, balance pousse du
+  texte vers la ligne que `-webkit-line-clamp` tronque. L'écran de bienvenue étroit est COMPOSÉ :
+  le glyphe de marque (masque `logo-glyph.svg`, couleur de FILET, `aria-hidden`) habite le vide
+  mesuré (~430 px à 390×844) entre le texte et « Commencer » — étroit seulement, sur ordinateur la
+  carte est à hauteur de contenu., ET LE GAIN N'EST PAS CELUI QU'ON
   ATTENDAIT (v5.0.0, lot T13).** Deux paragraphes sont partis : décrire les étapes cochables, les
   minuteurs et les compteurs, c'est raconter ce que la première fiche ouverte MONTRE d'elle-même —
   la contrainte « aucun tutoriel » appliquée à cet écran.

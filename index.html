@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-ADUk4X5kTsj1MqxBp7F5kMX4twMTwoEk8GB5laTK82E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-k6PDbQQ8AEr9f64zmG/O6plFFrhhGbU0YynTxb+7dxo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -385,7 +385,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-up:0 -2px 6px rgba(16,27,40,.07),0 -10px 28px rgba(16,27,40,.13);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -437,6 +437,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
      déclaration de token — garde-fou scripts/check-colors.mjs (npm run check). */
   html[data-theme="dark"]{color-scheme:dark;}
+  /* DIRECTION A, lot 3 (audit post-v5.0.10) — LES VARIANTES TONALES SUIVENT LEUR BASE. Neuf
+     tokens cessent d'être des copies accordées à la main : ils se DÉRIVENT de leur couleur de
+     base par color-mix, aux pourcentages MESURÉS qui reproduisent le hex actuel (écart maximal
+     par canal ≤ 4/255 — invisible ; vérifié dans le navigateur, pas supposé). Changer une base
+     met à jour sa famille sur tout moteur moderne. CE QUI RESTE EN HEX, DÉLIBÉRÉMENT :
+     --primary-300, --critical-soft, --verify-soft (clair) et les -soft rouges/ambre du sombre —
+     leur écart au mélange pur (Δ 5 à 16) est un ACCORD DE TEINTE voulu, pas une approximation.
+     ⚠ Le repli hex de :root est un INSTANTANÉ : changer une couleur de base exige de re-régler
+     les hex correspondants pour les moteurs sans color-mix — ce bloc, lui, suit tout seul. Les
+     ACCENTS ne sont pas concernés : html[data-accent] gagne en spécificité (0,1,1 + attribut). */
+  @supports (color: color-mix(in srgb, red 50%, #fff)){
+    :root{
+      --primary-soft:color-mix(in srgb, var(--primary) 12%, var(--surface));
+      --primary-100:color-mix(in srgb, var(--primary) 15%, var(--surface));
+      --primary-200:color-mix(in srgb, var(--primary) 31%, var(--surface));
+      --ok-soft:color-mix(in srgb, var(--ok) 8%, var(--surface));
+      --done-bg:color-mix(in srgb, var(--ok) 7%, var(--surface));
+      --tag-bg:color-mix(in srgb, var(--ink) 8%, var(--surface));
+    }
+    html[data-theme="dark"]{
+      --primary-soft:color-mix(in srgb, var(--primary) 22%, var(--bg));
+      --primary-100:color-mix(in srgb, var(--primary) 22%, var(--bg));
+      --ok-soft:color-mix(in srgb, var(--ok) 13%, var(--bg));
+      --tag-bg:color-mix(in srgb, var(--ink) 9%, var(--bg));
+    }
+  }
   html[data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   /* ===== PALETTES D'ACCENT (par utilisateur, connecté seulement) =====
      Identité de session, et RIEN d'autre : l'accent ne colore que le DISQUE de l'avatar (cf. le
@@ -873,7 +899,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      au bord de la rangée, c'est-à-dire au bord du BOUTON. */
   .srch-box{position:relative;display:flex;align-items:center;flex:1 1 auto;min-width:0}
   .hdr-search .srch-box>svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
-  .hdr-search input{width:100%;padding:8px 32px 8px 32px;border:2px solid var(--line-hover);border-radius:8px;background:var(--surface);color:var(--ink);font-size:15.5px;white-space:nowrap;overflow:hidden}
+  /* Direction A (audit v5.0.10) : la recherche est un CREUX (--surface-2), pas une carte de plus —
+     en sombre --surface-2 est PLUS FONCÉ que la surface (#070708), le creux tient dans les deux
+     thèmes. Bordure 2px -> 1px, le pixel rendu au rembourrage : hauteur inchangée. */
+  .hdr-search input{width:100%;padding:10px 32px 10px 32px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Le placeholder garde sa phrase entière (décision utilisateur) : quand la place manque, il
+     s'ELLIPSE au lieu de se couper en plein mot (défaut mesuré à 390 px). */
+  .hdr-search input::placeholder{text-overflow:ellipsis}
   .hdr-search input:focus{outline:2px solid var(--primary);border-color:transparent}
   /* La place de la croix est RÉSERVÉE en permanence (padding-right constant) : elle apparaît et
      disparaît à la frappe, et un rembourrage qui bougerait ferait sauter le texte sous le curseur. */
@@ -883,7 +915,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .srch-x::after{content:"";position:absolute;inset:-6px}   /* cible ≥ 32px sans épaissir la rangée */
   .srch-x:hover{background:var(--surface-2);color:var(--ink)}
   .srch-x:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
-  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:10px 32px 10px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
+  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:12px 32px 12px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
   /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
   #homeChrome{order:6;width:100%;min-width:0}
   #homeChrome[hidden]{display:none}
@@ -990,6 +1022,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
   #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-dock)}
   #crisisDock[hidden]{display:none}
+  /* DIRECTION A, lot 4 (audit post-v5.0.10) — AU PALIER COCKPIT, LE CHROME S'EFFACE DERRIÈRE SES
+     CONTRÔLES. Mesuré à 1280 px : la rangée de commandes est une bande blanche de bord à bord
+     dont le contenu s'arrête à x=256 — 1024 px de vide (80 %), le seul endroit de la vue où
+     l'œil lit du « non-fini ». À ≥ 1200 (le palier où le cockpit à trois zones existe déjà),
+     les DEUX rangées prennent le fond de PAGE : boutons et cartes (qui portent déjà leurs
+     bordures) se lisent comme des contrôles posés sur la page, la grammaire du quai en cartes
+     détachées (≥ 780) menée à son terme. AUCUNE position ne change — la constance positionnelle
+     porte sur les contrôles, pas sur la matière ; le fond reste OPAQUE (rangées collantes). */
+  @media (min-width:1200px){
+    #crisisCtrl,#crisisDock{background:var(--bg);border-bottom-color:transparent;box-shadow:none}
+  }
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
      flex:1 s'étiraient à ~640px chacun et les chiffres se retrouvaient aux deux bouts de l'écran
@@ -1611,7 +1654,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .qa-sub>.code,.qa-sub>.tag{flex:none}
   .qa-sub .code{font-family:var(--mono);white-space:nowrap}
   /* Répertoire : en-tête de lettre (mono, accent texte) + grille de rangées compactes. */
-  .dir-l{font-family:var(--mono);font-size:12px;font-weight:800;color:var(--link);padding:12px 2px 6px}
+  /* Direction A (audit v5.0.10) : la lettre de classement en SERIF — un index d'ouvrage, pas du
+     chrome d'interface. Graisse 600 = la seule embarquée (v4.61.0) ; le rail A→Z, lui, RESTE en
+     mono (cibles minuscules, la lisibilité y prime sur la voix). */
+  .dir-l{font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--link);padding:12px 2px 6px}
   .dir-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
@@ -2048,6 +2094,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .boot-card p{margin:0 0 10px;font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
   .boot-card .btn{margin-top:6px;min-height:44px}
   .empty b{display:block;color:var(--ink);font-size:16.5px;margin-bottom:6px}
+  /* DIRECTION A, lot 2 : équilibre des titres multi-lignes (amélioration progressive pure —
+     moteur sans text-wrap:balance = comportement actuel). JAMAIS sur un titre clampé
+     (.dir-t, .qa-t) : balance pousse du texte vers la dernière ligne, que -webkit-line-clamp
+     tronque — on perdrait des mots pour gagner une symétrie. */
+  .ai-top h3,.empty b{text-wrap:balance}
   .empty .btn{margin-top:14px}
   .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
   /* V5 : en crise le TITRE vit dans le bandeau d'en-tête sticky — le grand titre du corps ne
@@ -5002,9 +5053,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      plein écran mobile, les actions s'ancrent en BAS). La carte devient une colonne flex et
      l'action descend au bord bas ; sur ordinateur (dialogue centré), rien ne change. */
   .wl-act{display:flex;justify-content:flex-end;margin-top:14px}
+  /* DIRECTION A, lot 2 — LE VIDE DE LA FEUILLE DE BIENVENUE EST COMPOSÉ, PAS SUBI. Mesuré à
+     390×844 : ~430 px de vide entre le texte et « Commencer » (la feuille pleine hauteur est une
+     règle, le bouton en bas est en zone de pouce — c'est le MILIEU qui était un désert). Le
+     glyphe de marque, grand et en couleur de FILET (décoratif, aria-hidden), habite ce vide sans
+     rien dire de plus. Étroit seulement : sur ordinateur la carte est à hauteur de contenu, un
+     glyphe y AJOUTERAIT de la hauteur au lieu d'en habiller. Même mécanique de masque que
+     .brand-logo (logo-glyph.svg, déjà dans ASSETS — aucun actif nouveau). */
+  .wl-glyph{display:none}
   @media (max-width:779.98px){
     #welcomeModal .ai-card{display:flex;flex-direction:column}
     #welcomeModal .wl-act{margin-top:auto;padding-top:14px}
+    .wl-glyph{display:block;flex:none;width:96px;height:96px;margin:auto;background-color:var(--line);
+      -webkit-mask:url(logo-glyph.svg) center/contain no-repeat;mask:url(logo-glyph.svg) center/contain no-repeat}
   }
   /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine
      largeur, chips bibliothèques/catégories, TAB BAR basse à pastille glissante (au pouce).
@@ -5719,6 +5780,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .more-menu:not([hidden]){transform-origin:top right;animation:menuIn .16s cubic-bezier(.2,0,0,1)}
   /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
+  /* Pilote View Transitions (direction A, lot 6) : fondu bref piloté par l'UA — la garde
+     d'activation (session, reduced-motion, support) vit dans vtWrap, côté JS. */
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
   .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
@@ -6149,6 +6213,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        je la garde quand même, en une phrase, parce que retirer une PROMESSE faite à l'utilisateur
        n'est pas la même chose que retirer une explication de fonctionnalité. -->
   <p><strong>2 · Vos données restent sur l'appareil.</strong> Sans compte, rien ne quitte votre téléphone.</p>
+  <div class="wl-glyph" aria-hidden="true"></div>
   <div class="wl-act"><button class="btn primary" id="welcomeGo">Commencer</button></div>
 </div></div>
 <!-- Aperçu de compte-rendu de session : visualisation DANS l'app, puis Imprimer / Télécharger.
@@ -6254,7 +6319,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.10';
+const APP_VERSION='5.1.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7657,6 +7722,12 @@ const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
 // Bibliothèque dont on gère les catégories : en édition = celle de la fiche ; sinon = bibliothèque affichée.
 function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.library||null):null):(state.scope||null);}
 function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
+/* UN SEUL CRÉNEAU DE MESSAGE SYSTÈME À LA FOIS (audit v5.0.10, direction A) : mesuré à 390×844,
+   le bandeau système ET la notice auteur s'empilaient au premier lancement — premier contenu
+   clinique à 39 % de l'écran, et les deux textes disaient la même chose (la responsabilité
+   éditoriale). Tant que #sysBanner est visible, la notice attend son tour ; l'acquittement du
+   bandeau re-rend l'accueil pour la laisser paraître. */
+function sysBannerOn(){const b=document.getElementById('sysBanner');return !!(b&&!b.hidden);}
 function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden'))==='1';}catch(e){return false;}}
 // id de catégorie : déterministe (par nom) pour le Perso (cohérence multi-appareils des défauts) ;
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
@@ -8425,11 +8496,14 @@ async function addSeedFiches(){
      persistante, visible sur l'accueil seulement » (v4.20.0) — et il vit AU-DESSUS du contenu au
      lieu de le couvrir. */
   {const b=document.getElementById('sysBanner');
-   if(b){b.querySelector('.sb-txt').textContent='2 fiches d’exemple ajoutées — relisez-les et adaptez-les avant tout usage clinique.';
+   /* Texte FUSIONNÉ avec la notice auteur (un seul créneau, cf. sysBannerOn) : les deux messages
+      énonçaient la même responsabilité éditoriale en deux formulations. L'acquittement re-rend
+      l'accueil pour que la notice, si elle n'est pas masquée, prenne le créneau libéré. */
+   if(b){b.querySelector('.sb-txt').textContent='2 fiches d’exemple ajoutées. Relisez-les et validez-les : vous êtes responsable du contenu clinique.';
      const a=document.getElementById('sbReload');
-     a.textContent='J’ai compris';a.onclick=()=>{b.hidden=true;};
+     a.textContent='J’ai compris';a.onclick=()=>{b.hidden=true;if(document.body.classList.contains('view-home'))render();};
      b.hidden=false;}
-   else toast('2 fiches d’exemple ajoutées — relisez-les et adaptez-les avant tout usage clinique.',8000);}
+   else toast('2 fiches d’exemple ajoutées. Relisez-les et validez-les : vous êtes responsable du contenu clinique.',8000);}
   render();}
 // Identifiant de catégorie DÉTERMINISTE, dérivé du nom : deux appareils qui créent « Anesthésie »
 // obtiennent le MÊME id -> les fiches conservent leur catégorie après synchro (des ids aléatoires
@@ -10922,7 +10996,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       const recapH=lastEndedSession?`<div class="last-sess${lastEndedSession.exercise?' exo':''}"><span class="lsr-ic" aria-hidden="true">${lastEndedSession.exercise?'▲':uiIcon('check',15,{sw:3,cls:''})}</span><div class="lsr-tx"><b>${lastEndedSession.exercise?'Exercice terminé':'Session terminée'}</b> — ${esc(lastEndedSession.title)} · ${esc(fmtMs(lastEndedSession.dur))} · ${lastEndedSession.done}/${lastEndedSession.passes} bloc${lastEndedSession.passes>1?'s':''} ✓</div><button class="btn sm" id="lsrReport">Compte-rendu</button><button class="notice-x" id="lsrX" aria-label="Masquer le bilan">×</button></div>`:'';
       return recapH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${R.ficheId}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span></div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${R.ficheId}">Reprendre</button><button class="ls-end" data-endlive="${R.ficheId}">Terminer</button></div>`).join('')}</div>`:'');},
     notices:()=>`
-      ${(!state.scope&&!noticeHidden())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
+      ${(!state.scope&&!noticeHidden()&&!sysBannerOn())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
       ${(!state.scope&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
     /* RANGÉE du répertoire (v4.56.0 — remplace la carte ; décisions utilisateur : épingle,
        date de validation et « À compléter » CONSERVÉES, compte de sessions retiré — l'historique
@@ -11611,7 +11685,7 @@ function bindHdrBack(opts){
       const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}
       if(org.kind==='p')openProtocolRead(org.id);else openRead(org.id);
       _backAnim();
-    }else{state.view='library';render();}};
+    }else{state.view='library';vtWrap(render);}};
 }
 function openRel(id){
   const tf=fiches.some(x=>x.id===id&&!x.deletedAt);
@@ -18101,6 +18175,21 @@ setInterval(()=>{const k=_editKind();if(!k){_lastParked=null;return;}
 // Ouvre une fiche en lecture. Si une SESSION VIVE existe pour cette fiche, on la rouvre telle quelle
 // (minuteurs toujours en cours). Sinon on garde le runtime transitoire de cette même fiche (s'il n'a
 // pas démarré), sinon on en crée un neuf.
+/* DIRECTION A, lot 6 — PILOTE VIEW TRANSITIONS, accueil <-> lecture, SURFACES CALMES SEULEMENT.
+   Le moteur anime des instantanés en transform/opacité (conforme « on anime la composition ») ;
+   la traversée est un fondu de 180 ms. TROIS GARDES, toutes nécessaires : l'API existe (sinon
+   rendu direct — Safari < 18 et tout moteur ancien gardent le comportement actuel, au caractère
+   près) ; AUCUNE crise à l'écran (crisisOnScreen — en session, le mouvement est réservé à
+   l'alarme) ; et reduced-motion coupe tout. ⚠ Le rendu devient ASYNCHRONE d'une frame sous VT :
+   ne l'employer que sur des navigations demandées d'un tap, jamais dans un chemin qui relit le
+   DOM juste après (les harnais attendent sur CONDITIONS réelles, ils n'y sont pas sensibles). */
+function vtWrap(fn){
+  try{
+    if(document.startViewTransition&&!crisisOnScreen()
+       &&matchMedia('(prefers-reduced-motion: no-preference)').matches){
+      document.startViewTransition(()=>{fn();});return;}
+  }catch(e){}
+  fn();}
 function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   /* ⚠ LE RUNTIME CONSERVÉ GARDAIT UNE FICHE PÉRIMÉE (trouvé à la sonde, lot T7). Quand on rouvre
@@ -18115,7 +18204,13 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(i
   else Runtime.fiche=f;
   // Algorithme REPLIÉ à l'ouverture : la 1ʳᵉ étape actionnable doit arriver le plus haut possible
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
-  bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;state.view='read';render();}
+  bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;
+  /* VT seulement depuis l'ACCUEIL et vers une fiche SANS session vive (une session à l'écran
+     d'arrivée est une surface d'action — on y entre sec). Le retour de PILE (openRead depuis
+     hdrBack) arrive avec state.view='read' : il garde son animation propre (_backAnim). */
+  const vtOk=(state.view==='library')&&!liveSessions[id];
+  state.view='read';
+  if(vtOk)vtWrap(render);else render();}
 async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
   // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
@@ -22398,7 +22493,11 @@ if(location.search.indexOf('__actest')>=0){
   // Bandeau système : actions câblées une fois (élément statique du squelette).
   {const sb=document.getElementById('sysBanner');
    document.getElementById('sbReload').onclick=()=>location.reload();
-   document.getElementById('sbX').onclick=()=>{sb.hidden=true;};}
+   // Fermer le bandeau libère le créneau de message : sur l'accueil, on re-rend pour que la
+   // notice auteur (si non masquée) le prenne — cf. sysBannerOn. Le prédicat est la classe
+   // body.view-home, la MÊME que celle qui gouverne la visibilité CSS du bandeau (state.view
+   // vaut 'library' sur l'accueil — un test sur lui serait silencieusement toujours faux).
+   document.getElementById('sbX').onclick=()=>{sb.hidden=true;if(document.body.classList.contains('view-home'))render();};}
   let deferredPrompt=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='inline-block';});
   document.getElementById('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';};

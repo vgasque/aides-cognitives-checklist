@@ -40,7 +40,7 @@
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(16,27,40,.04),0 4px 16px rgba(16,27,40,.06);--shadow-lg:0 2px 6px rgba(16,27,40,.06),0 12px 32px rgba(16,27,40,.10);--shadow-up:0 -2px 6px rgba(16,27,40,.07),0 -10px 28px rgba(16,27,40,.13);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(16,27,40,.05);--shadow-bar:0 1px 6px rgba(16,27,40,.06);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -92,6 +92,32 @@
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
      déclaration de token — garde-fou scripts/check-colors.mjs (npm run check). */
   [data-theme="dark"]{color-scheme:dark;}
+  /* DIRECTION A, lot 3 (audit post-v5.0.10) — LES VARIANTES TONALES SUIVENT LEUR BASE. Neuf
+     tokens cessent d'être des copies accordées à la main : ils se DÉRIVENT de leur couleur de
+     base par color-mix, aux pourcentages MESURÉS qui reproduisent le hex actuel (écart maximal
+     par canal ≤ 4/255 — invisible ; vérifié dans le navigateur, pas supposé). Changer une base
+     met à jour sa famille sur tout moteur moderne. CE QUI RESTE EN HEX, DÉLIBÉRÉMENT :
+     --primary-300, --critical-soft, --verify-soft (clair) et les -soft rouges/ambre du sombre —
+     leur écart au mélange pur (Δ 5 à 16) est un ACCORD DE TEINTE voulu, pas une approximation.
+     ⚠ Le repli hex de :root est un INSTANTANÉ : changer une couleur de base exige de re-régler
+     les hex correspondants pour les moteurs sans color-mix — ce bloc, lui, suit tout seul. Les
+     ACCENTS ne sont pas concernés : html[data-accent] gagne en spécificité (0,1,1 + attribut). */
+  @supports (color: color-mix(in srgb, red 50%, #fff)){
+    :root{
+      --primary-soft:color-mix(in srgb, var(--primary) 12%, var(--surface));
+      --primary-100:color-mix(in srgb, var(--primary) 15%, var(--surface));
+      --primary-200:color-mix(in srgb, var(--primary) 31%, var(--surface));
+      --ok-soft:color-mix(in srgb, var(--ok) 8%, var(--surface));
+      --done-bg:color-mix(in srgb, var(--ok) 7%, var(--surface));
+      --tag-bg:color-mix(in srgb, var(--ink) 8%, var(--surface));
+    }
+    [data-theme="dark"]{
+      --primary-soft:color-mix(in srgb, var(--primary) 22%, var(--bg));
+      --primary-100:color-mix(in srgb, var(--primary) 22%, var(--bg));
+      --ok-soft:color-mix(in srgb, var(--ok) 13%, var(--bg));
+      --tag-bg:color-mix(in srgb, var(--ink) 9%, var(--bg));
+    }
+  }
   [data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   /* ===== PALETTES D'ACCENT (par utilisateur, connecté seulement) =====
      Identité de session, et RIEN d'autre : l'accent ne colore que le DISQUE de l'avatar (cf. le
@@ -528,7 +554,13 @@
      au bord de la rangée, c'est-à-dire au bord du BOUTON. */
   .srch-box{position:relative;display:flex;align-items:center;flex:1 1 auto;min-width:0}
   .hdr-search .srch-box>svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
-  .hdr-search input{width:100%;padding:8px 32px 8px 32px;border:2px solid var(--line-hover);border-radius:8px;background:var(--surface);color:var(--ink);font-size:15.5px;white-space:nowrap;overflow:hidden}
+  /* Direction A (audit v5.0.10) : la recherche est un CREUX (--surface-2), pas une carte de plus —
+     en sombre --surface-2 est PLUS FONCÉ que la surface (#070708), le creux tient dans les deux
+     thèmes. Bordure 2px -> 1px, le pixel rendu au rembourrage : hauteur inchangée. */
+  .hdr-search input{width:100%;padding:10px 32px 10px 32px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Le placeholder garde sa phrase entière (décision utilisateur) : quand la place manque, il
+     s'ELLIPSE au lieu de se couper en plein mot (défaut mesuré à 390 px). */
+  .hdr-search input::placeholder{text-overflow:ellipsis}
   .hdr-search input:focus{outline:2px solid var(--primary);border-color:transparent}
   /* La place de la croix est RÉSERVÉE en permanence (padding-right constant) : elle apparaît et
      disparaît à la frappe, et un rembourrage qui bougerait ferait sauter le texte sous le curseur. */
@@ -538,7 +570,7 @@
   .srch-x::after{content:"";position:absolute;inset:-6px}   /* cible ≥ 32px sans épaissir la rangée */
   .srch-x:hover{background:var(--surface-2);color:var(--ink)}
   .srch-x:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
-  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:10px 32px 10px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
+  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:12px 32px 12px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
   /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
   #homeChrome{order:6;width:100%;min-width:0}
   #homeChrome[hidden]{display:none}
@@ -645,6 +677,17 @@
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
   #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-dock)}
   #crisisDock[hidden]{display:none}
+  /* DIRECTION A, lot 4 (audit post-v5.0.10) — AU PALIER COCKPIT, LE CHROME S'EFFACE DERRIÈRE SES
+     CONTRÔLES. Mesuré à 1280 px : la rangée de commandes est une bande blanche de bord à bord
+     dont le contenu s'arrête à x=256 — 1024 px de vide (80 %), le seul endroit de la vue où
+     l'œil lit du « non-fini ». À ≥ 1200 (le palier où le cockpit à trois zones existe déjà),
+     les DEUX rangées prennent le fond de PAGE : boutons et cartes (qui portent déjà leurs
+     bordures) se lisent comme des contrôles posés sur la page, la grammaire du quai en cartes
+     détachées (≥ 780) menée à son terme. AUCUNE position ne change — la constance positionnelle
+     porte sur les contrôles, pas sur la matière ; le fond reste OPAQUE (rangées collantes). */
+  @media (min-width:1200px){
+    #crisisCtrl,#crisisDock{background:var(--bg);border-bottom-color:transparent;box-shadow:none}
+  }
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
      flex:1 s'étiraient à ~640px chacun et les chiffres se retrouvaient aux deux bouts de l'écran
@@ -1266,7 +1309,10 @@
   .qa-sub>.code,.qa-sub>.tag{flex:none}
   .qa-sub .code{font-family:var(--mono);white-space:nowrap}
   /* Répertoire : en-tête de lettre (mono, accent texte) + grille de rangées compactes. */
-  .dir-l{font-family:var(--mono);font-size:12px;font-weight:800;color:var(--link);padding:12px 2px 6px}
+  /* Direction A (audit v5.0.10) : la lettre de classement en SERIF — un index d'ouvrage, pas du
+     chrome d'interface. Graisse 600 = la seule embarquée (v4.61.0) ; le rail A→Z, lui, RESTE en
+     mono (cibles minuscules, la lisibilité y prime sur la voix). */
+  .dir-l{font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--link);padding:12px 2px 6px}
   .dir-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
@@ -1703,6 +1749,11 @@
   .boot-card p{margin:0 0 10px;font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
   .boot-card .btn{margin-top:6px;min-height:44px}
   .empty b{display:block;color:var(--ink);font-size:16.5px;margin-bottom:6px}
+  /* DIRECTION A, lot 2 : équilibre des titres multi-lignes (amélioration progressive pure —
+     moteur sans text-wrap:balance = comportement actuel). JAMAIS sur un titre clampé
+     (.dir-t, .qa-t) : balance pousse du texte vers la dernière ligne, que -webkit-line-clamp
+     tronque — on perdrait des mots pour gagner une symétrie. */
+  .ai-top h3,.empty b{text-wrap:balance}
   .empty .btn{margin-top:14px}
   .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
   /* V5 : en crise le TITRE vit dans le bandeau d'en-tête sticky — le grand titre du corps ne
@@ -4657,9 +4708,19 @@
      plein écran mobile, les actions s'ancrent en BAS). La carte devient une colonne flex et
      l'action descend au bord bas ; sur ordinateur (dialogue centré), rien ne change. */
   .wl-act{display:flex;justify-content:flex-end;margin-top:14px}
+  /* DIRECTION A, lot 2 — LE VIDE DE LA FEUILLE DE BIENVENUE EST COMPOSÉ, PAS SUBI. Mesuré à
+     390×844 : ~430 px de vide entre le texte et « Commencer » (la feuille pleine hauteur est une
+     règle, le bouton en bas est en zone de pouce — c'est le MILIEU qui était un désert). Le
+     glyphe de marque, grand et en couleur de FILET (décoratif, aria-hidden), habite ce vide sans
+     rien dire de plus. Étroit seulement : sur ordinateur la carte est à hauteur de contenu, un
+     glyphe y AJOUTERAIT de la hauteur au lieu d'en habiller. Même mécanique de masque que
+     .brand-logo (logo-glyph.svg, déjà dans ASSETS — aucun actif nouveau). */
+  .wl-glyph{display:none}
   @media (max-width:779.98px){
     #welcomeModal .ai-card{display:flex;flex-direction:column}
     #welcomeModal .wl-act{margin-top:auto;padding-top:14px}
+    .wl-glyph{display:block;flex:none;width:96px;height:96px;margin:auto;background-color:var(--line);
+      -webkit-mask:url(logo-glyph.svg) center/contain no-repeat;mask:url(logo-glyph.svg) center/contain no-repeat}
   }
   /* ----- ACCUEIL V5 (canvas turn 6) : une seule interface responsive. < 780px : recherche pleine
      largeur, chips bibliothèques/catégories, TAB BAR basse à pastille glissante (au pouce).
@@ -5374,6 +5435,9 @@
   .more-menu:not([hidden]){transform-origin:top right;animation:menuIn .16s cubic-bezier(.2,0,0,1)}
   /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
+  /* Pilote View Transitions (direction A, lot 6) : fondu bref piloté par l'UA — la garde
+     d'activation (session, reduced-motion, support) vit dans vtWrap, côté JS. */
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
   .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —

@@ -2473,9 +2473,16 @@ console.log('\n══ ACCUEIL · un geste de chrome ne change pas de vue ══'
   const ap=await etat();
   t('épingler ne bascule pas sur les aides seules',
     ap.section==='all'&&ap.rangees===av.rangees&&ap.natures.length===2, JSON.stringify(ap));
-  /* Et la croix d'un bandeau, le geste EXACT qui a été signalé. */
+  /* Et la croix d'un bandeau, le geste EXACT qui a été signalé.
+     VOIX SYSTÈME UNIQUE (direction A) : l'amorçage a laissé le bandeau « 2 fiches d'exemple »
+     visible, et tant qu'il l'est la notice auteur ATTEND son créneau. Le témoin passe par le
+     VRAI geste — on acquitte le bandeau, la notice paraît — plutôt que d'exiger un état que
+     l'application ne produit plus (leçon T9 : « un contrôle qui mesure ce que font les crans
+     doit passer par le vrai geste »). */
   await page.evaluate(()=>{fiches.length=0;protocols.length=0;
     try{localStorage.removeItem('ac-notice-hidden');}catch(e){}
+    const sb=document.getElementById('sysBanner');
+    if(sb&&!sb.hidden)document.getElementById('sbX').click();
     state.section='all';render();});
   await page.waitForTimeout(450);
   const c0=await page.evaluate(()=>document.querySelectorAll('.emp-intro').length);
