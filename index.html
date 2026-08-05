@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-+5VNb+5UDe7vMThkag1eql548V4aYZsJnchGqHwm0G0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-ADUk4X5kTsj1MqxBp7F5kMX4twMTwoEk8GB5laTK82E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6254,7 +6254,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.0.9';
+const APP_VERSION='5.0.10';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6410,10 +6410,36 @@ function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexe
 // ci-dessous (une requête = une transaction implicite). dflt = valeur rendue si le résultat est
 // vide (getAll -> [], get -> null/{}) ; les écritures (put/delete) ignorent la valeur résolue.
 const req2p=(r,dflt)=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result||dflt);r.onerror=()=>rej(r.error);});
+// UNE CONNEXION FERMÉE N'EST PAS UNE PANNE, C'EST UN ÉTAT À RECONNAÎTRE (v5.0.10, signalé à
+// l'usage : « The database connection is closing » remonté jusqu'à la fenêtre de synchro en
+// « Erreur inattendue · Détail technique »). Une connexion IndexedDB se ferme SANS que
+// l'application le demande — `onversionchange` la libère quand un autre onglet migre ou appelle
+// `deleteDatabase` (c'est NOUS qui appelons `close()` là, cf. openSpaceDb), la page qui commence
+// à se recharger (bascule d'espace, `storage`->reload) les ferme toutes, et un moteur mobile peut
+// les fermer en arrière-plan. Le handle restait alors dans `IDB.db`, et TOUTE transaction
+// ultérieure levait `InvalidStateError` : la synchro échouait, et le message affiché ne désignait
+// pas sa cause. On ne garde donc jamais un handle mort, et un appel qui tombe dessus ROUVRE et
+// réessaie UNE fois — au-delà, l'erreur remonte (une base réellement indisponible doit se voir).
+const idbDead=e=>!!e&&(e.name==='InvalidStateError'||/connection is closing|database is closing/i.test(String(e.message||e)));
 const IDB={
   db:null,
-  async open(){registerSpace(currentSpace());this.db=await openSpaceDb(claimedDbName(currentSpace()));return true;},
-  _s(store,mode){return this.db.transaction(store,mode).objectStore(store);},
+  // Posé par les effacements (wipeLocal/wipeCurrentSpace) : la base est en train d'être SUPPRIMÉE
+  // et un rouvrir/réessayer la recréerait — vide — ou bloquerait le deleteDatabase.
+  sealed:false,
+  async open(){registerSpace(currentSpace());const db=await openSpaceDb(claimedDbName(currentSpace()));
+    // `versionchange` : openSpaceDb ferme la base ; `close` : fermeture SUBIE (moteur, onglet qui
+    // s'en va). Dans les deux cas le handle cesse d'être utilisable — on le lâche tout de suite.
+    const drop=()=>{if(IDB.db===db)IDB.db=null;};
+    db.addEventListener('versionchange',drop);db.addEventListener('close',drop);
+    this.db=db;return true;},
+  _tx(store,mode){if(!this.db)throw new DOMException('idb-closed','InvalidStateError');
+    return this.db.transaction(store,mode);},
+  _s(store,mode){return this._tx(store,mode).objectStore(store);},
+  // Enveloppe de TOUTES les méthodes ci-dessous : `fn` peut échouer de façon synchrone (_s sur un
+  // handle mort) comme asynchrone (transaction avortée en cours de route), d'où le `then(fn)`.
+  _try(fn){return Promise.resolve().then(fn).catch(async e=>{
+    if(this.sealed||!idbDead(e))throw e;
+    this.db=null;await this.open();return fn();});},
   getAll(){return req2p(this._s('fiches','readonly').getAll(),[]);},
   put(f){return req2p(this._s('fiches','readwrite').put(f));},
   del(id){return req2p(this._s('fiches','readwrite').delete(id));},
@@ -6437,14 +6463,14 @@ const IDB={
   // Écritures GROUPÉES du pull de synchro : une transaction par PAGE au lieu d'une par ligne
   // (la première synchro d'une bibliothèque de 1 000 fiches ouvrait 1 000 transactions).
   applyRows(store,puts,dels){return new Promise((res,rej)=>{if(!puts.length&&!dels.length)return res();
-    const tx=this.db.transaction(store,'readwrite');const st=tx.objectStore(store);
+    const tx=this._tx(store,'readwrite');const st=tx.objectStore(store);
     puts.forEach(o=>st.put(o));dels.forEach(id=>st.delete(id));
     tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
   getSessions(){return req2p(this._s('sessions','readonly').getAll(),[]);},
   putSession(s){return req2p(this._s('sessions','readwrite').put(s));},
   delSession(id){return req2p(this._s('sessions','readwrite').delete(id));},
   getBackups(ficheId){const st=this._s('backups','readonly');return req2p((ficheId&&st.indexNames.contains('byFiche'))?st.index('byFiche').getAll(ficheId):st.getAll(),[]);},
-  putBackup(b){return new Promise((res,rej)=>{const tx=this.db.transaction('backups','readwrite');const st=tx.objectStore('backups');st.put(b);
+  putBackup(b){return new Promise((res,rej)=>{const tx=this._tx('backups','readwrite');const st=tx.objectStore('backups');st.put(b);
     const q=st.index('byFiche').getAll(b.ficheId);q.onsuccess=()=>{const arr=(q.result||[]).sort((x,y)=>(x.at||0)-(y.at||0));for(let i=0;i<arr.length-BACKUP_MAX;i++)st.delete(arr[i].bid);};
     tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});},
   delBackup(bid){return req2p(this._s('backups','readwrite').delete(bid));},
@@ -6460,6 +6486,13 @@ const IDB={
   getAttIds(){return req2p(this._s('attachments','readonly').getAllKeys(),[]);},
   getAtts(){return req2p(this._s('attachments','readonly').getAll(),[]);}
 };
+// UN SEUL POINT D'ÉCRITURE, jamais une liste de méthodes à tenir : toute méthode PUBLIQUE d'IDB
+// est enveloppée dans `_try`, donc une méthode ajoutée demain est couverte sans qu'on y pense
+// (même patron que `persistLive` pour la session et `edCommit` pour le brouillon — une liste
+// recopiée finit toujours par diverger, et le trou est SILENCIEUX). `open` et les membres en `_`
+// sont exclus : ce sont les organes de la reprise elle-même.
+Object.keys(IDB).forEach(k=>{if(typeof IDB[k]!=='function'||k==='open'||k.charAt(0)==='_')return;
+  const fn=IDB[k];IDB[k]=function(){const a=arguments;return this._try(()=>fn.apply(this,a));};});
 let Data=KV;
 // Les documents PDF (binaires) n'existent qu'en IndexedDB : le repli KV (localStorage = JSON pur)
 // ne peut pas les stocker. En repli, l'AJOUT est refusé proprement (message dans l'éditeur) et la
@@ -19336,6 +19369,9 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
 // Efface TOUTES les données locales de cet appareil (IndexedDB de TOUS les espaces + clés de
 // synchro, y compris les clés suffixées par espace). Irréversible.
 async function wipeLocal(){
+  // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
+  // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
+  IDB.sealed=true;
   try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
   // Bases de tous les espaces connus (registre) + base historique + espace courant.
   let spaces=[];try{spaces=JSON.parse(localStorage.getItem('ac-spaces')||'[]');}catch(e){}
@@ -19358,6 +19394,7 @@ async function wipeLocal(){
 // (IDB.db et l'état en mémoire pointent sur des données qui n'existent plus).
 async function wipeCurrentSpace(){
   const space=currentSpace();
+  IDB.sealed=true;  // cf. wipeLocal : ne jamais rouvrir une base en cours de suppression.
   try{if(IDB.db){IDB.db.close();IDB.db=null;}}catch(e){}
   let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
   try{await new Promise(res=>{const r=indexedDB.deleteDatabase(dbNameFor(space,owner));r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}
@@ -20395,6 +20432,12 @@ function explainSyncError(e){const msg=String((e&&e.message)||e||'');const statu
   // pour ne pas égarer l'utilisateur sur un problème sans rapport avec la connexion.
   if(!status&&((e instanceof TypeError)||/fetch|network|internet|load failed/i.test(msg)))
     return{icon:SYNC_ERR_ICONS.offline,title:'Serveur injoignable',detail:"La connexion Internet semble fonctionner, mais le service de synchronisation n'a pas répondu (réseau instable, Wi-Fi d'hôtel/hôpital filtrant, coupure temporaire...). Nouvelle tentative automatique en cours ; vos modifications restent sur cet appareil en attendant."};
+  // Stockage local momentanément fermé (autre onglet qui migre ou efface la base, page en cours de
+  // rechargement, moteur mobile qui libère la connexion en arrière-plan). Ce n'est ni le réseau ni
+  // le serveur, et RIEN N'EST PERDU : la synchro reprend d'elle-même. Le dire vaut mieux que de
+  // livrer le message brut du moteur, qui ne désigne pas sa cause (v5.0.10).
+  if(!status&&/database connection is closing|database is closing|InvalidStateError|idb-closed/i.test(msg))
+    return{icon:SYNC_ERR_ICONS.warning,title:'Stockage momentanément indisponible',detail:"L'accès au stockage de cet appareil s'est interrompu pendant la synchronisation — le plus souvent parce que l'application est ouverte dans un autre onglet, ou parce que la page était en train d'être rechargée. Aucune donnée n'est perdue : vos fiches restent sur cet appareil et la synchronisation reprend automatiquement. Si le message revient, fermez les autres onglets de l'application puis rechargez cette page."};
   return{icon:SYNC_ERR_ICONS.unknown,title:'Erreur inattendue',detail:'Détail technique : '+msg.slice(0,200)};}
 // Statut d'approbation du compte courant (voir RPC my_status() côté serveur, seule autorité réelle —
 // la RLS bloque de toute façon l'espace perso tant que non approuvé). En cas d'échec réseau on GARDE
@@ -22290,7 +22333,7 @@ if(location.search.indexOf('__actest')>=0){
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
+    kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,

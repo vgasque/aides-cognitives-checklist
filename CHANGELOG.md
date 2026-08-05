@@ -1,5 +1,43 @@
 # Journal des modifications
 
+## [5.0.10] — 2026-08-05
+### Une connexion IndexedDB fermée n'est plus une panne : elle se reprend toute seule
+
+Signalé à l'usage sur un appareil synchronisé — « Erreur inattendue · Détail technique : Failed to
+execute 'transaction' on 'IDBDatabase' : The database connection is closing ».
+
+- **La cause.** Une connexion IndexedDB se ferme **sans que l'application le demande** : quand un
+  autre onglet migre la base ou l'efface, `onversionchange` la libère (c'est nous qui appelons
+  `close()` là) ; une page qui commence à se recharger les ferme toutes — et la bascule d'espace
+  comme l'écouteur `storage` déclenchent un `location.reload()` sans arrêter la synchronisation ;
+  un moteur mobile peut enfin les reprendre en arrière-plan. Le handle mort restait posé, et
+  **toute transaction suivante levait `InvalidStateError`** : la synchronisation échouait, et le
+  message affiché livrait le libellé brut du moteur — qui ne désigne pas sa cause et envoie
+  chercher la panne du mauvais côté (réseau, serveur, compte).
+- **Le remède, en un seul point d'écriture.** Toute méthode publique du backend IndexedDB est
+  enveloppée **par une boucle, jamais par une liste** : une méthode ajoutée demain est couverte
+  sans qu'on y pense (même patron que `persistLive` pour la session et `edCommit` pour le
+  brouillon — une liste recopiée finit toujours par diverger, et le trou est silencieux). Un
+  handle mort n'est plus jamais gardé, et l'appel qui tombe dessus **rouvre et réessaie une fois**
+  — au-delà l'erreur remonte, une base réellement indisponible devant se voir. Un drapeau
+  interdit cette reprise pendant un **effacement** de données : rouvrir recréerait la base qu'on
+  efface.
+- **⚠ Piège de spécification, appris à la mesure** : l'événement `close` ne se déclenche **pas**
+  sur une fermeture explicite — il est réservé aux fermetures anormales. Un correctif qui n'aurait
+  écouté que lui serait resté inerte sur le chemin le plus fréquent.
+- **Le message cesse de livrer le libellé du moteur.** Nouvelle famille d'erreur de
+  synchronisation : « Stockage momentanément indisponible » dit la cause probable (application
+  ouverte dans un autre onglet, page en cours de rechargement), **qu'aucune donnée n'est perdue**
+  et que la synchronisation reprend automatiquement.
+- **Le dernier angle mort du dispositif est fermé** (`scripts/audit-stockage.mjs`, 19ᵉ harnais).
+  Le stockage local — la fonction dont tout dépend en intervention — n'était mesuré que par ses
+  parties **pures** : `npm run check` lit du texte, `npm test` charge `index.html?__actest`, qui
+  n'amorce pas l'application et n'ouvre donc **aucune base réelle**. Les deux garde-fous étaient
+  verts pendant que la synchronisation échouait chez l'utilisateur. Le harnais coupe la connexion
+  *sous* l'application, exactement comme le moteur le ferait, et vérifie que l'appel suivant
+  réussit — lecture comme écriture groupée, par où passe le pull de synchronisation. Vérifié
+  capable d'échouer sur les deux moteurs.
+
 ## [5.0.9] — 2026-08-04
 ### Quatre défauts d'affichage signalés à l'usage, et l'un d'eux n'était mesurable par aucun harnais
 

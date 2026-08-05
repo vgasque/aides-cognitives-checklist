@@ -1994,6 +1994,29 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('★ · une fiche sans bloc ne fait pas tomber le calcul',A.forgetAll({}).length,0);}
   /* (Les trois témoins d'aller-retour v3 ⇄ v4 sont partis avec la conversion — étape D, règle 14 :
      une suppression emporte ce qui la mesurait. Ce que ★ garantit est mesuré ci-dessus.) */
+
+  /* ===== v5.0.10 — UNE CONNEXION INDEXEDDB FERMÉE SE RECONNAÎT ============================== */
+  {const dom=(name,msg)=>{const e=new Error(msg);e.name=name;return e;};
+   /* Les DEUX moteurs : Blink dit « The database connection is closing », WebKit lève un
+      InvalidStateError dont le libellé diffère. On reconnaît donc le NOM, pas seulement le mot. */
+   ok('idb fermée · le libellé de Blink est reconnu',
+      A.idbDead(dom('InvalidStateError',"Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.")));
+   ok('idb fermée · un InvalidStateError d’un autre libellé aussi',
+      A.idbDead(dom('InvalidStateError','database is closed')));
+   ok('idb fermée · notre propre marqueur interne',A.idbDead(dom('InvalidStateError','idb-closed')));
+   /* CE QU'IL NE DOIT PAS AVALER : une panne réseau ou une erreur REST rouvrirait la base pour
+      rien et masquerait sa vraie cause dans la fenêtre de synchro. */
+   ok('idb fermée · une erreur réseau n’en est PAS une',!A.idbDead(new TypeError('Failed to fetch')));
+   ok('idb fermée · une erreur REST n’en est PAS une',!A.idbDead(new Error('REST 403 forbidden')));
+   ok('idb fermée · rien du tout n’en est PAS une',!A.idbDead(null)&&!A.idbDead(undefined));
+   /* Le message rendu à l'utilisateur : ni « réseau », ni le libellé brut du moteur. */
+   const ex=A.explainSyncError(dom('InvalidStateError',"Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing."));
+   ok('idb fermée · le message ne dit plus « Erreur inattendue »',ex.title!=='Erreur inattendue');
+   ok('idb fermée · … et ne livre pas le libellé technique',ex.detail.indexOf('Détail technique')<0);
+   ok('idb fermée · … et rassure explicitement sur la perte de données',/perdue?/i.test(ex.detail));
+   /* Les autres familles ne sont pas capturées par la nouvelle branche. */
+   eq('idb fermée · le 403 garde son message',A.explainSyncError(new Error('REST 403 x')).title,'Écriture refusée');
+   eq('idb fermée · le réseau garde le sien',A.explainSyncError(new TypeError('Failed to fetch')).title,'Serveur injoignable');}
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

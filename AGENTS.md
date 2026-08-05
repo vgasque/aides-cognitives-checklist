@@ -266,15 +266,15 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   identiques (variable isolée). RÈGLE : toute sonde qui lit une géométrie après `focus()` doit
   attendre. Il ne s'agissait donc pas d'un défaut d'accessibilité — mais on ne pouvait pas le
   savoir tant que les harnais ne tournaient que sur Blink., à rejouer dès qu'on touche au chrome de crise,
-  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **DIX-SEPT** harnais Playwright qui
+  au rail, aux feuilles Plan/Consulter ou à un token de couleur. **DIX-HUIT harnais Playwright qui
   MESURENT au lieu d'affirmer (liste exacte dans `scripts/audit-run.mjs` : a11y, doctrine,
   budget, verify, session-card, zoom-scroll, verify-live, modeseg, consulter, complications, exercice,
-  **k5**, **prompt**, retour, qr, partage, historique).
+  **k5**, **prompt**, retour, qr, partage, historique, **stockage**).
   **LANCEUR PARALLÈLE À RAPPORT AGRÉGÉ (v5.0.0, `scripts/audit-run.mjs`)** : la chaîne `&&` de
   `package.json` payait la SOMME des durées (mesuré 9 min 42 s, dont 87 % dans doctrine/a11y/
   partage/k5) et son fail-fast CACHAIT tout ce qui suivait le premier rouge — l'incident « un
   harnais qui plante en emporte cinq » (v4.70.1), revécu à chaque itération. Le lanceur joue les
-  dix-sept en concurrence (pool `AC_JOBS`, défaut 4, lourds d'abord — temps mural ≈ le max, pas la
+  dix-huit en concurrence (pool `AC_JOBS`, défaut 4, lourds d'abord — temps mural ≈ le max, pas la
   somme) et rapporte TOUS les échecs d'une passe ; les sondes, leurs seuils et `AC_ENGINE` sont
   inchangés, et chaque harnais reste lançable seul. **CIBLAGE pendant l'itération** :
   `npm run audit -- partage qr` ne joue que les harnais nommés — la passe s'annonce alors
@@ -1454,6 +1454,38 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   **⚠ LA CONSTANTE SE DÉCLARE AVANT LE `if(useSv)`** : la coque de `main.innerHTML` la lit aussi
   (c'est elle qui décide si le chapeau est encore rendu en tête de colonne) — posée dans la
   branche, elle serait en zone morte, la faute exacte payée au lot T3.
+- **UNE CONNEXION INDEXEDDB FERMÉE N'EST PAS UNE PANNE, C'EST UN ÉTAT À RECONNAÎTRE (v5.0.10,
+  signalé à l'usage sur un appareil synchronisé : « Erreur inattendue — Détail technique : Failed
+  to execute 'transaction' on 'IDBDatabase' : The database connection is closing »)** : une
+  connexion se ferme SANS que l'application le demande — `onversionchange` la libère quand un
+  autre onglet migre ou appelle `deleteDatabase` (c'est NOUS qui appelons `close()` là), une page
+  qui commence à se recharger les ferme toutes (la bascule d'espace et l'écouteur `storage` font
+  `location.reload()` sans arrêter la synchro), et un moteur mobile peut les reprendre en
+  arrière-plan. Le handle restait dans `IDB.db`, et **toute transaction ultérieure levait
+  `InvalidStateError`** : la synchro échouait, et le message affiché ne désignait pas sa cause.
+  **TROIS GESTES, ET LE PREMIER EST UN POINT D'ÉTRANGLEMENT** : (a) toute méthode PUBLIQUE d'IDB
+  est enveloppée dans `_try` **par une boucle, jamais par une liste** — une méthode ajoutée demain
+  est couverte sans qu'on y pense (patron `persistLive`/`edCommit` : une liste recopiée finit
+  toujours par diverger, et le trou est SILENCIEUX) ; (b) un handle mort n'est jamais gardé
+  (écouteurs `versionchange`/`close`, et `_try` le lâche au premier appel qui échoue) ; (c) on
+  rouvre et on réessaie **UNE** fois — au-delà l'erreur remonte, une base réellement indisponible
+  devant se voir. **`IDB.sealed` interdit la reprise pendant un effacement** (`wipeLocal`,
+  `wipeCurrentSpace`) : rouvrir recréerait la base qu'on efface, ou bloquerait le
+  `deleteDatabase`.
+  **⚠ PIÈGE DE SPEC** : l'événement `close` ne se déclenche PAS sur un `close()` explicite — il
+  est réservé aux fermetures ANORMALES. Un correctif qui n'écouterait que lui serait inerte sur
+  le chemin le plus fréquent, et un témoin qui attendrait cette notification mesurerait le moteur
+  au lieu de l'application.
+  **ET LE MESSAGE CESSE DE LIVRER LE LIBELLÉ DU MOTEUR** : `explainSyncError` a sa branche —
+  ce n'est ni le réseau ni le serveur, **rien n'est perdu**, la synchro reprend seule ; le dire
+  vaut mieux qu'un « Détail technique » qui envoie chercher la panne du mauvais côté.
+  **`scripts/audit-stockage.mjs` FERME LE DERNIER ANGLE MORT DU DOSSIER** : le stockage local
+  n'était mesuré que par ses parties PURES — `check` lit du texte, `npm test` charge
+  `index.html?__actest`, **qui n'amorce pas** et n'ouvre donc aucune base réelle. Les deux
+  garde-fous étaient verts pendant que la synchro échouait chez l'utilisateur. Le harnais coupe la
+  connexion SOUS l'application et vérifie que l'appel suivant réussit (lecture ET `applyRows`, par
+  où passe le pull). Vérifié capable d'échouer aux deux moteurs (enveloppe neutralisée →
+  3 rouges), fichier restauré à l'octet.
 - **UNE GÉOMÉTRIE DE CHROME NE SE DÉRIVE JAMAIS D'UNE POSITION DE DÉFILEMENT (v5.0.9, signalé à
   l'usage en PWA : « barre d'en-tête inférieure, scroll pas très réactif, beaucoup d'à-coups »,
   vidéo à l'appui)** : `--hdr-h` est le `top` collant de `#crisisCtrl`, donc du quai empilé dessus,
