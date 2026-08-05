@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-TPRCPRdZ3+GuWzYXx7byFbxwlxEsHQEinfrdtQWu44E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-bM/rxT9pMGl61HXIvNB9bo2J0d2VaOEAKmDzFv2vlO4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -18391,7 +18391,21 @@ function vtWrap(fn){
   try{
     if(document.startViewTransition&&!crisisOnScreen()
        &&matchMedia('(prefers-reduced-motion: no-preference)').matches){
-      document.startViewTransition(()=>{fn();});return;}
+      const t=document.startViewTransition(()=>{fn();});
+      /* ⚠ LES PROMESSES SE TIENNENT, SINON ELLES REJETTENT DANS LE VIDE. Quand une seconde
+         transition démarre avant la fin de la première, le moteur ANNULE la première et rejette
+         ses promesses — et le `try/catch` ci-dessus, qui est SYNCHRONE, ne peut rien y faire.
+         C'est le cas NOMINAL d'un double geste, pas une erreur : deux taps nerveux sur « ‹ »
+         suffisent (mesuré : 3 clics = 2 rejets « Transition was skipped »).
+         Conséquence sans cette ligne : des rejets non gérés remontent dans toute collecte
+         d'erreurs, et `audit-retour` rougissait PAR INTERMITTENCE — 18/19 puis 19/19 sur un code
+         identique, ce qui est la pire forme de rouge : celle qu'on finit par ignorer.
+         On ABSORBE, on ne GARDE PAS : une transition annulée n'a rien à dire, le rendu a bien eu
+         lieu (le callback s'exécute même quand l'animation est sautée). Et surtout on n'empêche
+         PAS la seconde transition — la garde anti double-tap de 700 ms (`_backGuardT`) existe
+         déjà et relève d'une autre intention. */
+      t.finished.catch(()=>{});t.ready.catch(()=>{});t.updateCallbackDone.catch(()=>{});
+      return;}
   }catch(e){}
   fn();}
 function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
