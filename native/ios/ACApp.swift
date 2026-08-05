@@ -24,6 +24,7 @@
 
 import UIKit
 import WebKit
+import UserNotifications
 
 // ── Identité de la coquille ──────────────────────────────────────────────────────────────────
 /* VERSION DU CONTRAT, PAS DE L'APPLICATION. Elle ne bouge QUE si le pont change (verbe ajouté,
@@ -37,7 +38,7 @@ let SCHEME = "aidescog"
    C'est tout le contrat de compatibilité : le contenu demande `Native.can(verbe)` avant d'agir et
    retombe sur le comportement web si la réponse est non. Ajouter un verbe = l'ajouter ICI et
    monter SHELL_VERSION. */
-let VERBES = ["haptic", "print.page", "print.html"]
+let VERBES = ["haptic", "print.page", "print.html", "notify.ask", "timers.sync"]
 
 func mimeFor(_ ext: String) -> String {
   switch ext.lowercased() {
@@ -127,8 +128,65 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
       vc?.imprimerHTML(html, titre: (arg?["titre"] as? String) ?? "Compte rendu")
       replyHandler(true, nil)
 
+    case "notify.ask":
+      UNUserNotificationCenter.current()
+        .requestAuthorization(options: [.alert, .sound]) { ok, _ in
+          DispatchQueue.main.async { replyHandler(ok, nil) }
+        }
+
+    case "timers.sync":
+      Alarmes.programmer((arg?["dues"] as? [[String: Any]]) ?? [])
+      replyHandler(true, nil)
+
     default:
       replyHandler(nil, nil)
+    }
+  }
+}
+
+/* ── LES ALARMES QUI SURVIVENT À L'ÉCRAN ÉTEINT ───────────────────────────────────────────────
+   REMPLACEMENT ATOMIQUE, JAMAIS UN DIFFÉRENTIEL : le JS remet la TOTALITÉ des échéances à venir,
+   on efface tout et l'on repose. C'est ce qui rend le pont sans mémoire — aucune comptabilité de
+   ce qui a été programmé, donc rien qui puisse diverger de l'état réel de l'application. Le coût
+   est nul : `timerSync()` ne franchit le pont que si la liste a changé (anti-churn côté JS).
+
+   ⚠ UNE ÉCHÉANCE DÉJÀ PASSÉE N'EST PAS REPROGRAMMÉE : l'application rattrape les cycles manqués
+   toute seule au retour au premier plan (`Math.floor(within/per)`). Une notification pour un
+   cycle déjà écoulé sonnerait dans le vide et ferait douter de toutes les autres. */
+enum Alarmes {
+  static func programmer(_ dues: [[String: Any]]) {
+    let c = UNUserNotificationCenter.current()
+    c.removeAllPendingNotificationRequests()
+    if CommandLine.arguments.contains("-acdiag") {
+      // Trace de développement : une coquille n'a pas de console, et « le minuteur n'a pas
+      // sonné » ne dit pas SI l'échéance avait été programmée.
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        c.getPendingNotificationRequests { r in
+          let d = r.sorted { ($0.trigger as? UNTimeIntervalNotificationTrigger)?.timeInterval ?? 0
+                           < ($1.trigger as? UNTimeIntervalNotificationTrigger)?.timeInterval ?? 0 }
+                   .prefix(3)
+                   .map { "\($0.content.title) dans \(Int(($0.trigger as? UNTimeIntervalNotificationTrigger)?.timeInterval ?? 0))s" }
+          print("── DIAG ALARMES ── reçues \(dues.count), en attente \(r.count) : \(d.joined(separator: " | "))")
+          fflush(stdout)
+        }
+      }
+    }
+    let maintenant = Date().timeIntervalSince1970
+    for d in dues {
+      guard let id = d["id"] as? String,
+            let at = d["at"] as? Double else { continue }
+      let dans = at / 1000.0 - maintenant
+      if dans <= 0.5 { continue }
+      let n = UNMutableNotificationContent()
+      // Le libellé vient de `timerAlertText` côté JS — il n'est JAMAIS reconstruit ici : deux
+      // formulations du même évènement seraient deux vocabulaires pour une chose.
+      n.title = (d["titre"] as? String) ?? "Minuteur"
+      n.body  = (d["corps"] as? String) ?? ""
+      n.sound = .default
+      if let f = d["fiche"] as? String { n.userInfo = ["fiche": f] }
+      c.add(UNNotificationRequest(
+        identifier: id, content: n,
+        trigger: UNTimeIntervalNotificationTrigger(timeInterval: dans, repeats: false)))
     }
   }
 }
@@ -199,7 +257,7 @@ final class RootVC: UIViewController, WKNavigationDelegate {
         JSON.stringify({ pont: !!(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.ac),
                          annonce: !!window.__acNative, native: Platform.native,
                          on: Native.on, shell: Native.shell,
-                         peut: ['haptic','print.page','print.html'].filter(v=>Native.can(v)) })
+                         peut: (window.__acNative.verbes||[]).filter(v=>Native.can(v)) })
       """) { v, e in
         print("── DIAG PONT ── \(v ?? "erreur : \(String(describing: e))")")
         fflush(stdout)
@@ -250,14 +308,48 @@ final class ChargeurImpression: NSObject, WKNavigationDelegate {
 }
 
 @main
-final class AppDelegate: UIResponder, UIApplicationDelegate {
+final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
   var window: UIWindow?
+  var vc: RootVC?
+
   func application(_ a: UIApplication,
                    didFinishLaunchingWithOptions o: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    let r = RootVC()
+    vc = r
     let w = UIWindow(frame: UIScreen.main.bounds)
-    w.rootViewController = RootVC()
+    w.rootViewController = r
     w.makeKeyAndVisible()
     window = w
+    UNUserNotificationCenter.current().delegate = self
     return true
+  }
+
+  /* APPLICATION AU PREMIER PLAN : ON NE PRÉSENTE RIEN. L'application a déjà son propre dispositif
+     d'alarme — bip, flash, segment ambre persistant dans le quai — et il obéit à une règle que le
+     système ignore : en mode crise, RIEN ne se pose par-dessus la checklist (règle 11). Une
+     bannière système y serait exactement l'interruption proscrite.
+     ⚠ CE CHOIX EST FAIT ICI, ET SURTOUT PAS EN JS : côté web il faudrait suivre la visibilité de
+     la page pour décider, c'est-à-dire tenir une SECONDE source de vérité sur un état que le
+     système connaît déjà. Le JS reste ignorant. */
+  func userNotificationCenter(_ c: UNUserNotificationCenter,
+                              willPresent n: UNNotification,
+                              withCompletionHandler h: @escaping (UNNotificationPresentationOptions) -> Void) {
+    h([])
+  }
+
+  /* NOTIFICATION TAPÉE : on ouvre LA FICHE concernée, pas l'accueil. Sans cela, un tap sur
+     « adrénaline — 5 min » déposerait sur la bibliothèque, et il faudrait retrouver la
+     réanimation en cours à la main. C'est la contrepartie obligatoire du fait que chaque échéance
+     porte son `ficheId`. */
+  func userNotificationCenter(_ c: UNUserNotificationCenter,
+                              didReceive r: UNNotificationResponse,
+                              withCompletionHandler h: @escaping () -> Void) {
+    if let f = r.notification.request.content.userInfo["fiche"] as? String,
+       let w = vc?.web {
+      let sur = f.replacingOccurrences(of: "\\", with: "\\\\")
+                 .replacingOccurrences(of: "'", with: "\\'")
+      w.evaluateJavaScript("try{openRead('\(sur)')}catch(e){}", completionHandler: nil)
+    }
+    h()
   }
 }

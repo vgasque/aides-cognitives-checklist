@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-D5ZpZsgtUyZ8IC7Duje7DCGx+bw5CNuwznycW8zcTCA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-k8hIHrplAgIwuj8tzA0eaF2nLRakyl0EKhDtRrc+Wlc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9475,7 +9475,13 @@ function endSession(R){if(!R||!R.fiche)return;
      dépendre du réseau. Si le PATCH échoue, la ligne expirera d'elle-même et sera purgée — c'est
      précisément à cela que sert un relais transitoire. */
   try{if(Share.mode==='host')Share.endShare();else if(Share.mode!=='off')Share.stop();}catch(e){}}
-function requestNotifyPermission(){try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}}
+/* La permission se demande AU DÉMARRAGE DE SESSION, et nulle part ailleurs : c'est le seul
+   moment où l'on peut expliquer pourquoi — un minuteur va être armé — et c'est un geste, donc le
+   système accepte de poser la question. En natif elle passe par le pont : `Notification` n'existe
+   pas en WKWebView, la branche web y serait donc inerte sans que rien ne le dise. */
+function requestNotifyPermission(){
+  if(Native.can('notify.ask')){Native.call('notify.ask');return;}
+  try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}}
 // Vibration. NB : iOS (Safari/PWA iPhone) n'expose PAS l'API Vibration -> aucune
 // vibration possible depuis le web sur iPhone (le flash d'écran sert d'alerte de secours).
 // Sur Android, la vibration exige une activation utilisateur préalable : on l'amorce dans
@@ -9597,6 +9603,64 @@ function showBanner(ficheId,fTitle,tLabel){const host=document.getElementById('a
 function timerAlertText(t){
   const nom=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
   return (t.onDue||'').trim()?(nom+' — '+String(t.onDue).trim()):nom;}
+/* ═══ LES ALARMES SURVIVENT À L'ÉCRAN ÉTEINT (lot 1 — le motif principal du portage) ═════════
+   Tout le poste de minuteurs repose sur un unique `setInterval(tickAll,300)`. Écran verrouillé ou
+   application suspendue, ce timer NE TOURNE PLUS : le minuteur ne sonne pas, et personne ne le
+   sait. Aucune évolution web ne corrige cela — c'est la seule chose que le natif apporte et que
+   le navigateur ne peut pas.
+
+   ON NE NOTIFIE PAS LES GESTES, ON DÉRIVE L'ÉTAT — et c'est la décision de conception centrale.
+   Un minuteur est armé ou arrêté en ONZE endroits ; `persistLive` en couvre neuf et rate
+   précisément les deux qui comptent le plus (l'armement DISTANT chez l'invité, et l'arrêt de tous
+   les minuteurs en fin de session, qui passe par `_putSessionSafe`). Un crochet par geste serait
+   donc la liste tenue en double que ce dépôt a déjà payée quatre fois, et le trou serait
+   SILENCIEUX : un minuteur qui ne sonne pas, sans un mot.
+   `timerDues()` recalcule donc la TOTALITÉ des échéances à venir, et la coquille remplace d'un
+   bloc sa programmation. Aucune comptabilité à tenir, rien qui puisse diverger, et un chemin
+   d'armement ajouté demain est couvert sans qu'on y pense.
+
+   CE QUI REND LE PORTAGE SÛR : `lastStart` est une ancre ABSOLUE et le temps écoulé est toujours
+   recalculé ; au retour au premier plan, `Math.floor(within/per)` rattrape d'un coup les cycles
+   manqués. Le natif n'a donc pas à être exact — il est un FILET pendant la suspension, jamais la
+   source de vérité. C'est aussi pourquoi une échéance déjà passée n'est pas reprogrammée.
+
+   BUDGET : iOS plafonne à 64 notifications en attente par application. On en réserve 8 par
+   minuteur BOUCLANT (8 × 120 s = 16 min de couverture sur le pire cas réel du corpus, la RCP) et
+   40 au total, ce qui laisse cinq minuteurs bouclants simultanés — au-delà de toute session
+   plausible. La troncature garde les échéances les PLUS PROCHES (la liste est triée) : ce qu'on
+   perd est ce dont on a le moins besoin tout de suite.
+   ⚠ L'ESSAI N'ARME RIEN (`R.essai`) : « ▶ Essayer » ne doit poser aucune trace, et une
+   notification système en est une — elle sonnerait sur le téléphone d'un auteur qui relit. */
+function timerDues(){
+  const out=[];
+  for(const k in liveSessions){
+    const R=liveSessions[k];
+    if(!R||R.essai||!R.timers)continue;
+    for(const id in R.timers){
+      const t=R.timers[id];
+      if(!t||!t.running||t.type!=='interval')continue;   // un chronomètre COMPTE, il ne sonne pas
+      const per=(t.seconds*1000)||0;if(per<=0)continue;
+      // Stable tant que le minuteur tourne : `elapsedMs` n'est commité qu'à la pause. C'est ce
+      // qui évite de reprogrammer les mêmes échéances à chaque passage (cf. anti-churn).
+      let due=t.lastStart+(per-t.elapsedMs);
+      const n=t.autoloop?8:1;
+      for(let i=0;i<n;i++){
+        out.push({id:R.ficheId+'|'+t.id+'|'+i,at:Math.round(due),
+                  titre:timerAlertText(t),fiche:R.ficheId,
+                  corps:(R.fiche&&R.fiche.title)||'Aide cognitive'});
+        due+=per;}}}
+  out.sort((a,b)=>a.at-b.at);
+  return out.slice(0,40);}
+let _duesKey='';
+function timerSync(){
+  if(!Native.can('timers.sync'))return;
+  const l=timerDues();
+  // ANTI-CHURN, même discipline que `barTf` et `refreshTimersDOM` : on ne franchit le pont que si
+  // la programmation a réellement changé — sinon on la réécrirait 3,3 fois par seconde pour rien.
+  const key=l.map(d=>d.id+'@'+d.at).join(',');
+  if(key===_duesKey)return;
+  _duesKey=key;
+  Native.call('timers.sync',{dues:l});}
 function onTimerFired(R,t){beep();
   const activeVisible=(R===Runtime)&&state.view==='read'&&document.visibilityState!=='hidden';
   const ft=R.fiche?(R.fiche.title||'Aide cognitive'):'Aide cognitive';
@@ -9643,6 +9707,7 @@ let _tickWasActive=false;
 function tickAll(){
   if(window._vvhSync)_vvhSync();   // resynchro --vvh (v4.29.7) — avant le garde d'activité
   wakeSync();   // réconciliation du wake lock — AVANT le retour anticipé, sinon on ne libère jamais
+  timerSync();  // réconciliation des alarmes natives — idem : la libération compte autant que l'armement
   const active=Object.keys(liveSessions).length>0||(state.view==='read'&&!!Runtime.fiche);
   /* Le chrono des rangées de l'accueil se repeint ICI, sur place — jamais par un re-rendu :
      reconstruire l'annuaire chaque seconde détruirait le nœud sous le doigt (leçon du quai). */
