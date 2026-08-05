@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-MnsufxazRBDlT6UJ26R2vjdWb741ECkuenYb8RXUxPo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-D5ZpZsgtUyZ8IC7Duje7DCGx+bw5CNuwznycW8zcTCA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9318,6 +9318,11 @@ td:first-child,td:nth-child(2){font-family:ui-monospace,"SF Mono",Menlo,Consolas
 // compte-rendu affiché est le même — la recréer à chaque clic imprimait une page blanche à la
 // 2e impression (frame retirée / pas encore peinte). Retirée à la fermeture de la fenêtre.
 function printReportDoc(){
+  /* Le compte rendu est un document HTML AUTONOME. En natif on le remet TEL QUEL à la coquille,
+     qui le rend dans une WebView hors écran et imprime SON formatter — l'iframe locale, elle,
+     n'imprimerait rien (`w.print()` y est le même no-op). Aucune reconstruction : c'est la même
+     chaîne `_reportDoc`, donc aucune seconde vérité sur ce que contient le document. */
+  if(Native.can('print.html')&&_reportDoc){Native.call('print.html',{html:_reportDoc,titre:'Compte rendu'});return;}
   const doPrint=fr=>{try{const w=fr.contentWindow;w.focus();w.print();}catch(e){toast('⚠ Impression indisponible sur ce navigateur.');}};
   let fr=document.getElementById('reportFrame');
   if(fr&&fr._doc===_reportDoc&&fr._ready){doPrint(fr);return;}   // même document déjà chargé -> réimpression directe
@@ -9524,7 +9529,17 @@ function wakeSync(geste){
    Ne s'active que si le verrou MANQUE : un tap ordinaire ne déclenche rien. */
 document.addEventListener('click',()=>{if(!_wake)wakeSync(true);},{passive:true});
 const VIBE_OK='vibrate'in navigator;let vibePrimed=false;
-function buzz(p){if(!VIBE_OK)return;try{navigator.vibrate(p);}catch(e){}}
+/* HAPTIQUE — `navigator.vibrate` N'EXISTE PAS SUR iOS, et c'est resté un trou pendant deux ans :
+   l'acquittement tactile du cochage (D10) y était purement inerte. La coquille native le rend
+   possible ; le pont est donc branché ICI, au point unique par lequel passent le tick de geste ET
+   le motif d'alarme.
+   ⚠ LE STYLE SUIT LA NATURE DU GESTE, pas la durée : un motif (tableau) est une ALARME, une valeur
+   simple est un ACCUSÉ de geste. Les confondre donnerait à un cochage la force d'une alerte —
+   exactement l'inflation que ce dossier combat sur le rouge. UIKit n'offre pas de motif répété :
+   on rend l'INTENTION (impact fort) plutôt que d'imiter une séquence qui n'existe pas. */
+function buzz(p){
+  if(Native.can('haptic')){Native.call('haptic',{style:Array.isArray(p)?'medium':'light'});return;}
+  if(!VIBE_OK)return;try{navigator.vibrate(p);}catch(e){}}
 /* D10 (audit design v4.56) : ACQUITTEMENT HAPTIQUE d'un geste ACCOMPLI — cochage, incrément.
    Avec des gants, dans le bruit d'un SMUR, la confirmation tactile évite le double-tap de doute,
    qui sur un compteur FAUSSE la donnée. ~18 ms : perceptible, jamais une alarme (l'alarme, elle,
@@ -20307,7 +20322,20 @@ async function dupToPerso(kind,src){
 }
 // « Exporter en PDF » : impression navigateur (les styles @media print masquent barres et
 // panneaux) — sur iOS/macOS/Android le dialogue propose « Enregistrer en PDF ».
-function exportPdfCurrent(){window.print();}
+/* ⚠ `window.print()` EST UN NO-OP EN WEBKIT iOS — mesuré : `beforeprint` et `afterprint` ne
+   sont PAS émis, la fonction rend la main en 0 ms sans lever. Or c'est dans ces deux écouteurs
+   que vit toute la préparation du document (dépliage de la confirmation, `showFlow`, `readMode`
+   forcé, restauration). Sans le pont, « Exporter en PDF » imprimerait l'écran de crise REPLIÉ au
+   lieu du document — un résultat faux présenté comme le bon.
+   On appelle donc explicitement `printPrepare()` / `printRestore()`, que les écouteurs web
+   appellent de leur côté : un seul corps de préparation, deux déclencheurs. */
+function exportPdfCurrent(){
+  if(!Native.can('print.page')){window.print();return;}
+  if(!printPrepare())return;                       // porte aussi la garde d'étanchéité invité
+  // Le rendu doit être peint AVANT que la coquille photographie la vue : sans ce délai, on
+  // imprimerait l'état d'avant la préparation (même piège que l'iframe du compte rendu).
+  setTimeout(()=>{try{Native.call('print.page',{titre:(state.fiche&&state.fiche.title)||'Aide cognitive'});}
+                  finally{setTimeout(printRestore,400);}},150);}
 // Le contenu REPLIÉ (confirmation diagnostique, carte des blocs) n'existe pas dans le DOM :
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
