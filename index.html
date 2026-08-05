@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-4xG8nAJxnnp2Wq0NhSlibGU47dN4+8LmYqVw5/2O3CM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-4Xvpk61FkCAdtjg17sNiLJBRb3rGOCMrKwYOmnHfiTY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -983,41 +983,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      commandes, palier par palier. Une verticale au-dessus de 780, une au-dessous : jamais deux. */
   #crisisCtrl .dock-in{align-items:center;gap:8px;padding:6px 10px}
   #crisisDock .dock-in{padding-inline:10px}
-  /* L'ESPACE fait la séparation des deux natures — le mode (un état, on le lit) puis les
-     ouvertures (des actions, on les vise). Aucun trait ajouté : la proximité de Gestalt suffit,
-     et un trait de moins vaut mieux qu'un trait de plus sur un écran de crise.
-     ÉCART FIXE, pas un `flex:1` : pousser les ouvertures au bord droit les éloignerait de tout le
-     reste sur grand écran, et contredirait la règle du projet (le cluster se groupe À GAUCHE, le
-     blanc part au bord droit). Un écart constant garde en prime des POSITIONS IDENTIQUES quelle
-     que soit la largeur — la constance positionnelle ECAM, appliquée aussi entre appareils. */
-  /* La bascule de mode : sélecteur segmenté (deux MODES pairs, jamais un interrupteur — aucun
-     n'est la négation de l'autre). Même composant .seg que la tab bar, donc même pastille
-     glissante ; l'élément n'étant plus re-rendu, la transition joue toute seule. */
-  /* GÉOMÉTRIE DE LA PASTILLE — deux pièges du composant `.seg`, tous deux mesurés :
-     1. `.seg` porte `gap:8px` (la tab bar en a besoin, sa pastille compense par
-        `translateX(calc(100% + 8px))`). Hérité tel quel ici, il décalait la pastille de 8 px.
-        -> `gap:0` : la pastille EST la séparation.
-     2. Les deux libellés n'ont pas la même longueur (« Guidé » 64 px, « Statique » 81 px mesurés) :
-        des boutons à largeur automatique ne peuvent JAMAIS coïncider avec une pastille fixée à
-        50 %. -> `flex:1 1 0` : deux moitiés strictement égales.
-     Sans ces deux réglages, la pastille flottait à côté du segment actif (retour d'usage). */
-  /* SÉLECTEUR PAR ID, à dessein : `.mode-seg` et `.seg` ont la MÊME spécificité (0,1,0) et la
-     règle de base `.seg{gap:8px}` est déclarée BEAUCOUP PLUS BAS dans le fichier — elle gagnait
-     donc par simple ordre, et la pastille se retrouvait décalée de 8 px (retour d'usage). Un id
-     l'emporte quel que soit l'ordre : c'est le 3ᵉ piège de cascade de ce type dans le projet
-     (cf. .read-grid v4.23.0 et .cbt-n v4.23.5) — pour une géométrie, ne pas dépendre de l'ordre. */
-  /* GRILLE à deux pistes `1fr`, PAS un flex : en flex, `min-width:auto` recale chaque bouton sur
-     son propre texte (mesuré : « Guidé » 64 px, « Statique » 81 px) — `flex:1 1 0` ne suffit donc
-     PAS à les égaliser, et une pastille fixée à 50 % ne peut coïncider avec aucun des deux. Des
-     pistes `1fr` adoptent toutes la largeur du plus exigeant : les deux moitiés deviennent
-     strictement égales, et la pastille tombe juste par construction. */
-  /* Le segment actif prend le registre de SÉLECTION de l'app (teinte + bordure d'accent), et non
-     un simple fond clair : `--surface` s'INVERSE d'un thème à l'autre (plus clair que la piste en
-     clair, plus SOMBRE qu'elle en sombre — la pastille s'y lisait alors comme inactive). Teinte +
-     bordure restent lisibles dans les deux thèmes, sans dépendre du sens du contraste. */
-  /* v4.29.0 (retour utilisateur « le texte se décale ») : la graisse ne change PLUS avec
-     l'état — 700→800 élargissait le mot, les deux libellés bougeaient à chaque bascule.
-     L'état est porté par la pastille (teinte + bordure) et la couleur : ça suffit. */
+  /* (Les commentaires du sélecteur de mode — écart `.ctrl-sp`, géométrie/registre/graisse de la
+     pastille `#modeSeg` — sont partis avec le composant, PURGÉ au lot A v5.0.0, règle 14 ; la
+     doctrine de la pastille vit sur le composant `.seg` générique et dans AGENTS.md.) */
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
   #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-dock)}
@@ -1149,10 +1117,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (12 px), rembourrage des deux ouvertures 8→6 (8 px). Budget rendu 34 px pour 28 nécessaires,
      donc 6 px de marge — la recette v4.23.4 n'était pas épuisée, elle n'avait simplement jamais
      été appliquée à ces postes-là.
-     CE QUI N'EST PAS TOUCHÉ, et pourquoi : `.ctrl-sp` reste à 4 px — c'est l'écart de Gestalt qui
-     sépare le MODE (un état qu'on lit) des OUVERTURES (des actions qu'on vise), la raison d'être
-     de la séparation ECP/ECAM de v4.25.0 ; le supprimer rendrait bien 4 px et coûterait la seule
-     chose qui distingue deux natures de contrôle sans ajouter de trait. Aucun renommage non plus
+     CE QUI N'ÉTAIT PAS TOUCHÉ : `.ctrl-sp` restait à 4 px — l'écart de Gestalt qui séparait le
+     MODE des OUVERTURES (séparation ECP/ECAM de v4.25.0) ; il est parti depuis avec le sélecteur
+     de mode (lot A v5.0.0, règle 14). Aucun renommage non plus
      (règle « troncature du même mot ») et pas de 2ᵉ ligne (la hauteur de crise est un coût
      permanent). Les positions restent constantes entre appareils : seules les MARGES bougent.
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
@@ -1175,18 +1142,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      quai se sont révélés FAUX, et ici ils dépendraient en plus de la fonte du système, de la
      longueur des libellés et du zoom. Corollaire : le comportement de tous les appareils servis
      reste inchangé au pixel, puisqu'il n'y a rien à enrouler quand rien ne déborde.
-     CE QUI EST PRÉSERVÉ : l'ORDRE (mode d'abord — il gouverne l'existence de « Se repérer »), les
+     CE QUI EST PRÉSERVÉ : l'ORDRE des contrôles, les
      libellés ENTIERS (aucun renommage, aucun pictogramme orphelin : « deux pictogrammes voisins
      sans mot se confondent sous stress »), les cibles de 44 px, et la constance positionnelle —
      dans une configuration donnée, tout reste au même endroit. */
   #crisisCtrl .dock-in.wrapped{flex-wrap:wrap;row-gap:6px}
   /* LA COUPURE TOMBE ENTRE LES DEUX OUVERTURES — il n'y a plus qu'elles (`.ctrl-sp` est PURGÉ
      avec le sélecteur de mode qu'il séparait, règle 14). L'enroulement est donc NATUREL : la
-     rangée passe en `flex-wrap` et coupe au seul endroit possible.
-     Doctrine d'origine, conservée : la coupure était le SAUT DE LIGNE : il sépare toujours le MODE des OUVERTURES, et il le fait mieux que 4 px. Sans cela, la
-     coupure se plaçait où elle voulait — mesuré : « Se repérer » restait avec le mode et
-     « Consulter » descendait seul, ce qui séparait les deux ouvertures, c'est-à-dire exactement les
-     deux contrôles de même nature (Gestalt de proximité, raison d'être de cet écart en v4.25.0). */
+     rangée passe en `flex-wrap` et coupe au seul endroit possible. Doctrine d'origine (v4.73.1),
+     pour mémoire : la coupure devait tomber sur `.ctrl-sp`, le saut de ligne séparant alors le
+     MODE des OUVERTURES — sans point de coupure désigné, « Se repérer » restait avec le mode et
+     « Consulter » descendait seul, séparant les deux contrôles de même nature (Gestalt). */
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
   #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -3372,18 +3338,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      trompe, c'est la SPÉCIFICITÉ. */
   body.share-scribe :is([data-tmreset],[data-cnreset]),
   body.share-scribe .btn:is([data-tmreset],[data-cnreset]){
-  /* HUITIÈME PIÈGE DE CASCADE DU PROJET, ET LE SECOND PAR SPÉCIFICITÉ. Le bouton « Continuer » du
-     lecteur porte la classe `.rm-ok` et se style par `#readerMode .rm-ok` — soit (1,1,0), un ID :
-     il l'emportait sur `body.share-scribe :is([data-ovnext])`, qui vaut (0,2,1). Le geste était
-     bien bloqué par la garde, mais le bouton restait vert plein, 72 px, graisse 800 — c'est-à-dire
-     qu'il INVITAIT à un geste refusé. Le bridage doit se VOIR, sinon il n'est qu'un piège.
-     La parade est la même que pour la géométrie : ne jamais dépendre de l'ordre ni d'une
-     spécificité de classe quand un `#id` est en jeu — on qualifie par le même `#id`. */
-  /* Le lecteur n'a plus AUCUN contrôle bridé depuis le redécoupage v4.55.0 — mais la leçon de
-     cascade reste écrite ici : `#readerMode .rm-ok` porte un ID (1,1,0) et l'emportait sur
-     `body.share-scribe :is([data-ovnext])` (0,2,1). Le geste était bloqué, le bouton restait vert
-     plein et INVITAIT à un geste refusé. Huitième piège du projet, second par SPÉCIFICITÉ. Si un
-     verbe du lecteur redevient réservé un jour, il faudra le qualifier par le même `#id`. */
+  /* HUITIÈME PIÈGE DE CASCADE DU PROJET, LE SECOND PAR SPÉCIFICITÉ (leçon conservée — la surface
+     est partie : mode lecteur retiré au lot T14, v5.0.0 ; le commentaire vivait ici en DEUX
+     versions successives, dédoublonnées). `#readerMode .rm-ok` valait (1,1,0), un ID : il
+     l'emportait sur `body.share-scribe :is([data-ovnext])` (0,2,1) — le geste était bien bloqué
+     par la garde, mais le bouton restait vert plein : il INVITAIT à un geste refusé. Le bridage
+     doit se VOIR. Si un verbe d'une surface à `#id` devient réservé, le brider en le qualifiant
+     par le même `#id`. */
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* ═══ LIEN MORT (invité) — LE BANDEAU ET LES CONTRÔLES ÉTEINTS ════════════════════════════════
@@ -4499,11 +4460,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* En SESSION de crise, l'état de stockage disparaît du pied de lecture — exactement comme il
      disparaît du pied de la sidebar (aucun signal non actionnable pendant un soin). */
   body.crisis-live .crisis-footer .cf-stg{display:none}
-  /* Barre Enregistrer/Supprimer COLLANTE en bas : sur un formulaire à ~16 sections, « Enregistrer »
-     reste visible en permanence (sinon il faut dérouler tout le formulaire pour sortir proprement). */
-  /* (SPEC §6 : plus de pied d'éditeur — Enregistrer/Aperçu vivent dans l'en-tête, Supprimer en
-     fin de formulaire, cf. .ed-del.) */
-  /* (kb-open : plus rien à masquer — les actions d'éditeur sont dans l'en-tête sticky.) */
+  /* (SPEC §6 : plus de pied d'éditeur — les actions vivent dans l'en-tête sticky, Supprimer en
+     fin de formulaire, cf. .ed-del. Le mécanisme kb-open, qui masquait l'ancienne barre basse au
+     clavier virtuel, est PURGÉ avec elle — règle 14.) */
   .back{background:var(--surface);border:1px solid var(--line);color:var(--primary);font-size:13.5px;font-weight:600;padding:8px 14px 8px 10px;margin-bottom:14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px}.back:hover{background:var(--primary-soft);border-color:var(--primary-soft);color:var(--primary-dk)}
   /* (create-band supprimée — le choix de méthode vit dans le dialogue « Créer », SPEC §2.1.) */
   /* Pied de page COMPACT (une seule ligne qui replie au besoin) : version · synchro · stockage
@@ -5119,6 +5078,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de plus : à spécificité égale ce serait l'ORDRE de déclaration qui trancherait, et le projet
      a déjà payé cinq fois ce piège (cf. .read-grid, .cbt-n, .mode-seg, les largeurs d'éditeur). */
   .seg{position:relative;display:flex;gap:8px}
+  /* Fond de pastille = teinte de SÉLECTION, jamais --surface : elle s'INVERSE d'un thème à
+     l'autre et la pastille se lirait inactive (v4.25.1). */
   .seg-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:18px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
   .seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
   .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:18px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
@@ -6319,7 +6280,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.1.1';
+const APP_VERSION='5.1.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10050,9 +10011,6 @@ function applyViewChrome(){
     if(!okPlan)closePlanSheet();}
    // « Réf. » : accès permanent à la couche de consultation. Pas de condition d'algorithme (une
    // fiche mono-bloc a aussi des annexes) ; masqué en aperçu de brouillon et hors lecture.
-   // MODE : la bascule vit dans la rangée de COMMANDES depuis v4.25.0 (elle gouverne l'existence
-   // de « Se repérer », donc elle vient AVANT lui). Masquée sans algorithme — les deux vues y
-   // seraient identiques (règle inchangée depuis v4.16.0).
    /* Le bouton d'excursion : même condition qu'avant (sans algorithme, les deux vues seraient
       identiques — règle inchangée depuis v4.16.0), mais un seul contrôle, qui dit où il MÈNE.
       Au retour il prend le registre CONFIRMATION et le glyphe ↩ : c'est le contrôle rempli de
@@ -14028,11 +13986,6 @@ function renderRead(){
   // l'affichage « Schéma » de la section Plan, SOUS le journal. Le panneau ne subsiste que
   // pour les fiches SANS algorithme (rendu guidé, pas de Plan).
   const algH=(f.blocks&&f.blocks.length&&!useSv&&!useOv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
-  // v4.16.0 : UNE bascule « Dynamique ↔ Statique » en tête de fiche — le statique est un
-  // DOCUMENT complet (confirmation, chapeau, algorithme, surveillances dans le tableau) ;
-  // le dynamique EST le journal (fil condensé — l'ex-mode guidé y est fusionné).
-  // Les deux vues partagent le même Runtime — basculer ne perd rien.
-  const modeTopSegH='';   // v4.25.0 : la bascule vit dans la rangée de COMMANDES (#modeSeg)
   const localH=f.local&&f.local.trim()?`<div class="local">${fmt(f.local)}</div>`:'';
   /* DÉCLARÉ ICI, ET PAS PLUS BAS : le lot T3 a payé une zone morte temporelle (`started` lu
      24 lignes avant sa déclaration → ReferenceError → tout le rendu échouait, sans qu'aucun
@@ -14143,7 +14096,6 @@ function renderRead(){
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${shareOverHtml()}
-    ${modeTopSegH}
     ${dockPanel}
     ${(useSv||fsAvantBouton)?'':forgetStrip}
     ${pathH}
@@ -15019,9 +14971,8 @@ bindModalDismiss(refModal,closeRefSheet);
    à la feuille), plus la fermeture automatique quand le geste DÉPLACE le parcours — taper un
    bloc, c'est y aller : on rend la main à l'action, pile sur le bloc visé. */
 {const body=document.getElementById('planBody');
- // Délégation posée sur la CARTE, pas sur le corps : le sélecteur d'affichage est remonté dans
- // la barre collante (#pmViews) et ne serait jamais atteint depuis #planBody. Pas sur la modale
- // elle-même non plus — son onclick appartient à bindModalDismiss (fermeture au voile).
+ // Délégation posée sur la CARTE — pas sur la modale elle-même, dont l'onclick appartient à
+ // bindModalDismiss (fermeture au voile).
  const card=planModal.querySelector('.ai-card');
  const act=(t)=>{
    const f=state.fiche;if(!f)return;
@@ -15052,10 +15003,14 @@ function syncDock(){
   // Rangée d'ÉTAT : visible si un état vit (session ou minuteur).
   {const d=document.getElementById('crisisDock'),t=document.getElementById('cbTimers');
    if(d)d.hidden=!t||t.hidden;}
-  // Rangée de COMMANDES : visible si au moins une commande l'est.
+  // Rangée de COMMANDES : visible si au moins une commande l'est. ⚠ Correctif (retombée de purge,
+  // règle 14) : depuis les lots T8/A (v5.0.0) la rangée porte #allBtn et #refBtn, mais le test
+  // lisait encore #modeSeg et #planBtn (toujours null) en ignorant #allBtn — une fiche À
+  // ALGORITHME mais SANS annexe (Consulter masqué) perdait donc la rangée entière, « ⤢ Tout
+  // voir » compris, en silence.
   {const c=document.getElementById('crisisCtrl');
-   if(c){const ms=document.getElementById('modeSeg'),pb=document.getElementById('planBtn'),rb=document.getElementById('refBtn');
-     c.hidden=(!ms||ms.hidden)&&(!pb||pb.hidden)&&(!rb||rb.hidden);}}
+   if(c){const ab=document.getElementById('allBtn'),rb=document.getElementById('refBtn');
+     c.hidden=(!ab||ab.hidden)&&(!rb||rb.hidden);}}
   /* L'AJUSTEMENT AVANT LA MESURE. `syncHdrScroll` lit la HAUTEUR de cette rangée pour poser
      `--ctrl-h`, dont le quai dépend pour se coller dessous : si l'enroulement était décidé après,
      le quai passerait une passe entière à recouvrir la seconde ligne. Et c'est ici que la
@@ -15063,7 +15018,7 @@ function syncDock(){
      re-mesurer — pas seulement au redimensionnement. */
   fitCtrlRow();
   syncHdrScroll();}
-// ----- ORGANIGRAMME HYBRIDE (mode Détails) -----
+// ----- ÉCHELLE DU PLAN (rail droit / colonne cockpit) -----
 /* ÉCHELLE DU RAIL — EN-TÊTE + CORPS, EN UNE SEULE FONCTION (correctif : « le plan sur le côté
    gauche ne se met pas à jour », signalé à l'usage). Le HTML vivait dans une IIFE de `renderRead`,
    donc INATTEIGNABLE aux re-rendus CIBLÉS : `renderOvOnly` reconstruit `.ov-wrap` et rien d'autre
@@ -22324,15 +22279,8 @@ document.addEventListener('keydown',e=>{
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
   }
 });
-// Clavier virtuel : un champ TEXTE en focus = clavier à l'écran (sur téléphone). body.kb-open
-// masque la barre Enregistrer/Supprimer de l'éditeur pendant la saisie sur écran tactile (voir
-// .editor-foot) : collée au clavier, elle mangeait l'écran déjà réduit. Sur ordinateur la classe
-// est posée aussi mais sans effet (règle limitée aux médias tactiles). Champs SANS saisie texte
-// (cases, boutons) exclus : pas de clavier.
-const _kbText=el=>!!(el&&el.matches&&(el.matches('textarea,select,[contenteditable]')||
-  (el.matches('input')&&!/^(checkbox|radio|range|button|submit|reset|color|file)$/.test(el.type))));
-document.addEventListener('focusin',e=>{if(_kbText(e.target))document.body.classList.add('kb-open');});
-document.addEventListener('focusout',e=>{if(!_kbText(e.relatedTarget))document.body.classList.remove('kb-open');});
+// (kb-open PURGÉ, règle 14 : la classe n'avait plus AUCUN consommateur CSS depuis que les actions
+// d'éditeur vivent dans l'en-tête sticky — deux écouteurs posaient un drapeau que rien ne lisait.)
 
 /* ===== Bouton retour SYSTÈME (History API — v4.30.0, P1 de l'audit externe) =====
    Aucun pushState/popstate jusqu'ici : sur Android (PWA ou navigateur), le geste retour SORTAIT
