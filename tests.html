@@ -1824,6 +1824,33 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('« __proto__ » ne traverse pas la table (règle 6)',leve2);
   }
 
+  group('Journal des actions — correction d’heure résiliente (v5.4.0)');
+  {const p=A.tkParseTime;
+   // Le champ est `inputmode=numeric` : le clavier numérique d'iOS n'a PAS de deux-points —
+   // les chiffres nus doivent donc suffire, lus par longueur.
+   eq('« 1547 » → 15:47:00',p('1547'),{h:15,m:47,s:0});
+   eq('« 947 » → 9:47:00',p('947'),{h:9,m:47,s:0});
+   eq('« 154723 » → 15:47:23',p('154723'),{h:15,m:47,s:23});
+   eq('« 94723 » → 9:47:23',p('94723'),{h:9,m:47,s:23});
+   eq('« 15 » seul = une heure ronde',p('15'),{h:15,m:0,s:0});
+   // Séparateurs libres : deux-points, h, point, virgule, espace — 2 ou 3 groupes.
+   eq('« 15:47 » (secondes facultatives)',p('15:47'),{h:15,m:47,s:0});
+   eq('« 15:47:23 »',p('15:47:23'),{h:15,m:47,s:23});
+   eq('« 15h47 »',p('15h47'),{h:15,m:47,s:0});
+   eq('« 15.47 »',p('15.47'),{h:15,m:47,s:0});
+   eq('« 15 47 »',p('15 47'),{h:15,m:47,s:0});
+   eq('« 15:7 » tolère la minute à un chiffre',p('15:7'),{h:15,m:7,s:0});
+   eq('«  15h47  » — espaces autour ignorés',p('  15h47  '),{h:15,m:47,s:0});
+   // Une valeur IMPOSSIBLE est REFUSÉE, jamais écrêtée : l'ancien code transformait « 15:87 »
+   // en 15:59 — une heure FABRIQUÉE dans une trace de soin qui alimente le compte-rendu.
+   eq('« 1587 » (minutes > 59) est refusé, pas écrêté',p('1587'),null);
+   eq('« 2547 » (heure > 23) est refusé',p('2547'),null);
+   eq('« 15:47:99 » (secondes > 59) est refusé',p('15:47:99'),null);
+   eq('vide → null',p(''),null);
+   eq('texte sans chiffre → null',p('abc'),null);
+   eq('trop de groupes → null',p('1:2:3:4'),null);
+   eq('trop de chiffres nus → null',p('1234567'),null);
+  }
   group('Journal des actions — repères référentiels');
   {const f={counters:[{id:'c1',label:'Chocs'},{id:'c2',label:'Adrénaline'}]};
    const ev=[

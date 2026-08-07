@@ -1,5 +1,52 @@
 # Journal des modifications
 
+## [5.4.0] — 2026-08-07
+### Le journal des actions rejoint le dépliant minuteurs, et l'heure se corrige comme on la tape
+
+Trois retours d'usage en situation réelle, traités après proposition de solutions et décisions
+de l'auteur ; plus un chantier vérifié resté en attente de publication (16 px tactile).
+
+- **La correction d'heure accepte ce qui a un sens, et refuse en le disant** (« entrer 1547 pour
+  15h47 ne fonctionne pas — trop strict ») : l'ancien format exigeait `H:MM[:SS]`, or le champ est
+  `inputmode=numeric` et le clavier numérique d'iOS n'a pas de deux-points — le format canonique
+  était intapable sur la cible principale ; et l'échec était MUET (saisie jetée sans un mot), d'où
+  l'impression d'un format encore plus strict. `tkParseTime` (pure, 19 tests) lit les séparateurs
+  libres (`15:47`, `15h47`, `15.47`, `15 47`) et les chiffres nus par longueur (`1547` → 15:47:00,
+  `154723` → 15:47:23) ; une valeur impossible est REFUSÉE, plus écrêtée (« 15:87 » devenait
+  15:59 — une heure fabriquée dans une trace de soin). Sur Entrée, l'illisible laisse le champ
+  ouvert avec le registre ATTENTION (△ + « ex. 1547 ou 15:47 ») ; sur blur, le retour à l'ancienne
+  heure s'annonce (#srLive).
+- **Chips de recul « −1 · −2 · −5 min »** pendant l'édition d'une heure : le cas réel est
+  « rattraper un geste noté en retard » — un tap vaut mieux qu'une heure retapée ; même mécanique
+  non destructive (`origT` + « ↺ revenir »). Le tap passe par `preventDefault` au `pointerdown`
+  (le blur détruirait la chip avant son click — leçon `.li-tools` v4.77.0), le chemin clavier par
+  `relatedTarget`.
+- **En étroit, le journal vit dans le dépliant minuteurs** (« ne pas mettre les compteurs et le
+  journal au même endroit m'a perturbé — pour changer l'un puis l'autre on passe au-dessus des
+  étapes ») : une seule rangée « Minuteurs · compteurs · journal — comptes », posée sous la carte
+  du bloc (la place T2 du journal) ; ouverte du quai, tout arrive ensemble sous le quai (M11
+  tenu : quai immobile, mesuré). Le geste fréquent ne bouge pas — « ⏱ Noter » et l'accusé restent
+  dans la carte (M7) ; en large, le rail est inchangé ; une fiche sans minuteur ni compteur garde
+  son journal autonome. `rtRowLabel` = source unique du libellé ; `renderTkOnly` repeint le compte
+  de la rangée repliée quand le panneau n'est pas dans le DOM (repère posé depuis la carte ou reçu
+  d'une session partagée — sinon compte périmé affiché comme vivant). Deux témoins d'`audit-partage`
+  passent désormais par le vrai geste d'ouverture.
+- **Un dépliant se reconnaît avant de se lire** (« difficile d'identifier que c'est un menu
+  déroulant ») : rangée repliée en `--surface-3` — le ton du chrome, distinct dans les deux
+  thèmes ; le contenu clinique reste seul en carte blanche — et déclencheur « ▾ Afficher » en
+  pilule bordée. Niché dans le panneau, le journal est une section à filet, pas une carte dans la
+  carte.
+- **Publication du chantier « 16 px tactile » resté en attente** (signalé à l'usage iPhone :
+  « quand on clique à l'intérieur d'un protocole l'écran zoome ») : le champ « Chercher dans la
+  référence » était né à 12 px hors du bloc tactile des 16 px — Safari iOS zoomait au focus.
+  `check-type` exige désormais que tout sélecteur posant < 16 px sur un champ figure dans la liste
+  tactile ; il a attrapé trois autres champs jamais signalés (phase de bloc, lignes du chapeau,
+  nom de minuteur). Les références « v5.3.2 » de ce chantier sont réalignées sur la version qui
+  l'embarque réellement.
+- Passes complètes : 16/16 check · 939 × 2 tests (Chromium + WebKit) · 20/20 harnais ; sonde de
+  parcours dédiée 25/25 sur les deux moteurs (fusion, saisie, chips, refus annoncé, quai immobile,
+  large inchangé, fiche sans minuteur).
+
 ## [5.3.1] — 2026-08-07
 ### Les résultats de recherche ne collent plus aux bordures — et un rembourrage mort depuis la v5.0.0
 

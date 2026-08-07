@@ -201,7 +201,19 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   migration à ≤ 1 px de déplacement : c'était la moitié du système sans aucun garde-fou),
   **rayons** (`check-radius.mjs`, v5.0.0 — dix-neuf valeurs distinctes pour trois tokens, ramenées
   à sept), et `check-type` couvre désormais AUSSI la bande d'AFFICHAGE (≥ 20 px : 20 · 24 · 26 ·
-  34 · 40),
+  34 · 40) **ET la liste « 16 px tactile » (v5.4.0, signalé à l'usage iPhone : « quand on clique
+  à l'intérieur d'un protocole l'écran zoome »)** : le champ « Chercher dans la référence » était
+  né en v5.0.0 à 12 px sans rejoindre le bloc `@media (hover:none) and (pointer:coarse)` de fin
+  de feuille — la source de vérité unique des 16 px (v4.4.2), tenue À LA MAIN, donc un champ
+  oublié était un trou silencieux (famille MUTE_SEL/placards). Le contrôle exige désormais que
+  tout sélecteur posant < 16 px sur un jeton d'élément `input`/`textarea`/`select` figure dans
+  cette liste ; il a immédiatement attrapé TROIS autres champs jamais signalés (phase de bloc à
+  11 px, lignes du chapeau et nom de minuteur à 13,5). Limite dite : un champ stylé par sa seule
+  CLASSE échappe au repérage statique. ⚠ Sa PREMIÈRE version était un no-op silencieux — écrite
+  via un heredoc Python, son `\b` de regex était devenu un BACKSPACE (le piège « un patch scripté
+  mutile en silence », déjà payé sur les `$$` SQL) et le test de réintroduction restait VERT ;
+  rejoué rouge/vert après réparation, et la preuve dynamique (pointeur grossier émulé, corps
+  calculé 16 px sur les quatre champs) est passée aux deux moteurs,
   **paliers de largeur** (`check-paliers.mjs`, v5.0.0 — l'échelle responsive cesse d'être
   déclarative ; cf. « Largeurs & échelles fermées »), et
   **fraîcheur des hashs CSP** (`csp-hashes.mjs --check`). Ce dernier existe parce que le piège s'est produit trois
@@ -3000,6 +3012,49 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   déjà son entrée là où il sert — dans la carte du bloc (« Journal des actions (n) ▾ », lot M7).
   Le quai NOMME les minuteurs et compteurs depuis le lot T2 ; il n'a pas à nommer un troisième
   objet dont le geste vit ailleurs.
+- **EN ÉTROIT, LE JOURNAL VIT DANS LE DÉPLIANT MINUTEURS (v5.4.0, décision utilisateur, vécu en
+  situation réelle : « ne pas mettre les compteurs et le journal d'action au même endroit m'a
+  perturbé — pour changer l'un puis l'autre on doit passer au-dessus des étapes »)** : minuteurs,
+  compteurs et journal des actions sont les trois outils de TRAÇABILITÉ, et ils vivaient à deux
+  endroits séparés par toute la hauteur des étapes. UN dépliant désormais (rangée « Minuteurs ·
+  compteurs · journal — comptes ») : ouvert du quai, tout arrive ensemble sous le quai (M11
+  inchangé, quai immobile) ; ouvert de la rangée, tout arrive sous la carte du bloc — la place
+  que T2 avait donnée au journal. **Le geste FRÉQUENT n'y perd rien** : « ⏱ Noter » et l'accusé
+  vivent dans la CARTE du bloc (M7) ; le panneau est la vue de DÉTAIL, une consultation, comme
+  les minuteurs. En LARGE rien ne change (rail : minuteurs → posologie → Échelle → journal) ;
+  une fiche SANS minuteur ni compteur garde le panneau journal autonome. `rtRowLabel` est la
+  SOURCE UNIQUE du libellé de la rangée repliée : `renderTkOnly`, quand le panneau n'est pas dans
+  le DOM, REPEINT ce libellé au lieu de rendre false — sans quoi un repère posé depuis la carte
+  (ou arrivé d'une session partagée) laisserait un compte périmé affiché comme vivant.
+  ⚠ COROLLAIRE POUR LES TÉMOINS, payé deux fois en l'écrivant : toute sonde qui cherche `#tkAdd`
+  ou compte des rangées `.tk-*` en ÉTROIT doit OUVRIR le dépliant par le vrai geste (`#rtOpen`)
+  — l'état, lui, se mesure sur `Runtime`, pas sur le DOM replié (deux témoins d'`audit-partage`
+  corrigés ainsi).
+- **UN DÉPLIANT SE RECONNAÎT AVANT DE SE LIRE (v5.4.0, signalé à l'usage : « j'ai eu du mal à
+  identifier les blocs — c'est affiché comme si ça faisait partie du reste de la page »)** : la
+  rangée repliée était une carte BLANCHE `--surface`, le dessin exact du contenu clinique qui
+  l'entoure ; son seul signal était un petit « ▾ Afficher ». Elle passe en `--surface-3` — le ton
+  du CHROME, distinct de la surface dans les DEUX thèmes ; le contenu clinique reste seul en
+  carte blanche — et le déclencheur devient une PILULE bordée `--line-strong`. Niché dans le
+  panneau, le journal est une SECTION à filet, jamais une carte dans la carte (deux cadres
+  emboîtés se liraient comme deux objets).
+- **LA CORRECTION D'HEURE ACCEPTE CE QUI A UN SENS, ET REFUSE EN LE DISANT (v5.4.0, signalé à
+  l'usage : « entrer 1547 pour 15h47 ne fonctionne pas — trop strict, en urgence on n'a pas le
+  temps »)** : l'ancien format exigeait `H:MM[:SS]` — or le champ est `inputmode=numeric` et le
+  clavier numérique d'iOS N'A PAS de deux-points : le format canonique était intapable sur la
+  cible principale déclarée. Et l'échec était MUET (saisie jetée, retour silencieux à l'ancienne
+  heure) — c'est lui qui faisait croire à un format « encore plus strict » qu'il n'était.
+  `tkParseTime` (PURE, 19 témoins) lit les séparateurs libres (`:`, `h`, `.`, espace…) ET les
+  chiffres nus par longueur (« 1547 » → 15:47:00, « 154723 » → 15:47:23) ; une valeur IMPOSSIBLE
+  est REFUSÉE, plus écrêtée — l'ancien code transformait « 15:87 » en 15:59, une heure FABRIQUÉE
+  dans une trace de soin. Sur Entrée, l'illisible laisse le champ OUVERT et le dit (registre
+  ATTENTION : glyphe △ + phrase + exemple) ; sur blur on revient à l'ancienne heure mais on
+  l'ANNONCE (`#srLive`). **CHIPS DE RECUL « −1 · −2 · −5 min »** pendant l'édition seulement
+  (une rangée permanente par repère serait du bruit) : le cas réel est « rattraper un geste noté
+  en retard », un tap vaut mieux qu'une heure retapée — même mécanique non destructive (`origT`
+  + « ↺ revenir »). ⚠ Le tap d'une chip passe par `preventDefault` au `pointerdown` (le blur du
+  champ détruirait la chip avant son click — leçon `.li-tools` v4.77.0) et le commit du blur
+  s'abstient quand `relatedTarget` est une chip (chemin CLAVIER).
 - **APRÈS UNE MIGRATION DE MODÈLE, UNE COMPARAISON À UNE ANCIENNE VALEUR NE LÈVE RIEN — ELLE SE
   TAIT (v5.0.0, deux défauts signalés à l'usage, même faute)** : `buildFlowSVG` comparait `kind` à
   `'steps'`, valeur disparue à l'étape C (`kind:'do'`) — tout bloc non-décision retombait dans la

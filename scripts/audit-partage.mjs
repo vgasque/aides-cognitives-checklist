@@ -771,6 +771,9 @@ console.log(`\n══ PARTAGE · continuer seul — moteur ${NOM_MOTEUR} ══`
         payload: { t: Date.now() - 60000, ref: null } },
     ]);
     await new Promise(x => setTimeout(x, 300));
+    // v5.4.0 : en étroit le journal vit DANS le dépliant minuteurs — on l'ouvre par le VRAI
+    // geste avant de compter ses rangées (l'entrée au journal, elle, se mesure sur Runtime).
+    { const ro = document.getElementById('rtOpen'); if (ro) { ro.click(); await new Promise(x => setTimeout(x, 400)); } }
     const rows = [...document.querySelectorAll('.tk-annex')];
     return { avant, coches: Object.keys(state.checked).length, nav: state.nav.length,
       ev: (Runtime.events || []).length, rangees: rows.length,
@@ -1327,6 +1330,10 @@ console.log(`\n══ PARTAGE · le journal référentiel — moteur ${NOM_MOTEU
   const r = await page.evaluate(async () => {
     Share.mode = 'host'; Share.role = 'lead'; Share.me = 'moi'; Share.status = 'active';
     setMyTags([{ k: 'mru', l: 'Médecin régulateur', a: ['mru', 'regul'] }]);
+    // v5.4.0 : en étroit le journal vit DANS le dépliant minuteurs — on l'ouvre par le VRAI
+    // geste (la rangée repliée), comme l'utilisateur, avant de chercher « Noter l'heure ».
+    const ro = document.getElementById('rtOpen');
+    if (ro) { ro.click(); await new Promise(x => setTimeout(x, 400)); }
     document.getElementById('tkAdd').click();
     await new Promise(x => setTimeout(x, 400));
     const inp = document.querySelector('.tk-panel [data-tklab]');

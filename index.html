@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-2MQiHQBleuMta3epzZsz85J8kbxNQaoEFYqcE0TUrC0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-2pfxfnXpGb+ltYnblpFyeoVnVqW9s4UnmLXNJdIHsPc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3226,6 +3226,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cn-reset:hover{background:var(--surface-2)}
   /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+  /* v5.4.0 — NICHÉ DANS LE DÉPLIANT MINUTEURS (étroit) : le journal y devient une SECTION à filet,
+     pas une carte dans la carte — deux cadres emboîtés se liraient comme deux objets. */
+  .rt-panel .tk-panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;margin:12px 0 0;padding:12px 0 0}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
   /* « NOTER L'HEURE » N'EST PAS L'ACTION PRIMAIRE DE L'ÉCRAN (v4.77.0, question utilisateur : « le
@@ -3261,6 +3264,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-time{font-family:var(--mono);font-size:13.5px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
   .tk-time:hover{background:var(--primary-soft)}
   .tk-time-edit{font-family:var(--mono);font-size:13.5px;width:76px;flex-shrink:0;padding:2px 4px;border:1px solid var(--primary);border-radius:6px;background:var(--input-bg);color:var(--ink)}
+  /* v5.4.0 — L'ÉCHEC DE SAISIE SE VOIT (registre ATTENTION : on s'est trompé en tapant, rien de
+     vital) ; la couleur n'est jamais seule, le glyphe △ et la phrase portent le message. */
+  .tk-time-edit.bad{border-color:var(--verify-bd);box-shadow:0 0 0 1px var(--verify-bd) inset}
+  .tk-time-hint{color:var(--verify);font-size:12px;font-weight:700;padding:0 0 8px}
+  /* Chips de recul (v5.4.0) : n'existent que PENDANT l'édition d'une heure — cible 44px (journal
+     de crise), pilule au dessin des propositions d'étiquette (.tk-pick). */
+  .tk-time-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 0 8px}
+  .tk-time-chips .tk-chips-k{color:var(--ink-soft);font-size:12px}
+  .tk-time-chips button{min-height:44px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+  .tk-time-chips button:hover{background:var(--primary-soft);border-color:var(--primary)}
+  .tk-time-chips button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .tk-orig-row{font-size:11px;color:var(--ink-soft);padding:0 0 8px;display:flex;align-items:center;gap:6px}
   .tk-orig{background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
   .tk-orig:hover{color:var(--primary)}
@@ -5745,10 +5759,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .forget-strip.many .fs-i{-webkit-column-break-inside:avoid;break-inside:avoid}
   }
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
-  .rt-collapsed{width:100%;display:flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
+  /* v5.4.0 — UN DÉPLIANT SE RECONNAÎT AVANT DE SE LIRE (signalé à l'usage : « j'ai eu du mal à
+     identifier les différents blocs — c'est affiché comme s'il faisait partie du reste de la
+     page »). La rangée repliée était une carte BLANCHE `--surface`, exactement le dessin du
+     contenu clinique qui l'entoure ; son seul signal était le petit « ▾ Afficher ». Elle passe en
+     `--surface-3` (le ton du CHROME, distinct de la surface dans les DEUX thèmes — le contenu
+     clinique reste seul en carte blanche) et le déclencheur devient une PILULE : l'affordance se
+     voit de loin, à position constante. */
+  .rt-collapsed{width:100%;display:flex;align-items:center;gap:8px;background:var(--surface-3);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
   .rt-collapsed:hover{border-color:var(--line-hover)}
   .rt-collapsed .rtc-i{flex:1;min-width:0}
-  .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap}
+  .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;padding:4px 10px;font-weight:700}
   .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
@@ -5823,10 +5844,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      donc RIEN. Les compacts restent < 16px au pointeur fin (desktop).
      Jamais de maximum-scale / user-scalable=no au viewport (WCAG 2.2 §1.4.4).
      `input.gcap` (et non `.gcap`) : la même classe sert de LÉGENDE en lecture, qui reste à 11.5px.
-     `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée. */
+     `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée.
+     ⚠ `.rt-find input` MANQUAIT (v5.4.0, signalé à l'usage iPhone : « quand on clique à
+     l'intérieur d'un protocole l'écran zoome ») : le champ « Chercher dans la référence » est né
+     en v5.0.0 à 12px SANS rejoindre cette liste — le zoom au focus, exactement ce que la règle
+     existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
+     `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
-    .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
+    .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}
   }
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
@@ -6342,7 +6369,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.3.1';
+const APP_VERSION='5.4.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13918,20 +13945,39 @@ function cnLogTxt(id){
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
 function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
   const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);}
+/* v5.4.0 — LE JOURNAL REJOINT LE DÉPLIANT (décision utilisateur, vécu en situation réelle :
+   « ne pas mettre les compteurs et le journal d'action au même endroit m'a perturbé — pour
+   changer l'un puis l'autre on doit passer au-dessus des étapes »). En ÉTROIT, minuteurs,
+   compteurs et journal des actions vivent dans UN dépliant : ouvert du quai, tout arrive
+   ensemble sous le quai ; ouvert de la rangée, tout arrive sous la carte du bloc. Le geste
+   FRÉQUENT n'y perd rien — « ⏱ Noter » et l'accusé vivent dans la CARTE du bloc (lot M7) ; le
+   panneau est la vue de DÉTAIL (corriger une heure, renommer, annuler), une consultation, comme
+   les minuteurs. En LARGE, rien ne change : le rail garde son ordre (minuteurs → posologie →
+   Échelle → journal). Une fiche SANS minuteur ni compteur garde le panneau journal autonome
+   (runtimePanel rend '', renderRead retombe sur tkH — cf. le gating là-bas).
+   `rtRowLabel` est la SOURCE UNIQUE du libellé de la rangée repliée : runtimePanel l'écrit,
+   renderTkOnly la REPEINT quand un repère est posé/annulé pendant que le dépliant est replié —
+   sans elle, le compte annoncé serait la donnée périmée présentée comme vivante. */
+function rtRowLabel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=(f&&f.counters)||[];
+  const parts=[];const nt=tl.length+minis.length;if(nt)parts.push(nt+' minuteur'+(nt>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
+  const nEv=(Runtime.events||[]).length;if(nEv)parts.push(nEv+' repère'+(nEv>1?'s':''));
+  return 'Minuteurs · compteurs · journal'+(parts.length?' — '+parts.join(' · '):'');}
 function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=f.counters||[];if(!tl.length&&!minis.length&&!cl.length)return '';
   // Stratégie V5 (canvas turn 6) : à >= 1000px la colonne droite montre TOUJOURS le panneau ;
   // en dessous, il reste REPLIÉ (le contenu clinique d'abord — la barre segmentée de l'en-tête
   // donne les temps d'un coup d'œil) et s'ouvre par la barre (#cbTimers), la rangée repliée,
   // ou automatiquement à l'échéance d'un minuteur (onTimerFired).
-  if(!mqRail.matches&&!state.rtOpen){const parts=[];const nt=tl.length+minis.length;if(nt)parts.push(nt+' minuteur'+(nt>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
-    return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<span class="rtc-i">Minuteurs & compteurs · ${parts.join(' · ')}</span><span class="rtc-open">▾ Afficher</span></button>`;}
+  if(!mqRail.matches&&!state.rtOpen){
+    return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<span class="rtc-i">${esc(rtRowLabel(f))}</span><span class="rtc-open">▾ Afficher</span></button>`;}
   const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`;
   const cards=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}<button class="add-line rt-add" data-rtadd title="Ajouter un minuteur de surveillance PA (5 min) pour cette session">＋ Minuteur PA 5:00</button>`;
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
   if(mqRail.matches){const nAll=tl.length+minis.length+cl.length;
     return `<div class="rail-head"><span class="rail-title">Minuteurs & compteurs</span>${nAll>1?`<span class="rail-n">${nAll}</span>`:''}${sound}</div>${cards}`;}
-  // ÉTROIT : boîte repliable (✕) inchangée.
-  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs & compteurs</b>${sound}<button class="rt-x" id="rtClose" aria-label="Replier les minuteurs">×</button></div>${cards}</div>`;}
+  // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
+  // cf. le bloc doctrinal au-dessus de rtRowLabel) : `.tk-panel` garde sa classe, donc
+  // renderTkOnly le trouve et le remplace où qu'il loge.
+  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs & compteurs</b>${sound}<button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
@@ -14179,6 +14225,32 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
    du RAIL (`overflow-y:auto`) : la barre latérale « remontait » à chaque « Noter l'heure » (retour
    d'usage). Un ajout/suppression/correction d'horodatage n'affecte QUE ce panneau — jamais les
    minuteurs, le plan ou la posologie —, donc on le remplace en place. */
+/* ANALYSEUR D'HEURE RÉSILIENT (v5.4.0, signalé à l'usage : « entrer 1547 pour 15h47 ne fonctionne
+   pas — trop strict, en contexte d'urgence on n'a pas le temps »). L'ancien format exigeait
+   H:MM[:SS] — or le champ est `inputmode=numeric`, et le clavier numérique d'iOS N'A PAS de
+   deux-points : le format canonique était littéralement intapable sur la cible principale
+   déclarée. On accepte donc tout ce qui a un sens UNIVOQUE :
+   — avec séparateurs (`:`, `h`, `.`, `,`, espace…) : 2-3 groupes → « 15h47 », « 15:47:23 », « 15 47 » ;
+   — chiffres nus, lus par longueur : « 947 » → 9:47:00, « 1547 » → 15:47:00, « 154723 » → 15:47:23.
+   Une valeur IMPOSSIBLE (minutes ou secondes > 59, heure > 23) rend null — REFUSÉE, jamais
+   écrêtée : l'ancien code écrêtait « 15:87 » en 15:59, c'est-à-dire qu'il FABRIQUAIT une heure
+   fausse dans une trace de soin qui alimente le compte-rendu. PURE (testée via ?__actest). */
+function tkParseTime(str){
+  const t=String(str||'').trim();
+  if(!t)return null;
+  let h,m=0,s=0;
+  if(/[^0-9]/.test(t)){
+    const g=t.split(/[^0-9]+/).filter(Boolean);
+    if(!g.length||g.length>3||g.some(x=>x.length>2))return null;
+    h=parseInt(g[0],10);if(g.length>1)m=parseInt(g[1],10);if(g.length>2)s=parseInt(g[2],10);
+  }else{
+    if(t.length>6)return null;
+    if(t.length<=2)h=parseInt(t,10);
+    else if(t.length<=4){h=parseInt(t.slice(0,-2),10);m=parseInt(t.slice(-2),10);}
+    else{h=parseInt(t.slice(0,-4),10);m=parseInt(t.slice(-4,-2),10);s=parseInt(t.slice(-2),10);}
+  }
+  if(!(h>=0&&h<=23&&m>=0&&m<=59&&s>=0&&s<=59))return null;
+  return {h,m,s};}
 function bindTk(){
   const tkA=document.getElementById('tkAdd');
   if(tkA)tkA.onclick=tkNoteNow;
@@ -14239,18 +14311,49 @@ function bindTk(){
     const ev=(Runtime.events||[]).find(x=>x.id===span.dataset.tktime);if(!ev)return;
     const inp=document.createElement('input');inp.className='tk-time-edit';inp.inputMode='numeric';inp.value=fmtHMS(ev.t);
     span.replaceWith(inp);inp.focus();inp.select();
-    const commit=()=>{const m=(inp.value||'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-      if(m){const h=Math.min(23,parseInt(m[1],10)),mi=Math.min(59,parseInt(m[2],10)),s=Math.min(59,parseInt(m[3]||'0',10));
-        const base=new Date(ev.t);base.setHours(h,mi,s,0);const nt=base.getTime();
-        // Heure INCHANGÉE (même seconde affichée) -> aucune « correction » : on ne pose pas
-        // origT (sinon « à l'origine HH:MM:SS » s'affichait avec la même heure, ce qui sème le doute).
-        if(Math.floor(nt/1000)!==Math.floor(ev.t/1000)){
-          if(typeof ev.origT!=='number')ev.origT=ev.t;
-          ev.t=nt;
-          Runtime.events.sort((a,b)=>a.t-b.t);
-          persistLive(Runtime);}}
+    const row=inp.closest('.tk-row');
+    /* CHIPS DE RECUL (v5.4.0, décision utilisateur) : le cas d'usage réel de la correction est
+       « rattraper un geste noté en retard » — reculer de n minutes est plus juste, et plus rapide
+       sous stress, que retaper une heure. Elles n'existent que PENDANT l'édition : une rangée
+       permanente par repère serait du bruit. */
+    const chips=document.createElement('div');chips.className='tk-time-chips';
+    chips.innerHTML='<span class="tk-chips-k">noté en retard ?</span>'+[1,2,5].map(n=>`<button type="button" data-rew="${n}">−${n} min</button>`).join('');
+    if(row)row.after(chips);
+    // Heure INCHANGÉE (même seconde affichée) -> aucune « correction » : on ne pose pas
+    // origT (sinon « à l'origine HH:MM:SS » s'affichait avec la même heure, ce qui sème le doute).
+    const applyT=nt=>{if(Math.floor(nt/1000)!==Math.floor(ev.t/1000)){
+        if(typeof ev.origT!=='number')ev.origT=ev.t;
+        ev.t=nt;
+        Runtime.events.sort((a,b)=>a.t-b.t);
+        persistLive(Runtime);}
       renderTkOnly();};
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    // Le tap sur une chip ne doit pas passer par le blur du champ : `preventDefault` au
+    // pointerdown garde le focus dans l'input (leçon .li-tools v4.77.0), le click fait le geste.
+    // Au CLAVIER, Tab vers une chip déclenche le blur : commit lit relatedTarget et s'abstient.
+    chips.addEventListener('pointerdown',e=>{if(e.target.closest('[data-rew]'))e.preventDefault();});
+    chips.addEventListener('click',e=>{const b=e.target.closest('[data-rew]');if(!b)return;
+      inp.removeEventListener('blur',commit);applyT(ev.t-(+b.dataset.rew)*60000);});
+    /* L'ÉCHEC N'EST PLUS MUET (v5.4.0, signalé à l'usage). Deux défauts cumulés : le format
+       exigeait les deux-points — absents du clavier numérique iOS — et une saisie refusée était
+       JETÉE sans un mot (le champ revenait à l'ancienne heure : on concluait à un format encore
+       plus strict qu'il n'était). Sur Entrée, une valeur illisible laisse le champ OUVERT et le
+       dit (registre ATTENTION : on s'est trompé en tapant, rien de vital) ; sur blur, on revient
+       à l'ancienne heure mais on l'ANNONCE (#srLive). */
+    const bad=()=>{inp.classList.add('bad');
+      if(row&&!row.parentElement.querySelector('.tk-time-hint')){
+        const d=document.createElement('div');d.className='tk-time-hint';
+        d.textContent='△ Heure non reconnue — ex. 1547 ou 15:47';chips.after(d);}
+      announce('Heure non reconnue — exemples : 1547, ou 15:47');};
+    inp.addEventListener('input',()=>{inp.classList.remove('bad');
+      const h=row&&row.parentElement.querySelector('.tk-time-hint');if(h)h.remove();});
+    const commit=e=>{
+      if(e&&e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('.tk-time-chips'))return;
+      const p=tkParseTime(inp.value);
+      if(!p){announce('Heure non reconnue — repère inchangé');renderTkOnly();return;}
+      const base=new Date(ev.t);base.setHours(p.h,p.m,p.s,0);applyT(base.getTime());};
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
+        if(!tkParseTime(inp.value)){bad();return;}
+        inp.blur();}
       else if(e.key==='Escape'){e.preventDefault();inp.removeEventListener('blur',commit);renderTkOnly();}});
     inp.addEventListener('blur',commit);};});
   document.querySelectorAll('.tk-panel [data-tkrevert]').forEach(b=>b.onclick=()=>{
@@ -14359,7 +14462,15 @@ function tkNoteNow(fromBlock){
   else if(fromBlock){renderOvOnly();renderTkOnly();}
   else if(!renderTkOnly())render();}
 function renderTkOnly(){
-  const old=document.querySelector('.tk-panel');if(!old)return false;
+  const old=document.querySelector('.tk-panel');
+  if(!old){
+    /* Étroit, dépliant REPLIÉ (v5.4.0) : le journal n'est pas dans le DOM, mais la rangée repliée
+       ANNONCE son compte de repères — un repère posé depuis la carte du bloc, ou arrivé d'une
+       session partagée, doit la tenir à jour (donnée périmée sinon). L'accusé de la carte suit
+       aussi. On repeint le TEXTE en place, jamais le nœud : son écouteur vit dessus. */
+    const i=document.querySelector('#rtOpen .rtc-i');
+    if(i&&Runtime.fiche){i.textContent=rtRowLabel(Runtime.fiche);tkAckPaint();return true;}
+    return false;}
   const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
   old.replaceWith(tmp.firstElementChild);
   bindTk();tkAckPaint();return true;}
@@ -14511,7 +14622,12 @@ function renderRead(){
   // minuteurs/notes/outils de gestion, bandeau + barre « Retour à l'édition ».
   const preview=!!state.previewFrom;
   const wideRead=mqRail.matches;   // v4.23.0 : rail dès 780px
-  const rtH=preview?'':runtimePanel(f),tkH=preview?'':timekeeperPanel();
+  const rtH=preview?'':runtimePanel(f);
+  /* v5.4.0 : en ÉTROIT le journal vit DANS le dépliant minuteurs (cf. runtimePanel) — tkH ne sert
+     alors à rien, et surtout il ne DOIT pas exister : deux `.tk-panel` dans le DOM et renderTkOnly
+     ne remplacerait que la première copie (divergence silencieuse). Il ne subsiste en étroit que
+     pour une fiche SANS minuteur ni compteur (rtH vide), où le journal reste autonome. */
+  const tkH=(preview||(!mqRail.matches&&rtH))?'':timekeeperPanel();
   // Repères posologiques (canvas) : cartes — préfixe « ⚠ » = carte au registre ALERTE.
   // Inline sous « À vérifier » en étroit, dans la colonne droite en large.
   // Repères posologiques : carte = NOM (avant le premier « : », gras retiré) + corps —
@@ -14672,8 +14788,11 @@ function renderRead(){
      chapeau entier, les critères et le rail ①②③ restent en tête (condition d'entrée QRH).
      LE FIL D'ARIANE RESTE COLLÉ À SA CARTE : il ne s'oriente pas dans la fiche, il dit où l'on
      est DANS le bloc qu'on exécute — le séparer de lui n'aurait aucun sens. */
+  /* v5.4.0 : en session le dépliant fusionné (minuteurs · compteurs · journal) prend la place que
+     le lot T2 avait donnée au journal — JUSTE SOUS la carte du bloc, là où le geste se produit.
+     tkH ne subsiste à cette place que pour une fiche sans minuteur ni compteur. */
   {const body=agirDabord
-     ?crumbsH+navHtml+navRowH+(wideRead?'':tkH)+localH+(wideRead||state.rtOpen==='dock'?'':rtH)+algH+(wideRead?'':posH)
+     ?crumbsH+navHtml+navRowH+(wideRead||state.rtOpen==='dock'?'':rtH)+(wideRead?'':tkH)+localH+algH+(wideRead?'':posH)
      :(confBlockH?'':sessStartH)+(wideRead||state.rtOpen==='dock'?'':rtH)+algH+crumbsH+navHtml+navRowH+(wideRead?'':tkH)+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   // v4.23.0 : ③ ne garde que « △ À vérifier » — ce qui tue si on l'oublie reste dans le FLUX
@@ -23096,7 +23215,7 @@ if(location.search.indexOf('__actest')>=0){
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
-    TAG_CORE,sanitizeTags,tagAll,tagSuggest,tagShort,tagLabel,tagRank,tkRefNorm,tkLabels,Share,sessionToRow,sessionFromRow,shareNavNorm,
+    TAG_CORE,sanitizeTags,tagAll,tagSuggest,tagShort,tagLabel,tagRank,tkRefNorm,tkLabels,tkParseTime,Share,sessionToRow,sessionFromRow,shareNavNorm,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,Share,
     shareSnap,shareDiff,

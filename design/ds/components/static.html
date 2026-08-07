@@ -2881,6 +2881,9 @@
   .cn-reset:hover{background:var(--surface-2)}
   /* Horodatage : outil SECONDAIRE -> panneau CLAIR (le panneau sombre reste réservé aux minuteurs/compteurs) */
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+  /* v5.4.0 — NICHÉ DANS LE DÉPLIANT MINUTEURS (étroit) : le journal y devient une SECTION à filet,
+     pas une carte dans la carte — deux cadres emboîtés se liraient comme deux objets. */
+  .rt-panel .tk-panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;margin:12px 0 0;padding:12px 0 0}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
   /* « NOTER L'HEURE » N'EST PAS L'ACTION PRIMAIRE DE L'ÉCRAN (v4.77.0, question utilisateur : « le
@@ -2916,6 +2919,17 @@
   .tk-time{font-family:var(--mono);font-size:13.5px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
   .tk-time:hover{background:var(--primary-soft)}
   .tk-time-edit{font-family:var(--mono);font-size:13.5px;width:76px;flex-shrink:0;padding:2px 4px;border:1px solid var(--primary);border-radius:6px;background:var(--input-bg);color:var(--ink)}
+  /* v5.4.0 — L'ÉCHEC DE SAISIE SE VOIT (registre ATTENTION : on s'est trompé en tapant, rien de
+     vital) ; la couleur n'est jamais seule, le glyphe △ et la phrase portent le message. */
+  .tk-time-edit.bad{border-color:var(--verify-bd);box-shadow:0 0 0 1px var(--verify-bd) inset}
+  .tk-time-hint{color:var(--verify);font-size:12px;font-weight:700;padding:0 0 8px}
+  /* Chips de recul (v5.4.0) : n'existent que PENDANT l'édition d'une heure — cible 44px (journal
+     de crise), pilule au dessin des propositions d'étiquette (.tk-pick). */
+  .tk-time-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 0 8px}
+  .tk-time-chips .tk-chips-k{color:var(--ink-soft);font-size:12px}
+  .tk-time-chips button{min-height:44px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--ink);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+  .tk-time-chips button:hover{background:var(--primary-soft);border-color:var(--primary)}
+  .tk-time-chips button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .tk-orig-row{font-size:11px;color:var(--ink-soft);padding:0 0 8px;display:flex;align-items:center;gap:6px}
   .tk-orig{background:none;border:0;color:var(--ink-soft);font-size:11px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
   .tk-orig:hover{color:var(--primary)}
@@ -5400,10 +5414,17 @@
     .forget-strip.many .fs-i{-webkit-column-break-inside:avoid;break-inside:avoid}
   }
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
-  .rt-collapsed{width:100%;display:flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
+  /* v5.4.0 — UN DÉPLIANT SE RECONNAÎT AVANT DE SE LIRE (signalé à l'usage : « j'ai eu du mal à
+     identifier les différents blocs — c'est affiché comme s'il faisait partie du reste de la
+     page »). La rangée repliée était une carte BLANCHE `--surface`, exactement le dessin du
+     contenu clinique qui l'entoure ; son seul signal était le petit « ▾ Afficher ». Elle passe en
+     `--surface-3` (le ton du CHROME, distinct de la surface dans les DEUX thèmes — le contenu
+     clinique reste seul en carte blanche) et le déclencheur devient une PILULE : l'affordance se
+     voit de loin, à position constante. */
+  .rt-collapsed{width:100%;display:flex;align-items:center;gap:8px;background:var(--surface-3);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
   .rt-collapsed:hover{border-color:var(--line-hover)}
   .rt-collapsed .rtc-i{flex:1;min-width:0}
-  .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap}
+  .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;padding:4px 10px;font-weight:700}
   .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
@@ -5478,10 +5499,16 @@
      donc RIEN. Les compacts restent < 16px au pointeur fin (desktop).
      Jamais de maximum-scale / user-scalable=no au viewport (WCAG 2.2 §1.4.4).
      `input.gcap` (et non `.gcap`) : la même classe sert de LÉGENDE en lecture, qui reste à 11.5px.
-     `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée. */
+     `.tk-time-edit` : le mono 16px déborde des 76px calibrés pour 14px -> largeur relevée.
+     ⚠ `.rt-find input` MANQUAIT (v5.4.0, signalé à l'usage iPhone : « quand on clique à
+     l'intérieur d'un protocole l'écran zoome ») : le champ « Chercher dans la référence » est né
+     en v5.0.0 à 12px SANS rejoindre cette liste — le zoom au focus, exactement ce que la règle
+     existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
+     `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
-    .mem-act select,.invite-row select,.invite-row input,.mi-sc{font-size:16px}
+    .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}
   }
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur

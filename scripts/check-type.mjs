@@ -104,6 +104,57 @@ if (!fautes.length && auPlancher > PLANCHER_MAX) {
   process.exit(1);
 }
 
+/* ═══ LES CHAMPS COMPACTS REJOIGNENT LA LISTE « 16 px TACTILE » (v5.4.0) — auto-exécutoire. ═══
+   LE DÉFAUT VÉCU : le champ « Chercher dans la référence » (`.rt-find input`) est né en v5.0.0 à
+   12 px SANS rejoindre le bloc `@media (hover:none) and (pointer:coarse)` de fin de feuille — la
+   « source de vérité UNIQUE » des 16 px tactiles (v4.4.2). Sur iPhone, le focus ZOOMAIT la page
+   (règle 9), et rien ne pouvait le voir : la liste est tenue à la main, et un champ oublié est un
+   trou silencieux — la même famille que MUTE_SEL, les placards, les verbes du lecteur.
+   LA RÈGLE : tout sélecteur qui pose un font-size < 16 px sur un champ de saisie (jeton `input`,
+   `textarea` ou `select` dans le sélecteur) doit apparaître dans la liste du bloc tactile — à
+   l'IDENTIQUE : c'est `includes`, pas une équivalence de sélecteurs, et c'est voulu (une
+   couverture par un sélecteur « plus large » ne se vérifie pas au texte).
+   ⚠ CE QU'IL NE VOIT PAS, et il faut le dire : un champ stylé par sa seule CLASSE
+   (`.catmenu-filter`, `.auth-field`…) échappe au repérage statique — on ne sait pas, au texte,
+   qu'une classe habille un <input>. Le contrôle couvre les sélecteurs à jeton d'élément, qui
+   sont le cas du défaut vécu ; une couverture totale exigerait d'exécuter le rendu.
+   ⚠ ET LE SÉLECTEUR SE NETTOIE AVANT DE JUGER : la capture `[^{}]+` remonte jusqu'à l'accolade
+   précédente et ramasse la QUEUE DU COMMENTAIRE au-dessus de la règle (cette feuille documente
+   ses propres règles — même précaution que check-space, qui a dû neutraliser les commentaires
+   pour la même raison) ; un `:is(input,select)` se découpe sur les virgules INTERNES si on le
+   fend naïvement — on ne fend que hors parenthèses.
+   ⚠ VÉRIFIÉ CAPABLE D'ÉCHOUER après réparation : la PREMIÈRE version de ce bloc était un no-op
+   silencieux — écrite via un heredoc Python, son `\b` de regex était devenu un BACKSPACE (le
+   piège « un patch scripté mutile en silence », déjà payé sur les `$$` SQL en v4.44.0), et le
+   test de réintroduction est resté vert. Un garde-fou qui ne peut pas échouer ne prouve rien
+   (v4.31.1) — celui-ci a été rejoué rouge/vert après correction. */
+{
+  const coarse = /@media \(hover:none\) and \(pointer:coarse\)\{([\s\S]*?)\n  \}/.exec(css);
+  const listeCoarse = coarse ? coarse[1] : '';
+  if (!coarse) fautes.push({ ligne: 0, val: '?', sel: 'bloc « 16 px tactile » introuvable — le contrôle ne mesurerait rien' });
+  const rx2 = /([^{}]+)\{[^{}]*?font-size:\s*(1[0-5](?:\.[0-9]+)?|[0-9](?:\.[0-9]+)?)px/g;
+  const fendHorsParens = sel => { const out = []; let d = 0, cur = '';
+    for (const c of sel) { if (c === '(') d++; if (c === ')') d--;
+      if (c === ',' && !d) { out.push(cur); cur = ''; } else cur += c; }
+    out.push(cur); return out.map(x => x.trim()).filter(Boolean); };
+  let m2;
+  while ((m2 = rx2.exec(css))) {
+    if (coarse && m2.index > coarse.index) continue;                        // le bloc lui-même
+    // queue de commentaire ramassée par la capture : on repart du dernier fermeur.
+    let sel = m2[1];
+    const cf = sel.lastIndexOf('*/'); if (cf >= 0) sel = sel.slice(cf + 2);
+    sel = sel.trim().replace(/\s+/g, ' ');
+    for (const simple of fendHorsParens(sel)) {
+      if (!/(^|[ .>+~(:])(input|textarea|select)\b/.test(simple)) continue;  // jeton d'élément requis
+      if (/\[type=(checkbox|radio|range|file)\]/.test(simple)) continue;     // pas des champs texte
+      if (listeCoarse.includes(simple)) continue;
+      const ligne = css.slice(0, m2.index).split('\n').length;
+      fautes.push({ ligne, val: parseFloat(m2[2]),
+        sel: simple.slice(-70) + '  ← champ compact ABSENT de la liste « 16 px tactile » (zoom iOS au focus, règle 9)' });
+    }
+  }
+}
+
 if (fautes.length) {
   console.log('\n✗ check-type : corps hors des échelles fermées (texte '
     + PALIERS.join(' · ') + ' px · affichage ' + AFFICHAGES.join(' · ') + ' px) :');
