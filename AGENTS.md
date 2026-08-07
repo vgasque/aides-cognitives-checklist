@@ -4485,8 +4485,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   sites** — `IDB.putAtt(` ne doit apparaître QUE dans `attPut` —, donc un sixième chemin ajouté
   demain échoue bruyamment au lieu de créer un trou muet. Vérifié capable d'échouer. File d'attente à l'inactivité, un document à
   la fois (`_idle`, comme les vignettes) : indexer ne dispute jamais le fil principal à un geste.
-  **Le rattrapage des documents déjà là est EXPLICITE** (ligne `#attIdx` du pied de la sidebar,
-  jumelle de `#attOffline`) : jamais de tâche de fond spontanée.
+  **Le rattrapage des documents déjà là est AUTOMATIQUE — REVIREMENT v5.3.0, décision utilisateur
+  après l'avoir vécu sur sa PWA** (« l'indexation ne s'est pas lancée automatiquement, j'ai dû
+  cliquer ») : la v5.2.0 exigeait un geste explicite pour ne jamais lancer de tâche de fond
+  spontanée ; à l'usage, l'état nominal attendu est « mes documents sont trouvables », pas un
+  bouton pour un travail que la machine sait faire seule. `ixLoadAll` met en file les documents
+  en attente au démarrage — coût mesuré ~4 ms/page, un à la fois, à l'inactivité ; **pdf.js ne se
+  charge QUE s'il existe des documents à indexer** (un démarrage ordinaire n'y touche pas : la
+  lettre de la règle 13 tient pour le cas nominal). La ligne `#attIdx` du pied (jumelle de
+  `#attOffline`) devient un indicateur d'avancement ; son bouton « Indexer » reste, filet des cas
+  où la file s'est arrêtée (essais épuisés, stockage plein).
   **CORRESPONDANCE PAR SOUS-CHAÎNE, pas par préfixe** : c'est ce que fait `hayMatch` pour les
   fiches, et une même frappe ne peut pas se comporter autrement selon qu'elle vise une aide ou un
   document. Le dictionnaire étant UNE chaîne, c'est un `indexOf` par occurrence — sous la
@@ -4549,6 +4557,27 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   plus si le mot est dans l'aide ou dans une annexe, et un document porté par deux fiches
   apparaîtrait deux fois. Quand rien d'autre ne correspond, l'état vide ne dit PAS « Aucun
   résultat » — ce serait faux, il y en a un juste en dessous.
+  **ET LE PORTEUR DU DOCUMENT EST LUI AUSSI UN RÉSULTAT (v5.3.0, demande utilisateur)** : une aide
+  et ses annexes forment UN objet de soin — chercher un mot qui ne vit que dans le PDF joint sort
+  l'AIDE dans la liste (les trois vues, `entityDocHit` dans les filtres, le renvoi croisé compte
+  pareil), avec l'extrait « dans ‹nom› · p. n » (`docSnipHtml` — le OÙ, jamais le contenu, qui
+  n'est pas stocké). Le groupe « Dans les documents » reste : il porte le geste d'ouverture À LA
+  page, la rangée d'aide porte l'ouverture de l'aide — deux objets, deux gestes.
+  **LA RECHERCHE D'UNE ENTITÉ COUVRE SES ANNEXES (v5.3.0, demande utilisateur)** : le champ d'une
+  référence et celui de la feuille « Toute la fiche » listent sous le champ (`#pfDocs`, rangées
+  `.doc-hit`) les documents JOINTS de l'entité où tous les termes apparaissent — `_pfEnt` posée
+  par l'appelant avec `_pfRoot`, même durée de vie. Un mot absent replie la zone.
+  **LES OCCURRENCES SE SURLIGNENT DANS LA VISIONNEUSE, ET SE NAVIGUENT (v5.3.0, demande
+  utilisateur « comme le texte des fiches »)** : ouverte depuis un résultat, la visionneuse reçoit
+  les termes (`openPdfViewer(att,entity,page,hl)`) — les PAGES viennent de l'index déjà en mémoire
+  (aucun coût), les POSITIONS sont retrouvées au rendu de chaque page visible (`pdfPaintHl` :
+  `getTextContent` ~3 ms, mis en cache sur le slot) et posées en rectangles `--verify-soft` en
+  `mix-blend-mode:multiply` (même registre que `mark.pf-h`). La position DANS un item est
+  approchée au prorata des caractères — suffisant pour guider l'œil, et c'est le compromis qui
+  évite d'embarquer la couche texte entière de pdf.js. Pilule flottante ‹ n/N · p. x › en bas de
+  la visionneuse (`#pdfHl`) : on navigue par PAGE d'occurrence — l'index connaît les pages, pas
+  les positions, et le surlignage rend la navigation fine inutile. **Ouvert depuis sa RANGÉE, ni
+  surlignage ni pilule** : on vient LIRE, pas chercher — un témoin le tient.
   Harnais `scripts/audit-pdfsearch.mjs` (26 contrôles, PDF fabriqué par le harnais, xref calculé) :
   il mesure le CHEMIN que les tests unitaires ne peuvent pas voir — joindre, indexer, relire au
   démarrage suivant, trouver, ouvrir à la page. **Son témoin le plus important est « pdf.js n'est

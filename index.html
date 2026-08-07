@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-Zb5Gp0dIaSvQk/J1LLyRXP0gTjbPBG/FgxkyDB13jt0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-oySSiQL5+9hR81wqG0YZpjZNfd/U6E/qPWBHGvhlRMw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5556,6 +5556,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dh-tx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dh-sub{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dh-chev{flex:none;color:var(--ink-soft)}
+  /* Résultats-documents SOUS le champ de recherche d'une entité (mêmes rangées .doc-hit). */
+  .pf-docs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .card-snip .snip-doc{vertical-align:-1px;margin-right:2px;color:var(--ink-soft)}
+  /* Occurrence surlignée sur la page PDF : rectangle en superposition, multiply pour laisser le
+     texte lisible dessous — même registre que mark.pf-h (le surlignage de recherche du texte). */
+  .pdf-hl{position:absolute;background:var(--verify-soft);mix-blend-mode:multiply;border-radius:3px;pointer-events:none}
+  /* Pilule de navigation des occurrences : flottante en bas de la visionneuse, grammaire de la
+     rangée ‹ n/N › du texte (.rt-fnav), élévation d'overlay. */
+  .pdf-fnav{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;box-shadow:var(--shadow);z-index:3}
+  .pdf-fnav .mini{min-width:32px;min-height:32px}
+  .pdf-fnav span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
   /* État d'indexation d'un document, dans sa rangée d'éditeur : rien quand tout va bien. */
   .att-ix{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--ink-soft);white-space:nowrap}
   .att-ix:empty{display:none}
@@ -5581,7 +5592,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink)}
   /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
   .pdf-modal{padding:0}
-  .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg)}
+  .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg);position:relative}   /* repère de la pilule .pdf-fnav */
   .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
   .pdf-title{flex:1;min-width:0;font-size:15.5px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
   .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
@@ -6244,6 +6255,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
       <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button><button class="fz" id="pdfDl" title="Télécharger le document" aria-label="Télécharger le document"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button></div>
       <button class="ai-x" id="pdfX" aria-label="Fermer le document">×</button></div>
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
+    <!-- Occurrences de la recherche DANS le document (v5.3.0) : pilule flottante, présente
+         seulement quand la visionneuse a été ouverte depuis un résultat. On navigue par PAGE
+         d'occurrence — l'index connaît les pages, pas les positions ; les positions exactes sont
+         retrouvées au rendu de chaque page (surlignage), la navigation fine y devient inutile. -->
+    <div class="pdf-fnav" id="pdfHl" hidden><button type="button" class="mini" id="pdfHlPrev" aria-label="Page d'occurrence précédente">‹</button><span id="pdfHlCount" role="status"></span><button type="button" class="mini" id="pdfHlNext" aria-label="Page d'occurrence suivante">›</button></div>
   </div>
 </div>
 <!-- FEUILLE « PLAN » (v4.23.0) : la structure complète de l'aide, en PLEIN ÉCRAN, appelée d'un
@@ -6312,7 +6328,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.2.0';
+const APP_VERSION='5.3.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9040,9 +9056,10 @@ async function refreshAttOffline(){
 }
 /* ÉTAT DE L'INDEXATION — trois choses à dire, et une seule à la fois : ce qui reste à indexer
    (avec le geste), ce qui n'a aucun texte, et rien du tout quand tout est fait.
-   LE RATTRAPAGE EST EXPLICITE (décision : jamais de tâche de fond spontanée sur des documents
-   déjà là). Indexer charge pdf.js et lit chaque page : c'est un travail qu'on lance, pas un
-   travail qui arrive — même doctrine que « Télécharger » de la ligne du dessus. */
+   ⚠ LE RATTRAPAGE EST AUTOMATIQUE DEPUIS LA v5.3.0 (revirement, décision utilisateur — cf.
+   `ixLoadAll`) : cette ligne est devenue un INDICATEUR d'avancement, et son bouton « Indexer »
+   un filet pour les cas où la file s'est arrêtée (essais épuisés, stockage plein) — plus jamais
+   le chemin nominal. */
 async function refreshAttIdx(){
   paintIxChips();   // la rangée de l'éditeur et la ligne du pied disent la MÊME chose
   const el=document.getElementById('attIdx');if(!el)return;
@@ -10930,8 +10947,8 @@ function crossHitsHtml(q,other){
   const vis=x=>canEditFiche(x)||x.status!=='draft';
   const T=qTerms(q);
   const n=other==='protocols'
-    ?protocols.filter(p=>vis(p)&&hayMatch(protocolHaystack(p),T)).length
-    :fiches.filter(f=>vis(f)&&hayMatch(ficheHaystack(f),T)).length;
+    ?protocols.filter(p=>vis(p)&&(hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T))).length
+    :fiches.filter(f=>vis(f)&&(hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T))).length;
   if(!n)return '';
   const lbl=other==='protocols'?('protocole'+(n>1?'s':'')):('aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''));
   return `<button class="cross-hits" data-crosssec="${other}">${n} ${lbl} correspond${n>1?'ent':''} aussi à cette recherche${uiIcon('chev',15,{sw:2.2,cls:''})}</button>`;}
@@ -10944,6 +10961,28 @@ function crossHitsHtml(q,other){
    passages et les PAGES — et le contexte se lit dans le document, qu'un tap ouvre à la bonne
    page. Le document est nommé par la première entité VISIBLE qui le porte : un brouillon caché
    ne doit pas révéler l'existence de son annexe. */
+/* LE DOCUMENT QUI CORRESPOND FAIT CORRESPONDRE SON PORTEUR (v5.3.0, demande utilisateur : « il
+   faut aussi afficher les protocoles/aides qui contiennent ce document »). Une aide et ses
+   annexes forment UN objet de soin : chercher un mot qui ne vit que dans le PDF joint doit
+   sortir l'aide, pas seulement le fichier. `entityDocHit` rend le PREMIER document de l'entité
+   où TOUS les termes apparaissent (même conjonction que `hayMatch`) — utilisé par les trois
+   listes de l'accueil, par le renvoi croisé et par l'extrait de rangée. */
+function entityDocHit(e,T){
+  if(!T||!T.length||!attIx.size)return null;
+  for(const a of (e&&e.docs||[])){
+    if(!a||!a.id)continue;
+    const h=attIx.get(a.id);if(!h||h.none)continue;
+    const pg=ixSearch(h,T);
+    if(pg&&pg.length)return {a,pages:pg};}
+  return null;}
+/* L'extrait de rangée quand le mot vient d'une ANNEXE : on dit OÙ (nom du document, pages) —
+   jamais le contenu, qui n'est pas stocké. Même boîte `.card-snip` que l'extrait textuel. */
+function docSnipHtml(e){
+  const T=qTerms(state.q).filter(t=>t.length>=2);
+  const hit=entityDocHit(e,T);
+  if(!hit)return '';
+  const pp=hit.pages.slice(0,PG_SHOWN).map(x=>x+1);
+  return `<div class="card-snip">${uiIcon('doc',11,{sw:2,cls:'snip-doc'})} dans <b>${esc(hit.a.name||'document.pdf')}</b> · p. ${pp.join(', ')}${hit.pages.length>pp.length?' +'+(hit.pages.length-pp.length):''}</div>`;}
 function docHits(q){
   const T=qTerms(q).filter(t=>t.length>=2);
   if(!T.length||!attIx.size)return [];
@@ -11280,7 +11319,7 @@ function renderHomeList(cfg){
     const eid=b.dataset.docent,aid=b.dataset.docgo;
     const ent=(fiches||[]).concat(protocols||[]).find(x=>x&&x.id===eid);
     const a=ent&&(ent.docs||[]).find(x=>x&&x.id===aid);
-    if(a)openPdfViewer(a,ent,+b.dataset.docpg||1);});
+    if(a)openPdfViewer(a,ent,+b.dataset.docpg||1,qTerms(state.q).filter(t=>t.length>=2));});
   {const hj=document.getElementById('homeJoin');if(hj)hj.onclick=()=>openJoinScreen(hj.dataset.code||'');}
   /* ⚠ LE BINDER REÇOIT SA CONFIGURATION (v5.0.0, signalé à l'usage : « fermer la croix d'un
      bandeau efface une des deux invites »). Les binders re-rendaient par `renderFiches()` EN
@@ -11312,7 +11351,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
     // Tri des RÉSULTATS de recherche (v4.4.6) : épinglées, puis frecency (les fiches qu'on ouvre
     // le plus, récemment, en premier), puis alphabétique. Sans recherche : alphabétique inchangé.
     list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(f=>q?(hayMatch(ficheHaystack(f),T)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.library===state.scope:!f.library)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
+      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(f=>q?((hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T))&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.library===state.scope:!f.library)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -11350,7 +11389,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
         <div class="dir-main">
           <button class="card-open" data-open="${f.id}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
           <span class="dir-sub">${dirKindHtml('f')}${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
-          ${inQ?searchSnippet(ficheSnipParts(f),state.q):''}
+          ${inQ?searchSnippet(ficheSnipParts(f),state.q)+docSnipHtml(f):''}
         </div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${f.id}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
       </div>`;},
@@ -11433,7 +11472,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
     // Même tri de recherche que les fiches (v4.4.6) : épinglés > frecency > alphabétique.
     list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?(hayMatch(protocolHaystack(p),T)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.library===state.scope:!p.library)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
+      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?((hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T))&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.library===state.scope:!p.library)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
     /* Même rangée que les fiches (un seul langage sur tout l'accueil) ; « n PDF » reste — c'est
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
     row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
@@ -11442,7 +11481,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
         <div class="dir-main">
           <button class="card-open" data-open="${p.id}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
           <span class="dir-sub">${dirKindHtml('p')}${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span class="dir-cat">${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
-          ${inQ?searchSnippet(protoSnipParts(p),state.q):''}
+          ${inQ?searchSnippet(protoSnipParts(p),state.q)+docSnipHtml(p):''}
         </div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${p.id}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
       </div>`;},
@@ -11540,6 +11579,17 @@ function ixAdopt(rec){
 async function ixLoadAll(){
   if(!supportsAttachments())return;
   try{for(const rec of await IDB.getIxAll())ixAdopt(rec);}catch(e){}
+  /* LE RATTRAPAGE EST AUTOMATIQUE (v5.3.0 — REVIREMENT, décision utilisateur après l'avoir vécu
+     sur sa PWA : « l'indexation ne s'est pas lancée automatiquement, j'ai dû cliquer »). La
+     v5.2.0 exigeait un geste explicite pour ne jamais lancer de tâche de fond spontanée ; à
+     l'usage, l'état nominal attendu est « mes documents sont trouvables », pas « un bouton d'un
+     travail que la machine sait faire seule ». Le coût mesuré l'autorise : ~4 ms/page, un
+     document à la fois, à l'inactivité — et pdf.js ne se charge QUE s'il existe des documents à
+     indexer (donc jamais sur un démarrage ordinaire, où cette boucle ne pousse rien : la lettre
+     de la règle 13 « jamais au démarrage » reste tenue pour le cas nominal). La ligne du pied
+     devient un indicateur d'avancement ; son bouton « Indexer » reste, filet des cas où la file
+     s'est arrêtée (essais épuisés, stockage plein). */
+  try{for(const id of await ixPending())ixQueue(id);}catch(e){}
   refreshAttIdx();}
 /* RÉINITIALISER — pour UN document, ou pour tous. Un index est DÉRIVÉ : le jeter ne perd rien et
    se reconstruit depuis le PDF. C'est le geste de sortie de tous les états dégradés (document
@@ -11716,7 +11766,35 @@ function protoFindHtml(ph,aria,cls){
     +`aria-label="${esc(aria||'Chercher dans cette référence')}" autocomplete="off">`
     +`<div class="rt-fnav" id="pfNav" hidden><button type="button" class="mini" id="pfPrev" aria-label="Occurrence précédente">‹</button>`
     +`<span id="pfCount" role="status"></span>`
-    +`<button type="button" class="mini" id="pfNext" aria-label="Occurrence suivante">›</button></div></div>`;}
+    +`<button type="button" class="mini" id="pfNext" aria-label="Occurrence suivante">›</button></div></div>`
+    +`<div class="pf-docs" id="pfDocs" hidden></div>`;}
+/* LES DOCUMENTS JOINTS RÉPONDENT À LA MÊME RECHERCHE (v5.3.0, demande utilisateur) : le champ
+   d'une référence ou de la feuille « Toute la fiche » couvre AUSSI les PDF de l'entité — une
+   rangée par document trouvé, pages annoncées, tap = visionneuse à la page avec les occurrences
+   surlignées. Même garantie qu'ailleurs : rien du CONTENU n'est affiché ici, pdf.js n'est chargé
+   qu'au tap. `_pfEnt` est posée par l'appelant avec la racine — même durée de vie. */
+let _pfEnt=null;
+function pfDocsRun(q){
+  const box=document.getElementById('pfDocs');if(!box)return;
+  const T=qTerms(q).filter(t=>t.length>=2);
+  const hits=[];
+  if(T.length&&_pfEnt)for(const a of (_pfEnt.docs||[])){
+    if(!a||!a.id)continue;
+    const h=attIx.get(a.id);if(!h||h.none)continue;
+    const pg=ixSearch(h,T);
+    if(pg&&pg.length)hits.push({a,pages:pg});}
+  if(!hits.length){box.hidden=true;box.innerHTML='';return;}
+  box.hidden=false;
+  box.innerHTML=hits.map(h=>{
+    const pp=h.pages.slice(0,PG_SHOWN).map(x=>x+1);
+    return `<button type="button" class="doc-hit" data-pfdoc="${esc(h.a.id)}" data-docpg="${h.pages[0]+1}">
+      <span class="dh-ic" aria-hidden="true">${uiIcon('doc',16)}</span>
+      <span class="dh-tx"><b>${esc(h.a.name||'document.pdf')}</b>
+      <span class="dh-sub">${h.pages.length} passage${h.pages.length>1?'s':''} · p. ${pp.join(', ')}${h.pages.length>pp.length?' +'+(h.pages.length-pp.length):''}</span></span>
+      ${uiIcon('chev',15,{sw:2.2,cls:'dh-chev'})}</button>`;}).join('');
+  box.querySelectorAll('[data-pfdoc]').forEach(b=>b.onclick=()=>{
+    const a=(_pfEnt.docs||[]).find(x=>x&&x.id===b.dataset.pfdoc);
+    if(a)openPdfViewer(a,_pfEnt,+b.dataset.docpg||1,T);});}
 function pfClear(){
   document.querySelectorAll('mark.pf-h').forEach(m=>{
     const t=document.createTextNode(m.textContent);m.replaceWith(t);
@@ -11727,6 +11805,7 @@ function pfRun(q){
   const bd=main.querySelector(_pfRoot);
   const s=txNorm(String(q||'').trim());
   const nav=document.getElementById('pfNav');
+  pfDocsRun(s.length<2?'':q);
   if(!bd||s.length<2){if(nav)nav.hidden=true;return;}
   const w=document.createTreeWalker(bd,NodeFilter.SHOW_TEXT,{acceptNode:n=>
     (n.nodeValue&&n.nodeValue.trim()&&n.parentElement&&n.parentElement.tagName!=='SCRIPT')
@@ -11755,8 +11834,9 @@ function pfGo(i){
   const c=document.getElementById('pfCount');
   if(c)c.textContent=(_pfI+1)+' / '+_pfHits.length;
   _pfHits[_pfI].scrollIntoView({block:'center'});}
-function bindProtoFind(root){
+function bindProtoFind(root,ent){
   if(root)_pfRoot=root;
+  _pfEnt=ent||null;
   const q=document.getElementById('pfQ');if(!q)return;
   let t=null;
   q.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(()=>{_pfQ=q.value;pfRun(q.value);},160);});
@@ -11866,7 +11946,7 @@ function renderProtocolRead(){
        /* Le défilement de la PAGE, pas d'un conteneur : le corps d'une référence vit dans le flux.
           `scroll-padding-top` (v4.30.0) place déjà la cible sous les couches collantes. */
        t.scrollIntoView({block:'start'});t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),900);});
-     bindProtoFind('.md-body');}}
+     bindProtoFind('.md-body',p);}}
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
@@ -16803,7 +16883,7 @@ function bindStaticEvents(f){
      `_pfQ` garde la requête en vie le temps de la feuille — c'est une consultation, donc elle
      n'est ni persistée ni synchronisée (même règle que `state.allTab`). */
   {const q=wrap.querySelector('#pfQ');
-   if(q){bindProtoFind(state.allTab==='parcours'?'.pc-wrap':'.sv-tb');
+   if(q){bindProtoFind(state.allTab==='parcours'?'.pc-wrap':'.sv-tb',f);
      if(_pfQ){q.value=_pfQ;pfRun(_pfQ);}}
    else _pfHits=[];}
   const handle=t=>{
@@ -18782,6 +18862,7 @@ function closePdfViewer(){
   if(_pv){try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
   _pvAtt=null;
   const sc=document.getElementById('pdfScroll');if(sc)sc.innerHTML='';
+  {const hlEl=document.getElementById('pdfHl');if(hlEl)hlEl.hidden=true;}
   pdfModal.classList.remove('on');}
 bindModalDismiss(pdfModal,closePdfViewer);
 pdfModal.querySelectorAll('[data-pz]').forEach(b=>b.onclick=()=>pdfZoom(b.dataset.pz));
@@ -18823,7 +18904,54 @@ function pdfZoom(a){if(!_pv)return;
   else if(a==='page')_pv.z=pdfFitPageZ();
   else _pv.z=1;
   pdfApplyScale();pdfRenderNear();}
-function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}}
+function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canvas.remove();s.canvas=null;}
+  s.el.querySelectorAll('.pdf-hl').forEach(x=>x.remove());}
+function pdfHlSync(){
+  const el=document.getElementById('pdfHl');if(!el)return;
+  const on=!!(_pv&&_pv.hl&&_pv.hlPages&&_pv.hlPages.length);
+  el.hidden=!on;
+  if(!on)return;
+  const c=document.getElementById('pdfHlCount');
+  if(c)c.textContent=(_pv.hlI+1)+' / '+_pv.hlPages.length+' · p. '+(_pv.hlPages[_pv.hlI]+1);}
+function pdfHlGo(d){
+  if(!_pv||!_pv.hlPages||!_pv.hlPages.length)return;
+  const n=_pv.hlPages.length;
+  _pv.hlI=((_pv.hlI+d)%n+n)%n;
+  pdfHlSync();
+  const sc=document.getElementById('pdfScroll');
+  const el=sc&&sc.querySelector('.pdf-page[data-p="'+(_pv.hlPages[_pv.hlI]+1)+'"]');
+  if(el&&sc)sc.scrollTop=Math.max(0,el.offsetTop-8);}
+{const pv=document.getElementById('pdfHlPrev'),nx=document.getElementById('pdfHlNext');
+ if(pv)pv.onclick=()=>pdfHlGo(-1);
+ if(nx)nx.onclick=()=>pdfHlGo(1);}
+/* SURLIGNER LES OCCURRENCES SUR LA PAGE RENDUE (v5.3.0, demande utilisateur — « comme on le fait
+   avec le texte des fiches »). La visionneuse ne rend que des CANVAS (pas de couche texte) : on
+   retrouve les positions par `getTextContent` — un appel par page VISIBLE, ~3 ms, mis en cache
+   sur le slot — et l'on pose des rectangles en superposition, `mix-blend-mode:multiply` pour que
+   le texte reste lisible dessous. La position DANS un item est approchée au prorata des
+   caractères (l'item ne donne que sa boîte) : largement suffisant pour guider l'œil, et c'est le
+   compromis qu'on paie pour ne pas embarquer la couche texte entière de pdf.js.
+   Même invariant d'alignement que `markQTerms` : txNorm préserve les index 1:1. */
+async function pdfPaintHl(s){
+  if(!_pv||!_pv.hl||!s.canvas)return;
+  if(!s.tc){try{s.tc=await s.page.getTextContent();}catch(e){s.tc={items:[]};}}
+  if(!_pv||!_pv.hl||!s.canvas)return;
+  s.el.querySelectorAll('.pdf-hl').forEach(x=>x.remove());
+  const k=_pv.cssW/s.vp.width;
+  for(const it of s.tc.items){
+    if(!it.str||!it.width)continue;
+    const norm=txNorm(it.str);
+    for(const t of _pv.hl){
+      let i=norm.indexOf(t);
+      while(i>=0){
+        const hgt=it.height||Math.abs(it.transform[3])||10;
+        const d=document.createElement('span');d.className='pdf-hl';d.setAttribute('aria-hidden','true');
+        d.style.left=Math.round((it.transform[4]+it.width*(i/it.str.length))*k)+'px';
+        d.style.top=Math.round((s.vp.height-it.transform[5]-hgt)*k)+'px';
+        d.style.width=Math.max(4,Math.round(it.width*(t.length/it.str.length)*k))+'px';
+        d.style.height=Math.max(6,Math.round(hgt*k*1.28))+'px';
+        s.el.appendChild(d);
+        i=norm.indexOf(t,i+1);}}}}
 async function renderPdfPage(s){if(!_pv||s.rendering)return;
   if(s.canvas&&s.renderedW===_pv.cssW)return;   // déjà rendue à cette échelle
   s.rendering=true;
@@ -18838,11 +18966,14 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
     await s.page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
     if(!_pv||!s.vis||_pv.cssW!==targetW){c.width=c.height=0;s.rendering=false;if(_pv&&s.vis)renderPdfPage(s);return;}
     releasePdfPage(s);s.el.innerHTML='';s.el.appendChild(c);s.canvas=c;s.renderedW=targetW;
+    if(_pv.hl)pdfPaintHl(s);
   }catch(e){}
   s.rendering=false;}
-/* `page` (facultatif, 1-based) : ouvrir DIRECTEMENT à une page — le seul appelant est un
-   résultat de recherche trouvé dans ce document. Sans argument, comportement inchangé. */
-async function openPdfViewer(att,entity,page){
+/* `page` (facultatif, 1-based) : ouvrir DIRECTEMENT à une page. `hl` (facultatif) : termes
+   NORMALISÉS à surligner — posés par les résultats de recherche (accueil et champ d'entité).
+   Sans arguments, comportement inchangé : un document ouvert depuis sa rangée n'a ni saut ni
+   surlignage, on vient le LIRE. */
+async function openPdfViewer(att,entity,page,hl){
   if(!supportsAttachments()){toast('⚠ Ce navigateur ne peut pas stocker les documents hors ligne — ouvrez l\'app dans un navigateur récent pour lire ce PDF.',9000);return;}
   let rec=null;try{rec=await IDB.getAtt(att.id);}catch(e){}
   if(!attBuf(rec)){
@@ -18890,6 +19021,13 @@ async function openPdfViewer(att,entity,page){
   pdfApplyScale();
   _pv.observer=new IntersectionObserver(es=>es.forEach(en=>{const s=_pv&&_pv.pages[+en.target.dataset.p-1];if(!s)return;
     s.vis=en.isIntersecting;if(s.vis)renderPdfPage(s);else releasePdfPage(s);}),{root:sc,rootMargin:'100% 0px'});
+  /* SURLIGNAGE : les termes voyagent avec l'ouverture, les PAGES viennent de l'index déjà en
+     mémoire (aucun coût), les POSITIONS seront retrouvées page par page au rendu. */
+  _pv.hl=(hl&&hl.length)?hl.filter(t=>t&&t.length>=2):null;
+  {const h=_pv.hl?attIx.get(att.id):null;
+   _pv.hlPages=(h&&!h.none)?(ixSearch(h,_pv.hl)||[]):[];
+   _pv.hlI=Math.max(0,_pv.hlPages.indexOf((page|0)-1));
+   pdfHlSync();}
   _pv.pages.forEach(s=>_pv.observer.observe(s.el));
   /* Atterrissage sur la page demandée — APRÈS `pdfApplyScale` (qui pose les hauteurs) et AVANT
      `pdfRenderNear`, qui rend « les pages proches » : posé après, on rendrait la page 1 pour

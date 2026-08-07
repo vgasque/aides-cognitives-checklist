@@ -5211,6 +5211,17 @@
   .dh-tx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dh-sub{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dh-chev{flex:none;color:var(--ink-soft)}
+  /* Résultats-documents SOUS le champ de recherche d'une entité (mêmes rangées .doc-hit). */
+  .pf-docs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .card-snip .snip-doc{vertical-align:-1px;margin-right:2px;color:var(--ink-soft)}
+  /* Occurrence surlignée sur la page PDF : rectangle en superposition, multiply pour laisser le
+     texte lisible dessous — même registre que mark.pf-h (le surlignage de recherche du texte). */
+  .pdf-hl{position:absolute;background:var(--verify-soft);mix-blend-mode:multiply;border-radius:3px;pointer-events:none}
+  /* Pilule de navigation des occurrences : flottante en bas de la visionneuse, grammaire de la
+     rangée ‹ n/N › du texte (.rt-fnav), élévation d'overlay. */
+  .pdf-fnav{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;box-shadow:var(--shadow);z-index:3}
+  .pdf-fnav .mini{min-width:32px;min-height:32px}
+  .pdf-fnav span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
   /* État d'indexation d'un document, dans sa rangée d'éditeur : rien quand tout va bien. */
   .att-ix{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--ink-soft);white-space:nowrap}
   .att-ix:empty{display:none}
@@ -5236,7 +5247,7 @@
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink)}
   /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
   .pdf-modal{padding:0}
-  .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg)}
+  .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg);position:relative}   /* repère de la pilule .pdf-fnav */
   .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
   .pdf-title{flex:1;min-width:0;font-size:15.5px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
   .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}

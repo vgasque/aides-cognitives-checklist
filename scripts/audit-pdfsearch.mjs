@@ -62,7 +62,7 @@ const sec = s => console.log(`\n══ ${s} — moteur ${NOM_MOTEUR} ══`);
 
 const NOM_HOSTILE = `x"><img src=x onerror=alert(1)>'&<b>proto</b>`;
 const PDF = pdfDeuxPages('adrenaline intramusculaire cuisse anterolaterale dilution',
-                         'surveillance scope oxygene remplissage vasculaire');
+                         'surveillance scope oxygene remplissage vasculaire adrenaline titree');
 
 try {
   sec('joindre un PDF et l’indexer');
@@ -213,6 +213,82 @@ try {
     'la visionneuse n’est pas restée en tête de document', JSON.stringify(vue));
   t(await page.evaluate(() => _pdfjs !== null), 'témoin : pdf.js n’est chargé QUE là, sur un geste');
 
+  sec('le porteur du document est un résultat, et l’entité cherche dans ses annexes');
+  await page.evaluate(() => closePdfViewer());
+  /* Le mot « remplissage » ne vit QUE dans le PDF : la fiche doit pourtant sortir dans la liste
+     (v5.3.0 — le document qui correspond fait correspondre son porteur), avec l'extrait « dans
+     ‹nom› · p. n ». */
+  await page.fill('#q', '');
+  await page.fill('#q', 'remplissage');
+  await page.waitForTimeout(400);
+  const listeDoc = await page.evaluate(() => ({
+    rangees: document.querySelectorAll('.dir-row').length,
+    fiche: [...document.querySelectorAll('.dir-t')].some(x => /Anaphylaxie/.test(x.textContent)),
+    snip: (() => { const c = [...document.querySelectorAll('.card-snip')].find(x => /dans/.test(x.textContent)); return c ? c.textContent.replace(/\s+/g, ' ').trim() : ''; })(),
+  }));
+  t(listeDoc.fiche, 'la FICHE porteuse sort dans la liste pour un mot qui ne vit que dans son PDF', JSON.stringify(listeDoc));
+  t(/p\. 2/.test(listeDoc.snip) && /proto/.test(listeDoc.snip), 'son extrait dit le document et la page', listeDoc.snip);
+
+  // Le champ de la feuille « Toute la fiche » couvre les documents joints de la fiche.
+  await page.fill('#q', '');
+  await page.evaluate(() => { const c = [...document.querySelectorAll('.card-open')].find(x => /Anaphylaxie/i.test(x.textContent)); c.click(); });
+  await page.waitForFunction(() => document.body.classList.contains('view-read'));
+  await page.evaluate(() => { const b = document.getElementById('allBtn'); if (!b) throw new Error('allBtn absent'); b.click(); });
+  await page.waitForFunction(() => !!document.getElementById('pfQ'), null, { timeout: 8000 });
+  await page.fill('#pfQ', 'remplissage');
+  await page.waitForFunction(() => { const b = document.getElementById('pfDocs'); return b && !b.hidden && b.querySelector('.doc-hit'); }, null, { timeout: 5000 }).catch(() => {});
+  const pfd = await page.evaluate(() => { const b = document.getElementById('pfDocs'); return b && !b.hidden ? b.textContent.replace(/\s+/g, ' ').trim() : '(vide)'; });
+  t(/passage/.test(pfd) && /p\. 2/.test(pfd), 'le champ de la feuille « Toute la fiche » trouve dans le PDF joint', pfd);
+  // … et un mot absent replie la zone au lieu de la laisser mentir.
+  await page.fill('#pfQ', 'zzintrouvable');
+  await page.waitForTimeout(300);
+  t(await page.evaluate(() => document.getElementById('pfDocs').hidden), '… et se replie sur un mot absent');
+
+  sec('surligner et naviguer les occurrences dans la visionneuse');
+  await page.fill('#pfQ', 'adrenaline');
+  await page.waitForFunction(() => { const b = document.getElementById('pfDocs'); return b && !b.hidden && b.querySelector('[data-pfdoc]'); }, null, { timeout: 5000 });
+  await page.click('#pfDocs [data-pfdoc]');
+  await page.waitForFunction(() => document.getElementById('pdfModal').classList.contains('on'), null, { timeout: 20000 });
+  await page.waitForFunction(() => document.querySelectorAll('#pdfScroll .pdf-hl').length > 0, null, { timeout: 20000 }).catch(() => {});
+  const hl = await page.evaluate(() => ({
+    n: document.querySelectorAll('#pdfScroll .pdf-hl').length,
+    pill: !document.getElementById('pdfHl').hidden,
+    count: document.getElementById('pdfHlCount').textContent,
+  }));
+  t(hl.n > 0, 'les occurrences sont SURLIGNÉES sur la page rendue (' + hl.n + ' rectangle(s))', JSON.stringify(hl));
+  t(hl.pill && /1 \/ /.test(hl.count), 'la pilule ‹ n/N › est visible et compte', JSON.stringify(hl));
+  /* Les rectangles couvrent du contenu réel : chacun est DANS la boîte de sa page. */
+  t(await page.evaluate(() => [...document.querySelectorAll('.pdf-hl')].every(d => {
+      const r = d.getBoundingClientRect(), pr = d.closest('.pdf-page').getBoundingClientRect();
+      return r.width >= 4 && r.top >= pr.top - 1 && r.bottom <= pr.bottom + 1 && r.left >= pr.left - 1 && r.right <= pr.right + 1;
+    })), 'chaque rectangle vit dans la boîte de sa page');
+  // Naviguer : « adrenaline » est sur les DEUX pages — › doit changer de page d'occurrence.
+  const y0 = await page.evaluate(() => document.getElementById('pdfScroll').scrollTop);
+  await page.click('#pdfHlNext');
+  await page.waitForTimeout(200);
+  const nav2 = await page.evaluate(() => ({ y: document.getElementById('pdfScroll').scrollTop, c: document.getElementById('pdfHlCount').textContent }));
+  t(nav2.y !== y0 && /2 \/ /.test(nav2.c), '« › » mène à la page d’occurrence suivante', JSON.stringify({ y0, nav2 }));
+  await page.evaluate(() => closePdfViewer());
+  t(await page.evaluate(() => document.getElementById('pdfHl').hidden), 'la pilule s’éteint avec la visionneuse');
+  /* Ouvert depuis sa RANGÉE (sans recherche) : ni surlignage ni pilule — on vient LIRE. La rangée
+     de documents d'une FICHE vit dans la feuille « Consulter » (v4.25.3), pas dans le flux : on y
+     va par le vrai bouton. */
+  await page.evaluate(() => { const b = document.getElementById('refBtn'); if (!b) throw new Error('refBtn absent'); b.click(); });
+  await page.waitForFunction(() => document.getElementById('refModal').classList.contains('on'), null, { timeout: 8000 });
+  await page.evaluate(() => { const b = document.querySelector('#refModal [data-att]'); if (!b) throw new Error('rangée document absente de Consulter'); b.click(); });
+  await page.waitForFunction(() => document.getElementById('pdfModal').classList.contains('on'), null, { timeout: 20000 }).catch(() => {});
+  await page.waitForTimeout(500);
+  const lireSeul = await page.evaluate(() => ({
+    on: document.getElementById('pdfModal').classList.contains('on'),
+    hl: document.querySelectorAll('.pdf-hl').length, pill: document.getElementById('pdfHl').hidden }));
+  t(lireSeul.on && lireSeul.hl === 0 && lireSeul.pill, 'ouvert depuis sa rangée : ni surlignage ni pilule (on vient lire)', JSON.stringify(lireSeul));
+  await page.evaluate(() => closePdfViewer());
+  // La feuille « Consulter » est restée dessous : on la ferme par son ✕ avant de sortir.
+  await page.evaluate(() => { document.querySelector('#refModal .ai-x')?.click(); });
+  await page.waitForFunction(() => !document.getElementById('refModal').classList.contains('on'), null, { timeout: 5000 });
+  await page.click('#hdrBack');
+  await page.waitForFunction(() => document.body.classList.contains('view-home'));
+
   sec('résilience — réinitialiser l’index');
   await page.evaluate(() => closePdfViewer());
   /* Un enregistrement d'une AUTRE version (le cas du prochain `IX_V`) : il doit être JETÉ et le
@@ -229,6 +305,15 @@ try {
   }, attId);
   t(!apresVersion.rangee, 'un index d’une autre version n’est PAS gardé', JSON.stringify(apresVersion));
   t(apresVersion.pend, '… et le document redevient « à indexer » (état visible, geste possible)', JSON.stringify(apresVersion));
+
+  /* RATTRAPAGE AUTOMATIQUE (v5.3.0, vécu sur la PWA de l'auteur) : un document présent mais non
+     indexé se rattrape AU DÉMARRAGE, sans aucun clic. On recharge la page avec l'index encore
+     absent (il vient d'être jeté ci-dessus) et l'on attend : `ixLoadAll` doit mettre en file. */
+  await page.goto(URL_APP);
+  await page.waitForFunction(() => typeof fiches !== 'undefined' && !!document.querySelector('.card-open'));
+  await page.waitForFunction(id => window.attIx && attIx.has(id), attId, { timeout: 30000 }).catch(() => {});
+  t(await page.evaluate(id => attIx.has(id), attId),
+    'un document non indexé se rattrape AU DÉMARRAGE, sans clic (auto-indexation)');
 
   // Réindexation globale : elle reconstruit réellement, et la recherche remarche après.
   await page.evaluate(() => ixResetAll());
