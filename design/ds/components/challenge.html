@@ -5031,6 +5031,20 @@
     .rail-sec:has(.rail-lad) .rail-head{flex-wrap:nowrap}
     .rail-sec:has(.rail-lad) .rail-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+    /* v5.4.2-r — DÉPLIANTS DU RAIL (R1+R2, cf. doctrine près de railLadParts) : le résumé reprend
+       la grammaire .rail-head (il EST un en-tête de zone), cible 44 px, chevron qui dit l'état,
+       et la position courante en queue ellipsée. Chevron en transform seul (check-anim). */
+    .rail-fold summary{list-style:none;cursor:pointer;min-height:44px;border-radius:8px}
+    .rail-fold summary::-webkit-details-marker{display:none}
+    .rail-fold summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+    .rail-fold summary:hover .rail-title{color:var(--ink)}
+    .rail-fold .rf-chev{margin-left:auto;color:var(--ink-soft);font-size:12px;transition:transform .15s}
+    .rail-fold[open] .rf-chev{transform:rotate(180deg)}
+    .rail-fold .rf-here{color:var(--ink-soft);font-size:12px;letter-spacing:0;text-transform:none;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+    /* dans le dépliant, le panneau du journal est une SECTION, pas une carte dans la carte — et
+       son titre interne se tait : le résumé le porte déjà (deux fois le même mot, §5.5). */
+    .rail-fold .tk-panel{border:0;background:transparent;border-radius:0;padding:6px 0 0;margin:0}
+    .rail-fold .tk-panel .tk-head b,.rail-fold .tk-panel .tk-head .fam-n{display:none}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
     /* HARMONISATION (v4.23.2, retour d'usage « ils ne se ressemblent pas ») : « Son activé » et

@@ -3086,6 +3086,30 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   rejoint sa famille ; l'annonce des comptes (exigence ECAM du rail) devient PAR famille, la
   somme est préservée. Aucun composant nouveau — deux dessins pour une même idée seraient le
   défaut que ce chantier corrige.
+- **LE RAIL DROIT SE RÉÉQUILIBRE À 780-1199 px — R1+R2 (v5.4.3, audit demandé par l'auteur puis
+  décision sur maquette chiffrée)** : MESURÉ en session réelle (fenêtre du rail 642 px), le rail
+  portait 1 625 px de contenu — **60 % enterré sous un pli invisible** (barres de défilement
+  masquées au repos), le journal à 583 px dessous, séparé des compteurs par la posologie et toute
+  l'Échelle — la séparation exacte que la v5.4.0 avait corrigée en étroit, jamais portée au rail.
+  **R1** : le JOURNAL remonte CONTRE les compteurs, en dépliant d'une ligne (`details.rail-fold`,
+  résumé = grammaire `.rail-head` + compte `.rail-n`) — les trois familles de traçabilité
+  voisines à TOUTES les largeurs ; replié par défaut sous 1200, DÉPLIÉ par défaut en cockpit
+  (rail à 4 zones, la place existe). **R2** : sous 1200, l'ÉCHELLE devient un dépliant d'une
+  ligne annonçant compte ET position (« ici : ① … », mis à jour par `repaintRailLad` à chaque
+  navigation — le résumé est REGÉNÉRÉ, l'attribut `open` du `<details>` survit de lui-même).
+  L'ordre v4.23.0 (« l'illimité en dernier ») tient : replié, l'illimité est BORNÉ. CONFORMITÉ
+  argumentée à l'auteur : une zone repliée qui S'ANNONCE est plus fidèle à l'ECAM qu'un contenu
+  enterré muet (modèle ECL v4.16.4) ; l'état VIVANT (chronos, compteurs, échu) reste déplié en
+  permanence ; rien ne se replie tout seul (règle 11) ; même grammaire de dépliant que le chapeau
+  et l'index ⚡ (AC 120-71B §5.5) ; cibles 44 px, `<details>` natif (clavier, aria-expanded),
+  focus visible, dépliage dans le rail. État TRANSITOIRE par fiche
+  (`state.railTkOpen`/`railLadOpen`, SHARE_LOCAL, remis à zéro par openRead) — regarder n'est pas
+  régler. DIVERGENCE ASSUMÉE avec la maquette : « Surveiller ensuite » vit DANS le corps de
+  l'Échelle et se replie avec elle (sa source reste le flux ③, le rail n'en portait qu'une
+  copie). Le titre interne du panneau journal se TAIT dans le dépliant (le résumé le porte —
+  deux fois le même mot est ce que §5.5 proscrit). ⚠ LEÇON DE SONDE, payée trois fois en
+  l'écrivant : compter les `.rail-title` sans distinguer résumés et corps repliés mesure
+  l'intérieur des plis ; et une référence DOM capturée avant un re-rendu est un nœud détaché.
 - **LE QUAI EST L'ACCÈS UNIQUE AU PANNEAU EN ÉTROIT (v5.4.2, décision utilisateur : « pourquoi on
   a encore un bloc minuteurs·compteurs·journal sous les étapes ? il appartient maintenant au
   rail »)** : le DOUBLE accès de la v5.4.1 (rangée du flux qui POUSSE sans couvrir / volet du quai

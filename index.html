@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-8CnK0nNHoRhdCgdVO4f+JVAFZS4t/0NwTR13O2T5+jc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-9xM+NhxTpYhHS4wOR39QmI2z5EgPnKPkjl8CTbudmV8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5376,6 +5376,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-sec:has(.rail-lad) .rail-head{flex-wrap:nowrap}
     .rail-sec:has(.rail-lad) .rail-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+    /* v5.4.2-r — DÉPLIANTS DU RAIL (R1+R2, cf. doctrine près de railLadParts) : le résumé reprend
+       la grammaire .rail-head (il EST un en-tête de zone), cible 44 px, chevron qui dit l'état,
+       et la position courante en queue ellipsée. Chevron en transform seul (check-anim). */
+    .rail-fold summary{list-style:none;cursor:pointer;min-height:44px;border-radius:8px}
+    .rail-fold summary::-webkit-details-marker{display:none}
+    .rail-fold summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+    .rail-fold summary:hover .rail-title{color:var(--ink)}
+    .rail-fold .rf-chev{margin-left:auto;color:var(--ink-soft);font-size:12px;transition:transform .15s}
+    .rail-fold[open] .rf-chev{transform:rotate(180deg)}
+    .rail-fold .rf-here{color:var(--ink-soft);font-size:12px;letter-spacing:0;text-transform:none;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+    /* dans le dépliant, le panneau du journal est une SECTION, pas une carte dans la carte — et
+       son titre interne se tait : le résumé le porte déjà (deux fois le même mot, §5.5). */
+    .rail-fold .tk-panel{border:0;background:transparent;border-radius:0;padding:6px 0 0;margin:0}
+    .rail-fold .tk-panel .tk-head b,.rail-fold .tk-panel .tk-head .fam-n{display:none}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}
     /* HARMONISATION (v4.23.2, retour d'usage « ils ne se ressemblent pas ») : « Son activé » et
@@ -6455,7 +6469,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.4.2';
+const APP_VERSION='5.4.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13466,7 +13480,7 @@ function shareCan(role,kind){
    son repli ou sa position de lecture à l'autre serait un mouvement non commandé. La frontière
    est écrite ICI et vérifiée par un test — sinon elle se re-perdra au prochain champ ajouté. */
 const SHARE_TRAVELS=['checked','verified','vgaps','nav','navSeq','counters','timers','events','flowEnded','cxBack'];
-const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','navPos','rtOpen','fsOpen','showFlow','readMode','previewFrom','cxOpen'];
+const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','navPos','rtOpen','railTkOpen','railLadOpen','fsOpen','showFlow','readMode','previewFrom','cxOpen'];
 /* CODE D'APPARIEMENT — lecture, normalisation, affichage.
    L'alphabet est RECOPIÉ du serveur, qui reste la seule autorité : ce qui est ici ne sert qu'à
    refuser tôt une saisie manifestement fautive et à afficher un message utile. Une divergence
@@ -14644,6 +14658,9 @@ function renderTkOnly(){
   if(!old)return false;
   const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
   old.replaceWith(tmp.firstElementChild);
+  // v5.4.2-r : le résumé du dépliant du rail annonce le compte — il suit chaque repère.
+  {const sm=document.querySelector('.read-side .rail-fold[data-rfold="tk"] summary');
+   if(sm)sm.outerHTML=railTkSum().replace('<summary class="rail-head">','<summary class="rail-head">');}
   bindTk();tkAckPaint();return true;}
 
 /* ===== Read (mode crise / lecture) =====
@@ -14863,9 +14880,13 @@ function renderRead(){
     +((cockpit&&ladRail)?`<aside class="read-plan"><div class="rail-sec">${ladRail}</div></aside>`:'')
     +`<aside class="read-side">`
     +`<div class="rail-sec">${rtH}</div>`
+    /* v5.4.2-r (R1) : le JOURNAL contre les compteurs, en dépliant — les trois familles de
+       traçabilité voisines à toutes les largeurs (la décision v5.4.0 portée au rail). Puis la
+       posologie ; puis, sous 1200 seulement, l'Échelle en dépliant (R2 — cf. doctrine près de
+       railLadParts). L'ordre v4.23.0 tient toujours : replié, l'illimité est BORNÉ. */
+    +(tkH?railTkSec(tkH):'')
     +(posRail?`<div class="rail-sec">${posRail}</div>`:'')
-    +((!cockpit&&ladRail)?`<div class="rail-sec">${ladRail}</div>`:'')
-    +(tkH?`<div class="rail-sec">${tkH}</div>`:'')
+    +((!cockpit&&ladRail)?railLadSec(f):'')
     +`</aside></div>`:'';
   /* ----- LES ÉTAGES DE LA FICHE (v4.4.0 → v5.0.0) : condition d'entrée → prise en charge →
      surveillances. Le RAIL NUMÉROTÉ ①②③ qui les ossaturait est SUPPRIMÉ (M2a) : deux
@@ -15957,6 +15978,45 @@ function railLadHtml(f){
      objet, pas un autre habillage. C'est la FEUILLE qui doublonne la COLONNE.
      La feuille reste joignable par le menu ⋯ « Se repérer » : rien n'est perdu, sauf un tap. */
   return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
+/* ═══ v5.4.2-r — LE RAIL SE RÉÉQUILIBRE À 780-1199 px (R1+R2, décision utilisateur sur maquette
+   chiffrée). MESURÉ (session réelle, fenêtre du rail 642 px) : 1 625 px de contenu, 60 % ENTERRÉ
+   sous un pli invisible, le journal à 583 px dessous — séparé des compteurs par la posologie et
+   toute l'Échelle, c'est-à-dire exactement la séparation que la v5.4.0 a corrigée en étroit.
+   R1 : le JOURNAL remonte CONTRE les compteurs, en dépliant d'une ligne (les trois familles de
+   traçabilité redeviennent voisines à toutes les largeurs) — replié par défaut sous 1200, déplié
+   par défaut en cockpit (rail à 4 zones, la place existe). R2 : sous 1200, l'ÉCHELLE devient un
+   dépliant d'une ligne qui annonce son compte ET la position courante (« ici : ① … ») — elle
+   était de toute façon déjà sous le pli, et une zone repliée qui S'ANNONCE est plus fidèle à
+   l'ECAM qu'un contenu enterré muet (modèle ECL, v4.16.4). À ≥ 1200 l'Échelle vit dépliée dans
+   la colonne du plan, comme avant. `<details>` NATIFS (clavier, toggle, aria-expanded implicite),
+   état TRANSITOIRE par fiche (state.railTkOpen/railLadOpen, classés SHARE_LOCAL, remis à zéro
+   par openRead) — regarder n'est pas régler. DIVERGENCE ASSUMÉE avec la maquette : « Surveiller
+   ensuite » vit DANS le corps de l'Échelle et se replie avec elle — sa source reste le flux (③),
+   le rail n'en portait qu'une copie. */
+function railLadParts(f){
+  const plan=flowPlan(f);if(!plan.order.length)return null;
+  const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
+  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
+  const off=offPathSet(f,state.nav,state.navPos);
+  return {n:plan.order.length,body:`<div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`};}
+function railHereTxt(f){
+  const id=state.nav[state.navPos];if(!id)return '';
+  const plan=flowPlan(f);const i=plan.order.indexOf(id);if(i<0)return '';
+  const b=(f.blocks||[]).find(x=>x.id===id);
+  const circ='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮'[i]||String(i+1);
+  return '· ici : '+circ+' '+stripBold((b&&b.title)||'');}
+function railLadSum(f,n){
+  return `<summary class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${n}</span><span class="rf-here">${esc(railHereTxt(f))}</span><span class="rf-chev" aria-hidden="true">▾</span></summary>`;}
+function railLadSec(f){
+  const p=railLadParts(f);if(!p)return '';
+  const open=state.railLadOpen===true;   // < 1200 : replié par défaut — c'était déjà sous le pli
+  return `<div class="rail-sec"><details class="rail-fold" data-rfold="lad"${open?' open':''}>${railLadSum(f,p.n)}${p.body}</details></div>`;}
+function railTkSum(){
+  const n=(Runtime.events||[]).length;
+  return `<summary class="rail-head"><span class="rail-title">Journal des actions</span>${n?`<span class="rail-n">${n}</span>`:''}<span class="rf-chev" aria-hidden="true">▾</span></summary>`;}
+function railTkSec(tkH){
+  const open=state.railTkOpen!==undefined?state.railTkOpen:mqCock.matches;   // cockpit : déplié (4 zones)
+  return `<div class="rail-sec"><details class="rail-fold" data-rfold="tk"${open?' open':''}>${railTkSum()}${tkH}</details></div>`;}
 /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un bloc,
    suivre un renvoi. Délégation propre au rail : il n'est pas dans `.ov-wrap`, donc les écouteurs du
    journal ne l'atteignent pas. Re-rendu ANCRÉ sur la ligne touchée (le rail ne doit pas sauter sous
@@ -15984,9 +16044,19 @@ function bindRailLad(){
    qui est REMPLACÉ, on les recâble — le bouton « ⤢ complet » avec eux. */
 function repaintRailLad(){
   const f=state.fiche;if(!f)return;
-  const host=main.querySelector('.read-plan .rail-sec')||(()=>{const l=main.querySelector('.read-side .rail-lad');return l?l.parentElement:null;})();
+  /* v5.4.2-r : sous 1200 l'Échelle vit dans un <details> du rail — on remplace son CONTENU
+     (résumé compris : la position « ici : ① … » vient de changer avec la navigation) et l'état
+     ouvert/fermé survit de lui-même, il vit sur l'attribut `open` du <details> qu'on ne touche
+     pas. En cockpit, mécanique inchangée. */
+  const fold=main.querySelector('.read-side details.rail-fold[data-rfold="lad"]');
+  if(fold){const p=railLadParts(f);if(!p)return;
+    const box=fold.closest('.read-side');const y=box?box.scrollTop:0;
+    fold.innerHTML=railLadSum(f,p.n)+p.body;
+    if(box)box.scrollTop=y;
+    bindRailLad();return;}
+  const host=main.querySelector('.read-plan .rail-sec');
   if(!host)return;
-  const box=host.closest('.read-plan,.read-side');const y=box?box.scrollTop:0;
+  const box=host.closest('.read-plan');const y=box?box.scrollTop:0;
   const h=railLadHtml(f);if(!h)return;
   host.innerHTML=h;
   if(box)box.scrollTop=y;
@@ -19094,7 +19164,7 @@ function vtWrap(fn){
       document.startViewTransition(()=>{fn();});return;}
   }catch(e){}
   fn();}
-function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
+function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(id);flowScroll={left:null,top:0};state.rtOpen=false;state.railTkOpen=undefined;state.railLadOpen=undefined;state.noteEdit=false;state.confOpen=undefined;state.previewFrom=null;state.flowEnded=false;state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   /* ⚠ LE RUNTIME CONSERVÉ GARDAIT UNE FICHE PÉRIMÉE (trouvé à la sonde, lot T7). Quand on rouvre
      une fiche déjà chargée et non démarrée, on ne reconstruit pas le Runtime — c'est voulu (rien
@@ -23383,6 +23453,12 @@ window.addEventListener('popstate',e=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&state.rtOpen==='dock'&&!(typeof _topModal==='function'&&_topModal())){
     state.rtOpen=false;renderKeepAnchor('#cbTimers');}});
+/* v5.4.2-r : l'état des dépliants du rail (journal, Échelle) — TRANSITOIRE, par fiche, jamais
+   persisté ni synchronisé (regarder n'est pas régler). Capture : `toggle` ne bulle pas. */
+document.addEventListener('toggle',e=>{const d=e.target;
+  if(!d||!d.classList||!d.classList.contains('rail-fold'))return;
+  if(d.dataset.rfold==='tk')state.railTkOpen=d.open;
+  else if(d.dataset.rfold==='lad')state.railLadOpen=d.open;},true);
 
 /* ===== Mode débogage (?__acdebug) =====
    L'app avale volontairement beaucoup d'erreurs best-effort (localStorage, vibration, audio…) :
