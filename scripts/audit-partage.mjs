@@ -14,10 +14,12 @@
  * verdicts faux, leçon v4.40.0) : la dérive en pixels d'une étape visible pendant qu'un lot
  * d'évènements distants s'applique.
  */
-import { serveApp, moteur, NOM_MOTEUR, amorce } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, amorce, secRunner } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br = await moteur().launch();
+/* Sections ciblables (v5.4.4) : `--grep <motif>` / `--shard k/n` — cf. secRunner (harness.mjs). */
+const sec = secRunner();
 let ok = 0, ko = 0;
 const t = (nom, cond, det) => { if (cond) { ok++; console.log('  ✓ ' + nom); }
   else { ko++; console.log('  ✗ ' + nom + (det ? '\n      ' + det : '')); } };
@@ -35,7 +37,7 @@ async function session(page) {
   });
 }
 
-console.log(`\n══ PARTAGE · un évènement distant ne déplace rien — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · un évènement distant ne déplace rien — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -120,11 +122,12 @@ console.log(`\n══ PARTAGE · un évènement distant ne déplace rien — mot
   t('aucune fenêtre ouverte', r.modales === 0, `${r.modales} modale(s)`);
   await page.close();
 }
+});
 
 /* Le panneau compteurs/minuteurs n'existe dans le DOM qu'à partir de 1000 px (sous ce seuil il
    reste replié : le contenu clinique d'abord). C'est là qu'on mesure la PEINTURE, pas seulement
    l'état — sinon on croirait tester le rendu alors qu'on ne teste que la mémoire. */
-console.log(`\n══ PARTAGE · peinture réelle du compteur et du minuteur (rail visible) ══`);
+await sec(`PARTAGE · peinture réelle du compteur et du minuteur (rail visible)`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
   await session(page);
@@ -148,12 +151,13 @@ console.log(`\n══ PARTAGE · peinture réelle du compteur et du minuteur (ra
   t('les cycles du minuteur distant sont repris', r.cycles === 2 && r.running === true);
   await page.close();
 }
+});
 
 /* Le cas que `ovAfterCheck` traite à part : décocher une étape alors que la bannière de fin
    d'algorithme est affichée. En LOCAL cela re-rend le journal (légitime, l'utilisateur l'a
    demandé) ; à DISTANCE, ce re-rendu rejouerait la condensation et retirerait du contenu
    au-dessus de la carte courante. On mesure que ça n'arrive pas. */
-console.log(`\n══ PARTAGE · un décochage distant ne recompose pas le journal ══`);
+await sec(`PARTAGE · un décochage distant ne recompose pas le journal`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -227,6 +231,7 @@ console.log(`\n══ PARTAGE · un décochage distant ne recompose pas le journ
   t('et rien ne bouge (≤ 1 px)', r.derive !== null && Math.abs(r.derive) <= 1, `dérive ${r.derive}`);
   await page.close();
 }
+});
 
 /* ══ L'INVITÉ NE PAIE RIEN AVANT D'AVOIR LU (v4.47.0) ══════════════════════════════════════════
    Mesuré avant correctif, sur profil vierge, en chargeant `index.html#j=CODE` : deux caches
@@ -236,7 +241,7 @@ console.log(`\n══ PARTAGE · un décochage distant ne recompose pas le journ
    Le contrôle est SYMÉTRIQUE, et c'est ce qui le rend probant : la même mesure sans le fragment
    doit montrer l'inverse (l'application s'installe bel et bien). Un contrôle qui ne verrait que le
    cas nu ne prouverait pas que la sonde sait voir une empreinte. */
-console.log(`\n══ PARTAGE · empreinte sur le téléphone d'un tiers — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · empreinte sur le téléphone d'un tiers — moteur ${NOM_MOTEUR}`, async () => {
 {
   const mesure = async (frag) => {
     const ctx = await br.newContext();                      // profil VIERGE à chaque fois
@@ -278,6 +283,7 @@ console.log(`\n══ PARTAGE · empreinte sur le téléphone d'un tiers — mot
   t('témoin : sans code, le worker est bien enregistré', normal.sws > 0, `${normal.sws}`);
   t('témoin : sans code, aucun écran d’entrée', !normal.ecran);
 }
+});
 
 /* ══ LE REFUS N'ESCAMOTE PAS LE BOUTON QU'IL DEMANDE DE PRESSER (v4.47.0) ═════════════════════
    Un message d'erreur pousse le bouton vers le bas. Mesuré avec la rédaction précédente (34 mots,
@@ -288,7 +294,7 @@ console.log(`\n══ PARTAGE · empreinte sur le téléphone d'un tiers — mot
    On mesure aussi que la différenciation vient du CLIENT et de lui seul : le serveur bouchonné
    rend rigoureusement la même réponse dans les trois cas, seule la provenance locale du code
    change le texte. Un message qui varierait avec la réponse du serveur serait un oracle. */
-console.log(`\n══ PARTAGE · le refus de jointure reste lisible et actionnable — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le refus de jointure reste lisible et actionnable — moteur ${NOM_MOTEUR}`, async () => {
 for (const [w, h] of [[320, 568], [360, 640], [390, 844]]) {
   const ctx = await br.newContext({ viewport: { width: w, height: h } });
   const page = await ctx.newPage();
@@ -337,6 +343,7 @@ for (const [w, h] of [[320, 568], [360, 640], [390, 844]]) {
   t(`${w}×${h} · aucun paramètre de partage chiffré dans le refus`,
     ![r.scan.txt, r.tape.txt, r.redit.txt].some(s => /\b(minute|participant|\d+\s*(min|s)\b)/i.test(s)));
 }
+});
 
 /* ══ LE MIROIR DE L'INVITÉ : PAS DE BOUTON MORT, PAS DE CUL-DE-SAC (v4.47.0) ══════════════════
    Trois défauts mesurés sur la première version de l'écran invité. (1) Le bouton « Confirmé —
@@ -348,7 +355,7 @@ for (const [w, h] of [[320, 568], [360, 640], [390, 844]]) {
    d'en-tête changeait la vue en laissant le mode et le sondage armés.
    On mesure sur un miroir RÉEL, ouvert par le vrai chemin (`joinGo` → `openSharedFiche`), avec un
    instantané produit par `sharePayload` d'une vraie fiche — jamais un état reconstruit à la main. */
-console.log(`\n══ PARTAGE · le miroir de l'invité — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le miroir de l'invité — moteur ${NOM_MOTEUR}`, async () => {
 for (const [w, h] of [[320, 568], [390, 844]]) {
   const ctx = await br.newContext({ viewport: { width: w, height: h } });
   const page = await ctx.newPage();
@@ -460,6 +467,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   t('quitter n’émet AUCUN « detach » (on n’affirme pas à sa place)', !r.detach);
   await ctx.close();
 }
+});
 
 /* ══ LA FENÊTRE D'APPARIEMENT DE L'HÔTE (v4.47.0) ═════════════════════════════════════════════
    Trois exigences mesurables. (1) L'ORDRE : une maquette « QR d'abord » faisait 572 px de carte
@@ -469,7 +477,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
    et celle-ci reste ouverte pendant toute la fenêtre d'admission — la checklist de crise de l'hôte
    deviendrait indéfilable. (3) L'ÉMISSION EXISTE : sans elle, on ouvrirait un partage, quelqu'un
    rejoindrait, et rien ne bougerait jamais — une façade. */
-console.log(`\n══ PARTAGE · la fenêtre d'appariement de l'hôte — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · la fenêtre d'appariement de l'hôte — moteur ${NOM_MOTEUR}`, async () => {
 for (const [w, h] of [[320, 568], [390, 844]]) {
   const page = await br.newPage({ viewport: { width: w, height: h } });
   await session(page);
@@ -635,6 +643,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   t(`${w}×${h} · une coupure non transmise revient en arrière`, r.repli === true);
   await page.close();
 }
+});
 
 /* ══ LES DEUX FENÊTRES DU PARTAGE SONT DES FENÊTRES DE L'APP (v4.47.0) ════════════════════════
    Retour utilisateur : « pourquoi le design n'est pas calqué sur les autres fenêtres ? — là ça
@@ -645,7 +654,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
    ont la même spécificité, la `max-width:720px` déclarée PLUS BAS l'emportait et la carte
    s'étalait sur 700 px. D'où des sélecteurs par `#id`, comme la règle l'impose pour toute
    géométrie. On verrouille les deux ici. */
-console.log(`\n══ PARTAGE · les fenêtres suivent la grammaire de l'app — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · les fenêtres suivent la grammaire de l'app — moteur ${NOM_MOTEUR}`, async () => {
 for (const [w, h] of [[390, 844], [744, 1133], [760, 900], [1280, 900]]) {
   const page = await br.newPage({ viewport: { width: w, height: h } });
   await session(page);
@@ -706,6 +715,7 @@ for (const [w, h] of [[390, 844], [744, 1133], [760, 900], [1280, 900]]) {
   }
   await page.close();
 }
+});
 
 /* ══ CONTINUER SEUL : LA TRACE REMONTE, L'ÉTAT NON (v4.48.0) ══════════════════════════════════
    Le repli hors dispositif (AC 120-64 §9.a). Trois propriétés, et chacune répare un mur trouvé en
@@ -714,7 +724,7 @@ for (const [w, h] of [[390, 844], [744, 1133], [760, 900], [1280, 900]]) {
    (2) un détaché continue de sondier lentement, sinon ses annexes n'atteignent jamais l'hôte ;
    (3) chez l'hôte, l'annexe entre au JOURNAL et NULLE PART ailleurs — fusionner l'état d'un
    appareil qui a bifurqué produirait un résultat plausible et faux. */
-console.log(`\n══ PARTAGE · continuer seul — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · continuer seul — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -791,6 +801,7 @@ console.log(`\n══ PARTAGE · continuer seul — moteur ${NOM_MOTEUR} ══`
   t('le journal reste chronologique', r.chrono === true);
   await page.close();
 }
+});
 
 /* ══ BRIDAGE : LE SCRIBE AJOUTE, IL NE DÉFAIT PAS (v4.48.0) ═══════════════════════════════════
    Forme canonique du travail à deux (AC 120-71B §5.2.2.1), pas un compromis. Trois exigences :
@@ -801,7 +812,7 @@ console.log(`\n══ PARTAGE · continuer seul — moteur ${NOM_MOTEUR} ══`
    contenu clinique de 46 px, mesuré, et sur ÉVÈNEMENT DISTANT si le rôle change.
    Et le cœur du cochage existe en DEUX COPIES : on mesure les deux, sinon on retombe sur la
    divergence de la v4.42.0. */
-console.log(`\n══ PARTAGE · le scribe ajoute, il ne défait pas — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le scribe ajoute, il ne défait pas — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -856,6 +867,7 @@ console.log(`\n══ PARTAGE · le scribe ajoute, il ne défait pas — moteur 
   t('aucune banderole, aucune fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   await page.close();
 }
+});
 
 /* ══ REJOINDRE SE TAPE DANS LA RECHERCHE (v4.48.0, décision utilisateur) ══════════════════════
    Rejoindre est une action APPELÉE, pas permanente : une ligne en tête d'accueil ferait payer
@@ -864,7 +876,7 @@ console.log(`\n══ PARTAGE · le scribe ajoute, il ne défait pas — moteur 
    caractères d'un alphabet fermé de 32 symboles, sans 0/1/I/O). Ce qu'on mesure : la ligne
    apparaît sur un code, JAMAIS sur un mot, et l'accueil au repos est identique au pixel — c'est
    la propriété qui justifie ce choix plutôt qu'une ligne permanente. */
-console.log(`\n══ PARTAGE · rejoindre se tape dans la recherche — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · rejoindre se tape dans la recherche — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`http://localhost:${port}/index.html`);
@@ -905,6 +917,7 @@ console.log(`\n══ PARTAGE · rejoindre se tape dans la recherche — moteur 
   t('et l’accueil au repos est identique au pixel', r.reposIdentique === true);
   await page.close();
 }
+});
 
 /* ══ BRIDAGE VISIBLE DES GESTES DU LEAD (v4.48.0) ═════════════════════════════════════════════
    Deux exigences, et la seconde est celle qui a coûté cher au projet par le passé.
@@ -914,7 +927,7 @@ console.log(`\n══ PARTAGE · rejoindre se tape dans la recherche — moteur 
        mêmes verbes. Deux listes divergeraient en silence, exactement comme les deux copies du
        cœur de cochage en v4.42.0. On lit donc la liste DEPUIS LE SCRIPT et on vérifie que chaque
        élément réellement rendu porte l'apparence désactivée : une divergence devient mesurable. */
-console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne divergent pas — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le bridage se VOIT, et les deux listes ne divergent pas — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1015,6 +1028,7 @@ console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne diver
   t('aucune banderole, aucune fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   await page.close();
 }
+});
 
 /* ── LE MIROIR SUIT L'HÔTE QUAND IL CHANGE DE BLOC ────────────────────────────────────────────
    Le défaut mesuré : `SHARE_APPLY` distingue 'live', 'anchored' et 'deferred', mais une seule
@@ -1037,7 +1051,7 @@ console.log(`\n══ PARTAGE · le bridage se VOIT, et les deux listes ne diver
       carte doit être visible après le lot) ;
     · il avait défilé ailleurs           -> RIEN NE BOUGE (dérive ≤ 1 px), comme avant.
    Un témoin qui ne mesurerait que le second régime laisserait revenir le défaut sans rien dire. */
-console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1197,6 +1211,7 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
     `file ${r.filePleine} → ${r.fileApres}, trace ${r.avantDrain} → ${r.apresDrain} · geste « ${r.btn} », rôle ${r.role}`);
   await page.close();
 }
+});
 
 /* ── COUPER CELUI QUI TIENT LA MAIN LA REND À L'HÔTE ─────────────────────────────────────────
    « Un seul lead à tout instant, jamais deux, JAMAIS ZÉRO » (invariant 1). Sans cela, couper le
@@ -1205,7 +1220,7 @@ console.log(`\n══ PARTAGE · le miroir suit quand l'hôte avance — moteur 
    lui aussi. Ce n'est pas bloquant pour l'hôte — ses gardes sortent sur `mode!=='guest'` — mais
    faire reposer un invariant AFFICHÉ sur la porte de sortie d'une garde, c'est le laisser dépendre
    d'un détail d'implémentation. */
-console.log(`\n══ PARTAGE · couper celui qui conduit rend la main — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · couper celui qui conduit rend la main — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1230,6 +1245,7 @@ console.log(`\n══ PARTAGE · couper celui qui conduit rend la main — moteu
   t('… et le client le sait immédiatement', r.roleApres === 'lead', r.roleApres);
   await page.close();
 }
+});
 
 /* ── UN RECHARGEMENT NE DOIT PLUS TOUT PERDRE ────────────────────────────────────────────────
    Le cas est banal et il était terminal : un onglet mobile meurt tout seul (iOS recycle les
@@ -1238,7 +1254,7 @@ console.log(`\n══ PARTAGE · couper celui qui conduit rend la main — moteu
    Le billet vit en `sessionStorage` : CET onglet, CETTE navigation. On vérifie les deux moitiés
    de l'arbitrage — il survit au rechargement (sinon il ne sert à rien) ET il ne contient aucune
    donnée clinique (sinon l'étanchéité écrite au registre serait fausse). */
-console.log(`\n══ PARTAGE · un rechargement ne perd plus la session — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · un rechargement ne perd plus la session — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1317,6 +1333,7 @@ console.log(`\n══ PARTAGE · un rechargement ne perd plus la session — mot
   t('… le billet mort ne traîne pas', ap.billet === false);
   await page.close();
 }
+});
 
 /* ── LE JOURNAL RÉFÉRENTIEL : LE MOT ARRIVE, LE TEXTE LIBRE NON ─────────────────────────────
    Un repère partagé ne portait AUCUN mot : `ref` n'existait que pour les compteurs, si bien qu'un
@@ -1324,7 +1341,7 @@ console.log(`\n══ PARTAGE · un rechargement ne perd plus la session — mot
    On vérifie les deux moitiés de la promesse, et elles se contredisent si l'on se trompe :
    le MOT doit arriver (sinon la fonctionnalité ne sert à rien), et le TEXTE LIBRE ne doit JAMAIS
    partir (sinon la règle 15 et le registre RGPD deviennent faux). */
-console.log(`\n══ PARTAGE · le journal référentiel — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le journal référentiel — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1388,13 +1405,14 @@ console.log(`\n══ PARTAGE · le journal référentiel — moteur ${NOM_MOTEU
   t('… et retombe sur « Action n » sans le vocabulaire', /^Action /.test(r.sansVocab), r.sansVocab);
   await page.close();
 }
+});
 
 /* ── LA FIN DE LA SESSION EST LA FIN DU PARTAGE ──────────────────────────────────────────────
    Signalé à l'usage : l'hôte terminait sa session et la fenêtre continuait d'annoncer « Partage
    en cours ». Le partage survivait à la session qu'il reflétait — l'invité sondait un miroir que
    plus rien n'alimentait, et le code d'appariement restait vivant jusqu'à son terme. Un partage
    sans session n'a pas d'objet. */
-console.log(`\n══ PARTAGE · terminer la session coupe le partage — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · terminer la session coupe le partage — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1430,6 +1448,7 @@ console.log(`\n══ PARTAGE · terminer la session coupe le partage — moteur
   t('… et l’annonce au serveur est partie', r.patchs >= 1, `${r.patchs} PATCH`);
   await page.close();
 }
+});
 
 /* ── UN PARTICIPANT NE PEUT PAS INJECTER DE BALISAGE CHEZ LES AUTRES ─────────────────────────
    Deux injections d'attribut ont été REPRODUITES avant correction, et elles empruntaient les deux
@@ -1442,7 +1461,7 @@ console.log(`\n══ PARTAGE · terminer la session coupe le partage — moteur
    accordé : du balisage et du CSS arbitraires dans la colonne d'action d'une réanimation — masquer
    une étape, en superposer une fausse — suffisent à qualifier le défaut. On mesure donc la SORTIE
    DE BALISE, pas l'exécution : c'est la propriété, l'exécution n'est qu'une de ses conséquences. */
-console.log(`\n══ PARTAGE · aucun participant n'injecte de balisage — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · aucun participant n'injecte de balisage — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1499,6 +1518,7 @@ console.log(`\n══ PARTAGE · aucun participant n'injecte de balisage — mot
   t('… de minuteur aussi', /^[A-Za-z0-9_-]+$/.test(r.minuteurs[0] || ''), JSON.stringify(r.minuteurs));
   await page.close();
 }
+});
 
 /* ── LA PASSATION DE LA MAIN — EN TROIS TEMPS, ET AUCUN ÉCRAN NE CHANGE SEUL ─────────────────
    Le scribe ne conduit pas : il ne navigue pas, n'arrête pas un minuteur, ne termine pas. C'est la
@@ -1507,7 +1527,7 @@ console.log(`\n══ PARTAGE · aucun participant n'injecte de balisage — mot
    Trois temps (AC 61-115 « Positive Exchange of Flight Controls ») : l'un PROPOSE, l'autre PREND,
    et le changement de rôle vaut confirmation. Invariant 2 : aucun écran ne change de capacité sans
    un geste effectué SUR CET écran — un `handoff` reçu n'accorde donc rien, il AFFICHE. */
-console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · la passation de la main — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1555,8 +1575,9 @@ console.log(`\n══ PARTAGE · la passation de la main — moteur ${NOM_MOTEUR
   t('… et alors seulement le geste destructeur s’ouvre', r.peutDetruireEnfin === true);
   await page.close();
 }
+});
 
-console.log(`\n══ PARTAGE · le menu suit, le lien mort refuse — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le menu suit, le lien mort refuse — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1625,6 +1646,7 @@ console.log(`\n══ PARTAGE · le menu suit, le lien mort refuse — moteur ${
   t('mais un DÉTACHÉ continue de travailler', r.detacheTravaille === true);
   await page.close();
 }
+});
 
 /* ── LE PLACARD DE L'INVITÉ, ET LES RÉPONSES QUI NE SE PERDENT PLUS ──────────────────────────
    Deux derniers signalements. (1) L'invité lisait « ■ Mode crise » — exactement ce que lit l'hôte —
@@ -1632,7 +1654,7 @@ console.log(`\n══ PARTAGE · le menu suit, le lien mort refuse — moteur ${
    sans lui. (2) La règle 11 (« aucune notification flottante en session ») vise ce qui ARRIVE ;
    elle retenait aussi la RÉPONSE à un bouton qu'on venait de presser, si bien que le message
    surgissait à l'accueil, détaché de son geste. */
-console.log(`\n══ PARTAGE · le placard de l'invité et les réponses directes — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le placard de l'invité et les réponses directes — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1741,6 +1763,7 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
     cout.avec === cout.sans, `${cout.sans} → ${cout.avec} px`);
   await page.close();
 }
+});
 
 /* LE MENU ⋯ SOUS UN PLACARD (v4.55.5, signalé à l'usage). Le placard levait TOUS les enfants
    directs de l'en-tête en `position:relative` pour les faire passer au-dessus de sa hachure — or
@@ -1751,7 +1774,7 @@ console.log(`\n══ PARTAGE · le placard de l'invité et les réponses direct
    IMAGE DE FOND, jamais par l'opacité seule — sur un en-tête SANS placard le pseudo-élément n'a
    pas de `content`, et `getComputedStyle` rend alors l'opacité par défaut 1 : un témoin fondé sur
    l'opacité serait vert des deux côtés et ne prouverait rien. */
-console.log(`\n══ PARTAGE · le menu ⋯ reste flottant sous un placard — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · le menu ⋯ reste flottant sous un placard — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1793,6 +1816,7 @@ console.log(`\n══ PARTAGE · le menu ⋯ reste flottant sous un placard — 
   }
   await page.close();
 }
+});
 
 /* « AVANCÉ PAR … » NE SUIT PLUS CELUI QUI AVANCE (v4.55.5, signalé à l'usage). La mention était un
    drapeau global qu'un SEUL site effaçait (`cxEnter`) : posée une fois — typiquement par le
@@ -1802,7 +1826,7 @@ console.log(`\n══ PARTAGE · le menu ⋯ reste flottant sous un placard — 
    LE CONTRÔLE CONSTRUIT LE CAS : une avance distante, PUIS une avance locale — le défaut ne se
    voit qu'à la seconde, et un contrôle qui s'arrêterait à la première serait vert avec le défaut
    en place. */
-console.log(`\n══ PARTAGE · l'attribution ne survit pas à un geste local — moteur ${NOM_MOTEUR} ══`);
+await sec(`PARTAGE · l'attribution ne survit pas à un geste local — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
@@ -1853,7 +1877,10 @@ console.log(`\n══ PARTAGE · l'attribution ne survit pas à un geste local �
     /avancé par Hôte/.test(r.retour), r.retour || '(aucune)');
   await page.close();
 }
+});
 
+const bilanSec = sec.bilan();
 await br.close(); srv.close();
-console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : ''));
+console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : '')
+  + (bilanSec.partiel ? ` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)` : ''));
 process.exit(ko ? 1 : 0);

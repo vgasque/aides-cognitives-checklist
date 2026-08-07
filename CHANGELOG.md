@@ -1,5 +1,47 @@
 # Journal des modifications
 
+## [5.4.4] — 2026-08-08
+### Les audits cessent d'être chronophages — sections ciblables, tranches, cache vert (aucune sonde changée)
+
+Audit du dispositif d'audit lui-même, demandé par l'auteur (« peut-on réduire le temps en
+gardant la même sécurité ? »). Mesuré d'abord : la passe complète coûtait **216,7 s de temps
+mural, et audit-doctrine à lui seul EST ce temps mural** (le pool absorbe les 19 autres harnais
+pendant qu'il tourne) ; surtout, confirmer UN témoin corrigé coûtait le harnais ENTIER, « et ça
+plusieurs fois, pour plusieurs fichiers » — 29 des 45 derniers commits touchant `index.html`
+avaient dû toucher des `audit-*.mjs`.
+
+- **Sections ciblables** (`secRunner` dans `harness.mjs`) : les 51 sections de doctrine et les
+  23 de partage — indépendantes par construction, seul état partagé les compteurs ok/ko — sont
+  enveloppées dans `await sec('nom', …)`. `node scripts/audit-doctrine.mjs --grep <motif>`
+  confirme une section en **1,5 à 8 s au lieu de 216,7** ; un motif sans correspondance ÉCHOUE
+  bruyamment en listant les sections (une passe vide aurait l'air verte) ; toute passe filtrée
+  s'annonce PARTIELLE jusque dans son bilan final. La transformation (mécanique, script à garde
+  d'abandon) est **vérifiée par équivalence** : sortie byte-identique à l'avant-refactor,
+  737/737 et 291/291 contrôles, même ordre.
+- **Tranches parallèles** (`tranches: n` dans `HARNAIS`) : doctrine se joue en 4 processus
+  `--shard k/4`, a11y en 2 (découpe du tableau SURFACES ; la sonde focus 2.4.11 en tranche 1
+  seule), partage en 2. Passe complète **216,7 → 156,4 s** au pool par défaut, **126,0 s** à
+  `AC_JOBS=5` (mesuré vert ; le défaut RESTE 4 — protection CI et règle « un rouge sous charge
+  se confirme en rejouant seul »). GARDE-FOU : chaque tranche imprime `##SEC joues=j total=N`
+  et le lanceur vérifie que la somme couvre le total — une tranche qui perdrait des sections
+  serait une troncature silencieuse ; vérifié CAPABLE D'ÉCHOUER (rouge fabriqué puis restauré).
+- **`npm run audit -- --rouges`** rejoue les seuls harnais rouges de la dernière passe (état
+  dans `.audit-etat.json`, racine, gitignoré), annoncé PARTIELLE ; aucun rouge enregistré → il
+  le dit et sort vert.
+- **Cache de passe verte** : une passe complète verte enregistre le SHA-256 de tout ce qui peut
+  influencer un verdict (servables de la racine, `vendor/`, `scripts/*.mjs`, moteur) ; si rien
+  n'a changé, `npm run audit` LE DIT au lieu de rejouer — des entrées identiques octet à octet
+  donnent le même verdict — et `--force` rejoue quand même. Une passe partielle n'écrit ni ne
+  consomme jamais ce cache.
+- **Ce qui n'a pas été fait, et pourquoi** (écrit dans AGENTS.md) : pas de carte « fichier
+  modifié → harnais à jouer » (monofichier + dix-neuf pièges de cascade : une édition CSS
+  anodine casse des témoins dans des harnais sans rapport — une carte serait un vert menteur) ;
+  pas de témoins auto-régénérés façon snapshots (un contrôle qui ne peut plus échouer ne prouve
+  rien, leçon v4.31.1) ; k5 non découpé (scénario séquentiel monopage, ~67 s incompressibles).
+  **La porte de commit est strictement inchangée** : la passe COMPLÈTE avant chaque commit, que
+  la CI rejoue. Le coût de PENSER les témoins quand le code change n'est pas racheté : c'est lui
+  la garantie.
+
 ## [5.4.3] — 2026-08-07
 ### Le rail droit se rééquilibre à 780-1199 px — les familles de traçabilité réunies partout
 

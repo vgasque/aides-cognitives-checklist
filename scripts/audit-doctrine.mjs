@@ -1,10 +1,14 @@
 /* LOT 7 — volet DOCTRINE : ECAM / QRH / FAA AC 120-71B, mesuré sur l'app réelle.
    Chaque contrôle traduit une règle de sûreté en invariant observable. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession} from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession, secRunner } from './harness.mjs';
 import { readFile } from 'node:fs/promises';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();
+/* Sections ciblables (v5.4.4) : `--grep <motif>` rejoue les seules sections dont le nom matche,
+   `--shard k/n` une tranche (le lanceur découpe la passe complète ainsi). Sans argument, rien ne
+   change — mêmes sections, même ordre, mêmes en-têtes. cf. secRunner (harness.mjs). */
+const sec=secRunner();
 let ok=0,ko=0;
 const t=(nom,cond,det)=>{if(cond){ok++;console.log('  ✓ '+nom);}else{ko++;console.log('  ✗ '+nom+(det?'\n      '+det:''));}};
 
@@ -20,7 +24,7 @@ async function session(w,demarrer){
 }
 
 // ══ ECAM — constance positionnelle de la zone d'état ════════════════════════
-console.log('\n══ ECAM · constance positionnelle du quai ══');
+await sec('ECAM · constance positionnelle du quai', async () => {
 {
   const page=await session(1280);
   const snap=()=>page.evaluate(()=>[...document.querySelectorAll('#crisisDock .dock-in>*')]
@@ -59,9 +63,10 @@ console.log('\n══ ECAM · constance positionnelle du quai ══');
   t('débordement d\'alarmes annoncé (« +n »)', ov.due<=ov.segs||ov.plus, JSON.stringify(ov));
   await page.close();
 }
+});
 
 // ══ AC 120-71B — les memory items ne sont JAMAIS derrière un clic ═══════════
-console.log('\n══ AC 120-71B · memory items en accès direct ══');
+await sec('AC 120-71B · memory items en accès direct', async () => {
 {
   const page=await session(390);
   const r=await page.evaluate(()=>{
@@ -84,9 +89,10 @@ console.log('\n══ AC 120-71B · memory items en accès direct ══');
     typeof refInert==='object'&&refInert.boxes===0&&refInert.starts===0, JSON.stringify(refInert));
   await page.close();
 }
+});
 
 // ══ ECAM — naviguer ≠ agir ; le plan ne coche pas, ne démarre pas ══════════
-console.log('\n══ ECAM · naviguer ≠ agir ══');
+await sec('ECAM · naviguer ≠ agir', async () => {
 {
   const page=await br.newPage({viewport:{width:1280,height:820}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -108,9 +114,10 @@ console.log('\n══ ECAM · naviguer ≠ agir ══');
   t('taper un nœud du plan ne COCHE rien', before.checked===after.checked);
   await page.close();
 }
+});
 
 // ══ ECAM — aucune notification flottante pendant un soin ═══════════════════
-console.log('\n══ ECAM · pas d\'alerte flottante en session ══');
+await sec('ECAM · pas d\'alerte flottante en session', async () => {
 {
   const page=await session(390);
   const r=await page.evaluate(async()=>{
@@ -125,6 +132,7 @@ console.log('\n══ ECAM · pas d\'alerte flottante en session ══');
   t('bandeau système absent hors accueil', r.banner===false);
   await page.close();
 }
+});
 
 /* ══ LE MENU ⋯ TIENT DANS L'ÉCRAN, MARGE DU MATÉRIEL COMPRISE (v4.73.2) ═════════════════════════
    Signalé deux fois à l'usage : d'abord en fenêtre basse, puis « pareil, menu ⋯ tronqué » en grande
@@ -135,7 +143,7 @@ console.log('\n══ ECAM · pas d\'alerte flottante en session ══');
    `--sab` est FORCÉE à 34 px sur un tour : c'est la bande de l'indicateur d'accueil d'un iPhone,
    que `visualViewport.height` INCLUT — le terme qui manquait, et qu'un moteur de bureau ne
    présente jamais. Sans ce tour, le contrôle serait aveugle au défaut effectivement observé. */
-console.log('\n══ Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de texte) ══');
+await sec('Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de texte)', async () => {
 {
   const page=await session(390);
   for(const w of [390,430]){
@@ -172,6 +180,7 @@ console.log('\n══ Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 t
   await page.evaluate(()=>applyZoom(100));
   await page.close();
 }
+});
 
 // ══ ECAM — rangée de COMMANDES sans rognage (v4.30.0, audit externe) ════════
 // Mesuré AVANT correctif : #crisisCtrl exigeait 386 px — « Cons. » rogné de 11 px à 375
@@ -183,7 +192,7 @@ console.log('\n══ Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 t
 // On mesure aussi le ROGNAGE INTERNE (bord droit du dernier bouton contre la boîte cliente de
 // `.dock-in`) : un bouton peut tenir dans le viewport tout en étant coupé par son conteneur,
 // et c'est exactement le cas qui se produisait.
-console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390) ══');
+await sec('ECAM · rangée de commandes sans rognage (320/360/375/390)', async () => {
 {
   const page=await session(360);
   for(const w of [320,360,375,390]){
@@ -278,6 +287,7 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
   }
   await page.close();
 }
+});
 
 /* LA BASCULE GUIDÉ ↔ STATIQUE GARDE LE BLOC COURANT (v4.74.2, signalé à l'usage : « comment
    améliorer le passage guidé/statique lorsqu'on a déjà scrollé ? »). Avant : `scrollTo(0,0)`
@@ -285,7 +295,7 @@ console.log('\n══ ECAM · rangée de commandes sans rognage (320/360/375/390
    pas la même hauteur. La seule ancre qui EXISTE des deux côtés est le bloc courant, marqué `.cur`
    dans les deux vues. On mesure la DÉRIVE en pixels, comme pour toutes les mécaniques d'ancrage du
    projet, et l'on vérifie le repli : sans bloc courant à l'écran, on repart du haut. */
-console.log('\n══ ECAM · bascule guidé ↔ statique ancrée sur le bloc courant ══');
+await sec('ECAM · bascule guidé ↔ statique ancrée sur le bloc courant', async () => {
 {
   const page=await session(390);
   await page.waitForTimeout(250);
@@ -310,11 +320,12 @@ console.log('\n══ ECAM · bascule guidé ↔ statique ancrée sur le bloc co
     `${r.av} px → ${r.apDyn} px`);
   await page.close();
 }
+});
 
 // La MÊME règle vaut hors crise : un débordement silencieux reste un débordement. L'ÉDITEUR
 // sortait « ⋯ » de 6,2 px à 320 px (bouton VISIBLE, donc pixels inatteignables) — le commentaire
 // du CSS visait 360 et le tenait, personne n'avait mesuré en dessous.
-console.log('\n══ ECAM · barre d\'éditeur sans rognage (320/360) ══');
+await sec('ECAM · barre d\'éditeur sans rognage (320/360)', async () => {
 {
   const page=await br.newPage({viewport:{width:320,height:844}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -336,9 +347,10 @@ console.log('\n══ ECAM · barre d\'éditeur sans rognage (320/360) ══');
   }
   await page.close();
 }
+});
 
 // ══ WCAG 2.3.3 / projet — mouvement inhibé sous prefers-reduced-motion ═════
-console.log('\n══ WCAG · prefers-reduced-motion ══');
+await sec('WCAG · prefers-reduced-motion', async () => {
 {
   const page=await br.newPage({viewport:{width:1280,height:820},reducedMotion:'reduce'});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -357,13 +369,14 @@ console.log('\n══ WCAG · prefers-reduced-motion ══');
   t('aucun mouvement autonome sous reduced-motion', anim.length===0, anim.slice(0,4).join('\n      '));
   await page.close();
 }
+});
 
 // ══ QRH / Degani & Wiener — l'intitulé d'une décision ne quitte pas l'écran ═
 // En mode STATIQUE sur petit écran les branches sont EMPILÉES : sans épinglage, la bande-question
 // sortait de l'écran pendant qu'on lisait encore ses étapes (mesuré : 844 px de contenu lus sans
 // elle sur une décision imbriquée à 360×640). Perdre sa place est un mode de défaillance premier ;
 // au-delà de 640 px les branches sont côte à côte et le défaut n'existe pas — d'où les deux volets.
-console.log('\n══ QRH · intitulé de décision toujours visible (statique empilé) ══');
+await sec('QRH · intitulé de décision toujours visible (statique empilé)', async () => {
 {
   const st=n=>Array.from({length:n},(_,i)=>`Étape ${i+1} du protocole, libellé réaliste`);
   const FICHE={id:'aud-sb',title:'Audit — décision imbriquée',start:'a',blocks:[
@@ -451,6 +464,7 @@ console.log('\n══ QRH · intitulé de décision toujours visible (statique e
     await page.close();
   }
 }
+});
 // ══ Le RENDU GUIDÉ, jusqu'ici couvert par RIEN ═══════════════════════════════
 // `grep -rn 'nav-wrap\|navNext\|bindNavEvents' tests.html scripts/` rendait 0 : la vue guidée
 // (celle d'une fiche SANS algorithme — c'est-à-dire ce que produit `blankFiche()`, donc toute
@@ -459,7 +473,7 @@ console.log('\n══ QRH · intitulé de décision toujours visible (statique e
 // reset de `state.flowEnded` était enfermé dans un `if(nn)` alors que `#navNext` n'existe
 // justement plus à cet instant. Le journal, lui, faisait les deux — la divergence entre les deux
 // copies du cochage était invisible faute de sonde.
-console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme ══');
+await sec('Rendu guidé · décocher annule la fin de l\'algorithme', async () => {
 {
   const page=await br.newPage({viewport:{width:390,height:844}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -486,6 +500,7 @@ console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme �
   t('décocher fait revenir le bouton d\'avancement',r.bouton===true,'#navNext absent');
   await page.close();
 }
+});
 
 // ══ ECAM — « rien ne bouge sous le doigt » : le RÉSIDU d'ancrage ═══════════
 // Le motif « mesurer, re-rendre, compenser » vivait en QUATRE copies dont UNE SEULE renvoyait son
@@ -493,7 +508,7 @@ console.log('\n══ Rendu guidé · décocher annule la fin de l\'algorithme �
 // mesurable — encore faut-il le mesurer. Le résidu est BORNÉ par le haut de page : on défile
 // exprès avant le geste, sinon `scrollBy` ne peut pas descendre sous 0 et le contrôle mesurerait
 // la limite structurelle au lieu de l'ancrage (cf. la doctrine de `state.confOpen`).
-console.log('\n══ ECAM · ancrage — résidu nul au geste de première action ══');
+await sec('ECAM · ancrage — résidu nul au geste de première action', async () => {
 {
   const page=await br.newPage({viewport:{width:390,height:844}});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -548,6 +563,7 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
     `dérive ${g[0].derive} px`);
   await page.close();
 }
+});
 
 /* ══ LA RANGÉE D'ÉTAT NE ROGNE PAS, MÊME AVEC UN LIBELLÉ LONG (v4.47.0) ══
    `audit-doctrine` contrôlait déjà le débordement de la rangée de COMMANDES à 320/360/375/390.
@@ -557,7 +573,7 @@ console.log('\n══ ECAM · ancrage — résidu nul au geste de première acti
    nombre de chiffres) : renommer un minuteur faisait déborder le quai en silence — mesuré à
    119 px à 320 px avant correctif. Ce contrôle mesure les deux : intitulé long ET libellé de
    session étendu, ce dernier étant l'emplacement où le partage écrira (Lot 4). */
-console.log('\n══ ECAM · la rangée d\'ÉTAT ne rogne jamais ══');
+await sec('ECAM · la rangée d\'ÉTAT ne rogne jamais', async () => {
 for(const w of [320,360,390]){
   const page=await session(w);
   const r=await page.evaluate(async()=>{
@@ -590,6 +606,7 @@ for(const w of [320,360,390]){
     `${r.nb} segment(s), +n ${r.plus?'présent':'absent'}`);
   await page.close();
 }
+});
 
 /* ══ L'ALARME NE TOMBE JAMAIS AVANT LE DÉCORATIF (v4.47.0) ══
    Le segment ambre d'un minuteur ÉCHU est le canal d'ACQUITTEMENT de l'alarme : c'est la seule
@@ -600,7 +617,7 @@ for(const w of [320,360,390]){
    le chevron par-dessus — réécrivant un état qu'elle venait de mesurer comme débordant.
    Le contrôle mesure les deux : à toutes les largeurs de téléphone, avec un intitulé long sur le
    minuteur échu, `.seg.due` est PRÉSENT et le quai ne rogne pas. */
-console.log('\n══ ECAM · l\'alarme survit au décoratif ══');
+await sec('ECAM · l\'alarme survit au décoratif', async () => {
 for(const w of [320,360,390]){
   const page=await session(w);
   const r=await page.evaluate(async()=>{
@@ -638,6 +655,7 @@ for(const w of [320,360,390]){
     `jeton ${r.jeton?'écrit':'ABSENT'}, alarme ${r.avecJeton.alarme?'là':'PERDUE'}, déborde de ${r.avecJeton.dep} px\n      « ${r.avecJeton.txt} »`);
   await page.close();
 }
+});
 
 /* ══ LE QUAI DE L'INVITÉ EXISTE, ET IL DIT LA MAIN (v4.47.0) ══
    AC 120-71B §6.4 pt 1 : à tout instant, qui tient la checklist ne souffre AUCUNE ambiguïté. Or le
@@ -647,7 +665,7 @@ for(const w of [320,360,390]){
    permanentes n'avaient pas de conteneur.
    On vérifie AUSSI qu'elles sont LISIBLES : l'ellipse du quai fonctionne désormais (cf. plancher de
    112 px), donc un jeton trop long ne déborderait plus — il serait TRONQUÉ, c'est-à-dire muet. */
-console.log('\n══ AC 120-71B · le quai de l\'invité dit qui tient la main ══');
+await sec('AC 120-71B · le quai de l\'invité dit qui tient la main', async () => {
 for(const w of [320,360,390]){
   const page=await session(w,false);
   const r=await page.evaluate(async()=>{
@@ -682,6 +700,7 @@ for(const w of [320,360,390]){
   t(`${w} px · et la rangée ne rogne pas`,r.dep1<=1,`déborde de ${r.dep1} px`);
   await page.close();
 }
+});
 
 /* ══ INCRÉMENTER UN COMPTEUR HORODATE — et ne fait pas remonter le rail (v4.47.0) ══
    « Choc n° 3 à 14:32 » est exactement ce qu'on oublie de noter sous stress, et l'heure est ce
@@ -690,7 +709,7 @@ for(const w of [320,360,390]){
    Le contrôle mesure les deux moitiés : le repère EXISTE, et le rail NE BOUGE PAS — le journal
    vit en fin de rail, qui a son propre défilement, et un rendu complet le remettrait à zéro
    (retour d'usage v4.23.5, « la barre latérale remontait à chaque Noter l'heure »). */
-console.log('\n══ Journal · incrémenter un compteur pose un repère horodaté ══');
+await sec('Journal · incrémenter un compteur pose un repère horodaté', async () => {
 {
   const page=await session(1280);   // >= 1000 px : le panneau compteurs est dans le DOM
   const r=await page.evaluate(async()=>{
@@ -761,6 +780,7 @@ console.log('\n══ Journal · incrémenter un compteur pose un repère horoda
   }
   await page.close();
 }
+});
 
 /* ── TROIS ROGNAGES SIGNALÉS À L'USAGE (v4.55.3) ─────────────────────────────────────────────
    Le contrôle de rognage existait pour la rangée de commandes de crise (v4.43.0) ; ces trois
@@ -771,7 +791,7 @@ console.log('\n══ Journal · incrémenter un compteur pose un repère horoda
       construit donc une décision à huit branches ;
     · le PANNEAU ne déborde que sur écran TACTILE, où « silencieux ? » et le bouton son montent à
       44 px de cible — d'où un contexte `hasTouch`. */
-console.log(`\n══ DOCTRINE · aucun rognage dans les feuilles ni le panneau — moteur ${NOM_MOTEUR} ══`);
+await sec(`DOCTRINE · aucun rognage dans les feuilles ni le panneau — moteur ${NOM_MOTEUR}`, async () => {
 for (const w of [320, 360, 390]) {
   const page = await br.newPage({ viewport: { width: w, height: 820 }, hasTouch: true, isMobile: true });
   await page.goto(`http://localhost:${port}/index.html`);
@@ -837,13 +857,14 @@ for (const w of [320, 360, 390]) {
   t(`${w} · … et la croix reste une cible de 32 px`, r.croixVisible === true);
   await page.close();
 }
+});
 
 /* LE QUAI NOMME CE QU'IL CACHE — ET SEULEMENT ALORS (v5.0.0).
    Trois propriétés, et la deuxième est la seule qui rende la première admissible : le rappel
    n'existe QUE lorsque le quai ne montre aucun minuteur. Un témoin qui ne mesurerait que la
    présence du libellé laisserait passer la régression qui compte — celle où il concurrencerait
    l'alarme. On mesure donc aussi l'ÉTAT ARMÉ, où il doit avoir DISPARU. */
-console.log('\n══ ECAM · le quai nomme ce qu\'il cache, sans jamais coûter un pixel ══');
+await sec('ECAM · le quai nomme ce qu\'il cache, sans jamais coûter un pixel', async () => {
 for (const w of [320, 360, 390, 430]) {
   const page = await br.newPage({viewport:{width:w,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -868,6 +889,7 @@ for (const w of [320, 360, 390, 430]) {
   t(`${w} · … et là non plus rien ne déborde`, r.arme.deb<=1, `${r.arme.deb} px`);
   await page.close();
 }
+});
 
 /* LOT T8 — L'AXE DE DENSITÉ, ET LES TROIS FAÇONS DE REGARDER L'AIDE ENTIÈRE (v5.0.0).
    Le contrôle qui compte n'est pas « les onglets s'affichent » : c'est que le SCHÉMA GARDE SES
@@ -875,7 +897,7 @@ for (const w of [320, 360, 390, 430]) {
    sans rebrancher ses écouteurs le réduit à une IMAGE, et c'est ce qui s'est produit à la première
    passe (mesuré : zoom figé à 100 %, état de session non peint). On mesure donc le zoom, la
    peinture d'état et la navigabilité, pas la présence. */
-console.log('\n══ T8 · axe de densité — « toute la fiche » se regarde de trois façons ══');
+await sec('T8 · axe de densité — « toute la fiche » se regarde de trois façons', async () => {
 for (const w of [320, 390]) {
   const page = await br.newPage({viewport:{width:w,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1014,12 +1036,13 @@ for (const w of [320, 390]) {
     r.cocheApres===r.cocheAvant, `${r.cocheAvant} → ${r.cocheApres}`);
   await page.close();
 }
+});
 
 /* LOT T9 / R4 — LA BIBLIOTHÈQUE EST UNIQUE, LE TYPE EST UN FILTRE.
    LE CAS DOIT EXISTER AVANT D'ÊTRE MESURÉ : le jeu d'exemple ne contient AUCUN protocole, si bien
    que « Tout » et « Aides » y donnent le même compte — un contrôle écrit sans cette précaution
    passerait au vert sans avoir rien vérifié (leçon v4.55.3, redite au lot T4). On en crée un. */
-console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
+await sec('T9 · une seule bibliothèque, le type en filtre', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1074,6 +1097,7 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
   t('la tab bar basse est PURGÉE (aucune émission)', r.tabbar===0, `${r.tabbar} nœud(s)`);
   await page.close();
 }
+});
 
 /* AUDIT DESIGN A3-1 / A5-3 — LE REPLI DES FILTRES, ET SURTOUT SA CONTREPARTIE.
    Le gain est réel (~90 px au premier écran, mesuré ci-dessous), mais le RISQUE l'est aussi, et
@@ -1091,7 +1115,7 @@ console.log('\n══ T9 · une seule bibliothèque, le type en filtre ══');
    tenant sur une ligne. C'est la leçon la plus redite de ce dossier — un contrôle qui ne rencontre
    pas son cas ne le couvre pas. On mesure aussi la TUILE, dont la hauteur est FLUIDE et qui
    entraîne toute sa rangée de grille : c'est par elle que le coût s'était réintroduit. */
-console.log('\n══ Audit design · titres longs, boîtes bornées ══');
+await sec('Audit design · titres longs, boîtes bornées', async () => {
 for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,130],[1246,130],[1600,130]]) {
   const page = await br.newPage({viewport:{width:w,height:900},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1154,8 +1178,9 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
   t(`${w}/z${zm} · … et sa croissance reste bornée`, r.hTile<=105, `${r.hTile} px`);
   await page.close();
 }
+});
 
-console.log('\n══ Audit design · le repli des filtres ══');
+await sec('Audit design · le repli des filtres', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1278,6 +1303,7 @@ console.log('\n══ Audit design · le repli des filtres ══');
     `deux → ${JSON.stringify(r.deuxEtat)} ; aucun → ${JSON.stringify(r.zeroEtat)}`);
   await page.close();
 }
+});
 
 /* CROIX D'EFFACEMENT DE LA RECHERCHE (v5.0.3, demande utilisateur). Trois propriétés, et la
    troisième est celle qu'on oublie : effacer sans rendre le focus oblige à re-viser le champ. */
@@ -1287,7 +1313,7 @@ console.log('\n══ Audit design · le repli des filtres ══');
    seul écran où elle est la plus rare. C'est exactement ce qui se produisait à 320 px, et ce que
    la v4.43.0 avait mesuré partout SAUF ici. On mesure donc l'alignement des deux blocs, pas un
    débordement qui n'arrivera jamais. */
-console.log('\n══ En-tête d\'accueil · une seule ligne jusqu\'à 320 px ══');
+await sec('En-tête d\'accueil · une seule ligne jusqu\'à 320 px', async () => {
 {
   for(const w of [320,360,375,390,430]){
     const page = await br.newPage({viewport:{width:w,height:700},hasTouch:true});
@@ -1326,6 +1352,7 @@ console.log('\n══ En-tête d\'accueil · une seule ligne jusqu\'à 320 px �
     await page.close();
   }
 }
+});
 
 /* LE VERROU DE MARQUE SE MESURE SUR L'ENCRE, PAS SUR LA BOÎTE (v5.0.5, signalé à l'usage).
    `logo-glyph.svg` porte son propre blanc — un cinquième de la boîte à gauche : caler le
@@ -1335,7 +1362,7 @@ console.log('\n══ En-tête d\'accueil · une seule ligne jusqu\'à 320 px �
    la mesure suit — un inset écrit en dur périmerait au premier retracé) et vérifie les deux
    propriétés : l'encre commence à la marge de page, et la respiration du verrou reste
    proportionnée au dessin. ⚠ Il rencontre son cas d'abord : hors accueil, le logo n'existe pas. */
-console.log('\n══ Accueil · le verrou logo + mot-marque ══');
+await sec('Accueil · le verrou logo + mot-marque', async () => {
 {
   for(const w of [320,390,430,1280]){
     const page = await br.newPage({viewport:{width:w,height:760},hasTouch:true});
@@ -1369,13 +1396,14 @@ console.log('\n══ Accueil · le verrou logo + mot-marque ══');
     await page.close();
   }
 }
+});
 
 /* LE RAIL A→Z NE COUVRE JAMAIS UNE CARTE (v5.0.3, question utilisateur sur l'écart). En voie
    étroite il est `position:fixed` : la gouttière réservée n'est pas un tampon anti-fausse-manœuvre,
    c'est ce qui l'empêche de recouvrir le bord droit des rangées — donc l'épingle. La resserrer se
    mesure des DEUX côtés : assez pour ne rien couvrir, assez pour que les deux cibles ne se
    touchent pas. */
-console.log('\n══ Accueil · la gouttière du rail A→Z ══');
+await sec('Accueil · la gouttière du rail A→Z', async () => {
 {
   for(const w of [320,390,430,640,779]){
     const page = await br.newPage({viewport:{width:w,height:760},hasTouch:true});
@@ -1411,8 +1439,9 @@ console.log('\n══ Accueil · la gouttière du rail A→Z ══');
     await page.close();
   }
 }
+});
 
-console.log('\n══ Recherche · la croix d\'effacement ══');
+await sec('Recherche · la croix d\'effacement', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1457,6 +1486,7 @@ console.log('\n══ Recherche · la croix d\'effacement ══');
   t('… et rend le focus au champ', foc==='q', `focus : ${foc}`);
   await page.close();
 }
+});
 
 /* LOT T7 — ★ MÉMOIRE, DE BOUT EN BOUT. Le contrôle unitaire mesure le CALCUL ; celui-ci mesure
    le CHEMIN RÉEL — poser l'étoile dans l'éditeur, revenir en lecture, la voir dans le chapeau.
@@ -1464,7 +1494,7 @@ console.log('\n══ Recherche · la croix d\'effacement ══');
    construit SANS re-pointer sa fiche, si bien qu'après une édition la lecture affichait l'objet
    d'avant (`edCommit` REMPLACE l'entrée de `fiches` par sa copie normalisée). Un contrôle qui se
    serait arrêté au calcul ne l'aurait jamais vu. */
-console.log('\n══ T7 · ★ mémoire — de l\'éditeur au chapeau ══');
+await sec('T7 · ★ mémoire — de l\'éditeur au chapeau', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:900},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1499,6 +1529,7 @@ console.log('\n══ T7 · ★ mémoire — de l\'éditeur au chapeau ══');
   t('rouvrir une fiche éditée donne l\'objet À JOUR (pas celui d\'avant)', r.frais===true);
   await page.close();
 }
+});
 
 /* LOT T13 — LES DEUX FICHES D'EXEMPLE SONT LE SEUL MATÉRIEL PÉDAGOGIQUE, donc ce qu'elles
    n'exercent pas n'existe pas pour un nouveau venu. Le constat 3 de l'audit J0 les mesurait à un
@@ -1506,7 +1537,7 @@ console.log('\n══ T7 · ★ mémoire — de l\'éditeur au chapeau ══');
    aucun `onDue`, et le registre AMBRE présent UNE seule fois dans tout le produit.
    ON MESURE LES MÉCANISMES, PAS LE TEXTE : un contrôle sur les libellés casserait à la première
    relecture clinique, alors que ce qui compte est qu'un J0 RENCONTRE chaque dispositif. */
-console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elles enseignent ══');
+await sec('T13 · les fiches d\'exemple exercent la doctrine qu\'elles enseignent', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1573,6 +1604,7 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
   t(`… et il ne recouvre plus le bouton d'action (0 %)`, r.rec===0, `${r.rec} %`);
   await page.close();
 }
+});
 
 /* `aidRev` — LA RÉVISION LUE PENDANT LE SOIN (v5.0.0). La spécification v4 écrit « aidRev + texts
    réparent le défaut mesuré » ; le lot T1 n'avait livré que `texts`. Le témoin mesure les deux
@@ -1644,7 +1676,7 @@ console.log('\n══ T13 · les fiches d\'exemple exercent la doctrine qu\'elle
    TEXTE et n'insère que des nœuds créés : réinjecter du balisage produit par `mdRender` ouvrirait
    une seconde occasion de se tromper là où `esc()` est la seule barrière (règle 4). Le témoin
    vérifie donc AUSSI que le HTML rendu est intact. */
-console.log('\n══ RÉFÉRENCE · plan à gauche, recherche dedans ══');
+await sec('RÉFÉRENCE · plan à gauche, recherche dedans', async () => {
 /* ⚠ ON BALAYE LE SEUIL, PAS DEUX POINTS CONFORTABLES. La grille demande 260 + 24 + 780 = 1064 px
    de contenu : entre 1000 et 1064, la piste du corps débordait et la colonne COLLANTE se
    superposait au texte (signalé à l'usage). Le seuil est donc 1200 — palier déjà déclaré, aucune
@@ -1801,6 +1833,7 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
     r.restaure===true&&r.resteMarks===0, `restauré=${r.restaure} restes=${r.resteMarks}`);
   await page.close();
 }
+});
 
 /* ⚠ LE FRANCHISSEMENT DE PALIER, MESURÉ SUR UN VRAI REDIMENSIONNEMENT (signalé à l'usage : « non
    responsive, pas d'adaptation »). Le sommaire d'une référence est un `<aside>` au-dessus de
@@ -1828,7 +1861,7 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
    ⚠ L'ENTRÉE, ELLE, N'A PAS BOUGÉ, et c'est une décision de l'auteur : la mettre en tête de carte
    donnerait la position de plus forte saillance à l'événement le MOINS probable et repousserait
    les cases à cocher. La dissymétrie entrée/retour est le raisonnement, pas un oubli. */
-console.log('\n══ COMPLICATIONS · entrer d’un tap, revenir sans chercher ══');
+await sec('COMPLICATIONS · entrer d’un tap, revenir sans chercher', async () => {
 for (const W of [320, 390]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1945,8 +1978,9 @@ for (const W of [320, 390]) {
     `« ${r.iciTxt} » · ${r.iciDis} désactivée, ${r.autreTapable} tapable`);
   await page.close();
 }
+});
 
-console.log('\n══ CONTRASTE DES ÉTATS · ce qui n’existe qu’après un geste ══');
+await sec('CONTRASTE DES ÉTATS · ce qui n’existe qu’après un geste', async () => {
 for (const th of ['light','dark']) {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true,colorScheme:th});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1981,8 +2015,9 @@ for (const th of ['light','dark']) {
   t(`${th} · le vert du retour d'excursion tient AA`, R.vert>=4.5, `${R.vert}:1`);
   await page.close();
 }
+});
 
-console.log('\n══ BANDEAU · il ne porte plus que l’exception ══');
+await sec('BANDEAU · il ne porte plus que l’exception', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2019,12 +2054,13 @@ console.log('\n══ BANDEAU · il ne porte plus que l’exception ══');
     R.exo.vu===true&&/Exercice/.test(R.exo.tag), JSON.stringify(R.exo));
   await page.close();
 }
+});
 
 /* ⚠ LA COLONNE D'ORIENTATION EST DÉSATURÉE — Y COMPRIS SES CHIPS DE BRANCHE (signalé à l'usage).
    En ambre plein, la chip empruntait le registre ATTENTION à ce qui n'est ni une alerte ni un
    point de vigilance : le NOM de la branche. Et le groupe « à tout moment » porte UN rail, du
    titre à la dernière rangée, au lieu d'une bordure par rangée qui semblait surgir. */
-console.log('\n══ PARCOURS INERTE · registres et cohérence du groupe ══');
+await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
 {
   const page = await br.newPage({viewport:{width:1280,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2117,8 +2153,9 @@ console.log('\n══ PARCOURS INERTE · registres et cohérence du groupe ═�
     R.xTitres.every(c=>c.length<=1), JSON.stringify(R.xTitres));
   await page.close();
 }
+});
 
-console.log('\n══ RÉFÉRENCE · le palier se franchit RÉELLEMENT ══');
+await sec('RÉFÉRENCE · le palier se franchit RÉELLEMENT', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:900},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2139,8 +2176,9 @@ console.log('\n══ RÉFÉRENCE · le palier se franchit RÉELLEMENT ══');
   t('… et retour à l’étroit → le dépliant', a3==='DETAILS', String(a3));
   await page.close();
 }
+});
 
-console.log('\n══ REPÈRES POSOLOGIQUES · une boîte garde ses quatre côtés ══');
+await sec('REPÈRES POSOLOGIQUES · une boîte garde ses quatre côtés', async () => {
 {
   const page = await br.newPage({viewport:{width:1280,height:1000}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2161,8 +2199,9 @@ console.log('\n══ REPÈRES POSOLOGIQUES · une boîte garde ses quatre côt�
   t('aucune boîte ne perd son bord haut', r.sansBordHaut===0, `${r.sansBordHaut} sans bord`);
   await page.close();
 }
+});
 
-console.log('\n══ ACCUEIL · la rangée a un rythme régulier ══');
+await sec('ACCUEIL · la rangée a un rythme régulier', async () => {
 for (const W of [330, 390, 700, 1000, 1400, 1600]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2323,6 +2362,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
     /rgba\(0, 0, 0, 0\)|transparent/.test(r.fondTodo||'transparent'), r.fondTodo);
   await page.close();
 }
+});
 
 /* LA HAUTEUR DU RAIL ÉTROIT NE CITE AUCUNE MESURE QUI BOUGE AU DÉFILEMENT (v5.0.1).
    ⚠ CE TÉMOIN EST STATIQUE, ET C'EST DÉLIBÉRÉ : les deux termes fautifs sont invisibles en
@@ -2335,7 +2375,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
    d'accueil : 0 barre déployée, ~34 px barre repliée).
    L'exception est NOMMÉE et bornée : en `display-mode:standalone`, il n'y a pas de barre
    d'outils, l'inset y est constant et il DOIT être retranché. */
-console.log('\n══ ACCUEIL · le rail A→Z ne suit aucune mesure mouvante ══');
+await sec('ACCUEIL · le rail A→Z ne suit aucune mesure mouvante', async () => {
 {
   const src = await readFile(ROOT + 'index.html', 'utf8');
   const bloc = (src.match(/@supports \(height:100svh\)\{[\s\S]*?\n    \}/) || [''])[0];
@@ -2443,6 +2483,7 @@ for (const W of [390, 1100]) {
   t(`${W} · … les fenêtres gardant leur « contain »`, o.modale==='contain', String(o.modale));
   await page.close();
 }
+});
 
 /* UN GESTE DE CHROME NE CHANGE PAS DE VUE (v5.0.0, signalé à l'usage : « fermer la croix d'un
    bandeau efface une des deux invites »). Les binders de l'accueil re-rendaient par
@@ -2452,7 +2493,7 @@ for (const W of [390, 1100]) {
    ⚠ LE CONTRÔLE DOIT RENCONTRER SON CAS : il faut un PROTOCOLE dans la bibliothèque, sinon
    « Tout » et « Aides » affichent la même chose et le témoin reste vert sur le défaut. Les deux
    fiches d'exemple sont toutes deux des aides. */
-console.log('\n══ ACCUEIL · un geste de chrome ne change pas de vue ══');
+await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
 {
   const page = await br.newPage({viewport:{width:1100,height:950}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2497,6 +2538,7 @@ console.log('\n══ ACCUEIL · un geste de chrome ne change pas de vue ══'
       c1.n===2&&c1.s==='all', JSON.stringify(c1));}
   await page.close();
 }
+});
 
 /* L'ÉTAT VIDE N'OFFRE QUE CE QU'ON PEUT CRÉER LÀ (v5.0.0, signalé à l'usage : en vue « Tout »,
    le titre était neutre mais le texte et le bouton étaient ceux des AIDES seules). Le nombre de
@@ -2505,7 +2547,7 @@ console.log('\n══ ACCUEIL · un geste de chrome ne change pas de vue ══'
    type dans le dialogue « Créer », c'est lui qu'on mesure, pas l'apparence du dialogue.
    ⚠ ET LA LEÇON NE S'AFFICHE PAS SOUS UN FILTRE : qui cherche sait déjà ce qu'est une aide ; on
    lui doit un résultat, pas un cours. Le témoin construit donc les DEUX cas. */
-console.log('\n══ ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici ══');
+await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:900}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2564,6 +2606,7 @@ console.log('\n══ ACCUEIL · l\'état vide n\'offre que ce qu\'on peut crée
     `${r.cartes} carte(s), ${r.kinds.length} bouton(s)`);
   await page.close();
 }
+});
 
 /* L'EXTRAIT DE RECHERCHE TIENT DANS SA RANGÉE (v5.0.0, signalé à l'usage : « en mode recherche
    le texte dépasse des cartes d'accueil »). La boucle ci-dessus mesure le RÉPERTOIRE, où la
@@ -2575,7 +2618,7 @@ console.log('\n══ ACCUEIL · l\'état vide n\'offre que ce qu\'on peut crée
    mesurerait une rangée ordinaire), et il faut qu'il soit assez long pour DÉBORDER (un extrait
    d'une ligne tiendrait dans les 71 px et le témoin resterait vert sur le défaut). D'où le terme
    « adrénaline », qui matche dans le CORPS des deux fiches d'exemple. */
-console.log('\n══ ACCUEIL · l\'extrait de recherche tient dans sa rangée ══');
+await sec('ACCUEIL · l\'extrait de recherche tient dans sa rangée', async () => {
 for (const W of [320, 360, 390, 700, 1400]) {
   const page = await br.newPage({viewport:{width:W,height:844}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2613,8 +2656,9 @@ for (const W of [320, 360, 390, 700, 1400]) {
     `${r.minH} px — hauteurs ${JSON.stringify(r.hauteurs)}`);
   await page.close();
 }
+});
 
-console.log('\n══ RÉGRESSIONS · déplacement, flèches, losange ══');
+await sec('RÉGRESSIONS · déplacement, flèches, losange', async () => {
 {
   const page = await br.newPage({viewport:{width:1280,height:1000}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2652,8 +2696,9 @@ console.log('\n══ RÉGRESSIONS · déplacement, flèches, losange ══');
     r.los&&r.los.gauche>=0&&r.los.haut>=0, JSON.stringify(r.los));
   await page.close();
 }
+});
 
-console.log('\n══ DÉPLIANTS · un tap ne déplace pas l’écran ══');
+await sec('DÉPLIANTS · un tap ne déplace pas l’écran', async () => {
 for (const W of [320, 390]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2686,8 +2731,9 @@ for (const W of [320, 390]) {
     `saut ${r.sautJournal} px, ${r.lignes} ligne(s)`);
   await page.close();
 }
+});
 
-console.log('\n══ PARCOURS INERTE · les marqueurs sont lisibles ══');
+await sec('PARCOURS INERTE · les marqueurs sont lisibles', async () => {
 {
   const page = await br.newPage({viewport:{width:1280,height:1000}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2718,8 +2764,9 @@ console.log('\n══ PARCOURS INERTE · les marqueurs sont lisibles ══');
     /rgba\(0, 0, 0, 0\)|transparent/.test(r.carte), r.carte);
   await page.close();
 }
+});
 
-console.log('\n══ QUAI · la structure survit aux ticks ══');
+await sec('QUAI · la structure survit aux ticks', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2751,8 +2798,9 @@ console.log('\n══ QUAI · la structure survit aux ticks ══');
   t('… et les valeurs sont bien peintes', q.vals.length>=1&&q.vals.every(v=>/\d/.test(v)), JSON.stringify(q.vals));
   await page.close();
 }
+});
 
-console.log('\n══ aidRev · la révision lue pendant le soin ══');
+await sec('aidRev · la révision lue pendant le soin', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2774,6 +2822,7 @@ console.log('\n══ aidRev · la révision lue pendant le soin ══');
   t('… et une révision POSTÉRIEURE ne la réécrit pas', r.rev2===r.rev1, `${r.rev1} → ${r.rev2}`);
   await page.close();
 }
+});
 
 /* ── RÉENTRÉE · on revient sur le soin, pas sur le préambule ─────────────────────────────────
    Mesuré avant correctif : rouvrir une aide dont la session TOURNE déposait à 456 px du bout à
@@ -2783,7 +2832,7 @@ console.log('\n══ aidRev · la révision lue pendant le soin ══');
    s'appliquerait partout remplacerait un défaut par son symétrique.
    ⚠ ET IL VÉRIFIE QU'IL RENCONTRE SON CAS : sur une aide courte, le bout serait visible depuis le
    haut de page et le contrôle resterait vert sans rien prouver. */
-console.log('\n══ RÉENTRÉE · rouvrir une session vive atterrit sur le bout ══');
+await sec('RÉENTRÉE · rouvrir une session vive atterrit sur le bout', async () => {
 for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
   const page = await br.newPage({viewport:{width:fmt.w,height:fmt.h},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2842,6 +2891,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
   t(`${fmt.w}× une aide SANS session s’ouvre toujours en haut`, r.inerte===0, `scrollY=${r.inerte}`);
   await page.close();
 }
+});
 
 /* ── DÉMARRAGE · on atterrit sur le HAUT du premier bloc (v5.0.7) ────────────────────────────
    Presser « Confirmé — démarrer la session » retire ou rétrécit tout ce qui est au-dessus du
@@ -2856,7 +2906,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
    ET LA NON-RÉGRESSION EST L'AUTRE MOITIÉ : sur une fiche courte, où le haut de la carte est déjà
    à sa place, rien ne doit bouger — un atterrissage inconditionnel déplacerait la page pour tout
    le monde et laisserait les gestes suivants décalés. */
-console.log('\n══ DÉMARRAGE · le haut du premier bloc est visible ══');
+await sec('DÉMARRAGE · le haut du premier bloc est visible', async () => {
 for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
   const page = await br.newPage({viewport:{width:fmt.w,height:fmt.h},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2968,6 +3018,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
   t(`390× … et le haut de la carte y était déjà`, r.haut!=null&&r.haut>=0, `${r.haut} px`);
   await page.close();
 }
+});
 
 /* ── LE CHAPEAU ENTRE LES CRITÈRES ET LE BOUTON (v5.0.8) ────────────────────────────────────
    Séquence QRH : condition d'entrée → memory items → geste d'entrée. Trois propriétés, et la
@@ -2975,7 +3026,7 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
    passe JAMAIS sous le bouton, sinon on l'aurait rangé derrière le geste qu'il doit précéder.
    La troisième est la non-régression : une fois la session démarrée, le chapeau replié revient en
    tête (T3 + T5) — rien de ce qui existait ne change. */
-console.log('\n══ CHAPEAU · condition d’entrée → memory items → bouton ══');
+await sec('CHAPEAU · condition d’entrée → memory items → bouton', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -3024,6 +3075,7 @@ console.log('\n══ CHAPEAU · condition d’entrée → memory items → bout
     r.fs!=null&&r.btn!=null&&r.fs<r.btn, `chapeau ${r.fs}, bouton ${r.btn}`);
   await page.close();
 }
+});
 
 /* ── LE PARCOURS MONTRE TOUT CE QU'IL PROMET (v5.0.9) ───────────────────────────────────────
    Trois défauts signalés à l'usage, tous dans l'onglet « Parcours » de « Toute la fiche ».
@@ -3035,7 +3087,7 @@ console.log('\n══ CHAPEAU · condition d’entrée → memory items → bout
    or une branche qui ne fait que boucler n'en a pas : elle disparaissait. (3) Cette branche-là
    n'affichait alors RIEN, dans une vue qui promet la fiche entière.
    L'INERTIE reste mesurée avec eux : rien de tout cela n'introduit un geste. */
-console.log('\n══ PARCOURS · la réponse enroule, la branche se nomme ══');
+await sec('PARCOURS · la réponse enroule, la branche se nomme', async () => {
 {
   const page = await br.newPage({viewport:{width:320,height:640},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -3083,6 +3135,7 @@ console.log('\n══ PARCOURS · la réponse enroule, la branche se nomme ═�
   t('la vue reste INERTE (aucun data-ck, rien ne se coche)', r.ck===0&&r.inerte===true, JSON.stringify({ck:r.ck,inerte:r.inerte}));
   await page.close();
 }
+});
 
 /* ── LE CHROME COLLANT NE SUIT PAS LE DÉFILEMENT (v5.0.9) ───────────────────────────────────
    `--hdr-h` est le `top` collant de la rangée de commandes, donc du quai empilé dessus ; il était
@@ -3093,7 +3146,7 @@ console.log('\n══ PARCOURS · la réponse enroule, la branche se nomme ═�
    rebondit pas : un contrôle qui se contenterait de défiler resterait vert sur le défaut. On
    DÉPLACE donc l'en-tête sans changer sa hauteur — le stand-in fidèle de ce que fait le
    compositeur — et l'on vérifie que la géométrie du chrome ne bouge pas d'un pixel. */
-console.log('\n══ CHROME · une géométrie ne se dérive pas d’une position ══');
+await sec('CHROME · une géométrie ne se dérive pas d’une position', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -3123,12 +3176,13 @@ console.log('\n══ CHROME · une géométrie ne se dérive pas d’une positi
   t('l’état revient à l’identique', r.apres.h===a.h&&r.apres.s===a.s, JSON.stringify(r.apres));
   await page.close();
 }
+});
 
 /* ── UN BLOC COMPLET L'EST SUR TOUTE SA BORDURE (v5.0.9, signalé à l'usage) ─────────────────
    `.done` n'écrivait que le liseré gauche : un bloc courant ET complet portait un cadre bleu avec
    une seule arête verte. La carte REPLIÉE le faisait déjà — le même bloc changeait donc de
    registre selon qu'il était plié. Une DÉCISION reste exclue : son ambre prime sur l'état. */
-console.log('\n══ BLOC COMPLET · le registre tient sur les quatre côtés ══');
+await sec('BLOC COMPLET · le registre tient sur les quatre côtés', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -3153,7 +3207,9 @@ console.log('\n══ BLOC COMPLET · le registre tient sur les quatre côtés �
   t('… et ce registre est bien celui du liseré « fait »', b.top!==a.top&&b.top===b.left, `${a.top} → ${b.top}`);
   await page.close();
 }
+});
 
+const bilanSec=sec.bilan();
 await br.close();srv.close();
-console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
+console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);
 process.exit(ko?1:0);

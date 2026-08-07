@@ -98,6 +98,76 @@ export const items = arr => (arr || []).map(s => {
  * timeout de Playwright au lieu de laisser la sonde mesurer un écran à moitié construit.
  */
 
+/* ══ CIBLAGE PAR SECTION ET TRANCHES (v5.4.4) ═════════════════════════════════════════════════
+ *
+ * POURQUOI. La boucle d'itération payait le harnais ENTIER pour confirmer UN témoin corrigé :
+ * doctrine = 216,7 s mesurées pour 51 sections indépendantes (~4,3 s chacune), donc corriger puis
+ * confirmer une section coûtait ~40 fois son prix. Et la passe complète avait doctrine pour temps
+ * mural À LUI SEUL (le pool absorbe les 19 autres pendant qu'il tourne) : la seule façon de
+ * raccourcir la passe sans toucher une sonde est de le DÉCOUPER en tranches parallélisables.
+ *
+ * CE QUE ÇA NE CHANGE PAS : les sondes, leurs seuils, leur ordre. `sec(nom, fn)` enveloppe chaque
+ * bloc déjà autonome (seul état partagé mesuré avant refonte : les compteurs ok/ko) ; sans
+ * argument, tout tourne comme avant, dans le même ordre, avec les mêmes en-têtes.
+ *
+ * LES GARDE-FOUS, les mêmes que la passe PARTIELLE d'audit-run (non négociables) :
+ *   - un ciblage s'ANNONCE (« PASSE PARTIELLE — j/N sections ») et marque le bilan final ;
+ *   - un --grep sans AUCUNE correspondance ÉCHOUE bruyamment en listant les sections connues
+ *     (une faute de frappe qui lancerait une passe vide aurait l'air verte) ;
+ *   - chaque exécution imprime une ligne machine `##SEC joues=j total=N [tranche=k/n]` :
+ *     audit-run VÉRIFIE que la somme des tranches couvre le total — une tranche qui perdrait des
+ *     sections serait une troncature silencieuse, le défaut que ce dépôt refuse partout.
+ *
+ * Usage dans un harnais à sections :
+ *     const sec = secRunner();
+ *     await sec('ECAM · constance positionnelle du quai', async () => { … });
+ *     const bilan = sec.bilan();   // imprime ##SEC (+ l'annonce PARTIELLE) et rend {joues,total,partiel}
+ *
+ *     node scripts/audit-doctrine.mjs --grep quai      → les seules sections dont le nom matche
+ *     node scripts/audit-doctrine.mjs --shard 2/4      → une section sur quatre (modulo, ordre gardé)
+ */
+export function trancheArg() {
+  const argv = process.argv.slice(2);
+  const i = argv.indexOf('--shard');
+  if (i < 0) return null;
+  const m = /^([1-9]\d*)\/([1-9]\d*)$/.exec(argv[i + 1] || '');
+  if (!m || +m[1] > +m[2]) { console.error('--shard attend k/n avec 1 ≤ k ≤ n (ex. 2/4).'); process.exit(1); }
+  return { k: +m[1], n: +m[2] };
+}
+
+export function grepArg() {
+  const argv = process.argv.slice(2);
+  const i = argv.indexOf('--grep');
+  if (i < 0) return null;
+  if (!argv[i + 1]) { console.error('--grep attend un motif (testé insensible à la casse sur le nom de section).'); process.exit(1); }
+  return new RegExp(argv[i + 1], 'i');
+}
+
+export function secRunner() {
+  const grep = grepArg(), tranche = trancheArg();
+  let idx = 0, joues = 0;
+  const noms = [];
+  async function sec(nom, fn) {
+    const i = idx++; noms.push(nom);
+    if (grep && !grep.test(nom)) return;
+    if (tranche && i % tranche.n !== tranche.k - 1) return;
+    joues++;
+    console.log('\n══ ' + nom + ' ══');
+    await fn();
+  }
+  sec.bilan = () => {
+    if ((grep || tranche) && !joues) {
+      console.error('\n✗ ciblage sans AUCUNE section correspondante — sections connues :\n  · ' + noms.join('\n  · '));
+      process.exit(1);
+    }
+    console.log(`##SEC joues=${joues} total=${idx}` + (tranche ? ` tranche=${tranche.k}/${tranche.n}` : ''));
+    if (grep || tranche) console.log(`⚠ PASSE PARTIELLE — ${joues}/${idx} sections` +
+      (tranche ? ` (tranche ${tranche.k}/${tranche.n})` : '') + ' ; le harnais entier reste dû avant commit.');
+    return { joues, total: idx, partiel: !!(grep || tranche) };
+  };
+  return sec;
+}
+
 /* Traverser l'écran de bienvenue et poser les fiches d'exemple. Prérequis : `page.goto` déjà
    fait par le harnais (les URL et viewports varient). Rendu final attendu : l'accueil avec au
    moins une rangée ouvrable. */

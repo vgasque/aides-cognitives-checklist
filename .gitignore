@@ -10,3 +10,6 @@ node_modules/
 # `scripts/` (audit-*.mjs) et sont, eux, versionnés.
 /.[a-z0-9-]*.mjs
 /.[a-z0-9-]*.png
+
+# État du lanceur d'audits (cache de passe verte + rouges à rejouer) — jamais versionné.
+/.audit-etat.json

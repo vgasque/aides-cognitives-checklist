@@ -293,6 +293,35 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   « PARTIELLE » en toutes lettres (un vert partiel pris pour un complet serait pire que le statu
   quo), un nom inconnu ÉCHOUE bruyamment (une faute de frappe qui lancerait une passe vide aurait
   l'air verte), et la règle « avant chaque commit » reste la passe COMPLÈTE, que la CI rejoue.
+  **SECTIONS CIBLABLES ET TRANCHES (v5.4.4, audit du dispositif lui-même — mesuré avant de
+  décider)** : la boucle d'itération payait le harnais ENTIER pour confirmer UN témoin corrigé
+  (doctrine : 216,7 s mesurées pour 51 sections indépendantes — seul état partagé, les compteurs
+  ok/ko), et la passe complète avait doctrine pour temps mural À LUI SEUL (216,7 s = 100 % du
+  mural, le pool absorbant les 19 autres pendant qu'il tourne). Quatre réponses, AUCUNE sonde
+  changée : (1) **`--grep <motif>`** sur doctrine et partage (`secRunner`, harness.mjs) — chaque
+  section est enveloppée dans `await sec('nom', …)`, une section ciblée se confirme en ~2-8 s au
+  lieu de 217 ; motif sans correspondance = échec BRUYANT listant les sections (une passe vide
+  aurait l'air verte), passe filtrée annoncée « PARTIELLE » jusque dans le bilan final. La
+  transformation a été vérifiée par ÉQUIVALENCE DE SORTIE (737/737 et 291/291, diff byte à byte
+  contre la sortie d'avant, hors ligne `##SEC`). (2) **`tranches: n`** dans `HARNAIS` : le lanceur
+  joue doctrine en 4 processus `--shard k/n` (découpe au modulo, ordre gardé), a11y en 2 (tranches
+  du tableau SURFACES ; la sonde focus 2.4.11 ne tourne que dans la tranche 1), partage en 2 —
+  temps mural de la passe complète ~217 → ~120 s. GARDE-FOU : chaque tranche imprime
+  `##SEC joues=j total=N` et le lanceur VÉRIFIE que la somme couvre le total — une tranche qui
+  perdrait des sections serait une troncature silencieuse, rouge fabriqué. (3) **`--rouges`**
+  rejoue les seuls harnais rouges de la dernière passe (état dans `.audit-etat.json`, racine,
+  gitignoré), annoncé PARTIELLE. (4) **CACHE DE PASSE VERTE** : une passe complète verte
+  enregistre le SHA-256 de tout ce qui peut influencer un verdict (servables de la racine,
+  vendor/, scripts/*.mjs, moteur) ; si rien n'a changé, `npm run audit` LE DIT au lieu de rejouer
+  (entrées identiques → même verdict), `--force` rejoue quand même ; une passe partielle n'écrit
+  ni ne consomme jamais ce cache. **LE WORKFLOW QUI EN DÉCOULE** : une passe complète de
+  DÉCOUVERTE en début de chantier (le rapport agrégé montre tous les rouges d'un coup), puis
+  correction → section ciblée en secondes, puis UNE passe complète finale — la porte de commit est
+  STRICTEMENT inchangée. **CE QUI N'A PAS ÉTÉ FAIT, et pourquoi** : pas de carte « fichier modifié
+  → harnais à jouer » (monofichier + dix-neuf pièges de cascade : une édition CSS anodine casse
+  des témoins dans des harnais sans rapport — une carte serait un vert menteur) ; pas de témoins
+  auto-régénérés façon snapshots (un contrôle qui ne peut plus échouer ne prouve rien, leçon
+  v4.31.1) ; k5 n'est pas découpé (scénario séquentiel monopage, ~67 s incompressibles).
   **GESTES D'AMORÇAGE PARTAGÉS (v5.0.0, `harness.mjs` : `amorce`/`ouvrirFiche`/`demarrerSession`)** :
   les dix-sept recopiaient « Commencer → fiches d'exemple → `.card-open` → `#sessStart` » avec des
   délais déjà divergents (120/350 ici, 200/700 là) — un changement du flux d'accueil coûtait

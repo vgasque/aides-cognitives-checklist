@@ -6,7 +6,7 @@
      • focus visible au CLAVIER (parcours Tab réel, pas un .focus() programmatique)
      • règles projet : jamais --soft en couleur de texte, « hors chemin » jamais par opacité seule
 */
-import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession, trancheArg } from './harness.mjs';
 
 
 const { port, srv } = await serveApp();
@@ -347,9 +347,16 @@ const SURFACES = [
       myIsAppAdmin=true; openNewLib(); } },
 ];
 
+/* Tranches (v5.4.4, `--shard k/n`) : découpe de SURFACES au modulo — le lanceur joue les n
+   tranches en parallèle, chacune couvrant les DEUX thèmes de ses surfaces ; la somme des lignes
+   `##SEC` est vérifiée par audit-run (aucune troncature silencieuse). La section focus 2.4.11 ne
+   tourne que dans la tranche 1 (la dupliquer mesurerait deux fois la même chose). */
+const tranche = trancheArg();
+const SURF = tranche ? SURFACES.filter((_, i) => i % tranche.n === tranche.k - 1) : SURFACES;
+
 for (const theme of ['light','dark']) {
   console.log('\n══════ THÈME '+(theme==='dark'?'SOMBRE':'CLAIR')+' ══════');
-  for (const S of SURFACES) {
+  for (const S of SURF) {
     const page = await browser.newPage({ viewport:{width:S.w,height:900}, colorScheme:theme });
     page.on('pageerror',e=>errs.push(`${S.nom}/${theme}: ${e.message}`));
     // Les fenêtres liées au COMPTE interrogent Supabase : hors réseau, la console crie
@@ -464,6 +471,7 @@ for (const theme of ['light','dark']) {
 // « ⚠ RCP immédiate »). Correctif : html{scroll-padding-top:calc(var(--stick-top)+8px)}.
 // On émule le cas réel : l'élément est envoyé AU-DESSUS du viewport, puis focalisé — le
 // défilement déclenché par le focus est celui du navigateur, le seul que scroll-padding pilote.
+if (!tranche || tranche.k === 1) {
 console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session, 360 px) ══════');
 {
   const page = await browser.newPage({ viewport:{width:360,height:780} });
@@ -501,8 +509,13 @@ console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session,
   } else console.log('  ✓ aucun élément focalisé entièrement masqué');
   await page.close();
 }
+}
 
 await browser.close(); srv.close();
 if(errs.length){console.log('\nErreurs page :');[...new Set(errs)].forEach(e=>console.log('  '+e));}
-console.log(`\n${checks-fails}/${checks} contrôles OK${fails?` — ${fails} ÉCHEC(S)`:''}${errs.length?` — ${errs.length} erreur(s)`:''}`);
+/* Ligne machine pour audit-run : joues/total en unités « surface × thème » (+1 pour la section
+   focus, jouée dans la seule tranche 1) — la somme des tranches doit couvrir le total. */
+console.log(`##SEC joues=${SURF.length*2+((!tranche||tranche.k===1)?1:0)} total=${SURFACES.length*2+1}`+(tranche?` tranche=${tranche.k}/${tranche.n}`:''));
+if(tranche)console.log(`⚠ PASSE PARTIELLE — tranche ${tranche.k}/${tranche.n} (${SURF.length}/${SURFACES.length} surfaces) ; le harnais entier reste dû avant commit.`);
+console.log(`\n${checks-fails}/${checks} contrôles OK${fails?` — ${fails} ÉCHEC(S)`:''}${errs.length?` — ${errs.length} erreur(s)`:''}${tranche?` — PARTIEL (tranche ${tranche.k}/${tranche.n})`:''}`);
 process.exit(fails||errs.length?1:0);
