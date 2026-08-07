@@ -3086,8 +3086,27 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   rejoint sa famille ; l'annonce des comptes (exigence ECAM du rail) devient PAR famille, la
   somme est préservée. Aucun composant nouveau — deux dessins pour une même idée seraient le
   défaut que ce chantier corrige.
+- **LE QUAI EST L'ACCÈS UNIQUE AU PANNEAU EN ÉTROIT (v5.4.2, décision utilisateur : « pourquoi on
+  a encore un bloc minuteurs·compteurs·journal sous les étapes ? il appartient maintenant au
+  rail »)** : le DOUBLE accès de la v5.4.1 (rangée du flux qui POUSSE sans couvrir / volet du quai
+  qui SUIT en couvrant) a perdu sa moitié de flux le jour où le volet a su suivre le défilement —
+  la rangée ne payait plus qu'en hauteur permanente sous la carte et en seconde grammaire.
+  SUPPRIMÉE (`.rt-collapsed`, `#rtOpen`, `rtRowLabel`, la branche de repeinture de `renderTkOnly`
+  — règle 14, émissions vérifiées au grep) ; en étroit, le panneau n'existe plus QUE dans le
+  volet, **qui se rend même sans minuteur ni compteur** (le journal y loge — une fiche sans
+  minuteur garde son accès par le quai, présent dès qu'une session vit) ; « ＋ Minuteur PA »
+  n'écrit plus `rtOpen` (il vit DANS le panneau, déjà ouvert là où l'on appuie). Le rappel du
+  quai (« 1 minuteur · 1 compteur ▾ », v5.0.0) devient le SEUL annonciateur de ce qui est caché —
+  sa raison d'être renforcée. En LARGE, rien ne change. Limite dite : sur une fiche MONO-BLOC en
+  étroit, « Noter l'heure » n'est plus dans le flux (la carte mono-bloc n'a jamais porté le
+  bouton M2) — un tap de quai l'atteint ; donner le bouton M2 à cette carte serait le vrai
+  alignement, à décider séparément. ⚠ Les témoins qui ouvraient par `#rtOpen` passent par le
+  quai (deux dans audit-partage, un dans audit-doctrine).
 - **UN DÉPLIANT SE RECONNAÎT AVANT DE SE LIRE (v5.4.0, signalé à l'usage : « j'ai eu du mal à
-  identifier les blocs — c'est affiché comme si ça faisait partie du reste de la page »)** : la
+  identifier les blocs — c'est affiché comme si ça faisait partie du reste de la page ») —
+  [v5.4.2 : la rangée qui a motivé cette règle est supprimée (cf. bullet précédent) ; la
+  grammaire reste, pour tout dépliant à venir, et la moitié « journal niché » vaut toujours
+  dans le volet]** : la
   rangée repliée était une carte BLANCHE `--surface`, le dessin exact du contenu clinique qui
   l'entoure ; son seul signal était un petit « ▾ Afficher ». Elle passe en `--surface-3` — le ton
   du CHROME, distinct de la surface dans les DEUX thèmes ; le contenu clinique reste seul en

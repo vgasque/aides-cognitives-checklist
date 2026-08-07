@@ -40,7 +40,7 @@
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;--pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -1091,7 +1091,16 @@
      bandeau rouge du titre ; et recharger depuis un écran de soin n'est jamais souhaitable —
      l'invitation attend le retour à l'accueil, la nouvelle version arrive de toute façon à
      l'ouverture suivante). */
-  .sys-banner{display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--primary-soft);border-bottom:1px solid var(--primary-200);color:var(--ink);font-size:12px;line-height:1.35}
+  /* v5.4.2 — LE BANDEAU SYSTÈME PASSE AU-DESSUS DU RAIL A→Z (signalé à l'usage, capture : le
+     fond du rail — fixe, z 15, voile `color-mix` — se peignait PAR-DESSUS « Nouvelle version
+     disponible », masquait sa droite et pouvait même intercepter le tap sur son ×, le rail étant
+     `touch-action:none` sur toute sa bande). Le bandeau est PLEINE LARGEUR et vit HORS de `main`,
+     donc hors de la gouttière que le répertoire réserve au rail (v5.0.3) — il est le seul objet
+     de l'accueil à passer sous lui. Sans `position`, un z-index est inerte : les deux vont
+     ensemble. z 16 : au-dessus du rail (15), toujours SOUS l'en-tête collant (20) — une
+     notification qu'on doit pouvoir lire et REJETER prime sur trois lettres d'index qu'elle
+     recouvre transitoirement (le bandeau défile avec le flux, ou se ferme d'un tap). */
+  .sys-banner{position:relative;z-index:16;display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--primary-soft);border-bottom:1px solid var(--primary-200);color:var(--ink);font-size:12px;line-height:1.35}
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--primary-dk);flex:none;display:inline-flex}
   .sys-banner .sb-txt{flex:1;min-width:0}
@@ -2204,6 +2213,16 @@
      le contenu : la fermeture vit aussi sur le quai, re-tap/Échap/retour). Le panneau intérieur
      perd sa boîte : deux cadres emboîtés se liraient comme deux objets (règle du journal niché). */
   .rt-dock{position:fixed;left:0;right:0;top:var(--stick-top,110px);z-index:14;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-lg);max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);overflow-y:auto;overscroll-behavior:contain}
+  /* v5.4.2 — LA HAUTEUR DU VOLET SE BORNE AU `svh`, PAS À `--vvh` (signalé à l'usage smartphone :
+     « modifier un horaire → le scroll saute quand le clavier s'ouvre, dans la page ET dans le
+     volet »). `--vvh` est `visualViewport.height`, que le CLAVIER rétrécit : le volet changeait de
+     hauteur à l'instant précis où l'on commence à taper, et son défilement interne sautait. C'est
+     la règle du rail A→Z (v5.0.1), au clavier près : une surface qu'on UTILISE se borne à une
+     hauteur CONSTANTE — `svh`, la fenêtre barre d'outils déployée, que ni la barre ni le clavier
+     ne font bouger. Le repli `--vvh` ci-dessus ne sert qu'aux moteurs sans `svh`. */
+  @supports (height:100svh){
+    .rt-dock{max-height:calc((100svh / var(--zf,1) - var(--stick-top,110px))*.8)}
+  }
   .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 18px 16px}
   /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
      droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —
@@ -5278,6 +5297,7 @@
      contexte se lit dans le document, qu'un tap ouvre à la page. Filet --line-strong : ces
      rangées se comptent, comme celles du répertoire (WCAG 1.4.11). ----- */
   .doc-hits{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+  .dh-title{margin-top:24px}   /* v5.4.2 : respiration au-dessus du groupe (cf. docHitsHtml) */
   .doc-hit{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
   .doc-hit:hover{border-color:var(--ink-soft);background:var(--surface-2)}
   .doc-hit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -5294,12 +5314,29 @@
   .card-snip .snip-doc{vertical-align:-1px;margin-right:2px;color:var(--ink-soft)}
   /* Occurrence surlignée sur la page PDF : rectangle en superposition, multiply pour laisser le
      texte lisible dessous — même registre que mark.pf-h (le surlignage de recherche du texte). */
-  .pdf-hl{position:absolute;background:var(--verify-soft);mix-blend-mode:multiply;border-radius:3px;pointer-events:none}
+  /* v5.4.2 — LE SURLIGNEUR PDF EST FIXE, IL NE SUIT PAS LE THÈME (signalé à l'usage : « pas assez
+     visible, encore plus en mode clair »). Une page PDF garde SES couleurs quel que soit le thème
+     de l'app : teinter le surlignage par un token thématisé (`--verify-soft` + multiply) donnait
+     un crème quasi invisible sur page blanche en clair, et une teinte différente en sombre — deux
+     rendus pour un même document. Jetons FIXES deux-thèmes (famille des --rt- et --paper) : le JAUNE
+     SURLIGNEUR universel, en fondu NORMAL (multiply s'éteint sur un fond sombre de PDF) avec un
+     anneau ambre — visible sur fond clair (bande jaune #ffee99 effectif) COMME sur fond sombre
+     (voile qui éclaircit + anneau). La couleur n'est pas un registre de l'app : c'est le code du
+     surligneur papier, appris partout ailleurs (Aperçu, Acrobat). */
+  .pdf-hl{position:absolute;background:var(--pdf-hl);box-shadow:0 0 0 1px var(--pdf-hl-ring);border-radius:3px;pointer-events:none}
   /* Pilule de navigation des occurrences : flottante en bas de la visionneuse, grammaire de la
      rangée ‹ n/N › du texte (.rt-fnav), élévation d'overlay. */
-  .pdf-fnav{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;box-shadow:var(--shadow);z-index:3}
-  .pdf-fnav .mini{min-width:32px;min-height:32px}
-  .pdf-fnav span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+  /* v5.4.2 — LA PILULE ‹ n/N · p. x › PASSE À L'ARDOISE FIXE (signalé à l'usage : « peu visible
+     en mode clair ») : en `--surface` elle était blanche sur page PDF blanche — un filet pour
+     seule frontière, au-dessus d'un document dont elle ne contrôle pas le fond. Elle vit EN
+     PERMANENCE par-dessus la page : même réponse que le toast, l'ardoise `--rt-*` fixe dans les
+     deux thèmes — sombre sur page claire (le cas ordinaire), bordée et ombrée sur page sombre,
+     identique quel que soit le thème de l'app. */
+  .pdf-fnav{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--rt-card);border:1px solid var(--rt-line);border-radius:999px;box-shadow:var(--shadow-lg);z-index:3}
+  .pdf-fnav .mini{min-width:32px;min-height:32px;background:transparent;border-color:var(--rt-line);color:var(--rt-ink)}
+  .pdf-fnav .mini:hover{background:var(--rt-line);color:var(--rt-ink)}
+  .pdf-fnav .mini:focus-visible{outline:2px solid var(--rt-ink);outline-offset:2px}
+  .pdf-fnav span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--rt-ink);white-space:nowrap}
   /* État d'indexation d'un document, dans sa rangée d'éditeur : rien quand tout va bien. */
   .att-ix{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--ink-soft);white-space:nowrap}
   .att-ix:empty{display:none}
@@ -5467,18 +5504,9 @@
     .forget-strip.many .fs-i{-webkit-column-break-inside:avoid;break-inside:avoid}
   }
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
-  /* v5.4.0 — UN DÉPLIANT SE RECONNAÎT AVANT DE SE LIRE (signalé à l'usage : « j'ai eu du mal à
-     identifier les différents blocs — c'est affiché comme s'il faisait partie du reste de la
-     page »). La rangée repliée était une carte BLANCHE `--surface`, exactement le dessin du
-     contenu clinique qui l'entoure ; son seul signal était le petit « ▾ Afficher ». Elle passe en
-     `--surface-3` (le ton du CHROME, distinct de la surface dans les DEUX thèmes — le contenu
-     clinique reste seul en carte blanche) et le déclencheur devient une PILULE : l'affordance se
-     voit de loin, à position constante. */
-  .rt-collapsed{width:100%;display:flex;align-items:center;gap:8px;background:var(--surface-3);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
-  .rt-collapsed:hover{border-color:var(--line-hover)}
-  .rt-collapsed .rtc-i{flex:1;min-width:0}
-  .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;padding:4px 10px;font-weight:700}
-  .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* v5.4.2 : la rangée repliée `.rt-collapsed` est SUPPRIMÉE avec son CSS (règle 14) — le volet
+     du quai est l'accès unique en étroit (cf. runtimePanel) ; la grammaire tonale « un dépliant
+     se reconnaît avant de se lire » (v5.4.0) survit là où des dépliants demeurent. */
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
   /* P2-5 (audit design v4.56) : en session on incrémente 10 fois pour 1 correction — l'action
@@ -5516,7 +5544,7 @@
      d'activation (session, reduced-motion, support) vit dans vtWrap, côté JS. */
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
      survol = 1 px de lévitation, APPUI = léger enfoncement. transform/opacity SEULEMENT (règle
      v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au
@@ -5584,7 +5612,7 @@
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:20px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}

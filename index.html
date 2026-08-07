@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-sP2lzD/Wd59x5+4Ks2rp+nRuV5JsHnJh//OgssGLuNY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-8CnK0nNHoRhdCgdVO4f+JVAFZS4t/0NwTR13O2T5+jc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -385,7 +385,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
+  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;--pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -1436,7 +1436,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bandeau rouge du titre ; et recharger depuis un écran de soin n'est jamais souhaitable —
      l'invitation attend le retour à l'accueil, la nouvelle version arrive de toute façon à
      l'ouverture suivante). */
-  .sys-banner{display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--primary-soft);border-bottom:1px solid var(--primary-200);color:var(--ink);font-size:12px;line-height:1.35}
+  /* v5.4.2 — LE BANDEAU SYSTÈME PASSE AU-DESSUS DU RAIL A→Z (signalé à l'usage, capture : le
+     fond du rail — fixe, z 15, voile `color-mix` — se peignait PAR-DESSUS « Nouvelle version
+     disponible », masquait sa droite et pouvait même intercepter le tap sur son ×, le rail étant
+     `touch-action:none` sur toute sa bande). Le bandeau est PLEINE LARGEUR et vit HORS de `main`,
+     donc hors de la gouttière que le répertoire réserve au rail (v5.0.3) — il est le seul objet
+     de l'accueil à passer sous lui. Sans `position`, un z-index est inerte : les deux vont
+     ensemble. z 16 : au-dessus du rail (15), toujours SOUS l'en-tête collant (20) — une
+     notification qu'on doit pouvoir lire et REJETER prime sur trois lettres d'index qu'elle
+     recouvre transitoirement (le bandeau défile avec le flux, ou se ferme d'un tap). */
+  .sys-banner{position:relative;z-index:16;display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--primary-soft);border-bottom:1px solid var(--primary-200);color:var(--ink);font-size:12px;line-height:1.35}
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--primary-dk);flex:none;display:inline-flex}
   .sys-banner .sb-txt{flex:1;min-width:0}
@@ -2549,6 +2558,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      le contenu : la fermeture vit aussi sur le quai, re-tap/Échap/retour). Le panneau intérieur
      perd sa boîte : deux cadres emboîtés se liraient comme deux objets (règle du journal niché). */
   .rt-dock{position:fixed;left:0;right:0;top:var(--stick-top,110px);z-index:14;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-lg);max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);overflow-y:auto;overscroll-behavior:contain}
+  /* v5.4.2 — LA HAUTEUR DU VOLET SE BORNE AU `svh`, PAS À `--vvh` (signalé à l'usage smartphone :
+     « modifier un horaire → le scroll saute quand le clavier s'ouvre, dans la page ET dans le
+     volet »). `--vvh` est `visualViewport.height`, que le CLAVIER rétrécit : le volet changeait de
+     hauteur à l'instant précis où l'on commence à taper, et son défilement interne sautait. C'est
+     la règle du rail A→Z (v5.0.1), au clavier près : une surface qu'on UTILISE se borne à une
+     hauteur CONSTANTE — `svh`, la fenêtre barre d'outils déployée, que ni la barre ni le clavier
+     ne font bouger. Le repli `--vvh` ci-dessus ne sert qu'aux moteurs sans `svh`. */
+  @supports (height:100svh){
+    .rt-dock{max-height:calc((100svh / var(--zf,1) - var(--stick-top,110px))*.8)}
+  }
   .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 18px 16px}
   /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
      droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —
@@ -5623,6 +5642,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      contexte se lit dans le document, qu'un tap ouvre à la page. Filet --line-strong : ces
      rangées se comptent, comme celles du répertoire (WCAG 1.4.11). ----- */
   .doc-hits{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+  .dh-title{margin-top:24px}   /* v5.4.2 : respiration au-dessus du groupe (cf. docHitsHtml) */
   .doc-hit{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
   .doc-hit:hover{border-color:var(--ink-soft);background:var(--surface-2)}
   .doc-hit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -5639,12 +5659,29 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .card-snip .snip-doc{vertical-align:-1px;margin-right:2px;color:var(--ink-soft)}
   /* Occurrence surlignée sur la page PDF : rectangle en superposition, multiply pour laisser le
      texte lisible dessous — même registre que mark.pf-h (le surlignage de recherche du texte). */
-  .pdf-hl{position:absolute;background:var(--verify-soft);mix-blend-mode:multiply;border-radius:3px;pointer-events:none}
+  /* v5.4.2 — LE SURLIGNEUR PDF EST FIXE, IL NE SUIT PAS LE THÈME (signalé à l'usage : « pas assez
+     visible, encore plus en mode clair »). Une page PDF garde SES couleurs quel que soit le thème
+     de l'app : teinter le surlignage par un token thématisé (`--verify-soft` + multiply) donnait
+     un crème quasi invisible sur page blanche en clair, et une teinte différente en sombre — deux
+     rendus pour un même document. Jetons FIXES deux-thèmes (famille des --rt- et --paper) : le JAUNE
+     SURLIGNEUR universel, en fondu NORMAL (multiply s'éteint sur un fond sombre de PDF) avec un
+     anneau ambre — visible sur fond clair (bande jaune #ffee99 effectif) COMME sur fond sombre
+     (voile qui éclaircit + anneau). La couleur n'est pas un registre de l'app : c'est le code du
+     surligneur papier, appris partout ailleurs (Aperçu, Acrobat). */
+  .pdf-hl{position:absolute;background:var(--pdf-hl);box-shadow:0 0 0 1px var(--pdf-hl-ring);border-radius:3px;pointer-events:none}
   /* Pilule de navigation des occurrences : flottante en bas de la visionneuse, grammaire de la
      rangée ‹ n/N › du texte (.rt-fnav), élévation d'overlay. */
-  .pdf-fnav{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;box-shadow:var(--shadow);z-index:3}
-  .pdf-fnav .mini{min-width:32px;min-height:32px}
-  .pdf-fnav span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+  /* v5.4.2 — LA PILULE ‹ n/N · p. x › PASSE À L'ARDOISE FIXE (signalé à l'usage : « peu visible
+     en mode clair ») : en `--surface` elle était blanche sur page PDF blanche — un filet pour
+     seule frontière, au-dessus d'un document dont elle ne contrôle pas le fond. Elle vit EN
+     PERMANENCE par-dessus la page : même réponse que le toast, l'ardoise `--rt-*` fixe dans les
+     deux thèmes — sombre sur page claire (le cas ordinaire), bordée et ombrée sur page sombre,
+     identique quel que soit le thème de l'app. */
+  .pdf-fnav{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--rt-card);border:1px solid var(--rt-line);border-radius:999px;box-shadow:var(--shadow-lg);z-index:3}
+  .pdf-fnav .mini{min-width:32px;min-height:32px;background:transparent;border-color:var(--rt-line);color:var(--rt-ink)}
+  .pdf-fnav .mini:hover{background:var(--rt-line);color:var(--rt-ink)}
+  .pdf-fnav .mini:focus-visible{outline:2px solid var(--rt-ink);outline-offset:2px}
+  .pdf-fnav span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--rt-ink);white-space:nowrap}
   /* État d'indexation d'un document, dans sa rangée d'éditeur : rien quand tout va bien. */
   .att-ix{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--ink-soft);white-space:nowrap}
   .att-ix:empty{display:none}
@@ -5812,18 +5849,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .forget-strip.many .fs-i{-webkit-column-break-inside:avoid;break-inside:avoid}
   }
   /* Panneau minuteurs REPLIÉ tant que rien n'est démarré : le contenu clinique passe devant. */
-  /* v5.4.0 — UN DÉPLIANT SE RECONNAÎT AVANT DE SE LIRE (signalé à l'usage : « j'ai eu du mal à
-     identifier les différents blocs — c'est affiché comme s'il faisait partie du reste de la
-     page »). La rangée repliée était une carte BLANCHE `--surface`, exactement le dessin du
-     contenu clinique qui l'entoure ; son seul signal était le petit « ▾ Afficher ». Elle passe en
-     `--surface-3` (le ton du CHROME, distinct de la surface dans les DEUX thèmes — le contenu
-     clinique reste seul en carte blanche) et le déclencheur devient une PILULE : l'affordance se
-     voit de loin, à position constante. */
-  .rt-collapsed{width:100%;display:flex;align-items:center;gap:8px;background:var(--surface-3);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
-  .rt-collapsed:hover{border-color:var(--line-hover)}
-  .rt-collapsed .rtc-i{flex:1;min-width:0}
-  .rt-collapsed .rtc-open{color:var(--ink-soft);font-size:12px;white-space:nowrap;background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;padding:4px 10px;font-weight:700}
-  .rt-collapsed:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* v5.4.2 : la rangée repliée `.rt-collapsed` est SUPPRIMÉE avec son CSS (règle 14) — le volet
+     du quai est l'accès unique en étroit (cf. runtimePanel) ; la grammaire tonale « un dépliant
+     se reconnaît avant de se lire » (v5.4.0) survit là où des dépliants demeurent. */
   /* Bouton à MAINTENIR sur fond clair (Recommencer l'algorithme) : même geste anti-accidentel que les minuteurs. */
   /* Compteurs : « + » (geste principal) plus large et teinté ; « − » (correction) plus discret. */
   /* P2-5 (audit design v4.56) : en session on incrémente 10 fois pour 1 correction — l'action
@@ -5861,7 +5889,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'activation (session, reduced-motion, support) vit dans vtWrap, côté JS. */
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.rt-collapsed,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
      survol = 1 px de lévitation, APPUI = léger enfoncement. transform/opacity SEULEMENT (règle
      v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au
@@ -5929,7 +5957,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:20px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.rt-collapsed,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -6427,7 +6455,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.4.1';
+const APP_VERSION='5.4.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8548,6 +8576,37 @@ function posoCardsHtml(list,hay){
   if(!sp.rest.length)return head;
   const n=sp.rest.length;
   return head+`<details class="pos-more"><summary>${n} autre${n>1?'s':''} repère${n>1?'s':''}</summary>${sp.rest.map(o=>card(o.s)).join('')}</details>`;}
+/* v5.4.2 — LES REPÈRES SUIVENT LE BLOC COURANT AUSSI PENDANT LA NAVIGATION (signalé à l'usage :
+   « pourquoi ça ne se met pas à jour quand on change de bloc ? » — le constat est exact).
+   `posoCardsHtml` classe pour le bloc COURANT (v4.23.0)… mais n'était calculé qu'au rendu
+   COMPLET : les re-rendus CIBLÉS de la navigation (Continuer, réponse, Refaire, saut) laissaient
+   l'ordre du moment où la fiche avait été OUVERTE. Même défaut que le plan de gauche (v4.73.0,
+   `repaintRailLad`), même remède : une GÉNÉRATION À SITE UNIQUE (`posBlockHtml`/`posRailHtml`,
+   consommés par renderRead ET par la repeinture) et `repaintPoso()` appelée par les mêmes chemins
+   ciblés que le plan (renderOvOnly / renderSvOnly / renderNavOnly) — la NAVIGATION, jamais le
+   cochage, qui ne change pas de bloc. Le pli « n autres repères » garde l'état que l'utilisateur
+   lui a donné (déplier est un choix, la repeinture n'a pas à le défaire). */
+function posBlockHtml(f){const c=posoCardsHtml(listOf(f,'posology'),curBlockHay(f));
+  return c?`<section class="block pos-block"><div role="heading" aria-level="2" class="block-h h-pos">Repères posologiques</div>${c}</section>`:'';}
+function posRailHtml(f){const c=posoCardsHtml(listOf(f,'posology'),curBlockHay(f));
+  if(!c)return '';const n=clean(listOf(f,'posology')).length;
+  return `<div class="rail-head"><span class="rail-title">Repères posologiques</span>${n>1?`<span class="rail-n">${n}</span>`:''}</div>${c}`;}
+function repaintPoso(){
+  const f=state.fiche;if(!f||state.previewFrom)return;
+  const keep=(host,html)=>{const ko=!!host.querySelector('details.pos-more[open]');
+    host.innerHTML=html;
+    if(ko){const d=host.querySelector('details.pos-more');if(d)d.open=true;}};
+  const sec=main.querySelector('.pos-block');
+  if(sec){const h=posBlockHtml(f);
+    if(h){const tmp=document.createElement('div');tmp.innerHTML=h;
+      const ko=!!sec.querySelector('details.pos-more[open]');
+      const ns=tmp.firstElementChild;
+      if(ko){const d=ns.querySelector('details.pos-more');if(d)d.open=true;}
+      sec.replaceWith(ns);}}
+  const side=document.querySelector('.read-side');
+  if(side)[...side.querySelectorAll('.rail-sec')].forEach(rs=>{
+    const t=rs.querySelector('.rail-title');
+    if(t&&t.textContent.trim()==='Repères posologiques')keep(rs,posRailHtml(f));});}
 const TODO_RX=/[àa] compl[eé]ter/i;
 function completionSpots(f){if(!f||typeof f!=='object')return [];const spots=[];
   if(TODO_RX.test(String(f.local||'')))spots.push('Contexte local');
@@ -10075,7 +10134,10 @@ function updateRtStrip(now){
   const globVal=started?(Runtime.startedAt?fmtMs(now-Runtime.startedAt):'—'):null;
   const glob=started?'<span class="seg glb'+(Runtime.exercise?' exo':'')+'"><span class="seg-l seg-sess'+(globOff?' off':'')+'">'+esc(globLbl)+'</span><span class="seg-t"></span></span>':'';
   /* LE QUAI NOMME CE QU'IL CACHE — MAIS SEULEMENT QUAND IL NE MONTRE RIEN D'AUTRE (v5.0.0).
-     La rangée `.rt-collapsed` dit déjà, dans le FLUX, « Minuteurs & compteurs · 1 minuteur ·
+     [v5.4.2 : la rangée `.rt-collapsed` évoquée ci-dessous N'EXISTE PLUS — le quai est devenu
+     l'accès unique au panneau en étroit, ce qui renforce d'autant ce rappel : il est désormais
+     le SEUL canal qui annonce minuteurs et compteurs cachés. Le raisonnement historique reste.]
+     La rangée `.rt-collapsed` disait déjà, dans le FLUX, « Minuteurs & compteurs · 1 minuteur ·
      1 compteur ▾ Afficher » — visible sans défiler à l'ouverture (mesuré y=408 pour un pli à 844).
      Ce n'est donc PAS l'information qui manquait, et le constat J0 qui l'affirmait était faux.
      Ce qui manque est ailleurs, et c'est une mesure DIFFÉRENTE : cette rangée VIT DANS LE FLUX, donc
@@ -11136,7 +11198,11 @@ const PG_SHOWN=6;   // au-delà, la liste de pages cesse d'orienter et devient u
 function docHitsHtml(q){
   const hits=docHits(q);
   if(!hits.length)return '';
-  return `<div class="list-title">Dans les documents <span>— ${hits.length} document${hits.length>1?'s':''}</span></div>`
+  /* v5.4.2 — `dh-title` (signalé à l'usage : « trop collé aux cartes du dessus ») : `.list-title`
+     n'a pas de marge HAUTE — juste après « Résultats », il n'en a pas besoin ; ici le titre ouvre
+     un SECOND groupe sous la dernière rangée de la liste, et sans respiration il se lisait comme
+     la méta de cette rangée. 24 px, l'écart de section de l'échelle fermée. */
+  return `<div class="list-title dh-title">Dans les documents <span>— ${hits.length} document${hits.length>1?'s':''}</span></div>`
     +`<div class="doc-hits">${hits.map(h=>{
       const pp=h.pages.slice(0,PG_SHOWN).map(p=>p+1);
       const more=h.pages.length-pp.length;
@@ -14042,30 +14108,26 @@ function cnLogTxt(id){
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
 function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
   const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);}
-/* v5.4.0 — LE JOURNAL REJOINT LE DÉPLIANT (décision utilisateur, vécu en situation réelle :
-   « ne pas mettre les compteurs et le journal d'action au même endroit m'a perturbé — pour
-   changer l'un puis l'autre on doit passer au-dessus des étapes »). En ÉTROIT, minuteurs,
-   compteurs et journal des actions vivent dans UN dépliant : ouvert du quai, tout arrive
-   ensemble sous le quai ; ouvert de la rangée, tout arrive sous la carte du bloc. Le geste
-   FRÉQUENT n'y perd rien — « ⏱ Noter » et l'accusé vivent dans la CARTE du bloc (lot M7) ; le
-   panneau est la vue de DÉTAIL (corriger une heure, renommer, annuler), une consultation, comme
-   les minuteurs. En LARGE, rien ne change : le rail garde son ordre (minuteurs → posologie →
-   Échelle → journal). Une fiche SANS minuteur ni compteur garde le panneau journal autonome
-   (runtimePanel rend '', renderRead retombe sur tkH — cf. le gating là-bas).
-   `rtRowLabel` est la SOURCE UNIQUE du libellé de la rangée repliée : runtimePanel l'écrit,
-   renderTkOnly la REPEINT quand un repère est posé/annulé pendant que le dépliant est replié —
-   sans elle, le compte annoncé serait la donnée périmée présentée comme vivante. */
-function rtRowLabel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=(f&&f.counters)||[];
-  const parts=[];const nt=tl.length+minis.length;if(nt)parts.push(nt+' minuteur'+(nt>1?'s':''));if(cl.length)parts.push(cl.length+' compteur'+(cl.length>1?'s':''));
-  const nEv=(Runtime.events||[]).length;if(nEv)parts.push(nEv+' repère'+(nEv>1?'s':''));
-  return 'Minuteurs · compteurs · journal'+(parts.length?' — '+parts.join(' · '):'');}
-function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=f.counters||[];if(!tl.length&&!minis.length&&!cl.length)return '';
-  // Stratégie V5 (canvas turn 6) : à >= 1000px la colonne droite montre TOUJOURS le panneau ;
-  // en dessous, il reste REPLIÉ (le contenu clinique d'abord — la barre segmentée de l'en-tête
-  // donne les temps d'un coup d'œil) et s'ouvre par la barre (#cbTimers), la rangée repliée,
-  // ou automatiquement à l'échéance d'un minuteur (onTimerFired).
-  if(!mqRail.matches&&!state.rtOpen){
-    return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<span class="rtc-i">${esc(rtRowLabel(f))}</span><span class="rtc-open">▾ Afficher</span></button>`;}
+/* v5.4.0 — LE JOURNAL REJOINT LE PANNEAU DES MINUTEURS (décision utilisateur, vécu en situation
+   réelle : « pour changer l'un puis l'autre on doit passer au-dessus des étapes ») : minuteurs,
+   compteurs et journal des actions vivent ENSEMBLE — le geste FRÉQUENT (« ⏱ Noter », accusé,
+   suggestions) reste dans la CARTE du bloc (lot M7), le panneau est la vue de DÉTAIL. En LARGE le
+   rail garde son ordre (minuteurs → posologie → Échelle → journal).
+   v5.4.2 : la rangée repliée du flux qui portait cet accès en étroit est SUPPRIMÉE (cf. la
+   doctrine dans runtimePanel) — le quai est l'accès unique, `rtRowLabel` est parti avec elle. */
+function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=f.counters||[];
+  /* v5.4.2 — LE QUAI EST L'ACCÈS UNIQUE EN ÉTROIT (décision utilisateur : « il appartient
+     maintenant au rail ») : la RANGÉE REPLIÉE du flux est SUPPRIMÉE. Le double accès de la
+     v5.4.1 (« pousser sans couvrir » dans le flux / « suivre en couvrant » depuis le quai) a
+     perdu sa moitié de flux le jour où le volet a su SUIVRE le défilement : la rangée ne payait
+     plus qu'en hauteur permanente sous la carte et en seconde grammaire. En étroit le panneau
+     ne vit donc que dans le VOLET — et il se rend MÊME sans minuteur ni compteur : le journal y
+     loge, une fiche sans minuteur garde son accès par le quai (qui existe dès qu'une session
+     vit). En LARGE, rien ne change : rail, et '' quand il n'y a rien à montrer (le journal y a
+     sa propre section). Le panneau s'ouvre par le quai (#cbTimers) — jamais automatiquement,
+     l'échéance s'annonce sur place (règle 11). */
+  if(!mqRail.matches&&!state.rtOpen)return '';
+  if(mqRail.matches&&!tl.length&&!minis.length&&!cl.length)return '';
   const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`;
   /* v5.4.1 — LES FAMILLES SE NOMMENT (décision utilisateur : « minuteurs / compteurs / journal
      peu identifiables, tout se colle et se mélange ») : un sous-titre PAR FAMILLE — MINUTEURS
@@ -14084,7 +14146,7 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
   const cards=`<div class="tk-head rt-famh"><b>Minuteurs${famN(nt)}</b></div>${timersB}`
     +(cl.length?`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div><div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'');
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
-  // cf. le bloc doctrinal au-dessus de rtRowLabel) : `.tk-panel` garde sa classe, donc
+  // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
   return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs · compteurs · journal</b>${sound}<button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
@@ -14419,7 +14481,12 @@ function bindTk(){
   document.querySelectorAll('.tk-panel [data-tktime]').forEach(span=>{span.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();span.click();}};span.onclick=()=>{
     const ev=(Runtime.events||[]).find(x=>x.id===span.dataset.tktime);if(!ev)return;
     const inp=document.createElement('input');inp.className='tk-time-edit';inp.inputMode='numeric';inp.value=fmtHMS(ev.t);
-    span.replaceWith(inp);inp.focus();inp.select();
+    /* v5.4.2 — `preventScroll` (signalé à l'usage smartphone) : le champ vient de remplacer le
+       span SOUS LE DOIGT — il est déjà visible, il n'y a rien à révéler. Sans l'option, Safari
+       défilait le DOCUMENT pour « montrer » un champ qui vit dans une couche FIXE (le volet du
+       quai) : la page du dessous sautait, sans amener quoi que ce soit à l'écran. Même règle que
+       le focus d'ancre reconstruite de l'éditeur (v4.78.0). */
+    span.replaceWith(inp);inp.focus({preventScroll:true});inp.select();
     const row=inp.closest('.tk-row');
     /* CHIPS DE RECUL (v5.4.0, décision utilisateur) : le cas d'usage réel de la correction est
        « rattraper un geste noté en retard » — reculer de n minutes est plus juste, et plus rapide
@@ -14572,14 +14639,9 @@ function tkNoteNow(fromBlock){
   else if(!renderTkOnly())render();}
 function renderTkOnly(){
   const old=document.querySelector('.tk-panel');
-  if(!old){
-    /* Étroit, dépliant REPLIÉ (v5.4.0) : le journal n'est pas dans le DOM, mais la rangée repliée
-       ANNONCE son compte de repères — un repère posé depuis la carte du bloc, ou arrivé d'une
-       session partagée, doit la tenir à jour (donnée périmée sinon). L'accusé de la carte suit
-       aussi. On repeint le TEXTE en place, jamais le nœud : son écouteur vit dessus. */
-    const i=document.querySelector('#rtOpen .rtc-i');
-    if(i&&Runtime.fiche){i.textContent=rtRowLabel(Runtime.fiche);tkAckPaint();return true;}
-    return false;}
+  // v5.4.2 : volet fermé en étroit -> le journal n'est nulle part dans le DOM (la rangée repliée
+  // qui annonçait son compte a été supprimée avec son logement) — rien à repeindre.
+  if(!old)return false;
   const tmp=document.createElement('div');tmp.innerHTML=timekeeperPanel();
   old.replaceWith(tmp.firstElementChild);
   bindTk();tkAckPaint();return true;}
@@ -14732,21 +14794,21 @@ function renderRead(){
   const preview=!!state.previewFrom;
   const wideRead=mqRail.matches;   // v4.23.0 : rail dès 780px
   const rtH=preview?'':runtimePanel(f);
-  /* v5.4.0 : en ÉTROIT le journal vit DANS le dépliant minuteurs (cf. runtimePanel) — tkH ne sert
-     alors à rien, et surtout il ne DOIT pas exister : deux `.tk-panel` dans le DOM et renderTkOnly
-     ne remplacerait que la première copie (divergence silencieuse). Il ne subsiste en étroit que
-     pour une fiche SANS minuteur ni compteur (rtH vide), où le journal reste autonome. */
-  const tkH=(preview||(!mqRail.matches&&rtH))?'':timekeeperPanel();
+  /* v5.4.0 : en ÉTROIT le journal vit DANS le panneau (cf. runtimePanel) — deux `.tk-panel` dans
+     le DOM et renderTkOnly ne remplacerait que la première copie. v5.4.2 : le panneau n'existant
+     plus que dans le VOLET du quai (rangée du flux supprimée), tkH n'existe plus DU TOUT en
+     étroit — y compris pour une fiche sans minuteur, servie par le volet comme les autres. */
+  const tkH=(preview||!mqRail.matches)?'':timekeeperPanel();
   // Repères posologiques (canvas) : cartes — préfixe « ⚠ » = carte au registre ALERTE.
   // Inline sous « À vérifier » en étroit, dans la colonne droite en large.
   // Repères posologiques : carte = NOM (avant le premier « : », gras retiré) + corps —
   // « ⚠ » en tête = vitale (rouge) ; sans « : », toute la ligne sert de corps.
   // v4.23.0 : repères classés pour le BLOC COURANT (rapprochement permissif qui RÉORDONNE et
   // ne filtre jamais) — même fonction que la feuille Consulter, donc aucun risque de divergence.
-  const posCards=posoCardsHtml(listOf(f,'posology'),curBlockHay(f));
-  const posH=posCards?`<section class="block pos-block"><div role="heading" aria-level="2" class="block-h h-pos">Repères posologiques</div>${posCards}</section>`:'';
-  const posRail=(()=>{if(!posCards)return '';const n=clean(listOf(f,'posology')).length;
-    return `<div class="rail-head"><span class="rail-title">Repères posologiques</span>${n>1?`<span class="rail-n">${n}</span>`:''}</div>${posCards}`;})();
+  // v5.4.2 : générateurs à SITE UNIQUE (posBlockHtml/posRailHtml) — partagés avec repaintPoso,
+  // qui rejoue le classement « bloc courant » à chaque navigation (cf. doctrine près de la fn).
+  const posH=posBlockHtml(f);
+  const posRail=posRailHtml(f);
   /* F4 (audit design v4.59.0) — COCKPIT TROIS ZONES. À grande largeur l'espace existe pour
      tenir de front l'ORIENTATION (le plan), l'ACTION (le parcours) et l'ÉTAT (les minuteurs) :
      c'est l'idéal ECAM, E/WD et SD sous les yeux en même temps, et pour un binôme hospitalier
@@ -15151,7 +15213,7 @@ function bindReadEvents(f,blk,cur){
   if(!state.previewFrom)bindNoteBlock(f.id,render);   // note personnelle (absente en mode aperçu)
   const ft=document.getElementById('flowToggle');if(ft)ft.onclick=()=>{state.showFlow=!state.showFlow;render();};
   // Déplier / replier le panneau minuteurs (canvas : rangée repliée, ✕ du panneau, barre d'en-tête).
-  const ro=document.getElementById('rtOpen');if(ro)ro.onclick=()=>{state.rtOpen='flow';renderKeepAnchor('#rtOpen');};
+  // v5.4.2 : la rangée repliée #rtOpen n'existe plus — le volet s'ouvre par le quai (#cbTimers).
   /* T3 — le chapeau se déplie SANS RE-RENDRE. Un `render()` reconstruirait tout le DOM au-dessus du
      doigt, et le chapeau est le premier objet de la colonne : la page sauterait. On bascule la
      classe en place ; l'état ne sert qu'au PROCHAIN rendu, pour que le repli survive à une
@@ -15167,7 +15229,9 @@ function bindReadEvents(f,blk,cur){
   main.querySelectorAll('[data-rtadd]').forEach(b=>b.onclick=()=>{
     const id=uid('t');const n=Object.values(Runtime.timers).filter(t=>t.adhoc).length;
     Runtime.timers[id]={id,label:'PA'+(n?' '+(n+1):''),type:'interval',seconds:300,autoloop:false,elapsedMs:0,cycles:0,running:true,lastStart:Date.now(),adhoc:true};
-    ensureStarted();state.rtOpen='flow';persistLive(Runtime,true);render();});
+    // v5.4.2 : plus d'écriture de rtOpen — le bouton vit DANS le panneau (volet ou rail), déjà
+    // ouvert là où l'on vient d'appuyer ; forcer un état de flux rouvrait un logement disparu.
+    ensureStarted();persistLive(Runtime,true);render();});
   main.querySelectorAll('[data-tmrm]').forEach(b=>b.onclick=async()=>{const t=Runtime.timers[b.dataset.tmrm];if(!t)return;
     if(t.running&&!await confirmDlg('Ce minuteur tourne encore. Le supprimer ?',{yes:'Supprimer',danger:true}))return;
     delete Runtime.timers[b.dataset.tmrm];persistLive(Runtime,true);render();});
@@ -16600,6 +16664,9 @@ function renderOvOnly(){
   // deuxième coche. C'est la même règle que les deux feuilles ci-dessus, appliquée à la
   // troisième surface qui affiche `minimapData`.
   repaintRailLad();
+  // v5.4.2 : … et les REPÈRES POSOLOGIQUES, classés pour le bloc courant, qui vient de changer —
+  // quatrième surface au même régime (feuille Plan, feuille Consulter, Échelle du rail, repères).
+  repaintPoso();
   bindOverviewEvents(f);}
 /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR =====
    3e mode de lecture — l'algorithme ENTIER carrelé en cellules télégraphiques, GÉNÉRÉ depuis
@@ -17171,6 +17238,7 @@ function renderSvOnly(){
   wrap.innerHTML=N.inner;
   flowCtx={f,curId:N.cur};
   svPaintArrows();
+  repaintPoso();   // v5.4.2 : le classement « bloc courant » suit aussi les sauts du statique
   bindStaticEvents(f);}
 // Redessin des flèches au redimensionnement (les colonnes bougent) — rAF, jamais pendant un geste.
 {let _svTm=0;
@@ -17267,6 +17335,7 @@ function renderNavOnly(){
   {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}
   flowCtx={f,curId:N.cur};
   bindNavEvents(f,N.blk);
+  repaintPoso();   // v5.4.2 : cf. renderOvOnly — même règle pour le rendu guidé mono-bloc
   if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
 }
 

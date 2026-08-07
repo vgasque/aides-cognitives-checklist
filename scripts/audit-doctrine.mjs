@@ -818,7 +818,8 @@ for (const w of [320, 360, 390]) {
     /* (b) LA CROIX DU PANNEAU MINUTEURS RESTE DANS LE CADRE. On mesure contre le bord INTÉRIEUR
        (bordure 1 px + rembourrage 14 px), comme le fait l'œil : un bouton qui touche la bordure
        est déjà coupé. */
-    const o2 = document.getElementById('rtOpen'); if (o2) { o2.click(); await new Promise(x => setTimeout(x, 350)); }
+    // v5.4.2 : le panneau s'ouvre par le QUAI (la rangée repliée n'existe plus).
+    const o2 = document.getElementById('cbTimers'); if (o2) { o2.click(); await new Promise(x => setTimeout(x, 350)); }
     {const pan = document.querySelector('.rt-panel'), head = document.querySelector('.rt-head'),
       k = document.querySelector('.rt-x');
      if (pan && k) { const p = pan.getBoundingClientRect(), kr = k.getBoundingClientRect();
@@ -2875,6 +2876,12 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
         'Bronchospasme résistant aux bêta-2 inhalés chez un patient jusque-là stable',
         'Œdème laryngé : dysphonie, sensation de gorge serrée, tirage inspiratoire',
         'Collapsus sans étiologie évidente dans les minutes suivant une injection'],
+      /* v5.4.2 : le panneau journal a quitté le flux (~70 px) — sans la section « À vérifier »,
+         la page devenait trop COURTE sous le pli, le défilement s'écrêtait et le contrefactuel
+         ne rencontrait plus son cas (mesuré : -14 px pour un seuil à -20). Le témoin construit
+         son cas, il ne le suppose pas. */
+      verify:['TA toutes les 5 minutes','SpO2 en continu','Conscience et coloration',
+        'Récidive possible jusqu’à 72 h — surveillance prolongée'],
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',next:'b2',items:ITEMS.a},
               {id:'b2',kind:'do',title:'Réévaluation à 5 min',items:ITEMS.b}]});
     await Data.put(f);fiches.push(f);
@@ -2924,6 +2931,8 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
         'Bronchospasme résistant aux bêta-2 inhalés chez un patient jusque-là stable',
         'Œdème laryngé : dysphonie, sensation de gorge serrée, tirage inspiratoire',
         'Collapsus sans étiologie évidente dans les minutes suivant une injection'],
+      verify:['TA toutes les 5 minutes','SpO2 en continu','Conscience et coloration',
+        'Récidive possible jusqu’à 72 h — surveillance prolongée'],   // v5.4.2 : cf. fixture du flux
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await w(450);
@@ -3003,6 +3012,8 @@ console.log('\n══ CHAPEAU · condition d’entrée → memory items → bout
   const r = await page.evaluate(async(ITEMS)=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const f=migrate({id:'zsanscrit',title:'Sonde sans critères',start:'b1',
       notForget:['Appeler à l’aide','Adrénaline prête'],confirmation:[],
+      verify:['TA toutes les 5 minutes','SpO2 en continu','Conscience et coloration',
+        'Récidive possible jusqu’à 72 h — surveillance prolongée'],   // v5.4.2 : cf. fixture du flux
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
     await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
     const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};

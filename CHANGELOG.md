@@ -1,5 +1,49 @@
 # Journal des modifications
 
+## [5.4.2] — 2026-08-07
+### Six correctifs d'usage — clavier du volet, surligneur PDF, quai accès unique, repères qui suivent
+
+Tous signalés à l'usage réel (PWA/smartphone), chacun vérifié à la mesure sur les deux moteurs.
+
+- **Le bandeau système passe au-dessus du rail A→Z** : le rail (fixe, z 15, voile de fond)
+  peignait par-dessus « Nouvelle version disponible », masquait sa droite et pouvait intercepter
+  le tap sur son × (`touch-action:none` sur toute sa bande). `.sys-banner` prend
+  `position:relative; z-index:16` — au-dessus du rail, toujours sous l'en-tête (20) : une
+  notification qu'on doit lire et rejeter prime sur trois lettres d'index recouvertes
+  transitoirement.
+- **Modifier une heure dans le volet ne fait plus sauter le scroll** (« très mal géré quand le
+  clavier s'ouvre ») — deux causes cumulées : le `focus()` programmatique défilait le DOCUMENT
+  pour « révéler » un champ déjà sous le doigt dans une couche fixe (→ `preventScroll`, règle
+  v4.78.0) ; et la hauteur du volet était bornée sur `--vvh`, que le CLAVIER rétrécit — elle
+  passe à `100svh` (constante : ni barre d'outils ni clavier), la règle du rail A→Z (v5.0.1)
+  appliquée au clavier près. Vérifié : focus → 0 px de saut page et volet, hauteur immune au
+  rétrécissement de `--vvh`.
+- **Le surligneur PDF est FIXE, il ne suit plus le thème** (« pas assez visible, encore plus en
+  clair ») : une page PDF garde SES couleurs — `--verify-soft` + multiply donnait un crème quasi
+  invisible en clair et un autre rendu en sombre pour le même document. Jetons fixes deux-thèmes
+  `--pdf-hl`/`--pdf-hl-ring` : jaune surligneur universel en fondu NORMAL (multiply s'éteint sur
+  fond sombre) + anneau ambre — bande effective #FFEE99 sur page blanche, voile éclaircissant +
+  anneau sur page sombre. La pilule ‹ n/N · p. x › passe à l'**ardoise fixe** `--rt-*` (celle du
+  toast) : identique dans les deux thèmes, lisible sur toute page.
+- **« Dans les documents » respire** : 24 px au-dessus du titre du groupe (il se lisait comme la
+  méta de la dernière carte de résultats).
+- **Les repères posologiques suivent le bloc courant pendant la navigation** (bug confirmé — le
+  classement v4.23.0 n'était calculé qu'au rendu complet) : générateurs à site unique
+  (`posBlockHtml`/`posRailHtml`) et `repaintPoso()` rejouée par les trois chemins ciblés (journal,
+  statique, mono-bloc) — jamais au cochage ; le pli « n autres repères » garde son état. Vérifié :
+  « Continuer » vers un bloc → son médicament passe en tête.
+- **Le quai est l'accès unique au panneau en étroit** (décision utilisateur : « il appartient
+  maintenant au rail ») : la rangée repliée du flux est SUPPRIMÉE (`.rt-collapsed`, `#rtOpen`,
+  `rtRowLabel` — règle 14, grep vérifié) — le double accès de la v5.4.1 avait perdu sa moitié le
+  jour où le volet a su suivre le défilement. Le volet se rend même sans minuteur ni compteur (le
+  journal y loge) ; le rappel du quai devient le seul annonciateur de ce qui est caché. Limite
+  dite : sur une fiche mono-bloc en étroit, « Noter l'heure » s'atteint par le quai (cette carte
+  n'a jamais porté le bouton M2 — l'aligner serait une décision séparée).
+- Témoins : trois sondes passent par le vrai geste du quai (ex-`#rtOpen`) ; les fixtures des
+  témoins d'atterrissage v5.0.7 construisent désormais leur cas (le panneau du flux payait ~70 px
+  de leur marge de défilement — sans lui, le contrefactuel s'écrêtait). Passes : 16/16 check ·
+  939 × 2 tests · 20/20 harnais.
+
 ## [5.4.1] — 2026-08-07
 ### Le volet du quai devient un étage du chrome, les familles se nomment, et le chrome ≥ 1200 px monte dans l'en-tête
 
