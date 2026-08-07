@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-2pfxfnXpGb+ltYnblpFyeoVnVqW9s4UnmLXNJdIHsPc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-sP2lzD/Wd59x5+4Ks2rp+nRuV5JsHnJh//OgssGLuNY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1001,6 +1001,30 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (min-width:1200px){
     #crisisCtrl,#crisisDock{background:var(--bg);border-bottom-color:transparent;box-shadow:none}
   }
+  /* v5.4.1 — A′ : LE CHROME DE CRISE MONTE DANS L'EN-TÊTE À ≥ 1200 px (décision utilisateur sur
+     maquette, après deux itérations — la bande pleine largeur réservait ~110 px pour des
+     contrôles qui ne vivaient qu'à gauche, et la version « colonne du plan » empilait trois
+     boutons en volant sa hauteur au plan). Les deux rangées (déplacées par placeCrisisChrome —
+     chrome NOMADE, cf. la doctrine à côté de placeFooter) deviennent des objets EN LIGNE du
+     créneau `#hdrCrisisSlot`, entre le titre et les actions : coût de hauteur STRICTEMENT NUL,
+     une seule rangée de chrome au total, et l'« effet de tronquage » disparaît avec la bande —
+     pour TOUTE lecture de fiche à ce palier (statique et mono-bloc comprises). L'exigence ECAM ne
+     bouge pas : l'en-tête est permanent et collant, chrono et minuteur échu ne quittent jamais
+     l'écran — seul le LOGEMENT change. */
+  .hdr-crisis-slot{display:flex;align-items:center;gap:8px;min-width:0}
+  .hdr-crisis-slot:empty{display:none}
+  body.chrome-hdr :is(#crisisCtrl,#crisisDock){position:static;background:transparent;border-bottom:0;box-shadow:none}
+  body.chrome-hdr :is(#crisisCtrl,#crisisDock) .dock-in{max-width:none;padding:0;margin:0;gap:8px;flex-wrap:nowrap}
+  /* COÛT DE HAUTEUR NUL, ET C'EST MESURÉ : sans compaction, l'en-tête passait de 65 à 78 px —
+     c'est-à-dire qu'on aurait déplacé la bande au lieu de la supprimer. Le dessin cède (segment
+     6→2 px de rembourrage, bouton 46→36 px), jamais la CIBLE : le halo ::after des deux
+     ouvertures (v4.32.0) maintient 44 px. Mesuré après : en-tête 65 px, inchangé. */
+  body.chrome-hdr #cbTimers{padding:0;min-height:0;position:relative}
+  /* La CIBLE ne cède jamais avec le dessin : compacté à ~37 px, le bouton « ● Session » garde ses
+     44 px par le halo — le même dispositif que les deux ouvertures (v4.32.0, zone haute). */
+  body.chrome-hdr #cbTimers::after{content:"";position:absolute;inset:-4px;border-radius:8px}
+  body.chrome-hdr #cbTimers .seg{padding:2px 10px;min-height:0}
+  body.chrome-hdr .dock-plan{min-height:36px}
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
      flex:1 s'étiraient à ~640px chacun et les chiffres se retrouvaient aux deux bouts de l'écran
@@ -2504,8 +2528,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      second plan et un retrait, comme un contenu subordonné. */
   .rail-lad .pl-lx,.read-plan .pl-lx{background:var(--surface-2);border-radius:var(--radius-sm);
     margin:0 2px 6px 28px;padding:8px 10px}
-  .rt-dock{margin:0 0 12px}
-  .rt-dock .rt-panel{margin-top:0}
+  /* v5.4.1 — LE VOLET DU QUAI (décision utilisateur : « un menu déroulant qui part du quai —
+     comme ça il suit si besoin »). Ouvert PAR LE QUAI, le panneau devient un volet FIXE sous les
+     couches collantes : il SUIT le défilement — minuteurs, compteurs et journal restent sous les
+     yeux pendant qu'on parcourt les étapes — au prix ASSUMÉ de recouvrir le contenu tant qu'il
+     est ouvert. C'est l'arbitrage inverse de la rangée du flux (qui pousse sans couvrir) ; les
+     deux accès coexistent, chacun avec sa géométrie. CE QUI LE REND ADMISSIBLE (ECAM/QRH —
+     question posée par l'auteur) : ouvert et fermé par l'utilisateur SEUL (re-tap du quai, ✕,
+     Échap, retour système), JAMAIS d'auto-ouverture — l'échéance s'annonce sur place (règle 11) ;
+     même statut de consultation que le menu ⋯, qui est déjà un volet fixe de l'en-tête. z-index
+     14, SOUS le quai (15) : l'alarme n'est jamais masquée. Hauteur bornée sur --vvh ÷ --zf
+     (règle 10, dossier « bande basse iOS ») avec défilement INTERNE ; l'en-tête du panneau (✕)
+     reste épinglé en tête du volet (marges négatives compensant le rembourrage du panneau). */
+  /* v5.4.1 (2e passe, retours utilisateur : « pas une continuité du quai », « fixed dans fixed »,
+     « deuxième niveau de scroll ») : le volet n'est PAS une carte flottante — c'est un ÉTAGE de
+     plus du bloc de chrome, comme la barre d'une référence (#refBar : « le fond commun fait le
+     BLOC, le filet dit les étages »). Pleine largeur, collé au quai (le filet bas du quai fait la
+     séparation), fond `--surface`, coins vifs ; l'ombre dit qu'il RECOUVRE. C'est le VOLET
+     lui-même qui défile (un seul défileur, aucun en-tête épinglé dedans — l'en-tête ✕ passe avec
+     le contenu : la fermeture vit aussi sur le quai, re-tap/Échap/retour). Le panneau intérieur
+     perd sa boîte : deux cadres emboîtés se liraient comme deux objets (règle du journal niché). */
+  .rt-dock{position:fixed;left:0;right:0;top:var(--stick-top,110px);z-index:14;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-lg);max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);overflow-y:auto;overscroll-behavior:contain}
+  .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 18px 16px}
   /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
      droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —
      `.pl-cxh` avec 9 px de retrait et un `space-between` qui renvoyait « hors numérotation » sur
@@ -3319,6 +3363,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      retour d'usage) ; et `html[data-theme="dark"] .empty{background:…}`, de spécificité supérieure
      à `.tk-panel`, écrasait le fond du panneau en thème SOMBRE. Un nom propre supprime les deux. */
   .tk-panel.tk-slim .tk-head{margin-bottom:0}
+  /* v5.4.1 — SOUS-TITRES DE FAMILLE du panneau (Minuteurs / Compteurs ; le journal a le sien) :
+     grammaire .tk-head (petites capitales), compte en pilule mono. Le premier colle à l'en-tête
+     du panneau ; les suivants portent un filet de séparation (.fam-sep), comme le journal. */
+  .rt-famh{margin:14px 0 8px}
+  .rt-head+.rt-famh{margin-top:0}
+  .rt-famh.fam-sep{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+  :is(.rt-famh,.rail-fam)+.rt-counters{margin-top:0}
+  .rail-fam{margin-top:16px}
+  .fam-n{display:inline-block;margin-left:6px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border-radius:6px;padding:1px 6px;letter-spacing:0}
   /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
      box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
   .sess-dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
@@ -5950,6 +6003,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          apprise une fois pour toutes. Croix d'effacement DANS la boîte du champ (v5.0.3) : elle
          appartient à la saisie, pas à la rangée. -->
     <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2.6M11.4 6H20M4 12h8.6M17.4 12H20M4 18h1.6M10.4 18H20"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/></svg><span class="filt-n" id="filtN" hidden></span></button></div>
+    <!-- v5.4.1 (A′, décision utilisateur sur maquette) : à ≥ 1200 px en lecture de fiche, les
+         DEUX rangées de crise (#crisisCtrl + #crisisDock) vivent ICI — l'en-tête a l'espace, la
+         bande n'a plus à exister et aucune colonne ne paie leur hauteur. Chrome NOMADE
+         (placeCrisisChrome/rescueCrisisChrome) : déplacées, jamais recréées. Vide = invisible. -->
+    <div class="hdr-crisis-slot" id="hdrCrisisSlot"></div>
     <div class="hdr-acts">
     <!-- H (audit design v4.58.0, concept B) : L'ÉTAT DE MODE S'ANCRE AU COIN HAUT-DROIT.
          Avant, il vivait à droite de la bande-titre quand elle était dépliée, puis sautait au
@@ -6369,7 +6427,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.4.0';
+const APP_VERSION='5.4.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7147,6 +7205,35 @@ const main=document.getElementById('main');
    appeler rescueFooter() AVANT d'écraser main.innerHTML (sinon le wipe le détruirait). */
 function rescueFooter(){const ft=document.getElementById('appFooter');if(ft&&main.contains(ft))document.querySelector('.app').appendChild(ft);}
 function placeFooter(){const ft=document.getElementById('appFooter');const side=main.querySelector('.home-side');if(ft&&side&&ft.parentNode!==side)side.appendChild(ft);}
+/* v5.4.1 — OPTION A DU CHROME COCKPIT (décision utilisateur sur maquette : « tout voir, consulter
+   et chrono se mettent tout à gauche, mais la bande reste : du contenu du centre perdu »). À
+   ≥ 1200 px en lecture de fiche, les DEUX rangées de crise quittent la bande pleine largeur et
+   rejoignent le créneau statique de l'en-tête (#hdrCrisisSlot) : le contenu commence tout en haut
+   (~110 px rendus sur toute la largeur, aucune colonne n'en paie le prix), et l'« effet de
+   tronquage » de la bande disparaît avec elle. MÊME PATRON QUE LE PIED DE PAGE NOMADE : les
+   éléments sont DÉPLACÉS, jamais recréés — leurs ids, écouteurs et mises à jour chirurgicales
+   (updateRtStrip, syncDock) restent vivants. `body.chrome-hdr` porte l'état : le CSS y neutralise
+   le sticky de bande, et stickBase()/stickHeight() cessent de compter des rangées qui ne sont
+   plus empilées en haut. Le rescue court avec ceux d'applyViewChrome, à chaque changement de
+   vue. */
+function rescueCrisisChrome(){
+  const ct=document.getElementById('crisisCtrl'),dk=document.getElementById('crisisDock');
+  const slot=document.getElementById('hdrCrisisSlot');
+  if(ct&&slot&&slot.contains(ct)){const sb=document.getElementById('sysBanner');
+    sb.parentNode.insertBefore(ct,sb);sb.parentNode.insertBefore(dk,sb);}
+  document.body.classList.remove('chrome-hdr');}
+/* v5.4.1 (2e passe — A′) : la destination n'est plus la colonne du plan (retours utilisateur :
+   « trois boutons empilés », « on perd de la hauteur ») mais le CRÉNEAU STATIQUE de l'en-tête,
+   qui a l'espace à ≥ 1200 px. Conséquence heureuse : plus besoin d'une colonne pour loger le
+   chrome — la bande disparaît pour TOUTE lecture de fiche à ce palier, statique et mono-bloc
+   comprises, et le cas résiduel « la bande reste » n'existe plus. */
+function placeCrisisChrome(){
+  const ct=document.getElementById('crisisCtrl'),dk=document.getElementById('crisisDock');
+  const slot=document.getElementById('hdrCrisisSlot');
+  if(!ct||!slot)return;
+  if(!(mqCock.matches&&state.view==='read'&&state.fiche))return;
+  if(ct.parentNode!==slot){slot.appendChild(ct);slot.appendChild(dk);}
+  document.body.classList.add('chrome-hdr');}
 const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filter(Boolean);
 /* ===== Garde-fous de sécurité (assainissement des données importées/stockées) =====
    Tout ce qui entre par import JSON, par la synchro cloud, ou via un stockage altéré est NON FIABLE.
@@ -10093,8 +10180,13 @@ function updateRtStrip(now){
       immédiatement SOUS lui, en tête de la colonne d'action — la réponse au geste vit à l'endroit
       du geste (même règle que l'accusé « ✓ noté » du lot M7). Aucun défilement, donc rien ne
       bouge sous le doigt. Ouvert par la rangée du BAS, il s'ouvre en bas, là où on l'a demandé :
-      `state.rtOpen` porte l'ENDROIT ('dock' | 'flow'), pas seulement l'état. */
-   if(!mqRail.matches){state.rtOpen=state.rtOpen?false:'dock';renderKeepAnchor('#cbTimers');return;}
+      `state.rtOpen` porte l'ENDROIT ('dock' | 'flow'), pas seulement l'état.
+      v5.4.1 : le dépliant du quai est devenu un VOLET FIXE (cf. `.rt-dock`) — même mécanique de
+      bascule, mais il SUIT le défilement ; `_histArm()` à l'ouverture, comme toute surface qui
+      recouvre (doctrine v4.30.0), pour que le retour système le referme au lieu de sortir. */
+   if(!mqRail.matches){const open=!state.rtOpen;state.rtOpen=open?'dock':false;
+     if(open&&typeof _histArm==='function')_histArm();
+     renderKeepAnchor('#cbTimers');return;}
    const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
   // Écritures DOM seulement SI la valeur change (le tick de 300 ms repasse ~3× par seconde
@@ -10437,8 +10529,9 @@ function applyViewChrome(){
   if(typeof setMoreMenu==='function')setMoreMenu(null);
   // Le pied de page vit DANS la sidebar sur l'accueil large : avant tout main.innerHTML, on le
   // remet dans .app (sinon le wipe le détruirait — ids et écouteurs perdus) ; renderHomeList
-  // le replacera en bas de la sidebar si elle existe.
-  rescueFooter();
+  // le replacera en bas de la sidebar si elle existe. Même sauvetage pour le chrome de crise,
+  // qui vit dans la colonne du plan en cockpit (v5.4.1).
+  rescueFooter();rescueCrisisChrome();
   {const hn=document.getElementById('hdrNew');
    if(state.view==='library'&&canEditScope(state.scope)){hn.hidden=false;
      hn.classList.toggle('tonal',Object.values(liveSessions).some(R=>R.started&&R.fiche));
@@ -10527,6 +10620,10 @@ function render(){
   // Retour système (v4.30.0) : hors accueil, la sentinelle d'historique doit être armée —
   // idempotent, et render() est LE point de passage de tout changement de vue.
   if(state.view!=='library')_histArm();
+  // v5.4.1 : en cockpit, le chrome de crise rejoint la colonne du plan — AVANT la resynchro des
+  // couches collantes, pour que stickHeight() sache déjà que les rangées ne sont plus empilées
+  // en haut (no-op si la vue n'a pas de slot ; le rescue d'applyViewChrome a déjà défait l'état).
+  placeCrisisChrome();
   // État de l'en-tête resynchronisé APRÈS le défilement final : un changement de vue sans
   // évènement de scroll (on était déjà en haut) laissait sinon .ttl-on et les variables de
   // couches collantes hérités de la vue précédente — zone haute annoncée deux fois, ou pas du tout.
@@ -13970,14 +14067,26 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
   if(!mqRail.matches&&!state.rtOpen){
     return `<button class="rt-collapsed" id="rtOpen" aria-expanded="false">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<span class="rtc-i">${esc(rtRowLabel(f))}</span><span class="rtc-open">▾ Afficher</span></button>`;}
   const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`;
-  const cards=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}<button class="add-line rt-add" data-rtadd title="Ajouter un minuteur de surveillance PA (5 min) pour cette session">＋ Minuteur PA 5:00</button>`;
+  /* v5.4.1 — LES FAMILLES SE NOMMENT (décision utilisateur : « minuteurs / compteurs / journal
+     peu identifiables, tout se colle et se mélange ») : un sous-titre PAR FAMILLE — MINUTEURS
+     (avec les minis et « ＋ Minuteur PA », qui en créent), COMPTEURS, et le JOURNAL qui porte
+     déjà le sien — même dessin en étroit (panneau/volet, grammaire `.tk-head`) et en large
+     (rail, grammaire `.rail-head` existante) : petites capitales + compte. Les compteurs
+     n'avaient AUCUN en-tête ; « ＋ Minuteur PA » se rangeait après eux alors qu'il crée un
+     minuteur — chaque objet rejoint sa famille. */
+  const nt=tl.length+minis.length;
+  const famN=n=>n>1?`<span class="fam-n">${n}</span>`:'';
+  const timersB=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}<button class="add-line rt-add" data-rtadd title="Ajouter un minuteur de surveillance PA (5 min) pour cette session">＋ Minuteur PA 5:00</button>`;
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
-  if(mqRail.matches){const nAll=tl.length+minis.length+cl.length;
-    return `<div class="rail-head"><span class="rail-title">Minuteurs & compteurs</span>${nAll>1?`<span class="rail-n">${nAll}</span>`:''}${sound}</div>${cards}`;}
+  if(mqRail.matches){
+    return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}${sound}</div>${timersB}`
+      +(cl.length?`<div class="rail-head rail-fam"><span class="rail-title">Compteurs</span>${cl.length>1?`<span class="rail-n">${cl.length}</span>`:''}</div><div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'');}
+  const cards=`<div class="tk-head rt-famh"><b>Minuteurs${famN(nt)}</b></div>${timersB}`
+    +(cl.length?`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div><div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'');
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de rtRowLabel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
-  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs & compteurs</b>${sound}<button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}</div>`;}
+  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs · compteurs · journal</b>${sound}<button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}</div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
@@ -14219,7 +14328,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
     return `<div class="tk-item${vd?' tk-void':''}"><div class="tk-row"><span class="tk-time" data-tktime="${esc(e.id)}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${esc(e.id)}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${esc(e.id)}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?'↺':'×'}</button></div><div class="tk-sug" data-tksug="${esc(e.id)}" hidden></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
-  return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
+  return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions${ev.length>1?`<span class="fam-n">${ev.length}</span>`:''}</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
 /* Câblage du JOURNAL DES ACTIONS, isolé pour être REJOUÉ après une mise à jour chirurgicale du seul
    panneau (`renderTkOnly`). Un `render()` complet reconstruit tout le DOM et remet à 0 le `scrollTop`
    du RAIL (`overflow-y:auto`) : la barre latérale « remontait » à chaque « Noter l'heure » (retour
@@ -15990,8 +16099,12 @@ function ovPaintLive(f){
    bloc visé SOUS le quai (constaté : ~52px masqués). */
 function stickBase(){
   const hb=document.querySelector('header.bar');
-  const ct=document.getElementById('crisisCtrl');
-  const dk=document.getElementById('crisisDock');
+  /* v5.4.1 : à ≥ 1200 en lecture (`body.chrome-hdr`), les deux rangées vivent DANS l'en-tête —
+     leur hauteur est déjà comptée par celle de l'en-tête, les additionner la compterait DEUX
+     fois. Seul l'en-tête compte alors. */
+  const inCol=document.body.classList.contains('chrome-hdr');
+  const ct=inCol?null:document.getElementById('crisisCtrl');
+  const dk=inCol?null:document.getElementById('crisisDock');
   return Math.max(hb?hb.getBoundingClientRect().bottom:60,
     (ct&&!ct.hidden)?ct.getBoundingClientRect().bottom:0,
     (dk&&!dk.hidden)?dk.getBoundingClientRect().bottom:0);}
@@ -16002,8 +16115,9 @@ function stickBase(){
    vaut que pour une décision prise MAINTENANT à l'écran (cf. `ovScrollEl`). */
 function stickHeight(){
   const hb=document.querySelector('header.bar');
-  const ct=document.getElementById('crisisCtrl');
-  const dk=document.getElementById('crisisDock');
+  const inCol=document.body.classList.contains('chrome-hdr');   // v5.4.1 : cf. stickBase
+  const ct=inCol?null:document.getElementById('crisisCtrl');
+  const dk=inCol?null:document.getElementById('crisisDock');
   return (hb?hb.getBoundingClientRect().height:60)
     +((ct&&!ct.hidden)?ct.getBoundingClientRect().height:0)
     +((dk&&!dk.hidden)?dk.getBoundingClientRect().height:0);}
@@ -23171,6 +23285,10 @@ function _histBackAction(){
     // Sans ✕ (ex. « Terminer la session ? ») : un clic SUR la fenêtre (cible = le voile) emprunte
     // le chemin de bindModalDismiss — pour ce dialogue, « Poursuivre », JAMAIS « Terminer ».
     return()=>{if(x)x.click();else m.dispatchEvent(new MouseEvent('click',{bubbles:true}));};}
+  /* v5.4.1 : le volet du quai RECOUVRE — le retour système le referme, par le même chemin que
+     son ✕ et que le re-tap du quai (mêmes effets de bord, aucun état intermédiaire). */
+  if(state.rtOpen==='dock'&&document.querySelector('.rt-dock'))
+    return()=>{state.rtOpen=false;renderKeepAnchor('#cbTimers');};
   if(typeof monOn==='function'&&monOn())return monClose;
   const ff=document.getElementById('flowFull');
   if(ff&&ff.classList.contains('on'))return closeFlowFull;
@@ -23190,6 +23308,12 @@ window.addEventListener('popstate',e=>{
   else if(!_histArmed){try{history.back();}catch(_){}}   // accueil nu : traverser l'origine = sortir
   // accueil nu SUR une sentinelle : rien à fermer, rien à faire — le prochain retour sortira.
 });
+/* v5.4.1 : Échap referme le volet du quai — même chemin que son ✕ (aucun état intermédiaire).
+   Jamais par-dessus une fenêtre ouverte : les modales gardent leur propre Échap et passent
+   d'abord (le volet vit SOUS elles, il n'a pas à voler leur geste). */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&state.rtOpen==='dock'&&!(typeof _topModal==='function'&&_topModal())){
+    state.rtOpen=false;renderKeepAnchor('#cbTimers');}});
 
 /* ===== Mode débogage (?__acdebug) =====
    L'app avale volontairement beaucoup d'erreurs best-effort (localStorage, vibration, audio…) :

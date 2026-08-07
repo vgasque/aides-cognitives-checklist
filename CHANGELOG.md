@@ -1,5 +1,39 @@
 # Journal des modifications
 
+## [5.4.1] — 2026-08-07
+### Le volet du quai devient un étage du chrome, les familles se nomment, et le chrome ≥ 1200 px monte dans l'en-tête
+
+Trois retours d'usage, chacun tranché sur maquette ou après itérations mesurées à l'écran.
+
+- **Le dépliant du quai est un volet FIXE, étage du bloc de chrome** (question de l'auteur :
+  « contraire à ECAM/QRH ? » — non : ouvert et fermé par l'utilisateur seul, jamais
+  d'auto-ouverture, l'alarme jamais masquée — même statut de consultation que le menu ⋯). Il SUIT
+  le défilement : minuteurs, compteurs et journal restent sous les yeux en parcourant les étapes.
+  Après trois retours (« pas une continuité du quai », « fixed dans fixed », « deuxième niveau de
+  scroll ») : PLEINE largeur, collé au quai (le filet du quai fait la séparation d'étages, patron
+  #refBar), panneau intérieur sans boîte, UN seul défileur, en-tête ✕ non épinglé. Fermeture par
+  re-tap du quai, ✕, Échap et retour système (`_histArm`/`_histBackAction`). La rangée du flux
+  garde sa géométrie de poussée : deux accès, deux arbitrages.
+- **Les familles se nomment** (« minuteurs / compteurs / journal peu identifiables — tout se colle
+  et se mélange ») : sous-titres MINUTEURS / COMPTEURS / JOURNAL DES ACTIONS partout — grammaire
+  `.tk-head` + compte en pilule dans le panneau et le volet, `.rail-head` + `.rail-n` dans le rail
+  large. Les compteurs n'avaient aucun en-tête ; « ＋ Minuteur PA » rejoint la famille des
+  minuteurs qu'il crée.
+- **À ≥ 1200 px, le chrome de crise monte dans l'EN-TÊTE** (option A′, choisie sur maquette après
+  DEUX itérations refusées — la bande pleine largeur réservait ~110 px pour des contrôles qui ne
+  vivaient qu'à gauche ; la version « colonne du plan » empilait trois boutons en volant sa
+  hauteur au plan). « Tout voir », « Consulter » et le chrono SESSION vivent dans
+  `#hdrCrisisSlot`, entre le titre et les actions — chrome NOMADE au patron du pied de page
+  (déplacés, jamais recréés), `body.chrome-hdr`, `stickBase`/`stickHeight` cessent de compter des
+  rangées dont la hauteur est déjà celle de l'en-tête. **Coût de hauteur nul, mesuré** : en-tête
+  65 px inchangé (compaction du dessin, jamais des cibles — halos de 44 px, attrapé par
+  `audit-a11y` : 8 rouges sur le bouton Session à 37 px, réparés par le halo standard). Les trois
+  colonnes commencent à ~83 px ; plus de bande ni d'« effet de tronquage » pour toute lecture de
+  fiche à ce palier, statique et mono-bloc comprises. Sous 1200 px, rien ne change.
+- Sondes dédiées 9/9 (Chromium + WebKit) : chrome dans l'en-tête, une seule rangée, en-tête ≤
+  70 px, `--stick-top` = en-tête seul, état visible après 800 px de défilement, mono-bloc couvert,
+  390 px inchangé. Passes complètes : 16/16 check · 939 × 2 tests · 20/20 harnais.
+
 ## [5.4.0] — 2026-08-07
 ### Le journal des actions rejoint le dépliant minuteurs, et l'heure se corrige comme on la tape
 

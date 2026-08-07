@@ -3030,6 +3030,62 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   ou compte des rangées `.tk-*` en ÉTROIT doit OUVRIR le dépliant par le vrai geste (`#rtOpen`)
   — l'état, lui, se mesure sur `Runtime`, pas sur le DOM replié (deux témoins d'`audit-partage`
   corrigés ainsi).
+- **À ≥ 1200 px, LE CHROME DE CRISE VIT DANS L'EN-TÊTE (v5.4.1, option A′ choisie sur maquette,
+  après DEUX itérations refusées — retenir le chemin autant que l'arrivée)** : la bande pleine
+  largeur réservait ~110 px pour des contrôles qui ne vivaient qu'à gauche (« du contenu du centre
+  perdu », retour utilisateur) ; la première réponse — les loger en tête de la COLONNE DU PLAN —
+  a été refusée à l'usage (« trois boutons empilés, peu pratique, on perd de la hauteur ») : elle
+  déplaçait le coût au lieu de le supprimer. La destination juste est le CRÉNEAU STATIQUE de
+  l'en-tête (`#hdrCrisisSlot`, entre le titre et `.hdr-acts`), qui a l'espace à ce palier : coût
+  de hauteur STRICTEMENT NUL — mesuré, l'en-tête reste à 65 px grâce à une COMPACTION du dessin
+  (segment 6→2 px, ouvertures 46→36 px, halo ::after maintenant la cible de 44) — une seule
+  rangée de chrome au total, et l'« effet de tronquage » disparaît avec la bande, pour TOUTE
+  lecture de fiche à ce palier (statique et mono-bloc comprises : le créneau ne dépend d'aucune
+  colonne). MÊME PATRON QUE LE PIED DE PAGE NOMADE (`placeCrisisChrome`/`rescueCrisisChrome`) :
+  déplacés, jamais recréés — ids, écouteurs et mises à jour chirurgicales (updateRtStrip,
+  syncDock) restent vivants ; `body.chrome-hdr` porte l'état, le CSS y neutralise le sticky de
+  bande, et `stickBase()`/`stickHeight()` cessent d'additionner des rangées dont la hauteur est
+  DÉJÀ celle de l'en-tête (les compter serait les compter deux fois ; `--stick-top` retombe à
+  l'en-tête seul, les trois colonnes commencent à ~83 px). **L'exigence ECAM ne bouge pas** :
+  l'en-tête est permanent et collant — chrono et minuteur échu ne quittent jamais l'écran,
+  vérifié à 800 px de défilement ; la constance positionnelle vaut À L'INTÉRIEUR de chaque
+  palier, et 1200 restructure déjà la page (cockpit, v4.59.0). Sous 1200 px, rien ne change :
+  les bandes restent la forme du chrome.
+- **LE DÉPLIANT DU QUAI EST UN VOLET FIXE — IL SUIT, ET C'EST ADMISSIBLE (v5.4.1, question posée
+  par l'auteur : « c'est contraire à ECAM/QRH ? » — non, et voici la ligne)** : ouvert PAR LE
+  QUAI, le panneau (minuteurs · compteurs · journal) est `position:fixed` sous les couches
+  collantes (`--stick-top`) — il suit le défilement, on garde l'état sous les yeux en parcourant
+  les étapes, au prix ASSUMÉ de recouvrir tant qu'il est ouvert. Ce qu'ECAM/QRH interdisent
+  n'est pas le recouvrement : c'est le mouvement AUTONOME (règle 11), la zone d'état qui bouge,
+  et l'alarme masquée. D'où les bornes, toutes tenues : ouvert et fermé par l'utilisateur SEUL
+  (re-tap du quai, ✕, Échap, retour système — `_histArm()` à l'ouverture, entrée dans
+  `_histBackAction` AVANT le moniteur), **jamais d'auto-ouverture** (l'échéance s'annonce sur
+  place), z-index **14 sous le quai (15)** — même statut de consultation que le menu ⋯, qui est
+  déjà un volet fixe de l'en-tête. Hauteur bornée sur `--vvh ÷ --zf` (règle 10), défilement
+  INTERNE (`overscroll-behavior:contain`).
+  **2ᵉ PASSE, SUR TROIS RETOURS UTILISATEUR (« pas une continuité du quai », « fixed dans
+  fixed », « deuxième niveau de scroll »)** : le volet n'est PAS une carte flottante — c'est un
+  ÉTAGE de plus du bloc de chrome, comme la barre d'une référence (#refBar : « le fond commun
+  fait le BLOC, le filet dit les étages »). PLEINE LARGEUR, collé au quai (le filet bas du quai
+  fait la séparation), fond `--surface`, coins vifs, filet bas + ombre pour dire qu'il recouvre ;
+  le panneau intérieur PERD sa boîte (bordure 0, rayon 0, fond transparent — deux cadres emboîtés
+  se liraient comme deux objets, règle du journal niché) ; et c'est le VOLET lui-même qui défile,
+  UN SEUL défileur — l'en-tête ✕/son passe avec le contenu, AUCUN épinglage interne (la fermeture
+  vit de toute façon sur le quai, Échap et le retour). **La rangée du
+  FLUX garde sa géométrie de poussée** : les deux accès coexistent, chacun son arbitrage
+  (pousser sans couvrir / suivre en couvrant) — ne pas les unifier. Le témoin M11
+  (« un tap ne déplace pas l'écran ») tient par construction : un volet fixe ne change AUCUNE
+  géométrie de flux.
+- **LES FAMILLES DU PANNEAU SE NOMMENT (v5.4.1, signalé à l'usage : « minuteurs / compteurs /
+  journal peu identifiables — tout se colle et se mélange »)** : une seule zone « Minuteurs &
+  compteurs » couvrait TROIS familles — les compteurs n'avaient aucun en-tête et « ＋ Minuteur
+  PA » se rangeait APRÈS eux alors qu'il crée un minuteur. Un sous-titre PAR famille désormais —
+  MINUTEURS (cartes + minis + « ＋ Minuteur PA »), COMPTEURS, et le JOURNAL qui portait déjà le
+  sien — dans la grammaire EXISTANTE de chaque logement : `.tk-head` petites capitales + compte
+  `.fam-n` dans le panneau/volet, `.rail-head` + `.rail-n` dans le rail large. Chaque objet
+  rejoint sa famille ; l'annonce des comptes (exigence ECAM du rail) devient PAR famille, la
+  somme est préservée. Aucun composant nouveau — deux dessins pour une même idée seraient le
+  défaut que ce chantier corrige.
 - **UN DÉPLIANT SE RECONNAÎT AVANT DE SE LIRE (v5.4.0, signalé à l'usage : « j'ai eu du mal à
   identifier les blocs — c'est affiché comme si ça faisait partie du reste de la page »)** : la
   rangée repliée était une carte BLANCHE `--surface`, le dessin exact du contenu clinique qui
