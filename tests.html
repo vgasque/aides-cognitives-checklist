@@ -1995,6 +1995,94 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   /* (Les trois témoins d'aller-retour v3 ⇄ v4 sont partis avec la conversion — étape D, règle 14 :
      une suppression emporte ce qui la mesurait. Ce que ★ garantit est mesuré ci-dessus.) */
 
+  /* ===== v5.2.0 — INDEX INVERSÉ DES DOCUMENTS PDF ========================================== */
+  {group('Documents · index inversé (recherche plein texte)');
+   /* Tokenisation : MÊME normalisation que la recherche du reste de l'app. */
+   ok('index · les accents sont retirés comme ailleurs',A.ixTokens('Adrénaline IM').indexOf('adrenaline')>=0);
+   ok('index · un mot d’une lettre n’entre pas',A.ixTokens('a b ok').indexOf('a')<0);
+   ok('index · un jeton de plus de 24 caractères n’entre pas',
+      A.ixTokens('x'.repeat(30)+' court').join(' ')==='court');
+   ok('index · les chiffres comptent (une dose se cherche)',A.ixTokens('500 mg').indexOf('500')>=0);
+   /* LIMITE ASSUMÉE ET ENCODÉE ICI : « 0,5 » se découpe en deux chiffres isolés, qui ne
+      discriminent rien et n'entrent donc pas au dictionnaire. Chercher « 0,5 » ne rendra aucun
+      document — la fiche qui le porte, elle, sort normalement. Le dire dans un témoin vaut mieux
+      que de le découvrir à l'usage. */
+   eq('index · un nombre décimal isolé n’est pas indexable',A.ixTokens('0,5').length,0);
+
+   /* Aller-retour COMPLET : construire, ranger, rouvrir, chercher. C'est la propriété qui
+      compte — un index qui se relit mal serait un index qui ment. */
+   const pages=[A.ixTokens('Adrénaline intramusculaire 0,5 mg face antéro-latérale de cuisse'),
+                A.ixTokens('Surveillance continue — scope, oxygène, remplissage'),
+                A.ixTokens('Adrénaline en perfusion si choc réfractaire')];
+   const rec=A.ixBuild(pages);
+   eq('index · le nombre de pages est conservé',rec.pages,3);
+   ok('index · le dictionnaire ne porte que des mots DISTINCTS',
+      rec.terms===new Set(pages.flat()).size);
+   const h=A.ixOpen(rec);
+   ok('index · rouvert, il porte le même nombre de termes',!!h&&h.n===rec.terms);
+   /* Un mot présent sur deux pages les rend TOUTES LES DEUX, dans l'ordre. */
+   const p1=A.ixSearch(h,['adrenaline']);
+   ok('index · un mot rend toutes ses pages',JSON.stringify(p1)==='[0,2]');
+   /* ET logique entre les termes, exactement comme hayMatch pour les fiches. */
+   ok('index · deux mots = intersection',JSON.stringify(A.ixSearch(h,['adrenaline','cuisse']))==='[0]');
+   eq('index · un mot absent ne rend RIEN (pas d’à-peu-près)',A.ixSearch(h,['zzintrouvable']),null);
+   eq('index · un terme absent annule la conjonction',A.ixSearch(h,['adrenaline','zzintrouvable']),null);
+   /* SOUS-CHAÎNE, et pas préfixe : c'est ce que fait la recherche du reste de l'app — une même
+      frappe ne peut pas se comporter autrement selon qu'elle vise une fiche ou un document. */
+   ok('index · « drenalin » trouve « adrenaline » (sous-chaîne, comme ailleurs)',
+      JSON.stringify(A.ixSearch(h,['drenalin']))==='[0,2]');
+   /* Un match ne peut pas traverser deux mots voisins du dictionnaire. */
+   eq('index · aucune correspondance à cheval sur deux mots',A.ixSearch(h,['scopeoxygene']),null);
+
+   /* LE CHEMIN BITMAP : un mot présent sur presque toutes les pages bascule sur la représentation
+      dense. Les deux chemins doivent rendre EXACTEMENT la même chose — sans ce témoin, la
+      bascule serait un embranchement que rien n'exerce. */
+   {const N=400,many=[];for(let i=0;i<N;i++)many.push(i%2?['commun','rare'+i]:['commun']);
+    const r2=A.ixBuild(many),h2=A.ixOpen(r2);
+    const all=A.ixSearch(h2,['commun']);
+    eq('index · bitmap · un mot omniprésent rend toutes ses pages',all.length,N);
+    ok('index · bitmap · … dans le bon ordre et sans doublon',all[0]===0&&all[N-1]===N-1);
+    /* ⚠ Le terme de contrôle est choisi pour n'être SOUS-CHAÎNE d'aucun autre : « rare7 » est
+       contenu dans « rare70 »… et rendrait bien plus qu'une page — la sémantique sous-chaîne
+       est voulue, mais un témoin qui l'ignore mesure autre chose que ce qu'il annonce. */
+    ok('index · … et un mot rare du même index reste juste',
+       JSON.stringify(A.ixSearch(h2,['rare399']))==='[399]');}
+
+   /* Le front-codage : deux mots à long préfixe commun doivent se relire intacts. */
+   {const r3=A.ixBuild([A.ixTokens('anaphylaxie anaphylactique anaphylactoide autre')]);
+    const h3=A.ixOpen(r3);
+    ok('index · front-codage · les mots à préfixe commun se relisent',
+       JSON.stringify(A.ixSearch(h3,['anaphylactoide']))==='[0]'
+       &&JSON.stringify(A.ixSearch(h3,['autre']))==='[0]');}
+
+   /* Cas dégradés : rien ne doit lever. */
+   eq('index · un document vide ne fait rien lever',A.ixSearch(A.ixOpen(A.ixBuild([])),['x']),null);
+   eq('index · un enregistrement d’une autre version est refusé',A.ixOpen({v:A.IX_V+1,terms:1,pages:1,dict:new ArrayBuffer(1),post:new ArrayBuffer(1)}),null);
+   eq('index · une requête vide ne rend rien',A.ixSearch(h,[]),null);
+
+   /* ═══ RÉSILIENCE — un enregistrement abîmé ne doit ni mentir, ni faire tourner une boucle ═══
+      L'index vit sur le disque de l'utilisateur et se relit à chaque démarrage : le décodeur doit
+      être TOTAL. Un refus franc (null) fait retomber le document en « à indexer », donc dans un
+      état visible avec un geste pour en sortir — ce qui est toujours mieux qu'un demi-index. */
+   {const clone=r=>({v:r.v,pages:r.pages,terms:r.terms,dict:r.dict.slice(0),post:r.post.slice(0)});
+    // Dictionnaire tronqué : moins de mots que le compte annoncé.
+    {const r=clone(rec);r.dict=r.dict.slice(0,6);
+     eq('résilience · dictionnaire tronqué → refusé en bloc',A.ixOpen(r),null);}
+    // Postings absents.
+    {const r=clone(rec);r.post=new ArrayBuffer(0);
+     eq('résilience · postings absents → refusé',A.ixOpen(r),null);}
+    // Compte de postings délirant : la boucle DOIT s'arrêter (bornée par le nombre de pages).
+    {const r=clone(rec);const p=new Uint8Array(r.post);
+     for(let i=1;i<Math.min(6,p.length);i++)p[i]=0xff;
+     const h2=A.ixOpen(r);
+     ok('résilience · un compte aberrant ne fait pas tourner la boucle',
+        h2===null||A.ixSearch(h2,['adrenaline'])===null||A.ixSearch(h2,['adrenaline']).every(x=>x<r.pages));}
+    // Aucune page rendue ne peut sortir du document, quel que soit l'index.
+    ok('résilience · aucune page rendue hors du document',
+       [...Array(h.n).keys()].every(i=>A.ixPagesOf(h,i).every(p=>p>=0&&p<h.pages)));
+    eq('résilience · terms=0 est refusé (rien à ouvrir)',A.ixOpen({v:A.IX_V,pages:1,terms:0,dict:new ArrayBuffer(0),post:new ArrayBuffer(0)}),null);}
+  }
+
   /* ===== v5.0.10 — UNE CONNEXION INDEXEDDB FERMÉE SE RECONNAÎT ============================== */
   {const dom=(name,msg)=>{const e=new Error(msg);e.name=name;return e;};
    /* Les DEUX moteurs : Blink dit « The database connection is closing », WebKit lève un

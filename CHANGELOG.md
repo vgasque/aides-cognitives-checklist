@@ -1,5 +1,65 @@
 # Journal des modifications
 
+## [5.2.0] — 2026-08-07
+### La recherche trouve dans les documents PDF — un index inversé, jamais une copie du texte
+
+La recherche trouvait la FICHE, jamais l'endroit : un protocole de service joint en PDF pouvait
+porter la seule mention d'une dilution, et rien ne la trouvait. Et deux correctifs de moindre
+taille livrés dans la même version : le compte-rendu s'enregistre en PDF, et « Répéter en
+exercice » n'allume plus l'accueil avant le premier geste.
+
+- **Chercher dans les documents PDF** (`ixBuild`/`ixOpen`/`ixSearch`, purs et testés ; store
+  IndexedDB `attidx`, base v6). La première approche — conserver le texte extrait et le balayer —
+  a été REFUSÉE par l'auteur, à raison : ~100 % du poids du texte (546 Ko mesurés pour 200 pages)
+  et un plafond obligatoire, donc des documents indexés à moitié. On fait ce que font Spotlight,
+  Finder et Lucene : un **index inversé** — dictionnaire des mots distincts (front-codé) + pages
+  de chaque mot (varint-delta, ou bitmap pour les mots trop fréquents). Le poids suit le
+  VOCABULAIRE, qui sature : mesuré sur du français technique réel, 13,4 % du texte à 626 Ko
+  (34 % à 49 Ko) — **aucun plafond, indexation intégrale, toujours**. L'index natif d'IndexedDB
+  (`multiEntry`) a été mesuré et écarté : ×47 en occupation réelle ; SQLite FTS5 n'existe pas
+  dans un navigateur et l'amener en WASM serait une seconde dépendance runtime (règle 13).
+- **Aucun extrait dans les résultats, et c'est la clé** : la rangée « Dans les documents » donne
+  le nom, le nombre de passages, les PAGES et la fiche qui porte le document — le contexte se lit
+  dans le document, qu'un tap ouvre À LA PAGE (`openPdfViewer` accepte une page). pdf.js
+  (1 773 Ko) n'est donc JAMAIS chargé pendant qu'on tape. Correspondance par sous-chaîne, comme
+  le reste de la recherche (« drenalin » trouve « adrénaline »).
+- **Indexation à l'arrivée du binaire — les CINQ arrivées** : `attPut(rec)` est le point
+  d'étranglement unique (patron `persistLive`) ; trouvé en le posant, l'indexation n'était
+  accrochée qu'à deux des cinq chemins (manquaient le « Télécharger » manuel, le téléchargement
+  immédiat de la visionneuse et l'import .zip). `check-stores` compte désormais les sites
+  d'écriture. File à l'inactivité, un document à la fois ; rattrapage des documents déjà là par
+  un geste explicite (ligne du pied de la sidebar), jamais en tâche de fond spontanée.
+- **Résilience** : deux familles d'échec distinguées — transitoire (binaire absent, pdf.js hors
+  cache : rien n'est retenu, trois essais par session puis « Réessayer ») et durable (`scan` /
+  `illisible` : état enregistré, sinon le compte « à indexer » ne descendrait jamais).
+  `ixAdopt` est l'unique point d'adoption : un enregistrement illisible est JETÉ et le document
+  redevient « à indexer » — le défaut inverse (un `null` rangé dans la table) aurait rendu tous
+  les documents non ré-indexables au premier changement de version d'index. **Réindexer** existe
+  pour tout (ligne du pied, avec confirmation) et pour un document (sa rangée d'éditeur). Le
+  décodeur est TOTAL : enregistrement tronqué refusé en bloc, aucune boucle infinie possible,
+  aucune page rendue hors du document.
+- **Confidentialité** : l'index est DÉRIVÉ et strictement LOCAL — jamais synchronisé, jamais
+  exporté (un dictionnaire EST la liste des mots d'un document clinique ; le faire voyager serait
+  une catégorie nouvelle de donnée sortante, pour zéro gain — il se reconstruit en ~4 ms/page).
+  Il vit dans la base de l'ESPACE : un compte par index sur un poste partagé, déménagé avec le
+  reste, effacé avec le reste. Le contenu des PDF n'atteint jamais le DOM (aucun texte stocké,
+  aucun extrait affiché) ; le seul texte non maîtrisé est le NOM du document, couvert par `esc()`
+  et éprouvé par un témoin au nom hostile.
+- **Le compte-rendu s'enregistre en PDF** (demande utilisateur) : « Télécharger » (.html) et
+  « Imprimer » deviennent « Fichier .html » et « **Enregistrer en PDF** » (rempli) — le second
+  EST le chemin d'impression (iframe A4), seul producteur de PDF du projet ; un seul bouton pour
+  ce chemin (AC 120-71B §5.5), le .html restant le repli qui ne dépend d'aucun dialogue système,
+  et le message d'échec le nomme.
+- **« Répéter en exercice » n'allume plus l'accueil avant le premier geste** (signalé à l'usage :
+  chrono figé à 0:00 et « Session en cours » dès l'entrée en exercice) : `startExercise`
+  n'inscrit plus le runtime dans `liveSessions` — `ensureStarted` le fait au premier geste, comme
+  pour une session réelle ; le prédicat `sessionLive()` (présence ET `started`) remplace les deux
+  tests de présence de la rangée et de la tuile.
+- Vérification : 26 contrôles `audit-pdfsearch` (nouveau harnais, PDF fabriqué xref calculé, vert
+  sur les DEUX moteurs — dont « pdf.js n'est pas chargé par la frappe », mesuré sur page
+  rechargée), 25 témoins unitaires de l'index (bitmap, front-codage, résilience), sonde dédiée du
+  correctif exercice ; passes complètes 17/17 check · 920 × 2 tests · 20/20 harnais.
+
 ## [5.1.2] — 2026-08-05
 ### Purge des commentaires orphelins (règle 14) — et la rangée de commandes ne disparaît plus d'une fiche sans annexe
 
@@ -1244,110 +1304,3 @@ a11y **301/301**, doctrine 159/159, `audit-k5` **55/55**. **Seize nouveaux témo
 d'objets par le même chemin, glisser-amorce, cascade, oscillation unique), vérifiés **capables
 d'échouer** : confinement neutralisé, amorce neutralisée et cascade aplatie → 7 rouges ; fichier
 restauré à l'octet.
-
-## [4.74.2] — 2026-07-30
-### Lot 1 des améliorations d'éditeur — et un garde-fou qui a trouvé un mort-né
-
-#### Le contrôle qui manquait : une erreur de parse CSS ne disait rien
-`npm run check` ne regardait que du JavaScript. Or dans une app monofichier, une erreur de parse
-**CSS** est aussi grave et beaucoup plus silencieuse : un fermeur de commentaire en trop laisse du
-texte à nu dans la feuille, et le parseur, pour se resynchroniser, **avale la règle suivante**.
-C'est arrivé deux fois de suite, sur des commentaires coupés en deux — et la seconde fois, **la
-v4.74.0 avait livré un correctif mort** : la règle `.hs-wrap>.hs-row:hover`, celle du survol des
-bibliothèques, était mangée par le parseur depuis sa publication, avec `npm run check` vert de bout
-en bout. Seule une mesure dans le navigateur l'a montré.
-
-`check-syntax.mjs` vérifie donc maintenant la feuille : commentaires jamais imbriqués et tous
-fermés, accolades équilibrées, les chaînes retirées d'abord (une accolade dans un `content:"…"` ne
-compte pas). On ne réécrit pas un parseur CSS — on attrape la classe d'erreur qui fait disparaître
-des règles sans rien dire. Vérifié capable d'échouer dans les deux sens.
-
-#### Le trou entre deux paliers : 430 → 441 px
-Signalé à l'usage (« à 435-440 px, Se repérer et Cons. passent sous Guidé/Statique, puis ça revient
-à une ligne si on élargit ou rétrécit un peu »). Le diagnostic est arithmétique : le palier de
-compression suivant est à **430**, donc entre 430 et ~441 la rangée n'a plus la place de la recette
-large et n'a pas encore **droit** à la recette compressée — et l'enroulement, qui est le dernier
-recours de la v4.73.1, y devenait le premier.
-
-**On ne déplace pas le seuil** : les seuils en dur pour cette rangée se sont déjà révélés faux deux
-fois, et un seuil juste ici dépendrait de la fonte du système et de la longueur des libellés.
-`fitCtrlRow` **mesure** déjà : il descend donc d'un palier, re-mesure, descend encore, et n'enroule
-qu'après avoir épuisé la compression. Les classes posées sont **celles de `syncZoomWidth`** — aucune
-recette dupliquée, donc rien qui puisse diverger — et elles ne stylent que cette rangée. Témoin :
-six largeurs de 429 à 460 px, hauteur de rangée **et** libellés intacts ; défaut réintroduit → rouge
-à 431 et 435, exactement la bande signalée.
-
-#### La carte du parcours est une surface
-« Pourquoi les étapes de blocs sont de la même couleur que le fond de page et pas en fond blanc
-comme les autres blocs ? » — ce n'était pas une décision : `.ov-block` n'avait **aucun
-`background`**, quand `.conf-block`, `.local`, `.forget-strip` et les cartes de l'éditeur sont tous
-en `--surface`. Rien ne justifiait l'exception, et le précédent existe en sens inverse : la v4.59.0
-a mis l'Échelle sur une surface parce qu'elle était « la seule zone de la vue lecture à ne pas être
-une surface, ses filets se lisant comme des restes de trait ». C'est la colonne d'**action** : elle
-mérite le niveau 2. Les registres ne bougent pas (`.dec` garde son ambre, une étape signalée sa
-boîte).
-
-#### Le relief des étapes revient au registre
-Chaque étape était en graisse **800** — le poids d'un titre appliqué à un paragraphe : plus rien ne
-ressortait, ce qui est mot pour mot le reproche fait à l'inflation du rouge. **600** pour une étape
-ordinaire, **800 conservé** pour les seules étapes `⚠`/`△`. Même geste que la v4.73.0 sur les
-chronos (700 → 500) et pour la même raison : l'état ne crie pas plus fort que l'action. Le corps ne
-bouge pas (16,5 px, palier de l'échelle fermée).
-
-#### L'algorithme de l'éditeur étroit se replie
-Mesuré à 820 px : le schéma commence haut (812 px) mais `.flow-scroll` monte à `75vh`, donc on
-traversait ~1400 px de préambule avant la première étape à écrire. Il devient un dépliant **replié
-par défaut**, avec son compte en sous-titre (« · 4 blocs » — un plafond qu'on voit sans l'ouvrir), et
-le choix de l'auteur **persiste** : gabarit exact de `.crit-guide` (v4.31.0), rien à inventer. À
-≥ 1000 px le schéma vit dans la colonne collante et n'a pas de dépliant.
-
-#### La bascule guidé ↔ statique garde le bloc courant
-Avant : `scrollTo(0,0)`, systématique — et conserver `scrollY` n'aurait rien voulu dire non plus,
-les deux vues n'ayant pas la même hauteur. La seule ancre qui **existe des deux côtés** est le bloc
-courant, et les deux vues le marquent avec la même classe `.cur`. C'est donc `keepAnchor`, la
-mécanique ECAM du projet, appliquée au bon élément : dérive mesurée à **0 px** dans les deux sens.
-Deux replis vers le haut, tous deux voulus : pas de session démarrée (rien à retrouver) et bloc
-courant hors de l'écran avant la bascule (même test de visibilité qu'`ovAdvanceRender`).
-
-#### « Essayer » est rond
-`.hdr-act2` garde `border-radius:18px` pour 36 px de haut — un cercle parfait à 36 px de large, une
-pilule à toute autre largeur. Le rembourrage de 10 px laissait ~32 px : plus haut que large, donc un
-ovale couché. Largeur fixée à la hauteur, glyphe centré. Passé par un `#id`, les paliers plus
-étroits redéclarant `padding` plus bas dans la feuille.
-
-#### Les repères posologiques disent leur classement
-C'est exact, et plus fort que demandé : `posoRank`/`posoSplit` **réordonnent selon le bloc en cours
-et ne filtrent jamais** — c'est cette garantie qui autorise un rapprochement volontairement
-permissif. Un auteur qui l'ignore ordonne ses repères à la main et s'étonne de les voir bouger.
-
-#### L'anneau d'annulation
-Le « Annuler » de l'éditeur est parti avec le bouton « Enregistrer » (K5, v4.72.0) : rien ne
-défaisait plus une fausse manœuvre, et l'écriture étant continue, une suppression était publiée
-avant qu'on ait le temps de la regretter. Bouton « ↶ » contre l'état d'enregistrement (son pendant :
-l'un dit ce qui est écrit, l'autre le défait) et **Cmd/Ctrl-Z hors champ de saisie** — dans un champ,
-le raccourci reste au navigateur, qui fait l'annulation fine mieux que nous.
-
-**Il empile des points de reprise, pas des commandes**, et il a fallu **mesurer** pour comprendre
-qu'il en fallait deux sortes. La première version ne couvrait que les gestes **structurels**, au
-motif que les champs texte ont déjà le Cmd-Z natif. C'était vrai, mais la conséquence ne l'était
-pas : annuler une suppression après avoir tapé trois mots **rendait aussi ces trois mots**, puisqu'un
-instantané pris avant le geste ne peut pas contenir ce qui a été écrit après. La frappe pose donc
-son propre point, **à la pause** (une rafale = un point, pas un point par caractère).
-
-**Second défaut trouvé à la mesure** : annuler jusqu'à l'état d'ouverture ne republiait **rien**. La
-garde anti-réécriture d'`edTouch` (celle qui évite qu'ouvrir une fiche la marque modifiée) sortait la
-première, si bien que la bibliothèque gardait la version modifiée pendant que l'écran affichait
-l'originale. L'annulation passe donc par `edCommit` : c'est un geste explicite, il écrit toujours.
-
-**Aucun geste à recenser** : les gestes structurels se terminent tous par un re-rendu de l'éditeur,
-la frappe passe toute par `edTouch` — les deux points d'étranglement existaient déjà. **Jamais
-persisté, jamais synchro** : c'est un geste, pas un état du brouillon (même statut que
-`state.edGrab`). Plafond 20 ; au-delà, ce n'est plus une annulation mais une restauration, et elle a
-déjà son outil (« Versions », plus le point de version posé à chaque ouverture).
-
-#### Vérifications
-809 tests × 2 moteurs, `npm run check` vert (avec le nouveau contrôle CSS), **seize harnais verts**
-(`npm run audit` en sortie 0), a11y 301/301, doctrine 159/159, `audit-k5` 39/39. **Quinze nouveaux
-témoins** (huit pour l'anneau, trois pour l'ancrage de la bascule, douze mesures pour la bande
-430-441), tous vérifiés **capables d'échouer** : défauts réintroduits un par un, fichiers restaurés à
-l'octet.

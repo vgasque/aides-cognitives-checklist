@@ -5197,6 +5197,23 @@
   .cross-hits{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:40px;margin:0 0 10px;padding:8px 14px;background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:var(--radius-md);color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
   .cross-hits:hover{background:var(--surface-3);color:var(--ink)}
   .cross-hits:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- Résultats trouvés DANS un document PDF (v5.2.0) : une ligne par FICHIER, comme Finder.
+     Grammaire de .att-row (mêmes hauteur, rayon, corps) — c'est le même objet, un document, et
+     il n'a pas à se dessiner autrement selon l'écran où on le rencontre. Aucun extrait : le
+     contexte se lit dans le document, qu'un tap ouvre à la page. Filet --line-strong : ces
+     rangées se comptent, comme celles du répertoire (WCAG 1.4.11). ----- */
+  .doc-hits{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+  .doc-hit{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
+  .doc-hit:hover{border-color:var(--ink-soft);background:var(--surface-2)}
+  .doc-hit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .dh-ic{display:flex;flex:none;color:var(--ink-soft)}
+  .dh-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .dh-tx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dh-sub{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dh-chev{flex:none;color:var(--ink-soft)}
+  /* État d'indexation d'un document, dans sa rangée d'éditeur : rien quand tout va bien. */
+  .att-ix{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--ink-soft);white-space:nowrap}
+  .att-ix:empty{display:none}
   /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
   .att-list{display:flex;flex-direction:column;gap:8px}
   .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:13.5px;text-align:left;cursor:pointer}

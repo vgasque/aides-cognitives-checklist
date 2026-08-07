@@ -77,5 +77,25 @@ else {
   for (const c of cles) if (!STORES.has(c)) err.push(`SYNC_KV_KEY nomme « ${c} », qui n'est pas un store d'openSpaceDb`);
 }
 
+/* (4) TOUT BINAIRE DE DOCUMENT PASSE PAR `attPut` — donc est indexé pour la recherche.
+   Le défaut vécu (v5.2.0) : l'indexation était accrochée à DEUX des CINQ arrivées d'un binaire
+   (ajout par l'éditeur, téléchargement de fond) ; le « Télécharger » manuel, le téléchargement
+   immédiat de la visionneuse et l'import d'un .zip écrivaient sans jamais rendre le document
+   trouvable — en silence, et sans qu'aucun garde-fou puisse le voir. On compte donc les sites :
+   `IDB.putAtt(` ne doit apparaître QUE dans la définition d'`attPut`. Un sixième chemin ajouté
+   demain échouera ici au lieu de créer un trou muet. */
+{
+  const sites = [...html.matchAll(/IDB\.putAtt\(/g)].map(m => m.index);
+  const def = html.indexOf('async function attPut(');
+  const fin = def >= 0 ? html.indexOf('\n}', def) : -1;
+  if (def < 0) err.push("attPut introuvable : le point d'étranglement des binaires de document a disparu");
+  else {
+    const dehors = sites.filter(i => i < def || (fin >= 0 && i > fin));
+    if (dehors.length) err.push(`${dehors.length} écriture(s) de binaire hors d'attPut (index ${dehors.join(', ')}) : ce document ne serait jamais indexé`);
+    if (sites.length !== 1) err.push(`IDB.putAtt appelé ${sites.length} fois — il ne doit l'être que dans attPut`);
+  }
+  if (!/function ixQueue\(/.test(html)) err.push('ixQueue introuvable : attPut ne peut plus indexer ce qui arrive');
+}
+
 if (err.length) { console.error('check-stores : ' + err.length + ' problème(s)\n' + err.map(e => '  · ' + e).join('\n')); process.exit(1); }
-console.log(`check-stores OK — ${STORES.size} stores, ${vises.size} cible(s) de synchro, repli KV aligné.`);
+console.log(`check-stores OK — ${STORES.size} stores, ${vises.size} cible(s) de synchro, repli KV aligné, binaires de document routés par attPut.`);

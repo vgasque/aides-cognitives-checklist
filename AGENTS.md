@@ -150,8 +150,8 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 | **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
 | **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Accueil (bibliothèques)** | ACCUEIL « POSTE ACCÈS DIRECT » |
-| **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE |
-| **Données, stockage, sécurité** | Documents PDF · Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE · Nommage SQL · (et les points 4 à 6 ci-dessus) |
+| **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF |
+| **Données, stockage, sécurité** | Documents PDF · CHERCHER DANS LES DOCUMENTS PDF · Export/import « avec documents » · TOUTE ENTRÉE DE FICHIER · LE DÉPÔT HORS ZONE · Nommage SQL · (et les points 4 à 6 ci-dessus) |
 | **Partage de session en direct** | PARTAGE DE SESSION · CE QUI VOYAGE · RÔLES ET CAPACITÉS · L'INVITÉ NE DÉPOSE RIEN · CONTINUER SEUL · TROIS RÉGIMES D'APPLICATION · JOURNAL RÉFÉRENTIEL · BILLET DE REPRISE · PASSATION DE LA MAIN · HISTORIQUE DE SESSIONS SYNCHRONISÉ |
 | **Leçons de maintenance** | Collision de noms de classe · Hygiène de suppression |
 
@@ -1629,6 +1629,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   RÉSOLU sur appareil (v4.29.10) — l'instrumentation (diag + règle visuelle) est RETIRÉE ; pour
   ré-instrumenter un jour : tags v4.29.5-9 (ligne diag ih/vv/dvh/sat/vvV/sc/ot dans la fenêtre
   Compte, règle visuelle `_vvRuler` rouge/bleu au tap).
+- **LE COMPTE-RENDU S'ENREGISTRE EN PDF, PAS EN .html (v5.2.0, demande utilisateur)** : la
+  fenêtre portait « Télécharger » (.html) et « Imprimer », et c'est le second qui produisait déjà
+  un PDF complet — le bouton nommait son MÉCANISME, pas sa destination. Il devient
+  « **Enregistrer en PDF** » (rempli) et reste le chemin d'impression (iframe A4 hors écran,
+  réutilisée) : **le seul producteur de PDF du projet est le navigateur**, la règle 13 interdit
+  une bibliothèque de génération et pdf.js est un LECTEUR. **UN SEUL bouton pour ce chemin** —
+  « Imprimer » à côté aurait été deux mots pour un seul geste (AC 120-71B §5.5), le dialogue
+  ouvert portant l'imprimante papier juste à côté du choix « PDF ». Le **fichier .html RESTE**,
+  en secondaire et sous son vrai nom : document autonome, lisible sans visualiseur, et **seule
+  sortie qui ne dépende pas du dialogue d'impression du système** — donc le repli quand celui-ci
+  manque, ce que le message d'échec NOMME désormais au lieu de dire « indisponible » sec.
 - **SORTIE PDF UNIFIÉE (v4.24.0)** : « Exporter en PDF » doit rendre le MÊME document quel que soit
   l'appareil. Mesurée avant correction, la sortie variait sur trois axes — le ZOOM s'appliquait au
   papier (0,9 / 1 / 1,3), le RAIL s'imprimait dès que la page faisait ≥ 780 px (soit toujours sur A4
@@ -4410,7 +4421,147 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   jamais, et les zones restent ouvrables au clic — aucun tap ajouté à aucun geste.
   Harnais : `scripts/audit-upload.mjs` (39 contrôles, écrit AVANT les correctifs — rouge à 4/27,
   vert à 39/39 ; vérifié capable d'échouer en réintroduisant les deux défauts).
-- **Documents PDF** : le PDF vit en ArrayBuffer dans le store IndexedDB `attachments` (base v5 ; Blob historique accepté en lecture), JAMAIS en
+- **CHERCHER DANS LES DOCUMENTS PDF — UN INDEX INVERSÉ, JAMAIS UNE COPIE DU TEXTE (v5.2.0,
+  demande utilisateur)** : la recherche trouvait la FICHE, jamais l'endroit — un protocole de
+  service joint en PDF pouvait porter la seule mention d'une dilution, et rien ne la trouvait.
+  **LA PREMIÈRE PROPOSITION A ÉTÉ REFUSÉE, ET À RAISON** : conserver le texte extrait et le
+  balayer n'est pas un index, c'est une photocopie sur laquelle on fait un `grep` — mesuré
+  **546 Ko pour un document de 200 pages**, soit ~100 % du texte, ce qui obligeait à inventer un
+  PLAFOND, donc des documents indexés à moitié.
+  **CE QUE FONT SPOTLIGHT, FINDER ET LUCENE, ET CE QU'ON FAIT ICI** : on ne garde pas le texte, on
+  garde le **DICTIONNAIRE** des mots distincts (trié, front-codé : chaque mot ne stocke que ce qui
+  le distingue du précédent) et, pour chacun, la **LISTE DES PAGES**, en écarts successifs sur un
+  octet — ou en **BITMAP** quand le mot est trop fréquent pour que les écarts soient rentables
+  (choix de Roaring/Lucene). Le poids suit alors le VOCABULAIRE, **qui sature**, et non la
+  longueur : mesuré sur du français technique réel, 49 Ko de texte donnent un index à **34 %**,
+  626 Ko un index à **13,4 %** (texte ×13, mots distincts ×3,7). **Aucun plafond n'est donc
+  nécessaire : l'indexation est INTÉGRALE, toujours.**
+  **ET L'EXTRAIT N'EST PAS STOCKÉ NON PLUS** — Finder montre le FICHIER, pas la phrase. C'est ce
+  qui garantit que **pdf.js n'est JAMAIS chargé pendant qu'on tape** (1 773 Ko, règle 13) : la
+  rangée de résultat donne le nombre de passages et les PAGES, le contexte se lit dans le
+  document, qu'un tap ouvre à la bonne page (`openPdfViewer(att,entity,page)`).
+  **⚠ POURQUOI PAS L'INDEX DU NAVIGATEUR, QUI EXISTE — question posée par l'auteur, tranchée par
+  la MESURE.** IndexedDB sait faire un index inversé seul (`createIndex(...,{multiEntry:true})` +
+  `IDBKeyRange` pour les préfixes), sans une ligne de notre part. Sur le même corpus et le même
+  découpage : **3 521 Ko contre 74 Ko**, soit **×47** — et **×39** encore pour la variante mixte
+  (notre dictionnaire, ses postings sur des entiers). Le coût est le sur-poids par entrée du
+  moteur (~55 octets par couple mot-page, 54 024 couples), qu'aucun encodage de notre côté ne
+  retire. C'était donc exactement le poids refusé, en quatorze fois pire.
+  **⚠ ET PAS SQLITE FTS5** : il n'existe aucun SQLite dans un navigateur (Web SQL retiré depuis
+  Chrome 119). L'y amener, c'est embarquer SQLite en WASM — une SECONDE dépendance runtime, que la
+  règle 13 interdit, avec tout l'appareillage de pdf.js (vendorisation, `ASSETS`, clé de cache
+  versionnée, veille d'avis de sécurité) — pour obtenir « mot → pages ». FTS5, c'est aussi BM25,
+  les requêtes de phrase, `snippet()`, les tokeniseurs et la fusion incrémentale : rien de ce dont
+  il s'agit ici.
+  **STORE `attidx` (base v6), À PART DE `attachments`, et c'est la raison du bump** : les index
+  doivent pouvoir être chargés TOUS au démarrage, or un `getAll` sur `attachments` matérialiserait
+  chaque ArrayBuffer de PDF — le pic mémoire que `gcAttachments` évite déjà explicitement.
+  Contenu **DÉRIVÉ** : jamais poussé dans Storage, jamais dans l'export ni le ZIP ; le perdre ne
+  perd rien. Il suit son document (`gcAttachments` le supprime) et déménage avec lui
+  (`moveLocalDataTo`).
+  **L'INDEX NE VOYAGE PAS, NI ENTRE UTILISATEURS NI ENTRE APPAREILS — c'est un choix, et le motif
+  principal est la CONFIDENTIALITÉ.** Un dictionnaire EST la liste des mots d'un document : le
+  synchroniser, ce serait faire sortir de l'appareil le vocabulaire d'un document clinique,
+  c'est-à-dire du CONTENU, alors que seul le binaire que l'utilisateur a explicitement joint
+  monte aujourd'hui (Storage, RLS, périmètre encodé dans le chemin). Ce serait donc une catégorie
+  NOUVELLE de donnée sortante, à porter au registre RGPD opposable (§ 3.1), pour zéro gain
+  fonctionnel — l'index se reconstruit en ~4 ms par page, juste après le téléchargement dont il
+  dépend de toute façon. S'y ajoutent deux raisons d'ingénierie : une donnée dérivée n'a pas à
+  être répliquée, et la synchroniser ouvrirait un risque de divergence index/binaire.
+  **PORTÉE EXACTE** : le store vit dans la base de l'ESPACE (`dbNameFor`), donc un second compte
+  sur le même ordinateur a la sienne ; `moveLocalDataTo` l'emporte lors du passage sans-compte →
+  compte ; `deleteDatabase` l'efface avec le reste. Un document d'une bibliothèque PARTAGÉE est
+  donc indexé indépendamment chez chaque membre — travail redondant, aucun chemin de donnée
+  entre eux. Et un INVITÉ de partage de session tourne sur le backend mémoire
+  (`supportsAttachments()` faux) : il n'a ni store ni index, conformément à « l'invité ne dépose
+  rien ».
+  **INDEXATION À L'ARRIVÉE DU BINAIRE, ET IL Y EN A CINQ.** ⚠ Le défaut, trouvé en vérifiant la
+  portée : l'indexation n'était accrochée qu'à DEUX d'entre elles (ajout par l'éditeur,
+  téléchargement de fond de la synchro). Manquaient le **« Télécharger » manuel** du pied de page,
+  le **téléchargement immédiat** déclenché en ouvrant un document absent, et l'**import d'un
+  .zip** — trois chemins par lesquels un document arrivait sans jamais devenir trouvable, en
+  silence. `attPut(rec)` est désormais le point d'étranglement unique (patron `persistLive` /
+  `edCommit`) : il écrit ET met en file, `ixQueue` étant idempotente. **`check-stores` compte les
+  sites** — `IDB.putAtt(` ne doit apparaître QUE dans `attPut` —, donc un sixième chemin ajouté
+  demain échoue bruyamment au lieu de créer un trou muet. Vérifié capable d'échouer. File d'attente à l'inactivité, un document à
+  la fois (`_idle`, comme les vignettes) : indexer ne dispute jamais le fil principal à un geste.
+  **Le rattrapage des documents déjà là est EXPLICITE** (ligne `#attIdx` du pied de la sidebar,
+  jumelle de `#attOffline`) : jamais de tâche de fond spontanée.
+  **CORRESPONDANCE PAR SOUS-CHAÎNE, pas par préfixe** : c'est ce que fait `hayMatch` pour les
+  fiches, et une même frappe ne peut pas se comporter autrement selon qu'elle vise une aide ou un
+  document. Le dictionnaire étant UNE chaîne, c'est un `indexOf` par occurrence — sous la
+  milliseconde, là où une dichotomie de préfixe aurait imposé une seconde grammaire.
+  **RÉSILIENCE — DEUX FAMILLES D'ÉCHEC, ET ELLES NE SE TRAITENT PAS PAREIL.** *Transitoire*
+  (binaire pas encore téléchargé, pdf.js hors cache et hors réseau, stockage saturé) : on ne
+  RETIENT rien, le document reste « à indexer » — état visible, avec son geste. *Durable* (pdf.js
+  ouvre le document et n'en tire aucun texte, ou le refuse) : on ENREGISTRE l'état
+  (`none:'scan'` / `none:'illisible'`) — sans quoi un PDF que rien ne peut lire serait « pas
+  encore indexé » à chaque démarrage, pour toujours : un compte qui ne descend jamais et un bouton
+  qui ne fait rien. Le distinguo se joue sur `pdfLib()` : s'il échoue, c'est NOTRE bibliothèque
+  qui manque, jamais le document — on relance, on ne condamne pas.
+  **UN ÉCHEC TRANSITOIRE NE BOUCLE PAS** : trois essais par document et par SESSION (`_ixTry`,
+  jamais persisté) ; au-delà la ligne dit « n document PDF non indexé (échec) · Réessayer ». Une
+  panne qui ne s'arrête pas est la plus coûteuse de toutes.
+  **⚠ LE DÉFAUT QUE L'AUDIT DE RÉSILIENCE A TROUVÉ, ET IL AURAIT FRAPPÉ TOUT LE MONDE D'UN COUP** :
+  `attIx.set(id, ixOpen(rec))` rangeait **null** quand `ixOpen` refuse l'enregistrement — or
+  `ixQueue` sort sur `attIx.has(id)`. Le document devenait donc **indéfiniment non ré-indexable**,
+  et la recherche l'ignorait sans un mot. C'est exactement ce qui serait arrivé **au premier
+  `IX_V` suivant, sur tous les documents à la fois**. `ixAdopt` est désormais l'unique point
+  d'adoption : un enregistrement qu'on ne sait pas ouvrir est JETÉ, le document redevient « à
+  indexer ». Témoin dédié dans le harnais (index d'une autre version → jeté → repasse en attente).
+  **RÉINITIALISER — POUR TOUT, ET POUR UN SEUL.** Un index est dérivé : le jeter ne perd rien.
+  `ixResetAll` (bouton « Réindexer » de la ligne du pied, avec confirmation) reconstruit tout ;
+  `ixReset(id)` refait UN document, depuis sa rangée dans l'éditeur — là où l'on gère un document.
+  La pastille de rangée n'apparaît QUE si l'état est anormal (« sans texte », « illisible », « non
+  indexé », « indexation… ») : une rangée qui annoncerait « indexé » à chaque ligne serait le bruit
+  permanent que ce dossier refuse partout. ⚠ `ixReset` remet le compteur d'essais **lui-même**,
+  jamais chez l'appelant — un second appelant l'oublierait ; et `ixResetAll` vide `_ixTry`, sans
+  quoi un document bloqué ne repartirait jamais.
+  **UNE SEULE TABLE D'ÉTATS** (`ixStateOf`) lue par la pastille de rangée ET par la ligne du pied :
+  elles disaient la même chose avec deux enchaînements de conditions écrits séparément — la
+  duplication qui diverge en silence, déjà payée quatre fois ici (`MUTE_SEL`, les placards, les
+  verbes du lecteur, le cœur de cochage). Même discipline pour le décodeur de varint (UN lecteur,
+  partagé par le survol de `ixOpen` et la lecture de `ixPagesOf`), pour `docOwners` (partagé par
+  `ixPending` et `docHits`) et pour `ixAdopt`.
+  **LE DÉCODEUR EST TOTAL** : un enregistrement tronqué ou incohérent est refusé EN BLOC (jamais
+  « à moitié ouvert »), un octet hors tampon vaut 0 donc aucune boucle de varint ne part à
+  l'infini, et aucune page rendue ne peut sortir du document. Cinq témoins unitaires.
+  **⚠ ET LE DÉCODAGE DU DICTIONNAIRE SE FAIT EN OCTETS, PUIS EN UN SEUL `TextDecoder`** : la
+  première version concaténait `String.fromCharCode` caractère par caractère — ~63 000
+  concaténations par document, donc des centaines de millisecondes de fil principal AU DÉMARRAGE
+  d'une application qu'on ouvre en urgence.
+  **INJECTION — CE QUI TRAVERSE, ET CE QUI NE TRAVERSE PAS.** Le contenu des PDF **n'atteint jamais
+  le DOM** : c'est une propriété de l'architecture, pas un filtrage — on ne stocke aucun texte et
+  la rangée de résultat n'affiche aucun extrait. Le seul texte non maîtrisé du chantier est le
+  **NOM du document** (il vient d'un fichier, et il est éditable) : `safeFileName` ne retire ni
+  `<` ni `>` ni `"`, c'est bien `esc()` qui protège (règle 4), dans le libellé comme dans les
+  attributs. Un témoin du harnais joint un document au nom hostile
+  (`x"><img src=x onerror=…>'&<b>…</b>`) et vérifie d'abord **qu'il atteint le DOM** — sinon rien
+  ne serait mesuré — puis qu'aucune balise, aucun attribut et aucun script n'en sortent. Les ids
+  servent de clés de `Map`, jamais d'objet (règle 6).
+  **LIMITES DITES, JAMAIS TUES** : (a) un PDF **scanné** n'a aucune couche de texte — il n'y a
+  rien à indexer, la ligne le dit (« n document PDF sans texte (scanné) ») ; l'OCR embarqué de
+  Spotlight depuis Monterey est un modèle de plusieurs dizaines de Mo, hors règle 13. Ce n'est pas
+  un index partiel, c'est un document sans texte. (b) Un nombre décimal isolé (« 0,5 ») se découpe
+  en chiffres isolés, qui n'entrent pas au dictionnaire (< 2 caractères) — encodé dans un témoin
+  de `tests.html` plutôt que découvert à l'usage.
+  **LE GROUPE DE RÉSULTATS EST À PART**, après la liste : fondu dans les rangées, on ne saurait
+  plus si le mot est dans l'aide ou dans une annexe, et un document porté par deux fiches
+  apparaîtrait deux fois. Quand rien d'autre ne correspond, l'état vide ne dit PAS « Aucun
+  résultat » — ce serait faux, il y en a un juste en dessous.
+  Harnais `scripts/audit-pdfsearch.mjs` (26 contrôles, PDF fabriqué par le harnais, xref calculé) :
+  il mesure le CHEMIN que les tests unitaires ne peuvent pas voir — joindre, indexer, relire au
+  démarrage suivant, trouver, ouvrir à la page. **Son témoin le plus important est « pdf.js n'est
+  pas chargé par la frappe », et il se mesure sur une page RECHARGÉE** : dans la session qui vient
+  d'indexer, pdf.js est légitimement en mémoire et le contrôle passerait au vert sans rien prouver.
+  Vérifié capable d'échouer (groupe et atterrissage neutralisés → 6 rouges ; adoption du `null`
+  réintroduite → 2 rouges), vert sur les DEUX moteurs.
+  ⚠ **DEUX PIÈGES DU FIXTURE, tous deux trouvés à la mesure** : avec une `MediaBox` de 300 pt, une
+  ligne de 56 caractères DÉBORDE la page et **pdf.js clippe les glyphes qui en sortent** —
+  « dilution » devenait « dilut », donc un corpus tronqué en silence ; et un document qui TIENT
+  dans la fenêtre rend « ouvre à la page 2 » vrai sans rien faire. La page est donc large ET
+  haute, et deux témoins vérifient que le corpus est intact et que le document déborde.
+- **Documents PDF** : le PDF vit en ArrayBuffer dans le store IndexedDB `attachments` (base v6 ; Blob historique accepté en lecture), JAMAIS en
   base64 dans la fiche ni dans l'export JSON ; la fiche ne porte que `attachments:[{id,name,size}]`
   (validé par `safeAttachment` — id jamais régénéré, entrée invalide rejetée ; plafonds
   `MAX_PDF_BYTES`/`MAX_ATT_PER_ENTITY`). En repli KV l'ajout est refusé (`supportsAttachments`).

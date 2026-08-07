@@ -85,7 +85,7 @@
   ARCHITECTURE GÉNÉRALE (voir aussi les commentaires de chaque section JS)
   -----------------------------------------------------------------------
   - PERSISTANCE LOCALE en couches, choisie au démarrage (chooseBackend) :
-      IndexedDB ('ac-db', v5 : stores 'fiches'/'meta'/'sessions'/'backups'/'attachments'/'protocols')  [préféré]
+      IndexedDB ('ac-db', v6 : stores 'fiches'/'meta'/'sessions'/'backups'/'attachments'/'protocols'/'attidx')  [préféré]
         -> sinon window.storage (clé-valeur fourni par l'hôte)
         -> sinon localStorage
         -> sinon mémoire volatile (objet MEM).
@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-4Xvpk61FkCAdtjg17sNiLJBRb3rGOCMrKwYOmnHfiTY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-Zb5Gp0dIaSvQk/J1LLyRXP0gTjbPBG/FgxkyDB13jt0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5542,6 +5542,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cross-hits{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:40px;margin:0 0 10px;padding:8px 14px;background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:var(--radius-md);color:var(--ink-soft);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
   .cross-hits:hover{background:var(--surface-3);color:var(--ink)}
   .cross-hits:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ----- Résultats trouvés DANS un document PDF (v5.2.0) : une ligne par FICHIER, comme Finder.
+     Grammaire de .att-row (mêmes hauteur, rayon, corps) — c'est le même objet, un document, et
+     il n'a pas à se dessiner autrement selon l'écran où on le rencontre. Aucun extrait : le
+     contexte se lit dans le document, qu'un tap ouvre à la page. Filet --line-strong : ces
+     rangées se comptent, comme celles du répertoire (WCAG 1.4.11). ----- */
+  .doc-hits{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}
+  .doc-hit{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
+  .doc-hit:hover{border-color:var(--ink-soft);background:var(--surface-2)}
+  .doc-hit:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .dh-ic{display:flex;flex:none;color:var(--ink-soft)}
+  .dh-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .dh-tx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dh-sub{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dh-chev{flex:none;color:var(--ink-soft)}
+  /* État d'indexation d'un document, dans sa rangée d'éditeur : rien quand tout va bien. */
+  .att-ix{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--ink-soft);white-space:nowrap}
+  .att-ix:empty{display:none}
   /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
   .att-list{display:flex;flex-direction:column;gap:8px}
   .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:13.5px;text-align:left;cursor:pointer}
@@ -6009,6 +6026,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <!-- Vérification hors-ligne des documents PDF (v4.20.0, besoin SMUR : savoir AVANT de
          partir sans réseau si tous les PDF référencés sont bien SUR l'appareil). -->
     <div class="storage-gauge att-offline" id="attOffline" hidden></div>
+    <!-- Recherche dans les documents : état de l'indexation. Ligne JUMELLE de #attOffline, même
+         registre, même grammaire — l'une dit si les PDF sont sur l'appareil, l'autre si leur
+         contenu est trouvable. Masquée quand il n'y a rien à dire (aucun document, ou tout
+         indexé et rien de scanné) : un panneau qui affirme « 0 » est du bruit permanent. -->
+    <div class="storage-gauge att-offline" id="attIdx" hidden></div>
     <!-- SÉLECTEUR DE FICHIER UNIQUE (v5.0.0) : son `accept` est posé par `pickFile` depuis
          UP_KINDS, donc toujours d'accord avec la signature que la porte vérifiera. Il y en avait
          cinq, chacun avec son propre `accept` écrit à la main. -->
@@ -6177,12 +6199,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="wl-glyph" aria-hidden="true"></div>
   <div class="wl-act"><button class="btn primary" id="welcomeGo">Commencer</button></div>
 </div></div>
-<!-- Aperçu de compte-rendu de session : visualisation DANS l'app, puis Imprimer / Télécharger.
-     Aucune impression automatique (l'utilisateur voit d'abord, puis choisit). -->
+<!-- Aperçu de compte-rendu de session : visualisation DANS l'app, puis sortie PDF ou fichier .html.
+     Aucune impression automatique (l'utilisateur voit d'abord, puis choisit).
+     ⚠ « ENREGISTRER EN PDF » EST LE CHEMIN D'IMPRESSION, ET C'EST LA SORTIE PDF UNIFIÉE (v5.2.0,
+     demande utilisateur : « télécharger le compte-rendu en PDF plutôt qu'en HTML »). La règle 13
+     interdit une bibliothèque de génération, et pdf.js est un LECTEUR : le seul producteur de PDF
+     du projet est le navigateur, exactement comme « Exporter en PDF » d'une fiche. Le bouton NOMME
+     donc sa destination au lieu de son mécanisme (doctrine du nommage par la fonction) — et il n'y
+     a qu'UN bouton pour ce chemin : « Imprimer » à côté aurait été deux mots pour un seul geste,
+     ce qu'AC 120-71B §5.5 proscrit (le dialogue ouvert porte l'imprimante papier juste à côté du
+     choix « PDF »). Le fichier .html RESTE, en secondaire et sous son vrai nom : c'est un document
+     autonome, lisible sans aucun visualiseur, et la seule sortie qui ne dépende pas du dialogue
+     d'impression du système — donc le repli quand celui-ci manque (PWA installée sur iOS). -->
 <div class="ai-modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle"><div class="ai-card" style="max-width:760px">
   <div class="ai-top"><h3 id="reportModalTitle">Compte-rendu de session</h3><button class="ai-x" id="reportX" aria-label="Fermer">×</button></div>
   <div id="reportBody" class="report-preview"></div>
-  <div class="rp-acts"><button class="btn" id="reportDownload">Télécharger</button><button class="btn primary" id="reportPrint">Imprimer</button></div>
+  <div class="rp-acts"><button class="btn" id="reportDownload">Fichier .html</button><button class="btn primary" id="reportPrint">Enregistrer en PDF</button></div>
 </div></div>
 <!-- Sélecteur de document existant (éditeurs de fiche ET de protocole) : liste FILTRABLE — un
      menu déroulant ne passe pas à l'échelle à 50+ documents. Accessibilité .ai-modal standard. -->
@@ -6280,7 +6312,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.1.2';
+const APP_VERSION='5.2.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -6430,12 +6462,19 @@ const KV={
 };
 // Ouverture d'une base d'espace (schéma commun). Utilisée par IDB.open (espace courant) ET par
 // le déménagement sans-compte -> compte (2e connexion vers la base cible).
-function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexedDB.open(name,5);}catch(e){return rej(e);}
+function openSpaceDb(name){return new Promise((res,rej)=>{let req;try{req=indexedDB.open(name,6);}catch(e){return rej(e);}
   req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('fiches'))db.createObjectStore('fiches',{keyPath:'id'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta');if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id'});if(!db.objectStoreNames.contains('backups')){const bs=db.createObjectStore('backups',{keyPath:'bid'});bs.createIndex('byFiche','ficheId',{unique:false});}
     // v5 : 'attachments' = documents PDF en Blob NATIF (structured clone — jamais de base64 dans la
     // fiche) ; 'protocols' = section Protocoles (créé dès maintenant : UN SEUL bump à risque).
     if(!db.objectStoreNames.contains('attachments'))db.createObjectStore('attachments',{keyPath:'id'});
-    if(!db.objectStoreNames.contains('protocols'))db.createObjectStore('protocols',{keyPath:'id'});};
+    if(!db.objectStoreNames.contains('protocols'))db.createObjectStore('protocols',{keyPath:'id'});
+    /* v6 : 'attidx' = index de RECHERCHE des documents PDF (dictionnaire + postings binaires,
+       cf. « CHERCHER DANS LES DOCUMENTS »). UN STORE À PART, et c'est la raison d'être du bump :
+       les index doivent pouvoir être chargés TOUS au démarrage, or ils vivraient sinon dans
+       'attachments', dont un `getAll` matérialiserait chaque ArrayBuffer de PDF — le pic mémoire
+       que `gcAttachments` évite déjà explicitement (« 5 PDF × 10 Mo = ~50 Mo, WebKit/iOS tue les
+       onglets gourmands »). Contenu DÉRIVÉ : perdre ce store ne perd rien, il se reconstruit. */
+    if(!db.objectStoreNames.contains('attidx'))db.createObjectStore('attidx',{keyPath:'id'});};
   // Un VIEIL onglet encore ouvert bloque la migration de version : on le dit clairement au lieu de
   // laisser le timeout ci-dessous faire retomber EN SILENCE sur le repli KV (bibliothèque qui
   // semblerait vide). L'ouverture reprendra dès que l'autre onglet sera fermé/rechargé.
@@ -6524,7 +6563,14 @@ const IDB={
   putAtt(rec){return req2p(this._s('attachments','readwrite').put(rec));},
   delAtt(id){return req2p(this._s('attachments','readwrite').delete(id));},
   getAttIds(){return req2p(this._s('attachments','readonly').getAllKeys(),[]);},
-  getAtts(){return req2p(this._s('attachments','readonly').getAll(),[]);}
+  getAtts(){return req2p(this._s('attachments','readonly').getAll(),[]);},
+  // Index de recherche des documents (store 'attidx', v6). `getIxAll` est le SEUL getAll du
+  // fichier qu'on s'autorise au démarrage : ces enregistrements pèsent quelques dizaines de Ko,
+  // pas quelques Mo (c'est tout l'objet du store séparé).
+  getIx(id){return req2p(this._s('attidx','readonly').get(id),null);},
+  putIx(rec){return req2p(this._s('attidx','readwrite').put(rec));},
+  delIx(id){return req2p(this._s('attidx','readwrite').delete(id));},
+  getIxAll(){return req2p(this._s('attidx','readonly').getAll(),[]);}
 };
 // UN SEUL POINT D'ÉCRITURE, jamais une liste de méthodes à tenir : toute méthode PUBLIQUE d'IDB
 // est enveloppée dans `_try`, donc une méthode ajoutée demain est couverte sans qu'on y pense
@@ -6546,6 +6592,20 @@ function attBuf(rec){if(!rec)return null;
   if(Object.prototype.toString.call(rec.buf)==='[object ArrayBuffer]')return Promise.resolve(rec.buf);
   if(rec.blob&&typeof rec.blob.arrayBuffer==='function')return rec.blob.arrayBuffer();
   return null;}
+/* TOUT BINAIRE DE DOCUMENT QUI ARRIVE PASSE PAR ICI — un point d'étranglement, jamais une liste
+   de sites à tenir. Trouvé en vérifiant la portée de l'index (v5.2.0) : l'indexation n'était
+   accrochée qu'à DEUX des CINQ arrivées d'un binaire (l'ajout par l'éditeur et le téléchargement
+   de fond de la synchro). Manquaient le « Télécharger » MANUEL du pied de page, le téléchargement
+   immédiat déclenché en ouvrant un document absent, et l'IMPORT d'un .zip — c'est-à-dire trois
+   chemins par lesquels un document arrivait sans jamais devenir trouvable, en silence.
+   `ixQueue` est idempotente (elle sort si le document est déjà indexé ou déjà en file) : router
+   AUSSI les écritures qui ne font que remettre un drapeau ne coûte rien et supprime la question.
+   Même patron que `persistLive` pour la session et `edCommit` pour le brouillon : un chemin
+   ajouté demain est couvert sans qu'on y pense. */
+async function attPut(rec){
+  const r=await IDB.putAtt(rec);
+  if(rec&&rec.id)ixQueue(rec.id);
+  return r;}
 // Déménagement d'espace : DÉPLACE tout le contenu local (fiches, catégories, notes, sessions,
 // versions, épingles, marqueurs de push) de l'espace courant vers `space`. Deux usages :
 // « sans compte -> compte » à la connexion, et le RETOUR « compte non approuvé -> sans compte »
@@ -6557,17 +6617,22 @@ async function moveLocalDataTo(space){
         ss=await Data.getSessions(),bks=await Data.getBackups(),prots=await Data.getProtocols().catch(()=>[]);
   // Documents PDF (Blob, IndexedDB uniquement) : déménagent avec le reste. En repli KV il n'y en a pas.
   const atts=(Data===IDB)?await IDB.getAtts().catch(()=>[]):[];
+  // L'index de recherche suit ses documents. Il est DÉRIVÉ (on pourrait le laisser et le
+  // reconstruire) — mais le reconstruire coûte un rechargement de pdf.js et une passe sur chaque
+  // PDF, pour des octets qu'on a déjà sous la main.
+  const attix=(Data===IDB)?await IDB.getIxAll().catch(()=>[]):[];
   let owner=null;try{owner=localStorage.getItem('ac-db-owner');}catch(e){}
   if(owner===null)owner=currentSpace();
   if(Data===IDB){
     const db=await openSpaceDb(dbNameFor(space,owner));
-    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups','attachments','protocols'],'readwrite');
+    await new Promise((res,rej)=>{const tx=db.transaction(['fiches','meta','sessions','backups','attachments','protocols','attidx'],'readwrite');
       fs.forEach(f=>tx.objectStore('fiches').put(f));
       if(cats)tx.objectStore('meta').put(cats,'categories');
       tx.objectStore('meta').put(nts||{},'notes');
       ss.forEach(s=>tx.objectStore('sessions').put(s));
       bks.forEach(b=>tx.objectStore('backups').put(b));
       atts.forEach(a=>tx.objectStore('attachments').put(a));
+      attix.forEach(x=>tx.objectStore('attidx').put(x));
       prots.forEach(p=>tx.objectStore('protocols').put(p));
       tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
     db.close();
@@ -7432,7 +7497,16 @@ async function startExercise(f){
   else if(Runtime.started&&Runtime.exercise){
     if(!await confirmDlg('Un exercice est déjà en cours. En recommencer un nouveau ?',{yes:'Nouvel exercice'}))return;
     endSession(Runtime);}
-  freshRuntime(f,null);Runtime.fiche=f;liveSessions[f.id]=Runtime;
+  /* ⚠ ON N'ENTRE PAS DANS `liveSessions` AVANT LA PREMIÈRE ACTION (v5.2.0, signalé à l'usage :
+     « démarrer exercice » affichait « Session en cours · 0:00 » sur la rangée d'accueil). Ce
+     registre est celui des sessions DÉMARRÉES — `restoreLiveSessions` n'y met que des `live`,
+     `persistLive` sort si `!started`, et la carte de l'accueil filtre déjà sur `R.started`.
+     Y inscrire un exercice à peine ouvert faisait mentir tout ce qui teste la seule PRÉSENCE :
+     la rangée du répertoire (chrono figé à 0:00), la tuile, et « Modifier » qui proposait de
+     terminer une session qui n'existait pas. `ensureStarted` inscrit au premier geste, comme
+     pour une session réelle — le drapeau d'exercice, lui, vit sur le `Runtime` global, que
+     `openRead` conserve tant qu'on n'a pas démarré (branche « ni liveSessions ni rebuild »). */
+  freshRuntime(f,null);Runtime.fiche=f;
   Runtime.exercise=true;
   state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;state.allTab='page';state.cxOpen=false;state.edPhaseNew=null;
   render();window.scrollTo(0,0);_exoPulse();}
@@ -7444,7 +7518,7 @@ function _exoPulse(){const cb=document.getElementById('crisisBand');if(!cb)retur
   setTimeout(()=>cb.classList.remove('exo-anim'),600);}
 async function quitExercise(){
   if(!Runtime.exercise)return;
-  if(!Runtime.started){const f=Runtime.fiche;freshRuntime(f,null);if(f)liveSessions[f.id]=Runtime;state.flowEnded=false;render();_exoPulse();return;}
+  if(!Runtime.started){const f=Runtime.fiche;freshRuntime(f,null);state.flowEnded=false;render();_exoPulse();return;}
   endCurrentSession();}
 {const qb=document.getElementById('cbExoQuit');if(qb)qb.onclick=quitExercise;}
 function cxEnter(f,target){
@@ -7594,6 +7668,175 @@ function ficheSnipParts(f){const p=[f.code,...listOf(f,'notForget'),...listOf(f,
   p.push(...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'differentials'),f.local,...(f.sources||[]));
   return p;}
 function protoSnipParts(p){return [p.code,...mdStrip(p.body||'').split(/\n+/),...(p.docs||[]).map(a=>a.name),...(p.sources||[])];}
+
+/* ═══ CHERCHER DANS LES DOCUMENTS PDF — UN INDEX INVERSÉ (v5.2.0) ═════════════════════════════
+ *
+ * LE PROBLÈME. La recherche trouvait la FICHE, jamais l'endroit : un protocole de service joint
+ * en PDF pouvait porter la seule mention d'une dilution, et rien ne la trouvait. La première
+ * proposition — conserver le texte extrait et le balayer — a été REFUSÉE par l'auteur, à raison :
+ * ce n'est pas un index, c'est une photocopie sur laquelle on fait un `grep`. Elle pesait ~100 %
+ * du texte extrait (mesuré 546 Ko pour un document de 200 pages), et il fallait inventer un
+ * PLAFOND pour la contenir — donc des documents indexés à moitié, sans que rien ne le rattrape.
+ *
+ * CE QUE FONT SPOTLIGHT, FINDER ET LUCENE — et que l'on fait ici. On ne garde pas le texte. On
+ * garde le DICTIONNAIRE des mots distincts du document (trié, front-codé : chaque mot ne stocke
+ * que ce qui le distingue du précédent) et, pour chacun, la LISTE DES PAGES où il apparaît,
+ * codée en écarts successifs sur un octet — ou en BITMAP quand le mot est trop fréquent pour que
+ * les écarts soient rentables (c'est le choix de Roaring/Lucene). Trois conséquences :
+ *   · le poids suit le VOCABULAIRE, qui sature, et non la longueur : mesuré sur du français
+ *     technique réel, 49 Ko de texte donnent un index à 34 % ; 626 Ko, un index à 13,4 % — le
+ *     texte est multiplié par 13, les mots distincts par 3,7 seulement ;
+ *   · AUCUN plafond n'est donc nécessaire : l'indexation est INTÉGRALE, toujours ;
+ *   · l'extrait n'est pas stocké non plus — Finder montre le FICHIER, pas la phrase, et le
+ *     contexte se régénère depuis le document quand on l'ouvre. C'est ce qui garantit que pdf.js
+ *     (1 773 Ko) n'est JAMAIS chargé pendant qu'on tape (règle 13).
+ *
+ * ⚠ POURQUOI PAS L'INDEX DU NAVIGATEUR, QUI EXISTE — la question a été posée, et elle est bonne.
+ * IndexedDB sait faire un index inversé tout seul (`createIndex(..., {multiEntry:true})` +
+ * `IDBKeyRange` pour les préfixes), sans une ligne de notre part. MESURÉ sur le même corpus, même
+ * découpage : **3 521 Ko** contre **74 Ko** ici, soit ×47 — et ×39 encore pour la variante mixte
+ * (notre dictionnaire, ses postings sur des entiers). Le coût est le sur-poids par entrée du
+ * moteur (~55 octets par couple mot-page, 54 024 couples), qu'aucun encodage de notre côté ne
+ * peut retirer. C'est donc exactement le poids qui avait été refusé, en quatorze fois pire.
+ * ⚠ ET PAS SQLITE FTS5 : il n'existe aucun SQLite dans un navigateur (Web SQL est retiré depuis
+ * Chrome 119). L'y amener, c'est embarquer SQLite compilé en WASM — une SECONDE dépendance
+ * runtime, que la règle 13 interdit, avec tout l'appareillage de pdf.js (vendorisation, entrée
+ * dans `ASSETS`, clé de cache versionnée, veille d'avis de sécurité) — pour obtenir « mot →
+ * pages ». FTS5, c'est aussi le classement BM25, les requêtes de phrase, `snippet()`, les
+ * tokeniseurs et la fusion incrémentale : rien de ce dont il s'agit ici.
+ *
+ * L'index est DÉRIVÉ, donc strictement LOCAL : jamais poussé dans Storage, jamais dans l'export
+ * ni le ZIP. Le perdre ne perd rien — il se reconstruit depuis le PDF. */
+const IX_V=1;
+/* Mots indexables : la MÊME normalisation que la recherche du reste de l'app (`txNorm`), pour
+   qu'un accent tapé ou non trouve la même chose des deux côtés. Un mot d'une lettre ne
+   discrimine rien ; au-delà de 24 caractères on est dans une référence ou un identifiant, qui
+   gonflerait le dictionnaire sans jamais être cherché entier. */
+const ixTokens=s=>txNorm(String(s||'')).split(/[^a-z0-9]+/).filter(t=>t.length>=2&&t.length<=24);
+/* ixBuild(pages) : `pages` = un tableau de tableaux de mots (un par page). PURE et testée.
+   Rend l'enregistrement à ranger : {v, pages, terms, dict:ArrayBuffer, post:ArrayBuffer}. */
+function ixBuild(pageTokens){
+  const nP=(pageTokens||[]).length;
+  const post=new Map();
+  (pageTokens||[]).forEach((toks,i)=>{const seen=new Set();
+    for(const t of (toks||[])){if(seen.has(t))continue;seen.add(t);
+      let a=post.get(t);if(!a){a=[];post.set(t,a);}a.push(i);}});
+  const terms=[...post.keys()].sort();
+  const bm=Math.ceil(nP/8);
+  const dict=[],pb=[];
+  const varint=(arr,n)=>{do{const b=n&0x7f;n>>>=7;arr.push(n?b|0x80:b);}while(n);};
+  let prev='';
+  for(const t of terms){
+    // Front-codage : longueur du préfixe commun (1 octet, ≤ 24 par construction), puis le reste,
+    // puis 0x0A. Le compteur se lit à sa POSITION, jamais par recherche du séparateur — une
+    // valeur de préfixe égale à 10 n'est donc pas ambiguë.
+    let k=0;while(k<prev.length&&k<t.length&&prev[k]===t[k])k++;
+    dict.push(k);for(let j=k;j<t.length;j++)dict.push(t.charCodeAt(j));dict.push(10);
+    prev=t;
+    const l=post.get(t),v=[];let pv=0;
+    for(const n of l){varint(v,n-pv);pv=n;}
+    if(bm<v.length+1){pb.push(1);const a=new Uint8Array(bm);for(const p of l)a[p>>3]|=1<<(p&7);for(const x of a)pb.push(x);}
+    else{pb.push(0);varint(pb,l.length);for(const x of v)pb.push(x);}}
+  return {v:IX_V,pages:nP,terms:terms.length,
+    dict:Uint8Array.from(dict).buffer,post:Uint8Array.from(pb).buffer};}
+/* Lecture d'un varint — UN SEUL décodeur, partagé par le survol de `ixOpen` et la lecture de
+   `ixPagesOf`. Les deux le faisaient à la main, avec le même triplet (masque, décalage, bit de
+   continuation) écrit deux fois : c'est la duplication qui finit toujours par diverger, et ici
+   elle aurait divergé en SILENCE (un index illisible, pas une erreur). Le curseur est un objet
+   d'UNE case, réutilisé — pas d'allocation par mot.
+   ⚠ Un octet hors tampon vaut `undefined` : `undefined&0x7f` donne 0, donc la boucle s'arrête au
+   lieu de partir à l'infini. C'est ce qui rend le décodeur TOTAL sur un enregistrement tronqué. */
+const _ixCur={i:0};
+function ixRdVar(p,cur){let v=0,sh=0,b;
+  do{b=p[cur.i++]|0;v|=(b&0x7f)<<sh;sh+=7;}while((b&0x80)&&sh<35);
+  return v>>>0;}
+/* ixOpen(rec) : décode l'enregistrement en une POIGNÉE de recherche. Le dictionnaire redevient
+   UNE chaîne (les mots séparés par 0x0A) plus un tableau d'offsets — jamais un tableau de 8 000
+   chaînes JS, dont l'en-tête d'objet pèserait trois fois le texte lui-même. Les postings ne sont
+   PAS décodés : on ne garde que la position de chacun, et on ne lit que ceux qui matchent.
+   ⚠ LE DÉCODAGE DU DICTIONNAIRE SE FAIT EN OCTETS, PUIS EN UN SEUL `TextDecoder` — et ce n'est
+   pas de la coquetterie : la première version concaténait `String.fromCharCode` caractère par
+   caractère, soit ~63 000 concaténations par document. Multiplié par les documents d'un service,
+   c'était des centaines de millisecondes de fil principal AU DÉMARRAGE, dans une application
+   qu'on ouvre en urgence. Ici on recopie des tranches de tampon (le préfixe partagé vient du mot
+   PRÉCÉDENT, déjà écrit) et l'on décode une fois. */
+function ixOpen(rec){
+  if(!rec||rec.v!==IX_V||!rec.dict||!rec.post)return null;
+  const d=new Uint8Array(rec.dict),p=new Uint8Array(rec.post),n=rec.terms|0;
+  if(n<=0)return null;
+  // Pré-passe : longueur exacte du texte reconstitué (préfixes partagés compris) — une seule
+  // allocation, pas de tampon qui grandit.
+  let need=0,di=0,i=0;
+  while(i<n&&di<d.length){const k=d[di++];let L=0;
+    while(di<d.length&&d[di]!==10){di++;L++;}
+    di++;need+=k+L+1;i++;}
+  if(i<n)return null;                       // enregistrement tronqué : refusé, jamais « à moitié »
+  const buf=new Uint8Array(need);
+  const off=new Int32Array(n+1),pos=new Int32Array(n+1);
+  const bm=Math.ceil((rec.pages|0)/8);
+  let o=0,pStart=0,pLen=0,pi=0;
+  di=0;
+  for(i=0;i<n;i++){
+    const k=d[di++];
+    off[i]=o;
+    if(k>0&&k<=pLen){buf.set(buf.subarray(pStart,pStart+k),o);o+=k;}
+    const s=di;while(di<d.length&&d[di]!==10)di++;
+    if(di>s){buf.set(d.subarray(s,di),o);o+=di-s;}
+    di++;
+    pStart=off[i];pLen=o-off[i];
+    buf[o++]=10;
+    pos[i]=pi;
+    // Survol du posting pour connaître la position du suivant (jamais son contenu).
+    const flag=p[pi++];
+    if(flag===1)pi+=bm;
+    else{_ixCur.i=pi;const c=ixRdVar(p,_ixCur);pi=_ixCur.i;
+      for(let j=0;j<c&&pi<p.length;j++){while(p[pi++]&0x80);}}
+    if(pi>p.length+1)return null;}          // postings incohérents : on refuse l'index entier
+  off[n]=o;pos[n]=pi;
+  return {pages:rec.pages|0,n,txt:new TextDecoder().decode(buf),off,pos,p,bm};}
+/* Pages d'un terme donné (index dans le dictionnaire) — décodage à la demande.
+   DEUX BORNES, et il faut savoir laquelle protège quoi : `cur<h.pages` borne la SORTIE (aucune
+   page hors du document ne peut être rendue — c'est ce que mesurent les témoins), `Math.min(…,
+   h.pages)` borne le TRAVAIL (un compte aberrant ne fait pas tourner la boucle des millions de
+   fois). La seconde est une ceinture : `ixOpen` refuse déjà tout enregistrement dont les
+   postings ne se survolent pas proprement, et les deux passes partagent le MÊME décodeur, donc
+   elle ne peut pas se déclencher par ce chemin. On la garde parce qu'elle ne coûte rien et que
+   le décodeur doit rester total quoi qu'on lui donne — mais on ne prétend pas qu'un témoin la
+   couvre : ce qui est mesuré, c'est la sortie. */
+function ixPagesOf(h,i){
+  const out=[];let pi=h.pos[i];const flag=h.p[pi++];
+  if(flag===1){for(let b=0;b<h.bm;b++){const v=h.p[pi+b];if(!v)continue;
+    for(let k=0;k<8;k++)if(v&(1<<k)){const pg=b*8+k;if(pg<h.pages)out.push(pg);}}}
+  else{_ixCur.i=pi;const c=Math.min(ixRdVar(h.p,_ixCur),h.pages);
+    let cur=0;
+    for(let j=0;j<c;j++){cur+=ixRdVar(h.p,_ixCur);if(cur<h.pages)out.push(cur);}}
+  return out;}
+// Terme auquel appartient une position dans `txt` (dichotomie sur les offsets).
+function ixTermAt(h,at){let lo=0,hi=h.n-1,r=-1;
+  while(lo<=hi){const m=(lo+hi)>>1;if(h.off[m]<=at){r=m;lo=m+1;}else hi=m-1;}return r;}
+/* ixSearch(h, termes) : pages où TOUS les termes apparaissent (ET logique, comme `hayMatch`).
+   ⚠ La correspondance est par SOUS-CHAÎNE, pas par préfixe — c'est ce que fait le reste de
+   l'application (« drenalin » trouve « adrénaline »), et il n'y aurait aucun sens à ce que la
+   même frappe se comporte autrement selon qu'elle vise une fiche ou un document. Le dictionnaire
+   étant une chaîne unique, c'est un `indexOf` par occurrence : mesuré sous la milliseconde là où
+   une dichotomie de préfixe aurait imposé une seconde grammaire à l'utilisateur.
+   Un terme sans aucune correspondance rend null : rien n'est « à peu près » trouvé. */
+function ixSearch(h,terms){
+  const T=(terms||[]).filter(t=>t&&t.length>=2);
+  if(!h||!h.n||!T.length)return null;
+  let acc=null;
+  for(const t of T){
+    const set=new Set();
+    let at=0;
+    while((at=h.txt.indexOf(t,at))>=0){
+      const i=ixTermAt(h,at);
+      if(i>=0)for(const pg of ixPagesOf(h,i))set.add(pg);
+      at++;}
+    if(!set.size)return null;
+    if(acc){const keep=new Set();for(const x of acc)if(set.has(x))keep.add(x);acc=keep;}
+    else acc=set;
+    if(!acc.size)return null;}
+  return [...acc].sort((a,b)=>a-b);}
 // ÉPINGLAGE : préférence PAR UTILISATEUR. Stockée localement (localStorage) et, si connecté,
 // SYNCHRONISÉE entre ses appareils en voyageant dans le document de catégories PERSO
 // (category_sets, scope 'personal:<uid>' -> data.pins). Par-utilisateur : n'impose jamais
@@ -8795,6 +9038,63 @@ async function refreshAttOffline(){
   el.title='Ces documents ne seraient pas consultables sans réseau. Téléchargez-les avant de partir en intervention.';
   const b=document.getElementById('attOffDl');if(b)b.onclick=()=>dlMissingAtts();
 }
+/* ÉTAT DE L'INDEXATION — trois choses à dire, et une seule à la fois : ce qui reste à indexer
+   (avec le geste), ce qui n'a aucun texte, et rien du tout quand tout est fait.
+   LE RATTRAPAGE EST EXPLICITE (décision : jamais de tâche de fond spontanée sur des documents
+   déjà là). Indexer charge pdf.js et lit chaque page : c'est un travail qu'on lance, pas un
+   travail qui arrive — même doctrine que « Télécharger » de la ligne du dessus. */
+async function refreshAttIdx(){
+  paintIxChips();   // la rangée de l'éditeur et la ligne du pied disent la MÊME chose
+  const el=document.getElementById('attIdx');if(!el)return;
+  if(!supportsAttachments()){el.hidden=true;return;}
+  let pend=[];try{pend=await ixPending();}catch(e){}
+  const stalled=ixStalled();
+  const vals=[...attIx.values()];
+  const scans=vals.filter(h=>h&&h.none==='scan').length;
+  const bad=vals.filter(h=>h&&h.none==='illisible').length;
+  const done=vals.length-scans-bad;
+  const pluriel=n=>n>1?'s':'';
+  const relance=()=>{const b=document.getElementById('attIdxGo');
+    if(b)b.onclick=async()=>{for(const id of await ixPending())ixQueue(id);refreshAttIdx();};};
+  const tout=()=>{const b=document.getElementById('attIdxAll');
+    if(b)b.onclick=async()=>{if(await confirmDlg('Reconstruire l’index de recherche de tous les documents PDF ? Rien n’est perdu (les documents ne sont pas touchés) — c’est le contenu de la recherche qui est recalculé.',{title:'Réindexer les documents ?',yes:'Réindexer'}))ixResetAll();};};
+  el.hidden=false;
+  // 1. EN COURS — l'état vivant passe avant tout le reste.
+  if(_ixBusy||_ixQ.length){
+    el.innerHTML=uiIcon('doc',12)+' Indexation des documents en cours… ('+(_ixQ.length+1)+' restant'+pluriel(_ixQ.length+1)+')';
+    el.title='Le contenu des PDF devient consultable par la recherche. Vous pouvez continuer à utiliser l’application.';
+    return;}
+  // 2. BLOQUÉ — essais épuisés dans cette session. Registre ATTENTION : quelque chose est à faire.
+  if(stalled.length){
+    el.innerHTML='<span class="pers-warn">'+uiIcon('warn',12)+' '+stalled.length+' document'+pluriel(stalled.length)+' PDF non indexé'+pluriel(stalled.length)+' (échec)</span>'
+      +' · <button class="tlink" id="attIdxGo">Réessayer</button>';
+    el.title='L’indexation a échoué plusieurs fois — le plus souvent parce que la visionneuse PDF n’est pas encore téléchargée, ou que le stockage est saturé. Le document reste consultable ; seule la recherche dans son contenu manque.';
+    {const b=document.getElementById('attIdxGo');
+     if(b)b.onclick=()=>{Promise.all(stalled.map(ixReset)).then(refreshAttIdx);};}
+    return;}
+  // 3. À FAIRE — documents déjà là, jamais indexés (le rattrapage reste un GESTE, jamais une
+  //    tâche de fond spontanée).
+  if(pend.length){
+    el.innerHTML=uiIcon('doc',12)+' '+pend.length+' document'+pluriel(pend.length)+' PDF pas encore indexé'+pluriel(pend.length)
+      +' · <button class="tlink" id="attIdxGo">Indexer</button>';
+    el.title='Tant qu’un document n’est pas indexé, la recherche ne trouve pas ce qu’il contient (elle trouve la fiche qui le porte).';
+    relance();return;}
+  // 4. SANS TEXTE — un scan n'est pas un échec, c'est un document sans rien à indexer.
+  if(scans||bad){
+    const n=scans+bad;
+    el.innerHTML='<span class="pers-warn">'+uiIcon('warn',12)+' '+n+' document'+pluriel(n)+' PDF sans texte'
+      +(scans&&!bad?' (scanné'+pluriel(scans)+')':(bad&&!scans?' (illisible'+pluriel(bad)+')':''))+'</span>'
+      +(done?' · '+done+' indexé'+pluriel(done):'')
+      +' · <button class="tlink" id="attIdxAll">Réindexer</button>';
+    el.title='Un document scanné est une image de pages : il n’a aucun texte à indexer, la recherche ne peut pas trouver ce qu’il contient. Il reste consultable normalement.';
+    tout();return;}
+  // 5. NOMINAL — confirmation positive, et la porte de sortie de tout doute sur l'index.
+  if(done){
+    el.innerHTML=uiIcon('check',12)+' Documents PDF : contenu trouvable par la recherche ('+done+')'
+      +' · <button class="tlink" id="attIdxAll">Réindexer</button>';
+    el.title='Le texte de ces documents est indexé : la recherche y trouve un mot et vous mène à la page. « Réindexer » reconstruit l’index si un résultat vous paraît faux — les documents ne sont pas touchés.';
+    tout();return;}
+  el.hidden=true;}
 // Téléchargement MANUEL des documents manquants (même chemin cloud que _syncAttachments —
 // séquentiel, progression affichée dans la ligne, bilan en snackbar). Une erreur par document
 // n'arrête pas les autres (un document jamais envoyé depuis son appareil d'origine est
@@ -8813,7 +9113,7 @@ async function dlMissingAtts(){
     for(let i=0;i<info.missing.length;i++){const id=info.missing[i];
       if(el)el.innerHTML='Téléchargement des documents… '+(i+1)+'/'+info.missing.length;
       try{const r=await storageReq('GET',info.paths[id]);const buf=await r.arrayBuffer();
-        await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:info.paths[id]});
+        await attPut({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:info.paths[id]});
         ok++;refreshAttRow(id);}
       catch(e){ko++;}}
   }finally{_attOffBusy=false;}
@@ -8876,6 +9176,11 @@ async function load(){
   render();
   updateStorageInfo();
   gcAttachments(allFiches.concat(allProtocols));   // nettoyage des blobs PDF orphelins (non bloquant)
+  /* Index de recherche des documents : chargé APRÈS le premier rendu, jamais avant — l'accueil
+     n'attend rien. Aucun PDF n'est ouvert ici et pdf.js n'est pas touché : on ne lit que le
+     store 'attidx' (quelques dizaines de Ko). Tant qu'il n'est pas là, la recherche se comporte
+     exactement comme avant, sans groupe « documents ». */
+  ixLoadAll();
   // Accueil (3 repères) à la toute première ouverture seulement.
   try{if(!localStorage.getItem('ac-onboarded'))welcomeModal.classList.add('on');}catch(e){}
   // Reprise après un « Se déconnecter » AVEC effacement, ou un retour des fiches « hors
@@ -9016,7 +9321,9 @@ async function gcAttachments(entities){
       const rec=await IDB.getAtt(id);if(!rec)continue;
       // Copie cloud éventuelle -> file de suppression distante (rejouée par Sync._syncAttachments).
       if(rec.remotePath)queueAttDelete(rec.remotePath);
-      await IDB.delAtt(id);}
+      await IDB.delAtt(id);
+      // L'index suit son document : le garder serait un orphelin que plus rien ne peut nommer.
+      attIx.delete(id);try{await IDB.delIx(id);}catch(e){}}
   }catch(e){}}
 
 /* ===== Runtime (minuteurs, compteurs, audio) =====
@@ -9229,7 +9536,9 @@ td:first-child,td:nth-child(2){font-family:ui-monospace,"SF Mono",Menlo,Consolas
 // compte-rendu affiché est le même — la recréer à chaque clic imprimait une page blanche à la
 // 2e impression (frame retirée / pas encore peinte). Retirée à la fermeture de la fenêtre.
 function printReportDoc(){
-  const doPrint=fr=>{try{const w=fr.contentWindow;w.focus();w.print();}catch(e){toast('⚠ Impression indisponible sur ce navigateur.');}};
+  // Échec = pas de sortie PDF sur cet appareil : on NOMME le repli, qui est à côté (le .html est
+  // un document autonome). Un « indisponible » sec laisserait chercher la panne sans issue.
+  const doPrint=fr=>{try{const w=fr.contentWindow;w.focus();w.print();}catch(e){toast('⚠ Sortie PDF indisponible sur ce navigateur — utilisez « Fichier .html », lisible partout.',9000);}};
   let fr=document.getElementById('reportFrame');
   if(fr&&fr._doc===_reportDoc&&fr._ready){doPrint(fr);return;}   // même document déjà chargé -> réimpression directe
   if(fr)fr.remove();
@@ -10626,6 +10935,39 @@ function crossHitsHtml(q,other){
   if(!n)return '';
   const lbl=other==='protocols'?('protocole'+(n>1?'s':'')):('aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''));
   return `<button class="cross-hits" data-crosssec="${other}">${n} ${lbl} correspond${n>1?'ent':''} aussi à cette recherche${uiIcon('chev',15,{sw:2.2,cls:''})}</button>`;}
+/* ── RÉSULTATS TROUVÉS DANS UN DOCUMENT PDF ──────────────────────────────────────────────────
+   UN GROUPE À PART, jamais fondu dans les rangées d'aides (décision) : sinon on ne saurait plus
+   si le mot est dans l'aide ou dans une annexe — et un document porté par deux fiches
+   apparaîtrait deux fois. C'est aussi la forme de Finder : une ligne par FICHIER.
+   AUCUN EXTRAIT ici, et c'est la clé du dispositif : afficher la phrase exigerait de rouvrir le
+   PDF, donc de charger pdf.js (1 773 Ko) à chaque frappe. On donne ce qui situe — le nombre de
+   passages et les PAGES — et le contexte se lit dans le document, qu'un tap ouvre à la bonne
+   page. Le document est nommé par la première entité VISIBLE qui le porte : un brouillon caché
+   ne doit pas révéler l'existence de son annexe. */
+function docHits(q){
+  const T=qTerms(q).filter(t=>t.length>=2);
+  if(!T.length||!attIx.size)return [];
+  const owner=docOwners(true);
+  const out=[];
+  owner.forEach((o,id)=>{
+    const h=attIx.get(id);
+    if(!h||h.none)return;
+    const pg=ixSearch(h,T);
+    if(pg&&pg.length)out.push({id,name:o.a.name||'document.pdf',ent:o.e,pages:pg});});
+  return out.sort((x,y)=>y.pages.length-x.pages.length||_collator.compare(x.name,y.name));}
+const PG_SHOWN=6;   // au-delà, la liste de pages cesse d'orienter et devient un mur de chiffres
+function docHitsHtml(q){
+  const hits=docHits(q);
+  if(!hits.length)return '';
+  return `<div class="list-title">Dans les documents <span>— ${hits.length} document${hits.length>1?'s':''}</span></div>`
+    +`<div class="doc-hits">${hits.map(h=>{
+      const pp=h.pages.slice(0,PG_SHOWN).map(p=>p+1);
+      const more=h.pages.length-pp.length;
+      return `<button type="button" class="doc-hit" data-docgo="${esc(h.id)}" data-docpg="${h.pages[0]+1}" data-docent="${esc(h.ent.id)}" title="Ouvrir « ${esc(h.name)} » page ${h.pages[0]+1}">
+        <span class="dh-ic" aria-hidden="true">${uiIcon('doc',16)}</span>
+        <span class="dh-tx"><b>${esc(h.name)}</b>
+        <span class="dh-sub">${h.pages.length} passage${h.pages.length>1?'s':''} · p. ${pp.join(', ')}${more>0?' +'+more:''} · ${esc(h.ent.title||'Sans titre')}</span></span>
+        ${uiIcon('chev',15,{sw:2.2,cls:'dh-chev'})}</button>`;}).join('')}</div>`;}
 function bindHomeChrome(rerender){
   // Le chrome vit dans DEUX racines : le contenu (main) et l'en-tête (#homeChrome, chips de
   // l'accueil étroit) — on câble les deux d'un coup. La recherche (#q), STATIQUE, est câblée
@@ -10751,6 +11093,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)azrAim(fals
    temps qui s'incrémente est un signal non ambigu : la couleur n'est jamais seule (règle 8), et
    l'on apprend en plus depuis combien de temps. PEINT SUR PLACE par `tickAll` (l'accueil n'est
    pas re-rendu chaque seconde : ce serait détruire le DOM sous le doigt, leçon du quai). */
+/* « Session en cours » se dit d'une session DÉMARRÉE, jamais d'une fiche simplement ouverte.
+   Le prédicat est écrit UNE fois : la carte de l'accueil filtrait déjà sur `R.started`, la
+   rangée et la tuile testaient la seule présence dans `liveSessions` — d'où le chrono figé à
+   0:00 d'un exercice à peine ouvert (v5.2.0). Le registre ne contient plus que des sessions
+   démarrées ; ce garde le dit en toutes lettres plutôt que de reposer sur cet invariant. */
+function sessionLive(id){const L=liveSessions[id];return !!(L&&L.started);}
 function dirLiveMs(id){const L=liveSessions[id];if(!L)return 0;
   const t0=L.startedAt||(L.rt&&L.rt.startedAt)||0;return t0?Math.max(0,Date.now()-t0):0;}
 function dirLiveHtml(id){
@@ -10880,11 +11228,17 @@ function renderHomeList(cfg){
                   :cfg.empty.libRead}</div>`;
   let listHtml,railHtml='';
   if(q){
+    const dh=docHitsHtml(q);
     listHtml=`<div class="list-title">${cfg.listTitle()} <span>— ${list.length} ${cfg.countLbl(list.length)}</span></div>`
       +crossHitsHtml(q,cfg.crossKind)
+      /* LE GROUPE « DOCUMENTS » VIENT APRÈS LA LISTE, jamais entre son titre et ses rangées :
+         on cherche d'abord une aide, une annexe ensuite. Et quand RIEN d'autre ne correspond,
+         « Aucun résultat » serait FAUX — il y a bien un résultat, dans un document ; l'état vide
+         le dit alors au lieu d'affirmer le contraire de ce qui est affiché juste en dessous. */
       +`<div class="dir-wrap">${list.length?`<div class="dir-grid flat">${list.slice(0,state.libLimit).map(cfg.row).join('')}</div>`
         +(list.length>state.libLimit?`<button class="btn" id="showMore" style="width:100%;margin-top:8px">Afficher plus (${list.length-state.libLimit} ${cfg.remainLbl(list.length-state.libLimit)})</button>`:'')
-        :emptyHtml}</div>`;
+        :(dh?emptyLine('Aucune aide ni référence ne correspond — mais un document joint, oui :'):emptyHtml)}</div>`
+      +dh;
   }else{
     const tiles=qaPick(list,pins);
     const az=azGroups(list.slice().sort(byTitle),x=>x.title||'');
@@ -10920,6 +11274,13 @@ function renderHomeList(cfg){
   // ::after — cf. .card-open) ; vrai <button>, clavier natif. Épingle et badge « À compléter »
   // sont des frères posés AU-DESSUS (z-index) : leurs taps n'atteignent jamais ce bouton.
   main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>cfg.open(el.dataset.open);});
+  // Résultat trouvé dans un document : on ouvre la visionneuse À LA PAGE, comme Finder ouvre le
+  // fichier. C'est ici, et seulement ici, que pdf.js est chargé — sur un geste, jamais à la frappe.
+  main.querySelectorAll('[data-docgo]').forEach(b=>b.onclick=()=>{
+    const eid=b.dataset.docent,aid=b.dataset.docgo;
+    const ent=(fiches||[]).concat(protocols||[]).find(x=>x&&x.id===eid);
+    const a=ent&&(ent.docs||[]).find(x=>x&&x.id===aid);
+    if(a)openPdfViewer(a,ent,+b.dataset.docpg||1);});
   {const hj=document.getElementById('homeJoin');if(hj)hj.onclick=()=>openJoinScreen(hj.dataset.code||'');}
   /* ⚠ LE BINDER REÇOIT SA CONFIGURATION (v5.0.0, signalé à l'usage : « fermer la croix d'un
      bandeau efface une des deux invites »). Les binders re-rendaient par `renderFiches()` EN
@@ -10983,7 +11344,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        date de validation et « À compléter » CONSERVÉES, compte de sessions retiré — l'historique
        global de la sidebar prend le relais). Pastille + NOM de catégorie en toutes lettres dans
        la sous-ligne : la couleur d'une catégorie n'est jamais seule (SPEC crise §1). */
-    row:f=>{const isLive=!!liveSessions[f.id];const cc=catOf(f);const inQ=txNorm(state.q);
+    row:f=>{const isLive=sessionLive(f.id);const cc=catOf(f);const inQ=txNorm(state.q);
       return `
       <div class="dir-row${isLive?' live':''}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
         <div class="dir-main">
@@ -10995,7 +11356,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       </div>`;},
     // Tuile = épinglée par définition (qaPick) : pas d'étoile par tuile, le titre de section la
     // porte pour toutes (« vos épinglées ★ ») — on désépingle depuis la rangée du répertoire.
-    tile:f=>{const cc=catOf(f);const isLive=!!liveSessions[f.id];
+    tile:f=>{const cc=catOf(f);const isLive=sessionLive(f.id);
       return `<button type="button" class="qa-tile card-open" data-open="${f.id}" title="${esc(f.title)||'Sans titre'}"${cc?` style="--stripe:${safeColor(cc.color)}"`:''}>
         <span class="qa-tx"><span class="qa-t">${esc(f.title)||'Sans titre'}</span>
         <span class="qa-sub">${f.discriminant?`<span class="tag disc">${esc(f.discriminant)}</span>`:''}${f.code?`<span class="code">${esc(f.code)}</span>`:''}${cc?`<span>${f.code?'· ':''}${esc(cc.name)}</span>`:''}</span></span>
@@ -11153,6 +11514,169 @@ async function genAttThumb(id){
     c.width=c.height=0;
     _attThumbs.set(id,url);return url;
   }finally{try{doc.destroy();}catch(e){}}}
+
+/* ── INDEXATION DES DOCUMENTS : la chaîne d'exécution ────────────────────────────────────────
+   `attIx` = poignée de recherche par document, en mémoire. Chargée au démarrage depuis le store
+   'attidx' (petit, cf. son commentaire) ; un document sans couche de texte y vit sous la forme
+   {none:'scan'} — un scan n'est pas un document « à moitié indexé », c'est un document qui n'a
+   RIEN à indexer, et l'écran doit le dire plutôt que de laisser chercher dedans en vain (l'OCR
+   embarqué de Spotlight depuis Monterey est un modèle de plusieurs dizaines de Mo : hors règle 13). */
+const attIx=new Map();
+let _ixQ=[],_ixBusy=false;
+/* UN SEUL POINT D'ADOPTION d'un enregistrement — il y en avait DEUX (chargement au démarrage et
+   fin d'indexation), avec la même expression recopiée, et ils portaient le même DÉFAUT :
+   `attIx.set(id, ixOpen(rec))` range **null** quand `ixOpen` refuse l'enregistrement (version
+   différente, tampon tronqué). Or `ixQueue` sort sur `attIx.has(id)` : le document devenait alors
+   INDÉFINIMENT non ré-indexable, et la recherche l'ignorait sans que rien ne le dise. C'est
+   exactement ce qui serait arrivé au premier `IX_V` suivant, sur TOUS les documents à la fois.
+   Un enregistrement qu'on ne sait pas ouvrir est donc JETÉ, et le document redevient « à
+   indexer » — un état visible, avec un geste pour en sortir. */
+function ixAdopt(rec){
+  if(!rec||!rec.id)return false;
+  if(rec.none){attIx.set(rec.id,{none:rec.none,pages:rec.pages|0});return true;}
+  const h=ixOpen(rec);
+  if(!h){attIx.delete(rec.id);try{IDB.delIx(rec.id);}catch(e){}return false;}
+  attIx.set(rec.id,h);return true;}
+async function ixLoadAll(){
+  if(!supportsAttachments())return;
+  try{for(const rec of await IDB.getIxAll())ixAdopt(rec);}catch(e){}
+  refreshAttIdx();}
+/* RÉINITIALISER — pour UN document, ou pour tous. Un index est DÉRIVÉ : le jeter ne perd rien et
+   se reconstruit depuis le PDF. C'est le geste de sortie de tous les états dégradés (document
+   déclaré illisible mais dont on a remplacé la source, index d'une version antérieure de pdf.js,
+   doute sur un résultat) — sans lui, un document mal indexé l'était pour toujours. */
+async function ixReset(id){
+  attIx.delete(id);
+  _ixTry.delete(id);        // ICI, jamais chez l'appelant : un second appelant l'oublierait
+  try{await IDB.delIx(id);}catch(e){}
+  ixQueue(id);}
+async function ixResetAll(){
+  let ids=[];try{ids=(await IDB.getIxAll()).map(r=>r.id);}catch(e){}
+  for(const id of ids){attIx.delete(id);try{await IDB.delIx(id);}catch(e){}}
+  attIx.clear();_ixTry.clear();
+  for(const id of await ixPending())ixQueue(id);
+  refreshAttIdx();}
+/* EXTRACTION — une passe par page, on ne garde que les MOTS. Le texte complet n'est jamais
+   assemblé : `ixTokens` est appliqué page par page, donc le pic mémoire vaut une page.
+   ⚠ `getDocument` DÉTACHE le tampon qu'on lui passe (piège documenté du ⤓ Télécharger, v4.19.0) :
+   inoffensif ici parce que la lecture IndexedDB nous en rend une copie fraîche à chaque fois —
+   ne PAS réutiliser ce tampon après cet appel. */
+/* DEUX FAMILLES D'ÉCHEC, ET ELLES NE SE TRAITENT PAS PAREIL — c'est tout l'enjeu de résilience :
+   · TRANSITOIRE (binaire pas encore téléchargé, pdf.js hors du cache et hors réseau, stockage
+     saturé) : on ne RETIENT rien. Le document reste « à indexer », donc visible dans la ligne
+     d'état, avec son geste — il repassera.
+   · DURABLE (pdf.js a bien ouvert le document et n'en tire aucun texte, ou le refuse) : on
+     ENREGISTRE l'état (`none:'scan'` ou `none:'illisible'`). Sans cela, un PDF que rien ne peut
+     lire serait « pas encore indexé » à chaque démarrage, pour toujours — un compte qui ne
+     descend jamais et un bouton qui ne fait rien, c'est-à-dire le pire des deux mondes.
+   Le distinguo se joue sur `pdfLib()` : s'il échoue, c'est NOTRE bibliothèque qui manque, jamais
+   le document. On relance donc, on ne condamne pas.
+   ⚠ `getDocument` DÉTACHE le tampon qu'on lui passe (piège documenté du ⤓ Télécharger, v4.19.0) :
+   inoffensif ici parce que la lecture IndexedDB nous en rend une copie fraîche à chaque fois —
+   ne PAS réutiliser ce tampon après cet appel. */
+async function ixExtract(id){
+  let rec=null;try{rec=await IDB.getAtt(id);}catch(e){}
+  const bp=attBuf(rec);if(!bp)return null;         // binaire pas encore là : transitoire
+  const lib=await pdfLib();                        // échec = pdf.js absent : transitoire (remonte)
+  let doc=null;
+  try{doc=await lib.getDocument({data:await bp}).promise;}
+  catch(e){doc=null;}
+  if(!doc){                                        // durable : ce fichier n'est pas lisible
+    const bad={id,v:IX_V,pages:0,terms:0,none:'illisible',at:Date.now()};
+    try{await IDB.putIx(bad);}catch(e){}
+    return bad;}
+  try{
+    const pages=[];
+    for(let i=1;i<=doc.numPages;i++){
+      const pg=await doc.getPage(i);
+      let tc=null;try{tc=await pg.getTextContent();}catch(e){}
+      pages.push(tc?ixTokens(tc.items.map(x=>x.str).join(' ')):[]);
+      try{pg.cleanup();}catch(e){}}
+    const out=pages.some(a=>a.length)
+      ?Object.assign({id},ixBuild(pages))
+      :{id,v:IX_V,pages:doc.numPages,terms:0,none:'scan'};
+    out.at=Date.now();
+    await IDB.putIx(out);
+    return out;
+  }finally{try{doc.destroy();}catch(e){}}}
+/* FILE D'ATTENTE — un document à la fois, et à l'INACTIVITÉ (`_idle`, comme les vignettes) :
+   indexer est un travail de fond, il ne doit jamais disputer le fil principal à un geste.
+   ⚠ UN ÉCHEC TRANSITOIRE NE BOUCLE PAS : on compte les tentatives de la SESSION (`_ixTry`) et
+   l'on s'arrête à trois pour ce document. Sans ce compteur, un stockage saturé ou un pdf.js
+   inatteignable ferait tourner la file indéfiniment sur le même fichier, à l'inactivité, en
+   silence — la panne la plus coûteuse est celle qui ne s'arrête pas. Le compteur n'est pas
+   persisté : un rechargement, ou un « Réindexer » explicite, redonne trois essais. */
+const _ixTry=new Map();
+const IX_TRY_MAX=3;
+function ixQueue(id){
+  if(!supportsAttachments()||!id||attIx.has(id)||_ixQ.indexOf(id)>=0)return;
+  if((_ixTry.get(id)|0)>=IX_TRY_MAX)return;
+  _ixQ.push(id);ixRun();}
+async function ixRun(){
+  if(_ixBusy)return;_ixBusy=true;
+  try{
+    while(_ixQ.length){
+      const id=_ixQ.shift();
+      _ixTry.set(id,(_ixTry.get(id)|0)+1);
+      await new Promise(r=>_idle(r));
+      let r=null;try{r=await ixExtract(id);}catch(e){r=null;}
+      if(r)ixAdopt(r);
+      refreshAttIdx();}
+  }finally{_ixBusy=false;}}
+/* Documents joints par une entité VIVANTE, et qui les porte — source unique de `ixPending` et de
+   `docHits`, qui recopiaient la même boucle. `visible` ajoute la règle des brouillons : un
+   brouillon caché ne doit pas révéler l'existence de son annexe dans les résultats. */
+function docOwners(visible){
+  const vis=x=>canEditFiche(x)||x.status!=='draft';
+  const m=new Map();   // Map, jamais un objet : un id sert de CLÉ (règle 6)
+  (fiches||[]).concat(protocols||[]).forEach(e=>{
+    if(!e||e.deletedAt||(visible&&!vis(e)))return;
+    (e.docs||[]).forEach(a=>{if(a&&a.id&&!m.has(a.id))m.set(a.id,{a,e});});});
+  return m;}
+// Documents présents sur l'appareil et pas encore indexés (le rattrapage explicite s'appuie
+// dessus ; il ne devine rien, il compte). Un document dont les essais sont épuisés N'EN EST PLUS :
+// il a sa propre ligne, sinon le compte « à indexer » ne descendrait jamais.
+async function ixPending(){
+  if(!supportsAttachments())return [];
+  const ref=docOwners(false);
+  let have=[];try{have=await IDB.getAttIds();}catch(e){}
+  return have.filter(id=>ref.has(id)&&!attIx.has(id)&&(_ixTry.get(id)|0)<IX_TRY_MAX);}
+/* UNE SEULE TABLE D'ÉTATS, et deux surfaces qui la lisent — la pastille d'une rangée d'éditeur
+   et la ligne du pied de la sidebar. Elles disaient la même chose avec deux enchaînements de
+   conditions écrits séparément : c'est la duplication qui diverge en silence, celle que ce
+   dossier a déjà payée quatre fois (MUTE_SEL, les placards, les verbes du lecteur, le cœur de
+   cochage). Ordre des cas : ce qui est ACQUIS, puis ce qui est EN COURS, puis ce qui demande un
+   geste. */
+function ixStateOf(id){
+  const h=attIx.get(id);
+  if(h)return h.none==='scan'?'scan':(h.none==='illisible'?'illisible':'ok');
+  if(_ixQ.indexOf(id)>=0||_ixBusy)return 'queue';
+  if((_ixTry.get(id)|0)>=IX_TRY_MAX)return 'bloque';
+  return 'todo';}
+// Documents dont l'indexation a échoué à répétition dans CETTE session (transitoire non résolu).
+function ixStalled(){return [...docOwners(false).keys()].filter(id=>ixStateOf(id)==='bloque');}
+/* ÉTAT D'INDEXATION D'UN DOCUMENT, DANS SA RANGÉE D'ÉDITEUR — c'est là qu'on gère un document,
+   donc là qu'on doit pouvoir le RÉINDEXER seul. Rien n'est affiché quand tout va bien : une
+   rangée qui annonce « indexé » à chaque ligne serait le bruit permanent que ce dossier refuse
+   partout ailleurs (« un panneau qui affirme 0 remarque »). Le geste n'apparaît donc que là où il
+   sert — et il ne peut jamais être mort.
+   PEINT SUR PLACE, jamais par un re-rendu : l'indexation se termine de façon asynchrone, et
+   reconstruire l'éditeur détruirait le champ où l'auteur est peut-être en train d'écrire. */
+function ixChipHtml(id){
+  const geste=mot=>' · <button type="button" class="tlink" data-ixreset="'+esc(id)+'">'+mot+'</button>';
+  switch(ixStateOf(id)){
+    case 'ok':        return '';                     // indexé : rien à dire, jamais de bruit
+    case 'queue':     return '<span>indexation…</span>';
+    case 'scan':      return '<span title="Document scanné : aucune couche de texte, la recherche ne peut rien y trouver.">sans texte</span>'+geste('réindexer');
+    case 'illisible': return '<span class="pers-warn" title="La visionneuse n’a pas pu ouvrir ce document.">illisible</span>'+geste('réessayer');
+    case 'bloque':    return '<span class="pers-warn">non indexé</span>'+geste('réessayer');
+    default:          return '<button type="button" class="tlink" data-ixreset="'+esc(id)+'">indexer</button>';}}
+function paintIxChips(){
+  document.querySelectorAll('[data-ixstate]').forEach(el=>{
+    const html=ixChipHtml(el.dataset.ixstate);
+    if(el.innerHTML!==html)el.innerHTML=html;});
+  document.querySelectorAll('[data-ixreset]').forEach(b=>b.onclick=()=>{
+    ixReset(b.dataset.ixreset).then(refreshAttIdx);});}
 // Liste de boutons « Documents » (lecture) — même composant pour fiches et protocoles.
 // Badge « △ à télécharger » (v4.4.6) : document ajouté sur un autre appareil dont le binaire
 // n'est pas encore arrivé ici — on le DÉCOUVRE à froid, jamais en crise. Caché par défaut
@@ -11871,7 +12395,7 @@ async function confirmDraftLibChange(d,orig,msgs){
 // par Sync._syncAttachments).
 async function redirtyAttsOnLibChange(d,orig){
   if(orig&&(orig.library||null)!==(d.library||null)&&supportsAttachments()){
-    for(const a of (d.docs||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await IDB.putAtt(rec);}}catch(e){}}}}
+    for(const a of (d.docs||[])){try{const rec=await IDB.getAtt(a.id);if(rec){rec.dirty=1;await attPut(rec);}}catch(e){}}}}
 async function deleteProtocolDraft(){
   const msg=state.pdraft&&state.pdraft.library
     ?'Supprimer ce protocole définitivement ?\nIl disparaîtra pour tous les membres de la bibliothèque.'
@@ -16667,7 +17191,7 @@ function attachablePdfs(f){const have=new Set((f.docs||[]).map(a=>a.id));const s
 // (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
 function attFieldsetHtml(entity){
   return `<fieldset class="field ed-card"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
-      ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
+      ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow" data-ai="${i}"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-ix" data-ixstate="${esc(a.id)}"></span><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
       ${upDropHtml('pdf','addPdf','Ajouter un PDF ('+fmtBytes(MAX_PDF_BYTES)+' max)')}
       ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
       :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
@@ -16687,7 +17211,7 @@ function upPdfTaker(entity,rerender){
       let buf=null;try{buf=await file.arrayBuffer();}catch(err){}
       if(!buf){toast('⚠ « '+upShortName(file.name)+' » est illisible.',6000,true);continue;}
       const id=uid('a');
-      try{await IDB.putAtt({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
+      try{await attPut({id,buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});}
       catch(err){toast('⚠ Stockage saturé : document non enregistré.',9000,true);break;}
       draftNewAtts.push(id);
       entity.docs=entity.docs||[];entity.docs.push({id,name:safeFileName(file.name)||'document.pdf',size:buf.byteLength});
@@ -16722,6 +17246,7 @@ function pImgTaker(p,ta){
       n++;}
     if(n)renderProtocolEdit();};}
 function bindAttEditor(entity,rerender){
+  paintIxChips();   // l'état d'index de chaque document, posé au rendu puis peint sur place
   const take=upPdfTaker(entity,rerender);
   bindUpDrop(document.getElementById('addPdf'),'pdf',take,true);
   // Déclaré même si le fieldset n'est pas rendu (il est masqué quand il est vide, v4.76.0) :
@@ -18315,7 +18840,9 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
     releasePdfPage(s);s.el.innerHTML='';s.el.appendChild(c);s.canvas=c;s.renderedW=targetW;
   }catch(e){}
   s.rendering=false;}
-async function openPdfViewer(att,entity){
+/* `page` (facultatif, 1-based) : ouvrir DIRECTEMENT à une page — le seul appelant est un
+   résultat de recherche trouvé dans ce document. Sans argument, comportement inchangé. */
+async function openPdfViewer(att,entity,page){
   if(!supportsAttachments()){toast('⚠ Ce navigateur ne peut pas stocker les documents hors ligne — ouvrez l\'app dans un navigateur récent pour lire ce PDF.',9000);return;}
   let rec=null;try{rec=await IDB.getAtt(att.id);}catch(e){}
   if(!attBuf(rec)){
@@ -18327,7 +18854,7 @@ async function openPdfViewer(att,entity){
       try{const path=attStoragePath(entity?(entity.library||null):null,(Auth.user()||{}).id,att.id);
         const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
         rec={id:att.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path};
-        await IDB.putAtt(rec);}
+        await attPut(rec);}
       catch(e){toast('⚠ Document introuvable dans le cloud — il n\'a peut-être pas encore été envoyé depuis l\'appareil où il a été ajouté.',9000);return;}
     }else{toast('Document pas encore téléchargé sur cet appareil : connectez-vous avec du réseau pour le récupérer.',9000);return;}
   }
@@ -18364,6 +18891,13 @@ async function openPdfViewer(att,entity){
   _pv.observer=new IntersectionObserver(es=>es.forEach(en=>{const s=_pv&&_pv.pages[+en.target.dataset.p-1];if(!s)return;
     s.vis=en.isIntersecting;if(s.vis)renderPdfPage(s);else releasePdfPage(s);}),{root:sc,rootMargin:'100% 0px'});
   _pv.pages.forEach(s=>_pv.observer.observe(s.el));
+  /* Atterrissage sur la page demandée — APRÈS `pdfApplyScale` (qui pose les hauteurs) et AVANT
+     `pdfRenderNear`, qui rend « les pages proches » : posé après, on rendrait la page 1 pour
+     rien avant de sauter ailleurs. On vise le HAUT de la page, avec la même marge de 8 px que
+     le reste du fichier. */
+  if(page>1&&page<=doc.numPages){
+    const el=sc.querySelector('.pdf-page[data-p="'+page+'"]');
+    if(el)sc.scrollTop=Math.max(0,el.offsetTop-8);}
   pdfRenderNear();   // premières pages rendues sans attendre l'observer
 }
 
@@ -19142,7 +19676,7 @@ async function importAtts(d,zipAtts,sameSpace){
     const z=!have&&zipAtts?zipAtts.get(a.id):null;
     if(z&&z.length<=MAX_PDF_BYTES&&isPdfBytes(z)){
       const buf=z.buffer.slice(z.byteOffset,z.byteOffset+z.byteLength);
-      try{await IDB.putAtt({id:a.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});
+      try{await attPut({id:a.id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:1,remotePath:null});
         a.size=buf.byteLength;have=buf;}catch(err){}}
     if(have||sameSpace)kept.push(a);}
   d.docs=kept;}
@@ -20891,7 +21425,7 @@ const Sync={
         try{const body=await attBuf(rec);if(!body)continue;   // enregistrement vide : rien à pousser
           await storageReq('POST',want,body,'application/pdf',{'x-upsert':'true'});
           if(rec.remotePath&&rec.remotePath!==want)queueAttDelete(rec.remotePath);   // déplacement de périmètre
-          rec.dirty=0;rec.remotePath=want;await IDB.putAtt(rec);
+          rec.dirty=0;rec.remotePath=want;await attPut(rec);
         }catch(e){if(!firstErr)firstErr=e;}}
     }
     // 4. Téléchargements manquants : séquentiels, en arrière-plan (n'allongent pas la synchro) ;
@@ -20901,7 +21435,7 @@ const Sync={
     if(missing.length&&!this._attDl){this._attDl=true;
       (async()=>{try{for(const id of missing){
           try{const r=await storageReq('GET',paths[id]);const buf=await r.arrayBuffer();
-            await IDB.putAtt({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});
+            await attPut({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});
             refreshAttRow(id);   // rangée à l'écran : badge « à télécharger » caché + vignette posée (v4.4.6)
           }catch(e){}}
       }finally{this._attDl=false;refreshAttOffline();}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
@@ -22400,6 +22934,7 @@ if(location.search.indexOf('__actest')>=0){
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
+    ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
