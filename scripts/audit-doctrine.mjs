@@ -3209,6 +3209,88 @@ await sec('BLOC COMPLET · le registre tient sur les quatre côtés', async () =
 }
 });
 
+/* ═══ JALONS DE BOUCLE (v5.5.0, P1+P2+P3+P4) — le seuil ne repose plus sur la mémoire ═══
+   Le cas est celui de la fiche d'exemple ACR (lot T13 : les exemples EXERCENT la doctrine) :
+   jalon « Chocs délivrés ≥ 3 » sur la décision d'analyse, renvoi ⚡ vers l'excursion
+   « FV réfractaire ». Le contrôle vérifie d'abord qu'il RENCONTRE SON CAS — si la fiche
+   d'exemple perdait son jalon, ce serait un rouge bruyant, pas une passe vide. */
+await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  await demarrerSession(page);
+  // Avancer jusqu'au bloc porteur : cocher le bloc 1, puis « Continuer » vers l'analyse.
+  await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    for(let i=0;i<12;i++){const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>!x.classList.contains('done'));
+      if(!li)break;li.click();await w(60);}
+    const nx=document.querySelector('.ov-block.cur [data-ovnext]');if(nx)nx.click();await w(250);});
+  const c0=await page.evaluate(()=>{
+    const cur=document.querySelector('.ov-block.cur');
+    const row=cur&&cur.querySelector('.jl-row');
+    const prog=row&&row.querySelector('.jl-prog');
+    return {dec:!!(cur&&cur.classList.contains('dec')),row:!!row,on:!!(row&&row.classList.contains('on')),
+      cond:row?row.textContent:'',prog:prog?prog.textContent.trim():'',
+      btn:!!(cur&&cur.querySelector('.jl-go')),y:window.scrollY};});
+  t('le contrôle rencontre son cas : la décision d\'analyse porte un jalon compteur', c0.dec&&c0.row, JSON.stringify({dec:c0.dec,row:c0.row}));
+  t('AVANT le seuil : ligne présente mais PAS mise en avant, condition en toutes lettres + progression 0/3',
+    !c0.on&&/Chocs délivrés\s*≥\s*3/.test(c0.cond)&&c0.prog==='0/3', JSON.stringify({on:c0.on,prog:c0.prog,cond:c0.cond.slice(0,60)}));
+  t('… et aucun bouton de renvoi avant le seuil (l\'index ⚡ constant du pied suffit)', c0.btn===false);
+  // 3 incréments du compteur « Chocs délivrés » (rail droit, 1280) : le franchissement se peint
+  // par setCounterVal (chirurgie), jamais par un re-rendu ni un défilement.
+  const c1=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const btn=[...document.querySelectorAll('[data-cninc]')].find(b=>/Chocs/.test(b.getAttribute('aria-label')||''));
+    if(!btn)return {err:'compteur Chocs introuvable dans le rail'};
+    const y0=window.scrollY;
+    for(let i=0;i<3;i++){btn.click();await w(120);}
+    const cur=document.querySelector('.ov-block.cur');
+    const row=cur&&cur.querySelector('.jl-row');
+    const go=cur&&cur.querySelector('.jl-go');
+    const prog=row&&row.querySelector('.jl-prog');
+    return {on:!!(row&&row.classList.contains('on')),prog:prog?prog.textContent.trim():'',
+      go:go?go.textContent:'',dy:Math.abs(window.scrollY-y0)};});
+  t('AU seuil (3 incréments) : la ligne passe au registre ATTENTION, progression vivante 3/3',
+    c1.on===true&&c1.prog==='3/3', JSON.stringify(c1));
+  t('… le renvoi ⚡ vers l\'excursion apparaît', /FV réfractaire/.test(c1.go||''), JSON.stringify(c1.go||c1.err));
+  t('… et RIEN ne bouge à l\'écran au franchissement (règle 11)', c1.dy<=1, 'Δ='+c1.dy+'px');
+  // P2 : le renvoi EST une entrée d'excursion — nouveau passage ⚡, retour prévu, jamais laissé
+  // à la mémoire (AC 120-71B).
+  const c2=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const go=document.querySelector('.ov-block.cur .jl-go');if(!go)return {err:'pas de renvoi'};
+    go.click();await w(300);
+    const cur=document.querySelector('.ov-block.cur');
+    return {titre:cur?cur.textContent.slice(0,300):'',cx:!!(cur&&cur.querySelector('.cx-tag')),
+      back:!!(cur&&cur.querySelector('[data-cxback]'))};});
+  t('P2 : le renvoi entre dans l\'excursion (nouveau passage marqué ⚡ complication)',
+    c2.cx===true&&/FV réfractaire/.test(c2.titre), JSON.stringify({cx:c2.cx,err:c2.err}));
+  t('… avec le retour prévu « ↩ Reprendre » en tête de carte', c2.back===true);
+  // Retour à l'analyse, puis les vues de STRUCTURE annoncent le jalon (inertes, condition en
+  // toutes lettres) et P4 annote les renvois de boucle de la période du cycle.
+  const c3=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const bk=document.querySelector('.ov-block.cur [data-cxback]');if(bk)bk.click();await w(250);
+    const lad=[...document.querySelectorAll('.read-plan .pl-line')].find(l=>/Analyse du rythme/.test(l.textContent));
+    const srj=lad?/jalon de boucle/.test(lad.textContent):false;
+    if(lad)lad.click();await w(200);
+    const jll=document.querySelector('.read-plan .pl-jll');
+    const ab=document.getElementById('allBtn');if(ab)ab.click();await w(400);
+    const svjl=[...document.querySelectorAll('.sv-jl')].map(e=>e.textContent).join('|');
+    const svloop=[...document.querySelectorAll('.sv-jump.loop')].map(e=>e.textContent).join('|');
+    const pt=document.querySelector('[data-alltab="parcours"]');if(pt)pt.click();await w(300);
+    const pcjl=[...document.querySelectorAll('.pc-jl')].map(e=>e.textContent).join('|');
+    const pcloop=[...document.querySelectorAll('.pc-foot')].filter(e=>/↺/.test(e.textContent)).map(e=>e.textContent).join('|');
+    return {srj,jll:jll?jll.textContent:'',svjl,svloop,pcjl,pcloop};});
+  t('Échelle : la ligne ANNONCE le jalon et le détail déplié dit la condition',
+    c3.srj===true&&/Chocs délivrés ≥ 3/.test(c3.jll), JSON.stringify({srj:c3.srj,jll:c3.jll.slice(0,60)}));
+  t('Statique : la cellule porte le jalon, condition en toutes lettres', /Chocs délivrés ≥ 3/.test(c3.svjl), c3.svjl.slice(0,80));
+  t('Parcours : idem, inerte', /Chocs délivrés ≥ 3/.test(c3.pcjl), c3.pcjl.slice(0,80));
+  t('P4 : les renvois de boucle portent la période du cycle (statique ET parcours)',
+    /toutes les 2 min/.test(c3.svloop)&&/toutes les 2 min/.test(c3.pcloop),
+    JSON.stringify({sv:c3.svloop.slice(0,60),pc:c3.pcloop.slice(0,60)}));
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);

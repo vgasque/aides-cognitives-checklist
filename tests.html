@@ -901,6 +901,47 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const f3=A.migrate({title:'Sans',blocks:[{id:'b1',kind:'do',title:'A',items:['a'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],start:'b1'});
    eq('fiche sans champ : défaut [], aucun bouton', A.cxAll(f3).length, 0);}
 
+  group('Jalons de boucle (v5.5.0, P1)');
+  {const f=A.migrate({title:'ACR',
+     counters:[{id:'n1',label:'Chocs délivrés',step:1,start:0}],
+     excursions:[{label:'FV réfractaire',target:'cx1'}],
+     blocks:[
+       {id:'b1',kind:'decision',title:'Analyse',question:'Choquable ?',options:[{label:'Oui',target:'b1'}],
+        milestones:[
+          {at:'count',counter:'n1',n:3,text:'3 CEE sans RACS — envisager FV réfractaire',go:'cx1'},
+          {at:'count',counter:'zzz',n:2,text:'compteur fantôme'},
+          {at:'pass',n:'4',text:'revoir 4H/4T',go:'b1'},
+          {at:'pass',n:0,text:'seuil nul'},
+          {at:'pass',n:2,text:''},
+          'pasunobjet'],},
+       {id:'cx1',kind:'do',title:'FV réfractaire',items:['Changer la position des pads'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}],
+     start:'b1'});
+   const js=f.blocks[0].milestones;
+   eq('migrate : jalons valides conservés (plafond 3 en amont), invalides rejetés', js.length, 2);
+   eq('migrate : un compteur qui ne résout pas REJETTE la rangée (un jalon qui ne mesure pas est mort)',
+     js.map(j=>j.text).join('|'), '3 CEE sans RACS — envisager FV réfractaire|revoir 4H/4T');
+   eq('migrate : n est coercé en entier', js[1].n, 4);
+   eq('migrate : `go` hors des cibles d’excursion DÉCLARÉES est retiré (le renvoi réutilise cxEnter)',
+     js.map(j=>j.go).join('|'), 'cx1|');
+   eq('jalonProg : compteur sous le seuil — inactif, progression exposée',
+     A.jalonProg(js[0],1,2), {cur:2,goal:3,active:false});
+   eq('jalonProg : le franchissement est un ≥, jamais un == (un jalon franchi RESTE franchi)',
+     A.jalonProg(js[0],1,5), {cur:5,goal:3,active:true});
+   eq('jalonProg : jalon de passage — c’est le rang qui compte, pas le compteur',
+     A.jalonProg(js[1],4,0), {cur:4,goal:4,active:true});
+   eq('jalonCondLbl : la condition d’un jalon compteur nomme le compteur en toutes lettres',
+     A.jalonCondLbl(f,js[0]), 'Chocs délivrés ≥ 3');
+   eq('jalonCondLbl : la condition d’un jalon de passage dit son rang',
+     A.jalonCondLbl(f,js[1]), 'à partir du 4ᵉ passage');
+   ok('un bloc sans jalons expose un tableau vide (défaut posé par migrate)',
+     Array.isArray(f.blocks[1].milestones)&&f.blocks[1].milestones.length===0);}
+  {eq('cycleHint : UN SEUL minuteur à cycles → sa période annote la boucle',
+     A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:120},{type:'stopwatch',seconds:0}]}), ' · toutes les 2 min');
+   eq('cycleHint : DEUX minuteurs à cycles → rien (annoter serait une devinette)',
+     A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:120},{type:'interval',autoloop:true,seconds:300}]}), '');
+   eq('cycleTxt : période non ronde en minutes + secondes',
+     A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:90}]}), ' · toutes les 1 min 30 s');}
+
   group('Repères posologiques — rapprochement RÉSILIENT (v4.23.0)');
   eq('posoName : ce qui précède le premier « : »', A.posoName('**Adrénaline IM** : adulte 0,5 mg'), 'Adrénaline IM');
   eq('posoName : préfixe ⚠ retiré', A.posoName('⚠ Adrénaline IV : titrée'), 'Adrénaline IV');

@@ -240,6 +240,39 @@ seule, sur un seuil temporel, serait autre chose.
 logiciel. Le vocabulaire retenu dans l'application — « suivre la session », « savoir qui a fait
 quoi », « compte rendu », « débriefing » — décrit une trace, pas un jugement.
 
+#### Le cas des jalons de boucle (v5.5.0)
+
+Un jalon est une phrase **écrite par l'auteur de la fiche**, attachée à un bloc d'une boucle, avec
+la condition — écrite elle aussi par l'auteur — de sa mise en avant : « à partir du 3ᵉ passage »
+ou « quand le compteur *Chocs délivrés* atteint 3 ». Exemple canonique (ACR) : « après 3 CEE sans
+RACS — envisager une FV réfractaire », qui existe mot pour mot dans les algorithmes papier. Passé
+à la grille :
+
+- **Aucune sortie individualisée n'est créée.** Le logiciel n'évalue aucune règle sur une donnée
+  clinique : il affiche le texte de l'auteur quand le moment que l'auteur a défini arrive. C'est
+  exactement la famille du champ `onDue` d'un minuteur (v4.70.0) — l'alarme annonce l'action
+  écrite par l'auteur quand le délai que l'auteur a fixé échoit — et, avant lui, du minuteur
+  lui-même.
+- **Aucune donnée de patient n'entre dans la condition.** Le rang de passage et les compteurs
+  comptent des **gestes de l'équipe** (analyses de rythme, chocs délivrés, doses injectées) que
+  l'équipe incrémente elle-même — jamais un paramètre du patient saisi ou mesuré. Aucun poids,
+  aucun âge, aucune constante.
+- **Rien ne se déclenche.** Pas de son, pas de fenêtre, pas de navigation automatique : le jalon
+  est visible dès le premier passage (estompé, avec sa condition en toutes lettres) et passe au
+  registre ATTENTION quand le compte y est — un changement d'état d'un texte déjà affiché, comme
+  une case qui passe au vert. Les vues de structure l'annoncent d'emblée.
+- **Qualification MDCG 2019-11** : *afficher/archiver* — le même papier qu'un algorithme imprimé
+  qui écrit « après le 3ᵉ choc : … » dans la case du 3ᵉ cycle, rendu saillant au moment où
+  l'équipe, qui tient elle-même le compte, y arrive.
+
+**La ligne à ne pas franchir, nommée.** Le jour où une condition de jalon lirait un **paramètre
+patient** (poids, glycémie, constante saisie), où le logiciel **déduirait** lui-même le seuil ou
+le franchissement (analyse du rythme, capteur, horloge sur l'état du patient), ou déclencherait
+une conduite **de sa propre initiative** (navigation, alarme sonore autonome sur seuil), la
+qualification serait à rouvrir. L'interdit existant sur le partage — « étape non cochée depuis
+n minutes » — reste entier : un jalon n'observe pas l'inaction, il accompagne un compte que
+l'équipe tient.
+
 ### Ce qui ferait BASCULER l'app en dispositif médical (à éviter, ou à assumer)
 Toute fonctionnalité produisant une **recommandation ou un calcul individualisé** :
 

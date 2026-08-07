@@ -147,7 +147,7 @@ en gras de « Conventions de code » sont ses vraies entrées ; voici la carte, 
 |---|---|
 | **Couleur, registres, accents** | Design tokens · Taxonomie des notices · Couleur dans le contenu rédigé · Saillance & registres · Couleur d'accent · Code couleur des catégories |
 | **Étapes, statuts, contenu clinique** | Statuts, code, étapes critiques · Liseré gauche 4 px · Taille des images · Listes cochables · Marqueur d'étape hors du champ · Liens « Voir aussi » |
-| **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
+| **Mode crise — parcours et vues** | Parcours de soin · Journal de parcours · Plan de l'aide · PLAN = UNE SEULE VUE · Mode statique · Challenge-response · COMPLICATIONS · JALONS DE BOUCLE · MODE EXERCICE · Alarme de minuteur · Dialogue « Terminer la session ? » · PORTÉE D'UNE ACTION DE REPRISE |
 | **Chrome, navigation, géométrie** | ON ANIME LA COMPOSITION · En-têtes V5 · ZONE HAUTE DE CRISE · DEUX RANGÉES COLLANTES · RAIL DE LECTURE · ANCRAGE ET DÉFILEMENT · DÉFILEMENT PRÉSERVÉ · RÉENTRÉE · HAUTEURS RELATIVES À LA FENÊTRE · Largeurs & échelles fermées · PILE DE RETOUR · RETOUR SYSTÈME · Sélecteur segmenté · Repli de l'étape ① · LOGO DE MARQUE · Pieds de page · Indicateur de mode des éditeurs · Interactif |
 | **Accueil (bibliothèques)** | ACCUEIL « POSTE ACCÈS DIRECT » |
 | **Consultation et références** | FEUILLE « CONSULTER » · FEUILLE CONSULTER = UN DOCUMENT · REPÈRES POSOLOGIQUES · SORTIE PDF UNIFIÉE · LE COMPTE-RENDU S'ENREGISTRE EN PDF |
@@ -807,6 +807,50 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   aussi », une aide déjà liée reste sélectionnable ; garde-fou 1-3. Prompt IA : bloc dédié hors séquence, label = nom d'événement, 1-3 max, un
   événement relevant d'une AUTRE aide se SIGNALE (le JSON ne connaît pas les ids des autres
   fiches). Helpers purs `cxAll`/`cxDetached` (testés) ; harnais `scripts/audit-complications.mjs`.
+- **JALONS DE BOUCLE (v5.5.0 — P1+P2+P3+P4, audit « déroulé de l'algorithme », demande
+  utilisateur : « au bout de 3 CEE se poser la question d'une FV réfractaire, puis l'analyse
+  reste toutes les 2 minutes »)** : le déroulé en boucle était couvert (↺, ×n, convergence) mais
+  RIEN ne savait dire un contenu qui ÉVOLUE au k-ième passage ou au n-ième choc — l'auteur
+  n'avait que du texte statique (bruit avant le seuil) ou une excursion dont l'ENTRÉE reposait
+  sur la mémoire du compte, l'inverse de la doctrine QRH, alors que le runtime CONNAÎT les deux
+  nombres (`passInfo`, `Runtime.counters`). **`b.milestones` : [{at:'pass'|'count', n, counter,
+  text, go}]**, facultatif, ≤ 3/bloc, texte ≤ 140 ; assaini dans `migrate` APRÈS compteurs et
+  excursions (seul point où leurs ids finaux existent) — compteur non résolu → rangée REJETÉE
+  (un jalon qui ne mesure pas est mort), `go` hors des cibles d'excursion DÉCLARÉES → retiré.
+  **Modèle ECL sur la carte du BOUT** (`jalonsHtml`, blocs do ET décisions — le cas canonique est
+  une décision) : la ligne existe dès le premier passage, estompée, **condition en toutes
+  lettres + progression vivante** (« Chocs délivrés 2/3 » en mono) ; au seuil elle passe au
+  registre ATTENTION (paire `--verify`/`--verify-soft` des étapes △, déjà auditée) — **ambre,
+  jamais rouge** (« c'est là qu'on se trompe »), **≥ et jamais ==** (un fait ne s'acquitte pas,
+  doctrine « Consigné »), **rien ne se déclenche** (règle 11 : pas de son, pas de saut — mesuré
+  Δ=0 px au franchissement ; l'annonce passe par `#srLive`). Repeinture CHIRURGICALE par
+  `paintJalons()` appelée dans **`setCounterVal`, AVANT le garde `!el`** : en étroit le panneau
+  des compteurs peut être ABSENT du DOM (volet fermé) pendant qu'un évènement DISTANT
+  incrémente — la valeur n'a nulle part où s'écrire, le jalon, lui, est sur la carte et doit
+  suivre. **P2 — le renvoi `go` réutilise `data-cxgo`**, donc `cxEnter`, ses gardes et son
+  retour prévu (↩ Reprendre) : AUCUNE navigation nouvelle ; le bouton n'est TAPABLE qu'au seuil
+  (avant, la rangée ⚡ constante du pied suffit — deux moments, pas une duplication : l'action au
+  pied de l'alerte est la règle ECAM d'`onDue`). **Les vues de structure l'annoncent d'emblée**
+  (« rien de caché qui ne s'annonce ») : Échelle = marqueur △ (FORME neutre — colonne désaturée)
+  + détail déplié `.pl-jll` ; Parcours `.pc-jl` et Statique `.sv-jl`, inertes, condition en
+  toutes lettres. **P4** : `cycleHint`/`cycleTxt` — quand la fiche déclare **UN SEUL** minuteur à
+  cycles (interval+autoloop), sa période annote les renvois de boucle TEXTUELS (« ↺ reprendre à
+  2 · toutes les 2 min », statique `linkH` + pied du parcours) ; à deux, rien (annoter serait
+  une devinette), et les renvois COMPACTS de l'Échelle (« ↺1 » mono) restent nus (largeur
+  comptée v4.55.3). Éditeur : rangées par bloc (`jalonEditor`, condition · seuil · compteur ·
+  renvoi vers une excursion déclarée), porte d'ajout masquée au plafond ; bascule vers 'count'
+  pré-pointe le premier compteur (on ne fabrique jamais l'état que migrate rejette). **La fiche
+  d'exemple ACR exerce le mécanisme** (lot T13) : excursion « FV réfractaire », bloc hors
+  chaîne, jalon `Chocs ≥ 3`. Le prompt IA documente `milestones` et **interdit d'inventer un
+  seuil clinique** (vérifié par `audit-prompt`) ; `SHARE_KEEP` couvre déjà (`blocks` voyage
+  entier, comme `items` — schema.sql inchangé). **Qualification réglementaire écrite AVANT le
+  développement** (`docs/deploiement-et-conformite.md` § 2, « Le cas des jalons de boucle ») :
+  règle d'auteur affichée au moment défini, aucun paramètre patient (les compteurs comptent des
+  GESTES de l'équipe) — la ligne à ne pas franchir y est nommée (paramètre patient, seuil déduit
+  par le logiciel, déclenchement autonome). Témoins : section doctrine « QRH · jalons de
+  boucle » (construit son cas sur l'ACR, vérifiée CAPABLE D'ÉCHOUER — activation neutralisée →
+  4 rouges, fichier restauré à l'octet), 17 témoins purs dans `tests.html`, 2 dans
+  `audit-prompt`.
 - **MODE EXERCICE (v4.27.0 — pilier EMIC « s'entraîner » ; Greig 2023 : le transfert exige la
   FIDÉLITÉ DE FORMAT)** : « Répéter en exercice » (menu ⋯) rejoue la fiche dans l'ÉCRAN RÉEL,
   À L'IDENTIQUE — même journal, mêmes minuteurs, mêmes gestes ; un mode « simplifié » entraînerait

@@ -1,5 +1,60 @@
 # Journal des modifications
 
+## [5.5.0] — 2026-08-08
+### Les boucles évoluent au compte : jalons, renvoi d'excursion, période de cycle
+
+Audit demandé par l'auteur sur le déroulé de l'algorithme : *« l'ACR restera toujours
+choquable / pas choquable / RACS — mais au bout de 3 CEE, se poser la question d'une FV
+réfractaire, qui fera changer les pads ; puis l'analyse reste toutes les 2 minutes, commune
+avec le début »*. Le déroulé en boucle était couvert (« ↺ reprendre à n », passages ×n,
+convergence) ; ce qui n'existait pas, c'est un contenu qui **change au k-ième passage ou au
+n-ième choc**. L'auteur n'avait que du texte statique (du bruit avant le seuil) ou une
+excursion « à tout moment » dont l'**entrée reposait sur la mémoire du compte** — l'inverse de
+la doctrine QRH, alors que le runtime connaît les deux nombres (`passInfo`, les compteurs).
+
+- **P1 — le jalon de boucle** (`b.milestones`, facultatif, ≤ 3 par bloc) : une phrase d'auteur
+  conditionnée « à partir du nᵉ passage » ou « quand le compteur X atteint n ». Modèle ECL sur
+  la carte du bout : la ligne existe dès le premier passage, estompée, **condition en toutes
+  lettres et progression vivante** (« Chocs délivrés 2/3 » en mono) ; au seuil elle passe au
+  registre ATTENTION — ambre, jamais rouge, franchissement en ≥ (un fait ne s'acquitte pas), et
+  **rien ne se déclenche** (règle 11 : pas de son, pas de saut — mesuré Δ = 0 px ; l'annonce
+  passe par `#srLive`). Repeinture chirurgicale dans `setCounterVal`, **avant** le garde `!el` :
+  en étroit, le volet des compteurs peut être absent du DOM pendant qu'un évènement distant
+  incrémente — le jalon, lui, est sur la carte et doit suivre. Un compteur qui ne résout pas
+  rejette la rangée dans `migrate` (un jalon qui ne mesure pas est mort).
+- **P2 — le renvoi est une porte d'excursion, pas une navigation nouvelle** : `go` désigne la
+  cible d'une excursion **déclarée** et le bouton ⚡ réutilise `data-cxgo`, donc `cxEnter`, ses
+  gardes de partage et son retour prévu (« ↩ Reprendre » — l'analyse reprend, commune avec le
+  début). Le bouton n'est tapable qu'au seuil : avant, la rangée ⚡ constante du pied suffit —
+  l'action au pied de l'alerte est la règle ECAM déjà écrite pour `onDue`.
+- **P3 — l'état au point de décision** : la progression vivante du jalon met le compte sous les
+  yeux à l'endroit où l'on répond (le rang « passage n/N » existait déjà sur la carte).
+- **P4 — la boucle dit sa période** : quand la fiche déclare **un seul** minuteur à cycles,
+  les renvois de boucle textuels la portent (« ↺ reprendre à 2 · toutes les 2 min », statique
+  et parcours) ; à deux minuteurs, rien — annoter serait une devinette.
+- **Les vues de structure annoncent les jalons d'emblée** (rien de caché qui ne s'annonce) :
+  marqueur △ + détail déplié dans l'Échelle (forme neutre — colonne désaturée), lignes inertes
+  dans le Parcours et le Statique, condition en toutes lettres partout.
+- **Éditeur** : rangées de jalon par bloc (condition · seuil · compteur · renvoi vers une
+  excursion déclarée), porte d'ajout masquée au plafond de 3 ; la bascule vers « compteur »
+  pré-pointe le premier compteur — on ne fabrique jamais l'état que `migrate` rejette.
+- **La fiche d'exemple ACR exerce le mécanisme** (lot T13) : excursion « FV réfractaire (CEE
+  inefficaces) », bloc hors chaîne (pads en antéro-postérieur), jalon « Chocs délivrés ≥ 3 »
+  avec renvoi. Le **prompt IA** documente `milestones` et interdit d'inventer un seuil clinique.
+- **Qualification réglementaire écrite avant le développement**
+  (`docs/deploiement-et-conformite.md` § 2, « Le cas des jalons de boucle ») : une règle
+  d'auteur affichée au moment que l'auteur a défini — même famille qu'`onDue` ; aucun paramètre
+  patient (les compteurs comptent des gestes de l'équipe) ; la ligne à ne pas franchir est
+  nommée (paramètre patient, seuil déduit par le logiciel, déclenchement autonome).
+- **Témoins** : 17 contrôles purs (`tests.html` — sanitisation, progression, `cycleHint`),
+  section doctrine « QRH · jalons de boucle » (12 contrôles qui construisent leur cas sur
+  l'ACR, vérifiée **capable d'échouer** : activation neutralisée → 4 rouges, fichier restauré à
+  l'octet), 2 contrôles de contrat dans `audit-prompt` (le jalon du schéma traverse `migrate`).
+  `SHARE_KEEP` couvre déjà (`blocks` voyage entier) — `schema.sql` inchangé.
+
+Rotation du journal (règle des 20 entrées) : 5.0.0 → 5.0.2 partent dans
+`docs/changelog/v5.md` (créé), 4.77.0 → 4.79.0 rejoignent `docs/changelog/v4.md`.
+
 ## [5.4.4] — 2026-08-08
 ### Les audits cessent d'être chronophages — sections ciblables, tranches, cache vert (aucune sonde changée)
 
@@ -855,537 +910,3 @@ et lui faire dire qu'un filtre agit.
   aucune rangée, la zone tactile de l'épingle reste libre — 320/390/430/640/779 px, après avoir
   CONSTRUIT le répertoire : les fiches d'exemple ne donnent pas assez de lettres pour qu'un rail
   existe, et sans ce témoin on mesurerait un écran sans rail).
-
-## [5.0.2] — 2026-08-02
-### Le rail A→Z, deuxième terme : la marge basse du matériel
-
-Signalé à l'usage après la v5.0.1 : « ça persiste en partie, surtout quand on scroll vers le bas
-sur le rail — il remonte ». La v5.0.1 avait traité `--vvh` et laissé, dans la même formule, un
-second terme qui bouge exactement pour la même raison.
-
-- **`env(safe-area-inset-bottom)` n'est pas une constante dans Safari iOS.** La barre d'outils du
-  bas COUVRE la bande de l'indicateur d'accueil : l'inset vaut **0 tant qu'elle est déployée** et
-  saute à **~34 px dès qu'elle se replie** — c'est-à-dire au défilement. La hauteur du rail perdait
-  alors 34 px et les lettres centrées **remontaient de 17 px**, au mot près ce qui a été rapporté.
-  Le terme est retiré : `100svh` est déjà la hauteur *barre déployée*, son bord bas se situe donc
-  au-dessus de cette barre, donc au-dessus de l'indicateur — on ne découvre rien.
-- **En app INSTALLÉE, l'arbitrage s'inverse, et c'est pourquoi la règle est dédoublée** : sans
-  barre d'outils, `svh` descend jusqu'au bord de l'écran, indicateur compris — mais l'inset y est
-  constant, faute de chrome qui bouge. Il est retranché sous `@media (display-mode:standalone)`,
-  et là seulement.
-- **Règle générale** : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est
-  aussi suspect que `--vvh`.
-- **Témoin STATIQUE, et c'est délibéré** (4 contrôles) : les deux termes fautifs sont **invisibles
-  en headless** — `--vvh` y vaut une hauteur qui ne varie jamais faute de barre d'outils, et
-  l'inset y vaut 0, qu'aucune API ne permet de simuler. Un contrôle dynamique serait donc resté
-  VERT sur le défaut, le pire cas du dossier. On mesure la SOURCE : la hauteur du rail étroit ne
-  cite ni `--vvh`, ni `dvh`/`lvh`, ni l'inset bas hors de la branche `standalone`. Vérifié capable
-  d'échouer (terme réintroduit → rouge, fichier restauré à l'octet).
-
-#### Et la vraie cause, signalée **depuis la PWA** — donc sans barre d'outils ni inset qui bougent
-
-Les deux points ci-dessus étaient justes mais **ne pouvaient pas expliquer** le défaut chez
-quelqu'un qui n'a ni barre d'outils ni marge basse variable. Deux dernières entrées dynamiques
-restaient, toutes deux invisibles sur Blink et toutes deux actives en PWA.
-
-- **Un saut se calcule désormais en ABSOLU, jamais en relatif.** Le saut était un déplacement
-  RELATIF (`scrollBy`, `scrollTop +=`) dont le pas se déduisait d'un `getBoundingClientRect()` —
-  c'est-à-dire de la position **déjà rendue** — puis s'ajoutait à la position **courante**. Sur
-  Blink les deux sont la même chose, le défilement étant synchrone : la sonde le confirme (course
-  monotone de 0 à 1908 px, aucune oscillation). **Sur iOS le défilement est asynchrone** : pendant
-  un glisser, le rect peut refléter une position que le compositeur n'a pas encore appliquée alors
-  que `scrollY` est déjà à jour. On ajoute alors un pas déjà parcouru — on dépasse —, le mouvement
-  suivant calcule un pas négatif pour corriger, et à 60 évènements par seconde cela devient une
-  **oscillation : on descend, ça remonte**. La cible est calculée dans les offsets de mise en page
-  (indépendants de toute position de défilement) et posée en absolu : deux appels pour la même
-  lettre visent exactement le même point, **idempotent par construction**.
-- **La boîte du rail est gelée dans `--azr-top`, posée au rendu.** C'était la dernière entrée
-  dynamique de sa géométrie : le haut valait `--hdr-h`, propriété que `syncHdrScroll` **réécrit à
-  chaque défilement** depuis un rect de l'en-tête **collant**. Sur Blink un sticky est repositionné
-  avant l'évènement, donc la mesure est toujours juste (vérifié : `--hdr-h` constante sur toute la
-  course) ; sur iOS, où défilement et collants sont composités, rien ne le garantit — et le rail
-  étant FIXE, une seule valeur transitoire lui déplace le haut **et** la hauteur, donc son centre.
-  Le haut est mesuré au rendu, puis reposé au redimensionnement et à la rotation seulement.
-- **Géométrie inchangée au repos**, mesuré avant/après : boîte à 168 px de haut sur 670 px de
-  haut à 390 px, saut atterrissant à 8 px sous les couches collantes dans les deux dispositions.
-- **Témoins** (9 de plus) : statiques pour ce qu'aucun moteur headless ne reproduit (le saut ne
-  cite ni `scrollBy` ni `scrollTop +=` ; la boîte passe par `--azr-top`), dynamiques pour ce qui
-  se mesure (la lettre atterrit sous les couches collantes ; **deux sauts de suite ne déplacent
-  plus rien**, l'idempotence étant ce qui casse l'oscillation), à 390 et 1100 px — les deux voies
-  de défilement. Vérifiés capables d'échouer, fichier restauré à l'octet.
-
-#### Et la cause restante n'est pas une mesure : c'est le REBOND de fin de page
-
-Signalé à l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le
-bounce ». C'est l'observation qui manquait — et elle explique pourquoi aucun des correctifs
-précédents ne pouvait suffire.
-
-- **Pendant le rubber-band, WebKit TRANSLATE le document *et* les éléments `position:fixed`.** Le
-  rail part avec le rebond, puis revient — sous le doigt qui le vise. Ce n'est pas une valeur qui
-  change : c'est une transformation appliquée au rendu, par le compositeur, **en dehors de toute
-  mesure lisible en JS**. Aucune formule de hauteur ne s'en protège, et aucun moteur headless ne
-  la reproduit.
-- **`overscroll-behavior-y:none`, et SEULEMENT PENDANT LA VISÉE** (`html.azr-aim`, posée au
-  `pointerdown` sur le rail, retirée au relâchement). ⚠ Le premier jet la posait en permanence sur
-  l'accueil : le rail était corrigé, mais **sur WebKit `overscroll-behavior` n'ampute pas que le
-  rebond — il ampute aussi l'INERTIE** (signalé à l'usage : « le scroll des cartes n'est plus très
-  ergonomique, s'arrête, est lent »). Le geste le plus fréquent de l'écran payait donc le confort
-  d'un geste rare. Bornée au geste, la règle a aussi la portée juste : le rebond n'a besoin d'être
-  supprimé que pendant qu'on vise une surface fixe. Elle est posée au `pointerdown` — donc avant
-  que WebKit ne fige les propriétés du défileur pour la séquence tactile, les évènements pointeur
-  y précédant les évènements tactiles — et un **filet** la retire au niveau du document (en
-  capture) et au passage en arrière-plan : une classe restée posée serait le défaut d'origine, en
-  pire, parce que rien ne le dirait.
-- **Borné au palier étroit** : en voie large l'accueil est une coque fixe (le document ne défile
-  pas) et le rail y est `absolute` dans le flux — le rebond ne l'a jamais déplacé. Les fenêtres
-  gardent leur `contain`. La déclaration vit sur `html` **et** sur `body` : la propagation vers le
-  viewport se fait depuis la racine, la poser sur le corps seul est sans effet.
-- **Témoins** (9 de plus) : ceux-ci **se mesurent**, et c'est la PORTÉE qui est vérifiée, pas la
-  présence — au repos le défilement du document est celui du système, pendant la visée le rebond
-  est supprimé, au relâchement il revient ; intact en lecture, intact à 1100 px même pendant la
-  visée, `contain` intact sur les fenêtres. Vérifiés capables d'échouer dans les deux sens (règle
-  retirée → rouge ; règle reposée en permanence → rouge sur « au repos »). 643 contrôles doctrine.
-
-## [5.0.1] — 2026-08-02
-### Le rail A→Z cesse de bouger sous le doigt
-
-Signalé à l'usage, vidéo à l'appui : « il bouge sous mon doigt alors qu'il est censé rester fixe ».
-
-- **La hauteur du rail étroit passe de `--vvh` à `100svh`.** En voie étroite, le rail est
-  `position:fixed`, borné en haut par `--hdr-h` et en hauteur par `--vvh` —
-  c'est-à-dire `visualViewport.height`, **la mesure qui suit la barre d'outils du navigateur
-  mobile**. Or cette barre se replie précisément **pendant** un défilement : la boîte grandit, les
-  lettres centrées descendent de la moitié de l'écart, la lettre visée change sous le doigt, le
-  rail défile ailleurs — et comme viser une lettre FAIT défiler, l'asservissement s'entretient
-  lui-même. C'est le défaut de la v4.73.0, revenu avec le recentrage de la v5.0.0, qui avait gardé
-  la hauteur dynamique. `100svh` est le **small viewport** : la hauteur qu'a la fenêtre barre
-  d'outils déployée, donc une constante que ni le défilement ni le repli ne touchent. La boîte ne
-  peut jamais dépasser le bord visible (elle est bornée par le plus petit des deux états), et le
-  test de débordement de `bindAzRail` — celui qui masque le rail plutôt que de couper des lettres —
-  devient fiable, n'étant plus mesuré sur une hauteur qui change d'un instant à l'autre.
-  **Le centrage vertical est conservé** (décision de l'auteur, v5.0.0) : ce qui est corrigé est la
-  BOÎTE, pas l'alignement.
-- **Le mapping doigt → lettre est relevé UNE FOIS, à la prise.** Il était re-mesuré à chaque
-  mouvement : toute géométrie qui bougeait pendant le geste changeait la lettre visée sans que le
-  doigt bouge. La boîte étant désormais constante, ce relevé unique ne change plus rien en
-  pratique — il rend le geste insensible **par construction** à une géométrie qui bougerait demain,
-  et il tient la discipline du projet (dans une phase de lecture, on ne lit qu'une fois).
-- **Témoin** dans `audit-doctrine` (330 · 390 · 700 · 1000 · 1400 · 1600 px) : on simule le repli
-  de la barre en posant `--vvh`, et l'on mesure le déplacement de la **première** lettre — c'est
-  elle que le doigt vise. Vérifié capable d'échouer : avec l'ancienne règle, **60 px** de
-  déplacement sur les trois largeurs étroites ; 0 px après. 620 contrôles doctrine (614 avant).
-
-## [5.0.0] — 2026-08-02
-### Le modèle v4, la bibliothèque unique, et six échelles qui cessent d'être déclaratives
-
-Première **majeure** depuis la 4.0.0, et la première **rupture de format** du projet. Elle regroupe
-83 livraisons faites sous le numéro 4.79.0 : le chantier v5 était conçu pour sortir d'un seul
-tenant, parce que ses lots se conditionnent les uns les autres — le modèle v4 rend énonçable la
-bibliothèque unique, qui rend énonçable le retrait du rail ①②③.
-
----
-
-#### ⚠ AVANT DE DÉPLOYER — deux gestes, dans cet ordre
-
-**1. Convertir les données.** La règle 12 (« ne jamais supprimer un champ du modèle ») a été
-**levée explicitement par l'auteur**, et ce qui la remplace exige un chemin de reprise écrit AVANT
-la rupture : c'est `docs/conversion-v3-vers-v4.md`. Mesuré : une aide v3 lue par la v5 **perd les
-étapes de ses blocs**, en silence — les listes du haut de fiche (critères, « Ne pas oublier »,
-surveillances, posologie, différentiels) sont, elles, récupérées. Et la perte devient définitive à
-la première écriture, l'éditeur enregistrant en continu depuis la v4.72.0.
-
-La conversion d'un fichier ne convertit ni la base, ni l'IndexedDB des autres appareils. Le
-contrôle à passer avant de publier :
-
-```sql
-select count(*) filter (where data->'items' is null) as reste_v3, count(*) as total
-from public.cognitive_aids;
-```
-
-Tant que `reste_v3` n'est pas à zéro, déployer exposerait les autres membres des bibliothèques
-partagées à des fiches vides.
-
-**2. Rejouer `supabase/schema.sql`.** Renommage de table (bloc idempotent + vues de compatibilité
-`security_invoker`), colonnes `discriminant` et items dans la liste blanche du partage. Sans lui,
-un invité recevrait des blocs pleins d'identifiants ne résolvant vers rien — c'est-à-dire une
-checklist vide en pleine réanimation, sans le moindre signal.
-
----
-
-#### Le modèle v4 — l'item devient un objet à identité
-
-Une étape était une **chaîne à une position** (`b.steps[3]`), et le projet l'a payé deux fois : un
-compte rendu de soin qui nomme le mauvais geste après une insertion, et l'impossibilité d'accrocher
-quoi que ce soit à une étape autrement que par son rang — c'est-à-dire par la chose même qui bouge.
-
-`f.items[]` est désormais **le pool** des items de l'aide, toutes portées confondues, et un bloc ne
-porte plus que des **identifiants**. Les cinq listes v3 (`confirmation`, `notForget`, `verify`,
-`posology`, `differentials`) n'existent plus comme champs : ce sont des **rôles**
-(`entry`, `do`, `watch`, `dose`, `ddx`). Le préfixe `⚠`/`△` devient `level` 1-3 — ordonné, donc
-comparable —, et `::` devient `do`/`expect`.
-
-Deux propriétés qu'une chaîne ne pouvait pas porter apparaissent : **`memory`** (★, l'étape reste
-dans son bloc *et* rejoint « Ne pas oublier ») et **`dual`** (×2, le double contrôle qu'exige
-AC 120-71B §5.2.2.5 — la seule exigence explicite de la doctrine que le modèle ne savait pas
-exprimer). Plus `phase` (héritée du bloc précédent), `discriminant`, `onDue`, `aidRev`.
-
-Renommages de l'étape C : `libraryId`→`library`, `validation`→`validatedAt`,
-`references`→`sources`, `attachments`→`docs`, `related`→`links`, `localInfo`→`local`,
-`complications`→`excursions` ; le bloc passe de `type` à `kind`, et l'aide **se déclare**
-(`v:4`, `kind:'procedure'|'reference'`).
-
-#### La bibliothèque est unique, le type est un filtre
-
-Choisir « Aides » ou « Protocoles » était une **décision préalable** : il fallait savoir de quel
-type était ce qu'on cherchait avant de pouvoir le chercher. Or le type est une propriété de
-l'auteur, pas du lecteur, qui cherche un sujet. Le répertoire A→Z réunit les deux, le type devient
-un filtre à trois crans (« Tout » par défaut), et la **tab bar basse disparaît** — 62 px de hauteur
-permanents rendus.
-
-Côté serveur, la table `fiches` devient `cognitive_aids` : un nom qui ment coûte plus cher qu'un
-renommage, et celui-ci se fait par un bloc idempotent doublé de vues de compatibilité.
-
-#### La vue de crise — l'action passe devant l'orientation
-
-Mesuré à 320 × 640, session démarrée : la première étape cochable naissait à **y = 721 px pour un
-pli à 640**. Zéro ligne à cocher à l'écran au moment de démarrer un soin. Une checklist qui
-n'affiche aucune ligne actionnable n'est pas une checklist, c'est un sommaire.
-
-Le **rail ①②③** est retiré partout (deux numérotations concurrentes dans la même colonne sont deux
-vocabulaires pour situer un même geste), le chapeau « Ne pas oublier » se replie une fois la
-session démarrée, le journal des actions remonte sous la carte du bloc, et le bandeau-titre
-disparaît en crise ordinaire — la barre porte déjà le titre en permanence. Cumul mesuré : première
-étape à **361 px** au lieu de 438, soit 56 % de l'écran au lieu de 68 %.
-
-Le sélecteur « Guidé / Statique » est remplacé par un **axe de densité** — « Un bloc » / « Toute la
-fiche », cette dernière à trois onglets (Parcours, Page SFAR, Schéma). Un segmenté **remplace la
-vue et ne ramène personne** : on prend du recul, et si l'on n'y repense pas on termine le soin dans
-un format qu'on n'avait pas choisi. Le contrôle **nomme sa destination** (« ⤢ Tout voir » /
-« ↩ Un bloc »), à position constante, et une excursion **n'écrit pas la préférence** — le format
-par défaut se règle à froid, dans Compte › Affichage.
-
-Le **mode lecteur est retiré** : mesuré, il ne gagnait qu'à 320 px (63 % de l'écran aux étapes
-contre 36 %) et **perdait à 390** (47 % contre 59 %). Sa doctrine avait d'ailleurs été abandonnée
-dès la v4.28.0.
-
-#### Le design system cesse d'être déclaratif
-
-Quatre échelles fermées deviennent **auto-exécutoires**, parce que partout où une règle est restée
-déclarative, elle a fui : l'espacement n'avait **aucun token** (1 356 déclarations de 1 à 26 px),
-les rayons avaient **dix-neuf valeurs pour trois tokens**, et les paliers de largeur comptaient
-**douze valeurs réelles pour neuf déclarées** — dont un palier déclaré qui n'existait nulle part.
-
-S'y ajoute un **quota du plancher typographique** : 11 px était employé **173 fois sur ~520
-déclarations**, soit la taille la plus utilisée de toute la feuille. Un plancher employé 173 fois
-n'est plus un plancher, c'est le corps de texte du produit. Chaque déclaration prise isolément
-était pourtant légale — rien ne pouvait le voir.
-
-L'**accent** est confiné au disque de l'avatar : il teintait l'accueil entier et l'en-tête de
-toutes les vues, c'est-à-dire la seule couleur du produit qui ne portait **aucun sens**, dans un
-système dont la règle fondatrice est que la couleur en porte toujours un. 70 hex sur 104 ; il en
-reste 10. Le thème sombre descend à `#0a0a0c` (le noir pur maximise la halation autour du texte
-clair — gênant pour les personnes astigmates).
-
-Et **une étape cochée redevient lisible** : `opacity:.6` + barré + encre douce composaient un texte
-à **2,55:1 en clair et 1,95:1 en sombre**, sur l'état le plus fréquent de toute l'application. La
-sonde d'accessibilité ne pouvait pas le voir — elle composait l'alpha des couleurs mais ignorait la
-propriété `opacity`. Après : **5,93 et 11,15**.
-
-#### Les garde-fous
-
-Sept contrôles neufs, tous statiques donc joués à chaque commit : `check-space`, `check-radius`,
-`check-paliers`, `check-upload`, `check-harnais`, `check-icons`, plus `audit-budget` — **le premier
-harnais qui mesure une répartition** et non une propriété isolée (chrome permanent ≤ 30 % de la
-hauteur, au moins une étape cochable visible sans défiler).
-
-`audit-a11y` mesure désormais des **états** et non seulement des surfaces : il ouvrait tout au
-repos, et deux violations AA vivaient à l'écran sans qu'il les voie. `npm run audit` passe à un
-lanceur **parallèle à rapport agrégé** : la chaîne `&&` payait la somme des durées (9 min 42 s) et
-son fail-fast cachait tout ce qui suivait le premier rouge.
-
-#### Sécurité et données
-
-Toute entrée de fichier passe par **une seule porte** (`UP_KINDS` + `acceptFile`) : quatre chemins
-cohabitaient avec quatre niveaux de rigueur, et deux d'entre eux ne vérifiaient qu'un `accept` —
-c'est-à-dire une indication donnée au sélecteur, jamais une garantie. Le SVG en est exclu
-délibérément (seul format image à contenu actif) ; le HEIC y entre (c'est le format de la
-photothèque iPhone). Le **dépôt hors zone** est neutralisé : un fichier lâché à 3 px d'une zone
-faisait naviguer le navigateur vers ce fichier, effaçant l'écran — y compris une session en cours.
-
-Et **mettre à jour pdf.js ne mettait pas pdf.js à jour** : le service worker le range dans un cache
-versionné par lui-même et n'écrit que ce qui manque. Remplacer les fichiers sans toucher la clé
-laissait chaque appareil déjà installé avec l'ancienne bibliothèque, indéfiniment et sans un mot —
-le pire mode de défaillance pour un composant qui analyse du contenu non maîtrisé.
-
-#### Identité
-
-La marque devient un **chronomètre coché à onglet** : le temps, la validation et le protocole dans
-un seul signe. Toutes les icônes servies sont régénérées depuis **une géométrie unique**
-(`scripts/build-icons.mjs`) — dix rasters dessinés à la main divergent.
-
----
-
-#### Vérification
-
-`npm run check` (13 contrôles) · `npm test` **880 tests, 0 échec, sur Chromium ET WebKit** ·
-`npm run audit` **18/18 harnais** (a11y 513, doctrine 614, partage 291) · `design:check` à jour.
-
-Chaque correctif de ce chantier a été **vérifié capable d'échouer** — défaut réintroduit, contrôle
-rouge, fichier restauré à l'octet : un garde-fou qui ne peut pas échouer ne prouve rien.
-
-## [4.79.0] — 2026-07-30
-### Ce qui est inerte pendant un déplacement en a enfin l'air
-
-Demande utilisateur : *« grise les boutons supprimer et B en mode déplacement pour qu'on comprenne
-qu'ils ne sont pas utilisables ; n'oublie pas de les dégriser lorsqu'on sort du mode »*.
-
-#### Le diagnostic : inertes, mais d'aspect actif
-Ils étaient bel et bien inertes depuis la **v4.77.0**, qui a rendu le
-déplacement **modal** au moyen de l'attribut natif `disabled`. Mais nos boutons portent leurs propres
-`background` et `color` : le grisé par défaut du navigateur n'apparaissait donc **nulle part**.
-Mesuré avant correction : `disabled:true`, et pourtant `color:rgb(163,46,31)` — le ✕ d'une étape
-restait rouge vif — avec `cursor:pointer`.
-
-C'est la pire configuration possible : un contrôle qui ne répond plus **sans dire qu'il est fermé** se
-lit comme une panne, pas comme un mode. La v4.77.0 avait choisi `disabled` justement parce qu'il donne
-« le grisé, la sortie du parcours de tabulation et le blocage du geste » — deux des trois seulement
-étaient vrais, et personne ne l'avait mesuré.
-
-#### L'apparence vient du scribe, au trait près
-Encre douce, filet neutre, fond `--surface-2`, ombre retirée, `cursor:not-allowed` : exactement
-`body.share-scribe`. **Une seule grammaire de « fermé » dans tout le fichier** — en inventer une
-seconde ici obligerait à les tenir accordées, et c'est le genre de dette que ce dossier a déjà payée
-plusieurs fois.
-
-**Pas d'`opacity`**, pour deux raisons qui se cumulent : la doctrine du projet l'écarte pour du texte
-(un texte à demi-opacité tombe sous AA), et surtout un voile affadirait aussi les registres **rouge et
-ambre** des rangées signalées — or ce sont eux qui portent le sens clinique. WCAG 1.4.3 exempte
-explicitement les composants **inactifs** du seuil de contraste : on baisse donc le contraste par
-l'**encre**, franchement, plutôt que par un filtre.
-
-#### Le dégrisage est structurel, pas un geste symétrique
-La règle porte sur `:disabled`, et l'attribut n'est posé que par le rendu où `state.edGrab` existe :
-reposer l'objet re-rend sans lui, et l'état visuel s'en va **avec** l'attribut. Il n'y a donc rien à
-défaire à la main — donc rien à oublier. C'est précisément la leçon que la liste de placards de la
-v4.78.0 a coûtée : un état qu'on pose à la main est un état qu'on oublie de retirer quelque part.
-
-#### Deux choses restent actives, à dessein
-La **poignée ⠿** (il faut pouvoir prendre un autre objet, ou reposer celui-ci) et le **✕ du bandeau**.
-Le témoin les mesure aussi : « tout griser » sans exception aurait enfermé l'utilisateur dans le mode.
-
-#### Vérifications
-809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
-a11y 301/301, doctrine 159/159, `audit-k5` **123/123**. **Six nouveaux témoins**, dont un qui vérifie
-d'abord que le contrôle **rencontre son cas** — que le ✕ d'étape est bien rouge au repos, seul endroit
-où la spécificité pouvait échouer (contre `.blk .li .mini`, à (0,3,0)). Défaut réintroduit : trois
-rouges, dont la trace `dis:true / rgb(163,46,31) / pointer` qui est exactement le symptôme signalé.
-
-## [4.78.0] — 2026-07-30
-### Douze défauts signalés à l'usage — dont huit créés par les trois versions précédentes
-
-Cette version ne fait presque que réparer, et la plupart des réparations portent sur du travail
-récent. Deux enseignements en ressortent, plus utiles que les correctifs eux-mêmes : **un `::before`
-est un élément de flex comme les autres**, et **toute réconciliation au rendu peut défaire le geste
-qu'on vient de faire**.
-
-#### « Schémas & captures » n'agrégeait pas — puis retirait mal
-« Une image ajoutée depuis un bloc via ＋ Image/Capture ne s'affiche pas dans la galerie, alors que
-l'inverse est vrai. » Asymétrie de **modèle** : la galerie est `f.images[]`, l'image d'un bloc est
-`b.image` (la donnée elle-même), et « ＋ Image » n'écrivait que la seconde — la galerie ne pouvait pas
-montrer ce qu'elle prétend rassembler, et le sélecteur de bloc de la v4.76.0 n'avait rien à
-sélectionner.
-
-`edSyncGallery(f)` réconcilie **au rendu**, pas au point d'ajout : c'est ce qui rattrape les fiches
-**déjà écrites**, dont les images de bloc n'ont jamais eu d'entrée de galerie. Idempotente, purement
-additive, aucun champ nouveau. Elle n'est **pas** dans `migrate()` à dessein — `migrate` court sur
-toute donnée entrante, pull de synchro compris, et grossirait `images` sur des fiches qu'on ne fait
-que lire.
-
-**Et elle a immédiatement créé son propre défaut** : « cliquer sur retirer une image ne la retire pas,
-elle apparaît toujours dans la liste ». On la sortait de `f.images`, un bloc la portait encore, la
-réconciliation la remettait au rendu suivant. Il fallait donc trancher une question que l'agrégateur
-pose : **« Retirer » dans la galerie retire l'image de l'aide entière** (galerie *et* tout bloc qui la
-porte), tandis que « Aucun bloc » — ou le « Retirer » d'un *bloc* — ne fait que **détacher**, la
-vignette restant disponible. Sortir de la galerie, c'est ne plus faire partie de l'aide.
-
-#### Le compteur prend l'anatomie de la carte de minuteur
-C'était une rangée flex **plate** de sept objets avec `flex-wrap` : sur écran étroit, ⠿ et ✕
-atterrissaient n'importe où dans l'enroulement, jamais au même endroit d'une rangée à l'autre. K7
-(v4.70.0) avait déjà résolu le problème pour le minuteur — un en-tête (nom · ⠿ · ✕) puis les réglages
-dessous. On reprend la même carte, aux **mêmes classes** : pas une ligne de CSS nouvelle. `.trow` est
-purgé (règle 14, zéro émission vérifiée), et la poignée s'aligne sur la croix par `align-self:stretch`.
-
-Deux conséquences, signalées aussitôt. **Les sélecteurs de chiffres** : `.field input[type=text]` porte
-le gabarit de tous les champs du projet mais il est borné à `[type=text]` — `input[type=number]` n'en a
-**jamais** rien reçu. Les compteurs vivaient sur `.trow input[type=number]`, partie avec `.trow` ; les
-minuteurs, sur le style **par défaut du navigateur** (bordure 2 px « inset ») depuis toujours. Aggravé
-par une addition à la liste qui pose `--line-strong` : sur une bordure UA, changer la seule *couleur*
-donne un cadre épais et sombre. Les minuteurs y gagnent enfin le gabarit qu'ils n'avaient pas.
-
-**Et le défilement vers l'objet créé** : minuteurs et compteurs partageant désormais `.tmedit`, viser
-la classe amenait au **dernier** du formulaire — donc au dernier *compteur*. On distingue par
-l'attribut d'index (`data-ti` / `data-ci`). Le témoin a dû être renforcé : créer un compteur en dernier
-ne prouvait rien, la cible ambiguë tombait juste par hasard.
-
-#### Un `::before` est un élément de flex
-« Tout le champ texte est rétréci au profit d'un “En déplacement” qui prend beaucoup de place pour
-rien. » La marque de l'objet pris est un `::before` en `width:100%`, donc un **item** de la rangée.
-Dans `.blk .li`, `flex-wrap:wrap` l'envoyait sur sa propre ligne ; `.list-edit .li` n'avait pas cette
-règle, et la marque volait la largeur au champ — **mesuré 712 px → 28 px**.
-
-#### Une liste de placards se parcourt, elle ne s'énumère pas
-« Appuyer sur Essayer puis revenir en édition — quand on scrolle, l'en-tête reste hachurée. » La
-branche de nettoyage retirait `exo` et `inv` mais pas `ess`, ajoutée en v4.76.0 : le troisième placard
-avait été posé à quatre endroits et oublié au cinquième. La liste est désormais unique et parcourue.
-Même leçon que `MUTE_SEL`/`LEAD_ONLY_SEL` — une liste tenue en double finit par diverger, et le défaut
-est **silencieux**.
-
-#### Un re-rendu rend le focus au champ qu'il vient de remplacer
-« Appuyer sur le bouton critique/vigilance referme le bandeau — il faut de nouveau sélectionner. » La
-bascule ⚠/△ re-rend l'éditeur, donc l'`<input>` est un **nouveau** nœud : focus perdu, `:focus-within`
-tombé, outils disparus. Or qualifier une étape est un geste qu'on **enchaîne**. `preventScroll` parce
-que la position est déjà la bonne : c'est le geste de l'auteur, pas une navigation.
-
-#### Un chronomètre ne sonne pas, et l'éditeur doit le dire
-Le champ « À l'échéance » (`onDue`, K7) lui était proposé — on demandait à l'auteur d'écrire l'annonce
-d'une alarme qui ne se déclencherait jamais. Un chronomètre **compte**, un cycle **sonne** : le champ
-n'appartient qu'au second, et la carte du chronomètre dit maintenant pourquoi elle ne sonne pas.
-
-#### Un bloc sans titre se nomme, il ne s'identifie pas
-Le sélecteur de cible de complication affichait `b_lz8q3`, qui ne dit rien à personne — et surtout pas
-lequel des deux blocs sans titre on choisit. On donne le **rang** (« Bloc sans titre (2) »), seule
-information qui les distingue, et c'est la position que l'auteur voit à l'écran. `targetSelect`
-(« Étape suivante ») écrivait « (bloc sans titre) » sans rang : même règle.
-
-#### La profondeur d'un objet arrondi est son ombre, pas un voile
-Deux reproches, tous deux justes, qui invalident ma première tentative. Un dégradé posé en `::before`
-est un **rectangle** : ses angles ne suivent pas le rayon, et sur une carte blanche il se lit comme une
-bande grise à bords vifs. Et il montait vers `--bg`, la couleur du **fond de page** : il *éclaircissait*
-au lieu d'assombrir — à l'envers, littéralement.
-
-Le bon outil pour un objet arrondi qui flotte est **sa propre ombre**, qui épouse le rayon par
-construction ; et pour une barre collée en bas elle doit se répandre **vers le haut**, du côté d'où
-vient le contenu. D'où le token `--shadow-up` (les ombres sont tokenisées depuis la v4.37.0, jamais
-écrites en clair) : mêmes encres et mêmes alphas que `--shadow-lg`, décalage inversé. Rien d'autre.
-
-#### Deux règles `:hover` de même spécificité, l'ancienne gagne
-En passant « Noter l'heure » en tonal j'avais ajouté `.tk-add:hover{--primary-100}` sans retirer
-l'ancien `.tk-add:hover{--primary-hi}`, le remplissage de survol d'un bouton **plein** — d'où un survol
-sombre sur un fond clair, l'inverse du sens de lecture. Corollaire du piège de cascade déjà documenté :
-quand on change le **registre** d'un composant, chercher toutes ses règles d'état, pas seulement sa
-règle de base.
-
-#### Vérifications
-809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
-a11y 301/301, doctrine 159/159, `audit-k5` **117/117**, prompt 13/13, partage 298/298. **Vingt-deux
-nouveaux témoins**, tous vérifiés capables d'échouer — dont deux qui ont dû être **refaits** parce
-qu'ils ne rencontraient pas leur défaut : l'un mesurait un nœud détaché, l'autre créait ses objets dans
-l'ordre où la cible ambiguë tombait juste par hasard. Un contrôle qui ne rencontre pas le défaut ne le
-couvre pas.
-
-## [4.77.0] — 2026-07-30
-### Ce que les trois lots avaient cassé — et deux règles de saillance remises d'aplomb
-
-Huit défauts signalés à l'usage, sept venant des lots 1 à 3. Le plus instructif n'est pas un défaut
-mais un **trou de vérification** : le pane du navigateur intégré ne déclenche **ni `resize` ni
-`matchMedia change`** sur un redimensionnement CDP — vérifié à la sonde. Un franchissement de palier
-n'y est donc pas éprouvable, et c'est exactement là qu'un défaut survit à une vérification manuelle.
-Playwright, lui, les émet : le témoin est passé par lui.
-
-#### L'éditeur ne suivait plus les paliers
-`_onReadBp` ne re-rendait qu'en vue `read`, alors que l'éditeur change de **structure** au même seuil
-que la lecture : à ≥ 1000 px le schéma vit dans la colonne collante, en dessous il est entrebâillé
-dans le flux. Redimensionner laissait donc la page telle qu'elle avait été **rendue** — schéma en bas
-d'un formulaire large, ou colonne absente sur un grand écran. Le trou préexistait (les trois colonnes
-de K11 l'avaient aussi) ; le lot 1 l'a rendu visible en donnant au schéma deux logements très
-différents. Règle : toute vue dont la structure dépend d'un palier doit être listée là.
-
-#### Abandonner un déplacement décalait l'écran
-Prendre et poser étaient ancrés depuis MK5-b ; **abandonner ne l'était pas** — le ✕ et Échap
-faisaient un `renderEditor()` nu, le retrait des interstices raccourcissait la page de leur hauteur
-cumulée, et l'écran remontait d'autant. Défaut réintroduit pour éprouver le témoin : **−223 px au ✕,
-−446 px à Échap**. Un geste **annulé** ne doit rien déplacer, pas même le regard.
-
-#### Le déplacement devient un geste modal
-Deux défauts en un. La même poignée **repose** maintenant l'objet : un interrupteur qui ne s'éteint
-que par un ✕ ailleurs à l'écran n'est pas un interrupteur. Et le reste du formulaire est **inerte** —
-c'était le plus coûteux des trois lots : on pouvait modifier ou **supprimer** l'objet tenu lui-même,
-ou celui qui précède la destination, et l'index gardé dans `state.edGrab` désignait alors autre chose.
-
-Par l'attribut natif `disabled`, pas par du CSS : il donne le grisé, retire du parcours de tabulation
-et empêche le geste — trois propriétés qu'aucune règle de style ne donne ensemble. Ce n'est pas le
-patron `share-scribe`, qui garde les contrôles cliquables pour **annoncer** un refus : ici il n'y a
-rien à annoncer, un contrôle éteint pendant qu'un objet est « en main » se comprend seul.
-
-Le bandeau de déplacement **quitte** le fieldset « Prise en charge » et couvre tout le formulaire :
-déplacer une ligne de « Ne pas oublier » n'affichait son bandeau qu'à partir de « Prise en charge ».
-
-#### Les outils ⚠ et ✕ d'une étape ne fonctionnaient pas
-Le diagnostic est une **séquence**, pas un style. `.li-tools` n'existe qu'en `:focus-within`
-(MK-flux) ; presser un outil déplaçait le focus hors du champ, `:focus-within` devenait faux, les
-outils passaient en `display:none` — et le `mouseup` retombait dans le vide, donc **aucun `click`
-n'était émis**. On voyait « le menu se replier » parce que c'est littéralement ce qui se passait.
-`preventDefault()` sur `pointerdown` annule la mise au point sans annuler le clic.
-
-Corollaire de méthode pour le témoin : il fallait de **vrais clics** Playwright. Un `.focus()`
-programmatique ne déclenche pas `:focus-within` de façon fiable en headless — même leçon que l'anneau
-de focus d'`audit-a11y`, qui a dû passer par de vraies touches Tab.
-
-#### Le guide rouge/ambre est replié par défaut
-La v4.31.0 l'ouvrait d'office pour qu'un nouveau venu voie la leçon ; l'usage dit l'inverse : il se
-répète sur **chaque** bloc d'étapes, si bien qu'une fiche à quatre blocs affichait quatre fois le
-même paragraphe. La pédagogie est ailleurs depuis la v4.65.0 — c'est la porte « ＋ » qui présente les
-registres au moment où on **choisit**. Clé renommée (`ac-cg-open`) : réutiliser l'ancienne aurait
-rouvert le guide chez tous ceux qui l'avaient replié, c'est-à-dire puni ceux qui avaient fait le geste.
-
-#### La bascule guidé ↔ statique ne remonte plus en haut
-La v4.74.2 ancrait sur le bloc **courant**, ce qui ne vaut que si une session est démarrée : sans
-elle, aucun `.cur` n'existe et l'on retombait sur `scrollTo(0,0)` — donc le saut décrit, aggravé par
-l'en-tête qui se redéploie au passage. L'ancre juste n'est pas « le bloc courant » mais **ce qu'on
-regarde** : le premier bloc dont le bas passe sous les couches collantes. Les deux vues portent l'id
-de bloc dans un attribut (`data-ovb` / `data-svgo`), donc l'ancre se **traduit** d'une vue à l'autre —
-d'où un second sélecteur d'arrivée dans `keepAnchor`.
-
-#### « Rien ne se passe » quand la porte crée un minuteur
-Rien n'était masqué : la section réapparaît bien, mais elle est en bas d'un formulaire de plusieurs
-milliers de pixels, et seules les **listes** avaient droit à l'ancrage. Un minuteur, un compteur, une
-complication ou un bloc naissaient hors de l'écran. La règle « on amène l'auteur sur ce qu'il vient
-de créer » valait depuis la v4.65.0 ; elle n'était appliquée qu'au quart.
-
-#### Deux règles de saillance remises d'aplomb
-**« Noter l'heure » n'est pas l'action primaire de l'écran.** Il l'était : en session, l'écran porte
-déjà « Continuer — … → », et c'est lui qui fait avancer le soin ; un second aplat bleu mettait un
-horodatage au même niveau de saillance qu'un geste de checklist. Il passe tonal, cible et place
-inchangées.
-
-**La porte « ＋ » devient l'unique bouton rempli de l'éditeur, et « ▶ Essayer » passe en tonal.**
-C'est un arbitrage, pas un détail : l'action primaire d'un **éditeur** est d'écrire, la porte est
-l'entrée de l'écriture, dérouler son brouillon vient après. La règle « un seul bouton rempli par
-écran » (v4.0.3) est donc tenue, dans l'autre sens. **Refusé** : un second `＋` dans l'en-tête — ce
-serait la dispersion que la v4.65.0 a supprimée.
-
-#### La synchro d'historique devient une ligne
-Un bouton pleine largeur empruntait la forme d'une **action** pour porter un **état**. C'est
-désormais une ligne « libellé à gauche, contrôle à droite » au gabarit des autres réglages depuis M5,
-avec sa pastille — verte `--ok` quand c'est « Oui », et le **mot** l'accompagne toujours (règle 8).
-
-#### Le prompt IA : les libellés se relisent après le soin
-Remarque exacte, et plus forte que sa formulation : les `label` de `timers` et de `counters` nomment
-les repères du **journal des actions** et les compteurs du **compte-rendu**, où ils sont lus hors
-contexte, parfois par quelqu'un qui n'était pas là. Consigne ajoutée — 2 à 4 mots, l'unité entre
-parenthèses (« Adrénaline (mg) »), jamais « Compteur 1 », jamais une phrase — avec son témoin.
-
-#### Ce qui n'a pas changé, et pourquoi
-**L'anneau d'annulation reste pas-à-pas**, sans liste des cinq derniers gestes : nommer chaque point
-de reprise exigerait un libellé par site de mutation, exactement la liste à maintenir que `edCommit`
-et `persistLive` ont permis de ne pas écrire, et qui divergerait au premier geste ajouté. Presser
-trois fois « ↶ » donne le même résultat qu'un menu à trois entrées, sans ce coût. Le plafond reste
-20 — au-delà ce n'est plus une annulation mais une restauration, et elle a son outil (« Versions »).
-
-#### Vérifications
-809 tests × 2 moteurs, `npm run check` vert, **seize harnais verts** (`npm run audit` en sortie 0),
-a11y 301/301, doctrine 159/159, `audit-k5` **93/93**, prompt 13/13, partage 298/298. **Dix-sept
-nouveaux témoins**, tous vérifiés capables d'échouer. Un témoin antérieur corrigé au passage : il
-laissait un objet « en main », ce qui — depuis que le déplacement est modal — éteignait silencieusement
-tous les contrôles mesurés ensuite. Un témoin qui laisse un état derrière lui fait échouer les autres
-pour la mauvaise raison.

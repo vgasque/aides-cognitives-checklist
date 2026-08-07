@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-wHCxqI5VB9NhFvYaRapKkYZKss23QYT/JuuEnNKvEKk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-I/1KhEg+I5pkmIiJzV5nPWtbc+CjwFZj3hMa5A7byoo=' 'sha256-ziE4Nb0toFAikHz5g1t2mvW3WUawYAs41YBvqbEAkf8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3152,6 +3152,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      commence, et l'écart le sépare de ce qui suit. */
   .flow-ctrl.cx-back-top{margin:0 0 10px}
   .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
+  /* JALONS DE BOUCLE (v5.5.0, P1) — modèle ECL : la ligne existe dès le premier passage
+     (estompée, condition en toutes lettres, progression vivante en mono), seul son ÉTAT change au
+     seuil. Paire --verify/--verify-soft = celle des étapes △, déjà auditée ; le renvoi ⚡ reprend
+     la grammaire du contour d'alerte (jamais rempli — un aplat rouge permanent désensibilise). */
+  .jl-wrap{margin:0 0 10px}
+  .jl-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;font-size:12px;color:var(--ink-soft);border-top:1px solid var(--line)}
+  .jl-row:first-child{border-top:0}
+  .jl-cond{font-weight:700}
+  .jl-tx{flex:1 1 auto;min-width:0}
+  .jl-prog{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12px;color:var(--ink-soft);background:var(--tag-bg);border-radius:999px;padding:1px 8px;white-space:nowrap}
+  .jl-row.on{background:var(--verify-soft);box-shadow:inset 3px 0 0 var(--verify);border-top:0;border-radius:var(--radius-sm);color:var(--verify);font-weight:700;padding:8px 10px}
+  .jl-row.on .jl-prog{background:var(--surface);color:var(--verify)}
+  .jl-row.on+.jl-row{border-top:0}
+  .jl-go{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid var(--critical-bd);border-radius:var(--radius-sm);background:var(--surface);font-family:inherit;font-size:13.5px;font-weight:700;color:var(--critical);cursor:pointer;flex:0 0 auto}
+  .jl-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Le jalon dans les trois vues de STRUCTURE : INERTE, encre douce, condition en gras — jamais
+     d'aplat (l'Échelle est désaturée par doctrine ; le registre VIVANT est sur la carte du bout). */
+  .pl-jll{list-style:none;margin:4px 0 0;padding:0;font-size:12px;color:var(--ink-soft)}
+  .pl-jll li{padding:2px 0}
+  .pc-jl{font-size:12px;color:var(--ink-soft);padding:4px 0}
+  .sv-jl{margin:4px 0 0;font-size:12px;color:var(--ink-soft)}
+  /* Éditeur des jalons : carte au ton du chrome (--surface-2), et le champ NUMÉRIQUE reçoit son
+     gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
+  .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2)}
+  .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
+  .jl-e1 .tk-del{margin-left:auto}
   .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -4239,6 +4266,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-plan-h{flex-wrap:wrap}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
   .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
+  /* Marqueur de JALON de l'Échelle (v5.5.0) — SA classe, pas `.pl-x` : celle-ci est à 3,94:1
+     (attrapé par audit-a11y à la première mesure — le ×n, conditionnel, n'y passait jamais).
+     Encre douce = 4,5:1+, et le △ reste une FORME dans une colonne désaturée. */
+  .pl-jlm{font-size:12px;font-weight:600;color:var(--ink-soft);margin-left:6px}
   .pl-q{font-size:11px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
@@ -6469,7 +6500,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.4.4';
+const APP_VERSION='5.5.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -7651,6 +7682,55 @@ function cxListHtml(list,curId){
       const ici=!!curId&&c.target===curId;
       return `<button type="button" class="cx-item${ici?' ici':''}" data-cxgo="${esc(c.target)}"${ici?' disabled':''}><span class="cx-item-ic" aria-hidden="true">⚡</span><span class="cx-item-tx"><b>${esc(c.label)}</b><span class="cx-item-sub">${ici?'vous y êtes':(c.kind==='ext'?('ouvre : '+esc((t&&t.title)||'aide introuvable')+' ↗'):'interrompt le parcours — retour prévu')}</span></span></button>`;}).join('')
     +`</div>`;}
+/* ═══ JALONS DE BOUCLE (v5.5.0, P1+P2+P3) — l'ÉVOLUTION DANS la boucle ═══
+   Le déroulé en boucle était couvert (↺, passages ×n, convergence) ; ce qui n'existait pas, c'est
+   un contenu qui CHANGE au k-ième passage ou au n-ième choc — FV réfractaire après 3 CEE, 4H/4T à
+   re-balayer. L'auteur n'avait que du texte statique (bruit avant le seuil) ou une excursion dont
+   l'ENTRÉE reposait sur la mémoire du compte — l'inverse de la doctrine QRH (« jamais laissé à la
+   mémoire »), alors que le runtime CONNAÎT les deux nombres (passInfo, Runtime.counters).
+   RENDU : sur la carte du BOUT seulement (le journal est une chronologie ; le jalon est une aide
+   à la décision de MAINTENANT — les vues de structure, elles, l'annoncent d'emblée). Modèle ECL :
+   le contenu est CONSTANT — la ligne existe dès le premier passage, estompée, condition en toutes
+   lettres et progression vivante (« Chocs délivrés 2/3 ») — seul son ÉTAT change au seuil (boîte
+   au registre ATTENTION). Ambre, jamais rouge : « c'est là qu'on se trompe », pas une alerte.
+   RIEN NE SE DÉCLENCHE (règle 11) : pas de son, pas de défilement, pas de fenêtre — un texte déjà
+   affiché change d'état, l'annonce SR passe par #srLive. Le franchissement est un ≥ : un fait ne
+   s'acquitte pas (doctrine « Consigné »).
+   P2 : le renvoi `go` désigne la CIBLE d'une excursion DÉCLARÉE — le bouton réutilise `data-cxgo`
+   donc `cxEnter`, ses gardes de partage et son retour prévu (↩ Reprendre). AUCUNE navigation
+   nouvelle. Le bouton n'est TAPABLE qu'au seuil (avant, l'excursion reste joignable par sa rangée
+   ⚡ constante au pied — deux moments, pas une duplication : l'index constant s'apprend, l'action
+   au pied de l'alerte est la règle ECAM d'`onDue`).
+   Qualification réglementaire écrite AVANT développement : docs/deploiement-et-conformite.md § 2. */
+function jalonsHtml(f,b,idx){
+  const js=(b&&Array.isArray(b.milestones))?b.milestones:[];
+  if(!js.length)return '';
+  const pi=passInfo(state.nav,idx);
+  const rows=js.map((j,i)=>{
+    const p=jalonProg(j,pi.pass,j.counter?((Runtime.counters||{})[j.counter]||0):0);
+    const ex=(p.active&&j.go)?cxAll(f).find(c=>c.target===j.go):null;
+    const btn=ex?`<button type="button" class="jl-go" data-cxgo="${esc(ex.target)}" title="${ex.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">⚡ ${esc(ex.label)}${ex.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`:'';
+    return `<div class="jl-row${p.active?' on':''}" data-jli="${i}"><span class="jl-mk" aria-hidden="true">△</span><span class="jl-tx"><span class="jl-cond">${esc(jalonCondLbl(f,j))}</span> — ${fmt(j.text)}</span><span class="jl-prog" aria-label="${p.cur} sur un seuil de ${p.goal}">${p.cur}/${p.goal}</span>${btn}</div>`;});
+  return `<div class="jl-wrap">${rows.join('')}</div>`;}
+/* Repeinture CHIRURGICALE (jamais un re-rendu — leçon du quai) : appelée par `setCounterVal`, le
+   point d'étranglement des valeurs de compteur (local, distant, reset). La navigation, elle,
+   re-rend le journal, donc les jalons de passage suivent d'eux-mêmes. Le remplacement du wrap est
+   sûr côté écouteurs : `data-cxgo` est DÉLÉGUÉ sur le conteneur du journal. */
+function paintJalons(){
+  try{
+    const f=Runtime.fiche;if(!f)return;
+    const cur=main.querySelector('.ov-block.cur');if(!cur)return;
+    const wrap=cur.querySelector('.jl-wrap');if(!wrap)return;
+    const b=(f.blocks||[]).find(x=>x.id===cur.dataset.ovb);if(!b)return;
+    const avant=wrap.querySelectorAll('.jl-row.on').length;
+    const h=jalonsHtml(f,b,+cur.dataset.ovi);if(!h)return;
+    const tpl=document.createElement('template');tpl.innerHTML=h;
+    const neu=tpl.content.firstElementChild;if(!neu)return;
+    wrap.replaceWith(neu);
+    const on=[...neu.querySelectorAll('.jl-row.on')];
+    if(on.length>avant){const tx=on[on.length-1].querySelector('.jl-tx');
+      announce('Jalon atteint — '+((tx&&tx.textContent)||'').trim());}
+  }catch(e){}}
 /* ⚠ LA FENÊTRE `#cxModal` EST PURGÉE (règle 14) : l'index vit dans la carte. Le menu ⋯ y mène en
    OUVRANT le dépliant et en amenant la carte courante à l'écran — c'est une navigation DEMANDÉE
    par un tap, pas un défilement autonome (la règle 11 vise ce qui arrive sans qu'on l'ait
@@ -8795,6 +8875,31 @@ function migrate(f){if(!f||typeof f!=='object')f={};
   //   adrénaline -> repart le cycle). Référence, jamais régénérée : invalide -> '' (cf. safeCatRef).
   {const cl=(Array.isArray(f.counters)?f.counters:[]).slice(0,40);const ids=_uniq(cl,'n');
    f.counters=cl.map((c,i)=>({id:ids[i],label:sstr(c&&c.label,120),step:Math.max(1,Math.min(9999,Math.round(Number(c&&c.step))||1)),start:Math.max(0,Math.min(1e9,Math.round(Number(c&&c.start))||0)),timerId:safeCatRef(c&&c.timerId)}));}
+  /* JALONS DE BOUCLE (v5.5.0, P1) — b.milestones : [{at:'pass'|'count', n, counter, text, go}].
+     Un contenu de boucle qui ÉVOLUE (« après 3 CEE : envisager FV réfractaire ») n'avait aucune
+     écriture possible : soit du texte statique (bruit avant le seuil), soit une excursion dont
+     l'ENTRÉE reposait sur la mémoire du compte — l'inverse de la doctrine QRH. Le jalon est une
+     règle ÉCRITE PAR L'AUTEUR que l'app met en avant au moment que l'auteur a défini — même
+     famille qu'`onDue` (K7) ; qualification écrite AVANT développement dans
+     docs/deploiement-et-conformite.md § 2 (« Le cas des jalons de boucle »).
+     ASSAINISSEMENT ICI, ET PAS AILLEURS (règle 5) — ce bloc court APRÈS les compteurs et les
+     excursions, seul point où leurs ids finaux existent : un jalon 'count' dont le compteur ne
+     résout pas est REJETÉ (un jalon qui ne peut pas mesurer est mort — même règle que les cibles
+     d'excursion invalides) ; un renvoi `go` qui ne désigne pas la cible d'une excursion DÉCLARÉE
+     est retiré (le renvoi réutilise cxEnter : hors excursion il n'aurait pas de retour prévu). */
+  {const cnIds=Object.create(null);f.counters.forEach(c=>{cnIds[c.id]=1;});
+   const exT=Object.create(null);f.excursions.forEach(c=>{exT[c.target]=1;});
+   f.blocks.forEach(b=>{
+     b.milestones=(Array.isArray(b.milestones)?b.milestones:[]).slice(0,3)
+       .map(j=>{if(!j||typeof j!=='object')return null;
+         const at=j.at==='count'?'count':'pass';
+         const n=Math.round(Number(j.n));if(!(n>=1))return null;
+         const counter=(at==='count'&&typeof j.counter==='string'&&cnIds[j.counter])?j.counter:'';
+         if(at==='count'&&!counter)return null;
+         const text=sstr(j.text,140);if(!text)return null;
+         const go=(typeof j.go==='string'&&exT[j.go])?j.go:'';
+         return {at,n:Math.min(99,n),counter,text,go};})
+       .filter(Boolean);});}
   // Rappel du modèle (champs communs posés par sanitizeEntityCommon, tous rétrocompatibles) :
   //   status '' = validée (défaut historique) | 'review' (badge △) | 'draft' (bandeau, masquée aux
   //   lecteurs d'une biblio partagée ; un ancien client traite 'review' comme validée) ;
@@ -8884,7 +8989,7 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
   return f;}
 // Deuxième fiche d'exemple : arrêt cardiaque. Illustre une DÉCISION rebouclée (le rythme est
 // réévalué à chaque cycle) et un minuteur À CYCLE de 2 min (RCP). À relire/valider avant tout usage.
-function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
+function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b'),bx=uid('b'),cn1=uid('n');
   const f=migrate({id:uid(),title:'Arrêt cardiaque (ACR) — algorithme',discriminant:'adulte',code:'ACR',category:catId||'',validatedAt:'2025-01',
     local:'Réanimateur / renfort : …\nEmplacement défibrillateur : …\n(adaptez à votre établissement)',
     confirmation:['Inconscient, ne réagit pas','Pas de respiration normale (ou gasps)','Pas de pouls central en 10 s'],
@@ -8897,19 +9002,33 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b');
     posology:['△ **ADRÉNALINE — IV/IO** : 1 mg toutes les 3–5 min (après le 3ᵉ choc si choquable)',
       '△ **AMIODARONE — IV/IO** : 300 mg après le 3ᵉ choc, puis 150 mg après le 5ᵉ'],
     timers:[{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true,onDue:'Analyse du rythme — relais du masseur'}],
-    counters:[{id:uid('n'),label:'Chocs délivrés',step:1,start:0},{id:uid('n'),label:'Adrénaline (mg)',step:1,start:0}],
+    counters:[{id:cn1,label:'Chocs délivrés',step:1,start:0},{id:uid('n'),label:'Adrénaline (mg)',step:1,start:0}],
+    /* UNE COMPLICATION « à tout moment » (lot T13 : les exemples exercent la doctrine — c'est
+       aussi la porte du JALON ci-dessous) : bloc HORS chaîne, on y entre par l'événement et le
+       retour ramène à l'analyse commune, qui reste toutes les 2 min. */
+    excursions:[{label:'FV réfractaire (CEE inefficaces)',target:bx}],
     start:b1,
     // v4.11.1 : mêmes illustrations ⚠ + « challenge :: réponse » que la 1ʳᵉ fiche d'exemple.
     blocks:[
       {id:b1,kind:'do',title:'Reconnaissance & alerte',image:null,items:['Vérifier conscience et respiration','Alerter, appeler du renfort + défibrillateur','△ Relais du masseur :: toutes les 2 min — annoncer le changement','⚠ RCP immédiate :: 30:2 — sans délai'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
-      {id:bd,kind:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}]},
+      /* JALON DE BOUCLE (v5.5.0) : la boucle « choquable / non choquable » reste identique à
+         chaque tour, mais son CONTENU évolue au compte — après 3 CEE la question de la FV
+         réfractaire se pose, et la laisser à la mémoire de l'équipe est exactement ce que la
+         doctrine QRH refuse. Le seuil se mesure sur le COMPTEUR (un passage non choquable ne
+         compte pas un choc), le renvoi ⚡ ouvre l'excursion, et l'analyse reprend ensuite —
+         commune avec le début, toutes les 2 min. */
+      {id:bd,kind:'decision',title:'Analyse du rythme',image:null,question:'Rythme choquable (FV / TV sans pouls) ?',options:[{label:'Oui — choquable',target:b2},{label:'Non — non choquable',target:b3}],
+       milestones:[{at:'count',counter:cn1,n:3,text:'3 CEE sans RACS — envisager une **FV réfractaire**',go:bx}]},
       {id:b2,kind:'do',title:'Choquable (FV / TVsp)',image:null,items:['⚠ Choc immédiat :: puis reprise RCP 2 min','Adrénaline :: 1 mg après le 3ᵉ choc, puis / 3–5 min','Amiodarone :: 300 mg après le 3ᵉ choc'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
       /* PARCIMONIE PAR FICHE (v5.0.0) : 2 « ⚠ » (RCP immédiate — LE memory item —, choc immédiat)
          et 2 « △ » (relais du masseur, moment de l'adrénaline en non choquable). L'adrénaline du
          bloc non choquable est AMBRE, pas rouge : le risque n'est pas de l'oublier — c'est la
          première drogue du bloc — mais de SE TROMPER de moment (immédiatement ici, après le 3ᵉ
          choc côté choquable) : registre « c'est ICI qu'on se trompe ». */
-      {id:b3,kind:'do',title:'Non choquable (AESP / asystolie)',image:null,items:['RCP 2 min sans interruption','△ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd}
+      {id:b3,kind:'do',title:'Non choquable (AESP / asystolie)',image:null,items:['RCP 2 min sans interruption','△ Adrénaline :: 1 mg immédiatement, puis / 3–5 min','Traiter les causes réversibles :: 4H / 4T'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
+      /* Bloc d'excursion HORS chaîne (aucun next n'y mène) : gestes UNIQUES du changement de
+         stratégie — la boucle d'analyse, elle, ne change pas. Placeholders à adapter (T13). */
+      {id:bx,kind:'do',title:'FV réfractaire',image:null,items:['Changer la position des pads :: antéro-postérieure','Vérifier contact, gel et énergie maximale','Poursuivre RCP — analyse toutes les 2 min inchangée'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null}
     ]});
   /* Même règle que la 1ʳᵉ fiche : le memory item de l'ACR est la RCP immédiate — c'est ce qui se
      fait de mémoire, avant d'ouvrir quoi que ce soit. Pas de ×2 ici : le geste est continu, pas un
@@ -9119,6 +9238,30 @@ function cxAll(f){if(!f||!Array.isArray(f.excursions))return [];
     .map(c=>({label:c.label,target:c.target,kind:ids.has(c.target)?'block':'ext'}));}
 function cxDetached(f){const order=new Set(flowPlan(f).order);
   return cxAll(f).filter(c=>c.kind==='block'&&!order.has(c.target));}
+/* JALONS DE BOUCLE — helpers PURS (v5.5.0, P1). jalonProg : progression d'un jalon — `pass` =
+   rang du passage courant du bloc (passInfo), `cnt` = valeur courante du compteur (jalon
+   'count'). Le franchissement est un ≥, jamais un == : un jalon franchi RESTE franchi (c'est un
+   fait, pas une alerte à acquitter — doctrine « Consigné », registre du fait passif). */
+function jalonProg(j,pass,cnt){
+  const goal=(j&&j.n)||1,cur=Math.max(0,(j&&j.at==='count')?(cnt||0):(pass||0));
+  return {cur,goal,active:cur>=goal};}
+/* La CONDITION en toutes lettres — c'est elle qui rend le jalon « jamais caché qui ne s'annonce » :
+   partout où il s'affiche avant son seuil, il dit à quel moment il comptera. */
+function jalonCondLbl(f,j){
+  if(!j)return '';
+  if(j.at==='count'){const c=((f&&f.counters)||[]).find(x=>x&&x.id===j.counter);
+    return ((c&&c.label)||'compteur')+' ≥ '+j.n;}
+  return 'à partir du '+(j.n===1?'1ᵉʳ':j.n+'ᵉ')+' passage';}
+/* P4 (v5.5.0) — L'ANNOTATION DE CYCLE d'une boucle : quand la fiche déclare UN SEUL minuteur à
+   cycles (interval + autoloop), sa période annote les renvois de boucle TEXTUELS (« ↺ reprendre
+   à n · toutes les 2 min »). À deux minuteurs de cycle l'attribution serait une DEVINETTE — on
+   n'annote rien (présentation seule, jamais une déduction). Les renvois COMPACTS (« ↺1 » mono de
+   l'Échelle) restent nus : leur largeur est comptée depuis v4.55.3. */
+function cycleHint(f){const ts=((f&&f.timers)||[]).filter(t=>t&&t.type==='interval'&&t.autoloop&&t.seconds>0);
+  return ts.length===1?ts[0]:null;}
+function cycleTxt(f){const t=cycleHint(f);if(!t)return '';
+  const s=t.seconds;
+  return ' · toutes les '+(s%60===0?(s/60)+' min':(s<60?s+' s':Math.floor(s/60)+' min '+(s%60)+' s'));}
 // État AFFICHABLE de chaque bloc (ordre du PLAN — numérotation commune) — source unique des
 // chips/minimap (v4.8.0) et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
 // (sentinelle — les vrais seq commencent à 1 ; cocher déclenche alors l'EXTENSION DE VISITE).
@@ -14120,7 +14263,13 @@ function cnLogTxt(id){
      seul vocabulaire serve aux deux endroits. */
   return 'consigné '+esc(t0?('T+'+fmtMs(Math.max(0,last-t0))):fmtHMS(last));}
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
-function setCounterVal(id){const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
+/* ⚠ setCounterVal est LE point où une valeur de compteur atteint le DOM (local, distant, reset) :
+   c'est donc ici que les JALONS de la carte courante se repeignent (v5.5.0, P1) — et AVANT le
+   garde `!el`, parce qu'en voie étroite le panneau des compteurs peut être ABSENT du DOM (volet
+   fermé) pendant qu'un évènement DISTANT incrémente : la valeur n'a nulle part où s'écrire, le
+   jalon, lui, est sur la carte et doit suivre. */
+function setCounterVal(id){paintJalons();
+  const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
   const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);}
 /* v5.4.0 — LE JOURNAL REJOINT LE PANNEAU DES MINUTEURS (décision utilisateur, vécu en situation
    réelle : « pour changer l'un puis l'autre on doit passer au-dessus des étapes ») : minuteurs,
@@ -15515,7 +15664,9 @@ function ovInstHtml(f,id,idx,topo,pres){
        construisait pas — le bloc courant était une décision). Sans lui, entrer sur une
        complication dont la cible est une décision laissait sans retour : le dispositif promet que
        le retour n'est jamais laissé à la mémoire (AC 120-71B), il ne le tenait qu'à moitié. */
-    bodyH=`${cxBackHtml(f,seq,tip)}${imgH}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f),false,id):''}`;
+    /* Les JALONS s'affichent AVANT la question (v5.5.0) : le cas canonique — « 3 CEE sans RACS :
+       envisager FV réfractaire » — se lit au moment où l'on va RÉPONDRE à l'analyse, pas après. */
+    bodyH=`${cxBackHtml(f,seq,tip)}${imgH}${tip?jalonsHtml(f,b,idx):''}<div class="question">${fmt(b.question)||'…'}</div><div class="options">${opts}</div>${tip&&cxAll(f).length?cxRowHtml(cxAll(f),false,id):''}`;
     count=taken?'✓':'?';}
   else{
     const steps=clean(stepsOf(b));
@@ -15617,7 +15768,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        const cxs=cxAll(f);
        if(cxs.length||tip||verH)ctl+=cxRowHtml(cxs,tip,id,verH);
        if(tip)ctl+=tkAckHtml(f);}}
-    bodyH=`${cxBackH}${imgH}${legH}${listeH}${ctl}`;
+    bodyH=`${cxBackH}${imgH}${legH}${tip?jalonsHtml(f,b,idx):''}${listeH}${ctl}`;
     count=steps.length?dn+'/'+steps.length:'—';}}
   const takenH=taken?`<span class="ov-ans">→ ${esc(stripBold(taken.label)||'option')}</span>`:'';
   // Boutons d'en-tête : en vérification -> ✕ seulement ; sinon « Lecteur » (bout du journal,
@@ -16106,11 +16257,16 @@ function ovPlanLadderHtml(f,plan,num,md,off){
        est cité par le journal et par le statique, et le taire ici obligeait à compter les rangées
        pour retrouver « le bloc 2 ». Et l'ambre part avec : c'était le seul registre du marqueur
        dans une colonne désaturée. */
-    h+=lbl+`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"><span class="n" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}</span><span class="g">${m.cur?'<b class="pl-here">ICI</b>':g}</span></div>`;
+    /* JALONS (v5.5.0) : la ligne ANNONCE qu'il en existe (marqueur △ — une FORME, pas une couleur :
+       la colonne est désaturée, le registre reste dans la colonne d'action), le détail déplié les
+       dit en toutes lettres, condition comprise. Rien de caché qui ne s'annonce. */
+    const njl=(Array.isArray(b.milestones)?b.milestones:[]).length;
+    h+=lbl+`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"><span class="n" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}${njl?`<span class="pl-jlm" aria-hidden="true">△</span><span class="sr-only">${njl} jalon${njl>1?'s':''} de boucle</span>`:''}</span><span class="g">${m.cur?'<b class="pl-here">ICI</b>':g}</span></div>`;
     if(open){
       const det=dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
         :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
-      h+=`<div class="pl-lx"><p class="pl-lxt">${esc(b.title)||''}</p>${det}<button type="button" class="pl-lnk" data-plgo="${esc(it.id)}">→ aller à ce bloc</button></div>`;}
+      const jlx=njl?`<ul class="pl-jll">${b.milestones.map(j=>`<li>△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</li>`).join('')}</ul>`:'';
+      h+=`<div class="pl-lx"><p class="pl-lxt">${esc(b.title)||''}</p>${det}${jlx}<button type="button" class="pl-lnk" data-plgo="${esc(it.id)}">→ aller à ce bloc</button></div>`;}
   });
   /* Section « À TOUT MOMENT » (v4.26.0) : les blocs de complication HORS tronc, SANS numéro de
      séquence (ils s'entrent par l'événement, pas par la position — les numéroter les ferait lire
@@ -16823,21 +16979,27 @@ function ovParcoursHtml(f){
     if(it.k==='link'||it.k==='end'){
       if(prev!=='bropen')return;prev=it.k;
       h+=it.k==='end'?jmp(depth,'▪ fin de prise en charge')
-        :jmp(depth,(it.back?'↺ reprendre à ':'→ ')+(num[it.to]||'?')+' '+titreDe(it.to),it.back);
+        :jmp(depth,(it.back?'↺ reprendre à ':'→ ')+(num[it.to]||'?')+' '+titreDe(it.to)+(it.back?cycleTxt(f):''),it.back);
       return;}
     if(it.k!=='block')return;
     prev='block';
     const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
     const dec=b.kind==='decision',m=md[it.id]||{};
+    /* JALONS (v5.5.0) : condition en toutes lettres, INERTE comme tout le reste de la vue. */
+    const jl=(Array.isArray(b.milestones)?b.milestones:[]).map(j=>`<div class="pc-jl">△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</div>`).join('');
     h+=`<section class="pc-card d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}">`
       +`<div class="pc-h"><span class="pc-n${m.complete?' ok':''}" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span>`
       +`<span class="pc-ht">${esc(b.title)||(dec?'Décision':'Étapes')}</span>${m.cur?'<b class="pl-here">ICI</b>':''}</div>`;
-    if(dec){h+=(b.question?`<div class="pc-q">${fmt(b.question)}</div>`:'')
+    if(dec){h+=jl+(b.question?`<div class="pc-q">${fmt(b.question)}</div>`:'')
       +'<div class="pc-opts">'+((b.options||[]).map(o=>{const t=o&&o.target&&num[o.target];
         return `<span class="pc-opt${(m.taken&&o&&o.target===m.taken)?' tk':''}">${esc(stripBold((o&&o.label)||'option'))}${t?` <b>→ ${t}</b>`:''}</span>`;}).join(''))+'</div>';}
-    else{h+=clean(stepsOf(b)).map(item).join('');
+    else{h+=jl+clean(stepsOf(b)).map(item).join('');
       const nx=b.next&&num[b.next];
-      h+=`<div class="pc-foot">${nx?`→ ${nx} ${esc((f.blocks.find(x=>x.id===b.next)||{}).title||'')}`:'▪ fin de prise en charge'}</div>`;}
+      /* P4 (v5.5.0) : un `next` qui REMONTE est une boucle — le pied le dit avec le vocabulaire
+         de l'Échelle (« ↺ reprendre à n ») et porte la période du cycle quand elle est sans
+         ambiguïté (UN seul minuteur à cycles). */
+      const loop=!!nx&&nx<(num[it.id]||0);
+      h+=`<div class="pc-foot">${nx?`${loop?'↺ reprendre à':'→'} ${nx} ${esc((f.blocks.find(x=>x.id===b.next)||{}).title||'')}${loop?cycleTxt(f):''}`:'▪ fin de prise en charge'}</div>`;}
     h+='</section>';});
   /* Les deux sections hors séquence ferment la vue, dans le même ordre que la colonne. */
   {const det=cxDetached(f);
@@ -16977,14 +17139,17 @@ function svTableHtml(f){
     bits.push(dec?(m.complete?'<span class="sv-ok">✓</span>':'?')
       :(m.tot?(m.complete?`<span class="sv-ok">✓ ${m.done}/${m.tot}</span>`:`${m.done||0}/${m.tot}`):'—'));
     return bits.join('');};
+  /* JALONS (v5.5.0) : une ligne télégraphique par jalon, condition en toutes lettres — INERTE
+     comme le reste du tableau (l'état vivant, lui, se lit sur la carte du journal). */
+  const jalonsH=b=>(Array.isArray(b.milestones)?b.milestones:[]).map(j=>`<p class="sv-jl">△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</p>`).join('');
   const cellH=id=>{const b=f.blocks.find(x=>x.id===id);if(!b)return '';
     const m=md[id]||{};const isOff=off.has(id);
     const steps=clean(stepsOf(b));const seq=m.seq||0;
     const lis=steps.length?`<ul class="sv-stp">${steps.map((s,ix)=>{const ck=!!(seq&&state.checked[seq+':'+id+':'+ix]);const cr=stepCR(stepText(s));
       return `<li class="${stepIsCrit(s)?'crit ':(stepIsVigil(s)?'vig ':'')}${ck?'done':''}">${fmt(cr.c)}${cr.r?` <span class="sv-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'';
-    return `<div class="sv-cell${m.complete?' done':''}${m.cur?' cur':''}${isOff?' off':''}" data-svgo="${esc(id)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Étapes'))} — aller à ce bloc"><p class="sv-h"><span class="sv-n" aria-hidden="true">${num[id]||'·'}</span><span class="sv-t">${esc(b.title)||'Étapes'}</span><span class="sv-m">${metaH(id,false)}</span></p>${isOff?'<p class="sv-off2">hors chemin</p>':''}${lis}</div>`;};
+    return `<div class="sv-cell${m.complete?' done':''}${m.cur?' cur':''}${isOff?' off':''}" data-svgo="${esc(id)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Étapes'))} — aller à ce bloc"><p class="sv-h"><span class="sv-n" aria-hidden="true">${num[id]||'·'}</span><span class="sv-t">${esc(b.title)||'Étapes'}</span><span class="sv-m">${metaH(id,false)}</span></p>${isOff?'<p class="sv-off2">hors chemin</p>':''}${lis}${jalonsH(b)}</div>`;};
   const linkH=it=>{const t=f.blocks.find(x=>x.id===it.to);
-    return `<div class="sv-jrow" data-jto="${esc(it.to)}" data-jback="${it.back?1:0}"><button type="button" class="sv-jump${it.back?' loop':''}"${it.back?` data-svloop="${esc(it.to)}"`:''} data-svref="${esc(it.to)}">${it.back?'↺':'→'} ${num[it.to]||'?'} · ${esc(stripBold((t&&t.title)||'?'))}</button></div>`;};
+    return `<div class="sv-jrow" data-jto="${esc(it.to)}" data-jback="${it.back?1:0}"><button type="button" class="sv-jump${it.back?' loop':''}"${it.back?` data-svloop="${esc(it.to)}"`:''} data-svref="${esc(it.to)}">${it.back?'↺':'→'} ${num[it.to]||'?'} · ${esc(stripBold((t&&t.title)||'?'))}${it.back?cycleTxt(f):''}</button></div>`;};
   const walk=()=>{let h='';
     while(i<items.length){const it=items[i];
       if(it.k==='brclose')return h;
@@ -17017,7 +17182,7 @@ function svTableHtml(f){
         const issue=svBranchIssue(items,br.a0,br.z);
         if(joinId&&issue&&issue.to===joinId&&!issue.back)anyMerge=true;
         return `<div class="sv-br${br.tk?' taken':''}${br.isOff?' off':''}"><div class="sv-opt${br.tk?' tk':''}">${br.tk?'<span class="sv-tk">✓ </span>':''}${fmt(br.bo.label)}${br.isOff?'<span class="sv-offtag"> · hors chemin</span>':''}</div>${br.inner}</div>`;}).join('');
-      h+=`<div class="sv-decwrap"${joinId?` data-svjoin="${esc(joinId)}"`:''}><div class="sv-band${m.cur?' cur':''}${off.has(decId)?' off':''}" data-svgo="${esc(decId)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc"><span class="sv-n" aria-hidden="true">${num[decId]||'·'}</span><span class="sv-t"><b>${esc(b.title)||'Décision'}</b>${b.question?` — ${fmt(b.question)}`:''}</span><span class="sv-m">${metaH(decId,true)}</span></div><div class="sv-fork" aria-hidden="true"></div><div class="sv-cols c${Math.min(Math.max(brs.length,1),4)}">${brH}</div>${anyMerge?'<div class="sv-merge" aria-hidden="true"></div>':''}</div>`;}
+      h+=`<div class="sv-decwrap"${joinId?` data-svjoin="${esc(joinId)}"`:''}><div class="sv-band${m.cur?' cur':''}${off.has(decId)?' off':''}" data-svgo="${esc(decId)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc"><span class="sv-n" aria-hidden="true">${num[decId]||'·'}</span><span class="sv-t"><b>${esc(b.title)||'Décision'}</b>${b.question?` — ${fmt(b.question)}`:''}</span><span class="sv-m">${metaH(decId,true)}</span></div>${jalonsH(b)}<div class="sv-fork" aria-hidden="true"></div><div class="sv-cols c${Math.min(Math.max(brs.length,1),4)}">${brH}</div>${anyMerge?'<div class="sv-merge" aria-hidden="true"></div>':''}</div>`;}
     return h;};
   /* Section « À TOUT MOMENT » (v4.26.0) : mêmes cellules que le tronc mais SANS numéro (⚡ à la
      place) — une complication s'entre par l'événement, pas par la position. Tap = svJump (entre au
@@ -18148,8 +18313,25 @@ function phaseFieldHtml(b){
     +`<option value=""${cur?'':' selected'}>${her?'— hérite : '+esc(her):'— aucune phase'}</option>`
     +liste.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}${cnt[v]?` (${cnt[v]} bloc${cnt[v]>1?'s':''})`:''}</option>`).join('')
     +`<option value="__new">＋ Nouvelle phase…</option></select></span>`;}
-function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+/* P1 (v5.5.0) — ÉDITEUR DES JALONS DE BOUCLE. Bloc par bloc, comme les étapes : un jalon
+   appartient au bloc où il se lit. Le seuil se mesure en PASSAGES ou sur un COMPTEUR de la fiche
+   (référence par id, jamais régénérée — compteur supprimé → jalon rejeté par migrate, même règle
+   qu'une cible d'excursion) ; le renvoi facultatif désigne une EXCURSION DÉCLARÉE, jamais un bloc
+   quelconque : le renvoi réutilise cxEnter, donc son retour prévu. Plafond 3 : la porte d'ajout
+   disparaît au plafond (aucun bouton mort). Lit `state.draft` (compteurs, excursions) — le
+   binder par carte n'a que le bloc sous la main. */
+function jalonEditor(b){
+  const f=state.draft||{};
+  const js=Array.isArray(b.milestones)?b.milestones:(b.milestones=[]);
+  const cns=(f.counters||[]).filter(c=>c&&c.id);
+  const exs=(f.excursions||[]).filter(c=>c&&c.label&&c.target);
+  const rows=js.map((j,i)=>{
+    const cnSel=j.at==='count'?`<select data-jlcn="${i}" aria-label="Compteur mesuré par le jalon">${cns.map(c=>`<option value="${esc(c.id)}"${c.id===j.counter?' selected':''}>${esc(c.label||'Compteur')}</option>`).join('')}</select>`:'';
+    const goSel=exs.length?`<select data-jlgo="${i}" aria-label="Renvoi du jalon vers une complication (facultatif)"><option value="">sans renvoi</option>${exs.map(c=>`<option value="${esc(c.target)}"${c.target===j.go?' selected':''}>⚡ ${esc(c.label||'Complication')}</option>`).join('')}</select>`:'';
+    return `<div class="jl-edit" data-jli="${i}"><div class="jl-e1"><select data-jlat="${i}" aria-label="Condition du jalon"><option value="pass"${j.at!=='count'?' selected':''}>au nᵉ passage</option><option value="count"${j.at==='count'?' selected':''}${cns.length?'':' disabled'}>quand un compteur atteint n</option></select><input type="number" data-jln="${i}" value="${j.n}" min="1" max="99" inputmode="numeric" aria-label="Seuil n du jalon">${cnSel}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
+  return `${js.length?`<div class="sub">Jalons de boucle — mis en avant quand le compte y est</div>${rows}`:''}${js.length<3?`<button class="add-line" data-jladd title="Un rappel qui se met en avant au nᵉ passage du bloc, ou quand un compteur atteint un seuil (ex. 3 CEE → envisager une FV réfractaire)">+ Jalon de boucle (au nᵉ passage, à n chocs…)</button>`:''}`;}
+function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${b.id}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${b.id}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -18664,6 +18846,25 @@ function bindEditorEvents(f){
        collision de noms que la leçon v4.23.2 proscrit. */
     card.querySelectorAll('[data-optdel]').forEach(btn=>btn.onclick=()=>{b.options.splice(+btn.dataset.optdel,1);if(!b.options.length)b.options.push({label:'',target:''});renderEditor();});
     card.querySelectorAll('.optedit').forEach(row=>{const oi=+row.dataset.oi;const lab=row.querySelector('[data-of]');if(lab)lab.addEventListener('input',e=>{b.options[oi].label=e.target.value;scheduleFlowPreview(f);});const tgt=row.querySelector('select[data-target]');if(tgt)tgt.addEventListener('change',e=>{b.options[oi].target=e.target.value||'';renderEditor();});});
+    /* JALONS DE BOUCLE (v5.5.0, P1) — gestes STRUCTURELS → renderEditor (ancré, focus rendu) ;
+       la frappe écrit sans re-rendre (leçon du quai) et l'auto-enregistrement passe par la
+       délégation `input` d'edCommit, comme tout le reste. */
+    {const ja=card.querySelector('[data-jladd]');if(ja)ja.onclick=()=>{
+      (b.milestones=b.milestones||[]).push({at:'pass',n:2,counter:'',text:'',go:''});
+      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
+      const nl=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] .jl-edit:last-of-type input[data-jltx]');
+      if(nl)nl.focus({preventScroll:true});};}
+    card.querySelectorAll('[data-jldel]').forEach(btn=>btn.onclick=()=>{(b.milestones||[]).splice(+btn.dataset.jldel,1);keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);});
+    card.querySelectorAll('[data-jlat]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlat];if(!j)return;
+      j.at=e.target.value==='count'?'count':'pass';
+      /* Basculer vers « compteur » pré-pointe le premier compteur de la fiche : un jalon 'count'
+         sans compteur serait rejeté par migrate — on ne fabrique jamais cet état. */
+      if(j.at==='count'&&!j.counter){const c0=(((state.draft||{}).counters)||[])[0];j.counter=c0?c0.id:'';}
+      renderEditor();}));
+    card.querySelectorAll('[data-jlcn]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlcn];if(j)j.counter=e.target.value;}));
+    card.querySelectorAll('[data-jlgo]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlgo];if(j)j.go=e.target.value;}));
+    card.querySelectorAll('[data-jln]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jln];if(!j)return;const n=Math.round(Number(e.target.value));if(n>=1)j.n=Math.min(99,n);}));
+    card.querySelectorAll('[data-jltx]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jltx];if(j)j.text=e.target.value;}));
     const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>pickFile('image',edImgTaker(f,bid),false);
     const bd2=card.querySelector('[data-bimgdel]');if(bd2)bd2.onclick=()=>{b.image=null;renderEditor();};
     /* POSER. Un objet retiré puis réinséré : l'index de destination est corrigé quand la source
@@ -19650,6 +19851,21 @@ MINUTEURS, COMPTEURS, BOUCLES
   rythme, revue des causes réversibles…). Gestes UNIQUES (accès vasculaire, intubation,
   pose de pads…) → bloc HORS boucle : chaque tour affiche des cases neuves, un geste
   unique y serait re-proposé à chaque cycle (bruit pur sous stress).
+- JALON DE BOUCLE (champ "milestones" d'un BLOC, facultatif) : quand la source dit qu'un
+  contenu de la boucle change AU COMPTE (« après 3 CEE : envisager une FV réfractaire »,
+  « au 3ᵉ passage : re-balayer les 4H/4T »), pose-le sur le bloc concerné :
+    "milestones": [ { "at": "count", "counter": "n1", "n": 3,
+      "text": "3 CEE sans RACS — envisager une FV réfractaire", "go": "cx1" } ]
+  · "at": "count" = un compteur déclaré atteint n ("counter" = id du compteur, obligatoire) ;
+    "at": "pass" = nᵉ passage du bloc ("counter" absent).
+  · "text" : télégraphique, 140 caractères max. L'application l'affiche estompé dès le
+    premier passage (condition en toutes lettres, progression vivante) puis le met en avant
+    en AMBRE quand le compte y est. Registre « c'est ici qu'on se trompe » — jamais un geste
+    vital, qui reste une étape « ⚠ » de bloc.
+  · "go" (facultatif) : "target" d'une excursion DÉCLARÉE dans "excursions" — le jalon offre
+    alors le bouton ⚡ d'entrée au moment précis où la question se pose.
+  · 1 à 3 par bloc MAXIMUM, et SEULEMENT si la source ÉNONCE le seuil : n'invente jamais un
+    seuil clinique — en cas de doute, signale-le-moi au lieu de le poser.
 - PLUSIEURS minuteurs bienvenus si la prise en charge le justifie (ex. bolus à durée
   fixe + cycle de surveillance qui reboucle).
 - "onDue" (facultatif, 120 caractères max) : CE QU'IL FAUT FAIRE quand le minuteur sonne,
@@ -19811,7 +20027,7 @@ SCHÉMA EXACT
       "blocks": [
         { "id": "b1", "kind": "do",        "title": "Mesures immédiates", "image": null, "items": ["Renfort : appel à l'aide / régulation (SMUR)", "Monitorage :: scope · SpO2 · PNI", "..."], "next": "bd" },
         { "id": "b2", "kind": "do",        "title": "Traitement", "image": null, "items": [ { "do": "Adrénaline IM, face antéro-latérale de cuisse", "expect": "0,5 mg", "level": 3, "memory": true, "dual": true }, { "do": "Remplissage", "expect": "20 mL/kg", "level": 2 } ], "next": "bd" },
-        { "id": "bd", "kind": "decision", "title": "Réévaluation", "image": null, "question": "...?", "options": [ { "label": "Oui", "target": "b2" }, { "label": "Non", "target": "b3" } ] },
+        { "id": "bd", "kind": "decision", "title": "Réévaluation", "image": null, "question": "...?", "options": [ { "label": "Oui", "target": "b2" }, { "label": "Non", "target": "b3" } ], "milestones": [ { "at": "count", "counter": "n1", "n": 3, "text": "3 bolus sans réponse — envisager ...ce que la source commande...", "go": "cx1" } ] },
         { "id": "b2", "kind": "do",        "title": "Évolution favorable", "image": null, "items": ["..."], "next": null },
         { "id": "b3", "kind": "do",        "title": "Réfractaire", "image": null, "items": ["..."], "next": "bd" },
         { "id": "cx1", "kind": "do",       "title": "Laryngospasme", "image": null, "items": ["Arrêter la stimulation", "⚠ ...gestes immédiats de la source..."], "next": null }
@@ -23478,7 +23694,7 @@ if(location.search.indexOf('__actest')>=0){
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
-    kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,
+    kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,

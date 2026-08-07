@@ -59,6 +59,14 @@ const r=await p.evaluate(()=>{
         enrMiroir:(b2.steps||[])[0]||''};})(),
     ditItems:/"items"/.test(P)&&/"dual"/.test(P)&&/"memory"/.test(P),
     pasSteps:!/"steps"\s*:/.test(P),
+    /* v5.5.0 — JALONS DE BOUCLE : le prompt les documente ET son schéma en montre un que
+       `migrate()` doit accepter tel quel (compteur résolu, renvoi vers l'excursion déclarée).
+       S'il tombait à l'import, une IA fidèle produirait un fichier mutilé en silence — le
+       défaut de contrat exact de la v5.0.0, rejoué sur un champ neuf. */
+    ditJalon:/"milestones"/.test(P)&&/n'invente jamais un/.test(P),
+    jl:(()=>{const bj=(f.blocks||[]).find(b=>Array.isArray(b.milestones)&&b.milestones.length);
+      if(!bj)return null;const j=bj.milestones[0];
+      return {at:j.at,counter:j.counter,n:j.n,go:j.go,textOk:!!j.text};})(),
     ...(()=>{const g=A.migrate({title:'T',start:'b1',blocks:[{id:'b1',kind:'do',items:['⚠ Adrénaline IM :: 0,5 mg','Oxygène']}]});
       const it=(g.items||[])[0]||{};
       const h=A.migrate({title:'T',start:'b1',items:[{id:'i9',role:'do',do:'Déjà là'}],
@@ -103,6 +111,9 @@ if(r.parse){
   t('… documente "discriminant" et "onDue"', r.ditDisc&&r.ditOnDue);
 
   t('… dit que les libellés de minuteurs/compteurs se relisent APRÈS le soin', r.ditJournal===true);
+  t('le prompt DOCUMENTE les jalons de boucle ("milestones") et interdit d’inventer un seuil', r.ditJalon===true);
+  t('le jalon du schéma traverse migrate() — compteur résolu, renvoi vers l’excursion',
+    !!(r.jl&&r.jl.at==='count'&&r.jl.counter==='n1'&&r.jl.n===3&&r.jl.go==='cx1'&&r.jl.textOk), JSON.stringify(r.jl));
   console.log('  · longueur du prompt : '+r.promptLen+' caractères');
 }
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);
