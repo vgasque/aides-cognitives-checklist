@@ -1854,6 +1854,14 @@
   #refBar{position:fixed;left:0;right:0;top:var(--hdr-h,64px);z-index:14;
     background:var(--surface);border-bottom:1px solid var(--line)}
   #refBar>.ref-toc{max-width:1064px;margin:0 auto;padding:0 18px}
+  /* ⚠ VINGTIÈME PIÈGE DE CASCADE (v5.3.1, signalé à l'usage : « résultats de recherche très
+     collés à la bordure du dessous ») : `details.ref-toc[open]{padding-bottom:8px}` vaut (0,2,1)
+     et PERDAIT contre la règle id ci-dessus (1,1,1) — le rembourrage bas du dépliant était
+     silencieusement MORT depuis sa création (mesuré : 1 px entre le dernier objet et le bord).
+     Les rangées de résultats-documents (v5.3.0) ont hérité du défaut et l'ont rendu visible.
+     On répare EN (1,1,2), jamais par l'ordre ; 14 px — un objet interactif ne finit pas au
+     contact d'une bordure de coupure. */
+  #refBar>.ref-toc[open]{padding-bottom:14px}
   body.refbar-on main{padding-top:calc(var(--refbar-h,0px) + 10px)}
   details.ref-toc{background:none;border:0;border-radius:0}
   /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
@@ -5212,7 +5220,10 @@
   .dh-sub{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dh-chev{flex:none;color:var(--ink-soft)}
   /* Résultats-documents SOUS le champ de recherche d'une entité (mêmes rangées .doc-hit). */
-  .pf-docs{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  /* marge BASSE comprise : en flux (« Toute la fiche ») la rangée touchait le tableau SFAR
+     en dessous — mesuré 0 px ; un résultat n'est pas un en-tête de section, il ne se colle pas
+     à ce qui suit. */
+  .pf-docs{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px}
   .card-snip .snip-doc{vertical-align:-1px;margin-right:2px;color:var(--ink-soft)}
   /* Occurrence surlignée sur la page PDF : rectangle en superposition, multiply pour laisser le
      texte lisible dessous — même registre que mark.pf-h (le surlignage de recherche du texte). */
@@ -5225,6 +5236,9 @@
   /* État d'indexation d'un document, dans sa rangée d'éditeur : rien quand tout va bien. */
   .att-ix{display:flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--ink-soft);white-space:nowrap}
   .att-ix:empty{display:none}
+  /* le geste du pied reste soudé à son séparateur : enroulé, « · » ne finit pas orphelin en
+     bout de ligne pendant que « Réindexer » part seul à la ligne suivante. */
+  .attix-act{white-space:nowrap}
   /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
   .att-list{display:flex;flex-direction:column;gap:8px}
   .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:13.5px;text-align:left;cursor:pointer}
