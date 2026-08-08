@@ -11,16 +11,34 @@ await demarrerSession(p);
 // B. taille des options : avancer jusqu'au bloc décision
 await p.evaluate(async()=>{document.querySelectorAll('.ov-block.cur ol.steps li:not(.done)').forEach(li=>li.click());await new Promise(r=>setTimeout(r,200));
  const nb=document.querySelector('.ov-block.cur [data-ovnext]');if(nb)nb.click();await new Promise(r=>setTimeout(r,400));});
+/* v5.6 — L'INVARIANT SE PRÉCISE AU LIEU DE DISPARAÎTRE. Il disait « une option de branche a la
+   MÊME taille qu'une étape » (16,5 px des deux côtés), et son motif était : « choisir une branche
+   engage AU MOINS AUTANT que cocher une étape ». La refonte hiérarchise les étapes par le corps
+   (ordinaire --t-item, critique --t-step) : l'égalité stricte n'a donc plus de sens, mais le
+   motif, lui, en a toujours — et davantage, puisque sur un bloc de décision il n'y a PAS de
+   « Continuer » : la décision EST l'avancement. On mesure donc ce que la règle voulait dire. */
 const b=await p.evaluate(()=>{const o=document.querySelector('.opt'),st=document.querySelector('ol.steps li .txt');
- return {opt:o?getComputedStyle(o).fontSize:null,step:st?getComputedStyle(st).fontSize:'16.5px'};});
-t('option de branche à la même taille qu\'une étape', b.opt==='16.5px', JSON.stringify(b));
+ /* Le bloc courant peut être une DÉCISION : il n'y a alors aucune étape à l'écran. On retombe
+    sur le cran de l'échelle qu'une étape ordinaire emploie (--t-item) — la référence est le
+    SYSTÈME, pas la présence fortuite d'un élément. */
+ const item=getComputedStyle(document.documentElement).getPropertyValue('--t-item').trim();
+ return {opt:o?getComputedStyle(o).fontSize:null,step:st?getComputedStyle(st).fontSize:(item||null)};});
+t('option de branche AU MOINS aussi grande qu\'une étape',
+  !!b.opt&&!!b.step&&parseFloat(b.opt)>=parseFloat(b.step), JSON.stringify(b));
 // A. bordure du bloc décision COURANT = ambre
 const a=await p.evaluate(()=>{const d=document.querySelector('.ov-block.dec.cur');if(!d)return null;
- const cs=getComputedStyle(d);const badge=d.querySelector('.ov-here');
- return {bord:cs.borderLeftColor,badgeVisible:!!badge&&getComputedStyle(badge).display!=='none',
-   badgeFond:badge?getComputedStyle(badge).backgroundColor:null};});
-t('bloc décision COURANT : bordure ambre (--verify-bd), pas bleue', a&&a.bord==='rgb(183, 121, 31)', JSON.stringify(a));
-t('la position reste marquée par « VOUS ÊTES ICI » en bleu', a&&a.badgeVisible&&a.badgeFond==='rgb(31, 95, 166)', JSON.stringify(a));
+ const cs=getComputedStyle(d);
+ return {bord:cs.borderLeftColor,cur:d.getAttribute('aria-current'),
+   seulOuvert:document.querySelectorAll('.ov-block:not(.closed)').length};});
+/* Le REGISTRE prime sur l'état : un bloc de décision courant garde sa bordure ambre — la position,
+   elle, passe par un AUTRE canal (un canal par signification, v4.24.0). --verify-bd pointe
+   désormais sur --warn-line, la fusion des deux ambres (lot 1). */
+t('bloc décision COURANT : bordure ambre (--warn-line), pas bleue', a&&a.bord==='rgb(180, 83, 9)', JSON.stringify(a));
+/* A12 (v5.6) — « ICI » N'EXISTE PLUS QUE DANS UNE LISTE. Sur la carte il était redondant avec
+   trois signaux déjà présents ; ce qui doit rester VÉRIFIABLE, c'est qu'un de ces canaux porte
+   effectivement la position, et le plus fort des trois est aussi le seul lisible par un lecteur
+   d'écran : `aria-current="step"`. On mesure la propriété, plus la pilule qui la portait. */
+t('la position reste marquée — aria-current sur le bloc courant', a&&a.cur==='step', JSON.stringify(a));
 // C. mode Vérifier : retour immédiat
 await p.evaluate(async()=>{const opt=document.querySelector('.opt');if(opt)opt.click();await new Promise(r=>setTimeout(r,400));
  // cocher UNE étape AVANT la vérification (cas décrit : ne doit pas afficher ✓ trompeur)

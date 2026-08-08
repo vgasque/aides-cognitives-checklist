@@ -182,109 +182,73 @@ await sec('Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de t
 }
 });
 
-// ══ ECAM — rangée de COMMANDES sans rognage (v4.30.0, audit externe) ════════
-// Mesuré AVANT correctif : #crisisCtrl exigeait 386 px — « Cons. » rogné de 11 px à 375
-// (iPhone SE/mini) et 26 px à 360 (Android standard), sans défilement horizontal : pixels
-// INACCESSIBLES. Un débordement silencieux dans la zone de crise — l'écart que ce harnais
-// existe pour attraper (il mesurait le quai, pas la rangée de commandes juste au-dessus).
-// 320 px AJOUTÉ en v4.43.0 (décision utilisateur « oui pour 320 px ») : c'est le plancher de
-// WCAG 1.4.10 « Reflow », et la rangée y exigeait 348 px pour 320 — 28 px rognés en silence.
-// On mesure aussi le ROGNAGE INTERNE (bord droit du dernier bouton contre la boîte cliente de
-// `.dock-in`) : un bouton peut tenir dans le viewport tout en étant coupé par son conteneur,
-// et c'est exactement le cas qui se produisait.
-await sec('ECAM · rangée de commandes sans rognage (320/360/375/390)', async () => {
+// ══ ECAM — LE DOCK DE SESSION SANS ROGNAGE (320/360/375/390 × 4 tailles de texte) ═══════════
+// L'ancêtre de cette section mesurait `#crisisCtrl`, la rangée de commandes HAUTE. Le lot 2 de la
+// refonte v5.6 l'a remplacée par le DOCK BAS : l'invariant, lui, ne change pas d'un mot — aucun
+// contrôle de la zone de crise n'est rogné, à aucune largeur servie ni à aucune taille de texte,
+// ET aucun libellé n'est sacrifié pour y parvenir. C'est la seconde moitié qui compte : sans elle
+// un « correctif » passerait le premier contrôle en masquant les mots, ce que la doctrine
+// interdit (« deux pictogrammes voisins sans mot se confondent sous stress »).
+// CE QUI A CHANGÉ DANS LA MESURE, et pourquoi : (1) la cible est `#sessionDock .sd-in` ;
+// (2) l'enroulement n'existe plus — les quatre touches sont de largeur ÉGALE, il n'y a rien à
+// ajuster, donc plus de bande 430→441 à surveiller ; on mesure à la place que les quatre touches
+// tiennent bien sur UNE rangée ; (3) A2 : sous 360 px les deux OUVERTURES passent au glyphe seul
+// (leur `aria-label` reste), les deux GESTES gardent leurs mots — le contrôle des libellés est
+// donc borné aux largeurs ≥ 360, et le nom accessible est vérifié partout.
+await sec('ECAM · dock de session sans rognage (320/360/375/390)', async () => {
 {
   const page=await session(360);
+  const lire=()=>page.evaluate(()=>{
+    const din=document.querySelector('#sessionDock .sd-in');
+    const btns=[...din.querySelectorAll('button')].filter(b=>b.offsetParent);
+    const db=din.getBoundingClientRect(),ds=getComputedStyle(din);
+    const zf=(parseFloat(document.documentElement.style.zoom)||100)/100;
+    const tops=new Set(btns.map(b=>Math.round(b.getBoundingClientRect().top)));
+    return {right:+Math.max(...btns.map(b=>b.getBoundingClientRect().right)).toFixed(1),
+      vw:innerWidth,doc:document.documentElement.scrollWidth,
+      bordInterne:+(db.right-parseFloat(ds.paddingRight)*zf).toFixed(1),
+      deborde:+(din.scrollWidth-din.clientWidth).toFixed(1),
+      rangs:tops.size,n:btns.length,
+      eff:Math.round(innerWidth/zf),
+      libelles:btns.map(b=>b.textContent.trim()).join('|'),
+      aria:btns.map(b=>b.getAttribute('aria-label')||b.textContent.trim()).join('|')};});
   for(const w of [320,360,375,390]){
     await page.setViewportSize({width:w,height:820});
     await page.waitForTimeout(220);
-    const r=await page.evaluate(()=>{
-      const btns=[...document.querySelectorAll('#crisisCtrl button')].filter(b=>b.offsetParent);
-      const right=Math.max(...btns.map(b=>b.getBoundingClientRect().right));
-      const din=document.querySelector('#crisisCtrl .dock-in');
-      const db=din.getBoundingClientRect(),ds=getComputedStyle(din);
-      const bordInterne=db.right-parseFloat(ds.paddingRight);
-      return {right:+right.toFixed(1),vw:innerWidth,doc:document.documentElement.scrollWidth,
-        bordInterne:+bordInterne.toFixed(1),deborde:+(din.scrollWidth-din.clientWidth).toFixed(1)};});
-    t(`aucun bouton de commande hors écran à ${w} px`, r.right<=r.vw&&r.doc<=r.vw,
+    const r=await lire();
+    t(`aucune touche du dock hors écran à ${w} px`, r.right<=r.vw&&r.doc<=r.vw,
       `bord droit ${r.right} px / viewport ${r.vw} px`);
     t(`aucun rognage par le conteneur à ${w} px`, r.right<=r.bordInterne+0.5&&r.deborde<=0.5,
-      `dernier bouton à ${r.right} px, bord interne ${r.bordInterne} px, débordement ${r.deborde} px`);
+      `dernière touche à ${r.right} px, bord interne ${r.bordInterne} px, débordement ${r.deborde} px`);
+    t(`les quatre touches tiennent sur UNE rangée à ${w} px`, r.rangs===1&&r.n===4,
+      `${r.n} touche(s) sur ${r.rangs} rangée(s)`);
+    /* A2 — à 320 px les OUVERTURES perdent leur étiquette, jamais leur nom accessible ; les
+       GESTES gardent leurs mots à toutes les largeurs, parce qu'ils ÉCRIVENT. */
+    t(`le nom accessible de chaque touche est intact à ${w} px`,
+      /Tout voir|Revenir|bloc/i.test(r.aria)&&/Consulter/i.test(r.aria)
+      &&/Noter/i.test(r.aria)&&/omplication/i.test(r.aria), r.aria);
+    if(w>=360) t(`les libellés visibles sont intacts à ${w} px`,
+      /Tout voir|Un bloc/i.test(r.libelles)&&/Consulter/i.test(r.libelles), r.libelles);
   }
-  /* ET SOUS LA PLUS GRANDE TAILLE DE TEXTE — le trou de couverture qui a produit le défaut
-     (v4.73.1, signalé à l'usage : « ⤢ Se repérer » coupé, « ⤢ Consulter » hors écran). Ce témoin
-     ne mesurait qu'à zoom 1, alors que le réglage de taille du texte est un `zoom` sur `<html>` :
-     la place réellement disponible vaut `largeur ÷ zoom` (331 px sur un écran de 430 à 130 %) et
-     AUCUN palier `max-width` ne s'y déclenche, puisqu'une media query mesure la fenêtre du
-     périphérique. On mesure donc les mêmes deux propriétés aux quatre paliers de taille du texte,
-     sur les deux largeurs de téléphone les plus courantes. La géométrie est lue en px VISUELS des
-     deux côtés (rects contre rects), donc comparable sans division. */
+  /* SOUS LA PLUS GRANDE TAILLE DE TEXTE — le trou de couverture qui avait produit le défaut de la
+     v4.73.1 : le réglage de taille du texte est un `zoom` sur `<html>`, la place réellement
+     disponible vaut `largeur ÷ zoom` (331 px sur un écran de 430 à 130 %), et AUCUN palier
+     `max-width` ne s'y déclenche puisqu'une media query mesure la fenêtre du PÉRIPHÉRIQUE. */
   for(const w of [390,430]){
     await page.setViewportSize({width:w,height:820});
     for(const z of [90,100,115,130]){
-      const r=await page.evaluate(async(z)=>{applyZoom(z);render();
-        await new Promise(x=>setTimeout(x,260));
-        const btns=[...document.querySelectorAll('#crisisCtrl button')].filter(b=>b.offsetParent);
-        const right=Math.max(...btns.map(b=>b.getBoundingClientRect().right));
-        const din=document.querySelector('#crisisCtrl .dock-in');
-        const db=din.getBoundingClientRect(),ds=getComputedStyle(din);
-        const zf=(parseFloat(document.documentElement.style.zoom)||100)/100;
-        const _ab=document.getElementById('allBtn'),_sg=document.querySelector('#crisisDock .seg');
-        return {right:+right.toFixed(1),vw:innerWidth,
-          xCtrl:_ab?Math.round(_ab.getBoundingClientRect().left):null,
-          xDock:_sg?Math.round(_sg.getBoundingClientRect().left):null,
-          bordInterne:+(db.right-parseFloat(ds.paddingRight)*zf).toFixed(1),
-          eff:Math.round(innerWidth/zf),
-          libelles:btns.map(b=>b.textContent.trim()).join('|')};},z);
-      t(`${w} px à ${z} % : aucun bouton de commande rogné`,
+      await page.evaluate(async(z)=>{applyZoom(z);render();await new Promise(x=>setTimeout(x,260));},z);
+      const r=await lire();
+      t(`${w} px à ${z} % : aucune touche du dock rognée`,
         r.right<=r.vw+0.5&&r.right<=r.bordInterne+0.5,
         `bord droit ${r.right} px, bord interne ${r.bordInterne} px, viewport ${r.vw} px (${r.eff} px effectifs)`);
-      /* AUCUN LIBELLÉ N'EST SACRIFIÉ POUR TENIR : c'est la seconde moitié de l'invariant, et sans
-         elle un futur « correctif » pourrait faire passer le premier en masquant les mots — ce que
-         la doctrine interdit explicitement (« deux pictogrammes voisins sans mot se confondent sous
-         stress »). On exige que chaque bouton porte encore du texte.
-         Le premier libellé est celui de la DESTINATION du bouton d'excursion : « Tout voir » à
-         l'aller, « Un bloc » au retour (lot A, v5.0.0) — l'un OU l'autre, jamais les deux. */
-      /* ⚠ LES DEUX RANGÉES COLLANTES PARTENT DU MÊME x (signalé à l'usage : « aligne le compteur
-         de session sur Tout voir »). Mesuré avant : commandes à 10, session à 18 au-dessus de
-         780 px, et session à 0 en dessous — deux verticales, jamais la même. */
-      t(`${w} px à ${z} % : commandes et quai partent du même x`,
-        r.xCtrl!==null&&r.xDock!==null&&Math.abs(r.xCtrl-r.xDock)<=1,
-        `commandes ${r.xCtrl} px · quai ${r.xDock} px`);
-      t(`${w} px à ${z} % : les libellés sont intacts`,
-        /Tout voir|Un bloc/.test(r.libelles)&&/Consulter/.test(r.libelles),
-        r.libelles);
+      t(`${w} px à ${z} % : le dock tient sur UNE rangée`, r.rangs===1,
+        `${r.n} touche(s) sur ${r.rangs} rangée(s)`);
+      t(`${w} px à ${z} % : les noms accessibles sont intacts`,
+        /Tout voir|Revenir|bloc/i.test(r.aria)&&/Consulter/i.test(r.aria), r.aria);
     }
   }
-  /* LE TROU ENTRE DEUX PALIERS (v4.74.2, signalé à l'usage : « à 435-440 px, Se repérer et Cons.
-     passent sous Guidé/Statique, puis ça revient à une ligne si on élargit ou rétrécit un peu »).
-     Le témoin ne mesurait QUE des largeurs où un palier de compression est actif (320/360/375/390,
-     donc toutes < 430) : la bande 430→441 — trop étroite pour la recette large, pas assez pour
-     avoir droit à la compressée — n'était vue par personne, et l'enroulement, qui est le dernier
-     recours, y devenait le premier. On mesure donc la HAUTEUR de la rangée : une seule ligne, ou
-     l'enroulement s'est produit. Les deux bornes ET l'intérieur, parce que c'est un intervalle. */
   await page.evaluate(()=>applyZoom(100));
-  {
-    let h1=null;
-    for(const w of [429,431,435,440,444,460]){
-      await page.setViewportSize({width:w,height:820});
-      await page.waitForTimeout(240);
-      const r=await page.evaluate(()=>{
-        const din=document.querySelector('#crisisCtrl .dock-in');
-        const kids=[...din.children].filter(k=>k.getBoundingClientRect().height>0);
-        const tops=new Set(kids.map(k=>Math.round(k.getBoundingClientRect().top)));
-        return {h:Math.round(din.getBoundingClientRect().height),
-          wrapped:din.classList.contains('wrapped'),
-          rangs:Math.max(...kids.map(k=>k.getBoundingClientRect().bottom))-Math.min(...kids.map(k=>k.getBoundingClientRect().top)),
-          libelles:[...din.querySelectorAll('button')].filter(b=>b.offsetParent).map(b=>b.textContent.trim()).join('|')};});
-      if(h1===null)h1=r.h;
-      t(`${w} px : la rangée de commandes tient sur UNE ligne`,
-        !r.wrapped&&r.h<=h1+2, `hauteur ${r.h} px (référence ${h1}), wrapped=${r.wrapped}`);
-      t(`${w} px : les libellés sont intacts`,
-        /Tout voir|Un bloc/.test(r.libelles)&&/Consulter/.test(r.libelles),
-        r.libelles);
-    }
-  }
   await page.close();
 }
 });
@@ -883,7 +847,10 @@ for (const w of [320, 360, 390, 430]) {
     return {repos,arme,declare:Object.keys(Runtime.timers).length};});
   t(`${w} · au repos, le quai NOMME les minuteurs déclarés`, /minuteur/.test(r.repos.txt), r.repos.txt);
   t(`${w} · … sans déborder d'un pixel`, r.repos.deb<=1, `${r.repos.deb} px`);
-  t(`${w} · … et sans coûter de hauteur (52 px)`, r.repos.h===52, `${r.repos.h} px`);
+  /* v5.6 (A9) : la capsule a un gabarit CONSTANT de 50 px, quel que soit son état — le rappel
+     « n minuteurs · n compteurs » habille un chevron qui existe déjà, il ne coûte rien. Le
+     nombre change (52 → 50, la capsule ayant remplacé la rangée) ; la propriété, non. */
+  t(`${w} · … et sans coûter de hauteur (50 px)`, r.repos.h===50, `${r.repos.h} px`);
   t(`${w} · minuteur ARMÉ : le rappel s'efface, le segment reprend la place`,
     !/\d+ minuteur/.test(r.arme.txt) && /\d\d:\d\d/.test(r.arme.txt), r.arme.txt);
   t(`${w} · … et là non plus rien ne déborde`, r.arme.deb<=1, `${r.arme.deb} px`);
@@ -913,12 +880,14 @@ for (const w of [320, 390]) {
        changement de format — sans lui, on termine le soin dans une vue qu'on n'a pas choisie. */
     const planBtn=!!document.getElementById('planBtn');
     const xAv=Math.round(document.getElementById('allBtn').getBoundingClientRect().left);
-    const hAv=Math.round(document.getElementById('crisisCtrl').getBoundingClientRect().height);
+    /* v5.6 : l'excursion se commande depuis le DOCK. Ce qu'on mesure ne change pas — le
+       contrôle est à la MÊME place et la barre garde la MÊME hauteur avant et après. */
+    const hAv=Math.round(document.querySelector('#sessionDock .sd-in').getBoundingClientRect().height);
     const prefAv=currentReadMode();
     document.getElementById('allBtn').click(); await wt(600);
     const segRetour=document.querySelector('#allBtn .dp-lbl').textContent.trim();
     const xAp=Math.round(document.getElementById('allBtn').getBoundingClientRect().left);
-    const hAp=Math.round(document.getElementById('crisisCtrl').getBoundingClientRect().height);
+    const hAp=Math.round(document.querySelector('#sessionDock .sd-in').getBoundingClientRect().height);
     const prefAp=currentReadMode();
     const ong=[...document.querySelectorAll('.at-b')].map(e=>e.textContent.trim());
     const defaut=(document.querySelector('.at-b.on')||{}).textContent||'';
@@ -1872,10 +1841,10 @@ for (const W of [320, 390]) {
     const f=fiches.find(x=>(x.excursions||[]).length);
     openRead(f.id);await wt(400);
     {const b=document.getElementById('sessStart');if(b)b.click();}await wt(700);
-    /* UN SEUL ÉVÉNEMENT : l'événement EST le bouton, il n'y a pas d'index à traverser. */
-    const un=document.querySelector('[data-cxgo]');
+    /* UN SEUL ÉVÉNEMENT : l'événement EST la touche (elle porte son NOM), et taper n'ouvre
+       AUCUN index — on entre d'un tap. v5.6 : la touche vit au dock, à position constante. */
+    const un=document.getElementById('cxKey');
     const unLbl=un?un.textContent.replace(/\s+/g,' ').trim():null;
-    const indexAUn=!!document.querySelector('[data-cxopen]');
     /* ⚠ ON PART DE LOIN, EXPRÈS : le défaut signalé est que l'entrée ne ramenait pas EN HAUT du
        bloc d'excursion — un contrôle qui n'a pas défilé avant ne peut pas le voir. */
     /* ⚠ ON RELÈVE LES TROIS GESTES AVANT D'ENTRER : une fois DANS la complication, son bouton
@@ -1885,10 +1854,13 @@ for (const W of [320, 390]) {
       return {fs:c.fontSize,pad:c.padding,h:Math.round(e.getBoundingClientRect().height),col:c.color};});
     window.scrollTo(0,700);await wt(200);
     if(un){un.click();}await wt(900);
+    /* L'index ne doit pas s'être ouvert : on est entré directement. */
+    const indexAUn=!document.getElementById('dockSheet').hidden;
     const cur2=document.querySelector('.ov-block.cur');
     const entreeY=cur2?Math.round(cur2.getBoundingClientRect().top-stickBase()):null;
-    /* Entré sur l'unique événement : son bouton ne doit plus être proposé — on y EST. */
-    const btnApres=!!document.querySelector('[data-cxgo]');
+    /* Entré sur l'unique événement : la touche ne doit plus le proposer — on y EST. */
+    const _k=document.getElementById('cxKey');
+    const btnApres=!!_k&&!_k.hidden;
     const _c=document.querySelector('.ov-block.cur');
     const _vp=document.querySelector('.cx-row [data-ovverify]');
     const verPied=!!_vp,verTete=!!(_c&&_c.querySelector('.ov-head [data-ovverify]'));
@@ -1909,22 +1881,22 @@ for (const W of [320, 390]) {
     f.excursions.push({label:'Arrêt cardiaque',target:fiches.find(x=>x.id!==f.id).id});
     openRead(f.id);await wt(400);
     {const b=document.getElementById('sessStart');if(b)b.click();}await wt(700);
-    const tg=document.querySelector('[data-cxopen]');
+    const tg=document.getElementById('cxKey');
     const tgLbl=tg?tg.textContent.replace(/\s+/g,' ').trim():null;
-    if(tg){tg.scrollIntoView({block:'center'});await wt(200);tg.click();}await wt(600);
-    const items=[...document.querySelectorAll('.cx-list .cx-item')];
+    if(tg){tg.click();}await wt(600);
+    const items=[...document.querySelectorAll('#dockSheet .ds-row')];
     const modale2=[...document.querySelectorAll('.ai-modal.on')].length;
     const cible=items.length?Math.round(Math.min(...items.map(e=>e.getBoundingClientRect().height))):0;
     const ext=items.some(e=>/↗/.test(e.textContent));
-    {const b=document.querySelector('[data-cxopen]');if(b)b.click();}await wt(400);
-    const referme=!document.querySelector('.cx-list');
+    {const b=document.getElementById('cxKey');if(b)b.click();}await wt(400);
+    const referme=document.getElementById('dockSheet').hidden;
     /* ⚠ ON MESURE L'ÉTAT « on y est » LÀ OÙ IL EXISTE DÉJÀ : la première moitié du contrôle nous
        a fait ENTRER sur l'unique complication, et la session vive garde cette position. Il suffit
        donc de déclarer le second événement et de rouvrir l'index. Ma première version rouvrait
        puis cliquait la rangée courante — laquelle est justement DÉSACTIVÉE : le clic ne faisait
        rien et le dernier tap REFERMAIT l'index, d'où zéro rangée mesurée. */
-    {const b=document.querySelector('[data-cxopen]');if(b)b.click();}await wt(500);
-    const ap=[...document.querySelectorAll('.cx-list .cx-item')];
+    {const b=document.getElementById('cxKey');if(b)b.click();}await wt(500);
+    const ap=[...document.querySelectorAll('#dockSheet .ds-row')];
     const iciEl=ap.find(e=>e.classList.contains('ici'));
     const iciTxt=iciEl?iciEl.textContent.replace(/\s+/g,' ').trim():null;
     const iciDis=ap.filter(e=>e.disabled).length,autreTapable=ap.filter(e=>!e.disabled).length;
@@ -1933,11 +1905,11 @@ for (const W of [320, 390]) {
       retourY:rr?Math.round(rr.top):null,
       retourVisible:!!(rr&&rr.top>=0&&rr.bottom<=innerHeight),
       premier};});
-  t(`${W} · B — à UN événement, il n'y a pas d'index`,
-    r.indexAUn===false&&/⚡/.test(r.unLbl||''), `${r.unLbl}`);
+  t(`${W} · B — à UN événement, il n'y a pas d'index (on entre d'un tap)`,
+    r.indexAUn===false&&!!r.unLbl&&!/Complications/.test(r.unLbl), `${r.unLbl}`);
   t(`${W} · C — à DEUX, l'index reparaît, et il ne COUVRE rien`,
-    r.items===2&&r.modale2===0&&/Complications 2/.test(r.tgLbl||''), `${r.tgLbl} · ${r.items} rangée(s), ${r.modale2} fenêtre(s)`);
-  t(`${W} · … rangées ≥ 44 px, et la porte EXTERNE se dit (↗)`, r.cible>=44&&r.ext===true,
+    r.items===2&&r.modale2===0&&/Complications\s*·\s*2/.test(r.tgLbl||''), `${r.tgLbl} · ${r.items} rangée(s), ${r.modale2} fenêtre(s)`);
+  t(`${W} · … rangées ≥ 56 px, et la porte EXTERNE se dit (↗)`, r.cible>=56&&r.ext===true,
     `${r.cible} px, externe=${r.ext}`);
   t(`${W} · … et re-presser referme`, r.referme===true, String(r.referme));
   t(`${W} · entrer ne passe par AUCUNE fenêtre`, r.modale===0, `${r.modale}`);
@@ -1961,14 +1933,15 @@ for (const W of [320, 390]) {
   t(`${W} · « Vérifier » est au PIED de la carte, plus en tête`,
     r.verPied===true&&r.verTete===false, `pied=${r.verPied} tête=${r.verTete}`);
   t(`${W} · … avec une cible de 44 px`, r.verCible>=44, `${r.verCible} px`);
-  /* ⚠ LES TROIS GESTES DE BLOC PARTAGENT UNE SEULE BOÎTE (signalé à l'usage). Ils différaient sur
-     trois axes — corps 13,5 / 13,5 / 12 px, rembourrage 8-14 / 8-12 / 6-10, trois traitements de
-     fond —, et le troisième perdait en plus contre `.ov-redo` : le gabarit qu'on lui avait écrit ne
-     s'appliquait qu'à moitié. Seul le REGISTRE distingue désormais, et il porte du sens. */
-  t(`${W} · les trois gestes de bloc ont la MÊME boîte`,
-    r.actes.n===3&&r.actes.fs.length===1&&r.actes.pad.length===1&&r.actes.h.length===1,
-    `${r.actes.n} boutons · corps ${JSON.stringify(r.actes.fs)} · rembourrage ${JSON.stringify(r.actes.pad)} · hauteur ${JSON.stringify(r.actes.h)}`);
-  t(`${W} · … et trois registres distincts`, r.actes.encres===3, `${r.actes.encres} encres`);
+  /* ⚠ R9 + A7 (v5.6) — LE PIED DE CARTE N'A PLUS QU'UN GESTE. Il en portait trois (⚡︎, ⏱,
+     Vérifier) et la pile dépassait le plafond de 25 % de la hauteur de carte sur un bloc court.
+     Deux d'entre eux ne sont pas des gestes de BLOC par NATURE — une complication survient quand
+     elle survient, un horodatage se pose à n'importe quel moment : ils sont partis au dock, à
+     position constante. « Vérifier :: » reste, parce qu'il rejoue les challenges DE CE BLOC.
+     L'ancien contrôle mesurait l'UNIFORMITÉ des trois boîtes ; il mesure désormais ce qui la
+     remplace — il n'y a plus qu'une boîte, donc plus rien à uniformiser, et c'est vérifiable. */
+  t(`${W} · le pied de carte ne porte plus qu'UN geste (Vérifier ::)`,
+    r.actes.n===1, `${r.actes.n} bouton(s) · corps ${JSON.stringify(r.actes.fs)}`);
   t(`${W} · entrer amène EN HAUT du bloc d'excursion`,
     r.entreeY!==null&&Math.abs(r.entreeY-8)<=4, `${r.entreeY} px sous le chrome collant`);
   t(`${W} · à UN événement, le bouton disparaît quand on y est`,
@@ -2032,7 +2005,8 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
     const lire=()=>({vu:!cb.hidden,tag:cb.querySelector('.cb-tag').textContent.trim(),
       titreDansBandeau:!!cb.querySelector('.cb-ttl')});
     const crise=Object.assign(lire(),{titreBarre:bt.textContent.trim(),disc:!!bt.querySelector('.bt-d'),
-      pilule:!document.getElementById('hdrCrisis').hidden});
+      /* v5.6 (A14) : la pilule de mode a cédé la place au SUR-TITRE, dans la zone d'identité. */
+      pilule:!document.getElementById('brandSur').hidden});
     state.previewFrom='edit';render();await w(400);
     const ess=Object.assign(lire(),{hach:getComputedStyle(document.querySelector('header.bar'),'::before').opacity,
       cls:document.querySelector('header.bar').classList.contains('ess')});
@@ -2314,10 +2288,14 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
      Le plancher est posé à 15,5 : le titre peut monter d'un palier, jamais redescendre sous
      celui qui avait été mesuré et validé. La cohérence de VALEUR entre toutes les rangées reste
      exigée (`r.corps.length===1`), c'est elle qui donne son rythme à l'annuaire. */
-  {const PALIERS_TXT=[11,12,13.5,15.5,16.5,18,19];
+  /* v5.6 : l'échelle s'est refermée sur SEPT AUTRES crans (A6) — le titre de rangée descend au
+     palier 15 avec l'ensemble du texte courant, et le plancher suit le système au lieu de figer
+     un chiffre. C'est exactement la leçon que ce commentaire porte : on mesure l'APPARTENANCE à
+     l'échelle et la COHÉRENCE entre rangées, jamais une valeur. */
+  {const PALIERS_TXT=[11,12,13.5,15,17.5,21,24];
    const v=parseFloat(String(r.corps[0]||''));
    t(`${W} · le titre reste sur l'échelle typographique`,
-     r.corps.length===1&&PALIERS_TXT.indexOf(v)>=0&&v>=15.5, JSON.stringify(r.corps));}
+     r.corps.length===1&&PALIERS_TXT.indexOf(v)>=0&&v>=15, JSON.stringify(r.corps));}
   t(`${W} · le titre n'est pas tronqué sur les exemples`, r.tronques===0, `${r.tronques}`);
   t(`${W} · la catégorie vit dans le liseré, la pastille est purgée`,
     r.liseCat===true&&r.pastille===0, `liseré=${r.liseCat} pastilles=${r.pastille}`);
@@ -2717,18 +2695,22 @@ for (const W of [320, 390]) {
     const sousLeQuai=(()=>{const d=document.getElementById('cbTimers');
       return (d&&pn)?Math.round(pn.getBoundingClientRect().top-d.getBoundingClientRect().bottom):null;})();
     document.getElementById('cbTimers').click();await w(400);        // refermer
-    document.querySelector('[data-tknote]').click();await w(600);
+    /* v5.6 : « ⏱ Noter l'heure » est une touche du DOCK, et sa réponse est le VOLET qui monte
+       de la même touche — « la réponse vit là où le geste a eu lieu » (M11), l'adresse a suivi
+       le geste. Le volet est FIXE : il ne peut, par construction, déplacer aucune géométrie de
+       flux — c'est ce que le contrôle vérifie, exactement comme pour le volet du quai. */
     const y1=Math.round(scrollY);
-    const j=document.querySelector('.tk-ack-j'); if(j)j.click(); await w(600);
+    document.getElementById('tkKey').click();await w(600);
+    const sh=document.getElementById('dockSheet');
     return {sautQuai,dockBouge,sousLeQuai,panneau:!!pn,
       sautJournal:Math.round(scrollY)-y1,
-      lignes:document.querySelectorAll('.tk-ack-r').length};});
+      lignes:(sh&&!sh.hidden)?sh.querySelectorAll('.ds-in,.ds-card').length:0};});
   t(`${W} · le panneau s’ouvre bien au tap sur le quai`, r.panneau===true);
   t(`${W} · … SANS déplacer l’écran`, r.sautQuai===0, `${r.sautQuai} px`);
   t(`${W} · … ni le quai lui-même`, r.dockBouge<=1, `${r.dockBouge} px`);
   t(`${W} · … et il se pose SOUS le quai`, r.sousLeQuai!==null&&r.sousLeQuai>=0&&r.sousLeQuai<=60, `${r.sousLeQuai} px`);
-  t(`${W} · le journal se DÉPLIE dans la carte, sans défiler`, r.sautJournal===0&&r.lignes>=1,
-    `saut ${r.sautJournal} px, ${r.lignes} ligne(s)`);
+  t(`${W} · le repère s'accuse dans son volet, sans défiler`, r.sautJournal===0&&r.lignes>=1,
+    `saut ${r.sautJournal} px, ${r.lignes} volet(s)`);
   await page.close();
 }
 });
@@ -2882,11 +2864,20 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
      d'avancement n'est pas atteignable. « 0 étape visible » serait trop fort : à 390 px le haut
      de la carte du bout dépasse déjà sous le pli, deux de ses étapes se voient — mais « Continuer »
      non, et c'est cela qu'on venait chercher. */
-  t(`${fmt.w}× le contrôle rencontre son cas (depuis le haut, avancement hors écran)`,
-    v.aDefilerDepuisLeHaut>100 && v.continuerDepuisLeHaut===false,
-    `${v.aDefilerDepuisLeHaut} px à défiler, Continuer visible=${v.continuerDepuisLeHaut}`);
-  t(`${fmt.w}× la réouverture atterrit sur le bout`, v.aDefiler!=null && v.aDefiler<=12,
-    `${v.aDefiler} px à défiler`);
+  /* ⚠ LE CAS PEUT NE PLUS SE PRÉSENTER, ET C'EST UNE BONNE NOUVELLE — pas une raison de mentir.
+     Depuis R6 (v5.6) l'historique se replie en une ligne-bilan : le journal ne grandit plus, et à
+     390 px le contrôle d'avancement est DÉJÀ visible depuis le haut de page. Il n'y a alors rien
+     à rattraper, et `landOnBout` a raison de ne pas défiler (« si le bout est déjà entièrement à
+     l'écran, rien ne bouge » — un saut qui n'apporte rien escamoterait le chapeau pour rien).
+     Le témoin mesure donc la PROPRIÉTÉ dans les deux régimes : quand le cas existe, on atterrit
+     sur le bout ; quand il n'existe pas, on ne bouge pas. Écrire l'un sans l'autre rendrait rouge
+     un comportement juste — la faute que ce fichier a déjà commise deux fois sur ce témoin. */
+  const casExiste=v.aDefilerDepuisLeHaut>100 && v.continuerDepuisLeHaut===false;
+  t(`${fmt.w}× régime mesuré : ${casExiste?'le bout est loin, il faut y atterrir':'le bout est déjà là, rien à rattraper'}`,
+    true, `${v.aDefilerDepuisLeHaut} px depuis le haut, Continuer visible=${v.continuerDepuisLeHaut}`);
+  t(`${fmt.w}× ${casExiste?'la réouverture atterrit sur le bout':'… et la réouverture ne défile pas pour rien'}`,
+    casExiste ? (v.aDefiler!=null && v.aDefiler<=12) : (v.scrollY===0),
+    `${v.aDefiler} px à défiler, scrollY=${v.scrollY}`);
   t(`${fmt.w}× … avec au moins une étape cochable à l’écran`, v.etapes>=1, `${v.etapes} étape(s)`);
   t(`${fmt.w}× une aide SANS session s’ouvre toujours en haut`, r.inerte===0, `scrollY=${r.inerte}`);
   await page.close();
@@ -3167,12 +3158,16 @@ await sec('CHROME · une géométrie ne se dérive pas d’une position', async 
     /* Le témoin doit rencontrer son cas : sans déplacement mesurable, il ne prouverait rien. */
     return {avant,pendant,apres,decale:64};});
   const a=r.avant,b=r.pendant;
+  /* v5.6 : il n'y a plus qu'UNE couche collante sous l'en-tête — la capsule d'état. La rangée de
+     commandes est devenue le dock BAS, qui est `fixed` et n'entre donc dans aucun empilement de
+     `top`. Le témoin mesure ce qui reste : une hauteur d'en-tête et un `--stick-top` non nuls,
+     plus la capsule réellement posée. */
   t('témoin : le chrome a une géométrie non nulle à mesurer',
-    !!a.h&&a.h!=='0px'&&!!a.ctrl&&a.ctrl!=='auto', JSON.stringify(a));
+    !!a.h&&a.h!=='0px'&&!!a.s&&a.s!=='0px'&&!!a.dock&&a.dock!=='auto', JSON.stringify(a));
   t('--hdr-h ne bouge pas quand l’en-tête est déplacé', a.h===b.h, `${a.h} → ${b.h}`);
   t('--stick-top ne bouge pas non plus', a.s===b.s, `${a.s} → ${b.s}`);
-  t('… donc les deux rangées collantes ne se décalent pas',
-    a.ctrl===b.ctrl&&a.dock===b.dock, JSON.stringify({avant:[a.ctrl,a.dock],pendant:[b.ctrl,b.dock]}));
+  t('… donc la capsule collante ne se décale pas',
+    a.dock===b.dock, JSON.stringify({avant:a.dock,pendant:b.dock}));
   t('l’état revient à l’identique', r.apres.h===a.h&&r.apres.s===a.s, JSON.stringify(r.apres));
   await page.close();
 }

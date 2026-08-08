@@ -1,5 +1,87 @@
 # Journal des modifications
 
+## [5.6.0] — 2026-08-09
+### Refonte complète du design — direction « verre clinique, mat »
+
+Refonte menée avec Claude Design (phases 0 à 6 : audit de l'existant, directions explorées,
+convergence, design system, écrans qui font foi, passation en sept lots). Les maquettes livrées
+sont la référence d'implémentation ; ce qui suit est ce qui a été porté dans le monofichier, avec
+les décisions consignées — la doctrine complète est dans `AGENTS.md` § « Refonte v5.6 ».
+
+**TROIS MATIÈRES, TROIS NATURES.** Sombre (`--sys`) = SYSTÈME : la capsule d'état et le dock, les
+deux seuls objets sombres du produit — trouvables sans lire. Blanc (`--work`) = TRAVAIL : carte,
+feuilles, éditeurs ; seule matière qui projette une ombre. Gris (`--amb`) = AMBIANCE. La
+séparation commandes/affichage de l'ECAM passe désormais par la MATIÈRE, plus par des bandes et
+des filets empilés — ce qui **rouvre la v4.25.0** en gardant son esprit et en inversant sa forme.
+
+- **Lot 1 — tokens.** Nouveau bloc `:root` (matières, encres, registres, échelle typographique
+  fermée à sept crans `11 / 12 / 13,5 / 15 / 17,5 / 21 / 24`, rayons `8 / 10 / 12 / 14`, une
+  seule ombre, cibles, mouvement) ; les anciens noms deviennent des ALIAS, aucune règle CSS n'a
+  eu à changer pour que le fichier compile. **Un seul ambre** (`--verify` et `--alert` fusionnent
+  en `--warn`) et **un seul rouge**. Nuit redessinée en OLED GRIS (`#0d0f13`) : sur OLED, le noir
+  pur fait « trou » et le halo des textes clairs fatigue. Trois fontes vendorisées (Manrope
+  variable 500-800, IBM Plex Mono 600/700, 45 Ko au total, précachées) : le SERIF ne sort que sur
+  un titre de fiche, le MONO que sur une valeur, Manrope tient tout le reste.
+  **⚠ TROIS TOKENS NE SONT PAS DES ALIAS, et les harnais l'ont prouvé** : `--paper` reste un
+  blanc FIXE (aliasé sur la matière travail, le QR se peignait en encre sombre sur fond sombre —
+  indéchiffrable, et le défaut ne se serait vu qu'au moment de scanner) ; `--shadow-up` garde son
+  décalage négatif ; `--ctl-line` tient 3:1 là où le `--line-strong` du système n'en fait que 1,6
+  — WCAG 2.2 § 1.4.11 vise les bordures de COMPOSANT, c'est-à-dire la case qu'on vise avec des
+  gants. Le bloc de dérivation `color-mix` de la direction A est retiré : les valeurs tonales du
+  nouveau système sont des accords qu'aucun mélange ne reproduit.
+- **Lot 2 — chrome de crise : deux objets, deux natures.** `#crisisBand` (comme bande),
+  `#crisisCtrl` et `#crisisDock` (comme rangées) laissent la place à une **capsule d'état**
+  (matière système, gabarit constant de 50 px, tap = volet minuteurs/compteurs/journal) et à un
+  **dock bas de quatre touches** (⤢ Tout voir · ▤ Consulter · ⚡︎ Complications · ⏱ Noter l'heure).
+  Chrome haut **175 → 131 px** à 390 px, trois `border-bottom` empilés en moins, et les quatre
+  gestes de session sous le pouce. En-tête à trois zones ancrées (A14) : le **sur-titre
+  « ■ MODE CRISE » passe AU-DESSUS du titre** — accolé au nom de la fiche, le statut se lisait
+  comme un fragment de ce nom — et la pilule `#hdrCrisis` est purgée (un seul énoncé du mode).
+  `fitCtrlRow` disparaît avec la rangée qu'elle ajustait ; `syncHdrScroll` reste, parce que
+  `--hdr-h` et `--stick-top` nourrissent le rail A→Z, le rail de lecture, `stickBase()` et le
+  `scroll-margin` qui empêche le masquage total d'une cible d'ancre (exigence AA).
+- **Lot 3 — carte de travail et journal.** L'étape critique se **MARQUE** (case rouge + ⚠ + corps
+  17,5 px + cadence mono ambre) et ne prend plus **ni cadre ni aplat** : mesuré à l'usage, à cinq
+  étapes l'aplat happait l'œil et détruisait la lecture de la séquence — l'aplat coloré est
+  désormais réservé à l'alarme active, et il n'y en a qu'un à l'écran. « ICI » quitte la carte
+  (trois signaux l'y désignaient déjà, `aria-current` compris) et ne vit plus que dans une LISTE.
+  L'historique du journal se replie en **une ligne-bilan qui se tire** (« ⌄ fait · ✓ n passages ·
+  a→b ») dès qu'elle existe : ~11 objets à l'écran contre 25.
+- **Lot 4 — rail et cockpit.** Cartes de minuteur à gabarit FIXE entre veille et échu (A9 : un
+  changement d'état non commandé ne déplace jamais rien — le piège n'est pas la structure, c'est
+  le libellé qui passe sur deux lignes). **A15 : « Consulter » n'évince plus le bloc au cockpit**
+  — à partir de 1200 px la référence s'ouvre dans la colonne d'état, le bloc reste sous les yeux
+  et cochable ; sous 1200 px elle reste une excursion à retour nommé.
+- **Lot 5 — accueil.** Navigation uniformisée : le sélecteur « A–Z | Catégories » choisit la CLÉ
+  DE GROUPEMENT de la même liste, et le rail droit est le MÊME index dans les deux modes (lettres
+  ↔ pastilles de catégorie) — on ne perd jamais de fiche en changeant de clé, c'est ce qui
+  distingue un groupement d'un filtre. Le résumé des filtres actifs rejoint l'en-tête de section.
+  La session vive devient le seul objet sombre de l'accueil.
+- **Lots 6 et 7 — fenêtres, documents, éditeur.** Re-peau par les tokens ; les règles nommées du
+  plan étaient déjà tenues (listes cochables jamais barrées, session terminée = archive sans
+  matière système ni dock, exercice = placard permanent jamais filigrane).
+
+**Volets système — doctrine d'occultation consignée (V1-V3).** Un volet ne s'ouvre que sur tap
+d'une touche du dock ; fermeture triple (re-tap, ✕, tap hors volet) plus le retour système ;
+l'alarme reste TOUJOURS en vue (capsule en haut, volets en bas — règle FMA de l'ECAM) ; hauteur
+plafonnée à 45 % et l'interruption s'annonce en tête (AC 120-71B §5.5). **⏱ l'heure prime** : le
+tap horodate immédiatement, le volet n'est que la nomination facultative. **⚡︎ bifurcation
+annoncée** : nom, condition d'entrée et destination avant le tap — et **à un seul événement il n'y
+a pas d'index**, la touche porte son nom et l'on entre d'un tap.
+
+**Ce que les harnais ont attrapé, et qui n'aurait pas été vu autrement** : le QR indéchiffrable en
+thème sombre, l'ombre montante devenue descendante, la capsule à 27 px de cible dans l'en-tête, le
+focus invisible sur un champ d'éditeur, le segment ÉCHU sacrifié par la boucle d'ajustement parce
+qu'un `flex:none` l'empêchait de rétrécir, et une fonction (`ovPaintLive`) emportée par une
+suppression à la tranche. Les témoins ont été **retargés, jamais désarmés** : ce qui change est
+l'adresse d'un composant, pas la propriété mesurée — et là où la propriété elle-même a changé
+(l'échelle typographique, le seuil du code d'appariement, « ICI » sur la carte), le témoin dit
+désormais ce que la règle veut dire plutôt qu'un chiffre.
+
+Contrôles : `npm run check` vert (échelles typo, espacement, rayons, couleurs, paliers, SW,
+vendor, uploads, SQL, stores, icônes, harnais, hashs CSP), `npm test` 952/952 sur les deux
+moteurs, `npm run audit` **25/25 tâches vertes** (20 harnais), `design:build` régénéré.
+
 ## [5.5.0] — 2026-08-08
 ### Les boucles évoluent au compte : jalons, renvoi d'excursion, période de cycle
 
@@ -823,90 +905,3 @@ on 'IDBDatabase': One of the specified object stores was not found ». La synchr
   DÉCLARATIVE (« `cfg.table` = le store local », écrit en commentaire), elle a fini par fuir.
   Corollaire du renommage : **après un renommage, chercher les endroits où l'ancien nom servait à
   DEUX choses**, pas seulement les endroits qui le citent.
-
-## [5.0.3] — 2026-08-03
-### Le déclencheur de filtre déménage contre la recherche, et cesse de disparaître
-
-Signalé à l'usage : « le bouton filtrer sur la page d'accueil ne s'affiche pas toujours quand on a
-sélectionné », avec deux propositions — le poser à côté de la barre de recherche, en icône seule,
-et lui faire dire qu'un filtre agit.
-
-- **Il ne disparaît plus quand un filtre agit — l'état a changé de PORTEUR.** La v5.0.0 tenait la
-  règle « un état actif ne se cache jamais » en FORÇANT les trois rangées ouvertes dès qu'un filtre
-  était posé, et en retirant le déclencheur (« plus rien à basculer, donc aucun bouton mort »).
-  Elle achetait donc la garantie au prix d'un contrôle qui apparaît et disparaît selon l'état —
-  ce que la constance positionnelle proscrit — et son gain de ~90 px au premier écran n'existait
-  plus dès qu'on avait filtré quoi que ce soit. Désormais c'est le déclencheur qui PORTE l'état :
-  registre de sélection plein **plus le nombre de filtres posés**. La couleur n'est jamais seule
-  (règle 8) — un chiffre n'est pas une couleur — et le nom accessible le dit en toutes lettres
-  (« Afficher les filtres — 2 actifs »). Replier avec un filtre actif redevient donc permis, sans
-  qu'on puisse se retrouver dans un corpus restreint sans savoir pourquoi.
-- **Il vit contre la recherche, en glyphe seul.** Les deux répondent à la même question —
-  restreindre ce qu'on voit — et posé là il ne coûte plus une ligne au premier écran. Mesuré à
-  320 px : 38 px de bouton (45 avec le chiffre), **0 px de débordement**, cible 38×36 px plus son
-  halo. Il est STATIQUE comme le champ (il vit hors de `main`, on le PEINT au lieu de le
-  reconstruire) : sa position s'apprend une fois pour toutes, et c'est son **bord droit** qui est
-  constant — il grossit du chiffre, il ne se déplace pas (mesuré : 372 px dans tous les états).
-  Il n'existe qu'en voie ÉTROITE : en large les filtres vivent dans la colonne gauche, déjà
-  visible, et un bouton pour déplier ce qui est déplié serait mort.
-- **Sa hauteur est celle du champ, et elle ne peut pas être écrite** (signalé à l'usage : « la
-  taille du bouton filtre est moins longue que le champ de recherche — c'est voulu ? » — non).
-  Une hauteur FIXE de 36 px, celle des contrôles ronds de l'en-tête, laissait **4 px de jeu en haut
-  comme en bas** : le champ monte à 43 px sur écran TACTILE (police de 16 px, plancher de la
-  règle 9) et redescend à 42 px au pointeur fin — il n'existe donc aucun nombre juste à écrire ici.
-  La hauteur est portée par la RANGÉE (`align-self:stretch`), `min-height` gardant la cible
-  réglementaire. Mesuré à 320/390/430/560/700/779 px : **0 px de jeu**, les deux objets alignés en
-  haut et en bas quelle que soit la hauteur du champ.
-- **Une croix d'effacement dans le champ de recherche.** Elle n'existe que s'il y a quelque chose à
-  effacer, sa place est **réservée en permanence** par un rembourrage constant (un rembourrage qui
-  bougerait ferait sauter le texte sous le curseur), et le focus RESTE dans le champ : on efface
-  pour retaper, pas pour partir. **Peinte à la FRAPPE, pas au rendu** — celui-ci est débouncé de
-  150 ms, et une croix qui paraîtrait un sixième de seconde après la lettre se lirait comme une
-  latence.
-### Deux mesures que l'usage a réclamées
-
-- **L'en-tête d'accueil ne tenait pas sur une ligne à 320 px.** La v4.43.0 a déclaré ce plancher
-  SERVI et l'a mesuré sur la rangée de crise et sur la barre des éditeurs — jamais sur l'en-tête
-  d'ACCUEIL, qui est pourtant le premier écran ouvert. Mesuré : logo 30 + mot-marque 126 + actions
-  136 = 292 px, plus deux écarts, soit 308 px pour 284 disponibles. `.id-row` étant en `flex-wrap`,
-  le flex **casse la ligne avant de rétrécir** : les trois boutons ronds tombaient sur une seconde
-  rangée et l'en-tête payait **38 px de haut**, là où la hauteur est la plus rare. Recette sur les
-  écarts et la taille des boutons — ni le mot-marque ni le logo ne bougent, l'audit A3-1 venant de
-  les calibrer — plus un **halo porté de 4 à 6 px** pour que la cible reste à 44 px au pixel près :
-  rétrécir le DESSIN sans rétrécir la CIBLE est tout l'objet d'un halo en zone haute. En-tête
-  **148 → 106 px** à 320 px.
-- **Un palier intermédiaire à 400 px, trouvé par la mesure de la MARGE.** À 360 px la rangée tenait
-  avec **6 px** de réserve — vrai aujourd'hui, faux au premier rendu de police un peu plus large :
-  le mot-marque mesure 126 px sur Chromium complet et **136 sur le headless shell**, soit 10 px
-  d'écart pour le même code. Un booléen « ça tient » reste vert jusqu'au dernier pixel puis casse
-  d'un coup ; le témoin mesure donc la RÉSERVE (≥ 8 px), pas le tenu-de-peu. Recette légère (les
-  écarts seuls) : **6 → 22 px** de réserve à 360 px.
-- **La gouttière du rail A→Z passe de 24 à 16 px.** Question posée : cet espace est-il un tampon
-  anti-fausse-manœuvre ? Non — en voie étroite le rail est `position:fixed`, et la réservation
-  l'empêche de RECOUVRIR le bord droit des rangées, donc l'épingle. Il n'en fallait jamais 24 : le
-  rail fait 27 px et mord déjà sur les 18 px de marge de page, 9 suffisent à ne rien couvrir ; le
-  reste était du vide. Après : **8 px** entre la carte et le rail, **9 px** entre la zone tactile de
-  l'épingle et la première lettre — les deux cibles ne se touchent pas, seule contrainte réelle —
-  et **8 px rendus à chaque rangée**, à toutes les largeurs étroites.
-- **`check-space` neutralise désormais les commentaires.** Il les lisait, et la feuille CITE ses
-  propres déclarations à longueur de commentaires doctrinaux : un `column-gap:8px` écrit dans une
-  explication faisait courir la capture `[^;}]+` jusqu'à l'accolade suivante, à travers le
-  commentaire ET la règle d'après, où elle ramassait le `359.98px` d'une media query et le
-  signalait comme un espacement de « 98 px ». Les commentaires deviennent des espaces de MÊME
-  LONGUEUR, donc les numéros de ligne restent exacts. Même précaution que `check-upload`.
-
-- **Témoins** (`audit-doctrine`, 643 → 693 contrôles) : le bloc « repli des filtres » mesure
-  désormais la géométrie du déclencheur (même rangée que la recherche, à sa droite, dans l'écran),
-  sa cible, le fait qu'il RESTE et s'annonce quand un filtre agit, que l'annonce survit à un
-  re-rendu complet ET au repli, que sa position ne bouge pas d'un état à l'autre, et que le chiffre
-  COMPTE (avec son témoin : sans seconde dimension filtrable, on mesurerait « 1 » en croyant
-  mesurer « 2 »), et qu'il fait exactement la hauteur du champ. Un bloc neuf couvre la croix. Les deux sont **vérifiés capables d'échouer**
-  (règle v5.0.0 réintroduite → 6 rouges ; peinture à la frappe retirée → 1 rouge ; hauteur fixe
-  réintroduite → 1 rouge), et le probe est
-  GARDÉ à chaque geste : un déclencheur absent est le défaut qu'il mesure, le laisser lever ferait
-  planter le harnais — « un harnais qui plante en emporte cinq ».
-  **Deux blocs neufs** mesurent l'en-tête d'accueil (une seule ligne ET sa RÉSERVE, cibles halo
-  compris, aucun débordement — 320/360/375/390/430 px) et la gouttière du rail (il ne recouvre
-  aucune rangée, la zone tactile de l'épingle reste libre — 320/390/430/640/779 px, après avoir
-  CONSTRUIT le répertoire : les fiches d'exemple ne donnent pas assez de lettres pour qu'un rail
-  existe, et sans ce témoin on mesurerait un écran sans rail).

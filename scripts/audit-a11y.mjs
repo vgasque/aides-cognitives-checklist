@@ -41,7 +41,7 @@ const AUDIT = `(() => {
   // à l'app doit être ajoutée ICI dans le même geste, sinon elle n'est jamais mesurée.
   // .dir-wrap + .azrail REMPLACENT .cards en v4.56.0 (accueil « poste accès direct ») : un
   // sélecteur qui ne matche plus rien ferait passer l'accueil sans l'avoir mesuré (v4.31.1).
-  const SCOPE=window.__acScope||'#crisisBand,#hdrCrisis,#crisisCtrl,#crisisDock,#planModal,#refModal,.read-side,.annex-row,.dir-wrap,.azrail,.list-edit,.pos-more';
+  const SCOPE=window.__acScope||'#crisisBand,.brand-sur,#crisisDock,#sessionDock,#dockSheet,#planModal,#refModal,.read-side,.annex-row,.dir-wrap,.azrail,.list-edit,.pos-more';
   const roots=[...document.querySelectorAll(SCOPE)].filter(visible);
   const seen=new Set();
   roots.forEach(root=>{
@@ -169,14 +169,14 @@ const SURFACES = [
   /* L'index ⚡ n'est plus une FENÊTRE mais un dépliant DANS la carte (v5.0.0, audit design) : la
      surface change de porteur, pas de nature — on l'ouvre par son vrai point d'entrée, et il faut
      DEUX événements pour qu'un index existe (à un seul, l'événement est le bouton). */
-  { nom:'excursions',       w:390,  scope:'.cx-list', fn: async()=>{
+  { nom:'excursions',       w:390,  scope:'#dockSheet', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
                     {label:'Choc réfractaire',target:f.blocks[0].id}];
       await Data.put(f);openRead(f.id);await new Promise(r=>setTimeout(r,400));
       const sb=document.getElementById('sessStart');if(sb)sb.click();
       await new Promise(r=>setTimeout(r,500));
-      const b=document.querySelector('[data-cxopen]');if(b)b.click();
+      const b=document.querySelector('#cxKey');if(b)b.click();
       await new Promise(r=>setTimeout(r,350)); } },
   { nom:'versions précédentes',w:390,  scope:'#versModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
@@ -265,8 +265,13 @@ const SURFACES = [
          hors session. On ajoute la déclaration et l'on re-rend le journal, rien de plus. */
       const f=state.fiche;
       f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id}];
-      renderOvOnly(); await new Promise(r=>setTimeout(r,350));
-      const g=document.querySelector('[data-cxgo]'); if(g)g.click();
+      /* v5.6 : l'entrée sur complication est passée au DOCK. La touche ⚡︎ est peinte par le
+         chrome (applyViewChrome), pas par le journal : un `renderOvOnly` ne la ferait pas
+         paraître, et le témoin mesurerait un écran où rien n'a été construit. */
+      render(); await new Promise(r=>setTimeout(r,400));
+      const k=document.getElementById('cxKey'); if(k)k.click();
+      await new Promise(r=>setTimeout(r,350));
+      const g=document.querySelector('#dockSheet [data-cxgo]'); if(g)g.click();
       await new Promise(r=>setTimeout(r,700)); } },
   { nom:'état · minuteur échu', w:390, prep:'read', must:'.seg.due,.tmcard.due', fn: async()=>{
       /* Les minuteurs du Runtime sont un DICTIONNAIRE par id, pas un tableau — et l'échéance se
@@ -280,12 +285,12 @@ const SURFACES = [
         t.running=true;t.elapsedMs=0;t.lastStart=Date.now()-((src.seconds||60)*1000+9000);}
       if(typeof tickAll==='function')tickAll();
       await new Promise(r=>setTimeout(r,500)); } },
-  { nom:'état · index ⚡ déplié', w:390, prep:'read', must:'.cx-list .cx-item', fn: async()=>{
+  { nom:'état · index ⚡ déplié', w:390, prep:'read', must:'#dockSheet .ds-row', fn: async()=>{
       const f=state.fiche;
       f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},
                     {label:'Choc réfractaire',target:f.blocks[0].id}];
       renderOvOnly(); await new Promise(r=>setTimeout(r,350));
-      const b=document.querySelector('[data-cxopen]'); if(b)b.click();
+      const b=document.querySelector('#cxKey'); if(b)b.click();
       await new Promise(r=>setTimeout(r,450)); } },
   /* ═══ ÉTATS D'ITEM (v5.0.0, audit design A1-2) ═══
      LES CINQ ÉTATS DE SURFACE ci-dessus mesuraient des ÉCRANS après un geste. Aucun ne mesurait
@@ -481,7 +486,7 @@ console.log('\n══════ WCAG 2.2 · 2.4.11 focus non masqué (session,
   await ouvrirFiche(page,/Arrêt cardiaque/);
   await demarrerSession(page);
   const bad = await page.evaluate(async()=>{
-    const layers=['header.bar','#crisisCtrl','#crisisDock'].map(s=>document.querySelector(s)).filter(Boolean);
+    const layers=['header.bar','#crisisDock'].map(s=>document.querySelector(s)).filter(Boolean);
     const stick=()=>Math.max(...layers.map(e=>e.getBoundingClientRect().bottom));
     const foc=[...document.querySelectorAll('main a[href],main button,main input,main [tabindex="0"]')].filter(e=>e.offsetParent);
     const out=[];

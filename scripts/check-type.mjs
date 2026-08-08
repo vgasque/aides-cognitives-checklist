@@ -30,14 +30,21 @@ const ROOT = decodeURIComponent(new URL('../', import.meta.url).pathname);
 
 /* Les sept paliers. Toute autre valeur sous 20 px doit être justifiée ci-dessous, jamais
    ajoutée en silence : c'est la discussion qu'on veut forcer, pas la conformité. */
-const PALIERS = [19, 18, 16.5, 15.5, 13.5, 12, 11];
+/* REFONTE v5.6 (A6) — l'échelle se referme sur SEPT crans, et les DEUX bandes n'en font plus
+   qu'une : le grand corps appartient désormais à l'ACTE, plus au chrono. L'ancienne bande
+   d'affichage (20 · 24 · 26 · 34 · 40) disparaît avec sa raison d'être — un chrono à 40 px pendant
+   qu'une étape vitale plafonnait à 15,5 était l'enjeu inversé. 24 px reste, comme cran haut des
+   VALEURS mono (--t-val, chrono d'alarme du volet). */
+const PALIERS = [24, 21, 17.5, 15, 13.5, 12, 11];
 /* Les cinq paliers d'AFFICHAGE (≥ 20 px). Même règle : toute autre valeur se discute ici. */
-const AFFICHAGES = [20, 24, 26, 34, 40];
+/* Plus de seconde bande : `bande` pointe sur la même échelle des deux côtés du seuil. Le nom est
+   conservé pour que la lecture du contrôle reste la même. */
+const AFFICHAGES = PALIERS;
 /* Exemptions NOMMÉES par leur sélecteur, avec leur motif. Une exemption anonyme ne vaut rien —
    elle rouvre la porte qu'on vient de fermer. */
 const EXEMPTIONS = [
-  { rx: /#zoomSeg\s+\.ts-(90|100|115|130)\b/, val: null,
-    motif: 'les quatre « A » sont l’échantillon de l’échelle réglée par l’utilisateur' },
+  /* v5.6 : les quatre « A » du sélecteur de taille sont désormais QUATRE CRANS DE L'ÉCHELLE
+     (12 · 13,5 · 15 · 17,5) — l'échantillon montre le système au lieu d'y faire exception. */
   { rx: /input|textarea|select|\.auth-field|\.tg-row|\.join-sel|coarse/i, val: 16,
     motif: 'plancher de 16 px des champs sur écran tactile (règle 9)' },
 ];
@@ -92,7 +99,17 @@ const PLANCHER = 11;
    dont trois au plancher (`.ph-chip`, `.pl-cxh`, `.pl-bl2`). Trois déclarations de moins qui ne
    coûtent rien à personne — du CSS que plus aucun gabarit n'émettait. On repose donc le cliquet
    sur le niveau ATTEINT : le laisser à 169 rouvrirait trois places pour une dérive future. */
-const PLANCHER_MAX = 166;
+/* 166 -> 170 (v5.6, refonte « verre clinique ») — LE CLIQUET REMONTE, ET IL FAUT LE JUSTIFIER,
+   parce que la règle dit qu'il ne remonte pas. Quatre déclarations de plus, toutes dans le DOCK
+   et ses volets : les étiquettes des quatre touches (--t-cap, A13 : « étiquettes de touches à
+   11 px »). Ce n'est pas une dérive du plancher vers le corps de texte — c'est le cran le PLUS
+   HAUT autorisé pour une étiquette de commande sous un glyphe de 15 px, et le système le nomme.
+   ⚠ CE QUI LE REND ACCEPTABLE EST UN ÉCHANGE, PAS UNE TOLÉRANCE : la même refonte fait passer
+   l'étape courante de 15,5 à 17,5 px et l'étape critique à 21 — le gisement de 11 px cesse d'être
+   le corps de texte du produit, ce que le cliquet existe pour empêcher. Il est reposé au niveau
+   ATTEINT : il ne peut que redescendre. 170 -> 171 : l'intitulé de la colonne « ▤ Consulter »
+   (A15), une étiquette de zone du rail — même famille que les autres `.rail-head`. */
+const PLANCHER_MAX = 171;
 const auPlancher = (css.match(/font-size:\s*11px/g) || []).length;
 
 if (!fautes.length && auPlancher > PLANCHER_MAX) {

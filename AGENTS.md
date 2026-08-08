@@ -400,6 +400,168 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   exactement le contenu du lock, donc reproductible — `release.sh` synchronise désormais la
   version de `package-lock.json` avec les trois autres fichiers (elle était restée à 4.3.0).
 
+## Refonte v5.6 — direction « verre clinique, mat »
+
+> Ces entrées sont la **passation** de la refonte (planches Claude Design, phases 0 à 6). Elles
+> ROUVRENT des décisions consignées : chacune est nommée avec ce qu'elle achète et ce qu'elle
+> coûte. Une règle non consignée est une règle que la prochaine itération prudente défera.
+
+**TROIS MATIÈRES, TROIS NATURES.** Sombre (`--sys`) = SYSTÈME : la capsule d'état et le dock, les
+deux seuls objets sombres du produit — trouvables sans lire. Blanc (`--work`) = TRAVAIL : carte,
+historique, feuilles, éditeurs ; seule matière qui projette une ombre. Gris (`--amb`) = AMBIANCE :
+le fond, ce qui attend.
+**ROUVRE** les bandes et filets empilés du chrome de crise (v4.25.0 et suivantes) : la séparation
+commandes/affichage passe désormais par la MATIÈRE, plus par des rangées superposées.
+**⚠ TROIS TOKENS NE SONT PAS DES ALIAS, et chacun l'a appris au prix d'un contrôle rouge** :
+`--paper` reste un BLANC FIXE des deux thèmes (aliasé sur `--work`, le QR se peignait en encre
+sombre sur fond sombre — indéchiffrable, et le défaut ne se serait vu qu'au moment de scanner) ;
+`--shadow-up` garde son décalage NÉGATIF (une ombre montante qui descend fait paraître l'objet
+enfoncé) ; `--ctl-line` tient 3:1 là où `--line-strong` du système n'en fait que 1,6 — WCAG 2.2
+§ 1.4.11 vise les BORDURES DE COMPOSANT, c'est-à-dire la case qu'on vise avec des gants.
+Sur la matière système, les registres ont leurs valeurs propres (`--ok-sys`, `--warn-sys` sur
+`--warn-sys-bg`, `--crit-sys`, `--on-sys-fill`) : la capsule et le dock sont sombres dans les DEUX
+thèmes, un registre du thème clair n'y tiendrait pas 4,5:1.
+
+**A1. CLAVIER VS DOCK.** Au focus d'un champ, le dock s'efface (le clavier EST la surface de
+saisie) ; il revient à la fermeture. Ne jamais empiler dock + clavier. Le champ du volet ⏱ est
+EXCLU : il vit dans le dock, s'effacer sous les doigts de qui écrit dedans serait absurde.
+
+**A2. 320 px.** Les touches d'excursion perdent leur étiquette (glyphe seul, `aria-label`
+conservé). Hors du contrat « le mot Crise jamais au glyphe seul », qui ne vise que le STATUT, pas
+les commandes — et les deux GESTES (⚡︎, ⏱) gardent leurs mots, parce qu'ils ÉCRIVENT.
+
+**A5. THÈME SOMBRE — OLED GRIS.** Fond `#0d0f13` (gris vrai, pas un noir théâtral : sur OLED le
+noir pur fait « trou » et le halo des textes clairs fatigue), travail `#171a20` bordé, encres
+remontées, signaux éclaircis, zéro ombre — la nuit ne projette pas, elle borde.
+
+**A6. ÉCHELLE TYPOGRAPHIQUE FERMÉE — SEPT CRANS, UNE SEULE BANDE.** `11 / 12 / 13,5 / 15 / 17,5 /
+21 / 24`, graisses 500-800. L'ancienne bande d'AFFICHAGE (20 · 24 · 26 · 34 · 40) disparaît avec sa
+raison d'être : un chrono à 40 px pendant qu'une étape vitale plafonnait à 15,5 était l'enjeu
+INVERSÉ. Seule dérogation, le multiplicateur global `--zf`, qui garde les crans solidaires.
+`check-type` le vérifie ; son CLIQUET de plancher est remonté de 166 à 170 déclarations à 11 px —
+les quatre étiquettes du dock (A13) —, et c'est un ÉCHANGE, pas une tolérance : l'étape critique
+passe de 15,5 à 17,5 px dans le même mouvement.
+ACHÈTE : le grand corps appartient à l'ACTE, plus au chrono.
+
+**A7. « VÉRIFIER » EST UN GESTE DE BLOC.** Il rejoue les challenges « :: » du bloc courant
+(Do-Verify, FAA Order 8900.1) : il vit dans la carte, en rangée de pied, à gauche de « Continuer »,
+et SEULEMENT si le bloc porte des challenges. Le dock reste pur session.
+
+**A8. CIBLES.** Aucun contrôle sous 44 px de cible en crise — ± des compteurs, RELANCER/PAUSE et ✕
+compris. La cible vient du HALO, jamais du dessin : c'est ce qui permet à la capsule de se
+compacter à 36 px dans l'en-tête sans perdre ses 44 px de cible.
+
+**A9. HAUTEURS D'ÉTAT FIXES.** Un changement d'état NON commandé (un minuteur qui devient échu, une
+alarme qui s'éveille) ne modifie JAMAIS une hauteur : capsule (50 px) et cartes de minuteur ont un
+gabarit constant entre leurs états ; seuls matière, couleur et texte changent. L'expansion reste
+permise quand elle est COMMANDÉE par un tap. ⚠ Le piège n'est pas la structure — elle est identique
+d'un état à l'autre — c'est le LIBELLÉ : « Adrénaline » devient « Adrénaline — échu », un mot de
+plus passe le nom sur deux lignes, et la carte grandit sous le doigt. D'où le clamp à deux lignes.
+
+**A10. UNE ÉTAPE FAITE NE SE BARRE JAMAIS.** Le fait se marque (✓ + encre atténuée), il ne
+s'ampute pas. Trois raisons : une checklist en boucle fait relire l'étape au passage suivant ; la
+passe Do-Verify exige de pouvoir RELIRE ce qu'on a fait ; ni l'ECAM ni le QRH ne rayent une ligne
+exécutée. Le barré reste admis hors crise, sur des listes non séquentielles, et pour ce qui est
+ANNULÉ (repère annulé, participant déconnecté) — annulé n'est pas fait.
+
+**A11. APLAT VS MARQUE.** La teinte en APLAT est réservée à ce qui exige une action MAINTENANT
+(alarme active) — une seule masse colorée à l'écran, et le nominal s'éteint. Une étape critique se
+MARQUE : case rouge + ⚠ + corps 17,5 px + cadence mono ambre, **sans cadre ni fond**. Mesuré à
+l'usage : à cinq étapes, l'aplat happe l'œil et détruit la lecture de la séquence. Le CORPS est le
+canal du danger — il ne hiérarchise que si toutes les lignes ne l'ont pas, d'où l'étape ordinaire à
+`--t-item` et la seule critique à `--t-step`. La vigilance △ ne prend PAS le gain de corps : le
+grand corps dit « ceci tue », l'étendre à « on s'y trompe » remettrait les deux à égalité.
+
+**A12. « ICI » N'EXISTE QUE DANS UNE LISTE.** Sur la carte, le bloc ouvert est déjà désigné par
+trois signaux (seul bloc ouvert, tête de journal, bordure d'accent) et par `aria-current="step"` :
+l'étiquette y est redondante, seul le compte subsiste. Elle reste dans le rail Structure,
+l'excursion « ⤢ Tout voir » et l'étiquette de retour du dock — là où elle sert à SE RETROUVER.
+
+**A13. DEUX CRANS DE GLYPHE.** Glyphe de commande 15 px (‹ ◐ ⋯ ⤢ ▤ ⚡︎ ⏱ ✕ ±) ; micro-glyphe inline
+(✓ ⚠ △ ●) au corps du texte qu'il accompagne. Étiquettes de touches à `--t-cap` 11 px. Tout glyphe
+susceptible de basculer en emoji couleur (⚡︎ notamment) porte le sélecteur de présentation texte
+U+FE0E : une couleur non contrôlée casse la sémantique du danger.
+
+**A14. EN-TÊTE À TROIS ZONES ANCRÉES.** Identité à gauche — **sur-titre `.brand-sur` AU-DESSUS du
+titre**, parce qu'accolé au nom de la fiche le statut se lisait comme un fragment de ce nom ; état
+au CENTRE en position absolue à partir de 1000 px (un titre long ne déplace plus l'alarme) ;
+réglages à droite. Hauteur constante quel que soit l'état. **La pilule `#hdrCrisis` est PURGÉE** :
+deux énoncés du même mode sur le même écran, c'est la duplication que la v4.70.1 proscrit — la
+question n'était plus QUE supprimer mais LEQUEL, et le sur-titre gagne parce qu'il est du côté où
+l'œil arrive et qu'il ne dispute plus sa place aux réglages.
+
+**A15. « CONSULTER » N'ÉVINCE PAS LE BLOC AU COCKPIT.** À partir de 1200 px la référence s'ouvre
+dans la colonne d'état : le bloc reste sous les yeux et cochable (l'ECAM ne remplace que la zone
+concernée). Sous 1200 px elle reste une excursion, retour nommé « ↩ REVENIR · n » à position
+constante, même vert que « ↩ UN BLOC ». « Tout voir » garde le remplacement à tous les paliers :
+c'est la même matière que le bloc — la fiche.
+
+**R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
+rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
+tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
+repli admissible : un passage INCOMPLET n'est jamais une chip, le BOUT est toujours une carte.
+ACHÈTE : le bloc seul au centre, ~11 objets à l'écran contre 25.
+⚠ CONSÉQUENCE MESURÉE : le journal ne grandit plus, donc à 390 px le contrôle d'avancement est
+souvent DÉJÀ visible à la réouverture — `landOnBout` a alors raison de ne pas défiler, et le témoin
+de réentrée mesure les DEUX régimes plutôt que d'exiger un atterrissage qui n'a plus lieu d'être.
+
+**R9. LE PIED DE CARTE NE PORTE PLUS QU'UN GESTE.** Il en portait trois (⚡︎, ⏱, Vérifier) et la
+pile dépassait le plafond de 25 % de la hauteur de carte sur un bloc court. Deux ne sont pas des
+gestes de BLOC par nature — une complication survient quand elle survient, un horodatage se pose à
+n'importe quel moment : ils sont partis au dock. **L'ACCUSÉ DE RÉCEPTION LES A SUIVIS** : la règle
+« la réponse vit là où le geste a eu lieu » (M11) n'a pas bougé d'un mot, c'est le geste qui s'est
+déplacé — le laisser derrière aurait produit DEUX réponses à un seul geste. `tkAckHtml`,
+`state.tkAck` et les règles `.tk-ack*` sont purgés (règle 14).
+
+**DEUX OBJETS, DEUX NATURES — ÉTAT EN HAUT, COMMANDES EN BAS.** Ceci ROUVRE la v4.25.0 (« deux
+rangées, deux natures ») et la règle « une seule zone fixe, en haut ». L'ESPRIT de v4.25.0 est
+conservé — commandes ≠ état, c'est l'architecture ECP/ECAM — mais la FORME est inversée : l'ÉTAT
+monte dans une CAPSULE, les COMMANDES descendent dans un DOCK au pouce. La règle du chrome bas
+visait les NOTIFICATIONS FLOTTANTES (règle 11), pas une surface de commandes stable ; trois risques
+nommés et traités au code : safe-area iOS, clavier virtuel (A1), 320 px (A2).
+GAIN MESURÉ : chrome haut **175 → 131 px** à 390 px, trois `border-bottom` empilés en moins.
+⚠ `fitCtrlRow` est SUPPRIMÉE avec la rangée qu'elle ajustait — mais son appelant enchaînait
+`fitCtrlRow()` puis `syncHdrScroll()`, et **le second appel reste** : `--hdr-h` et `--stick-top`
+sont consommés par la capsule, le rail A→Z, le rail de lecture, `stickBase()` et le `scroll-margin`
+qui empêche le masquage total d'une cible d'ancre (exigence AA, sonde 2.4.11).
+
+**VOLETS SYSTÈME — DOCTRINE D'OCCULTATION.** L'occultation COMMANDÉE est conforme ECAM/QRH
+(appeler une page remplace la page affichée) ; ce que la doctrine interdit, c'est l'occultation non
+commandée et l'occultation piégeante.
+- **V1.** Un volet ne s'ouvre que sur tap d'une touche du dock. Fermeture TRIPLE : re-tap, ✕ ≥ 44 px,
+  tap hors volet — plus le retour système, qui passe par le même chemin. Rien ne bouge derrière (le
+  volet est `fixed` : il ne change aucune géométrie de flux, le témoin M11 tient par construction).
+- **V2.** L'alarme reste TOUJOURS en vue : capsule en HAUT, volets en BAS. Même volet ouvert,
+  l'ambre qui pulse est visible (règle FMA de l'ECAM).
+- **V3.** Hauteur plafonnée à ~45 % de la hauteur VISIBLE : jamais plein écran, le contexte reste
+  lisible. Si une étape critique est non cochée, le volet l'annonce EN TÊTE (gestion d'interruption,
+  AC 120-71B §5.5) — ce qu'on allait faire doit survivre à ce qu'on vient d'ouvrir.
+- **⏱ L'HEURE PRIME.** Le tap pose l'horodatage IMMÉDIATEMENT au journal (l'instant du TAP, pas
+  celui de la saisie) ; le volet n'est que la nomination facultative, annulable et renommable après
+  coup. Pas de modale en crise. `tkNoteNow` reste le point d'écriture unique — on l'APPELLE, on ne
+  le réécrit pas.
+- **⚡︎ BIFURCATION ANNONCÉE.** Rangées ≥ 56 px : nom en toutes lettres + condition d'entrée +
+  destination (« → bloc 9 · retour ↩ 7 »). On sait AVANT de taper où l'on va et qu'on reviendra.
+  **À UN SEUL ÉVÉNEMENT, IL N'Y A PAS D'INDEX** : la touche porte son NOM et l'on entre d'un tap —
+  ouvrir une liste d'un élément pour y choisir cet élément est le bouton mort de la doctrine, en
+  plus lent. Et l'on ne propose pas d'entrer là où l'on est déjà : à un événement la touche
+  disparaît, à deux la rangée courante s'annonce et cesse d'être tapable.
+
+**NAVIGATION D'ACCUEIL UNIFORMISÉE — UNE LISTE, DEUX CLÉS.** Le sélecteur « A–Z | Catégories »
+choisit la CLÉ DE GROUPEMENT de la MÊME liste, et le rail droit est le MÊME index dans les deux
+modes (lettres ↔ pastilles de catégorie). On ne perd jamais de fiche en changeant de clé : c'est un
+changement d'ordre, pas de contenu — et c'est ce qui distingue un groupement d'un FILTRE. Les
+filtres, eux, gardent leur déclencheur à badge chiffré, et leur RÉSUMÉ en toutes lettres rejoint
+l'en-tête de section (« · filtres : Perso · aides ») : un filtre posé ne doit jamais être invisible.
+La SESSION VIVE est le seul objet sombre de l'accueil — c'est le même objet que la capsule de crise,
+on le reconnaît sans lire.
+
+**PARTAGE — CE QUI EST FERMÉ AU SCRIBE.** Exactement quatre gestes (`SHARE_KINDS_LEAD`) : décocher,
+remettre un minuteur à zéro, démarrer, terminer — tous destructeurs ou structurants. Cocher
+appartient au scribe : l'avancement est PARTAGÉ et chaque ligne porte son attribution. Une commande
+fermée au scribe **n'apparaît pas éteinte : elle n'apparaît pas** (la touche ⚡︎ du dock n'existe pas
+pour lui ; promu lead, elle paraît sans qu'aucune géométrie ne bouge).
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

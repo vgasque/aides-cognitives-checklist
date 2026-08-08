@@ -113,12 +113,12 @@ t('bouton « Quitter l’exercice… » sur le placard → dialogue « Terminer 
 t('« Poursuivre » n’interrompt rien (l’exercice continue)', e2b.encore);
 // matière pour le compte-rendu : une complication + une passe de vérification avec écart
 await p.evaluate(async()=>{
- /* L'index ⚡ n'est plus une fenêtre : à UN seul événement le bouton entre directement
-    (`data-cxgo`), à deux ou plus il déplie une liste dans la carte (v5.0.0, audit design). */
- {const b0=document.querySelector('[data-cxgo]');
-  if(b0){b0.click();}
-  else{document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
-       document.querySelector('.cx-list .cx-item').click();}}
+ /* v5.6 : l'entrée sur complication est une TOUCHE DU DOCK. À UN seul événement elle entre
+    directement (règle B) ; à deux ou plus elle ouvre le volet, où l'on choisit la rangée. */
+ {const k=document.getElementById('cxKey');
+  if(k&&!k.hidden){k.click();await new Promise(r=>setTimeout(r,350));
+    const row=document.querySelector('#dockSheet .ds-row:not([disabled])');
+    if(row)row.click();}}
  await new Promise(r=>setTimeout(r,450));
  document.querySelector('[data-cxback]').click();await new Promise(r=>setTimeout(r,400));
  const vb=document.querySelector('.ov-block.cur [data-ovverify]');vb.click();await new Promise(r=>setTimeout(r,350));
@@ -170,14 +170,16 @@ const e7=await p.evaluate(async()=>{
  document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,400));
  const cb=document.getElementById('crisisBand');
  const real={tag:cb.querySelector('.cb-tag').textContent,exo:cb.classList.contains('exo'),
-   pilule:(document.getElementById('hdrCrisis')||{}).textContent||'',
+   /* v5.6 (A14) : la pilule de mode a cédé la place au SUR-TITRE, dans la zone d'identité —
+      un seul énoncé du mode, du côté où l'œil arrive. Le témoin suit le composant. */
+   pilule:(document.getElementById('brandSur')||{}).textContent||'',
    strip:document.getElementById('cbTimers').textContent};
- /* L'index ⚡ n'est plus une fenêtre : à UN seul événement le bouton entre directement
-    (`data-cxgo`), à deux ou plus il déplie une liste dans la carte (v5.0.0, audit design). */
- {const b0=document.querySelector('[data-cxgo]');
-  if(b0){b0.click();}
-  else{document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
-       document.querySelector('.cx-list .cx-item').click();}}
+ /* v5.6 : l'entrée sur complication est une TOUCHE DU DOCK (règle B : à un seul événement,
+    elle entre directement ; à deux ou plus, elle ouvre le volet). */
+ {const k=document.getElementById('cxKey');
+  if(k&&!k.hidden){k.click();await new Promise(r=>setTimeout(r,350));
+    const row=document.querySelector('#dockSheet .ds-row:not([disabled])');
+    if(row)row.click();}}
  await new Promise(r=>setTimeout(r,450));
  endSession(Runtime);resetRuntime();state.fiche=null;state.view='library';render();await new Promise(r=>setTimeout(r,400));
  const card=document.querySelector('.last-sess');
@@ -187,8 +189,8 @@ const e7=await p.evaluate(async()=>{
   wm:/class="wm">EXERCICE/.test(h),cx:/⚡/.test(h)&&/Laryngospasme/.test(h)};});
 /* v4.70.1 : la session RÉELLE n'a plus d'étiquette de bandeau — le mode se lit dans la barre,
    une seule fois. Le témoin mesure donc les DEUX moitiés : bandeau nu ET pilule « Crise ». */
-t('session réelle : bandeau nu, « ■ Crise » en barre, « ● Session » au quai',
-  e7.real.tag===''&&/Crise/.test(e7.real.pilule)&&!e7.real.exo&&/● Session/.test(e7.real.strip),
+t('session réelle : bandeau nu, « ■ Mode crise » en tête, « ● Session » au quai',
+  e7.real.tag===''&&/Mode crise/.test(e7.real.pilule)&&!e7.real.exo&&/● Session/.test(e7.real.strip),
   JSON.stringify(e7.real));
 t('carte-bilan réelle : « Session terminée »', /Session terminée/.test(e7.carte||''), ''+e7.carte);
 t('compte-rendu RÉEL : ⚡ complication restituée, SANS filigrane', e7.cx&&!e7.wm, JSON.stringify({cx:e7.cx,wm:e7.wm}));

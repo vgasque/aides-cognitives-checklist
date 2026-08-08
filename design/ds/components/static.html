@@ -40,7 +40,131 @@
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
      Précachée par sw.js (règle 13) : hors ligne dès l'installation. */
   @font-face{font-family:'Source Serif 4';src:url('vendor/fonts/source-serif-4-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-  :root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;--pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
+  /* REFONTE v5.6 — DEUX FONTES DE PLUS, MÊME RÈGLE QUE SOURCE SERIF 4 (règle 13). Manrope prend
+     l'INTERFACE, IBM Plex Mono les VALEURS ; Source Serif 4 garde les TITRES DE FICHES (identité
+     clinique de v4.61, conservée). Ce sont des ACTIFS SERVIS, pas des dépendances runtime : aucun
+     code, aucun appel réseau, sous-ensembles latin, entrées dans ASSETS (sw.js), font-src 'self'.
+     Manrope est une fonte VARIABLE 500-800 en UN fichier de 24 Ko — moins cher que deux statiques,
+     et les quatre graisses de l'échelle (500/600/700/800) en sortent sans graisse synthétique.
+     `font-display:swap` partout : le texte s'affiche immédiatement dans le repli. */
+  @font-face{font-family:'Manrope';src:url('vendor/fonts/manrope-latin-var.woff2') format('woff2');font-weight:500 800;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+  @font-face{font-family:'IBM Plex Mono';src:url('vendor/fonts/ibm-plex-mono-latin-600.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+  @font-face{font-family:'IBM Plex Mono';src:url('vendor/fonts/ibm-plex-mono-latin-700.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+  /* ══ REFONTE v5.6 — TOKENS « VERRE CLINIQUE, MAT » ══════════════════════════════════════════
+     TROIS MATIÈRES, TROIS NATURES. Sombre (--sys) = SYSTÈME : la capsule d'état et le dock, les
+     deux seuls objets sombres du produit — trouvables sans lire. Blanc (--work) = TRAVAIL : carte,
+     historique, feuilles, éditeurs ; seule matière qui projette une ombre. Gris (--amb) =
+     AMBIANCE : le fond, ce qui attend. La séparation commandes/affichage (ECAM) passe désormais
+     par la MATIÈRE, plus par des bandes et des filets empilés.
+     Les anciens noms restent définis en ALIAS (partie 9) : aucune règle CSS n'a eu à changer pour
+     que le fichier compile. ⚠ Un alias ne s'écrit QUE lorsque l'ancien nom DIFFÈRE du nouveau —
+     écrire --line:var(--line) formerait un cycle, la propriété deviendrait invalide à la valeur
+     calculée et TOUTES les règles qui la consomment perdraient leur valeur. */
+  :root{
+  /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
+  --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
+  --sys:#1d232b;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
+  --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
+  --line:#e3e6ea;--line-strong:#c3ccd6;
+  /* --ctl-line : LA SEULE DÉVIATION ASSUMÉE À tokens.css, et elle est motivée. Le système pose
+     --line-strong:#c3ccd6, soit 1,6:1 sur blanc : parfait pour un filet de carte, INSUFFISANT
+     pour la bordure d'un composant, que WCAG 2.2 § 1.4.11 exige à 3:1. Or ce token habille aussi
+     les CASES À COCHER et les bordures de champs — c'est-à-dire l'objet qu'on vise avec des gants,
+     sous stress, au soleil. On garde donc la valeur du système partout où il s'agit de dessiner,
+     et un token à 3:1 là où il s'agit de VISER. Deux rôles, deux tokens : la règle 8 du dossier. */
+  --ctl-line:#8a94a0;
+  /* ─── 2. ENCRES (AA sur leurs fonds) ───────────────────────────────────────────────────── */
+  --ink:#14181d;--ink-2:#5b6472;--ink-3:#a3abb6;
+  /* ─── 3. SÉMANTIQUE DU DANGER — jamais seule, toujours mot + glyphe ─────────────────────
+     A11 : l'APLAT est réservé à ce qui exige une action MAINTENANT (alarme active) — une seule
+     masse colorée à l'écran. Une étape critique se MARQUE (case + ⚠ + corps + cadence), sans
+     cadre ni fond : mesuré à cinq étapes, l'aplat happe l'œil et détruit la lecture de la
+     séquence. UN seul ambre (--verify et --alert fusionnent en --warn) et UN seul rouge. */
+  --ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#e8f2ea;
+  --warn:#7a5900;--warn-line:#b45309;--warn-soft:#fbf3dc;
+  --warn-sys:#fbbf24;--warn-sys-bg:#3c2b06;
+  /* ✓/● sur matière SYSTÈME : --ok du thème clair (#1d7a38) ne tient que 2,8:1 sur --sys. La
+     capsule et le dock sont sombres dans les DEUX thèmes — cette valeur n'a donc pas d'override. */
+  --ok-sys:#4ade80;
+  /* Le ROUGE et l'ENCRE-SUR-APLAT de la matière système. Mêmes motifs que --warn-sys : la capsule
+     et le dock sont sombres dans les DEUX thèmes, leurs registres ont donc des valeurs propres et
+     FIXES — comme --lb-cap/--lb-ink pour la lightbox. --crit-sys tient 4,5:1 sur --sys (le --crit
+     du thème clair n'y atteint que 3,0) ; --on-sys-fill est l'encre d'un aplat CLAIR posé sur la
+     matière sombre (le retour d'excursion, vert rempli) — --on-primary y serait blanc sur vert. */
+  --crit-sys:#ff9d94;--on-sys-fill:#0d0f13;
+  --crit:#a32e1f;--crit-line:#c43d34;--crit-soft:#fbf0ee;
+  --act:#17477f;
+  /* ─── 4. TYPOGRAPHIE — le grand corps appartient à l'ACTE ───────────────────────────────
+     A6 : échelle FERMÉE, aucune valeur entre les crans. Seule dérogation, le multiplicateur
+     global --zf (réglage utilisateur), qui garde les crans solidaires. `npm run check` le vérifie.
+     Avant, l'étape qui sauve plafonnait à 15,5 px quand le chrono avait droit à 34 : l'enjeu
+     était inversé. */
+  --f-ui:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --f-title:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --t-cap:11px;--t-meta:12px;--t-body:13.5px;--t-item:15px;--t-step:17.5px;--t-step-l:21px;--t-val:24px;
+  --w-ui:600;--w-strong:700;--w-max:800;
+  /* A13 : DEUX crans de glyphe, pas plus — glyphe de commande 15 px (la cible vient du HALO,
+     jamais du dessin) ; micro-glyphe inline au corps du texte qu'il accompagne. */
+  --g-cmd:15px;
+  /* ─── 5. RAYONS — fermés à 4 crans, la pilule n'existe pas ──────────────────────────────
+     Exception unique : les chips de filtre, où la pilule EST la forme du composant. */
+  --r-1:8px;--r-2:10px;--r-3:12px;--r-4:14px;
+  /* ─── 6. OMBRE — une seule, sous la matière TRAVAIL ─────────────────────────────────────
+     La nuit ne projette pas : elle borde (--shadow-work:none en sombre). */
+  --shadow-work:0 6px 24px rgba(20,24,29,.06);
+  /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
+  --hit:44px;--hit-crisis:48px;
+  /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
+  --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;
+  /* ══ 9. ALIAS — les anciens noms pointent vers les nouveaux ═══════════════════════════════ */
+  --bg:var(--amb);--surface:var(--work);--surface-2:var(--amb-2);--surface-3:var(--amb-2);
+  --input-bg:var(--work);--line-hover:var(--line-strong);
+  /* ⚠ `--paper` N'EST PAS UN ALIAS DE `--work`, et le harnais QR l'a rattrapé (« 390×844 dark ·
+     l'image peinte est relue par le décodeur d'Apple » : ÉCHEC). C'est un token FIXE DES DEUX
+     THÈMES — le canevas BLANC du SVG d'algorithme, des pages PDF, de l'impression et du fond de
+     QR. Aliasé sur la matière travail, il devenait #171a20 en sombre : le QR se peignait en encre
+     sombre sur fond sombre, donc INDÉCHIFFRABLE — et le défaut ne se serait vu qu'au moment de
+     scanner, c'est-à-dire au pire moment. Le SVG d'algorithme, lui, est peint pour fond clair
+     puis contre-inversé : un papier sombre l'aurait inversé deux fois. */
+  --paper:#ffffff;
+  --ink-soft:var(--ink-2);--soft:var(--ink-3);--tag-ink:var(--ink-2);--tag-bg:var(--amb-2);
+  --primary:var(--act);--primary-dk:var(--act);--primary-hi:var(--act);
+  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;
+  --on-primary:var(--work);--link:var(--act);--flow-cur:var(--act);
+  --done-bg:var(--ok-soft);--done-line:#bfd8c6;
+  --critical:var(--crit);--critical-soft:var(--crit-soft);--critical-line:#ecc4bc;
+  --critical-bd:var(--crit-line);--alarm:var(--crit-line);
+  /* ⚠ FUSION DES DEUX AMBRES — le seul point qui casse visuellement. --verify (« à vérifier »)
+     et --alert (« échéance ») disaient deux choses avec deux teintes ; désormais un seul ambre,
+     et la distinction passe par le MOT. L'ambre d'alerte vivait sur fond SOMBRE : il pointe donc
+     vers --warn-sys, qui a ses valeurs dédiées pour tenir 4,5:1 sur la matière système. */
+  --verify:var(--warn);--verify-soft:var(--warn-soft);--verify-line:#eddfb6;
+  --verify-bd:var(--warn-line);--verify-hi:var(--warn-line);
+  --alert:var(--warn-sys);--alert-hi:var(--warn-sys);--alert-strong:var(--warn-line);--alert-ink:var(--warn-sys-bg);
+  --rt-card:var(--sys);--rt-line:var(--sys-line);--rt-ink:var(--sys-ink);
+  --radius:var(--r-4);--radius-md:var(--r-3);--radius-sm:var(--r-1);
+  --serif:var(--f-title);--sans:var(--f-ui);--mono:var(--f-mono);
+  /* Une seule matière projette : tous les anciens noms d'ombre y pointent. Les VOILES, eux, ne
+     sont pas des élévations — un voile assombrit, il n'élève pas : ils restent à l'encre. */
+  --shadow:var(--shadow-work);--shadow-lg:var(--shadow-work);
+  /* ⚠ `--shadow-up` N'EST PAS UN ALIAS DE `--shadow-work`, et le harnais l'a rattrapé. Une ombre
+     MONTANTE (porte « ＋ » collée en pied, barre d'actions basse) doit se répandre vers le HAUT,
+     du côté d'où vient le contenu : avec un décalage POSITIF, l'objet paraît enfoncé au lieu de
+     flotter — et pour un objet à coins arrondis, c'est son ombre qui épouse le rayon, jamais un
+     voile (v4.78.0). Mêmes encre, alpha et flou que l'ombre unique : c'est bien UNE matière qui
+     projette, seule sa direction change. */
+  --shadow-up:0 -6px 24px rgba(20,24,29,.06);
+  --shadow-dock:none;--shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
+  --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
+  /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
+     MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un
+     script ; elle sert à fitMoreMenu et au dock (v4.73.2). */
+  --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
+  --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
+  --sab:env(safe-area-inset-bottom,0px);
+  }
+  @keyframes alarmPulse{0%,100%{opacity:1}50%{opacity:.55}}
   /* --shadow-primary(-sm) : élévation TEINTÉE PRIMAIRE des boutons remplis (v4.31.0 — les
      rgba(23,71,127,…) éparses sont consolidées ici). Tokens FIXES des deux thèmes (jamais
      surchargés en sombre, comme --rt-*) : --lb-cap/--lb-ink = légende et glyphe de la lightbox
@@ -86,38 +210,40 @@
      ENCRES ET REGISTRES INCHANGÉS : le noir est un changement de FOND, pas de sémantique — les
      rouges, ambres et verts gardent leurs valeurs, et l'a11y a été rejouée avec la palette
      réellement posée dans le fichier (301/301, contraste calculé sur le fond EFFECTIF). ===== */
-  [data-theme="dark"]{--ink:#e8eef7;--ink-soft:#b7c6d6;--line:#33363b;--line-hover:#4d5158;--bg:#0a0a0c;--surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#0e2038;--primary-100:#0e2038;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--tag-bg:#1d1f24;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#000000;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--shadow-up:0 -2px 6px rgba(0,0,0,.5),0 -10px 28px rgba(0,0,0,.65);--hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;}
+  /* ══ NUIT — DESSINÉE, PAS CALCULÉE (A5 : OLED gris) ══════════════════════════════════════
+     Fond gris VRAI, pas un noir théâtral : sur OLED en salle sombre, le noir pur fait « trou »
+     et le halo des textes blancs fatigue — un effet gênant pour les personnes astigmates. La
+     nuit ne projette pas d'ombre : elle BORDE. Mêmes objets, valeurs propres. */
+  [data-theme="dark"]{
+  --amb:#0d0f13;--amb-2:#101318;--work:#171a20;--work-line:#262a31;
+  --sys:#171a20;--sys-line:rgba(255,255,255,.14);
+  --line:#1c1f25;--line-strong:#2c313a;--ctl-line:#6b7480;
+  --ink:#e6eaf0;--ink-2:#9aa5b3;--ink-3:#707c8c;
+  --ok-rgb:74,222,128;--ok:rgb(var(--ok-rgb));--ok-soft:#12241a;
+  --warn:#fbbf24;--warn-soft:#2b2005;--warn-line:#b45309;
+  --crit:#ff7a70;--crit-line:#ff7a70;--crit-soft:#211114;
+  --act:#8fb8e8;
+  --shadow-work:none;--shadow-up:none;
+  /* Alias de nuit : les anciens noms qui avaient une valeur sombre propre. */
+  --primary-soft:#13233a;--primary-100:#13233a;--primary-200:#2c4b6e;--primary-300:#2c4b6e;
+  --critical-line:#3a1f1c;--verify-line:#3a2f12;--done-line:#1e3a28;--on-primary:#0d0f13;
+  --scrim-soft:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.62);--scrim-full:rgba(0,0,0,.94);
+  --hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;
+  }
   /* --hover-dk(-hi) : survols du thème sombre (générique / sur surface élevée, ex-hex en dur des
      règles de survol) ; --flow-hl-dk : trait de contre-inversion du SVG sombre (la couleur est
      choisie pour rendre juste APRÈS le filtre invert+hue-rotate). v4.31.0 : plus AUCUN hex hors
      déclaration de token — garde-fou scripts/check-colors.mjs (npm run check). */
   [data-theme="dark"]{color-scheme:dark;}
-  /* DIRECTION A, lot 3 (audit post-v5.0.10) — LES VARIANTES TONALES SUIVENT LEUR BASE. Neuf
-     tokens cessent d'être des copies accordées à la main : ils se DÉRIVENT de leur couleur de
-     base par color-mix, aux pourcentages MESURÉS qui reproduisent le hex actuel (écart maximal
-     par canal ≤ 4/255 — invisible ; vérifié dans le navigateur, pas supposé). Changer une base
-     met à jour sa famille sur tout moteur moderne. CE QUI RESTE EN HEX, DÉLIBÉRÉMENT :
-     --primary-300, --critical-soft, --verify-soft (clair) et les -soft rouges/ambre du sombre —
-     leur écart au mélange pur (Δ 5 à 16) est un ACCORD DE TEINTE voulu, pas une approximation.
-     ⚠ Le repli hex de :root est un INSTANTANÉ : changer une couleur de base exige de re-régler
-     les hex correspondants pour les moteurs sans color-mix — ce bloc, lui, suit tout seul. Les
-     ACCENTS ne sont pas concernés : html[data-accent] gagne en spécificité (0,1,1 + attribut). */
-  @supports (color: color-mix(in srgb, red 50%, #fff)){
-    :root{
-      --primary-soft:color-mix(in srgb, var(--primary) 12%, var(--surface));
-      --primary-100:color-mix(in srgb, var(--primary) 15%, var(--surface));
-      --primary-200:color-mix(in srgb, var(--primary) 31%, var(--surface));
-      --ok-soft:color-mix(in srgb, var(--ok) 8%, var(--surface));
-      --done-bg:color-mix(in srgb, var(--ok) 7%, var(--surface));
-      --tag-bg:color-mix(in srgb, var(--ink) 8%, var(--surface));
-    }
-    [data-theme="dark"]{
-      --primary-soft:color-mix(in srgb, var(--primary) 22%, var(--bg));
-      --primary-100:color-mix(in srgb, var(--primary) 22%, var(--bg));
-      --ok-soft:color-mix(in srgb, var(--ok) 13%, var(--bg));
-      --tag-bg:color-mix(in srgb, var(--ink) 9%, var(--bg));
-    }
-  }
+  /* ⚠ LE BLOC DE DÉRIVATION color-mix DE LA DIRECTION A A ÉTÉ RETIRÉ EN v5.6, ET C'EST UNE
+     DÉCISION, PAS UN OUBLI. Il dérivait --primary-soft/-100/-200, --ok-soft, --done-bg et
+     --tag-bg de leur base par un mélange mesuré. Les tokens « verre clinique » donnent à ces
+     six-là des valeurs ACCORDÉES qu'aucun mélange ne reproduit (essayé : --primary-soft #e3ecf7
+     demanderait 12,1 % sur le rouge, 10,3 % sur le vert et 6,3 % sur le bleu — ce n'est pas une
+     approximation, c'est un accord de teinte, exactement le motif pour lequel --crit-soft et
+     --warn-soft étaient DÉJÀ restés en hex dans ce même bloc). Le garder aurait fait diverger
+     l'application des maquettes sur six surfaces, en silence et sur tout moteur moderne.
+     Ce qu'on perd est nommé : changer une base ne met plus sa famille à jour toute seule. */
   [data-theme="dark"] .empty{background:rgba(255,255,255,.03)}
   /* ===== PALETTES D'ACCENT (par utilisateur, connecté seulement) =====
      Identité de session, et RIEN d'autre : l'accent ne colore que le DISQUE de l'avatar (cf. le
@@ -159,7 +285,7 @@
      largeur qui empruntait la forme d'une ACTION pour porter un état. Pastille + MOT, jamais la
      couleur seule ; le vert `--ok` est le registre CONFIRMATION quand c'est « Oui ». */
   .ss-tog{flex:none;min-height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;
-    border:1px solid var(--line-strong);border-radius:18px;background:var(--surface);color:var(--ink);
+    border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);color:var(--ink);
     font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .ss-tog .ss-dot{width:9px;height:9px;border-radius:50%;background:var(--line-strong);flex:none}
   .ss-tog:hover{background:var(--surface-2)}
@@ -174,7 +300,7 @@
     font-family:inherit;min-width:0}
   .tg-row .tg-a{font-size:13.5px;color:var(--ink-soft)}
   .tg-del{min-width:44px;min-height:44px;border:1px solid var(--line-strong);border-radius:8px;
-    background:var(--surface);color:var(--critical);font-size:18px;font-weight:800;cursor:pointer;
+    background:var(--surface);color:var(--critical);font-size:15px;font-weight:800;cursor:pointer;
     font-family:inherit;touch-action:manipulation}
   .tg-none{margin:0 0 6px;color:var(--ink-soft);font-size:13.5px}
   .tg-add{margin-bottom:6px}
@@ -332,7 +458,7 @@
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
-    body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:34px}
+    body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:17.5px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
      plus de bloc coloré détaché sur l'accueil, le bleu se retire dans les ACCENTS (indicateur
@@ -388,7 +514,7 @@
      la ligne ‹ ÉDITION badge ⛶ Enregistrer ⋯ tient sur 360px sans rien éjecter. */
   #hdrPreview .pv-ic{display:none}
   /* EN ICÔNE SEULE, IL EST ROND (signalé à l'usage : « sur petits écrans le bouton Essayer n'est
-     pas rond »). `.hdr-act2` garde `border-radius:18px` pour une hauteur de 36 px — un cercle
+     pas rond »). `.hdr-act2` garde `border-radius:14px` pour une hauteur de 36 px — un cercle
      parfait à 36 px de large, une pilule à toute autre largeur. Or le rembourrage de 10 px laissait
      ~32 px : plus haut que large, donc un ovale couché. On fixe la LARGEUR à la hauteur et on
      centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
@@ -396,7 +522,7 @@
      dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
   @media (max-width:429.98px){
     :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
-    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:16.5px}
+    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
     :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
     :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
@@ -431,7 +557,7 @@
   /* Groupe d'actions à droite de la rangée principale (V5) : minuteurs, badge, Créer, thème, compte. */
   .hdr-acts{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 1 auto;min-width:0}
   /* Boutons de la rangée principale (V5). Retour : vues internes (fiche, protocole, éditeurs). */
-  .hdr-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;padding:0 10px 0 4px;margin-left:-6px;background:none;border:0;border-radius:8px;color:var(--primary-dk);font-family:inherit;font-size:15.5px;font-weight:700;cursor:pointer;flex:none;max-width:40vw}
+  .hdr-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;padding:0 10px 0 4px;margin-left:-6px;background:none;border:0;border-radius:8px;color:var(--primary-dk);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;flex:none;max-width:40vw}
   /* ⚠ CIBLE DE 44 px, PAR HALO (audit design v5.0.0). Mesuré : 31 × 40 px avec un halo de 4 →
      39 px de cible effective, sous les 44 que la doctrine impose en crise et que HIG demande
      partout. Le halo passe à 7 px : 45 × 54, donc 45 de côté utile — et la BOÎTE ne change pas
@@ -447,7 +573,7 @@
   /* Boutons d'action de la barre : MÊME gabarit 36px et MÊMES couleurs que le canvas — tonal
      --primary-soft / --primary-dk pour Créer et Thème (« un seul bouton rempli par écran » :
      rien de rempli dans la barre), avatar --primary plein pour Compte (pastille d'état verte). */
-  .hdr-new{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border:0;border-radius:18px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-new{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border:0;border-radius:14px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   .hdr-new:hover{background:var(--primary-100)}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -459,7 +585,7 @@
   .hdr-theme:hover{background:var(--primary-100)}
   .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .hdr-theme-lbl{display:none;margin-left:4px}
-  @media (min-width:780px){.hdr-theme{width:auto;min-width:40px;padding:0 14px;border-radius:18px}.hdr-theme .hdr-theme-lbl{display:inline}}
+  @media (min-width:780px){.hdr-theme{width:auto;min-width:40px;padding:0 14px;border-radius:14px}.hdr-theme .hdr-theme-lbl{display:inline}}
   /* (A−/A+ : absents de Claude Design — la taille du texte se règle dans la fenêtre Compte.) */
   /* Menu ⋯ (SPEC gestion §4) : bouton 36px (halo 44), menu ancré sous la barre à droite,
      rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
@@ -483,7 +609,7 @@
      visible, et pose la hauteur en pixels — un seul chemin, valable sur les deux moteurs et sous
      n'importe quel réglage. `overscroll-behavior:contain` : arrivé au bout du menu, on ne fait pas
      défiler la page derrière. */
-  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
+  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
     overflow-y:auto;overscroll-behavior:contain}
   .more-menu[hidden]{display:none}
   .mm-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 10px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
@@ -491,7 +617,7 @@
   .mm-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .mm-row[disabled]{opacity:.45;cursor:default}
   .mm-row[disabled]:hover{background:none}
-  .mm-ic{flex:none;width:20px;text-align:center;color:var(--link);font-size:15.5px}
+  .mm-ic{flex:none;width:20px;text-align:center;color:var(--link);font-size:15px}
   .mm-sub{font-size:13.5px;color:var(--ink-soft);font-weight:500}   /* suffixe inline « — hors urgence » */
   .mm-sep{height:1px;background:var(--line);margin:4px 8px}
   /* Action DESTRUCTIVE (canvas) : toujours dernière, isolée par un séparateur, jamais en fond
@@ -500,7 +626,7 @@
   .mm-row.danger .mm-ic{color:currentColor}
   .mm-row.danger:hover{background:color-mix(in srgb,var(--critical) 8%,transparent)}
   /* SPEC §5 (éditeurs) : actions dans l'EN-TÊTE — Aperçu (tonal) + Enregistrer (rempli, à droite). */
-  .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:18px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:14px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   .hdr-act2:hover{background:var(--primary-100)}
   /* K5 (v4.72.0) — L'ÉTAT D'ENREGISTREMENT, à la place du bouton qui le demandait. Encre douce :
      c'est une CONFIRMATION passive, elle ne réclame rien et ne doit pas tirer l'œil ; seul
@@ -509,7 +635,7 @@
      rouge — aucune de ces remarques n'empêche d'enregistrer, et le volet le dit en toutes lettres.
      Masqué à zéro remarque : un « △ 0 » permanent serait le bruit que le volet évite déjà. */
   .hdr-rev{flex:none;position:relative;min-width:36px;height:36px;padding:0 8px;display:inline-flex;align-items:center;gap:4px;
-    border:1px solid var(--verify-bd);border-radius:18px;background:var(--verify-soft);color:var(--verify);
+    border:1px solid var(--verify-bd);border-radius:14px;background:var(--verify-soft);color:var(--verify);
     font-family:inherit;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;cursor:pointer}
   .hdr-rev::after{content:"";position:absolute;inset:-4px}
   .hdr-rev:hover{background:var(--surface)}
@@ -517,7 +643,7 @@
   .hdr-rev[hidden]{display:none}
   /* Le « ↶ » de l'anneau d'annulation : gabarit des contrôles de barre (36 px + halo pour la cible
      de 44), encre douce — c'est un recours, pas une action primaire. */
-  .hdr-undo{flex:none;position:relative;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:18px;background:var(--surface-2);color:var(--ink);cursor:pointer}
+  .hdr-undo{flex:none;position:relative;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:14px;background:var(--surface-2);color:var(--ink);cursor:pointer}
   .hdr-undo::after{content:"";position:absolute;inset:-4px}
   .hdr-undo:hover{background:var(--surface-3)}
   .hdr-undo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -557,7 +683,7 @@
   /* Direction A (audit v5.0.10) : la recherche est un CREUX (--surface-2), pas une carte de plus —
      en sombre --surface-2 est PLUS FONCÉ que la surface (#070708), le creux tient dans les deux
      thèmes. Bordure 2px -> 1px, le pixel rendu au rembourrage : hauteur inchangée. */
-  .hdr-search input{width:100%;padding:10px 32px 10px 32px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-search input{width:100%;padding:10px 32px 10px 32px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Le placeholder garde sa phrase entière (décision utilisateur) : quand la place manque, il
      s'ELLIPSE au lieu de se couper en plein mot (défaut mesuré à 390 px). */
   .hdr-search input::placeholder{text-overflow:ellipsis}
@@ -606,8 +732,15 @@
   /* H concept B : plus de condition `.ttl-on` — la pilule est présente dès que la crise l'est,
      au même pixel, déplié comme condensé. C'est ce qui rend ~90 px au titre dans l'état
      condensé (5 objets s'y partageaient une ligne : ‹, titre, pilule, ◐, ⋯). */
-  .hdr-crisis{display:none;flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);white-space:nowrap}
-  .hdr-crisis:not([hidden]){display:inline}
+  /* A14 — LE SUR-TITRE. Registre ALERTE, glyphe + mot (la couleur n'est jamais seule), et une
+     hauteur qui ne coûte RIEN : la rangée d'identité porte déjà deux lignes hors crise
+     (marque + sous-titre), le sur-titre prend la place du sous-titre. Hauteur d'en-tête
+     CONSTANTE quel que soit l'état (corollaire A9). */
+  .brand-sur{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--crit);line-height:1.2;white-space:nowrap}
+  .brand-sur[hidden]{display:none}
+  /* Les placards d'exception (exercice, invité) teintent le sur-titre comme ils teintaient la
+     pilule — même registre, même mot, nouvelle adresse. */
+  .brand-sur.exo,.brand-sur.inv{color:var(--act)}
   /* LE MOT NE TOMBE JAMAIS. Un repli au glyphe seul sous 430 px a été essayé (il rendait ~41 px
      au titre) puis ANNULÉ : en état CONDENSÉ le bandeau-titre est parti, il ne resterait qu'un
      carré rouge — la couleur et la forme SEULES pour dire le mode, ce que WCAG 1.4.1 et la
@@ -627,8 +760,6 @@
      z-index 15 : au-dessus du contenu, sous l'en-tête (20) et sous les modales (55). */
   /* RANGÉE DE COMMANDES (v4.25.0) — l'ECP : ce que je commande. Collée directement sous
      l'en-tête, au-dessus de l'état, parce que le MODE gouverne l'existence de « Se repérer ». */
-  #crisisCtrl{position:sticky;top:var(--hdr-h,64px);z-index:16;background:var(--surface);border-bottom:1px solid var(--line)}
-  #crisisCtrl[hidden]{display:none}
   /* ⚠ LES TROIS RANGÉES DU HAUT PARTENT DU MÊME x (signalé à l'usage : « aligne le compteur de
      session sur Tout voir »). Mesuré : à 900 px, « Tout voir » était à 10, la session à 18 et le
      contenu à 18 — c'est donc la RANGÉE DE COMMANDES qui était décalée, pas la session, et la
@@ -636,14 +767,19 @@
      session était à 0, alignée sur rien, et on ne peut pas la porter à 18 sans voler 14 px à une
      rangée dont chaque pixel est compté à 320 (cf. `fitCtrlRow`) — elle prend donc le retrait des
      commandes, palier par palier. Une verticale au-dessus de 780, une au-dessous : jamais deux. */
-  #crisisCtrl .dock-in{align-items:center;gap:8px;padding:6px 10px}
-  #crisisDock .dock-in{padding-inline:10px}
+  #crisisDock .dock-in{padding-inline:0}
   /* (Les commentaires du sélecteur de mode — écart `.ctrl-sp`, géométrie/registre/graisse de la
      pastille `#modeSeg` — sont partis avec le composant, PURGÉ au lot A v5.0.0, règle 14 ; la
      doctrine de la pastille vit sur le composant `.seg` générique et dans AGENTS.md.) */
   /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
      cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
-  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-dock)}
+  /* LA CAPSULE D'ÉTAT (lot 2) — matière SYSTÈME, l'un des deux seuls objets sombres du produit.
+     Elle ne porte plus de bande : c'est la MATIÈRE qui la sépare du travail, plus un filet. Son
+     conteneur reste collant sous l'en-tête et transparent — la capsule flotte sur l'ambiance.
+     A9 — HAUTEUR D'ÉTAT FIXE : 50 px de haut quel que soit l'état (veille, échu, alarme). Un
+     changement d'état NON commandé ne déplace jamais rien ; seule l'expansion COMMANDÉE par un
+     tap (le volet) a droit à la hauteur. */
+  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--amb);padding:8px 14px}
   #crisisDock[hidden]{display:none}
   /* DIRECTION A, lot 4 (audit post-v5.0.10) — AU PALIER COCKPIT, LE CHROME S'EFFACE DERRIÈRE SES
      CONTRÔLES. Mesuré à 1280 px : la rangée de commandes est une bande blanche de bord à bord
@@ -654,7 +790,7 @@
      détachées (≥ 780) menée à son terme. AUCUNE position ne change — la constance positionnelle
      porte sur les contrôles, pas sur la matière ; le fond reste OPAQUE (rangées collantes). */
   @media (min-width:1200px){
-    #crisisCtrl,#crisisDock{background:var(--bg);border-bottom-color:transparent;box-shadow:none}
+    #crisisDock{background:var(--amb)}
   }
   /* v5.4.1 — A′ : LE CHROME DE CRISE MONTE DANS L'EN-TÊTE À ≥ 1200 px (décision utilisateur sur
      maquette, après deux itérations — la bande pleine largeur réservait ~110 px pour des
@@ -668,18 +804,21 @@
      l'écran — seul le LOGEMENT change. */
   .hdr-crisis-slot{display:flex;align-items:center;gap:8px;min-width:0}
   .hdr-crisis-slot:empty{display:none}
-  body.chrome-hdr :is(#crisisCtrl,#crisisDock){position:static;background:transparent;border-bottom:0;box-shadow:none}
-  body.chrome-hdr :is(#crisisCtrl,#crisisDock) .dock-in{max-width:none;padding:0;margin:0;gap:8px;flex-wrap:nowrap}
+  body.chrome-hdr #crisisDock{position:static;background:transparent;border-bottom:0;box-shadow:none}
+  body.chrome-hdr #crisisDock .dock-in{max-width:none;padding:0;margin:0;gap:8px;flex-wrap:nowrap}
   /* COÛT DE HAUTEUR NUL, ET C'EST MESURÉ : sans compaction, l'en-tête passait de 65 à 78 px —
      c'est-à-dire qu'on aurait déplacé la bande au lieu de la supprimer. Le dessin cède (segment
      6→2 px de rembourrage, bouton 46→36 px), jamais la CIBLE : le halo ::after des deux
      ouvertures (v4.32.0) maintient 44 px. Mesuré après : en-tête 65 px, inchangé. */
-  body.chrome-hdr #cbTimers{padding:0;min-height:0;position:relative}
+  /* A8 — LA CIBLE NE CÈDE JAMAIS AVEC LE DESSIN. Compactée dans l'en-tête, la capsule perdait sa
+     hauteur ET sa cible (mesurée 145×27 par le harnais, seuil 44). Le DESSIN se compacte — c'est
+     tout l'objet du créneau, coût de hauteur nul — et le HALO rend les 44 px : 36 + 2×4. */
+  body.chrome-hdr #cbTimers{padding:4px 10px;min-height:36px;position:relative}
   /* La CIBLE ne cède jamais avec le dessin : compacté à ~37 px, le bouton « ● Session » garde ses
      44 px par le halo — le même dispositif que les deux ouvertures (v4.32.0, zone haute). */
   body.chrome-hdr #cbTimers::after{content:"";position:absolute;inset:-4px;border-radius:8px}
   body.chrome-hdr #cbTimers .seg{padding:2px 10px;min-height:0}
-  body.chrome-hdr .dock-plan{min-height:36px}
+  body.chrome-hdr .sd-key{min-height:36px}
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
      flex:1 s'étiraient à ~640px chacun et les chiffres se retrouvaient aux deux bouts de l'écran
@@ -692,7 +831,9 @@
      en direct quand updateRtStrip masque/affiche #cbTimers. ID -> l'emporte sans dépendre de
      l'ordre sur la règle ≥ 780. */
 
-  #cbTimers{flex:1;min-width:0;align-items:stretch;background:none;border:0;color:var(--ink);border-radius:0;padding:0;min-height:52px;font-family:inherit;cursor:pointer;text-align:left;overflow:hidden}
+  /* LA CAPSULE — matière SYSTÈME, gabarit CONSTANT de 50 px (A9). C'est l'un des deux seuls
+     objets sombres du produit : on la trouve sans lire, et c'est tout son office. */
+  #cbTimers{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:var(--sys);border:0;color:var(--sys-ink);border-radius:var(--r-3);padding:10px 16px;min-height:50px;font-family:inherit;cursor:pointer;text-align:left;overflow:hidden}
   /* Accès au Plan : contour, jamais rempli (« un seul bouton rempli par écran » — le rempli est
      « Continuer », dans l'action). Libellé en toutes lettres dès qu'il y a la place ; en dessous,
      le glyphe seul garde son aria-label. */
@@ -709,7 +850,59 @@
      la dimensionne, pas ce bouton. Le rétrécissement ne rendait donc AUCUN pixel — il ne faisait
      que désaligner les deux contrôles de la même rangée et rendre la cible dépendante d'un halo
      qui ne se mesure pas. */
-  .dock-plan{flex:none;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--link);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+  /* ══ LE DOCK DE SESSION — quatre touches au pouce (lot 2) ═══════════════════════════════
+     Barre BASSE fixe : la doctrine « une seule zone fixe, en haut » visait les notifications
+     flottantes, pas une surface de commandes stable (cf. la note de la coque). Matière SYSTÈME,
+     comme la capsule : les deux seuls objets sombres, et ils se répondent — l'état en haut, les
+     commandes en bas. Marge basse du matériel prise en compte (indicateur d'accueil iPhone). */
+  #sessionDock{position:fixed;left:0;right:0;bottom:0;z-index:18;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+  #sessionDock[hidden]{display:none}
+  /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
+     dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */
+  body.dock-on main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  body.dock-on.kb-open main{padding-bottom:0}
+  /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
+     qu'iOS ne fausse pas ; ÷ --zf, règle 10), jamais plein écran. Ils montent DU dock, donc au-
+     dessus de lui, et sous la capsule : V2 — l'alarme reste toujours en vue. */
+  #dockSheet{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  #dockSheet[hidden]{display:none}
+  body.kb-open #dockSheet{bottom:0}
+  .ds-card{max-width:660px;margin:0 auto;background:var(--sys);color:var(--sys-ink);border-radius:var(--r-3);overflow-y:auto;overscroll-behavior:contain;max-height:calc(var(--vvh,100dvh) / var(--zf,1) * .45);pointer-events:auto;box-shadow:0 -8px 32px rgba(0,0,0,.35)}
+  .ds-head{display:flex;align-items:center;gap:8px;padding:10px 16px 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2)}
+  .ds-head.ds-cxh{color:var(--crit-sys)}
+  .ds-head .ds-t{font-family:var(--mono);font-size:12px;color:var(--sys-ink);letter-spacing:0;text-transform:none}
+  .ds-head .ds-ok{font-weight:600;letter-spacing:0;text-transform:none;color:var(--ok-sys)}
+  .ds-x{margin-left:auto;min-width:48px;min-height:48px;background:none;border:0;color:var(--sys-ink-2);font-size:15px;cursor:pointer;font-family:inherit}
+  .ds-x:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
+  /* V3 — l'interruption s'annonce EN TÊTE du volet (AC 120-71B §5.5) : ce qu'on allait faire
+     doit survivre à ce qu'on vient d'ouvrir. Registre ALERTE en CONTOUR, jamais rempli. */
+  .ds-warn{margin:0 14px 8px;padding:6px 10px;border:1px solid var(--crit-line);border-radius:var(--r-1);font-size:11px;font-weight:700;color:var(--crit-sys)}
+  /* ⚡︎ — RANGÉES ≥ 56 px : nom en toutes lettres, condition d'entrée, DESTINATION. */
+  .ds-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:56px;padding:8px 16px;background:none;border:0;border-top:1px solid var(--sys-line);color:var(--sys-ink);font-family:inherit;cursor:pointer}
+  .ds-row:hover:not(:disabled){background:var(--sys-2)}
+  .ds-row:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
+  /* « Vous y êtes » : on ne propose pas d'entrer là où l'on est déjà — la rangée s'annonce et
+     cesse d'être tapable, plutôt que de disparaître (une liste dont les rangées bougent selon
+     l'endroit où l'on est ne s'apprend pas). Grammaire de « fermé » du dossier. */
+  .ds-row:disabled{cursor:not-allowed;color:var(--sys-ink-2)}
+  .ds-rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .ds-rt b{font-size:13.5px;font-weight:700}
+  .ds-sub{font-size:11px;font-weight:600;color:var(--sys-ink-2)}
+  .ds-dest{flex:none;font-size:11px;font-weight:700;color:var(--sys-ink-2);white-space:nowrap}
+  @media (max-width:429.98px){.ds-row{flex-wrap:wrap}.ds-dest{width:100%;text-align:left}}
+  .ds-body{padding:2px 16px 12px}
+  .ds-in{width:100%;box-sizing:border-box;min-height:48px;background:var(--sys-2);border:1px solid var(--sys-line);border-radius:var(--r-2);padding:0 14px;color:var(--sys-ink);font-family:inherit;font-size:15px;font-weight:600}
+  .ds-in:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
+  .ds-chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .ds-chip{min-height:44px;padding:0 14px;background:none;border:1px solid var(--sys-line);border-radius:999px;color:var(--sys-ink);font-family:inherit;font-weight:700;font-size:12px;cursor:pointer}
+  .ds-chip:hover{background:var(--sys-2)}
+  .ds-chip:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
+  .sd-in{display:flex;align-items:stretch;gap:4px;max-width:660px;margin:0 auto;background:var(--sys);border-radius:var(--r-4);padding:6px;pointer-events:auto;box-shadow:0 -6px 24px rgba(0,0,0,.22)}
+  /* A1 — LE DOCK S'EFFACE AU FOCUS D'UN CHAMP : le clavier EST la surface de saisie, et empiler
+     un dock par-dessus un clavier virtuel ne laisse plus rien du contenu. Il revient à la
+     fermeture. Aucune hauteur de flux n'est en jeu (il est fixe) : rien ne saute. */
+  body.kb-open #sessionDock{display:none}
+  .sd-key{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:50px;min-width:0;padding:0 6px;border:0;border-radius:var(--r-2);background:none;color:var(--sys-ink-2);font-family:inherit;cursor:pointer}
   /* HALO DE CIBLE (v4.32.0) : ces deux boutons vivent dans la zone de CRISE, où le seuil est de
      44 px — ils étaient mesurés à 38. Le défaut a échappé au harnais parce que son SCOPE listait
      #crisisDock (l'état) mais PAS #crisisCtrl (les commandes) : le trou de couverture cachait un
@@ -719,8 +912,8 @@
      employé pour les contrôles de 36 px de la barre. VERTICAL SEULEMENT (`inset:-3px 0`) : en
      latéral il empiéterait sur le bouton voisin, les deux étant côte à côte. Vérifié à la sonde :
      aucun chevauchement avec le quai d'état en dessous. */
-  .dock-plan::after{content:"";position:absolute;inset:-2px 0}
-  .dock-plan[hidden]{display:none}
+  .sd-key::after{content:"";position:absolute;inset:0}
+  .sd-key[hidden]{display:none}
   /* RETOUR D'EXCURSION : registre CONFIRMATION et bouton REMPLI — c'est le contrôle qui ramène,
      donc le seul de l'écran qui doit se voir sans être cherché (même grammaire que
      `↩ Reprendre — <bloc>` pendant une complication, v4.26.0).
@@ -733,11 +926,40 @@
   /* ⚠ EN SOMBRE, `--ok` EST UN REMPLISSAGE CLAIR : l'encre doit être le FOND, pas le blanc —
      mesuré 1,9:1 avec `--on-primary`, c'est-à-dire illisible. C'est la règle déjà écrite pour les
      pastilles du rail (« en sombre l'encre des pastilles = --bg »), qui vaut pour tout aplat vert. */
-  .dock-plan.dp-back{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
-  [data-theme="dark"] .dock-plan.dp-back{color:var(--bg)}
-  .dock-plan:not(.dp-back):hover{background:var(--primary-soft)}
-  .dock-plan:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .dock-plan .dp-ic{display:inline-flex;align-items:center;font-size:18px;line-height:1}   /* v4.57.0 : le ⤢ est un SVG (E6) — inline-flex pour qu'il s'aligne sur le libellé sans la chasse d'un glyphe */
+  /* LE RETOUR D'EXCURSION est le seul contrôle REMPLI VERT du dock — « vous êtes loin de chez
+     vous, ceci vous y ramène ». Même registre que « ↩ Reprendre » d'une complication. */
+  .sd-key.dp-back{background:var(--ok-sys);color:var(--on-sys-fill)}
+  .sd-key.on{background:var(--sys-2);color:var(--sys-ink)}
+  .sd-key.sd-tk{flex:1.3;background:rgba(255,255,255,.1);color:var(--sys-ink)}
+  .sd-key.sd-cx{color:var(--crit-sys)}
+  /* A15 — la référence dans la colonne d'ÉTAT : elle prend la tête du rail, le reste du rail
+     (minuteurs, posologie, Échelle) descend dessous et reste consultable. */
+  .ref-col{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
+  .rc-head{display:flex;align-items:center;gap:8px;padding-bottom:8px}
+  .rc-t{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
+  .rc-back{margin-left:auto;min-height:44px;padding:0 12px;background:var(--ok);border:0;border-radius:var(--r-1);color:var(--on-primary);font-family:inherit;font-weight:700;font-size:11px;cursor:pointer}
+  .rc-back:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .sd-key:hover{background:var(--sys-2)}
+  .sd-key.dp-back:hover{background:var(--ok-sys)}
+  .sd-key:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
+  /* A13 — glyphe de COMMANDE à 15 px ; la cible vient de la touche (50 px), jamais du dessin. */
+  .sd-key .dp-ic{display:inline-flex;align-items:center;justify-content:center;font-size:15px;line-height:1}
+  .sd-key .dp-ic svg{width:15px;height:15px}
+  /* L'ÉTIQUETTE ENROULE, ELLE NE TRONQUE PAS. C'est la règle du dossier partout ailleurs (le
+     rail de l'Échelle, la ligne d'état, le bandeau de déplacement) et elle vaut ici plus qu'ailleurs :
+     la touche ⚡︎ porte le NOM d'une complication quand il n'y en a qu'une, et « FV RÉFRA… » ne dit
+     pas où l'on va. Deux lignes au plus — au-delà, la touche grandirait sous le doigt. */
+  .sd-key .dp-lbl.sd-name{text-transform:none;letter-spacing:0;font-weight:700}
+  .sd-key .dp-lbl{font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word}
+  /* A2 — À 320 px, LES DEUX OUVERTURES PASSENT AU GLYPHE SEUL (aria-label conservé). Hors du
+     contrat « le mot Crise jamais au glyphe seul », qui ne vise que le STATUT, pas les commandes :
+     les GESTES (⚡︎, ⏱) gardent leurs mots, eux, parce qu'ils écrivent. */
+  @media (max-width:359.98px){
+    #sessionDock{padding-inline:8px}
+    .sd-in{gap:2px;padding:4px}
+    :is(#allBtn,#refBtn) .dp-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    :is(#allBtn,#refBtn){flex:0 0 46px}
+  }
   /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
      abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
@@ -750,7 +972,6 @@
   /* Le libellé « Plan » ne disparaît à AUCUNE largeur : le glyphe ⤢ jouxte le chevron ▾ des
      minuteurs, et deux pictogrammes voisins sans mot se confondent sous stress. Ce sont les
      segments de minuteurs qui cèdent la place (ils s'ellipsent déjà). */
-  html.zw430 .dock-plan{padding:0 10px;gap:4px;font-size:13.5px}
   /* ═══ LES PALIERS DE LA RANGÉE DE COMMANDES NE SONT PLUS DES MEDIA QUERIES (v4.73.1) ══════════
      Signalé à l'usage, EN GRANDE POLICE : « ⤢ Se repérer » coupé net et « ⤢ Consulter » hors
      écran. Le réglage de taille du texte est un `zoom` sur `<html>` : la place réellement
@@ -783,10 +1004,6 @@
      hauteur de crise est un coût permanent). Mesuré après correctif : ~346 px à 360. Bloc déclaré
      APRÈS les règles 429.98 px (spécificité égale : l'ordre décide — 4ᵉ piège de cascade du
      projet, cf. .cbt-n v4.23.5). Harnais : audit-doctrine « rangée de commandes sans rognage ». */
-  html.zw400 #crisisCtrl .dock-in{gap:6px;padding:6px 8px}
-  html.zw400 #crisisDock .dock-in{padding-inline:8px}
-  html.zw400 .dock-plan{padding:0 8px;gap:4px}
-  html.zw400 .dock-plan .dp-ic svg{width:11px;height:11px}
   /* 320 px SERVI (v4.43.0, décision utilisateur) — WCAG 1.4.10 « Reflow » fixe le plancher à
      320 px, et la rangée y exigeait 348 px : 28 px de contenu ROGNÉS, sans défilement, dans la
      zone de crise. Le bouton restait opérable (44 px visibles, aria-label intact) mais se lisait
@@ -803,9 +1020,6 @@
      permanent). Les positions restent constantes entre appareils : seules les MARGES bougent.
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
      projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
-  html.zw360 #crisisCtrl .dock-in{gap:4px;padding:6px 4px}
-  html.zw360 #crisisDock .dock-in{padding-inline:4px}
-  html.zw360 .dock-plan{padding:0 4px}
   /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE — ET C'EST MESURÉ, PAS SEUILLÉ
      (v4.73.1). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
      320 px. À 130 % sur un écran de 390, la mise en page n'a que 300 px effectifs — sous ce
@@ -825,7 +1039,6 @@
      libellés ENTIERS (aucun renommage, aucun pictogramme orphelin : « deux pictogrammes voisins
      sans mot se confondent sous stress »), les cibles de 44 px, et la constance positionnelle —
      dans une configuration donnée, tout reste au même endroit. */
-  #crisisCtrl .dock-in.wrapped{flex-wrap:wrap;row-gap:6px}
   /* LA COUPURE TOMBE ENTRE LES DEUX OUVERTURES — il n'y a plus qu'elles (`.ctrl-sp` est PURGÉ
      avec le sélecteur de mode qu'il séparait, règle 14). L'enroulement est donc NATUREL : la
      rangée passe en `flex-wrap` et coupe au seul endroit possible. Doctrine d'origine (v4.73.1),
@@ -834,7 +1047,7 @@
      « Consulter » descendait seul, séparant les deux contrôles de même nature (Gestalt). */
   #cbTimers[hidden]{display:none}
   #cbTimers:not([hidden]){display:flex}
-  #cbTimers:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  #cbTimers:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}   /* focus VISIBLE sur matière sombre : le primaire y disparaît */
   /* L'ELLIPSE DES INTITULÉS N'A JAMAIS FONCTIONNÉ (correctif v4.47.0). `.seg-l` déclare
      `text-overflow:ellipsis` depuis l'origine et le commentaire ci-dessous l'attribuait à un
      « min-width:0 du segment » — qui n'existait pas. Sans plancher explicite, `min-width:auto`
@@ -850,44 +1063,69 @@
      vraiment le segment déborde POUR DE BON, donc la boucle en retire un et le « +n » l'annonce.
      Vérifié aux deux extrêmes sur Chromium ET WebKit. Le bloc ≥ 780 px porte déjà son propre
      plancher (132 px, cartes détachées). */
-  #cbTimers .seg{flex:1 1 0;min-width:112px;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 16px;border-left:1px solid var(--line)}
+  /* Un segment est une LIGNE, plus une colonne : dans une capsule de 50 px, l'empilement
+     libellé/valeur volait la hauteur que A9 fige. Le gabarit de 30 px est le MÊME en veille et en
+     alarme — seuls matière, couleur et texte changent. */
+  #cbTimers .seg{flex:none;min-width:0;display:flex;align-items:center;gap:6px;min-height:30px;box-sizing:border-box;padding:0;border:0;border-radius:var(--r-1)}
+  /* ⚠ CE QUI NE CÈDE JAMAIS DANS LA CAPSULE, ET DANS QUEL ORDRE (mesuré à 320 px par
+     `audit-partage` : « ● Session · suit » sortait TRONQUÉ). Le jeton de partage EST
+     l'information — qui conduit, si le lien est figé, coupé — et un mot amputé dans une zone
+     d'état est exactement ce que la doctrine du quai interdit (« un nombre ne s'ampute jamais »,
+     étendu au MOT depuis que le quai porte le rôle). Ordre de sacrifice, du dernier au premier :
+       1. le rappel « n minuteurs · n compteurs » — c'est un rappel, pas une annonce ECAM ;
+       2. le libellé d'un minuteur NOMINAL — il reste compté dans « +n » ;
+     et JAMAIS le chrono de session, JAMAIS l'alarme. */
+  #cbTimers .seg.glb{flex:none}
+  /* ⚠ SEUL LE CHRONO DE SESSION NE S'ELLIPSE PAS. Le libellé d'un MINUTEUR, lui, doit pouvoir
+     céder — c'est le patron déjà écrit pour l'échu (v4.23.0) : le `△` est un PRÉFIXE, il survit à
+     l'ellipse, et le mot « échu » part au lecteur d'écran. Le rendre insécable faisait déborder la
+     capsule sur un nom long, et la boucle d'ajustement — qui MESURE — sacrifiait alors le segment
+     échu ENTIER : on perdait l'alarme pour avoir voulu la nommer en entier. */
+  #cbTimers .seg.glb .seg-l{flex:none;overflow:visible}
+  /* ⚠ `flex:none` EMPÊCHE AUSSI DE RÉTRÉCIR (`flex-shrink:0`) : `min-width:0` seul ne suffisait
+     pas, et la boucle d'ajustement — qui mesure un débordement réel — sacrifiait le segment ÉCHU
+     tout entier plutôt que de laisser son libellé s'ellipser. On perdait l'ALARME, dans la seule
+     zone qui ne quitte jamais l'écran, pour un nom de minuteur trop long. */
+  #cbTimers .seg.due{flex:0 1 auto;min-width:0}
   /* < 780 : les segments sont des bandes JOINTIVES séparées par un filet — la 1ʳᵉ n'a pas de
      filet à gauche (bord du quai). ≥ 780 elles deviennent des cartes détachées, chacune bordée
      sur ses 4 côtés : cette suppression est alors REMISE (cf. le bloc ≥ 780). */
-  @media (max-width:779.98px){#cbTimers .seg:first-child{border-left:0}}
-  #cbTimers .seg-l.seg-sess{color:var(--ok)}   /* ● SESSION : vert actif nominal (ECAM), jamais rouge/ambre */
+  #cbTimers .seg-l.seg-sess{color:var(--ok-sys)}   /* ● SESSION : vert actif nominal (ECAM) — valeur DÉDIÉE à la matière système, --ok du thème clair n'y tiendrait pas 4,5:1 */
   /* Lien de partage non nominal (figé, coupé, terminé) : le vert AFFIRME un état nominal, il doit
      donc cesser — sans passer à l'ambre, réservé au minuteur échu. Le mot du jeton porte le sens. */
-  #cbTimers .seg-l.seg-sess.off{color:var(--ink-soft)}
+  #cbTimers .seg-l.seg-sess.off{color:var(--sys-ink-2)}
   /* `position:relative` N'EST PAS DÉCORATIF ICI. L'étiquette `.sr-only` du minuteur échu est en
      `position:absolute` : sans ancêtre positionné, son bloc conteneur est extérieur au segment,
      elle échappe donc au `overflow:hidden` de l'intitulé et se pose à sa position statique dans le
      flux NON coupé — mesuré à 488 px sur un quai de 320. Elle gonflait `scrollWidth`, c'est-à-dire
      qu'elle MENTAIT à la boucle d'ajustement, qui retirait un segment pour un débordement
      imaginaire. Confinée ici, elle est coupée avec le reste et ne pèse plus rien. */
-  #cbTimers .seg-l{position:relative;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #cbTimers .seg-l{position:relative;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Très étroit : segments resserrés — l'ellipse des intitulés vient du min-width:0 du segment
      (plus de plafond en vw : la rangée occupe toute la largeur, elle n'a plus à se disputer la
      place avec le thème et le compte comme dans l'ancienne pastille d'en-tête). */
-  @media (max-width:429.98px){#cbTimers .seg{padding:4px 10px}#cbTimers .seg-l{letter-spacing:.2px}}
+  @media (max-width:429.98px){#cbTimers{gap:8px;padding:10px 12px}#cbTimers .seg-l{letter-spacing:.2px}}
   /* Très petits écrans : même à 0 segment de minuteur, chrono + « +n » + chevron dépassaient
      (mesuré : 176 pour 155 à 320px). On resserre le rembourrage plutôt que de rogner un nombre. */
-  @media (max-width:359.98px){#cbTimers .seg{padding:4px 6px}}
-  #cbTimers .seg-t{white-space:nowrap;font-family:var(--mono);font-size:16.5px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink)}
-  #cbTimers .seg.due{background:var(--verify-soft)}
-  #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--verify)}
+  @media (max-width:359.98px){#cbTimers{gap:6px;padding:10px 10px}}
+  #cbTimers .seg-t{white-space:nowrap;font-family:var(--mono);font-size:13.5px;font-weight:700;letter-spacing:.5px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--sys-ink)}
+  /* L'ALARME EST LE SEUL APLAT COLORÉ DE L'ÉCRAN (A11), et le seul mouvement autonome du
+     produit (battement d'opacité de 2 s). Sur la matière système, l'ambre a ses valeurs dédiées
+     pour tenir 4,5:1. Même gabarit de 30 px que la veille : rien ne grandit à l'échéance. */
+  #cbTimers .seg.due{background:var(--warn-sys-bg);border:1px solid var(--warn-line);padding:0 10px}
+  #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--warn-sys)}
+  @media (prefers-reduced-motion:no-preference){#cbTimers .seg.due{animation:alarmPulse 2s ease-in-out infinite}}
   /* Le rappel « n minuteurs · n compteurs » (v5.0.0) : encre douce (il informe, il n'alerte pas),
      ellipse plutôt que poussée — mais il est de toute façon retiré ENTIER par la boucle
      d'ajustement avant d'en arriver là ; l'ellipse n'est qu'un filet de sûreté. */
-  #cbTimers .cbt-decl{gap:6px;min-width:0;font-weight:600;letter-spacing:0}
+  #cbTimers .cbt-decl{gap:6px;min-width:0;font-weight:600;letter-spacing:0;overflow:hidden}
   #cbTimers .cbt-dl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #cbTimers .cbt-n{display:flex;align-items:center;flex:none;padding:0 14px;font-size:11px;font-weight:800;color:var(--ink-soft);border-left:1px solid var(--line)}
+  #cbTimers .cbt-n{display:flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;margin-left:auto;padding:0;font-size:12px;font-weight:700;color:var(--sys-ink-2);border:0}
   /* « +n » et chevron sont des <span> DANS le bouton #cbTimers (jamais tapables seuls) : leur
      rembourrage de 14px n'obéit à aucune règle de cible et coûtait 78px à eux deux. En étroit on
      le resserre — mesuré, c'est ce qui rend la place d'un segment de minuteur. DÉCLARÉE APRÈS la
      règle de base : à spécificité égale une media query ne l'emporte QUE par l'ordre (piège déjà
      rencontré sur .read-grid — placée avant, elle était silencieusement sans effet). */
-  @media (max-width:559.98px){#cbTimers .cbt-n{padding:0 6px}}
   /* ≥ 780px : les segments cessent de s'étirer et deviennent des CARTES détachées (le vocabulaire
      du rail des maquettes tablette/desktop). Les cartes nominales restent en contour NEUTRE —
      seule l'échue prend le registre ATTENTION : une bande de statut ne se colore pas.
@@ -897,20 +1135,18 @@
   @media (min-width:780px){
     /* ≥ 780 px : les commandes rejoignent le retrait du contenu (18 px), que le quai avait déjà. */
     .dock-in{padding:0 18px;align-items:center;gap:10px}
-    #crisisCtrl .dock-in{padding:6px 18px}
-    #crisisDock .dock-in{padding-inline:18px}
+    #crisisDock .dock-in{padding-inline:0}
     /* overflow:visible : en bande étroite `overflow:hidden` cache le trop-plein d'un intitulé ;
        en cartes détachées il rognerait au contraire les coins arrondis et bordures de la 1ʳᵉ. */
-    #cbTimers{flex:0 1 auto;gap:10px;padding:6px 0;align-items:center;overflow:visible}
-    #cbTimers .seg{flex:0 0 auto;min-width:132px;border:1px solid var(--line);border-radius:8px;padding:6px 14px}
+    #cbTimers{flex:1;gap:12px;padding:10px 16px;align-items:center;overflow:hidden}
+    #cbTimers .seg{flex:none;min-width:0}
     /* Remet la bordure gauche que le filet-séparateur des bandes étroites avait retirée : en
        carte, chaque segment est bordé sur ses 4 côtés. border-left-width seul : la couleur suit
        le raccourci `border` (--line en nominal, --verify-bd en échu). */
-    #cbTimers .seg:first-child{border-left-width:1px}
-    #cbTimers .seg.due{border-color:var(--verify-bd)}
-    #cbTimers .cbt-n{border-left:0;padding:0 4px}
+    #cbTimers .seg.due{border-color:var(--warn-line)}
+    #cbTimers .cbt-n{padding:0}
     /* Plan : 1ʳᵉ carte du cluster gauche (plus de filet-séparateur ni de margin auto). */
-    .dock-plan{border:1px solid var(--line);border-radius:8px;padding:0 16px}
+    .sd-key{padding:0 10px}
   }
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   /* LOGO DE MARQUE (v4.23.1) — ACCUEIL SEULEMENT, comme le nom de l'app qu'il accompagne
@@ -1016,7 +1252,7 @@
      libellé cesse ainsi de changer de corps selon la vue, comme il a cessé de changer de POLICE
      en v4.73.0. La marque n'est pas effacée — elle cesse seulement de dominer le contenu, et
      l'ancien plafond dur (troncature à 375 px) s'en trouve détendu d'autant. */
-  .brand .brand-name{margin:0;font-family:var(--serif);font-size:16.5px;font-weight:600;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand .brand-name{margin:0;font-family:var(--serif);font-size:17.5px;font-weight:600;letter-spacing:-.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #brandSub{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-top:2px}
   /* Accueil : le sous-titre est porté par les onglets. En lecture il accompagne le titre dans
      la barre UNE FOIS DÉFILÉ (« Aide cognitive » / « Protocole », cf. .titled/.ttl-on plus bas) ;
@@ -1038,8 +1274,8 @@
      une graisse SYNTHÉTIQUE — plus lourde et moins nette (v4.61.0). Corps inchangé (16,5 px, un
      palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie. */
   .bt-d{margin-left:6px;font-family:system-ui,sans-serif;font-size:12px;font-weight:800;
-    color:var(--ink);background:var(--surface-3);border-radius:6px;padding:1px 6px;white-space:nowrap}
-  #brandTitle{font-family:var(--serif);font-size:16.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
+    color:var(--ink);background:var(--surface-3);border-radius:8px;padding:1px 6px;white-space:nowrap}
+  #brandTitle{font-family:var(--serif);font-size:17.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
      de la rangée d'identité, la barre d'accueil reste sous ~85px hors encoche. */
@@ -1104,12 +1340,12 @@
   .sys-banner[hidden]{display:none}
   .sys-banner .sb-ic{color:var(--primary-dk);flex:none;display:inline-flex}
   .sys-banner .sb-txt{flex:1;min-width:0}
-  .sys-banner .sb-act{background:none;border:0;color:var(--primary-dk);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:6px;cursor:pointer;flex:none}
+  .sys-banner .sb-act{background:none;border:0;color:var(--primary-dk);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;min-height:32px;border-radius:8px;cursor:pointer;flex:none}
   .sys-banner .sb-act:hover{background:var(--primary-100)}
   /* 15,5 px et non 19 (v5.0.0, audit design A3-1) : à l'accueil, cette croix était le plus
      GROS glyphe de l'écran après la marque — le point focal d'un bandeau était son bouton
      « fermer ». La CIBLE ne bouge pas (min 32×32, indépendante du corps). */
-  .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:15.5px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;flex:none}
+  .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;flex:none}
   .sys-banner .sb-x:hover{background:var(--primary-100)}
   .sys-banner :is(.sb-act,.sb-x):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   body:not(.view-home) .sys-banner{display:none}
@@ -1129,7 +1365,7 @@
      .cat-dot (anneau de séparation) — jamais en aplat ; la SÉLECTION est le bleu système
      (encodage unique, jamais la couleur de la catégorie — un chip plein rouge se lirait comme
      une alarme). Pilule 36px min, bordure --line-strong (3:1) au repos. */
-  .catchip{display:inline-flex;align-items:center;gap:6px;min-height:36px;border:1px solid var(--line-strong);background:var(--surface);padding:6px 12px;border-radius:18px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  .catchip{display:inline-flex;align-items:center;gap:6px;min-height:36px;border:1px solid var(--line-strong);background:var(--surface);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
   /* Zone de tap >= 44px sans grossir la pastille (halo cliquable, même technique que #cbTimers
      et .tag.todo) : pastilles filtrées/choisies au pouce en mobile, tap fréquent (HIG/MD3). */
   .catchip{position:relative}
@@ -1182,7 +1418,7 @@
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
   /* Même corps que `.sb-x` : une seule croix de fermeture dans tout le fichier (v5.0.0). */
-  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15.5px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px}
+  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
   .notice-x:hover{background:rgba(0,0,0,.07)}
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
@@ -1206,7 +1442,7 @@
   .mem-email{font-size:13.5px;color:var(--ink);word-break:break-all}.mem-you{color:var(--ink-soft);font-weight:400}
   .mem-act{display:flex;gap:8px;align-items:center;flex:none}
   .mem-act select{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:12px;font-weight:600}
-  .mem-act .mini.del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16.5px;position:relative}
+  .mem-act .mini.del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;position:relative}
   .mem-act .mini.del::after{content:"";position:absolute;inset:-4px}   /* halo -> cible tactile 44px */
   .mem-act .mini.del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
   /* (Le bloc « 16px sur écrans tactiles » vit désormais en FIN de feuille, en une seule source
@@ -1215,7 +1451,7 @@
   .invite-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .invite-row input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:13.5px}
   .invite-row select{flex:none;padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:12px;font-weight:600}
-  .invite-row .btn-add{width:42px;height:42px;flex:none;display:grid;place-items:center;border:1.5px dashed var(--line-strong);border-radius:8px;background:transparent;color:var(--link);font-size:16.5px;font-weight:800;cursor:pointer}
+  .invite-row .btn-add{width:42px;height:42px;flex:none;display:grid;place-items:center;border:1.5px dashed var(--line-strong);border-radius:8px;background:transparent;color:var(--link);font-size:15px;font-weight:800;cursor:pointer}
   .invite-row .btn-add:hover{border-color:var(--primary);background:var(--primary-soft)}
   .invite-row .btn-add:focus-visible,.invite-row select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .roles-caption{font-size:11px;color:var(--ink-soft);margin:0 0 14px;line-height:1.5}
@@ -1258,7 +1494,7 @@
      catégorie FILTRE (pas d'estompage), les rangées gardent épingle + date + « À compléter ».
      L'ancien composant .card/.cards est SUPPRIMÉ (émissions vérifiées au grep, règle 14) ;
      .card-open, lui, GARDE son nom : quatorze harnais ouvrent une fiche par ce sélecteur. */
-  .dir-h{display:flex;align-items:baseline;gap:8px;margin:16px 0 8px}
+  .dir-h{display:flex;align-items:center;gap:8px;margin:16px 0 8px;flex-wrap:wrap}
   .dir-h>b{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .dir-h .dir-hs{font-size:11px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* Tuile : UN SEUL <button> (★ et ● sont des spans — pas de descendant interactif), liseré de
@@ -1302,7 +1538,7 @@
      contenu ». Dans une tuile, le titre est DÉJÀ l'élément dominant de sa propre carte — il n'y a
      aucune inversion à corriger. Le clamp à 3 lignes est un réglage mesuré (v4.56.0, demande
      utilisateur « un peu plus de titre ») : le monter à 16,5 le déréglait sans rien gagner. */
-  .qa-t{font-size:15.5px;font-weight:750;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word}
+  .qa-t{font-size:15px;font-weight:750;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word}
   .qa-sub{display:flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;font-size:11px;color:var(--ink-soft)}
   .qa-sub>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .qa-sub>.code,.qa-sub>.tag{flex:none}
@@ -1311,7 +1547,20 @@
   /* Direction A (audit v5.0.10) : la lettre de classement en SERIF — un index d'ouvrage, pas du
      chrome d'interface. Graisse 600 = la seule embarquée (v4.61.0) ; le rail A→Z, lui, RESTE en
      mono (cibles minuscules, la lisibilité y prime sur la voix). */
-  .dir-l{font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--link);padding:12px 2px 6px}
+  /* La lettre de classement est en SERIF : c'est un index d'ouvrage, pas du chrome (la même
+     voix que les titres de fiches, qui est l'identité clinique de v4.61). En clé « Catégories »,
+     elle porte en plus la pastille de la catégorie — la couleur n'est jamais seule, le nom est là. */
+  .dir-l{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:12px 2px 6px}
+  .dir-dot{width:8px;height:8px;border-radius:999px;flex:none}
+  /* Le sélecteur de clé de groupement — grammaire des chips de filtre (c'est de la même famille :
+     un objet qui décide de ce qu'on voit), poussé au bout de l'en-tête de section. */
+  .grp-seg{margin-left:auto;flex:none;display:flex;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
+  .grp-b{min-height:32px;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .grp-b.on{background:var(--sys);color:var(--sys-ink)}
+  .grp-b:not(.on):hover{background:var(--work)}
+  .grp-b:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  .azrail.catrail button{padding:0 4px;min-height:26px}
+  .azr-dot{display:block;width:8px;height:8px;border-radius:999px}
   .dir-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
@@ -1404,7 +1653,7 @@
      compensé (donc sa cible mesurable ≥ 24 px, WCAG 2.5.8) et son nom de classe — quatorze
      harnais ouvrent une fiche par `.card-open`, et un <span> à l'intérieur ne change ni son
      `textContent` ni son `click()`. */
-  .dir-row .card-open{display:block;max-width:100%;overflow:hidden;text-align:left;white-space:normal;background:none;border:0;padding:4px 0;margin:-4px 0;font-family:inherit;font-size:16.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  .dir-row .card-open{display:block;max-width:100%;overflow:hidden;text-align:left;white-space:normal;background:none;border:0;padding:4px 0;margin:-4px 0;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}
   /* ⚠ PAS DE `line-clamp` STANDARD À CÔTÉ DU `-webkit-line-clamp` (v5.0.0, mesuré) : déclarée
      ensuite, la propriété moderne fait basculer Chromium sur son nouvel algorithme, qui
      recalcule `display` en `flow-root` — donc DÉSACTIVE le clamp hérité sans rien mettre à sa
@@ -1547,7 +1796,7 @@
      `--hdr-h` (constante dans une vue) et par le bas de fenêtre, en large elle occupe la coque
      fixe de l'accueil. Un centrage dans une boîte qui, elle, ne bouge pas, ne bouge pas non plus. */
   .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
-  .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 4px;min-height:24px;min-width:24px;border-radius:6px;font-family:inherit}
+  .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 4px;min-height:24px;min-width:24px;border-radius:8px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   @media (max-width:779.98px){
@@ -1584,7 +1833,7 @@
        0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
-    .azrail{position:fixed;right:0;top:var(--azr-top,calc(var(--hdr-h,64px) + 6px));bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:11px 0 0 11px}
+    .azrail{position:fixed;right:0;top:var(--azr-top,calc(var(--hdr-h,64px) + 6px));bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px}
     /* ⚠ ET LA MARGE BASSE DU MATÉRIEL EST LE SECOND TERME QUI BOUGE — `svh` NE SUFFISAIT PAS
        (signalé à l'usage : « ça persiste en partie, surtout quand on scroll vers le bas sur le
        rail : il remonte »). Dans Safari iOS, `env(safe-area-inset-bottom)` n'est PAS une
@@ -1644,7 +1893,7 @@
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */
   .card-snip{margin-top:6px;font-size:12px;line-height:1.45;color:var(--ink-soft);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
   .card-snip b{color:var(--ink);font-weight:750}
-  .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:2px 8px;border-radius:18px}
+  .tag{font-size:11px;font-weight:600;letter-spacing:.3px;background:var(--primary-soft);color:var(--primary-dk);padding:2px 8px;border-radius:14px}
   /* Étiquette de catégorie : texte en --ink (lisible dans les 2 thèmes) + pastille de couleur. */
   .catchip{color:var(--ink)}
   /* Étiquette de catégorie en lecture : pastille + teinte <= 15 % + texte de la couleur
@@ -1692,8 +1941,8 @@
   .note-ta:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
   .note-meta{font-size:11px;color:var(--ink-soft);margin-top:4px;min-height:14px}
   .rel-edit{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .rel-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary-dk);border-radius:18px;padding:4px 6px 4px 10px;font-size:12px;font-weight:600}
-  .rel-x{background:none;border:0;color:var(--primary-dk);font-size:16.5px;line-height:1;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer}
+  .rel-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary-dk);border-radius:14px;padding:4px 6px 4px 10px;font-size:12px;font-weight:600}
+  .rel-x{background:none;border:0;color:var(--primary-dk);font-size:15px;line-height:1;min-width:24px;min-height:24px;border-radius:50%;cursor:pointer}
   .rel-x:hover{background:rgba(0,0,0,.08)}
   /* Date à revoir : registre ATTENTION (le rouge reste réservé au danger vital, V5). */
   .card-date{font-size:12px;color:var(--ink-soft)}.card-date.stale{color:var(--verify);font-weight:700}
@@ -1718,7 +1967,7 @@
      conteneur, donc rien ne rétrécit sur téléphone — le responsive est acquis par construction,
      sans media query ni palier nouveau. */
   .emp-intro{text-align:left;padding:24px 20px;max-width:780px;margin-left:auto;margin-right:auto}
-  .emp-intro>b{text-align:center;font-size:16.5px;color:var(--ink)}
+  .emp-intro>b{text-align:center;font-size:17.5px;color:var(--ink)}
   .emp-intro+.emp-intro{margin-top:12px}
   .emp-lede{margin:0 0 16px;text-align:center;font-size:13.5px;line-height:1.45}
   /* Le VERBE est ce qui distingue les deux natures : c'est le seul mot en encre pleine de la
@@ -1744,17 +1993,17 @@
   /* Échec de démarrage : overlay plein écran centré, carte au registre ALERTE. */
   .boot-fail{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:var(--bg);z-index:90}
   .boot-card{max-width:440px;width:100%;background:var(--surface);border:1px solid var(--critical);border-left:4px solid var(--critical);border-radius:14px;padding:20px 20px;box-shadow:var(--shadow-lg)}
-  .boot-card h2{margin:0 0 10px;font-size:16.5px;font-weight:800;color:var(--ink)}
+  .boot-card h2{margin:0 0 10px;font-size:17.5px;font-weight:800;color:var(--ink)}
   .boot-card p{margin:0 0 10px;font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
   .boot-card .btn{margin-top:6px;min-height:44px}
-  .empty b{display:block;color:var(--ink);font-size:16.5px;margin-bottom:6px}
+  .empty b{display:block;color:var(--ink);font-size:17.5px;margin-bottom:6px}
   /* DIRECTION A, lot 2 : équilibre des titres multi-lignes (amélioration progressive pure —
      moteur sans text-wrap:balance = comportement actuel). JAMAIS sur un titre clampé
      (.dir-t, .qa-t) : balance pousse du texte vers la dernière ligne, que -webkit-line-clamp
      tronque — on perdrait des mots pour gagner une symétrie. */
   .ai-top h3,.empty b{text-wrap:balance}
   .empty .btn{margin-top:14px}
-  .read-head h2{margin:0;font-size:24px;font-weight:680;line-height:1.18}
+  .read-head h2{margin:0;font-size:21px;font-weight:680;line-height:1.18}
   /* V5 : en crise le TITRE vit dans le bandeau d'en-tête sticky — le grand titre du corps ne
      sert plus qu'à l'impression (l'en-tête est masqué en print). */
   /* Le titre du corps ne sert visuellement à rien en lecture (le bandeau de crise le porte),
@@ -1787,7 +2036,7 @@
   .conf-head{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:10px 12px;cursor:pointer;font-family:inherit;text-align:left;min-height:48px}
   .conf-head .block-h{margin-bottom:0;color:var(--ink-soft)}
   .conf-sub{flex:1;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:15.5px;padding:0 4px;flex:none}
+  .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:15px;padding:0 4px;flex:none}
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
   /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
@@ -1798,7 +2047,7 @@
      il reste BLEU --primary (démarrer = action primaire, le vert reste la CONFIRMATION
      d'un bloc entièrement coché). L'aide passe dessous, centrée. */
   .sess-start{margin:14px 0 4px}
-  .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15.5px;letter-spacing:.3px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px}
   .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
   /* LE DÉMARRAGE RESTE ATTEIGNABLE (proposition utilisateur : « et si “confirmé — démarrer la
      session” était sticky quand on ne l'atteint pas encore ? »). Sur une fiche à critères longs,
@@ -1841,7 +2090,7 @@
      de plus. Cible 44 px, filet bas continu pour que la rangée se lise comme une rangée. */
   /* « ×2 » — registre NEUTRE (cf. le commentaire de stepsListHtml) : ce n'est ni un danger ni un
      piège, c'est une consigne de procédure. Mono tabulaire, comme les autres pilules d'état. */
-  .stp-x2{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:var(--tag-bg);
+  .stp-x2{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--tag-bg);
     color:var(--tag-ink);font-family:var(--mono);font-size:11px;font-weight:700;vertical-align:2px}
   /* ★ — registre ALERTE, et ici c'est justifié : un memory item est par définition « ce qui tue
      si on l'oublie », le registre même du chapeau qu'il rejoint. */
@@ -2030,6 +2279,10 @@
   .blk .li{position:relative}
   /* ⚠ SEIZIÈME PIÈGE DE CASCADE, ET IL SE VOYAIT À L'ŒIL (signalé à l'usage, capture à l'appui :
      « les icônes dans la zone de texte se superposent avec le texte »). La marque est réservée par
+     ⚠ v5.6 : `--shadow-primary-sm` est devenue `none` avec l'ombre unique — le champ en édition
+     n'avait donc plus qu'un filet d'1,5 px pour dire le focus, et `audit-a11y` l'a vu (« focus NON
+     visible au clavier », éditeur 1100 px). Le filet d'accent reste ; l'ANNEAU revient, en teinte
+     tonale plutôt qu'en ombre — c'est un état d'interaction, pas une élévation.
      un `padding-left` LONGHAND ; 1 350 lignes plus bas, `.blk .li input[type=text]:focus` repose un
      `padding` RACCOURCI — même spécificité (0,4,1) que la règle de la marque, déclaré APRÈS, donc
      gagnant. Mesuré au FOCUS à 390 px : rembourrage 11 px, texte commençant à 96 px pour une icône
@@ -2129,10 +2382,10 @@
      Le retrait de 32 px = la case (22) plus l'écart (10) : la pilule s'aligne sur le texte. */
   .pc-it{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
   .pc-it:last-of-type{border-bottom:0}
-  .pc-box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--line-strong)}
+  .pc-box{flex:none;width:22px;height:22px;border-radius:8px;border:2px solid var(--line-strong)}
   .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
   .pc-r{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
-    border-radius:6px;padding:2px 6px;overflow-wrap:anywhere}
+    border-radius:8px;padding:2px 6px;overflow-wrap:anywhere}
   /* Boîte signalée : le rembourrage horizontal est COMPENSÉ par une marge négative (patron du
      bleed d'ol.steps, v4.23.5) — la case reste sur la même verticale que les lignes normales,
      la teinte déborde dans le rembourrage de la carte au lieu de décaler le contenu. */
@@ -2156,7 +2409,7 @@
   .pc-q{font-size:13.5px;font-weight:700;color:var(--verify);margin:2px 0 6px}
   .pc-opts{display:flex;flex-wrap:wrap;gap:6px}
   .pc-opt{font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);
-    border:1px solid var(--verify-bd);border-radius:6px;padding:2px 8px}
+    border:1px solid var(--verify-bd);border-radius:8px;padding:2px 8px}
   .pc-opt.tk{color:var(--ok);background:var(--done-bg);border-color:var(--done-line)}
   .pc-opt b{font-family:var(--mono);font-weight:700}
   /* LA FEUILLE « CONSULTER » (M10, maquette) : une rangée par entrée — case INERTE, intitulé,
@@ -2166,10 +2419,10 @@
   .rs-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 2px;
     border-bottom:1px solid var(--line)}
   .rs-row:last-child{border-bottom:0}
-  .rs-box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--line-strong)}
+  .rs-box{flex:none;width:22px;height:22px;border-radius:8px;border:2px solid var(--line-strong)}
   .rs-t{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink)}
   .rs-v{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:12px;
-    background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:4px 8px;width:fit-content}
+    background:var(--tag-bg);color:var(--tag-ink);border-radius:8px;padding:4px 8px;width:fit-content}
   .rs-row.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
     border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:8px}
   .rs-row.vig .rs-t{color:var(--verify);text-transform:uppercase;letter-spacing:.02em}
@@ -2180,11 +2433,6 @@
   .rs-row.crit .rs-box{border-color:var(--critical-bd)}
   /* LE DÉPLIANT DU QUAI (M11) : il appartient à la zone d'état, il se pose donc au plus près
      d'elle et se distingue du contenu clinique par un simple retrait de surface. */
-  .tk-ack-l2{margin-top:8px;border-top:1px solid var(--ok-line);padding-top:6px}
-  .tk-ack-r{display:flex;align-items:baseline;gap:8px;padding:2px 0}
-  .tk-ack-r span{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
-  .tk-ack-r b{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink)}
-  .tk-ack-r.vd b{text-decoration:line-through;color:var(--ink-soft)}
   /* ⚠ LE DÉPLIANT D'UNE LIGNE N'EST PLUS UNE CARTE BLANCHE (signalé à l'usage : « est-ce
      voulu ? » — non). Il datait du temps où la colonne ÉTAIT une carte blanche : il s'y fondait.
      Depuis que les rangées vivent sur le fond de la colonne, c'était la seule surface blanche de
@@ -2275,27 +2523,8 @@
   }
   .pl-phase{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:12px 0 4px;padding-top:8px;border-top:1px solid var(--line)}
-  /* L'ACCUSÉ DE RÉCEPTION DU BLOC (M7). Registre CONFIRMATION — c'est un fait acquis, pas une
-     alerte ; teinte douce, jamais un aplat plein (on ne colore pas la colonne d'action). */
-  .tk-ack{margin-top:8px;padding:10px 10px;background:var(--ok-soft);border:1px solid var(--ok-line);
-    border-radius:var(--radius-md)}
-  .tk-ack-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
-  .tk-ack-t{font-family:var(--mono);font-size:15.5px;font-weight:700;color:var(--ok)}
-  .tk-ack-l{font-size:12px;font-weight:700;color:var(--ink-soft)}
-  /* LES CHIPS DE SUGGESTION SUR FOND VERT (signalé à l'usage : « ça fait gris puis bleu sur du
-     vert »). Elles héritaient du dessin du PANNEAU (fond neutre, survol bleu), posé sur un fond
-     blanc — sur la teinte de confirmation, deux registres se superposaient. Dans l'accusé, elles
-     prennent donc la SURFACE (blanc franc, qui se détache de la teinte) et le filet du registre
-     courant ; le survol reste dans ce même registre. Un seul registre par surface. */
-  .tk-ack-c{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-  .tk-ack .tk-pick{background:var(--surface);border-color:var(--ok-line);color:var(--ink);
-    min-height:38px;padding:4px 10px}
-  .tk-ack .tk-pick:hover{background:var(--done-bg);border-color:var(--ok)}
-  .tk-ack .tk-pick:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
-  .tk-ack .tk-pick.more{color:var(--ink-soft);font-weight:700}
-  .tk-ack-j{margin-top:8px;background:none;border:0;padding:4px 0;min-height:32px;
-    font-size:13.5px;font-weight:700;color:var(--link);cursor:pointer;text-align:left}
-  .tk-ack-j:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* (L'accusé de réception du bloc et ses chips de suggestion sont PURGÉS avec le geste qui les
+     appelait — cf. la note de `tkNoteNow` : le geste ⏱ a déménagé au dock, sa réponse aussi.) */
   .eds-hors{margin-top:12px}
   .eds-row.exc .eds-n{color:var(--critical)}
 
@@ -2350,9 +2579,9 @@
   .ed-ident>summary::after{content:"▾";color:var(--link);font-size:11px;flex:none;margin-left:-4px}
   .ed-ident[open]>summary::after{content:"▴"}
   .ed-ident>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--radius-md)}
-  .ed-ident .id-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16.5px;font-weight:640;color:var(--ink)}
+  .ed-ident .id-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17.5px;font-weight:640;color:var(--ink)}
   .ed-ident .id-t.muted{color:var(--ink-soft);font-weight:600}
-  .ed-ident .id-c{flex:none;font-family:var(--mono);font-size:11px;color:var(--tag-ink);background:var(--tag-bg);border-radius:6px;padding:2px 6px}
+  .ed-ident .id-c{flex:none;font-family:var(--mono);font-size:11px;color:var(--tag-ink);background:var(--tag-bg);border-radius:8px;padding:2px 6px}
   .ed-ident .id-a{flex:none;font-size:13.5px;font-weight:700;color:var(--link)}
   .ed-ident[open]{padding:0 14px 8px}
   /* Le premier champ ne se colle pas au filet du sommaire (signalé à l'usage : « titre de la
@@ -2365,7 +2594,7 @@
     background:none;border:0;border-top:1px solid var(--line);padding:6px 2px;font-family:inherit;cursor:pointer;color:var(--ink)}
   .eds-row:first-of-type{border-top:0}
   .eds-row:hover{background:var(--surface-2)}
-  .eds-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:6px}
+  .eds-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .eds-n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
     background:var(--surface-3);color:var(--ink-soft);font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
   .eds-row.dec .eds-n{background:var(--verify-soft);color:var(--verify)}
@@ -2384,7 +2613,7 @@
   .rev-row{display:flex;flex-direction:column;gap:2px;width:100%;min-height:44px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:8px 2px;font-family:inherit;cursor:pointer;color:var(--ink)}
   .rev-row:first-of-type{border-top:0}
   .rev-row:hover{background:var(--surface-2)}
-  .rev-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:6px}
+  .rev-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .rev-row b{font-size:13.5px;font-weight:700}
   .rev-row span{font-size:12px;line-height:1.45;color:var(--ink-soft)}
   .rev-note{margin:8px 0 0;font-size:11px;color:var(--ink-soft);line-height:1.45}
@@ -2413,7 +2642,7 @@
   .alg-head{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:10px 12px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit;text-align:left}
   .alg-k{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .alg-sub{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .alg-chev{flex:none;color:var(--link);font-size:15.5px;font-weight:800}
+  .alg-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
   .alg-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .alg-panel .flow-zoom{padding:8px 12px 0}
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
@@ -2421,7 +2650,7 @@
   /* Repères posologiques (canvas) : cartes ; « ⚠ » en tête = registre ALERTE. */
   .pos-card{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:12px 14px;margin-bottom:6px;color:var(--ink)}
   .read-side .pos-card{margin-bottom:0}   /* le rail espace déjà (gap 12) */
-  .pos-name{font-size:15.5px;font-weight:800;color:var(--link)}
+  .pos-name{font-size:15px;font-weight:800;color:var(--link)}
   .pos-body{margin-top:4px;font-size:13.5px;line-height:1.5}
   .pos-card>.pos-body:first-child{margin-top:0}
   /* Registre VIGILANCE (ambre) — voir posoCardsHtml : un dosage relève du « risque d'erreur »,
@@ -2447,11 +2676,8 @@
   /* Indice reliant le schéma (vue d'ensemble) à la checklist d'étapes en dessous. */
   .flow-hint{font-size:11px;color:var(--ink-soft);text-align:center;margin:-4px 0 12px}
   .rt-ic{flex-shrink:0}
-  /* --step-bleed : de combien une BANDE signalée déborde pour toucher les bords du bloc parent.
-     Les deux parents n'ont pas le même retrait — carte du journal `.ov-body` : 12px ; vue guidée
-     `.nav-wrap` : 0. Une valeur en dur serait donc fausse dans l'une des deux vues. */
-  ol.steps{list-style:none;margin:0;padding:0;--step-bleed:0px}
-  .ov-body ol.steps{--step-bleed:12px}
+  /* (`--step-bleed` est purgée avec la BANDE signalée qu'elle compensait — cf. A11 plus bas.) */
+  ol.steps{list-style:none;margin:0;padding:0}
   /* Rangée cochable (lot 8, v4.23.0 — retours d'usage successifs : « box dans box surchargé »,
      puis « tout plat = immonde et on identifie moins bien les items non colorés »). RÈGLE RETENUE :
      c'est la BOX PARENTE À BORD BLEU qui porte l'emphase « ici l'action » — les étapes à
@@ -2476,8 +2702,10 @@
      (« le gras est exclu des étapes, le relief passe par le type »). Même geste que la v4.73.0 sur
      les chronos (700 → 500) et pour la même raison : l'état ne crie pas plus fort que l'action.
      Le CORPS ne bouge pas (16,5 px, palier de l'échelle fermée) : c'est la graisse qui s'aligne. */
-  ol.steps li .txt{flex:1;min-width:0;font-size:16.5px;font-weight:600;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
-  ol.steps li:is(.crit,.vigil) .txt{font-weight:800}
+  /* v5.6 — LE CORPS EST LE CANAL DU DANGER, PAS LE FOND. Une étape ordinaire est à --t-item ;
+     seule l'étape CRITIQUE monte à --t-step (A11). C'est l'écart de corps qui hiérarchise, et il
+     ne peut le faire que si toutes les lignes ne l'ont pas. */
+  ol.steps li .txt{flex:1;min-width:0;font-size:var(--t-item);font-weight:600;line-height:1.45;overflow-wrap:break-word;hyphens:auto}
   /* Glyphe de registre en tête d'une étape signalée (lot 8) : hérite la couleur du .txt
      (rouge/ambre), distingue ⚠ de △ sans dépendre de la teinte de la bande. */
   ol.steps li .txt .stp-mk{font-weight:800;margin-right:6px}
@@ -2498,23 +2726,32 @@
      protocoles (`li.md-task`) ont toujours eu la case à GAUCHE : les deux sont désormais
      cohérentes. À gauche, les cases forment une COLONNE que l'œil descend (scannabilité) —
      d'où l'exigence absolue ci-dessous : cette colonne ne doit JAMAIS se décaler. */
-  ol.steps li .box{width:36px;height:36px;border:2px solid var(--line-strong);border-radius:6px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
+  ol.steps li .box{width:36px;height:36px;border:2px solid var(--line-strong);border-radius:8px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
   /* Étape SIGNALÉE = BANDE INTÉGRÉE. Le liseré est un `inset box-shadow`, PAS une bordure : une
      bordure décalerait le contenu de 3px et briserait l'alignement de la colonne de cases (tout
      l'intérêt du passage à gauche). Le débordement est compensé au pixel par le padding, donc la
      case reste EXACTEMENT sur la même verticale que celle des lignes normales. */
-  ol.steps li:is(.crit,.vigil){border-top:0;
-    margin-left:calc(-1 * var(--step-bleed));margin-right:calc(-1 * var(--step-bleed));
-    padding-left:calc(4px + var(--step-bleed));padding-right:calc(4px + var(--step-bleed))}
-  ol.steps li.crit{background:var(--critical-soft)}
-  ol.steps li.crit .txt{color:var(--critical);font-weight:800}
-  ol.steps li.crit .box{border-color:var(--critical-bd)}
-  /* VIGILANCE « △ » : registre ATTENTION — ambre, même grammaire de bande. */
-  ol.steps li.vigil{background:var(--verify-soft)}
-  ol.steps li.vigil .txt{color:var(--verify);font-weight:800}
-  ol.steps li.vigil .box{border-color:var(--verify)}
-  /* Pas de filet sur la ligne qui suit une bande (la bande borne déjà la séparation). */
-  ol.steps li:is(.crit,.vigil)+li{border-top:0}
+  /* ══ A11 (v5.6) — L'APLAT EST RÉSERVÉ À CE QUI EXIGE UNE ACTION MAINTENANT ═════════════════
+     L'étape signalée était une BANDE TEINTÉE pleine largeur (fond + liseré inset + texte coloré).
+     Mesuré à l'usage sur un bloc de cinq étapes : deux bandes colorées happaient l'œil et
+     DÉTRUISAIENT la lecture de la séquence — on ne lisait plus une checklist, on lisait deux
+     alarmes entourées de gris. Or l'aplat coloré est le registre de l'échelon AU-DESSUS : ce qui
+     exige une action MAINTENANT, c'est-à-dire l'alarme active — et il n'y en a qu'UNE à l'écran.
+     UNE ÉTAPE CRITIQUE SE MARQUE, ELLE NE SE REMPLIT PAS : case rouge + glyphe ⚠ + CORPS à 17,5 px
+     + cadence mono ambre. Quatre canaux, aucun aplat, aucun cadre — et le corps est le canal le
+     plus fort de tous, celui que la v5 donnait au chrono. La couleur n'est jamais seule (règle 8) :
+     le glyphe et son étiquette `.sr-only` restent.
+     ⚠ LE `--step-bleed` PART AVEC LA BANDE : il n'existait que pour que le liseré inset déborde
+     sans décaler la colonne de cases. Plus de bande, plus de compensation à faire — et la colonne
+     de cases est alignée par CONSTRUCTION, ce qui était tout l'enjeu du passage à gauche. */
+  ol.steps li.crit .box{border-color:var(--crit)}
+  ol.steps li.crit .txt{font-size:var(--t-step);font-weight:700}
+  ol.steps li.crit .stp-mk{color:var(--crit)}
+  /* VIGILANCE « △ » : même grammaire, registre ATTENTION — mais SANS le gain de corps. Le corps
+     est le canal du « ceci tue si on l'oublie » ; l'étendre à « on s'y trompe » les remettrait à
+     égalité, et l'on aurait déplacé l'inflation au lieu de la supprimer. */
+  ol.steps li.vigil .box{border-color:var(--warn-line)}
+  ol.steps li.vigil .stp-mk{color:var(--warn)}
   /* Étape COCHÉE : l'état « fait » s'aplatit avec la ligne — l'information est portée par la
      COCHE verte pleine + l'encre douce + la graisse (400 contre 600). La coche ENTRE avec le
      « pop » (canvas ; transform seul, composité). Une étape SIGNALÉE cochée CONVERGE vers le vert
@@ -2541,16 +2778,23 @@
      A DISPARU avec la cause : l'écran et le papier disent enfin la même chose.
      ⚠ Ne pas « restaurer » l'opacité pour retrouver du contraste d'état : le canal d'état est la
      COCHE, pas l'effacement du texte. */
-  ol.steps li:is(.crit,.vigil).done{background:var(--done-bg)}
-  ol.steps li.done .box{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+  /* La case FAITE est une pastille DOUCE, pas un aplat plein : sur une liste où la moitié des
+     lignes finit cochée, l'aplat vert faisait une colonne de masses colorées — et A11 réserve
+     l'aplat à ce qui exige une action MAINTENANT. Le ✓ garde son encre pleine, l'information est
+     dans le glyphe. */
+  ol.steps li.done .box{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
   ol.steps li.done .box svg{animation:pop .25s ease}
-  ol.steps li.done .txt{color:var(--ink-soft);font-weight:400}
+  ol.steps li.done .txt{color:var(--ink-2);font-weight:400}
+  /* Cochée, l'étape critique REDESCEND au corps commun : l'appel a cessé, le fait reste lisible
+     (A10 — ni opacité ni barré, jamais). Le ⚠ garde sa couleur : c'était et cela reste une
+     étape vitale, on dit seulement qu'elle est faite. */
+  ol.steps li.crit.done .txt{font-size:var(--t-item);font-weight:400}
   @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
   .pinbtn.on svg{animation:pop .25s ease}
   ul.flat{list-style:none;margin:0;padding:0}
   ul.flat.verify{display:flex;flex-wrap:wrap;gap:8px}
-  ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:10px 14px;font-size:15.5px}
-  ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:15.5px;display:flex;gap:10px;align-items:flex-start;overflow-wrap:break-word}
+  ul.flat.verify li{flex:1;min-width:250px;margin-bottom:0;border-radius:8px;padding:10px 14px;font-size:15px}
+  ul.flat li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:15px;display:flex;gap:10px;align-items:flex-start;overflow-wrap:break-word}
   /* v4.13.2 : .ftxt vit dans des rangées FLEX (bulles À vérifier/différentiels, options,
      rappels…) — sans min-width:0, le mot le plus long fixe le min-content et pousse le
      texte HORS du cadre (en étroit / grande taille de texte). Césure française en secours. */
@@ -2575,13 +2819,13 @@
      l'historique reste consultable d'un glissement. */
   .crumbs{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);margin:2px 0 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .crumbs::-webkit-scrollbar{display:none}
-  .crumbs .cb{flex:none;background:var(--tag-bg);color:var(--ink-soft);padding:4px 10px;min-height:32px;display:inline-flex;align-items:center;border-radius:11px;cursor:pointer;white-space:nowrap}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--link);color:var(--surface);cursor:default}
+  .crumbs .cb{flex:none;background:var(--tag-bg);color:var(--ink-soft);padding:4px 10px;min-height:32px;display:inline-flex;align-items:center;border-radius:12px;cursor:pointer;white-space:nowrap}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--link);color:var(--surface);cursor:default}
   [data-theme="dark"] .crumbs .cb:not(.cur):hover{background:var(--hover-dk-hi)}
   .crumbs .cb-n{font-family:var(--mono);font-size:11px;opacity:.7;margin-left:2px}
   .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:6px}
   .node-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
   .nav-wrap.dec .node-title{color:var(--verify)}
-  .question{font-size:16.5px;font-weight:700;line-height:1.3;margin:2px 0 10px;overflow-wrap:break-word}
+  .question{font-size:21px;font-weight:700;line-height:1.3;margin:2px 0 10px;overflow-wrap:break-word}
   .options{display:grid;gap:10px}
   .options{gap:8px}
   /* Options de décision : MÊME hauteur que les rangées d'étapes (64px — retour utilisateur,
@@ -2589,7 +2833,7 @@
   /* 16.5px comme `ol.steps li .txt` (v4.24.0) : choisir une branche est au moins aussi engageant
      que cocher une étape — rien ne justifiait de le rendre MOINS lisible. La graisse reste 700 (et
      non 800) : c'est un CHOIX, pas une action. */
-  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:1px solid var(--verify-bd);border-radius:8px;padding:10px 12px;min-height:64px;font-size:16.5px;font-weight:700;color:var(--ink);width:100%;cursor:pointer}
+  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:1px solid var(--verify-bd);border-radius:8px;padding:10px 12px;min-height:64px;font-size:17.5px;font-weight:700;color:var(--ink);width:100%;cursor:pointer}
   .opt:hover{background:var(--surface)}.opt .arr{margin-left:auto;color:var(--verify)}
   .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
@@ -2714,9 +2958,8 @@
      `#crisisBand` et gagnait — d'où deux placards jumeaux dont un seul avait la bonne couleur.
      Corollaire de méthode, le même que partout ailleurs ici : pour une COULEUR comme pour une
      géométrie, ne jamais dépendre de la spécificité qu'on croit avoir — la vérifier. */
-  #crisisBand .cb-tag.inv,#hdrCrisis.inv{color:var(--primary-dk);background:var(--surface);
-    border:1px solid var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
-  #hdrCrisis.exo{background:var(--surface);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px;letter-spacing:.6px}
+  #crisisBand .cb-tag.inv{color:var(--primary-dk);background:var(--surface);
+    border:1px solid var(--primary);border-radius:8px;padding:2px 8px;letter-spacing:.6px}
   .cb-exoquit{flex:none;position:relative;min-height:36px;border:1px dashed var(--primary);border-radius:8px;background:var(--surface);color:var(--primary-dk);font-size:12px;font-weight:800;cursor:pointer;padding:0 12px;font-family:inherit}
   .cb-exoquit::after{content:"";position:absolute;inset:-4px}
   /* ≥ 780 : le bandeau réel fait 44 px de haut (titre une ligne) — un bouton de 36 px l'aurait
@@ -2730,7 +2973,6 @@
   @media (prefers-reduced-motion:no-preference){
     #crisisBand.exo-anim::before{animation:exoSlide .45s ease}
     #crisisBand.exo-anim .cb-tag.exo{animation:exoPop .3s ease}
-    header.bar.ttl-on .hdr-crisis.exo{animation:exoPop .25s ease}
     #crisisBand.exo .cb-exoquit:not([hidden]){animation:exoPop .3s ease}
     main.back-anim{animation:secInL .28s ease}
     .ov-block.cx-return{animation:cxReturn .3s ease}
@@ -2738,11 +2980,11 @@
   @keyframes exoSlide{from{background-position:-44px 0}to{background-position:0 0}}
   @keyframes exoPop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
   @keyframes cxReturn{from{opacity:.35;transform:translateX(-14px)}to{opacity:1;transform:none}}
-  #crisisBand .cb-tag.exo,#hdrCrisis.exo{color:var(--primary-dk)}
-  #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:2px 8px}
+  #crisisBand .cb-tag.exo{color:var(--primary-dk)}
+  #crisisBand .cb-tag.exo{background:var(--primary-soft);border:1px dashed var(--primary);border-radius:8px;padding:2px 8px}
   #cbTimers .seg.glb.exo .seg-sess{color:var(--primary-dk)}
   .sess-gh{margin:12px 2px 4px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .sess-exotag{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:6px;padding:1px 6px;white-space:nowrap}
+  .sess-exotag{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--primary-dk);background:var(--primary-soft);border:1px dashed var(--primary);border-radius:8px;padding:1px 6px;white-space:nowrap}
   .last-sess.exo{border-left-color:var(--primary)}
   .last-sess.exo .lsr-ic{color:var(--primary-dk);font-weight:800}
   .last-sess.exo .lsr-tx b{color:var(--primary-dk)}
@@ -2762,30 +3004,15 @@
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
   .pick-h{margin:10px 2px 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .cx-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid var(--critical-bd);border-radius:8px;background:transparent;color:var(--critical);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
-  .cx-btn:hover{background:var(--critical-soft)}
-  .cx-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .cx-btn .cx-n{font-family:var(--mono);font-size:12px;background:var(--critical-soft);border-radius:999px;padding:1px 6px}
-  .cx-item{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--critical-bd);border-radius:8px;background:transparent;font-family:inherit;text-align:left;cursor:pointer}
-  .cx-item:hover{background:var(--critical-soft)}
-  .cx-item:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .cx-item-ic{flex:none;font-size:16.5px}
-  .cx-item-tx{flex:1;min-width:0}
-  .cx-item-tx b{display:block;font-size:15.5px;color:var(--critical)}
-  .cx-item-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
-  /* L'index DÉPLIÉ vit dans la carte : il pousse vers le bas, il ne recouvre rien. Le dernier
-     item perd sa marge — c'est le bas du groupe, pas un intervalle. */
-  .cx-list{margin-top:8px}
-  .cx-list .cx-item:last-child{margin-bottom:0}
-  /* « Vous y êtes » : même grammaire de FERMÉ que le scribe et le mode déplacement — encre douce,
-     filet neutre, fond de second plan, curseur refusé. WCAG 1.4.3 exempte les composants INACTIFS
-     du seuil de contraste : on baisse donc par l'ENCRE, franchement, et jamais par l'opacité (qui
-     affadirait aussi le registre rouge de la rangée). */
-  .cx-list .cx-item.ici{border-color:var(--line);background:var(--surface-2);cursor:not-allowed}
-  .cx-list .cx-item.ici :is(b,.cx-item-ic,.cx-item-sub){color:var(--ink-soft)}
+  /* ⚠ `.cx-btn`, `.cx-n`, `.cx-chev`, `.cx-item*` ET `.cx-list` SONT PURGÉS (v5.6, règle 14) :
+     l'index des complications a quitté la carte pour le VOLET DU DOCK (`.ds-row`), qui le rend
+     avec la même doctrine — rangées ≥ 56 px, nom en toutes lettres, condition d'entrée,
+     destination annoncée, et la grammaire de « fermé » pour « vous y êtes ». Le raisonnement de
+     la v5.0.0 (« l'index est un dépliant, pas une fenêtre — un dépliant appartient à son geste,
+     il naît sous le doigt qui l'ouvre ») est INTACT : le volet naît du dock, c'est-à-dire du
+     doigt qui vient de taper ⚡︎, et il ne déplace rien derrière lui. */
   /* « ↗ » : le glyphe des ouvertures externes du dossier — il DIT qu'on quitte la fiche. */
   .cx-ext{font-size:12px;opacity:.9}
-  .cx-btn .cx-chev{margin-left:2px;font-size:11px;color:var(--ink-soft)}
   /* ⚠ LES TROIS GESTES DE BLOC PARTAGENT UNE SEULE BOÎTE (signalé à l'usage : « uniformise taille
      texte / style boutons entre Complications, Noter l'heure et Vérifier »). Mesuré avant, ils
      différaient sur TROIS axes : corps 13,5 / 13,5 / 12 px, rembourrage 8-14 / 8-12 / 6-10, et
@@ -2800,7 +3027,6 @@
   .cx-row .blk-act{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;
     border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
     font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
-  .cx-row .blk-act.cx-btn{border-color:var(--critical-bd);color:var(--critical);background:transparent}
   .cx-row .blk-act.tk-add{border-color:var(--primary);color:var(--primary-dk);background:var(--primary-soft)}
   .cx-row .blk-act:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
@@ -2877,7 +3103,7 @@
   .rt-ic{color:var(--primary)}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente. */
-  .rt-x{position:absolute;top:0;right:0;background:none;border:0;color:var(--ink-soft);font-size:20px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
+  .rt-x{position:absolute;top:0;right:0;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
   .rt-x:hover{background:var(--surface-2);color:var(--ink)}
   .rt-x:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (min-width:1000px){.rt-x{display:none}}
@@ -2894,11 +3120,21 @@
      memory items / vital), en pause = encre douce + texte « — EN PAUSE » (jamais couleur seule). */
   /* P2-7 (audit design v4.56) : --link est doctrinalement « le temps d'un minuteur EN COURS » —
      le défaut (arrêt) passe en ENCRE, .run porte l'accent ; .due/.paused déclarées APRÈS gagnent. */
-  .tmcard,.cncard{--tcol:var(--ink);--tbd:var(--line);background:var(--surface);border:1.5px solid var(--tbd);border-radius:8px;padding:12px 14px;color:var(--ink)}
+  /* ══ A9 — HAUTEURS D'ÉTAT FIXES ═══════════════════════════════════════════════════════════
+     Un changement d'état NON commandé (un minuteur qui devient échu, une alarme qui s'éveille)
+     ne modifie JAMAIS une hauteur : seuls matière, couleur et texte changent. C'est le corollaire
+     direct de « rien ne bouge sous le doigt » — et le point le plus facile à rater, parce que la
+     structure DOM est identique d'un état à l'autre : ce qui varie, c'est le LIBELLÉ (« Adrénaline »
+     devient « Adrénaline — échu »), et un mot de plus fait passer le nom sur deux lignes, donc la
+     carte grandit sous le doigt de quelqu'un qui n'a rien demandé.
+     Deux verrous : la carte a un gabarit MINIMAL, et le libellé est borné à deux lignes (au-delà
+     il s'ellipse — un nom de minuteur est court par convention, et le nom accessible reste
+     entier). L'expansion COMMANDÉE par un tap (volet, carte dépliée) n'est pas concernée. */
+  .tmcard,.cncard{--tcol:var(--ink);--tbd:var(--line);background:var(--surface);border:1.5px solid var(--tbd);border-radius:8px;padding:12px 14px;color:var(--ink);min-height:104px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}
   .tmcard.run{--tcol:var(--link)}
   .tmcard.due{--tcol:var(--verify-hi);--tbd:var(--verify-bd)}
   .tmcard.paused{--tcol:var(--ink-soft)}
-  .cncard{text-align:center}
+  .cncard{text-align:center;min-height:96px}
   .tmcard.flash{animation:fl .5s ease 3}
   @keyframes fl{50%{background:var(--alert);border-color:var(--alert-strong);color:var(--alert-ink)}}
   /* Hors flash : display:none (pas seulement opacity:0). Avec `forwards`, la couche jaune restait
@@ -2910,7 +3146,7 @@
   /* P2-1 : casse de phrase (les capitales restent le registre des ÉTIQUETTES courtes). */
   /* Le NOM du minuteur suit la même correction, d'un cran seulement (700 → 600) : il reste le
      titre de sa carte, mais il n'a pas à peser autant qu'un titre de bloc clinique. */
-  .tm-label{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;line-height:1.25;color:var(--tcol);margin-bottom:6px;overflow-wrap:anywhere;word-break:break-word}
+  .tm-label{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;gap:6px;font-size:13.5px;font-weight:600;line-height:1.25;color:var(--tcol);margin-bottom:6px;min-height:2.5em;overflow-wrap:anywhere;word-break:break-word}
   .tm-meta{font-size:12px;color:var(--ink-soft);margin:-4px 0 6px;line-height:1.35}
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12px;font-weight:700}
@@ -2925,7 +3161,7 @@
      posologie (« la DOSE reste en encre pleine ») : adoucir la couleur d'un temps serait
      l'inversion à ne pas faire, et `--tcol` reste le canal de l'ÉTAT (encre à l'arrêt, `--link` en
      cours, ambre échu). Rien de sémantique ne bouge ici. */
-  .tm-val,.cn-val{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
+  .tm-val,.cn-val{font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:2px}
   /* D11 (audit design v4.56) : tabular-nums sur les nombres d'ÉTAT non mono — cohérent avec
@@ -2956,7 +3192,7 @@
   /* Bordure --line-strong = délimitation du bouton >= 3:1 (WCAG 1.4.11) ;
      min-height 44px = règle « mode crise » du projet. */
   /* Actions 36px visuels (canvas), zone tactile étendue à 44px par ::after (règle AGENTS). */
-  .tm-btn{position:relative;flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:4px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;padding:6px;min-height:36px;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .tm-btn{position:relative;flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:4px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line);border-radius:8px;padding:6px;min-height:36px;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .12s,opacity .12s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .tm-btn::after{content:"";position:absolute;inset:-4px}
   .tm-btn:hover{background:var(--surface-2)}
   .tm-main{flex:1.2;background:var(--surface);border:1.5px solid var(--link);color:var(--link);font-weight:800}.tm-main:hover{background:var(--primary-soft)}
@@ -2964,7 +3200,7 @@
      cycle) et aux gestes destructifs, jamais à un état neutre qui tourne. */
   .tm-main.run{background:var(--surface);border-color:var(--link);color:var(--link)}.tm-main.run:hover{background:var(--primary-soft)}
   .tm-btn:disabled{opacity:.32;cursor:default}.tm-btn:disabled:hover{background:var(--surface)}
-  .cn-btn{flex:1;min-height:44px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:20px;font-weight:600}
+  .cn-btn{flex:1;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:15px;font-weight:600}
   .cn-btn:hover{background:var(--surface-2)}
   /* Réinit. d'un compteur (maintenir) : secondaire, sous les boutons +/−. */
   .cn-reset{margin:8px auto 0;min-width:120px;padding:6px 14px;min-height:44px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:8px;font-size:11px;font-weight:600;-webkit-user-select:none;user-select:none}
@@ -2997,18 +3233,17 @@
     letter-spacing:.02em;color:var(--ink-soft)}
   .stp-legend svg{vertical-align:-2px;color:var(--critical)}
   .lg-sp{color:var(--line-strong)}
-  .lg-r{font-family:var(--mono);background:var(--tag-bg);color:var(--tag-ink);border-radius:6px;padding:0 4px}
+  .lg-r{font-family:var(--mono);background:var(--tag-bg);color:var(--tag-ink);border-radius:8px;padding:0 4px}
   /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
      l'unique bouton rempli de l'écran reste « Continuer — … → ». */
-  .tk-inblk{min-height:44px}
 
   .tk-item{border-top:1px solid var(--line)}
   .tk-row{display:flex;gap:8px;align-items:center;padding:8px 0}
   .tk-item .tk-row{padding-bottom:8px}   /* symétrique : 0 collait le ✕ (44px) au filet du bas (v4.23.5) */
   .tk-item:has(.tk-orig-row) .tk-row{padding-bottom:2px}
-  .tk-time{font-family:var(--mono);font-size:13.5px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:6px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
+  .tk-time{font-family:var(--mono);font-size:13.5px;color:var(--ink);white-space:nowrap;cursor:pointer;border-radius:8px;padding:2px 6px;min-height:32px;display:inline-flex;align-items:center;margin:-2px 0}
   .tk-time:hover{background:var(--primary-soft)}
-  .tk-time-edit{font-family:var(--mono);font-size:13.5px;width:76px;flex-shrink:0;padding:2px 4px;border:1px solid var(--primary);border-radius:6px;background:var(--input-bg);color:var(--ink)}
+  .tk-time-edit{font-family:var(--mono);font-size:13.5px;width:76px;flex-shrink:0;padding:2px 4px;border:1px solid var(--primary);border-radius:8px;background:var(--input-bg);color:var(--ink)}
   /* v5.4.0 — L'ÉCHEC DE SAISIE SE VOIT (registre ATTENTION : on s'est trompé en tapant, rien de
      vital) ; la couleur n'est jamais seule, le glyphe △ et la phrase portent le message. */
   .tk-time-edit.bad{border-color:var(--verify-bd);box-shadow:0 0 0 1px var(--verify-bd) inset}
@@ -3042,7 +3277,7 @@
 
   .tk-lab{flex:1;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:13.5px}
   .tk-lab:focus{outline:2px solid var(--primary);border-color:transparent}
-  .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:16.5px}
+  .tk-del{flex-shrink:0;width:38px;height:44px;border:0;border-radius:8px;background:var(--bg);color:var(--ink-soft);font-size:15px}
   /* REPÈRE ANNULÉ — barré et estompé, jamais retiré : le journal alimente le compte-rendu, et une
      trace qu'un tap efface sans laisser de marque n'est pas une trace. L'heure reste EN ENCRE
      PLEINE (c'est la donnée clinique ; l'estomper serait l'inversion à ne pas faire, cf. la règle
@@ -3072,7 +3307,7 @@
   .rt-famh.fam-sep{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
   :is(.rt-famh,.rail-fam)+.rt-counters{margin-top:0}
   .rail-fam{margin-top:16px}
-  .fam-n{display:inline-block;margin-left:6px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border-radius:6px;padding:1px 6px;letter-spacing:0}
+  .fam-n{display:inline-block;margin-left:6px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border-radius:8px;padding:1px 6px;letter-spacing:0}
   /* Halo animé en transform/opacity sur un pseudo-élément (COMPOSITÉ) : l'ancienne animation de
      box-shadow forçait un repaint continu pendant toute la durée d'une session, crise comprise. */
   .sess-dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex-shrink:0;position:relative}
@@ -3150,7 +3385,7 @@
   body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
-    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,[data-tknote]),
+    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,#tkKey),
   body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
@@ -3165,12 +3400,12 @@
   .home-join{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;
     padding:12px 14px;background:var(--primary-soft);border:1px solid var(--primary-200);
     border-left:4px solid var(--primary);border-radius:8px;box-shadow:var(--shadow)}
-  .home-join .hj-ic{flex:none;font-size:20px;line-height:1;color:var(--primary)}
+  .home-join .hj-ic{flex:none;font-size:15px;line-height:1;color:var(--primary)}
   .home-join .hj-tx{flex:1;min-width:150px;font-size:13.5px;color:var(--ink)}
-  .home-join .hj-tx b{display:block;font-size:15.5px;font-weight:800;color:var(--ink)}
+  .home-join .hj-tx b{display:block;font-size:15px;font-weight:800;color:var(--ink)}
   .home-join .hj-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
   .hj-go{flex:none;min-height:48px;padding:0 18px;background:var(--primary);border:1px solid var(--primary);
-    border-radius:8px;color:var(--on-primary);font:inherit;font-size:15.5px;font-weight:700;
+    border-radius:8px;color:var(--on-primary);font:inherit;font-size:15px;font-weight:700;
     cursor:pointer;touch-action:manipulation;box-shadow:var(--shadow-primary-sm)}
   .hj-go:hover{background:var(--primary-hi);border-color:var(--primary-hi)}
   .hj-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -3184,11 +3419,24 @@
      standard : carte `position:relative`, ✕ ANCRÉ en haut à droite à toutes les largeurs —
      le padding droit de la carte lui réserve la place, le texte ne passe jamais dessous. */
   .last-sess .notice-x{top:6px;right:6px}
-  .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--primary);border-left:3px solid var(--primary);border-radius:8px;padding:10px 12px;box-shadow:var(--shadow)}
+  /* ══ LA SESSION VIVE EST LE SEUL OBJET SOMBRE DE L'ACCUEIL (v5.6, lot 5) ═══════════════════
+     Trois matières, trois natures : sombre = SYSTÈME. Sur l'accueil il n'y a normalement RIEN de
+     système — c'est un écran de travail et d'ambiance. Une session qui TOURNE est l'exception :
+     ce n'est pas un contenu qu'on consulte, c'est un instrument qui vit, et c'est le même objet
+     que la capsule de crise. On le reconnaît donc SANS LIRE, au milieu d'un annuaire, et l'on
+     n'a pas besoin d'une couleur d'alerte pour cela — un soin en cours n'est pas une alarme.
+     Le chrono garde son vert « actif nominal » (--ok-sys, la valeur dédiée à la matière système)
+     et son point : la couleur n'est jamais seule, le mot « SESSION EN COURS » l'accompagne. */
+  .ls-card{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--sys);border:0;border-radius:var(--r-3);padding:10px 14px;color:var(--sys-ink)}
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
-  .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .ls-info .ls-t{font-size:15.5px;font-weight:700;color:var(--ink)}
-  .ls-chrono{font-family:var(--mono);font-size:16.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2)}
+  .ls-info .ls-t{font-size:15px;font-weight:700;color:var(--sys-ink)}
+  .ls-chrono{font-family:var(--mono);font-size:17.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ok-sys)}
+  .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys)}
+  .ls-card .ls-end:hover{background:var(--sys-2)}
+  .ls-card .btn{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
+  .ls-card .btn:hover{background:var(--sys-line)}
+  .ls-card .tag{background:var(--sys-2);color:var(--sys-ink-2)}
   /* P3-13 (audit design v4.56) : un lien texte rouge = cible étroite et affordance faible à
      côté d'un bouton rempli. Contour `--critical` compact (grammaire contour = gérer), cible
      44 px par le halo — jamais rempli : le rouge plein reste à la confirmation finale. */
@@ -3202,12 +3450,12 @@
   #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
   /* Couleur AMBRE volontairement distincte de l'en-tête vert (sinon les deux bandeaux se confondent
      et on rate l'alerte) : halo + quelques pulsations pour attirer l'œil. */
-  .alert-toast{pointer-events:auto;position:relative;overflow:hidden;max-width:520px;width:100%;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,var(--alert-hi),var(--alert));color:var(--alert-ink);border:1px solid var(--alert-strong);border-radius:11px;padding:12px 12px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
+  .alert-toast{pointer-events:auto;position:relative;overflow:hidden;max-width:520px;width:100%;display:flex;gap:10px;align-items:center;background:linear-gradient(180deg,var(--alert-hi),var(--alert));color:var(--alert-ink);border:1px solid var(--alert-strong);border-radius:12px;padding:12px 12px;box-shadow:0 10px 30px rgba(50,35,0,.34);cursor:pointer;animation:toastIn .28s ease,toastPulse 1.1s ease-in-out .3s 3}
   .alert-toast.out{opacity:0;transform:translateY(-8px);transition:opacity .4s,transform .4s;animation:none}
-  .alert-toast .at-ic{font-size:20px;flex-shrink:0}
+  .alert-toast .at-ic{font-size:15px;flex-shrink:0}
   .alert-toast .at-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
   .alert-toast .at-tx b{font-size:13.5px;color:var(--alert-ink)}.alert-toast .at-tx span{font-size:12px;color:var(--alert-ink)}
-  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:var(--alert-ink);border-radius:8px;width:38px;height:38px;font-size:16.5px;flex-shrink:0;cursor:pointer}
+  .alert-toast .at-x{background:rgba(0,0,0,.13);border:0;color:var(--alert-ink);border-radius:8px;width:38px;height:38px;font-size:15px;flex-shrink:0;cursor:pointer}
   @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes toastPulse{0%,100%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 0 rgba(242,176,28,0)}50%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 7px rgba(242,176,28,.5)}}
   /* editor */
@@ -3235,7 +3483,7 @@
   .list-edit .li{display:flex;gap:8px;margin-bottom:2px;align-items:center;flex-wrap:wrap}.list-edit .li input{flex:1;min-width:0}
   .list-edit .li input[type=text]{background:transparent;border-color:transparent;padding:8px 4px;font-size:16px}
   /* Même débord compensé et même anneau que les étapes de bloc (cf. le bloc MK-flux là-bas). */
-  .list-edit .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:var(--shadow-primary-sm)}
+  .list-edit .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--act);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:0 0 0 3px var(--primary-100)}
   .list-edit .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
   .list-edit .li:focus-within .li-tools{display:inline-flex}
   .li-num{font-family:var(--mono);font-size:13.5px;color:var(--ink-soft);min-width:22px;padding-top:12px;text-align:right}
@@ -3246,7 +3494,7 @@
   .li.li-vigil input[type=text]{border-color:var(--verify);background:var(--verify-soft);color:var(--verify)}
   .li.li-crit .li-num{color:var(--critical)}
   .li.li-vigil .li-num{color:var(--verify)}
-  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:var(--radius-sm);font-size:16.5px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:var(--radius-sm);font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .mini:hover{background:var(--surface-2);color:var(--ink)}.mini.del:hover,.cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
   /* Étapes d'un bloc : les boutons ↑ ↓ × sont sur une ligne (non flex) -> petit espace entre eux. */
   .blk .li .mini+.mini{margin-left:6px}
@@ -3262,7 +3510,7 @@
      (contour, à gauche, focus initial) ; Terminer = rouge système PLEIN (--critical-bd), même
      largeur : le poids de taille est égal, la grammaire contour/plein porte la différence. ----- */
   .endsess-dlg{max-width:400px;padding:20px}
-  .endsess-dlg .dlg-title{margin:0 0 6px;font-size:16.5px;font-weight:800}
+  .endsess-dlg .dlg-title{margin:0 0 6px;font-size:17.5px;font-weight:800}
   .dlg-context{margin:0 0 6px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
   .dlg-context strong{color:var(--ink);font-variant-numeric:tabular-nums}
   .dlg-consequences{margin:0 0 16px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
@@ -3280,19 +3528,19 @@
      divulgation progressive, coût visuel constant quel que soit le nombre de catégories.
      (Remplace l'ancienne rangée .catpick/.catpill de toutes les catégories.) ----- */
   .cat-picker{position:relative;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-  .cat-chip-selected{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:18px;background:color-mix(in srgb,var(--catcol) 14%,transparent);border:1.5px solid var(--catcol);color:var(--catcol);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .cat-chip-selected{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--catcol) 14%,transparent);border:1.5px solid var(--catcol);color:var(--catcol);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   [data-theme="dark"] .cat-chip-selected{color:color-mix(in srgb,var(--catcol) 60%,var(--ink))}   /* contraste texte en sombre */
   .cat-chip-selected.none{background:transparent;border-color:var(--line-strong);color:var(--ink-soft)}
-  .cat-chip-other{display:inline-flex;align-items:center;padding:8px 12px;border-radius:18px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .cat-chip-other{display:inline-flex;align-items:center;padding:8px 12px;border-radius:14px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .cat-chip-other:hover,.cat-chip-selected:hover{filter:brightness(.97)}
   /* Menu ancré (même patron que le menu ⋯) : rangées 44px pastille + nom + ✓ sur la courante.
      overscroll-behavior:contain (v4.4.4) : arrivé en butée de liste, le glissement ne « fuit »
      plus vers la page derrière (la bottom sheet faisait défiler tout l'accueil). */
-  .catmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:40;min-width:250px;max-width:min(340px,92vw);max-height:340px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px}
+  .catmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:40;min-width:250px;max-width:min(340px,92vw);max-height:340px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px}
   /* En-tête COLLANT du menu (v4.4.4) : poignée (mobile) + filtre restent visibles pendant le
      défilement de la liste — ils partaient hors écran avec elle. Fond plein : la liste passe
      dessous, jamais au travers. top:-6px compense le padding du conteneur défilant. */
-  .catmenu-head{position:sticky;top:-6px;z-index:1;background:var(--surface);margin:-6px -6px 0;padding:6px 6px 0;border-radius:11px 11px 0 0}
+  .catmenu-head{position:sticky;top:-6px;z-index:1;background:var(--surface);margin:-6px -6px 0;padding:6px 6px 0;border-radius:12px 12px 0 0}
   .catmenu-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 10px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
   .catmenu-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
   .catmenu-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -3307,15 +3555,15 @@
      La poignée vit dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile :
      un glissement sur le fond assombri ne doit jamais faire défiler la page derrière. */
   @media (max-width:779.98px){
-    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:18px 18px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
-    .catmenu-head{border-radius:18px 18px 0 0}
+    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:12px 12px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
+    .catmenu-head{border-radius:12px 12px 0 0}
     .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:var(--line-strong);margin:4px auto 10px}
     .catmenu-row{min-height:48px}
     .catmenu-veil{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
-  .st-seg{display:inline-flex;align-items:center;min-height:38px;padding:0 12px;border-radius:18px;border:1.5px solid var(--line-strong);background:var(--input-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .st-seg{display:inline-flex;align-items:center;min-height:38px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line-strong);background:var(--input-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .st-seg.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dk)}
   .st-seg:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .st-hint{font-size:11px;color:var(--ink-soft);margin-top:4px}
@@ -3368,7 +3616,7 @@
      perd le repère. */
   .qr{display:block;width:200px;height:200px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
   .flow-zoom{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:18px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 10px;font-size:12px}
   .fz-spc{flex:1}
   .fzv{font-family:var(--mono);font-size:12px;color:var(--ink-soft);min-width:46px;text-align:center}
@@ -3393,7 +3641,7 @@
   .blk.blk-dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   /* L'en-tête du bloc : le TITRE est le champ, comme en lecture il est le titre de la carte —
      mêmes corps (16,5 px / 640), la pilule de type à gauche. */
-  .blk .blk-top input[type=text]{font-size:16.5px;font-weight:640;background:var(--surface);border-color:var(--line)}
+  .blk .blk-top input[type=text]{font-size:17.5px;font-weight:640;background:var(--surface);border-color:var(--line)}
   .blk.blk-dec .blk-top input[type=text]{background:var(--surface)}
   /* Le CHAPEAU d'édition reprend le cadre rouge de `.forget-strip`, au trait près. */
   .ed-forget{background:var(--critical-soft);border:1px solid var(--critical-bd);border-radius:8px;padding:10px 12px;margin-bottom:16px}
@@ -3436,11 +3684,11 @@
   .ed-palette{display:flex;flex-direction:column;gap:8px}
   .ep-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;text-align:left;
     background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius-md);padding:8px 12px;cursor:pointer;font-family:inherit}
-  .ep-n{flex:1;min-width:0;font-size:15.5px;font-weight:700;color:var(--ink)}
+  .ep-n{flex:1;min-width:0;font-size:15px;font-weight:700;color:var(--ink)}
   .ep-c{flex:none;font-size:12px;color:var(--ink-soft)}
   .ep-row:hover{border-color:var(--primary);background:var(--primary-soft)}
   .ep-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .ep-ic{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15.5px}
+  .ep-ic{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15px}
 
   /* La porte elle-même : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px. */
   /* LA PORTE RESTE À PORTÉE, ET ELLE NE DEVIENT PAS UNE ZONE FIXE (signalé à l'usage : « le
@@ -3500,7 +3748,7 @@
   
   .ed-door:hover{background:var(--primary-hi)}
   .edd-p{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;
-    background:var(--on-primary);color:var(--primary-dk);font-size:15.5px;font-weight:800}
+    background:var(--on-primary);color:var(--primary-dk);font-size:15px;font-weight:800}
   .edd-l{flex:none;font-weight:800;color:var(--on-primary)}
   .edd-c{flex:1;min-width:0;font-size:12px;font-weight:500;color:var(--on-primary);opacity:.88;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
@@ -3513,7 +3761,7 @@
   .ep-g{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 0}
   .ed-palette>.ep-g:first-child{margin-top:0}
   /* Vignette de galerie : légende, puis le bloc auquel l'image est associée. */
-  .gthumb .gcap{width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+  .gthumb .gcap{width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
   .gthumb .gblk{width:100%;margin-top:4px}
   .gthumb .btn.sm.danger{width:100%;margin-top:4px}
   /* PENDANT UN DÉPLACEMENT, ELLE REDESCEND DANS LE FLUX : collée, elle masquerait les interstices
@@ -3533,7 +3781,7 @@
     background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--radius-md);padding:8px 56px 10px 12px;margin:0 0 12px}
   .ed-grab .eg-l{order:1;min-width:0;font-size:13.5px;color:var(--primary-dk);overflow-wrap:break-word}
   .ed-grab .eg-h{order:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);opacity:.85}
-  .ed-grab .eg-x{position:absolute;top:2px;right:2px;min-width:44px;min-height:44px;border:0;background:none;color:var(--primary-dk);font-size:16.5px;border-radius:8px;cursor:pointer}
+  .ed-grab .eg-x{position:absolute;top:2px;right:2px;min-width:44px;min-height:44px;border:0;background:none;color:var(--primary-dk);font-size:15px;border-radius:8px;cursor:pointer}
   .ed-grab .eg-x:hover{background:var(--surface)}
   /* L'OBJET PRIS, MARQUÉ SUR PLACE : anneau primaire + pastille « ⠿ en déplacement » en tête, la
      COULEUR N'EST DONC JAMAIS SEULE (règle 8). Il reste PLEINEMENT LISIBLE — on ne l'estompe pas :
@@ -3636,7 +3884,7 @@
      texte, qui reste au pixel. Le bas de rangée compense en plus l'écart de 2 px (-6+2=-4) pour
      que les rangées suivantes ne bougent pas non plus. L'ombre teintée est l'ANNEAU de focus
      (WCAG 2.4.7 — la sonde d'audit ne compte qu'outline/box-shadow, un bord seul ne suffit pas). */
-  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--primary);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:var(--shadow-primary-sm)}
+  .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--act);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:0 0 0 3px var(--primary-100)}
   .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
   /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
@@ -3704,9 +3952,9 @@
      appliquée à l'échelon du bloc. Elle rejoint donc l'anatomie déjà retenue pour l'étape :
      poignée à DROITE de la ligne qu'elle déplace, visible au repos, en encre douce. */
   .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-  .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15.5px}
+  .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15px}
   .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
-  .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:6px}
+  .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:8px}
   .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
   /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
      registre d'attente — l'ambre du `.decision` y était emprunté. Pilule neutre mono. */
@@ -3730,8 +3978,8 @@
   .tm-mini.due{border-color:var(--verify-bd)}
   .tm-mini.due :is(.tmm-t,.tmm-l){color:var(--verify-hi)}
   .tmm-l{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tmm-t{font-family:var(--mono);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
-  .tmm-b{position:relative;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:6px;background:none;color:var(--ink-soft);font-size:15.5px;cursor:pointer;flex:none}
+  .tmm-t{font-family:var(--mono);font-size:17.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .tmm-b{position:relative;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:none;color:var(--ink-soft);font-size:15px;cursor:pointer;flex:none}
   .tmm-b::after{content:"";position:absolute;inset:-4px}
   .tmm-b:hover{background:var(--surface-2)}
   .tmm-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -3755,7 +4003,7 @@
   .btn.okay:hover{background:color-mix(in srgb,var(--ok) 88%,var(--ink));border-color:var(--ok)}
   /* Bouton CONTINUER (canvas section 6) : min 50px, 800 ; désactivé = contour + libellé qui dit
      POURQUOI (« Cochez les étapes restantes (2) ») ; actif = vert plein + destination annoncée. */
-  .btn.cont{flex:1 1 auto;width:100%;min-height:50px;font-weight:800;font-size:15.5px;letter-spacing:.3px;border-radius:8px;border:2px solid var(--ok);display:flex;align-items:center;justify-content:center;gap:6px}
+  .btn.cont{flex:1 1 auto;width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:8px;border:2px solid var(--ok);display:flex;align-items:center;justify-content:center;gap:6px}
   .btn.cont.idle{background:transparent;border:2px solid var(--line);color:var(--ink-soft);cursor:default}
   .btn.cont.idle:hover{background:transparent}
   /* §9 nav secondaire : [ Bloc précédent | Recommencer ] flex, sous le bloc courant. */
@@ -3769,7 +4017,7 @@
   /* Même correctif que ci-dessus : le jumeau du plein écran portait `opacity:.6`. */
   .flow-nav .tmr-hint{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
-  .flow-end{margin-top:16px;padding:14px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15.5px;font-weight:800;letter-spacing:1px}
+  .flow-end{margin-top:16px;padding:14px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
   /* Entrée du contenu à la bascule de mode (v4.21.0) : mêmes keyframes/durée/courbe que la
      bascule de section de l'accueil (secInL/R) — transform/opacity SEULEMENT (compositeur :
@@ -3845,8 +4093,7 @@
      gauche, boutons à droite), et quand les boutons passent à la ligne l'auto les garde à droite.
      La pilule, elle, reste à sa place : c'est un état, il ne se déplace pas. */
   .ov-acts{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start;padding:0 12px 10px}
-  .ov-acts>:not(.ov-here):first-child,.ov-acts .ov-here~:not(.ov-here){margin-left:auto}
-  .ov-acts .ov-here~:not(.ov-here)~:not(.ov-here){margin-left:0}   /* seul le PREMIER bouton pousse ; les suivants se collent à lui */
+  .ov-acts>:first-child{margin-left:auto}   /* seul le PREMIER bouton pousse ; les suivants se collent à lui */
   .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:8px;min-height:52px;padding:8px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
@@ -3862,11 +4109,16 @@
     background:var(--tag-bg);padding:1px 8px;border-radius:999px;white-space:nowrap;
     vertical-align:baseline}
 
-  .ov-here{display:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:1px 8px;border-radius:999px;white-space:nowrap;vertical-align:baseline}
-  .ov-block.cur .ov-here{display:inline-block}
+  /* ⚠ `.ov-here` EST PURGÉE (v5.6, A12 — règle 14). « VOUS ÊTES ICI » ne vit plus que dans une
+     LISTE : le rail Structure, l'excursion « ⤢ Tout voir », l'étiquette de retour du dock — là
+     où il sert à SE RETROUVER parmi d'autres. Sur la CARTE, il était redondant avec trois signaux
+     déjà présents (c'est le seul bloc OUVERT, il est en tête de journal, il porte la bordure
+     d'accent) ; il ne restait qu'une pilule bleue de plus dans un écran qui en compte assez.
+     Ce qui subsiste dans l'en-tête de carte est le COMPTE (« 2/5 »), qui, lui, dit quelque chose
+     que rien d'autre ne dit. */
   .ov-c{flex:none;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft)}
   .ov-block.done .ov-c{color:var(--ok)}
-  .ov-chev{flex:none;color:var(--link);font-size:15.5px;font-weight:800}
+  .ov-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
   .ov-redo{flex:none;align-self:center;margin:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -3983,7 +4235,7 @@
      le registre reste au point où l'on CHOISIT : les options `.opt` de la carte de décision. */
   .pl-brc span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--tag-ink);background:var(--tag-bg);border:1px solid var(--line);
-    border-radius:6px;padding:2px 8px}
+    border-radius:8px;padding:2px 8px}
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
@@ -4063,7 +4315,7 @@
   /* D8 (audit design v4.56) : inline-block = la pilule passe à la ligne EN BLOC ; break-word ne
      reste que pour le cas où elle excède seule la colonne (là, c'est le garde-fou télégraphique
      qui doit parler à la rédaction, pas la césure). */
-  .sv-r{display:inline-block;max-width:100%;font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:6px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .sv-r{display:inline-block;max-width:100%;font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:8px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
   /* Bande de décision : registre ATTENTION — titre en petites capitales + question en clair. */
   .sv-band{display:flex;align-items:baseline;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
   .sv-band .sv-n{color:var(--verify)}
@@ -4158,8 +4410,14 @@
   .sv-gut .lgh{fill:var(--line-strong)}
   /* ----- Challenge :: réponse (v4.11.0, AC 120-71B) : la pilule mono = RÉPONSE ATTENDUE ;
      cocher = readback (✓ + vert), porté par le CSS seul — le toggle chirurgical n'y touche pas. */
-  ol.steps li .stp-r{display:inline-block;margin-left:8px;font-family:var(--mono);font-size:13.5px;font-weight:600;color:var(--link);background:var(--primary-soft);border-radius:6px;padding:2px 8px;vertical-align:1px;line-height:1.45}
-  ol.steps li.done .stp-r{color:var(--ok);background:var(--done-bg)}
+  /* LA CADENCE EST UNE MONO AMBRE, PLUS UNE PILULE BLEUE (v5.6, A11). La réponse attendue d'un
+     challenge « :: » est le quatrième canal du marquage d'une étape critique — avec la case, le
+     glyphe et le corps — et l'ambre est SON registre (« c'est là qu'on se trompe »). En pilule
+     bleue, elle empruntait le registre de l'ACTION et ajoutait une masse de plus à une ligne qui
+     doit se lire d'un trait. Elle passe donc à la ligne, sans fond : c'est une CADENCE, pas un
+     bouton. Le bleu du dossier reste ce qu'il était — la position et l'action. */
+  ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--warn);text-transform:uppercase;line-height:1.35}
+  ol.steps li.done .stp-r{color:var(--ink-3);text-transform:none}
   ol.steps li.done .stp-r::before{content:"✓ "}
   .pl-r{font-family:var(--mono);font-size:11px;color:var(--link)}
   /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
@@ -4168,7 +4426,7 @@
   .vstp .vst{flex:none;width:20px;text-align:center;font-weight:700;color:var(--ink-soft)}
   .vstp .txt{flex:1;min-width:0;font-size:13.5px;font-weight:600;line-height:1.4}
   .vstp.vcur{opacity:1;border:2px solid var(--primary);padding:10px 10px}
-  .vstp.vcur .txt{font-size:16.5px;font-weight:800}
+  .vstp.vcur .txt{font-size:17.5px;font-weight:800}
   .vstp.ok2{opacity:.8;background:var(--done-bg);border-color:var(--done-line)}
   .vstp.ok2 .vst{color:var(--ok)}
   .vstp.vgap{opacity:1;background:var(--verify-soft);border-color:var(--verify)}
@@ -4181,7 +4439,7 @@
   .v-tally{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 2px;font-size:12px;font-weight:800}
   .v-tally .ok{color:var(--ok)}.v-tally .gap{color:var(--verify)}.v-tally .rest{color:var(--ink-soft);font-weight:700}
   .v-act{display:flex;gap:8px;margin-top:12px}
-  .v-act .v-ok{flex:2;min-height:52px;border:0;border-radius:8px;background:var(--ok);color:var(--surface);font-size:15.5px;font-weight:800;cursor:pointer;font-family:inherit}
+  .v-act .v-ok{flex:2;min-height:52px;border:0;border-radius:8px;background:var(--ok);color:var(--surface);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
   .v-act .v-gap{flex:1;min-height:52px;border:2px solid var(--verify-bd);border-radius:8px;background:var(--verify-soft);color:var(--verify);font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
   .v-act button:focus-visible,.ov-block [data-ovvx]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .v-end{margin-top:10px;border:1px solid var(--verify-bd);background:var(--verify-soft);border-radius:8px;padding:10px 12px;font-size:13.5px;color:var(--ink)}
@@ -4298,9 +4556,9 @@
   .set-row .set-l{flex:1 1 auto;font-size:13.5px;font-weight:650;color:var(--ink)}
   .set-row .statuseg,.set-row .accent-row{flex:none}
   .auth-card-in{display:flex;align-items:center;gap:12px;margin-bottom:4px}
-  .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;letter-spacing:.5px;flex:none}
+  .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;letter-spacing:.5px;flex:none}
   .auth-id{min-width:0}
-  .auth-email{font-size:15.5px;font-weight:650;color:var(--ink);word-break:break-all;line-height:1.3}
+  .auth-email{font-size:15px;font-weight:650;color:var(--ink);word-break:break-all;line-height:1.3}
   .auth-state{font-size:12px;color:var(--ok);display:flex;align-items:center;gap:6px;margin-top:2px}
   .auth-state .auth-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
   .auth-state.pending{color:var(--verify)}.auth-state.pending .auth-dot{background:var(--verify)}
@@ -4317,7 +4575,7 @@
   .acct-more>summary::-webkit-details-marker{display:none}
   .acct-more>summary::after{content:"▾";font-size:11px}
   .acct-more[open]>summary::after{content:"▴"}
-  .acct-more>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+  .acct-more>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:8px}
   .acct-more[open]{margin-bottom:4px}
   /* ÉTAT DE L'INSTANCE (admin) — rangées libellé / valeur, quatre groupes nommés (M5, v4.71.1).
      Têtes de groupe au filet-cheveu : elles séparent sans ajouter de cadre. La valeur est en
@@ -4358,11 +4616,11 @@
   /* Le message vide ne réserve plus ~60px sous le bouton (rythme inégal, audit v4.5). */
   .auth-msg:empty{display:none}
   .auth-hero-ic{width:56px;height:56px;border-radius:14px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
-  .auth-hero h4{margin:0 0 4px;font-size:16.5px;color:var(--ink)}
+  .auth-hero h4{margin:0 0 4px;font-size:17.5px;color:var(--ink)}
   .auth-hero .auth-sub{margin:0}
   .auth-label{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
   .auth-full{width:100%;justify-content:center;margin-top:8px}
-  .auth-code{text-align:center;letter-spacing:8px;font-size:20px;font-weight:700;padding-left:8px}
+  .auth-code{text-align:center;letter-spacing:8px;font-size:21px;font-weight:700;padding-left:8px}
   /* Suppression de compte : MÊME grammaire que « Supprimer la bibliothèque… » / « Supprimer
      cette fiche » — zone sensible .mem-danger + bouton .btn.outline-danger (contour rouge).
      (L'ancien lien discret .auth-danger a été retiré : un seul registre destructif.) */
@@ -4390,9 +4648,9 @@
   .btn:disabled{opacity:.4;cursor:not-allowed}.btn.danger:disabled:hover{background:var(--critical-soft)}
   /* Explication « où sont mes fiches ? » */
   .storage-gauge[role=button]:hover{text-decoration:underline}
-  .stg-card{border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:12px}
+  .stg-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
   .stg-local{background:var(--critical-soft)}.stg-cloud{background:var(--primary-soft)}
-  .stg-h{display:flex;align-items:center;gap:8px;font-size:15.5px}.stg-ic{font-size:20px}
+  .stg-h{display:flex;align-items:center;gap:8px;font-size:15px}.stg-ic{font-size:15px}
   .stg-card p{font-size:13.5px;line-height:1.55;margin:6px 0;color:var(--ink)}
   .stg-warn{color:var(--critical)}
   .stg-tip{font-size:12px;color:var(--ink-soft);background:rgba(0,0,0,.04);border-radius:8px;padding:8px 10px}
@@ -4428,7 +4686,7 @@
   .lightbox{position:fixed;inset:0;background:var(--scrim-full);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px}
   .lightbox.on{display:flex}.lightbox img{max-width:100%;max-height:calc(82vh / var(--zf,1));border-radius:8px}
   .lightbox .cap{color:var(--lb-cap);font-size:13.5px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:24px}
+  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
      de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
      Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
@@ -4462,7 +4720,7 @@
   /* C'EST LE TEXTE QU'ON DICTE À VOIX HAUTE, souvent en tendant le téléphone à bout de bras : il
      est le plus gros de la fenêtre, devant le titre. 34 px mesurés tenables jusqu'à 320 px avec le
      reste de la carte au-dessus de la ligne de flottaison. */
-  #shareModal .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:40px;font-weight:700;letter-spacing:5px;
+  #shareModal .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:5px;
     text-align:center;color:var(--ink);font-variant-numeric:tabular-nums;user-select:all}
   /* Le lien complet : sélectionnable d'un appui, coupé proprement s'il est long, jamais tronqué
      par une ellipse — on doit pouvoir le lire en entier pour le dicter. */
@@ -4480,7 +4738,7 @@
      bien en dessous (4,8 px par module à 197 px, relu par le décodeur d'Apple ; à 141 px on est
      encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm). */
   .sh-qr .qr{width:min(200px,52vw);height:auto}
-  @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:34px;letter-spacing:3px}}
+  @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:24px;letter-spacing:3px}}
   #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .sh-p{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--line)}
   .sh-p .n{flex:1;min-width:0;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -4530,7 +4788,7 @@
   /* MONO, TRÈS GRAND : on recopie un code lu sur l'écran d'un collègue, souvent debout, parfois de
      loin. Très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
   .join-code{width:100%;box-sizing:border-box;margin:0 0 14px;padding:12px 14px;font-family:var(--mono);
-    font-size:26px;font-weight:700;letter-spacing:.07em;text-align:center;text-transform:uppercase;color:var(--ink);
+    font-size:24px;font-weight:700;letter-spacing:.07em;text-align:center;text-transform:uppercase;color:var(--ink);
     font-variant-numeric:tabular-nums;background:var(--input-bg);border:1px solid var(--line-strong);border-radius:8px}
   @media (max-width:359.98px){.join-code{font-size:24px;letter-spacing:3px}}
   /* HAUTEUR EXPLICITE, et c'est un correctif iOS. Un `<select>` natif ne suit pas son `padding`
@@ -4550,7 +4808,7 @@
   #joinScreen .join-err{margin:0 0 12px;padding:8px 10px;font-size:13.5px;line-height:1.4;color:var(--critical);
     background:var(--critical-soft);border-left:4px solid var(--critical-bd);border-radius:0 8px 8px 0}
   #joinScreen .join-err[hidden]{display:none}
-  .join-go{width:100%;min-height:48px;font-size:16.5px}
+  .join-go{width:100%;min-height:48px;font-size:15px}
   .join-info{margin:16px 0 0;font-size:13.5px;color:var(--ink-soft)}
   .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700;color:var(--link)}
   .join-info p{margin:8px 0 0;line-height:1.5}
@@ -4585,7 +4843,7 @@
   :is(.plan-modal,.ref-modal){padding:0;background:var(--bg);overscroll-behavior:none}
   :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
   :is(.pm-bar,.rs-bar){position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
-  :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
@@ -4601,7 +4859,7 @@
      que le titre et le ✕ s'alignent sur les bords du contenu, pas sur ceux de l'écran. */
   .rs-body{display:flex;flex-direction:column;gap:10px;max-width:860px;margin:0 auto;width:100%}
   @media (min-width:924px){.rs-bar{padding-left:calc(50% - 430px);padding-right:calc(50% - 430px)}}
-  .rs-sec{background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .rs-sec{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
   .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:52px;padding:0 12px;
     font-size:13.5px;font-weight:800;color:var(--ink);cursor:pointer}
   .rs-sec>summary::-webkit-details-marker{display:none}
@@ -4618,13 +4876,13 @@
   .rs-sec .rs-in .block-h{display:none}
   /* Rangée d'accès en fin d'action : contour (jamais rempli — le rempli est « Continuer »). */
   .annex-row{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:10px 0 0;padding:10px 12px;
-    background:var(--surface);border:1px solid var(--line);border-radius:11px;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
     font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}
   .annex-row:hover{border-color:var(--primary);background:var(--primary-soft)}
   .annex-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .annex-row .ax-lead{flex:none;display:inline-flex;align-items:center;gap:6px;color:var(--primary-dk)}
   .annex-row .ax-sub{flex:1;min-width:0;font-weight:500;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .annex-row .ax-ch{flex:none;color:var(--ink-soft);font-size:16.5px}
+  .annex-row .ax-ch{flex:none;color:var(--ink-soft);font-size:15px}
   @media (max-width:429.98px){.annex-row .ax-sub{display:none}}
   .rs-flash{animation:rsFlash 1.1s ease}
   @keyframes rsFlash{0%,100%{box-shadow:none}18%{box-shadow:0 0 0 3px var(--primary-200)}}
@@ -4638,8 +4896,8 @@
      écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
   .ai-modal.dlg-confirm{align-items:center}
   .dlg-confirm .ai-card{max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
-  .dlg-confirm h3{font-size:16.5px;font-weight:800}
-  .dlg-confirm .ai-x{font-size:16.5px;color:var(--ink-soft)}
+  .dlg-confirm h3{font-size:17.5px;font-weight:800}
+  .dlg-confirm .ai-x{font-size:15px;color:var(--ink-soft)}
   /* v4.3.1 : les confirmations DESTRUCTRICES (#confirmModal, opts.danger — supprimer une fiche,
      un protocole, la bibliothèque…) reprennent le registre du dialogue « Terminer la session »
      (SPEC crise §3) : rouge système PLEIN (--critical-bd) + texte blanc, au lieu du contour rouge.
@@ -4664,9 +4922,9 @@
   #catModal .ai-card{display:flex;flex-direction:column;max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
   #catModal #catMgrBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
   .ai-card .ai-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
-  .ai-card h3{margin:0;font-size:18px;font-weight:680;flex:1}
+  .ai-card h3{margin:0;font-size:17.5px;font-weight:680;flex:1}
   /* Fermeture des fenêtres : cible 44x44 (marges négatives -> l'en-tête de la carte ne grossit pas). */
-  .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;margin:-10px -10px -10px 0;flex:none}
+  .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;margin:-10px -10px -10px 0;flex:none}
   .ai-card .ai-x:hover{background:var(--surface-2);color:var(--ink)}
   .ai-card p{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   .ai-card ol{font-size:13.5px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
@@ -4683,13 +4941,13 @@
   .report-preview .foot{margin-top:20px;font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:8px}
   /* F6 — l'aperçu dans l'app porte la MÊME tête de bilan que le document imprimé, aux tokens du
      thème (le document autonome, lui, embarque ses valeurs en dur : il vit hors de l'app). */
-  .report-preview .bilan{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:12px 0 4px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px}
+  .report-preview .bilan{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:12px 0 4px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px}
   .report-preview .bilan-dur{display:flex;flex-direction:column;gap:2px}
-  .report-preview .bd-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:34px;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--ink)}
+  .report-preview .bd-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--ink)}
   .report-preview .bd-k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .report-preview .kpis{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
   .report-preview .kpi{min-width:74px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;text-align:center}
-  .report-preview .kpi-v{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;line-height:1.1;color:var(--ink)}
+  .report-preview .kpi-v{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:21px;font-weight:700;line-height:1.1;color:var(--ink)}
   .report-preview .kpi-k{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
   .ai-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
   .ai-note{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.45}
@@ -4709,25 +4967,25 @@
      dialogue ; zones de dépôt en pointillés. */
   /* Gabarit « dialogue 480 » du canvas : fenêtre min(480px,100%), titre 17/800, ✕ discret. */
   .ai-card.dlg-480{max-width:480px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
-  .dlg-480 h3{font-size:16.5px;font-weight:800}
-  .dlg-480 .ai-x{font-size:16.5px;color:var(--ink-soft)}
+  .dlg-480 h3{font-size:17.5px;font-weight:800}
+  .dlg-480 .ai-x{font-size:15px;color:var(--ink-soft)}
   .crt-list{display:grid;gap:10px;grid-auto-rows:1fr;margin-bottom:4px}   /* rangées égales : toutes les cartes = la plus haute */
   /* min-height 82px = hauteur naturelle des cartes du dialogue AIDE (description IA sur 2
      lignes) : le dialogue PROTOCOLE, aux descriptions plus courtes, rend les MÊMES hauteurs. */
-  .crt-card{display:flex;align-items:center;gap:12px;width:100%;height:100%;min-height:82px;padding:14px;background:var(--surface);border:1.5px solid var(--line-hover);border-radius:11px;font-family:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+  .crt-card{display:flex;align-items:center;gap:12px;width:100%;height:100%;min-height:82px;padding:14px;background:var(--surface);border:1.5px solid var(--line-hover);border-radius:12px;font-family:inherit;text-align:left;cursor:pointer;color:var(--ink)}
   .crt-card:hover{border-color:var(--primary)}
   .crt-card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Icônes des cartes : SVG uiIcon 26px UNIFORMES (les anciens glyphes texte ✎ ✦ ⤓ ↺ rendaient
      à des tailles inégales selon la police) ; colonne fixe 34px, centrée. */
   .crt-ic{flex:none;display:flex;align-items:center;justify-content:center;width:34px;color:var(--ink)}
   .crt-ic svg.tic{vertical-align:0}
-  .crt-t{font-size:15.5px;font-weight:700}
+  .crt-t{font-size:15px;font-weight:700}
   .crt-d{font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.35}
   /* --ink-soft et non --line-strong : ce dernier vise 3:1 (BORDURES) et tombe à 4,32:1 en couleur
      de TEXTE — mesuré par le harnais une fois le dialogue Créer entré dans son périmètre. */
-  .crt-chev{margin-left:auto;color:var(--ink-soft);font-weight:700;font-size:16.5px;flex:none}
+  .crt-chev{margin-left:auto;color:var(--ink-soft);font-weight:700;font-size:15px;flex:none}
   .crt-back{display:inline-flex;align-items:center;gap:2px;border:0;background:none;padding:0;min-height:40px;margin-bottom:2px;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--primary-dk);cursor:pointer}
-  .crt-back:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+  .crt-back:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:8px}
   .crt-step{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px}
   .crt-prompt{font-family:var(--mono);font-size:11px;line-height:1.55;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;max-height:180px;overflow-y:auto;white-space:pre-wrap;color:var(--ink)}
   [data-theme="dark"] .crt-prompt{background:var(--input-bg)}
@@ -4742,11 +5000,11 @@
      La seconde n'est pas décorative — c'est ce qui rend un refus compréhensible AVANT qu'il
      arrive, et elle vient de la même ligne de table que la signature vérifiée. */
   .up-drop{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin-top:4px;
-    padding:10px 14px;border:1.5px dashed var(--line-strong);border-radius:11px;background:none;
+    padding:10px 14px;border:1.5px dashed var(--line-strong);border-radius:12px;background:none;
     color:var(--primary-dk);font-family:inherit;text-align:left;cursor:pointer}
   .up-drop.mt{margin-top:10px}
   .up-drop.pad-lg{min-height:96px;padding:20px;justify-content:center;text-align:center}
-  .up-ic{flex:none;font-size:18px;line-height:1}
+  .up-ic{flex:none;font-size:15px;line-height:1}
   .up-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
   .up-t{font-size:13.5px;font-weight:700}
   .up-d{font-size:11px;font-weight:600;color:var(--ink-soft)}
@@ -4762,9 +5020,9 @@
   .up-drag-card{max-width:420px;padding:24px;border:2px dashed var(--primary);border-radius:14px;
     background:var(--surface);box-shadow:var(--shadow-lg);text-align:center}
   .up-drag.none .up-drag-card{border-color:var(--line-strong)}
-  .up-drag-ic{display:block;font-size:34px;line-height:1;color:var(--primary)}
+  .up-drag-ic{display:block;font-size:15px;line-height:1;color:var(--primary)}
   .up-drag.none .up-drag-ic{color:var(--ink-soft)}
-  .up-drag-t{margin:12px 0 0;font-size:16.5px;font-weight:800;color:var(--ink)}
+  .up-drag-t{margin:12px 0 0;font-size:17.5px;font-weight:800;color:var(--ink)}
   .up-drag-d{margin:6px 0 0;font-size:12px;font-weight:600;color:var(--ink-soft)}
   .crt-note{font-size:11px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0}
   /* SPEC §6 : en dessous de 780px, les DIALOGUES passent en PLEIN ÉCRAN (100 %, sans arrondi ni
@@ -4860,9 +5118,9 @@
   .seg{position:relative;display:flex;gap:8px}
   /* Fond de pastille = teinte de SÉLECTION, jamais --surface : elle s'INVERSE d'un thème à
      l'autre et la pastille se lirait inactive (v4.25.1). */
-  .seg-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:18px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
+  .seg-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:10px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
   .seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
-  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:18px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
+  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:10px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
   .seg-btn.on{color:var(--primary-dk)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* TAILLE DU TEXTE — le sélecteur segmenté de l'app, à quatre paliers (maquette M5, demande
@@ -4874,8 +5132,8 @@
   #zoomSeg .seg-pill{width:calc((100% - (var(--seg-n,4) - 1) * 8px) / var(--seg-n,4));
     transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-btn{gap:0;font-weight:800}
-  #zoomSeg .ts-90{font-size:12px}#zoomSeg .ts-100{font-size:14px}
-  #zoomSeg .ts-115{font-size:16.5px}#zoomSeg .ts-130{font-size:18px}
+  #zoomSeg .ts-90{font-size:12px}#zoomSeg .ts-100{font-size:13.5px}
+  #zoomSeg .ts-115{font-size:15px}#zoomSeg .ts-130{font-size:17.5px}
   #createSeg{margin:2px 0 16px}                  /* skin dialogue Créer : respiration */
   /* La tab bar recouvre le bas de page : l'accueil réserve la place (pied de page accessible). */
   /* Plus de barre fixe en bas de l'accueil (M4) : la hauteur qu'elle réservait est rendue. */
@@ -4884,7 +5142,7 @@
   .home-main{min-width:0}
   /* Titre de liste : rendu en large, ET en étroit quand une bibliothèque partagée est ouverte
      (v4.3.2 — il porte alors « Nom — partagée · rôle — n éléments », ex-bandeau scope-ctx). */
-  .list-title{font-size:15.5px;font-weight:700;margin:0 0 12px}
+  .list-title{font-size:15px;font-weight:700;margin:0 0 12px}
   .list-title span{font-weight:500;color:var(--ink-soft)}
   .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
   .home-side>.hs-h:first-child{margin-top:0}
@@ -5092,7 +5350,7 @@
        défilement est invisible au repos (macOS/iOS) — sans ce compte, une zone tronquée paraît
        complète, ce que l'ECAM interdit (il signale toujours le débordement). */
     .rail-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
-      background:var(--tag-bg);border-radius:6px;padding:1px 6px}
+      background:var(--tag-bg);border-radius:8px;padding:1px 6px}
     /* ÉCHELLE DÉSATURÉE : mêmes lignes que le Plan, mais l'état n'est plus porté que par le
        MARQUEUR (✓ vert = fait, ● bleu = ici, ⑂ ambre = décision). On retire les APLATS et les
        liserés colorés : le rail oriente, il ne doit pas rivaliser de saillance avec l'action.
@@ -5213,7 +5471,7 @@
   main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
   @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
-  .md-body{line-height:1.55;font-size:15.5px}
+  .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
      section des fiches (.block-h : petites capitales grasses, espacées) -> UNE seule grammaire
      de titres dans toute l'app (audit v4.0.3). Sans pip ni badge (contenu libre, pas de
@@ -5237,7 +5495,7 @@
      par bindProtoTasks — dans les aperçus la case est un simple dessin. Rangée entière cliquable
      (min-height 32px = cible tactile), coche SVG toujours présente, révélée par .done. */
   li.md-task{list-style:none;display:flex;align-items:flex-start;gap:10px;min-height:32px;padding:4px 8px;margin:2px 0 2px -32px;border-radius:8px}
-  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:6px;display:grid;place-items:center;background:transparent;color:var(--surface)}
+  .md-tkbox{flex:none;width:20px;height:20px;margin-top:1px;border:2px solid var(--line-strong);border-radius:8px;display:grid;place-items:center;background:transparent;color:var(--surface)}
   /* Case centrée sur la PREMIÈRE ligne de texte quelle que soit la taille de police du contexte
      (lecture 15px, aperçus compacts 12.5px, préférence S/M/L/XL) : 1lh = l'interligne hérité,
      identique à celui du texte voisin. Repli (navigateurs sans lh) = le margin-top:1px ci-dessus,
@@ -5271,7 +5529,7 @@
   /* ==surligné== : ACHROMATIQUE (registre MEMO) — faire ressortir un mot sans emprunter une
      couleur qui, dans cette app, veut dire « ça tue » (rouge) ou « on s'y trompe » (ambre). */
   .md-mk{background:var(--tag-bg);color:var(--tag-ink);padding:0 2px;border-radius:3px}
-  .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:6px;padding:1px 4px}
+  .md-ci{font-family:var(--mono);font-size:.92em;background:var(--surface-3);border-radius:8px;padding:1px 4px}
   .md-code{margin:0 0 10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);overflow-x:auto}
   .md-code code{font-family:var(--mono);font-size:12px;line-height:1.5;white-space:pre}
   .md-hr{border:0;border-top:1px solid var(--line);margin:14px 0}
@@ -5398,7 +5656,7 @@
   .att-size{flex:none;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
   /* Miniature de la 1re page (v4.4.4) : cadre au format « page » ; tant que la vignette n'est pas
      générée (ou sans binaire local), il porte l'icône document générique. */
-  .att-thumb{flex:none;width:40px;height:52px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--primary);overflow:hidden}
+  .att-thumb{flex:none;width:40px;height:52px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--primary);overflow:hidden}
   .att-timg{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
   /* Badge « binaire pas encore sur cet appareil » (v4.4.6) : registre ATTENTION, glyphe + texte. */
   .att-cloud{flex:none;font-size:11px;font-weight:700;color:var(--verify);white-space:nowrap}
@@ -5412,9 +5670,9 @@
   .pdf-modal{padding:0}
   .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg);position:relative}   /* repère de la pilule .pdf-fnav */
   .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
-  .pdf-title{flex:1;min-width:0;font-size:15.5px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .pdf-title{flex:1;min-width:0;font-size:15px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
   .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
-  .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:24px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex:none}
+  .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex:none}
   .pdf-bar .ai-x:hover{background:var(--surface-2);color:var(--ink)}
   .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
@@ -5427,12 +5685,12 @@
   @media (max-width:560px){.pdf-title{font-size:13.5px}.pdf-bar{flex-wrap:wrap;row-gap:2px}.pdf-tools{flex-basis:100%;order:3}}
   .cm-row{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surface)}
   .cm-top{display:flex;gap:8px;align-items:center}
-  .cm-dot{width:18px;height:18px;border-radius:6px;flex-shrink:0}
+  .cm-dot{width:18px;height:18px;border-radius:8px;flex-shrink:0}
   .cm-name{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
   .cm-count{font-size:11px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
-  .cm-sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.cm-sw .sw{width:32px;height:32px;border-radius:6px;cursor:pointer;border:2px solid transparent}
+  .cm-sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.cm-sw .sw{width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid transparent}
   .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.12)}
-  .cm-del{flex-shrink:0;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16.5px;cursor:pointer}
+  .cm-del{flex-shrink:0;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;cursor:pointer}
   .cm-del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
   .cm-confirm{margin-top:10px;padding:10px;border:1px solid var(--critical-bd);background:var(--critical-soft);border-radius:8px}
   .cm-confirm p{font-size:12px;color:var(--ink);margin:0 0 8px;line-height:1.45}
@@ -5566,7 +5824,7 @@
      librement, le padding/marges compensés de .chiprow ne servent plus. */
   @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
   /* (Répertoire d'accueil : grille unique auto-fill/minmax(290px,1fr) — cf. .dir-grid plus haut.) */
-  @media (max-width:560px){.read-head h2{font-size:20px}.row2{flex-direction:column;gap:0}.question{font-size:18px}}
+  @media (max-width:560px){.read-head h2{font-size:21px}.row2{flex-direction:column;gap:0}.question{font-size:21px}}
   /* ===== Micro-animations (v4.3.2) =====
      Vocabulaire UNIQUE, aligné HIG/M3 : entrées 150-250 ms en décélération (--ease-out),
      survols/appuis 120-150 ms. opacity/transform SEULEMENT (compositeur : rien ne bloque,
@@ -5655,7 +5913,7 @@
     .read-side{display:none!important}
     /* 3. Une seule colonne, largeur du papier — plus de grille dépendante de la largeur. */
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
-    .read-head h2{font-size:20px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
+    .read-head h2{font-size:21px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
   @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */

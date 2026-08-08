@@ -598,7 +598,13 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
      incident de cascade du projet et le PREMIER par spécificité — les six précédents tenaient à
      l'ordre. Une valeur écrite dans la feuille ne prouve rien : on mesure ce que le navigateur
      calcule. */
-  t(`${w}×${h} · et il est RÉELLEMENT grand à l'écran`, r.codePx >= 30,
+  /* SEUIL 30 -> 21 px (v5.6). L'échelle typographique s'est FERMÉE (A6) : la bande d'affichage
+     20/24/26/34/40 n'existe plus, et le code d'appariement — qui était à 34/40 px — descend au
+     cran haut des valeurs mono. Ce qu'il faut vérifier reste le MOTIF de la règle (« il se lit
+     à bout de bras, à travers une pièce ») : 24 px en mono 700 avec un interlettrage de 3 px le
+     tient, et le QR juste au-dessus reste le chemin nominal. On abaisse le seuil au CRAN, pas à
+     la valeur mesurée : un code qui redescendrait à 21 px échouerait encore. */
+  t(`${w}×${h} · et il est RÉELLEMENT grand à l'écran`, r.codePx >= 22,
     `${r.codePx} px calculés`);
   /* LE QR PORTE LE LIEN, PAS SEULEMENT LE CODE : scanné, il ouvre l'application AVEC le code
      déjà rempli — c'est tout l'intérêt. Et le lien est écrit en clair pour qu'on puisse le dicter
@@ -1664,7 +1670,9 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
     const tag = () => (band.querySelector('.cb-tag') || {}).textContent || '';
     const hach = el => getComputedStyle(el, '::before').opacity;
     o.hoteTag = tag(); o.hoteHachure = hach(band);
-    o.hoteEnTete = (document.getElementById('hdrCrisis') || {}).textContent || '';
+    /* v5.6 (A14) : l'énoncé du mode a quitté la pilule de droite pour le SUR-TITRE, dans la
+       zone d'identité — un seul énoncé, du côté où l'œil arrive. */
+    o.hoteEnTete = (document.getElementById('brandSur') || {}).textContent || '';
 
     // On passe en INVITÉ par le vrai chemin d'affichage : le placard suit un rendu.
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
@@ -1683,7 +1691,7 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
      o.inviteCouleur = getComputedStyle(el).color;
      o.inviteCouleurAttendue = getComputedStyle(bidon).color;
      bidon.remove();}
-    o.inviteEnTete = (document.getElementById('hdrCrisis') || {}).textContent || '';
+    o.inviteEnTete = (document.getElementById('brandSur') || {}).textContent || '';
     o.hauteurBandeau = Math.round(band.getBoundingClientRect().height);
 
     /* L'EXERCICE GARDE LA PRIORITÉ : « ceci est une répétition » prime sur « vous suivez ». Le
@@ -1712,13 +1720,13 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
      exception (étiquette vide, pas de hachure) et le mode est dit UNE fois, par la barre. */
   t('témoin : l’hôte n’annonce aucune exception (bandeau nu, sans hachure)',
     r.hoteTag === '' && r.hoteHachure === '0', `«${r.hoteTag}» / ${r.hoteHachure}`);
-  t('… et le mode est dit UNE fois, par la barre', /Crise/.test(r.hoteEnTete)
+  t('… et le mode est dit UNE fois, par le sur-titre', /Mode crise/.test(r.hoteEnTete)
     && !/Mode crise/i.test(r.hoteTag), `${r.hoteEnTete} / «${r.hoteTag}»`);
   t('l’invité lit « Vous suivez »', /Vous suivez/.test(r.inviteTag), r.inviteTag);
   t('… et son étiquette est BLEUE, pas rouge', r.inviteCouleur===r.inviteCouleurAttendue,
     `${r.inviteCouleur} au lieu de ${r.inviteCouleurAttendue}`);
   t('… le bandeau est hachuré', r.inviteHachure === '1', r.inviteHachure);
-  t('… et l’en-tête le relaie', /Suivi/.test(r.inviteEnTete), r.inviteEnTete);
+  t('… et le sur-titre le dit aussi', /Vous suivez/.test(r.inviteEnTete), r.inviteEnTete);
   t('… à COÛT NUL en hauteur', r.hauteurInvite === r.hauteurBandeau,
     `${r.hauteurBandeau} → ${r.hauteurInvite} px`);
   t('l’exercice garde la priorité sur le placard d’invité', /Exercice/.test(r.exoGagne), r.exoGagne);

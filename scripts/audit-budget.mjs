@@ -63,11 +63,13 @@ for (const fmt of FORMATS) {
        démarrage : c'est la seule chose que quelqu'un les mains prises va voir. */
     const H = innerHeight;
     const hOf = s => { const e = document.querySelector(s); if (!e) return 0; const q = e.getBoundingClientRect(); return q.height; };
-    const chrome = hOf('header.bar') + hOf('#crisisCtrl') + hOf('#cbTimers');
+    /* v5.6 : la rangée de COMMANDES a quitté le haut de l'écran (elle est devenue le dock bas) ;
+       le chrome haut n'est plus que l'en-tête et la capsule d'état. */
+    const chrome = hOf('header.bar') + hOf('#crisisDock');
 
     /* Une étape « visible » est une étape ENTIÈREMENT dans le viewport et sous le chrome
        collant — une ligne à moitié cachée derrière le quai n'est pas cochable de confiance. */
-    const bas = (() => { let m = 0; for (const s of ['header.bar', '#crisisCtrl', '#cbTimers']) { const e = document.querySelector(s); if (!e) continue; const q = e.getBoundingClientRect(); if (q.height && q.bottom > m) m = q.bottom; } return m; })();
+    const bas = (() => { let m = 0; for (const s of ['header.bar', '#crisisDock']) { const e = document.querySelector(s); if (!e) continue; const q = e.getBoundingClientRect(); if (q.height && q.bottom > m) m = q.bottom; } return m; })();
     const etapes = [...document.querySelectorAll('.ov-wrap ol.steps li[data-ck], .nav-wrap ol.steps li[data-ck], ol.steps li[data-ck]')];
     const visibles = etapes.filter(e => { const q = e.getBoundingClientRect(); return q.top >= bas - 1 && q.bottom <= H + 1; });
 
@@ -79,7 +81,7 @@ for (const fmt of FORMATS) {
     if (carte) {
       cardH = carte.getBoundingClientRect().height;
       nItems = carte.querySelectorAll('ol.steps li[data-ck]').length;
-      const sel = '[data-ovnext],[data-ovopt],[data-cxback],.ov-actions,.cx-btn,.tk-add,.ov-row';
+      const sel = '[data-ovnext],[data-ovopt],[data-cxback],.ov-actions,.cx-row .blk-act,.tk-add,.ov-row';
       const vus = new Set(); let acc = 0;
       carte.querySelectorAll(sel).forEach(e => {
         if ([...vus].some(v => v.contains(e))) return;   // ne pas compter un bouton ET sa rangée

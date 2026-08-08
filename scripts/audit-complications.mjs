@@ -20,23 +20,34 @@ await ouvrirFiche(p,/Arr.t cardiaque/);
 await demarrerSession(p);
 console.log('=== déclencheur constant + index ===');
 const d1=await p.evaluate(async()=>{
- const btns=[...document.querySelectorAll('.ov-block.cur .cx-btn')];
+ /* v5.6 : le déclencheur ⚡︎ est une TOUCHE DU DOCK, à position constante, et l'index est le
+    VOLET qu'elle ouvre. La doctrine mesurée est inchangée — UN objet à index plutôt qu'un bouton
+    par urgence, des rangées qui annoncent la destination, aucune fenêtre qui couvre. */
+ const btns=[...document.querySelectorAll('#sessionDock #cxKey')].filter(b=>!b.hidden);
  const lbl=btns.map(b=>b.textContent.replace(/\s+/g,' ').trim());
  btns[0].click();await new Promise(r=>setTimeout(r,350));
- const rows=[...document.querySelectorAll('.cx-list .cx-item')].map(x=>x.textContent.replace(/\s+/g,' ').trim());
- const on=!!document.querySelector('.cx-list');
+ const rows=[...document.querySelectorAll('#dockSheet .ds-row')].map(x=>x.textContent.replace(/\s+/g,' ').trim());
+ const on=!document.getElementById('dockSheet').hidden;
  const couvre=[...document.querySelectorAll('.ai-modal.on')].length;
- /* ⚠ ON RE-INTERROGE LE DOM : le dépliant re-rend le journal, donc le bouton d'avant est un
-    nœud DÉTACHÉ — le cliquer ne fait rien et le témoin mesure l'état inchangé. */
- document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- return {nb:btns.length,lbl,rows,on,couvre,ferme:!document.querySelector('.cx-list')};});
-t('UN SEUL bouton, mot constant + compte', d1.nb===1&&/⚡ Complications 2/.test(d1.lbl[0]), JSON.stringify(d1.lbl));
-t('l’index liste les 2 événements en grandes rangées', d1.on&&d1.rows.length===2, JSON.stringify(d1.rows));
-/* ⚠ L'INDEX EST UN DÉPLIANT, PAS UNE FENÊTRE (v5.0.0, audit design) : mesurée, la fenêtre couvrait
-   38 % de l'écran à 320 px pendant un soin. Un dépliant est aussi un index unique — la doctrine QRH
-   porte sur l'objet, pas sur la modalité. */
-t('… et il ne COUVRE rien (dépliant, pas fenêtre)', d1.couvre===0, `${d1.couvre} fenêtre(s) ouverte(s)`);
-t('la cible externe annonce ce qu’elle ouvre (↗)', /ouvre :/.test(d1.rows[1])&&/↗/.test(d1.rows[1]), d1.rows[1]);
+ /* ⚠ ON RE-INTERROGE LE DOM : le volet peut avoir re-rendu le journal — le bouton d'avant serait
+    un nœud DÉTACHÉ, le cliquer ne ferait rien et le témoin mesurerait l'état inchangé. */
+ document.querySelector('#cxKey').click();await new Promise(r=>setTimeout(r,300));
+ return {nb:btns.length,lbl,rows,on,couvre,ferme:document.getElementById('dockSheet').hidden};});
+t('UN SEUL bouton, mot constant + compte',
+  d1.nb===1&&/Complications\s*·\s*2/.test(d1.lbl[0]), JSON.stringify(d1.lbl));
+t('l’index liste les 2 événements en grandes rangées',
+  d1.rows.length===2&&/Laryngospasme/.test(d1.rows[0])&&/Anaphylaxie/.test(d1.rows[1]), JSON.stringify(d1.rows));
+/* ⚠ L'INDEX EST UN VOLET, PAS UNE FENÊTRE (v5.0.0, audit design ; v5.6 : il monte du dock) :
+   mesurée, la fenêtre couvrait 38 % de l'écran à 320 px pendant un soin. Un volet est aussi un
+   index unique — la doctrine QRH porte sur l'objet, pas sur la modalité. */
+t('… et il ne COUVRE rien (volet, pas fenêtre)', d1.couvre===0, `${d1.couvre} fenêtre(s) ouverte(s)`);
+t('… re-taper la touche le referme (V1)', d1.ferme===true, JSON.stringify({ferme:d1.ferme}));
+/* BIFURCATION ANNONCÉE : chaque rangée dit sa DESTINATION avant le tap — « → bloc n · retour ↩ »
+   pour une cible interne, « ↗ » pour une aide externe. On sait où l'on va, et qu'on reviendra. */
+t('la cible externe annonce ce qu’elle ouvre (↗)',
+  /↗/.test(d1.rows[1])&&/ouvre une autre aide/.test(d1.rows[1]), JSON.stringify(d1.rows[1]));
+t('la cible interne annonce sa destination ET son retour',
+  /→/.test(d1.rows[0])&&/retour/.test(d1.rows[0]), JSON.stringify(d1.rows[0]));
 t('re-presser le déclencheur referme l’index', d1.ferme);
 const dm=await p.evaluate(()=>{document.getElementById('hdrMore').click();
  const rows=[...document.querySelectorAll('#moreMenu .mm-row')].map(x=>x.textContent.replace(/\s+/g,' ').trim());
@@ -44,8 +55,8 @@ const dm=await p.evaluate(()=>{document.getElementById('hdrMore').click();
 t('menu ⋯ : UNE entrée constante « Complications (2) »', dm.length===1&&/\(2\)/.test(dm[0]), JSON.stringify(dm));
 console.log('=== entrée / excursion / retour ===');
 const d2=await p.evaluate(async()=>{
- {const b=document.querySelector('[data-cxopen]');if(b)b.click();}await new Promise(r=>setTimeout(r,300));
- [...document.querySelectorAll('.cx-list .cx-item')].find(x=>/Laryngo/.test(x.textContent)).click();
+ {const b=document.querySelector('#cxKey');if(b)b.click();}await new Promise(r=>setTimeout(r,300));
+ [...document.querySelectorAll('#dockSheet .ds-row')].find(x=>/Laryngo/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,450));
  const cur=document.querySelector('.ov-block.cur');
  return {bout:state.nav[state.nav.length-1],tag:!!cur.querySelector('.cx-tag'),
@@ -63,8 +74,8 @@ const d3=await p.evaluate(async()=>{const avant=state.nav.length;
 t('Reprendre = NOUVEAU passage, cases neuves (doctrine interruption)', d3.plus&&d3.neuves, JSON.stringify(d3));
 t('l’excursion reste tracée (cartes conservées)', d3.cartes);
 const d4=await p.evaluate(async()=>{const n0=state.nav.filter(x=>x==='cxL').length;
- document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- [...document.querySelectorAll('.cx-list .cx-item')].find(x=>/Laryngo/.test(x.textContent)).click();
+ document.querySelector('#cxKey').click();await new Promise(r=>setTimeout(r,300));
+ [...document.querySelectorAll('#dockSheet .ds-row')].find(x=>/Laryngo/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,400));
  return state.nav.filter(x=>x==='cxL').length>n0;});
 t('un événement qui SE REPRODUIT = nouveau passage', d4);
@@ -74,7 +85,11 @@ const d5=await p.evaluate(async()=>{
  document.querySelectorAll('.ov-block.cur ol.steps li:not(.done)').forEach(li=>li.click());await new Promise(r=>setTimeout(r,250));
  const nb=document.querySelector('.ov-block.cur [data-ovnext]');if(nb)nb.click();await new Promise(r=>setTimeout(r,450));
  const cur=document.querySelector('.ov-block.cur');
- return {dec:cur.classList.contains('dec'),btn:!!cur.querySelector('[data-cxopen]')};});
+ /* v5.6 : le déclencheur ⚡︎ a quitté la carte pour le DOCK — la propriété mesurée reste la
+    même (« il existe aussi quand le bloc courant est une décision »), seule son adresse change :
+    il est désormais à position CONSTANTE, ce qui la renforce plutôt qu'il ne l'affaiblit. */
+ const k=document.getElementById('cxKey');
+ return {dec:cur.classList.contains('dec'),btn:!!k&&!k.hidden};});
 t('le déclencheur vit AUSSI sur un bloc de décision courant', d5.dec&&d5.btn, JSON.stringify(d5));
 console.log('=== échelle / statique / externe / sans ===');
 /* ⚠ « À TOUT MOMENT » A QUITTÉ LA COLONNE D'ORIENTATION (v5.0.0, demande utilisateur : « c'est
@@ -126,14 +141,15 @@ t('… son cadre passe au registre ALERTE, les autres NON', !!(dsvg.cx&&dsvg.cx.
 t('… et aucun autre nœud n’emprunte le mot', dsvg.autresMots===0, ''+dsvg.autresMots);
 const d8=await p.evaluate(async()=>{
  document.getElementById('allBtn').click();await new Promise(r=>setTimeout(r,500));
- document.querySelector('[data-cxopen]').click();await new Promise(r=>setTimeout(r,300));
- [...document.querySelectorAll('.cx-list .cx-item')].find(x=>/Anaphyl/.test(x.textContent)).click();
+ document.querySelector('#cxKey').click();await new Promise(r=>setTimeout(r,300));
+ [...document.querySelectorAll('#dockSheet .ds-row')].find(x=>/Anaphyl/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,500));
  return {ouvert:state.fiche&&state.fiche.id===window.__autre};});
 t('cible EXTERNE : ouvre l’autre aide', d8.ouvert, JSON.stringify(d8));
 const d9=await p.evaluate(async()=>{const f2=fiches.find(x=>x.id===window.__autre);f2.excursions=[];
  render();await new Promise(r=>setTimeout(r,400));
- return {btn:document.querySelectorAll('.cx-btn').length,sec:document.querySelectorAll('.pl-sech.cx').length};});
+ const k=document.getElementById('cxKey');
+ return {btn:(k&&!k.hidden)?1:0,sec:document.querySelectorAll('.pl-sech.cx').length};});
 t('fiche SANS complications : zéro chrome ⚡', d9.btn===0&&d9.sec===0, JSON.stringify(d9));
 console.log('=== éditeur : sélecteur filtrable à deux groupes ===');
 const d10=await p.evaluate(async()=>{

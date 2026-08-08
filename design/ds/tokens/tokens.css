@@ -1,8 +1,111 @@
 /* Tokens extraits de index.html (source de vérité) — ne pas éditer ici. */
-:root{--serif:'Source Serif 4',Georgia,'Times New Roman',serif;--ink:#101b28;--ink-soft:#5b6570;--line:#d5dbe2;--line-strong:#75828e;--line-hover:#c3ccd6;--bg:#e9edf2;--surface:#fff;--surface-2:#eff2f6;--surface-3:#e8ecf1;--primary:#1f5fa6;--primary-dk:#17477f;--primary-hi:#17477f;--primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;--on-primary:#fff;--ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#eaf6ee;--critical:#a32e1f;--critical-soft:#fbe9e4;--critical-line:#ecc4bc;--verify:#7a5900;--verify-soft:#fbf3dc;--verify-line:#eddfb6;--verify-bd:#b7791f;--verify-hi:#b45309;--critical-bd:#c43d34;--done-bg:#eff5f0;--done-line:#bfd8c6;--tag-bg:#e8ecf1;--tag-ink:#3c464f;--link:#1f5fa6;--soft:#8a94a0;--alert:#f0a431;--alert-hi:#ffb454;--alert-strong:#c98a18;--alert-ink:#3a2a02;--rt-card:#1c2a3c;--rt-line:#2c3d52;--rt-ink:#e8eef7;--alarm:#d1543c;--input-bg:#fff;--radius:14px;--radius-md:11px;--radius-sm:8px;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgba(23,71,127,.05),0 4px 16px rgba(23,71,127,.08);--shadow-lg:0 2px 6px rgba(23,71,127,.07),0 12px 32px rgba(23,71,127,.12);--shadow-up:0 -2px 6px rgba(23,71,127,.08),0 -10px 28px rgba(23,71,127,.15);--shadow-primary:0 1px 2px rgba(23,71,127,.2),0 4px 12px rgba(23,71,127,.16);--shadow-primary-sm:0 1px 2px rgba(23,71,127,.25);--lb-cap:#cfe0dd;--lb-ink:#fff;--paper:#fff;--qr-ink:#101b28;--flow-cur:#1f5fa6;--pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);/* VOILES (scrim) et ÉLÉVATIONS À L'ENCRE — tokenisés en v4.37.0. Ces cinq valeurs étaient des COPIES DÉCIMALES de --ink (#101b28 = 16,27,40) : le garde-fou couleurs ne voyait que les hex, elles passaient donc au travers, et un changement de --ink les aurait laissées derrière. Valeurs reprises à l'identique. Pas d'override sombre : c'est l'état actuel, en ajouter un serait un changement visible. Depuis la direction A (audit v5.0.10), les ÉLÉVATIONS du thème clair (--shadow, -lg, -up, -dock, -bar) sont teintées PRIMAIRE (23,71,127) comme l'étaient déjà les boutons remplis ; les VOILES restent à l'encre — un voile est un assombrissement, pas une élévation, et le sombre garde ses ombres noires (sur #0a0a0c une teinte serait invisible). */--scrim-soft:rgba(16,27,40,.45);--scrim:rgba(16,27,40,.55);--scrim-full:rgba(16,27,40,.92);--shadow-dock:0 1px 3px rgba(23,71,127,.06);--shadow-bar:0 1px 6px rgba(23,71,127,.07);/* --sab : la MARGE BASSE DU MATÉRIEL (indicateur d'accueil iPhone), exposée au JS. `env()` ne se lit pas depuis un script ; posée dans une propriété personnalisée, elle devient lisible par `getComputedStyle`. Elle sert à `fitMoreMenu` — la hauteur visible d'iOS INCLUT cette bande, si bien qu'un menu calé sur elle finit SOUS l'indicateur d'accueil (v4.73.2, vu à l'usage : la dernière rangée du menu ⋯ y passait). Le CSS, lui, continue d'écrire `env(...)` en clair là où il en a besoin. */--sab:env(safe-area-inset-bottom,0px);}
+:root{
+  /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
+  --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
+  --sys:#1d232b;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
+  --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
+  --line:#e3e6ea;--line-strong:#c3ccd6;
+  /* --ctl-line : LA SEULE DÉVIATION ASSUMÉE À tokens.css, et elle est motivée. Le système pose
+     --line-strong:#c3ccd6, soit 1,6:1 sur blanc : parfait pour un filet de carte, INSUFFISANT
+     pour la bordure d'un composant, que WCAG 2.2 § 1.4.11 exige à 3:1. Or ce token habille aussi
+     les CASES À COCHER et les bordures de champs — c'est-à-dire l'objet qu'on vise avec des gants,
+     sous stress, au soleil. On garde donc la valeur du système partout où il s'agit de dessiner,
+     et un token à 3:1 là où il s'agit de VISER. Deux rôles, deux tokens : la règle 8 du dossier. */
+  --ctl-line:#8a94a0;
+  /* ─── 2. ENCRES (AA sur leurs fonds) ───────────────────────────────────────────────────── */
+  --ink:#14181d;--ink-2:#5b6472;--ink-3:#a3abb6;
+  /* ─── 3. SÉMANTIQUE DU DANGER — jamais seule, toujours mot + glyphe ─────────────────────
+     A11 : l'APLAT est réservé à ce qui exige une action MAINTENANT (alarme active) — une seule
+     masse colorée à l'écran. Une étape critique se MARQUE (case + ⚠ + corps + cadence), sans
+     cadre ni fond : mesuré à cinq étapes, l'aplat happe l'œil et détruit la lecture de la
+     séquence. UN seul ambre (--verify et --alert fusionnent en --warn) et UN seul rouge. */
+  --ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#e8f2ea;
+  --warn:#7a5900;--warn-line:#b45309;--warn-soft:#fbf3dc;
+  --warn-sys:#fbbf24;--warn-sys-bg:#3c2b06;
+  /* ✓/● sur matière SYSTÈME : --ok du thème clair (#1d7a38) ne tient que 2,8:1 sur --sys. La
+     capsule et le dock sont sombres dans les DEUX thèmes — cette valeur n'a donc pas d'override. */
+  --ok-sys:#4ade80;
+  /* Le ROUGE et l'ENCRE-SUR-APLAT de la matière système. Mêmes motifs que --warn-sys : la capsule
+     et le dock sont sombres dans les DEUX thèmes, leurs registres ont donc des valeurs propres et
+     FIXES — comme --lb-cap/--lb-ink pour la lightbox. --crit-sys tient 4,5:1 sur --sys (le --crit
+     du thème clair n'y atteint que 3,0) ; --on-sys-fill est l'encre d'un aplat CLAIR posé sur la
+     matière sombre (le retour d'excursion, vert rempli) — --on-primary y serait blanc sur vert. */
+  --crit-sys:#ff9d94;--on-sys-fill:#0d0f13;
+  --crit:#a32e1f;--crit-line:#c43d34;--crit-soft:#fbf0ee;
+  --act:#17477f;
+  /* ─── 4. TYPOGRAPHIE — le grand corps appartient à l'ACTE ───────────────────────────────
+     A6 : échelle FERMÉE, aucune valeur entre les crans. Seule dérogation, le multiplicateur
+     global --zf (réglage utilisateur), qui garde les crans solidaires. `npm run check` le vérifie.
+     Avant, l'étape qui sauve plafonnait à 15,5 px quand le chrono avait droit à 34 : l'enjeu
+     était inversé. */
+  --f-ui:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --f-title:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --t-cap:11px;--t-meta:12px;--t-body:13.5px;--t-item:15px;--t-step:17.5px;--t-step-l:21px;--t-val:24px;
+  --w-ui:600;--w-strong:700;--w-max:800;
+  /* A13 : DEUX crans de glyphe, pas plus — glyphe de commande 15 px (la cible vient du HALO,
+     jamais du dessin) ; micro-glyphe inline au corps du texte qu'il accompagne. */
+  --g-cmd:15px;
+  /* ─── 5. RAYONS — fermés à 4 crans, la pilule n'existe pas ──────────────────────────────
+     Exception unique : les chips de filtre, où la pilule EST la forme du composant. */
+  --r-1:8px;--r-2:10px;--r-3:12px;--r-4:14px;
+  /* ─── 6. OMBRE — une seule, sous la matière TRAVAIL ─────────────────────────────────────
+     La nuit ne projette pas : elle borde (--shadow-work:none en sombre). */
+  --shadow-work:0 6px 24px rgba(20,24,29,.06);
+  /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
+  --hit:44px;--hit-crisis:48px;
+  /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
+  --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;
+  /* ══ 9. ALIAS — les anciens noms pointent vers les nouveaux ═══════════════════════════════ */
+  --bg:var(--amb);--surface:var(--work);--surface-2:var(--amb-2);--surface-3:var(--amb-2);
+  --input-bg:var(--work);--line-hover:var(--line-strong);
+  /* ⚠ `--paper` N'EST PAS UN ALIAS DE `--work`, et le harnais QR l'a rattrapé (« 390×844 dark ·
+     l'image peinte est relue par le décodeur d'Apple » : ÉCHEC). C'est un token FIXE DES DEUX
+     THÈMES — le canevas BLANC du SVG d'algorithme, des pages PDF, de l'impression et du fond de
+     QR. Aliasé sur la matière travail, il devenait #171a20 en sombre : le QR se peignait en encre
+     sombre sur fond sombre, donc INDÉCHIFFRABLE — et le défaut ne se serait vu qu'au moment de
+     scanner, c'est-à-dire au pire moment. Le SVG d'algorithme, lui, est peint pour fond clair
+     puis contre-inversé : un papier sombre l'aurait inversé deux fois. */
+  --paper:#ffffff;
+  --ink-soft:var(--ink-2);--soft:var(--ink-3);--tag-ink:var(--ink-2);--tag-bg:var(--amb-2);
+  --primary:var(--act);--primary-dk:var(--act);--primary-hi:var(--act);
+  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;
+  --on-primary:var(--work);--link:var(--act);--flow-cur:var(--act);
+  --done-bg:var(--ok-soft);--done-line:#bfd8c6;
+  --critical:var(--crit);--critical-soft:var(--crit-soft);--critical-line:#ecc4bc;
+  --critical-bd:var(--crit-line);--alarm:var(--crit-line);
+  /* ⚠ FUSION DES DEUX AMBRES — le seul point qui casse visuellement. --verify (« à vérifier »)
+     et --alert (« échéance ») disaient deux choses avec deux teintes ; désormais un seul ambre,
+     et la distinction passe par le MOT. L'ambre d'alerte vivait sur fond SOMBRE : il pointe donc
+     vers --warn-sys, qui a ses valeurs dédiées pour tenir 4,5:1 sur la matière système. */
+  --verify:var(--warn);--verify-soft:var(--warn-soft);--verify-line:#eddfb6;
+  --verify-bd:var(--warn-line);--verify-hi:var(--warn-line);
+  --alert:var(--warn-sys);--alert-hi:var(--warn-sys);--alert-strong:var(--warn-line);--alert-ink:var(--warn-sys-bg);
+  --rt-card:var(--sys);--rt-line:var(--sys-line);--rt-ink:var(--sys-ink);
+  --radius:var(--r-4);--radius-md:var(--r-3);--radius-sm:var(--r-1);
+  --serif:var(--f-title);--sans:var(--f-ui);--mono:var(--f-mono);
+  /* Une seule matière projette : tous les anciens noms d'ombre y pointent. Les VOILES, eux, ne
+     sont pas des élévations — un voile assombrit, il n'élève pas : ils restent à l'encre. */
+  --shadow:var(--shadow-work);--shadow-lg:var(--shadow-work);
+  /* ⚠ `--shadow-up` N'EST PAS UN ALIAS DE `--shadow-work`, et le harnais l'a rattrapé. Une ombre
+     MONTANTE (porte « ＋ » collée en pied, barre d'actions basse) doit se répandre vers le HAUT,
+     du côté d'où vient le contenu : avec un décalage POSITIF, l'objet paraît enfoncé au lieu de
+     flotter — et pour un objet à coins arrondis, c'est son ombre qui épouse le rayon, jamais un
+     voile (v4.78.0). Mêmes encre, alpha et flou que l'ombre unique : c'est bien UNE matière qui
+     projette, seule sa direction change. */
+  --shadow-up:0 -6px 24px rgba(20,24,29,.06);
+  --shadow-dock:none;--shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
+  --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
+  /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
+     MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un
+     script ; elle sert à fitMoreMenu et au dock (v4.73.2). */
+  --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
+  --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
+  --sab:env(safe-area-inset-bottom,0px);
+  }
 
 /* Thème sombre */
-[data-theme="dark"]{--ink:#e8eef7;--ink-soft:#b7c6d6;--line:#33363b;--line-hover:#4d5158;--bg:#0a0a0c;--surface:#0d0d0f;--surface-2:#070708;--surface-3:#191a1d;--primary:#2e71c2;--primary-dk:#8fb8e8;--primary-hi:#4685d2;--primary-soft:#0e2038;--primary-100:#0e2038;--primary-200:#2c4b6e;--primary-300:#2c4b6e;--on-primary:#fff;--ok-rgb:55,214,122;--ok:rgb(var(--ok-rgb));--ok-soft:#0e2618;--critical:#ff8a84;--critical-soft:#3a0e0c;--critical-line:#7a2b26;--verify:#ffb454;--verify-soft:#241d0c;--verify-line:#5c4a1e;--verify-bd:#ffb454;--verify-hi:#ffb454;--critical-bd:#ff5a52;--done-bg:#101b14;--done-line:#1f4a2e;--tag-bg:#1d1f24;--tag-ink:#b9c6d4;--link:#8fb8e8;--soft:#5e7186;--input-bg:#000000;--shadow:0 1px 2px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.5);--shadow-lg:0 2px 6px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.65);--shadow-up:0 -2px 6px rgba(0,0,0,.5),0 -10px 28px rgba(0,0,0,.65);--hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;}
+[data-theme="dark"]{--line:var(--line-strong);--ink-soft:var(--ink)}
 
 /* Palette des catégories (PALETTE, index.html) */
 :root{--cat-1:#b23240;--cat-2:#8d5c39;--cat-3:#786824;--cat-4:#4f6b1e;--cat-5:#096e50;--cat-6:#226a71;--cat-7:#1f6f96;--cat-8:#45556b;--cat-9:#0d5b56;--cat-10:#5156b6;--cat-11:#755a96;--cat-12:#7a2f6b;--cat-13:#95516c}

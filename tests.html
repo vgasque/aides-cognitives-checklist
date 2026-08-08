@@ -816,8 +816,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   const P=(list)=>A.ovPresList(list.map(([c,m])=>({complete:c,manual:m})));
   eq('ovPresList : le bout est TOUJOURS une carte (même complet)', P([[true,null],[true,null]])[1], 'open');
   eq('ovPresList : un passage INCOMPLET ancien reste déplié (invariant)', P([[false,null],[true,null],[true,null],[true,null],[true,null]])[0], 'open');
-  eq('ovPresList : complets anciens → 2 plus récents en ligne, le reste en chip',
-     P([[true,null],[true,null],[true,null],[true,null],[false,null]]), ['chip','chip','line','line','open']);
+  /* R6 (v5.6) — LE PASSÉ S'ANNONCE ET SE TIRE. Le fil gardait les DEUX passages complets les
+     plus récents en LIGNE D'ÉTAT ; ils deviennent des chips comme les autres, et la rangée se
+     replie en ligne-bilan dès qu'elle existe (assemblage, pas cette fonction pure). Les deux
+     invariants qui font la conformité sont vérifiés juste au-dessus et juste en dessous : le
+     BOUT est toujours une carte, un passage INCOMPLET n'est jamais une chip. */
+  eq('ovPresList : tout complet ancien devient une chip (R6 — l’historique se tire)',
+     P([[true,null],[true,null],[true,null],[true,null],[false,null]]), ['chip','chip','chip','chip','open']);
   eq('ovPresList : surcharge manuelle « déplié » prime sur la condensation', P([[true,false],[true,null],[true,null],[true,null]])[0], 'open');
   eq('ovPresList : repli manuel d’un incomplet → ligne d’état, jamais chip', P([[false,true],[true,null]])[0], 'line');
   // flowPlan (v4.10.0) : arbre indenté avec point de convergence (post-dominateur).

@@ -28,7 +28,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v5.5.0';
+const CACHE = 'aides-cognitives-v5.6.0';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -48,6 +48,9 @@ const PDFJS_ASSETS = [
 const ASSETS = [
   './index.html',
   './vendor/fonts/source-serif-4-latin-600.woff2',
+  './vendor/fonts/manrope-latin-var.woff2',
+  './vendor/fonts/ibm-plex-mono-latin-600.woff2',
+  './vendor/fonts/ibm-plex-mono-latin-700.woff2',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-192-maskable.png',

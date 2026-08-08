@@ -33,7 +33,7 @@
  *
  *   node scripts/check-vendor.mjs
  */
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, readdir } from 'node:fs/promises';
 
 const ROOT = decodeURIComponent(new URL('../', import.meta.url).pathname);
 const fautes = [];
@@ -56,14 +56,25 @@ if (mDecl && mCache) {
   }
 }
 
-/* ---- police : la taille annoncée est la taille réelle ---- */
+/* ---- polices : la taille annoncée est la taille réelle, POUR CHACUNE ----
+   v5.6 : la refonte « verre clinique » vendorise trois familles (Source Serif 4, Manrope, IBM
+   Plex Mono) au lieu d'une. Le contrôle lisait la PREMIÈRE ligne « <fichier>.woff2 (N octets) »
+   et s'arrêtait là : il aurait donc validé une note où les trois autres poids étaient faux, en
+   silence. On lit désormais TOUTES les lignes, et l'on vérifie EN PLUS qu'aucun .woff2 du disque
+   n'échappe à la note — le trou inverse, celui d'une fonte ajoutée sans être documentée. */
 const fontReadme = await readFile(ROOT + 'vendor/fonts/README.txt', 'utf8');
-const mFont = fontReadme.match(/([\w.-]+\.woff2)\s*\(([\d\s  ]+)\s*octets\)/);
-if (!mFont) fautes.push("vendor/fonts/README.txt : « <fichier>.woff2 (N octets) » introuvable");
-else {
-  const attendu = parseInt(mFont[2].replace(/[\s  ]/g, ''), 10);
-  const reel = (await stat(ROOT + 'vendor/fonts/' + mFont[1])).size;
-  if (reel !== attendu) fautes.push(`${mFont[1]} : ${reel} octets sur le disque, ${attendu} annoncés dans README.txt`);
+const annonces = [...fontReadme.matchAll(/([\w.-]+\.woff2)\s*\(([\d\s\u00a0\u202f]+)\s*octets\)/g)];
+if (!annonces.length) fautes.push("vendor/fonts/README.txt : « <fichier>.woff2 (N octets) » introuvable");
+for (const m of annonces) {
+  const attendu = parseInt(m[2].replace(/[\s\u00a0\u202f]/g, ''), 10);
+  let reel = null;
+  try { reel = (await stat(ROOT + 'vendor/fonts/' + m[1])).size; }
+  catch { fautes.push(`${m[1]} : annoncée dans README.txt, absente de vendor/fonts/`); continue; }
+  if (reel !== attendu) fautes.push(`${m[1]} : ${reel} octets sur le disque, ${attendu} annoncés dans README.txt`);
+}
+const surDisque = (await readdir(ROOT + 'vendor/fonts')).filter(f => f.endsWith('.woff2'));
+for (const f of surDisque) {
+  if (!annonces.some(m => m[1] === f)) fautes.push(`${f} : sur le disque, absente de vendor/fonts/README.txt`);
 }
 
 if (fautes.length) {
@@ -71,4 +82,4 @@ if (fautes.length) {
   fautes.forEach(f => console.error('    ' + f));
   process.exit(1);
 }
-console.log(`✓ check-vendor : pdf.js ${mDecl[1]} — clé de cache alignée ; police ${mFont[1]} conforme à sa note.`);
+console.log(`✓ check-vendor : pdf.js ${mDecl[1]} — clé de cache alignée ; ${annonces.length} police(s) conformes à leur note.`);

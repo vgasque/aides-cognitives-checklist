@@ -47,7 +47,7 @@ const EXEMPT_RGB = new Set([
 /* Blocs de tokens, gardés BRUTS pour le contrôle de la barre système plus bas : c'est la seule
    partie du fichier dont une valeur doive être RELUE, et non seulement autorisée. */
 const rootTokensRaw = (css.match(/:root\{[^}]*\}/) || [])[0];
-const darkTokensRaw = (css.match(/html\[data-theme="dark"\]\{--[^}]*\}/) || [])[0];
+const darkTokensRaw = (css.match(/html\[data-theme="dark"\]\{\s*--[^}]*\}/) || [])[0];
 
 const bad = [];
 // Déclarations `prop: valeur` — une couleur littérale n'est admise que si prop commence par `--`.
@@ -86,8 +86,8 @@ if (bad.length) {
      1. les deux sites (table `THEME_COLOR` et script de boot) portent les MÊMES valeurs — leur
         désaccord se verrait par un flash de couleur au premier rendu ;
      2. chaque valeur est un token RÉEL de son thème, pas une couleur inventée ;
-     3. c'est bien `--surface` (décision utilisateur : la barre système prolonge l'EN-TÊTE, qui
-        est en `--surface`, et non la page, qui est en `--bg`). Sans ce troisième point, remettre
+     3. c'est bien `--amb` (la barre système prolonge l'EN-TÊTE ; depuis la refonte v5.6, celui-ci
+        est en AMBIANCE — les matières ont remplacé les bandes). Sans ce troisième point, remettre
         `--bg` demain repasserait au vert tout en refaisant exactement le défaut d'origine.
 
    LE RESTE DES LITTÉRAUX DU JS N'EST PAS INSPECTÉ, ET C'EST MOTIVÉ : ce sont des copies FIGÉES,
@@ -104,16 +104,22 @@ const hex6 = h => {
   const s = String(h || '').toLowerCase();
   return s.length === 4 ? '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] : s;
 };
-const tokenOf = (block, name) => {
-  const m = (block || '').match(new RegExp('--' + name + ':\\s*(#[0-9a-fA-F]{3,8})\\b'));
-  return m ? hex6(m[1]) : null;
+/* v5.6 : le token visé peut être un ALIAS (--surface:var(--work)). On suit UNE indirection —
+   au-delà, c'est une chaîne d'alias, et une chaîne d'alias sur une couleur de chrome est
+   exactement ce qu'on ne veut pas avoir à démêler pour savoir de quelle couleur est la barre. */
+const tokenOf = (block, name, depth = 0) => {
+  const b = block || '';
+  const m = b.match(new RegExp('--' + name + ':\\s*(#[0-9a-fA-F]{3,8})\\b'));
+  if (m) return hex6(m[1]);
+  const a = b.match(new RegExp('--' + name + ':\\s*var\\(--([\\w-]+)\\)'));
+  return (a && depth < 1) ? tokenOf(block, a[1], depth + 1) : null;
 };
-const surfLight = tokenOf(rootTokensRaw, 'surface');
-const surfDark  = tokenOf(darkTokensRaw, 'surface');
+const surfLight = tokenOf(rootTokensRaw, 'amb');
+const surfDark  = tokenOf(darkTokensRaw, 'amb');
 const tableM = html.match(/const THEME_COLOR=\{light:'(#[0-9a-fA-F]{3,8})',dark:'(#[0-9a-fA-F]{3,8})'\}/);
 const bootM  = html.match(/_tc\.setAttribute\('content',\s*_d==='dark'\?'(#[0-9a-fA-F]{3,8})':'(#[0-9a-fA-F]{3,8})'\)/);
 
-if (!surfLight || !surfDark) themeBad.push('token --surface introuvable dans :root ou le bloc sombre');
+if (!surfLight || !surfDark) themeBad.push('token --amb introuvable dans :root ou le bloc sombre');
 if (!tableM) themeBad.push('table THEME_COLOR introuvable (forme attendue : const THEME_COLOR={light:\'#…\',dark:\'#…\'})');
 if (!bootM)  themeBad.push('script de boot : pose de meta[theme-color] introuvable');
 if (tableM && bootM && surfLight && surfDark) {
@@ -122,15 +128,15 @@ if (tableM && bootM && surfLight && surfDark) {
   for (const th of ['light', 'dark']) {
     const want = th === 'light' ? surfLight : surfDark;
     if (t[th] !== b[th]) themeBad.push(`${th} : THEME_COLOR (${t[th]}) ≠ script de boot (${b[th]}) — flash au premier rendu`);
-    else if (t[th] !== want) themeBad.push(`${th} : barre système ${t[th]} ≠ --surface ${want} (la barre prolonge l'en-tête)`);
+    else if (t[th] !== want) themeBad.push(`${th} : barre système ${t[th]} ≠ --amb ${want} (la barre prolonge l'en-tête)`);
   }
 }
 if (themeBad.length) {
   console.error('✗ check-colors : la barre système a dérivé de ses tokens.');
   themeBad.forEach(x => console.error('    ' + x));
-  console.error('  -> aligner THEME_COLOR (index.html) ET le script de boot sur --surface des deux thèmes.');
+  console.error('  -> aligner THEME_COLOR (index.html) ET le script de boot sur --amb des deux thèmes.');
   process.exit(1);
 }
 
 console.log('✓ check-colors : aucune couleur littérale hors déclaration de token (hex, rgb, hsl) ;'
-  + ` barre système alignée sur --surface (${surfLight} / ${surfDark}).`);
+  + ` barre système alignée sur --amb (${surfLight} / ${surfDark}).`);

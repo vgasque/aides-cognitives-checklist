@@ -451,7 +451,8 @@ const E2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {classe:cb.classList.contains('ess'),hachure:opac,hAvecPlacard,
     etiquetteCachee:tag().hidden,
     hauteur:hAvecPlacard,hAvant,
-    pilule:(document.getElementById('hdrCrisis')||{}).textContent||'',
+    /* v5.6 (A14) : l'énoncé du mode vit sur le SUR-TITRE `.brand-sur`. */
+    pilule:(document.getElementById('brandSur')||{}).textContent||'',
     badge:(document.querySelector('.hdr-badge')||{}).textContent||'',
     barre:document.querySelector('header.bar').classList.contains('ess')};});
 t('essai : la hachure est posée sur le bandeau', E2.classe&&E2.hachure==='1', JSON.stringify(E2.hachure));

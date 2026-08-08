@@ -13,7 +13,16 @@ const SRC = new URL('../index.html', import.meta.url);
 const html = readFileSync(SRC, 'utf8');
 const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
 
-const ECHELLE = [3, 6, 8, 11, 14, 18, 999];
+/* REFONTE v5.6 — l'échelle se resserre sur les QUATRE crans du système « verre clinique »
+   (8 · 10 · 12 · 14) ; 6, 11 et 18 disparaissent. 999 SURVIT, mais son périmètre se ferme : la
+   pilule n'est plus la forme par défaut d'une étiquette, elle est celle des CHIPS DE FILTRE et
+   des jetons ronds (progression, compte) — partout ailleurs elle « date » l'interface.
+   ⚠ 3 px SURVIT AUSSI, et c'est une déviation ASSUMÉE aux quatre crans du système. Les maquettes
+   ne contiennent aucun des objets qui l'emploient : le CARRELAGE du mode statique (« cellules
+   carrelées à joint 3 px », doctrine v4.13.0 — les arrondir à 8 en ferait des tuiles au lieu
+   d'un tableau SFAR), les barres de 3-4 px de haut, et le surlignage inline. Un système ne
+   légifère pas sur ce qu'il n'a pas regardé ; on garde donc le cran de FILET, et on le dit. */
+const ECHELLE = [3, 8, 10, 12, 14, 999];
 /* EXEMPTIONS — nommées par leur sélecteur et MOTIVÉES, comme dans `check-type` : une exemption
    anonyme rouvrirait la porte qu'on vient de fermer. (Aucune à ce jour.) */
 const EXEMPT = [];
