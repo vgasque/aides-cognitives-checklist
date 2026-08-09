@@ -1354,12 +1354,12 @@ await sec(`PARTAGE · le journal référentiel — moteur ${NOM_MOTEUR}`, async 
   const r = await page.evaluate(async () => {
     Share.mode = 'host'; Share.role = 'lead'; Share.me = 'moi'; Share.status = 'active';
     setMyTags([{ k: 'mru', l: 'Médecin régulateur', a: ['mru', 'regul'] }]);
-    // v5.4.0/v5.4.2 : en étroit le journal vit dans le VOLET DU QUAI — on l'ouvre par le VRAI
-    // geste (le quai, accès unique depuis v5.4.2) avant de chercher « Noter l'heure ».
+    // v5.6 : « Noter l'heure » a quitté le panneau — c'est une TOUCHE DU DOCK. On pose le repère
+    // par le vrai geste, puis on ouvre le volet du quai pour atteindre le champ d'étiquette.
+    document.getElementById('tkKey').click();
+    await new Promise(x => setTimeout(x, 300));
     const dk = document.getElementById('cbTimers');
     if (dk) { dk.click(); await new Promise(x => setTimeout(x, 400)); }
-    document.getElementById('tkAdd').click();
-    await new Promise(x => setTimeout(x, 400));
     const inp = document.querySelector('.tk-panel [data-tklab]');
     inp.value = 'regul';
     inp.dispatchEvent(new Event('input', { bubbles: true }));

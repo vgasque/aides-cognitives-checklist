@@ -1586,14 +1586,24 @@
   /* La lettre de classement est en SERIF : c'est un index d'ouvrage, pas du chrome (la même
      voix que les titres de fiches, qui est l'identité clinique de v4.61). En clé « Catégories »,
      elle porte en plus la pastille de la catégorie — la couleur n'est jamais seule, le nom est là. */
-  .dir-l{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:12px 2px 6px}
+  /* ══ LE RÉPERTOIRE EST UN LIVRE, PAS UNE PILE DE CARTES (v5.6, maquette 1a) ════════════════
+     Chaque lettre avait SA carte : sur une bibliothèque réelle, l'annuaire devenait un empilement
+     de boîtes dont aucune ne dit rien — et le rail d'index, posé à l'extérieur, ne se rattachait
+     visuellement à rien. UNE carte contient tout ; les lettres y sont des INTERTITRES avec leur
+     filet, et le rail vit DEDANS, contre la marge droite que la carte lui réserve. */
+  .dir-book{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);padding:2px 16px;position:relative}
+  .dir-book.pinned{margin-bottom:4px}
+  .dir-l{display:flex;align-items:baseline;gap:8px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
+  .dir-lr{flex:1;border-bottom:1px solid var(--line)}
   .dir-dot{width:8px;height:8px;border-radius:999px;flex:none}
   /* Le sélecteur de clé de groupement — grammaire des chips de filtre (c'est de la même famille :
      un objet qui décide de ce qu'on voit), poussé au bout de l'en-tête de section. */
   /* Le sélecteur de clé a SA rangée, au-dessus des sections qu'il réordonne (maquette 1a) : au
      bout du titre « Répertoire », il se lisait comme une propriété de cette seule section, alors
      qu'il gouverne la liste entière. */
-  .grp-row{display:flex;align-items:center;gap:8px;margin:12px 0 0}
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:12px 0 0}
+  .grp-row:empty{display:none}
+  .grp-row .filt-tog{margin-left:auto}
   .grp-seg{flex:none;display:flex;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
   .grp-b{min-height:32px;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
   .grp-b.on{background:var(--sys);color:var(--sys-ink)}
@@ -1601,7 +1611,12 @@
   .grp-b:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .azrail.catrail button{padding:0 4px;min-height:26px}
   .azr-dot{display:block;width:8px;height:8px;border-radius:999px}
-  .dir-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+  /* Dans le livre, les rangées n'ont plus de carte à elles : un filet les sépare, et la dernière
+     d'un groupe n'en porte pas (c'est l'intertitre suivant qui borne). */
+  .dir-grid{display:block}
+  .dir-book .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;height:auto;min-height:60px;padding-left:0;padding-right:24px}
+  .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
+  .dir-book.pinned .dir-row:last-child{border-bottom:0}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
      les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
@@ -1773,6 +1788,11 @@
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
   .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
     background:var(--catcol,var(--line-strong));border-radius:var(--radius-md) 0 0 var(--radius-md)}
+  /* Dans le LIVRE, la rangée n'a plus de bord à elle : le liseré de catégorie se pose dans la
+     marge de la carte, où il reste lisible comme un onglet d'annuaire. */
+  .dir-book .dir-row::before{left:-16px;border-radius:0;top:1px;bottom:1px}
+  .dir-book .dir-row.live{background:none}
+  .dir-book .dir-row.live::before{width:3px}
   /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
      registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
      VIVANT. Ce dernier est le plus juste des trois : il occupe une place DÉJÀ prise (une date de
@@ -1806,7 +1826,11 @@
   /* < 640 px : les rangées d'une lettre deviennent une LISTE à filets dans une carte unique
      (maquette mobile) — mêmes nœuds, seul le conteneur change de peau. */
   @media (max-width:639.98px){
-    .dir-grid{display:block;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);overflow:hidden}
+    /* ⚠ EN VOIE ÉTROITE, LA CARTE ÉTAIT SUR LE GROUPE — elle est désormais sur le LIVRE, qui
+       contient tous les groupes : la laisser ici produisait une carte DANS la carte (double
+       cadre) et son `overflow:hidden` rognait le liseré de catégorie posé dans la marge. */
+    .dir-grid{display:block}
+    .dir-wrap>.dir-grid{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);overflow:hidden}
     /* Le séparateur interne passe de `--surface-2` à `--line` : une SURFACE employée comme
        filet est invisible par construction (v5.0.0, A1-3). Le cadre, lui, est sur la carte. */
     .dir-row{border:0;border-top:1px solid var(--line);border-radius:0}
@@ -2079,6 +2103,25 @@
   .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:15px;padding:0 4px;flex:none}
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
+  /* AVANT LA SESSION (v5.6, maquette) : l'encadré de la condition d'entrée. Contour d'alerte,
+     titre en petites capitales `--crit`, un ■ par critère — la couleur n'est jamais seule
+     (règle 8), la FORME du marqueur porte le registre autant que sa teinte. */
+  /* ⚠ CARTE DE TRAVAIL, PAS ENCADRÉ ROUGE (maquette 1c contre 1b — les deux existent, on tranche
+     par ce qui l'entoure) : le chapeau « Ne pas oublier » juste dessous EST un encadré rouge.
+     Deux cadres rouges qui se suivent, c'est l'inflation que ce dossier combat depuis la v4.23.0
+     — la seconde masse ne dit plus rien. Le registre vit donc dans le TITRE et dans les
+     marqueurs ; le cadre reste celui d'une carte de travail. */
+  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:12px 18px 0}
+  .conf-eh{display:flex;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:800;
+    letter-spacing:.09em;text-transform:uppercase;color:var(--crit)}
+  .conf-mk{font-size:var(--t-cap);line-height:1}
+  .conf-block.entry ul.flat{padding:4px 0 0;border-top:0}
+  ul.flat.confirm.entry li{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:0;
+    font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  ul.flat.confirm.entry li::before{display:none}
+  .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
+  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-3)}
+  .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
   /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
      on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
      (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
@@ -2392,9 +2435,30 @@
   /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
      colonne : elle ORIENTE, la colonne d'action AGIT — deux surfaces ne se disputent pas le
      regard au même niveau de saillance. */
-  /* L'ONGLET « PARCOURS » : la fiche entière en cartes de blocs, inertes (M9, maquette). */
-  .pc-sub{font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--ink-soft);margin:2px 0 10px}
-  .pc-sub b{font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
+  /* L'ONGLET « PARCOURS » (v5.6, maquette) : la SÉQUENCE en rangées — une par bloc, l'état dans
+     la marque, les renvois à droite ; seul le bloc COURANT développe ses items. Le contenu
+     complet, c'est l'onglet « Page ». Les cartes `.pc-card` restent pour les trois sections
+     encadrantes (condition d'entrée, à tout moment, surveiller) : ce ne sont pas des blocs de
+     la séquence, et la différence de forme le dit. */
+  .pc-sub{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:600;color:var(--ink-3);margin:2px 0 10px}
+  .pc-sub b{font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  .pc-rows{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:10px}
+  .pc-row{background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);padding:10px 14px;
+    font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pc-row.d1{margin-left:12px}.pc-row.d2{margin-left:24px}.pc-row.d3{margin-left:32px}
+  .pc-rh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .pc-mk{flex:none;color:var(--ok);font-weight:800;display:inline-flex;align-items:center}
+  .pc-mk:empty{display:none}
+  .pc-rt{flex:1;min-width:0}
+  .pc-x{color:var(--ink-3);font-size:var(--t-meta);font-weight:600}
+  .pc-gn{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
+  .pc-go{flex:none;max-width:52%;font-size:var(--t-cap);font-weight:700;color:var(--act);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pc-off{flex:none;font-size:var(--t-cap);color:var(--ink-3)}
+  /* Le bloc courant : filet d'accent, jamais un aplat — la vue reste une vue d'ORIENTATION. */
+  .pc-row.cur{border-color:var(--act);color:var(--ink)}
+  .pc-row.off{border-style:dashed;color:var(--ink-3)}
+  .pc-row.cur .pc-rh{padding-bottom:8px}
   .pc-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);
     border-radius:var(--radius-md);padding:10px 12px;margin:0 0 10px}
   .pc-card.d1{margin-left:12px}.pc-card.d2{margin-left:24px}.pc-card.d3{margin-left:32px}
@@ -2452,25 +2516,24 @@
     border:1px solid var(--verify-bd);border-radius:8px;padding:2px 8px}
   .pc-opt.tk{color:var(--ok);background:var(--done-bg);border-color:var(--done-line)}
   .pc-opt b{font-family:var(--mono);font-weight:700}
-  /* LA FEUILLE « CONSULTER » (M10, maquette) : une rangée par entrée — case INERTE, intitulé,
-     valeur en pilule mono. Une entrée SIGNALÉE (△) devient une carte teintée, comme partout
-     ailleurs dans le produit : « normal = ligne, signalé = boîte ». */
-  .rs-rows{display:block}
-  .rs-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 2px;
-    border-bottom:1px solid var(--line)}
-  .rs-row:last-child{border-bottom:0}
-  .rs-box{flex:none;width:22px;height:22px;border-radius:8px;border:2px solid var(--line-strong)}
-  .rs-t{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink)}
-  .rs-v{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:12px;
-    background:var(--tag-bg);color:var(--tag-ink);border-radius:8px;padding:4px 8px;width:fit-content}
-  .rs-row.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
-    border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:8px}
-  .rs-row.vig .rs-t{color:var(--verify);text-transform:uppercase;letter-spacing:.02em}
-  .rs-row.vig .rs-box{border-color:var(--verify-bd)}
-  .rs-row.crit{background:var(--critical-soft);border:1px solid var(--critical-bd);
-    border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:8px}
-  .rs-row.crit .rs-t{color:var(--critical)}
-  .rs-row.crit .rs-box{border-color:var(--critical-bd)}
+  /* ══ « CONSULTER » EST UN DOCUMENT, DONC DES LIGNES (v5.6, maquette — demande utilisateur :
+     « rends surveiller, documents etc. plus inline ») ════════════════════════════════════════
+     LA CASE INERTE EST PURGÉE, ET C'EST LE MÊME ARGUMENT QU'EN v5.0.0/M1 POUR L'ÉDITEUR : une
+     case qu'on ne peut pas cocher, dans une surface dont l'inertie est la propriété qu'un harnais
+     vérifie, INVITE au geste qu'elle refuse. Elle coûtait en plus 32 px de gouttière par ligne
+     dans une feuille dont tout le mérite est de tenir en une chiquenaude de défilement.
+     ET PLUS D'APLAT SUR UNE ENTRÉE SIGNALÉE (A11) : « normal = ligne, signalé = boîte » est la
+     doctrine des ÉTAPES — ce qu'on exécute. Ici on CONSULTE : deux différentiels ambre feraient
+     deux masses colorées dans la seule surface qu'on ouvre quand « ça ne colle pas », et l'aplat
+     cesserait de vouloir dire « maintenant ». Le registre reste porté par le glyphe et l'encre.
+     `.rs-box` est PURGÉE avec sa règle (règle 14). */
+  .rs-rows{display:grid;gap:4px}
+  .rs-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;
+    font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .rs-t{flex:1;min-width:0}
+  .rs-v{flex:none;max-width:100%;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+  .rs-row.vig .rs-t{color:var(--warn)}
+  .rs-row.crit .rs-t{color:var(--crit)}
   /* LE DÉPLIANT DU QUAI (M11) : il appartient à la zone d'état, il se pose donc au plus près
      d'elle et se distingue du contenu clinique par un simple retrait de surface. */
   /* ⚠ LE DÉPLIANT D'UNE LIGNE N'EST PLUS UNE CARTE BLANCHE (signalé à l'usage : « est-ce
@@ -2512,6 +2575,71 @@
     .rt-dock{max-height:calc((100svh / var(--zf,1) - var(--stick-top,110px))*.8)}
   }
   .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 18px 16px}
+  /* ══ LE VOLET EST UN ÉTAGE DU BLOC DE CHROME, DONC IL EST SOMBRE (v5.6, maquette — signalé à
+     l'usage : « en largeur de smartphone le bandeau déroulant ne correspond pas au nouveau
+     design ») ══════════════════════════════════════════════════════════════════════════════
+     La v5.4.1 avait fait du volet un ÉTAGE du quai plutôt qu'une carte flottante — c'était la
+     bonne structure, avec la matière d'AVANT : `--surface`, blanc, comme le contenu clinique.
+     Depuis les trois matières (v5.6), le chrome est `--sys` : un étage du quai qui serait blanc
+     annoncerait qu'on est revenu dans le travail. La matière EST le message ; on la corrige, la
+     structure ne bouge pas d'un pixel.
+     ⚠ LE CONTENU CLINIQUE NE DEVIENT PAS SOMBRE POUR AUTANT : ce qui bascule ici, ce sont des
+     ÉTATS (temps, décomptes, repères horodatés), c'est-à-dire ce que le quai porte déjà. Aucune
+     étape, aucune dose, aucun texte d'auteur ne vit dans ce volet. */
+  .rt-dock{background:var(--sys);border-bottom:0;color:var(--sys-ink)}
+  .rt-dock .rt-head{margin-bottom:8px}
+  .rt-dock .rt-head b,.rt-dock .tk-head b{color:var(--sys-ink-2)}
+  .rt-dock .rt-ic{color:var(--sys-ink-2)}
+  .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
+  .rt-dock .fam-n{background:var(--sys-2);color:var(--sys-ink-2);border-color:var(--sys-line)}
+  .rt-dock :is(.rt-sound,.rt-warn){background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink-2)}
+  .rt-dock .rt-sound.off{color:var(--warn-sys);border-color:var(--warn-line);background:var(--warn-sys-bg)}
+  .rt-dock .rt-warn{color:var(--warn-sys);border-color:var(--warn-line)}
+  /* Les cartes se resserrent comme celles du rail : libellé 11 px, valeur mono, commandes sur UNE
+     rangée. La barre de progression et le compte de cycles restent — dans le volet, contrairement
+     au rail, c'est la vue de DÉTAIL qu'on est venu ouvrir. */
+  .rt-dock :is(.tmcard,.cncard){background:var(--sys-2);border:1px solid var(--sys-line);
+    border-radius:var(--r-2);color:var(--sys-ink);min-height:80px;padding:10px 12px}
+  .rt-dock .tmcard{--tcol:var(--sys-ink);--tbd:var(--sys-line)}
+  .rt-dock :is(.tm-label,.cncard .tm-label){font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2);
+    margin-bottom:4px;min-height:0;-webkit-line-clamp:2}
+  .rt-dock .tm-meta{color:var(--sys-ink-2);margin:-2px 0 4px}
+  .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-step-l);font-weight:700;color:var(--sys-ink)}
+  .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}
+  .rt-dock .tm-bar-wrap{background:var(--sys-line)}
+  .rt-dock .tm-bar{background:var(--sys-ink-2)}
+  .rt-dock .tm-ctrl{flex-direction:row;gap:6px;margin-top:8px}
+  .rt-dock .tm-btn{width:auto;flex:1;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
+  .rt-dock .tm-main{background:none;border-color:var(--sys-ink-2);color:var(--sys-ink);font-weight:800}
+  .rt-dock .tm-btn:hover{background:var(--sys-2)}
+  .rt-dock .tmr-hint{color:var(--sys-ink-2)}
+  .rt-dock .tm-mini{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
+  .rt-dock .tmm-b{color:var(--sys-ink-2)}
+  .rt-dock .rt-add{border:1px dashed var(--sys-line);color:var(--sys-ink-2)}
+  .rt-dock .cn-val{color:var(--sys-ink)}
+  /* ⚠ `.cn-btn[data-cninc]` vaut (0,2,0) et vit 3 400 lignes plus bas : une règle de classe
+     seule perdait l'aplat tonal du « + » (mesuré — le bouton restait bleu clair sur le sombre).
+     On passe par l'attribut, comme lui. Le « + » garde sa PRÉÉMINENCE (on incrémente dix fois
+     pour une correction) : sur matière système, elle se dit par un fond `--sys-2` plein contre
+     un contour nu, plutôt que par un aplat clair qui trouerait le volet. */
+  .rt-dock .cn-btn{background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-width:44px;min-height:44px}
+  .rt-dock .cn-btn[data-cninc]{background:var(--sys-2);border:1px solid var(--sys-ink-2);color:var(--sys-ink)}
+  .rt-dock .cn-btn:hover,.rt-dock .cn-btn[data-cninc]:hover{background:var(--sys-2)}
+  .rt-dock :is(.cn-reset,.tm-reset){background:none;border-color:var(--sys-line);color:var(--sys-ink-2)}
+  .rt-dock .cn-note{color:var(--sys-ink-2)}
+  .rt-dock .cn-log{color:var(--sys-ink-2)}
+  /* ÉCHU : la seule couleur du volet, et elle est l'alarme (registre ATTENTION sur matière
+     système — la paire `--warn-sys` / `--warn-sys-bg`, celle du segment échu de la capsule). */
+  .rt-dock .tmcard.due{background:var(--warn-sys-bg);border-color:var(--warn-line);--tcol:var(--warn-sys)}
+  .rt-dock .tmcard.due .tm-label{color:var(--warn-sys);font-weight:800}
+  .rt-dock .tmcard.due .tm-main{border-color:var(--warn-line);color:var(--warn-sys)}
+  .rt-dock .tm-mini.due{background:var(--warn-sys-bg);border-color:var(--warn-line);color:var(--warn-sys)}
+  /* Le journal : une section à filet dans la même matière (jamais une carte dans la carte). */
+  .rt-dock .tk-panel{border-top-color:var(--sys-line)}
+  .rt-dock .tk-row{color:var(--sys-ink);border-color:var(--sys-line)}
+  .rt-dock :is(.tk-el,.tk-from,.tk-sug){color:var(--sys-ink-2)}
+  .rt-dock .tk-lab{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
+  .rt-dock :is(.tk-del,.tk-time){color:var(--sys-ink-2)}
   /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
      droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —
      `.pl-cxh` avec 9 px de retrait et un `space-between` qui renvoyait « hors numérotation » sur
@@ -2533,7 +2661,7 @@
      était trop collé à la ligne du dessus »). Les en-têtes de queue vivent DANS l'échelle, donc
      ils y prennent la même marge basse que celui de tête (10 px) et une marge haute qui les
      détache franchement de la section précédente (20 px) — quel qu'en soit le nombre. */
-  .rail-lad .rail-head{margin:20px 0 10px}
+  .rail-lad .rail-head{margin:20px 0 4px}
   .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:16px 0 2px;padding:0;line-height:1.35}
   .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
@@ -2688,17 +2816,22 @@
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
   .alg-panel .flow-hint{margin:0 4px 10px}
   /* Repères posologiques (canvas) : cartes ; « ⚠ » en tête = registre ALERTE. */
-  .pos-card{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:12px 14px;margin-bottom:6px;color:var(--ink)}
-  .read-side .pos-card{margin-bottom:0}   /* le rail espace déjà (gap 12) */
-  .pos-name{font-size:15px;font-weight:800;color:var(--link)}
-  .pos-body{margin-top:4px;font-size:13.5px;line-height:1.5}
-  .pos-card>.pos-body:first-child{margin-top:0}
+  .pos-card{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink)}
+  .pos-card:first-child{border-top:0}
+  .pos-name{flex:1 1 auto;min-width:0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pos-mk{color:var(--warn);font-weight:800}
+  /* La valeur ne se tronque JAMAIS (un chiffre amputé est pire qu'absent) : elle enroule sur sa
+     propre ligne quand le nom est long — d'où `flex-wrap` sur la rangée. */
+  .pos-body{flex:0 1 auto;max-width:100%;font-family:var(--mono);font-size:var(--t-body);font-weight:600;color:var(--ink);line-height:1.4}
+  .pos-body b{font-weight:700}
   /* Registre VIGILANCE (ambre) — voir posoCardsHtml : un dosage relève du « risque d'erreur »,
      pas de l'« oubli mortel ». Le rouge reste au chapeau « Ne pas oublier » et aux étapes vitales,
      qui sont des GESTES. Une seule masse rouge par écran. */
-  .pos-card.vig{background:var(--verify-soft);border-color:var(--verify-bd)}
-  .pos-card.vig .pos-name{color:var(--verify)}
-  .pos-card.vig b{color:var(--verify)}
+  /* A11 : un repère SIGNALÉ se MARQUE (△ + encre ambre) ; il ne prend pas d'aplat — deux
+     repères ambre feraient deux masses colorées, et l'aplat cesserait de vouloir dire
+     « maintenant ». Le nom seul passe à l'ambre : la VALEUR reste en encre pleine (la
+     hiérarchie passe par la graisse, adoucir un dosage serait l'inversion à ne pas faire). */
+  .pos-card.vig .pos-name{color:var(--warn)}
   /* Repli du RESTE des repères (v4.23.0) : liste longue -> ceux qui concernent le bloc courant
      restent visibles, les autres passent derrière un dépliant qui ANNONCE SON NOMBRE (un pli
      muet serait un filtre déguisé). <details> natif : clavier et lecteur d'écran gratuits, et
@@ -3077,7 +3210,6 @@
   .cx-row .blk-act{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;
     border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
     font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
-  .cx-row .blk-act.tk-add{border-color:var(--primary);color:var(--primary-dk);background:var(--primary-soft)}
   .cx-row .blk-act:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
      commence, et l'écart le sépare de ce qui suit. */
@@ -3168,7 +3300,6 @@
   /* A11 dans le rail : un repère posologique SIGNALÉ se marque (△ + encre ambre + filet), il ne
      prend pas d'aplat — sinon deux repères font deux masses colorées dans une colonne dont toute
      la doctrine est la désaturation, et l'aplat cesse de vouloir dire « maintenant ». */
-  body.view-read .read-side .pos-card.vig{background:none;border-color:var(--warn-line)}
   /* ══ LE RAIL EST UNE COLONNE D'ÉTAT, PAS UN PANNEAU DE COMMANDE (v5.6, maquette) ═══════════
      Mesuré avant : une carte de minuteur y occupait ~190 px (nom, précision, valeur 34 px, barre,
      « Cycles : n », puis DEUX boutons pleine largeur), et un compteur ~150 px en carte centrée.
@@ -3310,22 +3441,6 @@
   .rt-panel .tk-panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;margin:12px 0 0;padding:12px 0 0}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
-  /* « NOTER L'HEURE » N'EST PAS L'ACTION PRIMAIRE DE L'ÉCRAN (v4.77.0, question utilisateur : « le
-     bouton fond bleu Noter l'heure n'est-il pas en contradiction avec la règle d'un seul bouton
-     bleu ? »). Il l'était : en session, l'écran porte déjà « Continuer — … → » (ou « Confirmé —
-     démarrer la session » avant), et c'est LUI qui fait avancer le soin. Un second aplat bleu dans
-     le rail mettait un horodatage au même niveau de saillance qu'un geste de checklist.
-     Il passe donc TONAL — registre de l'action, sans la prééminence : `--primary-soft` + bordure,
-     c'est-à-dire la grammaire que prend TOUT bouton d'action quand un autre lui prend le
-     remplissage (règle « un seul bouton rempli par écran », v4.0.3). Rien ne change de sa cible
-     (44 px) ni de sa place. */
-  .tk-add{background:var(--primary-soft);color:var(--primary-dk);border:1px solid var(--primary);border-radius:var(--radius-sm);min-height:44px;padding:8px 12px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
-  /* UNE SEULE règle de survol (v4.78.0, signalé à l'usage : « le hover de Noter l'heure s'affiche
-     en bleu foncé »). En passant le bouton en tonal j'avais ajouté `:hover{--primary-100}` SANS
-     retirer l'ancien `:hover{--primary-hi}` — le remplissage de survol d'un bouton PLEIN. Deux
-     règles de même spécificité : l'ordre décide, et c'était l'ancienne. Un survol sombre sur un
-     fond clair, c'est-à-dire l'inverse du sens de lecture. */
-  .tk-add:hover{background:var(--primary-100)}
   /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
   .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 8px;font-size:11px;font-weight:700;
     letter-spacing:.02em;color:var(--ink-soft)}
@@ -3483,7 +3598,7 @@
   body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
-    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,#tkKey),
+    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkKey),
   body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
@@ -4252,23 +4367,33 @@
      ligne d'état coupe la rangée) ; chip = bouton natif ≥ 44 px, tap = déplier sur place.
      Étape faite = registre CONFIRMATION (fond --done-bg + ✓ vert) ; décision répondue = registre
      ATTENTION (bordure --verify-bd) avec la réponse en toutes lettres — la couleur jamais seule. */
-  .ov-crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 8px}
   /* Ligne-bilan ECL (v4.16.4) : une rangée de + de 4 chips repliée en un statut synthétique
      vert — même grammaire que la ligne d'état d'une instance complète, pleine largeur. */
-  .ov-runline{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;margin:2px 0 8px;padding:6px 12px;border:1px solid var(--done-line);border-left:4px solid var(--done-line);border-radius:8px;background:var(--done-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation}
-  .ov-runline:hover{border-color:var(--primary)}
-  .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* LA LIGNE-BILAN (v5.6, maquette) : un DÉCLENCHEUR de texte, pas une carte — ce qui est
+     derrière est déjà fait, il n'a rien à réclamer. La carte, c'est le DÉPLIÉ. */
+  .ov-runline{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;
+    margin:2px 0 8px;padding:6px 12px;border:0;background:none;color:var(--ink-2);
+    font-family:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;touch-action:manipulation}
+  .ov-runline:hover{color:var(--ink)}
+  .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
-  .ov-runline .ovr-chev{margin-left:auto;color:var(--link);font-weight:800}
-  .ovc{display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:4px 10px;border:1px solid var(--done-line);border-radius:8px;background:var(--done-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation}
-  .ovc:hover{border-color:var(--primary)}
-  .ovc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .ovc-n{font-family:var(--mono);font-size:11px;font-weight:700}
-  .ovc-t{font-weight:700;white-space:nowrap}
-  .ovc-ok{color:var(--ok);font-weight:800}
-  .ovc-x{font-family:var(--mono);font-size:11px;color:var(--ink-soft);font-weight:600}
-  .ovc.dec{background:var(--verify-soft);border-color:var(--verify-bd);color:var(--ink)}
-  .ovc-a{font-weight:700;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ov-runline .ovr-chev{color:var(--ink-3);font-weight:800}
+  /* Déplié : une carte de rangées à filet — la grammaire du parcours, pour que « la liste des
+     blocs » se lise pareil partout. */
+  .ov-hist{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);
+    padding:0 16px;margin:2px 0 8px}
+  .ov-hist .ov-runline{margin:0;justify-content:flex-start}
+  .ovh-row{display:flex;gap:10px;align-items:baseline;width:100%;min-height:44px;padding:10px 0;
+    background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
+    font-family:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
+  .ovh-row:hover{color:var(--ink)}
+  .ovh-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .ovh-ok{flex:none;color:var(--ok);font-weight:800}
+  .ovh-t{flex:1;min-width:0}
+  .ovh-x{color:var(--ink-3);font-weight:600}
+  .ovh-n{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
+  .ovh-a{flex:none;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:var(--t-cap);font-weight:700;color:var(--act)}
   /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
   .ov-plan-h{display:flex;align-items:center;gap:6px;margin:18px 0 4px;min-width:0}
   .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
@@ -4307,9 +4432,20 @@
      droite. Pas de liseré coloré sur une rangée ordinaire : l'état vit dans la PASTILLE, et la
      position dans le fond de la rangée courante. Un liseré de plus ferait deux canaux pour un
      seul état, et hacherait la colonne. */
-  .pl-line{display:flex;align-items:center;gap:8px;min-height:44px;padding:6px 8px;
-    border-bottom:1px solid var(--line);cursor:pointer}
-  .pl-line.d1{padding-left:20px}
+  /* ══ LA RANGÉE DEVIENT UNE CARTE (v5.6, maquette — « mixte entre la maquette et l'existant »)
+     La maquette pose chaque bloc dans une carte blanche bordée, séparée par 6 px, et met le
+     numéro DANS le titre (« 7 · Reprise du massage »). Ce qui est repris : la CARTE (une pile de
+     lignes à filet se lit comme un tableau, une pile de cartes se compte d'un coup d'œil), les
+     renvois en `--act`, les comptes en mono `--ink-3`, et le pointillé du hors-chemin.
+     CE QUI NE L'EST PAS, et c'est le « mixte » : le MARQUEUR reste une pastille. C'est la
+     doctrine de la colonne depuis la v4.23.0 — l'état n'y vit que là, et le losange d'une
+     décision porte la même grammaire. Un numéro fondu dans le titre rendrait l'état au TEXTE,
+     c'est-à-dire à la couleur seule (règle 8), et ferait diverger cette colonne des pastilles de
+     la carte de travail. La maquette n'inline pas non plus les items du bloc courant ici : au
+     cockpit la carte est juste à côté, ce serait la recopier. */
+  .pl-line{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;
+    background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);cursor:pointer}
+  .pl-line.d1{padding-left:24px}
   .pl-line.d2{padding-left:32px}
   .pl-line.d3{padding-left:48px}
   .pl-line .n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -4327,6 +4463,17 @@
     border-radius:3px;transform:rotate(45deg);z-index:-1}
   .pl-line.dec.cur .n::before{background:var(--primary);border-color:var(--primary)}
   .pl-line.dec.done .n::before{background:var(--ok);border-color:var(--ok)}
+  /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
+     demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
+     Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
+     lignes de texte, et c'est aussi ce qui règle la troncature : un bloc ellipsé se retrouve
+     par son numéro, un item de surveillance ellipsé perd son contenu clinique — il ENROULE.
+     Ce sont les seules rangées de la colonne à ne pas être des cartes, et la différence de
+     forme dit exactement ce qu'elle doit dire : ceci n'a pas de rang. */
+  .pl-line.wl{background:none;border:0;border-radius:0;min-height:0;padding:4px 0;cursor:default;
+    align-items:baseline;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pl-line.wl .t{white-space:normal;overflow:visible;font-size:var(--t-meta);color:var(--ink-2)}
+  .pl-line.wl .n.mk{width:auto;height:auto;color:inherit}
   /* Les marqueurs de queue : la FORME dit le registre, l'encre reste celle de la colonne. */
   .pl-line .n.mk{border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:800}
   .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);
@@ -4351,17 +4498,22 @@
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
      s'abrègent (`optAbbr`) donc ils tiennent ; s'ils ne tiennent pas, c'est le TITRE qui cède —
      un titre ellipsé se devine, un renvoi tronqué ne se répare pas. */
-  .pl-line .g{flex:none;max-width:52%;font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+  .pl-line .g{flex:none;max-width:52%;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-2);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
-  .pl-here{color:var(--link);font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-  .pl-line .g b{font-weight:700;color:var(--verify)}
+  .pl-here{color:var(--act);font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  .pl-line .g b{font-weight:700;color:var(--ink-2)}
   .pl-line .g b.tk{color:var(--ok)}
   .pl-line .g .fin{color:var(--ok);font-weight:700}
-  .pl-line .pl-ref{color:var(--link);font-weight:700;cursor:pointer;padding:0 1px}
-  .pl-line.dec .t{color:var(--verify)}
-  .pl-line.cur{background:var(--primary-soft)}
-  .pl-line.cur .t{color:var(--primary-dk)}
-  .pl-line.off{opacity:.5}
+  .pl-line .pl-ref{color:var(--act);font-weight:700;cursor:pointer;padding:0 1px}
+  .pl-line.dec .t{color:var(--ink)}
+  /* Le bloc COURANT prend le filet d'accent, pas un aplat : la colonne reste désaturée, et
+     « ICI » dit la position en toutes lettres (la couleur n'est jamais seule). */
+  .pl-line.cur{border-color:var(--act)}
+  .pl-line.cur .t{color:var(--ink)}
+  /* HORS CHEMIN : pointillé + encre douce + la MENTION en toutes lettres (jamais l'opacité, qui
+     tombe sous AA — leçon v5.0.0/A1-1). */
+  .pl-line.off{border-style:dashed;background:none}
+  .pl-line.off .t,.pl-line.off .g{color:var(--ink-3)}
   .pl-line:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .pl-line.flash{background:var(--primary-soft)}
   .pl-lx{padding:6px 10px 10px 32px;background:var(--surface);border-bottom:1px solid var(--line)}
@@ -4969,15 +5121,34 @@
      que le titre et le ✕ s'alignent sur les bords du contenu, pas sur ceux de l'écran. */
   .rs-body{display:flex;flex-direction:column;gap:10px;max-width:860px;margin:0 auto;width:100%}
   @media (min-width:924px){.rs-bar{padding-left:calc(50% - 430px);padding-right:calc(50% - 430px)}}
-  .rs-sec{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:52px;padding:0 12px;
-    font-size:13.5px;font-weight:800;color:var(--ink);cursor:pointer}
+  /* ══ UNE SECTION EST UN INTERTITRE DANS UNE CARTE (v5.6, maquette) ═══════════════════════
+     Elle était une RANGÉE-MENU de 52 px, en 13,5/800 encre pleine, avec un chevron et un survol
+     teinté : le titre pesait autant que le contenu, et cinq sections faisaient 260 px de
+     titres avant la première ligne utile. La maquette en fait ce qu'ils sont — des intertitres
+     de document (11 px, petites capitales, `--ink-3`), à l'intérieur de la carte qu'ils
+     coiffent. Le `<details>` RESTE (clavier et lecteur d'écran gratuits, repli possible) : ce
+     qui change est le dessin, pas la capacité.
+     ⚠ LA CIBLE RESTE À 44 px, et ce n'est pas négociable en mode crise — la maquette dessine un
+     intertitre de 27 px, on garde son ASPECT et on lui rend sa hauteur en rembourrage. Un halo
+     `::after` n'était PAS une option : sur une rangée pleine largeur, il recouvrirait la
+     première ligne de contenu, et un tap destiné à lire replierait la section. */
+  .rs-sec{background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);padding:0 16px 12px}
+  .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:44px;
+    font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-2);cursor:pointer}
   .rs-sec>summary::-webkit-details-marker{display:none}
-  .rs-sec>summary::after{content:"▾";margin-left:auto;color:var(--line-strong);font-size:13.5px;flex:none}
+  .rs-sec>summary::after{content:"▾";margin-left:auto;color:var(--ink-3);font-size:var(--t-body);flex:none}
   .rs-sec[open]>summary::after{content:"▴"}
-  .rs-sec>summary:hover{background:var(--surface-2)}
+  .rs-sec>summary:hover{color:var(--ink-2)}
   .rs-sec>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .rs-sec .rs-in{padding:0 12px 12px}
+  .rs-sec .rs-in{padding:0}
+  /* Documents DANS la feuille : rangées à filet, pas des cartes empilées dans une carte. */
+  .rs-sec .att-list{display:block}
+  .rs-sec .att-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;
+    padding:0 2px;min-height:48px}
+  .rs-sec .att-list .att-row:last-child{border-bottom:0}
+  .rs-sec .att-row:hover{background:none;color:var(--act)}
+  .rs-sec .att-size{font-size:var(--t-cap);color:var(--ink-3)}
   /* Les sections rendues par staticBlock/attListHtml apportent leur propre .block : on neutralise
      leur cadre pour ne pas empiler deux cartes. */
   .rs-body :is(.block,.notes-block){background:none;border:0;border-radius:0;padding:0;margin:0;box-shadow:none}
@@ -5199,10 +5370,13 @@
      9) et redescend à 38 px au pointeur fin — il n'existe donc aucun nombre juste à écrire ici.
      `align-self:stretch` fait porter la hauteur par la RANGÉE, quelle que soit celle du champ, et
      `min-height` garde la cible réglementaire si la rangée devenait un jour plus courte. */
-  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;
-    position:relative;min-width:38px;align-self:stretch;min-height:36px;padding:0 8px;border:1px solid var(--line-strong);
-    border-radius:8px;background:var(--surface);color:var(--ink-soft);font-family:inherit;
-    font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;
+  /* Le déclencheur de filtre (maquette accueil) : sur la rangée des contrôles de liste, à son
+     bord DROIT, avec son MOT — glyphe seul, il fallait l'apprendre. Cible 44 px par le halo,
+     dessin 36 px : il ne doit pas épaissir la rangée. */
+  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    position:relative;min-height:36px;padding:0 10px;border:1px solid var(--line-strong);
+    border-radius:var(--r-2);background:var(--work);color:var(--act);font-family:inherit;
+    font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
     cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
   .filt-tog[hidden]{display:none}
   .filt-tog::after{content:"";position:absolute;inset:-4px}
@@ -5212,6 +5386,8 @@
   .filt-tog.act:hover{background:var(--primary-hi);border-color:var(--primary-hi);color:var(--on-primary)}
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filt-n[hidden]{display:none}
+  .filt-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.02em}
+  .filt-c{font-weight:800;line-height:1}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
@@ -5394,13 +5570,8 @@
        porteur de sens au lieu d'être uniforme, et une ligne tient 58px là où une carte en prenait
        85. La DOSE reste en encre PLEINE : la hiérarchie avec le nom passe par la GRAISSE, jamais
        par l'encre — adoucir un dosage serait l'inversion à ne pas faire. */
-    .read-side .pos-card{background:none;border:0;border-radius:0;padding:8px 2px;margin:0}
-    .read-side .pos-card+.pos-card{border-top:1px solid var(--line)}
-    .read-side .pos-name{font-size:13.5px;color:var(--ink)}
-    .read-side .pos-body{margin-top:2px;font-size:13.5px;line-height:1.45;color:var(--ink)}
-    .read-side .pos-card.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
-      border-radius:8px;padding:8px 10px;margin:8px 0}   /* 8 (pas 2) : deux boîtes ambre
-      consécutives se collaient — les marges verticales fusionnent au MAX, 2+2 -> 2px */
+    /* v5.6 : le rail n'a PLUS RIEN à surcharger — le flux et la colonne partagent désormais la
+       même rangée inline. Deux habillages pour un même objet en feraient deux composants. */
     /* ⚠ CETTE RÈGLE NE VAUT QUE POUR UNE LIGNE QUI SUIT UNE BOÎTE (signalé à l'usage : « la
        bordure du haut des repères en dessous du premier est tronquée »). Elle a été écrite quand
        le repère ORDINAIRE était une ligne à filet : après une boîte ambre, ce filet ferait double
@@ -5409,8 +5580,6 @@
        la seconde se retrouvait alors sans bord haut, et se lisait comme rognée.
        C'est la même leçon que « normal = ligne, signalé = boîte » : une règle écrite pour une
        LIGNE ne doit pas s'appliquer à une BOÎTE. */
-    .read-side .pos-card.vig+.pos-card:not(.vig){border-top:0}
-    .read-side .pos-card.vig .pos-name{color:var(--verify)}
     /* AUCUNE section bornée (v4.23.0, retour d'usage « où sont passés mes minuteurs ? »).
        Une tentative de borner la seule section minuteurs a suffi à FAIRE DISPARAÎTRE le compteur
        et le bouton « ＋ Minuteur PA » : 327px affichés pour 413px de contenu, et la barre de
@@ -5485,9 +5654,10 @@
        niveaux de surface pour un seul objet.
        LA DÉSATURATION RESTE, et elle est même plus nette : aucun aplat de rangée sauf la COURANTE,
        aucun texte coloré — tout l'état vit dans la PASTILLE, qui est le marqueur. */
-    .rail-lad{margin-top:6px}
-    .rail-lad .pl-line{padding-left:2px}
-    .rail-lad .pl-line:last-child{border-bottom:0}
+    .rail-lad{margin-top:6px;display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+    /* v5.6 : la rangée est une CARTE — le retrait de 2 px du dessin plat ferait coller le texte
+       au filet. Le retrait de base (12 px) vaut ici aussi ; seuls les niveaux imbriqués gardent
+       leur échelle resserrée, ci-dessous. */
     /* ⚠ LA CHIP DE BRANCHE S'ALIGNE SUR LE MARQUEUR DU BLOC QU'ELLE OUVRE (signalé à l'usage :
        « réaligne les tags des options aux numéros de blocs enfants »). Elle avait les retraits du
        PLAN (20/32/48) alors que la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
@@ -5496,15 +5666,11 @@
     .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1{padding-left:16px}
     .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2{padding-left:28px}
     .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3{padding-left:40px}
-    .rail-lad .pl-line:is(.dec,.done){background:none}
-    .rail-lad .pl-line:is(.dec,.cur,.done) .t{color:var(--ink)}
     .rail-lad .pl-line.cur .t{font-weight:800}
-    .rail-lad .pl-line .g b{color:var(--ink-soft)}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
-    .rail-lad .pl-line.off{opacity:1}
-    .rail-lad .pl-line.off :is(.n,.t,.g){color:var(--ink-soft)}
-    .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:11px;color:var(--ink-soft)}
+    .rail-lad .pl-line.off .n{color:var(--ink-3)}
+    .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:var(--t-cap);color:var(--ink-3)}
     /* Seule la PREMIÈRE grille colle à l'en-tête ; `.rt-counters` GARDE son margin-top, sinon la
        dernière carte de minuteur et la première de compteur se touchent (retour d'usage). */
     body.view-read .read-side .rt-grid{margin-top:0}
@@ -5833,7 +5999,7 @@
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture

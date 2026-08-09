@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vUv9ObavE2cbHQpRXOdtGdvuPb8TQcAnUd+Z+4aBZcM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-jXy388Hq2wXp4L78zAQ1EkR6JYjbNzMnnx5tHZ9Uqx0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1931,14 +1931,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* La lettre de classement est en SERIF : c'est un index d'ouvrage, pas du chrome (la même
      voix que les titres de fiches, qui est l'identité clinique de v4.61). En clé « Catégories »,
      elle porte en plus la pastille de la catégorie — la couleur n'est jamais seule, le nom est là. */
-  .dir-l{display:flex;align-items:center;gap:6px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:12px 2px 6px}
+  /* ══ LE RÉPERTOIRE EST UN LIVRE, PAS UNE PILE DE CARTES (v5.6, maquette 1a) ════════════════
+     Chaque lettre avait SA carte : sur une bibliothèque réelle, l'annuaire devenait un empilement
+     de boîtes dont aucune ne dit rien — et le rail d'index, posé à l'extérieur, ne se rattachait
+     visuellement à rien. UNE carte contient tout ; les lettres y sont des INTERTITRES avec leur
+     filet, et le rail vit DEDANS, contre la marge droite que la carte lui réserve. */
+  .dir-book{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);padding:2px 16px;position:relative}
+  .dir-book.pinned{margin-bottom:4px}
+  .dir-l{display:flex;align-items:baseline;gap:8px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
+  .dir-lr{flex:1;border-bottom:1px solid var(--line)}
   .dir-dot{width:8px;height:8px;border-radius:999px;flex:none}
   /* Le sélecteur de clé de groupement — grammaire des chips de filtre (c'est de la même famille :
      un objet qui décide de ce qu'on voit), poussé au bout de l'en-tête de section. */
   /* Le sélecteur de clé a SA rangée, au-dessus des sections qu'il réordonne (maquette 1a) : au
      bout du titre « Répertoire », il se lisait comme une propriété de cette seule section, alors
      qu'il gouverne la liste entière. */
-  .grp-row{display:flex;align-items:center;gap:8px;margin:12px 0 0}
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:12px 0 0}
+  .grp-row:empty{display:none}
+  .grp-row .filt-tog{margin-left:auto}
   .grp-seg{flex:none;display:flex;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
   .grp-b{min-height:32px;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
   .grp-b.on{background:var(--sys);color:var(--sys-ink)}
@@ -1946,7 +1956,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .grp-b:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .azrail.catrail button{padding:0 4px;min-height:26px}
   .azr-dot{display:block;width:8px;height:8px;border-radius:999px}
-  .dir-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+  /* Dans le livre, les rangées n'ont plus de carte à elles : un filet les sépare, et la dernière
+     d'un groupe n'en porte pas (c'est l'intertitre suivant qui borne). */
+  .dir-grid{display:block}
+  .dir-book .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;height:auto;min-height:60px;padding-left:0;padding-right:24px}
+  .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
+  .dir-book.pinned .dir-row:last-child{border-bottom:0}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
      les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
@@ -2118,6 +2133,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
   .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
     background:var(--catcol,var(--line-strong));border-radius:var(--radius-md) 0 0 var(--radius-md)}
+  /* Dans le LIVRE, la rangée n'a plus de bord à elle : le liseré de catégorie se pose dans la
+     marge de la carte, où il reste lisible comme un onglet d'annuaire. */
+  .dir-book .dir-row::before{left:-16px;border-radius:0;top:1px;bottom:1px}
+  .dir-book .dir-row.live{background:none}
+  .dir-book .dir-row.live::before{width:3px}
   /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
      registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
      VIVANT. Ce dernier est le plus juste des trois : il occupe une place DÉJÀ prise (une date de
@@ -2151,7 +2171,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* < 640 px : les rangées d'une lettre deviennent une LISTE à filets dans une carte unique
      (maquette mobile) — mêmes nœuds, seul le conteneur change de peau. */
   @media (max-width:639.98px){
-    .dir-grid{display:block;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);overflow:hidden}
+    /* ⚠ EN VOIE ÉTROITE, LA CARTE ÉTAIT SUR LE GROUPE — elle est désormais sur le LIVRE, qui
+       contient tous les groupes : la laisser ici produisait une carte DANS la carte (double
+       cadre) et son `overflow:hidden` rognait le liseré de catégorie posé dans la marge. */
+    .dir-grid{display:block}
+    .dir-wrap>.dir-grid{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);overflow:hidden}
     /* Le séparateur interne passe de `--surface-2` à `--line` : une SURFACE employée comme
        filet est invisible par construction (v5.0.0, A1-3). Le cadre, lui, est sur la carte. */
     .dir-row{border:0;border-top:1px solid var(--line);border-radius:0}
@@ -2424,6 +2448,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:15px;padding:0 4px;flex:none}
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
+  /* AVANT LA SESSION (v5.6, maquette) : l'encadré de la condition d'entrée. Contour d'alerte,
+     titre en petites capitales `--crit`, un ■ par critère — la couleur n'est jamais seule
+     (règle 8), la FORME du marqueur porte le registre autant que sa teinte. */
+  /* ⚠ CARTE DE TRAVAIL, PAS ENCADRÉ ROUGE (maquette 1c contre 1b — les deux existent, on tranche
+     par ce qui l'entoure) : le chapeau « Ne pas oublier » juste dessous EST un encadré rouge.
+     Deux cadres rouges qui se suivent, c'est l'inflation que ce dossier combat depuis la v4.23.0
+     — la seconde masse ne dit plus rien. Le registre vit donc dans le TITRE et dans les
+     marqueurs ; le cadre reste celui d'une carte de travail. */
+  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:12px 18px 0}
+  .conf-eh{display:flex;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:800;
+    letter-spacing:.09em;text-transform:uppercase;color:var(--crit)}
+  .conf-mk{font-size:var(--t-cap);line-height:1}
+  .conf-block.entry ul.flat{padding:4px 0 0;border-top:0}
+  ul.flat.confirm.entry li{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:0;
+    font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  ul.flat.confirm.entry li::before{display:none}
+  .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
+  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-3)}
+  .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
   /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
      on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
      (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
@@ -2737,9 +2780,30 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
      colonne : elle ORIENTE, la colonne d'action AGIT — deux surfaces ne se disputent pas le
      regard au même niveau de saillance. */
-  /* L'ONGLET « PARCOURS » : la fiche entière en cartes de blocs, inertes (M9, maquette). */
-  .pc-sub{font-size:11px;font-weight:700;letter-spacing:.02em;color:var(--ink-soft);margin:2px 0 10px}
-  .pc-sub b{font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
+  /* L'ONGLET « PARCOURS » (v5.6, maquette) : la SÉQUENCE en rangées — une par bloc, l'état dans
+     la marque, les renvois à droite ; seul le bloc COURANT développe ses items. Le contenu
+     complet, c'est l'onglet « Page ». Les cartes `.pc-card` restent pour les trois sections
+     encadrantes (condition d'entrée, à tout moment, surveiller) : ce ne sont pas des blocs de
+     la séquence, et la différence de forme le dit. */
+  .pc-sub{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:600;color:var(--ink-3);margin:2px 0 10px}
+  .pc-sub b{font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  .pc-rows{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:10px}
+  .pc-row{background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);padding:10px 14px;
+    font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pc-row.d1{margin-left:12px}.pc-row.d2{margin-left:24px}.pc-row.d3{margin-left:32px}
+  .pc-rh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .pc-mk{flex:none;color:var(--ok);font-weight:800;display:inline-flex;align-items:center}
+  .pc-mk:empty{display:none}
+  .pc-rt{flex:1;min-width:0}
+  .pc-x{color:var(--ink-3);font-size:var(--t-meta);font-weight:600}
+  .pc-gn{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
+  .pc-go{flex:none;max-width:52%;font-size:var(--t-cap);font-weight:700;color:var(--act);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pc-off{flex:none;font-size:var(--t-cap);color:var(--ink-3)}
+  /* Le bloc courant : filet d'accent, jamais un aplat — la vue reste une vue d'ORIENTATION. */
+  .pc-row.cur{border-color:var(--act);color:var(--ink)}
+  .pc-row.off{border-style:dashed;color:var(--ink-3)}
+  .pc-row.cur .pc-rh{padding-bottom:8px}
   .pc-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);
     border-radius:var(--radius-md);padding:10px 12px;margin:0 0 10px}
   .pc-card.d1{margin-left:12px}.pc-card.d2{margin-left:24px}.pc-card.d3{margin-left:32px}
@@ -2797,25 +2861,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border:1px solid var(--verify-bd);border-radius:8px;padding:2px 8px}
   .pc-opt.tk{color:var(--ok);background:var(--done-bg);border-color:var(--done-line)}
   .pc-opt b{font-family:var(--mono);font-weight:700}
-  /* LA FEUILLE « CONSULTER » (M10, maquette) : une rangée par entrée — case INERTE, intitulé,
-     valeur en pilule mono. Une entrée SIGNALÉE (△) devient une carte teintée, comme partout
-     ailleurs dans le produit : « normal = ligne, signalé = boîte ». */
-  .rs-rows{display:block}
-  .rs-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 2px;
-    border-bottom:1px solid var(--line)}
-  .rs-row:last-child{border-bottom:0}
-  .rs-box{flex:none;width:22px;height:22px;border-radius:8px;border:2px solid var(--line-strong)}
-  .rs-t{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink)}
-  .rs-v{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:12px;
-    background:var(--tag-bg);color:var(--tag-ink);border-radius:8px;padding:4px 8px;width:fit-content}
-  .rs-row.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
-    border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:8px}
-  .rs-row.vig .rs-t{color:var(--verify);text-transform:uppercase;letter-spacing:.02em}
-  .rs-row.vig .rs-box{border-color:var(--verify-bd)}
-  .rs-row.crit{background:var(--critical-soft);border:1px solid var(--critical-bd);
-    border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:8px}
-  .rs-row.crit .rs-t{color:var(--critical)}
-  .rs-row.crit .rs-box{border-color:var(--critical-bd)}
+  /* ══ « CONSULTER » EST UN DOCUMENT, DONC DES LIGNES (v5.6, maquette — demande utilisateur :
+     « rends surveiller, documents etc. plus inline ») ════════════════════════════════════════
+     LA CASE INERTE EST PURGÉE, ET C'EST LE MÊME ARGUMENT QU'EN v5.0.0/M1 POUR L'ÉDITEUR : une
+     case qu'on ne peut pas cocher, dans une surface dont l'inertie est la propriété qu'un harnais
+     vérifie, INVITE au geste qu'elle refuse. Elle coûtait en plus 32 px de gouttière par ligne
+     dans une feuille dont tout le mérite est de tenir en une chiquenaude de défilement.
+     ET PLUS D'APLAT SUR UNE ENTRÉE SIGNALÉE (A11) : « normal = ligne, signalé = boîte » est la
+     doctrine des ÉTAPES — ce qu'on exécute. Ici on CONSULTE : deux différentiels ambre feraient
+     deux masses colorées dans la seule surface qu'on ouvre quand « ça ne colle pas », et l'aplat
+     cesserait de vouloir dire « maintenant ». Le registre reste porté par le glyphe et l'encre.
+     `.rs-box` est PURGÉE avec sa règle (règle 14). */
+  .rs-rows{display:grid;gap:4px}
+  .rs-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;
+    font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .rs-t{flex:1;min-width:0}
+  .rs-v{flex:none;max-width:100%;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+  .rs-row.vig .rs-t{color:var(--warn)}
+  .rs-row.crit .rs-t{color:var(--crit)}
   /* LE DÉPLIANT DU QUAI (M11) : il appartient à la zone d'état, il se pose donc au plus près
      d'elle et se distingue du contenu clinique par un simple retrait de surface. */
   /* ⚠ LE DÉPLIANT D'UNE LIGNE N'EST PLUS UNE CARTE BLANCHE (signalé à l'usage : « est-ce
@@ -2857,6 +2920,71 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rt-dock{max-height:calc((100svh / var(--zf,1) - var(--stick-top,110px))*.8)}
   }
   .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 18px 16px}
+  /* ══ LE VOLET EST UN ÉTAGE DU BLOC DE CHROME, DONC IL EST SOMBRE (v5.6, maquette — signalé à
+     l'usage : « en largeur de smartphone le bandeau déroulant ne correspond pas au nouveau
+     design ») ══════════════════════════════════════════════════════════════════════════════
+     La v5.4.1 avait fait du volet un ÉTAGE du quai plutôt qu'une carte flottante — c'était la
+     bonne structure, avec la matière d'AVANT : `--surface`, blanc, comme le contenu clinique.
+     Depuis les trois matières (v5.6), le chrome est `--sys` : un étage du quai qui serait blanc
+     annoncerait qu'on est revenu dans le travail. La matière EST le message ; on la corrige, la
+     structure ne bouge pas d'un pixel.
+     ⚠ LE CONTENU CLINIQUE NE DEVIENT PAS SOMBRE POUR AUTANT : ce qui bascule ici, ce sont des
+     ÉTATS (temps, décomptes, repères horodatés), c'est-à-dire ce que le quai porte déjà. Aucune
+     étape, aucune dose, aucun texte d'auteur ne vit dans ce volet. */
+  .rt-dock{background:var(--sys);border-bottom:0;color:var(--sys-ink)}
+  .rt-dock .rt-head{margin-bottom:8px}
+  .rt-dock .rt-head b,.rt-dock .tk-head b{color:var(--sys-ink-2)}
+  .rt-dock .rt-ic{color:var(--sys-ink-2)}
+  .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
+  .rt-dock .fam-n{background:var(--sys-2);color:var(--sys-ink-2);border-color:var(--sys-line)}
+  .rt-dock :is(.rt-sound,.rt-warn){background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink-2)}
+  .rt-dock .rt-sound.off{color:var(--warn-sys);border-color:var(--warn-line);background:var(--warn-sys-bg)}
+  .rt-dock .rt-warn{color:var(--warn-sys);border-color:var(--warn-line)}
+  /* Les cartes se resserrent comme celles du rail : libellé 11 px, valeur mono, commandes sur UNE
+     rangée. La barre de progression et le compte de cycles restent — dans le volet, contrairement
+     au rail, c'est la vue de DÉTAIL qu'on est venu ouvrir. */
+  .rt-dock :is(.tmcard,.cncard){background:var(--sys-2);border:1px solid var(--sys-line);
+    border-radius:var(--r-2);color:var(--sys-ink);min-height:80px;padding:10px 12px}
+  .rt-dock .tmcard{--tcol:var(--sys-ink);--tbd:var(--sys-line)}
+  .rt-dock :is(.tm-label,.cncard .tm-label){font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2);
+    margin-bottom:4px;min-height:0;-webkit-line-clamp:2}
+  .rt-dock .tm-meta{color:var(--sys-ink-2);margin:-2px 0 4px}
+  .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-step-l);font-weight:700;color:var(--sys-ink)}
+  .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}
+  .rt-dock .tm-bar-wrap{background:var(--sys-line)}
+  .rt-dock .tm-bar{background:var(--sys-ink-2)}
+  .rt-dock .tm-ctrl{flex-direction:row;gap:6px;margin-top:8px}
+  .rt-dock .tm-btn{width:auto;flex:1;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
+  .rt-dock .tm-main{background:none;border-color:var(--sys-ink-2);color:var(--sys-ink);font-weight:800}
+  .rt-dock .tm-btn:hover{background:var(--sys-2)}
+  .rt-dock .tmr-hint{color:var(--sys-ink-2)}
+  .rt-dock .tm-mini{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
+  .rt-dock .tmm-b{color:var(--sys-ink-2)}
+  .rt-dock .rt-add{border:1px dashed var(--sys-line);color:var(--sys-ink-2)}
+  .rt-dock .cn-val{color:var(--sys-ink)}
+  /* ⚠ `.cn-btn[data-cninc]` vaut (0,2,0) et vit 3 400 lignes plus bas : une règle de classe
+     seule perdait l'aplat tonal du « + » (mesuré — le bouton restait bleu clair sur le sombre).
+     On passe par l'attribut, comme lui. Le « + » garde sa PRÉÉMINENCE (on incrémente dix fois
+     pour une correction) : sur matière système, elle se dit par un fond `--sys-2` plein contre
+     un contour nu, plutôt que par un aplat clair qui trouerait le volet. */
+  .rt-dock .cn-btn{background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-width:44px;min-height:44px}
+  .rt-dock .cn-btn[data-cninc]{background:var(--sys-2);border:1px solid var(--sys-ink-2);color:var(--sys-ink)}
+  .rt-dock .cn-btn:hover,.rt-dock .cn-btn[data-cninc]:hover{background:var(--sys-2)}
+  .rt-dock :is(.cn-reset,.tm-reset){background:none;border-color:var(--sys-line);color:var(--sys-ink-2)}
+  .rt-dock .cn-note{color:var(--sys-ink-2)}
+  .rt-dock .cn-log{color:var(--sys-ink-2)}
+  /* ÉCHU : la seule couleur du volet, et elle est l'alarme (registre ATTENTION sur matière
+     système — la paire `--warn-sys` / `--warn-sys-bg`, celle du segment échu de la capsule). */
+  .rt-dock .tmcard.due{background:var(--warn-sys-bg);border-color:var(--warn-line);--tcol:var(--warn-sys)}
+  .rt-dock .tmcard.due .tm-label{color:var(--warn-sys);font-weight:800}
+  .rt-dock .tmcard.due .tm-main{border-color:var(--warn-line);color:var(--warn-sys)}
+  .rt-dock .tm-mini.due{background:var(--warn-sys-bg);border-color:var(--warn-line);color:var(--warn-sys)}
+  /* Le journal : une section à filet dans la même matière (jamais une carte dans la carte). */
+  .rt-dock .tk-panel{border-top-color:var(--sys-line)}
+  .rt-dock .tk-row{color:var(--sys-ink);border-color:var(--sys-line)}
+  .rt-dock :is(.tk-el,.tk-from,.tk-sug){color:var(--sys-ink-2)}
+  .rt-dock .tk-lab{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
+  .rt-dock :is(.tk-del,.tk-time){color:var(--sys-ink-2)}
   /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
      droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —
      `.pl-cxh` avec 9 px de retrait et un `space-between` qui renvoyait « hors numérotation » sur
@@ -2878,7 +3006,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      était trop collé à la ligne du dessus »). Les en-têtes de queue vivent DANS l'échelle, donc
      ils y prennent la même marge basse que celui de tête (10 px) et une marge haute qui les
      détache franchement de la section précédente (20 px) — quel qu'en soit le nombre. */
-  .rail-lad .rail-head{margin:20px 0 10px}
+  .rail-lad .rail-head{margin:20px 0 4px}
   .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:16px 0 2px;padding:0;line-height:1.35}
   .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
@@ -3033,17 +3161,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
   .alg-panel .flow-hint{margin:0 4px 10px}
   /* Repères posologiques (canvas) : cartes ; « ⚠ » en tête = registre ALERTE. */
-  .pos-card{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:12px 14px;margin-bottom:6px;color:var(--ink)}
-  .read-side .pos-card{margin-bottom:0}   /* le rail espace déjà (gap 12) */
-  .pos-name{font-size:15px;font-weight:800;color:var(--link)}
-  .pos-body{margin-top:4px;font-size:13.5px;line-height:1.5}
-  .pos-card>.pos-body:first-child{margin-top:0}
+  .pos-card{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink)}
+  .pos-card:first-child{border-top:0}
+  .pos-name{flex:1 1 auto;min-width:0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pos-mk{color:var(--warn);font-weight:800}
+  /* La valeur ne se tronque JAMAIS (un chiffre amputé est pire qu'absent) : elle enroule sur sa
+     propre ligne quand le nom est long — d'où `flex-wrap` sur la rangée. */
+  .pos-body{flex:0 1 auto;max-width:100%;font-family:var(--mono);font-size:var(--t-body);font-weight:600;color:var(--ink);line-height:1.4}
+  .pos-body b{font-weight:700}
   /* Registre VIGILANCE (ambre) — voir posoCardsHtml : un dosage relève du « risque d'erreur »,
      pas de l'« oubli mortel ». Le rouge reste au chapeau « Ne pas oublier » et aux étapes vitales,
      qui sont des GESTES. Une seule masse rouge par écran. */
-  .pos-card.vig{background:var(--verify-soft);border-color:var(--verify-bd)}
-  .pos-card.vig .pos-name{color:var(--verify)}
-  .pos-card.vig b{color:var(--verify)}
+  /* A11 : un repère SIGNALÉ se MARQUE (△ + encre ambre) ; il ne prend pas d'aplat — deux
+     repères ambre feraient deux masses colorées, et l'aplat cesserait de vouloir dire
+     « maintenant ». Le nom seul passe à l'ambre : la VALEUR reste en encre pleine (la
+     hiérarchie passe par la graisse, adoucir un dosage serait l'inversion à ne pas faire). */
+  .pos-card.vig .pos-name{color:var(--warn)}
   /* Repli du RESTE des repères (v4.23.0) : liste longue -> ceux qui concernent le bloc courant
      restent visibles, les autres passent derrière un dépliant qui ANNONCE SON NOMBRE (un pli
      muet serait un filtre déguisé). <details> natif : clavier et lecteur d'écran gratuits, et
@@ -3422,7 +3555,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cx-row .blk-act{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;
     border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
     font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
-  .cx-row .blk-act.tk-add{border-color:var(--primary);color:var(--primary-dk);background:var(--primary-soft)}
   .cx-row .blk-act:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
      commence, et l'écart le sépare de ce qui suit. */
@@ -3513,7 +3645,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A11 dans le rail : un repère posologique SIGNALÉ se marque (△ + encre ambre + filet), il ne
      prend pas d'aplat — sinon deux repères font deux masses colorées dans une colonne dont toute
      la doctrine est la désaturation, et l'aplat cesse de vouloir dire « maintenant ». */
-  body.view-read .read-side .pos-card.vig{background:none;border-color:var(--warn-line)}
   /* ══ LE RAIL EST UNE COLONNE D'ÉTAT, PAS UN PANNEAU DE COMMANDE (v5.6, maquette) ═══════════
      Mesuré avant : une carte de minuteur y occupait ~190 px (nom, précision, valeur 34 px, barre,
      « Cycles : n », puis DEUX boutons pleine largeur), et un compteur ~150 px en carte centrée.
@@ -3655,22 +3786,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-panel .tk-panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;margin:12px 0 0;padding:12px 0 0}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
-  /* « NOTER L'HEURE » N'EST PAS L'ACTION PRIMAIRE DE L'ÉCRAN (v4.77.0, question utilisateur : « le
-     bouton fond bleu Noter l'heure n'est-il pas en contradiction avec la règle d'un seul bouton
-     bleu ? »). Il l'était : en session, l'écran porte déjà « Continuer — … → » (ou « Confirmé —
-     démarrer la session » avant), et c'est LUI qui fait avancer le soin. Un second aplat bleu dans
-     le rail mettait un horodatage au même niveau de saillance qu'un geste de checklist.
-     Il passe donc TONAL — registre de l'action, sans la prééminence : `--primary-soft` + bordure,
-     c'est-à-dire la grammaire que prend TOUT bouton d'action quand un autre lui prend le
-     remplissage (règle « un seul bouton rempli par écran », v4.0.3). Rien ne change de sa cible
-     (44 px) ni de sa place. */
-  .tk-add{background:var(--primary-soft);color:var(--primary-dk);border:1px solid var(--primary);border-radius:var(--radius-sm);min-height:44px;padding:8px 12px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
-  /* UNE SEULE règle de survol (v4.78.0, signalé à l'usage : « le hover de Noter l'heure s'affiche
-     en bleu foncé »). En passant le bouton en tonal j'avais ajouté `:hover{--primary-100}` SANS
-     retirer l'ancien `:hover{--primary-hi}` — le remplissage de survol d'un bouton PLEIN. Deux
-     règles de même spécificité : l'ordre décide, et c'était l'ancienne. Un survol sombre sur un
-     fond clair, c'est-à-dire l'inverse du sens de lecture. */
-  .tk-add:hover{background:var(--primary-100)}
   /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
   .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 8px;font-size:11px;font-weight:700;
     letter-spacing:.02em;color:var(--ink-soft)}
@@ -3828,7 +3943,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
-    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,#tkKey),
+    [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkKey),
   body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
@@ -4597,23 +4712,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ligne d'état coupe la rangée) ; chip = bouton natif ≥ 44 px, tap = déplier sur place.
      Étape faite = registre CONFIRMATION (fond --done-bg + ✓ vert) ; décision répondue = registre
      ATTENTION (bordure --verify-bd) avec la réponse en toutes lettres — la couleur jamais seule. */
-  .ov-crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 8px}
   /* Ligne-bilan ECL (v4.16.4) : une rangée de + de 4 chips repliée en un statut synthétique
      vert — même grammaire que la ligne d'état d'une instance complète, pleine largeur. */
-  .ov-runline{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;margin:2px 0 8px;padding:6px 12px;border:1px solid var(--done-line);border-left:4px solid var(--done-line);border-radius:8px;background:var(--done-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;text-align:left;touch-action:manipulation}
-  .ov-runline:hover{border-color:var(--primary)}
-  .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* LA LIGNE-BILAN (v5.6, maquette) : un DÉCLENCHEUR de texte, pas une carte — ce qui est
+     derrière est déjà fait, il n'a rien à réclamer. La carte, c'est le DÉPLIÉ. */
+  .ov-runline{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;
+    margin:2px 0 8px;padding:6px 12px;border:0;background:none;color:var(--ink-2);
+    font-family:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;touch-action:manipulation}
+  .ov-runline:hover{color:var(--ink)}
+  .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
-  .ov-runline .ovr-chev{margin-left:auto;color:var(--link);font-weight:800}
-  .ovc{display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:4px 10px;border:1px solid var(--done-line);border-radius:8px;background:var(--done-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation}
-  .ovc:hover{border-color:var(--primary)}
-  .ovc:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .ovc-n{font-family:var(--mono);font-size:11px;font-weight:700}
-  .ovc-t{font-weight:700;white-space:nowrap}
-  .ovc-ok{color:var(--ok);font-weight:800}
-  .ovc-x{font-family:var(--mono);font-size:11px;color:var(--ink-soft);font-weight:600}
-  .ovc.dec{background:var(--verify-soft);border-color:var(--verify-bd);color:var(--ink)}
-  .ovc-a{font-weight:700;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ov-runline .ovr-chev{color:var(--ink-3);font-weight:800}
+  /* Déplié : une carte de rangées à filet — la grammaire du parcours, pour que « la liste des
+     blocs » se lise pareil partout. */
+  .ov-hist{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);
+    padding:0 16px;margin:2px 0 8px}
+  .ov-hist .ov-runline{margin:0;justify-content:flex-start}
+  .ovh-row{display:flex;gap:10px;align-items:baseline;width:100%;min-height:44px;padding:10px 0;
+    background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
+    font-family:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
+  .ovh-row:hover{color:var(--ink)}
+  .ovh-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .ovh-ok{flex:none;color:var(--ok);font-weight:800}
+  .ovh-t{flex:1;min-width:0}
+  .ovh-x{color:var(--ink-3);font-weight:600}
+  .ovh-n{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
+  .ovh-a{flex:none;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:var(--t-cap);font-weight:700;color:var(--act)}
   /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
   .ov-plan-h{display:flex;align-items:center;gap:6px;margin:18px 0 4px;min-width:0}
   .ov-plan-h .ovs-t{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
@@ -4652,9 +4777,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      droite. Pas de liseré coloré sur une rangée ordinaire : l'état vit dans la PASTILLE, et la
      position dans le fond de la rangée courante. Un liseré de plus ferait deux canaux pour un
      seul état, et hacherait la colonne. */
-  .pl-line{display:flex;align-items:center;gap:8px;min-height:44px;padding:6px 8px;
-    border-bottom:1px solid var(--line);cursor:pointer}
-  .pl-line.d1{padding-left:20px}
+  /* ══ LA RANGÉE DEVIENT UNE CARTE (v5.6, maquette — « mixte entre la maquette et l'existant »)
+     La maquette pose chaque bloc dans une carte blanche bordée, séparée par 6 px, et met le
+     numéro DANS le titre (« 7 · Reprise du massage »). Ce qui est repris : la CARTE (une pile de
+     lignes à filet se lit comme un tableau, une pile de cartes se compte d'un coup d'œil), les
+     renvois en `--act`, les comptes en mono `--ink-3`, et le pointillé du hors-chemin.
+     CE QUI NE L'EST PAS, et c'est le « mixte » : le MARQUEUR reste une pastille. C'est la
+     doctrine de la colonne depuis la v4.23.0 — l'état n'y vit que là, et le losange d'une
+     décision porte la même grammaire. Un numéro fondu dans le titre rendrait l'état au TEXTE,
+     c'est-à-dire à la couleur seule (règle 8), et ferait diverger cette colonne des pastilles de
+     la carte de travail. La maquette n'inline pas non plus les items du bloc courant ici : au
+     cockpit la carte est juste à côté, ce serait la recopier. */
+  .pl-line{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;
+    background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);cursor:pointer}
+  .pl-line.d1{padding-left:24px}
   .pl-line.d2{padding-left:32px}
   .pl-line.d3{padding-left:48px}
   .pl-line .n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -4672,6 +4808,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border-radius:3px;transform:rotate(45deg);z-index:-1}
   .pl-line.dec.cur .n::before{background:var(--primary);border-color:var(--primary)}
   .pl-line.dec.done .n::before{background:var(--ok);border-color:var(--ok)}
+  /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
+     demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
+     Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
+     lignes de texte, et c'est aussi ce qui règle la troncature : un bloc ellipsé se retrouve
+     par son numéro, un item de surveillance ellipsé perd son contenu clinique — il ENROULE.
+     Ce sont les seules rangées de la colonne à ne pas être des cartes, et la différence de
+     forme dit exactement ce qu'elle doit dire : ceci n'a pas de rang. */
+  .pl-line.wl{background:none;border:0;border-radius:0;min-height:0;padding:4px 0;cursor:default;
+    align-items:baseline;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pl-line.wl .t{white-space:normal;overflow:visible;font-size:var(--t-meta);color:var(--ink-2)}
+  .pl-line.wl .n.mk{width:auto;height:auto;color:inherit}
   /* Les marqueurs de queue : la FORME dit le registre, l'encre reste celle de la colonne. */
   .pl-line .n.mk{border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:800}
   .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);
@@ -4696,17 +4843,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
      s'abrègent (`optAbbr`) donc ils tiennent ; s'ils ne tiennent pas, c'est le TITRE qui cède —
      un titre ellipsé se devine, un renvoi tronqué ne se répare pas. */
-  .pl-line .g{flex:none;max-width:52%;font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+  .pl-line .g{flex:none;max-width:52%;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-2);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
-  .pl-here{color:var(--link);font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-  .pl-line .g b{font-weight:700;color:var(--verify)}
+  .pl-here{color:var(--act);font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  .pl-line .g b{font-weight:700;color:var(--ink-2)}
   .pl-line .g b.tk{color:var(--ok)}
   .pl-line .g .fin{color:var(--ok);font-weight:700}
-  .pl-line .pl-ref{color:var(--link);font-weight:700;cursor:pointer;padding:0 1px}
-  .pl-line.dec .t{color:var(--verify)}
-  .pl-line.cur{background:var(--primary-soft)}
-  .pl-line.cur .t{color:var(--primary-dk)}
-  .pl-line.off{opacity:.5}
+  .pl-line .pl-ref{color:var(--act);font-weight:700;cursor:pointer;padding:0 1px}
+  .pl-line.dec .t{color:var(--ink)}
+  /* Le bloc COURANT prend le filet d'accent, pas un aplat : la colonne reste désaturée, et
+     « ICI » dit la position en toutes lettres (la couleur n'est jamais seule). */
+  .pl-line.cur{border-color:var(--act)}
+  .pl-line.cur .t{color:var(--ink)}
+  /* HORS CHEMIN : pointillé + encre douce + la MENTION en toutes lettres (jamais l'opacité, qui
+     tombe sous AA — leçon v5.0.0/A1-1). */
+  .pl-line.off{border-style:dashed;background:none}
+  .pl-line.off .t,.pl-line.off .g{color:var(--ink-3)}
   .pl-line:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .pl-line.flash{background:var(--primary-soft)}
   .pl-lx{padding:6px 10px 10px 32px;background:var(--surface);border-bottom:1px solid var(--line)}
@@ -5314,15 +5466,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      que le titre et le ✕ s'alignent sur les bords du contenu, pas sur ceux de l'écran. */
   .rs-body{display:flex;flex-direction:column;gap:10px;max-width:860px;margin:0 auto;width:100%}
   @media (min-width:924px){.rs-bar{padding-left:calc(50% - 430px);padding-right:calc(50% - 430px)}}
-  .rs-sec{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:52px;padding:0 12px;
-    font-size:13.5px;font-weight:800;color:var(--ink);cursor:pointer}
+  /* ══ UNE SECTION EST UN INTERTITRE DANS UNE CARTE (v5.6, maquette) ═══════════════════════
+     Elle était une RANGÉE-MENU de 52 px, en 13,5/800 encre pleine, avec un chevron et un survol
+     teinté : le titre pesait autant que le contenu, et cinq sections faisaient 260 px de
+     titres avant la première ligne utile. La maquette en fait ce qu'ils sont — des intertitres
+     de document (11 px, petites capitales, `--ink-3`), à l'intérieur de la carte qu'ils
+     coiffent. Le `<details>` RESTE (clavier et lecteur d'écran gratuits, repli possible) : ce
+     qui change est le dessin, pas la capacité.
+     ⚠ LA CIBLE RESTE À 44 px, et ce n'est pas négociable en mode crise — la maquette dessine un
+     intertitre de 27 px, on garde son ASPECT et on lui rend sa hauteur en rembourrage. Un halo
+     `::after` n'était PAS une option : sur une rangée pleine largeur, il recouvrirait la
+     première ligne de contenu, et un tap destiné à lire replierait la section. */
+  .rs-sec{background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);padding:0 16px 12px}
+  .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:44px;
+    font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-2);cursor:pointer}
   .rs-sec>summary::-webkit-details-marker{display:none}
-  .rs-sec>summary::after{content:"▾";margin-left:auto;color:var(--line-strong);font-size:13.5px;flex:none}
+  .rs-sec>summary::after{content:"▾";margin-left:auto;color:var(--ink-3);font-size:var(--t-body);flex:none}
   .rs-sec[open]>summary::after{content:"▴"}
-  .rs-sec>summary:hover{background:var(--surface-2)}
+  .rs-sec>summary:hover{color:var(--ink-2)}
   .rs-sec>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .rs-sec .rs-in{padding:0 12px 12px}
+  .rs-sec .rs-in{padding:0}
+  /* Documents DANS la feuille : rangées à filet, pas des cartes empilées dans une carte. */
+  .rs-sec .att-list{display:block}
+  .rs-sec .att-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;
+    padding:0 2px;min-height:48px}
+  .rs-sec .att-list .att-row:last-child{border-bottom:0}
+  .rs-sec .att-row:hover{background:none;color:var(--act)}
+  .rs-sec .att-size{font-size:var(--t-cap);color:var(--ink-3)}
   /* Les sections rendues par staticBlock/attListHtml apportent leur propre .block : on neutralise
      leur cadre pour ne pas empiler deux cartes. */
   .rs-body :is(.block,.notes-block){background:none;border:0;border-radius:0;padding:0;margin:0;box-shadow:none}
@@ -5544,10 +5715,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      9) et redescend à 38 px au pointeur fin — il n'existe donc aucun nombre juste à écrire ici.
      `align-self:stretch` fait porter la hauteur par la RANGÉE, quelle que soit celle du champ, et
      `min-height` garde la cible réglementaire si la rangée devenait un jour plus courte. */
-  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;
-    position:relative;min-width:38px;align-self:stretch;min-height:36px;padding:0 8px;border:1px solid var(--line-strong);
-    border-radius:8px;background:var(--surface);color:var(--ink-soft);font-family:inherit;
-    font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;
+  /* Le déclencheur de filtre (maquette accueil) : sur la rangée des contrôles de liste, à son
+     bord DROIT, avec son MOT — glyphe seul, il fallait l'apprendre. Cible 44 px par le halo,
+     dessin 36 px : il ne doit pas épaissir la rangée. */
+  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    position:relative;min-height:36px;padding:0 10px;border:1px solid var(--line-strong);
+    border-radius:var(--r-2);background:var(--work);color:var(--act);font-family:inherit;
+    font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
     cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
   .filt-tog[hidden]{display:none}
   .filt-tog::after{content:"";position:absolute;inset:-4px}
@@ -5557,6 +5731,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .filt-tog.act:hover{background:var(--primary-hi);border-color:var(--primary-hi);color:var(--on-primary)}
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filt-n[hidden]{display:none}
+  .filt-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.02em}
+  .filt-c{font-weight:800;line-height:1}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
@@ -5739,13 +5915,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        porteur de sens au lieu d'être uniforme, et une ligne tient 58px là où une carte en prenait
        85. La DOSE reste en encre PLEINE : la hiérarchie avec le nom passe par la GRAISSE, jamais
        par l'encre — adoucir un dosage serait l'inversion à ne pas faire. */
-    .read-side .pos-card{background:none;border:0;border-radius:0;padding:8px 2px;margin:0}
-    .read-side .pos-card+.pos-card{border-top:1px solid var(--line)}
-    .read-side .pos-name{font-size:13.5px;color:var(--ink)}
-    .read-side .pos-body{margin-top:2px;font-size:13.5px;line-height:1.45;color:var(--ink)}
-    .read-side .pos-card.vig{background:var(--verify-soft);border:1px solid var(--verify-bd);
-      border-radius:8px;padding:8px 10px;margin:8px 0}   /* 8 (pas 2) : deux boîtes ambre
-      consécutives se collaient — les marges verticales fusionnent au MAX, 2+2 -> 2px */
+    /* v5.6 : le rail n'a PLUS RIEN à surcharger — le flux et la colonne partagent désormais la
+       même rangée inline. Deux habillages pour un même objet en feraient deux composants. */
     /* ⚠ CETTE RÈGLE NE VAUT QUE POUR UNE LIGNE QUI SUIT UNE BOÎTE (signalé à l'usage : « la
        bordure du haut des repères en dessous du premier est tronquée »). Elle a été écrite quand
        le repère ORDINAIRE était une ligne à filet : après une boîte ambre, ce filet ferait double
@@ -5754,8 +5925,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        la seconde se retrouvait alors sans bord haut, et se lisait comme rognée.
        C'est la même leçon que « normal = ligne, signalé = boîte » : une règle écrite pour une
        LIGNE ne doit pas s'appliquer à une BOÎTE. */
-    .read-side .pos-card.vig+.pos-card:not(.vig){border-top:0}
-    .read-side .pos-card.vig .pos-name{color:var(--verify)}
     /* AUCUNE section bornée (v4.23.0, retour d'usage « où sont passés mes minuteurs ? »).
        Une tentative de borner la seule section minuteurs a suffi à FAIRE DISPARAÎTRE le compteur
        et le bouton « ＋ Minuteur PA » : 327px affichés pour 413px de contenu, et la barre de
@@ -5830,9 +5999,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        niveaux de surface pour un seul objet.
        LA DÉSATURATION RESTE, et elle est même plus nette : aucun aplat de rangée sauf la COURANTE,
        aucun texte coloré — tout l'état vit dans la PASTILLE, qui est le marqueur. */
-    .rail-lad{margin-top:6px}
-    .rail-lad .pl-line{padding-left:2px}
-    .rail-lad .pl-line:last-child{border-bottom:0}
+    .rail-lad{margin-top:6px;display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+    /* v5.6 : la rangée est une CARTE — le retrait de 2 px du dessin plat ferait coller le texte
+       au filet. Le retrait de base (12 px) vaut ici aussi ; seuls les niveaux imbriqués gardent
+       leur échelle resserrée, ci-dessous. */
     /* ⚠ LA CHIP DE BRANCHE S'ALIGNE SUR LE MARQUEUR DU BLOC QU'ELLE OUVRE (signalé à l'usage :
        « réaligne les tags des options aux numéros de blocs enfants »). Elle avait les retraits du
        PLAN (20/32/48) alors que la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
@@ -5841,15 +6011,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1{padding-left:16px}
     .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2{padding-left:28px}
     .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3{padding-left:40px}
-    .rail-lad .pl-line:is(.dec,.done){background:none}
-    .rail-lad .pl-line:is(.dec,.cur,.done) .t{color:var(--ink)}
     .rail-lad .pl-line.cur .t{font-weight:800}
-    .rail-lad .pl-line .g b{color:var(--ink-soft)}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
-    .rail-lad .pl-line.off{opacity:1}
-    .rail-lad .pl-line.off :is(.n,.t,.g){color:var(--ink-soft)}
-    .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:11px;color:var(--ink-soft)}
+    .rail-lad .pl-line.off .n{color:var(--ink-3)}
+    .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:var(--t-cap);color:var(--ink-3)}
     /* Seule la PREMIÈRE grille colle à l'en-tête ; `.rt-counters` GARDE son margin-top, sinon la
        dernière carte de minuteur et la première de compteur se touchent (retour d'usage). */
     body.view-read .read-side .rt-grid{margin-top:0}
@@ -6178,7 +6344,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-add,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -6462,7 +6628,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          l'accueil. Il est STATIQUE comme le champ : il survit aux re-rendus, donc sa position est
          apprise une fois pour toutes. Croix d'effacement DANS la boîte du champ (v5.0.3) : elle
          appartient à la saisie, pas à la rangée. -->
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2.6M11.4 6H20M4 12h8.6M17.4 12H20M4 18h1.6M10.4 18H20"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/></svg><span class="filt-n" id="filtN" hidden></span></button></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2.6M11.4 6H20M4 12h8.6M17.4 12H20M4 18h1.6M10.4 18H20"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/></svg><span class="filt-l">Filtres</span><span class="filt-n" id="filtN" hidden></span><span class="filt-c" aria-hidden="true">▾</span></button></div>
     <!-- v5.4.1 (A′, décision utilisateur sur maquette) : à ≥ 1200 px en lecture de fiche, les
          DEUX rangées de crise (#crisisCtrl + #crisisDock) vivent ICI — l'en-tête a l'espace, la
          bande n'a plus à exister et aucune colonne ne paie leur hauteur. Chrome NOMADE
@@ -7678,6 +7844,8 @@ const main=document.getElementById('main');
    d'import) vit en bas de la sidebar ; ailleurs il reprend sa place en bas de .app. On DÉPLACE
    l'élément (appendChild), on ne le recrée jamais : ids et écouteurs restent vivants. Toujours
    appeler rescueFooter() AVANT d'écraser main.innerHTML (sinon le wipe le détruirait). */
+function rescueFiltTog(){const ft=document.getElementById('filtTog'),box=document.querySelector('.hdr-search');
+  if(ft&&box&&ft.parentNode!==box)box.appendChild(ft);}
 function rescueFooter(){const ft=document.getElementById('appFooter');if(ft&&main.contains(ft))document.querySelector('.app').appendChild(ft);}
 function placeFooter(){const ft=document.getElementById('appFooter');const side=main.querySelector('.home-side');if(ft&&side&&ft.parentNode!==side)side.appendChild(ft);}
 /* v5.4.1 — OPTION A DU CHROME COCKPIT (décision utilisateur sur maquette : « tout voir, consulter
@@ -9090,7 +9258,12 @@ function posoCardsHtml(list,hay){
   const card=x=>{const t=stepText(x);const i=t.indexOf(' : ');
     const name=i>0?stripBold(t.slice(0,i)).trim():'';const body=i>0?t.slice(i+3):t;
     const flag=stepIsCrit(x)||stepIsVigil(x);
-    return `<div class="pos-card${flag?' vig':''}">${name?`<div class="pos-name">${esc(name)}</div>`:''}<div class="pos-body">${fmt(body)}</div></div>`;};
+    /* ⚠ UN REPÈRE EST UNE RANGÉE (v5.6, maquette — signalé à l'usage : « les repères
+       posologiques sont plus inline »). Le NOM à gauche, la VALEUR à droite en mono : c'est
+       ainsi qu'on lit une posologie — on cherche un produit, on lit un chiffre. Deux colonnes
+       stables se SCANNENT là où un empilement de cartes demande de lire. Le registre △ reste
+       porté par le glyphe et l'encre, jamais par un aplat (A11). */
+    return `<div class="pos-card${flag?' vig':''}">${name?`<span class="pos-name">${flag?'<span class="pos-mk" aria-hidden="true">△</span> ':''}${esc(name)}</span>`:''}<span class="pos-body">${fmt(body)}</span></div>`;};
   const sp=posoSplit(items,hay||'');
   const head=sp.head.map(o=>card(o.s)).join('');
   if(!sp.rest.length)return head;
@@ -11142,8 +11315,26 @@ function applyViewChrome(){
       identiques — règle inchangée depuis v4.16.0), mais un seul contrôle, qui dit où il MÈNE.
       Au retour il prend le registre CONFIRMATION et le glyphe ↩ : c'est le contrôle rempli de
       l'écran pendant l'excursion, exactement comme `↩ Reprendre` pendant une complication. */
+   /* ══ LE DOCK EST LA BARRE DE COMMANDE DE LA SESSION (v5.6, maquette 1c — « le dock hors
+      session n'a que Démarrer et Exercice ») ═══════════════════════════════════════════════
+      Ses quatre touches attendent désormais que la session ait DÉMARRÉ, et le motif n'est pas
+      esthétique : avant le premier geste, deux d'entre elles n'ont rien à faire (⏱ Noter l'heure
+      et ⚡ Complication DÉMARRERAIENT la session implicitement, par un contrôle qui ne dit pas
+      qu'il le fait) et les deux autres doublonnent ce que la page montre déjà — hors session la
+      fiche est ENTIÈRE sous les yeux, « Tout voir » n'ouvre rien de neuf, et « Consulter » reste
+      à un tap par la rangée d'annexes en fin de colonne et par le renvoi de la condition
+      d'entrée. Ce qui reste hors session est donc ce que la maquette montre : la condition
+      d'entrée, et le geste qui la valide.
+      ⚠ CE QUE JE N'AI PAS REPRIS DE LA MAQUETTE, ET POURQUOI : elle loge « Démarrer la session »
+      DANS le dock. Le bouton vit ici dans le flux, sous les critères — c'est le geste qui PORTE
+      la confirmation (« Confirmé — démarrer la session », doctrine QRH v4.3.2), et le déplacer
+      en ferait un second énoncé du même verbe (AC 120-71B §5.5) ou obligerait à supprimer celui
+      du flux, donc à rouvrir l'ordre « critères → memory items → geste » (v5.0.8) et la zone
+      flottante qui garantit qu'on l'atteint (v4.73.0). Trois décisions mesurées pour un gain de
+      position : à décider séparément, pas par effet de bord. */
+   const enSession=crisis&&!!Runtime.started;
    {const ab=document.getElementById('allBtn');
-    const okAll=crisis&&!state.previewFrom&&hasFlow(state.fiche);
+    const okAll=enSession&&!state.previewFrom&&hasFlow(state.fiche);
     ab.hidden=!okAll;
     if(okAll){const st=state.readMode==='static';
       /* ⚠ LE VERT NE DIT QU'UNE CHOSE : « VOUS ÊTES LOIN DE CHEZ VOUS, CECI VOUS Y RAMÈNE »
@@ -11166,7 +11357,7 @@ function applyViewChrome(){
         ?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v6"/></svg>'
         :'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg>';}}
    {const rb=document.getElementById('refBtn');
-    const okRef=crisis&&!state.previewFrom&&!!annexRowHtml(state.fiche);
+    const okRef=enSession&&!state.previewFrom&&!!annexRowHtml(state.fiche);
     rb.hidden=!okRef;
     if(!okRef)closeRefSheet();}
    /* ⚡︎ — RÈGLE DU LIBELLÉ : une seule complication → son NOM en toutes lettres (« ⚡︎ Choc
@@ -11174,12 +11365,12 @@ function applyViewChrome(){
       ce qu'on ouvre avant de l'ouvrir. La touche N'EXISTE PAS quand la fiche n'en déclare
       aucune, ni chez le SCRIBE : une commande fermée à un rôle n'apparaît pas éteinte, elle
       n'apparaît pas — promu lead, elle paraît sans qu'aucune géométrie ne bouge. */
-   syncCxKey(crisis);
+   syncCxKey(enSession);
    /* ⏱ — LE GESTE LE PLUS FRÉQUENT D'UNE RÉANIMATION, et la seule touche REMPLIE du dock. Il est
       OUVERT à tous les rôles : poser un repère est ADDITIF (v4.55.0) — ce qui est fermé au scribe,
       ce sont les quatre gestes destructeurs ou structurants. */
    {const tk=document.getElementById('tkKey');
-    tk.hidden=!(crisis&&!state.previewFrom);
+    tk.hidden=!(enSession&&!state.previewFrom);
     if(tk.hidden&&state.tkSheet)dockSheetClose();}
    syncDock();}
   // Chrome de la rangée principale V5 (retour masqué sur l'accueil ; chaque vue pose son libellé
@@ -11211,7 +11402,7 @@ function applyViewChrome(){
   // remet dans .app (sinon le wipe le détruirait — ids et écouteurs perdus) ; renderHomeList
   // le replacera en bas de la sidebar si elle existe. Même sauvetage pour le chrome de crise,
   // qui vit dans la colonne du plan en cockpit (v5.4.1).
-  rescueFooter();rescueCrisisChrome();
+  rescueFiltTog();rescueFooter();rescueCrisisChrome();
   {const hn=document.getElementById('hdrNew');
    if(state.view==='library'&&canEditScope(state.scope)){hn.hidden=false;
      hn.classList.toggle('tonal',Object.values(liveSessions).some(R=>R.started&&R.fiche));
@@ -12073,7 +12264,14 @@ function renderHomeList(cfg){
       gauche, déjà visible — un bouton pour déplier ce qui est déjà déplié serait un bouton mort. */
    syncFiltTog(!wide&&!!(filterbarHtml()+catbarHtml()));
    const nsr=hc.querySelector('.scopebar .chiprow');if(nsr&&_scopeRowX)nsr.scrollLeft=_scopeRowX;}
-  rescueFooter();
+  /* ⚠ LE DÉCLENCHEUR DE FILTRE EST PARQUÉ AVANT LE WIPE, ET C'EST ICI QU'IL FAUT LE FAIRE
+     (défaut trouvé à la mesure : après un clic de catégorie, `#filtTog` DISPARAISSAIT du DOM).
+     `render()` le parque déjà — mais l'accueil se re-rend aussi par `cfg.rerender`
+     (`renderFiches`/`renderProtocols`/`renderAll`), qui écrase `main.innerHTML` SANS passer par
+     lui. Tant que le bouton vivait dans l'en-tête, hors de `main`, le trou était invisible ; en
+     le logeant dans la rangée de liste (v5.6), il devenait la disparition d'un contrôle. Même
+     leçon que le pied nomade, dont l'appel est la ligne d'à côté. */
+  rescueFiltTog();rescueFooter();
   /* ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c). Deux régimes :
      — RECHERCHE : liste plate triée par pertinence (épinglées > frecency > titre, inchangé),
        extraits contextuels, pagination LIB_PAGE — la structure A→Z n'aurait aucun sens sur un
@@ -12131,12 +12329,13 @@ function renderHomeList(cfg){
     /* LE RÉSUMÉ DES FILTRES EST RAPPELÉ DANS L'EN-TÊTE DE SECTION : un filtre posé ne doit
        jamais être invisible — c'est la contrepartie de les avoir rangés derrière un déclencheur. */
     const filtTail=filtersSummary();
-    listHtml=`<div class="dir-wrap">${list.length?
-      `<div class="grp-row">${homeGroupSegHtml()}</div>`
-      +(tiles.length?`<div class="dir-h"><b>${cfg.pinnedLbl(tiles.length)} ★</b></div>
-        <div class="qa-grid">${tiles.map(cfg.tile).join('')}</div>`:'')
+    listHtml=`<div class="dir-wrap"><div class="grp-row">${list.length?homeGroupSegHtml():''}</div>${list.length?
+      (tiles.length?`<div class="dir-h"><b>${cfg.pinnedLbl(tiles.length)} ★</b></div>
+        <div class="dir-book pinned">${tiles.map(cfg.row).join('')}</div>`:'')
       +`<div class="dir-h"><b>Répertoire</b><span class="dir-hs">${list.length} ${cfg.countLbl(list.length)} · ${cfg.listTitle()}${scopeTail}${filtTail}</span></div>`
-      +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}"><div class="dir-l">${g.cat?`<span class="dir-dot" style="background:${safeColor(g.cat.color)}" aria-hidden="true"></span>`:''}${esc(g.L)}</div><div class="dir-grid">${g.items.map(cfg.row).join('')}</div></div>`).join('')
+      +`<div class="dir-book">`
+      +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}"><div class="dir-l">${g.cat?`<span class="dir-dot" style="background:${safeColor(g.cat.color)}" aria-hidden="true"></span>`:''}<span class="dir-ll">${esc(g.L)}</span><span class="dir-lr"></span></div><div class="dir-grid">${g.items.map(cfg.row).join('')}</div></div>`).join('')
+      +`</div>`
       :emptyHtml}</div>`;
     // Rail dès qu'il a deux entrées à distinguer (à une seule, il n'oriente rien). MÊME index
     // dans les deux modes : des lettres, ou les pastilles des catégories.
@@ -12155,6 +12354,17 @@ function renderHomeList(cfg){
   bindHomeChrome(cfg.rerender);   // sélecteur de section, bibliothèques, catégories
   /* La clé de groupement se change SANS toucher au corpus : on re-rend la liste, rien d'autre.
      Le rail se reconstruit avec elle (c'est le même index, dans l'autre clé). */
+  /* ⚠ « FILTRES » REJOINT LA RANGÉE DU SÉLECTEUR (maquette 1a) — et il est DÉPLACÉ, jamais
+     recréé : c'est le patron du pied de page nomade et du chrome de crise (placeFooter,
+     placeCrisisChrome). L'élément garde son id, ses écouteurs et son état peint par `syncFiltTog` ;
+     seul son LOGEMENT change. La v5.0.3 l'avait posé contre la recherche parce que les deux
+     répondent à la même question ; la maquette le met contre le GROUPEMENT, qui répond à la même
+     question de plus près encore — on y choisit ce qu'on voit ET comment c'est rangé. Il reste
+     donc statique par nature (il ne vit pas dans le gabarit), et sa position reste apprise.
+     ⚠ `rescueFiltTog` court à CHAQUE rendu, avant tout : sinon, quitter l'accueil laisserait le
+     bouton dans un `main` qu'on remplace, et il disparaîtrait avec lui. */
+  {const ft=document.getElementById('filtTog'),row=main.querySelector('.grp-row');
+   if(ft&&row&&ft.parentNode!==row)row.appendChild(ft);}
   main.querySelectorAll('[data-hgrp]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.hgrp;if(homeGroupKey()===k)return;
     state.homeGroup=k;cfg.rerender();});
@@ -14394,7 +14604,7 @@ const LEAD_ONLY_SEL='[data-tmreset],[data-cnreset]';
 const MUTE_SEL='[data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],'
   +'[data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],'
   +'[data-rmok],[data-rmgap],[data-cxback],'
-  +'[data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkAdd,#tkKey';
+  +'[data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkKey';
 /* `detached` N'EN EST PAS : celui qui a poursuivi seul travaille sur SA session, et lui refuser ses
    gestes serait lui retirer le repli hors dispositif qu'on vient de lui donner (AC 120-64 §9.a). */
 const SHARE_DEAD=['revoked','ended','expired'];
@@ -15048,7 +15258,13 @@ function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].
     return `<div class="tk-item${vd?' tk-void':''}"><div class="tk-row"><span class="tk-time" data-tktime="${esc(e.id)}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${esc(e.id)}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${esc(e.id)}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?'↺':'×'}</button></div><div class="tk-sug" data-tksug="${esc(e.id)}" hidden></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
-  return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions${ev.length>1?`<span class="fam-n">${ev.length}</span>`:''}</b><button class="tk-add" id="tkAdd">${uiIcon('stopwatch',13)} Noter l’heure</button></div>${rows}</div>`;}
+  /* ⚠ « NOTER L'HEURE » A QUITTÉ LE PANNEAU (v5.6, signalé à l'usage). Le geste est une TOUCHE
+     DU DOCK depuis le lot 2 : le laisser AUSSI ici, c'était deux adresses pour un même verbe
+     (AC 120-71B §5.5) — et la seconde vit derrière un dépliant, donc invisible à l'instant où
+     l'on en a besoin. Le panneau redevient ce qu'il est : la LECTURE du journal. La maquette ne
+     l'y met pas non plus. `#tkAdd` reste dans MUTE_SEL : le sélecteur ne matche plus rien, et le
+     retirer serait parier qu'aucun chemin ne le réintroduira. */
+  return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions${ev.length>1?`<span class="fam-n">${ev.length}</span>`:''}</b></div>${rows}</div>`;}
 /* Câblage du JOURNAL DES ACTIONS, isolé pour être REJOUÉ après une mise à jour chirurgicale du seul
    panneau (`renderTkOnly`). Un `render()` complet reconstruit tout le DOM et remet à 0 le `scrollTop`
    du RAIL (`overflow-y:auto`) : la barre latérale « remontait » à chaque « Noter l'heure » (retour
@@ -15081,8 +15297,6 @@ function tkParseTime(str){
   if(!(h>=0&&h<=23&&m>=0&&m<=59&&s>=0&&s<=59))return null;
   return {h,m,s};}
 function bindTk(){
-  const tkA=document.getElementById('tkAdd');
-  if(tkA)tkA.onclick=tkNoteNow;
   /* ÉTIQUETER, C'EST FACULTATIF — et c'est le filet de sécurité de tout le dispositif. Le geste
      primaire reste « Noter l'heure » : UN TAP, l'heure capturée, ce qui compte cliniquement, sans
      dépendre d'aucun vocabulaire. Ce qui suit ne fait qu'OFFRIR un mot partageable à qui en veut
@@ -15521,7 +15735,25 @@ function renderRead(){
   // ré-ouvrables d'un tap à tout moment (doute en cours d'algorithme) sans rien interrompre.
   const confBlockH=(()=>{if(!confItems.length)return '';
     const open=state.confOpen!==undefined?state.confOpen:!started;
-    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}${started?'Diagnostic confirmé':'Confirmer le diagnostic'}</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
+    /* ══ AVANT LA SESSION, C'EST UNE CONDITION D'ENTRÉE ; APRÈS, C'EST UN FAIT ACQUIS
+       (v5.6, maquettes 1b/1c) ═════════════════════════════════════════════════════════════
+       Le même objet répondait aux deux moments avec le MÊME dessin — un dépliant gris coiffé
+       d'un chevron bleu. Or les deux questions n'ont rien à voir : avant, « suis-je au bon
+       endroit ? » est LA question, et le QRH l'imprime en tête, en entier, dans l'encadré du
+       registre qui la rend impérieuse ; après, c'est une ligne de traçabilité qu'on rouvre en
+       cas de doute.
+       AVANT : carte au CONTOUR d'alerte (jamais un aplat — un rouge permanent désensibilise),
+       titre « ■ Quand l'utiliser », un ■ rouge par critère, et le renvoi vers les différentiels
+       en pied discret. Le chevron disparaît : il n'y a rien à replier quand on n'a pas encore
+       répondu à la question — et un dépliant ouvert d'office avec un chevron invite au seul
+       geste qu'on ne veut pas voir faire ici.
+       APRÈS : le dépliant d'avant, inchangé, qui redevient ce qu'il est. */
+    if(!started){
+      return `<section class="conf-block entry"><div role="heading" aria-level="2" class="conf-eh"><span class="conf-mk" aria-hidden="true">■</span>Quand l’utiliser</div>`
+        +`<ul class="flat confirm entry">${confItems.map(x=>`<li><span class="cf-mk" aria-hidden="true">■</span><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`
+        +(diffH?`<button type="button" class="atyp-link" id="atypLink">Le tableau ne colle pas ? → ${clean(listOf(f,'differentials')).length} diagnostic${clean(listOf(f,'differentials')).length>1?'s':''} à éliminer ▸</button>`:'')
+        +`</section>`;}
+    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}Diagnostic confirmé</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
   // Bouton de démarrage EXPLICITE : dans l'étape ① s'il y a des critères (« Confirmé — … » :
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
@@ -16067,13 +16299,20 @@ function overviewSection(f){
     const key='r:'+runIdx[0];
     /* Seuil 4 -> 1 (R6) : une rangée de chips EST l'historique, et l'historique se tire. Le
        « ⌄ » dit qu'il y a quelque chose dessous ; le compte et les bornes disent quoi. */
+    /* ⚠ DÉPLIÉ, C'EST UNE CARTE DE RANGÉES — PLUS UNE RANGÉE DE CHIPS (v5.6, maquette).
+       Une chip abrège : titre à 13 caractères, réponse à 14. Tant qu'elles sont REPLIÉES cela
+       n'a aucune importance ; à l'instant où l'on DÉPLIE, on vient justement relire ce qui a
+       été fait — et on obtenait treize caractères par bloc, sur plusieurs lignes qui se
+       recomposent à chaque largeur. La rangée dit le titre ENTIER, le passage et le compte,
+       et la pile se lit d'un coup d'œil comme le parcours de la colonne d'orientation : une
+       seule grammaire pour « la liste des blocs » dans tout le produit. */
     if(state.ovFold[key]!==false){
       const a=topo[state.nav[runIdx[0]]]||'·',b=topo[state.nav[runIdx[runIdx.length-1]]]||'·';
-      insts+=`<button type="button" class="ov-runline" data-ovrun="${key}" aria-expanded="false" title="${esc(runTt.join(' · '))} · taper pour déplier"><span class="ovr-chev" aria-hidden="true">⌄</span>fait · <span class="ovr-ok" aria-hidden="true">✓</span>${run.length} passage${run.length>1?'s':''} · ${a}→${b}</button>`;}
-    else insts+=`<div class="ov-crumbs">${run.join('')}</div>`;
+      insts+=`<button type="button" class="ov-runline" data-ovrun="${key}" aria-expanded="false" title="${esc(runTt.join(' · '))} · taper pour déplier"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''} · ${a}→${b}<span class="ovr-chev" aria-hidden="true">⌄</span></button>`;}
+    else insts+=`<div class="ov-hist"><button type="button" class="ov-runline open" data-ovrun="${key}" aria-expanded="true"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''}<span class="ovr-chev" aria-hidden="true">⌃</span></button>${runIdx.map(i=>ovHistRowHtml(f,state.nav[i],i,topo)).join('')}</div>`;
     run=[];runIdx=[];runTt=[];};
   state.nav.forEach((id,i)=>{
-    if(pres[i]==='chip'){run.push(ovChipHtml(f,id,i,topo));runIdx.push(i);
+    if(pres[i]==='chip'){run.push(1);runIdx.push(i);
       const b=f.blocks.find(x=>x.id===id);runTt.push(stripBold((b&&b.title)||''));}
     else{flush();insts+=ovInstHtml(f,id,i,topo,pres[i]);}});
   flush();
@@ -16101,14 +16340,23 @@ function overviewSection(f){
 // « le numéro seul ne parle pas à un humain ») : n° topo + titre tronqué + ✓ (étapes), ou
 // n° + « › réponse » en toutes lettres tronquée (décision — la réponse EST la trace) ;
 // tap = DÉPLIER la carte sur place (consultation transitoire, cf. ovDropOpens).
-function ovChipHtml(f,id,idx,topo){
+/* LA RANGÉE D'HISTORIQUE (v5.6, maquette) : ✓ vert, « n · Titre », et à droite le compte en mono
+   pour un bloc d'étapes, la réponse PRISE pour une décision (« le numéro seul ne parle pas à un
+   humain », v4.16.2 — la règle vaut ici aussi, en toutes lettres puisqu'on a la largeur).
+   Elle reste TAPABLE et mène au même endroit que la chip qu'elle remplace : `data-ovix` déplie la
+   carte du passage sur place. Un seul verbe, une seule délégation. */
+function ovHistRowHtml(f,id,idx,topo){
   const b=f.blocks.find(x=>x.id===id);if(!b)return '';
   const dec=b.kind==='decision';
   const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
-  const lbl=taken?String(stripBold(taken.label||'')).trim():'';
-  const tt=String(stripBold(b.title||'')).trim();
+  const tt=String(stripBold(b.title||'')).trim()||(dec?'Décision':'Étapes');
   const pi=passInfo(state.nav,idx);
-  return `<button type="button" class="ovc${dec?' dec':''}" data-ovix="${idx}" title="${esc(tt)}${pi.total>1?` — passage ${pi.pass}/${pi.total}`:''} · taper pour déplier"><span class="ovc-n">${topo[id]||'·'}</span>${dec?`<span class="ovc-a">› ${esc(lbl.slice(0,14))}${lbl.length>14?'…':''}</span>`:`<span class="ovc-t">${esc(tt.slice(0,13))}${tt.length>13?'…':''}</span><span class="ovc-ok">✓</span>`}${pi.total>1?`<span class="ovc-x">×${pi.pass}</span>`:''}</button>`;}
+  let right='';
+  if(dec)right=`<span class="ovh-a">› ${esc(String(stripBold((taken&&taken.label)||'')).trim())}</span>`;
+  else{const st=clean(stepsOf(b)),n=st.length;
+    let k=0;for(let j=0;j<n;j++)if(state.checked[state.navSeq[idx]+':'+id+':'+j])k++;
+    right=`<span class="ovh-n">${k}/${n}</span>`;}
+  return `<button type="button" class="ovh-row" data-ovix="${idx}" title="${esc(tt)} · taper pour déplier"><span class="ovh-ok" aria-hidden="true">✓</span><span class="ovh-t">${topo[id]||'·'} · ${esc(tt)}${pi.total>1?`<span class="ovh-x"> · passage ${pi.pass}/${pi.total}</span>`:''}</span>${right}</button>`;}
 /* L'ÉTIQUETTE DE BLOC — « Bloc n », en petites capitales grises, et le ✓ quand il est complet.
    Ni pastille ni aplat : le numéro est celui du plan, du statique et du schéma (`flowPlan().order`),
    et il n'a pas besoin d'un disque bleu pour se lire. */
@@ -16480,7 +16728,7 @@ function refSheetHtml(f){
      dessin est repris, la duplication non — à rouvrir ensemble si l'arbitrage a changé. */
   const rsRow=x=>{const cr=stepCR(stepText(x));
     const cl=stepIsCrit(x)?' crit':(stepIsVigil(x)?' vig':'');
-    return `<div class="rs-row${cl}"><span class="rs-box" aria-hidden="true"></span><span class="rs-t">${cl===' crit'?uiIcon('warn',13)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<div class="rs-v">${esc(cr.r)}</div>`:''}</div>`;};
+    return `<div class="rs-row${cl}"><span class="rs-t">${cl===' crit'?uiIcon('warn',13)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="rs-v">${esc(cr.r)}</span>`:''}</div>`;};
   const ddx=clean(listOf(f,'differentials'));
   const diff=ddx.length?`<div class="rs-rows">${ddx.map(rsRow).join('')}</div>`:'';
   const gal=(f.images||[]).length?`<div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div>`:'';
@@ -17599,6 +17847,23 @@ const ALL_TAB_LBL={parcours:'Parcours',page:'Page SFAR',schema:'Schéma'};
    toutes lettres : « rien ne s'y coche ».
    ELLE NE DÉMARRE RIEN et ne coche rien : mêmes invariants que le plan, vérifiés par harnais. */
 function ovParcoursHtml(f){
+  /* ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — demande
+     utilisateur : « mets à jour parcours dans tout voir pour que ça corresponde au nouveau
+     design ») ═══════════════════════════════════════════════════════════════════════════════
+     La v5.0.0/M10 en faisait une pile de CARTES portant tous les items, au motif qu'on y dispose
+     de la largeur. Le résultat mesuré est que les deux onglets du même cran disaient la même
+     chose : « Parcours » et « Page » montraient l'un et l'autre chaque étape de chaque bloc, dans
+     deux mises en page. Deux vocabulaires pour une même idée, ce qu'AC 120-71B §5.5 proscrit.
+     La maquette tranche, et la division devient nette : PARCOURS = où l'on en est dans la
+     séquence (une rangée par bloc, l'état dans la marque, les renvois à droite) ; PAGE = tout le
+     contenu (le tableau statique, qui ne bouge pas).
+     UNE SEULE EXCEPTION, ET C'EST CELLE DE LA MAQUETTE : le bloc COURANT montre ses items. On
+     vient précisément vérifier « où j'en suis » — la rangée qui répond à la question a le droit
+     de la développer, les autres n'ont rien à dire de plus que leur compte.
+     « QUAND L'UTILISER » RESTE (lot M6) : c'est la condition d'entrée QRH, et c'est le seul
+     endroit du cran qui la porte. La maquette ne la montre pas ; l'y garder ne coûte qu'une carte
+     et retirer une condition d'entrée d'une vue « toute la fiche » serait une perte sèche.
+     TOUT Y EST INERTE (doctrine du plan, re-confirmée cinq fois) : aucun `data-ck`. */
   const plan=flowPlan(f);if(!plan.order.length)return '';
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
@@ -17607,65 +17872,66 @@ function ovParcoursHtml(f){
   const item=st=>{const cr=stepCR(stepText(st));
     const cl=stepIsCrit(st)?' crit':(stepIsVigil(st)?' vig':'');
     return `<div class="pc-it${cl}">${bx}<span class="pc-t">${cl===' crit'?uiIcon('warn',13)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="pc-r">${esc(cr.r)}</span>`:''}</div>`;};
-  let h='<div class="pc-sub"><b>Parcours</b> structure, état, branches — rien ne s’y coche</div>';
-  /* « QUAND L'UTILISER » ouvre la vue : c'est la condition d'entrée QRH, et elle n'a de sens
-     qu'ICI — la colonne d'orientation, elle, ne la montre pas (la maquette non plus). */
+  const nb=plan.order.length;
+  let h=`<div class="pc-sub"><b>Fiche entière · ${nb} bloc${nb>1?'s':''}</b><span>lecture — la coche vit au bloc</span></div>`;
   {const ent=clean(listOf(f,'confirmation')),ddx=clean(listOf(f,'differentials'));
    if(ent.length||ddx.length){
      h+=`<section class="pc-card entry"><div class="pc-h"><span class="pc-n ok" aria-hidden="true">${uiIcon('check',13,{sw:3,cls:''})}</span><span class="pc-ht">Quand l’utiliser</span></div>`
        +ent.map(item).join('')
        +(ddx.length?`<div class="pc-foot">Ça ne colle pas ? → ${ddx.length} diagnostic${ddx.length>1?'s':''} à éliminer</div>`:'')
        +'</section>';}}
-  /* ⚠ L'ÉTIQUETTE DE BRANCHE S'ÉMET À L'OUVERTURE DE LA BRANCHE, PAS DEVANT SA PREMIÈRE CARTE
-     (v5.0.9, signalé à l'usage : « pour les blocs conditionnels tous les tags d'option ne
-     s'affichent pas — le premier oui mais les suivants pas toujours »). Elle était MISE EN ATTENTE
-     (`pend[depth]`) puis posée devant le premier `block` de la branche — or une branche n'en
-     contient pas toujours : `flowPlan` émet un `link` seul quand la cible est le point de
-     convergence ou un bloc déjà décrit (boucle), et un `end` quand la branche n'a pas de cible.
-     Mesuré sur la fiche d'exemple Anaphylaxie : la branche « Oui — stabilisé » n'émet qu'un
-     `link`, son étiquette n'était donc JAMAIS rendue et seule « NON — RÉFRACTAIRE » s'affichait.
-     `bropen` précède toujours immédiatement le contenu de sa branche : émettre là met l'étiquette
-     exactement où elle était, et la met AUSSI dans les cas où elle manquait.
-     ET LES RENVOIS SE RENDENT (même défaut, autre moitié) : une branche qui ne fait que boucler
-     n'affichait RIEN DU TOUT — dans une vue qui promet « toute la fiche », une branche sans
-     contenu visible est une branche qu'on ne saura pas prendre. Même vocabulaire abrégé que
-     l'Échelle : « → n », « ↺ n », « ▪ fin ». Tout y reste INERTE (doctrine du plan). */
+  /* L'étiquette de branche s'émet à l'OUVERTURE de la branche, jamais devant sa première carte :
+     une branche n'en contient pas toujours (v5.0.9). Et un renvoi ne se rend que si la branche
+     n'a AUCUNE rangée — sinon la colonne de droite de la rangée précédente le dit déjà. */
   let depth=0,prev='';
   const jmp=(d,txt,loop)=>`<div class="pc-jmp d${Math.min(d,3)}${loop?' loop':''}">${txt}</div>`;
   const titreDe=id=>{const b=(f.blocks||[]).find(x=>x.id===id);return b?esc(stripBold(b.title||'')):'';};
+  const arrow=(from,to)=>((num[to]||1e9)<(num[from]||0)?'↺':'→')+(num[to]||'?');
+  let rows='';
   plan.items.forEach(it=>{
     if(it.k==='bropen'){depth++;prev='bropen';
-      h+=`<div class="pl-brc d${Math.min(depth,3)}"><span>${esc(String(stripBold(it.label||'')).trim().toUpperCase().slice(0,22))}</span></div>`;return;}
+      rows+=`<div class="pl-brc d${Math.min(depth,3)}"><span>${esc(String(stripBold(it.label||'')).trim().toUpperCase().slice(0,22))}</span></div>`;return;}
     if(it.k==='brclose'){depth--;prev='brclose';return;}
-    /* Un renvoi n'est rendu que si la branche N'A PAS DE CARTE : sinon le pied de la carte
-       précédente (`.pc-foot`) porte déjà « → n » ou « ▪ fin », et l'on écrirait deux fois la
-       même chose sur deux lignes qui se suivent. On ne rend donc que le cas qui, sans cela,
-       n'affiche RIEN — la branche réduite à une boucle ou à une fin. */
     if(it.k==='link'||it.k==='end'){
       if(prev!=='bropen')return;prev=it.k;
-      h+=it.k==='end'?jmp(depth,'▪ fin de prise en charge')
+      rows+=it.k==='end'?jmp(depth,'▪ fin de prise en charge')
         :jmp(depth,(it.back?'↺ reprendre à ':'→ ')+(num[it.to]||'?')+' '+titreDe(it.to)+(it.back?cycleTxt(f):''),it.back);
       return;}
     if(it.k!=='block')return;
     prev='block';
     const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
     const dec=b.kind==='decision',m=md[it.id]||{};
-    /* JALONS (v5.5.0) : condition en toutes lettres, INERTE comme tout le reste de la vue. */
-    const jl=(Array.isArray(b.milestones)?b.milestones:[]).map(j=>`<div class="pc-jl">△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</div>`).join('');
-    h+=`<section class="pc-card d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}">`
-      +`<div class="pc-h"><span class="pc-n${m.complete?' ok':''}" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span>`
-      +`<span class="pc-ht">${esc(b.title)||(dec?'Décision':'Étapes')}</span>${m.cur?'<b class="pl-here">ICI</b>':''}</div>`;
-    if(dec){h+=jl+(b.question?`<div class="pc-q">${fmt(b.question)}</div>`:'')
-      +'<div class="pc-opts">'+((b.options||[]).map(o=>{const t=o&&o.target&&num[o.target];
-        return `<span class="pc-opt${(m.taken&&o&&o.target===m.taken)?' tk':''}">${esc(stripBold((o&&o.label)||'option'))}${t?` <b>→ ${t}</b>`:''}</span>`;}).join(''))+'</div>';}
-    else{h+=jl+clean(stepsOf(b)).map(item).join('');
-      const nx=b.next&&num[b.next];
-      /* P4 (v5.5.0) : un `next` qui REMONTE est une boucle — le pied le dit avec le vocabulaire
-         de l'Échelle (« ↺ reprendre à n ») et porte la période du cycle quand elle est sans
-         ambiguïté (UN seul minuteur à cycles). */
-      const loop=!!nx&&nx<(num[it.id]||0);
-      h+=`<div class="pc-foot">${nx?`${loop?'↺ reprendre à':'→'} ${nx} ${esc((f.blocks.find(x=>x.id===b.next)||{}).title||'')}${loop?cycleTxt(f):''}`:'▪ fin de prise en charge'}</div>`;}
-    h+='</section>';});
+    const steps=dec?[]:clean(stepsOf(b));
+    /* LA COLONNE DE DROITE : pour une décision, les renvois (registre ACTION — c'est là qu'on
+       choisit) ; pour un bloc d'étapes, le compte en mono neutre ; hors chemin, la mention en
+       toutes lettres (la couleur n'est jamais seule). */
+    let g='';
+    if(off.has(it.id))g='<span class="pc-off">hors chemin</span>';
+    else if(dec){const opts=b.options||[];const ab=optAbbr(opts.map(o=>(o&&o.label)||''));
+      g='<span class="pc-go">'+opts.map((o,oi)=>{const t=(o&&o.target&&num[o.target])?o.target:null;
+        return esc(ab[oi])+(t?' '+arrow(it.id,t):'');}).join(' · ')+'</span>';}
+    else{const nx0=(b.next&&num[b.next])?num[b.next]:0;
+      /* P4 (v5.5.0) : un `next` qui REMONTE est une boucle — le renvoi le dit avec le vocabulaire
+         de l'Échelle (« ↺ n ») et porte la PÉRIODE du cycle quand elle est sans ambiguïté (UN
+         seul minuteur à cycles). Il vit dans la colonne de droite, comme les renvois d'une
+         décision : c'est la même information — où l'on va après. */
+      const lp=!!nx0&&nx0<(num[it.id]||0);
+      g=`<span class="pc-gn">${(m.done||0)}/${steps.length}</span>`
+        +`<span class="pc-go">${nx0?(lp?'↺ '+nx0+cycleTxt(f):'→ '+nx0):'▪ fin'}</span>`;}
+    const marks=(m.total||0)>1?` · ×${m.total}`:'';
+    rows+=`<div class="pc-row d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}">`
+      +`<div class="pc-rh"><span class="pc-mk" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):''}</span>`
+      +`<span class="pc-rt">${num[it.id]||'·'} · ${esc(b.title)||(dec?'Décision':'Étapes')}${marks?`<span class="pc-x">${marks}</span>`:''}</span>`
+      +(m.cur?'<b class="pl-here">ICI</b>':'')+g+'</div>';
+    /* Le bloc COURANT développe ses items (maquette) — et lui seul : c'est la rangée qui répond
+       à « où j'en suis ». Ses jalons suivent, en toutes lettres, inertes. */
+    if(m.cur){const jl=(Array.isArray(b.milestones)?b.milestones:[]).map(j=>`<div class="pc-jl">△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</div>`).join('');
+      rows+=jl+(dec?((b.question?`<div class="pc-q">${fmt(b.question)}</div>`:'')
+          +'<div class="pc-opts">'+((b.options||[]).map(o=>{const t=o&&o.target&&num[o.target];
+            return `<span class="pc-opt${(m.taken&&o&&o.target===m.taken)?' tk':''}">${esc(stripBold((o&&o.label)||'option'))}${t?` <b>→ ${t}</b>`:''}</span>`;}).join(''))+'</div>')
+        :steps.map(item).join(''));}
+    rows+='</div>';});
+  h+=`<div class="pc-rows">${rows}</div>`;
   /* Les deux sections hors séquence ferment la vue, dans le même ordre que la colonne. */
   {const det=cxDetached(f);
    if(det.length)h+='<div class="pl-sech">À tout moment</div>'

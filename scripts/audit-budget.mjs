@@ -81,7 +81,7 @@ for (const fmt of FORMATS) {
     if (carte) {
       cardH = carte.getBoundingClientRect().height;
       nItems = carte.querySelectorAll('ol.steps li[data-ck]').length;
-      const sel = '[data-ovnext],[data-ovopt],[data-cxback],.ov-actions,.cx-row .blk-act,.tk-add,.ov-row';
+      const sel = '[data-ovnext],[data-ovopt],[data-cxback],.ov-actions,.cx-row .blk-act,.ov-row';
       const vus = new Set(); let acc = 0;
       carte.querySelectorAll(sel).forEach(e => {
         if ([...vus].some(v => v.contains(e))) return;   // ne pas compter un bouton ET sa rangée

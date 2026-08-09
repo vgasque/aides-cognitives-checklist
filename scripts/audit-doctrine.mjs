@@ -1115,7 +1115,12 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
     /* ⚠ ON MESURE LE <span> DU TITRE, PAS LE <button> : celui-ci porte un rembourrage compensé
        et une line-height 'normal' — y compter des lignes rend un chiffre qui ne veut rien dire
        (piège tombé en écrivant ce contrôle : 46 px / 1 = « 46 lignes »). */
-    const rows=scan('.dir-row','.dir-t'), tiles=scan('.qa-tile','.qa-t');
+    /* ⚠ LES ÉPINGLÉES SONT DES RANGÉES DEPUIS LA v5.6 (maquette 1a : le répertoire est UNE
+       carte, les épinglées une carte de rangées au-dessus). `.qa-tile` n'existe plus — le
+       mesurer rendait un ensemble VIDE, donc un témoin « cas adverse constitué » faux, et trois
+       contrôles verts sur rien. On mesure la rangée épinglée, qui est ce qui a remplacé la
+       tuile : même contrainte de boîte, même titre long. */
+    const rows=scan('.dir-book:not(.pinned) .dir-row','.dir-t'), tiles=scan('.dir-book.pinned .dir-row','.dir-t');
     return {rows,tiles,
       casRow:rows.some(x=>x.long), casTile:tiles.some(x=>x.long),
       pireRow:Math.max(0,...rows.map(x=>x.debord)), clipRow:Math.max(0,...rows.map(x=>x.clip)),
@@ -1139,11 +1144,10 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
      est inerte dès que le display calculé n'est pas `-webkit-box` — c'est ce qui, à 130 %, faisait
      passer un titre réel à trois lignes et poussait la méta hors du cadre (signalé à l'usage). */
   t(`${w}/z${zm} · le titre tient en deux lignes`, r.lignesRow<=2.05, `${r.lignesRow} ligne(s)`);
-  t(`${w}/z${zm} · la tuile ne déborde pas`, r.pireTile<=0, `${r.pireTile} px`);
-  t(`${w}/z${zm} · … et ne rogne rien`, r.clipTile<=0, `${r.clipTile} px rognés`);
-  /* PLAFOND DE CROISSANCE : la tuile est fluide et tire sa rangée de grille avec elle. À 15,5 px
-     un titre de trois lignes la porte à ~103 px ; au-delà de 115 on aurait remplacé le gain de
-     l'audit par une dépense au même endroit. */
+  t(`${w}/z${zm} · la rangée épinglée ne déborde pas`, r.pireTile<=0, `${r.pireTile} px`);
+  t(`${w}/z${zm} · … et ne rogne rien`, r.clipTile<=1, `${r.clipTile} px rognés`);
+  /* PLAFOND DE CROISSANCE : la rangée épinglée est le premier objet de l'écran ; un titre long
+     ne doit pas la faire enfler au point de repousser le répertoire. */
   t(`${w}/z${zm} · … et sa croissance reste bornée`, r.hTile<=105, `${r.hTile} px`);
   await page.close();
 }
@@ -1173,14 +1177,21 @@ await sec('Audit design · le repli des filtres', async () => {
     if(!repliTog)return {repliRangees,repliTog,yRepli,xRepli,geo:null,ouvRangees:0,ouvTog:false,yOuvert:null,
       actifRangees:0,actifTog:false,actifEtat:null,chipOn:false,apresRender:0,apresTog:false,apresEtat:null,
       repliActifRangees:0,repliActifEtat:null,xRepliActif:null,avaitCat:false,deuxEtat:null,zeroEtat:null};
-    /* LE DÉCLENCHEUR EST CONTRE LA RECHERCHE (v5.0.3) : même rangée, à sa droite, sans la
-       recouvrir — c'est ce qui lui rend la ligne qu'il coûtait au premier écran. */
-    const geo=(()=>{const b=tog(),q=document.getElementById('q');
+    /* v5.6 (maquette) — LE DÉCLENCHEUR VIT SUR LA RANGÉE DES CONTRÔLES DE LISTE, à son bord
+       DROIT, en face du sélecteur de groupement. Il ne coûte toujours aucune ligne (cette rangée
+       existe de toute façon) et il gagne son MOT, que l'en-tête ne pouvait pas lui offrir : à
+       320 px la rangée d'identité n'avait la place que d'un glyphe.
+       ⚠ SA RANGÉE EST ÉMISE MÊME SANS LISTE : sinon il déménagerait dans l'en-tête dès qu'un
+       filtre ne rend rien — c'est-à-dire exactement au moment où on le cherche. */
+    const geo=(()=>{const b=tog(),q=document.querySelector('.grp-row .grp-seg');
       if(!b||!q)return null;const rb=b.getBoundingClientRect(),rq=q.getBoundingClientRect();
       return {memeRangee:Math.abs((rb.top+rb.height/2)-(rq.top+rq.height/2))<=6,
               aDroite:Math.round(rb.left-rq.right), h:Math.round(rb.height), w:Math.round(rb.width),
-              /* Il fait la HAUTEUR du champ, pas une hauteur écrite : celle du champ varie avec le
-                 pointeur (43 px tactile, 42 au pointeur fin), aucun nombre en dur ne serait juste. */
+              /* Son bord DROIT est ce qui s'apprend : il grossit du chiffre, il ne se déplace pas. */
+              bordDroit:Math.round(innerWidth-rb.right),
+              /* Il fait la HAUTEUR du sélecteur d'en face, pas une hauteur écrite : deux objets
+                 voisins d'une même rangée qui ne s'alignent ni en haut ni en bas se lisent comme
+                 deux objets sans rapport. */
               hChamp:Math.round(rq.height),
               dyHaut:Math.round(rb.top-rq.top), dyBas:Math.round(rq.bottom-rb.bottom),
               dansEcran:Math.round(rb.right)<=innerWidth};})();
@@ -1230,8 +1241,8 @@ await sec('Audit design · le repli des filtres', async () => {
     `${r.yRepli} px replié contre ${r.yOuvert} px déplié (${r.yOuvert-r.yRepli} px rendus)`);
   /* v5.0.3 — LE DÉCLENCHEUR VIT CONTRE LA RECHERCHE. La v5.0.0 le posait dans le flux, au-dessus
      du contenu : une ligne permanente pour un geste rare. */
-  t('il vit sur la rangée de recherche, à sa droite',
-    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.aDroite<=16&&r.geo.dansEcran,
+  t('il vit sur la rangée des contrôles de liste, poussé à son bord droit',
+    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.dansEcran&&r.geo.bordDroit<=20,
     JSON.stringify(r.geo));
   /* Cible ≥ 32 px hors mode crise (règle 9) — le halo ::after l'étend encore de 4 px. */
   t('… et sa cible reste réglementaire', !!r.geo&&r.geo.h>=32&&r.geo.w>=32,
@@ -1239,7 +1250,7 @@ await sec('Audit design · le repli des filtres', async () => {
   /* SIGNALÉ À L'USAGE (v5.0.3) : une hauteur FIXE de 36 px laissait 4 px de jeu en haut et en bas,
      le champ montant à 43 px sur écran tactile. Deux objets voisins d'une même rangée qui ne
      s'alignent ni en haut ni en bas se lisent comme deux objets sans rapport. */
-  t('… et il fait exactement la hauteur du champ',
+  t('… et il s’aligne exactement sur le sélecteur d’en face',
     !!r.geo&&Math.abs(r.geo.h-r.geo.hChamp)<=1&&Math.abs(r.geo.dyHaut)<=1&&Math.abs(r.geo.dyBas)<=1,
     r.geo?`${r.geo.h} px contre ${r.geo.hChamp} px (jeu ${r.geo.dyHaut}/${r.geo.dyBas})`:'—');
   /* LA CONTREPARTIE, ET C'EST LA GARANTIE QUI COMPTE (v5.0.3 : elle a CHANGÉ DE PORTEUR).
@@ -2490,9 +2501,13 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
     await Data.putProtocol(protocols[protocols.length-1]);
     state.section='all';render();});
   await page.waitForTimeout(500);
+  /* ⚠ ON COMPTE LE RÉPERTOIRE, PAS LES ÉPINGLÉES (v5.6) : depuis que les épinglées sont des
+     RANGÉES et non des tuiles, épingler une fiche en ajoute une seconde à l'écran — le total
+     bougerait sans que le CORPUS ait changé, et le témoin rougirait sur un non-défaut. Ce qu'il
+     mesure est « la vue n'a pas basculé sur les aides seules », donc le contenu du répertoire. */
   const etat=()=>page.evaluate(()=>({section:state.section,
-    rangees:document.querySelectorAll('.dir-row').length,
-    natures:[...new Set([...document.querySelectorAll('.dir-kind')].map(e=>e.textContent.trim()))]}));
+    rangees:document.querySelectorAll('.dir-book:not(.pinned) .dir-row').length,
+    natures:[...new Set([...document.querySelectorAll('.dir-book:not(.pinned) .dir-kind')].map(e=>e.textContent.trim()))]}));
   const av=await etat();
   t('témoin : la vue « Tout » montre les DEUX natures',
     av.section==='all'&&av.natures.length===2, JSON.stringify(av));
@@ -2923,13 +2938,36 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
         'En cas de doute, traiter comme une anaphylaxie — le retard est le facteur de gravité',
         'Bronchospasme résistant aux bêta-2 inhalés chez un patient jusque-là stable',
         'Œdème laryngé : dysphonie, sensation de gorge serrée, tirage inspiratoire',
-        'Collapsus sans étiologie évidente dans les minutes suivant une injection'],
+        'Collapsus sans étiologie évidente dans les minutes suivant une injection',
+        /* v5.6 — LE CAS SE CONSTRUIT, IL NE SE SUPPOSE PAS. Le dock a quitté l'écran hors
+           session et la condition d'entrée s'est densifiée (rangées serrées au lieu de boîtes) :
+           à 390 × 844, onze critères ne descendaient plus sous le pli — le défilement de lecture
+           valait donc 0 et le contrefactuel mesurait la MÊME position que le geste (64 px des
+           deux côtés, donc deux rouges sur un non-défaut). On rallonge la CONDITION D'ENTRÉE,
+           qui est le sujet même de cette sonde (« critères longs ») ; on ne relâche pas le seuil. */
+        'Prurit palmo-plantaire ou du cuir chevelu précédant l’éruption',
+        'Sensation de mort imminente rapportée par le patient conscient',
+        'Récidive dans les heures suivant une première réaction traitée',
+        'Exposition professionnelle connue (latex, produits anesthésiques)',
+        'Injection intraveineuse de produit de contraste dans l’heure précédente',
+        'Piqûre d’hyménoptère avec réaction générale antérieure documentée',
+        'Ingestion d’un aliment déjà responsable d’une réaction systémique',
+        'Aggravation malgré un traitement symptomatique bien conduit',
+        'Terrain asthmatique connu — facteur de gravité indépendant'],
       /* v5.4.2 : le panneau journal a quitté le flux (~70 px) — sans la section « À vérifier »,
          la page devenait trop COURTE sous le pli, le défilement s'écrêtait et le contrefactuel
          ne rencontrait plus son cas (mesuré : -14 px pour un seuil à -20). Le témoin construit
          son cas, il ne le suppose pas. */
+      /* v5.6, MÊME RAISON QU'EN v5.4.2 : le dock a quitté l'écran hors session et la condition
+         d'entrée s'est densifiée — la page redevenait trop COURTE, le défilement s'écrêtait, et
+         le contrefactuel mesurait la même position que le geste (64 px des deux côtés à 390).
+         On rallonge le CAS, on ne relâche pas le seuil. */
       verify:['TA toutes les 5 minutes','SpO2 en continu','Conscience et coloration',
-        'Récidive possible jusqu’à 72 h — surveillance prolongée'],
+        'Récidive possible jusqu’à 72 h — surveillance prolongée',
+        'Tryptase sérique : prélèvement à H0, H1 et H24',
+        'Voie veineuse maintenue jusqu’à stabilisation complète',
+        'Orientation hospitalière systématique, même en cas d’amélioration',
+        'Bilan allergologique à distance — consultation spécialisée'],
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',next:'b2',items:ITEMS.a},
               {id:'b2',kind:'do',title:'Réévaluation à 5 min',items:ITEMS.b}]});
     await Data.put(f);fiches.push(f);
@@ -3105,7 +3143,11 @@ await sec('PARCOURS · la réponse enroule, la branche se nomme', async () => {
     document.querySelector('[data-alltab="parcours"]').click();await w(600);
     const wrap=document.querySelector('.pc-wrap');if(!wrap)return {err:'pas de .pc-wrap'};
     const deb=[],ecr=[];let avecR=0;
-    wrap.querySelectorAll('.pc-card').forEach(c=>{const cb=c.getBoundingClientRect();
+    /* ⚠ v5.6 : la SÉQUENCE est une pile de RANGÉES, et seul le bloc COURANT développe ses items
+       (les autres n'affichent que leur compte — le contenu complet, c'est l'onglet « Page »).
+       Le porteur d'un `.pc-it` est donc `.pc-row.cur` OU une des trois cartes encadrantes ; ne
+       scanner que `.pc-card` rendait un ensemble vide, donc un témoin faux. */
+    wrap.querySelectorAll('.pc-card,.pc-row').forEach(c=>{const cb=c.getBoundingClientRect();
       c.querySelectorAll('.pc-it').forEach(it=>{
         const tx=it.querySelector('.pc-t'),rp=it.querySelector('.pc-r');
         if(tx&&tx.getBoundingClientRect().width<60)ecr.push(tx.textContent.slice(0,24));
@@ -3280,7 +3322,10 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
     const svloop=[...document.querySelectorAll('.sv-jump.loop')].map(e=>e.textContent).join('|');
     const pt=document.querySelector('[data-alltab="parcours"]');if(pt)pt.click();await w(300);
     const pcjl=[...document.querySelectorAll('.pc-jl')].map(e=>e.textContent).join('|');
-    const pcloop=[...document.querySelectorAll('.pc-foot')].filter(e=>/↺/.test(e.textContent)).map(e=>e.textContent).join('|');
+    /* v5.6 : le renvoi de boucle a quitté le pied de carte pour la COLONNE DE DROITE de la
+       rangée — c'est la même information (où va-t-on après) au même endroit que les renvois
+       d'une décision. Le témoin suit le composant, il ne disparaît pas avec son ancien porteur. */
+    const pcloop=[...document.querySelectorAll('.pc-row .pc-go')].filter(e=>/↺/.test(e.textContent)).map(e=>e.textContent).join('|');
     return {srj,jll:jll?jll.textContent:'',svjl,svloop,pcjl,pcloop};});
   t('Échelle : la ligne ANNONCE le jalon et le détail déplié dit la condition',
     c3.srj===true&&/Chocs délivrés ≥ 3/.test(c3.jll), JSON.stringify({srj:c3.srj,jll:c3.jll.slice(0,60)}));
