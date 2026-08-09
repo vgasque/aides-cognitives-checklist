@@ -34,7 +34,7 @@
      ensemble latin, graisse 600, 21 Ko, vendorisée dans `vendor/fonts/`) prend les TITRES —
      titre de fiche, marque, compte rendu — et rien d'autre. Ce n'est pas une décoration : les
      titres sont les seuls survivants du scan sous stress, ils méritent un dessin ; le texte
-     courant reste system-ui, la police que l'appareil rend le mieux, et changer le corps d'une
+     courant restait system-ui, la police que l'appareil rend le mieux, et changer le corps d'une
      aide lue en réanimation n'a jamais été l'objet.
      `font-display: swap` : le texte s'affiche IMMÉDIATEMENT dans la police de repli et bascule
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
@@ -891,6 +891,10 @@
   #sessionDock[hidden]{display:none}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
      dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */
+  /* RÉSERVE, PAS ESPACEMENT : la hauteur réelle du dock (50 de touche + 5+5 de coque + 10 de
+     bas + 14 de marge). Un dock FIXE ne prend aucune hauteur de flux — sans elle, la dernière
+     étape d'un bloc naîtrait DERRIÈRE lui. Ne pas l'arrondir sur l'échelle d'espacement : elle
+     suit le dessin du dock, pas le rythme de la page. */
   body.dock-on main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   body.dock-on.kb-open main{padding-bottom:0}
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
@@ -1305,7 +1309,7 @@
      Graisse 600 et non 700 : c'est la SEULE graisse embarquée, en demander une autre produirait
      une graisse SYNTHÉTIQUE — plus lourde et moins nette (v4.61.0). Corps inchangé (16,5 px, un
      palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie. */
-  .bt-d{margin-left:6px;font-family:system-ui,sans-serif;font-size:12px;font-weight:800;
+  .bt-d{margin-left:6px;font-family:var(--sans);font-size:12px;font-weight:800;
     color:var(--ink);background:var(--surface-3);border-radius:8px;padding:1px 6px;white-space:nowrap}
   #brandTitle{font-family:var(--serif);font-size:17.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
@@ -3009,8 +3013,12 @@
   /* 16.5px comme `ol.steps li .txt` (v4.24.0) : choisir une branche est au moins aussi engageant
      que cocher une étape — rien ne justifiait de le rendre MOINS lisible. La graisse reste 700 (et
      non 800) : c'est un CHOIX, pas une action. */
-  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:1px solid var(--verify-bd);border-radius:8px;padding:10px 12px;min-height:64px;font-size:17.5px;font-weight:700;color:var(--ink);width:100%;cursor:pointer}
-  .opt:hover{background:var(--surface)}.opt .arr{margin-left:auto;color:var(--verify)}
+  /* Le CHOIX prend le registre de l'ACTION (maquette) : contour `--act` de 2 px sur fond de
+     travail, les deux issues de poids STRICTEMENT égal — aucune n'est suggérée. L'ambre reste
+     au REGISTRE du bloc (son étiquette, son liseré), pas au geste. */
+  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--work);border:2px solid var(--act);border-radius:var(--r-3);padding:10px 16px;min-height:64px;font-size:var(--t-step);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
+  .opt:hover{background:var(--primary-soft)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
+  .opt-go{margin-left:auto;flex:none;font-size:var(--t-meta);font-weight:700;color:var(--act);white-space:nowrap}
   .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
@@ -3242,7 +3250,12 @@
   .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .jl-e1 .tk-del{margin-left:auto}
-  .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
+  /* ⚠ CETTE BANDE PORTE UN TEXTE NU, donc elle HÉRITAIT du 16 px par défaut du navigateur —
+     la seule taille de tout le rendu hors de l'échelle fermée (mesuré au balayage v5.6). Les
+     autres bandes n'ont pas le défaut : leur texte vit dans `.sv-t`, qui a la sienne. C'est un
+     INTERTITRE de section, il prend la grammaire des intertitres. */
+  .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft);
+    font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   /* Navigation en mode crise (Continuer / Précédent / Recommencer…) : cible tactile confortable (>= 44px).
@@ -4268,7 +4281,14 @@
      disait déjà — et il mettait une quatrième couleur dans un écran qui n'en veut qu'une. */
   .ov-block{background:var(--surface);border:1px solid var(--work-line);border-radius:var(--r-4);margin-bottom:10px;scroll-margin-top:72px}
   .ov-block.cur{box-shadow:var(--shadow-work)}
-  .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  /* ⚠ UNE DÉCISION N'EST PAS UNE ALERTE (v5.6, maquette « cas difficiles ») — A11 : l'aplat
+     teinté est réservé à ce qui exige une action MAINTENANT, et il ne doit y avoir qu'une masse
+     colorée à l'écran. Une carte de décision est le bloc COURANT une fois sur deux dans une
+     fiche à branches : en aplat ambre, la moitié du soin se déroulait sur un fond d'alerte, et
+     l'ambre cessait de vouloir dire « c'est là qu'on se trompe ». Elle redevient une carte de
+     TRAVAIL ; le registre est annoncé par l'étiquette du bloc (« Bloc n · Décision ») et le
+     liseré gauche, qui restent ambre. */
+  .ov-block.dec{border-left-color:var(--verify-bd)}
   /* Un bloc de DÉCISION garde son ambre même quand il est le bloc courant (v4.24.0, décision
      utilisateur). Avant, `.cur` était déclarée APRÈS `.dec` et repeignait la bordure en bleu : le
      même bloc changeait de couleur selon qu'on venait d'y arriver ou qu'on y remontait — le
@@ -4767,7 +4787,7 @@
   /* (create-band supprimée — le choix de méthode vit dans le dialogue « Créer », SPEC §2.1.) */
   /* Pied de page COMPACT (une seule ligne qui replie au besoin) : version · synchro · stockage
      — tout le contenu passif tient sur ~34px ; « Installer l'app » s'y glisse s'il apparaît. */
-  footer.tools{border-top:1px solid var(--line);padding:7px 18px calc(9px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}
+  footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
   .tools-actions{display:contents}   /* le bouton (masqué par défaut) devient un item direct de la ligne */
   .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -5142,6 +5162,12 @@
   .rs-sec>summary:hover{color:var(--ink-2)}
   .rs-sec>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .rs-sec .rs-in{padding:0}
+  /* ⚠ LA LISTE DES RÉFÉRENCES EST STYLÉE PAR `.ai-card ol` — donc PAS quand la feuille
+     s'ouvre dans la COLONNE du cockpit (A15, ≥ 1200 px), qui n'est pas une fenêtre : elle
+     y retombait sur le 16 px par défaut du navigateur (mesuré au balayage v5.6, seule taille
+     hors échelle du rendu large). On l'attache à la SECTION, qui est le porteur commun aux
+     deux logements — c'est la règle « un composant, un habillage » appliquée à sa liste. */
+  .rs-sec ol{font-size:var(--t-body);color:var(--ink-2);margin:0 0 12px;padding-left:20px;line-height:1.5}
   /* Documents DANS la feuille : rangées à filet, pas des cartes empilées dans une carte. */
   .rs-sec .att-list{display:block}
   .rs-sec .att-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;

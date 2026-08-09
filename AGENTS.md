@@ -197,6 +197,8 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   bout. Corollaire de méthode : après toute édition du CSS, ne pas se fier au vert de `check-colors`
   et `check-type`, qui travaillent au motif et ne voient pas une règle disparue. Puis **couleurs** (`check-colors.mjs`, cf. Conventions), **échelle
   typographique** (`check-type.mjs`, v4.71.1 — sept paliers, exemptions nommées et motivées),
+  **polices** (`check-fonts.mjs`, v5.6 — trois familles embarquées, trois tokens ; une
+  `font-family` écrite en clair est SILENCIEUSE, cf. A22),
   **espacement** (`check-space.mjs`, v5.0.0 — 1 356 déclarations, échelle fermée à 21 valeurs,
   migration à ≤ 1 px de déplacement : c'était la moitié du système sans aucun garde-fou),
   **rayons** (`check-radius.mjs`, v5.0.0 — dix-neuf valeurs distinctes pour trois tokens, ramenées
@@ -490,17 +492,110 @@ deux énoncés du même mode sur le même écran, c'est la duplication que la v4
 question n'était plus QUE supprimer mais LEQUEL, et le sur-titre gagne parce qu'il est du côté où
 l'œil arrive et qu'il ne dispute plus sa place aux réglages.
 
+**A15b. « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6).** Les deux onglets du cran
+« Toute la fiche » montraient l'un et l'autre chaque étape de chaque bloc, dans deux mises en page —
+deux vocabulaires pour une idée (§5.5). « Parcours » devient une rangée par bloc (état dans la
+marque, renvois à droite) et seul le bloc COURANT développe ses items : c'est la rangée qui répond
+à « où j'en suis », les autres n'ont rien à dire de plus que leur compte. « Quand l'utiliser » y
+reste — la maquette ne la montre pas, mais retirer une condition d'entrée d'une vue « toute la
+fiche » serait une perte sèche.
+
 **A15. « CONSULTER » N'ÉVINCE PAS LE BLOC AU COCKPIT.** À partir de 1200 px la référence s'ouvre
 dans la colonne d'état : le bloc reste sous les yeux et cochable (l'ECAM ne remplace que la zone
 concernée). Sous 1200 px elle reste une excursion, retour nommé « ↩ REVENIR · n » à position
 constante, même vert que « ↩ UN BLOC ». « Tout voir » garde le remplacement à tous les paliers :
 c'est la même matière que le bloc — la fiche.
 
+**A16. UNE LIGNE OU UNE CARTE — LA FORME DIT LA NATURE (v5.6, deuxième passe de fidélité).**
+Ce qui se COMPTE prend une carte (les blocs d'une séquence : on les dénombre d'un coup d'œil) ; ce
+qui se LIT prend une ligne (repères posologiques, surveillances, différentiels, documents,
+références). Corollaires appliqués partout :
+· **Un repère posologique est une RANGÉE** — nom à gauche, valeur mono à droite, MÊME grammaire
+  dans le flux et dans le rail (deux habillages en feraient deux composants). Le registre △ se
+  marque (glyphe + encre), il ne prend jamais d'aplat.
+· **Plus aucune case inerte dans « Consulter »** — une case qu'on ne peut pas cocher, dans une
+  surface dont l'INERTIE est la propriété qu'un harnais vérifie, invite au geste qu'elle refuse
+  (même argument qu'en v5.0.0/M1 pour l'éditeur, où `.li-box` a été purgée pour cette raison).
+  Ses sections sont des INTERTITRES 11 px dans leur carte, plus des rangées-menu de 52 px — la
+  cible de 44 px est rendue par le rembourrage, jamais par un halo (sur une rangée pleine largeur
+  il recouvrirait la première ligne de contenu, et un tap destiné à lire replierait la section).
+· **Les surveillances de la colonne d'orientation restent des lignes** : elles n'ont pas de rang,
+  et un item ellipsé y perd son contenu clinique là où un bloc se retrouve par son numéro.
+
+**A17. UNE DÉCISION N'EST PAS UNE ALERTE (v5.6, maquette « cas difficiles »).** La carte de
+décision était un APLAT ambre : dans une fiche à branches, c'est le bloc courant une fois sur
+deux — la moitié du soin se déroulait sur un fond d'alerte, et l'ambre cessait de vouloir dire
+« c'est là qu'on se trompe » (A11). Elle redevient une carte de TRAVAIL ; le registre est porté
+par l'étiquette du bloc et le liseré gauche, qui restent ambre (v4.24.0 : un registre n'est jamais
+masqué par un état). **Les issues prennent le registre de l'ACTION** — contour `--act` de 2 px,
+poids strictement égal, aucune n'est suggérée — **et chacune ANNONCE SA DESTINATION** (« → bloc 4 ·
+Stabilisé ») : un chevron dit que ça mène quelque part, pas OÙ, et c'est ce qu'on veut savoir avant
+de choisir sous stress. Numéro du plan (numérotation commune) + titre tronqué : un numéro seul ne
+parle pas à un humain (v4.16.2).
+
+**A18. LE DOCK EST LA BARRE DE COMMANDE DE LA SESSION (v5.6, maquette 1c).** Ses quatre touches
+n'apparaissent qu'une fois le soin DÉMARRÉ. Avant le premier geste, deux d'entre elles
+DÉMARRERAIENT la session implicitement par un contrôle qui ne le dit pas (⏱, ⚡), et les deux
+autres doublonnent ce que la page montre déjà — hors session la fiche est ENTIÈRE sous les yeux.
+« Consulter » reste à un tap par la rangée d'annexes et par le renvoi de la condition d'entrée.
+⚠ CE QUI N'EST PAS REPRIS DE LA MAQUETTE, ET POURQUOI : elle loge « Démarrer la session » DANS le
+dock. Le bouton reste dans le flux, sous les critères — c'est le geste qui PORTE la confirmation
+(« Confirmé — démarrer la session », v4.3.2) ; le déplacer en ferait un second énoncé du même verbe
+(§5.5) ou obligerait à supprimer celui du flux, donc à rouvrir l'ordre « critères → memory items →
+geste » (v5.0.8) et la zone flottante qui garantit qu'on l'atteint (v4.73.0). Trois décisions
+mesurées pour un gain de position : à décider séparément, jamais par effet de bord.
+
+**A19. LA CONDITION D'ENTRÉE A DEUX ÉTATS, DONC DEUX DESSINS.** Avant la session, « suis-je au bon
+endroit ? » EST la question : carte au dessin de la maquette (« ■ Quand l'utiliser », un ■ rouge
+par critère, renvoi discret vers les différentiels), sans chevron — il n'y a rien à replier quand
+on n'a pas encore répondu. Après, c'est une ligne de traçabilité : le dépliant d'avant, inchangé.
+⚠ CADRE NEUTRE, PAS ROUGE (maquette 1c contre 1b — les deux existent) : le chapeau « Ne pas
+oublier » juste dessous EST un encadré rouge, et deux cadres rouges qui se suivent sont
+l'inflation que ce dossier combat depuis la v4.23.0. Le registre vit dans le titre et les
+marqueurs.
+
+**A20. LE VOLET DU QUAI EST UN ÉTAGE DU CHROME, DONC IL EST SOMBRE.** La v5.4.1 en avait fait un
+étage plutôt qu'une carte flottante — bonne structure, matière d'avant. Depuis les trois matières,
+un étage du quai en blanc annoncerait qu'on est revenu dans le TRAVAIL. Cartes `--sys-2`, échu sur
+`--warn-sys-bg`. Aucun contenu clinique n'y vit : ce sont des ÉTATS (temps, décomptes, repères),
+c'est-à-dire ce que le quai porte déjà.
+
+**A21. « NOTER L'HEURE » N'A QU'UNE ADRESSE.** C'est une touche du dock. Le panneau du journal ne
+la porte plus : deux adresses pour un verbe, c'est ce que §5.5 proscrit, et la seconde vivait
+derrière un dépliant — donc invisible à l'instant où l'on en a besoin. Le panneau redevient la
+LECTURE du journal.
+
+**A22. TROIS FAMILLES, TROIS TOKENS — ET UN GARDE-FOU (`check-fonts.mjs`).** Manrope (`--f-ui`),
+IBM Plex Mono (`--f-mono`), Source Serif 4 (`--f-title`). Une `font-family` écrite en clair est
+SILENCIEUSE : le texte s'affiche, dans la mauvaise voix, et sur un système où `system-ui` ressemble
+à Manrope on ne le voit pas même en regardant. Deux sites l'enfreignaient depuis la refonte — la
+pilule de discriminant du titre et les sept textes du schéma SVG, tous deux posés du temps où
+l'interface ELLE-MÊME était en `system-ui`. ⚠ Un attribut SVG `font-family="…"` n'hérite pas d'une
+propriété personnalisée : il porte la pile en clair, famille embarquée en tête. Le compte rendu
+TÉLÉCHARGÉ est exempté par la RÉGION où il vit (pas par une liste de valeurs) : c'est un document
+autonome, sans serveur, et ses polices système sont une décision (v5.2.0).
+
+**A23. L'ÉCHELLE FERMÉE SE VÉRIFIE AU RENDU, PAS SEULEMENT DANS LA FEUILLE (v5.6, balayage).**
+`check-type`/`check-space`/`check-radius` lisent le bloc `<style>` : un `style=` EN LIGNE dans la
+coque statique leur échappe entièrement, et une règle qui ne s'applique pas dans un logement
+(`.ai-card ol` quand la feuille s'ouvre dans la COLONNE du cockpit) laisse le navigateur poser son
+défaut de 16 px. Le balayage du rendu (7 surfaces × 320/390/1280 × zoom 90/100/130) a trouvé
+exactement quatre dérives, toutes invisibles au statique : `#confirmMsg` à 14,5 px et un `gap:9px`
+en ligne, `.sv-band.sv-cxband` qui héritait du 16 px par défaut (texte NU, sans `.sv-t` pour le
+porter), et la liste des références en colonne. Après : **zéro** taille et **zéro** rayon hors
+échelle, l'espacement n'ayant plus que des compensations négatives documentées et la réserve du
+dock — qui est une HAUTEUR MESURÉE, pas un espacement choisi, et ne doit pas être arrondie.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
 repli admissible : un passage INCOMPLET n'est jamais une chip, le BOUT est toujours une carte.
 ACHÈTE : le bloc seul au centre, ~11 objets à l'écran contre 25.
+⚠ v5.6 — LE COMPOSANT CHIP EST PURGÉ (règle 14, zéro émission vérifiée) : DÉPLIÉE, la ligne-bilan
+rend une CARTE DE RANGÉES (« ✓ n · titre · passage k/n · compte mono »), pas une rangée de chips.
+Une chip abrège à treize caractères — sans importance tant qu'elle est repliée, rédhibitoire à
+l'instant où l'on DÉPLIE, puisqu'on vient justement relire ce qui a été fait. Même grammaire que le
+parcours : « la liste des blocs » se lit pareil partout.
 ⚠ CONSÉQUENCE MESURÉE : le journal ne grandit plus, donc à 390 px le contrôle d'avancement est
 souvent DÉJÀ visible à la réouverture — `landOnBout` a alors raison de ne pas défiler, et le témoin
 de réentrée mesure les DEUX régimes plutôt que d'exiger un atterrissage qui n'a plus lieu d'être.

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-jXy388Hq2wXp4L78zAQ1EkR6JYjbNzMnnx5tHZ9Uqx0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-LF+DIbslv5xwtunE1xMGYsQLyTo0gOmEEjM8nNHD9Pg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -379,7 +379,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ensemble latin, graisse 600, 21 Ko, vendorisée dans `vendor/fonts/`) prend les TITRES —
      titre de fiche, marque, compte rendu — et rien d'autre. Ce n'est pas une décoration : les
      titres sont les seuls survivants du scan sous stress, ils méritent un dessin ; le texte
-     courant reste system-ui, la police que l'appareil rend le mieux, et changer le corps d'une
+     courant restait system-ui, la police que l'appareil rend le mieux, et changer le corps d'une
      aide lue en réanimation n'a jamais été l'objet.
      `font-display: swap` : le texte s'affiche IMMÉDIATEMENT dans la police de repli et bascule
      quand la police est prête — jamais d'écran de titre vide, même au tout premier chargement.
@@ -1236,6 +1236,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #sessionDock[hidden]{display:none}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
      dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */
+  /* RÉSERVE, PAS ESPACEMENT : la hauteur réelle du dock (50 de touche + 5+5 de coque + 10 de
+     bas + 14 de marge). Un dock FIXE ne prend aucune hauteur de flux — sans elle, la dernière
+     étape d'un bloc naîtrait DERRIÈRE lui. Ne pas l'arrondir sur l'échelle d'espacement : elle
+     suit le dessin du dock, pas le rythme de la page. */
   body.dock-on main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
   body.dock-on.kb-open main{padding-bottom:0}
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
@@ -1650,7 +1654,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Graisse 600 et non 700 : c'est la SEULE graisse embarquée, en demander une autre produirait
      une graisse SYNTHÉTIQUE — plus lourde et moins nette (v4.61.0). Corps inchangé (16,5 px, un
      palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie. */
-  .bt-d{margin-left:6px;font-family:system-ui,sans-serif;font-size:12px;font-weight:800;
+  .bt-d{margin-left:6px;font-family:var(--sans);font-size:12px;font-weight:800;
     color:var(--ink);background:var(--surface-3);border-radius:8px;padding:1px 6px;white-space:nowrap}
   #brandTitle{font-family:var(--serif);font-size:17.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
@@ -3354,8 +3358,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* 16.5px comme `ol.steps li .txt` (v4.24.0) : choisir une branche est au moins aussi engageant
      que cocher une étape — rien ne justifiait de le rendre MOINS lisible. La graisse reste 700 (et
      non 800) : c'est un CHOIX, pas une action. */
-  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:1px solid var(--verify-bd);border-radius:8px;padding:10px 12px;min-height:64px;font-size:17.5px;font-weight:700;color:var(--ink);width:100%;cursor:pointer}
-  .opt:hover{background:var(--surface)}.opt .arr{margin-left:auto;color:var(--verify)}
+  /* Le CHOIX prend le registre de l'ACTION (maquette) : contour `--act` de 2 px sur fond de
+     travail, les deux issues de poids STRICTEMENT égal — aucune n'est suggérée. L'ambre reste
+     au REGISTRE du bloc (son étiquette, son liseré), pas au geste. */
+  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--work);border:2px solid var(--act);border-radius:var(--r-3);padding:10px 16px;min-height:64px;font-size:var(--t-step);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
+  .opt:hover{background:var(--primary-soft)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
+  .opt-go{margin-left:auto;flex:none;font-size:var(--t-meta);font-weight:700;color:var(--act);white-space:nowrap}
   .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
@@ -3587,7 +3595,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .jl-e1 .tk-del{margin-left:auto}
-  .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft)}
+  /* ⚠ CETTE BANDE PORTE UN TEXTE NU, donc elle HÉRITAIT du 16 px par défaut du navigateur —
+     la seule taille de tout le rendu hors de l'échelle fermée (mesuré au balayage v5.6). Les
+     autres bandes n'ont pas le défaut : leur texte vit dans `.sv-t`, qui a la sienne. C'est un
+     INTERTITRE de section, il prend la grammaire des intertitres. */
+  .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft);
+    font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase}
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   /* Navigation en mode crise (Continuer / Précédent / Recommencer…) : cible tactile confortable (>= 44px).
@@ -4613,7 +4626,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      disait déjà — et il mettait une quatrième couleur dans un écran qui n'en veut qu'une. */
   .ov-block{background:var(--surface);border:1px solid var(--work-line);border-radius:var(--r-4);margin-bottom:10px;scroll-margin-top:72px}
   .ov-block.cur{box-shadow:var(--shadow-work)}
-  .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
+  /* ⚠ UNE DÉCISION N'EST PAS UNE ALERTE (v5.6, maquette « cas difficiles ») — A11 : l'aplat
+     teinté est réservé à ce qui exige une action MAINTENANT, et il ne doit y avoir qu'une masse
+     colorée à l'écran. Une carte de décision est le bloc COURANT une fois sur deux dans une
+     fiche à branches : en aplat ambre, la moitié du soin se déroulait sur un fond d'alerte, et
+     l'ambre cessait de vouloir dire « c'est là qu'on se trompe ». Elle redevient une carte de
+     TRAVAIL ; le registre est annoncé par l'étiquette du bloc (« Bloc n · Décision ») et le
+     liseré gauche, qui restent ambre. */
+  .ov-block.dec{border-left-color:var(--verify-bd)}
   /* Un bloc de DÉCISION garde son ambre même quand il est le bloc courant (v4.24.0, décision
      utilisateur). Avant, `.cur` était déclarée APRÈS `.dec` et repeignait la bordure en bleu : le
      même bloc changeait de couleur selon qu'on venait d'y arriver ou qu'on y remontait — le
@@ -5112,7 +5132,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* (create-band supprimée — le choix de méthode vit dans le dialogue « Créer », SPEC §2.1.) */
   /* Pied de page COMPACT (une seule ligne qui replie au besoin) : version · synchro · stockage
      — tout le contenu passif tient sur ~34px ; « Installer l'app » s'y glisse s'il apparaît. */
-  footer.tools{border-top:1px solid var(--line);padding:7px 18px calc(9px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}
+  footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
   .tools-actions{display:contents}   /* le bouton (masqué par défaut) devient un item direct de la ligne */
   .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -5487,6 +5507,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rs-sec>summary:hover{color:var(--ink-2)}
   .rs-sec>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .rs-sec .rs-in{padding:0}
+  /* ⚠ LA LISTE DES RÉFÉRENCES EST STYLÉE PAR `.ai-card ol` — donc PAS quand la feuille
+     s'ouvre dans la COLONNE du cockpit (A15, ≥ 1200 px), qui n'est pas une fenêtre : elle
+     y retombait sur le 16 px par défaut du navigateur (mesuré au balayage v5.6, seule taille
+     hors échelle du rendu large). On l'attache à la SECTION, qui est le porteur commun aux
+     deux logements — c'est la règle « un composant, un habillage » appliquée à sa liste. */
+  .rs-sec ol{font-size:var(--t-body);color:var(--ink-2);margin:0 0 12px;padding-left:20px;line-height:1.5}
   /* Documents DANS la feuille : rangées à filet, pas des cartes empilées dans une carte. */
   .rs-sec .att-list{display:block}
   .rs-sec .att-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;
@@ -7053,9 +7079,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      action alternative (ex. import : « garder les deux »). -->
 <div class="ai-modal dlg-confirm" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="confirmModalTitle">Confirmer</h3><button class="ai-x" id="confirmX" aria-label="Fermer">×</button></div>
-  <p id="confirmMsg" style="white-space:pre-line;font-size:14.5px;color:var(--ink)"></p>
+  <p id="confirmMsg" style="white-space:pre-line;font-size:15px;color:var(--ink)"></p>
   <label class="auth-check" id="confirmCheckRow" hidden><input type="checkbox" id="confirmCheck"><span id="confirmCheckLbl"></span></label>
-  <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="confirmNo">Annuler</button><button class="btn primary" id="confirmYes">Confirmer</button></div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="confirmNo">Annuler</button><button class="btn primary" id="confirmYes">Confirmer</button></div>
 </div></div>
 
 <script>
@@ -13744,7 +13770,7 @@ const FLOWK={TH:28,HG:36,VG:52,PX:14,PY:14,LH:16,TLH:15,HPAD:8,TXT_MAX:42,TITLE_
 // si elle est trop longue (…) pour rester compacte et ne pas trop encombrer le schéma.
 const shortLbl=s=>{s=String(s||'').replace(/\s+/g,' ').trim();return s.length>FLOWK.LBL_MAX?s.slice(0,FLOWK.LBL_MAX-1)+'…':s;};
 const labW=s=>{const t=shortLbl(s);return t?Math.max(20,Math.round(t.length*FLOWK.LCH)+12):0;};
-const labelTag=(x,y,txt)=>{const t=shortLbl(txt);if(!t)return '';const w=labW(txt);return `<g transform="translate(${Math.round(x)},${Math.round(y)})"><rect x="${Math.round(-w/2)}" y="-8.5" width="${w}" height="17" rx="8.5" fill="#fff" stroke="#c9a24a" stroke-width="1.3"/><text x="0" y="3.3" text-anchor="middle" font-size="9.5" font-weight="600" fill="#7a5900" font-family="system-ui">${esc(t)}</text></g>`;};
+const labelTag=(x,y,txt)=>{const t=shortLbl(txt);if(!t)return '';const w=labW(txt);return `<g transform="translate(${Math.round(x)},${Math.round(y)})"><rect x="${Math.round(-w/2)}" y="-8.5" width="${w}" height="17" rx="8.5" fill="#fff" stroke="#c9a24a" stroke-width="1.3"/><text x="0" y="3.3" text-anchor="middle" font-size="9.5" font-weight="600" fill="#7a5900" font-family="'Manrope',system-ui,sans-serif">${esc(t)}</text></g>`;};
 // Orchestrateur : quatre étapes qui se passent un contexte C (algorithme détaillé dans le grand
 // commentaire ci-dessus ; chaque étape correspond à un point 1-4 de ce commentaire).
 // Mémo du SVG (v4.4.4, refondu v4.7.0) : la GÉOMÉTRIE est PURE et SANS ÉTAT — le halo du bloc
@@ -14036,18 +14062,18 @@ function flowNodesSVG(C){const{blocks,pos,LAY,start}=C;const{LH,TLH,HPAD,IMG_H,I
     const strip=L.startStrip||0;
     // Titre centré DANS l'espace situé sous le bandeau « DÉPART » (strip) -> jamais masqué.
     const hy0=strip+(hh-strip-L.headerLines.length*TLH)/2;
-    L.headerLines.forEach((ln,i)=>{g+=`<text x="${W/2+2}" y="${Math.round(hy0+i*TLH+TLH-4)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="system-ui">${esc(ln)}</text>`;});
-    if(isS)g+=`<rect x="${W/2-28}" y="2.5" width="56" height="14" rx="7" fill="#1f5fa6"/><text x="${W/2}" y="12.5" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="system-ui" letter-spacing="0.5">DÉPART</text>`;
+    L.headerLines.forEach((ln,i)=>{g+=`<text x="${W/2+2}" y="${Math.round(hy0+i*TLH+TLH-4)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${tcol}" font-family="'Manrope',system-ui,sans-serif">${esc(ln)}</text>`;});
+    if(isS)g+=`<rect x="${W/2-28}" y="2.5" width="56" height="14" rx="7" fill="#1f5fa6"/><text x="${W/2}" y="12.5" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="'Manrope',system-ui,sans-serif" letter-spacing="0.5">DÉPART</text>`;
     /* Pastille « ⚡ À TOUT MOMENT » — CONTOUR (fond blanc, cadre et encre rouges), symétrique de
        la pastille DÉPART pour la géométrie et opposée pour le registre. L'éclair est un TRACÉ et
        non le caractère « ⚡ » : celui-ci sort en emoji COULEUR sur iOS, dans un dessin qui n'a pas
        d'autre couleur que ses registres (même arbitrage que le trombone de la porte « ＋ »). */
-    if(cx)g+=`<g transform="translate(${W/2-49},2.5)"><rect width="98" height="14" rx="7" fill="#fff" stroke="#c43d34" stroke-width="1.1"/><path d="M11.5 3.2 L7.6 8.1 L10.2 8.1 L9 11.2 L12.9 6.3 L10.3 6.3 z" fill="#a32e1f"/><text x="55" y="10.5" text-anchor="middle" font-size="8.5" font-weight="700" fill="#a32e1f" font-family="system-ui" letter-spacing="0.5">À TOUT MOMENT</text></g>`;
+    if(cx)g+=`<g transform="translate(${W/2-49},2.5)"><rect width="98" height="14" rx="7" fill="#fff" stroke="#c43d34" stroke-width="1.1"/><path d="M11.5 3.2 L7.6 8.1 L10.2 8.1 L9 11.2 L12.9 6.3 L10.3 6.3 z" fill="#a32e1f"/><text x="55" y="10.5" text-anchor="middle" font-size="8.5" font-weight="700" fill="#a32e1f" font-family="'Manrope',system-ui,sans-serif" letter-spacing="0.5">À TOUT MOMENT</text></g>`;
     let iy=hh+HPAD;
     L.items.forEach(it=>{it.lines.forEach((ln,li)=>{const y=iy+12;
-      if(it.kind==='q'){g+=`<text x="10" y="${y}" font-size="10.5" font-style="italic" fill="#7a5900" font-family="system-ui">${esc(ln)}</text>`;}
-      else if(it.kind==='opt'){const pre=li===0?`<tspan font-weight="700" fill="#7a5900">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#7a5900" font-family="system-ui">${pre}${esc(ln)}</text>`;}
-      else{const pre=li===0?`<tspan font-weight="700" fill="#5b6570">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5"${(it.crit||it.vig)?' font-weight="700"':''} fill="${it.crit?'#a32e1f':(it.vig?'#7a5900':'#101b28')}" font-family="system-ui">${pre}${esc(ln)}</text>`;}
+      if(it.kind==='q'){g+=`<text x="10" y="${y}" font-size="10.5" font-style="italic" fill="#7a5900" font-family="'Manrope',system-ui,sans-serif">${esc(ln)}</text>`;}
+      else if(it.kind==='opt'){const pre=li===0?`<tspan font-weight="700" fill="#7a5900">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#7a5900" font-family="'Manrope',system-ui,sans-serif">${pre}${esc(ln)}</text>`;}
+      else{const pre=li===0?`<tspan font-weight="700" fill="#5b6570">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5"${(it.crit||it.vig)?' font-weight="700"':''} fill="${it.crit?'#a32e1f':(it.vig?'#7a5900':'#101b28')}" font-family="'Manrope',system-ui,sans-serif">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
     // Image du bloc DANS le SVG : vignette ajustée (meet) + petite loupe ; cliquable -> plein écran.
     if(L.img){const iyi=iy+IMG_GAP,iw=W-2*IMG_PAD,IP=2,iw2=iw-2*IP,ih2=IMG_H-2*IP;
@@ -16383,7 +16409,17 @@ function ovInstHtml(f,id,idx,topo,pres){
   const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
   let bodyH='',count='';
   if(dec){
-    const opts=(b.options||[]).map((o,i)=>{const sel=taken&&o===taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span><span class="arr">${sel?'✓':uiIcon('chev',18,{sw:2.4,cls:''})}</span></button>`;}).join('');
+    /* ⚠ CHAQUE ISSUE ANNONCE SA DESTINATION (v5.6, maquette « cas difficiles » : « on sait où
+       l'on va avant de taper »). Un chevron dit « ça mène quelque part » ; il ne dit pas OÙ, et
+       c'est précisément ce qu'on veut savoir avant de choisir sous stress. Le renvoi porte le
+       numéro du plan — la numérotation commune au journal, au parcours, au statique et au schéma
+       — plus le titre du bloc visé, tronqué s'il le faut : un numéro seul ne parle pas à un
+       humain (v4.16.2). Une issue SANS cible dit « fin », elle ne se tait pas. */
+    const _topo={};flowPlan(f).order.forEach((id,i)=>{_topo[id]=i+1;});
+    const _dest=o=>{const t=o&&o.target;if(!t)return '<span class="opt-go">▪ fin</span>';
+      const n=_topo[t],ti=stripBold(((f.blocks||[]).find(x=>x.id===t)||{}).title||'');
+      return `<span class="opt-go">→ ${n?'bloc '+n:''}${ti?(n?' · ':'')+esc(ti.length>18?ti.slice(0,17)+'…':ti):''}</span>`;};
+    const opts=(b.options||[]).map((o,i)=>{const sel=taken&&o===taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${sel?'<span class="arr">✓</span>':_dest(o)}</button>`;}).join('');
     /* ⚠ LE RETOUR D'EXCURSION EXISTE AUSSI SUR UN BLOC DE DÉCISION (défaut PRÉEXISTANT, trouvé
        par le témoin d'état d'`audit-a11y` : il exigeait que l'état se CONSTRUISE, et il ne se
        construisait pas — le bloc courant était une décision). Sans lui, entrer sur une
