@@ -1849,7 +1849,7 @@ for (const W of [320, 390]) {
        bloc d'excursion — un contrôle qui n'a pas défilé avant ne peut pas le voir. */
     /* ⚠ ON RELÈVE LES TROIS GESTES AVANT D'ENTRER : une fois DANS la complication, son bouton
        disparaît (on y est), et le témoin ne verrait plus que deux boîtes. */
-    const _actesAvant=[...document.querySelectorAll('.cx-row .blk-act')].map(e=>{
+    const _actesAvant=[...document.querySelectorAll('.cx-row .blk-act,.flow-ctrl.has-ver .blk-ver')].map(e=>{
       const c=getComputedStyle(e);
       return {fs:c.fontSize,pad:c.padding,h:Math.round(e.getBoundingClientRect().height),col:c.color};});
     window.scrollTo(0,700);await wt(200);
@@ -1862,7 +1862,7 @@ for (const W of [320, 390]) {
     const _k=document.getElementById('cxKey');
     const btnApres=!!_k&&!_k.hidden;
     const _c=document.querySelector('.ov-block.cur');
-    const _vp=document.querySelector('.cx-row [data-ovverify]');
+    const _vp=document.querySelector('.cx-row [data-ovverify],.flow-ctrl.has-ver [data-ovverify]');
     const verPied=!!_vp,verTete=!!(_c&&_c.querySelector('.ov-head [data-ovverify]'));
     const verCible=_vp?Math.round(_vp.getBoundingClientRect().height):0;
     const _ac=_actesAvant;
@@ -1904,6 +1904,9 @@ for (const W of [320, 390]) {
       btnApres,entreeY,verPied,verTete,verCible,actes,iciTxt,iciDis,autreTapable,
       retourY:rr?Math.round(rr.top):null,
       retourVisible:!!(rr&&rr.top>=0&&rr.bottom<=innerHeight),
+      contDernier:(()=>{const cc=document.querySelector('.ov-block.cur .ov-body');if(!cc)return null;
+        const fc=[...cc.querySelectorAll('.flow-ctrl')].pop();if(!fc)return null;
+        const last=fc.lastElementChild;return !!last&&last.classList.contains('cont');})(),
       premier};});
   t(`${W} · B — à UN événement, il n'y a pas d'index (on entre d'un tap)`,
     r.indexAUn===false&&!!r.unLbl&&!/Complications/.test(r.unLbl), `${r.unLbl}`);
@@ -1940,8 +1943,12 @@ for (const W of [320, 390]) {
      position constante. « Vérifier :: » reste, parce qu'il rejoue les challenges DE CE BLOC.
      L'ancien contrôle mesurait l'UNIFORMITÉ des trois boîtes ; il mesure désormais ce qui la
      remplace — il n'y a plus qu'une boîte, donc plus rien à uniformiser, et c'est vérifiable. */
-  t(`${W} · le pied de carte ne porte plus qu'UN geste (Vérifier ::)`,
-    r.actes.n===1, `${r.actes.n} bouton(s) · corps ${JSON.stringify(r.actes.fs)}`);
+  /* A7 rend « Vérifier :: » CONDITIONNEL : il n'existe que si le bloc porte des challenges « :: ».
+     Le contrôle mesure donc la borne HAUTE — le pied ne porte JAMAIS plus d'un geste — et le fait
+     que « Continuer » reste le DERNIER élément de la carte, qui est l'autre moitié de la règle. */
+  t(`${W} · le pied de carte ne porte jamais plus d'UN geste`,
+    r.actes.n<=1, `${r.actes.n} bouton(s) · corps ${JSON.stringify(r.actes.fs)}`);
+  t(`${W} · … et « Continuer » reste le dernier élément`, r.contDernier===true, String(r.contDernier));
   t(`${W} · entrer amène EN HAUT du bloc d'excursion`,
     r.entreeY!==null&&Math.abs(r.entreeY-8)<=4, `${r.entreeY} px sous le chrome collant`);
   t(`${W} · à UN événement, le bouton disparaît quand on y est`,

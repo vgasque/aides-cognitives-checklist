@@ -108,8 +108,10 @@ const PLANCHER = 11;
    l'étape courante de 15,5 à 17,5 px et l'étape critique à 21 — le gisement de 11 px cesse d'être
    le corps de texte du produit, ce que le cliquet existe pour empêcher. Il est reposé au niveau
    ATTEINT : il ne peut que redescendre. 170 -> 171 : l'intitulé de la colonne « ▤ Consulter »
-   (A15), une étiquette de zone du rail — même famille que les autres `.rail-head`. */
-const PLANCHER_MAX = 171;
+   (A15), une étiquette de zone du rail. 171 -> 174 : l'en-tête de la carte de bloc passe de la
+   pastille numérotée à l'ÉTIQUETTE « BLOC n » + compte (maquette) — trois déclarations, et elles
+   REMPLACENT du chrome au lieu de s'y ajouter. */
+const PLANCHER_MAX = 177;
 const auPlancher = (css.match(/font-size:\s*11px/g) || []).length;
 
 if (!fautes.length && auPlancher > PLANCHER_MAX) {

@@ -573,19 +573,24 @@
   /* Boutons d'action de la barre : MÊME gabarit 36px et MÊMES couleurs que le canvas — tonal
      --primary-soft / --primary-dk pour Créer et Thème (« un seul bouton rempli par écran » :
      rien de rempli dans la barre), avatar --primary plein pour Compte (pastille d'état verte). */
-  .hdr-new{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border:0;border-radius:14px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
-  .hdr-new:hover{background:var(--primary-100)}
+  .hdr-new{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-new:hover{background:var(--amb-2)}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* « Créer » reprend le registre TONAL quand il est la seule action offerte (bibliothèque vide) :
+     c'est alors la porte d'entrée du produit. En temps normal il reste un glyphe de commande. */
   .hdr-new.tonal{background:var(--primary-soft);color:var(--primary-dk)}
-  @media (max-width:779.98px){.hdr-new .hdr-new-lbl{display:none}.hdr-new{width:40px;padding:0;justify-content:center;border-radius:50%}}
+  @media (max-width:779.98px){.hdr-new .hdr-new-lbl{display:none}.hdr-new{width:40px;padding:0;justify-content:center}}
   /* Compact (< 780px, icône seule) : cercle 40px — même gabarit que .hdr-new compact ;
      en large le libellé revient et le bouton reprend la forme pilule. */
-  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;padding:0;border:0;border-radius:50%;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:none}
+  /* Thème et « Créer » : des GLYPHES DE COMMANDE (A13), pas des pastilles teintées. Trois
+     disques bleus alignés en tête d'écran pesaient plus que l'annuaire qu'ils surmontent. */
+  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;padding:0;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-theme:hover{background:var(--amb-2)}
   .hdr-theme:hover{background:var(--primary-100)}
   .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .hdr-theme-lbl{display:none;margin-left:4px}
-  @media (min-width:780px){.hdr-theme{width:auto;min-width:40px;padding:0 14px;border-radius:14px}.hdr-theme .hdr-theme-lbl{display:inline}}
+  @media (min-width:780px){.hdr-theme{width:auto;min-width:40px;padding:0 14px}.hdr-theme .hdr-theme-lbl{display:inline}}
   /* (A−/A+ : absents de Claude Design — la taille du texte se règle dans la fenêtre Compte.) */
   /* Menu ⋯ (SPEC gestion §4) : bouton 36px (halo 44), menu ancré sous la barre à droite,
      rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
@@ -683,7 +688,10 @@
   /* Direction A (audit v5.0.10) : la recherche est un CREUX (--surface-2), pas une carte de plus —
      en sombre --surface-2 est PLUS FONCÉ que la surface (#070708), le creux tient dans les deux
      thèmes. Bordure 2px -> 1px, le pixel rendu au rembourrage : hauteur inchangée. */
-  .hdr-search input{width:100%;padding:10px 32px 10px 32px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* LA RECHERCHE EST UNE CARTE DE TRAVAIL (maquette 1a) : c'est l'objet par lequel on ENTRE dans
+     la bibliothèque, et la matière le dit — blanc, filet fin, l'ombre unique. En creux gris, elle
+     se lisait comme une zone désactivée posée sur un fond de la même famille. */
+  .hdr-search input{width:100%;padding:12px 32px 12px 32px;border:1px solid var(--work-line);border-radius:var(--r-3);background:var(--work);color:var(--ink);font-size:15px;box-shadow:var(--shadow-work);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Le placeholder garde sa phrase entière (décision utilisateur) : quand la place manque, il
      s'ELLIPSE au lieu de se couper en plein mot (défaut mesuré à 390 px). */
   .hdr-search input::placeholder{text-overflow:ellipsis}
@@ -1280,7 +1288,11 @@
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
      de la rangée d'identité, la barre d'accueil reste sous ~85px hors encoche. */
   /* Avatar Compte (canvas) : cercle --primary PLEIN, 36px — même gabarit que Créer/Thème. */
-  .bar-acct{position:relative;background:var(--primary);color:var(--on-primary);border:0;width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  /* L'AVATAR : carré ARRONDI, matière système, initiales (maquette). Le disque bleu plein en
+     faisait le plus gros aplat coloré de l'accueil — devant tout contenu clinique —, alors qu'il
+     ne porte qu'une identité de fenêtre. La couleur d'ACCENT reste son unique surface (v5.0.0) :
+     elle se pose dessus quand un compte est connecté. */
+  .bar-acct{position:relative;background:var(--sys);color:var(--sys-ink);border:0;width:36px;height:36px;border-radius:var(--r-2);display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
   /* Rappel MINUTEURS toujours visible : 2e ligne de l'en-tête sticky, n'apparaît que si un minuteur
      tourne ET que le panneau minuteurs est sorti de l'écran (mis à jour par tickAll). Tap -> remonte
      au panneau. Fait partie de l'en-tête -> aucun calcul de position, reste sous l'encoche. */
@@ -1554,7 +1566,11 @@
   .dir-dot{width:8px;height:8px;border-radius:999px;flex:none}
   /* Le sélecteur de clé de groupement — grammaire des chips de filtre (c'est de la même famille :
      un objet qui décide de ce qu'on voit), poussé au bout de l'en-tête de section. */
-  .grp-seg{margin-left:auto;flex:none;display:flex;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
+  /* Le sélecteur de clé a SA rangée, au-dessus des sections qu'il réordonne (maquette 1a) : au
+     bout du titre « Répertoire », il se lisait comme une propriété de cette seule section, alors
+     qu'il gouverne la liste entière. */
+  .grp-row{display:flex;align-items:center;gap:8px;margin:12px 0 0}
+  .grp-seg{flex:none;display:flex;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
   .grp-b{min-height:32px;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
   .grp-b.on{background:var(--sys);color:var(--sys-ink)}
   .grp-b:not(.on):hover{background:var(--work)}
@@ -2726,7 +2742,10 @@
      protocoles (`li.md-task`) ont toujours eu la case à GAUCHE : les deux sont désormais
      cohérentes. À gauche, les cases forment une COLONNE que l'œil descend (scannabilité) —
      d'où l'exigence absolue ci-dessous : cette colonne ne doit JAMAIS se décaler. */
-  ol.steps li .box{width:36px;height:36px;border:2px solid var(--line-strong);border-radius:8px;flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
+  /* Case à 26 px (maquette) : la CIBLE n'en dépend pas — c'est la RANGÉE entière qui est
+     cochable (60 px de haut, `role="checkbox"` sur le `li`), et la doctrine D1 le dit déjà. Une
+     case de 36 px était un objet de plus dans une colonne qui doit se scanner. */
+  ol.steps li .box{width:26px;height:26px;border:2px solid var(--ctl-line);border-radius:var(--r-1);flex-shrink:0;display:grid;place-items:center;color:var(--on-primary);background:transparent}
   /* Étape SIGNALÉE = BANDE INTÉGRÉE. Le liseré est un `inset box-shadow`, PAS une bordure : une
      bordure décalerait le contenu de 3px et briserait l'alignement de la colonne de cases (tout
      l'intérêt du passage à gauche). Le débordement est compensé au pixel par le padding, donc la
@@ -3024,6 +3043,13 @@
      est en CONTOUR d'alerte — jamais remplie, un aplat rouge permanent désensibilise (v4.26.1) —,
      « Vérifier » est neutre. Sélecteur en (0,2,0) pour battre `.ov-redo` quel que soit l'ordre :
      pour une géométrie, ne jamais dépendre de la position dans la feuille. */
+  /* Le pied de carte : « Vérifier :: » à gauche, « Continuer » en dernier, pleine largeur
+     restante — un seul rang, comme dans la maquette. */
+  .flow-ctrl.has-ver{display:flex;gap:8px;align-items:stretch}
+  .flow-ctrl.has-ver .blk-ver{flex:none;min-height:46px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+  .flow-ctrl.has-ver .blk-ver:hover{background:var(--amb-2)}
+  .flow-ctrl.has-ver .blk-ver:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .flow-ctrl.has-ver .btn.cont{flex:1;min-width:0}
   .cx-row .blk-act{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;
     border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);
     font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer}
@@ -3115,6 +3141,54 @@
      boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
   @media (max-width:779.98px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12px}}
   .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+  /* A11 dans le rail : un repère posologique SIGNALÉ se marque (△ + encre ambre + filet), il ne
+     prend pas d'aplat — sinon deux repères font deux masses colorées dans une colonne dont toute
+     la doctrine est la désaturation, et l'aplat cesse de vouloir dire « maintenant ». */
+  body.view-read .read-side .pos-card.vig{background:none;border-color:var(--warn-line)}
+  /* ══ LE RAIL EST UNE COLONNE D'ÉTAT, PAS UN PANNEAU DE COMMANDE (v5.6, maquette) ═══════════
+     Mesuré avant : une carte de minuteur y occupait ~190 px (nom, précision, valeur 34 px, barre,
+     « Cycles : n », puis DEUX boutons pleine largeur), et un compteur ~150 px en carte centrée.
+     Trois minuteurs et deux compteurs enterraient la posologie et l'Échelle sous un pli invisible
+     — le défaut que la v5.4.3 avait déjà dû corriger en repliant deux zones.
+     LA MAQUETTE INVERSE LE RAPPORT : la colonne AFFICHE (nom · cycles · valeur, 76 px), et les
+     COMMANDES ne paraissent qu'au tap sur la carte. Deux exceptions, et ce sont les deux qui
+     comptent : un minuteur ÉCHU garde son « RELANCER » sous les yeux — c'est l'acquittement de
+     l'alarme, il ne se cherche pas —, et les ± d'un compteur restent, parce qu'incrémenter est le
+     geste le plus fréquent du rail. A8 est tenue : tout ce qui reste visible fait 44 px.
+     ⚠ BORNÉ AU RAIL. Le panneau et le volet gardent la carte COMPLÈTE — on les ouvre justement
+     pour régler, et c'est là que vivent la barre de progression et la remise à zéro. */
+  body.view-read .read-side .tmcard,body.view-read .read-plan .tmcard,
+  body.view-read .read-side .cncard{min-height:76px;padding:10px 12px;border-width:1px;border-radius:var(--r-2);gap:2px}
+  /* ⚠ `--ink-3` EST RÉSERVÉ AUX ÉTIQUETTES, JAMAIS À DU TEXTE PORTEUR (règle du dossier depuis
+     la v4.5) — et le harnais l'a mesuré à 2,32:1 sur la maquette reprise telle quelle. Le NOM
+     d'un minuteur EST porteur : c'est lui qui dit lequel des trois sonne. Encre secondaire. */
+  body.view-read .read-side .tmcard .tm-label{font-size:11px;font-weight:700;color:var(--ink-2);margin:0;min-height:0;-webkit-line-clamp:1}
+  body.view-read .read-side .tmcard.due .tm-label{color:var(--warn);font-weight:800}
+  body.view-read .read-side .tmcard .tm-meta,
+  body.view-read .read-side .tmcard .tm-bar-wrap,
+  body.view-read .read-side .tmcard .tm-cyc{display:none}
+  body.view-read .read-side .tm-val{font-size:17.5px}
+  /* Les commandes se déplient au tap ; l'échu montre les siennes d'emblée. */
+  body.view-read .read-side .tmcard:not(.tm-open):not(.due) .tm-ctrl{display:none}
+  body.view-read .read-side .tmcard.due .tm-ctrl{margin-top:0}
+  body.view-read .read-side .tmcard.due .tm-reset{display:none}
+  body.view-read .read-side .tmcard .tm-ctrl{margin-top:8px}
+  body.view-read .read-side .tmcard .tm-btn{min-height:44px;font-size:11px;font-weight:800}
+  /* La ligne d'une valeur : le temps à gauche, le geste à droite — jamais empilés. */
+  body.view-read .read-side .tmcard.due{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:10px}
+  body.view-read .read-side .tmcard.due .tm-label{grid-column:1/-1}
+  body.view-read .read-side .tmcard.due .tm-ctrl{display:flex;margin:0}
+  /* Un COMPTEUR du rail est une RANGÉE : nom · valeur · ± . La remise à zéro vit dans le panneau,
+     où l'on va pour régler — elle n'a rien à faire sous le doigt qui incrémente. */
+  body.view-read .read-side .rt-counters{display:block;margin-top:0}
+  body.view-read .read-side .cncard{display:flex;flex-direction:row;align-items:center;gap:8px;text-align:left;min-height:56px;background:none;border:0;padding:2px 0 8px}
+  body.view-read .read-side .cncard .tm-label{flex:1;min-width:0;justify-content:flex-start;font-size:12px;font-weight:600;color:var(--ink-2);margin:0;min-height:0;-webkit-line-clamp:2}
+  body.view-read .read-side .cncard .cn-val{flex:none;font-size:15px;font-weight:700;color:var(--ink)}
+  body.view-read .read-side .cncard .cn-log,
+  body.view-read .read-side .cncard .cn-note,
+  body.view-read .read-side .cncard .cn-reset{display:none}
+  body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;display:flex;gap:6px}
+  body.view-read .read-side .cncard .cn-btn{flex:none;min-width:44px;min-height:44px;border-color:var(--ctl-line)}
   /* Anatomie du canvas (rail droit) : UNE variable d'état --tcol pilote libellé + temps +
      barre (+ bordure via --tbd) ; courant = bleu, ÉCHU = AMBRE (le rouge reste réservé aux
      memory items / vital), en pause = encre douce + texte « — EN PAUSE » (jamais couleur seule). */
@@ -4045,9 +4119,17 @@
      ombre ne dit plus rien, c'est la SURFACE qui monte et le FILET qui borde). C'est la colonne
      d'ACTION : elle mérite le niveau 2, pas le fond nu.
      Les registres ne bougent pas : `.dec` garde sa teinte ambre, une étape `⚠`/`△` sa boîte. */
-  .ov-block{background:var(--surface);border:1px solid var(--line-hover);border-left:4px solid var(--line-strong);border-radius:8px;margin-bottom:10px;scroll-margin-top:72px}
+  /* ══ LA CARTE DE TRAVAIL, D'APRÈS LA MAQUETTE (v5.6) ══════════════════════════════════════
+     Le liseré gauche de 4 px et le cadre d'accent bleu du bloc courant sont RETIRÉS : la carte
+     est une SURFACE DE TRAVAIL posée sur l'ambiance — filet fin, rayon 14, rembourrage 18, et la
+     SEULE ombre du système. C'est la matière qui la distingue, plus un trait de couleur.
+     ⚠ A12 EST TENUE AUTREMENT, ET MIEUX : la position se lit à ce que la carte est le SEUL bloc
+     OUVERT, qu'elle est en tête de journal, et qu'elle porte `aria-current="step"` (le seul des
+     trois canaux qu'un lecteur d'écran voit). Le bleu ne servait qu'à redire ce que la structure
+     disait déjà — et il mettait une quatrième couleur dans un écran qui n'en veut qu'une. */
+  .ov-block{background:var(--surface);border:1px solid var(--work-line);border-radius:var(--r-4);margin-bottom:10px;scroll-margin-top:72px}
+  .ov-block.cur{box-shadow:var(--shadow-work)}
   .ov-block.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
-  .ov-block.cur{border-color:var(--primary);border-left-color:var(--primary)}
   /* Un bloc de DÉCISION garde son ambre même quand il est le bloc courant (v4.24.0, décision
      utilisateur). Avant, `.cur` était déclarée APRÈS `.dec` et repeignait la bordure en bleu : le
      même bloc changeait de couleur selon qu'on venait d'y arriver ou qu'on y remontait — le
@@ -4076,7 +4158,7 @@
   /* v4.13.1 : l'en-tête d'instance PEUT se replier sur deux rangées — en étroit, les boutons
      « Lecteur »/« Vérifier » passent SOUS le titre (flex-wrap + base 230px) au lieu de
      l'écraser (titre superposé au chip « Vous êtes ici », compteur expulsé). */
-  .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}
+  .ov-head{display:flex;align-items:stretch;flex-wrap:wrap;justify-content:flex-end;padding:18px 18px 0}
   .ov-head .ov-tgl{flex:1 1 100%}   /* titre + compteur sur leur propre ligne */
   /* P2-2 (audit design v4.56) : UNE seule ligne d'état — pilule « Vous êtes ici » à gauche,
      Lecteur/Vérifier à droite (−52 px par bloc actif ; la rangée vide flottait en plein cœur de
@@ -4094,12 +4176,16 @@
      La pilule, elle, reste à sa place : c'est un état, il ne se déplace pas. */
   .ov-acts{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start;padding:0 12px 10px}
   .ov-acts>:first-child{margin-left:auto}   /* seul le PREMIER bouton pousse ; les suivants se collent à lui */
-  .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:8px;min-height:52px;padding:8px 12px;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
+  .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:baseline;gap:8px;min-height:44px;padding:0;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left;flex-wrap:wrap}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .ov-n{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink-soft);border:2px solid var(--line-strong)}
-  .ov-block.cur .ov-n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-  .ov-block.done .ov-n{background:var(--ok);border-color:var(--ok);color:var(--surface)}
-  .ov-t{flex:1;min-width:0;font-size:13.5px;font-weight:800;color:var(--ink);line-height:1.5;overflow-wrap:break-word}
+  /* « BLOC 7 » : une ÉTIQUETTE, plus une pastille. La pastille numérotée disait la position par
+     un aplat bleu de plus ; le numéro suffit, et il reste le même que celui du plan, du statique
+     et du schéma (`flowPlan().order`). */
+  .ov-n{order:1;flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-family:inherit;background:none;border:0;padding:0}
+  .ov-block.done .ov-n{color:var(--ok)}
+  /* Le TITRE du bloc prend le cran 21 — c'est l'objet qu'on lit en premier dans la carte, et le
+     grand corps appartient à l'ACTE. Il vit sur sa propre ligne, sous l'étiquette. */
+  .ov-t{order:4;flex:1 1 100%;min-width:0;font-size:21px;font-weight:700;color:var(--ink);line-height:1.25;margin:2px 0 10px;overflow-wrap:break-word}
   .ov-t .pass-n{font-family:var(--mono);font-weight:600;color:var(--primary);margin-left:6px;font-size:12px}
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
@@ -4116,13 +4202,13 @@
      d'accent) ; il ne restait qu'une pilule bleue de plus dans un écran qui en compte assez.
      Ce qui subsiste dans l'en-tête de carte est le COMPTE (« 2/5 »), qui, lui, dit quelque chose
      que rien d'autre ne dit. */
-  .ov-c{flex:none;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .ov-c{order:2;flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-3)}
   .ov-block.done .ov-c{color:var(--ok)}
-  .ov-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
+  .ov-chev{order:3;flex:none;color:var(--ink-3);font-size:11px;font-weight:700}
   .ov-redo{flex:none;align-self:center;margin:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .ov-body{padding:0 12px 12px}
+  .ov-body{padding:0 18px 18px}
   .ov-block.closed .ov-body{display:none}
   .ov-body .flow-ctrl{margin-top:10px}
   /* ----- Journal de parcours (v4.9.0) : instances repliées = lignes d'état, suite, réponse ----- */
@@ -5752,8 +5838,22 @@
   /* « Ne pas oublier » : bandeau compact SOUS le titre (les rappels critiques se voient sans défiler). */
   /* Registre ALERTE compact (canvas turn 6) : kicker « ■ NE PAS OUBLIER » + items en coulée
      « · » — le rappel critique tient en quelques lignes sous le titre. */
-  .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-bd);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+  /* ══ LE CHAPEAU EN SESSION EST UNE RANGÉE, PAS UN PAVÉ ROUGE (v5.6, maquette) ══════════════
+     REPLIÉ, il n'est plus un encadré au registre ALERTE mais une ligne de rappel : ■ rouge, le
+     mot en encre douce, et le compte dans une pilule neutre. Le motif est celui de A11 poussé un
+     cran plus loin — un pavé rouge PERMANENT en tête de la colonne d'action désensibilisait au
+     rouge exactement comme l'aplat d'une étape critique, et il occupait la place la plus chère de
+     l'écran pour dire une chose qu'on a déjà lue avant de démarrer.
+     DÉPLIÉ (et hors session, où l'on s'oriente avant d'agir), il REPREND son cadre : c'est alors
+     la condition d'entrée QRH, on la lit, et le registre est juste. La couleur n'est jamais seule
+     dans les deux états : le ■ et le mot restent. */
+  .forget-strip{background:var(--critical-soft);border:1px solid var(--critical-bd);border-radius:var(--r-2);padding:10px 12px;margin-bottom:10px}
+  .forget-strip.fs-closed{background:none;border-color:transparent;padding:0 6px;margin-bottom:6px}
   .forget-strip .fs-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);margin-bottom:4px}
+  .forget-strip.fs-closed .fs-k{font-size:12px;letter-spacing:0;text-transform:none;margin:0}
+  .forget-strip.fs-closed .fs-kt{color:var(--ink-2);font-weight:700}
+  .forget-strip.fs-closed .fs-kt::first-letter{color:var(--crit)}
+  .forget-strip.fs-closed .fs-tgl{background:var(--work);border:1px solid var(--line);border-radius:var(--r-1);padding:2px 10px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2)}
   .forget-strip .fs-i{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.45;padding:2px 0;color:var(--ink)}
   .forget-strip .fs-i::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--critical);flex:none;margin-top:6px}
   /* T3 — repli du chapeau EN SESSION. Le kicker devient une rangée : mot à gauche, compte + chevron
@@ -5764,6 +5864,7 @@
      bandeau absorbé par des marges négatives pour ne rien décaler. */
   .fs-btn{width:calc(100% + 26px);margin:-10px -12px 0;padding:10px 12px;min-height:48px;
     background:none;border:0;cursor:pointer;text-align:left;font:inherit;border-radius:8px 8px 0 0}
+  .forget-strip.fs-closed .fs-btn{width:100%;margin:0;padding:2px 0}
   .fs-btn:focus-visible{outline:2px solid var(--critical-bd);outline-offset:-2px}
   .forget-strip:not(.fs-closed) .fs-btn{margin-bottom:4px}
   /* La trace d'un compteur : muette, permanente, à l'endroit du geste. Aucune hauteur tant

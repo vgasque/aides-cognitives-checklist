@@ -78,6 +78,37 @@ l'adresse d'un composant, pas la propriété mesurée — et là où la proprié
 (l'échelle typographique, le seuil du code d'appariement, « ICI » sur la carte), le témoin dit
 désormais ce que la règle veut dire plutôt qu'un chiffre.
 
+**Passe de fidélité aux maquettes (même version).** Relecture écran par écran contre les planches
+« 4 — Écrans », qui font foi ; les divergences relevées portaient toutes sur la MATIÈRE et la
+DENSITÉ, jamais sur la structure :
+- **Carte de bloc** : plus de liseré d'accent ni de pastille numérotée — la carte est une surface
+  de travail (filet fin, rayon 14, rembourrage 18, l'ombre unique), son en-tête est « BLOC n » en
+  petites capitales grises avec le compte en mono à droite, et le titre prend le cran 21. A12 est
+  tenue autrement et mieux : la position se lit à ce que la carte est le seul bloc OUVERT, en tête
+  de journal, et porte `aria-current="step"` — le seul des trois canaux qu'un lecteur d'écran voit.
+- **Pied de carte** : « Vérifier :: » et « Continuer » sur UNE rangée, le premier à gauche, le
+  second dernier et pleine largeur restante ; et « Vérifier :: » n'existe que si le bloc porte
+  réellement des challenges (A7 était écrite, elle n'était pas appliquée).
+- **Chapeau « Ne pas oublier »** : replié, ce n'est plus un pavé au registre ALERTE en tête de la
+  colonne d'action mais une LIGNE — ■ rouge, mot en encre douce, compte en pilule neutre. Déplié
+  et hors session, il reprend son cadre : c'est alors la condition d'entrée, et le registre est
+  juste. Un pavé rouge permanent désensibilisait au rouge exactement comme l'aplat d'une étape.
+- **Rail** : la colonne AFFICHE, on la touche pour COMMANDER. Une carte de minuteur y montre nom ·
+  cycles · valeur (76 px) ; barre, « Cycles : n » et boutons ne paraissent qu'au tap — sauf pour un
+  minuteur ÉCHU, dont le « RELANCER » reste sous les yeux, et pour les ± d'un compteur, devenu une
+  RANGÉE. Un repère posologique signalé s'y marque sans aplat. Le panneau et le volet gardent la
+  carte complète : on les ouvre justement pour régler.
+- **Accueil** : la recherche devient une carte de travail (elle était un creux gris, lu comme une
+  zone désactivée), l'avatar un carré arrondi de matière système à initiales (le disque bleu plein
+  était le plus gros aplat coloré de l'écran, devant tout contenu clinique), les deux autres
+  boutons d'en-tête des glyphes de commande, et le sélecteur « A–Z | Catégories » prend sa propre
+  rangée au-dessus des sections qu'il réordonne.
+- **Case d'étape à 26 px** (la cible reste la rangée entière, 60 px).
+⚠ Deux défauts introduits par cette passe et rattrapés par les harnais : le nom d'un minuteur repris
+en `--ink-3` tombait à **2,32:1** (l'encre d'étiquette n'est jamais du texte porteur — règle écrite
+depuis la v4.5), et l'étiquette d'un bloc HORS TRONC affichait « ⚡ Bloc » alors qu'un bloc détaché
+n'a, par construction, pas de numéro.
+
 Contrôles : `npm run check` vert (échelles typo, espacement, rayons, couleurs, paliers, SW,
 vendor, uploads, SQL, stores, icônes, harnais, hashs CSP), `npm test` 952/952 sur les deux
 moteurs, `npm run audit` **25/25 tâches vertes** (20 harnais), `design:build` régénéré.
