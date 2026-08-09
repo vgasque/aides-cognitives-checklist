@@ -820,7 +820,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      flux fait remonter tout le contenu d'un coup). Seul le TITRE entre dans la barre, par relais
      mesuré (.ttl-on), sans changer sa hauteur. Jamais de texte tassé. */
   header.bar{position:sticky;top:0;z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
-  .id-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
+  .id-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
      éléments souples (retour, titre, segments chrono) rétrécissent avec ellipse/clip. Seul
      l'accueil replie (recherche en 2e rangée + chips, comportement canvas). */
@@ -1159,19 +1159,43 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-crisis-slot:empty{display:none}
   body.chrome-hdr #crisisDock{position:static;background:transparent;border-bottom:0;box-shadow:none}
   body.chrome-hdr #crisisDock .dock-in{max-width:none;padding:0;margin:0;gap:8px;flex-wrap:nowrap}
-  /* COÛT DE HAUTEUR NUL, ET C'EST MESURÉ : sans compaction, l'en-tête passait de 65 à 78 px —
-     c'est-à-dire qu'on aurait déplacé la bande au lieu de la supprimer. Le dessin cède (segment
-     6→2 px de rembourrage, bouton 46→36 px), jamais la CIBLE : le halo ::after des deux
-     ouvertures (v4.32.0) maintient 44 px. Mesuré après : en-tête 65 px, inchangé. */
-  /* A8 — LA CIBLE NE CÈDE JAMAIS AVEC LE DESSIN. Compactée dans l'en-tête, la capsule perdait sa
-     hauteur ET sa cible (mesurée 145×27 par le harnais, seuil 44). Le DESSIN se compacte — c'est
-     tout l'objet du créneau, coût de hauteur nul — et le HALO rend les 44 px : 36 + 2×4. */
-  body.chrome-hdr #cbTimers{padding:4px 10px;min-height:36px;position:relative}
-  /* La CIBLE ne cède jamais avec le dessin : compacté à ~37 px, le bouton « ● Session » garde ses
-     44 px par le halo — le même dispositif que les deux ouvertures (v4.32.0, zone haute). */
-  body.chrome-hdr #cbTimers::after{content:"";position:absolute;inset:-4px;border-radius:8px}
-  body.chrome-hdr #cbTimers .seg{padding:2px 10px;min-height:0}
-  body.chrome-hdr .sd-key{min-height:36px}
+  /* ══ AU COCKPIT, LA CAPSULE N'EST PLUS UNE CAPSULE (v5.6, maquette — signalé à l'usage :
+     « sur ordinateur ça fait moche ») ═════════════════════════════════════════════════════════
+     Montée dans l'en-tête, elle y gardait sa MATIÈRE SYSTÈME : une pilule sombre posée sur une
+     barre claire, entre un titre et deux glyphes — un objet qui a l'air d'un contrôle sans en
+     être un, et le seul aplat sombre d'un écran qui n'en veut pas là.
+     LA MATIÈRE SUIT LE LOGEMENT : dans l'en-tête, l'état est du CONTENU D'EN-TÊTE — encre de la
+     barre, registres du thème CLAIR pour l'alarme (--warn-soft sur --warn-line, pas les valeurs
+     dédiées à la matière système), fond transparent. Le sombre reste ce qu'il est là où il veut
+     dire quelque chose : la capsule en étroit et le dock, les deux seuls objets système.
+     A14 — ÉTAT AU CENTRE, EN ABSOLU. Le créneau quitte le flux de la rangée : un titre long ne
+     déplace donc plus l'alarme, qui est exactement ce que la règle exige. Et le coût de hauteur
+     reste NUL — l'absolu ne prend rien à la rangée (mesuré : en-tête 65 px, inchangé).
+     A8 — LA CIBLE NE CÈDE JAMAIS AVEC LE DESSIN : le halo ::after rend les 44 px (36 + 2×4). */
+  body.chrome-hdr .hdr-crisis-slot{position:absolute;left:50%;transform:translateX(-50%);margin:0;gap:14px;max-width:46%}
+  /* ⚠ `flex:1` DANS UN CONTENEUR EN AJUSTEMENT AU CONTENU EFFONDRE LA BOÎTE — et la boucle
+     d'ajustement, qui MESURE, en concluait que plus rien ne tenait : elle sacrifiait le segment
+     ÉCHU et n'affichait que « +1 ». Le créneau est en position ABSOLUE (A14), donc dimensionné
+     par son contenu : la capsule doit y être en largeur AUTO, jamais en flex extensible. */
+  body.chrome-hdr #crisisDock,body.chrome-hdr #crisisDock .dock-in{width:auto}
+  body.chrome-hdr #cbTimers{flex:0 0 auto;width:auto;background:none;color:var(--ink);border-radius:var(--r-1);padding:0;min-height:30px;gap:14px;position:relative;overflow:visible}
+  body.chrome-hdr #cbTimers::after{content:"";position:absolute;inset:-8px -6px;border-radius:8px}
+  body.chrome-hdr #cbTimers:hover{background:var(--amb-2)}
+  body.chrome-hdr #cbTimers:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  body.chrome-hdr #cbTimers .seg{padding:0;min-height:30px}
+  body.chrome-hdr #cbTimers .seg-t{color:var(--ink)}
+  body.chrome-hdr #cbTimers .seg-l{color:var(--ink-2)}
+  body.chrome-hdr #cbTimers .seg-l.seg-sess{color:var(--ok)}
+  body.chrome-hdr #cbTimers .seg-l.seg-sess.off{color:var(--ink-3)}
+  /* L'alarme reprend les registres du thème, puisqu'elle vit désormais sur la matière du thème. */
+  body.chrome-hdr #cbTimers .seg.due{background:var(--warn-soft);border-color:var(--warn-line);padding:0 10px;border-radius:var(--r-1)}
+  body.chrome-hdr #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--warn)}
+  body.chrome-hdr #cbTimers .cbt-n{color:var(--ink-3)}
+  /* ⚠ LE DOCK N'EST PAS CONCERNÉ PAR `chrome-hdr` : seule la CAPSULE monte dans l'en-tête, le
+     dock reste en bas et garde ses touches de 50 px. Cette compaction était un reste de la v5.4.1,
+     où les DEUX rangées déménageaient — elle rabotait les touches à 36 px sans raison, et le
+     harnais l'a vue dès qu'il a cessé de créditer un halo forfaitaire (149×41 pour un seuil de
+     44). Règle 14 : une suppression emporte aussi ce qui compensait l'objet supprimé. */
   /* Le BANDEAU est pleine largeur (c'est une bande de statut), mais son CONTENU est plafonné et
      centré sur la même grille que la vue lecture (1282px) : sans ça, à 1280px les segments en
      flex:1 s'étiraient à ~640px chacun et les chiffres se retrouvaient aux deux bouts de l'écran

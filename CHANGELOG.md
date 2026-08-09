@@ -104,6 +104,22 @@ DENSITÉ, jamais sur la structure :
   boutons d'en-tête des glyphes de commande, et le sélecteur « A–Z | Catégories » prend sa propre
   rangée au-dessus des sections qu'il réordonne.
 - **Case d'étape à 26 px** (la cible reste la rangée entière, 60 px).
+- **Au cockpit, la capsule cesse d'être une capsule** (signalé à l'usage : « sur ordinateur ça
+  fait moche »). Montée dans l'en-tête, elle y gardait sa MATIÈRE SYSTÈME : une pilule sombre
+  posée sur une barre claire, entre un titre et deux glyphes — un objet qui a l'air d'un contrôle
+  sans en être un. La matière suit désormais le LOGEMENT : dans l'en-tête, l'état est du contenu
+  d'en-tête (encre de la barre, registres du thème clair pour l'alarme, fond transparent), et il
+  est CENTRÉ EN ABSOLU comme A14 l'exige — un titre long ne déplace plus l'alarme. Le sombre reste
+  là où il veut dire quelque chose : la capsule en étroit et le dock. Coût de hauteur nul (65 px,
+  inchangé), cible 44 px par le halo.
+  ⚠ Deux défauts trouvés en le faisant : `flex:1` dans un conteneur en ajustement au contenu
+  effondrait la boîte, et la boucle d'ajustement — qui MESURE — en concluait que plus rien ne
+  tenait : elle sacrifiait le segment ÉCHU et n'affichait que « +1 ». Et `audit-a11y` CRÉDITAIT un
+  halo forfaitaire de 8 px dès qu'un élément était en position relative, au lieu de lire l'inset
+  réel : il déclarait trop petite une cible de 46 px, et — plus grave — en offrait 8 gratuitement à
+  tout élément positionné pour un autre motif. Il mesure désormais ; il a immédiatement trouvé une
+  compaction morte qui rabotait les touches du dock à 41 px.
+
 ⚠ Deux défauts introduits par cette passe et rattrapés par les harnais : le nom d'un minuteur repris
 en `--ink-3` tombait à **2,32:1** (l'encre d'étiquette n'est jamais du texte porteur — règle écrite
 depuis la v4.5), et l'étiquette d'un bloc HORS TRONC affichait « ⚡ Bloc » alors qu'un bloc détaché

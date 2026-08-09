@@ -108,8 +108,22 @@ const AUDIT = `(() => {
         const cible=lab||el;
         const r=cible.getBoundingClientRect();
         const cs2=getComputedStyle(el);
-        const halo=cs2.position==='relative'?8:0;   // ::after inset:-4px du chrome
-        const h=Math.round(r.height+halo),w=Math.round(r.width+halo);
+        /* ⚠ ON MESURE LE HALO, ON NE LE SUPPOSE PLUS (v5.6). Le contrôle créditait 8 px dès
+           qu'un élément était en position relative — c'est-à-dire l'inset de -4px du chrome,
+           écrit en dur. Tout halo PLUS GRAND était donc sous-compté (une cible de 46 px était
+           déclarée trop petite), et tout halo plus PETIT ou absent était SURcompté — ce second
+           sens est le dangereux : une position relative posée pour un tout autre motif offrait
+           8 px gratuits à la mesure. On lit les quatre insets réels du pseudo-élément, et l'on
+           ne compte que ce qui DÉBORDE de la boîte.
+           ⚠ AUCUN ACCENT GRAVE DANS CE FICHIER : la sonde entière est une CHAÎNE GABARIT
+           (const AUDIT = ...), un accent grave y ferme le gabarit et le reste du code devient
+           du texte — erreur de syntaxe à 100 lignes de là, sur un mot français. */
+        const ha=getComputedStyle(el,'::after');
+        const neg=v=>{const n=parseFloat(v);return (isFinite(n)&&n<0)?-n:0;};
+        const hasHalo=ha&&ha.content&&ha.content!=='none'&&ha.position==='absolute';
+        const haloY=hasHalo?neg(ha.top)+neg(ha.bottom):0;
+        const haloX=hasHalo?neg(ha.left)+neg(ha.right):0;
+        const h=Math.round(r.height+haloY),w=Math.round(r.width+haloX);
         const crisis=document.body.classList.contains('view-read');
         const need=crisis?44:24;
         if(h<need||w<24) out.targets.push({sel:el.className||el.tagName,w,h,need,txt:(el.textContent||'').trim().slice(0,24)});
