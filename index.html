@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-LF+DIbslv5xwtunE1xMGYsQLyTo0gOmEEjM8nNHD9Pg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vAL812Sarq5/mPaa7GHzUtHVle8UF8OogHSSWkP1yyY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -752,7 +752,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
                   fiche : formulaire <= 860 + aperçu 320 -> 360 ; protocole : <= 780 + aperçu 360 */
   .app{max-width:none;margin:0 auto;min-height:calc(100vh / var(--zf,1));display:flex;flex-direction:column;overflow-x:clip}
   body.view-home main{width:100%;max-width:1622px;margin:0 auto}
-  body.view-read main{width:100%;max-width:1282px;margin:0 auto}
+  body.view-read main{width:100%;max-width:1440px;margin:0 auto}
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
   body.view-pedit main{width:100%;max-width:816px;margin:0 auto}
   @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
@@ -795,9 +795,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        type dans ce fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
        GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
        mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
-    body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    body.view-read .read-grid{grid-template-columns:minmax(0,760px) 320px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,760px) 320px;justify-content:center}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
@@ -1313,6 +1313,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sd-key.on{background:var(--sys-2);color:var(--sys-ink)}
   .sd-key.sd-tk{flex:1.3;background:rgba(255,255,255,.1);color:var(--sys-ink)}
   .sd-key.sd-cx{color:var(--crit-sys)}
+  /* ══ HORS SESSION (maquette 1b/1c) : Exercice au CONTOUR, Démarrer REMPLI et large.
+     Un seul bouton rempli à l'écran (v4.0.3) — et c'est celui-là, la seule action qui compte
+     avant le premier geste. Le remplissage est `--act`, le bleu de l'ACTION : sur la matière
+     système, un aplat vert dirait « c'est fait » et un ambre « attention ». */
+  .sd-key.sd-exo{flex:0 0 auto;padding:0 14px;border:1px solid var(--sys-line);color:var(--sys-ink-2)}
+  .sd-key.sd-start{flex:1;background:var(--act);color:var(--on-primary)}
+  .sd-key.sd-start .dp-lbl{font-size:var(--t-item);letter-spacing:.01em;text-transform:none}
+  .sd-key.sd-start:hover{background:var(--primary-hi)}
   /* A15 — la référence dans la colonne d'ÉTAT : elle prend la tête du rail, le reste du rail
      (minuteurs, posologie, Échelle) descend dessous et reste consultable. */
   .ref-col{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
@@ -1940,6 +1948,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de boîtes dont aucune ne dit rien — et le rail d'index, posé à l'extérieur, ne se rattachait
      visuellement à rien. UNE carte contient tout ; les lettres y sont des INTERTITRES avec leur
      filet, et le rail vit DEDANS, contre la marge droite que la carte lui réserve. */
+  /* ⚠ DEUX RÉGIMES, ET C'EST CE QUI MANQUAIT (v5.6, signalé à l'usage : « l'affichage des cartes
+     d'accueil n'est pas responsive »). En ÉTROIT (maquette 1a) le répertoire est UNE carte, les
+     fiches y sont des rangées à filet : un empilement de cartes sur 358 px de large ne serait
+     qu'une pile de cadres. En LARGE (maquette 2f) ce sont des CARTES INDIVIDUELLES dans une
+     grille fluide : la largeur existe, et une liste d'une seule colonne au milieu de 1 200 px
+     laisse le regard traverser du vide. Le basculement suit le palier du rail (780), là où
+     l'accueil passe de la voie unique à la coque à deux colonnes. */
   .dir-book{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);padding:2px 16px;position:relative}
   .dir-book.pinned{margin-bottom:4px}
   .dir-l{display:flex;align-items:baseline;gap:8px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
@@ -2471,43 +2486,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
   .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-3)}
   .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
-  /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
-     on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
-     (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
-  /* v4.4.1 : « Confirmé — démarrer la session » au GABARIT de « Continuer » (.btn.cont :
-     pleine largeur, 50px, 15/800) — même grammaire de rangée d'action au pied d'une étape ;
-     il reste BLEU --primary (démarrer = action primaire, le vert reste la CONFIRMATION
-     d'un bloc entièrement coché). L'aide passe dessous, centrée. */
-  .sess-start{margin:14px 0 4px}
-  .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px}
-  .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
-  /* LE DÉMARRAGE RESTE ATTEIGNABLE (proposition utilisateur : « et si “confirmé — démarrer la
-     session” était sticky quand on ne l'atteint pas encore ? »). Sur une fiche à critères longs,
-     le bouton naît SOUS le pli : on lit, on défile, et la condition d'entrée QRH n'est plus à
-     portée de pouce. Le bouton se DÉTACHE alors au bas de l'écran, et seulement dans ce cas —
-     il revient dans le flux dès que sa place réelle est visible.
-     CE QUI REND CETTE ZONE FIXE ADMISSIBLE (SPEC §5 : « en crise, une seule zone fixe, en
-     HAUT »). Trois bornes, et elles sont toutes vérifiables : elle n'existe qu'AVANT la première
-     action (la session non démarrée — donc jamais pendant un soin, là où la règle protège la
-     colonne d'action), elle est TRANSITOIRE (elle s'efface au démarrage comme au retour du
-     bouton à l'écran), et elle ne prend AUCUNE hauteur au flux — la boîte `.sess-start` garde la
-     sienne, seul son bouton se détache, donc rien ne se décale au moment où l'état bascule.
-     SOUS 780 px SEULEMENT : c'est là que le problème existe (au-delà, la colonne d'action est
-     courte et le rail tient l'écran), et une barre fixée pleine largeur se recalerait mal sur une
-     checklist centrée à côté de deux colonnes. */
-  @media (max-width:779.98px){
-    /* `min-height` = la hauteur exacte du bouton : sorti du flux, il ne doit pas emporter sa
-       place avec lui, sinon tout ce qui suit remonte de 50 px au franchissement du pli. */
-    .sess-start.afloat{position:relative;min-height:50px}
-    .sess-start.afloat>.btn{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));
-      width:auto;z-index:14;box-shadow:var(--shadow-lg)}
-  }
-  /* Dans le TABLEAU statique (v4.14.3) : le bouton devient une RANGÉE du carrelage — coins
-     3 px, sans marges (le joint de la grille fait l'espacement), aide sur la même rangée.
-     Il reste l'unique bouton REMPLI de l'écran (saillance) et >= 44 px. */
-  .sv-tb .sess-start{margin:0}
-  .sv-tb .sess-start .btn{border-radius:3px;min-height:46px}
-  .sv-tb .ss-hint{margin-top:2px;font-size:11px}
+  /* ⚠ LE BOUTON DE DÉMARRAGE A QUITTÉ LE FLUX (v5.6, décision de l'auteur : « uniformise le
+     design ; préférentiellement opte pour le nouveau »). Il vit dans le DOCK, où sa position est
+     CONSTANTE à toutes les largeurs et atteignable au pouce. Sont PURGÉS avec lui (règle 14) :
+     `.sess-start`, `.ss-hint`, la rangée du carrelage statique, et toute la mécanique `.afloat`
+     de la v4.73.0 — elle n'existait QUE parce que le bouton naissait sous le pli sur une fiche à
+     critères longs, et un dock fixe résout cela par construction, sans objet qui se détache et
+     se rattache selon le défilement (donc sans zone fixe transitoire à justifier contre SPEC §5). */
   /* ----- Parcours de soin (v4.4.0, « option B ») : rail vertical numéroté ① Confirmer →
      ② Prise en charge → ③ Surveillances & pièges. Pastilles : bleu = étape active,
      vert ✓ = faite, neutre cerclé = à venir — JAMAIS d'ambre/rouge ici (registres d'alerte).
@@ -3165,13 +3150,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
   .alg-panel .flow-hint{margin:0 4px 10px}
   /* Repères posologiques (canvas) : cartes ; « ⚠ » en tête = registre ALERTE. */
-  .pos-card{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink)}
+  .pos-card{display:block;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:6px 0;margin:0;color:var(--ink);font-size:var(--t-meta);font-weight:600;line-height:1.5}
   .pos-card:first-child{border-top:0}
-  .pos-name{flex:1 1 auto;min-width:0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pos-name{color:var(--ink-2)}
   .pos-mk{color:var(--warn);font-weight:800}
   /* La valeur ne se tronque JAMAIS (un chiffre amputé est pire qu'absent) : elle enroule sur sa
      propre ligne quand le nom est long — d'où `flex-wrap` sur la rangée. */
-  .pos-body{flex:0 1 auto;max-width:100%;font-family:var(--mono);font-size:var(--t-body);font-weight:600;color:var(--ink);line-height:1.4}
+  .pos-body{font-family:var(--mono);font-weight:700;color:var(--ink)}
   .pos-body b{font-weight:700}
   /* Registre VIGILANCE (ambre) — voir posoCardsHtml : un dosage relève du « risque d'erreur »,
      pas de l'« oubli mortel ». Le rouge reste au chapeau « Ne pas oublier » et aux étapes vitales,
@@ -4828,6 +4813,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border-radius:3px;transform:rotate(45deg);z-index:-1}
   .pl-line.dec.cur .n::before{background:var(--primary);border-color:var(--primary)}
   .pl-line.dec.done .n::before{background:var(--ok);border-color:var(--ok)}
+  /* La page d'AVANT le soin : le parcours inerte prend la grammaire de la colonne d'orientation
+     (mêmes rangées, mêmes marqueurs — une seule façon de lire « la liste des blocs »), et les
+     autres vues sont des LIENS de texte, jamais des tuiles : l'action de l'écran est au dock. */
+  .pre-wrap{margin-top:2px}
+  .pre-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+  .pre-t{font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
+  .pre-inert{margin-left:auto;font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
+  /* ⚠ « → aller à ce bloc » N'EXISTE PAS AVANT LE SOIN : y aller, c'est ouvrir la vue de travail
+     sans avoir démarré — le bouton paraîtrait ne rien faire (on retomberait sur cette page). Le
+     détail d'une ligne reste dépliable ; c'est le SAUT qui n'a pas de sens ici. `display:none`
+     le retire aussi de la tabulation, ce qu'un simple masquage visuel ne ferait pas. */
+  .pre-lad .pl-lnk{display:none}
+  .pre-links{display:flex;flex-wrap:wrap;gap:14px;padding:14px 2px 2px}
+  .pre-link{background:none;border:0;padding:6px 0;min-height:44px;font-family:inherit;
+    font-size:var(--t-meta);font-weight:700;color:var(--act);cursor:pointer}
+  .pre-link:hover{text-decoration:underline}
+  .pre-link:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
      demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
      Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
@@ -5805,14 +5808,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
   .hs-row:hover{background:var(--surface-2)}
-  /* Sélection = BLEU SYSTÈME plein (SPEC crise §1a, v4.3.0) — jamais la couleur de la catégorie
-     (encodage de sélection unique) ; la pastille reste lisible sur le bleu grâce à son anneau. */
-  .hs-row.on{background:var(--primary);color:var(--on-primary);font-weight:700}
-  html[data-theme="dark"] .hs-row.on{background:var(--primary-dk);color:var(--bg)}
-  /* Rangée SÉLECTIONNÉE : sous-texte et compte HÉRITENT de l'encre inversée (--on-primary) —
-     jamais --ink-soft sur fond primaire (contraste < AA). Opacité .92 : hiérarchie visuelle
-     préservée en restant ≥ 4.5:1 sur tous les accents (WCAG 2.2 AA). */
-  .hs-row.on :is(.hs-n,.hs-sub){color:inherit;opacity:.92}
+  /* ⚠ SÉLECTION = TEINTE, PLUS APLAT PLEIN (v5.6, maquette 2f — signalé à l'usage : « la sidebar
+     d'accueil, cases sélectionnées, n'est pas celle du mockup »). L'encodage reste le BLEU SYSTÈME
+     et jamais la couleur de la catégorie (SPEC §1a) : c'est la SATURATION qui change. Trois
+     rangées cochées sur trois groupes faisaient trois barres pleines dans une colonne qui ORIENTE
+     — la même inflation que les aplats de registre, appliquée à l'accent. Teinte + encre `--act` +
+     graisse 700 : trois canaux, aucun n'est la couleur seule (règle 8).
+     ET LE COMPTE REPREND SON ENCRE : sur un aplat plein il devait hériter de `--on-primary`
+     (contraste), sur une teinte il redevient ce qu'il est — une donnée secondaire. */
+  .hs-row.on{background:var(--primary-soft);color:var(--act);font-weight:700}
+  html[data-theme="dark"] .hs-row.on{background:var(--primary-soft);color:var(--primary-dk)}
+  .hs-row.on :is(.hs-n,.hs-sub){color:var(--ink-2)}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hs-row>.hs-name{flex:1}
@@ -5885,9 +5891,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* 255px en border-box (box-sizing global) = le rendu du canvas (230px hors padding). */
     /* scrollbar-gutter DANS les panneaux (pas sur html, cf. v4.2.1) : la bascule
        Aides <-> Protocoles ne fait plus refluer la grille quand la barre apparaît/disparaît. */
-    .home-side{display:flex;flex-direction:column;gap:4px;flex:none;width:255px;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
+    .home-side{display:flex;flex-direction:column;gap:2px;flex:none;width:250px;background:var(--work);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
+    /* Le répertoire cesse d'être UNE carte : chaque fiche redevient une carte, dans une grille
+       fluide (maquette 2f). La lettre reste l'intertitre de son groupe — c'est elle que le rail
+       A→Z vise. */
+    .dir-book{background:none;border:0;border-radius:0;padding:0}
+    .dir-book.pinned{margin-bottom:10px}
+    .dir-book .dir-l{padding:14px 2px 6px}
+    .dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+    .dir-book .dir-row{background:var(--work);border:1px solid var(--work-line);border-bottom:1px solid var(--work-line);
+      border-radius:var(--r-3);height:71px;min-height:0;padding-left:14px;padding-right:24px}
+    .dir-book .dir-row::before{left:0;top:0;bottom:0;border-radius:var(--r-3) 0 0 var(--r-3)}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
+    /* La recherche déménagée : elle prend la largeur de la colonne qu'elle filtre, jamais celle
+       de l'écran, et elle est la PREMIÈRE chose de la colonne (maquette 2f). */
+    .home-main>.hdr-search{display:flex;max-width:1320px;flex:none;margin-bottom:12px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.typebar,.scopebar,.catbar){display:none}
     /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
@@ -5905,16 +5924,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home main{position:relative}
     #histBtn{display:none}
   }
-  /* RAIL DE LECTURE — dès 780px (v4.23.0, décision utilisateur « action + structure de front ») :
-     la largeur suffit à tenir la colonne d'ACTION et le rail d'ORIENTATION côte à côte, l'idéal
-     ECAM (E/WD et SD simultanés). Le rail porte, de haut en bas : minuteurs ÉPINGLÉS, plan
-     « Échelle » (seule partie qui peut être longue, donc la seule qui défile), repères
-     posologiques ÉPINGLÉS. La checklist reste plafonnée à 860px (>= 1200) : la règle de largeurs
-     n'est pas amendée, le rail prend l'espace EXCÉDENTAIRE.
+  /* RAIL DE LECTURE — dès 1000 px (v5.6, maquette ; c'était 780 depuis la v4.23.0). La décision
+     d'origine — « action + structure de front », l'idéal ECAM E/WD + SD — n'est pas remise en
+     cause : c'est le SEUIL qui était faux. Mesuré à 780 px, un rail de 300 laissait ~430 px à la
+     colonne d'ACTION, soit moins qu'un téléphone en portrait pour ce qu'on lit sous stress : le
+     rail COÛTAIT ce qu'il était censé faire gagner. À 780-999 la maquette montre donc UNE colonne
+     plafonnée à 660 px, et le rail n'apparaît qu'avec la place de le porter.
+     Le rail porte, de haut en bas : minuteurs ÉPINGLÉS, repères posologiques, plan « Échelle »
+     (seule partie de longueur illimitée, donc la dernière), journal.
      Séparé des ÉDITEURS, qui gardent leur aperçu à >= 1000px (règle v4.5 inchangée) — les deux
      partageaient la même règle `.read-grid`, d'où la scission par classe de vue. */
-  @media (min-width:780px){
-    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0 20px;align-items:start}
+  @media (min-width:780px) and (max-width:999.98px){
+    /* VOIE UNIQUE, PLAFONNÉE ET CENTRÉE (maquette). À ce palier il n'y a pas de `.read-grid` du
+       tout — `wideRead` est faux, le contenu vit directement dans `main` : c'est donc `main`
+       qu'on plafonne. 660 px est la mesure de la maquette ; au-delà, une checklist s'étire et la
+       ligne devient trop longue pour être scannée. */
+    body.view-read main{max-width:660px}
+  }
+  @media (min-width:1000px){
+    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 24px;align-items:start}
     /* --stick-top : bas de ce qui est DÉJÀ collé en haut (en-tête + quai de crise), mesuré par
        syncHdrScroll — une constante laisserait le rail passer sous le quai. */
     /* HAUTEUR DÉFINIE (pas max-height) : les trois zones se répartissent l'espace, et chacune
@@ -6049,7 +6077,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-side .rt-grid,.read-side .rt-counters{grid-template-columns:1fr}
   }
   @media (min-width:1000px){
-    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px;gap:0 24px}
     /* F4 (v4.59.0) — COCKPIT TROIS ZONES : orientation | action | état. Le plan est posé APRÈS
        la colonne d'action dans le DOM — l'ordre du DOM est celui de la LECTURE : ni un lecteur
        d'écran ni une tabulation ne doivent traverser le plan pour atteindre la checklist — et
@@ -6073,7 +6100,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        compris au-delà de 1200 px, où cette règle l'emporte sur le palier déclaré en tête de
        feuille (spécificité égale, déclaration plus tardive). Mesuré à 1400 px : 936+320. */
     :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 24px;align-items:start}
-    body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
+    body.view-pedit .read-grid{grid-template-columns:minmax(0,760px) 340px;justify-content:center}
     :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
@@ -6082,9 +6109,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      AVANT le bloc 1000 ci-dessus et perdait donc la cascade à spécificité égale — la checklist
      restait en 1fr au lieu de son plafond de 860px. Collision constatée par mesure. */
   @media (min-width:1200px){
-    body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    body.view-read .read-grid{grid-template-columns:minmax(0,760px) 320px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,760px) 320px;justify-content:center}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
@@ -6765,6 +6792,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <button id="refBtn" hidden class="sd-key" aria-haspopup="dialog" aria-label="Consulter — surveillances, différentiels, documents"><span class="dp-ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></span><span class="dp-lbl">Consulter</span></button>
     <button id="cxKey" type="button" hidden class="sd-key sd-cx" aria-expanded="false"><span class="dp-ic" aria-hidden="true">⚡︎</span><span class="dp-lbl">Complications</span></button>
     <button id="tkKey" type="button" hidden class="sd-key sd-tk"><span class="dp-ic" aria-hidden="true">⏱︎</span><span class="dp-lbl">Noter l’heure</span></button>
+    <!-- HORS SESSION, le dock n'a que deux commandes (maquette 1b/1c) : Exercice au CONTOUR,
+         Démarrer REMPLI — la seule action qui compte avant le premier geste. Elles remplacent les
+         quatre touches de session ; les deux jeux ne coexistent jamais. -->
+    <button id="exoKey" type="button" hidden class="sd-key sd-exo"><span class="dp-ic" aria-hidden="true">▲</span><span class="dp-lbl">Exercice</span></button>
+    <button id="sessStart" type="button" hidden class="sd-key sd-start"><span class="dp-lbl">Démarrer la session</span></button>
   </div></div>
   <!-- LES VOLETS DU DOCK (V1-V3) — ils montent du dock sur GESTE, jamais spontanément.
        V1 : fermeture triple (re-tap de la touche, ✕ ≥ 44 px, tap hors volet) ; rien ne bouge
@@ -7872,6 +7904,23 @@ const main=document.getElementById('main');
    appeler rescueFooter() AVANT d'écraser main.innerHTML (sinon le wipe le détruirait). */
 function rescueFiltTog(){const ft=document.getElementById('filtTog'),box=document.querySelector('.hdr-search');
   if(ft&&box&&ft.parentNode!==box)box.appendChild(ft);}
+/* ⚠ LA RECHERCHE EST NOMADE (v5.6, maquette 2f — signalé à l'usage : « pareil pour la barre de
+   recherche / en-tête »). En ÉTROIT elle est une rangée sous l'identité, ce que la maquette
+   mobile montre. En LARGE la maquette la met EN TÊTE DE LA COLONNE DE CONTENU, alignée sur la
+   liste qu'elle filtre — dans l'en-tête elle s'étirait sur toute la largeur de l'écran (1 000 px
+   mesurés à 1 280), c'est-à-dire bien au-delà de ce qu'elle filtre, et rien ne la reliait
+   visuellement à la liste.
+   ON LA DÉPLACE, ON NE LA RECRÉE JAMAIS : c'est le patron du pied de page, du chrome de crise et
+   du déclencheur de filtre. Elle garde son id, ses écouteurs, son contenu — et son FOCUS, ce qui
+   est toute la raison pour laquelle elle est statique (v4.56.0 : le focus survit aux re-rendus).
+   ⚠ `rescueHomeSearch` court AVANT tout wipe de `main`, comme les trois autres. */
+const _hdrSearchHome=()=>document.querySelector('header.bar .id-row');
+function rescueHomeSearch(){const el=document.getElementById('hdrSearch'),h=_hdrSearchHome();
+  if(el&&h&&main.contains(el))h.insertBefore(el,h.querySelector('.hdr-acts')||null);}
+function placeHomeSearch(wide){const el=document.getElementById('hdrSearch'),host=main.querySelector('.home-main');
+  if(!el)return;
+  if(wide&&host){if(el.parentNode!==host)host.insertBefore(el,host.firstChild);}
+  else rescueHomeSearch();}
 function rescueFooter(){const ft=document.getElementById('appFooter');if(ft&&main.contains(ft))document.querySelector('.app').appendChild(ft);}
 function placeFooter(){const ft=document.getElementById('appFooter');const side=main.querySelector('.home-side');if(ft&&side&&ft.parentNode!==side)side.appendChild(ft);}
 /* v5.4.1 — OPTION A DU CHROME COCKPIT (décision utilisateur sur maquette : « tout voir, consulter
@@ -9289,7 +9338,7 @@ function posoCardsHtml(list,hay){
        ainsi qu'on lit une posologie — on cherche un produit, on lit un chiffre. Deux colonnes
        stables se SCANNENT là où un empilement de cartes demande de lire. Le registre △ reste
        porté par le glyphe et l'encre, jamais par un aplat (A11). */
-    return `<div class="pos-card${flag?' vig':''}">${name?`<span class="pos-name">${flag?'<span class="pos-mk" aria-hidden="true">△</span> ':''}${esc(name)}</span>`:''}<span class="pos-body">${fmt(body)}</span></div>`;};
+    return `<div class="pos-card${flag?' vig':''}">${name?`<span class="pos-name">${flag?'<span class="pos-mk" aria-hidden="true">△</span> ':''}${esc(name)}</span>`:''} <span class="pos-body">${fmt(body)}</span></div>`;};
   const sp=posoSplit(items,hay||'');
   const head=sp.head.map(o=>card(o.s)).join('');
   if(!sp.rest.length)return head;
@@ -11398,6 +11447,28 @@ function applyViewChrome(){
    {const tk=document.getElementById('tkKey');
     tk.hidden=!(enSession&&!state.previewFrom);
     if(tk.hidden&&state.tkSheet)dockSheetClose();}
+   /* ══ HORS SESSION : EXERCICE + DÉMARRER, ET RIEN D'AUTRE (v5.6, maquettes 1b/1c) ═════════
+      Le geste d'entrée rejoint le dock — décision de l'auteur, après la divergence assumée de la
+      passe précédente : « uniformise le design ; préférentiellement opte pour le nouveau ». Ce
+      qu'on y gagne, et qui vaut le déplacement : une position CONSTANTE, atteignable au pouce à
+      toutes les largeurs, sur une fiche à critères longs comme sur une fiche courte — c'est-à-
+      dire exactement ce que la zone flottante `.sess-start.afloat` (v4.73.0) cherchait à obtenir
+      par un objet qui se détachait et se rattachait selon le défilement. Elle est purgée avec le
+      bouton du flux (règle 14).
+      LE LIBELLÉ PORTE TOUJOURS LA CONFIRMATION : « Confirmé — démarrer la session » dès qu'il y
+      a des critères (doctrine QRH v4.3.2) — c'est le MOT qui porte le geste, pas son logement.
+      CHEZ L'INVITÉ ET EN APERÇU D'ESSAI, RIEN : `ensureStarted` refuse de créer une session
+      locale sur l'appareil de quelqu'un qui suit celle d'un autre, et offrir le contrôle le plus
+      visible de l'écran à un geste sans effet est ce que la v4.47.0 a supprimé. */
+   {const avant=crisis&&!Runtime.started&&!state.previewFrom
+      &&(()=>{try{return Share.mode!=='guest';}catch(e){return true;}})();
+    const sb=document.getElementById('sessStart'),ek=document.getElementById('exoKey');
+    if(sb){sb.hidden=!avant;
+      if(avant){const n=clean(listOf(state.fiche,'confirmation')).length;
+        const l=n?'Confirmé — démarrer la session':'Démarrer la session';
+        sb.querySelector('.dp-lbl').textContent=l;
+        sb.setAttribute('aria-label',l+' — chrono, minuteurs et journal ; démarre aussi à la première action');}}
+    if(ek)ek.hidden=!avant;}
    syncDock();}
   // Chrome de la rangée principale V5 (retour masqué sur l'accueil ; chaque vue pose son libellé
   // et son action via #hdrBack ; badge/Créer/recherche gérés ci-dessous).
@@ -11428,7 +11499,7 @@ function applyViewChrome(){
   // remet dans .app (sinon le wipe le détruirait — ids et écouteurs perdus) ; renderHomeList
   // le replacera en bas de la sidebar si elle existe. Même sauvetage pour le chrome de crise,
   // qui vit dans la colonne du plan en cockpit (v5.4.1).
-  rescueFiltTog();rescueFooter();rescueCrisisChrome();
+  rescueFiltTog();rescueHomeSearch();rescueFooter();rescueCrisisChrome();
   {const hn=document.getElementById('hdrNew');
    if(state.view==='library'&&canEditScope(state.scope)){hn.hidden=false;
      hn.classList.toggle('tonal',Object.values(liveSessions).some(R=>R.started&&R.fiche));
@@ -11644,7 +11715,16 @@ if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);e
 const mqReadWide=window.matchMedia('(min-width:1000px)');
 // v4.23.0 : le RAIL de lecture s'ouvre dès 780px (décision « action + structure de front ») ;
 // mqReadWide reste le seuil des ÉDITEURS (aperçu en direct à >= 1000, règle v4.5 inchangée).
-const mqRail=window.matchMedia('(min-width:780px)');
+/* ⚠ LE RAIL DE LECTURE PART DE 1000 px, PAS DE 780 (v5.6, maquette — « la taille des sidebar et
+   du contenu principal diverge, aligne-toi sur le mockup »). À 780-999 la maquette montre UNE
+   colonne plafonnée à 660 px : à ce palier, un rail de 300 px laissait ~430 px à la colonne
+   d'ACTION, c'est-à-dire moins qu'un téléphone en portrait pour ce qu'on lit sous stress — le
+   contraire de ce que le rail est censé acheter.
+   L'INVARIANT DE v4.23.0 TIENT PAR CONSTRUCTION : « le rail et la réduction du quai sont pilotés
+   par LA MÊME media query, donc les minuteurs ne peuvent jamais disparaître des deux endroits ».
+   En déplaçant le seuil, les minuteurs nominaux redescendent simplement dans le volet du quai à
+   780-999, exactement comme sur téléphone. */
+const mqRail=window.matchMedia('(min-width:1000px)');
 // F4 (v4.59.0) : le cockpit 3 zones déplace le plan d'une colonne à l'autre — c'est un changement
 // de STRUCTURE, pas de style : il faut re-rendre au franchissement, comme les deux autres paliers.
 const mqCock=window.matchMedia('(min-width:1200px)');
@@ -11755,17 +11835,6 @@ function syncHdrScroll(){
   const t=(state.view==='read'&&!!state.fiche)?true
     :((_cb&&!_cb.hidden)?_cb.getBoundingClientRect().bottom<=_hbB:window.scrollY>110);
   if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);}
-  /* « Démarrer la session » DÉTACHÉ tant qu'on ne l'a pas atteint (cf. CSS `.sess-start.afloat`).
-     Le critère est le plus étroit possible : le bouton est ENTIÈREMENT sous le pli. S'il est
-     visible, même partiellement, il est à portée et rien ne se détache ; s'il est passé AU-DESSUS
-     (on a défilé plus bas), on ne le rappelle pas non plus — il n'a pas été manqué, il a été
-     dépassé, et une barre qui reparaîtrait en remontant serait un mouvement qu'aucun geste
-     n'explique. Le CSS borne l'effet à < 780 px ; la mesure, elle, ne coûte rien de plus. */
-  {const ss=main.querySelector('.sess-start');
-   /* PAS EN STATIQUE : là, le bouton est une RANGÉE DU CARRELAGE (v4.14.3) — l'extraire du flux
-      ouvrirait un trou dans la grille, et le tableau porte de toute façon la condition d'entrée
-      en tête, juste sous Confirmation/Éliminer. */
-   if(ss&&!ss.closest('.sv-tb'))ss.classList.toggle('afloat',ss.getBoundingClientRect().top>=window.innerHeight-2);}
 }
 /* UNE PASSE PAR IMAGE, PAS PAR ÉVÈNEMENT (v5.0.9). `syncHdrScroll` LIT quatre rectangles puis
    ÉCRIT trois propriétés sur `<html>` ; branchée directement sur l'évènement, elle intercale ce
@@ -11943,9 +12012,12 @@ function homeSideHtml(){
      Et `kindArr` retombait sur `fiches` en mode « Tout », donc TOUS les comptes du rail — biblio
      comme catégories — ignoraient les protocoles. Un compte faux dans un rail d'orientation est
      pire qu'un compte absent : il fait renoncer à chercher là où le contenu est.
-     LE TITRE DE GROUPE DE TÊTE EST SUPPRIMÉ (une ligne rendue) : « Tout / Aides cognitives /
-     Protocoles » se lisent sans qu'on les annonce, quand « Bibliothèques » et « Catégories »
-     nomment des collections dont les rangées, elles, ne disent pas la nature. */
+     ⚠ LE TITRE « TYPE » EST RÉTABLI (v5.6, maquette 2f). La v5.0.0 l'avait retiré pour rendre une
+     ligne, au motif que « Tout / Aides / Protocoles » se lisent sans qu'on les annonce. C'est vrai
+     pris isolément, et faux dans la COLONNE : les trois autres groupes portent un titre, celui-ci
+     n'en avait pas — trois rangées orphelines en tête, dont on ne savait pas si elles
+     appartenaient au groupe d'en dessous. Une ligne de 11 px pour une colonne qui se lit d'un
+     coup d'œil : le rythme vaut la ligne. */
   const kindArr=state.section==='protocols'?protocols:(state.section==='fiches'?fiches:fiches.concat(protocols));
   const canEditCur=canEditScope(state.scope);
   const nIn=scope=>kindArr.filter(x=>(scope?x.library===scope:!x.library)&&(canEditScope(scope)||x.status!=='draft')).length;
@@ -11958,7 +12030,7 @@ function homeSideHtml(){
       ${sortedLibraries().map(l=>{const admin=(l.role==='admin'||myIsAppAdmin);const ro=!canEditScope(l.id);
         return `<div class="hs-wrap"><button class="hs-row${state.scope===l.id?' on':''}" data-scope="${esc(l.id)}"><span class="hs-2l"><span class="hs-name">${esc(l.name)}</span><span class="hs-sub">Partagée · ${esc(_ROLE_LBL[l.role]||l.role)}</span></span><span class="hs-n">${nIn(l.id)}</span></button>${admin?`<button class="hs-act" data-libedit="${esc(l.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(l.name)} »">${uiIcon('pen',14)}</button>`:(ro?`<span class="hs-act" title="Lecture seule — bibliothèque institutionnelle">${uiIcon('lock',14)}</span>`:`<span class="hs-act" title="Lecture-écriture — vous pouvez modifier le contenu, sans gérer les membres">${uiIcon('lockopen',14)}</span>`)}</div>`;}).join('')}
       ${myIsAppAdmin?`<button class="hs-add" data-newlib>＋ Nouvelle bibliothèque</button>`:''}<div class="hs-sep"></div>`:''}
-    ${typeH}
+    <div class="hs-h">Type</div>${typeH}
     <div class="hs-sep"></div><div class="hs-h">Catégories</div>
     <button class="hs-row${!state.cat?' on':''}" data-cat=""><span class="hs-name">Toutes</span><span class="hs-n">${nIn(state.scope)}</span></button>
     ${catsSorted(state.scope).map(c=>`<button class="hs-row${state.cat===c.id?' on':''}" data-cat="${esc(c.id)}"><span class="cat-dot" style="--catcol:${safeColor(c.color)}"></span><span class="hs-name">${esc(c.name)}</span><span class="hs-n">${nCat(c.id)}</span></button>`).join('')}
@@ -12297,7 +12369,7 @@ function renderHomeList(cfg){
      lui. Tant que le bouton vivait dans l'en-tête, hors de `main`, le trou était invisible ; en
      le logeant dans la rangée de liste (v5.6), il devenait la disparition d'un contrôle. Même
      leçon que le pied nomade, dont l'appel est la ligne d'à côté. */
-  rescueFiltTog();rescueFooter();
+  rescueFiltTog();rescueHomeSearch();rescueFooter();
   /* ACCUEIL « POSTE ACCÈS DIRECT » (v4.56.0, maquette 2c). Deux régimes :
      — RECHERCHE : liste plate triée par pertinence (épinglées > frecency > titre, inchangé),
        extraits contextuels, pagination LIB_PAGE — la structure A→Z n'aurait aucun sens sur un
@@ -12389,6 +12461,7 @@ function renderHomeList(cfg){
      donc statique par nature (il ne vit pas dans le gabarit), et sa position reste apprise.
      ⚠ `rescueFiltTog` court à CHAQUE rendu, avant tout : sinon, quitter l'accueil laisserait le
      bouton dans un `main` qu'on remplace, et il disparaîtrait avec lui. */
+  placeHomeSearch(wide);
   {const ft=document.getElementById('filtTog'),row=main.querySelector('.grp-row');
    if(ft&&row&&ft.parentNode!==row)row.appendChild(ft);}
   main.querySelectorAll('[data-hgrp]').forEach(b=>b.onclick=()=>{
@@ -15664,7 +15737,7 @@ function renderRead(){
   // MODE APERÇU (ouvert depuis l'éditeur) : rendu du BROUILLON — pas de session, pas de
   // minuteurs/notes/outils de gestion, bandeau + barre « Retour à l'édition ».
   const preview=!!state.previewFrom;
-  const wideRead=mqRail.matches;   // v4.23.0 : rail dès 780px
+  const wideRead=mqRail.matches;   // v5.6 : rail dès 1000 px (maquette ; c'était 780 en v4.23.0)
   const rtH=preview?'':runtimePanel(f);
   /* v5.4.0 : en ÉTROIT le journal vit DANS le panneau (cf. runtimePanel) — deux `.tk-panel` dans
      le DOM et renderTkOnly ne remplacerait que la première copie. v5.4.2 : le panneau n'existant
@@ -15698,8 +15771,19 @@ function renderRead(){
      reprenait les aplats de l'action, deux surfaces se disputeraient le regard au même niveau de
      saillance. L'état n'y est plus porté que par le MARQUEUR. « ⤢ complet » ouvre la feuille.
      Absent en mode statique (le tableau EST déjà la vue d'ensemble) et en aperçu de brouillon. */
+  /* ⚠ PAS DE COLONNE DE PLAN AVANT LE SOIN (v5.6) : la page d'avant la session PORTE déjà le
+     parcours inerte, au centre — la colonne l'afficherait une seconde fois, côte à côte avec
+     lui. Deux fois la même liste sur le même écran est la duplication que la v4.70.1 proscrit ;
+     ici elle serait littérale, au pixel près. La colonne revient au démarrage, avec la vue de
+     travail qu'elle oriente. */
+  /* ⚠ DÉCLARÉE ICI, ET PAS PLUS BAS : `ladRail` la lit. Une constante `const` lue avant sa
+     déclaration lève — c'est la zone morte temporelle, la faute exacte payée au lot T3 (tout le
+     rendu échouait, et ni `npm test` ni `npm run check` ne l'auraient vu : aucun des deux
+     n'exerce un rendu). */
+  const gesteEntree=!Runtime.started&&!state.previewFrom&&(()=>{try{return Share.mode!=='guest';}catch(e){return true;}})();
   const ladRail=(()=>{
     if(!wideRead||useSv||preview||!hasFlow(f))return '';
+    if(!started&&gesteEntree)return '';
     const plan=flowPlan(f);if(!plan.order.length)return '';
     const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
     const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
@@ -15783,7 +15867,6 @@ function renderRead(){
   // Bouton de démarrage EXPLICITE : dans l'étape ① s'il y a des critères (« Confirmé — … » :
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
-  const sessStartH=sessStartHtml(f);
   // v4.13.0 : en mode STATIQUE, pas de panneau « Algorithme » (le tableau EST la vue d'ensemble).
   // v4.18.0 : en mode DYNAMIQUE, plus de panneau « Algorithme » AVANT le journal (ordre ECAM
   // E/WD → SD : jamais un synoptique au-dessus de la surface d'action) — le SVG est devenu
@@ -15806,7 +15889,12 @@ function renderRead(){
   /* DÉCLARÉ ICI, AVANT LE `if(useSv)` : la coque de `main.innerHTML` le lit aussi (c'est LUI qui
      décide si le chapeau est encore rendu en tête de colonne). Posé dans la branche, il serait
      hors de portée — même zone morte que celle payée au lot T3. */
-  const fsAvantBouton=!useSv&&!!confBlockH&&!!sessStartH&&!!forgetStrip;
+  /* v5.6 — LA SÉQUENCE EST LA MÊME, LE GESTE A CHANGÉ DE LOGEMENT : critères → memory items →
+     geste d'entrée (v5.0.8). Le geste est désormais la touche du dock, au bas de l'écran, donc
+     APRÈS tout le reste par construction ; la condition reste sa PRÉSENCE (chez l'invité et en
+     aperçu d'essai il n'existe pas, et une séquence qui mène à un bouton absent n'a rien à
+     ordonner — le chapeau reprend alors sa place en tête). */
+  const fsAvantBouton=!useSv&&!!confBlockH&&gesteEntree&&!!forgetStrip;
   const stages=[];
   if(useSv){
     // v4.14.0 : STATIQUE = document complet en tableau (confirmation, chapeau, algorithme,
@@ -15834,12 +15922,12 @@ function renderRead(){
      bloc — le chapeau AGRÈGE, il ne possède pas. Rien n'est perdu, l'item se re-vérifie à sa place
      dans la checklist, ce qui est précisément le geste QRH (réciter de mémoire, puis confirmer).
      LA CONDITION EST LA PRÉSENCE DU BOUTON, pas l'état de la session : chez l'invité et en aperçu
-     d'essai `sessStartH` est vide (le geste d'entrée n'existe pas), et une séquence qui mène à un
+     d'essai le geste d'entrée n'existe pas, et une séquence qui mène à un
      bouton absent n'a rien à ordonner — le chapeau reprend alors sa place en tête. Une fois la
      session DÉMARRÉE, rien ne change de ce qui existait : le chapeau replié revient en tête et la
      condition d'entrée descend avec son étage (T5). */
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',
-    body:confBlockH+(fsAvantBouton?forgetStrip:'')+sessStartH});
+    body:confBlockH+(fsAvantBouton?forgetStrip:'')});
   /* T2 (v5.0.0) — LE JOURNAL DES ACTIONS REMONTE. Il vivait en FIN de colonne : mesuré, le bouton
      « Noter l'heure » était à y = 1588 px sur un écran de 844 (744 px sous le pli) et à 1829 px sur
      640. C'est le geste de traçabilité le plus fréquent d'une réanimation, et c'était le plus loin
@@ -15856,9 +15944,30 @@ function renderRead(){
   /* v5.4.0 : en session le dépliant fusionné (minuteurs · compteurs · journal) prend la place que
      le lot T2 avait donnée au journal — JUSTE SOUS la carte du bloc, là où le geste se produit.
      tkH ne subsiste à cette place que pour une fiche sans minuteur ni compteur. */
-  {const body=agirDabord
+  /* ══ AVANT LA SESSION, LA PRISE EN CHARGE S'ANNONCE — ELLE NE SE DÉROULE PAS (v5.6, maquettes
+     1b/1c — demande de l'auteur : « le mockup proposait une première page de démarrage de
+     session, avec possibilité de voir les critères, tout voir, tableau, schéma ») ═════════════
+     La colonne montrait les CARTES DE TRAVAIL, cases comprises, avant même qu'on ait confirmé le
+     tableau. C'est la checklist déroulée sur un patient qu'on n'a pas encore reconnu, et cela
+     contredit la condition d'entrée QRH que la carte juste au-dessus vient d'énoncer.
+     ELLE MONTRE DONC LE PARCOURS INERTE — la séquence, ses branches, ses boucles, ses renvois,
+     et rien à cocher — puis les AUTRES VUES en liens de texte (tableau, schéma, documents), que
+     la maquette met là plutôt qu'en tuiles. On voit ce qu'on va faire avant de le faire.
+     ⚠ CE QUE CELA COÛTE, ET IL FAUT LE SAVOIR : le DÉMARRAGE IMPLICITE par cochage (« la 1ʳᵉ
+     action clinique démarre toujours aussi », v4.4.0) n'existe plus AVANT le premier geste — il
+     n'y a plus de case à cocher à ce moment-là. Ce qui le remplace est plus sûr, pas moins : le
+     geste d'entrée est une touche PERMANENTE du dock, à position constante, atteignable au pouce
+     sans défiler, quelle que soit la longueur des critères. `ensureStarted` reste le point
+     d'entrée unique et démarre toujours sur n'importe quel geste ultérieur.
+     ⚠ ET SEULEMENT QUAND LE GESTE D'ENTRÉE EXISTE : chez l'INVITÉ (qui suit une session
+     distante et n'en démarre aucune) et en APERÇU D'ESSAI, la vue de travail reste — sinon on
+     leur montrerait une fiche qu'ils ne peuvent plus dérouler. */
+  const avantSession=!started&&!useSv&&gesteEntree&&hasFlow(f);
+  {const body=avantSession
+     ?preSessionHtml(f)+localH+(wideRead?'':posH)
+     :agirDabord
      ?crumbsH+navHtml+navRowH+(wideRead||state.rtOpen==='dock'?'':rtH)+(wideRead?'':tkH)+localH+algH+(wideRead?'':posH)
-     :(confBlockH?'':sessStartH)+(wideRead||state.rtOpen==='dock'?'':rtH)+algH+crumbsH+navHtml+navRowH+(wideRead?'':tkH)+localH+(wideRead?'':posH);
+     :(wideRead||state.rtOpen==='dock'?'':rtH)+algH+crumbsH+navHtml+navRowH+(wideRead?'':tkH)+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   // v4.23.0 : ③ ne garde que « △ À vérifier » — ce qui tue si on l'oublie reste dans le FLUX
   // (AC 120-71B). Les DIFFÉRENTIELS, eux, sont de la consultation (on les ouvre quand le
@@ -15994,7 +16103,6 @@ function bindReadEvents(f,blk,cur){
   // « Confirmé — démarrer » REPLIE délibérément l'étape ① (acquittement par l'action, ECAM) —
   // à la différence du démarrage implicite par cochage, qui FIGE l'état ouvert (ensureStarted)
   // pour ne pas déplacer le contenu sous le doigt.
-  {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{startSessionGesture();};}
   // « Tableau atypique ? » (étape ①) : saute aux Diagnostics différentiels (étape ③) —
   // défilement INSTANTANÉ (pas de smooth : geste volontaire, prefers-reduced-motion respecté).
   // « Tableau atypique ? » (étape ①) : les différentiels vivent désormais dans la feuille
@@ -16101,6 +16209,13 @@ function bindReadEvents(f,blk,cur){
      écouteurs du journal ne l'atteignent pas. Re-rendu ANCRÉ sur la ligne touchée (le rail ne
      doit pas sauter sous le doigt). */
   bindRailLad();bindRailTm();
+  /* Les trois liens de la page d'avant le soin : chacun passe par le VRAI chemin, celui du dock
+     et du menu ⋯ — aucun second point d'entrée à tenir. */
+  main.querySelectorAll('[data-prelink]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.prelink;
+    if(k==='page'){state.readMode='static';render();return;}
+    if(k==='svg'){openFlowFull();return;}
+    if(k==='docs')openRefSheet('docs');});
   // Sortie du bandeau « le partage a été interrompu » (invité, lien mort) : même geste que la
   // rangée du menu ⋯, donc même fonction — jamais une seconde porte qui dirait autre chose.
   {const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;}
@@ -16861,6 +16976,12 @@ function syncRefBtn(){
 bindModalDismiss(refModal,closeRefSheet);
 {const rx=document.getElementById('refX');if(rx)rx.onclick=closeRefSheet;
  const rb=document.getElementById('refBtn');if(rb)rb.onclick=()=>{if(refOpenNow())closeRefSheet();else openRefSheet();};
+ /* Les DEUX touches hors session : câblées UNE FOIS, avec les autres — elles vivent hors de
+    `main`, donc elles survivent aux re-rendus (c'est tout l'intérêt du dock). `startSessionGesture`
+    reste le point d'écriture unique du démarrage, partagé avec le carrelage statique d'hier. */
+ {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{startSessionGesture();};}
+ {const ek=document.getElementById('exoKey');
+  if(ek)ek.onclick=()=>{const f=state.fiche;if(f)startExercise(f);};}
  /* V1 — FERMETURE TRIPLE : re-tap de la touche, ✕ du volet, tap hors volet. Rien ne bouge
     derrière : le volet est FIXE, il ne prend aucune hauteur au flux (le témoin M11 « un tap ne
     déplace pas l'écran » tient donc par construction). */
@@ -17067,7 +17188,7 @@ function syncDock(){
      naîtrait DERRIÈRE lui — et la dernière étape d'un bloc est exactement ce qu'on ne peut pas
      se permettre de cacher. La classe le dit au CSS, qui pose le rembourrage. */
   {const d=document.getElementById('sessionDock');
-   if(d){const ks=['allBtn','refBtn','cxKey','tkKey'].map(i=>document.getElementById(i));
+   if(d){const ks=['allBtn','refBtn','cxKey','tkKey','exoKey','sessStart'].map(i=>document.getElementById(i));
      d.hidden=!ks.some(k=>k&&!k.hidden);
      document.body.classList.toggle('dock-on',!d.hidden);
      if(d.hidden)dockSheetClose();}}
@@ -17168,7 +17289,9 @@ function bindRailTm(){
       if(on)state.railTmOpen[id]=true;else delete state.railTmOpen[id];});});}
 function bindRailLad(){
   const lad=main.querySelector('.rail-lad');if(!lad)return;
-  const box=lad.closest('.read-plan,.read-side');
+  /* Le repli d'une ligne défile DANS son conteneur — sauf sur la page d'avant le soin, où
+     l'Échelle vit dans le FLUX : le conteneur est alors la page elle-même. */
+  const box=lad.closest('.read-plan,.read-side')||document.scrollingElement||document.documentElement;
   const act=t=>{
     const pr=t.closest('[data-plref]');
     if(pr){const k=CSS.escape(pr.dataset.plref);const el=lad.querySelector('[data-plln="'+k+'"]');
@@ -17882,6 +18005,30 @@ const ALL_TAB_LBL={parcours:'Parcours',page:'Page SFAR',schema:'Schéma'};
    possible, ni au doigt ni au clavier (les cases sont `aria-hidden`), et le sous-titre le DIT en
    toutes lettres : « rien ne s'y coche ».
    ELLE NE DÉMARRE RIEN et ne coche rien : mêmes invariants que le plan, vérifiés par harnais. */
+/* LA PAGE D'AVANT LE SOIN (v5.6, maquettes 1b/1c) : le parcours INERTE, puis les autres vues en
+   liens de TEXTE. Ni tuiles ni cartes : la maquette les met en liens parce que ce sont des
+   ouvertures secondaires — l'action de l'écran est dans le dock, et rien ne doit lui disputer sa
+   saillance. Chaque lien passe par le VRAI chemin (le même que le menu ⋯ et le dock), il n'y a
+   pas de second point d'entrée. */
+function preSessionHtml(f){
+  const plan=flowPlan(f);if(!plan.order.length)return '';
+  const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
+  /* ⚠ PAS DE « ICI » AVANT LE SOIN : on n'est nulle part, la session n'a pas commencé. Le
+     marqueur de position dirait qu'on est déjà entré dans le premier bloc, ce que la condition
+     d'entrée juste au-dessus demande précisément de décider. */
+  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos)
+    .forEach(m=>{md[m.id]=Object.assign({},m,{cur:false});});
+  const n=plan.order.length;
+  const lad=ovPlanLadderHtml(f,plan,num,md,new Set());
+  const nd=(f.docs||[]).length;
+  const liens=`<div class="pre-links">`
+    +`<button type="button" class="pre-link" data-prelink="page">▦ Tableau</button>`
+    +(hasFlow(f)?`<button type="button" class="pre-link" data-prelink="svg">◈ Schéma</button>`:'')
+    +(nd?`<button type="button" class="pre-link" data-prelink="docs">▤ Documents · ${nd}</button>`:'')
+    +`</div>`;
+  return `<div class="pre-wrap"><div class="pre-head"><span class="pre-t">Parcours · ${n} bloc${n>1?'s':''}</span>`
+    +`<span class="pre-inert">inerte — rien ne se coche ici</span></div>`
+    +`<div class="rail-lad pre-lad">${lad}</div>${liens}</div>`;}
 function ovParcoursHtml(f){
   /* ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — demande
      utilisateur : « mets à jour parcours dans tout voir pour que ça corresponde au nouveau
@@ -18069,16 +18216,6 @@ function startSessionGesture(){
     // quoi que ce soit d'utile : on l'amène sous le quai. Sinon on ne touche à rien.
     if(r.top<st-1||r.top>window.innerHeight-64)ovScrollEl(el);}
   return true;}
-function sessStartHtml(f){
-  if(state.previewFrom||Runtime.started)return '';
-  /* CHEZ L'INVITÉ, CE BOUTON EST MORT (v4.47.0). Il ne démarre rien : `ensureStarted` refuse de
-     créer une session locale sur l'appareil de quelqu'un qui suit celle d'un autre (étanchéité).
-     Le laisser affiché, c'est offrir le contrôle le plus visible de l'écran — un bouton PLEIN,
-     registre d'action primaire — à un geste sans effet, au-dessus du contenu clinique et au
-     moment où l'on a le moins de temps pour découvrir qu'il ne fait rien. */
-  try{if(Share.mode==='guest')return '';}catch(e){}
-  const n=clean(listOf(f,'confirmation')).length;
-  return `<div class="sess-start"><button class="btn primary" id="sessStart">${uiIcon('play',14)} ${n?'Confirmé — démarrer la session':'Démarrer la session'}</button><span class="ss-hint">chrono, minuteurs et journal — démarre aussi à la première action</span></div>`;}
 function svExtras(f,where){
   const list=a=>`<ul class="sv-stp">${a.map(x=>`<li>${fmt(x)}</li>`).join('')}</ul>`;
   const cell=(cls,title,items)=>`<div class="sv-cell sv-inert${cls}"><p class="sv-h"><span class="sv-t">${title}</span></p>${list(items)}</div>`;
@@ -18089,7 +18226,6 @@ function svExtras(f,where){
     if(diff.length)cells.push(cell('','Éliminer — tableau atypique ?',diff));
     let h='';
     if(cells.length)h+=cells.length>1?`<div class="sv-cols c2">${cells.join('')}</div>`:cells[0];
-    h+=sessStartHtml(f);   // sous Confirmation/Éliminer, avant le chapeau (v4.14.2)
     if(nf.length)h+=cell(' sv-nf','⚠ Ne pas oublier',nf);
     return h;}
   const vf=clean(listOf(f,'verify'));
@@ -18168,7 +18304,7 @@ function svPaintArrows(){
   const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
   const tb=wrap.querySelector('.sv-tb');if(!tb)return;
   const Z=zoomF();   // v4.13.1 : rectangles en px VISUELS -> tout est ramené en px CSS (÷ Z)
-  const CONTENT='.sv-cell,.sv-band,.sv-opt,.sv-jrow,.sv-end,.sess-start';
+  const CONTENT='.sv-cell,.sv-band,.sv-opt,.sv-jrow,.sv-end';
   /* v4.14.10 — PERFORMANCE : la passe est réorganisée en PHASES lecture/écriture GROUPÉES
      (l'ancienne alternance mesure/style forçait un recalcul de mise en page par décision :
      30-50 ms par passe sur desktop, bien pire sur téléphone ; désormais ~4 recalculs fixes).

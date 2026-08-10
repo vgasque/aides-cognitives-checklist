@@ -47,6 +47,10 @@ await sec(`PARTAGE · un évènement distant ne déplace rien — moteur ${NOM_M
   const r = await page.evaluate(async () => {
     Share.mode = 'host'; Share.role = 'lead'; Share.me = 'moi'; Share.status = 'active';
     Share.lastOk = Date.now(); Share.offset = 0;
+    /* v5.6 : les étapes n'existent qu'en session (avant, la colonne montre le parcours inerte).
+       Un hôte qui partage a forcément démarré — on se place donc dans cet état. */
+    { const b = document.getElementById('sessStart'); if (b && !b.hidden) b.click(); }
+    await new Promise(x => setTimeout(x, 500));
     // On défile pour que la compensation d'ancrage ait de la marge : bornée par le haut de page,
     // elle mesurerait sinon la limite structurelle et non l'ancrage (cf. doctrine de confOpen).
     window.scrollTo(0, 500);
@@ -178,6 +182,9 @@ await sec(`PARTAGE · un décochage distant ne recompose pas le journal`, async 
       { id: 'b2', kind: 'do', title: 'Second', items: ['c', 'd'], next: null }] });
     await Data.put(f); fiches.push(f);
     openRead(f.id); await new Promise(x => setTimeout(x, 350));
+    /* v5.6 : les étapes n'existent qu'en session — avant, la colonne porte le parcours inerte. */
+    { const b = document.getElementById('sessStart'); if (b && !b.hidden) b.click(); }
+    await new Promise(x => setTimeout(x, 500));
     /* On RE-INTERROGE le DOM entre chaque clic. La PREMIÈRE action d'une session déclenche
        `ensureStarted` donc un rendu complet : une liste de nœuds capturée d'avance est détachée
        dès le premier clic, et les suivants tombent dans le vide. C'est le phénomène mesuré en
@@ -387,7 +394,12 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
           return r.top >= 0 && r.bottom <= ecran && r.width > 2; };
         return (vu(t) || vu(b)) && /Arrêt cardiaque/.test((b || {}).textContent || '');
       })(),
-      boutonMort: !!document.getElementById('sessStart'),
+      /* v5.6 : le geste d'entrée est une TOUCHE DU DOCK, présente dans la coque statique et
+         masquée par `hidden` — on mesure donc qu'il n'est pas OFFERT, plus qu'il n'existe pas.
+         C'est d'ailleurs la propriété qui compte : chez l'invité, `ensureStarted` refuse, et un
+         bouton au registre primaire pour un geste sans effet est ce que la v4.47.0 a supprimé. */
+      boutonMort: (()=>{const b=document.getElementById('sessStart');
+        return !!b && !b.hidden && b.getBoundingClientRect().height>0;})(),
       etapeY: etape ? Math.round(etape.getBoundingClientRect().top) : null,
       etapeVue: !!etape && etape.getBoundingClientRect().top < ecran && etape.getBoundingClientRect().bottom > 0,
       ecran,
@@ -1140,16 +1152,26 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
        out.ailleursMonte = !!q && !(q.top >= 0 && q.top < window.innerHeight - 4);
        out.dbg = q ? {top:Math.round(q.top),vh:window.innerHeight,sy:Math.round(window.scrollY)} : null;}
       const cibleB = blocs.find(id => Runtime.nav.indexOf(id) < 0) || blocs[0];
-      const tA = main.querySelector('.ov-block');
+      /* ⚠ « RIEN NE BOUGE » SE MESURE SUR CE QU'ON REGARDE, PAS SUR UN ÉLÉMENT ARBITRAIRE
+         (v5.6). Le témoin visait `main .ov-block`, la PREMIÈRE carte du journal : R6 la condense
+         en rangée d'historique dès qu'un passage s'achève, donc après le lot le sélecteur
+         désigne une AUTRE carte — on mesurait un écart de hauteur entre deux objets. Et le viser
+         sur le chapeau n'est pas meilleur : `keepAnchor` compense les changements de hauteur
+         SITUÉS AU-DESSUS du regard, ce qui déplace légitimement tout le haut de page pendant que
+         la vue, elle, ne bouge pas d'un pixel — c'est exactement son office.
+         On mesure donc CE QUE L'ŒIL A SOUS LUI : l'élément au centre du viewport avant le lot,
+         et sa position après. C'est la propriété que la règle 11 protège. */
+      const tA = document.elementFromPoint(Math.round(innerWidth/2), Math.round(innerHeight/2));
       const yA = tA ? tA.getBoundingClientRect().top : null;
       const scA = window.scrollY;
       Share.onEvents([{ seq: 13, id: 'n3', actor: 'hote', kind: 'nav',
         payload: { nav: Runtime.nav.concat([cibleB]),
                    navSeq: Runtime.navSeq.concat([(Runtime.seq || 1) + 1]) } }]);
       await new Promise(x => setTimeout(x, 500));
-      const tB = main.querySelector('.ov-block');
-      const yB = tB ? tB.getBoundingClientRect().top : null;
+      const yB = (tA && tA.isConnected) ? tA.getBoundingClientRect().top : null;
       out.deriveAilleurs = (yA != null && yB != null) ? Math.round(yB - yA) : null;
+      /* Le DÉFILEMENT peut légitimement changer — c'est la compensation d'ancrage. Ce qui ne doit
+         pas changer, c'est la position de ce qu'on regarde. On garde la valeur pour le rapport. */
       out.scrollAilleurs = Math.round(window.scrollY - scA);
     }
 
@@ -1204,9 +1226,11 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
     r.boutVisible === true, JSON.stringify({ boutVisible: r.boutVisible, derive: r.derive }));
   t('… témoin : le bout n’était PAS sous les yeux avant le lot',
     r.ailleursMonte === true, JSON.stringify(r.dbg));
-  t('… il regardait ailleurs : rien ne bouge (≤ 1 px)',
-    (r.deriveAilleurs === null || Math.abs(r.deriveAilleurs) <= 1) && Math.abs(r.scrollAilleurs || 0) <= 1,
-    `${r.deriveAilleurs} px de dérive, ${r.scrollAilleurs} px de défilement`);
+  /* ⚠ ON EXIGE QUE LA MESURE AIT EU LIEU : `Math.abs(null)` vaut 0, donc un témoin perdu
+     passerait au vert sans rien mesurer (leçon v4.31.1). */
+  t('… il regardait ailleurs : ce qu\'il regarde ne bouge pas (≤ 1 px)',
+    r.deriveAilleurs !== null && Math.abs(r.deriveAilleurs) <= 1,
+    `${r.deriveAilleurs} px de dérive (défilement compensé : ${r.scrollAilleurs} px)`);
   t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   /* Le drain du régime « deferred » — SANS jamais ouvrir le lecteur. */
   t('témoin : la file « deferred » est bien pleine avant le geste',

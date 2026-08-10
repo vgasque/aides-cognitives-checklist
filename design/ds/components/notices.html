@@ -407,7 +407,7 @@
                   fiche : formulaire <= 860 + aperçu 320 -> 360 ; protocole : <= 780 + aperçu 360 */
   .app{max-width:none;margin:0 auto;min-height:calc(100vh / var(--zf,1));display:flex;flex-direction:column;overflow-x:clip}
   body.view-home main{width:100%;max-width:1622px;margin:0 auto}
-  body.view-read main{width:100%;max-width:1282px;margin:0 auto}
+  body.view-read main{width:100%;max-width:1440px;margin:0 auto}
   body.view-edit main{width:100%;max-width:1282px;margin:0 auto}
   body.view-pedit main{width:100%;max-width:816px;margin:0 auto}
   @media (min-width:1000px){body.view-pedit main{max-width:1202px}}   /* 780 + 26 + 360 + marges */
@@ -450,9 +450,9 @@
        type dans ce fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
        GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
        mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
-    body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    body.view-read .read-grid{grid-template-columns:minmax(0,760px) 320px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,760px) 320px;justify-content:center}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
@@ -968,6 +968,14 @@
   .sd-key.on{background:var(--sys-2);color:var(--sys-ink)}
   .sd-key.sd-tk{flex:1.3;background:rgba(255,255,255,.1);color:var(--sys-ink)}
   .sd-key.sd-cx{color:var(--crit-sys)}
+  /* ══ HORS SESSION (maquette 1b/1c) : Exercice au CONTOUR, Démarrer REMPLI et large.
+     Un seul bouton rempli à l'écran (v4.0.3) — et c'est celui-là, la seule action qui compte
+     avant le premier geste. Le remplissage est `--act`, le bleu de l'ACTION : sur la matière
+     système, un aplat vert dirait « c'est fait » et un ambre « attention ». */
+  .sd-key.sd-exo{flex:0 0 auto;padding:0 14px;border:1px solid var(--sys-line);color:var(--sys-ink-2)}
+  .sd-key.sd-start{flex:1;background:var(--act);color:var(--on-primary)}
+  .sd-key.sd-start .dp-lbl{font-size:var(--t-item);letter-spacing:.01em;text-transform:none}
+  .sd-key.sd-start:hover{background:var(--primary-hi)}
   /* A15 — la référence dans la colonne d'ÉTAT : elle prend la tête du rail, le reste du rail
      (minuteurs, posologie, Échelle) descend dessous et reste consultable. */
   .ref-col{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
@@ -1595,6 +1603,13 @@
      de boîtes dont aucune ne dit rien — et le rail d'index, posé à l'extérieur, ne se rattachait
      visuellement à rien. UNE carte contient tout ; les lettres y sont des INTERTITRES avec leur
      filet, et le rail vit DEDANS, contre la marge droite que la carte lui réserve. */
+  /* ⚠ DEUX RÉGIMES, ET C'EST CE QUI MANQUAIT (v5.6, signalé à l'usage : « l'affichage des cartes
+     d'accueil n'est pas responsive »). En ÉTROIT (maquette 1a) le répertoire est UNE carte, les
+     fiches y sont des rangées à filet : un empilement de cartes sur 358 px de large ne serait
+     qu'une pile de cadres. En LARGE (maquette 2f) ce sont des CARTES INDIVIDUELLES dans une
+     grille fluide : la largeur existe, et une liste d'une seule colonne au milieu de 1 200 px
+     laisse le regard traverser du vide. Le basculement suit le palier du rail (780), là où
+     l'accueil passe de la voie unique à la coque à deux colonnes. */
   .dir-book{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);padding:2px 16px;position:relative}
   .dir-book.pinned{margin-bottom:4px}
   .dir-l{display:flex;align-items:baseline;gap:8px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
@@ -2126,43 +2141,13 @@
   .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
   .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-3)}
   .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
-  /* Démarrage EXPLICITE de session (v4.3.2) : sous la confirmation diagnostique (doctrine QRH :
-     on confirme le tableau, PUIS on agit). Seul bouton --primary plein de l'écran avant session
-     (« Continuer » vit aux registres idle/CONFIRMATION) ; disparaît dès la session démarrée. */
-  /* v4.4.1 : « Confirmé — démarrer la session » au GABARIT de « Continuer » (.btn.cont :
-     pleine largeur, 50px, 15/800) — même grammaire de rangée d'action au pied d'une étape ;
-     il reste BLEU --primary (démarrer = action primaire, le vert reste la CONFIRMATION
-     d'un bloc entièrement coché). L'aide passe dessous, centrée. */
-  .sess-start{margin:14px 0 4px}
-  .sess-start .btn{width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px}
-  .ss-hint{display:block;text-align:center;margin-top:6px;font-size:12px;color:var(--ink-soft)}
-  /* LE DÉMARRAGE RESTE ATTEIGNABLE (proposition utilisateur : « et si “confirmé — démarrer la
-     session” était sticky quand on ne l'atteint pas encore ? »). Sur une fiche à critères longs,
-     le bouton naît SOUS le pli : on lit, on défile, et la condition d'entrée QRH n'est plus à
-     portée de pouce. Le bouton se DÉTACHE alors au bas de l'écran, et seulement dans ce cas —
-     il revient dans le flux dès que sa place réelle est visible.
-     CE QUI REND CETTE ZONE FIXE ADMISSIBLE (SPEC §5 : « en crise, une seule zone fixe, en
-     HAUT »). Trois bornes, et elles sont toutes vérifiables : elle n'existe qu'AVANT la première
-     action (la session non démarrée — donc jamais pendant un soin, là où la règle protège la
-     colonne d'action), elle est TRANSITOIRE (elle s'efface au démarrage comme au retour du
-     bouton à l'écran), et elle ne prend AUCUNE hauteur au flux — la boîte `.sess-start` garde la
-     sienne, seul son bouton se détache, donc rien ne se décale au moment où l'état bascule.
-     SOUS 780 px SEULEMENT : c'est là que le problème existe (au-delà, la colonne d'action est
-     courte et le rail tient l'écran), et une barre fixée pleine largeur se recalerait mal sur une
-     checklist centrée à côté de deux colonnes. */
-  @media (max-width:779.98px){
-    /* `min-height` = la hauteur exacte du bouton : sorti du flux, il ne doit pas emporter sa
-       place avec lui, sinon tout ce qui suit remonte de 50 px au franchissement du pli. */
-    .sess-start.afloat{position:relative;min-height:50px}
-    .sess-start.afloat>.btn{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));
-      width:auto;z-index:14;box-shadow:var(--shadow-lg)}
-  }
-  /* Dans le TABLEAU statique (v4.14.3) : le bouton devient une RANGÉE du carrelage — coins
-     3 px, sans marges (le joint de la grille fait l'espacement), aide sur la même rangée.
-     Il reste l'unique bouton REMPLI de l'écran (saillance) et >= 44 px. */
-  .sv-tb .sess-start{margin:0}
-  .sv-tb .sess-start .btn{border-radius:3px;min-height:46px}
-  .sv-tb .ss-hint{margin-top:2px;font-size:11px}
+  /* ⚠ LE BOUTON DE DÉMARRAGE A QUITTÉ LE FLUX (v5.6, décision de l'auteur : « uniformise le
+     design ; préférentiellement opte pour le nouveau »). Il vit dans le DOCK, où sa position est
+     CONSTANTE à toutes les largeurs et atteignable au pouce. Sont PURGÉS avec lui (règle 14) :
+     `.sess-start`, `.ss-hint`, la rangée du carrelage statique, et toute la mécanique `.afloat`
+     de la v4.73.0 — elle n'existait QUE parce que le bouton naissait sous le pli sur une fiche à
+     critères longs, et un dock fixe résout cela par construction, sans objet qui se détache et
+     se rattache selon le défilement (donc sans zone fixe transitoire à justifier contre SPEC §5). */
   /* ----- Parcours de soin (v4.4.0, « option B ») : rail vertical numéroté ① Confirmer →
      ② Prise en charge → ③ Surveillances & pièges. Pastilles : bleu = étape active,
      vert ✓ = faite, neutre cerclé = à venir — JAMAIS d'ambre/rouge ici (registres d'alerte).
@@ -2820,13 +2805,13 @@
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
   .alg-panel .flow-hint{margin:0 4px 10px}
   /* Repères posologiques (canvas) : cartes ; « ⚠ » en tête = registre ALERTE. */
-  .pos-card{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink)}
+  .pos-card{display:block;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:6px 0;margin:0;color:var(--ink);font-size:var(--t-meta);font-weight:600;line-height:1.5}
   .pos-card:first-child{border-top:0}
-  .pos-name{flex:1 1 auto;min-width:0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pos-name{color:var(--ink-2)}
   .pos-mk{color:var(--warn);font-weight:800}
   /* La valeur ne se tronque JAMAIS (un chiffre amputé est pire qu'absent) : elle enroule sur sa
      propre ligne quand le nom est long — d'où `flex-wrap` sur la rangée. */
-  .pos-body{flex:0 1 auto;max-width:100%;font-family:var(--mono);font-size:var(--t-body);font-weight:600;color:var(--ink);line-height:1.4}
+  .pos-body{font-family:var(--mono);font-weight:700;color:var(--ink)}
   .pos-body b{font-weight:700}
   /* Registre VIGILANCE (ambre) — voir posoCardsHtml : un dosage relève du « risque d'erreur »,
      pas de l'« oubli mortel ». Le rouge reste au chapeau « Ne pas oublier » et aux étapes vitales,
@@ -4483,6 +4468,24 @@
     border-radius:3px;transform:rotate(45deg);z-index:-1}
   .pl-line.dec.cur .n::before{background:var(--primary);border-color:var(--primary)}
   .pl-line.dec.done .n::before{background:var(--ok);border-color:var(--ok)}
+  /* La page d'AVANT le soin : le parcours inerte prend la grammaire de la colonne d'orientation
+     (mêmes rangées, mêmes marqueurs — une seule façon de lire « la liste des blocs »), et les
+     autres vues sont des LIENS de texte, jamais des tuiles : l'action de l'écran est au dock. */
+  .pre-wrap{margin-top:2px}
+  .pre-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+  .pre-t{font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
+  .pre-inert{margin-left:auto;font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
+  /* ⚠ « → aller à ce bloc » N'EXISTE PAS AVANT LE SOIN : y aller, c'est ouvrir la vue de travail
+     sans avoir démarré — le bouton paraîtrait ne rien faire (on retomberait sur cette page). Le
+     détail d'une ligne reste dépliable ; c'est le SAUT qui n'a pas de sens ici. `display:none`
+     le retire aussi de la tabulation, ce qu'un simple masquage visuel ne ferait pas. */
+  .pre-lad .pl-lnk{display:none}
+  .pre-links{display:flex;flex-wrap:wrap;gap:14px;padding:14px 2px 2px}
+  .pre-link{background:none;border:0;padding:6px 0;min-height:44px;font-family:inherit;
+    font-size:var(--t-meta);font-weight:700;color:var(--act);cursor:pointer}
+  .pre-link:hover{text-decoration:underline}
+  .pre-link:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
      demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
      Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
@@ -5460,14 +5463,17 @@
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
   .hs-row:hover{background:var(--surface-2)}
-  /* Sélection = BLEU SYSTÈME plein (SPEC crise §1a, v4.3.0) — jamais la couleur de la catégorie
-     (encodage de sélection unique) ; la pastille reste lisible sur le bleu grâce à son anneau. */
-  .hs-row.on{background:var(--primary);color:var(--on-primary);font-weight:700}
-  [data-theme="dark"] .hs-row.on{background:var(--primary-dk);color:var(--bg)}
-  /* Rangée SÉLECTIONNÉE : sous-texte et compte HÉRITENT de l'encre inversée (--on-primary) —
-     jamais --ink-soft sur fond primaire (contraste < AA). Opacité .92 : hiérarchie visuelle
-     préservée en restant ≥ 4.5:1 sur tous les accents (WCAG 2.2 AA). */
-  .hs-row.on :is(.hs-n,.hs-sub){color:inherit;opacity:.92}
+  /* ⚠ SÉLECTION = TEINTE, PLUS APLAT PLEIN (v5.6, maquette 2f — signalé à l'usage : « la sidebar
+     d'accueil, cases sélectionnées, n'est pas celle du mockup »). L'encodage reste le BLEU SYSTÈME
+     et jamais la couleur de la catégorie (SPEC §1a) : c'est la SATURATION qui change. Trois
+     rangées cochées sur trois groupes faisaient trois barres pleines dans une colonne qui ORIENTE
+     — la même inflation que les aplats de registre, appliquée à l'accent. Teinte + encre `--act` +
+     graisse 700 : trois canaux, aucun n'est la couleur seule (règle 8).
+     ET LE COMPTE REPREND SON ENCRE : sur un aplat plein il devait hériter de `--on-primary`
+     (contraste), sur une teinte il redevient ce qu'il est — une donnée secondaire. */
+  .hs-row.on{background:var(--primary-soft);color:var(--act);font-weight:700}
+  [data-theme="dark"] .hs-row.on{background:var(--primary-soft);color:var(--primary-dk)}
+  .hs-row.on :is(.hs-n,.hs-sub){color:var(--ink-2)}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hs-row>.hs-name{flex:1}
@@ -5540,9 +5546,22 @@
     /* 255px en border-box (box-sizing global) = le rendu du canvas (230px hors padding). */
     /* scrollbar-gutter DANS les panneaux (pas sur html, cf. v4.2.1) : la bascule
        Aides <-> Protocoles ne fait plus refluer la grille quand la barre apparaît/disparaît. */
-    .home-side{display:flex;flex-direction:column;gap:4px;flex:none;width:255px;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
+    .home-side{display:flex;flex-direction:column;gap:2px;flex:none;width:250px;background:var(--work);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
+    /* Le répertoire cesse d'être UNE carte : chaque fiche redevient une carte, dans une grille
+       fluide (maquette 2f). La lettre reste l'intertitre de son groupe — c'est elle que le rail
+       A→Z vise. */
+    .dir-book{background:none;border:0;border-radius:0;padding:0}
+    .dir-book.pinned{margin-bottom:10px}
+    .dir-book .dir-l{padding:14px 2px 6px}
+    .dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+    .dir-book .dir-row{background:var(--work);border:1px solid var(--work-line);border-bottom:1px solid var(--work-line);
+      border-radius:var(--r-3);height:71px;min-height:0;padding-left:14px;padding-right:24px}
+    .dir-book .dir-row::before{left:0;top:0;bottom:0;border-radius:var(--r-3) 0 0 var(--r-3)}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
+    /* La recherche déménagée : elle prend la largeur de la colonne qu'elle filtre, jamais celle
+       de l'écran, et elle est la PREMIÈRE chose de la colonne (maquette 2f). */
+    .home-main>.hdr-search{display:flex;max-width:1320px;flex:none;margin-bottom:12px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.typebar,.scopebar,.catbar){display:none}
     /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
@@ -5560,16 +5579,25 @@
     body.view-home main{position:relative}
     #histBtn{display:none}
   }
-  /* RAIL DE LECTURE — dès 780px (v4.23.0, décision utilisateur « action + structure de front ») :
-     la largeur suffit à tenir la colonne d'ACTION et le rail d'ORIENTATION côte à côte, l'idéal
-     ECAM (E/WD et SD simultanés). Le rail porte, de haut en bas : minuteurs ÉPINGLÉS, plan
-     « Échelle » (seule partie qui peut être longue, donc la seule qui défile), repères
-     posologiques ÉPINGLÉS. La checklist reste plafonnée à 860px (>= 1200) : la règle de largeurs
-     n'est pas amendée, le rail prend l'espace EXCÉDENTAIRE.
+  /* RAIL DE LECTURE — dès 1000 px (v5.6, maquette ; c'était 780 depuis la v4.23.0). La décision
+     d'origine — « action + structure de front », l'idéal ECAM E/WD + SD — n'est pas remise en
+     cause : c'est le SEUIL qui était faux. Mesuré à 780 px, un rail de 300 laissait ~430 px à la
+     colonne d'ACTION, soit moins qu'un téléphone en portrait pour ce qu'on lit sous stress : le
+     rail COÛTAIT ce qu'il était censé faire gagner. À 780-999 la maquette montre donc UNE colonne
+     plafonnée à 660 px, et le rail n'apparaît qu'avec la place de le porter.
+     Le rail porte, de haut en bas : minuteurs ÉPINGLÉS, repères posologiques, plan « Échelle »
+     (seule partie de longueur illimitée, donc la dernière), journal.
      Séparé des ÉDITEURS, qui gardent leur aperçu à >= 1000px (règle v4.5 inchangée) — les deux
      partageaient la même règle `.read-grid`, d'où la scission par classe de vue. */
-  @media (min-width:780px){
-    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0 20px;align-items:start}
+  @media (min-width:780px) and (max-width:999.98px){
+    /* VOIE UNIQUE, PLAFONNÉE ET CENTRÉE (maquette). À ce palier il n'y a pas de `.read-grid` du
+       tout — `wideRead` est faux, le contenu vit directement dans `main` : c'est donc `main`
+       qu'on plafonne. 660 px est la mesure de la maquette ; au-delà, une checklist s'étire et la
+       ligne devient trop longue pour être scannée. */
+    body.view-read main{max-width:660px}
+  }
+  @media (min-width:1000px){
+    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 24px;align-items:start}
     /* --stick-top : bas de ce qui est DÉJÀ collé en haut (en-tête + quai de crise), mesuré par
        syncHdrScroll — une constante laisserait le rail passer sous le quai. */
     /* HAUTEUR DÉFINIE (pas max-height) : les trois zones se répartissent l'espace, et chacune
@@ -5704,7 +5732,6 @@
     .read-side .rt-grid,.read-side .rt-counters{grid-template-columns:1fr}
   }
   @media (min-width:1000px){
-    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px;gap:0 24px}
     /* F4 (v4.59.0) — COCKPIT TROIS ZONES : orientation | action | état. Le plan est posé APRÈS
        la colonne d'action dans le DOM — l'ordre du DOM est celui de la LECTURE : ni un lecteur
        d'écran ni une tabulation ne doivent traverser le plan pour atteindre la checklist — et
@@ -5728,7 +5755,7 @@
        compris au-delà de 1200 px, où cette règle l'emporte sur le palier déclaré en tête de
        feuille (spécificité égale, déclaration plus tardive). Mesuré à 1400 px : 936+320. */
     :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 24px;align-items:start}
-    body.view-pedit .read-grid{grid-template-columns:minmax(0,780px) 360px;justify-content:center}
+    body.view-pedit .read-grid{grid-template-columns:minmax(0,760px) 340px;justify-content:center}
     :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
@@ -5737,9 +5764,9 @@
      AVANT le bloc 1000 ci-dessus et perdait donc la cascade à spécificité égale — la checklist
      restait en 1fr au lieu de son plafond de 860px. Collision constatée par mesure. */
   @media (min-width:1200px){
-    body.view-read .read-grid{grid-template-columns:minmax(0,860px) 360px;justify-content:center}
+    body.view-read .read-grid{grid-template-columns:minmax(0,760px) 320px;justify-content:center}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,860px) 360px}
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,760px) 320px;justify-content:center}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;

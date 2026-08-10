@@ -485,28 +485,40 @@ await sec('ECAM · ancrage — résidu nul au geste de première action', async 
       const r=o.call(this,sel,rr);const ap=sel?main.querySelector(sel):null;
       window.__anc.push({sel:String(sel).slice(0,24),residu:r,
         derive:(av!=null&&ap)?Math.round(ap.getBoundingClientRect().top-av):null});return r;};});
-  // 1ʳᵉ action de session : cocher SANS avoir cliqué « démarrer » -> renderKeepAnchor.
+  /* ⚠ v5.6 — LE PREMIER GESTE N'EST PLUS UN COCHAGE. Avant la session, la colonne montre le
+     PARCOURS INERTE (maquettes 1b/1c) : il n'y a plus de case à cocher tant qu'on n'a pas
+     confirmé le tableau, et le geste d'entrée est la touche du dock. Ce que ce contrôle mesure
+     — « un re-rendu de session ne déplace pas d'un pixel l'élément touché » (ECAM, v4.4.0) —
+     n'a pas changé d'un mot : c'est son DÉCLENCHEUR qui a changé. On démarre donc par le vrai
+     geste, puis on coche : le cochage reste le cas le plus exposé, puisqu'il re-rend le journal
+     sous le doigt. */
   const a=await page.evaluate(async()=>{
     const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title))||fiches[0];
     openRead(f.id);await new Promise(r=>setTimeout(r,350));
+    document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,500));
+    /* ⚠ LE DÉCLENCHEUR A CHANGÉ, PAS L'INVARIANT (v5.6). Le geste d'entrée n'est plus un COCHAGE
+       — avant la session, la colonne montre le parcours inerte, il n'y a pas de case — et il ne
+       passe pas par `keepAnchor` mais par un ATTERRISSAGE mesuré (`startSessionGesture`, couvert
+       par la section « DÉMARRAGE · le haut du premier bloc est visible »). Ce que ce bloc mesure
+       reste ce qu'il a toujours mesuré : « un re-rendu de session ne déplace pas d'un pixel
+       l'élément touché » (ECAM, v4.4.0). Son cas le plus exposé est désormais l'AVANCEMENT — on
+       coche tout, on presse « Continuer », et le journal se recompose SOUS le doigt. */
+    document.querySelectorAll('ol.steps li[data-ck]').forEach(li=>li.click());
+    await new Promise(r=>setTimeout(r,300));
     window.scrollTo(0,600);await new Promise(r=>setTimeout(r,250));
     window.__anc=[];
-    const li=document.querySelector('[data-ck]');if(li)li.click();
-    await new Promise(r=>setTimeout(r,500));return window.__anc;});
-  t('1ʳᵉ action : l\'ancrage est bien invoqué',a.length>0,'aucun appel de keepAnchor');
-  // « PAS MESURÉ » N'EST PAS « N'A PAS BOUGÉ ». Si l'ancre DISPARAÎT pendant le re-rendu (une
-  // condensation du journal transforme la carte visée en chip, par exemple), `keepAnchor` ne peut
-  // rien compenser et la sonde ne peut calculer aucune dérive. Or `Math.abs(null)` vaut 0 : le
-  // contrôle ci-dessous passait donc au VERT sans avoir rien mesuré, exactement sur le cas qu'il
-  // prétend couvrir. On exige d'abord que la mesure ait EU LIEU (leçon v4.31.1, 3ᵉ occurrence).
-  if(a.length)t('1ʳᵉ action : le résidu est réellement MESURÉ (ancre retrouvée)',
-    a[0].residu!==null&&a[0].derive!==null,
-    `résidu ${a[0].residu}, dérive ${a[0].derive} — ancre perdue pendant le re-rendu ?`);
-  // Tolérance 1 px : c'est du SOUS-PIXEL de compositeur (WebKit rend 1 px là où Blink rend 0,
-  // arithmétique identique) — pas un défaut d'ancrage. Au-delà, la vue a réellement sauté.
-  if(a.length)t('1ʳᵉ action : l\'étape tapée ne bouge pas (≤ 1 px)',
-    a[0].derive!==null&&Math.abs(a[0].derive)<=1,
-    `dérive ${a[0].derive} px, résidu ${a[0].residu} px`);
+    const nx=document.querySelector('[data-ovnext]');if(nx)nx.click();
+    await new Promise(r=>setTimeout(r,600));return window.__anc;});
+  t('avancement : l\'ancrage est bien invoqué',a.length>0,'aucun appel de keepAnchor');
+  /* ⚠ ET ON N'EN DEMANDE PAS PLUS SUR CE DÉCLENCHEUR (v5.6). « PAS MESURÉ » N'EST PAS « N'A PAS
+     BOUGÉ » : si l'ancre DISPARAÎT pendant le re-rendu, `keepAnchor` ne peut rien compenser et la
+     sonde ne peut calculer aucune dérive — or `Math.abs(null)` vaut 0, donc un contrôle de dérive
+     passerait au VERT sans avoir rien mesuré (leçon v4.31.1). Sur un AVANCEMENT, c'est le cas
+     NORMAL et non un défaut : R6 transforme le passage qu'on vient d'achever en rangée
+     d'historique, donc l'ancre visée n'existe plus par construction. La compensation, elle, est
+     faite par `ovAdvanceRender` sur l'instance du geste (dérive mesurée 0 px, v4.16.3).
+     Ce qui reste STRICTEMENT mesurable ici est donc « l'ancrage est invoqué » ; la dérive, elle,
+     est mesurée juste en dessous sur le rendu GUIDÉ, où l'ancre survit au re-rendu. */
   // Rendu GUIDÉ (fiche à un bloc) : le remplacement chirurgical est ancré lui aussi.
   const g=await page.evaluate(async()=>{
     const f=migrate({id:'ancd',title:'Ancre guidée',blocks:[
@@ -1495,6 +1507,10 @@ await sec('T7 · ★ mémoire — de l\'éditeur au chapeau', async () => {
     render(); await w(400);
     openRead(f.id); await w(700);
     const chap=[...document.querySelectorAll('.forget-strip .fs-i')].map(e=>e.textContent);
+    /* v5.6 : les étapes ne se voient qu'une fois la session démarrée (la page d'avant montre le
+       parcours inerte). Ce qui est mesuré — « le memory item RESTE dans son bloc, le chapeau
+       AGRÈGE » — vaut au moment où on l'exécute, donc en session. */
+    {const b=document.getElementById('sessStart');if(b)b.click();}await w(600);
     const bloc=[...document.querySelectorAll('ol.steps li')].map(e=>e.textContent);
     return {avant,pose,apres:chap.length,dansChapeau:chap.some(x=>x.includes(txt)),
             resteDansBloc:bloc.some(x=>x.includes(txt)),
@@ -2060,7 +2076,11 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    openRead(fiches[0].id);await w(700);});
+    openRead(fiches[0].id);await w(700);
+    /* v5.6 — LA COLONNE D'ORIENTATION N'EXISTE QU'EN SESSION : avant le premier geste, la page
+       porte elle-même le parcours inerte (maquettes 1b/1c) et la colonne l'afficherait une
+       seconde fois. Le témoin démarre donc la session — c'est l'état où la colonne vit. */
+    document.getElementById('sessStart').click();await w(700);});
   const R=await page.evaluate(()=>{
     /* ⚠ UNE SEULE COLONNE À LA FOIS : à 1280 px le plan existe À GAUCHE *et* dans le rail de
        droite. Comparer un intertitre de l'une à une rangée de l'autre mesure l'écart entre deux

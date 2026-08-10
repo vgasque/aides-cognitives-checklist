@@ -93,6 +93,10 @@ t('la hachure TRAVERSE la frontière en-tête/bandeau (grilles en phase, 3 placa
 t('… et la tuile est RACCORDABLE (période en % de la ligne, pas en px)',
   ['exo','inv','ess'].every(c=>e1d[c].raccord), JSON.stringify(e1d));
 const e2=await p.evaluate(async()=>{
+ /* v5.6 : avant la session, la colonne montre le PARCOURS INERTE — il n'y a pas d'étape à
+    cocher, et le geste d'entrée est la touche du dock. Ce que ce contrôle mesure ne change pas :
+    la première action ouvre une session MARQUÉE exercice. */
+ document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,500));
  document.querySelector('.ov-block.cur ol.steps li').click();await new Promise(r=>setTimeout(r,400));
  return {started:Runtime.started,strip:document.getElementById('cbTimers').textContent,
   exoChip:!!document.querySelector('#cbTimers .seg.glb.exo'),
