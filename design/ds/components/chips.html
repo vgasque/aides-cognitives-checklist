@@ -273,7 +273,10 @@
   [data-theme="dark"] body[data-accent="framboise"]{--accent:#db2777}
   [data-theme="dark"] body[data-accent="ardoise"]{--accent:#64748b}
   /* Le disque de l'avatar EST l'accent : une seule surface, une seule règle. */
+  /* L'ACCENT RESTE LE SEUL CANAL DE « À QUEL COMPTE APPARTIENT CETTE FENÊTRE » (v5.0.0) : il
+     colore le DISQUE, et lui seul. Sur un ordinateur partagé, c'est ce qui se reconnaît de loin. */
   body[data-accent] .bar-acct.on{background:var(--accent);border-color:var(--accent);color:var(--on-primary)}
+  body[data-accent] .bar-acct.on:hover{background:var(--accent)}
   body[data-accent] .bar-acct.on .acct-ini{color:var(--on-primary)}
   /* Pastilles de choix (fenêtre Compte) : mêmes teintes, sélection = anneau (pattern .sw). */
   /* Vocabulaire du journal (v4.52.0) — édité à froid, dans la fenêtre Compte. Champs à 16 px :
@@ -566,7 +569,6 @@
   .hdr-back::after{content:"";position:absolute;inset:-6px}
   .hdr-back{position:relative}
   .hdr-back span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hdr-back:hover{background:var(--primary-soft)}
   .hdr-back[hidden]{display:none}
   .hdr-back:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .hdr-back.guarded{opacity:.4;transition:opacity .15s}   /* fenêtre d'inhibition post-aperçu : l'état s'annonce */
@@ -574,7 +576,14 @@
      --primary-soft / --primary-dk pour Créer et Thème (« un seul bouton rempli par écran » :
      rien de rempli dans la barre), avatar --primary plein pour Compte (pastille d'état verte). */
   .hdr-new{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
-  .hdr-new:hover{background:var(--amb-2)}
+  /* ⚠ UN SEUL SURVOL POUR TOUTE LA BARRE (v5.6, signalé à l'usage : « les boutons ne sont pas
+     harmonisés — soit fond bleu, soit fond noir au hover »). Il y en avait QUATRE différents
+     pour quatre boutons voisins : `--amb-2` (Créer), `--primary-100` (Thème — et une règle
+     `--amb-2` juste au-dessus, morte par l'ordre), un mélange à 8 % de primaire (menu ⋯) et
+     `--primary-soft` (retour). Quatre réponses au même geste sur la même rangée se lisent comme
+     quatre objets sans rapport. Le survol de la barre est celui de l'AMBIANCE : la barre n'est
+     pas une surface d'action, et un aplat teinté y ferait croire à un état. */
+  :is(.hdr-new,.hdr-theme,.hdr-more,.hdr-back):hover{background:var(--amb-2)}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* « Créer » reprend le registre TONAL quand il est la seule action offerte (bibliothèque vide) :
@@ -586,8 +595,6 @@
   /* Thème et « Créer » : des GLYPHES DE COMMANDE (A13), pas des pastilles teintées. Trois
      disques bleus alignés en tête d'écran pesaient plus que l'annuaire qu'ils surmontent. */
   .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;padding:0;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:none}
-  .hdr-theme:hover{background:var(--amb-2)}
-  .hdr-theme:hover{background:var(--primary-100)}
   .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .hdr-theme-lbl{display:none;margin-left:4px}
   @media (min-width:780px){.hdr-theme{width:auto;min-width:40px;padding:0 14px}.hdr-theme .hdr-theme-lbl{display:inline}}
@@ -596,7 +603,6 @@
      rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
      Jamais d'action destructive ici (Supprimer reste dans l'éditeur). */
   .hdr-more{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--link);cursor:pointer;flex:none}
-  .hdr-more:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
   .hdr-more[hidden]{display:none}
   .hdr-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* LE MENU NE DÉPASSE JAMAIS L'ÉCRAN (correctif — « si le menu est grand et la hauteur de la
@@ -670,7 +676,8 @@
      les autres —, et 4 px de halo ne l'amenaient qu'à 39 de cible. Le laisser ici l'aurait ramené
      à -4 par l'ORDRE de déclaration : c'est le dix-septième piège de cascade du dossier, et on le
      règle en RETIRANT le membre, pas en ajoutant une exception plus bas. */
-  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct)::after{content:"";position:absolute;inset:-4px}
+  :is(.hdr-new,.hdr-theme,.hdr-act2)::after{content:"";position:absolute;inset:-4px}
+  .bar-acct::after{content:"";position:absolute;inset:-7px}
   .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:8px;padding:2px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
   .hdr-badge[hidden]{display:none}
   /* Recherche FIXE dans l'en-tête (accueil, V5, canvas turn 6) : en ligne dans la rangée en
@@ -1283,7 +1290,10 @@
        DESSIN sans rétrécir la CIBLE. Règle propre plutôt qu'un membre de plus dans la liste
        générique `:is(.hdr-new,…)::after` : (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre
        (dix-septième piège de cascade, où un membre de cette liste écrasait un halo particulier). */
-    header.bar.home :is(.hdr-new,.hdr-theme,.bar-acct)::after{inset:-6px}
+    header.bar.home :is(.hdr-new,.hdr-theme)::after{inset:-6px}
+    /* L'avatar est passé à 30 px de DESSIN (maquette) : son halo doit rendre les 14 px manquants
+       pour tenir la cible de 44 — c'est tout l'objet d'un halo en zone haute. */
+    header.bar.home .bar-acct::after{inset:-7px}
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
@@ -1328,20 +1338,26 @@
      faisait le plus gros aplat coloré de l'accueil — devant tout contenu clinique —, alors qu'il
      ne porte qu'une identité de fenêtre. La couleur d'ACCENT reste son unique surface (v5.0.0) :
      elle se pose dessus quand un compte est connecté. */
-  .bar-acct{position:relative;background:var(--sys);color:var(--sys-ink);border:0;width:36px;height:36px;border-radius:var(--r-2);display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  /* L'avatar au gabarit de la maquette (1a/2f) : 30 px, rayon 10, matière SYSTÈME — le seul
+     objet sombre de l'en-tête, comme la capsule est le seul objet sombre de la crise. Sa CIBLE
+     reste à 44 px par le halo : on compacte le dessin, jamais la zone qu'on vise. */
+  .bar-acct{position:relative;background:var(--sys);color:var(--sys-ink);border:0;width:30px;height:30px;border-radius:var(--r-2);display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
   /* Rappel MINUTEURS toujours visible : 2e ligne de l'en-tête sticky, n'apparaît que si un minuteur
      tourne ET que le panneau minuteurs est sorti de l'écran (mis à jour par tickAll). Tap -> remonte
      au panneau. Fait partie de l'en-tête -> aucun calcul de position, reste sous l'encoche. */
   /* (L'ancien rappel minuteurs #rtStrip est FUSIONNÉ dans le bandeau de crise : cf. #cbTimers.) */
-  .bar-acct.on{background:var(--primary);color:var(--on-primary)}
-  .bar-acct:hover,.bar-acct.on:hover{background:var(--primary-hi);color:var(--on-primary)}
+  /* CONNECTÉ, il porte les INITIALES sur la même matière : l'identité se lit, elle ne change pas
+     la nature de l'objet. Le survol éclaircit la matière système, il ne la remplace pas par un
+     aplat d'accent — c'était le « fond bleu » signalé. */
+  .bar-acct.on{background:var(--sys);color:var(--sys-ink)}
+  .bar-acct:hover,.bar-acct.on:hover{background:var(--sys-2);color:var(--sys-ink)}
   .bar-acct:active{transform:translateY(1px)}
   /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
   .bar-acct .ic-filled{display:none}
   .bar-acct.on .ic-outline{display:none}.bar-acct.on .ic-filled{display:inline-block}
   /* Connecté : l'avatar porte les INITIALES du compte (2 premières lettres du mail, canvas
      « JD ») — l'icône personne s'efface ; déconnecté : icône contour, pas d'initiales. */
-  .acct-ini{font-size:13.5px;font-weight:800;letter-spacing:.5px;line-height:1;color:var(--on-primary)}
+  .acct-ini{font-size:var(--t-cap);font-weight:800;letter-spacing:.5px;line-height:1;color:var(--sys-ink)}
   .acct-ini[hidden]{display:none}
   .bar-acct.ini-on .ic-filled{display:none!important}
   /* Le liseré de la pastille découpe sur le FOND de la barre : fond de page par défaut,
