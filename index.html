@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-qPzc6u4aE9+WUGmcgdBNFoAK0VxjwZIgA0LmHI2RrLg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-QAg4iGuFLC54VQQBRO5+7FEkKOMrueOIY4hhiO2YRj8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1403,6 +1403,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ds-in:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
   .ds-chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .ds-chip{min-height:44px;padding:0 14px;background:none;border:1px solid var(--sys-line);border-radius:999px;color:var(--sys-ink);font-family:inherit;font-weight:700;font-size:12px;cursor:pointer}
+  /* Une chip de COMPTEUR ne fait pas que nommer : elle compte. Elle dit donc où elle mène AVANT
+     le tap (« 2 → 3 », en chasse fixe comme toutes les valeurs), et se distingue par la matière
+     système en creux — jamais par une couleur de registre : incrémenter n'est ni une alerte ni
+     un point de vigilance, c'est l'acte ordinaire du soin. */
+  .ds-chip.ds-cnt{display:inline-flex;align-items:center;gap:8px;background:var(--sys-2)}
+  .ds-cn{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:800;
+    font-size:var(--t-cap);color:var(--sys-ink-2)}
   .ds-chip:hover{background:var(--sys-2)}
   .ds-chip:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
   .sd-in{display:flex;align-items:stretch;gap:4px;max-width:660px;margin:0 auto;background:var(--sys);border-radius:var(--r-4);padding:6px;pointer-events:auto;box-shadow:0 -6px 24px rgba(0,0,0,.22)}
@@ -15716,8 +15723,15 @@ function tagShort(l){
   let t=String(l||'').split('::')[0].replace(/\s*[—–(,;].*$/,'').trim();
   const w=t.split(/\s+/);if(w.length>3)t=w.slice(0,3).join(' ');
   return t.length>26?t.slice(0,25).trimEnd()+'…':t;}
-function tagSuggest(f,tags,bid,n){
+/* ⚠ `garantis` — DES TYPES QUI NE PEUVENT PAS ÊTRE ÉVINCÉS PAR LE RANG (v5.6). Le classement
+   seul ne suffisait pas : sur un bloc de cinq étapes, les compteurs tombaient au septième rang
+   et disparaissaient de la liste, alors que le volet ⏱ doit précisément les OFFRIR (« ajouter
+   les items des compteurs »). Un rang ne garantit rien — il ordonne. On réserve donc les
+   premières places aux types nommés, dans l'ordre de la fiche, et le reste se remplit par rang.
+   Paramètre FACULTATIF : sans lui, le comportement est identique au caractère près. PURE. */
+function tagSuggest(f,tags,bid,n,garantis){
   const all=tagAll(f,tags);
+  const G=Array.isArray(garantis)?garantis:[];
   const rang=t=>{const r=t.ref||{};
     if(r.type==='step'&&bid&&r.b===bid)return 0;
     if(r.type==='timer'||r.type==='counter')return 1;
@@ -15725,8 +15739,12 @@ function tagSuggest(f,tags,bid,n){
     if(r.type==='poso')return 3;
     if(r.type==='tag')return 4;
     return 5;};
-  return all.map((t,i)=>({t:t,r:rang(t),i:i}))
-    .sort((a,b)=>a.r-b.r||a.i-b.i).slice(0,Math.max(1,n||5)).map(x=>x.t);}
+  const max=Math.max(1,n||5);
+  const est=t=>G.indexOf(((t.ref||{}).type))>=0;
+  const tete=all.filter(est).slice(0,max);
+  const reste=all.map((t,i)=>({t:t,r:rang(t),i:i})).filter(x=>!est(x.t))
+    .sort((a,b)=>a.r-b.r||a.i-b.i).map(x=>x.t);
+  return tete.concat(reste).slice(0,max);}
 /* Résolution d'une référence en libellé. `null` = introuvable (voir plus haut) : c'est une
    RÉPONSE, pas un échec. */
 function tagLabel(ref,f,tags){
@@ -17525,10 +17543,31 @@ bindModalDismiss(refModal,closeRefSheet);
     if(pk){const ev=(Runtime.events||[]).find(x=>x.id===state.tkSheet);if(!ev)return;
       let ref=null;try{ref=tkRefNorm(JSON.parse(pk.dataset.tkpick));}catch(_){}
       if(!ref)return;
+      /* ⚠ UNE CHIP DE COMPTEUR COMPTE AUSSI — ET LE REPÈRE RESTE UNIQUE. On incrémente, puis on
+         attache la valeur ATTEINTE à l'horodatage déjà posé : un geste, deux faits, une ligne.
+         Passer par le chemin ordinaire du « + » poserait un SECOND repère à la même seconde,
+         c'est-à-dire le doublon que « ✓ Consigné à … » existe pour supprimer.
+         `setCounterVal` repeint la valeur ET les jalons sur place (v5.5.0) ; le compteur peut
+         armer son minuteur lié, exactement comme au « + » — c'est le même acte clinique, il ne
+         peut pas avoir deux comportements selon l'endroit où on le déclenche. */
+      const cid=pk.dataset.tkcnt;
+      if(cid){
+        Runtime.counters=Runtime.counters||{};
+        Runtime.counters[cid]=(+Runtime.counters[cid]||0)+1;
+        const cc=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===cid);
+        if(cc&&cc.timerId&&Runtime.timers[cc.timerId]){const tm=Runtime.timers[cc.timerId];
+          tm.elapsedMs=0;tm.lastStart=Date.now();tm.running=true;ensureAudio();}
+        ref={type:'counter',id:safeId(cid,'c'),v:Runtime.counters[cid]};
+        setCounterVal(cid);}
       // La référence prend la place du mot tapé : le libellé se DÉRIVE, il est donc le même sur
       // les deux écrans d'un partage — c'est tout l'objet du journal référentiel (v4.52.0).
       ev.ref=ref;ev.label='';persistLive(Runtime);
-      announce('Repère étiqueté : '+(tagLabel(ref,Runtime.fiche,myTags())||''));
+      const nom=tagLabel(ref,Runtime.fiche,myTags())||'';
+      /* TRANSPARENCE (demande utilisateur) : on ne se contente pas d'étiqueter en silence — on
+         dit que le compteur a bougé, et jusqu'où. Sur `#srLive` pour le lecteur d'écran, et par
+         la valeur repeinte pour l'œil ; aucune notification flottante (règle 11). */
+      announce(cid?('Compteur incrémenté : '+nom+' — repère horodaté')
+                  :('Repère étiqueté : '+nom));
       dockSheetClose();renderTkOnly();renderOvOnly();}};
   if(sh)sh.addEventListener('input',e=>{
     const inp=e.target.closest('[data-tksheet]');if(!inp)return;
@@ -17639,11 +17678,25 @@ function renderDockSheet(){
        rien d'autre. `tagSuggest` classe par CONTEXTE — étapes du bloc courant d'abord, puis
        minuteurs et compteurs, puis le reste. On RÉORDONNE, on ne filtre jamais. */
     const bid=state.nav[state.navPos]||'';
-    const sug=tagSuggest(f,myTags(),bid,6);
+    const sug=tagSuggest(f,myTags(),bid,6,['counter']);
+    /* ⚠ UN COMPTEUR NE SE CONTENTE PAS DE NOMMER, IL COMPTE (v5.6, demande utilisateur :
+       « permet d'incrémenter le compteur ET de noter l'heure en même temps ; rester transparent,
+       l'utilisateur doit savoir que ça a incrémenté »). Un geste, deux faits — mais UNE SEULE
+       LIGNE au journal : la chip ATTACHE le compteur au repère qu'on vient de poser, elle n'en
+       crée pas un second. Sans cela on retomberait exactement dans le défaut que la ligne
+       « ✓ Consigné à … » existe pour supprimer : le même acte compté deux fois.
+       LA CHIP LE DIT AVANT LE TAP, jamais après : « Injections d'adrénaline · 2 → 3 ». Un bouton
+       qui incrémente sans l'annoncer serait un effet de bord, et sous stress on ne relit pas. */
     h=`<div class="ds-card"><div class="ds-head">⏱ Repère posé · <b class="ds-t">${esc(fmtMs(Math.max(0,ev.t-(Runtime.startedAt||ev.t))))}</b>`
       +`<span class="ds-ok">✓ au journal</span><button type="button" class="ds-x" data-dsx aria-label="Fermer">✕</button></div>${dockSheetWarn()}`
       +`<div class="ds-body"><input class="ds-in" data-tksheet="${esc(ev.id)}" placeholder="Nommer (facultatif) — déjà enregistré" value="${esc(ev.label||'')}" aria-label="Nommer le repère">`
-      +(sug.length?`<div class="ds-chips">${sug.map(t=>`<button type="button" class="ds-chip" data-tkpick="${esc(JSON.stringify(t.ref))}">${esc(tagShort(t.label))}</button>`).join('')}</div>`:'')
+      +(sug.length?`<div class="ds-chips">${sug.map(t=>{
+          const cid=t.ref&&t.ref.type==='counter'?t.ref.id:null;
+          if(!cid)return `<button type="button" class="ds-chip" data-tkpick="${esc(JSON.stringify(t.ref))}">${esc(tagShort(t.label))}</button>`;
+          const cur=+(Runtime.counters||{})[cid]||0;
+          return `<button type="button" class="ds-chip ds-cnt" data-tkpick="${esc(JSON.stringify(t.ref))}" data-tkcnt="${esc(cid)}"`
+            +` aria-label="${esc(tagShort(t.label))} — incrémenter à ${cur+1} et nommer ce repère">`
+            +`${esc(tagShort(t.label))}<span class="ds-cn" aria-hidden="true">${cur} → ${cur+1}</span></button>`;}).join('')}</div>`:'')
       +`</div></div>`;
   }
   if(!h){dockSheetClose();return;}

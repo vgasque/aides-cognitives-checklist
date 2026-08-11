@@ -1921,6 +1921,28 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('un compteur disparu ne casse pas le journal',
      A.tkLabels([{id:'x',t:1,label:'',ref:{type:'counter',id:'zz',v:3}}],f),['Compteur n° 3']);
    eq('une liste vide ne produit rien',A.tkLabels([],f),[]);}
+  /* ⏱ LE VOLET PROPOSE TOUJOURS LES COMPTEURS (v5.6, demande utilisateur : « ajouter les items
+     des compteurs — permet d'incrémenter le compteur ET de noter l'heure en même temps »).
+     Un RANG ne garantit rien, il ordonne : mesuré sur un bloc de cinq étapes, les compteurs
+     tombaient au septième rang et disparaissaient de la liste bornée à six — c'est-à-dire
+     précisément dans le cas courant. `garantis` leur réserve les premières places. */
+  {const f2={counters:[{id:'c1',label:'Chocs'},{id:'c2',label:'Adrénaline'}],
+     blocks:[{id:'b1',kind:'do',title:'B',items:[
+       {id:'i1',do:'Un'},{id:'i2',do:'Deux'},{id:'i3',do:'Trois'},{id:'i4',do:'Quatre'},
+       {id:'i5',do:'Cinq'},{id:'i6',do:'Six'}]}]};
+   const sans=A.tagSuggest(f2,[],'b1',6).map(x=>x.ref.type);
+   ok('témoin : sans garantie, les compteurs sont évincés par les étapes du bloc',
+      sans.indexOf('counter')<0, JSON.stringify(sans));
+   const avec=A.tagSuggest(f2,[],'b1',6,['counter']);
+   eq('les compteurs prennent les premières places, dans l’ordre de la fiche',
+      avec.slice(0,2).map(x=>x.ref.id),['c1','c2']);
+   ok('… et le reste se remplit par rang, sans dépasser le plafond',
+      avec.length===6&&avec.slice(2).every(x=>x.ref.type==='step'),
+      JSON.stringify(avec.map(x=>x.ref.type)));
+   // Le paramètre est FACULTATIF : sans lui, rien ne change pour les appelants existants.
+   eq('sans le paramètre, le classement d’origine est intact',
+      A.tagSuggest(f2,[],'b1',6).map(x=>x.ref.id),
+      A.tagSuggest(f2,[],'b1',6,[]).map(x=>x.ref.id));}
   // Une référence venue du fil n'est pas plus digne de confiance qu'un import : elle est nettoyée.
   {eq('une référence valide est normalisée',A.tkRefNorm({type:'counter',id:'c1',v:'3'}),
      {type:'counter',id:'c1',v:3});

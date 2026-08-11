@@ -1058,6 +1058,13 @@
   .ds-in:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
   .ds-chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .ds-chip{min-height:44px;padding:0 14px;background:none;border:1px solid var(--sys-line);border-radius:999px;color:var(--sys-ink);font-family:inherit;font-weight:700;font-size:12px;cursor:pointer}
+  /* Une chip de COMPTEUR ne fait pas que nommer : elle compte. Elle dit donc où elle mène AVANT
+     le tap (« 2 → 3 », en chasse fixe comme toutes les valeurs), et se distingue par la matière
+     système en creux — jamais par une couleur de registre : incrémenter n'est ni une alerte ni
+     un point de vigilance, c'est l'acte ordinaire du soin. */
+  .ds-chip.ds-cnt{display:inline-flex;align-items:center;gap:8px;background:var(--sys-2)}
+  .ds-cn{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:800;
+    font-size:var(--t-cap);color:var(--sys-ink-2)}
   .ds-chip:hover{background:var(--sys-2)}
   .ds-chip:focus-visible{outline:2px solid var(--sys-ink);outline-offset:-3px}
   .sd-in{display:flex;align-items:stretch;gap:4px;max-width:660px;margin:0 auto;background:var(--sys);border-radius:var(--r-4);padding:6px;pointer-events:auto;box-shadow:0 -6px 24px rgba(0,0,0,.22)}

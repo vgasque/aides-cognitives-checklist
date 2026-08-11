@@ -3762,6 +3762,67 @@ await sec('v5.6 · le volet du quai prolonge la capsule', async () => {
 }
 });
 
+/* ══ v5.6 — ⏱ UN GESTE, DEUX FAITS, UNE SEULE LIGNE ════════════════════════════════════════
+   Demande utilisateur : « dans Noter l'heure, ajouter les items des compteurs — permet
+   d'incrémenter le compteur ET de noter l'heure en même temps ; rester transparent, l'utilisateur
+   doit savoir que ça a incrémenté ».
+   ⚠ LE PIÈGE EST LE DOUBLON, ET C'EST LUI QUE LE TÉMOIN GARDE. Incrémenter un compteur pose DÉJÀ
+   son propre repère horodaté (v4.52.0) : passer par le chemin ordinaire du « + » aurait produit
+   DEUX lignes à la même seconde pour un seul acte — exactement ce que la ligne « ✓ Consigné à … »
+   existe pour supprimer. La chip ATTACHE le compteur au repère déjà posé. */
+await sec('v5.6 · ⏱ un compteur s\'incrémente depuis le volet, sans doubler la ligne', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const key=[...document.querySelectorAll('#crisisDockBar button,.sd-key')]
+      .find(b=>/NOTER/i.test(b.textContent));
+    if(!key)return {err:'touche ⏱ introuvable'};
+    key.click(); await w(500);
+    const chip=document.querySelector('.ds-chip.ds-cnt');
+    if(!chip)return {err:'aucune chip de compteur'};
+    const cid=chip.dataset.tkcnt;
+    const avant={ev:(Runtime.events||[]).length, val:+(Runtime.counters||{})[cid]||0,
+      /* Elle DIT où elle mène AVANT le tap : un bouton qui incrémente sans l'annoncer serait un
+         effet de bord, et sous stress on ne relit pas. */
+      annonce:(chip.querySelector('.ds-cn')||{}).textContent||'',
+      /* Le compteur est GARANTI dans la liste, il n'y est pas par chance de classement. */
+      premier:document.querySelector('.ds-chip')===chip};
+    chip.click(); await w(500);
+    const ev=(Runtime.events||[]);
+    return {...avant, apres:{ev:ev.length, val:+(Runtime.counters||{})[cid]||0,
+      refs:ev.map(e=>e.ref&&e.ref.type==='counter'?e.ref.v:null).filter(v=>v!=null),
+      live:(document.getElementById('srLive')||{}).textContent||'',
+      ferme:!!(document.getElementById('dockSheet')||{}).hidden}};});
+
+  if(r.err){t('témoin : le volet ⏱ offre un compteur',false,r.err);}
+  else{
+    t('témoin : le compteur est proposé, et en PREMIER (garanti, pas par chance de rang)',
+      r.premier===true);
+    t('la chip annonce sa destination AVANT le tap',
+      /\d+\s*→\s*\d+/.test(r.annonce), `« ${r.annonce} »`);
+    t('un tap incrémente réellement le compteur',
+      r.apres.val===r.val+1, `${r.val} → ${r.apres.val}`);
+    /* LE CŒUR DU LOT : le journal ne gagne PAS une ligne — le repère déjà posé reçoit la
+       référence, avec la valeur atteinte. */
+    t('… sans ajouter une seconde ligne au journal',
+      r.apres.ev===r.ev, `${r.ev} → ${r.apres.ev} repère(s)`);
+    t('… et c\'est le repère horodaté qui porte la valeur atteinte',
+      r.apres.refs.length===1&&r.apres.refs[0]===r.val+1, JSON.stringify(r.apres.refs));
+    /* TRANSPARENCE : on ne se contente pas d'étiqueter en silence. */
+    t('l\'incrément est ANNONCÉ, pas silencieux',
+      /incrément/i.test(r.apres.live), `« ${r.apres.live} »`);
+    t('… et le volet se referme sur le geste', r.apres.ferme===true);
+  }
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);
