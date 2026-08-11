@@ -1165,7 +1165,7 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
 }
 });
 
-await sec('Audit design · le repli des filtres', async () => {
+await sec('Audit design · la feuille de filtres', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1185,7 +1185,15 @@ await sec('Audit design · le repli des filtres', async () => {
     const yPremier=()=>{const e=document.querySelector('.dir-row .card-open');
       return e?Math.round(e.getBoundingClientRect().top):null;};
     await w(400);
-    const repliRangees=rangees(), repliTog=!!tog(), yRepli=yPremier(), xRepli=bordD();
+    /* v5.6 (planche 8c) — LES FILTRES SONT UNE FEUILLE. On mesure donc EN PLUS la hauteur du
+       chrome collant et la position du premier contenu AVANT et PENDANT l'ouverture : la
+       propriété du lot n'est plus « le repli remonte le contenu » (il n'y a plus de repli) mais
+       « ouvrir ne déplace RIEN », ce qui est strictement plus fort. */
+    const hdrH=()=>Math.round(document.querySelector('header.bar').getBoundingClientRect().height);
+    const feuille=()=>document.getElementById('filtSheet').classList.contains('on');
+    const familles=()=>[...document.querySelectorAll('#filtSheetBody .scope-lbl')]
+      .filter(e=>e.offsetParent!==null).length;
+    const repliRangees=rangees(), repliTog=!!tog(), yRepli=yPremier(), xRepli=bordD(), hRepli=hdrH();
     if(!repliTog)return {repliRangees,repliTog,yRepli,xRepli,geo:null,ouvRangees:0,ouvTog:false,yOuvert:null,
       actifRangees:0,actifTog:false,actifEtat:null,chipOn:false,apresRender:0,apresTog:false,apresEtat:null,
       repliActifRangees:0,repliActifEtat:null,xRepliActif:null,avaitCat:false,deuxEtat:null,zeroEtat:null};
@@ -1209,6 +1217,9 @@ await sec('Audit design · le repli des filtres', async () => {
               dansEcran:Math.round(rb.right)<=innerWidth};})();
     tog().click(); await w(500);
     const ouvRangees=rangees(), ouvTog=!!tog(), yOuvert=yPremier();
+    const ouvFeuille=feuille(), ouvFam=familles(), hOuvert=hdrH();
+    const piedAvant=(document.getElementById('filtSheetGo')||{}).textContent||'';
+    const nRangees=document.querySelectorAll('.dir-row').length;
     /* On pose un filtre : à partir de là, le déclencheur doit le DIRE, et ne jamais s'en aller. */
     document.querySelector('.typebar [data-section="fiches"]').click(); await w(500);
     const actifRangees=rangees(), actifTog=!!tog(), actifEtat=etat();
@@ -1221,7 +1232,11 @@ await sec('Audit design · le repli des filtres', async () => {
        mesure — le laisser lever ferait planter le harnais, et « un harnais qui plante en emporte
        cinq » (v4.70.1). On veut un ROUGE lisible, pas une exception. */
     tog()?.click(); await w(500);
-    const repliActifRangees=rangees(), repliActifEtat=etat(), xRepliActif=bordD();
+    /* ⚠ ON MESURE LA FEUILLE, PLUS LE NOMBRE DE RANGÉES (v5.6). Les chips vivent désormais dans
+       `#filtSheetBody`, qui GARDE son contenu une fois la feuille fermée — compter les rangées
+       du document reviendrait à compter l'intérieur d'un pli, la leçon déjà payée sur le rail
+       (v5.4.3). Ce qui compte est que la SURFACE soit refermée et que l'annonce demeure. */
+    const repliActifRangees=feuille()?1:0, repliActifEtat=etat(), xRepliActif=bordD();
     /* Deux filtres : le chiffre COMPTE, il ne se contente pas d'exister.
        ⚠ Les chips sont re-rendues à chaque geste : on RE-INTERROGE le DOM, une référence gardée
        d'avant le clic désignerait un nœud détaché et le geste ne ferait rien. */
@@ -1232,7 +1247,21 @@ await sec('Audit design · le repli des filtres', async () => {
     document.querySelector('.typebar [data-section="all"]').click(); await w(400);
     document.querySelector('.catbar [data-cat=""]')?.click(); await w(500);
     const zeroEtat=etat();
-    return {repliRangees,repliTog,yRepli,xRepli,geo,ouvRangees,ouvTog,yOuvert,
+    /* Le pied ANNONCE puis ferme : on mesure les deux, et que l'annonce du déclencheur reprenne
+       la main derrière (l'état ne peut pas se perdre entre deux surfaces). */
+    tog()?.click(); await w(400);
+    const cat3=[...document.querySelectorAll('#filtSheetBody [data-cat]')].find(b=>b.dataset.cat);
+    if(cat3)cat3.click(); await w(400);
+    const piedApres=(document.getElementById('filtSheetGo')||{}).textContent||'';
+    const nApres=document.querySelectorAll('.dir-row').length;
+    document.getElementById('filtSheetGo').click(); await w(400);
+    const fermee=!feuille(), etatApresPied=etat();
+    document.querySelector('#filtSheetClear')&&0;
+    tog()?.click(); await w(300);
+    document.getElementById('filtSheetClear').click(); await w(400);
+    const apresClear=etat(); document.getElementById('filtSheetGo').click(); await w(300);
+    return {hRepli,hOuvert,ouvFeuille,ouvFam,piedAvant,nRangees,piedApres,nApres,fermee,etatApresPied,apresClear,
+            repliRangees,repliTog,yRepli,xRepli,geo,ouvRangees,ouvTog,yOuvert,
             actifRangees,actifTog,actifEtat,chipOn,apresRender,apresTog,apresEtat,
             repliActifRangees,repliActifEtat,xRepliActif,avaitCat,deuxEtat,zeroEtat};});
 
@@ -1247,10 +1276,36 @@ await sec('Audit design · le repli des filtres', async () => {
   t('au repos, les filtres sont repliés derrière UN déclencheur',
     r.repliRangees===0&&r.repliTog===true, `${r.repliRangees} rangée(s), déclencheur ${r.repliTog}`);
   t('le déclencheur les ouvre', r.ouvRangees>=2&&r.ouvTog===true, `${r.ouvRangees} rangée(s)`);
-  /* LE GAIN, MESURÉ — et on ne l'affirme pas, on le compare. */
-  t('… et le repli remonte bien le premier contenu clinique',
-    r.yRepli!==null&&r.yOuvert!==null&&(r.yOuvert-r.yRepli)>=40,
-    `${r.yRepli} px replié contre ${r.yOuvert} px déplié (${r.yOuvert-r.yRepli} px rendus)`);
+  /* ══ v5.6, PLANCHE 8c — LA PROPRIÉTÉ A CHANGÉ, ET ELLE EST PLUS FORTE ══
+     Le témoin d'avant mesurait un GAIN (« le repli remonte le contenu de ≥ 40 px ») : c'était
+     la bonne mesure d'un DÉPLIANT, qui poussait le contenu quand on l'ouvrait. Une feuille ne
+     pousse rien — le gain serait donc de 0 px et le témoin rougirait sur un correctif JUSTE.
+     Ce qu'on mesure désormais est ce que le dépliant ne pouvait pas offrir : demander à voir les
+     filtres ne coûte AUCUN pixel de liste, et le chrome collant ne grandit pas d'un pixel. */
+  t('ouvrir les filtres ne déplace pas le contenu d\'un pixel',
+    r.yRepli!==null&&r.yOuvert!==null&&Math.abs(r.yOuvert-r.yRepli)<=1,
+    `${r.yRepli} px puis ${r.yOuvert} px`);
+  t('… ni ne fait grandir le chrome collant', Math.abs(r.hOuvert-r.hRepli)<=1,
+    `${r.hRepli} px puis ${r.hOuvert} px`);
+  t('… et c\'est bien une FEUILLE qui s\'ouvre', r.ouvFeuille===true);
+  /* Les trois familles d'un coup : c'est le reproche exact fait au dépliant, où l'on déroulait
+     une rangée après l'autre dans un espace qui poussait le reste vers le bas. */
+  t('… où les familles de filtres sont visibles ENSEMBLE', r.ouvFam>=2, `${r.ouvFam} famille(s)`);
+  /* LE PIED ANNONCE LE RÉSULTAT AVANT DE FERMER — et le nombre annoncé est celui de la liste
+     RÉELLEMENT rendue dessous, jamais un second comptage qui pourrait diverger. */
+  t('le pied annonce le nombre de résultats, et il est JUSTE',
+    new RegExp('(^|\\D)'+r.nRangees+'(\\D|$)').test(r.piedAvant)||(r.nRangees===1&&/le résultat/.test(r.piedAvant)),
+    `« ${r.piedAvant} » pour ${r.nRangees} rangée(s)`);
+  t('… et il suit le filtre qu\'on vient de poser, sans fermer',
+    r.piedApres!==r.piedAvant||r.nApres===r.nRangees,
+    `« ${r.piedApres} » pour ${r.nApres} rangée(s)`);
+  t('… le valider ferme la feuille et rend l\'annonce au déclencheur',
+    r.fermee===true&&!!r.etatApresPied&&r.etatApresPied.act===true,
+    `fermée ${r.fermee}, ${JSON.stringify(r.etatApresPied)}`);
+  /* « Tout effacer » remet les trois familles à leur cran neutre d'un geste. */
+  t('« Tout effacer » remet tout à zéro d\'un geste',
+    !!r.apresClear&&r.apresClear.act===false&&r.apresClear.n==='',
+    JSON.stringify(r.apresClear));
   /* v5.0.3 — LE DÉCLENCHEUR VIT CONTRE LA RECHERCHE. La v5.0.0 le posait dans le flux, au-dessus
      du contenu : une ligne permanente pour un geste rare. */
   t('il vit sur la rangée des contrôles de liste, poussé à son bord droit',
@@ -1281,9 +1336,9 @@ await sec('Audit design · le repli des filtres', async () => {
     `${r.apresRender} rangée(s), déclencheur ${r.apresTog} ${JSON.stringify(r.apresEtat)}`);
   /* CE QUI REMPLACE LE FORÇAGE : replier avec un filtre actif est permis, mais l'annonce demeure —
      on ne peut pas se retrouver dans un corpus restreint sans savoir pourquoi. */
-  t('replier avec un filtre actif garde l\'annonce',
+  t('refermer la feuille avec un filtre actif garde l\'annonce',
     r.repliActifRangees===0&&!!r.repliActifEtat&&r.repliActifEtat.act===true&&r.repliActifEtat.n==='1',
-    `${r.repliActifRangees} rangée(s), ${JSON.stringify(r.repliActifEtat)}`);
+    `feuille ouverte ${r.repliActifRangees}, ${JSON.stringify(r.repliActifEtat)}`);
   /* CONSTANCE POSITIONNELLE : il grossit du chiffre, son bord droit ne bouge d'aucun état. */
   t('… et sa position ne bouge pas d\'un état à l\'autre',
     r.xRepli!==null&&r.xRepliActif!==null&&Math.abs(r.xRepli-r.xRepliActif)<=1,

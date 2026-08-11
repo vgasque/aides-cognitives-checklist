@@ -743,6 +743,12 @@
      seuil, ce que la planche interdit explicitement (« la position du champ ne bouge jamais »). */
   body.home-slim header.bar.home .hdr-search{flex:1 1 0;min-width:0;margin-top:0;order:0}
   body.home-slim header.bar.home .id-row{gap:8px}
+  /* ⚠ ET LA RANGÉE SE RESSERRE, DANS CE SEUL ÉTAT. La planche vise 58 px de chrome collant ; le
+     champ en fait 47 à lui seul (police de 16 px, plancher tactile de la règle 9 — ce n'est pas
+     négociable), donc le plancher réel est 47 + deux rembourrages. À 8/6 px la rangée mesure
+     61 px : c'est le fond du budget sans toucher ni au corps du champ ni à la cible de 44 px.
+     Les deux valeurs sont sur l'échelle fermée ; l'état de REPOS, lui, ne bouge pas d'un pixel. */
+  body.home-slim header.bar.home{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:6px}
   /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
      déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
      obligerait à remonter tout l'annuaire pour créer une fiche. Il garde son gabarit et son
@@ -5556,7 +5562,33 @@
      de SÉLECTION quand il est ouvert — le même couple que les chips, donc rien à apprendre —
      et registre de SÉLECTION PLEIN, avec le NOMBRE de filtres posés, dès qu'un filtre agit :
      la couleur n'est jamais seule (règle 8), c'est le chiffre qui porte l'information. */
-  .filterfold{display:flex;flex-direction:column;min-width:0}
+  /* LA FEUILLE DE FILTRES (v5.6, planche 8c). Le dépliant d'en-tête est PURGÉ avec sa classe
+     `.filterfold` (règle 14) : il faisait grandir le chrome COLLANT de l'accueil au moment même
+     où l'on cherche à voir la liste, et les trois familles ne s'y voyaient jamais ensemble — on
+     déroulait une rangée après l'autre dans un espace qui poussait le contenu vers le bas.
+     Dans une feuille, elles tiennent d'un coup, l'écran entier leur appartient, et le pied peut
+     ANNONCER le résultat avant de fermer : on sait ce qu'on va trouver avant d'y aller. */
+  #filtSheet .ai-card{display:flex;flex-direction:column;overflow:hidden}
+  #filtSheetBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding:0 0 4px}
+  #filtSheetBody .filterbar{display:block;margin:0}
+  #filtSheetBody :is(.scopebar,.typebar,.catbar){display:block;margin:0 0 18px}
+  #filtSheetBody :is(.scopebar,.typebar,.catbar):last-child{margin-bottom:0}
+  #filtSheetBody .scope-lbl{display:block;min-width:0;margin:0 0 8px;
+    font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  /* Les chips ENROULENT ici : la feuille a la hauteur, et une bande à défilement horizontal
+     cacherait des crans dans l'écran même qui existe pour les montrer toutes. */
+  #filtSheetBody .chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:0;margin:0}
+  /* Pied FIXE : la liste des catégories peut être longue, et l'annonce du résultat est ce pour
+     quoi on est venu — elle ne se cherche pas au bout d'un défilement.
+     ⚠ AUCUNE MARGE NÉGATIVE POUR LE FAIRE SAIGNER JUSQU'AUX BORDS : le rembourrage de la carte
+     vaut 18 px en fenêtre centrée et 16 px en feuille pleine largeur (< 780) — un « -18px » écrit
+     en dur serait faux d'un côté ou de l'autre, et faux SANS QUE RIEN NE LE DISE. Le pied vit
+     donc DANS le rembourrage : son filet suffit à le séparer. */
+  .fs-foot{flex:0 0 auto;display:flex;gap:10px;align-items:center;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .fs-foot .btn.primary{flex:1 1 auto;justify-content:center;min-height:44px}
+  .fs-foot .btn.ghost{flex:0 0 auto;min-height:44px}
+  .fs-foot .btn.ghost[hidden]{display:none}
   /* ⚠ SA HAUTEUR EST CELLE DU CHAMP, ET ELLE NE PEUT PAS ÊTRE ÉCRITE (signalé à l'usage : « la
      taille du bouton filtre est moins longue que le champ de recherche — c'est voulu ? » — non).
      Une hauteur FIXE de 36 px, celle des contrôles ronds de l'en-tête, laissait 4 px de jeu en haut
@@ -5581,7 +5613,6 @@
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filt-n[hidden]{display:none}
   .filt-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.02em}
-  .filt-c{font-weight:800;line-height:1}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}

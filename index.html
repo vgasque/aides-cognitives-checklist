@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-zV/CPtGy+wBbyM9937e9juUhU95kThpwXgKX2QnO/Fw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-1zos0Z2uMTLxF/Go5/mTrcnsjrFYqw94myitlK4Sg58='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1088,6 +1088,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      seuil, ce que la planche interdit explicitement (« la position du champ ne bouge jamais »). */
   body.home-slim header.bar.home .hdr-search{flex:1 1 0;min-width:0;margin-top:0;order:0}
   body.home-slim header.bar.home .id-row{gap:8px}
+  /* ⚠ ET LA RANGÉE SE RESSERRE, DANS CE SEUL ÉTAT. La planche vise 58 px de chrome collant ; le
+     champ en fait 47 à lui seul (police de 16 px, plancher tactile de la règle 9 — ce n'est pas
+     négociable), donc le plancher réel est 47 + deux rembourrages. À 8/6 px la rangée mesure
+     61 px : c'est le fond du budget sans toucher ni au corps du champ ni à la cible de 44 px.
+     Les deux valeurs sont sur l'échelle fermée ; l'état de REPOS, lui, ne bouge pas d'un pixel. */
+  body.home-slim header.bar.home{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:6px}
   /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
      déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
      obligerait à remonter tout l'annuaire pour créer une fiche. Il garde son gabarit et son
@@ -5901,7 +5907,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de SÉLECTION quand il est ouvert — le même couple que les chips, donc rien à apprendre —
      et registre de SÉLECTION PLEIN, avec le NOMBRE de filtres posés, dès qu'un filtre agit :
      la couleur n'est jamais seule (règle 8), c'est le chiffre qui porte l'information. */
-  .filterfold{display:flex;flex-direction:column;min-width:0}
+  /* LA FEUILLE DE FILTRES (v5.6, planche 8c). Le dépliant d'en-tête est PURGÉ avec sa classe
+     `.filterfold` (règle 14) : il faisait grandir le chrome COLLANT de l'accueil au moment même
+     où l'on cherche à voir la liste, et les trois familles ne s'y voyaient jamais ensemble — on
+     déroulait une rangée après l'autre dans un espace qui poussait le contenu vers le bas.
+     Dans une feuille, elles tiennent d'un coup, l'écran entier leur appartient, et le pied peut
+     ANNONCER le résultat avant de fermer : on sait ce qu'on va trouver avant d'y aller. */
+  #filtSheet .ai-card{display:flex;flex-direction:column;overflow:hidden}
+  #filtSheetBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding:0 0 4px}
+  #filtSheetBody .filterbar{display:block;margin:0}
+  #filtSheetBody :is(.scopebar,.typebar,.catbar){display:block;margin:0 0 18px}
+  #filtSheetBody :is(.scopebar,.typebar,.catbar):last-child{margin-bottom:0}
+  #filtSheetBody .scope-lbl{display:block;min-width:0;margin:0 0 8px;
+    font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  /* Les chips ENROULENT ici : la feuille a la hauteur, et une bande à défilement horizontal
+     cacherait des crans dans l'écran même qui existe pour les montrer toutes. */
+  #filtSheetBody .chiprow{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:0;margin:0}
+  /* Pied FIXE : la liste des catégories peut être longue, et l'annonce du résultat est ce pour
+     quoi on est venu — elle ne se cherche pas au bout d'un défilement.
+     ⚠ AUCUNE MARGE NÉGATIVE POUR LE FAIRE SAIGNER JUSQU'AUX BORDS : le rembourrage de la carte
+     vaut 18 px en fenêtre centrée et 16 px en feuille pleine largeur (< 780) — un « -18px » écrit
+     en dur serait faux d'un côté ou de l'autre, et faux SANS QUE RIEN NE LE DISE. Le pied vit
+     donc DANS le rembourrage : son filet suffit à le séparer. */
+  .fs-foot{flex:0 0 auto;display:flex;gap:10px;align-items:center;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .fs-foot .btn.primary{flex:1 1 auto;justify-content:center;min-height:44px}
+  .fs-foot .btn.ghost{flex:0 0 auto;min-height:44px}
+  .fs-foot .btn.ghost[hidden]{display:none}
   /* ⚠ SA HAUTEUR EST CELLE DU CHAMP, ET ELLE NE PEUT PAS ÊTRE ÉCRITE (signalé à l'usage : « la
      taille du bouton filtre est moins longue que le champ de recherche — c'est voulu ? » — non).
      Une hauteur FIXE de 36 px, celle des contrôles ronds de l'en-tête, laissait 4 px de jeu en haut
@@ -5926,7 +5958,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filt-n[hidden]{display:none}
   .filt-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.02em}
-  .filt-c{font-weight:800;line-height:1}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
@@ -6847,7 +6878,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          l'accueil. Il est STATIQUE comme le champ : il survit aux re-rendus, donc sa position est
          apprise une fois pour toutes. Croix d'effacement DANS la boîte du champ (v5.0.3) : elle
          appartient à la saisie, pas à la rangée. -->
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2.6M11.4 6H20M4 12h8.6M17.4 12H20M4 18h1.6M10.4 18H20"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/></svg><span class="filt-l">Filtres</span><span class="filt-n" id="filtN" hidden></span><span class="filt-c" aria-hidden="true">▾</span></button></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-haspopup="dialog" aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2.6M11.4 6H20M4 12h8.6M17.4 12H20M4 18h1.6M10.4 18H20"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/></svg><span class="filt-l">Filtres</span><span class="filt-n" id="filtN" hidden></span></button></div>
     <!-- v5.4.1 (A′, décision utilisateur sur maquette) : à ≥ 1200 px en lecture de fiche, les
          DEUX rangées de crise (#crisisCtrl + #crisisDock) vivent ICI — l'en-tête a l'espace, la
          bande n'a plus à exister et aucune colonne ne paie leur hauteur. Chrome NOMADE
@@ -7056,6 +7087,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal" id="edAddModal" role="dialog" aria-modal="true" aria-labelledby="edAddTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="edAddTitle">Ajouter à la fiche</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
   <div class="ed-palette" id="edAddBody"></div>
+</div></div>
+<!-- LES FILTRES SONT UNE FEUILLE, PLUS UN DÉPLIANT D'EN-TÊTE (v5.6, planche 8c). Trois familles
+     visibles d'un coup, un pied qui ANNONCE le résultat avant de fermer. Le corps est peint à
+     l'ouverture (`paintFiltSheet`) : rien ici, sinon deux sources pour les mêmes chips. -->
+<div class="ai-modal" id="filtSheet" role="dialog" aria-modal="true" aria-labelledby="filtSheetTitle"><div class="ai-card dlg-480">
+  <div class="ai-top"><h3 id="filtSheetTitle">Filtrer</h3><button class="ai-x" id="filtSheetX" aria-label="Fermer">×</button></div>
+  <div id="filtSheetBody"></div>
+  <div class="fs-foot"><button type="button" class="btn ghost" id="filtSheetClear">Tout effacer</button><button type="button" class="btn primary" id="filtSheetGo"></button></div>
 </div></div>
 <div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
@@ -11857,11 +11896,13 @@ let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'inpu
 /* Le filtre de TYPE est délégué, comme les autres chips de l'accueil : la rangée est re-rendue
    avec le chrome, on ne peut donc pas câbler bouton par bouton. */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.typebar [data-section]');
-  if(b)setSection(b.dataset.section);});
-/* Repli des filtres (v5.0.0) : même délégation et même re-rendu que les chips elles-mêmes —
-   la position des rangées à défilement propre est déjà restaurée par `renderHomeList`. */
+  /* ⚠ SAUF DANS LA FEUILLE, qui câble ses propres chips (elle doit se repeindre après le geste).
+     Sans cette borne, un tap y déclencherait DEUX rendus — le sien puis celui-ci. */
+  if(b&&!b.closest('#filtSheet'))setSection(b.dataset.section);});
+/* Le déclencheur OUVRE LA FEUILLE (v5.6, planche 8c) — il ne déplie plus rien dans le chrome.
+   Délégué, comme les chips : la rangée qui le porte est re-rendue avec la liste. */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-filttog]');
-  if(b){state.filtersOpen=!state.filtersOpen;render();}});
+  if(b){if(state.filtersOpen)closeFiltSheet();else openFiltSheet();}});
 // Bascule visuelle d'un sélecteur segmenté (.seg) : classe d'état sur la RACINE + tabindex
 // itinérant. `root` = la racine .seg, `attr` = l'attribut data-* qui porte la valeur du segment.
 // Partagé par la tab bar (data-section) et le dialogue Créer (data-createkind) — un seul patron.
@@ -12171,11 +12212,50 @@ function homeGroupSegHtml(){
    une couleur). L'état actif n'est donc pas caché, il est porté par un objet permanent au lieu de
    trois rangées permanentes — et l'on ne peut plus se retrouver dans un corpus restreint sans
    savoir pourquoi, ce que la règle protège réellement.
-   Les rangées, elles, ne s'affichent QUE si l'on a demandé à les voir. */
-function filterFoldHtml(){
-  const bars=filterbarHtml()+catbarHtml();
-  if(!bars||!state.filtersOpen)return '';
-  return `<div class="filterfold">${bars}</div>`;}
+   Les rangées, elles, ne s'affichent QUE si l'on a demandé à les voir — et depuis la v5.6 elles
+   s'affichent AILLEURS : dans une FEUILLE (planche 8c). Cf. `openFiltSheet`. */
+/* LA FEUILLE DE FILTRES (v5.6, planche 8c). Trois raisons, toutes mesurées ou doctrinales :
+   (1) le dépliant faisait grandir le chrome COLLANT de l'accueil — on demandait à voir les
+   filtres, et l'écran rendait MOINS de liste ; (2) les trois familles ne se voyaient jamais
+   ensemble, on déroulait l'une après l'autre ; (3) une feuille peut porter un PIED qui annonce
+   le résultat AVANT de fermer (« Voir les 11 résultats »), ce qu'un dépliant ne peut pas — et
+   c'est la seule façon de savoir ce qu'on obtient sans avoir à refermer pour regarder.
+   ⚠ `state.filtersOpen` GARDE SON NOM ET SON STATUT : c'est l'état d'ouverture de la feuille, il
+   vit le temps de la page, n'est ni persisté ni synchronisé (même statut que `state.allTab`) —
+   seule sa FORME change. Fermeture par le mécanisme centralisé (✕, voile, Échap, retour
+   système) : aucune accessibilité réécrite. */
+function openFiltSheet(){
+  state.filtersOpen=true;syncFiltTog(true);
+  filtSheet.classList.add('on');_bgLock();_histArm();
+  paintFiltSheet();}
+function closeFiltSheet(){
+  if(!filtSheet.classList.contains('on'))return;
+  state.filtersOpen=false;filtSheet.classList.remove('on');_bgUnlock();syncFiltTog(true);
+  const t=document.getElementById('filtTog');if(t)t.focus({preventScroll:true});}
+/* Le corps est REPEINT à chaque geste de filtre, jamais reconstruit ailleurs : les chips sont
+   celles de l'accueil (mêmes fabriques, mêmes attributs) — deux jeux de chips pour un même
+   filtre seraient deux vocabulaires pour une même chose. */
+function paintFiltSheet(){
+  const b=document.getElementById('filtSheetBody');if(!b)return;
+  b.innerHTML=filterbarHtml()+catbarHtml();
+  b.querySelectorAll('[data-scope]').forEach(x=>x.onclick=()=>{state.scope=x.dataset.scope||null;state.cat='';state.libLimit=LIB_PAGE;render();paintFiltSheet();});
+  b.querySelectorAll('[data-section]').forEach(x=>x.onclick=()=>{setSection(x.dataset.section);paintFiltSheet();});
+  b.querySelectorAll('[data-cat]').forEach(x=>x.onclick=()=>{const c=x.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;render();paintFiltSheet();});
+  b.querySelectorAll('[data-catmgr]').forEach(x=>x.onclick=openCatMgr);
+  b.querySelectorAll('[data-newlib]').forEach(x=>x.onclick=openNewLib);
+  b.querySelectorAll('[data-libedit]').forEach(x=>x.onclick=e=>{e.stopPropagation();openMembers(x.dataset.libedit);});
+  paintFiltFoot();}
+/* LE PIED ANNONCE LE RÉSULTAT, ET C'EST TOUT SON OBJET. Le compte est celui de la liste
+   RÉELLEMENT rendue dessous — on ne recompte pas, on lit ce que le rendu vient de produire :
+   deux comptages divergeraient, et c'est le nombre affiché qui doit être vrai. */
+function paintFiltFoot(){
+  const go=document.getElementById('filtSheetGo'),cl=document.getElementById('filtSheetClear');
+  if(!go)return;
+  const n=main.querySelectorAll('.dir-row').length;
+  go.textContent=n?`Voir ${n===1?'le résultat':'les '+n+' résultats'}`:'Aucun résultat';
+  go.disabled=false;
+  const k=filtersCount();
+  if(cl){cl.hidden=!k;cl.textContent=`Tout effacer${k?' ('+k+')':''}`;}}
 /* Le déclencheur est STATIQUE (il vit dans l'en-tête, hors de tout re-rendu) : on ne le
    reconstruit pas, on le PEINT. `avail` = il y a quelque chose à déplier ici — sinon la seule
    chose honnête est de ne rien montrer (aucun bouton mort). */
@@ -12191,7 +12271,7 @@ function syncFiltTog(avail){
   n.hidden=!k;n.textContent=k?String(k):'';
   // UN SEUL libellé pour l'info-bulle et le nom accessible : deux formulations pour un même
   // bouton seraient deux vocabulaires pour une même chose (AC 120-71B §5.5).
-  const lbl=(open?'Masquer les filtres':'Afficher les filtres')+(k?` — ${k} actif${k>1?'s':''}`:'');
+  const lbl=(open?'Fermer les filtres':'Filtrer')+(k?` — ${k} actif${k>1?'s':''}`:'');
   b.setAttribute('aria-label',lbl);b.title=lbl;}
 /* La rangée de filtres COURTS : bibliothèque puis type, du plus large au plus étroit. */
 function filterbarHtml(){
@@ -12574,7 +12654,10 @@ function renderHomeList(cfg){
       ELLE S'ENROULE SI ELLE NE TIENT PAS : sur le plancher de 320 px avec plusieurs
       bibliothèques, deux groupes sur une ligne se comprimeraient l'un l'autre — mieux vaut deux
       lignes lisibles qu'une ligne illisible, et l'enroulement ne coûte que ce qu'il rend. */
-   hc.innerHTML=wide?'':filterFoldHtml();hc.hidden=wide||!hc.innerHTML;
+   /* Le chrome d'en-tête ne porte plus de rangée de filtres : elles vivent dans la feuille
+      (v5.6, planche 8c). `#homeChrome` reste — il est le point de parcage des chips que
+      `bindHomeChrome` câble encore en voie large. */
+   hc.innerHTML='';hc.hidden=true;
    /* Le déclencheur n'existe qu'en voie ÉTROITE : en large les filtres vivent dans la colonne
       gauche, déjà visible — un bouton pour déplier ce qui est déjà déplié serait un bouton mort. */
    syncFiltTog(!wide&&!!(filterbarHtml()+catbarHtml()));
@@ -21539,6 +21622,14 @@ bindModalDismiss(createModal,closeCreateDlg);
    fiches liées vers une autre catégorie (ou « aucune ») avant suppression. Le périmètre
    (Perso / bibliothèque) suit la vue : activeCatScope() = bibliothèque de la fiche en cours
    d'édition, sinon bibliothèque affichée. À la fermeture, la vue active est re-rendue. */
+const filtSheet=document.getElementById('filtSheet');
+bindModalDismiss(filtSheet,closeFiltSheet);
+document.getElementById('filtSheetGo').onclick=closeFiltSheet;
+/* « Tout effacer » remet les TROIS familles à leur cran neutre d'un geste — on ne défait pas un
+   corpus restreint chip par chip. Il n'apparaît que s'il y a quelque chose à effacer. */
+document.getElementById('filtSheetClear').onclick=()=>{
+  state.scope=null;state.section='all';state.cat='';state.libLimit=LIB_PAGE;
+  render();paintFiltSheet();};
 const catModal=document.getElementById('catModal');
 let catDelId=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
 const catCount=id=>fiches.filter(f=>f.category===id).length;
