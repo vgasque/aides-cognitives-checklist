@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vAL812Sarq5/mPaa7GHzUtHVle8UF8OogHSSWkP1yyY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-0m56EnO+fTvlwGkTfR6SvHlc8y4/KyOoEN+Y+sye8Ks='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -774,9 +774,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        milieu — c'est le prix à payer pour garder le sommaire, et il est plus faible que celui de
        le faire disparaître. Piste du corps SOUPLE : fixée, elle déborderait sous 1064 px et la
        colonne collante recouvrirait le texte (défaut mesuré). */
-    .ref-grid.with-toc{display:grid;grid-template-columns:260px minmax(0,780px);gap:0 24px;align-items:start}
+    /* 7b : LA MÊME GRILLE QUE TOUT LE PRODUIT — orientation 240 à gauche, corps fluide,
+       gouttière 20. Le sommaire est une colonne d'ORIENTATION comme le parcours d'une aide : il
+       n'y a aucune raison qu'il ait sa propre largeur. */
+    .ref-grid.with-toc{display:grid;grid-template-columns:240px minmax(0,1fr);gap:0 20px;align-items:start}
     .ref-grid.with-toc>.ref-main{grid-column:2}
-    aside.ref-toc{grid-column:1;justify-self:start;width:min(260px,100%)}
+    aside.ref-toc{grid-column:1;justify-self:start;width:min(240px,100%)}
   }
   @media (min-width:1200px){
     /* ≥ 1200 : TROIS pistes symétriques — le corps revient exactement au milieu de la fenêtre par
@@ -788,7 +791,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        il ne rétrécit jamais ; c'est la piste de DROITE qui absorbe, et le corps se recentre
        PROGRESSIVEMENT (décalage 92 px à 1200, nul à partir de ~1370). Un mouvement continu, jamais
        un saut. */
-    .ref-grid.with-toc{grid-template-columns:minmax(260px,1fr) minmax(0,780px) minmax(0,1fr)}
+    /* ≥ 1200 : la grille canonique, avec la piste de droite VIDE — une référence n'a pas d'état
+       à porter. Le corps garde sa largeur de lecture (780 px reste le plafond documenté d'un
+       document qu'on LIT, v4.x) : c'est la seule dérogation, et elle porte sur le CONFORT DE
+       LECTURE d'un texte long, pas sur la grille. */
+    .ref-grid.with-toc{grid-template-columns:240px minmax(0,780px) minmax(0,1fr);gap:0 20px}
   }
   @media (min-width:1200px){
     /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance).
@@ -798,11 +805,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        type dans ce fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
        GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
        mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
-    body.view-read .read-grid{grid-template-columns:minmax(0,760px) 320px;justify-content:center}
+    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,760px) 320px;justify-content:center}
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
-    :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
+    :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
@@ -3166,21 +3173,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
   .alg-panel .flow-hint{margin:0 4px 10px}
   /* Repères posologiques (canvas) : cartes ; « ⚠ » en tête = registre ALERTE. */
-  .pos-card{display:block;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:6px 0;margin:0;color:var(--ink);font-size:var(--t-meta);font-weight:600;line-height:1.5}
+  /* ══ UN REPÈRE : NOM FACULTATIF, PUIS UN CORPS LIBRE (7d, « Points ouverts ») ═════════════
+     Le corps est du TEXTE D'AUTEUR, potentiellement long — quatre lignes, du gras interne, et
+     parfois pas de nom du tout. Ni troncature, ni `nowrap`, ni hauteur fixe : un dosage tronqué
+     est une faute clinique. La carte grandit, c'est tout.
+     ⚠ J'AVAIS MIS LA VALEUR EN LIGNE APRÈS LE NOM à la passe précédente, sur la foi d'une
+     maquette où toutes les valeurs tenaient en cinq mots. Sur du texte réel, cela colle une
+     phrase de quatre lignes à la suite d'un nom en petites capitales et l'on ne sait plus où
+     commence la dose. Le nom prend sa ligne, le corps la sienne. */
+  .pos-card{display:block;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink);font-size:var(--t-body);font-weight:600;line-height:1.5;text-wrap:pretty}
   .pos-card:first-child{border-top:0}
-  .pos-name{color:var(--ink-2)}
+  .pos-name{display:block;font-weight:700;color:var(--ink-2)}
   .pos-mk{color:var(--warn);font-weight:800}
   /* La valeur ne se tronque JAMAIS (un chiffre amputé est pire qu'absent) : elle enroule sur sa
      propre ligne quand le nom est long — d'où `flex-wrap` sur la rangée. */
-  .pos-body{font-family:var(--mono);font-weight:700;color:var(--ink)}
+  /* La DOSE reste en encre PLEINE : la hiérarchie avec le nom passe par la GRAISSE, jamais par
+     l'atténuation de l'encre — adoucir un dosage serait l'inversion à ne pas faire. */
+  .pos-body{display:block;color:var(--ink)}
   .pos-body b{font-weight:700}
+  .pos-card>.pos-body:first-child{margin-top:0}
   /* Registre VIGILANCE (ambre) — voir posoCardsHtml : un dosage relève du « risque d'erreur »,
      pas de l'« oubli mortel ». Le rouge reste au chapeau « Ne pas oublier » et aux étapes vitales,
      qui sont des GESTES. Une seule masse rouge par écran. */
-  /* A11 : un repère SIGNALÉ se MARQUE (△ + encre ambre) ; il ne prend pas d'aplat — deux
-     repères ambre feraient deux masses colorées, et l'aplat cesserait de vouloir dire
-     « maintenant ». Le nom seul passe à l'ambre : la VALEUR reste en encre pleine (la
-     hiérarchie passe par la graisse, adoucir un dosage serait l'inversion à ne pas faire). */
+  /* ⚠ L'AMBRE APPARTIENT À L'AUTEUR, ET IL NE PREND NI APLAT NI BOÎTE (7d). `.vig` est une
+     DONNÉE de la fiche — l'interrupteur est dans l'éditeur, aucune heuristique ne devine qu'un
+     repère est « à risque ». Sa peinture est le glyphe △ et l'encre ambre du NOM, rien d'autre :
+     un repère encarté se décale de ses voisins (l'œil perd la colonne de lecture) et, surtout,
+     une masse ambre de LECTURE entre en concurrence avec l'ambre d'ALARME — le seul qui doive
+     attirer l'œil. Une seule masse ambre par écran, et elle appartient au minuteur échu. */
   .pos-card.vig .pos-name{color:var(--warn)}
   /* Repli du RESTE des repères (v4.23.0) : liste longue -> ceux qui concernent le bloc courant
      restent visibles, les autres passent derrière un dépliant qui ANNONCE SON NOMBRE (un pli
@@ -5920,9 +5940,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .dir-book .dir-row::before{left:0;top:0;bottom:0;border-radius:var(--r-3) 0 0 var(--r-3)}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
-    /* La recherche déménagée : elle prend la largeur de la colonne qu'elle filtre, jamais celle
-       de l'écran, et elle est la PREMIÈRE chose de la colonne (maquette 2f). */
-    .home-main>.hdr-search{display:flex;max-width:1320px;flex:none;margin-bottom:12px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.typebar,.scopebar,.catbar){display:none}
     /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
@@ -5950,15 +5967,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (seule partie de longueur illimitée, donc la dernière), journal.
      Séparé des ÉDITEURS, qui gardent leur aperçu à >= 1000px (règle v4.5 inchangée) — les deux
      partageaient la même règle `.read-grid`, d'où la scission par classe de vue. */
-  @media (min-width:780px) and (max-width:999.98px){
-    /* VOIE UNIQUE, PLAFONNÉE ET CENTRÉE (maquette). À ce palier il n'y a pas de `.read-grid` du
-       tout — `wideRead` est faux, le contenu vit directement dans `main` : c'est donc `main`
-       qu'on plafonne. 660 px est la mesure de la maquette ; au-delà, une checklist s'étire et la
-       ligne devient trop longue pour être scannée. */
-    body.view-read main{max-width:660px}
-  }
-  @media (min-width:1000px){
-    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 24px;align-items:start}
+  @media (min-width:780px){
+    /* ══ LA GRILLE CANONIQUE (7b) : 780-1199 = action fluide + état 320 ; ≥ 1200 = orientation
+       240 + action fluide + état 320, gouttière 20. UNE SEULE grille pour l'accueil, l'avant-
+       session, la session, l'éditeur et la référence — « une seule valeur, sinon l'œil doit
+       réapprendre l'écran à chaque page ». La colonne de GAUCHE est toujours l'ORIENTATION,
+       celle de DROITE toujours l'ÉTAT ou la RÉFÉRENCE, jamais l'inverse.
+       ⚠ ET LA COLONNE D'ACTION EST FLUIDE : les plafonds successifs (860, puis 660, puis 760)
+       étaient des accidents de maquette. Elle prend ce qui reste. */
+    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 20px;align-items:start}
     /* --stick-top : bas de ce qui est DÉJÀ collé en haut (en-tête + quai de crise), mesuré par
        syncHdrScroll — une constante laisserait le rail passer sous le quai. */
     /* HAUTEUR DÉFINIE (pas max-height) : les trois zones se répartissent l'espace, et chacune
@@ -6115,8 +6132,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* ÉDITEURS : la colonne d'édition prend la place disponible (1fr) et l'aperçu 320px — y
        compris au-delà de 1200 px, où cette règle l'emporte sur le palier déclaré en tête de
        feuille (spécificité égale, déclaration plus tardive). Mesuré à 1400 px : 936+320. */
-    :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 24px;align-items:start}
-    body.view-pedit .read-grid{grid-template-columns:minmax(0,760px) 340px;justify-content:center}
+    :is(body.view-edit,body.view-pedit) .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 20px;align-items:start}
+    body.view-pedit .read-grid{grid-template-columns:minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .read-side{position:sticky;top:96px;max-height:calc(100vh / var(--zf,1) - 110px);overflow-y:auto;padding:2px}
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
@@ -6125,9 +6142,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      AVANT le bloc 1000 ci-dessus et perdait donc la cascade à spécificité égale — la checklist
      restait en 1fr au lieu de son plafond de 860px. Collision constatée par mesure. */
   @media (min-width:1200px){
-    body.view-read .read-grid{grid-template-columns:minmax(0,760px) 320px;justify-content:center}
+    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,760px) 320px;justify-content:center}
+    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
@@ -7933,10 +7950,13 @@ function rescueFiltTog(){const ft=document.getElementById('filtTog'),box=documen
 const _hdrSearchHome=()=>document.querySelector('header.bar .id-row');
 function rescueHomeSearch(){const el=document.getElementById('hdrSearch'),h=_hdrSearchHome();
   if(el&&h&&main.contains(el))h.insertBefore(el,h.querySelector('.hdr-acts')||null);}
-function placeHomeSearch(wide){const el=document.getElementById('hdrSearch'),host=main.querySelector('.home-main');
-  if(!el)return;
-  if(wide&&host){if(el.parentNode!==host)host.insertBefore(el,host.firstChild);}
-  else rescueHomeSearch();}
+/* ⚠ ET ELLE Y RESTE À TOUTES LES LARGEURS (7b, « Points ouverts ») : « une seule adresse pour la
+   recherche… sinon elle change de place entre le téléphone et l'ordinateur, ce qui est exactement
+   l'incohérence à éviter ». La planche 2f la posait en tête de la zone de résultats et je l'y
+   avais suivie ; la planche 7b tranche l'inverse, et elle a raison — un champ qui déménage selon
+   la largeur est un champ qu'on cherche. La fonction reste, réduite à sa garde : elle ramène le
+   champ dans l'en-tête s'il en est sorti, et c'est tout. */
+function placeHomeSearch(){rescueHomeSearch();}
 function rescueFooter(){const ft=document.getElementById('appFooter');if(ft&&main.contains(ft))document.querySelector('.app').appendChild(ft);}
 function placeFooter(){const ft=document.getElementById('appFooter');const side=main.querySelector('.home-side');if(ft&&side&&ft.parentNode!==side)side.appendChild(ft);}
 /* v5.4.1 — OPTION A DU CHROME COCKPIT (décision utilisateur sur maquette : « tout voir, consulter
@@ -9349,12 +9369,9 @@ function posoCardsHtml(list,hay){
   const card=x=>{const t=stepText(x);const i=t.indexOf(' : ');
     const name=i>0?stripBold(t.slice(0,i)).trim():'';const body=i>0?t.slice(i+3):t;
     const flag=stepIsCrit(x)||stepIsVigil(x);
-    /* ⚠ UN REPÈRE EST UNE RANGÉE (v5.6, maquette — signalé à l'usage : « les repères
-       posologiques sont plus inline »). Le NOM à gauche, la VALEUR à droite en mono : c'est
-       ainsi qu'on lit une posologie — on cherche un produit, on lit un chiffre. Deux colonnes
-       stables se SCANNENT là où un empilement de cartes demande de lire. Le registre △ reste
-       porté par le glyphe et l'encre, jamais par un aplat (A11). */
-    return `<div class="pos-card${flag?' vig':''}">${name?`<span class="pos-name">${flag?'<span class="pos-mk" aria-hidden="true">△</span> ':''}${esc(name)}</span>`:''} <span class="pos-body">${fmt(body)}</span></div>`;};
+    /* Le NOM est FACULTATIF (7d) : un repère peut n'être qu'une phrase, et le rendu ne doit
+       jamais dépendre de sa présence — `.pos-card > .pos-body:first-child` reprend la main. */
+    return `<div class="pos-card${flag?' vig':''}">${name?`<span class="pos-name">${flag?'<span class="pos-mk" aria-hidden="true">△</span> ':''}${esc(name)}</span>`:''}<span class="pos-body">${fmt(body)}</span></div>`;};
   const sp=posoSplit(items,hay||'');
   const head=sp.head.map(o=>card(o.s)).join('');
   if(!sp.rest.length)return head;
@@ -11731,16 +11748,12 @@ if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);e
 const mqReadWide=window.matchMedia('(min-width:1000px)');
 // v4.23.0 : le RAIL de lecture s'ouvre dès 780px (décision « action + structure de front ») ;
 // mqReadWide reste le seuil des ÉDITEURS (aperçu en direct à >= 1000, règle v4.5 inchangée).
-/* ⚠ LE RAIL DE LECTURE PART DE 1000 px, PAS DE 780 (v5.6, maquette — « la taille des sidebar et
-   du contenu principal diverge, aligne-toi sur le mockup »). À 780-999 la maquette montre UNE
-   colonne plafonnée à 660 px : à ce palier, un rail de 300 px laissait ~430 px à la colonne
-   d'ACTION, c'est-à-dire moins qu'un téléphone en portrait pour ce qu'on lit sous stress — le
-   contraire de ce que le rail est censé acheter.
-   L'INVARIANT DE v4.23.0 TIENT PAR CONSTRUCTION : « le rail et la réduction du quai sont pilotés
-   par LA MÊME media query, donc les minuteurs ne peuvent jamais disparaître des deux endroits ».
-   En déplaçant le seuil, les minuteurs nominaux redescendent simplement dans le volet du quai à
-   780-999, exactement comme sur téléphone. */
-const mqRail=window.matchMedia('(min-width:1000px)');
+/* LE RAIL DE LECTURE PART DE 780 px (v4.23.0, et RÉTABLI en v5.6 après un aller-retour : la
+   planche « Points ouverts » 7b tranche une grille unique pour tout le produit — 780-1199 =
+   `minmax(0,1fr) 320px`, ≥ 1200 = `240px minmax(0,1fr) 320px`. La colonne d'état existe donc dès
+   780, et la colonne d'action est FLUIDE : c'est le plafond à 660 puis à 760 que j'avais posé
+   entre-temps qui était l'erreur, pas le seuil. */
+const mqRail=window.matchMedia('(min-width:780px)');
 // F4 (v4.59.0) : le cockpit 3 zones déplace le plan d'une colonne à l'autre — c'est un changement
 // de STRUCTURE, pas de style : il faut re-rendre au franchissement, comme les deux autres paliers.
 const mqCock=window.matchMedia('(min-width:1200px)');

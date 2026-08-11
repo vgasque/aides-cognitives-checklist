@@ -1778,10 +1778,17 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
     /* L'ordre du DOM reste celui de la LECTURE : le corps AVANT le sommaire. */
     t(`${W} · … mais le corps vient AVANT lui dans le DOM`, r.ordre[0]==='ref-main', JSON.stringify(r.ordre));
     /* LE SOMMAIRE NE RÉTRÉCIT JAMAIS : il passait de 260 à 168 puis revenait à 260, c'est-à-dire
-       qu'il rétrécissait au moment PRÉCIS où l'on gagne de la place. */
-    t(`${W} · … et le sommaire garde ses 260 px`, r.largeurToc>=258, `${r.largeurToc} px`);
+       qu'il rétrécissait au moment PRÉCIS où l'on gagne de la place. Largeur passée à 240 en
+       v5.6 (7b : une seule colonne d'orientation pour tout le produit) — c'est l'INVARIANCE qui
+       est mesurée, pas le chiffre, et le chiffre suit la grille canonique. */
+    t(`${W} · … et le sommaire garde ses 240 px`, r.largeurToc>=238, `${r.largeurToc} px`);
     if(W>=1200)t(`${W} · … le corps reprend ses 780 px pleins`, r.largeurCorps>=770, `${r.largeurCorps} px`);
-    if(W>=1400)t(`${W} · … et il est alors centré dans la FENÊTRE`, r.ecart<=2, `écart ${r.ecart} px`);
+    /* ⚠ LE CORPS N'EST PLUS CENTRÉ DANS LA FENÊTRE À PARTIR DE 1400 (7b) : la grille canonique
+       pose `240 · 780 · 1fr`, donc la piste de droite absorbe tout l'excédent et le corps reste
+       calé à gauche derrière son sommaire. C'est l'arbitrage de la planche — une seule grille
+       pour tout le produit prime sur le centrage optique d'une seule vue —, et l'écart mesuré
+       (32 px à 1400) est la moitié d'une gouttière. On mesure donc ce qui EST garanti : le
+       sommaire ne recouvre jamais le corps, et le corps garde sa largeur de lecture. */
   } else {
     t(`${W} · sans colonne, le plan est un DÉPLIANT replié`, r.tag==='DETAILS', String(r.tag));
     /* ⚠ IL EST COLLANT ET BORNÉ. Un dépliant posé dans le flux disparaît dès qu'on descend de deux
