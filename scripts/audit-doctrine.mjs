@@ -3420,6 +3420,79 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
 }
 });
 
+/* ══ v5.6, PLANCHES 7e/8d — TROIS GABARITS DE FENÊTRE, EN-TÊTE FIXE, CORPS QUI DÉFILE ══════
+   Trois propriétés, et la première est celle qu'aucun garde-fou statique ne pouvait voir : une
+   largeur écrite EN LIGNE (`style="max-width:560px"`) échappe à check-type comme à check-space,
+   qui lisent le bloc `<style>` (leçon A23). On mesure donc les largeurs RENDUES.
+   La deuxième est la propriété d'usage : sur une fenêtre longue, le titre ne doit pas s'en aller
+   par le haut et l'action ne doit pas se chercher au bout d'un défilement.
+   La troisième est le PLACEMENT : un DOCUMENT devient une feuille pleine hauteur sous 780 px,
+   un CHOIX reste une fenêtre centrée à la hauteur de son contenu. */
+await sec('v5.6 · trois gabarits de fenêtre', async () => {
+{
+  const GABARITS=[420,480,720];
+  const OUV={filtSheet:"document.getElementById('filtTog').click()", authModal:'openAuth()',
+             catModal:'openCatMgr()', sessModal:'openSessHist()', storageModal:'openStorageInfo()',
+             reportModal:null};
+  for(const W of [390,1100]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    const r=await page.evaluate(async(W)=>{const w=m=>new Promise(r=>setTimeout(r,m));
+      /* AUCUNE LARGEUR ÉCRITE EN LIGNE sur une carte de fenêtre : c'est le trou que les
+         garde-fous statiques ne voient pas, et par lequel 560 et 760 étaient entrés. */
+      const enLigne=[...document.querySelectorAll('.ai-card[style]')]
+        .filter(c=>/max-width|width/.test(c.getAttribute('style')||'')).map(c=>c.id||c.className);
+      const out={enLigne,fen:{}};
+      const cmds={filtSheet:()=>document.getElementById('filtTog').click(), authModal:()=>openAuth(),
+                  catModal:()=>openCatMgr(), sessModal:()=>openSessHist(), storageModal:()=>openStorageInfo()};
+      for(const [id,go] of Object.entries(cmds)){
+        try{go();}catch(e){out.fen[id]={err:e.message};continue;}
+        await w(450);
+        const m=document.getElementById(id);
+        if(!m||!m.classList.contains('on')){out.fen[id]={err:'pas ouverte'};continue;}
+        const c=m.querySelector('.ai-card'),t=c.querySelector('.ai-top'),b=c.querySelector('.ai-body');
+        const rc=c.getBoundingClientRect();
+        /* Le corps DÉFILE-T-IL VRAIMENT ? On le pousse au bout : s'il bouge, c'est lui le
+           défileur ; s'il ne bouge pas, c'est soit qu'il tient (légitime) soit que la carte
+           n'a pas de squelette (ce que le contrôle suivant attrape). */
+        let deb=0;if(b){b.scrollTop=99999;deb=Math.round(b.scrollTop);b.scrollTop=0;}
+        const rt=t.getBoundingClientRect();
+        out.fen[id]={w:Math.round(rc.width),h:Math.round(rc.height),corps:!!b,defile:deb>0,
+          /* Le titre reste dans la carte ET à l'écran, quoi qu'il arrive au corps. */
+          titreDansCarte:rt.top>=rc.top-1, titreVisible:rt.top>=-1&&rt.bottom<=innerHeight+1,
+          police:(()=>{const cs=getComputedStyle(t.querySelector('h3'));
+            return Math.round(parseFloat(cs.fontSize)*10)/10+'/'+cs.fontWeight;})(),
+          pleineHauteur:Math.round(rc.height)>=innerHeight-2};
+        const x=m.querySelector('.ai-x');if(x)x.click();await w(250);
+      }
+      return out;},W);
+
+    t(`${W} · aucune largeur de fenêtre écrite en ligne`, r.enLigne.length===0, JSON.stringify(r.enLigne));
+    for(const [id,f] of Object.entries(r.fen)){
+      if(f.err){t(`${W} · ${id} : ouverture`,false,f.err);continue;}
+      /* En voie étroite une feuille prend la largeur de l'écran : le gabarit ne se mesure que
+         là où il a le choix. */
+      if(W>=780) t(`${W} · ${id} tient l'un des trois gabarits`, GABARITS.includes(f.w), `${f.w} px`);
+      t(`${W} · ${id} : le titre ne s'en va jamais`, f.titreDansCarte&&f.titreVisible, JSON.stringify(f));
+      t(`${W} · ${id} : un seul titre de fenêtre (17.5/800)`, f.police==='17.5/800', f.police);
+    }
+    /* LE PLACEMENT DIT LA NATURE (décision utilisateur) : « Filtrer » est un CHOIX — il ne prend
+       jamais toute la hauteur, même sous 780 ; « Compte » est un DOCUMENT — il devient une
+       feuille pleine hauteur. Deux régimes, lisibles sur le contenu, jamais sur la largeur. */
+    if(W<780){
+      t(`${W} · un CHOIX reste une fenêtre centrée (Filtrer)`,
+        r.fen.filtSheet&&r.fen.filtSheet.pleineHauteur===false, JSON.stringify(r.fen.filtSheet));
+      t(`${W} · un DOCUMENT devient une feuille pleine hauteur (Compte)`,
+        r.fen.authModal&&r.fen.authModal.pleineHauteur===true, JSON.stringify(r.fen.authModal));
+    }
+    await page.close();
+  }
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);

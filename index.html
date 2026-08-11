@@ -3120,12 +3120,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'action ne doit pas se chercher au bout d'un défilement. Elle n'enfreint pas « aucune zone
      fixe en bas » (SPEC §5), qui vise le CHROME d'une vue de crise : ici on est dans une feuille
      de débriefing, hors session, et la barre appartient à la feuille — pas à l'application.
-     Au-dessus, elle redevient une rangée alignée à droite : la place existe, le geste est rare. */
-  .rp-acts{display:flex;gap:8px;flex-direction:column;margin-top:14px;
-    position:sticky;bottom:0;padding:10px 0 2px;background:var(--surface);box-shadow:var(--shadow-up)}
+     Au-dessus, elle redevient une rangée alignée à droite : la place existe, le geste est rare.
+     ⚠ v5.6 (planche 7e) — ELLE N'A PLUS BESOIN D'ÊTRE COLLANTE : la carte est le défileur et le
+     pied est son enfant FIXE, comme dans les deux autres gabarits. `position:sticky` y était le
+     seul moyen de tenir la promesse quand c'était la MODALE qui défilait ; garder les deux
+     mécanismes pour un même effet, c'est en laisser un diverger. Le filet remplace l'ombre
+     montante : un pied posé sur son propre fond, dans une carte, se sépare par un trait. */
+  .rp-acts{display:flex;gap:8px;flex-direction:column;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
   .rp-acts .btn{width:100%;min-height:48px;justify-content:center}
   @media (min-width:560px){
-    .rp-acts{flex-direction:row;justify-content:flex-end;position:static;box-shadow:none;padding:0}
+    .rp-acts{flex-direction:row;justify-content:flex-end}
     .rp-acts .btn{width:auto;min-height:44px}
   }
   .pl-phase{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
@@ -5721,8 +5726,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* CONFIRMATIONS : petite carte CENTRÉE verticalement, à toutes les largeurs — jamais en plein
      écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
   .ai-modal.dlg-confirm{align-items:center}
+  /* ══ QUATRIÈME PLACEMENT, ET C'EST UNE NATURE, PAS UNE QUATRIÈME LARGEUR (v5.6, décision
+     utilisateur : « uniformise la vue filtrer, toujours une fenêtre qui ne prend pas toute la
+     hauteur de la page — comme le choix des catégories en mode édition »).
+     La règle « sous 780 px, toute fenêtre devient une feuille pleine hauteur » (SPEC §6) vaut
+     pour un DOCUMENT — un contenu long, non borné, qu'on parcourt : Compte, Historique,
+     Versions, compte rendu. Elle ne vaut pas pour un CHOIX — un contenu court et borné, dont on
+     sort au geste suivant : la confirmation l'avait déjà compris (`.dlg-confirm`), et une
+     feuille pleine hauteur y produit une grande zone vide sous les crans, qui coûte le contexte
+     de la liste qu'on est justement en train de filtrer.
+     `.dlg-center` = « ceci est un choix » : centrée, hauteur au CONTENU, bornée par la hauteur
+     réellement visible. Les trois GABARITS DE LARGEUR sont inchangés — c'est le PLACEMENT qui a
+     deux régimes, et il se lit sur la nature du contenu. */
+  .ai-modal.dlg-center{align-items:center}
   .dlg-confirm .ai-card{max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
-  .dlg-confirm h3{font-size:17.5px;font-weight:800}
   .dlg-confirm .ai-x{font-size:15px;color:var(--ink-soft)}
   /* v4.3.1 : les confirmations DESTRUCTRICES (#confirmModal, opts.danger — supprimer une fiche,
      un protocole, la bibliothèque…) reprennent le registre du dialogue « Terminer la session »
@@ -5743,19 +5760,48 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Une modale est un niveau 3 : elle était en `--shadow` (niveau 2), donc au même plan qu'une
      carte de session — corrigé ici. Toute surface ajoutée doit se ranger dans l'un des trois. */
   .ai-card{background:var(--surface);border-radius:14px;max-width:720px;width:100%;margin:auto;padding:20px;box-shadow:var(--shadow-lg)}
-  /* La fenêtre « Gérer les catégories » ne dépasse jamais l'écran (encoche/horloge incluses) : la
-     carte est plafonnée et la LISTE défile à l'intérieur ; l'en-tête reste visible. */
-  #catModal .ai-card{display:flex;flex-direction:column;max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
-  #catModal #catMgrBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+  /* ══ TROIS GABARITS DE FENÊTRE, ET PAS UN DE PLUS (v5.6, planches 7e/8d) ═══════════════════
+     CONFIRMATION 420 (`.dlg-confirm`, centrée) · DIALOGUE 480 (`.dlg-480`) · ATELIER 720 (le
+     défaut). Le fichier avait bien ces trois valeurs — mais aussi deux largeurs EN LIGNE, 560 et
+     760, écrites au fil de l'eau dans la coque : elles rejoignent 480 et 720. Un `style=` de
+     largeur échappe à TOUT garde-fou (check-type et check-space lisent le bloc `<style>`, c'est
+     la leçon A23), donc à toute échelle fermée : il n'y en a plus aucun.
+
+     ══ EN-TÊTE FIXE · CORPS QUI DÉFILE · PIED FIXE ══
+     Avant, c'est la MODALE qui défilait : sur une fenêtre longue (Compte, Historique, Versions,
+     Comptes en attente), le titre s'en allait par le haut et l'action primaire se cherchait au
+     bout du défilement — sur une surface qui a déjà pris tout l'écran. La carte devient donc le
+     défileur, plafonnée à la hauteur RÉELLEMENT visible, et le corps qui défile SE NOMME
+     (`.ai-body`) : un « dernier enfant flexible » deviné en CSS aurait fait de n'importe quel
+     ajout futur un défileur par accident.
+     La règle de `#catModal` (v4.5) est GÉNÉRALISÉE ici : elle disait déjà exactement cela, pour
+     une seule fenêtre — c'est la duplication en attente de devenir divergence.
+     ⚠ ELLE NE S'APPLIQUE QU'AUX CARTES QUI ONT UN CORPS NOMMÉ : `:has(>.ai-body)`. Les fenêtres
+     à contenu court et hétérogène (confirmations, écran de bienvenue) gardent la modale pour
+     défileur — leur imposer un squelette exigerait d'inventer un corps là où il n'y en a pas. */
+  .ai-card:has(>.ai-body){display:flex;flex-direction:column;
+    max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
+  .ai-card>.ai-body{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
+  /* Tout ce qui n'est pas le corps est FIXE : l'en-tête, le sélecteur de type de « Créer », le
+     champ de filtre des sélecteurs, le pied d'actions et la note de bas de fenêtre. */
+  .ai-card:has(>.ai-body)>:not(.ai-body){flex:0 0 auto}
   .ai-card .ai-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
-  .ai-card h3{margin:0;font-size:17.5px;font-weight:680;flex:1}
+  /* UN SEUL TITRE DE FENÊTRE (v5.6, planche 7e) : `--t-step` / 800, dans les trois gabarits. Il
+     était à 680 par défaut et à 800 dans deux règles de gabarit — donc le même objet changeait de
+     graisse selon la largeur de sa fenêtre, ce qui ne dit rien de plus et se lit comme une
+     inattention (l'argument qui a fermé l'échelle typographique en v4.71.1). */
+  .ai-card h3{margin:0;font-size:var(--t-step);font-weight:800;flex:1}
   /* Fermeture des fenêtres : cible 44x44 (marges négatives -> l'en-tête de la carte ne grossit pas). */
   .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;margin:-10px -10px -10px 0;flex:none}
   .ai-card .ai-x:hover{background:var(--surface-2);color:var(--ink)}
   .ai-card p{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   .ai-card ol{font-size:13.5px;color:var(--ink-soft);margin:0 0 12px;padding-left:20px;line-height:1.5}
   /* Aperçu de compte-rendu (dans la fenêtre) : reprend le style du document imprimé, en zone défilable. */
-  .report-preview{max-height:min(calc(60vh / var(--zf,1)),520px);overflow:auto;border:1px solid var(--line);border-radius:8px;padding:16px 18px;background:var(--surface)}
+  /* ⚠ PLUS DE PLAFOND PROPRE (v5.6, planche 7e) : la carte est désormais le défileur et porte
+     déjà sa borne de hauteur visible. Un second plafond de 60 vh imbriqué dedans rendait
+     l'aperçu PLUS COURT que la place disponible, avec deux barres de défilement l'une dans
+     l'autre — c'est le corps de la fenêtre, il prend ce qui reste. */
+  .report-preview{overflow:auto;border:1px solid var(--line);border-radius:8px;padding:16px 18px;background:var(--surface)}
   .report-preview h1{display:none}  /* redondant avec le titre de la fenêtre ; conservé dans le document imprimé/téléchargé */
   .report-preview h2{font-size:13.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin:20px 0 6px;border-bottom:1px solid var(--line);padding-bottom:4px}
   .report-preview .meta{color:var(--ink-soft);font-size:13.5px;margin-bottom:4px}
@@ -5793,7 +5839,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      dialogue ; zones de dépôt en pointillés. */
   /* Gabarit « dialogue 480 » du canvas : fenêtre min(480px,100%), titre 17/800, ✕ discret. */
   .ai-card.dlg-480{max-width:480px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
-  .dlg-480 h3{font-size:17.5px;font-weight:800}
   .dlg-480 .ai-x{font-size:15px;color:var(--ink-soft)}
   .crt-list{display:grid;gap:10px;grid-auto-rows:1fr;margin-bottom:4px}   /* rangées égales : toutes les cartes = la plus haute */
   /* min-height 82px = hauteur naturelle des cartes du dialogue AIDE (description IA sur 2
@@ -5856,7 +5901,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:779.98px){
     /* Fond = celui de la CARTE (v4.29.2) : sur iOS, le rebond de défilement révélait le fond
        du conteneur au-delà de la carte — bande étrangère en bas des dialogues plein écran. */
-    .ai-modal:not(.pdf-modal):not(.dlg-confirm){padding:0;background:var(--surface)}
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm):not(.dlg-center){padding:0;background:var(--surface)}
     /* `:not(.sheet-full)` AJOUTÉ (v4.55.3, retour d'usage « les titres sont décalés vers le bas »).
        Cette règle transforme toute fenêtre en feuille pleine largeur sur écran étroit et lui pose
        18 px de rembourrage haut. Or « Se repérer » et « Consulter » se donnent DÉJÀ `padding:0`
@@ -5868,7 +5913,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        défilant. NEUVIÈME piège de cascade du projet, TROISIÈME par spécificité, et le premier par
        `:not()`. Les deux autres fenêtres plein écran étaient déjà exclues nommément ; on exclut
        désormais la CLASSE qui les désigne, pour que la prochaine hérite de l'exclusion. */
-    .ai-modal:not(.pdf-modal):not(.dlg-confirm):not(.sheet-full) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm):not(.dlg-center):not(.sheet-full) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
   }
   /* Rangée d'action du dialogue de bienvenue. Sous 780 px la fenêtre est PLEIN ÉCRAN (règle
      ci-dessus) : le contenu s'arrête à mi-écran et « Commencer » flottait dans ~700 px de vide,
@@ -7079,58 +7124,58 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <button class="seg-btn on" role="tab" data-createkind="fiches" aria-selected="true" aria-controls="createBody" tabindex="0"><span class="seg-ic" aria-hidden="true"></span><span>Aide cognitive</span></button>
     <button class="seg-btn" role="tab" data-createkind="protocols" aria-selected="false" aria-controls="createBody" tabindex="-1"><span class="seg-ic" aria-hidden="true"></span><span>Protocole</span></button>
   </div>
-  <div id="createBody" role="tabpanel"></div>
+  <div id="createBody" class="ai-body" role="tabpanel"></div>
 </div></div>
 <!-- K3/K8/K9 (v4.65.0) : LA PORTE « + » de l'éditeur — un seul point d'insertion, où chaque type
      se présente (glyphe, nom, et une ligne qui dit à quoi il sert). C'est là que les registres
      s'apprennent, avant la crise. -->
 <div class="ai-modal" id="edAddModal" role="dialog" aria-modal="true" aria-labelledby="edAddTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="edAddTitle">Ajouter à la fiche</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
-  <div class="ed-palette" id="edAddBody"></div>
+  <div class="ed-palette ai-body" id="edAddBody"></div>
 </div></div>
 <!-- LES FILTRES SONT UNE FEUILLE, PLUS UN DÉPLIANT D'EN-TÊTE (v5.6, planche 8c). Trois familles
      visibles d'un coup, un pied qui ANNONCE le résultat avant de fermer. Le corps est peint à
      l'ouverture (`paintFiltSheet`) : rien ici, sinon deux sources pour les mêmes chips. -->
-<div class="ai-modal" id="filtSheet" role="dialog" aria-modal="true" aria-labelledby="filtSheetTitle"><div class="ai-card dlg-480">
+<div class="ai-modal dlg-center" id="filtSheet" role="dialog" aria-modal="true" aria-labelledby="filtSheetTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="filtSheetTitle">Filtrer</h3><button class="ai-x" id="filtSheetX" aria-label="Fermer">×</button></div>
-  <div id="filtSheetBody"></div>
+  <div id="filtSheetBody" class="ai-body"></div>
   <div class="fs-foot"><button type="button" class="btn ghost" id="filtSheetClear">Tout effacer</button><button type="button" class="btn primary" id="filtSheetGo"></button></div>
 </div></div>
 <div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
-  <div id="catMgrBody"></div>
+  <div id="catMgrBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="authModalTitle">Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
-  <div id="authBody"></div>
+  <div id="authBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="storageModal" role="dialog" aria-modal="true" aria-labelledby="storageModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="storageModalTitle">Où sont enregistrées vos fiches ?</h3><button class="ai-x" id="storageX" aria-label="Fermer">×</button></div>
-  <div id="storageBody"></div>
+  <div id="storageBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="syncErrModal" role="dialog" aria-modal="true" aria-labelledby="syncErrModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="syncErrModalTitle">Erreur de synchronisation</h3><button class="ai-x" id="syncErrX" aria-label="Fermer">×</button></div>
-  <div id="syncErrBody"></div>
+  <div id="syncErrBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="membersModal" role="dialog" aria-modal="true" aria-labelledby="membersModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="membersModalTitle">Gérer la bibliothèque</h3><button class="ai-x" id="membersX" aria-label="Fermer">×</button></div>
-  <div id="membersBody"></div>
+  <div id="membersBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="newLibModal" role="dialog" aria-modal="true" aria-labelledby="newLibModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="newLibModalTitle">Nouvelle bibliothèque</h3><button class="ai-x" id="newLibX" aria-label="Fermer">×</button></div>
-  <div id="newLibBody"></div>
+  <div id="newLibBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="pendingModal" role="dialog" aria-modal="true" aria-labelledby="pendingModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="pendingModalTitle">Comptes en attente</h3><button class="ai-x" id="pendingX" aria-label="Fermer">×</button></div>
-  <div id="pendingBody"></div>
+  <div id="pendingBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="sessModal" role="dialog" aria-modal="true" aria-labelledby="sessModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="sessModalTitle">Historique des sessions</h3><button class="ai-x" id="sessX" aria-label="Fermer">×</button></div>
-  <div id="sessBody"></div>
+  <div id="sessBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="versModal" role="dialog" aria-modal="true" aria-labelledby="versModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="versModalTitle">Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
-  <div id="versBody"></div>
+  <div id="versBody" class="ai-body"></div>
   <p class="ai-note" id="versNote"></p>
 </div></div>
 <!-- Accueil première ouverture : 3 repères, une seule fois (localStorage ac-onboarded). -->
@@ -7141,7 +7186,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      connu (z 55 pour une `.ai-modal`) : elle monte au-dessus. -->
 <div class="ai-modal sheet-live" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="shareTitle">Partager cette session</h3><button class="ai-x" id="shareX" aria-label="Fermer">×</button></div>
-  <div id="shareBody"></div>
+  <div id="shareBody" class="ai-body"></div>
 </div></div>
 <!-- ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0) — PAS une `.ai-modal`, et c'est délibéré : il n'y a rien
      derrière lui (l'application n'est pas amorcée), donc ni verrou de fond, ni ✕, ni Échap — on ne
@@ -7196,7 +7241,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     </details>
   </div>
 </div>
-<div class="ai-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle"><div class="ai-card" style="max-width:560px">
+<div class="ai-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="welcomeModalTitle">Bienvenue dans Aides cognitives</h3><button class="ai-x" id="welcomeX" aria-label="Fermer">×</button></div>
   <p><strong>1 · Vous rédigez, vous validez.</strong> L'app ne contient aucun protocole imposé : vous créez vos fiches (à la main ou via « Créer via IA ») et vous restez responsable du contenu clinique. Deux fiches d'exemple peuvent être ajoutées depuis l'accueil — relisez-les avant tout usage.</p>
   <!-- J0-D5 (lot T13) — DEUX PARAGRAPHES SONT PARTIS, ET C'EST LA CONTRAINTE DE L'AUDIT APPLIQUÉE
@@ -7224,9 +7269,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      choix « PDF »). Le fichier .html RESTE, en secondaire et sous son vrai nom : c'est un document
      autonome, lisible sans aucun visualiseur, et la seule sortie qui ne dépende pas du dialogue
      d'impression du système — donc le repli quand celui-ci manque (PWA installée sur iOS). -->
-<div class="ai-modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle"><div class="ai-card" style="max-width:760px">
+<div class="ai-modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle"><div class="ai-card">
   <div class="ai-top"><h3 id="reportModalTitle">Compte-rendu de session</h3><button class="ai-x" id="reportX" aria-label="Fermer">×</button></div>
-  <div id="reportBody" class="report-preview"></div>
+  <div id="reportBody" class="report-preview ai-body"></div>
   <div class="rp-acts"><button class="btn" id="reportDownload">Fichier .html</button><button class="btn primary" id="reportPrint">Enregistrer en PDF</button></div>
 </div></div>
 <!-- Sélecteur de document existant (éditeurs de fiche ET de protocole) : liste FILTRABLE — un
@@ -7235,7 +7280,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="attPickTitle">Joindre un document existant</h3><button class="ai-x" id="attPickX" aria-label="Fermer">×</button></div>
   <p>Le document sera <b>partagé</b> : le remplacer le mettra à jour sur toutes les fiches et tous les protocoles qui l'utilisent.</p>
   <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="attPickQ" placeholder="Filtrer par nom ou origine…"></div>
-  <div id="attPickList" class="att-list attpick-list"></div>
+  <div id="attPickList" class="att-list attpick-list ai-body"></div>
 </div></div>
 <!-- Sélecteur « Voir aussi » (éditeurs de fiche ET de protocole) : lier une AIDE ou un PROTOCOLE
      du même périmètre — même design que « Joindre un document existant » (liste filtrable). -->
@@ -7243,7 +7288,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="relPickTitle">Lier une aide ou un protocole</h3><button class="ai-x" id="relPickX" aria-label="Fermer">×</button></div>
   <p>Le lien apparaît en lecture, dans la section <b>« Voir aussi »</b> — un raccourci, pas une copie.</p>
   <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" placeholder="Filtrer par titre ou code…"></div>
-  <div id="relPickList" class="att-list attpick-list"></div>
+  <div id="relPickList" class="att-list attpick-list ai-body"></div>
 </div></div>
 <!-- COMPLICATIONS « à tout moment » (v4.26.1) : UN déclencheur constant ouvre cet INDEX par
      événement — le modèle QRH/Stanford (un manuel, des onglets), pas un bouton par urgence.
