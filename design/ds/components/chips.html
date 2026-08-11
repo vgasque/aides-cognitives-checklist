@@ -1107,6 +1107,10 @@
      avant le premier geste. Le remplissage est `--act`, le bleu de l'ACTION : sur la matière
      système, un aplat vert dirait « c'est fait » et un ambre « attention ». */
   .sd-key.sd-exo{flex:0 0 auto;padding:0 14px;border:1px solid var(--sys-line);color:var(--sys-ink-2)}
+  /* ARMÉ : registre de SÉLECTION sur la matière système — l'exercice n'est ni une alerte ni une
+     vigilance, c'est un MODE choisi ; et la touche annonce désormais l'annulation, donc son état
+     ne peut pas être porté par la seule couleur (règle 8 : le mot change avec elle). */
+  .sd-key.sd-exo.on{background:var(--sys-hi);border-color:var(--sys-ink-2);color:var(--sys-ink)}
   .sd-key.sd-start{flex:1;background:var(--act);color:var(--on-primary)}
   .sd-key.sd-start .dp-lbl{font-size:var(--t-item);letter-spacing:.01em;text-transform:none}
   .sd-key.sd-start:hover{background:var(--primary-hi)}
@@ -3230,11 +3234,24 @@
   /* Le CHOIX prend le registre de l'ACTION (maquette) : contour `--act` de 2 px sur fond de
      travail, les deux issues de poids STRICTEMENT égal — aucune n'est suggérée. L'ambre reste
      au REGISTRE du bloc (son étiquette, son liseré), pas au geste. */
-  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--work);border:2px solid var(--act);border-radius:var(--r-3);padding:10px 16px;min-height:64px;font-size:var(--t-step);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
-  .opt:hover{background:var(--primary-soft)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
+  /* ⚠ LE CONTOUR D'UNE ISSUE PREND LE REGISTRE DE SA CARTE (v5.6, question de l'auteur : « la
+     couleur de contour des options dans les blocs conditionnels ne devrait-elle pas être celle de
+     la bordure du bloc, ambre ? »). Elle a raison sur ce point précis, et A17 n'en souffre pas :
+     ce que A17 protège est que les issues soient de POIDS STRICTEMENT ÉGAL et qu'AUCUNE ne soit
+     suggérée — ce que le contour ne dit pas. Il dit à quel OBJET on appartient, et deux boutons
+     bleus dans une carte bordée d'ambre annonçaient deux registres sur une même carte, ce que le
+     dossier proscrit partout ailleurs (v4.24.0, « un registre n'est jamais masqué par un état »).
+     ⚠ ET CE N'EST PAS UNE ALERTE DE PLUS : l'ambre est DÉJÀ déclaré au niveau de la carte
+     (étiquette + liseré) ; le reprendre sur ses issues ne crée aucun signal neuf, il rattache.
+     LA DESTINATION, elle, GARDE `--act` : « → bloc 4 · Stabilisé » est ce qui MÈNE quelque part,
+     et c'est le seul endroit où le registre d'action a un sens ici. */
+  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--work);border:2px solid var(--verify-bd);border-radius:var(--r-3);padding:10px 16px;min-height:64px;font-size:var(--t-step);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
+  .opt:hover{background:var(--verify-soft)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
   .opt-go{margin-left:auto;flex:none;font-size:var(--t-meta);font-weight:700;color:var(--act);white-space:nowrap}
   .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
-  .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
+  /* L'issue PRISE reste marquée au registre de la POSITION (bleu) : elle ne dit plus « à
+     choisir » mais « voici par où l'on est passé » — c'est un état de parcours, pas un choix. */
+  .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
   /* Masqué visuellement mais lu par les lecteurs d'écran (zone aria-live). */
   /* ═══ COMPLICATIONS « à tout moment » (v4.26.0) ═══
@@ -4761,7 +4778,15 @@
      seule la FORME change, et elle porte le numéro. Le carré tourné vit dans un `::before` À
      L'INTÉRIEUR de la boîte : un élément de 26 px tourné à 45° en ferait 37 de diagonale et serait
      rogné par la colonne (leçon v5.0.0). Le chiffre, lui, n'est PAS tourné — il se lit droit. */
-  .pl-line.dec .n{border:0;background:none;position:relative}
+  /* ⚠ `z-index:-1` SANS CONTEXTE D'EMPILEMENT PASSE SOUS LE FOND DU PARENT (v5.6, signalé à
+     l'usage : « dans le parcours inerte les chiffres des blocs conditionnels n'ont pas de contour
+     du tout »). `.pl-line` est `position:static` et porte un fond BLANC : le losange, posé en
+     `z-index:-1`, se peignait donc DERRIÈRE ce fond — invisible, et la décision se retrouvait
+     sans marqueur là où tous ses voisins en ont un. `isolation:isolate` fait de la pastille son
+     propre contexte : le losange remonte juste au-dessus d'elle et reste sous son chiffre.
+     C'est la même famille que les dix-neuf pièges de cascade du dossier — une valeur négative ne
+     dit pas « derrière mon frère », elle dit « derrière tout ce qui n'est pas isolé ». */
+  .pl-line.dec .n{border:0;background:none;position:relative;isolation:isolate}
   .pl-line.dec .n::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
     margin:-10px 0 0 -10px;border:1.5px solid var(--line-strong);background:var(--surface);
     border-radius:3px;transform:rotate(45deg);z-index:-1}
@@ -6551,9 +6576,10 @@
   /* ⚠ LE COMPTE SE LIT AVEC LE TITRE, PAS AU BOUT DE LA RANGÉE (v5.6, signalé à l'usage : « le
      nombre devrait être affiché juste à côté de "Ne pas oublier" et non tout à droite »). Il
      QUALIFIE le titre — « Ne pas oublier · 4 rappels » est une seule phrase ; renvoyé au bord
-     opposé, l'œil devait faire l'aller-retour pour la reconstituer. Le titre cesse donc de
-     s'étirer, et c'est un ESPACE qui pousse le chevron au bord : lui reste à droite, parce qu'il
-     désigne le geste (déplier) et non le contenu. */
+     opposé, l'œil devait faire l'aller-retour pour la reconstituer.
+     ⚠ ET LE CHEVRON RESTE AVEC LE CHIFFRE (précision de l'auteur). Il ne désigne pas la rangée,
+     il désigne CE GROUPE — « 4 › » se lit d'un bloc, et l'écart part au bord droit derrière eux.
+     Une flèche laissée seule à l'autre bout redemanderait le même aller-retour que le compte. */
   .fs-kt{flex:none;min-width:0}
   .fs-sp{flex:1 1 auto;min-width:0}
   /* Le chevron suit la convention du dépliant, et elle est la même partout : « › » fermé,

@@ -4082,6 +4082,55 @@ await sec('v5.6 · une fiche d\'un seul bloc', async () => {
 }
 });
 
+/* ══ v5.6 — UN FILTRE POSÉ AGIT AUSSI EN RECHERCHE ══════════════════════════════════════════
+   Signalé à l'usage : « en mode recherche, quand on change de catégorie, rien ne se passe ». La
+   branche de recherche ignorait `state.scope` ET `state.cat` : le déclencheur annonçait « 1 filtre »
+   pendant que la liste n'en tenait aucun compte — un contrôle MORT au moment précis où l'on s'en
+   sert, et pire, un contrôle qui MENT. Ce n'est pas la règle « on réordonne, on ne filtre jamais » :
+   celle-là vaut pour un rapprochement que la machine devine (posologie, étiquettes), pas pour un
+   cran posé du doigt. La règle de v5.0.3 tient dans les deux sens : on ne peut pas se retrouver
+   dans un corpus restreint sans savoir pourquoi — ni croire l'avoir restreint sans que rien ne
+   bouge. */
+await sec('v5.6 · un filtre posé agit aussi en recherche', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const n=()=>document.querySelectorAll('.dir-row').length;
+    /* ⚠ ON COMPARE LES RÉSULTATS, PAS LEUR NOMBRE : avec deux fiches d'une catégorie chacune, les
+       deux crans donnent « 1 » — un contrôle sur le compte serait rouge sur un correctif juste. */
+    const titres=()=>[...document.querySelectorAll('.dir-row .dir-t')].map(e=>e.textContent.trim()).join('|');
+    const q=document.getElementById('q');
+    q.value='a';q.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
+    const sansFiltre=n();
+    /* On prend la catégorie d'UNE fiche réellement présente : un identifiant inventé ne
+       filtrerait rien et le contrôle mesurerait le vide. */
+    const vues=[...document.querySelectorAll('.dir-row')];
+    const cats=[...new Set(fiches.map(f=>f.category).filter(Boolean))];
+    if(cats.length<2)return {err:'moins de deux catégories — cas non constitué'};
+    state.cat=cats[0];render();await w(450);
+    const avecA=n(),titA=titres();
+    state.cat=cats[1];render();await w(450);
+    const avecB=n(),titB=titres();
+    state.cat='';render();await w(450);
+    return {sansFiltre,avecA,avecB,titA,titB,rendu:n(),vues:vues.length};});
+
+  if(r.err){t('témoin : le cas est constitué',false,r.err);}
+  else{
+    t('témoin : la recherche rend bien des résultats', r.sansFiltre>=2, `${r.sansFiltre} rangée(s)`);
+    t('poser une catégorie RESTREINT les résultats de recherche',
+      r.avecA<r.sansFiltre, `${r.sansFiltre} → ${r.avecA}`);
+    t('… et changer de catégorie change le RÉSULTAT',
+      r.titA!==r.titB&&!!r.titA, `« ${r.titA} » puis « ${r.titB} »`);
+    t('… et le retirer les rend tous', r.rendu===r.sansFiltre, `${r.rendu} / ${r.sansFiltre}`);
+  }
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);

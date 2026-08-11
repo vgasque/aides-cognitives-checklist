@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-GVlEpbuMEwnakIMTggu/uXODykXA+RMG911bhHHcq1s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-BbGgAVIaqwgx7H8xDTy6hdxKTePjdNFKup1OG6t5hc8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1452,6 +1452,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      avant le premier geste. Le remplissage est `--act`, le bleu de l'ACTION : sur la matière
      système, un aplat vert dirait « c'est fait » et un ambre « attention ». */
   .sd-key.sd-exo{flex:0 0 auto;padding:0 14px;border:1px solid var(--sys-line);color:var(--sys-ink-2)}
+  /* ARMÉ : registre de SÉLECTION sur la matière système — l'exercice n'est ni une alerte ni une
+     vigilance, c'est un MODE choisi ; et la touche annonce désormais l'annulation, donc son état
+     ne peut pas être porté par la seule couleur (règle 8 : le mot change avec elle). */
+  .sd-key.sd-exo.on{background:var(--sys-hi);border-color:var(--sys-ink-2);color:var(--sys-ink)}
   .sd-key.sd-start{flex:1;background:var(--act);color:var(--on-primary)}
   .sd-key.sd-start .dp-lbl{font-size:var(--t-item);letter-spacing:.01em;text-transform:none}
   .sd-key.sd-start:hover{background:var(--primary-hi)}
@@ -3575,11 +3579,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Le CHOIX prend le registre de l'ACTION (maquette) : contour `--act` de 2 px sur fond de
      travail, les deux issues de poids STRICTEMENT égal — aucune n'est suggérée. L'ambre reste
      au REGISTRE du bloc (son étiquette, son liseré), pas au geste. */
-  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--work);border:2px solid var(--act);border-radius:var(--r-3);padding:10px 16px;min-height:64px;font-size:var(--t-step);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
-  .opt:hover{background:var(--primary-soft)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
+  /* ⚠ LE CONTOUR D'UNE ISSUE PREND LE REGISTRE DE SA CARTE (v5.6, question de l'auteur : « la
+     couleur de contour des options dans les blocs conditionnels ne devrait-elle pas être celle de
+     la bordure du bloc, ambre ? »). Elle a raison sur ce point précis, et A17 n'en souffre pas :
+     ce que A17 protège est que les issues soient de POIDS STRICTEMENT ÉGAL et qu'AUCUNE ne soit
+     suggérée — ce que le contour ne dit pas. Il dit à quel OBJET on appartient, et deux boutons
+     bleus dans une carte bordée d'ambre annonçaient deux registres sur une même carte, ce que le
+     dossier proscrit partout ailleurs (v4.24.0, « un registre n'est jamais masqué par un état »).
+     ⚠ ET CE N'EST PAS UNE ALERTE DE PLUS : l'ambre est DÉJÀ déclaré au niveau de la carte
+     (étiquette + liseré) ; le reprendre sur ses issues ne crée aucun signal neuf, il rattache.
+     LA DESTINATION, elle, GARDE `--act` : « → bloc 4 · Stabilisé » est ce qui MÈNE quelque part,
+     et c'est le seul endroit où le registre d'action a un sens ici. */
+  .opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--work);border:2px solid var(--verify-bd);border-radius:var(--r-3);padding:10px 16px;min-height:64px;font-size:var(--t-step);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
+  .opt:hover{background:var(--verify-soft)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
   .opt-go{margin-left:auto;flex:none;font-size:var(--t-meta);font-weight:700;color:var(--act);white-space:nowrap}
   .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
-  .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-left-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
+  /* L'issue PRISE reste marquée au registre de la POSITION (bleu) : elle ne dit plus « à
+     choisir » mais « voici par où l'on est passé » — c'est un état de parcours, pas un choix. */
+  .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
   .flow-ctrl{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
   /* Masqué visuellement mais lu par les lecteurs d'écran (zone aria-live). */
   /* ═══ COMPLICATIONS « à tout moment » (v4.26.0) ═══
@@ -5106,7 +5123,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      seule la FORME change, et elle porte le numéro. Le carré tourné vit dans un `::before` À
      L'INTÉRIEUR de la boîte : un élément de 26 px tourné à 45° en ferait 37 de diagonale et serait
      rogné par la colonne (leçon v5.0.0). Le chiffre, lui, n'est PAS tourné — il se lit droit. */
-  .pl-line.dec .n{border:0;background:none;position:relative}
+  /* ⚠ `z-index:-1` SANS CONTEXTE D'EMPILEMENT PASSE SOUS LE FOND DU PARENT (v5.6, signalé à
+     l'usage : « dans le parcours inerte les chiffres des blocs conditionnels n'ont pas de contour
+     du tout »). `.pl-line` est `position:static` et porte un fond BLANC : le losange, posé en
+     `z-index:-1`, se peignait donc DERRIÈRE ce fond — invisible, et la décision se retrouvait
+     sans marqueur là où tous ses voisins en ont un. `isolation:isolate` fait de la pastille son
+     propre contexte : le losange remonte juste au-dessus d'elle et reste sous son chiffre.
+     C'est la même famille que les dix-neuf pièges de cascade du dossier — une valeur négative ne
+     dit pas « derrière mon frère », elle dit « derrière tout ce qui n'est pas isolé ». */
+  .pl-line.dec .n{border:0;background:none;position:relative;isolation:isolate}
   .pl-line.dec .n::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
     margin:-10px 0 0 -10px;border:1.5px solid var(--line-strong);background:var(--surface);
     border-radius:3px;transform:rotate(45deg);z-index:-1}
@@ -6896,9 +6921,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ⚠ LE COMPTE SE LIT AVEC LE TITRE, PAS AU BOUT DE LA RANGÉE (v5.6, signalé à l'usage : « le
      nombre devrait être affiché juste à côté de "Ne pas oublier" et non tout à droite »). Il
      QUALIFIE le titre — « Ne pas oublier · 4 rappels » est une seule phrase ; renvoyé au bord
-     opposé, l'œil devait faire l'aller-retour pour la reconstituer. Le titre cesse donc de
-     s'étirer, et c'est un ESPACE qui pousse le chevron au bord : lui reste à droite, parce qu'il
-     désigne le geste (déplier) et non le contenu. */
+     opposé, l'œil devait faire l'aller-retour pour la reconstituer.
+     ⚠ ET LE CHEVRON RESTE AVEC LE CHIFFRE (précision de l'auteur). Il ne désigne pas la rangée,
+     il désigne CE GROUPE — « 4 › » se lit d'un bloc, et l'écart part au bord droit derrière eux.
+     Une flèche laissée seule à l'autre bout redemanderait le même aller-retour que le compte. */
   .fs-kt{flex:none;min-width:0}
   .fs-sp{flex:1 1 auto;min-width:0}
   /* Le chevron suit la convention du dépliant, et elle est la même partout : « › » fermé,
@@ -8906,6 +8932,15 @@ async function startExercise(f){
   Runtime.exercise=true;
   state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;state.allTab='page';state.cxOpen=false;state.tkSheet=null;state.edPhaseNew=null;
   render();window.scrollTo(0,0);_exoPulse();}
+/* DÉSARMER AVANT LE PREMIER GESTE (v5.6). Rien n'a commencé : il n'y a rien à archiver, rien à
+   confirmer, et l'on repose une fiche neuve — exactement ce que fait déjà `quitExercise` dans ce
+   même cas. On ne réécrit donc pas la remise à zéro, on l'appelle. */
+function cancelExercise(f){
+  if(!f||!Runtime.exercise||Runtime.started)return;
+  freshRuntime(f,null);Runtime.fiche=f;Runtime.exercise=false;
+  state.flowEnded=false;state.ovVerify=null;state.confOpen=undefined;state.fsOpen=false;
+  state.allTab='page';state.cxOpen=false;state.tkSheet=null;
+  render();announce('Exercice annulé — la session n’a pas démarré.');}
 /* QUITTER L'EXERCICE (v4.28.0, demande utilisateur) : sortie DIRECTE sur le placard. Avant la
    1ʳᵉ action il n'y a rien à archiver — on repose une fiche neuve ; après, MÊME dialogue
    « Terminer » que le menu ⋯ (une action dit sa portée, et la porte de sortie reste unique). */
@@ -11963,10 +11998,26 @@ function applyViewChrome(){
     const sb=document.getElementById('sessStart'),ek=document.getElementById('exoKey');
     if(sb){sb.hidden=!avant;
       if(avant){const n=clean(listOf(state.fiche,'confirmation')).length;
-        const l=n?'Confirmé — démarrer la session':'Démarrer la session';
+        /* ⚠ LE GESTE DIT CE QU'IL DÉMARRE (v5.6, demande utilisateur). Armer l'exercice sans que
+           le bouton primaire change de mot laissait croire qu'on allait ouvrir une session
+           RÉELLE — la pire méprise que le placard d'exercice existe pour empêcher. « l'exercice »
+           tient dans la même largeur que « la session » (deux caractères de plus), donc rien à
+           arbitrer côté responsive : mesuré sans débordement de 320 à 430 px. */
+        const quoi=Runtime.exercise?'l’exercice':'la session';
+        const l=(n?'Confirmé — démarrer ':'Démarrer ')+quoi;
         sb.querySelector('.dp-lbl').textContent=l;
-        sb.setAttribute('aria-label',l+' — chrono, minuteurs et journal ; démarre aussi à la première action');}}
-    if(ek)ek.hidden=!avant;}
+        sb.setAttribute('aria-label',l+(Runtime.exercise
+          ?' — répétition sans patient ; démarre aussi à la première action'
+          :' — chrono, minuteurs et journal ; démarre aussi à la première action'));}}
+    /* La touche d'exercice porte son ÉTAT : armée, elle annonce l'annulation — sinon le seul
+       moyen de revenir en arrière serait de deviner qu'un re-tap fonctionne. */
+    if(ek){ek.hidden=!avant;
+      if(avant){const on=!!Runtime.exercise;
+        ek.classList.toggle('on',on);
+        ek.setAttribute('aria-pressed',on?'true':'false');
+        ek.querySelector('.dp-lbl').textContent=on?'Annuler':'Exercice';
+        ek.setAttribute('aria-label',on?'Annuler l’exercice — la session n’a pas démarré'
+                                       :'Répéter en exercice — rien n’est enregistré comme soin');}}}
    syncDock();}
   // Chrome de la rangée principale V5 (retour masqué sur l'accueil ; chaque vue pose son libellé
   // et son action via #hdrBack ; badge/Créer/recherche gérés ci-dessous).
@@ -12640,10 +12691,14 @@ function crossHitsHtml(q,other){
   if(!q||!other)return '';
   // Recherche transverse aux sections ET à toutes les bibliothèques (comme la liste principale).
   const vis=x=>canEditFiche(x)||x.status!=='draft';
+  /* Le renvoi croisé compte ce que l'AUTRE type donnerait DANS LES MÊMES CRANS (v5.6) : sans
+     cela il annonçait « n aides correspondent aussi » pour des aides que le filtre posé écarte —
+     on aurait basculé de type pour ne rien trouver. */
+  const cran=x=>(state.scope?x.library===state.scope:!x.library)&&(!state.cat||x.category===state.cat);
   const T=qTerms(q);
   const n=other==='protocols'
-    ?protocols.filter(p=>vis(p)&&(hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T))).length
-    :fiches.filter(f=>vis(f)&&(hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T))).length;
+    ?protocols.filter(p=>vis(p)&&cran(p)&&(hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T))).length
+    :fiches.filter(f=>vis(f)&&cran(f)&&(hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T))).length;
   if(!n)return '';
   const lbl=other==='protocols'?('protocole'+(n>1?'s':'')):('aide'+(n>1?'s':'')+' cognitive'+(n>1?'s':''));
   return `<button class="cross-hits" data-crosssec="${other}">${n} ${lbl} correspond${n>1?'ent':''} aussi à cette recherche${uiIcon('chev',15,{sw:2.2,cls:''})}</button>`;}
@@ -13111,8 +13166,17 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
     // (canEditFiche, par item). Sans recherche : périmètre + catégorie courants, comme avant.
     // Tri des RÉSULTATS de recherche (v4.4.6) : épinglées, puis frecency (les fiches qu'on ouvre
     // le plus, récemment, en premier), puis alphabétique. Sans recherche : alphabétique inchangé.
+    /* ⚠ UN FILTRE POSÉ AGIT AUSSI EN RECHERCHE (v5.6, signalé à l'usage : « en mode recherche,
+       quand on change de catégorie, rien ne se passe »). La branche `q` ignorait `state.scope` et
+       `state.cat` — le déclencheur annonçait « 2 filtres », la liste n'en tenait aucun compte, et
+       le contrôle était donc MORT au moment précis où l'on s'en sert. Ce n'est pas la règle
+       « on réordonne, on ne filtre jamais » : celle-là vaut pour un RAPPROCHEMENT que la machine
+       devine (posologie, étiquettes), pas pour un cran que l'utilisateur a posé du doigt.
+       La règle de v5.0.3 tient dans les deux sens : on ne peut pas se retrouver dans un corpus
+       restreint sans savoir pourquoi — ni croire l'avoir restreint sans que rien ne bouge. */
     list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(f=>q?((hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T))&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.library===state.scope:!f.library)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
+      const cran=x=>(state.scope?x.library===state.scope:!x.library)&&(!state.cat||x.category===state.cat);
+      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(f=>q?((hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T))&&cran(f)&&(canEditFiche(f)||f.status!=='draft')):((state.scope?f.library===state.scope:!f.library)&&(!state.cat||f.category===state.cat)&&(canEdit||f.status!=='draft')));},
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -13232,8 +13296,10 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     // MÊME présentation que les fiches (harmonisation V5) : épinglés d'abord, liseré, statut,
     // épingle, chevron — un seul langage de carte sur tout l'accueil.
     // Même tri de recherche que les fiches (v4.4.6) : épinglés > frecency > alphabétique.
+    /* Même règle que pour les aides : un cran posé agit aussi en recherche (v5.6). */
     list:(q,canEdit)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?((hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T))&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.library===state.scope:!p.library)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
+      const cran=x=>(state.scope?x.library===state.scope:!x.library)&&(!state.cat||x.category===state.cat);
+      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(p=>q?((hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T))&&cran(p)&&(canEditFiche(p)||p.status!=='draft')):((state.scope?p.library===state.scope:!p.library)&&(!state.cat||p.category===state.cat)&&(canEdit||p.status!=='draft')));},
     /* Même rangée que les fiches (un seul langage sur tout l'accueil) ; « n PDF » reste — c'est
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
     row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
@@ -16346,7 +16412,7 @@ function renderRead(){
          rien n'est repliable : c'est alors un simple titre, et un bouton qui n'agit pas serait un
          bouton mort. */
       +(démarrée
-        ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl" data-n="${fsN}">${fsFold?fsN:(fsN+' rappel'+(fsN>1?'s':''))}</span><span class="fs-sp"></span><span class="fs-chev" aria-hidden="true">${fsChev(fsFold)}</span><span class="sr-only">${fsN} rappel${fsN>1?'s':''}</span></button>`
+        ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl" data-n="${fsN}">${fsFold?fsN:(fsN+' rappel'+(fsN>1?'s':''))}</span><span class="fs-chev" aria-hidden="true">${fsChev(fsFold)}</span><span class="fs-sp"></span><span class="sr-only">${fsN} rappel${fsN>1?'s':''}</span></button>`
         :`<div class="fs-k"><span class="fs-kt">■ Ne pas oublier</span></div>`)
       +`<div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
@@ -17644,8 +17710,17 @@ bindModalDismiss(refModal,closeRefSheet);
     `main`, donc elles survivent aux re-rendus (c'est tout l'intérêt du dock). `startSessionGesture`
     reste le point d'écriture unique du démarrage, partagé avec le carrelage statique d'hier. */
  {const sb=document.getElementById('sessStart');if(sb)sb.onclick=()=>{startSessionGesture();};}
+ /* ⚠ LA TOUCHE ARME, ET ELLE DÉSARME (v5.6, demande utilisateur : « on doit pouvoir annuler
+    avant d'avoir démarré la session en recliquant sur exercice — et afficher un texte
+    différent »). Le mode d'exercice ne COMMENCE qu'au démarrage : tant que rien n'a été fait,
+    l'avoir armé par erreur ne doit pas coûter un aller-retour par le menu ⋯ ni un dialogue.
+    Un interrupteur qui ne s'éteint que par un autre contrôle n'est pas un interrupteur (règle
+    déjà écrite pour la poignée ⠿ en v4.77.0). Après le premier geste, en revanche, la sortie
+    reste `quitExercise` : il y a alors quelque chose à terminer, et cela se dit. */
  {const ek=document.getElementById('exoKey');
-  if(ek)ek.onclick=()=>{const f=state.fiche;if(f)startExercise(f);};}
+  if(ek)ek.onclick=()=>{const f=state.fiche;if(!f)return;
+    if(Runtime.exercise&&!Runtime.started){cancelExercise(f);return;}
+    startExercise(f);};}
  /* V1 — FERMETURE TRIPLE : re-tap de la touche, ✕ du volet, tap hors volet. Rien ne bouge
     derrière : le volet est FIXE, il ne prend aucune hauteur au flux (le témoin M11 « un tap ne
     déplace pas l'écran » tient donc par construction). */
