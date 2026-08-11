@@ -3615,9 +3615,10 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
         o[sel]={w:Math.round(r.width),h:Math.round(r.height),y:Math.round(r.y),
                 cible:Math.round(r.height+2*h),cibleW:Math.round(r.width+2*h)};}
       return o;});
-    const acc=await mesure();
+    const hdrH=()=>page.evaluate(()=>Math.round(document.querySelector('header.bar').getBoundingClientRect().height));
+    const acc=await mesure();const hAcc=await hdrH();
     await ouvrirFiche(page,'Anaphylaxie');
-    const lec=await mesure();
+    const lec=await mesure();const hLec=await hdrH();
     for(const [nom,m] of [['accueil',acc],['lecture',lec]]){
       const v=Object.entries(m);
       t(`${W} · ${nom} : témoin — la rangée porte au moins deux contrôles`, v.length>=2, JSON.stringify(Object.keys(m)));
@@ -3629,6 +3630,16 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
       t(`${W} · ${nom} : cible ≥ 44 px, et jamais au-delà de son voisin`,
         v.every(([,x])=>x.cible>=44&&x.cible<=46&&x.cibleW>=44), JSON.stringify(m));
     }
+    /* ⚠ LA HAUTEUR DE L'EN-TÊTE NE DÉPEND PAS DE LA VUE (v5.6, signalé à l'usage). Mesuré à
+       ≥ 780 px : 68 px sur l'accueil contre 61 en lecture, pour la seule raison que le champ de
+       recherche était plus haut que les contrôles de sa rangée. C'est l'objet le plus permanent
+       du produit, et tout ce qui s'y accroche en dépend (couches collantes, rail A→Z, décalage
+       d'ancre) — un plancher commun sur la rangée le garantit par construction.
+       ⚠ SOUS 780 px L'ÉCART EST STRUCTUREL et n'est pas mesuré ici : l'accueil y porte une RANGÉE
+       DE PLUS (la recherche, que la planche 7b veut dans l'en-tête). Les égaliser supposerait de
+       la retirer. Et une fois défilé, le resserrement de 7a les ramène à 62 contre 61. */
+    if(W>=780) t(`${W} · l'en-tête a la MÊME hauteur sur l'accueil et en lecture`,
+      Math.abs(hAcc-hLec)<=1, `${hAcc} px contre ${hLec} px`);
     /* Le raccourci de thème : présent en LECTURE, absent de l'accueil — c'est le moment qui le
        justifie, pas la place. */
     t(`${W} · le thème est un raccourci de LECTURE, pas de l'accueil`,
@@ -4128,6 +4139,48 @@ await sec('v5.6 · un filtre posé agit aussi en recherche', async () => {
     t('… et le retirer les rend tous', r.rendu===r.sansFiltre, `${r.rendu} / ${r.sansFiltre}`);
   }
   await page.close();
+}
+});
+
+/* ══ v5.6 — LE VOLET DU DOCK SUIT LA BARRE, ET LA MAQUETTE LES SÉPARE LÉGÈREMENT ═══════════
+   Signalé à l'usage : « la mini-fenêtre qui apparaît sur Noter l'heure ou Complication n'est plus
+   adaptée à la nouvelle taille de la barre flottante, elle est décalée par moments, et dans le
+   mockup elle en est un tout petit peu séparée ». Deux défauts mesurés : elle se posait à
+   `bottom:64px` EN DUR — valeur juste le jour où elle a été écrite, fausse dès que la barre change
+   de contenu, et qui la faisait CHEVAUCHER la barre de 8 px — et elle se centrait sur la FENÊTRE
+   (`max-width:660; margin:auto`) quand la barre s'aligne sur la COLONNE D'ACTION : 310..970 contre
+   280..920 à 1280 px, 120..780 contre 20..540 à 900. */
+await sec('v5.6 · le volet du dock suit la barre flottante', async () => {
+{
+  for(const W of [390,900,1280]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await ouvrirFiche(page,'Anaphylaxie');
+    await demarrerSession(page);
+    const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+      const k=[...document.querySelectorAll('.sd-key')].find(x=>/NOTER/i.test(x.textContent));
+      if(!k)return {err:'touche ⏱ introuvable'};
+      k.click();await w(500);
+      const c=document.querySelector('.ds-card'),d=document.querySelector('#sessionDock .sd-in');
+      if(!c||!d)return {err:'volet ou barre absents'};
+      const C=c.getBoundingClientRect(),D=d.getBoundingClientRect();
+      return {vx:Math.round(C.left),vr:Math.round(C.right),
+              dx:Math.round(D.left),dr:Math.round(D.right),
+              ecart:Math.round(D.top-C.bottom)};});
+    if(r.err){t(`${W} · témoin`,false,r.err);}
+    else{
+      t(`${W} · le volet a EXACTEMENT la boîte de la barre`,
+        Math.abs(r.vx-r.dx)<=1&&Math.abs(r.vr-r.dr)<=1,
+        `volet ${r.vx}..${r.vr} · barre ${r.dx}..${r.dr}`);
+      /* La maquette les SÉPARE : ni collés (ce serait un étage de la barre), ni recouvrants. */
+      t(`${W} · … et il en est légèrement séparé, jamais par-dessus`,
+        r.ecart>=4&&r.ecart<=16, `${r.ecart} px`);
+    }
+    await page.close();
+  }
 }
 });
 

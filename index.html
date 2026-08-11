@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-BbGgAVIaqwgx7H8xDTy6hdxKTePjdNFKup1OG6t5hc8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Mj2C3GcnuB9K3Uso2o6Ymd7Mv1iSMP6ErEdOwhMsPwQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1083,6 +1083,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .srch-x::after{content:"";position:absolute;inset:-6px}   /* cible ≥ 32px sans épaissir la rangée */
   .srch-x:hover{background:var(--surface-2);color:var(--ink)}
   .srch-x:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+  /* ⚠ MÊME HAUTEUR D'EN-TÊTE SUR L'ACCUEIL ET EN LECTURE (v5.6, signalé à l'usage). Mesuré à
+     ≥ 780 px : 68 px sur l'accueil contre 61 en lecture, pour la seule raison que le champ de
+     recherche fait 47 px quand les contrôles de la rangée en font 40. L'en-tête est l'objet le
+     plus permanent du produit : sa hauteur ne doit pas dépendre de la vue, sinon tout ce qui s'y
+     accroche (les couches collantes, le rail A→Z, le décalage d'ancre) change avec elle.
+     Le champ descend à la hauteur de la rangée — au POINTEUR FIN uniquement : sous 780 px le
+     plancher de 16 px de la règle 9 s'applique et rien n'est négociable, c'est d'ailleurs là que
+     le champ prend sa propre ligne.
+     ⚠ CE QUI RESTE, ET QUI EST STRUCTUREL : en voie étroite l'accueil porte une RANGÉE DE PLUS
+     (la recherche, que la planche 7b a explicitement voulue dans l'en-tête). Les égaliser
+     supposerait de la retirer, ce que 7b refuse. Et une fois défilé, le resserrement (7a) les
+     ramène à 62 contre 61 : l'écart n'existe qu'au repos, là où l'on a la place. */
+  @media (min-width:780px){header.bar.home .hdr-search input{padding-top:8px;padding-bottom:8px;line-height:1.4}}
+  /* ⚠ ET C'EST LA RANGÉE QUI FIXE LA HAUTEUR, PAS SON CONTENU LE PLUS GRAND. Ajuster le champ au
+     pixel près revenait à courir après une valeur dérivée d'une police et d'un interlignage —
+     elle rebougera au premier changement de l'un des deux. Un plancher commun rend la hauteur
+     IDENTIQUE dans les deux vues par construction, quel que soit ce que la rangée porte. */
+  header.bar .id-row{min-height:40px}
   @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:12px 32px 12px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
   /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
   /* ══ 7a — CE QUI SE RETIRE AU DÉFILEMENT, SUR L'ACCUEIL ÉTROIT ══════════════════════════
@@ -1372,10 +1390,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
      qu'iOS ne fausse pas ; ÷ --zf, règle 10), jamais plein écran. Ils montent DU dock, donc au-
      dessus de lui, et sous la capsule : V2 — l'alarme reste toujours en vue. */
-  #dockSheet{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  /* ⚠ LE VOLET SUIT LA BARRE : MÊME BOÎTE, ET UN PETIT ÉCART AU-DESSUS (v5.6, maquette + signalé
+     à l'usage). Il était centré sur la FENÊTRE (`max-width:660px; margin:auto`) pendant que la
+     barre s'aligne sur la COLONNE D'ACTION : mesuré à 1280, volet 310..970 contre barre
+     280..920 — décalé de 30 px, et de 100 à 900. Il reprend donc les rembourrages et les marges
+     de la barre, à la ligne près (mêmes tokens de grille), et sa hauteur de départ vient de
+     `--dock-h`, mesurée, plus 8 px d'écart : la maquette ne les colle pas, elle les sépare
+     légèrement — le volet est une réponse au geste, pas un étage de la barre. */
+  #dockSheet{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
   #dockSheet[hidden]{display:none}
-  body.kb-open #dockSheet{bottom:0}
-  .ds-card{max-width:660px;margin:0 auto;background:var(--sys);color:var(--sys-ink);border-radius:var(--r-3);overflow-y:auto;overscroll-behavior:contain;max-height:calc(var(--vvh,100dvh) / var(--zf,1) * .45);pointer-events:auto;box-shadow:0 -8px 32px rgba(0,0,0,.35)}
+  body.kb-open #dockSheet{bottom:8px}
+  /* Les mêmes marges que la barre, aux mêmes paliers : le volet ne se centre jamais sur la
+     fenêtre, il se cale sur la colonne qu'il commande. */
+  @media (min-width:780px){
+    #dockSheet{padding-inline:20px}
+    #dockSheet .ds-card{margin-right:calc(var(--col-state) + var(--col-gap))}
+  }
+  @media (min-width:1200px){
+    #dockSheet .ds-card{margin-left:calc(var(--col-orient) + var(--col-gap))}
+  }
+  .ds-card{max-width:none;margin:0;background:var(--sys);color:var(--sys-ink);border-radius:var(--r-3);overflow-y:auto;overscroll-behavior:contain;max-height:calc(var(--vvh,100dvh) / var(--zf,1) * .45);pointer-events:auto;box-shadow:0 -8px 32px rgba(0,0,0,.35)}
   .ds-head{display:flex;align-items:center;gap:8px;padding:10px 16px 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2)}
   .ds-head.ds-cxh{color:var(--crit-sys)}
   .ds-head .ds-t{font-family:var(--mono);font-size:12px;color:var(--sys-ink);letter-spacing:0;text-transform:none}
@@ -2124,11 +2158,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .grp-row{display:flex;align-items:stretch;gap:8px;margin:12px 0 0}
   .grp-row:empty{display:none}
   .grp-row .filt-tog{margin-left:auto}
-  .grp-seg{flex:none;display:flex;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
-  .grp-b{min-height:32px;padding:0 10px;border:0;border-radius:var(--r-1);background:none;color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
-  .grp-b.on{background:var(--sys);color:var(--sys-ink)}
-  .grp-b:not(.on):hover{background:var(--work)}
-  .grp-b:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
+  /* L'HABILLAGE du sélecteur de groupement (fond d'ambiance + contour, décision utilisateur) ; la
+     MÉCANIQUE est celle de `.seg`. Écart de 2 px au lieu de 8 : il vit dans une rangée de
+     contrôles, pas dans une fenêtre de réglages — c'est le seul écart, et la pastille le lit par
+     `--seg-gap`. */
+  /* ⚠ `.seg.grp-seg` ET NON `.grp-seg` : à spécificité égale c'est l'ORDRE qui tranche, et `.seg`
+     est déclarée 4 000 lignes plus bas — son `gap:8px` gagnait, la pastille se calculait sur 2 px
+     et se peignait sur 8. Vingtième piège de cascade du dossier ; on passe par la spécificité,
+     jamais par la position. */
+  .seg.grp-seg{flex:none;--seg-gap:2px;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
+  .grp-seg .seg-btn{min-height:32px;padding:0 10px;border-radius:var(--r-1);font-size:11px;font-weight:700;white-space:nowrap;color:var(--ink-2)}
+  /* ⚠ LA PASTILLE SE MESURE SUR LA BOÎTE DE REMBOURRAGE, PAS SUR LES PISTES. Un élément absolu
+     résout ses pourcentages contre la boîte de REMBOURRAGE de son parent : les 2 px d'habillage
+     de ce sélecteur y entraient donc deux fois, et la pastille dépassait son segment de 5 px en
+     largeur et de 2 en abscisse. Les autres segmentés n'ont pas de rembourrage — c'est pour cela
+     que le défaut n'existe qu'ici, et pour cela qu'il se corrige ici. */
+  .grp-seg .seg-pill{top:2px;bottom:2px;left:2px;border-radius:var(--r-1);
+    width:calc((100% - 4px - var(--seg-gap,8px)) / var(--seg-n,2))}
+  /* ⚠ LA PASTILLE GARDE LE REGISTRE DU COMPOSANT (`--primary-soft` / `--primary-dk`), et ce n'est
+     pas une uniformisation gratuite : l'ancien cran actif était un aplat SOMBRE à encre claire,
+     et une encre claire sur une pastille ABSOLUE est invisible à toute mesure de contraste — le
+     harnais lit le fond des ANCÊTRES, où la pastille n'est pas (même angle mort que l'`opacity`
+     en v5.0.0). Mesuré 1,04:1, et c'était un faux positif du même genre que ceux qu'on corrige
+     partout : le texte était lisible, mais RIEN ne pouvait le prouver. Avec le registre du
+     composant, l'encre tient sur le fond du conteneur comme sur la pastille — la mesure vaut
+     dans les deux cas, ce qui est la seule façon d'être sûr. C'est aussi ce que la demande
+     appelait : « comme les sélecteurs de taille de texte et de thème ». Le fond d'ambiance et le
+     contour du conteneur, eux, sont conservés (décision utilisateur). */
+  .grp-seg .seg-btn:not(.on):hover{color:var(--ink)}
   .azrail.catrail button{padding:0 4px;min-height:26px}
   .azr-dot{display:block;width:8px;height:8px;border-radius:999px}
   /* Dans le livre, les rangées n'ont plus de carte à elles : un filet les sépare, et la dernière
@@ -6178,12 +6235,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      piloter la tab bar, « Créer » et #modeSeg. Le cas N passe par un `#id` et non par une classe
      de plus : à spécificité égale ce serait l'ORDRE de déclaration qui trancherait, et le projet
      a déjà payé cinq fois ce piège (cf. .read-grid, .cbt-n, .mode-seg, les largeurs d'éditeur). */
-  .seg{position:relative;display:flex;gap:8px}
+  /* ⚠ LA MÉCANIQUE À N SEGMENTS EST CELLE DU COMPOSANT, PLUS CELLE D'UN `#id` (v5.6, signalé à
+     l'usage : « dans la fenêtre Compte, le fond qui glisse d'option en option est trop large et
+     ne correspond pas à une autre »). Elle vivait sur `#zoomSeg` seul : le sélecteur de THÈME,
+     ajouté ensuite avec trois crans, héritait donc de la pastille à DEUX — mesuré 79 px de
+     pastille pour un segment de 43. Une mécanique écrite pour un porteur est une mécanique que
+     le porteur suivant n'aura pas.
+     ⚠ ET LA GRILLE REMPLACE LE FLEX : `flex:1` n'égalise PAS des libellés de longueurs
+     différentes (`min-width:auto` recale chaque item sur son texte — c'est la leçon v4.25.1, qui
+     avait déjà imposé une grille pour le cas à deux). `repeat(var(--seg-n,2),1fr)` donne des
+     pistes strictement égales quel que soit le nombre de crans, donc une pastille qui tombe
+     juste sans qu'on ait à la calculer par sélecteur.
+     Le défaut par défaut vaut DEUX : `calc((100% - 8px)/2)` est exactement l'ancien
+     `calc(50% - 4px)`, et `.seg.i1` continue de piloter les deux-crans par l'ORDRE. */
+  .seg{position:relative;display:grid;grid-template-columns:repeat(var(--seg-n,2),1fr);gap:8px}
   /* Fond de pastille = teinte de SÉLECTION, jamais --surface : elle s'INVERSE d'un thème à
      l'autre et la pastille se lirait inactive (v4.25.1). */
-  .seg-pill{position:absolute;top:0;bottom:0;left:0;width:calc(50% - 4px);background:var(--primary-soft);border-radius:10px;transform:translateX(0);transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
-  .seg.i1 .seg-pill{transform:translateX(calc(100% + 8px))}
-  .seg-btn{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:10px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
+  .seg-pill{position:absolute;top:0;bottom:0;left:0;
+    width:calc((100% - (var(--seg-n,2) - 1) * var(--seg-gap,8px)) / var(--seg-n,2));
+    transform:translateX(calc(var(--seg-i,0) * (100% + var(--seg-gap,8px))));
+    background:var(--primary-soft);border-radius:10px;transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
+  .seg.i1 .seg-pill{transform:translateX(calc(100% + var(--seg-gap,8px)))}
+  .seg-btn{min-width:0;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:10px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
   .seg-btn.on{color:var(--primary-dk)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* TAILLE DU TEXTE — le sélecteur segmenté de l'app, à quatre paliers (maquette M5, demande
@@ -6192,8 +6265,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      typographique fermée (cf. scripts/check-type.mjs). Largeur FIXE : 4 × 44 + 3 × 8 = 200 px,
      la cible de 44 px étant tenue même au palier le plus étroit servi. */
   #zoomSeg{flex:none;width:200px}
-  #zoomSeg .seg-pill{width:calc((100% - (var(--seg-n,4) - 1) * 8px) / var(--seg-n,4));
-    transform:translateX(calc(var(--seg-i,0) * (100% + 8px)))}
   #zoomSeg .seg-btn{gap:0;font-weight:800}
   #zoomSeg .ts-90{font-size:12px}#zoomSeg .ts-100{font-size:13.5px}
   #zoomSeg .ts-115{font-size:15px}#zoomSeg .ts-130{font-size:17.5px}
@@ -12525,11 +12596,20 @@ function filtersSummary(){
    annuaire, « Catégories » celui d'un service. Il vit dans l'en-tête de la section qu'il
    réordonne — pas dans le chrome : il ne s'applique qu'au répertoire, et un contrôle vit là où
    porte son effet. */
+/* ⚠ C'EST LE SÉLECTEUR SEGMENTÉ DU PRODUIT, PAS DEUX BOUTONS (v5.6, demande utilisateur : « le
+   sélecteur A–Z / Catégories devrait être comme ceux de la taille du texte et du thème, mais
+   pourquoi pas garder la même couleur de fond et le contour »). C'était une paire de boutons dont
+   l'actif prenait un aplat — même idée, autre grammaire : un cran qui SAUTE au lieu de glisser, et
+   un troisième dessin à apprendre pour un objet dont le produit a déjà la forme.
+   Il prend donc `.seg` (pastille glissante, pistes égales, glisser au doigt par `bindSegDrag`) et
+   GARDE son habillage : fond d'ambiance, contour, rembourrage de 2 px — c'est ce qui le distingue
+   des segmentés de réglage, qui vivent nus dans une fenêtre. */
 function homeGroupSegHtml(){
-  const gk=homeGroupKey();
-  return `<span class="grp-seg" role="group" aria-label="Clé de groupement">`
-    +`<button type="button" class="grp-b${gk==='az'?' on':''}" data-hgrp="az" aria-pressed="${gk==='az'}">A–Z</button>`
-    +`<button type="button" class="grp-b${gk==='cat'?' on':''}" data-hgrp="cat" aria-pressed="${gk==='cat'}">Catégories</button>`
+  const gk=homeGroupKey(),i=gk==='cat'?1:0;
+  return `<span class="seg grp-seg${i?' i1':''}" id="grpSeg" role="radiogroup" aria-label="Clé de groupement" style="--seg-n:2;--seg-i:${i}">`
+    +`<span class="seg-pill" aria-hidden="true"></span>`
+    +`<button type="button" class="seg-btn${i?'':' on'}" role="radio" data-hgrp="az" aria-checked="${!i}">A–Z</button>`
+    +`<button type="button" class="seg-btn${i?' on':''}" role="radio" data-hgrp="cat" aria-checked="${!!i}">Catégories</button>`
     +`</span>`;}
 /* LE DÉCLENCHEUR NE DISPARAÎT PLUS, ET L'ÉTAT ACTIF N'EST PLUS CACHÉ POUR AUTANT (v5.0.3,
    signalé à l'usage : « le bouton filtrer ne s'affiche pas toujours quand on a sélectionné »).
@@ -13118,6 +13198,13 @@ function renderHomeList(cfg){
   main.querySelectorAll('[data-hgrp]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.hgrp;if(homeGroupKey()===k)return;
     state.homeGroup=k;cfg.rerender();});
+  /* Le GLISSER au doigt, comme sur tous les segmentés du fichier (HIG iOS, v4.29.0) — la
+     pastille suit le pouce, le commit se fait au relâchement. Le sélecteur est re-rendu avec la
+     liste, donc on rebranche ici ; le glissement se rejoue par `.seg-replay` (patron
+     `#readTopSeg`, v4.21.0), sans quoi la pastille SAUTERAIT au lieu de glisser. */
+  {const gs=main.querySelector('#grpSeg');
+   if(gs){bindSegDrag(gs);
+     gs.classList.add('seg-replay');void gs.offsetWidth;gs.classList.remove('seg-replay');}}
   bindAzRail();
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;cfg.rerender();};}
   main.querySelectorAll('[data-emptynew]').forEach(b=>b.onclick=()=>openCreateFor(b.dataset.emptynew));
@@ -17976,7 +18063,16 @@ function syncDock(){
    if(d){const ks=['allBtn','refBtn','cxKey','tkKey','exoKey','sessStart'].map(i=>document.getElementById(i));
      d.hidden=!ks.some(k=>k&&!k.hidden);
      document.body.classList.toggle('dock-on',!d.hidden);
-     if(d.hidden)dockSheetClose();}}
+     if(d.hidden)dockSheetClose();
+     /* ⚠ LA HAUTEUR DU DOCK EST UNE MESURE, PAS UN NOMBRE ÉCRIT (v5.6, signalé à l'usage : « la
+        mini-fenêtre n'est plus adaptée à la nouvelle taille de la barre flottante, et elle est
+        décalée par moments »). Le volet se posait à `bottom:64px` en dur — une valeur juste le
+        jour où elle a été écrite, fausse dès que la barre change de contenu (un nom de
+        complication sur deux lignes l'épaissit), et qui le faisait CHEVAUCHER la barre de 8 px
+        là où la maquette laisse un petit écart. On expose la hauteur RÉELLE, comme `--hdr-h` et
+        `--ctrl-h` le font déjà pour les couches du haut ; le CSS y ajoute l'écart. */
+     if(!d.hidden){const h=Math.round(d.getBoundingClientRect().height/zoomF());
+       document.documentElement.style.setProperty('--dock-h',h+'px');}}}
   /* L'AJUSTEMENT AVANT LA MESURE. `syncHdrScroll` lit la HAUTEUR de cette rangée pour poser
      `--ctrl-h`, dont le quai dépend pour se coller dessous : si l'enroulement était décidé après,
      le quai passerait une passe entière à recouvrir la seconde ligne. Et c'est ici que la
