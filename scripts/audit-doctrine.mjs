@@ -811,15 +811,21 @@ for (const w of [320, 360, 390]) {
      o.planNbLignes = document.querySelectorAll('#planModal .pl-line').length;}
     document.getElementById('planX').click(); await new Promise(x => setTimeout(x, 300));
 
-    /* (b) LA CROIX DU PANNEAU MINUTEURS RESTE DANS LE CADRE. On mesure contre le bord INTÉRIEUR
-       (bordure 1 px + rembourrage 14 px), comme le fait l'œil : un bouton qui touche la bordure
-       est déjà coupé. */
+    /* (b) LA CROIX DU PANNEAU MINUTEURS RESTE DANS LE CADRE. On mesure contre le bord INTÉRIEUR,
+       comme le fait l'œil : un bouton qui touche la bordure est déjà coupé.
+       ⚠ LE BORD INTÉRIEUR SE CALCULE, IL NE S'ÉCRIT PAS (v5.6). Il était en dur — « bordure 1 px
+       + rembourrage 14 » —, donc le témoin encodait la géométrie d'UN logement. Le jour où le
+       volet du quai a pris la largeur de la capsule, son panneau a perdu sa bordure et changé de
+       rembourrage : le contrôle est passé au rouge sur une croix parfaitement dans le cadre.
+       Un littéral qui décrit un mécanisme rougit sur un changement JUSTE (leçon v5.0.0). */
     // v5.4.2 : le panneau s'ouvre par le QUAI (la rangée repliée n'existe plus).
     const o2 = document.getElementById('cbTimers'); if (o2) { o2.click(); await new Promise(x => setTimeout(x, 350)); }
     {const pan = document.querySelector('.rt-panel'), head = document.querySelector('.rt-head'),
       k = document.querySelector('.rt-x');
      if (pan && k) { const p = pan.getBoundingClientRect(), kr = k.getBoundingClientRect();
-       o.croixDebord = Math.round(kr.right - (p.right - 15));
+       const cs = getComputedStyle(pan);
+       const interieur = p.right - (parseFloat(cs.paddingRight)||0) - (parseFloat(cs.borderRightWidth)||0);
+       o.croixDebord = Math.round(kr.right - interieur);
        o.croixVisible = kr.width >= 32 && kr.height >= 32; }
      else { o.croixDebord = null; o.croixVisible = false; }
      o.headDebord = head ? head.scrollWidth - head.clientWidth : null;}
@@ -3596,6 +3602,163 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
       cy.slice(0,3).join(',')==='auto,light,dark'&&cy[3]==='auto', cy.join(' → '));
     await page.close();
   }
+}
+});
+
+/* ══ v5.6 — LE RAIL A→Z NE BOUGE NI AU DÉFILEMENT NI AU RE-RENDU ═══════════════════════════
+   Signalé à l'usage : « il se déplace légèrement quand on a scrollé, et se recentre quand on
+   clique sur n'importe quel bouton ». Depuis 7a l'en-tête de l'accueil se COMPACTE au défilement
+   (114 → 62 px) et `azrPoseBox` mesurait son bas À L'INSTANT DU RENDU : tout re-rendu reposait
+   `--azr-top` avec la hauteur du moment, la boîte grandissait de 52 px, et les lettres — qui
+   sont CENTRÉES — se déplaçaient de 26 px sous le doigt. C'est la règle de v5.0.9, appliquée à
+   un second objet : une géométrie de chrome ne se dérive jamais d'un état qui dépend du
+   défilement.
+   ⚠ LE TÉMOIN CONSTRUIT SON CAS : deux fiches d'exemple ne donnent pas assez de lettres pour que
+   le rail existe, ni assez de hauteur pour que la page défile — il pose son propre répertoire. */
+await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    for(const l of 'ABCDEFGHIJKLMNOPQRSTUVWX'.split('')){
+      const f=blankFiche();f.title=l+' — démo';fiches.push(migrate(f));}
+    await persist();render();await w(400);
+    const g=()=>{const el=document.getElementById('azRail');
+      if(!el||el.hidden)return null;
+      const b=el.getBoundingClientRect(),l=el.querySelector('[data-azl]');
+      return {top:Math.round(b.top),h:Math.round(b.height),
+              l1:l?Math.round(l.getBoundingClientRect().top):null,
+              n:el.querySelectorAll('[data-azl]').length,
+              slim:document.body.classList.contains('home-slim')};};
+    const repos=g();
+    window.scrollTo(0,400);await w(350);
+    const defile=g();
+    /* Un tap qui NE CHANGE PAS le contenu du rail : c'est le cas signalé. Changer le groupement
+       changerait le nombre de crans, donc leur position — ce serait mesurer autre chose. */
+    const pin=main.querySelector('[data-pin]');if(pin)pin.click();await w(500);
+    const apres=g();
+    window.scrollTo(0,0);await w(350);
+    const remonte=g();
+    return {repos,defile,apres,remonte,avaitPin:!!pin};});
+
+  t('témoin : le rail existe et porte plusieurs lettres',
+    !!r.repos&&r.repos.n>=5, JSON.stringify(r.repos));
+  t('témoin : le défilement resserre bien l\'en-tête',
+    !!r.defile&&r.defile.slim===true, JSON.stringify(r.defile));
+  t('témoin : un tap sans effet sur le rail a bien eu lieu', r.avaitPin===true);
+  const memes=(a,b)=>a&&b&&Math.abs(a.top-b.top)<=1&&Math.abs(a.h-b.h)<=1&&Math.abs(a.l1-b.l1)<=1;
+  t('le rail ne bouge pas au défilement', memes(r.repos,r.defile),
+    `${JSON.stringify(r.repos)} → ${JSON.stringify(r.defile)}`);
+  t('… ni à un re-rendu déclenché par un tap', memes(r.defile,r.apres),
+    `${JSON.stringify(r.defile)} → ${JSON.stringify(r.apres)}`);
+  t('… ni au retour en haut de page', memes(r.apres,r.remonte),
+    `${JSON.stringify(r.apres)} → ${JSON.stringify(r.remonte)}`);
+  await page.close();
+}
+});
+
+/* ══ v5.6 — DEUX NIVEAUX DE SÉPARATION DANS LE RAIL, ET ILS NE SE RESSEMBLENT PLUS ══════════
+   Signalé à l'usage : « les séparations entre repères posologiques sont les mêmes qu'entre les
+   grands blocs, ce qui pose un problème de hiérarchie » et « en mode consulter, diagnostics
+   différentiels et références sont collés entre eux ». Les deux étaient exacts et mesurés : un
+   ITEM et une FAMILLE portaient le MÊME filet de 1 px, et les deux cartes de « Consulter »
+   n'avaient aucun écart. Une famille se sépare désormais par l'ESPACE et par son titre ; le
+   filet reste à l'item, qui n'a que lui. */
+await sec('v5.6 · la hiérarchie des séparations du rail', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:1000}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('button')].find(x=>/Consulter/.test(x.textContent));
+    if(b)b.click();await w(600);
+    const side=document.querySelector('.read-side');if(!side)return {err:'pas de rail'};
+    const px=v=>Math.round(parseFloat(v)||0);
+    const fam=[...side.querySelectorAll('.rail-sec')].map(e=>{const cs=getComputedStyle(e);
+      return {t:(e.querySelector('.rail-title')||{}).textContent||'',mt:px(cs.marginTop),bt:px(cs.borderTopWidth)};});
+    const cartes=[...side.querySelectorAll('.rs-sec')].map(e=>{const cs=getComputedStyle(e);
+      return {t:(e.querySelector('summary')||{}).textContent||'',mt:px(cs.marginTop)};});
+    const items=[...side.querySelectorAll('.pos-card')].map(e=>px(getComputedStyle(e).borderTopWidth));
+    const col=side.querySelector('.ref-col');
+    return {fam,cartes,items,colBb:col?px(getComputedStyle(col).borderBottomWidth):null,
+            colMb:col?px(getComputedStyle(col).marginBottom):null};});
+
+  t('témoin : le cas est constitué (plusieurs familles, deux cartes, des items)',
+    !r.err&&r.fam.length>=2&&r.cartes.length>=2&&r.items.length>=2,
+    JSON.stringify({fam:r.fam.length,cartes:r.cartes.length,items:r.items.length}));
+  /* UNE FAMILLE : de l'espace, aucun trait. */
+  t('une famille se sépare par l\'espace, jamais par un trait',
+    r.fam.slice(1).every(f=>f.mt>=20&&f.bt===0), JSON.stringify(r.fam));
+  /* UN ITEM : un trait, et c'est le seul signal dont il dispose. */
+  t('… et un item garde son filet, qui est son seul signal',
+    r.items.filter(x=>x>0).length>=1, JSON.stringify(r.items));
+  /* « CONSULTER » : deux cartes ne se touchent pas. */
+  t('les deux cartes de « Consulter » ne sont plus collées',
+    r.cartes.slice(1).every(c=>c.mt>=8), JSON.stringify(r.cartes));
+  /* Et la frontière de l'excursion suit la même règle que les familles. */
+  t('… et la frontière de l\'excursion se marque par l\'espace aussi',
+    r.colBb===0&&r.colMb>=20, `bordure ${r.colBb}, marge ${r.colMb}`);
+  await page.close();
+}
+});
+
+/* ══ v5.6 — LE VOLET DU QUAI EST UN SECOND ÉTAGE DE LA CAPSULE ═════════════════════════════
+   Signalé à l'usage : « le menu qui se déroule du chronomètre de session devrait être designé
+   comme s'il était intégré au bandeau session — la largeur doit être la même, et il devrait être
+   collé ». La v5.4.1 en avait fait un ÉTAGE du chrome plutôt qu'une carte flottante : bonne
+   structure, géométrie d'avant — il restait posé sous TOUT le bandeau et de bord à bord, donc il
+   se lisait comme une seconde barre, pas comme le dépliant DE LA CAPSULE.
+   ⚠ ET LES INVARIANTS DE V1 NE BOUGENT PAS : rien ne se déplace derrière lui (il est `fixed`),
+   et l'alarme reste en vue (V2) — la capsule est AU-DESSUS de lui, jamais recouverte. */
+await sec('v5.6 · le volet du quai prolonge la capsule', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const g=e=>e?(x=>({x:Math.round(x.x),r:Math.round(x.right),t:Math.round(x.top),b:Math.round(x.bottom)}))(e.getBoundingClientRect()):null;
+    const cap=()=>document.getElementById('cbTimers');
+    /* On relève la géométrie du CONTENU avant/après : un volet FIXE ne doit rien déplacer.
+       ⚠ ON RE-INTERROGE LE DOM APRÈS LE GESTE : ouvrir le volet passe par `renderKeepAnchor`,
+       donc une référence gardée d'avant désigne un nœud DÉTACHÉ, dont le rectangle vaut 0 — le
+       contrôle mesurerait alors sa propre erreur (leçon déjà payée sur le rail, v5.4.3). */
+    const SEL='.ov-block,.nav-wrap,.sv-cell';
+    const av=g(document.querySelector(SEL)), capAv=g(cap());
+    cap().click(); await w(500);
+    const d=document.querySelector('.rt-dock');
+    const o={volet:g(d),capsule:g(cap()),contenuAv:av,contenuAp:g(document.querySelector(SEL)),capAv,
+      /* La capsule doit rester DEVANT le volet : l'alarme ne se laisse jamais recouvrir (V2). */
+      zVolet:d?+getComputedStyle(d).zIndex:null,
+      zQuai:+getComputedStyle(document.getElementById('crisisDock')).zIndex};
+    return o;});
+
+  t('témoin : le volet s\'ouvre bien au tap de la capsule', !!r.volet, JSON.stringify(r.volet));
+  t('il a EXACTEMENT la largeur de la capsule',
+    !!r.volet&&Math.abs(r.volet.x-r.capsule.x)<=1&&Math.abs(r.volet.r-r.capsule.r)<=1,
+    `volet ${r.volet&&r.volet.x}..${r.volet&&r.volet.r} · capsule ${r.capsule.x}..${r.capsule.r}`);
+  t('… et il lui est COLLÉ, sans interstice',
+    !!r.volet&&Math.abs(r.volet.t-r.capsule.b)<=1,
+    `volet à ${r.volet&&r.volet.t}, capsule finit à ${r.capsule.b}`);
+  /* V1 : rien ne bouge derrière — c'est ce qui rend l'occultation admissible. */
+  t('rien ne se déplace derrière lui (V1)',
+    !!r.contenuAv&&!!r.contenuAp&&Math.abs(r.contenuAv.t-r.contenuAp.t)<=1,
+    `${r.contenuAv&&r.contenuAv.t} → ${r.contenuAp&&r.contenuAp.t}`);
+  /* V2 : la capsule ne bouge pas et reste AU-DESSUS — l'alarme n'est jamais masquée. */
+  t('… et la capsule reste en place, au-dessus de lui (V2)',
+    Math.abs(r.capAv.t-r.capsule.t)<=1&&r.zQuai>r.zVolet,
+    `capsule ${r.capAv.t} → ${r.capsule.t}, z ${r.zQuai} > ${r.zVolet}`);
+  await page.close();
 }
 });
 

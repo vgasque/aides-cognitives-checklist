@@ -1086,7 +1086,11 @@
   .sd-key.sd-start:hover{background:var(--primary-hi)}
   /* A15 — la référence dans la colonne d'ÉTAT : elle prend la tête du rail, le reste du rail
      (minuteurs, posologie, Échelle) descend dessous et reste consultable. */
-  .ref-col{border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
+  /* MÊME RÈGLE QUE LES FAMILLES DU RAIL (v5.6) : une frontière de bloc se marque par l'ESPACE,
+     jamais par un trait — le filet reste à l'ITEM, qui n'a que lui. L'excursion « Consulter » a
+     de toute façon deux marqueurs bien plus forts que n'importe quel trait : son intitulé vert
+     et son « ↩ Revenir » rempli. */
+  .ref-col{padding-bottom:0;margin-bottom:24px}
   .rc-head{display:flex;align-items:center;gap:8px;padding-bottom:8px}
   .rc-t{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
   .rc-back{margin-left:auto;min-height:44px;padding:0 12px;background:var(--ok);border:0;border-radius:var(--r-1);color:var(--on-primary);font-family:inherit;font-weight:700;font-size:11px;cursor:pointer}
@@ -2674,7 +2678,22 @@
      lui-même qui défile (un seul défileur, aucun en-tête épinglé dedans — l'en-tête ✕ passe avec
      le contenu : la fermeture vit aussi sur le quai, re-tap/Échap/retour). Le panneau intérieur
      perd sa boîte : deux cadres emboîtés se liraient comme deux objets (règle du journal niché). */
-  .rt-dock{position:fixed;left:0;right:0;top:var(--stick-top,110px);z-index:14;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-lg);max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);overflow-y:auto;overscroll-behavior:contain}
+  /* ⚠ LE VOLET A LA LARGEUR DE LA CAPSULE, ET IL LUI EST COLLÉ (v5.6, signalé à l'usage : « le
+     menu qui se déroule du chronomètre de session devrait être designé comme s'il était intégré
+     au bandeau session — la largeur doit être la même, et il devrait être collé »).
+     La v5.4.1 en avait fait un ÉTAGE du chrome plutôt qu'une carte flottante ; c'était la bonne
+     structure, mais la GÉOMÉTRIE était restée celle d'une barre pleine largeur, posée sous TOUT
+     le bandeau (`--stick-top`) et de bord à bord. Il se lisait donc comme une seconde barre
+     collée au chrome, pas comme le dépliant DE LA CAPSULE.
+     Les deux valeurs viennent de la même source que le bandeau — son rembourrage de 8/14 px :
+     `left`/`right` valent son rembourrage horizontal, et le `top` retranche son rembourrage BAS
+     de `--stick-top`, qui est le bas du bandeau. Aucune mesure JS : deux constantes CSS écrites
+     une fois, à côté de celles qu'elles suivent. Si le rembourrage du bandeau change, ces deux
+     lignes changent avec lui — et c'est pour cela qu'elles vivent ici, contre lui. */
+  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--stick-top,110px) - 8px);z-index:14;
+    background:var(--surface);border-radius:0 0 var(--r-3) var(--r-3);box-shadow:var(--shadow-lg);
+    max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);
+    overflow-y:auto;overscroll-behavior:contain}
   /* v5.4.2 — LA HAUTEUR DU VOLET SE BORNE AU `svh`, PAS À `--vvh` (signalé à l'usage smartphone :
      « modifier un horaire → le scroll saute quand le clavier s'ouvre, dans la page ET dans le
      volet »). `--vvh` est `visualViewport.height`, que le CLAVIER rétrécit : le volet changeait de
@@ -2685,7 +2704,7 @@
   @supports (height:100svh){
     .rt-dock{max-height:calc((100svh / var(--zf,1) - var(--stick-top,110px))*.8)}
   }
-  .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 18px 16px}
+  .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 14px 16px}
   /* ══ LE VOLET EST UN ÉTAGE DU BLOC DE CHROME, DONC IL EST SOMBRE (v5.6, maquette — signalé à
      l'usage : « en largeur de smartphone le bandeau déroulant ne correspond pas au nouveau
      design ») ══════════════════════════════════════════════════════════════════════════════
@@ -2698,10 +2717,19 @@
      ÉTATS (temps, décomptes, repères horodatés), c'est-à-dire ce que le quai porte déjà. Aucune
      étape, aucune dose, aucun texte d'auteur ne vit dans ce volet. */
   .rt-dock{background:var(--sys);border-bottom:0;color:var(--sys-ink)}
+  /* Il PROLONGE la capsule : coins vifs en haut (la jointure ne se voit pas), arrondis en bas
+     (c'est là que l'objet s'arrête). Un seul objet, deux étages. */
   .rt-dock .rt-head{margin-bottom:8px}
   .rt-dock .rt-head b,.rt-dock .tk-head b{color:var(--sys-ink-2)}
   .rt-dock .rt-ic{color:var(--sys-ink-2)}
   .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
+  /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
+     v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
+     titre, lui, n'en faisait que 13 — le ✕ paraissait donc posé une demi-ligne trop bas, entre
+     le titre et la rangée qui s'enroule dessous. On donne au titre la MÊME hauteur de boîte :
+     les deux se centrent alors l'un sur l'autre, et le bouton « son » continue de s'enrouler
+     en dessous sans rien déplacer. */
+  .rt-dock .rt-head>b{min-height:48px;display:flex;align-items:center}
   .rt-dock .fam-n{background:var(--sys-2);color:var(--sys-ink-2);border-color:var(--sys-line)}
   .rt-dock :is(.rt-sound,.rt-warn){background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink-2)}
   .rt-dock .rt-sound.off{color:var(--warn-sys);border-color:var(--warn-line);background:var(--warn-sys-bg)}
@@ -5874,7 +5902,25 @@
        continue qu'on lit d'un trait.
        Ce qui rend cet allègement sûr : l'état critique (session + minuteur ÉCHU) est déjà porté
        en permanence par le QUAI — le rail n'a donc pas à l'épingler une seconde fois. */
-    .rail-sec+.rail-sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+    /* ══ DEUX NIVEAUX DE SÉPARATION, ET ILS NE SE RESSEMBLENT PLUS (v5.6, signalé à l'usage :
+       « les séparations entre repères posologiques sont les mêmes qu'entre les grands blocs, ce
+       qui pose un problème de hiérarchie »). C'était exact et mesuré : un ITEM (`.pos-card`) et
+       une FAMILLE (`.rail-sec`) portaient le MÊME filet de 1 px en `--line`. Deux traits
+       identiques pour deux niveaux ne hiérarchisent rien — c'est l'argument de l'échelle
+       typographique (v4.71.1) appliqué aux filets.
+       UNE FAMILLE SE SÉPARE PAR L'ESPACE ET PAR SON TITRE, JAMAIS PAR UN TRAIT. Le titre est un
+       marqueur bien plus fort qu'un filet (petites capitales, graisse 800, son compte), et
+       ajouter un trait par-dessus, c'est l'inflation de trait — la même faute que le rouge
+       permanent. Le FILET reste donc à l'ITEM, où il est le seul signal disponible.
+       ⚠ ET « CONSULTER » ENTRE DANS LA MÊME RÈGLE (signalé dans le même message : « diagnostics
+       différentiels et références sont collés entre eux ») : ses sections sont des `.rs-sec`, qui
+       n'avaient ni marge ni rembourrage — donc deux familles à touche-touche, séparées par le
+       seul trait qu'on vient de retirer aux autres. ⚠ MAIS ELLES NE REÇOIVENT PAS LE MÊME
+       TRAITEMENT, ET C'EST UNE QUESTION DE NATURE : une `.rs-sec` est une CARTE (fond, bordure,
+       rayon) — lui retirer son `border-top` lui ouvrirait le haut. Une carte se sépare d'une
+       autre carte par un ÉCART, un point. */
+    .rail-sec+.rail-sec{margin-top:24px;padding-top:0;border-top:0}
+    .rs-sec+.rs-sec{margin-top:12px}
     /* REPÈRES DU RAIL — chrome désaturé, registre CONSERVÉ. Doctrine ECAM appliquée finement : on
        calme la PRÉSENTATION, jamais la sémantique d'une donnée anormale. Les repères ordinaires
        sont des LIGNES (ni cadre ni fond, nom en `--ink` et non en bleu — le bleu est l'accent
