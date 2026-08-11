@@ -6022,7 +6022,17 @@
        TRAITEMENT, ET C'EST UNE QUESTION DE NATURE : une `.rs-sec` est une CARTE (fond, bordure,
        rayon) — lui retirer son `border-top` lui ouvrirait le haut. Une carte se sépare d'une
        autre carte par un ÉCART, un point. */
+    /* ⚠ UNE SECTION VIDE NE COMPTE PAS COMME VOISINE (v5.6, mesuré sur une fiche mono-bloc) : la
+       zone des minuteurs est ÉMISE même quand la fiche n'en a aucun — hauteur 0, mais elle
+       existe, et le filet de famille se posait donc AU-DESSUS de la première section réellement
+       remplie, comme un trait suspendu au-dessus du vide. `:empty` ne suffit pas (la section
+       contient un conteneur vide) : on la retire du flux quand elle ne rend rien. */
+    .rail-sec:empty{display:none}
     .rail-sec+.rail-sec{margin-top:20px;padding-top:20px;border-top:1px solid var(--line-strong)}
+    /* ⚠ `display:none` NE RETIRE PAS UN VOISIN DE LA CASCADE : le combinateur `+` travaille sur le
+       DOM, pas sur le rendu. Sans cette ligne, la première section RÉELLEMENT remplie héritait
+       quand même du filet de famille et le portait au-dessus du vide. */
+    .rail-sec:empty+.rail-sec{margin-top:0;padding-top:0;border-top:0}
     .rs-sec+.rs-sec{margin-top:12px}
     /* REPÈRES DU RAIL — chrome désaturé, registre CONSERVÉ. Doctrine ECAM appliquée finement : on
        calme la PRÉSENTATION, jamais la sémantique d'une donnée anormale. Les repères ordinaires

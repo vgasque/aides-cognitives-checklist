@@ -429,6 +429,13 @@ await sec('QRH · intitulé de décision toujours visible (statique empilé)', a
   }
 }
 });
+/* ⚠ v5.6 — CETTE SECTION A CHANGÉ DE PORTEUR, PAS D'OBJET. Elle mesurait la vue GUIDÉE
+   (`navSection`), qui n'était plus atteinte que par les fiches mono-bloc — et celles-ci rendent
+   désormais la CARTE de travail comme toutes les autres (la justification « les deux vues y
+   seraient identiques » datait de v4.16.0 et était fausse depuis la refonte : cf. la section
+   « une fiche d'un seul bloc »). L'INVARIANT qu'elle protège, lui, n'a pas bougé d'un mot, et
+   c'est le défaut v4.42.0 : décocher après « Terminer » doit retirer la bannière ET rendre le
+   bouton d'avancement. On le mesure donc sur le porteur d'aujourd'hui. */
 // ══ Le RENDU GUIDÉ, jusqu'ici couvert par RIEN ═══════════════════════════════
 // `grep -rn 'nav-wrap\|navNext\|bindNavEvents' tests.html scripts/` rendait 0 : la vue guidée
 // (celle d'une fiche SANS algorithme — c'est-à-dire ce que produit `blankFiche()`, donc toute
@@ -449,19 +456,30 @@ await sec('Rendu guidé · décocher annule la fin de l\'algorithme', async () =
       {id:'b1',kind:'do',title:'Bloc unique',items:['Étape A','Étape B'].map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await new Promise(r=>setTimeout(r,350));
-    const guide=!document.querySelector('#readTopSeg')&&!!document.querySelector('.nav-wrap');
-    for(const li of document.querySelectorAll('[data-ck]')){li.click();await new Promise(r=>setTimeout(r,250));}
-    const nn=document.getElementById('navNext');if(nn)nn.click();
+    /* Une fiche SANS branchement n'a pas de bascule de format — c'est la part juste de la
+       doctrine d'origine — mais elle rend bien la carte de travail. */
+    const guide=!document.querySelector('#readTopSeg')&&!!document.querySelector('.ov-block');
+    const av=()=>document.querySelector('[data-ovnext],[data-ovend],#navNext');
+    /* ⚠ ON RE-INTERROGE LE DOM À CHAQUE COCHE : la carte du journal se repeint, donc une liste
+       collectée d'avance ne contient plus que des nœuds détachés — on n'en cochait qu'un seul, et
+       le bouton restait « Cochez les étapes restantes ». */
+    /* ⚠ ON RE-INTERROGE LE DOM À CHAQUE COCHE : la carte du journal se repeint, donc une liste
+       collectée d'avance ne contient plus que des nœuds détachés. */
+    for(let g=0;g<12;g++){
+      const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));if(!li)break;
+      li.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      await new Promise(r=>setTimeout(r,300));}
+    const nn=av();if(nn)nn.click();
     await new Promise(r=>setTimeout(r,350));
     const finActee=!!document.querySelector('.flow-end')&&state.flowEnded===true;
     document.querySelector('[data-ck]').click();await new Promise(r=>setTimeout(r,400));
     return {guide,finActee,flowEnded:state.flowEnded,
-      banniere:!!document.querySelector('.flow-end'),bouton:!!document.getElementById('navNext')};});
-  t('la fiche mono-bloc rend bien la vue GUIDÉE (.nav-wrap, pas de bascule de mode)',r.guide);
+      banniere:!!document.querySelector('.flow-end'),bouton:!!av()};});
+  t('une fiche sans branchement rend la CARTE, et sans bascule de format',r.guide);
   t('« Terminer l\'algorithme » acte la fin (bannière + drapeau)',r.finActee);
   t('décocher remet state.flowEnded à false',r.flowEnded===false);
   t('décocher retire la bannière « Algorithme terminé »',r.banniere===false,'bannière encore présente');
-  t('décocher fait revenir le bouton d\'avancement',r.bouton===true,'#navNext absent');
+  t('décocher fait revenir le bouton d\'avancement',r.bouton===true,'bouton d\'avancement absent');
   await page.close();
 }
 });
@@ -519,22 +537,32 @@ await sec('ECAM · ancrage — résidu nul au geste de première action', async 
      faite par `ovAdvanceRender` sur l'instance du geste (dérive mesurée 0 px, v4.16.3).
      Ce qui reste STRICTEMENT mesurable ici est donc « l'ancrage est invoqué » ; la dérive, elle,
      est mesurée juste en dessous sur le rendu GUIDÉ, où l'ancre survit au re-rendu. */
-  // Rendu GUIDÉ (fiche à un bloc) : le remplacement chirurgical est ancré lui aussi.
-  const g=await page.evaluate(async()=>{
-    const f=migrate({id:'ancd',title:'Ancre guidée',blocks:[
+  /* LE RE-RENDU CIBLÉ OÙ L'ANCRE SURVIT — c'est ici que la DÉRIVE est réellement mesurable.
+     ⚠ v5.6 : ce contrôle passait par `renderNavOnly` sur une fiche mono-bloc, seul reste de la
+     vue guidée ; celle-ci rend désormais la carte de travail comme les autres. Le geste qui
+     re-rend le journal SANS avancer — donc en gardant l'ancre — est DÉCOCHER après que la fin a
+     été actée (`ovAfterCheck` : « seul chemin qui RE-REND »). L'invariant ne bouge pas, son
+     déclencheur est simplement celui d'aujourd'hui. */
+  const g=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=migrate({id:'ancd',title:'Ancre mono-bloc',blocks:[
       {id:'b1',kind:'do',title:'Bloc unique',items:['a','b','c','d','e','f'].map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
-    openRead(f.id);await new Promise(r=>setTimeout(r,350));
-    document.getElementById('sessStart').click();await new Promise(r=>setTimeout(r,350));
-    window.scrollTo(0,300);await new Promise(r=>setTimeout(r,250));
-    window.__anc=[];renderNavOnly();
-    await new Promise(r=>setTimeout(r,400));return window.__anc;});
-  t('guidé : le remplacement du bloc est ancré',g.length>0&&g[0].sel.indexOf('nav-wrap')>=0,
+    openRead(f.id);await w(350);
+    document.getElementById('sessStart').click();await w(400);
+    for(let i=0;i<8;i++){const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));
+      if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await w(220);}
+    const fin=document.querySelector('[data-ovend]');if(fin)fin.click();await w(400);
+    window.scrollTo(0,300);await w(250);
+    window.__anc=[];
+    const li=document.querySelector('[data-ck].done');
+    if(li)li.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+    await w(450);return window.__anc;});
+  t('re-rendu ciblé : le remplacement du bloc est ancré',g.length>0&&g[0].sel.indexOf('data-ck')>=0,
     JSON.stringify(g));
-  if(g.length)t('guidé : le résidu est réellement MESURÉ (ancre retrouvée)',
+  if(g.length)t('… le résidu est réellement MESURÉ (ancre retrouvée)',
     g[0].residu!==null&&g[0].derive!==null,
     `résidu ${g[0].residu}, dérive ${g[0].derive} — ancre perdue pendant le re-rendu ?`);
-  if(g.length)t('guidé : le bloc ne bouge pas (≤ 1 px)',
+  if(g.length)t('… et le bloc ne bouge pas (≤ 1 px)',
     g[0].derive!==null&&Math.abs(g[0].derive)<=1,
     `dérive ${g[0].derive} px`);
   await page.close();
@@ -3099,8 +3127,10 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
   t(`${fmt.w}× … avec au moins une étape cochable à l’écran`, r.etapes>=1, `${r.etapes} étape(s)`);
   await page.close();
 }
-{ /* La VUE GUIDÉE a un autre porteur (`.nav-wrap`, une fiche sans algorithme n'a pas de journal) :
-     l'oublier ne ferait rien précisément sur les fiches mono-bloc, sans que rien ne le dise. */
+{ /* ⚠ LE PORTEUR A CHANGÉ (v5.6) : une fiche mono-bloc rendait la vue guidée (`.nav-wrap`) ; elle
+     rend désormais la CARTE de travail comme les autres (cf. « une fiche d'un seul bloc »).
+     L'INVARIANT mesuré ici ne bouge pas — le démarrage dépose sur le HAUT du bloc, et la fiche
+     mono-bloc est le cas où l'oublier ne se verrait nulle part ailleurs. Seul le sélecteur suit. */
   const page = await br.newPage({viewport:{width:320,height:640},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -3128,15 +3158,15 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
     scrollTo(0,Math.max(0,Math.round(scrollY+cb.bottom-innerHeight+60)));await w(150);
     const yClic=Math.round(scrollY);
     document.getElementById('sessStart').click();await w(600);
-    const h=()=>{const c=document.querySelector('.nav-wrap');
+    const h=()=>{const c=[...document.querySelectorAll('.ov-block')].pop();
       return c?Math.round(c.getBoundingClientRect().top-stickBase()):null;};
     const apres=h(); scrollTo(0,yClic); await w(150);
-    return {apres,sans:h(),guide:!!document.querySelector('.nav-wrap')&&!document.querySelector('.ov-block')};},
+    return {apres,sans:h(),guide:!!document.querySelector('.ov-block')&&!document.querySelector('#readTopSeg')};},
     items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition','O2 haut débit au masque']));
-  t(`320× témoin : la fiche mono-bloc rend bien la vue guidée`, r.guide===true);
-  t(`320× guidé : le contrôle rencontre son cas (sans atterrissage, le haut est masqué)`,
+  t(`320× témoin : la fiche mono-bloc rend la carte, sans bascule de format`, r.guide===true);
+  t(`320× mono-bloc : le contrôle rencontre son cas (sans atterrissage, le haut est masqué)`,
     r.sans!=null&&r.sans<-20, `${r.sans} px`);
-  t(`320× guidé : le haut du bloc est visible après démarrage`,
+  t(`320× mono-bloc : le haut du bloc est visible après démarrage`,
     r.apres!=null&&r.apres>=-1&&r.apres<=12, `${r.apres} px`);
   await page.close();
 }
@@ -3983,6 +4013,72 @@ await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
   await essai('étapes d\'un bloc','.blk[data-bid] input[data-sf]','[data-addstep]',
     ()=>bItems(state.draft.blocks[0]).length);
   await page.close();
+}
+});
+
+/* ══ v5.6 — UNE FICHE D'UN SEUL BLOC EST UNE FICHE COMME LES AUTRES ═════════════════════════
+   Signalé à l'usage : « s'il n'y a qu'un seul bloc avec une seule étape, le bloc ne s'affiche pas
+   correctement et le parcours inerte ne s'affiche pas ». Deux causes, et la même racine — un
+   critère écrit pour une autre question :
+   · `hasFlow` (« y a-t-il un BRANCHEMENT ? ») décidait aussi du RENDU. À un bloc, la fiche
+     retombait sur `navSection`, le rendu d'AVANT la refonte : une étiquette de texte, l'étape à
+     nu sur le fond de page, un panneau « Algorithme » sans objet. La justification d'origine
+     (« les deux vues y seraient identiques », v4.16.0) était vraie alors et fausse depuis le
+     lot 3. Un bloc est une séquence d'UN : le journal le sert sans rien de nouveau.
+   · Le même `hasFlow` masquait la colonne d'orientation, qui porte pourtant AUSSI « Quand
+     l'utiliser » et « Surveiller ensuite ».
+   ⚠ LA BASCULE DE FORMAT, ELLE, RESTE MASQUÉE sans branchement : « Toute la fiche » n'y montrerait
+   rien de plus, et c'était la part JUSTE de la doctrine d'origine.
+   ⚠ AUCUNE FIXTURE NE COUVRAIT CE CAS (les deux fiches d'exemple ont quatre blocs) : le témoin
+   construit la sienne. */
+await sec('v5.6 · une fiche d\'un seul bloc', async () => {
+{
+  for(const W of [390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+      const f0=blankFiche();f0.title='Mono';
+      const A=v4MakeItem(uid('i'),'do','Geste unique',false),B=v4MakeItem(uid('i'),'do','Second geste',false);
+      f0.items=[A,B];f0.blocks=[{id:'b1',kind:'do',title:'Le bloc',items:[A.id,B.id]}];f0.start='b1';
+      const f=migrate(f0);fiches.push(f);await persist();
+      openRead(f.id);await w(600);
+      const sb=document.getElementById('sessStart');if(sb)sb.click();await w(800);
+      /* Deux étapes : une seule ne peut pas révéler un compte qui ne se met plus à jour. */
+      for(let g=0;g<6;g++){
+        const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));
+        if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await w(300);}
+      const apresCoches={compte:(document.querySelector('.ov-block .ov-c')||{}).textContent||'',
+        btn:((document.querySelector('[data-ovnext],[data-ovend]')||{}).textContent||'').trim()};
+      const side=document.querySelector('.read-side');
+      return {apresCoches,carte:main.querySelectorAll('.ov-block').length,
+        etapes:main.querySelectorAll('ol.steps li[data-ck]').length,
+        vieuxRendu:!!main.querySelector('.nav-wrap'),
+        parcours:document.querySelectorAll('.read-plan .pl-line,.rail-lad .pl-line').length,
+        bascule:!!document.querySelector('#dispBack,[data-dispback]'),
+        /* Aucun filet suspendu au-dessus du vide : une section vide ne compte pas comme voisine. */
+        filetOrphelin:side?[...side.querySelectorAll('.rail-sec')].some(e=>{
+          const p=e.previousElementSibling;
+          return p&&p.classList.contains('rail-sec')&&p.getBoundingClientRect().height===0
+                 &&parseFloat(getComputedStyle(e).borderTopWidth)>0;}):false};});
+
+    t(`${W} · le bloc est rendu par la CARTE de travail, pas par l'ancien rendu`,
+      r.carte===1&&r.vieuxRendu===false, JSON.stringify(r));
+    t(`${W} · … et ses étapes sont cochables`, r.etapes===2, `${r.etapes} étape(s)`);
+    /* ⚠ ET LE CÂBLAGE SUIT LE RENDU (v5.6) : la résolution du mode était RECOPIÉE dans le
+       binder, si bien qu'on rendait la carte de travail en branchant les gestes de l'ancienne
+       vue guidée — cocher la DEUXIÈME étape ne mettait plus à jour ni le compte ni le bouton
+       d'avancement. Le contrôle coche TOUT et vérifie que les deux ont suivi. */
+    t(`${W} · le compte et le bouton suivent CHAQUE coche`,
+      r.apresCoches&&r.apresCoches.compte==='2/2'&&/Terminer/.test(r.apresCoches.btn||''),
+      JSON.stringify(r.apresCoches));
+    t(`${W} · aucun filet de famille suspendu au-dessus du vide`, r.filetOrphelin===false);
+    if(W>=1200) t(`${W} · le parcours inerte existe, même à un bloc`, r.parcours>=1,
+      `${r.parcours} rangée(s)`);
+    await page.close();
+  }
 }
 });
 

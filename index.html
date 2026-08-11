@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-WEMmGqldwp6V1yGL6exyXbLor+odLmzcjOwj9BcM05Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-GVlEpbuMEwnakIMTggu/uXODykXA+RMG911bhHHcq1s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6367,7 +6367,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        TRAITEMENT, ET C'EST UNE QUESTION DE NATURE : une `.rs-sec` est une CARTE (fond, bordure,
        rayon) — lui retirer son `border-top` lui ouvrirait le haut. Une carte se sépare d'une
        autre carte par un ÉCART, un point. */
+    /* ⚠ UNE SECTION VIDE NE COMPTE PAS COMME VOISINE (v5.6, mesuré sur une fiche mono-bloc) : la
+       zone des minuteurs est ÉMISE même quand la fiche n'en a aucun — hauteur 0, mais elle
+       existe, et le filet de famille se posait donc AU-DESSUS de la première section réellement
+       remplie, comme un trait suspendu au-dessus du vide. `:empty` ne suffit pas (la section
+       contient un conteneur vide) : on la retire du flux quand elle ne rend rien. */
+    .rail-sec:empty{display:none}
     .rail-sec+.rail-sec{margin-top:20px;padding-top:20px;border-top:1px solid var(--line-strong)}
+    /* ⚠ `display:none` NE RETIRE PAS UN VOISIN DE LA CASCADE : le combinateur `+` travaille sur le
+       DOM, pas sur le rendu. Sans cette ligne, la première section RÉELLEMENT remplie héritait
+       quand même du filet de famille et le portait au-dessus du vide. */
+    .rail-sec:empty+.rail-sec{margin-top:0;padding-top:0;border-top:0}
     .rs-sec+.rs-sec{margin-top:12px}
     /* REPÈRES DU RAIL — chrome désaturé, registre CONSERVÉ. Doctrine ECAM appliquée finement : on
        calme la PRÉSENTATION, jamais la sémantique d'une donnée anormale. Les repères ordinaires
@@ -10231,6 +10241,13 @@ function migrateCategories(){const changed=[];const byName={};categories.forEach
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],library:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
 const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.kind==='decision');
+/* LE MODE DE RENDU D'UNE FICHE — SOURCE UNIQUE (v5.6). `hasFlow` répond « y a-t-il un
+   BRANCHEMENT ? », ce qui décide de la BASCULE de format ; le RENDU, lui, ne dépend que de
+   l'existence d'un bloc : une fiche d'un seul bloc est une séquence d'un, et la carte de travail
+   la sert comme les autres. `guided` ne subsiste que pour ce qui n'a aucun bloc (l'aperçu d'un
+   brouillon vide). */
+const readModeOf=f=>((f&&f.blocks&&f.blocks.length)
+  ?(hasFlow(f)&&state.readMode==='static'?'static':'overview'):'guided');
 /* ----- Vue d'ensemble du mode crise (v4.6.0) : fonctions PURES (testées via ?__actest) ----- */
 // Ordre TOPOLOGIQUE d'affichage : BFS depuis f.start (mêmes règles de parcours que bfsLevels du
 // SVG — next puis options[].target dans l'ordre du document, une seule visite par bloc, les
@@ -16261,8 +16278,21 @@ function renderRead(){
   // Une fiche SANS algorithme (un seul bloc, pas de décision) garde le rendu guidé : les deux
   // vues y seraient identiques — la bascule n'est pas affichée non plus.
   // v4.16.0 : le mode guidé n'existe plus pour les fiches À ALGORITHME (fusionné dans le
-  // journal — fil condensé) ; il ne subsiste que pour les fiches mono-bloc (vues identiques).
-  const rMode=hasFlow(f)?(state.readMode==='static'?'static':'overview'):'guided';
+  // journal — fil condensé) ; il ne subsistait que pour les fiches mono-bloc.
+  /* ⚠⚠ ET IL N'Y SUBSISTE PLUS (v5.6, signalé à l'usage : « s'il n'y a qu'un seul bloc avec une
+     seule étape, le bloc ne s'affiche pas correctement et le parcours inerte ne s'affiche pas »).
+     La justification d'origine — « les deux vues y seraient identiques » — était VRAIE en v4.16.0
+     et FAUSSE depuis la refonte : `navSection` est le rendu d'avant v5.6 (une étiquette de texte
+     « BLOC · LE BLOC — 0/1 COCHÉ », l'étape à nu sur le fond de page, un panneau « Algorithme »
+     qui n'a aucun sens à un seul bloc), quand `overviewSection` rend la CARTE de travail avec sa
+     pastille, sa légende de registres, son pied de gestes et son parcours. Une fiche à un bloc
+     n'avait donc aucun des acquis du lot 3, et le rail n'affichait rien du tout.
+     UN BLOC EST UNE SÉQUENCE D'UN : `flowPlan` en rend une entrée, `ovPresList` un passage — et
+     le BOUT est toujours une carte. Le journal sert donc les deux cas sans qu'on lui demande rien
+     de nouveau. La BASCULE reste masquée quand il n'y a pas d'algorithme (`hasFlow`) : « Toute la
+     fiche » n'y montrerait rien de plus, et c'est cela qui était juste dans la doctrine d'origine.
+     `navSection` n'est plus atteint que par l'APERÇU d'un brouillon sans bloc. */
+  const rMode=readModeOf(f);
   const useOv=rMode==='overview',useSv=rMode==='static';
   const N=useOv?overviewSection(f):(useSv?staticSection(f):navSection(f));
   const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH||'',navHtml=N.navHtml,navRowH=N.navRowH||'',blockDone=N.blockDone,blockTot=N.blockTot;
@@ -16375,7 +16405,13 @@ function renderRead(){
      n'exerce un rendu). */
   const gesteEntree=!Runtime.started&&!state.previewFrom&&(()=>{try{return Share.mode!=='guest';}catch(e){return true;}})();
   const ladRail=(()=>{
-    if(!wideRead||useSv||preview||!hasFlow(f))return '';
+    /* ⚠ `hasFlow` N'EST PAS LE BON CRITÈRE ICI (v5.6, signalé à l'usage : « avec un seul bloc
+       d'une seule étape, le parcours inerte ne s'affiche pas »). `hasFlow` répond « y a-t-il un
+       BRANCHEMENT ? » — c'est la bonne question pour la BASCULE de format (à un bloc, « Toute la
+       fiche » ne montrerait rien de plus) ; ce n'en est pas une pour la colonne d'orientation,
+       qui porte AUSSI « Quand l'utiliser » et « Surveiller ensuite ». Une fiche d'un bloc a donc
+       bien un parcours : une rangée, plus ses deux sections d'encadrement. */
+    if(!wideRead||useSv||preview||!(f.blocks&&f.blocks.length))return '';
     /* Avant le soin, la colonne n'existe QU'AU COCKPIT : sous 1200 le parcours vit au centre
        (7c), et l'y laisser en double afficherait la même liste deux fois côte à côte. */
     if(!started&&gesteEntree&&!mqCock.matches)return '';
@@ -16866,8 +16902,14 @@ function bindReadEvents(f,blk,cur){
     t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
   // (La bascule de mode est câblée UNE FOIS, hors de `main` — cf. #modeSeg plus bas.)
   // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
-  // Même résolution de mode que renderRead (v4.16.0 : sans algorithme = rendu guidé).
-  const rm=hasFlow(f)?(state.readMode==='static'?'static':'overview'):'guided';
+  /* ⚠ LA MÊME RÉSOLUTION QUE `renderRead`, ET C'EST LA MÊME FONCTION (v5.6). Elle était RECOPIÉE
+     ici : le jour où la fiche mono-bloc est passée à la carte de travail, le RENDU a suivi et pas
+     le CÂBLAGE — on rendait le journal en branchant les gestes de l'ancienne vue guidée, si bien
+     que cocher la deuxième étape ne mettait plus à jour ni le compte « 1/2 » ni le bouton
+     d'avancement, qui restait sur « Cochez les étapes restantes ». Deux copies d'une même
+     décision finissent toujours par diverger — le dossier l'a payé au cœur de cochage (v4.42.0)
+     et aux verbes du lecteur (v4.55.0). */
+  const rm=readModeOf(f);
   if(rm==='overview')bindOverviewEvents(f);
   else if(rm==='static'){bindStaticEvents(f);svPaintArrows();}
   else bindNavEvents(f,blk);
