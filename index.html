@@ -3179,6 +3179,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock .tmcard{--tcol:var(--sys-ink);--tbd:var(--sys-line)}
   .rt-dock :is(.tm-label,.cncard .tm-label){font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2);
     margin-bottom:4px;min-height:0;-webkit-line-clamp:2}
+  /* ⚠ A9 — LE LIBELLÉ RÉSERVE SES DEUX LIGNES, IL NE LES PREND PAS EN ÉCHÉANT (v5.6, mesuré).
+     En échéant, « Réévaluation après adrénaline » devient « ■ Réévaluation après adrénaline — à
+     réévaluer » : à 320 px le texte passait de UNE ligne à DEUX et la carte de 200 à 214 px —
+     un changement de hauteur que personne n'a commandé, exactement ce que A9 interdit. Le clamp
+     à deux lignes BORNE le maximum, il ne fixe pas la hauteur ; c'est `min-height` qui la fixe.
+     ⚠ ON NE RACCOURCIT PAS LE LIBELLÉ À LA PLACE : le suffixe dit ce qu'il faut FAIRE (doctrine
+     ECAM de l'action au pied de l'alerte), et le retirer ne garantirait rien — un nom qui tient
+     tout juste sur une ligne se remettrait à enrouler pour le seul glyphe « ■ ». Réserver est la
+     seule garantie STRUCTURELLE, indépendante de la longueur du nom.
+     COÛT DIT : +14 px sur une carte à libellé court en colonne unique (200 → 214) ; à 390 px la
+     carte valait DÉJÀ 214 des deux côtés — la réserve harmonise donc plus qu'elle ne coûte, et
+     les cartes d'une même grille cessent de dépendre de la longueur de leur nom.
+     Borné à `.tmcard` : une carte de COMPTEUR ne change pas d'état, réserver chez elle serait
+     payer une ligne pour rien. */
+  .rt-dock .tmcard .tm-label{min-height:2lh}
   .rt-dock .tm-meta{color:var(--sys-ink-2);margin:-2px 0 4px}
   .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-step-l);font-weight:700;color:var(--sys-ink)}
   .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}

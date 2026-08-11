@@ -3974,6 +3974,70 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
     Object.entries(r.tailles).map(([k,v])=>k+'px → '+v.slice(0,3).join(', ')).join(' | '));
   t('A11 · au plus UNE masse colorée à l\'écran',
     r.masses.length<=1, `${r.masses.length} : ${r.masses.slice(0,4).join(' · ')}`);
+
+  /* ── ACQUITTER UNE ALARME (v5.6) — MÊME PAGE, MÊME MANŒUVRE D'ÉCHÉANCE. Signalé à l'usage :
+     « un minuteur sans relance, une fois échu, s'affiche dans le bandeau session et tout, c'est
+     super ; mais aucun moyen de le faire disparaître que de le relancer ». La doctrine v4.2.0
+     disait « acquittement par l'ACTION » et elle a raison sur le fond — mais elle ne prévoyait
+     qu'UNE façon d'agir. « ✓ Vu » est le master caution de l'ECAM : on l'acquitte à SA station,
+     la panne reste écrite. C'est mesuré ICI et non dans une section à part : le contexte est le
+     même au geste près (volet ouvert, minuteur échu), et le recharger coûterait une page pour
+     rien. */
+  const ack=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const st=()=>{const c=document.querySelector('.rt-dock .tmcard');
+      const ct=c&&c.querySelector('.tm-ctrl');
+      return {quai:document.querySelectorAll('#cbTimers .seg.due').length,
+        carte:document.querySelectorAll('.rt-dock .tmcard.due').length,
+        bouton:document.querySelectorAll('[data-tmack]').length,
+        ctrl:ct?Math.round(ct.getBoundingClientRect().height):0};};
+    const echu=st();
+    const b=document.querySelector('[data-tmack]');if(b)b.click();await w(400);
+    const acq=st(),flag=!!Object.values(Runtime.timers)[0].ack;
+    const tg=document.querySelector('[data-tmtoggle]');if(tg)tg.click();await w(400);
+    return {echu,acq,flag,relance:{...st(),ack:!!Object.values(Runtime.timers)[0].ack}};});
+
+  t('acquitter · « ✓ Vu » paraît AU TICK, sans re-rendu', ack.echu.bouton===1);
+  t('acquitter · le quai se tait', ack.acq.quai===0, JSON.stringify(ack.acq));
+  /* CE QUI NE DOIT PAS CHANGER : l'état. La carte dit toujours « échu ». */
+  t('acquitter · … mais le minuteur RESTE échu sur sa carte',
+    ack.acq.carte===1&&ack.flag===true, `carte ${ack.acq.carte} · drapeau ${ack.flag}`);
+  t('acquitter · … et le bouton s\'efface, il n\'y a plus rien à acquitter', ack.acq.bouton===0);
+  /* A9 · « ✓ Vu » se sert dans la part de la remise à zéro, il ne prend pas une ligne de plus.
+     ⚠ ON COMPARE LES DEUX ÉTATS ÉCHUS — avec et sans le bouton —, jamais l'échu au nominal :
+     dans le RAIL, une carte nominale replie ses commandes et les rouvre en échéant, ce qui est
+     une décision antérieure et une autre question. Avant correction : 94 → 144 px.
+     ⚠ ET LE CAS N'EST RENCONTRÉ QU'EN COLONNE ÉTROITE : dans le rail large la rangée ne
+     s'enroule pas, trois boutons s'y resserrent sur une ligne et le contrôle resterait VERT sur
+     le défaut (vérifié). */
+  t('acquitter · … sans avoir ajouté de ligne à la rangée (A9)', ack.echu.ctrl===ack.acq.ctrl,
+    `${ack.acq.ctrl} sans le bouton → ${ack.echu.ctrl} avec`);
+  t('acquitter · relancer efface l\'acquittement', ack.relance.ack===false);
+
+  /* ── A9 · LE LIBELLÉ (v5.6, #53) — mesuré à 320 px, LE SEUL FORMAT OÙ LE CAS EXISTE : à 390 le
+     libellé occupe déjà deux lignes dans les deux états (colonne de 136 px), donc le contrôle y
+     resterait vert sur le défaut. On redimensionne au lieu de recharger — l'état de session et
+     le volet survivent, et c'est une page de moins. */
+  await page.setViewportSize({width:320,height:844});
+  const lab=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const t=Object.values(Runtime.timers)[0];
+    const H=()=>{const c=document.querySelector('.rt-dock .tmcard');
+      const l=c&&c.querySelector('.tm-label');
+      /* ⚠ ON COMPTE LES LIGNES DU TEXTE, PAS LA HAUTEUR DE LA BOÎTE : depuis que le libellé
+         RÉSERVE ses deux lignes, sa boîte en fait deux dans les deux états — mesurer la boîte
+         reviendrait à mesurer le correctif au lieu du cas qu'il traite. Un `Range` rend un
+         rectangle par ligne de texte, insensible au `min-height`. */
+      let lignes=null;
+      if(l){const rg=document.createRange();rg.selectNodeContents(l);lignes=rg.getClientRects().length;}
+      return {carte:c?Math.round(c.getBoundingClientRect().height):null,lignes};};
+    t.ack=false;t.autoloop=false;t.running=false;t.elapsedMs=0;t.lastStart=0;tickAll();await w(400);
+    const nominal={...H(),txt:(document.querySelector('.rt-dock .tm-label')||{}).textContent||''};
+    t.elapsedMs=(t.seconds||60)*1000;tickAll();await w(400);
+    const echu={...H(),txt:(document.querySelector('.rt-dock .tm-label')||{}).textContent||''};
+    return {nominal,echu};});
+  t('témoin : le libellé s\'allonge bien en échéant', /réévaluer/.test(lab.echu.txt)&&!/réévaluer/.test(lab.nominal.txt));
+  t('témoin : et il tenait sur UNE ligne au nominal', lab.nominal.lignes===1, `${lab.nominal.lignes} ligne(s)`);
+  t('A9 · 320 px · le libellé réserve ses deux lignes, la carte ne grandit pas',
+    lab.nominal.carte===lab.echu.carte, `${lab.nominal.carte} → ${lab.echu.carte} px`);
   await page.close();
 }
 });
@@ -4181,74 +4245,6 @@ await sec('v5.6 · le volet du dock suit la barre flottante', async () => {
     }
     await page.close();
   }
-}
-});
-
-/* ══ v5.6 — ACQUITTER UNE ALARME N'EST NI LA RELANCER NI L'EFFACER ═════════════════════════
-   Signalé à l'usage : « un minuteur sans relance, une fois échu, s'affiche dans le bandeau
-   session et tout, c'est super ; mais aucun moyen de le faire disparaître que de le relancer ».
-   La doctrine v4.2.0 dit « acquittement par l'ACTION » — relance ou réarmement — et elle a raison
-   sur le fond : une alarme ne se referme pas d'un revers de main. Mais elle ne prévoyait qu'UNE
-   façon d'agir, or l'action juste est parfois « c'est noté, je n'ai plus besoin de ce minuteur ».
-   C'est le master caution de l'ECAM : on l'acquitte à SA station, la panne reste écrite.
-   L'ÉTAT NE CHANGE DONC PAS — la carte continue de dire « échu » ; seule l'annonciation se tait. */
-await sec('v5.6 · acquitter un minuteur échu', async () => {
-{
-  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
-  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
-  await page.goto(`http://localhost:${port}/index.html`);
-  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
-  await amorce(page);
-  await ouvrirFiche(page,'Anaphylaxie');
-  await demarrerSession(page);
-  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-    const st=()=>{const c=document.querySelector('.rt-dock .tmcard')||document.querySelector('.tmcard');
-      const ct=c&&c.querySelector('.tm-ctrl');
-      return {quai:document.querySelectorAll('#cbTimers .seg.due').length,
-      carte:document.querySelectorAll('.tmcard.due').length,
-      bouton:document.querySelectorAll('[data-tmack]').length,
-      /* A9 : la rangée de commandes ne prend pas une ligne de plus quand l'alarme paraît.
-         On mesure la RANGÉE et non la carte — le libellé d'état, lui, change de texte, et sa
-         hauteur relève d'un autre invariant (clamp à deux lignes). */
-      ctrl:ct?Math.round(ct.getBoundingClientRect().height):0};};
-    const nominal=st();
-    /* ⚠ ON MESURE DANS LE VOLET, ET C'EST LA CONDITION POUR QUE LE CONTRÔLE RENCONTRE SON CAS :
-       dans le rail large, la rangée ne s'enroule pas — trois boutons s'y resserrent sur une ligne
-       quoi qu'on fasse, et le contrôle resterait VERT sur le défaut (vérifié). C'est en colonne
-       étroite, où deux boutons sont déjà l'un sous l'autre, qu'un troisième coûte une ligne. */
-    document.querySelector('#cbTimers').click();await w(400);
-    const t=Object.values(Runtime.timers)[0];
-    /* Un minuteur à CYCLES n'est jamais échu — il se relance. On coupe la boucle, sinon le
-       contrôle ne rencontre pas son cas (leçon A9). */
-    t.autoloop=false;t.running=false;t.elapsedMs=t.seconds*1000;t.lastStart=0;
-    /* ⚠ SANS RE-RENDU : une échéance survient toute seule, et c'est précisément le cas où le
-       bouton doit exister. S'il n'apparaissait qu'au prochain rendu complet, il n'apparaîtrait
-       peut-être jamais. */
-    tickAll();await w(400);
-    const echu=st();
-    const b=document.querySelector('[data-tmack]');if(b)b.click();await w(400);
-    const acq=st(),flag=!!t.ack;
-    const tg=document.querySelector('[data-tmtoggle]');if(tg)tg.click();await w(400);
-    return {nominal,echu,acq,flag,apresRelance:{...st(),ack:!!t.ack}};});
-
-  t('témoin : le minuteur est échu et le quai l\'annonce',
-    r.echu.quai===1&&r.echu.carte===1, JSON.stringify(r.echu));
-  t('… et « ✓ Vu » apparaît AU TICK, sans re-rendu', r.echu.bouton===1);
-  /* A9 · « ✓ Vu » se sert dans la part de la remise à zéro, il ne prend pas une ligne de plus.
-     ⚠ ON COMPARE LES DEUX ÉTATS ÉCHUS — avec et sans le bouton —, jamais l'échu au nominal : dans
-     le RAIL, une carte nominale replie ses commandes (`display:none`) et les rouvre en échéant,
-     ce qui est une décision antérieure et une autre question. Ici on isole le seul objet ajouté.
-     Avant correction : 94 → 144 px dans le volet, 44 → 88 px dans le rail. */
-  t('acquitter fait taire le quai', r.acq.quai===0, JSON.stringify(r.acq));
-  /* CE QUI NE DOIT PAS CHANGER : l'état. La carte dit toujours « échu ». */
-  t('… mais le minuteur RESTE échu sur sa carte', r.acq.carte===1&&r.flag===true,
-    JSON.stringify({carte:r.acq.carte,flag:r.flag}));
-  t('… et le bouton s\'efface, il n\'y a plus rien à acquitter', r.acq.bouton===0);
-  t('… et le bouton n\'avait ajouté aucune ligne à la rangée (A9)', r.echu.ctrl===r.acq.ctrl,
-    r.acq.ctrl+' sans le bouton → '+r.echu.ctrl+' avec');
-  /* Une nouvelle échéance est une NOUVELLE alarme : l'acquittement ne survit pas au départ. */
-  t('relancer efface l\'acquittement', r.apresRelance.ack===false, JSON.stringify(r.apresRelance));
-  await page.close();
 }
 });
 

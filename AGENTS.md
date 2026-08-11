@@ -729,15 +729,31 @@ la panne reste écrite.
 · **VINGT-ET-UNIÈME PIÈGE DE CASCADE** : `.rt-dock .tm-btn` (0,2,0) pose `flex:1 1 120px` — la
   règle du bouton, écrite en (0,1,0), perdait et la ligne de plus revenait. Portée à (0,2,0)
   ET (0,3,0), jamais par l'ordre de déclaration.
+· **UN SEUL TÉMOIN POUR UNE SEULE MANŒUVRE** : l'acquittement est mesuré DANS la section A9, qui
+  fait déjà échoir un minuteur volet ouvert — une section à part aurait rechargé le même contexte
+  pour le même geste, et deux sections qui montent le même décor finissent par diverger.
 · **⚠ LE TÉMOIN NE RENCONTRE SON CAS QU'EN COLONNE ÉTROITE** (vérifié : à 1280 il reste VERT sur
   le défaut, la rangée du rail ne s'enroulant pas), et il compare **les deux états ÉCHUS** — avec
   et sans le bouton — jamais l'échu au nominal : dans le rail, une carte nominale replie ses
   commandes et les rouvre en échéant, ce qui est une décision antérieure et une autre question.
-· **CE QUI RESTE DÛ, MESURÉ ICI ET NON CORRIGÉ** : le LIBELLÉ d'état (« Adrénaline — à réévaluer »)
-  passe sur une seconde ligne en échéant — **+14 px à 320 px dans le volet, +6 px dans le rail**.
-  C'est une dérive A9 ANTÉRIEURE et indépendante du bouton (mesurée identique en le supprimant) ;
-  le témoin A9 ne la voit pas parce qu'à 390 px le libellé occupe déjà deux lignes dans les deux
-  états. À traiter séparément, sur le clamp du libellé.
+· **LE LIBELLÉ RÉSERVE SES DEUX LIGNES (corrigé dans la foulée)** : en échéant, « Réévaluation
+  après adrénaline » devient « ■ … — à réévaluer » et passait de UNE ligne à DEUX — carte 200 →
+  214 px à 320. Le clamp à deux lignes BORNE le maximum, il ne fixe pas la hauteur : c'est
+  `min-height:2lh` qui la fixe, sur `.rt-dock .tmcard .tm-label` (pas sur les compteurs, qui ne
+  changent pas d'état). **On ne raccourcit pas le libellé à la place** — le suffixe dit ce qu'il
+  faut FAIRE (action au pied de l'alerte), et le retirer ne garantirait rien : un nom qui tient
+  tout juste sur une ligne se remettrait à enrouler pour le seul glyphe « ■ ». Coût dit : +14 px
+  sur une carte à libellé court en colonne unique ; à 390 px la carte valait DÉJÀ 214 des deux
+  côtés — la réserve harmonise plus qu'elle ne coûte.
+· **EXCEPTION NOMMÉE, DANS LE RAIL** : une carte de minuteur y replie ses commandes et les ROUVRE
+  en échéant (+6 px, mesurés). C'est une décision antérieure et elle est juste — les commandes
+  d'une alarme doivent être sous la main à l'instant où elle sonne (ECAM : l'action au pied de
+  l'alerte). Ne pas la « corriger » en supprimant la révélation.
+· **⚠ MESURER LE CAS, PAS LE CORRECTIF** : depuis la réserve, la BOÎTE du libellé fait deux lignes
+  dans les deux états — un témoin qui mesurerait sa hauteur mesurerait le correctif. On compte les
+  lignes du TEXTE (`Range.getClientRects()`), insensibles au `min-height`, et **à 320 px seulement**
+  (à 390 la colonne fait 136 px, le libellé y occupe déjà deux lignes des deux côtés : le contrôle
+  y resterait vert sur le défaut).
 
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
