@@ -79,9 +79,17 @@ const e1d=await p.evaluate(()=>{
   const ph=v=>Math.min(((v%T)+T)%T, T-((v%T)+T)%T);
   out[c]={pose:/repeating/.test(a.img)&&/repeating/.test(z.img),
    meme:a.img===z.img&&a.tuile===z.tuile&&a.tuile>0,
-   // Deux périodes par tuile exprimées en % de la ligne de dégradé : c'est ce qui la rend
-   // raccordable à n'importe quelle taille, sans jamais écrire √2 dans la feuille.
-   raccord:/50%\)?$/.test(a.img.trim())||a.img.includes('50%'),
+   /* LA PÉRIODE S'EXPRIME EN % DE LA LIGNE DE DÉGRADÉ, ET ELLE DIVISE LA TUILE — c'est cela
+      qui la rend raccordable à n'importe quelle taille, sans jamais écrire √2 dans la feuille.
+      ⚠ CE CONTRÔLE EXIGEAIT « 50 % » EN DUR, c'est-à-dire DEUX périodes par tuile : il encodait
+      le mécanisme du jour au lieu de la propriété, et il est passé au rouge le jour où la
+      maquette a demandé un filet fin (quatre périodes de 25 %) — sur un dessin parfaitement
+      raccordable. Un témoin qui fige un chiffre rougit sur un changement juste (leçon v5.0.0,
+      et la doctrine du placard le disait déjà en toutes lettres). On mesure donc : la dernière
+      borne est un POURCENTAGE, et 100 en est un multiple entier. */
+   raccord:(()=>{const pc=[...a.img.matchAll(/([\d.]+)%/g)].map(m=>parseFloat(m[1]));
+     if(!pc.length)return false;const per=Math.max(...pc);
+     return per>0&&per<=100&&Math.abs(100/per-Math.round(100/per))<1e-6;})(),
    dx:+ph(z.x-a.x).toFixed(2), dy:+ph(z.y-a.y).toFixed(2)};
  }
  for(const e of [h,cb]){e.classList.remove('inv','ess');e.classList.add('exo');}

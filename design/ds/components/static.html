@@ -766,6 +766,25 @@
      61 px : c'est le fond du budget sans toucher ni au corps du champ ni à la cible de 44 px.
      Les deux valeurs sont sur l'échelle fermée ; l'état de REPOS, lui, ne bouge pas d'un pixel. */
   body.home-slim header.bar.home{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:6px}
+  /* ══ LA MICRO-ANIMATION DU RESSERREMENT (v5.6, demande utilisateur) ═══════════════════════
+     ⚠ CE QUI S'ANIME EST LA PEINTURE, JAMAIS LA MISE EN PAGE — et ce n'est pas une timidité,
+     c'est la seule chose possible ici. `check-anim` interdit toute propriété de mise en page dans
+     une transition, pour une raison mesurée (v4.41.0 : jusqu'à 38 % d'un cœur consommés par une
+     seule barre animée en `width`) ; animer la hauteur de l'en-tête forcerait une passe de mise
+     en page PAR IMAGE, sur l'objet le plus collant de l'écran, pendant un défilement.
+     ⚠ ET FAIRE FONDRE CE QUI PART A ÉTÉ ESSAYÉ, PUIS MESURÉ FAUX : pour être fondus, la marque et
+     le logo doivent rester dans le flux — or un élément de largeur nulle CONSOMME QUAND MÊME les
+     deux `column-gap` qui l'entourent, et le champ de recherche se déplaçait de 18 à 34 px au
+     franchissement du seuil. C'est exactement ce que la planche interdit (« la position du champ
+     ne bouge jamais ») ; ils gardent donc `display:none`, qui les retire vraiment.
+     CE QUI RESTE EST JUSTE, ET SUFFIT : l'en-tête PREND SON ÉLÉVATION en devenant une bande
+     resserrée qui flotte au-dessus de la liste. Deux propriétés de peinture, ~160 ms, aucune
+     boucle (l'hystérésis 80/40 interdit qu'elle se rejoue au bord du seuil), inerte sous
+     reduced-motion, et zéro pixel de géométrie déplacé. */
+  @media (prefers-reduced-motion:no-preference){
+    header.bar.home{transition:box-shadow .16s ease,border-bottom-color .16s ease}
+  }
+  body.home-slim header.bar.home{box-shadow:var(--shadow);border-bottom-color:transparent}
   /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
      déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
      obligerait à remonter tout l'annuaire pour créer une fiche. Il garde son gabarit et son
@@ -3245,7 +3264,21 @@
      `background`, qui remettrait `background-size` et `background-position` à leur défaut et
      casserait l'alignement de ce placard-là seulement — donc en silence. */
   #crisisBand{position:relative}
-  #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(-45deg,var(--surface) 0,var(--surface) 31.818%,var(--primary-soft) 31.818%,var(--primary-soft) 50%);background-size:31px 31px;opacity:0;transition:opacity .3s ease;pointer-events:none}
+  /* ══ v5.6 — LE DESSIN VIENT DES MAQUETTES : UN FILET, PAS UNE BANDE ═══════════════════════
+     Signalé à l'usage : « le design des hachures n'est pas celui des maquettes ». Mesuré sur la
+     planche (écran 2d, « MODE EXERCICE ») : fond `#f0f5fb` — c'est-à-dire `--primary-soft` — et
+     `repeating-linear-gradient(-45deg, rgba(23,71,127,.12) 0 1px, transparent 1px 10px)`, soit un
+     FILET d'un pixel tous les dix, à 12 % de l'encre primaire. L'implémentation posait des BANDES
+     alternées de ~10 px sur 15,5 : dix fois plus de matière, et une texture qui se dispute le
+     regard avec le contenu au lieu de border la vue.
+     ⚠ LA MISE EN PHASE DE v5.0.5 EST CONSERVÉE AU TRAIT PRÈS, et elle CONTRAINT la géométrie :
+     la période s'écrit en POURCENTAGE de la ligne de dégradé, seule façon de rendre la tuile
+     raccordable sans écrire √2 dans une feuille de style. Sur une tuile carrée de 31 px, cette
+     ligne vaut 43,84 px : une période de 25 % donne un pas de 10,96 px et une bande de 2,3 % un
+     filet de 1,0 px — le dessin de la maquette, au dixième de pixel, ET quatre périodes exactes
+     par tuile. Écrire « 1px / 10px » en dur casserait le raccord entre l'en-tête et le bandeau.
+     Le FOND est posé séparément (`background-color`) : la maquette teinte la barre ET la raye. */
+  #crisisBand::before,header.bar.exo::before,header.bar.inv::before,header.bar.ess::before{content:"";position:absolute;inset:0;background-color:var(--primary-soft);background-image:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--primary) 12%,transparent) 0 2.3%,transparent 2.3% 25%);background-size:31px 31px;opacity:0;transition:opacity .3s ease;pointer-events:none}
   /* La boîte du dégradé du bandeau commence exactement une hauteur d'en-tête plus bas que celle de
      la barre : on remonte la tuile d'autant, les deux grilles coïncident. */
   #crisisBand::before{background-position:0 calc(-1 * var(--hdr-h,64px))}
@@ -3290,7 +3323,7 @@
      et `background-position` à leur défaut, et ce placard-là perdrait la mise en phase de sa
      hachure avec celle de l'en-tête (cf. la règle de base ci-dessus). Bandes en POURCENTAGE pour
      la même raison qu'elle : c'est ce qui rend la tuile raccordable. */
-  #crisisBand.ess::before,header.bar.ess::before{background-image:repeating-linear-gradient(-45deg,var(--surface) 0,var(--surface) 31.818%,var(--surface-3) 31.818%,var(--surface-3) 50%)}
+  #crisisBand.ess::before,header.bar.ess::before{background-color:var(--surface-3);background-image:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--ink) 10%,transparent) 0 2.3%,transparent 2.3% 25%)}
   #crisisBand.ess::before,header.bar.ess::before{opacity:1}
 
   /* PLACARD DE L'INVITÉ (v4.55.4, demande utilisateur) — MÊME MÉCANIQUE que le placard d'exercice,
