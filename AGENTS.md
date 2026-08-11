@@ -586,6 +586,118 @@ porter), et la liste des références en colonne. Après : **zéro** taille et *
 échelle, l'espacement n'ayant plus que des compensations négatives documentées et la réserve du
 dock — qui est une HAUTEUR MESURÉE, pas un espacement choisi, et ne doit pas être arrondie.
 
+**A24. LE DOCK EST FLOTTANT PARTOUT, À LA LARGEUR DE SA COLONNE (v5.6, décision de l'auteur CONTRE
+la planche 7c).** 7c le voulait en pied de colonne au-delà de 780 px ; à l'usage, une colonne de
+lecture fait plusieurs milliers de pixels et le geste d'entrée comme les quatre touches de session
+se retrouvaient à un défilement complet de ce qu'ils commandent, quand tout le dispositif est
+adossé à la promesse d'une position CONSTANTE. Ce qu'on garde de 7c est sa vraie trouvaille : sa
+LARGEUR. Le dock s'aligne sur la COLONNE D'ACTION, jamais sur la fenêtre — géométrie prise sur la
+grille canonique, désormais en TOKENS (`--col-orient` 240 · `--col-state` 320 · `--col-gap` 20),
+calculée en CSS : aucune mesure JS, rien à resynchroniser au redimensionnement. La mécanique
+NOMADE du dock est purgée avec ce qu'elle servait (règle 14).
+
+**A25. TROIS GABARITS DE FENÊTRE, DEUX RÉGIMES DE PLACEMENT (v5.6, planches 7e/8d).**
+LARGEURS : CONFIRMATION 420 (`.dlg-confirm`) · DIALOGUE 480 (`.dlg-480`) · ATELIER 720 (défaut).
+⚠ Une largeur écrite EN LIGNE (`style="max-width:…"`) échappe à TOUS les garde-fous statiques
+(ils lisent le bloc `<style>`, leçon A23) : il n'y en a plus aucune, et un témoin le mesure au
+RENDU. STRUCTURE : en-tête fixe, corps qui défile, pied fixe — la carte est le défileur, plafonnée
+à la hauteur visible, et le corps SE NOMME (`.ai-body`) ; un « dernier enfant flexible » deviné en
+CSS ferait de tout ajout futur un défileur par accident. Bornée par `:has(>.ai-body)` : les
+fenêtres à contenu court et hétérogène gardent la modale pour défileur.
+PLACEMENT — ET C'EST UNE NATURE, PAS UNE QUATRIÈME LARGEUR : « sous 780 px, toute fenêtre devient
+une feuille pleine hauteur » (SPEC §6) vaut pour un DOCUMENT (long, non borné, qu'on parcourt) ;
+un CHOIX (court, borné, dont on sort au geste suivant) reste centré, à la hauteur de son contenu
+(`.dlg-center`, et `.dlg-confirm` qui l'avait déjà compris). Un titre unique partout :
+`--t-step` / 800.
+
+**A26. LES FILTRES SONT UNE FEUILLE (v5.6, planche 8c).** Le dépliant d'en-tête faisait GRANDIR le
+chrome collant au moment précis où l'on demande à voir la liste — on ouvrait les filtres, l'écran
+rendait MOINS de contenu —, les trois familles ne s'y voyaient jamais ensemble, et un dépliant ne
+peut pas ANNONCER son résultat. La feuille le peut : « Voir les 11 résultats », c'est-à-dire savoir
+ce qu'on obtient avant de refermer pour regarder. `state.filtersOpen` garde son nom et son statut
+(le temps de la page, ni persisté ni synchronisé) : seule sa FORME change. Mesuré : ouvrir déplace
+le contenu de 0 px et le chrome de 0 px.
+⚠ CE QUI N'EST PAS REPRIS DE LA PLANCHE : « Créer » en bouton FLOTTANT sous 600 px. Une barre
+flottante donne la place la plus saillante de l'écran, en permanence, à l'action la plus FROIDE de
+l'accueil — l'inversion de saillance que l'audit A3-1 a relevée sur cet écran —, et le seul objet
+flottant du produit porte des gestes d'URGENCE. Le besoin réel (ne pas remonter tout l'annuaire
+pour créer) est déjà tenu : « ＋ » vit dans la rangée persistante et survit au défilement.
+
+**A27. L'EN-TÊTE DE L'ACCUEIL SE RESSERRE AU DÉFILEMENT, ET RIEN N'Y BOUGE (v5.6, planche 7a).**
+`body.home-slim`, posée par `syncHdrScroll` avec hystérésis (80 px vers le bas, 40 au retour) :
+partent la marque, le logo et la rangée de chips ; restent le champ, « ＋ », le déclencheur de
+filtre et le compte. Mesuré : 114 → 62 px à 390 (110 → 62 à 320), le champ à l'abscisse 18 dans
+les deux états.
+⚠ LA MICRO-ANIMATION EST DE PEINTURE, ET CE N'EST PAS UNE TIMIDITÉ : l'en-tête prend son ÉLÉVATION
+(ombre + filet, ~160 ms, inerte sous reduced-motion). Faire FONDRE ce qui part a été essayé puis
+mesuré faux — pour être fondus, la marque et le logo doivent rester dans le flux, or un élément de
+largeur nulle CONSOMME QUAND MÊME les deux `column-gap` qui l'entourent, et le champ se déplaçait
+de 18 à 34 px. Animer la HAUTEUR n'a jamais été une option (check-anim, et v4.41.0).
+⚠ ET TOUTE GÉOMÉTRIE ANCRÉE À L'EN-TÊTE DOIT S'ANCRER À SON ÉTAT DÉPLOYÉ : le rail A→Z se posait
+sur la hauteur DU MOMENT, si bien que tout re-rendu pendant qu'on avait défilé agrandissait sa
+boîte de 52 px et déplaçait les lettres centrées de 26 px sous le doigt (règle de v5.0.9,
+appliquée à un second objet).
+
+**A28. DEUX NIVEAUX DE SÉPARATION DANS LE RAIL (v5.6, signalé à l'usage).** Une FAMILLE se sépare
+par l'ESPACE et par son titre — petites capitales, graisse 800, son compte : un marqueur bien plus
+fort qu'un filet, et ajouter un trait par-dessus est l'inflation de trait, la même faute que le
+rouge permanent. Le FILET reste à l'ITEM, qui n'a que lui. ⚠ Une carte (`.rs-sec`) ne reçoit PAS ce
+traitement : lui retirer son `border-top` lui ouvrirait le haut — une carte se sépare d'une autre
+par un écart, point.
+
+**A29. LE VOLET DU QUAI PROLONGE LA CAPSULE (v5.6, signalé à l'usage).** La v5.4.1 en avait fait un
+ÉTAGE du chrome : bonne structure, géométrie d'avant — posé sous TOUT le bandeau et de bord à
+bord, il se lisait comme une seconde barre. Il prend la largeur de la CAPSULE et se colle à elle,
+coins vifs en haut, arrondis en bas : un seul objet, deux étages. Les deux valeurs viennent du
+rembourrage du bandeau et vivent contre lui, sans une mesure JS. V1 et V2 inchangés et mesurés :
+rien ne bouge derrière, la capsule reste en place et au-dessus.
+
+**A30. LE THÈME A DEUX ADRESSES, ET C'EST UNE EXCEPTION ASSUMÉE (v5.6, décision utilisateur).** Le
+réglage canonique est à froid, dans Compte › Affichage ; un RACCOURCI vit dans l'en-tête, en
+LECTURE d'une aide ou d'une référence seulement. Deux contrôles pour une même valeur enfreint
+§5.5 — l'exception se justifie par le MOMENT, pas par la commodité : une chambre qu'on éteint au
+chevet pendant un soin, où ouvrir une fenêtre de réglages n'est pas envisageable. Il n'existe donc
+PAS sur l'accueil, où la fenêtre Compte est à un tap. Trois crans, dans l'ordre du réglage : une
+bascule à deux laisserait « Auto » inatteignable depuis la fiche. Sa condition est la VUE, jamais
+la largeur (v4.31.0).
+COROLLAIRE — LA RANGÉE D'ACTIONS N'A QU'UN GABARIT : 36 px de dessin, 44 de cible par le halo,
+pour les quatre contrôles. Le menu ⋯ était le seul à 44 px de DESSIN (sur une rangée de glyphes,
+le plus gros se lit comme le plus important) et l'avatar portait un halo calibré du temps où il
+faisait 30 px — sa cible montait à 50 et CHEVAUCHAIT celle de son voisin. Et « Créer » ne change
+plus d'habit selon l'état du CONTENU : la règle « un seul bouton rempli » vise les boutons de
+TEXTE du flux, pas un glyphe du chrome sur la seule rangée qui ne doit jamais se réapprendre.
+
+**A31. LES HACHURES SONT UN FILET, PAS UNE BANDE (v5.6, maquettes).** Fond `--primary-soft`, filet
+d'UN pixel tous les dix à 12 % de l'encre primaire, à −45°. ⚠ La mise en phase de v5.0.5 CONTRAINT
+la géométrie : la période s'écrit en POURCENTAGE de la ligne de dégradé — sur une tuile carrée de
+31 px cette ligne vaut 43,84 px, donc 25 % donne un pas de 10,96 px et 2,3 % un filet de 1,0 px,
+soit le dessin de la maquette ET quatre périodes exactes par tuile. Écrire « 1px / 10px » en dur
+casserait le raccord entre l'en-tête et le bandeau. Jamais le raccourci `background`.
+
+**A32. ⏱ UN COMPTEUR S'INCRÉMENTE DEPUIS LE VOLET — UN GESTE, DEUX FAITS, UNE SEULE LIGNE (v5.6,
+demande utilisateur).** Incrémenter pose DÉJÀ son propre repère horodaté (v4.52.0) : appeler le
+chemin du « + » depuis le volet ⏱ produirait DEUX lignes à la même seconde pour un seul acte —
+le doublon que « ✓ Consigné à … » existe pour supprimer. La chip ATTACHE donc le compteur au
+repère que le tap vient de poser, avec la valeur ATTEINTE ; le minuteur lié est armé comme au
+« + » (même acte clinique, il ne peut pas avoir deux comportements selon l'endroit). TRANSPARENCE :
+la chip dit sa destination AVANT le tap (« 0 → 1 »), et `#srLive` l'annonce après.
+⚠ UN RANG NE GARANTIT RIEN, IL ORDONNE : sur un bloc de six étapes les compteurs tombaient au
+septième rang et disparaissaient d'une liste bornée à six. `tagSuggest` reçoit un paramètre
+FACULTATIF `garantis` qui leur réserve les premières places.
+
+**A33. EN CRISE, LE HARNAIS D'ACCESSIBILITÉ MESURE TOUT — LES EXEMPTIONS SE NOMMENT (v5.6, planche
+8f).** Une liste de racines est un contrôle par liste blanche : elle ne mesure que ce qu'on a pensé
+à y mettre, et le dossier a payé ce trou trois fois. Dès qu'une session est à l'écran, `audit-a11y`
+scanne la page entière ; hors crise la liste demeure (ces écrans n'ont pas le contrat des 44 px).
+L'inversion a trouvé QUATRE violations AA qu'aucune racine ne contenait — `.skiplink` à 40 px,
+trois textes de la carte de bloc en `--ink-3` à 2,32:1, la réponse attendue d'une étape cochée, et
+un séparateur « · » à 1,33:1 (supprimé : un séparateur qui doit rester discret ne s'écrit pas en
+lettres, c'est un ÉCART). Trois invariants entrent en même temps dans `audit-doctrine` : **A9**
+(un changement d'état non commandé ne modifie aucune hauteur), **A6 au RENDU** (ce que check-type
+ne peut pas voir), **A11** (au plus une masse colorée). ⚠ Un minuteur à CYCLES n'est jamais échu —
+il se relance : couper la boucle avant de forcer l'échéance, sinon le témoin ne rencontre pas son
+cas et mesure deux fois le nominal.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
