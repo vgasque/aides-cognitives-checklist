@@ -3679,7 +3679,13 @@
   .stp-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 8px;font-size:11px;font-weight:700;
     letter-spacing:.02em;color:var(--ink-soft)}
   .stp-legend svg{vertical-align:-2px;color:var(--critical)}
-  .lg-sp{color:var(--line-strong)}
+  /* ⚠ LE SÉPARATEUR DE LA LÉGENDE N'EST PLUS UN CARACTÈRE (v5.6). C'était un « · » à 1,6:1 :
+     invisible, donc inutile — mais mesuré comme du TEXTE, et à juste titre, puisque c'en était.
+     Un séparateur qui doit rester discret ne s'écrit pas en lettres : c'est un ÉCART. La légende
+     porte déjà `gap`, il suffit de l'élargir entre les groupes. Rien à exempter, rien à teinter,
+     et l'arbre d'accessibilité n'a plus un caractère de ponctuation à annoncer entre deux mots.
+     `.lg-sp` est PURGÉE avec le caractère qu'elle habillait (règle 14). */
+  .stp-legend>*+*{margin-left:6px}
   .lg-r{font-family:var(--mono);background:var(--tag-bg);color:var(--tag-ink);border-radius:8px;padding:0 4px}
   /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
      l'unique bouton rempli de l'écran reste « Continuer — … → ». */
@@ -4577,7 +4583,12 @@
   /* « BLOC 7 » : une ÉTIQUETTE, plus une pastille. La pastille numérotée disait la position par
      un aplat bleu de plus ; le numéro suffit, et il reste le même que celui du plan, du statique
      et du schéma (`flowPlan().order`). */
-  .ov-n{order:1;flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-family:inherit;background:none;border:0;padding:0}
+  /* ⚠ `--ink-3` N'EST PAS UNE ENCRE DE TEXTE (v5.6, trouvé en inversant la portée du harnais) :
+     mesuré 2,32:1 sur ces trois-là — le numéro du bloc, son compte et son chevron —, c'est-à-dire
+     sous le seuil AA, sur la carte que l'on regarde pendant un soin. La règle est écrite depuis
+     la v4.5 pour `--soft` et rappelée en v5.0.0 pour `--ink-3` ; ces trois sites l'enfreignaient
+     et AUCUNE racine mesurée ne les contenait. `--ink-2` est l'encre secondaire. */
+  .ov-n{order:1;flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);font-family:inherit;background:none;border:0;padding:0}
   .ov-block.done .ov-n{color:var(--ok)}
   /* Le TITRE du bloc prend le cran 21 — c'est l'objet qu'on lit en premier dans la carte, et le
      grand corps appartient à l'ACTE. Il vit sur sa propre ligne, sous l'étiquette. */
@@ -4598,9 +4609,9 @@
      d'accent) ; il ne restait qu'une pilule bleue de plus dans un écran qui en compte assez.
      Ce qui subsiste dans l'en-tête de carte est le COMPTE (« 2/5 »), qui, lui, dit quelque chose
      que rien d'autre ne dit. */
-  .ov-c{order:2;flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-3)}
+  .ov-c{order:2;flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2)}
   .ov-block.done .ov-c{color:var(--ok)}
-  .ov-chev{order:3;flex:none;color:var(--ink-3);font-size:11px;font-weight:700}
+  .ov-chev{order:3;flex:none;color:var(--ink-2);font-size:11px;font-weight:700}
   .ov-redo{flex:none;align-self:center;margin:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -4963,7 +4974,12 @@
      doit se lire d'un trait. Elle passe donc à la ligne, sans fond : c'est une CADENCE, pas un
      bouton. Le bleu du dossier reste ce qu'il était — la position et l'action. */
   ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--warn);text-transform:uppercase;line-height:1.35}
-  ol.steps li.done .stp-r{color:var(--ink-3);text-transform:none}
+  /* ⚠ ENCORE `--ink-3` EN ENCRE DE TEXTE (v5.6, trouvé en inversant la portée) : 2,32:1 en clair
+     et 4,11:1 en sombre sur la réponse attendue d'une étape COCHÉE — c'est-à-dire l'état le plus
+     fréquent de l'écran, et exactement la faute que la v5.0.0 a corrigée sur le texte de l'étape
+     elle-même (« une étape cochée reste lisible »). La pilule de réponse est ce qu'on RELIT pour
+     vérifier ce qui a été fait : elle ne peut pas être la seule chose illisible de la ligne. */
+  ol.steps li.done .stp-r{color:var(--ink-2);text-transform:none}
   ol.steps li.done .stp-r::before{content:"✓ "}
   .pl-r{font-family:var(--mono);font-size:11px;color:var(--link)}
   /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
@@ -6382,7 +6398,12 @@
   /* Lien d'évitement clavier : invisible jusqu'au focus. L'ombre ne vit QUE sur l'état focalisé :
      posée sur l'état garé (top:-60px), elle « suintait » sous le bord supérieur gauche de l'écran
      (flou 32 px + décalage 12 px de --shadow-lg, très visible en sombre — constat v4.4.4). */
-  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--link);font-weight:700;font-size:13.5px;padding:10px 16px;border-radius:8px;transition:top .12s}
+  /* ⚠ 44 px DE CIBLE (v5.6, trouvé en INVERSANT la portée du harnais) : il faisait 40, et
+     personne ne pouvait le voir — il ne vivait dans aucune des racines mesurées. C'est le
+     recours d'un utilisateur au clavier ou au lecteur d'écran ; qu'il soit le seul contrôle
+     sous-dimensionné de l'écran de crise n'était pas défendable. Le rembourrage vertical monte
+     de 10 à 12 px : 13,5 × 1,45 + 24 ≈ 44, sans toucher au corps ni au dessin. */
+  .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--link);font-weight:700;font-size:13.5px;line-height:1.45;padding:12px 16px;border-radius:8px;transition:top .12s}
   .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
   /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
      Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */

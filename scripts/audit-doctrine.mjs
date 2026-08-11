@@ -3823,6 +3823,100 @@ await sec('v5.6 · ⏱ un compteur s\'incrémente depuis le volet, sans doubler 
 }
 });
 
+/* ══ A9 · A6 · A11 — TROIS INVARIANTS DE LA REFONTE, MESURÉS AU RENDU (v5.6, planche 8f) ═════
+   Les trois sont écrits dans AGENTS.md depuis le lot 1 et n'étaient vérifiés PAR RIEN :
+   · A9 — un changement d'état NON COMMANDÉ ne modifie jamais une hauteur (un minuteur qui échoit,
+     une alarme qui s'éveille). Le piège n'est pas la structure, identique d'un état à l'autre,
+     c'est le LIBELLÉ : « Adrénaline » devient « Adrénaline — échu », un mot de plus passe le nom
+     sur deux lignes, et la carte grandit sous le doigt.
+   · A6 — l'échelle typographique fermée, VÉRIFIÉE AU RENDU : `check-type` lit la feuille de
+     style, donc il ne voit ni un `style=` en ligne ni une règle qui ne s'applique pas dans un
+     logement donné (leçon A23, quatre dérives trouvées ainsi).
+   · A11 — une seule masse colorée à l'écran : l'aplat est réservé à ce qui exige une action
+     MAINTENANT. À cinq étapes, l'aplat happe l'œil et détruit la lecture de la séquence. */
+await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule masse', async () => {
+{
+  const ECHELLE=[11,12,13.5,15,17.5,21,24];
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  const r=await page.evaluate(async(ECH)=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const H=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().height):null;};
+    /* ── A9 ── On ouvre le volet pour avoir les cartes de minuteur sous la main, puis on fait
+       ÉCHOIR le minuteur sans toucher à rien d'autre : c'est le changement d'état non commandé
+       que la règle vise. */
+    document.getElementById('cbTimers').click();await w(450);
+    const sel='.rt-dock .tmcard';
+    const avant={capsule:H('#cbTimers'),carte:H(sel)};
+    /* ⚠ ON FAIT ÉCHOIR PAR LE MODÈLE RÉEL : un minuteur d'intervalle porte `seconds`, `elapsedMs`
+       et `lastStart` — pas de `durMs`. Deviner le nom d'un champ produit un témoin qui ne
+       rencontre jamais son cas, et le contrôle d'état qui suit mesurerait deux fois le nominal. */
+    /* ⚠ UN MINUTEUR À CYCLES N'EST JAMAIS ÉCHU — il se relance (`autoloop`) et incrémente son
+       compte : le forcer au-delà de son intervalle produit un tour de plus, pas l'état ambre.
+       Le témoin coupe donc la boucle avant de forcer l'échéance, sinon il ne rencontrerait
+       jamais son cas et A9 mesurerait deux fois le nominal. */
+    const t0=Object.keys(Runtime.timers||{})[0];
+    if(t0){const tm=Runtime.timers[t0];tm.autoloop=false;
+      tm.running=true;tm.elapsedMs=((tm.seconds||60)*1000)+5000;tm.lastStart=Date.now();}
+    tickAll();await w(400);
+    const apres={capsule:H('#cbTimers'),carte:H(sel)};
+    const echu=!!document.querySelector('.rt-dock .tmcard.due,.tmcard.due,#cbTimers .seg.due');
+    /* ── A6 ── Toutes les tailles de texte RÉELLEMENT peintes dans la vue de crise. On ignore ce
+       que la doctrine exempte NOMMÉMENT : le schéma (dessin à échelle variable, cf. audit-a11y)
+       et les champs à 16 px du plancher tactile (valeur de SERVICE, contrainte du moteur, pas un
+       palier — A6 le dit en toutes lettres). */
+    const tailles={};
+    document.querySelectorAll('body *').forEach(el=>{
+      if(el.closest('.flow-scroll'))return;
+      /* `<option>` est peint par le SYSTÈME dans sa liste déroulante, pas par la feuille : sa
+         taille n'appartient à aucune échelle de la page, et son parent `<select>` est déjà
+         exempté au titre du plancher tactile de 16 px. */
+      if(/^(INPUT|TEXTAREA|SELECT|OPTION|OPTGROUP)$/.test(el.tagName))return;
+      /* `.sr-only` n'est PAS peint : sa taille ne dit rien de l'écran, et l'imposer sur l'échelle
+         serait mesurer une chose qui n'existe pas visuellement. */
+      if(el.closest('.sr-only'))return;
+      const cs=getComputedStyle(el);
+      if(cs.display==='none'||cs.visibility==='hidden')return;
+      const own=[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length);
+      if(!own)return;
+      const fs=Math.round(parseFloat(cs.fontSize)*10)/10;
+      if(ECH.indexOf(fs)<0)(tailles[fs]=tailles[fs]||[]).push((el.className||el.tagName)+'');
+    });
+    /* ── A11 ── Une masse colorée = un APLAT de registre (rouge ou ambre PLEIN) sur une surface
+       de plus de 2 000 px². Les CONTOURS, les liserés et les teintes à 15 % n'en sont pas : la
+       doctrine dit « une étape critique se MARQUE, elle ne se remplit pas ». */
+    const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const norm=c=>{const m=String(c).match(/\d+/g);return m?m.slice(0,3).join(','):'';};
+    const pleins=[norm(cv('--crit')),norm(cv('--warn'))].filter(Boolean);
+    const masses=[];
+    document.querySelectorAll('body *').forEach(el=>{
+      const cs=getComputedStyle(el);const bg=norm(cs.backgroundColor);
+      if(!bg||pleins.indexOf(bg)<0)return;
+      const rr=el.getBoundingClientRect();
+      if(rr.width*rr.height>2000)masses.push((el.className||el.tagName)+'');
+    });
+    return {avant,apres,echu,tailles,masses};},ECHELLE);
+
+  t('témoin : le minuteur est réellement passé à l\'état ÉCHU', r.echu===true);
+  t('A9 · la capsule ne change pas de hauteur quand un minuteur échoit',
+    r.avant.capsule!==null&&r.avant.capsule===r.apres.capsule,
+    `${r.avant.capsule} → ${r.apres.capsule} px`);
+  t('A9 · … ni la carte du minuteur',
+    r.avant.carte!==null&&Math.abs(r.avant.carte-r.apres.carte)<=1,
+    `${r.avant.carte} → ${r.apres.carte} px`);
+  t('A6 · aucune taille de texte hors échelle fermée dans la vue de crise',
+    Object.keys(r.tailles).length===0,
+    Object.entries(r.tailles).map(([k,v])=>k+'px → '+v.slice(0,3).join(', ')).join(' | '));
+  t('A11 · au plus UNE masse colorée à l\'écran',
+    r.masses.length<=1, `${r.masses.length} : ${r.masses.slice(0,4).join(' · ')}`);
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);

@@ -18,6 +18,9 @@
  * plus lâche que celle du texte parce que ses objets sont plus rares et plus gros.
  *
  * DEUX VALEURS DE SERVICE, qui ne sont pas des paliers :
+ * DEUX EXEMPTIONS, TOUTES DEUX NOMMÉES (v5.6) : le plancher de 16 px ci-dessous, et la feuille du
+ * COMPTE RENDU TÉLÉCHARGÉ — document autonome, hors du bloc <style>, dont la frontière est
+ * désormais VÉRIFIÉE et non supposée (cf. le bloc « DEUX EXEMPTIONS » plus bas).
  *   · 16 px — plancher des champs de saisie sur écran tactile (règle 9 : sous 16, Safari iOS
  *     zoome la page au focus et les taps voisins se perdent). C'est une contrainte du moteur,
  *     pas un niveau de hiérarchie.
@@ -53,6 +56,29 @@ const src = await readFile(ROOT + 'index.html', 'utf8');
 const css = src.slice(src.indexOf('<style>'), src.indexOf('</style>'));
 
 const fautes = [];
+/* ══ DEUX EXEMPTIONS, ET ELLES SONT DÉSORMAIS DITES (v5.6, planche 8f) ══════════════════════
+   Ce contrôle en avait DEUX, dont une seule était écrite :
+   1. Le plancher de 16 px des champs sur écran tactile — nommé dans EXEMPTIONS ci-dessus. C'est
+      une valeur de SERVICE, imposée par le moteur (sous 16 px, Safari iOS zoome au focus), pas un
+      palier de l'échelle : elle ne hiérarchise rien et ne doit jamais servir ailleurs.
+   2. La feuille du COMPTE RENDU TÉLÉCHARGÉ, qui vit dans un littéral gabarit du script et non
+      dans le bloc <style> — elle échappait donc au contrôle par ACCIDENT DE DÉCOUPAGE, ce qui
+      n'est pas une exemption, c'est un angle mort. C'en est une VRAIE : le compte rendu est un
+      document AUTONOME, sans serveur, dont les polices et les corps système sont une décision
+      (v5.2.0) — mais il faut le dire, et surtout garantir que la frontière tient.
+   ON VÉRIFIE DONC LA FRONTIÈRE au lieu de s'y fier : si la feuille du compte rendu venait à
+   entrer dans le bloc <style>, le contrôle le dirait au lieu de la mesurer en silence — ou de
+   l'exempter en silence, ce qui serait pire. Même discipline que check-fonts, qui borne sa
+   région d'exemption par un repère du CODE et échoue s'il ne le trouve plus. */
+{
+  const REPERE = 'const css=`@font-face';
+  if (css.includes(REPERE))
+    fautes.push({ ligne: 0, val: '?', sel: 'la feuille du COMPTE RENDU a migré dans <style> — '
+      + 'elle serait mesurée (ou exemptée) en silence ; la traiter explicitement' });
+  if (!src.includes(REPERE))
+    fautes.push({ ligne: 0, val: '?', sel: 'repère de la feuille du compte rendu introuvable — '
+      + 'le contrôle ne sait plus ce qu\'il laisse dehors' });
+}
 let exemptees = 0, controlees = 0;
 const rx = /font-size:\s*([0-9.]+)px/g;
 let m;

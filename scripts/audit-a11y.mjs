@@ -41,7 +41,23 @@ const AUDIT = `(() => {
   // à l'app doit être ajoutée ICI dans le même geste, sinon elle n'est jamais mesurée.
   // .dir-wrap + .azrail REMPLACENT .cards en v4.56.0 (accueil « poste accès direct ») : un
   // sélecteur qui ne matche plus rien ferait passer l'accueil sans l'avoir mesuré (v4.31.1).
-  const SCOPE=window.__acScope||'#crisisBand,.brand-sur,#crisisDock,#sessionDock,#dockSheet,#planModal,#refModal,.read-side,.annex-row,.dir-wrap,.azrail,.list-edit,.pos-more';
+  /* ══ LA PORTÉE EST INVERSÉE EN CRISE (v5.6, planche 8f) ═══════════════════════════════════
+     Une LISTE DE RACINES est un contrôle par liste blanche : elle ne mesure que ce qu'on a pensé
+     à y mettre, et le dossier a déjà payé ce trou trois fois (la rangée de commandes oubliée en
+     v4.32.0 — deux boutons à 38 px là où la crise exige 44 ; le sélecteur .cards devenu mort en
+     v4.56.0 ; le schéma jamais mesuré nulle part). Dès qu'une session est à l'écran, on mesure
+     donc TOUT ce que la page contient, et ce sont les EXEMPTIONS qui se nomment une par une.
+     L'inversion a immédiatement payé : le lien d'évitement (.skiplink) faisait 40 px — le recours
+     de qui navigue au clavier était le seul contrôle sous-dimensionné de l'écran de crise, et il
+     ne vivait dans AUCUNE racine. Corrigé, puis zéro violation aux six états mesurés
+     (320/390/1280, volet ouvert, index déplié, « Tout voir »).
+     HORS CRISE, la liste de racines demeure : ces écrans (accueil, éditeurs, fenêtres) n'ont pas
+     le contrat des 44 px, et les mesurer entièrement mêlerait des surfaces dont la doctrine
+     diffère. L'inversion vise ce que la doctrine protège le plus. */
+  const CRISE=document.body.classList.contains('view-read')&&!!document.getElementById('crisisDock')
+              &&!document.getElementById('crisisDock').hidden;
+  const SCOPE=window.__acScope||(CRISE?'body'
+    :'#crisisBand,.brand-sur,#crisisDock,#sessionDock,#dockSheet,#planModal,#refModal,.read-side,.annex-row,.dir-wrap,.azrail,.list-edit,.pos-more');
   const roots=[...document.querySelectorAll(SCOPE)].filter(visible);
   const seen=new Set();
   roots.forEach(root=>{
