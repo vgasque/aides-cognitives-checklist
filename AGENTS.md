@@ -316,7 +316,17 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   enregistre le SHA-256 de tout ce qui peut influencer un verdict (servables de la racine,
   vendor/, scripts/*.mjs, moteur) ; si rien n'a changé, `npm run audit` LE DIT au lieu de rejouer
   (entrées identiques → même verdict), `--force` rejoue quand même ; une passe partielle n'écrit
-  ni ne consomme jamais ce cache. **LE WORKFLOW QUI EN DÉCOULE** : une passe complète de
+  ni ne consomme jamais ce cache.
+  **UNE MANŒUVRE, UNE SECTION (v5.6, demande de l'auteur : « optimise les audits, évite les
+  doublons »)** : deux sections qui montent le MÊME décor pour mesurer deux propriétés d'un même
+  geste paient deux fois le démarrage — et surtout, elles finissent par diverger (l'une apprend un
+  piège que l'autre ignore). Quand une propriété nouvelle se mesure sur un contexte DÉJÀ dressé,
+  elle rejoint la section qui le dresse ; quand elle demande une autre LARGEUR, on redimensionne
+  (`setViewportSize`) au lieu de recharger — l'état de session et les volets survivent. Précédent :
+  « acquitter un minuteur échu » a fusionné dans la section A9, qui fait déjà échoir un minuteur
+  volet ouvert. ⚠ La limite est la LISIBILITÉ DU ROUGE : une section est une UNITÉ DE VERDICT, et
+  l'on ne fusionne pas des mesures sans rapport pour économiser une page.
+  **LE WORKFLOW QUI EN DÉCOULE** : une passe complète de
   DÉCOUVERTE en début de chantier (le rapport agrégé montre tous les rouges d'un coup), puis
   correction → section ciblée en secondes, puis UNE passe complète finale — la porte de commit est
   STRICTEMENT inchangée. **CE QUI N'A PAS ÉTÉ FAIT, et pourquoi** : pas de carte « fichier modifié
@@ -754,6 +764,79 @@ la panne reste écrite.
   lignes du TEXTE (`Range.getClientRects()`), insensibles au `min-height`, et **à 320 px seulement**
   (à 390 la colonne fait 136 px, le libellé y occupe déjà deux lignes des deux côtés : le contrôle
   y resterait vert sur le défaut).
+
+**A35. LE SÉLECTEUR SEGMENTÉ EST UN COMPOSANT À N SEGMENTS (v5.6, signalé à l'usage : « le fond qui
+glisse est trop large », « A–Z / Catégories devrait être comme les autres »).** La mécanique à N
+vivait sur un `#id` (le sélecteur de taille de texte, v4.71.1) : ailleurs, la pastille était
+dimensionnée par `flex:1`, **qui n'égalise pas deux libellés de longueurs différentes**
+(`min-width:auto` recale chaque item sur son texte — mesuré 79 px de pastille pour un bouton de
+43). Le composant porte désormais des PISTES DE GRILLE (`--seg-n`, `--seg-i`, `--seg-gap`) : la
+pastille vaut une piste, par construction, quel que soit le nombre de segments. La mécanique à
+DEUX est laissée intacte (`.seg.i1` continue de piloter la tab bar historique et « Créer »).
+· **`.grp-seg` est un HABILLAGE, pas une seconde mécanique** : le groupement de l'accueil garde son
+  fond et son contour, il ne réimplémente rien.
+· **⚠ PIÈGE DE CASCADE** : `.seg` est déclarée ~4 000 lignes plus bas que la variante ; à
+  spécificité égale, l'écart de gouttière était silencieusement ignoré — d'où `.seg.grp-seg`.
+· **⚠ ET LA PASTILLE PREND LE REGISTRE DU COMPOSANT, jamais un aplat sombre** : mesuré 1,04:1 sur
+  le libellé actif, la sonde d'`audit-a11y` remontant les ancêtres et trouvant un fond sombre sous
+  une encre claire. Un objet en position absolue derrière du texte est un FOND, pas une décoration.
+
+**A36. L'EN-TÊTE A UNE SEULE HAUTEUR, QUELLE QUE SOIT LA VUE (v5.6, signalé à l'usage).** Accueil et
+lecture ne s'accordaient pas : le champ de recherche imposait sa hauteur propre à la rangée
+d'identité. La rangée porte un `min-height` et le champ se règle en REMBOURRAGE — une rangée de
+chrome dont la hauteur dépend de son contenu est une rangée qui se déplace en changeant de vue, et
+tout le chrome de crise s'y ancre (`--hdr-h`, `stickBase()`).
+
+**A37. LE VOLET DU DOCK A LA BOÎTE DE LA BARRE FLOTTANTE, ET IL EN EST SÉPARÉ (v5.6, signalé à
+l'usage : « n'est plus adapté à la nouvelle taille de la barre, et est décalé »).** Depuis A24 la
+barre s'aligne sur la COLONNE D'ACTION : le volet de ⏱/⚡ suit donc la même géométrie — mêmes
+marges de grille, jamais la largeur de la fenêtre. Il se pose AU-DESSUS de la barre, à `--dock-h`
+(hauteur MESURÉE, posée par `syncDock`) plus un écart : la maquette le montre légèrement détaché,
+et un volet qui recouvrirait ses propres touches masquerait le geste qu'on vient de faire. Mesuré
+identique à 390, 900 et 1280 px.
+
+**A38. L'EXERCICE S'ARME, ET CE QUI S'ARME SE DÉSARME (v5.6, décision utilisateur).** Taper
+« Exercice » ne démarre rien — comportement attendu, conservé —, mais il n'existait alors AUCUN
+moyen de revenir en arrière : le mode restait armé jusqu'au démarrage. Re-taper la touche l'annule
+(`cancelExercise`), et **le geste d'entrée dit ce qu'il va démarrer** (« Confirmé — démarrer
+l'exercice » / « … la session ») : un bouton qui nomme autre chose que ce qu'il fait est la
+première cause de mode confusion (FAA).
+
+**A39. UN FILTRE POSÉ AGIT AUSSI EN RECHERCHE (v5.6, signalé à l'usage : « quand on change de
+catégorie, rien ne se passe »).** Le cran (bibliothèque, catégorie) n'était appliqué qu'au
+RÉPERTOIRE ; dès qu'on tapait, la liste passait en tri par pertinence et l'ignorait. Un filtre
+visible qui ne filtre pas est pire qu'un filtre absent — c'est la règle « un filtre posé ne doit
+jamais être invisible », prise par l'autre bout.
+
+**A40. UNE FICHE D'UN SEUL BLOC EST UNE FICHE COMME LES AUTRES (v5.6, signalé à l'usage : « bloc mal
+affiché, parcours inerte absent »).** Deux causes, une seule leçon. `hasFlow(f)` — « y a-t-il un
+embranchement ? » — décidait de choses qu'il ne gouverne pas : l'existence du PARCOURS INERTE (une
+fiche d'un bloc a un parcours : un bloc) et le mode de rendu. Et **le mode était résolu DEUX FOIS**,
+au rendu et dans le binder, chacun avec sa formule : le compteur d'avancement restait figé sur
+« 1/2 ». `readModeOf(f)` est la source UNIQUE, et la colonne d'orientation se conditionne à
+l'existence de BLOCS, jamais à celle d'un embranchement.
+
+**A41. UN CLIC QUI DÉPLACE LE FOCUS SE VOLE LUI-MÊME — LA LISTE DE LA v4.77.0 S'ÉTEND AUX PORTES
+D'AJOUT (v5.6, signalé à l'usage : « ＋ Rappel n'enregistre pas ce que je viens de taper »).** Entre
+`pointerdown` et `mouseup`, le champ perd le focus, la rangée referme ses outils (`:focus-within`),
+la page se resserre — le bouton n'est plus sous le pointeur et **aucun `click` n'est émis**. Tout
+contrôle voisin d'un champ éditable entre donc dans le `preventDefault` de `pointerdown`.
+· **⚠ LEÇON DE SONDE, payée ici** : ma première mesure cliquait le bouton sans avoir fait défiler
+  jusqu'à lui (y = 5 367) et concluait « ＋ n'ajoute jamais rien » — un diagnostic faux sur un
+  défaut réel. Une sonde qui clique hors écran mesure l'écran, pas l'application.
+· **⚠ ET UN `.click()` PROGRAMMATIQUE NE DÉPLACE AUCUN FOCUS** : le témoin doit cliquer pour de
+  vrai, sinon il reste vert sur les sept familles de listes.
+
+**A42. UN LOT DISTANT S'APPLIQUE TOUJOURS ; SEULE LA PEINTURE DÉPEND DE LA VUE (v5.6, signalé à
+l'usage : « en session partagée, les blocs disparaissent chez l'hôte et ne reviennent pas »).**
+`onEvents` sortait sans rien appliquer dès que la vue n'était pas `read`, et **la perte était
+DÉFINITIVE** : le curseur est avancé par l'appelant AVANT cet appel, donc le lot n'est jamais relu.
+Il suffisait que l'hôte revienne à la bibliothèque pendant que le collègue avance. Le commentaire
+disait « le pli suffit » — vrai chez l'INVITÉ, dont l'état EST le pli ; chez l'hôte la session
+locale fait autorité et rien ne la rattrape. On applique donc toujours, et l'on MUSELLE la seule
+queue qui pouvait déclencher un rendu complet, c'est-à-dire arracher quelqu'un à l'écran qu'il
+regarde. Le `catch` vide disparaît avec : il laissait un lot à moitié appliqué sur un curseur déjà
+avancé.
 
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
