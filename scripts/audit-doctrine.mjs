@@ -544,27 +544,50 @@ await sec('ECAM · ancrage — résidu nul au geste de première action', async 
      été actée (`ovAfterCheck` : « seul chemin qui RE-REND »). L'invariant ne bouge pas, son
      déclencheur est simplement celui d'aujourd'hui. */
   const g=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    /* ⚠ LA FICHE DOIT POUVOIR DÉFILER LARGEMENT, ET C'EST UNE CONDITION DE MESURE (v5.6). Avec six
+       étapes, le document faisait 982 px pour une fenêtre de 900 : `scrollTo(0,300)` retombait à
+       82, c'est-à-dire au MAXIMUM. Or décocher après la fin retire la bannière de fin — la page
+       raccourcit, le navigateur RABAT le défilement, et tout glisse de la hauteur perdue. Aucune
+       compensation ne peut rien contre un rabat de fin de page : le témoin mesurait alors le
+       navigateur, pas l'application (constaté en restaurant « Vérifier », qui déplaçait cette
+       limite de 22 px). Vingt-quatre étapes donnent de la marge des deux côtés. */
+    const etp=[];for(let i=0;i<24;i++)etp.push('étape '+(i+1));
     const f=migrate({id:'ancd',title:'Ancre mono-bloc',blocks:[
-      {id:'b1',kind:'do',title:'Bloc unique',items:['a','b','c','d','e','f'].map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
+      {id:'b1',kind:'do',title:'Bloc unique',items:etp.map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
     openRead(f.id);await w(350);
     document.getElementById('sessStart').click();await w(400);
-    for(let i=0;i<8;i++){const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));
-      if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await w(220);}
+    for(let i=0;i<30;i++){const li=[...document.querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));
+      if(!li)break;li.dispatchEvent(new MouseEvent('click',{bubbles:true}));await w(120);}
     const fin=document.querySelector('[data-ovend]');if(fin)fin.click();await w(400);
     window.scrollTo(0,300);await w(250);
+    /* Témoin de la condition ci-dessus : on n'est PAS collé au bas de la page. */
+    const auBout=Math.round(scrollY)>=Math.round(document.documentElement.scrollHeight-innerHeight)-2;
     window.__anc=[];
     const li=document.querySelector('[data-ck].done');
     if(li)li.dispatchEvent(new MouseEvent('click',{bubbles:true}));
-    await w(450);return window.__anc;});
-  t('re-rendu ciblé : le remplacement du bloc est ancré',g.length>0&&g[0].sel.indexOf('data-ck')>=0,
-    JSON.stringify(g));
-  if(g.length)t('… le résidu est réellement MESURÉ (ancre retrouvée)',
-    g[0].residu!==null&&g[0].derive!==null,
-    `résidu ${g[0].residu}, dérive ${g[0].derive} — ancre perdue pendant le re-rendu ?`);
-  if(g.length)t('… et le bloc ne bouge pas (≤ 1 px)',
-    g[0].derive!==null&&Math.abs(g[0].derive)<=1,
-    `dérive ${g[0].derive} px`);
+    await w(450);return {anc:window.__anc,auBout};});
+  t('témoin : la page n\'est pas collée au bas (sinon on mesure le rabat du navigateur)',
+    g.auBout===false, `auBout ${g.auBout}`);
+  const gg=g.anc;
+  t('re-rendu ciblé : le remplacement du bloc est ancré',gg.length>0&&gg[0].sel.indexOf('data-ck')>=0,
+    JSON.stringify(gg));
+  if(gg.length)t('… le résidu est réellement MESURÉ (ancre retrouvée)',
+    gg[0].residu!==null&&gg[0].derive!==null,
+    `résidu ${gg[0].residu}, dérive ${gg[0].derive} — ancre perdue pendant le re-rendu ?`);
+  /* ⚠ CE DERNIER CONTRÔLE EST UN GARDE, ET IL FAUT LE DIRE : sur ce chemin, aujourd'hui, RIEN ne
+     change au-dessus de l'ancre — neutraliser la compensation de `keepAnchor` le laisse VERT
+     (vérifié). Il ne DÉMONTRE donc rien ; il protège contre une modification future qui ferait
+     bouger le contenu au-dessus de l'ancre sans que la compensation l'absorbe. Ce qui, lui, est
+     capable d'échouer, c'est le contrôle précédent : remplacer l'appel ancré par un re-rendu nu
+     le fait rougir (vérifié aussi).
+     ⚠ ET IL A MESURÉ LE NAVIGATEUR PENDANT UNE VERSION : avec six étapes, la page faisait 982 px
+     pour une fenêtre de 900 — le défilement était collé au maximum, décocher retirait la bannière
+     de fin, le navigateur RABATTAIT la page, et les 22 px de rabat étaient imputés à l'ancrage.
+     D'où le témoin « pas collée au bas » ci-dessus : sans lui, la mesure ne dit rien. */
+  if(gg.length)t('… et le bloc ne bouge pas (≤ 1 px)',
+    gg[0].derive!==null&&Math.abs(gg[0].derive)<=1,
+    `dérive ${gg[0].derive} px`);
   await page.close();
 }
 });
@@ -3652,6 +3675,31 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
       return v;});
     t(`${W} · … et il parcourt les TROIS crans, dans l'ordre du réglage`,
       cy.slice(0,3).join(',')==='auto,light,dark'&&cy[3]==='auto', cy.join(' → '));
+    /* ⚠ EN SOMBRE, LA PASTILLE DU COMPTE SE DISSOUT DANS L'EN-TÊTE (v5.6, signalé à l'usage).
+       C'est le seul contrôle de la rangée à porter un APLAT, et en sombre cet aplat vaut
+       exactement le fond de la barre : 1,00:1 mesuré. Les initiales restent lisibles — ce n'est
+       donc pas un défaut de TEXTE, et `audit-a11y`, qui mesure le texte, ne pouvait pas le voir :
+       c'est la LIMITE DU COMPOSANT que WCAG 2.2 § 1.4.11 protège, et elle vaut 3:1. */
+    const past=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+      const lum=c=>{const m=(String(c).match(/[\d.]+/g)||[0,0,0]).slice(0,3).map(Number);
+        const [r,g,b]=m.map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});
+        return .2126*r+.7152*g+.0722*b;};
+      const ratio=(x,y)=>{const [l1,l2]=[lum(x),lum(y)].sort((a,b)=>b-a);return Math.round(((l1+.05)/(l2+.05))*100)/100;};
+      const out={};
+      for(const th of ['light','dark']){document.documentElement.dataset.theme=th;await w(200);
+        const e=document.getElementById('acctTop');if(!e){out[th]=null;continue;}
+        const cs=getComputedStyle(e),bar=getComputedStyle(document.querySelector('header.bar')).backgroundColor;
+        /* La limite peut être portée par le FOND ou par le filet — ici une ombre interne, qui ne
+           déplace pas la boîte (36 px de dessin, 44 de cible : A30). On prend le meilleur des deux. */
+        const sh=(cs.boxShadow||'').match(/rgba?\([^)]*\)/);
+        out[th]={fond:ratio(cs.backgroundColor,bar),filet:sh?ratio(sh[0],bar):0};}
+      document.documentElement.dataset.theme='light';await w(150);
+      return out;});
+    for(const th of ['light','dark']){
+      const m=past[th];
+      t(`${W} · ${th} : la pastille du compte se DÉTACHE de l'en-tête (≥ 3:1)`,
+        !!m&&Math.max(m.fond,m.filet)>=3, m?`fond ${m.fond}:1 · filet ${m.filet}:1`:'absente');
+    }
     await page.close();
   }
 }
@@ -3706,6 +3754,27 @@ await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
     `${JSON.stringify(r.repos)} → ${JSON.stringify(r.defile)}`);
   t('… ni à un re-rendu déclenché par un tap', memes(r.defile,r.apres),
     `${JSON.stringify(r.defile)} → ${JSON.stringify(r.apres)}`);
+  /* ⚠ LE RAIL EST CENTRÉ SUR L'ÉCRAN, PAS DANS SA PROPRE BOÎTE (v5.6, signalé à l'usage : « le
+     rail A→Z n'est pas centré au milieu de la page »). Sa boîte commence sous l'en-tête, si bien
+     que des lettres centrées DEDANS tombaient 58 px sous l'axe médian à 390 px. On mesure donc
+     l'axe des LETTRES contre celui de l'écran — et la tolérance est large (6 px) parce que le
+     décalage est CLAMPÉ à la place disponible : sur un alphabet complet il n'y a pas de quoi
+     remonter jusqu'au centre, et rogner une lettre serait pire (une lettre coupée est une lettre
+     injoignable en silence). */
+  const cen=await page.evaluate(()=>{const el=document.getElementById('azRail');
+    if(!el||el.hidden)return null;
+    const ls=[...el.querySelectorAll('[data-azl]')];if(!ls.length)return null;
+    const a=ls[0].getBoundingClientRect(),z=ls[ls.length-1].getBoundingClientRect();
+    const b=el.getBoundingClientRect();
+    return {axe:Math.round((a.top+z.bottom)/2),ecran:Math.round(document.documentElement.clientHeight/2),
+      hautLettre:Math.round(a.top),hautBoite:Math.round(b.top),
+      hdr:Math.round(document.querySelector('header.bar').getBoundingClientRect().bottom)};});
+  t('témoin : les lettres tiennent dans la boîte (décalage non clampé)',
+    !!cen&&cen.hautLettre>=cen.hautBoite-1, JSON.stringify(cen));
+  t('le rail est centré sur l\'axe médian de l\'écran',
+    !!cen&&Math.abs(cen.axe-cen.ecran)<=6, cen?`lettres ${cen.axe} · écran ${cen.ecran}`:'absent');
+  t('… sans qu\'aucune lettre ne passe derrière l\'en-tête',
+    !!cen&&cen.hautLettre>=cen.hdr, cen?`première lettre ${cen.hautLettre} · en-tête ${cen.hdr}`:'absent');
   t('… ni au retour en haut de page', memes(r.apres,r.remonte),
     `${JSON.stringify(r.apres)} → ${JSON.stringify(r.remonte)}`);
   await page.close();
@@ -3895,6 +3964,66 @@ await sec('v5.6 · ⏱ un compteur s\'incrémente depuis le volet, sans doubler 
      logement donné (leçon A23, quatre dérives trouvées ainsi).
    · A11 — une seule masse colorée à l'écran : l'aplat est réservé à ce qui exige une action
      MAINTENANT. À cinq étapes, l'aplat happe l'œil et détruit la lecture de la séquence. */
+/* ══ A7 — « VÉRIFIER » EST UN GESTE DE BLOC, ET IL EXISTE SUR TOUT BLOC D'ÉTAPES ═══════════
+   Signalé à l'usage : « où est passé le bouton vérifier ?? ». Il avait disparu de toutes les
+   fiches qui n'écrivent pas de challenges « :: » — c'est-à-dire presque toutes — parce que j'avais
+   ajouté à A7 une condition que la maquette ne demande pas. La passe Do-Verify redéroule TOUTES
+   les étapes (doctrine v4.11.0) : le « :: » l'enrichit, il ne la conditionne pas.
+   ⚠ LE TÉMOIN CONSTRUIT SON CAS : les fiches d'exemple n'ont AUCUNE réponse attendue, donc c'est
+   exactement sur elles que le défaut vivait — et un contrôle qui se contenterait de chercher le
+   bouton sur une fiche à challenges serait resté vert. */
+await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    /* ⚠ LE TÉMOIN CONSTRUIT SON CAS : le premier bloc de la fiche d'exemple porte DEUX réponses
+       attendues, donc le bouton y était visible même avec la condition fautive — on RETIRE les
+       « :: » du bloc courant, ce qui est exactement l'état de presque toutes les fiches réelles. */
+    const bid=document.querySelector('.ov-block[data-ovb]').dataset.ovb;
+    const bloc=Runtime.fiche.blocks.find(x=>x.id===bid);
+    bItems(bloc).forEach(it=>{const src=(Runtime.fiche.items||[]).find(p=>p.id===it.id)||it;src.expect='';});
+    renderOvOnly();await w(350);
+    const reste=bItems(bloc).filter(it=>(it.expect||'').trim()).length;
+    const v=document.querySelector('[data-ovverify]');
+    const c=document.querySelector('[data-ovnext]');
+    const vr=v&&v.getBoundingClientRect(),cr=c&&c.getBoundingClientRect();
+    const geo=v&&c?{gauche:vr.left<cr.left,rangee:Math.abs(vr.top-cr.top)<=6,h:Math.round(vr.height)}:null;
+    if(!v)return {reste,present:false,geo:null};
+    v.click();await w(400);
+    const passe=!!document.querySelector('[data-ovvok]');
+    /* On va jusqu'au BOUT de la passe : la pilule de trace est DURABLE, elle vit sur la liste
+       d'étapes — laquelle ne revient qu'une fois la passe terminée (pendant, la carte affiche un
+       item à la fois). Mesurer avant, c'est mesurer l'écran qui n'a pas encore la trace. */
+    for(let i=0;i<12;i++){const ok=document.querySelector('[data-ovvok]');if(!ok)break;ok.click();await w(220);}
+    /* … puis on SORT de la passe : elle finit sur son bilan (« n/n vérifiées »), et la liste
+       d'étapes — qui porte la trace — ne revient qu'après « Terminer la vérification ». */
+    const fin=document.querySelector('[data-ovvx]');if(fin)fin.click();await w(400);
+    return {reste,present:true,txt:v.textContent.trim(),geo,passe,
+      trace:document.querySelectorAll('.stp-vf.ok').length,
+      coches:Object.values(state.checked).filter(Boolean).length,
+      surDecision:!!(document.querySelector('.ov-block.dec [data-ovverify]'))};});
+
+  t('témoin : le bloc courant ne porte plus AUCUNE réponse attendue', r.reste===0, `${r.reste}`);
+  t('« Vérifier » existe quand même', r.present===true);
+  t('… et il ne nomme pas une syntaxe que le bloc n\'emploie pas', r.txt==='Vérifier', r.txt);
+  t('… à gauche de « Continuer », dans la même rangée de pied (A7)',
+    !!r.geo&&r.geo.gauche===true&&r.geo.rangee===true, JSON.stringify(r.geo));
+  t('… cible ≥ 44 px', !!r.geo&&r.geo.h>=44, r.geo?r.geo.h+' px':'—');
+  t('la passe s\'ouvre et « Constaté ✓ » coche les étapes', r.passe===true&&r.coches>=2,
+    `passe ${r.passe} · ${r.coches} coche(s)`);
+  t('… en laissant une trace DURABLE sur les lignes', r.trace>=2, `${r.trace} pilule(s)`);
+  /* Un bloc de DÉCISION n'a pas d'étapes à re-constater : il en reste exclu. */
+  t('un bloc de décision n\'a pas de « Vérifier »', r.surDecision===false);
+  await page.close();
+}
+});
+
 await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule masse', async () => {
 {
   const ECHELLE=[11,12,13.5,15,17.5,21,24];

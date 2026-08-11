@@ -838,6 +838,56 @@ queue qui pouvait déclencher un rendu complet, c'est-à-dire arracher quelqu'un
 regarde. Le `catch` vide disparaît avec : il laissait un lot à moitié appliqué sur un curseur déjà
 avancé.
 
+**A43. UN OBJET PLEIN DOIT SE DÉTACHER DE SON FOND — LA PASTILLE DU COMPTE EN SOMBRE (v5.6,
+signalé à l'usage).** Mesuré : le bouton Compte et la barre valent tous deux `--sys` en thème
+sombre, soit **1,00:1**. Les initiales restent lisibles (14,4:1) — ce n'est donc pas un défaut de
+TEXTE, et `audit-a11y`, qui mesure le texte, ne pouvait pas le voir : c'est la LIMITE DU COMPOSANT
+que WCAG 2.2 § 1.4.11 protège. C'est le seul contrôle de la rangée à porter un APLAT (ses voisins
+sont transparents et se lisent par leur glyphe, ce qui est leur nature) ; il reste un DISQUE
+d'identité, on lui rend donc un filet plutôt qu'on ne le vide. `--ctl-line` (3,68:1 mesuré), en
+ombre INTERNE et non en bordure — 36 px de dessin pour 44 px de cible, une bordure changerait la
+boîte et l'alignement des quatre contrôles (A30). Le thème clair n'en a pas besoin : 15,8:1.
+
+**A44. LE RAIL A→Z EST CENTRÉ SUR L'ÉCRAN, PAS DANS SA PROPRE BOÎTE (v5.6, signalé à l'usage).**
+Sa boîte commence sous l'en-tête — la v5.0.0 l'y avait bornée pour qu'aucune lettre ne passe
+derrière lui —, si bien que des lettres centrées DEDANS tombaient 58 px sous l'axe médian de
+l'écran à 390 px (55 à 1280). On ne déplace pas la boîte : elle garde toute la place disponible,
+donc le rail continue de s'afficher sur un alphabet complet. C'est le DÉCALAGE du premier
+caractère qui est posé (`azrCentrer` : la colonne passe en `flex-start`), **clampé à la place
+réellement disponible** — rendre plus rognerait des lettres, et une lettre coupée est injoignable
+en silence.
+· **LA CIBLE SE MESURE, ELLE NE SE DÉDUIT PAS** : le haut de la boîte vaut le bas de l'en-tête en
+  voie étroite, mais PAS en voie large (110 px mesurés pour un en-tête de 61) — une formule
+  « rends la hauteur de l'en-tête » y laissait 24 px d'écart.
+· **LA HAUTEUR DE RÉFÉRENCE EST `documentElement.clientHeight`** : la seule qui ne suive NI la
+  barre d'outils NI le clavier. Le calcul ne tourne qu'au rendu et au redimensionnement — rien qui
+  bouge pendant qu'on vise (leçon v5.0.2, et c'est le même objet qui l'avait enseignée).
+· **LA CLASSE N'EST POSÉE QU'UNE FOIS LE DÉCALAGE CALCULÉ** : avant, les lettres restent centrées
+  dans leur boîte — jamais collées en haut le temps d'une image.
+
+**A45. « VÉRIFIER » EXISTE SUR TOUT BLOC D'ÉTAPES — CORRECTION DE A7 (v5.6, signalé à l'usage :
+« où est passé le bouton vérifier ?? »).** En écrivant A7 j'avais ajouté une condition que la
+maquette ne demande pas : « seulement si le bloc porte des challenges “::” », au motif que « sans
+::, il n'y a rien à rejouer ». **C'est faux**, et la doctrine v4.11.0 le dit depuis toujours : la
+passe Do-Verify « redéroule TOUTES les étapes, déjà cochées comprises », et ses deux réponses —
+« Constaté ✓ » qui coche, « △ Écart » qui avance sans cocher — ne dépendent d'aucune réponse
+attendue. Le « :: » ENRICHIT la passe, il ne la conditionne pas. La condition rendait le bouton
+invisible sur toute fiche qui n'écrit pas de challenges, c'est-à-dire presque toutes. Le libellé
+perd son « :: » avec elle : un bouton ne nomme pas une syntaxe que le bloc n'emploie peut-être pas.
+La PLACE ne change pas (pied de carte, à gauche de « Continuer ») et un bloc de DÉCISION en reste
+exclu — il n'a pas d'étapes à re-constater.
+
+**A46. UN TÉMOIN D'ANCRAGE NE MESURE RIEN S'IL EST COLLÉ AU BAS DE LA PAGE (v5.6, trouvé en
+restaurant « Vérifier »).** Le témoin d'ancrage travaillait sur une fiche de six étapes : 982 px de
+document pour une fenêtre de 900, donc un défilement collé au MAXIMUM. Décocher après la fin retire
+la bannière de fin, la page raccourcit, **le navigateur rabat le défilement** — et les 22 px de
+rabat étaient imputés à l'ancrage, qui ne peut rien contre une fin de page. Un simple bouton rendu
+à la carte déplaçait cette limite et faisait rougir un correctif juste. Le témoin vérifie
+désormais qu'il n'est PAS au bout, et sa fiche a de quoi défiler.
+⚠ ET IL FAUT DIRE CE QU'IL PROUVE : sur ce chemin, rien ne change au-dessus de l'ancre — neutraliser
+la compensation le laisse vert. Le contrôle de dérive est donc un GARDE ; celui qui est capable
+d'échouer est « le remplacement est ANCRÉ » (un re-rendu nu le fait rougir).
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

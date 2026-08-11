@@ -1524,6 +1524,20 @@
      « le hover du bouton compte ne s'affiche pas correctement »). Il faut une matière OPAQUE :
      `--sys-hi`, le cran clair du système. */
   .bar-acct.on{background:var(--sys);color:var(--sys-ink)}
+  /* ⚠ EN SOMBRE, L'EN-TÊTE EST DÉJÀ DE LA MATIÈRE SYSTÈME — LA PASTILLE S'Y DISSOUT (v5.6,
+     signalé à l'usage : « en mode sombre la pastille du compte ne ressort pas »). Mesuré : fond du
+     bouton et fond de la barre valent tous deux `--sys`, soit **1,00:1** — les initiales se lisent
+     (14,4:1) mais l'OBJET n'existe pas, et WCAG 2.2 § 1.4.11 vise précisément la limite d'un
+     composant. C'est le seul contrôle de l'en-tête à porter un APLAT : ses voisins sont
+     transparents et se lisent par leur glyphe, ce qui est leur nature ; celui-ci est un DISQUE
+     d'identité (A-accent), il doit donc rester un disque.
+     Le filet vient de `--ctl-line`, le token que la doctrine assigne aux bordures de composant
+     (3:1, « la case qu'on vise avec des gants ») : 3,68:1 mesuré contre la barre. Il est posé en
+     ombre INTERNE et non en bordure — le bouton fait 36 px de dessin pour 44 px de cible, et une
+     bordure changerait sa boîte, donc son alignement avec ses trois voisins (A30). Le thème CLAIR
+     n'en a pas besoin : le disque sombre y vaut déjà 15,8:1 sur le blanc, et l'y ajouter ne serait
+     qu'un anneau de plus autour d'un objet qui se voit. */
+  [data-theme="dark"] .bar-acct{box-shadow:inset 0 0 0 1px var(--ctl-line)}
   .bar-acct:hover,.bar-acct.on:hover{background:var(--sys-hi);color:var(--sys-ink)}
   .bar-acct:active{transform:translateY(1px)}
   /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
@@ -2096,7 +2110,22 @@
      défilement NI pendant qu'on s'en sert. Sa BOÎTE est stable — en étroit elle est bornée par
      `--hdr-h` (constante dans une vue) et par le bas de fenêtre, en large elle occupe la coque
      fixe de l'accueil. Un centrage dans une boîte qui, elle, ne bouge pas, ne bouge pas non plus. */
+  /* ⚠ LE RAIL SE CENTRE SUR LA PAGE, PAS SUR SA PROPRE BOÎTE (v5.6, signalé à l'usage : « le rail
+     A→Z n'est pas centré au milieu de la page »). Sa boîte commence sous l'en-tête — la v5.0.0
+     l'y avait bornée pour qu'aucune lettre ne passe DERRIÈRE lui —, si bien que des lettres
+     centrées dans cette boîte tombaient 58 px sous l'axe médian de l'écran à 390 px (55 à 1280).
+     On ne déplace donc pas la BOÎTE (elle garde toute la place disponible, donc le rail continue
+     de s'afficher sur un alphabet complet) : on rend au bas de la boîte, en rembourrage, la
+     hauteur de l'en-tête — le centre du contenu redescend alors exactement sur l'axe de l'écran.
+     ⚠ ET C'EST CLAMPÉ À LA PLACE RESTANTE (`azrCentrer`, en JS) : rendre plus que le libre
+     rognerait des lettres, ou ferait disparaître le rail sur un alphabet complet, là où il tenait.
+     Le calcul n'a QUE des entrées stables (hauteur de boîte dérivée de `100svh`, hauteur
+     intrinsèque des lettres) et ne tourne QU'au rendu et au redimensionnement : rien qui suive la
+     barre d'outils, donc rien qui bouge sous le doigt (leçon v5.0.2). */
   .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
+  /* La classe n'est posée qu'UNE FOIS le décalage calculé : avant, les lettres restent centrées
+     dans leur boîte — jamais collées en haut le temps d'une image. */
+  .azrail.azr-pin{justify-content:flex-start;padding-top:var(--azr-pt,8px)}
   .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 4px;min-height:24px;min-width:24px;border-radius:8px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}

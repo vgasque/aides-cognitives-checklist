@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-C+o+N/4vIQH5M/zxrvBnxphk8lyWbr8DEoS4578/bXI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-UjtKsiB8eH3chJL+y42N/SouiV1v8QqaSHQ6EDc+brI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1869,6 +1869,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      « le hover du bouton compte ne s'affiche pas correctement »). Il faut une matière OPAQUE :
      `--sys-hi`, le cran clair du système. */
   .bar-acct.on{background:var(--sys);color:var(--sys-ink)}
+  /* ⚠ EN SOMBRE, L'EN-TÊTE EST DÉJÀ DE LA MATIÈRE SYSTÈME — LA PASTILLE S'Y DISSOUT (v5.6,
+     signalé à l'usage : « en mode sombre la pastille du compte ne ressort pas »). Mesuré : fond du
+     bouton et fond de la barre valent tous deux `--sys`, soit **1,00:1** — les initiales se lisent
+     (14,4:1) mais l'OBJET n'existe pas, et WCAG 2.2 § 1.4.11 vise précisément la limite d'un
+     composant. C'est le seul contrôle de l'en-tête à porter un APLAT : ses voisins sont
+     transparents et se lisent par leur glyphe, ce qui est leur nature ; celui-ci est un DISQUE
+     d'identité (A-accent), il doit donc rester un disque.
+     Le filet vient de `--ctl-line`, le token que la doctrine assigne aux bordures de composant
+     (3:1, « la case qu'on vise avec des gants ») : 3,68:1 mesuré contre la barre. Il est posé en
+     ombre INTERNE et non en bordure — le bouton fait 36 px de dessin pour 44 px de cible, et une
+     bordure changerait sa boîte, donc son alignement avec ses trois voisins (A30). Le thème CLAIR
+     n'en a pas besoin : le disque sombre y vaut déjà 15,8:1 sur le blanc, et l'y ajouter ne serait
+     qu'un anneau de plus autour d'un objet qui se voit. */
+  html[data-theme="dark"] .bar-acct{box-shadow:inset 0 0 0 1px var(--ctl-line)}
   .bar-acct:hover,.bar-acct.on:hover{background:var(--sys-hi);color:var(--sys-ink)}
   .bar-acct:active{transform:translateY(1px)}
   /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
@@ -2441,7 +2455,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      défilement NI pendant qu'on s'en sert. Sa BOÎTE est stable — en étroit elle est bornée par
      `--hdr-h` (constante dans une vue) et par le bas de fenêtre, en large elle occupe la coque
      fixe de l'accueil. Un centrage dans une boîte qui, elle, ne bouge pas, ne bouge pas non plus. */
+  /* ⚠ LE RAIL SE CENTRE SUR LA PAGE, PAS SUR SA PROPRE BOÎTE (v5.6, signalé à l'usage : « le rail
+     A→Z n'est pas centré au milieu de la page »). Sa boîte commence sous l'en-tête — la v5.0.0
+     l'y avait bornée pour qu'aucune lettre ne passe DERRIÈRE lui —, si bien que des lettres
+     centrées dans cette boîte tombaient 58 px sous l'axe médian de l'écran à 390 px (55 à 1280).
+     On ne déplace donc pas la BOÎTE (elle garde toute la place disponible, donc le rail continue
+     de s'afficher sur un alphabet complet) : on rend au bas de la boîte, en rembourrage, la
+     hauteur de l'en-tête — le centre du contenu redescend alors exactement sur l'axe de l'écran.
+     ⚠ ET C'EST CLAMPÉ À LA PLACE RESTANTE (`azrCentrer`, en JS) : rendre plus que le libre
+     rognerait des lettres, ou ferait disparaître le rail sur un alphabet complet, là où il tenait.
+     Le calcul n'a QUE des entrées stables (hauteur de boîte dérivée de `100svh`, hauteur
+     intrinsèque des lettres) et ne tourne QU'au rendu et au redimensionnement : rien qui suive la
+     barre d'outils, donc rien qui bouge sous le doigt (leçon v5.0.2). */
   .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
+  /* La classe n'est posée qu'UNE FOIS le décalage calculé : avant, les lettres restent centrées
+     dans leur boîte — jamais collées en haut le temps d'une image. */
+  .azrail.azr-pin{justify-content:flex-start;padding-top:var(--azr-pt,8px)}
   .azrail button{border:0;background:none;color:var(--link);font-size:11px;font-weight:700;cursor:pointer;padding:0 4px;min-height:24px;min-width:24px;border-radius:8px;font-family:inherit}
   .azrail button:hover{background:var(--primary-soft)}
   .azrail button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
@@ -12962,7 +12991,35 @@ function azrPoseBox(){const rail=document.getElementById('azRail');if(!rail)retu
   if(slim)document.body.classList.remove('home-slim');
   const h=Math.round(hb.getBoundingClientRect().height/zoomF());
   if(slim)document.body.classList.add('home-slim');
-  rail.style.setProperty('--azr-top',h+6+'px');}
+  rail.style.setProperty('--azr-top',h+6+'px');
+  requestAnimationFrame(()=>azrCentrer(rail));}
+/* Le rembourrage bas qui ramène le CENTRE des lettres sur l'axe médian de l'écran (cf. le
+   commentaire de `.azrail`). On remet à zéro, on lit la place restante, on rend au plus la
+   hauteur de l'en-tête : lecture puis écriture, une seule passe. */
+function azrCentrer(rail){
+  rail=rail||document.getElementById('azRail');if(!rail||rail.hidden||!rail.isConnected)return;
+  const ls=rail.querySelectorAll('[data-azl]');if(!ls.length)return;
+  /* LECTURES GROUPÉES PUIS ÉCRITURES (discipline `svPaintArrows`), et une seule inconnue : le
+     DÉCALAGE du premier caractère depuis le haut de la boîte. On passe donc la colonne en
+     `flex-start` et on le POSE — un centrage qu'on corrigerait ensuite par des rembourrages
+     symétriques se paie en arithmétique inverse et en arrondis (essayé, 2,5 px d'écart résiduel).
+     ⚠ LA CIBLE SE MESURE, ELLE NE SE DÉDUIT PAS D'UNE FORMULE : le haut de la boîte vaut le bas de
+     l'en-tête en voie étroite, mais PAS en voie large (mesuré 110 px pour un en-tête de 61) — une
+     formule « rends la hauteur de l'en-tête » y laissait 24 px d'écart.
+     ⚠ ET LA HAUTEUR DE RÉFÉRENCE EST `documentElement.clientHeight` : la seule qui ne suive NI la
+     barre d'outils NI le clavier, donc la seule qui ne fasse pas bouger les lettres pendant qu'on
+     s'en sert (leçon v5.0.2 — on n'ancre jamais à un repère qu'on ne contrôle pas). */
+  const z=zoomF();
+  const b=rail.getBoundingClientRect();
+  const a1=ls[0].getBoundingClientRect(),a2=ls[ls.length-1].getBoundingClientRect();
+  const H=b.height/z, C=(a2.bottom-a1.top)/z;
+  /* Clampé à la place réellement disponible : rendre plus rognerait des lettres, et une lettre
+     coupée est une lettre injoignable en silence — c'est déjà la raison d'être du repli complet
+     du rail quand il ne tient pas. */
+  const veut=(document.documentElement.clientHeight/z)/2-C/2-b.top/z;
+  const pt=Math.max(0,Math.min(H-C,veut));
+  rail.style.setProperty('--azr-pt',Math.round(pt)+'px');
+  rail.classList.add('azr-pin');}
 window.addEventListener('resize',azrPoseBox);
 window.addEventListener('orientationchange',()=>setTimeout(azrPoseBox,350));
 function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)return;
@@ -12970,7 +13027,8 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
   // Débordement : si toutes les lettres ne tiennent pas en hauteur (petit écran en paysage),
   // le rail DISPARAÎT — jamais de lettres coupées (une lettre cachée serait injoignable en
   // silence) ni de cibles rétrécies sous 24 px. Mesure après pose (rAF : géométrie stabilisée).
-  requestAnimationFrame(()=>{if(rail.isConnected&&rail.scrollHeight>rail.clientHeight+2){rail.hidden=true;main.classList.remove('azr-on');}});
+  requestAnimationFrame(()=>{if(rail.isConnected&&rail.scrollHeight>rail.clientHeight+2){rail.hidden=true;main.classList.remove('azr-on');return;}
+    azrCentrer(rail);});
   /* UN SAUT SE CALCULE EN ABSOLU, JAMAIS EN RELATIF (v5.0.2, signalé à l'usage : « ça continue de
      bugger en descendant vers le bas sur le rail — il remonte », EN PWA, donc sans barre d'outils
      ni marge basse qui bougent : ni `--vvh` ni l'inset n'expliquent plus rien).
@@ -17542,12 +17600,22 @@ function ovInstHtml(f,id,idx,topo,pres){
           l'heure depuis une carte passée daterait le présent au nom du passé. */
        /* Do-Verify au pied : dans la rangée des gestes de bloc, avec « ⏱ Noter » et l'entrée sur
           complication — trois actions qui se prennent APRÈS avoir déroulé les étapes. */
-       /* A7 — « VÉRIFIER :: » N'APPARAÎT QUE SI LE BLOC PORTE DES CHALLENGES, et il vit à GAUCHE
-          de « Continuer », dans la MÊME rangée de pied : la passe Do-Verify rejoue les réponses
-          attendues de CE bloc — sans « :: », il n'y a rien à rejouer, et le bouton serait mort.
-          Le « :: » est dans le libellé parce que c'est le signe que l'auteur a écrit. */
-       const verH=(!dec&&bItems(b).some(it=>(it.expect||'').trim()))
-         ?`<button type="button" class="blk-act blk-ver" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc en challenge-réponse — « Constaté » coche, « Écart » laisse non coché">Vérifier ::</button>`:'';
+       /* A7 — « VÉRIFIER » VIT À GAUCHE DE « CONTINUER », DANS LA RANGÉE DE PIED, SUR TOUT BLOC
+          D'ÉTAPES.
+          ⚠ CORRECTION D'UNE ERREUR À MOI (v5.6, signalé à l'usage : « où est passé le bouton
+          vérifier ?? »). En écrivant A7 j'avais ajouté une condition que la maquette ne demande
+          pas — « seulement si le bloc porte des challenges “::” » — au motif que « sans ::, il n'y
+          a rien à rejouer ». C'EST FAUX, et la doctrine v4.11.0 le dit depuis toujours : la passe
+          Do-Verify « redéroule TOUTES les étapes, déjà cochées comprises », et ses deux réponses
+          — « Constaté ✓ » qui coche, « △ Écart » qui avance sans cocher — ne dépendent d'aucune
+          réponse attendue. Le « :: » ENRICHIT la passe (il affiche la réponse à confirmer), il ne
+          la conditionne pas. La condition rendait donc le bouton invisible sur toute fiche qui
+          n'écrit pas de challenges — c'est-à-dire, en pratique, presque toutes.
+          Le libellé perd son « :: » avec la condition : un bouton ne nomme pas une syntaxe que le
+          bloc n'emploie peut-être pas, et deux libellés pour un geste sont ce qu'AC 120-71B § 5.5
+          proscrit. Un bloc de DÉCISION en reste exclu : il n'a pas d'étapes à re-constater. */
+       const verH=(!dec&&clean(stepsOf(b)).length)
+         ?`<button type="button" class="blk-act blk-ver" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc étape par étape — « Constaté ✓ » coche, « △ Écart » avance sans cocher ; les réponses attendues « :: », s'il y en a, s'affichent au passage">Vérifier</button>`:'';
        if(verH&&ctl.indexOf('class="flow-ctrl"')>=0)
          ctl=ctl.replace('<div class="flow-ctrl">','<div class="flow-ctrl has-ver">'+verH);
        else if(verH)ctl+=`<div class="cx-row">${verH}</div>`;
