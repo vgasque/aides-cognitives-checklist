@@ -53,6 +53,10 @@
      La nuit ne projette pas : elle borde (--shadow-work:none en sombre). */
   --shadow-work:0 6px 24px rgba(20,24,29,.06);
   /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
+  /* LA GRILLE CANONIQUE EN TOKENS (7b) : orientation · action · état, et leur gouttière. Une
+     seule source — le dock s'aligne dessus, et un changement de largeur de colonne n'a plus deux
+     endroits où se faire. */
+  --col-orient:240px;--col-state:320px;--col-gap:20px;
   --hit:44px;--hit-crisis:48px;
   /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
   --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;

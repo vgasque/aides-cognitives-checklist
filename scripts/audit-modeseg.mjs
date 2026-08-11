@@ -47,6 +47,13 @@ console.log(shift<=0.5?'  ✓ libellés immobiles à la bascule (0 px)':`  ✗ L
 if(shift>0.5)KO++;
 /* v4.29.0 — GLISSER la pastille (HIG iOS) : drag de gauche à droite -> second cran. */
 await p.evaluate(async()=>{document.querySelector('#dispSeg [data-disp="overview"]').click();await new Promise(r=>setTimeout(r,400));});
+/* ⚠ ON AMÈNE LE SÉLECTEUR À L'ÉCRAN AVANT DE LE SAISIR (v5.6). La fenêtre Compte s'est allongée
+   — « Affichage » y porte désormais le thème EN PLUS du format et de la taille du texte — et
+   `#dispSeg` naissait à y=778 sur une fenêtre de 800 : le point de prise tombait HORS du
+   viewport, la souris n'atteignait rien, et le contrôle rougissait sur un geste qui n'avait pas
+   eu lieu. Un utilisateur fait défiler ; le témoin aussi, sinon il mesure sa propre géométrie et
+   non l'application. */
+await p.locator('#dispSeg').scrollIntoViewIfNeeded();await p.waitForTimeout(120);
 const sb=await p.locator('#dispSeg').boundingBox();
 await p.mouse.move(sb.x+15,sb.y+sb.height/2);await p.mouse.down();
 await p.mouse.move(sb.x+sb.width-8,sb.y+sb.height/2,{steps:8});await p.mouse.up();

@@ -114,6 +114,10 @@
      La nuit ne projette pas : elle borde (--shadow-work:none en sombre). */
   --shadow-work:0 6px 24px rgba(20,24,29,.06);
   /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
+  /* LA GRILLE CANONIQUE EN TOKENS (7b) : orientation · action · état, et leur gouttière. Une
+     seule source — le dock s'aligne dessus, et un changement de largeur de colonne n'a plus deux
+     endroits où se faire. */
+  --col-orient:240px;--col-state:320px;--col-gap:20px;
   --hit:44px;--hit-crisis:48px;
   /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
   --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;
@@ -510,7 +514,6 @@
     :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
     :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
     :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
-    :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px;font-size:12px}
     :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
   }
@@ -594,7 +597,7 @@
      `--primary-soft` (retour). Quatre réponses au même geste sur la même rangée se lisent comme
      quatre objets sans rapport. Le survol de la barre est celui de l'AMBIANCE : la barre n'est
      pas une surface d'action, et un aplat teinté y ferait croire à un état. */
-  :is(.hdr-new,.hdr-theme,.hdr-more,.hdr-back):hover{background:var(--amb-2)}
+  :is(.hdr-new,.hdr-more,.hdr-back):hover{background:var(--amb-2)}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* « Créer » reprend le registre TONAL quand il est la seule action offerte (bibliothèque vide) :
@@ -605,10 +608,6 @@
      en large le libellé revient et le bouton reprend la forme pilule. */
   /* Thème et « Créer » : des GLYPHES DE COMMANDE (A13), pas des pastilles teintées. Trois
      disques bleus alignés en tête d'écran pesaient plus que l'annuaire qu'ils surmontent. */
-  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:36px;width:36px;padding:0;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:none}
-  .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .hdr-theme-lbl{display:none;margin-left:4px}
-  @media (min-width:780px){.hdr-theme{width:auto;min-width:36px;padding:0 14px}.hdr-theme .hdr-theme-lbl{display:inline}}
   /* (A−/A+ : absents de Claude Design — la taille du texte se règle dans la fenêtre Compte.) */
   /* Menu ⋯ (SPEC gestion §4) : bouton 36px (halo 44), menu ancré sous la barre à droite,
      rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
@@ -681,13 +680,13 @@
   /* Invariant SPEC §7 : cible tactile >= 44px sur les contrôles 36px de la barre (halo). */
   /* .hdr-back ajouté v4.23.0 : mesuré à 40px de haut, sous les 44px exigés d'un contrôle du mode
      crise (défaut antérieur au lot — le halo existait pour ses voisins, pas pour lui). */
-  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back){position:relative}
+  :is(.hdr-new,.hdr-act2,.bar-acct,.hdr-back){position:relative}
   /* ⚠ `.hdr-back` A QUITTÉ CETTE LISTE (v5.0.0, audit design) : son halo lui est propre (-7 px,
      déclaré plus haut) parce que sa BOÎTE est la plus étroite de la rangée — 31 px contre 40 pour
      les autres —, et 4 px de halo ne l'amenaient qu'à 39 de cible. Le laisser ici l'aurait ramené
      à -4 par l'ORDRE de déclaration : c'est le dix-septième piège de cascade du dossier, et on le
      règle en RETIRANT le membre, pas en ajoutant une exception plus bas. */
-  :is(.hdr-new,.hdr-theme,.hdr-act2)::after{content:"";position:absolute;inset:-4px}
+  :is(.hdr-new,.hdr-act2)::after{content:"";position:absolute;inset:-4px}
   .bar-acct::after{content:"";position:absolute;inset:-7px}
   .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:8px;padding:2px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
   .hdr-badge[hidden]{display:none}
@@ -724,6 +723,32 @@
   .srch-x:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
   @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:12px 32px 12px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
   /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
+  /* ══ 7a — CE QUI SE RETIRE AU DÉFILEMENT, SUR L'ACCUEIL ÉTROIT ══════════════════════════
+     `body.home-slim` est posée par `syncHdrScroll` au franchissement du seuil (80 px, retour à
+     40). Partent : l'identité (marque, Créer, thème, compte) et la rangée de chips. Reste : la
+     rangée de recherche, qui ne quitte jamais l'écran.
+     ⚠ ON MASQUE, ON NE DÉPLACE RIEN : le champ garde son abscisse et sa hauteur, et le
+     déclencheur de filtre reste à sa droite. Aucune transition sur une propriété de MISE EN PAGE
+     (check-anim l'interdit) : la bascule est nette, et c'est ce qu'on veut d'un seuil. */
+  /* CE QUI PART : la marque et son logo, la rangée de chips. CE QUI RESTE : le champ, « ＋ »,
+     le déclencheur de filtre et le compte — c'est la rangée persistante de la planche (« champ +
+     filtre + compte »). Le champ cesse de prendre toute la ligne pour la partager avec eux :
+     une seule rangée, donc, au lieu de deux. */
+  body.home-slim header.bar.home .brand,
+  body.home-slim header.bar.home .brand-logo,
+  body.home-slim #homeChrome{display:none}
+  /* ⚠ ET L'ORDRE SE REMET À ZÉRO. En voie étroite la recherche porte `order:5` pour tomber sur
+     sa propre ligne SOUS l'identité ; à l'état resserré elle PARTAGE la ligne, et cet ordre la
+     renvoyait alors à DROITE du compte — le champ se déplaçait de 44 px au franchissement du
+     seuil, ce que la planche interdit explicitement (« la position du champ ne bouge jamais »). */
+  body.home-slim header.bar.home .hdr-search{flex:1 1 0;min-width:0;margin-top:0;order:0}
+  body.home-slim header.bar.home .id-row{gap:8px}
+  /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
+     déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
+     obligerait à remonter tout l'annuaire pour créer une fiche. Il garde son gabarit et son
+     glyphe ; seul son logement change, et il n'y est jamais seul de son espèce (le filtre est à
+     côté), donc la rangée ne change pas de nature. */
+  .hdr-search .hdr-new{flex:none}
   #homeChrome{order:6;width:100%;min-width:0}
   #homeChrome[hidden]{display:none}
   #homeChrome .scopebar{margin-bottom:6px}
@@ -930,16 +955,23 @@
      comme la capsule : les deux seuls objets sombres, et ils se répondent — l'état en haut, les
      commandes en bas. Marge basse du matériel prise en compte (indicateur d'accueil iPhone). */
   #sessionDock{position:fixed;left:0;right:0;bottom:0;z-index:18;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
-  /* ⚠ AU-DELÀ DE 780, LE DOCK EST LE PIED DE LA COLONNE D'ACTION, JAMAIS UNE BARRE FLOTTANTE
-     (7c : « à toutes les largeurs, jamais flottant au-delà de 780 »). Sur un écran large, une
-     barre fixée en bas de FENÊTRE se retrouve à des centaines de pixels du contenu qu'elle
-     commande, et recouvre la colonne d'état ; elle appartient à la colonne qu'elle sert. Le
-     dispositif reste le même objet, aux mêmes touches, dans le même ordre — c'est son ANCRAGE
-     qui change, et il change là où la fenêtre cesse d'être la colonne. */
+  /* ⚠ LE DOCK RESTE FLOTTANT À TOUTES LES LARGEURS — décision de l'auteur, contre la planche 7c
+     qui le voulait en pied de colonne au-delà de 780. Le motif est mesuré : une colonne de
+     lecture fait plusieurs milliers de pixels, et un dock posé à son pied met le geste d'entrée
+     — comme les quatre touches de session — à un défilement complet de ce qu'il commande. Une
+     barre FIXE tient au contraire la promesse de position constante à laquelle tout le
+     dispositif est adossé.
+     CE QU'ON GARDE DE 7c, ET C'EST SA VRAIE TROUVAILLE : sa LARGEUR. Le dock s'aligne sur la
+     COLONNE D'ACTION, jamais sur la fenêtre — sur un cockpit il ne s'étale plus d'un bord à
+     l'autre par-dessus l'orientation et l'état, il se cale exactement sous ce qu'il commande.
+     La géométrie est celle de la grille canonique (240 · 1fr · 320, gouttière 20), calculée en
+     CSS : aucune mesure JS, donc rien à resynchroniser au redimensionnement. */
   @media (min-width:780px){
-    body.dock-flow #sessionDock{position:static;padding:0;pointer-events:auto;margin-top:14px}
-    body.dock-flow #sessionDock .sd-in{max-width:none}
-    body.dock-flow.dock-on main{padding-bottom:0}
+    #sessionDock{padding-inline:20px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+    #sessionDock .sd-in{max-width:none;margin-right:calc(var(--col-state) + var(--col-gap))}
+  }
+  @media (min-width:1200px){
+    #sessionDock .sd-in{margin-left:calc(var(--col-orient) + var(--col-gap))}
   }
   #sessionDock[hidden]{display:none}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
@@ -1330,13 +1362,13 @@
   @media (max-width:359.98px){
     header.bar.home .id-row{column-gap:4px}
     header.bar.home .hdr-acts{gap:2px}
-    header.bar.home :is(.hdr-new,.hdr-theme,.bar-acct){width:32px;height:32px}
+    header.bar.home :is(.hdr-new,.bar-acct){width:32px;height:32px}
     /* LA CIBLE NE DESCEND PAS AVEC LE BOUTON : le halo passe de 4 à 6 px, donc 32 + 12 = 44 px,
        la cible d'origine au pixel près. C'est tout l'objet d'un halo en zone haute — rétrécir le
        DESSIN sans rétrécir la CIBLE. Règle propre plutôt qu'un membre de plus dans la liste
        générique `:is(.hdr-new,…)::after` : (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre
        (dix-septième piège de cascade, où un membre de cette liste écrasait un halo particulier). */
-    header.bar.home :is(.hdr-new,.hdr-theme)::after{inset:-6px}
+    header.bar.home .hdr-new::after{inset:-6px}
     /* L'avatar est passé à 30 px de DESSIN (maquette) : son halo doit rendre les 14 px manquants
        pour tenir la cible de 44 — c'est tout l'objet d'un halo en zone haute. */
     header.bar.home .bar-acct::after{inset:-7px}
@@ -3882,6 +3914,22 @@
   }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
+  /* ══ A8 — LA CIBLE VIENT DU HALO, LE DESSIN NE GROSSIT PAS (audit 8b) ════════════════════
+     Le patron était dans le fichier et il est bon ; il manquait sur huit contrôles qui vivent
+     eux aussi en zone de crise. Ce n'est pas une erreur de doctrine, c'est une couverture
+     incomplète — le même défaut que le harnais qui listait `#crisisDock` sans `#crisisCtrl`.
+     ⚠ HALO VERTICAL SEUL SUR TOUT CONTRÔLE D'UNE RANGÉE MESURÉE : un pseudo-élément absolu qui
+     dépasse à droite entre dans le `scrollWidth` du parent et fait mentir une boucle
+     d'ajustement — c'est le défaut que la capsule vient de payer (6 px de débordement
+     permanents). Les deux contrôles qui ne vivent dans aucune rangée ajustée (`.rt-x`, le champ
+     de recherche du panneau) grossissent franchement. */
+  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb){position:relative}
+  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb)::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
+  .rt-x{min-height:44px;min-width:44px}
+  .rt-find input{min-height:44px}
+  /* `.st-seg` est le segmenté de STATUT des ÉDITEURS — hors surface de crise, donc hors du seuil
+     de 44 px (vérifié : aucune émission en lecture). 38 px tient largement les 24×24 de
+     WCAG 2.2 § 2.5.8. Nommé ici pour que la question ne se repose pas. */
   .st-seg{display:inline-flex;align-items:center;min-height:38px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line-strong);background:var(--input-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .st-seg.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dk)}
   .st-seg:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -6309,7 +6357,7 @@
      d'activation (session, reduced-motion, support) vit dans vtWrap, côté JS. */
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
      survol = 1 px de lévitation, APPUI = léger enfoncement. transform/opacity SEULEMENT (règle
      v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au

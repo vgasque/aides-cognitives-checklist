@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-995MT6oD3clzFL95jbsuUvgdpXZNfJ9S3NkFDpzLe2Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-zV/CPtGy+wBbyM9937e9juUhU95kThpwXgKX2QnO/Fw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -459,6 +459,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      La nuit ne projette pas : elle borde (--shadow-work:none en sombre). */
   --shadow-work:0 6px 24px rgba(20,24,29,.06);
   /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
+  /* LA GRILLE CANONIQUE EN TOKENS (7b) : orientation · action · état, et leur gouttière. Une
+     seule source — le dock s'aligne dessus, et un changement de largeur de colonne n'a plus deux
+     endroits où se faire. */
+  --col-orient:240px;--col-state:320px;--col-gap:20px;
   --hit:44px;--hit-crisis:48px;
   /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
   --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;
@@ -855,7 +859,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
     :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
     :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
-    :is(body.view-edit,body.view-pedit) #hdrTheme{display:none}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px;font-size:12px}
     :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
   }
@@ -939,7 +942,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `--primary-soft` (retour). Quatre réponses au même geste sur la même rangée se lisent comme
      quatre objets sans rapport. Le survol de la barre est celui de l'AMBIANCE : la barre n'est
      pas une surface d'action, et un aplat teinté y ferait croire à un état. */
-  :is(.hdr-new,.hdr-theme,.hdr-more,.hdr-back):hover{background:var(--amb-2)}
+  :is(.hdr-new,.hdr-more,.hdr-back):hover{background:var(--amb-2)}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* « Créer » reprend le registre TONAL quand il est la seule action offerte (bibliothèque vide) :
@@ -950,10 +953,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      en large le libellé revient et le bouton reprend la forme pilule. */
   /* Thème et « Créer » : des GLYPHES DE COMMANDE (A13), pas des pastilles teintées. Trois
      disques bleus alignés en tête d'écran pesaient plus que l'annuaire qu'ils surmontent. */
-  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:36px;width:36px;padding:0;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:none}
-  .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .hdr-theme-lbl{display:none;margin-left:4px}
-  @media (min-width:780px){.hdr-theme{width:auto;min-width:36px;padding:0 14px}.hdr-theme .hdr-theme-lbl{display:inline}}
   /* (A−/A+ : absents de Claude Design — la taille du texte se règle dans la fenêtre Compte.) */
   /* Menu ⋯ (SPEC gestion §4) : bouton 36px (halo 44), menu ancré sous la barre à droite,
      rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
@@ -1026,13 +1025,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Invariant SPEC §7 : cible tactile >= 44px sur les contrôles 36px de la barre (halo). */
   /* .hdr-back ajouté v4.23.0 : mesuré à 40px de haut, sous les 44px exigés d'un contrôle du mode
      crise (défaut antérieur au lot — le halo existait pour ses voisins, pas pour lui). */
-  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back){position:relative}
+  :is(.hdr-new,.hdr-act2,.bar-acct,.hdr-back){position:relative}
   /* ⚠ `.hdr-back` A QUITTÉ CETTE LISTE (v5.0.0, audit design) : son halo lui est propre (-7 px,
      déclaré plus haut) parce que sa BOÎTE est la plus étroite de la rangée — 31 px contre 40 pour
      les autres —, et 4 px de halo ne l'amenaient qu'à 39 de cible. Le laisser ici l'aurait ramené
      à -4 par l'ORDRE de déclaration : c'est le dix-septième piège de cascade du dossier, et on le
      règle en RETIRANT le membre, pas en ajoutant une exception plus bas. */
-  :is(.hdr-new,.hdr-theme,.hdr-act2)::after{content:"";position:absolute;inset:-4px}
+  :is(.hdr-new,.hdr-act2)::after{content:"";position:absolute;inset:-4px}
   .bar-acct::after{content:"";position:absolute;inset:-7px}
   .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:8px;padding:2px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
   .hdr-badge[hidden]{display:none}
@@ -1069,6 +1068,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .srch-x:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
   @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:12px 32px 12px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
   /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
+  /* ══ 7a — CE QUI SE RETIRE AU DÉFILEMENT, SUR L'ACCUEIL ÉTROIT ══════════════════════════
+     `body.home-slim` est posée par `syncHdrScroll` au franchissement du seuil (80 px, retour à
+     40). Partent : l'identité (marque, Créer, thème, compte) et la rangée de chips. Reste : la
+     rangée de recherche, qui ne quitte jamais l'écran.
+     ⚠ ON MASQUE, ON NE DÉPLACE RIEN : le champ garde son abscisse et sa hauteur, et le
+     déclencheur de filtre reste à sa droite. Aucune transition sur une propriété de MISE EN PAGE
+     (check-anim l'interdit) : la bascule est nette, et c'est ce qu'on veut d'un seuil. */
+  /* CE QUI PART : la marque et son logo, la rangée de chips. CE QUI RESTE : le champ, « ＋ »,
+     le déclencheur de filtre et le compte — c'est la rangée persistante de la planche (« champ +
+     filtre + compte »). Le champ cesse de prendre toute la ligne pour la partager avec eux :
+     une seule rangée, donc, au lieu de deux. */
+  body.home-slim header.bar.home .brand,
+  body.home-slim header.bar.home .brand-logo,
+  body.home-slim #homeChrome{display:none}
+  /* ⚠ ET L'ORDRE SE REMET À ZÉRO. En voie étroite la recherche porte `order:5` pour tomber sur
+     sa propre ligne SOUS l'identité ; à l'état resserré elle PARTAGE la ligne, et cet ordre la
+     renvoyait alors à DROITE du compte — le champ se déplaçait de 44 px au franchissement du
+     seuil, ce que la planche interdit explicitement (« la position du champ ne bouge jamais »). */
+  body.home-slim header.bar.home .hdr-search{flex:1 1 0;min-width:0;margin-top:0;order:0}
+  body.home-slim header.bar.home .id-row{gap:8px}
+  /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
+     déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
+     obligerait à remonter tout l'annuaire pour créer une fiche. Il garde son gabarit et son
+     glyphe ; seul son logement change, et il n'y est jamais seul de son espèce (le filtre est à
+     côté), donc la rangée ne change pas de nature. */
+  .hdr-search .hdr-new{flex:none}
   #homeChrome{order:6;width:100%;min-width:0}
   #homeChrome[hidden]{display:none}
   #homeChrome .scopebar{margin-bottom:6px}
@@ -1275,16 +1300,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      comme la capsule : les deux seuls objets sombres, et ils se répondent — l'état en haut, les
      commandes en bas. Marge basse du matériel prise en compte (indicateur d'accueil iPhone). */
   #sessionDock{position:fixed;left:0;right:0;bottom:0;z-index:18;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
-  /* ⚠ AU-DELÀ DE 780, LE DOCK EST LE PIED DE LA COLONNE D'ACTION, JAMAIS UNE BARRE FLOTTANTE
-     (7c : « à toutes les largeurs, jamais flottant au-delà de 780 »). Sur un écran large, une
-     barre fixée en bas de FENÊTRE se retrouve à des centaines de pixels du contenu qu'elle
-     commande, et recouvre la colonne d'état ; elle appartient à la colonne qu'elle sert. Le
-     dispositif reste le même objet, aux mêmes touches, dans le même ordre — c'est son ANCRAGE
-     qui change, et il change là où la fenêtre cesse d'être la colonne. */
+  /* ⚠ LE DOCK RESTE FLOTTANT À TOUTES LES LARGEURS — décision de l'auteur, contre la planche 7c
+     qui le voulait en pied de colonne au-delà de 780. Le motif est mesuré : une colonne de
+     lecture fait plusieurs milliers de pixels, et un dock posé à son pied met le geste d'entrée
+     — comme les quatre touches de session — à un défilement complet de ce qu'il commande. Une
+     barre FIXE tient au contraire la promesse de position constante à laquelle tout le
+     dispositif est adossé.
+     CE QU'ON GARDE DE 7c, ET C'EST SA VRAIE TROUVAILLE : sa LARGEUR. Le dock s'aligne sur la
+     COLONNE D'ACTION, jamais sur la fenêtre — sur un cockpit il ne s'étale plus d'un bord à
+     l'autre par-dessus l'orientation et l'état, il se cale exactement sous ce qu'il commande.
+     La géométrie est celle de la grille canonique (240 · 1fr · 320, gouttière 20), calculée en
+     CSS : aucune mesure JS, donc rien à resynchroniser au redimensionnement. */
   @media (min-width:780px){
-    body.dock-flow #sessionDock{position:static;padding:0;pointer-events:auto;margin-top:14px}
-    body.dock-flow #sessionDock .sd-in{max-width:none}
-    body.dock-flow.dock-on main{padding-bottom:0}
+    #sessionDock{padding-inline:20px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+    #sessionDock .sd-in{max-width:none;margin-right:calc(var(--col-state) + var(--col-gap))}
+  }
+  @media (min-width:1200px){
+    #sessionDock .sd-in{margin-left:calc(var(--col-orient) + var(--col-gap))}
   }
   #sessionDock[hidden]{display:none}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
@@ -1675,13 +1707,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:359.98px){
     header.bar.home .id-row{column-gap:4px}
     header.bar.home .hdr-acts{gap:2px}
-    header.bar.home :is(.hdr-new,.hdr-theme,.bar-acct){width:32px;height:32px}
+    header.bar.home :is(.hdr-new,.bar-acct){width:32px;height:32px}
     /* LA CIBLE NE DESCEND PAS AVEC LE BOUTON : le halo passe de 4 à 6 px, donc 32 + 12 = 44 px,
        la cible d'origine au pixel près. C'est tout l'objet d'un halo en zone haute — rétrécir le
        DESSIN sans rétrécir la CIBLE. Règle propre plutôt qu'un membre de plus dans la liste
        générique `:is(.hdr-new,…)::after` : (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre
        (dix-septième piège de cascade, où un membre de cette liste écrasait un halo particulier). */
-    header.bar.home :is(.hdr-new,.hdr-theme)::after{inset:-6px}
+    header.bar.home .hdr-new::after{inset:-6px}
     /* L'avatar est passé à 30 px de DESSIN (maquette) : son halo doit rendre les 14 px manquants
        pour tenir la cible de 44 — c'est tout l'objet d'un halo en zone haute. */
     header.bar.home .bar-acct::after{inset:-7px}
@@ -4227,6 +4259,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
+  /* ══ A8 — LA CIBLE VIENT DU HALO, LE DESSIN NE GROSSIT PAS (audit 8b) ════════════════════
+     Le patron était dans le fichier et il est bon ; il manquait sur huit contrôles qui vivent
+     eux aussi en zone de crise. Ce n'est pas une erreur de doctrine, c'est une couverture
+     incomplète — le même défaut que le harnais qui listait `#crisisDock` sans `#crisisCtrl`.
+     ⚠ HALO VERTICAL SEUL SUR TOUT CONTRÔLE D'UNE RANGÉE MESURÉE : un pseudo-élément absolu qui
+     dépasse à droite entre dans le `scrollWidth` du parent et fait mentir une boucle
+     d'ajustement — c'est le défaut que la capsule vient de payer (6 px de débordement
+     permanents). Les deux contrôles qui ne vivent dans aucune rangée ajustée (`.rt-x`, le champ
+     de recherche du panneau) grossissent franchement. */
+  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb){position:relative}
+  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb)::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
+  .rt-x{min-height:44px;min-width:44px}
+  .rt-find input{min-height:44px}
+  /* `.st-seg` est le segmenté de STATUT des ÉDITEURS — hors surface de crise, donc hors du seuil
+     de 44 px (vérifié : aucune émission en lecture). 38 px tient largement les 24×24 de
+     WCAG 2.2 § 2.5.8. Nommé ici pour que la question ne se repose pas. */
   .st-seg{display:inline-flex;align-items:center;min-height:38px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line-strong);background:var(--input-bg);color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .st-seg.on{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dk)}
   .st-seg:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -6654,7 +6702,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'activation (session, reduced-motion, support) vit dans vtWrap, côté JS. */
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-theme,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
      survol = 1 px de lévitation, APPUI = léger enfoncement. transform/opacity SEULEMENT (règle
      v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au
@@ -6837,7 +6885,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          d'écrire, et la porte est l'entrée de l'écriture ; dérouler son brouillon vient après. La
          règle « un seul bouton rempli par écran » (v4.0.3) est donc tenue, dans l'autre sens. -->
     <button class="hdr-act2" id="hdrPreview" hidden title="Dérouler le brouillon comme en session — rien n'est enregistré" aria-label="Essayer"><span class="pv-ic" aria-hidden="true">▶</span><span class="pv-lbl">▶ Essayer</span></button>
-    <button class="hdr-theme" id="hdrTheme" aria-label="Thème"></button>
     <button class="hdr-more" id="hdrMore" hidden aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg></button>
     <!-- ⚠ Le tracé de la silhouette est DUPLIQUÉ dans `uiIcon('user')` (côté script) : même
          dessin, même idée (« vous »). La coque étant du HTML statique, elle ne peut pas lire la
@@ -8035,6 +8082,21 @@ function rescueFiltTog(){const ft=document.getElementById('filtTog'),box=documen
 const _hdrSearchHome=()=>document.querySelector('header.bar .id-row');
 function rescueHomeSearch(){const el=document.getElementById('hdrSearch'),h=_hdrSearchHome();
   if(el&&h&&main.contains(el))h.insertBefore(el,h.querySelector('.hdr-acts')||null);}
+/* ⚠ « ＋ CRÉER » SUIT LA RANGÉE QUI RESTE (7a). Quand l'en-tête se resserre, l'identité s'en va
+   avec ses actions — mais créer n'est pas un réglage : on le remettrait à un défilement complet
+   de l'annuaire. Il rejoint donc la rangée de recherche, à gauche du déclencheur de filtre, et
+   la quitte dès que l'identité revient. DÉPLACÉ, jamais recréé : id, écouteur et état intacts. */
+function syncHomeNew(slim){
+  const b=document.getElementById('hdrNew'),box=document.querySelector('.hdr-search'),
+        acts=document.querySelector('header.bar .hdr-acts');
+  if(b&&box&&acts){const cible=slim?box:acts;
+    if(b.parentNode!==cible)cible.insertBefore(b,slim?null:acts.firstChild);}
+  /* Le DÉCLENCHEUR DE FILTRE suit le même chemin, en sens inverse : sur la rangée des contrôles
+     de liste tant qu'elle est à l'écran (7b), dans la rangée persistante dès qu'elle s'en va —
+     avec son chiffre, qui est tout ce qui reste pour dire qu'un filtre agit. */
+  {const ft=document.getElementById('filtTog'),row=main.querySelector('.grp-row');
+   if(ft&&box){const c=slim?box:row;
+     if(c&&ft.parentNode!==c)c.appendChild(ft);}}}
 /* ⚠ ET ELLE Y RESTE À TOUTES LES LARGEURS (7b, « Points ouverts ») : « une seule adresse pour la
    recherche… sinon elle change de place entre le téléphone et l'ordinateur, ce qui est exactement
    l'incohérence à éviter ». La planche 2f la posait en tête de la zone de résultats et je l'y
@@ -8055,20 +8117,6 @@ function placeFooter(){const ft=document.getElementById('appFooter');const side=
    le sticky de bande, et stickBase()/stickHeight() cessent de compter des rangées qui ne sont
    plus empilées en haut. Le rescue court avec ceux d'applyViewChrome, à chaque changement de
    vue. */
-/* ⚠ LE DOCK EST NOMADE (7c) : barre FIXE sous 780, PIED DE LA COLONNE D'ACTION au-delà. Même
-   patron que le pied de page, le chrome de crise et le déclencheur de filtre — on DÉPLACE
-   l'élément, on ne le recrée jamais : ids, écouteurs et état peint (`syncDock`, `syncCxKey`)
-   restent vivants. `rescueSessionDock` court AVANT tout wipe de `main`, sans quoi le dock
-   partirait avec lui. */
-function rescueSessionDock(){
-  const d=document.getElementById('sessionDock');
-  if(d&&main.contains(d))document.querySelector('.app').appendChild(d);
-  document.body.classList.remove('dock-flow');}
-function placeSessionDock(){
-  const d=document.getElementById('sessionDock');if(!d)return;
-  const host=mqRail.matches?(main.querySelector('#dockSlot')||main.querySelector('.read-main')||null):null;
-  if(host){if(d.parentNode!==host)host.appendChild(d);document.body.classList.add('dock-flow');}
-  else rescueSessionDock();}
 function rescueCrisisChrome(){
   const dk=document.getElementById('crisisDock');
   const slot=document.getElementById('hdrCrisisSlot');
@@ -11645,7 +11693,7 @@ function applyViewChrome(){
   // remet dans .app (sinon le wipe le détruirait — ids et écouteurs perdus) ; renderHomeList
   // le replacera en bas de la sidebar si elle existe. Même sauvetage pour le chrome de crise,
   // qui vit dans la colonne du plan en cockpit (v5.4.1).
-  rescueFiltTog();rescueHomeSearch();rescueSessionDock();rescueFooter();rescueCrisisChrome();
+  rescueFiltTog();rescueHomeSearch();rescueFooter();rescueCrisisChrome();syncHomeNew(false);
   {const hn=document.getElementById('hdrNew');
    if(state.view==='library'&&canEditScope(state.scope)){hn.hidden=false;
      hn.classList.toggle('tonal',Object.values(liveSessions).some(R=>R.started&&R.fiche));
@@ -11738,7 +11786,6 @@ function render(){
   // couches collantes, pour que stickHeight() sache déjà que les rangées ne sont plus empilées
   // en haut (no-op si la vue n'a pas de slot ; le rescue d'applyViewChrome a déjà défait l'état).
   placeCrisisChrome();
-  placeSessionDock();
   // État de l'en-tête resynchronisé APRÈS le défilement final : un changement de vue sans
   // évènement de scroll (on était déjà en haut) laissait sinon .ttl-on et les variables de
   // couches collantes hérités de la vue précédente — zone haute annoncée deux fois, ou pas du tout.
@@ -11896,7 +11943,7 @@ const _onReadBp=()=>{if(state.view==='read'||state.view==='edit'||state.view==='
 // écrire la règle ET reprendre la doctrine du chrome de crise : un en-tête qui raccourcit son
 // propre encombrement de flux fait remonter tout le contenu d'un coup (c'est exactement pour
 // l'éviter que #crisisBand et #cbTimers vivent HORS de header.bar, v4.23.0).
-let _hdrTtl=false,_hdrHCss='',_stickCss='',_ctrlHCss='';
+let _hdrTtl=false,_hdrSlim=false,_hdrHCss='',_stickCss='',_ctrlHCss='';
 // v4.23.0 : extrait en fonction NOMMÉE — render() la rappelle en fin de rendu. Sans ça, ouvrir
 // une fiche depuis une page déjà en haut ne produit aucun évènement de défilement et l'état
 // .ttl-on héritait de la vue précédente (barre condensée sur une page au repos, ou l'inverse).
@@ -11978,6 +12025,22 @@ function syncHdrScroll(){
   const t=(state.view==='read'&&!!state.fiche)?true
     :((_cb&&!_cb.hidden)?_cb.getBoundingClientRect().bottom<=_hbB:window.scrollY>110);
   if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);}
+  /* ══ 7a — SUR L'ACCUEIL ÉTROIT, SEULE LA RECHERCHE COLLE ═══════════════════════════════════
+     Mesuré par la planche : l'en-tête d'accueil est le plus haut du produit — jusqu'à quatre
+     rangées empilées, TOUTES collantes, 178 px sur 600. Trois réglages et un titre n'ont pas à
+     occuper 120 px pendant qu'on cherche. La rangée de recherche, elle, ne part jamais : c'est la
+     seule voie d'accès à tout le corpus, et la perdre oblige à remonter tout l'annuaire.
+     UN SEUIL, PAS UNE ANIMATION CONTINUE : une bascule à 80 px, retour à 40 — l'hystérésis
+     empêche un doigt qui hésite de faire clignoter l'en-tête. Et ce n'est PAS un « hide-on-scroll » :
+     rien ne réapparaît en remontant tant qu'on n'est pas revenu sous le seuil bas ; un en-tête qui
+     revient sans qu'on l'ait demandé est un mouvement qu'aucun geste n'explique.
+     LA POSITION DU CHAMP NE BOUGE JAMAIS : ce qui part vit AU-DESSUS de lui (identité) et
+     AU-DESSOUS (chips) — le champ garde son abscisse, sa hauteur, et son ordre par rapport au
+     déclencheur de filtre. La rangée change de CONTENU, jamais de géométrie. */
+  {const y=window.scrollY;
+   const ok=state.view==='library'&&!mqHomeWide.matches;
+   const cond=ok&&(_hdrSlim?y>40:y>80);
+   if(cond!==_hdrSlim){_hdrSlim=cond;document.body.classList.toggle('home-slim',cond);syncHomeNew(cond);}}
 }
 /* UNE PASSE PAR IMAGE, PAS PAR ÉVÈNEMENT (v5.0.9). `syncHdrScroll` LIT quatre rectangles puis
    ÉCRIT trois propriétés sur `<html>` ; branchée directement sur l'évènement, elle intercale ce
@@ -12358,8 +12421,19 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
   const offY=el=>{let y=0,e=el;while(e){y+=e.offsetTop;e=e.offsetParent;}return y;};
   const jump=L=>{const g=main.querySelector(`[data-azg="${CSS.escape(L)}"]`);if(!g)return;
     const sc=mqHomeWide.matches?main.querySelector('.home-main'):null;
-    if(sc)sc.scrollTop=Math.max(0,Math.round(offY(g)-offY(sc)-8));
-    else window.scrollTo(0,Math.max(0,Math.round(offY(g)-stickBase()/zoomF()-8)));};
+    if(sc){sc.scrollTop=Math.max(0,Math.round(offY(g)-offY(sc)-8));return;}
+    /* ⚠ ON POSE, ON RESYNCHRONISE, ON REPOSE — parce que le SAUT CHANGE LA HAUTEUR DE CE CONTRE
+       QUOI IL SE MESURE (v5.6, signalé par le témoin). Depuis 7a, l'en-tête de l'accueil étroit
+       se COMPACTE au défilement (114 → 68 px) : le saut visait `stickBase()` mesuré en haut de
+       page, en-tête déployé, puis l'en-tête se compactait à la suite du défilement que le saut
+       venait de provoquer — la lettre atterrissait 46 px trop bas, mesuré 55 au lieu de 9. C'est
+       la boucle du dossier du rebond, dans l'autre sens : une géométrie qui répond au geste.
+       Deux poses successives convergent, et c'est PRÉCISÉMENT ce que l'écriture en ABSOLU rend
+       licite (cf. ci-dessus : idempotent par construction) : la seconde mesure l'en-tête dans
+       l'état où le saut l'a mis, et l'hystérésis 80/40 de `syncHdrScroll` interdit toute
+       oscillation entre les deux. */
+    const cible=()=>Math.max(0,Math.round(offY(g)-stickBase()/zoomF()-8));
+    window.scrollTo(0,cible());syncHdrScroll();window.scrollTo(0,cible());};
   rail.querySelectorAll('[data-azl]').forEach(b=>b.onclick=()=>jump(b.dataset.azl));
   /* LE MAPPING DOIGT → LETTRE EST RELEVÉ UNE FOIS, À LA PRISE (v5.0.1). Il était re-mesuré à
      chaque mouvement : si la géométrie du rail bougeait pendant le geste, la lettre visée
@@ -12582,7 +12656,6 @@ function renderHomeList(cfg){
     // dans les deux modes : des lettres, ou les pastilles des catégories.
     if(list.length&&az.length>=2)railHtml=`<nav class="azrail${gk==='cat'?' catrail':''}" id="azRail" aria-label="${gk==='cat'?'Aller à la catégorie':'Aller à la lettre'}">${az.map(g=>`<button type="button" data-azl="${esc(g.L)}" aria-label="Aller à ${esc(g.L)}" title="${esc(g.L)}">${gk==='cat'?`<span class="azr-dot" style="background:${g.cat?safeColor(g.cat.color):'var(--line-strong)'}"></span>`:esc(g.L)}</button>`).join('')}</nav>`;
   }
-  rescueSessionDock();
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
@@ -13161,7 +13234,6 @@ function renderProtocolRead(){
   const docs=attListHtml(p);
   // « Voir aussi » (liens croisés v4.2.0) : aides cognitives ET protocoles associés.
   const rel=(p.links||[]).map(id=>relTarget(id)).filter(Boolean);
-  rescueSessionDock();
   main.innerHTML=`<div class="ref-grid">
     <div class="ref-main">
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
@@ -13378,7 +13450,6 @@ function renderProtocolEdit(){
   const p=state.pdraft;if(!p){state.view='library';return render();}
   const isNew=!protocols.some(x=>x.id===p.id);
   const wideEdit=mqReadWide.matches;
-  rescueSessionDock();
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${''/* « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE » (règle de la v4.76.0, étendue aux
@@ -14006,7 +14077,7 @@ function buildFlowSVG(f,cache){
   if(cache)_flowCache.set(f,{svg});
   return svg;}
 function _buildFlowSVG(f){
-  const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:var(--ink-soft);font-size:13px">Aucun bloc.</div>';
+  const blocks=f.blocks||[];if(!blocks.length)return '<div style="padding:14px;color:var(--ink-soft);font-size:var(--t-body)">Aucun bloc.</div>';
   const byId=Object.create(null);blocks.forEach(b=>byId[b.id]=b);const start=(f.start&&byId[f.start])?f.start:blocks[0].id;
   /* ⚡ LES CIBLES DE COMPLICATION SE RECONNAISSENT DANS LE SCHÉMA (v5.0.9, proposition de
      l'auteur : « mettre un éclair et en rouge ? »). Elles y étaient dessinées comme un bloc
@@ -16166,7 +16237,6 @@ function renderRead(){
   // SVG). Vaut pour tous les chemins ; les mises à jour chirurgicales (renderTkOnly, boutons de
   // minuteur sans re-rendu) restent préférables, ceci est le FILET GLOBAL.
   const _railY=(()=>{const s=document.querySelector('.read-side');return s?s.scrollTop:0;})();
-  rescueSessionDock();
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
@@ -18212,11 +18282,7 @@ function preSessionHtml(f,avecParcours){
     +`</div>`;
   const par=avecParcours?`<div class="pre-head"><span class="pre-t">Parcours · ${n} bloc${n>1?'s':''}</span>`
     +`<span class="pre-inert">inerte</span></div><div class="rail-lad pre-lad">${lad}</div>`:'';
-  /* LE DOCK SE POSE ICI, JUSTE APRÈS LES RENVOIS (7c) — pas en bas de la colonne : la fiche y
-     porte encore ses surveillances, sa note et ses annexes, et le geste d'entrée se retrouverait
-     à mille pixels de ce qu'il commande. L'ordre de la maquette est respecté au mot près :
-     condition → parcours → renvois → dock. */
-  return `<div class="pre-wrap">${par}${liens}<div id="dockSlot"></div></div>`;}
+  return `<div class="pre-wrap">${par}${liens}</div>`;}
 function ovParcoursHtml(f){
   /* ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — demande
      utilisateur : « mets à jour parcours dans tout voir pour que ça corresponde au nouveau
@@ -19810,7 +19876,6 @@ function renderEditor(){
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
-  rescueSessionDock();
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
     ${edGrabBanner(f)}
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
@@ -21422,7 +21487,7 @@ function renderCreateDlg(screen,park){
     body.innerHTML=`
       <button class="crt-back" id="crtBack">‹ Autres méthodes</button>
       <div class="crt-step">1 · Copiez ce prompt dans votre IA</div>
-      <p style="font-size:13px;margin:0 0 8px">Collez-le dans une IA (ChatGPT, Claude…) <strong>en y joignant votre source</strong> (PDF, capture d'écran, texte d'une recommandation) : elle renverra un fichier JSON.</p>
+      <p style="font-size:var(--t-body);margin:0 0 8px">Collez-le dans une IA (ChatGPT, Claude…) <strong>en y joignant votre source</strong> (PDF, capture d'écran, texte d'une recommandation) : elle renverra un fichier JSON.</p>
       <div class="crt-prompt" id="crtPrompt" tabindex="0"></div>
       <div class="ai-actions"><button class="crt-copy" id="crtCopy">Copier le prompt</button></div>
       <div class="crt-step">2 · Importez le fichier</div>
@@ -21484,7 +21549,7 @@ function renderCatMgr(){
   body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);
     const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${scoped.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
     return `<div class="cm-row" data-cid="${esc(c.id)}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
-  }).join('')+`${scoped.length?'':'<p style="font-size:13px;color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
+  }).join('')+`${scoped.length?'':'<p style="font-size:var(--t-body);color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
   body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);if(!c)return;
     const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(scp);});
     row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats(scp);renderCatMgr();});
@@ -22321,7 +22386,14 @@ function accountPrefsHtml(slot){
     <p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
     ${slot?`<div class="auth-actions" style="margin-bottom:14px">${slot}</div>`:''}
     <div class="auth-stats-h">Affichage</div>
-    <div class="set-row"><span class="set-l" id="tsLbl">Taille du texte</span>
+    ${''/* ⚠ LE THÈME REJOINT LES RÉGLAGES (7a, « Points ouverts ») : il vivait dans l'en-tête de
+      l'accueil, où il occupait une des quatre rangées collantes les plus disputées du produit
+      pour un geste qu'on fait une fois. C'est un RÉGLAGE de personne, comme la taille du texte
+      et le format d'ouverture — il a sa place ici, au seul endroit où l'on règle. Le bouton de
+      l'en-tête disparaît avec lui (règle 14) : deux adresses pour un réglage, c'est §5.5. */}
+    <div class="set-row"><span class="set-l" id="thLbl">Thème</span>
+    <div class="seg" id="themeSeg" role="radiogroup" aria-labelledby="thLbl" style="--seg-n:3;--seg-i:${['auto','light','dark'].indexOf(_themeMode())}"><span class="seg-pill" aria-hidden="true"></span>${['auto','light','dark'].map((k,i)=>`<button type="button" class="seg-btn${_themeMode()===k?' on':''}" role="radio" aria-checked="${_themeMode()===k?'true':'false'}" data-theme="${k}">${['Auto','Clair','Sombre'][i]}</button>`).join('')}</div></div>
+    <div class="set-row" style="margin-top:12px"><span class="set-l" id="tsLbl">Taille du texte</span>
     <div class="seg" id="zoomSeg" role="radiogroup" aria-labelledby="tsLbl" style="--seg-n:${ZOOM_STEPS.length};--seg-i:${Math.max(0,ZOOM_STEPS.indexOf(z))}"><span class="seg-pill" aria-hidden="true"></span>${ZOOM_STEPS.map(s=>`<button type="button" class="seg-btn ts-${s}${z===s?' on':''}" data-zoom="${s}" role="radio" aria-checked="${z===s?'true':'false'}" title="${HINT[s]}" aria-label="Taille du texte ${HINT[s]}">A</button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">S'applique à <b>toute l'application</b>.<details class="acct-more"><summary>En savoir plus</summary>Enregistrée pour votre compte, comme le thème (bouton de l'en-tête) : vous la retrouvez sur vos autres appareils connectés.</details></div>
     ${''/* ⚠ LE FORMAT D'OUVERTURE SE RÈGLE À FROID, ET NULLE PART AILLEURS (v5.0.0, lot A). C'est
@@ -22406,6 +22478,16 @@ function bindAccountPrefs(body){
      dépend du zoom (il vit sur
      `<html>` et sur `--zf`), donc on peint sur place : la transition CSS fait le reste, et le
      glisser au doigt marche comme sur Guidé/Statique. */
+  /* Le thème : même composant segmenté que la taille du texte, même point d'écriture
+     (`applyTheme` + `schedulePrefsPush`). On PEINT sur place — un re-rendu de la fenêtre ferait
+     sauter la pastille au lieu de la faire glisser (leçon v4.71.1). */
+  {const ts=body.querySelector('#themeSeg');
+   if(ts){const btns=[...ts.querySelectorAll('[data-theme]')],K=['auto','light','dark'];
+    const peindre=()=>{const m=_themeMode();ts.style.setProperty('--seg-i',Math.max(0,K.indexOf(m)));
+      btns.forEach(b=>{const on=b.dataset.theme===m;
+        b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
+    btns.forEach(b=>b.onclick=()=>{applyTheme(b.dataset.theme);schedulePrefsPush();peindre();});
+    bindSegDrag(ts,i=>{applyTheme(K[i]);schedulePrefsPush();peindre();});}}
   {const zs=body.querySelector('#zoomSeg');
    if(zs){const btns=[...zs.querySelectorAll('[data-zoom]')];
     const peindre=()=>{const z=currentZoom();
@@ -22613,10 +22695,12 @@ function resolveTheme(mode){return mode==='auto'?((window.matchMedia&&matchMedia
 // thème, taille du texte et couleur d'accent voyagent aussi dans le document perso de synchro (data.prefs, comme les épingles).
 function applyTheme(mode){try{localStorage.setItem(spaceKey('ac-theme'),mode);localStorage.setItem('ac-theme',mode);}catch(e){}
   const resolved=resolveTheme(mode);document.documentElement.setAttribute('data-theme',resolved);
-  // Bascule de thème dans l'EN-TÊTE (V5) : icône (+ libellé Auto/Clair/Sombre à >= 780px).
-  const b=document.getElementById('hdrTheme');if(b){const lbl=mode==='auto'?'Auto':(mode==='dark'?'Sombre':'Clair');
-    b.innerHTML=(mode==='auto'?uiIcon('autotheme',16):(mode==='dark'?uiIcon('moon',16):uiIcon('sun',16)))+'<span class="hdr-theme-lbl">'+lbl+'</span>';
-    b.title=mode==='auto'?'Thème : auto (suit votre appareil) — cliquer pour changer':'Thème : '+(mode==='dark'?'sombre':'clair')+' — cliquer pour changer';b.setAttribute('aria-label',b.title);}
+  /* Le thème vit désormais dans Compte › Affichage (7a) : si la fenêtre est OUVERTE, on y peint
+     la pastille sur place — un re-rendu la ferait sauter au lieu de la faire glisser. */
+  {const ts=document.querySelector('#themeSeg');
+   if(ts){const K=['auto','light','dark'];ts.style.setProperty('--seg-i',Math.max(0,K.indexOf(mode)));
+    ts.querySelectorAll('[data-theme]').forEach(b=>{const on=b.dataset.theme===mode;
+      b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});}}
   setThemeColorMeta(themeColorCurrent());}
 // Couleur de la barre d'état (meta theme-color) — HELPER UNIQUE (thème ET flash d'alarme).
 // Certaines versions d'iOS Safari ne re-lisent PAS un meta modifié via setAttribute, seulement
@@ -22643,7 +22727,10 @@ function setThemeColorMeta(col){
 const THEME_COLOR={light:'#f4f5f7',dark:'#0d0f13'};   // = --amb (clair / sombre)
 function themeColorCurrent(){return THEME_COLOR[document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'];}
 // Cycle : Auto -> Clair -> Sombre -> Auto.
-document.getElementById('hdrTheme').onclick=()=>{const cur=localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto';applyTheme(cur==='auto'?'light':cur==='light'?'dark':'auto');schedulePrefsPush();};
+/* LE MODE COURANT EN UN SEUL POINT : il était relu en clair à chaque site (deux au départ, trois
+   depuis que le thème vit aussi dans les réglages) — trois lectures d'une même préférence
+   divergent tôt ou tard sur la clé d'espace. */
+function _themeMode(){return localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto';}
 /* ===== Menu ⋯ d'en-tête (SPEC gestion §4) =====
    Regroupe les actions de GESTION des vues fiche/protocole (lecture et édition) — a remplacé les
    barres « Autorat — hors urgence » de bas de page. Chaque vue déclare ses rangées via
