@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-nf9tvBi3kUyJCEIMVf+Bvl5b3SIVJhFjsVkUswn/1nc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-FoK7G+UXF2exNRpQk1CfjgKiC5F7mVSGTsIi+1bfKIU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1461,7 +1461,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      jamais par un trait — le filet reste à l'ITEM, qui n'a que lui. L'excursion « Consulter » a
      de toute façon deux marqueurs bien plus forts que n'importe quel trait : son intitulé vert
      et son « ↩ Revenir » rempli. */
-  .ref-col{padding-bottom:0;margin-bottom:24px}
+  .ref-col{border-bottom:1px solid var(--line-strong);padding-bottom:20px;margin-bottom:20px}
   .rc-head{display:flex;align-items:center;gap:8px;padding-bottom:8px}
   .rc-t{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
   .rc-back{margin-left:auto;min-height:44px;padding:0 12px;background:var(--ok);border:0;border-radius:var(--r-1);color:var(--on-primary);font-family:inherit;font-weight:700;font-size:11px;cursor:pointer}
@@ -2307,7 +2307,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Dans le LIVRE, la rangée n'a plus de bord à elle : le liseré de catégorie se pose dans la
      marge de la carte, où il reste lisible comme un onglet d'annuaire. */
   .dir-book .dir-row::before{left:-16px;border-radius:0;top:1px;bottom:1px}
-  .dir-book .dir-row.live{background:none}
+  /* ⚠ PLUS DE `background:none` SUR L'ÉTAT (v5.6, signalé à l'usage : « on a l'impression qu'elle
+     n'a plus de fond de carte »). Cette règle vaut (0,3,0) et battait aussi bien la teinte de
+     l'état que la MATIÈRE de la carte posée au palier ≥ 640 px — la rangée d'une aide en session
+     s'y retrouvait donc sans fond du tout. Un état se COMPOSE avec l'objet, il ne le remplace
+     jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
+     carte quand il y en a une, sur le blanc du livre sinon. */
   .dir-book .dir-row.live::before{width:3px}
   /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
      registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
@@ -3118,8 +3123,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}
   .rt-dock .tm-bar-wrap{background:var(--sys-line)}
   .rt-dock .tm-bar{background:var(--sys-ink-2)}
-  .rt-dock .tm-ctrl{flex-direction:row;gap:6px;margin-top:8px}
-  .rt-dock .tm-btn{width:auto;flex:1;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
+  /* ⚠ LA RANGÉE S'ENROULE AU LIEU DE TRONQUER (v5.6). `flex-direction:row` était écrit pour un
+     volet PLEINE LARGEUR ; depuis que le panneau suit la grille du quai, une carte de minuteur
+     seule occupe UNE colonne d'environ 160 px — et deux boutons côte à côte y devenaient
+     « Démarre » et « MAINT… ». On enroule, on ne tronque jamais (règle du dossier, déjà appliquée
+     à l'Échelle et à la ligne d'état) : chaque bouton prend sa ligne quand la colonne est
+     étroite, et retrouve sa voisine dès qu'il y a la place. */
+  .rt-dock .tm-ctrl{flex-direction:row;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .rt-dock .tm-btn{width:auto;flex:1 1 120px;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
   .rt-dock .tm-main{background:none;border-color:var(--sys-ink-2);color:var(--sys-ink);font-weight:800}
   .rt-dock .tm-btn:hover{background:var(--sys-2)}
   .rt-dock .tmr-hint{color:var(--sys-ink-2)}
@@ -3339,8 +3350,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      maquette où toutes les valeurs tenaient en cinq mots. Sur du texte réel, cela colle une
      phrase de quatre lignes à la suite d'un nom en petites capitales et l'on ne sait plus où
      commence la dose. Le nom prend sa ligne, le corps la sienne. */
-  .pos-card{display:block;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink);font-size:var(--t-body);font-weight:600;line-height:1.5;text-wrap:pretty}
-  .pos-card:first-child{border-top:0}
+  /* ⚠ LE FILET D'UN ITEM N'EST PAS CELUI D'UNE FAMILLE (v5.6, signalé à l'usage). Les deux
+     étaient un trait de 1 px pleine largeur. Celui de la FAMILLE reste ainsi — franc, d'un bord à
+     l'autre ; celui de l'ITEM RENTRE de 10 px. C'est le retrait qui les distingue au premier coup
+     d'œil, pas une nuance de gris qu'il faudrait comparer.
+     ⚠ LE RETRAIT EST SUR LE TRAIT, JAMAIS SUR LA BOÎTE (mesuré, puis corrigé). Écrit en
+     `padding-left`, il volait 10 px au TEXTE : une posologie longue passait sur une ligne de
+     plus, et un témoin de partage a immédiatement signalé 21 px de dérive sous les yeux de
+     quelqu'un qui n'avait rien demandé. Le filet est donc un pseudo-élément — il rentre, la
+     colonne de texte ne bouge pas d'un pixel. */
+  .pos-card{display:block;position:relative;border:0;background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink);font-size:var(--t-body);font-weight:600;line-height:1.5;text-wrap:pretty}
+  .pos-card::before{content:"";position:absolute;left:10px;right:0;top:0;height:1px;background:var(--line)}
+  .pos-card:first-child::before{display:none}
   .pos-name{display:block;font-weight:700;color:var(--ink-2)}
   .pos-mk{color:var(--warn);font-weight:800}
   /* La valeur ne se tronque JAMAIS (un chiffre amputé est pire qu'absent) : elle enroule sur sa
@@ -3857,11 +3878,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Son COUPÉ = état risqué en crise -> signalé en ambre (pas seulement un changement de libellé). */
   .rt-sound.off{color:var(--verify);border-color:var(--verify);background:var(--verify-soft)}
   .rt-warn{background:var(--verify-soft);border:0;color:var(--verify);border-radius:8px;padding:6px 8px;min-height:44px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  /* ⚠ `auto-fill`, PAS `auto-fit` (v5.6, signalé à l'usage : « ce n'est pas très beau qu'il n'y
+     ait qu'un seul minuteur qui s'affiche si la page est assez large — peut-être en mettre deux
+     par ligne ? »). `auto-fit` REPLIE les pistes vides : un minuteur seul s'étirait sur toute la
+     largeur pendant que les deux compteurs, juste dessous, se partageaient la même rangée en
+     deux — le panneau n'avait donc pas de rythme, il en avait un par famille. `auto-fill` garde
+     les pistes : un objet seul occupe UNE colonne, et les deux familles s'alignent sur la même
+     grille quel que soit leur nombre. */
+  .rt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
   /* Petits écrans (iPhone) : on garde AU MOINS 2 minuteurs par ligne (compact), mais on EMPILE les
      boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
   @media (max-width:779.98px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12px}}
-  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+  .rt-counters{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}
   /* A11 dans le rail : un repère posologique SIGNALÉ se marque (△ + encre ambre + filet), il ne
      prend pas d'aplat — sinon deux repères font deux masses colorées dans une colonne dont toute
      la doctrine est la désaturation, et l'aplat cesse de vouloir dire « maintenant ». */
@@ -3913,7 +3941,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-side .cncard .cn-log,
   body.view-read .read-side .cncard .cn-note,
   body.view-read .read-side .cncard .cn-reset{display:none}
-  body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;display:flex;gap:6px}
+  /* ⚠ `margin-top` ANNULÉ DANS LA VARIANTE EN RANGÉE (v5.6, signalé à l'usage : « le texte et le
+     chiffre des compteurs ne sont pas alignés verticalement avec les boutons − / + : ils sont
+     légèrement au-dessus »). Mesuré : 4 px. `.cn-ctrl` porte `margin-top:8px`, écrit pour la
+     carte en COLONNE où il sépare les boutons de la valeur ; en RANGÉE, sous `align-items:center`,
+     une marge haute décale l'item de 8 px et le centrage n'en rattrape que la moitié — d'où
+     exactement les 4 px rapportés. Une règle écrite pour une disposition ne vaut pas dans
+     l'autre : c'est la même leçon que le filet des repères (v5.0.9). */
+  body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;margin-top:0;display:flex;gap:6px}
   body.view-read .read-side .cncard .cn-btn{flex:none;min-width:44px;min-height:44px;border-color:var(--ctl-line)}
   /* Anatomie du canvas (rail droit) : UNE variable d'état --tcol pilote libellé + temps +
      barre (+ bordure via --tbd) ; courant = bleu, ÉCHU = AMBRE (le rouge reste réservé aux
@@ -4030,7 +4065,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      porte déjà `gap`, il suffit de l'élargir entre les groupes. Rien à exempter, rien à teinter,
      et l'arbre d'accessibilité n'a plus un caractère de ponctuation à annoncer entre deux mots.
      `.lg-sp` est PURGÉE avec le caractère qu'elle habillait (règle 14). */
-  .stp-legend>*+*{margin-left:6px}
+  .lg-it{display:inline-flex;align-items:center;gap:4px}
+  .stp-legend>*+*{margin-left:10px}
   .lg-r{font-family:var(--mono);background:var(--tag-bg);color:var(--tag-ink);border-radius:8px;padding:0 4px}
   /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
      l'unique bouton rempli de l'écran reste « Continuer — … → ». */
@@ -6248,6 +6284,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .dir-book .dir-row{background:var(--work);border:1px solid var(--work-line);border-bottom:1px solid var(--work-line);
       border-radius:var(--r-3);height:71px;min-height:0;padding-left:14px;padding-right:24px}
     .dir-book .dir-row::before{left:0;top:0;bottom:0;border-radius:var(--r-3) 0 0 var(--r-3)}
+    /* ⚠ UNE RANGÉE EN SESSION GARDE SON FOND DE CARTE (v5.6, signalé à l'usage : « on a
+       l'impression qu'elle n'a plus de fond de carte »). `.dir-book .dir-row.live{background:none}`
+       vaut (0,3,0) contre (0,2,0) pour la règle de carte ci-dessus : elle gagnait, et l'état
+       EFFAÇAIT la matière au lieu de s'y ajouter. Un état se COMPOSE avec l'objet, il ne le
+       remplace pas — c'est la même faute que le `background:none` du livre appliqué là où le
+       livre n'existe plus. La teinte de confirmation revient donc par-dessus le blanc. */
+    .dir-book .dir-row.live{background:var(--ok-soft)}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
@@ -6309,10 +6352,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        une FAMILLE (`.rail-sec`) portaient le MÊME filet de 1 px en `--line`. Deux traits
        identiques pour deux niveaux ne hiérarchisent rien — c'est l'argument de l'échelle
        typographique (v4.71.1) appliqué aux filets.
-       UNE FAMILLE SE SÉPARE PAR L'ESPACE ET PAR SON TITRE, JAMAIS PAR UN TRAIT. Le titre est un
-       marqueur bien plus fort qu'un filet (petites capitales, graisse 800, son compte), et
-       ajouter un trait par-dessus, c'est l'inflation de trait — la même faute que le rouge
-       permanent. Le FILET reste donc à l'ITEM, où il est le seul signal disponible.
+       ⚠⚠ ET MA PREMIÈRE LECTURE ÉTAIT FAUSSE — CORRIGÉE PAR L'AUTEUR (v5.6 : « enlever les lignes
+       séparatrices entre minuteurs-compteurs / journal / repères posologiques n'était pas une
+       bonne idée ; ce que je te disais, c'est que les séparateurs DANS les repères se
+       ressemblaient trop »). J'avais supprimé le filet de FAMILLE, alors que le défaut était la
+       RESSEMBLANCE des deux niveaux. Le filet de famille est ce qui donne au rail sa structure :
+       il revient, franc et pleine largeur. C'est le séparateur d'ITEM qui change de nature — il
+       RENTRE de 10 px, donc il ne peut plus se lire comme une frontière de famille. Deux niveaux,
+       deux dessins ; retirer l'un des deux n'était pas hiérarchiser, c'était appauvrir.
        ⚠ ET « CONSULTER » ENTRE DANS LA MÊME RÈGLE (signalé dans le même message : « diagnostics
        différentiels et références sont collés entre eux ») : ses sections sont des `.rs-sec`, qui
        n'avaient ni marge ni rembourrage — donc deux familles à touche-touche, séparées par le
@@ -6320,7 +6367,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        TRAITEMENT, ET C'EST UNE QUESTION DE NATURE : une `.rs-sec` est une CARTE (fond, bordure,
        rayon) — lui retirer son `border-top` lui ouvrirait le haut. Une carte se sépare d'une
        autre carte par un ÉCART, un point. */
-    .rail-sec+.rail-sec{margin-top:24px;padding-top:0;border-top:0}
+    .rail-sec+.rail-sec{margin-top:20px;padding-top:20px;border-top:1px solid var(--line-strong)}
     .rs-sec+.rs-sec{margin-top:12px}
     /* REPÈRES DU RAIL — chrome désaturé, registre CONSERVÉ. Doctrine ECAM appliquée finement : on
        calme la PRÉSENTATION, jamais la sémantique d'une donnée anormale. Les repères ordinaires
@@ -6836,8 +6883,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      précisément ce qu'il vient réparer. */
   .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px}
   .cn-log:empty{display:none}
-  .fs-kt{flex:1;min-width:0}
-  .fs-tgl{margin-left:auto;flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
+  /* ⚠ LE COMPTE SE LIT AVEC LE TITRE, PAS AU BOUT DE LA RANGÉE (v5.6, signalé à l'usage : « le
+     nombre devrait être affiché juste à côté de "Ne pas oublier" et non tout à droite »). Il
+     QUALIFIE le titre — « Ne pas oublier · 4 rappels » est une seule phrase ; renvoyé au bord
+     opposé, l'œil devait faire l'aller-retour pour la reconstituer. Le titre cesse donc de
+     s'étirer, et c'est un ESPACE qui pousse le chevron au bord : lui reste à droite, parce qu'il
+     désigne le geste (déplier) et non le contenu. */
+  .fs-kt{flex:none;min-width:0}
+  .fs-sp{flex:1 1 auto;min-width:0}
+  /* Le chevron suit la convention du dépliant, et elle est la même partout : « › » fermé,
+     « ▾ » ouvert. Il pointait vers le HAUT une fois déplié — l'inverse de ce que fait tout
+     `<details>` du fichier, et de ce qu'on lit ailleurs dans le produit. */
+  .fs-chev{flex:none;font-weight:800;line-height:1;color:var(--ink-2)}
+  .fs-tgl{flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}
   .forget-strip.fs-closed .fs-k{margin-bottom:0}
@@ -16087,6 +16145,9 @@ function tkPaintSug(id,q){
    doigt qui vient de taper. La règle n'a pas bougé d'un mot ; c'est le geste qui s'est déplacé,
    et laisser l'accusé derrière lui aurait produit DEUX réponses à un seul geste — exactement ce
    que la doctrine proscrit. */
+/* Le chevron du chapeau « Ne pas oublier » — SOURCE UNIQUE (v5.6). Convention du dépliant, la
+   même que tous les `<details>` du fichier : fermé « › », ouvert « ▾ ». */
+function fsChev(ferme){return ferme?'›':'▾';}
 function tkNoteNow(fromBlock){
   const ev={id:uid('e'),t:vfNow(),label:''};
   Runtime.events=Runtime.events||[];Runtime.events.push(ev);
@@ -16255,7 +16316,7 @@ function renderRead(){
          rien n'est repliable : c'est alors un simple titre, et un bouton qui n'agit pas serait un
          bouton mort. */
       +(démarrée
-        ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl">${fsFold?fsN:(fsN+' rappel'+(fsN>1?'s':''))} <span aria-hidden="true">${fsFold?'▸':'▴'}</span></span><span class="sr-only">${fsN} rappel${fsN>1?'s':''}</span></button>`
+        ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl" data-n="${fsN}">${fsFold?fsN:(fsN+' rappel'+(fsN>1?'s':''))}</span><span class="fs-sp"></span><span class="fs-chev" aria-hidden="true">${fsChev(fsFold)}</span><span class="sr-only">${fsN} rappel${fsN>1?'s':''}</span></button>`
         :`<div class="fs-k"><span class="fs-kt">■ Ne pas oublier</span></div>`)
       +`<div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
@@ -16778,7 +16839,16 @@ function bindReadEvents(f,blk,cur){
   if(fst)fst.onclick=()=>{const st=fst.closest('.forget-strip');if(!st)return;
     const clos=st.classList.toggle('fs-closed');state.fsOpen=!clos;
     fst.setAttribute('aria-expanded',clos?'false':'true');
-    const ch=fst.querySelector('span[aria-hidden]');if(ch)ch.textContent=clos?'▾':'▴';};
+    /* ⚠ UN SEUL GLYPHE, UNE SEULE SOURCE (v5.6, signalé à l'usage : « la petite flèche se met mal
+       à jour »). Le gabarit écrivait « › / ▾ » et CE handler « ▾ / ▴ » — deux sources pour le même
+       signe, donc deux vocabulaires, et l'une des deux à l'envers : le chevron pointait vers le
+       HAUT une fois déplié, l'inverse de tout `<details>` du fichier. La convention est celle du
+       dépliant : fermé « › », ouvert « ▾ ». `fsChev` la porte, et les deux sites l'appellent. */
+    const ch=fst.querySelector('.fs-chev');if(ch)ch.textContent=fsChev(clos);
+    /* Le compte suit l'état : abrégé au chiffre replié, en toutes lettres déplié. Il était FIGÉ
+       sur la valeur du rendu, donc faux dès le premier tap. */
+    const tg=fst.querySelector('.fs-tgl');
+    if(tg){const n=+(tg.dataset.n||0);tg.textContent=clos?String(n):(n+' rappel'+(n>1?'s':''));}};
   const rc=document.getElementById('rtClose');if(rc)rc.onclick=()=>{state.rtOpen=false;render();};
   // Minuteur AD HOC « ＋ Minuteur PA 5:00 » (SPEC §7) : ajouté à la SESSION (pas à la fiche),
   // démarre aussitôt, supprimable (✕), persiste dans la session (extraTimers).
@@ -17145,11 +17215,16 @@ function ovInstHtml(f,id,idx,topo,pres){
        vérifier » sur un bloc sans aucune vigilance n'enseigne rien et coûte une ligne à chaque
        carte — c'est la règle « un panneau vide est du bruit », appliquée signe par signe. Un bloc
        sans aucun des trois n'a pas de légende du tout. */
+    /* ⚠ CHAQUE ENTRÉE EST UN ÉLÉMENT, PAS UN FRAGMENT (v5.6, correctif). Elles étaient jointes
+       par un « · » ; en le supprimant (il mesurait 1,3:1, cf. A33) je les ai jointes par RIEN, et
+       comme ce sont des fragments inline elles se sont collées : « vital△ à vérifier ». Une liste
+       dont les items ne sont pas des boîtes ne peut pas être espacée par `gap` — c'est la boîte
+       qui reçoit l'écart, pas le texte. */
     const _lg=[];
     if(_its.some(it=>+it.level===3))_lg.push(uiIcon('warn',12)+' vital');
     if(_its.some(it=>+it.level===2))_lg.push('△ à vérifier');
     if(_its.some(it=>(it.expect||'').trim()))_lg.push('<span class="lg-r">réponse</span> attendue');
-    const legH=_lg.length?`<div class="stp-legend">${_lg.join('')}</div>`:'';
+    const legH=_lg.length?`<div class="stp-legend">${_lg.map(x=>`<span class="lg-it">${x}</span>`).join('')}</div>`:'';
     let ctl='';
     if(tip){const nxt=b.next?f.blocks.find(x=>x.id===b.next):null;
       const allDone=steps.length===0?true:dn>=steps.length;
@@ -17603,6 +17678,17 @@ bindModalDismiss(refModal,closeRefSheet);
    if(!sh||sh.hidden)return;
    if(e.target.closest('#dockSheet')||e.target.closest('#sessionDock'))return;
    dockSheetClose();},true);
+ /* V1 POUR LE VOLET DU QUAI AUSSI (v5.6, signalé à l'usage : « si on clique sur la page en
+    dessous, il doit disparaître — comme le menu ⋯ »). La fermeture TRIPLE était promise depuis la
+    v5.4.1 et n'en avait que deux : le re-tap du quai et le ✕. Le tap hors volet manquait — sur
+    l'autre volet (⏱/⚡) il existait, sur celui-ci non : deux objets de même nature, deux
+    comportements. On ignore la capsule elle-même, sans quoi le re-tap fermerait puis rouvrirait
+    dans la même impulsion, et le dock, dont les touches ont leurs propres gestes. */
+ document.addEventListener('pointerdown',e=>{
+   if(state.rtOpen!=='dock')return;
+   const d=document.querySelector('.rt-dock');if(!d)return;
+   if(e.target.closest('.rt-dock')||e.target.closest('#crisisDock')||e.target.closest('#sessionDock'))return;
+   state.rtOpen=false;renderKeepAnchor('#cbTimers');},true);
  /* A1 — LE DOCK S'EFFACE AU FOCUS D'UN CHAMP. Le clavier EST la surface de saisie ; empiler un
     dock par-dessus lui ne laisse plus rien du contenu. Le champ du volet ⏱ est EXCLU : il vit
     DANS le dock, et s'effacer sous les doigts de qui écrit dedans serait absurde. */
@@ -18158,7 +18244,10 @@ let _shareRemote=false;
    par `#srLive` et par la carte elle-même, à l'endroit où le journal l'a posée. C'est la
    différence exacte avec `ovAdvanceRender`, qui défile parce que c'est l'utilisateur qui vient
    d'appuyer sur « Continuer ». */
-function shareApplyAnchored(f,evs){
+/* `muet` : appliquer SANS peindre. L'écran affiche autre chose (bibliothèque, éditeur, une autre
+   aide) — l'état doit quand même entrer, sinon il est perdu définitivement (cf. `onEvents`), mais
+   reconstruire le journal ferait un rendu complet et arracherait l'utilisateur à sa page. */
+function shareApplyAnchored(f,evs,muet){
   let n=0;
   for(const e of evs){
     const p=e.payload||{};
@@ -18207,6 +18296,7 @@ function shareApplyAnchored(f,evs){
         bindStateToRuntime();n++;}}
   }
   if(!n)return 0;
+  if(muet)return n;   // l'état est entré ; le prochain rendu de cette fiche le montrera
   const cartes=main.querySelectorAll('.ov-block[data-ovi]');
   const derEl=cartes.length?cartes[cartes.length-1]:null;
   const dern=derEl?derEl.getAttribute('data-ovi'):null;
@@ -24286,7 +24376,14 @@ const Share={
              RIEN d'autre — d'où l'accumulation incrémentale, qui est aussi ce qui permet à une
              reprise après divergence de repartir de zéro sans rejouer l'interface. */
           if(this.mode==='guest')this.fold=shareFold(ev,this.fold||undefined);
-          try{this.onEvents(ev);}catch(e){}}
+          /* ⚠ NE PLUS AVALER L'EXCEPTION EN SILENCE (v5.6). Un `catch` vide laissait un lot
+             À MOITIÉ APPLIQUÉ — l'état écrit, la peinture interrompue — sur un curseur déjà
+             avancé : l'écran restait figé sur un parcours amputé que plus rien ne rejouait. On
+             resynchronise l'écran sur l'état réellement en mémoire, ce qui est toujours mieux
+             qu'un DOM qui ment, et l'on garde une trace en console pour le diagnostic. */
+          try{this.onEvents(ev);}
+          catch(e){try{console.error('partage : lot non appliqué en entier',e);
+            if(state.view==='read'&&state.fiche===Runtime.fiche)render();}catch(_){}}}
         /* AVANCER JUSQU'À LA BORNE HAUTE DU SERVEUR — sinon le curseur se bloque sur un TROU.
            Les numéros sont alloués à TOUT le lot poussé, mais seuls les évènements autorisés sont
            insérés : un scribe qui pousse [cocher, naviguer] consomme deux numéros et n'écrit
@@ -24351,7 +24448,21 @@ const Share={
      doctrine « acquittement par l'action », déjà employée pour le repli des cartes. */
   _defer:[],
   onEvents(ev){
-    if(state.view!=='read'||!Runtime.fiche)return;      // rien à peindre : le pli suffit
+    /* ⚠ L'ÉTAT S'APPLIQUE TOUJOURS ; SEULE LA PEINTURE DÉPEND DE LA VUE (v5.6, signalé à l'usage :
+       « en session partagée, les blocs des étapes disparaissent par moments chez l'hôte et ne
+       réapparaissent pas »). Cette ligne était `if(state.view!=='read')return` — un ABANDON, et
+       la perte était DÉFINITIVE : le curseur est avancé par l'appelant AVANT cet appel, donc le
+       lot ne sera jamais relu. Il suffisait que l'hôte revienne à la bibliothèque, ouvre un
+       éditeur ou consulte une autre aide pendant que le collègue avance pour que ces gestes
+       soient perdus pour toujours — et l'écran, à son retour, montrait un parcours amputé qui ne
+       se réparait plus. Le commentaire disait « le pli suffit » : c'est vrai chez l'INVITÉ, dont
+       l'état EST le pli ; chez l'hôte la session locale fait autorité, et rien ne la rattrape.
+       On applique donc toujours, et l'on se tait quand l'écran n'est pas celui de cette fiche.
+       `sharePaintLive` tolère déjà l'absence d'un élément (« ce n'est pas un échec ») ; c'est la
+       QUEUE de `shareApplyAnchored` qu'il faut museler, elle seule pouvant déclencher un rendu
+       complet — donc arracher quelqu'un à l'écran qu'il regarde. */
+    if(!Runtime.fiche)return;
+    const muet=state.view!=='read'||state.fiche!==Runtime.fiche;
     const f=Runtime.fiche;let peint=0;const anc=[];let anno=false;let navBy=null;
     /* PASSATION — un ÉTAT, jamais une interruption (invariant 2). Trois temps, comme l'exige
        AC 61-115 « Positive Exchange of Flight Controls » : l'un PROPOSE, l'autre PREND, et le
@@ -24402,7 +24513,7 @@ const Share={
       if(mode!=='live'){this._defer.push(e);continue;}
       if(sharePaintLive(f,e))peint++;
     }
-    if(anc.length)peint+=shareApplyAnchored(f,anc);
+    if(anc.length)peint+=shareApplyAnchored(f,anc,muet);
     // Une seule annonce pour le lot : le lecteur d'écran ne doit pas être noyé, et c'est le SEUL
     // canal admis pendant un soin — invisible à l'écran, donc règle 11 respectée.
     // La base de diff suit ce qu'on vient d'APPLIQUER : sans ce recalage, le prochain

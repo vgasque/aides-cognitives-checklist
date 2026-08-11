@@ -2261,7 +2261,15 @@ await sec('RÉFÉRENCE · le palier se franchit RÉELLEMENT', async () => {
 }
 });
 
-await sec('REPÈRES POSOLOGIQUES · une boîte garde ses quatre côtés', async () => {
+/* ⚠ CE CONTRÔLE A CHANGÉ D'OBJET PARCE QUE LE COMPOSANT A CHANGÉ DE NATURE (v5.6). Il vérifiait
+   qu'une BOÎTE ambre ne perde pas son bord haut — le défaut de v5.0.9, quand un repère signalé
+   était une boîte à quatre côtés. Depuis 7d/A16 un repère est une RANGÉE : `border:0`, le
+   registre porté par le glyphe et l'encre. Le `border-top` qu'il mesurait n'était plus le bord
+   d'une boîte mais le SÉPARATEUR d'item — il passait par coïncidence, et il est passé au rouge le
+   jour où ce séparateur est devenu un pseudo-élément pour pouvoir rentrer sans voler de place au
+   texte. On mesure donc ce qui reste vrai, et qui est la préoccupation d'origine : deux repères
+   qui se suivent restent SÉPARÉS, y compris quand les deux sont signalés. */
+await sec('REPÈRES POSOLOGIQUES · deux repères qui se suivent restent séparés', async () => {
 {
   const page = await br.newPage({viewport:{width:1280,height:1000}});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -2273,13 +2281,16 @@ await sec('REPÈRES POSOLOGIQUES · une boîte garde ses quatre côtés', async 
     openRead(f.id);await w(500);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(800);
     const cs=[...document.querySelectorAll('.read-side .pos-card,.read-plan .pos-card')];
+    const sep=e=>{const b=getComputedStyle(e,'::before');
+      return (parseFloat(b.height)||0)>=0.5&&b.content!=='none'&&b.display!=='none';};
     return {n:cs.length,
       boites:cs.filter(c=>c.classList.contains('vig')).length,
-      sansBordHaut:cs.filter(c=>c.classList.contains('vig')&&parseFloat(getComputedStyle(c).borderTopWidth)<0.5).length};});
+      /* Le PREMIER n'a pas de séparateur, et c'est voulu : il n'y a rien au-dessus de lui. */
+      sansBordHaut:cs.slice(1).filter(c=>!sep(c)).length};});
   /* Le contrôle doit RENCONTRER SON CAS : il faut DEUX boîtes consécutives, sinon la règle
      fautive ne se déclenche pas et le témoin reste vert sur le défaut. */
-  t('témoin : au moins deux repères en BOÎTE se suivent', r.boites>=2, `${r.boites} sur ${r.n}`);
-  t('aucune boîte ne perd son bord haut', r.sansBordHaut===0, `${r.sansBordHaut} sans bord`);
+  t('témoin : au moins deux repères SIGNALÉS se suivent', r.boites>=2, `${r.boites} sur ${r.n}`);
+  t('aucun repère ne perd son séparateur', r.sansBordHaut===0, `${r.sansBordHaut} sans séparateur`);
   await page.close();
 }
 });
@@ -3685,7 +3696,14 @@ await sec('v5.6 · la hiérarchie des séparations du rail', async () => {
       return {t:(e.querySelector('.rail-title')||{}).textContent||'',mt:px(cs.marginTop),bt:px(cs.borderTopWidth)};});
     const cartes=[...side.querySelectorAll('.rs-sec')].map(e=>{const cs=getComputedStyle(e);
       return {t:(e.querySelector('summary')||{}).textContent||'',mt:px(cs.marginTop)};});
-    const items=[...side.querySelectorAll('.pos-card')].map(e=>px(getComputedStyle(e).borderTopWidth));
+    /* Le RETRAIT est ce qui distingue les deux filets, et on le mesure sur le TRAIT — pas sur la
+       boîte : le filet d'item est un pseudo-élément précisément pour que la colonne de texte ne
+       bouge pas (un retrait écrit en `padding` volait 10 px au texte et faisait passer une
+       posologie longue sur une ligne de plus). */
+    const items=[...side.querySelectorAll('.pos-card')].map(e=>{
+      const b=getComputedStyle(e,'::before');
+      return {bt:px(b.height)||px(getComputedStyle(e).borderTopWidth),
+              dx:px(b.left), pseudo:b.content!=='none'};});
     const col=side.querySelector('.ref-col');
     return {fam,cartes,items,colBb:col?px(getComputedStyle(col).borderBottomWidth):null,
             colMb:col?px(getComputedStyle(col).marginBottom):null};});
@@ -3693,18 +3711,20 @@ await sec('v5.6 · la hiérarchie des séparations du rail', async () => {
   t('témoin : le cas est constitué (plusieurs familles, deux cartes, des items)',
     !r.err&&r.fam.length>=2&&r.cartes.length>=2&&r.items.length>=2,
     JSON.stringify({fam:r.fam.length,cartes:r.cartes.length,items:r.items.length}));
-  /* UNE FAMILLE : de l'espace, aucun trait. */
-  t('une famille se sépare par l\'espace, jamais par un trait',
-    r.fam.slice(1).every(f=>f.mt>=20&&f.bt===0), JSON.stringify(r.fam));
-  /* UN ITEM : un trait, et c'est le seul signal dont il dispose. */
-  t('… et un item garde son filet, qui est son seul signal',
-    r.items.filter(x=>x>0).length>=1, JSON.stringify(r.items));
+  /* ⚠ LA PROPRIÉTÉ A ÉTÉ CORRIGÉE PAR L'AUTEUR : le filet de FAMILLE devait rester (il donne au
+     rail sa structure) ; c'est l'item qui devait changer de nature. On mesure donc les DEUX
+     niveaux et surtout ce qui les DISTINGUE, plutôt que l'absence de l'un des deux. */
+  t('une famille garde son filet, franc et pleine largeur',
+    r.fam.slice(1).every(f=>f.mt>=16&&f.bt>=1), JSON.stringify(r.fam));
+  t('… et l\'item garde le sien, mais EN RETRAIT — les deux ne se confondent plus',
+    r.items.filter(x=>x.bt>0&&x.dx>=6).length>=1&&r.items.every(x=>x.bt===0||x.dx>=6),
+    JSON.stringify(r.items));
   /* « CONSULTER » : deux cartes ne se touchent pas. */
   t('les deux cartes de « Consulter » ne sont plus collées',
     r.cartes.slice(1).every(c=>c.mt>=8), JSON.stringify(r.cartes));
   /* Et la frontière de l'excursion suit la même règle que les familles. */
-  t('… et la frontière de l\'excursion se marque par l\'espace aussi',
-    r.colBb===0&&r.colMb>=20, `bordure ${r.colBb}, marge ${r.colMb}`);
+  t('… et la frontière de l\'excursion est du niveau FAMILLE',
+    r.colBb>=1&&r.colMb>=16, `bordure ${r.colBb}, marge ${r.colMb}`);
   await page.close();
 }
 });

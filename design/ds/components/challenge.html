@@ -1116,7 +1116,7 @@
      jamais par un trait — le filet reste à l'ITEM, qui n'a que lui. L'excursion « Consulter » a
      de toute façon deux marqueurs bien plus forts que n'importe quel trait : son intitulé vert
      et son « ↩ Revenir » rempli. */
-  .ref-col{padding-bottom:0;margin-bottom:24px}
+  .ref-col{border-bottom:1px solid var(--line-strong);padding-bottom:20px;margin-bottom:20px}
   .rc-head{display:flex;align-items:center;gap:8px;padding-bottom:8px}
   .rc-t{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
   .rc-back{margin-left:auto;min-height:44px;padding:0 12px;background:var(--ok);border:0;border-radius:var(--r-1);color:var(--on-primary);font-family:inherit;font-weight:700;font-size:11px;cursor:pointer}
@@ -1962,7 +1962,12 @@
   /* Dans le LIVRE, la rangée n'a plus de bord à elle : le liseré de catégorie se pose dans la
      marge de la carte, où il reste lisible comme un onglet d'annuaire. */
   .dir-book .dir-row::before{left:-16px;border-radius:0;top:1px;bottom:1px}
-  .dir-book .dir-row.live{background:none}
+  /* ⚠ PLUS DE `background:none` SUR L'ÉTAT (v5.6, signalé à l'usage : « on a l'impression qu'elle
+     n'a plus de fond de carte »). Cette règle vaut (0,3,0) et battait aussi bien la teinte de
+     l'état que la MATIÈRE de la carte posée au palier ≥ 640 px — la rangée d'une aide en session
+     s'y retrouvait donc sans fond du tout. Un état se COMPOSE avec l'objet, il ne le remplace
+     jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
+     carte quand il y en a une, sur le blanc du livre sinon. */
   .dir-book .dir-row.live::before{width:3px}
   /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
      registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
@@ -2773,8 +2778,14 @@
   .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}
   .rt-dock .tm-bar-wrap{background:var(--sys-line)}
   .rt-dock .tm-bar{background:var(--sys-ink-2)}
-  .rt-dock .tm-ctrl{flex-direction:row;gap:6px;margin-top:8px}
-  .rt-dock .tm-btn{width:auto;flex:1;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
+  /* ⚠ LA RANGÉE S'ENROULE AU LIEU DE TRONQUER (v5.6). `flex-direction:row` était écrit pour un
+     volet PLEINE LARGEUR ; depuis que le panneau suit la grille du quai, une carte de minuteur
+     seule occupe UNE colonne d'environ 160 px — et deux boutons côte à côte y devenaient
+     « Démarre » et « MAINT… ». On enroule, on ne tronque jamais (règle du dossier, déjà appliquée
+     à l'Échelle et à la ligne d'état) : chaque bouton prend sa ligne quand la colonne est
+     étroite, et retrouve sa voisine dès qu'il y a la place. */
+  .rt-dock .tm-ctrl{flex-direction:row;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .rt-dock .tm-btn{width:auto;flex:1 1 120px;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
   .rt-dock .tm-main{background:none;border-color:var(--sys-ink-2);color:var(--sys-ink);font-weight:800}
   .rt-dock .tm-btn:hover{background:var(--sys-2)}
   .rt-dock .tmr-hint{color:var(--sys-ink-2)}
@@ -2994,8 +3005,18 @@
      maquette où toutes les valeurs tenaient en cinq mots. Sur du texte réel, cela colle une
      phrase de quatre lignes à la suite d'un nom en petites capitales et l'on ne sait plus où
      commence la dose. Le nom prend sa ligne, le corps la sienne. */
-  .pos-card{display:block;border:0;border-top:1px solid var(--line);background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink);font-size:var(--t-body);font-weight:600;line-height:1.5;text-wrap:pretty}
-  .pos-card:first-child{border-top:0}
+  /* ⚠ LE FILET D'UN ITEM N'EST PAS CELUI D'UNE FAMILLE (v5.6, signalé à l'usage). Les deux
+     étaient un trait de 1 px pleine largeur. Celui de la FAMILLE reste ainsi — franc, d'un bord à
+     l'autre ; celui de l'ITEM RENTRE de 10 px. C'est le retrait qui les distingue au premier coup
+     d'œil, pas une nuance de gris qu'il faudrait comparer.
+     ⚠ LE RETRAIT EST SUR LE TRAIT, JAMAIS SUR LA BOÎTE (mesuré, puis corrigé). Écrit en
+     `padding-left`, il volait 10 px au TEXTE : une posologie longue passait sur une ligne de
+     plus, et un témoin de partage a immédiatement signalé 21 px de dérive sous les yeux de
+     quelqu'un qui n'avait rien demandé. Le filet est donc un pseudo-élément — il rentre, la
+     colonne de texte ne bouge pas d'un pixel. */
+  .pos-card{display:block;position:relative;border:0;background:none;border-radius:0;padding:8px 0;margin:0;color:var(--ink);font-size:var(--t-body);font-weight:600;line-height:1.5;text-wrap:pretty}
+  .pos-card::before{content:"";position:absolute;left:10px;right:0;top:0;height:1px;background:var(--line)}
+  .pos-card:first-child::before{display:none}
   .pos-name{display:block;font-weight:700;color:var(--ink-2)}
   .pos-mk{color:var(--warn);font-weight:800}
   /* La valeur ne se tronque JAMAIS (un chiffre amputé est pire qu'absent) : elle enroule sur sa
@@ -3512,11 +3533,18 @@
   /* Son COUPÉ = état risqué en crise -> signalé en ambre (pas seulement un changement de libellé). */
   .rt-sound.off{color:var(--verify);border-color:var(--verify);background:var(--verify-soft)}
   .rt-warn{background:var(--verify-soft);border:0;color:var(--verify);border-radius:8px;padding:6px 8px;min-height:44px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-  .rt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  /* ⚠ `auto-fill`, PAS `auto-fit` (v5.6, signalé à l'usage : « ce n'est pas très beau qu'il n'y
+     ait qu'un seul minuteur qui s'affiche si la page est assez large — peut-être en mettre deux
+     par ligne ? »). `auto-fit` REPLIE les pistes vides : un minuteur seul s'étirait sur toute la
+     largeur pendant que les deux compteurs, juste dessous, se partageaient la même rangée en
+     deux — le panneau n'avait donc pas de rythme, il en avait un par famille. `auto-fill` garde
+     les pistes : un objet seul occupe UNE colonne, et les deux familles s'alignent sur la même
+     grille quel que soit leur nombre. */
+  .rt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
   /* Petits écrans (iPhone) : on garde AU MOINS 2 minuteurs par ligne (compact), mais on EMPILE les
      boutons de chaque carte -> chacun prend toute la largeur de la carte, sans texte tronqué. */
   @media (max-width:779.98px){.tm-ctrl{flex-direction:column}.tm-btn{flex:0 0 auto;width:100%;font-size:12px}}
-  .rt-counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+  .rt-counters{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}
   /* A11 dans le rail : un repère posologique SIGNALÉ se marque (△ + encre ambre + filet), il ne
      prend pas d'aplat — sinon deux repères font deux masses colorées dans une colonne dont toute
      la doctrine est la désaturation, et l'aplat cesse de vouloir dire « maintenant ». */
@@ -3568,7 +3596,14 @@
   body.view-read .read-side .cncard .cn-log,
   body.view-read .read-side .cncard .cn-note,
   body.view-read .read-side .cncard .cn-reset{display:none}
-  body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;display:flex;gap:6px}
+  /* ⚠ `margin-top` ANNULÉ DANS LA VARIANTE EN RANGÉE (v5.6, signalé à l'usage : « le texte et le
+     chiffre des compteurs ne sont pas alignés verticalement avec les boutons − / + : ils sont
+     légèrement au-dessus »). Mesuré : 4 px. `.cn-ctrl` porte `margin-top:8px`, écrit pour la
+     carte en COLONNE où il sépare les boutons de la valeur ; en RANGÉE, sous `align-items:center`,
+     une marge haute décale l'item de 8 px et le centrage n'en rattrape que la moitié — d'où
+     exactement les 4 px rapportés. Une règle écrite pour une disposition ne vaut pas dans
+     l'autre : c'est la même leçon que le filet des repères (v5.0.9). */
+  body.view-read .read-side .cncard .cn-ctrl{flex:none;margin-left:auto;margin-top:0;display:flex;gap:6px}
   body.view-read .read-side .cncard .cn-btn{flex:none;min-width:44px;min-height:44px;border-color:var(--ctl-line)}
   /* Anatomie du canvas (rail droit) : UNE variable d'état --tcol pilote libellé + temps +
      barre (+ bordure via --tbd) ; courant = bleu, ÉCHU = AMBRE (le rouge reste réservé aux
@@ -3685,7 +3720,8 @@
      porte déjà `gap`, il suffit de l'élargir entre les groupes. Rien à exempter, rien à teinter,
      et l'arbre d'accessibilité n'a plus un caractère de ponctuation à annoncer entre deux mots.
      `.lg-sp` est PURGÉE avec le caractère qu'elle habillait (règle 14). */
-  .stp-legend>*+*{margin-left:6px}
+  .lg-it{display:inline-flex;align-items:center;gap:4px}
+  .stp-legend>*+*{margin-left:10px}
   .lg-r{font-family:var(--mono);background:var(--tag-bg);color:var(--tag-ink);border-radius:8px;padding:0 4px}
   /* « ⏱ Noter » dans la rangée du bloc : même bouton tonal que celui du panneau, jamais rempli —
      l'unique bouton rempli de l'écran reste « Continuer — … → ». */
@@ -5903,6 +5939,13 @@
     .dir-book .dir-row{background:var(--work);border:1px solid var(--work-line);border-bottom:1px solid var(--work-line);
       border-radius:var(--r-3);height:71px;min-height:0;padding-left:14px;padding-right:24px}
     .dir-book .dir-row::before{left:0;top:0;bottom:0;border-radius:var(--r-3) 0 0 var(--r-3)}
+    /* ⚠ UNE RANGÉE EN SESSION GARDE SON FOND DE CARTE (v5.6, signalé à l'usage : « on a
+       l'impression qu'elle n'a plus de fond de carte »). `.dir-book .dir-row.live{background:none}`
+       vaut (0,3,0) contre (0,2,0) pour la règle de carte ci-dessus : elle gagnait, et l'état
+       EFFAÇAIT la matière au lieu de s'y ajouter. Un état se COMPOSE avec l'objet, il ne le
+       remplace pas — c'est la même faute que le `background:none` du livre appliqué là où le
+       livre n'existe plus. La teinte de confirmation revient donc par-dessus le blanc. */
+    .dir-book .dir-row.live{background:var(--ok-soft)}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
@@ -5964,10 +6007,14 @@
        une FAMILLE (`.rail-sec`) portaient le MÊME filet de 1 px en `--line`. Deux traits
        identiques pour deux niveaux ne hiérarchisent rien — c'est l'argument de l'échelle
        typographique (v4.71.1) appliqué aux filets.
-       UNE FAMILLE SE SÉPARE PAR L'ESPACE ET PAR SON TITRE, JAMAIS PAR UN TRAIT. Le titre est un
-       marqueur bien plus fort qu'un filet (petites capitales, graisse 800, son compte), et
-       ajouter un trait par-dessus, c'est l'inflation de trait — la même faute que le rouge
-       permanent. Le FILET reste donc à l'ITEM, où il est le seul signal disponible.
+       ⚠⚠ ET MA PREMIÈRE LECTURE ÉTAIT FAUSSE — CORRIGÉE PAR L'AUTEUR (v5.6 : « enlever les lignes
+       séparatrices entre minuteurs-compteurs / journal / repères posologiques n'était pas une
+       bonne idée ; ce que je te disais, c'est que les séparateurs DANS les repères se
+       ressemblaient trop »). J'avais supprimé le filet de FAMILLE, alors que le défaut était la
+       RESSEMBLANCE des deux niveaux. Le filet de famille est ce qui donne au rail sa structure :
+       il revient, franc et pleine largeur. C'est le séparateur d'ITEM qui change de nature — il
+       RENTRE de 10 px, donc il ne peut plus se lire comme une frontière de famille. Deux niveaux,
+       deux dessins ; retirer l'un des deux n'était pas hiérarchiser, c'était appauvrir.
        ⚠ ET « CONSULTER » ENTRE DANS LA MÊME RÈGLE (signalé dans le même message : « diagnostics
        différentiels et références sont collés entre eux ») : ses sections sont des `.rs-sec`, qui
        n'avaient ni marge ni rembourrage — donc deux familles à touche-touche, séparées par le
@@ -5975,7 +6022,7 @@
        TRAITEMENT, ET C'EST UNE QUESTION DE NATURE : une `.rs-sec` est une CARTE (fond, bordure,
        rayon) — lui retirer son `border-top` lui ouvrirait le haut. Une carte se sépare d'une
        autre carte par un ÉCART, un point. */
-    .rail-sec+.rail-sec{margin-top:24px;padding-top:0;border-top:0}
+    .rail-sec+.rail-sec{margin-top:20px;padding-top:20px;border-top:1px solid var(--line-strong)}
     .rs-sec+.rs-sec{margin-top:12px}
     /* REPÈRES DU RAIL — chrome désaturé, registre CONSERVÉ. Doctrine ECAM appliquée finement : on
        calme la PRÉSENTATION, jamais la sémantique d'une donnée anormale. Les repères ordinaires
@@ -6491,8 +6538,19 @@
      précisément ce qu'il vient réparer. */
   .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px}
   .cn-log:empty{display:none}
-  .fs-kt{flex:1;min-width:0}
-  .fs-tgl{margin-left:auto;flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
+  /* ⚠ LE COMPTE SE LIT AVEC LE TITRE, PAS AU BOUT DE LA RANGÉE (v5.6, signalé à l'usage : « le
+     nombre devrait être affiché juste à côté de "Ne pas oublier" et non tout à droite »). Il
+     QUALIFIE le titre — « Ne pas oublier · 4 rappels » est une seule phrase ; renvoyé au bord
+     opposé, l'œil devait faire l'aller-retour pour la reconstituer. Le titre cesse donc de
+     s'étirer, et c'est un ESPACE qui pousse le chevron au bord : lui reste à droite, parce qu'il
+     désigne le geste (déplier) et non le contenu. */
+  .fs-kt{flex:none;min-width:0}
+  .fs-sp{flex:1 1 auto;min-width:0}
+  /* Le chevron suit la convention du dépliant, et elle est la même partout : « › » fermé,
+     « ▾ » ouvert. Il pointait vers le HAUT une fois déplié — l'inverse de ce que fait tout
+     `<details>` du fichier, et de ce qu'on lit ailleurs dans le produit. */
+  .fs-chev{flex:none;font-weight:800;line-height:1;color:var(--ink-2)}
+  .fs-tgl{flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}
   .forget-strip.fs-closed .fs-k{margin-bottom:0}

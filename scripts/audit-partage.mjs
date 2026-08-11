@@ -1911,6 +1911,63 @@ await sec(`PARTAGE · l'attribution ne survit pas à un geste local — moteur $
 }
 });
 
+/* ══ v5.6 — UN LOT N'EST JAMAIS PERDU, MÊME QUAND L'HÔTE REGARDE AILLEURS ═══════════════════
+   Signalé à l'usage : « en session partagée, les blocs des étapes disparaissent par moments chez
+   l'hôte et ne réapparaissent pas ». La cause était un ABANDON, et la perte était DÉFINITIVE :
+   `onEvents` sortait sans rien appliquer dès que la vue n'était pas `read`, alors que le curseur
+   est avancé par l'appelant AVANT cet appel — le lot ne serait donc jamais relu. Il suffisait que
+   l'hôte revienne à la bibliothèque, ouvre un éditeur ou consulte une autre aide pendant que le
+   collègue avance pour que ces gestes soient perdus pour toujours, et l'écran, à son retour,
+   montrait un parcours amputé que plus rien ne réparait.
+   L'ÉTAT S'APPLIQUE TOUJOURS ; SEULE LA PEINTURE DÉPEND DE LA VUE. Le commentaire d'origine disait
+   « le pli suffit » : c'est vrai chez l'INVITÉ, dont l'état EST le pli ; chez l'hôte la session
+   locale fait autorité et rien ne la rattrape. */
+await sec('v5.6 · un lot distant n\'est jamais perdu', async () => {
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(() => !document.querySelector('.boot-load'));
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w = m => new Promise(x => setTimeout(x, m));
+    const f = fiches.find(x => /Arrêt cardiaque/.test(x.title));
+    openRead(f.id); await w(450);
+    document.getElementById('sessStart').click(); await w(500);
+    const dep = { nav: state.nav.length, cartes: main.querySelectorAll('.ov-block').length };
+    /* L'hôte quitte la fiche — c'est le cas signalé, et le seul où le défaut se produisait. */
+    document.getElementById('hdrBack').click(); await w(650);
+    const horsEcran = state.view;
+    /* Le collègue avance DEUX fois pendant ce temps. */
+    let s = 900;
+    Share.onEvents([{ seq: s++, id: 'z1', actor: 'autre', kind: 'nav',
+      payload: { nav: [Runtime.nav[0], f.blocks[1].id],
+                 navSeq: [Runtime.navSeq[0], (Runtime.seq || 1) + 1] } }]);
+    await w(200);
+    Share.onEvents([{ seq: s++, id: 'z2', actor: 'autre', kind: 'nav',
+      payload: { nav: [Runtime.nav[0], f.blocks[1].id, f.blocks[2].id],
+                 navSeq: [...Runtime.navSeq, (Runtime.seq || 1) + 1] } }]);
+    await w(300);
+    const applique = Runtime.nav.length;
+    const resteAilleurs = state.view;      // aucun rendu ne doit nous ramener sur la fiche
+    openRead(f.id); await w(800);
+    return { dep, horsEcran, applique, resteAilleurs,
+             retour: { nav: state.nav.length, cartes: main.querySelectorAll('.ov-block').length } };
+  });
+
+  t('témoin : la session est démarrée et l\'hôte quitte bien la fiche',
+    r.dep.nav === 1 && r.horsEcran !== 'read', JSON.stringify(r));
+  t('les avances distantes sont APPLIQUÉES même hors écran',
+    r.applique === 3, `${r.applique} bloc(s) dans Runtime.nav`);
+  /* La contrepartie, et c'est elle qui rend l'application hors écran admissible : on n'arrache
+     personne à la page qu'il regarde. */
+  t('… sans ramener l\'hôte sur la fiche', r.resteAilleurs !== 'read', r.resteAilleurs);
+  t('… et le parcours est COMPLET au retour', r.retour.nav === 3 && r.retour.cartes >= 1,
+    JSON.stringify(r.retour));
+  await page.close();
+}
+});
+
 const bilanSec = sec.bilan();
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : '')
