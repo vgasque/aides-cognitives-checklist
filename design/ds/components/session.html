@@ -4550,6 +4550,27 @@
   .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
   /* « Maintenir pour réinitialiser » un minuteur : jauge = fond qui se remplit pendant l'appui
      (le texte reste lisible au-dessus). Libellé sur 2 lignes -> indice « maintenir » visible. */
+  /* « ✓ Vu » : registre de l'ÉTAT acquitté, jamais du danger — l'ambre appartient à l'alarme qui
+     sonne encore, et le vert dirait « c'est fait » alors que rien n'a été fait. Encre neutre,
+     contour, comme les autres commandes de la carte. */
+  /* ⚠ A9 — LE BOUTON NE PREND JAMAIS UNE LIGNE DE PLUS (mesuré d'abord à 214 → 264 px). Un
+     minuteur échoit SANS que personne n'ait rien commandé : si sa carte grandit à cet instant,
+     tout ce qui la suit se déplace sous les doigts. La rangée de commandes du volet ENROULE, et
+     dans une colonne de 136 px les deux boutons sont DÉJÀ l'un sous l'autre — un troisième y
+     ajoutait mécaniquement une troisième ligne, quelle que soit sa largeur.
+     « ✓ VU » SE SERT DONC DANS LA PART DE LA REMISE À ZÉRO : il vaut 52 px, la remise à zéro cède
+     exactement autant (120 − 52 − 6 d'écart), et les deux occupent ensemble la place que la
+     remise à zéro occupait seule. Les seuils d'enroulement des deux états coïncident alors AU
+     PIXEL — sans cette soustraction, il existerait une bande de largeurs où la carte échue serait
+     plus COURTE que la carte nominale, ce qui est le même défaut à l'envers. Il se glisse ENTRE le
+     bouton principal et la remise à zéro : placé en tête, c'est lui qui aurait chassé le bouton
+     principal à la ligne suivante. Mesuré : Δ = 0 px à 136, 200, 250 et 320 px de colonne. */
+  /* ⚠ VINGT-ET-UNIÈME PIÈGE DE CASCADE, rencontré ici même : `.rt-dock .tm-btn` vaut (0,2,0) et
+     pose `flex:1 1 120px` — écrit en (0,1,0), `.tm-ack` perdait, le bouton reprenait la base des
+     autres et la ligne de plus revenait. On porte donc la règle à (0,2,0) ET (0,3,0), jamais par
+     l'ordre de déclaration : pour une GÉOMÉTRIE, on ne dépend pas de la position dans la feuille. */
+  .tm-ctrl .tm-ack,.rt-dock .tm-ctrl .tm-ack{flex:0 0 52px;padding-inline:4px;font-weight:800}
+  .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset{flex:1 1 62px}
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
   /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}

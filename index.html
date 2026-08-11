@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Mj2C3GcnuB9K3Uso2o6Ymd7Mv1iSMP6ErEdOwhMsPwQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-C+o+N/4vIQH5M/zxrvBnxphk8lyWbr8DEoS4578/bXI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4895,6 +4895,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .btn.danger{color:var(--critical);border-color:var(--critical-line)}.btn.danger:hover{background:var(--critical-soft)}
   /* « Maintenir pour réinitialiser » un minuteur : jauge = fond qui se remplit pendant l'appui
      (le texte reste lisible au-dessus). Libellé sur 2 lignes -> indice « maintenir » visible. */
+  /* « ✓ Vu » : registre de l'ÉTAT acquitté, jamais du danger — l'ambre appartient à l'alarme qui
+     sonne encore, et le vert dirait « c'est fait » alors que rien n'a été fait. Encre neutre,
+     contour, comme les autres commandes de la carte. */
+  /* ⚠ A9 — LE BOUTON NE PREND JAMAIS UNE LIGNE DE PLUS (mesuré d'abord à 214 → 264 px). Un
+     minuteur échoit SANS que personne n'ait rien commandé : si sa carte grandit à cet instant,
+     tout ce qui la suit se déplace sous les doigts. La rangée de commandes du volet ENROULE, et
+     dans une colonne de 136 px les deux boutons sont DÉJÀ l'un sous l'autre — un troisième y
+     ajoutait mécaniquement une troisième ligne, quelle que soit sa largeur.
+     « ✓ VU » SE SERT DONC DANS LA PART DE LA REMISE À ZÉRO : il vaut 52 px, la remise à zéro cède
+     exactement autant (120 − 52 − 6 d'écart), et les deux occupent ensemble la place que la
+     remise à zéro occupait seule. Les seuils d'enroulement des deux états coïncident alors AU
+     PIXEL — sans cette soustraction, il existerait une bande de largeurs où la carte échue serait
+     plus COURTE que la carte nominale, ce qui est le même défaut à l'envers. Il se glisse ENTRE le
+     bouton principal et la remise à zéro : placé en tête, c'est lui qui aurait chassé le bouton
+     principal à la ligne suivante. Mesuré : Δ = 0 px à 136, 200, 250 et 320 px de colonne. */
+  /* ⚠ VINGT-ET-UNIÈME PIÈGE DE CASCADE, rencontré ici même : `.rt-dock .tm-btn` vaut (0,2,0) et
+     pose `flex:1 1 120px` — écrit en (0,1,0), `.tm-ack` perdait, le bouton reprenait la base des
+     autres et la ligne de plus revenait. On porte donc la règle à (0,2,0) ET (0,3,0), jamais par
+     l'ordre de déclaration : pour une GÉOMÉTRIE, on ne dépend pas de la position dans la feuille. */
+  .tm-ctrl .tm-ack,.rt-dock .tm-ctrl .tm-ack{flex:0 0 52px;padding-inline:4px;font-weight:800}
+  .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset{flex:1 1 62px}
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
   /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
@@ -11400,10 +11421,14 @@ function onTimerFired(R,t){beep();
     if(document.visibilityState==='hidden')osNotify('⏰ '+tl+' — terminé',ft,R.ficheId);}}
 // Reprise d'un minuteur d'intervalle DÉJÀ TERMINÉ (non bouclé) = nouveau cycle (repart du plein) —
 // sinon « Relancer » semble ne rien faire (le temps est déjà à 0).
-function toggleTimer(t){const now=Date.now();
+/* ⚠ L'ACQUITTEMENT NE SURVIT PAS À UN NOUVEAU DÉPART (v5.6). Un minuteur relancé puis échu à
+   nouveau est une NOUVELLE alarme : la garder silencée parce qu'on avait acquitté la précédente
+   serait le pire mode de défaillance d'un annonciateur. Le drapeau tombe donc aux DEUX points
+   qui remettent le minuteur en marche — armer et remettre à zéro —, et nulle part ailleurs. */
+function toggleTimer(t){const now=Date.now();t.ack=false;
   if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;}
   else{ensureAudio();if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;}}
-function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;}
+function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;t.ack=false;}
 /* Remplissage de la barre de progression d'un minuteur (cf. `.tm-bar`) : SOURCE UNIQUE de la
    chaîne, partagée par le gabarit `timerCard` et le tick `refreshTimersDOM`. Une source unique
    parce que le tick compare la valeur AVANT d'écrire (anti-churn, ~3,3 passages/s) : deux
@@ -11480,7 +11505,14 @@ function updateRtStrip(now){
   const rtWith=t=>{const d=timerDisplay(t,now);
     return {t,d,due:t.type==='interval'&&d.val==='00:00',
       rem:dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity)};};
-  const run=crisis?Object.values(Runtime.timers).filter(t=>t.running||dueDone(t)):[];
+  /* ⚠ UN MINUTEUR ACQUITTÉ QUITTE LE QUAI, IL N'Y DEVIENT PAS NEUTRE. Un minuteur arrêté n'entre
+     dans cette liste QUE parce qu'il est échu : une fois l'alarme acquittée, il n'a plus rien à
+     y faire — l'y laisser en gris serait répondre à moitié à « aucun moyen de le faire
+     disparaître que de le relancer ». Celui qui TOURNE reste, acquitté ou non : il compte encore.
+     ⚠ Le filtre doit vivre ICI et pas seulement dans `dueList` : en ÉTROIT le quai porte
+     `withRem.slice(0,1)`, c'est-à-dire la liste ENTIÈRE — filtrer plus bas n'aurait rien changé
+     sur le format où le défaut a été signalé (mesuré : le segment restait, en ambre). */
+  const run=crisis?Object.values(Runtime.timers).filter(t=>t.running||(dueDone(t)&&!t.ack)):[];
   const el=document.getElementById('cbTimers');if(!el)return;
   /* LE QUAI N'EXISTAIT PAS CHEZ L'INVITÉ (v4.47.0). La condition était `Runtime.started`,
      c'est-à-dire « MA session a démarré » — or un invité qui SUIT n'a rien démarré localement,
@@ -11504,7 +11536,19 @@ function updateRtStrip(now){
   //     boutons — les répéter ici ferait deux sources pour la même valeur. Le quai ne garde que ce
   //     qui doit vivre dans une zone de statut FIXE : l'état de session et l'ALARME (un minuteur
   //     échu). La redondance de l'alarme à deux endroits est VOULUE ; celle du nominal, non.
-  const dueList=withRem.filter(x=>x.due||x.rem===-1);
+  /* ⚠ UN MINUTEUR ACQUITTÉ RESTE ÉCHU, IL CESSE SEULEMENT D'ANNONCER (v5.6, signalé à l'usage :
+     « un minuteur sans relance, une fois échu, s'affiche dans le bandeau session et tout, c'est
+     super ; mais aucun moyen de le faire disparaître que de le relancer »).
+     La doctrine v4.2.0 dit « acquittement par l'ACTION » — relance ou réarmement —, et elle a
+     raison sur le fond : une alarme ne se referme pas d'un revers de main. Mais elle ne prévoyait
+     qu'UNE façon d'agir, or l'action juste est parfois « c'est noté, je n'ai pas besoin de ce
+     minuteur ». C'est exactement le master caution de l'ECAM : on l'acquitte à SA station, la
+     panne reste écrite sur l'écran. L'ÉTAT ne change donc pas — la carte continue de dire
+     « échu », le compte rendu aussi ; seule l'ANNONCIATION du quai se tait.
+     ⚠ ET C'EST LOCAL, DÉLIBÉRÉMENT : acquitter est un geste de STATION. Rien ne diverge, puisque
+     l'état du minuteur est inchangé — c'est la même panne, silencée ici et pas là-bas, ce que
+     fait tout acquittement d'alarme. */
+  const dueList=withRem.filter(x=>!x.t.ack&&(x.due||x.rem===-1));
   /* PLACE DISPONIBLE EN ÉTROIT (v4.23.0) : passé l'heure, le chrono de session s'écrit h:mm:ss et
      occupe presque la largeur d'un segment entier. Deux segments étiquetés ne tiennent alors plus
      sous ~430px : le quai débordait et ROGNAIT (or une zone d'état n'ampute jamais un nombre —
@@ -15750,7 +15794,7 @@ function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw
   return `<div class="tmcard${stCls}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><div class="tm-label" id="tmlab-${t.id}">${esc(timerStateLabel(t))}</div>${meta?`<div class="tm-meta">${esc(meta)}</div>`:''}
     <div class="tm-val" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="transform:${barTf(bw)}"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
-    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button><button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
+    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button>${timerDue(t)&&!t.ack?`<button type="button" class="tm-btn tm-ack" data-tmack="${t.id}" aria-label="Acquitter l’alarme — ${lbl} ; le minuteur reste échu, seul le bandeau se tait">✓ Vu</button>`:''}<button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
 // Rangée COMPACTE d'un minuteur ad hoc (48px) : libellé · temps · ⟲ relance · ✕ suppression.
 function timerMiniRow(t){const d=timerDisplay(t,Date.now());const lbl=esc(t.label)||'Minuteur';
   return `<div class="tm-mini${timerDue(t)?' due':''}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><span class="tmm-l">${lbl}</span><span class="tmm-t" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${d.val}">${d.val}</span><button class="tmm-b" data-tmrestart="${t.id}" title="Relancer (${fmtMs((t.seconds||0)*1000)})" aria-label="Relancer — ${lbl}">⟲</button><button class="tmm-b" data-tmrm="${t.id}" title="Supprimer ce minuteur" aria-label="Supprimer — ${lbl}">✕</button></div>`;}
@@ -15780,6 +15824,19 @@ function timerBtnHtml(t){return uiIcon(t.running?'pause':'play',13)+timerBtnLabe
 function syncTimerBtns(t){const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');const b=document.getElementById('tmbtn-'+t.id);
   if(b){if(b.dataset.lbl!==timerBtnLabel(t)){b.dataset.lbl=timerBtnLabel(t);b.innerHTML=timerBtnHtml(t);b.setAttribute('aria-label',timerBtnLabel(t)+' — '+lbl);}b.classList.toggle('run',!!t.running);}
   const r=document.getElementById('tmreset-'+t.id);if(r)r.disabled=!!t.running;
+  /* ⚠ « ✓ VU » SUIT L'ÉTAT AU TICK, IL NE NAÎT PAS AU RENDU (v5.6). Une échéance survient sans
+     qu'on touche à rien : posé seulement par `timerCard`, le bouton n'apparaîtrait qu'au prochain
+     re-rendu complet — c'est-à-dire, en pleine réanimation, peut-être jamais. C'est le même
+     défaut que la rangée compacte qui restait neutre (corrigé juste en dessous), et il se corrige
+     au même endroit. */
+  {const card=document.getElementById('tmcard-'+t.id);
+   if(card){const ctrl=card.querySelector('.tm-ctrl'),ex=card.querySelector('[data-tmack]');
+     const veut=timerDue(t)&&!t.ack;
+     if(veut&&!ex&&ctrl){const b=document.createElement('button');
+       b.type='button';b.className='tm-btn tm-ack';b.dataset.tmack=t.id;b.textContent='✓ Vu';
+       b.setAttribute('aria-label','Acquitter l’alarme — '+lbl+' ; le minuteur reste échu, seul le bandeau se tait');
+       ctrl.insertBefore(b,ctrl.querySelector('.tm-reset'));}
+     else if(!veut&&ex)ex.remove();}}
   // État (échu ambre / en pause) : classes + libellé textuel synchronisés au tick, sur les DEUX
   // formes de minuteur (v4.41.0) — la carte pleine `.tmcard` ET la rangée compacte `.tm-mini`
   // d'un minuteur ad hoc, qui partagent l'id `tmcard-<id>`. Le garde ne retenait que `.tmcard` :
@@ -17078,6 +17135,20 @@ function bindReadEvents(f,blk,cur){
   const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>toast('Mode silencieux du téléphone : si le bouton latéral est sur silencieux, l\'alarme sonore peut ne pas être audible (indétectable depuis le navigateur ; la vibration non plus sur iPhone). Alerte de secours : l\'écran clignote à chaque fin de minuteur.',11000,true);
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en
   // cours » apparaît) ; sinon mise à jour DOM directe.
+  /* ⚠ ACQUITTER N'EST NI RELANCER NI REMETTRE À ZÉRO — c'est une TROISIÈME sortie, et elle se
+     nomme pour qu'on ne croie pas avoir relancé (« ✓ Vu », et le nom accessible dit en toutes
+     lettres que le minuteur reste échu). L'état ne bouge pas : seule l'annonciation du quai se
+     tait, la carte continue de dire « échu » et le compte rendu n'y perd rien.
+     GESTE OUVERT À TOUS LES RÔLES : acquitter une alarme sur SON écran n'efface rien et ne
+     conduit rien — c'est le master caution de l'ECAM, pressé à sa station. */
+  /* ⚠ DÉLÉGUÉ, PAS CÂBLÉ AU RENDU : ce bouton PARAÎT au tick (une échéance survient sans qu'on
+     touche à rien, cf. `syncTimerBtns`), donc un `onclick` posé au rendu ne l'aurait jamais
+     atteint — il n'existait pas encore. Même raison que la délégation des chips de l'accueil. */
+  main.onTmAck=main.onTmAck||main.addEventListener('click',e=>{
+    const b=e.target.closest&&e.target.closest('[data-tmack]');if(!b)return;
+    const t=Runtime.timers[b.dataset.tmack];if(!t)return;
+    t.ack=true;persistLive(Runtime);syncTimerBtns(t);updateRtStrip();
+    announce('Alarme acquittée — le minuteur reste échu.');})||true;
   main.querySelectorAll('[data-tmtoggle]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmtoggle];
     /* MÊME BOUTON, DEUX GESTES OPPOSÉS — comme `data-ck`. ARMER un minuteur est additif : tout le
        monde le fait. L'ARRÊTER stoppe un processus vivant, et le projet range cela au registre

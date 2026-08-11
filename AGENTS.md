@@ -698,6 +698,47 @@ ne peut pas voir), **A11** (au plus une masse colorée). ⚠ Un minuteur à CYCL
 il se relance : couper la boucle avant de forcer l'échéance, sinon le témoin ne rencontre pas son
 cas et mesure deux fois le nominal.
 
+**A34. ACQUITTER N'EST NI RELANCER NI REMETTRE À ZÉRO (v5.6, signalé à l'usage : « un minuteur
+sans relance, une fois échu, s'affiche dans le bandeau session et tout, c'est super ; mais aucun
+moyen de le faire disparaître que de le relancer »).** La doctrine v4.2.0 disait « acquittement par
+l'ACTION », et elle a raison sur le fond — une alarme ne se referme pas d'un revers de main. Mais
+elle ne prévoyait qu'UNE façon d'agir, alors que l'action juste est parfois « c'est noté, je n'ai
+plus besoin de ce minuteur ». Une TROISIÈME sortie s'ajoute donc, sur la carte du minuteur
+concerné : « ✓ Vu » (`t.ack`). C'est le **master caution de l'ECAM** — on l'acquitte à SA station,
+la panne reste écrite.
+· **L'ÉTAT NE CHANGE PAS** : la carte continue de dire « échu », le compte rendu n'y perd rien ;
+  seule l'ANNONCIATION cesse — le minuteur quitte la capsule. ⚠ Le filtre vit dans `run` et pas
+  seulement dans `dueList` : en ÉTROIT le quai porte la liste ENTIÈRE (`withRem.slice(0,1)`), et
+  filtrer plus bas ne changeait rien sur le format où le défaut a été signalé (mesuré).
+· **LE DRAPEAU MEURT AVEC L'ALARME** : `toggleTimer` et `resetTimer` le remettent à faux — une
+  nouvelle échéance est une nouvelle alarme, elle s'annonce.
+· **LE BOUTON PARAÎT AU TICK, PAS AU RENDU** (`syncTimerBtns`) : une échéance survient sans qu'on
+  touche à rien ; posé seulement par `timerCard`, il n'apparaîtrait qu'au prochain rendu complet,
+  c'est-à-dire peut-être jamais. Le clic est donc DÉLÉGUÉ, jamais câblé au rendu.
+· **GESTE OUVERT À TOUS LES RÔLES et LOCAL** : acquitter n'efface rien et ne conduit rien. Rien ne
+  diverge, puisque l'état du minuteur est inchangé — c'est la même échéance, silencée ici et pas
+  là-bas, ce que fait tout acquittement d'alarme.
+· **⚠ A9 — IL NE PREND PAS UNE LIGNE DE PLUS** : mesuré d'abord à **214 → 264 px**. Dans une
+  colonne de 136 px la rangée de commandes a DÉJÀ ses deux boutons l'un sous l'autre ; un
+  troisième y ajoutait mécaniquement une ligne, quelle que soit sa largeur. « ✓ Vu » **se sert donc
+  dans la part de la remise à zéro** (52 px pris, 62 px laissés au lieu de 120) : les seuils
+  d'enroulement des deux états coïncident AU PIXEL — sans cette soustraction, il existerait une
+  bande de largeurs où la carte échue serait plus COURTE que la nominale, le même défaut à
+  l'envers. Il se glisse ENTRE le bouton principal et la remise à zéro : en tête, c'est lui qui
+  aurait chassé le principal à la ligne suivante. Δ = 0 px mesuré à 136, 200, 250 et 320 px.
+· **VINGT-ET-UNIÈME PIÈGE DE CASCADE** : `.rt-dock .tm-btn` (0,2,0) pose `flex:1 1 120px` — la
+  règle du bouton, écrite en (0,1,0), perdait et la ligne de plus revenait. Portée à (0,2,0)
+  ET (0,3,0), jamais par l'ordre de déclaration.
+· **⚠ LE TÉMOIN NE RENCONTRE SON CAS QU'EN COLONNE ÉTROITE** (vérifié : à 1280 il reste VERT sur
+  le défaut, la rangée du rail ne s'enroulant pas), et il compare **les deux états ÉCHUS** — avec
+  et sans le bouton — jamais l'échu au nominal : dans le rail, une carte nominale replie ses
+  commandes et les rouvre en échéant, ce qui est une décision antérieure et une autre question.
+· **CE QUI RESTE DÛ, MESURÉ ICI ET NON CORRIGÉ** : le LIBELLÉ d'état (« Adrénaline — à réévaluer »)
+  passe sur une seconde ligne en échéant — **+14 px à 320 px dans le volet, +6 px dans le rail**.
+  C'est une dérive A9 ANTÉRIEURE et indépendante du bouton (mesurée identique en le supprimant) ;
+  le témoin A9 ne la voit pas parce qu'à 390 px le libellé occupe déjà deux lignes dans les deux
+  états. À traiter séparément, sur le clamp du libellé.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
