@@ -3937,6 +3937,55 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
 }
 });
 
+/* ══ v5.6 — « ＋ AJOUTER » DEPUIS UN CHAMP FOCALISÉ AJOUTE VRAIMENT UNE LIGNE ════════════════
+   Signalé à l'usage : « si j'ai tapé du texte dans le champ et que j'appuie directement sur
+   ＋ Rappel, la ligne n'est pas ajoutée — il referme le bloc mais n'ajoute rien ; pareil pour la
+   condition d'entrée, les blocs d'étapes, les références, les diagnostics à éliminer et les
+   surveillances ». C'est le VOL DE CLIC de la v4.77.0, un cran plus loin : entre `mousedown` et
+   `mouseup`, le champ perd le focus, la rangée referme ses outils (`.li-tools`, affichés en
+   `:focus-within`), la page se resserre d'autant — et le bouton n'est plus sous le pointeur
+   quand `mouseup` arrive, donc AUCUN `click` n'est émis.
+   ⚠ LE TÉMOIN DOIT CLIQUER POUR DE VRAI : un `.click()` programmatique ne déplace aucun focus et
+   ajoute la ligne même sur le code fautif — il serait resté vert sur les sept familles. */
+await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
+{
+  const page=await br.newPage({viewport:{width:1100,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=fiches.find(x=>/Anaphylaxie/.test(x.title));await openEdit(f.id);await w(800);});
+
+  const essai=async(nom,selChamp,selBtn,compte)=>{
+    const av=await page.evaluate(compte);
+    const ch=page.locator(selChamp).last();
+    await ch.scrollIntoViewIfNeeded();await ch.click();
+    await page.keyboard.type('ZZ');await page.waitForTimeout(150);
+    const b=page.locator(selBtn).first();
+    await b.scrollIntoViewIfNeeded();await b.click();await page.waitForTimeout(400);
+    const ap=await page.evaluate(compte);
+    t(`${nom} : la ligne est AJOUTÉE malgré le focus dans un champ`, ap===av+1, `${av} → ${ap}`);
+    const garde=await page.evaluate(compte.toString().includes('forgetAll')
+      ? '(()=>forgetAll(state.draft).some(x=>/ZZ/.test(String(x))))()'
+      : '(()=>JSON.stringify(state.draft).indexOf("ZZ")>=0)()');
+    t(`… et le texte en cours de frappe n'est pas perdu`, garde===true);
+  };
+
+  for(const [nom,k] of [['surveillances','verify'],['condition d\'entrée','confirmation'],
+                        ['références','sources'],['diagnostics à éliminer','differentials'],
+                        ['repères posologiques','posology']]){
+    await essai(nom,`input[data-key="${k}"]`,`[data-add="${k}"]`,
+      new Function('return edList(state.draft,"'+k+'").length'));
+  }
+  await essai('« Ne pas oublier »','.ed-forget input:not([disabled])','[data-fgadd]',
+    ()=>forgetAll(state.draft).length);
+  await essai('étapes d\'un bloc','.blk[data-bid] input[data-sf]','[data-addstep]',
+    ()=>bItems(state.draft.blocks[0]).length);
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);
