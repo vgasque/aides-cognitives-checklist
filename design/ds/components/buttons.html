@@ -2649,14 +2649,14 @@
   /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
      un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
      ce qui s'appliquera sans avoir à la retaper. */
-  .blk-phase{flex:none;display:flex;align-items:center}
+  .blk-phase{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:flex-end}
   /* ⚠ MÊME BOÎTE QUE LE CHAMP D'À CÔTÉ (signalé à l'usage : « pas la même taille que l'input texte
      d'à côté »). Deux contrôles d'une même rangée qui ne font pas la même hauteur se lisent comme
      deux niveaux, alors qu'ils sont pairs — l'un nomme le bloc, l'autre le range. Mesuré avant :
      39 px contre 43. La hauteur est alignée par `align-self:stretch`, donc elle SUIT le champ
      titre quelle que soit la taille du texte, au lieu d'être recopiée en dur. */
   .blk-phase{align-self:stretch}
-  .blk-phase :is(input,select){width:132px;font-size:11px;padding:4px 8px;border:1px dashed var(--line-strong);
+  .blk-phase :is(input,select){width:132px;max-width:100%;min-width:0;font-size:11px;padding:4px 8px;border:1px dashed var(--line-strong);
     border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit;height:100%}
   .blk-phase input{text-align:right}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
@@ -2811,7 +2811,33 @@
      de `--stick-top`, qui est le bas du bandeau. Aucune mesure JS : deux constantes CSS écrites
      une fois, à côté de celles qu'elles suivent. Si le rembourrage du bandeau change, ces deux
      lignes changent avec lui — et c'est pour cela qu'elles vivent ici, contre lui. */
-  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--stick-top,110px) - 8px);z-index:14;
+  /* ⚠ LE VOLET SE DÉROULE — MICRO-ANIMATION NON BLOQUANTE (v5.6, proposition de l'auteur).
+     Elle répond à un GESTE (le tap sur la capsule), elle ne survient pas toute seule : c'est la
+     distinction que le dossier fait déjà pour l'élévation de l'en-tête et pour la chip épinglée —
+     « en crise, le mouvement est réservé à l'alarme » vise ce qui BOUGE SANS QU'ON DEMANDE.
+     ⚠ ON NE PEUT PAS ANIMER UNE HAUTEUR : `check-anim` l'interdit (une propriété de MISE EN PAGE
+     coûte une passe de layout PAR IMAGE, v4.41.0). Le déroulé se fait donc en `transform` pur —
+     `scaleY` depuis le HAUT sur le volet, et le CONTRE-SCALE exact sur son contenu, qui reste
+     ainsi à l'échelle 1 : la boîte se déroule, le texte ne s'étire pas. Rien ne bouge derrière (le
+     volet est `fixed`), et l'ensemble est INERTE sous `prefers-reduced-motion`. */
+  @media (prefers-reduced-motion:no-preference){
+    .rt-dock{animation:dockRoll .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+    .rt-dock>*{animation:dockRollIn .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+  }
+  @keyframes dockRoll{from{transform:scaleY(.55);opacity:.35}to{transform:scaleY(1);opacity:1}}
+  @keyframes dockRollIn{from{transform:scaleY(1.8182)}to{transform:scaleY(1)}}
+  /* ⚠ LE VOLET PASSE AU-DESSUS DU REMBOURRAGE DU QUAI, SINON LES DEUX NOIRS NE SE TOUCHENT PAS
+     (v5.6, signalé à l'usage : « le noir du bandeau ne touche pas le noir du début du menu »).
+     Les BOÎTES se touchaient déjà — bas de la capsule et haut du volet au même pixel, mêmes bords,
+     même largeur (mesuré). Ce qui se voyait n'était pas un écart de géométrie mais un écart de
+     PEINTURE : le quai (`#crisisDock`, z 15) porte 8 px de rembourrage sous la capsule, il est de
+     la matière d'AMBIANCE, et il peignait par-dessus les 8 premiers pixels du volet (z 14) —
+     mesuré au pixel avec `elementFromPoint` : la bande appartenait au quai, en clair.
+     Le volet monte donc à z 16. ⚠ CELA N'ENFREINT PAS V2 (« l'alarme reste toujours en vue ») :
+     le volet COMMENCE au bas de la capsule, il ne peut donc rien couvrir d'elle — il ne recouvre
+     que le rembourrage du quai, qui n'affiche rien. Et il reste SOUS l'en-tête et le bandeau
+     (z 20), qui restent les couches système du dessus. */
+  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--stick-top,110px) - 8px);z-index:16;
     background:var(--surface);border-radius:0 0 var(--r-3) var(--r-3);box-shadow:var(--shadow-lg);
     max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);
     overflow-y:auto;overscroll-behavior:contain}
@@ -4574,7 +4600,15 @@
      bouton, sinon le pouce corrige et supprime du même geste ») — la règle n'avait pas été
      appliquée à l'échelon du bloc. Elle rejoint donc l'anatomie déjà retenue pour l'étape :
      poignée à DROITE de la ligne qu'elle déplace, visible au repos, en encre douce. */
-  .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  /* ⚠ VINGT-DEUXIÈME DÉFAUT DE RANGÉE FLEX — LA PHASE POUSSAIT LA POIGNÉE HORS DE LA CARTE
+     (v5.6, trouvé au balayage). La rangée était en `nowrap` avec DEUX objets incompressibles (la
+     pastille, le sélecteur de phase à 191 px) et un seul objet capable de céder — le champ TITRE,
+     qui tombait à 26 px pendant que la poignée ⠿ sortait de 35 px du cadre. C'est exactement le
+     défaut de la v4.74.0 (bandeau de déplacement) et de la v4.55.3 (croix du panneau) : quand tout
+     est incompressible sauf un, c'est cet un-là qui paie, et le débordement part par le côté
+     opposé. On ENROULE, on ne tronque jamais : à l'étroit, la phase et la poignée descendent d'une
+     ligne et le titre garde sa largeur ; dès qu'il y a la place, tout revient sur une rangée. */
+  .blk-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
   .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15px}
   .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:8px}
@@ -4582,7 +4616,7 @@
   /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
      registre d'attente — l'ambre du `.decision` y était emprunté. Pilule neutre mono. */
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
-  .blk-top input,.optedit input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
+  .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px}
   .startbtn{border:1px solid var(--line);background:var(--input-bg);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
@@ -4787,6 +4821,20 @@
   .ov-c{order:2;flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2)}
   .ov-block.done .ov-c{color:var(--ok)}
   .ov-chev{order:3;flex:none;color:var(--ink-2);font-size:11px;font-weight:700}
+  /* ⚠ PENDANT LA PASSE, L'EN-TÊTE EST UNE SEULE RANGÉE (v5.6, signalé à l'usage : « sur vérifier,
+     l'option pour fermer ne tient pas sur une ligne — texte et croix ne sont pas sur la même
+     ligne, même en desktop »). La rangée de la carte est faite pour porter le titre sur toute la
+     largeur et les gestes DESSOUS (`.ov-tgl{flex:1 1 100%}`) : c'est juste pour « ↺ Refaire », qui
+     est une action de la liste, et faux pour la SORTIE d'un mode — mesuré, le ✕ tombait seul sur
+     une seconde ligne, y compris à 1280 px, pour 133 px d'en-tête.
+     Une sortie se met AU BOUT de la ligne qu'elle ferme. Et sa cible passe à 44 px de LARGE : elle
+     n'en faisait que 31, la règle des 44 px n'ayant jamais été vérifiée sur un bouton qui ne porte
+     qu'un glyphe. Modificateur préfixé par son composant (`.ov-block.vfy`, leçon v4.23.2), et
+     spécificité (0,3,0) : il gagne sur la règle de base quel que soit l'ordre de déclaration. */
+  .ov-block.vfy .ov-head{flex-wrap:nowrap;align-items:center;padding-bottom:10px}
+  .ov-block.vfy .ov-tgl{flex:1 1 auto}
+  .ov-block.vfy .ov-acts{flex:0 0 auto;width:auto;padding:0;justify-content:flex-end}
+  .ov-block.vfy .ov-redo{min-width:44px;display:inline-flex;align-items:center;justify-content:center}
   .ov-redo{flex:none;align-self:center;margin:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}

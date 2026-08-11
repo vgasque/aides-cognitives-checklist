@@ -888,6 +888,63 @@ désormais qu'il n'est PAS au bout, et sa fiche a de quoi défiler.
 la compensation le laisse vert. Le contrôle de dérive est donc un GARDE ; celui qui est capable
 d'échouer est « le remplacement est ANCRÉ » (un re-rendu nu le fait rougir).
 
+**A47. UNE SORTIE DE MODE SE MET AU BOUT DE LA LIGNE QU'ELLE FERME (v5.6, signalé à l'usage : « sur
+vérifier, l'option pour fermer ne tient pas sur une ligne — texte et croix ne sont pas sur la même
+ligne, même en desktop »).** L'en-tête d'une carte de bloc est fait pour porter le titre sur toute
+la largeur et les gestes DESSOUS (`.ov-tgl{flex:1 1 100%}`) : c'est juste pour « ↺ Refaire », qui
+est une action de la LISTE, et faux pour la sortie d'un MODE — mesuré, le ✕ tombait seul sur une
+seconde ligne, y compris à 1280 px, pour 133 px d'en-tête (89 après). Sa cible passe en outre à
+44 px de LARGE : elle n'en faisait que 31, la règle n'ayant jamais été vérifiée sur un bouton qui
+ne porte qu'un glyphe. Modificateur préfixé par son composant (`.ov-block.vfy`), en (0,3,0) :
+il gagne quel que soit l'ordre de déclaration.
+
+**A48. VINGT-DEUXIÈME DÉFAUT DE RANGÉE FLEX — L'EN-TÊTE DE BLOC DE L'ÉDITEUR (v5.6, trouvé au
+BALAYAGE, pas signalé).** `nowrap` avec DEUX objets incompressibles (pastille, sélecteur de phase
+à 191 px) et un seul capable de céder : le champ TITRE tombait à **26 px** pendant que la poignée ⠿
+sortait de **35 px** du cadre, à 320. Même famille que la v4.74.0 (bandeau de déplacement) et la
+v4.55.3 (croix du panneau) — quand tout est incompressible sauf un, c'est cet un-là qui paie, et le
+débordement part par le côté opposé. **On enroule, on ne tronque jamais** : à l'étroit, phase et
+poignée descendent d'une ligne et le titre garde 221 px ; à 1280 tout revient sur une rangée.
+
+**A49. UN RENDU NE DOIT PAS S'INTERROMPRE LUI-MÊME (v5.6, trouvé au balayage).** Un champ d'étape
+VIDE se supprime au départ du focus (MK-flux) — mais ce `blur` peut être celui du RENDU : remplacer
+le contenu de `main` retire le champ focalisé, donc l'émet. Re-rendre depuis là revient à écrire
+dans `main` pendant qu'on y écrit ; Chrome lève « The node to be removed is no longer a child of
+this node », **le rendu extérieur avorte en plein milieu**, et ce qui le suivait — câblage des
+écouteurs, restitution du focus, ancrage — ne s'exécute jamais. Un simple redimensionnement suffit
+à le produire.
+· **DEUX GARDES, ET LA SECONDE EST LA VRAIE** : on sort de la pile courante (`setTimeout`), et l'on
+  ne supprime QUE si aucun rendu n'a eu lieu **depuis la POSE de l'écouteur** (`_renderN`).
+· **⚠ DEUX DISCRIMINANTS ÉCARTÉS À LA MESURE** : `inp.isConnected` — au moment où l'évènement part,
+  le nœud est encore attaché ; et le compteur lu AU BLUR — la trace est « render → renderEditor →
+  blur », donc le rendu fautif a déjà incrémenté. Seule la valeur capturée au BIND répond à la
+  vraie question : cet élément appartient-il encore au rendu courant ?
+· **CE QUE CELA CHANGE POUR L'AUTEUR** : une ligne vide survit à un re-rendu qu'il n'a pas demandé.
+  C'est voulu — ce n'est pas lui qui a quitté le champ.
+
+**A50. DEUX BOÎTES QUI SE TOUCHENT NE FONT PAS DEUX NOIRS QUI SE TOUCHENT (v5.6, signalé à l'usage :
+« le noir du bandeau ne touche pas le noir du début du menu »).** Le bas de la capsule et le haut du
+volet étaient DÉJÀ au même pixel, mêmes bords, même largeur — mesuré. Ce qui se voyait n'était pas
+un écart de géométrie mais un écart de PEINTURE : le quai porte 8 px de rembourrage sous la capsule,
+il est de la matière d'AMBIANCE, et il peignait par-dessus le haut du volet (z 15 contre 14).
+Le volet monte donc à **z 16**, entre le quai et l'en-tête.
+· **V2 EST INTACTE** : le volet COMMENCE au bas de la capsule, il ne peut rien couvrir d'elle — il
+  ne recouvre que le rembourrage, qui n'affiche rien.
+· **⚠ ET LE TÉMOIN DE V2 MESURAIT LE MÉCANISME** : il exigeait `z(quai) > z(volet)`, donc il a
+  rougi sur un correctif juste. Il mesure désormais la PROPRIÉTÉ que V2 promet — la capsule ne
+  bouge pas et rien ne la recouvre (`elementFromPoint` en son centre).
+· **ON MESURE LA COULEUR EFFECTIVE, PAS LES RECTANGLES** : c'est en remontant jusqu'au premier fond
+  opaque que le défaut se voit ; comparer les boîtes laissait le témoin aveugle.
+
+**A51. LE VOLET SE DÉROULE, EN `transform` PUR (v5.6, proposition de l'auteur).** L'animation répond
+à un GESTE — elle ne survient pas toute seule : c'est la distinction que le dossier fait déjà pour
+l'élévation de l'en-tête (A27) et la chip épinglée. **On ne peut pas animer une hauteur**
+(`check-anim` : une propriété de mise en page coûte une passe de layout par image, v4.41.0), donc le
+déroulé est un `scaleY` depuis le HAUT, **avec le contre-scale exact sur le contenu** — la boîte se
+déroule, le texte ne s'étire pas. 180 ms, aucun résidu à la fin (mesuré), inerte sous
+`prefers-reduced-motion` (la règle vit dans le bloc `no-preference`, donc l'inertie est acquise par
+construction et non par une seconde règle à tenir).
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

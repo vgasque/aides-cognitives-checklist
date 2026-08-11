@@ -3885,9 +3885,59 @@ await sec('v5.6 · le volet du quai prolonge la capsule', async () => {
     !!r.contenuAv&&!!r.contenuAp&&Math.abs(r.contenuAv.t-r.contenuAp.t)<=1,
     `${r.contenuAv&&r.contenuAv.t} → ${r.contenuAp&&r.contenuAp.t}`);
   /* V2 : la capsule ne bouge pas et reste AU-DESSUS — l'alarme n'est jamais masquée. */
-  t('… et la capsule reste en place, au-dessus de lui (V2)',
-    Math.abs(r.capAv.t-r.capsule.t)<=1&&r.zQuai>r.zVolet,
-    `capsule ${r.capAv.t} → ${r.capsule.t}, z ${r.zQuai} > ${r.zVolet}`);
+  /* ⚠ ON MESURE LA PROPRIÉTÉ, PAS LE MÉCANISME (leçon du dossier, re-payée ici) : ce contrôle
+     exigeait `z(quai) > z(volet)`, un ORDRE D'EMPILEMENT — il est devenu rouge le jour où le volet
+     a dû monter d'un cran pour que les deux noirs se touchent, alors que ce que V2 protège est
+     intact. Ce que la doctrine promet est que l'alarme reste EN VUE : la capsule ne bouge pas, et
+     rien ne la recouvre. C'est cela qu'on mesure — `elementFromPoint` en son centre. */
+  const capVis=await page.evaluate(()=>{const c=document.querySelector('#cbTimers');
+    const b=c.getBoundingClientRect();
+    const e=document.elementFromPoint(Math.round(b.left+b.width/2),Math.round(b.top+b.height/2));
+    return !!e&&(e===c||c.contains(e));});
+  t('… et la capsule reste en place, EN VUE, rien ne la recouvre (V2)',
+    Math.abs(r.capAv.t-r.capsule.t)<=1&&capVis===true,
+    `capsule ${r.capAv.t} → ${r.capsule.t}, visible ${capVis}`);
+  /* ⚠ DEUX BOÎTES QUI SE TOUCHENT NE FONT PAS DEUX NOIRS QUI SE TOUCHENT (v5.6, signalé à
+     l'usage : « le noir du bandeau ne touche pas le noir du début du menu »). Le bas de la capsule
+     et le haut du volet étaient DÉJÀ au même pixel — c'est la PEINTURE qui différait : le quai
+     porte 8 px de rembourrage sous la capsule, il est de la matière d'ambiance, et il peignait
+     par-dessus le haut du volet. On mesure donc la couleur EFFECTIVE de la bande, en remontant
+     jusqu'au premier fond opaque — mesurer les rectangles serait rester aveugle au défaut. */
+  const bande=await page.evaluate(()=>{
+    const cap=document.querySelector('#cbTimers'),vol=document.querySelector('.rt-dock');
+    if(!cap||!vol)return null;
+    const opaque=e=>{for(let n=e;n;n=n.parentElement){const c=getComputedStyle(n).backgroundColor;
+      const m=(c.match(/[\d.]+/g)||[]).map(Number);
+      if(m.length<4||m[3]>0.99)return c;}return '';};
+    const y0=cap.getBoundingClientRect().bottom,x=Math.round(innerWidth/2);
+    const fondCap=opaque(cap);
+    const pts=[1,3,5,7].map(d=>opaque(document.elementFromPoint(x,Math.round(y0+d))));
+    return {fondCap,pts,tous:pts.every(c=>c===fondCap)};});
+  t('témoin : la capsule et le volet ont bien un fond opaque', !!bande&&!!bande.fondCap, JSON.stringify(bande));
+  t('les deux noirs se TOUCHENT — aucune bande d\'ambiance entre eux',
+    !!bande&&bande.tous===true, JSON.stringify(bande));
+  /* LE DÉROULÉ (v5.6, proposition de l'auteur) : il répond à un GESTE, il ne survient pas tout
+     seul — et il est en `transform` PUR, la seule façon de « dérouler » sans animer une hauteur
+     (`check-anim`). Le contenu porte le contre-scale exact, donc il ne s'étire pas. On mesure
+     qu'il a bien joué ET qu'il ne laisse AUCUN résidu : une boîte restée à 0,99 serait un défaut
+     permanent pour une animation de 180 ms. Son inertie sous `prefers-reduced-motion` est déjà
+     couverte par la section WCAG dédiée — la règle vit dans le bloc `no-preference`. */
+  const roul=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const q=document.querySelector('#cbTimers');
+    q.click();await w(350);q.click();await w(60);          // on referme, on rouvre : l'animation rejoue
+    const v=document.querySelector('.rt-dock');if(!v)return null;
+    const noms=v.getAnimations().map(a=>a.animationName||'');
+    const inn=v.firstElementChild;
+    const mid={ext:getComputedStyle(v).transform,int:inn?getComputedStyle(inn).transform:''};
+    await w(500);
+    return {noms,mid,fin:getComputedStyle(v).transform,
+      lab:(()=>{const l=v.querySelector('.tm-label');return l?Math.round(l.getBoundingClientRect().height):null;})()};});
+  t('témoin : l\'ouverture joue bien une animation', !!roul&&roul.noms.length>0, JSON.stringify(roul&&roul.noms));
+  t('le volet se DÉROULE (transform seul, contenu contre-scalé)',
+    !!roul&&/matrix/.test(roul.mid.ext)&&roul.mid.ext!==roul.fin&&/matrix/.test(roul.mid.int),
+    JSON.stringify(roul&&roul.mid));
+  t('… et il ne laisse aucun résidu à la fin',
+    !!roul&&(roul.fin==='none'||roul.fin==='matrix(1, 0, 0, 1, 0, 0)'), roul?roul.fin:'—');
   await page.close();
 }
 });
@@ -3997,6 +4047,18 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
     if(!v)return {reste,present:false,geo:null};
     v.click();await w(400);
     const passe=!!document.querySelector('[data-ovvok]');
+    /* ⚠ LA SORTIE SE MET AU BOUT DE LA LIGNE QU'ELLE FERME (signalé à l'usage : « texte et croix
+       ne sont pas sur la même ligne, même en desktop »). La rangée de la carte porte le titre sur
+       toute la largeur et les gestes DESSOUS — juste pour « ↺ Refaire », faux pour la sortie d'un
+       mode. On compare les CENTRES : les deux objets n'ont pas la même hauteur, comparer leurs
+       hauts ferait échouer un alignement pourtant correct. */
+    const hd=document.querySelector('.ov-block .ov-head');
+    const tg=hd&&hd.querySelector('.ov-tgl'),cx=hd&&hd.querySelector('[data-ovvx]');
+    const mil=e=>{const r=e.getBoundingClientRect();return r.top+r.height/2;};
+    const tete=(tg&&cx)?{ligne:Math.abs(mil(tg)-mil(cx))<=4,
+      droite:cx.getBoundingClientRect().right>tg.getBoundingClientRect().right,
+      w:Math.round(cx.getBoundingClientRect().width),h:Math.round(cx.getBoundingClientRect().height),
+      hh:Math.round(hd.getBoundingClientRect().height)}:null;
     /* On va jusqu'au BOUT de la passe : la pilule de trace est DURABLE, elle vit sur la liste
        d'étapes — laquelle ne revient qu'une fois la passe terminée (pendant, la carte affiche un
        item à la fois). Mesurer avant, c'est mesurer l'écran qui n'a pas encore la trace. */
@@ -4004,7 +4066,7 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
     /* … puis on SORT de la passe : elle finit sur son bilan (« n/n vérifiées »), et la liste
        d'étapes — qui porte la trace — ne revient qu'après « Terminer la vérification ». */
     const fin=document.querySelector('[data-ovvx]');if(fin)fin.click();await w(400);
-    return {reste,present:true,txt:v.textContent.trim(),geo,passe,
+    return {reste,present:true,txt:v.textContent.trim(),geo,passe,tete,
       trace:document.querySelectorAll('.stp-vf.ok').length,
       coches:Object.values(state.checked).filter(Boolean).length,
       surDecision:!!(document.querySelector('.ov-block.dec [data-ovverify]'))};});
@@ -4015,6 +4077,10 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
   t('… à gauche de « Continuer », dans la même rangée de pied (A7)',
     !!r.geo&&r.geo.gauche===true&&r.geo.rangee===true, JSON.stringify(r.geo));
   t('… cible ≥ 44 px', !!r.geo&&r.geo.h>=44, r.geo?r.geo.h+' px':'—');
+  t('… la sortie de la passe est SUR la ligne du titre, à son bout',
+    !!r.tete&&r.tete.ligne===true&&r.tete.droite===true, JSON.stringify(r.tete));
+  t('… et sa cible fait 44 px dans les DEUX sens',
+    !!r.tete&&r.tete.w>=44&&r.tete.h>=44, r.tete?`${r.tete.w}×${r.tete.h}`:'—');
   t('la passe s\'ouvre et « Constaté ✓ » coche les étapes', r.passe===true&&r.coches>=2,
     `passe ${r.passe} · ${r.coches} coche(s)`);
   t('… en laissant une trace DURABLE sur les lignes', r.trace>=2, `${r.trace} pilule(s)`);
@@ -4216,6 +4282,33 @@ await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
     ()=>forgetAll(state.draft).length);
   await essai('étapes d\'un bloc','.blk[data-bid] input[data-sf]','[data-addstep]',
     ()=>bItems(state.draft.blocks[0]).length);
+  /* ⚠ UN RE-RENDU PENDANT QU'UN CHAMP VIDE EST FOCALISÉ NE DOIT PAS AVORTER (v5.6, trouvé au
+     balayage). Le champ d'étape vide se supprime AU BLUR — mais ce blur peut être celui du rendu
+     lui-même (remplacer le contenu de `main` retire le champ focalisé) : re-rendre depuis là
+     revient à écrire dans `main` pendant qu'on y écrit, Chrome lève, et le rendu extérieur
+     s'arrête au milieu — écouteurs non câblés, focus non rendu, ancrage sauté. On provoque donc
+     exactement ce cas : champ vide sous le focus, puis re-rendu. */
+  /* ⚠ L'EN-TÊTE DE BLOC N'EXPULSE RIEN DE LA CARTE (v5.6, trouvé au balayage — 22ᵉ défaut de
+     rangée flex). La rangée était en `nowrap` avec DEUX objets incompressibles (pastille et
+     sélecteur de phase, 191 px) : le champ TITRE, seul à pouvoir céder, tombait à 26 px pendant
+     que la poignée ⠿ sortait de 35 px du cadre. On mesure ici, à la largeur où le défaut vit —
+     un redimensionnement, pas une page de plus (règle « une manœuvre, une section »). */
+  await page.setViewportSize({width:320,height:844});
+  await page.waitForTimeout(400);
+  const bt=await page.evaluate(()=>{const top=document.querySelector('.blk-top');if(!top)return null;
+    const carte=top.closest('.blk').getBoundingClientRect();
+    const k=[...top.children].filter(e=>getComputedStyle(e).display!=='none');
+    const inp=top.querySelector('input[type=text]');
+    return {hors:Math.round(Math.max(...k.map(e=>e.getBoundingClientRect().right))-carte.right),
+      titre:inp?Math.round(inp.getBoundingClientRect().width):null,
+      lignes:new Set(k.map(e=>Math.round(e.getBoundingClientRect().top))).size};});
+  t('320 · témoin : l\'en-tête de bloc est bien rendu', !!bt&&bt.titre!==null, JSON.stringify(bt));
+  t('320 · rien ne sort de la carte du bloc', !!bt&&bt.hors<=0, bt?`${bt.hors} px`:'—');
+  t('320 · … et le champ titre garde une largeur utile (≥ 120 px)',
+    !!bt&&bt.titre>=120, bt?`${bt.titre} px`:'—');
+  /* La rangée a donc le DROIT d'enrouler : c'est le remède du dossier — « on enroule, on ne
+     tronque jamais » —, et à 1280 elle tient sur une ligne (mesuré). */
+  t('320 · … en enroulant plutôt qu'+'\u2019'+'en écrasant', !!bt&&bt.lignes>=2, bt?`${bt.lignes} ligne(s)`:'—');
   await page.close();
 }
 });
@@ -4235,6 +4328,54 @@ await sec('v5.6 · « ＋ Ajouter » depuis un champ focalisé', async () => {
    rien de plus, et c'était la part JUSTE de la doctrine d'origine.
    ⚠ AUCUNE FIXTURE NE COUVRAIT CE CAS (les deux fiches d'exemple ont quatre blocs) : le témoin
    construit la sienne. */
+/* ══ v5.6 — UN RE-RENDU NE DOIT PAS S'INTERROMPRE LUI-MÊME ════════════════════════════════
+   Trouvé au balayage. Un champ d'étape VIDE se supprime au départ du focus (MK-flux) — mais ce
+   `blur` peut être celui du RENDU : remplacer le contenu de `main` retire le champ focalisé, donc
+   l'émet. Re-rendre depuis là revient à écrire dans `main` pendant qu'on y écrit ; Chrome lève
+   « The node to be removed is no longer a child of this node », le rendu extérieur AVORTE en
+   plein milieu, et ce qui le suivait — câblage des écouteurs, restitution du focus, ancrage — ne
+   s'exécute jamais. Reproduit à la sonde : champ vide sous le focus, puis un redimensionnement.
+   ⚠ SECTION À PART, ET C'EST MOTIVÉ : la section « ＋ Ajouter » édite sept familles de listes
+   avant de finir, et le focus n'y survit pas à ses propres gestes — mesuré. Le décor partagé
+   serait ici HOSTILE, pas économe (cf. la limite de la règle « une manœuvre, une section »). */
+await sec('v5.6 · un re-rendu ne s\'interrompt pas lui-même', async () => {
+{
+  const page=await br.newPage({viewport:{width:1100,height:900}});
+  const errs=[];
+  page.on('pageerror',e=>{errs.push(e.message.slice(0,90));ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await page.evaluate(()=>openEdit(fiches[0].id));
+  await page.waitForTimeout(700);
+  /* On vide au CLAVIER, après un vrai clic : un `.focus()` programmatique ne prouverait rien. */
+  /* `fill('')` de Playwright focalise puis vide, et émet `input` — le geste de l'auteur qui
+     efface sa ligne, sans dépendre d'un raccourci clavier qui n'a pas le même sens d'un système
+     à l'autre (`Control+A` n'est PAS « tout sélectionner » sur macOS : le témoin effaçait un
+     caractère et mesurait autre chose). */
+  await page.fill('.blk .li input[data-sf]','');
+  await page.waitForTimeout(250);
+  const av=await page.evaluate(()=>{const e=document.activeElement;
+    return {focus:!!e&&!!e.matches&&e.matches('.blk .li input[data-sf]')&&e.value==='',
+      champs:document.querySelectorAll('.blk .li input[data-sf]').length};});
+  t('témoin : un champ d\'étape VIDE est bien sous le focus', av.focus===true, JSON.stringify(av));
+  errs.length=0;ko-=0;
+  /* LE RE-RENDU EXTÉRIEUR : un redimensionnement, c'est-à-dire le geste le plus banal. */
+  await page.setViewportSize({width:900,height:900});
+  await page.waitForTimeout(600);
+  const ap=await page.evaluate(()=>({
+    bind:!!document.querySelector('[data-addstep]')&&!!document.querySelector('.blk-top'),
+    champs:document.querySelectorAll('.blk .li input[data-sf]').length}));
+  t('le rendu ne s\'interrompt pas', errs.length===0, errs.join(' | '));
+  t('… et l\'éditeur reste rendu ET câblé', ap.bind===true, JSON.stringify(ap));
+  /* Le champ vide n'a PAS été supprimé : ce n'est pas l'auteur qui l'a quitté, c'est le rendu qui
+     l'a retiré — la nuance est exactement ce que la garde mesure. */
+  t('… et la ligne vide n\'a pas été supprimée par le rendu', ap.champs===av.champs,
+    `${av.champs} → ${ap.champs}`);
+  await page.close();
+}
+});
+
 await sec('v5.6 · une fiche d\'un seul bloc', async () => {
 {
   for(const W of [390,1280]){

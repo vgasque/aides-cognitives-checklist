@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-UjtKsiB8eH3chJL+y42N/SouiV1v8QqaSHQ6EDc+brI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-7SrMvEdsOLITjIH+m625U4a+uczh3DPmmn6TF/N7GjQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2994,14 +2994,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
      un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
      ce qui s'appliquera sans avoir à la retaper. */
-  .blk-phase{flex:none;display:flex;align-items:center}
+  .blk-phase{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:flex-end}
   /* ⚠ MÊME BOÎTE QUE LE CHAMP D'À CÔTÉ (signalé à l'usage : « pas la même taille que l'input texte
      d'à côté »). Deux contrôles d'une même rangée qui ne font pas la même hauteur se lisent comme
      deux niveaux, alors qu'ils sont pairs — l'un nomme le bloc, l'autre le range. Mesuré avant :
      39 px contre 43. La hauteur est alignée par `align-self:stretch`, donc elle SUIT le champ
      titre quelle que soit la taille du texte, au lieu d'être recopiée en dur. */
   .blk-phase{align-self:stretch}
-  .blk-phase :is(input,select){width:132px;font-size:11px;padding:4px 8px;border:1px dashed var(--line-strong);
+  .blk-phase :is(input,select){width:132px;max-width:100%;min-width:0;font-size:11px;padding:4px 8px;border:1px dashed var(--line-strong);
     border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit;height:100%}
   .blk-phase input{text-align:right}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
@@ -3156,7 +3156,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de `--stick-top`, qui est le bas du bandeau. Aucune mesure JS : deux constantes CSS écrites
      une fois, à côté de celles qu'elles suivent. Si le rembourrage du bandeau change, ces deux
      lignes changent avec lui — et c'est pour cela qu'elles vivent ici, contre lui. */
-  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--stick-top,110px) - 8px);z-index:14;
+  /* ⚠ LE VOLET SE DÉROULE — MICRO-ANIMATION NON BLOQUANTE (v5.6, proposition de l'auteur).
+     Elle répond à un GESTE (le tap sur la capsule), elle ne survient pas toute seule : c'est la
+     distinction que le dossier fait déjà pour l'élévation de l'en-tête et pour la chip épinglée —
+     « en crise, le mouvement est réservé à l'alarme » vise ce qui BOUGE SANS QU'ON DEMANDE.
+     ⚠ ON NE PEUT PAS ANIMER UNE HAUTEUR : `check-anim` l'interdit (une propriété de MISE EN PAGE
+     coûte une passe de layout PAR IMAGE, v4.41.0). Le déroulé se fait donc en `transform` pur —
+     `scaleY` depuis le HAUT sur le volet, et le CONTRE-SCALE exact sur son contenu, qui reste
+     ainsi à l'échelle 1 : la boîte se déroule, le texte ne s'étire pas. Rien ne bouge derrière (le
+     volet est `fixed`), et l'ensemble est INERTE sous `prefers-reduced-motion`. */
+  @media (prefers-reduced-motion:no-preference){
+    .rt-dock{animation:dockRoll .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+    .rt-dock>*{animation:dockRollIn .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+  }
+  @keyframes dockRoll{from{transform:scaleY(.55);opacity:.35}to{transform:scaleY(1);opacity:1}}
+  @keyframes dockRollIn{from{transform:scaleY(1.8182)}to{transform:scaleY(1)}}
+  /* ⚠ LE VOLET PASSE AU-DESSUS DU REMBOURRAGE DU QUAI, SINON LES DEUX NOIRS NE SE TOUCHENT PAS
+     (v5.6, signalé à l'usage : « le noir du bandeau ne touche pas le noir du début du menu »).
+     Les BOÎTES se touchaient déjà — bas de la capsule et haut du volet au même pixel, mêmes bords,
+     même largeur (mesuré). Ce qui se voyait n'était pas un écart de géométrie mais un écart de
+     PEINTURE : le quai (`#crisisDock`, z 15) porte 8 px de rembourrage sous la capsule, il est de
+     la matière d'AMBIANCE, et il peignait par-dessus les 8 premiers pixels du volet (z 14) —
+     mesuré au pixel avec `elementFromPoint` : la bande appartenait au quai, en clair.
+     Le volet monte donc à z 16. ⚠ CELA N'ENFREINT PAS V2 (« l'alarme reste toujours en vue ») :
+     le volet COMMENCE au bas de la capsule, il ne peut donc rien couvrir d'elle — il ne recouvre
+     que le rembourrage du quai, qui n'affiche rien. Et il reste SOUS l'en-tête et le bandeau
+     (z 20), qui restent les couches système du dessus. */
+  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--stick-top,110px) - 8px);z-index:16;
     background:var(--surface);border-radius:0 0 var(--r-3) var(--r-3);box-shadow:var(--shadow-lg);
     max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);
     overflow-y:auto;overscroll-behavior:contain}
@@ -4919,7 +4945,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bouton, sinon le pouce corrige et supprime du même geste ») — la règle n'avait pas été
      appliquée à l'échelon du bloc. Elle rejoint donc l'anatomie déjà retenue pour l'étape :
      poignée à DROITE de la ligne qu'elle déplace, visible au repos, en encre douce. */
-  .blk-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  /* ⚠ VINGT-DEUXIÈME DÉFAUT DE RANGÉE FLEX — LA PHASE POUSSAIT LA POIGNÉE HORS DE LA CARTE
+     (v5.6, trouvé au balayage). La rangée était en `nowrap` avec DEUX objets incompressibles (la
+     pastille, le sélecteur de phase à 191 px) et un seul objet capable de céder — le champ TITRE,
+     qui tombait à 26 px pendant que la poignée ⠿ sortait de 35 px du cadre. C'est exactement le
+     défaut de la v4.74.0 (bandeau de déplacement) et de la v4.55.3 (croix du panneau) : quand tout
+     est incompressible sauf un, c'est cet un-là qui paie, et le débordement part par le côté
+     opposé. On ENROULE, on ne tronque jamais : à l'étroit, la phase et la poignée descendent d'une
+     ligne et le titre garde sa largeur ; dès qu'il y a la place, tout revient sur une rangée. */
+  .blk-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
   .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15px}
   .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:8px}
@@ -4927,7 +4961,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
      registre d'attente — l'ambre du `.decision` y était emprunté. Pilule neutre mono. */
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
-  .blk-top input,.optedit input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
+  .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px}
   .startbtn{border:1px solid var(--line);background:var(--input-bg);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
@@ -5132,6 +5166,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-c{order:2;flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2)}
   .ov-block.done .ov-c{color:var(--ok)}
   .ov-chev{order:3;flex:none;color:var(--ink-2);font-size:11px;font-weight:700}
+  /* ⚠ PENDANT LA PASSE, L'EN-TÊTE EST UNE SEULE RANGÉE (v5.6, signalé à l'usage : « sur vérifier,
+     l'option pour fermer ne tient pas sur une ligne — texte et croix ne sont pas sur la même
+     ligne, même en desktop »). La rangée de la carte est faite pour porter le titre sur toute la
+     largeur et les gestes DESSOUS (`.ov-tgl{flex:1 1 100%}`) : c'est juste pour « ↺ Refaire », qui
+     est une action de la liste, et faux pour la SORTIE d'un mode — mesuré, le ✕ tombait seul sur
+     une seconde ligne, y compris à 1280 px, pour 133 px d'en-tête.
+     Une sortie se met AU BOUT de la ligne qu'elle ferme. Et sa cible passe à 44 px de LARGE : elle
+     n'en faisait que 31, la règle des 44 px n'ayant jamais été vérifiée sur un bouton qui ne porte
+     qu'un glyphe. Modificateur préfixé par son composant (`.ov-block.vfy`, leçon v4.23.2), et
+     spécificité (0,3,0) : il gagne sur la règle de base quel que soit l'ordre de déclaration. */
+  .ov-block.vfy .ov-head{flex-wrap:nowrap;align-items:center;padding-bottom:10px}
+  .ov-block.vfy .ov-tgl{flex:1 1 auto}
+  .ov-block.vfy .ov-acts{flex:0 0 auto;width:auto;padding:0;justify-content:flex-end}
+  .ov-block.vfy .ov-redo{min-width:44px;display:inline-flex;align-items:center;justify-content:center}
   .ov-redo{flex:none;align-self:center;margin:0;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap}
   .ov-redo:hover{background:var(--surface)}
   .ov-redo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -12260,7 +12308,13 @@ function applyViewChrome(){
   // Sortie de crise : rejouer les notifications mises en attente (une par une, règle V5).
   if(!document.body.classList.contains('crisis-live'))flushHeldToasts();
 }
-function render(){
+/* COMPTEUR DE RENDUS — il ne sert qu'à une chose, et elle est précise : distinguer un `blur`
+   PROVOQUÉ PAR UN RENDU (le champ focalisé disparaît avec le contenu de `main`) d'un départ de
+   focus VOULU par l'auteur. `isConnected` ne le dit pas — au moment où l'évènement part, le nœud
+   peut encore être attaché (mesuré). Le compteur, lui, tranche : si un rendu a eu lieu entre le
+   `blur` et le tour de boucle suivant, c'est lui qui a retiré le champ. */
+let _renderN=0;
+function render(){_renderN++;
   // Un re-rendu qui remplace .home-main pendant l'animation de bascule de section la REJOUERAIT
   // depuis zéro (nouvel élément, classe encore posée sur main — l'animationend de l'ancien ne
   // vient jamais) : une synchro tombant dans la fenêtre faisait « recharger » la liste plusieurs
@@ -17638,7 +17692,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        cartes PASSÉES, qui n'ont pas de pied d'action — l'en-tête y est le seul endroit possible.
        Et pendant la passe, le ✕ reste en tête : c'est une sortie, pas une action de la liste. */
     :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:'');
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
    Le plan reste INERTE côté cochage (la trace vit dans le journal) et sert à NAVIGUER.
    UNE SEULE VUE, l'ÉCHELLE (ovPlanLadderHtml, mode compact ECAM) : une LIGNE par bloc, retraits
@@ -20675,7 +20729,7 @@ function edSyncGallery(f){
     if(!b||!b.image||vues.has(b.image))return;
     vues.add(b.image);
     f.images.push({id:uid('i'),data:b.image,w:b.imageW||0,h:b.imageH||0,caption:''});});}
-function renderEditor(){
+function renderEditor(){_renderN++;
   captureFlow();
   edSyncGallery(state.draft);
   edUndoNote();    // avant edTouch : `_edPrev` porte encore l'état d'AVANT le geste
@@ -20928,11 +20982,35 @@ function bindEditorEvents(f){
        demander confirmation pour retirer du vide serait une friction pure. On NE retire jamais la
        dernière (un bloc doit garder une ligne où écrire), et jamais pendant la frappe — seulement
        au départ du focus, sinon effacer pour reformuler supprimerait la ligne sous le doigt. */
+    /* ⚠ LE COMPTEUR SE CAPTURE À LA POSE DE L'ÉCOUTEUR, PAS AU `blur` — mesuré : la trace est
+       « render → renderEditor → blur », donc au moment où l'évènement part, le rendu qui l'a
+       provoqué a DÉJÀ incrémenté. Comparé à la valeur du BIND, l'écart dit exactement ce qu'on
+       veut savoir : cet élément appartient-il encore au rendu courant ? */
+    const nBind=_renderN;
     card.querySelectorAll('[data-sf]').forEach((inp,i)=>inp.addEventListener('blur',()=>{
       if(String(stepsOf(b)[i]||'').trim()||bItems(b).length<2)return;
       if(state.edGrab)return;   // un déplacement en cours n'est pas un abandon de saisie
-      bItemDel(b,i);
-      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);}));
+      /* ⚠ ON NE RE-REND JAMAIS DEPUIS UN `blur` — CE BLUR PEUT ÊTRE CELUI D'UN RE-RENDU (v5.6,
+         trouvé au balayage). Remplacer le contenu de `main` retire le champ focalisé, donc émet
+         `blur` : re-rendre ici revient à écrire dans `main` PENDANT qu'on y écrit. Chrome lève
+         « The node to be removed is no longer a child of this node », le rendu extérieur AVORTE
+         en plein milieu, et tout ce qui le suivait — câblage des écouteurs, restitution du focus,
+         ancrage — ne s'exécute jamais. Reproduit à la sonde : un champ d'étape VIDE gardé sous le
+         focus, puis n'importe quel re-rendu (un redimensionnement suffit).
+         DEUX GARDES, et la seconde est la vraie : on sort de la pile courante, et l'on ne
+         supprime QUE si le champ était encore ATTACHÉ au document au moment du blur — s'il ne
+         l'est plus, c'est un rendu qui l'a retiré, pas l'auteur qui l'a quitté, et il n'y a rien
+         à supprimer. L'état est re-vérifié après l'attente : entre-temps, l'auteur a pu taper. */
+      /* ⚠ UN RENDU A EU LIEU DEPUIS LA POSE ⇒ C'EST LUI QUI A RETIRÉ LE CHAMP, pas l'auteur qui
+         l'a quitté : il n'y a rien à supprimer. (Deux versions écartées à la mesure :
+         `inp.isConnected`, qui ne discrimine pas — le nœud est encore attaché quand l'évènement
+         part —, et le compteur lu AU BLUR, qui arrive trop tard.) */
+      if(_renderN!==nBind)return;
+      setTimeout(()=>{
+        if(_renderN!==nBind||state.edGrab)return;
+        if(String(stepsOf(b)[i]||'').trim()||bItems(b).length<2)return;
+        bItemDel(b,i);
+        keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);},0);}));
     const as=card.querySelector('[data-addstep]');if(as)as.onclick=()=>{bItemAdd(b,(b.items||[]).length,newStepItem(''));
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
       const ls=[...main.querySelectorAll('.blk[data-bid="'+CSS.escape(b.id)+'"] input[data-sf]')];
