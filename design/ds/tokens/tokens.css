@@ -2,7 +2,7 @@
 :root{
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
-  --sys:#1d232b;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
+  --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
   --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
   --line:#e3e6ea;--line-strong:#c3ccd6;
   /* --ctl-line : LA SEULE DÉVIATION ASSUMÉE À tokens.css, et elle est motivée. Le système pose

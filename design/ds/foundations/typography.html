@@ -63,7 +63,7 @@
   :root{
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
-  --sys:#1d232b;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
+  --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
   --sys-ink:#e6eaf0;--sys-ink-2:#9aa5b3;
   --line:#e3e6ea;--line-strong:#c3ccd6;
   /* --ctl-line : LA SEULE DÉVIATION ASSUMÉE À tokens.css, et elle est motivée. Le système pose
@@ -216,7 +216,7 @@
      nuit ne projette pas d'ombre : elle BORDE. Mêmes objets, valeurs propres. */
   [data-theme="dark"]{
   --amb:#0d0f13;--amb-2:#101318;--work:#171a20;--work-line:#262a31;
-  --sys:#171a20;--sys-line:rgba(255,255,255,.14);
+  --sys:#171a20;--sys-hi:#242932;--sys-line:rgba(255,255,255,.14);
   --line:#1c1f25;--line-strong:#2c313a;--ctl-line:#6b7480;
   --ink:#e6eaf0;--ink-2:#9aa5b3;--ink-3:#707c8c;
   --ok-rgb:74,222,128;--ok:rgb(var(--ok-rgb));--ok-soft:#12241a;
@@ -582,7 +582,11 @@
   /* Boutons d'action de la barre : MÊME gabarit 36px et MÊMES couleurs que le canvas — tonal
      --primary-soft / --primary-dk pour Créer et Thème (« un seul bouton rempli par écran » :
      rien de rempli dans la barre), avatar --primary plein pour Compte (pastille d'état verte). */
-  .hdr-new{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
+  /* MÊME HAUTEUR POUR TOUTE LA RANGÉE (signalé à l'usage : « le bouton compte n'est pas de la
+     même hauteur que les autres boutons de l'en-tête »). 36 px de dessin, 44 de cible par le
+     halo — trois objets voisins qui ne s'alignent ni en haut ni en bas se lisent comme trois
+     objets sans rapport. */
+  .hdr-new{display:inline-flex;align-items:center;gap:4px;height:36px;padding:0 14px;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   /* ⚠ UN SEUL SURVOL POUR TOUTE LA BARRE (v5.6, signalé à l'usage : « les boutons ne sont pas
      harmonisés — soit fond bleu, soit fond noir au hover »). Il y en avait QUATRE différents
      pour quatre boutons voisins : `--amb-2` (Créer), `--primary-100` (Thème — et une règle
@@ -596,15 +600,15 @@
   /* « Créer » reprend le registre TONAL quand il est la seule action offerte (bibliothèque vide) :
      c'est alors la porte d'entrée du produit. En temps normal il reste un glyphe de commande. */
   .hdr-new.tonal{background:var(--primary-soft);color:var(--primary-dk)}
-  @media (max-width:779.98px){.hdr-new .hdr-new-lbl{display:none}.hdr-new{width:40px;padding:0;justify-content:center}}
+  @media (max-width:779.98px){.hdr-new .hdr-new-lbl{display:none}.hdr-new{width:36px;padding:0;justify-content:center}}
   /* Compact (< 780px, icône seule) : cercle 40px — même gabarit que .hdr-new compact ;
      en large le libellé revient et le bouton reprend la forme pilule. */
   /* Thème et « Créer » : des GLYPHES DE COMMANDE (A13), pas des pastilles teintées. Trois
      disques bleus alignés en tête d'écran pesaient plus que l'annuaire qu'ils surmontent. */
-  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;padding:0;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;height:36px;width:36px;padding:0;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;flex:none}
   .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .hdr-theme-lbl{display:none;margin-left:4px}
-  @media (min-width:780px){.hdr-theme{width:auto;min-width:40px;padding:0 14px}.hdr-theme .hdr-theme-lbl{display:inline}}
+  @media (min-width:780px){.hdr-theme{width:auto;min-width:36px;padding:0 14px}.hdr-theme .hdr-theme-lbl{display:inline}}
   /* (A−/A+ : absents de Claude Design — la taille du texte se règle dans la fenêtre Compte.) */
   /* Menu ⋯ (SPEC gestion §4) : bouton 36px (halo 44), menu ancré sous la barre à droite,
      rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
@@ -841,14 +845,38 @@
      déplace donc plus l'alarme, qui est exactement ce que la règle exige. Et le coût de hauteur
      reste NUL — l'absolu ne prend rien à la rangée (mesuré : en-tête 65 px, inchangé).
      A8 — LA CIBLE NE CÈDE JAMAIS AVEC LE DESSIN : le halo ::after rend les 44 px (36 + 2×4). */
-  body.chrome-hdr .hdr-crisis-slot{position:absolute;left:50%;transform:translateX(-50%);margin:0;gap:14px;max-width:46%}
+  /* ⚠ LARGEUR DÉFINIE, PAS UN AJUSTEMENT AU CONTENU. Le créneau étant en position ABSOLUE, un
+     `max-width` seul le laisse se dimensionner sur son contenu — et la boucle d'ajustement de la
+     capsule mesure alors une boîte qui vient de rétrécir à cause d'elle : une rétroaction, dont
+     le point fixe était « un seul segment ». C'est ce qui faisait disparaître le minuteur ÉCHU de
+     l'en-tête sur grand écran. Avec une largeur DÉFINIE, la boucle mesure un plafond stable et ne
+     sacrifie plus rien tant que la place existe (588 px à 1280). Le contenu y est centré : la
+     capsule reste optiquement au milieu de la barre quel que soit son nombre de segments. */
+  body.chrome-hdr .hdr-crisis-slot{position:absolute;left:50%;transform:translateX(-50%);margin:0;gap:14px;width:46%;justify-content:center}
   /* ⚠ `flex:1` DANS UN CONTENEUR EN AJUSTEMENT AU CONTENU EFFONDRE LA BOÎTE — et la boucle
      d'ajustement, qui MESURE, en concluait que plus rien ne tenait : elle sacrifiait le segment
      ÉCHU et n'affichait que « +1 ». Le créneau est en position ABSOLUE (A14), donc dimensionné
      par son contenu : la capsule doit y être en largeur AUTO, jamais en flex extensible. */
   body.chrome-hdr #crisisDock,body.chrome-hdr #crisisDock .dock-in{width:auto}
-  body.chrome-hdr #cbTimers{flex:0 0 auto;width:auto;background:none;color:var(--ink);border-radius:var(--r-1);padding:0;min-height:30px;gap:14px;position:relative;overflow:visible}
-  body.chrome-hdr #cbTimers::after{content:"";position:absolute;inset:-8px -6px;border-radius:8px}
+  /* ⚠ `width:auto` DANS UN PARENT EN AJUSTEMENT AU CONTENU DONNE UNE MESURE PÉRIMÉE — et c'est
+     ce qui faisait disparaître le minuteur ÉCHU de l'en-tête sur grand écran (signalé à l'usage :
+     « les minuteurs échus ne s'affichent pas en en-tête, même sur desktop alors qu'il y aurait la
+     place »). Le créneau est en position ABSOLUE, donc sa largeur SUIT son contenu ; la boucle
+     d'ajustement écrit la version pleine puis mesure `clientWidth`, qui vaut encore la largeur du
+     contenu PRÉCÉDENT. Mesuré à 1280 : scrollWidth 151 pour clientWidth 145 — la boucle concluait
+     au débordement et sacrifiait l'alarme, alors que le créneau disposait de 588 px.
+     `width:max-content` supprime la boucle de rétroaction : la boîte prend exactement la largeur
+     de ce qu'on vient d'écrire, et `max-width` du créneau reste le vrai plafond. */
+  body.chrome-hdr #cbTimers{flex:0 0 auto;width:max-content;max-width:100%;background:none;color:var(--ink);border-radius:var(--r-1);padding:0;min-height:30px;gap:14px;position:relative;overflow:visible}
+  body.chrome-hdr #cbTimers .seg{flex:0 0 auto}
+  /* ⚠ LE HALO NE DÉPASSE PLUS HORIZONTALEMENT, ET C'EST UNE CONTRAINTE DE MESURE. Un
+     pseudo-élément absolu qui sort à droite entre dans le `scrollWidth` du parent : la boucle
+     d'ajustement lisait donc 6 px de débordement PERMANENTS (151 contre 145 mesurés) et
+     sacrifiait le segment échu, quelle que soit la place réelle. La cible garde sa largeur par un
+     REMBOURRAGE — qui, lui, est à l'intérieur du `clientWidth` — et sa hauteur par l'inset
+     vertical, qui ne pèse sur aucune mesure de largeur. */
+  body.chrome-hdr #cbTimers{padding-inline:6px}
+  body.chrome-hdr #cbTimers::after{content:"";position:absolute;inset:-8px 0;border-radius:8px}
   body.chrome-hdr #cbTimers:hover{background:var(--amb-2)}
   body.chrome-hdr #cbTimers:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   body.chrome-hdr #cbTimers .seg{padding:0;min-height:30px}
@@ -1348,7 +1376,7 @@
   /* L'avatar au gabarit de la maquette (1a/2f) : 30 px, rayon 10, matière SYSTÈME — le seul
      objet sombre de l'en-tête, comme la capsule est le seul objet sombre de la crise. Sa CIBLE
      reste à 44 px par le halo : on compacte le dessin, jamais la zone qu'on vise. */
-  .bar-acct{position:relative;background:var(--sys);color:var(--sys-ink);border:0;width:30px;height:30px;border-radius:var(--r-2);display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
+  .bar-acct{position:relative;background:var(--sys);color:var(--sys-ink);border:0;width:36px;height:36px;border-radius:var(--r-2);display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .12s,transform .06s}
   /* Rappel MINUTEURS toujours visible : 2e ligne de l'en-tête sticky, n'apparaît que si un minuteur
      tourne ET que le panneau minuteurs est sorti de l'écran (mis à jour par tickAll). Tap -> remonte
      au panneau. Fait partie de l'en-tête -> aucun calcul de position, reste sous l'encoche. */
@@ -1356,8 +1384,13 @@
   /* CONNECTÉ, il porte les INITIALES sur la même matière : l'identité se lit, elle ne change pas
      la nature de l'objet. Le survol éclaircit la matière système, il ne la remplace pas par un
      aplat d'accent — c'était le « fond bleu » signalé. */
+  /* ⚠ LE SURVOL NE PEUT PAS ÊTRE `--sys-2` : c'est un BLANC À 7 % D'OPACITÉ, pensé pour se
+     COMPOSER par-dessus la matière système. Employé comme fond, il REMPLACE `--sys` — le disque
+     devenait presque transparent et laissait passer le blanc de la barre (signalé à l'usage :
+     « le hover du bouton compte ne s'affiche pas correctement »). Il faut une matière OPAQUE :
+     `--sys-hi`, le cran clair du système. */
   .bar-acct.on{background:var(--sys);color:var(--sys-ink)}
-  .bar-acct:hover,.bar-acct.on:hover{background:var(--sys-2);color:var(--sys-ink)}
+  .bar-acct:hover,.bar-acct.on:hover{background:var(--sys-hi);color:var(--sys-ink)}
   .bar-acct:active{transform:translateY(1px)}
   /* Déconnecté = buste en contour ; connecté = buste plein (+ pastille verte). État évident. */
   .bar-acct .ic-filled{display:none}
@@ -2945,14 +2978,28 @@
      ⚠ LE `--step-bleed` PART AVEC LA BANDE : il n'existait que pour que le liseré inset déborde
      sans décaler la colonne de cases. Plus de bande, plus de compensation à faire — et la colonne
      de cases est alignée par CONSTRUCTION, ce qui était tout l'enjeu du passage à gauche. */
-  ol.steps li.crit .box{border-color:var(--crit)}
-  ol.steps li.crit .txt{font-size:var(--t-step);font-weight:700}
+  /* ⚠ UNE ÉCHELLE ORDONNÉE, PAS DEUX ÉTATS BINAIRES (signalé à l'usage : « difficile de
+     différencier étapes vitales de à vérifier »). Mesuré avant : une étape △ ne différait d'une
+     étape ORDINAIRE que par la couleur de son glyphe et de sa case — même corps, même graisse,
+     même encre. Deux signaux de 13 px sur une ligne de 15, dans une colonne où toutes les lignes
+     se ressemblent : le registre intermédiaire était illisible.
+     La GRAISSE devient le troisième canal, et elle est MONOTONE — 600 ordinaire, 700 vigilance,
+     800 vital — de sorte que les trois se rangent d'eux-mêmes sans qu'on ait à les comparer deux
+     à deux. Le CORPS reste le canal du seul vital (15 → 17,5) : l'étendre à « on s'y trompe »
+     remettrait les deux registres à égalité, et l'on aurait déplacé l'inflation au lieu de la
+     supprimer. Toujours aucun aplat, aucun cadre (A11). */
+  ol.steps li.crit .box{border-color:var(--crit);border-width:2.5px}
+  ol.steps li.crit .txt{font-size:var(--t-step);font-weight:800}
   ol.steps li.crit .stp-mk{color:var(--crit)}
-  /* VIGILANCE « △ » : même grammaire, registre ATTENTION — mais SANS le gain de corps. Le corps
-     est le canal du « ceci tue si on l'oublie » ; l'étendre à « on s'y trompe » les remettrait à
-     égalité, et l'on aurait déplacé l'inflation au lieu de la supprimer. */
-  ol.steps li.vigil .box{border-color:var(--warn-line)}
+  ol.steps li.vigil .box{border-color:var(--warn-line);border-width:2px}
+  ol.steps li.vigil .txt{font-weight:700}
   ol.steps li.vigil .stp-mk{color:var(--warn)}
+  /* ⚠ ET LE GLYPHE VITAL EST PLEIN, LE GLYPHE DE VIGILANCE EST CREUX. Deux triangles au trait,
+     à 13 px, se distinguaient par la seule teinte — la règle 8 exige un second canal, et la
+     FORME est celle qui survit à un écran mal calibré comme à un daltonisme. Le triangle plein
+     porte son « ! » en réserve ; `△` reste le caractère creux. */
+  ol.steps li.crit .stp-mk svg{fill:var(--crit);stroke:var(--crit)}
+  ol.steps li.crit .stp-mk svg path:not(:first-child){stroke:var(--surface);stroke-width:2.6}
   /* Étape COCHÉE : l'état « fait » s'aplatit avec la ligne — l'information est portée par la
      COCHE verte pleine + l'encre douce + la graisse (400 contre 600). La coche ENTRE avec le
      « pop » (canvas ; transform seul, composité). Une étape SIGNALÉE cochée CONVERGE vers le vert
@@ -3370,7 +3417,13 @@
   /* Un COMPTEUR du rail est une RANGÉE : nom · valeur · ± . La remise à zéro vit dans le panneau,
      où l'on va pour régler — elle n'a rien à faire sous le doigt qui incrémente. */
   body.view-read .read-side .rt-counters{display:block;margin-top:0}
+  /* ⚠ LA VALEUR SE CENTRE SUR SES BOUTONS (signalé à l'usage : « centre le texte verticalement
+     par rapport aux boutons des compteurs »). `align-items:center` centre les BOÎTES, mais la
+     valeur est un texte à `line-height:1.15` dans une boîte de 17 px face à des boutons de 44 :
+     la moitié optique du chiffre tombait 3 px au-dessus de celle des boutons (mesuré). On aligne
+     donc les boîtes ET on donne à la valeur la hauteur de ligne de la rangée. */
   body.view-read .read-side .cncard{display:flex;flex-direction:row;align-items:center;gap:8px;text-align:left;min-height:56px;background:none;border:0;padding:2px 0 8px}
+  body.view-read .read-side .cncard :is(.tm-label,.cn-val){display:flex;align-items:center;min-height:44px}
   body.view-read .read-side .cncard .tm-label{flex:1;min-width:0;justify-content:flex-start;font-size:12px;font-weight:600;color:var(--ink-2);margin:0;min-height:0;-webkit-line-clamp:2}
   body.view-read .read-side .cncard .cn-val{flex:none;font-size:15px;font-weight:700;color:var(--ink)}
   body.view-read .read-side .cncard .cn-log,
@@ -3459,6 +3512,14 @@
   .tm-btn::after{content:"";position:absolute;inset:-4px}
   .tm-btn:hover{background:var(--surface-2)}
   .tm-main{flex:1.2;background:var(--surface);border:1.5px solid var(--link);color:var(--link);font-weight:800}.tm-main:hover{background:var(--primary-soft)}
+  /* ⚠ UN MINUTEUR ÉCHU EST UNE ALARME, SON BOUTON EN PORTE LE REGISTRE (signalé à l'usage : « le
+     design du bouton relancer n'est pas harmonisé »). Il gardait le bleu de l'ACTION sur une
+     carte au registre ATTENTION : deux registres sur le même objet, et le seul contrôle qui
+     acquitte l'alarme ne lui ressemblait pas. Contour ambre, jamais rempli — l'aplat reste à ce
+     qui exige une action MAINTENANT, et l'alarme, c'est la CARTE. Même dessin que dans le volet
+     sombre (`.rt-dock .tmcard.due .tm-main`), aux tokens de la matière près. */
+  .tmcard.due .tm-main{border-color:var(--warn-line);color:var(--warn);background:none;letter-spacing:.02em;text-transform:uppercase;font-size:var(--t-meta)}
+  .tmcard.due .tm-main:hover{background:var(--warn-soft)}
   /* « En cours » = accent FROID plein (primaire) : le chaud est réservé aux alarmes (fin de
      cycle) et aux gestes destructifs, jamais à un état neutre qui tourne. */
   .tm-main.run{background:var(--surface);border-color:var(--link);color:var(--link)}.tm-main.run:hover{background:var(--primary-soft)}
@@ -5498,7 +5559,7 @@
   .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
   .home-side>.hs-h:first-child{margin-top:0}
   .hs-row{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
-  .hs-row:hover{background:var(--surface-2)}
+  .hs-row:hover{background:var(--amb-2)}
   /* ⚠ SÉLECTION = TEINTE, PLUS APLAT PLEIN (v5.6, maquette 2f — signalé à l'usage : « la sidebar
      d'accueil, cases sélectionnées, n'est pas celle du mockup »). L'encodage reste le BLEU SYSTÈME
      et jamais la couleur de la catégorie (SPEC §1a) : c'est la SATURATION qui change. Trois
@@ -5534,19 +5595,23 @@
      (0,2,0), donc l'ordre de déclaration ne décide de rien (5ᵉ piège de cascade du projet). */
   .hs-wrap>.hs-row:hover{background:transparent;transform:none;box-shadow:none}
   .hs-wrap>.hs-row:active{transform:none}
-  .hs-wrap:hover{background:var(--surface-2)}
+  .hs-wrap:hover{background:var(--amb-2)}
   /* LA SÉLECTION VA JUSQU'AU BORD DROIT (demande utilisateur) — sous le bouton « modifier », le
      cadenas ou l'écart, qui appartiennent à la même rangée. Une bibliothèque est UNE ligne : que
      l'aplat s'arrête avant son propre bouton d'édition la coupait en deux, et laissait croire que
      le geste vise autre chose que la rangée sélectionnée. C'est le CONTENEUR qui porte l'état ;
      le bouton garde le sien (même couleur, donc aucune couture visible). */
-  .hs-wrap:has(>.hs-row.on){background:var(--primary);border-radius:8px}
-  [data-theme="dark"] .hs-wrap:has(>.hs-row.on){background:var(--primary-dk)}
-  .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--on-primary)}
-  [data-theme="dark"] .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--bg)}
-  /* Survol du bouton d'édition SUR une rangée sélectionnée : la teinte primaire à 8 % serait
-     invisible sur du primaire plein — on assombrit l'aplat au lieu de le teinter. */
-  .hs-wrap:has(>.hs-row.on) button.hs-act:hover{color:inherit;background:color-mix(in srgb,var(--ink) 16%,transparent)}
+  /* ⚠ LE CONTENEUR SUIT LA MÊME TEINTE QUE LA RANGÉE (signalé à l'usage : « hover/couleur des
+     listes de bibliothèques bug »). Les rangées de TYPE et de CATÉGORIE sont passées à la teinte
+     de sélection ; celle-ci, portée par le CONTENEUR, était restée en aplat primaire PLEIN — la
+     même colonne montrait donc deux encodages de la même chose, et l'encre blanche du bouton
+     d'édition se retrouvait sur un fond clair dès qu'on la corrigeait à moitié. Un seul
+     encodage : teinte + encre `--act`, ici comme ailleurs. */
+  .hs-wrap:has(>.hs-row.on){background:var(--primary-soft);border-radius:8px}
+  [data-theme="dark"] .hs-wrap:has(>.hs-row.on){background:var(--primary-soft)}
+  .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--act)}
+  [data-theme="dark"] .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--primary-dk)}
+  .hs-wrap:has(>.hs-row.on) button.hs-act:hover{color:var(--act);background:var(--primary-100)}
   .hs-act{flex:none;width:34px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
   button.hs-act{cursor:pointer}
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
