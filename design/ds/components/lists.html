@@ -930,6 +930,17 @@
      comme la capsule : les deux seuls objets sombres, et ils se répondent — l'état en haut, les
      commandes en bas. Marge basse du matériel prise en compte (indicateur d'accueil iPhone). */
   #sessionDock{position:fixed;left:0;right:0;bottom:0;z-index:18;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+  /* ⚠ AU-DELÀ DE 780, LE DOCK EST LE PIED DE LA COLONNE D'ACTION, JAMAIS UNE BARRE FLOTTANTE
+     (7c : « à toutes les largeurs, jamais flottant au-delà de 780 »). Sur un écran large, une
+     barre fixée en bas de FENÊTRE se retrouve à des centaines de pixels du contenu qu'elle
+     commande, et recouvre la colonne d'état ; elle appartient à la colonne qu'elle sert. Le
+     dispositif reste le même objet, aux mêmes touches, dans le même ordre — c'est son ANCRAGE
+     qui change, et il change là où la fenêtre cesse d'être la colonne. */
+  @media (min-width:780px){
+    body.dock-flow #sessionDock{position:static;padding:0;pointer-events:auto;margin-top:14px}
+    body.dock-flow #sessionDock .sd-in{max-width:none}
+    body.dock-flow.dock-on main{padding-bottom:0}
+  }
   #sessionDock[hidden]{display:none}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
      dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */
@@ -4571,6 +4582,15 @@
   .pre-wrap{margin-top:2px}
   .pre-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
   .pre-t{font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  /* « CE QUI DÉMARRERA » (7c) : des RANGÉES de lecture — nom à gauche, nature à droite. Aucun
+     contrôle : rien ne s'arme avant le démarrage, et l'objet n'a donc pas la forme d'une carte
+     de minuteur, qui, elle, se règle. */
+  .pre-rows{display:grid;gap:2px;margin-top:6px}
+  .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pre-rn{flex:1;min-width:0}
+  .pre-rv{flex:none;max-width:52%;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3);text-align:right}
+  .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+  .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
   .pre-inert{margin-left:auto;font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   /* ⚠ « → aller à ce bloc » N'EXISTE PAS AVANT LE SOIN : y aller, c'est ouvrir la vue de travail

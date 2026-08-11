@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NBkugOPpvcFWHORXnR29WQEs9PX+BUZRwZlcGYAA+pg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-995MT6oD3clzFL95jbsuUvgdpXZNfJ9S3NkFDpzLe2Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1275,6 +1275,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      comme la capsule : les deux seuls objets sombres, et ils se répondent — l'état en haut, les
      commandes en bas. Marge basse du matériel prise en compte (indicateur d'accueil iPhone). */
   #sessionDock{position:fixed;left:0;right:0;bottom:0;z-index:18;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+  /* ⚠ AU-DELÀ DE 780, LE DOCK EST LE PIED DE LA COLONNE D'ACTION, JAMAIS UNE BARRE FLOTTANTE
+     (7c : « à toutes les largeurs, jamais flottant au-delà de 780 »). Sur un écran large, une
+     barre fixée en bas de FENÊTRE se retrouve à des centaines de pixels du contenu qu'elle
+     commande, et recouvre la colonne d'état ; elle appartient à la colonne qu'elle sert. Le
+     dispositif reste le même objet, aux mêmes touches, dans le même ordre — c'est son ANCRAGE
+     qui change, et il change là où la fenêtre cesse d'être la colonne. */
+  @media (min-width:780px){
+    body.dock-flow #sessionDock{position:static;padding:0;pointer-events:auto;margin-top:14px}
+    body.dock-flow #sessionDock .sd-in{max-width:none}
+    body.dock-flow.dock-on main{padding-bottom:0}
+  }
   #sessionDock[hidden]{display:none}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
      dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */
@@ -4916,6 +4927,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-wrap{margin-top:2px}
   .pre-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
   .pre-t{font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  /* « CE QUI DÉMARRERA » (7c) : des RANGÉES de lecture — nom à gauche, nature à droite. Aucun
+     contrôle : rien ne s'arme avant le démarrage, et l'objet n'a donc pas la forme d'une carte
+     de minuteur, qui, elle, se règle. */
+  .pre-rows{display:grid;gap:2px;margin-top:6px}
+  .pre-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pre-rn{flex:1;min-width:0}
+  .pre-rv{flex:none;max-width:52%;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3);text-align:right}
+  .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+  .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
   .pre-inert{margin-left:auto;font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   /* ⚠ « → aller à ce bloc » N'EXISTE PAS AVANT LE SOIN : y aller, c'est ouvrir la vue de travail
@@ -8035,6 +8055,20 @@ function placeFooter(){const ft=document.getElementById('appFooter');const side=
    le sticky de bande, et stickBase()/stickHeight() cessent de compter des rangées qui ne sont
    plus empilées en haut. Le rescue court avec ceux d'applyViewChrome, à chaque changement de
    vue. */
+/* ⚠ LE DOCK EST NOMADE (7c) : barre FIXE sous 780, PIED DE LA COLONNE D'ACTION au-delà. Même
+   patron que le pied de page, le chrome de crise et le déclencheur de filtre — on DÉPLACE
+   l'élément, on ne le recrée jamais : ids, écouteurs et état peint (`syncDock`, `syncCxKey`)
+   restent vivants. `rescueSessionDock` court AVANT tout wipe de `main`, sans quoi le dock
+   partirait avec lui. */
+function rescueSessionDock(){
+  const d=document.getElementById('sessionDock');
+  if(d&&main.contains(d))document.querySelector('.app').appendChild(d);
+  document.body.classList.remove('dock-flow');}
+function placeSessionDock(){
+  const d=document.getElementById('sessionDock');if(!d)return;
+  const host=mqRail.matches?(main.querySelector('#dockSlot')||main.querySelector('.read-main')||null):null;
+  if(host){if(d.parentNode!==host)host.appendChild(d);document.body.classList.add('dock-flow');}
+  else rescueSessionDock();}
 function rescueCrisisChrome(){
   const dk=document.getElementById('crisisDock');
   const slot=document.getElementById('hdrCrisisSlot');
@@ -11611,7 +11645,7 @@ function applyViewChrome(){
   // remet dans .app (sinon le wipe le détruirait — ids et écouteurs perdus) ; renderHomeList
   // le replacera en bas de la sidebar si elle existe. Même sauvetage pour le chrome de crise,
   // qui vit dans la colonne du plan en cockpit (v5.4.1).
-  rescueFiltTog();rescueHomeSearch();rescueFooter();rescueCrisisChrome();
+  rescueFiltTog();rescueHomeSearch();rescueSessionDock();rescueFooter();rescueCrisisChrome();
   {const hn=document.getElementById('hdrNew');
    if(state.view==='library'&&canEditScope(state.scope)){hn.hidden=false;
      hn.classList.toggle('tonal',Object.values(liveSessions).some(R=>R.started&&R.fiche));
@@ -11704,6 +11738,7 @@ function render(){
   // couches collantes, pour que stickHeight() sache déjà que les rangées ne sont plus empilées
   // en haut (no-op si la vue n'a pas de slot ; le rescue d'applyViewChrome a déjà défait l'état).
   placeCrisisChrome();
+  placeSessionDock();
   // État de l'en-tête resynchronisé APRÈS le défilement final : un changement de vue sans
   // évènement de scroll (on était déjà en haut) laissait sinon .ttl-on et les variables de
   // couches collantes hérités de la vue précédente — zone haute annoncée deux fois, ou pas du tout.
@@ -12547,6 +12582,7 @@ function renderHomeList(cfg){
     // dans les deux modes : des lettres, ou les pastilles des catégories.
     if(list.length&&az.length>=2)railHtml=`<nav class="azrail${gk==='cat'?' catrail':''}" id="azRail" aria-label="${gk==='cat'?'Aller à la catégorie':'Aller à la lettre'}">${az.map(g=>`<button type="button" data-azl="${esc(g.L)}" aria-label="Aller à ${esc(g.L)}" title="${esc(g.L)}">${gk==='cat'?`<span class="azr-dot" style="background:${g.cat?safeColor(g.cat.color):'var(--line-strong)'}"></span>`:esc(g.L)}</button>`).join('')}</nav>`;
   }
+  rescueSessionDock();
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
@@ -13125,6 +13161,7 @@ function renderProtocolRead(){
   const docs=attListHtml(p);
   // « Voir aussi » (liens croisés v4.2.0) : aides cognitives ET protocoles associés.
   const rel=(p.links||[]).map(id=>relTarget(id)).filter(Boolean);
+  rescueSessionDock();
   main.innerHTML=`<div class="ref-grid">
     <div class="ref-main">
     <div class="read-head"><h2>${esc(p.title)||'Sans titre'}</h2></div>
@@ -13341,6 +13378,7 @@ function renderProtocolEdit(){
   const p=state.pdraft;if(!p){state.view='library';return render();}
   const isNew=!protocols.some(x=>x.id===p.id);
   const wideEdit=mqReadWide.matches;
+  rescueSessionDock();
   main.innerHTML=`${wideEdit?`<div class="read-grid"><div class="read-main">`:''}`+`
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${''/* « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE » (règle de la v4.76.0, étendue aux
@@ -15891,7 +15929,9 @@ function renderRead(){
   const gesteEntree=!Runtime.started&&!state.previewFrom&&(()=>{try{return Share.mode!=='guest';}catch(e){return true;}})();
   const ladRail=(()=>{
     if(!wideRead||useSv||preview||!hasFlow(f))return '';
-    if(!started&&gesteEntree)return '';
+    /* Avant le soin, la colonne n'existe QU'AU COCKPIT : sous 1200 le parcours vit au centre
+       (7c), et l'y laisser en double afficherait la même liste deux fois côte à côte. */
+    if(!started&&gesteEntree&&!mqCock.matches)return '';
     const plan=flowPlan(f);if(!plan.order.length)return '';
     const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
     const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
@@ -15919,6 +15959,14 @@ function renderRead(){
   /* RAIL — colonne CONTINUE (v4.23.0). Seule règle : la ou les sections de longueur ILLIMITÉE
      (Échelle, horodatage) passent en DERNIER, où elles ne peuvent rien repousser. La posologie,
      placée avant, reste donc lisible sans défiler quelle que soit la taille du plan. */
+  /* ⚠ DÉCLARÉES ICI, ET PAS PLUS BAS : `gridClose` les lit pour composer la colonne de droite.
+     C'est la TROISIÈME fois que la zone morte temporelle se paie dans ce fichier (lot T3, puis
+     `gesteEntree` en v5.6) — et elle ne se voit ni à `npm test` ni à `npm run check`, dont aucun
+     n'exerce un rendu. Une constante lue par le gabarit se déclare avant le gabarit. */
+  const avantSession=!started&&!useSv&&gesteEntree&&hasFlow(f);
+  /* Au cockpit le parcours est monté à gauche : le centre ne garde que la condition d'entrée et
+     les renvois de lecture (7c). */
+  const preLad=avantSession&&!(wideRead&&mqCock.matches);
   const gridClose=wideRead?`</div>`
     /* F4 : en cockpit, le plan est la colonne de GAUCHE — posée APRÈS .read-main dans le DOM et
        ramenée à gauche par `order` (grille). L'ordre du DOM reste celui de la LECTURE : action
@@ -15926,14 +15974,20 @@ function renderRead(){
        traverser le plan pour atteindre la checklist. */
     +((cockpit&&ladRail)?`<aside class="read-plan"><div class="rail-sec">${ladRail}</div></aside>`:'')
     +`<aside class="read-side">`
-    +`<div class="rail-sec">${rtH}</div>`
+    /* AVANT LE SOIN (7c) : la colonne d'état n'a pas d'état à porter — ni capsule, ni minuteurs
+       vivants, ni journal. Elle porte ce qui aide à DÉCIDER : ce que le démarrage mettra en
+       route, les repères posologiques, et la dernière session de cette aide. */
+    +(avantSession?`<div class="rail-sec">${preStartHtml(f)}</div>`
+        +(posRail?`<div class="rail-sec">${posRail}</div>`:'')
+        +preLastSessHtml(f)
+      :`<div class="rail-sec">${rtH}</div>`
     /* v5.4.2-r (R1) : le JOURNAL contre les compteurs, en dépliant — les trois familles de
        traçabilité voisines à toutes les largeurs (la décision v5.4.0 portée au rail). Puis la
        posologie ; puis, sous 1200 seulement, l'Échelle en dépliant (R2 — cf. doctrine près de
        railLadParts). L'ordre v4.23.0 tient toujours : replié, l'illimité est BORNÉ. */
     +(tkH?railTkSec(tkH):'')
     +(posRail?`<div class="rail-sec">${posRail}</div>`:'')
-    +((!cockpit&&ladRail)?railLadSec(f):'')
+    +((!cockpit&&ladRail)?railLadSec(f):''))
     +`</aside></div>`:'';
   /* ----- LES ÉTAGES DE LA FICHE (v4.4.0 → v5.0.0) : condition d'entrée → prise en charge →
      surveillances. Le RAIL NUMÉROTÉ ①②③ qui les ossaturait est SUPPRIMÉ (M2a) : deux
@@ -16070,9 +16124,8 @@ function renderRead(){
      ⚠ ET SEULEMENT QUAND LE GESTE D'ENTRÉE EXISTE : chez l'INVITÉ (qui suit une session
      distante et n'en démarre aucune) et en APERÇU D'ESSAI, la vue de travail reste — sinon on
      leur montrerait une fiche qu'ils ne peuvent plus dérouler. */
-  const avantSession=!started&&!useSv&&gesteEntree&&hasFlow(f);
   {const body=avantSession
-     ?preSessionHtml(f)+localH+(wideRead?'':posH)
+     ?preSessionHtml(f,preLad)+localH+((wideRead||avantSession)?'':posH)
      :agirDabord
      ?crumbsH+navHtml+navRowH+(wideRead||state.rtOpen==='dock'?'':rtH)+(wideRead?'':tkH)+localH+algH+(wideRead?'':posH)
      :(wideRead||state.rtOpen==='dock'?'':rtH)+algH+crumbsH+navHtml+navRowH+(wideRead?'':tkH)+localH+(wideRead?'':posH);
@@ -16113,6 +16166,7 @@ function renderRead(){
   // SVG). Vaut pour tous les chemins ; les mises à jour chirurgicales (renderTkOnly, boutons de
   // minuteur sans re-rendu) restent préférables, ceci est le FILET GLOBAL.
   const _railY=(()=>{const s=document.querySelector('.read-side');return s?s.scrollTop:0;})();
+  rescueSessionDock();
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
@@ -18118,7 +18172,29 @@ const ALL_TAB_LBL={parcours:'Parcours',page:'Page SFAR',schema:'Schéma'};
    ouvertures secondaires — l'action de l'écran est dans le dock, et rien ne doit lui disputer sa
    saillance. Chaque lien passe par le VRAI chemin (le même que le menu ⋯ et le dock), il n'y a
    pas de second point d'entrée. */
-function preSessionHtml(f){
+/* « CE QUI DÉMARRERA · n » (7c) — information de DÉCISION, jamais d'action : on lit ce que le
+   tap va mettre en route avant de le taper. Le chrono de session en tête (il démarre toujours),
+   puis chaque minuteur avec sa nature — un cycle dit sa période, un chronomètre dit qu'il compte.
+   AUCUN CONTRÔLE ICI : rien ne s'arme avant le démarrage. */
+function preStartHtml(f){
+  const tl=(f.timers||[]);
+  const li=t=>{const nm=esc(tmLabelParts(t.label).name)||(t.type==='interval'?'Minuteur':'Chronomètre');
+    const per=t.type==='interval'?fmtMs((t.seconds||0)*1000).replace(/^0(\d):/,'$1:'):'';
+    const nat=t.type==='interval'?(t.autoloop?`${per}, cyclique`:`${per}`):'compte à partir de 0';
+    return `<div class="pre-row"><span class="pre-rn">${nm}</span><span class="pre-rv">${esc(nat)}</span></div>`;};
+  return `<div class="rail-head"><span class="rail-title">Ce qui démarrera</span><span class="rail-n">${tl.length+1}</span></div>`
+    +`<div class="pre-rows"><div class="pre-row"><span class="pre-rn">Chrono de session</span><span class="pre-rv">dès le premier geste</span></div>`
+    +tl.map(li).join('')+'</div>';}
+/* LA DERNIÈRE SESSION DE CETTE AIDE (7c) : une ligne, et le compte rendu à un tap. C'est une
+   information de DÉBRIEF posée là où l'on décide d'en ouvrir une nouvelle — jamais une invite. */
+function preLastSessHtml(f){
+  const ss=sessions.filter(x=>x.ficheId===f.id&&!x.live).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
+  const s0=ss[0];if(!s0)return '';
+  const n=(s0.nav||[]).length,dur=s0.startedAt&&s0.endedAt?fmtMs(s0.endedAt-s0.startedAt):'';
+  return `<div class="pre-last"><span class="pre-lt">Dernière session : ${esc(sessStamp(s0.savedAt||s0.endedAt||0))}`
+    +`${n?` · ${n} bloc${n>1?'s':''}`:''}${dur?` · ${esc(dur)}`:''}</span>`
+    +`<button type="button" class="pre-link" data-prelast="${esc(s0.id)}">Voir le compte-rendu</button></div>`;}
+function preSessionHtml(f,avecParcours){
   const plan=flowPlan(f);if(!plan.order.length)return '';
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   /* ⚠ PAS DE « ICI » AVANT LE SOIN : on n'est nulle part, la session n'a pas commencé. Le
@@ -18134,9 +18210,13 @@ function preSessionHtml(f){
     +(hasFlow(f)?`<button type="button" class="pre-link" data-prelink="svg">◈ Schéma</button>`:'')
     +(nd?`<button type="button" class="pre-link" data-prelink="docs">▤ Documents · ${nd}</button>`:'')
     +`</div>`;
-  return `<div class="pre-wrap"><div class="pre-head"><span class="pre-t">Parcours · ${n} bloc${n>1?'s':''}</span>`
-    +`<span class="pre-inert">inerte — rien ne se coche ici</span></div>`
-    +`<div class="rail-lad pre-lad">${lad}</div>${liens}</div>`;}
+  const par=avecParcours?`<div class="pre-head"><span class="pre-t">Parcours · ${n} bloc${n>1?'s':''}</span>`
+    +`<span class="pre-inert">inerte</span></div><div class="rail-lad pre-lad">${lad}</div>`:'';
+  /* LE DOCK SE POSE ICI, JUSTE APRÈS LES RENVOIS (7c) — pas en bas de la colonne : la fiche y
+     porte encore ses surveillances, sa note et ses annexes, et le geste d'entrée se retrouverait
+     à mille pixels de ce qu'il commande. L'ordre de la maquette est respecté au mot près :
+     condition → parcours → renvois → dock. */
+  return `<div class="pre-wrap">${par}${liens}<div id="dockSlot"></div></div>`;}
 function ovParcoursHtml(f){
   /* ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — demande
      utilisateur : « mets à jour parcours dans tout voir pour que ça corresponde au nouveau
@@ -19730,6 +19810,7 @@ function renderEditor(){
   const f=state.draft;const blocks=f.blocks;blocks._start=f.start;
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
+  rescueSessionDock();
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
     ${edGrabBanner(f)}
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
