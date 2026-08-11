@@ -1375,7 +1375,10 @@ await sec('En-tête d\'accueil · une seule ligne jusqu\'à 320 px', async () =>
       const acts=document.querySelector('.hdr-acts').getBoundingClientRect();
       /* Les cibles sont mesurées HALO COMPRIS : c'est le patron admis en zone haute pour ne pas
          épaissir la rangée (doctrine « halo sur les contrôles 36 px de la barre »). */
-      const cib=[...document.querySelectorAll('.hdr-new,.hdr-theme,.bar-acct')].map(e=>{
+      /* ⚠ ON NE MESURE QUE CE QUI EST RENDU (v5.6) : le raccourci de thème existe dans la coque
+         mais n'est visible qu'en LECTURE — un élément masqué rend une boîte de 0×0, et la cible
+         minimale tombait donc à 0 sur l'accueil. Le contrôle mesurait l'absence, pas une cible. */
+      const cib=[...document.querySelectorAll('.hdr-new,.hdr-theme,.bar-acct')].filter(e=>e.offsetParent).map(e=>{
         const b=e.getBoundingClientRect(),a=getComputedStyle(e,'::after');
         return Math.min(Math.round(b.width-io(a.left)-io(a.right)),Math.round(b.height-io(a.top)-io(a.bottom)));});
       const deb=Math.max(0,...[...document.querySelector('.id-row').children].filter(e=>e.offsetParent)
@@ -3488,6 +3491,109 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
       t(`${W} · un DOCUMENT devient une feuille pleine hauteur (Compte)`,
         r.fen.authModal&&r.fen.authModal.pleineHauteur===true, JSON.stringify(r.fen.authModal));
     }
+    await page.close();
+  }
+}
+});
+
+/* ══ v5.6 — L'ACCUEIL EST LE MÊME, QUEL QUE SOIT LE CHEMIN PAR LEQUEL ON Y ARRIVE ══════════
+   Signalé à l'usage : « après avoir lancé une session, en revenant à l'accueil, pas le même
+   design (le bouton Créer n'est pas du même style) ». Deux causes, et la première était une
+   DESTRUCTION silencieuse : `render()` parque `#filtTog` hors de `main` avant le wipe, puis
+   `syncHomeNew(false)` le remettait aussitôt dans `.grp-row` — donc dans le `main` qu'on
+   remplaçait à la ligne suivante. Un rescue annulé par la ligne d'après est pire que pas de
+   rescue : il donne l'illusion d'être couvert.
+   Le témoin compare le CHROME de l'accueil avant et après un aller-retour en session : mêmes
+   éléments, mêmes parents, mêmes classes. La position VERTICALE est exclue à dessein — la carte
+   « Reprendre » s'ajoute légitimement au contenu. */
+await sec('v5.6 · l\'accueil ne dépend pas du chemin d\'arrivée', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const chrome=()=>page.evaluate(()=>{const o={};
+    for(const id of ['hdrNew','filtTog','q','hdrSearch']){
+      const e=document.getElementById(id);
+      o[id]=e?{cls:e.className,par:e.parentElement.id||e.parentElement.className,hidden:!!e.hidden,
+        x:Math.round(e.getBoundingClientRect().x),h:Math.round(e.getBoundingClientRect().height)}:'ABSENT';}
+    return o;});
+  const avant=await chrome();
+  await ouvrirFiche(page,'Anaphylaxie');
+  /* ⚠ ON MESURE AUSSI PENDANT LE SÉJOUR : c'est là que le bouton disparaissait. Un contrôle qui
+     ne regarderait que le retour verrait l'accueil réparé par son propre re-rendu complet, et
+     resterait vert sur une destruction bien réelle. */
+  const pendant=await page.evaluate(()=>!!document.getElementById('filtTog'));
+  await demarrerSession(page);
+  await page.evaluate(()=>{const b=document.getElementById('hdrBack');if(b)b.click();});
+  await page.waitForFunction(()=>document.body.classList.contains('view-home'));
+  await page.waitForTimeout(500);
+  const apres=await chrome();
+  t('le déclencheur de filtre survit au départ de l\'accueil', pendant===true);
+  for(const k of Object.keys(avant)){
+    t(`${k} : même logement et même habit au retour`,
+      JSON.stringify(avant[k])===JSON.stringify(apres[k]),
+      `${JSON.stringify(avant[k])} → ${JSON.stringify(apres[k])}`);
+  }
+  await page.close();
+}
+});
+
+/* ══ v5.6 — LA RANGÉE D'ACTIONS DE L'EN-TÊTE : UN SEUL GABARIT, UNE SEULE CIBLE ═══════════
+   Signalé à l'usage : « la taille des boutons Créer / thème / initiales du compte n'est pas la
+   même ». Mesuré, le menu ⋯ était le seul à 44 px de DESSIN (les autres à 36) et l'avatar
+   portait un halo de -7 px calibré du temps où il faisait 30 px — sa cible montait donc à 50
+   quand celle de ses voisins s'arrête à 44, et deux halos se chevauchaient. Sur une rangée de
+   glyphes, le plus gros se lit comme le plus important ; et un halo qui déborde sur le voisin,
+   c'est un tap au bord qui n'atteint pas le bouton visé.
+   ⚠ ET LE THÈME EST DE RETOUR, EN LECTURE SEULEMENT (décision utilisateur) : le réglage
+   canonique reste à froid dans Compte › Affichage, ceci en est le raccourci, posé dans la seule
+   situation où il est urgent. Sa condition est la VUE, jamais la largeur. */
+await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
+{
+  for(const W of [320,390,1280]){
+    const page=await br.newPage({viewport:{width:W,height:844},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    const mesure=()=>page.evaluate(()=>{const o={};
+      for(const sel of ['#hdrNew','#hdrTheme','#hdrMore','#acctTop']){
+        const e=document.querySelector(sel);if(!e||e.hidden||!e.offsetParent)continue;
+        const r=e.getBoundingClientRect(),a=getComputedStyle(e,'::after');
+        /* La cible EFFECTIVE = dessin + halo, jamais `min-height` : c'est le halo qui la rend en
+           zone haute, et un contrôle mesuré sur son seul dessin passerait pour trop petit. */
+        const h=a.content!=='none'?Math.abs(parseFloat(a.insetBlockStart||a.inset)||0):0;
+        o[sel]={w:Math.round(r.width),h:Math.round(r.height),y:Math.round(r.y),
+                cible:Math.round(r.height+2*h),cibleW:Math.round(r.width+2*h)};}
+      return o;});
+    const acc=await mesure();
+    await ouvrirFiche(page,'Anaphylaxie');
+    const lec=await mesure();
+    for(const [nom,m] of [['accueil',acc],['lecture',lec]]){
+      const v=Object.entries(m);
+      t(`${W} · ${nom} : témoin — la rangée porte au moins deux contrôles`, v.length>=2, JSON.stringify(Object.keys(m)));
+      /* Les GLYPHES ont tous le même carré ; « Créer » en large porte son mot et s'allonge, mais
+         sa HAUTEUR reste celle de la rangée — c'est l'alignement qui se lit, pas la largeur. */
+      const hs=[...new Set(v.map(([,x])=>x.h))], ys=[...new Set(v.map(([,x])=>x.y))];
+      t(`${W} · ${nom} : même hauteur de dessin`, hs.length===1, JSON.stringify(m));
+      t(`${W} · ${nom} : alignés sur la même ligne`, ys.length===1, JSON.stringify(ys));
+      t(`${W} · ${nom} : cible ≥ 44 px, et jamais au-delà de son voisin`,
+        v.every(([,x])=>x.cible>=44&&x.cible<=46&&x.cibleW>=44), JSON.stringify(m));
+    }
+    /* Le raccourci de thème : présent en LECTURE, absent de l'accueil — c'est le moment qui le
+       justifie, pas la place. */
+    t(`${W} · le thème est un raccourci de LECTURE, pas de l'accueil`,
+      !acc['#hdrTheme']&&!!lec['#hdrTheme'], `accueil ${!!acc['#hdrTheme']}, lecture ${!!lec['#hdrTheme']}`);
+    /* Trois crans, comme le réglage canonique — sinon « Auto » deviendrait inatteignable depuis
+       la fiche, et l'on ne saurait plus si l'on est en clair CHOISI ou en clair SUIVI. */
+    const cy=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));const v=[];
+      for(let i=0;i<4;i++){v.push(localStorage.getItem(spaceKey('ac-theme'))||'auto');
+        document.getElementById('hdrTheme').click();await w(150);}
+      return v;});
+    t(`${W} · … et il parcourt les TROIS crans, dans l'ordre du réglage`,
+      cy.slice(0,3).join(',')==='auto,light,dark'&&cy[3]==='auto', cy.join(' → '));
     await page.close();
   }
 }

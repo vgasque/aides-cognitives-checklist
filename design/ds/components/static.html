@@ -597,12 +597,18 @@
      `--primary-soft` (retour). Quatre réponses au même geste sur la même rangée se lisent comme
      quatre objets sans rapport. Le survol de la barre est celui de l'AMBIANCE : la barre n'est
      pas une surface d'action, et un aplat teinté y ferait croire à un état. */
-  :is(.hdr-new,.hdr-more,.hdr-back):hover{background:var(--amb-2)}
+  :is(.hdr-new,.hdr-theme,.hdr-more,.hdr-back):hover{background:var(--amb-2)}
+  /* Même gabarit que « Créer » et que l'avatar : 36 px de dessin, cible portée par le halo —
+     trois objets voisins qui ne s'alignent pas se lisent comme trois objets sans rapport. */
+  .hdr-theme{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;
+    padding:0;border:0;border-radius:var(--r-2);background:none;color:var(--ink-2);
+    font-family:inherit;cursor:pointer;flex:none}
+  .hdr-theme[hidden]{display:none}
+  .hdr-theme:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .hdr-new[hidden]{display:none}
   .hdr-new:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* « Créer » reprend le registre TONAL quand il est la seule action offerte (bibliothèque vide) :
      c'est alors la porte d'entrée du produit. En temps normal il reste un glyphe de commande. */
-  .hdr-new.tonal{background:var(--primary-soft);color:var(--primary-dk)}
   @media (max-width:779.98px){.hdr-new .hdr-new-lbl{display:none}.hdr-new{width:36px;padding:0;justify-content:center}}
   /* Compact (< 780px, icône seule) : cercle 40px — même gabarit que .hdr-new compact ;
      en large le libellé revient et le bouton reprend la forme pilule. */
@@ -612,7 +618,13 @@
   /* Menu ⋯ (SPEC gestion §4) : bouton 36px (halo 44), menu ancré sous la barre à droite,
      rangées 44px — regroupe les actions de GESTION, remplace les barres d'actions de bas de page.
      Jamais d'action destructive ici (Supprimer reste dans l'éditeur). */
-  .hdr-more{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--link);cursor:pointer;flex:none}
+  /* ⚠ 36 px DE DESSIN COMME SES VOISINS, 44 DE CIBLE PAR LE HALO (v5.6, signalé à l'usage : « les
+     boutons de l'en-tête ne sont pas de la même taille »). Il était le seul à 44 px de DESSIN :
+     sur une rangée de trois glyphes, le plus gros se lit comme le plus important, alors qu'il
+     n'ouvre qu'un menu d'actions secondaires. La cible réglementaire ne bouge pas d'un pixel —
+     c'est tout l'objet du halo, et la recette est déjà celle de « Créer » et du thème. */
+  .hdr-more{display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--r-2);background:transparent;color:var(--link);cursor:pointer;flex:none;position:relative}
+  .hdr-more::after{content:"";position:absolute;inset:-4px}
   .hdr-more[hidden]{display:none}
   .hdr-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* LE MENU NE DÉPASSE JAMAIS L'ÉCRAN (correctif — « si le menu est grand et la hauteur de la
@@ -680,14 +692,19 @@
   /* Invariant SPEC §7 : cible tactile >= 44px sur les contrôles 36px de la barre (halo). */
   /* .hdr-back ajouté v4.23.0 : mesuré à 40px de haut, sous les 44px exigés d'un contrôle du mode
      crise (défaut antérieur au lot — le halo existait pour ses voisins, pas pour lui). */
-  :is(.hdr-new,.hdr-act2,.bar-acct,.hdr-back){position:relative}
+  :is(.hdr-new,.hdr-theme,.hdr-act2,.bar-acct,.hdr-back){position:relative}
   /* ⚠ `.hdr-back` A QUITTÉ CETTE LISTE (v5.0.0, audit design) : son halo lui est propre (-7 px,
      déclaré plus haut) parce que sa BOÎTE est la plus étroite de la rangée — 31 px contre 40 pour
      les autres —, et 4 px de halo ne l'amenaient qu'à 39 de cible. Le laisser ici l'aurait ramené
      à -4 par l'ORDRE de déclaration : c'est le dix-septième piège de cascade du dossier, et on le
      règle en RETIRANT le membre, pas en ajoutant une exception plus bas. */
-  :is(.hdr-new,.hdr-act2)::after{content:"";position:absolute;inset:-4px}
-  .bar-acct::after{content:"";position:absolute;inset:-7px}
+  :is(.hdr-new,.hdr-theme,.hdr-act2)::after{content:"";position:absolute;inset:-4px}
+  /* ⚠ MÊME HALO QUE SES VOISINS (v5.6) : l'avatar était à -7 px, calibré du temps où il faisait
+     30 px de dessin — il en fait 36, donc sa cible montait à 50 quand celle du thème et du menu ⋯
+     s'arrête à 44. Deux halos qui se CHEVAUCHENT sur une rangée de trois glyphes, c'est un tap au
+     bord qui n'atteint pas le bouton visé ; et 44 est la cible réglementaire, pas un plancher
+     qu'on dépasse au hasard. Le rétrécissement à 32 px sous 360 garde son halo propre. */
+  .bar-acct::after{content:"";position:absolute;inset:-4px}
   .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:8px;padding:2px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
   .hdr-badge[hidden]{display:none}
   /* Recherche FIXE dans l'en-tête (accueil, V5, canvas turn 6) : en ligne dans la rangée en
@@ -1375,9 +1392,9 @@
        générique `:is(.hdr-new,…)::after` : (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre
        (dix-septième piège de cascade, où un membre de cette liste écrasait un halo particulier). */
     header.bar.home .hdr-new::after{inset:-6px}
-    /* L'avatar est passé à 30 px de DESSIN (maquette) : son halo doit rendre les 14 px manquants
-       pour tenir la cible de 44 — c'est tout l'objet d'un halo en zone haute. */
-    header.bar.home .bar-acct::after{inset:-7px}
+    /* Sous 360 px, l'avatar descend à 32 px de dessin comme « Créer » : 6 px de halo rendent la
+       cible de 44 au pixel près. */
+    header.bar.home .bar-acct::after{inset:-6px}
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
