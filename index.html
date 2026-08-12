@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-+Md+nHUBrFgfEYjS7FrN04h5Zctv2fQbQupYzOABCF4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vxneC2r4YdLM829pigCOTTH7ikIrAkRG2m9gVU06w9k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3225,7 +3225,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock .rt-head{margin-bottom:8px}
   .rt-dock .rt-head b,.rt-dock .tk-head b{color:var(--sys-ink-2)}
   .rt-dock .rt-ic{color:var(--sys-ink-2)}
+  /* ⚠ LA RÉSERVE SUIT LA TAILLE DU BOUTON, ET LES DEUX SE LISENT ENSEMBLE (v5.6, signalé à
+     l'usage : « le ✕ se superpose à “Son activé” »). La rangée réserve 40 px à droite pour son ✕
+     ancré — mais dans le volet il fait 48, et les 8 px manquants étaient exactement le
+     recouvrement mesuré (600, 700, 768 px : le seul régime où la rangée tient sur une ligne).
+     Une place RÉSERVÉE qui ne vaut pas la taille de l'objet réservé n'est pas une réserve. */
   .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
+  /* 48 de bouton + 8 d'écart : deux cibles de 44 px qui se TOUCHENT sont déjà un défaut — c'est
+     la règle du rail A→Z, prise ici pour la même raison (un pouce ganté ne vise pas au pixel). */
+  .rt-dock .rt-head{padding-right:56px}
   /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
      v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
      titre, lui, n'en faisait que 13 — le ✕ paraissait donc posé une demi-ligne trop bas, entre
@@ -5596,7 +5604,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li.done .stp-r::before{content:"✓ "}
   .pl-r{font-family:var(--mono);font-size:11px;color:var(--link)}
   /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
-  .v-hint{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
+  .v-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
+  .v-hint-t{flex:1 1 auto;min-width:0}
+  /* ⚠ LE MODE SE NOMME SUR LA RANGÉE, LA CONSIGNE VIT DESSOUS (v5.6). La phrase entière et le
+     bouton ne tiennent pas sur une ligne sous 780 px — mesuré, la rangée passait à 85 px et le
+     bouton tombait dessous, ce qui est exactement le « ça agrandit la carte sans nécessité »
+     signalé. Le NOM du mode et sa sortie tiennent, eux, à toutes les largeurs ; la consigne est
+     une aide de lecture, pas un contrôle : elle se lit en dessous, en casse normale. */
+  .v-sub{font-size:11px;font-weight:600;color:var(--ink-2);margin:0 0 6px}
+  /* La sortie du mode : elle porte son VERBE, jamais un glyphe seul — et 44 px de cible, comme
+     tout ce qui se vise en crise. Registre NEUTRE : quitter une passe n'est ni un danger ni une
+     confirmation, c'est une sortie. */
+  .v-quit{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 12px;
+    background:var(--work);border:1px solid var(--line-strong);border-radius:var(--r-2);
+    color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;letter-spacing:0;
+    text-transform:none;white-space:nowrap;cursor:pointer}
+  .v-quit:hover{background:var(--amb-2)}
+  .v-quit:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .vstp{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-top:6px;background:var(--surface);opacity:.45}
   .vstp .vst{flex:none;width:20px;text-align:center;font-weight:700;color:var(--ink-soft)}
   .vstp .txt{flex:1;min-width:0;font-size:13.5px;font-weight:600;line-height:1.4}
@@ -6358,20 +6382,36 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Le déclencheur de filtre (maquette accueil) : sur la rangée des contrôles de liste, à son
      bord DROIT, avec son MOT — glyphe seul, il fallait l'apprendre. Cible 44 px par le halo,
      dessin 36 px : il ne doit pas épaissir la rangée. */
-  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-    position:relative;min-height:36px;padding:0 10px;border:1px solid var(--line-strong);
-    border-radius:var(--r-2);background:var(--work);color:var(--act);font-family:inherit;
+  /* ⚠ BOUTON ROND, GLYPHE SEUL (v5.6, demande de l'auteur : « comme sur Apple »). Le tracé est
+     trois filets horizontaux qui RÉTRÉCISSENT de haut en bas — 16 · 10 · 4 dans une boîte de 24,
+     donc centrés et d'écart constant (5 px), ce qui est la seule façon que le dessin se lise à
+     16 px. Le mot « Filtres » disparaît : sur la rangée la plus disputée du produit, un contrôle
+     qui vit à POSITION CONSTANTE s'apprend par sa forme (mêmes 36 px de dessin et 44 de cible que
+     ses voisins de l'en-tête, A30).
+     ⚠ LA RÈGLE 8 RESTE TENUE : la couleur n'est jamais seule — c'est le NOMBRE de filtres posés
+     qui dit l'état actif, en pastille, et le nom accessible le dit en toutes lettres. */
+  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
+    /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
+       même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
+       la phase et le titre dans l'éditeur). Cible 46 px par le halo. */
+    position:relative;width:38px;height:38px;min-height:38px;padding:0;border:1px solid var(--line-strong);
+    border-radius:999px;background:var(--work);color:var(--act);font-family:inherit;
     font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
     cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
   .filt-tog[hidden]{display:none}
-  .filt-tog::after{content:"";position:absolute;inset:-4px}
+  .filt-tog::after{content:"";position:absolute;inset:-4px;border-radius:999px}
+  /* Le compte se pose SUR le bouton, en pastille — il ne l'allonge plus : la position du
+     déclencheur ne doit pas dépendre du nombre de filtres. */
+  .filt-n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
+    display:inline-flex;align-items:center;justify-content:center;border-radius:999px;
+    background:var(--primary);color:var(--on-primary);font-size:11px;font-weight:800;line-height:1;
+    box-shadow:0 0 0 2px var(--work)}
   .filt-tog:hover{background:var(--surface-2);border-color:var(--ink-soft);color:var(--ink)}
   .filt-tog.on{background:var(--primary-100);border-color:var(--primary);color:var(--primary-dk)}
   .filt-tog.act{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
   .filt-tog.act:hover{background:var(--primary-hi);border-color:var(--primary-hi);color:var(--on-primary)}
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filt-n[hidden]{display:none}
-  .filt-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.02em}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
@@ -6406,6 +6446,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     transform:translateX(calc(var(--seg-i,0) * (100% + var(--seg-gap,8px))));
     background:var(--primary-soft);border-radius:10px;transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
   .seg.i1 .seg-pill{transform:translateX(calc(100% + var(--seg-gap,8px)))}
+  /* Le temps d'UN calcul : la pastille est reposée à son ancien cran sans animer, pour que le
+     trajet vers le nouveau soit une transition et non un saut (cf. `#grpSeg`). */
+  .seg.seg-jump .seg-pill{transition:none}
   .seg-btn{min-width:0;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:10px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
   .seg-btn.on{color:var(--primary-dk)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -7155,7 +7198,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      objet, pas un chiffre suivi d'un signe — la pastille dit à la fois combien il en reste et
      qu'elle se déplie. Il garde son écart au chiffre et reste `aria-hidden` : l'état est déjà
      porté par `aria-expanded` sur le bouton, et le compte par l'étiquette lisible. */
-  .fs-chev{flex:none;font-weight:800;line-height:1;color:var(--ink-2);margin-left:6px}
+  /* ⚠ `line-height:1` COUPAIT LE CHEVRON (v5.6, signalé à l'usage : « la flèche › est tronquée
+     dans sa bulle »). Sa boîte de ligne valait 11 px pour un glyphe qui en occupe 14 : il
+     débordait par le haut et par le bas, et se posait 3 px sous le chiffre — d'où l'impression
+     d'un signe rogné et mal calé. Le chevron prend l'interligne de la pastille, et les deux
+     enfants s'alignent sur leur milieu : un seul objet, une seule ligne de base. */
+  .fs-chev{flex:none;font-weight:800;color:var(--ink-2);margin-left:6px}
+  .fs-tgl{display:inline-flex;align-items:center}
   .fs-tgl{flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}
@@ -7366,7 +7415,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          l'accueil. Il est STATIQUE comme le champ : il survit aux re-rendus, donc sa position est
          apprise une fois pour toutes. Croix d'effacement DANS la boîte du champ (v5.0.3) : elle
          appartient à la saisie, pas à la rangée. -->
-    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-haspopup="dialog" aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h2.6M11.4 6H20M4 12h8.6M17.4 12H20M4 18h1.6M10.4 18H20"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/></svg><span class="filt-l">Filtres</span><span class="filt-n" id="filtN" hidden></span></button></div>
+    <div class="hdr-search" id="hdrSearch"><div class="srch-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="q" placeholder="Rechercher une aide, un protocole…" aria-label="Rechercher"><button type="button" id="qClear" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></div><button type="button" id="filtTog" class="filt-tog" data-filttog hidden aria-haspopup="dialog" aria-expanded="false"><!-- ⚠ tracé DUPLIQUÉ dans la table uiIcon (entrée `filter`) : la coque statique ne peut pas lire une constante du script — changer l'un = changer l'autre (même discipline que l'icône `user`) --><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span class="filt-n" id="filtN" hidden></span></button></div>
     <!-- v5.4.1 (A′, décision utilisateur sur maquette) : à ≥ 1200 px en lecture de fiche, les
          DEUX rangées de crise (#crisisCtrl + #crisisDock) vivent ICI — l'en-tête a l'espace, la
          bande n'a plus à exister et aucune colonne ne paie leur hauteur. Chrome NOMADE
@@ -12355,6 +12404,7 @@ function applyViewChrome(){
    peut encore être attaché (mesuré). Le compteur, lui, tranche : si un rendu a eu lieu entre le
    `blur` et le tour de boucle suivant, c'est lui qui a retiré le champ. */
 let _renderN=0;
+let _grpSegI=null;   // dernier cran du groupement, pour rejouer le glissement après re-rendu
 function render(){_renderN++;
   // Un re-rendu qui remplace .home-main pendant l'animation de bascule de section la REJOUERAIT
   // depuis zéro (nouvel élément, classe encore posée sur main — l'animationend de l'ancien ne
@@ -12789,7 +12839,12 @@ function filtersSummary(){
    des segmentés de réglage, qui vivent nus dans une fenêtre. */
 function homeGroupSegHtml(){
   const gk=homeGroupKey(),i=gk==='cat'?1:0;
-  return `<span class="seg grp-seg${i?' i1':''}" id="grpSeg" role="radiogroup" aria-label="Clé de groupement" style="--seg-n:2;--seg-i:${i}">`
+  /* ⚠ PAS DE `.i1` ICI, ET C'EST LA CONDITION POUR QUE LA PASTILLE GLISSE (v5.6, signalé à
+     l'usage). `.seg.i1 .seg-pill` pose le transform en (0,3,0) et bat celui qui vient de
+     `--seg-i` : tant que la classe est là, reposer la variable ne déplace RIEN, donc le rejeu du
+     glissement était sans effet. Ce composant est à N segments — il n'a que faire du raccourci à
+     deux, qui reste pour la tab bar historique et « Créer ». */
+  return `<span class="seg grp-seg" id="grpSeg" role="radiogroup" aria-label="Clé de groupement" style="--seg-n:2;--seg-i:${i}">`
     +`<span class="seg-pill" aria-hidden="true"></span>`
     +`<button type="button" class="seg-btn${i?'':' on'}" role="radio" data-hgrp="az" aria-checked="${!i}">A–Z</button>`
     +`<button type="button" class="seg-btn${i?' on':''}" role="radio" data-hgrp="cat" aria-checked="${!!i}">Catégories</button>`
@@ -13414,9 +13469,22 @@ function renderHomeList(cfg){
      pastille suit le pouce, le commit se fait au relâchement. Le sélecteur est re-rendu avec la
      liste, donc on rebranche ici ; le glissement se rejoue par `.seg-replay` (patron
      `#readTopSeg`, v4.21.0), sans quoi la pastille SAUTERAIT au lieu de glisser. */
+  /* ⚠ LE REJEU APPELAIT UNE CLASSE QUI N'EXISTE PLUS (v5.6, signalé à l'usage : « la bulle ne
+     glisse pas d'une option à l'autre »). `.seg-replay` a été PURGÉE en v5.0.0 avec le composant
+     qu'elle servait ; l'appel, lui, est resté — donc un no-op, et la pastille SAUTAIT, puisque le
+     sélecteur est re-rendu avec la liste et que sa pastille est un nœud NEUF à la bonne place.
+     Le rejeu doit reposer la pastille à l'ANCIEN cran SANS transition, forcer le calcul, puis
+     poser le nouveau : c'est alors la transition CSS qui fait le trajet. */
   {const gs=main.querySelector('#grpSeg');
    if(gs){bindSegDrag(gs);
-     gs.classList.add('seg-replay');void gs.offsetWidth;gs.classList.remove('seg-replay');}}
+     const i=+(gs.style.getPropertyValue('--seg-i')||0);
+     if(_grpSegI!=null&&_grpSegI!==i){
+       gs.classList.add('seg-jump');
+       gs.style.setProperty('--seg-i',_grpSegI);
+       void gs.offsetWidth;
+       gs.classList.remove('seg-jump');
+       gs.style.setProperty('--seg-i',i);}
+     _grpSegI=i;}}
   bindAzRail();
   {const sm=document.getElementById('showMore');if(sm)sm.onclick=()=>{state.libLimit+=LIB_PAGE;cfg.rerender();};}
   main.querySelectorAll('[data-emptynew]').forEach(b=>b.onclick=()=>openCreateFor(b.dataset.emptynew));
@@ -16163,13 +16231,22 @@ function sanitizeTags(v){
    en montre. */
 function tagAll(f,tags){
   const out=[],vus=Object.create(null);
+  /* ⚠ UN OBJET SANS NOM EXISTE QUAND MÊME (v5.6, signalé à l'usage : « un compteur sans nom ne
+     s'affiche pas dans Noter l'heure »). La carte d'un minuteur ou d'un compteur affiche un nom
+     PAR DÉFAUT quand l'auteur n'en a pas donné (« Compteur », « Minuteur », « Chronomètre ») —
+     mais le vivier des propositions les jetait, faute de libellé. L'objet était donc visible à
+     l'écran et introuvable au moment de l'horodater. On reprend LE MÊME défaut que la carte, pas
+     un mot inventé pour l'occasion : un seul vocabulaire. Un repère sans étiquette, lui, garde sa
+     règle propre (« Action n ») — c'est une TRACE, pas un objet de la fiche. */
   const add=(ref,label,src,alias)=>{
     const l=sstr(label,80).trim();if(!l)return;
     const cle=ref.type+':'+(ref.id||ref.k||(ref.b+'/'+ref.i)||ref.i);
     if(vus[cle])return;vus[cle]=1;
     out.push({ref:ref,label:l,src:src,alias:alias||[]});};
-  ((f&&f.timers)||[]).forEach(t=>add({type:'timer',id:t.id},t.label,'fiche'));
-  ((f&&f.counters)||[]).forEach(c=>add({type:'counter',id:c.id},c.label,'fiche'));
+  ((f&&f.timers)||[]).forEach(t=>add({type:'timer',id:t.id},
+    String(t.label||'').trim()||(t.type==='interval'?'Minuteur':'Chronomètre'),'fiche'));
+  ((f&&f.counters)||[]).forEach(c=>add({type:'counter',id:c.id},
+    String(c.label||'').trim()||'Compteur','fiche'));
   ((f&&f.blocks)||[]).forEach(b=>clean(b?stepsOf(b):[]).forEach((st,i)=>
     add({type:'step',b:b.id,i:i},posoName(stepText(st)),'fiche')));
   clean(f&&listOf(f,'posology')).forEach((pp,i)=>add({type:'poso',i:i},posoName(pp),'fiche'));
@@ -16324,7 +16401,19 @@ function tkLabels(events,f,tags){
     const l=tagLabel(e&&e.ref,f,tags);
     if(l)return l;
     n++;return 'Action '+n;});}   // rang parmi les repères GÉNÉRIQUES seulement
-function timekeeperPanel(){const ev=Runtime.events||[];const t0=ev.length?ev[0].t:0;
+/* ⚠ « T+ » SE COMPTE DEPUIS LE DÉBUT DE LA SESSION, PAS DEPUIS LE PREMIER REPÈRE (v5.6, signalé
+   à l'usage : « session commencée à 23h30, encore en cours à 00h30 — le journal montre +0:30:00 »).
+   Ce n'était pas un défaut de minuit : toutes les durées du fichier sont des différences
+   d'horodatages, insensibles au changement de date (vérifié — un repère à 00:30 d'une session de
+   23:30 affiche bien « +1:00:00 » dès lors que la référence est la bonne). C'était une référence
+   DIVERGENTE : le journal partait du premier repère, quand le compte rendu (`+` de sa colonne),
+   l'accusé du volet ⏱ et la trace d'un compteur partent tous de `startedAt`. Deux origines pour
+   un même « T+ », c'est-à-dire deux vocabulaires pour une idée (AC 120-71B § 5.5) — et celle du
+   journal était trompeuse dès qu'on notait le premier repère longtemps après le début.
+   Repli sur le premier repère quand la session n'a pas d'heure de départ (elle en a toujours une
+   dès qu'un geste a eu lieu, mais un journal peut être rendu avant). */
+function timekeeperPanel(){const ev=Runtime.events||[];
+  const t0=(Runtime&&Runtime.startedAt)||(ev.length?ev[0].t:0);
   const labs=tkLabels(ev,Runtime.fiche,myTags());
   const rows=ev.length?ev.map((e,ix)=>{const diff=e.t-t0;const el=diff===0?'—':(diff>0?'+':'−')+fmtMs(Math.abs(diff));
     const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${esc(e.id)}">↺ revenir</button></div>`:'';
@@ -17633,7 +17722,13 @@ function ovInstHtml(f,id,idx,topo,pres){
         if(Runtime.started)persistLive(Runtime,true);
         act=`<div class="v-end${g.length?'':' ok'}">${g.length?`<b>${steps.length-g.length}/${steps.length} vérifiées · ${g.length} écart${g.length>1?'s':''}</b> — étape${g.length>1?'s':''} ${g.map(x=>x+1).join(', ')} non cochée${g.length>1?'s':''} (elles restent visibles dans le parcours)`:`<b>${steps.length}/${steps.length} vérifiées — bloc confirmé ✓</b>`}</div><div class="flow-ctrl"><button type="button" class="btn cont${g.length?'':' okay'}" data-ovvx>Terminer la vérification</button></div>`;}
       else act=`<div class="v-act"><button type="button" class="v-ok" data-ovvok>Constaté ✓</button><button type="button" class="v-gap" data-ovvgap>△ Écart</button></div>`;
-      bodyH=`<div class="v-hint">Vérification — lisez le challenge, constatez l'état réel</div>${tally}${rows}${act}`;
+      /* ⚠ LA SORTIE VIT SUR LA LIGNE QUI ANNONCE LE MODE (v5.6, signalé à l'usage : « le texte
+         “vérification — lisez…” et la croix ne sont pas alignés, ce qui agrandit la carte sans
+         nécessité ; et ce n'est pas évident que la croix ferme le mode »). Elle était un ✕ NU
+         dans l'en-tête du bloc — un glyphe qui ne dit pas ce qu'il ferme, sur une autre ligne que
+         le seul texte qui nomme le mode. Elle rejoint donc cette ligne, et elle porte son VERBE.
+         Deux gains mesurés : une rangée de moins dans l'en-tête, et un contrôle qui s'explique. */
+      bodyH=`<div class="v-hint"><span class="v-hint-t">Vérification</span><button type="button" class="v-quit" data-ovvx title="L'état des cases est déjà enregistré">✕ Quitter</button></div><div class="v-sub">lisez le challenge, constatez l'état réel</div>${tally}${rows}${act}`;
       count=vi+'/'+steps.length;}
     else{
     /* I4 : la liste vient du générateur UNIQUE (`stepsListHtml`) — elle était écrite ici, dans
@@ -17726,7 +17821,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   // binôme), « Vérifier » (Do-Verify, blocs d'étapes) et « ↺ Refaire » (instance complète passée).
   const verifying=state.ovVerify&&state.ovVerify.idx===idx;
   const btns=verifying
-    ?`<button type="button" class="ov-redo" data-ovvx title="Quitter la vérification — l'état des cases est déjà enregistré">✕</button>`
+    ?''   /* la sortie vit sur la ligne « Vérification — … », avec son verbe (v5.6) */
     /* ⚠ « VÉRIFIER » A QUITTÉ L'EN-TÊTE POUR LE PIED (v5.0.0, demande utilisateur, après mesure).
        Il vivait ici, à côté de « Vous êtes ici » — et cette rangée passe SOUS le titre à 320 px,
        où elle coûte 54 px AU-DESSUS de la première case à cocher. Sa place logique est le pied :
@@ -18989,7 +19084,14 @@ function bindOverviewEvents(f){
     // LIGNE-BILAN ECL (v4.16.4) : tap = déplier la rangée de chips sur place (rien au-dessus
     // ne change : aucun défilement nécessaire).
     const orn=t.closest('[data-ovrun]');
-    if(orn){state.ovFold[orn.dataset.ovrun]=false;renderOvOnly();return;}
+    /* ⚠ LA LIGNE-BILAN BASCULE, ELLE NE FAIT PAS QUE DÉPLIER (v5.6, signalé à l'usage : « rappuyer
+       sur la première ligne des blocs faits ne rétrécit pas de nouveau »). Le geste écrivait
+       `false` en dur : le groupe s'ouvrait et ne se refermait plus, alors que sa tête RESTE à
+       l'écran, avec un chevron « ⌃ » qui promet exactement l'inverse. Un contrôle qui reste
+       visible après son geste doit pouvoir le défaire — sinon il devient un bouton mort qui ment.
+       Le repli reste une valeur PERSISTANTE et le dépliage une consultation transitoire
+       (`ovDropOpens`) : on ne change que le sens du tap. */
+    if(orn){const k=orn.dataset.ovrun;state.ovFold[k]=(state.ovFold[k]===false);renderOvOnly();return;}
     const st=t.closest('[data-ck]');if(st){ovToggleStep(f,st,kb);return;}
     const rd=t.closest('[data-ovredo]');if(rd){ovNewPass(f,rd.dataset.ovredo);return;}
     // VÉRIFICATION (v4.11.0, Do-Verify) : Constaté coche la même clé, Écart avance sans cocher.
@@ -23733,7 +23835,12 @@ function openMoreMenu(){
   moreMenuEl.querySelectorAll('[data-mmi]').forEach(b=>b.onclick=()=>{const r=_moreRows[+b.dataset.mmi];if(!r||r.disabled)return;closeMoreMenu();r.act();});
   moreMenuEl.hidden=false;hdrMoreBtn.setAttribute('aria-expanded','true');
   fitMoreMenu();
-  const f=moreMenuEl.querySelector('.mm-row:not([disabled])');if(f)f.focus();
+  /* ⚠ `preventScroll` — SANS LUI, OUVRIR LE MENU REMONTE LA PAGE (v5.6, signalé à l'usage).
+     Mesuré à 390 px : le défilement passait de 500 à 101, soit 399 px, parce que le navigateur
+     amène l'élément focalisé dans la vue en respectant le `scroll-padding` de la page — et il le
+     fait même pour un menu `fixed`. Le menu s'ouvre SOUS le doigt, à position constante : rien
+     n'a à bouger derrière lui. Même remède qu'au re-rendu d'une ligne d'éditeur (v4.78.0). */
+  const f=moreMenuEl.querySelector('.mm-row:not([disabled])');if(f)f.focus({preventScroll:true});
 }
 /* HAUTEUR DU MENU ⋯ — MESURÉE, JAMAIS CALCULÉE EN CSS (v4.73.2 ; cf. le commentaire de
    `.more-menu`). Deux lectures, une écriture :

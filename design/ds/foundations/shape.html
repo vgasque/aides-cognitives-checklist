@@ -2880,7 +2880,15 @@
   .rt-dock .rt-head{margin-bottom:8px}
   .rt-dock .rt-head b,.rt-dock .tk-head b{color:var(--sys-ink-2)}
   .rt-dock .rt-ic{color:var(--sys-ink-2)}
+  /* ⚠ LA RÉSERVE SUIT LA TAILLE DU BOUTON, ET LES DEUX SE LISENT ENSEMBLE (v5.6, signalé à
+     l'usage : « le ✕ se superpose à “Son activé” »). La rangée réserve 40 px à droite pour son ✕
+     ancré — mais dans le volet il fait 48, et les 8 px manquants étaient exactement le
+     recouvrement mesuré (600, 700, 768 px : le seul régime où la rangée tient sur une ligne).
+     Une place RÉSERVÉE qui ne vaut pas la taille de l'objet réservé n'est pas une réserve. */
   .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
+  /* 48 de bouton + 8 d'écart : deux cibles de 44 px qui se TOUCHENT sont déjà un défaut — c'est
+     la règle du rail A→Z, prise ici pour la même raison (un pouce ganté ne vise pas au pixel). */
+  .rt-dock .rt-head{padding-right:56px}
   /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
      v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
      titre, lui, n'en faisait que 13 — le ✕ paraissait donc posé une demi-ligne trop bas, entre
@@ -5251,7 +5259,23 @@
   ol.steps li.done .stp-r::before{content:"✓ "}
   .pl-r{font-family:var(--mono);font-size:11px;color:var(--link)}
   /* ----- Mode VÉRIFICATION (v4.11.0, Do-Verify) : challenges un à un, Constaté / Écart ----- */
-  .v-hint{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
+  .v-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--link);margin:8px 0 2px}
+  .v-hint-t{flex:1 1 auto;min-width:0}
+  /* ⚠ LE MODE SE NOMME SUR LA RANGÉE, LA CONSIGNE VIT DESSOUS (v5.6). La phrase entière et le
+     bouton ne tiennent pas sur une ligne sous 780 px — mesuré, la rangée passait à 85 px et le
+     bouton tombait dessous, ce qui est exactement le « ça agrandit la carte sans nécessité »
+     signalé. Le NOM du mode et sa sortie tiennent, eux, à toutes les largeurs ; la consigne est
+     une aide de lecture, pas un contrôle : elle se lit en dessous, en casse normale. */
+  .v-sub{font-size:11px;font-weight:600;color:var(--ink-2);margin:0 0 6px}
+  /* La sortie du mode : elle porte son VERBE, jamais un glyphe seul — et 44 px de cible, comme
+     tout ce qui se vise en crise. Registre NEUTRE : quitter une passe n'est ni un danger ni une
+     confirmation, c'est une sortie. */
+  .v-quit{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 12px;
+    background:var(--work);border:1px solid var(--line-strong);border-radius:var(--r-2);
+    color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;letter-spacing:0;
+    text-transform:none;white-space:nowrap;cursor:pointer}
+  .v-quit:hover{background:var(--amb-2)}
+  .v-quit:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .vstp{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-top:6px;background:var(--surface);opacity:.45}
   .vstp .vst{flex:none;width:20px;text-align:center;font-weight:700;color:var(--ink-soft)}
   .vstp .txt{flex:1;min-width:0;font-size:13.5px;font-weight:600;line-height:1.4}
@@ -6013,20 +6037,36 @@
   /* Le déclencheur de filtre (maquette accueil) : sur la rangée des contrôles de liste, à son
      bord DROIT, avec son MOT — glyphe seul, il fallait l'apprendre. Cible 44 px par le halo,
      dessin 36 px : il ne doit pas épaissir la rangée. */
-  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-    position:relative;min-height:36px;padding:0 10px;border:1px solid var(--line-strong);
-    border-radius:var(--r-2);background:var(--work);color:var(--act);font-family:inherit;
+  /* ⚠ BOUTON ROND, GLYPHE SEUL (v5.6, demande de l'auteur : « comme sur Apple »). Le tracé est
+     trois filets horizontaux qui RÉTRÉCISSENT de haut en bas — 16 · 10 · 4 dans une boîte de 24,
+     donc centrés et d'écart constant (5 px), ce qui est la seule façon que le dessin se lise à
+     16 px. Le mot « Filtres » disparaît : sur la rangée la plus disputée du produit, un contrôle
+     qui vit à POSITION CONSTANTE s'apprend par sa forme (mêmes 36 px de dessin et 44 de cible que
+     ses voisins de l'en-tête, A30).
+     ⚠ LA RÈGLE 8 RESTE TENUE : la couleur n'est jamais seule — c'est le NOMBRE de filtres posés
+     qui dit l'état actif, en pastille, et le nom accessible le dit en toutes lettres. */
+  .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
+    /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
+       même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
+       la phase et le titre dans l'éditeur). Cible 46 px par le halo. */
+    position:relative;width:38px;height:38px;min-height:38px;padding:0;border:1px solid var(--line-strong);
+    border-radius:999px;background:var(--work);color:var(--act);font-family:inherit;
     font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
     cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
   .filt-tog[hidden]{display:none}
-  .filt-tog::after{content:"";position:absolute;inset:-4px}
+  .filt-tog::after{content:"";position:absolute;inset:-4px;border-radius:999px}
+  /* Le compte se pose SUR le bouton, en pastille — il ne l'allonge plus : la position du
+     déclencheur ne doit pas dépendre du nombre de filtres. */
+  .filt-n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
+    display:inline-flex;align-items:center;justify-content:center;border-radius:999px;
+    background:var(--primary);color:var(--on-primary);font-size:11px;font-weight:800;line-height:1;
+    box-shadow:0 0 0 2px var(--work)}
   .filt-tog:hover{background:var(--surface-2);border-color:var(--ink-soft);color:var(--ink)}
   .filt-tog.on{background:var(--primary-100);border-color:var(--primary);color:var(--primary-dk)}
   .filt-tog.act{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
   .filt-tog.act:hover{background:var(--primary-hi);border-color:var(--primary-hi);color:var(--on-primary)}
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filt-n[hidden]{display:none}
-  .filt-l{font-size:var(--t-cap);font-weight:700;letter-spacing:.02em}
   .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
   .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
@@ -6061,6 +6101,9 @@
     transform:translateX(calc(var(--seg-i,0) * (100% + var(--seg-gap,8px))));
     background:var(--primary-soft);border-radius:10px;transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
   .seg.i1 .seg-pill{transform:translateX(calc(100% + var(--seg-gap,8px)))}
+  /* Le temps d'UN calcul : la pastille est reposée à son ancien cran sans animer, pour que le
+     trajet vers le nouveau soit une transition et non un saut (cf. `#grpSeg`). */
+  .seg.seg-jump .seg-pill{transition:none}
   .seg-btn{min-width:0;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:10px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
   .seg-btn.on{color:var(--primary-dk)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -6810,7 +6853,13 @@
      objet, pas un chiffre suivi d'un signe — la pastille dit à la fois combien il en reste et
      qu'elle se déplie. Il garde son écart au chiffre et reste `aria-hidden` : l'état est déjà
      porté par `aria-expanded` sur le bouton, et le compte par l'étiquette lisible. */
-  .fs-chev{flex:none;font-weight:800;line-height:1;color:var(--ink-2);margin-left:6px}
+  /* ⚠ `line-height:1` COUPAIT LE CHEVRON (v5.6, signalé à l'usage : « la flèche › est tronquée
+     dans sa bulle »). Sa boîte de ligne valait 11 px pour un glyphe qui en occupe 14 : il
+     débordait par le haut et par le bas, et se posait 3 px sous le chiffre — d'où l'impression
+     d'un signe rogné et mal calé. Le chevron prend l'interligne de la pastille, et les deux
+     enfants s'alignent sur leur milieu : un seul objet, une seule ligne de base. */
+  .fs-chev{flex:none;font-weight:800;color:var(--ink-2);margin-left:6px}
+  .fs-tgl{display:inline-flex;align-items:center}
   .fs-tgl{flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}

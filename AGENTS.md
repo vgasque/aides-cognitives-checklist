@@ -989,6 +989,75 @@ carte (mesuré) ; et les contrôles de l'accueil à 32/38 px sont au plancher HO
 des 44 ne s'applique pas. Un balayage qui ne nomme pas ses non-défauts finit par les faire
 « corriger ».
 
+**A57. « T+ » SE COMPTE DEPUIS LE DÉBUT DE LA SESSION, PARTOUT (v5.6, signalé à l'usage : « passé
+minuit, le journal ne montre la différence qu'à partir de minuit »).** Ce n'était PAS un défaut de
+minuit — toutes les durées du fichier sont des différences d'horodatages, insensibles au changement
+de date, et `fmtMs` tient au-delà de 24 h (vérifié : un repère à 00:30 d'une session de 23:30
+affiche « +1:00:00 »). C'était une RÉFÉRENCE divergente : le journal partait du PREMIER REPÈRE,
+quand le compte rendu, l'accusé du volet ⏱ et la trace d'un compteur partent tous de `startedAt`.
+Deux origines pour un même « T+ », donc deux vocabulaires pour une idée (§ 5.5) — et celle du
+journal trompait dès qu'on notait le premier repère longtemps après le début.
+
+**A58. UN OBJET SANS NOM EXISTE QUAND MÊME (v5.6, signalé à l'usage : « un compteur sans nom ne
+s'affiche pas dans Noter l'heure »).** Confirmé : `tagAll` jetait tout objet dont le libellé est
+vide, alors que sa CARTE affiche un nom par défaut — l'objet était donc visible à l'écran et
+introuvable au moment de l'horodater. Le vivier reprend LE MÊME défaut que la carte (« Compteur »,
+« Minuteur », « Chronomètre »), jamais un mot inventé pour l'occasion. Un REPÈRE sans étiquette,
+lui, garde sa règle propre (« Action n ») : c'est une trace, pas un objet de la fiche.
+
+**A59. UN MENU QUI S'OUVRE NE DÉPLACE PAS LA PAGE (v5.6, signalé à l'usage).** `focus()` sur la
+première rangée du menu ⋯ faisait remonter le document de **399 px** à 390 px — le navigateur amène
+l'élément focalisé dans la vue en respectant le `scroll-padding`, et il le fait même pour un menu
+`fixed`. `focus({preventScroll:true})` : le menu s'ouvre sous le doigt, à position constante, et
+rien ne bouge derrière lui. Même remède qu'au re-rendu d'une ligne d'éditeur (v4.78.0).
+
+**A60. UNE LIGNE-BILAN BASCULE, ELLE NE FAIT PAS QUE DÉPLIER (v5.6, signalé à l'usage).** Le geste
+écrivait `false` en dur : le groupe des blocs faits s'ouvrait et ne se refermait plus, alors que sa
+TÊTE reste à l'écran avec un chevron « ⌃ » qui promet l'inverse. Un contrôle qui survit à son geste
+doit pouvoir le défaire, sinon c'est un bouton mort qui ment. Le repli reste PERSISTANT et le
+dépliage une consultation transitoire (`ovDropOpens`) : seul le sens du tap change.
+
+**A61. UNE PLACE RÉSERVÉE VAUT LA TAILLE DE L'OBJET RÉSERVÉ (v5.6, signalé à l'usage : « le ✕ se
+superpose à “Son activé” »).** L'en-tête du panneau réserve un couloir à droite pour son ✕ ancré :
+40 px, quand celui du volet en fait 48 — les 8 px manquants ÉTAIENT le recouvrement, mesuré à 600,
+700 et 768 px (le seul régime où la rangée tient sur une ligne). La réserve vaut désormais 48 + 8
+d'écart : deux cibles de 44 px qui se TOUCHENT sont déjà un défaut (règle du rail A→Z).
+
+**A62. LA SORTIE D'UN MODE SE MET SUR LA LIGNE QUI NOMME LE MODE (v5.6, signalé à l'usage — suite
+d'A47).** Le ✕ avait rejoint la ligne du TITRE du bloc ; l'auteur visait plus loin : le seul texte
+qui nomme la passe est « Vérification — lisez le challenge… », et un glyphe nu ne dit pas ce qu'il
+ferme. La sortie descend donc sur cette ligne et porte son VERBE (« ✕ Quitter ») ; le NOM du mode et
+sa sortie tiennent sur une rangée à toutes les largeurs, la consigne passe dessous en casse normale
+(mesuré : 85 → 44 px de rangée sous 780 px), et l'en-tête du bloc perd une rangée.
+
+**A63. LE CHEVRON DU CHAPEAU N'ÉTAIT PAS TRONQUÉ, IL ÉTAIT ÉTOUFFÉ (v5.6, signalé à l'usage).**
+`line-height:1` lui donnait une boîte de 11 px pour un glyphe qui en occupe 14 : il débordait des
+deux côtés et se posait 3 px sous le chiffre. Il prend l'interligne de la pastille, et les deux
+enfants s'alignent sur leur milieu.
+
+**A64. LE DÉCLENCHEUR DE FILTRES EST UN BOUTON ROND, GLYPHE SEUL (v5.6, demande de l'auteur, « comme
+sur Apple »).** Trois filets horizontaux qui RÉTRÉCISSENT de haut en bas (16 · 10 · 4 dans une boîte
+de 24, écart constant de 5 px), 38 px de dessin — la hauteur du sélecteur d'en face, deux contrôles
+d'une même rangée qui ne font pas la même hauteur se lisant comme deux niveaux — et 46 px de cible
+par le halo. Le mot « Filtres » disparaît (`.filt-l` purgée, règle 14) : sur la rangée la plus
+disputée du produit, un contrôle à POSITION CONSTANTE s'apprend par sa forme.
+⚠ **LA RÈGLE 8 TIENT PAR LE NOMBRE** : l'état actif est dit par le COMPTE de filtres posés, en
+pastille sur le coin — jamais par la seule couleur —, et le nom accessible l'écrit en toutes
+lettres. La pastille est POSÉE SUR le bouton et ne l'allonge plus : la position du déclencheur ne
+doit pas dépendre du nombre de filtres.
+
+**A65. UN COMPOSANT À N SEGMENTS N'EMPORTE PAS LE RACCOURCI À DEUX (v5.6, signalé à l'usage : « la
+bulle ne glisse pas d'une option à l'autre »).** Deux causes, et la seconde est un piège de
+spécificité : (a) le rejeu du glissement appelait `.seg-replay`, classe PURGÉE en v5.0.0 avec le
+composant qu'elle servait — l'appel était resté, donc un no-op ; (b) le sélecteur émettait AUSSI
+`.i1`, dont la règle `.seg.i1 .seg-pill` (0,3,0) bat le transform piloté par `--seg-i` : tant que la
+classe est là, reposer la variable ne déplace RIEN. Le composant à N ne porte donc plus `.i1`, et le
+rejeu repose la pastille à l'ANCIEN cran sans transition, force le calcul, puis pose le nouveau —
+c'est la transition CSS qui fait le trajet (mesuré : 21 → 46 → 74 → 94 → 102).
+⚠ **ET LA LEÇON DE SONDE** : ma première mesure gardait une référence à la pastille À TRAVERS le
+re-rendu — un nœud détaché, qui rend une position figée et une transition vide. On re-interroge le
+DOM à chaque échantillon.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

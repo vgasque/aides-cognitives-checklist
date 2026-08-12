@@ -4064,12 +4064,17 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
        toute la largeur et les gestes DESSOUS — juste pour « ↺ Refaire », faux pour la sortie d'un
        mode. On compare les CENTRES : les deux objets n'ont pas la même hauteur, comparer leurs
        hauts ferait échouer un alignement pourtant correct. */
-    const hd=document.querySelector('.ov-block .ov-head');
-    const tg=hd&&hd.querySelector('.ov-tgl'),cx=hd&&hd.querySelector('[data-ovvx]');
+    /* ⚠ LA SORTIE A CHANGÉ DE LIGNE, PAS DE RÔLE (v5.6, signalé à l'usage : « la croix et le
+       texte ne sont pas alignés, et ce n'est pas évident qu'elle ferme le mode »). Elle était un
+       ✕ nu dans l'en-tête du bloc ; elle vit désormais sur la ligne qui NOMME le mode, avec son
+       verbe. Le témoin suit le contrôle : même propriété — sur la ligne, à son bout, 44 px. */
+    const hd=document.querySelector('.v-hint');
+    const tg=hd&&hd.querySelector('.v-hint-t'),cx=hd&&hd.querySelector('[data-ovvx]');
     const mil=e=>{const r=e.getBoundingClientRect();return r.top+r.height/2;};
     const tete=(tg&&cx)?{ligne:Math.abs(mil(tg)-mil(cx))<=4,
       droite:cx.getBoundingClientRect().right>tg.getBoundingClientRect().right,
       w:Math.round(cx.getBoundingClientRect().width),h:Math.round(cx.getBoundingClientRect().height),
+      txt:(cx.textContent||'').trim(),
       hh:Math.round(hd.getBoundingClientRect().height)}:null;
     /* On va jusqu'au BOUT de la passe : la pilule de trace est DURABLE, elle vit sur la liste
        d'étapes — laquelle ne revient qu'une fois la passe terminée (pendant, la carte affiche un
@@ -4092,8 +4097,10 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
   t('… à gauche de « Continuer », dans la même rangée de pied (A7)',
     !!r.geo&&r.geo.gauche===true&&r.geo.rangee===true, JSON.stringify(r.geo));
   t('… cible ≥ 44 px', !!r.geo&&r.geo.h>=44, r.geo?r.geo.h+' px':'—');
-  t('… la sortie de la passe est SUR la ligne du titre, à son bout',
+  t('… la sortie de la passe est SUR la ligne qui nomme le mode, à son bout',
     !!r.tete&&r.tete.ligne===true&&r.tete.droite===true, JSON.stringify(r.tete));
+  t('… elle porte son VERBE, pas un glyphe seul', !!r.tete&&/quitter/i.test(r.tete.txt||''),
+    r.tete?String(r.tete.txt):'—');
   t('… et sa cible fait 44 px dans les DEUX sens',
     !!r.tete&&r.tete.w>=44&&r.tete.h>=44, r.tete?`${r.tete.w}×${r.tete.h}`:'—');
   t('la passe s\'ouvre et « Constaté ✓ » coche les étapes', r.passe===true&&r.coches>=2,
