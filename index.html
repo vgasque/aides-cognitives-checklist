@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Y1dmQYelEGfwwJj0XAiH5c4IOuCFT+cjJhnTGc4K4C8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-WO2DvFbGvtwkEO+BkncLz63X15eYlmuk2Nc/9SQB47Y='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -12173,7 +12173,7 @@ function tickAll(){
 // FUSIONNÉ dans le bandeau de crise : le chrono compact #cbTimers (à droite du bandeau) reprend
 // le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
 // minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
-let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true;
+let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true,_rtsGhost=null;
 function updateRtStrip(now){
   now=now||Date.now();
   const crisis=state.view==='read'&&!!Runtime.fiche;
@@ -12267,7 +12267,7 @@ function updateRtStrip(now){
      consomme au moment où l'animation a lieu, jamais au moment où on le regarde. */
   const _cf=_capFresh;
   const segOf=list=>list.map(x=>{const lbl=esc(x.t.label)||(x.t.type==='interval'?'Minuteur':'Chrono');
-    return '<span class="seg'+(x.due?' due':'')+(x.t.id===_cf&&!x.due?' seg-in':'')+'"><span class="seg-l">'+(x.due?'△ ':'')+lbl+(x.due?'<span class="sr-only"> échu</span>':'')+'</span><span class="seg-t"></span></span>';}).join('');
+    return '<span class="seg'+(x.due?' due':'')+'" data-seg="'+esc(x.t.id)+'"><span class="seg-l">'+(x.due?'△ ':'')+lbl+(x.due?'<span class="sr-only"> échu</span>':'')+'</span><span class="seg-t"></span></span>';}).join('');
   // DÉBORDEMENT JAMAIS SILENCIEUX (ECAM, v4.23.0) : une zone d'état ne peut pas cacher une
   // alarme sans le dire. En étroit le quai porte tous les minuteurs (« +n » sur le reste) ; en
   // large il ne porte que les ÉCHUS, plafonnés à deux — au-delà, « +n » compte les échus NON
@@ -12391,18 +12391,61 @@ function updateRtStrip(now){
     +(started?fmtMs(now-Runtime.startedAt).length:0)+'|'+want.map(x=>x.d.val.length).join(',')
     +'|'+want.map(x=>String(x.t.label||'').length).join(',')+'|'+globLbl.length
     +'|'+want.map(x=>x.due?1:0).join('')   // l'échéance AJOUTE le glyphe △ : c'est une largeur
-    +'|'+chevLbl.length+'|'+decl.t+'/'+decl.c;   // … le rappel, et les comptes dont il dérive
+    +'|'+chevLbl.length+'|'+decl.t+'/'+decl.c    // … le rappel, et les comptes dont il dérive
+    /* ⚠ L'ÉTAT DE CHARGEMENT DES POLICES EST UN TERME DE LA CLÉ, et c'était la cause EXACTE de
+       l'intermittence mesurée : une largeur mesurée avec la fonte de repli n'est pas celle qu'on
+       aura. Sans ce terme, la première mesure — souvent faite avant que Manrope ne s'applique —
+       était retenue pour toujours. Il ne prend que deux valeurs, donc au plus une re-mesure. */
+    +'|'+((typeof document!=='undefined'&&document.fonts)?document.fonts.status:'');
   /* STRUCTURE puis VALEURS, dans cet ordre — et les valeurs sont peintes AVANT toute mesure,
      sinon la boucle d'ajustement mesurerait des segments vides et croirait que tout tient. */
-  const paintVals=(n)=>{const ts=el.querySelectorAll('.seg-t');
-    const vals=(globVal!=null?[globVal]:[]).concat(want.slice(0,n).map(x=>x.d.val));
+  /* Les VALEURS sont peintes à part (`textContent`), donc absentes de la chaîne : un fantôme qui
+     mesurerait le gabarit nu croirait que tout tient — c'est exactement le piège que le
+     commentaire ci-dessus nomme, et il coûte un DÉBORDEMENT du quai. La liste est donc unique,
+     posée dans le vivant comme dans le fantôme. */
+  const valsFor=n=>(globVal!=null?[globVal]:[]).concat(want.slice(0,n).map(x=>x.d.val));
+  const poserVals=(root,n)=>{const ts=root.querySelectorAll('.seg-t'),vals=valsFor(n);
     for(let i=0;i<ts.length&&i<vals.length;i++){if(ts[i].textContent!==vals[i])ts[i].textContent=vals[i];}};
-  const write=(n,noChev,nu)=>{const h=glob+segOf(want.slice(0,n))+moreOf(n)+(noChev?'':chevOf(nu?'':chevLblOf(n)));
+  const paintVals=(n)=>poserVals(el,n);
+  const htmlOf=(n,noChev,nu)=>glob+segOf(want.slice(0,n))+moreOf(n)+(noChev?'':chevOf(nu?'':chevLblOf(n)));
+  const write=(n,noChev,nu)=>{const h=htmlOf(n,noChev,nu);
     if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
     paintVals(n);return h;};
+  /* ══ LA MESURE SE FAIT SUR UN FANTÔME DÉTACHÉ, JAMAIS DANS LE QUAI VIVANT (v5.6) ══════════════
+     La boucle d'ajustement ÉCRIVAIT ses candidats dans `#cbTimers` pour les mesurer : chaque
+     mesure détruisait et recréait les nœuds du quai. C'est ce qui obligeait à MÉMORISER la
+     décision — et donc ce qui rendait une mauvaise mesure DÉFINITIVE (mesuré : à géométrie
+     identique, un minuteur armé n'apparaissait que 2 fois sur 5, la clé ne capturant pas l'état
+     de chargement des polices). Le rattrapage naïf, lui, rouvrait le défaut que la mémoïsation
+     empêchait : `audit-doctrine` l'a rougi sur « aucun ÉLÉMENT du quai n'est détruit pendant les
+     ticks » — un tap tombe alors dans le vide.
+     LE FANTÔME EST UN ENFANT DE `#cbTimers`, et c'est ce qui le rend fidèle sans dupliquer une
+     ligne de CSS : les règles du quai sont toutes DESCENDANTES (`#cbTimers .seg` — vérifié, zéro
+     combinateur enfant), donc elles s'appliquent à son contenu ; police et couleurs s'héritent par
+     l'arbre. Il est en `position:fixed` HORS ÉCRAN : pris hors flux, il n'est pas un item de la
+     rangée, n'ajoute aucune zone défilable à quiconque, et ne peut rien recouvrir.
+     ⚠ On reproduit les propriétés de CONTENEUR (display, gap, align-items) : elles vivent sur
+     `#cbTimers` lui-même, pas sur ses descendants, donc elles ne s'héritent pas. Et la largeur
+     mesurée est la boîte de CONTENU (`clientWidth` moins les rembourrages), celle dont disposent
+     réellement les segments. */
+  const cs=getComputedStyle(el);
+  const dispo=el.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0);
+  const tient=(h,n)=>{
+    let g=_rtsGhost;
+    if(!g){g=_rtsGhost=document.createElement('div');g.setAttribute('aria-hidden','true');}
+    g.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;'
+      +'overflow:hidden;box-sizing:content-box;width:'+dispo+'px;display:'+cs.display
+      +';align-items:'+cs.alignItems+';gap:'+cs.gap;
+    g.innerHTML=h;poserVals(g,n);
+    /* POSÉ, MESURÉ, RETIRÉ — dans la même tâche, sans une seule image intermédiaire : le quai
+       vivant ne porte jamais le fantôme entre deux mesures, donc rien n'y apparaît ni n'y meurt. */
+    el.appendChild(g);
+    const ok=g.scrollWidth<=dispo+1;
+    g.remove();g.innerHTML='';
+    return ok;};
   if(!glob&&!want.length){el.hidden=true;_rtsHtml='';syncDock();return;}   // ≥780 sans session ni échu : le rail suffit
   el.hidden=false;
-  const fits=()=>el.scrollWidth<=el.clientWidth+1;
+  const fits=(n,noChev,nu)=>tient(htmlOf(n,noChev,nu),n);
   /* ORDRE DE SACRIFICE — DEUX DÉFAUTS CORRIGÉS ICI, tous deux mesurés à 320 px.
      1. LE CHEVRON TOMBAIT APRÈS LE DERNIER SEGMENT, jamais avant. La boucle retirait les segments
         un à un et n'essayait « sans chevron » qu'une fois arrivée à ZÉRO segment — c'est-à-dire
@@ -12416,37 +12459,46 @@ function updateRtStrip(now){
         débordement redevenait silencieux (`#cbTimers` est en `overflow:hidden`). Le plancher est
         maintenant explicite : on garde la version la plus étroite connue, on n'en réécrit jamais
         une plus large. Le « +n » n'est JAMAIS sacrifié — c'est l'ANNONCE ECAM. */
-  if(fitKey!==_rtsFitKey){
+  /* ⚠ UNE MESURE SANS MISE EN PAGE NE SE RETIENT PAS — C'ÉTAIT LA CAUSE (v5.6, mesuré).
+     `updateRtStrip` peut courir alors que la capsule n'a pas encore de géométrie (largeur nulle :
+     premier rendu, ancêtre masqué). Le test « ça tient » répond alors OUI à tout — 0 ≤ 0 — et la
+     décision, prise sur du vide, était MÉMORISÉE pour de bon : c'est ainsi qu'un minuteur armé
+     restait invisible 3 fois sur 5 à géométrie pourtant identique. On ne mesure donc que si la
+     capsule a une largeur, et l'on ne touche PAS à la clé sinon : la passe suivante re-mesurera
+     pour de vrai. */
+  if(dispo>0&&fitKey!==_rtsFitKey){
     _rtsFitKey=fitKey;_rtsFit=0;_rtsNoChev=true;_rtsNu=true;
     /* LE RAPPEL TOMBE AVANT TOUT LE RESTE. Il ne s'affiche que lorsqu'aucun minuteur n'est
        montré, donc il n'entre jamais en concurrence avec un segment échu ; mais il pourrait
        manger la place du « +n », et une annonce ECAM ne se sacrifie pas pour un rappel. */
     for(let n=want.length;n>=0;n--){
-      if(chevLbl){write(n,false,false);if(fits()){_rtsFit=n;_rtsNoChev=false;_rtsNu=false;break;}}
-      write(n,false,true);if(fits()){_rtsFit=n;_rtsNoChev=false;_rtsNu=true;break;}
-      if(chev){write(n,true,true);if(fits()){_rtsFit=n;_rtsNoChev=true;_rtsNu=true;break;}}
+      if(chevLblOf(n)){if(fits(n,false,false)){_rtsFit=n;_rtsNoChev=false;_rtsNu=false;break;}}
+      if(fits(n,false,true)){_rtsFit=n;_rtsNoChev=false;_rtsNu=true;break;}
+      if(chev){if(fits(n,true,true)){_rtsFit=n;_rtsNoChev=true;_rtsNu=true;break;}}
     }
   }
-  /* ⚠ UNE MESURE D'AJUSTEMENT PEUT ÊTRE FAUSSE, ET ELLE NE SE REDIT PAS — CONSTAT MESURÉ, NON
-     CORRIGÉ, ET LA RAISON DU RENONCEMENT EST INSTRUCTIVE (v5.6).
-     La décision est MÉMORISÉE sur `fitKey`, mais la clé ne capture pas tout ce qui influe sur une
-     largeur — au premier chef l'état de chargement des POLICES : mesurée avec la fonte de repli,
-     la boucle retient un segment de moins et n'y revient jamais. MESURÉ à géométrie strictement
-     identique (672/672 à 700 px) : le minuteur armé apparaissait 2 fois sur 5.
-     LE RATTRAPAGE ÉVIDENT — invalider la clé une fois pour re-mesurer à la passe suivante — A ÉTÉ
-     ÉCRIT, PUIS RETIRÉ : `audit-doctrine` l'a immédiatement rougi sur « aucun ÉLÉMENT du quai
-     n'est détruit pendant les ticks ». Re-mesurer, c'est ÉCRIRE des variantes dans le quai vivant,
-     donc détruire et recréer les nœuds hors d'un changement de structure — le défaut exact que la
-     mémoïsation existe pour empêcher, et qui fait tomber un tap dans le vide. Le remède
-     acceptable serait de mesurer sur un CLONE détaché ; c'est une réécriture de cette boucle, à
-     décider séparément.
-     CE QUI REND L'ATTENTE SUPPORTABLE : le rappel du chevron ANNONCE désormais ce qui est caché
-     (ci-dessus). L'affichage reste inconstant, l'information ne l'est plus — et c'est elle qui
-     compte cliniquement. */
+  /* ⚠ PAS DE RE-MESURE SPÉCULATIVE, ET LA RAISON EST MESURÉE. Un filet « re-mesurer une fois quand
+     on cache quelque chose » a été écrit puis RETIRÉ : le fantôme vit un instant DANS `#cbTimers`
+     (il faut cet ancêtre pour que `#cbTimers .seg` s'applique), et le témoin « aucun ÉLÉMENT du
+     quai n'est détruit pendant les ticks » l'observe en `subtree` — une passe de mesure déclenchée
+     hors changement de structure y compte donc comme une destruction. Les trois causes réelles
+     sont traitées en amont : mesure sans mise en page jamais retenue, état des polices dans la
+     clé, et quai qui répond au geste. La boucle ne tourne plus que lorsque la STRUCTURE change,
+     c'est-à-dire au seul moment où le quai est réécrit de toute façon. */
   write(_rtsFit,_rtsNoChev,_rtsNu);
-  /* Le drapeau tombe quand son segment est RÉELLEMENT dans la version écrite — ou quand le
-     minuteur a cessé de tourner entre-temps, sinon il attendrait indéfiniment. */
-  if(_cf&&(want.slice(0,_rtsFit).some(x=>x.t.id===_cf)||!run.some(t=>t.id===_cf)))_capFresh=null;
+  /* ⚠ LA CLASSE D'ENTRÉE NE VIT PAS DANS LA CHAÎNE MÉMORISÉE, ET C'EST STRUCTUREL (v5.6, mesuré).
+     Posée dans le HTML, elle en faisait partie : le tick suivant — 300 ms plus tard — produisait
+     une chaîne DIFFÉRENTE (sans la classe), réécrivait le quai, et ARRACHAIT le segment en pleine
+     animation (mesuré : l'entrée survivait 5 fois sur 8). On l'ajoute donc au NŒUD après écriture,
+     et `animationend` ne fait que la retirer — il ne touche à aucun état (A68/2, `check-anim`).
+     La chaîne reste alors identique d'un tick à l'autre, donc le quai n'est pas réécrit du tout et
+     le nœud survit à son animation. Le drapeau tombe quand le segment est PEINT, ou quand le
+     minuteur a cessé de tourner entre-temps — sinon il attendrait indéfiniment. */
+  if(_cf){
+    const nd=el.querySelector('.seg[data-seg="'+CSS.escape(_cf)+'"]:not(.due)');
+    if(nd){_capFresh=null;nd.classList.add('seg-in');
+      nd.addEventListener('animationend',()=>nd.classList.remove('seg-in'),{once:true});}
+    else if(!run.some(t=>t.id===_cf))_capFresh=null;}
   syncDock();}
 {const cbt=document.getElementById('cbTimers');
  // V5 : la barre BASCULE le panneau minuteurs en étroit (< 1000px, chevron ▾/▴) ; en large la
@@ -18215,7 +18267,12 @@ function bindReadEvents(f,blk,cur){
        car aucune règle CSS ne peut connaître l'état courant du minuteur. */
     try{if(Share.mode==='guest'&&t&&t.running&&!Share.canWrite('timer_stop')){
       announce('Arrêter un minuteur revient à celui qui conduit la checklist.');return;}}catch(e){}
-    toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)renderKeepAnchor('[data-tmtoggle="'+CSS.escape(b.dataset.tmtoggle)+'"]');else{syncTimerBtns(t);refreshTimersDOM();}});
+    /* ⚠ LE QUAI RÉPOND AU GESTE, IL N'ATTEND PAS LE TICK (v5.6, mesuré). Armer un minuteur ne
+       rafraîchissait que sa CARTE ; le segment n'apparaissait dans la capsule qu'au tick suivant,
+       donc jusqu'à une seconde plus tard — mesuré 4 fois sur 8 à 150 ms. Dans une zone d'état, un
+       changement COMMANDÉ doit se voir tout de suite ; et c'est ce qui fait coïncider l'entrée du
+       segment avec le geste qui l'a demandée (A68/1). */
+    toggleTimer(t);const fresh=ensureStarted();persistLive(Runtime);if(fresh)renderKeepAnchor('[data-tmtoggle="'+CSS.escape(b.dataset.tmtoggle)+'"]');else{syncTimerBtns(t);refreshTimersDOM();updateRtStrip();}});
   main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);refreshTimersDOM();persistLive(Runtime);}));
   main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;tick();Runtime.counters[id]=(Runtime.counters[id]||0)+(+b.dataset.step);
     // Compteur LIÉ (canvas : bolus adrénaline) : le « ＋ » RELANCE le minuteur associé (repart du plein).

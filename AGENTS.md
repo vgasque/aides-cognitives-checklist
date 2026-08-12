@@ -1680,20 +1680,8 @@ C'est la promesse ECAM prise en défaut dans la seule zone qui ne quitte jamais 
 · **UN TÉMOIN VOISIN A ROUGI, ET IL AVAIT TORT** : il exigeait que « le rappel s'efface » dès qu'un
   minuteur est armé — c'est-à-dire le MÉCANISME d'alors, avec son trou. La propriété recherchée n'a
   jamais été là : c'est « montré OU annoncé, jamais tu » et « jamais les deux à la fois ».
-· **⚠ CE QUI RESTE, MESURÉ ET NON CORRIGÉ, ET LA RAISON DU RENONCEMENT** : la décision
-  d'ajustement est mémorisée sur une clé qui ne capture pas l'état de chargement des POLICES —
-  mesurée avec la fonte de repli, la boucle retient un segment de moins et n'y revient jamais.
-  Mesuré à géométrie strictement identique (672/672 à 700 px) : le segment apparaissait 2 fois
-  sur 5. **Le rattrapage évident a été écrit puis RETIRÉ** : re-mesurer, c'est ÉCRIRE des variantes
-  dans le quai vivant, donc détruire des nœuds hors d'un changement de structure —
-  `audit-doctrine` l'a immédiatement rougi sur « aucun ÉLÉMENT du quai n'est détruit pendant les
-  ticks », qui est le défaut que la mémoïsation existe pour empêcher (un tap tombe dans le vide).
-  Le remède acceptable serait de mesurer sur un CLONE détaché : réécriture de cette boucle, à
-  décider séparément. **L'affichage reste donc inconstant ; l'information ne l'est plus**, et c'est
-  elle qui compte cliniquement.
-· **⚠ ET L'INTERMITTENCE NE SE MET PAS SOUS TÉMOIN** : un rouge aléatoire dans la porte de commit
-  serait pire qu'aucun témoin. Sa preuve est une mesure répétée (2/5 puis 5/5 avec le rattrapage),
-  consignée ici ; le témoin permanent couvre l'invariant, qui est déterministe.
+· **L'INTERMITTENCE EST CORRIGÉE EN A98** — le paragraphe qui la disait « mesurée, non corrigée »
+  est caduc ; ce qui suit en tient lieu.
 · **⚠ ET LE TÉMOIN ATTEND QUE LA CAPSULE SE STABILISE** avant de mesurer : à 140 ms fixes il
   mesurait l'instant, pas l'application. S'il n'obtient jamais son segment, il ROUGIT — il ne
   saute pas son cas (première version : l'assertion était conditionnelle, donc neutraliser
@@ -1707,6 +1695,47 @@ trouve dans le PDF joint, le tap ouvre à la bonne page avec surlignage, un mot 
 zone, et l'index n'est jamais construit à la frappe. Rien n'a été réécrit ; trois témoins
 s'ajoutent seulement pour l'entrée en fondu de la pilule. **Une proposition juste peut porter sur
 un manque qui n'existe plus : on vérifie avant d'implémenter** (même leçon qu'A82 et A91).
+
+**A98. LE QUAI SE MESURE SUR UN FANTÔME, ET NON EN S'ÉCRIVANT DESSUS (v5.6, demande de l'auteur —
+suite d'A96).** La boucle d'ajustement ÉCRIVAIT ses candidats dans `#cbTimers` pour les mesurer :
+chaque mesure détruisait et recréait les nœuds du quai. C'est ce qui obligeait à MÉMORISER la
+décision — donc ce qui rendait une mauvaise mesure définitive. Le fantôme découple les deux.
+· **IL EST UN ENFANT DE `#cbTimers`, et c'est ce qui le rend fidèle sans dupliquer une ligne de
+  CSS** : les règles du quai sont toutes DESCENDANTES (`#cbTimers .seg` — vérifié, zéro
+  combinateur enfant), donc elles s'appliquent à son contenu, et police comme couleurs s'héritent
+  par l'arbre. `position:fixed` hors écran : pris hors flux, il n'est pas un item de la rangée,
+  n'ajoute aucune zone défilable et ne peut rien recouvrir. Posé, mesuré, retiré dans la MÊME
+  tâche — aucune image intermédiaire.
+· **⚠ IL DOIT PORTER LES VALEURS, sinon il mesure un gabarit vide et croit que tout tient.** Le
+  quai peint ses chiffres à part (`textContent`), donc la chaîne ne les contient pas : la première
+  version du fantôme a fait DÉBORDER le quai à 320-430 px, et quatre témoins l'ont dit. Une seule
+  liste de valeurs (`valsFor`) sert désormais le vivant et le fantôme.
+· **UNE MESURE SANS MISE EN PAGE NE SE RETIENT PAS — c'était la cause principale.**
+  `updateRtStrip` peut courir alors que la capsule n'a pas de géométrie (largeur nulle : premier
+  rendu, ancêtre masqué) ; le test « ça tient » répond alors OUI à tout, et la décision prise sur
+  du vide était mémorisée pour de bon. On ne mesure que si la largeur existe, et l'on ne touche
+  pas à la clé sinon.
+· **L'ÉTAT DE CHARGEMENT DES POLICES EST UN TERME DE LA CLÉ** : une largeur mesurée avec la fonte
+  de repli n'est pas celle qu'on aura. Deux valeurs possibles, donc au plus une re-mesure.
+· **ET LE QUAI RÉPOND AU GESTE, PLUS AU TICK** : armer un minuteur ne rafraîchissait que sa CARTE ;
+  le segment n'entrait dans la capsule qu'au tick suivant — mesuré, 4 fois sur 8 il manquait encore
+  150 ms après le tap. Dans une zone d'état, un changement COMMANDÉ se voit tout de suite, et c'est
+  ce qui fait coïncider l'entrée du segment avec le geste (A68/1).
+· **⚠ PAS DE RE-MESURE SPÉCULATIVE, ET C'EST LE HARNAIS QUI L'A TRANCHÉ** : un filet « re-mesurer
+  une fois quand on cache quelque chose » a été écrit puis retiré — le fantôme vivant un instant
+  DANS `#cbTimers`, une passe déclenchée hors changement de structure compte comme une destruction
+  pour le témoin « aucun ÉLÉMENT du quai n'est détruit pendant les ticks », qui l'observe en
+  `subtree`. Les trois causes étant traitées en amont, la boucle ne tourne plus qu'au changement de
+  STRUCTURE — le seul moment où le quai est réécrit de toute façon.
+· **MESURÉ APRÈS** : 8/8 le segment paraît immédiatement, 8/8 l'entrée joue pendant l'animation et
+  ne laisse aucun résidu, 0 px de débordement de 320 à 700. Et le segment ne s'affiche que là où il
+  TIENT (700) : à 320-430 il est retiré et l'annonce prend le relais — ce qui est le comportement
+  juste, et non celui qu'un fantôme mal rempli faisait croire.
+· **⚠ LA CLASSE D'ENTRÉE NE VIT PAS DANS LA CHAÎNE MÉMORISÉE** : posée dans le HTML, elle en fait
+  partie — le tick suivant produit une chaîne différente, réécrit le quai et ARRACHE le segment en
+  pleine animation (mesuré : elle survivait 5 fois sur 8). Elle est donc ajoutée au NŒUD après
+  écriture, et `animationend` ne fait que la retirer (A68/2). La chaîne reste alors identique d'un
+  tick à l'autre : le quai n'est pas réécrit et le nœud survit à son animation.
 
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un

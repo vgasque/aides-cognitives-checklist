@@ -5084,7 +5084,10 @@ await sec('v5.6 · le minuteur armé rejoint la capsule, et le quai annonce ce q
      rien ne l'annonçait — « +n » ne compte que les échus depuis la v5.6, et le rappel du chevron
      se taisait dès qu'un minuteur était « voulu ». L'animation n'avait donc rien à désigner
      exactement sur le format le plus courant. */
-  for(const W of [390,700]){
+  /* 320 est le format où la place manque VRAIMENT : le segment y est retiré, et seule l'annonce
+     reste due. 700 est celui où il tient, donc le seul où l'entrée a un cas. Mesuré : 360, 390 et
+     430 montrent désormais le segment — c'est pourquoi la borne du bas est 320 et pas 390. */
+  for(const W of [320,700]){
     const page=await br.newPage({viewport:{width:W,height:900},hasTouch:true});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
     await page.goto(`http://localhost:${port}/index.html`);
@@ -5098,12 +5101,10 @@ await sec('v5.6 · le minuteur armé rejoint la capsule, et le quai annonce ce q
     await page.evaluate(()=>{const b=[...document.querySelectorAll('.rt-dock button')]
       .find(x=>/^Démarrer/.test((x.textContent||'').trim()));
       if(!b)throw new Error('bouton Démarrer introuvable');b.click();});
-    /* ⚠ ON ATTEND QUE LA CAPSULE SE SOIT STABILISÉE. La boucle d'ajustement peut cacher le segment
-       à sa première mesure et le rattraper à la passe suivante (une seconde plus tard) : mesurer à
-       140 ms fixes, c'est mesurer l'instant, pas l'application. On attend donc le segment, borné —
-       s'il n'arrive jamais, le témoin ROUGIT au lieu de sauter son cas. */
-    await page.waitForFunction(()=>document.querySelectorAll('#cbTimers .seg').length>=2,
-      null,{timeout:2500}).catch(()=>{});
+    /* ⚠ ON MESURE PENDANT L'ANIMATION, PAS APRÈS. La classe est posée sur le NŒUD et retirée par
+       `animationend` : à 150 ms elle a déjà disparu, et un témoin qui la cherche là mesure sa
+       propre lenteur. 50 ms — le quai répondant au geste, il n'y a plus rien à attendre. */
+    await page.waitForTimeout(50);
     const g=await page.evaluate(()=>{const el=document.getElementById('cbTimers');
       const s=el.querySelector('.seg.seg-in');
       return {marques:el.querySelectorAll('.seg.seg-in').length,
@@ -5125,10 +5126,13 @@ await sec('v5.6 · le minuteur armé rejoint la capsule, et le quai annonce ce q
       t(`${W} · témoin : le segment est bien montré`, g.segs>=2, `${g.segs} segment(s)`);
       t(`${W} · … et il entre en fondu`, g.marques===1&&g.anim==='capIn', JSON.stringify(g));
       t(`${W} · … sans se recompter dans le rappel`, !/minuteur/.test(g.rappel), g.rappel);
-      /* L'ENTRÉE NE REJOUE PAS : la capsule est réécrite dès que sa structure change. */
+      /* L'ENTRÉE SE NETTOIE ET NE REJOUE PAS — la chaîne écrite ne porte pas la classe, donc les
+         ticks ne réécrivent rien et le segment garde son nœud. */
       await page.waitForTimeout(1600);
-      t(`${W} · … et elle ne rejoue à aucun tick`,
-        await page.evaluate(()=>document.querySelectorAll('#cbTimers .seg.seg-in').length===0));
+      const fin=await page.evaluate(()=>({res:document.querySelectorAll('#cbTimers .seg.seg-in').length,
+        seg:document.querySelectorAll('#cbTimers .seg').length}));
+      t(`${W} · … puis se nettoie, sans rejouer à aucun tick`, fin.res===0, `${fin.res}`);
+      t(`${W} · … et le segment, lui, reste`, fin.seg>=2, `${fin.seg}`);
     }
     /* UN SEGMENT ÉCHU N'ENTRE PAS EN DOUCEUR : l'alarme a sa grammaire, elle PULSE. */
     const du=await page.evaluate(()=>{const t0=Object.values(Runtime.timers)[0];
