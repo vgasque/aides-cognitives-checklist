@@ -4270,6 +4270,44 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
   t('témoin : et il tenait sur UNE ligne au nominal', lab.nominal.lignes===1, `${lab.nominal.lignes} ligne(s)`);
   t('A9 · 320 px · le libellé réserve ses deux lignes, la carte ne grandit pas',
     lab.nominal.carte===lab.echu.carte, `${lab.nominal.carte} → ${lab.echu.carte} px`);
+  /* ── LA NUIT, LES TROIS MATIÈRES SE DISTINGUENT — ET LA CARTE A UNE LIMITE (v5.6, variante C
+     choisie sur maquettes). Mesuré avant : travail contre ambiance 1,10:1 et filet contre travail
+     1,21:1 — une carte n'avait ni ombre (« la nuit ne projette pas, elle borde ») ni bord
+     perceptible, et c'est le COMPTAGE qui échouait, pas la lecture. `audit-a11y` ne pouvait pas le
+     voir : il mesure le TEXTE, et le texte, lui, était à 14:1.
+     On mesure ici parce que le décor est déjà dressé — même page, même session (règle « une
+     manœuvre, une section ») ; seul le thème change, et il est rendu à sa valeur ensuite. */
+  const nuit=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const avant=document.documentElement.dataset.theme||'';
+    document.documentElement.dataset.theme='dark';await w(300);
+    const f=v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};
+    const L=c=>{const m=(String(c).match(/[\d.]+/g)||[0,0,0]).slice(0,3).map(Number);
+      return .2126*f(m[0])+.7152*f(m[1])+.0722*f(m[2]);};
+    const R=(x,y)=>{const l=[L(x),L(y)].sort((a,b)=>b-a);return Math.round((l[0]+.05)/(l[1]+.05)*100)/100;};
+    const al=c=>{const m=(String(c).match(/[\d.]+/g)||[]);return m.length>3?+m[3]:1;};
+    const opq=e=>{for(let n=e;n;n=n.parentElement){const c=getComputedStyle(n).backgroundColor;
+      if(al(c)>0.99&&!/rgba\(0, 0, 0, 0\)/.test(c))return c;}return 'rgb(0,0,0)';};
+    const card=document.querySelector('.ov-block'),cap=document.querySelector('#cbTimers');
+    if(!card||!cap){document.documentElement.dataset.theme=avant;return null;}
+    const cs=getComputedStyle(card),t=card.querySelector('.ov-t');
+    const out={matiere:R(cs.backgroundColor,opq(card.parentElement)),
+      filet:R(cs.borderTopColor,cs.backgroundColor),
+      encre:t?R(getComputedStyle(t).color,cs.backgroundColor):null,
+      systemeVsTravail:R(getComputedStyle(cap).backgroundColor,cs.backgroundColor)};
+    document.documentElement.dataset.theme=avant;await w(150);
+    return out;});
+  t('nuit · témoin : la carte et la capsule sont bien mesurées', !!nuit&&nuit.encre!==null, JSON.stringify(nuit));
+  /* Le SEUIL est celui de la limite d'un composant (WCAG 2.2 § 1.4.11). */
+  t('nuit · la carte de travail a une LIMITE perceptible (≥ 3:1)',
+    !!nuit&&nuit.filet>=3, nuit?`${nuit.filet}:1`:'—');
+  /* La matière n'a pas de seuil réglementaire — c'est elle qui décide de la charge du filet ; on
+     vérifie seulement qu'elle ne retombe pas au ras de l'ambiance (1,10 avant la variante C). */
+  t('nuit · … et elle se détache de l\'ambiance', !!nuit&&nuit.matiere>=1.18,
+    nuit?`${nuit.matiere}:1`:'—');
+  t('nuit · SYSTÈME et TRAVAIL ne sont plus la même matière',
+    !!nuit&&nuit.systemeVsTravail>1.03, nuit?`${nuit.systemeVsTravail}:1`:'—');
+  t('nuit · … sans rien coûter à l\'encre (≥ 4,5:1)', !!nuit&&nuit.encre>=4.5,
+    nuit?`${nuit.encre}:1`:'—');
   await page.close();
 }
 });

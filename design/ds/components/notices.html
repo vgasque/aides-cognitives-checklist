@@ -225,7 +225,21 @@
      et le halo des textes blancs fatigue — un effet gênant pour les personnes astigmates. La
      nuit ne projette pas d'ombre : elle BORDE. Mêmes objets, valeurs propres. */
   [data-theme="dark"]{
-  --amb:#0d0f13;--amb-2:#101318;--work:#171a20;--work-line:#262a31;
+  /* ⚠ LA MATIÈRE DE TRAVAIL SE DÉTACHE DE LA NUIT, ET SON FILET TIENT LE SEUIL (v5.6, variante C
+     choisie sur maquettes). Mesuré avant : travail contre ambiance **1,10:1**, filet contre travail
+     **1,21:1** — une carte n'avait donc, la nuit, ni ombre (« la nuit ne projette pas, elle borde »)
+     ni bord perceptible, et sur une colonne de cartes c'est le COMPTAGE qui échoue : on ne voit plus
+     où l'une finit et où la suivante commence. Après : matière **1,22:1**, filet **3,15:1** — le
+     seuil de WCAG 2.2 § 1.4.11 pour la limite d'un composant.
+     ⚠ DEUX CANAUX PLUTÔT QU'UN, ET C'EST LE MOTIF DU CHOIX : renforcer le seul filet (variante A,
+     3,68:1 sur la matière inchangée) tenait aussi le seuil, mais chargeait le TRAIT — sur des cartes
+     empilées le dessin se rapproche d'une grille, ce que « verre clinique » cherche à éviter. Ici la
+     matière fait la moitié du travail, donc le trait peut rester fin.
+     COÛT MESURÉ : l'encre principale passe de 14,4:1 à 13,1:1 sur la carte (très au-dessus du
+     seuil). `--sys` NE BOUGE PAS — la capsule et le dock sont de la matière SYSTÈME, pas TRAVAIL,
+     et les deux matières cessent donc d'être confondues la nuit : c'est un gain de doctrine, pas un
+     effet de bord. Le thème clair n'est pas touché. */
+  --amb:#0d0f13;--amb-2:#101318;--work:#1e232b;--work-line:#667080;
   --sys:#171a20;--sys-hi:#242932;--sys-line:rgba(255,255,255,.14);
   --line:#1c1f25;--line-strong:#2c313a;--ctl-line:#6b7480;
   --ink:#e6eaf0;--ink-2:#9aa5b3;--ink-3:#707c8c;
@@ -235,7 +249,13 @@
   --act:#8fb8e8;
   --shadow-work:none;--shadow-up:none;
   /* Alias de nuit : les anciens noms qui avaient une valeur sombre propre. */
-  --primary-soft:#13233a;--primary-100:#13233a;--primary-200:#2c4b6e;--primary-300:#2c4b6e;
+  /* ⚠ LA TEINTE DE SÉLECTION SE CREUSE D'AUTANT QUE LA MATIÈRE S'EST ÉCLAIRCIE (v5.6, variante C).
+     Le placard d'exercice est un APLAT `--primary-soft` hachuré, posé sur la matière de travail :
+     en relevant celle-ci de #171a20 à #1e232b, l'écart entre les deux bandes est tombé de 44 à 26
+     (seuil du harnais : 30) — la hachure d'exercice devenait douteuse la nuit, c'est-à-dire
+     exactement ce que la v4.28.0 avait corrigé et que le témoin existe pour empêcher. On rend
+     l'écart par le BLEU, pas par la lumière : 35 mesurés, et la teinte reste une teinte. */
+  --primary-soft:#12263f;--primary-100:#12263f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;
   --critical-line:#3a1f1c;--verify-line:#3a2f12;--done-line:#1e3a28;--on-primary:#0d0f13;
   --scrim-soft:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.62);--scrim-full:rgba(0,0,0,.94);
   --hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;

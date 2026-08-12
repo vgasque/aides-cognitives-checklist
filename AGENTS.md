@@ -1108,6 +1108,30 @@ déclencheur de filtres, « Vérifier :: » et la sortie de la passe.
   ni bord perceptible. Idem pour la capsule sur son quai. Renforcer ces filets « grillagerait » tout
   le thème sombre : c'est une décision de signature, pas un correctif, et elle vous revient.
 
+**A68. LA NUIT, LA MATIÈRE DE TRAVAIL SE DÉTACHE ET SON FILET TIENT LE SEUIL (v5.6, variante C
+choisie sur maquettes).** Mesuré avant : travail contre ambiance **1,10:1**, filet contre travail
+**1,21:1** — une carte n'avait donc, la nuit, ni ombre (« la nuit ne projette pas, elle borde ») ni
+bord perceptible, et sur une colonne de cartes c'est le COMPTAGE qui échoue, pas la lecture.
+`audit-a11y` ne pouvait pas le voir : il mesure le TEXTE, et le texte était à 14:1.
+Après : `--work` #171a20 → **#1e232b** (matière 1,22:1) et `--work-line` #262a31 → **#667080**
+(filet **3,15:1**, seuil de WCAG 2.2 § 1.4.11).
+· **DEUX CANAUX PLUTÔT QU'UN, ET C'EST LE MOTIF DU CHOIX** : renforcer le seul filet (variante A,
+  3,68:1 sur la matière inchangée) tenait le seuil aussi, mais chargeait le TRAIT — sur des cartes
+  empilées le dessin se rapproche d'une grille, ce que « verre clinique » cherche à éviter. Ici la
+  matière fait la moitié du travail, donc le trait peut rester fin.
+· **`--sys` NE BOUGE PAS** : la capsule et le dock sont de la matière SYSTÈME. Effet second et
+  bienvenu — les deux matières, jusque-là identiques la nuit (1,00:1), se distinguent désormais.
+· **COÛT MESURÉ** : l'encre principale passe de 14,4 à **13,1:1** sur la carte. Le thème clair
+  n'est pas touché.
+· **⚠ CE QU'UNE MATIÈRE PLUS CLAIRE ENTRAÎNE, ET QU'UN TÉMOIN A ATTRAPÉ** : le placard d'exercice
+  est un aplat `--primary-soft` posé SUR cette matière — l'écart entre les deux bandes est tombé de
+  44 à 26 (seuil 30), c'est-à-dire que la hachure d'exercice redevenait douteuse la nuit, le défaut
+  même que la v4.28.0 avait corrigé. `--primary-soft` se creuse donc par le BLEU (#13233a →
+  #12263f, écart 35) : on rend l'écart sans rendre la teinte plus claire.
+· **TÉMOIN** : dans la section A9/A6/A11, qui monte déjà le décor — on bascule le thème, on mesure,
+  on le rend. Quatre contrôles : limite ≥ 3:1, matière détachée de l'ambiance, SYSTÈME ≠ TRAVAIL,
+  et l'encre qui ne paie pas la note. Vérifié capable d'échouer (tokens d'avant → 3 rouges).
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
