@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-IPW/Iv4Y3qo+pyNI7DmQFtD/MVwbXYA6QcdBwoU6NTc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kFHDroqCUNOjcJ5s3UbsEO6O6l6xWMMFIKao7t20ZFA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5556,11 +5556,45 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      détail d'une ligne reste dépliable ; c'est le SAUT qui n'a pas de sens ici. `display:none`
      le retire aussi de la tabulation, ce qu'un simple masquage visuel ne ferait pas. */
   .pre-lad .pl-lnk{display:none}
-  .pre-links{display:flex;flex-wrap:wrap;gap:14px;padding:14px 2px 2px}
-  .pre-link{background:none;border:0;padding:6px 0;min-height:44px;font-family:inherit;
-    font-size:var(--t-meta);font-weight:700;color:var(--act);cursor:pointer}
-  .pre-link:hover{text-decoration:underline}
-  .pre-link:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
+  /* ⚠ AVANT LE SOIN, LE PARCOURS SE RESSERRE (v5.6, signalé à l'usage : « le parcours inerte est
+     trop long — réduis un peu la taille des étapes sans perdre la lisibilité ni d'informations »).
+     Rien n'est retiré : ce sont les MARGES qui cèdent, jamais le contenu ni le corps du texte.
+     · rangée 44 → 38 px, rembourrage 6/12 → 4/10, écart de grille 6 → 4 ;
+     · la pastille passe de 26 à 24 px — elle reste plus grande que son chiffre (11 px).
+     POURQUOI SEULEMENT AVANT : 44 px est le plancher de la CRISE, et il ne se négocie pas une fois
+     le soin démarré. Ici il n'y a pas de crise — `audit-a11y` le mesure d'ailleurs sur la liste
+     hors-crise, plancher 24 — et le geste qui fait basculer les deux géométries est le bouton de
+     démarrage, donc COMMANDÉ : A9 interdit qu'une hauteur change sans qu'on l'ait demandé, pas
+     qu'un écran se réorganise quand on entre dedans (c'est déjà ce que fait le lot T5).
+     38 px reste au-dessus du plancher HORS crise (32) et très au-dessus des 24×24 de WCAG. */
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:4px 10px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d1{padding-left:20px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d2{padding-left:28px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d3{padding-left:40px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:24px;height:24px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .rail-lad{gap:4px}
+  body.view-read:not(.crisis-live) .pre-lad{gap:4px}
+  /* L'étiquette de branche n'est PAS une cible — c'est un intertitre : elle rend son rembourrage
+     avant la session comme les rangées rendent le leur. */
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-brc{padding:2px 8px 0}
+  /* ⚠ DES BOUTONS, PLUS DES LIENS DE TEXTE (v5.6, demande de l'auteur : « rends-les plus
+     visibles »). Ils ouvrent la fiche ENTIÈRE — c'est le geste le plus utile de cet écran après
+     « démarrer » — et ils se lisaient comme une note de bas de section : 12 px, sans bord, sous
+     le titre de l'étage. Ils deviennent des boutons de CONTOUR au filet de composant
+     (`--ctl-line`, le seul qui tienne 3:1, cf. A67), corps du texte courant, glyphe de commande à
+     15 px (A13). CONTOUR et non rempli : le seul bouton rempli de l'écran reste « Confirmé —
+     démarrer la session » (règle du bouton unique) — ce sont des LECTURES, elles ne démarrent
+     rien. Ils s'étirent à parts égales sous 430 px, où deux libellés courts laissaient une rangée
+     déséquilibrée. */
+  .pre-links{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 4px}
+  .pre-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--work);border:1px solid var(--ctl-line);border-radius:var(--r-2);
+    padding:0 14px;min-height:44px;font-family:inherit;
+    font-size:var(--t-body);font-weight:700;color:var(--ink);cursor:pointer}
+  .pre-link .tic{color:var(--act);flex:none}
+  .pre-link:hover{background:var(--amb-2);border-color:var(--ink-soft)}
+  .pre-link:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (max-width:429.98px){.pre-link{flex:1 1 0;min-width:0;padding:0 10px}}
   /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
      demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
      Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
@@ -7047,11 +7081,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
   @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
   @keyframes secInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
-  /* Seule la LISTE glisse (canvas turn 6 : secAnim porte sur la liste) — la colonne
-     gauche, statique entre les sections, ne bouge pas. */
-  main.sec-anim-l .home-main{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
-  main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
-  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
+  /* ⚠ LA BASCULE Tout / Aides / Protocoles N'ANIME PLUS (v5.6, demande de l'auteur). `.sec-anim-l`
+     et `.sec-anim-r` sont PURGÉES avec leur mécanique (règle 14) : c'est un changement de FILTRE,
+     pas une navigation — la liste reste la même liste, seule sa clé change, et l'y faire glisser
+     lui donnait l'allure d'un changement d'écran. Le glissement de la pastille du sélecteur suffit
+     à accuser le geste, et il est, lui, la manipulation directe.
+     Les keyframes `secInL/R` RESTENT : elles servent encore la pile de retour (`main.back-anim`)
+     et la bascule de format en lecture (`.rm-anim-l/r`), qui sont deux vraies navigations. */
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
@@ -12629,11 +12666,6 @@ function applyViewChrome(){
 let _renderN=0;
 let _grpSegI=null;   // dernier cran du groupement, pour rejouer le glissement après re-rendu
 function render(){_renderN++;
-  // Un re-rendu qui remplace .home-main pendant l'animation de bascule de section la REJOUERAIT
-  // depuis zéro (nouvel élément, classe encore posée sur main — l'animationend de l'ancien ne
-  // vient jamais) : une synchro tombant dans la fenêtre faisait « recharger » la liste plusieurs
-  // fois (v4.5.1). setSection pose sa classe APRÈS son render() -> l'animation voulue joue, une fois.
-  main.classList.remove('sec-anim-l','sec-anim-r');
   if(state.view==='library')state.readStack=[];   // la pile d'origine (v4.28.0) ne survit pas à l'accueil
   // Position de la BIBLIOTHÈQUE mémorisée quand on la quitte : ouvrir une fiche remet en haut
   // (le début de la fiche doit être visible), revenir restaure là où on en était dans la liste.
@@ -12989,12 +13021,10 @@ function setSection(s,keepQuery,opts){opts=opts||{};
   state.libLimit=LIB_PAGE;render();
   {const y=_homeScroll[s]||0;const sc=main.querySelector('.home-main');
    if(mqHomeWide.matches&&sc)sc.scrollTop=y;else window.scrollTo(0,y);}
-  if(opts.silent)return;
-  // Transition de contenu (transform/opacity uniquement -> compositeur : la page reste utilisable
-  // pendant l'animation, qui accompagne le glissement de l'indicateur de l'en-tête).
-  main.classList.remove('sec-anim-l','sec-anim-r');void main.offsetWidth;
-  main.classList.add('sec-anim-'+dir);
-  main.addEventListener('animationend',()=>main.classList.remove('sec-anim-l','sec-anim-r'),{once:true});}
+  /* (Plus d'animation de contenu ici : changer de cran est un changement de FILTRE, pas une
+     navigation — cf. le commentaire de `secInL/R` dans la feuille. `dir` reste calculé pour la
+     pastille du sélecteur, qui glisse, elle.) */
+}
 // Barre BIBLIOTHÈQUE en chips (accueil ÉTROIT, visible seulement connecté) : Perso + bibliothèques
 // partagées + création (app-admin). En large, la colonne gauche (homeSideHtml) prend le relais.
 const _ROLE_LBL={viewer:'lecture seule',editor:'lecture-écriture',admin:'administration'};
@@ -14970,6 +15000,9 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   book:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/>',
   info:'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>',
   list:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  /* `table` — la page SFAR. MÊME TRACÉ que le bouton « Tableau » de la barre markdown : un second
+     dessin pour la même idée serait deux choses à apprendre (règle du menu ⋯). */
+  table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
   /* « VOUS » — le pendant de `book` sur la pastille de provenance (`searchLibTag` : « 🕮 Partagée »
      contre « Perso »). Il MANQUAIT, et `uiIcon` rend alors un <svg> de la bonne taille SANS aucun
@@ -17298,6 +17331,10 @@ function renderRead(){
      ⚠ ET SEULEMENT QUAND LE GESTE D'ENTRÉE EXISTE : chez l'INVITÉ (qui suit une session
      distante et n'en démarre aucune) et en APERÇU D'ESSAI, la vue de travail reste — sinon on
      leur montrerait une fiche qu'ils ne peuvent plus dérouler. */
+  /* v5.6 — LES DEUX FAÇONS DE REGARDER LA FICHE PASSENT AU-DESSUS DE « PRISE EN CHARGE » (demande
+     de l'auteur). Elles ne sont pas un détail de cet étage : elles ouvrent la fiche ENTIÈRE, donc
+     elles se lisent avant lui, et elles ont leur propre rangée. */
+  if(avantSession)stages.push({cls:'on',head:'',body:preLinksHtml(f)});
   {const body=avantSession
      ?preSessionHtml(f,preLad)+localH+((wideRead||avantSession)?'':posH)
      :agirDabord
@@ -17308,7 +17345,14 @@ function renderRead(){
   // (AC 120-71B). Les DIFFÉRENTIELS, eux, sont de la consultation (on les ouvre quand le
   // tableau est atypique, pour re-décider) : ils partent dans la feuille, où le lien
   // « Tableau atypique ? » de l'étape ① atterrit directement.
-  if(verifyH)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH});
+  /* ⚠ PAS AVANT LA SESSION (v5.6, demande de l'auteur). « Surveiller ensuite » est, par
+     définition, ce qui vient APRÈS les gestes : sur l'écran où l'on décide d'entrer, il n'est ni
+     actionnable ni décisif, et il pousse le geste d'entrée d'autant. Il revient dès le premier
+     geste — donc rien n'est perdu, seulement différé au moment où cela commence à servir. En voie
+     LARGE il n'a même pas disparu : la colonne d'orientation porte « Surveiller ensuite » en
+     permanence. AC 120-71B demande que les surveillances restent dans le FLUX ; cette règle vise
+     le déroulé du soin, pas la page de garde. */
+  if(verifyH&&!avantSession)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH});
   }
   /* LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE EN SESSION (règle v4.4.0 ROUVERTE, cf. AGENTS.md).
      Il numérote un PARCOURS — orienter quelqu'un qui découvre la fiche — et c'est exactement ce
@@ -17350,7 +17394,7 @@ function renderRead(){
     ${dockPanel}
     ${(useSv||fsAvantBouton)?'':forgetStrip}
     ${pathH}
-    ${annexRowHtml(f)}
+    ${avantSession?'':annexRowHtml(f)}
     ${preview?'':noteBlockHtml(f.id,started)}
     ${readFooterHtml()}
     ${gridClose}`;
@@ -17548,8 +17592,18 @@ function bindReadEvents(f,blk,cur){
      et du menu ⋯ — aucun second point d'entrée à tenir. */
   main.querySelectorAll('[data-prelink]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.prelink;
-    if(k==='page'){state.readMode='static';render();return;}
-    if(k==='svg'){openFlowFull();return;}
+    /* ⚠ TROIS EXCURSIONS, TROIS FEUILLES — ET AUCUNE NE TOUCHE À L'ÉTAT DE LECTURE (v5.6, signalé
+       à l'usage : « cliquer sur tableau mène au tableau SFAR mais impossible de revenir, et on
+       perd les sidebars »). « Tableau » écrivait `state.readMode='static'` et re-rendait : la page
+       d'entrée était REMPLACÉE par le tableau, or le retour d'excursion vit dans le DOCK, qui
+       n'existe pas avant le premier geste — l'utilisateur était enfermé, et le format statique
+       n'ayant pas de colonne de plan, le cockpit perdait ses deux colonnes par-dessus le marché.
+       Une feuille se referme par son ✕, Échap, le voile et le retour système, et la page reste
+       dessous, intacte.
+       ⚠ « Schéma » NE FAISAIT RIEN : `openFlowFull(f)` prend la fiche en paramètre et l'appel
+       l'omettait — `buildFlowSVG(undefined)` ne rend rien, en silence. */
+    if(k==='page'){openPlanSheet('page');return;}
+    if(k==='svg'){openFlowFull(f);return;}
     if(k==='docs')openRefSheet('docs');});
   // Sortie du bandeau « le partage a été interrompu » (invité, lien mort) : même geste que la
   // rangée du menu ⋯, donc même fonction — jamais une seconde porte qui dirait autre chose.
@@ -18103,18 +18157,39 @@ function ovPlanHtml(f){
    commune, même état peint, mêmes gestes (data-plgo / data-plref / data-plln).
    UNE SEULE VUE depuis v4.25.0, l'ÉCHELLE : « Détails » (l'organigramme hybride) était la seule
    des trois à RECOPIER les étapes — elle rejouait la vue d'action au lieu de montrer autre chose,
-   ce qu'un SD ECAM ne fait jamais. Le Schéma a rejoint le menu ⋯ (openFlowFull). Pas de
-   « Tableau » ici : ce serait une seconde porte vers le mode statique, dont #readTopSeg est le
-   seul maître. */
+   ce qu'un SD ECAM ne fait jamais. Le Schéma a rejoint le menu ⋯ (openFlowFull).
+   ⚠ CE PARAGRAPHE DISAIT « pas de Tableau ici : ce serait une seconde porte vers le mode statique,
+   dont #readTopSeg est le seul maître ». Les deux moitiés sont caduques (v5.6) : `#readTopSeg` a
+   été PURGÉ au lot A avec le sélecteur de mode, et surtout la feuille ne BASCULE rien — elle
+   MONTRE la page sans écrire `state.readMode`. L'objection visait une porte vers un ÉTAT ; il
+   s'agit d'une excursion, qui se referme là où elle s'est ouverte. */
 const planModal=document.getElementById('planModal');
 function planSheetOpen(){return planModal.classList.contains('on');}
+let _pmVue='plan';
 function renderPlanSheet(){
   const f=state.fiche;if(!f||!planSheetOpen())return;
+  const page=_pmVue==='page';
+  document.getElementById('planModalTitle').firstChild.nodeValue=(page?'Tableau — ':'Se repérer — ');
   document.getElementById('pmName').textContent=f.title||'Sans titre';
-  // Une seule vue depuis v4.25.0 : plus de sélecteur à remonter dans la barre collante.
-  document.getElementById('planBody').innerHTML=ovPlanHtml(f);}
-function openPlanSheet(){
-  const f=state.fiche;if(!f||!hasFlow(f))return;
+  /* DEUX VUES, UNE COQUE (v5.6). Ce n'est pas une seconde porte vers le MODE statique — rien ici
+     n'écrit `state.readMode` : on MONTRE la page, on ne bascule pas le format de lecture. La
+     distinction est celle du lot A : regarder n'est pas régler. C'est aussi ce qui répare
+     l'excursion d'avant le soin, qui remplaçait la vue de travail sans laisser de retour (le dock,
+     qui porte « ↩ Un bloc », n'existe pas encore à ce moment-là) et faisait tomber les deux
+     colonnes du cockpit au passage. */
+  document.getElementById('planBody').innerHTML=page?`<div class="sv-wrap">${svTableHtml(f)}</div>`:ovPlanHtml(f);
+  /* Les flèches se mesurent APRÈS la mise en page (rAF) : la feuille vient d'être remplie, et une
+     passe immédiate lirait des rectangles nuls. Elle est rejouée au redimensionnement tant que la
+     feuille est ouverte — le tableau réorganise ses colonnes aux paliers. */
+  if(page){const b=document.getElementById('planBody');
+    requestAnimationFrame(()=>{if(planSheetOpen())svPaintArrows(b);});}}
+addEventListener('resize',()=>{if(planSheetOpen()&&_pmVue==='page')
+  svPaintArrows(document.getElementById('planBody'));});
+function openPlanSheet(vue){
+  const f=state.fiche;if(!f)return;
+  _pmVue=(vue==='page')?'page':'plan';
+  if(_pmVue==='plan'&&!hasFlow(f))return;
+  if(_pmVue==='page'&&!(f.blocks||[]).length)return;
   planModal.classList.add('on');renderPlanSheet();}
 function closePlanSheet(){if(planSheetOpen())planModal.classList.remove('on');}
 bindModalDismiss(planModal,closePlanSheet);
@@ -19507,14 +19582,24 @@ function preSessionHtml(f,avecParcours){
   const n=plan.order.length;
   const lad=ovPlanLadderHtml(f,plan,num,md,new Set());
   const nd=(f.docs||[]).length;
-  const liens=`<div class="pre-links">`
-    +`<button type="button" class="pre-link" data-prelink="page">▦ Tableau</button>`
-    +(hasFlow(f)?`<button type="button" class="pre-link" data-prelink="svg">◈ Schéma</button>`:'')
-    +(nd?`<button type="button" class="pre-link" data-prelink="docs">▤ Documents · ${nd}</button>`:'')
-    +`</div>`;
   const par=avecParcours?`<div class="pre-head"><span class="pre-t">Parcours · ${n} bloc${n>1?'s':''}</span>`
     +`<span class="pre-inert">inerte</span></div><div class="rail-lad pre-lad">${lad}</div>`:'';
-  return `<div class="pre-wrap">${par}${liens}</div>`;}
+  return `<div class="pre-wrap">${par}</div>`;}
+/* LES DEUX (OU TROIS) FAÇONS DE REGARDER LA FICHE AVANT DE LA DÉROULER — v5.6, demande de
+   l'auteur : « remonte les boutons tableau et schéma au-dessus de prise en charge et rends-les
+   plus visibles ». Ils vivaient DANS le corps de l'étage, sous son titre, en liens de texte : on
+   les lisait comme une note de bas de section alors qu'ils ouvrent la fiche entière.
+   Ce sont des EXCURSIONS, pas des réglages — chacune s'ouvre en feuille plein écran et se referme
+   par son ✕, Échap ou le retour système : la page d'entrée reste dessous, intacte. C'est ce qui
+   les distingue de l'axe de densité du dock, qui remplace la vue de travail et porte son retour
+   dans le chrome (lot A). */
+function preLinksHtml(f){
+  const nd=(f.docs||[]).length;
+  return `<div class="pre-links">`
+    +`<button type="button" class="pre-link" data-prelink="page">${uiIcon('table',15)}Tableau</button>`
+    +(hasFlow(f)?`<button type="button" class="pre-link" data-prelink="svg">${uiIcon('flow',15)}Schéma</button>`:'')
+    +(nd?`<button type="button" class="pre-link" data-prelink="docs">${uiIcon('doc',15)}Documents · ${nd}</button>`:'')
+    +`</div>`;}
 function ovParcoursHtml(f){
   /* ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — demande
      utilisateur : « mets à jour parcours dans tout voir pour que ça corresponde au nouveau
@@ -19786,8 +19871,11 @@ function svTableHtml(f){
 // mesurées après le rendu (même philosophie que l'organigramme SVG : géométrie recalculée au
 // rendu et au resize, jamais pendant un geste). Branches EMPILÉES (étroit) -> .stacked :
 // fourche et convergence masquées, les pilules re-suffisent.
-function svPaintArrows(){
-  const wrap=main.querySelector('.sv-wrap');if(!wrap)return;
+/* `racine` : la passe travaillait sur `main` en dur. Depuis que la page SFAR s'ouvre AUSSI en
+   feuille (v5.6, excursion d'avant le soin), elle doit pouvoir peindre ailleurs — un second
+   peintre recopié divergerait au premier réglage de flèche. Défaut inchangé : `main`. */
+function svPaintArrows(racine){
+  const wrap=(racine||main).querySelector('.sv-wrap');if(!wrap)return;
   const tb=wrap.querySelector('.sv-tb');if(!tb)return;
   const Z=zoomF();   // v4.13.1 : rectangles en px VISUELS -> tout est ramené en px CSS (÷ Z)
   const CONTENT='.sv-cell,.sv-band,.sv-opt,.sv-jrow,.sv-end';

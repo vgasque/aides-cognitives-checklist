@@ -1311,6 +1311,64 @@ ses constats se règlent en ÉCRIVANT ce qui était vrai, au lieu de changer le 
   24,00 × 24,00 à 100 % comme à 200 % — ce sont des px CSS fixes, le zoom les agrandit visuellement
   au lieu de les rogner. La crainte de l'arrondi vise une taille DÉRIVÉE ; il n'y en a pas ici.
 
+**A77. L'ÉCRAN D'ENTRÉE NE PORTE QUE CE QUI SERT À DÉCIDER D'ENTRER (v5.6, signalé à l'usage).**
+Trois retraits et un déplacement, tous sur l'écran d'avant le soin — jamais sur le déroulé.
+· **« Surveillances & pièges » N'Y EST PLUS** : c'est par définition ce qui vient APRÈS les gestes.
+  Sur la page où l'on décide d'entrer, il n'est ni actionnable ni décisif, et il repousse d'autant
+  le geste d'entrée. Il revient au PREMIER geste — rien n'est perdu, c'est différé au moment où
+  cela sert —, et en voie large il n'a même pas disparu : la colonne d'orientation porte
+  « Surveiller ensuite » en permanence. AC 120-71B veut les surveillances dans le FLUX ; cette
+  règle vise le déroulé du soin, pas la page de garde.
+· **NI LA RANGÉE « CONSULTER »** : elle appartient au soin. Elle reste à un tap par le renvoi
+  « le tableau ne colle pas ? » de la condition d'entrée et par le menu ⋯ — aucun accès perdu.
+· **« TABLEAU » ET « SCHÉMA » PASSENT AU-DESSUS DE « PRISE EN CHARGE »**, en boutons de contour de
+  44 px au lieu de liens de texte de 12 px. Ils ouvrent la fiche ENTIÈRE : ce n'est pas un détail
+  de cet étage, cela se lit avant lui. Contour et non rempli — le seul bouton rempli de l'écran
+  reste le geste d'entrée (règle du bouton unique).
+
+**A78. CE SONT DES EXCURSIONS, ET UNE EXCURSION SAIT REVENIR (v5.6, signalé à l'usage : « cliquer
+sur tableau mène au tableau SFAR mais impossible de revenir, et on perd les sidebars ; cliquer sur
+schéma ne fonctionne pas »).** Deux défauts, une cause commune : ces deux portes n'avaient pas été
+traitées comme des excursions.
+· **« Tableau » écrivait `state.readMode='static'` et re-rendait.** La page d'entrée était donc
+  REMPLACÉE — or le retour d'excursion vit dans le DOCK (« ↩ Un bloc », lot A), et le dock n'existe
+  pas avant le premier geste (A18) : on était enfermé. Et le format statique n'ayant pas de colonne
+  de plan, le cockpit perdait ses DEUX colonnes au passage. Les deux portes ouvrent désormais une
+  FEUILLE plein écran, qui se referme par son ✕, Échap, le voile et le retour système ; la page
+  d'entrée reste dessous, intacte, colonnes comprises.
+· **`state.readMode` N'EST PLUS TOUCHÉ** : on MONTRE la page, on ne bascule pas le format de
+  lecture — « regarder n'est pas régler » (lot A). Le commentaire qui interdisait « Tableau » dans
+  cette feuille (« ce serait une seconde porte vers le mode statique, dont #readTopSeg est le seul
+  maître ») est caduc des deux côtés : `#readTopSeg` a été purgé au lot A, et il ne s'agit pas
+  d'une porte vers un ÉTAT.
+· **⚠ « Schéma » NE FAISAIT RIEN, EN SILENCE** : `openFlowFull(f)` prend la fiche en paramètre et
+  l'appel l'omettait — `buildFlowSVG(undefined)` ne rend rien et ne lève pas. Un argument oublié
+  ne se voit ni au `check`, ni aux tests : seul un témoin qui CLIQUE le trouve.
+· **UNE COQUE, DEUX VUES** : la feuille « Se repérer » accepte `openPlanSheet('page')` — même ✕,
+  même Échap, même retour système, rien de neuf à tenir. Et `svPaintArrows(racine)` est
+  paramétrée : un second peintre recopié divergerait au premier réglage de flèche.
+
+**A79. AVANT LE SOIN, LE PARCOURS SE RESSERRE — LES MARGES CÈDENT, JAMAIS LE CONTENU (v5.6, signalé
+à l'usage : « le parcours inerte est trop long »).** Rangée 44 → 38 px, rembourrage 6/12 → 4/10,
+écart de grille 6 → 4, pastille 26 → 24, étiquette de branche 38 → 28. **Mesuré : 454 → 388 px,
+soit 15 %** — aucun mot retiré, aucun corps de texte changé.
+· **POURQUOI SEULEMENT AVANT** : 44 px est le plancher de la CRISE et il ne se négocie pas une fois
+  le soin démarré. Ici il n'y a pas de crise — `audit-a11y` mesure d'ailleurs cet écran sur la
+  liste HORS crise, plancher 24 — et le geste qui fait basculer les deux géométries est le bouton
+  de démarrage, donc COMMANDÉ : A9 interdit qu'une hauteur change sans qu'on l'ait demandé, pas
+  qu'un écran se réorganise quand on entre dedans (c'est déjà ce que fait T5). 38 px reste au-dessus
+  du plancher hors crise (32).
+· **CE QUI N'A PAS ÉTÉ TOUCHÉ, ET POURQUOI C'EST À DIRE** : les rangées de surveillance à 48 px le
+  sont parce que leur texte passe sur DEUX lignes — c'est du contenu, pas du rembourrage. Le
+  raccourcir serait la perte d'information que la demande exclut.
+
+**A80. CHANGER DE CRAN N'EST PAS NAVIGUER (v5.6, demande de l'auteur).** La bascule Tout / Aides /
+Protocoles faisait glisser la liste (`.sec-anim-l/r`, PURGÉES avec leur mécanique — règle 14).
+C'est un changement de FILTRE : la liste reste la même liste, seule sa clé change, et l'animer lui
+donnait l'allure d'un changement d'écran. Le glissement de la PASTILLE du sélecteur suffit à accuser
+le geste, et il est, lui, de la manipulation directe. Les keyframes `secInL/R` restent : elles
+servent la pile de retour et la bascule de format en lecture, qui sont deux vraies navigations.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

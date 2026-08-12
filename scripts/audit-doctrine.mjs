@@ -2708,6 +2708,25 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
   const av=await etat();
   t('témoin : la vue « Tout » montre les DEUX natures',
     av.section==='all'&&av.natures.length===2, JSON.stringify(av));
+  /* v5.6 (demande de l'auteur) — CHANGER DE CRAN N'ANIME PAS LA LISTE. Ce n'est pas une
+     navigation : la liste reste la même, seule sa clé change, et l'y faire glisser lui donnait
+     l'allure d'un changement d'écran. On mesure l'ABSENCE d'animation sur le conteneur au moment
+     du geste — la pastille du sélecteur, elle, continue de glisser (manipulation directe).
+     ⚠ IL REPOSE LE CRAN AVANT DE RENDRE LA MAIN : un témoin qui laisse un état derrière lui fait
+     échouer les suivants pour la mauvaise raison (leçon du mode déplacement, v4.77.0) — celui-ci
+     bascule sur « Aides » et le contrôle d'épinglage, juste après, mesurait ce cran-là. */
+  const anim=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const b=[...document.querySelectorAll('#tabSeg .seg-btn, .grp-seg .seg-btn, [data-sec]')]
+      .find(x=>/Aides/i.test(x.textContent||''));
+    if(b)b.click();else if(typeof setSection==='function')setSection('fiches');
+    await w(60);
+    const hm=document.querySelector('.home-main'), m=document.querySelector('main');
+    const out={classes:m?[...m.classList].filter(c=>/sec-anim/.test(c)):[],
+      nom:hm?getComputedStyle(hm).animationName:'—'};
+    state.section='all';render();await w(250);
+    return out;});
+  t('changer de cran n\'anime pas la liste',
+    anim.classes.length===0&&(anim.nom==='none'||anim.nom==='—'), JSON.stringify(anim));
   await page.click('[data-pin]');await page.waitForTimeout(600);
   const ap=await etat();
   t('épingler ne bascule pas sur les aides seules',
@@ -3288,6 +3307,72 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     b.fs!=null&&b.carte!=null&&b.fs<b.carte&&b.replie===true,
     `chapeau ${b.fs}, carte ${b.carte}, repliable=${b.replie}`);
   await page.close();
+}
+{ /* ══ v5.6 — L'ÉCRAN D'ENTRÉE NE PORTE QUE CE QUI SERT À DÉCIDER D'ENTRER ═══════════════════
+     Signalé à l'usage. Trois retraits et un déplacement : « Surveiller ensuite » est par
+     définition ce qui vient APRÈS les gestes (il revient au premier geste, et la colonne
+     d'orientation le porte en permanence en voie large) ; la rangée « Consulter » appartient au
+     soin (elle reste à un tap par le renvoi des différentiels et par le menu ⋯) ; et les deux
+     façons de REGARDER la fiche entière passent au-dessus de « Prise en charge », en boutons.
+     ⚠ ET CE SONT DES EXCURSIONS, PAS DES RÉGLAGES : « Tableau » écrivait `state.readMode` et
+     re-rendait, or le retour d'excursion vit dans le DOCK, qui n'existe pas avant le premier
+     geste — on était enfermé dans le tableau, et le cockpit y perdait ses deux colonnes. Le
+     témoin mesure donc l'ALLER **et** le RETOUR, colonnes comprises. */
+  for(const [nom,W] of [['390',390],['1280',1280]]){
+    const page = await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    await ouvrirFiche(page,/Anaphylaxie/);
+    const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+      const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top):null;};
+      const titres=[...document.querySelectorAll('main .cp-h')].map(e=>e.textContent.trim());
+      const av={titres, consulter:document.querySelectorAll('main .annex-row').length,
+        liens:Y('.pre-links'), pec:(()=>{const h=[...document.querySelectorAll('main .cp-h')]
+          .find(x=>/Prise en charge/.test(x.textContent));return h?Math.round(h.getBoundingClientRect().top):null;})(),
+        hLien:(()=>{const b=document.querySelector('.pre-link');return b?Math.round(b.getBoundingClientRect().height):null;})(),
+        rangee:(()=>{const l=document.querySelector('.rail-lad .pl-line');return l?Math.round(l.getBoundingClientRect().height):null;})()};
+      /* SCHÉMA : il n'ouvrait RIEN — `openFlowFull(f)` prend la fiche et l'appel l'omettait. */
+      const bs=[...document.querySelectorAll('.pre-link')].find(x=>/Schéma/.test(x.textContent));
+      if(bs)bs.click();await w(450);
+      const ff=document.getElementById('flowFull');
+      const svg={ouvert:!!(ff&&ff.classList.contains('on')),
+        noeuds:ff?ff.querySelectorAll('svg .fn, svg g').length:0};
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(350);
+      /* TABLEAU : une feuille, donc la page reste dessous — et l'on en SORT. */
+      const bt=[...document.querySelectorAll('.pre-link')].find(x=>/Tableau/.test(x.textContent));
+      if(bt)bt.click();await w(600);
+      const pm=document.getElementById('planModal');
+      const tab={ouvert:!!(pm&&pm.classList.contains('on')),
+        cellules:pm?pm.querySelectorAll('.sv-cell').length:0,
+        sortie:!!(pm&&pm.querySelector('.ai-x')),
+        modeIntact:state.readMode!=='static'};
+      document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(450);
+      const apres={modale:!!document.querySelector('#planModal.on'),
+        demarrer:!!document.getElementById('sessStart'),
+        plan:!!document.querySelector('.read-plan'), rail:!!document.querySelector('.read-side')};
+      return {av,svg,tab,apres};});
+    t(`${nom} · « Surveillances & pièges » n'est pas sur l'écran d'entrée`,
+      !r.av.titres.some(x=>/Surveillance/i.test(x)), JSON.stringify(r.av.titres));
+    t(`${nom} · ni la rangée « Consulter »`, r.av.consulter===0, `${r.av.consulter}`);
+    t(`${nom} · Tableau/Schéma passent AU-DESSUS de « Prise en charge »`,
+      r.av.liens!=null&&r.av.pec!=null&&r.av.liens<r.av.pec, `liens ${r.av.liens}, PEC ${r.av.pec}`);
+    t(`${nom} · … et ce sont des boutons de 44 px`, r.av.hLien>=44, `${r.av.hLien} px`);
+    /* Le parcours se resserre AVANT le soin — et pas d'un cheveu : la rangée passe sous les 44 px
+       de la crise, qui ne s'appliquent pas ici, en restant au-dessus du plancher hors crise. */
+    t(`${nom} · le parcours d'entrée est compact (32 ≤ h < 44)`,
+      r.av.rangee>=32&&r.av.rangee<44, `${r.av.rangee} px`);
+    t(`${nom} · « Schéma » ouvre RÉELLEMENT le schéma`,
+      r.svg.ouvert===true&&r.svg.noeuds>0, JSON.stringify(r.svg));
+    t(`${nom} · « Tableau » ouvre une FEUILLE, avec sa sortie`,
+      r.tab.ouvert===true&&r.tab.cellules>0&&r.tab.sortie===true, JSON.stringify(r.tab));
+    t(`${nom} · … sans toucher au format de lecture (regarder ≠ régler)`, r.tab.modeIntact===true);
+    t(`${nom} · on REVIENT sur l'écran d'entrée`,
+      r.apres.modale===false&&r.apres.demarrer===true, JSON.stringify(r.apres));
+    if(W>=1200) t(`${nom} · … et les deux colonnes sont toujours là`,
+      r.apres.plan===true&&r.apres.rail===true, JSON.stringify(r.apres));
+    await page.close();
+  }
 }
 { /* SANS CRITÈRES, il n'y a pas de séquence à ordonner : le chapeau reprend sa place en tête —
      c'est la même condition qui protège l'invité et l'aperçu d'essai, où le bouton n'existe pas. */

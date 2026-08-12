@@ -5211,11 +5211,45 @@
      détail d'une ligne reste dépliable ; c'est le SAUT qui n'a pas de sens ici. `display:none`
      le retire aussi de la tabulation, ce qu'un simple masquage visuel ne ferait pas. */
   .pre-lad .pl-lnk{display:none}
-  .pre-links{display:flex;flex-wrap:wrap;gap:14px;padding:14px 2px 2px}
-  .pre-link{background:none;border:0;padding:6px 0;min-height:44px;font-family:inherit;
-    font-size:var(--t-meta);font-weight:700;color:var(--act);cursor:pointer}
-  .pre-link:hover{text-decoration:underline}
-  .pre-link:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
+  /* ⚠ AVANT LE SOIN, LE PARCOURS SE RESSERRE (v5.6, signalé à l'usage : « le parcours inerte est
+     trop long — réduis un peu la taille des étapes sans perdre la lisibilité ni d'informations »).
+     Rien n'est retiré : ce sont les MARGES qui cèdent, jamais le contenu ni le corps du texte.
+     · rangée 44 → 38 px, rembourrage 6/12 → 4/10, écart de grille 6 → 4 ;
+     · la pastille passe de 26 à 24 px — elle reste plus grande que son chiffre (11 px).
+     POURQUOI SEULEMENT AVANT : 44 px est le plancher de la CRISE, et il ne se négocie pas une fois
+     le soin démarré. Ici il n'y a pas de crise — `audit-a11y` le mesure d'ailleurs sur la liste
+     hors-crise, plancher 24 — et le geste qui fait basculer les deux géométries est le bouton de
+     démarrage, donc COMMANDÉ : A9 interdit qu'une hauteur change sans qu'on l'ait demandé, pas
+     qu'un écran se réorganise quand on entre dedans (c'est déjà ce que fait le lot T5).
+     38 px reste au-dessus du plancher HORS crise (32) et très au-dessus des 24×24 de WCAG. */
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:4px 10px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d1{padding-left:20px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d2{padding-left:28px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d3{padding-left:40px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:24px;height:24px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .rail-lad{gap:4px}
+  body.view-read:not(.crisis-live) .pre-lad{gap:4px}
+  /* L'étiquette de branche n'est PAS une cible — c'est un intertitre : elle rend son rembourrage
+     avant la session comme les rangées rendent le leur. */
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-brc{padding:2px 8px 0}
+  /* ⚠ DES BOUTONS, PLUS DES LIENS DE TEXTE (v5.6, demande de l'auteur : « rends-les plus
+     visibles »). Ils ouvrent la fiche ENTIÈRE — c'est le geste le plus utile de cet écran après
+     « démarrer » — et ils se lisaient comme une note de bas de section : 12 px, sans bord, sous
+     le titre de l'étage. Ils deviennent des boutons de CONTOUR au filet de composant
+     (`--ctl-line`, le seul qui tienne 3:1, cf. A67), corps du texte courant, glyphe de commande à
+     15 px (A13). CONTOUR et non rempli : le seul bouton rempli de l'écran reste « Confirmé —
+     démarrer la session » (règle du bouton unique) — ce sont des LECTURES, elles ne démarrent
+     rien. Ils s'étirent à parts égales sous 430 px, où deux libellés courts laissaient une rangée
+     déséquilibrée. */
+  .pre-links{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 4px}
+  .pre-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--work);border:1px solid var(--ctl-line);border-radius:var(--r-2);
+    padding:0 14px;min-height:44px;font-family:inherit;
+    font-size:var(--t-body);font-weight:700;color:var(--ink);cursor:pointer}
+  .pre-link .tic{color:var(--act);flex:none}
+  .pre-link:hover{background:var(--amb-2);border-color:var(--ink-soft)}
+  .pre-link:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (max-width:429.98px){.pre-link{flex:1 1 0;min-width:0;padding:0 10px}}
   /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
      demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
      Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
@@ -6702,11 +6736,14 @@
      sens de la bascule). transform/opacity seulement -> aucune interaction bloquée pendant l'animation. */
   @keyframes secInL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
   @keyframes secInR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
-  /* Seule la LISTE glisse (canvas turn 6 : secAnim porte sur la liste) — la colonne
-     gauche, statique entre les sections, ne bouge pas. */
-  main.sec-anim-l .home-main{animation:secInL .3s cubic-bezier(.25,.1,.25,1)}
-  main.sec-anim-r .home-main{animation:secInR .3s cubic-bezier(.25,.1,.25,1)}
-  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}main.sec-anim-l .home-main,main.sec-anim-r .home-main{animation:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
+  /* ⚠ LA BASCULE Tout / Aides / Protocoles N'ANIME PLUS (v5.6, demande de l'auteur). `.sec-anim-l`
+     et `.sec-anim-r` sont PURGÉES avec leur mécanique (règle 14) : c'est un changement de FILTRE,
+     pas une navigation — la liste reste la même liste, seule sa clé change, et l'y faire glisser
+     lui donnait l'allure d'un changement d'écran. Le glissement de la pastille du sélecteur suffit
+     à accuser le geste, et il est, lui, la manipulation directe.
+     Les keyframes `secInL/R` RESTENT : elles servent encore la pile de retour (`main.back-anim`)
+     et la bascule de format en lecture (`.rm-anim-l/r`), qui sont deux vraies navigations. */
+  @media (prefers-reduced-motion:reduce){.seg-pill,.seg-btn{transition:none}ol.steps li.done .box svg,.pinbtn.on svg,li.md-task.done .md-tkbox svg{animation:none}}
   /* ----- Contenu rédigé des protocoles (mini-Markdown) : lecture + éditeur ----- */
   .md-body{line-height:1.55;font-size:15px}
   /* Titres de section du contenu rédigé : MÊME registre typographique que les en-têtes de
