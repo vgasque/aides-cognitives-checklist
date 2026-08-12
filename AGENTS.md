@@ -1186,10 +1186,17 @@ avec la police réellement embarquée : le fût de la Source Serif 4 à 17,5 px 
   bande partagent une frontière EXACTE — chacun n'y couvre que la moitié du pixel et
   l'anticrénelage rend un LISERÉ CLAIR le long de la jonction. **Deux encres qui se touchent
   doivent se RECOUVRIR.**
-· **UNE SEULE ÉPAISSEUR POUR LES ONZE SORTIES, ET SON COÛT EST DIT** : deux traits feraient diverger
-  le glyphe entre l'en-tête, l'onglet et l'écran d'accueil. Le prix se paie sur le SEUL raster de
-  16 px (anneau 1,09 → 0,78 px, délavé) ; 32 px et au-delà gagnent en finesse. Borné aux écrans non
-  hi-dpi d'un navigateur qui ignore `favicon.svg`, déclaré et préféré partout ailleurs.
+· **UNE SEULE ÉPAISSEUR POUR LES ONZE SORTIES — SAUF SOUS UN PIXEL DE TRAIT, OÙ L'ON HINTE.** Deux
+  épaisseurs CHOISIES feraient diverger le glyphe entre l'en-tête, l'onglet et l'écran d'accueil ;
+  une compensation de RENDU n'est pas de ce genre. Sur la tuile, un pixel vaut 51,2 unités : à 40
+  l'anneau du raster de 16 px ne rend que **0,78 px**, c'est-à-dire aucune ligne pleine — il se
+  délave en gris et la coche disparaît. Ce raster garde donc le trait de 56 (1,09 px). C'est le
+  hinting d'une fonte : sous ~1 px on ne choisit plus une épaisseur, on subit une grille, et le
+  dessin doit s'y poser. La borne est étroite et elle le reste — 32 px rend déjà 1,56 px à 40, net
+  et plus juste ; toutes les autres sorties partagent SW ; et personne ne compare un onglet de
+  16 px à l'en-tête. **La variante n'est pas un second dessin** : la géométrie entière (rayon
+  médian, coupure, pied de l'onglet) DÉCOULE de `sw`, donc les deux rasters sortent de la même
+  fonction — un dessin recopié finirait par diverger.
 · **CE QUI A ÉTÉ MESURÉ PUIS ÉCARTÉ** : « aligner le sommet de l'anneau sur la hauteur de capitale
   plutôt que sur la hauteur d'x ». La prémisse est fausse — mesuré à 390 px, l'anneau commence à
   **20,3** et la capitale à **21,2** : ils sont déjà alignés à 0,9 px près. Ce qui reste est un

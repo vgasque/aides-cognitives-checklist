@@ -56,9 +56,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
      mais l'arrondi date sa décennie et la coupe à plat est le trait constitutif de cette marque. */
 const R_OUT = 228;                      // rayon EXTÉRIEUR — l'invariant du dessin
 const SW    = 40;                       // trait de l'anneau (voir « ÉPAISSEUR » ci-dessous)
-const SW_CK = 36;                       // coche : 90 % de l'anneau
-const R     = R_OUT - SW / 2;           // rayon médian du cercle tracé
-const C     = 2 * Math.PI * R;          // circonférence, pour la coupure à 300°/60°
+const SW_16 = 56;                       // ... sauf sur le raster de 16 px (voir « HINTING »)
 const r3    = n => +n.toFixed(2);
 
 /* ÉPAISSEUR — calibrée sur le MOT, pas à l'œil (v5.6, signalé à l'usage : « le logo contraste
@@ -68,36 +66,46 @@ const r3    = n => +n.toFixed(2);
    85-90 % : SW=40 rend 1,93 px dans la boîte de 34 px du masque (facteur 1024/(34*1.45)=20,77),
    soit 88 %. Le trait d'origine (56) rendait 2,70 px, soit 123 % du fût — c'est ce que l'œil
    voyait.
-   ⚠ UNE SEULE ÉPAISSEUR POUR TOUTES LES SORTIES, ET SON COÛT EST MESURÉ : deux traits feraient
-   diverger le glyphe entre l'en-tête, l'onglet et l'écran d'accueil. Le prix se paie sur le SEUL
-   raster de 16 px, où l'anneau passe de 1,09 à 0,78 px et se délave (32 px et au-delà : net, et
-   plus fin donc plus juste). C'est borné aux écrans NON hi-dpi d'un navigateur qui ignore le
-   SVG : `favicon.svg` est déclaré et préféré partout ailleurs, et un onglet hi-dpi tire déjà le
-   raster de 32. NE PAS descendre sous ~36 : en dessous la coche s'efface aussi à 32. */
 
-// Pied de l'onglet : intersections du bord incliné et du bord gauche avec le cercle MÉDIAN.
-const inter = (x0, y0, dx, dy) => {          // point de (x0,y0)+t(dx,dy) sur le cercle R
-  const ax = x0 - 512, ay = y0 - 512;
-  const a = dx * dx + dy * dy, b = 2 * (ax * dx + ay * dy), c = ax * ax + ay * ay - R * R;
-  const t = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
-  return [x0 + t * dx, y0 + t * dy];
+   HINTING DU 16 px — UNE COMPENSATION DE RENDU N'EST PAS UNE DIVERGENCE DE DESSIN. Sur la tuile,
+   un pixel vaut 51,2 unités (1024/(1.25*16)) : à 40 l'anneau ne rend que 0,78 px, c'est-à-dire
+   AUCUNE ligne pleine — le trait se délave en gris et la coche disparaît. Le 16 px garde donc le
+   trait de 56, qui rend 1,09 px. C'est la même logique que le hinting d'une fonte : sous ~1 px, ce
+   n'est plus une épaisseur qu'on choisit mais une grille qu'on subit, et le dessin doit s'y poser.
+   La borne est étroite et elle le reste : la compensation ne vaut QUE pour ce raster (32 px rend
+   déjà 1,56 px à 40, net et plus juste), et personne ne compare un onglet de 16 px à l'en-tête.
+   Toutes les autres sorties — masque, SVG, PNG d'application, ICO 32 et 48 — partagent SW.
+   NE PAS descendre SW sous ~36 : en dessous la coche s'efface aussi à 32 px. */
+
+/* La géométrie DÉCOULE du trait : rayon médian, coupure, et pied de l'onglet. Tout écrire en
+   fonction de `sw` est ce qui rend le hinting possible sans recopier un second dessin — une
+   variante recopiée finirait par diverger (leçon des listes tenues en double de ce dépôt). */
+const glyphe = (sw) => {
+  const R = R_OUT - sw / 2;                  // rayon médian du cercle tracé
+  const C = 2 * Math.PI * R;                 // circonférence, pour la coupure à 300°/60°
+  // Pied de l'onglet : intersections du bord incliné et du bord gauche avec le cercle MÉDIAN.
+  const inter = (x0, y0, dx, dy) => {        // point de (x0,y0)+t(dx,dy) sur le cercle R
+    const ax = x0 - 512, ay = y0 - 512;
+    const a = dx * dx + dy * dy, b = 2 * (ax * dx + ay * dy), c = ax * ax + ay * ay - R * R;
+    const t = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+    return [x0 + t * dx, y0 + t * dy];
+  };
+  const [PX, PY] = inter(490, 236, 42, 104);               // bord incliné  -> arc
+  const QY = 512 - Math.sqrt(R * R - 144 * 144);           // bord gauche x=368 -> arc
+  return `
+  <circle cx="512" cy="512" r="${r3(R)}" stroke-dasharray="${r3(C * 5 / 6)} ${r3(C / 6)}"/>
+  <path d="M372 528 L482 608 L752 322" stroke-width="${Math.round(sw * 0.9)}"/>
+  <path d="M368 236 L490 236 L${r3(PX)} ${r3(PY)} A${r3(R)} ${r3(R)} 0 0 0 368 ${r3(QY)} Z" fill="COLOR" stroke="none"/>`;
 };
-const [PX, PY] = inter(490, 236, 42, 104);                  // bord incliné  -> arc
-const QY = 512 - Math.sqrt(R * R - 144 * 144);              // bord gauche x=368 -> arc
 
-const GLYPHE = `
-  <circle cx="512" cy="512" r="${R}" stroke-dasharray="${r3(C * 5 / 6)} ${r3(C / 6)}"/>
-  <path d="M372 528 L482 608 L752 322" stroke-width="${SW_CK}"/>
-  <path d="M368 236 L490 236 L${r3(PX)} ${r3(PY)} A${R} ${R} 0 0 0 368 ${r3(QY)} Z" fill="COLOR" stroke="none"/>`;
-
-const marque = (color, scale) => `<g transform="translate(512 512) scale(${scale}) translate(-512 -512)"
-  fill="none" stroke="${color}" stroke-width="${SW}" stroke-linecap="butt" stroke-linejoin="bevel">
-  ${GLYPHE.replaceAll('COLOR', color)}
+const marque = (color, scale, sw = SW) => `<g transform="translate(512 512) scale(${scale}) translate(-512 -512)"
+  fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="butt" stroke-linejoin="bevel">
+  ${glyphe(sw).replaceAll('COLOR', color)}
 </g>`;
 
-const svg = ({ bg = null, rx = 0, color, scale }) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">`
+const svg = ({ bg = null, rx = 0, color, scale, sw }) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">`
   + (bg ? `<rect width="1024" height="1024"${rx ? ` rx="${rx}"` : ''} fill="${bg}"/>` : '')
-  + marque(color, scale) + `</svg>`;
+  + marque(color, scale, sw) + `</svg>`;
 
 const BLEU = '#1F5FA6', BLANC = '#FFFFFF';
 
@@ -107,6 +115,8 @@ const SVGS = {
   'logo-glyph.svg': svg({ color: '#000000', scale: 1.45 }),           // masque CSS : seul l'alpha sert
   'favicon.svg':    svg({ bg: BLEU, rx: 230, color: BLANC, scale: 1.25 })
 };
+// Le SEUL raster qui n'est pas tiré de `favicon.svg` : sous 1 px de trait, on hinte (cf. plus haut).
+const FAVICON_16 = svg({ bg: BLEU, rx: 230, color: BLANC, scale: 1.25, sw: SW_16 });
 
 const PNGS = [
   ['icon-512-maskable.png',  512, svg({ bg: BLEU, color: BLANC, scale: 0.95 })],
@@ -119,7 +129,7 @@ const PNGS = [
   ['icon-192.png',           192, svg({ bg: BLEU, color: BLANC, scale: 1.12 })],
   ['apple-touch-icon.png',   180, svg({ bg: BLEU, color: BLANC, scale: 1.12 })], // opaque, coins vifs : iOS masque
   ['favicon-32.png',          32, SVGS['favicon.svg']],
-  ['favicon-16.png',          16, SVGS['favicon.svg']]
+  ['favicon-16.png',          16, FAVICON_16]                   // trait hinté, cf. « HINTING DU 16 px »
 ];
 const ICO_SIZES = [16, 32, 48];
 
@@ -163,7 +173,7 @@ for (const [name, size, markup] of PNGS) {
   console.log(`  ${name}  (${size}px)`);
 }
 const icoImgs = [];
-for (const size of ICO_SIZES) icoImgs.push({ size, buf: await raster(SVGS['favicon.svg'], size) });
+for (const size of ICO_SIZES) icoImgs.push({ size, buf: await raster(size === 16 ? FAVICON_16 : SVGS['favicon.svg'], size) });
 writeFileSync(join(ROOT, 'favicon.ico'), buildIco(icoImgs));
 console.log(`  favicon.ico  (${ICO_SIZES.join('+')})`);
 
