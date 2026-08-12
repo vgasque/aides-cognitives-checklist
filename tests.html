@@ -2180,6 +2180,33 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('index · … et un mot rare du même index reste juste',
        JSON.stringify(A.ixSearch(h2,['rare399']))==='[399]');}
 
+   /* ══ TOLÉRANCE ORTHOGRAPHIQUE (v5.6) ═══════════════════════════════════════════════════════
+      Les bornes de la doctrine sont mesurées ici, plus les deux fautes réelles qui l'ont motivée :
+      la graphie PHONÉTIQUE (« anafilaxie », trois éditions) et la TRANSPOSITION de deux lettres
+      voisines, la faute la plus fréquente au clavier. */
+   {const V=A.libVocab([{title:'Anaphylaxie',code:'ANA'},
+                        {title:'Arrêt cardiaque',discriminant:'adulte'}],['Urgences']);
+    ok('tolérance · le vocabulaire vient de la bibliothèque, désaccentué',
+       JSON.stringify(V.slice().sort())==='["adulte","anaphylaxie","arret","cardiaque","urgences"]');
+    eq('tolérance · un code de moins de 4 lettres n’entre pas au vocabulaire',V.indexOf('ana'),-1);
+    eq('tolérance · un mot JUSTE n’est pas corrigé',A.spellFix('anaphylaxie',V),null);
+    eq('tolérance · un PRÉFIXE en cours de frappe n’est pas corrigé',A.spellFix('anaph',V),null);
+    eq('tolérance · un terme trop court n’est jamais corrigé',A.spellFix('ana',V),null);
+    eq('tolérance · un mot qui ne ressemble à rien n’est pas corrigé',A.spellFix('zzzzzzzz',V),null);
+    eq('tolérance · la graphie phonétique est rattrapée',A.spellFix('anafilaxie',V),'anaphylaxie');
+    eq('tolérance · la transposition de deux lettres aussi',A.spellFix('anaphyalxie',V),'anaphylaxie');
+    eq('tolérance · elle corrige TERME À TERME, et laisse les justes intacts',
+       A.spellFix('arret cardique',V),'arret cardiaque');
+    eq('tolérance · sans vocabulaire, rien n’est corrigé',A.spellFix('anafilaxie',[]),null);
+    /* Le rapprochement doit être DÉTERMINISTE : à égalité de distance, l'ordre alphabétique
+       tranche — sinon deux frappes identiques donneraient deux listes. */
+    eq('tolérance · à égalité, l’ordre alphabétique tranche',A.spellFix('bxte',['bate','cate']),'bate');
+    /* La transposition compte pour UNE édition (Damerau) : deux substitutions la surestimeraient
+       et laisseraient sans réponse la faute la plus courante. */
+    eq('tolérance · distance · une transposition vaut 1',A.dlev('ab','ba',2),1);
+    eq('tolérance · distance · deux mots identiques valent 0',A.dlev('abc','abc',2),0);
+    ok('tolérance · distance · au-delà du budget, elle sort par le haut',A.dlev('abc','xyz',1)>1);}
+
    /* Le front-codage : deux mots à long préfixe commun doivent se relire intacts. */
    {const r3=A.ixBuild([A.ixTokens('anaphylaxie anaphylactique anaphylactoide autre')]);
     const h3=A.ixOpen(r3);

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-EB+47FPQ/OCjqNvek2j+htvVtrsJICAkYru3SjuPnsE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kykm6aMoUegJgREwNiha4nAX88AWq4Gb1RCRs1dIUC4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6742,6 +6742,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Titre de liste : rendu en large, ET en étroit quand une bibliothèque partagée est ouverte
      (v4.3.2 — il porte alors « Nom — partagée · rôle — n éléments », ex-bandeau scope-ctx). */
   .list-title{font-size:15px;font-weight:700;margin:0 0 12px}
+  /* La DÉCLARATION d'un rapprochement orthographique (v5.6). Registre INFORMATION, jamais ambre :
+     ce n'est ni une erreur ni un piège — la liste dessous est juste, on dit seulement d'où elle
+     vient. Elle vit AU-DESSUS du titre de liste, donc avant le compte qu'elle explique. */
+  .fix-line{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 8px}
+  .fix-line b{color:var(--ink);font-weight:700}
   .list-title span{font-weight:500;color:var(--ink-soft)}
   .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
   .home-side>.hs-h:first-child{margin-top:0}
@@ -9711,6 +9716,74 @@ function ficheHaystack(f){let h=_hayCache.get(f);
 // étape « choc » ; l'ancien `includes` exigeait les mots CONTIGUS. Un seul mot : inchangé.
 const qTerms=q=>txNorm(q).split(/\s+/).filter(Boolean);
 const hayMatch=(hay,terms)=>terms.every(t=>hay.includes(t));
+/* ══ TOLÉRANCE ORTHOGRAPHIQUE — ON CORRIGE LA REQUÊTE, JAMAIS LA LISTE (v5.6) ═══════════════════
+   Sous stress et avec des gants, « anafilaxie » ne trouvait RIEN — et un répertoire qui répond
+   « aucun résultat » sur une faute de frappe fait renoncer à chercher là où le contenu est.
+   QUATRE BORNES, et ce sont elles qui rendent la chose admissible dans un logiciel d'urgence :
+   1. ELLE NE SE DÉCLENCHE QUE SUR ZÉRO RÉSULTAT — la liste littérale, quand elle existe, n'est ni
+      réordonnée ni complétée. Le rapprochement flou est un DERNIER recours, pas un classement.
+   2. LES CANDIDATS VIENNENT DE VOTRE PROPRE BIBLIOTHÈQUE, jamais d'un dictionnaire livré : corriger
+      vers un mot qui n'est nulle part rendrait zéro résultat, et un lexique médical embarqué serait
+      une seconde source de vérité à tenir (sans compter le poids, règle 13).
+   3. ELLE SE DÉCLARE EN TOUTES LETTRES (« aucun résultat pour X · affiché : Y ») : une recherche
+      qui corrige en silence ment sur ce qu'elle montre, et l'on croirait avoir tapé juste.
+   4. ELLE NE RÉÉCRIT PAS LE CHAMP — le texte tapé reste celui de l'utilisateur ; c'est le RÉSULTAT
+      qui est élargi, pas la saisie qui est corrigée sous les doigts.
+   ⚠ Un terme qui est le PRÉFIXE ou un fragment d'un mot du vocabulaire n'est jamais corrigé : on
+   tape « anaph » en cours de frappe, et le corriger ferait sauter la liste sous le doigt. */
+/* Distance de Damerau-Levenshtein BORNÉE : on sort dès que la meilleure valeur d'une ligne dépasse
+   le budget — sans cette borne, un vocabulaire de plusieurs milliers de mots coûterait une passe
+   complète par candidat, à chaque frappe. La transposition compte pour UN : « anaphylaxie » tapé
+   « anaphyalxie » est la faute la plus fréquente au clavier, et deux substitutions la surestiment. */
+function dlev(a,b,max){
+  const m=a.length,n=b.length;
+  if(Math.abs(m-n)>max)return max+1;
+  let p2=null,p1=new Array(n+1),cu=new Array(n+1);
+  for(let j=0;j<=n;j++)p1[j]=j;
+  for(let i=1;i<=m;i++){
+    cu[0]=i;let best=i;
+    for(let j=1;j<=n;j++){
+      const c=a.charCodeAt(i-1)===b.charCodeAt(j-1)?0:1;
+      let v=Math.min(cu[j-1]+1,p1[j]+1,p1[j-1]+c);
+      if(p2&&i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])v=Math.min(v,p2[j-2]+1);
+      cu[j]=v;if(v<best)best=v;}
+    if(best>max)return max+1;
+    const t=p2;p2=p1;p1=cu;cu=t||new Array(n+1);}
+  return p1[n];}
+const VOC_MIN=4;   // sous quatre lettres, tout ressemble à tout — on ne corrige pas
+/* Le vocabulaire de VOTRE bibliothèque : titres, codes, discriminants, plus les noms de catégorie
+   que l'appelant fournit (ils ne vivent pas sur l'objet, qui n'en porte que l'identifiant). */
+function libVocab(items,extra){
+  const s=new Set();
+  const manger=v=>{for(const w of txNorm(v).split(/[^a-z0-9]+/))if(w.length>=VOC_MIN)s.add(w);};
+  for(const x of items||[]){if(!x)continue;manger(x.title);manger(x.code);manger(x.discriminant);}
+  for(const v of extra||[])manger(v);
+  return [...s];}
+/* Rend la requête CORRIGÉE, ou null s'il n'y a rien à corriger. Le budget suit la longueur : une
+   lettre pour un mot court (où deux fautes changent le mot), deux au-delà. Égalité tranchée par
+   l'ordre alphabétique — un rapprochement doit être DÉTERMINISTE, sinon deux frappes identiques
+   donneraient deux listes.
+   ⚠ LE BUDGET SUIT LA LONGUEUR, ET IL LE FAUT (mesuré) : à deux éditions, « anafilaxie » — la
+   graphie PHONÉTIQUE, donc la faute la plus probable sur un mot qu'on n'écrit jamais — restait
+   sans réponse (elle est à TROIS d'« anaphylaxie »). Un tiers du mot est la borne : au-delà, ce
+   n'est plus une faute de frappe, c'est un autre mot. Le risque d'un rapprochement FAUX est tenu
+   par les quatre bornes ci-dessus, pas par l'étroitesse du budget — il ne coûte qu'une liste
+   visiblement à côté, sous une ligne qui dit exactement ce qui a été cherché. */
+function spellFix(q,vocab){
+  const T=qTerms(q);
+  if(!T.length||!vocab||!vocab.length)return null;
+  let touche=false;
+  const out=T.map(t=>{
+    if(t.length<VOC_MIN)return t;
+    if(vocab.some(w=>w.includes(t)))return t;
+    const max=t.length<=5?1:t.length<=8?2:3;
+    let best=null,bd=max+1;
+    for(const w of vocab){
+      const d=dlev(t,w,max);
+      if(d<bd||(d===bd&&best!==null&&w<best)){bd=d;best=w;}}
+    if(best!==null&&bd<=max){touche=true;return best;}
+    return t;});
+  return touche?out.join(' '):null;}
 // EXTRAIT CONTEXTUEL des résultats (v4.4.4) : sous le titre de la carte, la première ligne de
 // CONTENU où la requête matche — on comprend POURQUOI le résultat est là sans ouvrir la fiche.
 // Relief par la GRAISSE seule (<b>) : doctrine du projet — la couleur est un REGISTRE (rouge =
@@ -13746,7 +13819,16 @@ function renderHomeList(cfg){
   // Brouillons : masqués aux LECTEURS d'une bibliothèque partagée (contenu validé seulement) ;
   // visibles pour qui peut éditer le scope (perso, ou éditeur/admin de la biblio) — cfg.list.
   const canEdit=canEditScope(state.scope);
-  const list=cfg.list(q,canEdit);
+  let list=cfg.list(q,canEdit);
+  /* TOLÉRANCE ORTHOGRAPHIQUE — DERNIER RECOURS, ET ELLE SE DÉCLARE (v5.6, cf. `spellFix`).
+     Elle n'entre que sur zéro résultat, DOCUMENTS COMPRIS : un mot trouvé dans un PDF joint EST un
+     résultat, et corriger par-dessus le masquerait. Le vocabulaire est celui de la liste VISIBLE
+     sous les filtres du moment — proposer un mot que le cran courant écarte rendrait zéro. */
+  let corrige=null;
+  if(q&&!list.length&&!docHits(q).length){
+    const fx=spellFix(q,libVocab(cfg.list('',canEdit),(categories||[]).map(c=>c&&c.name)));
+    if(fx&&fx!==q){const l2=cfg.list(fx,canEdit);
+      if(l2.length){corrige={saisi:String(state.q||'').trim(),montre:fx};list=l2;}}}
   // V5 : la STRUCTURE de l'accueil dépend de la largeur (chips + tab bar en étroit, colonne
   // gauche en large) — le franchissement du seuil re-rend (écouteur mqHomeWide). Recherche et
   // « Créer » vivent dans l'EN-TÊTE (fixes, canvas turn 6) ; en étroit les chips aussi.
@@ -13820,7 +13902,8 @@ function renderHomeList(cfg){
   let listHtml,railHtml='';
   if(q){
     const dh=docHitsHtml(q);
-    listHtml=`<div class="list-title">${cfg.listTitle()} <span>— ${list.length} ${cfg.countLbl(list.length)}</span></div>`
+    listHtml=(corrige?`<div class="fix-line">Aucun résultat pour «&nbsp;<b>${esc(corrige.saisi)}</b>&nbsp;» · affiché&nbsp;: «&nbsp;<b>${esc(corrige.montre)}</b>&nbsp;»</div>`:'')
+      +`<div class="list-title">${cfg.listTitle()} <span>— ${list.length} ${cfg.countLbl(list.length)}</span></div>`
       +crossHitsHtml(q,cfg.crossKind)
       /* LE GROUPE « DOCUMENTS » VIENT APRÈS LA LISTE, jamais entre son titre et ses rangées :
          on cherche d'abord une aide, une annexe ensuite. Et quand RIEN d'autre ne correspond,
@@ -26912,7 +26995,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

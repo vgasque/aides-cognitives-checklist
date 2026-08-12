@@ -1613,6 +1613,42 @@ toujours.
   supprimé en sort par construction. C'est la seconde moitié de la demande, et elle était acquise —
   on la mesure quand même, parce qu'« acquis par construction » se vérifie.
 
+**A94. LE RÉPERTOIRE TOLÈRE LA FAUTE DE FRAPPE — ON CORRIGE LA REQUÊTE, JAMAIS LA LISTE (v5.6,
+décision de l'auteur : « tolérance seule, sans table »).** Sous stress et avec des gants,
+« anafilaxie » ne trouvait RIEN — et un répertoire qui répond « aucun résultat » sur une faute de
+frappe fait renoncer à chercher là où le contenu est. QUATRE BORNES, et ce sont elles qui rendent
+la chose admissible dans un logiciel d'urgence :
+1. **ELLE NE SE DÉCLENCHE QUE SUR ZÉRO RÉSULTAT, DOCUMENTS COMPRIS.** Une liste littérale non vide
+   n'est ni réordonnée ni complétée — le rapprochement flou est un DERNIER recours, jamais un
+   classement (même garantie que `posoRank` et `tagRank`, prise par l'autre bout). Un mot trouvé
+   dans un PDF joint EST un résultat : corriger par-dessus le masquerait.
+2. **LES CANDIDATS VIENNENT DE VOTRE PROPRE BIBLIOTHÈQUE**, et de la liste VISIBLE sous les filtres
+   du moment. Un lexique médical livré serait une seconde source de vérité à tenir, et du poids
+   (règle 13) ; surtout, corriger vers un mot que le cran courant écarte rendrait zéro résultat.
+3. **ELLE SE DÉCLARE EN TOUTES LETTRES** (« Aucun résultat pour X · affiché : Y »). Une recherche
+   qui corrige en silence ment sur ce qu'elle montre, et l'on croirait avoir tapé juste. Registre
+   INFORMATION, jamais ambre : la liste en dessous est juste, on dit seulement d'où elle vient.
+4. **ELLE NE RÉÉCRIT PAS LE CHAMP.** Le texte tapé reste celui de l'utilisateur ; c'est le RÉSULTAT
+   qui est élargi, pas la saisie corrigée sous les doigts.
+· **UN PRÉFIXE N'EST JAMAIS CORRIGÉ** : on tape « anaph » en cours de frappe, et le corriger ferait
+  sauter la liste sous le doigt. Un terme qui est sous-chaîne d'un mot du vocabulaire est laissé.
+· **⚠ LE BUDGET SUIT LA LONGUEUR, ET IL LE FAUT (mesuré)** : à deux éditions, « anafilaxie » — la
+  graphie PHONÉTIQUE, donc la faute la plus probable sur un mot qu'on n'écrit jamais — restait sans
+  réponse (elle est à TROIS d'« anaphylaxie »). 1 · 2 · 3 selon la longueur, soit un tiers du mot au
+  plus : au-delà ce n'est plus une faute de frappe, c'est un autre mot. Le risque d'un rapprochement
+  FAUX est tenu par les quatre bornes, pas par l'étroitesse du budget — il ne coûte qu'une liste
+  visiblement à côté, sous une ligne qui dit exactement ce qui a été cherché.
+· **LA TRANSPOSITION COMPTE POUR UNE ÉDITION** (Damerau) : deux lettres voisines interverties sont
+  la faute la plus fréquente au clavier, et deux substitutions la surestiment. La distance est
+  BORNÉE — on sort dès qu'une ligne dépasse le budget, sinon un vocabulaire de plusieurs milliers
+  de mots coûterait une passe complète par candidat, à chaque frappe.
+· **DÉTERMINISTE** : à égalité de distance, l'ordre alphabétique tranche — sinon deux frappes
+  identiques donneraient deux listes.
+· **TÉMOINS AUX DEUX ÉTAGES** : `libVocab`/`spellFix`/`dlev` sont PURES (14 témoins dans
+  `tests.html`), et une section d'`audit-doctrine` mesure le CÂBLAGE au rendu — c'est lui qui peut
+  se tromper de cas. Elle RENCONTRE SON CAS d'abord (la requête juste doit trouver quelque chose),
+  et elle est vérifiée capable d'échouer (déclenchement neutralisé → 2 rouges).
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

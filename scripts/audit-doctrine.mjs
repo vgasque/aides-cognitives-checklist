@@ -5024,7 +5024,52 @@ await sec('v5.6 · le volet du dock suit la barre flottante', async () => {
 }
 });
 
+await sec('v5.6 · tolérance orthographique du répertoire', async () => {
+  const page=await br.newPage({viewport:{width:390,height:900},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  /* Signalé comme besoin d'usage : sous stress et avec des gants, une faute de frappe rendait
+     « aucun résultat » — et un répertoire qui répond cela fait renoncer à chercher là où le
+     contenu est. Les QUATRE bornes de la doctrine se mesurent au RENDU, pas sur la fonction pure
+     (tests.html la couvre déjà) : c'est le CÂBLAGE qui peut se tromper de cas. */
+  await amorce(page);
+  const cherche = async q => { await page.fill('#q', q); await page.waitForTimeout(400);
+    return page.evaluate(() => ({
+      n: document.querySelectorAll('.dir-row').length,
+      fix: (document.querySelector('.fix-line') || {}).textContent || '',
+      champ: document.getElementById('q').value })); };
+
+  /* 1 · ELLE NE SE DÉCLENCHE QUE SUR ZÉRO RÉSULTAT. Le témoin doit d'abord RENCONTRER SON CAS :
+     sans résultat pour la requête juste, il mesurerait le vide et resterait vert sur le défaut. */
+  const juste = await cherche('anaphylaxie');
+  t('témoin : la requête juste trouve bien quelque chose', juste.n >= 1, `${juste.n}`);
+  t('une liste NON VIDE n\'est jamais corrigée', juste.fix === '', juste.fix);
+
+  /* 2 · UN PRÉFIXE EN COURS DE FRAPPE N'EST PAS CORRIGÉ — sinon la liste sauterait sous le doigt. */
+  const pref = await cherche('anaph');
+  t('… ni un préfixe tapé en cours de route', pref.fix === '' && pref.n >= 1, `${pref.n}|${pref.fix}`);
+
+  /* 3 · LA FAUTE EST RATTRAPÉE, ET LA CORRECTION SE DÉCLARE EN TOUTES LETTRES. */
+  const faute = await cherche('anafilaxie');
+  t('une faute de frappe rend malgré tout des résultats', faute.n >= 1, `${faute.n}`);
+  t('… et la correction est DÉCLARÉE, avec les deux mots',
+    /Aucun résultat pour/.test(faute.fix) && /anafilaxie/.test(faute.fix)
+      && /anaphylaxie/.test(faute.fix), faute.fix);
+
+  /* 4 · ELLE NE RÉÉCRIT PAS LE CHAMP : le texte tapé reste celui de l'utilisateur. */
+  t('… le champ garde le texte tapé', faute.champ === 'anafilaxie', faute.champ);
+
+  /* 5 · UN MOT QUI NE RESSEMBLE À RIEN RESTE SANS RÉPONSE — on ne fabrique pas un résultat. */
+  const rien = await cherche('zzqwxyv');
+  t('un mot qui ne ressemble à rien ne rapproche rien',
+    rien.n === 0 && rien.fix === '', `${rien.n}|${rien.fix}`);
+
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
+
+
 console.log(`\n${ok}/${ok+ko} contrôles doctrine OK${ko?` — ${ko} ÉCHEC(S)`:''}${bilanSec.partiel?` — PARTIEL (${bilanSec.joues}/${bilanSec.total} sections)`:''}`);
 process.exit(ko?1:0);

@@ -6397,6 +6397,11 @@
   /* Titre de liste : rendu en large, ET en étroit quand une bibliothèque partagée est ouverte
      (v4.3.2 — il porte alors « Nom — partagée · rôle — n éléments », ex-bandeau scope-ctx). */
   .list-title{font-size:15px;font-weight:700;margin:0 0 12px}
+  /* La DÉCLARATION d'un rapprochement orthographique (v5.6). Registre INFORMATION, jamais ambre :
+     ce n'est ni une erreur ni un piège — la liste dessous est juste, on dit seulement d'où elle
+     vient. Elle vit AU-DESSUS du titre de liste, donc avant le compte qu'elle explique. */
+  .fix-line{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 8px}
+  .fix-line b{color:var(--ink);font-weight:700}
   .list-title span{font-weight:500;color:var(--ink-soft)}
   .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
   .home-side>.hs-h:first-child{margin-top:0}
