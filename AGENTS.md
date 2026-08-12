@@ -1760,19 +1760,19 @@ un mot. La porte ne dit plus que « ＋ Minuteur ».
   que sa nature *quel que soit ce qu'on a horodaté avant*, le minuteur naît SANS nom, et sa rangée
   porte de quoi le nommer.
 
-**A100. UNE FENÊTRE NE DÉFILE JAMAIS EN LARGEUR (v5.6, signalé à l'usage : « fenêtre compte &
-synchronisation : le scroll se déplace de gauche à droite, surtout sur smartphone »).** `.ai-modal`
-portait le raccourci `overflow:auto`, qui ouvre les DEUX axes — et sur iOS un défileur dont l'axe X
-est `auto` se laisse traîner et REBONDIT même sans rien à faire défiler. Mesuré : la carte ne
-déborde d'aucun pixel (390/390 comme 320/320) ; il n'y avait donc rien à voir en défilant, seulement
-une fenêtre qui glisse sous le doigt. `overflow-y:auto;overflow-x:hidden`.
-· **C'EST SANS RISQUE PARCE QUE LA RÈGLE EXISTE DÉJÀ** : tout contenu large porte SON PROPRE
-  `overflow-x:auto` (chips, fil d'Ariane, blocs de code, tableaux du mini-Markdown, quatre sites).
-  Borner la fenêtre ne coupe rien ; elle cesse seulement de servir de défileur de secours.
-· **⚠ ET LE DÉBORDEMENT QU'ON VOIT DANS LA MESURE EST VOULU** : `.ai-top` fait 10 px de plus que sa
-  boîte — c'est le halo compensé du ✕ (`margin-right:-10px`), dont le bord reste dans le
-  rembourrage de la carte (A76). Vérifié AVANT de toucher à quoi que ce soit : sans cela on aurait
-  « corrigé » une géométrie saine et manqué la vraie cause.
+**A100. TENTATIVE ANNULÉE — `overflow-x:hidden` NE CORRIGE PAS UN DÉFILEMENT HORIZONTAL, IL LE
+CACHE (v5.6).** Le défilement latéral signalé sur la fenêtre Compte a d'abord été traité en bornant
+l'axe X du défileur. L'auteur l'a rejeté aussitôt, et il a raison : « des éléments sont tronqués,
+notamment la barre d'input, et la ligne de scroll dans Safari tronque le contenu ». Un
+`overflow:hidden` COUPE ce qui dépasse au lieu d'empêcher ce qui dépasse — et sur un défileur,
+WebKit réserve en plus sa gouttière. **Annulé.**
+· **CE QUE LA MESURE DIT, ET CE QU'ELLE NE DIT PAS** : sur Chromium la carte ne déborde d'aucun
+  pixel (390/390, 320/320), signé ou non — le cas réel ne se reproduit donc PAS dans le harnais, et
+  c'est cela qu'il fallait retenir avant de toucher à quoi que ce soit. Le seul débordement visible
+  est celui, VOULU, du halo compensé du ✕ (`margin-right:-10px`), dont le bord reste dans le
+  rembourrage de la carte (A76).
+· **LEÇON** : quand une mesure ne rencontre pas le défaut signalé, on ne borne pas le symptôme au
+  jugé — on cherche la cause du bon côté, ou l'on dit qu'on ne l'a pas trouvée. Reste à instruire.
 
 **A101. UN FOND DE RANGÉE VA D'UN BORD À L'AUTRE DE SA CARTE (v5.6, signalé à l'usage, captures à
 l'appui : « le fond de sélection ne s'affiche pas sur toute la largeur », « session en cours : le
@@ -1791,6 +1791,34 @@ rangée dépasseraient des coins arrondis (aucun titre de lettre n'est collant :
   est bornée à `max-width:779.98px`, le palier même où le rembourrage existe. Vérifié à 390, 700,
   900, 1280 et 1600 : plus rien ne sort de sa carte, et la teinte va bien d'un bord à l'autre en
   voie étroite.
+
+**A102. QUAND L'ALPHABET NE TIENT PAS CENTRÉ, ON L'ÉCLAIRCIT (v5.6, décision de l'auteur après
+mesure).** Le clamp d'`azrCentrer` pousse les lettres aussi haut que la boîte l'autorise, et c'est
+l'optimum — mais l'optimum n'est pas le centre. MESURÉ à 390 × 844 : la boîte commence à 121 px
+(sous l'en-tête, pour qu'aucune lettre ne passe derrière lui), l'axe de l'écran est à 422, et un
+alphabet complet mesure 650 px — il devrait donc commencer à 97. Il reste **24 px trop bas**, et
+descendre les cibles au plancher WCAG de 24 px n'en rendrait que 13 : c'est géométriquement
+impossible sans cacher des lettres.
+· **LA SOLUTION EST CELLE DE L'INDEX DE CONTACTS D'iOS** : montrer MOINS d'entrées, un « · » à la
+  place de deux lettres. L'index raccourci se centre alors exactement (mesuré : **écart 1 px** à
+  320 et 390 px avec 26 lettres, contre 24 avant), les cibles gardent leurs **24 px**, et rien
+  n'est injoignable — un point mène à la première lettre qu'il porte et son nom accessible les cite
+  toutes les deux (« Aller à B ou C »).
+· **ON NE FUSIONNE QUE DES PAIRES, ET SEULEMENT CE QU'IL FAUT** : un point qui avalerait cinq
+  lettres ne serait plus un index. S'il en faudrait plus que la moitié de l'alphabet, on renonce —
+  le rail se replie déjà tout seul quand il ne tient pas, ce qui vaut mieux qu'un index illisible.
+· **RÉSERVÉ AUX LETTRES** : le rail des CATÉGORIES porte des pastilles de couleur, qui ne se
+  remplacent pas par un point sans perdre ce qu'elles disent.
+· **LA RÉCURSION EST BORNÉE À UN TOUR** (`azrCentrer(rail,true)`) : la seconde passe ne peut plus
+  rien éclaircir puisque l'index tient désormais, et une boucle ici serait une boucle de rendu.
+· **LES GESTES IGNORENT LES LETTRES REPLIÉES** : `snap()` filtrait sur `[data-azl]`, qui inclut les
+  masquées — leurs rectangles nuls auraient faussé le mapping du glisser.
+· **⚠ CE QUI N'ÉTAIT PAS EN CAUSE, ET QU'IL FAUT DIRE** : les bulles de session en tête de liste.
+  Mesuré avec et sans, à 390 et à 1280 : **écart 1 px dans les quatre cas**. Le décentrage ne
+  dépend que du NOMBRE de lettres, jamais du contenu de la liste.
+· **TÉMOIN** : trois configurations, et il RENCONTRE SON CAS des deux côtés — à 26 lettres sur
+  téléphone il exige des points, à 16 (ou en voie large) il exige qu'il n'y en ait AUCUN. Vérifié
+  capable d'échouer (éclaircissement neutralisé → 2 rouges).
 
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un

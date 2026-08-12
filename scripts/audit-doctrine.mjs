@@ -5151,6 +5151,48 @@ await sec('v5.6 · le minuteur armé rejoint la capsule, et le quai annonce ce q
   }
 });
 
+
+await sec('v5.6 · l\'index A→Z s\'éclaircit pour rester centré', async () => {
+  /* Décision de l'auteur, après mesure : avec un alphabet presque complet sur téléphone, un
+     centrage exact est GÉOMÉTRIQUEMENT impossible (la boîte commence sous l'en-tête). L'index
+     montre alors moins d'entrées, un « · » remplaçant deux lettres — solution de l'index de
+     Contacts d'iOS. Le témoin mesure les trois promesses : centré, cibles intactes, rien de perdu. */
+  for(const [W,H,n] of [[390,844,26],[390,844,16],[1280,900,26]]){
+    const page=await br.newPage({viewport:{width:W,height:H},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);
+    await page.evaluate(async(k)=>{const w=m=>new Promise(r=>setTimeout(r,m));
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0,k)
+        .forEach(x=>fiches.push(migrate({id:uid('f'),title:x+'zz test',blocks:[]})));
+      await persist();render();await w(500);},n);
+    const r=await page.evaluate(()=>{
+      const rail=document.querySelector('.azrail');
+      if(!rail||rail.hidden)return {replie:true};
+      const tous=[...rail.querySelectorAll('[data-azl]')];
+      const vis=tous.filter(b=>!b.hidden);
+      const f=vis[0].getBoundingClientRect(),l=vis[vis.length-1].getBoundingClientRect();
+      const pts=vis.filter(b=>b.textContent.trim()==='·');
+      return {total:tous.length,vis:vis.length,pts:pts.length,
+        ecart:Math.round((f.top+l.bottom)/2-document.documentElement.clientHeight/2),
+        petits:vis.filter(b=>{const q=b.getBoundingClientRect();return q.height<23.5||q.width<23.5;}).length,
+        couvre:pts.every(b=>!!b.dataset.azlDot&&/ ou /.test(b.getAttribute('aria-label')||''))};});
+    const tag=`${W}×${H} · ${n} lettres`;
+    t(`${tag} · l'index est centré sur l'écran`, Math.abs(r.ecart)<=2, `${r.ecart} px`);
+    t(`${tag} · … sans jamais rétrécir une cible sous 24 px`, r.petits===0, `${r.petits} trop petite(s)`);
+    /* ⚠ LE TÉMOIN RENCONTRE SON CAS : à 26 lettres sur téléphone il DOIT y avoir des points, et à
+       16 (ou en voie large) il ne doit y en avoir AUCUN — sans quoi on mesurerait un rail qui
+       s'éclaircit tout le temps, ou jamais. */
+    if(W<780&&n===26){
+      t(`${tag} · … en éclaircissant l'index`, r.pts>0&&r.vis<r.total, JSON.stringify(r));
+      t(`${tag} · … et chaque point dit les deux lettres qu'il porte`, r.couvre===true);
+    } else {
+      t(`${tag} · … sans éclaircir quand tout tient`, r.pts===0&&r.vis===r.total, JSON.stringify(r));
+    }
+    await page.close();
+  }
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
