@@ -1897,7 +1897,10 @@
      grille fluide : la largeur existe, et une liste d'une seule colonne au milieu de 1 200 px
      laisse le regard traverser du vide. Le basculement suit le palier du rail (780), là où
      l'accueil passe de la voie unique à la coque à deux colonnes. */
-  .dir-book{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);padding:2px 16px;position:relative}
+  /* `overflow:hidden` : depuis que les rangées vont d'un bord à l'autre (cf. `.dir-book .dir-row`),
+     le fond de la PREMIÈRE et de la DERNIÈRE dépasserait des coins arrondis. Aucun titre de lettre
+     n'est collant ici (vérifié) : rien à casser. */
+  .dir-book{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);padding:2px 16px;position:relative;overflow:hidden}
   .dir-book.pinned{margin-bottom:4px}
   .dir-l{display:flex;align-items:baseline;gap:8px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
   .dir-lr{flex:1;border-bottom:1px solid var(--line)}
@@ -1952,7 +1955,26 @@
   /* Dans le livre, les rangées n'ont plus de carte à elles : un filet les sépare, et la dernière
      d'un groupe n'en porte pas (c'est l'intertitre suivant qui borne). */
   .dir-grid{display:block}
+  /* ⚠ UN FOND DE RANGÉE VA D'UN BORD À L'AUTRE DE SA CARTE (v5.6, signalé à l'usage, captures à
+     l'appui : « carte avec hover : le fond de sélection ne s'affiche pas sur toute la largeur » et
+     « session en cours : le vert ne prend pas toute la largeur »).
+     En voie étroite les rangées vivent DANS une carte par lettre, et c'est la CARTE qui porte le
+     rembourrage horizontal (16 px) : la rangée commençait donc 17 px après son bord gauche et
+     s'arrêtait 17 px avant le droit. Tant qu'elle est transparente cela ne se voit pas — mais dès
+     qu'elle prend un fond (survol, ou le vert d'une session vive) le rectangle teinté flotte au
+     milieu de la carte, avec deux bandes non peintes de part et d'autre. Mesuré à 390 px : rangée
+     de 304 px dans une carte de 338.
+     La rangée reprend donc les 16 px en marges NÉGATIVES et les rend en rembourrage : sa BOÎTE va
+     d'un bord à l'autre, son CONTENU ne bouge pas d'un pixel. C'est une compensation, écrite comme
+     telle — et elle vaut exactement le rembourrage de `.dir-book`, jamais un nombre choisi. */
   .dir-book .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;height:auto;min-height:60px;padding-left:0;padding-right:24px}
+  /* ⚠ ET LA COMPENSATION EST BORNÉE AU PALIER OÙ LA CARTE A UN REMBOURRAGE (signalé à l'usage dans
+     la foulée : « tu as cassé l'affichage des cartes en 2/3 colonnes »). `.dir-book` perd son
+     `padding` à partir de 780 px — posée au niveau racine, la marge négative y tirait donc les
+     rangées 16 px HORS de leur colonne. Une compensation vit avec ce qu'elle compense. */
+  @media (max-width:779.98px){
+    .dir-book .dir-row{margin-inline:-16px;padding-left:16px;padding-right:40px}
+  }
   .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
   .dir-book.pinned .dir-row:last-child{border-bottom:0}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
@@ -5812,7 +5834,20 @@
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
      de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
      Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
-  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}
+  /* ⚠ UNE FENÊTRE NE DÉFILE JAMAIS EN LARGEUR (v5.6, signalé à l'usage : « fenêtre compte &
+     synchronisation : le scroll se déplace de gauche à droite aussi, ce n'est pas normal, surtout
+     sur smartphone »). Le raccourci `overflow:auto` ouvrait les DEUX axes — et sur iOS un défileur
+     dont l'axe X est `auto` se laisse traîner et REBONDIT même sans rien à faire défiler. Mesuré :
+     la carte ne déborde d'aucun pixel (390/390 comme 320/320), il n'y avait donc rien à voir en
+     défilant — seulement une fenêtre qui glisse sous le doigt.
+     C'EST SANS RISQUE PARCE QUE LA RÈGLE EXISTE DÉJÀ : tout contenu large porte SON PROPRE
+     `overflow-x:auto` (rangées de chips, fil d'Ariane, blocs de code, tableaux du mini-Markdown) —
+     borner la fenêtre ne coupe donc rien, elle cesse seulement de servir de défileur de secours.
+     ⚠ Le `.ai-top` mesure bien 10 px de plus que sa boîte, et c'est VOULU : c'est le halo compensé
+     du ✕ (`margin-right:-10px`), dont le bord reste dans le rembourrage de la carte (A76). Il ne
+     produit aucun débordement au niveau de la fenêtre — vérifié avant de toucher à quoi que ce
+     soit, sinon on aurait « corrigé » une géométrie saine. */
+  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
   /* iOS Safari — LA FENÊTRE ÉTAIT COUPÉE EN BAS (retour utilisateur v4.29.3 : « le contenu ne
      scrolle pas sur cette bande ») : un overlay `fixed; inset:0` se dimensionne sur le GRAND
      viewport iOS (barre d'outils repliée) — barre visible, le bas de l'overlay passe DERRIÈRE
@@ -6111,6 +6146,17 @@
   /* Tout ce qui n'est pas le corps est FIXE : l'en-tête, le sélecteur de type de « Créer », le
      champ de filtre des sélecteurs, le pied d'actions et la note de bas de fenêtre. */
   .ai-card:has(>.ai-body)>:not(.ai-body){flex:0 0 auto}
+  /* ⚠ VINGT-TROISIÈME DÉFAUT DE RANGÉE FLEX — L'EN-TÊTE DE FENÊTRE (v5.6, signalé à l'usage :
+     « fenêtre compte & synchronisation : le scroll se déplace de gauche à droite »). Deux objets,
+     un titre et un ✕ de 44 px, et AUCUN des deux ne cédait : un `h3` a `min-width:auto`, donc sa
+     largeur minimale est celle de son texte. Mesuré à 390 px sur « Compte & synchronisation » :
+     314 + 10 + 44 = 368 pour 358 disponibles — le ✕ sortait de 10 px, et sur écran tactile cela
+     donne un défilement horizontal de la fenêtre entière. Même famille que le bandeau de
+     déplacement (v4.74.0), la croix du panneau minuteurs (v4.55.3) et l'en-tête de bloc de
+     l'éditeur (A48) : quand tout est incompressible sauf rien, c'est le dernier qui sort.
+     ON ENROULE, ON NE TRONQUE JAMAIS : le titre peut rétrécir (`min-width:0`) et son texte passe à
+     la ligne — un titre de fenêtre se lit en entier, et la hauteur est libre ici. Le ✕ garde ses
+     44 px et sa place. */
   .ai-card .ai-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
   /* UN SEUL TITRE DE FENÊTRE (v5.6, planche 7e) : `--t-step` / 800, dans les trois gabarits. Il
      était à 680 par défaut et à 800 dans deux règles de gabarit — donc le même objet changeait de
@@ -7217,8 +7263,9 @@
     border:1px solid var(--ctl-line);border-radius:var(--r-2);cursor:pointer}
   .tm-add-b:hover{background:var(--amb-2)}
   .tm-add-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .tm-add-n{margin:-4px 0 8px;font-size:var(--t-cap);color:var(--ink-soft)}
-  .rt-dock .tm-add-h,.rt-dock .tm-add-n{color:var(--sys-ink-2)}
+  /* `.tm-add-n` est PURGÉE avec la devinette qu'elle annonçait (« d'après votre dernier repère ») :
+     la porte ne propose plus de nom, il n'y a donc plus de provenance à citer (règle 14). */
+  .rt-dock .tm-add-h{color:var(--sys-ink-2)}
   .rt-dock .tm-add-b{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
   .cn-nm{background:none;border:0;padding:2px 6px;min-height:32px;font-family:inherit;
     font-size:var(--t-cap);font-weight:700;color:var(--act);cursor:pointer;border-radius:var(--r-1)}

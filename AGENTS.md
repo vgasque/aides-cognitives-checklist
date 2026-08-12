@@ -1737,6 +1737,61 @@ décision — donc ce qui rendait une mauvaise mesure définitive. Le fantôme d
   écriture, et `animationend` ne fait que la retirer (A68/2). La chaîne reste alors identique d'un
   tick à l'autre : le quai n'est pas réécrit et le nœud survit à son animation.
 
+**A99. UNE PORTE NE DEVINE PAS UN NOM — ELLE DIT SA NATURE, ET L'ON NOMME APRÈS (v5.6, signalé à
+l'usage : « comment as-tu trouvé l'intitulé automatique après ＋ Minuteur, c'est très mauvais et ça
+ne se met pas à jour à chaque bloc »).** Le nom pressenti venait du DERNIER REPÈRE horodaté
+(`tmAddName` → `tkLabels`) — une source qui n'a aucun rapport avec le bloc courant, donc incapable
+de le suivre, et dont la qualité dépendait entièrement de ce qu'on avait étiqueté avant.
+A85 avait déjà écrit la moitié de la règle (« la proposition n'invente pas de mot quand elle n'en a
+pas ») ; elle vaut aussi pour la SOURCE : deviner à partir d'un objet sans rapport, c'est fabriquer
+un mot. La porte ne dit plus que « ＋ Minuteur ».
+· **LE NOM SE POSE SUR L'OBJET**, comme pour le compteur ad hoc (A86) : un ✎ sur la rangée du
+  minuteur ouvre le même champ, avec le même commit. Le geste de création reste deux taps sans
+  clavier ; le clavier n'entre que si l'on VEUT nommer.
+· **⚠ LES GESTES VONT LÀ OÙ L'OBJET VIT** : un minuteur ad hoc n'est PAS rendu par `timerCard` —
+  `runtimePanel` sépare `tl` (les minuteurs de la fiche, en cartes) de `minis` (les ad hoc, en
+  rangées compactes). Ma première pose était donc du code MORT dans une branche que `t.adhoc` ne
+  peut jamais atteindre. Et la SUPPRESSION existait déjà sur cette rangée (`data-tmrm`) : mon
+  second gestionnaire l'écrasait silencieusement — deux `onclick` sur le même sélecteur, le
+  dernier gagne. On lit le composant avant d'y greffer quoi que ce soit.
+· `tmAddName`, `TM_GENERIQUE` et `.tm-add-n` (« d'après votre dernier repère ») sont PURGÉS avec la
+  devinette qu'ils servaient — `check-classes` a d'ailleurs immédiatement signalé la règle morte.
+· **DEUX TÉMOINS MESURAIENT LA DEVINETTE** et ont été réécrits sur la propriété : la porte ne dit
+  que sa nature *quel que soit ce qu'on a horodaté avant*, le minuteur naît SANS nom, et sa rangée
+  porte de quoi le nommer.
+
+**A100. UNE FENÊTRE NE DÉFILE JAMAIS EN LARGEUR (v5.6, signalé à l'usage : « fenêtre compte &
+synchronisation : le scroll se déplace de gauche à droite, surtout sur smartphone »).** `.ai-modal`
+portait le raccourci `overflow:auto`, qui ouvre les DEUX axes — et sur iOS un défileur dont l'axe X
+est `auto` se laisse traîner et REBONDIT même sans rien à faire défiler. Mesuré : la carte ne
+déborde d'aucun pixel (390/390 comme 320/320) ; il n'y avait donc rien à voir en défilant, seulement
+une fenêtre qui glisse sous le doigt. `overflow-y:auto;overflow-x:hidden`.
+· **C'EST SANS RISQUE PARCE QUE LA RÈGLE EXISTE DÉJÀ** : tout contenu large porte SON PROPRE
+  `overflow-x:auto` (chips, fil d'Ariane, blocs de code, tableaux du mini-Markdown, quatre sites).
+  Borner la fenêtre ne coupe rien ; elle cesse seulement de servir de défileur de secours.
+· **⚠ ET LE DÉBORDEMENT QU'ON VOIT DANS LA MESURE EST VOULU** : `.ai-top` fait 10 px de plus que sa
+  boîte — c'est le halo compensé du ✕ (`margin-right:-10px`), dont le bord reste dans le
+  rembourrage de la carte (A76). Vérifié AVANT de toucher à quoi que ce soit : sans cela on aurait
+  « corrigé » une géométrie saine et manqué la vraie cause.
+
+**A101. UN FOND DE RANGÉE VA D'UN BORD À L'AUTRE DE SA CARTE (v5.6, signalé à l'usage, captures à
+l'appui : « le fond de sélection ne s'affiche pas sur toute la largeur », « session en cours : le
+vert ne prend pas toute la largeur »).** En voie étroite les rangées vivent dans une carte par
+lettre, et c'est la CARTE qui porte les 16 px de rembourrage horizontal : la rangée commençait donc
+17 px après son bord gauche et s'arrêtait 17 px avant le droit. Invisible tant qu'elle est
+transparente — mais dès qu'elle prend un fond (survol, vert d'une session vive), le rectangle teinté
+flotte au milieu avec deux bandes nues de part et d'autre. Mesuré à 390 px : **304 px de rangée dans
+une carte de 338**. La rangée reprend les 16 px en marges NÉGATIVES et les rend en rembourrage : sa
+BOÎTE va d'un bord à l'autre, son CONTENU ne bouge pas d'un pixel (titre à x=35 et épingle 285→315,
+identiques avant/après). `.dir-book` reçoit `overflow:hidden` — sans quoi la première et la dernière
+rangée dépasseraient des coins arrondis (aucun titre de lettre n'est collant : rien à casser).
+· **⚠ UNE COMPENSATION VIT AVEC CE QU'ELLE COMPENSE (signalé dans la foulée : « tu as cassé
+  l'affichage des cartes en 2/3 colonnes »)** : `.dir-book` perd son rembourrage à partir de 780 px.
+  Posée au niveau racine, la marge négative y tirait les rangées 16 px HORS de leur colonne. Elle
+  est bornée à `max-width:779.98px`, le palier même où le rembourrage existe. Vérifié à 390, 700,
+  900, 1280 et 1600 : plus rien ne sort de sa carte, et la teinte va bien d'un bord à l'autre en
+  voie étroite.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

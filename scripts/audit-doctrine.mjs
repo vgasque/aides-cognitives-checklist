@@ -4863,7 +4863,8 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
       reperes:(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter').length-evAvant};
     /* Le nom pressenti ne reprend JAMAIS un libellé de repli (« Compteur », « Action 3 »). */
     const apresCompteur=lbl();
-    return {enSession,apresRendus,coupe,repris,nu,nomme,durees,champs,
+    const nommable=!!document.querySelector('.rt-dock .tm-mini [data-tmname]');
+    return {enSession,apresRendus,coupe,repris,nu,nomme,durees,champs,nommable,
       tm:tm?{label:tm.label,sec:tm.seconds,running:tm.running}:null,cn,apresCompteur};});
   t('en session, le verrou est demandé UNE fois',
     r.enSession.req===1&&r.enSession.tenu===true, JSON.stringify(r.enSession));
@@ -4872,15 +4873,20 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
   t('… l\'interrupteur le relâche, et le dit', r.coupe.req===1&&r.coupe.rel===1
     &&r.coupe.tenu===false&&/veille/i.test(r.coupe.lbl), JSON.stringify(r.coupe));
   t('… et le redemande quand on le rallume', r.repris.req===2&&r.repris.tenu===true, JSON.stringify(r.repris));
-  /* Le bouton ne dit plus « PA » : il posait n'importe quel minuteur sous le nom d'un usage
-     particulier (décision de l'auteur). Sans nom pressenti, il ne dit que sa NATURE. */
-  t('＋ Minuteur : sans repère, il ne dit que sa nature',
+  /* ⚠ CES DEUX TÉMOINS MESURAIENT UNE DEVINETTE, ET ELLE EST SUPPRIMÉE (v5.6, signalé à l'usage :
+     « comment as-tu trouvé l'intitulé automatique, c'est très mauvais et ça ne se met pas à jour à
+     chaque bloc »). Le bouton reprenait le nom du DERNIER REPÈRE — une source sans rapport avec le
+     bloc courant, donc incapable de le suivre. Ils mesurent désormais la propriété qui remplace la
+     devinette : la porte ne dit QUE sa nature, quel que soit ce qu'on a horodaté avant, et le nom
+     se pose APRÈS, à la main, sur l'objet. */
+  t('＋ Minuteur : il ne dit que sa nature',
     /＋\s*Minuteur$/.test(r.nu)&&!/PA/.test(r.nu), r.nu);
-  t('… avec un repère, le bouton dit le nom qu\'il va poser', /Amiodarone/.test(r.nomme), r.nomme);
-  t('… et son tap déplie QUATRE durées, sans aucun champ',
+  t('… et un repère étiqueté ne le change pas', /＋\s*Minuteur$/.test(r.nomme), r.nomme);
+  t('… son tap déplie QUATRE durées, sans aucun champ',
     r.durees.length===4&&r.champs===0, JSON.stringify(r.durees)+' · '+r.champs+' champ(s)');
-  t('… la durée choisie est celle du minuteur créé, qui porte le nom',
-    !!r.tm&&r.tm.sec===180&&r.tm.label==='Amiodarone'&&r.tm.running===true, JSON.stringify(r.tm));
+  t('… la durée choisie est celle du minuteur créé, qui naît SANS nom',
+    !!r.tm&&r.tm.sec===180&&r.tm.label===''&&r.tm.running===true, JSON.stringify(r.tm));
+  t('… et sa rangée porte de quoi le nommer', r.nommable===true, `${r.nommable}`);
   t('＋ Compteur : créé À 1, avec son repère horodaté',
     r.cn.val===1&&r.cn.reperes===1, JSON.stringify(r.cn));
   t('… et SANS timerId : le lien vers une alarme est une décision d\'auteur', r.cn.lien===true);
