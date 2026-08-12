@@ -4226,6 +4226,11 @@
   .ls-info{flex:1;min-width:150px;display:flex;flex-direction:column;line-height:1.25;cursor:pointer}
   .ls-info .ls-k{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2)}
   .ls-info .ls-t{font-size:15px;font-weight:700;color:var(--sys-ink)}
+  /* « Bloc 7 · Reprise du massage — dernier repère 15h47 » : deux données déjà en mémoire, sur une
+     carte qui existe. Encre secondaire de la matière SYSTÈME (la carte de session est sombre),
+     une seule ligne — au-delà, c'est le titre qui compte, pas la précision. */
+  .ls-info .ls-w{font-size:var(--t-cap);font-weight:600;color:var(--sys-ink-2);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ls-chrono{font-family:var(--mono);font-size:17.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ok-sys)}
   .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys)}
   .ls-card .ls-end:hover{background:var(--sys-2)}
@@ -5251,15 +5256,27 @@
      démarrer la session » (règle du bouton unique) — ce sont des LECTURES, elles ne démarrent
      rien. Ils s'étirent à parts égales sous 430 px, où deux libellés courts laissaient une rangée
      déséquilibrée. */
+  /* Ligne « prêt » : du TEXTE à sa place, encre secondaire au nominal, ambre TEXTUEL quand une
+     pièce manque — jamais un aplat (A11), jamais une pastille. Elle s'enroule plutôt que de
+     tronquer un nom de document. */
+  .pre-ready{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;margin:0 0 4px;
+    font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink-soft)}
+  .pre-ready .tic{flex:none;margin-top:2px;color:var(--ok)}
+  .pre-ready.warn{color:var(--verify-hi)}
+  .pre-ready.warn .tic{color:var(--verify-hi)}
+  .pre-ready b{font-weight:800}
   .pre-links{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 4px}
   .pre-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;
     background:var(--work);border:1px solid var(--ctl-line);border-radius:var(--r-2);
-    padding:0 14px;min-height:44px;font-family:inherit;
+    padding:0 14px;min-height:44px;font-family:inherit;white-space:nowrap;
     font-size:var(--t-body);font-weight:700;color:var(--ink);cursor:pointer}
   .pre-link .tic{color:var(--act);flex:none}
   .pre-link:hover{background:var(--amb-2);border-color:var(--ink-soft)}
   .pre-link:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  @media (max-width:429.98px){.pre-link{flex:1 1 0;min-width:0;padding:0 10px}}
+  /* ⚠ `flex:1 1 0` ÉCRASAIT LE TROISIÈME (mesuré à 390 px : « Documents · 2 » cassé en deux
+     lignes). Base sur le CONTENU : à deux boutons ils s'étirent encore à parts égales, à trois la
+     RANGÉE passe à la ligne — on enroule, on ne coupe jamais un libellé en son milieu. */
+  @media (max-width:429.98px){.pre-link{flex:1 1 auto;min-width:0;padding:0 10px}}
   /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
      demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
      Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des

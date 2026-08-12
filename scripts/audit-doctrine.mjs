@@ -3371,6 +3371,33 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
       r.apres.modale===false&&r.apres.demarrer===true, JSON.stringify(r.apres));
     if(W>=1200) t(`${nom} · … et les deux colonnes sont toujours là`,
       r.apres.plan===true&&r.apres.rail===true, JSON.stringify(r.apres));
+    /* ══ v5.6 (planche 11a) — « PRÊT » SE DIT SUR LA FICHE, PAS SUR L'ACCUEIL ═══════════════
+       La jauge d'accueil disait le manque au mauvais endroit : on l'apprenait en perdant le
+       réseau. La ligne vit sous les excursions, et surtout elle NE CONDITIONNE RIEN — c'est la
+       propriété qui compte, et c'est celle qu'on mesure : le bouton de démarrage reste actif
+       avec des pièces manquantes. Un soin ne s'arrête pas parce qu'un PDF n'est pas là. */
+    const pr = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+      const f=state.fiche;
+      f.docs=[{id:'zd1',name:'Protocole SFAR 2024',size:1024},{id:'zd2',name:'Fiche produit',size:512}];
+      await persist();render();await w(600);
+      const L=()=>{const e=document.getElementById('preReady');
+        return e&&!e.hidden?{cls:e.className,txt:e.textContent.replace(/\s+/g,' ').trim()}:null;};
+      const manque=L(), dem1=!!document.getElementById('sessStart');
+      const pdf=new Uint8Array([37,80,68,70,45,49,46,52,10]).buffer;
+      await IDB.putAtt({id:'zd1',blob:pdf,size:9});await IDB.putAtt({id:'zd2',blob:pdf,size:9});
+      await refreshPreReady(state.fiche);await w(250);
+      const pret=L();
+      /* Une fiche SANS document n'a rien à dire : pas de ligne. */
+      f.docs=[];await persist();render();await w(500);
+      return {manque,dem1,pret,sansDoc:L()};});
+    t(`${nom} · une pièce manquante se dit SUR la fiche`,
+      !!pr.manque&&/warn/.test(pr.manque.cls)&&/non disponible/.test(pr.manque.txt),
+      JSON.stringify(pr.manque));
+    t(`${nom} · … et ne conditionne RIEN : « démarrer » reste actif`, pr.dem1===true);
+    t(`${nom} · tout présent : la ligne le confirme, sans ambre`,
+      !!pr.pret&&!/warn/.test(pr.pret.cls)&&/tous disponibles/.test(pr.pret.txt),
+      JSON.stringify(pr.pret));
+    t(`${nom} · aucun document : aucune ligne`, pr.sansDoc===null, JSON.stringify(pr.sansDoc));
     await page.close();
   }
 }

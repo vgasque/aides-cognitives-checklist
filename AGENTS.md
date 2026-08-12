@@ -1426,6 +1426,37 @@ l'en-tête (A27). Écrite une fois, elle devient opposable.
   où il n'y en avait pas) ; le glissement d'écran sur un changement de filtre, déjà purgé en v5.6
   (A80) — la liste reste la même liste, seule sa clé change.
 
+**A82. « PRÊT » SE DIT SUR LA FICHE, PAS SUR L'ACCUEIL (v5.6, planche 11a).** La jauge
+`#attOffline` annonce sur l'ACCUEIL que des documents manquent — alors que la question se pose sur
+la FICHE qu'on est en train d'ouvrir. C'est le test du LIEU pris en défaut : une information juste,
+au mauvais endroit, qu'on découvre en perdant le réseau. Une ligne de corps sous la rangée des
+excursions : « ✓ 3 documents · tous disponibles hors ligne », ou son ambre TEXTUEL avec le NOM de
+ce qui manque et le geste (`dlMissingAtts` existe déjà).
+· **ELLE NE CONDITIONNE RIEN, et c'est la propriété que le témoin mesure** : « Confirmé — démarrer »
+  reste actif avec des pièces manquantes. Un soin ne s'arrête pas parce qu'un PDF n'est pas là — le
+  manque est une INFORMATION, jamais une condition. Pas de bandeau, pas de fenêtre, pas de pastille.
+· **LE NOM QUAND IL Y EN A UN SEUL** : « un document » n'aide pas à décider s'il faut attendre le
+  réseau, « Protocole SFAR 2024 » oui. Au-delà d'un, on compte.
+· **ET L'ABSENCE DE BOUTON S'EXPLIQUE** : sans compte ni chemin de stockage il n'y a rien à
+  télécharger — on dit pourquoi, dans les mots exacts de la jauge d'accueil. Une absence non
+  expliquée se lit comme une panne.
+· **⚠ LA MOITIÉ « RÉVISION » DE LA PLANCHE N'EST PAS REPRISE, ET C'EST UNE CORRECTION DE PRÉMISSE** :
+  elle la croyait absente de la page d'entrée, or la rangée de méta y porte déjà « Validation :
+  01/2025 » — elle n'est masquée qu'EN SESSION (v4.31.0). L'écrire une seconde fois serait la
+  duplication que § 5.5 proscrit. Une proposition juste peut reposer sur un constat faux ; on
+  vérifie le constat avant de livrer la proposition.
+
+**A83. LA CARTE DE SESSION DIT OÙ L'ON VA RETOMBER, AVANT LE GESTE (v5.6, planche 11c).**
+« Bloc 7 · Reprise du massage — dernier repère 15h47 », sous le titre. `resumeSession` restaure
+déjà le runtime entier ; ce qui manquait est le MOT qui permet de savoir, avant de toucher, où l'on
+atterrit — sans quoi on reprend, puis on relit le journal pour se retrouver. Encore le test du
+lieu : l'information qui décide du geste n'était disponible qu'APRÈS lui.
+· **AUCUNE SURFACE NOUVELLE** : deux données déjà en mémoire, sur une carte qui existe. C'est la
+  moins chère des propositions de la série.
+· **ELLE NE DIT QUE CE QU'ELLE SAIT** (`liveWhereText`, pure, 6 témoins) : pas de bloc courant → pas
+  de fragment de bloc ; aucun repère → pas d'heure ; rien des deux → chaîne vide et la ligne
+  n'existe pas. Un « — » à la place d'une donnée absente serait du bruit à décoder.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

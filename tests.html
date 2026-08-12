@@ -312,6 +312,24 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const d=A.tmStopFrom(null,SES);
    ok('aucun instantané : rien à dire, aucune ligne', d.stoppedAt===0&&d.stopClosed===false);}
 
+  group('v5.6 (planche 11c) — liveWhereText : où l’on va retomber, dit AVANT le geste');
+  /* `resumeSession` restaure déjà tout ; ce qui manquait est le MOT. La ligne ne dit que ce
+     qu'elle SAIT : un « — » à la place d'une donnée absente serait du bruit à décoder. */
+  {const F={id:'f1',title:'ACR',start:'b1',blocks:[
+     {id:'b1',kind:'do',title:'Mesures immédiates',items:[]},
+     {id:'b2',kind:'do',title:'Reprise du massage',items:[],next:null}]};
+   const R=(nav,ev)=>({fiche:A.migrate(JSON.parse(JSON.stringify(F))),nav:nav,events:ev||[]});
+   const T=Date.UTC(2026,0,2,14,47,0);
+   const txt=A.liveWhereText(R(['b1','b2'],[{id:'e',t:T}]));
+   ok('le bloc courant est nommé et numéroté', /2 · Reprise du massage/.test(txt), txt);
+   ok('… et l’heure du dernier repère suit', /dernier repère \d{2}h\d{2}/.test(txt), txt);
+   ok('aucun repère : pas d’heure inventée',
+     !/repère/.test(A.liveWhereText(R(['b1'],[]))), A.liveWhereText(R(['b1'],[])));
+   ok('aucune navigation : pas de fragment de bloc',
+     !/·/.test(A.liveWhereText(R([],[{id:'e',t:T}]))), A.liveWhereText(R([],[{id:'e',t:T}])));
+   eq('rien des deux : chaîne vide, donc aucune ligne', A.liveWhereText(R([],[])), '');
+   eq('pas de runtime : rien', A.liveWhereText(null), '');}
+
   group('phase K (v4.63.0) — reviewNotes : la relecture doctrinale en une grammaire');
    /* v5.0.0, étape B — LES FIXTURES PASSENT PAR `migrate`. Elles étaient des objets v3 bruts :
       depuis que les six listes sont devenues des items à rôle dans un POOL, un tel objet n'a plus
