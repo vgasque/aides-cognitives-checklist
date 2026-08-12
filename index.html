@@ -3275,7 +3275,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @supports (height:100svh){
     .rt-dock{max-height:calc((100svh / var(--zf,1) - var(--stick-top,110px))*.8)}
   }
-  .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 14px 16px}
+  /* Le volet respire pareil en haut et en bas : ses 16 px de fin se lisaient comme la marge de la
+     dernière section, et faussaient sa symétrie (cf. `.rt-panel .tk-panel`). */
+  .rt-dock .rt-panel{margin:0 auto;max-width:1282px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:12px 14px}
   /* ══ LE VOLET EST UN ÉTAGE DU BLOC DE CHROME, DONC IL EST SOMBRE (v5.6, maquette — signalé à
      l'usage : « en largeur de smartphone le bandeau déroulant ne correspond pas au nouveau
      design ») ══════════════════════════════════════════════════════════════════════════════
@@ -4285,7 +4287,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tk-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px}
   /* v5.4.0 — NICHÉ DANS LE DÉPLIANT MINUTEURS (étroit) : le journal y devient une SECTION à filet,
      pas une carte dans la carte — deux cadres emboîtés se liraient comme deux objets. */
-  .rt-panel .tk-panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;margin:12px 0 0;padding:12px 0 0}
+  /* ⚠ UNE SECTION RESPIRE AUTANT DES DEUX CÔTÉS DE SON FILET (v5.6, signalé à l'usage : « le
+     journal replié s'affiche avec plus d'espace en bas qu'en haut — et même déplié vide »). Le
+     panneau posait 12 px SOUS son filet et rien après son contenu : replié, il n'a qu'un titre, si
+     bien que ce qu'on lisait était 12 px au-dessus contre les 16 px de fin de volet en dessous.
+     Rembourrage symétrique, et la fin du volet cesse d'être comptée comme la respiration de la
+     dernière section. */
+  .rt-panel .tk-panel{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;margin:12px 0 0;padding:12px 0}
   .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .tk-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;flex:1}
   /* La légende ne liste que les registres RÉELLEMENT présents dans le bloc (lot M2). */
@@ -5304,7 +5312,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ----- Journal de parcours (v4.9.0) : instances repliées = lignes d'état, suite, réponse ----- */
   /* Instance COMPLÈTE repliée = LIGNE ECAM verte (relisible d'un tap) ; décision repliée garde
      sa carte ambrée + sa réponse en toutes lettres (.ov-ans) — la couleur n'est jamais seule. */
-  .ov-block.closed .ov-tgl{min-height:44px;padding:6px 12px}
+  /* ⚠ REPLIÉE, LA CARTE EST UN STATUT D'UNE LIGNE — ET SA LIGNE EST CENTRÉE (v5.6, signalé à
+     l'usage : « quand le bloc est enroulé, le numéro et le titre se déplacent mais ne sont pas
+     centrés verticalement »). L'en-tête OUVERT est fait pour deux rangées — l'étiquette et le
+     compte au-dessus, le grand titre en dessous (`.ov-t{flex:1 1 100%}`, aligné sur les BASELINES) :
+     c'est juste quand la carte est ouverte, et faux quand elle se replie, où la même mise en page
+     donnait une boîte de 73 px avec le numéro 23 px au-dessus du milieu et le titre 7 en dessous.
+     Repliée, la rangée ne porte plus qu'une ligne : tout y tient côte à côte, aligné sur le MILIEU,
+     et le titre prend la taille du texte courant puis s'ellipse — il revient en entier au dépliage,
+     qui est à un tap. */
+  /* ⚠ ET LA RANGÉE EST CENTRÉE DANS LA CARTE, PAS SEULEMENT EN ELLE-MÊME (v5.6, second
+     signalement : « il est toujours plus bas que le centre de la carte repliée »). L'en-tête porte
+     `padding:18px 18px 0` — juste quand la carte est OUVERTE, puisque le corps suit en dessous ;
+     replié, l'en-tête EST la carte, et ces 18 px de haut contre 0 en bas poussaient le texte 9 px
+     sous l'axe (31 px au-dessus, 13 en dessous, mesurés). On symétrise, et le retrait à gauche
+     reste celui de la carte ouverte (6 + les 12 de la rangée = 18). */
+  .ov-block.closed .ov-head{padding:8px 6px}
+  .ov-block.closed .ov-tgl{min-height:44px;padding:6px 12px;flex-wrap:nowrap;align-items:center;gap:10px}
+  .ov-block.closed .ov-t{flex:1 1 auto;margin:0;font-size:var(--t-item);line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ov-block.closed :is(.ov-n,.ov-c,.ov-chev){flex:none}
+  /* ⚠ ET L'ORDRE SUIT LA LECTURE : les `order` de l'en-tête ouvert placent le compte et le chevron
+     AVANT le titre, parce qu'ils y vivent sur la rangée du dessus. Sur une seule ligne, cela
+     donnait « BLOC 1 · 0/5 ▾ · Mesures immédiates » — l'état s'insérait au milieu de l'identité.
+     Replié, on lit d'abord CE QUE C'EST, ensuite où ça en est. */
+  .ov-block.closed .ov-t{order:2}
+  .ov-block.closed .ov-c{order:3}
+  .ov-block.closed .ov-chev{order:4}
   .ov-block.closed.done{background:var(--done-bg);border-color:var(--done-line);border-left-color:var(--done-line)}
   .ov-block.closed.done .ov-t{color:var(--ok)}
   .ov-block.closed.done.dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
@@ -6796,7 +6830,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-fold .rf-here{color:var(--ink-soft);font-size:12px;letter-spacing:0;text-transform:none;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
     /* dans le dépliant, le panneau du journal est une SECTION, pas une carte dans la carte — et
        son titre interne se tait : le résumé le porte déjà (deux fois le même mot, §5.5). */
-    .rail-fold .tk-panel{border:0;background:transparent;border-radius:0;padding:6px 0 0;margin:0}
+    /* Symétrique, comme la section du volet : un panneau qui ne porte qu'un titre ne doit pas
+       avoir toute sa respiration d'un seul côté (v5.6, signalé à l'usage). */
+    .rail-fold .tk-panel{border:0;background:transparent;border-radius:0;padding:6px 0;margin:0}
     .rail-fold .tk-panel .tk-head b,.rail-fold .tk-panel .tk-head .fam-n{display:none}
     .rail-head :is(.rt-sound,.rt-warn){margin-left:auto}
     .rail-head .rt-sound~.rt-sound,.rail-head .rt-warn~.rt-sound{margin-left:0}

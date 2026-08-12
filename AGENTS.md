@@ -1132,6 +1132,35 @@ Après : `--work` #171a20 → **#1e232b** (matière 1,22:1) et `--work-line` #26
   on le rend. Quatre contrôles : limite ≥ 3:1, matière détachée de l'ambiance, SYSTÈME ≠ TRAVAIL,
   et l'encre qui ne paie pas la note. Vérifié capable d'échouer (tokens d'avant → 3 rouges).
 
+**A69. REPLIÉE, LA CARTE EST UN STATUT D'UNE LIGNE — ET CETTE LIGNE EST CENTRÉE DANS LA CARTE
+(v5.6, signalé à l'usage, puis re-signalé).** L'en-tête d'une carte OUVERTE est fait pour deux
+rangées — l'étiquette et le compte au-dessus, le grand titre en dessous (`.ov-t{flex:1 1 100%}`,
+aligné sur les BASELINES). Replié, la même mise en page donnait une boîte de **73 px** où le numéro
+et le compte flottaient 23 px au-dessus du milieu et le titre 7 en dessous.
+· **UNE SEULE LIGNE, ALIGNÉE SUR LE MILIEU** : tout y tient côte à côte, le titre prend la taille du
+  texte courant et s'ellipse — il revient en entier au dépliage, qui est à un tap. 73 → 44 px.
+· **ET L'ORDRE SUIT LA LECTURE** : les `order` de l'en-tête ouvert placent le compte et le chevron
+  AVANT le titre, parce qu'ils y vivent sur la rangée du dessus ; sur une seule ligne cela donnait
+  « BLOC 1 · 0/5 ▾ · Mesures immédiates », l'état inséré au milieu de l'identité. Replié, on lit
+  d'abord ce que c'est, ensuite où ça en est.
+· **⚠ CENTRER LA RANGÉE NE SUFFIT PAS, IL FAUT CENTRER LA CARTE** (le second signalement) :
+  `.ov-head` porte `padding:18px 18px 0` — juste quand le corps suit en dessous, faux quand
+  l'en-tête EST la carte. Mesuré : 31 px au-dessus du texte contre 13 en dessous, soit 9 px sous
+  l'axe. Rembourrage symétrique en replié, retrait à gauche inchangé.
+· **RÈGLE GÉNÉRALE** : un alignement se mesure sur les CENTRES, jamais sur les hauts — deux objets
+  de tailles différentes n'ont pas le même haut. Et une mise en page pensée pour un état ne se
+  transporte pas telle quelle dans l'autre.
+
+**A70. UNE SECTION RESPIRE AUTANT DES DEUX CÔTÉS DE SON FILET (v5.6, signalé à l'usage : « le
+journal replié s'affiche avec plus d'espace en bas qu'en haut — et même déplié vide »).** Le panneau
+du journal posait toute sa respiration d'un seul côté (12 px sous son filet, rien après son contenu,
+`padding:12px 0 0`) : replié, il n'a qu'un TITRE, et ce qu'on lisait alors était 12 px au-dessus
+contre les 16 px de fin de volet en dessous. Rembourrage symétrique — dans le volet ET dans le rail
+(`.rail-fold`, qui portait la même faute) —, et la fin du volet passe de 16 à 12 px pour cesser
+d'être comptée comme la respiration de la dernière section.
+⚠ **UN PANNEAU QUI PEUT ÊTRE VIDE SE JUGE VIDE** : c'est l'état où l'asymétrie se voit le plus,
+puisqu'il n'y a aucun contenu pour la masquer — le témoin mesure donc le panneau REPLIÉ.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

@@ -3965,6 +3965,21 @@ await sec('v5.6 · le volet du quai prolonge la capsule', async () => {
     JSON.stringify(roul&&roul.mid));
   t('… et il ne laisse aucun résidu à la fin',
     !!roul&&(roul.fin==='none'||roul.fin==='matrix(1, 0, 0, 1, 0, 0)'), roul?roul.fin:'—');
+  /* ⚠ UNE SECTION RESPIRE AUTANT DES DEUX CÔTÉS DE SON FILET (v5.6, signalé à l'usage : « le
+     journal replié s'affiche avec plus d'espace en bas qu'en haut — et même déplié vide »). Le
+     panneau posait sa respiration d'un seul côté (12 px sous son filet, rien après son contenu) :
+     replié il n'a qu'un TITRE, et ce qu'on lisait était donc 12 px au-dessus contre la fin du
+     volet en dessous. On mesure les deux marges INTERNES du panneau, replié — le cas où
+     l'asymétrie se voit le plus, puisqu'il n'y a rien d'autre pour la masquer. */
+  const jr=await page.evaluate(()=>{const p2=document.querySelector('.rt-dock .tk-panel');
+    if(!p2)return null;const r=p2.getBoundingClientRect();
+    const k=[...p2.children].filter(e=>getComputedStyle(e).display!=='none');
+    if(!k.length)return null;
+    const a2=k[0].getBoundingClientRect(),z=k[k.length-1].getBoundingClientRect();
+    return {haut:Math.round(a2.top-r.top),bas:Math.round(r.bottom-z.bottom),n:k.length};});
+  t('journal · témoin : le panneau replié est bien rendu', !!jr&&jr.n>=1, JSON.stringify(jr));
+  t('journal · il respire autant au-dessus qu\'au-dessous',
+    !!jr&&Math.abs(jr.haut-jr.bas)<=2, jr?`${jr.haut} px / ${jr.bas} px`:'—');
   await page.close();
 }
 });
@@ -4270,6 +4285,36 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
   t('témoin : et il tenait sur UNE ligne au nominal', lab.nominal.lignes===1, `${lab.nominal.lignes} ligne(s)`);
   t('A9 · 320 px · le libellé réserve ses deux lignes, la carte ne grandit pas',
     lab.nominal.carte===lab.echu.carte, `${lab.nominal.carte} → ${lab.echu.carte} px`);
+  /* ── REPLIÉE, LA CARTE EST UN STATUT D'UNE LIGNE, ET SA LIGNE EST CENTRÉE (v5.6, signalé à
+     l'usage : « quand le bloc est enroulé, le numéro et le titre se déplacent mais ne sont pas
+     centrés verticalement »). L'en-tête OUVERT est fait pour deux rangées et aligné sur les
+     BASELINES ; replié, la même mise en page donnait 73 px de haut avec le numéro 23 px au-dessus
+     du milieu et le titre 7 en dessous. On mesure les quatre parts contre le MILIEU de la rangée —
+     un alignement se mesure sur les centres, pas sur les hauts (deux objets de tailles
+     différentes n'ont pas le même haut). */
+  const repli=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const tg=document.querySelector('.ov-block .ov-tgl');if(!tg)return null;
+    tg.click();await w(400);
+    const b=document.querySelector('.ov-block'),g=b.querySelector('.ov-tgl');
+    const mid=e=>{if(!e)return null;const r=e.getBoundingClientRect();return r.top+r.height/2;};
+    const m0=mid(g);
+    const part=s2=>{const e=g.querySelector(s2);return e?Math.round(mid(e)-m0):null;};
+    const gauche=s2=>{const e=g.querySelector(s2);return e?Math.round(e.getBoundingClientRect().left):null;};
+    const out={repliee:b.classList.contains('closed'),
+      h:Math.round(g.getBoundingClientRect().height),
+      ecarts:{n:part('.ov-n'),t:part('.ov-t'),c:part('.ov-c'),chev:part('.ov-chev')},
+      ordre:[gauche('.ov-n'),gauche('.ov-t'),gauche('.ov-c')]};
+    tg.click();await w(300);
+    return out;});
+  t('replié · témoin : la carte est bien repliée', !!repli&&repli.repliee===true, JSON.stringify(repli));
+  t('replié · les quatre parts sont centrées sur la rangée',
+    !!repli&&Object.values(repli.ecarts).every(v=>v!==null&&Math.abs(v)<=1), JSON.stringify(repli&&repli.ecarts));
+  /* Une ligne, pas deux : la hauteur de la rangée repliée est celle d'un contrôle. */
+  t('replié · … et la rangée ne fait qu'+'\u2019'+'UNE ligne', !!repli&&repli.h<=52, repli?`${repli.h} px`:'—');
+  /* On lit d'abord CE QUE C'EST, ensuite où ça en est : numéro, titre, puis compte. */
+  t('replié · … dans l'+'\u2019'+'ordre de lecture (numéro · titre · compte)',
+    !!repli&&repli.ordre[0]<repli.ordre[1]&&repli.ordre[1]<repli.ordre[2], JSON.stringify(repli&&repli.ordre));
+
   /* ── LA NUIT, LES TROIS MATIÈRES SE DISTINGUENT — ET LA CARTE A UNE LIMITE (v5.6, variante C
      choisie sur maquettes). Mesuré avant : travail contre ambiance 1,10:1 et filet contre travail
      1,21:1 — une carte n'avait ni ombre (« la nuit ne projette pas, elle borde ») ni bord
