@@ -24,29 +24,74 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /* ---- LA MARQUE, UNE FOIS -------------------------------------------------------------------
    Chronomètre coché à onglet. Canevas 1024, centre (512,512).
-   - anneau r=200, trait 56 (5,5 % du canevas : sous ~4 % la coche s'efface à 29 px, et Apple
-     déconseille explicitement les traits fins) ; coupure bornée à 300°-360°, juste ce qu'il faut
-     pour laisser sortir la coche — plus large, l'onglet se retrouvait en porte-à-faux ;
-   - coche : bras court 136 u, bras long 393 u (rapport 2,9), sortie à 326° ;
+   - anneau : le RAYON EXTÉRIEUR (228) est l'invariant, pas le rayon médian. C'est lui qui fixe
+     l'emprise d'encre, donc les marges négatives de `.brand-logo` dans index.html — amincir le
+     trait se fait TOUJOURS vers l'intérieur, `R = R_OUT - SW/2`, sinon l'alignement du logo sur
+     la marge de page devient faux sans que rien ne le dise ;
+     coupure bornée à 300°-360°, juste ce qu'il faut pour laisser sortir la coche — plus large,
+     l'onglet se retrouvait en porte-à-faux ;
+   - coche : bras court 136 u, bras long 393 u (rapport 2,9), sortie à 326°, trait à 90 % de
+     l'anneau — c'est le rapport fût/délié d'une romane, et c'est ce qui accorde le glyphe au
+     mot-marque, qui est une Source Serif ;
    - onglet : décalé de 62 u à gauche (140/24 de part et d'autre de l'axe). Le décalage est FRANC
-     à dessein — à 36 u il se lisait comme un défaut de centrage. Il descend jusqu'au bord
-     INTÉRIEUR du trait : une barre droite ne peut pas rester tangente à un cercle, elle doit le
-     traverser, sinon ses extrémités décrochent.
+     à dessein — à 36 u il se lisait comme un défaut de centrage.
      TRAPÈZE, ET LA PENTE N'EST PAS DÉCORATIVE : en rectangle, le bord droit coupait l'arc de
      l'anneau à angle vif et laissait un DÉCROCHEMENT — l'ensemble se lisait comme un col de fiole
-     plutôt que comme un intercalaire. Le bord incliné (490,236) -> (532,340) rencontre le cercle
-     extérieur à (509,284), c'est-à-dire à 0,01 u près SUR l'arc : la jonction devient tangente,
-     le décrochement disparaît, et la suite du bord se noie dans la bande de trait. La pente
-     (22° du vertical) est celle d'un onglet de classeur.
+     plutôt que comme un intercalaire. La pente (22° du vertical) est celle d'un onglet de classeur.
+     ⚠ SON PIED SUIT L'ARC, IL N'EST PLUS UNE BARRE DROITE (v5.6) : il descendait jusqu'au bord
+     INTÉRIEUR du trait, ce qui n'était tenable QUE pour un trait de 56 — une corde horizontale
+     n'est contenue dans la bande que si `dy >= R_in` au milieu ET `hypot(144,dy) <= R_OUT` au
+     bord, deux conditions dont la fenêtre se referme quand la bande maigrit (à 40 : il faudrait
+     dy >= 188 et dy <= 176,8). Le pied POINTAIT donc dans le vide de l'anneau — signalé à
+     l'œil : « le bouton sur le dessus dépasse ». Il suit désormais le cercle MÉDIAN de
+     l'anneau : par construction il est enfoui de SW/2 de chaque côté, quel que soit le trait.
+     ⚠ ET C'EST LE MÉDIAN, PAS L'EXTÉRIEUR : posé sur l'arc extérieur, l'onglet et la bande
+     partagent une frontière EXACTE, chacun n'y couvre que la moitié du pixel, et l'anticrénelage
+     rend un LISERÉ CLAIR le long de la jonction — deux encres qui se touchent doivent se
+     RECOUVRIR. La silhouette reste celle du trapèze d'origine : tout ce que l'onglet a sous
+     l'arc extérieur est noyé dans l'encre du trait. Les extrémités sont CALCULÉES, jamais
+     recopiées : le dessin survit à un changement de trait, ce que la version en dur ne faisait
+     pas.
    - bouts COUPÉS, jamais arrondis (identité de marque v1) : SF Symbols et Material 3 arrondissent,
      mais l'arrondi date sa décennie et la coupe à plat est le trait constitutif de cette marque. */
+const R_OUT = 228;                      // rayon EXTÉRIEUR — l'invariant du dessin
+const SW    = 40;                       // trait de l'anneau (voir « ÉPAISSEUR » ci-dessous)
+const SW_CK = 36;                       // coche : 90 % de l'anneau
+const R     = R_OUT - SW / 2;           // rayon médian du cercle tracé
+const C     = 2 * Math.PI * R;          // circonférence, pour la coupure à 300°/60°
+const r3    = n => +n.toFixed(2);
+
+/* ÉPAISSEUR — calibrée sur le MOT, pas à l'œil (v5.6, signalé à l'usage : « le logo contraste
+   avec l'épaisseur du texte »). Le mot-marque est Source Serif 4 à 17,5 px / 600 ; son fût
+   vertical mesure 2,20 px au canevas (« A » perpendiculaire au jambage, « d » : 2,20 ; « I » :
+   2,35). Un monolinéaire paraît plus lourd qu'une romane à épaisseur égale, d'où une cible à
+   85-90 % : SW=40 rend 1,93 px dans la boîte de 34 px du masque (facteur 1024/(34*1.45)=20,77),
+   soit 88 %. Le trait d'origine (56) rendait 2,70 px, soit 123 % du fût — c'est ce que l'œil
+   voyait.
+   ⚠ UNE SEULE ÉPAISSEUR POUR TOUTES LES SORTIES, ET SON COÛT EST MESURÉ : deux traits feraient
+   diverger le glyphe entre l'en-tête, l'onglet et l'écran d'accueil. Le prix se paie sur le SEUL
+   raster de 16 px, où l'anneau passe de 1,09 à 0,78 px et se délave (32 px et au-delà : net, et
+   plus fin donc plus juste). C'est borné aux écrans NON hi-dpi d'un navigateur qui ignore le
+   SVG : `favicon.svg` est déclaré et préféré partout ailleurs, et un onglet hi-dpi tire déjà le
+   raster de 32. NE PAS descendre sous ~36 : en dessous la coche s'efface aussi à 32. */
+
+// Pied de l'onglet : intersections du bord incliné et du bord gauche avec le cercle MÉDIAN.
+const inter = (x0, y0, dx, dy) => {          // point de (x0,y0)+t(dx,dy) sur le cercle R
+  const ax = x0 - 512, ay = y0 - 512;
+  const a = dx * dx + dy * dy, b = 2 * (ax * dx + ay * dy), c = ax * ax + ay * ay - R * R;
+  const t = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+  return [x0 + t * dx, y0 + t * dy];
+};
+const [PX, PY] = inter(490, 236, 42, 104);                  // bord incliné  -> arc
+const QY = 512 - Math.sqrt(R * R - 144 * 144);              // bord gauche x=368 -> arc
+
 const GLYPHE = `
-  <circle cx="512" cy="512" r="200" stroke-dasharray="1047.2 209.44"/>
-  <path d="M372 528 L482 608 L752 322"/>
-  <path d="M368 236 L490 236 L532 340 L368 340 Z" fill="COLOR" stroke="none"/>`;
+  <circle cx="512" cy="512" r="${R}" stroke-dasharray="${r3(C * 5 / 6)} ${r3(C / 6)}"/>
+  <path d="M372 528 L482 608 L752 322" stroke-width="${SW_CK}"/>
+  <path d="M368 236 L490 236 L${r3(PX)} ${r3(PY)} A${R} ${R} 0 0 0 368 ${r3(QY)} Z" fill="COLOR" stroke="none"/>`;
 
 const marque = (color, scale) => `<g transform="translate(512 512) scale(${scale}) translate(-512 -512)"
-  fill="none" stroke="${color}" stroke-width="56" stroke-linecap="butt" stroke-linejoin="bevel">
+  fill="none" stroke="${color}" stroke-width="${SW}" stroke-linecap="butt" stroke-linejoin="bevel">
   ${GLYPHE.replaceAll('COLOR', color)}
 </g>`;
 

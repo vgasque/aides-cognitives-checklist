@@ -1161,6 +1161,46 @@ d'être comptée comme la respiration de la dernière section.
 ⚠ **UN PANNEAU QUI PEUT ÊTRE VIDE SE JUGE VIDE** : c'est l'état où l'asymétrie se voit le plus,
 puisqu'il n'y a aucun contenu pour la masquer — le témoin mesure donc le panneau REPLIÉ.
 
+**A71. LE LOGO SE CALIBRE SUR LE FÛT DU MOT, ET IL S'AMINCIT VERS L'INTÉRIEUR (v5.6, signalé à
+l'usage : « le logo contraste avec l'épaisseur du texte “aides cognitives” »).** Mesuré au canevas
+avec la police réellement embarquée : le fût de la Source Serif 4 à 17,5 px / 600 vaut **2,20 px**
+(« A » perpendiculaire au jambage, « d » 2,20 ; « I » 2,35), quand le trait du glyphe en rendait
+**2,70** — soit 123 % du fût. Un monolinéaire paraissant plus lourd qu'une romane à épaisseur
+égale, la cible est 85-90 % : trait 56 → **40**, qui rend 1,93 px (88 %).
+· **AUCUNE PROPRIÉTÉ CSS NE PEUT LE FAIRE** : `.brand-logo` pose `logo-glyph.svg` en MASQUE, dont
+  seul le canal alpha compte — l'épaisseur vit dans le fichier. Et le fichier est GÉNÉRÉ
+  (`scripts/build-icons.mjs`, une seule géométrie pour les onze sorties) : l'éditer à la main,
+  c'est écrire une divergence que la prochaine génération effacera.
+· **ON AMINCIT VERS L'INTÉRIEUR, RAYON EXTÉRIEUR GELÉ** (`R = R_OUT − SW/2`, R_OUT=228) : l'emprise
+  d'encre GAUCHE est ce sur quoi la marge de page s'aligne, via les marges négatives calibrées de
+  `.brand-logo`. Mesurée après : **x0 = 181, inchangée**. La borne droite, portée par la pointe de
+  la coche, recule de 0,35 px à 34 — sous le demi-pixel, les marges restent au cran, et les
+  chiffres du commentaire sont mis à jour (il documente des mesures, il ne doit pas mentir).
+· **⚠ ET L'ONGLET N'A PAS SURVÉCU À L'AMINCISSEMENT — « le bouton sur le dessus dépasse »** : son
+  pied était une corde HORIZONTALE calée sur le bord INTÉRIEUR d'un trait de 56. Une corde n'est
+  contenue dans la bande que si `dy ≥ R_in` au milieu ET `hypot(144,dy) ≤ R_OUT` au bord : à 56 la
+  fenêtre est [172 ; 176,8] et le dessin y tenait au pixel près ; à 40 elle est VIDE (188 > 176,8).
+  Le pied pointait donc dans le vide de l'anneau. Il suit désormais le cercle **MÉDIAN**, donc il
+  est enfoui de SW/2 de chaque côté quel que soit le trait, et ses extrémités sont CALCULÉES.
+· **MÉDIAN ET NON EXTÉRIEUR, et c'est une leçon de rendu** : posés sur le même arc, l'onglet et la
+  bande partagent une frontière EXACTE — chacun n'y couvre que la moitié du pixel et
+  l'anticrénelage rend un LISERÉ CLAIR le long de la jonction. **Deux encres qui se touchent
+  doivent se RECOUVRIR.**
+· **UNE SEULE ÉPAISSEUR POUR LES ONZE SORTIES, ET SON COÛT EST DIT** : deux traits feraient diverger
+  le glyphe entre l'en-tête, l'onglet et l'écran d'accueil. Le prix se paie sur le SEUL raster de
+  16 px (anneau 1,09 → 0,78 px, délavé) ; 32 px et au-delà gagnent en finesse. Borné aux écrans non
+  hi-dpi d'un navigateur qui ignore `favicon.svg`, déclaré et préféré partout ailleurs.
+· **CE QUI A ÉTÉ MESURÉ PUIS ÉCARTÉ** : « aligner le sommet de l'anneau sur la hauteur de capitale
+  plutôt que sur la hauteur d'x ». La prémisse est fausse — mesuré à 390 px, l'anneau commence à
+  **20,3** et la capitale à **21,2** : ils sont déjà alignés à 0,9 px près. Ce qui reste est un
+  centre d'anneau 3 px sous le centre de la bande capitale, et c'est JUSTE : le mot porte un
+  jambage descendant (« cognitives »), les deux boîtes sont centrées l'une sur l'autre, et une
+  forme ronde doit déborder pour paraître de la même taille qu'une capitale à sommet plat.
+· **⚠ CHANGER CES OCTETS NE CHANGE PAS CE QUI EST INSTALLÉ** : le nom de fichier ne bouge pas et le
+  cache du service worker est versionné par `APP_VERSION` — un appareil déjà installé garde
+  l'ANCIEN glyphe jusqu'au prochain `./release.sh X.Y.Z` (même piège que pdf.js, règle 1 : on
+  n'édite JAMAIS `CACHE` à la main).
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

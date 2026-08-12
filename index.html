@@ -1767,9 +1767,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      mot-marque se lisent comme UN objet ; et la mesure disait déjà l'inverse de l'impression :
      l'écart optique au texte valait 14,5 px quand celui au bord n'en valait que 2.
      LA CAUSE EST DANS LE MASQUE : `logo-glyph.svg` porte son propre blanc — mesuré au canvas,
-     l'encre occupe x ∈ [181, 889] sur 1024, soit **17,7 % à gauche et 13,1 % à droite** (6,0 et
-     4,5 px à 34 ; 5,3 et 3,9 à 30). La boîte de 34 px n'a donc jamais été le logo : on calait un
+     l'encre occupe x ∈ [181, 878] sur 1024, soit **17,7 % à gauche et 14,3 % à droite** (6,0 et
+     4,9 px à 34 ; 5,3 et 4,3 à 30). La boîte de 34 px n'a donc jamais été le logo : on calait un
      rectangle dont un cinquième était vide.
+     ⚠ CES CHIFFRES SONT UNE MESURE, ILS SE REJOUENT APRÈS TOUT CHANGEMENT DU DESSIN (v5.6) :
+     l'amincissement du trait s'est fait vers l'INTÉRIEUR — rayon extérieur gelé à 228 dans
+     `scripts/build-icons.mjs` — précisément pour que la borne GAUCHE, qui est celle sur laquelle
+     la marge de page s'aligne, ne bouge pas d'un pixel (181, inchangée). La borne droite, elle,
+     est portée par la pointe de la coche et a reculé de 0,35 px à 34 : sous le demi-pixel, donc
+     les marges restent au cran. Au-delà, ré-arrondir −6 / −4 sur l'échelle d'espacement.
      ON ROGNE DONC LA BOÎTE SUR L'ENCRE, par deux marges négatives prises sur l'échelle
      d'espacement (−6 / −4, les deux insets arrondis au cran). Deux conséquences, et ce sont les
      deux demandes : l'encre commence **exactement à la marge de page** — donc alignée sur les
