@@ -63,6 +63,14 @@
      seule source — le dock s'aligne dessus, et un changement de largeur de colonne n'a plus deux
      endroits où se faire. */
   --col-orient:240px;--col-state:320px;--col-gap:20px;
+  /* LES TROIS GABARITS DE FENÊTRE EN TOKENS (v5.6, audit externe 9b). A25 les avait FIXÉS —
+     confirmation 420, dialogue 480, atelier 720 — mais en trois littéraux répartis dans la
+     feuille : rien n'empêchait une quatrième largeur d'apparaître, et sept l'avaient fait. En
+     tokens, une surface DIT quel gabarit elle prend au lieu de recopier un nombre, et une largeur
+     libre redevient un geste visible. Corollaire écrit dans A25 : une largeur libre n'est
+     légitime que si elle mesure autre chose qu'une fenêtre — un texte, un champ, une colonne — et
+     le dit sur place. */
+  --dlg-confirm:420px;--dlg-std:480px;--dlg-atelier:720px;
   --hit:44px;--hit-crisis:48px;
   /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
   --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;

@@ -113,6 +113,40 @@ if (deadCss.length) {
   process.exit(1);
 }
 
+/* TROISIÈME MOITIÉ — UNE CLASSE PURGÉE A UNE ÉPITAPHE (v5.6, audit externe 9c).
+   Le défaut trouvé : un commentaire décrivait AU PRÉSENT une pilule purgée six lots plus tôt
+   (« la POSITION reste portée par `.ov-here` »), alors que la classe n'était plus émise nulle
+   part. Dans ce fichier les commentaires SONT la documentation de conception : celui-là aurait
+   fini par faire RÉINTRODUIRE l'élément — on lit, on constate l'absence, on « répare ».
+   ⚠ CE QU'ON NE PEUT PAS MESURER, ET C'EST POURQUOI LE CONTRÔLE EST CE QU'IL EST : la moitié des
+   citations de classes mortes sont des RÉCITS (« cf. `.mode-seg` v4.25.1 » comme précédent de
+   cascade, « `.trow` est partie avec sa règle ») — parfaitement légitimes. Distinguer un récit
+   d'une affirmation au présent demanderait de lire le TEMPS des verbes, ce qu'aucune regex ne
+   fait. On exige donc la chose vérifiable : toute classe citée dans un commentaire de la feuille
+   est VIVANTE, ou porte au moins une ÉPITAPHE dans le fichier — une mention de purge. Purger
+   sans épitaphe redevient bruyant ; citer l'histoire reste libre. */
+const PURGE = /PURG|purg|SUPPRIM|supprim|RETIR|retir|n'existe plus|disparu|n'a plus lieu|remplacé/;
+const epitaphe = new Set();
+const cites = new Map();                       // classe morte -> lignes de citation
+for (const c of css.matchAll(/\/\*[\s\S]*?\*\//g)) {
+  const txt = c[0], ligne = html.slice(0, cssStart + c.index).split('\n').length;
+  const mortes = [...new Set([...txt.matchAll(/`\.([a-zA-Z][\w-]+)/g)].map(x => x[1]))]
+    .filter(k => !styled.has(k) && !usedSomewhere.has(k));
+  for (const k of mortes) {
+    (cites.get(k) || cites.set(k, []).get(k)).push(ligne);
+    if (PURGE.test(txt)) epitaphe.add(k);
+  }
+}
+const sansEpitaphe = [...cites.keys()].filter(c => !epitaphe.has(c)).sort();
+if (sansEpitaphe.length) {
+  console.error(`✗ ${sansEpitaphe.length} classe(s) morte(s) citée(s) sans épitaphe :`);
+  for (const c of sansEpitaphe) console.error(`    .${c}   (L${cites.get(c).join(', L')})`);
+  console.error('  -> la classe n\'est ni stylée ni émise, et AUCUN commentaire ne dit qu\'elle a été');
+  console.error('     purgée : un lecteur la croira vivante et la réintroduira (règle 14, audit 9c).');
+  console.error('     Écrire la purge une fois, là où elle a eu lieu — ou corriger la citation.');
+  process.exit(1);
+}
+
 if (orphans.length) {
   console.error(`✗ ${orphans.length} classe(s) ÉMISE(S) sans aucune règle CSS :`);
   for (const c of orphans) console.error(`    .${c}   (${emitted.get(c)} émission(s) dans les gabarits)`);

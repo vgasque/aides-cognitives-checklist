@@ -1264,8 +1264,16 @@ await sec('Audit design · la feuille de filtres', async () => {
       if(!b||!q)return null;const rb=b.getBoundingClientRect(),rq=q.getBoundingClientRect();
       return {memeRangee:Math.abs((rb.top+rb.height/2)-(rq.top+rq.height/2))<=6,
               aDroite:Math.round(rb.left-rq.right), h:Math.round(rb.height), w:Math.round(rb.width),
-              /* Son bord DROIT est ce qui s'apprend : il grossit du chiffre, il ne se déplace pas. */
-              bordDroit:Math.round(innerWidth-rb.right),
+              /* Son bord DROIT est ce qui s'apprend : il grossit du chiffre, il ne se déplace pas.
+                 ⚠ ON LE MESURE CONTRE LA COLONNE, PLUS CONTRE LA FENÊTRE (v5.6) : depuis que la
+                 gouttière du rail A→Z est réservée SANS CONDITION, l'écart au bord de fenêtre vaut
+                 34 px avec rail comme sans — c'est justement la constance recherchée, et un témoin
+                 calé sur `innerWidth` mesurait l'ancienne géométrie, celle du cas SANS rail. La
+                 propriété est « il affleure le bord de la colonne », qui ne dépend d'aucun rail. */
+              bordDroit:(()=>{const hm=document.querySelector('.home-main');
+                if(!hm)return Math.round(innerWidth-rb.right);
+                const rh=hm.getBoundingClientRect();
+                return Math.round((rh.right-parseFloat(getComputedStyle(hm).paddingRight))-rb.right);})(),
               /* Il fait la HAUTEUR du sélecteur d'en face, pas une hauteur écrite : deux objets
                  voisins d'une même rangée qui ne s'alignent ni en haut ni en bas se lisent comme
                  deux objets sans rapport. */
@@ -1366,7 +1374,7 @@ await sec('Audit design · la feuille de filtres', async () => {
   /* v5.0.3 — LE DÉCLENCHEUR VIT CONTRE LA RECHERCHE. La v5.0.0 le posait dans le flux, au-dessus
      du contenu : une ligne permanente pour un geste rare. */
   t('il vit sur la rangée des contrôles de liste, poussé à son bord droit',
-    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.dansEcran&&r.geo.bordDroit<=20,
+    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.dansEcran&&Math.abs(r.geo.bordDroit)<=2,
     JSON.stringify(r.geo));
   /* Cible ≥ 32 px hors mode crise (règle 9) — le halo ::after l'étend encore de 4 px. */
   t('… et sa cible reste réglementaire', !!r.geo&&r.geo.h>=32&&r.geo.w>=32,
@@ -1558,6 +1566,27 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
        que la question redoutait — c'est CETTE distance qu'il faut tenir, pas une marge d'aspect. */
     t(`${w} px · … et laisse la zone tactile de l'épingle libre`, r.pireCible>=4,
       `${r.pireCible} px`);
+    /* ⚠ LA GOUTTIÈRE APPARTIENT À LA PAGE, PAS AU RAIL (v5.6, signalé à l'usage : « l'absence de
+       rail redistribue la largeur des cartes »). La règle était accrochée à `.azr-on` : sans rail
+       — bibliothèque vide, une seule lettre — la colonne récupérait ses 16 px et tout s'élargissait
+       avant de rétrécir au retour. On compare donc la colonne UTILE avec rail et sans, et l'on
+       vérifie au passage que la rangée de contrôles respire sous elle, quel que soit ce qui suit :
+       avec des cartes l'écart venait du titre de section, donc d'un VOISIN, et le bloc « aucune
+       aide » n'en apportait aucun (0 px mesuré). */
+    const g = await page.evaluate(async()=>{
+      const util=()=>{const h=document.querySelector('.home-main'),c=getComputedStyle(h);
+        return Math.round(h.clientWidth-parseFloat(c.paddingLeft)-parseFloat(c.paddingRight));};
+      const ecart=()=>{const gr=document.querySelector('.grp-row'),nx=gr&&gr.nextElementSibling;
+        return (gr&&nx)?Math.round(nx.getBoundingClientRect().top-gr.getBoundingClientRect().bottom):null;};
+      const avec={util:util(),ecart:ecart()};
+      fiches.length=0;protocols.length=0;render();
+      await new Promise(r=>setTimeout(r,350));
+      return {avec,sans:{util:util(),ecart:ecart(),rail:!!document.querySelector('.azrail:not([hidden])')}};});
+    t(`${w} px · la colonne ne s'élargit pas quand le rail disparaît`,
+      g.avec.util===g.sans.util, `${g.avec.util} px avec rail, ${g.sans.util} sans`);
+    t(`${w} px · témoin : le rail a bien disparu`, g.sans.rail===false, JSON.stringify(g.sans));
+    t(`${w} px · la rangée de contrôles respire sous elle, avec ou sans cartes`,
+      g.avec.ecart>=12&&g.sans.ecart>=12, `${g.avec.ecart} px avec, ${g.sans.ecart} sans`);
     await page.close();
   }
 }
@@ -3533,7 +3562,19 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
          garde-fous statiques ne voient pas, et par lequel 560 et 760 étaient entrés. */
       const enLigne=[...document.querySelectorAll('.ai-card[style]')]
         .filter(c=>/max-width|width/.test(c.getAttribute('style')||'')).map(c=>c.id||c.className);
-      const out={enLigne,fen:{}};
+      /* ⚠ BALAYAGE, PAS LISTE BLANCHE (v5.6, audit externe 9b — même leçon que 8f) : la boucle
+         ci-dessous n'ouvre que cinq fenêtres NOMMÉES À LA MAIN, et c'est exactement par là que
+         sept largeurs hors gabarit étaient entrées. On mesure donc d'abord TOUTES les cartes de
+         fenêtre du document, sans en ouvrir aucune : `getComputedStyle` résout `max-width` même
+         sur un élément `display:none`, donc la substitution de `var(--dlg-*)` est déjà faite.
+         Les exceptions se NOMMENT ici, avec ce qu'elles mesurent — un texte, un champ, une
+         colonne — jamais une fenêtre. */
+      const horsGabarit=[...document.querySelectorAll('.ai-card')].map(c=>{
+        const mw=getComputedStyle(c).maxWidth;
+        const px=/^(\d+(?:\.\d+)?)px$/.exec(mw);
+        return {id:c.id||c.className.split(' ').slice(0,2).join('.'),mw,px:px?+px[1]:null};
+      }).filter(x=>x.px!==null&&![420,480,720].includes(x.px));
+      const out={enLigne,horsGabarit,fen:{}};
       const cmds={filtSheet:()=>document.getElementById('filtTog').click(), authModal:()=>openAuth(),
                   catModal:()=>openCatMgr(), sessModal:()=>openSessHist(), storageModal:()=>openStorageInfo()};
       for(const [id,go] of Object.entries(cmds)){
@@ -3556,9 +3597,15 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
           pleineHauteur:Math.round(rc.height)>=innerHeight-2};
         const x=m.querySelector('.ai-x');if(x)x.click();await w(250);
       }
+      out.tokens=['--dlg-confirm','--dlg-std','--dlg-atelier']
+        .map(k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim());
       return out;},W);
 
     t(`${W} · aucune largeur de fenêtre écrite en ligne`, r.enLigne.length===0, JSON.stringify(r.enLigne));
+    t(`${W} · aucune carte de fenêtre hors des trois gabarits`, r.horsGabarit.length===0,
+      JSON.stringify(r.horsGabarit));
+    t(`${W} · les trois gabarits valent 420 / 480 / 720`,
+      r.tokens && r.tokens.join('/')==='420px/480px/720px', JSON.stringify(r.tokens));
     for(const [id,f] of Object.entries(r.fen)){
       if(f.err){t(`${W} · ${id} : ouverture`,false,f.err);continue;}
       /* En voie étroite une feuille prend la largeur de l'écran : le gabarit ne se mesure que
@@ -4113,9 +4160,29 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
     /* … puis on SORT de la passe : elle finit sur son bilan (« n/n vérifiées »), et la liste
        d'étapes — qui porte la trace — ne revient qu'après « Terminer la vérification ». */
     const fin=document.querySelector('[data-ovvx]');if(fin)fin.click();await w(400);
-    return {reste,present:true,txt:v.textContent.trim(),geo,passe,tete,
-      trace:document.querySelectorAll('.stp-vf.ok').length,
+    /* ⚠ LA TRACE SE RELÈVE AVANT D'AVANCER : le journal CONDENSE un passage terminé en ligne-bilan
+       (ovPresList), donc les pilules quittent le DOM dès le geste suivant. Mesurée après, elle
+       vaudrait zéro — et l'on croirait à une régression de la trace au lieu d'un défaut de sonde. */
+    const trace=document.querySelectorAll('.stp-vf.ok').length;
+    /* ⚠ ON AVANCE JUSQU'À UNE DÉCISION, SINON DEUX CONTRÔLES SONT VIDES. « un bloc de décision
+       n'a pas de Vérifier » cherchait `.ov-block.dec [data-ovverify]` alors qu'aucune décision
+       n'était encore POSTÉE au journal : absent parce qu'absent, vert sans rien mesurer. */
+    for(let i=0;i<8;i++){
+      if(document.querySelector('.ov-block.dec .question'))break;
+      document.querySelectorAll('.ov-block.cur [data-ck]').forEach(e=>e.click());
+      const c=document.querySelector('[data-ovnext]');if(!c)break;c.click();await w(220);}
+    const dec=document.querySelector('.ov-block.dec');
+    /* HIÉRARCHIE DU BLOC DE DÉCISION (v5.6, signalé à l'usage : « titre du bloc et question
+       s'affichent en même grandeur -> perturbant »). Les deux étaient à 21 px : `check-type` ne
+       pouvait rien voir — 21 est SUR l'échelle — parce que ce n'est pas la valeur qui était
+       fausse, c'est le rapport. Une hiérarchie ne se mesure qu'au rendu, et par comparaison. */
+    const px=e=>e?Math.round(parseFloat(getComputedStyle(e).fontSize)*10)/10:null;
+    const hier=dec?{titre:px(dec.querySelector('.ov-t')),question:px(dec.querySelector('.question')),
+                    option:px(dec.querySelector('.opt'))}:null;
+    return {reste,present:true,txt:v.textContent.trim(),geo,passe,tete,hier,
+      trace,
       coches:Object.values(state.checked).filter(Boolean).length,
+      decAtteinte:!!dec,
       surDecision:!!(document.querySelector('.ov-block.dec [data-ovverify]'))};});
 
   t('témoin : le bloc courant ne porte plus AUCUNE réponse attendue', r.reste===0, `${r.reste}`);
@@ -4137,7 +4204,12 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
     `passe ${r.passe} · ${r.coches} coche(s)`);
   t('… en laissant une trace DURABLE sur les lignes', r.trace>=2, `${r.trace} pilule(s)`);
   /* Un bloc de DÉCISION n'a pas d'étapes à re-constater : il en reste exclu. */
+  t('témoin : une décision est bien atteinte', r.decAtteinte===true);
   t('un bloc de décision n\'a pas de « Vérifier »', r.surDecision===false);
+  t('… son titre passe DEVANT sa question (hiérarchie)',
+    !!r.hier&&r.hier.titre>r.hier.question, JSON.stringify(r.hier));
+  t('… et la question partage le corps de ses options',
+    !!r.hier&&r.hier.question===r.hier.option, JSON.stringify(r.hier));
   await page.close();
 }
 });

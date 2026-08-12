@@ -1208,6 +1208,109 @@ avec la police réellement embarquée : le fût de la Source Serif 4 à 17,5 px 
   l'ANCIEN glyphe jusqu'au prochain `./release.sh X.Y.Z` (même piège que pdf.js, règle 1 : on
   n'édite JAMAIS `CACHE` à la main).
 
+**A72. UN COMMENTAIRE QUI DÉCRIT UN ÉLÉMENT MORT LE FERA RÉINTRODUIRE — LES PURGES ONT UNE ÉPITAPHE
+(v5.6, audit externe 9c).** Un commentaire affirmait AU PRÉSENT que « la POSITION reste portée par
+la pilule `.ov-here` », purgée six lots plus tôt par A12 : zéro émission dans le fichier. Dans ce
+dépôt les commentaires SONT la documentation de conception — celui-là aurait fini par faire remettre
+la pilule, quelqu'un lisant la phrase, constatant l'absence, et « réparant » une régression.
+· **LE CONTRÔLE EST DANS `check-classes`, PAS DANS UN DIX-HUITIÈME SCRIPT** : il y possède déjà les
+  trois ensembles (émises · stylées · commentaires). Toute classe citée dans un commentaire de la
+  feuille est VIVANTE, ou porte au moins une ÉPITAPHE — une mention de purge — quelque part.
+· **⚠ CE QU'ON NE PEUT PAS MESURER, ET POURQUOI LA RÈGLE EST CELLE-LÀ** : la moitié des citations de
+  classes mortes sont des RÉCITS (« cf. `.mode-seg` v4.25.1 » comme précédent de cascade), et elles
+  sont légitimes. Distinguer un récit d'une affirmation au présent demanderait de lire le TEMPS des
+  verbes — aucune regex ne le fait. On exige donc le vérifiable : purger sans épitaphe redevient
+  bruyant, citer l'histoire reste libre. Deux classes en manquaient (`.mode-seg`, `.pl-cxh`).
+
+**A73. LES TROIS GABARITS DE FENÊTRE SONT DES TOKENS, ET LE TÉMOIN BALAIE AU LIEU DE LISTER (v5.6,
+audit externe 9b).** A25 avait FIXÉ les trois largeurs — 420 · 480 · 720 — mais en littéraux
+répartis dans la feuille, et sept surfaces s'en étaient écartées. `--dlg-confirm` / `--dlg-std` /
+`--dlg-atelier` : une surface DIT quel gabarit elle prend, elle ne recopie plus un nombre.
+· **CE QUI EST RATTACHÉ** : `.boot-card` 440 → confirmation (une phrase, aucun champ),
+  `.up-drag-card` (elle avait la bonne valeur, elle a maintenant le TOKEN), `#shareBody` 460 → 480
+  (le commentaire disait déjà « la lecture redevient celle d'un dialogue » — le nombre ne le disait
+  pas), et `.endsess-dlg` perd sa largeur propre : terminer une session EST une confirmation.
+· **DEUX EXCEPTIONS NOMMÉES SUR PLACE, jamais rabattues** : `.alert-toast` (520) mesure une PHRASE
+  et n'est pas une fenêtre — elle ne se ferme pas pour révéler ce qu'il y a derrière ; `.lightbox
+  .cap` (600) est une mesure de LISIBILITÉ (~70 signes). La règle générale : *une largeur libre
+  n'est légitime que si elle mesure autre chose qu'une fenêtre — un texte, un champ, une colonne —
+  et le dit sur place.*
+· **DEUX DES « SEPT » ÉTAIENT DES FAUX POSITIFS D'UN AUDIT STATIQUE** : `560px` apparaissait dans
+  deux `@media`. Un palier n'est pas une largeur de modale, et rien dans le texte ne les sépare.
+· **⚠ ET `.endsess-dlg` N'AVAIT AUCUN EFFET** : `.dlg-confirm .ai-card` (0,2,0) battait `.endsess-dlg`
+  (0,1,0), donc ses 400 px étaient morts depuis toujours. C'est ce qui a fait que le témoin est
+  resté VERT quand j'ai réintroduit le défaut pour l'éprouver — il a fallu un défaut qui MORD
+  (`#endSessModal .ai-card`) pour le voir rougir. Une déclaration qu'on croit fautive peut n'être
+  que du bruit ; on le vérifie avant d'en tirer une leçon.
+· **LE TÉMOIN BALAIE (même leçon que 8f)** : il n'ouvrait que cinq fenêtres NOMMÉES, et c'est par là
+  que les sept étaient entrées. Il mesure désormais le `max-width` calculé de TOUTES les `.ai-card`
+  du document — `getComputedStyle` résout `var()` même sur un élément `display:none`, donc sans en
+  ouvrir aucune.
+
+**A74. LA GOUTTIÈRE DU RAIL A→Z APPARTIENT À LA PAGE, PAS AU RAIL (v5.6, signalé à l'usage :
+« l'absence de rail redistribue la largeur des cartes… c'est moche quand ça repasse à plusieurs
+cartes »).** La v5.0.3 avait déjà tranché cela pour la RECHERCHE, et la voie LARGE le tient sans
+condition depuis toujours — mais la règle étroite était accrochée à `.azr-on`, c'est-à-dire à
+l'EXISTENCE du rail. Bibliothèque vide, une seule lettre, ou rail retiré faute de hauteur : la
+colonne récupérait ses 16 px, tout s'élargissait, puis rétrécissait au retour. `.azr-on` est PURGÉE
+avec la condition qu'elle servait (règle 14, plus aucun lecteur).
+· **ET LA RANGÉE DE CONTRÔLES PORTE SA PROPRE RESPIRATION** (second volet du même signalement : « le
+  bouton filtre peut se coller au bloc du dessous »). `.grp-row` n'avait de marge qu'EN HAUT : avec
+  des cartes l'écart venait du titre de section — donc d'un VOISIN —, et le bloc « Aucune aide »
+  n'en apporte aucun (0 px mesuré). 12 px en bas, et cela ne coûte rien là où l'écart existait :
+  **les marges de frères adjacents FUSIONNENT**, max(12,16)=16, donc le répertoire ne bouge pas d'un
+  pixel. C'est un plancher, pas une addition.
+· **⚠ UN TÉMOIN VOISIN A ROUGI SUR CE CORRECTIF JUSTE, ET IL AVAIT TORT** : il exigeait du
+  déclencheur de filtres un bord droit à ≤ 20 px de la FENÊTRE — la géométrie du cas SANS rail.
+  Avec la gouttière réservée il vaut 34 px avec rail comme sans, ce qui EST la constance
+  recherchée. Il mesure désormais l'écart à la COLONNE (affleurement, ±2), qui ne dépend d'aucun
+  rail. Un témoin calé sur un repère extérieur mesure autre chose que sa propriété.
+
+**A75. LA QUESTION D'UNE DÉCISION EST SOUS SON TITRE DANS LA HIÉRARCHIE, DONC SOUS LUI DANS
+L'ÉCHELLE (v5.6, signalé à l'usage : « titre du bloc et question s'affichent en même grandeur ->
+perturbant »).** Les deux étaient à 21 px / 700. La question descend à `--t-step`, LE MÊME cran que
+ses options `.opt` : une question et ses réponses sont un seul objet de lecture, et c'est le CADRE
+des options qui les distingue, pas leur corps.
+· **AUCUN GARDE-FOU STATIQUE NE POUVAIT LE VOIR** : 21 est sur l'échelle fermée, donc `check-type`
+  était vert — ce n'était pas la VALEUR qui était fausse, c'était le RAPPORT. Une hiérarchie ne se
+  mesure qu'au rendu et par comparaison ; le témoin compare les trois corps entre eux.
+· **⚠ UNE RÈGLE DE PALIER QUI RÉPÈTE LA VALEUR DE BASE EST UNE MINE** : un `@media (max-width:560px)`
+  reposait `.question` à 21 px. No-op tant que la base valait 21 — et il aurait ANNULÉ la descente
+  exactement sur le format où le défaut a été signalé.
+· **ET LE TÉMOIN DE LA DÉCISION NE RENCONTRAIT PAS SON CAS** : « un bloc de décision n'a pas de
+  “Vérifier” » cherchait `.ov-block.dec [data-ovverify]` alors qu'aucune décision n'était encore
+  POSTÉE au journal — absent parce qu'absent, vert sans rien mesurer. La section avance désormais
+  jusqu'à une décision et le vérifie d'abord. ⚠ Corollaire payé sur place : la trace do-verify se
+  relève AVANT d'avancer, le journal condensant un passage terminé en ligne-bilan.
+
+**A76. CE QUE L'AUDIT STATIQUE NE POUVAIT PAS VOIR, ET QUI ÉTAIT DÉJÀ FAIT (v5.6, réponses aux
+points 9d et 9e).** Un audit qui lit `index.html` ne voit ni les harnais ni les gardes JS ; trois de
+ses constats se règlent en ÉCRIVANT ce qui était vrai, au lieu de changer le code.
+· **`.pdf-fnav` — LE SEUL VRAI DÉSACCORD, ET IL EST RETENU** : la pilule d'occurrences n'apparaît
+  que si la visionneuse a été ouverte depuis un résultat, mais elle reste alors posée sur le
+  document, page après page — et un document consulté pendant un soin peut porter EN BAS DE PAGE
+  une posologie. Le geste qui l'a fait naître était « trouve ce mot », pas « couvre le bas de mes
+  pages ». Sa bande est désormais RÉSERVÉE dans le défileur (`--pdfhl-r`, hauteur MESURÉE, 0 quand
+  la pilule n'est pas là) : le document se TERMINE au-dessus d'elle, il n'y a plus rien à occulter.
+  C'est la doctrine du dock — une bande réservée, jamais une superposition au contenu clinique.
+· **`.alert-toast` NE SURGIT JAMAIS SUR L'ÉCRAN DE SOIN** (vérifié) : `onTimerFired` ne l'appelle que
+  dans la branche `!activeVisible` — session hors de vue, autre fiche, ou app en arrière-plan. Sous
+  les yeux, l'alarme reste sur place. Le noyau §2 vise ce qui SURGIT pendant qu'on regarde ; ici
+  l'alerte est ROUTÉE vers quelqu'un qui regarde ailleurs, ce qui est l'exigence inverse. C'était
+  écrit côté JS, pas au site CSS où l'audit a regardé : ça l'est maintenant.
+· **`.sys-banner` EST EXEMPTÉ D'A11, EXPLICITEMENT** : A11 vise la surface de CRISE, où une masse
+  colorée de plus vole l'œil à une étape vitale. Ce bandeau ne vit que sur l'ACCUEIL, sa teinte est
+  INFORMATION, et rien d'autre ne peut s'y afficher en même temps (la notice d'auteur attend son
+  acquittement). Étendre A11 à l'accueil interdirait la carte de session vive et les épinglées.
+· **`.mi-sc` / `.mi-ins` (40 px) SONT CONSIGNÉS comme `.st-seg` l'a été** : galerie de l'ÉDITEUR,
+  hors contrat des 44 px, très au-dessus des 24×24 de WCAG 2.2 § 2.5.8.
+· **8f EST LIVRÉ** (A33) : dès qu'une session est à l'écran, `audit-a11y` scanne la page ENTIÈRE et
+  compte le halo `::after` dans la zone tapable. L'audit le croyait ouvert parce qu'il ne lit pas
+  `scripts/`.
+· **LES DEUX CIBLES À 24 px NE RÉTRÉCISSENT PAS AU ZOOM** (`.azrail button`, `.rel-x`) : mesurées
+  24,00 × 24,00 à 100 % comme à 200 % — ce sont des px CSS fixes, le zoom les agrandit visuellement
+  au lieu de les rogner. La crainte de l'arrondi vise une taille DÉRIVÉE ; il n'y en a pas ici.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
