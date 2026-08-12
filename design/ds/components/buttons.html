@@ -1415,8 +1415,18 @@
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   /* La rangée de repère qui vient d'être écrite (A68, planche 11g/1) : elle entre là où elle est,
      140 ms, opacité + 5 px. Rien ne l'attend — le tap suivant écrit pendant qu'elle entre encore. */
+  @keyframes capIn{from{opacity:0;transform:scaleY(.62)}to{opacity:1;transform:none}}
+  @keyframes hlIn{from{opacity:0}to{opacity:1}}
+  /* LE MINUTEUR ARMÉ REJOINT LA CAPSULE (A68, planche 10d/3) : le geste a lieu en BAS, dans le
+     volet, et le segment naît en HAUT — l'entrée relie les deux. `transform-origin` au bas du
+     segment : il se déroule depuis le bord d'où l'on vient. Un segment ÉCHU en est exclu côté JS
+     (l'alarme PULSE, elle n'entre pas en douceur — deux registres dans la même zone).
+     LA PILULE D'OCCURRENCES PDF (A68, planche 10d/4) : opacité SEULE. Sa bande est réservée dans
+     le défileur, et animer la réserve serait animer un rembourrage — A68/3 l'interdit. */
   @media (prefers-reduced-motion:no-preference){
     .tk-item.tk-fresh{animation:cbIn .14s ease-out both}
+    #cbTimers .seg.seg-in{animation:capIn .14s ease-out both;transform-origin:50% 100%}
+    .pdf-fnav.hl-in{animation:hlIn .14s ease-out both}
   }
   /* LOGO DE MARQUE (v4.23.1) — ACCUEIL SEULEMENT, comme le nom de l'app qu'il accompagne
      (règle SPEC §5 : la marque ne vit que sur l'accueil ; ailleurs la barre porte le retour et le

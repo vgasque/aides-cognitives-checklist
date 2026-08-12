@@ -938,8 +938,18 @@ for (const w of [320, 360, 390, 430]) {
      « n minuteurs · n compteurs » habille un chevron qui existe déjà, il ne coûte rien. Le
      nombre change (52 → 50, la capsule ayant remplacé la rangée) ; la propriété, non. */
   t(`${w} · … et sans coûter de hauteur (50 px)`, r.repos.h===50, `${r.repos.h} px`);
-  t(`${w} · minuteur ARMÉ : le rappel s'efface, le segment reprend la place`,
-    !/\d+ minuteur/.test(r.arme.txt) && /\d\d:\d\d/.test(r.arme.txt), r.arme.txt);
+  /* ⚠ CE TÉMOIN MESURAIT UN MÉCANISME, PAS UNE PROPRIÉTÉ (corrigé en v5.6). Il exigeait que le
+     rappel S'EFFACE dès qu'un minuteur est armé — c'était la règle d'alors (`!want.length`), et
+     elle avait un trou : quand la boucle d'ajustement RETIRE le segment faute de place, le rappel
+     se taisait aussi et le minuteur armé n'était annoncé par RIEN (mesuré à 390 px). La propriété
+     recherchée n'a jamais été « le rappel s'efface » mais « il n'y a pas DEUX annonces du même
+     minuteur, et il y en a au moins UNE ». C'est cela qu'on mesure désormais, et le témoin couvre
+     donc aussi le cas où le segment ne tient pas. */
+  const seg=/\d\d:\d\d[^]*\d\d:\d\d/.test(r.arme.txt);   // deux valeurs = chrono + segment
+  t(`${w} · minuteur ARMÉ : il est montré OU annoncé, jamais tu`,
+    seg || /\d+ minuteur/.test(r.arme.txt), r.arme.txt);
+  t(`${w} · … et jamais les deux à la fois`,
+    !(seg && /\d+ minuteur/.test(r.arme.txt)), r.arme.txt);
   t(`${w} · … et là non plus rien ne déborde`, r.arme.deb<=1, `${r.arme.deb} px`);
   await page.close();
 }
@@ -5065,6 +5075,70 @@ await sec('v5.6 · tolérance orthographique du répertoire', async () => {
     rien.n === 0 && rien.fix === '', `${rien.n}|${rien.fix}`);
 
   await page.close();
+});
+
+
+await sec('v5.6 · le minuteur armé rejoint la capsule, et le quai annonce ce qu\'il cache', async () => {
+  /* Planche 10d/3. Deux propriétés, et la seconde est un défaut PRÉEXISTANT trouvé en mesurant la
+     première : à 390 px la boucle d'ajustement retire le segment d'un minuteur NOMINAL armé, et
+     rien ne l'annonçait — « +n » ne compte que les échus depuis la v5.6, et le rappel du chevron
+     se taisait dès qu'un minuteur était « voulu ». L'animation n'avait donc rien à désigner
+     exactement sur le format le plus courant. */
+  for(const W of [390,700]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);await ouvrirFiche(page,'Anaphylaxie');await demarrerSession(page);
+    /* ⚠ ON ATTEND LES POLICES AVANT DE MESURER : la boucle d'ajustement du quai MÉMORISE sa
+       décision sur une clé qui ne connaît pas l'état de chargement des fontes — mesurée avec la
+       police de repli, elle peut retenir un segment de moins et ne jamais se redire. Sans cette
+       attente, le témoin mesure le hasard du chargement, pas l'application. */
+    await page.evaluate(()=>document.fonts&&document.fonts.ready);
+    await page.click('#cbTimers');await page.waitForTimeout(400);
+    await page.evaluate(()=>{const b=[...document.querySelectorAll('.rt-dock button')]
+      .find(x=>/^Démarrer/.test((x.textContent||'').trim()));
+      if(!b)throw new Error('bouton Démarrer introuvable');b.click();});
+    /* ⚠ ON ATTEND QUE LA CAPSULE SE SOIT STABILISÉE. La boucle d'ajustement peut cacher le segment
+       à sa première mesure et le rattraper à la passe suivante (une seconde plus tard) : mesurer à
+       140 ms fixes, c'est mesurer l'instant, pas l'application. On attend donc le segment, borné —
+       s'il n'arrive jamais, le témoin ROUGIT au lieu de sauter son cas. */
+    await page.waitForFunction(()=>document.querySelectorAll('#cbTimers .seg').length>=2,
+      null,{timeout:2500}).catch(()=>{});
+    const g=await page.evaluate(()=>{const el=document.getElementById('cbTimers');
+      const s=el.querySelector('.seg.seg-in');
+      return {marques:el.querySelectorAll('.seg.seg-in').length,
+        anim:s?getComputedStyle(s).animationName:'—',
+        segs:el.querySelectorAll('.seg').length,
+        rappel:(el.querySelector('.cbt-dl')||{}).textContent||'',
+        arme:Object.values(Runtime.timers).some(t=>t.running)};});
+    t(`${W} · témoin : le minuteur est bien armé`, g.arme===true);
+    /* L'ANNONCE EST DUE DANS LES DEUX CAS, et c'est elle qui compte cliniquement : ou le segment
+       est là, ou le rappel le nomme — jamais ni l'un ni l'autre. */
+    t(`${W} · le minuteur armé est montré OU annoncé, jamais tu`,
+      g.segs>=2||/minuteur/.test(g.rappel), JSON.stringify({segs:g.segs,rappel:g.rappel}));
+    /* ⚠ LE CAS S'EXIGE, IL NE SE CONTOURNE PAS. Une première version rendait l'assertion
+       d'animation CONDITIONNELLE à « le segment est montré » : neutraliser l'animation la faisait
+       simplement SAUTER, donc le témoin restait vert sur le défaut qu'il couvre. À 390 px le
+       segment est légitimement retiré (la place manque) et seule l'annonce est due ; au-dessus, il
+       DOIT être là — et son absence est désormais un rouge, pas un silence. */
+    if(W>=500){
+      t(`${W} · témoin : le segment est bien montré`, g.segs>=2, `${g.segs} segment(s)`);
+      t(`${W} · … et il entre en fondu`, g.marques===1&&g.anim==='capIn', JSON.stringify(g));
+      t(`${W} · … sans se recompter dans le rappel`, !/minuteur/.test(g.rappel), g.rappel);
+      /* L'ENTRÉE NE REJOUE PAS : la capsule est réécrite dès que sa structure change. */
+      await page.waitForTimeout(1600);
+      t(`${W} · … et elle ne rejoue à aucun tick`,
+        await page.evaluate(()=>document.querySelectorAll('#cbTimers .seg.seg-in').length===0));
+    }
+    /* UN SEGMENT ÉCHU N'ENTRE PAS EN DOUCEUR : l'alarme a sa grammaire, elle PULSE. */
+    const du=await page.evaluate(()=>{const t0=Object.values(Runtime.timers)[0];
+      t0.elapsedMs=t0.seconds*1000;t0.running=false;t0.ack=false;updateRtStrip(Date.now());
+      const d=document.querySelector('#cbTimers .seg.due');
+      return {due:!!d,in:d?d.classList.contains('seg-in'):null};});
+    t(`${W} · témoin : le minuteur échoit bien`, du.due===true);
+    t(`${W} · … et un segment échu n'emprunte pas l'entrée du nominal`, du.in===false);
+    await page.close();
+  }
 });
 
 const bilanSec=sec.bilan();

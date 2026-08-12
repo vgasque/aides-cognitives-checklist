@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kykm6aMoUegJgREwNiha4nAX88AWq4Gb1RCRs1dIUC4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Y1dmQYelEGfwwJj0XAiH5c4IOuCFT+cjJhnTGc4K4C8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1760,8 +1760,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @keyframes cbIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   /* La rangée de repère qui vient d'être écrite (A68, planche 11g/1) : elle entre là où elle est,
      140 ms, opacité + 5 px. Rien ne l'attend — le tap suivant écrit pendant qu'elle entre encore. */
+  @keyframes capIn{from{opacity:0;transform:scaleY(.62)}to{opacity:1;transform:none}}
+  @keyframes hlIn{from{opacity:0}to{opacity:1}}
+  /* LE MINUTEUR ARMÉ REJOINT LA CAPSULE (A68, planche 10d/3) : le geste a lieu en BAS, dans le
+     volet, et le segment naît en HAUT — l'entrée relie les deux. `transform-origin` au bas du
+     segment : il se déroule depuis le bord d'où l'on vient. Un segment ÉCHU en est exclu côté JS
+     (l'alarme PULSE, elle n'entre pas en douceur — deux registres dans la même zone).
+     LA PILULE D'OCCURRENCES PDF (A68, planche 10d/4) : opacité SEULE. Sa bande est réservée dans
+     le défileur, et animer la réserve serait animer un rembourrage — A68/3 l'interdit. */
   @media (prefers-reduced-motion:no-preference){
     .tk-item.tk-fresh{animation:cbIn .14s ease-out both}
+    #cbTimers .seg.seg-in{animation:capIn .14s ease-out both;transform-origin:50% 100%}
+    .pdf-fnav.hl-in{animation:hlIn .14s ease-out both}
   }
   /* LOGO DE MARQUE (v4.23.1) — ACCUEIL SEULEMENT, comme le nom de l'app qu'il accompagne
      (règle SPEC §5 : la marque ne vit que sur l'accueil ; ailleurs la barre porte le retour et le
@@ -12091,12 +12101,23 @@ function onTimerFired(R,t){beep();
    nouveau est une NOUVELLE alarme : la garder silencée parce qu'on avait acquitté la précédente
    serait le pire mode de défaillance d'un annonciateur. Le drapeau tombe donc aux DEUX points
    qui remettent le minuteur en marche — armer et remettre à zéro —, et nulle part ailleurs. */
+/* ══ LE MINUTEUR ARMÉ REJOINT LA CAPSULE — ET IL DIT D'OÙ IL VIENT (v5.6, planche 10d/3) ═══════
+   Le segment apparaît en HAUT alors que le geste a lieu en BAS, dans le volet : rien ne relie les
+   deux, et l'on découvre le minuteur au tour d'œil suivant. 140 ms d'opacité + `scaleY`, une fois.
+   ⚠ LE DRAPEAU EST À USAGE UNIQUE, et c'est la condition qui rend l'animation admissible : la
+   capsule est RECONSTRUITE à chaque seconde par `updateRtStrip` — une classe posée à demeure
+   rejouerait l'entrée toutes les secondes, c'est-à-dire exactement le mouvement non commandé
+   qu'A68/1 interdit, et sur la zone qui ne quitte jamais l'écran (précédent `_tkFresh`, A90).
+   ⚠ ET UN SEGMENT ÉCHU N'Y A PAS DROIT : l'alarme a sa propre grammaire (elle PULSE). Lui prêter
+   l'entrée douce du nominal mêlerait deux registres dans la seule zone où l'ECAM réserve le
+   mouvement à l'alerte. */
+let _capFresh=null;
 function toggleTimer(t){const now=Date.now();t.ack=false;
   if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;
     /* DEPUIS QUAND EST-IL ARRÊTÉ (v5.6, planche 11j) — cf. `timerStopHtml`. On DATE l'arrêt ici,
        au seul endroit qui met un minuteur en pause ; `closed` reste faux, la pause est voulue. */
     t.stoppedAt=now;t.stopClosed=false;}
-  else{ensureAudio();if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;t.stoppedAt=0;t.stopClosed=false;}}
+  else{ensureAudio();_capFresh=t.id;if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;t.stoppedAt=0;t.stopClosed=false;}}
 function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;t.ack=false;t.stoppedAt=0;t.stopClosed=false;}
 /* Remplissage de la barre de progression d'un minuteur (cf. `.tm-bar`) : SOURCE UNIQUE de la
    chaîne, partagée par le gabarit `timerCard` et le tick `refreshTimersDOM`. Une source unique
@@ -12239,8 +12260,14 @@ function updateRtStrip(now){
      D'où le patron DÉJÀ retenu par le projet pour les étapes signalées (`stepTxtHtml` : glyphe
      visible + étiquette `.sr-only`) : le `△` en PRÉFIXE — il survit à l'ellipse — porte le second
      canal visuel pour ~14 px, et le mot part au lecteur d'écran. */
+  /* ⚠ LU ICI, CONSOMMÉ QUAND LE SEGMENT EST PEINT — pas avant (trouvé à la mesure). Le brûler à
+     la lecture le perdait dans deux cas : la sortie anticipée quand la capsule n'a rien à montrer,
+     et surtout la passe d'ajustement qui CACHE le segment faute de place — le rattrapage de la
+     passe suivante le faisait alors apparaître sans son entrée. Un drapeau d'animation se
+     consomme au moment où l'animation a lieu, jamais au moment où on le regarde. */
+  const _cf=_capFresh;
   const segOf=list=>list.map(x=>{const lbl=esc(x.t.label)||(x.t.type==='interval'?'Minuteur':'Chrono');
-    return '<span class="seg'+(x.due?' due':'')+'"><span class="seg-l">'+(x.due?'△ ':'')+lbl+(x.due?'<span class="sr-only"> échu</span>':'')+'</span><span class="seg-t"></span></span>';}).join('');
+    return '<span class="seg'+(x.due?' due':'')+(x.t.id===_cf&&!x.due?' seg-in':'')+'"><span class="seg-l">'+(x.due?'△ ':'')+lbl+(x.due?'<span class="sr-only"> échu</span>':'')+'</span><span class="seg-t"></span></span>';}).join('');
   // DÉBORDEMENT JAMAIS SILENCIEUX (ECAM, v4.23.0) : une zone d'état ne peut pas cacher une
   // alarme sans le dire. En étroit le quai porte tous les minuteurs (« +n » sur le reste) ; en
   // large il ne porte que les ÉCHUS, plafonnés à deux — au-delà, « +n » compte les échus NON
@@ -12315,12 +12342,26 @@ function updateRtStrip(now){
      largeur et c'est le SEGMENT qui tombe). Ce qui a changé n'est que le contenu de « +n » : il
      ne compte plus que les ÉCHUS non montrés. Un minuteur nominal caché n'est donc plus annoncé
      par un chiffre — il l'est par le chevron, qui ouvre le volet où ils sont tous. */
-  const chevLbl=(!wideRail&&started&&!want.length&&(decl.t||decl.c))
-    ?[decl.t?decl.t+' minuteur'+(decl.t>1?'s':''):'',decl.c?decl.c+' compteur'+(decl.c>1?'s':''):''].filter(Boolean).join(' · ')
-    :'';
+  /* ⚠ LE RAPPEL COMPTE CE QUI N'EST PAS MONTRÉ, PAS CE QUI N'EST PAS VOULU (v5.6, trouvé à la
+     mesure en posant l'entrée du segment). Sa condition était `!want.length` — « aucun minuteur
+     ne prend la place ». Or `want` est ce que le quai VEUT montrer, pas ce qu'il montre : la
+     boucle d'ajustement retire des segments quand la place manque, et à 390 px un minuteur
+     NOMINAL armé était retiré sans un mot — « +n » ne compte que les ÉCHUS depuis la v5.6, et le
+     rappel se taisait parce que le minuteur était « voulu ». Mesuré : capsule à 362 px, segment
+     absent, zéro annonce. C'est la promesse ECAM prise en défaut dans la seule zone qui ne quitte
+     jamais l'écran — « une zone d'état annonce toujours ce qu'elle cache ».
+     Le compte dépend donc du nombre RÉELLEMENT peint, que seule la boucle connaît : le libellé
+     devient une fonction de `n`. À `n=0` il rend exactement ce qu'il rendait (`decl.t-0`), donc le
+     cas nominal est inchangé au caractère près ; à `n=1` le minuteur montré ne se compte plus —
+     il ne peut toujours pas concurrencer son propre segment. */
+  const chevLblOf=n=>{const ct=Math.max(0,decl.t-n),cc=decl.c;
+    return (!wideRail&&started&&(ct||cc))
+      ?[ct?ct+' minuteur'+(ct>1?'s':''):'',cc?cc+' compteur'+(cc>1?'s':''):''].filter(Boolean).join(' · ')
+      :'';};
+  const chevLbl=chevLblOf(0);
   // Chevron = bascule du panneau en étroit ; rien en large (rail permanent, tap -> y défile).
   const chevOf=lbl=>wideRail?'':'<span class="cbt-n'+(lbl?' cbt-decl':'')+'">'+(lbl?'<span class="cbt-dl">'+esc(lbl)+'</span>':'')+'<span aria-hidden="true">'+(state.rtOpen?'▴':'▾')+'</span></span>';
-  const chev=chevOf(chevLbl);
+  const chev=chevOf(chevLbl);   // (conservé : `write` recalcule le libellé pour le n qu'il essaie)
   // ORDRE (v4.23.0, décision utilisateur) : « ● Session » ANCRÉ EN TÊTE, puis l'alarme / le
   // minuteur, puis « +n », puis le chevron. Le chrono de session était placé APRÈS les minuteurs :
   // sa position glissait donc à droite dès qu'un minuteur apparaissait, à gauche quand il
@@ -12350,13 +12391,13 @@ function updateRtStrip(now){
     +(started?fmtMs(now-Runtime.startedAt).length:0)+'|'+want.map(x=>x.d.val.length).join(',')
     +'|'+want.map(x=>String(x.t.label||'').length).join(',')+'|'+globLbl.length
     +'|'+want.map(x=>x.due?1:0).join('')   // l'échéance AJOUTE le glyphe △ : c'est une largeur
-    +'|'+chevLbl.length;                 // … et le rappel « n minuteurs » aussi
+    +'|'+chevLbl.length+'|'+decl.t+'/'+decl.c;   // … le rappel, et les comptes dont il dérive
   /* STRUCTURE puis VALEURS, dans cet ordre — et les valeurs sont peintes AVANT toute mesure,
      sinon la boucle d'ajustement mesurerait des segments vides et croirait que tout tient. */
   const paintVals=(n)=>{const ts=el.querySelectorAll('.seg-t');
     const vals=(globVal!=null?[globVal]:[]).concat(want.slice(0,n).map(x=>x.d.val));
     for(let i=0;i<ts.length&&i<vals.length;i++){if(ts[i].textContent!==vals[i])ts[i].textContent=vals[i];}};
-  const write=(n,noChev,nu)=>{const h=glob+segOf(want.slice(0,n))+moreOf(n)+(noChev?'':(nu?chevOf(''):chev));
+  const write=(n,noChev,nu)=>{const h=glob+segOf(want.slice(0,n))+moreOf(n)+(noChev?'':chevOf(nu?'':chevLblOf(n)));
     if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
     paintVals(n);return h;};
   if(!glob&&!want.length){el.hidden=true;_rtsHtml='';syncDock();return;}   // ≥780 sans session ni échu : le rail suffit
@@ -12386,7 +12427,26 @@ function updateRtStrip(now){
       if(chev){write(n,true,true);if(fits()){_rtsFit=n;_rtsNoChev=true;_rtsNu=true;break;}}
     }
   }
+  /* ⚠ UNE MESURE D'AJUSTEMENT PEUT ÊTRE FAUSSE, ET ELLE NE SE REDIT PAS — CONSTAT MESURÉ, NON
+     CORRIGÉ, ET LA RAISON DU RENONCEMENT EST INSTRUCTIVE (v5.6).
+     La décision est MÉMORISÉE sur `fitKey`, mais la clé ne capture pas tout ce qui influe sur une
+     largeur — au premier chef l'état de chargement des POLICES : mesurée avec la fonte de repli,
+     la boucle retient un segment de moins et n'y revient jamais. MESURÉ à géométrie strictement
+     identique (672/672 à 700 px) : le minuteur armé apparaissait 2 fois sur 5.
+     LE RATTRAPAGE ÉVIDENT — invalider la clé une fois pour re-mesurer à la passe suivante — A ÉTÉ
+     ÉCRIT, PUIS RETIRÉ : `audit-doctrine` l'a immédiatement rougi sur « aucun ÉLÉMENT du quai
+     n'est détruit pendant les ticks ». Re-mesurer, c'est ÉCRIRE des variantes dans le quai vivant,
+     donc détruire et recréer les nœuds hors d'un changement de structure — le défaut exact que la
+     mémoïsation existe pour empêcher, et qui fait tomber un tap dans le vide. Le remède
+     acceptable serait de mesurer sur un CLONE détaché ; c'est une réécriture de cette boucle, à
+     décider séparément.
+     CE QUI REND L'ATTENTE SUPPORTABLE : le rappel du chevron ANNONCE désormais ce qui est caché
+     (ci-dessus). L'affichage reste inconstant, l'information ne l'est plus — et c'est elle qui
+     compte cliniquement. */
   write(_rtsFit,_rtsNoChev,_rtsNu);
+  /* Le drapeau tombe quand son segment est RÉELLEMENT dans la version écrite — ou quand le
+     minuteur a cessé de tourner entre-temps, sinon il attendrait indéfiniment. */
+  if(_cf&&(want.slice(0,_rtsFit).some(x=>x.t.id===_cf)||!run.some(t=>t.id===_cf)))_capFresh=null;
   syncDock();}
 {const cbt=document.getElementById('cbTimers');
  // V5 : la barre BASCULE le panneau minuteurs en étroit (< 1000px, chevron ▾/▴) ; en large la
@@ -18062,6 +18122,7 @@ function bindReadEvents(f,blk,cur){
        étiquette (A58). Nommer reste possible plus tard ; « PA 2, PA 3 » ne revient pas. */
     Runtime.timers[id]={id,label:nom||'',type:'interval',seconds:sec,autoloop:false,
       elapsedMs:0,cycles:0,running:true,lastStart:Date.now(),adhoc:true};
+    _capFresh=id;
     state.tmAddOpen=false;
     // v5.4.2 : plus d'écriture de rtOpen — le bouton vit DANS le panneau (volet ou rail), déjà
     // ouvert là où l'on vient d'appuyer ; forcer un état de flux rouvrait un logement disparu.
@@ -22727,7 +22788,14 @@ function releasePdfPage(s){if(s.canvas){s.canvas.width=s.canvas.height=0;s.canva
 function pdfHlSync(){
   const el=document.getElementById('pdfHl');if(!el)return;
   const on=!!(_pv&&_pv.hl&&_pv.hlPages&&_pv.hlPages.length);
+  /* LA PILULE NAÎT EN FONDU, SA RÉSERVE NON (v5.6, planche 10d/4). La bande est réservée dans le
+     défileur (`--pdfhl-r`) : animer la réserve serait animer un REMBOURRAGE, donc une passe de
+     mise en page par image — A68/3 et `check-anim` l'interdisent. Le document se cale d'un coup,
+     seule l'OPACITÉ de la pilule est animée, et seulement au passage caché → visible : appelée à
+     chaque page peinte, `pdfHlSync` rejouerait sinon l'entrée pendant tout le défilement. */
+  const naissance=on&&el.hidden;
   el.hidden=!on;
+  if(naissance){el.classList.remove('hl-in');void el.offsetWidth;el.classList.add('hl-in');}
   // La bande de la pilule est RÉSERVÉE dans le défileur : rien du document ne passe dessous
   // (audit 9d). Hauteur mesurée, plus son décalage bas (14) et un écart (8) ; 0 quand elle n'est
   // pas là. On écrit sur la CARTE, qui porte le défileur : le défileur est vidé à chaque

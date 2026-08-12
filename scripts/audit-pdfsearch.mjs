@@ -256,6 +256,22 @@ try {
     count: document.getElementById('pdfHlCount').textContent,
   }));
   t(hl.n > 0, 'les occurrences sont SURLIGNÉES sur la page rendue (' + hl.n + ' rectangle(s))', JSON.stringify(hl));
+
+  /* LA PILULE NAÎT EN FONDU, SA RÉSERVE NON (v5.6, planche 10d/4). Deux moitiés : l'entrée joue à
+     l'apparition, et elle ne REJOUE pas — `pdfHlSync` est appelée à chaque page peinte, une classe
+     laissée en place rejouerait l'entrée pendant tout le défilement (A68/1). */
+  const naiss = await page.evaluate(() => {
+    const el = document.getElementById('pdfHl');
+    return { cls: el.classList.contains('hl-in'),
+             anim: getComputedStyle(el).animationName,
+             reserve: getComputedStyle(el.closest('.pdf-card')).getPropertyValue('--pdfhl-r').trim() }; });
+  t(naiss.cls && naiss.anim === 'hlIn', 'la pilule d’occurrences entre en fondu', JSON.stringify(naiss));
+  t(/^\d+(\.\d+)?px$/.test(naiss.reserve) && parseFloat(naiss.reserve) > 0,
+    '… et sa bande est réservée d’un coup, jamais animée', naiss.reserve);
+  await page.evaluate(() => { pdfHlSync(); pdfHlSync(); });
+  await page.waitForTimeout(60);
+  t(await page.evaluate(() => document.getElementById('pdfHl').classList.contains('hl-in')) === true,
+    '… et une resynchronisation ne la fait pas renaître (la classe reste, l’animation ne rejoue pas)');
   t(hl.pill && /1 \/ /.test(hl.count), 'la pilule ‹ n/N › est visible et compte', JSON.stringify(hl));
   /* Les rectangles couvrent du contenu réel : chacun est DANS la boîte de sa page. */
   t(await page.evaluate(() => [...document.querySelectorAll('.pdf-hl')].every(d => {

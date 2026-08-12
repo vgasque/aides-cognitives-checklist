@@ -1649,6 +1649,65 @@ la chose admissible dans un logiciel d'urgence :
   se tromper de cas. Elle RENCONTRE SON CAS d'abord (la requête juste doit trouver quelque chose),
   et elle est vérifiée capable d'échouer (déclenchement neutralisé → 2 rouges).
 
+**A95. LES DEUX DERNIÈRES MICRO-ANIMATIONS — ET CE QU'ELLES ONT FAIT TROUVER (v5.6, planche 10d,
+propositions 3 et 4).**
+· **LE MINUTEUR ARMÉ REJOINT LA CAPSULE** : le geste a lieu EN BAS, dans le volet, et le segment
+  naît EN HAUT — rien ne reliait les deux. `capIn`, 140 ms, `scaleY` depuis le bas + opacité.
+  A68 en entier : elle répond à un geste ; l'état est écrit avant ; transform et opacité seulement ;
+  rien ne l'attend ; bornée, une fois, inerte sous `prefers-reduced-motion` par construction.
+  ⚠ **UN SEGMENT ÉCHU EN EST EXCLU** : l'alarme a sa grammaire — elle PULSE. Lui prêter l'entrée
+  douce du nominal mêlerait deux registres dans la seule zone où l'ECAM réserve le mouvement à
+  l'alerte.
+  ⚠ **LE DRAPEAU SE CONSOMME QUAND LE SEGMENT EST PEINT, PAS QUAND ON LE LIT** (trouvé à la
+  mesure) : la capsule sort tôt quand elle n'a rien à montrer, et sa boucle d'ajustement peut
+  CACHER le segment — brûlé à la lecture, le drapeau perdait l'animation dans les deux cas.
+· **LA PILULE D'OCCURRENCES PDF NAÎT EN FONDU**, sa RÉSERVE non : animer la bande réservée serait
+  animer un rembourrage (A68/3). Et l'entrée ne joue qu'au passage caché → visible — `pdfHlSync`
+  est appelée à chaque page peinte, une classe laissée en place rejouerait l'entrée pendant tout
+  le défilement.
+· **CE QUE LA MESURE A FAIT TROUVER, ET QUI VAUT PLUS QUE LES DEUX ANIMATIONS** — cf. A96.
+
+**A96. LE QUAI ANNONCE CE QU'IL CACHE, MÊME QUAND C'EST LUI QUI L'A RETIRÉ (v5.6, défaut
+PRÉEXISTANT trouvé en mesurant A95).** Le rappel du chevron (« n minuteurs · n compteurs ») était
+conditionné à `!want.length` — « aucun minuteur ne prend la place ». Or `want` est ce que le quai
+VEUT montrer, pas ce qu'il montre : la boucle d'ajustement retire des segments quand la place
+manque. Mesuré à 390 px, un minuteur NOMINAL armé était donc retiré **sans un mot** — « +n » ne
+compte que les ÉCHUS depuis la v5.6, et le rappel se taisait parce que le minuteur était « voulu ».
+C'est la promesse ECAM prise en défaut dans la seule zone qui ne quitte jamais l'écran.
+· **LE COMPTE SUIT CE QUI EST PEINT** : le libellé devient une fonction de `n` (`chevLblOf`). À
+  `n=0` il rend exactement ce qu'il rendait, donc le cas nominal est inchangé au caractère près ;
+  à `n=1` le minuteur montré ne se recompte pas — il ne peut pas concurrencer son propre segment.
+· **UN TÉMOIN VOISIN A ROUGI, ET IL AVAIT TORT** : il exigeait que « le rappel s'efface » dès qu'un
+  minuteur est armé — c'est-à-dire le MÉCANISME d'alors, avec son trou. La propriété recherchée n'a
+  jamais été là : c'est « montré OU annoncé, jamais tu » et « jamais les deux à la fois ».
+· **⚠ CE QUI RESTE, MESURÉ ET NON CORRIGÉ, ET LA RAISON DU RENONCEMENT** : la décision
+  d'ajustement est mémorisée sur une clé qui ne capture pas l'état de chargement des POLICES —
+  mesurée avec la fonte de repli, la boucle retient un segment de moins et n'y revient jamais.
+  Mesuré à géométrie strictement identique (672/672 à 700 px) : le segment apparaissait 2 fois
+  sur 5. **Le rattrapage évident a été écrit puis RETIRÉ** : re-mesurer, c'est ÉCRIRE des variantes
+  dans le quai vivant, donc détruire des nœuds hors d'un changement de structure —
+  `audit-doctrine` l'a immédiatement rougi sur « aucun ÉLÉMENT du quai n'est détruit pendant les
+  ticks », qui est le défaut que la mémoïsation existe pour empêcher (un tap tombe dans le vide).
+  Le remède acceptable serait de mesurer sur un CLONE détaché : réécriture de cette boucle, à
+  décider séparément. **L'affichage reste donc inconstant ; l'information ne l'est plus**, et c'est
+  elle qui compte cliniquement.
+· **⚠ ET L'INTERMITTENCE NE SE MET PAS SOUS TÉMOIN** : un rouge aléatoire dans la porte de commit
+  serait pire qu'aucun témoin. Sa preuve est une mesure répétée (2/5 puis 5/5 avec le rattrapage),
+  consignée ici ; le témoin permanent couvre l'invariant, qui est déterministe.
+· **⚠ ET LE TÉMOIN ATTEND QUE LA CAPSULE SE STABILISE** avant de mesurer : à 140 ms fixes il
+  mesurait l'instant, pas l'application. S'il n'obtient jamais son segment, il ROUGIT — il ne
+  saute pas son cas (première version : l'assertion était conditionnelle, donc neutraliser
+  l'animation la faisait simplement disparaître, et le témoin restait vert).
+
+**A97. « P2 DOCUMENTS » ÉTAIT DÉJÀ LIVRÉ — VÉRIFIÉ, PAS SUPPOSÉ (v5.6, planche 10c).** La
+proposition demandait qu'un mot cherché en session sorte les DOCUMENTS joints qui le portent, avec
+leur page, sans ouvrir le document ni indexer à la demande. C'est la v5.3.0 (`#pfDocs`, rangées
+`.doc-hit`), et `audit-pdfsearch` le mesure de bout en bout depuis : la feuille « Toute la fiche »
+trouve dans le PDF joint, le tap ouvre à la bonne page avec surlignage, un mot absent replie la
+zone, et l'index n'est jamais construit à la frappe. Rien n'a été réécrit ; trois témoins
+s'ajoutent seulement pour l'entrée en fondu de la pilule. **Une proposition juste peut porter sur
+un manque qui n'existe plus : on vérifie avant d'implémenter** (même leçon qu'A82 et A91).
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
