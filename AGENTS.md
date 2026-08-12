@@ -1554,6 +1554,38 @@ précisément sur les fiches qui en ont le plus besoin : celles où l'auteur n'e
   distinction déjà tranchée pour le chapeau « Ne pas oublier », affiché vide (v4.76.0).
 · Le panneau ne disparaît donc plus que **hors session** : sans soin en cours, il n'y a rien à créer.
 
+**A90. LA RANGÉE DE REPÈRE QUI VIENT D'ÊTRE ÉCRITE SE DÉSIGNE (v5.6, planche 11g/1).** Le panneau du
+journal est remplacé EN PLACE à chaque ajout : l'information est déjà à l'écran, mais rien ne disait
+LAQUELLE des rangées est nouvelle — et sous stress on relit la liste entière pour s'en assurer.
+L'animation ne fait que la désigner ; elle n'apporte aucune information de plus. C'est le cas le plus
+net des quatre proposées, et le seul dont le gain ne se discute pas.
+· **A68 EN ENTIER** : elle répond à un GESTE ; l'état est écrit AVANT (le repère est dans
+  `Runtime.events` quand le panneau se rend) ; 140 ms, opacité + 5 px, `cbIn` qui existait déjà ;
+  rien ne l'attend — le tap suivant écrit pendant qu'elle entre encore ; inerte sous
+  `prefers-reduced-motion`.
+· **⚠ LE DRAPEAU EST CONSOMMÉ PAR LE PREMIER RENDU** (`_tkFresh`, lu puis remis à null dans
+  `timekeeperPanel`) : le panneau se repeint aussi au tick et à l'arrivée d'un évènement DISTANT, et
+  une rangée qui re-clignoterait à chaque passage serait exactement le mouvement non commandé
+  qu'A68/1 interdit. Le témoin mesure les DEUX moitiés — une seule rangée animée, et plus aucune
+  après une repeinture.
+
+**A91. LA SECONDE MICRO-ANIMATION EST REFUSÉE — SA PRÉMISSE NE TIENT PAS DANS CE BUILD (v5.6,
+planche 11g/2, mesuré).** La proposition était : « depuis A12, la position est portée par la
+BORDURE D'ACCENT du seul bloc ouvert, et elle apparaît sans transition, donc l'œil doit la
+chercher » — 120 ms d'opacité sur la bordure seule.
+· **MESURÉ** : `.ov-block.cur` ne porte AUCUNE bordure d'accent. Sa bordure vaut `--work-line`
+  (`rgba(20,24,29,.08)`, la même que toute carte de travail) ; ce qui le désigne est son
+  ÉLÉVATION (`--shadow-work`) et le fait d'être **le seul bloc ouvert** — mesuré : 1 carte ouverte.
+· **ET L'ŒIL N'A PAS À LE CHERCHER** : la carte qui devient courante est POSTÉE au bout du journal,
+  `ovAdvanceRender` y ancre le geste et défile jusqu'à elle si elle n'est pas déjà entière à
+  l'écran ; et le changement visuel est massif (la précédente se condense, la nouvelle ouvre ses
+  étapes). Une animation de plus n'ajouterait rien qu'on ne voie déjà.
+· **CE QUI RESTERAIT POSSIBLE, ET POURQUOI ON NE LE FAIT PAS** : fondre l'ÉLÉVATION. Ce serait
+  imperceptible à côté de l'ouverture de la carte, et cela ajouterait du mouvement à la surface de
+  soin — là où l'ECAM le réserve à l'alarme. **Une proposition juste peut reposer sur un constat
+  faux ; on vérifie le constat avant de livrer la proposition** (même leçon qu'A82 sur la révision
+  déjà affichée).
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

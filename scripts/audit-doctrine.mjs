@@ -4890,6 +4890,27 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
     document.querySelector('[data-cnadd]').click();await w(450);
     const d2=document.querySelector('.rt-dock');
     return {ouverture,apres:an(),y0,y1:d2?d2.scrollTop:-1};});
+  /* ══ A68 / planche 11g/1 — LA RANGÉE DE REPÈRE QUI VIENT D'ÊTRE ÉCRITE SE DÉSIGNE ═══════════
+     Le panneau est remplacé EN PLACE à chaque ajout : rien ne disait LAQUELLE est nouvelle.
+     ⚠ ET LE DRAPEAU DOIT ÊTRE CONSOMMÉ : le panneau se repeint aussi au tick et sur un évènement
+     distant ; une rangée qui re-clignoterait à chaque passage serait le mouvement NON commandé
+     qu'A68/1 interdit. Le témoin mesure donc les deux moitiés. */
+  const fresh=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const an=()=>[...document.querySelectorAll('.tk-item')].map(e=>getComputedStyle(e).animationName);
+    /* Le journal vit dans le VOLET en étroit : sans l'ouvrir, `.tk-item` n'est nulle part et l'on
+       mesurerait un DOM vide en croyant mesurer une animation. */
+    const tk=document.getElementById('tkKey');
+    tk.click();await w(300);document.getElementById('tkKey').click();await w(250);
+    tk.click();await w(300);document.getElementById('tkKey').click();await w(250);
+    if(!document.querySelector('.rt-dock'))document.getElementById('cbTimers').click();
+    await w(450);
+    const apres=an();
+    renderTkOnly();await w(200);
+    return {apres,repeinture:an()};});
+  t('la rangée qui vient d\'être écrite se désigne, et elle SEULE',
+    fresh.apres.filter(x=>x==='cbIn').length===1&&fresh.apres.length>=2, JSON.stringify(fresh.apres));
+  t('… et une repeinture ne la rejoue pas (mouvement non commandé)',
+    fresh.repeinture.every(x=>x==='none'), JSON.stringify(fresh.repeinture));
   t('le volet se déroule au tap qui l\'ouvre', roul.ouverture==='dockRoll', roul.ouverture);
   t('… et NE se déroule plus à chaque geste dans le volet', roul.apres==='none', roul.apres);
   t('… qui garde aussi son défilement propre', roul.y0>0&&roul.y1===roul.y0, `${roul.y0} → ${roul.y1}`);
