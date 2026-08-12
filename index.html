@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-7SrMvEdsOLITjIH+m625U4a+uczh3DPmmn6TF/N7GjQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-+Md+nHUBrFgfEYjS7FrN04h5Zctv2fQbQupYzOABCF4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -921,7 +921,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      partout. Le halo passe à 7 px : 45 × 54, donc 45 de côté utile — et la BOÎTE ne change pas
      d'un pixel, donc l'en-tête garde sa hauteur (c'est tout l'objet du halo, admis en zone haute
      précisément pour ne pas l'épaissir). */
-  .hdr-back::after{content:"";position:absolute;inset:-6px}
+  /* ⚠ 43 px, C'ÉTAIT UN PIXEL DE TROP PEU (v5.6, trouvé au balayage). En lecture, le retour se
+     resserre (`padding:0 8px 0 4px`) et son halo de −6 px rendait une cible de 43 × 52 : sous les
+     44 px de la zone haute de crise, et invisible à l'œil comme au harnais d'a11y, qui mesure les
+     surfaces AU REPOS et pas la barre en session. Un pixel de halo de plus, aucune géométrie
+     déplacée — c'est exactement ce pour quoi le halo existe. */
+  .hdr-back::after{content:"";position:absolute;inset:-7px}
   .hdr-back{position:relative}
   .hdr-back span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hdr-back[hidden]{display:none}
@@ -3156,6 +3161,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de `--stick-top`, qui est le bas du bandeau. Aucune mesure JS : deux constantes CSS écrites
      une fois, à côté de celles qu'elles suivent. Si le rembourrage du bandeau change, ces deux
      lignes changent avec lui — et c'est pour cela qu'elles vivent ici, contre lui. */
+  /* ⚠ ET LA CAPSULE PERD SES COINS BAS TANT QUE LE VOLET EST OUVERT (v5.6, signalé à l'usage :
+     « il reste des px blancs »). Les deux boîtes se touchent et ont la même largeur — mais la
+     capsule est ARRONDIE en bas et le volet VIF en haut : aux deux angles, le fond de page passait
+     dans l'encoche, et c'est cela qu'on voyait. Un seul objet à deux étages : le haut est arrondi,
+     le bas aussi, et la jointure est franche. */
+  body:has(.rt-dock) #cbTimers{border-bottom-left-radius:0;border-bottom-right-radius:0}
   /* ⚠ LE VOLET SE DÉROULE — MICRO-ANIMATION NON BLOQUANTE (v5.6, proposition de l'auteur).
      Elle répond à un GESTE (le tap sur la capsule), elle ne survient pas toute seule : c'est la
      distinction que le dossier fait déjà pour l'élévation de l'en-tête et pour la chip épinglée —
@@ -4993,7 +5004,33 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      autres et la ligne de plus revenait. On porte donc la règle à (0,2,0) ET (0,3,0), jamais par
      l'ordre de déclaration : pour une GÉOMÉTRIE, on ne dépend pas de la position dans la feuille. */
   .tm-ctrl .tm-ack,.rt-dock .tm-ctrl .tm-ack{flex:0 0 52px;padding-inline:4px;font-weight:800}
+  /* ⚠ DANS LE RAIL, LA RANGÉE NE FAIT QUE 148 px ET NE S'ENROULE PAS (v5.6, signalé à l'usage :
+     « aussi le bouton Relancer en mode desktop »). « ✓ Vu » y prenait 52 px et laissait 90 au
+     bouton principal pour 78 de contenu — six pixels de marge, c'est-à-dire un libellé coupé dès
+     que la fonte du système est un peu plus large que celle du harnais. On rend huit pixels : le
+     bouton d'acquittement garde son MOT et ses 44 px de cible (33 px de texte y tiennent), et le
+     principal passe à 98 px, soit 14 de marge. Mesuré aux trois paliers du rail. */
+  /* ⚠ DANS LE RAIL, LA RANGÉE FAIT 140 px ET « RELANCER » Y TIENT AU PIXEL PRÈS (v5.6, signalé à
+     l'usage : « aussi le bouton Relancer en mode desktop »). Mesuré : bouton 90 px pour 78 px de
+     contenu et 12 de rembourrage — ZÉRO marge, donc un libellé coupé dès qu'une fonte rend deux
+     pixels plus large. Rétrécir « ✓ Vu » ne rend que quatre pixels : dans une colonne de 301 px,
+     la valeur du minuteur prend déjà la moitié, et DEUX commandes n'y tiennent pas côte à côte.
+     On ENROULE donc tant que l'acquittement est là — le principal prend sa ligne, entière — et
+     c'est cohérent avec la décision antérieure du rail : une carte échue OUVRE ses commandes,
+     parce que celles d'une alarme doivent être sous la main quand elle sonne. Le coût (une ligne)
+     est TRANSITOIRE : il disparaît au premier « ✓ Vu ». */
+  body.view-read .read-side .tm-ctrl:has(.tm-ack){flex-wrap:wrap}
+  body.view-read .read-side .tm-ctrl:has(.tm-ack) .tm-main{flex:1 1 100%}
+  body.view-read .read-side .tm-ctrl .tm-ack{flex:1 1 auto;padding-inline:8px}
   .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset{flex:1 1 62px}
+  /* ⚠ ET LA REMISE À ZÉRO PERD SON INDICE TANT QUE « ✓ VU » EST LÀ (v5.6, signalé à l'usage :
+     « le texte est un petit peu tronqué »). Elle porte DEUX lignes — « ↺ 05:00 » et l'indice
+     « maintenir » — pour ~118 px de texte ; dans une colonne de volet à 160 px, une fois « ✓ Vu »
+     posé à côté, il lui en reste 75 et l'indice sortait en « MAINTEN… ». Un mot COUPÉ est moins
+     lisible qu'un mot absent, et le geste ne se perd pas : le maintien reste, son `title` et son
+     nom accessible le disent, et l'indice revient dès l'alarme acquittée. La HAUTEUR ne bouge pas
+     (min-height 44 px sur le bouton) — mesuré, A9 tient. */
+  .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset .tmr-hint{display:none}
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
   /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
@@ -7114,7 +7151,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Le chevron suit la convention du dépliant, et elle est la même partout : « › » fermé,
      « ▾ » ouvert. Il pointait vers le HAUT une fois déplié — l'inverse de ce que fait tout
      `<details>` du fichier, et de ce qu'on lit ailleurs dans le produit. */
-  .fs-chev{flex:none;font-weight:800;line-height:1;color:var(--ink-2)}
+  /* ⚠ LE CHEVRON VIT DANS LA PASTILLE DU COMPTE (v5.6, demande de l'auteur) : « 4 › » est UN
+     objet, pas un chiffre suivi d'un signe — la pastille dit à la fois combien il en reste et
+     qu'elle se déplie. Il garde son écart au chiffre et reste `aria-hidden` : l'état est déjà
+     porté par `aria-expanded` sur le bouton, et le compte par l'étiquette lisible. */
+  .fs-chev{flex:none;font-weight:800;line-height:1;color:var(--ink-2);margin-left:6px}
   .fs-tgl{flex:none;font:inherit;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--critical)}
   .forget-strip.fs-closed .fs-list{display:none}
@@ -16683,7 +16724,7 @@ function renderRead(){
          rien n'est repliable : c'est alors un simple titre, et un bouton qui n'agit pas serait un
          bouton mort. */
       +(démarrée
-        ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl" data-n="${fsN}">${fsFold?fsN:(fsN+' rappel'+(fsN>1?'s':''))}</span><span class="fs-chev" aria-hidden="true">${fsChev(fsFold)}</span><span class="fs-sp"></span><span class="sr-only">${fsN} rappel${fsN>1?'s':''}</span></button>`
+        ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl" data-n="${fsN}"><span class="fs-cnt">${fsFold?fsN:(fsN+' rappel'+(fsN>1?'s':''))}</span><span class="fs-chev" aria-hidden="true">${fsChev(fsFold)}</span></span><span class="fs-sp"></span><span class="sr-only">${fsN} rappel${fsN>1?'s':''}</span></button>`
         :`<div class="fs-k"><span class="fs-kt">■ Ne pas oublier</span></div>`)
       +`<div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
@@ -17220,8 +17261,11 @@ function bindReadEvents(f,blk,cur){
     const ch=fst.querySelector('.fs-chev');if(ch)ch.textContent=fsChev(clos);
     /* Le compte suit l'état : abrégé au chiffre replié, en toutes lettres déplié. Il était FIGÉ
        sur la valeur du rendu, donc faux dès le premier tap. */
-    const tg=fst.querySelector('.fs-tgl');
-    if(tg){const n=+(tg.dataset.n||0);tg.textContent=clos?String(n):(n+' rappel'+(n>1?'s':''));}};
+    /* ⚠ LE COMPTE A SON PROPRE PORTEUR (v5.6) : depuis que le chevron vit DANS la pastille,
+       écrire `textContent` sur la pastille l'effaçait — le chevron disparaissait au premier
+       dépliage (mesuré). On n'écrit que dans le nœud du compte. */
+    const cnt=fst.querySelector('.fs-tgl .fs-cnt'),tg=fst.querySelector('.fs-tgl');
+    if(cnt&&tg){const n=+(tg.dataset.n||0);cnt.textContent=clos?String(n):(n+' rappel'+(n>1?'s':''));}};
   const rc=document.getElementById('rtClose');if(rc)rc.onclick=()=>{state.rtOpen=false;render();};
   // Minuteur AD HOC « ＋ Minuteur PA 5:00 » (SPEC §7) : ajouté à la SESSION (pas à la fiche),
   // démarre aussitôt, supprimable (✕), persiste dans la session (extraTimers).
@@ -17665,11 +17709,12 @@ function ovInstHtml(f,id,idx,topo,pres){
           réponse attendue. Le « :: » ENRICHIT la passe (il affiche la réponse à confirmer), il ne
           la conditionne pas. La condition rendait donc le bouton invisible sur toute fiche qui
           n'écrit pas de challenges — c'est-à-dire, en pratique, presque toutes.
-          Le libellé perd son « :: » avec la condition : un bouton ne nomme pas une syntaxe que le
-          bloc n'emploie peut-être pas, et deux libellés pour un geste sont ce qu'AC 120-71B § 5.5
-          proscrit. Un bloc de DÉCISION en reste exclu : il n'a pas d'étapes à re-constater. */
+          ⚠ LE LIBELLÉ, LUI, GARDE SON « :: » — décision de l'auteur, la maquette l'écrit ainsi.
+          J'avais proposé de le retirer avec la condition ; c'est la CONDITION qui était fautive,
+          pas le mot : « :: » nomme la PASSE (challenge-réponse), il n'annonce pas un pré-requis du
+          bloc. Un bloc de DÉCISION reste exclu : il n'a pas d'étapes à re-constater. */
        const verH=(!dec&&clean(stepsOf(b)).length)
-         ?`<button type="button" class="blk-act blk-ver" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc étape par étape — « Constaté ✓ » coche, « △ Écart » avance sans cocher ; les réponses attendues « :: », s'il y en a, s'affichent au passage">Vérifier</button>`:'';
+         ?`<button type="button" class="blk-act blk-ver" data-ovverify="${idx}" title="Do-Verify : redérouler ce bloc étape par étape — « Constaté ✓ » coche, « △ Écart » avance sans cocher ; les réponses attendues « :: », s'il y en a, s'affichent au passage">Vérifier ::</button>`:'';
        if(verH&&ctl.indexOf('class="flow-ctrl"')>=0)
          ctl=ctl.replace('<div class="flow-ctrl">','<div class="flow-ctrl has-ver">'+verH);
        else if(verH)ctl+=`<div class="cx-row">${verH}</div>`;

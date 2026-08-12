@@ -3663,6 +3663,18 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
        la retirer. Et une fois défilé, le resserrement de 7a les ramène à 62 contre 61. */
     if(W>=780) t(`${W} · l'en-tête a la MÊME hauteur sur l'accueil et en lecture`,
       Math.abs(hAcc-hLec)<=1, `${hAcc} px contre ${hLec} px`);
+    /* ⚠ LE RETOUR EST DANS LA MÊME RANGÉE ET SOUS LA MÊME RÈGLE, mais il n'a pas le gabarit des
+       quatre glyphes (il porte un mot) : il a donc son contrôle à lui, sur la CIBLE seule.
+       Mesuré à 43 × 52 avant correction — un pixel sous le seuil, invisible à l'œil et hors du
+       champ d'`audit-a11y`, qui mesure les surfaces au repos et non la barre en session. */
+    const back=await page.evaluate(()=>{const e=document.getElementById('hdrBack');
+      if(!e||e.hidden||!e.offsetParent)return null;
+      const r=e.getBoundingClientRect(),a=getComputedStyle(e,'::after');
+      const h=a.content!=='none'?Math.abs(parseFloat(a.insetBlockStart||a.inset)||0):0;
+      return {w:Math.round(r.width+2*h),h:Math.round(r.height+2*h)};});
+    t(`${W} · le retour d'en-tête a 44 px de cible dans les DEUX sens`,
+      !!back&&back.w>=44&&back.h>=44, back?`${back.w}×${back.h}`:'absent');
+
     /* Le raccourci de thème : présent en LECTURE, absent de l'accueil — c'est le moment qui le
        justifie, pas la place. */
     t(`${W} · le thème est un raccourci de LECTURE, pas de l'accueil`,
@@ -4073,7 +4085,10 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
 
   t('témoin : le bloc courant ne porte plus AUCUNE réponse attendue', r.reste===0, `${r.reste}`);
   t('« Vérifier » existe quand même', r.present===true);
-  t('… et il ne nomme pas une syntaxe que le bloc n\'emploie pas', r.txt==='Vérifier', r.txt);
+  /* Le libellé est celui de la MAQUETTE (décision de l'auteur) : « :: » nomme la passe
+     challenge-réponse, il n'annonce pas un pré-requis du bloc — c'est la CONDITION qui était
+     fautive, pas le mot. */
+  t('… et il porte le libellé de la maquette', r.txt==='Vérifier ::', r.txt);
   t('… à gauche de « Continuer », dans la même rangée de pied (A7)',
     !!r.geo&&r.geo.gauche===true&&r.geo.rangee===true, JSON.stringify(r.geo));
   t('… cible ≥ 44 px', !!r.geo&&r.geo.h>=44, r.geo?r.geo.h+' px':'—');

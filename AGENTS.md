@@ -945,6 +945,50 @@ déroule, le texte ne s'étire pas. 180 ms, aucun résidu à la fin (mesuré), i
 `prefers-reduced-motion` (la règle vit dans le bloc `no-preference`, donc l'inertie est acquise par
 construction et non par une seconde règle à tenir).
 
+**A52. « VÉRIFIER :: » GARDE SON LIBELLÉ DE MAQUETTE (v5.6, décision de l'auteur).** A45 avait
+retiré la CONDITION (le bouton existe sur tout bloc d'étapes) et, dans la foulée, le « :: » du
+libellé. C'était une correction de trop : le « :: » nomme la PASSE — challenge-réponse —, il
+n'annonce pas un pré-requis du bloc. La maquette l'écrit ainsi ; le mot revient.
+
+**A53. DEUX BOÎTES QUI SE TOUCHENT DOIVENT AUSSI S'ACCORDER PAR LEURS COINS (v5.6, signalé à
+l'usage : « il reste des px blancs »).** Après A50, capsule et volet se touchaient au pixel, même
+largeur, même noir — et il restait deux encoches claires : la capsule est ARRONDIE en bas, le volet
+VIF en haut, et le fond de page passait dans les angles. Tant que le volet est ouvert, la capsule
+perd ses coins bas (`body:has(.rt-dock)`). Un seul objet à deux étages : arrondi en haut, arrondi
+en bas, jointure franche.
+
+**A54. « ✓ VU » NE DOIT PAS COUPER SES VOISINS (v5.6, signalé à l'usage : « le texte est un petit
+peu tronqué »).** Deux endroits, deux réponses, et la même règle — un mot COUPÉ est moins lisible
+qu'un mot absent, et personne ne doit deviner un libellé.
+· **DANS LE VOLET**, la remise à zéro porte deux lignes (« ↺ 05:00 » et l'indice « maintenir »),
+  ~118 px de texte ; à côté de « ✓ Vu », dans une colonne de 160 px, il lui en restait 75 et
+  l'indice sortait en « MAINTEN… ». L'indice s'efface TANT QUE l'acquittement est là — le maintien
+  reste, son `title` et son nom accessible le disent, et l'indice revient dès l'alarme acquittée.
+· **DANS LE RAIL**, la rangée fait 140 px et ne s'enroule pas : « Relancer » y tenait à ZÉRO pixel
+  près (90 px de bouton pour 78 de contenu et 12 de rembourrage), donc coupé dès qu'une fonte rend
+  deux pixels plus large. Rétrécir l'acquittement ne rendait que quatre pixels — dans une colonne
+  de 301 px la valeur du minuteur prend déjà la moitié. La rangée ENROULE donc tant que « ✓ Vu »
+  est là, ce qui est cohérent avec la décision antérieure du rail (une carte échue ouvre ses
+  commandes) ; le coût d'une ligne est TRANSITOIRE, il disparaît au premier acquittement.
+
+**A55. LE CHEVRON DU CHAPEAU VIT DANS LA PASTILLE DU COMPTE (v5.6, demande de l'auteur).**
+« 4 › » est UN objet : la pastille dit à la fois combien il reste de rappels et qu'elle se déplie.
+⚠ CONSÉQUENCE IMMÉDIATE, mesurée : le repli écrivait `textContent` sur la pastille, ce qui EFFACE
+son enfant — le chevron disparaissait au premier dépliage. Le compte a donc son propre porteur
+(`.fs-cnt`), et l'on n'écrit plus que dedans. Règle générale : **dès qu'un nœud gagne un enfant,
+tout `textContent` posé sur lui devient une suppression.**
+
+**A56. 43 px, C'EST UN PIXEL DE TROP PEU (v5.6, trouvé au balayage étendu).** En lecture, le retour
+d'en-tête se resserre et son halo de −6 px rendait une cible de **43 × 52** — sous les 44 px de la
+zone haute, invisible à l'œil et hors du champ d'`audit-a11y`, qui mesure les surfaces AU REPOS et
+non la barre en session. Un pixel de halo de plus, aucune géométrie déplacée : c'est exactement ce
+pour quoi le halo existe. Il a désormais son contrôle dans la section de la rangée d'actions.
+⚠ **CE QUE LE BALAYAGE A ÉCARTÉ, ET POURQUOI C'EST À DIRE** : le ✕ des fenêtres « sort » de 10 px
+de l'en-tête de sa carte — c'est le halo compensé qui lui donne ses 44 px, son bord reste DANS la
+carte (mesuré) ; et les contrôles de l'accueil à 32/38 px sont au plancher HORS crise, où la règle
+des 44 ne s'applique pas. Un balayage qui ne nomme pas ses non-défauts finit par les faire
+« corriger ».
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
