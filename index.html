@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-eC/BdHMmg6b9cYvD8E7Gcer2zgA9kfKfyggumqqG2I4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-IG7mRZweLuDPbAEJhjUxGOxbRALUfzXmRiGykZ97kAk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2266,7 +2266,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      PLANCHER, pas une addition. */
   .grp-row{display:flex;align-items:stretch;gap:8px;margin:12px 0}
   .grp-row:empty{display:none}
-  .grp-row .filt-tog{margin-left:auto}
+  /* `.grp-row .filt-tog` est PURGÉE : le déclencheur ne vit plus dans la rangée de groupement,
+     il ne quitte plus le champ de recherche (règle 14). */
   /* L'HABILLAGE du sélecteur de groupement (fond d'ambiance + contour, décision utilisateur) ; la
      MÉCANIQUE est celle de `.seg`. Écart de 2 px au lieu de 8 : il vit dans une rangée de
      contrôles, pas dans une fenêtre de réglages — c'est le seul écart, et la pastille le lit par
@@ -3389,6 +3390,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
   /* 48 de bouton + 8 d'écart : deux cibles de 44 px qui se TOUCHENT sont déjà un défaut — c'est
      la règle du rail A→Z, prise ici pour la même raison (un pouce ganté ne vise pas au pixel). */
+  /* ⚠ LE COULOIR DU ✕ RESTE SUR LA RANGÉE, ET DEUX ESSAIS L'ONT CONFIRMÉ (v5.6). Le déplacer sur
+     le TITRE — en rembourrage puis en largeur maximale — a été mesuré PIRE dans les deux cas : le
+     rembourrage faisait enrouler le titre SOUS le ✕ (176 px, quatre lignes), et la largeur maximale
+     le rétrécissait assez pour qu'un autre contrôle monte à sa droite… donc sous le ✕. Une réserve
+     de rangée protège la ligne ENTIÈRE, ce qu'aucune borne posée sur un seul enfant ne fait. La
+     place se gagne ailleurs, en raccourcissant ce qui peut l'être (`.rt-wl` ci-dessous). */
   .rt-dock .rt-head{padding-right:56px}
   /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
      v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
@@ -4199,6 +4206,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ANCRÉE en haut à droite, et un `padding-right` qui lui réserve sa place à TOUTES les largeurs.
      Le reste s'enroule dessous plutôt que de la pousser hors de l'écran — on ne tronque pas un
      libellé de commande, on lui donne une seconde ligne. */
+  /* ⚠ SOUS 560 px, L'AVERTISSEMENT PASSE AU GLYPHE SEUL (v5.6, suite du signalement sur la veille :
+     « ça va à la ligne et crée une 2e ligne pour rien »). L'en-tête du volet porte le titre, cet
+     avertissement, le son et la veille : mesuré à 390 px, les trois contrôles demandaient 330 px
+     pour 294 disponibles, et « Veille coupée » tombait SEULE sur une troisième ligne. C'est la
+     règle A2 appliquée telle quelle — la touche perd son étiquette, jamais son nom accessible —, et
+     `#soundWarn` est le bon candidat : c'est une CAUTION dont le texte entier s'affiche au tap, pas
+     un contrôle dont le libellé porte l'état. Les deux interrupteurs, eux, gardent leurs mots. */
+  @media (max-width:559.98px){.rt-wl{display:none}}
   .rt-head{position:relative;display:flex;align-items:center;gap:8px;margin-bottom:10px;
     flex-wrap:wrap;padding-right:40px}
   /* `min-width:0` : sans lui, `flex:1` ne descend jamais sous la largeur du contenu (le minimum
@@ -5245,7 +5260,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
   /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
-  .read-side .tm-mini{margin-top:0}
+  /* ⚠ ELLES NE SE COLLENT PAS (v5.6, signalé à l'usage : « les minuteurs qu'on crée en cours de
+     session sont collés entre eux et au minuteur du dessus »). Le rail les mettait à `margin-top:0`
+     — mesuré, 0 px entre deux rangées ET 0 px sous la carte qui précède, alors que le volet leur
+     donne 8 px. Deux objets distincts qui se touchent se lisent comme un seul. */
+  .read-side .tm-mini{margin-top:8px}
   .tm-mini.due{border-color:var(--verify-bd)}
   .tm-mini.due :is(.tmm-t,.tmm-l){color:var(--verify-hi)}
   .tmm-l{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -6710,6 +6729,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ses voisins de l'en-tête, A30).
      ⚠ LA RÈGLE 8 RESTE TENUE : la couleur n'est jamais seule — c'est le NOMBRE de filtres posés
      qui dit l'état actif, en pastille, et le nom accessible le dit en toutes lettres. */
+  /* ⚠ CONTRE LE CHAMP, IL PREND LA HAUTEUR DU CHAMP (v5.6, demande de l'auteur : « adapte la taille
+     du bouton filtrer pour qu'il soit beau à côté de la barre de recherche — garde un bouton
+     rond »). Il valait 38 px face à un champ de 48 : deux objets d'une même rangée qui ne
+     s'alignent ni en haut ni en bas se lisent comme deux niveaux (la règle est déjà écrite pour la
+     phase et le titre dans l'éditeur). `align-self:stretch` le cale sur la rangée quelle que soit
+     la hauteur du champ, et `aspect-ratio:1` le garde ROND sans écrire un second nombre. */
+  .hdr-search .filt-tog{align-self:stretch;width:auto;height:auto;aspect-ratio:1}
   .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
     /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
        même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
@@ -7608,11 +7634,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      la porte ne propose plus de nom, il n'y a donc plus de provenance à citer (règle 14). */
   .rt-dock .tm-add-h{color:var(--sys-ink-2)}
   .rt-dock .tm-add-b{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
-  .cn-nm{background:none;border:0;padding:2px 6px;min-height:32px;font-family:inherit;
+  /* ⚠ 20 px DE LARGE, C'ÉTAIT SOUS LE PLANCHER (v5.6, signalé à l'usage : « la croix pour supprimer
+     est trop petite »). `min-height:32px` bornait la HAUTEUR ; la largeur, elle, valait le glyphe
+     plus 12 px de rembourrage — mesuré 20 px, sous les 24 de WCAG 2.2 § 2.5.8. Le plancher se pose
+     donc sur les DEUX axes. Un « — nommer » de 67 px n'en est pas affecté : c'est un minimum. */
+  .cn-nm{background:none;border:0;padding:2px 6px;min-height:32px;min-width:32px;font-family:inherit;
     font-size:var(--t-cap);font-weight:700;color:var(--act);cursor:pointer;border-radius:var(--r-1)}
   .cn-nm:hover{background:var(--primary-soft)}
   .cn-nm:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cn-rm{color:var(--ink-soft)}
+  /* ⚠ IL LUI FAUT UNE RANGÉE QUI ENROULE, SINON `flex:1 1 100%` NE PEUT RIEN (v5.6, signalé à
+     l'usage : « quand on clique sur nommer, l'affichage s'affiche très mal, en sidebar comme dans
+     le menu déroulant »). `.tm-label` est `nowrap` : le champ se partageait la ligne avec le nom et
+     les deux boutons — mesuré 84 px de champ dans une rangée de 182. On n'ouvre l'enroulement QUE
+     lorsque le champ est là (`:has`), pour ne rien changer à la rangée au repos. */
+  .tm-label:has(.cn-input){flex-wrap:wrap}
   .cn-input{flex:1 1 100%;min-width:0;margin-top:4px;padding:6px 8px;font-family:inherit;font-size:16px;
     border:1px solid var(--ctl-line);border-radius:var(--r-1);background:var(--input-bg);color:var(--ink)}
   .rt-dock .cn-nm{color:var(--sys-ink-2)}
@@ -8829,7 +8865,13 @@ function syncWakeBtn(){
   const on=wakeWanted;
   b.classList.toggle('off',!on);
   b.setAttribute('aria-pressed',on?'true':'false');
-  b.innerHTML=uiIcon(on?'sun':'moon',13)+(on?' Écran maintenu':' Veille normale');
+  /* ⚠ LE MÊME PATRON QUE SON VOISIN (v5.6, signalé à l'usage : « libellés pas clairs, et surtout
+     vont à la ligne et créent une 2e ligne pour rien »). « Écran maintenu / Veille normale » disait
+     deux choses différentes selon l'état — un objet, deux vocabulaires — et coûtait 131 px, de quoi
+     faire enrouler la rangée. Le bouton du SON dit « Son activé / Son coupé » ; celui-ci dit donc
+     « Veille coupée / Veille active » : même grammaire, même longueur, et l'état se lit sans
+     réfléchir puisque c'est le mot d'à côté. */
+  b.innerHTML=uiIcon(on?'sun':'moon',13)+(on?' Veille coupée':' Veille active');
   b.title=on?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale'
             :'La veille du système s’applique — appuyer pour maintenir l’écran allumé';}
 document.addEventListener('visibilitychange',()=>{wakeApply();});
@@ -9121,11 +9163,15 @@ function syncHomeNew(slim){
      par la ligne d'après est pire que pas de rescue, parce qu'il donne l'illusion d'être couvert.
      La borne est `state.view`, pas la classe du corps : celle-ci porte encore la vue PRÉCÉDENTE
      à cet instant. */
+  /* ⚠ IL NE DÉMÉNAGE PLUS (v5.6, demande de l'auteur : « le bouton filtrer devrait apparaître à
+     droite de la barre de recherche en tout temps, et non à droite de A–Z / Catégories quand on est
+     en haut de page »). Il changeait d'adresse selon le DÉFILEMENT : contre la recherche une fois
+     l'en-tête resserré, dans la rangée de groupement sinon. Or les deux répondent à la même
+     question — restreindre ce qu'on voit —, et un contrôle dont la place dépend de l'endroit où
+     l'on se trouve dans la page est un contrôle qu'on cherche à chaque fois. Une seule adresse,
+     celle du champ : c'est le raisonnement de la planche 7b pour la recherche elle-même. */
   {const ft=document.getElementById('filtTog');
-   if(ft&&box){
-     if(slim){if(ft.parentNode!==box)box.appendChild(ft);}
-     else if(state.view==='library'){const row=main.querySelector('.grp-row');
-       if(row&&ft.parentNode!==row)row.appendChild(ft);}}}}
+   if(ft&&box&&ft.parentNode!==box)box.appendChild(ft);}}
 /* ⚠ ET ELLE Y RESTE À TOUTES LES LARGEURS (7b, « Points ouverts ») : « une seule adresse pour la
    recherche… sinon elle change de place entre le téléphone et l'ordinateur, ce qui est exactement
    l'incohérence à éviter ». La planche 2f la posait en tête de la zone de résultats et je l'y
@@ -14161,8 +14207,11 @@ function renderHomeList(cfg){
      ⚠ `rescueFiltTog` court à CHAQUE rendu, avant tout : sinon, quitter l'accueil laisserait le
      bouton dans un `main` qu'on remplace, et il disparaîtrait avec lui. */
   placeHomeSearch(wide);
-  {const ft=document.getElementById('filtTog'),row=main.querySelector('.grp-row');
-   if(ft&&row&&ft.parentNode!==row)row.appendChild(ft);}
+  /* ⚠ UN SECOND PLACEMENT, ET C'ÉTAIT LUI QUI DÉCIDAIT AU CHARGEMENT (v5.6). Le déclencheur était
+     reposé dans `.grp-row` à CHAQUE rendu ; celui du défilement ne faisait que le reprendre une
+     fois l'en-tête resserré. D'où l'adresse qui change selon l'endroit où l'on se trouve dans la
+     page. Une seule adresse, celle du champ — et c'est `rescueFiltTog` qui la tient déjà. */
+  rescueFiltTog();
   main.querySelectorAll('[data-hgrp]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.hgrp;if(homeGroupKey()===k)return;
     state.homeGroup=k;cfg.rerender();});
@@ -16933,7 +16982,7 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
      même distinction que le chapeau « Ne pas oublier », affiché vide parce qu'il INVITE (v4.76.0).
      Le panneau ne disparaît donc que HORS session : sans soin en cours, il n'y a rien à créer. */
   if(mqRail.matches&&!tl.length&&!minis.length&&!cl.length&&!Runtime.started)return '';
-  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`
+  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" aria-label="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)}<span class="rt-wl"> silencieux ?</span></button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`
     /* Le verrou de veille vit là où le son se règle : même rangée, même registre, même grammaire
        d'interrupteur. Là où l'API manque, la ligne n'existe pas (dégradation silencieuse). */
     +(WAKE_OK?`<button class="rt-sound${wakeWanted?'':' off'}" id="wakeToggle" aria-pressed="${wakeWanted?'true':'false'}" title="${wakeWanted?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale':'La veille du système s’applique — appuyer pour maintenir l’écran allumé'}">${uiIcon(wakeWanted?'sun':'moon',13)}${wakeWanted?' Écran maintenu':' Veille normale'}</button>`:'');
@@ -20255,14 +20304,20 @@ function preStartHtml(f){
     +`<div class="pre-rows"><div class="pre-row"><span class="pre-rn">Chrono de session</span><span class="pre-rv">dès le premier geste</span></div>`
     +tl.map(li).join('')+'</div>';}
 /* LA DERNIÈRE SESSION DE CETTE AIDE (7c) : une ligne, et le compte rendu à un tap. C'est une
-   information de DÉBRIEF posée là où l'on décide d'en ouvrir une nouvelle — jamais une invite. */
+   information de DÉBRIEF posée là où l'on décide d'en ouvrir une nouvelle — jamais une invite.
+   ⚠ LE BOUTON ÉTAIT MORT (v5.6, signalé à l'usage : « cliquer sur Voir le compte-rendu, il ne se
+   passe rien »). Il portait `data-prelast`, un attribut ÉMIS UNE FOIS et câblé NULLE PART — un nom
+   inventé pour l'occasion à côté du `data-report` que `bindReadEvents` relie déjà à
+   `exportSessionReport`. On ne rajoute donc pas un gestionnaire : on donne au bouton le nom du
+   geste qu'il fait. Règle générale : avant d'inventer un attribut, chercher celui qui nomme déjà
+   l'action — un verbe qui a deux noms finit par n'en avoir aucun. */
 function preLastSessHtml(f){
   const ss=sessions.filter(x=>x.ficheId===f.id&&!x.live).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
   const s0=ss[0];if(!s0)return '';
   const n=(s0.nav||[]).length,dur=s0.startedAt&&s0.endedAt?fmtMs(s0.endedAt-s0.startedAt):'';
   return `<div class="pre-last"><span class="pre-lt">Dernière session : ${esc(sessStamp(s0.savedAt||s0.endedAt||0))}`
     +`${n?` · ${n} bloc${n>1?'s':''}`:''}${dur?` · ${esc(dur)}`:''}</span>`
-    +`<button type="button" class="pre-link" data-prelast="${esc(s0.id)}">Voir le compte-rendu</button></div>`;}
+    +`<button type="button" class="pre-link" data-report="${esc(s0.id)}">Voir le compte-rendu</button></div>`;}
 function preSessionHtml(f,avecParcours){
   const plan=flowPlan(f);if(!plan.order.length)return '';
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});

@@ -1820,6 +1820,56 @@ impossible sans cacher des lettres.
   téléphone il exige des points, à 16 (ou en voie large) il exige qu'il n'y en ait AUCUN. Vérifié
   capable d'échouer (éclaircissement neutralisé → 2 rouges).
 
+**A103. CINQ DÉFAUTS DU VOLET ET DE L'ACCUEIL, TOUS MESURÉS (v5.6, signalés à l'usage).**
+· **« VOIR LE COMPTE-RENDU » ÉTAIT UN BOUTON MORT** : il portait `data-prelast`, un attribut émis
+  UNE FOIS et câblé NULLE PART — un nom inventé à côté du `data-report` que `bindReadEvents` relie
+  déjà à `exportSessionReport`. On ne rajoute pas un gestionnaire, on donne au bouton le nom du
+  geste qu'il fait. *Règle : avant d'inventer un attribut, chercher celui qui nomme déjà l'action —
+  un verbe qui a deux noms finit par n'en avoir aucun.*
+· **LES RANGÉES COMPACTES DE MINUTEUR NE SE COLLENT PLUS** : le rail les posait à `margin-top:0`
+  — mesuré, **0 px** entre deux rangées ET sous la carte qui précède, quand le volet leur donne
+  8 px. Deux objets distincts qui se touchent se lisent comme un seul.
+· **LA CROIX DU COMPTEUR AD HOC TENAIT SES 24 px EN HAUTEUR, PAS EN LARGEUR** : `min-height:32px`
+  bornait un seul axe, la largeur valant le glyphe plus 12 px de rembourrage — **20 px** mesurés,
+  sous WCAG 2.2 § 2.5.8. Le plancher se pose sur les DEUX axes.
+· **LE CHAMP DE NOMMAGE AVAIT BESOIN D'UNE RANGÉE QUI ENROULE** : `.tm-label` est `nowrap`, donc
+  `flex:1 1 100%` ne pouvait rien et le champ se partageait la ligne avec le nom et les deux
+  boutons — **84 px de champ dans une rangée de 182**. `:has(.cn-input)` ouvre l'enroulement
+  seulement quand le champ est là : 84 → **182 px**, et la rangée au repos ne change pas.
+· **LE VERROU DE VEILLE PREND LE VOCABULAIRE DE SON VOISIN** : « Écran maintenu / Veille normale »
+  disait deux choses différentes selon l'état et coûtait 131 px. Le bouton du SON dit « Son
+  activé / Son coupé » ; celui-ci dit donc « Veille coupée / Veille active » — même grammaire, même
+  longueur, l'état se lit sans réfléchir.
+· **ET L'EN-TÊTE DU VOLET CESSE DE DONNER UNE LIGNE À UN SEUL BOUTON** : mesuré à 390 px, les trois
+  contrôles demandaient 330 px pour 294 et « Veille coupée » tombait SEULE sur une troisième ligne.
+  `#soundWarn` passe au glyphe seul sous 560 px (règle A2 : la touche perd son étiquette, jamais son
+  nom accessible) — c'est le bon candidat, étant une CAUTION dont le texte entier s'affiche au tap,
+  pas un contrôle dont le libellé porte l'état. **152 → 100 px** à 390, 430 et 560 ; 48 px au-delà.
+  ⚠ **DEUX ESSAIS ÉCARTÉS PAR LA MESURE, ET ILS DISENT LA MÊME CHOSE** : déplacer le couloir du ✕
+  sur le TITRE — en rembourrage, puis en largeur maximale — a été pire dans les deux cas (le titre
+  s'enroulait SOUS le ✕, 176 px ; puis un autre contrôle montait à sa droite, donc sous le ✕).
+  *Une réserve de rangée protège la ligne ENTIÈRE ; aucune borne posée sur un seul enfant ne le
+  fait.* Coût dit : à 320 px le titre du volet ne tient pas sur une ligne, l'en-tête y reste à
+  176 px — c'est le titre qui est long, pas la rangée qui est mal faite.
+
+**A104. LE DÉCLENCHEUR DE FILTRE N'A QU'UNE ADRESSE : CONTRE LA RECHERCHE (v5.6, demande de
+l'auteur : « il devrait apparaître à droite de la barre de recherche en tout temps »).** Il
+changeait d'adresse selon le DÉFILEMENT — dans la rangée de groupement en haut de page, contre le
+champ une fois l'en-tête resserré. Or les deux répondent à la même question (restreindre ce qu'on
+voit), et un contrôle dont la place dépend de l'endroit où l'on se trouve dans la page est un
+contrôle qu'on cherche à chaque fois. C'est le raisonnement de la planche 7b pour la recherche
+elle-même, appliqué à son voisin.
+· **⚠ IL Y AVAIT DEUX PLACEMENTS, ET C'EST LE SECOND QUI DÉCIDAIT** : `syncHomeNew` au défilement,
+  et un `row.appendChild(ft)` à CHAQUE rendu. Corriger le premier seul laissait le défaut entier au
+  chargement — le témoin l'a dit aussitôt (`dansChamp:false`). *Quand un objet est placé par deux
+  chemins, corriger l'un ne corrige rien.*
+· **IL PREND LA HAUTEUR DU CHAMP** (`align-self:stretch` + `aspect-ratio:1`) : il valait 38 px face
+  à un champ de 48, et deux objets d'une même rangée qui ne s'alignent pas se lisent comme deux
+  niveaux. Rond par construction, sans écrire un second nombre.
+· **LE TÉMOIN A CHANGÉ DE VOISIN, PAS DE SUJET** : il mesurait le déclencheur contre le sélecteur de
+  groupement — son adresse d'alors. Il mesure désormais « contre le champ, à sa droite, aligné », et
+  **dans les deux états de défilement** : c'est cette seconde moitié qui couvre le défaut signalé.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

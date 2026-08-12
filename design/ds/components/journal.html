@@ -1921,7 +1921,8 @@
      PLANCHER, pas une addition. */
   .grp-row{display:flex;align-items:stretch;gap:8px;margin:12px 0}
   .grp-row:empty{display:none}
-  .grp-row .filt-tog{margin-left:auto}
+  /* `.grp-row .filt-tog` est PURGÉE : le déclencheur ne vit plus dans la rangée de groupement,
+     il ne quitte plus le champ de recherche (règle 14). */
   /* L'HABILLAGE du sélecteur de groupement (fond d'ambiance + contour, décision utilisateur) ; la
      MÉCANIQUE est celle de `.seg`. Écart de 2 px au lieu de 8 : il vit dans une rangée de
      contrôles, pas dans une fenêtre de réglages — c'est le seul écart, et la pastille le lit par
@@ -3044,6 +3045,12 @@
   .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
   /* 48 de bouton + 8 d'écart : deux cibles de 44 px qui se TOUCHENT sont déjà un défaut — c'est
      la règle du rail A→Z, prise ici pour la même raison (un pouce ganté ne vise pas au pixel). */
+  /* ⚠ LE COULOIR DU ✕ RESTE SUR LA RANGÉE, ET DEUX ESSAIS L'ONT CONFIRMÉ (v5.6). Le déplacer sur
+     le TITRE — en rembourrage puis en largeur maximale — a été mesuré PIRE dans les deux cas : le
+     rembourrage faisait enrouler le titre SOUS le ✕ (176 px, quatre lignes), et la largeur maximale
+     le rétrécissait assez pour qu'un autre contrôle monte à sa droite… donc sous le ✕. Une réserve
+     de rangée protège la ligne ENTIÈRE, ce qu'aucune borne posée sur un seul enfant ne fait. La
+     place se gagne ailleurs, en raccourcissant ce qui peut l'être (`.rt-wl` ci-dessous). */
   .rt-dock .rt-head{padding-right:56px}
   /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
      v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
@@ -3854,6 +3861,14 @@
      ANCRÉE en haut à droite, et un `padding-right` qui lui réserve sa place à TOUTES les largeurs.
      Le reste s'enroule dessous plutôt que de la pousser hors de l'écran — on ne tronque pas un
      libellé de commande, on lui donne une seconde ligne. */
+  /* ⚠ SOUS 560 px, L'AVERTISSEMENT PASSE AU GLYPHE SEUL (v5.6, suite du signalement sur la veille :
+     « ça va à la ligne et crée une 2e ligne pour rien »). L'en-tête du volet porte le titre, cet
+     avertissement, le son et la veille : mesuré à 390 px, les trois contrôles demandaient 330 px
+     pour 294 disponibles, et « Veille coupée » tombait SEULE sur une troisième ligne. C'est la
+     règle A2 appliquée telle quelle — la touche perd son étiquette, jamais son nom accessible —, et
+     `#soundWarn` est le bon candidat : c'est une CAUTION dont le texte entier s'affiche au tap, pas
+     un contrôle dont le libellé porte l'état. Les deux interrupteurs, eux, gardent leurs mots. */
+  @media (max-width:559.98px){.rt-wl{display:none}}
   .rt-head{position:relative;display:flex;align-items:center;gap:8px;margin-bottom:10px;
     flex-wrap:wrap;padding-right:40px}
   /* `min-width:0` : sans lui, `flex:1` ne descend jamais sous la largeur du contenu (le minimum
@@ -4900,7 +4915,11 @@
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
   /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
-  .read-side .tm-mini{margin-top:0}
+  /* ⚠ ELLES NE SE COLLENT PAS (v5.6, signalé à l'usage : « les minuteurs qu'on crée en cours de
+     session sont collés entre eux et au minuteur du dessus »). Le rail les mettait à `margin-top:0`
+     — mesuré, 0 px entre deux rangées ET 0 px sous la carte qui précède, alors que le volet leur
+     donne 8 px. Deux objets distincts qui se touchent se lisent comme un seul. */
+  .read-side .tm-mini{margin-top:8px}
   .tm-mini.due{border-color:var(--verify-bd)}
   .tm-mini.due :is(.tmm-t,.tmm-l){color:var(--verify-hi)}
   .tmm-l{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -6365,6 +6384,13 @@
      ses voisins de l'en-tête, A30).
      ⚠ LA RÈGLE 8 RESTE TENUE : la couleur n'est jamais seule — c'est le NOMBRE de filtres posés
      qui dit l'état actif, en pastille, et le nom accessible le dit en toutes lettres. */
+  /* ⚠ CONTRE LE CHAMP, IL PREND LA HAUTEUR DU CHAMP (v5.6, demande de l'auteur : « adapte la taille
+     du bouton filtrer pour qu'il soit beau à côté de la barre de recherche — garde un bouton
+     rond »). Il valait 38 px face à un champ de 48 : deux objets d'une même rangée qui ne
+     s'alignent ni en haut ni en bas se lisent comme deux niveaux (la règle est déjà écrite pour la
+     phase et le titre dans l'éditeur). `align-self:stretch` le cale sur la rangée quelle que soit
+     la hauteur du champ, et `aspect-ratio:1` le garde ROND sans écrire un second nombre. */
+  .hdr-search .filt-tog{align-self:stretch;width:auto;height:auto;aspect-ratio:1}
   .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
     /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
        même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
@@ -7263,11 +7289,21 @@
      la porte ne propose plus de nom, il n'y a donc plus de provenance à citer (règle 14). */
   .rt-dock .tm-add-h{color:var(--sys-ink-2)}
   .rt-dock .tm-add-b{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
-  .cn-nm{background:none;border:0;padding:2px 6px;min-height:32px;font-family:inherit;
+  /* ⚠ 20 px DE LARGE, C'ÉTAIT SOUS LE PLANCHER (v5.6, signalé à l'usage : « la croix pour supprimer
+     est trop petite »). `min-height:32px` bornait la HAUTEUR ; la largeur, elle, valait le glyphe
+     plus 12 px de rembourrage — mesuré 20 px, sous les 24 de WCAG 2.2 § 2.5.8. Le plancher se pose
+     donc sur les DEUX axes. Un « — nommer » de 67 px n'en est pas affecté : c'est un minimum. */
+  .cn-nm{background:none;border:0;padding:2px 6px;min-height:32px;min-width:32px;font-family:inherit;
     font-size:var(--t-cap);font-weight:700;color:var(--act);cursor:pointer;border-radius:var(--r-1)}
   .cn-nm:hover{background:var(--primary-soft)}
   .cn-nm:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .cn-rm{color:var(--ink-soft)}
+  /* ⚠ IL LUI FAUT UNE RANGÉE QUI ENROULE, SINON `flex:1 1 100%` NE PEUT RIEN (v5.6, signalé à
+     l'usage : « quand on clique sur nommer, l'affichage s'affiche très mal, en sidebar comme dans
+     le menu déroulant »). `.tm-label` est `nowrap` : le champ se partageait la ligne avec le nom et
+     les deux boutons — mesuré 84 px de champ dans une rangée de 182. On n'ouvre l'enroulement QUE
+     lorsque le champ est là (`:has`), pour ne rien changer à la rangée au repos. */
+  .tm-label:has(.cn-input){flex-wrap:wrap}
   .cn-input{flex:1 1 100%;min-width:0;margin-top:4px;padding:6px 8px;font-family:inherit;font-size:16px;
     border:1px solid var(--ctl-line);border-radius:var(--r-1);background:var(--input-bg);color:var(--ink)}
   .rt-dock .cn-nm{color:var(--sys-ink-2)}

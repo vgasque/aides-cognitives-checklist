@@ -1288,26 +1288,26 @@ await sec('Audit design · la feuille de filtres', async () => {
        320 px la rangée d'identité n'avait la place que d'un glyphe.
        ⚠ SA RANGÉE EST ÉMISE MÊME SANS LISTE : sinon il déménagerait dans l'en-tête dès qu'un
        filtre ne rend rien — c'est-à-dire exactement au moment où on le cherche. */
-    const geo=(()=>{const b=tog(),q=document.querySelector('.grp-row .grp-seg');
+    /* ⚠ IL NE DÉMÉNAGE PLUS (v5.6, demande de l'auteur) — le témoin change donc de VOISIN. Il
+       mesurait le déclencheur contre le sélecteur de groupement, c'est-à-dire son adresse quand on
+       est en haut de page ; or il en changeait au défilement. La propriété est désormais « il est
+       contre le CHAMP DE RECHERCHE, et il y reste » : même rangée, à sa droite, dans l'écran. */
+    const geo=(()=>{const b=tog(),q=document.querySelector('.hdr-search .srch-box');
       if(!b||!q)return null;const rb=b.getBoundingClientRect(),rq=q.getBoundingClientRect();
       return {memeRangee:Math.abs((rb.top+rb.height/2)-(rq.top+rq.height/2))<=6,
               aDroite:Math.round(rb.left-rq.right), h:Math.round(rb.height), w:Math.round(rb.width),
-              /* Son bord DROIT est ce qui s'apprend : il grossit du chiffre, il ne se déplace pas.
-                 ⚠ ON LE MESURE CONTRE LA COLONNE, PLUS CONTRE LA FENÊTRE (v5.6) : depuis que la
-                 gouttière du rail A→Z est réservée SANS CONDITION, l'écart au bord de fenêtre vaut
-                 34 px avec rail comme sans — c'est justement la constance recherchée, et un témoin
-                 calé sur `innerWidth` mesurait l'ancienne géométrie, celle du cas SANS rail. La
-                 propriété est « il affleure le bord de la colonne », qui ne dépend d'aucun rail. */
-              bordDroit:(()=>{const hm=document.querySelector('.home-main');
-                if(!hm)return Math.round(innerWidth-rb.right);
-                const rh=hm.getBoundingClientRect();
-                return Math.round((rh.right-parseFloat(getComputedStyle(hm).paddingRight))-rb.right);})(),
-              /* Il fait la HAUTEUR du sélecteur d'en face, pas une hauteur écrite : deux objets
-                 voisins d'une même rangée qui ne s'alignent ni en haut ni en bas se lisent comme
-                 deux objets sans rapport. */
+              dansChamp:!!b.closest('.hdr-search'),
+              /* Il fait la HAUTEUR du champ d'en face, à quelques pixels près : deux objets voisins
+                 d'une même rangée qui ne s'alignent pas se lisent comme deux niveaux. */
               hChamp:Math.round(rq.height),
               dyHaut:Math.round(rb.top-rq.top), dyBas:Math.round(rq.bottom-rb.bottom),
               dansEcran:Math.round(rb.right)<=innerWidth};})();
+    /* Après défilement l'en-tête se resserre (`home-slim`) : le déclencheur doit être resté dans
+       le champ. On attend une image pour que la classe soit posée. */
+    window.scrollTo(0,600);
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const apresScroll=!!(tog()&&tog().closest('.hdr-search'));
+    window.scrollTo(0,0);
     tog().click(); await w(500);
     const ouvRangees=rangees(), ouvTog=!!tog(), yOuvert=yPremier();
     const ouvFeuille=feuille(), ouvFam=familles(), hOuvert=hdrH();
@@ -1354,7 +1354,7 @@ await sec('Audit design · la feuille de filtres', async () => {
     document.getElementById('filtSheetClear').click(); await w(400);
     const apresClear=etat(); document.getElementById('filtSheetGo').click(); await w(300);
     return {hRepli,hOuvert,ouvFeuille,ouvFam,piedAvant,nRangees,piedApres,nApres,fermee,etatApresPied,apresClear,
-            repliRangees,repliTog,yRepli,xRepli,geo,ouvRangees,ouvTog,yOuvert,
+            repliRangees,repliTog,yRepli,xRepli,geo,apresScroll,ouvRangees,ouvTog,yOuvert,
             actifRangees,actifTog,actifEtat,chipOn,apresRender,apresTog,apresEtat,
             repliActifRangees,repliActifEtat,xRepliActif,avaitCat,deuxEtat,zeroEtat};});
 
@@ -1401,9 +1401,12 @@ await sec('Audit design · la feuille de filtres', async () => {
     JSON.stringify(r.apresClear));
   /* v5.0.3 — LE DÉCLENCHEUR VIT CONTRE LA RECHERCHE. La v5.0.0 le posait dans le flux, au-dessus
      du contenu : une ligne permanente pour un geste rare. */
-  t('il vit sur la rangée des contrôles de liste, poussé à son bord droit',
-    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.dansEcran&&Math.abs(r.geo.bordDroit)<=2,
+  t('il vit contre le champ de recherche, à sa droite',
+    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.dansEcran&&r.geo.dansChamp===true,
     JSON.stringify(r.geo));
+  /* ⚠ ET IL Y RESTE APRÈS DÉFILEMENT — c'est le défaut signalé : il changeait d'adresse selon
+     l'endroit où l'on se trouvait dans la page. Le témoin mesure donc les DEUX états. */
+  t('… et il y reste une fois l\'en-tête resserré', r.apresScroll===true, `${r.apresScroll}`);
   /* Cible ≥ 32 px hors mode crise (règle 9) — le halo ::after l'étend encore de 4 px. */
   t('… et sa cible reste réglementaire', !!r.geo&&r.geo.h>=32&&r.geo.w>=32,
     r.geo?`${r.geo.w}×${r.geo.h} px`:'—');
