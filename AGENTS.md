@@ -1058,6 +1058,56 @@ c'est la transition CSS qui fait le trajet (mesuré : 21 → 46 → 74 → 94 �
 re-rendu — un nœud détaché, qui rend une position figée et une transition vide. On re-interroge le
 DOM à chaque échantillon.
 
+**A66. UN HALO NE MORD JAMAIS SUR LA CIBLE DU VOISIN — ET UNE CIBLE PARTAGÉE EST FICTIVE (v5.6,
+BALAYAGE DE COLLISIONS, rien de signalé).** Une sonde nouvelle : elle compare deux à deux les zones
+tactiles (dessin + halo) de tous les contrôles d'un même PLAN — un dock, un volet ou une fenêtre
+recouvre le contenu par construction, c'est son office, et ces paires-là sont écartées. Elle a
+trouvé quatre recouvrements, tous invisibles à l'œil :
+· **en-tête de l'accueil**, « Créer » ∩ « Compte » : **10 px à 320**, 4 à 390 — deux halos de 6 px
+  pour 2 px d'écart. Dans cette bande, c'est le DERNIER élément du DOM qui reçoit le tap : on
+  visait Créer, on ouvrait le Compte ;
+· **barre de l'éditeur**, « ▶ Essayer » ∩ « ⋯ » : 4 px à 320, 2 à 390 ;
+· **rangée de l'annuaire**, le bouton-titre ∩ la pastille « △ à compléter » : 13 px ;
+· **volet du quai**, deux boutons de minuteur empilés : 2 px (halos de 4, écart de 6).
+**LA RÈGLE QUI EN SORT** : un halo se borne à la MOITIÉ de l'écart qui le sépare de son voisin, et
+un écart vaut au moins la somme des halos qu'il sépare. Le halo VERTICAL, lui, reste entier quand
+rien ne le dispute — c'est la direction où l'on a de la place.
+**⚠ ET UN ARBITRAGE À CONNAÎTRE, car il RELÂCHE une règle écrite** : à 320 px, deux cibles de 44 px
+de large ne tiennent pas dans une rangée qui n'a que 2 px d'écart. On garde donc les **44 px de
+HAUTEUR** et l'on borne la LARGEUR à la place réellement disponible (34 px à 320, 40 à 390) — au
+-dessus du plancher de 32 px, qui est la règle HORS crise, et c'est bien de l'accueil qu'il s'agit.
+Le témoin de la rangée d'identité mesure désormais les trois choses : hauteur ≥ 44, largeur ≥ 32,
+et AUCUN recouvrement. Il exigeait 44 en largeur — une exigence qu'aucune géométrie ne pouvait
+honorer sans voler la cible d'à côté.
+**⚠ UN CAS RÉSISTE, ET IL EST DIT** : dans la rangée de l'annuaire, le titre et la pastille
+« △ à compléter » sont séparés de 4 px de texte, et la rangée a un RYTHME fixe de 71 px. Les deux
+cibles ne peuvent pas être conformes (≥ 24) ET disjointes ; réduire le titre le fait tomber à 22 px
+(`audit-a11y` l'a dit immédiatement). On garde les deux conformes, et les 5 px résiduels se
+résolvent en faveur de la pastille, qui est AU-DESSUS — la cible la plus petite et la plus précise
+gagne, le titre gardant 38 px de bande franche.
+**⚠ LEÇON DE SONDE, deux fois** : (a) « visible » ne veut pas dire « peint » — un élément dans un
+panneau replié ou une boîte clipée garde un rectangle non nul, et la sonde a d'abord vu une puce de
+catégorie « recouvrir » une poignée qui vit 200 px plus haut ; on exige donc que l'élément soit la
+cible du point en son centre. (b) Le halo se lit par axe : `insetBlockStart` est le VERTICAL, et
+mesurer une largeur avec lui laisse la sonde aveugle à sa propre correction.
+
+**A67. `--line-strong` N'EST PLUS LE TOKEN DES BORDURES DE COMPOSANT — C'EST `--ctl-line` (v5.6,
+trouvé au balayage).** La doctrine écrit depuis la v4.5 que « cases à cocher et bordures de champs
+= `--line-strong` (3:1, WCAG 1.4.11) », et la v5.0.0 le mesurait à 3,93 / 4,94. **La palette v5.6
+l'a re-valué** : il ne tient plus que **1,62:1 en clair et 1,33 en sombre** sur la matière de
+travail. Celui qui tient le seuil est `--ctl-line` — c'est d'ailleurs ce que dit A43. Les contrôles
+qui s'appuyaient sur `--line-strong` pour leur LIMITE passent donc à `--ctl-line` : la rangée
+« Consulter » (un bouton pleine largeur dont ni le fond — 1,09:1 — ni le filet ne se voyaient), le
+déclencheur de filtres, « Vérifier :: » et la sortie de la passe.
+· **`--ctl-line` EST ASSOMBRI D'UN CRAN EN CLAIR** (#8a94a0 → #828c98) : il tenait 3,08 sur le blanc
+  du travail mais 2,82 sur le gris d'AMBIANCE, où vivent aussi des contrôles bordés. 3,13 et 3,41
+  après ; le sombre tenait déjà (3,68 / 4,05).
+· **CE QUI N'EST PAS CHANGÉ, ET POURQUOI C'EST À VOUS** : en thème SOMBRE, la matière de travail et
+  l'ambiance ne sont séparées que de **1,10:1**, et le filet des cartes (`--work-line`) de 1,33 —
+  une carte de bloc n'a donc, la nuit, ni ombre (doctrine : « la nuit ne projette pas, elle borde »)
+  ni bord perceptible. Idem pour la capsule sur son quai. Renforcer ces filets « grillagerait » tout
+  le thème sombre : c'est une décision de signature, pas un correctif, et elle vous revient.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

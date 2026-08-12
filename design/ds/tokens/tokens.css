@@ -11,7 +11,13 @@
      les CASES À COCHER et les bordures de champs — c'est-à-dire l'objet qu'on vise avec des gants,
      sous stress, au soleil. On garde donc la valeur du système partout où il s'agit de dessiner,
      et un token à 3:1 là où il s'agit de VISER. Deux rôles, deux tokens : la règle 8 du dossier. */
-  --ctl-line:#8a94a0;
+  /* ⚠ 3:1 SUR L'AMBIANCE AUSSI, PAS SEULEMENT SUR LE TRAVAIL (v5.6, trouvé au balayage). Le token
+     des BORDURES DE COMPOSANT (WCAG 2.2 § 1.4.11 — « la case qu'on vise avec des gants ») tenait
+     3,08:1 sur le blanc du travail mais seulement 2,82 sur le gris d'ambiance, où vivent pourtant
+     des contrôles bordés (le déclencheur de filtres de l'accueil). Assombri d'un cran : 3,13 sur
+     l'ambiance, 3,41 sur le travail — les deux au-dessus du seuil, et le dessin ne change pas de
+     nature. Le thème sombre tenait déjà (3,68 / 4,05). */
+  --ctl-line:#828c98;
   /* ─── 2. ENCRES (AA sur leurs fonds) ───────────────────────────────────────────────────── */
   --ink:#14181d;--ink-2:#5b6472;--ink-3:#a3abb6;
   /* ─── 3. SÉMANTIQUE DU DANGER — jamais seule, toujours mot + glyphe ─────────────────────

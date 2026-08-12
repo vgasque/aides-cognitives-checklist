@@ -1435,9 +1435,22 @@ await sec('En-tête d\'accueil · une seule ligne jusqu\'à 320 px', async () =>
       /* ⚠ ON NE MESURE QUE CE QUI EST RENDU (v5.6) : le raccourci de thème existe dans la coque
          mais n'est visible qu'en LECTURE — un élément masqué rend une boîte de 0×0, et la cible
          minimale tombait donc à 0 sur l'accueil. Le contrôle mesurait l'absence, pas une cible. */
+      /* ⚠ HAUTEUR ET LARGEUR NE SE MESURENT PLUS AU MÊME SEUIL, ET C'EST UN ARBITRAGE (v5.6,
+         balayage de COLLISIONS). Les halos qui portaient ces boutons à 44 px de LARGE mordaient
+         sur la cible du voisin — 10 px de recouvrement à 320 px, 4 à 390 : dans cette bande, c'est
+         le dernier élément du DOM qui reçoit le tap, donc on visait « Créer » et l'on ouvrait le
+         Compte. Une largeur de cible qui appartient pour moitié au bouton d'à côté n'est pas une
+         cible : elle est fictive. On garde donc les 44 px en HAUTEUR (rien ne les dispute) et l'on
+         borne la LARGEUR à la place réellement disponible — au-dessus du plancher de 32 px, qui
+         est la règle hors crise —, en exigeant EN PLUS que deux cibles voisines ne se recouvrent
+         jamais. Mieux vaut une cible plus étroite et sans ambiguïté qu'une cible large et
+         partagée. */
       const cib=[...document.querySelectorAll('.hdr-new,.hdr-theme,.bar-acct')].filter(e=>e.offsetParent).map(e=>{
         const b=e.getBoundingClientRect(),a=getComputedStyle(e,'::after');
-        return Math.min(Math.round(b.width-io(a.left)-io(a.right)),Math.round(b.height-io(a.top)-io(a.bottom)));});
+        return {w:Math.round(b.width-io(a.left)-io(a.right)),h:Math.round(b.height-io(a.top)-io(a.bottom)),
+          l:b.left-io(a.left),r:b.right+io(a.right)};});
+      let rec=0;for(let i=0;i<cib.length;i++)for(let j=i+1;j<cib.length;j++)
+        rec=Math.max(rec,Math.round(Math.min(cib[i].r,cib[j].r)-Math.max(cib[i].l,cib[j].l)));
       const deb=Math.max(0,...[...document.querySelector('.id-row').children].filter(e=>e.offsetParent)
         .map(e=>Math.round(e.getBoundingClientRect().right)-innerWidth));
       /* ⚠ ON MESURE AUSSI LA MARGE, ET C'EST ELLE QUI PRÉVIENT. « Une seule ligne » est un
@@ -1449,13 +1462,15 @@ await sec('En-tête d\'accueil · une seule ligne jusqu\'à 320 px', async () =>
       const logo=document.querySelector('.brand-logo').getBoundingClientRect();
       const g=parseFloat(getComputedStyle(document.querySelector('.id-row')).columnGap)||0;
       return {uneLigne:Math.abs((brand.top+brand.height/2)-(acts.top+acts.height/2))<=8,
-        cible:Math.min(...cib), debord:deb,
+        cible:Math.min(...cib.map(c=>c.h)), cibleW:Math.min(...cib.map(c=>c.w)), recouvre:rec, debord:deb,
         marge:Math.round(row.width-(logo.width+brand.width+acts.width+2*g)),
         hdr:Math.round(document.querySelector('header.bar').getBoundingClientRect().height)};});
     t(`${w} px · marque et actions sur la MÊME ligne`, r.uneLigne===true, `en-tête ${r.hdr} px`);
     t(`${w} px · … avec une réserve, pas au pixel près`, r.marge>=8, `${r.marge} px de marge`);
     t(`${w} px · … sans rien pousser hors de l'écran`, r.debord===0, `${r.debord} px`);
-    t(`${w} px · … et les cibles restent à 44 px (halo compris)`, r.cible>=44, `${r.cible} px`);
+    t(`${w} px · … et les cibles gardent 44 px de HAUTEUR (halo compris)`, r.cible>=44, `${r.cible} px`);
+    t(`${w} px · … au moins 32 px de large (plancher hors crise)`, r.cibleW>=32, `${r.cibleW} px`);
+    t(`${w} px · … et AUCUNE cible ne mord sur celle de sa voisine`, r.recouvre<=0, `${r.recouvre} px`);
     await page.close();
   }
 }

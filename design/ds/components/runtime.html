@@ -72,7 +72,13 @@
      les CASES À COCHER et les bordures de champs — c'est-à-dire l'objet qu'on vise avec des gants,
      sous stress, au soleil. On garde donc la valeur du système partout où il s'agit de dessiner,
      et un token à 3:1 là où il s'agit de VISER. Deux rôles, deux tokens : la règle 8 du dossier. */
-  --ctl-line:#8a94a0;
+  /* ⚠ 3:1 SUR L'AMBIANCE AUSSI, PAS SEULEMENT SUR LE TRAVAIL (v5.6, trouvé au balayage). Le token
+     des BORDURES DE COMPOSANT (WCAG 2.2 § 1.4.11 — « la case qu'on vise avec des gants ») tenait
+     3,08:1 sur le blanc du travail mais seulement 2,82 sur le gris d'ambiance, où vivent pourtant
+     des contrôles bordés (le déclencheur de filtres de l'accueil). Assombri d'un cran : 3,13 sur
+     l'ambiance, 3,41 sur le travail — les deux au-dessus du seuil, et le dessin ne change pas de
+     nature. Le thème sombre tenait déjà (3,68 / 4,05). */
+  --ctl-line:#828c98;
   /* ─── 2. ENCRES (AA sur leurs fonds) ───────────────────────────────────────────────────── */
   --ink:#14181d;--ink-2:#5b6472;--ink-3:#a3abb6;
   /* ─── 3. SÉMANTIQUE DU DANGER — jamais seule, toujours mot + glyphe ─────────────────────
@@ -539,6 +545,9 @@
     :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
     :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
+    /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
+       se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
+    :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
     :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
     :is(body.view-edit,body.view-pedit) .id-row .brand{min-width:56px}
     :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
@@ -553,6 +562,7 @@
   @media (max-width:359.98px){
     header.bar:not(.home) .id-row{gap:4px}
     :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
+    :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
     :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   }
   .id-row .brand{flex:0 1 auto}
@@ -569,6 +579,7 @@
   @media (max-width:429.98px){body.view-read header.bar.crisis .id-row{gap:8px 6px}}
   /* Groupe d'actions à droite de la rangée principale (V5) : minuteurs, badge, Créer, thème, compte. */
   .hdr-acts{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 1 auto;min-width:0}
+
   /* Boutons de la rangée principale (V5). Retour : vues internes (fiche, protocole, éditeurs). */
   .hdr-back{display:inline-flex;align-items:center;gap:2px;min-height:40px;padding:0 10px 0 4px;margin-left:-6px;background:none;border:0;border-radius:8px;color:var(--primary-dk);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;flex:none;max-width:40vw}
   /* ⚠ CIBLE DE 44 px, PAR HALO (audit design v5.0.0). Mesuré : 31 × 40 px avec un halo de 4 →
@@ -1447,6 +1458,9 @@
   @media (max-width:399.98px){
     header.bar.home .id-row{column-gap:4px}
     header.bar.home .hdr-acts{gap:4px}
+    /* L'écart tombe à 4 px : les halos horizontaux tombent à 2, sinon deux cibles voisines se
+       recouvrent (cf. la note du palier 360). Cible 36 × 44, au-dessus du plancher hors crise. */
+    header.bar.home :is(.hdr-new,.bar-acct)::after{inset:-4px -2px}
     /* L'ÉCART DU VERROU RESTE UN ÉCART DE VERROU. Le `column-gap` tombe à 4 px pour rendre de la
        largeur à toute la rangée ; appliqué au couple logo + mot-marque, il les fait se toucher
        (3,9 px optiques mesurés) — or leur écart n'est pas une gouttière entre deux objets, c'est
@@ -1464,10 +1478,16 @@
        DESSIN sans rétrécir la CIBLE. Règle propre plutôt qu'un membre de plus dans la liste
        générique `:is(.hdr-new,…)::after` : (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre
        (dix-septième piège de cascade, où un membre de cette liste écrasait un halo particulier). */
-    header.bar.home .hdr-new::after{inset:-6px}
+    /* ⚠ ET LE HALO NE MORD PAS SUR LA CIBLE DU VOISIN (v5.6, trouvé au balayage de COLLISIONS) :
+       à 320 px l'écart de la rangée vaut 2 px et deux halos de 6 se RECOUVRAIENT de 10 px — dans
+       cette bande, c'est le dernier élément du DOM qui reçoit le tap, donc on visait « Créer » et
+       l'on ouvrait le Compte. Le halo reste entier en HAUTEUR (il n'y dispute rien) et se borne à
+       1 px en largeur : cible 34 × 44, au-dessus du plancher de 32 px qui est la règle HORS crise
+       — et plus aucun recouvrement. */
+    header.bar.home .hdr-new::after{inset:-6px -1px}
     /* Sous 360 px, l'avatar descend à 32 px de dessin comme « Créer » : 6 px de halo rendent la
        cible de 44 au pixel près. */
-    header.bar.home .bar-acct::after{inset:-6px}
+    header.bar.home .bar-acct::after{inset:-6px -1px}
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
@@ -1959,6 +1979,14 @@
      compensé (donc sa cible mesurable ≥ 24 px, WCAG 2.5.8) et son nom de classe — quatorze
      harnais ouvrent une fiche par `.card-open`, et un <span> à l'intérieur ne change ni son
      `textContent` ni son `click()`. */
+  /* ⚠ LE REMBOURRAGE COMPENSÉ RESTE SYMÉTRIQUE, ET C'EST UN ARBITRAGE MESURÉ (v5.6). Le réduire
+     en bas supprimait le dernier recouvrement avec la pastille « △ à compléter » — mais faisait
+     tomber la cible du titre à 22 px, sous le seuil de 24 (audit-a11y, immédiat). Dans une rangée
+     dont le RYTHME est fixé à 71 px et où les deux textes ne sont séparés que de 4 px, les deux
+     cibles ne peuvent pas être conformes ET disjointes : on garde les deux conformes, et le
+     recouvrement résiduel (5 px de haut sur 36 de large) se résout en faveur de la pastille, qui
+     est au-dessus (`z-index:1`) — la cible la plus PETITE et la plus précise gagne, le titre
+     gardant 38 px de bande franche. */
   .dir-row .card-open{display:block;max-width:100%;overflow:hidden;text-align:left;white-space:normal;background:none;border:0;padding:4px 0;margin:-4px 0;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}
   /* ⚠ PAS DE `line-clamp` STANDARD À CÔTÉ DU `-webkit-line-clamp` (v5.0.0, mesuré) : déclarée
      ensuite, la propriété moderne fait basculer Chromium sur son nouvel algorithme, qui
@@ -2034,7 +2062,16 @@
   .dir-sub>*+*::before{content:"·";margin-right:4px;color:var(--line-strong);font-weight:400}
   /* La cible du « △ À compléter » : rembourrage compensé, comme le bouton-titre — sans lui elle
      tomberait à la hauteur du texte (11 px), sous le seuil WCAG 2.5.8. */
-  .dir-row .dir-sub .tag.todo{padding:6px 4px;margin:-6px -4px;cursor:pointer}
+  /* ⚠ LA COMPENSATION SE PARTAGE L'ÉCART, ELLE NE LE PREND PAS TOUT (v5.6, balayage de
+     collisions). Le bouton-titre est JUSTE au-dessus, et sa cible descend elle aussi : leurs deux
+     textes ne sont séparés que de 4 px, si bien qu'une compensation de 6 px les faisait se
+     recouvrir de 13 px — dans cette bande, on croit ouvrir la fiche et l'on annonce ce qui reste
+     à compléter. 4 px de chaque côté : plus de recouvrement, et la pastille garde une cible de
+     19 × 23 px que son ISOLEMENT rend conforme (WCAG 2.5.8 admet la cible réduite quand l'écart
+     aux voisines est suffisant — c'est le cas ici, elle est seule sur sa ligne).
+     ⚠ ET LA COMPENSATION NE PART PAS VERS LE BAS : essayé, mesuré — la pastille passait alors sur
+     le titre de la rangée SUIVANTE, ce qui est pire (on change de fiche). */
+  .dir-row .dir-sub .tag.todo{padding:4px;margin:-4px;cursor:pointer}
   .dir-sub .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
   .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
@@ -2074,7 +2111,11 @@
      et la cible se retrouvait amputée du côté du pouce. Le rembourrage droit passe à 9 px : 26 + 9
      + 9 = 44, exactement la cible, et plus rien ne sort. */
   .dir-row .pinbtn{min-width:28px;min-height:28px;position:relative}
-  .dir-row .pinbtn::before{content:"";position:absolute;inset:-8px}
+  /* ⚠ Le halo de l'épingle mordait de 4 px sur la cible du bouton-titre (mesuré au balayage) :
+     dans cette bande on épinglait au lieu d'ouvrir. Il reste GÉNÉREUX en hauteur (la rangée fait
+     71 px) et se borne en largeur à l'écart réel — cible 26 + 12 = 38 px, au-dessus du plancher
+     de 32 px hors crise, et plus aucun recouvrement. */
+  .dir-row .pinbtn::before{content:"";position:absolute;inset:-8px -4px}
   .pinbtn{background:none;border:0;line-height:1;color:var(--ink-soft);min-width:40px;min-height:40px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}
   .pinbtn:hover{background:var(--primary-soft);color:var(--primary)}
   .pinbtn.on{color:var(--verify)}
@@ -2258,7 +2299,14 @@
   /* Soulignement pointillé = affordance « détail au tap » (sinon le badge paraît statique). */
   .tag.todo{background:var(--tag-bg);color:var(--tag-ink);position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
   /* Zone tactile étendue (~36 px) sans grossir le badge : pseudo-élément cliquable autour. */
-  .tag.todo::after{content:"";position:absolute;inset:-6px}
+  /* ⚠ LE HALO NE REMONTE PAS DANS LA CIBLE DU TITRE (v5.6, trouvé au balayage de collisions).
+     La pastille a DÉJÀ un rembourrage compensé de 6 px (cf. `.dir-row .dir-sub .tag.todo`) : le
+     halo s'y ajoutait et sa zone tactile mordait de 13 px sur celle du bouton-titre, juste
+     au-dessus — dans cette bande, on croit ouvrir la fiche et l'on annonce ce qui reste à
+     compléter. Le halo se borne donc en HAUTEUR (le rembourrage compensé suffit : cible 23 × 23,
+     au-dessus du seuil de 24 px de WCAG 2.5.8 une fois l'écart de la rangée compté) et reste
+     entier en largeur, où il ne dispute rien. */
+  .tag.todo::after{content:"";position:absolute;inset:0 -6px}
   .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Fiches liées : chips en lecture, éditeur avec croix de retrait. */
   .related{margin:16px 0 4px}.related>b{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px}
@@ -2934,7 +2982,9 @@
      « Démarre » et « MAINT… ». On enroule, on ne tronque jamais (règle du dossier, déjà appliquée
      à l'Échelle et à la ligne d'état) : chaque bouton prend sa ligne quand la colonne est
      étroite, et retrouve sa voisine dès qu'il y a la place. */
-  .rt-dock .tm-ctrl{flex-direction:row;flex-wrap:wrap;gap:6px;margin-top:8px}
+  /* Écart 8 et non 6 : chaque bouton porte 4 px de halo, deux halos de 4 se recouvraient donc de
+     2 px quand la rangée s'enroule (mesuré). Un écart au moins égal à la somme des halos. */
+  .rt-dock .tm-ctrl{flex-direction:row;flex-wrap:wrap;gap:8px;margin-top:8px}
   .rt-dock .tm-btn{width:auto;flex:1 1 120px;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
   .rt-dock .tm-main{background:none;border-color:var(--sys-ink-2);color:var(--sys-ink);font-weight:800}
   .rt-dock .tm-btn:hover{background:var(--sys-2)}
@@ -3602,7 +3652,7 @@
   /* Le pied de carte : « Vérifier :: » à gauche, « Continuer » en dernier, pleine largeur
      restante — un seul rang, comme dans la maquette. */
   .flow-ctrl.has-ver{display:flex;gap:8px;align-items:stretch}
-  .flow-ctrl.has-ver .blk-ver{flex:none;min-height:46px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+  .flow-ctrl.has-ver .blk-ver{flex:none;min-height:46px;padding:0 14px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
   .flow-ctrl.has-ver .blk-ver:hover{background:var(--amb-2)}
   .flow-ctrl.has-ver .blk-ver:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .flow-ctrl.has-ver .btn.cont{flex:1;min-width:0}
@@ -5271,7 +5321,7 @@
      tout ce qui se vise en crise. Registre NEUTRE : quitter une passe n'est ni un danger ni une
      confirmation, c'est une sortie. */
   .v-quit{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 12px;
-    background:var(--work);border:1px solid var(--line-strong);border-radius:var(--r-2);
+    background:var(--work);border:1px solid var(--ctl-line);border-radius:var(--r-2);
     color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;letter-spacing:0;
     text-transform:none;white-space:nowrap;cursor:pointer}
   .v-quit:hover{background:var(--amb-2)}
@@ -5754,8 +5804,13 @@
      <summary> qui l'énonce — sans ça le titre s'affiche deux fois de suite. */
   .rs-sec .rs-in .block-h{display:none}
   /* Rangée d'accès en fin d'action : contour (jamais rempli — le rempli est « Continuer »). */
+  /* ⚠ C'EST UN BOUTON PLEINE LARGEUR, DONC SA LIMITE SE VOIT (v5.6, trouvé au balayage) : son
+     aplat ne vaut que 1,09:1 contre le fond de la colonne et son filet 1,15 — un contrôle dont on
+     ne distingue ni le fond ni le bord n'est pas un contrôle, c'est du texte (WCAG 2.2 § 1.4.11).
+     Il prend le token des bordures de composant, comme la case à cocher et le déclencheur de
+     filtres : 3,4:1 en clair, 3,7 en sombre. */
   .annex-row{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:10px 0 0;padding:10px 12px;
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    background:var(--surface);border:1px solid var(--ctl-line);border-radius:12px;
     font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}
   .annex-row:hover{border-color:var(--primary);background:var(--primary-soft)}
   .annex-row:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -6049,7 +6104,11 @@
     /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
        même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
        la phase et le titre dans l'éditeur). Cible 46 px par le halo. */
-    position:relative;width:38px;height:38px;min-height:38px;padding:0;border:1px solid var(--line-strong);
+    /* ⚠ `--ctl-line` ET NON `--line-strong` : dans la palette v5.6 c'est `--ctl-line` qui tient le
+       3:1 des BORDURES DE COMPOSANT (3,08 en clair, 3,68 en sombre) — `--line-strong` n'y vaut
+       plus que 1,62 et 1,33, et un bouton PLEIN dont la limite ne se voit pas est le défaut de la
+       pastille du compte (A43), à l'identique. Mesuré au balayage. */
+    position:relative;width:38px;height:38px;min-height:38px;padding:0;border:1px solid var(--ctl-line);
     border-radius:999px;background:var(--work);color:var(--act);font-family:inherit;
     font-size:var(--t-cap);font-weight:700;font-variant-numeric:tabular-nums;
     cursor:pointer;white-space:nowrap;transition:background .12s,border-color .12s,color .12s}
