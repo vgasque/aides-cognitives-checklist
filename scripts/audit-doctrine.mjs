@@ -38,10 +38,19 @@ await sec('ECAM · constance positionnelle du quai', async () => {
      liste des contrôles qui a changé, pas la règle. */
   const a=await snap(), pa=await geo('allBtn'), ra=await geo('refBtn');
   // faire varier l'état : ajouter des minuteurs (la partie VARIABLE du quai)
+  const nAv=await page.evaluate(()=>Object.keys(Runtime.timers).length);
   await page.evaluate(async()=>{
-    const add=[...document.querySelectorAll('.rt-add,.add-line')];
-    for(const b of add.slice(0,3)){b.click();await new Promise(r=>setTimeout(r,120));}});
+    /* Deux taps par minuteur depuis la v5.6 : la porte déplie, la durée crée. Sans le second, le
+       nombre de minuteurs ne bougeait pas — et ce témoin, qui vérifie que le quai ne se déplace
+       pas QUAND L'ÉTAT VARIE, ne rencontrait plus son cas. */
+    for(let i=0;i<3;i++){
+      const b=document.querySelector('[data-rtadd]');if(!b)break;
+      b.click();await new Promise(r=>setTimeout(r,120));
+      const d=document.querySelector('[data-rtnew]');if(!d)break;
+      d.click();await new Promise(r=>setTimeout(r,150));}});
   await page.waitForTimeout(300);
+  const nAp=await page.evaluate(()=>Object.keys(Runtime.timers).length);
+  t('témoin : l\'état a bien varié (minuteurs ajoutés)', nAp>nAv, `${nAv} → ${nAp}`);
   const b=await snap(), pb=await geo('allBtn'), rb=await geo('refBtn');
   t('ordre du quai identique quel que soit l\'état', JSON.stringify(a)===JSON.stringify(b), a+'\n      → '+b);
   t('axe de densité immobile (px)', pa!==null&&pa===pb, `${pa} → ${pb}`);
@@ -50,8 +59,17 @@ await sec('ECAM · constance positionnelle du quai', async () => {
   // montre que 2 en large — le 3ᵉ doit être annoncé par un « +n », jamais escamoté.
   const ov=await page.evaluate(async()=>{
     const ids=Object.keys(Runtime.timers);
-    while(ids.length<3){const b=document.querySelector('.rt-add,.add-line');if(!b)break;b.click();
-      await new Promise(r=>setTimeout(r,200));ids.splice(0,ids.length,...Object.keys(Runtime.timers));}
+    /* ⚠ LA PORTE DÉPLIE, PUIS CRÉE (v5.6, planche 11h) : un tap ne pose plus un minuteur, il ouvre
+       le choix de durée. Ce témoin comptait sur « un tap = un minuteur » et sa boucle tournait
+       DÉFINITIVEMENT — un `while` sans borne dans un `page.evaluate` est un blocage en attente.
+       Deux corrections : on suit le VRAI geste (deux taps), et la boucle est BORNÉE — un témoin
+       ne doit jamais pouvoir pendre, sinon c'est la passe entière qu'il emporte. */
+    for(let n=0;ids.length<3&&n<6;n++){
+      const b=document.querySelector('[data-rtadd]');if(!b)break;
+      b.click();await new Promise(r=>setTimeout(r,150));
+      const d=document.querySelector('[data-rtnew]');if(!d)break;
+      d.click();await new Promise(r=>setTimeout(r,200));
+      ids.splice(0,ids.length,...Object.keys(Runtime.timers));}
     ids.slice(0,3).forEach(k=>{const t=Runtime.timers[k];
       t.type='interval';t.seconds=t.seconds||120;t.running=false;t.elapsedMs=t.seconds*1000+5000;});
     updateRtStrip(Date.now());await new Promise(r=>setTimeout(r,120));
@@ -4788,6 +4806,130 @@ await sec('v5.6 · un filtre posé agit aussi en recherche', async () => {
    de contenu, et qui la faisait CHEVAUCHER la barre de 8 px — et elle se centrait sur la FENÊTRE
    (`max-width:660; margin:auto`) quand la barre s'aligne sur la COLONNE D'ACTION : 310..970 contre
    280..920 à 1280 px, 120..780 contre 20..540 à 900. */
+/* ══ v5.6 — LES TROIS GESTES D'APPAREIL ET DE VOLET (planches 11h, 11i, 11k) ═══════════════════
+   Le verrou de veille est le seul dont le défaut se mesure en CONSOMMATION : « un verrou redemandé
+   en boucle est un bogue de consommation », dit la planche — c'est donc le NOMBRE DE DEMANDES qu'on
+   compte, pas la présence d'un interrupteur. L'API est instrumentée AVANT le chargement : on ne
+   dépend ni du navigateur d'essai ni d'une permission. */
+await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:900},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.addInitScript(()=>{window.__wl={req:0,rel:0};
+    const s={addEventListener(){},release(){window.__wl.rel++;return Promise.resolve();}};
+    Object.defineProperty(navigator,'wakeLock',{value:{request:()=>{window.__wl.req++;return Promise.resolve(s);}},configurable:true});});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  const avant=await page.evaluate(()=>({...window.__wl,tenu:wakeActive()}));
+  t('hors session, aucun verrou n\'est demandé', avant.req===0&&avant.tenu===false, JSON.stringify(avant));
+  await demarrerSession(page);
+  await page.waitForTimeout(400);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const enSession={...window.__wl,tenu:wakeActive()};
+    for(let i=0;i<5;i++){render();await w(60);}
+    const apresRendus={...window.__wl,tenu:wakeActive()};
+    document.getElementById('cbTimers').click();await w(400);
+    document.getElementById('wakeToggle').click();await w(300);
+    const coupe={...window.__wl,tenu:wakeActive(),lbl:document.getElementById('wakeToggle').textContent.trim()};
+    document.getElementById('wakeToggle').click();await w(300);
+    const repris={...window.__wl,tenu:wakeActive()};
+    /* ══ MINUTEUR AD HOC : le ＋ DÉPLIE, la durée se choisit, le nom vient du dernier repère ══ */
+    const lbl=()=>document.querySelector('[data-rtadd]').textContent.trim();
+    const nu=lbl();
+    Runtime.events.push({id:'ez1',t:Date.now(),label:'Amiodarone'});render();await w(300);
+    const nomme=lbl();
+    document.querySelector('[data-rtadd]').click();await w(300);
+    const durees=[...document.querySelectorAll('[data-rtnew]')].map(b=>b.textContent.trim());
+    const champs=document.querySelectorAll('.rt-dock input[type=text],.rt-dock input[type=number]').length;
+    document.querySelector('[data-rtnew="180"]').click();await w(400);
+    const tm=Object.values(Runtime.timers).filter(x=>x.adhoc).pop();
+    /* ══ COMPTEUR AD HOC : créé À 1, un repère horodaté, et AUCUN timerId ══ */
+    const evAvant=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter').length;
+    document.querySelector('[data-cnadd]').click();await w(450);
+    const c=(Runtime.adhocCounters||[]).pop();
+    const cn={val:c?Runtime.counters[c.id]:null,lien:c?(c.timerId===undefined):null,
+      reperes:(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter').length-evAvant};
+    /* Le nom pressenti ne reprend JAMAIS un libellé de repli (« Compteur », « Action 3 »). */
+    const apresCompteur=lbl();
+    return {enSession,apresRendus,coupe,repris,nu,nomme,durees,champs,
+      tm:tm?{label:tm.label,sec:tm.seconds,running:tm.running}:null,cn,apresCompteur};});
+  t('en session, le verrou est demandé UNE fois',
+    r.enSession.req===1&&r.enSession.tenu===true, JSON.stringify(r.enSession));
+  t('… et cinq rendus ne le redemandent pas (pas de boucle de consommation)',
+    r.apresRendus.req===1, JSON.stringify(r.apresRendus));
+  t('… l\'interrupteur le relâche, et le dit', r.coupe.req===1&&r.coupe.rel===1
+    &&r.coupe.tenu===false&&/veille/i.test(r.coupe.lbl), JSON.stringify(r.coupe));
+  t('… et le redemande quand on le rallume', r.repris.req===2&&r.repris.tenu===true, JSON.stringify(r.repris));
+  /* Le bouton ne dit plus « PA » : il posait n'importe quel minuteur sous le nom d'un usage
+     particulier (décision de l'auteur). Sans nom pressenti, il ne dit que sa NATURE. */
+  t('＋ Minuteur : sans repère, il ne dit que sa nature',
+    /＋\s*Minuteur$/.test(r.nu)&&!/PA/.test(r.nu), r.nu);
+  t('… avec un repère, le bouton dit le nom qu\'il va poser', /Amiodarone/.test(r.nomme), r.nomme);
+  t('… et son tap déplie QUATRE durées, sans aucun champ',
+    r.durees.length===4&&r.champs===0, JSON.stringify(r.durees)+' · '+r.champs+' champ(s)');
+  t('… la durée choisie est celle du minuteur créé, qui porte le nom',
+    !!r.tm&&r.tm.sec===180&&r.tm.label==='Amiodarone'&&r.tm.running===true, JSON.stringify(r.tm));
+  t('＋ Compteur : créé À 1, avec son repère horodaté',
+    r.cn.val===1&&r.cn.reperes===1, JSON.stringify(r.cn));
+  t('… et SANS timerId : le lien vers une alarme est une décision d\'auteur', r.cn.lien===true);
+  t('… un libellé de repli ne devient jamais le nom pressenti d\'un minuteur',
+    !/Compteur|Action/.test(r.apresCompteur), r.apresCompteur);
+  /* ⚠ LE DÉROULÉ APPARTIENT AU TAP QUI OUVRE (A68/1, signalé à l'usage : « ajouter un minuteur
+     réinitialise le contenu, on perd le fil et ça fait un fondu blanc moche »). Le volet vit dans
+     `main` : tout rendu complet le remonte, et l'animation, portée par le MONTAGE, rejouait à
+     chaque geste. On mesure les deux moitiés — elle joue à l'ouverture, elle ne rejoue pas après —
+     et le défilement PROPRE du volet, qui repartait en haut. */
+  const roul=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const an=()=>{const d=document.querySelector('.rt-dock');return d?getComputedStyle(d).animationName:'—';};
+    document.getElementById('cbTimers').click();await w(300);          // referme
+    document.getElementById('cbTimers').click();await w(300);          // rouvre : le déroulé joue
+    const ouverture=an();
+    const d=document.querySelector('.rt-dock');d.scrollTop=40;const y0=d.scrollTop;
+    document.querySelector('[data-cnadd]').click();await w(450);
+    const d2=document.querySelector('.rt-dock');
+    return {ouverture,apres:an(),y0,y1:d2?d2.scrollTop:-1};});
+  t('le volet se déroule au tap qui l\'ouvre', roul.ouverture==='dockRoll', roul.ouverture);
+  t('… et NE se déroule plus à chaque geste dans le volet', roul.apres==='none', roul.apres);
+  t('… qui garde aussi son défilement propre', roul.y0>0&&roul.y1===roul.y0, `${roul.y0} → ${roul.y1}`);
+  await page.close();
+}
+{ /* SANS AUCUN MINUTEUR NI COMPTEUR PRÉDÉFINI, les deux portes existent quand même — c'est sur ces
+     fiches-là qu'on en a le plus besoin, puisque l'auteur n'en a prévu aucun. Le rail sortait à
+     vide et les emportait avec lui. */
+  for(const [nom,W] of [['390',390],['1280',1280]]){
+    const page=await br.newPage({viewport:{width:W,height:900},hasTouch:W<780});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await page.evaluate(async()=>{const f=fiches.find(x=>/Anaphylaxie/.test(x.title));
+      f.timers=[];f.counters=[];await persist();});
+    await ouvrirFiche(page,/Anaphylaxie/);await demarrerSession(page);
+    const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+      if(innerWidth<780){document.getElementById('cbTimers').click();await w(400);}
+      return {min:!!document.querySelector('[data-rtadd]'),cn:!!document.querySelector('[data-cnadd]')};});
+    t(`${nom} · fiche sans minuteur : les deux portes existent`, r.min&&r.cn, JSON.stringify(r));
+    await page.close();
+  }
+}
+{ /* SANS L'API : la ligne n'existe pas. Dégradation silencieuse — jamais un message qui explique
+     une absence, et surtout pas un interrupteur qui ne commande rien. */
+  const page=await br.newPage({viewport:{width:390,height:900},hasTouch:true});
+  await page.addInitScript(()=>{Object.defineProperty(navigator,'wakeLock',{value:undefined,configurable:true});});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);await ouvrirFiche(page,/Anaphylaxie/);await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    document.getElementById('cbTimers').click();await w(400);
+    return {veille:!!document.getElementById('wakeToggle'),son:!!document.getElementById('soundToggle')};});
+  t('sans l\'API, aucune ligne de veille — et le son reste', r.veille===false&&r.son===true,
+    JSON.stringify(r));
+  await page.close();
+}
+});
+
 await sec('v5.6 · le volet du dock suit la barre flottante', async () => {
 {
   for(const W of [390,900,1280]){

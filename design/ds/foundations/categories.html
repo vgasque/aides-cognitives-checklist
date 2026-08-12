@@ -2942,8 +2942,15 @@
      ainsi à l'échelle 1 : la boîte se déroule, le texte ne s'étire pas. Rien ne bouge derrière (le
      volet est `fixed`), et l'ensemble est INERTE sous `prefers-reduced-motion`. */
   @media (prefers-reduced-motion:no-preference){
-    .rt-dock{animation:dockRoll .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
-    .rt-dock>*{animation:dockRollIn .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+    /* ⚠ LE DÉROULÉ NE JOUE QU'À L'OUVERTURE (v5.6, signalé à l'usage : « ajouter un minuteur
+       réinitialise le contenu, on perd le fil et ça fait un fondu blanc moche »). L'animation
+       était portée par le MONTAGE de `.rt-dock` — or le volet vit dans `main`, donc tout rendu
+       complet le remonte et le REJOUE : ajouter un compteur, le nommer, en supprimer un, chacun
+       faisait re-dérouler le volet entier sous les doigts. C'est A68/1 pris en défaut — le
+       mouvement doit répondre au GESTE qui l'a demandé, pas à un rendu de passage.
+       La classe est POSÉE UNE FOIS, par le tap du quai, et consommée par le rendu qui suit. */
+    .rt-dock.rt-roll{animation:dockRoll .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+    .rt-dock.rt-roll>*{animation:dockRollIn .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
   }
   @keyframes dockRoll{from{transform:scaleY(.55);opacity:.35}to{transform:scaleY(1);opacity:1}}
   @keyframes dockRollIn{from{transform:scaleY(1.8182)}to{transform:scaleY(1)}}
@@ -7176,6 +7183,32 @@
   /* P2-5 (audit design v4.56) : en session on incrémente 10 fois pour 1 correction — l'action
      fréquente prend la MASSE (tonal --primary-soft, jamais un rempli : réservé au CTA), la
      corrective reste un contour compact ≥ 44 px. */
+  /* « — nommer » / « ✎ » / « ✕ » d'un compteur ad hoc : des LIENS dans le libellé, pas des
+     boutons de la rangée de commandes — ils ne comptent rien, ils règlent l'objet. Cible 32 px,
+     plancher HORS registre d'alarme (un compteur ne sonne pas) ; le volet n'a pas 44 px à donner
+     à trois contrôles de plus sur une carte qui en porte déjà trois. */
+  /* Les quatre durées : une rangée de crans, cibles de 44 px (on est en crise), corps du texte
+     courant en chasse fixe — ce sont des VALEURS, elles s'alignent. Aucun champ, aucun clavier. */
+  .tm-add-d{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 8px}
+  .tm-add-h{flex:1 1 100%;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-soft)}
+  .tm-add-b{flex:1 1 auto;min-height:44px;padding:0 12px;font-family:var(--mono);
+    font-size:var(--t-body);font-weight:700;color:var(--ink);background:var(--work);
+    border:1px solid var(--ctl-line);border-radius:var(--r-2);cursor:pointer}
+  .tm-add-b:hover{background:var(--amb-2)}
+  .tm-add-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .tm-add-n{margin:-4px 0 8px;font-size:var(--t-cap);color:var(--ink-soft)}
+  .rt-dock .tm-add-h,.rt-dock .tm-add-n{color:var(--sys-ink-2)}
+  .rt-dock .tm-add-b{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
+  .cn-nm{background:none;border:0;padding:2px 6px;min-height:32px;font-family:inherit;
+    font-size:var(--t-cap);font-weight:700;color:var(--act);cursor:pointer;border-radius:var(--r-1)}
+  .cn-nm:hover{background:var(--primary-soft)}
+  .cn-nm:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .cn-rm{color:var(--ink-soft)}
+  .cn-input{flex:1 1 100%;min-width:0;margin-top:4px;padding:6px 8px;font-family:inherit;font-size:16px;
+    border:1px solid var(--ctl-line);border-radius:var(--r-1);background:var(--input-bg);color:var(--ink)}
+  .rt-dock .cn-nm{color:var(--sys-ink-2)}
+  .rt-dock .cn-nm:hover{background:var(--sys-2)}
   .cn-btn[data-cninc]{flex:1.4;background:var(--primary-soft);border:0;color:var(--primary-dk);font-weight:800}
   .cn-btn[data-cninc]:hover{background:var(--primary-100)}
   .cn-btn[data-cndec]{width:44px}

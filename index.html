@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-6a11JWHFU34IQByMoWOuDmVuoVKiZCR8gGuspEtepO8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-FxS4LFHUSi0jZ9o19f9sTpmKYzWmuECOGwnEtHcKS24='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3287,8 +3287,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ainsi à l'échelle 1 : la boîte se déroule, le texte ne s'étire pas. Rien ne bouge derrière (le
      volet est `fixed`), et l'ensemble est INERTE sous `prefers-reduced-motion`. */
   @media (prefers-reduced-motion:no-preference){
-    .rt-dock{animation:dockRoll .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
-    .rt-dock>*{animation:dockRollIn .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+    /* ⚠ LE DÉROULÉ NE JOUE QU'À L'OUVERTURE (v5.6, signalé à l'usage : « ajouter un minuteur
+       réinitialise le contenu, on perd le fil et ça fait un fondu blanc moche »). L'animation
+       était portée par le MONTAGE de `.rt-dock` — or le volet vit dans `main`, donc tout rendu
+       complet le remonte et le REJOUE : ajouter un compteur, le nommer, en supprimer un, chacun
+       faisait re-dérouler le volet entier sous les doigts. C'est A68/1 pris en défaut — le
+       mouvement doit répondre au GESTE qui l'a demandé, pas à un rendu de passage.
+       La classe est POSÉE UNE FOIS, par le tap du quai, et consommée par le rendu qui suit. */
+    .rt-dock.rt-roll{animation:dockRoll .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
+    .rt-dock.rt-roll>*{animation:dockRollIn .18s cubic-bezier(.2,.7,.3,1) both;transform-origin:top center}
   }
   @keyframes dockRoll{from{transform:scaleY(.55);opacity:.35}to{transform:scaleY(1);opacity:1}}
   @keyframes dockRollIn{from{transform:scaleY(1.8182)}to{transform:scaleY(1)}}
@@ -7521,6 +7528,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* P2-5 (audit design v4.56) : en session on incrémente 10 fois pour 1 correction — l'action
      fréquente prend la MASSE (tonal --primary-soft, jamais un rempli : réservé au CTA), la
      corrective reste un contour compact ≥ 44 px. */
+  /* « — nommer » / « ✎ » / « ✕ » d'un compteur ad hoc : des LIENS dans le libellé, pas des
+     boutons de la rangée de commandes — ils ne comptent rien, ils règlent l'objet. Cible 32 px,
+     plancher HORS registre d'alarme (un compteur ne sonne pas) ; le volet n'a pas 44 px à donner
+     à trois contrôles de plus sur une carte qui en porte déjà trois. */
+  /* Les quatre durées : une rangée de crans, cibles de 44 px (on est en crise), corps du texte
+     courant en chasse fixe — ce sont des VALEURS, elles s'alignent. Aucun champ, aucun clavier. */
+  .tm-add-d{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 8px}
+  .tm-add-h{flex:1 1 100%;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-soft)}
+  .tm-add-b{flex:1 1 auto;min-height:44px;padding:0 12px;font-family:var(--mono);
+    font-size:var(--t-body);font-weight:700;color:var(--ink);background:var(--work);
+    border:1px solid var(--ctl-line);border-radius:var(--r-2);cursor:pointer}
+  .tm-add-b:hover{background:var(--amb-2)}
+  .tm-add-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .tm-add-n{margin:-4px 0 8px;font-size:var(--t-cap);color:var(--ink-soft)}
+  .rt-dock .tm-add-h,.rt-dock .tm-add-n{color:var(--sys-ink-2)}
+  .rt-dock .tm-add-b{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
+  .cn-nm{background:none;border:0;padding:2px 6px;min-height:32px;font-family:inherit;
+    font-size:var(--t-cap);font-weight:700;color:var(--act);cursor:pointer;border-radius:var(--r-1)}
+  .cn-nm:hover{background:var(--primary-soft)}
+  .cn-nm:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .cn-rm{color:var(--ink-soft)}
+  .cn-input{flex:1 1 100%;min-width:0;margin-top:4px;padding:6px 8px;font-family:inherit;font-size:16px;
+    border:1px solid var(--ctl-line);border-radius:var(--r-1);background:var(--input-bg);color:var(--ink)}
+  .rt-dock .cn-nm{color:var(--sys-ink-2)}
+  .rt-dock .cn-nm:hover{background:var(--sys-2)}
   .cn-btn[data-cninc]{flex:1.4;background:var(--primary-soft);border:0;color:var(--primary-dk);font-weight:800}
   .cn-btn[data-cninc]:hover{background:var(--primary-100)}
   .cn-btn[data-cndec]{width:44px}
@@ -8688,6 +8721,55 @@ function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',st
 let Runtime=makeRuntime();
 const liveSessions={};
 let soundOn=true;
+let _rollOnce=false;   // le volet du quai se déroule au tap qui l'ouvre — pas à chaque rendu (A68/1)
+/* ══ L'ÉCRAN NE S'ÉTEINT PAS PENDANT UNE SESSION (v5.6, planche 11k) ═══════════════════════════
+   Aucune occurrence de `wakeLock` dans le fichier : pendant une réanimation de vingt minutes,
+   l'écran s'éteint seul et le geste suivant commence par réveiller un téléphone — l'outil se
+   retire pendant qu'on s'en sert. C'est un défaut d'intuitif au sens le plus littéral.
+   QUATRE RÈGLES LE RENDENT NON INVASIF, et ce sont elles qui décident du code :
+   1. DEMANDÉ SEULEMENT PENDANT UNE SESSION VIVE — relâché à la fin et au masquage, REDEMANDÉ au
+      retour au premier plan (le verrou est perdu à chaque masquage, notamment sur iOS).
+      ⚠ Et redemandé UNE FOIS, sur l'évènement : un verrou redemandé en boucle est un bogue de
+      consommation, ce que la planche demande justement de ne pas écrire.
+   2. AUCUNE FENÊTRE, AUCUNE PERMISSION. L'API n'en demande pas ; là où elle manque, il ne se passe
+      rien et la ligne ne s'affiche pas — DÉGRADATION SILENCIEUSE, jamais un message qui explique
+      une absence. Une demande refusée (batterie faible : le navigateur peut refuser) ne dit rien
+      non plus : elle laisse l'interrupteur sur « laissé au système ».
+   3. UNE LIGNE, DANS LE VOLET, SUR GESTE : elle n'apparaît pas d'elle-même sur la surface de soin.
+   4. ELLE SE COUPE COMME LE SON SE COUPE — batterie faible, transport long, tablette partagée :
+      c'est un réglage, donc il a un interrupteur, et l'état est VISIBLE plutôt que deviné.
+   Le choix est PERSISTÉ par utilisateur (comme le thème et le son) : le rallumer à chaque session
+   serait un réglage qu'on ne peut pas régler. */
+/* ⚠ ON TESTE LA CAPACITÉ, PAS LA PRÉSENCE DE LA CLÉ : `'wakeLock' in navigator` est VRAI même
+   quand la propriété vaut `undefined` (un navigateur peut la déclarer sans l'implémenter, et un
+   harnais qui la neutralise la laisse en place). Sans cela la ligne s'afficherait là où rien ne
+   peut se produire — l'inverse de la dégradation silencieuse. */
+const WAKE_OK=(typeof navigator!=='undefined'&&!!navigator.wakeLock&&typeof navigator.wakeLock.request==='function');
+let wakeWanted=(()=>{try{return localStorage.getItem(spaceKey('ac-wake'))!=='0';}catch(e){return true;}})();
+let _wakeSentinel=null,_wakeBusy=false;
+function wakeActive(){return !!_wakeSentinel;}
+async function wakeApply(){
+  if(!WAKE_OK||_wakeBusy)return;
+  const veut=wakeWanted&&crisisOnScreen()&&document.visibilityState==='visible';
+  if(veut===!!_wakeSentinel)return;                     // rien à faire : pas de demande en boucle
+  _wakeBusy=true;
+  try{
+    if(veut){_wakeSentinel=await navigator.wakeLock.request('screen');
+      /* Le système peut relâcher de lui-même (batterie, réglage) : on l'apprend, on ne le
+         redemande pas — sinon c'est la boucle que la planche interdit. */
+      _wakeSentinel.addEventListener('release',()=>{_wakeSentinel=null;syncWakeBtn();});}
+    else{const s=_wakeSentinel;_wakeSentinel=null;if(s)await s.release();}
+  }catch(e){_wakeSentinel=null;}                        // refus : silence, l'écran reprend sa règle
+  _wakeBusy=false;syncWakeBtn();}
+function syncWakeBtn(){
+  const b=document.getElementById('wakeToggle');if(!b)return;
+  const on=wakeWanted;
+  b.classList.toggle('off',!on);
+  b.setAttribute('aria-pressed',on?'true':'false');
+  b.innerHTML=uiIcon(on?'sun':'moon',13)+(on?' Écran maintenu':' Veille normale');
+  b.title=on?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale'
+            :'La veille du système s’applique — appuyer pour maintenir l’écran allumé';}
+document.addEventListener('visibilitychange',()=>{wakeApply();});
 let AC=null;
 // La clé primaire du cloud est GLOBALE (tous comptes confondus) : une collision d'ids entre deux
 // comptes rend la fiche du second impossible à pousser (refus RLS 403) -> 8+ caractères tirés
@@ -11505,6 +11587,19 @@ function buildRuntime(f,session){
   else R.navSeq=(session&&session.navSeq&&session.navSeq.length===R.nav.length)?session.navSeq.slice():R.nav.map((_,i)=>i+1);
   R.seq=R.navSeq.reduce((m,v)=>Math.max(m,v),0);
   R.counters={};(f.counters||[]).forEach(c=>{R.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
+  /* ══ COMPTEURS AD HOC — l'asymétrie que la planche 11i a mesurée (v5.6) ═══════════════════════
+     Les compteurs ne venaient que de `f.counters` : rien n'en créait en session, alors que les
+     MINUTEURS, eux, ont `[data-rtadd]` depuis toujours. Or un compteur ne sonne pas, n'échoit pas,
+     n'entre jamais dans le registre d'alarme — c'est l'objet le MOINS risqué du volet, et le seul
+     qu'on ne pouvait pas poser quand il manquait. Chocs, doses non prévues par l'auteur, relais de
+     masseur : on comptait de tête.
+     ⚠ AUCUN `timerId` : le lien compteur → minuteur relance une alarme, c'est une décision
+     d'AUTEUR. Un compteur posé en pleine crise n'en hérite pas et ne s'en invente pas.
+     Ils vivent dans la session (`extraCounters`), exactement comme `extraTimers`. */
+  R.adhocCounters=((session&&Array.isArray(session.extraCounters))?session.extraCounters:[])
+    .slice(0,20).map(c=>({id:safeId(c&&c.id,'c'),label:sstr(c&&c.label,80),adhoc:true}))
+    .filter(c=>c.id);
+  R.adhocCounters.forEach(c=>{R.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:0;});
   // Minuteurs reconstruits EN PAUSE (running=false) : on restaure le temps écoulé/cycles mais on ne
   // fait pas « rattraper » le temps passé app fermée. Une session vive rechargée reprend en pause.
   R.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];R.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,...tmStopFrom(sv,session)};});
@@ -11563,6 +11658,7 @@ function snapshotSession(R,live){const now=Date.now();const tsnap={};
   Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles,running:!!t.running,stoppedAt:t.stoppedAt||0};});
   return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,aidRev:R.aidRev||0,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},stepTexts:stepTextsFor(R),cxBack:{...(R.cxBack||{})},exercise:!!R.exercise,nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
     extraTimers:Object.values(R.timers).filter(t=>t.adhoc).map(t=>({id:t.id,label:t.label,seconds:t.seconds,autoloop:!!t.autoloop})),
+    extraCounters:(R.adhocCounters||[]).map(c=>({id:c.id,label:c.label})),
     events:(R.events||[]).map(e=>({...e}))};}
 // COMPTE-RENDU d'une session : chronologie horodatée (repères), étapes réalisées, compteurs et
 // minuteurs finaux. AFFICHÉ dans l'app (aperçu), puis Imprimer / Télécharger à la demande — jamais
@@ -11816,6 +11912,7 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
 let lastEndedSession=null;
 function endSession(R){if(!R||!R.fiche)return;
   Object.values(R.timers).forEach(t=>{if(t.running)toggleTimer(t);});
+  setTimeout(wakeApply,0);   // la session finit : l'écran reprend la veille du système (11k)
   /* K5 — UN ESSAI NE S'ARCHIVE PAS. On arrête les minuteurs (ils tournent vraiment) et on s'en
      va : ni instantané, ni entrée d'historique, ni carte-bilan sur l'accueil. Il n'y a rien à
      restituer d'un brouillon qu'on vient d'écrire, et une ligne « session » dans l'historique
@@ -12231,7 +12328,8 @@ function updateRtStrip(now){
       bascule, mais il SUIT le défilement ; `_histArm()` à l'ouverture, comme toute surface qui
       recouvre (doctrine v4.30.0), pour que le retour système le referme au lieu de sortir. */
    if(!mqRail.matches){const open=!state.rtOpen;state.rtOpen=open?'dock':false;
-     if(open&&typeof _histArm==='function')_histArm();
+     if(open){_rollOnce=true;                       // le déroulé appartient à CE tap, et à lui seul
+       if(typeof _histArm==='function')_histArm();}
      renderKeepAnchor('#cbTimers');return;}
    const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
@@ -15770,7 +15868,7 @@ function shareCan(role,kind){
    son repli ou sa position de lecture à l'autre serait un mouvement non commandé. La frontière
    est écrite ICI et vérifiée par un test — sinon elle se re-perdra au prochain champ ajouté. */
 const SHARE_TRAVELS=['checked','verified','vgaps','nav','navSeq','counters','timers','events','flowEnded','cxBack'];
-const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','navPos','rtOpen','railTkOpen','railLadOpen','fsOpen','showFlow','readMode','previewFrom','cxOpen','tkSheet','railTmOpen'];
+const SHARE_LOCAL  =['confOpen','ovFold','ovVerify','navPos','rtOpen','railTkOpen','railLadOpen','fsOpen','showFlow','readMode','previewFrom','cxOpen','tkSheet','railTmOpen','tmAddOpen'];
 /* CODE D'APPARIEMENT — lecture, normalisation, affichage.
    L'alphabet est RECOPIÉ du serveur, qui reste la seule autorité : ce qui est ici ne sert qu'à
    refuser tôt une saisie manifestement fautive et à afficher un message utile. Une divergence
@@ -16360,7 +16458,12 @@ function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw
     ${timerStopHtml(t)}
     <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button>${timerDue(t)&&!t.ack?`<button type="button" class="tm-btn tm-ack" data-tmack="${t.id}" aria-label="Acquitter l’alarme — ${lbl} ; le minuteur reste échu, seul le bandeau se tait">✓ Vu</button>`:''}<button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
 // Rangée COMPACTE d'un minuteur ad hoc (48px) : libellé · temps · ⟲ relance · ✕ suppression.
-function timerMiniRow(t){const d=timerDisplay(t,Date.now());const lbl=esc(t.label)||'Minuteur';
+function timerMiniRow(t){const d=timerDisplay(t,Date.now());
+  /* Un ad hoc sans nom se numérote À L'AFFICHAGE (rang parmi les ad hoc), jamais à l'écriture —
+     sinon deux minuteurs nus porteraient le même mot et l'on ne saurait pas lequel on relance. */
+  const rang=t.adhoc&&!t.label
+    ?' '+(Object.values(Runtime.timers).filter(x=>x.adhoc).indexOf(t)+1):'';
+  const lbl=esc(t.label)||('Minuteur'+rang);
   return `<div class="tm-mini${timerDue(t)?' due':''}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><span class="tmm-l">${lbl}</span><span class="tmm-t" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${d.val}">${d.val}</span><button class="tmm-b" data-tmrestart="${t.id}" title="Relancer (${fmtMs((t.seconds||0)*1000)})" aria-label="Relancer — ${lbl}">⟲</button><button class="tmm-b" data-tmrm="${t.id}" title="Supprimer ce minuteur" aria-label="Supprimer — ${lbl}">✕</button></div>`;}
 // Libellé du bouton principal : « Pause » quand ça tourne, « Relancer » une fois démarré puis
 // mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après remise à zéro.
@@ -16431,8 +16534,13 @@ function syncTimerBtns(t){const lbl=esc(t.label)||(t.type==='interval'?'Minuteur
     if(plein||card.classList.contains('tm-mini')){card.classList.toggle('due',timerDue(t));if(plein){card.classList.toggle('paused',timerPaused(t));card.classList.toggle('run',!!t.running);}}}
   const la=document.getElementById('tmlab-'+t.id);if(la){const sl=timerStateLabel(t);if(la.textContent!==sl)la.textContent=sl;}}
 function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)||'Compteur';
+  /* « — nommer » N'EXISTE QUE SUR UN COMPTEUR AD HOC : celui de l'auteur porte un nom décidé au
+     calme, le renommer en pleine crise n'aurait pas de sens. Nommer reste FACULTATIF et DIFFÉRÉ
+     (doctrine du repère horodaté) : on appuie sur ＋ parce que l'événement vient d'avoir lieu, le
+     mot vient après ou jamais. La suppression vit au même endroit, au registre du ✕ des minis. */
+  const nom=c.adhoc?`<button type="button" class="cn-nm" data-cnname="${esc(c.id)}" aria-label="Nommer ce compteur">${c.label?'✎':'— nommer'}</button><button type="button" class="cn-nm cn-rm" data-cnrm="${esc(c.id)}" aria-label="Supprimer ce compteur">✕</button>`:'';
   const linked=c.timerId&&Runtime.timers[c.timerId];
-  return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${lbl}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-log" id="cnlog-${c.id}">${cnLogTxt(c.id)}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div>${linked?`<div class="cn-note">＋ relance le minuteur « ${esc(Runtime.timers[c.timerId].label)||'Minuteur'} »</div>`:''}<button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
+  return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${c.adhoc&&!c.label?'Compteur '+((Runtime.adhocCounters||[]).indexOf(c)+1):lbl}${nom}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-log" id="cnlog-${c.id}">${cnLogTxt(c.id)}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div>${linked?`<div class="cn-note">＋ relance le minuteur « ${esc(Runtime.timers[c.timerId].label)||'Minuteur'} »</div>`:''}<button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
 /* « CONSIGNÉ À … » — LA TRACE SE VOIT, POUR NE PAS ÊTRE REFAITE (v5.0.0, demande utilisateur :
    « éviter de le faire 2 fois »). Incrémenter POSE DÉJÀ un repère horodaté dans le journal
    (`ref:{type:'counter',…}`, v4.52.0) — mais rien ne le disait, et l'on pouvait aller « Noter
@@ -16468,7 +16576,53 @@ function setCounterVal(id){paintJalons();
    rail garde son ordre (minuteurs → posologie → Échelle → journal).
    v5.4.2 : la rangée repliée du flux qui portait cet accès en étroit est SUPPRIMÉE (cf. la
    doctrine dans runtimePanel) — le quai est l'accès unique, `rtRowLabel` est parti avec elle. */
-function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=f.counters||[];
+/* ══ LE MINUTEUR AD HOC DIT CE QU'IL CRÉE, ET SA DURÉE SE CHOISIT (v5.6, planche 11h) ═════════
+   Le geste existait et il était juste — un tap, objet déjà réglé, démarré, supprimable : le risque
+   n'est pas la CRÉATION, c'est la SAISIE. Deux limites mesurées : la durée valait 300 s en dur, et
+   le nom DÉGÉNÉRAIT (`'PA'+(n+1)` → « PA, PA 2, PA 3 »), c'est-à-dire trois minuteurs qui ne
+   disaient plus ce qu'ils surveillaient.
+   · LE NOM VIENT DU DERNIER REPÈRE (`tkLabels`, vocabulaire déjà normalisé) et le bouton l'annonce
+     AVANT le tap. Aucun repère encore noté → le libellé d'avant : la proposition n'invente pas un
+     mot quand elle n'en a pas.
+   · LA DURÉE SE CHOISIT EN UN SECOND TAP, parmi QUATRE valeurs. Jamais de champ, jamais de
+     clavier ; et un SEUL ＋ qui déplie, jamais quatre ＋ dans une rangée que la largeur du volet ne
+     supporte pas.
+   ⚠ RÈGLE 15 — ET ELLE SE VÉRIFIE, ELLE NE SE SUPPOSE PAS : `label` est strictement local. Mesuré :
+   `shareSnap` n'envoie d'un minuteur que `{running, elapsedMs, cycles, anchor}` sous sa CLÉ, et un
+   minuteur ad hoc n'existe pas chez l'invité (il vit dans la session, qui ne voyage pas). Le nom
+   tiré d'un repère ne peut donc pas traverser le réseau : la contrainte est tenue par construction,
+   pas par une garde qu'il faudrait maintenir. */
+const TM_DUREES=[120,180,300,600];
+/* ⚠ UN NOM PAR DÉFAUT N'EST PAS UN NOM (v5.6, trouvé à la mesure). Le dernier repère se résout
+   parfois sur un LIBELLÉ DE REPLI — « Action 3 » pour un repère nu (tkLabels), « Compteur »,
+   « Minuteur », « Chronomètre » pour un objet sans nom (A58). Repris tels quels, ils donnaient
+   « ＋ Minuteur Compteur », c'est-à-dire la dégénérescence de « PA 2, PA 3 » sous un autre visage.
+   La règle de la planche est explicite : la proposition n'invente pas de mot quand elle n'en a
+   pas — sans nom réel, le bouton reprend son libellé d'avant. */
+const TM_GENERIQUE=/^(Action \d+|Compteur|Minuteur|Chronomètre)$/i;
+function tmAddName(){
+  const ev=(Runtime.events||[]).filter(e=>e&&!e.voidAt);
+  if(!ev.length)return '';
+  const l=sstr(tkLabels(ev,Runtime.fiche,myTags())[ev.length-1]||'',40).trim();
+  return TM_GENERIQUE.test(l)?'':l;}
+function tmAddHtml(){
+  const nom=tmAddName(), ouvert=!!state.tmAddOpen;
+  /* ⚠ PLUS DE « PA » PAR DÉFAUT (v5.6, demande de l'auteur). C'était le reste du geste d'origine —
+     « ＋ Minuteur PA 5:00 », un minuteur de surveillance tensionnelle câblé en dur. Le bouton pose
+     maintenant n'importe quel minuteur : lui laisser le nom d'un usage particulier, c'est nommer
+     autre chose que ce qu'il fait. Sans nom pressenti, il ne dit que sa NATURE. */
+  const t=nom?('Minuteur '+nom):'Minuteur';
+  /* ⚠ PLUS DE « 5:00 » DANS LE LIBELLÉ : la durée n'est plus décidée d'avance, elle se choisit au
+     tap suivant. Un bouton qui annonce une valeur qu'il ne pose pas est de la mode confusion
+     (A38) — il dit maintenant ce qu'il fait : ouvrir le choix. */
+  return `<button class="add-line rt-add" data-rtadd aria-expanded="${ouvert?'true':'false'}" title="Ajouter un minuteur pour cette session — la durée se choisit ensuite">＋ ${esc(t)}</button>`
+    +(ouvert?`<div class="tm-add-d" role="group" aria-label="Durée du nouveau minuteur"><span class="tm-add-h">Choisir la durée</span>${
+      TM_DUREES.map(sec=>`<button type="button" class="tm-add-b" data-rtnew="${sec}">${fmtMs(sec*1000)}</button>`).join('')}</div>`:'')
+    +(nom&&ouvert?`<div class="tm-add-n">d’après votre dernier repère</div>`:'');}
+/* La porte du compteur ad hoc. Même grammaire que « ＋ Minuteur » — c'est la même famille de
+   geste, et le volet n'a pas la place d'en inventer une seconde. */
+const cnAddHtml=()=>`<button class="add-line rt-add" data-cnadd title="Ajouter un compteur pour cette session — créé à 1">＋ Compteur</button>`;
+function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=(f.counters||[]).concat(Runtime.adhocCounters||[]);
   /* v5.4.2 — LE QUAI EST L'ACCÈS UNIQUE EN ÉTROIT (décision utilisateur : « il appartient
      maintenant au rail ») : la RANGÉE REPLIÉE du flux est SUPPRIMÉE. Le double accès de la
      v5.4.1 (« pousser sans couvrir » dans le flux / « suivre en couvrant » depuis le quai) a
@@ -16480,8 +16634,19 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
      sa propre section). Le panneau s'ouvre par le quai (#cbTimers) — jamais automatiquement,
      l'échéance s'annonce sur place (règle 11). */
   if(!mqRail.matches&&!state.rtOpen)return '';
-  if(mqRail.matches&&!tl.length&&!minis.length&&!cl.length)return '';
-  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`;
+  /* ⚠ LE RAIL NE SE TAIT PLUS QUAND LA FICHE N'A RIEN (v5.6, signalé à l'usage : « lorsque la
+     session n'a pas de minuteur ou chronomètre pré-défini, l'option d'ajouter ne s'affiche
+     pas »). Le panneau entier sortait à vide — donc les deux PORTES avec lui, et il devenait
+     impossible de poser un minuteur ad hoc sur les fiches qui en ont le plus besoin : celles où
+     l'auteur n'en avait prévu aucun. La règle « un panneau vide est du bruit » vise ce qui
+     AFFIRME quelque chose (« 0 minuteur »), pas deux boutons qui ouvrent une capacité — c'est la
+     même distinction que le chapeau « Ne pas oublier », affiché vide parce qu'il INVITE (v4.76.0).
+     Le panneau ne disparaît donc que HORS session : sans soin en cours, il n'y a rien à créer. */
+  if(mqRail.matches&&!tl.length&&!minis.length&&!cl.length&&!Runtime.started)return '';
+  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`
+    /* Le verrou de veille vit là où le son se règle : même rangée, même registre, même grammaire
+       d'interrupteur. Là où l'API manque, la ligne n'existe pas (dégradation silencieuse). */
+    +(WAKE_OK?`<button class="rt-sound${wakeWanted?'':' off'}" id="wakeToggle" aria-pressed="${wakeWanted?'true':'false'}" title="${wakeWanted?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale':'La veille du système s’applique — appuyer pour maintenir l’écran allumé'}">${uiIcon(wakeWanted?'sun':'moon',13)}${wakeWanted?' Écran maintenu':' Veille normale'}</button>`:'');
   /* v5.4.1 — LES FAMILLES SE NOMMENT (décision utilisateur : « minuteurs / compteurs / journal
      peu identifiables, tout se colle et se mélange ») : un sous-titre PAR FAMILLE — MINUTEURS
      (avec les minis et « ＋ Minuteur PA », qui en créent), COMPTEURS, et le JOURNAL qui porte
@@ -16491,13 +16656,15 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
      minuteur — chaque objet rejoint sa famille. */
   const nt=tl.length+minis.length;
   const famN=n=>n>1?`<span class="fam-n">${n}</span>`:'';
-  const timersB=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}<button class="add-line rt-add" data-rtadd title="Ajouter un minuteur de surveillance PA (5 min) pour cette session">＋ Minuteur PA 5:00</button>`;
+  const timersB=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}${tmAddHtml()}`;
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
   if(mqRail.matches){
     return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}${sound}</div>${timersB}`
-      +(cl.length?`<div class="rail-head rail-fam"><span class="rail-title">Compteurs</span>${cl.length>1?`<span class="rail-n">${cl.length}</span>`:''}</div><div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'');}
+      +`<div class="rail-head rail-fam"><span class="rail-title">Compteurs</span>${cl.length>1?`<span class="rail-n">${cl.length}</span>`:''}</div>`
+      +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml();}
   const cards=`<div class="tk-head rt-famh"><b>Minuteurs${famN(nt)}</b></div>${timersB}`
-    +(cl.length?`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div><div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'');
+    +`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div>`
+    +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml();
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
@@ -17479,7 +17646,9 @@ function renderRead(){
     if(i>0)stages.unshift(stages.splice(i,1)[0]);}
   /* LE DÉPLIANT DU QUAI : rendu EN TÊTE de la colonne d'action, donc juste sous le quai qui l'a
      ouvert. En large (≥ 780 px) le rail porte déjà les minuteurs — il n'y a rien à déplier. */
-  const dockPanel=(!wideRead&&state.rtOpen==='dock')?`<div class="rt-dock">${rtH}</div>`:'';
+  const dockPanel=(!wideRead&&state.rtOpen==='dock')
+    ?`<div class="rt-dock${_rollOnce?' rt-roll':''}">${rtH}</div>`:'';
+  _rollOnce=false;   // consommée : le prochain rendu ne re-déroule pas un volet déjà ouvert
   /* ⚠ ACTION 3 DE L'AUDIT — LE PRÉAMBULE AVANT LA PREMIÈRE ÉTAPE. Mesuré à 320 × 640, session
      démarrée : la première case à cocher naissait à y = 438 px, soit 68 % de l'écran consommés
      avant la première ligne actionnable. Deux titres y sont REDONDANTS, et seulement en session :
@@ -17497,6 +17666,9 @@ function renderRead(){
   // SVG). Vaut pour tous les chemins ; les mises à jour chirurgicales (renderTkOnly, boutons de
   // minuteur sans re-rendu) restent préférables, ceci est le FILET GLOBAL.
   const _railY=(()=>{const s=document.querySelector('.read-side');return s?s.scrollTop:0;})();
+  /* Le VOLET a lui aussi son défilement propre (v5.6) : sans capture, ajouter un objet le
+     ramenait en haut — « on perd le fil ». Même règle que `.read-side`, même endroit. */
+  const _dockY=(()=>{const d=document.querySelector('.rt-dock');return d?d.scrollTop:0;})();
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
@@ -17513,6 +17685,7 @@ function renderRead(){
     ${gridClose}`;
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   if(_railY){const s=document.querySelector('.read-side');if(s)s.scrollTop=_railY;}
+  if(_dockY){const d=document.querySelector('.rt-dock');if(d)d.scrollTop=_dockY;}
   bindReadEvents(f,blk,cur);
 }
 /* Re-rendu de DÉMARRAGE de session (1ʳᵉ action) avec ANCRAGE : le bouton « Confirmé — démarrer »
@@ -17704,6 +17877,10 @@ function bindReadEvents(f,blk,cur){
   /* Les trois liens de la page d'avant le soin : chacun passe par le VRAI chemin, celui du dock
      et du menu ⋯ — aucun second point d'entrée à tenir. */
   refreshPreReady(f);   // « prêt » : lecture IndexedDB, donc asynchrone — rien ne l'attend
+  /* Le verrou de veille suit l'ÉTAT, pas un geste : `wakeApply` est idempotent (il sort si la
+     demande correspond déjà au verrou tenu), donc l'appeler à chaque rendu de lecture ne
+     redemande rien — c'est ce qui évite la boucle de consommation que la planche redoute. */
+  wakeApply();syncWakeBtn();
   main.querySelectorAll('[data-prelink]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.prelink;
     /* ⚠ TROIS EXCURSIONS, TROIS FEUILLES — ET AUCUNE NE TOUCHE À L'ÉTAT DE LECTURE (v5.6, signalé
@@ -17751,11 +17928,54 @@ function bindReadEvents(f,blk,cur){
   // Minuteur AD HOC « ＋ Minuteur PA 5:00 » (SPEC §7) : ajouté à la SESSION (pas à la fiche),
   // démarre aussitôt, supprimable (✕), persiste dans la session (extraTimers).
   main.querySelectorAll('[data-rtadd]').forEach(b=>b.onclick=()=>{
-    const id=uid('t');const n=Object.values(Runtime.timers).filter(t=>t.adhoc).length;
-    Runtime.timers[id]={id,label:'PA'+(n?' '+(n+1):''),type:'interval',seconds:300,autoloop:false,elapsedMs:0,cycles:0,running:true,lastStart:Date.now(),adhoc:true};
+    // Le ＋ DÉPLIE, il ne crée plus : c'est le choix de durée qui pose l'objet (planche 11h).
+    // Re-taper referme — ce qui s'ouvre au tap se ferme au même tap (V1).
+    state.tmAddOpen=!state.tmAddOpen;render();});   // transitoire (SHARE_LOCAL) : un geste, pas un réglage
+  main.querySelectorAll('[data-rtnew]').forEach(b=>b.onclick=()=>{
+    const sec=Math.max(30,Math.min(3600,+b.dataset.rtnew||300));
+    const id=uid('t');const nom=tmAddName();
+    const n=Object.values(Runtime.timers).filter(t=>t.adhoc).length;
+    /* Sans nom pressenti, on n'en INVENTE pas : le libellé reste vide et l'affichage retombe sur
+       « Minuteur n », calculé au rendu — exactement la règle du compteur ad hoc et du repère sans
+       étiquette (A58). Nommer reste possible plus tard ; « PA 2, PA 3 » ne revient pas. */
+    Runtime.timers[id]={id,label:nom||'',type:'interval',seconds:sec,autoloop:false,
+      elapsedMs:0,cycles:0,running:true,lastStart:Date.now(),adhoc:true};
+    state.tmAddOpen=false;
     // v5.4.2 : plus d'écriture de rtOpen — le bouton vit DANS le panneau (volet ou rail), déjà
     // ouvert là où l'on vient d'appuyer ; forcer un état de flux rouvrait un logement disparu.
     ensureStarted();persistLive(Runtime,true);render();});
+  /* ＋ COMPTEUR — créé À 1, jamais à 0 : on appuie parce que l'événement vient d'avoir lieu
+     (planche 11i). Le premier incrément est donc DÉJÀ compté, et il pose son repère horodaté comme
+     n'importe quel « ＋ » : même sans nom, le compte rendu garde l'heure de chaque unité. */
+  main.querySelectorAll('[data-cnadd]').forEach(b=>b.onclick=()=>{
+    Runtime.adhocCounters=Runtime.adhocCounters||[];
+    if(Runtime.adhocCounters.length>=20)return;
+    const id=uid('c');
+    Runtime.adhocCounters.push({id,label:'',adhoc:true});
+    Runtime.counters[id]=1;tick();
+    Runtime.events=Runtime.events||[];
+    Runtime.events.push({id:uid('e'),t:vfNow(),label:'',ref:{type:'counter',id,n:1}});
+    ensureStarted();persistLive(Runtime,true);render();});
+  /* NOMMER, PLUS TARD OU JAMAIS. Un champ, dans le volet, au même endroit que l'étiquetage d'un
+     repère — c'est la seule saisie de cette famille, et elle est facultative par construction. */
+  main.querySelectorAll('[data-cnname]').forEach(b=>b.onclick=()=>{
+    const c=(Runtime.adhocCounters||[]).find(x=>x.id===b.dataset.cnname);if(!c)return;
+    const box=b.parentElement;if(!box||box.querySelector('.cn-input'))return;
+    const i=document.createElement('input');i.type='text';i.className='cn-input';i.maxLength=40;
+    i.value=c.label||'';i.setAttribute('aria-label','Nom du compteur');
+    const fin=(ok)=>{if(!i.isConnected)return;
+      if(ok)c.label=sstr(i.value,40).trim();
+      persistLive(Runtime,true);render();};
+    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fin(true);}else if(e.key==='Escape'){e.preventDefault();fin(false);}};
+    i.onblur=()=>fin(true);
+    box.appendChild(i);i.focus();i.select();});
+  main.querySelectorAll('[data-cnrm]').forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.cnrm;const v=Runtime.counters[id]||0;
+    /* Un compte non nul est une TRACE : on ne l'efface pas d'un tap. Les repères déjà posés, eux,
+       restent au journal — supprimer l'objet ne réécrit pas le passé (append-only). */
+    if(v>0&&!await confirmDlg('Ce compteur est à '+v+'. Le supprimer ?',{yes:'Supprimer',danger:true}))return;
+    Runtime.adhocCounters=(Runtime.adhocCounters||[]).filter(x=>x.id!==id);
+    delete Runtime.counters[id];persistLive(Runtime,true);render();});
   main.querySelectorAll('[data-tmrm]').forEach(b=>b.onclick=async()=>{const t=Runtime.timers[b.dataset.tmrm];if(!t)return;
     if(t.running&&!await confirmDlg('Ce minuteur tourne encore. Le supprimer ?',{yes:'Supprimer',danger:true}))return;
     delete Runtime.timers[b.dataset.tmrm];persistLive(Runtime,true);render();});
@@ -17783,6 +18003,10 @@ function bindReadEvents(f,blk,cur){
   // le title dit l'action, aria-pressed porte l'état pour les lecteurs d'écran. L'état « coupé »
   // est signalé en ambre : couper le son en crise est un choix risqué, il doit rester visible.
   const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.innerHTML=soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé';st.classList.toggle('off',!soundOn);st.setAttribute('aria-pressed',soundOn?'true':'false');st.title=soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
+  {const wt=document.getElementById('wakeToggle');
+   if(wt)wt.onclick=()=>{wakeWanted=!wakeWanted;
+     try{localStorage.setItem(spaceKey('ac-wake'),wakeWanted?'1':'0');}catch(e){}
+     syncWakeBtn();wakeApply();};}
   // « silencieux ? » : c'est une réponse à un tap, et elle n'a de sens qu'à cet instant.
   const swn=document.getElementById('soundWarn');if(swn)swn.onclick=()=>toast('Mode silencieux du téléphone : si le bouton latéral est sur silencieux, l\'alarme sonore peut ne pas être audible (indétectable depuis le navigateur ; la vibration non plus sur iPhone). Alerte de secours : l\'écran clignote à chaque fin de minuteur.',11000,true);
   // Lancer un minuteur DÉMARRE la session. Si elle vient de démarrer, on re-rend (le bandeau « en

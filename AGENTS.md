@@ -1457,6 +1457,103 @@ lieu : l'information qui décide du geste n'était disponible qu'APRÈS lui.
   de fragment de bloc ; aucun repère → pas d'heure ; rien des deux → chaîne vide et la ligne
   n'existe pas. Un « — » à la place d'une donnée absente serait du bruit à décoder.
 
+**A84. L'ÉCRAN NE S'ÉTEINT PAS PENDANT UNE SESSION, ET IL LE DIT UNE FOIS (v5.6, planche 11k).**
+Aucune occurrence de `wakeLock` dans le fichier : pendant une réanimation de vingt minutes l'écran
+s'éteignait seul, et le geste suivant commençait par réveiller un téléphone — l'outil se retire
+pendant qu'on s'en sert. Une ligne dans l'en-tête du volet, au registre et à la place de « Son
+activé / Son coupé », qui règle déjà exactement ce genre de question.
+· **QUATRE RÈGLES, ET CE SONT ELLES QUI ÉCRIVENT LE CODE** : demandé seulement en session vive,
+  relâché à la fin et au masquage, redemandé au retour ; aucune fenêtre, aucune permission ;
+  une ligne, dans le volet, sur geste ; un interrupteur, parce que c'est un réglage (batterie
+  faible, transport long, tablette partagée) et que l'état se VOIT au lieu de se deviner.
+· **`wakeApply` EST IDEMPOTENT, ET C'EST LE POINT DUR** : « un verrou redemandé en boucle est un
+  bogue de consommation ». Il sort si la demande correspond déjà au verrou tenu, donc on peut
+  l'appeler à chaque rendu de lecture sans rien redemander. **MESURÉ : 1 demande, et 5 rendus
+  successifs n'en ajoutent aucune** — c'est le nombre de demandes que le témoin compte, pas la
+  présence d'un interrupteur.
+· **⚠ ON TESTE LA CAPACITÉ, PAS LA CLÉ** : `'wakeLock' in navigator` est VRAI même quand la
+  propriété vaut `undefined`. Sans cela la ligne s'affichait là où rien ne peut se produire —
+  l'inverse de la dégradation silencieuse. Un refus du système ne dit rien non plus : il laisse
+  l'interrupteur sur « veille normale ».
+· Le choix est PERSISTÉ par utilisateur, comme le thème et le son : le rallumer à chaque session
+  serait un réglage qu'on ne peut pas régler.
+
+**A85. LE MINUTEUR AD HOC DIT CE QU'IL CRÉE, ET SA DURÉE SE CHOISIT (v5.6, planche 11h).** Le geste
+existait et il était juste — un tap, un objet déjà réglé, démarré, supprimable : *le risque n'est
+pas la création, c'est la saisie*. Deux limites mesurées : la durée valait **300 s en dur**, et le
+nom DÉGÉNÉRAIT (`'PA'+(n+1)` → « PA, PA 2, PA 3 »), c'est-à-dire trois minuteurs qui ne disaient
+plus ce qu'ils surveillaient.
+· Le bouton porte le **nom pressenti du dernier repère** (`tkLabels`, vocabulaire déjà normalisé) et
+  l'annonce AVANT le tap ; son tap déplie **quatre durées**. Deux taps, **zéro clavier, zéro champ**,
+  et UN seul ＋ qui déplie — jamais quatre ＋ dans une rangée que la largeur du volet ne supporte pas.
+· **⚠ UN LIBELLÉ DE REPLI N'EST PAS UN NOM** (trouvé à la mesure, puis signalé à l'usage : « ne le
+  nomme pas ＋ Minuteur Compteur »). Le dernier repère se résout parfois sur « Action 3 », ou sur le
+  nom PAR DÉFAUT d'un objet sans nom (« Compteur », « Minuteur », « Chronomètre », A58) — repris
+  tel quel, cela donnait « ＋ Minuteur Compteur » : la dégénérescence de « PA 2 » sous un autre
+  visage. Sans nom réel, le bouton reprend son libellé d'avant : *la proposition n'invente pas de
+  mot quand elle n'en a pas.*
+· **ET LE LIBELLÉ NE PROMET PLUS « 5:00 »** : la durée n'est plus décidée d'avance. Un bouton qui
+  annonce une valeur qu'il ne pose pas est de la mode confusion (A38).
+· **RÈGLE 15 — VÉRIFIÉE, PAS SUPPOSÉE** : la planche demandait de trancher avant d'écrire si un nom
+  tiré d'un repère voyage. Mesuré : `shareSnap` n'envoie d'un minuteur que
+  `{running, elapsedMs, cycles, anchor}` sous sa CLÉ, et un minuteur ad hoc n'existe pas chez
+  l'invité — il vit dans la session, qui ne voyage pas. La contrainte est donc tenue par
+  CONSTRUCTION, pas par une garde à maintenir.
+
+**A86. LE COMPTEUR AD HOC — L'ASYMÉTRIE MESURÉE, ET LE PLUS SÛR DES DEUX (v5.6, planche 11i).**
+Les compteurs ne venaient que de `f.counters` : rien n'en créait en session, alors que les MINUTEURS
+l'avaient depuis toujours. Or un compteur **ne sonne pas, n'échoit pas, n'entre jamais dans le
+registre d'alarme** — c'est l'objet le moins risqué du volet, et le seul qu'on ne pouvait pas poser
+quand il manquait (chocs, doses non prévues par l'auteur, relais de masseur : on comptait de tête).
+· **CRÉÉ À 1, JAMAIS À 0** : on appuie parce que l'événement vient d'avoir lieu. Le premier incrément
+  est donc déjà compté, et il pose son repère horodaté comme n'importe quel « ＋ » — même sans nom,
+  le compte rendu garde l'heure de chaque unité.
+· **NOMMER EST FACULTATIF ET DIFFÉRÉ** (doctrine du repère horodaté), et « — nommer » n'existe QUE
+  sur un compteur ad hoc : celui de l'auteur porte un nom décidé au calme.
+· **⚠ AUCUN `timerId`, ET ON NE LUI EN INVENTE PAS** : ce lien relance une alarme, c'est une
+  décision d'AUTEUR.
+· Ils vivent dans la session (`extraCounters`), exactement comme `extraTimers` — donc hors de
+  l'export de la fiche, et hors du réseau.
+
+**A87. UN VOLET QUI VIT DANS `main` SE FAIT REMONTER PAR CHAQUE RENDU (v5.6, signalé à l'usage :
+« ajouter un minuteur/compteur réinitialise le contenu : on perd le fil et ça fait un fondu blanc
+moche »).** Trois conséquences d'une même cause, et la première est une violation d'A68.
+· **LE DÉROULÉ REJOUAIT À CHAQUE GESTE** : l'animation était portée par le MONTAGE de `.rt-dock`, or
+  tout rendu complet le remonte. A68/1 dit que le mouvement répond au GESTE qui l'a demandé — la
+  classe `.rt-roll` est donc posée UNE FOIS, par le tap du quai, et consommée par le rendu qui suit.
+  Mesuré : `dockRoll` à l'ouverture, `none` après un ajout.
+· **LE VOLET A SON DÉFILEMENT PROPRE**, et il repartait en haut. Même règle que `.read-side` depuis
+  la v4.23.5 : on capture avant, on restaure après — la moitié étroite n'avait jamais été écrite.
+· **LE DÉFILEMENT DE PAGE, LUI, NE BOUGEAIT PAS** (mesuré : 0 px). Ce qui « fait perdre le fil » est
+  le volet qui se replie et se redéroule sous les doigts, pas la page — on corrige ce qu'on mesure.
+
+**A89. UN TÉMOIN NE DOIT JAMAIS POUVOIR PENDRE — ET ON LIT LE CODE DE SORTIE, PAS LA DERNIÈRE LIGNE
+(v5.6, deux heures perdues).** Changer la porte du minuteur (un tap déplie, le second crée) a cassé
+un témoin du QUAI qui comptait sur « un tap = un minuteur » : sa boucle `while(ids.length<3)` dans
+un `page.evaluate` ne se terminait plus, et la tranche `doctrine 1/4` restait vivante indéfiniment —
+emportant la passe entière, sans un mot.
+· **UNE BOUCLE DE SONDE EST BORNÉE, TOUJOURS.** `if(!b)break` ne suffit pas : le bouton EXISTE, il
+  ne fait simplement plus ce qu'on croit. Une borne d'itérations transforme un blocage silencieux
+  en rouge lisible.
+· **⚠ ET J'AI ÉTÉ TROMPÉ PAR LE PIÈGE QUE CE FICHIER DOCUMENTE DÉJÀ** (v4.70.1) : `npm run audit |
+  tail -6` rend le statut de `tail`, pas celui de l'audit. La tâche de fond a donc rapporté
+  « exit 0 » sur une passe qui pendait, et j'ai cru la porte verte. **On lit le code de sortie de
+  la CHAÎNE**, ou l'on redirige et l'on cherche la ligne de bilan.
+· **ET LE TÉMOIN VOISIN NE RENCONTRAIT PLUS SON CAS** : il faisait « varier l'état » en cliquant la
+  porte trois fois — depuis le dépliage, l'état ne variait plus du tout, et « le quai ne bouge pas
+  quand l'état varie » se vérifiait sur un état constant. Il compte désormais les minuteurs avant
+  et après, et échoue si rien n'a bougé.
+
+**A88. LE PANNEAU NE SE TAIT PAS QUAND LA FICHE N'A RIEN À MONTRER (v5.6, signalé à l'usage :
+« lorsque la session n'a pas de minuteur ou chronomètre pré-défini, l'option d'ajouter ne s'affiche
+pas »).** En voie large, le rail sortait à vide dès que la fiche ne déclarait ni minuteur ni
+compteur — emportant les deux PORTES avec lui, et rendant impossible de poser un objet ad hoc
+précisément sur les fiches qui en ont le plus besoin : celles où l'auteur n'en a prévu aucun.
+· **LA RÈGLE « UN PANNEAU VIDE EST DU BRUIT » VISE CE QUI AFFIRME**, pas ce qui INVITE. « 0 minuteur »
+  est du bruit ; deux boutons qui ouvrent une capacité sont une porte. C'est exactement la
+  distinction déjà tranchée pour le chapeau « Ne pas oublier », affiché vide (v4.76.0).
+· Le panneau ne disparaît donc plus que **hors session** : sans soin en cours, il n'y a rien à créer.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
