@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-U1OxcfEOwkigFCzC0e4kaD3AzEvWH29yRGYGea+S0JY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-EB+47FPQ/OCjqNvek2j+htvVtrsJICAkYru3SjuPnsE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -12826,6 +12826,7 @@ function applyViewChrome(){
 let _renderN=0;
 let _grpSegI=null;   // dernier cran du groupement, pour rejouer le glissement après re-rendu
 function render(){_renderN++;
+  if(window._kbSync)_kbSync();   // A1 : la classe du clavier ne survit pas à la mort de son champ
   if(state.view==='library')state.readStack=[];   // la pile d'origine (v4.28.0) ne survit pas à l'accueil
   // Position de la BIBLIOTHÈQUE mémorisée quand on la quitte : ouvrir une fiche remet en haut
   // (le début de la fiche doit être visible), revenir restaure là où on en était dans la liste.
@@ -16608,7 +16609,7 @@ const TM_GENERIQUE=/^(Action \d+|Compteur|Minuteur|Chronomètre)$/i;
 function tmAddName(){
   const ev=(Runtime.events||[]).filter(e=>e&&!e.voidAt);
   if(!ev.length)return '';
-  const l=sstr(tkLabels(ev,Runtime.fiche,myTags())[ev.length-1]||'',40).trim();
+  const l=sstr(tkLabels(ev,Runtime.fiche,myTags(),rtExtra())[ev.length-1]||'',40).trim();
   return TM_GENERIQUE.test(l)?'':l;}
 function tmAddHtml(){
   const nom=tmAddName(), ouvert=!!state.tmAddOpen;
@@ -16745,8 +16746,26 @@ function sanitizeTags(v){
 /* Le vocabulaire disponible ICI, MAINTENANT. Pur : la fiche et les étiquettes entrent, une liste
    annotée sort. Aucun filtrage — c'est `tagRank` qui ordonne, et le rendu qui décide combien il
    en montre. */
-function tagAll(f,tags){
-  const out=[],vus=Object.create(null);
+/* ══ LES OBJETS AD HOC SONT DES OBJETS DE LA SESSION, PAS DE LA FICHE (v5.6, signalé à l'usage :
+   « un nouveau compteur n'apparaît pas dans Noter l'heure ») ═══════════════════════════════════
+   `tagAll` et `tagLabel` lisaient `f.timers` / `f.counters` — or un minuteur ou un compteur créé
+   EN SESSION vit dans le Runtime (`adhoc`, `adhocCounters`), donc il était visible à l'écran et
+   introuvable au moment de l'horodater : exactement le défaut qu'A58 avait corrigé pour les objets
+   SANS NOM, revenu par une autre porte.
+   ⚠ LES DEUX FONCTIONS RESTENT PURES : la session passe ses objets en PARAMÈTRE (`ex`), elle n'est
+   pas lue depuis leur corps. C'est ce qui permet au compte rendu d'une session ARCHIVÉE de
+   résoudre les mêmes noms, en lisant `extraTimers`/`extraCounters` de l'instantané.
+   ⚠ ET LA SUPPRESSION SUIT SANS RIEN ÉCRIRE : le vivier est CALCULÉ à chaque appel, donc un
+   compteur supprimé disparaît de « Noter l'heure » par construction. */
+const tagSrc=(f,ex)=>({
+  timers:[...((f&&f.timers)||[]),...((ex&&ex.timers)||[])],
+  counters:[...((f&&f.counters)||[]),...((ex&&ex.counters)||[])]});
+/* Les objets ad hoc du Runtime VIF — un seul point de lecture, pour que les six appelants ne
+   recopient pas la même expression (elle finirait par diverger). */
+const rtExtra=()=>({timers:Object.values((typeof Runtime!=='undefined'&&Runtime.timers)||{}).filter(t=>t&&t.adhoc),
+  counters:((typeof Runtime!=='undefined'&&Runtime.adhocCounters)||[])});
+function tagAll(f,tags,ex){
+  const out=[],vus=Object.create(null);const S=tagSrc(f,ex);
   /* ⚠ UN OBJET SANS NOM EXISTE QUAND MÊME (v5.6, signalé à l'usage : « un compteur sans nom ne
      s'affiche pas dans Noter l'heure »). La carte d'un minuteur ou d'un compteur affiche un nom
      PAR DÉFAUT quand l'auteur n'en a pas donné (« Compteur », « Minuteur », « Chronomètre ») —
@@ -16759,10 +16778,10 @@ function tagAll(f,tags){
     const cle=ref.type+':'+(ref.id||ref.k||(ref.b+'/'+ref.i)||ref.i);
     if(vus[cle])return;vus[cle]=1;
     out.push({ref:ref,label:l,src:src,alias:alias||[]});};
-  ((f&&f.timers)||[]).forEach(t=>add({type:'timer',id:t.id},
-    String(t.label||'').trim()||(t.type==='interval'?'Minuteur':'Chronomètre'),'fiche'));
-  ((f&&f.counters)||[]).forEach(c=>add({type:'counter',id:c.id},
-    String(c.label||'').trim()||'Compteur','fiche'));
+  S.timers.forEach((t,i)=>add({type:'timer',id:t.id},
+    String(t.label||'').trim()||((t.type==='interval'?'Minuteur':'Chronomètre')+(t.adhoc?' '+(i+1):'')),'fiche'));
+  S.counters.forEach((c,i)=>add({type:'counter',id:c.id},
+    String(c.label||'').trim()||('Compteur'+(c.adhoc?' '+(i+1):'')),'fiche'));
   ((f&&f.blocks)||[]).forEach(b=>clean(b?stepsOf(b):[]).forEach((st,i)=>
     add({type:'step',b:b.id,i:i},posoName(stepText(st)),'fiche')));
   clean(f&&listOf(f,'posology')).forEach((pp,i)=>add({type:'poso',i:i},posoName(pp),'fiche'));
@@ -16797,7 +16816,7 @@ function tagShort(l){
    premières places aux types nommés, dans l'ordre de la fiche, et le reste se remplit par rang.
    Paramètre FACULTATIF : sans lui, le comportement est identique au caractère près. PURE. */
 function tagSuggest(f,tags,bid,n,garantis){
-  const all=tagAll(f,tags);
+  const all=tagAll(f,tags,rtExtra());
   const G=Array.isArray(garantis)?garantis:[];
   const rang=t=>{const r=t.ref||{};
     if(r.type==='step'&&bid&&r.b===bid)return 0;
@@ -16814,12 +16833,13 @@ function tagSuggest(f,tags,bid,n,garantis){
   return tete.concat(reste).slice(0,max);}
 /* Résolution d'une référence en libellé. `null` = introuvable (voir plus haut) : c'est une
    RÉPONSE, pas un échec. */
-function tagLabel(ref,f,tags){
+function tagLabel(ref,f,tags,ex){
   const r=ref;if(!r||typeof r!=='object')return null;
-  if(r.type==='counter'){const c=(((f&&f.counters)||[]).find(x=>x.id===r.id));
+  const S=tagSrc(f,ex);
+  if(r.type==='counter'){const c=S.counters.find(x=>x.id===r.id);
     const base=(c&&c.label)||'Compteur';
     return r.v==null?base:base+' n° '+(+r.v||0);}
-  if(r.type==='timer'){const t=(((f&&f.timers)||[]).find(x=>x.id===r.id));return (t&&t.label)||null;}
+  if(r.type==='timer'){const t=S.timers.find(x=>x.id===r.id);return (t&&t.label)||null;}
   if(r.type==='step'){const b=(((f&&f.blocks)||[]).find(x=>x.id===r.b));
     const st=b?stepsOf(b)[+r.i]:null;
     /* LIBELLÉ COURT, PAS LA LIGNE ENTIÈRE (v5.0.0, signalé à l'usage) : une étape est une phrase
@@ -16910,11 +16930,11 @@ function tkRefNorm(r){
     return TAG_CORE.some(x=>x.k===k)?{type:'core',k:k}:null;}
   if(r.type==='tag')return {type:'tag',k:safeId(r.k,'t')};
   return null;}
-function tkLabels(events,f,tags){
+function tkLabels(events,f,tags,ex){
   let n=0;
   return (events||[]).map(e=>{
     if(e&&typeof e.label==='string'&&e.label)return e.label;   // renommage manuel : souverain
-    const l=tagLabel(e&&e.ref,f,tags);
+    const l=tagLabel(e&&e.ref,f,tags,ex);
     if(l)return l;
     n++;return 'Action '+n;});}   // rang parmi les repères GÉNÉRIQUES seulement
 /* ⚠ « T+ » SE COMPTE DEPUIS LE DÉBUT DE LA SESSION, PAS DEPUIS LE PREMIER REPÈRE (v5.6, signalé
@@ -16934,7 +16954,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];
      précisément le mouvement non commandé qu'A68/1 interdit. */
   const _fr=_tkFresh;_tkFresh=null;
   const t0=(Runtime&&Runtime.startedAt)||(ev.length?ev[0].t:0);
-  const labs=tkLabels(ev,Runtime.fiche,myTags());
+  const labs=tkLabels(ev,Runtime.fiche,myTags(),rtExtra());
   const rows=ev.length?ev.map((e,ix)=>{const diff=e.t-t0;const el=diff===0?'—':(diff>0?'+':'−')+fmtMs(Math.abs(diff));
     const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${esc(e.id)}">↺ revenir</button></div>`:'';
     const vd=!!e.voidAt;
@@ -17022,7 +17042,7 @@ function bindTk(){
     // même sur les deux écrans — c'est tout l'objet du journal référentiel.
     ev.ref=ref;ev.label='';
     persistLive(Runtime);renderTkOnly();
-    announce('Repère étiqueté : '+(tagLabel(ref,Runtime.fiche,myTags())||''));}));
+    announce('Repère étiqueté : '+(tagLabel(ref,Runtime.fiche,myTags(),rtExtra())||''));}));
   /* ANNULER, PAS SUPPRIMER (v4.47.0). Le × effaçait le repère d'un simple tap — ce qui enfreignait
      la règle du projet (« action destructrice en situation de crise = geste MAINTENIR ») et,
      surtout, ce qui n'est pas soutenable pour une TRACE : le journal alimente le compte-rendu,
@@ -17112,7 +17132,7 @@ function tkPaintSug(id,q){
   if(!z)return;
   const txt=String(q||'').trim();
   if(txt.length<2){z.hidden=true;z.innerHTML='';return;}
-  const hits=tagRank(txt,tagAll(Runtime.fiche,myTags())).filter(x=>x.score>0).slice(0,4);
+  const hits=tagRank(txt,tagAll(Runtime.fiche,myTags(),rtExtra())).filter(x=>x.score>0).slice(0,4);
   if(!hits.length){z.hidden=true;z.innerHTML='';return;}
   /* UNE ÉTIQUETTE PERSONNELLE NE VOYAGE PAS JUSQU'À UN INCONNU, et il faut le dire. Elle se
      résout depuis `data.prefs`, qui suit le COMPTE : sur vos appareils, le mot arrive ; chez un
@@ -18866,7 +18886,7 @@ bindModalDismiss(refModal,closeRefSheet);
       // La référence prend la place du mot tapé : le libellé se DÉRIVE, il est donc le même sur
       // les deux écrans d'un partage — c'est tout l'objet du journal référentiel (v4.52.0).
       ev.ref=ref;ev.label='';persistLive(Runtime);
-      const nom=tagLabel(ref,Runtime.fiche,myTags())||'';
+      const nom=tagLabel(ref,Runtime.fiche,myTags(),rtExtra())||'';
       /* TRANSPARENCE (demande utilisateur) : on ne se contente pas d'étiqueter en silence — on
          dit que le compteur a bougé, et jusqu'où. Sur `#srLive` pour le lecteur d'écran, et par
          la valeur repeinte pour l'œil ; aucune notification flottante (règle 11). */
@@ -18904,7 +18924,17 @@ bindModalDismiss(refModal,closeRefSheet);
   const kb=on=>document.body.classList.toggle('kb-open',on);
   document.addEventListener('focusin',e=>{if(isField(e.target)&&!e.target.closest('#dockSheet'))kb(true);});
   document.addEventListener('focusout',e=>{if(isField(e.target))setTimeout(()=>{
-    if(!isField(document.activeElement)||document.activeElement.closest('#dockSheet'))kb(false);},60);});}}
+    if(!isField(document.activeElement)||document.activeElement.closest('#dockSheet'))kb(false);},60);});
+  /* ⚠ UNE CLASSE POSÉE AU FOCUS ET RETIRÉE AU BLUR EST ORPHELINE SI LE CHAMP EST DÉTRUIT (v5.6,
+     signalé à l'usage : « renommer un nouveau compteur fait disparaître la barre flottante »).
+     Le champ de nommage vit dans le VOLET et son commit RE-REND : le champ disparaît avant que
+     son `focusout` ne parte, `kb-open` reste posée, et le dock — donc « Noter l'heure », « ⚡ » et
+     le geste d'entrée — restait `display:none` jusqu'au prochain focus.
+     On ne corrige pas en ajoutant une exception au champ fautif : le prochain champ ajouté
+     ailleurs rejouerait le défaut. La classe est RÉÉVALUÉE à chaque rendu, sur la seule question
+     qui compte — y a-t-il un champ focalisé, maintenant ? */
+  window._kbSync=()=>{const a=document.activeElement;
+    kb(isField(a)&&!a.closest('#dockSheet'));};}}
 /* Délégation de la feuille : EXACTEMENT les gestes du plan en place (aucun comportement propre
    à la feuille), plus la fermeture automatique quand le geste DÉPLACE le parcours — taper un
    bloc, c'est y aller : on rend la main à l'action, pile sur le bloc visé. */

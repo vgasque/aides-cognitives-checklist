@@ -4874,6 +4874,45 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
   t('＋ Compteur : créé À 1, avec son repère horodaté',
     r.cn.val===1&&r.cn.reperes===1, JSON.stringify(r.cn));
   t('… et SANS timerId : le lien vers une alarme est une décision d\'auteur', r.cn.lien===true);
+  /* ══ v5.6, signalés à l'usage — DEUX DÉFAUTS DU COMPTEUR AD HOC ═══════════════════════════════
+     (a) « renommer fait disparaître la barre flottante » : `kb-open` (A1, le clavier efface le
+         dock) était posée au focus et retirée au blur — or le commit RE-REND, donc le champ meurt
+         avant son `focusout` et la classe restait, dock compris.
+     (b) « un nouveau compteur n'apparaît pas dans Noter l'heure » : le vivier lisait `f.counters`,
+         et un objet créé EN SESSION vit dans le Runtime. Et il doit en SORTIR à la suppression —
+         ce qui est acquis puisque le vivier est calculé, jamais mémorisé. */
+  const cnb=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const vis=()=>getComputedStyle(document.getElementById('sessionDock')).display;
+    const noms=()=>tagAll(Runtime.fiche,myTags(),rtExtra()).map(x=>x.label);
+    /* ⚠ IL CONSTRUIT SON CAS : s'appuyer sur un compteur créé par un bloc précédent, c'est mesurer
+       l'état que ce bloc a laissé — et il n'en laisse pas forcément (mesuré : 0). */
+    if(!(Runtime.adhocCounters||[]).length){
+      const b=document.querySelector('[data-cnadd]');if(!b)return {erreur:'aucune porte de compteur'};
+      b.click();await w(500);}
+    if(!(Runtime.adhocCounters||[]).length)return {erreur:'la porte ne crée pas de compteur'};
+    const cree=noms().filter(l=>/^Compteur \d/.test(l)).length;
+    const bn=document.querySelector('[data-cnname]');
+    if(!bn)return {erreur:'aucun bouton « nommer » — le compteur ad hoc n’est pas rendu'};
+    bn.click();await w(300);
+    const inp=document.querySelector('.cn-input');
+    if(!inp)return {erreur:'le champ de nommage ne s’ouvre pas',cnadd:!!document.querySelector('[data-cnadd]'),
+      cartes:document.querySelectorAll('.cncard').length,adhoc:(Runtime.adhocCounters||[]).length};
+    inp.value='Chocs';
+    inp.dispatchEvent(new Event('input',{bubbles:true}));
+    inp.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+    await w(500);
+    const apresNom={dock:vis(),nomme:noms().includes('Chocs')};
+    document.querySelector('[data-cnrm]').click();await w(400);
+    const y=document.getElementById('confirmYes');if(y)y.click();await w(500);
+    return {cree,apresNom,apresSuppr:noms().includes('Chocs'),dockFin:vis()};});
+  if(cnb.erreur){t('témoin : le compteur ad hoc est manipulable',false,JSON.stringify(cnb));}
+  else{
+  t('un compteur créé en session entre dans « Noter l\'heure »', cnb.cree>=1, `${cnb.cree}`);
+  t('… le renommer ne fait pas disparaître la barre flottante',
+    cnb.apresNom.dock!=='none', cnb.apresNom.dock);
+  t('… et son nouveau nom y est', cnb.apresNom.nomme===true);
+  t('… le supprimer l\'en retire', cnb.apresSuppr===false&&cnb.dockFin!=='none',
+    JSON.stringify({vivier:cnb.apresSuppr,dock:cnb.dockFin}));}
   t('… un libellé de repli ne devient jamais le nom pressenti d\'un minuteur',
     !/Compteur|Action/.test(r.apresCompteur), r.apresCompteur);
   /* ⚠ LE DÉROULÉ APPARTIENT AU TAP QUI OUVRE (A68/1, signalé à l'usage : « ajouter un minuteur

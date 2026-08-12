@@ -1586,6 +1586,33 @@ chercher » — 120 ms d'opacité sur la bordure seule.
   faux ; on vérifie le constat avant de livrer la proposition** (même leçon qu'A82 sur la révision
   déjà affichée).
 
+**A92. UNE CLASSE POSÉE AU FOCUS ET RETIRÉE AU BLUR EST ORPHELINE SI LE CHAMP EST DÉTRUIT (v5.6,
+signalé à l'usage : « renommer un nouveau compteur fait disparaître la barre flottante »).** A1
+efface le dock au focus d'un champ (`kb-open`) — le clavier EST la surface de saisie. Le champ de
+nommage vit dans le VOLET et son commit RE-REND : le champ disparaît **avant** que son `focusout`
+ne parte, la classe reste posée, et le dock — donc « Noter l'heure », « ⚡ » et le geste d'entrée —
+restait `display:none` jusqu'au prochain focus.
+· **ON NE CORRIGE PAS EN EXEMPTANT LE CHAMP FAUTIF** : le prochain champ ajouté ailleurs rejouerait
+  le défaut. La classe est **réévaluée à chaque rendu**, sur la seule question qui compte — y a-t-il
+  un champ focalisé, MAINTENANT ? Même famille que la liste de placards d'A78 et que le compteur de
+  rendu d'A49 : un état qui dépend d'un évènement de sortie doit avoir une seconde source de vérité.
+
+**A93. LES OBJETS AD HOC SONT DES OBJETS DE LA SESSION, PAS DE LA FICHE (v5.6, signalé à l'usage :
+« un nouveau compteur n'apparaît pas dans Noter l'heure »).** `tagAll` et `tagLabel` lisaient
+`f.timers` / `f.counters` — or un objet créé EN SESSION vit dans le Runtime. Il était donc visible à
+l'écran et introuvable au moment de l'horodater : **exactement le défaut qu'A58 avait corrigé pour
+les objets SANS NOM, revenu par une autre porte** — et le minuteur ad hoc, lui, l'avait depuis
+toujours.
+· **LES DEUX FONCTIONS RESTENT PURES** : la session passe ses objets en PARAMÈTRE (`tagSrc`), elle
+  n'est pas lue depuis leur corps. C'est ce qui permet au compte rendu d'une session ARCHIVÉE de
+  résoudre les mêmes noms, en lisant `extraTimers`/`extraCounters` de l'instantané — un compte rendu
+  se relit longtemps après, éventuellement pendant une autre session.
+· **UN SEUL POINT DE LECTURE DU RUNTIME** (`rtExtra`) : six appelants, une expression — recopiée,
+  elle aurait divergé.
+· **LA SUPPRESSION SUIT SANS RIEN ÉCRIRE** : le vivier est CALCULÉ à chaque appel, donc un compteur
+  supprimé en sort par construction. C'est la seconde moitié de la demande, et elle était acquise —
+  on la mesure quand même, parce qu'« acquis par construction » se vérifie.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
