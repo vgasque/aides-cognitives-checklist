@@ -3038,6 +3038,9 @@
   .rt-dock .tm-meta{color:var(--sys-ink-2);margin:-2px 0 4px}
   .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-step-l);font-weight:700;color:var(--sys-ink)}
   .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}
+  /* Sur la matière SYSTÈME, le registre a sa valeur propre : `--verify-hi` est calibré sur la
+     matière de TRAVAIL et n'y tiendrait pas 4,5:1 (doctrine des trois matières). */
+  .rt-dock .tm-stop{color:var(--warn-sys)}
   .rt-dock .tm-bar-wrap{background:var(--sys-line)}
   .rt-dock .tm-bar{background:var(--sys-ink-2)}
   /* ⚠ LA RANGÉE S'ENROULE AU LIEU DE TRONQUER (v5.6). `flex-direction:row` était écrit pour un
@@ -3944,6 +3947,13 @@
   .tm-val,.cn-val{font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:2px}
+  /* Ligne « arrêté depuis » : AMBRE TEXTUEL, jamais un aplat (A11). Corps du texte courant,
+     interligne serré, deux lignes au plus — au-delà d'une heure la durée s'écrit h:mm:ss et le
+     motif suit ; on ne veut ni troncature (un chiffre amputé est pire qu'absent) ni carte qui
+     grandit d'une troisième ligne. */
+  .tm-stop{margin:4px 0 0;font-size:var(--t-cap);font-weight:600;line-height:1.35;color:var(--verify-hi);
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .tm-stop b{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
   /* D11 (audit design v4.56) : tabular-nums sur les nombres d'ÉTAT non mono — cohérent avec
      « rien ne bouge sous le doigt ». */
   .ov-c,.ov-n,.hs-n,.rail-n,.cbt-n,.tm-cyc,.sh-when{font-variant-numeric:tabular-nums}

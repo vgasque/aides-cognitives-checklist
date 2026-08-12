@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kFHDroqCUNOjcJ5s3UbsEO6O6l6xWMMFIKao7t20ZFA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-x22mogqachB50KNs2/TiHDTxnPmVF6as29BAtQvnN4M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3383,6 +3383,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock .tm-meta{color:var(--sys-ink-2);margin:-2px 0 4px}
   .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-step-l);font-weight:700;color:var(--sys-ink)}
   .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}
+  /* Sur la matière SYSTÈME, le registre a sa valeur propre : `--verify-hi` est calibré sur la
+     matière de TRAVAIL et n'y tiendrait pas 4,5:1 (doctrine des trois matières). */
+  .rt-dock .tm-stop{color:var(--warn-sys)}
   .rt-dock .tm-bar-wrap{background:var(--sys-line)}
   .rt-dock .tm-bar{background:var(--sys-ink-2)}
   /* ⚠ LA RANGÉE S'ENROULE AU LIEU DE TRONQUER (v5.6). `flex-direction:row` était écrit pour un
@@ -4289,6 +4292,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tm-val,.cn-val{font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:2px}
+  /* Ligne « arrêté depuis » : AMBRE TEXTUEL, jamais un aplat (A11). Corps du texte courant,
+     interligne serré, deux lignes au plus — au-delà d'une heure la durée s'écrit h:mm:ss et le
+     motif suit ; on ne veut ni troncature (un chiffre amputé est pire qu'absent) ni carte qui
+     grandit d'une troisième ligne. */
+  .tm-stop{margin:4px 0 0;font-size:var(--t-cap);font-weight:600;line-height:1.35;color:var(--verify-hi);
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .tm-stop b{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
   /* D11 (audit design v4.56) : tabular-nums sur les nombres d'ÉTAT non mono — cohérent avec
      « rien ne bouge sous le doigt ». */
   .ov-c,.ov-n,.hs-n,.rail-n,.cbt-n,.tm-cyc,.sh-when{font-variant-numeric:tabular-nums}
@@ -11477,15 +11487,30 @@ function buildRuntime(f,session){
   R.counters={};(f.counters||[]).forEach(c=>{R.counters[c.id]=(session&&session.counters&&(c.id in session.counters))?session.counters[c.id]:(c.start||0);});
   // Minuteurs reconstruits EN PAUSE (running=false) : on restaure le temps écoulé/cycles mais on ne
   // fait pas « rattraper » le temps passé app fermée. Une session vive rechargée reprend en pause.
-  R.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];R.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0};});
+  R.timers={};(f.timers||[]).forEach(t=>{const sv=session&&session.timers&&session.timers[t.id];R.timers[t.id]={id:t.id,label:t.label,type:t.type,seconds:t.seconds||0,autoloop:!!t.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,...tmStopFrom(sv,session)};});
   // Minuteurs AD HOC de la session (« ＋ Minuteur PA 5:00 », SPEC §7) : définitions embarquées
   // dans la session (extraTimers) — restaurés en pause, comme les autres.
   (session&&Array.isArray(session.extraTimers)?session.extraTimers:[]).forEach(x=>{if(!x||!x.id||R.timers[x.id])return;
     const sv=session.timers&&session.timers[x.id];
-    R.timers[x.id]={id:safeId(x.id,'t'),label:sstr(x.label,120),type:'interval',seconds:Math.max(0,Math.min(86400,Math.round(+x.seconds)||300)),autoloop:!!x.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,adhoc:true};});
+    R.timers[x.id]={id:safeId(x.id,'t'),label:sstr(x.label,120),type:'interval',seconds:Math.max(0,Math.min(86400,Math.round(+x.seconds)||300)),autoloop:!!x.autoloop,elapsedMs:sv?sv.elapsedMs:0,cycles:sv?sv.cycles:0,running:false,lastStart:0,adhoc:true,...tmStopFrom(sv,session)};});
   R.events=(session&&Array.isArray(session.events))?session.events.map(e=>({...e})):[];
   return R;
 }
+/* ⚠ UN MINUTEUR RESTAURÉ EST EN PAUSE, ET IL DOIT DIRE DEPUIS QUAND (v5.6, planche 11j).
+   Le temps passé application fermée n'est PAS rattrapé, et c'est juste : le rattraper fabriquerait
+   un temps que personne n'a mesuré. Mais rien ne disait COMBIEN — or un minuteur figé à 4:22 se
+   lit d'un coup d'œil comme un minuteur qui tourne à 4:22, et la décision qui suit (« ça fait
+   quatre minutes, je redonne ») est alors prise sur un chiffre qui a cessé d'avancer. C'est le
+   seul endroit du produit où un chiffre commande un geste médicamenteux.
+   DEUX CAUSES, UNE SEULE PHRASE : s'il TOURNAIT à l'enregistrement, l'arrêt date de `savedAt` et
+   l'on nomme le motif (« application fermée ») ; s'il était déjà en pause, on reprend l'heure de
+   cette pause. Un instantané ANTÉRIEUR à ces deux champs retombe sur `savedAt` : au pire la durée
+   annoncée est trop COURTE, jamais inventée. */
+function tmStopFrom(sv,session){
+  if(!sv)return {stoppedAt:0,stopClosed:false};
+  const sav=(session&&session.savedAt)||0;
+  if(sv.running)return {stoppedAt:sav,stopClosed:true};
+  return {stoppedAt:sv.stoppedAt||sav,stopClosed:false};}
 function bindStateToRuntime(){state.checked=Runtime.checked;state.verified=Runtime.verified=Runtime.verified||{};state.vgaps=Runtime.vgaps=Runtime.vgaps||{};state.nav=Runtime.nav;state.navSeq=Runtime.navSeq;state.navPos=Runtime.nav.length-1;}
 function freshRuntime(f,session){Runtime=buildRuntime(f,session);bindStateToRuntime();}
 function resetRuntime(){Runtime=makeRuntime();}
@@ -11511,7 +11536,11 @@ function stepTextsFor(R){
   keys.forEach(k=>{const st=stepTextFromKey(f,k);if(st)out[k]={b:st.block,s:st.step};});
   return out;}
 function snapshotSession(R,live){const now=Date.now();const tsnap={};
-  Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles};});
+  /* `running` et `stoppedAt` voyagent avec l'instantané (planche 11j) : au rechargement, un
+     minuteur est restauré EN PAUSE, et sans eux on ne pourrait pas distinguer « l'application
+     était fermée pendant qu'il tournait » d'« il était déjà en pause depuis 10 minutes ». Deux
+     champs FACULTATIFS : un client antérieur les ignore, et leur absence retombe sur `savedAt`. */
+  Object.values(R.timers).forEach(t=>{const within=t.elapsedMs+(t.running?(now-t.lastStart):0);tsnap[t.id]={elapsedMs:t.type==='interval'?Math.min(t.seconds*1000,within):within,cycles:t.cycles,running:!!t.running,stoppedAt:t.stoppedAt||0};});
   return {id:R.sessionId,ficheId:R.fiche.id,ficheTitle:R.fiche.title,aidRev:R.aidRev||0,name:R.name,savedAt:now,startedAt:R.startedAt||now,live:!!live,checked:{...R.checked},verified:{...(R.verified||{})},vgaps:{...(R.vgaps||{})},stepTexts:stepTextsFor(R),cxBack:{...(R.cxBack||{})},exercise:!!R.exercise,nav:R.nav.slice(),navSeq:R.navSeq.slice(),counters:{...R.counters},timers:tsnap,
     extraTimers:Object.values(R.timers).filter(t=>t.adhoc).map(t=>({id:t.id,label:t.label,seconds:t.seconds,autoloop:!!t.autoloop})),
     events:(R.events||[]).map(e=>({...e}))};}
@@ -11868,9 +11897,12 @@ function onTimerFired(R,t){beep();
    serait le pire mode de défaillance d'un annonciateur. Le drapeau tombe donc aux DEUX points
    qui remettent le minuteur en marche — armer et remettre à zéro —, et nulle part ailleurs. */
 function toggleTimer(t){const now=Date.now();t.ack=false;
-  if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;}
-  else{ensureAudio();if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;}}
-function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;t.ack=false;}
+  if(t.running){if(t.type==='interval')t.elapsedMs=Math.min(t.seconds*1000,t.elapsedMs+(now-t.lastStart));else t.elapsedMs+=now-t.lastStart;t.running=false;
+    /* DEPUIS QUAND EST-IL ARRÊTÉ (v5.6, planche 11j) — cf. `timerStopHtml`. On DATE l'arrêt ici,
+       au seul endroit qui met un minuteur en pause ; `closed` reste faux, la pause est voulue. */
+    t.stoppedAt=now;t.stopClosed=false;}
+  else{ensureAudio();if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;t.stoppedAt=0;t.stopClosed=false;}}
+function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;t.ack=false;t.stoppedAt=0;t.stopClosed=false;}
 /* Remplissage de la barre de progression d'un minuteur (cf. `.tm-bar`) : SOURCE UNIQUE de la
    chaîne, partagée par le gabarit `timerCard` et le tick `refreshTimersDOM`. Une source unique
    parce que le tick compare la valeur AVANT d'écrire (anti-churn, ~3,3 passages/s) : deux
@@ -12188,7 +12220,12 @@ function refreshTimersDOM(now){now=now||Date.now();
   Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
     const d=timerDisplay(t,now);if(v.textContent!==d.val)v.textContent=d.val;
     if(t.type==='interval'){const c=document.getElementById('tmcyc-'+t.id);if(c){const ct='Cycles : '+t.cycles;if(c.textContent!==ct)c.textContent=ct;}const bar=document.getElementById('tmbar-'+t.id);if(bar){const tf=barTf(d.bw);if(bar.style.transform!==tf)bar.style.transform=tf;}}
-    const al=lbl+' : '+d.val;if(v.getAttribute('aria-label')!==al)v.setAttribute('aria-label',al);});}
+    const al=lbl+' : '+d.val;if(v.getAttribute('aria-label')!==al)v.setAttribute('aria-label',al);
+    /* « arrêté depuis » avance comme le chrono : on n'écrit QUE le nombre — la ligne, elle, a été
+       posée par le rendu au moment du geste (A9 : sa présence ne change pas au fil du temps). */
+    {const sp=document.getElementById('tmstop-'+t.id);
+     if(sp&&t.stoppedAt){const b=sp.querySelector('b'),txt=fmtMs(Math.max(0,now-t.stoppedAt));
+       if(b&&b.textContent!==txt)b.textContent=txt;}}});}
 setInterval(tickAll,300);
 
 /* ===== Sessions =====
@@ -16275,6 +16312,19 @@ function shareOffset(samples,maxRtt){
    counterCard(c) : carte d'un compteur (valeur + boutons - / +).
    runtimePanel(f): assemble le bandeau (rien si la fiche n'a ni minuteur ni
      compteur) avec un bouton son 🔔/🔕. */
+/* LA LIGNE « ARRÊTÉ DEPUIS » (v5.6, planche 11j) — texte AMBRE, jamais un aplat : A11 réserve la
+   masse colorée à ce qui exige une action maintenant, et ceci est une LECTURE.
+   ⚠ ELLE NE PARAÎT QUE SUR UN MINUTEUR EN PAUSE, ET C'EST A9 QUI L'IMPOSE. Un état non commandé
+   ne doit modifier aucune hauteur : la pause arrive par un TAP (ou au chargement, où la ligne est
+   déjà là), donc la carte a le droit d'y gagner une ligne. Un minuteur ÉCHU, lui, le devient tout
+   seul — il n'en reçoit aucune, et de toute façon l'alarme dit déjà ce qu'il faut savoir.
+   ⚠ ET AUCUN SEUIL : « n'afficher qu'au-delà de 30 s » ferait apparaître une ligne — donc grandir
+   la carte — SANS geste, ce qu'A9 interdit. Elle paraît au tap et son nombre avance ensuite. */
+function timerStopHtml(t,now){
+  if(!timerPaused(t)||!t.stoppedAt)return '';
+  const d=Math.max(0,(now||Date.now())-t.stoppedAt);
+  return `<div class="tm-stop" id="tmstop-${t.id}">△ arrêté depuis <b>${fmtMs(d)}</b>${
+    t.stopClosed?' — application fermée, le temps n’a pas été rattrapé':''}</div>`;}
 function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw,cyc=t.type==='interval'?'Cycles : '+t.cycles:'';
   const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
   // « ↺ + durée initiale » (décision utilisateur) : on VOIT ce que redonnera la réinitialisation
@@ -16287,6 +16337,7 @@ function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw
   return `<div class="tmcard${stCls}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><div class="tm-label" id="tmlab-${t.id}">${esc(timerStateLabel(t))}</div>${meta?`<div class="tm-meta">${esc(meta)}</div>`:''}
     <div class="tm-val" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
     ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="transform:${barTf(bw)}"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
+    ${timerStopHtml(t)}
     <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${t.id}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button>${timerDue(t)&&!t.ack?`<button type="button" class="tm-btn tm-ack" data-tmack="${t.id}" aria-label="Acquitter l’alarme — ${lbl} ; le minuteur reste échu, seul le bandeau se tait">✓ Vu</button>`:''}<button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${t.id}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
 // Rangée COMPACTE d'un minuteur ad hoc (48px) : libellé · temps · ⟲ relance · ✕ suppression.
 function timerMiniRow(t){const d=timerDisplay(t,Date.now());const lbl=esc(t.label)||'Minuteur';
@@ -16330,6 +16381,22 @@ function syncTimerBtns(t){const lbl=esc(t.label)||(t.type==='interval'?'Minuteur
        b.setAttribute('aria-label','Acquitter l’alarme — '+lbl+' ; le minuteur reste échu, seul le bandeau se tait');
        ctrl.insertBefore(b,ctrl.querySelector('.tm-reset'));}
      else if(!veut&&ex)ex.remove();}}
+  /* MÊME CHEMIN POUR « ARRÊTÉ DEPUIS » (v5.6, planche 11j) : la mise en pause passe par le tick,
+     pas par un rendu — posée seulement par `timerCard`, la ligne n'apparaîtrait qu'au prochain
+     re-rendu complet, c'est-à-dire peut-être jamais. Elle naît donc ici, et disparaît au premier
+     démarrage. A9 est tenue : la pause est un GESTE, et la ligne ne peut pas surgir sur un état
+     non commandé — un minuteur ne devient jamais « en pause » tout seul (échoir n'est pas se
+     mettre en pause, et un échu n'en reçoit aucune). */
+  {const card=document.getElementById('tmcard-'+t.id);
+   if(card&&card.classList.contains('tmcard')){
+     const ex=card.querySelector('.tm-stop'), veut=timerPaused(t)&&!!t.stoppedAt;
+     if(veut&&!ex){const w=document.createElement('div');w.innerHTML=timerStopHtml(t);
+       const n=w.firstElementChild;if(n)card.insertBefore(n,card.querySelector('.tm-ctrl'));}
+     else if(!veut&&ex)ex.remove();
+     else if(veut&&ex&&!!t.stopClosed!==/application/.test(ex.textContent)){
+       /* Le MOTIF a changé (on a relancé puis remis en pause après un rechargement) : on réécrit
+          la ligne entière plutôt que d'éditer un morceau de phrase. */
+       ex.outerHTML=timerStopHtml(t);}}}
   // État (échu ambre / en pause) : classes + libellé textuel synchronisés au tick, sur les DEUX
   // formes de minuteur (v4.41.0) — la carte pleine `.tmcard` ET la rangée compacte `.tm-mini`
   // d'un minuteur ad hoc, qui partagent l'id `tmcard-<id>`. Le garde ne retenait que `.tmcard` :
@@ -26496,6 +26563,7 @@ if(location.search.indexOf('__actest')>=0){
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
     TAG_CORE,sanitizeTags,tagAll,tagSuggest,tagShort,tagLabel,tagRank,tkRefNorm,tkLabels,tkParseTime,Share,sessionToRow,sessionFromRow,shareNavNorm,
+    tmStopFrom,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,Share,
     shareSnap,shareDiff,

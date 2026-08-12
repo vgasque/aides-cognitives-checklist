@@ -293,6 +293,25 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.monPick({c:{id:'c',type:'stopwatch',elapsedMs:5000,running:true}},now)===null);
    ok('rien à montrer → null (l’écran le dit, il n’invente pas)', A.monPick({},now)===null);}
 
+  group('v5.6 (planche 11j) — tmStopFrom : depuis quand ce minuteur est-il arrêté ?');
+  /* Le temps passé application fermée n'est PAS rattrapé — le rattraper fabriquerait un temps que
+     personne n'a mesuré. Mais un minuteur figé à 4:22 se lit comme un minuteur qui tourne à 4:22 :
+     il faut donc dire DEPUIS QUAND. Deux causes, une seule phrase, et un repli qui ne ment pas. */
+  {const SES={savedAt:5000};
+   const a=A.tmStopFrom({elapsedMs:1,cycles:0,running:true,stoppedAt:0},SES);
+   eq('il TOURNAIT à l’enregistrement : l’arrêt date de savedAt', a.stoppedAt, 5000);
+   ok('… et le motif est nommé (application fermée)', a.stopClosed===true);
+   const b=A.tmStopFrom({elapsedMs:1,cycles:0,running:false,stoppedAt:3000},SES);
+   eq('il était DÉJÀ en pause : on garde l’heure de cette pause', b.stoppedAt, 3000);
+   ok('… et sans motif : une pause voulue n’est pas une fermeture', b.stopClosed===false);
+   /* REPLI D'UN INSTANTANÉ ANTÉRIEUR À CES DEUX CHAMPS : au pire la durée annoncée est trop
+      COURTE — jamais inventée, jamais plus longue que la réalité. */
+   const c=A.tmStopFrom({elapsedMs:1,cycles:0},SES);
+   eq('instantané ancien (ni running ni stoppedAt) : repli sur savedAt', c.stoppedAt, 5000);
+   ok('… et il ne s’invente pas de motif', c.stopClosed===false);
+   const d=A.tmStopFrom(null,SES);
+   ok('aucun instantané : rien à dire, aucune ligne', d.stoppedAt===0&&d.stopClosed===false);}
+
   group('phase K (v4.63.0) — reviewNotes : la relecture doctrinale en une grammaire');
    /* v5.0.0, étape B — LES FIXTURES PASSENT PAR `migrate`. Elles étaient des objets v3 bruts :
       depuis que les six listes sont devenues des items à rôle dans un POOL, un tel objet n'a plus

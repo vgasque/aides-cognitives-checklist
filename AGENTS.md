@@ -1369,6 +1369,63 @@ donnait l'allure d'un changement d'écran. Le glissement de la PASTILLE du séle
 le geste, et il est, lui, de la manipulation directe. Les keyframes `secInL/R` restent : elles
 servent la pile de retour et la bascule de format en lecture, qui sont deux vraies navigations.
 
+**A81. UN MINUTEUR ARRÊTÉ DIT DEPUIS QUAND (v5.6, planche 11j — le point le plus critique de la
+série « intelligence »).** Au rechargement les minuteurs sont restaurés EN PAUSE et le temps passé
+application fermée n'est PAS rattrapé : c'est juste, le rattraper fabriquerait un temps que personne
+n'a mesuré. Mais rien ne disait **combien**. Un minuteur figé à 4:22 se lit d'un coup d'œil comme un
+minuteur qui tourne à 4:22, et la décision qui suit — « ça fait quatre minutes, je redonne » — est
+prise sur un chiffre qui a cessé d'avancer. C'est le seul endroit du produit où un chiffre commande
+un geste médicamenteux, et c'est pour cela que cette ligne passe avant tout le reste.
+· **UNE PHRASE, DEUX CAUSES** : « △ arrêté depuis 4:10 — application fermée, le temps n'a pas été
+  rattrapé » s'il TOURNAIT à l'enregistrement (l'arrêt date de `savedAt`) ; « △ arrêté depuis 4:10 »
+  s'il était déjà en pause. Une pause dont on a perdu le compte est le même piège, et distinguer
+  les deux par deux formulations ferait deux phrases à lire.
+· **AMBRE TEXTUEL, JAMAIS UN APLAT** (A11) : c'est une LECTURE, pas une alarme. Sur la matière
+  SYSTÈME (le volet), le registre prend sa valeur propre `--warn-sys`.
+· **⚠ AUCUN SEUIL, ET C'EST A9 QUI L'IMPOSE** : « n'afficher qu'au-delà de 30 s » ferait apparaître
+  une ligne — donc grandir la carte — SANS geste. Elle paraît au tap de pause (geste commandé, la
+  carte a le droit d'y gagner une ligne) ou est déjà là au chargement, et seul son NOMBRE avance
+  ensuite. Un minuteur ÉCHU n'en reçoit aucune : il le devient tout seul, et l'alarme dit déjà ce
+  qu'il faut savoir.
+· **ELLE NAÎT AU TICK, PAS AU RENDU** — précédent exact d'A34 : la mise en pause passe par le
+  chemin chirurgical (`syncTimerBtns`), pas par un re-rendu ; posée seulement par `timerCard`, la
+  ligne n'apparaîtrait qu'au prochain rendu complet, c'est-à-dire peut-être jamais.
+· **DEUX CHAMPS FACULTATIFS DANS L'INSTANTANÉ** (`running`, `stoppedAt`) : sans eux on ne peut pas
+  distinguer « fermée pendant qu'il tournait » d'« en pause depuis dix minutes ». Un instantané
+  ANTÉRIEUR retombe sur `savedAt` — au pire la durée annoncée est trop COURTE, jamais inventée
+  (`tmStopFrom`, pure, 6 témoins).
+
+**A68. MICRO-ANIMATION NON BLOQUANTE — CINQ CONDITIONS, ET UNE ANIMATION QUI EN MANQUE UNE NE SE
+DISCUTE PAS (v5.6, planche 10d).** La règle était énoncée trois fois, à trois endroits, en trois
+formulations — le déroulé du volet (A51), l'oscillation du bloc saisi (v4.75.0), l'élévation de
+l'en-tête (A27). Écrite une fois, elle devient opposable.
+1. **ELLE RÉPOND À UN GESTE.** Le mouvement non commandé est réservé à l'alarme (ECAM) : ce qui
+   bouge tout seul dit « danger », ou ne dit rien.
+2. **L'ÉTAT EST APPLIQUÉ D'ABORD, L'ANIMATION LE DÉCORE.** Aucune mutation n'attend un
+   `animationend` — il ne sert qu'à NETTOYER (retirer une classe, un style, un `hidden`).
+3. **`transform` ET `opacity` SEULEMENT** (check-anim) : aucune passe de mise en page par image.
+   Une hauteur qui doit « se dérouler » se fait en `scaleY` + contre-scale du contenu (A51).
+4. **INTERRUPTIBLE.** Un second geste pendant l'animation est honoré IMMÉDIATEMENT : l'animation
+   est REMPLACÉE, jamais mise en file. Rien n'est `pointer-events:none` sauf un annonciateur qui
+   ne reçoit rien (halo, dégradé, flash, coque du dock, fenêtre de dépôt, surlignage PDF).
+5. **BORNÉE** : ≤ 200 ms, une seule oscillation amortie, JAMAIS de boucle — la boucle appartient à
+   `alarmPulse` et au point de session. Et inerte sous `prefers-reduced-motion`, sans exception.
+· **LA CONDITION 4 EST LA SEULE QUI N'ÉTAIT ÉCRITE NULLE PART**, et c'est celle que la demande
+  formule (« pouvoir continuer à utiliser l'app pendant l'animation »). Elle était respectée PAR
+  CONSTRUCTION, pas par règle : rien n'empêchait le prochain lot d'accrocher une mutation d'état à
+  une fin d'animation. `check-anim` la mesure désormais — le corps d'un `animationend` ne peut
+  contenir ni rendu, ni écriture sur `state`/`Runtime`, ni persistance —, plus un CLIQUET sur le
+  nombre de `pointer-events:none` (18 aujourd'hui, tous des annonciateurs) : une nouvelle
+  occurrence est une décision, et elle doit se voir dans un diff.
+· **⚠ LA PORTÉE EST DITE** : la sonde lit le corps littéral du gestionnaire. Un `animationend` qui
+  appellerait une fonction NOMMÉE écrivant l'état passerait au travers — elle attrape l'écriture
+  directe, pas l'indirection. Un contrôle qui tait sa limite laisse croire à une couverture totale.
+· **TROIS ANIMATIONS REFUSÉES, ET LE REFUS FAIT JURISPRUDENCE** : le chrono qui fond à chaque
+  seconde (mouvement non commandé, permanent, sur la zone qui ne quitte jamais l'écran — la
+  définition du bruit) ; le squelette de chargement animé du répertoire (il fabrique une attente là
+  où il n'y en avait pas) ; le glissement d'écran sur un changement de filtre, déjà purgé en v5.6
+  (A80) — la liste reste la même liste, seule sa clé change.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

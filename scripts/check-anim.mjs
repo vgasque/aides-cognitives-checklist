@@ -102,15 +102,76 @@ for (const brut of styles) {
   }
 }
 
-if (fautes.length) {
-  console.error('✗ check-anim : ' + fautes.length + ' animation(s) de propriété de MISE EN PAGE.\n');
-  for (const f of fautes) console.error(`    ${f.ou} → ${f.prop}`);
+/* ══ A68, CONDITION 2 ET 4 — RIEN N'ATTEND LA FIN D'UNE ANIMATION (v5.6) ═══════════════════════
+   La doctrine d'animation était énoncée trois fois, à trois endroits, en trois formulations. Une
+   fois écrite (A68), une seule de ses cinq conditions n'était vérifiable par rien : « un second
+   geste pendant l'animation est honoré immédiatement ». Elle est respectée aujourd'hui PAR
+   CONSTRUCTION — les cinq `animationend` du fichier ne font que RETIRER une classe — mais rien
+   n'empêche le prochain lot d'y accrocher une mutation d'état, et ce jour-là l'application
+   attendrait une animation pour appliquer un geste.
+   CE QUI EST MESURÉ : le corps d'un gestionnaire `animationend` ne contient ni rendu, ni écriture
+   sur `state`/`Runtime`, ni persistance. Le NETTOYAGE (classList.remove, style, hidden) reste
+   libre — c'est exactement l'usage légitime.
+   ⚠ LA PORTÉE EST CELLE D'UNE HEURISTIQUE, ET ON LE DIT : on lit le texte qui suit l'écouteur
+   jusqu'à la fin de son expression. Un gestionnaire qui appellerait une fonction NOMMÉE écrivant
+   l'état passerait au travers — la sonde attrape l'écriture directe, pas l'indirection. */
+const VERBES = /\brender\w*\s*\(|\bstate\.[A-Za-z_$][\w$]*\s*=|\bRuntime\.[A-Za-z_$][\w$]*\s*=|\bpersist\w*\s*\(|\bData\.put/;
+let nAe = 0;
+for (const m of html.matchAll(/addEventListener\s*\(\s*['"]animationend['"]\s*,/g)) {
+  nAe++;
+  // Corps du gestionnaire : de la virgule à la parenthèse fermante de l'appel, parenthèses comptées.
+  let i = m.index + m[0].length, prof = 1, deb = i;
+  while (i < html.length && prof > 0) {
+    const c = html[i];
+    if (c === '(') prof++; else if (c === ')') prof--;
+    i++;
+  }
+  const corps = html.slice(deb, i - 1);
+  const v = corps.match(VERBES);
+  if (v) fautes.push({ ou: `animationend (ligne ${html.slice(0, m.index).split('\n').length})`, prop: `écrit l'état : ${v[0]}` });
+}
+
+/* CLIQUET DE `pointer-events:none` (A68, condition 4). Les 18 occurrences actuelles sont toutes
+   des ANNONCIATEURS ou du décor — une loupe dans un champ, un dégradé de fondu, un halo, le flash
+   d'alarme, la coque du dock qui laisse passer les taps. Aucune n'intercepte un geste. Les nommer
+   une par une serait une liste de bruit ; en revanche une NOUVELLE occurrence mérite une décision,
+   parce que c'est par là qu'un voile bloquant entrerait. Le compte ne peut donc que DESCENDRE. */
+const PE_MAX = 18;
+const nPe = styles.map(sansCommentaires).join('\n').split(/pointer-events\s*:\s*none/).length - 1;
+if (nPe > PE_MAX)
+  fautes.push({ ou: `pointer-events:none × ${nPe}`, prop: `cliquet à ${PE_MAX} (A68/4)` });
+
+/* Trois familles de faute, trois explications : un message qui ne désigne pas sa cause envoie
+   chercher la panne du mauvais côté (leçon « Fichier illisible », v5.0.0). */
+const fMep = fautes.filter(f => !/^écrit l'état|^cliquet/.test(f.prop));
+const fAe  = fautes.filter(f => /^écrit l'état/.test(f.prop));
+const fPe  = fautes.filter(f => /^cliquet/.test(f.prop));
+if (fAe.length) {
+  console.error(`✗ check-anim : ${fAe.length} gestionnaire(s) \`animationend\` qui ÉCRIVENT l'état.\n`);
+  for (const f of fAe) console.error(`    ${f.ou} → ${f.prop}`);
+  console.error('\n  A68, conditions 2 et 4 : l\'état est appliqué D\'ABORD, l\'animation le décore, et un');
+  console.error('  second geste pendant l\'animation est honoré IMMÉDIATEMENT. Un `animationend` qui');
+  console.error('  mute l\'état fait attendre l\'application — en crise, c\'est un geste perdu.');
+  console.error('  `animationend` ne sert qu\'à NETTOYER : retirer une classe, un style, un hidden.');
+}
+if (fPe.length) {
+  console.error(`✗ check-anim : ${fPe.length} dépassement du cliquet \`pointer-events:none\`.\n`);
+  for (const f of fPe) console.error(`    ${f.ou} → ${f.prop}`);
+  console.error('\n  A68, condition 4 : rien n\'est inerte au pointeur sauf un ANNONCIATEUR qui ne reçoit');
+  console.error('  rien (halo, dégradé, flash, coque de dock). C\'est par là qu\'un voile bloquant');
+  console.error('  entrerait. Si la nouvelle occurrence est bien un annonciateur, monter PE_MAX —');
+  console.error('  c\'est une DÉCISION, et elle doit se voir dans un diff.');
+}
+if (fMep.length) {
+  console.error('✗ check-anim : ' + fMep.length + ' animation(s) de propriété de MISE EN PAGE.\n');
+  for (const f of fMep) console.error(`    ${f.ou} → ${f.prop}`);
   console.error('\n  Animer une propriété de mise en page force un layout PAR IMAGE pendant toute');
   console.error('  la durée de l\'animation (mesuré sur .tm-bar : 118 layouts/s, jusqu\'à 38 % d\'un');
   console.error('  cœur en pleine réanimation). Passer par `transform` / `opacity`, qui sont');
   console.error('  composées — cf. `.tm-bar` (scaleX) et `.t-life`. Si l\'animation est ponctuelle');
   console.error('  et ne peut pas se convertir sans risque, l\'ajouter à EXEMPT avec sa RAISON.');
-  process.exit(1);
 }
-console.log(`✓ check-anim : ${nTrans} transition(s) et ${nKf} keyframes — aucune animation de propriété de mise en page` +
+if (fautes.length) process.exit(1);
+console.log(`✓ check-anim : ${nTrans} transition(s), ${nKf} keyframes, ${nAe} animationend (aucun n'écrit d'état),`
+  + ` ${nPe}/${PE_MAX} pointer-events:none — aucune animation de propriété de mise en page` +
   (EXEMPT.length ? ` (${EXEMPT.length} exemption documentée : ${EXEMPT.map(e => e.sel + '/' + e.prop).join(', ')}).` : '.'));
