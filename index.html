@@ -6198,15 +6198,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* « ai- » : préfixe HISTORIQUE (première fenêtre = « Créer via IA ») devenu le préfixe GÉNÉRIQUE
      de toutes les modales (Compte, PDF, confirmations…) — ai-modal/ai-card/ai-x/ai-top/ai-actions.
      Ne pas y lire un lien avec l'IA ; renommer casserait sélecteurs CSS+JS pour un gain nul. */
-  /* ⚠ TENTATIVE ANNULÉE — `overflow-x:hidden` SUR LA FENÊTRE (v5.6). Le défilement horizontal
-     signalé sur la fenêtre Compte a d'abord été traité en bornant l'axe X du défileur. C'était
-     FAUX à deux titres, et l'auteur l'a dit aussitôt : « des éléments sont tronqués, notamment la
-     barre d'input, et la ligne de scroll dans Safari tronque le contenu ». Un `overflow:hidden`
-     coupe ce qui dépasse au lieu d'empêcher ce qui dépasse — et sur un défileur, WebKit réserve en
-     plus sa gouttière. La cause reste à trouver du bon côté : ce qui rend la fenêtre plus large
-     que sa boîte, pas le symptôme. Mesuré sur Chromium, la carte ne déborde d'aucun pixel
-     (390/390, 320/320) : le cas réel ne se reproduit donc pas ici, et l'on ne borne rien tant
-     qu'on ne l'a pas vu. */
+  /* ⚠ ON CONTRAINT LE GESTE, PAS LA BOÎTE (v5.6, signalé à l'usage : « fenêtre compte &
+     synchronisation : le scroll se déplace de gauche à droite, surtout sur smartphone »).
+     PREMIÈRE TENTATIVE, ANNULÉE : `overflow-x:hidden` sur la fenêtre. L'auteur l'a rejetée à
+     l'écran — « des éléments sont tronqués, notamment la barre d'input, et la ligne de scroll dans
+     Safari tronque le contenu » — et il a raison : un `overflow:hidden` COUPE ce qui dépasse au
+     lieu d'empêcher ce qui dépasse, et sur un défileur WebKit y réserve en plus sa gouttière.
+     CE QUE LA MESURE DIT, ET C'EST CE QUI DÉSIGNE LE REMÈDE : sous WebKit comme sous Chromium, à
+     320 / 390 / 430 px, déconnecté, connecté, avec un courriel de 70 caractères, avec le bloc
+     admin « État de l'instance » rendu, et avec une chaîne INSÉCABLE injectée tour à tour dans
+     seize conteneurs — **aucun élément de cette fenêtre n'est défilable en X, et rien ne dépasse
+     de la carte** (390/390, 320/320). Le contenu n'est donc pas en cause.
+     Ce qui reste est le GESTE : `.ai-modal` est `overflow:auto`, donc un défileur sur les DEUX
+     axes, et iOS laisse traîner un tel défileur horizontalement — avec rebond — même quand il n'y
+     a rien à faire défiler. `touch-action:pan-y` interdit ce panoramique SANS toucher à la
+     géométrie : aucun clip, aucune gouttière, aucune troncature possible.
+     ⚠ BORNÉ À LA FENÊTRE SIGNALÉE, et c'est délibéré : `touch-action` se résout en prenant la
+     contrainte la plus stricte de la chaîne d'ancêtres, donc un enfant ne peut PAS rendre le
+     panoramique horizontal à un tableau du mini-Markdown ou à une page de PDF zoomée. La fenêtre
+     Compte, elle, n'héberge aucun défileur horizontal — vérifié ci-dessus. On étendra si le même
+     glissement est signalé ailleurs, fenêtre par fenêtre. */
+  #authModal{touch-action:pan-y}
   .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}
   /* iOS Safari — LA FENÊTRE ÉTAIT COUPÉE EN BAS (retour utilisateur v4.29.3 : « le contenu ne
      scrolle pas sur cette bande ») : un overlay `fixed; inset:0` se dimensionne sur le GRAND

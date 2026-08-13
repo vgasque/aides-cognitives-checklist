@@ -1760,19 +1760,33 @@ un mot. La porte ne dit plus que « ＋ Minuteur ».
   que sa nature *quel que soit ce qu'on a horodaté avant*, le minuteur naît SANS nom, et sa rangée
   porte de quoi le nommer.
 
-**A100. TENTATIVE ANNULÉE — `overflow-x:hidden` NE CORRIGE PAS UN DÉFILEMENT HORIZONTAL, IL LE
-CACHE (v5.6).** Le défilement latéral signalé sur la fenêtre Compte a d'abord été traité en bornant
-l'axe X du défileur. L'auteur l'a rejeté aussitôt, et il a raison : « des éléments sont tronqués,
-notamment la barre d'input, et la ligne de scroll dans Safari tronque le contenu ». Un
-`overflow:hidden` COUPE ce qui dépasse au lieu d'empêcher ce qui dépasse — et sur un défileur,
-WebKit réserve en plus sa gouttière. **Annulé.**
-· **CE QUE LA MESURE DIT, ET CE QU'ELLE NE DIT PAS** : sur Chromium la carte ne déborde d'aucun
-  pixel (390/390, 320/320), signé ou non — le cas réel ne se reproduit donc PAS dans le harnais, et
-  c'est cela qu'il fallait retenir avant de toucher à quoi que ce soit. Le seul débordement visible
-  est celui, VOULU, du halo compensé du ✕ (`margin-right:-10px`), dont le bord reste dans le
-  rembourrage de la carte (A76).
-· **LEÇON** : quand une mesure ne rencontre pas le défaut signalé, on ne borne pas le symptôme au
-  jugé — on cherche la cause du bon côté, ou l'on dit qu'on ne l'a pas trouvée. Reste à instruire.
+**A100. UN DÉFILEMENT LATÉRAL SE CORRIGE PAR LE GESTE, PAS PAR UN CLIP (v5.6, signalé à l'usage :
+« fenêtre compte & synchronisation : le scroll se déplace de gauche à droite, surtout sur
+smartphone »).**
+· **PREMIÈRE TENTATIVE, ANNULÉE** : `overflow-x:hidden` sur la fenêtre. Rejetée à l'écran par
+  l'auteur — « des éléments sont tronqués, notamment la barre d'input, et la ligne de scroll dans
+  Safari tronque le contenu ». Il a raison : un `overflow:hidden` COUPE ce qui dépasse au lieu
+  d'empêcher ce qui dépasse, et sur un défileur WebKit y réserve en plus sa gouttière. *Borner le
+  symptôme n'est pas corriger la cause, et ici cela abîmait davantage que le défaut.*
+· **CE QUE LA MESURE A ÉTABLI, ET C'EST ELLE QUI DÉSIGNE LE REMÈDE** : sous WebKit comme sous
+  Chromium, à 320 / 390 / 430 px, déconnecté, connecté, avec un courriel de 70 caractères, avec le
+  bloc admin « État de l'instance » rendu, et avec une chaîne INSÉCABLE injectée tour à tour dans
+  seize conteneurs — **aucun élément de cette fenêtre n'est défilable en X, et rien ne dépasse de
+  la carte**. Le contenu n'est donc pas en cause : le seul « débordement » visible est le halo
+  compensé du ✕, voulu, et dont le bord reste dans le rembourrage (A76).
+· **CE QUI RESTE EST LE GESTE** : `.ai-modal` est `overflow:auto`, donc un défileur sur les DEUX
+  axes, et iOS laisse traîner un tel défileur horizontalement — avec rebond — même sans rien à
+  faire défiler. `touch-action:pan-y` interdit ce panoramique **sans toucher à la géométrie** :
+  aucun clip, aucune gouttière, aucune troncature possible. C'est exactement ce que la première
+  tentative n'a pas su faire.
+· **⚠ BORNÉ À LA FENÊTRE SIGNALÉE, DÉLIBÉRÉMENT** : `touch-action` se résout en prenant la
+  contrainte la PLUS STRICTE de la chaîne d'ancêtres — un enfant ne peut donc pas rendre le
+  panoramique horizontal à un tableau du mini-Markdown, à un bloc de code ou à une page de PDF
+  zoomée. La fenêtre Compte n'héberge aucun défileur horizontal (vérifié) ; on étendra fenêtre par
+  fenêtre, sur signalement, jamais d'un coup.
+· **LEÇON GÉNÉRALE** : quand une mesure ne rencontre pas le défaut signalé, on ne borne pas le
+  symptôme au jugé. Ou l'on cherche jusqu'à trouver ce qui, dans la MÉCANIQUE et non dans le
+  contenu, peut le produire — ou l'on dit qu'on ne l'a pas trouvé.
 
 **A101. UN FOND DE RANGÉE VA D'UN BORD À L'AUTRE DE SA CARTE (v5.6, signalé à l'usage, captures à
 l'appui : « le fond de sélection ne s'affiche pas sur toute la largeur », « session en cours : le
