@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kacFsrqvjteceut34PnbizpNCjINK3pOFDgPp0TJZvc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-eTXCCClnTLyjzRozZWimE5lWdE2pJBPaZtLP6PMUfOU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1446,7 +1446,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* P1 — MÊME GÉOMÉTRIE QUE LE VOLET : la barre s'aligne sur la COLONNE D'ACTION, jamais sur la
      fenêtre (A24), et se pose AU-DESSUS du dock — un objet qui recouvrirait ses touches
      masquerait le geste qu'on vient de faire (A37). Elle ne prend aucune hauteur au flux. */
-  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
   #blkReturn[hidden]{display:none}
   body.kb-open #blkReturn{display:none}
   @media (min-width:780px){
@@ -20187,7 +20187,22 @@ function syncCxKey(crisis){
       if(un)ck.removeAttribute('aria-expanded');else ck.setAttribute('aria-expanded',state.cxOpen?'true':'false');}
     else if(state.cxOpen)dockSheetClose();}
   syncDock();}
+/* ⚠ LE VOLET ET LA BARRE DE RETOUR SE DISPUTAIENT LE MÊME ANCRAGE (v5.7, signalé à l'usage :
+   « ils se superposent, ils devraient être l'un au-dessus de l'autre »). Les deux sont posés à
+   `bottom: --dock-h + 8px` : ils se recouvraient PAR CONSTRUCTION dès que le volet ⏱ ou ⚡ était
+   ouvert. C'est un défaut que P1 a apporté, et il était inévitable — deux surfaces flottantes
+   au-dessus du dock ne peuvent pas ignorer la hauteur l'une de l'autre.
+   `--sheet-h` est la hauteur MESURÉE du volet ouvert (0 quand il est fermé) : la barre s'empile
+   dessus et redescend d'elle-même à la fermeture, sans que rien n'ait à s'en souvenir. Même
+   patron que `--dock-h`, mesuré au même endroit et au même moment. */
+function syncSheetH(){
+  const sh=document.getElementById('dockSheet');
+  const v=(sh&&!sh.hidden)?Math.round(sh.getBoundingClientRect().height/((typeof zoomF==='function'?zoomF():1)||1)):0;
+  const cur=document.documentElement.style.getPropertyValue('--sheet-h');
+  const nv=v?(v+8)+'px':'0px';
+  if(cur!==nv)document.documentElement.style.setProperty('--sheet-h',nv);}
 function syncDock(){
+  syncSheetH();
   // Rangée d'ÉTAT : visible si un état vit (session ou minuteur).
   {const d=document.getElementById('crisisDock'),t=document.getElementById('cbTimers');
    if(d)d.hidden=!t||t.hidden;}

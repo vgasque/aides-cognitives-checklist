@@ -9,7 +9,7 @@
 # dans docs/deploiement-et-conformite.md § 1.1 — la CSP <meta> d'index.html reste, elle, active
 # partout, et c'est elle qui porte l'essentiel (script-src par hashs).
 /*
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kacFsrqvjteceut34PnbizpNCjINK3pOFDgPp0TJZvc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-eTXCCClnTLyjzRozZWimE5lWdE2pJBPaZtLP6PMUfOU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
