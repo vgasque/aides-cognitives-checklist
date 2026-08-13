@@ -5350,6 +5350,92 @@ await sec('Q2 · la reprise après interruption', async () => {
   await page.close();
 });
 
+// ══ P4b (v5.7) — LE TRI VIVANT DES MINUTEURS, ET SON GARDE ═══════════════════
+/* Ce que le témoin mesure : l'ordre suit le temps RESTANT, l'alarme passe devant, et surtout
+   RIEN NE BOUGE tant qu'un doigt est posé — puis pendant le délai de grâce. Ce dernier point
+   est la moitié qui compte : c'est lui qui empêche la carte qu'on vient de toucher de tomber
+   au bas de la liste sous le doigt.
+   ⚠ LE DÉCOR A DÛ ÊTRE CONSTRUIT AVANT LE TÉMOIN : le réordonnancement ne s'observe qu'à
+   partir de DEUX minuteurs déclarés, et la fiche ACR en porte deux depuis la v5.7. */
+await sec('P4b · le tri vivant des minuteurs', async () => {
+  const page=await session(1280);
+  await page.waitForTimeout(500);
+  const ordre=()=>page.evaluate(()=>[...document.querySelectorAll('.tmcard[id^="tmcard-"]')].map(e=>e.id.slice(7)));
+  const ids=await ordre();
+  t('le cas est rencontré : deux cartes de minuteur', ids.length>=2, ids.length+' carte(s)');
+  if(ids.length<2){await page.close();return;}
+  /* On fait tourner les deux, le SECOND plus près de son échéance que le premier. */
+  const poser=(a,b)=>page.evaluate(([ia,ib])=>{const T=Runtime.timers,n=Date.now();
+    T[ia].running=true;T[ia].lastStart=n;T[ia].elapsedMs=0;
+    T[ib].running=true;T[ib].lastStart=n;T[ib].elapsedMs=(T[ib].seconds*1000)-8000;
+    return true;},[a,b]);
+  await poser(ids[0],ids[1]);
+  await page.waitForTimeout(900);
+  const apres=await ordre();
+  t('le plus proche de son échéance remonte en tête', apres[0]===ids[1], apres.join(' , '));
+  /* L'IMMINENCE SE VOIT SUR LA CARTE, et pas seulement dans la capsule (marquage, pas aplat). */
+  const marque=await page.evaluate(i=>{const c=document.getElementById('tmcard-'+i);
+    return c?{soon:c.classList.contains('soon'),al:c.getAttribute('aria-label')||''}:null;},ids[1]);
+  t('… et la carte imminente est MARQUÉE', !!marque&&marque.soon);
+  t('… avec le mot, jamais la couleur seule', !!marque&&/bient[ôo]t/i.test(marque.al), marque&&marque.al);
+  /* ⚠ LE GARDE : doigt posé → rien ne bouge, même si l'ordre devrait changer. */
+  const carte=await page.$('#tmcard-'+apres[0]);
+  if(!carte){t('le garde : un doigt posé fige la liste', false, 'carte introuvable');}
+  else{
+    const bb=await carte.boundingBox();
+    await page.mouse.move(bb.x+bb.width/2,bb.y+10);
+    await page.mouse.down();
+    await poser(ids[1],ids[0]);            // on inverse l'urgence pendant que le doigt est posé
+    await page.waitForTimeout(900);
+    t('le garde : un doigt posé fige la liste', (await ordre())[0]===apres[0], (await ordre()).join(' , '));
+    await page.mouse.up();
+    /* … puis le DÉLAI DE GRÂCE : la liste attend encore, le temps de lire la réponse de la carte. */
+    await page.waitForTimeout(500);
+    t('… et le délai de grâce la fige encore juste après le relâchement', (await ordre())[0]===apres[0]);
+    await page.waitForTimeout(1500);
+    t('… puis l\'ordre se fait, une fois le geste compris', (await ordre())[0]===ids[0], (await ordre()).join(' , '));}
+  await page.close();
+});
+
+// ══ Q1 (v5.7) — LA RELECTURE PROPOSE, ET LE TAP CRÉE L'OBJET ═════════════════
+/* `reviewOffers` a ses 13 témoins purs ; ce qui n'était mesuré par rien, c'est le CÂBLAGE —
+   la rangée paraît, son tap passe par `edAdd` avec le `pre` lu dans la phrase de l'auteur, et
+   l'objet créé porte la période. Plus la garantie inverse : un refus ne revient pas. */
+await sec('Q1 · les propositions de relecture', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  /* Patron d'audit-k5 : on ouvre l'éditeur sur un brouillon dont le TEXTE porte la cadence —
+     c'est le texte de l'auteur qui déclenche, jamais un barème. */
+  const ouvrir=(txt,timers)=>page.evaluate(([t0,tm])=>{
+    const f=migrate({id:'q1f',v:4,kind:'procedure',title:'Essai',
+      items:[{id:'qa',do:t0}],blocks:[{id:'qb',title:'B',kind:'do',items:['qa']}],timers:tm||[]});
+    state.view='edit';state.draft=f;render();return true;},[txt,timers]);
+  await ouvrir('Analyse du rythme toutes les 3 min');
+  await page.waitForTimeout(500);
+  const offres=()=>page.evaluate(()=>[...document.querySelectorAll('[data-revoff]')].map(b=>b.dataset.revoff));
+  const o=await offres();
+  t('le cas est rencontré : le volet porte une proposition', o.indexOf('tm')>=0, o.join(','));
+  const btn=await page.$('[data-revoff="tm"]');
+  t('… et son bouton dit ce qu\'il crée', !!btn&&/Minuteur/.test((await btn.textContent())||''));
+  if(btn){
+    await btn.click();await page.waitForTimeout(500);
+    const tm=await page.evaluate(()=>((state.draft&&state.draft.timers)||[]).map(x=>({t:x.type,s:x.seconds})));
+    t('le tap crée le minuteur', tm.length===1, JSON.stringify(tm));
+    /* ⚠ LA PÉRIODE VIENT DE LA PHRASE, PAS D'UN DÉFAUT : 3 min lues dans le texte, pas 120 s. */
+    t('… avec la période LUE dans la phrase', tm.length===1&&tm[0].t==='interval'&&tm[0].s===180, JSON.stringify(tm));
+    t('… et la proposition se tait ensuite', (await offres()).indexOf('tm')<0);}
+  /* Le refus : la proposition s'écarte pour la séance, et rien n'est créé. */
+  await ouvrir('Analyse du rythme toutes les 3 min');
+  await page.waitForTimeout(400);
+  const no=await page.$('[data-revoffno="tm"]');
+  t('une proposition écartée est possible', !!no);
+  if(no){await no.click();await page.waitForTimeout(400);
+    t('… elle ne revient pas de la séance', (await offres()).indexOf('tm')<0);
+    t('… et rien n\'a été créé', (await page.evaluate(()=>((state.draft&&state.draft.timers)||[]).length))===0);}
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

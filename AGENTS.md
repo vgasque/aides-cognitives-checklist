@@ -2378,18 +2378,23 @@ restauré à l'octet.
 · **CE QUE Q2 MESURE EN PROPRE** : la ligne ne paraît PAS sous le seuil d'affichage, elle paraît
   au-delà, elle dit « il y a m:ss », elle ne déplace pas la page, elle ne s'efface PAS toute seule
   avec le temps, et elle s'efface AU GESTE. C'est le geste qui la périme, jamais une horloge.
-· ⚠ **DEUX CÂBLAGES RESTENT SANS TÉMOIN DYNAMIQUE, ET LE MOTIF EST ÉCRIT PLUTÔT QUE CONTOURNÉ.**
+· **LES DEUX TROUS SONT FERMÉS DEPUIS (v5.7), ET LE CHEMIN EST LA LEÇON** : on a d'abord réparé
+  le DÉCOR, ensuite écrit le témoin. `P4b · le tri vivant des minuteurs` mesure l'ordre par temps
+  restant, le marquage d'imminence sur la CARTE (glyphe + mot, jamais la couleur seule), le garde
+  du doigt posé et le délai de grâce qui le suit ; `Q1 · les propositions de relecture` mesure que
+  la rangée paraît, que son tap crée l'objet AVEC la période lue dans la phrase, qu'elle se tait
+  ensuite, et qu'un refus ne revient pas de la séance sans rien créer. Vérifiés capables d'échouer
+  (tri neutralisé et `pre` ignoré → 2 rouges, fichier restauré à l'octet).
+· ⚠ **CE QUI A DÛ ÊTRE FAIT AVANT, ET QUI EST LA VRAIE LEÇON DE CE LOT.**
   **P4b (le réordonnancement vivant)** : il ne s'observe qu'à partir de DEUX minuteurs déclarés
   dans la même liste, or aucune fiche d'exemple n'en déclare deux — et un minuteur ad hoc se rend
   en rangée compacte (`minis`), jamais en `.tmcard`. Le cas n'existe donc pas dans le décor.
-  **LE CORRECTIF EST DANS LE DÉCOR, PAS DANS LE TÉMOIN** : donner un SECOND minuteur déclaré à une
-  fiche d'exemple — ce que le lot T13 recommande déjà par ailleurs (« les deux fiches d'exemple
-  exercent la doctrine qu'elles enseignent »). À faire avant d'écrire la section, sinon elle serait
-  verte sans rien mesurer. En attendant, `tmLiveOrder` a 8 témoins purs.
-  **Q1 (le tap qui crée l'objet)** : il demande de piloter l'ÉDITEUR (ouvrir, écrire une étape,
-  lire le volet, taper la proposition) ; `reviewOffers` a 13 témoins purs, mais le passage par
-  `edAdd` avec son `pre` n'est mesuré par rien. À écrire avec le patron d'`audit-k5`, qui sait
-  déjà ouvrir un éditeur.
+  **LE CORRECTIF ÉTAIT DANS LE DÉCOR, PAS DANS LE TÉMOIN** : la fiche ACR porte désormais un
+  SECOND minuteur déclaré (« Adrénaline (cycle) », 4 min) — ce que le lot T13 recommandait déjà
+  (« les deux fiches d'exemple exercent la doctrine qu'elles enseignent »), et le second est
+  clinique, pas décoratif : deux cadences (2 min / 4 min) sont précisément le cas où l'ordre par
+  temps restant change sous l'œil. Écrire la section AVANT aurait produit un vert qui ne mesure
+  rien.
   **Un trou NOMMÉ vaut mieux qu'un vert obtenu sur un cas qui n'existe pas** — c'est la leçon que
   ce fichier redit le plus souvent.
 

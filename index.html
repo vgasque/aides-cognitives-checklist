@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-8SIChp3qn+AI9MATyqlUF5/Jy3n3XgSs0L0rAPehQd8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-tFoF41BQloHlfIH8U/iitkPCQ275f7oheWScp/r0Nzg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11156,7 +11156,22 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b'),bx=u
     sources:['Exemple à compléter — recommandations ERC/ILCOR en vigueur'],images:[],
     posology:['△ **ADRÉNALINE — IV/IO** : 1 mg toutes les 3–5 min (après le 3ᵉ choc si choquable)',
       '△ **AMIODARONE — IV/IO** : 300 mg après le 3ᵉ choc, puis 150 mg après le 5ᵉ'],
-    timers:[{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true,onDue:'Analyse du rythme — relais du masseur'}],
+    /* ⚠ DEUX MINUTEURS DÉCLARÉS, ET C'EST UNE DÉCISION DE DÉCOR (v5.7). Le lot T13 pose que « les
+       deux fiches d'exemple exercent la doctrine qu'elles enseignent » ; il en manquait un cas —
+       le RÉORDONNANCEMENT VIVANT (A116) ne s'observe qu'à partir de DEUX minuteurs déclarés dans
+       la même liste, et aucun exemple n'en portait deux. Son témoin d'audit n'avait donc aucun cas
+       à rencontrer, et l'écrire quand même aurait produit un vert qui ne mesure rien.
+       Le second est clinique et non décoratif : en ACR, l'adrénaline se renouvelle, et les deux
+       cadences (2 min / 4 min) sont précisément le cas où l'ordre par temps restant change sous
+       l'œil.
+       ⚠ IL N'EST PAS `autoloop`, ET CE N'EST PAS UN DÉTAIL — un témoin l'a dit aussitôt.
+       `cycleHint` (v5.5.0, P4) n'annote les renvois de boucle QUE si la fiche déclare UN SEUL
+       minuteur à cycles : « à deux, annoter serait une devinette ». Un second minuteur CYCLIQUE
+       aurait donc fait disparaître le cas de ce témoin-là — on aurait réparé un décor en cassant
+       un autre. Une relance MANUELLE est d'ailleurs le geste juste ici : on relance après avoir
+       injecté, pas avant. */
+    timers:[{id:uid('t'),label:'Cycle RCP (2 min)',type:'interval',seconds:120,autoloop:true,onDue:'Analyse du rythme — relais du masseur'},
+            {id:uid('t'),label:'Adrénaline — prochaine dose',type:'interval',seconds:240,autoloop:false,onDue:'Adrénaline 1 mg IV — relancer après injection'}],
     counters:[{id:cn1,label:'Chocs délivrés',step:1,start:0},{id:uid('n'),label:'Adrénaline (mg)',step:1,start:0}],
     /* UNE COMPLICATION « à tout moment » (lot T13 : les exemples exercent la doctrine — c'est
        aussi la porte du JALON ci-dessous) : bloc HORS chaîne, on y entre par l'événement et le
