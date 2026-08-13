@@ -1911,10 +1911,30 @@ diagnostic confirmé” »).** Le déplacement a été écrit et il FONCTIONNAIT
 le démarrage (A19), trace dans l'historique après, repliée dans « ✓ n blocs faits · diagnostic
 confirmé », jamais perdue entre les deux. `audit-partage` l'a rougi sur un invariant de crise — « il
 regardait ailleurs : ce qu'il regarde ne bouge pas » — avec **457 px de dérive**.
-· **LA CAUSE EST STRUCTURELLE** : la place de la confirmation dépendait de l'EXISTENCE d'une
-  ligne-bilan, laquelle peut naître d'un lot DISTANT. Un bloc de plusieurs centaines de pixels qui
-  change de logement sous les yeux de quelqu'un qui n'a rien fait est exactement ce que la règle 11
-  interdit — et c'est le pire cas, puisqu'il est AU-DESSUS de ce qu'on regarde.
+· **⚠ LA CAUSE QUE J'AVAIS ÉCRITE ÉTAIT FAUSSE, ET LA MESURE L'A DÉFAITE.** J'avais attribué les
+  457 px au bloc de confirmation changeant de logement : il fait **50 px replié** (mesuré), il ne
+  peut pas produire cela. Ce qui vaut ~450-515 px dans cette scène, c'est la CONDENSATION R6 d'un
+  passage achevé — carte de bloc 559 px à 390, 495 à 1100, contre 44 px de rangée.
+· **CE QUE LA MESURE ÉTABLIT VRAIMENT, ET C'EST PLUS INSTRUCTIF** — deux faits, chacun vérifié :
+  1. **`keepAnchor` NE COMPENSE RIEN DANS CE SCÉNARIO.** Il s'ancre sur la DERNIÈRE carte de bloc
+     (`.ov-block[data-ovi]`) — précisément celle que le lot condense. Après le re-rendu le
+     sélecteur ne matche plus, et la fonction sort par `if(!nl)return null` sans toucher au
+     défilement. Mesuré `ancreSurvit:false` dans les DEUX versions du code. Tout changement de
+     hauteur au-dessus du regard est donc transmis tel quel.
+  2. **LE TÉMOIN EST GARÉ AU BAS DE LA PAGE** : il fait `scrollTo(0, scrollHeight)` pour signifier
+     « il regarde ailleurs ». Ce qu'il mesure ensuite est donc la façon dont le NAVIGATEUR
+     réconcilie un défilement collé au bout avec un document qui change de hauteur — c'est le piège
+     que ce dossier a déjà consigné en **A46**, à 22 px près ; ici il vaut plusieurs centaines.
+  Reproduit dans un état voisin : SANS le déplacement, dérive **79 px**, rabat 0 ; AVEC, dérive
+  **1 px**, rabat −78. L'écart ne va donc même pas dans le sens que je supposais.
+· **CE QUI RESTE VRAI MALGRÉ TOUT** : je n'ai pas reproduit l'état EXACT du témoin (le mien dérive
+  déjà de 79 px sur le code livré, le sien de 0), donc je ne peux pas conclure que ses 457 px sont
+  un artefact — ni qu'ils sont une régression. **On ne re-livre pas le déplacement sur une
+  incertitude**, et l'annulation reste la bonne décision par défaut.
+· **DEUX CHANTIERS SÉPARÉS EN SORTENT, ET ILS VALENT PLUS QUE LA FONCTIONNALITÉ** : (a) appliquer
+  A46 à ce témoin — il ne doit pas mesurer depuis le bout de la page, sinon il mesure le navigateur ;
+  (b) `keepAnchor` devrait savoir se rabattre sur un ancêtre survivant quand sa carte est condensée,
+  au lieu de renoncer en silence — c'est un trou réel, indépendant de cette fonctionnalité.
 · **CE QU'IL FAUDRAIT POUR LE FAIRE PROPREMENT** : que la confirmation soit une ligne-bilan DÈS le
   démarrage (« ✓ diagnostic confirmé »), qui gagne ensuite le compte des blocs dans son libellé —
   alors elle ne déménage jamais, seul son texte s'allonge. C'est une refonte de l'assemblage du
