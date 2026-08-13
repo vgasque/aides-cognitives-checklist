@@ -1752,6 +1752,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Ni fond, ni bordure, ni rembourrage : zéro pixel de plus, donc rien ne se déplace dans la
      zone d'état quand un minuteur entre dans ses vingt dernières secondes. */
   #cbTimers .seg.soon :is(.seg-l,.seg-t){color:var(--warn-sys)}
+  /* ⚠ SOUS UNE BARRE COLLANTE, LE REMBOURRAGE DE PAGE SE LIT COMME DU VIDE (v5.7, signalé à
+     l'usage : « trop d'espace mort entre le bandeau session et Ne pas oublier »). Mesuré en
+     session : 18 px à 390, 24 px à 1280 entre le bas du quai et le chapeau. Ce rembourrage est
+     juste sur une page qui commence sous rien ; en session, le quai FERME déjà le haut, et l'écart
+     ne sépare plus deux objets — il éloigne le premier du bord qui le porte.
+     Borné à la SESSION, où chaque pixel au-dessus de la première ligne actionnable est compté par
+     `audit-budget` : hors session, l'écran d'entrée garde sa respiration. */
+  @media screen{body.view-read:has(#cbTimers:not([hidden])) #main{padding-top:8px}}
   /* P4 (v5.7) — L'IMMINENCE SUR LA CARTE (volet ET rail). Marquage, jamais aplat (A11) : le
      glyphe △ devant le libellé et l'encre ambre — la couleur n'est donc jamais seule, et le mot
      « bientôt échu » rejoint le nom accessible du groupe. Aucune boîte ne change de taille. */
