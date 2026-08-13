@@ -1968,6 +1968,38 @@ qui n'avait rien demandé. **Mesuré après : dérive 79 → 1 px.**
   valeur de retour). Seul le cas « ancre absente ou disparue », qui rendait `null` sans rien faire,
   gagne un comportement. 983 témoins × 2 moteurs et les 25 tâches d'audit sont verts.
 
+**A109. LE TÉMOIN DE DÉRIVE MESURAIT LE NAVIGATEUR — QUATRE DÉFAUTS D'INSTRUMENT, AUCUN DE PRODUIT
+(v5.6, A46 appliqué au témoin de partage).** Il accusait 457 px sur un correctif juste. Reconstruit,
+il en trouve zéro et rougit à 120 px quand on casse vraiment la propriété. Les quatre :
+1. **IL SE GARAIT SUR LA BORNE** (`scrollTo(0, scrollHeight)`) : à défilement saturé, un document
+   qui rétrécit se fait RABATTRE par le navigateur, et le rabat est imputé à l'app. **⚠ ET LA
+   PARADE N'EST PAS UNE MARGE** — exiger 80 px de bande était géométriquement impossible (il n'y a
+   qu'une centaine de pixels sous la rangée « Consulter »). On mesure LE RABAT lui-même : la borne
+   d'après atteint-elle encore la position d'avant ?
+2. **IL TENAIT UN NŒUD, PAS UN SÉLECTEUR** : un `innerHTML` détruit l'élément regardé, la mesure
+   rendait `null`, et `null` était compté comme un échec — un rouge qui ne dit rien du produit.
+3. **SON PRÉDICAT DE RÉGIME N'ÉTAIT PAS CELUI DE L'APPLICATION** : le témoin lisait « bout hors de
+   vue » en `top >= 0 && top < vh-4`, l'app décide en `bottom > stickBase() && top < innerHeight`.
+   Une carte HAUTE dont le bas dépasse encore est « sous les yeux » pour l'app et « ailleurs » pour
+   le témoin : il exigeait l'immobilité pendant que l'app suivait le bord vif — **273 px mesurés,
+   imputés à un comportement juste**. Deux définitions concurrentes d'un même régime, la divergence
+   que ce dépôt a déjà payée quatre fois.
+4. **SON LOT NE CHANGEAIT RIEN** : avec un seul bloc, la carte qui se condense et celle qui s'ouvre
+   ont la même hauteur — journal à **30 px** près, donc le contrôle restait VERT même en retirant
+   TOUT l'ancrage. L'hôte avance désormais de plusieurs blocs (le cas réel du retard rattrapé à la
+   jointure) et le témoin **refuse de conclure** si le journal n'a pas bougé d'au moins 50 px.
+· **⚠ ET LE FAIT LE PLUS UTILE DE TOUT LE DOSSIER : CE RÉGIME EST TENU PAR LE NAVIGATEUR.**
+  Neutraliser `keepAnchor` ENTIÈREMENT laisse le témoin vert — l'ancrage natif (`overflow-anchor`)
+  garde le contenu stable quand la hauteur change au-dessus. Ce n'est PAS un témoin cassé : il
+  mesure la PROPRIÉTÉ (règle 11), pas le mécanisme du jour, et c'est ce que la doctrine demande.
+  Corollaire à connaître avant d'écrire du code d'ancrage : **notre compensation ne sert que là où
+  l'ancrage natif ne peut pas** — défilement à la borne, ou nœud d'ancrage supprimé. Partout
+  ailleurs elle est un filet, pas le porteur.
+· **CE QU'AUCUN TÉMOIN NE COUVRE, ET IL FAUT LE DIRE** : le repli d'A108 et l'ancre sur l'œil en
+  régime 2 sont mesurés utiles à la borne (79 → 1 px) — précisément la position que ce témoin
+  s'interdit désormais. Les deux sont conservés parce qu'ils **retombent sur un no-op** quand ils
+  ne trouvent rien, jamais parce qu'un contrôle les prouve.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

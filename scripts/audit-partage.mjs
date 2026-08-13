@@ -1073,6 +1073,11 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
   await session(page);
+  /* Le redimensionnement vit CÔTÉ HARNAIS (une page ne change pas sa propre fenêtre) : on
+     l'expose au contexte de page, qui l'appelle au moment où il en a besoin. */
+  await page.exposeFunction('__vh', async (h) => {
+    await page.setViewportSize({ width: 390, height: Math.round(h) });
+    await new Promise(x => setTimeout(x, 200)); return true; });
   const r = await page.evaluate(async () => {
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
     Share.lastOk = Date.now(); Share.offset = 0; Share._defer = [];
@@ -1127,6 +1132,30 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
       out.boutVisible = !!r2 && r2.top >= 0 && r2.top < window.innerHeight - 4;
     }
 
+    /* ⚠ LE REPÈRE SE DÉSIGNE PAR SÉLECTEUR, JAMAIS PAR NŒUD (v5.6). Le témoin gardait une
+       RÉFÉRENCE à l'élément sous le centre de l'écran — or un re-rendu le DÉTRUIT (mesuré :
+       `SPAN.pos-body`, `isConnected:false`, et pas un seul ancêtre survivant dans sa chaîne
+       `parentNode`). Il rendait alors `null`, c'est-à-dire un rouge qui ne dit rien du produit.
+       On vise un repère STABLE et re-interrogé à chaque échantillon : la rangée « Consulter »,
+       qui vit SOUS le journal (donc s'y garer met le bout hors de vue, ce que le régime exige),
+       qui est un nœud UNIQUE, et qu'un lot de navigation ne touche pas.
+       ⚠ LES REPÈRES POSOLOGIQUES ONT ÉTÉ ESSAYÉS PUIS ÉCARTÉS À LA MESURE : `renderOvOnly` les
+       RECLASSE pour le bloc courant (v5.4.2), donc `.pos-card` ne désigne plus la même carte
+       après le lot — on mesurait un écart entre deux objets, pas un déplacement. Même leçon qu'en
+       A65 : à travers un re-rendu, on re-interroge le DOM — et l'on vérifie que le sélecteur
+       désigne encore la même chose. */
+    const REPERE = '.annex-row';
+
+    /* ⚠ ET ON LUI DONNE DE QUOI DÉFILER (v5.6, A46). Une fois garé sous le bas du bout, il ne
+       restait que 46 px avant la borne de défilement — donc un document qui rétrécit de plus de
+       46 px au re-rendu (la condensation R6 en retire plusieurs centaines) ferait RABATTRE le
+       navigateur, et le rabat serait imputé à l'application. On raccourcit la FENÊTRE le temps de
+       ce régime : `maxScroll` grandit d'autant, la bande apparaît, et rien d'autre ne change —
+       même page, même session, mêmes volets (précédent : redimensionner plutôt que recharger).
+       La hauteur est rendue juste après, pour ne pas contaminer ce qui suit. */
+    const _vh0 = window.innerHeight;
+    if (typeof window.__vh === 'function') await window.__vh(440);
+
     /* RÉGIME 2 — IL REGARDE AILLEURS. Même lot, mais l'écran est cette fois loin du bout : rien ne
        doit bouger d'un pixel. C'est l'ancienne garantie, conservée telle quelle — la nouveauté ne
        vaut que si elle ne coûte pas celle-là. */
@@ -1140,8 +1169,35 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
          On ne vise donc plus une POSITION, on vise la PROPRIÉTÉ — le bout doit être hors de vue —
          et l'on vérifie d'abord que le cas est bien rencontré : un contrôle qui ne rencontre pas
          son cas ne le couvre pas (leçon v4.31.1, redite ici au prix d'un faux rouge). */
-      window.scrollTo(0, document.documentElement.scrollHeight);   // le plus loin possible du bout
+      /* ⚠ ET IL NE SE GARE PLUS AU BOUT DE LA PAGE (v5.6, A46 appliqué ici — trouvé en cherchant
+         la cause des 457 px d'A107). `scrollTo(0, scrollHeight)` colle le défilement à sa borne
+         MAXIMALE : ce que le témoin mesure ensuite n'est plus l'ancrage de l'application mais la
+         façon dont le NAVIGATEUR réconcilie une position saturée avec un document qui change de
+         hauteur — il rabat, et le rabat est imputé à l'app. A46 l'avait déjà payé à 22 px sur le
+         témoin d'ancrage ; ici il vaut plusieurs centaines.
+         On vise donc la PROPRIÉTÉ (« le bout est hors de vue ») au plus PRÈS, pas au plus loin :
+         juste sous le bas du bout, avec un coussin — et l'on EXIGE de rester à distance de la
+         borne. Si la fiche n'a pas de quoi défiler entre les deux, le témoin le DIT au lieu de
+         se garer au bout en silence : une mesure prise sur une borne saturée est une mesure du
+         moteur, pas de l'application. */
+      /* ⚠ ET LE RÉGIME SE DÉCIDE AVEC LE PRÉDICAT DE L'APPLICATION, PAS AVEC UN JUMEAU (v5.6).
+         Le témoin se garait « bout hors de vue » au sens `top >= 0 && top < vh-4` — le test de
+         `boutVisible`. Mais `shareApplyAnchored` décide, lui, sur `bottom > stickBase() && top <
+         innerHeight` : une carte HAUTE dont le bas dépasse encore sous le chrome est « sous les
+         yeux » pour l'app et « hors de vue » pour le témoin. Résultat mesuré : le témoin exigeait
+         l'immobilité pendant que l'app suivait le bord vif — 273 px imputés à un comportement
+         JUSTE. Deux définitions concurrentes d'un même régime, la divergence que ce dépôt a déjà
+         payée quatre fois. On se gare donc SOUS le bas du bout au sens de l'app. */
+      {const rep = main.querySelector(REPERE);
+       if(rep){const r0 = rep.getBoundingClientRect();
+         /* Garé dans le TIERS HAUT, pas au centre : la rangée « Consulter » est le dernier
+            contenu de la page, et la centrer revient à se coller à la borne (mesuré : 0 px de
+            marge). Elle reste pleinement visible, ce que le témoin vérifie. */
+         window.scrollTo(0, Math.max(0, window.scrollY + r0.top - window.innerHeight*0.3));}}
       await new Promise(x => setTimeout(x, 250));
+      {const rp=main.querySelector(REPERE);const rr=rp?rp.getBoundingClientRect():null;
+       out.repereLa = !!rr && rr.top>=0 && rr.bottom<=window.innerHeight;}
+      out.scAvant = Math.round(window.scrollY);
       {const nb = [...main.querySelectorAll('.ov-block[data-ovi]')].pop();
        const q = nb ? nb.getBoundingClientRect() : null;
        /* LE PRÉDICAT EST CELUI DE L'APPLICATION, pas un « entièrement hors écran » de notre
@@ -1149,9 +1205,29 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
           HAUT dans la fenêtre (même test que `boutVisible` ci-dessus et qu'`ovAdvanceRender`).
           Mesurer autre chose reviendrait à écrire une seconde définition du régime — celle-là
           même que le dépôt a payé deux fois quand deux critères concurrents ont divergé. */
-       out.ailleursMonte = !!q && !(q.top >= 0 && q.top < window.innerHeight - 4);
-       out.dbg = q ? {top:Math.round(q.top),vh:window.innerHeight,sy:Math.round(window.scrollY)} : null;}
-      const cibleB = blocs.find(id => Runtime.nav.indexOf(id) < 0) || blocs[0];
+       const base = (typeof stickBase==='function'?stickBase():0);
+       out.ailleursMonte = !!q && !(q.bottom > base && q.top < window.innerHeight);
+       out.dbg = q ? {top:Math.round(q.top),bottom:Math.round(q.bottom),base:Math.round(base),
+         vh:window.innerHeight,sy:Math.round(window.scrollY)} : null;}
+      /* ⚠ ET LE LOT DOIT CHANGER LA HAUTEUR AU-DESSUS DU REGARD, SINON LE TÉMOIN NE PROUVE RIEN
+         (v5.6). Avec la première cible venue, la carte qui se condense et celle qui s'ouvre
+         avaient la MÊME hauteur : le journal ne bougeait pas d'un pixel, et le contrôle restait
+         VERT même en neutralisant complètement l'ancrage (vérifié). On choisit donc le bloc dont
+         la carte différera le plus de la courante — et l'on MESURE ce que le journal a gagné ou
+         perdu, pour refuser de conclure quand l'écart est nul. */
+      /* L'HÔTE A AVANCÉ DE PLUSIEURS BLOCS pendant qu'il regardait ailleurs — c'est le cas réel du
+         retard rattrapé à la jointure, et le seul qui change franchement la hauteur : chaque
+         passage achevé se condense en rangée (R6) tandis qu'une seule carte s'ouvre. Avec UN seul
+         bloc, la carte qui se ferme et celle qui s'ouvre ont la même taille : le journal ne
+         bougeait que de 30 px et le contrôle restait vert même sans aucun ancrage (vérifié). */
+      /* ⚠ ON EN LAISSE UN : le contrôle du drain, plus bas, a besoin d'un « Continuer » local à
+         faire. Tout consommer le privait de son geste (mesuré : « ABSENT »). */
+      const _lib = blocs.filter(id => Runtime.nav.indexOf(id) < 0);
+      const suite = _lib.slice(0, Math.min(3, Math.max(1, _lib.length - 1)));
+      const cibles = suite.length ? suite : [blocs[0]];
+      const hJ = () => {const w = main.querySelector('.ov-wrap');
+        return w ? Math.round(w.getBoundingClientRect().height) : 0;};
+      const hAvant = hJ();
       /* ⚠ « RIEN NE BOUGE » SE MESURE SUR CE QU'ON REGARDE, PAS SUR UN ÉLÉMENT ARBITRAIRE
          (v5.6). Le témoin visait `main .ov-block`, la PREMIÈRE carte du journal : R6 la condense
          en rangée d'historique dès qu'un passage s'achève, donc après le lot le sélecteur
@@ -1161,19 +1237,30 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
          la vue, elle, ne bouge pas d'un pixel — c'est exactement son office.
          On mesure donc CE QUE L'ŒIL A SOUS LUI : l'élément au centre du viewport avant le lot,
          et sa position après. C'est la propriété que la règle 11 protège. */
-      const tA = document.elementFromPoint(Math.round(innerWidth/2), Math.round(innerHeight/2));
-      const yA = tA ? tA.getBoundingClientRect().top : null;
+      const rA = main.querySelector(REPERE);
+      const yA = rA ? rA.getBoundingClientRect().top : null;
       const scA = window.scrollY;
       Share.onEvents([{ seq: 13, id: 'n3', actor: 'hote', kind: 'nav',
-        payload: { nav: Runtime.nav.concat([cibleB]),
-                   navSeq: Runtime.navSeq.concat([(Runtime.seq || 1) + 1]) } }]);
+        payload: { nav: Runtime.nav.concat(cibles),
+                   navSeq: Runtime.navSeq.concat(cibles.map((_, i) => (Runtime.seq || 1) + 1 + i)) } }]);
       await new Promise(x => setTimeout(x, 500));
-      const yB = (tA && tA.isConnected) ? tA.getBoundingClientRect().top : null;
+      const rB = main.querySelector(REPERE);
+      const yB = rB ? rB.getBoundingClientRect().top : null;
       out.deriveAilleurs = (yA != null && yB != null) ? Math.round(yB - yA) : null;
       /* Le DÉFILEMENT peut légitimement changer — c'est la compensation d'ancrage. Ce qui ne doit
          pas changer, c'est la position de ce qu'on regarde. On garde la valeur pour le rapport. */
       out.scrollAilleurs = Math.round(window.scrollY - scA);
+      /* ⚠ A46 SE MESURE PAR LE RABAT, PAS PAR UNE MARGE (v5.6). Ce qui fausse une mesure de
+         dérive, c'est que le NAVIGATEUR ait dû rabattre le défilement parce que le document a
+         rétréci sous lui — pas la distance à la borne en soi. Exiger une bande de 80 px était
+         d'ailleurs GÉOMÉTRIQUEMENT impossible ici : il n'y a qu'une centaine de pixels sous la
+         rangée « Consulter ». On teste donc la chose même : la borne d'APRÈS atteint-elle encore
+         la position d'AVANT ? Si non, le témoin le DIT au lieu d'imputer le rabat à l'app. */
+      out.dJournal = hJ() - hAvant;
+      out.rabat = Math.round(Math.min(0, (document.documentElement.scrollHeight
+        - window.innerHeight) - out.scAvant));
     }
+    if (typeof window.__vh === 'function') await window.__vh(_vh0);
 
     /* ── LE RÉGIME « deferred » SE DRAINE SUR UN GESTE LOCAL DE NAVIGATION, ET SANS LE LECTEUR.
        C'est le cas que le défaut laissait passer : `SHARE_APPLY` classe `verify` et `gap` en
@@ -1228,6 +1315,11 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
     r.ailleursMonte === true, JSON.stringify(r.dbg));
   /* ⚠ ON EXIGE QUE LA MESURE AIT EU LIEU : `Math.abs(null)` vaut 0, donc un témoin perdu
      passerait au vert sans rien mesurer (leçon v4.31.1). */
+  t('témoin : un repère stable est bien sous les yeux', r.repereLa === true);
+  t('témoin : le lot change bien la hauteur au-dessus du regard',
+    Math.abs(r.dJournal) >= 50, `${r.dJournal} px de journal`);
+  t('témoin : aucun rabat de fin de page ne fausse la mesure (A46)',
+    r.rabat === 0, `${r.rabat} px rabattus par le navigateur`);
   t('… il regardait ailleurs : ce qu\'il regarde ne bouge pas (≤ 1 px)',
     r.deriveAilleurs !== null && Math.abs(r.deriveAilleurs) <= 1,
     `${r.deriveAilleurs} px de dérive (défilement compensé : ${r.scrollAilleurs} px)`);

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-ENt6uGuak0UungoesIX1CtGbD7Oe0++z351Luy9g8/w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-RyN/DrM0FMpog/yhU26OPM7e7k2VZFvSuJ5XY/ApueY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -18175,22 +18175,31 @@ function ancreOeil(){
   if(typeof document.elementsFromPoint!=='function')return null;
   const x=Math.round(innerWidth/2), y=Math.round(innerHeight/2);
   const pile=document.elementsFromPoint(x,y)||[];
-  for(const e of pile){if(e&&main.contains(e)&&e!==main)return e;}
-  return null;}
+  let e=null;for(const c of pile){if(c&&main.contains(c)&&c!==main){e=c;break;}}
+  if(!e)return null;
+  /* ⚠ ON CAPTURE LA CHAÎNE, PAS LE NŒUD — et c'est la moitié qui manquait. Un `innerHTML` SÉVÈRE
+     la chaîne `parentNode` À LA FRONTIÈRE de la suppression : le sous-arbre détaché garde ses
+     liens INTERNES, mais son sommet a `parentNode === null`. Remonter depuis l'élément mort ne
+     rejoint donc JAMAIS le conteneur survivant — mesuré, le repli rendait `null` précisément
+     dans le cas qui l'a fait écrire (un repère posologique, que `renderOvOnly` repeint depuis
+     la v5.4.2). On relève donc les ancêtres AVANT, avec leur position ; après le rendu, le
+     premier encore attaché fait foi. */
+  const ch=[];for(let n=e;n&&n!==main.parentNode;n=n.parentNode)ch.push({el:n,top:n.getBoundingClientRect().top});
+  return ch;}
 function keepAnchor(sel,rerender,selAfter){
   const apres=selAfter||sel;
   const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
-  const oeil=ancreOeil(), topOeil=oeil?oeil.getBoundingClientRect().top:null;
+  const oeil=ancreOeil();
   rerender();
   const nl=(top!=null&&apres)?main.querySelector(apres):null;
   if(nl){const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
     const r=main.querySelector(apres);
     return r?Math.round(r.getBoundingClientRect().top-top):null;}
   /* Ancre absente avant, ou disparue pendant : on tient ce que l'œil regardait. */
-  if(topOeil==null)return null;
-  let n=oeil;while(n&&!n.isConnected)n=n.parentNode;
-  if(!n||n.nodeType!==1||!main.contains(n))return null;
-  const d=n.getBoundingClientRect().top-topOeil;if(d)window.scrollBy(0,d);
+  if(!oeil||!oeil.length)return null;
+  const v=oeil.find(o=>o.el.isConnected&&main.contains(o.el));
+  if(!v)return null;
+  const d=v.el.getBoundingClientRect().top-v.top;if(d)window.scrollBy(0,d);
   return 0;}
 function renderKeepAnchor(sel){return keepAnchor(sel,render);}
 // Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
@@ -19996,7 +20005,16 @@ function shareApplyAnchored(f,evs,muet){
      lieu de l'être au geste. */
   const suivait=(()=>{if(!derEl)return false;const r=derEl.getBoundingClientRect();
     return r.bottom>stickBase()&&r.top<window.innerHeight;})();
-  keepAnchor(dern!=null?'.ov-block[data-ovi="'+dern+'"]':null,renderOvOnly);
+  /* ⚠ L'ANCRE DÉPEND DU RÉGIME, ET C'EST TOUT LE SUJET (v5.6). On prenait la DERNIÈRE carte du
+     journal dans les deux cas. En régime « il regarde ailleurs », c'est faux dès que l'œil est
+     SOUS le journal — un repère posologique, par exemple : garder la carte du journal immobile
+     n'empêche pas le journal de gagner une carte, et tout ce qui suit descend d'autant. Mesuré,
+     témoin garé sur un repère : 273 px de dérive, sur un lot que personne n'a demandé.
+     · IL SUIVAIT LE BORD VIF -> l'ancre est la carte, puis on va chercher la nouvelle (inchangé).
+     · IL REGARDAIT AILLEURS  -> l'ancre est CE QU'IL REGARDE. On passe donc `null`, et
+       `keepAnchor` se rabat sur l'élément au centre de l'écran (A108) — la propriété que la
+       règle 11 protège, au lieu d'un point de repère qui se trouve au-dessus de lui. */
+  keepAnchor(suivait&&dern!=null?'.ov-block[data-ovi="'+dern+'"]':null,renderOvOnly);
   if(suivait){const nb=main.querySelectorAll('.ov-block[data-ovi]');const nv=nb[nb.length-1];
     if(nv){const r=nv.getBoundingClientRect();
       if(r.top<stickBase()+4||r.bottom>window.innerHeight-4)ovScrollEl(nv);}}
