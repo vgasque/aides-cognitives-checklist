@@ -1449,11 +1449,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
   #blkReturn[hidden]{display:none}
   body.kb-open #blkReturn{display:none}
-  @media (min-width:780px){
-    #blkReturn{padding-inline:20px}
-    #blkReturn .bkr{margin-right:calc(var(--col-state) + var(--col-gap))}
-  }
+  @media (min-width:780px){#blkReturn{padding-inline:20px}}
+  /* ⚠ ELLE PREND LA BOÎTE DE LA BARRE FLOTTANTE, PAS CELLE DE LA FENÊTRE (v5.7, signalé à
+     l'usage : « en desktop le bloc vert prend toute la largeur de la page »). J'avais recopié la
+     géométrie du VOLET (`.ds-card`, qui s'aligne sur la colonne d'action) alors que cette barre
+     est un objet du DOCK : elle doit suivre `.sd-in` — 660 px, centrée — sinon elle s'étire sur
+     toute la page pendant que les touches qu'elle jouxte restent groupées au milieu. Deux objets
+     empilés qui n'ont pas la même boîte ne se lisent pas comme une pile. */
   .bkr{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;
+    max-width:660px;margin:0 auto;
     min-height:44px;padding:10px 14px;border:0;border-radius:var(--r-3);
     background:var(--ok-sys);color:var(--on-sys-fill);box-shadow:var(--shadow-up);
     font-family:inherit;font-size:13.5px;font-weight:700;text-align:left;cursor:pointer}
