@@ -1,5 +1,101 @@
 # Journal des modifications
 
+## [5.8.0] — 2026-08-13
+### « Voir avant d'écrire, revenir sans chercher »
+
+Fin du lot v5.7 : son dernier item de plan — **l'atelier d'import** —, les deux retours au soin
+qui manquaient, et les deux correctifs *à zéro pixel* que le **refus** du « plan de vol » sur
+l'écran de crise avait révélés. Comme le lot précédent, rien ici ne déduit quoi que ce soit d'un
+paramètre patient. La doctrine est dans `AGENTS.md` § « Lot v5.7 » (A124 à A129).
+
+**Ce qui entre dans la bibliothèque**
+
+- **L'atelier d'import — le grain n'est plus le fichier, c'est l'entité.** Un `.json` ou un `.zip`
+  entrait EN BLOC : on répondait à trois questions (destination, fusion, doublons) sans avoir
+  jamais vu ce qu'il contenait. Sur un export de bibliothèque, c'est dix-huit aides qu'on acceptait
+  sur la foi d'un nom de fichier, et le seul recours après coup était de les supprimer une par une.
+  L'ordre est renversé : **d'abord ce que l'on importe, ensuite où**. Une rangée par entité — type,
+  titre, **état déclaré par le fichier**, ce qu'il reste à relire, nombre de PDF —, tout coché au
+  départ : l'atelier sert à *retirer*, il ne demande pas de tout re-cocher.
+- **Le filtrage précède toute écriture**, et c'est le point dur : les deux listes sont réduites à
+  la sélection *avant* les questions, donc avant `migrate`, `persist` et surtout `importAtts`. Un
+  binaire du `.zip` n'entre **jamais** pour une entité décochée — non par un filtre posé après
+  coup, mais parce que la liste filtrée est la seule qui existe ensuite.
+- **L'état entrant est préservé** : les trois portes forçaient « Brouillon ». C'était un proxy de
+  « vous n'avez pas encore relu ceci » ; l'atelier montre désormais cet état *avant* l'écriture,
+  rangée par rangée. Le coût du forçage était réel — **restaurer une sauvegarde ramenait dix-huit
+  aides validées en brouillon**, donc hors de l'accès de crise (un brouillon ne s'épingle pas et
+  reste masqué aux lecteurs d'une bibliothèque partagée). L'objection est nommée dans la doctrine :
+  ce qui protège du « Validée » non relu, c'est la rangée qui le dit, plus le prompt IA qui impose
+  `"status":"draft"` — contrat vérifié par `audit-prompt`.
+- **La pastille « △ n »** est le *même* calcul que le volet « Relecture » de l'éditeur : deux
+  comptes écrits séparément divergeraient. Elle ne conditionne rien — une remarque de relecture
+  n'est pas un refus.
+- Trois défauts trouvés sur le trajet et corrigés : un fichier ne portant **que** des références
+  répondait « Import interrompu » alors qu'il était parfaitement valide ; un contenu vide disait
+  « 0 fiche importée », une phrase qui ne désigne pas sa cause ; les questions comptaient le
+  *fichier* au lieu de la *sélection*.
+
+**Revenir au soin**
+
+- **Rouvrir l'application pendant une session vive dépose dans le soin**, plus sur l'accueil : un
+  tap de moins au seul moment où l'on n'en a aucun à donner. Trois bornes — une seule session
+  vive, dix minutes sans le moindre geste au plus, et jamais quand un lien d'invité est présent.
+  Le « ‹ » de l'en-tête ramène à la bibliothèque : personne n'est enfermé.
+- **La barre de retour au bloc courant** est affinée sur trois signalements : elle ne **clignote**
+  plus au re-rendu (un nœud détaché n'est pas « hors zone » — l'observateur surveillait l'ancienne
+  carte), elle prend la **boîte de la barre flottante** au lieu de celle de la page, et elle
+  **s'empile** sur le volet du dock au lieu de le recouvrir, en redescendant d'elle-même à sa
+  fermeture.
+- **Le passage qu'on interrompt se replie.** Après une complication reprise, deux cartes ouvertes
+  du même bloc se suivaient avec les mêmes étapes. La navigation, elle, était juste — un témoin
+  écrit *avant* toute correction l'a tranché. L'invariant du journal n'est pas touché : on ne
+  transforme pas le passage en chip, on pose le repli manuel, et un tap rouvre l'ancienne carte.
+
+**Lire l'état**
+
+- **Un minuteur armé puis mis en pause cesse d'être muet.** Il ne figurait dans aucun segment de
+  la capsule et n'avait pas d'alarme à venir : il n'existait donc nulle part sans ouvrir le volet,
+  alors qu'il porte un temps qui a cessé d'avancer. « ⏸ n en pause » rejoint le rappel du quai.
+- **La progression d'un jalon sort de son bloc** : « Chocs 2/3 » disparaissait dès qu'on était
+  ailleurs, pendant que le compte, lui, continuait d'avancer. Elle rejoint le volet, en quatrième
+  famille — une ligne, pas une carte, et aucun geste n'y est posé.
+- **Le plan de vol est refusé sur le chrome de crise et livré dans le moniteur.** Éprouvée contre
+  le contenu réel des fiches, la proposition ne gardait qu'un bénéfice rare pour ~52 px permanents
+  dans une colonne dont le budget est tenu à 30 % ; sur un afficheur qu'on lit à deux mètres, les
+  pixels sont gratuits et une bande de temps est la bonne forme. Trois registres de trait, et l'on
+  ne peut pas confondre un fait avec une promesse : point = c'est arrivé, trait plein = c'est daté,
+  tiret = c'est projeté si rien n'est touché. Un jalon compté n'y entre jamais — le dater
+  reviendrait à prédire le rythme auquel l'équipe va agir.
+
+**Géométrie, densité, finitions**
+
+- **En exercice, le volet recouvrait la capsule de 63 px** : le bandeau du placard vit dans le
+  flux et pousse le quai vers le bas, alors que la position du volet se dérivait d'une *somme de
+  hauteurs*. Il suit désormais le bas **réel** du quai — correctif borné au volet : partout
+  ailleurs, une géométrie de chrome continue de ne jamais dériver d'une position de défilement.
+- **En session, le haut de page cesse d'être du vide sous le quai** (18 → 8 px à 390, 24 → 14 à
+  1280) : le quai ferme déjà le haut, cet écart n'y sépare plus deux objets.
+- **La ligne de reprise après interruption** est refaite : une rangée *dans* la carte, un nombre
+  qui **vit** (un nombre figé qui annonce « il y a 6:12 » ment dès la minute suivante), et une
+  sortie explicite à 44 px.
+- **Les cartes épinglées prennent le rythme du répertoire** — elles s'étalaient sur toute la
+  largeur (976 px contre 320) pour l'accès le plus rapide du produit.
+- **Le parcours inerte se resserre en deux passes** (416 → 368 px avant le soin, 435 → 411 en
+  session) : les marges cèdent, jamais le contenu. Le plancher est dit — 32 px hors crise, et en
+  session un **pas** de 44 px que la règle des cibles rend non négociable.
+- **Balayage des glyphes littéraux** : six sites passent aux tracés `uiIcon`, et les deux familles
+  qui restent en texte sont nommées (le vocabulaire abrégé des renvois, les glyphes de commande du
+  dock).
+
+**Témoins**
+
+Deux entrées neuves : la section `A129 · l'atelier d'import` d'`audit-doctrine` — vrai `.zip`
+fabriqué par `zipBuild`, entré par le point d'entrée réel, vérifiée capable d'échouer (filtrage
+neutralisé et forçage réintroduit → trois rouges) — et la surface `atelier d'import` d'`audit-a11y`,
+qui construit son cas avec les deux natures **et** une pastille : sans elles, la moitié des objets
+de la rangée ne serait pas mesurée.
+
 ## [5.7.0] — 2026-08-13
 ### « La bonne information, au bon moment, au bon endroit »
 
@@ -941,56 +1037,3 @@ celui d'en haut bouge lors du scroll ; et ils ne sont pas toujours synchronisés
   correctif qui la remplace. Il recompose l'origine de chaque grille (coin de la boîte de
   rembourrage + `background-position`) et compare la phase modulo la tuile, plus le raccord de
   celle-ci. Vérifié capable d'échouer sur les deux points, aux deux moteurs.
-
-## [5.0.5] — 2026-08-03
-### Le placard cesse de se briser, le logo se cale sur son dessin
-
-Trois retours d'usage, tous sur des repères visuels que le code posait sur la mauvaise référence.
-
-- **La hachure traverse la frontière des deux barres d'en-tête** (signalé à l'usage, capture à
-  l'appui). Un placard est UN placard — porté par deux boîtes, l'en-tête et le bandeau —, mais
-  chacune générait son dégradé depuis SON propre coin haut-gauche : les rayures se brisaient net à
-  la jointure, deux textures voisines au lieu d'une seule qui traverse.
-  `background-attachment:fixed` fait calculer les deux depuis l'origine du **viewport** : la
-  continuité devient une propriété du calcul, pas une valeur à tenir à jour.
-  **Écartés à la mesure** : un décalage par `background-position:0 calc(-1*var(--hdr-h))` serait
-  juste au repos et FAUX dès le premier pixel de défilement — le bandeau glisse sous la barre, son
-  offset d'écran change à chaque frame — et il ferait en plus apparaître une couture de pavage, la
-  hauteur d'en-tête n'ayant aucune raison d'être un multiple de la période (22 px sur l'axe, soit
-  31,11 px en vertical). Effet de bord voulu : le bandeau glisse, sa texture ne bouge pas — aucune
-  ligne ne se met à courir sous les yeux (ECAM).
-  **⚠ Le piège gardé est SILENCIEUX** : la variante d'essai écrivait sa hachure avec le raccourci
-  `background`, qui remet `background-attachment` à `scroll` — elle seule aurait perdu l'alignement.
-  Toute variante s'écrit donc en `background-image`. Témoin dans `audit-exercice` sur les **trois**
-  placards (exercice · invité · essai) et dans les deux thèmes, après avoir vérifié qu'une hachure
-  est bien posée : sans ce préalable on lirait « none / none » et on le déclarerait aligné.
-  Vérifié capable d'échouer dans les deux sens ; alignement mesuré à l'arrêt ET en cours de
-  défilement, sur Chromium et WebKit.
-- **Un logo se cale sur son DESSIN, jamais sur sa boîte** (signalé à l'usage : « rapproche le logo
-  de “Aides cognitives”, ça fait très étrange »). La v5.0.0 le CENTRAIT dans le blanc de gauche :
-  bonne intention — il paraissait collé au texte —, mauvais repère. Centrer une marque dans une
-  gouttière la fait flotter, alors qu'un logo et son mot-marque se lisent comme UN objet ; et la
-  mesure disait déjà l'inverse de l'impression, l'écart optique au texte valant **14,5 px** quand
-  celui au bord n'en valait que **2**.
-  **La cause est dans le masque** : `logo-glyph.svg` porte son propre blanc — mesuré au canvas,
-  l'encre occupe x ∈ [181, 889] sur 1024, soit **17,7 % à gauche et 13,1 % à droite**. La boîte de
-  34 px n'a donc jamais été le logo : on calait un rectangle dont un cinquième était vide. On la
-  rogne sur l'encre par deux marges négatives prises sur l'échelle d'espacement, et les deux
-  demandes tombent ensemble — l'encre commence **exactement à la marge de page**, donc alignée sur
-  les rangées du répertoire dessous, et le `column-gap` de la rangée devient l'écart optique RÉEL
-  (14,5 → 10 px). Rien n'est ajouté ni élargi : le rognage **rend 10 px** à la rangée d'identité,
-  celle qui se dispute chaque pixel à 320. Sous 400 px, où le `column-gap` tombe à 4 px pour rendre
-  de la largeur à toute la rangée, le rognage de droite est annulé : cet écart-là n'est pas une
-  gouttière entre deux objets, c'est la respiration d'un seul, et elle reste proportionnée au
-  dessin (8 px optiques, pour 4 px repris sur les 10 rendus).
-  Témoin dans `audit-doctrine` (320 · 390 · 430 · 1280) : il **relit les insets d'encre au canvas**
-  — un inset écrit en dur périmerait au premier retracé du glyphe — et vérifie d'abord qu'il
-  rencontre son cas, le logo n'existant que sur l'accueil. Vérifié capable d'échouer (6 rouges).
-- **Le réglage « Couleur d'accent » cesse de promettre ce qu'il ne fait plus.** Il annonçait
-  « colore l'accueil et les en-têtes — jamais le contenu de crise », alors que la v5.0.0 a confiné
-  l'accent au seul disque de l'avatar. La phrase dit désormais ce qui se passe, et le « En savoir
-  plus » dit POURQUOI la portée est si étroite : ici une couleur porte toujours un sens, et une
-  teinte répandue sur l'écran entrerait en concurrence avec les registres. Deux commentaires de
-  code qui portaient encore l'ancienne portée — dont l'en-tête de la section des palettes, que le
-  bloc suivant contredisait mot pour mot — sont remis d'aplomb : une doctrine qui affirme un état
-  révolu est pire qu'une doctrine absente.
