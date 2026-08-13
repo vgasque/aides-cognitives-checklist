@@ -397,6 +397,7 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   en train de revenir. Il neutralise les commentaires avant de mesurer (le fichier CITE la règle à
   plusieurs endroits) et cette approximation tombe du bon côté : sur-neutraliser fait ÉCHOUER, pas
   passer sous silence. Vérifié capable d'échouer sur ses cinq points, fichier restauré à l'octet.
+  `check-actions.mjs` (v5.6) exige qu'un `data-*` ÉMIS ait un LECTEUR (cf. A112).
   `check-harnais.mjs` (v5.0.0) rend auto-exécutoire la discipline née avec le lanceur parallèle :
   (1) tout `scripts/audit-*.mjs` sur disque figure dans `HARNAIS` (audit-run.mjs) et
   réciproquement — un harnais créé mais non listé ne tournerait JAMAIS dans `npm run audit`, et le
@@ -2055,6 +2056,28 @@ au-dessus du contenu vivant, pour deux réglages qu'on touche une ou deux fois p
   CAUTION muette n'avertit de rien) et la classe est PURGÉE, épitaphes posées aux deux sites qui
   la citaient (règle 14 + A72). Au pied, à 320 px, il prend sa propre ligne : **là, cela ne coûte
   rien.**
+
+**A112. UN ATTRIBUT ÉMIS SANS LECTEUR EST UN CONTRÔLE QUI A L'AIR VIVANT — `check-actions`
+(v5.6, généralisation du défaut « Voir le compte-rendu »).** A103 avait corrigé le cas d'espèce :
+`data-prelast`, émis UNE fois et câblé NULLE PART, à côté du `data-report` que `bindReadEvents`
+relie déjà à `exportSessionReport`. **Rien dans le dispositif ne pouvait le voir** — ce n'est ni
+une classe, ni une icône, ni une couleur ; le bouton s'affiche, se survole, se focalise, et ne
+fait RIEN. Dans une aide d'urgence, c'est le pire mode de défaillance.
+· **LA RÈGLE EST AUTO-EXÉCUTOIRE DEPUIS** : tout `data-x=` écrit dans un gabarit doit avoir un
+  LECTEUR dans le fichier — sélecteur `[data-x]` ou `[data-x="…"]` (les règles CSS comptent),
+  `dataset.x`, ou `get/set/has/removeAttribute('data-x')`. Vérifié CAPABLE D'ÉCHOUER en
+  réintroduisant `data-prelast` : rouge, avec le nom de l'attribut.
+· **TROIS ATTRIBUTS MORTS SONT PARTIS AVEC** (règle 14) : `data-ai` (rangée de document de
+  l'éditeur), `data-jli` (jalon, aux deux sites), `data-tgk` (vocabulaire du journal) — des
+  repères d'index que plus rien ne lisait.
+· **LES EXEMPTIONS NOMMENT LEUR LECTEUR, jamais leur raison** : `data-upkind` existe pour
+  `audit-upload`, `data-i` comme poignée de mesure. Une liste d'exemptions sans lecteur nommé
+  devient l'endroit où l'on range ce qu'on n'a pas compris — et le contrôle échoue aussi quand une
+  exemption n'a plus d'objet, sinon la liste finirait par mentir.
+· **⚠ CE QU'IL NE VOIT PAS, ET C'EST DIT DANS SA SORTIE** : un attribut lu par une expression
+  CALCULÉE (`el.dataset[nom]`, un sélecteur assemblé) sort de la portée d'un contrôle statique —
+  même limite que les noms d'icône calculés de `check-icons`. Il attrape l'ORPHELIN, pas
+  l'indirection ; c'est exactement le cas qui l'a fait écrire.
 
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
