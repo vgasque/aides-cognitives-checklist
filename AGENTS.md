@@ -1995,6 +1995,17 @@ il en trouve zéro et rougit à 120 px quand on casse vraiment la propriété. L
   Corollaire à connaître avant d'écrire du code d'ancrage : **notre compensation ne sert que là où
   l'ancrage natif ne peut pas** — défilement à la borne, ou nœud d'ancrage supprimé. Partout
   ailleurs elle est un filet, pas le porteur.
+· **BALAYAGE DES AUTRES TÉMOINS GARÉS SUR UNE BORNE — UN SEUL AUTRE CAS, ET TROIS NON-DÉFAUTS
+  QU'IL FAUT NOMMER** (règle A56 : un balayage qui tait ses non-défauts finit par les faire
+  « corriger »). Le piège n'est PAS « se garer au bout » : c'est **comparer une position de part et
+  d'autre d'un changement de hauteur alors qu'on est au bout**. Sont donc légitimes, et le restent :
+  le menu ⋯ défilé à son extrémité (`m.scrollTop=m.scrollHeight`) — la borne EST le sujet, « la
+  dernière rangée est-elle atteignable », et rien ne change de hauteur ensuite ; la sonde qui écrit
+  `scrollTop=999999` pour LIRE le maximum puis le restaure ; la sidebar de l'accueil, dont on
+  vérifie précisément que le bas est joignable. Le seul à corriger était la barre de référence :
+  son `scrollTo(0,1200)` est ÉCRÊTÉ sur un document plus court, donc « la barre reste visible loin
+  dans la page » pouvait se vérifier sans qu'on soit jamais parti — il mesure désormais qu'il a
+  bien défilé. Là non plus la borne ne fausse rien (la barre est FIXE) : c'est le CAS qui manquait.
 · **CE QU'AUCUN TÉMOIN NE COUVRE, ET IL FAUT LE DIRE** : le repli d'A108 et l'ancre sur l'œil en
   régime 2 sont mesurés utiles à la borne (79 → 1 px) — précisément la position que ce témoin
   s'interdit désormais. Les deux sont conservés parce qu'ils **retombent sur un no-op** quand ils

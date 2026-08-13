@@ -1913,7 +1913,7 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
     const lg=migrateProtocol({id:'pzL',title:'Longue',kind:'reference',body:'# Grand\n\n'+secs.join('\n\n')});
     protocols.push(lg);openProtocolRead('pzL');await w(600);
     const dk=await (async()=>{const d=document.querySelector('details.ref-toc'),bar=document.getElementById('refBar');
-      if(!d||!bar)return {pos:'—',visibleLoin:null,borne:0,defile:'',liens:0,corpsLien:'',
+      if(!d||!bar)return {pos:'—',visibleLoin:null,loin:0,borne:0,defile:'',liens:0,corpsLien:'',
         ecart:999,fond:'—',hdrLine:'—',sousLaBarre:null,dansLaBarre:false};
       const hd=document.querySelector('header.bar');
       const cb=getComputedStyle(bar),ch=getComputedStyle(hd);const l=d.querySelector('.rt-lnk');
@@ -1933,11 +1933,17 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
       d.scrollTop=200;await w(160);
       const b=parseFloat(c2.maxHeight)||0,ov=c2.overflowY,nb=d.querySelectorAll('.rt-lnk').length;
       const cl=l?getComputedStyle(l).fontSize:'';
+      /* ⚠ ON VÉRIFIE QU'ON A VRAIMENT DÉFILÉ (v5.6, balayage A46) : `scrollTo(0,1200)` est ÉCRÊTÉ
+         si le document est plus court, et « la barre reste visible loin dans la page » se
+         vérifierait alors sans qu'on soit jamais parti — un témoin qui ne rencontre pas son cas ne
+         prouve rien. La borne n'est pas ici un piège de MESURE (la barre est FIXE, aucune hauteur
+         n'est comparée de part et d'autre d'un re-rendu) : c'est seulement le cas qu'il faut. */
       window.scrollTo(0,1200);
+      const loin=Math.round(window.scrollY);
       const vis=d.getBoundingClientRect().top>=0&&d.getBoundingClientRect().top<300;
       const survit=d.open&&d.scrollTop>0&&nt===1;
       window.scrollTo(0,0);d.open=false;
-      return {pos:cb.position,visibleLoin:vis,borne:Math.round(b),defile:ov,liens:nb,corpsLien:cl,survit,
+      return {pos:cb.position,visibleLoin:vis,loin,borne:Math.round(b),defile:ov,liens:nb,corpsLien:cl,survit,
         ecart:ec,fond:cb.backgroundColor===ch.backgroundColor?'identique':cb.backgroundColor,
         hdrLine:ch.borderBottomWidth,barLine:cb.borderBottomWidth,sousLaBarre:sous,
         dansLaBarre:bar.contains(d)};})();
@@ -1996,6 +2002,8 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
        était demandé. */
     t(`${W} · … il est en en-tête (fixed), pas un dépliant du flux`,
       r.dock.pos==='fixed'&&r.dock.dansLaBarre===true&&r.dock.visibleLoin===true, JSON.stringify(r.dock));
+  t('témoin : la page a bien défilé loin (le cas est rencontré)',
+    r.dock.loin>=600, `${r.dock.loin} px défilés`);
     /* Le fond commun fait le BLOC, le filet dit qu'il a deux ÉTAGES (demande utilisateur) : les
        deux rangées sont bordées, comme #crisisCtrl au-dessus de #crisisDock. */
     t(`${W} · … et il PROLONGE le bandeau : écart nul, même fond, un filet par étage`,
