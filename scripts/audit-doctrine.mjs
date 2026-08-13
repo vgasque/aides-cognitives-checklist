@@ -5569,6 +5569,36 @@ await sec('⚡ la reprise après complication redépose sur le bloc interrompu',
   await page.close();
 });
 
+// ══ LE VOLET PROLONGE LA CAPSULE — Y COMPRIS EN EXERCICE (v5.7) ══════════════
+/* Signalé à l'usage, captures à l'appui. MESURÉ avant correction : en exercice le volet
+   recouvrait le quai de 63 px — la capsule disparaissait entièrement sous lui (z 16 contre 15).
+   `--stick-top` est une SOMME DE HAUTEURS : elle suppose le quai collé sous l'en-tête, ce qui est
+   vrai en crise ordinaire mais FAUX en exercice, où le bandeau survit dans le FLUX et pousse le
+   quai vers le bas. Le témoin compare les DEUX modes : le recouvrement doit être le même. */
+await sec('⚡ le volet prolonge la capsule, en crise comme en exercice', async () => {
+  const geo=async(exo)=>{
+    const page=await br.newPage({viewport:{width:390,height:820}});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
+    if(exo)await page.evaluate(()=>{const f=state.fiche||(typeof Runtime!=='undefined'&&Runtime.fiche);
+      if(typeof startExercise==='function'&&f)startExercise(f);});
+    await page.waitForTimeout(250);
+    await demarrerSession(page);
+    await page.evaluate(()=>{const q=document.getElementById('cbTimers');if(q)q.click();});
+    await page.waitForTimeout(450);
+    const m=await page.evaluate(()=>{const q=document.getElementById('crisisDock'),v=document.querySelector('.rt-dock');
+      if(!q||!v)return null;
+      return {rec:Math.round(q.getBoundingClientRect().bottom-v.getBoundingClientRect().top),
+        band:!!document.querySelector('#crisisBand:not([hidden])')};});
+    await page.close();return m;};
+  const a=await geo(false), b=await geo(true);
+  t('le cas est rencontré : quai et volet mesurables dans les deux modes', !!a&&!!b, JSON.stringify([a,b]));
+  if(!a||!b)return;
+  t('… et l\'exercice montre bien son bandeau (sinon le cas n\'existe pas)', b.band===true);
+  t('le volet se colle à la capsule en crise', a.rec>=0&&a.rec<=12, a.rec+' px');
+  t('… et EXACTEMENT de la même façon en exercice', Math.abs(a.rec-b.rec)<=2, 'crise '+a.rec+' px · exercice '+b.rec+' px');
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

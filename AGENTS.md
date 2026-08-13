@@ -2573,6 +2573,24 @@ précédent s'affiche en haut comme un doublon »).**
   INTERROMPU, (b) qu'il y a bien DEUX cartes de ce bloc, (c) qu'une SEULE reste ouverte. Vérifié
   capable d'échouer (repli neutralisé → 1 rouge, fichier restauré à l'octet).
 
+**A127. LE VOLET PROLONGE LA CAPSULE — ENCORE FAUT-IL SAVOIR OÙ ELLE EST (v5.7, signalé à l'usage,
+captures à l'appui : « en mode exercice le volet s'affiche mal »).** MESURÉ : en exercice, le volet
+recouvrait le quai de **63 px** — la capsule disparaissait entièrement sous lui (z 16 contre 15).
+· **LA CAUSE** : `--stick-top` est une SOMME DE HAUTEURS (en-tête + quai), donc elle suppose le
+  quai collé DIRECTEMENT sous l'en-tête. C'est vrai en crise ordinaire, où le bandeau-titre
+  n'existe plus depuis la v5.0.0 ; c'est FAUX en exercice et chez l'INVITÉ, où le bandeau SURVIT
+  pour porter le placard et vit dans le FLUX : il pousse le quai vers le bas, et le volet — posé
+  sur la somme — venait se dessiner par-dessus.
+· **LE REMÈDE EST BORNÉ AU VOLET** (`--quai-b`, bas RÉEL du quai, ÷ `zoomF()`) : `--stick-top`
+  reste une somme de hauteurs pour tout le reste — le rail, l'ancrage, le `scroll-padding` —, donc
+  **la leçon v5.0.9 tient toujours là où elle protège** (« une géométrie de chrome ne se dérive
+  jamais d'une position de défilement », le tremblement du rebond iOS). Le volet, lui, est une
+  surface TRANSITOIRE qu'on ouvre d'un tap : suivre la capsule où qu'elle soit est exactement ce
+  qu'on lui demande.
+· **TÉMOIN** : il compare les DEUX modes plutôt que d'affirmer une valeur — le recouvrement doit
+  être le même en crise et en exercice. Vérifié capable d'échouer (63 px contre 8 avant correction),
+  et il exige d'abord que l'exercice montre son bandeau, sinon le cas n'existe pas.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

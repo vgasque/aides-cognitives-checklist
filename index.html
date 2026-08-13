@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-SFWP0DlS68Wztt07zvsVULflUy+lodmHsw4k+CfSbfU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-xFuD0/LYAzmym3c5xGeOVNNyISZl/YGlmVG3f+PoCo8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3433,7 +3433,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      le volet COMMENCE au bas de la capsule, il ne peut donc rien couvrir d'elle — il ne recouvre
      que le rembourrage du quai, qui n'affiche rien. Et il reste SOUS l'en-tête et le bandeau
      (z 20), qui restent les couches système du dessus. */
-  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--stick-top,110px) - 8px);z-index:16;
+  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--quai-b, var(--stick-top,110px)) - 8px);z-index:16;
     background:var(--surface);border-radius:0 0 var(--r-3) var(--r-3);box-shadow:var(--shadow-lg);
     max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);
     overflow-y:auto;overscroll-behavior:contain}
@@ -13861,7 +13861,7 @@ const _onReadBp=()=>{if(state.view==='read'||state.view==='edit'||state.view==='
 // écrire la règle ET reprendre la doctrine du chrome de crise : un en-tête qui raccourcit son
 // propre encombrement de flux fait remonter tout le contenu d'un coup (c'est exactement pour
 // l'éviter que #crisisBand et #cbTimers vivent HORS de header.bar, v4.23.0).
-let _hdrTtl=false,_hdrSlim=false,_hdrHCss='',_stickCss='',_ctrlHCss='';
+let _hdrTtl=false,_hdrSlim=false,_hdrHCss='',_stickCss='',_ctrlHCss='',_quaiB='';
 // v4.23.0 : extrait en fonction NOMMÉE — render() la rappelle en fin de rendu. Sans ça, ouvrir
 // une fiche depuis une page déjà en haut ne produit aucun évènement de défilement et l'état
 // .ttl-on héritait de la vue précédente (barre condensée sur une page au repos, ou l'inverse).
@@ -13937,6 +13937,26 @@ function syncHdrScroll(){
      c'est juste — `ovScrollEl`, qui vise une position d'écran à l'instant du saut. */
   {const v=Math.round(stickHeight()/zoomF())+'px';
    if(_stickCss!==v){_stickCss=v;document.documentElement.style.setProperty('--stick-top',v);}}
+  /* ⚠ LE VOLET PROLONGE LA CAPSULE — ENCORE FAUT-IL SAVOIR OÙ ELLE EST (v5.7, signalé à l'usage,
+     captures à l'appui : « en mode exercice le volet s'affiche mal »).
+     MESURÉ : en exercice, la capsule DISPARAISSAIT sous le volet. `--stick-top` est une SOMME DE
+     HAUTEURS (en-tête + quai) — elle suppose donc le quai collé DIRECTEMENT sous l'en-tête. C'est
+     vrai en crise ordinaire, où le bandeau-titre n'existe plus depuis la v5.0.0 ; c'est FAUX en
+     exercice et chez l'invité, où le bandeau SURVIT pour porter le placard (A/v5.0.0) et vit dans
+     le FLUX : il pousse le quai vers le bas, et le volet — posé sur la somme, donc plus haut que
+     le quai réel — venait le recouvrir (z 16 contre 15).
+     On mesure donc le bas RÉEL du quai, et l'on ne s'en sert QUE pour le volet : `--stick-top`
+     reste une somme de hauteurs pour tout le reste (le rail, l'ancrage, le scroll-padding), donc
+     la leçon v5.0.9 — une géométrie de chrome ne se dérive jamais d'une position de défilement —
+     tient toujours là où elle protège. Ici, le volet est une surface TRANSITOIRE qu'on ouvre d'un
+     tap : elle doit suivre la capsule où qu'elle soit, et c'est précisément ce qu'on lui demande. */
+  {const q=document.getElementById('crisisDock');
+   const z=(typeof zoomF==='function'?zoomF():1)||1;
+   const b=(q&&!q.hidden)?Math.round(q.getBoundingClientRect().bottom/z):0;
+   const nv=b>0?b+'px':'';
+   if(_quaiB!==nv){_quaiB=nv;
+     if(nv)document.documentElement.style.setProperty('--quai-b',nv);
+     else document.documentElement.style.removeProperty('--quai-b');}}
   const _cb=document.getElementById('crisisBand');
   /* Le bandeau n'existe plus en lecture : le relais est donc PERMANENT dès qu'une fiche est
      ouverte — sinon le titre n'existerait nulle part tant qu'on n'a pas défilé. */
