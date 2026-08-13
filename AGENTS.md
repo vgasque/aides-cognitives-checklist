@@ -2550,6 +2550,29 @@ de l'auteur ont suffi à la retourner.
   piste a RÉVÉLÉS — le minuteur en pause dans le rappel du quai, le jalon dans le volet — ne sont
   pas faits non plus. Ils valent mieux que la bande sur le téléphone : c'est le sens du refus.
 
+**A126. LE PASSAGE QU'ON INTERROMPT SE REPLIE — ET LE TÉMOIN A TRANCHÉ AVANT LE CODE (v5.7,
+signalé à l'usage : « on tape une complication, on appuie sur reprendre, on avance d'un bloc et le
+précédent s'affiche en haut comme un doublon »).**
+· **DEUX LECTURES OPPOSÉES, ET ELLES APPELAIENT DES CORRECTIONS CONTRAIRES** : soit `cxResume`
+  redéposait sur le bloc SUIVANT (défaut net, à réparer), soit le second passage était VOULU et
+  seule sa présentation était fautive. Corriger sans trancher aurait risqué d'effacer une trace de
+  soin pour un symptôme mal lu — la faute qu'A100, A107 et A113b ont déjà documentée. Un témoin a
+  donc été écrit AVANT toute correction : il mesure quel bloc est au bout du journal après reprise.
+· **VERDICT : la navigation était JUSTE.** `cxResume` redépose bien sur le bloc interrompu, et le
+  second passage est la doctrine d'interruption (AC 120-71B, v4.26.0 — on re-vérifie après une
+  interruption, l'ancienne carte reste lisible).
+· **CE QUI ÉTAIT FAUTIF EST LA PRÉSENTATION** : le passage quitté est INCOMPLET, donc `ovPresList`
+  le garde en CARTE OUVERTE (« un passage incomplet n'est jamais une chip » — l'invariant qui fait
+  la conformité du journal). On se retrouvait avec DEUX cartes ouvertes du même bloc, l'une
+  au-dessus de l'autre, portant les mêmes étapes.
+· **L'INVARIANT N'EST PAS TOUCHÉ** : on ne transforme pas le passage en chip, on pose le REPLI
+  MANUEL, que la doctrine autorise déjà (« repli manuel = ligne d'état au maximum ») et qui
+  persiste. Rien n'est perdu — les mêmes étapes sont dans la carte neuve juste en dessous, et un
+  tap rouvre l'ancienne.
+· **TÉMOIN** : entrer sur complication, reprendre, et vérifier (a) que le bout est le bloc
+  INTERROMPU, (b) qu'il y a bien DEUX cartes de ce bloc, (c) qu'une SEULE reste ouverte. Vérifié
+  capable d'échouer (repli neutralisé → 1 rouge, fichier restauré à l'octet).
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kB3ZeuKN6JIsFIgMU+S1IcPnYPGnNyTycEn9jCNKomA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-SFWP0DlS68Wztt07zvsVULflUy+lodmHsw4k+CfSbfU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9965,6 +9965,19 @@ function cxEnter(f,target){
      de visite, et ce passage-ci en minte un neuf. Le laisser laisserait croire qu'un effacement
      reste nécessaire quelque part, donc qu'il en manque ailleurs.) */
   const from=state.nav[state.navPos];
+  /* ⚠ LE PASSAGE QU'ON INTERROMPT SE REPLIE (v5.7, signalé à l'usage : « on reprend et le bloc
+     précédent s'affiche en haut comme un doublon »). Un témoin a tranché AVANT qu'on touche au
+     code : `cxResume` redépose bien sur le bloc INTERROMPU — la navigation est juste. Ce qui se
+     lit comme un doublon est la PRÉSENTATION : le passage quitté est INCOMPLET, donc `ovPresList`
+     le garde en CARTE OUVERTE (« un passage incomplet n'est jamais une chip » — l'invariant qui
+     fait la conformité du journal), et l'on se retrouve avec deux cartes ouvertes du même bloc,
+     l'une au-dessus de l'autre, portant les mêmes étapes.
+     L'INVARIANT N'EST PAS TOUCHÉ : on ne le transforme pas en chip, on pose le REPLI MANUEL, que
+     la doctrine autorise déjà (« repli manuel = ligne d'état au maximum ») et qui PERSISTE. Rien
+     n'est perdu — les mêmes étapes sont dans la carte neuve juste en dessous, et un tap rouvre
+     l'ancienne. C'est exactement ce que la condensation R6 fait d'un passage achevé, appliqué au
+     seul cas où deux cartes du même bloc coexistent par construction. */
+  if(state.navPos>=0)state.ovFold[state.navPos]=true;
   state.nav.push(target);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
   Runtime.cxBack=Runtime.cxBack||{};if(from&&from!==target)Runtime.cxBack[Runtime.seq]={id:from,t:Date.now()};
   state.flowEnded=false;state.ovVerify=null;

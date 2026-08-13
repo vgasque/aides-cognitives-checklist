@@ -5520,6 +5520,55 @@ await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
   await page.close();
 });
 
+// ══ REPRISE APRÈS COMPLICATION — QUEL BLOC EST AU BOUT ? (v5.7) ══════════════
+/* Signalé à l'usage : « on tape une complication, on appuie sur reprendre, et on AVANCE d'un
+   bloc ; le précédent s'affiche en haut comme un doublon ».
+   DEUX LECTURES OPPOSÉES, et le témoin existe pour trancher AVANT qu'on touche au code :
+   (a) le second passage du bloc interrompu est VOULU — c'est la doctrine d'interruption
+       (AC 120-71B, v4.26.0 : « on re-vérifie après une interruption, l'ancienne carte reste
+       lisible juste au-dessus »), et l'ancienne reste ouverte parce qu'un passage INCOMPLET
+       n'est jamais une chip. Rien à corriger, seulement à présenter ;
+   (b) ou bien `cxResume` redépose sur le bloc SUIVANT, et c'est un défaut net.
+   Corriger sans avoir tranché, ce serait risquer d'effacer une trace de soin pour un symptôme
+   mal lu — la faute qu'A100, A107 et A113b ont déjà documentée. */
+await sec('⚡ la reprise après complication redépose sur le bloc interrompu', async () => {
+  const page=await session(390);
+  await page.waitForTimeout(400);
+  const bout=()=>page.evaluate(()=>{const c=[...document.querySelectorAll('.ov-block[data-ovb]')].pop();
+    return c?{id:c.dataset.ovb,ttl:(c.querySelector('.ov-t')||{}).textContent||''}:null;});
+  const av=await bout();
+  t('le cas est rencontré : un bloc courant existe', !!av, JSON.stringify(av));
+  const cx=await page.$('#cxKey');
+  t('… et la fiche déclare au moins une complication', !!cx);
+  if(!av||!cx){await page.close();return;}
+  await cx.click();await page.waitForTimeout(350);
+  /* À UNE seule complication, la touche entre directement (v5.0.0/B) ; à plusieurs elle déplie
+     l'index. On couvre les deux sans supposer laquelle. */
+  const go=await page.$('[data-cxgo]');
+  if(go){await go.click();await page.waitForTimeout(400);}
+  const pend=await bout();
+  t('entrer sur la complication pose un NOUVEAU passage', !!pend&&pend.id!==av.id, JSON.stringify(pend));
+  const back=await page.$('[data-cxback]');
+  t('… et le retour est proposé (jamais laissé à la mémoire)', !!back);
+  if(!back){await page.close();return;}
+  await back.click();await page.waitForTimeout(500);
+  const ap=await bout();
+  /* LE CONTRÔLE QUI TRANCHE : le bout du journal doit être le bloc QU'ON A QUITTÉ, pas le suivant. */
+  t('reprendre redépose sur le bloc INTERROMPU, pas sur le suivant',
+    !!ap&&ap.id===av.id, 'quitté='+JSON.stringify(av)+' · repris='+JSON.stringify(ap));
+  /* Et le second passage est voulu : le bloc interrompu apparaît DEUX fois dans le journal. */
+  const n=await page.evaluate(i=>[...document.querySelectorAll('.ov-block[data-ovb]')]
+    .filter(c=>c.dataset.ovb===i).length, av.id);
+  t('… en postant un second passage, l’ancien restant lisible (doctrine d’interruption)', n>=2, n+' carte(s)');
+  /* ⚠ ET LE PASSAGE INTERROMPU EST REPLIÉ : deux cartes OUVERTES du même bloc, l'une au-dessus de
+     l'autre avec les mêmes étapes, se lisent comme un doublon. Le repli manuel (autorisé : « repli
+     manuel = ligne d'état au maximum ») laisse UNE seule carte ouverte, la neuve. */
+  const ouv=await page.evaluate(i=>[...document.querySelectorAll('.ov-block[data-ovb]')]
+    .filter(c=>c.dataset.ovb===i&&!c.classList.contains('closed')).length, av.id);
+  t('… mais UNE SEULE reste ouverte : l’interrompue se replie', ouv===1, ouv+' ouverte(s)');
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
