@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-XYP8fHVEEy+9zxQHMQK1ybTQVqiq0XLFKBZa/twT7v0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-8SIChp3qn+AI9MATyqlUF5/Jy3n3XgSs0L0rAPehQd8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3698,6 +3698,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rev-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .rev-row b{font-size:13.5px;font-weight:700}
   .rev-row span{font-size:12px;line-height:1.45;color:var(--ink-soft)}
+  /* Q1 (v5.7) — LE SECOND REGISTRE DU VOLET : ce que le texte de l'auteur PERMETTRAIT d'ajouter.
+     Séparé des manques par un filet et par son intertitre — un défaut et une occasion ne se
+     lisent pas de la même façon, et les mêler ferait passer l'occasion pour un reproche.
+     Registre ACTION (le bleu de ce qu'on peut faire), jamais l'ambre des remarques. */
+  .rev-offs{margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line)}
+  .rev-offh{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-soft);margin:0 0 8px}
+  .rev-off{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;
+    border-top:1px solid var(--line)}
+  .rev-off:first-of-type{border-top:0}
+  .rev-oft{flex:1 1 200px;min-width:0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
+  .rev-oft b{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink)}
+  .rev-ok{flex:none;min-height:44px;font-size:12px;font-weight:700}
+  .rev-no{flex:none;min-width:44px;min-height:44px;border:0;background:none;border-radius:var(--r-1);
+    color:var(--ink-soft);font-family:inherit;font-size:15px;cursor:pointer}
+  .rev-no:hover{background:var(--surface-2)}
+  .rev-no:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rev-note{margin:8px 0 0;font-size:11px;color:var(--ink-soft);line-height:1.45}
   .rev-flash{animation:revFl 1.2s ease}
   @keyframes revFl{0%,100%{background:transparent}25%{background:var(--verify-soft)}}
@@ -21777,7 +21795,99 @@ function edRevPaint(f){
 /* ANCRAGE : taper une remarque amène à la ligne concernée et la FAIT CLIGNOTER une fois. On ne
    met PAS le focus dans le champ — l'auteur vient de LIRE le bilan, il choisit ce qu'il corrige ;
    voler le curseur déciderait à sa place. */
+/* ═══ Q1 — LA RELECTURE DEVIENT FORCE DE PROPOSITION (v5.7) ═══════════════════════════════
+   VÉRIFIÉ AVANT D'ÉCRIRE : les six détections de `reviewNotes`/`reviewNotesProto` sont TOUTES
+   des manques — titre absent, « à compléter » résiduel, aucune source, chapeau trop long, bloc de
+   plus de sept étapes, challenge trop long. Aucune ne disait jamais « votre texte décrit un
+   cycle : voulez-vous le minuteur qui va avec ? »
+   Or c'est là que tout se joue pour un néophyte-auteur : il écrit « renouveler toutes les 3 min »
+   EN TEXTE et n'apprendra jamais que l'application sait armer un minuteur à cycles, poser un
+   compteur ou marquer un memory item. La fiche qu'il publie n'emploie alors qu'une part du
+   produit — et c'est EN CRISE que la différence se paie.
+   · **LE NOMBRE VIENT DE SA PHRASE, JAMAIS D'UN BARÈME.** C'est de la lecture de texte, à froid,
+     dans l'éditeur — hors de toute session, hors de tout patient. Aucun seuil clinique n'est
+     inventé : c'est l'interdit que le prompt IA porte déjà (et qu'`audit-prompt` vérifie).
+   · **RIEN N'EST CRÉÉ AUTOMATIQUEMENT.** Jamais. Une proposition est une rangée avec un bouton ;
+     l'auteur reste l'expert de sa fiche, et son texte n'est PAS réécrit — l'objet s'ajoute, la
+     phrase reste.
+   · **LA PROPOSITION N'INVENTE PAS DE NOM** (A85, A99) : le compteur naît SANS libellé, et c'est
+     le ✎ de sa carte qui le nomme. Deviner un mot à partir d'une phrase serait la dégénérescence
+     de « PA 2 » sous un autre visage.
+   · **UNE PROPOSITION REFUSÉE NE REVIENT PAS** de la séance : le refus vit dans `state.edOffNo`,
+     transitoire comme `state.edGrab` — c'est un geste, pas un état du brouillon, et le graver
+     dans le modèle ajouterait un champ pour mémoriser un NON.
+   · **ET ELLE DISPARAÎT D'ELLE-MÊME QUAND ELLE EST SUIVIE** : les trois détecteurs se taisent dès
+     que l'objet existe. Aucun drapeau à tenir. */
+const Q1_CYCLE_RX=/\btoutes?\s+les\s+(\d{1,3})\s*(?:min\b|minutes\b)/i;
+/* ⚠ PAS DE `\b` DEVANT UN CARACTÈRE ACCENTUÉ : en JS, `à` n'est pas un caractère de MOT, donc
+   `\bà` ne peut jamais matcher — « Renouveler à 5 min » passait au travers, et c'est un témoin
+   qui l'a dit. On borne par un début de chaîne ou un non-mot. */
+const Q1_DELAI_RX=/(?:^|[^\wàâäéèêëîïôöùûüç])(?:à|apr[èe]s)\s+(\d{1,3})\s*(?:min\b|minutes\b)/i;
+const Q1_QH_RX=/\bq(\d{1,2})\s*h\b/i;
+const Q1_RENOUV_RX=/\b(?:renouvel|r[ée]p[ée]t|nouvelle\s+dose|seconde\s+dose|2e?\s+dose|nouveau\s+choc)/i;
+/* Tous les textes de l'auteur, étapes ET listes — un « toutes les 3 min » écrit dans un repère
+   posologique compte autant que dans une étape. */
+function q1Texts(f){
+  const out=[];
+  (f.blocks||[]).forEach(b=>{if(!b)return;(stepsOf(b)||[]).forEach(s=>{out.push(stepText(String(s||'')));});
+    if(b.question)out.push(String(b.question));});
+  ['confirmation','notForget','verify','posology','differentials'].forEach(k=>{
+    (listOf(f,k)||[]).forEach(s=>out.push(String(s||'')));});
+  return out;}
+/* Les items du pool, à plat — pour le détecteur ★, qui a besoin des IDENTITÉS, pas des chaînes. */
+function q1Items(f){const out=[];(f.blocks||[]).forEach(b=>{if(!b)return;
+  (bItems(b)||[]).forEach(it=>{if(it&&it.id)out.push(it);});});return out;}
+/* PURE : elle ne lit que la fiche qu'on lui passe et ne rend que des propositions. */
+function reviewOffers(f){
+  if(!f)return [];
+  const out=[],txts=q1Texts(f);
+  /* (1) UN CYCLE ÉCRIT EN TEXTE. On se tait dès qu'un minuteur d'intervalle existe : la fiche
+     porte déjà la capacité, la proposition n'aurait plus rien à apprendre à personne. */
+  if(!(f.timers||[]).some(t=>t&&t.type==='interval')){
+    let sec=0,src='';
+    txts.some(t=>{const m=Q1_CYCLE_RX.exec(t)||Q1_DELAI_RX.exec(t);
+      if(m){sec=+m[1]*60;src=t;return true;}
+      const q=Q1_QH_RX.exec(t);if(q){sec=+q[1]*3600;src=t;return true;}
+      return false;});
+    if(sec>0&&sec<=86400)out.push({id:'tm',kind:'interval',pre:{seconds:sec},
+      cible:'Minuteur',btn:'＋ Minuteur '+fmtMs(sec*1000),
+      txt:'« '+sstr(src,64)+' » — un minuteur à cycles s’armerait au premier geste et sonnerait seul.'});}
+  /* (2) UN GESTE QUI SE RÉPÈTE. Le compteur horodate chaque unité au compte rendu (v4.52.0). */
+  if(!(f.counters||[]).length&&txts.some(t=>Q1_RENOUV_RX.test(t)))
+    out.push({id:'cn',kind:'counter',pre:null,cible:'Compteur',btn:'＋ Compteur',
+      txt:'Votre texte parle de renouveler un geste — un compteur en horodate chaque unité dans le compte rendu. Il naîtra sans nom : c’est à vous de le nommer.'});
+  /* (3) UNE ÉTAPE VITALE QUI N'EST PAS UN MEMORY ITEM. ★ la fait AUSSI paraître au chapeau, sans
+     la sortir de son bloc (A/lot T7 : le chapeau AGRÈGE, il ne possède pas). On se tait dès
+     qu'une ★ existe : le chapeau est plafonné à quatre rappels, on n'en propose pas une file. */
+  {const its=q1Items(f);
+   if(!its.some(it=>it.memory)){
+     /* ⚠ LE REGISTRE VIT DANS LA CHAÎNE AUTANT QUE DANS `level` : le préfixe « ⚠ » est le format
+        historique et `migrate` ne le convertit pas en niveau — `stepIsCrit` est LA source de
+        vérité du projet, on ne s'en écarte pas ici. */
+     const c=its.find(it=>it&&String(it.do||'').trim()&&(it.level===3||stepIsCrit(String(it.do||''))));
+     if(c)out.push({id:'mem:'+c.id,kind:'memory',pre:{itemId:c.id},cible:'Ne pas oublier',btn:'★ Marquer',
+       txt:'« '+sstr(String(c.do||''),64)+' » est une étape vitale — ★ la ferait aussi paraître dans « Ne pas oublier », sans quitter son bloc.'});}}
+  return out.filter(o=>!(state.edOffNo||{})[o.id]);}
+/* L'ACCEPTATION PASSE PAR « edAdd », LE POINT DE CRÉATION UNIQUE de la porte « ＋ » : un second
+   chemin de création divergerait au premier réglage (leçon persistLive/edCommit). Seul ★ n'y
+   passe pas — il ne CRÉE rien, il marque un item qui existe déjà. */
+function reviewOfferTake(f,id){
+  const o=reviewOffers(f).find(x=>x.id===id);if(!o)return;
+  if(o.kind==='memory'){
+    const it=(f.items||[]).find(x=>x&&x.id===o.pre.itemId);
+    if(!it)return;
+    it.memory=true;renderEditor();
+    const el=main.querySelector('#nfGuard')||main.querySelector('.blk');
+    if(el){el.scrollIntoView({block:'center'});el.classList.add('rev-flash');
+      setTimeout(()=>el.classList.remove('rev-flash'),1300);}
+    return;}
+  edAdd(f,o.kind,o.pre);}
 function bindRevPanel(){
+  /* Q1 — accepter, ou écarter pour la séance. */
+  main.querySelectorAll('[data-revoff]').forEach(b=>b.onclick=()=>{
+    const f=state.draft;if(f)reviewOfferTake(f,b.dataset.revoff);});
+  main.querySelectorAll('[data-revoffno]').forEach(b=>b.onclick=()=>{
+    (state.edOffNo=state.edOffNo||{})[b.dataset.revoffno]=1;renderEditor();});
   main.querySelectorAll('[data-revgo]').forEach(b=>b.onclick=()=>{
     const at=b.dataset.revgo;
     const el=at==='nf'?document.getElementById('nfGuard')
@@ -21812,12 +21922,15 @@ function reviewNotesProto(p){
   return out;}
 function reviewPanelHtml(f,notes){
   const n=notes||reviewNotes(f);
-  if(!n.length)return '';
+  /* Q1 — le volet existe aussi quand il n'a que des PROPOSITIONS à faire : une fiche sans défaut
+     est précisément celle à qui il reste le plus à apprendre. */
+  if(!n.length&&!((typeof reviewOffers==='function'&&f&&f.blocks)?reviewOffers(f):[]).length)return '';
   /* UNE LIGNE, DÉPLIABLE (maquette MK). Le volet vit en pied de page et n'a qu'un travail :
      dire COMBIEN il reste à relire, et sur quoi, sans manger l'écran. Replié, il tient en une
      ligne — compte + cibles abrégées ; déplié, il rend ses rangées d'ancrage. La remarque
      DÉTAILLÉE, elle, vit sous la ligne qu'elle vise (`stepNote`) : ici c'est un BILAN, pas une
      seconde explication. */
+  const of=(typeof reviewOffers==='function'&&f&&f.blocks)?reviewOffers(f):[];
   const res=n.map(x=>x.cible).join(' · ');
   /* ⚠ OUVERT PAR DÉFAUT (demande utilisateur, et c'est cohérent) : le volet N'EXISTE PAS quand il
      n'a rien à dire (`if(!n.length)return ''`) — il ne peut donc jamais être du bruit permanent,
@@ -21827,6 +21940,9 @@ function reviewPanelHtml(f,notes){
      Vaut pour les DEUX éditeurs, aide et référence : un seul dessin, une seule habitude. */
   return `<details class="rev-panel" open><summary role="status">${uiIcon('warn',13)}<b>Relecture · ${n.length}</b><span class="rev-res">${esc(res)}</span></summary>`
     +n.map(x=>`<button type="button" class="rev-row" data-revgo="${esc(x.at)}"><b>${esc(x.cible)}</b><span>${esc(x.txt.replace(/^△\s*/,''))}</span></button>`).join('')
+    +(of.length?`<div class="rev-offs"><div class="rev-offh">Ce que votre texte permettrait d’ajouter</div>`
+      +of.map(o=>`<div class="rev-off"><div class="rev-oft"><b>${esc(o.cible)}</b><span>${esc(o.txt)}</span></div><button type="button" class="btn rev-ok" data-revoff="${esc(o.id)}">${esc(o.btn)}</button><button type="button" class="rev-no" data-revoffno="${esc(o.id)}" aria-label="Écarter cette proposition">✕</button></div>`).join('')
+      +`</div>`:'')
     +`<p class="rev-note">Aucune de ces remarques n’empêche d’enregistrer — c’est vous qui connaissez votre service.</p></details>`;}
 /* K2, deuxième moitié (v4.68.0, maquette MK) : LA REMARQUE SOUS LA LIGNE QU'ELLE VISE. Le volet
    en pied dit COMBIEN il reste à relire ; il ne dit pas OÙ pendant qu'on écrit. `stepNote` rend
@@ -22127,11 +22243,14 @@ function edAddClose(){const m=edAddModal();if(m)m.classList.remove('on');}
    portaient les six anciens boutons — on a supprimé les PORTES, pas les gestes. Après l'ajout,
    la fenêtre se ferme et l'éditeur se re-rend : l'objet neuf est déjà à l'écran, sinon la porte
    demanderait un geste pour ouvrir et un autre pour trouver ce qu'elle a créé. */
-function edAdd(f,kind){
+function edAdd(f,kind,pre){
+  /* Q1 (v5.7) — « pre » pré-remplit l'objet créé depuis une PROPOSITION de relecture (la période
+     lue dans la phrase de l'auteur). Absent partout ailleurs : la porte « ＋ » crée toujours des
+     objets neutres, et c'est ce qui garantit qu'il n'y a QU'UN chemin de création. */
   if(kind==='steps')f.blocks.push({id:uid('b'),kind:'do',title:'',steps:[''],image:null,next:null});
   else if(kind==='decision')f.blocks.push({id:uid('b'),kind:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});
   else if(kind==='stopwatch')f.timers.push({id:uid('t'),label:'',type:'stopwatch'});
-  else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:120,autoloop:true});
+  else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:(pre&&pre.seconds>0&&pre.seconds<=86400)?pre.seconds:120,autoloop:true});
   else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
   else if(kind==='cx')(f.excursions=f.excursions||[]).push({label:'',target:''});
   else if(ED_ADD_LIST[kind]){const key=ED_ADD_LIST[kind];edPut(f,key,edList(f,key).concat(''));}
@@ -27863,7 +27982,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={sinceTxt,endSessOpenTxt,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,endSessOpenTxt,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

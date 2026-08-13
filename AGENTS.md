@@ -2320,6 +2320,46 @@ les deux ? », et on la soustrayait à la main. `evDeltas` (pure) ajoute une col
   ni égard pour une connexion mesurée) — le borner affaiblirait la garantie hors-ligne, c'est un
   arbitrage à prendre, pas un défaut à corriger.
 
+**A122. LA RELECTURE DEVIENT FORCE DE PROPOSITION (v5.7, Q1).** Vérifié avant d'écrire : les six
+détections de `reviewNotes`/`reviewNotesProto` sont TOUTES des manques — titre absent, « à
+compléter » résiduel, aucune source, chapeau trop long, bloc de plus de sept étapes, challenge trop
+long. Aucune ne disait jamais « votre texte décrit un cycle : voulez-vous le minuteur qui va
+avec ? » Or c'est là que tout se joue pour un néophyte-AUTEUR : il écrit « renouveler toutes les
+3 min » EN TEXTE, et n'apprendra jamais que l'application sait armer un minuteur à cycles, poser un
+compteur ou marquer un memory item. La fiche qu'il publie n'emploie alors qu'une part du produit —
+et c'est EN CRISE que la différence se paie. `reviewOffers(f)` est PURE ; le volet gagne un SECOND
+registre, séparé des manques par un filet et son intertitre (un défaut et une occasion ne se lisent
+pas de la même façon, et les mêler ferait passer l'occasion pour un reproche).
+· **TROIS DÉTECTEURS, ET LE NOMBRE VIENT DE LA PHRASE DE L'AUTEUR, JAMAIS D'UN BARÈME** : une
+  cadence (« toutes les 3 min », « à 5 min », « q4h ») → minuteur à cycles, période PRÉ-REMPLIE ;
+  « renouveler / seconde dose / nouveau choc » → compteur ; une étape vitale alors qu'aucune ★
+  n'existe → memory item. C'est de la lecture de TEXTE, à froid, dans l'éditeur — hors session,
+  hors patient. Aucun seuil clinique n'est inventé : c'est l'interdit que le prompt IA porte déjà.
+· **RIEN N'EST CRÉÉ AUTOMATIQUEMENT**, jamais : une proposition est une rangée avec un bouton, et
+  le texte de l'auteur n'est PAS réécrit — l'objet s'ajoute, la phrase reste.
+· **LA PROPOSITION N'INVENTE PAS DE NOM** (A85, A99) : le compteur naît SANS libellé, et c'est le ✎
+  de sa carte qui le nomme. Deviner un mot serait la dégénérescence de « PA 2 » sous un autre visage.
+· **UN SEUL CHEMIN DE CRÉATION** : accepter passe par `edAdd`, qui gagne un paramètre `pre`
+  facultatif. Un second créateur divergerait au premier réglage. Seul ★ n'y passe pas — il ne CRÉE
+  rien, il marque un item qui existe.
+· **ELLES SE TAISENT DÈS QUE L'OBJET EXISTE** (aucun drapeau à tenir) et **un refus ne revient pas
+  de la séance** (`state.edOffNo`, transitoire comme `state.edGrab` : c'est un geste, pas un état
+  du brouillon — le graver dans le modèle ajouterait un champ pour mémoriser un NON).
+· **LE VOLET EXISTE MÊME SANS DÉFAUT** : une fiche sans remarque est précisément celle à qui il
+  reste le plus à apprendre.
+· ⚠ **DEUX DÉFAUTS TROUVÉS PAR LES TÉMOINS, ET LE PREMIER EST UN PIÈGE DE REGEX GÉNÉRAL** :
+  `\b` devant un caractère ACCENTUÉ ne matche JAMAIS — en JS, `à` n'est pas un caractère de mot,
+  donc `\bà` est mort-né et « Renouveler à 5 min » passait au travers. Et le registre d'une étape
+  vit dans la CHAÎNE (préfixe « ⚠ ») autant que dans `level` : `migrate` ne dérive pas le niveau du
+  préfixe, `stepIsCrit` est LA source de vérité — un détecteur qui ne lit que `level` est aveugle
+  au format historique. Corollaire de fixture : un témoin qui poserait ★ en filtrant sur
+  `level===3` ne poserait rien et mesurerait le vide.
+· **CE QUI N'EST PAS FAIT, ET POURQUOI** : trois autres détecteurs étaient proposés (« si échec »
+  → bloc de décision, « en cas de … » → complication, une dose écrite sans repère posologique).
+  Les deux premiers exigent de DÉCOUPER des étapes existantes, c'est-à-dire de réécrire le texte de
+  l'auteur — exactement ce que la règle ci-dessus interdit. À rouvrir séparément, avec un dessin
+  qui ne touche pas à ses phrases.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

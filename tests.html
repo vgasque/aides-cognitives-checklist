@@ -2402,6 +2402,48 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      [null,null,3000]);
   eq('aucun évènement → aucun écart', A.evDeltas([]), []);
   eq('robuste au néant', A.evDeltas(null), []);
+
+  /* ══ Q1 (v5.7) — la relecture propose ce que le texte de l'auteur permettrait ═══════════
+     Le nombre vient de SA phrase, jamais d'un barème. Rien n'est créé automatiquement. */
+  group('Q1 — les propositions de relecture (reviewOffers)');
+  const _q1=(steps,extra)=>A.migrate(Object.assign({id:'q1',v:4,kind:'procedure',title:'T',
+    items:steps.map((t,i)=>({id:'q'+i,do:t})),
+    blocks:[{id:'qb',title:'B',kind:'do',items:steps.map((_,i)=>'q'+i)}]},extra||{}));
+  const _kinds=f=>A.reviewOffers(f).map(o=>o.kind);
+  /* (1) le cycle écrit en toutes lettres */
+  {const o=A.reviewOffers(_q1(['Analyse du rythme toutes les 2 min']));
+   ok('« toutes les 2 min » → un minuteur', o.some(x=>x.kind==='interval'));
+   eq('… avec la période LUE dans la phrase', (o.find(x=>x.kind==='interval')||{}).pre.seconds, 120);}
+  ok('« à 5 min » → un minuteur de 300 s',
+     (A.reviewOffers(_q1(['Renouveler à 5 min si besoin'])).find(x=>x.kind==='interval')||{pre:{}}).pre.seconds===300);
+  ok('« q4h » → un minuteur de 4 heures',
+     (A.reviewOffers(_q1(['Contrôle q4h'])).find(x=>x.kind==='interval')||{pre:{}}).pre.seconds===14400);
+  /* ⚠ ON SE TAIT DÈS QUE LA CAPACITÉ EXISTE : la proposition n'a plus rien à apprendre. */
+  ok('un minuteur à cycles existe déjà → aucune proposition de minuteur',
+     _kinds(_q1(['Analyse toutes les 2 min'],{timers:[{id:'t1',label:'x',type:'interval',seconds:120}]})).indexOf('interval')<0);
+  /* Un texte sans cadence ne déclenche rien : on ne propose pas au hasard. */
+  ok('aucune cadence → aucun minuteur', _kinds(_q1(['Poser une voie veineuse'])).indexOf('interval')<0);
+  /* (2) le geste qui se répète */
+  ok('« renouveler » → un compteur', _kinds(_q1(['Renouveler la dose si besoin'])).indexOf('counter')>=0);
+  ok('un compteur existe déjà → aucune proposition de compteur',
+     _kinds(_q1(['Renouveler la dose'],{counters:[{id:'c1',label:'x'}]})).indexOf('counter')<0);
+  /* ⚠ LE COMPTEUR NAÎT SANS NOM (A85, A99) : la proposition n'invente pas de mot. */
+  eq('la proposition de compteur ne pré-remplit AUCUN nom',
+     (A.reviewOffers(_q1(['Renouveler la dose'])).find(x=>x.kind==='counter')||{}).pre, null);
+  /* (3) l'étape vitale qui n'est pas un memory item */
+  {const o=A.reviewOffers(_q1(['⚠ Adrénaline IM 0,5 mg']));
+   ok('une étape vitale sans ★ → la proposition existe', o.some(x=>x.kind==='memory'));
+   ok('… et elle désigne l’item par son IDENTITÉ',
+      /^q\d+$/.test(((o.find(x=>x.kind==='memory')||{pre:{}}).pre.itemId)||''));}
+  ok('une étape ORDINAIRE ne déclenche pas ★', _kinds(_q1(['Poser une voie'])).indexOf('memory')<0);
+  /* Le plafond du chapeau : on ne propose pas une file de ★. */
+  /* ⚠ LE FIXTURE POSE ★ SUR L'ITEM, PAS SUR UN NIVEAU : `migrate` ne dérive pas `level` du
+     préfixe « ⚠ » (c'est `stepIsCrit` qui lit la chaîne) — un fixture qui filtrerait sur
+     `level===3` ne poserait rien et le témoin mesurerait le vide. */
+  {const f=_q1(['⚠ Un geste vital','⚠ Un autre geste vital']);
+   (f.items||[])[0].memory=true;
+   ok('une ★ existe déjà → plus aucune proposition ★', _kinds(f).indexOf('memory')<0);}
+  eq('aucune fiche → aucune proposition', A.reviewOffers(null), []);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
