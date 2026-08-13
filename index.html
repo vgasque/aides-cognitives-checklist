@@ -5792,8 +5792,40 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
   /* Les SÉPARATIONS de section coûtaient 36 et 51 px de vide mesurés pour deux intertitres de
      19 px. On garde la hiérarchie (plus d'air au-dessus qu'au-dessous, A70) en la resserrant. */
-  body.view-read:not(.crisis-live) .rail-lad .rail-head{margin:12px 0 2px}
-  body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin:10px 0 2px}
+  body.view-read:not(.crisis-live) .rail-lad .rail-head{margin-top:12px}
+  body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
+  /* ⚠ EN SESSION, MÊME DESSIN — MAIS LE PAS RESTE 44 px, ET C'EST DE L'ARITHMÉTIQUE (v5.7,
+     signalé à l'usage : « en mode session, le parcours inerte est resté à la taille antérieure :
+     compresse et harmonise »). Tout ce qui est GRAPHIQUE s'aligne sur l'avant-session (pastille
+     22, rembourrage 2/10, écart 8, séparations resserrées) ; ce qui ne peut pas céder est le PAS
+     entre deux rangées : ce sont des cibles tactiles, la règle 9 impose 44 px en crise, et deux
+     cibles voisines ne peuvent être disjointes que si le pas vaut au moins 44. Le DESSIN descend
+     donc à 38 px et la cible est rendue par un HALO de 3 px (A8 : la cible vient du halo, jamais
+     du dessin) : 38 px de dessin, halo de 3 px, sur la gouttière de 6 px que la crise portait
+     DÉJÀ — les deux halos se touchent sans se mordre (A66 : un écart vaut au moins la somme des
+     halos qu'il sépare). Pas = 38 + 6 = 44, exactement.
+     ⚠ LE PAS SE PREND SUR LA RANGÉE, JAMAIS SUR L'ÉCART : j'avais commencé par porter la
+     gouttière à 6 px alors qu'elle y était, et par réduire la marge BASSE des titres. Un témoin a
+     rougi aussitôt — « chaque titre a le même écart avec ses rangées », [10, 8] mesurés : en
+     session, un des deux titres échappe au sélecteur `.rail-lad`. La marge basse appartient au
+     rythme des sections ; la respiration se prend au-DESSUS, où elle n'engage personne.
+     GAIN MESURÉ : **435 → 409 px, −6 %** — et non les −15 % que j'avais écrits avant de mesurer.
+     L'ÉCART QUI RESTE AVEC L'AVANT-SESSION (409 contre 368) EST EXACTEMENT LE PAS : six rangées
+     à 44 au lieu de 38, soit 36 px. Il est irréductible tant que ces rangées sont tapables, et le
+     dire évite qu'on cherche encore à les rapetisser — `audit-a11y` rougirait aussitôt. Tout le
+     reste du dessin, lui, est désormais identique aux deux régimes. */
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:2px 10px;gap:8px;
+    position:relative}
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line::after{content:'';position:absolute;inset:-3px}
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
+  /* L'étiquette de branche n'est pas une cible : elle suit le dessin compact des deux régimes. */
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-brc{min-height:28px;padding:2px 10px}
+  /* ⚠ ON NE TOUCHE QUE LA MARGE HAUTE : la BASSE fixe l'écart entre un titre et ses rangées, et
+     un témoin exige qu'il soit le MÊME pour tous les titres de la colonne. En session, un des
+     deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
+     paire ([10, 8] mesurés). La respiration se prend au-DESSUS, où elle n'engage personne. */
+  body.view-read.crisis-live .rail-lad .rail-head{margin-top:12px}
+  body.view-read.crisis-live .rail-lad .pl-sech{margin-top:10px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d1{padding-left:20px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d2{padding-left:28px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d3{padding-left:40px}

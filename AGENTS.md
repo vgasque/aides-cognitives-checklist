@@ -2356,6 +2356,25 @@ annulé, « Repartir d'ici », « ↺ Refaire »).
   une annulation le bouton propose de RÉTABLIR — c'est le nom accessible qui le dit, et c'est ce
   qu'il mesure désormais.
 
+**A117f. EN SESSION, MÊME DESSIN — MAIS LE PAS RESTE 44 px, ET C'EST DE L'ARITHMÉTIQUE (v5.7,
+signalé à l'usage : « en mode session, le parcours inerte est resté à la taille antérieure :
+compresse et harmonise »).** Le resserrement d'A117d était borné à `:not(.crisis-live)`. Tout ce
+qui est GRAPHIQUE s'aligne désormais sur l'avant-session — pastille 22, rembourrage 2/10, écart
+interne 8, étiquette de branche 28, marges hautes de section. **Mesuré : 435 → 411 px.**
+· **CE QUI NE PEUT PAS CÉDER EST LE PAS.** Ces rangées sont TAPABLES : la règle 9 impose 44 px en
+  crise, et deux cibles voisines ne sont disjointes que si le pas vaut au moins 44. Le DESSIN
+  descend donc à 38 px et la cible vient du HALO (A8), 3 px de chaque côté sur la gouttière de
+  6 px que la crise portait déjà — les halos se touchent sans se mordre (A66). Pas = 38 + 6 = 44,
+  exactement. **L'écart résiduel avec l'avant-session (411 contre 370) EST ce pas** : six rangées
+  à 44 au lieu de 38. Le dire évite qu'on cherche encore à les rapetisser — `audit-a11y` rougit
+  aussitôt (« cible trop petite », vérifié).
+· **⚠ LE PAS SE PREND SUR LA RANGÉE, JAMAIS SUR L'ÉCART.** J'avais commencé par porter la
+  gouttière à 6 px — où elle était déjà — et par réduire la marge BASSE des titres. Un témoin a
+  rougi aussitôt : « chaque titre a le même écart avec ses rangées », **[10, 8] mesurés**, parce
+  qu'en session un des deux titres échappe au sélecteur `.rail-lad`. La marge basse appartient au
+  rythme des sections ; la respiration se prend au-DESSUS, où elle n'engage personne. La règle
+  d'avant-session a reçu la même discipline, qui portait le même risque latent.
+
 **A118. CE QUE LA FICHE EMBARQUE SE DIT AVANT QU'ON ENTRE (v5.7).** Mesuré : `preStartHtml` (« Ce
 qui démarrera ») ne se rend que dans le RAIL, donc à partir de 780 px ; en voie ÉTROITE le panneau
 n'existe que dans le volet du quai, qui exige une session vive (v5.4.2), et la capsule n'existe pas
