@@ -1,5 +1,82 @@
 # Journal des modifications
 
+## [5.7.0] — 2026-08-13
+### « La bonne information, au bon moment, au bon endroit »
+
+Audit transverse passé à trois tests : le **LIEU** (l'information est-elle là où le geste a
+lieu ?), le **MOMENT** (arrive-t-elle avant la décision ?), le **GESTE** (le plus fréquent est-il
+le moins cher ?). **Rien dans ce lot ne déduit quoi que ce soit d'un paramètre patient** : chaque
+apport est une soustraction d'horodatages, un comptage de cases, ou un déplacement d'information
+déjà présente vers l'endroit où elle décide. La doctrine complète est dans `AGENTS.md`
+§ « Lot v5.7 » (A113 à A123).
+
+**Pendant le soin**
+
+- **La barre de retour au bloc courant.** Trois mécanismes ramenaient déjà au soin et aucun ne
+  couvrait le cas le plus fréquent : `landOnBout` ne joue qu'à la réentrée dans la fiche,
+  `ovAdvanceRender` qu'au geste d'avancement, `cxScrollTo` qu'à l'entrée sur complication. On
+  défilait pour relire une étape ou vérifier une dose, et l'on remontait en cherchant la carte à
+  bordure bleue. Une zone flottante **bornée** — sur le précédent déjà accepté du geste d'entrée
+  (v4.73.0) — n'existe que tant que la carte du bloc courant est *entièrement* hors de la zone
+  utile, nomme sa destination et s'efface d'elle-même. Elle ne défile jamais toute seule.
+- **Le retour d'interruption restitue la conscience de situation.** Vérifié : zéro occurrence d'un
+  « temps depuis le dernier geste » dans le fichier — les cinq écouteurs de `visibilitychange`
+  persistaient, reprenaient l'audio, redemandaient la veille, mais aucun ne disait à quelqu'un qui
+  revient depuis combien de temps il n'était plus là. Une ligne, en tête de la carte du bloc
+  courant, au-delà de deux minutes d'absence, effacée **au geste suivant** — jamais après un délai.
+- **Un compteur dit « il y a », pas seulement « à ».** La trace disait l'instant du dernier
+  incrément ; en réanimation la question est toujours « ça fait combien de temps ? ». Les deux
+  désormais : le T+ se relit, le « il y a » décide. Vivant, sans re-rendu, **sans aucun seuil** —
+  un seuil serait un jalon, et les jalons sont un champ d'auteur. Le chiffre pousse au tap
+  (130 ms, `transform` seul, remplacée et jamais mise en file).
+- **L'imminence d'un minuteur est un état, et le tri devient vivant.** L'ordre suit le temps
+  restant, l'alarme passe devant ; un minuteur qui entre dans ses vingt dernières secondes est
+  **marqué** — glyphe △ et encre ambre, sans aplat ni battement : l'aplat reste réservé à ce qui
+  exige une action maintenant, le battement est la grammaire de l'alarme. La réorganisation est un
+  FLIP en `transform` pur (180 ms). **Rien ne bouge sous un doigt posé**, ni pendant les 1,2 s qui
+  suivent le geste : assez pour lire la réponse de la carte qu'on vient de toucher. Non bloquant
+  par construction — le délai ne suspend que la réorganisation.
+
+**Avant et après le soin**
+
+- **« Terminer la session ? » dit ce qui reste ouvert** — deux lignes de faits comptés, au seul
+  instant où ils servent encore. « Terminer » reste rouge plein et actif : une checklist annonce
+  son incomplétude, elle n'interdit pas de la quitter. Ni score, ni pourcentage, ni « conformité ».
+- **Ce que la fiche embarque se dit avant qu'on entre.** En voie étroite — la cible principale — un
+  minuteur à cycles écrit par l'auteur était invisible tant qu'on n'avait pas démarré. Une ligne
+  dérivée : « 6 blocs · 2 minuteurs · 1 complication déclarée ». Rien à dire, aucune ligne.
+- **Une aide révisée depuis votre dernier passage le dit.** Dans une bibliothèque partagée, un
+  collègue révise une aide qu'on croit connaître par cœur. La ligne ne conditionne rien et ne dit
+  pas *ce qui* a changé — « Versions » est dans le menu ⋯ pour cela.
+- **Le compte rendu donne l'écart, et rien d'autre.** Une colonne Δ entre deux gestes du **même**
+  objet, nue : ni moyenne, ni intervalle cible, ni couleur qui vire — ce vocabulaire ferait
+  basculer le document du côté de l'évaluation par le logiciel.
+
+**Pour l'auteur**
+
+- **La relecture cesse de ne signaler que des fautes : elle propose.** Les six détections
+  existantes étaient toutes des manques. Trois détecteurs lisent désormais le texte *de l'auteur* :
+  une cadence (« toutes les 3 min », « à 5 min », « q4h ») propose un minuteur à cycles **avec la
+  période lue dans sa phrase** ; « renouveler / seconde dose / nouveau choc » propose un compteur ;
+  une étape vitale sans aucune ★ propose le memory item. Rien n'est jamais créé automatiquement, le
+  texte n'est jamais réécrit, le compteur naît **sans nom** — deviner un mot serait la
+  dégénérescence de « PA 2 » sous un autre visage. Un seul chemin de création (`edAdd`), et un refus
+  ne revient pas de la séance.
+
+**Deux propositions retirées après vérification, et c'est la même leçon.** Le téléchargement de
+fond des documents existe déjà, systématique et pour toute la bibliothèque — la proposition aurait
+*restreint* aux épinglées une garantie volontairement universelle. Et le virage au vert de
+« Continuer » est déjà entier ; il n'y manquait qu'un fondu, or le libellé bascule au même instant :
+on aurait obtenu une couleur qui s'attarde sous des mots qui ont déjà sauté.
+
+**Décor et garde-fous.** La fiche d'exemple ACR porte un second minuteur déclaré — le
+réordonnancement vivant n'avait sinon aucun cas à rencontrer, et un témoin écrit sans cas est un
+vert qui ne mesure rien ; il est à relance manuelle, un second minuteur *cyclique* faisant
+disparaître le cas d'un autre témoin (`cycleHint`). Quatre sections entrent dans `audit-doctrine`
+(P1, Q2, P4b, Q1), toutes **vérifiées capables d'échouer** — défauts réintroduits, 9 rouges au
+total, fichiers restaurés à l'octet. Le cliquet `pointer-events:none` de `check-anim` passe de 18 à
+19, motivé sur place. 47 témoins purs neufs (1040 au total, sur les deux moteurs).
+
 ## [5.6.0] — 2026-08-09
 ### Refonte complète du design — direction « verre clinique, mat »
 
@@ -917,38 +994,3 @@ Trois retours d'usage, tous sur des repères visuels que le code posait sur la m
   code qui portaient encore l'ancienne portée — dont l'en-tête de la section des palettes, que le
   bloc suivant contredisait mot pour mot — sont remis d'aplomb : une doctrine qui affirme un état
   révolu est pire qu'une doctrine absente.
-
-## [5.0.4] — 2026-08-03
-### La table distante et le store local sont deux noms, pas un
-
-Signalé à l'usage : « Erreur synchronisation : Erreur inattendue — Failed to execute 'transaction'
-on 'IDBDatabase': One of the specified object stores was not found ». La synchronisation des aides
-échouait **entièrement**, dès la première page rapatriée portant une ligne.
-
-- **La cause.** `_pullTable(cfg)` faisait servir `cfg.table` à DEUX choses : la table REST
-  (`/rest/v1/<table>`) et le store LOCAL où la page est écrite (`Data.applyRows`). C'était vrai
-  tant que les deux noms coïncidaient. Le lot T9 (v5.0.0) a renommé la table Supabase
-  `fiches` → `cognitive_aids` — décision motivée, et qui ne pouvait PAS renommer le store
-  IndexedDB, une montée de version de base cassant le stockage local. Le pull des aides demandait
-  donc une transaction sur un store `cognitive_aids` qui n'existe nulle part. Les deux noms sont
-  désormais distincts (`cfg.store`, défaut = `cfg.table`), et le pull des aides écrit dans
-  `fiches`.
-- **Le défaut jumeau, silencieux, trouvé au passage.** Dans le repli localStorage,
-  `KV.applyRows` faisait `store==='protocols' ? 'protocols_v1' : 'fiches_v1'` : **tout le reste
-  tombait dans les fiches**. Le pull de l'historique de sessions (v4.54.0) y rangeait donc ses
-  sessions dans la bibliothèque, sans un mot — là où IndexedDB, lui, avait au moins crié. Une
-  table explicite (`SYNC_KV_KEY`) remplace le repli par défaut, et **un nom inconnu échoue
-  bruyamment** : corrompre en silence est la pire des deux options, et c'est précisément ce qui a
-  laissé ce défaut vivre. `kvStoreKey` est PURE (testée), et `__proto__` ne traverse pas la table
-  (règle 6).
-- **`scripts/check-stores.mjs` (dans `npm run check`) rend le couplage auto-exécutoire**, dans les
-  deux sens : tout store visé par une écriture de synchro existe RÉELLEMENT dans le schéma créé
-  par `openSpaceDb` (le schéma fait autorité — aucune liste recopiée, une liste recopiée diverge) ;
-  tout nom de store écrit en toutes lettres ailleurs existe aussi ; et `SYNC_KV_KEY` couvre
-  exactement les stores que la synchro écrit. **Vérifié capable d'échouer** dans les deux sens
-  (défaut d'origine réintroduit → rouge ; entrée KV retirée → rouge ; fichier restauré à l'octet).
-- **Pourquoi rien ne l'avait vu.** Aucun harnais n'exerce un pull réel, et `npm run check` ne
-  lisait pas ce couplage : c'est la leçon constante du dossier — partout où une règle est restée
-  DÉCLARATIVE (« `cfg.table` = le store local », écrit en commentaire), elle a fini par fuir.
-  Corollaire du renommage : **après un renommage, chercher les endroits où l'ancien nom servait à
-  DEUX choses**, pas seulement les endroits qui le citent.

@@ -1098,6 +1098,23 @@
      légèrement — le volet est une réponse au geste, pas un étage de la barre. */
   #dockSheet{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
   #dockSheet[hidden]{display:none}
+  /* P1 — MÊME GÉOMÉTRIE QUE LE VOLET : la barre s'aligne sur la COLONNE D'ACTION, jamais sur la
+     fenêtre (A24), et se pose AU-DESSUS du dock — un objet qui recouvrirait ses touches
+     masquerait le geste qu'on vient de faire (A37). Elle ne prend aucune hauteur au flux. */
+  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  #blkReturn[hidden]{display:none}
+  body.kb-open #blkReturn{display:none}
+  @media (min-width:780px){
+    #blkReturn{padding-inline:20px}
+    #blkReturn .bkr{margin-right:calc(var(--col-state) + var(--col-gap))}
+  }
+  .bkr{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;
+    min-height:44px;padding:10px 14px;border:0;border-radius:var(--r-3);
+    background:var(--ok-sys);color:var(--on-sys-fill);box-shadow:var(--shadow-up);
+    font-family:inherit;font-size:13.5px;font-weight:700;text-align:left;cursor:pointer}
+  .bkr .bkr-c{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:12px;
+    font-variant-numeric:tabular-nums;opacity:.75}
+  .bkr .bkr-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   body.kb-open #dockSheet{bottom:8px}
   /* Les mêmes marges que la barre, aux mêmes paliers : le volet ne se centre jamais sur la
      fenêtre, il se cale sur la colonne qu'il commande. */
@@ -1379,6 +1396,32 @@
   #cbTimers .seg.due{background:var(--warn-sys-bg);border:1px solid var(--warn-line);padding:0 10px}
   #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--warn-sys)}
   @media (prefers-reduced-motion:no-preference){#cbTimers .seg.due{animation:alarmPulse 2s ease-in-out infinite}}
+  /* P4 (v5.7) — IMMINENT : le MÊME registre que l'échu, une intensité en dessous. Il se MARQUE
+     (△ + encre ambre) et ne prend PAS d'aplat : A11 réserve la masse colorée à ce qui exige une
+     action MAINTENANT, et deux aplats ambre dans la même rangée s'affaibliraient l'un l'autre.
+     Il ne BAT PAS non plus — le battement est la grammaire de l'alarme, pas de son annonce.
+     Ni fond, ni bordure, ni rembourrage : zéro pixel de plus, donc rien ne se déplace dans la
+     zone d'état quand un minuteur entre dans ses vingt dernières secondes. */
+  #cbTimers .seg.soon :is(.seg-l,.seg-t){color:var(--warn-sys)}
+  /* P4 (v5.7) — L'IMMINENCE SUR LA CARTE (volet ET rail). Marquage, jamais aplat (A11) : le
+     glyphe △ devant le libellé et l'encre ambre — la couleur n'est donc jamais seule, et le mot
+     « bientôt échu » rejoint le nom accessible du groupe. Aucune boîte ne change de taille. */
+  .tmcard.soon .tm-label::before{content:"△ "}
+  .tmcard.soon :is(.tm-label,.tm-val){color:var(--verify)}
+  .rt-dock .tmcard.soon :is(.tm-label,.tm-val){color:var(--warn-sys)}
+  /* Q2 (v5.7) — LA REPRISE APRÈS INTERRUPTION. Registre ATTENTION en TEXTE, jamais un aplat :
+     c'est une LECTURE (« voilà ce que vous avez manqué »), pas une alarme — la masse colorée
+     reste réservée à ce qui exige une action maintenant (A11). Elle vit en tête de la carte du
+     bloc courant et s'efface au geste suivant. */
+  .ov-resume{margin:0 0 10px;font-size:13.5px;font-weight:700;color:var(--verify);
+    font-variant-numeric:tabular-nums}
+  /* Q4 (v5.7) — une LIGNE de comptage, dans la voix de la méta : elle informe, elle n'alerte
+     pas et elle ne conditionne rien. Registre neutre — aucune couleur sémantique. */
+  .carry-line{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums}
+  /* P7 (v5.7) — registre ATTENTION en TEXTE : c'est un point de vigilance (« vous ne connaissez
+     peut-être pas cette version »), jamais une alerte, jamais un aplat (A11). */
+  .rev-since{font-size:12px;font-weight:700;color:var(--verify)}
   /* Le rappel « n minuteurs · n compteurs » (v5.0.0) : encre douce (il informe, il n'alerte pas),
      ellipse plutôt que poussée — mais il est de toute façon retiré ENTIER par la boucle
      d'ajustement avant d'en arriver là ; l'ellipse n'est qu'un filet de sûreté. */
@@ -1425,6 +1468,24 @@
      le défileur, et animer la réserve serait animer un rembourrage — A68/3 l'interdit. */
   @media (prefers-reduced-motion:no-preference){
     .tk-item.tk-fresh{animation:cbIn .14s ease-out both}
+    /* M1 — elle vit dans le MÊME bloc que les autres micro-animations du quai : l'inertie
+       sous reduced-motion est ainsi acquise par construction (A68/5). */
+    .cn-pop{animation:cnPop .13s ease-out}
+    /* P1 — elle monte en 160 ms. A68/2 : l'état n'attend rien — la barre devient non tapable
+       (`hidden`) au même instant, seule la peinture s'attarde le temps de l'entrée. */
+    #blkReturn:not([hidden]) .bkr{animation:cbIn .16s ease-out both}
+    /* P4b — la réorganisation vivante des minuteurs : transform SEUL (check-anim), 180 ms.
+       Sous reduced-motion la classe n'a aucune règle : l'ordre change, rien ne glisse. */
+    .tmcard.tm-flip{transition:transform .18s cubic-bezier(.22,.8,.3,1)}
+    /* ⚠ POURQUOI C'ÉTAIT « MOCHE » DANS LE VOLET, et ce n'était pas la durée (signalé à l'usage) :
+       une carte y a un fond TRANSLUCIDE (--sys-2, blanc à 7 %). Pendant le croisement, deux
+       cartes se superposent et leurs deux voiles s'additionnent — une tache plus claire traverse
+       le volet, et les filets des deux cartes se croisent. Sur la matière de TRAVAIL le fond est
+       opaque, d'où un mouvement propre là et sale ici.
+       Le temps du mouvement, la carte prend donc un fond OPAQUE et passe au-dessus : un objet
+       qui glisse par-dessus l'autre, au lieu de deux calques qui se traversent. */
+    .tmcard.tm-flip{position:relative;z-index:1}
+    .rt-dock .tmcard.tm-flip{background:var(--sys-hi)}
     #cbTimers .seg.seg-in{animation:capIn .14s ease-out both;transform-origin:50% 100%}
     .pdf-fnav.hl-in{animation:hlIn .14s ease-out both}
   }
@@ -3050,7 +3111,10 @@
      rembourrage faisait enrouler le titre SOUS le ✕ (176 px, quatre lignes), et la largeur maximale
      le rétrécissait assez pour qu'un autre contrôle monte à sa droite… donc sous le ✕. Une réserve
      de rangée protège la ligne ENTIÈRE, ce qu'aucune borne posée sur un seul enfant ne fait. La
-     place se gagne ailleurs, en raccourcissant ce qui peut l'être (`.rt-wl` ci-dessous). */
+     place se gagne ailleurs, en raccourcissant ce qui peut l'être.
+     ⚠ ÉPILOGUE (v5.6) : la question ne se pose plus dans cet en-tête — le son et la veille sont
+     descendus au PIED du panneau (`.rt-set`), et `.rt-wl` est PURGÉE avec la règle qui la servait.
+     La réserve du ✕ reste : elle protège la rangée, quel que soit ce qu'on y met demain. */
   .rt-dock .rt-head{padding-right:56px}
   /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
      v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
@@ -3122,6 +3186,9 @@
   .rt-dock :is(.cn-reset,.tm-reset){background:none;border-color:var(--sys-line);color:var(--sys-ink-2)}
   .rt-dock .cn-note{color:var(--sys-ink-2)}
   .rt-dock .cn-log{color:var(--sys-ink-2)}
+  /* Sur la matière SYSTÈME, le registre a ses valeurs propres (le volet est sombre dans les
+     DEUX thèmes) : l'encre pleine du travail n'y tiendrait pas son contraste. */
+  .rt-dock .cn-ago{color:var(--sys-ink)}
   /* ÉCHU : la seule couleur du volet, et elle est l'alarme (registre ATTENTION sur matière
      système — la paire `--warn-sys` / `--warn-sys-bg`, celle du segment échu de la capsule). */
   .rt-dock .tmcard.due{background:var(--warn-sys-bg);border-color:var(--warn-line);--tcol:var(--warn-sys)}
@@ -3286,6 +3353,24 @@
   .rev-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .rev-row b{font-size:13.5px;font-weight:700}
   .rev-row span{font-size:12px;line-height:1.45;color:var(--ink-soft)}
+  /* Q1 (v5.7) — LE SECOND REGISTRE DU VOLET : ce que le texte de l'auteur PERMETTRAIT d'ajouter.
+     Séparé des manques par un filet et par son intertitre — un défaut et une occasion ne se
+     lisent pas de la même façon, et les mêler ferait passer l'occasion pour un reproche.
+     Registre ACTION (le bleu de ce qu'on peut faire), jamais l'ambre des remarques. */
+  .rev-offs{margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line)}
+  .rev-offh{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-soft);margin:0 0 8px}
+  .rev-off{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;
+    border-top:1px solid var(--line)}
+  .rev-off:first-of-type{border-top:0}
+  .rev-oft{flex:1 1 200px;min-width:0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
+  .rev-oft b{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink)}
+  .rev-ok{flex:none;min-height:44px;font-size:12px;font-weight:700}
+  .rev-no{flex:none;min-width:44px;min-height:44px;border:0;background:none;border-radius:var(--r-1);
+    color:var(--ink-soft);font-family:inherit;font-size:15px;cursor:pointer}
+  .rev-no:hover{background:var(--surface-2)}
+  .rev-no:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rev-note{margin:8px 0 0;font-size:11px;color:var(--ink-soft);line-height:1.45}
   .rev-flash{animation:revFl 1.2s ease}
   @keyframes revFl{0%,100%{background:transparent}25%{background:var(--verify-soft)}}
@@ -3861,14 +3946,12 @@
      ANCRÉE en haut à droite, et un `padding-right` qui lui réserve sa place à TOUTES les largeurs.
      Le reste s'enroule dessous plutôt que de la pousser hors de l'écran — on ne tronque pas un
      libellé de commande, on lui donne une seconde ligne. */
-  /* ⚠ SOUS 560 px, L'AVERTISSEMENT PASSE AU GLYPHE SEUL (v5.6, suite du signalement sur la veille :
-     « ça va à la ligne et crée une 2e ligne pour rien »). L'en-tête du volet porte le titre, cet
-     avertissement, le son et la veille : mesuré à 390 px, les trois contrôles demandaient 330 px
-     pour 294 disponibles, et « Veille coupée » tombait SEULE sur une troisième ligne. C'est la
-     règle A2 appliquée telle quelle — la touche perd son étiquette, jamais son nom accessible —, et
-     `#soundWarn` est le bon candidat : c'est une CAUTION dont le texte entier s'affiche au tap, pas
-     un contrôle dont le libellé porte l'état. Les deux interrupteurs, eux, gardent leurs mots. */
-  @media (max-width:559.98px){.rt-wl{display:none}}
+  /* ⚠ L'AVERTISSEMENT A RETROUVÉ SES MOTS, ET SA RÈGLE EST PURGÉE AVEC SA CAUSE (v5.6). Il passait
+     au glyphe seul sous 560 px parce que l'en-tête du volet portait le titre, cet avertissement, le
+     son ET la veille — 330 px demandés pour 294 à 390 px. Les deux interrupteurs sont descendus au
+     pied (`.rt-set`) : la rangée est libre, et une CAUTION muette n'aurait de toute façon rien
+     averti. La classe `.rt-wl` disparaît avec la règle qui la servait (règle 14). */
+
   .rt-head{position:relative;display:flex;align-items:center;gap:8px;margin-bottom:10px;
     flex-wrap:wrap;padding-right:40px}
   /* `min-width:0` : sans lui, `flex:1` ne descend jamais sous la largeur du contenu (le minimum
@@ -3878,6 +3961,11 @@
   .rt-ic{color:var(--primary)}
   /* Le groupe des deux interrupteurs : il enroule d'un bloc, jamais en son milieu. */
   .rt-togs{display:inline-flex;align-items:center;gap:8px;flex:none}
+  /* Le pied de RÉGLAGES : séparé du contenu vivant par un filet, jamais par un titre — deux
+     interrupteurs se reconnaissent à leur forme, les annoncer serait du bruit. */
+  .rt-set{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding-top:12px;
+    border-top:1px solid var(--work-line)}
+  .rt-panel .rt-set{border-top-color:var(--sys-line)}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente. */
   .rt-x{position:absolute;top:0;right:0;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
@@ -4385,6 +4473,15 @@
   .endsess-dlg .dlg-title{margin:0 0 6px;font-size:17.5px;font-weight:800}
   .dlg-context{margin:0 0 6px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
   .dlg-context strong{color:var(--ink);font-variant-numeric:tabular-nums}
+  /* P2 (v5.7) — CE QUI RESTE OUVERT. Registre ATTENTION en CONTOUR, jamais en aplat : un
+     aplat ambre dans une fenêtre de sortie mettrait la même masse colorée qu'une alarme sur
+     une information qui n'en est pas une (A11). Le glyphe et le mot portent le registre. */
+  .endsess-state{margin:0 0 14px;padding:10px 12px;border:1px solid var(--verify-line);
+    border-radius:var(--r-2);background:var(--verify-soft);color:var(--verify);
+    font-size:13.5px;font-weight:700;line-height:1.4}
+  .endsess-state div{display:flex;gap:8px;align-items:flex-start}
+  .endsess-state div+div{margin-top:4px}
+  .endsess-state[hidden]{display:none}
   .dlg-consequences{margin:0 0 16px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
   .endsess-actions{display:flex;gap:8px}
   .btn-continue-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-hover);border-radius:8px;background:transparent;color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
@@ -5181,12 +5278,24 @@
   .ov-runline:hover{color:var(--ink)}
   .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
-  .ov-runline .ovr-chev{color:var(--ink-3);font-weight:800}
+  /* ⚠ LE CHEVRON PREND L'ENCRE DE SA LIGNE (v5.6) : en `--ink-3` il mesurait 2,13:1, et rien ne
+     le voyait — la ligne-bilan n'existait qu'après un passage achevé, donc sur aucune des surfaces
+     qu'`audit-a11y` monte. Le déplacement de « Diagnostic confirmé » l'y a fait entrer, et le
+     harnais a parlé aussitôt : un défaut HORS PORTÉE n'est pas un défaut absent (leçon v4.75.0,
+     rejouée à l'identique). `aria-hidden` n'exempte pas du seuil — le glyphe reste peint. */
+  .ov-runline .ovr-chev{color:inherit;font-weight:800}
   /* Déplié : une carte de rangées à filet — la grammaire du parcours, pour que « la liste des
      blocs » se lise pareil partout. */
   .ov-hist{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);
     padding:0 16px;margin:2px 0 8px}
   .ov-hist .ov-runline{margin:0;justify-content:flex-start}
+  /* Les critères confirmés, dans le dépliant du journal : même rangée que les blocs faits, mais
+     INERTE — un critère n'est pas un passage où l'on saute (doctrine du plan). Le ■ est celui de
+     la carte « Quand l'utiliser », pour qu'on reconnaisse la même liste. */
+  .ovh-crit{display:flex;align-items:baseline;gap:8px;padding:8px 12px 8px 32px;border-top:1px solid var(--work-line);
+    font-size:var(--t-meta);color:var(--ink-2);text-align:left}
+  .ovh-crit .ovh-mk{color:var(--critical);font-weight:800;flex:none}
+  .ovh-crit .ovh-t{flex:1 1 auto;min-width:0}
   .ovh-row{display:flex;gap:10px;align-items:baseline;width:100%;min-height:44px;padding:10px 0;
     background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
     font-family:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
@@ -7235,6 +7344,11 @@
      précisément ce qu'il vient réparer. */
   .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px}
   .cn-log:empty{display:none}
+  /* P3 (v5.7) — « il y a » avance avec le tick. Il prend l'encre pleine quand « consigné »
+     garde l'encre douce : deux moments, deux poids — celui-ci décide MAINTENANT. */
+  .cn-ago{color:var(--ink)}
+  /* M1 (v5.7) — le chiffre pousse au tap. transform SEUL (check-anim), 130 ms, une fois. */
+  @keyframes cnPop{0%{transform:scale(1)}38%{transform:scale(1.09)}100%{transform:scale(1)}}
   /* ⚠ LE COMPTE SE LIT AVEC LE TITRE, PAS AU BOUT DE LA RANGÉE (v5.6, signalé à l'usage : « le
      nombre devrait être affiché juste à côté de "Ne pas oublier" et non tout à droite »). Il
      QUALIFIE le titre — « Ne pas oublier · 4 rappels » est une seule phrase ; renvoyé au bord
