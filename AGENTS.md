@@ -2324,6 +2324,19 @@ produit, celui qu'on vise sans lire. Elles prennent la MÊME grille : mesuré id
 · 1280 · 1600 px. C'est la règle « un seul dessin de rangée » (A16) — le rythme de l'annuaire ne
 doit pas changer d'une section à l'autre, sans quoi on le réapprend à chaque écran.
 
+**A117d. LE PARCOURS INERTE, SECONDE PASSE — ET LE PLANCHER EST DIT (v5.7, signalé à l'usage :
+« essaie de rétrécir en hauteur encore plus sans perte d'information : il n'y a pas assez qui
+s'affiche »).** A79 avait descendu la rangée de 44 à 38 px ; elle passe à **34**, la pastille de 24
+à **22**, le rembourrage de 4 à 2, et les séparations de section de 20/4 et 16/2 à 12/2 et 10/2.
+**Mesuré : 416 → 368 px, −11,5 %**, sans un mot ni un corps de texte retiré.
+· **LE PLANCHER EST 32 px** (cible hors crise) et il n'est pas négociable : c'est LUI qui borne
+  l'exercice, pas le goût. Le dire évite qu'on cherche encore six pixels la prochaine fois.
+· **CE QUI RESTE N'EST PAS DU VIDE, ET IL FAUT LE NOMMER** (A56) : les deux écarts survivants de
+  36 et 41 px sont du CONTENU — une chip de branche (28 px) et un intertitre de section (19 px)
+  avec la respiration que A70 lui impose. Les compresser serait retirer de l'information, ce que
+  la demande exclut. Idem pour les rangées de surveillance à 48 px : leur texte passe sur deux
+  lignes (A79 le disait déjà).
+
 **A118. CE QUE LA FICHE EMBARQUE SE DIT AVANT QU'ON ENTRE (v5.7).** Mesuré : `preStartHtml` (« Ce
 qui démarrera ») ne se rend que dans le RAIL, donc à partir de 780 px ; en voie ÉTROITE le panneau
 n'existe que dans le volet du quai, qui exige une session vive (v5.4.2), et la capsule n'existe pas
