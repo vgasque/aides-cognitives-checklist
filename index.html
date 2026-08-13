@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-wyN2C4QJfixB0DaFhRb/bgiUKapqeIGRqr0Vxw01diE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-ENt6uGuak0UungoesIX1CtGbD7Oe0++z351Luy9g8/w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -18153,15 +18153,45 @@ function renderRead(){
    c'est le cas de la bascule guidé ↔ statique, où le même bloc s'appelle `.ov-block` d'un côté et
    `.sv-cell`/`.sv-band` de l'autre. Sans ce paramètre, il fallait un sélecteur commun aux deux
    vues, donc ne conserver que ce que les deux savent nommer. */
+/* ══ QUAND L'ANCRE DISPARAÎT, ON SE RABAT SUR CE QUE L'ŒIL A SOUS LUI (v5.6) ═══════════════════
+   `keepAnchor` renonçait EN SILENCE si son ancre n'existait plus après le re-rendu (`if(!nl)
+   return null`) — et ce cas n'est pas rare, c'est même le plus coûteux : un lot distant qui fait
+   avancer le parcours CONDENSE la dernière carte de bloc (R6), or c'est précisément elle que
+   `shareApplyAnchored` prend pour ancre. Mesuré : `ancreSurvit:false`, donc AUCUNE compensation,
+   et les quelque 500 px que la condensation retire au-dessus du regard partent directement dans
+   l'œil de quelqu'un qui n'a rien demandé.
+   LE REPLI EST CELUI QUE LA RÈGLE PROTÈGE : ce n'est pas « un autre sélecteur » mais L'ÉLÉMENT SOUS
+   LE CENTRE DE L'ÉCRAN, capturé avant le re-rendu. C'est la définition même de « rien ne bouge
+   sous les yeux », et c'est ce que le témoin de partage mesure.
+   ⚠ ON LE CHERCHE DANS `main`, PAS AU SOMMET DE LA PILE : au centre de l'écran on peut tomber sur
+   une couche FIXE (capsule, volet, barre) — qui ne bouge jamais, donc compenserait zéro et
+   masquerait le défaut. `elementsFromPoint` rend la pile ; on prend le premier qui appartient au
+   flux de la page.
+   ⚠ ET SI CET ÉLÉMENT MEURT AUSSI, on remonte ses ANCÊTRES : un sous-arbre détaché garde sa chaîne
+   `parentNode`, donc le premier ancêtre encore `isConnected` est un nœud réel du nouveau document.
+   Au pire on tombe sur `main`, dont le haut ne bouge pas — la compensation vaut alors zéro, c'est
+   -à-dire exactement le comportement d'avant : ce repli ne peut rien dégrader. */
+function ancreOeil(){
+  if(typeof document.elementsFromPoint!=='function')return null;
+  const x=Math.round(innerWidth/2), y=Math.round(innerHeight/2);
+  const pile=document.elementsFromPoint(x,y)||[];
+  for(const e of pile){if(e&&main.contains(e)&&e!==main)return e;}
+  return null;}
 function keepAnchor(sel,rerender,selAfter){
   const apres=selAfter||sel;
   const el=sel?main.querySelector(sel):null;const top=el?el.getBoundingClientRect().top:null;
+  const oeil=ancreOeil(), topOeil=oeil?oeil.getBoundingClientRect().top:null;
   rerender();
-  if(top==null)return null;                                   // pas de sélecteur, ou ancre absente AVANT
-  const nl=apres?main.querySelector(apres):null;if(!nl)return null;   // ancre DISPARUE pendant le re-rendu
-  const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
-  const r=main.querySelector(apres);
-  return r?Math.round(r.getBoundingClientRect().top-top):null;}
+  const nl=(top!=null&&apres)?main.querySelector(apres):null;
+  if(nl){const d=nl.getBoundingClientRect().top-top;if(d)window.scrollBy(0,d);
+    const r=main.querySelector(apres);
+    return r?Math.round(r.getBoundingClientRect().top-top):null;}
+  /* Ancre absente avant, ou disparue pendant : on tient ce que l'œil regardait. */
+  if(topOeil==null)return null;
+  let n=oeil;while(n&&!n.isConnected)n=n.parentNode;
+  if(!n||n.nodeType!==1||!main.contains(n))return null;
+  const d=n.getBoundingClientRect().top-topOeil;if(d)window.scrollBy(0,d);
+  return 0;}
 function renderKeepAnchor(sel){return keepAnchor(sel,render);}
 // Câblage des écouteurs de la vue lecture (seconde moitié de l'ancien renderRead) : navigation entre
 // blocs, cochage des étapes, contrôles minuteurs/compteurs (mise à jour DOM directe, sans re-rendu),

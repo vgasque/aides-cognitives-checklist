@@ -1945,6 +1945,29 @@ regardait ailleurs : ce qu'il regarde ne bouge pas » — avec **457 px de déri
   `renderRead`, donc un drapeau à usage unique y est brûlé au premier passage ; et une décision
   prise dans `renderRead` ne se met pas à jour aux re-rendus du journal.
 
+**A108. QUAND L'ANCRE DISPARAÎT, ON SE RABAT SUR CE QUE L'ŒIL REGARDE (v5.6, trouvé en cherchant
+la cause des 457 px d'A107).** `keepAnchor` sortait par `if(!nl)return null` dès que son ancre
+n'existait plus après le re-rendu — **sans compenser quoi que ce soit**, et en silence. Ce n'est pas
+un cas rare : un lot distant qui fait avancer le parcours CONDENSE la dernière carte de bloc (R6),
+or c'est exactement elle que `shareApplyAnchored` prend pour ancre. Mesuré `ancreSurvit:false`, donc
+les ~500 px que la condensation retire au-dessus du regard partaient droit dans l'œil de quelqu'un
+qui n'avait rien demandé. **Mesuré après : dérive 79 → 1 px.**
+· **LE REPLI EST LA PROPRIÉTÉ, PAS UN SECOND SÉLECTEUR** : on capture, avant le re-rendu,
+  **l'élément sous le centre de l'écran**. C'est la définition littérale de « rien ne bouge sous les
+  yeux » — et c'est ce que le témoin de partage mesure, donc l'instrument et le remède visent enfin
+  la même chose. Un second sélecteur écrit à la main aurait été un troisième endroit à tenir.
+· **⚠ ON LE CHERCHE DANS `main`** (`elementsFromPoint`, premier élément du flux) : au centre de
+  l'écran on tombe volontiers sur une couche FIXE — capsule, volet, dock — qui ne bouge JAMAIS, donc
+  compenserait zéro tout en ayant l'air de compenser. Un repli qui ne peut pas échouer ne vaut rien.
+· **⚠ ET SI L'ŒIL MEURT AUSSI, ON REMONTE SES ANCÊTRES** : un sous-arbre détaché garde sa chaîne
+  `parentNode`, donc le premier ancêtre encore `isConnected` est un nœud réel du NOUVEAU document.
+  Au pire on atteint `main`, dont le haut ne bouge pas : la compensation vaut alors zéro — c'est
+  -à-dire exactement le comportement d'avant. **Ce repli ne peut rien dégrader**, ce qui est la
+  condition pour toucher une fonction que tout le fichier appelle.
+· **PORTÉE** : le chemin nominal est INCHANGÉ au caractère près (ancre présente → même calcul, même
+  valeur de retour). Seul le cas « ancre absente ou disparue », qui rendait `null` sans rien faire,
+  gagne un comportement. 983 témoins × 2 moteurs et les 25 tâches d'audit sont verts.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
