@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Ta7oUNz8H6VW95xGB9POGmY51jrW6DB1/ULE1MST/Qo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-MyOBKqmoCwvaAvsY4FX1NY0nIZ2FoWTR5Mv7sHlO3V8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8193,7 +8193,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      qui reçoit le fichier. Elle n'apparaît jamais sur mobile, où le glisser-déposer n'existe
      pas : coût nul là où l'app est réellement utilisée. -->
 <div id="upDrag" class="up-drag" aria-hidden="true"><div class="up-drag-card">
-  <span class="up-drag-ic" aria-hidden="true">⤓</span>
+  <span class="up-drag-ic" aria-hidden="true"></span>
   <p class="up-drag-t" id="upDragT"></p>
   <p class="up-drag-d" id="upDragD"></p></div></div>
 <div id="alerts"></div>
@@ -9563,7 +9563,7 @@ function pickFile(kind,onFiles,multiple){
 function upDropHtml(kind,id,label,extra){
   const K=UP_KINDS[kind];if(!K)return '';
   return `<button type="button" class="up-drop${extra||''}" id="${esc(id)}" data-upkind="${esc(kind)}">`
-    +`<span class="up-ic" aria-hidden="true">⤓</span>`
+    +uiIcon('download',15,{cls:'up-ic'})
     +`<span class="up-tx"><span class="up-t">${esc(label)}</span>`
     +`<span class="up-d">${esc(K.ind)} — glissez ici ou cliquez</span></span></button>`;}
 function bindUpDrop(el,kind,onFiles,multiple){
@@ -9604,6 +9604,11 @@ let _upDragN=0;
 function upDragShow(){
   const el=document.getElementById('upDrag');if(!el)return;
   const t=document.getElementById('upDragT'),d=document.getElementById('upDragD'),ks=upKindsIci();
+  /* ⚠ LE TRACÉ EST POSÉ ICI, PAS DANS LA COQUE (A106) : la coque est statique, elle ne peut pas
+     appeler `uiIcon` — et y recopier le SVG serait un second dessin à tenir. Le porteur y est
+     vide, le peintre le remplit une fois. */
+  {const ic=el.querySelector('.up-drag-ic');
+   if(ic&&!ic.firstChild)ic.innerHTML=uiIcon('download',22);}
   if(ks.length){t.textContent='Déposez '+ks.map(k=>UP_KINDS[k].un).join(' ou ')+' ici';
     d.textContent=ks.map(k=>UP_KINDS[k].ind).join('  ·  ');}
   else{t.textContent='Rien ne se dépose sur cet écran';
@@ -17849,7 +17854,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];
   const t0=(Runtime&&Runtime.startedAt)||(ev.length?ev[0].t:0);
   const labs=tkLabels(ev,Runtime.fiche,myTags(),rtExtra());
   const rows=ev.length?ev.map((e,ix)=>{const diff=e.t-t0;const el=diff===0?'—':(diff>0?'+':'−')+fmtMs(Math.abs(diff));
-    const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${esc(e.id)}">↺ revenir</button></div>`:'';
+    const origRow=(typeof e.origT==='number')?`<div class="tk-orig-row">à l'origine ${fmtHMS(e.origT)}<button class="tk-orig" data-tkrevert="${esc(e.id)}">${uiIcon('undo',12)} revenir</button></div>`:'';
     const vd=!!e.voidAt;
     /* BRIN ANNEXE (v4.48.0) : le relevé d'un participant qui a POURSUIVI SEUL. Ce n'est pas un
        geste de cette session — c'est un RAPPORT venu d'un appareil qui a bifurqué, et qui remonte
@@ -17861,7 +17866,7 @@ function timekeeperPanel(){const ev=Runtime.events||[];
        journal vit en FIN de rail : ce qui apparaît pousse vers le bas, jamais vers le haut, donc
        rien ne bouge sous le doigt. Ce n'est pas une fenêtre, et ce ne pouvait pas en être une —
        la règle 11 les interdit pendant un soin. */
-    return `<div class="tk-item${vd?' tk-void':''}${e.id===_fr?' tk-fresh':''}"><div class="tk-row"><span class="tk-time" data-tktime="${esc(e.id)}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${esc(e.id)}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${esc(e.id)}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?'↺':'×'}</button></div><div class="tk-sug" data-tksug="${esc(e.id)}" hidden></div>${origRow}</div>`;}).join(''):'';
+    return `<div class="tk-item${vd?' tk-void':''}${e.id===_fr?' tk-fresh':''}"><div class="tk-row"><span class="tk-time" data-tktime="${esc(e.id)}" role="button" tabindex="0" title="Cliquer pour corriger l'heure">${fmtHMS(e.t)}</span><span class="tk-el">${el}</span><input class="tk-lab" data-tklab="${esc(e.id)}" value="${esc(labs[ix])}" placeholder="Libellé…"${vd?' disabled':''}><button class="tk-del" data-tkdel="${esc(e.id)}" aria-label="${vd?'Rétablir ce repère':'Annuler ce repère'}" title="${vd?'Rétablir':'Annuler'}">${vd?uiIcon('undo',13):'×'}</button></div><div class="tk-sug" data-tksug="${esc(e.id)}" hidden></div>${origRow}</div>`;}).join(''):'';
   // Outil SECONDAIRE : compact tant qu'on n'a rien noté (juste le bouton). « Journal des actions » =
   // suite horodatée des gestes clés (pour la traçabilité / le compte-rendu après coup).
   /* ⚠ « NOTER L'HEURE » A QUITTÉ LE PANNEAU (v5.6, signalé à l'usage). Le geste est une TOUCHE
@@ -18178,7 +18183,7 @@ function navSection(f){
     // que la réinitialisation d'un minuteur (un appui bref, même en stress, ne déclenche rien).
     const resetBtn='';   // v4.23.8 : « Recommencer le parcours » vit dans le menu ⋯ (restartCourse)
     navRowH=(flow||npos>0)?`<div class="flow-nav">${backBtn}${resetBtn}</div>`:'';
-    const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">↺ Repartir d’ici (efface la suite)</button>':'';
+    const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">'+uiIcon('undo',13)+' Repartir d’ici (efface la suite)</button>':'';
     const imgH=blk.image?`<img class="node-img" loading="lazy" decoding="async" src="${blk.image}" data-full="${blk.image}"${blk.imageW&&blk.imageH?` width="${blk.imageW}" height="${blk.imageH}"`:''} alt="">`:'';
     if(blk.kind==='decision'){const taken=state.nav[npos+1];
       const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr">'+uiIcon('chev',18,{sw:2.4,cls:''})+'</span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${o.target||''}"`:'disabled'}><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${arr}</button>`;}).join('');
@@ -19512,7 +19517,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        « ↺ Refaire » RESTE en tête, et ce n'est pas une inconséquence : il ne s'applique qu'aux
        cartes PASSÉES, qui n'ont pas de pied d'action — l'en-tête y est le seul endroit possible.
        Et pendant la passe, le ✕ reste en tête : c'est une sortie, pas une action de la liste. */
-    :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">↺ Refaire</button>`:'');
+    :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">${uiIcon('undo',13)} Refaire</button>`:'');
   return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span><span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, réduit à UNE vue en v4.25.0) : rendu de flowPlan.
    Le plan reste INERTE côté cochage (la trace vit dans le journal) et sert à NAVIGUER.

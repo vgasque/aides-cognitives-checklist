@@ -807,7 +807,14 @@ await sec('Journal · incrémenter un compteur pose un repère horodaté', async
     const apresAnnul={n:(Runtime.events||[]).length,
       voidAt:!!(Runtime.events.find(e=>e.id===id)||{}).voidAt,
       barre:!!document.querySelector('.tk-panel .tk-item.tk-void'),
-      libelle:(document.querySelector('.tk-panel [data-tkdel="'+CSS.escape(id)+'"]')||{}).textContent};
+      libelle:(()=>{const b=document.querySelector('.tk-panel [data-tkdel="'+CSS.escape(id)+'"]');
+        /* ⚠ ON MESURE LA PROPRIÉTÉ, PAS LE CARACTÈRE (v5.7) : le témoin exigeait le glyphe « ↺ »
+           écrit en clair, donc il rougissait le jour où ce glyphe est devenu un TRACÉ (A106 —
+           un dessin qui varie selon la police du système n'a rien à faire dans un bouton). Ce
+           que la règle promet est qu'après une annulation le bouton propose de RÉTABLIR, et ne
+           propose plus de supprimer : c'est le nom accessible qui le dit. */
+        return b?{titre:b.title||b.getAttribute('aria-label')||'',
+          trace:!!b.querySelector('svg'), croix:/^\s*×\s*$/.test(b.textContent||'')}:null;})()};
     const b2=document.querySelector('.tk-panel [data-tkdel="'+CSS.escape(id)+'"]');
     if(b2)b2.click();await new Promise(x=>setTimeout(x,250));
     return {err:null,n0,apresAnnul,
@@ -819,7 +826,10 @@ await sec('Journal · incrémenter un compteur pose un repère horodaté', async
   if(!v.err){
     t('annuler NE SUPPRIME PAS la ligne',v.apresAnnul.n===v.n0,`${v.n0} -> ${v.apresAnnul.n}`);
     t('la ligne est marquée annulée et barrée',v.apresAnnul.voidAt&&v.apresAnnul.barre);
-    t('le × est devenu un retour (↺)',v.apresAnnul.libelle==='↺',String(v.apresAnnul.libelle));
+    t('le × est devenu un RETOUR : le bouton propose de rétablir',
+      !!v.apresAnnul.libelle&&/rétablir/i.test(v.apresAnnul.libelle.titre)
+      &&v.apresAnnul.libelle.trace===true&&v.apresAnnul.libelle.croix===false,
+      JSON.stringify(v.apresAnnul.libelle));
     t('on peut se raviser : le repère est rétabli',
       !v.apresRetour.voidAt&&!v.apresRetour.barre&&v.apresRetour.n===v.n0);
   }

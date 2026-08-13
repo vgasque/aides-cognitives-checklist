@@ -2337,6 +2337,25 @@ s'affiche »).** A79 avait descendu la rangée de 44 à 38 px ; elle passe à **
   la demande exclut. Idem pour les rangées de surveillance à 48 px : leur texte passe sur deux
   lignes (A79 le disait déjà).
 
+**A117e. BALAYAGE DES GLYPHES LITTÉRAUX — SIX SITES, ET DEUX FAMILLES À NE PAS CONFONDRE (v5.7,
+prolongement d'A106).** La règle « un glyphe vient d'`uiIcon`, jamais écrit en clair » avait été
+appliquée aux deux sites signalés ; le balayage en a trouvé **six autres** : les deux `⤓` des
+surfaces de dépôt et quatre `↺` de BOUTONS (revenir à l'heure d'origine, rétablir un repère
+annulé, « Repartir d'ici », « ↺ Refaire »).
+· **CE QUI RESTE LITTÉRAL, ET C'EST DÉLIBÉRÉ** (A56 : nommer ses non-défauts) : les `↺` du
+  VOCABULAIRE des renvois du plan (`↺2`, « ↺ reprendre à 3 », `optAbbr`) — c'est du TEXTE abrégé,
+  pas une icône, et le remplacer par un tracé casserait une chaîne mono ; les `⚡︎`/`⏱︎` du dock,
+  que A13 range explicitement parmi les glyphes de commande porteurs du sélecteur U+FE0E ; et le
+  `×` de fermeture, convention de la maison sans tracé.
+· **⚠ LA COQUE STATIQUE NE PEUT PAS APPELER `uiIcon`** : y écrire `${…}` produit un texte brut (et
+  ici une ERREUR DE SYNTAXE, la substitution étant tombée dans une chaîne à guillemets simples —
+  attrapée par `check-syntax`, pas par la relecture). Le porteur y reste VIDE et le peintre le
+  remplit une fois : recopier le SVG en aurait fait un second dessin à tenir.
+· **⚠ ET UN TÉMOIN MESURAIT LE CARACTÈRE** : « le × est devenu un retour (↺) » exigeait le glyphe
+  écrit en clair, donc il rougissait sur l'application d'A106. Ce que la règle promet est qu'après
+  une annulation le bouton propose de RÉTABLIR — c'est le nom accessible qui le dit, et c'est ce
+  qu'il mesure désormais.
+
 **A118. CE QUE LA FICHE EMBARQUE SE DIT AVANT QU'ON ENTRE (v5.7).** Mesuré : `preStartHtml` (« Ce
 qui démarrera ») ne se rend que dans le RAIL, donc à partir de 780 px ; en voie ÉTROITE le panneau
 n'existe que dans le volet du quai, qui exige une session vive (v5.4.2), et la capsule n'existe pas
