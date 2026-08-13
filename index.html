@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-eTXCCClnTLyjzRozZWimE5lWdE2pJBPaZtLP6PMUfOU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-kB3ZeuKN6JIsFIgMU+S1IcPnYPGnNyTycEn9jCNKomA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -12931,9 +12931,20 @@ function updateRtStrip(now){
      devient une fonction de `n`. À `n=0` il rend exactement ce qu'il rendait (`decl.t-0`), donc le
      cas nominal est inchangé au caractère près ; à `n=1` le minuteur montré ne se compte plus —
      il ne peut toujours pas concurrencer son propre segment. */
+  /* ⚠ CORRECTIF À ZÉRO PIXEL (v5.7, volet 3) — UN MINUTEUR ARMÉ PUIS MIS EN PAUSE EST MUET.
+     Le rappel comptait les minuteurs DÉCLARÉS ; il ne distinguait pas celui qu'on a lancé puis
+     arrêté de celui qu'on n'a jamais démarré. Or le premier est le cas dangereux : il ne figure
+     dans AUCUN segment de la capsule (`run` filtre sur `running || (échu && !ack)`), il n'a pas
+     d'alarme à venir, et il n'existe donc nulle part sans ouvrir le volet — alors qu'il porte un
+     temps qui a cessé d'avancer, ce que le produit combat partout ailleurs (A81).
+     Le mot ET le glyphe (règle 8), dans un libellé qui est de toute façon le PREMIER sacrifié par
+     la boucle d'ajustement : aucune alarme ne peut lui être disputée. */
+  const enPause=crisis?Object.values(Runtime.timers).filter(t=>t&&t.type==='interval'
+    &&!t.running&&!tmIsDue(t)&&t.elapsedMs>0).length:0;
   const chevLblOf=n=>{const ct=Math.max(0,decl.t-n),cc=decl.c;
     return (!wideRail&&started&&(ct||cc))
-      ?[ct?ct+' minuteur'+(ct>1?'s':''):'',cc?cc+' compteur'+(cc>1?'s':''):''].filter(Boolean).join(' · ')
+      ?[ct?ct+' minuteur'+(ct>1?'s':''):'',cc?cc+' compteur'+(cc>1?'s':''):'',
+        enPause?'⏸ '+enPause+' en pause':''].filter(Boolean).join(' · ')
       :'';};
   const chevLbl=chevLblOf(0);
   // Chevron = bascule du panneau en étroit ; rien en large (rail permanent, tap -> y défile).
