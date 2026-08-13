@@ -2661,6 +2661,44 @@ demande pas de tout re-cocher.
   mesurée. ⚠ Le contrôle « rien n'est écrit tant qu'on n'a pas validé » est un GARDE d'ordre : il
   ne peut rougir que si une écriture précédait l'ouverture ; celui qui discrimine est le filtrage.
 
+**A130. LE FILTRE ATTEINT TOUT CE QUI S'ÉCRIT, ET LA RANGÉE DIT DE QUOI DÉCIDER (v5.8.0, reste du
+plan A/F7).** A129 avait posé le grain — l'entité — sans le tenir jusqu'au bout : trois choses
+raisonnaient encore en BLOC derrière l'atelier.
+· **LES CATÉGORIES SUIVENT LA SÉLECTION.** Elles entraient TOUTES, y compris celles que seules les
+  entités décochées employaient : on repartait avec des catégories vides dans son rail, créées par
+  un import qu'on venait justement de restreindre. *Le filtrage doit atteindre tout ce qui
+  s'écrit, pas seulement les entités* — c'est la formulation générale de la règle, et elle vaut
+  pour ce qu'on ajoutera demain au format (jeux de tags, réglages).
+· **LA QUESTION DESTRUCTIVE ANNONCE LA SÉLECTION, PAS LE FICHIER** (« remplacé(e)s par les n
+  éléments cochés »). Depuis l'atelier les deux ne sont plus la même chose, et c'est la SEULE
+  question destructive du parcours : y annoncer le fichier ferait croire qu'on récupère ce qu'on
+  vient d'écarter.
+· **« ⟳ DÉJÀ PRÉSENT » SE DIT AVANT LA QUESTION « DOUBLONS ».** La rangée porte le fait ; le sort
+  reste décidé par la question groupée. ⚠ Elle n'apparaît QUE là où la collision peut avoir lieu —
+  ids conservés, donc **même espace** (`sameSpace`, remonté AVANT l'atelier pour cela) : sur un
+  fichier venu d'ailleurs les ids sont régénérés à l'écriture, et annoncer un doublon que
+  l'écriture ne verra pas serait un mensonge. Le prédicat est le MÊME que celui de la boucle
+  d'import — un second, écrit à côté, divergerait.
+· ⚠ **UN CONTRÔLE PAR RANGÉE A ÉTÉ ÉCARTÉ, ET C'EST UNE DÉCISION** : la sélection porte déjà le
+  grain (décocher = ne pas importer), tandis que « remplacer ou garder les deux » est une
+  STRATÉGIE, globale par nature — la poser dix-huit fois ferait payer à chaque rangée un choix que
+  personne ne fait entité par entité. À rouvrir si l'usage montre le cas mixte ; il n'a pas été
+  constaté.
+· **CE QUE LA RANGÉE EMBARQUE, DANS LES MOTS DE L'ÉCRAN D'ENTRÉE** (`carryParts`, PURE, 4 témoins) :
+  « 2 blocs · 1 minuteur · 1 complication déclarée ». C'est la seule chose qui distingue un
+  algorithme complet d'une ébauche sans ouvrir le fichier. **Une phrase, deux lecteurs** — A118 et
+  l'atelier —, donc un seul calcul : recopié, il aurait fini par compter autre chose ici que là
+  (§ 5.5). ⚠ Le SEUIL, lui, diffère et chacun est motivé : avant le soin, une fiche sans minuteur
+  ni compteur ni complication n'a rien à annoncer (A118 : « rien à dire → aucune ligne ») ; dans
+  l'atelier, le compte des BLOCS est précisément l'information qu'on cherche. Ce n'est pas une
+  divergence — c'est deux questions différentes servies par le même compte.
+· **TÉMOINS** : deux sections d'`audit-doctrine` — `A130 · doublons annoncés, catégories filtrées`
+  (décor propre : fichier de MÊME espace, un id déjà présent, deux catégories dont une n'appartient
+  qu'à l'entité décochée) et `A130 · « remplacer » annonce la sélection` (qui lit le texte de la
+  question destructive et en SORT par « Annuler » — on ne vide pas une bibliothèque pour vérifier
+  une phrase). Vérifiées CAPABLES D'ÉCHOUER : quatre défauts réintroduits → **5 rouges**, fichiers
+  restaurés à l'octet.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

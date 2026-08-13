@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NO6uGKE+3V1GQUxxvI7bEZ4MErDYeRwD2kOxuKCZFyo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-/vFPVFHkFnypLfm9HT2yoqIagwtzX2G5QMbSSkMN+NM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6850,7 +6850,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      La CIBLE est la rangée entière (c'est un `<label>`), pas la case : même règle que le
      titre du chapeau « Ne pas oublier » (v5.0.0) — sous stress on vise une ligne, pas 24 px. */
   .imp-intro{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 12px}
-  .imp-tools{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+  /* À 320 px les deux gestes tenaient sur une ligne mais s'y CASSAIENT chacun en deux (mesuré :
+     rangée de 2 lignes, « Tout décocher » plié au milieu). On enroule la RANGÉE plutôt que les
+     mots : les deux boutons restent côte à côte, c'est le COMPTE qui passe dessous — un libellé
+     de bouton coupé se relit, un compte qui change de ligne ne coûte rien. */
+  .imp-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+  .imp-tools .btn{white-space:nowrap}
   .imp-n{margin-left:auto;font-size:var(--t-meta);color:var(--ink-soft);font-variant-numeric:tabular-nums}
   .imp-list{display:flex;flex-direction:column;gap:8px}
   .imp-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);cursor:pointer}
@@ -6866,6 +6871,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Registre ATTENTION pour « il reste n choses à relire » — la paire --verify/--verify-soft des
      étapes △, déjà auditée. Jamais un aplat rouge : ce n'est ni un danger ni un refus (A11). */
   .imp-sub .tag.todo{background:var(--verify-soft);color:var(--verify)}
+  /* « ⟳ déjà présent » : registre NEUTRE (pastille de statut). Ce n'est ni un danger ni une
+     alerte — c'est un FAIT, et son sort est décidé par la question « Doublons » qui suit. */
+  .imp-dup{flex:none;font-size:var(--t-cap);font-weight:700;padding:2px 8px;border-radius:8px;background:var(--tag-bg);color:var(--tag-ink);white-space:nowrap}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
@@ -21248,16 +21256,27 @@ function revisedSinceTxt(f,list){
     if(!last||(x.startedAt||0)>(last.startedAt||0))last=x;});
   if(!last||last.aidRev>=f.updatedAt)return '';
   return 'révisée depuis votre dernier passage ('+new Date(last.startedAt||last.aidRev).toLocaleDateString('fr-FR')+')';}
-function carryLineHtml(f){
-  if(!f)return '';
+/* CE QUE LA FICHE EMBARQUE — une phrase, DEUX lecteurs (v5.8.0) : l'écran d'entrée (A118) et la
+   rangée de l'atelier d'import (A130). Les mots sont les mêmes des deux côtés parce que le
+   CALCUL est le même : recopié, il aurait fini par compter autre chose ici que là (§ 5.5).
+   PURE, testée via `?__actest`. */
+function carryParts(f){
+  if(!f)return [];
   const nb=(f.blocks||[]).length,tl=(f.timers||[]).length,cl=(f.counters||[]).length,cx=(f.excursions||[]).length;
-  if(!tl&&!cl&&!cx)return '';
   const p=[];
   if(nb)p.push(nb+(nb>1?' blocs':' bloc'));
   if(tl)p.push(tl+(tl>1?' minuteurs':' minuteur'));
   if(cl)p.push(cl+(cl>1?' compteurs':' compteur'));
   if(cx)p.push(cx+(cx>1?' complications déclarées':' complication déclarée'));
-  return `<div class="carry-line">${esc(p.join(' · '))}</div>`;}
+  return p;}
+function carryLineHtml(f){
+  if(!f)return '';
+  // A118 : RIEN À DIRE → AUCUNE LIGNE. Le seuil est celui de l'écran d'entrée — une fiche qui
+  // n'embarque ni minuteur, ni compteur, ni complication n'a rien à annoncer AVANT le soin ;
+  // l'atelier, lui, montre les blocs, parce que là c'est ce qui distingue un algorithme d'une
+  // ébauche. Même phrase, deux seuils, chacun motivé par sa question.
+  if(!(f.timers||[]).length&&!(f.counters||[]).length&&!(f.excursions||[]).length)return '';
+  return `<div class="carry-line">${esc(carryParts(f).join(' · '))}</div>`;}
 function preStartHtml(f){
   const tl=(f.timers||[]);
   const li=t=>{const nm=esc(tmLabelParts(t.label).name)||(t.type==='interval'?'Minuteur':'Chronomètre');
@@ -25120,20 +25139,30 @@ let _impRes=null,_impRows=[],_impSel=null;
    une fois, et l'on repose l'objet migré dans `imp`. `migrate` est idempotent (il tourne à chaque
    chargement) — la boucle d'import le rejoue donc sans conséquence, et la règle 5 tient : le
    point d'assainissement reste unique, il est seulement atteint plus tôt. */
-function impRowsOf(imp){
-  const rows=[];
+/* `dup` = cette entité EXISTE DÉJÀ chez moi, sous le même identifiant. La question n'a de sens
+   que si les ids sont CONSERVÉS, c'est-à-dire en même espace : sinon ils sont régénérés à
+   l'écriture et il ne peut pas y avoir de collision (cf. `sameSpace`). Le calcul est donc le
+   MÊME prédicat que la boucle d'import — un second, écrit à côté, annoncerait des doublons que
+   l'écriture ne verrait pas. */
+function impRowsOf(imp,sameSpace){
+  const rows=[],dup=(arr,id)=>!!(sameSpace&&id&&arr.some(x=>x.id===id));
   imp.fiches.forEach((d,i)=>{const o=imp.fiches[i]=migrate(d);
-    rows.push({key:'f:'+i,o,fem:true,kind:'Aide',notes:reviewNotes(o).length});});
+    rows.push({key:'f:'+i,o,fem:true,kind:'Aide',notes:reviewNotes(o).length,dup:dup(fiches,o.id)});});
   imp.protocols.forEach((d,i)=>{const o=imp.protocols[i]=migrateProtocol(d);
-    rows.push({key:'p:'+i,o,fem:false,kind:'Référence',notes:reviewNotesProto(o).length});});
+    rows.push({key:'p:'+i,o,fem:false,kind:'Référence',notes:reviewNotesProto(o).length,dup:dup(protocols,o.id)});});
   return rows;}
-/* La rangée dit QUATRE choses, et pas une de plus : ce que c'est, comment ça s'appelle, dans
-   quel ÉTAT le fichier le déclare, et ce qu'il resterait à relire. La pastille « △ n » est le
-   MÊME calcul que le volet « Relecture · n » de l'éditeur (`reviewNotes`/`reviewNotesProto`) :
-   deux comptes écrits séparément finiraient par diverger, et l'auteur apprendrait deux fois le
-   même signe (§ 5.5). Elle ne conditionne rien — on importe ce qu'on veut. */
+/* La rangée dit CE QU'IL FAUT POUR DÉCIDER, et pas un mot de plus : ce que c'est, comment ça
+   s'appelle, dans quel ÉTAT le fichier le déclare, ce qu'elle EMBARQUE, ce qu'il resterait à
+   relire, et si elle est déjà chez moi.
+   · La pastille « △ n » est le MÊME calcul que le volet « Relecture · n » de l'éditeur
+     (`reviewNotes`/`reviewNotesProto`) : deux comptes écrits séparément finiraient par diverger,
+     et l'auteur apprendrait deux fois le même signe (§ 5.5). Elle ne conditionne rien.
+   · Ce qu'elle embarque passe par `carryParts`, la MÊME phrase que « ce que la fiche embarque »
+     de l'écran d'entrée (A118) — « 6 blocs · 2 minuteurs · 1 complication déclarée ». C'est la
+     seule chose qui distingue un algorithme complet d'une ébauche sans ouvrir le fichier. */
 function impRowHtml(r){
   const o=r.o,nd=(o.docs||[]).length;
+  const carry=(r.kind==='Aide')?carryParts(o).join(' · '):'';
   const titre=String(o.title||'').trim()||'Sans titre';
   // Le titre s'ellipse (une rangée garde son rythme) — mais il ne se PERD pas : `title` porte le
   // libellé entier, discriminant compris, comme la rangée du répertoire.
@@ -25141,6 +25170,8 @@ function impRowHtml(r){
     +`<span class="imp-tx"><b class="imp-t" title="${esc(titre+(o.discriminant?' — '+o.discriminant:''))}">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</b>`
     +`<span class="imp-sub"><span class="imp-kind">${r.kind}</span>`
     +statusChip(o.status,r.fem,{always:true})
+    +(r.dup?`<span class="imp-dup" title="Une entité de même identifiant est déjà dans votre bibliothèque — la question « Doublons » qui suit décide de son sort, pour toutes celles-ci à la fois">⟳ déjà présent<span class="sr-only">e dans votre bibliothèque</span></span>`:'')
+    +(carry?`<span>${esc(carry)}</span>`:'')
     +(r.notes?`<span class="tag todo" title="Il reste ${r.notes} remarque(s) de relecture — le volet « Relecture » de l'éditeur les détaille">△ ${r.notes}<span class="sr-only"> remarque(s) de relecture</span></span>`:'')
     +(nd?`<span>${nd} PDF</span>`:'')
     +`</span></span></label>`;}
@@ -25158,9 +25189,9 @@ function impSetAll(on){_impSel.clear();if(on)_impRows.forEach(r=>_impSel.add(r.k
   // On ÉCRIT sur les cases en place, jamais un re-rendu : reconstruire la liste sous le doigt
   // lui ferait perdre le focus et remonterait le défilement (leçon v4.78.0).
   document.querySelectorAll('#impList [data-impsel]').forEach(cb=>{cb.checked=on;});impSyncSel();}
-function importWorkshop(imp,zip){
+function importWorkshop(imp,zip,sameSpace){
   if(_impRes){const r=_impRes;_impRes=null;r(null);}   // un seul atelier à la fois (patron confirmDlg)
-  _impRows=impRowsOf(imp);
+  _impRows=impRowsOf(imp,sameSpace);
   // TOUT COCHÉ AU DÉPART : le geste ordinaire est « j'importe ce fichier » — l'atelier sert à
   // RETIRER ce dont on ne veut pas, il ne demande pas de tout re-cocher à la main.
   _impSel=new Set(_impRows.map(r=>r.key));
@@ -25223,10 +25254,21 @@ function readImportFile(file){const r=new FileReader();
     if(!imp.fiches.length&&!imp.protocols.length){
       pendingOpenImport=false;
       toast('Ce fichier ne contient aucune aide ni référence — rien à importer.',7000,true);return;}
-    const sel=await importWorkshop(imp,!!zipAtts);
+    /* Fichier venu du MÊME espace local ? (empreinte d'origine, cf. commentaire de section).
+       REMONTÉ AVANT L'ATELIER (A130) : c'est lui qui décide si un identifiant sera CONSERVÉ, donc
+       s'il peut y avoir doublon — sans lui, la rangée annoncerait « déjà présent » sur un import
+       venu d'ailleurs, dont les ids sont de toute façon régénérés à l'écriture. */
+    const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());
+    const sel=await importWorkshop(imp,!!zipAtts,sameSpace);
     if(!sel){pendingOpenImport=false;return;}
     imp.fiches=imp.fiches.filter((_,i)=>sel.has('f:'+i));
     imp.protocols=imp.protocols.filter((_,i)=>sel.has('p:'+i));
+    /* LES CATÉGORIES SUIVENT LA SÉLECTION (A130). Elles entraient TOUTES, y compris celles que
+       seules les entités décochées employaient : on repartait avec des catégories vides dans son
+       rail, créées par un import qu'on avait justement restreint. Reste de l'import en bloc — le
+       filtrage doit atteindre tout ce qui s'écrit, pas seulement les entités. */
+    {const gardees=new Set(imp.fiches.concat(imp.protocols).map(x=>x&&x.category).filter(Boolean));
+      imp.categories=(Array.isArray(imp.categories)?imp.categories:[]).filter(c=>c&&gardees.has(c.id));}
     // DESTINATION : Perso par défaut. Si une bibliothèque PARTAGÉE ÉDITABLE est sélectionnée à
     // l'accueil, on DEMANDE (importer dans une bibliothèque partagée = publier à toute l'équipe :
     // jamais en silence). Lecteur d'une bibliothèque partagée -> Perso d'office (pas de droits).
@@ -25248,7 +25290,10 @@ function readImportFile(file){const r=new FileReader();
     const merge=nSel>1?await confirmDlg('Import de '+nSel+' éléments.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
     if(merge===null){pendingOpenImport=false;return;}
     const hasProtos=Array.isArray(imp.protocols)&&imp.protocols.length>0;
-    if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
+    // « par les n éléments COCHÉS », et non « par le contenu du fichier » : depuis l'atelier, les
+    // deux ne sont plus la même chose — annoncer le fichier ferait croire qu'on récupère ce qu'on
+    // vient d'écarter, sur la seule question destructive du parcours.
+    if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par les '+nSel+' éléments cochés. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
       for(const f of fiches.filter(x=>(x.library||null)===targetLib))await softDelete(f);
       fiches=fiches.filter(x=>(x.library||null)!==targetLib);
       if(hasProtos){for(const pr of protocols.filter(x=>(x.library||null)===targetLib))await softDeleteProtocol(pr);
@@ -25258,11 +25303,10 @@ function readImportFile(file){const r=new FileReader();
     sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.library=targetLib;
       if(!categories.some(x=>x.id===c.id&&(x.library||null)===targetLib))categories.push(c);});
     await saveCats(targetLib);
-    // Fichier venu du MÊME espace local ? (empreinte d'origine, cf. commentaire de section).
-    // Même espace -> les ids sont conservés (restauration/fusion). Autre espace, ou ancien
-    // fichier sans empreinte -> ids TOUJOURS régénérés : un id encore possédé par un autre
-    // compte dans le cloud serait refusé au push (clé primaire globale).
-    const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());
+    // (`sameSpace` est calculé PLUS HAUT, avant l'atelier : même espace -> les ids sont conservés
+    // (restauration/fusion), donc un doublon est possible et la rangée l'annonce. Autre espace, ou
+    // ancien fichier sans empreinte -> ids TOUJOURS régénérés : un id encore possédé par un autre
+    // compte dans le cloud serait refusé au push (clé primaire globale).)
     // Gestion des doublons (même identifiant) en mode fusion : remplacer la version
     // existante, ou importer en double (garder les deux). En mode remplacement, pas de doublon.
     const existing=new Set(fiches.map(x=>x.id));
@@ -28509,7 +28553,7 @@ if(location.search.indexOf('__actest')>=0){
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
-    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,
+    qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,
     crc32,zipBuild,zipParse,isPdfBytes,mdTask,bItems,bItemAdd,bItemDel,bItemMove,listOf,setList,roleItems,poolOf,stepsOf,setStepStr,newStepItem,memItemsOf,forgetAll,v4SanItem,v4MakeItem,v4ItemToStr,v4Level,V4_ROLES,flowOrder,latestPass,offPathSet,minimapData,passInfo,instComplete,flowPlan,stepCR,stepGuardTxt,optAbbr,svBranchIssue,svLoopTargets,ovPresList,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,

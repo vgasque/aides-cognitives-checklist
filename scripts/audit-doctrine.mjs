@@ -5681,6 +5681,109 @@ await sec('A129 · l\'atelier d\'import', async () => {
   await page.close();
 });
 
+/* ══ A130 — L'ATELIER, SECOND TOUR : CE QUE LA RANGÉE DIT DE PLUS, ET CE QUE LE FILTRE ATTEINT ══
+   Décor DIFFÉRENT de la section A129, et c'est pourquoi il a la sienne : un fichier de MÊME
+   ESPACE (empreinte `origin`), portant un identifiant DÉJÀ dans la bibliothèque et deux
+   catégories dont une n'appartient qu'à l'entité qu'on va décocher.
+     · « ⟳ déjà présent » — la rangée annonce la collision AVANT la question « Doublons », et
+       seulement là où elle peut avoir lieu (ids conservés = même espace) ;
+     · « n blocs · n minuteurs » — la MÊME phrase que l'écran d'entrée (A118), seule chose qui
+       distingue un algorithme complet d'une ébauche sans ouvrir le fichier ;
+     · les CATÉGORIES suivent la sélection — le filtrage doit atteindre tout ce qui s'écrit, pas
+       seulement les entités ;
+     · la question destructive annonce la SÉLECTION, pas « le contenu du fichier » : depuis
+       l'atelier, les deux ne sont plus la même chose. */
+await sec('A130 · doublons annoncés, catégories filtrées', async () => {
+  const page=await br.newPage({viewport:{width:390,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const dejaId=await page.evaluate(()=>fiches[0].id);
+  await page.evaluate(id=>{
+    const doc={version:3,origin:spaceTag(currentSpace()),
+      categories:[{id:'catgardee',name:'Catégorie gardée',color:'#1f5fa6'},
+                  {id:'catecartee',name:'Catégorie écartée',color:'#1f5fa6'}],
+      fiches:[
+        // A — MÊME identifiant qu'une aide déjà présente : la rangée doit l'annoncer.
+        {id:id,title:'A130 — déjà chez moi',status:'validated',category:'catgardee',start:'ba',
+         timers:[{id:'t1',label:'Adrénaline',type:'interval',seconds:120}],
+         blocks:[{id:'ba',kind:'do',title:'Gestes',items:['Un geste','Un autre']},
+                 {id:'ba2',kind:'do',title:'Suite',items:['Encore']}]},
+        // B — identifiant NEUF, et seule porteuse de la catégorie qu'on va écarter.
+        {id:'a130neuve',title:'A130 — jamais vue',status:'draft',category:'catecartee',start:'bb',
+         blocks:[{id:'bb',kind:'do',title:'Bloc',items:['Un geste']}]}]};
+    readImportFile(new File([JSON.stringify(doc)],'a130.json'));},dejaId);
+  await page.waitForFunction(()=>document.getElementById('impModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
+  const vu=await page.evaluate(()=>({
+    on:document.getElementById('impModal').classList.contains('on'),
+    rows:[...document.querySelectorAll('#impModal .imp-row')].map(r=>({
+      t:(r.querySelector('.imp-t')||{}).textContent||'',
+      dup:!!r.querySelector('.imp-dup'),
+      sub:(r.querySelector('.imp-sub')||{}).textContent||'',
+      key:(r.querySelector('[data-impsel]')||{}).getAttribute('data-impsel')}))}));
+  t('le cas est rencontré : deux rangées, et la collision est possible (même espace)',
+    vu.on&&vu.rows.length===2&&vu.rows.some(r=>r.dup),JSON.stringify(vu.rows.map(r=>[r.t,r.dup])));
+  if(!vu.on||vu.rows.length!==2){await page.close();return;}
+  t('« déjà présent » sur la rangée qui entre en collision, et sur elle SEULE',
+    vu.rows[0].dup===true&&vu.rows[1].dup===false,JSON.stringify(vu.rows.map(r=>r.dup)));
+  t('la rangée dit ce que l\'entité EMBARQUE, dans les mots de l\'écran d\'entrée',
+    /2 blocs · 1 minuteur/.test(vu.rows[0].sub),vu.rows[0].sub);
+  // On décoche la neuve — donc la seule qui porte « catecartee ».
+  await page.click(`#impModal [data-impsel="${vu.rows[1].key}"]`);
+  await page.click('#impGo');
+  await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
+  /* La question de fusion n'est posée qu'au-delà d'un élément : à UNE sélection, on tombe
+     directement sur « Doublons ». On lit donc le titre pour savoir où l'on est. */
+  const q1=await page.evaluate(()=>({titre:document.getElementById('confirmModalTitle').textContent,
+    msg:document.getElementById('confirmMsg').textContent}));
+  t('la question suivante est bien « Doublons », et elle NOMME la collision',
+    /Doublon/i.test(q1.titre)&&/déjà présent/i.test(q1.msg),JSON.stringify(q1));
+  await page.click('#confirmYes');   // remplacer l'existante
+  await page.waitForFunction(()=>fiches.some(f=>/A130 — déjà chez moi/.test(f.title)),null,{timeout:8000}).catch(()=>{});
+  const apres=await page.evaluate(()=>({
+    a:fiches.some(f=>/A130 — déjà chez moi/.test(f.title)),
+    b:fiches.some(f=>/A130 — jamais vue/.test(f.title)),
+    gardee:categories.some(c=>c.id==='catgardee'),
+    ecartee:categories.some(c=>c.id==='catecartee')}));
+  t('la sélection seule est écrite',apres.a&&!apres.b,JSON.stringify(apres));
+  t('LES CATÉGORIES SUIVENT LA SÉLECTION — aucune catégorie orpheline créée par une entité décochée',
+    apres.gardee===true&&apres.ecartee===false,JSON.stringify(apres));
+  await page.close();
+});
+/* La question destructive annonce ce qu'on a COCHÉ. Mesurée à part, sur un décor neuf : elle
+   n'apparaît qu'à deux éléments ou plus, et l'on en sort par « Annuler » — on lit le texte,
+   on ne vide pas la bibliothèque pour vérifier une phrase. */
+await sec('A130 · « remplacer » annonce la sélection, pas le fichier', async () => {
+  const page=await br.newPage({viewport:{width:390,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(()=>{
+    const f=n=>({id:'a130w'+n,title:'A130 — lot '+n,status:'draft',start:'b'+n,
+      blocks:[{id:'b'+n,kind:'do',title:'Bloc',items:['Un geste']}]});
+    readImportFile(new File([JSON.stringify({version:3,categories:[],fiches:[f(1),f(2),f(3)]})],'a130w.json'));});
+  await page.waitForFunction(()=>document.getElementById('impModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
+  const k=await page.evaluate(()=>{const r=document.querySelectorAll('#impModal .imp-row');
+    return r.length===3?r[2].querySelector('[data-impsel]').getAttribute('data-impsel'):null;});
+  t('le cas est rencontré : trois rangées à l\'atelier',!!k);
+  if(!k){await page.close();return;}
+  await page.click(`#impModal [data-impsel="${k}"]`);   // 2 cochées sur 3
+  await page.click('#impGo');
+  await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
+  const q=await page.evaluate(()=>document.getElementById('confirmMsg').textContent);
+  t('la question de fusion compte la SÉLECTION',/2 éléments/.test(q),q);
+  await page.click('#confirmNo');    // « REMPLACER » -> la confirmation destructive
+  await page.waitForTimeout(300);
+  const d=await page.evaluate(()=>({titre:document.getElementById('confirmModalTitle').textContent,
+    msg:document.getElementById('confirmMsg').textContent}));
+  t('la confirmation destructive annonce « les 2 éléments cochés », jamais « le contenu du fichier »',
+    /Remplacer la biblioth/i.test(d.titre)&&/2 éléments cochés/.test(d.msg)&&!/contenu du fichier/.test(d.msg),
+    JSON.stringify(d));
+  await page.click('#confirmNo');    // on n'écrase rien : l'import est abandonné
+  await page.waitForTimeout(400);
+  const rien=await page.evaluate(()=>fiches.filter(f=>/A130 — lot/.test(f.title)).length);
+  t('… et refuser la remplace n\'écrit rien du tout',rien===0,String(rien));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

@@ -6505,7 +6505,12 @@
      La CIBLE est la rangée entière (c'est un `<label>`), pas la case : même règle que le
      titre du chapeau « Ne pas oublier » (v5.0.0) — sous stress on vise une ligne, pas 24 px. */
   .imp-intro{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 12px}
-  .imp-tools{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+  /* À 320 px les deux gestes tenaient sur une ligne mais s'y CASSAIENT chacun en deux (mesuré :
+     rangée de 2 lignes, « Tout décocher » plié au milieu). On enroule la RANGÉE plutôt que les
+     mots : les deux boutons restent côte à côte, c'est le COMPTE qui passe dessous — un libellé
+     de bouton coupé se relit, un compte qui change de ligne ne coûte rien. */
+  .imp-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+  .imp-tools .btn{white-space:nowrap}
   .imp-n{margin-left:auto;font-size:var(--t-meta);color:var(--ink-soft);font-variant-numeric:tabular-nums}
   .imp-list{display:flex;flex-direction:column;gap:8px}
   .imp-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);cursor:pointer}
@@ -6521,6 +6526,9 @@
   /* Registre ATTENTION pour « il reste n choses à relire » — la paire --verify/--verify-soft des
      étapes △, déjà auditée. Jamais un aplat rouge : ce n'est ni un danger ni un refus (A11). */
   .imp-sub .tag.todo{background:var(--verify-soft);color:var(--verify)}
+  /* « ⟳ déjà présent » : registre NEUTRE (pastille de statut). Ce n'est ni un danger ni une
+     alerte — c'est un FAIT, et son sort est décidé par la question « Doublons » qui suit. */
+  .imp-dup{flex:none;font-size:var(--t-cap);font-weight:700;padding:2px 8px;border-radius:8px;background:var(--tag-bg);color:var(--tag-ink);white-space:nowrap}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════

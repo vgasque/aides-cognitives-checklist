@@ -2360,6 +2360,17 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      vérifie qu'elle n'ouvre pas de balise inattendue (esc() reste la seule barrière). */
   ok('aucune balise autre que le conteneur',
      (A.carryLineHtml(_cf({timers:[{}]})).match(/</g)||[]).length===2);
+  /* A130 (v5.8.0) — UNE PHRASE, DEUX LECTEURS. `carryParts` est le calcul ; l'écran d'entrée et
+     la rangée de l'atelier d'import s'en servent tous les deux, donc les mots ne peuvent pas
+     diverger. Ce qui diffère est le SEUIL, et chacun est motivé : avant le soin, une fiche sans
+     minuteur ni compteur ni complication n'a rien à annoncer ; dans l'atelier, le compte des
+     BLOCS est précisément ce qui distingue un algorithme complet d'une ébauche. */
+  eq('la ligne d’entrée se tait, mais les parts existent (le seuil diffère, pas le calcul)',
+     [A.carryLineHtml(_cf({})), A.carryParts(_cf({}))], ['', ['2 blocs']]);
+  eq('mêmes mots que la ligne d’entrée', A.carryParts(_cf({timers:[{}],counters:[{},{}],excursions:[{}]})),
+     ['2 blocs','1 minuteur','2 compteurs','1 complication déclarée']);
+  eq('aucune fiche → aucune part', A.carryParts(null), []);
+  eq('une fiche vide ne compte rien', A.carryParts({}), []);
 
   /* ══ P7 (v5.7) — révisée depuis le dernier passage ═════════════════════════════════════ */
   group('P7 — la révision depuis votre dernier passage');
