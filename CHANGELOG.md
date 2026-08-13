@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [5.8.1] — 2026-08-13
+### L'atelier d'import, jusqu'au bout : le filtre atteint tout ce qui s'écrit
+
+`5.8.0` avait posé le grain de l'import — l'entité — sans le tenir partout : trois choses
+raisonnaient encore **en bloc** derrière l'atelier, et la rangée taisait ce qui permet de décider.
+Doctrine : `AGENTS.md` A130.
+
+- **Les catégories suivent la sélection.** Elles entraient *toutes*, y compris celles que seules
+  les entités décochées employaient : on repartait avec des catégories vides dans son rail, créées
+  par un import qu'on venait justement de restreindre. La règle qui en sort est plus large que le
+  cas : *le filtrage doit atteindre tout ce qui s'écrit, pas seulement les entités.*
+- **La question destructive annonce la sélection, pas le fichier** — « remplacé(e)s par les
+  **n éléments cochés** ». Depuis l'atelier les deux ne sont plus la même chose, et c'est la seule
+  question destructive du parcours : y annoncer le fichier ferait croire qu'on récupère ce qu'on
+  vient d'écarter.
+- **« ⟳ déjà présent » se dit sur la rangée, avant la question « Doublons ».** La rangée porte le
+  fait ; le sort reste décidé par la question groupée. Elle n'apparaît **que là où la collision
+  peut avoir lieu** — identifiants conservés, donc même espace : sur un fichier venu d'ailleurs ils
+  sont régénérés à l'écriture, et annoncer un doublon que l'écriture ne verra pas serait un
+  mensonge. *Un contrôle « remplacer / garder les deux » par rangée a été écarté* : décocher porte
+  déjà le grain, tandis que ce choix-là est une stratégie, globale par nature.
+- **La rangée dit ce que l'entité embarque**, dans les mots de l'écran d'entrée : « 2 blocs ·
+  1 minuteur · 1 complication déclarée ». C'est la seule chose qui distingue un algorithme complet
+  d'une ébauche sans ouvrir le fichier. Une phrase, **deux lecteurs**, donc un seul calcul ; seuls
+  les seuils diffèrent, et chacun est motivé.
+- **Détail de plancher** : à 320 px les deux gestes de l'atelier tenaient sur une ligne mais s'y
+  cassaient chacun en deux. La rangée enroule désormais plutôt que les mots — les boutons restent
+  côte à côte à 44 px, c'est le compte qui passe dessous.
+
 ## [5.8.0] — 2026-08-13
 ### « Voir avant d'écrire, revenir sans chercher »
 
@@ -1002,38 +1031,3 @@ bloc d'étapes soit visible ».
   le rencontrent pas), il est prouvé par **contrefactuel** (on repose la page où elle était au clic
   et l'on remesure), la vue guidée a le sien, et la **non-régression** est l'autre moitié — sur une
   fiche courte, le démarrage ne déplace pas la page d'un pixel. Vérifiés capables d'échouer.
-
-## [5.0.6] — 2026-08-03
-### La hachure ne s'ancre plus à un repère qu'on ne contrôle pas
-
-Signalé à l'usage, sur l'appareil : « le fond hachuré ne traverse la frontière que par moments ;
-celui d'en haut bouge lors du scroll ; et ils ne sont pas toujours synchronisés ».
-
-- **La v5.0.5 avait le bon raisonnement et la mauvaise dépendance.** Deux boîtes dont l'écart
-  change à chaque frame ne peuvent partager une phase que par un repère tiers : d'où
-  `background-attachment:fixed`, l'ancrage au viewport. Vert aux deux moteurs en headless, à
-  l'arrêt comme en cours de défilement — et **faux sur l'appareil** : WebKit ne repeint pas un fond
-  fixé en même temps qu'il défile, la texture retarde, glisse, puis se recale. Même famille que le
-  rebond du rail A→Z (v5.0.2) et que le dossier « bande basse iOS » : **ce que le compositeur fait
-  du rendu n'est visible dans AUCUNE mesure de la page**, donc un harnais vert ne prouve rien sur
-  cette classe de propriétés.
-- **Ce qui tient sa place.** Chaque hachure appartient à SA barre — donc celle du haut ne peut plus
-  bouger, l'en-tête ne bougeant pas — et l'on met celle du bas en phase par un décalage **mesuré**,
-  `--hdr-h` : les deux boîtes de dégradé sont les boîtes de rembourrage des deux barres, même bord
-  gauche, écart vertical égal à la hauteur de l'en-tête. Un `background-position` de cette valeur
-  suffit, sans un octet de JS et sans que rien ne dépende du défilement.
-- **Le vrai travail est le pavage.** Un décalage pave, or un dégradé répétitif se dimensionne sur
-  sa boîte et sa phase s'ancre à son coin BAS-DROIT : deux boîtes de hauteurs différentes ne sont
-  jamais en phase, et le report coudrait. La tuile est donc CARRÉE (31 px) et ses bandes
-  s'expriment en **pourcentage de la ligne de dégradé** — une période de 50 % en met exactement
-  deux par tuile, ce qui la rend raccordable à n'importe quelle taille **sans jamais écrire √2 dans
-  une feuille de style**. 31 px redonnent la période d'origine (21,9 px pour 22) au dixième de
-  pixel près, et un entier pave net à 1×, 2× et 3× (vérifié en capture à 3×).
-- **Contrepartie assumée, et bornée** : la phase n'est commune qu'au REPOS. En défilant, chaque
-  texture suit sa barre — ce que fait toute texture peinte sur un objet, rien ne bouge tout seul —
-  et le bandeau passe de toute façon sous la barre en moins de 60 px.
-- **Le témoin mesure désormais la PROPRIÉTÉ, plus le mécanisme.** Celui de la v5.0.5 exigeait
-  `background-attachment:fixed`, c'est-à-dire la solution du jour : il serait passé au rouge sur le
-  correctif qui la remplace. Il recompose l'origine de chaque grille (coin de la boîte de
-  rembourrage + `background-position`) et compare la phase modulo la tuile, plus le raccord de
-  celle-ci. Vérifié capable d'échouer sur les deux points, aux deux moteurs.
