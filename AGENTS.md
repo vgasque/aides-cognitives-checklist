@@ -2293,6 +2293,28 @@ courant : « ⏱ Reprise — dernier geste il y a 6:12 ».
   qu'on annonce, pas un second chronomètre.
 · **ELLE S'EFFACE AU GESTE SUIVANT**, jamais après un délai — c'est le geste qui la périme.
 
+**A117b. UN OBJET SANS BOÎTE N'EXPLIQUE RIEN — LA LIGNE DE REPRISE REFAITE (v5.7, signalé à
+l'usage : « très mauvaisement implanté niveau design, collé à la bordure en haut à gauche ; le
+temps ne bouge pas ; difficile de comprendre ce que c'est, d'où ça vient et comment le faire
+partir ; et pourquoi l'icône ne passe pas par uiIcon ? »).** Quatre reproches, tous justes, et le
+premier explique les autres : c'était un `<div>` de texte NU inséré AVANT `.ov-head`, donc hors du
+rembourrage de la carte.
+· **UNE RANGÉE DANS LA CARTE**, au rembourrage de l'en-tête (18 px), séparée du titre par un
+  filet — la grammaire de tout ce qui vit dans une carte de bloc. Registre ATTENTION en TEXTE,
+  jamais en aplat (A11) : c'est une lecture, pas une alarme.
+· **LE NOMBRE VIT — A117 EST CORRIGÉE SUR CE POINT.** Il était figé « pour ne pas ajouter un
+  second chronomètre » ; mais un nombre figé qui annonce « il y a 6:12 » MENT dès la minute
+  suivante, et c'est la donnée périmée présentée comme vivante que ce dossier combat partout
+  ailleurs. Ce qu'on annonce est « depuis combien de temps rien n'a été fait », et cela croît
+  tant que rien n'est fait. Aucune hauteur ne change (A9) ; le tick le peint déjà pour les
+  compteurs, donc aucune horloge nouvelle.
+· **ELLE DIT D'OÙ ELLE VIENT** (« Reprise après interruption ») et **elle a une SORTIE** : un ✕ à
+  44 px de cible. Elle s'effaçait au geste suivant — vrai, mais rien ne le disait, et vouloir
+  s'en débarrasser n'a pas à passer par cocher une étape. Le geste reste la sortie naturelle, le
+  ✕ la sortie explicite.
+· **GLYPHE TRACÉ** (`uiIcon('stopwatch')`), jamais le caractère « ⏱ » — règle A106, qui n'avait
+  pas été appliquée à cet ajout.
+
 **A118. CE QUE LA FICHE EMBARQUE SE DIT AVANT QU'ON ENTRE (v5.7).** Mesuré : `preStartHtml` (« Ce
 qui démarrera ») ne se rend que dans le RAIL, donc à partir de 780 px ; en voie ÉTROITE le panneau
 n'existe que dans le volet du quai, qui exige une session vive (v5.4.2), et la capsule n'existe pas

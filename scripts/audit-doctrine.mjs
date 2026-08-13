@@ -5364,6 +5364,28 @@ await sec('Q2 · la reprise après interruption', async () => {
   /* ⚠ ELLE S'EFFACE AU GESTE, JAMAIS APRÈS UN DÉLAI : c'est le geste qui la périme. */
   await page.waitForTimeout(1200);
   t('… et elle ne s\'efface PAS toute seule avec le temps', (await ligne())!==null);
+  /* ⚠ QUATRE REPROCHES DE FORME, MESURÉS (v5.7) : la ligne vivait HORS du rembourrage de la
+     carte (collée au bord), son nombre était FIGÉ donc faux dès la minute suivante, elle ne
+     disait pas d'où elle venait, et son glyphe était le caractère « ⏱ » au lieu d'un tracé. */
+  const forme=await page.evaluate(async()=>{
+    const e=document.getElementById('ovResume');if(!e)return null;
+    const v0=(e.querySelector('.rsm-v')||{}).textContent||'';
+    await new Promise(r=>setTimeout(r,2200));
+    const x=e.querySelector('.rsm-x'),rx=x?x.getBoundingClientRect():null;
+    return {pad:Math.round(parseFloat(getComputedStyle(e).paddingLeft)),
+      svg:!!e.querySelector('svg'), litteral:/⏱/.test(e.textContent),
+      dit:/interruption/i.test(e.textContent),
+      cible:rx?Math.round(Math.min(rx.width+16,rx.height+16)):0,
+      v0, v1:(e.querySelector('.rsm-v')||{}).textContent||''};});
+  t('… elle vit DANS le rembourrage de la carte, pas contre son bord',
+    !!forme&&forme.pad>=14, forme?forme.pad+' px':'absente');
+  t('… son glyphe est un TRACÉ (uiIcon), pas le caractère ⏱ (A106)',
+    !!forme&&forme.svg===true&&forme.litteral===false);
+  t('… elle dit d\'où elle vient', !!forme&&forme.dit===true);
+  t('… et son nombre VIT (il ne ment pas à la minute suivante)',
+    !!forme&&forme.v0!==''&&forme.v1!==''&&forme.v0!==forme.v1, forme?`${forme.v0} → ${forme.v1}`:'—');
+  t('… sa sortie explicite tient la cible de 44 px',
+    !!forme&&forme.cible>=44, forme?forme.cible+' px':'—');
   const box=await page.$('.ov-block.cur [data-ck], .nav-wrap [data-ck]');
   if(box){await box.click();await page.waitForTimeout(300);}
   t('… mais elle s\'efface au geste suivant', (await ligne())===null);

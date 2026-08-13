@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Pf2Ew9QiWVGLb3dLIKaHeCF7JNECveqeIroE3t1Yn64='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-s8O52jEkHdXrZ6xmT9zfHATWODNwxdr84ULnGI+AjJ4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1758,8 +1758,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      c'est une LECTURE (« voilà ce que vous avez manqué »), pas une alarme — la masse colorée
      reste réservée à ce qui exige une action maintenant (A11). Elle vit en tête de la carte du
      bloc courant et s'efface au geste suivant. */
-  .ov-resume{margin:0 0 10px;font-size:13.5px;font-weight:700;color:var(--verify);
+  /* Registre ATTENTION en TEXTE, jamais en aplat (A11) : c'est une lecture, pas une alarme.
+     Le rembourrage est celui de l'en-tête de carte — la ligne vit DANS la carte, plus contre
+     son bord. Le filet la sépare du titre sans lui donner de matière propre. */
+  .ov-resume{display:flex;align-items:center;gap:8px;margin:0;padding:10px 18px;
+    border-bottom:1px solid var(--work-line);font-size:13.5px;font-weight:600;color:var(--verify);
     font-variant-numeric:tabular-nums}
+  .ov-resume .rsm-ic{flex:none;color:var(--verify)}
+  .ov-resume .rsm-t{flex:1 1 auto;min-width:0}
+  .ov-resume .rsm-v{font-family:var(--mono);font-weight:700}
+  .ov-resume .rsm-x{position:relative;flex:none;width:28px;height:28px;display:grid;place-items:center;
+    border:0;background:none;color:var(--ink-2);font-size:17.5px;line-height:1;cursor:pointer;
+    border-radius:var(--r-1)}
+  .ov-resume .rsm-x::after{content:'';position:absolute;inset:-8px}
+  .ov-resume .rsm-x:hover{color:var(--ink)}
+  .ov-resume .rsm-x:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Q4 (v5.7) — une LIGNE de comptage, dans la voix de la méta : elle informe, elle n'alerte
      pas et elle ne conditionne rien. Registre neutre — aucune couleur sémantique. */
   .carry-line{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--ink-soft);
@@ -12440,7 +12453,8 @@ function tickAll(){
   Object.values(liveSessions).forEach(R=>{Object.values(R.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
     if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}onTimerFired(R,t);fired=R;}}});});
   if(fired)persistLive(fired,true);
-  if(state.view==='read'&&Runtime.fiche){refreshTimersDOM(now);paintCnAgo(now);tmReflow(now);}
+  if(state.view==='read'&&Runtime.fiche){refreshTimersDOM(now);paintCnAgo(now);tmReflow(now);
+    if(state.resumeSince)paintResume();}
   // Chrono des cartes « Session en cours » de l'accueil (SPEC §5) : vivant, sans re-rendu.
   if(state.view==='library')document.querySelectorAll('[data-lschrono]').forEach(el=>{const v=fmtMs(now-(+el.dataset.lschrono||now));if(el.textContent!==v)el.textContent=v;});
   updateRtStrip(now);
@@ -12479,16 +12493,41 @@ function tickAll(){
    · Le texte est FIGÉ à l'instant du retour : c'est la durée de l'interruption qu'on annonce,
      pas un second chronomètre — il y en a déjà assez à l'écran. */
 const Q2_ABSENCE_MS=120000;
+/* ⚠ QUATRE REPROCHES, UN SEUL OBJET (v5.7, signalé à l'usage : « très mauvaisement implanté
+   niveau design, s'affiche collé à la bordure en haut à gauche ; le temps ne bouge pas ; très
+   difficile de comprendre ce que c'est, d'où ça vient et comment faire pour que ça parte ; et
+   pourquoi l'icône ne passe pas par uiIcon ? »). Tous justes, et le premier explique le reste :
+   c'était un `<div>` de texte NU inséré avant `.ov-head`, donc HORS du rembourrage de la carte —
+   un objet sans boîte n'a l'air de rien, donc n'explique rien.
+   · UNE RANGÉE, DANS LE REMBOURRAGE DE LA CARTE, séparée du titre par un filet : la même
+     grammaire que tout ce qui vit dans une carte de bloc.
+   · LE NOMBRE VIT. A117 le figeait « pour ne pas ajouter un second chronomètre » — mais un
+     nombre figé qui dit « il y a 6:12 » MENT dès la minute suivante, et c'est la donnée périmée
+     présentée comme vivante que ce dossier combat partout. Ce qu'on annonce est « depuis combien
+     de temps rien n'a été fait », et cela CROÎT tant que rien n'est fait. Aucune hauteur ne
+     change (A9), et le tick le peint déjà pour les compteurs.
+   · ELLE DIT D'OÙ ELLE VIENT : « après une interruption », en toutes lettres.
+   · ET ELLE A UNE SORTIE : un ✕. Elle s'effaçait au geste suivant — vrai, mais invisible : rien
+     ne le disait, et quelqu'un qui veut juste s'en débarrasser n'a pas à deviner qu'il faut
+     cocher une étape. Le geste reste la sortie NATURELLE ; le ✕ est la sortie EXPLICITE.
+   · GLYPHE TRACÉ (`uiIcon`), jamais le caractère « ⏱ » — règle A106. */
 function paintResume(){
   const ex=document.getElementById('ovResume');
   const host=document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap');
   if(!state.resumeSince||!host||!crisisOnScreen()){if(ex)ex.remove();return;}
-  const txt='⏱ Reprise — dernier geste il y a '+sinceTxt(state.resumeSince,state.resumeAt||Date.now());
-  if(ex&&ex.parentNode===host){if(ex.textContent!==txt)ex.textContent=txt;return;}
+  const val=sinceTxt(state.resumeSince,Date.now());
+  if(ex&&ex.parentNode===host){const v=ex.querySelector('.rsm-v');
+    if(v&&v.textContent!==val)v.textContent=val;return;}
   if(ex)ex.remove();
   const d=document.createElement('div');
-  d.className='ov-resume';d.id='ovResume';d.setAttribute('role','status');d.textContent=txt;
-  host.insertBefore(d,host.firstChild);}
+  d.className='ov-resume';d.id='ovResume';d.setAttribute('role','status');
+  d.innerHTML=uiIcon('stopwatch',13,{cls:'rsm-ic'})
+    +'<span class="rsm-t">Reprise après interruption — dernier geste il y a '
+    +'<span class="rsm-v">'+esc(val)+'</span></span>'
+    +'<button type="button" class="rsm-x" id="rsmX" aria-label="Masquer le rappel de reprise">×</button>';
+  host.insertBefore(d,host.firstChild);
+  const x=d.querySelector('#rsmX');
+  if(x)x.onclick=()=>{state.resumeSince=null;paintResume();};}
 /* Le retour au premier plan. On ne parle qu'à celui qui REVIENT, et seulement s'il s'est
    vraiment absenté : sans le second terme, un simple changement d'onglet d'une seconde
    annoncerait une « reprise » sur une session qu'on n'a jamais quittée des yeux. */
