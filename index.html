@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-m0Pvh9wKt8JJlPyxy2QdsVxLIETHkgiW3KrcwIX6eGk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-fluz21f4iTd8pvFJKQWNro9qK8v6H71ZE3PyqySw02A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3395,7 +3395,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      rembourrage faisait enrouler le titre SOUS le ✕ (176 px, quatre lignes), et la largeur maximale
      le rétrécissait assez pour qu'un autre contrôle monte à sa droite… donc sous le ✕. Une réserve
      de rangée protège la ligne ENTIÈRE, ce qu'aucune borne posée sur un seul enfant ne fait. La
-     place se gagne ailleurs, en raccourcissant ce qui peut l'être (`.rt-wl` ci-dessous). */
+     place se gagne ailleurs, en raccourcissant ce qui peut l'être.
+     ⚠ ÉPILOGUE (v5.6) : la question ne se pose plus dans cet en-tête — le son et la veille sont
+     descendus au PIED du panneau (`.rt-set`), et `.rt-wl` est PURGÉE avec la règle qui la servait.
+     La réserve du ✕ reste : elle protège la rangée, quel que soit ce qu'on y met demain. */
   .rt-dock .rt-head{padding-right:56px}
   /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
      v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
@@ -4206,14 +4209,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ANCRÉE en haut à droite, et un `padding-right` qui lui réserve sa place à TOUTES les largeurs.
      Le reste s'enroule dessous plutôt que de la pousser hors de l'écran — on ne tronque pas un
      libellé de commande, on lui donne une seconde ligne. */
-  /* ⚠ SOUS 560 px, L'AVERTISSEMENT PASSE AU GLYPHE SEUL (v5.6, suite du signalement sur la veille :
-     « ça va à la ligne et crée une 2e ligne pour rien »). L'en-tête du volet porte le titre, cet
-     avertissement, le son et la veille : mesuré à 390 px, les trois contrôles demandaient 330 px
-     pour 294 disponibles, et « Veille coupée » tombait SEULE sur une troisième ligne. C'est la
-     règle A2 appliquée telle quelle — la touche perd son étiquette, jamais son nom accessible —, et
-     `#soundWarn` est le bon candidat : c'est une CAUTION dont le texte entier s'affiche au tap, pas
-     un contrôle dont le libellé porte l'état. Les deux interrupteurs, eux, gardent leurs mots. */
-  @media (max-width:559.98px){.rt-wl{display:none}}
+  /* ⚠ L'AVERTISSEMENT A RETROUVÉ SES MOTS, ET SA RÈGLE EST PURGÉE AVEC SA CAUSE (v5.6). Il passait
+     au glyphe seul sous 560 px parce que l'en-tête du volet portait le titre, cet avertissement, le
+     son ET la veille — 330 px demandés pour 294 à 390 px. Les deux interrupteurs sont descendus au
+     pied (`.rt-set`) : la rangée est libre, et une CAUTION muette n'aurait de toute façon rien
+     averti. La classe `.rt-wl` disparaît avec la règle qui la servait (règle 14). */
+
   .rt-head{position:relative;display:flex;align-items:center;gap:8px;margin-bottom:10px;
     flex-wrap:wrap;padding-right:40px}
   /* `min-width:0` : sans lui, `flex:1` ne descend jamais sous la largeur du contenu (le minimum
@@ -4223,6 +4224,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-ic{color:var(--primary)}
   /* Le groupe des deux interrupteurs : il enroule d'un bloc, jamais en son milieu. */
   .rt-togs{display:inline-flex;align-items:center;gap:8px;flex:none}
+  /* Le pied de RÉGLAGES : séparé du contenu vivant par un filet, jamais par un titre — deux
+     interrupteurs se reconnaissent à leur forme, les annoncer serait du bruit. */
+  .rt-set{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding-top:12px;
+    border-top:1px solid var(--work-line)}
+  .rt-panel .rt-set{border-top-color:var(--sys-line)}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente. */
   .rt-x{position:absolute;top:0;right:0;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
@@ -17022,8 +17028,21 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
      grammaire, dont l'un tombe seul sous l'autre se lisent comme deux objets sans rapport.
      Enveloppés, ils enroulent ENSEMBLE : soit sur la ligne du titre, soit sur la suivante, côte à
      côte. C'est l'AVERTISSEMENT qui part en premier s'il faut couper quelque part, et c'est le bon
-     ordre — il n'est pas un réglage. */
-  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" aria-label="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)}<span class="rt-wl"> silencieux ?</span></button>`:''}<span class="rt-togs"><button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`
+     ordre — il n'est pas un réglage.
+     ⚠ `.rt-wl` EST PURGÉE AVEC SA CAUSE (règle 14) : elle n'existait que pour masquer le mot
+     « silencieux ? » sous 560 px, quand la rangée d'en-tête n'avait plus la place (A103). La
+     rangée n'existe plus — l'avertissement a retrouvé ses mots, et un glyphe de caution muet
+     n'aurait de toute façon rien averti.
+     ⚠ ET LE GROUPE A QUITTÉ L'EN-TÊTE DE FAMILLE (v5.6, signalé à l'usage : « deux boutons
+     utilisés périodiquement prennent autant de place avant les minuteurs-compteurs-journal »).
+     Enveloppés, ils enroulaient ensemble — mais ENSEMBLE SUR UNE SECONDE LIGNE, y compris dans le
+     rail de 301 px où le groupe en demande 311 : une rangée entière au-dessus du contenu vivant,
+     pour deux réglages qu'on touche une ou deux fois par soin. Ce sont des RÉGLAGES, pas de
+     l'état : ils descendent au PIED du panneau, après ce qu'ils règlent — l'ordre ECAM (l'état
+     vivant d'abord) et celui que le rail applique déjà (« l'illimité en dernier »). Ils y gardent
+     leurs mots, donc l'état se lit toujours sans réfléchir (A103), et ne coûtent plus un pixel
+     au-dessus des minuteurs. */
+  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" aria-label="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)} silencieux ?</button>`:''}<span class="rt-togs"><button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`
     /* Le verrou de veille vit là où le son se règle : même rangée, même registre, même grammaire
        d'interrupteur. Là où l'API manque, la ligne n'existe pas (dégradation silencieuse). */
     +(WAKE_OK?`<button class="rt-sound${wakeWanted?'':' off'}" id="wakeToggle" aria-pressed="${wakeWanted?'true':'false'}" title="${wakeWanted?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale':'La veille du système s’applique — appuyer pour maintenir l’écran allumé'}">${uiIcon(wakeWanted?'sun':'moon',13)}${wakeWanted?' Veille coupée':' Veille active'}</button></span>`:'</span>');
@@ -17039,16 +17058,17 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
   const timersB=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}${tmAddHtml()}`;
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
   if(mqRail.matches){
-    return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}${sound}</div>${timersB}`
+    return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}</div>${timersB}`
       +`<div class="rail-head rail-fam"><span class="rail-title">Compteurs</span>${cl.length>1?`<span class="rail-n">${cl.length}</span>`:''}</div>`
-      +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml();}
+      +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml()
+      +`<div class="rt-set">${sound}</div>`;}
   const cards=`<div class="tk-head rt-famh"><b>Minuteurs${famN(nt)}</b></div>${timersB}`
     +`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div>`
     +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml();
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
-  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs · compteurs · journal</b>${sound}<button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}</div>`;}
+  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs · compteurs · journal</b><button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}<div class="rt-set">${sound}</div></div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai

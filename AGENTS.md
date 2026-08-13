@@ -2035,6 +2035,27 @@ chronologiquement le premier élément.
   (`color:inherit`). *Un défaut HORS PORTÉE n'est pas un défaut absent* (leçon v4.75.0, rejouée à
   l'identique) — et `aria-hidden` n'exempte pas du seuil, le glyphe reste peint.
 
+**A111. LES RÉGLAGES DESCENDENT AU PIED — L'ÉTAT VIVANT PASSE DEVANT (v5.6, signalé à l'usage :
+« deux boutons utilisés périodiquement prennent autant de place avant les minuteurs-compteurs-
+journal d'action »).** A105 avait raison de rendre les deux interrupteurs INSÉPARABLES, et tort de
+les laisser dans l'en-tête de famille : enveloppés, ils enroulaient ensemble — **ensemble sur une
+SECONDE LIGNE**, y compris dans le rail de 301 px où le groupe en demande 311. Une rangée entière
+au-dessus du contenu vivant, pour deux réglages qu'on touche une ou deux fois par soin.
+· **C'EST UNE QUESTION DE NATURE, PAS DE PLACE** : le son et le verrou de veille sont des
+  RÉGLAGES ; les minuteurs, les compteurs et le journal sont de l'ÉTAT. L'ordre ECAM met l'état
+  d'abord, et le rail applique déjà la même idée (« l'illimité en dernier »). Ils descendent donc
+  au PIED du panneau (`.rt-set`), après ce qu'ils règlent, séparés par un filet — jamais par un
+  titre : deux interrupteurs se reconnaissent à leur forme, les annoncer serait du bruit.
+· **ILS Y GARDENT LEURS MOTS** (A103) : l'état se lit sans réfléchir, et l'on n'a pas eu à les
+  compacter au glyphe seul — ce qui aurait été la mauvaise réponse, puisque c'est le LIBELLÉ qui
+  porte l'état d'un interrupteur. Mesuré à 320 · 390 · 430 · 1280 : jumeaux sur une même ligne,
+  0 px de débordement, en-tête du rail ramené à **19 px**.
+· **UNE RÈGLE MEURT AVEC SA CAUSE** : `.rt-wl` masquait « silencieux ? » sous 560 px parce que la
+  rangée d'en-tête était pleine. Elle ne l'est plus — l'avertissement retrouve ses mots (une
+  CAUTION muette n'avertit de rien) et la classe est PURGÉE, épitaphes posées aux deux sites qui
+  la citaient (règle 14 + A72). Au pied, à 320 px, il prend sa propre ligne : **là, cela ne coûte
+  rien.**
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
