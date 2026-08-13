@@ -2591,6 +2591,23 @@ recouvrait le quai de **63 px** — la capsule disparaissait entièrement sous l
   être le même en crise et en exercice. Vérifié capable d'échouer (63 px contre 8 avant correction),
   et il exige d'abord que l'exercice montre son bandeau, sinon le cas n'existe pas.
 
+**A128. LA PROGRESSION D'UN JALON SORT DE SON BLOC (v5.7, second correctif à zéro pixel révélé par
+le refus de F2).** Un jalon ne s'affichait que sur la carte du bloc qui le déclare (`jalonsHtml`) :
+dès qu'on est ailleurs — une complication, un bloc plus loin, la feuille « Tout voir » —
+« Chocs 2/3 » disparaissait, alors que le COMPTE, lui, continuait d'avancer. Il rejoint le volet,
+là où l'état vit déjà, en quatrième famille après minuteurs, compteurs et journal.
+· **UNE LIGNE, JAMAIS UNE CARTE** : ce n'est pas un objet qu'on manipule, c'est un compte qu'on lit
+  (A16 — ce qui se LIT prend une ligne, ce qui se COMPTE prend une carte).
+· **LE MÊME CALCUL QUE LA CARTE** (`jalonProg`, `jalonCondLbl`) : deux progressions écrites
+  séparément finiraient par diverger, et ce fichier a payé cette leçon cinq fois.
+· **RIEN À DIRE → AUCUNE SECTION** : une fiche sans jalon n'en voit pas la trace.
+· **LE SEUIL FRANCHI SE MARQUE** en ambre comme sur la carte — jamais un aplat (A11), et le glyphe
+  △ accompagne l'encre (règle 8). Sur la matière SYSTÈME du volet, le registre prend sa valeur
+  propre (`--warn-sys`).
+· **AUCUN GESTE N'Y EST POSÉ** : le renvoi ⚡ du jalon reste sur la carte du bloc, où l'action vit
+  au pied de l'alerte (ECAM). Le volet en donne la LECTURE, pas la commande — sinon le même verbe
+  aurait deux adresses (§ 5.5).
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

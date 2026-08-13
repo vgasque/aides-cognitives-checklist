@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-xFuD0/LYAzmym3c5xGeOVNNyISZl/YGlmVG3f+PoCo8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-WqJgX7GV+jr9y9wqr6v4T0mOHNoZsLEibWwPjIxnl9Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1752,6 +1752,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Ni fond, ni bordure, ni rembourrage : zéro pixel de plus, donc rien ne se déplace dans la
      zone d'état quand un minuteur entre dans ses vingt dernières secondes. */
   #cbTimers .seg.soon :is(.seg-l,.seg-t){color:var(--warn-sys)}
+  /* Correctif 2 (v5.7) — LA PROGRESSION D'UN JALON, HORS DE SON BLOC. Une LIGNE, pas une carte :
+     c'est un compte qu'on lit (A16). Registre ATTENTION au franchissement, marqué par le glyphe
+     ET l'encre — jamais un aplat (A11), et jamais la couleur seule (règle 8). */
+  .rt-jl{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13.5px;
+    color:var(--ink-soft);border-top:1px solid var(--line)}
+  .rt-jl:first-of-type{border-top:0}
+  .rt-jlc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rt-jlp{flex:none;font-family:var(--mono);font-weight:700;color:var(--ink);
+    font-variant-numeric:tabular-nums}
+  .rt-jl.on{color:var(--verify);font-weight:700}
+  .rt-jl.on .rt-jlp{color:var(--verify)}
+  .rt-dock .rt-jl{color:var(--sys-ink-2);border-top-color:var(--sys-line)}
+  .rt-dock .rt-jlp{color:var(--sys-ink)}
+  .rt-dock .rt-jl.on,.rt-dock .rt-jl.on .rt-jlp{color:var(--warn-sys)}
   /* ⚠ SOUS UNE BARRE COLLANTE, LE REMBOURRAGE DE PAGE SE LIT COMME DU VIDE (v5.7, signalé à
      l'usage : « trop d'espace mort entre le bandeau session et Ne pas oublier »). Mesuré en
      session : 18 px à 390, 24 px à 1280 entre le bas du quai et le chapeau. Ce rembourrage est
@@ -17693,16 +17707,42 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
      minuteur — chaque objet rejoint sa famille. */
   const nt=tl.length+minis.length;
   const famN=n=>n>1?`<span class="fam-n">${n}</span>`:'';
+  /* ⚠ CORRECTIF À ZÉRO PIXEL (v5.7, volet 3) — LA PROGRESSION D'UN JALON SORT DE SON BLOC.
+     Un jalon ne s'affiche que sur la carte du bloc qui le déclare (`jalonsHtml`) : dès qu'on est
+     ailleurs — une complication, un bloc plus loin, la feuille « Tout voir » — « Chocs 2/3 »
+     disparaît, alors que le COMPTE, lui, continue d'avancer. C'est le second manque que le refus
+     de F2 a révélé, et il se répare là où l'état vit déjà : le volet.
+     · UNE LIGNE PAR JALON, jamais une carte : ce n'est pas un objet qu'on manipule, c'est un
+       compte qu'on lit (A16 — ce qui se LIT prend une ligne).
+     · LE MÊME CALCUL QUE LA CARTE (`jalonProg`, `jalonCondLbl`) : deux progressions écrites
+       séparément finiraient par diverger, et ce fichier a déjà payé cette leçon cinq fois.
+     · RIEN À DIRE → AUCUNE SECTION : une fiche sans jalon n'en voit pas la trace.
+     · LE SEUIL FRANCHI SE MARQUE en ambre, comme sur la carte — jamais un aplat (A11), et le
+       glyphe △ accompagne la couleur (règle 8). */
+  const jalons=[];
+  (f.blocks||[]).forEach(b=>{if(!b||!Array.isArray(b.milestones))return;
+    const ix=(state.nav||[]).lastIndexOf(b.id);
+    const pass=ix>=0?passInfo(state.nav,ix).pass:0;
+    b.milestones.forEach(j=>{if(!j)return;
+      const p=jalonProg(j,pass,j.counter?((Runtime.counters||{})[j.counter]||0):0);
+      jalons.push({cond:jalonCondLbl(f,j),cur:p.cur,goal:p.goal,on:!!p.active});});});
+  const jalonsB=jalons.length
+    ?jalons.map(j=>`<div class="rt-jl${j.on?' on':''}"><span aria-hidden="true">△</span>`
+      +`<span class="rt-jlc">${esc(j.cond)}</span>`
+      +`<span class="rt-jlp" aria-label="${j.cur} sur un seuil de ${j.goal}">${j.cur}/${j.goal}</span></div>`).join('')
+    :'';
   const timersB=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}${tmAddHtml()}`;
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
   if(mqRail.matches){
     return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}</div>${timersB}`
       +`<div class="rail-head rail-fam"><span class="rail-title">Compteurs</span>${cl.length>1?`<span class="rail-n">${cl.length}</span>`:''}</div>`
       +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml()
+      +(jalonsB?`<div class="rail-head rail-fam"><span class="rail-title">Jalons</span>${jalons.length>1?`<span class="rail-n">${jalons.length}</span>`:''}</div>${jalonsB}`:'')
       +`<div class="rt-set">${sound}</div>`;}
   const cards=`<div class="tk-head rt-famh"><b>Minuteurs${famN(nt)}</b></div>${timersB}`
     +`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div>`
-    +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml();
+    +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml()
+    +(jalonsB?`<div class="tk-head rt-famh fam-sep"><b>Jalons${famN(jalons.length)}</b></div>${jalonsB}`:'');
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
