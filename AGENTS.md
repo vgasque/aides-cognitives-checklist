@@ -2177,6 +2177,29 @@ sa destination (A15 : une excursion sait revenir).
   DÉCISION** : la coque couvre toute la largeur et ne doit rien intercepter (seul `.bkr` est
   tapable), sinon elle volerait les taps sur la colonne d'action précisément quand on défile.
 
+**A113b. UN NŒUD DÉTACHÉ N'EST PAS « HORS ZONE », IL N'EST PLUS LÀ (v5.7, signalé à l'usage :
+« à chaque fois que la vue se met à jour, le bandeau vert s'affiche quelques ms — c'est moche et
+très perturbant »).** Entre un rendu du journal et le prochain passage de `syncBlkReturn`,
+l'`IntersectionObserver` surveillait encore l'ANCIENNE carte, désormais détachée. Un élément
+détaché ne coupe aucune zone : `isIntersecting` vaut FAUX, donc « hors zone », donc la barre
+paraissait — puis disparaissait dès l'observateur repointé. **Mesuré : visible de 146 à 214 ms, à
+chaque re-rendu.**
+· **DEUX EXPLICATIONS PLAUSIBLES ÉCARTÉES PAR LA MESURE, ET C'EST L'INTÉRÊT DU DOSSIER** :
+  (a) « la première notification porte une géométrie transitoire » — j'ai tranché moi-même en
+  synchrone, avec les mêmes bornes que la marge de racine : toujours faux ; (b) « la page se pose
+  encore » — échantillonnée de 0 à 300 ms, la géométrie est INVARIANTE (rTop 243, rBot 802,
+  `stickBase` 127, `--dock-h` 72). C'est en constatant que rien ne bougeait qu'il est devenu clair
+  que le verdict portait sur un AUTRE NŒUD que celui qu'on regarde.
+· **UN DÉLAI DE CONFIRMATION A ÉTÉ ÉCRIT PUIS RETIRÉ** : masquer immédiat, montrer après 140 ms de
+  verdict stable. Il supprimait le symptôme et aurait masqué la cause — et la cause aurait ressurgi
+  ailleurs. On ignore les notifications d'un nœud détaché, et `renderOvOnly` repointe l'observateur
+  au lieu d'attendre le tick : aucun seuil, aucun délai. *Borner le symptôme n'est pas corriger la
+  cause* (A100).
+· **LA CLÉ D'IDEMPOTENCE PORTE LE CONTENU, PAS LE NŒUD** : elle valait le nœud de la carte, que
+  tout rendu remplace — on reconstruisait donc la barre à chaque fois, animation d'entrée comprise.
+  Le COMPTE en est exclu et se peint sur place : l'y mettre aurait rendu le clignotement au premier
+  cochage, le défaut signalé par une autre porte.
+
 **A114. « TERMINER LA SESSION ? » DIT CE QUI RESTE OUVERT (v5.7).** La fenêtre portait le titre, la
 durée et les conséquences — **aucun état**. C'est pourtant le seul instant où « il reste deux étapes
 vitales non cochées au bloc 3 » sert encore : une seconde plus tard, la session est archivée.

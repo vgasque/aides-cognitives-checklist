@@ -5316,6 +5316,26 @@ await sec('P1 · le retour au bloc courant', async () => {
     await page.waitForTimeout(500);
     t('… et la barre s\'efface d\'elle-même une fois revenu', !(await vu()));}
   t('le défilement de départ était bien en haut', yAvant<40, yAvant+' px');
+  /* ⚠ ELLE NE CLIGNOTE PAS À CHAQUE RE-RENDU (v5.7, signalé à l'usage). L'observateur restait
+     pointé sur l'ANCIENNE carte entre le rendu du journal et le prochain tick — un nœud détaché
+     ne coupe aucune zone, donc « hors zone », donc la barre paraissait (mesuré : visible de
+     146 à 214 ms) avant d'être reprise. On mesure la PROPRIÉTÉ : la carte étant sous les yeux,
+     aucun rendu ne doit rendre la barre visible, fût-ce une image. */
+  await page.evaluate(async()=>{const c=document.querySelector('.ov-block.cur');
+    if(c){const y=window.scrollY+c.getBoundingClientRect().top-140;window.scrollTo(0,Math.max(0,y));}
+    await new Promise(r=>setTimeout(r,500));});
+  const clign=await page.evaluate(async()=>{
+    const h=document.getElementById('blkReturn');let vues=0;
+    const mo=new MutationObserver(()=>{if(!h.hidden)vues++;});
+    mo.observe(h,{attributes:true,attributeFilter:['hidden']});
+    for(let k=0;k<3;k++){renderOvOnly();await new Promise(r=>setTimeout(r,300));}
+    mo.disconnect();
+    const c=document.querySelector('.ov-block.cur');const r=c.getBoundingClientRect();
+    const d=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock-h'))||64;
+    return {vues, dansZone:r.bottom>stickBase()&&r.top<innerHeight-(d+16), fin:!h.hidden};});
+  t('témoin : la carte courante est bien SOUS LES YEUX', clign.dansZone===true);
+  t('… trois re-rendus ne font pas clignoter la barre', clign.vues===0 && clign.fin===false,
+    `${clign.vues} apparition(s)`);
   await page.close();
 });
 

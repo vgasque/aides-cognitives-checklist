@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-/ptPrnCQ8mxGwuyfa3N8OlAPwkYtkOIsVzyWNMLXLRo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Pf2Ew9QiWVGLb3dLIKaHeCF7JNECveqeIroE3t1Yn64='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -12508,18 +12508,42 @@ document.addEventListener('visibilitychange',()=>{
    · IDEMPOTENT : on ne réinstalle l'observateur que si la carte a changé — la fonction est
      appelée à chaque tick, elle doit donc être gratuite quand rien ne bouge.
    · ELLE NE DÉFILE JAMAIS TOUTE SEULE (règle 11) : c'est une PORTE, pas un rappel à l'ordre. */
-let _bkrIo=null,_bkrCard=null;
+/* ⚠ ELLE NE CLIGNOTE PAS À CHAQUE RE-RENDU (v5.7, signalé à l'usage : « à chaque fois que la vue
+   se met à jour, le bandeau vert s'affiche quelques ms, c'est moche et très perturbant »).
+   La clé d'idempotence était le NŒUD de la carte — or tout rendu du journal le remplace. On
+   reconstruisait donc la barre à chaque fois : l'HTML était écrit alors que `hidden` valait encore
+   sa valeur d'AVANT, l'observateur ne rendant son verdict qu'à l'image suivante. Mesuré :
+   `hidden=false` → HTML → `hidden=true`, soit une image ou deux de barre peinte pour rien, avec
+   son animation d'entrée rejouée par-dessus.
+   LA CLÉ PORTE DONC LE CONTENU (identité du bloc + libellé), pas le nœud :
+    · contenu inchangé -> on se contente de RÉ-OBSERVER le nouveau nœud. Aucune écriture, donc
+      aucun clignotement et aucun rejeu d'animation — la barre reste exactement dans l'état où
+      l'observateur l'avait laissée ;
+    · contenu changé   -> on MASQUE D'ABORD, on peint ensuite. Une barre neuve ne peut plus
+      apparaître avant que l'observateur ait dit qu'elle doit exister. C'est le même principe que
+      « l'état est appliqué d'abord, l'animation le décore » (A68/2), pris par l'autre bout.
+   ⚠ LE COMPTE EST HORS DE LA CLÉ, et se peint sur place : il change à chaque coche, et l'inclure
+   aurait rendu la barre à son clignotement au premier geste — le défaut signalé, par une autre
+   porte. Même anti-churn que `paintCnAgo`. */
+let _bkrIo=null,_bkrCard=null,_bkrKey='';
 function syncBlkReturn(){
   const host=document.getElementById('blkReturn');if(!host)return;
   const card=(state.view==='read'&&crisisOnScreen())?document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap'):null;
-  if(card===_bkrCard)return;
-  _bkrCard=card;
-  if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
-  if(!card||!('IntersectionObserver' in window)){host.hidden=true;host.innerHTML='';return;}
+  if(!card||!('IntersectionObserver' in window)){
+    if(card===_bkrCard&&!_bkrKey)return;
+    if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
+    _bkrCard=card;_bkrKey='';host.hidden=true;host.innerHTML='';return;}
   const num=(card.querySelector('.ov-n')||{}).textContent||'';
   const ttl=(card.querySelector('.ov-t')||{}).textContent||'';
   const cnt=(card.querySelector('.ov-c')||{}).textContent||'';
   const nom=sstr((num?'Bloc '+num.trim().replace(/\D+$/,'')+(ttl?' · ':''):'')+ttl.trim(),40)||'le bloc en cours';
+  const key=(card.getAttribute('data-ovi')||card.getAttribute('data-svgo')||'')+'|'+nom;
+  const memeBarre=(key===_bkrKey&&!!host.firstElementChild);
+  if(card===_bkrCard&&memeBarre){majBkrCnt(host,cnt);return;}
+  _bkrCard=card;_bkrKey=key;
+  if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
+  if(memeBarre){majBkrCnt(host,cnt);_bkrIo=obsBkr(host,card);return;}
+  host.hidden=true;                               // jamais peinte avant le verdict
   host.innerHTML='<button type="button" class="bkr" id="bkrBtn"><span aria-hidden="true">↩</span>'
     +'<span class="bkr-t">'+esc(nom)+'</span>'+(cnt?'<span class="bkr-c">'+esc(cnt.trim())+'</span>':'')+'</button>';
   const b=document.getElementById('bkrBtn');
@@ -12529,11 +12553,34 @@ function syncBlkReturn(){
          au bord. C'est une navigation DEMANDÉE d'un tap, pas un défilement autonome. */
       const y=window.scrollY+c.getBoundingClientRect().top-(typeof stickBase==='function'?stickBase():64)-8;
       window.scrollTo({top:Math.max(0,y),behavior:'auto'});};}
+  _bkrIo=obsBkr(host,card);}
+/* Le compte se peint SUR PLACE (anti-churn) : hors de la clé, il ne peut pas provoquer de
+   reconstruction, donc pas de clignotement au cochage. */
+function majBkrCnt(host,cnt){
+  const e=host.querySelector('.bkr-c'),v=(cnt||'').trim();
+  if(e&&e.textContent!==v)e.textContent=v;}
+/* ⚠ UN NŒUD DÉTACHÉ N'EST PAS « HORS ZONE », IL N'EST PLUS LÀ — ET C'ÉTAIT TOUTE LA CAUSE
+   (v5.7). Entre un re-rendu du journal et le prochain passage de `syncBlkReturn`, l'observateur
+   surveille encore l'ANCIENNE carte, désormais détachée : un élément détaché ne coupe aucune
+   zone, donc `isIntersecting` vaut FAUX, donc la barre s'affichait — puis disparaissait dès que
+   l'observateur était repointé sur la carte neuve. Mesuré : apparition à 146 ms, retrait à 214.
+   ⚠ ET DEUX EXPLICATIONS PLAUSIBLES ONT ÉTÉ ÉCARTÉES PAR LA MESURE, dans cet ordre : « la
+   première notification porte une géométrie transitoire » (j'ai tranché moi-même en synchrone —
+   toujours faux), puis « la page se pose encore » (échantillonnée à 0-300 ms : rTop 243, rBot 802,
+   `stickBase` 127, `--dock-h` 72, INVARIANTS). C'est en constatant que rien ne bougeait qu'il est
+   devenu clair que le verdict portait sur un autre nœud que celui qu'on regarde.
+   On ignore donc les notifications d'un nœud détaché, et `render`/`renderOvOnly` repointent
+   l'observateur AU LIEU d'attendre le prochain tick. Aucun délai, aucun seuil : la barre ne peut
+   plus se tromper de sujet. */
+function obsBkr(host,card){
   const top=Math.round((typeof stickBase==='function'?stickBase():64));
   const dh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock-h'))||64;
-  _bkrIo=new IntersectionObserver(es=>{es.forEach(e=>{host.hidden=e.isIntersecting;});},
-    {threshold:0,rootMargin:'-'+top+'px 0px -'+Math.round(dh+16)+'px'});
-  _bkrIo.observe(card);}
+  const bas=Math.round(dh+16);
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{
+    if(!e.target.isConnected)return;              // remplacé par un rendu : pas un verdict
+    host.hidden=e.isIntersecting;});},
+    {threshold:0,rootMargin:'-'+top+'px 0px -'+bas+'px'});
+  io.observe(card);return io;}
 function paintCnAgo(now){document.querySelectorAll('.cn-log[id^="cnlog-"]').forEach(el=>{
   const v=cnLogTxt(el.id.slice(6),now);if(el.innerHTML!==v)el.innerHTML=v;});}
 /* ÉCHU — prédicat UNIQUE (v5.7). Il vivait dans `updateRtStrip` et le panneau ne pouvait
@@ -20654,6 +20701,10 @@ function ovAfterCheck(f,sec,anchorKey){
      divergerait (leçon v4.42.0 : les deux copies du cœur de cochage avaient divergé). Le geste
      reste chirurgical là où il compte : rien n'est reconstruit dans la colonne d'ACTION, donc
      rien ne bouge sous le doigt — et le défilement du rail est préservé par `repaintRailLad`. */
+  /* La barre de retour observe la carte COURANTE : un rendu du journal la remplace, donc on
+     repointe ici même. Attendre le prochain tick laissait l'observateur sur un nœud détaché —
+     cf. la doctrine d'`obsBkr`. */
+  try{syncBlkReturn();}catch(e){}
   repaintRailLad();
   ovPaintLive(f);}
 // v4.16.1 : le DÉPLIAGE manuel d'une instance (chip tapée, ligne rouverte) est une
