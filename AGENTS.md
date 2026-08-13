@@ -2608,6 +2608,59 @@ là où l'état vit déjà, en quatrième famille après minuteurs, compteurs et
   au pied de l'alerte (ECAM). Le volet en donne la LECTURE, pas la commande — sinon le même verbe
   aurait deux adresses (§ 5.5).
 
+**A129. LE GRAIN DE L'IMPORT EST L'ENTITÉ — L'ATELIER (v5.7, plan A/F7).** Un fichier entrait EN
+BLOC : on répondait à trois questions (destination, fusion, doublons) sans avoir jamais vu ce
+qu'il contenait. Sur un export de bibliothèque, c'est dix-huit aides qu'on accepte sur la foi d'un
+nom de fichier — et le seul recours après coup est de les supprimer une par une. L'atelier
+renverse l'ordre : d'abord **CE QUE** l'on importe, ensuite **OÙ**. Une rangée par entité (type,
+titre, état, ce qu'il reste à relire), tout coché au départ — l'atelier sert à RETIRER, il ne
+demande pas de tout re-cocher.
+· **CE N'EST PAS UN ÉCRAN DE PLUS SUR UN CHEMIN DE CRISE** : l'import est un geste d'AUTEUR, à
+  froid, et c'est le SEUL moment où le contenu d'un fichier est encore inspectable. La règle 11
+  vise ce qui s'impose pendant un soin ; ici rien ne surgit — on a demandé à importer.
+· **LE FILTRAGE PRÉCÈDE TOUTE ÉCRITURE, ET C'EST LE POINT DUR** : les deux listes sont réduites à
+  la sélection AVANT les questions, donc avant `migrate`, `persist` et surtout `importAtts`. Un
+  binaire du .zip n'entre JAMAIS pour une entité décochée — non pas par un filtre posé après coup,
+  mais parce que **la liste filtrée est la seule qui existe** ensuite. Le témoin le mesure sur un
+  vrai .zip : `IDB.getAtt` répond pour la cochée, pas pour l'autre.
+· **LA RANGÉE EST L'OBJET QUI SERA ÉCRIT** : on migre dans l'atelier, une fois, et l'on repose
+  l'objet migré dans le lot. `migrate` étant idempotent (il tourne à chaque chargement), la boucle
+  d'import le rejoue sans conséquence : la règle 5 tient — le point d'assainissement reste unique,
+  il est seulement atteint plus tôt. Une prévisualisation calculée à côté serait une seconde
+  vérité, donc une divergence en attente.
+· **LA PASTILLE « △ n » EST LE MÊME CALCUL QUE LE VOLET DE L'ÉDITEUR** (`reviewNotes` /
+  `reviewNotesProto`) : deux comptes écrits séparément divergeraient, et l'auteur apprendrait deux
+  fois le même signe (§ 5.5). Registre ATTENTION, **jamais un aplat rouge** : elle ne conditionne
+  rien — on importe ce qu'on veut, et une remarque de relecture n'est pas un refus (A11).
+· **L'ÉTAT ENTRANT EST PRÉSERVÉ, ET `importForceDraft` EST PURGÉ** (règle 14). Les TROIS portes
+  forçaient « Brouillon » — c'était un proxy de « vous n'avez pas encore relu ceci ». L'atelier
+  montre désormais cet état AVANT l'écriture, rangée par rangée, avec ce qu'il reste à relire :
+  forcer en plus, c'était mentir sur la donnée. Et le coût était réel — **restaurer une sauvegarde
+  ramenait dix-huit aides validées en brouillon**, donc hors de l'accès de crise (un brouillon ne
+  s'épingle pas, et il est masqué aux lecteurs d'une bibliothèque partagée).
+  ⚠ **L'OBJECTION EST NOMMÉE** : un fichier peut déclarer « Validée » sans avoir été relu. Ce qui
+  la tient n'est pas le forçage mais (a) la rangée, qui DIT l'état avant d'écrire, et (b) le
+  prompt IA, qui impose `"status":"draft"` et dont `audit-prompt` vérifie le contrat — le cas
+  « contenu généré » arrive donc en brouillon par sa source, pas par une réécriture chez nous.
+· **UN FICHIER QUI NE PORTE QUE DES RÉFÉRENCES PASSE ENFIN** : il franchissait la garde de
+  structure puis tombait sur `imp.fiches.length` — « Import interrompu », pour un fichier
+  parfaitement valide. Les deux tableaux sont normalisés à l'entrée de l'atelier ; et les
+  questions qui suivent comptent la SÉLECTION, jamais le fichier (annoncer dix-huit fiches pour
+  deux cochées mesurerait le fichier, pas ce qu'on est en train de faire).
+· **UN CONTENU VIDE SE DIT** : un export sans aide ni référence produisait « 0 fiche importée » —
+  une phrase qui ne désigne pas sa cause. Il est annoncé avant d'ouvrir quoi que ce soit.
+· **GABARIT ATELIER (720), RANGÉES ET NON CARTES** (A25, A16) : c'est une liste qu'on parcourt,
+  pas un choix borné ; la CIBLE est la rangée entière (`<label>`), jamais la case de 24 px.
+  « Tout cocher / Tout décocher » écrit sur les cases EN PLACE — un re-rendu ferait perdre le
+  focus et remonterait le défilement (leçon v4.78.0).
+· **TÉMOINS** : section `A129 · l'atelier d'import` dans `audit-doctrine` (fichier .zip fabriqué
+  par `zipBuild`, entré par `readImportFile` — l'entonnoir RÉEL des trois portes), vérifiée
+  CAPABLE D'ÉCHOUER (filtrage neutralisé + forçage réintroduit → 3 rouges, fichiers restaurés à
+  l'octet) ; plus une surface `atelier d'import` dans `audit-a11y`, qui construit son cas avec les
+  deux natures ET une pastille — sans elles, la moitié des objets de la rangée ne serait pas
+  mesurée. ⚠ Le contrôle « rien n'est écrit tant qu'on n'a pas validé » est un GARDE d'ordre : il
+  ne peut rougir que si une écriture précédait l'ouverture ; celui qui discrimine est le filtrage.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

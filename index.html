@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-WqJgX7GV+jr9y9wqr6v4T0mOHNoZsLEibWwPjIxnl9Q='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-r34MQo+avk/mRN6pzWjPnojXgleYCIj4h1tPBkFkH0k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6843,6 +6843,31 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .crt-copy{min-height:42px;padding:0 16px;border:0;border-radius:8px;background:var(--primary);color:var(--on-primary);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .crt-copy:hover{background:var(--primary-hi)}
   .crt-copy:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ═══ ATELIER D'IMPORT (v5.7, A129) — UNE RANGÉE PAR ENTITÉ, AVANT TOUTE ÉCRITURE ═════════
+     Grammaire de `.doc-hit` et de `.att-row` : ce qui se LIT et se choisit prend une LIGNE
+     (A16), jamais une carte — on ne compte pas ces objets, on les parcourt. Filet
+     `--line-strong` : ces rangées se dénombrent (WCAG 1.4.11), comme celles du répertoire.
+     La CIBLE est la rangée entière (c'est un `<label>`), pas la case : même règle que le
+     titre du chapeau « Ne pas oublier » (v5.0.0) — sous stress on vise une ligne, pas 24 px. */
+  .imp-intro{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 12px}
+  .imp-tools{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+  .imp-n{margin-left:auto;font-size:var(--t-meta);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .imp-list{display:flex;flex-direction:column;gap:8px}
+  .imp-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);cursor:pointer}
+  .imp-row:hover{border-color:var(--ink-soft);background:var(--surface-2)}
+  /* L'anneau vit sur la RANGÉE : la case est le seul élément focalisable, mais c'est la rangée
+     qu'on vise et qu'on doit voir désignée (patron `.card:has(.card-open:focus-visible)`). */
+  .imp-row:focus-within{outline:2px solid var(--primary);outline-offset:2px}
+  .imp-row input{flex:none;width:24px;height:24px;accent-color:var(--primary)}
+  .imp-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .imp-t{font-size:var(--t-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
+  .imp-kind{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  /* Registre ATTENTION pour « il reste n choses à relire » — la paire --verify/--verify-soft des
+     étapes △, déjà auditée. Jamais un aplat rouge : ce n'est ni un danger ni un refus (A11). */
+  .imp-sub .tag.todo{background:var(--verify-soft);color:var(--verify)}
+  .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .imp-foot .btn{flex:1 1 auto}
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
      Elle remplace `.crt-drop` (PURGÉ avec son balisage, règle 14) ET les boutons `.add-line`
      des sections qui joignent un fichier. Le geste au clic est INCHANGÉ : elle a seulement gagné
@@ -8297,7 +8322,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <!-- Dialogue « Créer » (SPEC gestion §2.1) : point d'entrée UNIQUE de la création — 3 méthodes
      en cartes verticales ; la méthode IA est un SOUS-ÉCRAN du même dialogue (retour « ‹ Autres
-     méthodes »). Tout import (IA ou .json) arrive en état Brouillon. -->
+     méthodes »). Un import passé par ici s'ouvre dans l'ATELIER, comme tous les autres : il n'est
+     plus forcé en Brouillon (v5.7, A129 — l'état vient du fichier et se lit avant écriture). -->
 <div class="ai-modal" id="createModal" role="dialog" aria-modal="true" aria-labelledby="createModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="createModalTitle">Créer</h3><button class="ai-x" id="createX" aria-label="Fermer">×</button></div>
   <!-- Type de contenu : MÊME sélecteur segmenté à pastille glissante que la tab bar basse
@@ -8309,6 +8335,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <button class="seg-btn" role="tab" data-createkind="protocols" aria-selected="false" aria-controls="createBody" tabindex="-1"><span class="seg-ic" aria-hidden="true"></span><span>Protocole</span></button>
   </div>
   <div id="createBody" class="ai-body" role="tabpanel"></div>
+</div></div>
+<!-- ATELIER D'IMPORT (v5.7, A129) : un fichier n'entre plus en bloc. On MONTRE ce que le fichier
+     contient — une rangée par entité, son type, son état, ce qu'il lui reste à relire — et l'on
+     choisit AVANT que rien ne soit écrit. Gabarit ATELIER (720, défaut) : c'est une liste qu'on
+     parcourt, pas un choix borné. Corps peint à l'ouverture (`paintImpList`) : rien ici, sinon
+     deux sources pour les mêmes rangées. -->
+<div class="ai-modal" id="impModal" role="dialog" aria-modal="true" aria-labelledby="impTitle"><div class="ai-card">
+  <div class="ai-top"><h3 id="impTitle">Importer</h3><button class="ai-x" id="impX" aria-label="Fermer">×</button></div>
+  <p class="imp-intro" id="impIntro"></p>
+  <div class="imp-tools">
+    <button type="button" class="btn" id="impAll">Tout cocher</button>
+    <button type="button" class="btn" id="impNone">Tout décocher</button>
+    <span class="imp-n" id="impN"></span>
+  </div>
+  <div id="impList" class="ai-body imp-list"></div>
+  <div class="imp-foot">
+    <button type="button" class="btn" id="impCancel">Annuler</button>
+    <button type="button" class="btn primary" id="impGo">Importer</button>
+  </div>
 </div></div>
 <!-- K3/K8/K9 (v4.65.0) : LA PORTE « + » de l'éditeur — un seul point d'insertion, où chaque type
      se présente (glyphe, nom, et une ligne qui dit à quoi il sert). C'est là que les registres
@@ -13769,9 +13814,9 @@ function landOnBout(){
 function renderLibrary(){
   /* Un .json ou un .zip lâché sur la bibliothèque s'importe — c'est l'écran où cela a un sens, et
      c'est le seul type qu'il accepte (une image lâchée ici est nommée et refusée, plutôt que de
-     faire quitter l'app comme avant). Comme tout import, il arrive en BROUILLON : jamais
-     « Validée » d'office, quel que soit le chemin emprunté. */
-  upTarget('data',files=>{importForceDraft=true;readImportFile(files[0]);});
+     faire quitter l'app comme avant). Comme tout import, il passe par l'ATELIER (A129) : on voit
+     les entités du fichier et l'on choisit avant qu'une seule ligne ne soit écrite. */
+  upTarget('data',files=>{readImportFile(files[0]);});
   state.section==='protocols'?renderProtocols():(state.section==='fiches'?renderFiches():renderAll());}
 // Titre courant dans la barre (fiche/protocole, lecture ou édition) : classe .titled tant qu'il
 // est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
@@ -24682,12 +24727,11 @@ AVANT DE RÉPONDRE, VÉRIFIE
    Point d'entrée UNIQUE de la création (bouton « Créer » de l'accueil) : 3 méthodes en cartes —
    Manuellement / Avec l'IA (aides seulement) / Importer un .json ; la méthode IA est un
    SOUS-ÉCRAN du même dialogue (prompt à copier + zone de dépôt, retour « ‹ Autres méthodes »).
-   Tout import passé par CE dialogue arrive en état BROUILLON (importForceDraft) — jamais
-   « Validée » d'office ; l'import du pied de page (restauration / échange d'équipe) conserve
-   lui les états du fichier. */
+   Un import passé par ce dialogue suit le MÊME chemin que les autres : l'atelier (A129). Le
+   drapeau `importForceDraft`, qui forçait l'état Brouillon, est PURGÉ avec la raison qui le
+   justifiait — l'état vient du fichier et se lit rangée par rangée avant écriture (règle 14). */
 const createModal=document.getElementById('createModal');
 let pendingOpenImport=false;   // ouvrir directement la fiche importée (méthode IA)
-let importForceDraft=false;    // forcer l'état Brouillon des éléments importés (dialogue Créer)
 /* Sélecteur de TYPE du dialogue « Créer » (v4.4.2) : aide cognitive <-> protocole, au même
    composant segmenté que la tab bar (.seg, pastille glissante). Il pilote `state.section` —
    source unique du type dans tout le dialogue (brouillon parqué, carte IA, aiguillage
@@ -24721,7 +24765,7 @@ function crtCard(id,glyph,t,d){return `<button class="crt-card" id="${id}"><span
    ne laisse plus le dialogue fermé sans rien avoir importé. */
 function bindCreateDrop(el,openAfter){
   bindUpDrop(el,'data',files=>{
-    pendingOpenImport=openAfter;importForceDraft=true;closeCreateDlg();readImportFile(files[0]);},false);}
+    pendingOpenImport=openAfter;closeCreateDlg();readImportFile(files[0]);},false);}
 function renderCreateDlg(screen,park){
   const proto=state.section==='protocols';
   // Le segment ne vit que sur l'écran des méthodes (les sous-écrans IA / import sont propres au
@@ -25064,11 +25108,81 @@ function normalizeImport(imp){
   out.fiches=aides;
   if(refs.length)out.protocols=(Array.isArray(out.protocols)?out.protocols:[]).concat(refs);
   return out;}
+/* ═══ L'ATELIER D'IMPORT (v5.7, A129) — ON VOIT CE QU'ON ÉCRIT AVANT DE L'ÉCRIRE ═════════════
+   Un fichier entrait EN BLOC : on répondait à trois questions (destination, fusion, doublons)
+   sans avoir jamais vu ce qu'il contenait. Sur un export de bibliothèque, c'est dix-huit aides
+   qu'on accepte sur la foi d'un nom de fichier — et le seul recours après coup est de supprimer
+   une par une. L'atelier renverse l'ordre : d'abord CE QUE l'on importe, ensuite OÙ.
+   Ce n'est pas un écran de plus sur un chemin de crise : l'import est un geste d'AUTEUR, à
+   froid, et c'est le seul moment où le contenu d'un fichier est encore inspectable. */
+let _impRes=null,_impRows=[],_impSel=null;
+/* Les rangées SONT les objets qui seront écrits, pas une estimation faite à côté : on migre ICI,
+   une fois, et l'on repose l'objet migré dans `imp`. `migrate` est idempotent (il tourne à chaque
+   chargement) — la boucle d'import le rejoue donc sans conséquence, et la règle 5 tient : le
+   point d'assainissement reste unique, il est seulement atteint plus tôt. */
+function impRowsOf(imp){
+  const rows=[];
+  imp.fiches.forEach((d,i)=>{const o=imp.fiches[i]=migrate(d);
+    rows.push({key:'f:'+i,o,fem:true,kind:'Aide',notes:reviewNotes(o).length});});
+  imp.protocols.forEach((d,i)=>{const o=imp.protocols[i]=migrateProtocol(d);
+    rows.push({key:'p:'+i,o,fem:false,kind:'Référence',notes:reviewNotesProto(o).length});});
+  return rows;}
+/* La rangée dit QUATRE choses, et pas une de plus : ce que c'est, comment ça s'appelle, dans
+   quel ÉTAT le fichier le déclare, et ce qu'il resterait à relire. La pastille « △ n » est le
+   MÊME calcul que le volet « Relecture · n » de l'éditeur (`reviewNotes`/`reviewNotesProto`) :
+   deux comptes écrits séparément finiraient par diverger, et l'auteur apprendrait deux fois le
+   même signe (§ 5.5). Elle ne conditionne rien — on importe ce qu'on veut. */
+function impRowHtml(r){
+  const o=r.o,nd=(o.docs||[]).length;
+  const titre=String(o.title||'').trim()||'Sans titre';
+  // Le titre s'ellipse (une rangée garde son rythme) — mais il ne se PERD pas : `title` porte le
+  // libellé entier, discriminant compris, comme la rangée du répertoire.
+  return `<label class="imp-row"><input type="checkbox" data-impsel="${esc(r.key)}"${_impSel.has(r.key)?' checked':''}>`
+    +`<span class="imp-tx"><b class="imp-t" title="${esc(titre+(o.discriminant?' — '+o.discriminant:''))}">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</b>`
+    +`<span class="imp-sub"><span class="imp-kind">${r.kind}</span>`
+    +statusChip(o.status,r.fem,{always:true})
+    +(r.notes?`<span class="tag todo" title="Il reste ${r.notes} remarque(s) de relecture — le volet « Relecture » de l'éditeur les détaille">△ ${r.notes}<span class="sr-only"> remarque(s) de relecture</span></span>`:'')
+    +(nd?`<span>${nd} PDF</span>`:'')
+    +`</span></span></label>`;}
+function paintImpList(){document.getElementById('impList').innerHTML=_impRows.map(impRowHtml).join('');impSyncSel();}
+/* Le pied ANNONCE ce qu'on obtient avant de fermer (patron de la feuille de filtres, A26). Le
+   bouton est FERMÉ à zéro sélection — apparence de « fermé » du dossier (`:disabled`), et le
+   compte juste au-dessus dit pourquoi : un bouton qui n'importerait rien serait un bouton mort. */
+function impSyncSel(){
+  const n=_impSel.size,tot=_impRows.length;
+  document.getElementById('impN').textContent=n+' / '+tot+' coché'+(n>1?'s':'');
+  const go=document.getElementById('impGo');
+  go.textContent=n?('Importer '+(n>1?('les '+n+' éléments'):'cet élément')):'Importer';
+  go.disabled=!n;}
+function impSetAll(on){_impSel.clear();if(on)_impRows.forEach(r=>_impSel.add(r.key));
+  // On ÉCRIT sur les cases en place, jamais un re-rendu : reconstruire la liste sous le doigt
+  // lui ferait perdre le focus et remonterait le défilement (leçon v4.78.0).
+  document.querySelectorAll('#impList [data-impsel]').forEach(cb=>{cb.checked=on;});impSyncSel();}
+function importWorkshop(imp,zip){
+  if(_impRes){const r=_impRes;_impRes=null;r(null);}   // un seul atelier à la fois (patron confirmDlg)
+  _impRows=impRowsOf(imp);
+  // TOUT COCHÉ AU DÉPART : le geste ordinaire est « j'importe ce fichier » — l'atelier sert à
+  // RETIRER ce dont on ne veut pas, il ne demande pas de tout re-cocher à la main.
+  _impSel=new Set(_impRows.map(r=>r.key));
+  document.getElementById('impIntro').textContent=
+    'Ce fichier contient '+_impRows.length+' élément'+(_impRows.length>1?'s':'')
+    +(zip?' et ses documents PDF':'')+'. Décochez ce que vous ne voulez pas : rien n\'est écrit avant votre validation. '
+    +'L\'état (Validée / À relire / Brouillon) est celui du fichier.';
+  paintImpList();
+  impModal.classList.add('on');
+  return new Promise(res=>{_impRes=res;});}
+function _impEnd(v){impModal.classList.remove('on');const r=_impRes;_impRes=null;_impRows=[];if(r)r(v);}
+document.getElementById('impGo').onclick=()=>{if(_impSel&&_impSel.size)_impEnd(new Set(_impSel));};
+document.getElementById('impCancel').onclick=()=>_impEnd(null);
+document.getElementById('impAll').onclick=()=>impSetAll(true);
+document.getElementById('impNone').onclick=()=>impSetAll(false);
+document.getElementById('impList').addEventListener('change',e=>{
+  const cb=e.target&&e.target.closest?e.target.closest('[data-impsel]'):null;if(!cb)return;
+  if(cb.checked)_impSel.add(cb.dataset.impsel);else _impSel.delete(cb.dataset.impsel);
+  impSyncSel();});
+bindModalDismiss(impModal,()=>_impEnd(null));
 function readImportFile(file){const r=new FileReader();
   r.onload=async()=>{
-    // État Brouillon forcé ? (import venu du dialogue « Créer » — SPEC §2.1). Drapeau consommé
-    // TOUT DE SUITE : quel que soit le sort de cet import, il ne déteint pas sur le suivant.
-    const forceDraft=importForceDraft;importForceDraft=false;
     // PARSE séparé du reste : « Fichier illisible » ne doit être dit QUE si le fichier est
     // illisible — pas quand une étape ultérieure (stockage saturé en milieu d'import…) échoue.
     // Deux formats acceptés (v4.5.0) : .json (historique) et .zip « avec documents » — détecté
@@ -25096,12 +25210,30 @@ function readImportFile(file){const r=new FileReader();
       toast('⚠ Ce fichier est un JSON valide, mais il ne contient ni « aids » ni « fiches » : '
         +'ce n\'est pas un export de l\'application.',9000,true);return;}
     try{
+    /* ATELIER (A129) — LE GRAIN DE L'IMPORT EST L'ENTITÉ, ET LE FILTRAGE PRÉCÈDE TOUTE ÉCRITURE.
+       Les deux listes sont réduites ICI à ce qui a été coché : tout ce qui suit — questions de
+       destination et de fusion, `migrate`, `persist` et surtout `importAtts` — ne voit plus que
+       la sélection. C'est ce qui fait qu'un binaire du .zip n'entre JAMAIS pour une entité qu'on
+       n'a pas voulue : ce n'est pas un filtre posé après coup, c'est la seule liste qui existe.
+       Les deux tableaux sont normalisés d'abord : un fichier ne portant QUE des références
+       passait la garde de structure puis tombait sur `imp.fiches.length` — donc « Import
+       interrompu », pour un fichier parfaitement valide. */
+    imp.fiches=Array.isArray(imp.fiches)?imp.fiches:[];
+    imp.protocols=Array.isArray(imp.protocols)?imp.protocols:[];
+    if(!imp.fiches.length&&!imp.protocols.length){
+      pendingOpenImport=false;
+      toast('Ce fichier ne contient aucune aide ni référence — rien à importer.',7000,true);return;}
+    const sel=await importWorkshop(imp,!!zipAtts);
+    if(!sel){pendingOpenImport=false;return;}
+    imp.fiches=imp.fiches.filter((_,i)=>sel.has('f:'+i));
+    imp.protocols=imp.protocols.filter((_,i)=>sel.has('p:'+i));
     // DESTINATION : Perso par défaut. Si une bibliothèque PARTAGÉE ÉDITABLE est sélectionnée à
     // l'accueil, on DEMANDE (importer dans une bibliothèque partagée = publier à toute l'équipe :
     // jamais en silence). Lecteur d'une bibliothèque partagée -> Perso d'office (pas de droits).
     let targetLib=null;
+    const nSel=imp.fiches.length+imp.protocols.length;
     if(state.scope&&canEditScope(state.scope)){
-      const dest=await confirmDlg('Où importer '+(imp.fiches.length>1?'ces '+imp.fiches.length+' fiches':'cette fiche')+' ?',{title:'Destination de l\'import',yes:'Dans « '+(libName(state.scope)||'la bibliothèque partagée')+' » (visible par les membres)',no:'Dans ma bibliothèque perso'});
+      const dest=await confirmDlg('Où importer '+(nSel>1?'ces '+nSel+' éléments':'cet élément')+' ?',{title:'Destination de l\'import',yes:'Dans « '+(libName(state.scope)||'la bibliothèque partagée')+' » (visible par les membres)',no:'Dans ma bibliothèque perso'});
       if(dest===null){pendingOpenImport=false;return;}
       if(dest)targetLib=state.scope;
     }
@@ -25111,7 +25243,9 @@ function readImportFile(file){const r=new FileReader();
     // import de PLUSIEURS fiches, et ne touche QUE la bibliothèque de destination.
     // Tri-état : Fusionner (true) / Remplacer tout (false) / ✕-Échap (null) = import ABANDONNÉ
     // (une étape destructive doit pouvoir être annulée proprement).
-    const merge=imp.fiches.length>1?await confirmDlg('Import de '+imp.fiches.length+' fiches.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
+    // Le compte est celui de la SÉLECTION, jamais celui du fichier : une question qui annoncerait
+    // dix-huit fiches pour deux cochées mesurerait le fichier, pas ce qu'on est en train de faire.
+    const merge=nSel>1?await confirmDlg('Import de '+nSel+' éléments.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
     if(merge===null){pendingOpenImport=false;return;}
     const hasProtos=Array.isArray(imp.protocols)&&imp.protocols.length>0;
     if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par le contenu du fichier. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
@@ -25140,8 +25274,13 @@ function readImportFile(file){const r=new FileReader();
     let replace=(clashes+clashesP)?await confirmDlg([clashes?clashes+' fiche(s)':'',clashesP?clashesP+' protocole(s)':''].filter(Boolean).join(' et ')+' déjà présent(e)(s) (même identifiant).',{title:'Doublons détectés',yes:'Remplacer les existants',no:'Garder les deux'}):false;
     if(replace===null){pendingOpenImport=false;return;}
     const added=[];
+    /* L'ÉTAT ENTRANT EST PRÉSERVÉ (A129) — il était FORCÉ à « Brouillon » par tous les chemins.
+       C'était un proxy de « vous n'avez pas encore relu ceci » ; l'atelier montre désormais cet
+       état AVANT l'écriture, rangée par rangée, avec ce qu'il reste à relire. Forcer en plus,
+       c'était mentir sur la donnée — et surtout casser la restauration d'une sauvegarde, où dix-
+       huit aides validées revenaient toutes en brouillon, donc hors de l'accès de crise
+       (un brouillon ne s'épingle pas, et il est masqué aux lecteurs d'une bibliothèque partagée). */
     for(let d of imp.fiches){d=migrate(d);
-      if(forceDraft)d.status='draft';   // dialogue « Créer » : jamais « Validée » d'office
       d.library=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
       // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
       // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
@@ -25158,7 +25297,6 @@ function readImportFile(file){const r=new FileReader();
     let addedP=0;
     if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
       for(let d of imp.protocols){d=migrateProtocol(d);
-        if(forceDraft)d.status='draft';
         d.library=targetLib;
         await importAtts(d,zipAtts,sameSpace);
         if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===targetLib))d.category='';

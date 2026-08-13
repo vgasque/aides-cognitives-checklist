@@ -232,6 +232,19 @@ const SURFACES = [
       if(g){g.docs=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
       openEdit(f.id);await new Promise(r=>setTimeout(r,500));
       openAttPicker(state.draft,()=>{}); } },
+  /* ATELIER D'IMPORT (v5.7, A129) : la surface où l'on décide de ce qui entre dans la
+     bibliothèque. Ouverte par son VRAI point d'entrée — `readImportFile`, l'entonnoir des trois
+     portes — avec un fichier qui porte les DEUX natures et une pastille de relecture : sans
+     elles, la moitié des objets de la rangée ne serait pas mesurée. */
+  { nom:'atelier d\'import',    w:390,  scope:'#impModal', must:'.imp-row', fn: async()=>{
+      const j=JSON.stringify({version:3,categories:[],fiches:[
+        {id:'a11ya',title:'Import — aide validée',status:'validated',start:'ba',
+         blocks:[{id:'ba',kind:'do',title:'Gestes',items:['Un geste','Un autre']}]},
+        {id:'a11yb',title:'Import — aide à relire',status:'draft',start:'bb',
+         blocks:[{id:'bb',kind:'do',title:'Long',items:['1','2','3','4','5','6','7','8','9']}]}],
+        protocols:[{id:'a11yc',title:'Import — référence',status:'review',body:'Texte',sources:['SFAR']}]});
+      readImportFile(new File([j],'a11y.json'));
+      await new Promise(r=>setTimeout(r,600)); } },
   { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       openEdit(f.id);await new Promise(r=>setTimeout(r,500));

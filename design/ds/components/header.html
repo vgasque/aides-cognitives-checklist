@@ -1101,14 +1101,18 @@
   /* P1 — MÊME GÉOMÉTRIE QUE LE VOLET : la barre s'aligne sur la COLONNE D'ACTION, jamais sur la
      fenêtre (A24), et se pose AU-DESSUS du dock — un objet qui recouvrirait ses touches
      masquerait le geste qu'on vient de faire (A37). Elle ne prend aucune hauteur au flux. */
-  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
   #blkReturn[hidden]{display:none}
   body.kb-open #blkReturn{display:none}
-  @media (min-width:780px){
-    #blkReturn{padding-inline:20px}
-    #blkReturn .bkr{margin-right:calc(var(--col-state) + var(--col-gap))}
-  }
+  @media (min-width:780px){#blkReturn{padding-inline:20px}}
+  /* ⚠ ELLE PREND LA BOÎTE DE LA BARRE FLOTTANTE, PAS CELLE DE LA FENÊTRE (v5.7, signalé à
+     l'usage : « en desktop le bloc vert prend toute la largeur de la page »). J'avais recopié la
+     géométrie du VOLET (`.ds-card`, qui s'aligne sur la colonne d'action) alors que cette barre
+     est un objet du DOCK : elle doit suivre `.sd-in` — 660 px, centrée — sinon elle s'étire sur
+     toute la page pendant que les touches qu'elle jouxte restent groupées au milieu. Deux objets
+     empilés qui n'ont pas la même boîte ne se lisent pas comme une pile. */
   .bkr{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;
+    max-width:660px;margin:0 auto;
     min-height:44px;padding:10px 14px;border:0;border-radius:var(--r-3);
     background:var(--ok-sys);color:var(--on-sys-fill);box-shadow:var(--shadow-up);
     font-family:inherit;font-size:13.5px;font-weight:700;text-align:left;cursor:pointer}
@@ -1403,6 +1407,28 @@
      Ni fond, ni bordure, ni rembourrage : zéro pixel de plus, donc rien ne se déplace dans la
      zone d'état quand un minuteur entre dans ses vingt dernières secondes. */
   #cbTimers .seg.soon :is(.seg-l,.seg-t){color:var(--warn-sys)}
+  /* Correctif 2 (v5.7) — LA PROGRESSION D'UN JALON, HORS DE SON BLOC. Une LIGNE, pas une carte :
+     c'est un compte qu'on lit (A16). Registre ATTENTION au franchissement, marqué par le glyphe
+     ET l'encre — jamais un aplat (A11), et jamais la couleur seule (règle 8). */
+  .rt-jl{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13.5px;
+    color:var(--ink-soft);border-top:1px solid var(--line)}
+  .rt-jl:first-of-type{border-top:0}
+  .rt-jlc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rt-jlp{flex:none;font-family:var(--mono);font-weight:700;color:var(--ink);
+    font-variant-numeric:tabular-nums}
+  .rt-jl.on{color:var(--verify);font-weight:700}
+  .rt-jl.on .rt-jlp{color:var(--verify)}
+  .rt-dock .rt-jl{color:var(--sys-ink-2);border-top-color:var(--sys-line)}
+  .rt-dock .rt-jlp{color:var(--sys-ink)}
+  .rt-dock .rt-jl.on,.rt-dock .rt-jl.on .rt-jlp{color:var(--warn-sys)}
+  /* ⚠ SOUS UNE BARRE COLLANTE, LE REMBOURRAGE DE PAGE SE LIT COMME DU VIDE (v5.7, signalé à
+     l'usage : « trop d'espace mort entre le bandeau session et Ne pas oublier »). Mesuré en
+     session : 18 px à 390, 24 px à 1280 entre le bas du quai et le chapeau. Ce rembourrage est
+     juste sur une page qui commence sous rien ; en session, le quai FERME déjà le haut, et l'écart
+     ne sépare plus deux objets — il éloigne le premier du bord qui le porte.
+     Borné à la SESSION, où chaque pixel au-dessus de la première ligne actionnable est compté par
+     `audit-budget` : hors session, l'écran d'entrée garde sa respiration. */
+  @media screen{body.view-read:has(#cbTimers:not([hidden])) #main{padding-top:8px}}
   /* P4 (v5.7) — L'IMMINENCE SUR LA CARTE (volet ET rail). Marquage, jamais aplat (A11) : le
      glyphe △ devant le libellé et l'encre ambre — la couleur n'est donc jamais seule, et le mot
      « bientôt échu » rejoint le nom accessible du groupe. Aucune boîte ne change de taille. */
@@ -1413,8 +1439,21 @@
      c'est une LECTURE (« voilà ce que vous avez manqué »), pas une alarme — la masse colorée
      reste réservée à ce qui exige une action maintenant (A11). Elle vit en tête de la carte du
      bloc courant et s'efface au geste suivant. */
-  .ov-resume{margin:0 0 10px;font-size:13.5px;font-weight:700;color:var(--verify);
+  /* Registre ATTENTION en TEXTE, jamais en aplat (A11) : c'est une lecture, pas une alarme.
+     Le rembourrage est celui de l'en-tête de carte — la ligne vit DANS la carte, plus contre
+     son bord. Le filet la sépare du titre sans lui donner de matière propre. */
+  .ov-resume{display:flex;align-items:center;gap:8px;margin:0;padding:10px 18px;
+    border-bottom:1px solid var(--work-line);font-size:13.5px;font-weight:600;color:var(--verify);
     font-variant-numeric:tabular-nums}
+  .ov-resume .rsm-ic{flex:none;color:var(--verify)}
+  .ov-resume .rsm-t{flex:1 1 auto;min-width:0}
+  .ov-resume .rsm-v{font-family:var(--mono);font-weight:700}
+  .ov-resume .rsm-x{position:relative;flex:none;width:28px;height:28px;display:grid;place-items:center;
+    border:0;background:none;color:var(--ink-2);font-size:17.5px;line-height:1;cursor:pointer;
+    border-radius:var(--r-1)}
+  .ov-resume .rsm-x::after{content:'';position:absolute;inset:-8px}
+  .ov-resume .rsm-x:hover{color:var(--ink)}
+  .ov-resume .rsm-x:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Q4 (v5.7) — une LIGNE de comptage, dans la voix de la méta : elle informe, elle n'alerte
      pas et elle ne conditionne rien. Registre neutre — aucune couleur sémantique. */
   .carry-line{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--ink-soft);
@@ -2038,7 +2077,14 @@
     .dir-book .dir-row{margin-inline:-16px;padding-left:16px;padding-right:40px}
   }
   .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
-  .dir-book.pinned .dir-row:last-child{border-bottom:0}
+  /* ⚠ LES ÉPINGLÉES SONT UN RÉPERTOIRE COMME LES AUTRES (v5.7, signalé à l'usage : « les cartes
+     épinglées prennent toute la largeur de la page — autant en mettre plusieurs colonnes quand la
+     largeur le permet »). Leurs rangées vivaient DIRECTEMENT dans le livre, sans le `.dir-grid`
+     que chaque groupe de lettre porte : mesuré à 1280 px, une rangée du répertoire fait 320 px
+     (trois colonnes) et une épinglée 976 — pleine largeur, pour l'accès le plus rapide du
+     produit. Elles prennent la MÊME grille : c'est la règle « un seul dessin de rangée » (A16),
+     et le rythme de l'annuaire ne doit pas changer d'une section à l'autre. */
+  .dir-book.pinned .dir-grid>.dir-row:last-child{border-bottom:0}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
      les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
@@ -3064,7 +3110,7 @@
      le volet COMMENCE au bas de la capsule, il ne peut donc rien couvrir d'elle — il ne recouvre
      que le rembourrage du quai, qui n'affiche rien. Et il reste SOUS l'en-tête et le bandeau
      (z 20), qui restent les couches système du dessus. */
-  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--stick-top,110px) - 8px);z-index:16;
+  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--quai-b, var(--stick-top,110px)) - 8px);z-index:16;
     background:var(--surface);border-radius:0 0 var(--r-3) var(--r-3);box-shadow:var(--shadow-lg);
     max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);
     overflow-y:auto;overscroll-behavior:contain}
@@ -5417,7 +5463,50 @@
      démarrage, donc COMMANDÉ : A9 interdit qu'une hauteur change sans qu'on l'ait demandé, pas
      qu'un écran se réorganise quand on entre dedans (c'est déjà ce que fait le lot T5).
      38 px reste au-dessus du plancher HORS crise (32) et très au-dessus des 24×24 de WCAG. */
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:4px 10px}
+  /* ⚠ SECONDE PASSE DE RESSERREMENT (v5.7, signalé à l'usage : « le parcours inerte, essaie de
+     rétrécir en hauteur encore plus sans perte d'information : il n'y a pas assez qui s'affiche »).
+     A79 avait descendu la rangée de 44 à 38 px ; on va à 34, et la pastille de 24 à 22. Le
+     PLANCHER est 32 px (cible hors crise) et il n'est pas négociable : c'est lui, et non le goût,
+     qui borne l'exercice — le dire évite qu'on cherche encore 6 px la prochaine fois.
+     Ce qui cède reste le REMBOURRAGE et l'ÉCART, jamais un mot ni un corps de texte. */
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line{min-height:34px;padding:2px 10px;gap:8px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
+  /* Les SÉPARATIONS de section coûtaient 36 et 51 px de vide mesurés pour deux intertitres de
+     19 px. On garde la hiérarchie (plus d'air au-dessus qu'au-dessous, A70) en la resserrant. */
+  body.view-read:not(.crisis-live) .rail-lad .rail-head{margin-top:12px}
+  body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
+  /* ⚠ EN SESSION, MÊME DESSIN — MAIS LE PAS RESTE 44 px, ET C'EST DE L'ARITHMÉTIQUE (v5.7,
+     signalé à l'usage : « en mode session, le parcours inerte est resté à la taille antérieure :
+     compresse et harmonise »). Tout ce qui est GRAPHIQUE s'aligne sur l'avant-session (pastille
+     22, rembourrage 2/10, écart 8, séparations resserrées) ; ce qui ne peut pas céder est le PAS
+     entre deux rangées : ce sont des cibles tactiles, la règle 9 impose 44 px en crise, et deux
+     cibles voisines ne peuvent être disjointes que si le pas vaut au moins 44. Le DESSIN descend
+     donc à 38 px et la cible est rendue par un HALO de 3 px (A8 : la cible vient du halo, jamais
+     du dessin) : 38 px de dessin, halo de 3 px, sur la gouttière de 6 px que la crise portait
+     DÉJÀ — les deux halos se touchent sans se mordre (A66 : un écart vaut au moins la somme des
+     halos qu'il sépare). Pas = 38 + 6 = 44, exactement.
+     ⚠ LE PAS SE PREND SUR LA RANGÉE, JAMAIS SUR L'ÉCART : j'avais commencé par porter la
+     gouttière à 6 px alors qu'elle y était, et par réduire la marge BASSE des titres. Un témoin a
+     rougi aussitôt — « chaque titre a le même écart avec ses rangées », [10, 8] mesurés : en
+     session, un des deux titres échappe au sélecteur `.rail-lad`. La marge basse appartient au
+     rythme des sections ; la respiration se prend au-DESSUS, où elle n'engage personne.
+     GAIN MESURÉ : **435 → 409 px, −6 %** — et non les −15 % que j'avais écrits avant de mesurer.
+     L'ÉCART QUI RESTE AVEC L'AVANT-SESSION (409 contre 368) EST EXACTEMENT LE PAS : six rangées
+     à 44 au lieu de 38, soit 36 px. Il est irréductible tant que ces rangées sont tapables, et le
+     dire évite qu'on cherche encore à les rapetisser — `audit-a11y` rougirait aussitôt. Tout le
+     reste du dessin, lui, est désormais identique aux deux régimes. */
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:2px 10px;gap:8px;
+    position:relative}
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line::after{content:'';position:absolute;inset:-3px}
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
+  /* L'étiquette de branche n'est pas une cible : elle suit le dessin compact des deux régimes. */
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-brc{min-height:28px;padding:2px 10px}
+  /* ⚠ ON NE TOUCHE QUE LA MARGE HAUTE : la BASSE fixe l'écart entre un titre et ses rangées, et
+     un témoin exige qu'il soit le MÊME pour tous les titres de la colonne. En session, un des
+     deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
+     paire ([10, 8] mesurés). La respiration se prend au-DESSUS, où elle n'engage personne. */
+  body.view-read.crisis-live .rail-lad .rail-head{margin-top:12px}
+  body.view-read.crisis-live .rail-lad .pl-sech{margin-top:10px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d1{padding-left:20px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d2{padding-left:28px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d3{padding-left:40px}
@@ -5737,6 +5826,36 @@
   .mon-val.due{color:var(--verify-hi)}
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--verify-hi)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
+  /* F2 (v5.7) — LA BANDE DE TEMPS DU MONITEUR. Trois registres de trait : point = c'est arrivé,
+     trait plein = c'est daté, tiret = c'est projeté. Aucune animation : les marqueurs se reposent
+     au tick (1 px/s sur 300 px — une aiguille d'horloge), en position, sans transition.
+     ⚠ AUCUN 11 px ICI, ET LE CLIQUET DE `check-type` A EU RAISON DE LE REFUSER : le moniteur se
+     lit À DEUX MÈTRES, c'est sa seule raison d'être. Le plancher typographique est une exception
+     motivée pour des étiquettes qu'on lit à trente centimètres ; sur un afficheur, il n'a aucun
+     sens. Tout y part donc du cran au-dessus (12 px), et le grand chiffre reste en `clamp`. */
+  .mon-band{flex:none;margin-top:12px}
+  .mon-band[hidden]{display:none}
+  .mb-ax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;
+    color:var(--ink-soft);margin-bottom:4px}
+  .mb-past{position:relative;height:14px}
+  .mb-dot{position:absolute;top:4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;
+    background:var(--ink-soft);display:grid;place-items:center}
+  .mb-dot b{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:-14px;font-weight:700}
+  .mb-line{position:relative;height:32px;border-radius:var(--r-1);
+    background:linear-gradient(90deg,var(--surface-2) 0 28%,var(--surface-3) 28%,var(--surface-2))}
+  .mb-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ok)}
+  .mb-due{position:absolute;top:8px;font-size:12px;font-weight:700;color:var(--ink);
+    border-left:2px solid var(--ink);padding-left:4px;white-space:nowrap}
+  .mb-ghost{position:absolute;top:8px;height:18px;border-left:2px dashed var(--ink-soft)}
+  .mb-leg{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  .mb-sans{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .mb-sh{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-soft);width:100%}
+  .mb-chip{font-size:12px;font-weight:600;color:var(--ink-soft);border:1px solid var(--line-strong);
+    border-radius:var(--r-1);padding:2px 8px}
+  .mb-chip.due{color:var(--verify);border-color:var(--verify-line)}
+  .mb-chip b{font-family:var(--mono);color:var(--ink);font-weight:700}
+  .mb-chip.due b{color:var(--verify)}
   .mon-foot{flex:none;font-size:clamp(13px,2.8vw,17px);color:var(--ink-soft);border-top:1px solid var(--line);padding-top:10px;line-height:1.4}
   /* I4 (v4.62.0) — DENSITÉ « LECTEUR » : la liste est celle de la page (`ol.steps > li[data-ck]`),
      seuls les CORPS changent. La ligne courante domine (22 px, encre pleine, fond d'accent) ; les
@@ -6379,6 +6498,31 @@
   .crt-copy{min-height:42px;padding:0 16px;border:0;border-radius:8px;background:var(--primary);color:var(--on-primary);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .crt-copy:hover{background:var(--primary-hi)}
   .crt-copy:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ═══ ATELIER D'IMPORT (v5.7, A129) — UNE RANGÉE PAR ENTITÉ, AVANT TOUTE ÉCRITURE ═════════
+     Grammaire de `.doc-hit` et de `.att-row` : ce qui se LIT et se choisit prend une LIGNE
+     (A16), jamais une carte — on ne compte pas ces objets, on les parcourt. Filet
+     `--line-strong` : ces rangées se dénombrent (WCAG 1.4.11), comme celles du répertoire.
+     La CIBLE est la rangée entière (c'est un `<label>`), pas la case : même règle que le
+     titre du chapeau « Ne pas oublier » (v5.0.0) — sous stress on vise une ligne, pas 24 px. */
+  .imp-intro{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 12px}
+  .imp-tools{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+  .imp-n{margin-left:auto;font-size:var(--t-meta);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .imp-list{display:flex;flex-direction:column;gap:8px}
+  .imp-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);cursor:pointer}
+  .imp-row:hover{border-color:var(--ink-soft);background:var(--surface-2)}
+  /* L'anneau vit sur la RANGÉE : la case est le seul élément focalisable, mais c'est la rangée
+     qu'on vise et qu'on doit voir désignée (patron `.card:has(.card-open:focus-visible)`). */
+  .imp-row:focus-within{outline:2px solid var(--primary);outline-offset:2px}
+  .imp-row input{flex:none;width:24px;height:24px;accent-color:var(--primary)}
+  .imp-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .imp-t{font-size:var(--t-body);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .imp-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-meta);color:var(--ink-soft)}
+  .imp-kind{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  /* Registre ATTENTION pour « il reste n choses à relire » — la paire --verify/--verify-soft des
+     étapes △, déjà auditée. Jamais un aplat rouge : ce n'est ni un danger ni un refus (A11). */
+  .imp-sub .tag.todo{background:var(--verify-soft);color:var(--verify)}
+  .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .imp-foot .btn{flex:1 1 auto}
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
      Elle remplace `.crt-drop` (PURGÉ avec son balisage, règle 14) ET les boutons `.add-line`
      des sections qui joignent un fichier. Le geste au clic est INCHANGÉ : elle a seulement gagné

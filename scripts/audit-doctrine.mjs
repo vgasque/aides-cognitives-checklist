@@ -5599,6 +5599,88 @@ await sec('⚡ le volet prolonge la capsule, en crise comme en exercice', async 
   t('… et EXACTEMENT de la même façon en exercice', Math.abs(a.rec-b.rec)<=2, 'crise '+a.rec+' px · exercice '+b.rec+' px');
 });
 
+/* ══ A129 — L'ATELIER D'IMPORT : LE GRAIN EST L'ENTITÉ, ET RIEN NE S'ÉCRIT AVANT LE CHOIX ══════
+   Ce que la section mesure, et pourquoi chaque contrôle est là :
+     · l'atelier PARAÎT et le stockage n'a PAS bougé — c'est la propriété centrale (« avant
+       écriture ») et c'est elle qui rend l'import inspectable ;
+     · une rangée par entité, aides ET références, avec l'ÉTAT QUE LE FICHIER DÉCLARE — le
+       forçage en brouillon est parti, donc l'état affiché est celui qui sera écrit ;
+     · la pastille « △ n » n'apparaît QUE là où il reste à relire (même compte que le volet de
+       l'éditeur) — une pastille sur toutes les rangées ne dirait plus rien ;
+     · une entité décochée n'est écrite NULLE PART, et — c'est le point dur — son binaire PDF
+       n'entre pas non plus : `importAtts` ne tourne que sur la liste filtrée.
+   POINT D'ENTRÉE RÉEL : `readImportFile` est le seul entonnoir des trois portes (dialogue
+   « Créer », dépôt sur la bibliothèque, méthode IA) — elles ne diffèrent que par
+   `pendingOpenImport`. On lui donne un VRAI .zip, fabriqué par `zipBuild` (la fonction de
+   l'app) : sans binaires dans l'archive, `importAtts` n'aurait rien à écrire et le témoin du
+   filtrage ne rencontrerait pas son cas. */
+await sec('A129 · l\'atelier d\'import', async () => {
+  const page=await br.newPage({viewport:{width:390,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const avant=await page.evaluate(()=>({f:fiches.length,p:protocols.length}));
+  await page.evaluate(()=>{
+    const pdf=new TextEncoder().encode('%PDF-1.4\ntrailer<</Root 1 0 R>>');
+    const doc={version:3,categories:[],fiches:[
+      // A — VALIDÉE, deux étapes : aucune remarque de relecture, donc aucune pastille attendue.
+      {id:'impa',title:'ATELIER — aide validée',status:'validated',start:'ba',
+       docs:[{id:'attimpa',name:'A.pdf',size:pdf.length}],
+       blocks:[{id:'ba',kind:'do',title:'Gestes',items:['Un geste','Un autre geste']}]},
+      // B — BROUILLON, neuf étapes : `stepGuardTxt` en fait une remarque, donc UNE pastille.
+      {id:'impb',title:'ATELIER — aide brouillon',status:'draft',start:'bb',
+       docs:[{id:'attimpb',name:'B.pdf',size:pdf.length}],
+       blocks:[{id:'bb',kind:'do',title:'Bloc trop long',items:['1','2','3','4','5','6','7','8','9']}]}],
+      protocols:[{id:'impc',title:'ATELIER — référence',status:'review',body:'Un texte',sources:['SFAR 2024']}]};
+    const zip=zipBuild([{name:'donnees.json',data:new TextEncoder().encode(JSON.stringify(doc))},
+      {name:'documents/attimpa.pdf',data:pdf},{name:'documents/attimpb.pdf',data:pdf}]);
+    readImportFile(new File([zip],'atelier.zip'));});
+  await page.waitForFunction(()=>document.getElementById('impModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
+  const vu=await page.evaluate(()=>{
+    const on=document.getElementById('impModal').classList.contains('on');
+    const rows=[...document.querySelectorAll('#impModal .imp-row')].map(r=>({
+      t:(r.querySelector('.imp-t')||{}).textContent||'',
+      kind:(r.querySelector('.imp-kind')||{}).textContent||'',
+      st:(r.querySelector('.status-tag')||{}).textContent||'',
+      todo:!!r.querySelector('.tag.todo'),
+      key:(r.querySelector('[data-impsel]')||{}).getAttribute?r.querySelector('[data-impsel]').getAttribute('data-impsel'):''}));
+    return {on,rows,f:fiches.length,p:protocols.length};});
+  t('le cas est rencontré : l\'atelier s\'ouvre sur le .zip',vu.on&&vu.rows.length===3,JSON.stringify(vu.rows));
+  if(!vu.on||vu.rows.length!==3){await page.close();return;}
+  t('RIEN n\'est écrit tant qu\'on n\'a pas validé',vu.f===avant.f&&vu.p===avant.p,
+    `avant ${avant.f}/${avant.p} · pendant ${vu.f}/${vu.p}`);
+  t('une rangée par entité — les DEUX natures, nommées',
+    vu.rows.filter(r=>/Aide/.test(r.kind)).length===2&&vu.rows.filter(r=>/Référence/.test(r.kind)).length===1,
+    JSON.stringify(vu.rows.map(r=>r.kind)));
+  t('la rangée dit l\'ÉTAT DÉCLARÉ PAR LE FICHIER, jamais un état forcé',
+    /Validée/.test(vu.rows[0].st)&&/Brouillon/.test(vu.rows[1].st),
+    JSON.stringify(vu.rows.map(r=>r.st)));
+  t('la pastille de relecture ne paraît que là où il reste à relire',
+    vu.rows[0].todo===false&&vu.rows[1].todo===true&&vu.rows[2].todo===false,
+    JSON.stringify(vu.rows.map(r=>r.todo)));
+  // On DÉCOCHE l'aide brouillon — par un vrai clic sur sa case, pas en écrivant dans l'état.
+  await page.click(`#impModal [data-impsel="${vu.rows[1].key}"]`);
+  const cpt=await page.evaluate(()=>document.getElementById('impN').textContent);
+  t('le pied annonce ce qu\'on obtient avant de fermer',/2\s*\/\s*3/.test(cpt),cpt);
+  await page.click('#impGo');
+  // Une seule question suit (Perso par défaut, donc pas de destination ; 2 éléments -> fusion).
+  await page.waitForFunction(()=>document.getElementById('confirmModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
+  await page.click('#confirmYes');
+  await page.waitForFunction(()=>fiches.some(f=>/ATELIER — aide validée/.test(f.title)),null,{timeout:8000}).catch(()=>{});
+  const apres=await page.evaluate(async()=>{
+    const A=fiches.find(f=>/ATELIER — aide validée/.test(f.title));
+    return {a:!!A,statutA:A?A.status:null,
+      b:fiches.some(f=>/ATELIER — aide brouillon/.test(f.title)),
+      c:protocols.some(p=>/ATELIER — référence/.test(p.title)),
+      binA:!!(await IDB.getAtt('attimpa')),binB:!!(await IDB.getAtt('attimpb'))};});
+  t('la sélection seule est écrite — l\'entité décochée n\'entre nulle part',
+    apres.a&&apres.c&&!apres.b,JSON.stringify(apres));
+  t('le FILTRAGE PRÉCÈDE `importAtts` : aucun binaire pour l\'entité décochée',
+    apres.binA===true&&apres.binB===false,`coché ${apres.binA} · décoché ${apres.binB}`);
+  t('l\'état entrant est PRÉSERVÉ (plus de forçage en brouillon)',apres.statutA==='validated',
+    String(apres.statutA));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
