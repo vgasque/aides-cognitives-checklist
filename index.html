@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-RyN/DrM0FMpog/yhU26OPM7e7k2VZFvSuJ5XY/ApueY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-m0Pvh9wKt8JJlPyxy2QdsVxLIETHkgiW3KrcwIX6eGk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5526,12 +5526,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-runline:hover{color:var(--ink)}
   .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
-  .ov-runline .ovr-chev{color:var(--ink-3);font-weight:800}
+  /* ⚠ LE CHEVRON PREND L'ENCRE DE SA LIGNE (v5.6) : en `--ink-3` il mesurait 2,13:1, et rien ne
+     le voyait — la ligne-bilan n'existait qu'après un passage achevé, donc sur aucune des surfaces
+     qu'`audit-a11y` monte. Le déplacement de « Diagnostic confirmé » l'y a fait entrer, et le
+     harnais a parlé aussitôt : un défaut HORS PORTÉE n'est pas un défaut absent (leçon v4.75.0,
+     rejouée à l'identique). `aria-hidden` n'exempte pas du seuil — le glyphe reste peint. */
+  .ov-runline .ovr-chev{color:inherit;font-weight:800}
   /* Déplié : une carte de rangées à filet — la grammaire du parcours, pour que « la liste des
      blocs » se lise pareil partout. */
   .ov-hist{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);
     padding:0 16px;margin:2px 0 8px}
   .ov-hist .ov-runline{margin:0;justify-content:flex-start}
+  /* Les critères confirmés, dans le dépliant du journal : même rangée que les blocs faits, mais
+     INERTE — un critère n'est pas un passage où l'on saute (doctrine du plan). Le ■ est celui de
+     la carte « Quand l'utiliser », pour qu'on reconnaisse la même liste. */
+  .ovh-crit{display:flex;align-items:baseline;gap:8px;padding:8px 12px 8px 32px;border-top:1px solid var(--work-line);
+    font-size:var(--t-meta);color:var(--ink-2);text-align:left}
+  .ovh-crit .ovh-mk{color:var(--critical);font-weight:800;flex:none}
+  .ovh-crit .ovh-t{flex:1 1 auto;min-width:0}
   .ovh-row{display:flex;gap:10px;align-items:baseline;width:100%;min-height:44px;padding:10px 0;
     background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
     font-family:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
@@ -17999,8 +18011,12 @@ function renderRead(){
      démarrage (« ✓ diagnostic confirmé »), qui gagne ensuite le compte des blocs dans son libellé —
      alors elle ne déménage jamais, seul son texte s'allonge. C'est une refonte de l'assemblage du
      journal, à décider séparément et à mesurer contre ce même témoin. */
-  if(confBlockH)stages.push({cls:started?'done':'on',head:'',
+  /* EN SESSION, LA CONFIRMATION A CHANGÉ DE LOGEMENT (v5.6) : elle vit dans le journal, en tête,
+     dans la ligne-bilan « ✓ n blocs faits · diagnostic confirmé ». La laisser AUSSI dans le flux
+     serait la duplication que § 5.5 proscrit ; l'étage n'a donc plus de corps une fois démarré. */
+  if(confBlockH&&!Runtime.started)stages.push({cls:'on',head:'',
     body:confBlockH+(fsAvantBouton?forgetStrip:'')});
+  else if(confBlockH&&fsAvantBouton)stages.push({cls:'done',head:'',body:forgetStrip});
   /* T2 (v5.0.0) — LE JOURNAL DES ACTIONS REMONTE. Il vivait en FIN de colonne : mesuré, le bouton
      « Noter l'heure » était à y = 1588 px sur un écran de 844 (744 px sous le pli) et à 1829 px sur
      640. C'est le geste de traçabilité le plus fréquent d'une réanimation, et c'était le plus loin
@@ -18660,6 +18676,38 @@ function bindNavEvents(f,blk){
    il entre au bout du journal) ; état LÉGER peint dessus (✓ dernier passage complet, ● ici,
    ×n passages, branche hors chemin estompée). Cases neuves à CHAQUE passage (sémantique
    inchangée) ; « ↺ Refaire » poste volontairement une nouvelle carte. DÉLÉGATION sur .ov-wrap. */
+/* ══ « DIAGNOSTIC CONFIRMÉ » EST UNE LIGNE DU JOURNAL, PAS UN ÉTAGE (v5.6, demande de l'auteur :
+   « déplace diagnostic confirmé dans le dépliant “x blocs faits — diagnostic confirmé” ») ═══════
+   Avant le démarrage, la condition d'entrée EST la question (A19) : carte « ■ Quand l'utiliser »,
+   en tête, entière. Une fois le soin commencé, elle ne conduit plus rien — c'est une TRACE, et sa
+   place est celle des traces : le journal. Elle y rejoint la ligne-bilan des passages achevés,
+   dont elle est chronologiquement la première.
+   ⚠ ELLE NE DÉMÉNAGE PAS QUAND LE PREMIER BLOC S'ACHÈVE, et c'est la condition qui rend le
+   déplacement admissible (A107) : la ligne est TOUJOURS en tête du journal — seule sa légende
+   s'allonge (« ✓ diagnostic confirmé » puis « ✓ n blocs faits · diagnostic confirmé »). On fusionne
+   donc dans la ligne-bilan SEULEMENT quand celle-ci commence au premier passage ; sinon la
+   confirmation garde sa propre ligne, à la même place.
+   ⚠ ET ELLE SE CALCULE DANS LE JOURNAL, jamais par un drapeau posé dans `renderRead` : le journal
+   est bâti ~200 lignes plus haut, et surtout `renderOvOnly` le re-rend SEUL, bien plus souvent —
+   un drapeau à usage unique y serait brûlé au premier passage (les trois pièges d'ordonnancement
+   d'A107, payés une fois). */
+function confCrits(f){
+  if(!Runtime.started)return [];
+  return clean(listOf(f,'confirmation'));}
+const confCritsHtml=it=>it.map(x=>`<div class="ovh-row ovh-crit"><span class="ovh-mk" aria-hidden="true">■</span><span class="ovh-t">${fmt(x)}</span></div>`).join('');
+/* DANS LE DÉPLIANT, C'EST UNE RANGÉE COMME LES BLOCS — ET ELLE SE DÉROULE (v5.6, demande de
+   l'auteur). Le dépliant de la ligne-bilan est une LISTE de ce qui est fait : y verser les
+   critères en vrac mettait sur le même plan quatre lignes de contenu et n rangées de blocs. La
+   confirmation y prend donc UNE rangée, de la même anatomie que celles des blocs (✓ · titre ·
+   compte · chevron), qui déroule ses critères d'un tap. Deux niveaux, une seule grammaire.
+   ⚠ Sa clé commence par « r: » : `ovDropOpens` efface alors ce dépliage au prochain geste de
+   navigation, comme pour toute consultation transitoire du journal (v4.16.1). */
+function confTraceRow(f){
+  const it=confCrits(f);if(!it.length)return '';
+  const k='r:confdet',open=state.ovFold[k]===false;
+  return `<button type="button" class="ovh-row" data-ovrun="${k}" aria-expanded="${open?'true':'false'}" title="Diagnostic confirmé · ${it.length} critère${it.length>1?'s':''} · taper pour ${open?'replier':'déplier'}"><span class="ovh-ok" aria-hidden="true">✓</span><span class="ovh-t">Diagnostic confirmé<span class="ovh-x"> · ${it.length} critère${it.length>1?'s':''}</span></span><span class="ovr-chev" aria-hidden="true">${open?'⌃':'⌄'}</span></button>`
+    +(open?confCritsHtml(it):'');}
+const confTraceLbl=f=>confCrits(f).length?'diagnostic confirmé':'';
 let _printingOv=false;   // v4.16.0 : l'impression déplie TOUT le fil (aucune chip sur le papier)
 function overviewSection(f){
   state.navPos=state.nav.length-1;   // le journal n'a pas de curseur : la position EST le bout
@@ -18679,8 +18727,14 @@ function overviewSection(f){
   // (consultation transitoire, même règle que les chips — ovDropOpens la referme au
   // prochain geste de navigation). Clé stable : l'index du PREMIER passage de la rangée.
   let insts='';let run=[],runIdx=[],runTt=[];
+  const confL=confTraceLbl(f),confR=!!confL;let confPosee=false;
   const flush=()=>{if(!run.length)return;
     const key='r:'+runIdx[0];
+    /* La confirmation rejoint la ligne-bilan qui OUVRE le journal (celle du premier passage) :
+       une seule ligne dit alors « n blocs faits · diagnostic confirmé », et son dépliant porte
+       les critères AVANT les blocs — c'est l'ordre chronologique. */
+    const fus=!!confR&&!confPosee&&runIdx[0]===0;if(fus)confPosee=true;
+    const sfx=fus?' · '+confL:'';const pre=fus?confTraceRow(f):'';
     /* Seuil 4 -> 1 (R6) : une rangée de chips EST l'historique, et l'historique se tire. Le
        « ⌄ » dit qu'il y a quelque chose dessous ; le compte et les bornes disent quoi. */
     /* ⚠ DÉPLIÉ, C'EST UNE CARTE DE RANGÉES — PLUS UNE RANGÉE DE CHIPS (v5.6, maquette).
@@ -18692,14 +18746,21 @@ function overviewSection(f){
        seule grammaire pour « la liste des blocs » dans tout le produit. */
     if(state.ovFold[key]!==false){
       const a=topo[state.nav[runIdx[0]]]||'·',b=topo[state.nav[runIdx[runIdx.length-1]]]||'·';
-      insts+=`<button type="button" class="ov-runline" data-ovrun="${key}" aria-expanded="false" title="${esc(runTt.join(' · '))} · taper pour déplier"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''} · ${a}→${b}<span class="ovr-chev" aria-hidden="true">⌄</span></button>`;}
-    else insts+=`<div class="ov-hist"><button type="button" class="ov-runline open" data-ovrun="${key}" aria-expanded="true"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''}<span class="ovr-chev" aria-hidden="true">⌃</span></button>${runIdx.map(i=>ovHistRowHtml(f,state.nav[i],i,topo)).join('')}</div>`;
+      insts+=`<button type="button" class="ov-runline" data-ovrun="${key}" aria-expanded="false" title="${esc(runTt.join(' · '))}${sfx} · taper pour déplier"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''} · ${a}→${b}${sfx}<span class="ovr-chev" aria-hidden="true">⌄</span></button>`;}
+    else insts+=`<div class="ov-hist"><button type="button" class="ov-runline open" data-ovrun="${key}" aria-expanded="true"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''}${sfx}<span class="ovr-chev" aria-hidden="true">⌃</span></button>${pre}${runIdx.map(i=>ovHistRowHtml(f,state.nav[i],i,topo)).join('')}</div>`;
     run=[];runIdx=[];runTt=[];};
   state.nav.forEach((id,i)=>{
     if(pres[i]==='chip'){run.push(1);runIdx.push(i);
       const b=f.blocks.find(x=>x.id===id);runTt.push(stripBold((b&&b.title)||''));}
     else{flush();insts+=ovInstHtml(f,id,i,topo,pres[i]);}});
   flush();
+  /* Aucune ligne-bilan n'ouvrait le journal (premier passage encore en cours, ou déplié à la
+     main) : la confirmation prend sa propre ligne — même anatomie, même place, seul le compte
+     manque. C'est ce qui fait qu'elle ne se déplace jamais. */
+  if(confR&&!confPosee){const k='r:conf';
+    insts=(state.ovFold[k]===false
+      ?`<div class="ov-hist"><button type="button" class="ov-runline open" data-ovrun="${k}" aria-expanded="true"><span class="ovr-ok" aria-hidden="true">✓</span>${confL}<span class="ovr-chev" aria-hidden="true">⌃</span></button>${confCritsHtml(confCrits(f))}</div>`
+      :`<button type="button" class="ov-runline" data-ovrun="${k}" aria-expanded="false" title="${esc(confL)} · taper pour déplier"><span class="ovr-ok" aria-hidden="true">✓</span>${confL}<span class="ovr-chev" aria-hidden="true">⌄</span></button>`)+insts;}
   const endH=state.flowEnded?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>':'';
   const controls='';   // v4.23.8 : « Recommencer » a rejoint le menu ⋯ (cf. restartCourse)
   /* « Parcours » ne s'annonce plus en session : l'étage qui le contient s'appelle « Prise en

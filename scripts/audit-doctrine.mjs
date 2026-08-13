@@ -5204,6 +5204,64 @@ await sec('v5.6 · l\'index A→Z s\'éclaircit pour rester centré', async () =
   }
 });
 
+/* ── « DIAGNOSTIC CONFIRMÉ » PASSE DANS LE JOURNAL, ET N'Y DÉMÉNAGE PAS ────────────────────────
+   Le déplacement avait été ANNULÉ une première fois (A107) sur un rouge de 457 px qui s'est révélé
+   être un défaut d'INSTRUMENT (A109). Il revient avec ce qui lui manquait : la garantie qu'il ne
+   change jamais de place. Trois propriétés, et la deuxième est celle qui l'a fait refuser :
+    · avant la session, la condition d'entrée est une CARTE, en tête du flux (A19) ;
+    · une fois démarré, elle quitte le flux pour la tête du JOURNAL, et sa position ne bouge pas
+      d'un pixel quand la ligne-bilan des blocs faits l'absorbe ;
+    · dans le dépliant, c'est UNE RANGÉE comme les blocs, qui déroule ses critères d'un tap. */
+await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', async () => {
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page); await ouvrirFiche(page, /Anaphylaxie/);
+  const lire = () => page.evaluate(() => {
+    const rl = main.querySelector('.ov-runline'), j = main.querySelector('.ov-journal');
+    return { carte: !!main.querySelector('.conf-block.entry'),
+      flux: !!main.querySelector('.conf-block:not(.entry)'),
+      lbl: rl ? rl.textContent.replace(/\s+/g, ' ').trim() : null,
+      enTete: !!(rl && j && j.firstElementChild && j.firstElementChild.contains(rl)),
+      y: rl ? Math.round(rl.getBoundingClientRect().top + window.scrollY) : null,
+      rangees: [...main.querySelectorAll('.ov-hist .ovh-row:not(.ovh-crit)')].length,
+      rangeeConf: [...main.querySelectorAll('.ovh-row')]
+        .filter(x => /Diagnostic confirmé/.test(x.textContent)).length,
+      crits: main.querySelectorAll('.ovh-crit').length }; });
+
+  const av = await lire();
+  t('avant la session : la condition d\'entrée est une carte du flux', av.carte === true && av.lbl === null);
+
+  await demarrerSession(page);
+  const d0 = await lire();
+  t('démarrée : elle a quitté le flux', d0.flux === false && d0.carte === false);
+  t('… et ouvre le journal', d0.enTete === true && /diagnostic confirmé/i.test(d0.lbl || ''), d0.lbl);
+
+  /* Un bloc achevé : la ligne-bilan apparaît et l'ABSORBE — c'est là qu'un déménagement se
+     produirait. On mesure la position, pas le libellé. */
+  await page.evaluate(async () => { const w = m => new Promise(r => setTimeout(r, m));
+    main.querySelectorAll('.ov-block.cur [data-ck]').forEach(e => e.click()); await w(250);
+    const n = main.querySelector('[data-ovnext]'); if (n) n.click(); await w(500); });
+  const d1 = await lire();
+  t('témoin : la ligne-bilan des blocs faits l\'a bien absorbée',
+    /blocs? faits?/.test(d1.lbl || '') && /diagnostic confirmé/i.test(d1.lbl || ''), d1.lbl);
+  t('… et la ligne n\'a pas déménagé (A107)',
+    d1.enTete === true && d1.y != null && Math.abs(d1.y - d0.y) <= 2, `${d0.y} → ${d1.y} px`);
+
+  await page.evaluate(() => main.querySelector('.ov-runline').click());
+  await page.waitForTimeout(300);
+  const ouv = await lire();
+  t('dépliée : une RANGÉE, comme les blocs — pas les critères en vrac',
+    ouv.rangeeConf === 1 && ouv.rangees >= 2 && ouv.crits === 0,
+    `${ouv.rangeeConf} rangée · ${ouv.crits} critère(s)`);
+
+  await page.evaluate(() => { const r = [...main.querySelectorAll('.ovh-row')]
+    .find(x => /Diagnostic confirmé/.test(x.textContent)); if (r) r.click(); });
+  await page.waitForTimeout(300);
+  const det = await lire();
+  t('… et cette rangée déroule ses critères d\'un tap', det.crits >= 2, `${det.crits} critère(s)`);
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

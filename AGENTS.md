@@ -2011,6 +2011,30 @@ il en trouve zéro et rougit à 120 px quand on casse vraiment la propriété. L
   s'interdit désormais. Les deux sont conservés parce qu'ils **retombent sur un no-op** quand ils
   ne trouvent rien, jamais parce qu'un contrôle les prouve.
 
+**A110. « DIAGNOSTIC CONFIRMÉ » EST UNE LIGNE DU JOURNAL, ET ELLE N'Y DÉMÉNAGE JAMAIS (v5.6,
+demande de l'auteur — re-livré après l'annulation d'A107).** Avant le soin, la condition d'entrée
+EST la question et reste une carte en tête du flux (A19). Une fois démarré, elle ne conduit plus
+rien : c'est une TRACE, et sa place est celle des traces — la tête du journal, dont elle est
+chronologiquement le premier élément.
+· **CE QUI MANQUAIT À LA PREMIÈRE TENTATIVE, ET QUI EST ICI** : la garantie de non-déménagement.
+  La ligne ouvre le journal dès le démarrage (« ✓ diagnostic confirmé ») ; quand le premier
+  passage s'achève, la ligne-bilan des blocs faits **l'absorbe** au lieu de la pousser — seule sa
+  légende s'allonge (« ✓ n blocs faits · a→b · diagnostic confirmé »). Mesuré : **y = 191 px avant
+  comme après**. La fusion n'a lieu que si la ligne-bilan commence au PREMIER passage ; sinon la
+  confirmation garde sa propre ligne, à la même place.
+· **DANS LE DÉPLIANT, C'EST UNE RANGÉE COMME LES BLOCS** (demande de l'auteur) : verser les
+  critères en vrac mettait sur le même plan quatre lignes de contenu et n rangées de blocs. Elle
+  prend donc UNE rangée de la même anatomie (✓ · titre · compte · chevron), qui déroule ses
+  critères d'un tap. Deux niveaux, une seule grammaire.
+· **ELLE SE CALCULE DANS LE JOURNAL, JAMAIS PAR UN DRAPEAU** : `renderOvOnly` re-rend le journal
+  SEUL, bien plus souvent que `renderRead` — un drapeau à usage unique y serait brûlé au premier
+  passage. Les trois pièges d'ordonnancement d'A107 sont ainsi désarmés plutôt que contournés.
+· **⚠ ET LE HARNAIS A IMMÉDIATEMENT TROUVÉ UN DÉFAUT PRÉEXISTANT** : `.ovr-chev` mesurait
+  **2,13:1**. Rien ne pouvait le voir — la ligne-bilan n'existait qu'après un passage achevé, donc
+  sur aucune des surfaces qu'`audit-a11y` monte. Le chevron prend l'encre de sa ligne
+  (`color:inherit`). *Un défaut HORS PORTÉE n'est pas un défaut absent* (leçon v4.75.0, rejouée à
+  l'identique) — et `aria-hidden` n'exempte pas du seuil, le glyphe reste peint.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le
