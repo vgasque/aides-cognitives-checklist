@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-4Gc1FGJVN79vEykWz+EKqu1y57AeVpBqH1fU6XMyoq8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-w6VsrvqI0QiJhuPvvcQhnqQMRiOtHXHa9BtuURSQu/c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6874,6 +6874,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* « ⟳ déjà présent » : registre NEUTRE (pastille de statut). Ce n'est ni un danger ni une
      alerte — c'est un FAIT, et son sort est décidé par la question « Doublons » qui suit. */
   .imp-dup{flex:none;font-size:var(--t-cap);font-weight:700;padding:2px 8px;border-radius:8px;background:var(--tag-bg);color:var(--tag-ink);white-space:nowrap}
+  /* La RELATION des deux versions, en toutes lettres (A131) — c'est ce que la question
+     « Doublons » demande de décider. « Votre version est plus récente » est le SEUL cas où
+     « remplacer » perd du travail : registre ATTENTION, en TEXTE et accompagné de son glyphe,
+     jamais un aplat (A11) et jamais la couleur seule (règle 8). Les deux autres cas sont des
+     faits neutres et prennent l'encre de la rangée. */
+  .imp-rel{flex:none;white-space:nowrap}
+  .imp-rel.warn{color:var(--verify);font-weight:700}
+  /* A132 — « Comparer », et le dépliant qui vit SOUS la rangée, hors du <label>. Le bouton est
+     de TEXTE et non un glyphe : sur une rangée d'atelier il n'y a pas de position constante à
+     apprendre, et « Comparer » se lit sans être deviné. Cible ≥ 32 px (hors crise, règle 9). */
+  .imp-item{display:flex;flex-direction:column}
+  .imp-cmp{flex:none;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
+  .imp-cmp:hover{background:var(--surface-2)}
+  .imp-cmp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .imp-diff{margin:6px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface-2);max-height:280px;overflow:auto;overscroll-behavior:contain}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
@@ -8617,7 +8632,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.8.1';
+const APP_VERSION='5.9.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -25144,13 +25159,79 @@ let _impRes=null,_impRows=[],_impSel=null;
    l'écriture et il ne peut pas y avoir de collision (cf. `sameSpace`). Le calcul est donc le
    MÊME prédicat que la boucle d'import — un second, écrit à côté, annoncerait des doublons que
    l'écriture ne verrait pas. */
+/* ═══ A131 — « DÉJÀ PRÉSENT » NE SUFFIT PAS À DÉCIDER : LEQUEL DES DEUX EST LE PLUS RÉCENT ? ═══
+   A130 fait annoncer la COLLISION par la rangée, sans dire ce que la question SUIVANTE demande
+   pourtant de trancher — « remplacer » ou « garder les deux ». Or remplacer, quand le fichier est
+   PLUS ANCIEN que ma version, écrase une révision locale par une copie périmée : en silence, et
+   c'est exactement le genre de geste que l'atelier existe pour rendre visible.
+   · ON N'INVENTE PAS DE NUMÉRO DE RÉVISION : `updatedAt` EST la révision — c'est déjà ce dont
+     `aidRev` se sert pour dire sur quelle version un soin a été conduit (v5.0.0). Aucun champ
+     nouveau, aucune migration, rien de plus à synchroniser.
+   · ⚠ ET ON LIT L'HORODATAGE **AVANT** `migrate` : `migrate` en POSE un quand il manque, et son
+     dernier recours est `Date.now()` — un fichier ancien qui n'en portait pas se retrouverait
+     donc daté de L'INSTANT DE L'IMPORT, c'est-à-dire annoncé « plus récent » que tout ce qu'on
+     possède. Le prédicat travaille sur l'objet BRUT ; sans horodatage des DEUX côtés, la rangée
+     se tait plutôt que de deviner (A83 : elle ne dit que ce qu'elle sait).
+   · AUCUNE TOLÉRANCE, AUCUN SEUIL : un objet exporté puis réimporté sans avoir été touché porte
+     le MÊME horodatage à la milliseconde près. « À une minute près » serait un seuil inventé.
+   · ELLE NE CONDITIONNE RIEN, et le sort reste GLOBAL : la stratégie est décidée par la question
+     « Doublons » (A130, où le contrôle par rangée a été écarté et motivé). La rangée informe. */
+const IMP_REL={neuf:'le fichier est plus récent',vieux:'votre version est plus récente',egal:'même version'};
+function impDupRel(entrant,mien){
+  if(typeof entrant!=='number'||!isFinite(entrant))return '';
+  if(typeof mien!=='number'||!isFinite(mien))return '';
+  return entrant===mien?'egal':(entrant>mien?'neuf':'vieux');}
 function impRowsOf(imp,sameSpace){
-  const rows=[],dup=(arr,id)=>!!(sameSpace&&id&&arr.some(x=>x.id===id));
-  imp.fiches.forEach((d,i)=>{const o=imp.fiches[i]=migrate(d);
-    rows.push({key:'f:'+i,o,fem:true,kind:'Aide',notes:reviewNotes(o).length,dup:dup(fiches,o.id)});});
-  imp.protocols.forEach((d,i)=>{const o=imp.protocols[i]=migrateProtocol(d);
-    rows.push({key:'p:'+i,o,fem:false,kind:'Référence',notes:reviewNotesProto(o).length,dup:dup(protocols,o.id)});});
+  const rows=[];
+  // Le JUMEAU, pas un booléen : c'est de lui qu'on tire l'horodatage à comparer. Le prédicat est
+  // le MÊME que celui de la boucle d'import (ids conservés = même espace), il rend seulement
+  // l'objet au lieu de le compter.
+  const jum=(arr,id)=>(sameSpace&&id)?(arr.find(x=>x.id===id)||null):null;
+  const brut=d=>(d&&typeof d.updatedAt==='number'&&isFinite(d.updatedAt))?d.updatedAt:null;
+  imp.fiches.forEach((d,i)=>{
+    const av=brut(d);                                  // ⚠ AVANT migrate, qui en poserait un
+    const o=imp.fiches[i]=migrate(d),m=jum(fiches,o.id);
+    rows.push({key:'f:'+i,o,mien:m,fem:true,kind:'Aide',notes:reviewNotes(o).length,dup:!!m,
+      rel:m?impDupRel(av,m.updatedAt):''});});
+  imp.protocols.forEach((d,i)=>{
+    const av=brut(d);
+    const o=imp.protocols[i]=migrateProtocol(d),m=jum(protocols,o.id);
+    rows.push({key:'p:'+i,o,mien:m,fem:false,kind:'Référence',notes:reviewNotesProto(o).length,dup:!!m,
+      rel:m?impDupRel(av,m.updatedAt):''});});
   return rows;}
+/* ═══ A132 — SAVOIR LEQUEL EST LE PLUS RÉCENT NE DIT PAS CE QU'ON PERDRAIT ════════════════════
+   Dernier étage de l'atelier, et il ferme la promesse « voir avant d'écrire » : sur une entité
+   DÉJÀ présente, « Comparer » déplie ce que « remplacer » ajouterait et ce qu'il supprimerait.
+   · **AUCUN COMPARATEUR NEUF** : c'est celui de « Versions » (`flattenFiche` + différence
+     d'ensembles), inchangé — un second, écrit à côté, finirait par répondre autre chose ici que
+     là sur la même paire d'objets. Seule l'ORIENTATION change et elle est nommée : on part de MA
+     version, l'entrant est la cible, donc « + » = ce que le fichier apporte.
+   · **UNE RÉFÉRENCE A SON APLATISSEMENT**, parce qu'elle n'a ni bloc ni minuteur : son corps est
+     du texte, et ses lignes SONT ses unités de comparaison. La taire aurait laissé sans réponse
+     exactement la même question destructive, sur l'autre moitié de la bibliothèque.
+   · **CE N'EST PAS LE DIFF CLINIQUE REFUSÉ EN A119** : celui-là aurait résumé une modification de
+     dose à quelqu'un qui s'apprête à SOIGNER. Ici on est dans un geste d'AUTEUR, à froid, et la
+     surface est celle que « Versions » lui montre déjà — même public, même dessin, mêmes mots.
+   · **REPLIÉ PAR DÉFAUT** : la rangée reste une rangée. On ne déplie que ce qu'on a demandé. */
+function flattenProto(p){if(!p)return[];const L=[],add=(s,v)=>{v=String(v==null?'':v).trim();if(v)L.push(s+' · '+v);};
+  add('Titre',p.title);add('Validation',p.validatedAt);add('État',p.status==='draft'?'brouillon':'validée');
+  String(p.body||'').split('\n').forEach(l=>add('Corps',l));
+  (p.sources||[]).forEach(v=>add('Références',v));
+  return L;}
+/* PURE. `plus` = ce que remplacer AJOUTERAIT (dans l'entrant, absent de chez moi) ; `moins` = ce
+   qu'il SUPPRIMERAIT. Rien d'autre : les images et les documents ne sont pas comparés, et la note
+   du pied le dit — c'est déjà la limite annoncée par « Versions ». */
+function impDiff(mien,entrant,ref){
+  const A=ref?flattenProto(mien):flattenFiche(mien),B=ref?flattenProto(entrant):flattenFiche(entrant);
+  const sa=new Set(A),sb=new Set(B);
+  return {plus:B.filter(x=>!sa.has(x)),moins:A.filter(x=>!sb.has(x))};}
+function impDiffHtml(r){
+  const d=impDiff(r.mien,r.o,r.kind!=='Aide');
+  if(!d.plus.length&&!d.moins.length)
+    return `<p class="diff-note">Aucune différence de contenu — remplacer ne changerait rien (images et documents non comparés).</p>`;
+  return (d.plus.length?`<p class="diff-h">Remplacer ajouterait :</p>`+d.plus.map(x=>`<div class="diff-line add">+ ${esc(x)}</div>`).join(''):'')
+    +(d.moins.length?`<p class="diff-h">Remplacer supprimerait :</p>`+d.moins.map(x=>`<div class="diff-line del">− ${esc(x)}</div>`).join(''):'')
+    +`<p class="diff-note">Images et documents non comparés. Décocher la rangée laisse votre version intacte.</p>`;}
 /* La rangée dit CE QU'IL FAUT POUR DÉCIDER, et pas un mot de plus : ce que c'est, comment ça
    s'appelle, dans quel ÉTAT le fichier le déclare, ce qu'elle EMBARQUE, ce qu'il resterait à
    relire, et si elle est déjà chez moi.
@@ -25166,15 +25247,22 @@ function impRowHtml(r){
   const titre=String(o.title||'').trim()||'Sans titre';
   // Le titre s'ellipse (une rangée garde son rythme) — mais il ne se PERD pas : `title` porte le
   // libellé entier, discriminant compris, comme la rangée du répertoire.
-  return `<label class="imp-row"><input type="checkbox" data-impsel="${esc(r.key)}"${_impSel.has(r.key)?' checked':''}>`
+  // Le dépliant vit HORS du <label> : dedans, chaque clic dans le diff cocherait la rangée.
+  return `<div class="imp-item"><label class="imp-row"><input type="checkbox" data-impsel="${esc(r.key)}"${_impSel.has(r.key)?' checked':''}>`
     +`<span class="imp-tx"><b class="imp-t" title="${esc(titre+(o.discriminant?' — '+o.discriminant:''))}">${esc(titre)}${o.discriminant?' — '+esc(o.discriminant):''}</b>`
     +`<span class="imp-sub"><span class="imp-kind">${r.kind}</span>`
     +statusChip(o.status,r.fem,{always:true})
     +(r.dup?`<span class="imp-dup" title="Une entité de même identifiant est déjà dans votre bibliothèque — la question « Doublons » qui suit décide de son sort, pour toutes celles-ci à la fois">⟳ déjà présent<span class="sr-only">e dans votre bibliothèque</span></span>`:'')
+    +((r.dup&&r.rel)?`<span class="imp-rel${r.rel==='vieux'?' warn':''}">${r.rel==='vieux'?'△ ':''}${esc(IMP_REL[r.rel])}</span>`:'')
     +(carry?`<span>${esc(carry)}</span>`:'')
     +(r.notes?`<span class="tag todo" title="Il reste ${r.notes} remarque(s) de relecture — le volet « Relecture » de l'éditeur les détaille">△ ${r.notes}<span class="sr-only"> remarque(s) de relecture</span></span>`:'')
     +(nd?`<span>${nd} PDF</span>`:'')
-    +`</span></span></label>`;}
+    // A132 — sur une entité déjà présente seulement : ailleurs il n'y a rien à comparer, et un
+    // bouton qui n'ouvrirait rien serait un bouton mort.
+    +(r.dup?`<button type="button" class="imp-cmp" data-impcmp="${esc(r.key)}" aria-expanded="false">Comparer</button>`:'')
+    +`</span></span></label>`
+    +(r.dup?`<div class="imp-diff" data-impdiff="${esc(r.key)}" hidden></div>`:'')
+    +`</div>`;}
 function paintImpList(){document.getElementById('impList').innerHTML=_impRows.map(impRowHtml).join('');impSyncSel();}
 /* Le pied ANNONCE ce qu'on obtient avant de fermer (patron de la feuille de filtres, A26). Le
    bouton est FERMÉ à zéro sélection — apparence de « fermé » du dossier (`:disabled`), et le
@@ -25207,6 +25295,26 @@ document.getElementById('impGo').onclick=()=>{if(_impSel&&_impSel.size)_impEnd(n
 document.getElementById('impCancel').onclick=()=>_impEnd(null);
 document.getElementById('impAll').onclick=()=>impSetAll(true);
 document.getElementById('impNone').onclick=()=>impSetAll(false);
+/* A132 — le dépliant de comparaison. DÉLÉGUÉ (la liste est reconstruite à chaque atelier), et le
+   diff est calculé À L'OUVERTURE, jamais au rendu de la liste : sur dix-huit entités, ce serait
+   dix-huit aplatissements pour un dépliant qu'on n'ouvrira peut-être pas.
+   ⚠ CE QUI A ÉTÉ ÉCRIT PUIS RETIRÉ, ET POURQUOI C'EST À DIRE : j'avais posé un `preventDefault`
+   au motif que « le bouton vit dans un <label>, donc l'ouvrir cocherait la rangée ». C'est FAUX —
+   un descendant de contenu INTERACTIF n'active pas son label, et la mesure le confirme sur les
+   DEUX moteurs (défaut réintroduit, témoin resté vert). La ligne est donc partie avec la croyance
+   qu'elle servait : un commentaire qui affirme un mécanisme inexistant finit par le faire
+   « réparer » (A72). Le témoin, lui, RESTE — il mesure la PROPRIÉTÉ (ouvrir la comparaison ne
+   change pas la sélection), pas le mécanisme du jour, et couvrirait donc le cas où ce bouton
+   deviendrait un jour un élément non interactif. C'est un GARDE, pas un discriminant, et il le
+   dit. */
+document.getElementById('impList').addEventListener('click',e=>{
+  const b=e.target&&e.target.closest?e.target.closest('[data-impcmp]'):null;if(!b)return;
+  const k=b.dataset.impcmp,p=document.querySelector(`#impList [data-impdiff="${CSS.escape(k)}"]`);
+  if(!p)return;
+  const on=p.hidden;
+  if(on&&!p.innerHTML){const r=_impRows.find(x=>x.key===k);if(r)p.innerHTML=impDiffHtml(r);}
+  p.hidden=!on;b.setAttribute('aria-expanded',on?'true':'false');
+  b.textContent=on?'Masquer':'Comparer';});
 document.getElementById('impList').addEventListener('change',e=>{
   const cb=e.target&&e.target.closest?e.target.closest('[data-impsel]'):null;if(!cb)return;
   if(cb.checked)_impSel.add(cb.dataset.impsel);else _impSel.delete(cb.dataset.impsel);
@@ -28550,7 +28658,7 @@ if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={sinceTxt,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
-    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
+    txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,
     qTerms,hayMatch,markQTerms,searchSnippet,ficheSnipParts,protoSnipParts,frecencyScore,sanitizeUsage,mergeUsage,azLetter,azGroups,qaPick,tmLabelParts,sessStamp,monPick,reviewNotes,stepNote,stepShortcut,carryParts,

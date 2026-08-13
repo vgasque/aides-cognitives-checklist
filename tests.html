@@ -2495,6 +2495,55 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('un repère annulé ne se dessine pas', d.past.length, 0);}
   eq('rien du tout → rien à dessiner',
      JSON.stringify(A.monBandData({},[],_now)), JSON.stringify({past:[],dated:[],ghosts:[],sans:[]}));
+
+  /* ══ A131 — LEQUEL DES DEUX EST LE PLUS RÉCENT ? ═══════════════════════════════════════════
+     Le prédicat que la rangée de l'atelier consulte pour dire ce que la question « Doublons »
+     demande de trancher. Il ne DEVINE jamais : sans horodatage des deux côtés, il se tait. */
+  group('A131 — la relation des deux versions (impDupRel)');
+  eq('le fichier est postérieur → « le fichier est plus récent »', A.impDupRel(200, 100), 'neuf');
+  eq('le fichier est antérieur → c’est MA version qui est plus récente', A.impDupRel(100, 200), 'vieux');
+  /* Un objet exporté puis réimporté sans avoir été touché porte le MÊME horodatage : aucune
+     tolérance n'est nécessaire, et « à une minute près » serait un seuil inventé. */
+  eq('même horodatage à la milliseconde → même version', A.impDupRel(100, 100), 'egal');
+  eq('une seconde d’écart n’est PAS « la même version »', A.impDupRel(101000, 100000), 'neuf');
+  /* A83 — elle ne dit que ce qu'elle sait. Un fichier ancien peut n'en porter aucun ; c'est
+     précisément le cas où `migrate` en poserait un, et où deviner serait mentir. */
+  eq('aucun horodatage dans le fichier → la rangée se tait', A.impDupRel(null, 100), '');
+  eq('aucun horodatage de mon côté → elle se tait aussi', A.impDupRel(100, undefined), '');
+  eq('une valeur non numérique ne fait pas une révision', A.impDupRel('200', 100), '');
+  eq('… ni une valeur infinie', A.impDupRel(Infinity, 100), '');
+  eq('… ni NaN', A.impDupRel(NaN, 100), '');
+
+  /* ══ A132 — CE QUE « REMPLACER » CHANGERAIT ════════════════════════════════════════════════
+     Orientation : on part de MA version, l'entrant est la cible — « plus » est donc ce que le
+     fichier APPORTE, « moins » ce qu'il emporterait. Aucun comparateur neuf : c'est celui de
+     « Versions », seule l'orientation est nommée. */
+  group('A132 — ce que remplacer changerait (impDiff)');
+  {const mien={title:'Réf',status:'',body:'ligne A\nligne B',sources:[]};
+   const entr={title:'Réf',status:'',body:'ligne A\nligne C',sources:[]};
+   const d=A.impDiff(mien,entr,true);
+   ok('ce que le fichier APPORTE est dans « plus »', d.plus.some(x=>/ligne C/.test(x)), JSON.stringify(d.plus));
+   ok('ce qu’il EMPORTERAIT est dans « moins »', d.moins.some(x=>/ligne B/.test(x)), JSON.stringify(d.moins));
+   ok('la ligne commune n’apparaît nulle part',
+      !d.plus.concat(d.moins).some(x=>/ligne A/.test(x)), JSON.stringify(d));}
+  {const p={title:'Réf',status:'',body:'x',sources:[]};
+   const d=A.impDiff(p,p,true);
+   eq('deux fois le même objet → aucune différence', d.plus.length+d.moins.length, 0);}
+  /* Une RÉFÉRENCE n'a ni bloc ni minuteur : son corps est du texte, et ses lignes SONT ses unités
+     de comparaison. Sans aplatissement propre, la moitié de la bibliothèque n'aurait pas eu de
+     réponse à la même question destructive. */
+  ok('le corps d’une référence entre ligne à ligne dans la comparaison',
+     A.flattenProto({title:'R',body:'un\ndeux'}).filter(x=>/^Corps · /.test(x)).length===2,
+     JSON.stringify(A.flattenProto({title:'R',body:'un\ndeux'})));
+  eq('une ligne vide du corps n’est pas une unité de comparaison',
+     A.flattenProto({title:'R',body:'un\n\n\ndeux'}).filter(x=>/^Corps · /.test(x)).length, 2);
+  eq('rien du tout → rien à comparer', A.flattenProto(null).length, 0);
+  /* Et le même comparateur sert les AIDES, par `flattenFiche` — celui de « Versions ». */
+  {const mk=t=>A.migrate({id:'x',title:t,start:'b1',
+     blocks:[{id:'b1',kind:'do',title:'Bloc',items:['Un geste']}]});
+   const d=A.impDiff(mk('Ancien'),mk('Nouveau'),false);
+   ok('sur une aide, le titre entrant est annoncé comme un ajout',
+      d.plus.some(x=>/Nouveau/.test(x))&&d.moins.some(x=>/Ancien/.test(x)), JSON.stringify(d));}
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

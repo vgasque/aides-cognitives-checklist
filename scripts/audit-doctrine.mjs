@@ -5703,8 +5703,11 @@ await sec('A130 · doublons annoncés, catégories filtrées', async () => {
       categories:[{id:'catgardee',name:'Catégorie gardée',color:'#1f5fa6'},
                   {id:'catecartee',name:'Catégorie écartée',color:'#1f5fa6'}],
       fiches:[
-        // A — MÊME identifiant qu'une aide déjà présente : la rangée doit l'annoncer.
+        // A — MÊME identifiant qu'une aide déjà présente : la rangée doit l'annoncer. Son
+        // horodatage est VOLONTAIREMENT très ancien (A131) : c'est le cas où « remplacer »
+        // écraserait une révision locale par une copie périmée — le seul qui prenne l'ambre.
         {id:id,title:'A130 — déjà chez moi',status:'validated',category:'catgardee',start:'ba',
+         updatedAt:1,
          timers:[{id:'t1',label:'Adrénaline',type:'interval',seconds:120}],
          blocks:[{id:'ba',kind:'do',title:'Gestes',items:['Un geste','Un autre']},
                  {id:'ba2',kind:'do',title:'Suite',items:['Encore']}]},
@@ -5718,6 +5721,10 @@ await sec('A130 · doublons annoncés, catégories filtrées', async () => {
     rows:[...document.querySelectorAll('#impModal .imp-row')].map(r=>({
       t:(r.querySelector('.imp-t')||{}).textContent||'',
       dup:!!r.querySelector('.imp-dup'),
+      rel:(r.querySelector('.imp-rel')||{}).textContent||'',
+      relW:!!(r.querySelector('.imp-rel')||{classList:{contains:()=>false}}).classList.contains('warn'),
+      relC:r.querySelector('.imp-rel')?getComputedStyle(r.querySelector('.imp-rel')).color:'',
+      verify:getComputedStyle(document.documentElement).getPropertyValue('--verify').trim(),
       sub:(r.querySelector('.imp-sub')||{}).textContent||'',
       key:(r.querySelector('[data-impsel]')||{}).getAttribute('data-impsel')}))}));
   t('le cas est rencontré : deux rangées, et la collision est possible (même espace)',
@@ -5727,6 +5734,56 @@ await sec('A130 · doublons annoncés, catégories filtrées', async () => {
     vu.rows[0].dup===true&&vu.rows[1].dup===false,JSON.stringify(vu.rows.map(r=>r.dup)));
   t('la rangée dit ce que l\'entité EMBARQUE, dans les mots de l\'écran d\'entrée',
     /2 blocs · 1 minuteur/.test(vu.rows[0].sub),vu.rows[0].sub);
+  /* A131 — la rangée dit LEQUEL des deux est le plus récent, c'est-à-dire ce que la question
+     suivante demande de trancher. Ici le fichier est le plus ANCIEN : « remplacer » perdrait une
+     révision locale, donc registre ATTENTION — le glyphe ET le mot, jamais la couleur seule. */
+  t('A131 · la rangée dit que MA version est la plus récente',
+    /votre version est plus récente/.test(vu.rows[0].rel),JSON.stringify(vu.rows[0].rel));
+  t('A131 · … au registre ATTENTION, glyphe compris, et jamais la couleur seule',
+    vu.rows[0].relW===true&&/△/.test(vu.rows[0].rel),JSON.stringify([vu.rows[0].relW,vu.rows[0].rel]));
+  t('A131 · sans collision possible, aucune relation n\'est annoncée',
+    vu.rows[1].rel==='',JSON.stringify(vu.rows[1].rel));
+  /* A132 — « Comparer » déplie ce que remplacer changerait.
+     ⚠ LA SECONDE ASSERTION EST UN GARDE, ET IL FAUT LE DIRE : « ouvrir ne change pas la
+     sélection » est acquis par CONSTRUCTION (un descendant interactif n'active pas son label —
+     vérifié sur les deux moteurs en retirant le `preventDefault` que j'avais cru nécessaire :
+     témoin resté vert). Elle ne peut donc pas rougir aujourd'hui. On la garde parce qu'elle mesure
+     la PROPRIÉTÉ et non le mécanisme : le jour où ce bouton deviendrait un élément non interactif,
+     elle serait le seul contrôle à le voir. Celles qui DISCRIMINENT sont les deux autres. */
+  const cmpAvant=await page.evaluate(()=>{const b=document.querySelector('#impList [data-impcmp]');
+    return b?{existe:true,coche:b.closest('.imp-item').querySelector('[data-impsel]').checked,
+      ouvert:!b.closest('.imp-item').querySelector('.imp-diff').hidden}:{existe:false};});
+  t('A132 · le cas est rencontré : « Comparer » n\'existe que sur la rangée déjà présente, et replié',
+    cmpAvant.existe===true&&cmpAvant.ouvert===false
+      &&(await page.evaluate(()=>document.querySelectorAll('#impList [data-impcmp]').length))===1,
+    JSON.stringify(cmpAvant));
+  if(cmpAvant.existe){
+    await page.click('#impList [data-impcmp]');
+    await page.waitForTimeout(120);
+    const cmp=await page.evaluate(()=>{const it=document.querySelector('#impList .imp-item');
+      const d=it.querySelector('.imp-diff');
+      return {ouvert:!d.hidden,txt:d.textContent||'',
+        // ⚠ ON LIT LES DEUX COLONNES SÉPARÉMENT, jamais le texte du panneau : une première
+        // version cherchait le titre entrant « quelque part » — elle restait VERTE quand on
+        // INVERSAIT l'orientation, le mot se trouvant alors dans l'autre colonne (mesuré).
+        add:[...d.querySelectorAll('.diff-line.add')].map(x=>x.textContent).join(' | '),
+        del:[...d.querySelectorAll('.diff-line.del')].map(x=>x.textContent).join(' | '),
+        coche:it.querySelector('[data-impsel]').checked,
+        lbl:it.querySelector('[data-impcmp]').textContent,
+        aria:it.querySelector('[data-impcmp]').getAttribute('aria-expanded')};});
+    t('A132 · le dépliant s\'ouvre et dit ce que REMPLACER changerait',
+      cmp.ouvert===true&&/Remplacer ajouterait/.test(cmp.txt),
+      JSON.stringify({ouvert:cmp.ouvert,tete:cmp.txt.slice(0,60)}));
+    /* L'ORIENTATION est la propriété qui compte : ce que le FICHIER apporte est un ajout, ce que
+       MA version perdrait est une suppression. Inversées, les deux colonnes existent encore et
+       le panneau se lit très bien — c'est le sens qui serait faux. */
+    t('A132 · … et dans le bon sens : le titre du FICHIER est un ajout, le mien une suppression',
+      /A130 — déjà chez moi/.test(cmp.add)&&!/A130 — déjà chez moi/.test(cmp.del),
+      JSON.stringify({add:cmp.add.slice(0,70),del:cmp.del.slice(0,70)}));
+    t('A132 · … SANS toucher à la sélection (le bouton vit dans un <label>)',
+      cmp.coche===true,String(cmp.coche));
+    t('A132 · … et le bouton dit désormais ce qu\'il fera',
+      cmp.lbl==='Masquer'&&cmp.aria==='true',JSON.stringify([cmp.lbl,cmp.aria]));}
   // On décoche la neuve — donc la seule qui porte « catecartee ».
   await page.click(`#impModal [data-impsel="${vu.rows[1].key}"]`);
   await page.click('#impGo');
@@ -5781,6 +5838,40 @@ await sec('A130 · « remplacer » annonce la sélection, pas le fichier', async
   await page.waitForTimeout(400);
   const rien=await page.evaluate(()=>fiches.filter(f=>/A130 — lot/.test(f.title)).length);
   t('… et refuser la remplace n\'écrit rien du tout',rien===0,String(rien));
+  await page.close();
+});
+/* ══ A131 — SANS HORODATAGE, LA RANGÉE SE TAIT ═════════════════════════════════════════════════
+   Le piège que ce lot pouvait manquer, et il est INVISIBLE au témoin de la section A130 : c'est
+   `migrate` lui-même qui POSE un `updatedAt` quand le fichier n'en porte pas, et son dernier
+   recours est `Date.now()`. Un fichier ancien serait donc daté de l'INSTANT DE L'IMPORT, donc
+   annoncé « plus récent » que tout ce qu'on possède — un mensonge, sur la seule question
+   destructive du parcours. La sonde exige donc le silence là où l'on ne sait pas.
+   SECTION À PART, et sa manœuvre le justifie : elle se termine par ANNULER, alors que la section
+   A130 va jusqu'à l'écriture. On ne fusionne pas deux verdicts qui ne finissent pas au même
+   endroit (« une section est une UNITÉ DE VERDICT »). */
+await sec('A131 · sans horodatage, la rangée se tait', async () => {
+  const page=await br.newPage({viewport:{width:390,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const dejaId=await page.evaluate(()=>fiches[0].id);
+  await page.evaluate(id=>{
+    // Même espace (donc collision possible) et AUCUN `updatedAt` : le cas exact du fichier ancien.
+    const doc={version:3,origin:spaceTag(currentSpace()),categories:[],
+      fiches:[{id:id,title:'A131 — sans horodatage',status:'draft',start:'bz',
+        blocks:[{id:'bz',kind:'do',title:'Bloc',items:['Un geste']}]}]};
+    readImportFile(new File([JSON.stringify(doc)],'a131.json'));},dejaId);
+  await page.waitForFunction(()=>document.getElementById('impModal').classList.contains('on'),null,{timeout:5000}).catch(()=>{});
+  const vu=await page.evaluate(()=>{const r=document.querySelector('#impModal .imp-row');
+    return r?{dup:!!r.querySelector('.imp-dup'),rel:(r.querySelector('.imp-rel')||{}).textContent||''}:null;});
+  // ON RENCONTRE SON CAS D'ABORD : sans collision annoncée, l'absence de relation ne prouverait
+  // rien — elle serait absente parce qu'il n'y a rien à comparer.
+  t('le cas est rencontré : la collision EST annoncée',!!vu&&vu.dup===true,JSON.stringify(vu));
+  if(vu&&vu.dup)t('A131 · … et AUCUNE relation n\'est inventée à partir d\'un horodatage absent',
+    vu.rel==='',JSON.stringify(vu.rel));
+  await page.click('#impCancel');
+  await page.waitForTimeout(300);
+  const rien=await page.evaluate(()=>fiches.some(f=>/A131 — sans horodatage/.test(f.title)));
+  t('annuler l\'atelier n\'écrit rien',rien===false,String(rien));
   await page.close();
 });
 

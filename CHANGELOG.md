@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [5.9.0] — 2026-08-13
+### L'atelier d'import va jusqu'à la question destructive
+
+`5.8.0` avait posé le grain — l'entité — et `5.8.1` l'avait tenu partout. Restait le geste que
+l'atelier existe précisément pour éclairer : **remplacer**. La rangée annonçait qu'une entité était
+« déjà présente » sans dire ni **laquelle des deux versions est la plus fraîche**, ni **ce que
+remplacer coûterait**. Doctrine : `AGENTS.md` A131 et A132.
+
+- **La rangée dit laquelle des deux est la plus récente** — « le fichier est plus récent »,
+  « votre version est plus récente », « même version ». Le second cas est le seul où remplacer
+  **perd du travail** : il prend le registre ATTENTION, en texte et avec son glyphe, jamais un
+  aplat. Aucun champ nouveau : `updatedAt` **est** la révision, celle-là même dont le compte rendu
+  se sert déjà pour dire sur quelle version un soin a été conduit.
+- **⚠ Et l'horodatage est lu *avant* la normalisation**, parce que celle-ci en pose un quand il
+  manque — un fichier ancien se serait donc annoncé « plus récent » que tout ce qu'on possède, sur
+  la seule question destructive du parcours. Sans date des deux côtés, la rangée **se tait** plutôt
+  que de deviner.
+- **« Comparer » déplie ce que remplacer changerait**, ligne à ligne : ce que le fichier
+  apporterait, ce qu'il emporterait. C'est le comparateur de « Versions », inchangé — pas un
+  second, qui finirait par répondre autre chose sur la même paire d'objets. Les **références** ont
+  leur propre aplatissement (leur corps est du texte, ses lignes sont ses unités) : sans lui, la
+  moitié de la bibliothèque n'aurait eu aucune réponse à la même question.
+- **Ce qui n'est pas fait, et pourquoi** : descendre au **grain du bloc**. Un bloc ne porte que des
+  identifiants d'items d'un pool partagé et se relie aux autres par ses branches — en importer un
+  sous-ensemble produirait des blocs vides et des branches qui ne mènent nulle part. Un algorithme
+  partiel n'est pas un algorithme allégé, c'est un algorithme cassé.
+
 ## [5.8.1] — 2026-08-13
 ### L'atelier d'import, jusqu'au bout : le filtre atteint tout ce qui s'écrit
 

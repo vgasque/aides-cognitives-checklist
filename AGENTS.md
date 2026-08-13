@@ -2699,6 +2699,88 @@ raisonnaient encore en BLOC derrière l'atelier.
   une phrase). Vérifiées CAPABLES D'ÉCHOUER : quatre défauts réintroduits → **5 rouges**, fichiers
   restaurés à l'octet.
 
+**A131. « DÉJÀ PRÉSENT » NE SUFFIT PAS À DÉCIDER — LEQUEL DES DEUX EST LE PLUS RÉCENT ? (v5.9.0,
+suite d'A130).** La rangée annonçait la COLLISION sans dire ce que la question SUIVANTE demande
+pourtant de trancher — « remplacer » ou « garder les deux ». Or remplacer, quand le fichier est
+plus ANCIEN que ma version, écrase une révision locale par une copie périmée : **en silence**, et
+c'est précisément le genre de geste que l'atelier existe pour rendre visible. La rangée dit donc la
+RELATION en toutes lettres (« le fichier est plus récent » · « votre version est plus récente » ·
+« même version »).
+· **ON N'INVENTE PAS DE NUMÉRO DE RÉVISION** : `updatedAt` EST la révision — c'est déjà ce dont
+  `aidRev` se sert pour dire sur quelle version un soin a été conduit (v5.0.0). Aucun champ
+  nouveau, aucune migration, rien de plus à synchroniser.
+· ⚠ **ET ON LIT L'HORODATAGE AVANT `migrate`.** C'est le piège du lot, et il est INVISIBLE au
+  témoin de la section A130 : `migrate` POSE un `updatedAt` quand il manque, avec `Date.now()` en
+  dernier recours. Un fichier ancien qui n'en portait pas se retrouverait donc daté de **l'instant
+  de l'import**, donc annoncé « plus récent » que tout ce qu'on possède — un mensonge, sur la seule
+  question destructive du parcours. Le prédicat travaille sur l'objet BRUT ; sans horodatage des
+  DEUX côtés, la rangée **se tait** (A83 : elle ne dit que ce qu'elle sait). Mesuré à la
+  réintroduction du défaut : « le fichier est plus récent » sur un fichier sans aucune date.
+· **AUCUNE TOLÉRANCE, AUCUN SEUIL** : un objet exporté puis réimporté sans avoir été touché porte
+  le MÊME horodatage à la milliseconde. « À une minute près » serait un seuil inventé.
+· **LE SEUL CAS AMBRE EST CELUI OÙ L'ON PERD DU TRAVAIL** — « votre version est plus récente »,
+  registre ATTENTION en TEXTE avec son glyphe △, jamais un aplat (A11) et jamais la couleur seule
+  (règle 8). Les deux autres sont des faits neutres et prennent l'encre de la rangée.
+· **ELLE NE CONDITIONNE RIEN, ET LE SORT RESTE GLOBAL** : la stratégie est décidée par la question
+  « Doublons », où le contrôle par rangée a été écarté et motivé (A130). La rangée informe.
+· **ON NE DIT PAS LA DATE, seulement la relation** : la décision ne demande que « lequel gagne » ;
+  une date de plus serait un second nombre à lire sur une rangée déjà dense, pour rien.
+· **TÉMOINS** : les trois contrôles de relation rejoignent la section A130, dont le décor porte
+  déjà la collision (le fichier y est volontairement daté de `1`) ; le PIÈGE a **sa** section,
+  `A131 · sans horodatage, la rangée se tait`, et sa manœuvre le justifie — elle finit par
+  ANNULER quand A130 va jusqu'à l'écriture, et l'on ne fusionne pas deux verdicts qui ne
+  s'arrêtent pas au même endroit. Elle RENCONTRE SON CAS d'abord (la collision doit être annoncée,
+  sinon l'absence de relation ne prouverait rien). Vérifiées CAPABLES D'ÉCHOUER dans les deux
+  sens : lecture après `migrate` → 1 rouge ; relation neutralisée → 2 rouges ; fichier restauré à
+  l'octet.
+· ⚠ **CE QUI N'EST PAS FAIT, ET POURQUOI — le « grain BLOC ».** Le plan A/F7 prévoyait de
+  descendre d'un cran : choisir les BLOCS d'une aide à l'import. C'est refusé, et pas par
+  prudence : depuis l'étape B (v5.0.0) un bloc ne porte que des **identifiants** d'items d'un pool
+  partagé, et il se relie aux autres par `next`/`options`. Importer un sous-ensemble produit donc
+  des références pendantes — c'est-à-dire, à l'écran, **un bloc vide et des branches qui ne mènent
+  nulle part**, exactement le défaut de contrat corrigé en v5.0.0. Un algorithme partiel n'est pas
+  un algorithme allégé, c'est un algorithme cassé. Le grain juste pour un import reste l'ENTITÉ ;
+  ce qui manque à quelqu'un qui ne veut qu'un morceau, c'est l'import PUIS la suppression de ce
+  qu'il n'a pas voulu — un geste d'éditeur, à froid, avec l'anneau d'annulation pour filet.
+
+**A132. SAVOIR LEQUEL EST LE PLUS RÉCENT NE DIT PAS CE QU'ON PERDRAIT (v5.9.0, dernier étage de
+l'atelier).** A131 met la RELATION sur la rangée ; il restait à pouvoir regarder. Sur une entité
+déjà présente, « Comparer » déplie ce que « remplacer » ajouterait et ce qu'il supprimerait — et la
+promesse « voir avant d'écrire » est alors tenue de bout en bout : ce qu'on importe (A129), ce que
+le filtre atteint (A130), laquelle des deux versions est la plus fraîche (A131), et ce que le geste
+destructif coûterait (ici).
+· **AUCUN COMPARATEUR NEUF** : c'est celui de « Versions » (`flattenFiche` + différence
+  d'ensembles), inchangé. Un second, écrit à côté, finirait par répondre autre chose ici que là sur
+  la même paire d'objets. Seule l'ORIENTATION change, et elle est nommée : on part de MA version,
+  l'entrant est la cible, donc « + » = ce que le fichier apporte.
+· **UNE RÉFÉRENCE A SON APLATISSEMENT** (`flattenProto`) : elle n'a ni bloc ni minuteur, son corps
+  est du texte, et ses lignes SONT ses unités de comparaison. La taire aurait laissé sans réponse
+  exactement la même question destructive sur l'autre moitié de la bibliothèque.
+· **CE N'EST PAS LE DIFF CLINIQUE REFUSÉ EN A119.** Celui-là aurait résumé une modification de dose
+  à quelqu'un qui s'apprête à SOIGNER. Ici c'est un geste d'AUTEUR, à froid, et la surface est celle
+  que « Versions » lui montre déjà — même public, même dessin, mêmes mots.
+· **CALCULÉ À L'OUVERTURE, jamais au rendu de la liste** : sur dix-huit entités, ce serait dix-huit
+  aplatissements pour un dépliant qu'on n'ouvrira peut-être pas. Replié par défaut : la rangée
+  reste une rangée.
+· ⚠ **UNE LIGNE ÉCRITE PUIS RETIRÉE, ET C'EST LA LEÇON DU LOT.** J'avais posé un `preventDefault`
+  au motif que « le bouton vit dans un `<label>`, donc l'ouvrir cocherait la rangée ». **C'est
+  faux** : un descendant de contenu INTERACTIF n'active pas son label — mesuré sur les DEUX moteurs
+  en réintroduisant le défaut, témoin resté vert. La ligne est partie avec la croyance qu'elle
+  servait : un commentaire qui affirme un mécanisme inexistant finit par le faire « réparer »
+  (A72), et *une déclaration qu'on croit nécessaire peut n'être que du bruit* (A73, pris par
+  l'autre bout).
+· ⚠ **ET UNE ASSERTION TROP LÂCHE EST RESTÉE VERTE SUR UNE ORIENTATION INVERSÉE** : elle cherchait
+  le titre entrant « quelque part » dans le panneau — or les deux colonnes existent encore quand on
+  inverse, seul le SENS est faux, et le panneau se lit très bien. Elle lit désormais les colonnes
+  SÉPARÉMENT (`.diff-line.add` contre `.diff-line.del`). *Un témoin qui mesure la présence d'un mot
+  ne mesure pas la place de ce mot.*
+· **TÉMOINS** : quatre contrôles rejoignent la section A130, dont le décor porte déjà la collision.
+  Deux DISCRIMINENT (le dépliant s'ouvre ; le sens est le bon — vérifié capable d'échouer,
+  orientation inversée → 1 rouge) ; un troisième — « ouvrir ne change pas la sélection » — est un
+  **GARDE** qui ne peut pas rougir aujourd'hui, et il le dit sur place : on le garde parce qu'il
+  mesure la PROPRIÉTÉ et non le mécanisme, donc il verrait le jour où ce bouton cesserait d'être un
+  élément interactif.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex
