@@ -2315,6 +2315,15 @@ rembourrage de la carte.
 · **GLYPHE TRACÉ** (`uiIcon('stopwatch')`), jamais le caractère « ⏱ » — règle A106, qui n'avait
   pas été appliquée à cet ajout.
 
+**A117c. LES ÉPINGLÉES ONT LE RYTHME DU RÉPERTOIRE (v5.7, signalé à l'usage : « les cartes
+épinglées prennent toute la largeur de la page — inutile ? autant en mettre plusieurs colonnes
+quand la largeur le permet »).** Leurs rangées vivaient DIRECTEMENT dans le livre, sans le
+`.dir-grid` que porte chaque groupe de lettre. Mesuré à 1280 px : une rangée du répertoire fait
+**320 px** (trois colonnes), une épinglée **976** — pleine largeur, pour l'accès le plus rapide du
+produit, celui qu'on vise sans lire. Elles prennent la MÊME grille : mesuré identique à 390 · 1100
+· 1280 · 1600 px. C'est la règle « un seul dessin de rangée » (A16) — le rythme de l'annuaire ne
+doit pas changer d'une section à l'autre, sans quoi on le réapprend à chaque écran.
+
 **A118. CE QUE LA FICHE EMBARQUE SE DIT AVANT QU'ON ENTRE (v5.7).** Mesuré : `preStartHtml` (« Ce
 qui démarrera ») ne se rend que dans le RAIL, donc à partir de 780 px ; en voie ÉTROITE le panneau
 n'existe que dans le volet du quai, qui exige une session vive (v5.4.2), et la capsule n'existe pas

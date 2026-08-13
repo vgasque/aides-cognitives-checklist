@@ -5478,6 +5478,38 @@ await sec('Q1 · les propositions de relecture', async () => {
   await page.close();
 });
 
+/* ── LES ÉPINGLÉES SUIVENT LE RYTHME DU RÉPERTOIRE ────────────────────────────────────────────
+   Signalé à l'usage : « les cartes épinglées prennent toute la largeur de la page — autant en
+   mettre plusieurs colonnes quand la largeur le permet ». Leurs rangées vivaient hors du
+   `.dir-grid` que porte chaque groupe de lettre : mesuré à 1280 px, 320 px pour une rangée du
+   répertoire contre 976 pour une épinglée. On mesure la PROPRIÉTÉ — même largeur de rangée dans
+   les deux sections, à toutes les largeurs — et non le nombre de colonnes, qui dépend de la
+   grille fluide et n'a pas à être encodé ici. */
+await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
+  const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(async () => { (fiches || []).slice(0, 2).forEach(f => togglePin(f.id));
+    render(); await new Promise(r => setTimeout(r, 400)); });
+  for (const w of [390, 1100, 1280, 1600]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.waitForTimeout(320);
+    const r = await page.evaluate(() => {
+      const pb = document.querySelector('.dir-book.pinned');
+      const nb = [...document.querySelectorAll('.dir-book:not(.pinned)')][0];
+      const lg = e => e ? Math.round(e.getBoundingClientRect().width) : 0;
+      return { ep: lg(pb && pb.querySelector('.dir-row')), rep: lg(nb && nb.querySelector('.dir-row')),
+        livre: lg(pb), n: pb ? pb.querySelectorAll('.dir-row').length : 0 }; });
+    t(`${w} px · témoin : les deux sections existent`, r.n >= 2 && r.rep > 0, JSON.stringify(r));
+    t(`${w} px · une rangée épinglée a la largeur d'une rangée du répertoire`,
+      r.ep > 0 && Math.abs(r.ep - r.rep) <= 2, `${r.ep} px vs ${r.rep} px`);
+    if (w >= 1100)
+      t(`${w} px · … donc elle ne prend PAS toute la largeur du livre`,
+        r.ep < r.livre - 40, `${r.ep} px dans ${r.livre} px`);
+  }
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

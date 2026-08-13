@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-s8O52jEkHdXrZ6xmT9zfHATWODNwxdr84ULnGI+AjJ4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Ta7oUNz8H6VW95xGB9POGmY51jrW6DB1/ULE1MST/Qo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2396,7 +2396,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .dir-book .dir-row{margin-inline:-16px;padding-left:16px;padding-right:40px}
   }
   .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
-  .dir-book.pinned .dir-row:last-child{border-bottom:0}
+  /* ⚠ LES ÉPINGLÉES SONT UN RÉPERTOIRE COMME LES AUTRES (v5.7, signalé à l'usage : « les cartes
+     épinglées prennent toute la largeur de la page — autant en mettre plusieurs colonnes quand la
+     largeur le permet »). Leurs rangées vivaient DIRECTEMENT dans le livre, sans le `.dir-grid`
+     que chaque groupe de lettre porte : mesuré à 1280 px, une rangée du répertoire fait 320 px
+     (trois colonnes) et une épinglée 976 — pleine largeur, pour l'accès le plus rapide du
+     produit. Elles prennent la MÊME grille : c'est la règle « un seul dessin de rangée » (A16),
+     et le rythme de l'annuaire ne doit pas changer d'une section à l'autre. */
+  .dir-book.pinned .dir-grid>.dir-row:last-child{border-bottom:0}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
      les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
@@ -14596,7 +14603,7 @@ function renderHomeList(cfg){
     const filtTail=filtersSummary();
     listHtml=`<div class="dir-wrap"><div class="grp-row">${list.length?homeGroupSegHtml():''}</div>${list.length?
       (tiles.length?`<div class="dir-h"><b>${cfg.pinnedLbl(tiles.length)} ★</b></div>
-        <div class="dir-book pinned">${tiles.map(cfg.row).join('')}</div>`:'')
+        <div class="dir-book pinned"><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div>`:'')
       +`<div class="dir-h"><b>Répertoire</b><span class="dir-hs">${list.length} ${cfg.countLbl(list.length)} · ${cfg.listTitle()}${scopeTail}${filtTail}</span></div>`
       +`<div class="dir-book">`
       +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}"><div class="dir-l">${g.cat?`<span class="dir-dot" style="background:${safeColor(g.cat.color)}" aria-hidden="true"></span>`:''}<span class="dir-ll">${esc(g.L)}</span><span class="dir-lr"></span></div><div class="dir-grid">${g.items.map(cfg.row).join('')}</div></div>`).join('')
