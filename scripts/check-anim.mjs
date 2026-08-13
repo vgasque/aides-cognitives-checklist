@@ -136,7 +136,12 @@ for (const m of html.matchAll(/addEventListener\s*\(\s*['"]animationend['"]\s*,/
    d'alarme, la coque du dock qui laisse passer les taps. Aucune n'intercepte un geste. Les nommer
    une par une serait une liste de bruit ; en revanche une NOUVELLE occurrence mérite une décision,
    parce que c'est par là qu'un voile bloquant entrerait. Le compte ne peut donc que DESCENDRE. */
-const PE_MAX = 18;
+/* v5.7 — 19 : `#blkReturn` (P1, la barre de retour au bloc courant). C'est une COQUE
+   d'annonciateur, exactement comme `#dockSheet` et `#sessionDock` qui la précèdent : la coque
+   couvre toute la largeur et ne doit rien intercepter, seul le bouton qu'elle porte est tapable
+   (`.bkr{pointer-events:auto}`). Sans cela elle volerait les taps sur la colonne d'action tant
+   qu'elle est à l'écran — c'est-à-dire précisément quand on défile pour lire. */
+const PE_MAX = 19;
 const nPe = styles.map(sansCommentaires).join('\n').split(/pointer-events\s*:\s*none/).length - 1;
 if (nPe > PE_MAX)
   fautes.push({ ou: `pointer-events:none × ${nPe}`, prop: `cliquet à ${PE_MAX} (A68/4)` });

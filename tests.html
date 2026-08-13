@@ -2264,6 +2264,144 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    /* Les autres familles ne sont pas capturées par la nouvelle branche. */
    eq('idb fermée · le 403 garde son message',A.explainSyncError(new Error('REST 403 x')).title,'Écriture refusée');
    eq('idb fermée · le réseau garde le sien',A.explainSyncError(new TypeError('Failed to fetch')).title,'Serveur injoignable');}
+
+  /* ══ P3 (v5.7) — « il y a » : une soustraction d'horodatages, bornée à zéro ══════════════
+     Aucun seuil, aucune couleur : c'est un FAIT sur les gestes de l'équipe (précédent A81). */
+  group('P3 — depuis combien de temps (sinceTxt)');
+  eq('à l’instant', A.sinceTxt(1000, 1000), '00:00');
+  eq('trois minutes vingt', A.sinceTxt(0, 200000), '03:20');
+  /* Au-delà de l'heure, le format s'allonge — une zone d'état n'ampute JAMAIS un nombre. */
+  eq('au-delà d’une heure', A.sinceTxt(0, 3725000), '1:02:05');
+  /* Une horloge qui recule (mise à l'heure système) ne fabrique pas de durée négative. */
+  eq('horloge qui recule → borné à zéro', A.sinceTxt(5000, 1000), '00:00');
+
+  /* ══ P2 (v5.7) — ce qui reste ouvert au moment de terminer ══════════════════════════════
+     On COMPTE des cases et des minuteurs. Jamais de score, jamais de « conformité ». */
+  group('P2 — l’état annoncé avant de terminer (endSessOpenTxt)');
+  /* ⚠ LE FIXTURE PASSE PAR `migrate` : un bloc fabriqué à la main n'est pas enregistré dans le
+     pool (WeakMap `poolOwn`), et `stepsOf` ne lit QUE le pool depuis l'étape B. Un fixture bâti
+     « à plat » mesurerait donc une fiche sans étapes, et le témoin serait vert pour rien. */
+  const _mkF=(extra)=>A.migrate({id:'f1',v:4,kind:'procedure',title:'Anaphylaxie',
+    items:[{id:'i1',do:'⚠ Adrénaline IM 0,5 mg'},{id:'i2',do:'⚠ Appeler à l’aide'},
+           {id:'i3',do:'Poser une voie'}].concat((extra&&extra.items)||[]),
+    blocks:[{id:'b1',title:'Adrénaline',kind:'do',items:['i1','i2','i3']}]
+      .concat((extra&&extra.blocks)||[])});
+  const _mkR=(ck,timers,extra)=>({fiche:_mkF(extra),
+    nav:[{id:'b1'}],navSeq:[1],checked:ck||{},timers:timers||{}});
+  eq('rien d’ouvert → aucune ligne', A.endSessOpenTxt(_mkR({'1:b1:0':1,'1:b1:1':1},{})).length, 0);
+  /* Une seule étape vitale non cochée : le SINGULIER, et le bloc est nommé. */
+  {const l=A.endSessOpenTxt(_mkR({'1:b1:0':1},{}));
+   eq('une vitale non cochée → une ligne', l.length, 1);
+   ok('… au singulier et nommant le bloc', /1 étape vitale non cochée — Adrénaline/.test(l[0].txt), l[0]&&l[0].txt);}
+  {const l=A.endSessOpenTxt(_mkR({},{}));
+   ok('deux vitales → le pluriel', /2 étapes vitales/.test(l[0].txt), l[0]&&l[0].txt);}
+  /* L'étape ORDINAIRE non cochée ne compte pas : la ligne annonce le VITAL, pas l'inachevé. */
+  ok('une étape ordinaire non cochée ne compte pas',
+     A.endSessOpenTxt(_mkR({'1:b1:0':1,'1:b1:1':1},{})).length===0);
+  /* Un minuteur en PAUSE n'est pas « en cours » — il ne réclame rien. */
+  {const l=A.endSessOpenTxt(_mkR({'1:b1:0':1,'1:b1:1':1},{t1:{running:false}}));
+   eq('minuteur en pause → aucune ligne', l.length, 0);}
+  {const l=A.endSessOpenTxt(_mkR({'1:b1:0':1,'1:b1:1':1},{t1:{running:true},t2:{running:true}}));
+   ok('deux minuteurs en cours → une ligne au pluriel', l.length===1&&/2 minuteurs en cours/.test(l[0].txt));}
+  /* ⚠ UN BLOC JAMAIS VISITÉ N'EST PAS OUBLIÉ, IL EST HORS CHEMIN : le compter ferait paraître
+     incomplète toute session qui a pris une branche. */
+  {const R=_mkR({'1:b1:0':1,'1:b1:1':1},{},
+     {items:[{id:'i4',do:'⚠ Geste vital d’une autre branche'}],
+      blocks:[{id:'b2',title:'Jamais vu',kind:'do',items:['i4']}]});
+   eq('bloc non visité → ignoré', A.endSessOpenTxt(R).length, 0);}
+
+  /* ══ P4 (v5.7) — l'échu en tête du volet, l'imminence dans la capsule ═══════════════════ */
+  group('P4 — échu, imminent, et l’ordre du volet');
+  const _tm=(o)=>Object.assign({type:'interval',seconds:120,elapsedMs:0,running:false,lastStart:0,cycles:0},o);
+  ok('échu · arrêté au bout de sa période', A.tmIsDue(_tm({elapsedMs:120000})));
+  ok('non échu · il tourne encore', !A.tmIsDue(_tm({elapsedMs:120000,running:true})));
+  ok('non échu · un chronomètre ne finit jamais', !A.tmIsDue(_tm({type:'stopwatch',elapsedMs:999999})));
+  ok('non échu · période nulle', !A.tmIsDue(_tm({seconds:0,elapsedMs:5000})));
+  /* Le seuil d'imminence est un nombre EXPLICITE : s'il bouge, il bouge en un seul endroit. */
+  eq('le seuil d’imminence vaut 20 s', A.TM_SOON_MS, 20000);
+  /* L'ordre : les échus non acquittés d'abord, l'ordre de l'AUTEUR conservé entre pairs. */
+  {const a=_tm({id:'a'}),b=_tm({id:'b',elapsedMs:120000}),c=_tm({id:'c'}),d=_tm({id:'d',elapsedMs:120000});
+   eq('échus en tête, ordre d’auteur conservé entre pairs',
+      A.tmLiveOrder([a,b,c,d]).map(x=>x.id), ['b','d','a','c']);}
+  /* P4b — L'ORDRE VIVANT : ce qui TOURNE se classe par temps RESTANT, pas par ordre d'auteur. */
+  {const now=1000000;
+   const t=(id,sec,el)=>_tm({id,seconds:sec,elapsedMs:el,running:true,lastStart:now});
+   eq('ce qui tourne : le plus urgent d’abord',
+      A.tmLiveOrder([t('lent',300,0),t('urgent',120,110000),t('moyen',180,60000)],now).map(x=>x.id),
+      ['urgent','moyen','lent']);
+   /* L'alarme passe DEVANT le plus urgent : un échu n'est plus une échéance, c'en est une passée. */
+   eq('l’alarme passe devant tout ce qui tourne',
+      A.tmLiveOrder([t('urgent',120,119000),_tm({id:'echu',elapsedMs:120000})],now).map(x=>x.id),
+      ['echu','urgent']);
+   /* En PAUSE ou chronomètre : à la fin, dans l'ordre de l'auteur — ils n'ont pas d'échéance. */
+   eq('en pause et chronomètre à la fin, ordre d’auteur',
+      A.tmLiveOrder([_tm({id:'pause'}),_tm({id:'chrono',type:'stopwatch',running:true}),t('court',60,30000)],now).map(x=>x.id),
+      ['court','pause','chrono']);}
+  /* ⚠ UN ÉCHU ACQUITTÉ NE REMONTE PLUS : il a cessé d'annoncer (A34), la carte reste échue. */
+  {const a=_tm({id:'a'}),b=_tm({id:'b',elapsedMs:120000,ack:true});
+   eq('un échu ACQUITTÉ ne remonte pas', A.tmLiveOrder([a,b]).map(x=>x.id), ['a','b']);}
+  /* Le tri ne perd ni ne duplique personne. */
+  {const l=[_tm({id:'a'}),_tm({id:'b',elapsedMs:120000}),_tm({id:'c'})];
+   eq('aucun minuteur perdu ni dupliqué', A.tmLiveOrder(l).length, 3);}
+
+  /* ══ Q4 (v5.7) — ce que la fiche embarque, en une ligne ════════════════════════════════
+     Rien à dire → AUCUNE ligne : un panneau qui affirme « 0 minuteur » est du bruit. */
+  group('Q4 — ce que la fiche embarque (carryLineHtml)');
+  const _cf=(o)=>Object.assign({blocks:[{id:'b1'},{id:'b2'}],timers:[],counters:[],excursions:[]},o);
+  eq('ni minuteur, ni compteur, ni complication → rien', A.carryLineHtml(_cf({})), '');
+  ok('un minuteur → le compte des blocs ET du minuteur',
+     /2 blocs · 1 minuteur/.test(A.carryLineHtml(_cf({timers:[{id:'t'}]}))));
+  ok('pluriels accordés',
+     /2 minuteurs · 2 compteurs/.test(A.carryLineHtml(_cf({timers:[{},{}],counters:[{},{}]}))));
+  ok('une complication se dit « déclarée »',
+     /1 complication déclarée/.test(A.carryLineHtml(_cf({excursions:[{}]}))));
+  ok('aucune fiche → aucune ligne', A.carryLineHtml(null)==='');
+  /* La ligne ne porte que du comptage : aucun texte d'auteur, donc rien à échapper — mais on
+     vérifie qu'elle n'ouvre pas de balise inattendue (esc() reste la seule barrière). */
+  ok('aucune balise autre que le conteneur',
+     (A.carryLineHtml(_cf({timers:[{}]})).match(/</g)||[]).length===2);
+
+  /* ══ P7 (v5.7) — révisée depuis le dernier passage ═════════════════════════════════════ */
+  group('P7 — la révision depuis votre dernier passage');
+  const _fr={id:'f1',updatedAt:2000};
+  eq('aucune session sur cette aide → rien', A.revisedSinceTxt(_fr,[]), '');
+  /* Le passage a eu lieu sur la version COURANTE : rien à signaler. */
+  eq('même révision → rien', A.revisedSinceTxt(_fr,[{ficheId:'f1',aidRev:2000,startedAt:1}]), '');
+  /* Une session ANTÉRIEURE à la révision courante : on le dit. */
+  ok('révision plus récente que le passage → la ligne existe',
+     /révisée depuis votre dernier passage/.test(A.revisedSinceTxt(_fr,[{ficheId:'f1',aidRev:1000,startedAt:1}])));
+  /* ⚠ C'est le DERNIER passage qui compte, pas le premier trouvé. */
+  eq('un passage récent sur la version courante annule l’ancien',
+     A.revisedSinceTxt(_fr,[{ficheId:'f1',aidRev:1000,startedAt:1},{ficheId:'f1',aidRev:2000,startedAt:9}]), '');
+  /* Les sessions d'une AUTRE aide ne comptent pas. */
+  eq('session d’une autre aide → ignorée',
+     A.revisedSinceTxt(_fr,[{ficheId:'autre',aidRev:1000,startedAt:9}]), '');
+  /* Une session ANTÉRIEURE au champ (aidRev absent) ne peut rien affirmer. */
+  eq('session sans aidRev → ignorée',
+     A.revisedSinceTxt(_fr,[{ficheId:'f1',aidRev:0,startedAt:9}]), '');
+  eq('aide sans updatedAt → rien', A.revisedSinceTxt({id:'f1'},[{ficheId:'f1',aidRev:1,startedAt:9}]), '');
+
+  /* ══ P8 (v5.7) — l'écart entre deux gestes du MÊME objet, NU ═══════════════════════════
+     Aucune moyenne, aucun seuil, aucune couleur : un fait, ou rien. */
+  group('P8 — l’écart au compte rendu (evDeltas)');
+  const _ev=(t,type,id,voidAt)=>({t,ref:type?{type,id}:null,voidAt:voidAt||0});
+  eq('le premier d’une série n’a pas d’écart',
+     A.evDeltas([_ev(1000,'counter','c1')]), [null]);
+  eq('deux gestes du même compteur → l’écart',
+     A.evDeltas([_ev(1000,'counter','c1'),_ev(4000,'counter','c1')]), [null,3000]);
+  /* ⚠ PAR OBJET : « 3:56 » n'a de sens qu'entre deux doses du MÊME produit. */
+  eq('deux compteurs différents n’ouvrent pas la même série',
+     A.evDeltas([_ev(1000,'counter','c1'),_ev(2000,'counter','c2'),_ev(4000,'counter','c1')]),
+     [null,null,3000]);
+  /* Un repère libre (sans référence) n'ouvre aucune série. */
+  eq('un repère sans référence → aucun écart',
+     A.evDeltas([_ev(1000,null),_ev(2000,null)]), [null,null]);
+  /* Un repère ANNULÉ reste dans la chronologie mais ne compte pas dans les écarts. */
+  eq('un repère annulé ne compte pas, et ne coupe pas la série',
+     A.evDeltas([_ev(1000,'counter','c1'),_ev(2000,'counter','c1',2500),_ev(4000,'counter','c1')]),
+     [null,null,3000]);
+  eq('aucun évènement → aucun écart', A.evDeltas([]), []);
+  eq('robuste au néant', A.evDeltas(null), []);
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

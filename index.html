@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-8wg8GK2Rr8fwsrgS22B1cUqzZw3zVHzgtLwhAgkQuS0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-XYP8fHVEEy+9zxQHMQK1ybTQVqiq0XLFKBZa/twT7v0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1443,6 +1443,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      légèrement — le volet est une réponse au geste, pas un étage de la barre. */
   #dockSheet{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
   #dockSheet[hidden]{display:none}
+  /* P1 — MÊME GÉOMÉTRIE QUE LE VOLET : la barre s'aligne sur la COLONNE D'ACTION, jamais sur la
+     fenêtre (A24), et se pose AU-DESSUS du dock — un objet qui recouvrirait ses touches
+     masquerait le geste qu'on vient de faire (A37). Elle ne prend aucune hauteur au flux. */
+  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  #blkReturn[hidden]{display:none}
+  body.kb-open #blkReturn{display:none}
+  @media (min-width:780px){
+    #blkReturn{padding-inline:20px}
+    #blkReturn .bkr{margin-right:calc(var(--col-state) + var(--col-gap))}
+  }
+  .bkr{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;
+    min-height:44px;padding:10px 14px;border:0;border-radius:var(--r-3);
+    background:var(--ok-sys);color:var(--on-sys-fill);box-shadow:var(--shadow-up);
+    font-family:inherit;font-size:13.5px;font-weight:700;text-align:left;cursor:pointer}
+  .bkr .bkr-c{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:12px;
+    font-variant-numeric:tabular-nums;opacity:.75}
+  .bkr .bkr-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   body.kb-open #dockSheet{bottom:8px}
   /* Les mêmes marges que la barre, aux mêmes paliers : le volet ne se centre jamais sur la
      fenêtre, il se cale sur la colonne qu'il commande. */
@@ -1724,6 +1741,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg.due{background:var(--warn-sys-bg);border:1px solid var(--warn-line);padding:0 10px}
   #cbTimers .seg.due :is(.seg-l,.seg-t){color:var(--warn-sys)}
   @media (prefers-reduced-motion:no-preference){#cbTimers .seg.due{animation:alarmPulse 2s ease-in-out infinite}}
+  /* P4 (v5.7) — IMMINENT : le MÊME registre que l'échu, une intensité en dessous. Il se MARQUE
+     (△ + encre ambre) et ne prend PAS d'aplat : A11 réserve la masse colorée à ce qui exige une
+     action MAINTENANT, et deux aplats ambre dans la même rangée s'affaibliraient l'un l'autre.
+     Il ne BAT PAS non plus — le battement est la grammaire de l'alarme, pas de son annonce.
+     Ni fond, ni bordure, ni rembourrage : zéro pixel de plus, donc rien ne se déplace dans la
+     zone d'état quand un minuteur entre dans ses vingt dernières secondes. */
+  #cbTimers .seg.soon :is(.seg-l,.seg-t){color:var(--warn-sys)}
+  /* P4 (v5.7) — L'IMMINENCE SUR LA CARTE (volet ET rail). Marquage, jamais aplat (A11) : le
+     glyphe △ devant le libellé et l'encre ambre — la couleur n'est donc jamais seule, et le mot
+     « bientôt échu » rejoint le nom accessible du groupe. Aucune boîte ne change de taille. */
+  .tmcard.soon .tm-label::before{content:"△ "}
+  .tmcard.soon :is(.tm-label,.tm-val){color:var(--verify)}
+  .rt-dock .tmcard.soon :is(.tm-label,.tm-val){color:var(--warn-sys)}
+  /* Q2 (v5.7) — LA REPRISE APRÈS INTERRUPTION. Registre ATTENTION en TEXTE, jamais un aplat :
+     c'est une LECTURE (« voilà ce que vous avez manqué »), pas une alarme — la masse colorée
+     reste réservée à ce qui exige une action maintenant (A11). Elle vit en tête de la carte du
+     bloc courant et s'efface au geste suivant. */
+  .ov-resume{margin:0 0 10px;font-size:13.5px;font-weight:700;color:var(--verify);
+    font-variant-numeric:tabular-nums}
+  /* Q4 (v5.7) — une LIGNE de comptage, dans la voix de la méta : elle informe, elle n'alerte
+     pas et elle ne conditionne rien. Registre neutre — aucune couleur sémantique. */
+  .carry-line{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--ink-soft);
+    font-variant-numeric:tabular-nums}
+  /* P7 (v5.7) — registre ATTENTION en TEXTE : c'est un point de vigilance (« vous ne connaissez
+     peut-être pas cette version »), jamais une alerte, jamais un aplat (A11). */
+  .rev-since{font-size:12px;font-weight:700;color:var(--verify)}
   /* Le rappel « n minuteurs · n compteurs » (v5.0.0) : encre douce (il informe, il n'alerte pas),
      ellipse plutôt que poussée — mais il est de toute façon retiré ENTIER par la boucle
      d'ajustement avant d'en arriver là ; l'ellipse n'est qu'un filet de sûreté. */
@@ -1770,6 +1813,24 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      le défileur, et animer la réserve serait animer un rembourrage — A68/3 l'interdit. */
   @media (prefers-reduced-motion:no-preference){
     .tk-item.tk-fresh{animation:cbIn .14s ease-out both}
+    /* M1 — elle vit dans le MÊME bloc que les autres micro-animations du quai : l'inertie
+       sous reduced-motion est ainsi acquise par construction (A68/5). */
+    .cn-pop{animation:cnPop .13s ease-out}
+    /* P1 — elle monte en 160 ms. A68/2 : l'état n'attend rien — la barre devient non tapable
+       (`hidden`) au même instant, seule la peinture s'attarde le temps de l'entrée. */
+    #blkReturn:not([hidden]) .bkr{animation:cbIn .16s ease-out both}
+    /* P4b — la réorganisation vivante des minuteurs : transform SEUL (check-anim), 180 ms.
+       Sous reduced-motion la classe n'a aucune règle : l'ordre change, rien ne glisse. */
+    .tmcard.tm-flip{transition:transform .18s cubic-bezier(.22,.8,.3,1)}
+    /* ⚠ POURQUOI C'ÉTAIT « MOCHE » DANS LE VOLET, et ce n'était pas la durée (signalé à l'usage) :
+       une carte y a un fond TRANSLUCIDE (--sys-2, blanc à 7 %). Pendant le croisement, deux
+       cartes se superposent et leurs deux voiles s'additionnent — une tache plus claire traverse
+       le volet, et les filets des deux cartes se croisent. Sur la matière de TRAVAIL le fond est
+       opaque, d'où un mouvement propre là et sale ici.
+       Le temps du mouvement, la carte prend donc un fond OPAQUE et passe au-dessus : un objet
+       qui glisse par-dessus l'autre, au lieu de deux calques qui se traversent. */
+    .tmcard.tm-flip{position:relative;z-index:1}
+    .rt-dock .tmcard.tm-flip{background:var(--sys-hi)}
     #cbTimers .seg.seg-in{animation:capIn .14s ease-out both;transform-origin:50% 100%}
     .pdf-fnav.hl-in{animation:hlIn .14s ease-out both}
   }
@@ -3470,6 +3531,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock :is(.cn-reset,.tm-reset){background:none;border-color:var(--sys-line);color:var(--sys-ink-2)}
   .rt-dock .cn-note{color:var(--sys-ink-2)}
   .rt-dock .cn-log{color:var(--sys-ink-2)}
+  /* Sur la matière SYSTÈME, le registre a ses valeurs propres (le volet est sombre dans les
+     DEUX thèmes) : l'encre pleine du travail n'y tiendrait pas son contraste. */
+  .rt-dock .cn-ago{color:var(--sys-ink)}
   /* ÉCHU : la seule couleur du volet, et elle est l'alarme (registre ATTENTION sur matière
      système — la paire `--warn-sys` / `--warn-sys-bg`, celle du segment échu de la capsule). */
   .rt-dock .tmcard.due{background:var(--warn-sys-bg);border-color:var(--warn-line);--tcol:var(--warn-sys)}
@@ -4736,6 +4800,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .endsess-dlg .dlg-title{margin:0 0 6px;font-size:17.5px;font-weight:800}
   .dlg-context{margin:0 0 6px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
   .dlg-context strong{color:var(--ink);font-variant-numeric:tabular-nums}
+  /* P2 (v5.7) — CE QUI RESTE OUVERT. Registre ATTENTION en CONTOUR, jamais en aplat : un
+     aplat ambre dans une fenêtre de sortie mettrait la même masse colorée qu'une alarme sur
+     une information qui n'en est pas une (A11). Le glyphe et le mot portent le registre. */
+  .endsess-state{margin:0 0 14px;padding:10px 12px;border:1px solid var(--verify-line);
+    border-radius:var(--r-2);background:var(--verify-soft);color:var(--verify);
+    font-size:13.5px;font-weight:700;line-height:1.4}
+  .endsess-state div{display:flex;gap:8px;align-items:flex-start}
+  .endsess-state div+div{margin-top:4px}
+  .endsess-state[hidden]{display:none}
   .dlg-consequences{margin:0 0 16px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
   .endsess-actions{display:flex;gap:8px}
   .btn-continue-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-hover);border-radius:8px;background:transparent;color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
@@ -7598,6 +7671,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      précisément ce qu'il vient réparer. */
   .cn-log{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px}
   .cn-log:empty{display:none}
+  /* P3 (v5.7) — « il y a » avance avec le tick. Il prend l'encre pleine quand « consigné »
+     garde l'encre douce : deux moments, deux poids — celui-ci décide MAINTENANT. */
+  .cn-ago{color:var(--ink)}
+  /* M1 (v5.7) — le chiffre pousse au tap. transform SEUL (check-anim), 130 ms, une fois. */
+  @keyframes cnPop{0%{transform:scale(1)}38%{transform:scale(1.09)}100%{transform:scale(1)}}
   /* ⚠ LE COMPTE SE LIT AVEC LE TITRE, PAS AU BOUT DE LA RANGÉE (v5.6, signalé à l'usage : « le
      nombre devrait être affiché juste à côté de "Ne pas oublier" et non tout à droite »). Il
      QUALIFIE le titre — « Ne pas oublier · 4 rappels » est une seule phrase ; renvoyé au bord
@@ -8005,6 +8083,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        le contexte reste lisible au-dessus. L'occultation COMMANDÉE est conforme ECAM/QRH ; ce que
        la doctrine interdit est l'occultation NON commandée et l'occultation piégeante. -->
   <div id="dockSheet" hidden></div>
+  <!-- P1 (v5.7) — LE RETOUR AU BLOC COURANT. Trois mécanismes ramenaient déjà au soin, et aucun
+       ne couvrait le cas le plus fréquent : `landOnBout` ne joue qu'à la RÉENTRÉE dans la fiche,
+       `ovAdvanceRender` qu'au GESTE D'AVANCEMENT, `cxScrollTo` qu'à l'entrée sur complication.
+       Défiler à la main pour relire une étape passée, vérifier une dose plus bas, regarder le
+       journal — et l'on remontait en cherchant la carte à bordure bleue.
+       ZONE FLOTTANTE BORNÉE, sur le précédent DÉJÀ accepté de `.sess-start.afloat` (v4.73.0) :
+       elle n'existe que tant que la carte du bloc courant est ENTIÈREMENT hors de l'écran, elle
+       ne prend AUCUNE hauteur au flux, et elle nomme sa destination (le retour d'excursion ne se
+       devine jamais — A15). Registre CONFIRMATION, le vert du retour. -->
+  <div id="blkReturn" hidden></div>
   <!-- ⚠ LE SOMMAIRE ÉTROIT EST DU CHROME, PAS DU CONTENU (signalé à l'usage : « mets-le
        directement en en-tête plutôt que sticky », « quand ça colle ça ne fusionne pas à
        l'en-tête »). Un `sticky` DEVIENT collant : il vit d'abord dans le flux, puis se colle —
@@ -8309,6 +8397,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal dlg-confirm" id="endSessModal" role="dialog" aria-modal="true" aria-labelledby="endSessTitle"><div class="ai-card endsess-dlg">
   <h3 class="dlg-title" id="endSessTitle">Terminer la session ?</h3>
   <p class="dlg-context" id="endSessCtx"></p>
+  <!-- P2 (v5.7) — L'ÉTAT DE CE QUI RESTE OUVERT, au seul instant où il sert encore. Registre
+       ATTENTION TEXTUEL, jamais un aplat (A11) ; « Terminer » reste rouge plein et ACTIF —
+       une checklist annonce son incomplétude, elle n'interdit pas de la quitter (ECAM/QRH).
+       Rien à dire -> le bloc n'existe pas : un panneau vide est du bruit. -->
+  <div class="endsess-state" id="endSessState" hidden></div>
   <p class="dlg-consequences">Le chrono global et tous les minuteurs s'arrêtent. La session quitte l'accueil. Le déroulé horodaté reste consultable dans l'historique.</p>
   <div class="endsess-actions"><button class="btn-continue-sess" id="endSessNo">Poursuivre</button><button class="btn-end-sess" id="endSessYes">Terminer</button></div>
 </div></div>
@@ -11836,6 +11929,28 @@ function buildRuntime(f,session){
    l'on nomme le motif (« application fermée ») ; s'il était déjà en pause, on reprend l'heure de
    cette pause. Un instantané ANTÉRIEUR à ces deux champs retombe sur `savedAt` : au pire la durée
    annoncée est trop COURTE, jamais inventée. */
+/* ═══ P8 — L'ÉCART ENTRE DEUX GESTES DU MÊME OBJET (v5.7, décision de l'auteur : « juste
+   l'écart sans analyse ») ══════════════════════════════════════════════════════════════════
+   Au débriefing, la question posée est presque toujours « combien de temps entre les deux ? »,
+   et on la soustrait à la main sur le papier. La colonne la donne.
+   ⚠ LA LIGNE À NE PAS FRANCHIR EST PROCHE, ET C'EST POUR ÇA QUE CELLE-CI EST NUE : un écart
+   BRUT est un fait. Une MOYENNE, un « intervalle cible », une couleur qui vire au rouge au-delà
+   d'une valeur, ou le mot « conformité » feraient basculer le document du côté de l'ÉVALUATION
+   PAR LE LOGICIEL — ce que le § 2 de docs/deploiement-et-conformite.md nomme comme le vocabulaire
+   à ne jamais employer. Aucune de ces choses n'est calculée ici, et aucune ne doit l'être.
+   · L'ÉCART EST PAR OBJET, jamais entre deux repères quelconques : « 3:56 » n'a de sens qu'entre
+     deux doses du MÊME produit. Un repère sans référence (une note libre) n'ouvre pas de série.
+   · UN REPÈRE ANNULÉ NE COMPTE PAS et ne coupe pas la série : il est resté dans la chronologie
+     (c'est une décision qui a eu lieu), mais l'écart se mesure entre les gestes qui TIENNENT.
+   PURE, et elle suppose les évènements déjà triés — c'est le cas à son seul site d'appel. */
+function evDeltas(evs){
+  const prev=Object.create(null),out=[];
+  (evs||[]).forEach(e=>{
+    const k=(e&&e.ref&&e.ref.type&&e.ref.id)?safeId(String(e.ref.type))+':'+safeId(String(e.ref.id)):'';
+    if(!k||e.voidAt){out.push(null);return;}
+    out.push(prev[k]?e.t-prev[k]:null);
+    prev[k]=e.t;});
+  return out;}
 function tmStopFrom(sv,session){
   if(!sv)return {stoppedAt:0,stopClosed:false};
   const sav=(session&&session.savedAt)||0;
@@ -11895,6 +12010,7 @@ function exportSessionReport(sessionId){
   const title=esc((f&&f.title)||s.ficheTitle||'Fiche');
   const start=s.startedAt||s.savedAt;const dur=fmtMs(Math.max(0,(s.savedAt||Date.now())-start));
   const evs=(s.events||[]).slice().sort((a,b)=>a.t-b.t);
+  const evDl=evDeltas(evs);
   // Libellés dérivés APRÈS le tri chronologique : « Action N » suit l'ordre réel des gestes, et un
   // repère de compteur porte le nom du compteur tel qu'il est aujourd'hui dans la fiche.
   const evLabs=tkLabels(evs,f,myTags());
@@ -11902,7 +12018,8 @@ function exportSessionReport(sessionId){
   // rendrait le compte-rendu muet sur une décision qui a bien été prise, et à quelle heure.
   const evRows=evs.length?evs.map((e,ix)=>{const vd=!!e.voidAt;
     const lab=vd?`<s>${esc(evLabs[ix])}</s> <span class="muted">— annulé${e.voidAt?' à '+esc(fmtHMS(e.voidAt)):''}</span>`:esc(evLabs[ix]);
-    return `<tr><td>${esc(fmtHMS(e.t))}</td><td>+${esc(fmtMs(e.t-start))}</td><td>${lab}</td></tr>`;}).join(''):'<tr><td colspan="3" class="muted">Aucun repère horodaté.</td></tr>';
+    const d=evDl[ix];
+    return `<tr><td>${esc(fmtHMS(e.t))}</td><td>+${esc(fmtMs(e.t-start))}</td><td>${d==null?'—':'+'+esc(fmtMs(d))}</td><td>${lab}</td></tr>`;}).join(''):'<tr><td colspan="4" class="muted">Aucun repère horodaté.</td></tr>';
   const steps=Object.keys(s.checked||{}).filter(k=>s.checked[k]).map(k=>stepTextFromKey(f,k,s)).filter(Boolean);
   /* COMPLICATIONS & VÉRIFICATION (v4.27.0) : le compte-rendu — support du DÉBRIEF (pilier EMIC) —
      restitue les excursions ⚡ (heure d'entrée mémorisée par cxEnter) et la trace do-verify
@@ -11947,7 +12064,7 @@ ${(()=>{
     +(rv?('<b>'+esc(new Date(rv).toLocaleString('fr-FR'))+'</b>')
         :'<i>non enregistrée (session antérieure à la v5)</i>')+'</div>';})()}
 <div class="bilan"><div class="bilan-dur"><span class="bd-v">${esc(dur)}</span><span class="bd-k">durée totale</span></div>${kpi?`<div class="kpis">${kpi}</div>`:''}</div>
-<h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
+<h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Écart</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
 <h2>Étapes réalisées</h2><ul>${stepRows}</ul>
 ${cxRows.length?`<h2>⚡ Complications</h2><ul>${cxRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
 ${(nVer||gapRows.length)?`<h2>Vérification (do-verify)</h2><ul><li>${nVer} étape${nVer>1?'s':''} constatée${nVer>1?'s':''} ✓✓</li>${gapRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`
@@ -12037,7 +12154,18 @@ function _putSessionSafe(s){
   if(s&&typeof s==='object'){s.dirty=true;s.updatedAt=Date.now();}
   try{const p=Data.putSession(s);if(p&&p.catch)p.catch(warnSessionSaveFailed);}catch(e){warnSessionSaveFailed();}}
 // Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
+/* ⚠ Q2 — L'HORODATAGE DU DERNIER GESTE VIT ICI, ET NULLE PART AILLEURS (v5.7).
+   `persistLive` est le point d'étranglement de TOUTE mutation de session — c'est déjà ce qui
+   permet au partage de n'avoir qu'un seul crochet plutôt que soixante verbes. Un geste ajouté
+   demain sera donc horodaté sans qu'on y pense ; une liste de sites à tenir aurait divergé.
+   Il n'entre PAS dans l'instantané : après un rechargement il n'y a plus d'interruption à
+   annoncer (les minuteurs disent déjà « arrêté depuis », A81) — c'est une donnée de la session
+   VIVE, pas de son archive, donc rien ne change au format ni à ce qui voyage. */
 function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
+  R.lastActAt=Date.now();
+  /* Le fait annoncé cesse d'être vrai dès qu'on agit : la ligne s'efface au geste suivant,
+     jamais après un délai — c'est le geste qui la périme, pas une horloge. */
+  if(state.resumeSince){state.resumeSince=null;paintResume();}
   /* K5 — L'ESSAI N'ÉCRIT RIEN ET N'ÉMET RIEN. La garde est EN TÊTE, avant `shareEmitDiff` :
      placée après, un auteur qui essaie son brouillon pendant qu'il partage une session enverrait
      ses coches d'essai sur l'écran d'en face. */
@@ -12279,10 +12407,11 @@ function tickAll(){
   Object.values(liveSessions).forEach(R=>{Object.values(R.timers).forEach(t=>{if(t.type==='interval'&&t.running){const per=t.seconds*1000||1;const within=t.elapsedMs+(now-t.lastStart);
     if(within>=per){const comp=Math.floor(within/per);t.cycles+=comp;const left=within-comp*per;if(t.autoloop){t.elapsedMs=0;t.lastStart=now-left;}else{t.running=false;t.elapsedMs=per;t.lastStart=0;}onTimerFired(R,t);fired=R;}}});});
   if(fired)persistLive(fired,true);
-  if(state.view==='read'&&Runtime.fiche)refreshTimersDOM(now);
+  if(state.view==='read'&&Runtime.fiche){refreshTimersDOM(now);paintCnAgo(now);tmReflow(now);}
   // Chrono des cartes « Session en cours » de l'accueil (SPEC §5) : vivant, sans re-rendu.
   if(state.view==='library')document.querySelectorAll('[data-lschrono]').forEach(el=>{const v=fmtMs(now-(+el.dataset.lschrono||now));if(el.textContent!==v)el.textContent=v;});
   updateRtStrip(now);
+  syncBlkReturn();   // P1 — idempotent : ne réinstalle rien tant que la carte courante ne change pas
   monRender();}   // D3 : l'afficheur suit le même tick que le quai — aucune horloge en plus
 /* Rappel MINUTEURS dans l'en-tête sticky (chrono #cbTimers du bandeau de crise) : en mode crise, dès qu'un minuteur tourne et
    que le panneau minuteurs est sorti de l'écran (on a déroulé les étapes), l'en-tête affiche le
@@ -12300,6 +12429,91 @@ function tickAll(){
 // FUSIONNÉ dans le bandeau de crise : le chrono compact #cbTimers (à droite du bandeau) reprend
 // le rôle de l'ancien rappel #rtStrip — visible quand un minuteur tourne ET que le panneau
 // minuteurs est sorti de l'écran ; tap -> remonte au panneau. Un seul bloc d'état dans la barre.
+/* P3 — la trace d'un compteur avance avec le tick. Chirurgical : on ne réécrit que si la
+   chaîne a changé (anti-churn, patron de `barTf`), et jamais la carte entière. */
+/* ═══ Q2 — « Reprise — dernier geste il y a … » ════════════════════════════════════════
+   Vérifié avant d'écrire : ZÉRO occurrence d'un « temps depuis le dernier geste » dans le
+   fichier. Les cinq écouteurs de `visibilitychange` persistaient, reprenaient l'audio,
+   redemandaient la veille — aucun ne disait à quelqu'un qui revient depuis combien de temps
+   il n'était plus là. Or c'est le cas nominal : on pose le téléphone, on intube, on transporte.
+   · PAS DE MODALE, PAS DE SON, PAS DE DÉFILEMENT (règle 11) — une ligne, dans la carte du bloc
+     courant, c'est-à-dire à l'endroit où le regard revient.
+   · A9 : le retour au premier plan EST un geste de l'utilisateur, la ligne a donc le droit de
+     paraître. Et elle ne pousse rien d'autre qu'elle-même : elle s'insère en TÊTE de la carte,
+     au-dessus de l'en-tête, jamais entre deux étapes.
+   · AUCUN SEUIL CLINIQUE : deux minutes est un seuil d'AFFICHAGE, qui évite d'annoncer une
+     absence de quinze secondes. Rien ne change de couleur avec la durée, rien ne se déclenche.
+   · Le texte est FIGÉ à l'instant du retour : c'est la durée de l'interruption qu'on annonce,
+     pas un second chronomètre — il y en a déjà assez à l'écran. */
+const Q2_ABSENCE_MS=120000;
+function paintResume(){
+  const ex=document.getElementById('ovResume');
+  const host=document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap');
+  if(!state.resumeSince||!host||!crisisOnScreen()){if(ex)ex.remove();return;}
+  const txt='⏱ Reprise — dernier geste il y a '+sinceTxt(state.resumeSince,state.resumeAt||Date.now());
+  if(ex&&ex.parentNode===host){if(ex.textContent!==txt)ex.textContent=txt;return;}
+  if(ex)ex.remove();
+  const d=document.createElement('div');
+  d.className='ov-resume';d.id='ovResume';d.setAttribute('role','status');d.textContent=txt;
+  host.insertBefore(d,host.firstChild);}
+/* Le retour au premier plan. On ne parle qu'à celui qui REVIENT, et seulement s'il s'est
+   vraiment absenté : sans le second terme, un simple changement d'onglet d'une seconde
+   annoncerait une « reprise » sur une session qu'on n'a jamais quittée des yeux. */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible')return;
+  if(!Runtime||!Runtime.started||!crisisOnScreen())return;
+  const last=Runtime.lastActAt||Runtime.startedAt||0,now=Date.now();
+  if(!last||now-last<Q2_ABSENCE_MS)return;
+  state.resumeSince=last;state.resumeAt=now;paintResume();});
+/* ═══ P1 — LA BARRE DE RETOUR AU BLOC COURANT (v5.7) ═══════════════════════════════════
+   Elle n'existe que tant que la carte du bloc courant est ENTIÈREMENT hors de la zone utile
+   (sous les couches collantes, au-dessus du dock) — pas quand elle dépasse à moitié : on ne
+   l'a pas perdue, on la regarde de biais.
+   · UN OBSERVATEUR, PAS UN ÉCOUTEUR DE DÉFILEMENT : rien à calculer par image, et le navigateur
+     fait le travail. Les marges de racine reprennent `stickBase()` et la hauteur MESURÉE du dock
+     (--dock-h), donc la zone utile est celle qu'on voit vraiment.
+   · IDEMPOTENT : on ne réinstalle l'observateur que si la carte a changé — la fonction est
+     appelée à chaque tick, elle doit donc être gratuite quand rien ne bouge.
+   · ELLE NE DÉFILE JAMAIS TOUTE SEULE (règle 11) : c'est une PORTE, pas un rappel à l'ordre. */
+let _bkrIo=null,_bkrCard=null;
+function syncBlkReturn(){
+  const host=document.getElementById('blkReturn');if(!host)return;
+  const card=(state.view==='read'&&crisisOnScreen())?document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap'):null;
+  if(card===_bkrCard)return;
+  _bkrCard=card;
+  if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
+  if(!card||!('IntersectionObserver' in window)){host.hidden=true;host.innerHTML='';return;}
+  const num=(card.querySelector('.ov-n')||{}).textContent||'';
+  const ttl=(card.querySelector('.ov-t')||{}).textContent||'';
+  const cnt=(card.querySelector('.ov-c')||{}).textContent||'';
+  const nom=sstr((num?'Bloc '+num.trim().replace(/\D+$/,'')+(ttl?' · ':''):'')+ttl.trim(),40)||'le bloc en cours';
+  host.innerHTML='<button type="button" class="bkr" id="bkrBtn"><span aria-hidden="true">↩</span>'
+    +'<span class="bkr-t">'+esc(nom)+'</span>'+(cnt?'<span class="bkr-c">'+esc(cnt.trim())+'</span>':'')+'</button>';
+  const b=document.getElementById('bkrBtn');
+  if(b){b.setAttribute('aria-label','Revenir au bloc en cours — '+nom);
+    b.onclick=()=>{const c=_bkrCard;if(!c)return;
+      /* Le MÊME atterrissage que partout ailleurs : sous les couches collantes, jamais collé
+         au bord. C'est une navigation DEMANDÉE d'un tap, pas un défilement autonome. */
+      const y=window.scrollY+c.getBoundingClientRect().top-(typeof stickBase==='function'?stickBase():64)-8;
+      window.scrollTo({top:Math.max(0,y),behavior:'auto'});};}
+  const top=Math.round((typeof stickBase==='function'?stickBase():64));
+  const dh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock-h'))||64;
+  _bkrIo=new IntersectionObserver(es=>{es.forEach(e=>{host.hidden=e.isIntersecting;});},
+    {threshold:0,rootMargin:'-'+top+'px 0px -'+Math.round(dh+16)+'px'});
+  _bkrIo.observe(card);}
+function paintCnAgo(now){document.querySelectorAll('.cn-log[id^="cnlog-"]').forEach(el=>{
+  const v=cnLogTxt(el.id.slice(6),now);if(el.innerHTML!==v)el.innerHTML=v;});}
+/* ÉCHU — prédicat UNIQUE (v5.7). Il vivait dans `updateRtStrip` et le panneau ne pouvait
+   pas s'en servir : deux rédactions du même état auraient divergé, ce que ce fichier a déjà
+   payé quatre fois. Un minuteur d'intervalle arrêté au bout de sa période est échu. */
+function tmIsDue(t){return !!t&&t.type==='interval'&&!t.running&&(t.seconds*1000||0)>0&&t.elapsedMs>=t.seconds*1000;}
+/* ⚠ VINGT SECONDES, ET LE NOMBRE EST UN ARBITRAGE, PAS UNE VALEUR CLINIQUE (v5.7, décision
+   de l'auteur). C'est un seuil d'AFFICHAGE : il ne dit rien du patient, il ne déclenche rien,
+   rien ne sonne. Plus court (10 s), on voit l'imminence alors qu'il est déjà trop tard pour
+   préparer un geste ; plus long, elle devient l'état PERMANENT d'un cycle de 2 min — la borne
+   est là : 20 s valent 17 % du cycle réaliste le plus court, donc le signal reste rare, donc
+   il signale encore. */
+const TM_SOON_MS=20000;
 let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true,_rtsGhost=null;
 function updateRtStrip(now){
   now=now||Date.now();
@@ -12307,7 +12521,7 @@ function updateRtStrip(now){
   // ÉCHU NON ACQUITTÉ (registre ATTENTION, règle ECAM v4.2.0) : un minuteur d'intervalle arrivé
   // au bout et non bouclé RESTE affiché en AMBRE dans la barre tant qu'il n'est ni relancé ni
   // réarmé — l'alerte persiste dans la zone dédiée (l'état la porte : aucun drapeau à part).
-  const dueDone=t=>t.type==='interval'&&!t.running&&(t.seconds*1000||0)>0&&t.elapsedMs>=t.seconds*1000;
+  const dueDone=tmIsDue;   // v5.7 : hissé au module — le panneau s'en sert aussi (P4)
   /* Enrichissement d'un minuteur pour les DEUX zones d'état — le quai `#cbTimers` et la bande du
      mode lecteur `#rmTimers`. Source unique depuis v4.45.0 : le calcul du temps restant (qui sert
      au TRI : échus d'abord, puis les plus urgents) était écrit DEUX FOIS, à l'identique, et le
@@ -12320,8 +12534,12 @@ function updateRtStrip(now){
      Une FONCTION appliquée deux fois, jamais un tableau partagé : chaque zone garde son propre
      tri et sa propre troncature, et rien n'est mutable en commun. */
   const rtWith=t=>{const d=timerDisplay(t,now);
-    return {t,d,due:t.type==='interval'&&d.val==='00:00',
-      rem:dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity)};};
+    const due=t.type==='interval'&&d.val==='00:00';
+    const rem=dueDone(t)?-1:(t.type==='interval'?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(t.running?(now-t.lastStart):0))):Infinity);
+    /* P4 — IMMINENT : il TOURNE encore et il lui reste moins de TM_SOON_MS. Un minuteur déjà
+       échu ne l'est pas (l'alarme a sa grammaire, elle ne se double pas d'une annonce), et un
+       chronomètre non plus (rem vaut Infinity : il ne finit jamais). */
+    return {t,d,due,rem,soon:!due&&!!t.running&&rem>0&&rem<=TM_SOON_MS};};
   /* ⚠ UN MINUTEUR ACQUITTÉ QUITTE LE QUAI, IL N'Y DEVIENT PAS NEUTRE. Un minuteur arrêté n'entre
      dans cette liste QUE parce qu'il est échu : une fois l'alarme acquittée, il n'a plus rien à
      y faire — l'y laisser en gris serait répondre à moitié à « aucun moyen de le faire
@@ -12372,7 +12590,18 @@ function updateRtStrip(now){
      et le « +n » existe précisément pour annoncer ce qu'elle ne montre pas). Dans ce cas on ne
      garde un segment de minuteur QUE s'il est ÉCHU : l'ALARME prime sur le nominal, qui reste
      compté dans « +n » et accessible d'un tap sur le quai. */
-  const want=wideRail?dueList.slice(0,2):withRem.slice(0,1);
+  /* ⚠ P4 (v5.7) — L'IMMINENT ENTRE DANS LA CAPSULE EN VOIE LARGE, ET C'EST UN AJOUT À LA
+     DOCTRINE DE LA v4.23.0, PAS UN OUBLI QU'ON RATTRAPE. Cette doctrine dit : au-delà de 780 px
+     le rail porte DÉJÀ tous les minuteurs, les répéter au quai ferait deux sources pour une même
+     valeur — et elle réserve l'exception à l'ALARME, dont la redondance est VOULUE.
+     L'imminence appartient à cette exception : c'est l'annonce d'une alarme qui va survenir, et
+     l'argument qui fonde l'exception vaut mot pour mot ici — le rail DÉFILE, donc le minuteur qui
+     va sonner peut être sous la ligne de flottaison. Sans cela le marquage était INERTE au-delà
+     de 780 px, ce qui est pire qu'absent : un signal qu'on croit avoir et qu'on n'a pas.
+     ⚠ ET « +n » NE CHANGE PAS : il ne compte que les ÉCHUS non montrés (`pool=dueList`). Un
+     imminent n'est pas une alarme ; s'il ne tient pas, c'est le rappel du chevron qui l'annonce. */
+  const soonList=withRem.filter(x=>x.soon);
+  const want=wideRail?dueList.concat(soonList).slice(0,2):withRem.slice(0,1);
   /* LA COULEUR ÉTAIT SEULE DANS LA ZONE LA PLUS CRITIQUE DE L'APP (correctif). AGENTS.md décrit le
      quai comme portant « le segment échu en ambre + le mot “échu” » : c'était FAUX ici — seuls le
      LIBELLÉ et la VALEUR étaient écrits, le mot n'existant que dans la bande du mode lecteur
@@ -12394,7 +12623,8 @@ function updateRtStrip(now){
      consomme au moment où l'animation a lieu, jamais au moment où on le regarde. */
   const _cf=_capFresh;
   const segOf=list=>list.map(x=>{const lbl=esc(x.t.label)||(x.t.type==='interval'?'Minuteur':'Chrono');
-    return '<span class="seg'+(x.due?' due':'')+'" data-seg="'+esc(x.t.id)+'"><span class="seg-l">'+(x.due?'△ ':'')+lbl+(x.due?'<span class="sr-only"> échu</span>':'')+'</span><span class="seg-t"></span></span>';}).join('');
+    const mk=x.due?'due':(x.soon?'soon':'');
+    return '<span class="seg'+(mk?' '+mk:'')+'" data-seg="'+esc(x.t.id)+'"><span class="seg-l">'+(mk?'△ ':'')+lbl+(x.due?'<span class="sr-only"> échu</span>':(x.soon?'<span class="sr-only"> bientôt échu</span>':''))+'</span><span class="seg-t"></span></span>';}).join('');
   // DÉBORDEMENT JAMAIS SILENCIEUX (ECAM, v4.23.0) : une zone d'état ne peut pas cacher une
   // alarme sans le dire. En étroit le quai porte tous les minuteurs (« +n » sur le reste) ; en
   // large il ne porte que les ÉCHUS, plafonnés à deux — au-delà, « +n » compte les échus NON
@@ -12650,6 +12880,17 @@ function updateRtStrip(now){
      renderKeepAnchor('#cbTimers');return;}
    const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
+  /* P4 (v5.7) — L'IMMINENCE SE VOIT AUSSI SUR LA CARTE (volet et rail), pas seulement dans la
+     capsule. Peinture SEULE : une classe, donc aucune hauteur ne change (A9). La couleur n'est
+     jamais seule — le glyphe △ est posé par le CSS devant le libellé, et le mot rejoint le nom
+     accessible du groupe. */
+  Object.values(Runtime.timers).forEach(t=>{const cd=document.getElementById('tmcard-'+t.id);if(!cd)return;
+    const rem=(t.type==='interval'&&t.running)?Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(now-t.lastStart))):Infinity;
+    const soon=rem>0&&rem<=TM_SOON_MS&&!(tmIsDue(t)&&!t.ack);
+    if(cd.classList.contains('soon')!==soon)cd.classList.toggle('soon',soon);
+    const base=(t.label||'')||(t.type==='interval'?'Minuteur':'Chronomètre');
+    const al=base+(soon?' — bientôt échu':'');
+    if(cd.getAttribute('aria-label')!==al)cd.setAttribute('aria-label',al);});
   // Écritures DOM seulement SI la valeur change (le tick de 300 ms repasse ~3× par seconde
   // affichée : réécrire textContent/aria-label à l'identique est du churn pur).
   Object.values(Runtime.timers).forEach(t=>{const v=document.getElementById('tmval-'+t.id);if(!v)return;syncTimerBtns(t);const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
@@ -12698,6 +12939,27 @@ function holdToReset(btn,doAction){if(!btn)return;let to=null;const lbl=btn.inne
    session (menu ⋯, note de fin d'algorithme, ✕ du bandeau SESSIONS EN COURS) : contexte
    (titre + durée) et conséquences annoncés AVANT le choix ; focus initial sur Poursuivre ;
    Échap / tap hors carte = Poursuivre, jamais Terminer. */
+/* ═══ P2 — CE QUI RESTE OUVERT (v5.7) ══════════════════════════════════════════════════
+   PURE : elle ne lit que le runtime qu'on lui passe, et ne rend que des FAITS COMPTÉS — des
+   cases et des minuteurs, jamais un jugement. Pas de score, pas de pourcentage, pas de
+   « conformité » : ce vocabulaire est nommé par le § 2 du dossier de conformité comme celui
+   à ne jamais employer. Deux lignes au plus : au-delà, on ne lit plus rien avant de taper.
+   ⚠ ON NE COMPTE QUE LES BLOCS VISITÉS : une étape vitale d'un bloc où l'on n'est jamais
+   passé n'est pas « oubliée », elle est HORS CHEMIN — la compter ferait paraître incomplète
+   toute session qui a pris une branche. */
+function endSessOpenTxt(R){
+  if(!R||!R.fiche)return [];
+  const out=[],nav=R.nav||[],ck=R.checked||{},blocs=(R.fiche.blocks||[]);
+  const seen=Object.create(null);let crit=0,ou='';
+  nav.forEach((n,i)=>{if(!n)return;const id=n.id||n,seq=(R.navSeq&&R.navSeq[i])||(i+1);
+    const b=blocs.find(x=>x&&x.id===id);if(!b||b.kind==='decision')return;
+    const cle=seq+':'+id;if(seen[cle])return;seen[cle]=1;
+    stepsOf(b).forEach((s,j)=>{if(!stepIsCrit(s))return;
+      if(!ck[seq+':'+id+':'+j]){crit++;if(!ou)ou=(b.title||'').trim();}});});
+  if(crit)out.push({g:'△',txt:crit+(crit>1?' étapes vitales non cochées':' étape vitale non cochée')+(ou?' — '+ou:'')});
+  const run=Object.values(R.timers||{}).filter(t=>t&&t.running).length;
+  if(run)out.push({g:'⏱',txt:run+(run>1?' minuteurs en cours':' minuteur en cours')});
+  return out;}
 let _endSessResolve=null;
 function confirmEndSession(R){
   return new Promise(res=>{_endSessResolve=res;
@@ -12705,6 +12967,10 @@ function confirmEndSession(R){
     const dur=fmtMs(Date.now()-((R&&R.startedAt)||Date.now()));
     document.getElementById('endSessTitle').textContent=R&&R.exercise?'Terminer l’exercice ?':'Terminer la session ?';
     document.getElementById('endSessCtx').innerHTML=(R&&R.exercise?'<strong>▲ Exercice</strong> — ':'')+esc(ttl)+' — durée <strong>'+dur+'</strong>';
+    /* P2 — l'état AVANT le choix, comme les conséquences le sont depuis la v4.3.0. */
+    const st=document.getElementById('endSessState'),lignes=endSessOpenTxt(R);
+    if(st){st.innerHTML=lignes.map(l=>'<div><span aria-hidden="true">'+l.g+'</span><span>'+esc(l.txt)+'</span></div>').join('');
+      st.hidden=!lignes.length;}
     document.getElementById('endSessModal').classList.add('on');
     document.getElementById('endSessNo').focus();});}
 function _endSessClose(v){document.getElementById('endSessModal').classList.remove('on');
@@ -16930,7 +17196,7 @@ function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)
    (règle 11). Ce qu'il faut est une INFORMATION PERMANENTE et muette, à l'endroit du geste — la
    même grammaire que l'accusé « ✓ 02:16 noté » du lot M7, pour qu'on n'apprenne qu'un seul
    patron. Elle n'existe que s'il y a quelque chose à dire : aucun repère, aucune ligne. */
-function cnLogTxt(id){
+function cnLogTxt(id,now){
   const evs=(Runtime.events||[]).filter(e=>e&&e.ref&&e.ref.type==='counter'&&e.ref.id===id&&!e.voidAt);
   if(!evs.length)return '';
   const t0=(Runtime&&Runtime.startedAt)||0,last=evs[evs.length-1].t;
@@ -16938,7 +17204,17 @@ function cnLogTxt(id){
      nu est ambigu — quatre minutes après le début, ou quatre heures douze ? Le compte rendu porte
      déjà les DEUX colonnes (heure murale et « +mm:ss ») : on reprend sa convention, pour qu'un
      seul vocabulaire serve aux deux endroits. */
-  return 'consigné '+esc(t0?('T+'+fmtMs(Math.max(0,last-t0))):fmtHMS(last));}
+  /* ⚠ P3 — « T+ » DIT QUAND, « il y a » DIT DEPUIS COMBIEN DE TEMPS (v5.7).
+     Les deux, parce qu'ils ne servent pas au même moment : le T+ se relit (compte rendu,
+     débriefing), le « il y a » décide MAINTENANT. C'est la même soustraction d'horodatages
+     qu'A81 (« arrêté depuis »), sur les gestes de l'ÉQUIPE — aucun paramètre patient, AUCUN
+     SEUIL : rien ne change de couleur avec la durée. Un seuil serait un JALON, et les jalons
+     sont un champ d'AUTEUR depuis la v5.5.0. */
+  return 'consigné '+esc(t0?('T+'+fmtMs(Math.max(0,last-t0))):fmtHMS(last))
+    +' · <span class="cn-ago">il y a '+esc(sinceTxt(last,now))+'</span>';}
+/* Depuis combien de temps — PURE, bornée à zéro (une horloge qui recule ne fabrique pas
+   de durée négative). Le format est celui de tout le fichier : mm:ss, h:mm:ss au-delà. */
+function sinceTxt(t,now){return fmtMs(Math.max(0,(now||Date.now())-(t||0)));}
 // Met à jour la valeur affichée d'un compteur ET son étiquette accessible (role="status").
 /* ⚠ setCounterVal est LE point où une valeur de compteur atteint le DOM (local, distant, reset) :
    c'est donc ici que les JALONS de la carte courante se repeignent (v5.5.0, P1) — et AVANT le
@@ -16946,8 +17222,15 @@ function cnLogTxt(id){
    fermé) pendant qu'un évènement DISTANT incrémente : la valeur n'a nulle part où s'écrire, le
    jalon, lui, est sur la carte et doit suivre. */
 function setCounterVal(id){paintJalons();
-  const el=document.getElementById('cnval-'+id);if(!el)return;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
-  const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);}
+  const el=document.getElementById('cnval-'+id);if(!el)return;const prevVal=el.textContent;const c=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===id);const lbl=(c&&esc(c.label))||'Compteur';const v=Runtime.counters[id]||0;el.textContent=v;el.setAttribute('aria-label',lbl+' : '+v);
+  const lg=document.getElementById('cnlog-'+id);if(lg)lg.innerHTML=cnLogTxt(id);
+  /* ═══ M1 — LE CHIFFRE POUSSE (v5.7, A68) ═══════════════════════════════════════
+     L'état est écrit AVANT (condition 2) ; l'animation ne fait que le désigner. Elle est
+     REMPLACÉE à chaque tap et jamais mise en file (condition 4) : c'est le retrait + le
+     calcul forcé + la repose qui le garantissent. transform seul (condition 3), 130 ms,
+     une fois (condition 5), inerte sous prefers-reduced-motion (la règle vit dans le bloc
+     no-preference). Elle ne joue QUE si la valeur a changé : un re-rendu ne la rejoue pas. */
+  if(String(v)!==prevVal){el.classList.remove('cn-pop');void el.offsetWidth;el.classList.add('cn-pop');}}
 /* v5.4.0 — LE JOURNAL REJOINT LE PANNEAU DES MINUTEURS (décision utilisateur, vécu en situation
    réelle : « pour changer l'un puis l'autre on doit passer au-dessus des étapes ») : minuteurs,
    compteurs et journal des actions vivent ENSEMBLE — le geste FRÉQUENT (« ⏱ Noter », accusé,
@@ -16999,7 +17282,86 @@ function tmAddHtml(){
 /* La porte du compteur ad hoc. Même grammaire que « ＋ Minuteur » — c'est la même famille de
    geste, et le volet n'a pas la place d'en inventer une seconde. */
 const cnAddHtml=()=>`<button class="add-line rt-add" data-cnadd title="Ajouter un compteur pour cette session — créé à 1">＋ Compteur</button>`;
-function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adhoc);const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=(f.counters||[]).concat(Runtime.adhocCounters||[]);
+/* ⚠ P4 (v5.7) — L'ÉCHU EN TÊTE, ET SEULEMENT AU RENDU. C'est la règle ECAM de « l'action au
+   pied de l'alerte » : on tape le quai PARCE QU'un minuteur sonne, et le volet s'ouvrait sur sa
+   première carte — avec quatre minuteurs et deux compteurs, il fallait chercher, dans un volet
+   plafonné à 45 % de la hauteur, celui que le geste désignait sans ambiguïté.
+   ⚠ LE TRI NE VIT QUE DANS LE RENDU, ET C'EST LA MOITIÉ QUI COMPTE : le volet ouvert ne se
+   re-rend pas au tick (repeinture chirurgicale), donc AUCUNE carte ne se déplace sous le doigt
+   quand une échéance survient. Les cartes portent « Relancer », « ✓ Vu » et « Remettre à zéro » :
+   déplacer une cible à l'instant où l'alarme approche est exactement le risque que la constance
+   positionnelle existe pour supprimer. L'imminence, elle, n'est annoncée QUE dans la capsule, où
+   le seul geste est « ouvrir le volet » — un tri n'y peut pas provoquer d'erreur de visée.
+   L'ordre de l'AUTEUR est conservé entre minuteurs de même état (tri stable). */
+/* L'ORDRE VIVANT — une seule fonction pour le rendu ET pour le tick. Deux tris écrits
+   séparément auraient divergé le jour où l'un des deux aurait appris un cas ; ce fichier a
+   déjà payé cette leçon quatre fois. Rang : l'ALARME d'abord (échu non acquitté), puis ce qui
+   TOURNE par temps restant croissant, puis le reste — en pause, chronomètre, échu acquitté —
+   dans l'ordre de l'AUTEUR, qui est conservé entre pairs (tri stable par index). */
+function tmLiveOrder(list,now){
+  now=now||Date.now();
+  const rk=t=>{
+    if(tmIsDue(t)&&!t.ack)return -1;
+    if(t&&t.type==='interval'&&t.running)return Math.max(0,(t.seconds*1000||0)-(t.elapsedMs+(now-t.lastStart)));
+    return Infinity;};
+  return list.map((t,i)=>({t,i,r:rk(t)})).sort((a,b)=>(a.r-b.r)||(a.i-b.i)).map(x=>x.t);}
+/* ⚠ LE GARDE — RIEN NE BOUGE SOUS UN DOIGT POSÉ. Les cartes portent « Relancer », « ✓ Vu » et
+   « Remettre à zéro » (dont un appui PROLONGÉ) : réordonner entre le pointerdown et le clic
+   ferait taper le bouton du voisin. Le tri est donc suspendu tant qu'un pointeur est posé dans
+   un panneau, et repris au relâchement — le retard vaut au plus la durée d'un appui. */
+/* ⚠ ET LE GARDE DEVIENT UN DÉLAI DE GRÂCE (v5.7, demande de l'auteur : « un tout petit temps
+   de latence pour que l'utilisateur comprenne qu'il a bien touché le bon minuteur »). C'est
+   meilleur que ma version, et pour une raison que je n'avais pas vue : le geste le plus fréquent
+   sur une carte est « Relancer », qui remet le temps restant au MAXIMUM — la carte tomberait donc
+   au bas de la liste À L'INSTANT où l'on vient de la toucher, et l'on ne verrait pas son accusé.
+   Le tri attend la fin du geste PLUS 1,2 s : assez pour lire la réponse de la carte (la valeur
+   repart, les boutons changent), sous la seconde et demie où un mouvement différé se met à
+   ressembler à un raté.
+   ⚠ NON BLOQUANT PAR CONSTRUCTION, et c'est ce qui le rend admissible : ce délai ne suspend QUE
+   la réorganisation. Les minuteurs continuent de courir, les valeurs de se peindre à chaque tick,
+   les boutons de répondre, la capsule d'annoncer. Rien n'est mis en file, rien n'attend — au pire
+   l'ordre de la liste est en retard de 1,2 s sur celui de la capsule, qui, elle, ne bouge pas.
+   Le clavier compte comme un doigt : tant que le focus est DANS une carte, on ne la déplace pas. */
+const TM_HOLD_MS=1200;
+let _tmHold=0;
+document.addEventListener('pointerdown',e=>{if(e.target&&e.target.closest&&e.target.closest('.tmcard'))_tmHold=Infinity;},true);
+['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{if(_tmHold===Infinity)_tmHold=Date.now()+TM_HOLD_MS;},true));
+/* LA RÉORGANISATION, EN transform PUR (FLIP) — on mesure AVANT, on réordonne, on repose chaque
+   carte à son ancienne place par une translation, puis on laisse la transition la ramener. Aucune
+   propriété de mise en page n'est animée (check-anim), et l'ordre du DOM est déjà juste dès la
+   première image : un lecteur d'écran ne voit jamais l'état intermédiaire.
+   ⚠ getBoundingClientRect rend des px VISUELS : sous le réglage de taille du texte (un « zoom »
+   sur <html>), la translation doit être divisée par zoomF() — règle 10, payée en v4.13.1.
+   ⚠ ON NE RÉORDONNE QUE DES CARTES CONTIGUËS, via un marqueur posé devant la première : le
+   conteneur porte aussi des rangées compactes et des compteurs, qu'un appendChild renverrait
+   à la fin. */
+function tmReflow(now){
+  if(Date.now()<_tmHold)return;
+  /* Le focus tient la liste immobile aussi longtemps qu'un doigt : au clavier, la cible ne doit
+     pas se dérober entre deux tabulations. */
+  {const a=document.activeElement;if(a&&a.closest&&a.closest('.tmcard'))return;}
+  const all=Array.prototype.slice.call(document.querySelectorAll('.tmcard[id^="tmcard-"]'));
+  if(all.length<2)return;
+  const byP=new Map();
+  all.forEach(c=>{const p=c.parentNode;if(!p)return;if(!byP.has(p))byP.set(p,[]);byP.get(p).push(c);});
+  byP.forEach((list,p)=>{
+    if(list.length<2)return;
+    const tl=list.map(c=>Runtime.timers[c.id.slice(7)]);
+    if(tl.some(t=>!t))return;                       // une carte sans minuteur : on ne touche à rien
+    const want=tmLiveOrder(tl,now).map(t=>'tmcard-'+t.id);
+    if(want.join('|')===list.map(c=>c.id).join('|'))return;
+    const z=(typeof zoomF==='function'?zoomF():1)||1;
+    const av=new Map(list.map(c=>[c.id,c.getBoundingClientRect().top]));
+    const mk=document.createComment('tm');p.insertBefore(mk,list[0]);
+    want.forEach(id=>{const el=document.getElementById(id);if(el)p.insertBefore(el,mk);});
+    p.removeChild(mk);
+    want.forEach(id=>{const el=document.getElementById(id);if(!el)return;
+      const dy=(av.get(id)-el.getBoundingClientRect().top)/z;
+      if(!dy)return;
+      el.style.transition='none';el.style.transform='translateY('+dy+'px)';
+      requestAnimationFrame(()=>{el.style.transition='';el.classList.add('tm-flip');el.style.transform='';
+        el.addEventListener('transitionend',()=>{el.classList.remove('tm-flip');el.style.transform='';},{once:true});});});});}
+function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filter(t=>!t.adhoc));const minis=Object.values(Runtime.timers).filter(t=>t.adhoc);const cl=(f.counters||[]).concat(Runtime.adhocCounters||[]);
   /* v5.4.2 — LE QUAI EST L'ACCÈS UNIQUE EN ÉTROIT (décision utilisateur : « il appartient
      maintenant au rail ») : la RANGÉE REPLIÉE du flux est SUPPRIMÉE. Le double accès de la
      v5.4.1 (« pousser sans couvrir » dans le flux / « suivre en couvrant » depuis le quai) a
@@ -18132,13 +18494,14 @@ function renderRead(){
   main.innerHTML=`
     ${gridOpen}
     <div class="read-head"><h2>${esc(f.title)||'Sans titre'}</h2></div>
-    <div class="read-meta">${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}</div>
+    <div class="read-meta">${f.library?`<span class="tag libtag" title="Bibliothèque partagée">${uiIcon('book',12)}${esc(libName(f.library)||'Partagée')}</span>`:''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo title="Reste à compléter : ${esc(sp.join(' · '))} — remplacez les mentions « à compléter » par vos informations locales.">△ À compléter</span>`:'';})()}${catTag(f,true)}${f.code?`<span class="card-date" style="font-family:var(--mono)">${esc(f.code)}</span>`:''}<span class="card-date${staleDate(f.validatedAt)?' stale':''}">${esc(fmtDate(f.validatedAt))}</span>${f.library&&f.updatedBy?`<span class="card-date" title="Auteur de la dernière modification (pas forcément de toute la fiche)">· dernière modification par ${esc(f.updatedBy)}</span>`:''}${(()=>{const rv=revisedSinceTxt(f,sessions);return rv?`<span class="rev-since" title="La version que vous avez déroulée n'est plus la version courante. « Versions » (menu ⋯) montre ce qui a changé.">△ ${esc(rv)}</span>`:'';})()}</div>
     ${f.status==='draft'?`<div class="notice">${uiIcon('warn',15)}<div><b>Brouillon</b> — cette fiche n'a pas encore été validée pour l'usage clinique.</div></div>`:''}
     ${f.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — cette fiche est signalée à relire avant validation.</div></div>`:''}
     ${shareOverHtml()}
     ${dockPanel}
     ${(useSv||fsAvantBouton)?'':forgetStrip}
     ${pathH}
+    ${(avantSession&&!mqRail.matches)?carryLineHtml(f):''}
     ${avantSession?'':annexRowHtml(f)}
     ${preview?'':noteBlockHtml(f.id,started)}
     ${readFooterHtml()}
@@ -20475,6 +20838,46 @@ const ALL_TAB_LBL={parcours:'Parcours',page:'Page SFAR',schema:'Schéma'};
    tap va mettre en route avant de le taper. Le chrono de session en tête (il démarre toujours),
    puis chaque minuteur avec sa nature — un cycle dit sa période, un chronomètre dit qu'il compte.
    AUCUN CONTRÔLE ICI : rien ne s'arme avant le démarrage. */
+/* ═══ Q4 — CE QUE LA FICHE EMBARQUE, AVANT QU'ON ENTRE (v5.7) ══════════════════════════
+   MESURÉ : `preStartHtml` (« Ce qui démarrera ») ne se rend que dans le RAIL, donc à partir de
+   780 px ; en voie ÉTROITE le panneau n'existe que dans le volet du quai, qui exige une session
+   vive (v5.4.2), et la capsule n'existe pas non plus avant le premier geste. Sur la cible
+   PRINCIPALE déclarée, un minuteur à cycles de 2 min écrit par l'auteur était donc totalement
+   invisible tant qu'on n'avait pas démarré — et le néophyte chronométrait de tête, ce que
+   l'aide existait pour éviter.
+   Une LIGNE dérivée, pas une seconde copie du détail : le rail garde sa liste, l'étroit reçoit
+   le compte. Rien à dire (ni minuteur, ni compteur, ni complication) → aucune ligne : un
+   panneau qui affirmerait « 0 minuteur » serait le bruit que ce dossier refuse partout.
+   PURE : aucun champ nouveau, aucune migration — c'est du comptage de ce que la fiche déclare. */
+/* ═══ P7 — « RÉVISÉE DEPUIS VOTRE DERNIER PASSAGE » (v5.7) ═════════════════════════════
+   `aidRev` existe depuis le lot T1 : chaque session archive la révision de l'aide sur laquelle
+   le soin a été CONDUIT (et `aidRev` EST `updatedAt`, donc les points de version portent le
+   même horodatage — la version exacte se retrouve). Elle ne servait qu'au compte rendu.
+   Or dans une bibliothèque PARTAGÉE, un collègue révise une aide qu'on croit connaître par
+   cœur, et l'on déroule de mémoire. La ligne le dit — AVANT le geste d'entrée, jamais pendant
+   le soin (la rangée de méta est déjà masquée en session depuis la v4.31.0).
+   · ELLE NE CONDITIONNE RIEN : « Confirmé — démarrer la session » ne bouge pas d'un pixel.
+   · ELLE NE DIT PAS CE QUI A CHANGÉ — le dire exigerait de rendre un diff clinique à l'écran,
+     donc de résumer une modification de dose. « Versions » est dans le menu ⋯ pour cela.
+   · ET RIEN SUR UNE AIDE JAMAIS DÉROULÉE : il n'y a alors pas de « dernier passage », et
+     « révisée » serait du bruit. PURE : elle ne lit que ce qu'on lui passe. */
+function revisedSinceTxt(f,list){
+  if(!f||!f.updatedAt)return '';
+  let last=null;
+  (list||[]).forEach(x=>{if(!x||x.ficheId!==f.id||!x.aidRev)return;
+    if(!last||(x.startedAt||0)>(last.startedAt||0))last=x;});
+  if(!last||last.aidRev>=f.updatedAt)return '';
+  return 'révisée depuis votre dernier passage ('+new Date(last.startedAt||last.aidRev).toLocaleDateString('fr-FR')+')';}
+function carryLineHtml(f){
+  if(!f)return '';
+  const nb=(f.blocks||[]).length,tl=(f.timers||[]).length,cl=(f.counters||[]).length,cx=(f.excursions||[]).length;
+  if(!tl&&!cl&&!cx)return '';
+  const p=[];
+  if(nb)p.push(nb+(nb>1?' blocs':' bloc'));
+  if(tl)p.push(tl+(tl>1?' minuteurs':' minuteur'));
+  if(cl)p.push(cl+(cl>1?' compteurs':' compteur'));
+  if(cx)p.push(cx+(cx>1?' complications déclarées':' complication déclarée'));
+  return `<div class="carry-line">${esc(p.join(' · '))}</div>`;}
 function preStartHtml(f){
   const tl=(f.timers||[]);
   const li=t=>{const nm=esc(tmLabelParts(t.label).name)||(t.type==='interval'?'Minuteur':'Chronomètre');
@@ -27460,7 +27863,7 @@ if(location.search.indexOf('__acdebug')>=0){
    PAS l'application : on expose juste les fonctions pures à tester. AUCUN effet en usage normal :
    sans ce paramètre, rien de tout ceci ne s'exécute et aucun global n'est ajouté. */
 if(location.search.indexOf('__actest')>=0){
-  window.__ac_test__={dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
+  window.__ac_test__={sinceTxt,endSessOpenTxt,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,MAX_IMG_BYTES,MAX_IMPORT_BYTES,MAX_IMG_PER_ENTITY,
     mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,

@@ -2150,6 +2150,176 @@ appartient au scribe : l'avancement est PARTAGÉ et chaque ligne porte son attri
 fermée au scribe **n'apparaît pas éteinte : elle n'apparaît pas** (la touche ⚡︎ du dock n'existe pas
 pour lui ; promu lead, elle paraît sans qu'aucune géométrie ne bouge).
 
+## Lot v5.7 — « la bonne information, au bon moment, au bon endroit »
+
+> Huit propositions d'un audit transverse, plus deux retraits qui font jurisprudence. Chacune
+> répond à l'un de trois tests : le LIEU (l'information est-elle où le geste a lieu ?), le MOMENT
+> (arrive-t-elle avant la décision ?), le GESTE (le plus fréquent est-il le moins cher ?).
+> **Rien n'y déduit quoi que ce soit d'un paramètre patient** : toutes font une soustraction
+> d'horodatages, un comptage de cases, ou un déplacement d'information déjà présente.
+
+**A113. LA BARRE DE RETOUR AU BLOC COURANT (v5.7).** Trois mécanismes ramenaient au soin, et aucun
+ne couvrait le cas le plus fréquent : `landOnBout` ne joue qu'à la RÉENTRÉE dans la fiche,
+`ovAdvanceRender` qu'au GESTE D'AVANCEMENT, `cxScrollTo` qu'à l'entrée sur complication. Défiler à
+la main pour relire une étape, vérifier une dose plus bas, regarder le journal — et l'on remontait
+en cherchant la carte à bordure bleue. `#blkReturn` n'existe que tant que la carte du bloc courant
+est **entièrement** hors de la zone utile (sous les couches collantes, au-dessus du dock) et nomme
+sa destination (A15 : une excursion sait revenir).
+· **PRÉCÉDENT DÉJÀ ACCEPTÉ** : `.sess-start.afloat` (v4.73.0) — transitoire, aucune hauteur au
+  flux, critère le plus étroit possible. Elle ne défile JAMAIS toute seule : c'est une porte.
+· **UN OBSERVATEUR, PAS UN ÉCOUTEUR DE DÉFILEMENT**, et IDEMPOTENT (on ne réinstalle que si la
+  carte a changé) — la fonction tourne à chaque tick, elle doit être gratuite quand rien ne bouge.
+· ⚠ **DEUX ALTERNATIVES ÉCARTÉES** : une cinquième touche de dock (A18 le fixe à quatre de largeur
+  égale ; une cinquième ferait tomber les étiquettes sous 320 px) ; surcharger « ⤢ Tout voir », qui
+  a déjà deux états — un troisième ferait qu'une même touche à une même place ferait trois choses
+  selon un état invisible, c'est-à-dire de la mode confusion (FAA).
+· ⚠ **LE CLIQUET `pointer-events:none` DE `check-anim` EST PASSÉ DE 18 À 19, et c'est une
+  DÉCISION** : la coque couvre toute la largeur et ne doit rien intercepter (seul `.bkr` est
+  tapable), sinon elle volerait les taps sur la colonne d'action précisément quand on défile.
+
+**A114. « TERMINER LA SESSION ? » DIT CE QUI RESTE OUVERT (v5.7).** La fenêtre portait le titre, la
+durée et les conséquences — **aucun état**. C'est pourtant le seul instant où « il reste deux étapes
+vitales non cochées au bloc 3 » sert encore : une seconde plus tard, la session est archivée.
+`endSessOpenTxt(R)` est PURE et ne rend que des faits COMPTÉS, deux lignes au plus.
+· **« Terminer » reste rouge plein et ACTIF** : une checklist annonce son incomplétude, elle
+  n'interdit pas de la quitter (ECAM/QRH). Aucune condition ajoutée à la sortie.
+· **NI SCORE, NI POURCENTAGE, NI « CONFORMITÉ »** — le § 2 du dossier de conformité nomme ce
+  vocabulaire comme celui à ne jamais employer. Registre ATTENTION en CONTOUR, jamais un aplat (A11).
+· ⚠ **ON NE COMPTE QUE LES BLOCS VISITÉS** : une étape vitale d'un bloc où l'on n'est jamais passé
+  n'est pas oubliée, elle est HORS CHEMIN — la compter ferait paraître incomplète toute session
+  qui a pris une branche. Rien à dire → le bloc n'existe pas.
+
+**A115. UN COMPTEUR DIT « IL Y A », PAS SEULEMENT « À » (v5.7) — ET SON CHIFFRE POUSSE (M1).**
+`cnLogTxt` rendait « consigné T+04:12 » : l'instant du dernier incrément. C'est juste, et ce n'est
+pas la question qu'on se pose — en réanimation elle est toujours « ça fait combien de temps ? », et
+on la calculait de tête sur un chrono qui est à l'autre bout de l'écran. La ligne porte les DEUX :
+le T+ se relit (compte rendu, débriefing), le « il y a » décide maintenant.
+· **AUCUN SEUIL, AUCUNE COULEUR QUI VARIE** : c'est la même soustraction d'horodatages qu'A81, sur
+  les gestes de l'ÉQUIPE. Un seuil serait un JALON, et les jalons sont un champ d'AUTEUR (v5.5.0).
+· **VIVANT PAR LE CHEMIN CHIRURGICAL** (`paintCnAgo`, anti-churn) : jamais un re-rendu, donc la
+  carte ne change pas de hauteur (A9) — le texte s'écrit sur une ligne DÉJÀ là.
+· **M1** : le chiffre pousse au tap (`cnPop`, 130 ms, `transform` seul). L'état est écrit AVANT
+  (A68/2), l'animation est REMPLACÉE et jamais mise en file (A68/4 — retrait, calcul forcé,
+  repose), et sa règle vit dans le bloc `no-preference`, donc l'inertie est acquise par
+  construction. Elle ne joue QUE si la valeur a changé : un re-rendu ne la rejoue pas.
+
+**A116. L'IMMINENCE EST UN ÉTAT, ET LE TRI DES MINUTEURS EST VIVANT (v5.7, deux décisions de
+l'auteur, dont une qui rouvre mon arbitrage).**
+· ⚠ **UN CONSTAT FAUX D'ABORD, ET IL FAUT LE DIRE** : j'avais annoncé que la capsule « triait déjà
+  par temps restant ». Le tri existe (`withRem.sort((a,b)=>a.rem-b.rem)`) mais **il ne gouverne
+  qu'une SÉLECTION** : `want` vaut `dueList.slice(0,2)` en voie large — où `dueList` ne retient que
+  les ÉCHUS, donc un minuteur qui tourne n'y entre jamais — et `withRem.slice(0,1)` en étroit, qui
+  n'en montre qu'un. Rien ne se réordonnait sous l'œil. J'avais lu la ligne, pas ce qu'elle
+  alimente. Conséquence : mon premier marquage d'imminence était INERTE au-delà de 780 px.
+· **L'IMMINENT ENTRE DANS LA CAPSULE EN VOIE LARGE**, juste derrière les échus. C'est un AJOUT à la
+  doctrine v4.23.0 (« le rail porte déjà tous les minuteurs »), pas un oubli qu'on rattrape :
+  celle-ci réserve l'exception à l'ALARME, et l'imminence est l'annonce d'une alarme qui va
+  survenir — l'argument vaut mot pour mot, le rail DÉFILE. **« +n » ne change pas** : il ne compte
+  que les échus non montrés.
+· **VINGT SECONDES, ET C'EST UN SEUIL D'AFFICHAGE** (`TM_SOON_MS`) : il ne dit rien du patient et
+  ne déclenche rien. Plus court, on voit l'imminence trop tard pour préparer un geste ; plus long,
+  elle devient l'état PERMANENT d'un cycle de 2 min — 20 s valent 17 % du cycle réaliste le plus
+  court, donc le signal reste rare, donc il signale encore.
+· **MÊME REGISTRE QUE L'ÉCHU, UNE INTENSITÉ EN DESSOUS** : `△` + encre ambre, **sans aplat**, sans
+  battement — A11 réserve la masse colorée à ce qui exige une action MAINTENANT, et le battement
+  est la grammaire de l'alarme, pas de son annonce. Le glyphe survit à l'ellipse (patron du quai).
+· **LE TRI DEVIENT VIVANT** (`tmLiveOrder`, une seule fonction pour le rendu ET le tick ; l'alarme,
+  puis ce qui tourne par temps restant, puis le reste dans l'ordre de l'AUTEUR). `tmPanelOrder` est
+  PURGÉ avec la version précédente (règle 14). **J'avais argumenté l'inverse** (« ne pas déplacer
+  une cible sous le doigt ») et l'auteur a rouvert la décision : c'est la sienne.
+· **CE QUI RESTE DE L'OBJECTION EST LE GARDE, ET IL EST DEVENU MEILLEUR** (demande de l'auteur :
+  « un tout petit temps de latence pour comprendre qu'on a bien touché le bon minuteur »). Le geste
+  le plus fréquent sur une carte est « Relancer », qui remet le temps restant au MAXIMUM : la carte
+  tombait au bas de la liste À L'INSTANT où on venait de la toucher, et son accusé disparaissait
+  sous le doigt. Le tri attend la fin du geste **plus 1,2 s** (`TM_HOLD_MS`) — assez pour lire la
+  réponse de la carte, sous la seconde et demie à partir de laquelle un mouvement différé
+  ressemble à un raté. Le focus clavier tient la liste immobile comme un doigt.
+· **NON BLOQUANT PAR CONSTRUCTION** : le délai ne suspend QUE la réorganisation. Les minuteurs
+  courent, les valeurs se peignent, les boutons répondent, la capsule annonce. Au pire l'ordre de
+  la liste est en retard de 1,2 s sur celui de la capsule, qui, elle, ne bouge pas.
+· **LE MOUVEMENT EST UN FLIP EN `transform` PUR** (180 ms) : on mesure avant, on réordonne le DOM,
+  on repose chaque carte par une translation, la transition la ramène. L'ordre du DOM est juste dès
+  la première image — un lecteur d'écran ne voit jamais l'état intermédiaire. ⚠ La translation est
+  **divisée par `zoomF()`** (règle 10 : `getBoundingClientRect` rend des px VISUELS). ⚠ On ne
+  réordonne que des cartes CONTIGUËS, via un marqueur : le conteneur porte aussi des rangées
+  compactes et des compteurs, qu'un `appendChild` renverrait à la fin.
+· ⚠ **POURQUOI C'ÉTAIT « MOCHE » DANS LE VOLET, et ce n'était pas la durée** (signalé à l'usage) :
+  une carte y a un fond TRANSLUCIDE (`--sys-2`, blanc à 7 %). Pendant le croisement, deux cartes se
+  superposent et **leurs deux voiles s'additionnent** — une tache plus claire traverse le volet et
+  les filets se croisent. Sur la matière de TRAVAIL le fond est opaque, d'où un mouvement propre là
+  et sale ici. Le temps du mouvement, la carte prend un fond OPAQUE (`--sys-hi`) et passe au-dessus.
+· **LE VOLET S'OUVRE SUR LE MINUTEUR QUI SONNE** : l'ordre est calculé au RENDU, donc le volet
+  ouvert ne se réordonne pas au tick — c'est le tri vivant qui s'en charge, avec son garde.
+
+**A117. LE RETOUR D'INTERRUPTION RESTITUE LA CONSCIENCE DE SITUATION (v5.7).** Vérifié avant
+d'écrire : **zéro occurrence** d'un « temps depuis le dernier geste » dans le fichier. Les cinq
+écouteurs de `visibilitychange` persistaient, reprenaient l'audio, redemandaient la veille — aucun
+ne disait à quelqu'un qui revient depuis combien de temps il n'était plus là. C'est pourtant le cas
+nominal : on pose le téléphone, on intube, on transporte. Une ligne, en tête de la carte du bloc
+courant : « ⏱ Reprise — dernier geste il y a 6:12 ».
+· **L'HORODATAGE VIT DANS `persistLive`, ET NULLE PART AILLEURS** — le point d'étranglement de
+  toute mutation de session (c'est déjà ce qui donne au partage un seul crochet plutôt que soixante
+  verbes). Un geste ajouté demain sera horodaté sans qu'on y pense.
+· **IL N'ENTRE PAS DANS L'INSTANTANÉ** : après un rechargement il n'y a plus d'interruption à
+  annoncer (les minuteurs disent déjà « arrêté depuis », A81). Rien ne change au format ni à ce
+  qui voyage.
+· **A9** : revenir au premier plan EST un geste de l'utilisateur, la ligne a donc le droit de
+  paraître ; et elle ne pousse rien d'autre qu'elle-même (elle s'insère en TÊTE de la carte, jamais
+  entre deux étapes). **Deux minutes est un seuil d'AFFICHAGE**, qui évite d'annoncer une absence
+  de quinze secondes. Le texte est FIGÉ à l'instant du retour : c'est la durée de l'interruption
+  qu'on annonce, pas un second chronomètre.
+· **ELLE S'EFFACE AU GESTE SUIVANT**, jamais après un délai — c'est le geste qui la périme.
+
+**A118. CE QUE LA FICHE EMBARQUE SE DIT AVANT QU'ON ENTRE (v5.7).** Mesuré : `preStartHtml` (« Ce
+qui démarrera ») ne se rend que dans le RAIL, donc à partir de 780 px ; en voie ÉTROITE le panneau
+n'existe que dans le volet du quai, qui exige une session vive (v5.4.2), et la capsule n'existe pas
+non plus avant le premier geste. **Sur la cible principale déclarée**, un minuteur à cycles de 2 min
+écrit par l'auteur était donc invisible tant qu'on n'avait pas démarré — et le néophyte
+chronométrait de tête, ce que l'aide existait pour éviter. Une LIGNE dérivée (`carryLineHtml`,
+pure) : « 6 blocs · 2 minuteurs · 1 complication déclarée ».
+· **PAS UNE SECONDE COPIE DU DÉTAIL** : le rail garde sa liste, l'étroit reçoit le compte.
+· **RIEN À DIRE → AUCUNE LIGNE** : un panneau qui affirmerait « 0 minuteur » serait le bruit que ce
+  dossier refuse partout. Aucun champ nouveau, aucune migration.
+
+**A119. UNE AIDE RÉVISÉE DEPUIS VOTRE DERNIER PASSAGE LE DIT (v5.7).** `aidRev` existe depuis le lot
+T1 et ne servait qu'au compte rendu. Or dans une bibliothèque PARTAGÉE, un collègue révise une aide
+qu'on croit connaître par cœur, et l'on déroule de mémoire. `revisedSinceTxt(f,sessions)` est PURE.
+· **AVANT le geste d'entrée, jamais pendant le soin** (la rangée de méta est déjà masquée en
+  session depuis la v4.31.0). **Elle ne conditionne rien** : « Confirmé — démarrer » ne bouge pas.
+· **ELLE NE DIT PAS CE QUI A CHANGÉ** — le dire exigerait de rendre un diff clinique à l'écran,
+  donc de résumer une modification de dose. « Versions » est dans le menu ⋯ pour cela.
+· **RIEN SUR UNE AIDE JAMAIS DÉROULÉE** : il n'y a alors pas de « dernier passage », et « révisée »
+  serait du bruit. C'est le DERNIER passage qui compte, pas le premier trouvé.
+
+**A120. LE COMPTE RENDU DONNE L'ÉCART, ET RIEN D'AUTRE (v5.7, décision de l'auteur : « juste
+l'écart sans analyse »).** Au débriefing la question est presque toujours « combien de temps entre
+les deux ? », et on la soustrayait à la main. `evDeltas` (pure) ajoute une colonne « Écart ».
+· ⚠ **LA LIGNE À NE PAS FRANCHIR EST PROCHE, ET C'EST POUR ÇA QUE LA COLONNE EST NUE** : un écart
+  BRUT est un fait. Une MOYENNE, un « intervalle cible », une couleur qui vire au rouge au-delà
+  d'une valeur, ou le mot « conformité » feraient basculer le document du côté de l'ÉVALUATION PAR
+  LE LOGICIEL — ce que le § 2 nomme comme le vocabulaire à ne jamais employer.
+· **L'ÉCART EST PAR OBJET** : « 3:56 » n'a de sens qu'entre deux doses du MÊME produit ; un repère
+  libre n'ouvre pas de série. **Un repère ANNULÉ ne compte pas et ne coupe pas la série** : il
+  reste dans la chronologie (une décision a bien eu lieu), l'écart se mesure entre les gestes qui
+  TIENNENT.
+
+**A121. DEUX PROPOSITIONS RETIRÉES APRÈS VÉRIFICATION — ET C'EST LA MÊME LEÇON (v5.7).**
+· **« Télécharger les documents des aides épinglées »** : `Sync._syncAttachments()` étape 4 le fait
+  DÉJÀ, et son commentaire le dit — « télécharge en ARRIÈRE-PLAN tout document référencé manquant
+  (hors-ligne d'urgence : systématique) ». La proposition aurait RESTREINT aux épinglées une
+  garantie volontairement universelle : une régression. J'avais vérifié la présence des SURFACES
+  (la ligne d'A82, son bouton) sans vérifier le MÉCANISME derrière — le bouton n'est pas le chemin
+  nominal, c'est le filet.
+· **« Fondre le virage au vert de Continuer »** : `ovAfterCheck` fait déjà tout le changement
+  d'état (`classList.toggle('okay',all)`, libellé remplacé, `aria-disabled` retiré). Il ne restait
+  que 140 ms de fondu — et le LIBELLÉ bascule au même instant : on obtiendrait une couleur qui
+  s'attarde sous des mots qui ont déjà sauté, **moins** cohérent que l'instantané.
+· **LA LEÇON EST A97, MOT POUR MOT** : « une proposition juste peut porter sur un manque qui
+  n'existe plus : on vérifie avant d'implémenter ». Les deux constats sont venus de l'auteur, pas
+  de moi. **QUESTION OUVERTE, laissée telle** : le téléchargement de fond est NON BORNÉ (ni volume,
+  ni égard pour une connexion mesurée) — le borner affaiblirait la garantie hors-ligne, c'est un
+  arbitrage à prendre, pas un défaut à corriger.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex
