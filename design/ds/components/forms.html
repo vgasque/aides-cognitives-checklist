@@ -3876,6 +3876,8 @@
   .rt-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
     flex:1 1 auto;min-width:0}
   .rt-ic{color:var(--primary)}
+  /* Le groupe des deux interrupteurs : il enroule d'un bloc, jamais en son milieu. */
+  .rt-togs{display:inline-flex;align-items:center;gap:8px;flex:none}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente. */
   .rt-x{position:absolute;top:0;right:0;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
@@ -4913,7 +4915,13 @@
      (min-height 44 px sur le bouton) — mesuré, A9 tient. */
   .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset .tmr-hint{display:none}
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
-  /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
+  /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ✎ · ↺ · ✕.
+     ⚠ LES GLYPHES VIENNENT DE `uiIcon`, JAMAIS ÉCRITS EN CLAIR (v5.6, signalé à l'usage : « il y a
+     des doublons d'icônes — le crayon pour modifier un minuteur créé existe déjà, pareil pour le
+     recommencer »). La règle est posée depuis la v4.71.0 (« les anciens glyphes texte ✎ ✦ ⤓ ↺
+     rendaient un dessin différent selon la police du système ») ; mes ajouts l'avaient enfreinte en
+     réintroduisant « ✎ » et « ⟲ » littéraux à côté des tracés `pen` et `undo` qui existaient déjà.
+     Deux dessins pour une même idée, c'est deux choses à apprendre. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
   /* ⚠ ELLES NE SE COLLENT PAS (v5.6, signalé à l'usage : « les minuteurs qu'on crée en cours de
      session sont collés entre eux et au minuteur du dessus »). Le rail les mettait à `margin-top:0`

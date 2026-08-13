@@ -1884,6 +1884,47 @@ elle-même, appliqué à son voisin.
   groupement — son adresse d'alors. Il mesure désormais « contre le champ, à sa droite, aligné », et
   **dans les deux états de défilement** : c'est cette seconde moitié qui couvre le défaut signalé.
 
+**A105. DEUX RÉGLAGES JUMEAUX NE SE SÉPARENT JAMAIS (v5.6, signalé à l'usage : « le bouton veille
+apparaît toujours en dessous du bouton son », puis « aussi en desktop dans la sidebar »).** Les deux
+interrupteurs tenaient sur la même ligne à partir de 390 px et pas en dessous — mesuré : à 375 il
+manquait DEUX pixels, à 360 dix-sept, à 320 trente-trois. Espérer qu'ils tiennent est une erreur de
+méthode : ce qu'on veut n'est pas « qu'ils rentrent » mais qu'ils ne se séparent PAS — deux réglages
+de même grammaire dont l'un tombe seul sous l'autre se lisent comme deux objets sans rapport.
+Enveloppés (`.rt-togs`), ils enroulent ENSEMBLE. Mesuré : même ligne à 320 · 360 · 375 · 390 · 414 ·
+430 · 560 · 700 · 900 · 1280, et dans le RAIL aussi, où le groupe (311 px) dépasse la colonne
+(301 px) et enroule donc d'un bloc au lieu de se couper en deux.
+· **ET LE GABARIT PORTAIT ENCORE LES ANCIENS LIBELLÉS** : seul `syncWakeBtn` avait été corrigé, si
+  bien que la PREMIÈRE peinture disait « Écran maintenu » et la suivante « Veille coupée ». Quand un
+  libellé est écrit à deux endroits, corriger l'un ne corrige que la moitié du temps.
+
+**A106. UN GLYPHE VIENT DE `uiIcon`, JAMAIS ÉCRIT EN CLAIR (v5.6, signalé à l'usage : « il y a des
+doublons d'icônes — le crayon pour modifier un minuteur créé existe déjà, pareil pour le
+recommencer »).** La règle est posée depuis la v4.71.0 (« les anciens glyphes texte ✎ ✦ ⤓ ↺ rendaient
+un dessin différent selon la police du système ») ; mes ajouts l'avaient enfreinte en réintroduisant
+« ✎ » et « ⟲ » littéraux à côté des tracés `pen` et `undo` qui existaient déjà dans la table. Deux
+dessins pour une même idée, c'est deux choses à apprendre — et `check-icons` ne peut pas le voir : il
+vérifie que tout nom passé à `uiIcon` existe, pas qu'on ait pensé à l'appeler.
+
+**A107. « DIAGNOSTIC CONFIRMÉ » RESTE UN ÉTAGE — TENTATIVE ANNULÉE, ET LA MESURE EST LA RAISON
+(v5.6, demande de l'auteur : « déplace diagnostic confirmé dans le dépliant “x blocs faits —
+diagnostic confirmé” »).** Le déplacement a été écrit et il FONCTIONNAIT : condition d'entrée avant
+le démarrage (A19), trace dans l'historique après, repliée dans « ✓ n blocs faits · diagnostic
+confirmé », jamais perdue entre les deux. `audit-partage` l'a rougi sur un invariant de crise — « il
+regardait ailleurs : ce qu'il regarde ne bouge pas » — avec **457 px de dérive**.
+· **LA CAUSE EST STRUCTURELLE** : la place de la confirmation dépendait de l'EXISTENCE d'une
+  ligne-bilan, laquelle peut naître d'un lot DISTANT. Un bloc de plusieurs centaines de pixels qui
+  change de logement sous les yeux de quelqu'un qui n'a rien fait est exactement ce que la règle 11
+  interdit — et c'est le pire cas, puisqu'il est AU-DESSUS de ce qu'on regarde.
+· **CE QU'IL FAUDRAIT POUR LE FAIRE PROPREMENT** : que la confirmation soit une ligne-bilan DÈS le
+  démarrage (« ✓ diagnostic confirmé »), qui gagne ensuite le compte des blocs dans son libellé —
+  alors elle ne déménage jamais, seul son texte s'allonge. C'est une refonte de l'assemblage du
+  journal, à décider séparément et à mesurer contre ce même témoin.
+· **TROIS ORDONNANCEMENTS APPRIS EN CHEMIN, ET ILS RESTENT VRAIS** : le journal est construit
+  ~200 lignes AVANT que la confirmation ne soit calculée dans `renderRead` (un drapeau posé après
+  n'arrive qu'au rendu suivant) ; `renderOvOnly` re-rend le journal SEUL, bien plus souvent que
+  `renderRead`, donc un drapeau à usage unique y est brûlé au premier passage ; et une décision
+  prise dans `renderRead` ne se met pas à jour aux re-rendus du journal.
+
 **R6. LE PASSÉ S'ANNONCE ET SE TIRE.** Tout passage complet et non courant devient une chip, et la
 rangée de chips se replie DÈS QU'ELLE EXISTE en ligne-bilan « ⌄ fait · ✓ n passages · a→b », qu'un
 tap déplie sur place. Les deux invariants du journal sont intacts, et ce sont eux qui rendent le

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-IG7mRZweLuDPbAEJhjUxGOxbRALUfzXmRiGykZ97kAk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-wyN2C4QJfixB0DaFhRb/bgiUKapqeIGRqr0Vxw01diE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4221,6 +4221,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
     flex:1 1 auto;min-width:0}
   .rt-ic{color:var(--primary)}
+  /* Le groupe des deux interrupteurs : il enroule d'un bloc, jamais en son milieu. */
+  .rt-togs{display:inline-flex;align-items:center;gap:8px;flex:none}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente. */
   .rt-x{position:absolute;top:0;right:0;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
@@ -5258,7 +5260,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (min-height 44 px sur le bouton) — mesuré, A9 tient. */
   .rt-dock .tm-ctrl:has(.tm-ack) .tm-reset .tmr-hint{display:none}
   .tm-reset{touch-action:none;display:flex;flex-direction:column;justify-content:center;line-height:1.05;padding-top:4px;padding-bottom:4px;min-height:44px}
-  /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ⟲ · ✕. */
+  /* Minuteurs ADDITIONNELS (ad hoc) : rangée compacte 48px — libellé · temps · ✎ · ↺ · ✕.
+     ⚠ LES GLYPHES VIENNENT DE `uiIcon`, JAMAIS ÉCRITS EN CLAIR (v5.6, signalé à l'usage : « il y a
+     des doublons d'icônes — le crayon pour modifier un minuteur créé existe déjà, pareil pour le
+     recommencer »). La règle est posée depuis la v4.71.0 (« les anciens glyphes texte ✎ ✦ ⤓ ↺
+     rendaient un dessin différent selon la police du système ») ; mes ajouts l'avaient enfreinte en
+     réintroduisant « ✎ » et « ⟲ » littéraux à côté des tracés `pen` et `undo` qui existaient déjà.
+     Deux dessins pour une même idée, c'est deux choses à apprendre. */
   .tm-mini{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
   /* ⚠ ELLES NE SE COLLENT PAS (v5.6, signalé à l'usage : « les minuteurs qu'on crée en cours de
      session sont collés entre eux et au minuteur du dessus »). Le rail les mettait à `margin-top:0`
@@ -16817,7 +16825,7 @@ function timerMiniRow(t){const d=timerDisplay(t,Date.now());
   const rang=t.adhoc&&!t.label
     ?' '+(Object.values(Runtime.timers).filter(x=>x.adhoc).indexOf(t)+1):'';
   const lbl=esc(t.label)||('Minuteur'+rang);
-  return `<div class="tm-mini${timerDue(t)?' due':''}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><span class="tmm-l">${lbl}</span><span class="tmm-t" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${d.val}">${d.val}</span>${t.adhoc?`<button class="tmm-b" data-tmname="${esc(t.id)}" title="Nommer ce minuteur" aria-label="Nommer — ${lbl}">${t.label?'✎':'✎'}</button>`:''}<button class="tmm-b" data-tmrestart="${t.id}" title="Relancer (${fmtMs((t.seconds||0)*1000)})" aria-label="Relancer — ${lbl}">⟲</button><button class="tmm-b" data-tmrm="${t.id}" title="Supprimer ce minuteur" aria-label="Supprimer — ${lbl}">✕</button></div>`;}
+  return `<div class="tm-mini${timerDue(t)?' due':''}" id="tmcard-${t.id}" role="group" aria-label="${lbl}"><span class="tmm-l">${lbl}</span><span class="tmm-t" id="tmval-${t.id}" role="timer" aria-label="${lbl} : ${d.val}">${d.val}</span>${t.adhoc?`<button class="tmm-b" data-tmname="${esc(t.id)}" title="Nommer ce minuteur" aria-label="Nommer — ${lbl}">${uiIcon('pen',13)}</button>`:''}<button class="tmm-b" data-tmrestart="${t.id}" title="Relancer (${fmtMs((t.seconds||0)*1000)})" aria-label="Relancer — ${lbl}">${uiIcon('undo',13)}</button><button class="tmm-b" data-tmrm="${t.id}" title="Supprimer ce minuteur" aria-label="Supprimer — ${lbl}">✕</button></div>`;}
 // Libellé du bouton principal : « Pause » quand ça tourne, « Relancer » une fois démarré puis
 // mis en pause, « Démarrer » tant qu'il n'a jamais tourné ou après remise à zéro.
 // « Relancer » (pas « Reprendre ») : « Reprendre » est réservé aux SESSIONS vives de l'accueil —
@@ -16891,7 +16899,7 @@ function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)
      calme, le renommer en pleine crise n'aurait pas de sens. Nommer reste FACULTATIF et DIFFÉRÉ
      (doctrine du repère horodaté) : on appuie sur ＋ parce que l'événement vient d'avoir lieu, le
      mot vient après ou jamais. La suppression vit au même endroit, au registre du ✕ des minis. */
-  const nom=c.adhoc?`<button type="button" class="cn-nm" data-cnname="${esc(c.id)}" aria-label="Nommer ce compteur">${c.label?'✎':'— nommer'}</button><button type="button" class="cn-nm cn-rm" data-cnrm="${esc(c.id)}" aria-label="Supprimer ce compteur">✕</button>`:'';
+  const nom=c.adhoc?`<button type="button" class="cn-nm" data-cnname="${esc(c.id)}" aria-label="Nommer ce compteur">${c.label?uiIcon('pen',13):'— nommer'}</button><button type="button" class="cn-nm cn-rm" data-cnrm="${esc(c.id)}" aria-label="Supprimer ce compteur">✕</button>`:'';
   const linked=c.timerId&&Runtime.timers[c.timerId];
   return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${c.adhoc&&!c.label?'Compteur '+((Runtime.adhocCounters||[]).indexOf(c)+1):lbl}${nom}</div><div class="cn-val" id="cnval-${c.id}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-log" id="cnlog-${c.id}">${cnLogTxt(c.id)}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${c.id}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${c.id}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div>${linked?`<div class="cn-note">＋ relance le minuteur « ${esc(Runtime.timers[c.timerId].label)||'Minuteur'} »</div>`:''}<button class="cn-reset tm-reset" data-cnreset="${c.id}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
 /* « CONSIGNÉ À … » — LA TRACE SE VOIT, POUR NE PAS ÊTRE REFAITE (v5.0.0, demande utilisateur :
@@ -16994,10 +17002,19 @@ function runtimePanel(f){const tl=Object.values(Runtime.timers).filter(t=>!t.adh
      même distinction que le chapeau « Ne pas oublier », affiché vide parce qu'il INVITE (v4.76.0).
      Le panneau ne disparaît donc que HORS session : sans soin en cours, il n'y a rien à créer. */
   if(mqRail.matches&&!tl.length&&!minis.length&&!cl.length&&!Runtime.started)return '';
-  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" aria-label="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)}<span class="rt-wl"> silencieux ?</span></button>`:''}<button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`
+  /* ⚠ LES DEUX INTERRUPTEURS FORMENT UN GROUPE INSÉCABLE (v5.6, signalé à l'usage : « le bouton
+     veille apparaît toujours en dessous du bouton son »). Ils tenaient sur la même ligne à partir
+     de 390 px, et pas en dessous — mesuré : à 375 il manquait DEUX pixels, à 360 dix-sept, à 320
+     trente-trois. Espérer qu'ils tiennent est une erreur de méthode : ce qu'on veut n'est pas
+     « qu'ils rentrent », c'est qu'ils ne se séparent JAMAIS — deux réglages jumeaux, de même
+     grammaire, dont l'un tombe seul sous l'autre se lisent comme deux objets sans rapport.
+     Enveloppés, ils enroulent ENSEMBLE : soit sur la ligne du titre, soit sur la suivante, côte à
+     côte. C'est l'AVERTISSEMENT qui part en premier s'il faut couper quelque part, et c'est le bon
+     ordre — il n'est pas un réglage. */
+  const sound=`${IS_TOUCH?`<button class="rt-warn" id="soundWarn" title="Mode silencieux du téléphone" aria-label="Mode silencieux du téléphone" style="${soundOn?'':'display:none'}">${uiIcon('warn',12)}<span class="rt-wl"> silencieux ?</span></button>`:''}<span class="rt-togs"><button class="rt-sound${soundOn?'':' off'}" id="soundToggle" aria-pressed="${soundOn?'true':'false'}" title="${soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer'}">${soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé'}</button>`
     /* Le verrou de veille vit là où le son se règle : même rangée, même registre, même grammaire
        d'interrupteur. Là où l'API manque, la ligne n'existe pas (dégradation silencieuse). */
-    +(WAKE_OK?`<button class="rt-sound${wakeWanted?'':' off'}" id="wakeToggle" aria-pressed="${wakeWanted?'true':'false'}" title="${wakeWanted?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale':'La veille du système s’applique — appuyer pour maintenir l’écran allumé'}">${uiIcon(wakeWanted?'sun':'moon',13)}${wakeWanted?' Écran maintenu':' Veille normale'}</button>`:'');
+    +(WAKE_OK?`<button class="rt-sound${wakeWanted?'':' off'}" id="wakeToggle" aria-pressed="${wakeWanted?'true':'false'}" title="${wakeWanted?'L’écran reste allumé pendant la session — appuyer pour laisser la veille normale':'La veille du système s’applique — appuyer pour maintenir l’écran allumé'}">${uiIcon(wakeWanted?'sun':'moon',13)}${wakeWanted?' Veille coupée':' Veille active'}</button></span>`:'</span>');
   /* v5.4.1 — LES FAMILLES SE NOMMENT (décision utilisateur : « minuteurs / compteurs / journal
      peu identifiables, tout se colle et se mélange ») : un sous-titre PAR FAMILLE — MINUTEURS
      (avec les minis et « ＋ Minuteur PA », qui en créent), COMPTEURS, et le JOURNAL qui porte
@@ -17682,6 +17699,42 @@ function renderRead(){
      `navSection` n'est plus atteint que par l'APERÇU d'un brouillon sans bloc. */
   const rMode=readModeOf(f);
   const useOv=rMode==='overview',useSv=rMode==='static';
+  const confItems=clean(listOf(f,'confirmation'));
+  const verifyH=staticBlock('△ À vérifier — surveillances','h-verify',listOf(f,'verify'),'verify');
+  const diffH=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',listOf(f,'differentials'),'diff');
+  // Étape ① : l'ex-bloc « Confirmation diagnostique » (repliable V5) devient l'étape elle-même —
+  // son en-tête EST le titre d'étape. ENTRY CONDITION (doctrine QRH) : critères VISIBLES tant
+  // que la session n'a pas démarré (on confirme le tableau AVANT d'agir), repliés ensuite,
+  // ré-ouvrables d'un tap à tout moment (doute en cours d'algorithme) sans rien interrompre.
+  const confBlockH=(()=>{if(!confItems.length)return '';
+    const open=state.confOpen!==undefined?state.confOpen:!Runtime.started;
+    /* ══ AVANT LA SESSION, C'EST UNE CONDITION D'ENTRÉE ; APRÈS, C'EST UN FAIT ACQUIS
+       (v5.6, maquettes 1b/1c) ═════════════════════════════════════════════════════════════
+       Le même objet répondait aux deux moments avec le MÊME dessin — un dépliant gris coiffé
+       d'un chevron bleu. Or les deux questions n'ont rien à voir : avant, « suis-je au bon
+       endroit ? » est LA question, et le QRH l'imprime en tête, en entier, dans l'encadré du
+       registre qui la rend impérieuse ; après, c'est une ligne de traçabilité qu'on rouvre en
+       cas de doute.
+       AVANT : carte au CONTOUR d'alerte (jamais un aplat — un rouge permanent désensibilise),
+       titre « ■ Quand l'utiliser », un ■ rouge par critère, et le renvoi vers les différentiels
+       en pied discret. Le chevron disparaît : il n'y a rien à replier quand on n'a pas encore
+       répondu à la question — et un dépliant ouvert d'office avec un chevron invite au seul
+       geste qu'on ne veut pas voir faire ici.
+       APRÈS : le dépliant d'avant, inchangé, qui redevient ce qu'il est. */
+    if(!Runtime.started){
+      return `<section class="conf-block entry"><div role="heading" aria-level="2" class="conf-eh"><span class="conf-mk" aria-hidden="true">■</span>Quand l’utiliser</div>`
+        +`<ul class="flat confirm entry">${confItems.map(x=>`<li><span class="cf-mk" aria-hidden="true">■</span><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`
+        +(diffH?`<button type="button" class="atyp-link" id="atypLink">Le tableau ne colle pas ? → ${clean(listOf(f,'differentials')).length} diagnostic${clean(listOf(f,'differentials')).length>1?'s':''} à éliminer ▸</button>`:'')
+        +`</section>`;}
+    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}Diagnostic confirmé</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
+
+  /* ⚠ POSÉ AVANT QUE LE JOURNAL NE SOIT CONSTRUIT : `overviewSection` court plus haut dans
+     `renderRead`, et un drapeau posé après lui n'arrivait qu'au rendu SUIVANT — la confirmation
+     disparaissait le temps d'un écran (mesuré). */
+  /* ⚠ CALCULÉ ICI, ET PAS 200 LIGNES PLUS BAS : le journal est construit à la ligne suivante et
+     doit pouvoir lire tout ce que le rendu a préparé. D'où la lecture de `Runtime.started` : la
+     constante `started` de `renderRead` est déclarée plus bas, et l'utiliser ici serait une zone
+     morte temporelle — la faute exacte payée au lot T3. */
   const N=useOv?overviewSection(f):(useSv?staticSection(f):navSection(f));
   const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH||'',navHtml=N.navHtml,navRowH=N.navRowH||'',blockDone=N.blockDone,blockTot=N.blockTot;
   // (gallery / docs / refs vivaient ici avant le lot 4 : ils sont désormais rendus par la feuille
@@ -17869,34 +17922,6 @@ function renderRead(){
      couleur seule (WCAG 1.4.1). La séquence est SUGGÉRÉE, jamais bloquante (QRH) ; « Ne pas
      oublier » reste le CHAPEAU, hors séquence. Une fois la session démarrée, « Prise en charge »
      passe en TÊTE (lot T5) : avant d'agir on s'oriente, pendant on agit. */
-  const confItems=clean(listOf(f,'confirmation'));
-  const verifyH=staticBlock('△ À vérifier — surveillances','h-verify',listOf(f,'verify'),'verify');
-  const diffH=staticBlock('Diagnostics différentiels — si tableau atypique','h-diff',listOf(f,'differentials'),'diff');
-  // Étape ① : l'ex-bloc « Confirmation diagnostique » (repliable V5) devient l'étape elle-même —
-  // son en-tête EST le titre d'étape. ENTRY CONDITION (doctrine QRH) : critères VISIBLES tant
-  // que la session n'a pas démarré (on confirme le tableau AVANT d'agir), repliés ensuite,
-  // ré-ouvrables d'un tap à tout moment (doute en cours d'algorithme) sans rien interrompre.
-  const confBlockH=(()=>{if(!confItems.length)return '';
-    const open=state.confOpen!==undefined?state.confOpen:!started;
-    /* ══ AVANT LA SESSION, C'EST UNE CONDITION D'ENTRÉE ; APRÈS, C'EST UN FAIT ACQUIS
-       (v5.6, maquettes 1b/1c) ═════════════════════════════════════════════════════════════
-       Le même objet répondait aux deux moments avec le MÊME dessin — un dépliant gris coiffé
-       d'un chevron bleu. Or les deux questions n'ont rien à voir : avant, « suis-je au bon
-       endroit ? » est LA question, et le QRH l'imprime en tête, en entier, dans l'encadré du
-       registre qui la rend impérieuse ; après, c'est une ligne de traçabilité qu'on rouvre en
-       cas de doute.
-       AVANT : carte au CONTOUR d'alerte (jamais un aplat — un rouge permanent désensibilise),
-       titre « ■ Quand l'utiliser », un ■ rouge par critère, et le renvoi vers les différentiels
-       en pied discret. Le chevron disparaît : il n'y a rien à replier quand on n'a pas encore
-       répondu à la question — et un dépliant ouvert d'office avec un chevron invite au seul
-       geste qu'on ne veut pas voir faire ici.
-       APRÈS : le dépliant d'avant, inchangé, qui redevient ce qu'il est. */
-    if(!started){
-      return `<section class="conf-block entry"><div role="heading" aria-level="2" class="conf-eh"><span class="conf-mk" aria-hidden="true">■</span>Quand l’utiliser</div>`
-        +`<ul class="flat confirm entry">${confItems.map(x=>`<li><span class="cf-mk" aria-hidden="true">■</span><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`
-        +(diffH?`<button type="button" class="atyp-link" id="atypLink">Le tableau ne colle pas ? → ${clean(listOf(f,'differentials')).length} diagnostic${clean(listOf(f,'differentials')).length>1?'s':''} à éliminer ▸</button>`:'')
-        +`</section>`;}
-    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}Diagnostic confirmé</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
   // Bouton de démarrage EXPLICITE : dans l'étape ① s'il y a des critères (« Confirmé — … » :
   // le geste PORTE la confirmation), sinon en tête de « Prise en charge ». Un seul bouton
   // rempli par écran ; la 1ʳᵉ action clinique démarre toujours aussi (jamais bloquant).
@@ -17959,6 +17984,21 @@ function renderRead(){
      bouton absent n'a rien à ordonner — le chapeau reprend alors sa place en tête. Une fois la
      session DÉMARRÉE, rien ne change de ce qui existait : le chapeau replié revient en tête et la
      condition d'entrée descend avec son étage (T5). */
+  /* ⚠ « DIAGNOSTIC CONFIRMÉ » RESTE UN ÉTAGE — TENTATIVE ANNULÉE, ET LA MESURE EST LA RAISON
+     (v5.6, demande de l'auteur : « déplace diagnostic confirmé dans le dépliant “x blocs faits —
+     diagnostic confirmé” »). Le déplacement a été écrit et il FONCTIONNAIT : condition d'entrée
+     avant le démarrage (A19), trace dans l'historique après, repliée dans « ✓ n blocs faits ·
+     diagnostic confirmé ». `audit-partage` l'a rougi sur un invariant de crise — « il regardait
+     ailleurs : ce qu'il regarde ne bouge pas » — avec **457 px de dérive**.
+     LA CAUSE EST STRUCTURELLE, pas un détail d'implémentation : la place de la confirmation
+     dépendait alors de l'EXISTENCE d'une ligne-bilan, laquelle peut naître d'un lot DISTANT. Un
+     élément de plusieurs centaines de pixels qui change de logement sous les yeux de quelqu'un qui
+     n'a rien fait, c'est exactement ce que la règle 11 interdit — et le pire des cas, puisqu'il est
+     au-dessus de ce qu'on regarde.
+     CE QU'IL FAUDRAIT POUR LE FAIRE PROPREMENT : que la confirmation soit une ligne-bilan DÈS le
+     démarrage (« ✓ diagnostic confirmé »), qui gagne ensuite le compte des blocs dans son libellé —
+     alors elle ne déménage jamais, seul son texte s'allonge. C'est une refonte de l'assemblage du
+     journal, à décider séparément et à mesurer contre ce même témoin. */
   if(confBlockH)stages.push({cls:started?'done':'on',head:'',
     body:confBlockH+(fsAvantBouton?forgetStrip:'')});
   /* T2 (v5.0.0) — LE JOURNAL DES ACTIONS REMONTE. Il vivait en FIN de colonne : mesuré, le bouton
