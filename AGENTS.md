@@ -2517,6 +2517,39 @@ soin.
 · **LE RETOUR EST À SA PLACE CONSTANTE** : le « ‹ » d'en-tête ramène à la bibliothèque, donc
   personne n'est piégé — c'est ce qui distingue un atterrissage d'un enfermement (A15).
 
+**A125. LE PLAN DE VOL : REFUSÉ SUR LE CHROME DE CRISE, RETENU DANS LE MONITEUR (v5.7, volet 3 /
+F2).** La proposition la plus séduisante du volet exploratoire a été RETIRÉE de l'écran de soin
+après mesure, et c'est la trajectoire qu'il faut retenir autant que le résultat : trois questions
+de l'auteur ont suffi à la retourner.
+· **CE QUI L'A FAIT TOMBER SUR LE TÉLÉPHONE** — ses quatre bénéfices, éprouvés contre le contenu
+  RÉEL des fiches : la COLLISION est théorique (cadences 2/4 min que l'équipe enchaîne de toute
+  façon) ; l'angle mort du minuteur en PAUSE est un défaut de la CAPSULE (`run` filtre sur
+  `running || (échu && !ack)`), réparable pour zéro pixel ; le JALON hors de son bloc appartient au
+  volet ; et le PASSÉ est déjà porté par le journal et par « il y a » (A115). Ne restait que la
+  simultanéité — cas rare et à faible enjeu — pour ~52 px permanents dans une colonne dont le
+  budget de chrome est tenu à 30 % par `audit-budget`.
+· **CE QUI LA FAIT GAGNER DANS LE MONITEUR** : l'écran entier est un afficheur, les pixels sont
+  gratuits, on regarde à deux mètres, et une bande de temps y est la bonne forme. C'est un objet de
+  MONITEUR, pas un objet de chrome — et cela donne au mode moniteur (v4.60.0, que personne ne
+  trouve) un contenu qui vaut le détour.
+· **TROIS REGISTRES DE TRAIT, ET ILS PORTENT TOUT LE SENS** : point derrière la ligne de vie =
+  c'est ARRIVÉ ; trait plein devant = c'est DATÉ (un minuteur qui TOURNE, échéance calculable au
+  milliseconde près) ; tiret = c'est PROJETÉ, si rien n'est touché. On ne peut pas confondre un
+  fait avec une promesse : c'est la seule chose que cette bande doive garantir.
+· **CE QUI N'A PAS D'HEURE N'A PAS DE POSITION** : minuteur en pause (un reste, pas une date),
+  échu non acquitté (déjà passé), chronomètre (ne finit jamais) — rangée « sans heure », sous
+  l'axe. Et **un jalon compté n'y entre JAMAIS**, même quand un minuteur cadence les passages :
+  dater le 3ᵉ choc reviendrait à prédire le rythme auquel L'ÉQUIPE va agir.
+· **AU MOINS DEUX OBJETS, SINON RIEN** : avec un seul, le grand chiffre au-dessus dit déjà tout et
+  l'axe est une redite. C'est l'objection qui l'a chassée du chrome ; elle vaut ici aussi.
+· ⚠ **AUCUN 11 px, ET LE CLIQUET DE `check-type` A EU RAISON DE LE REFUSER** : le plancher
+  typographique est une exception motivée pour ce qu'on lit à trente centimètres. Sur un afficheur
+  qu'on lit à deux mètres, il n'a aucun sens — tout part du cran au-dessus.
+· **CE QUI RESTE À FAIRE, ET C'EST DIT** : la progression d'un jalon dans la rangée « sans heure »
+  n'est pas portée (elle demande le bloc courant) ; et les deux correctifs à zéro pixel que cette
+  piste a RÉVÉLÉS — le minuteur en pause dans le rappel du quai, le jalon dans le volet — ne sont
+  pas faits non plus. Ils valent mieux que la bande sur le téléphone : c'est le sens du refus.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

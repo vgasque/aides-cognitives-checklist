@@ -2444,6 +2444,46 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    (f.items||[])[0].memory=true;
    ok('une ★ existe déjà → plus aucune proposition ★', _kinds(f).indexOf('memory')<0);}
   eq('aucune fiche → aucune proposition', A.reviewOffers(null), []);
+
+  /* ══ F2 (v5.7, volet 3) — la bande de temps du moniteur ════════════════════════════════
+     L'axe ne porte que ce qui a une ÉCHÉANCE DATÉE ; tout le reste va « sans heure ». */
+  group('F2 — le plan de vol du moniteur (monBandData)');
+  const _now=1000000;
+  const _t2=(o)=>Object.assign({type:'interval',seconds:120,elapsedMs:0,running:false,lastStart:0,cycles:0},o);
+  {const d=A.monBandData({a:_t2({id:'a',running:true,lastStart:_now,elapsedMs:60000})},[],_now);
+   eq('un minuteur qui tourne est DATÉ', d.dated.length, 1);
+   ok('… et placé après « maintenant »', d.dated[0].x>A.MON_NOW, String(d.dated[0].x));
+   eq('… et rien ne va « sans heure »', d.sans.length, 0);}
+  /* ⚠ UN MINUTEUR EN PAUSE N'A PAS D'HEURE — il a un reste. C'est toute la règle de la bande. */
+  {const d=A.monBandData({a:_t2({id:'a',elapsedMs:60000})},[],_now);
+   eq('en pause → aucun marqueur sur l’axe', d.dated.length, 0);
+   eq('… mais une chip sans heure', d.sans.length, 1);
+   eq('… qui dit le RESTE, pas une date', d.sans[0].val, '01:00');}
+  /* Un échu est PASSÉ : il ne se place pas devant. */
+  {const d=A.monBandData({a:_t2({id:'a',elapsedMs:120000})},[],_now);
+   ok('échu → sans heure, et dit « échu »', d.dated.length===0&&d.sans.length===1&&d.sans[0].val==='échu');}
+  /* Un chronomètre ne finit jamais : aucune échéance à dessiner. */
+  {const d=A.monBandData({a:_t2({id:'a',type:'stopwatch',running:true})},[],_now);
+   ok('chronomètre → jamais sur l’axe', d.dated.length===0&&d.sans.length===1);}
+  /* Les tours suivants d'un CYCLIQUE sont projetés ; ceux d'un non-cyclique n'existent pas. */
+  {const c=A.monBandData({a:_t2({id:'a',running:true,lastStart:_now,autoloop:true})},[],_now);
+   ok('un cyclique projette ses tours suivants', c.ghosts.length>=1, String(c.ghosts.length));
+   const nc=A.monBandData({a:_t2({id:'a',running:true,lastStart:_now})},[],_now);
+   eq('un non-cyclique n’en projette aucun', nc.ghosts.length, 0);}
+  /* Le passé : borné à trois, et deux points trop proches fusionnent. */
+  {const ev=[{t:_now-100000},{t:_now-80000},{t:_now-60000},{t:_now-40000}];
+   const d=A.monBandData({},ev,_now);
+   ok('le passé est borné à trois repères', d.past.length<=3, String(d.past.length));
+   const col=A.monBandData({},[{t:_now-60000},{t:_now-59000}],_now);
+   ok('deux repères collés fusionnent et se comptent', col.past.length===1&&col.past[0].n===2);}
+  /* Un repère hors fenêtre (plus de 2 min) ne se place pas. */
+  {const d=A.monBandData({},[{t:_now-200000}],_now);
+   eq('un repère trop ancien sort de la fenêtre', d.past.length, 0);}
+  /* Un repère ANNULÉ n'est pas un fait : il ne se dessine pas. */
+  {const d=A.monBandData({},[{t:_now-10000,voidAt:_now}],_now);
+   eq('un repère annulé ne se dessine pas', d.past.length, 0);}
+  eq('rien du tout → rien à dessiner',
+     JSON.stringify(A.monBandData({},[],_now)), JSON.stringify({past:[],dated:[],ghosts:[],sans:[]}));
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine
