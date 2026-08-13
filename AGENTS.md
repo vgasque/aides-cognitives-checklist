@@ -2503,6 +2503,20 @@ restauré à l'octet.
   **Un trou NOMMÉ vaut mieux qu'un vert obtenu sur un cas qui n'existe pas** — c'est la leçon que
   ce fichier redit le plus souvent.
 
+**A124. ROUVRIR L'APP PENDANT UN SOIN, C'EST VOULOIR LE SOIN (v5.7, volet 3 / F5).** Rouvrir
+l'application pendant une session vive déposait sur l'accueil, où une carte propose de reprendre :
+un tap de plus dans le seul moment où l'on n'en a aucun à donner. On atterrit désormais DANS le
+soin.
+· **CE QUE ÇA ROMPT** : « on s'oriente avant d'agir » — mais cette règle vaut pour une session
+  qu'on COMMENCE (c'est la condition d'entrée QRH) ; ici elle est déjà en cours, et l'orientation
+  a eu lieu.
+· **LES TROIS BORNES** : une SEULE session vive (à deux, on ne choisit pas à la place de
+  l'utilisateur) ; **dix minutes** sans le moindre geste au plus (au-delà, l'accueil reprend son
+  office et sa carte) ; et jamais quand un fragment d'URL est présent — l'invité a son propre
+  écran d'entrée, décidé avant le chargement.
+· **LE RETOUR EST À SA PLACE CONSTANTE** : le « ‹ » d'en-tête ramène à la bibliothèque, donc
+  personne n'est piégé — c'est ce qui distingue un atterrissage d'un enfermement (A15).
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-MyOBKqmoCwvaAvsY4FX1NY0nIZ2FoWTR5Mv7sHlO3V8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-g/hMRaXhn7h1dmYUWJ+6WZSeKRNZn4cF2u2JVWdOIS4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11793,6 +11793,22 @@ async function load(){
   // serait alors jamais synchronisée). La catégorie a changé -> à pousser, de toute façon.
   const ch=migrateCategories();if(ch.length){await Data.setCats(categories);for(const f of ch){f.dirty=true;await Data.put(f);}}
   restoreLiveSessions();
+  /* ═══ F5 (v5.7) — ROUVRIR L'APP PENDANT UN SOIN, C'EST VOULOIR LE SOIN ═══════════════════
+     Rouvrir l'application pendant une session vive déposait sur l'accueil, où une carte propose
+     de reprendre : un tap de plus dans le seul moment où l'on n'en a aucun à donner. On atterrit
+     désormais DANS le soin — avec le « ‹ » d'en-tête qui ramène à la bibliothèque, à sa place
+     constante, donc sans piéger personne.
+     ⚠ CE QUE ÇA ROMPT, ET LA BORNE QUI LE REND ACCEPTABLE : « on s'oriente avant d'agir » (la
+     condition d'entrée QRH) ne vaut que pour une session qu'on COMMENCE ; ici elle est déjà en
+     cours, et l'orientation a eu lieu. Le risque est celui de quelqu'un qui rouvre l'app pour une
+     AUTRE aide : il est borné par la fraîcheur — au-delà de dix minutes sans le moindre geste, on
+     redépose sur l'accueil, où la carte de session reprend son office.
+     ⚠ ET JAMAIS SUR UN LIEN DE PARTAGE : l'invité a son propre écran d'entrée, décidé avant le
+     chargement (shareBootDecide) — le lui remplacer serait le sortir de son parcours. */
+  {const viv=Object.values(liveSessions||{}).filter(R=>R&&R.started&&R.fiche);
+   if(viv.length===1&&!location.hash&&state.view==='library'){
+     const R=viv[0],t=R.lastActAt||R.startedAt||0;
+     if(t&&Date.now()-t<=600000){try{openRead(R.fiche.id);}catch(e){}}}}
   render();
   updateStorageInfo();
   gcAttachments(allFiches.concat(allProtocols));   // nettoyage des blobs PDF orphelins (non bloquant)
