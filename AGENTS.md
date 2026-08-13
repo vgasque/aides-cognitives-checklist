@@ -2360,6 +2360,39 @@ pas de la même façon, et les mêler ferait passer l'occasion pour un reproche)
   l'auteur — exactement ce que la règle ci-dessus interdit. À rouvrir séparément, avec un dessin
   qui ne touche pas à ses phrases.
 
+**A123. LES TÉMOINS DYNAMIQUES DE P1 ET Q2 — ET LES DEUX QUI N'ONT PAS DE CAS À RENCONTRER
+(v5.7).** Les fonctions pures du lot ont 47 témoins ; le CÂBLAGE, lui, n'était mesuré par rien.
+Deux sections entrent dans `audit-doctrine` (`P1 · le retour au bloc courant`, `Q2 · la reprise
+après interruption`), vérifiées CAPABLES D'ÉCHOUER — défauts réintroduits → 7 rouges, fichier
+restauré à l'octet.
+· **LE PRÉDICAT DU TÉMOIN EST CELUI DE L'APPLICATION, PAS UN AUTRE** (A109/4, rejouée ici) : ma
+  première version lisait « hors de vue » en `r.bottom<0||r.top>innerHeight` alors que la barre se
+  règle sur la ZONE UTILE — sous les couches collantes, au-dessus du dock. Le témoin rougissait sur
+  un comportement juste, la carte étant bien hors de la zone utile mais dépassant encore derrière
+  le chrome. Deux définitions concurrentes d'un même régime : la divergence que ce dépôt a déjà
+  payée cinq fois.
+· **UN TÉMOIN NE DOIT JAMAIS POUVOIR PENDRE** (A89) : `page.click('.bkr')` attend 30 s quand la
+  barre n'est pas là — c'est-à-dire précisément quand le défaut couvert est présent — et ce blocage
+  emporte la tranche entière, sans un mot. On prend la poignée (`page.$`), on la teste, et
+  l'absence devient un rouge lisible.
+· **CE QUE Q2 MESURE EN PROPRE** : la ligne ne paraît PAS sous le seuil d'affichage, elle paraît
+  au-delà, elle dit « il y a m:ss », elle ne déplace pas la page, elle ne s'efface PAS toute seule
+  avec le temps, et elle s'efface AU GESTE. C'est le geste qui la périme, jamais une horloge.
+· ⚠ **DEUX CÂBLAGES RESTENT SANS TÉMOIN DYNAMIQUE, ET LE MOTIF EST ÉCRIT PLUTÔT QUE CONTOURNÉ.**
+  **P4b (le réordonnancement vivant)** : il ne s'observe qu'à partir de DEUX minuteurs déclarés
+  dans la même liste, or aucune fiche d'exemple n'en déclare deux — et un minuteur ad hoc se rend
+  en rangée compacte (`minis`), jamais en `.tmcard`. Le cas n'existe donc pas dans le décor.
+  **LE CORRECTIF EST DANS LE DÉCOR, PAS DANS LE TÉMOIN** : donner un SECOND minuteur déclaré à une
+  fiche d'exemple — ce que le lot T13 recommande déjà par ailleurs (« les deux fiches d'exemple
+  exercent la doctrine qu'elles enseignent »). À faire avant d'écrire la section, sinon elle serait
+  verte sans rien mesurer. En attendant, `tmLiveOrder` a 8 témoins purs.
+  **Q1 (le tap qui crée l'objet)** : il demande de piloter l'ÉDITEUR (ouvrir, écrire une étape,
+  lire le volet, taper la proposition) ; `reviewOffers` a 13 témoins purs, mais le passage par
+  `edAdd` avec son `pre` n'est mesuré par rien. À écrire avec le patron d'`audit-k5`, qui sait
+  déjà ouvrir un éditeur.
+  **Un trou NOMMÉ vaut mieux qu'un vert obtenu sur un cas qui n'existe pas** — c'est la leçon que
+  ce fichier redit le plus souvent.
+
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
   (catégories) — **y compris dans les overrides `html[data-theme="dark"]`** (pas de copie hex

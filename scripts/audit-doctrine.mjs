@@ -5262,6 +5262,94 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
   await page.close();
 });
 
+// ══ P1 (v5.7) — LA BARRE DE RETOUR AU BLOC COURANT ═══════════════════════════
+/* Ce que le témoin mesure est la PROPRIÉTÉ, pas le mécanisme : au repos elle n'existe pas ;
+   dès que la carte du bloc courant est ENTIÈREMENT hors de la zone utile elle paraît, elle
+   nomme sa destination et elle y ramène ; et son apparition ne déplace RIEN (elle est fixe,
+   elle ne prend aucune hauteur au flux — c'est ce qui la rend admissible malgré SPEC §5). */
+await sec('P1 · le retour au bloc courant', async () => {
+  const page=await session(390);
+  const vu=()=>page.evaluate(()=>{const b=document.getElementById('blkReturn');
+    return !!b&&!b.hidden&&!!b.querySelector('.bkr');});
+  const hautCarte=()=>page.evaluate(()=>{const c=document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap');
+    return c?Math.round(c.getBoundingClientRect().top):null;});
+  await page.waitForTimeout(500);
+  t('au repos, la barre n\'existe pas', !(await vu()));
+  const yAvant=await page.evaluate(()=>window.scrollY);
+  // On descend jusqu'au bout : la carte du bloc courant doit sortir ENTIÈREMENT de la zone utile.
+  await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
+  await page.waitForTimeout(600);
+  /* ⚠ LE PRÉDICAT DU TÉMOIN EST CELUI DE L'APPLICATION, PAS UN AUTRE (leçon A109/4, rejouée
+     ici) : la barre se règle sur la zone UTILE — sous les couches collantes, au-dessus du dock —,
+     pas sur le rectangle brut de la fenêtre. Mesuré avec `r.bottom<0||r.top>innerHeight`, le
+     témoin rougissait sur un comportement juste : la carte était bien hors de la zone utile,
+     mais elle dépassait encore derrière le chrome. */
+  const dehors=await page.evaluate(()=>{const c=document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap');
+    if(!c)return false;const r=c.getBoundingClientRect();
+    const cs=getComputedStyle(document.documentElement);
+    const haut=parseFloat(cs.getPropertyValue('--stick-top'))||64;
+    const bas=innerHeight-((parseFloat(cs.getPropertyValue('--dock-h'))||64)+16);
+    return r.bottom<=haut||r.top>=bas;});
+  /* ⚠ LE TÉMOIN DOIT RENCONTRER SON CAS : sur une fiche trop courte la carte ne sort jamais de
+     l'écran, et « la barre ne paraît pas » serait vrai sans rien prouver. On l'exige d'abord. */
+  t('… et le cas est bien rencontré (la carte est hors de vue)', dehors);
+  t('défilé loin, la barre paraît', await vu());
+  const txt=await page.evaluate(()=>{const b=document.querySelector('.bkr');return b?b.textContent:'';});
+  t('… et elle NOMME sa destination', /\S/.test(txt)&&!/^↩\s*$/.test(txt), JSON.stringify(txt));
+  /* Elle ne prend aucune hauteur au flux : le contenu ne bouge pas quand elle paraît. */
+  const dec=await page.evaluate(()=>{const y=window.scrollY;
+    const b=document.getElementById('blkReturn');const av=b.hidden;b.hidden=!av;
+    const d=Math.abs(window.scrollY-y);b.hidden=av;return d;});
+  t('… et son apparition ne déplace pas le contenu', dec===0, dec+' px');
+  /* ⚠ UN TÉMOIN NE DOIT JAMAIS POUVOIR PENDRE (A89) : `page.click('.bkr')` attend 30 s quand la
+     barre n'est pas là — c'est-à-dire précisément quand le défaut qu'on couvre est présent — et
+     ce blocage emporte la tranche entière, sans un mot. On prend la poignée, on la teste, et
+     l'absence devient un ROUGE lisible au lieu d'un timeout. */
+  const bkr=await page.$('.bkr');
+  if(!bkr){t('un tap ramène la carte sous les couches collantes', false, 'barre absente');
+    t('… et la barre s\'efface d\'elle-même une fois revenu', false, 'barre absente');}
+  else{
+    await bkr.click();
+    await page.waitForTimeout(400);
+    const h=await hautCarte();
+    t('un tap ramène la carte sous les couches collantes', h!==null&&h>0&&h<260, h+' px');
+    await page.waitForTimeout(500);
+    t('… et la barre s\'efface d\'elle-même une fois revenu', !(await vu()));}
+  t('le défilement de départ était bien en haut', yAvant<40, yAvant+' px');
+  await page.close();
+});
+
+// ══ Q2 (v5.7) — LE RETOUR D'INTERRUPTION ═════════════════════════════════════
+/* Le retour au premier plan est un GESTE de l'utilisateur : la ligne a le droit de paraître.
+   Ce qu'on mesure : elle ne paraît QUE si l'absence dépasse le seuil d'affichage, elle ne
+   déplace pas la page, et elle s'efface au geste suivant — jamais après un délai. */
+await sec('Q2 · la reprise après interruption', async () => {
+  const page=await session(390);
+  const ligne=()=>page.evaluate(()=>{const e=document.getElementById('ovResume');return e?e.textContent:null;});
+  const revenir=()=>page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await page.waitForTimeout(400);
+  // (a) une absence COURTE n'annonce rien : on n'annonce pas quinze secondes.
+  await revenir();await page.waitForTimeout(150);
+  t('absence courte → aucune ligne', (await ligne())===null);
+  // (b) une absence longue : on recule l'horodatage du dernier geste, qui vit dans persistLive.
+  const posee=await page.evaluate(()=>{if(typeof Runtime==='undefined')return false;
+    Runtime.lastActAt=Date.now()-6*60*1000;return true;});
+  t('… le cas est constructible (l\'horodatage du dernier geste est lisible)', posee);
+  const yAv=await page.evaluate(()=>window.scrollY);
+  await revenir();await page.waitForTimeout(200);
+  const txt=await ligne();
+  t('absence longue → la ligne paraît', !!txt, String(txt));
+  t('… et elle dit DEPUIS COMBIEN DE TEMPS', !!txt&&/il y a\s+\d+:\d\d/.test(txt), String(txt));
+  t('… sans déplacer la page', Math.abs((await page.evaluate(()=>window.scrollY))-yAv)<2);
+  /* ⚠ ELLE S'EFFACE AU GESTE, JAMAIS APRÈS UN DÉLAI : c'est le geste qui la périme. */
+  await page.waitForTimeout(1200);
+  t('… et elle ne s\'efface PAS toute seule avec le temps', (await ligne())!==null);
+  const box=await page.$('.ov-block.cur [data-ck], .nav-wrap [data-ck]');
+  if(box){await box.click();await page.waitForTimeout(300);}
+  t('… mais elle s\'efface au geste suivant', (await ligne())===null);
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
