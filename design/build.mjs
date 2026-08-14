@@ -424,31 +424,59 @@ const planDemo = `
 </div>
 <p class="ds-cap">« Se repérer » : UNE seule vue depuis v4.25.0, l’ÉCHELLE — une ligne par bloc, retraits d0-3 avec chips d’étiquette (OUI ›), renvois mono abrégés (optAbbr pure : →3, ↺2, ▪fin), ligne dépliable in-place (étapes en lecture seule + « → aller à ce bloc »). Générée par flowPlan(f) PURE : le TRONC reprend au point de convergence (post-dominateur immédiat), une cible déjà décrite devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles, ex. cycles 2 min d’un ACR), chaque bloc n’apparaît qu’UNE fois. flowPlan().order = NUMÉROTATION COMMUNE (plan, journal, chips, statique). INERTE côté cochage (leçon v4.6, RE-CONFIRMÉE en v4.12 : jamais de cases — la trace vit dans le journal) ; état LÉGER (✓, ● ici, ×n) et navigation seule. CHROME DÉSATURÉ dans le rail : l’état n’y est porté que par le marqueur, le rail oriente quand la colonne agit — s’il reprenait les aplats de l’action, deux surfaces se disputeraient le regard. Le « hors chemin » n’y est PAS en opacity (un texte à 50 % tombe sous AA) mais en encre douce + la mention en toutes lettres. La vue « Détails » (organigramme hybride) a été supprimée en v4.25.0 : seule des trois à recopier les étapes, elle rejouait la vue d’action au lieu de montrer AUTRE CHOSE — un SD ECAM ne redit pas l’E/WD.</p>`;
 
-/* ---- Mode statique : tableau SFAR (v4.13.0, document complet v4.14.0) ---- */
+/* ---- La PAGE : feuille SFAR à grille unique (v5.10.0, lot « Page ») ---- */
 const staticDemo = `
-<div style="max-width:680px">
-<div class="sv-wrap"><div class="sv-tb">
-  <div class="sv-cols c2">
-    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Confirmer</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
-    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
+<div style="max-width:760px;overflow:auto">
+<div class="sv-wrap">
+  <div class="sv-zoom" role="group" aria-label="Échelle de la feuille">
+    <button type="button" class="sv-zb" data-svzoom="fit">⤢ Ajusté</button>
+    <button type="button" class="sv-zb" data-svzoom="out" aria-label="Réduire">−</button>
+    <span class="sv-zv">100%</span>
+    <button type="button" class="sv-zb" data-svzoom="in" aria-label="Agrandir">＋</button>
+    <button type="button" class="sv-zb" data-svzoom="reset">1:1</button>
   </div>
-  <div class="sv-cell done" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
-  <div class="sv-decwrap">
-    <div class="sv-band cur" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
-    <div class="sv-fork" aria-hidden="true"></div>
-    <div class="sv-cols c2">
-      <div class="sv-br taken"><div class="sv-opt tk"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
-        <div class="sv-cell" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div></div>
-      <div class="sv-br off"><div class="sv-opt">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
-        <div class="sv-cell off" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
-        <div class="sv-jrow"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div></div>
+  <div class="sv-scroll"><div class="sv-calant"><div class="sv-sheet" style="width:1130px">
+    <div class="sv-cartouche">
+      <div class="sv-cid"><div class="sv-csur">Aide cognitive · Urgences · adulte</div>
+        <div class="sv-ctitle">Anaphylaxie (choc anaphylactique)</div></div>
+      <div class="sv-cmeta">révision <b>août 2026</b><span class="sv-cnt">5 blocs · 2 posologies · 1 minuteur</span></div>
+      <div class="sv-cwarn">⚠ Fiche générée par IA — à relire et valider avant usage.</div>
     </div>
-    <div class="sv-merge" aria-hidden="true"></div>
-  </div>
-</div></div>
+    <div class="sv-band-top c3">
+      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Reconnaître — critères d’entrée</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
+      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer — tableau atypique ?</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
+      <div class="sv-cell sv-inert sv-nf"><p class="sv-h"><span class="sv-t">⚠ Ne pas oublier</span></p><ul class="sv-stp"><li class="crit">Adrénaline IM en 1ʳᵉ intention</li></ul></div>
+    </div>
+    <div class="sv-band-body">
+      <div class="sv-algo">
+        <div class="sv-cell done" style="grid-column:2 / span 4;grid-row:1" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
+        <div class="sv-band cur" style="grid-column:2 / span 4;grid-row:2" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
+        <div class="sv-fk" style="grid-column:1 / span 6;grid-row:3" aria-hidden="true"><span class="fk-st" style="left:calc(50% - 1px)"></span><span class="fk-bar" style="left:33.3%;right:16.7%"></span><span class="fk-arm" style="left:calc(33.3% - 1px)"></span><span class="fk-arm" style="left:calc(83.3% - 1px)"></span></div>
+        <div class="sv-opt tk" style="grid-column:1 / span 4;grid-row:4"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
+        <div class="sv-opt off" style="grid-column:5 / span 2;grid-row:4">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
+        <div class="sv-cell" style="grid-column:1 / span 4;grid-row:5" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div>
+        <div class="sv-cell off" style="grid-column:5 / span 2;grid-row:5" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
+        <div class="sv-jrow" style="grid-column:5 / span 2;grid-row:6"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div>
+        <div class="sv-end" style="grid-column:2 / span 4;grid-row:7">▪ fin de l’algorithme</div>
+      </div>
+      <aside class="sv-ref">
+        <div class="sv-cell sv-inert sv-vf"><p class="sv-h"><span class="sv-t">△ À vérifier — surveillances</span></p><ul class="sv-stp"><li>PAS ≥ 90 mmHg</li><li>SpO₂ ≥ 94 %</li></ul></div>
+        <div class="sv-cell sv-cx" data-svgo="x" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">⚡</span><span class="sv-t">Bronchospasme réfractaire</span></p><ul class="sv-stp"><li>Salbutamol nébulisé</li></ul></div>
+        <div class="sv-cell sv-inert sv-tm"><p class="sv-h"><span class="sv-t">Minuteurs · compteurs</span></p><ul class="sv-stp"><li class="plain">⏱ <b>Réévaluation</b> — 5:00</li><li class="plain">＃ <b>Injections d’adrénaline</b></li></ul></div>
+      </aside>
+    </div>
+    <div class="sv-band-doses">
+      <div class="sv-dh">Repères posologiques — 2</div>
+      <div class="sv-dz">
+        <div><b>△ ADRÉNALINE — IM</b> <span>0,5 mg (0,01 mg/kg, max 0,5)</span></div>
+        <div><b>SALBUTAMOL — nébulisation</b> <span>5 mg</span></div>
+      </div>
+      <div class="sv-foot">Recommandations en vigueur  ·  Anaphylaxie (choc anaphylactique)  ·  rév. août 2026</div>
+    </div>
+  </div></div></div>
 </div>
-<p class="ds-cap">TOUTE l’aide en TABLEAU compact façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, générées depuis flowPlan (numérotation commune). Tronc = cellules pleine largeur ; décision = BANDE au registre ATTENTION (titre + question) + branches en colonnes (auto-fit minmax(148px) plafonné c1…c4). UNE SEULE COLONNE sous 640 px (retour d’usage v4.13.1 : des colonnes de ~145 px sur téléphone rendaient la lecture difficile), avec INDENTATION ~17 px par niveau + rail de branche (grammaire du plan) : la fourche étant masquée en pile, rail + chip portent la structure. PAS de règle « deep » (v4.14.0, décision utilisateur) : même une branche profonde reste en colonne ≥ 640 — esprit SFAR. INERTE côté cochage (doctrine du plan, re-confirmée) : l’état de session est PEINT en lecture seule ; taper une cellule = svJump, JAMAIS de démarrage de session, JAMAIS de défilement (rien ne bouge sous le doigt). AUCUN texte bleu dans les cellules (décision utilisateur) : réponse « :: » = pilule mono NEUTRE .sv-r (≠ .stp-r bleu du journal), renvois neutres — le bleu ne marque que la position (● ici) et la reprise ↺. Les FLÈCHES (fourche ambre, convergence grise, retours bleus en gouttière) sont mesurées APRÈS rendu par svPaintArrows, en phases lecture/écriture GROUPÉES, toute mesure divisée par zoomF() — le réglage de taille du texte est un zoom CSS : getBoundingClientRect rend des px VISUELS. Empilé → .stacked : fourche/convergence masquées, la flèche n’est JAMAIS seule (l’info reste textuelle).</p>`;
-
+</div>
+<p class="ds-cap">LA PAGE EST UN DOCUMENT (v5.10.0) : cartouche daté avec l’avertissement de validation en bord ALERTE (jamais un aplat — A11), trois cellules d’entrée, l’algorithme et sa colonne de référence, les doses en pied avec la source. Elle a une largeur d’AUTEUR fixe (--sheet-w, 1130 px) et NE SE REFLUE JAMAIS : aux trois formats c’est la même image, et c’est l’ÉCHELLE qui s’adapte (transform:scale par pas discrets, jamais un zoom CSS — celui-ci refait la mise en page au lieu de la transformer). Le TRACÉ est une GRILLE UNIQUE de 6 pistes, tronc sur 4 centré : chaque nœud est un FRÈRE placé par grid-column/grid-row, jamais un conteneur imbriqué — c’est ce qui permet à une branche PROFONDE d’être plus large que celle dont elle descend (répartition au prorata de la hauteur, minimum 1 piste, reste à la plus haute). AUCUNE grille imbriquée dans .sv-algo : c’est l’invariant le plus décisif du lot, et un harnais le mesure au rendu. La FOURCHE est dessinée EN DIVS (bras en pourcentage de l’étendue, calculés sur le centre de chaque branche) : la géométrie SUIT la grille sans qu’on la mesure — un calque SVG exigerait un recalage à chaque changement de contenu, ce qui a cassé deux fois. La convergence est redevenue une pilule de TEXTE (« → n » / « ↺ n ») : le dessin ne porte jamais seul une information. INERTE : aucun data-ck, taper une cellule entre au bout du journal sans rien démarrer.</p>`;
 /* ---- Challenge-response : pilule, Vérification, mode lecteur (v4.11.0, AC 120-71B) ---- */
 const challengeDemo = `
 <div style="max-width:560px">

@@ -115,9 +115,18 @@ const d7=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     l'onglet n'est pas persisté mais il survit à la fermeture de la feuille. Sans cela on mesure la
     vue en cartes en croyant mesurer le tableau. */
  {const pg=document.querySelector('[data-alltab="page"]');if(pg)pg.click();}await w(600);
- const cell=document.querySelector('.sv-cell.sv-cx');
- return {band:!!document.querySelector('.sv-cxband'),num:cell?cell.querySelector('.sv-n').textContent.trim():null};});
-t('Statique : bande + cellule sans numéro (⚡)', d7.band&&d7.num==='⚡', JSON.stringify(d7));
+ /* ⚠ CE TÉMOIN A CHANGÉ DE PORTEUR, PAS D'OBJET (lot Page, v5.10.0). La section « ⚡ À tout
+    moment » vivait en PIED du tableau, sous une bande-intertitre ; depuis la feuille, une
+    complication n'est plus la suite de l'algorithme — c'est ce qui peut survenir pendant qu'on
+    le déroule, donc elle vit dans la COLONNE DE RÉFÉRENCE, à côté des surveillances. Ce qui est
+    mesuré reste la PROPRIÉTÉ : elle est là, elle porte ⚡ et non un numéro de séquence (le
+    numéroter la ferait lire comme « l'étape d'après », défaut mesuré en v4.26.0), et elle est
+    HORS de la grille de l'algorithme. */
+ const cell=document.querySelector('.sv-ref .sv-cell.sv-cx');
+ return {ref:!!cell,horsGrille:!document.querySelector('.sv-algo .sv-cx'),
+   num:cell?cell.querySelector('.sv-n').textContent.trim():null};});
+t('Statique : la complication vit dans la colonne de référence, sans numéro (⚡)',
+  d7.ref&&d7.horsGrille&&d7.num==='⚡', JSON.stringify(d7));
 /* LE SCHÉMA DIT AUSSI « À TOUT MOMENT » (v5.0.9). Il était la SEULE des quatre vues de structure
    où une cible de complication se dessinait comme un bloc d'étapes ordinaire — donc comme l'étape
    d'après, le défaut mesuré en v4.26.0. On mesure la PROPRIÉTÉ (le nœud se distingue par un mot

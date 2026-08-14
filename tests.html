@@ -2372,6 +2372,98 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('aucune fiche → aucune part', A.carryParts(null), []);
   eq('une fiche vide ne compte rien', A.carryParts({}), []);
 
+  /* ══ LOT « PAGE » (v5.10.0) — LA GRILLE UNIQUE ═══════════════════════════════════════════════
+     `svGridPlan` est PURE : elle lit la fiche et `flowPlan`, jamais le DOM ni l'état de session.
+     Ce qu'on mesure ici est ce que le brief appelle la définition du fini — aucun bloc perdu ni
+     dupliqué, les numéros restent ceux du plan, la sortie est déterministe, et la REPRISE DE
+     LARGEUR : une branche profonde peut être PLUS LARGE que le tronc dont elle descend. */
+  group('Lot Page — répartition des pistes (svDistribute)');
+  eq('deux branches égales se partagent les six pistes', A.svDistribute(6,[2,2]), [3,3]);
+  eq('trois branches égales : 2+2+2 (six est divisible par deux ET par trois)', A.svDistribute(6,[1,1,1]), [2,2,2]);
+  /* LA REGLE QUI PRODUIT TOUT L'EFFET : au prorata de la HAUTEUR, reste à la plus haute — une
+     branche longue à côté d'une sortie d'une ligne prend cinq pistes, donc plus que le tronc. */
+  eq('branche longue contre sortie d’une ligne : 5 + 1', A.svDistribute(6,[7,1]), [5,1]);
+  eq('minimum UNE piste par branche, même écrasée', A.svDistribute(2,[10,1]), [1,1]);
+  eq('aucune branche → aucune piste', A.svDistribute(6,[]), []);
+  ok('déterministe : deux appels, même sortie',
+     JSON.stringify(A.svDistribute(6,[3,3,1]))===JSON.stringify(A.svDistribute(6,[3,3,1])));
+  ok('la somme ne dépasse jamais l’étendue',
+     [[6,[5,2,1]],[6,[1,1,1,1]],[4,[9,1]]].every(([sp,hs])=>A.svDistribute(sp,hs).reduce((a,b)=>a+b,0)===sp));
+
+  group('Lot Page — le tracé en grille unique (svGridPlan)');
+  const _pf=(blocks,start)=>A.migrate({id:'pg',title:'T',start:start||'b1',blocks});
+  const _simple=_pf([{id:'b1',kind:'do',next:'d1'},
+    {id:'d1',kind:'decision',question:'?',options:[{label:'oui',target:'b2'},{label:'non',target:'b3'}]},
+    {id:'b2',kind:'do',next:'b4'},{id:'b3',kind:'do',next:'b4'},{id:'b4',kind:'do'}]);
+  const G=A.svGridPlan(_simple);
+  eq('six pistes, tronc sur quatre', [A.SV_TRACKS,A.SV_TRUNK], [6,4]);
+  ok('déterministe et pure : deux appels donnent la même sortie',
+     JSON.stringify(A.svGridPlan(_simple))===JSON.stringify(A.svGridPlan(_simple)));
+  /* AUCUN BLOC PERDU NI DUPLIQUÉ — l'invariant que le brief demande d'écrire AVANT le lot :
+     l'ensemble des blocs placés est exactement l'ordre de `flowPlan`. */
+  eq('aucun bloc perdu ni dupliqué',
+     G.nodes.filter(n=>n.k==='block'||n.k==='band').map(n=>n.id).sort(),
+     A.flowPlan(_simple).order.slice().sort());
+  ok('le tronc est centré : quatre pistes sur six, une libre de chaque côté',
+     G.nodes.filter(n=>n.k==='block'&&n.id==='b1').every(n=>n.col===2&&n.span===4));
+  ok('la fourche prend l’étendue ENTIÈRE du contexte',
+     G.nodes.filter(n=>n.k==='fork').every(n=>n.col===1&&n.span===6));
+  ok('un bras de fourche par branche, au CENTRE de chacune',
+     G.nodes.filter(n=>n.k==='fork').every(n=>n.bras.length===2));
+  ok('les options se posent sur les pistes de leur branche',
+     G.nodes.filter(n=>n.k==='opt').map(n=>n.col+':'+n.span).join(' ')==='1:3 4:3');
+  /* LA REPRISE DE LARGEUR — le tronc revient à sa position dès que les branches sont closes. */
+  ok('branches closes → le tronc reprend sa place',
+     G.nodes.some(n=>n.k==='block'&&n.id==='b4'&&n.col===2&&n.span===4));
+  ok('une seule ligne par nœud, jamais deux nœuds au même endroit',
+     new Set(G.nodes.map(n=>n.row+'/'+n.col)).size===G.nodes.length);
+  /* UNE BRANCHE PROFONDE PLUS LARGE QUE SA PARENTE — la propriété qui a motivé tout le lot. */
+  const _deep=_pf([{id:'b1',kind:'do',next:'d1'},
+    {id:'d1',kind:'decision',options:[{label:'long',target:'b2'},{label:'court',target:'z'}]},
+    {id:'b2',kind:'do',next:'b3'},{id:'b3',kind:'do',next:'b4'},{id:'b4',kind:'do',next:'b5'},
+    {id:'b5',kind:'do',next:'b6'},{id:'b6',kind:'do',next:'b7'},{id:'b7',kind:'do',next:'z'},
+    {id:'z',kind:'do'}]);
+  const D=A.svGridPlan(_deep);
+  ok('la branche longue prend CINQ pistes — plus que le tronc qui en a quatre',
+     D.nodes.some(n=>n.k==='block'&&n.id==='b2'&&n.span===5));
+  ok('la sortie d’une ligne garde sa piste',
+     D.nodes.some(n=>n.k==='opt'&&n.span===1));
+  /* FICHE SANS DÉCISION : le tronc seul, à quatre pistes sur six, sans grille dégénérée. */
+  const _lin=_pf([{id:'b1',kind:'do',next:'b2'},{id:'b2',kind:'do'}]);
+  const L=A.svGridPlan(_lin);
+  ok('procédure linéaire : que du tronc, aucune fourche',
+     L.nodes.every(n=>n.k!=='fork'&&n.k!=='opt')&&L.nodes.filter(n=>n.k==='block').every(n=>n.col===2&&n.span===4));
+  eq('fiche vide → aucun nœud', A.svGridPlan(A.migrate({id:'v',title:'v',blocks:[]})).nodes, []);
+  /* REPLI — plus de branches que de pistes : on EMPILE à pleine étendue plutôt que d'émietter.
+     « En cas de doute, le repli est le rendu simple, jamais le rendu embrouillé. » */
+  const _many=_pf([{id:'d1',kind:'decision',options:[1,2,3,4,5,6,7].map(i=>({label:'o'+i,target:'x'+i}))}]
+    .concat([1,2,3,4,5,6,7].map(i=>({id:'x'+i,kind:'do'}))),'d1');
+  const M=A.svGridPlan(_many);
+  ok('sept branches sur six pistes → empilement à pleine étendue, jamais des pistes à zéro',
+     M.nodes.filter(n=>n.k==='opt').every(n=>n.span===6)&&M.nodes.every(n=>n.span>=1));
+
+  group('Lot Page — le cartouche');
+  /* ⚠ L'AVERTISSEMENT DE VALIDATION est le seul point du lot qui touche à la sécurité : une
+     feuille imprimée et affichée au mur sans « générée par IA — à relire et valider » est un
+     danger. Le motif est celui que le prompt d'import IMPOSE. */
+  const _sw=['Recos SFAR 2024 — SFAR, 2024','Fiche générée par IA le 03/08/2026 à partir de la source ci-dessus — à relire et valider avant usage.'];
+  eq('l’avertissement de validation est reconnu', A.svValidWarn({sources:_sw}).length, 1);
+  eq('…et il ne compte pas comme une source', A.svSources({sources:_sw}), ['Recos SFAR 2024 — SFAR, 2024']);
+  eq('pas d’avertissement → rien à annoncer', A.svValidWarn({sources:['SFAR 2024']}), []);
+  eq('aucune source → aucune des deux listes',
+     [A.svValidWarn({}),A.svSources({})], [[],[]]);
+  /* Le compte du cartouche est celui de `carryParts` — un seul calcul — plus les posologies, la
+     seule chose que la question du DOCUMENT ajoute à celle de l'écran d'entrée. */
+  ok('le compte dit les blocs puis les posologies',
+     /^2 blocs · 1 posologie/.test(A.svCountsTxt(A.migrate({id:'c',title:'c',blocks:[{id:'a'},{id:'b'}],
+       items:[{id:'i1',role:'dose',do:'ADRÉNALINE : 1 mg'}]}))));
+
+  group('Lot Page — lire un repère (posoParts)');
+  eq('nom et corps se coupent sur « : »', A.posoParts('ADRÉNALINE — IM : 0,5 mg'),
+     {name:'ADRÉNALINE — IM',body:'0,5 mg',flag:false});
+  eq('sans « : », tout est le corps', A.posoParts('à titre indicatif').name, '');
+  ok('le registre de vigilance est lu', A.posoParts('△ DOSE : x').flag===true);
+
   /* ══ P7 (v5.7) — révisée depuis le dernier passage ═════════════════════════════════════ */
   group('P7 — la révision depuis votre dernier passage');
   const _fr={id:'f1',updatedAt:2000};

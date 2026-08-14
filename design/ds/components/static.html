@@ -3953,12 +3953,11 @@
   .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .jl-e1 .tk-del{margin-left:auto}
-  /* ⚠ CETTE BANDE PORTE UN TEXTE NU, donc elle HÉRITAIT du 16 px par défaut du navigateur —
-     la seule taille de tout le rendu hors de l'échelle fermée (mesuré au balayage v5.6). Les
-     autres bandes n'ont pas le défaut : leur texte vit dans `.sv-t`, qui a la sienne. C'est un
-     INTERTITRE de section, il prend la grammaire des intertitres. */
-  .sv-band.sv-cxband{border-color:var(--critical-bd);color:var(--critical);background:var(--critical-soft);
-    font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+  /* ÉPITAPHE — `.sv-cxband` est PURGÉE avec la section « ⚡ À tout moment » du PIED du tableau
+     (lot Page, v5.10.0) : les complications ne sont pas la suite de l'algorithme, elles sont ce
+     qui peut survenir pendant qu'on le déroule — elles vivent donc dans la COLONNE DE RÉFÉRENCE,
+     où chacune est une cellule nommée par son événement. L'intertitre n'a plus d'objet, et avec
+     lui disparaît le seul texte NU du rendu (celui qui héritait du 16 px du navigateur). */
   .sv-cell.sv-cx .sv-n{color:var(--critical)}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   /* Navigation en mode crise (Continuer / Précédent / Recommencer…) : cible tactile confortable (>= 44px).
@@ -5626,133 +5625,169 @@
      la vérité textuelle (pile étroite, impression). AUCUN texte bleu dans les cellules
      (décision utilisateur) : bleu = position (● ici) et reprise ↺ uniquement ;
      réponse « :: » = pilule mono NEUTRE (.sv-r). */
-  .sv-wrap{position:relative;margin:10px 0 18px}   /* marge basse : le contexte local ne colle plus au tableau (v4.14.11) */
-  .sv-tb{display:grid;grid-template-columns:1fr;gap:2px;margin-left:16px}
+  /* ══ LOT « PAGE » (v5.10.0) — LA FEUILLE ═════════════════════════════════════════════════════
+     Une PAGE, pas une colonne : cartouche daté, trois cellules d'entrée, l'algorithme et sa
+     colonne de référence, les doses en pied. La largeur est une largeur d'AUTEUR (`--sheet-w`),
+     jamais un pourcentage — c'est ce qui rend l'image identique au chariot, sur le téléphone et
+     sur le papier, et c'est cette image qui se mémorise.
+     ÉPITAPHES — PURGÉS avec la mécanique des conteneurs imbriqués (règle 14, zéro émission
+     vérifiée au grep) : `.sv-tb` (remplacé par `.sv-sheet` + `.sv-algo`), `.sv-decwrap`,
+     `.sv-cols`, `.sv-br`, `.sv-fork` et `.sv-merge` — la fourche est désormais `.sv-fk`, en divs
+     dans la grille, et la convergence est redevenue une pilule de texte. Partent avec eux les
+     bandes-questions COLLANTES (`svStickBands`) et leurs `top` cumulés : elles existaient pour la
+     branche EMPILÉE sous 640 px, or la feuille ne s'empile plus — elle garde sa géométrie et
+     c'est l'échelle qui s'adapte. La cause est partie, le mécanisme la suit. */
+  .sv-wrap{position:relative;margin:10px 0 18px}
+  /* L'ÉCHELLE — cinq pas discrets, jamais une échelle continue (le texte « bave » quand le moteur
+     travaille une image mise en cache au lieu de re-tramer). La barre vit HORS du défileur : elle
+     ne doit ni défiler ni se mettre à l'échelle avec ce qu'elle commande. */
+  .sv-zoom{display:flex;align-items:center;gap:6px;margin:0 0 6px}
+  .sv-zb{min-height:44px;padding:0 10px;background:var(--surface);border:1px solid var(--ctl-line);border-radius:var(--r-1);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer}
+  .sv-zb:hover{background:var(--amb-2)}
+  /* La porte plein écran porte son VERBE et son glyphe : c'est une ouverture, pas un réglage
+     d'échelle — elle prend donc le registre de l'ACTION et se sépare du reste de la rangée. */
+  .sv-zfull{display:inline-flex;align-items:center;gap:6px;margin-right:6px;color:var(--link);border-color:var(--primary)}
+  .sv-zfull svg{flex:none}
+  .sv-zb:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sv-zv{font-family:var(--mono);font-size:var(--t-cap);font-weight:700;color:var(--ink-soft);min-width:40px;text-align:center}
+  .sv-scroll{overflow:auto;-webkit-overflow-scrolling:touch}
+  /* LE CALANT : sans lui, le défileur ignore la transformation et ne défile sur rien. Il n'est
+     dimensionné QUE hors de l'échelle 1 (`.z`) — le cas nominal n'a ni transformation, ni taille
+     forcée, ni image intermédiaire à la première peinture. */
+  .sv-calant{position:relative}
+  .sv-calant.z>.sv-sheet{position:absolute;top:0;left:0;transform-origin:top left}
+  .sv-sheet{position:relative;width:var(--sheet-w,1130px);background:var(--surface);border:1px solid var(--line-strong);border-radius:3px;padding:12px 14px}
+  /* CARTOUCHE — identité à gauche, révision et comptes à droite, avertissement de validation en
+     bord. Registre ALERTE en CONTOUR (bord gauche + encre), JAMAIS un aplat : A11 réserve la
+     masse colorée au minuteur échu, et une feuille teintée désensibiliserait au rouge des étapes
+     vitales qu'elle porte. */
+  .sv-cartouche{display:flex;align-items:flex-end;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:8px}
+  .sv-cid{flex:1;min-width:0}
+  .sv-csur{font-size:var(--t-cap);font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .sv-ctitle{font-family:var(--f-title);font-size:21px;font-weight:700;line-height:1.15;color:var(--ink)}
+  .sv-cmeta{flex:none;text-align:right;font-size:var(--t-cap);font-weight:600;line-height:1.5;color:var(--ink-soft)}
+  .sv-cmeta b{color:var(--ink)}
+  .sv-cnt{display:block}
+  .sv-cwarn{flex:none;max-width:250px;border-left:3px solid var(--critical-bd);padding-left:8px;font-size:var(--t-cap);font-weight:700;line-height:1.45;color:var(--critical)}
+  .sv-cwarn svg{vertical-align:-2px}
+  /* LES TROIS BANDES. La composition change aux paliers, l'ORDRE DU DOM jamais : ce sont des
+     GRILLES, pas un réordonnancement — un lecteur d'écran lit la même suite aux trois largeurs. */
+  .sv-band-top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+  .sv-band-top.c1{grid-template-columns:1fr}
+  .sv-band-top.c2{grid-template-columns:repeat(2,1fr)}
+  .sv-band-body{display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start}
+  .sv-band-body.solo{grid-template-columns:1fr}
+  /* LA GRILLE UNIQUE — six pistes, et AUCUNE grille imbriquée dedans : c'est l'invariant du lot.
+     La gouttière de gauche (16 px) est celle des retours ↺, peints par svPaintArrows. */
+  .sv-algo{display:grid;grid-template-columns:repeat(6,1fr);gap:4px 10px;align-items:start;margin-left:16px}
+  .sv-ref{display:grid;gap:4px;align-content:start}
+  .sv-band-doses{border-top:2px solid var(--ink);margin-top:10px;padding-top:6px}
+  .sv-dh{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);padding-bottom:2px}
+  .sv-dz{display:grid;grid-template-columns:repeat(3,1fr);gap:0 12px}
+  .sv-dz>div{font-size:var(--t-cap);line-height:1.45;padding:1px 0;border-bottom:1px solid var(--line);color:var(--ink)}
+  .sv-dz span{font-family:var(--mono);color:var(--ink-soft)}
+  .sv-foot{font-size:var(--t-cap);font-weight:600;line-height:1.45;color:var(--ink-soft);padding-top:4px;border-top:1px solid var(--line);margin-top:4px}
+  /* ═══ TABLETTE PORTRAIT — la référence descend en pied, sur deux cellules ═══
+     ⚠ ON NE PASSE PAS L'ALGORITHME À TROIS COLONNES DE PAGE ICI : à 768 px il lui resterait
+     ~300 px, où les branches d'une décision retomberaient en pile — mauvais échange. On préfère
+     une zone d'algorithme LARGE et une référence en pied : l'arbre est ce qu'on vient voir. */
+  @media (max-width:999.98px){
+    .sv-band-body{grid-template-columns:1fr}
+    .sv-ref{grid-template-columns:1fr 1fr;gap:8px}
+    .sv-dz{grid-template-columns:1fr 1fr}
+  }
+  /* ═══ TÉLÉPHONE — AUCUNE RÈGLE DE COMPOSITION, et c'est le point contre-intuitif du lot ═══
+     Une pile lisible EXISTE DÉJÀ : c'est l'onglet « Parcours », la fiche entière en cartes
+     empilées. Si la Page se refluait elle aussi, les deux onglets convergeraient vers le même
+     objet et l'un des trois ne gagnerait plus rien. En gardant sa géométrie, la Page reste ce que
+     les deux autres ne sont pas : une image qu'on reconnaît d'un coup d'œil, la même partout.
+     C'est la mémoire spatiale qui est en jeu — « les doses sont en bas » ne s'apprend que si
+     c'est vrai sur les trois appareils. */
+  /* ⚠ A8 — 44 px DE CIBLE SUR TOUT CE QUI SE TAPE, ET AUX TROIS FORMATS. Le brief bornait la
+     règle à « sous 640 px, au-dessus la densité prime » ; mesuré, cela ferait DEUX images de la
+     même feuille — or l'argument central du lot est qu'elle est la même partout, puisque c'est
+     l'image qu'on mémorise. Et le harnais d'accessibilité mesure justement à 390 px, session
+     ouverte : il l'a dit à la première passe (bande à 31 px, sortie à 32). Le plancher est donc
+     posé une fois pour toutes ; il rend la feuille un peu plus haute, ce qui est le bon côté du
+     compromis pour un document qu'on lit avec des gants. */
   .sv-cell{border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);padding:6px 8px;cursor:pointer;min-width:0}
+  .sv-cell[role="button"],.sv-band,.sv-opt,.sv-jump{min-height:44px}
   .sv-cell:hover,.sv-band:hover{border-color:var(--primary)}
   .sv-cell:focus-visible,.sv-band:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .sv-cell.done{border-left:4px solid var(--done-line)}
   .sv-cell.cur,.sv-band.cur{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
-  .sv-cell.off,.sv-band.off{opacity:.55;border-style:dashed}
+  .sv-cell.off,.sv-band.off,.sv-opt.off{opacity:.55;border-style:dashed}
   .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
   .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
-  .sv-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);flex:none}
-  .sv-t{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow-wrap:break-word}
-  .sv-m{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
+  .sv-n{font-family:var(--mono);font-size:var(--t-cap);font-weight:700;color:var(--ink-soft);flex:none}
+  .sv-t{flex:1;min-width:0;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow-wrap:break-word}
+  .sv-m{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-soft);display:flex;gap:6px;align-items:baseline}
   .sv-m .sv-ok{color:var(--ok);font-weight:700}
-  .sv-here{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 6px;border-radius:999px}
-  /* Compteur de passages « ×n ». Il était ÉMIS sans aucune règle : rendu à la taille du texte
-     courant, sans chiffres tabulaires, il se confondait avec le contenu de la cellule. Encre
-     DOUCE et non bleue, contrairement à son jumeau `.pl-x` du Plan : dans le statique, « aucun
-     texte bleu dans les cellules » (décision utilisateur) — le bleu n'y marque que la POSITION
-     (`● ici`) et la reprise `↺`. Copier `.pl-x` aurait réparé la taille en cassant la doctrine. */
-  .sv-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:6px}
-  .sv-off2{margin:2px 0 0;font-size:11px;font-weight:600;color:var(--ink-soft)}
-  .sv-stp{margin:2px 0 0;padding:0;list-style:none}
-  .sv-stp li{position:relative;font-size:11px;line-height:1.5;color:var(--ink);padding-left:14px;overflow-wrap:break-word}
+  .sv-here{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 6px;border-radius:999px}
+  /* Compteur de passages « ×n » : encre DOUCE et non bleue, contrairement à son jumeau `.pl-x` du
+     Plan — dans le statique, « aucun texte bleu dans les cellules » (décision utilisateur) : le
+     bleu n'y marque que la POSITION (`ici`) et la reprise `↺`. */
+  .sv-x{font-family:var(--mono);font-size:var(--t-cap);font-weight:600;color:var(--ink-soft);margin-left:6px}
+  .sv-off2{margin:2px 0 0;font-size:var(--t-cap);font-weight:600;color:var(--ink-soft)}
+  .sv-stp{margin:1px 0 0;padding:0;list-style:none}
+  .sv-stp li{position:relative;font-size:var(--t-cap);line-height:1.45;color:var(--ink);padding-left:12px;overflow-wrap:break-word}
   .sv-stp li::before{content:"❑";position:absolute;left:0;color:var(--ink-soft)}
   .sv-stp li.done{color:var(--ink-soft)}   /* coché = ✓ vert, texte JAMAIS barré (relecture) */
   .sv-stp li.done::before{content:"✓";color:var(--ok);font-weight:700}
   .sv-stp li.crit{color:var(--critical);font-weight:600}
+  .sv-stp li.crit::before{content:"⚠";color:var(--critical)}
   .sv-stp li.vig{color:var(--verify);font-weight:600}
-  /* v4.13.1 : la pilule DOIT pouvoir se replier (une réponse longue en nowrap dépassait du
-     cadre de sa cellule) — box-decoration-break garde les coins sur chaque fragment. */
-  /* D8 (audit design v4.56) : inline-block = la pilule passe à la ligne EN BLOC ; break-word ne
-     reste que pour le cas où elle excède seule la colonne (là, c'est le garde-fou télégraphique
-     qui doit parler à la rédaction, pas la césure). */
-  .sv-r{display:inline-block;max-width:100%;font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:8px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .sv-stp li.plain{padding-left:0}
+  .sv-stp li.plain::before{content:""}
+  .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--verify)}
+  /* La pilule DOIT pouvoir se replier (une réponse longue en nowrap dépassait du cadre de sa
+     cellule) ; `inline-block` la fait passer à la ligne EN BLOC — `break-word` ne reste que pour
+     le cas où elle excède seule la colonne. */
+  .sv-r{display:inline-block;max-width:100%;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:8px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
   /* Bande de décision : registre ATTENTION — titre en petites capitales + question en clair. */
-  .sv-band{display:flex;align-items:baseline;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
+  .sv-band{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
+  .sv-band .sv-jl{flex:1 1 100%;margin:0}
   .sv-band .sv-n{color:var(--verify)}
-  .sv-band .sv-t{color:var(--verify);text-transform:none;font-weight:400;font-size:11px;letter-spacing:0}
-  .sv-band .sv-t b{font-weight:800;letter-spacing:.07em;text-transform:uppercase;font-size:11px}
+  .sv-band .sv-t{color:var(--verify);text-transform:none;font-weight:400;letter-spacing:0}
+  .sv-band .sv-t b{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
   .sv-band .sv-m{color:var(--verify)}
-  /* Branches : colonnes auto-fit plafonnées cN (même piège auto-fit que le plan v4.12).
-     SOUS 640 px : UNE SEULE COLONNE — retour d'usage v4.13.1 : des branches côte à côte
-     de ~145 px sur téléphone rendaient la lecture difficile ; en pile, les pilules
-     « → n » / « ↺ n » portent la structure (les flèches se masquent, .stacked). */
-  .sv-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:2px;align-items:start}
-  .sv-cols.c1{grid-template-columns:1fr}
-  .sv-cols.c2{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(50% - 1.5px)),1fr))}
-  .sv-cols.c3{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(33.33% - 2px)),1fr))}
-  .sv-cols.c4{grid-template-columns:repeat(auto-fit,minmax(max(148px,calc(25% - 2.25px)),1fr))}
-  @media (max-width:639.98px){
-    .sv-cols,.sv-cols.c2,.sv-cols.c3,.sv-cols.c4{grid-template-columns:1fr}
-    /* v4.15.0 (décision utilisateur) : en PILE, l'imbrication redevient VISIBLE — indentation
-       ~15 px par niveau + RAIL de branche (grammaire du plan : bleu = prise, pointillé =
-       hors chemin, la couleur jamais seule — le chip d'option reste l'étiquette). Récursif
-       par construction (chaque .sv-br imbriquée ajoute son cran), PLAFONNÉ au 4e niveau
-       pour préserver la largeur de lecture. La fourche étant masquée en pile, rail + chip
-       portent la structure. */
-    .sv-br{margin-left:6px;padding-left:8px;border-left:3px solid var(--line-strong)}
-    .sv-br.taken{border-left-color:var(--primary)}
-    .sv-br.off{border-left-style:dashed}
-    .sv-br .sv-br .sv-br .sv-br{margin-left:0;padding-left:4px}
-    /* INTITULÉ DE DÉCISION COLLANT (petits écrans seulement) — la question ne quitte plus l'écran
-       tant qu'on lit ses branches. MESURÉ avant : en PILE, sur une décision imbriquée à 360×640,
-       844 px de contenu se lisaient SANS la question ; côte à côte (≥ 640 px) le défaut n'existe
-       pas (0 px), d'où le bornage à ce palier — pas un réglage esthétique, la borne du problème.
-       Base = --stick-top, la source UNIQUE du bas de ce qui est déjà collé en haut (en-tête +
-       quai) ; le décalage CUMULÉ de chaque niveau imbriqué est posé par svStickBands.
-       La hauteur n'est JAMAIS forcée : compacter à une ligne tronquerait une question longue,
-       or la question EST l'information. C'est pourquoi le décalage se mesure au lieu d'être
-       arithmétique — une mesure UNIQUE par rendu, pas une pile tenue à jour au défilement
-       (l'ex-fil d'ancêtres de la vue « Détails » mesurait, lui, à chaque évènement).
-       Décrochage NATIF : chaque bande est bornée par son .sv-decwrap, elle se détache seule à la
-       convergence. z-index DÉCROISSANT avec la profondeur et sous #crisisDock (15) : une bande
-       enfant ne masque jamais son parent, ni le quai de crise. */
-    .sv-wrap .sv-decwrap>.sv-band{position:sticky;top:var(--stick-top,64px);z-index:12;box-shadow:var(--shadow)}
-    .sv-wrap .sv-decwrap .sv-decwrap>.sv-band{z-index:11}
-    .sv-wrap .sv-decwrap .sv-decwrap .sv-decwrap>.sv-band{z-index:10}
-    /* PLAFOND À 3 NIVEAUX : au-delà, la pile mangerait la colonne d'action — la zone haute
-       atteint déjà 177 px sur 640 en session. Le 4e niveau et les suivants restent dans le flux. */
-    .sv-wrap .sv-decwrap .sv-decwrap .sv-decwrap .sv-decwrap>.sv-band{position:static;box-shadow:none}
-    /* FOCUS CLAVIER (WCAG 2.4.11 « Focus Not Obscured ») : le défilement déclenché par le focus
-       est celui du NAVIGATEUR — ni --stick-top ni le top cumulé ne le voient, seul scroll-margin
-       le pilote. Il s'AJOUTE au scroll-padding-top de html (qui couvre déjà --stick-top), d'où
-       une valeur qui ne compte QUE la pile de bandes (~2 niveaux) et non la zone haute entière —
-       même arbitrage que .rt-panel, ramené de 130 à 6 px en v4.30.0. Ciblé sur les seuls
-       éléments SOUS une décision : ailleurs, aucune bande ne peut masquer le focus. */
-    .sv-wrap .sv-decwrap .sv-cell,.sv-wrap .sv-decwrap .sv-opt{scroll-margin-top:96px}
-  }
-  .sv-br{display:grid;gap:2px;min-width:0;align-content:start}
-  .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:11px;font-weight:700;text-align:center;padding:4px 6px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+  /* ═══ LA FOURCHE — DESSINÉE EN DIVS, PAS EN SVG ═══
+     Un calque SVG en position absolue exige des coordonnées, donc une mesure après rendu, donc un
+     recalage à chaque changement de contenu : ça a été tenté et ça a cassé deux fois (viewBox
+     déclaré ≠ boîte réelle → déformation non uniforme). En divs, la géométrie SUIT la grille sans
+     qu'on la mesure — les bras se posent en pourcentage de l'étendue de la fourche, calculés sur
+     le centre de chaque branche. */
+  .sv-fk{position:relative;height:18px;min-width:0}
+  .sv-fk .fk-st{position:absolute;top:0;width:2px;height:8px;background:var(--verify-bd)}
+  .sv-fk .fk-bar{position:absolute;top:6px;height:2px;background:var(--verify-bd)}
+  .sv-fk .fk-arm{position:absolute;top:6px;width:2px;height:8px;background:var(--verify-bd)}
+  .sv-fk .fk-arm::after{content:"";position:absolute;left:-4px;top:8px;width:0;height:0;border-top:6px solid var(--verify-bd);border-left:5px solid transparent;border-right:5px solid transparent}
+  .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:var(--t-cap);font-weight:700;text-align:center;padding:4px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;line-height:1.3}
   .sv-opt .sv-tk{color:var(--ok)}
   .sv-offtag{font-weight:600;color:var(--ink-soft)}
-  /* Sections de la fiche en cellules (v4.14.0) : INERTES — pas de curseur main, registres
-     ALERTE (chapeau) et ATTENTION (surveillances) par bord gauche + titre (jamais la couleur seule). */
+  /* Sections de la fiche en cellules : INERTES — pas de curseur main, registres ALERTE (chapeau)
+     et ATTENTION (surveillances) par bord gauche + titre (jamais la couleur seule). */
   .sv-cell.sv-inert{cursor:default}
   .sv-cell.sv-inert:hover{border-color:var(--line-strong)}
   .sv-nf{border-left:4px solid var(--critical-bd)}
   .sv-nf .sv-t{color:var(--critical)}
   .sv-vf{border-left:4px solid var(--verify-bd)}
   .sv-vf .sv-t{color:var(--verify)}
-  /* Fourche (ambre) = bandeau local 16 px sous la bande ; convergence (grise) = ESPACE
-     réservé 16 px, les brins vivent dans la superposition .sv-gut (ils partent du bas réel
-     de chaque branche, v4.13.1). Masqués quand les branches s'empilent (.stacked) —
-     les pilules restent. */
-  .sv-fork,.sv-merge{height:16px;min-width:0;overflow:hidden}
-  .sv-fork svg{display:block}
-  .sv-fork .ln{fill:none;stroke:var(--verify-bd);stroke-width:1.6}
-  .sv-fork .ah{fill:var(--verify-bd)}
-  .sv-decwrap{display:grid;gap:2px;min-width:0}
-  .sv-decwrap.stacked>.sv-fork,.sv-decwrap.stacked>.sv-merge{display:none}
-  /* Renvois : pilule neutre (convergence/saut) — la reprise ↺ garde le registre bleu doux. */
+  .sv-cx{border-left:4px solid var(--ink-soft)}
+  .sv-tm{border-left:4px solid var(--primary)}
+  .sv-tm .sv-t{color:var(--link)}
+  /* RENVOIS — la pilule « → n » / « ↺ n » est la VÉRITÉ TEXTUELLE : le dessin ne porte jamais
+     seul une information (impression, lecteur d'écran). Boîte en trait POINTILLÉ : c'est une
+     sortie, pas un bloc à faire. */
   .sv-jrow{display:flex;min-width:0}
-  /* Pilule remplacée par un brin de convergence : INVISIBLE mais l'espace est GARDÉ
-     (v4.14.5 — display:none libérait sa rangée : l'élargissement s'y étendait puis le brin
-     la retraversait ; et le changement de hauteur faisait osciller le ResizeObserver). */
-  .sv-jrow.hid{visibility:hidden}
-  .sv-jump{display:inline-flex;align-items:center;gap:4px;min-height:32px;max-width:100%;font-size:11px;font-weight:700;font-family:var(--mono);color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;text-align:left}
-  .sv-jump.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
+  .sv-jump{display:inline-flex;align-items:center;gap:4px;width:100%;min-height:32px;font-size:var(--t-cap);font-weight:700;font-family:var(--mono);color:var(--ink-soft);background:var(--surface);border:1px dashed var(--line-strong);border-radius:3px;padding:4px 6px;cursor:pointer;text-align:left}
+  .sv-jump.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary)}
   .sv-jump:hover{border-color:var(--primary)}
   .sv-jump:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .sv-end{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok);padding:2px 2px}
+  .sv-end{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok);padding:2px}
   .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
   .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.6}
   .sv-gut .lph{fill:var(--link)}
-  .sv-gut .lg{fill:none;stroke:var(--line-strong);stroke-width:1.6}
-  .sv-gut .lgh{fill:var(--line-strong)}
   /* ----- Challenge :: réponse (v4.11.0, AC 120-71B) : la pilule mono = RÉPONSE ATTENDUE ;
      cocher = readback (✓ + vert), porté par le CSS seul — le toggle chirurgical n'y touche pas. */
   /* LA CADENCE EST UNE MONO AMBRE, PLUS UNE PILULE BLEUE (v5.6, A11). La réponse attendue d'un
@@ -7728,7 +7763,49 @@
     .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
     /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
-    .crisis-footer .cf-stg{display:none}}
+    .crisis-footer .cf-stg{display:none}
+    /* ══ LOT 4 · L'IMPRESSION DE LA FEUILLE (v5.10.0) ═══════════════════════════════════════════
+       UNE PAGE CORRECTEMENT IMPRIMABLE EST UNE PAGE AFFICHABLE AU MUR, dans un local de garde ou
+       au dos d'un chariot — c'est l'usage d'origine des aides SFAR/CAMR, et il ne demande aucune
+       application. D'où le test de tout le lot : si la sortie papier est utilisable SANS
+       l'application, la page est réussie. Elle ne l'était pas — elle sortait sans date, sans
+       titre, sans doses.
+       1. k = 1 : le papier n'hérite JAMAIS du zoom d'écran (la barre d'échelle disparaît avec).
+       2. Aucune cellule ne se coupe : une décision séparée de ses branches par un saut de page
+          est un contresens.
+       3. ⚠ L'ÉTAT DE SESSION NE S'IMPRIME PAS — et c'est le seul point de ce lot qui touche à la
+          SÉCURITÉ du document : ✓, « ici », « hors chemin », « ×n » décrivent une réanimation qui
+          n'a plus lieu. Une feuille au mur qui porte le ✓ d'une session passée est une feuille
+          FAUSSE. Les cases redeviennent vides (❑), les bords d'état neutres, sans exception.
+       4. Le papier a sa propre géométrie : trois colonnes de doses en paysage, deux en portrait,
+          indépendamment de la largeur d'écran au moment de l'export.
+       ⚠ CE QUI N'EST PAS LIVRÉ, ET IL FAUT LE DIRE : le cartouche ne se RÉPÈTE PAS en tête de
+       chaque feuille. Seul un `<thead>` de table se répète nativement ; le simuler demanderait un
+       `position:fixed` qui recouvrirait le contenu de toutes les pages sauf la première, ou de
+       refaire la feuille en table — c'est-à-dire de reperdre la grille unique que le lot 2 vient
+       d'écrire. Ce qui est tenu : le cartouche ne se sépare pas de ce qu'il titre
+       (`break-after:avoid`) et le PIED porte titre + révision, donc une page détachée reste
+       identifiable. À rouvrir avec une vraie maquette papier multi-pages. */
+    .sv-zoom{display:none!important}
+    .sv-scroll{overflow:visible!important}
+    .sv-calant,.sv-calant.z{width:auto!important;height:auto!important}
+    .sv-calant.z>.sv-sheet{position:static!important;transform:none!important}
+    .sv-sheet{width:auto!important;border:0;padding:0}
+    .sv-cell,.sv-band,.sv-opt,.sv-jrow,.sv-algo>*,.sv-band-top>*,.sv-ref>*{break-inside:avoid}
+    .sv-cartouche{break-after:avoid}
+    .sv-band-doses,.sv-band-top{break-inside:avoid}
+    /* 3. L'état de session, retiré à la racine : classes d'état neutralisées, marqueurs masqués. */
+    .sv-here,.sv-x,.sv-off2,.sv-offtag{display:none!important}
+    .sv-cell.done,.sv-cell.cur,.sv-band.cur{border-color:var(--line-strong)!important;box-shadow:none!important}
+    .sv-cell.done{border-left-width:1px!important}
+    .sv-cell.off,.sv-band.off,.sv-opt.off{opacity:1!important;border-style:solid!important}
+    .sv-opt.tk{background:var(--surface)!important}
+    .sv-opt .sv-tk{display:none!important}
+    .sv-stp li.done{color:var(--ink)!important}
+    .sv-stp li.done::before{content:"❑"!important;color:var(--ink-soft)!important;font-weight:400!important}
+    .sv-m{display:none!important}
+    @media (orientation:portrait){.sv-dz{grid-template-columns:1fr 1fr!important}}
+    @media (orientation:landscape){.sv-dz{grid-template-columns:repeat(3,1fr)!important}}}
   /* ===== Windows High Contrast (forced-colors) — v4.30.0, premier filet =====
      Le mode contraste forcé SUPPRIME fonds et dégradés. La doctrine « la couleur n'est jamais
      seule » (glyphe + mot partout) protège l'essentiel ; restent les états portés par la seule
@@ -7789,50 +7866,108 @@
 </style></head><body>
 <div class="ds-scope" data-theme="light"><p class="ds-lab">Thème clair</p>
 
-<div style="max-width:680px">
-<div class="sv-wrap"><div class="sv-tb">
-  <div class="sv-cols c2">
-    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Confirmer</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
-    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
+<div style="max-width:760px;overflow:auto">
+<div class="sv-wrap">
+  <div class="sv-zoom" role="group" aria-label="Échelle de la feuille">
+    <button type="button" class="sv-zb" data-svzoom="fit">⤢ Ajusté</button>
+    <button type="button" class="sv-zb" data-svzoom="out" aria-label="Réduire">−</button>
+    <span class="sv-zv">100%</span>
+    <button type="button" class="sv-zb" data-svzoom="in" aria-label="Agrandir">＋</button>
+    <button type="button" class="sv-zb" data-svzoom="reset">1:1</button>
   </div>
-  <div class="sv-cell done" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
-  <div class="sv-decwrap">
-    <div class="sv-band cur" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
-    <div class="sv-fork" aria-hidden="true"></div>
-    <div class="sv-cols c2">
-      <div class="sv-br taken"><div class="sv-opt tk"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
-        <div class="sv-cell" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div></div>
-      <div class="sv-br off"><div class="sv-opt">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
-        <div class="sv-cell off" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
-        <div class="sv-jrow"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div></div>
+  <div class="sv-scroll"><div class="sv-calant"><div class="sv-sheet" style="width:1130px">
+    <div class="sv-cartouche">
+      <div class="sv-cid"><div class="sv-csur">Aide cognitive · Urgences · adulte</div>
+        <div class="sv-ctitle">Anaphylaxie (choc anaphylactique)</div></div>
+      <div class="sv-cmeta">révision <b>août 2026</b><span class="sv-cnt">5 blocs · 2 posologies · 1 minuteur</span></div>
+      <div class="sv-cwarn">⚠ Fiche générée par IA — à relire et valider avant usage.</div>
     </div>
-    <div class="sv-merge" aria-hidden="true"></div>
-  </div>
-</div></div>
+    <div class="sv-band-top c3">
+      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Reconnaître — critères d’entrée</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
+      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer — tableau atypique ?</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
+      <div class="sv-cell sv-inert sv-nf"><p class="sv-h"><span class="sv-t">⚠ Ne pas oublier</span></p><ul class="sv-stp"><li class="crit">Adrénaline IM en 1ʳᵉ intention</li></ul></div>
+    </div>
+    <div class="sv-band-body">
+      <div class="sv-algo">
+        <div class="sv-cell done" style="grid-column:2 / span 4;grid-row:1" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
+        <div class="sv-band cur" style="grid-column:2 / span 4;grid-row:2" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
+        <div class="sv-fk" style="grid-column:1 / span 6;grid-row:3" aria-hidden="true"><span class="fk-st" style="left:calc(50% - 1px)"></span><span class="fk-bar" style="left:33.3%;right:16.7%"></span><span class="fk-arm" style="left:calc(33.3% - 1px)"></span><span class="fk-arm" style="left:calc(83.3% - 1px)"></span></div>
+        <div class="sv-opt tk" style="grid-column:1 / span 4;grid-row:4"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
+        <div class="sv-opt off" style="grid-column:5 / span 2;grid-row:4">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
+        <div class="sv-cell" style="grid-column:1 / span 4;grid-row:5" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div>
+        <div class="sv-cell off" style="grid-column:5 / span 2;grid-row:5" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
+        <div class="sv-jrow" style="grid-column:5 / span 2;grid-row:6"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div>
+        <div class="sv-end" style="grid-column:2 / span 4;grid-row:7">▪ fin de l’algorithme</div>
+      </div>
+      <aside class="sv-ref">
+        <div class="sv-cell sv-inert sv-vf"><p class="sv-h"><span class="sv-t">△ À vérifier — surveillances</span></p><ul class="sv-stp"><li>PAS ≥ 90 mmHg</li><li>SpO₂ ≥ 94 %</li></ul></div>
+        <div class="sv-cell sv-cx" data-svgo="x" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">⚡</span><span class="sv-t">Bronchospasme réfractaire</span></p><ul class="sv-stp"><li>Salbutamol nébulisé</li></ul></div>
+        <div class="sv-cell sv-inert sv-tm"><p class="sv-h"><span class="sv-t">Minuteurs · compteurs</span></p><ul class="sv-stp"><li class="plain">⏱ <b>Réévaluation</b> — 5:00</li><li class="plain">＃ <b>Injections d’adrénaline</b></li></ul></div>
+      </aside>
+    </div>
+    <div class="sv-band-doses">
+      <div class="sv-dh">Repères posologiques — 2</div>
+      <div class="sv-dz">
+        <div><b>△ ADRÉNALINE — IM</b> <span>0,5 mg (0,01 mg/kg, max 0,5)</span></div>
+        <div><b>SALBUTAMOL — nébulisation</b> <span>5 mg</span></div>
+      </div>
+      <div class="sv-foot">Recommandations en vigueur  ·  Anaphylaxie (choc anaphylactique)  ·  rév. août 2026</div>
+    </div>
+  </div></div></div>
 </div>
-<p class="ds-cap">TOUTE l’aide en TABLEAU compact façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, générées depuis flowPlan (numérotation commune). Tronc = cellules pleine largeur ; décision = BANDE au registre ATTENTION (titre + question) + branches en colonnes (auto-fit minmax(148px) plafonné c1…c4). UNE SEULE COLONNE sous 640 px (retour d’usage v4.13.1 : des colonnes de ~145 px sur téléphone rendaient la lecture difficile), avec INDENTATION ~17 px par niveau + rail de branche (grammaire du plan) : la fourche étant masquée en pile, rail + chip portent la structure. PAS de règle « deep » (v4.14.0, décision utilisateur) : même une branche profonde reste en colonne ≥ 640 — esprit SFAR. INERTE côté cochage (doctrine du plan, re-confirmée) : l’état de session est PEINT en lecture seule ; taper une cellule = svJump, JAMAIS de démarrage de session, JAMAIS de défilement (rien ne bouge sous le doigt). AUCUN texte bleu dans les cellules (décision utilisateur) : réponse « :: » = pilule mono NEUTRE .sv-r (≠ .stp-r bleu du journal), renvois neutres — le bleu ne marque que la position (● ici) et la reprise ↺. Les FLÈCHES (fourche ambre, convergence grise, retours bleus en gouttière) sont mesurées APRÈS rendu par svPaintArrows, en phases lecture/écriture GROUPÉES, toute mesure divisée par zoomF() — le réglage de taille du texte est un zoom CSS : getBoundingClientRect rend des px VISUELS. Empilé → .stacked : fourche/convergence masquées, la flèche n’est JAMAIS seule (l’info reste textuelle).</p></div>
+</div>
+<p class="ds-cap">LA PAGE EST UN DOCUMENT (v5.10.0) : cartouche daté avec l’avertissement de validation en bord ALERTE (jamais un aplat — A11), trois cellules d’entrée, l’algorithme et sa colonne de référence, les doses en pied avec la source. Elle a une largeur d’AUTEUR fixe (--sheet-w, 1130 px) et NE SE REFLUE JAMAIS : aux trois formats c’est la même image, et c’est l’ÉCHELLE qui s’adapte (transform:scale par pas discrets, jamais un zoom CSS — celui-ci refait la mise en page au lieu de la transformer). Le TRACÉ est une GRILLE UNIQUE de 6 pistes, tronc sur 4 centré : chaque nœud est un FRÈRE placé par grid-column/grid-row, jamais un conteneur imbriqué — c’est ce qui permet à une branche PROFONDE d’être plus large que celle dont elle descend (répartition au prorata de la hauteur, minimum 1 piste, reste à la plus haute). AUCUNE grille imbriquée dans .sv-algo : c’est l’invariant le plus décisif du lot, et un harnais le mesure au rendu. La FOURCHE est dessinée EN DIVS (bras en pourcentage de l’étendue, calculés sur le centre de chaque branche) : la géométrie SUIT la grille sans qu’on la mesure — un calque SVG exigerait un recalage à chaque changement de contenu, ce qui a cassé deux fois. La convergence est redevenue une pilule de TEXTE (« → n » / « ↺ n ») : le dessin ne porte jamais seul une information. INERTE : aucun data-ck, taper une cellule entre au bout du journal sans rien démarrer.</p></div>
 <div class="ds-scope" data-theme="dark"><p class="ds-lab">Thème sombre</p>
 
-<div style="max-width:680px">
-<div class="sv-wrap"><div class="sv-tb">
-  <div class="sv-cols c2">
-    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Confirmer</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
-    <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
+<div style="max-width:760px;overflow:auto">
+<div class="sv-wrap">
+  <div class="sv-zoom" role="group" aria-label="Échelle de la feuille">
+    <button type="button" class="sv-zb" data-svzoom="fit">⤢ Ajusté</button>
+    <button type="button" class="sv-zb" data-svzoom="out" aria-label="Réduire">−</button>
+    <span class="sv-zv">100%</span>
+    <button type="button" class="sv-zb" data-svzoom="in" aria-label="Agrandir">＋</button>
+    <button type="button" class="sv-zb" data-svzoom="reset">1:1</button>
   </div>
-  <div class="sv-cell done" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
-  <div class="sv-decwrap">
-    <div class="sv-band cur" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
-    <div class="sv-fork" aria-hidden="true"></div>
-    <div class="sv-cols c2">
-      <div class="sv-br taken"><div class="sv-opt tk"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
-        <div class="sv-cell" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div></div>
-      <div class="sv-br off"><div class="sv-opt">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
-        <div class="sv-cell off" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
-        <div class="sv-jrow"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div></div>
+  <div class="sv-scroll"><div class="sv-calant"><div class="sv-sheet" style="width:1130px">
+    <div class="sv-cartouche">
+      <div class="sv-cid"><div class="sv-csur">Aide cognitive · Urgences · adulte</div>
+        <div class="sv-ctitle">Anaphylaxie (choc anaphylactique)</div></div>
+      <div class="sv-cmeta">révision <b>août 2026</b><span class="sv-cnt">5 blocs · 2 posologies · 1 minuteur</span></div>
+      <div class="sv-cwarn">⚠ Fiche générée par IA — à relire et valider avant usage.</div>
     </div>
-    <div class="sv-merge" aria-hidden="true"></div>
-  </div>
-</div></div>
+    <div class="sv-band-top c3">
+      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Reconnaître — critères d’entrée</span></p><ul class="sv-stp"><li>Éruption + hypotension</li><li>Bronchospasme brutal</li></ul></div>
+      <div class="sv-cell sv-inert"><p class="sv-h"><span class="sv-t">Éliminer — tableau atypique ?</span></p><ul class="sv-stp"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul></div>
+      <div class="sv-cell sv-inert sv-nf"><p class="sv-h"><span class="sv-t">⚠ Ne pas oublier</span></p><ul class="sv-stp"><li class="crit">Adrénaline IM en 1ʳᵉ intention</li></ul></div>
+    </div>
+    <div class="sv-band-body">
+      <div class="sv-algo">
+        <div class="sv-cell done" style="grid-column:2 / span 4;grid-row:1" data-svgo="a" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">1</span><span class="sv-t">Mesures immédiates</span><span class="sv-m">2/2</span></p><ul class="sv-stp"><li class="crit done">Arrêter l’allergène</li><li class="done">Surélever les jambes <span class="sv-r">45°</span></li></ul></div>
+        <div class="sv-band cur" style="grid-column:2 / span 4;grid-row:2" data-svgo="b" role="button" tabindex="0" aria-current="true"><span class="sv-n" aria-hidden="true">2</span><span class="sv-t"><b>Réponse à l’adrénaline</b> — la pression remonte-t-elle&nbsp;?</span><span class="sv-m">✓</span></div>
+        <div class="sv-fk" style="grid-column:1 / span 6;grid-row:3" aria-hidden="true"><span class="fk-st" style="left:calc(50% - 1px)"></span><span class="fk-bar" style="left:33.3%;right:16.7%"></span><span class="fk-arm" style="left:calc(33.3% - 1px)"></span><span class="fk-arm" style="left:calc(83.3% - 1px)"></span></div>
+        <div class="sv-opt tk" style="grid-column:1 / span 4;grid-row:4"><span class="sv-tk">✓ </span>Oui — PAS &gt; 90</div>
+        <div class="sv-opt off" style="grid-column:5 / span 2;grid-row:4">Non — choc réfractaire<span class="sv-offtag"> · hors chemin</span></div>
+        <div class="sv-cell" style="grid-column:1 / span 4;grid-row:5" data-svgo="c" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">3</span><span class="sv-t">Surveillance</span><span class="sv-m">0/2</span></p><ul class="sv-stp"><li class="vig">Rebond possible <span class="sv-r">4–6 h</span></li></ul></div>
+        <div class="sv-cell off" style="grid-column:5 / span 2;grid-row:5" data-svgo="d" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">4</span><span class="sv-t">Remplissage</span><span class="sv-m">—</span></p><p class="sv-off2">hors chemin</p></div>
+        <div class="sv-jrow" style="grid-column:5 / span 2;grid-row:6"><button type="button" class="sv-jump loop">↺ 2 · Réponse à l’adrénaline</button></div>
+        <div class="sv-end" style="grid-column:2 / span 4;grid-row:7">▪ fin de l’algorithme</div>
+      </div>
+      <aside class="sv-ref">
+        <div class="sv-cell sv-inert sv-vf"><p class="sv-h"><span class="sv-t">△ À vérifier — surveillances</span></p><ul class="sv-stp"><li>PAS ≥ 90 mmHg</li><li>SpO₂ ≥ 94 %</li></ul></div>
+        <div class="sv-cell sv-cx" data-svgo="x" role="button" tabindex="0"><p class="sv-h"><span class="sv-n" aria-hidden="true">⚡</span><span class="sv-t">Bronchospasme réfractaire</span></p><ul class="sv-stp"><li>Salbutamol nébulisé</li></ul></div>
+        <div class="sv-cell sv-inert sv-tm"><p class="sv-h"><span class="sv-t">Minuteurs · compteurs</span></p><ul class="sv-stp"><li class="plain">⏱ <b>Réévaluation</b> — 5:00</li><li class="plain">＃ <b>Injections d’adrénaline</b></li></ul></div>
+      </aside>
+    </div>
+    <div class="sv-band-doses">
+      <div class="sv-dh">Repères posologiques — 2</div>
+      <div class="sv-dz">
+        <div><b>△ ADRÉNALINE — IM</b> <span>0,5 mg (0,01 mg/kg, max 0,5)</span></div>
+        <div><b>SALBUTAMOL — nébulisation</b> <span>5 mg</span></div>
+      </div>
+      <div class="sv-foot">Recommandations en vigueur  ·  Anaphylaxie (choc anaphylactique)  ·  rév. août 2026</div>
+    </div>
+  </div></div></div>
 </div>
-<p class="ds-cap">TOUTE l’aide en TABLEAU compact façon aide SFAR/CAMR — cellules télégraphiques carrelées à joint 3 px, générées depuis flowPlan (numérotation commune). Tronc = cellules pleine largeur ; décision = BANDE au registre ATTENTION (titre + question) + branches en colonnes (auto-fit minmax(148px) plafonné c1…c4). UNE SEULE COLONNE sous 640 px (retour d’usage v4.13.1 : des colonnes de ~145 px sur téléphone rendaient la lecture difficile), avec INDENTATION ~17 px par niveau + rail de branche (grammaire du plan) : la fourche étant masquée en pile, rail + chip portent la structure. PAS de règle « deep » (v4.14.0, décision utilisateur) : même une branche profonde reste en colonne ≥ 640 — esprit SFAR. INERTE côté cochage (doctrine du plan, re-confirmée) : l’état de session est PEINT en lecture seule ; taper une cellule = svJump, JAMAIS de démarrage de session, JAMAIS de défilement (rien ne bouge sous le doigt). AUCUN texte bleu dans les cellules (décision utilisateur) : réponse « :: » = pilule mono NEUTRE .sv-r (≠ .stp-r bleu du journal), renvois neutres — le bleu ne marque que la position (● ici) et la reprise ↺. Les FLÈCHES (fourche ambre, convergence grise, retours bleus en gouttière) sont mesurées APRÈS rendu par svPaintArrows, en phases lecture/écriture GROUPÉES, toute mesure divisée par zoomF() — le réglage de taille du texte est un zoom CSS : getBoundingClientRect rend des px VISUELS. Empilé → .stacked : fourche/convergence masquées, la flèche n’est JAMAIS seule (l’info reste textuelle).</p></div>
+</div>
+<p class="ds-cap">LA PAGE EST UN DOCUMENT (v5.10.0) : cartouche daté avec l’avertissement de validation en bord ALERTE (jamais un aplat — A11), trois cellules d’entrée, l’algorithme et sa colonne de référence, les doses en pied avec la source. Elle a une largeur d’AUTEUR fixe (--sheet-w, 1130 px) et NE SE REFLUE JAMAIS : aux trois formats c’est la même image, et c’est l’ÉCHELLE qui s’adapte (transform:scale par pas discrets, jamais un zoom CSS — celui-ci refait la mise en page au lieu de la transformer). Le TRACÉ est une GRILLE UNIQUE de 6 pistes, tronc sur 4 centré : chaque nœud est un FRÈRE placé par grid-column/grid-row, jamais un conteneur imbriqué — c’est ce qui permet à une branche PROFONDE d’être plus large que celle dont elle descend (répartition au prorata de la hauteur, minimum 1 piste, reste à la plus haute). AUCUNE grille imbriquée dans .sv-algo : c’est l’invariant le plus décisif du lot, et un harnais le mesure au rendu. La FOURCHE est dessinée EN DIVS (bras en pourcentage de l’étendue, calculés sur le centre de chaque branche) : la géométrie SUIT la grille sans qu’on la mesure — un calque SVG exigerait un recalage à chaque changement de contenu, ce qui a cassé deux fois. La convergence est redevenue une pilule de TEXTE (« → n » / « ↺ n ») : le dessin ne porte jamais seul une information. INERTE : aucun data-ck, taper une cellule entre au bout du journal sans rien démarrer.</p></div>
 </body></html>

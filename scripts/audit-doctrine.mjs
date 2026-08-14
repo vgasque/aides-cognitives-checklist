@@ -353,12 +353,16 @@ await sec('WCAG · prefers-reduced-motion', async () => {
 }
 });
 
-// ══ QRH / Degani & Wiener — l'intitulé d'une décision ne quitte pas l'écran ═
-// En mode STATIQUE sur petit écran les branches sont EMPILÉES : sans épinglage, la bande-question
-// sortait de l'écran pendant qu'on lisait encore ses étapes (mesuré : 844 px de contenu lus sans
-// elle sur une décision imbriquée à 360×640). Perdre sa place est un mode de défaillance premier ;
-// au-delà de 640 px les branches sont côte à côte et le défaut n'existe pas — d'où les deux volets.
-await sec('QRH · intitulé de décision toujours visible (statique empilé)', async () => {
+// ══ LOT « PAGE » — LA FEUILLE NE SE REFLUE PAS, ELLE SE MET À L'ÉCHELLE ═══════════════════════
+// ⚠ CETTE SECTION A CHANGÉ DE PROPRIÉTÉ, PAS DE SUJET (v5.10.0). Elle mesurait les BANDES-QUESTIONS
+// COLLANTES et leurs décalages cumulés : un mécanisme qui existait pour un cas — la branche EMPILÉE
+// sous 640 px, où la question sortait de l'écran pendant qu'on lisait ses étapes (844 px de contenu
+// mesurés sans elle en v4.13.1). Le lot Page supprime l'empilement : la feuille a une largeur
+// d'AUTEUR, elle garde sa géométrie aux trois formats et c'est l'échelle qui s'adapte. Il n'y a
+// donc plus de branche empilée, plus de question qui s'échappe, et plus de pile de décalages.
+// Ce qu'on mesure désormais est ce que le lot PROMET, et c'est la définition du fini du brief :
+// une seule grille (jamais imbriquée), la même géométrie et le même texte aux trois largeurs.
+await sec('Lot Page · une seule grille, la même image aux trois formats', async () => {
 {
   const st=n=>Array.from({length:n},(_,i)=>`Étape ${i+1} du protocole, libellé réaliste`);
   const FICHE={id:'aud-sb',title:'Audit — décision imbriquée',start:'a',blocks:[
@@ -386,65 +390,43 @@ await sec('QRH · intitulé de décision toujours visible (statique empilé)', a
       state.view='read';state.fiche=nf;state.readMode='static';render();
       await new Promise(r=>setTimeout(r,650));},FICHE);
     return page;};
-  {
-    const page=await openStatic(360,640);
-    const r=await page.evaluate(async()=>{
-      const bands=[...document.querySelectorAll('.sv-decwrap>.sv-band')];
-      const inner=[...document.querySelectorAll('.sv-decwrap .sv-cell')];
-      const H=innerHeight;const out={sans:0,positions:0,overlap:0,sticky:bands.map(b=>getComputedStyle(b).position)};
-      for(let y=0;y<document.documentElement.scrollHeight-H;y+=60){
-        scrollTo(0,y);await new Promise(r=>requestAnimationFrame(r));
-        const sTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stick-top'))||64;
-        const lues=inner.filter(c=>{const q=c.getBoundingClientRect();return q.top>sTop&&q.bottom<H;});
-        if(!lues.length)continue;
-        out.positions++;
-        for(const c of lues){
-          let p=c.parentElement,band=null;
-          while(p){if(p.classList&&p.classList.contains('sv-decwrap')){band=p.querySelector(':scope>.sv-band');break;}p=p.parentElement;}
-          if(!band)continue;
-          const q=band.getBoundingClientRect();
-          if(!(q.bottom>0&&q.top<H-4&&q.height>4))out.sans++;}
-        // Deux bandes COLLÉES (chacune à son top résolu) ne doivent pas se chevaucher ; pendant
-        // l'approche, l'enfant glisse DERRIÈRE son ancêtre — comportement ECL voulu, pas un défaut.
-        const colle=[];
-        for(const b of bands){const q=b.getBoundingClientRect();if(q.height<4)continue;
-          const cible=parseFloat(getComputedStyle(b).top);
-          if(Number.isFinite(cible)&&Math.abs(q.top-cible)<=2)colle.push(q);}
-        for(let i=0;i<colle.length;i++)for(let j=i+1;j<colle.length;j++)
-          if(colle[i].top<colle[j].bottom-1&&colle[j].top<colle[i].bottom-1)out.overlap++;}
-      scrollTo(0,0);
-      const o=document.querySelector('.sv-decwrap>.sv-band'),n=document.querySelector('.sv-decwrap .sv-decwrap>.sv-band');
-      out.zOk=+getComputedStyle(n).zIndex<+getComputedStyle(o).zIndex;
-      return out;});
-    t('360 px : les bandes de décision sont collantes', r.sticky.every(p=>p==='sticky'), JSON.stringify(r.sticky));
-    t('360 px : aucune étape lue sans sa question visible', r.sans===0, `${r.sans} cas sur ${r.positions} positions balayées`);
-    t('360 px : deux bandes collées ne se chevauchent pas', r.overlap===0, r.overlap+' chevauchement(s)');
-    t('360 px : z-ordre décroissant (l\'enfant se replie derrière son ancêtre)', r.zOk===true);
-    // DÉCROCHAGE : une bande épinglée alors que sa décision a quitté l'écran serait un bandeau
-    // permanent — exactement ce que le décrochage natif (bornage par .sv-decwrap) doit empêcher.
-    const dec=await page.evaluate(async()=>{
-      const bands=[...document.querySelectorAll('.sv-decwrap>.sv-band')];
-      const fautes=[];
-      for(let y=0;y<document.documentElement.scrollHeight-innerHeight;y+=80){
-        scrollTo(0,y);await new Promise(r=>requestAnimationFrame(r));
-        for(const b of bands){
-          const dw=b.closest('.sv-decwrap');
-          const bq=b.getBoundingClientRect(),dq=dw.getBoundingClientRect();
-          if(bq.bottom>0&&bq.top<innerHeight&&!(dq.bottom>0&&dq.top<innerHeight))
-            fautes.push(y);}}
-      scrollTo(0,0);return fautes;});
-    t('360 px : la bande se décroche dès que sa décision quitte l\'écran', dec.length===0,
-      dec.length+' position(s) fautive(s)');
-    await page.close();
-  }
-  {
-    const page=await openStatic(1280,900);
-    const r=await page.evaluate(()=>[...document.querySelectorAll('.sv-decwrap>.sv-band')]
-      .map(b=>getComputedStyle(b).position+'|'+(b.style.top||'-')));
-    t('1280 px : aucun épinglage, les bandes restent dans le flux',
-      r.every(x=>x==='static|-'), JSON.stringify(r));
-    await page.close();
-  }
+  const mesure=async page=>page.evaluate(()=>{
+    const sheet=document.querySelector('.sv-sheet'),algo=document.querySelector('.sv-algo');
+    const cs=algo?getComputedStyle(algo):null;
+    return {
+      largeur:sheet?sheet.offsetWidth:0,
+      pistes:cs?cs.gridTemplateColumns.split(/\s+/).filter(Boolean).length:0,
+      imbriquees:document.querySelectorAll('.sv-algo [style*="display:grid"]').length,
+      // La PLACE de chaque nœud : c'est elle qui doit être identique d'un format à l'autre.
+      places:[...(algo?algo.children:[])].map(e=>e.style.gridColumn+'@'+e.style.gridRow).join(' '),
+      // L'ordre du DOM et le texte : le test que le brief demande explicitement.
+      texte:sheet?sheet.textContent.replace(/\s+/g,' ').trim():'',
+      // Les branches restent CÔTE À CÔTE : deux options d'une même décision partagent leur ligne.
+      opts:[...(algo?algo.querySelectorAll('.sv-opt'):[])].map(e=>Math.round(e.getBoundingClientRect().top)).length};});
+  const p360=await openStatic(360,640), r360=await mesure(p360);
+  const p768=await openStatic(768,1024), r768=await mesure(p768);
+  const p1280=await openStatic(1280,900), r1280=await mesure(p1280);
+  /* INVARIANT 1 DU BRIEF — le test le plus simple et le plus décisif : une seconde grille dans
+     `.sv-algo` reconstruirait la division par la profondeur que le lot existe pour supprimer. */
+  t('aucune grille imbriquée dans .sv-algo, aux trois formats',
+    r360.imbriquees===0&&r768.imbriquees===0&&r1280.imbriquees===0,
+    JSON.stringify([r360.imbriquees,r768.imbriquees,r1280.imbriquees]));
+  t('témoin : la feuille est rendue et porte des nœuds placés',
+    r1280.places.length>0&&r1280.largeur>0, JSON.stringify({l:r1280.largeur,n:r1280.places.length}));
+  t('la feuille garde sa largeur d\'AUTEUR aux trois formats (aucun reflux)',
+    r360.largeur===r768.largeur&&r768.largeur===r1280.largeur,
+    JSON.stringify([r360.largeur,r768.largeur,r1280.largeur]));
+  t('six pistes partout — la grille est un fait de la fiche, pas de l\'écran',
+    r360.pistes===6&&r768.pistes===6&&r1280.pistes===6,
+    JSON.stringify([r360.pistes,r768.pistes,r1280.pistes]));
+  t('la MÊME image : chaque nœud à la même place aux trois largeurs',
+    r360.places===r768.places&&r768.places===r1280.places);
+  /* INVARIANT 5 — l'ordre du DOM est identique aux trois paliers : les paliers sont des GRILLES,
+     jamais un réordonnancement (un lecteur d'écran lit la même suite partout). */
+  t('le même texte, dans le même ordre, aux trois largeurs',
+    r360.texte===r768.texte&&r768.texte===r1280.texte,
+    'longueurs '+JSON.stringify([r360.texte.length,r768.texte.length,r1280.texte.length]));
+  await p360.close();await p768.close();await p1280.close();
 }
 });
 /* ⚠ v5.6 — CETTE SECTION A CHANGÉ DE PORTEUR, PAS D'OBJET. Elle mesurait la vue GUIDÉE
@@ -998,7 +980,7 @@ for (const w of [320, 390]) {
     const prefAp=currentReadMode();
     const ong=[...document.querySelectorAll('.at-b')].map(e=>e.textContent.trim());
     const defaut=(document.querySelector('.at-b.on')||{}).textContent||'';
-    const pageOk=!!document.querySelector('.sv-tb');
+    const pageOk=!!document.querySelector('.sv-sheet');
     const tabs=document.querySelector('.all-tabs');
     const debord=tabs?Math.round(tabs.scrollWidth-tabs.clientWidth):null;
     const cible=Math.min(...[...document.querySelectorAll('.at-b')].map(e=>e.getBoundingClientRect().height));
@@ -1011,7 +993,7 @@ for (const w of [320, 390]) {
     const avCk=JSON.stringify(state.checked);
     {const b0=document.querySelector('.pc-box');if(b0)b0.click();}
     await wt(250);
-    const parc=!!document.querySelector('.pc-wrap')&&!document.querySelector('.sv-tb')
+    const parc=!!document.querySelector('.pc-wrap')&&!document.querySelector('.sv-sheet')
       &&document.querySelectorAll('.pc-card').length>=2
       &&document.querySelectorAll('.pc-it').length>=2
       &&document.querySelectorAll('.pc-wrap [data-ck]').length===0
@@ -1026,12 +1008,12 @@ for (const w of [320, 390]) {
     const nd=document.querySelector('.all-svg svg [data-fgo]'); if(nd)nd.dispatchEvent(new MouseEvent('click',{bubbles:true})); await wt(300);
     /* ── LOT B : la recherche, mesurée sur l'onglet Page puis rejouée sur Parcours ── */
     document.querySelector('[data-alltab="page"]').click(); await wt(500);
-    const avantHtml=document.querySelector('.sv-tb').innerHTML;
+    const avantHtml=document.querySelector('.sv-sheet').innerHTML;
     {const q=document.getElementById('pfQ');q.value='adrénaline';q.dispatchEvent(new Event('input',{bubbles:true}));}
     await wt(400);
-    const hits=document.querySelectorAll('.sv-tb mark.pf-h').length;
+    const hits=document.querySelectorAll('.sv-sheet mark.pf-h').length;
     const cpt=(document.getElementById('pfCount')||{}).textContent||'';
-    const cache=[...document.querySelectorAll('.sv-tb .sv-cell')].filter(e=>getComputedStyle(e).display==='none').length;
+    const cache=[...document.querySelectorAll('.sv-sheet .sv-cell')].filter(e=>getComputedStyle(e).display==='none').length;
     const qEl=document.getElementById('pfQ');
     const champH=Math.round(qEl.getBoundingClientRect().height),champFs=getComputedStyle(qEl).fontSize;
     const fleches=[...document.querySelectorAll('.rt-find-all .rt-fnav .mini')]
@@ -1043,7 +1025,7 @@ for (const w of [320, 390]) {
     document.querySelector('[data-alltab="page"]').click(); await wt(600);
     {const q=document.getElementById('pfQ');q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
     await wt(350);
-    const identique=document.querySelector('.sv-tb').innerHTML===avantHtml;
+    const identique=document.querySelector('.sv-sheet').innerHTML===avantHtml;
     /* ── Le registre du bouton, dans les DEUX préférences ── */
     const vert=()=>document.getElementById('allBtn').classList.contains('dp-back');
     document.getElementById('allBtn').click(); await wt(500);      // retour « chez soi »
