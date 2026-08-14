@@ -47,31 +47,79 @@ const FORMATS = [
   { w: 390, h: 844, nom: 'téléphone médian' },
 ];
 
-for (const fmt of FORMATS) {
-  console.log(`\n── ${fmt.w} × ${fmt.h} (${fmt.nom}) ──`);
+/* ⚠ LE RÉGLAGE DE TAILLE DU TEXTE EST BALAYÉ (audit externe v5.10.0) — ET C'EST LUI QUI CASSAIT.
+ * Ce harnais ne mesurait qu'à 100 %, alors que l'application offre QUATRE crans et qu'ils
+ * multiplient toutes les échelles tout en divisant toutes les largeurs. Mesuré avant correction :
+ * à 320 × 640 × 130 %, chrome 41,3 % et ZÉRO étape cochable — c'est-à-dire les deux budgets
+ * violés d'un coup, sur la configuration choisie par la population qui en a le plus besoin
+ * (presbytie, gants, lumière directe). Un budget qui ne se vérifie qu'au réglage par défaut ne
+ * borne rien : il borne le cas facile.
+ * 90 % n'est pas balayé — il rend de la place, il n'en prend pas ; le sweep va du nominal au pire.
+ * DEUX SEUILS, ET LEUR ASYMÉTRIE EST LE POINT : le budget de CHROME se détend d'un cran au-delà
+ * de 100 % (l'utilisateur a demandé de plus gros caractères, il accepte d'en voir moins), mais
+ * « au moins une étape cochable » NE SE DÉTEND JAMAIS — c'est le seul contrôle dont l'échec est
+ * clinique, et une checklist sans ligne à cocher n'est pas une checklist quel que soit le
+ * réglage. */
+const ZOOMS = [100, 115, 130];
+const seuilChrome = z => (z <= 100 ? 30 : 36);
+
+/* ⚠ L'ENVELOPPE DE SUPPORT EST DÉCLARÉE ICI, ET C'EST LA PREMIÈRE FOIS QU'ELLE L'EST QUELQUE PART.
+ * Le dossier déclare servir 320 px — mais 320 px de QUOI ? Sous le réglage de texte, la mise en
+ * page dispose de `largeur ÷ zoom` (règle 10) : un appareil de 320 px au plus grand réglage n'offre
+ * plus que 246 × 492 px CSS, soit moins que le plancher de WCAG 1.4.10 « Reflow » et moins que ce
+ * que le projet dit servir. Mesuré : dans cette seule configuration, le préambule (chapeau des
+ * memory items, ligne de confirmation, en-tête de carte) coûte 309 px visuels d'une zone utile de
+ * 403 — la première étape naît donc sous le dock. Ce n'est PAS un défaut de chrome : le chrome y a
+ * déjà rendu tout ce qu'il pouvait rendre (28,6 % au nominal après compaction). Y gagner encore
+ * demande de RETIRER DU CONTENU du préambule, c'est-à-dire de rouvrir A3 et A110 — une décision de
+ * conception, pas un correctif.
+ * ⚠ L'ENVELOPPE PORTE SUR L'APPAREIL, PAS SUR LA LARGEUR EFFECTIVE — et l'écrire dans l'autre sens
+ * a été essayé puis mesuré FAUX. Un plancher exprimé en px CSS effectifs met HORS PORTÉE le cas le
+ * plus courant du parc (390 × 844 au plus grand réglage = 300 px CSS), c'est-à-dire précisément
+ * celui que ce balayage existe pour couvrir : le harnais se serait excusé du cas réel pour ne
+ * garder que le cas facile. L'enveloppe est donc « tout appareil ≥ 320 px, à TOUS les réglages de
+ * texte » — la lecture exigeante, et celle qu'implique la règle 10. */
+const DEV_FLOOR = 320;
+
+for (const fmt of FORMATS) for (const zoom of ZOOMS) {
+  console.log(`\n── ${fmt.w} × ${fmt.h} (${fmt.nom}) · texte ${zoom} % ──`);
   const p = await br.newPage({ viewport: { width: fmt.w, height: fmt.h }, hasTouch: true });
   p.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
   await p.goto(`http://localhost:${port}/index.html`);
   await amorce(p);
 
-  const r = await p.evaluate(async () => {
+  const r = await p.evaluate(async (zoom) => {
     const w = m => new Promise(r => setTimeout(r, m));
     const f = fiches.find(x => /Anaphylaxie/i.test(x.title)) || fiches[0];
     openRead(f.id); await w(400);
     const b = document.getElementById('sessStart'); if (b) b.click(); await w(700);
+    /* Le zoom se pose APRÈS le démarrage : c'est l'ordre réel — on règle la taille du texte une
+       fois pour toutes, puis on ouvre une fiche. Le poser avant ne changerait rien à la
+       géométrie, mais `applyZoom` recale des mesures (paliers, fil collant) et l'on veut que ce
+       recalage ait eu lieu sur la page DE CRISE, pas sur l'accueil. */
+    applyZoom(zoom); await w(400);
     /* ON NE DÉFILE PAS. Tout le contrôle porte sur ce qui est à l'écran À L'INSTANT du
        démarrage : c'est la seule chose que quelqu'un les mains prises va voir. */
     const H = innerHeight;
     const hOf = s => { const e = document.querySelector(s); if (!e) return 0; const q = e.getBoundingClientRect(); return q.height; };
-    /* v5.6 : la rangée de COMMANDES a quitté le haut de l'écran (elle est devenue le dock bas) ;
-       le chrome haut n'est plus que l'en-tête et la capsule d'état. */
-    const chrome = hOf('header.bar') + hOf('#crisisDock');
+    /* ⚠ LE DOCK EST DU CHROME PERMANENT, ET IL N'ÉTAIT PAS COMPTÉ (audit externe v5.10.0).
+       En v5.6 la rangée de COMMANDES a quitté le haut de l'écran pour devenir le dock bas — et le
+       budget est resté calibré sur les TROIS couches d'avant tout en n'en mesurant plus que DEUX.
+       Le seuil de 30 % n'a pas bougé, mais ce qu'il borne a perdu un tiers : le budget s'est
+       assoupli tout seul, en silence, au moment précis où l'on déplaçait la couche. Or le dock
+       est `position:fixed`, il existe pendant toute la session, il ne défile pas et il RÉSERVE sa
+       hauteur au bas du flux : c'est la définition même du chrome permanent. Il compte. */
+    const chrome = hOf('header.bar') + hOf('#crisisDock') + hOf('#sessionDock');
 
-    /* Une étape « visible » est une étape ENTIÈREMENT dans le viewport et sous le chrome
-       collant — une ligne à moitié cachée derrière le quai n'est pas cochable de confiance. */
+    /* Une étape « visible » est une étape ENTIÈREMENT dans la ZONE UTILE : sous les couches
+       collantes du haut ET au-dessus du dock. Une ligne à moitié cachée derrière le quai ou
+       derrière le dock n'est pas cochable de confiance — et le contrôle bornait le bas au
+       VIEWPORT, donc comptait comme visibles des étapes que le dock recouvre. */
     const bas = (() => { let m = 0; for (const s of ['header.bar', '#crisisDock']) { const e = document.querySelector(s); if (!e) continue; const q = e.getBoundingClientRect(); if (q.height && q.bottom > m) m = q.bottom; } return m; })();
+    const dk = document.getElementById('sessionDock');
+    const plafondBas = (dk && dk.getBoundingClientRect().height) ? dk.getBoundingClientRect().top : H;
     const etapes = [...document.querySelectorAll('.ov-wrap ol.steps li[data-ck], .nav-wrap ol.steps li[data-ck], ol.steps li[data-ck]')];
-    const visibles = etapes.filter(e => { const q = e.getBoundingClientRect(); return q.top >= bas - 1 && q.bottom <= H + 1; });
+    const visibles = etapes.filter(e => { const q = e.getBoundingClientRect(); return q.top >= bas - 1 && q.bottom <= plafondBas + 1; });
 
     /* La carte du bloc courant et sa pile d'actions. La pile = tout ce qui, DANS la carte, est
        un contrôle d'avancement, d'exception ou de traçabilité — pas les cases à cocher, qui
@@ -95,13 +143,18 @@ for (const fmt of FORMATS) {
       premiereY: etapes.length ? Math.round(etapes[0].getBoundingClientRect().top) : null,
       cardH: Math.round(cardH), pileH: Math.round(pileH), nItems,
       pctPile: cardH ? +(pileH / cardH * 100).toFixed(1) : 0,
+      zf: +(getComputedStyle(document.documentElement).getPropertyValue('--zf') || 1),
     };
-  });
+  }, zoom);
 
-  console.log(`     chrome ${r.chrome} px / ${r.H} · carte ${r.cardH} px · ${r.nItems} item(s) · 1ʳᵉ étape à y=${r.premiereY}`);
-  t(`chrome permanent ≤ 30 % de la hauteur`, r.pctChrome <= 30, `${r.pctChrome} % (${r.chrome} px)`);
+  const sc = seuilChrome(zoom);
+  const cssW = Math.round(fmt.w / (zoom / 100)), cssH = Math.round(fmt.h / (zoom / 100));
+  console.log(`     ${cssW} × ${cssH} px CSS effectifs · chrome ${r.chrome} px / ${r.H} · carte ${r.cardH} px · ${r.nItems} item(s) · 1ʳᵉ étape à y=${r.premiereY}`);
+  t(`le réglage de texte est bien appliqué (--zf = ${zoom / 100})`, Math.abs(r.zf - zoom / 100) < .001, `--zf = ${r.zf}`);
+  t(`chrome permanent ≤ ${sc} % de la hauteur`, r.pctChrome <= sc, `${r.pctChrome} % (${r.chrome} px)`);
   t(`au moins UNE étape cochable entièrement visible sans défiler`, r.nVisibles >= 1,
     `${r.nVisibles} sur ${r.nEtapes} — 1ʳᵉ à y=${r.premiereY} pour un pli à ${r.H}`);
+  if (fmt.w < DEV_FLOOR) console.log(`  · appareil sous le plancher déclaré (${DEV_FLOOR} px)`);
   /* Borné au cas DOCTRINAL : sous 4 items, le ratio mesure la fiche et non l'application. */
   if (r.nItems >= 4) t(`pile d'actions ≤ 25 % de la carte du bloc`, r.pctPile <= 25, `${r.pctPile} % (${r.pileH} px sur ${r.cardH})`);
   else console.log(`  · pile d'actions : non mesurée (bloc de ${r.nItems} item(s), sous le cas doctrinal de 4)`);

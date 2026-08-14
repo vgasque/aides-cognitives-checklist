@@ -426,6 +426,21 @@ await sec('Lot Page · une seule grille, la même image aux trois formats', asyn
   t('le même texte, dans le même ordre, aux trois largeurs',
     r360.texte===r768.texte&&r768.texte===r1280.texte,
     'longueurs '+JSON.stringify([r360.texte.length,r768.texte.length,r1280.texte.length]));
+  /* ⚠ LA COLONNE D'ÉTAT NE DÉMÉNAGE PAS POUR FAIRE PLACE À LA PAGE — CONTRÔLE DE NON-RÉGRESSION
+     (audit externe v5.10.1). `.pg-wide` a fait céder cette colonne le temps d'une itération, pour
+     rendre à la feuille sa largeur d'auteur ; refusé à l'usage (« le volet noter l'heure reste
+     petit, et les minuteurs apparaissent en bas de la page »). Déplacer une surface d'ÉTAT VIVE
+     pendant un soin coûte plus cher qu'un défilement horizontal sur une surface de consultation.
+     Ce qu'on mesure ici est donc la propriété qui a été choisie : en voie large, l'état reste dans
+     SA colonne, à droite du document — quel que soit l'onglet. */
+  const col=await p1280.evaluate(()=>{const side=document.querySelector('.read-side');
+    const rm=document.querySelector('.read-main');
+    if(!side||!rm)return {absent:true};
+    const s=side.getBoundingClientRect(),m=rm.getBoundingClientRect();
+    return {aDroite:s.left>=m.right-1,memeRangee:Math.abs(s.top-m.top)<200,
+      sx:Math.round(s.left),mr:Math.round(m.right)};});
+  t('1280 · la colonne d\'état reste À DROITE du document, jamais dessous',
+    col.absent!==true&&col.aDroite===true&&col.memeRangee===true, JSON.stringify(col));
   await p360.close();await p768.close();await p1280.close();
 }
 });
@@ -2235,7 +2250,16 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
     const cb=document.getElementById('crisisBand'),bt=document.getElementById('brandTitle');
     const lire=()=>({vu:!cb.hidden,tag:cb.querySelector('.cb-tag').textContent.trim(),
       titreDansBandeau:!!cb.querySelector('.cb-ttl')});
-    const crise=Object.assign(lire(),{titreBarre:bt.textContent.trim(),disc:!!bt.querySelector('.bt-d'),
+    /* ⚠ LE TÉMOIN MESURE LA PROPRIÉTÉ, PAS LE PORTEUR (audit externe v5.10.0). Il lisait
+       `bt.querySelector('.bt-d')`, c'est-à-dire le discriminant DANS le titre — donc il validait
+       exactement le défaut : la pilule était le dernier enfant d'un nœud ellipsé et n'était jamais
+       peinte. La propriété que K6 promet est « le discriminant est LISIBLE quand le titre est
+       tronqué » ; on mesure donc qu'il est rendu, qu'il porte le bon texte, et qu'il n'est PAS
+       dans la chaîne qui s'ellipse. */
+    const bd=document.querySelector('#brandSur .bs-d');
+    const discVu=!!bd&&!bd.hidden&&bd.getBoundingClientRect().width>0&&/adulte/.test(bd.textContent);
+    const crise=Object.assign(lire(),{titreBarre:bt.textContent.trim(),
+      disc:discVu&&!bt.contains(bd)&&bt.scrollWidth>bt.clientWidth,
       /* v5.6 (A14) : la pilule de mode a cédé la place au SUR-TITRE, dans la zone d'identité. */
       pilule:!document.getElementById('brandSur').hidden});
     state.previewFrom='edit';render();await w(400);
@@ -2248,7 +2272,8 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
   t('témoin : la crise est bien à l’écran (pilule de mode posée)', R.crise.pilule===true, String(R.crise.pilule));
   t('crise ordinaire : aucun bandeau, le titre est dans la barre',
     R.crise.vu===false&&R.crise.titreBarre.length>0, JSON.stringify(R.crise));
-  t('… et le discriminant l’y suit (K6 survit à la troncature)', R.crise.disc===true, String(R.crise.disc));
+  t('… et le discriminant SURVIT à la troncature du titre (K6), hors de la chaîne ellipsée',
+    R.crise.disc===true, String(R.crise.disc));
   t('le bandeau ne porte plus AUCUN titre (purgé)', R.crise.titreDansBandeau===false, String(R.crise.titreDansBandeau));
   /* L'ESSAI N'EST PAS UNE EXCEPTION AU SENS DU BANDEAU : la barre y dit déjà tout, il ne manquait
      que la TEXTURE — et elle vit sur l'en-tête. Un bandeau sans titre ni phrase y serait une
@@ -3122,6 +3147,16 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
     vive.continuerDepuisLeHaut=(()=>{const n=document.querySelector('[data-ovnext]');
       if(!n)return null; const g=n.getBoundingClientRect();
       return g.top>=stickBase()&&g.bottom<=innerHeight;})();
+    /* ⚠ LE PRÉDICAT DE RÉGIME EST CELUI DE L'APPLICATION, PAS UN SEUIL À NOUS (A109/4, rejouée ici
+       en v5.10.1). Il valait « plus de 100 px à défiler » : un proxy, et un resserrement de 10 px
+       du préambule a suffi à faire basculer la page de 106 à 96 px — le témoin a alors exigé
+       l'immobilité d'un atterrissage parfaitement juste (mesuré : 88 px défilés, bout déposé à
+       8 px sous les couches collantes). `landOnBout` ne décide pas sur une distance mais sur la
+       VISIBILITÉ ENTIÈRE du bout depuis le haut de page — « si le bout est déjà entièrement à
+       l'écran, rien ne bouge ». On mesure donc cela. */
+    vive.boutEntierDepuisLeHaut=(()=>{const c=bout();if(!c)return null;
+      const g=c.getBoundingClientRect();
+      return g.top>=stickBase()-1&&g.bottom<=innerHeight+1;})();
     // NON-RÉGRESSION : une aide SANS session vive s'ouvre en haut.
     const g=fiches.find(x=>x.id!==f.id);
     let inerte=null;
@@ -3141,9 +3176,9 @@ for (const fmt of [{w:320,h:640},{w:390,h:844}]) {
      Le témoin mesure donc la PROPRIÉTÉ dans les deux régimes : quand le cas existe, on atterrit
      sur le bout ; quand il n'existe pas, on ne bouge pas. Écrire l'un sans l'autre rendrait rouge
      un comportement juste — la faute que ce fichier a déjà commise deux fois sur ce témoin. */
-  const casExiste=v.aDefilerDepuisLeHaut>100 && v.continuerDepuisLeHaut===false;
+  const casExiste=v.boutEntierDepuisLeHaut===false;
   t(`${fmt.w}× régime mesuré : ${casExiste?'le bout est loin, il faut y atterrir':'le bout est déjà là, rien à rattraper'}`,
-    true, `${v.aDefilerDepuisLeHaut} px depuis le haut, Continuer visible=${v.continuerDepuisLeHaut}`);
+    true, `${v.aDefilerDepuisLeHaut} px depuis le haut, bout entier=${v.boutEntierDepuisLeHaut}, Continuer visible=${v.continuerDepuisLeHaut}`);
   t(`${fmt.w}× ${casExiste?'la réouverture atterrit sur le bout':'… et la réouverture ne défile pas pour rien'}`,
     casExiste ? (v.aDefiler!=null && v.aDefiler<=12) : (v.scrollY===0),
     `${v.aDefiler} px à défiler, scrollY=${v.scrollY}`);
@@ -5854,6 +5889,103 @@ await sec('A131 · sans horodatage, la rangée se tait', async () => {
   await page.waitForTimeout(300);
   const rien=await page.evaluate(()=>fiches.some(f=>/A131 — sans horodatage/.test(f.title)));
   t('annuler l\'atelier n\'écrit rien',rien===false,String(rien));
+  await page.close();
+});
+
+/* ═══ « TOUT VOIR » EST UNE EXCURSION : ELLE REVIENT OÙ L'ON ÉTAIT ═══════════════════════════
+   Signalé à l'usage (audit externe v5.10.0) : « quand je sors du mode tout voir mon scroll est
+   tout en bas — il devrait être sauvegardé à la dernière position où j'étais », puis « si quelqu'un
+   dans une session partagée a continué à cocher pendant que j'y étais, la longueur de page change,
+   que je ne me retrouve pas tout en bas ».
+   Deux propriétés, et la seconde est celle qui discrimine : (1) le retour repose où l'on est parti,
+   pas où l'excursion s'est terminée ; (2) il le fait par une ANCRE — le bloc qu'on regardait, à son
+   décalage d'écran — donc il survit à un document qui a changé de longueur pendant l'excursion.
+   Un `scrollY` brut satisferait (1) et échouerait (2), et c'est exactement le régime où le
+   navigateur RABAT au maximum (A46, A109), c'est-à-dire le défaut par une autre porte. */
+await sec('EXCURSION · « Tout voir » revient où l’on était', async () => {
+  const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/Arrêt cardiaque/i.test(x.title))||fiches[0];
+    openRead(f.id);await w(500);
+    document.getElementById('sessStart').click();await w(800);
+    const vu=()=>{const b=[...document.querySelectorAll('[data-ovb]')]
+      .find(e=>e.getBoundingClientRect().bottom>stickBase()+2);
+      return b?{id:b.dataset.ovb,top:Math.round(b.getBoundingClientRect().top)}:null;};
+    window.scrollTo(0,300);await w(300);
+    const avant={y:Math.round(scrollY),vu:vu(),h:document.documentElement.scrollHeight};
+    document.getElementById('allBtn').click();await w(700);
+    /* On va AU BOUT de l'excursion : c'est la position qui produisait le défaut, et sans elle le
+       contrôle resterait vert (partir et revenir sans bouger ne discrimine rien). */
+    window.scrollTo(0,document.documentElement.scrollHeight);await w(400);
+    const bout=Math.round(scrollY);
+    /* LE COLLÈGUE AVANCE PENDANT L'EXCURSION — c'est le cas qui distingue une ANCRE d'un nombre.
+       On passe par l'ÉTAT et non par le DOM : la vue « Tout voir » est inerte, et un lot distant
+       n'y touche pas davantage. */
+    const b0=Runtime.nav[state.navPos];
+    const bloc=Runtime.fiche.blocks.find(x=>x.id===b0)||{};
+    (stepsOf(bloc)||[]).forEach((_,i)=>{state.checked[state.navPos+':'+b0+':'+i]=true;});
+    if(bloc.next){Runtime.nav.push(bloc.next);state.navPos=Runtime.nav.length-1;}
+    await w(200);
+    document.getElementById('allBtn').click();await w(900);
+    const apres={y:Math.round(scrollY),vu:vu(),h:document.documentElement.scrollHeight,
+      max:Math.round(document.documentElement.scrollHeight-innerHeight)};
+    return {avant,bout,apres};});
+  // LE CAS EST RENCONTRÉ : on était bien parti d'ailleurs que du bout, on a bien atteint le bout,
+  // et le document a bien changé de longueur pendant l'excursion.
+  t('le cas est rencontré : l’excursion s’est terminée AU BOUT, loin du point de départ',
+    r.bout>r.avant.y+100, `${r.avant.y} → ${r.bout}`);
+  t('… et la page a bien changé de longueur pendant l’excursion',
+    r.apres.h!==r.avant.h, `${r.avant.h} → ${r.apres.h} px`);
+  t('le retour ne dépose PAS à la borne du défilement',
+    r.apres.y<r.apres.max-40, `y=${r.apres.y} pour un max de ${r.apres.max}`);
+  // LA PROPRIÉTÉ, ET NON LE MÉCANISME : c'est le bloc REGARDÉ qui revient à sa place, à quelques
+  // pixels près — un `scrollY` brut le raterait dès que la page change de longueur au-dessus.
+  t('… et il repose le bloc qu’on regardait à son décalage d’écran',
+    !!r.avant.vu&&!!r.apres.vu&&r.apres.vu.id===r.avant.vu.id&&Math.abs(r.apres.vu.top-r.avant.vu.top)<=8,
+    JSON.stringify({avant:r.avant.vu,apres:r.apres.vu}));
+  await page.close();
+});
+
+/* ═══ UN FILTRE QUI NE FILTRE RIEN N'EST PAS UN FILTRE ═══════════════════════════════════════
+   Sur une installation neuve, le rail de l'accueil affichait NEUF catégories dont SIX à zéro. Deux
+   propriétés, et la seconde est un GARDE au sens d'A132 — il ne peut pas rougir aujourd'hui par un
+   chemin d'interface (basculer le type remet `state.cat` à null), mais il mesure la PROPRIÉTÉ qui
+   compte : un filtre posé ne devient jamais invisible, quelle que soit la façon dont son compte
+   tombe à zéro (suppression de la dernière fiche, pull de synchro). */
+await sec('ACCUEIL · les catégories vides ne mènent nulle part', async () => {
+  const page = await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const lire=()=>[...document.querySelectorAll('.home-side .hs-row[data-cat]')].map(b=>({
+      id:b.dataset.cat,n:b.querySelector('.hs-name').textContent,
+      c:b.querySelector('.hs-n').textContent,on:b.classList.contains('on')}));
+    state.view='library';state.cat=null;render();await w(400);
+    const nominal=lire();
+    const tous=categories.length;
+    const vides=categories.filter(c=>!fiches.concat(protocols).some(x=>x.category===c.id));
+    /* LE CAS DU GARDE : une catégorie SÉLECTIONNÉE dont le compte est à zéro. */
+    state.cat=vides.length?vides[0].id:null;render();await w(400);
+    const selVide=lire();
+    state.cat=null;render();await w(200);
+    return {tous,nVides:vides.length,nominal,selVide,videId:vides.length?vides[0].id:null};});
+  // ON RENCONTRE SON CAS : sans catégorie vide au départ, l'absence de rangée ne prouverait rien.
+  t('le cas est rencontré : des catégories sont vides sur une installation neuve',
+    r.nVides>=1, `${r.nVides} vide(s) sur ${r.tous}`);
+  t('aucune catégorie à zéro dans le rail',
+    r.nominal.filter(x=>x.id&&x.c==='0').length===0, JSON.stringify(r.nominal.map(x=>x.n+':'+x.c)));
+  t('… et les non vides sont TOUTES là',
+    r.nominal.filter(x=>x.id).length===r.tous-r.nVides, `${r.nominal.filter(x=>x.id).length} sur ${r.tous-r.nVides}`);
+  // GARDE (A132) : il ne discrimine pas aujourd'hui, il tient la propriété.
+  t('GARDE · une catégorie SÉLECTIONNÉE reste visible même à zéro',
+    !!r.videId&&r.selVide.some(x=>x.id===r.videId&&x.on&&x.c==='0'),
+    JSON.stringify(r.selVide.filter(x=>x.on)));
   await page.close();
 });
 

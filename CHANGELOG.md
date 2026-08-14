@@ -1,4 +1,104 @@
 # Journal des modifications
+## [5.10.1] — 2026-08-14
+### Audit design externe : ce que les garde-fous ne voyaient pas
+
+Audit mesuré au rendu (320 · 390 · 1280 px × les quatre réglages de taille du texte, deux thèmes),
+sur le **contenu d'exemple livré avec le produit** — donc sur ce que voit le premier utilisateur,
+le premier jour. Les dix-huit contrôles statiques étaient **verts** : chaque défaut ci-dessous
+était, par construction, hors de leur portée. Doctrine : `AGENTS.md` A139 à A148.
+
+**Ce que l'audit a établi sur le fond, et qu'il faut dire avant les correctifs.** Une sonde de
+contraste indépendante (composition de l'opacité des ancêtres et du fond effectif) rend **0
+violation AA** sur l'écran de crise dans les deux thèmes ; 22 couleurs peintes pour 123 jetons
+déclarés, chacune avec un sens constant ; cases à cocher à 3,33:1 en sombre ; réserve du dock sans
+un pixel masqué ; anneau de focus franc. Le système tient. Ce qui cédait, ce sont **trois bords que
+rien ne balayait** : la grande police, la largeur plancher, le contenu long.
+
+- **Le discriminant clinique n'était jamais peint.** « adulte » / « pédiatrique » vivait dans
+  `#brandTitle`, qui s'ellipse — dernier enfant, donc premier amputé : à 390 px, 193 px de boîte
+  pour 358 nécessaires, la pilule commençant au 308ᵉ pixel. Le champ créé pour distinguer deux
+  procédures homonymes était exactement ce que la troncature emportait d'abord, avec une doctrine
+  qui affirmait le contraire. Il rejoint le **sur-titre**, où il ne coûte **rien** : mesuré,
+  l'en-tête fait 61 px avec et sans sur-titre, et le titre regagne les 50 px que la pilule
+  consommait dans sa chaîne.
+- **Le mécanisme anti-`@media` de la règle 10 était mort.** `syncZoomWidth()` posait
+  `zw560/430/400/360` à chaque rendu et **aucune règle ne les lisait** — leurs consommateurs
+  étaient partis avec la rangée de commandes en v5.6, le poseur était resté (`check-classes` ne
+  peut pas le voir : le nom est calculé). Pendant ce temps le dock écrivait son palier en `@media`,
+  donc il ne se déclenchait jamais sous zoom : mesuré à 390 px × 130 %, la mise en page dispose de
+  300 px effectifs, `zw360` est bien posée, et les quatre étiquettes survivaient sur deux à trois
+  lignes dans des touches de 76 px. Un **cinquième palier** naît de ce lot, `zw300`, qui ne peut
+  naître que du zoom — aucun appareil ne fait 300 px.
+- **Le budget d'écran comptait deux couches sur trois, et un réglage sur quatre.** En v5.6 la
+  rangée de commandes est devenue le dock bas ; `audit-budget` est resté calibré sur les trois
+  couches d'avant tout en n'en mesurant plus que deux — le seuil de 30 % n'a pas bougé, mais ce
+  qu'il borne a perdu un tiers. Le harnais balaie désormais les quatre crans de texte et compte le
+  dock. Mesuré avant correction à 320 × 640 × 130 % : chrome **41,3 %** et **zéro étape cochable**.
+  Après compaction des rembourrages (jamais des cibles : `.sd-key` descend à 44 px, exactement le
+  plancher d'A8) : **24/24 sur six configurations**.
+- **Le plus grand corps de l'écran de crise appartenait à un libellé de navigation.** Relevé des
+  corps peints : titre de bloc 21/700, étape vitale 17,5/800, cadence **11/600** — le plancher
+  typographique pour « 30:2 — sans délai », qui gouverne le geste. Deux crans échangés : le titre
+  descend, la cadence remonte juste sous l'étape qu'elle qualifie. Bénéfice second, mesuré : à
+  320 px × 130 % le titre ne se coupe plus **en plein mot**. Une carte de **décision** garde le
+  grand cran — A75 exige que son titre passe devant sa question.
+- **Deux touches du dock, un seul glyphe, aucun mot.** « Tout voir » et « Consulter » partageaient
+  ⤢ — choix juste en v4.25.0 — et A2 leur retire l'étiquette sous 360 px : restaient deux boutons
+  voisins, même symbole, deux destinations, en mode crise. Aucune des deux règles n'est fautive ;
+  leur **composition** l'était. « Consulter » prend `book`. Dans la foulée, les glyphes du dock
+  passent par `uiIcon` (⚡︎ → `bolt`, ⏱︎ → `stopwatch`, entrée `backto`), et trois SVG littéraux
+  dupliqués entre la coque et le peintre disparaissent.
+- **Un jeton court est un item dur.** Le code « ANA » manquait de **un pixel** (29 rendus pour 30)
+  et s'affichait « A… » : l'unité était fausse — un pixel manquant sur trois lettres en détruit
+  deux, l'ellipse consommant la place qu'elle libère. Décision prise à l'émission, seuil cinq
+  caractères. ⚠ Prioritaire, **pas rigide** : un témoin a montré qu'en le rendant immuable il était
+  poussé hors de la boîte à 330 px, c'est-à-dire disparu.
+- **« Tout voir » revient enfin où l'on était** *(signalé à l'usage)*. Reproduit : parti de y=300,
+  l'excursion défilée jusqu'au bout, retour à **575 — le maximum du document**. L'ancre était
+  traduite aux deux jambes ; elle est juste à l'aller, et restitue au retour la position de **fin
+  d'excursion**. Le second symptôme signalé — « la barre flottante et les clics sont décalés
+  jusqu'à ce qu'on remonte » — tombe avec le premier : atterrir à la borne est la condition exacte
+  du rabat de fin de page et du rebond iOS. ⚠ On mémorise une **ancre**, pas un nombre : si un
+  collègue avance le parcours pendant l'excursion, la page change de longueur et un `scrollY` brut
+  redéposerait à la borne (cas construit et mesuré, document 1420 → 1769 px).
+- **La carte de session vive** : « Reprendre » ne se détachait pas de sa carte (**1,69:1** — le
+  défaut qu'A43 a nommé pour la pastille Compte, la limite d'un composant et non son texte). Il
+  prend `--ok-sys` (**9,08:1**), qui est déjà le registre du retour d'excursion du dock — « vous
+  êtes loin de chez vous, ceci vous y ramène ». Et « Reprendre » / « Terminer » avaient deux
+  hauteurs (38 et 36) à 10 px l'un de l'autre : les deux passent à 44 px, l'écart s'ouvre.
+- **L'étiquette de complication borne sa parenthèse** — « FV réfractaire.. » était clampée à deux
+  lignes *et* encore tronquée, alors que savoir laquelle s'ouvre est tout l'objet du bouton. La
+  parenthèse qualifie, elle n'identifie pas ; la phrase entière reste dans le nom accessible.
+- **Les quatre touches du dock sont enfin égales** : `flex:1.3` donnait à ⏱ une piste 30 % plus
+  large — mesuré 79/79/79/100 à 390 px et 46/46/88/110 à 320.
+- **Les catégories vides sortent du rail de l'accueil.** Sur une installation neuve, neuf
+  catégories dont **six à zéro** : six rangées menant à une liste vide, en tête du premier écran.
+  Un filtre qui ne filtre rien n'est pas un filtre — et la taxinomie garde son lieu, « Gérer les
+  catégories ». ⚠ La catégorie **sélectionnée** reste, même à zéro : la retirer rendrait le filtre
+  invisible au moment précis où il explique une liste vide.
+- **En crise, le préambule ne paie que ce qu'il montre** *(signalé à l'usage)*. À 390 px, session
+  vive, **106 px** séparaient le bas de la capsule du haut de la carte, dont **24 px de pur
+  espacement**. Ramenés à 4 px chacun : **96 px**, rythme régulier, première étape 10 px plus haut.
+  Les boîtes du chapeau et de la ligne-bilan ne bougent pas — elles sont tapables (40 et 44 px) ;
+  seule la respiration entre elles cède.
+- ⚠ **La Page garde son défilement horizontal, et c'est un retour en arrière assumé.** J'avais fait
+  céder la colonne d'état pour rendre à la feuille sa largeur d'auteur (227 px de débordement à
+  1280 px). Refusé à l'usage, en deux symptômes qui n'en font qu'un : « le volet noter l'heure reste
+  petit » et « les minuteurs apparaissent en bas de la page ». Déplacer une surface d'**état vive**
+  pendant un soin coûte plus cher qu'un défilement horizontal sur une surface de **consultation** —
+  et mon rapport classait d'ailleurs ce point en simple amélioration. Le débordement reste, sans
+  solution gratuite : l'ajustement d'office ramènerait une cible de 44 px à 34, et rétrécir la
+  feuille casserait « la même image partout ». Un témoin de non-régression tient désormais la
+  propriété choisie : en voie large, l'état reste à droite du document.
+
+⚠ **Deux pièges du dossier se sont produits pendant ce lot, et le second a masqué le premier** :
+le script inline a été édité sans rejouer `csp-hashes.mjs` (règle 3), donc la CSP a bloqué le seul
+script et l'application n'a plus démarré — pendant que l'onglet de développement affichait une page
+parfaitement fonctionnelle, le service worker resservant l'ancien HTML. Ensemble, ils donnent
+« ça marche chez moi, ça casse au harnais ».
+
+Chaque correctif est vérifié au rendu, et le nouveau témoin d'excursion a été **vérifié capable
+d'échouer** — défaut réintroduit, contrôle rouge, fichier restauré à l'octet.
 
 ## [5.10.0] — 2026-08-14
 ### La vue « Page » devient un document
@@ -946,162 +1046,3 @@ execute 'transaction' on 'IDBDatabase' : The database connection is closing ».
   réussit — lecture comme écriture groupée, par où passe le pull de synchronisation. Vérifié
   capable d'échouer sur les deux moteurs.
 
-## [5.0.9] — 2026-08-04
-### Quatre défauts d'affichage signalés à l'usage, et l'un d'eux n'était mesurable par aucun harnais
-
-- **La réponse attendue enroule au lieu d'écraser le geste** (vue « Toute la fiche » › Parcours,
-  capture à l'appui). `.pc-r` était `flex:none` dans une rangée qui n'enroulait pas : le seul objet
-  compressible était donc l'**action** (`.pc-t`, `min-width:0`). Mesuré sur un cas adverse à
-  320 px — « Curariser… » tombait à quelques pixels de large pendant que la pilule sortait de la
-  carte. On perdait ainsi l'information principale *et* la secondaire. Le remède est déjà écrit
-  dans ce fichier pour ce défaut exact, sur la feuille « Consulter » (`.rs-v`) : la pilule prend sa
-  propre ligne, alignée sur le texte. **Une seule grammaire — on enroule, on ne tronque jamais.**
-- **Chaque branche d'une décision porte son étiquette, et une branche sans carte n'est plus
-  muette.** L'étiquette était mise en attente puis posée devant la première *carte* de la branche —
-  or `flowPlan` n'en émet pas toujours : une branche qui rejoint le point de convergence ou qui
-  reboucle sur un bloc déjà décrit ne produit qu'un renvoi. Mesuré sur la fiche d'exemple
-  Anaphylaxie : seule « NON — RÉFRACTAIRE » s'affichait, « OUI — STABILISÉ » n'a **jamais** été
-  rendue. L'étiquette s'émet désormais à l'ouverture de la branche (même position dans le cas
-  nominal, présente dans les autres), et le renvoi se dessine — « → n », « ↺ n », « ▪ fin », le
-  vocabulaire abrégé de l'Échelle — mais **seulement quand la branche n'a pas de carte** : sinon le
-  pied de la carte précédente le dit déjà, et l'on écrirait deux fois la même chose. Tout y reste
-  **inerte** (doctrine du plan, vérifiée).
-- **⚡ Les cibles de complication se reconnaissent dans le schéma** (proposition de l'auteur :
-  « mettre un éclair et en rouge ? »). Le SVG était la **seule** des quatre vues de structure où
-  une cible de complication se dessinait comme un bloc d'étapes ordinaire — donc comme *l'étape
-  d'après*, le défaut exact mesuré en v4.26.0 (« 5 Laryngospasme »). L'Échelle, le tableau Statique
-  et la vue Parcours ont toutes leur section « À tout moment ». Registre **ALERTE en CONTOUR**
-  (v4.26.1) : bandeau d'en-tête teinté, liseré et cadre rouges, **corps du bloc inchangé** — un
-  aplat rouge permanent désensibilise au rouge, qui appartient ici aux étapes vitales dessinées à
-  l'intérieur. La couleur n'est jamais seule (règle 8) : pastille « ⚡ À TOUT MOMENT » en toutes
-  lettres, reprise dans le nom accessible du nœud. L'éclair est un **tracé** et non le caractère
-  « ⚡ », qui sortirait en emoji couleur sur iOS dans un dessin qui n'a d'autre couleur que ses
-  registres.
-- **Un bloc complet l'est sur toute sa bordure** (« uniquement le bord gauche devient vert et pas
-  le reste »). `.done` n'écrivait que `border-left-color` : un bloc **courant et complet** portait
-  un cadre bleu avec une seule arête verte — deux registres sur un même trait, exactement ce que la
-  v4.24.0 a corrigé en sens inverse pour la décision. Et c'est la configuration **nominale** : on
-  finit de cocher le bloc où l'on est. La carte *repliée* le faisait déjà (`.closed.done`) — le
-  même bloc changeait donc de registre selon qu'il était plié. Pas de fond teinté sur la carte
-  ouverte, qui est la colonne d'action et porte des étapes ⚠/△ dont la boîte doit rester lisible ;
-  une **décision reste exclue**, son ambre prime sur l'état.
-
-### ⚠ Le chrome collant ne se dérive plus d'une position de défilement
-
-« Barre d'en-tête inférieure, scroll pas très réactif, beaucoup d'à-coups » — vidéo à l'appui, où
-les deux rangées collantes se désolidarisent de l'en-tête et laissent une bande vide à leur place.
-
-`--hdr-h` est le `top` collant de la rangée de commandes, donc du quai empilé dessus. Il était
-dérivé du **`bottom`** de l'en-tête, c'est-à-dire d'une *position*. Or, au rebond de fin de course,
-iOS **translate tout le document**, en-tête collant compris : `bottom` grandit, `--hdr-h` grandit
-avec lui, les deux rangées descendent — puis reviennent. À la cadence du doigt, c'est le
-tremblement filmé. C'est la **hauteur** qu'il fallait mesurer : elle ne dépend d'aucun défilement,
-et c'est la seule des deux qui exprime ce que la valeur veut dire. Idem pour `--stick-top`, devenu
-une somme de hauteurs ; `stickBase()` garde ses rectangles là où c'est juste — `ovScrollEl`, qui
-vise une position d'écran à l'instant du saut.
-
-Même famille que le rail A→Z (v5.0.2) et que la hachure des placards (v5.0.6) : **on n'ancre
-jamais à un repère qu'on ne contrôle pas**, et ce que le compositeur fait du rendu n'est visible
-dans aucune mesure de la page — un harnais Blink reste vert. Le témoin **déplace** donc l'en-tête
-sans changer sa hauteur, stand-in fidèle de ce que fait le compositeur, et vérifie que la géométrie
-du chrome ne bouge pas d'un pixel (vérifié capable d'échouer : défaut réintroduit → 3 rouges).
-
-Bénéfice second, et il compte autant : la valeur devenant **constante**, la garde d'écriture
-devient un vrai no-op — on cesse d'invalider le style de tout le document (une propriété
-personnalisée posée sur `<html>`) à chaque évènement de défilement. Et la passe est désormais
-**coalescée par image** au lieu d'être branchée sur l'évènement : elle lit quatre rectangles puis
-écrit trois propriétés, un couple lecture/écriture qu'on n'intercale plus dans le pipeline de
-défilement (même discipline que `svPaintArrows`, v4.14.10). L'appel direct de `render()` reste
-synchrone — `landOnBout` se mesure contre `stickBase()`, qui doit avoir été resynchronisé avant.
-
-### Témoins
-
-`audit-doctrine` : trois sections neuves (15 contrôles) — le parcours sur un cas **adverse
-construit** (réponse longue, branche qui reboucle, à 320 px : sur les fiches d'exemple aucune
-réponse ne déborde, le contrôle serait resté vert sur le défaut), la géométrie du chrome sous
-déplacement, et les quatre côtés d'un bloc complet. `audit-complications` : 5 contrôles sur le
-schéma, dont un qui vérifie d'abord que le nœud **existe** — et l'on y mesure la *propriété* (le
-nœud se distingue par un mot ET par le registre, aucun autre ne l'emprunte), jamais la valeur d'un
-hex isolé, qui rougirait sur un changement de token qui serait juste.
-
-**⚠ Une leçon de méthode, payée à l'écriture.** Le correctif du bloc complet a d'abord été livré
-inerte : le commentaire qui l'explique portait un **`*/` en trop**, le texte restait à nu et le
-parseur avalait la règle suivante — le défaut de cascade décrit dans `AGENTS.md` depuis la
-v4.74.2, reproduit à la lettre. C'est la mesure qui l'a dit, pas la relecture ; `check-syntax` le
-nomme précisément (« fermeur de commentaire sans ouvreur »), il suffisait de le lancer avant.
-
-## [5.0.8] — 2026-08-04
-### Le chapeau se glisse entre les critères et le bouton
-
-Question posée : « remonter *Confirmer le diagnostic* au-dessus de *Ne pas oublier* — est-ce
-incompatible ECAM/QRH ? ». **Non — c'est l'ordre canonique, et c'est celui d'avant qui s'en
-écartait.** Un QRH imprime le titre et la condition d'entrée au-dessus des recall items ; sur ECAM
-le titre de l'alerte — qui *est* la condition — précède les lignes d'action. La séquence est
-condition → memory items → read-and-do ; on avait memory items → condition.
-
-- **Le chapeau ne passe pas SOUS le bouton, et c'est tout l'arbitrage.** Le descendre simplement
-  sous l'étage de la condition d'entrée le mettrait *après* « Confirmé — démarrer la session », le
-  bouton vivant dans cet étage : on l'aurait rangé derrière le geste qu'il doit précéder. Il se
-  glisse donc **entre les deux** — la lecture devient exactement celle du QRH, et le bouton porte
-  l'acquittement des deux.
-- **Une fois la session démarrée, rien ne change de ce qui existait** : le chapeau replié revient
-  en tête et la condition d'entrée descend avec son étage (T3 + T5). Le débat ne portait que sur
-  l'écran d'avant.
-- **⚠ Ce que cela coûte, mesuré, et il faut le savoir** : le chapeau quitte le premier écran dès
-  que les critères sont longs (fiche à 8 critères, 390 × 844 : il naissait à y = 130, il naît à
-  y = 813). Sur une fiche ordinaire il y reste **entier** (571 → 786 à 390 × 844). Et comme le
-  bouton flotte quand il est sous le pli (v4.73.0), on peut démarrer sans avoir défilé jusqu'aux
-  memory items.
-- **Ce qui rend ce coût acceptable est le lot T7** : un memory item ★ **reste dans son bloc** — le
-  chapeau *agrège*, il ne possède pas. Rien n'est perdu : l'item se re-vérifie à sa place dans la
-  checklist, ce qui est précisément le geste QRH (réciter de mémoire, puis confirmer sur la liste).
-- **La condition est la présence du BOUTON, pas l'état de la session** : chez l'invité et en aperçu
-  d'essai `sessStartH` est vide — une séquence qui mène à un bouton absent n'a rien à ordonner, et
-  le chapeau reprend sa place en tête. Idem sur une fiche sans critères, et en mode statique, où le
-  tableau porte déjà son propre ordre (`svExtras`).
-- **⚠ La constante est déclarée avant le `if(useSv)`** : la coque de `main.innerHTML` la lit aussi
-  (c'est elle qui décide si le chapeau est encore rendu en tête de colonne). Posée dans la branche,
-  elle aurait été hors de portée — même zone morte temporelle que celle payée au lot T3.
-- Témoins dans `audit-doctrine` (6 contrôles) : ordre critères → chapeau → bouton, chapeau rendu
-  **une seule fois**, retour en tête en session, et la branche sans critères. Vérifiés capables
-  d'échouer. La fixture de la section « démarrage » a dû être **rallongée à onze critères** : avec
-  le chapeau descendu, huit ne suffisaient plus à faire défiler à 390 px, et le contrôle ne
-  rencontrait donc plus son cas.
-
-## [5.0.7] — 2026-08-04
-### Démarrer une session dépose sur le haut du premier bloc
-
-Signalé à l'usage : « lorsqu'on clique sur *démarrer la session*, s'assurer que le haut du premier
-bloc d'étapes soit visible ».
-
-- **Ce que le geste fait disparaître au-dessus du doigt.** Presser « Confirmé — démarrer la
-  session » replie le chapeau « Ne pas oublier » en une ligne (T3), referme la condition d'entrée
-  (acquittement par l'action) et remonte l'étage « Prise en charge » en tête (T5). Le défilement,
-  lui, ne bougeait pas : on atterrissait **au milieu** de la carte du bloc, son numéro, son titre
-  et « Vous êtes ici » au-dessus du pli, à l'instant précis où le soin commence.
-- **Mesuré, sur le cas pour lequel `.sess-start.afloat` existe** — une condition d'entrée longue
-  (8 critères), qu'on lit en défilant pendant que le bouton suit, flottant : après le clic, le haut
-  de la carte tombait à **−206 px à 320 × 640** (324 px au-dessus des couches collantes) et à
-  **+20 px à 390 × 844**, soit 98 px *sous* l'en-tête collant. Après : **+8 px sous le quai** dans
-  les deux formats, et **2 → 5 étapes cochables** entièrement visibles à 320 px.
-- **Ce n'est pas un défilement automatique (règle 11).** La règle vise l'écran qui bouge sous
-  quelqu'un qui n'a rien demandé ; ici la page vient d'être rendue de neuf et le geste est une
-  navigation demandée d'un tap — même arbitrage que `landOnBout` à la réentrée et que `cxEnter`.
-- **Un seul point d'écriture** (`startSessionGesture`), partagé par le bouton du parcours et son
-  homologue du tableau statique — les deux copies faisaient déjà la même chose à la ligne près.
-- **⚠ Ce chemin est celui du BOUTON, jamais celui du cochage** : un démarrage implicite (cocher une
-  étape, armer un minuteur) passe par `renderKeepAnchor` et continue de ne pas déplacer d'un pixel
-  l'élément touché (invariant ECAM v4.4.0).
-- **⚠ Et la règle de visibilité de `landOnBout` a été essayée puis mesurée fausse ici** : elle exige
-  la carte ENTIÈRE à l'écran, or une carte de bloc dépasse presque toujours le pli (615 px sur 640).
-  Elle défilait donc même quand le haut était déjà à sa place, y compris sur les fiches courtes, et
-  laissait la page décalée pour les gestes suivants — **deux témoins de dépliant l'ont dit, à
-  −51 px** (le panneau du quai ne se posait plus sous le quai). On ne garantit que ce que l'usage
-  demande : **le HAUT** de la carte sous les couches collantes, et rien ne bouge s'il y est déjà.
-- **Les trois densités ont chacune leur porteur** : `.ov-block` (journal), `.sv-cell.cur`
-  (statique), `.nav-wrap` (vue guidée d'une fiche sans algorithme) — oublier le troisième, c'était
-  ne rien faire précisément sur les fiches mono-bloc, sans que rien ne le dise.
-- Témoins dans `audit-doctrine` (11 contrôles) : le cas est **construit** (les fiches d'exemple ne
-  le rencontrent pas), il est prouvé par **contrefactuel** (on repose la page où elle était au clic
-  et l'on remesure), la vue guidée a le sien, et la **non-régression** est l'autre moitié — sur une
-  fiche courte, le démarrage ne déplace pas la page d'un pixel. Vérifiés capables d'échouer.

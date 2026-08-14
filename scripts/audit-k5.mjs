@@ -451,8 +451,10 @@ const E2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {classe:cb.classList.contains('ess'),hachure:opac,hAvecPlacard,
     etiquetteCachee:tag().hidden,
     hauteur:hAvecPlacard,hAvant,
-    /* v5.6 (A14) : l'énoncé du mode vit sur le SUR-TITRE `.brand-sur`. */
-    pilule:(document.getElementById('brandSur')||{}).textContent||'',
+    /* v5.6 (A14) : l'énoncé du mode vit sur le SUR-TITRE `.brand-sur` — et depuis l'audit externe
+       v5.10.0 il y a un VOISIN, le discriminant. On lit donc `.bs-m`, le porteur du MOT, et non le
+       `textContent` du conteneur, qui rendrait « ■ Aperçuadulte ». */
+    pilule:(document.querySelector('#brandSur .bs-m')||{}).textContent||'',
     badge:(document.querySelector('.hdr-badge')||{}).textContent||'',
     barre:document.querySelector('header.bar').classList.contains('ess')};});
 t('essai : la hachure est posée sur le bandeau', E2.classe&&E2.hachure==='1', JSON.stringify(E2.hachure));

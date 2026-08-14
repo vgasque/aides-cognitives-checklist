@@ -891,8 +891,17 @@
      hauteur qui ne coûte RIEN : la rangée d'identité porte déjà deux lignes hors crise
      (marque + sous-titre), le sur-titre prend la place du sous-titre. Hauteur d'en-tête
      CONSTANTE quel que soit l'état (corollaire A9). */
-  .brand-sur{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--crit);line-height:1.2;white-space:nowrap}
+  .brand-sur{display:flex;align-items:baseline;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--crit);line-height:1.2;white-space:nowrap}
   .brand-sur[hidden]{display:none}
+  /* LE SUR-TITRE PORTE DEUX FAITS, DANS DEUX REGISTRES (audit externe v5.10.0, cf. l'épitaphe de
+     `.bt-d`). Le MODE garde l'alerte ; le DISCRIMINANT est de l'IDENTITÉ et prend l'encre neutre —
+     lui donner le rouge du mode ferait lire « adulte » comme un danger, ce que la taxonomie des
+     registres interdit. C'est le MOT DU MODE qui est incompressible (« LE MOT NE TOMBE JAMAIS »,
+     juste en dessous) : c'est donc le discriminant qui s'ellipse s'il faut, et lui seul. */
+  .brand-sur .bs-m{flex:none}
+  .brand-sur .bs-d{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2);font-weight:700}
+  .brand-sur .bs-d[hidden]{display:none}
+  .brand-sur .bs-m:not(:empty)~.bs-d::before{content:"·";margin:0 6px;color:var(--line-strong);font-weight:400}
   /* Les placards d'exception (exercice, invité) teintent le sur-titre comme ils teintaient la
      pilule — même registre, même mot, nouvelle adresse. */
   .brand-sur.exo,.brand-sur.inv{color:var(--act)}
@@ -1199,7 +1208,15 @@
      vous, ceci vous y ramène ». Même registre que « ↩ Reprendre » d'une complication. */
   .sd-key.dp-back{background:var(--ok-sys);color:var(--on-sys-fill)}
   .sd-key.on{background:var(--sys-2);color:var(--sys-ink)}
-  .sd-key.sd-tk{flex:1.3;background:rgba(255,255,255,.1);color:var(--sys-ink)}
+  /* A18 — LES QUATRE TOUCHES ONT LA MÊME LARGEUR, ET C'ÉTAIT FAUX (audit externe v5.10.0).
+     `flex:1.3` donnait à ⏱ une piste 30 % plus large : mesuré 79,4 / 79,4 / 79,4 / 99,7 à 390 px,
+     et 46 / 46 / 87,6 / 110,4 à 320 px — un rapport de 1 à 2,4 sur la rangée de commandes de la
+     crise, dont toute la valeur tient à ce qu'on n'ait pas à la relire. La largeur n'est pas le
+     canal de la fréquence : le REGISTRE l'est, et l'aplat de cette touche le dit déjà. La seule
+     inégalité qui reste est VOULUE et documentée juste au-dessus (A2) : sous 360 px effectifs les
+     deux ouvertures passent au glyphe seul et se contentent de 46 px — deux touches à mot, deux
+     touches à glyphe, chaque paire égale à elle-même. */
+  .sd-key.sd-tk{background:rgba(255,255,255,.1);color:var(--sys-ink)}
   .sd-key.sd-cx{color:var(--crit-sys)}
   /* ══ HORS SESSION (maquette 1b/1c) : Exercice au CONTOUR, Démarrer REMPLI et large.
      Un seul bouton rempli à l'écran (v4.0.3) — et c'est celui-là, la seule action qui compte
@@ -1238,13 +1255,61 @@
   .sd-key .dp-lbl{font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word}
   /* A2 — À 320 px, LES DEUX OUVERTURES PASSENT AU GLYPHE SEUL (aria-label conservé). Hors du
      contrat « le mot Crise jamais au glyphe seul », qui ne vise que le STATUT, pas les commandes :
-     les GESTES (⚡︎, ⏱) gardent leurs mots, eux, parce qu'ils écrivent. */
-  @media (max-width:359.98px){
-    #sessionDock{padding-inline:8px}
-    .sd-in{gap:2px;padding:4px}
-    :is(#allBtn,#refBtn) .dp-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-    :is(#allBtn,#refBtn){flex:0 0 46px}
-  }
+     les GESTES (⚡︎, ⏱) gardent leurs mots, eux, parce qu'ils écrivent.
+     ⚠ CE PALIER EST UNE CLASSE, PAS UNE MEDIA QUERY — RÈGLE 10, ET ELLE A ÉTÉ ENFREINTE ICI
+     (audit externe v5.10.0). Écrit `@media (max-width:359.98px)`, il interrogeait la fenêtre du
+     PÉRIPHÉRIQUE. Mesuré à 390 px × 130 % : la mise en page dispose de 300 px effectifs,
+     `syncZoomWidth()` pose correctement `zw360` sur <html> — et la media query lisait 390, donc
+     restait muette : les quatre étiquettes survivaient sur DEUX À TROIS lignes dans des touches
+     de 76 px, c'est-à-dire que le palier de compression ne se déclenchait jamais au moment précis
+     où l'on en a le plus besoin. C'est mot pour mot le piège que la règle 10 décrit.
+     ⚠ ET LE PLUS INSTRUCTIF : c'était le PREMIER lecteur des classes `zw*`. Elles étaient posées
+     à chaque rendu et à chaque redimensionnement, et AUCUNE règle du fichier ne les consommait —
+     leurs consommateurs étaient partis avec la rangée de commandes en v5.6 (règle 14, appliquée
+     au composant mais pas à sa mécanique), le poseur était resté. `check-classes` ne pouvait pas
+     le voir : le nom est CALCULÉ (`'zw'+b`), donc hors de portée d'un contrôle statique — la même
+     limite que les noms d'icône calculés de `check-icons`. Tout palier de largeur de la zone de
+     crise ajouté demain se cale ici, jamais en `@media`. */
+  html.zw360 #sessionDock{padding-inline:8px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+  html.zw360 .sd-in{gap:2px;padding:4px}
+  /* ⚠ ET LE CHROME SE COMPACTE EN HAUTEUR, PAS SEULEMENT EN LARGEUR (audit externe v5.10.0).
+     Le budget d'écran comptait DEUX couches quand il y en a trois — le dock, devenu chrome
+     permanent en v5.6, n'était pas dans la somme (cf. `audit-budget`). Compté, il fait passer le
+     plancher servi à 30,5 % dès 100 %, et à 39,6 % au plus grand réglage de texte, où PLUS AUCUNE
+     étape n'était cochable sans défiler. On rend les pixels là où ils ne coûtent rien : le
+     rembourrage. Les CIBLES ne bougent pas — `.sd-key` garde ses 50 px de dessin, le quai ses
+     44 px —, seule la respiration cède, et seulement sous 360 px EFFECTIFS, c'est-à-dire là où le
+     budget est réellement disputé. */
+  /* ⚠ LE REMBOURRAGE BAS NE CHANGE PAS, ET UN TÉMOIN L'A DIT TOUT DE SUITE. A29 colle le volet du
+     quai à la capsule par `top:calc(var(--quai-b) - 8px)` : ces 8 px SONT le rembourrage bas du
+     quai, « les deux valeurs vivent l'une contre l'autre ». Réduit ici à 4, le volet recouvrait la
+     capsule de 4 px au lieu de l'effleurer. On ne compacte donc que le HAUT — la moitié qui
+     n'engage personne. */
+  html.zw360 #crisisDock{padding:4px 10px 8px}
+  /* ⚠ ET LA RESPIRATION DE L'EN-TÊTE DE CARTE CÈDE AVANT LE CONTENU. Sous 360 px effectifs il
+     restait ~30 px de rembourrage et de marge entre le haut de la carte et la première case ; à
+     130 % ils valent 39 px visuels, et c'est exactement ce qui séparait « une étape cochable » de
+     « aucune ». On ne touche NI au corps du titre (échelle fermée), NI à la légende des registres
+     (elle enseigne les signes de la carte), NI à la hauteur des étapes (60 px, la cible) : le
+     rembourrage est le seul poste qui n'informe de rien. */
+  html.zw360 .ov-head{padding-top:12px}
+  html.zw360 .ov-t{margin-bottom:6px}
+  /* Et les écarts de SECTION du préambule, au même titre — jamais leurs cibles : `.ov-runline`
+     garde ses 44 px de hauteur minimale, seule sa marge cède. */
+  html.zw360 .cf-stage{padding-bottom:12px}
+  html.zw360 .ov-runline{margin:0 0 4px}
+  /* ⚠ DERNIER RECOURS, SOUS 300 px EFFECTIFS SEULEMENT — la rencontre d'un appareil étroit et du
+     plus grand réglage de texte. Les CIBLES tiennent toujours leur contrat : `.sd-key` descend à
+     44 px, c'est-à-dire EXACTEMENT le plancher d'A8 et non en dessous (et à 130 % ces 44 px CSS
+     rendent 57 px physiques, donc la main y gagne encore) ; la rangée d'étape garde ses 60 px
+     minimum, seule sa respiration cède. Aucun appareil servi ne déclenche ce palier au réglage
+     nominal : il n'existe que pour ce croisement-là. */
+  html.zw300 .sd-key{min-height:44px}
+  html.zw300 .sd-in{padding:2px}
+  html.zw300 ol.steps li{padding:8px 4px}
+  html.zw300 .ov-head{padding-top:10px}
+  html.zw360 :is(#allBtn,#refBtn) .dp-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  html.zw360 :is(#allBtn,#refBtn){flex:0 0 46px}
   /* « Cons. » sous 560px : TRONCATURE du même mot, pas un autre mot — c'est ce qui distingue cette
      abréviation de l'ancien « Réf. », qui donnait deux NOMS au même bouton (retour d'usage : « on
      s'y perd »). Le mot tronqué reste reconnaissable, l'identité du bouton ne change pas. Objectif
@@ -1428,7 +1493,11 @@
      ne sépare plus deux objets — il éloigne le premier du bord qui le porte.
      Borné à la SESSION, où chaque pixel au-dessus de la première ligne actionnable est compté par
      `audit-budget` : hors session, l'écran d'entrée garde sa respiration. */
-  @media screen{body.view-read:has(#cbTimers:not([hidden])) #main{padding-top:8px}}
+  /* ⚠ 8 → 4 px (audit externe v5.10.1, signalé à l'usage : « réduis ENCORE l'espace »). Le
+     raisonnement ci-dessus tenait ; il s'arrêtait à mi-chemin. En session le quai FERME le haut,
+     donc ces pixels ne séparent pas deux objets — ils éloignent le premier du bord qui le porte,
+     et 4 px suffisent à ce que le chapeau ne colle pas au filet. */
+  @media screen{body.view-read:has(#cbTimers:not([hidden])) #main{padding-top:4px}}
   /* P4 (v5.7) — L'IMMINENCE SUR LA CARTE (volet ET rail). Marquage, jamais aplat (A11) : le
      glyphe △ devant le libellé et l'encre ambre — la couleur n'est donc jamais seule, et le mot
      « bientôt échu » rejoint le nom accessible du groupe. Aucune boîte ne change de taille. */
@@ -1670,8 +1739,22 @@
      Graisse 600 et non 700 : c'est la SEULE graisse embarquée, en demander une autre produirait
      une graisse SYNTHÉTIQUE — plus lourde et moins nette (v4.61.0). Corps inchangé (16,5 px, un
      palier de l'échelle fermée) : c'est la voix qui s'aligne, pas la hiérarchie. */
-  .bt-d{margin-left:6px;font-family:var(--sans);font-size:12px;font-weight:800;
-    color:var(--ink);background:var(--surface-3);border-radius:8px;padding:1px 6px;white-space:nowrap}
+  /* ⚠ `.bt-d` EST PURGÉE — LE DISCRIMINANT VIVAIT DANS LA CHAÎNE QUI SE TRONQUE (audit externe
+     v5.10.0, règle 14 : épitaphe posée ici). K6 avait écrit la bonne règle — « il reste une PILULE
+     À PART, jamais dans la chaîne qui se tronque, c'est tout son objet » — et l'implémentation la
+     démentait : la pilule était le DERNIER ENFANT de `#brandTitle`, qui porte
+     `overflow:hidden ; nowrap ; ellipsis`. Mesuré à 390 px : boîte de 193 px pour 358 px
+     nécessaires, la pilule commençant au 308ᵉ pixel — elle n'était donc JAMAIS peinte, et à 130 %
+     il ne restait que 32 % du titre. Le champ créé pour distinguer « adulte » de « pédiatrique »
+     était exactement ce que la troncature mangeait en premier : le défaut que K6 existe pour
+     supprimer, avec une doctrine qui affirmait la protection.
+     ⚠ CE QU'ON N'A PAS FAIT, ET POURQUOI. Le sortir en FRÈRE de `#brandTitle` — la réponse
+     évidente — lui aurait donné ~50 px pris sur un titre DÉJÀ tronqué à 66 %. Décision de
+     l'auteur : ni hauteur d'en-tête en plus, ni titre coupé davantage. Le discriminant rejoint
+     donc le SUR-TITRE (`.bs-d`), qui est la ligne d'identité du dessus et qui a de la place :
+     MESURÉ, l'en-tête fait 61 px avec ET sans sur-titre — A14 dit vrai, la rangée porte deux
+     lignes dans tous les états, et l'afficher coûte donc ZÉRO pixel de hauteur comme de largeur
+     de titre. Le titre y regagne même les 50 px que la pilule consommait dans sa chaîne. */
   #brandTitle{font-family:var(--serif);font-size:17.5px;font-weight:600;line-height:1.2;color:inherit;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0;text-transform:none;display:none}
   /* Icône Compte dans l'en-tête (présence utilisateur), avec pastille d'état de synchro discrète. */
   /* 40px (>= 32 exigés — ce n'est pas un contrôle du mode crise) : c'est lui qui fixe la hauteur
@@ -2223,9 +2306,31 @@
          SOI, avec leur propre ellipse — le flex répartit le manque au prorata, donc c'est le PLUS
          LONG qui cède le plus, et tous restent présents.
      Résultat : un code de trente caractères s'abrège lui-même au lieu d'effacer la date. */
+  /* ⚠ ET LA NATURE NE SUFFIT PAS À DÉCIDER : C'EST LA LONGUEUR DU JETON (audit externe v5.10.0).
+     Le partage ci-dessus range le CODE parmi les souples parce qu'un code peut être long. Mesuré
+     à 390 px sur la première fiche d'exemple : le code « ANA » manquait de UN pixel (29 rendus
+     pour 30 nécessaires) et s'affichait « A… ». Le chiffre du dossier — « 3 items à 2 px, donc
+     négligeable » — est exact, mais l'unité est fausse : un manque d'un pixel sur un jeton de
+     trois lettres en détruit DEUX, parce que l'ellipse consomme elle-même la place qu'elle
+     libère. « Urgences » → « Urgenc… » reste reconnaissable ; « ANA » → « A… » n'est plus rien,
+     et le code est l'identifiant de crise. Un plancher exprimé en `em` est aveugle à cela : il
+     borne une largeur, pas une PERTE D'INFORMATION.
+     La règle devient donc : un jeton de 5 caractères ou moins est un item DUR, quelle que soit sa
+     nature — il n'a pas de redondance à céder. La classe est posée à l'ÉMISSION par `metaDur()`,
+     seul point de décision, parce que le CSS ne sait pas compter des caractères. */
   .dir-sub>*{flex:none}
   .dir-sub>:is(b,.libtag,.dir-cat,.dir-code){flex:0 1 auto;min-width:2.5em;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* ⚠ PRIORITAIRE, PAS RIGIDE — ET C'EST UN TÉMOIN QUI A TRANCHÉ. Écrit `flex:none`, le jeton
+     court ne cédait plus RIEN : mesuré à 330 px sur une rangée portant un chrono de session vive
+     (six items pour 186 px), la méta manquait de 5 px et le code, dernier enfant, était POUSSÉ
+     HORS de la boîte — c'est-à-dire disparu, alors que la règle du dossier est qu'un item ne
+     disparaît pas, il s'abrège. On lui donne donc la priorité DANS l'ordre du sacrifice, pas
+     l'immunité : les items souples s'abrègent d'abord jusqu'à leur plancher, et seulement ensuite
+     le jeton court cède — jamais sous trois caractères, où il cesserait de désigner quoi que ce
+     soit. Aux largeurs où le manque est absorbable (390 px et au-delà), il garde sa largeur
+     entière, ce qui est tout l'objet de la règle. */
+  .dir-sub>.m-dur{flex:0 1 auto;min-width:3ch}
   /* ⚠ SOUS 400 px, LE PLANCHER DES ITEMS SOUPLES DESCEND. Le tag de nature est un item DUR de
      plus : sur la largeur la plus contrainte servie, avec un code et une catégorie très longs,
      la somme des items durs et des quatre planchers de 2,5 em dépassait la boîte — et c'est
@@ -4426,8 +4531,45 @@
   .ls-info .ls-w{font-size:var(--t-cap);font-weight:600;color:var(--sys-ink-2);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ls-chrono{font-family:var(--mono);font-size:17.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ok-sys)}
-  .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys)}
+  /* ⚠ LA PORTE DE RENTRÉE DANS UNE RÉANIMATION PREND LE PLANCHER DE LA CRISE (audit externe
+     v5.10.0). Mesuré : « Reprendre » 93 × 38 et « Terminer » 84 × 36, à 10 px l'un de l'autre.
+     Trois défauts d'un coup, et chacun a déjà sa règle ailleurs dans le dossier : deux boutons
+     voisins de hauteurs DIFFÉRENTES se lisent comme deux objets sans rapport (A103) ; un geste
+     DESTRUCTEUR ne se met jamais au contact de son voisin, sinon le pouce corrige et supprime du
+     même geste (v4.68.0) ; et si le plancher de 32 px vaut pour l'accueil, il ne vaut pas pour
+     ces deux-là — ils ne consultent rien, ils rentrent dans un soin EN COURS, et c'est le contrat
+     des 44 px qui s'applique au geste, pas la moyenne de l'écran où il se trouve.
+     L'écart passe à 16 px et il est posé sur le SÉPARATEUR, pas sur le gap de la carte : le gap
+     de 10 px règle aussi la distance au chrono et au bloc d'information, qui n'ont rien demandé. */
+  .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys);margin-left:6px}
+  /* ⚠ (0,3,0) ET NON (0,2,0), ET C'EST UN TÉMOIN D'USAGE QUI L'A DIT : « c'est normal que
+     Reprendre et Terminer ne soient plus de la même taille ? ». Non. Écrite `.ls-card :is(.btn,
+     .ls-end)`, la règle valait (0,2,0) — exactement comme `.btn.sm{min-height:38px}`, déclarée
+     3 000 lignes plus bas : à spécificité égale, c'est l'ORDRE qui tranche, et « Reprendre »
+     restait à 38 px pendant que « Terminer » montait à 44. Le vingt-troisième piège de cascade du
+     dossier, sous sa forme la plus classique. On ne compte plus sur l'ordre. */
+  .ls-card .btn.sm,.ls-card .ls-end{min-height:44px}
   .ls-card .ls-end:hover{background:var(--sys-2)}
+  /* ⚠ « REPRENDRE » EST UN RETOUR D'EXCURSION, ET IL EN PREND LE REGISTRE (audit externe v5.10.0,
+     décision de l'auteur). Rempli en `--act`, il ne tenait que 1,69:1 CONTRE SA CARTE : l'encre
+     blanche était lisible (9,36) mais la FORME du bouton ne se détachait pas de la matière système
+     — c'est le défaut qu'A43 a nommé pour la pastille Compte, et que WCAG 2.2 § 1.4.11 vise, la
+     limite d'un composant et non son texte. `--ok-sys` mesure 9,08:1 sur la même carte.
+     ET CE N'EST PAS QU'UNE AFFAIRE DE CONTRASTE : c'est déjà le remplissage de `.sd-key.dp-back`,
+     le retour d'excursion du dock — « vous êtes loin de chez vous, ceci vous y ramène ». Reprendre
+     une session vive est ce geste à l'échelle de l'application, et la carte porte déjà son point et
+     son chrono en `--ok-sys` : un seul registre, du haut en bas de l'objet.
+     ⚠ L'ENCRE EST `--on-sys-fill`, JAMAIS `--on-primary` : sur un aplat CLAIR posé sur la matière
+     sombre, le blanc ne tient que 1,74:1 — le token existe pour ce cas précis et le dit.
+     ⚠ LA RÈGLE DU BOUTON REMPLI UNIQUE TIENT : les seuls autres remplis de l'accueil vivent dans
+     les cartes d'état vide, qui ne peuvent pas coexister avec une session vive.
+     Le survol NE CHANGE PAS le fond, comme `.sd-key.dp-back:hover` : sur un registre d'action, la
+     réponse au geste est l'élévation, pas un second vert. L'anneau de focus passe à `--sys-ink` —
+     `--primary` ne tient que 1,69:1 sur cette carte, donc l'anneau y était aussi peu visible que
+     le bouton. (0,3,0) : `.btn.primary` vaut (0,2,0) comme `.ls-card .btn`, et l'ordre trancherait. */
+  .ls-card .btn.primary{background:var(--ok-sys);border-color:var(--ok-sys);color:var(--on-sys-fill);box-shadow:none}
+  .ls-card .btn.primary:hover{background:var(--ok-sys);border-color:var(--ok-sys)}
+  .ls-card .btn:focus-visible{outline:2px solid var(--sys-ink);outline-offset:2px}
   .ls-card .btn{background:var(--sys-2);border-color:var(--sys-line);color:var(--sys-ink)}
   .ls-card .btn:hover{background:var(--sys-line)}
   .ls-card .tag{background:var(--sys-2);color:var(--sys-ink-2)}
@@ -5230,7 +5372,28 @@
   .ov-block.done .ov-n{color:var(--ok)}
   /* Le TITRE du bloc prend le cran 21 — c'est l'objet qu'on lit en premier dans la carte, et le
      grand corps appartient à l'ACTE. Il vit sur sa propre ligne, sous l'étiquette. */
-  .ov-t{order:4;flex:1 1 100%;min-width:0;font-size:21px;font-weight:700;color:var(--ink);line-height:1.25;margin:2px 0 10px;overflow-wrap:break-word}
+  /* A6 REPRISE JUSQU'AU BOUT — LE PLUS GRAND CORPS DE L'ÉCRAN DE CRISE APPARTIENT À L'ACTE, PAS
+     À SON LIBELLÉ (audit externe v5.10.0). Relevé des corps peints, session vive, 390 px : titre
+     de bloc 21/700 · étape vitale 17,5/800 · étape ordinaire 15/600 · CADENCE 11/600. La réforme
+     v5.6 s'était donné pour but de réparer l'inversion « l'étape qui sauve plafonnait à 15,5 px
+     quand le chrono avait droit à 34 » ; elle a relevé le LIBELLÉ de l'étape et laissé le plus
+     grand corps à « Reconnaissance & alerte », qui est un repère de navigation, et le plus petit
+     à « 30:2 — sans délai », qui gouverne le geste. Deux crans échangés (voir aussi `.stp-r`) :
+     le titre descend à --t-step, l'étape vitale garde --t-step ET sa graisse 800, son registre,
+     sa case et son ⚠ — elle reste la ligne dominante, et le repère cesse de lui disputer l'œil.
+     ⚠ BÉNÉFICE SECOND, MESURÉ : à 320 px × 130 % le titre à 21 px ne tenait plus dans sa colonne
+     et se coupait EN PLEIN MOT (« Reconnaissa / nce & alerte »). `overflow-wrap:break-word` est
+     le bon choix et n'était pas en cause — c'est un corps FIXE dans une colonne qui rétrécit qui
+     l'était. Ne pas « corriger » la propriété de coupure : elle est le filet, pas la cause. */
+  .ov-t{order:4;flex:1 1 100%;min-width:0;font-size:var(--t-step);font-weight:700;color:var(--ink);line-height:1.25;margin:2px 0 10px;overflow-wrap:break-word}
+  /* ⚠ MAIS UNE CARTE DE DÉCISION GARDE LE GRAND CRAN, ET A75 EN EST LA RAISON — un témoin l'a dit
+     dès la première passe. La descente ci-dessus existe pour que le titre cesse de dominer
+     L'ÉTAPE VITALE ; or un bloc de décision n'a pas d'étapes, il a une QUESTION, et A75 exige que
+     le titre passe DEVANT elle (mesuré en v5.6 : les deux à 21 px se lisaient comme un seul objet,
+     « perturbant »). Descendre le titre à --t-step l'aurait mis À ÉGALITÉ avec la question, qui y
+     vit déjà. Les deux règles ne se contredisent pas : elles portent sur deux natures de carte, et
+     chacune garde son cran là où sa contrainte existe. */
+  .ov-block.dec .ov-t{font-size:var(--t-step-l)}
   .ov-t .pass-n{font-family:var(--mono);font-weight:600;color:var(--primary);margin-left:6px;font-size:12px}
   /* Pastille de position DANS .ov-t : elle passe à la ligne en étroit au lieu d'écraser le titre. */
   /* Chip compact : padding vertical 1px + vertical-align baseline — un chip plus haut que la
@@ -5317,9 +5480,20 @@
      vert — même grammaire que la ligne d'état d'une instance complète, pleine largeur. */
   /* LA LIGNE-BILAN (v5.6, maquette) : un DÉCLENCHEUR de texte, pas une carte — ce qui est
      derrière est déjà fait, il n'a rien à réclamer. La carte, c'est le DÉPLIÉ. */
+  /* ⚠ EN CRISE, LE PRÉAMBULE NE PAIE QUE CE QU'IL MONTRE (signalé à l'usage : « réduis encore
+     l'espace entre le “ne pas oublier”, l'en-tête et la ligne-bilan »). Mesuré à 390 px, session
+     vive : 106 px séparaient le bas de la capsule du haut de la carte, dont **24 px de pur
+     espacement** — 8 au-dessus du chapeau, 6 sous lui, 2 + 8 autour de la ligne-bilan. Aucun de
+     ces pixels ne porte d'information. Ils tombent à 4 chacun (12 px rendus, ~11 % du préambule).
+     ⚠ CE QUI NE CÈDE PAS, ET C'EST LA MOITIÉ DE LA RÈGLE : les deux objets sont TAPABLES — le
+     chapeau se déplie, la ligne-bilan aussi. Leurs BOÎTES gardent donc leurs 40 et 44 px (A8,
+     et `.ov-runline` a son `min-height` juste en dessous) ; seule la respiration ENTRE eux cède.
+     Chercher davantage reviendrait à retirer du contenu, ce que la demande exclut. */
   .ov-runline{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;
     margin:2px 0 8px;padding:6px 12px;border:0;background:none;color:var(--ink-2);
     font-family:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer;touch-action:manipulation}
+  body.crisis-live .forget-strip{margin-bottom:4px}
+  body.crisis-live .ov-runline{margin:0 0 4px}
   .ov-runline:hover{color:var(--ink)}
   .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
@@ -5796,7 +5970,15 @@
      bleue, elle empruntait le registre de l'ACTION et ajoutait une masse de plus à une ligne qui
      doit se lire d'un trait. Elle passe donc à la ligne, sans fond : c'est une CADENCE, pas un
      bouton. Le bleu du dossier reste ce qu'il était — la position et l'action. */
-  ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--warn);text-transform:uppercase;line-height:1.35}
+  /* ⚠ ET ELLE QUITTE LE PLANCHER TYPOGRAPHIQUE (audit externe v5.10.0). La cadence était le PLUS
+     PETIT corps de tout l'écran de crise — 11 px, le plancher, celui qu'A6 réserve aux exceptions
+     motivées — alors qu'elle porte les nombres qui gouvernent le geste (« 30:2 — sans délai »,
+     « toutes les 2 min »). A11 la nomme pourtant comme le quatrième canal du marquage d'une étape
+     vitale : un canal au plancher n'est pas un canal. Elle passe à --t-body, c'est-à-dire JUSTE
+     SOUS l'étape qu'elle qualifie (--t-item) et jamais au-dessus — elle précise l'acte, elle ne
+     le remplace pas. Le cliquet de plancher de `check-type` descend d'autant : c'est un ÉCHANGE
+     rendu, pas une tolérance prise. */
+  ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--mono);font-size:var(--t-body);font-weight:600;letter-spacing:.5px;color:var(--warn);text-transform:uppercase;line-height:1.35}
   /* ⚠ ENCORE `--ink-3` EN ENCRE DE TEXTE (v5.6, trouvé en inversant la portée) : 2,32:1 en clair
      et 4,11:1 en sombre sur la réponse attendue d'une étape COCHÉE — c'est-à-dire l'état le plus
      fréquent de l'écran, et exactement la faute que la v5.0.0 a corrigée sur le texte de l'étape
@@ -6959,6 +7141,20 @@
        ⚠ ET LA COLONNE D'ACTION EST FLUIDE : les plafonds successifs (860, puis 660, puis 760)
        étaient des accidents de maquette. Elle prend ce qui reste. */
     body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 20px;align-items:start}
+    /* ⚠ ÉPITAPHE — `.pg-wide` A EXISTÉ LE TEMPS D'UNE ITÉRATION ET A ÉTÉ PURGÉE (règle 14), sur
+       signalement à l'usage. Elle faisait céder la colonne d'ÉTAT pour rendre à la Page sa
+       largeur d'auteur
+       (227 px de débordement mesurés à 1280 px en cockpit). Le calcul était juste et le résultat a
+       été REFUSÉ à l'usage, en deux mots qui disent tout : « le volet noter l'heure reste petit, et
+       les minuteurs apparaissent en bas de la page ». Deux effets, une cause — la colonne d'action
+       passait de 904 à 1244 px pendant que le dock gardait son plafond de 660, si bien qu'il
+       paraissait rétréci ; et une surface d'ÉTAT VIVE se retrouvait sous le document, en pleine
+       session. Déplacer l'état pendant un soin coûte plus cher qu'un défilement horizontal sur une
+       surface de consultation.
+       CE QUI RESTE VRAI ET N'A PAS DE SOLUTION GRATUITE : la feuille fait 1130 px (A133) dans un
+       défileur de 904. L'ajustement d'office reste refusé — il demande k = 0,775, ce qui ramène
+       une cible de 44 px à 34 (A8) —, et rétrécir la feuille casserait « la même image partout »,
+       qui est tout le lot Page. L'échelle reste donc un GESTE : « ⤢ Ajusté », un tap. */
     /* --stick-top : bas de ce qui est DÉJÀ collé en haut (en-tête + quai de crise), mesuré par
        syncHdrScroll — une constante laisserait le rail passer sous le quai. */
     /* HAUTEUR DÉFINIE (pas max-height) : les trois zones se répartissent l'espace, et chacune
