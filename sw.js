@@ -16,6 +16,8 @@
 //     vite le cache et on rafraîchit en arrière-plan.
 //   - pdf.js (vendorisé, FIGÉ) : cache SÉPARÉ versionné par la version de pdf.js, PAS par celle
 //     de l'app — l'ancien cache unique re-téléchargeait ~1,8 Mo inchangés à CHAQUE release.
+//   - polices + icônes (IMMUABLES) : même motif, cache STATIC_CACHE pérenne (v5.10.2) —
+//     ils étaient re-téléchargés (~120 Ko) à chaque publication pour rien.
 //     Précaché à l'installation (chargé paresseusement par la page, un premier usage hors ligne
 //     échouerait sinon) ; les fichiers déjà présents ne sont pas re-téléchargés.
 //   - skipWaiting + clients.claim : le nouveau worker prend la main tout de suite.
@@ -35,23 +37,22 @@ const PDFJS_ASSETS = [
   './vendor/pdfjs/pdf.min.js',
   './vendor/pdfjs/pdf.worker.min.js'
 ];
-// TOUT fichier servi par l'app entre ici (règle d'AGENTS.md) — liste unique à maintenir.
-// `'./'` N'Y EST PLUS : c'était le MÊME document que './index.html' sous une seconde URL, soit
-// 290 Ko téléchargés et stockés en double à chaque publication, pour une entrée JAMAIS servie
-// (le repli de navigation cherche './index.html' d'abord — seule clé que le fetch de navigation
-// rafraîchit ; cf. le commentaire de ce repli, plus bas).
-/* F5 (v4.61.0) : la police des TITRES est EMBARQUÉE — l'app doit s'afficher hors ligne, une
-   police de CDN ne serait pas là où elle sert, et la CSP n'autorise aucune origine externe pour
-   les polices. Sous-ensemble latin, graisse 600, 21 Ko. Licence SIL OFL — vendor/fonts/README.txt.
-   NB : ne jamais mettre de commentaire À L'INTÉRIEUR de ce tableau — le contrôle check-sw le lit
+/* Actifs IMMUABLES entre publications (polices, icônes, logo) : cache SÉPARÉ, versionné À PART —
+   le motif pdf.js GÉNÉRALISÉ (v5.10.2). Avant, le renommage de CACHE à chaque release purgeait
+   puis re-téléchargeait ces ~120 Ko parfaitement inchangés — exactement le défaut déjà corrigé
+   pour pdf.js (l. 17-20), jamais étendu au reste. `-v1` ne bouge QUE si l'un de ces fichiers
+   change de CONTENU sous le MÊME nom (piège des actifs vendorisés, AGENTS.md : changer les octets
+   ne change pas ce qui tourne tant que la clé de cache ne bouge pas).
+   F5 (v4.61.0) : les polices sont EMBARQUÉES — l'app doit s'afficher hors ligne, et la CSP
+   n'autorise aucune origine externe (`font-src 'self'`). Licences : vendor/fonts/README.txt.
+   NB : ne jamais mettre de commentaire À L'INTÉRIEUR de ces tableaux — check-sw les lit
    littéralement et prendrait chaque ligne pour une entrée de cache. */
-const ASSETS = [
-  './index.html',
+const STATIC_CACHE = 'aides-cognitives-static-v1';
+const STATIC_ASSETS = [
   './vendor/fonts/source-serif-4-latin-600.woff2',
   './vendor/fonts/manrope-latin-var.woff2',
   './vendor/fonts/ibm-plex-mono-latin-600.woff2',
   './vendor/fonts/ibm-plex-mono-latin-700.woff2',
-  './manifest.webmanifest',
   './icon-192.png',
   './icon-192-maskable.png',
   './icon-512.png',
@@ -64,6 +65,17 @@ const ASSETS = [
   './favicon.svg',
   './logo-glyph.svg'
 ];
+// TOUT fichier servi par l'app reste dans ASSETS (règle 13 d'AGENTS.md) — l'UNION, par spread :
+// la liste n'est écrite qu'une fois, seule sa CLÉ de cache diffère selon la nature de l'actif.
+// `'./'` N'Y EST PLUS : c'était le MÊME document que './index.html' sous une seconde URL, soit
+// 290 Ko téléchargés et stockés en double à chaque publication, pour une entrée JAMAIS servie
+// (le repli de navigation cherche './index.html' d'abord — seule clé que le fetch de navigation
+// rafraîchit ; cf. le commentaire de ce repli, plus bas).
+const ASSETS = [
+  './index.html',
+  './manifest.webmanifest',
+  ...STATIC_ASSETS
+];
 // Sous-ensemble OBLIGATOIRE d'ASSETS : sans ces deux fichiers il n'y a pas d'application, donc
 // eux SEULS peuvent faire échouer l'installation. Tout le reste (icônes, favicons) dégrade
 // l'apparence sans empêcher l'usage : un ajout futur à ASSETS est best-effort par défaut, ce qui
@@ -74,10 +86,13 @@ self.addEventListener('install', e => {
     // `addAll` est TOUT-OU-RIEN : réservé au noyau, c'est la propriété qu'on veut. Étendu aux 10
     // icônes, il faisait échouer l'installation ENTIÈRE — donc supprimer tout le hors-ligne —
     // pour un simple favicon en 404. Mesuré sous sonde : {active:false, controller:false}.
-    caches.open(CACHE).then(async c => {
-      await c.addAll(CORE_ASSETS);
-      for (const a of ASSETS) {
-        if (CORE_ASSETS.indexOf(a) >= 0) continue;
+    caches.open(CACHE).then(c => c.addAll(CORE_ASSETS)),
+    // Statiques : ne télécharger QUE ce qui manque (le cache survit aux versions de l'app) —
+    // même boucle best-effort que pdf.js, même raison : rien d'ornemental ne doit pouvoir
+    // empêcher le noyau hors-ligne d'exister.
+    caches.open(STATIC_CACHE).then(async c => {
+      for (const a of STATIC_ASSETS) {
+        if (await c.match(a)) continue;
         try { await c.add(a); } catch (err) {}
       }
     }),
@@ -100,7 +115,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== PDFJS_CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== PDFJS_CACHE && k !== STATIC_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
       // Annonce la version du worker aux pages ouvertes : index.html la compare à son APP_VERSION
       // et affiche le message JUSTE — « déjà à jour » (la page servie est déjà la nouvelle) ou,
@@ -177,9 +192,13 @@ self.addEventListener('fetch', e => {
   e.waitUntil(net.then(resp => {
     // Même garde-fou que pour la navigation : jamais d'erreur mise en cache.
     if (resp.ok && resp.type === 'basic') {
-      const isPdfjs = new URL(req.url).pathname.indexOf('/vendor/pdfjs/') >= 0;
+      const path = new URL(req.url).pathname;
+      const isPdfjs = path.indexOf('/vendor/pdfjs/') >= 0;
+      // Un actif statique se rafraîchit dans SON cache pérenne — l'y ranger sous CACHE le ferait
+      // re-télécharger à la release suivante, le défaut que STATIC_CACHE vient de fermer.
+      const isStatic = STATIC_ASSETS.some(a => path === new URL(a, self.location).pathname);
       const copy = resp.clone();
-      return caches.open(isPdfjs ? PDFJS_CACHE : CACHE).then(c => c.put(req, copy));
+      return caches.open(isPdfjs ? PDFJS_CACHE : (isStatic ? STATIC_CACHE : CACHE)).then(c => c.put(req, copy));
     }
   }).catch(() => {}));
   e.respondWith(

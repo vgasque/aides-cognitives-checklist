@@ -40,13 +40,21 @@ const liste = nom => {
   return [...m[1].matchAll(/['"]([^'"]+)['"]/g)].map(x => x[1]);
 };
 
-const ASSETS = liste('ASSETS');
+/* Depuis v5.10.2, ASSETS est l'UNION `[core…, ...STATIC_ASSETS]` (cache statique pérenne — le
+   motif pdf.js généralisé) : la liste des statiques n'est écrite qu'une fois, et ce contrôle la
+   REJOINT au lieu d'exiger sa recopie — une liste tenue en double diverge (leçon MUTE_SEL). */
+const STATIC = liste('STATIC_ASSETS');
+const ASSETS = [...new Set([...liste('ASSETS'), ...(sw.includes('...STATIC_ASSETS') ? STATIC : [])])];
 const CORE = liste('CORE_ASSETS');
 const PDFJS = liste('PDFJS_ASSETS');
 const fautes = [];
+if (!sw.includes('...STATIC_ASSETS'))
+  fautes.push('ASSETS ne reprend plus ...STATIC_ASSETS : la règle 13 (« tout fichier servi entre dans ASSETS ») perd les statiques');
+if (STATIC.some(a => CORE.includes(a)))
+  fautes.push('un actif est à la fois CORE_ASSETS et STATIC_ASSETS : deux caches se disputeraient la même clé');
 
 /* 1. Existence sur le disque. */
-for (const [nom, arr] of [['ASSETS', ASSETS], ['CORE_ASSETS', CORE], ['PDFJS_ASSETS', PDFJS]])
+for (const [nom, arr] of [['ASSETS', ASSETS], ['CORE_ASSETS', CORE], ['PDFJS_ASSETS', PDFJS], ['STATIC_ASSETS', STATIC]])
   for (const p of arr) {
     const f = join(ROOT, p.replace(/^\.\//, ''));
     if (!existsSync(f)) fautes.push(`${nom} référence « ${p} », absent du dépôt`);
