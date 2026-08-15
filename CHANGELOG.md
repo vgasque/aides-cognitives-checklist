@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.10.7] — 2026-08-15
+### Le rail A→Z ne saute plus en fin de liste — en PWA installée aussi
+
+- **Le maximum de défilement se calcule avec la plus grande des deux hauteurs** (`pageMaxScroll`,
+  signalé à l'usage : « sur l'app PWA ça saute encore alors que même numéro de version » — Safari
+  sain, PWA seule en défaut). Reproduit et MESURÉ dans le simulateur, en vraie web app installée :
+  en STANDALONE, `documentElement.clientHeight` rapporte 812 px pour un `innerHeight` de 874 — la
+  borne `scrollHeight − clientHeight` surestimait donc le maximum de ~60 px, chaque pose du bas du
+  rail partait au-delà de la fin réelle du document, et l'élastique iOS enchaînait les rebonds
+  (5 réversions de direction mesurées sur un seul geste). Dans l'ONGLET Safari,
+  `clientHeight = innerHeight` et la borne était exacte — c'est pourquoi le défaut ne se voyait
+  qu'en PWA, et survivait à tous les correctifs validés en onglet. La borne prend désormais la plus
+  grande des deux hauteurs (`clientHeight` vs `innerHeight ÷ zoomF()`) : écrêter quelques pixels
+  avant le bord est invisible, écrêter au-delà rebondit. Après correctif, même geste, même
+  appareil : 0 réversion, le défilement s'arrête à la fin exacte. Les deux écrêtages (cible de
+  `jump` et re-borne à la relâche) passent par la même fonction — une seule vérité.
+
 ## [5.10.6] — 2026-08-15
 ### Republication — la v5.10.5 existait en deux exemplaires et la PWA installée gardait le premier
 
@@ -1014,69 +1031,3 @@ de l'auteur ; plus un chantier vérifié resté en attente de publication (16 px
 - Passes complètes : 16/16 check · 939 × 2 tests (Chromium + WebKit) · 20/20 harnais ; sonde de
   parcours dédiée 25/25 sur les deux moteurs (fusion, saisie, chips, refus annoncé, quai immobile,
   large inchangé, fiche sans minuteur).
-
-## [5.3.1] — 2026-08-07
-### Les résultats de recherche ne collent plus aux bordures — et un rembourrage mort depuis la v5.0.0
-
-Signalé à l'usage sur la PWA (« résultats de recherche dans la barre fixée très collés à la
-bordure du dessous ») ; les trois écarts mesurés avant/après.
-
-- **⚠ Vingtième piège de cascade, et il préexistait** : `details.ref-toc[open]{padding-bottom:8px}`
-  (0,2,1) perdait contre `#refBar>.ref-toc{padding:0 18px}` (1,1,1) — le rembourrage bas du
-  dépliant « Rechercher · sommaire » de la barre fixée était silencieusement MORT depuis sa
-  création (v5.0.0) : mesuré **1 px** entre le dernier objet et la bordure de coupure, pour le
-  dernier lien du sommaire comme pour les rangées de résultats-documents (v5.3.0), qui ont hérité
-  du défaut et l'ont rendu visible. Réparé en (1,1,2), jamais par l'ordre : 15 px sous le
-  sommaire, 29 px sous une rangée seule.
-- **Les rangées de résultats-documents respirent aussi vers le bas** : `.pf-docs` n'avait qu'une
-  marge haute — dans la feuille « Toute la fiche », la rangée touchait le tableau SFAR en dessous
-  (0 px mesuré). Marge basse de 14 px : un résultat n'est pas un en-tête de section, il ne se
-  colle pas à ce qui suit.
-- **Le « · Réindexer » du pied ne s'enroule plus en abandonnant son séparateur** : « · » restait
-  orphelin en bout de ligne pendant que le bouton partait seul à la suivante — le geste est soudé
-  à son séparateur (`.attix-act`, `white-space:nowrap`).
-- **L'icône « Filtrer » passe aux réglettes** (décision utilisateur sur maquette comparative de
-  cinq candidats) : l'entonnoir à queue pliée datait — trois curseurs horizontaux, la convention
-  contemporaine du « affiner ce qu'on voit », dans la famille d'icônes au trait. Tracé mis à jour
-  aux DEUX sites (SVG en dur de `#filtTog` + entrée `filter` d'`uiIcon`), duplication signalée
-  des deux côtés comme pour l'icône `user`.
-- Les autres surfaces livrées depuis la v5.2.0 (extrait « dans ‹nom› · p. n » des rangées, groupe
-  « Dans les documents », pilule ‹ n/N › de la visionneuse) ont été re-mesurées : conformes aux
-  gabarits existants. Passes complètes 17/17 check · 920 × 2 tests · 20/20 harnais.
-
-## [5.3.0] — 2026-08-07
-### La recherche dans les PDF va au bout du geste — auto-indexation, porteurs en résultats, surlignage dans la visionneuse
-
-Quatre retours d'usage sur la v5.2.0, vécus sur la PWA de l'auteur le jour même, tous les quatre
-livrés.
-
-- **Le rattrapage d'indexation est AUTOMATIQUE — revirement assumé** (« l'indexation ne s'est pas
-  lancée automatiquement, j'ai dû cliquer ») : la v5.2.0 exigeait un geste explicite pour ne
-  jamais lancer de tâche de fond spontanée ; à l'usage, l'état nominal attendu est « mes
-  documents sont trouvables », pas un bouton pour un travail que la machine sait faire seule.
-  `ixLoadAll` met en file les documents en attente au démarrage — ~4 ms/page, un à la fois, à
-  l'inactivité, et pdf.js ne se charge QUE s'il existe des documents à indexer (un démarrage
-  ordinaire n'y touche pas). La ligne du pied devient un indicateur d'avancement ; son bouton
-  « Indexer » reste, filet des cas où la file s'est arrêtée.
-- **Le porteur du document est lui aussi un résultat** : chercher un mot qui ne vit que dans le
-  PDF joint sort l'AIDE dans la liste (les trois vues, `entityDocHit` dans les filtres, renvoi
-  croisé compris), avec l'extrait « dans ‹nom› · p. n » — le OÙ, jamais le contenu, qui n'est
-  pas stocké. Le groupe « Dans les documents » reste : deux objets, deux gestes.
-- **La recherche d'une entité couvre ses annexes** : le champ d'une référence et celui de la
-  feuille « Toute la fiche » listent sous le champ (`#pfDocs`) les documents joints où tous les
-  termes apparaissent ; un tap ouvre la visionneuse à la page, occurrences surlignées. Un mot
-  absent replie la zone.
-- **Les occurrences se surlignent dans la visionneuse et se naviguent** (« comme le texte des
-  fiches ») : les PAGES viennent de l'index déjà en mémoire (coût nul), les POSITIONS sont
-  retrouvées au rendu de chaque page visible (`pdfPaintHl` — `getTextContent` ~3 ms, en cache) et
-  posées en rectangles `--verify-soft` en `mix-blend-mode:multiply`, même registre que le
-  surlignage du texte. Pilule flottante ‹ n/N · p. x › : navigation par page d'occurrence. La
-  position dans une ligne est approchée au prorata des caractères — le compromis qui évite
-  d'embarquer la couche texte entière de pdf.js. Ouvert depuis sa RANGÉE : ni surlignage ni
-  pilule — on vient lire, pas chercher.
-- Vérification : `audit-pdfsearch` passe de 26 à **37 contrôles**, verts sur les deux moteurs —
-  dont l'auto-rattrapage au démarrage sans clic, le repli sur mot absent, la boîte de chaque
-  rectangle dans sa page, et l'ouverture neutre depuis la rangée. Deux témoins corrigés en les
-  écrivant (un mot qui ne vivait que sur une page ne pouvait pas faire naviguer ; la rangée de
-  documents d'une fiche vit dans « Consulter », pas dans le flux). Passes complètes 17/17 check ·
-  920 × 2 tests · 20/20 harnais.
