@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-wecwlwl2/GVySxlgiVQ5E4L1OQZoSukVAUwcI1MOWww='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-+v60ngmHGo+SUsE9WEWLZlX94ee4dMo3OtdrcbzjjZ8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -336,6 +336,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<!-- Préchargement des QUATRE polices embarquées (v5.10.2) : sans lui, leur découverte attend que
+     le moteur applique le style à un nœud, c'est-à-dire la fin de l'analyse de la feuille. Gain
+     réel au tout premier lancement seulement (ensuite le Cache Storage les sert) ; font-display:
+     swap garde de toute façon du texte immédiat. `crossorigin` est requis même en same-origin —
+     les requêtes de police sont en mode CORS, sans lui le preload serait re-téléchargé. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="./vendor/fonts/manrope-latin-var.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="./vendor/fonts/source-serif-4-latin-600.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="./vendor/fonts/ibm-plex-mono-latin-600.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="./vendor/fonts/ibm-plex-mono-latin-700.woff2">
 <title>Aides cognitives</title>
 <!-- ============================ STYLES ============================
   Système de design "instrument clinique". Couleurs via variables CSS dans
@@ -9430,7 +9439,11 @@ const RO_EDIT_TOAST='Lecture seule : vous n\'avez pas les droits d\'édition sur
    Portée : STOCKÉ DANS LA SESSION uniquement (stores `sessions`) — l'export v3 des FICHES et le
    format des clés (`seq:blocId:index`) restent strictement inchangés ; un client antérieur ignore
    simplement ces deux champs. */
-function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,aidRev:0,exercise:false,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:{},timers:{},events:[]};}
+/* `counters`/`timers` sont indexés par des IDS DE FICHE (donnée importable) : sans prototype,
+   un id `toString` ne peut plus matcher un héritage d'Object.prototype dans les gardes `in`
+   (v5.10.2, audit sécurité — cosmétique, les ids passent déjà par safeId, mais l'invariant
+   devient local au lieu de dépendre du reste de la chaîne). */
+function makeRuntime(){return {fiche:null,ficheId:null,sessionId:null,name:'',started:false,startedAt:0,aidRev:0,exercise:false,checked:{},verified:{},vgaps:{},cxBack:{},nav:[],navSeq:[],seq:0,counters:Object.create(null),timers:Object.create(null),events:[]};}
 let Runtime=makeRuntime();
 const liveSessions={};
 let soundOn=true;
@@ -12667,6 +12680,11 @@ td:first-child,td:nth-child(2){font-family:ui-monospace,"SF Mono",Menlo,Consolas
 .wm{position:fixed;right:-34px;top:24px;transform:rotate(24deg);font-size:13px;font-weight:800;letter-spacing:3px;color:#17477f;background:#e3ecf7;border:1px dashed #1f5fa6;padding:4px 44px;z-index:2}
 .meta.exo{color:#17477f;font-weight:700}
 @media print{body{margin:0}}`;
+  /* ⚠ SEUL ENDROIT DU FICHIER OÙ UNE CHAÎNE DEVIENT UN DOCUMENT ENTIER (srcdoc + téléchargement).
+     Un iframe srcdoc hérite de l'ORIGINE ET de la CSP du parent : une injection ici serait une
+     XSS same-origin complète. Invariant : `title` est posé par esc() en amont, `css` est une
+     CONSTANTE littérale, et chaque interpolation de `inner` passe par esc()/fmt() — RIEN
+     d'inéchappé n'a le droit d'entrer dans ce gabarit (v5.10.2, audit sécurité). */
   _reportDoc=`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Compte-rendu — ${title}</title><style>${css}</style></head><body>${inner}</body></html>`;
   _reportName='compte-rendu-'+fileSlug((f&&f.title)||s.ficheTitle);
   document.getElementById('reportBody').innerHTML=inner;      // aperçu dans l'app

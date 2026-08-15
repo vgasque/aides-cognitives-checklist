@@ -1311,6 +1311,11 @@ exception when others then return jsonb_build_object('ok', false, 'err', 'refuse
 end; $$;
 
 -- ---------- 8sexies. JOINTURE (invité, avec ou sans compte) ----------------------------------
+-- PAS DE LIMITE DE DÉBIT ICI, ET C'EST DÉLIBÉRÉ (v5.10.2, audit — l'asymétrie avec share_push,
+-- qui a sa fenêtre glissante de 10 s, est une décision et non un oubli) : l'espace de codes fait
+-- 32^8 ≈ 1,1 × 10^12, la porte n'est ouverte que ~120 s et le code est CONSOMMÉ à la première
+-- jointure — un brute-force est hors de portée avant l'expiration. Une limite ajouterait un état
+-- par appelant anonyme pour un risque déjà borné par la construction du code.
 create or replace function public.share_join(p_code text, p_label text)
 returns jsonb language plpgsql volatile security definer
 set search_path = public, extensions, pg_temp as $$

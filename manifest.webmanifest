@@ -12,12 +12,13 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "launch_handler": {
     "client_mode": "focus-existing"
   },
-  "background_color": "#e9edf2",
-  "theme_color": "#ffffff",
+  "background_color": "#f4f5f7",
+  "theme_color": "#f4f5f7",
   "icons": [
     {
       "src": "./icon-192.png",

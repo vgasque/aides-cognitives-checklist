@@ -131,6 +131,20 @@ if (tableM && bootM && surfLight && surfDark) {
     else if (t[th] !== want) themeBad.push(`${th} : barre système ${t[th]} ≠ --amb ${want} (la barre prolonge l'en-tête)`);
   }
 }
+/* LE MANIFESTE AUSSI (v5.10.2, audit externe M-1) : `theme_color`/`background_color` peignent le
+   SPLASH et la barre système AU LANCEMENT — avant tout CSS. Ils portaient des hex qui n'existaient
+   dans AUCUN token (#ffffff, #e9edf2) : flash de couleurs hors palette à chaque démarrage, et ce
+   contrôle, borné au bloc <style>, ne pouvait pas le voir. Le manifeste ne sait pas être sombre :
+   il s'aligne sur le CLAIR de THEME_COLOR, la même vérité que la barre. */
+try {
+  const mf = JSON.parse(await readFile(ROOT + 'manifest.webmanifest', 'utf8'));
+  if (tableM) {
+    const want = hex6(tableM[1]);
+    for (const k of ['theme_color', 'background_color'])
+      if (hex6(String(mf[k] || '')) !== want)
+        themeBad.push(`manifest.webmanifest : ${k} (${mf[k]}) ≠ THEME_COLOR.light (${want}) — splash hors palette`);
+  }
+} catch (e) { themeBad.push('manifest.webmanifest illisible : ' + e.message); }
 if (themeBad.length) {
   console.error('✗ check-colors : la barre système a dérivé de ses tokens.');
   themeBad.forEach(x => console.error('    ' + x));

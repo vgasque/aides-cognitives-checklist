@@ -9,7 +9,7 @@
 # dans docs/deploiement-et-conformite.md § 1.1 — la CSP <meta> d'index.html reste, elle, active
 # partout, et c'est elle qui porte l'essentiel (script-src par hashs).
 /*
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-wecwlwl2/GVySxlgiVQ5E4L1OQZoSukVAUwcI1MOWww='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-+v60ngmHGo+SUsE9WEWLZlX94ee4dMo3OtdrcbzjjZ8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
@@ -29,9 +29,10 @@
 # doivent pas être « complétées » :
 #   - `autoplay` : le bip d'alarme passe par WebAudio, qui est soumis à la politique d'autoplay.
 #     Le fermer rendrait l'alarme de minuteur MUETTE — la sortie la plus critique de l'app.
-#   - `screen-wake-lock` : jamais utilisé aujourd'hui (0 occurrence), mais garder l'écran allumé
-#     pendant une réanimation est un besoin plausible ; interdire d'avance une capacité qu'on
-#     voudra peut-être demain n'a aucun bénéfice de sécurité ici.
+#   - `screen-wake-lock` : UTILISÉ depuis v5.6 (A84 — le verrou de veille d'une session vive,
+#     `wakeApply`). La fermer rendrait l'écran à la veille au milieu d'une réanimation.
+#     (Ce commentaire disait « jamais utilisé (0 occurrence) » — dérive corrigée v5.10.2 :
+#     un commentaire qui ment finit par faire « compléter » la liste et casser la capacité.)
 #   - `web-share` et `clipboard-write` : `navigator.share` est le chemin OBLIGATOIRE du
 #     téléchargement d'un PDF en PWA installée (v4.19.1 — WebKit ignore `download` en standalone
 #     et navigue vers l'URL blob:). Les fermer casserait une fonction clinique.
