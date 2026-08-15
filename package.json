@@ -4,7 +4,7 @@
   "description": "PWA d'aides cognitives cliniques, hors-ligne, sans dépendance runtime.",
   "private": true,
   "scripts": {
-    "check": "node scripts/check-syntax.mjs && node scripts/check-colors.mjs && node scripts/check-classes.mjs && node scripts/check-anim.mjs && node scripts/check-type.mjs && node scripts/check-fonts.mjs && node scripts/check-space.mjs && node scripts/check-radius.mjs && node scripts/check-paliers.mjs && node scripts/check-sw.mjs && node scripts/check-vendor.mjs && node scripts/check-upload.mjs && node scripts/check-sql.mjs && node scripts/check-stores.mjs && node scripts/check-icons.mjs && node scripts/check-actions.mjs && node scripts/check-harnais.mjs && node scripts/csp-hashes.mjs --check",
+    "check": "node scripts/check-syntax.mjs && node scripts/check-colors.mjs && node scripts/check-classes.mjs && node scripts/check-anim.mjs && node scripts/check-type.mjs && node scripts/check-fonts.mjs && node scripts/check-space.mjs && node scripts/check-radius.mjs && node scripts/check-paliers.mjs && node scripts/check-sw.mjs && node scripts/check-vendor.mjs && node scripts/check-upload.mjs && node scripts/check-sql.mjs && node scripts/check-stores.mjs && node scripts/check-icons.mjs && node scripts/check-actions.mjs && node scripts/check-ids.mjs && node scripts/check-actest.mjs && node scripts/check-harnais.mjs && node scripts/csp-hashes.mjs --check",
     "test": "node scripts/run-tests.mjs",
     "design:build": "node design/build.mjs",
     "design:check": "node scripts/design-check.mjs --strict",

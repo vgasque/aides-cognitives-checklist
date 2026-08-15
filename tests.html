@@ -824,7 +824,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   let zRej2=false;try{await A.zipParse(zEnc.encode('pas une archive zip du tout — juste du texte'));}catch(e){zRej2=true;}
   ok('fichier non-zip rejeté', zRej2);
 
-  group('Vue d’ensemble du mode crise (v4.6.0) — flowOrder / latestPass / offPathSet / minimapData');
+  group('Vue d’ensemble du mode crise (v4.6.0) — latestPass / offPathSet / minimapData');
+  // (Les témoins de `flowOrder` sont partis avec elle en v5.10.2 — doublon de l'algorithme de
+  //  parcours que `flowPlan` a remplacé, plus aucun appelant applicatif ; règle 14.)
   // Gabarit : A (étapes) → D (décision : Oui→S, Non→R), R (étapes) → D (boucle), S terminal, X orphelin.
   const ovF={start:'A',blocks:[
     {id:'A',kind:'do',title:'Actions',items:['⚠ un','deux'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D'},
@@ -832,10 +834,6 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     {id:'S',kind:'do',title:'Surveillance',items:['s1','s2'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null},
     {id:'R',kind:'do',title:'Pas de réponse',items:['r1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:'D'},
     {id:'X',kind:'do',title:'Orphelin',items:['x1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}]};
-  eq('flowOrder : BFS depuis start, orphelin en fin', A.flowOrder(ovF), ['A','D','S','R','X']);
-  eq('flowOrder : start invalide → repli sur le premier bloc', A.flowOrder({start:'zz',blocks:ovF.blocks}), ['A','D','S','R','X']);
-  eq('flowOrder : boucle sans doublon ni blocage', A.flowOrder({start:'R',blocks:ovF.blocks}), ['R','D','S','A','X']);
-  eq('flowOrder : fiche sans bloc', A.flowOrder({blocks:[]}), []);
   eq('latestPass : jamais visité → null', A.latestPass(['A','D'],[1,2],'S'), null);
   eq('latestPass : visite unique', A.latestPass(['A','D','S'],[1,2,3],'D'), {idx:1,seq:2,pass:1,total:1});
   eq('latestPass : boucle → le DERNIER passage', A.latestPass(['A','D','R','D','R'],[1,2,3,4,5],'R'), {idx:4,seq:5,pass:2,total:2});
@@ -911,23 +909,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('optAbbr : options multiples distinctes', A.optAbbr(['Choquable (FV/TV sans pouls)','Non choquable (AESP)','Signes de ROSC']), ['CHOQUA','NON','SIGNES']);
   eq('optAbbr : même premier mot → initiale du 2ᵉ mot', A.optAbbr(['Non répondeur','Non stabilisé']), ['NON·R','NON·S']);
   ok('optAbbr : libellé vide → OPT', A.optAbbr(['','Oui'])[0]==='OPT');
-  // Mode statique (v4.13.0) : issue terminale d'une branche (fusion en flèche de convergence)
-  // et cibles des retours ↺ de la gouttière (plafond 2 voies).
-  const spans=its=>{const out=[];its.forEach((it,ix)=>{if(it.k==='bropen'){let d=1,j=ix+1;
-    while(j<its.length&&d>0){if(its[j].k==='bropen')d++;if(its[j].k==='brclose')d--;j++;}
-    out.push({a:ix+1,z:j-1});}});return out;};
-  const sp1=spans(pl1.items);
-  eq('svBranchIssue : branche qui converge -> {to, back:false}', A.svBranchIssue(pl1.items,sp1[0].a,sp1[0].z), {to:'E',back:false});
-  eq('svBranchIssue : les deux branches de pl1 convergent vers E', A.svBranchIssue(pl1.items,sp1[1].a,sp1[1].z), {to:'E',back:false});
-  ok('svBranchIssue : branche qui REBOUCLE -> back:true', (()=>{const sp2=spans(pl2.items);
-    return sp2.some(s=>{const r=A.svBranchIssue(pl2.items,s.a,s.z);return r&&r.back===true&&r.to==='D';});})());
-  eq('svBranchIssue : fin d’algorithme -> {end:true}', A.svBranchIssue([{k:'block',id:'z'},{k:'end'}],0,2), {end:true});
-  eq('svBranchIssue : un lien de branche IMBRIQUÉE ne compte pas (niveau propre seulement)',
-    A.svBranchIssue([{k:'bropen'},{k:'link',to:'x',back:false},{k:'brclose'},{k:'end'}],0,4), {end:true});
-  eq('svLoopTargets : les retours ↺ de ovF -> [D]', A.svLoopTargets(pl2.items), ['D']);
-  eq('svLoopTargets : aucun retour dans pl1', A.svLoopTargets(pl1.items), []);
-  eq('svLoopTargets : dédoublonné, ordre d’apparition, PLAFOND 2',
-    A.svLoopTargets([{k:'link',back:true,to:'a'},{k:'link',back:true,to:'b'},{k:'link',back:true,to:'a'},{k:'link',back:true,to:'c'}]), ['a','b']);
+  // (Les témoins de `svBranchIssue`/`svLoopTargets` sont partis avec elles en v5.10.2 : leurs
+  //  appelants — le peintre de fourches/convergences et les brins gris — ont été purgés au lot
+  //  v5.10.0 (A137, la grille unique) sans que ces deux fonctions suivent ; règle 14.)
   const svgOut=A.buildFlowSVG(ovF);
   ok('buildFlowSVG (v4.7.0) : un nœud interactif par bloc (data-fnode)', ['A','D','S','R','X'].every(id=>svgOut.indexOf('data-fnode="'+id+'"')>=0));
   ok('buildFlowSVG : halo et badge ✓ bakés, AUCUN état peint dans la géométrie', svgOut.indexOf('flow-hl-glow')>=0&&svgOut.indexOf('fn-badge')>=0&&svgOut.indexOf('fn-cur')<0&&svgOut.indexOf('fn-ok')<0&&svgOut.indexOf('fn-off')<0);
@@ -2100,6 +2084,29 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('sessionFromRow passe par l\'assainisseur', !('pollue' in back) && !('<img src=x>' in back.checked));
     eq('l\'identité vient de la LIGNE, jamais du blob', back.id, 's9');
   }
+  /* v5.10.2 (check-actest) : le cœur du modèle v4 — pool, rôles, verbes — était exporté « pour
+     test » et cité NULLE PART. C'est le trou par lequel flattenFiche est resté vert pendant que
+     le diff de versions devenait aveugle : un export sans témoin est un faux vert. */
+  group('pool v4 — V4_ROLES / v4Level / v4SanItem / poolOf / roleItems / setStepStr');
+  eq('V4_ROLES : le jeu FERMÉ des cinq rôles', A.V4_ROLES, ['entry','do','watch','dose','ddx']);
+  eq('v4Level : ⚠=3 (tue si oublié), △=2 (on s\'y trompe), nu=1', ['⚠ x','△ x','x'].map(s=>A.v4Level(s)), [3,2,1]);
+  {const it=A.v4SanItem({id:'__proto__',role:'zzz',do:'D',expect:'E',level:99,memory:1,dual:'oui',note:42});
+   ok('v4SanItem : id interdit SUBSTITUÉ, jamais gardé', it.id!=='__proto__');
+   eq('… rôle hors jeu fermé → do', it.role, 'do');
+   eq('… niveau borné dans 1-3', it.level, 3);
+   eq('… booléens coercés', [it.memory,it.dual], [true,true]);
+   eq('… note coercée en chaîne bornée', it.note, '42');}
+  {const fP=A.migrate({title:'T',verify:['V1'],blocks:[{id:'b1',kind:'do',items:['S1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]});
+   ok('poolOf : TOUS les items logent dans le pool (bloc + portée fiche)', A.poolOf(fP).length>=2);
+   eq('roleItems : un rôle de portée fiche = les items du pool que nul bloc ne référence',
+      A.roleItems(fP,'watch').map(x=>x.do), ['V1']);
+   eq('roleItems : les étapes de bloc n\'y entrent pas', A.roleItems(fP,'do').length, 0);
+   const bP=fP.blocks[0];const id0=A.bItems(bP)[0].id;
+   A.setStepStr(bP,0,'⚠ S1 corrigée :: PA > 90');
+   eq('setStepStr : registre et réponse décomposés dans l\'ITEM', A.stepsOf(bP)[0], '⚠ S1 corrigée :: PA > 90');
+   eq('… l\'IDENTITÉ de la ligne est conservée (tout l\'objet du lot T6)', A.bItems(bP)[0].id, id0);
+   A.setStepStr(bP,0,'geste retapé sans réponse');
+   ok('… une chaîne SANS «::» ne détruit PAS la réponse attendue (M1)', A.bItems(bP)[0].expect==='PA > 90');}
   /* ===== ÉTAPE B — LE POOL ================================================================ */
   /* Fixture v3 conservée : elle décrit une aide telle qu'un utilisateur l'écrivait avant
      la v5, et c'est exactement ce que `migrate` doit encore savoir NORMALISER — la conversion
