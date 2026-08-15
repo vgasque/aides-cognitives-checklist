@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.10.6] — 2026-08-15
+### Republication — la v5.10.5 existait en deux exemplaires et la PWA installée gardait le premier
+
+- **Pourquoi une 5.10.6 sans nouveau contenu : le cache `5.10.5` est brûlé.** Deux publications
+  distinctes ont porté le numéro 5.10.5 le même jour (les correctifs du filtre le matin, puis le
+  lot complet — rail, fenêtre compte, partage — le soir, tag déplacé). Or `sw.js` était IDENTIQUE
+  À L'OCTET entre les deux : le navigateur ne détecte une mise à jour qu'au changement de ce
+  fichier, donc une PWA installée sur la v5.10.5 du matin ne se mettait PLUS JAMAIS à jour — même
+  nom de cache, précache du matin servi à vie, pied de page affichant « v5.10.5 » en toute bonne
+  foi (vécu sur appareil : le rail sautait encore alors que Safari, hors PWA, était sain). C'est
+  le piège documenté en tête d'AGENTS.md (« changer les fichiers ne suffit pas à changer ce qui
+  tourne »), version collision : un numéro de version est un NOM DE CACHE, il ne se réutilise
+  jamais pour des octets différents — re-taguer une version déjà construite quelque part revient
+  à publier deux caches sous une seule clé. Le contenu de cette version est celui de l'entrée
+  5.10.5 ci-dessous, intégralement.
+
 ## [5.10.5] — 2026-08-15
 ### Le rail A→Z tient enfin sous le doigt, la fenêtre compte cesse de glisser, le partage montre les complications et la présence réelle
 
@@ -1064,63 +1080,3 @@ livrés.
   écrivant (un mot qui ne vivait que sur une page ne pouvait pas faire naviguer ; la rangée de
   documents d'une fiche vit dans « Consulter », pas dans le flux). Passes complètes 17/17 check ·
   920 × 2 tests · 20/20 harnais.
-
-## [5.2.0] — 2026-08-07
-### La recherche trouve dans les documents PDF — un index inversé, jamais une copie du texte
-
-La recherche trouvait la FICHE, jamais l'endroit : un protocole de service joint en PDF pouvait
-porter la seule mention d'une dilution, et rien ne la trouvait. Et deux correctifs de moindre
-taille livrés dans la même version : le compte-rendu s'enregistre en PDF, et « Répéter en
-exercice » n'allume plus l'accueil avant le premier geste.
-
-- **Chercher dans les documents PDF** (`ixBuild`/`ixOpen`/`ixSearch`, purs et testés ; store
-  IndexedDB `attidx`, base v6). La première approche — conserver le texte extrait et le balayer —
-  a été REFUSÉE par l'auteur, à raison : ~100 % du poids du texte (546 Ko mesurés pour 200 pages)
-  et un plafond obligatoire, donc des documents indexés à moitié. On fait ce que font Spotlight,
-  Finder et Lucene : un **index inversé** — dictionnaire des mots distincts (front-codé) + pages
-  de chaque mot (varint-delta, ou bitmap pour les mots trop fréquents). Le poids suit le
-  VOCABULAIRE, qui sature : mesuré sur du français technique réel, 13,4 % du texte à 626 Ko
-  (34 % à 49 Ko) — **aucun plafond, indexation intégrale, toujours**. L'index natif d'IndexedDB
-  (`multiEntry`) a été mesuré et écarté : ×47 en occupation réelle ; SQLite FTS5 n'existe pas
-  dans un navigateur et l'amener en WASM serait une seconde dépendance runtime (règle 13).
-- **Aucun extrait dans les résultats, et c'est la clé** : la rangée « Dans les documents » donne
-  le nom, le nombre de passages, les PAGES et la fiche qui porte le document — le contexte se lit
-  dans le document, qu'un tap ouvre À LA PAGE (`openPdfViewer` accepte une page). pdf.js
-  (1 773 Ko) n'est donc JAMAIS chargé pendant qu'on tape. Correspondance par sous-chaîne, comme
-  le reste de la recherche (« drenalin » trouve « adrénaline »).
-- **Indexation à l'arrivée du binaire — les CINQ arrivées** : `attPut(rec)` est le point
-  d'étranglement unique (patron `persistLive`) ; trouvé en le posant, l'indexation n'était
-  accrochée qu'à deux des cinq chemins (manquaient le « Télécharger » manuel, le téléchargement
-  immédiat de la visionneuse et l'import .zip). `check-stores` compte désormais les sites
-  d'écriture. File à l'inactivité, un document à la fois ; rattrapage des documents déjà là par
-  un geste explicite (ligne du pied de la sidebar), jamais en tâche de fond spontanée.
-- **Résilience** : deux familles d'échec distinguées — transitoire (binaire absent, pdf.js hors
-  cache : rien n'est retenu, trois essais par session puis « Réessayer ») et durable (`scan` /
-  `illisible` : état enregistré, sinon le compte « à indexer » ne descendrait jamais).
-  `ixAdopt` est l'unique point d'adoption : un enregistrement illisible est JETÉ et le document
-  redevient « à indexer » — le défaut inverse (un `null` rangé dans la table) aurait rendu tous
-  les documents non ré-indexables au premier changement de version d'index. **Réindexer** existe
-  pour tout (ligne du pied, avec confirmation) et pour un document (sa rangée d'éditeur). Le
-  décodeur est TOTAL : enregistrement tronqué refusé en bloc, aucune boucle infinie possible,
-  aucune page rendue hors du document.
-- **Confidentialité** : l'index est DÉRIVÉ et strictement LOCAL — jamais synchronisé, jamais
-  exporté (un dictionnaire EST la liste des mots d'un document clinique ; le faire voyager serait
-  une catégorie nouvelle de donnée sortante, pour zéro gain — il se reconstruit en ~4 ms/page).
-  Il vit dans la base de l'ESPACE : un compte par index sur un poste partagé, déménagé avec le
-  reste, effacé avec le reste. Le contenu des PDF n'atteint jamais le DOM (aucun texte stocké,
-  aucun extrait affiché) ; le seul texte non maîtrisé est le NOM du document, couvert par `esc()`
-  et éprouvé par un témoin au nom hostile.
-- **Le compte-rendu s'enregistre en PDF** (demande utilisateur) : « Télécharger » (.html) et
-  « Imprimer » deviennent « Fichier .html » et « **Enregistrer en PDF** » (rempli) — le second
-  EST le chemin d'impression (iframe A4), seul producteur de PDF du projet ; un seul bouton pour
-  ce chemin (AC 120-71B §5.5), le .html restant le repli qui ne dépend d'aucun dialogue système,
-  et le message d'échec le nomme.
-- **« Répéter en exercice » n'allume plus l'accueil avant le premier geste** (signalé à l'usage :
-  chrono figé à 0:00 et « Session en cours » dès l'entrée en exercice) : `startExercise`
-  n'inscrit plus le runtime dans `liveSessions` — `ensureStarted` le fait au premier geste, comme
-  pour une session réelle ; le prédicat `sessionLive()` (présence ET `started`) remplace les deux
-  tests de présence de la rangée et de la tuile.
-- Vérification : 26 contrôles `audit-pdfsearch` (nouveau harnais, PDF fabriqué xref calculé, vert
-  sur les DEUX moteurs — dont « pdf.js n'est pas chargé par la frappe », mesuré sur page
-  rechargée), 25 témoins unitaires de l'index (bitmap, front-codage, résilience), sonde dédiée du
-  correctif exercice ; passes complètes 17/17 check · 920 × 2 tests · 20/20 harnais.
