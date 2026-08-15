@@ -59,7 +59,7 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
    demande explicite.**
 2. **Avant chaque commit** : `npm run check` (syntaxe · couleurs · classes émises **et stylées** ·
    animations · service worker · **actifs vendorisés** · **entrées de fichier** · SQL · harnais ·
-   hashs CSP) et
+   **ids lus** · **exports de test** · hashs CSP) et
    `npm test` (Chromium **et** WebKit). Si le CSS a changé : `npm run design:build`.
    **La passe d'audit qui vaut avant un commit est la COMPLÈTE** (`npm run audit` sans argument) ;
    `npm run audit -- <noms>` n'est qu'un accélérateur d'itération et s'annonce « PARTIELLE ».
@@ -398,6 +398,16 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   plusieurs endroits) et cette approximation tombe du bon côté : sur-neutraliser fait ÉCHOUER, pas
   passer sous silence. Vérifié capable d'échouer sur ses cinq points, fichier restauré à l'octet.
   `check-actions.mjs` (v5.6) exige qu'un `data-*` ÉMIS ait un LECTEUR (cf. A112).
+  `check-ids.mjs` (v5.10.2) est son symétrique pour les IDS : tout `getElementById('X')` littéral
+  doit avoir une émission (`id="X"` ou fabrique déclarée — `upDropHtml`, `crtCard`). Quatre
+  lecteurs fantômes (#crisisCtrl ×3, #planBtn ×2, #endSess) vivaient dans ce trou, dont un qui
+  recalculait `--ctrl-h` à chaque évènement de défilement pour un élément inexistant.
+  `check-actest.mjs` (v5.10.2) tient la SURFACE DE TEST : toute clé exportée vers `__ac_test__`
+  doit être citée par `tests.html` ou un harnais, et les doublons du littéral échouent — c'est le
+  trou par lequel `flattenFiche` (exportée, citée nulle part) est restée verte pendant que le
+  diff de versions devenait aveugle sur cinq listes sur six. ⚠ `tests.html` se lit en OCTETS :
+  `grep` sans `-a` le croit binaire et répond zéro sur TOUT — le piège qui a fait dire « 0
+  test » à un audit entier (toujours `grep -a` sur ce fichier).
   `check-harnais.mjs` (v5.0.0) rend auto-exécutoire la discipline née avec le lanceur parallèle :
   (1) tout `scripts/audit-*.mjs` sur disque figure dans `HARNAIS` (audit-run.mjs) et
   réciproquement — un harnais créé mais non listé ne tournerait JAMAIS dans `npm run audit`, et le
@@ -3272,8 +3282,20 @@ d'information. Ramenés à 4 chacun : **106 → 96 px**, rythme régulier, premi
 Question de l'auteur sur le temps de chargement (« 2-3 s de page blanche en revenant sur l'app »).
 Relevé : **2 424 Ko** servis, dont `<style>` 696 Ko (**64 % de commentaires**) et `<script>`
 1 655 Ko (**53 %**) — soit **~1 323 Ko de doctrine embarquée**, parsée à chaque démarrage à froid,
-sur chaque appareil. Mesuré en local : premier rendu 100 ms, DOM interactif 137 ms ; sur téléphone,
-après que iOS a libéré l'onglet, c'est le PARSE de 2,4 Mo qui fait la seconde et demie.
+sur chaque appareil. Mesuré en local : premier rendu 100 ms, DOM interactif 137 ms.
+⚠ **L'ATTRIBUTION AU PARSE ÉTAIT FAUSSE — RÉFUTÉE PAR L'EXPÉRIENCE (v5.10.2).** Cette entrée
+disait « sur téléphone, c'est le PARSE de 2,4 Mo qui fait la seconde et demie ». Mesuré en
+retirant TOUS les commentaires (2 424 → 1 167 Ko, copie vérifiée capable de démarrer), même
+serveur, même CPU ralenti ×6 : premier rendu 232 → 192 ms, app prête 653 → 552 ms — **1,26 Mo de
+commentaires = ~0,1 s**. Sauter un commentaire ne coûte à l'analyseur qu'un balayage : les octets
+pèsent sur le transport et la mémoire, presque pas sur le CPU. Les 2-3 s vivent dans la COUCHE
+iOS (création du processus, init WebKit, démarrage du worker, lecture flash) — hors de portée de
+toute optimisation interne. Les deux pistes ci-dessous sont donc DISQUALIFIÉES comme leviers de
+démarrage (b) ou marginales (a : ~150 ms de spinner plus tôt, contre 9 garde-fous lisant « le
+bloc <style> » à adapter d'abord). Reste une hypothèse NON mesurée : un document plus léger est
+moins souvent ÉVINCÉ par iOS sous pression mémoire — cela réduirait la FRÉQUENCE des relances,
+pas leur durée. À instrumenter avant d'agir (compter relances complètes vs reprises au
+démarrage), jamais l'inverse.
 · **LA STRUCTURE DU BLANC EST CONNUE** : la feuille de 696 Ko est BLOQUANTE pour le premier rendu
   (elle vit dans `<head>`), et l'écran `.boot-load` est 180 lignes plus loin. Rien ne se peint avant
   que ces 696 Ko ne soient analysés — d'où du BLANC, et non un écran de chargement.
@@ -3284,6 +3306,60 @@ après que iOS a libéré l'onglet, c'est le PARSE de 2,4 Mo qui fait la seconde
   fait du fichier servi un ARTEFACT DE BUILD, ce qui rouvre la propriété « monofichier sans build »
   et l'ordre des étapes (le retrait devrait précéder `csp-hashes`).
 · **CE QUI N'EST PAS EN CAUSE** : le réseau. Les octets viennent du Cache Storage, pas du serveur.
+
+## Lot v5.10.2 — audit de code externe : ce que les dix-huit garde-fous ne voyaient pas
+
+> Audit transverse (code mort, duplication, PWA, sécurité) mené par balayage outillé du
+> monofichier, chaque constat re-vérifié de première main avant correction. Quatre bogues
+> utilisateur, deux garde-fous nouveaux, quatre duplications factorisées. Le détail vit dans le
+> CHANGELOG et les messages de commit ; ne sont consignées ici que les RÈGLES qui en sortent.
+
+**A154. APRÈS UNE MIGRATION DE MODÈLE, ON BALAIE LES LECTEURS — TOUS.** `flattenFiche` (diff de
+« Versions ») et `ficheHaystack` (recherche) lisaient encore `f.confirmation`/`f.differentials`…
+supprimés par `migrate` depuis l'étape B : le diff était AVEUGLE sur cinq listes sur six (« on
+restaurait à l'aveugle »), et les différentiels étaient INTROUVABLES à la recherche — en silence,
+`undefined` ne levant rien (même famille que `completionSpots`, déjà payé). Leurs témoins
+restaient verts parce que leurs FIXTURES étaient des objets bruts jamais migrés : un témoin de
+fonction qui lit le modèle passe ses fixtures par `migrate()`, sinon il ne rencontre pas son cas.
+
+**A155. LA RÈGLE 5 VAUT POUR LES SESSIONS — `sanitizeSession`, LISTE GRISE.** `sessionFromRow`
+était le seul point d'entrée de données distantes sans assainisseur (Object.assign du blob brut ;
+motif `__proto__` : JSON.parse pose la clé en propriété PROPRE, Object.assign la recopie par
+[[Set]] — donc écrit le prototype). Champs CONNUS bornés par les grammaires EXISTANTES
+(SHARE_KEY_RX, shareNavNorm, tkRefNorm, safeId, sstr) ; champs INCONNUS qui TRAVERSENT — une
+liste blanche perdrait les champs d'un client plus récent au premier aller-retour LWW. ⚠ `sarr`
+est un borneur de tableaux de CHAÎNES (chaque entrée passe par sstr) : sur des objets il rend des
+« [object Object] » — attrapé par le témoin.
+
+**A156. LA BARRIÈRE XSS EST À DEUX ÉTAGES, ET ELLE LE DIT (cf. le pavé au site de `safeImg`).**
+L'audit (1 916 interpolations, 0 XSS exploitable) a établi que « esc() sur toute donnée
+affichée » était littéralement faux : ~25 identifiants n'étaient tenus que par la validation
+d'ENTRÉE (migrate → safeId/safeImg). Ils sont esc() AU SITE depuis v5.10.2 — l'invariant local se
+relit, l'invariant global non. Les `src="${im.data}"` restent sur `safeImg` SEUL (grammaire sans
+métacaractère ; esc() sur un data-URL de plusieurs Mo se paierait à chaque rendu). Dans un
+SÉLECTEUR, l'outil est `CSS.escape`, jamais `esc` — deux contextes, deux échappements. Le
+backtick non échappé est VÉRIFIÉ inerte (0 interpolation en contexte JS, 0 attribut non quoté
+recevant une donnée) : c'est une propriété mesurée, plus seulement une décision assumée.
+
+**A157. LES DUPLICATIONS REVIENNENT PAR D'AUTRES PORTES — ON LES FERME PAR FABRIQUE.** La
+peinture du cochage (deux copies mot pour mot — la divergence v4.42.0 revenue APRÈS que I4 avait
+unifié l'état) → `paintCheckRow` ; le préambule de plan recopié six fois dont une où il était
+calculé puis JETÉ → `planCtx` ; les rangées communes des menus invité/hôte → `conduiteRows`
+(⚠ le sous-titre divergent de « Consulter » est une RAISON, pas un accident : l'invité reçoit la
+fiche dépouillée — il reste un paramètre) ; le retour d'aperçu fiche/protocole → `bindPreviewBack`.
+Purgés avec leurs témoins (règle 14) : `flowOrder` (doublon de `flowPlan`), `svBranchIssue`/
+`svLoopTargets` (appelants partis avec la grille unique A137), `cxOne`. ⚠ Trois « morts » de
+l'audit étaient des FAUX POSITIFS — `#addImg` (émis par la fabrique `upDropHtml`, que le balayage
+disait pourtant exclure), `wakeActive` (consommé par audit-doctrine), `SHARE_DROP`/`vfActor`
+(testés — le grep sans `-a` de tests.html rendait zéro partout) : un constat d'audit se vérifie
+de première main avant de couper.
+
+**A158. LE CACHE STATIQUE EST PÉRENNE (sw.js `STATIC_CACHE`), ET LE MANIFESTE EST DANS LE
+PÉRIMÈTRE DE `check-colors`.** ~120 Ko d'actifs immuables étaient re-téléchargés à chaque release
+(le motif pdf.js jamais généralisé) ; `ASSETS` reste la liste unique de la règle 13 par UNION
+(`...STATIC_ASSETS`), et le SWR range le rafraîchissement d'un statique dans SON cache. Le
+manifeste portait des couleurs hors palette (#ffffff, #e9edf2 — splash hors tokens à chaque
+lancement) : alignées sur `THEME_COLOR.light`, et la dérive est désormais GARDÉE.
 
 ## Conventions de code
 - **Design tokens** : aucune nouvelle couleur hex hors `:root` (tokens CSS) et `PALETTE`
