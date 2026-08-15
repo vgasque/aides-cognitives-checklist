@@ -331,13 +331,25 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   du tableau SURFACES ; la sonde focus 2.4.11 ne tourne que dans la tranche 1), partage en 2 —
   temps mural de la passe complète ~217 → ~120 s. GARDE-FOU : chaque tranche imprime
   `##SEC joues=j total=N` et le lanceur VÉRIFIE que la somme couvre le total — une tranche qui
-  perdrait des sections serait une troncature silencieuse, rouge fabriqué. (3) **`--rouges`**
-  rejoue les seuls harnais rouges de la dernière passe (état dans `.audit-etat.json`, racine,
-  gitignoré), annoncé PARTIELLE. (4) **CACHE DE PASSE VERTE** : une passe complète verte
-  enregistre le SHA-256 de tout ce qui peut influencer un verdict (servables de la racine,
-  vendor/, scripts/*.mjs, moteur) ; si rien n'a changé, `npm run audit` LE DIT au lieu de rejouer
-  (entrées identiques → même verdict), `--force` rejoue quand même ; une passe partielle n'écrit
-  ni ne consomme jamais ce cache.
+  perdrait des sections serait une troncature silencieuse, rouge fabriqué. (3) **`--rouges`
+  REJOUE PAR SECTION (v5.4.4 ; affiné v5.10.5)** : chaque passe enregistre dans
+  `.audit-etat.json` (racine, gitignoré) les harnais rouges ET, pour les harnais à secRunner
+  (doctrine, partage), les NOMS des sections rouges lus dans la sortie capturée ; `--rouges`
+  rejoue alors ces seules sections par `--grep` (noms exacts, ancrés, échappés) — confirmer un
+  correctif tombe de ~2 min à quelques secondes. Toujours annoncé PARTIELLE, et TROIS garde-fous :
+  l'attribution n'est tentée que si le harnais a atteint son bilan (`##SEC` présent — sinon repli
+  sur le harnais ENTIER, jamais trop peu) ; un `--grep` qui rejoue moins de sections qu'attendu
+  (renommée depuis ?) est FORCÉ ROUGE ; un rejeu par sections n'écrit JAMAIS de vert au cache.
+  (4) **CACHE VERT PAR HARNAIS (v5.4.4 ; par harnais depuis v5.10.5)** : le cache était
+  tout-ou-rien (un octet changé dans `audit-qr.mjs` faisait repayer doctrine, 217 s) ; l'empreinte
+  SHA-256 est désormais PAR HARNAIS — socle commun (servables de la racine, vendor/,
+  `harness.mjs`, `audit-run.mjs`, moteur) + son script + ses `deps` déclarées (audit-qr :
+  `qr-decode.swift`). Une passe qui joue un harnais EN ENTIER et le trouve vert enregistre son
+  empreinte ; la passe COMPLÈTE suivante ne rejoue que les harnais dont un intrant a changé et
+  LISTE les autres « réutilisés » (même argument que le cache d'origine : entrées identiques →
+  même verdict). Les `check-*.mjs` sont sciemment HORS empreinte : aucun harnais ne les lit, les
+  inclure fabriquait des repasses complètes fantômes. `--force` rejoue tout ; un ciblage par noms
+  ÉCRIT le vert du harnais joué mais ne consomme jamais le cache.
   **UNE MANŒUVRE, UNE SECTION (v5.6, demande de l'auteur : « optimise les audits, évite les
   doublons »)** : deux sections qui montent le MÊME décor pour mesurer deux propriétés d'un même
   geste paient deux fois le démarrage — et surtout, elles finissent par diverger (l'une apprend un

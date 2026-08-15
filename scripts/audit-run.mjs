@@ -36,22 +36,43 @@
  * `node scripts/audit-doctrine.mjs --grep <motif>` (secRunner, harness.mjs) — c'est la boucle
  * d'itération à quelques secondes, la passe complète restant la porte de commit.
  *
- * REJOUER LES ROUGES (`npm run audit -- --rouges`, v5.4.4) : chaque passe écrit dans
- * `.audit-etat.json` (racine, gitignoré) la liste des harnais en échec ; `--rouges` ne rejoue
- * qu'eux, annoncé PARTIELLE. Aucun rouge enregistré → il le dit et sort vert (ce n'est pas un
- * mensonge : rien n'était dû).
+ * REJOUER LES ROUGES (`npm run audit -- --rouges`, v5.4.4 ; PAR SECTION depuis v5.10.5) : chaque
+ * passe écrit dans `.audit-etat.json` (racine, gitignoré) la liste des harnais en échec — et,
+ * pour les harnais à sections (doctrine, partage), les NOMS des sections rouges, lus dans la
+ * sortie capturée (en-têtes `══ nom ══` de secRunner + lignes `✗`). `--rouges` rejoue alors ces
+ * seules sections par `--grep` (motif ancré sur les noms exacts, échappés) : la confirmation d'un
+ * correctif tombe de ~2 min (harnais entier, 4 tranches) à quelques secondes. Toujours annoncé
+ * PARTIELLE. TROIS GARDE-FOUS : (1) l'attribution n'est tentée que si le harnais a TERMINÉ
+ * normalement (ligne `##SEC` présente) — un crash mid-course rend l'attribution non fiable, et on
+ * retombe sur le harnais ENTIER plutôt que de rejouer trop peu ; (2) un `--grep` qui rejoue MOINS
+ * de sections qu'attendu (section renommée depuis l'échec ?) est FORCÉ ROUGE — un vert obtenu en
+ * rejouant 1 section sur 2 serait un mensonge ; (3) un rejeu par sections ne prouve JAMAIS le
+ * harnais entier : il sort le harnais de la liste des rouges, mais n'écrit pas de vert dans le
+ * cache — la passe complète le rejouera. Aucun rouge enregistré → il le dit et sort vert (ce
+ * n'est pas un mensonge : rien n'était dû).
  *
- * CACHE DE PASSE VERTE (v5.4.4) : une passe COMPLÈTE verte enregistre le SHA-256 de tout ce qui
- * peut influencer un verdict (fichiers servables de la racine, vendor/, scripts/*.mjs, moteur).
- * Si rien n'a changé depuis, `npm run audit` le DIT au lieu de rejouer — des entrées identiques
- * octet à octet donnent le même verdict, c'est le cas réel « je n'ai touché que le CHANGELOG
- * depuis le dernier vert ». `--force` rejoue quand même. Une passe PARTIELLE n'écrit ni ne
- * consomme jamais ce cache.
+ * CACHE VERT PAR HARNAIS (v5.4.4, affiné v5.10.5). Le cache de passe verte était TOUT-OU-RIEN :
+ * un octet changé dans `audit-qr.mjs` invalidait le vert entier, et la passe finale rejouait
+ * doctrine (217 s) qui n'avait pas bougé — la boucle « je corrige un témoin dans UN harnais → je
+ * repaie les 20 » était exactement la douleur que le lanceur devait guérir. Le verdict d'un
+ * harnais ne dépend que de : les fichiers servables de la racine, vendor/, le socle
+ * (`harness.mjs`), le lanceur (`audit-run.mjs`), SON script (+ dépendances déclarées : audit-qr
+ * compile `qr-decode.swift`), et le moteur. L'empreinte est donc PAR HARNAIS : socle commun
+ * haché une fois, + le script propre. Une passe qui joue un harnais EN ENTIER (toutes tranches,
+ * jamais un `--grep`) et le trouve vert enregistre son empreinte ; la passe COMPLÈTE suivante ne
+ * rejoue que les harnais dont un intrant a changé, et LISTE les autres comme réutilisés — même
+ * argument de sécurité que le cache d'origine (entrées identiques octet à octet → même verdict),
+ * appliqué plus finement. Les `check-*.mjs` sont sciemment HORS empreinte : ils tournent dans
+ * `npm run check`, ne sont lus par aucun harnais, et ne peuvent influencer aucun verdict d'audit
+ * — les inclure fabriquait des repasses complètes fantômes. `--force` rejoue tout malgré tout.
+ * Un rejeu par sections (`--rouges`) n'écrit jamais dans ce cache ; un ciblage par NOMS y écrit
+ * (le harnais a tourné en entier) mais ne le CONSOMME pas — demander un harnais, c'est demander
+ * de l'observer tourner.
  *
  * AC_ENGINE est transmis tel quel aux enfants (héritage d'environnement) :
  *     AC_ENGINE=webkit npm run audit            → tous les harnais sur WebKit
  *     npm run audit -- doctrine                 → un seul harnais (ses 4 tranches), PARTIELLE
- *     npm run audit -- --rouges                 → les seuls harnais rouges de la dernière passe
+ *     npm run audit -- --rouges                 → rouges de la dernière passe (sections si connues)
  *     AC_JOBS=2 npm run audit                   → pool réduit (machine chargée)
  */
 import { spawn } from 'node:child_process';
@@ -64,16 +85,19 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
    (AGENTS.md y renvoie). Le poids est la durée MESURÉE en secondes (2026-08, Chromium, M-series) :
    il ne sert qu'à ordonner lourd-d'abord, une dérive ne fausse aucun verdict. `tranches` : le
    harnais sait se découper (`--shard k/n`, cf. secRunner/trancheArg dans harness.mjs) et le
-   lanceur le joue en n processus parallèles — réservé à ceux qui dominent le temps mural. */
+   lanceur le joue en n processus parallèles — réservé à ceux qui dominent le temps mural.
+   `sections` : le harnais passe par secRunner (donc accepte `--grep` et imprime `══ nom ══`) —
+   condition du rejeu par sections de `--rouges`. `deps` : fichiers HORS scripts/<nom>.mjs que le
+   harnais lit ou exécute, à entrer dans son empreinte. */
 const HARNAIS = [
-  { nom: 'audit-doctrine',      poids: 217, tranches: 4 },
+  { nom: 'audit-doctrine',      poids: 217, tranches: 4, sections: true },
   { nom: 'audit-a11y',          poids: 128, tranches: 2 },
-  { nom: 'audit-partage',       poids: 76,  tranches: 2 },
+  { nom: 'audit-partage',       poids: 76,  tranches: 2, sections: true },
   { nom: 'audit-k5',            poids: 67 },
   { nom: 'audit-pdfsearch',     poids: 66 },
   { nom: 'audit-complications', poids: 13 },
   { nom: 'audit-upload',        poids: 12 },
-  { nom: 'audit-qr',            poids: 12 },
+  { nom: 'audit-qr',            poids: 12, deps: ['scripts/qr-decode.swift'] },
   { nom: 'audit-exercice',      poids: 12 },
   { nom: 'audit-modeseg',       poids: 6 },
   { nom: 'audit-session-card',  poids: 5 },
@@ -93,18 +117,23 @@ const RACINE = fileURLToPath(new URL('../', import.meta.url));
 const ETAT_F = RACINE + '.audit-etat.json';
 const moteur = (process.env.AC_ENGINE || 'chromium').toLowerCase();
 
-/* ÉTAT ENTRE PASSES (.audit-etat.json, gitignoré) : { quand, moteur, rouges: [noms],
-   vertComplet: bool, hash } — `hash` n'existe que posé par une passe COMPLÈTE verte. */
+/* ÉTAT ENTRE PASSES (.audit-etat.json, gitignoré) :
+     { quand, moteur, rouges: [noms],
+       sections: { nom: [noms de sections rouges] },      ← harnais à secRunner seulement
+       verts:    { nom: { hash, quand } } }               ← empreinte du dernier vert ENTIER
+   Un fichier d'ancien format (vertComplet/hash globaux) est lu sans erreur : `verts` absent =
+   aucun vert réutilisable, tout se rejoue une fois — migration silencieuse et sûre. */
 function lireEtat() { try { return JSON.parse(readFileSync(ETAT_F, 'utf8')); } catch { return null; } }
 function ecrireEtat(e) { try { writeFileSync(ETAT_F, JSON.stringify(e, null, 1) + '\n'); } catch { /* un cache qui ne s'écrit pas ne casse rien */ } }
 
-/* EMPREINTE DE L'ÉTAT AUDITÉ : tout ce qu'un harnais peut lire — les fichiers servables de la
-   racine (l'app entière est un monofichier, mais sw.js, le manifeste et les icônes sont servis
-   aussi), vendor/ (pdf.js, la police), et TOUS les scripts/*.mjs (harnais, socle, garde-fous :
-   modifier un témoin invalide le vert qu'il avait produit). Trier avant de hacher — l'ordre de
-   readdir n'est pas contractuel. */
-function empreinte() {
-  const h = createHash('sha256');
+/* EMPREINTES PAR HARNAIS. Socle commun : les fichiers servables de la racine (l'app entière est
+   un monofichier, mais sw.js, le manifeste et les icônes sont servis aussi), vendor/ (pdf.js, la
+   police), `harness.mjs` (le socle que tous importent), CE lanceur, et le moteur. Puis, par
+   harnais : son script + ses `deps`. Trier avant de hacher — l'ordre de readdir n'est pas
+   contractuel. Les autres scripts/*.mjs (check-*, csp-hashes…) sont HORS empreinte À DESSEIN :
+   aucun harnais ne les lit, ils ne peuvent changer aucun verdict d'audit. */
+function empreintes() {
+  const socle = createHash('sha256');
   const fichiers = [];
   for (const f of readdirSync(RACINE))
     if (/\.(html|js|webmanifest|svg|png|ico)$/.test(f)) fichiers.push(f);
@@ -113,11 +142,40 @@ function empreinte() {
       if (e.isDirectory()) walk(d + e.name + '/'); else fichiers.push(d + e.name);
   };
   walk('vendor/');
-  for (const f of readdirSync(RACINE + 'scripts')) if (f.endsWith('.mjs')) fichiers.push('scripts/' + f);
+  fichiers.push('scripts/harness.mjs', 'scripts/audit-run.mjs');
   fichiers.sort();
-  for (const f of fichiers) { h.update(f + '\0'); h.update(readFileSync(RACINE + f)); h.update('\0'); }
-  h.update('moteur=' + moteur);
-  return h.digest('hex');
+  for (const f of fichiers) { socle.update(f + '\0'); socle.update(readFileSync(RACINE + f)); socle.update('\0'); }
+  socle.update('moteur=' + moteur);
+  const base = socle.digest('hex');
+  const map = {};
+  for (const h of HARNAIS) {
+    const hh = createHash('sha256');
+    hh.update(base);
+    for (const f of [`scripts/${h.nom}.mjs`, ...(h.deps || [])]) {
+      hh.update(f + '\0'); hh.update(readFileSync(RACINE + f)); hh.update('\0');
+    }
+    map[h.nom] = hh.digest('hex');
+  }
+  return map;
+}
+
+/* ATTRIBUER LES ÉCHECS À LEURS SECTIONS, depuis la sortie capturée d'un harnais à secRunner :
+   en-tête `══ nom ══`, échec = ligne `✗` (préfixe d'indentation variable). Rend null — c'est-à-
+   dire « rejouer le harnais ENTIER » — dès que l'attribution n'est pas fiable : un `✗` AVANT la
+   première section, aucune section identifiée, ou sortie SANS ligne `##SEC` (le harnais n'a pas
+   atteint son bilan : crash mid-course, sections suivantes jamais jouées — en rejouer une seule
+   serait rejouer trop peu). */
+function sectionsRouges(sortie) {
+  if (!/##SEC joues=/.test(sortie)) return null;
+  let cur = null, horsSection = false;
+  const rouges = new Set();
+  for (const l of sortie.split('\n')) {
+    const m = /^══ (.+) ══$/.exec(l);
+    if (m) { cur = m[1]; continue; }
+    if (/^\s*✗/.test(l)) { if (cur) rouges.add(cur); else horsSection = true; }
+  }
+  if (horsSection || !rouges.size) return null;
+  return [...rouges];
 }
 
 /* Ciblage : `npm run audit -- partage qr` (préfixe `audit-` facultatif), `--rouges`, `--force`.
@@ -133,15 +191,17 @@ if (drapeaux.has('--rouges') && demandes.length) {
   console.error('✗ --rouges ne se combine pas avec des noms de harnais.'); process.exit(1);
 }
 
+const etatPrec = lireEtat() || {};
 let liste = HARNAIS;
+let modeRouges = false;
 if (drapeaux.has('--rouges')) {
-  const etat = lireEtat();
-  const rouges = etat?.rouges || [];
+  const rouges = etatPrec.rouges || [];
   if (!rouges.length) {
     console.log('✓ --rouges : aucun harnais rouge enregistré par la dernière passe — rien à rejouer.');
     process.exit(0);
   }
   liste = HARNAIS.filter(h => rouges.includes(h.nom));
+  modeRouges = true;
 } else if (demandes.length) {
   const inconnus = [];
   const retenus = new Set();
@@ -157,28 +217,45 @@ if (drapeaux.has('--rouges')) {
   }
   liste = HARNAIS.filter(h => retenus.has(h)); // ordre lourd-d'abord conservé
 }
-const partiel = liste.length < HARNAIS.length;
+/* `--rouges` est TOUJOURS une passe partielle, même si tous les harnais étaient rouges : un rejeu
+   par sections ne couvre pas les harnais entiers, et un vert `--rouges` ne vaut jamais la porte
+   de commit. */
+const partiel = modeRouges || liste.length < HARNAIS.length;
 
-/* CACHE DE PASSE VERTE — passe complète seulement, et jamais sous --force. */
-let hachage = null;
-if (!partiel) {
-  hachage = empreinte();
-  const etat = lireEtat();
-  if (!drapeaux.has('--force') && etat?.vertComplet && etat.hash === hachage && etat.moteur === moteur) {
-    console.log(`✓ Passe complète DÉJÀ VERTE sur cet état exact (${etat.quand}, moteur ${moteur}) —`);
-    console.log('  aucun fichier servable, vendorisé ni script d\'audit n\'a changé depuis.');
+const EMP = empreintes();
+
+/* CACHE VERT PAR HARNAIS — consommé par la passe COMPLÈTE seulement, et jamais sous --force :
+   un harnais dont l'empreinte n'a pas changé depuis son dernier vert ENTIER est prouvé vert sur
+   les octets courants, il est listé « réutilisé » au lieu d'être rejoué. */
+let reutilises = [];
+let aJouer = liste;
+if (!partiel && !drapeaux.has('--force')) {
+  const verts = etatPrec.verts || {};
+  reutilises = liste.filter(h => verts[h.nom]?.hash === EMP[h.nom]);
+  aJouer = liste.filter(h => !reutilises.includes(h));
+  if (!aJouer.length) {
+    console.log(`✓ Passe complète DÉJÀ VERTE sur cet état exact (moteur ${moteur}) — les ${HARNAIS.length} harnais`);
+    console.log('  ont un vert enregistré sur les octets courants (servables, vendor, socle, leur script).');
     console.log('  `npm run audit -- --force` pour rejouer malgré tout.');
     process.exit(0);
   }
 }
 
 /* EXPANSION EN TÂCHES : un harnais à `tranches` devient n processus `--shard k/n`, chacun ~1/n du
-   poids — le tri lourd-d'abord se fait sur les TÂCHES, pour que le pool les empile au mieux. */
+   poids — le tri lourd-d'abord se fait sur les TÂCHES, pour que le pool les empile au mieux.
+   Sous --rouges, un harnais à sections dont les sections rouges sont CONNUES devient UN processus
+   `--grep` sur leurs noms exacts (ancrés, échappés) ; `grep` porte le nombre de sections
+   attendues, vérifié au retour. */
 const taches = [];
-for (const h of liste) {
-  if (h.tranches) for (let k = 1; k <= h.tranches; k++)
-    taches.push({ nom: h.nom, label: `${h.nom} ${k}/${h.tranches}`, args: ['--shard', `${k}/${h.tranches}`], poids: h.poids / h.tranches });
-  else taches.push({ nom: h.nom, label: h.nom, args: [], poids: h.poids });
+for (const h of aJouer) {
+  const secs = modeRouges && h.sections ? (etatPrec.sections || {})[h.nom] : null;
+  if (secs?.length) {
+    const motif = '^(?:' + secs.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')$';
+    taches.push({ nom: h.nom, label: `${h.nom} --grep ×${secs.length}`, args: ['--grep', motif], poids: 6 * secs.length, grep: secs.length });
+  } else if (h.tranches) {
+    for (let k = 1; k <= h.tranches; k++)
+      taches.push({ nom: h.nom, label: `${h.nom} ${k}/${h.tranches}`, args: ['--shard', `${k}/${h.tranches}`], poids: h.poids / h.tranches });
+  } else taches.push({ nom: h.nom, label: h.nom, args: [], poids: h.poids });
 }
 taches.sort((a, b) => b.poids - a.poids);
 
@@ -188,10 +265,14 @@ const defJobs = Math.max(1, Math.min(4, availableParallelism() - 1));
 const JOBS = Math.max(1, parseInt(process.env.AC_JOBS || String(defJobs), 10) || defJobs);
 
 if (partiel) {
-  console.log(`⚠ PASSE PARTIELLE — ${liste.length}/${HARNAIS.length} harnais (${liste.map(h => h.nom.replace(/^audit-/, '')).join(', ')}).`);
+  console.log(`⚠ PASSE PARTIELLE — ${liste.length}/${HARNAIS.length} harnais (${liste.map(h => h.nom.replace(/^audit-/, '')).join(', ')})${modeRouges ? ', mode --rouges' : ''}.`);
   console.log('  Un vert partiel ne vaut PAS la suite : « avant chaque commit », npm run audit sans argument.');
 }
-console.log(`Audit ${partiel ? 'partiel' : 'complet'} — ${liste.length} harnais (${taches.length} tâches), pool ${JOBS}, moteur ${moteur}.\n`);
+if (reutilises.length) {
+  console.log(`≡ ${reutilises.length} harnais réutilisés — vert déjà prouvé sur ces octets exacts :`);
+  console.log('  ' + reutilises.map(h => h.nom.replace(/^audit-/, '')).join(' · '));
+}
+console.log(`Audit ${partiel ? 'partiel' : 'complet'} — ${aJouer.length} harnais à jouer (${taches.length} tâches), pool ${JOBS}, moteur ${moteur}.\n`);
 
 /* Une tâche = un processus enfant, sortie CAPTURÉE (stdout+stderr mêlés dans l'ordre d'arrivée).
    En vert on n'affiche que sa dernière ligne (le « ✓ … » que chaque harnais imprime) ; en rouge,
@@ -228,10 +309,24 @@ await Promise.all(Array.from({ length: Math.min(JOBS, file.length) }, async () =
 
 const total = ((Date.now() - t0) / 1000).toFixed(1);
 
+/* GARDE-FOU DU REJEU PAR SECTIONS : un `--grep` vert doit avoir joué EXACTEMENT le nombre de
+   sections attendues. Moins (section renommée depuis l'échec ? zéro est déjà un échec bruyant de
+   secRunner) = vert FABRIQUÉ sur une couverture amputée → forcé rouge. */
+for (const r of resultats) {
+  if (!r.grep || r.code !== 0) continue;
+  const m = /##SEC joues=(\d+)/.exec(r.sortie);
+  if (!m || +m[1] !== r.grep) {
+    console.log(`✗ ${r.label} : ${m ? m[1] : 0} section(s) rejouée(s) pour ${r.grep} attendue(s) — section renommée depuis l'échec ?` +
+      ` Rejouer le harnais entier : npm run audit -- ${r.nom.replace(/^audit-/, '')}`);
+    r.code = 1;
+  }
+}
+
 /* VÉRIFICATION DES TRANCHES : la somme des `##SEC joues=` d'un harnais découpé doit couvrir son
    `total=` (identique d'une tranche à l'autre — c'est le même fichier). Un écart = tâche ROUGE
    fabriquée : une passe qui perd des sections en silence est exactement ce que ce lanceur
-   existe pour empêcher. */
+   existe pour empêcher. Sans objet pour un rejeu `--grep` (partiel par définition, gardé
+   ci-dessus par le compte de sections attendues). */
 const parHarnais = new Map();
 for (const r of resultats) {
   if (!parHarnais.has(r.nom)) parHarnais.set(r.nom, []);
@@ -239,7 +334,7 @@ for (const r of resultats) {
 }
 for (const [nom, runs] of parHarnais) {
   const h = HARNAIS.find(x => x.nom === nom);
-  if (!h?.tranches || runs.some(r => r.code !== 0)) continue; // un rouge se voit déjà
+  if (!h?.tranches || runs.some(r => r.grep) || runs.some(r => r.code !== 0)) continue; // un rouge se voit déjà
   let joues = 0, totalSec = null, sans = false;
   for (const r of runs) {
     const m = /##SEC joues=(\d+) total=(\d+)/.exec(r.sortie);
@@ -255,7 +350,6 @@ for (const [nom, runs] of parHarnais) {
 }
 
 const rouges = resultats.filter(r => r.code !== 0);
-const nomsRouges = [...new Set(rouges.map(r => r.nom))];
 
 if (rouges.length) {
   console.log(`\n════ ${rouges.length} tâche(s) en échec — sorties complètes ════`);
@@ -265,17 +359,47 @@ if (rouges.length) {
   }
 }
 
-/* Mise à jour de l'état : une passe COMPLÈTE fait autorité sur `rouges` ; une passe partielle ne
-   corrige que ce qu'elle a rejoué (un harnais redevenu vert en sort, un rouge y entre). */
+/* Mise à jour de l'état. Par harnais ADRESSÉ par cette passe (joué ou réutilisé) :
+   vert entier → sort des rouges, empreinte enregistrée dans `verts` ; vert par `--grep` → sort
+   des rouges mais N'ENTRE PAS dans `verts` (seules ses sections rouges ont été rejouées) ;
+   rouge → entre dans les rouges, sort de `verts`, et ses sections rouges sont enregistrées si
+   l'attribution est fiable (sinon on efface : le prochain --rouges rejouera le harnais entier).
+   Un harnais non adressé garde son état. */
 {
   const etat = lireEtat() || {};
-  const avant = new Set(etat.rouges || []);
-  for (const h of liste) avant.delete(h.nom);
-  for (const n of nomsRouges) avant.add(n);
-  const e = { quand: new Date().toISOString(), moteur, rouges: [...avant] };
-  if (!partiel && !rouges.length) { e.vertComplet = true; e.hash = hachage; }
-  ecrireEtat(e);
+  const rougesEtat = new Set(etat.rouges || []);
+  const sectionsEtat = { ...(etat.sections || {}) };
+  const vertsEtat = { ...(etat.verts || {}) };
+  const quand = new Date().toISOString();
+  for (const h of liste) {
+    const runs = parHarnais.get(h.nom);
+    if (!runs) { // réutilisé : vert prouvé par empreinte, rien d'autre à changer
+      rougesEtat.delete(h.nom); delete sectionsEtat[h.nom];
+      continue;
+    }
+    const rouge = runs.some(r => r.code !== 0);
+    const parGrep = runs.some(r => r.grep);
+    if (!rouge) {
+      rougesEtat.delete(h.nom); delete sectionsEtat[h.nom];
+      if (!parGrep) vertsEtat[h.nom] = { hash: EMP[h.nom], quand };
+    } else {
+      rougesEtat.add(h.nom); delete vertsEtat[h.nom];
+      if (h.sections) {
+        const secs = new Set();
+        let fiable = true;
+        for (const r of runs) {
+          if (r.code === 0) continue;
+          const s = sectionsRouges(r.sortie);
+          if (!s) { fiable = false; break; }
+          s.forEach(x => secs.add(x));
+        }
+        if (fiable && secs.size) sectionsEtat[h.nom] = [...secs];
+        else delete sectionsEtat[h.nom];
+      }
+    }
+  }
+  ecrireEtat({ quand, moteur, rouges: [...rougesEtat], sections: sectionsEtat, verts: vertsEtat });
 }
 
-console.log(`\n${rouges.length ? '✗' : '✓'} ${resultats.length - rouges.length}/${resultats.length} tâches vertes (${liste.length} harnais) en ${total}s${partiel ? ' — PASSE PARTIELLE (la passe complète reste due avant commit)' : ''}.`);
+console.log(`\n${rouges.length ? '✗' : '✓'} ${resultats.length - rouges.length}/${resultats.length} tâches vertes (${aJouer.length} harnais joués${reutilises.length ? `, ${reutilises.length} réutilisés` : ''}) en ${total}s${partiel ? ' — PASSE PARTIELLE (la passe complète reste due avant commit)' : ''}.`);
 process.exit(rouges.length ? 1 : 0);
