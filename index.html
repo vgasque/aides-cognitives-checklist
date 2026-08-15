@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-GWoZ+u/JztAiG33dgu9o9fkVWNb1u3ImoPLFpNoum5U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-ZQKadp5djskUP2J63I6aR8RRxUZ20agg94LqZrlCABc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -15798,6 +15798,15 @@ function bindProtoFind(root,ent){
   const pv=document.getElementById('pfPrev'),nx=document.getElementById('pfNext');
   if(pv)pv.onclick=()=>pfGo(_pfI-1);
   if(nx)nx.onclick=()=>pfGo(_pfI+1);}
+/* I8 (v5.10.2) — LE RETOUR D'APERÇU, UNE SEULE FABRIQUE. Le bloc « Retour à l'édition » (garde
+   anti double-tap 700 ms comprise) vivait en deux copies, fiche et protocole — la paire jumelle
+   canonique de ce fichier. Seuls varient le champ d'état à vider et le texte du badge. */
+function bindPreviewBack(clear,badgeTxt){
+  const backToEdit=()=>{_backGuardT=Date.now();const from=state.previewFrom;state.previewFrom=null;clear();state.view=from;render();
+    const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}};
+  document.getElementById('hdrBackLbl').hidden=false;document.getElementById('hdrBackLbl').textContent='Retour à l’édition';
+  document.getElementById('hdrBack').onclick=backToEdit;
+  const b=document.getElementById('hdrBadge');b.hidden=false;b.textContent=badgeTxt;}
 function renderProtocolRead(){
   const p=state.protocol;if(!p){state.view='library';return render();}
   const preview=!!state.previewFrom;
@@ -15904,11 +15913,7 @@ function renderProtocolRead(){
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
   if(preview){
-    const backToEdit=()=>{_backGuardT=Date.now();const from=state.previewFrom;state.previewFrom=null;state.protocol=null;state.view=from;render();
-      const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}};
-    document.getElementById('hdrBackLbl').hidden=false;document.getElementById('hdrBackLbl').textContent='Retour à l’édition';
-    document.getElementById('hdrBack').onclick=backToEdit;
-    {const b=document.getElementById('hdrBadge');b.hidden=false;b.textContent='Mode aperçu';}
+    bindPreviewBack(()=>{state.protocol=null;},'Mode aperçu');   // I8 : fabrique unique
   }else{
     /* Même pile d'origine que la lecture de fiche (v4.28.0) — une référence ouverte depuis une
        fiche (« Voir aussi ») ramène à la fiche, garde anti double-tap comprise.
@@ -17452,6 +17457,18 @@ function applyCheck(k,on){
   if(on){delete state.vgaps[k];}else{delete state.verified[k];}
   if(!on)state.flowEnded=false;
   return true;}
+/* C3 (v5.10.2) — LE CŒUR DE PEINTURE DU COCHAGE, UNE SEULE FOIS. L'ÉTAT est unique depuis I4
+   (applyCheck) ; la PEINTURE, elle, vivait encore en deux copies mot pour mot (vue guidée +
+   journal) — la divergence exacte que la v4.42.0 a payée, revenue par une autre porte. Démarre la
+   session au premier geste, persiste, et rend TRUE si un re-rendu complet ancré a eu lieu (toute
+   première action) : l'appelant s'arrête là, le DOM qu'il tenait n'existe plus. */
+function paintCheckRow(li,k,on,kb){
+  const justStarted=ensureStarted();persistLive(Runtime);
+  if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return true;}
+  li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
+  const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
+  paintStepTrace(li,k);
+  return false;}
 function canToggleStep(on){
   try{
     if(Share.mode!=='guest')return true;
@@ -18993,10 +19010,8 @@ function renderRead(){
     /* Avant le soin, la colonne n'existe QU'AU COCKPIT : sous 1200 le parcours vit au centre
        (7c), et l'y laisser en double afficherait la même liste deux fois côte à côte. */
     if(!started&&gesteEntree&&!mqCock.matches)return '';
-    const plan=flowPlan(f);if(!plan.order.length)return '';
-    const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
-    const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
-    const off=offPathSet(f,state.nav,state.navPos);
+    // (I8 v5.10.2 : le préambule plan/num/md/off calculé ICI était JETÉ — railLadHtml refait
+    //  sa propre dérivation et rend '' sans plan. On la lui laisse, une fois.)
     return railLadHtml(f);})();
   /* LA CLASSE `cockpit` EST CONDITIONNÉE PAR L'EXISTENCE DE LA COLONNE (correctif — le mode
      STATIQUE s'affichait ENTIER dans une colonne de 240 px, signalé à l'usage). `cockpit` pose une
@@ -19353,14 +19368,10 @@ function bindReadEvents(f,blk,cur){
   if(state.previewFrom){
     // SPEC §5 : « Retour à l'édition » à GAUCHE, « MODE APERÇU » en badge à droite — jamais de
     // barre basse (en crise comme en aperçu, aucune zone fixe en bas).
-    const backToEdit=()=>{_backGuardT=Date.now();const from=state.previewFrom;state.previewFrom=null;state.fiche=null;state.view=from;render();
-      const hb=document.getElementById('hdrBack');if(hb){hb.classList.add('guarded');setTimeout(()=>hb.classList.remove('guarded'),700);}};
-    document.getElementById('hdrBackLbl').hidden=false;document.getElementById('hdrBackLbl').textContent='Retour à l’édition';
-    document.getElementById('hdrBack').onclick=backToEdit;
-    /* K5 (v4.72.0) : le badge disait « aucune session en cours » — c'était vrai tant que
-       l'aperçu était inerte ; « ▶ Essayer » en déroule maintenant une, VRAIE mais sans trace.
-       Le mot qui compte est donc ce qu'elle ne fait PAS. */
-    {const b=document.getElementById('hdrBadge');b.hidden=false;b.textContent='Essai — rien n’est enregistré';}
+    bindPreviewBack(()=>{state.fiche=null;},'Essai — rien n’est enregistré');   // I8 : fabrique unique
+    /* (le badge : K5 v4.72.0 — « ▶ Essayer » déroule une session VRAIE mais sans trace ; le mot
+       qui compte est ce qu'elle ne fait PAS.) */
+
   }else{
     /* Quitter une FICHE force l'écriture des sessions vives : `persistLive` est temporisé de
        700 ms, on ne laisse pas une coche en l'air derrière soi. (Une RÉFÉRENCE, elle, n'a rien à
@@ -19399,6 +19410,17 @@ function bindReadEvents(f,blk,cur){
      — le « ‹ » d'en-tête — changeait la vue en laissant le mode et le sondage armés, sans chemin
      de retour vers le miroir. Un dispositif dont on ne peut pas sortir n'est pas un dispositif de
      confiance, et le collègue à qui l'on tend un QR mérite de savoir qu'il peut partir. */
+  /* I8 (v5.10.2) — les quatre rangées de CONDUITE communes aux deux menus (invité / hôte)
+     sortent en fabrique : recopiées, elles ne pouvaient que diverger (§ 5.5). Le SOUS-TITRE de
+     « Consulter » reste un PARAMÈTRE, et ce n'est pas une divergence accidentelle : l'invité
+     reçoit la fiche DÉPOUILLÉE (liste blanche SHARE_KEEP — ni documents ni images), et lui
+     promettre « surveillances, documents… » serait un bouton menteur. Deux libellés, une raison,
+     UNE fabrique. */
+  const conduiteRows=subConsulter=>[
+    ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Mode moniteur',ic:uiIcon('expand',16),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
+    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
+    ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
+    ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:subConsulter,act:()=>openRefSheet()}]:[])];
   _moreBuild=null;
   if(!state.previewFrom&&Share.mode==='guest')_moreBuild=()=>setMoreMenu([
     /* PRENDRE LA MAIN — DANS LE MENU DE L'INVITÉ, et c'est le seul endroit où elle a un sens :
@@ -19410,10 +19432,7 @@ function bindReadEvents(f,blk,cur){
       ? [{label:'Prendre la main',ic:'⇄',sub:'vous conduirez la checklist',
           act:()=>{if(Share.takeLead()){announce('Vous avez pris la main.');shareMenuRefresh();}}}]
       : []),
-    ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Mode moniteur',ic:uiIcon('expand',16),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
-    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
-    ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
-    ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'ce qui a été transmis',act:()=>openRefSheet()}]:[]),
+    ...conduiteRows('ce qui a été transmis'),
     /* CONTINUER SEUL — n'apparaît QUE quand le lien est silencieux. C'est le repli hors dispositif
        (AC 120-64 §9.a) : plutôt qu'un écran figé, l'invité reprend la main sur l'instantané qu'il a
        déjà. La rangée n'existe pas tant que le lien est bon — proposer de bifurquer à quelqu'un qui
@@ -19426,10 +19445,7 @@ function bindReadEvents(f,blk,cur){
   ]);
   else if(!state.previewFrom)_moreBuild=()=>setMoreMenu([
     ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
-    ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Mode moniteur',ic:uiIcon('expand',16),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
-    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
-    ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
-    ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:'surveillances, documents…',act:()=>openRefSheet()}]:[]),
+    ...conduiteRows('surveillances, documents…'),
     'sep',
     /* PARTAGER — dans le groupe de la CONDUITE EN COURS, jamais dans le chrome de crise : la
        rangée de commandes n'a que 2,1 px de marge à 320 px, et un contrôle qui apparaîtrait selon
@@ -19752,11 +19768,7 @@ function bindNavEvents(f,blk){
        journal, lui, teste la PRÉSENCE de la bannière dans le DOM, donc il y était insensible). */
     const finAvant=state.flowEnded;
     if(!applyCheck(k,on))return;   // I4 : cœur UNIQUE — garde de rôle, trace, haptique, drapeau de fin
-    const justStarted=ensureStarted();persistLive(Runtime);
-    if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
-    li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
-    const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
-    paintStepTrace(li,k);
+    if(paintCheckRow(li,k,on,kb))return;   // C3 : peinture UNIQUE (démarrage ancré compris)
     // DÉCOCHER ANNULE LA FIN DE L'ALGORITHME (v4.42.0) — symétrique du journal, qui le fait en
     // deux temps (`ovToggleStep` remet le drapeau à false, puis `ovAfterCheck` re-rend en ancré
     // si la bannière traîne encore). Ici le reset vivait dans la branche `else` du bloc `if(nn)`
@@ -19896,11 +19908,14 @@ function overviewSection(f){
   // mesure que le journal grandissait : il fallait dérouler tout le parcours pour l'atteindre.
   const inner=controls+secH+`<div class="ov-journal">${insts}${endH}</div>`;
   // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
-  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='decision')return {d:null,t:null};
-    const steps=clean(stepsOf(b));const seq=state.navSeq[state.navPos]||1;
-    let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
+  const tipDone=blockTip(f,cur);   // I8 v5.10.2 : compteur du bout, une seule fabrique
   return {blk,cur,navHtml:`<div class="ov-wrap">${inner}</div>`,inner,
     blockDone:tipDone.d,blockTot:tipDone.t};}
+/* I8 (v5.10.2) — le compteur « fait/total » de l'instance du BOUT, recopié mot pour mot entre le
+   journal et la vue statique. Une décision n'a pas d'étapes : {d:null,t:null}. */
+function blockTip(f,cur){const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='decision')return {d:null,t:null};
+  const steps=clean(stepsOf(b));const seq=state.navSeq[state.navPos]||1;
+  let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};}
 // Une INSTANCE du journal (un passage d'un bloc) — en-tête ligne d'état (n° topologique, titre,
 // « passage k/N », réponse d'une décision, compteur, chevron, « ↺ Refaire ») et corps (étapes
 // cochables / question + options — même grammaire ol.steps que la vue guidée). Le bouton
@@ -20139,11 +20154,18 @@ function optAbbr(labels){
     if(first.filter(x=>x===a).length<2)return a;
     const b2=clean1(words(labels[i])[1]).charAt(0);
     return b2?(a+'·'+b2):(a+(i+1));});}
-function ovPlanHtml(f){
-  const plan=flowPlan(f);if(!plan.order.length)return '';
+/* I8 (v5.10.2) — LE PRÉAMBULE DE PLAN, UNE SEULE FOIS. Six rendus recopiaient la même
+   dérivation (flowPlan + numérotation commune + état-par-bloc + hors-chemin) du même état, dans
+   le même cycle de rendu — la duplication qui finit par diverger (§ 5.5), et du travail refait
+   cinq fois. `null` si la fiche n'a pas de plan : l'appelant rend ''. La variante « pas de “ici”
+   avant le soin » (vue statique d'entrée) garde son propre calcul, elle est MOTIVÉE sur place. */
+function planCtx(f){
+  const plan=flowPlan(f);if(!plan.order.length)return null;
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
-  const off=offPathSet(f,state.nav,state.navPos);
+  return {plan,num,md,off:offPathSet(f,state.nav,state.navPos)};}
+function ovPlanHtml(f){
+  const _pc=planCtx(f);if(!_pc)return '';const {plan,num,md,off}=_pc;
   /* UNE SEULE VUE (v4.25.0, audit Plan/Statique) — l'ÉCHELLE. Le sélecteur à trois onglets
      disparaît avec « Détails ».
      POURQUOI « Détails » est supprimé : mesuré, c'était la seule des trois à RECOPIER LES ÉTAPES
@@ -20850,10 +20872,7 @@ function syncDock(){
    qui la rejoue sur place. Rendue VIDE si la fiche n'a pas d'algorithme — c'est aussi ce qui
    conditionne la classe `cockpit` (cf. renderRead). */
 function railLadHtml(f){
-  const plan=flowPlan(f);if(!plan.order.length)return '';
-  const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
-  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
-  const off=offPathSet(f,state.nav,state.navPos);
+  const _pc=planCtx(f);if(!_pc)return '';const {plan,num,md,off}=_pc;
   /* ⚠ « ⤢ COMPLET » EST SUPPRIMÉ (v5.0.0, demande utilisateur, après vérification MESURÉE). Il
      ouvrait la feuille `#planModal`, laquelle rend `ovPlanHtml` — c'est-à-dire EXACTEMENT ce que
      cette colonne montre déjà : 8 rangées identiques, 281 caractères ici contre 326 là (l'écart
@@ -20879,10 +20898,7 @@ function railLadHtml(f){
    ensuite » vit DANS le corps de l'Échelle et se replie avec elle — sa source reste le flux (③),
    le rail n'en portait qu'une copie. */
 function railLadParts(f){
-  const plan=flowPlan(f);if(!plan.order.length)return null;
-  const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
-  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
-  const off=offPathSet(f,state.nav,state.navPos);
+  const _pc=planCtx(f);if(!_pc)return null;const {plan,num,md,off}=_pc;
   return {n:plan.order.length,body:`<div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`};}
 function railHereTxt(f){
   const id=state.nav[state.navPos];if(!id)return '';
@@ -21415,11 +21431,7 @@ function ovToggleStep(f,li,kb){
   const sec=li.closest('.ov-block');
   const on=!state.checked[k];
   if(!applyCheck(k,on))return false;   // I4 : cœur UNIQUE (cf. applyCheck)
-  const justStarted=ensureStarted();persistLive(Runtime);
-  if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return;}
-  li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
-  const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
-  paintStepTrace(li,k);
+  if(paintCheckRow(li,k,on,kb))return;   // C3 : peinture UNIQUE (démarrage ancré compris)
   ovAfterCheck(f,sec,k);
   if(kb)li.focus();}
 // Après un cochage dans une instance : compteur/✓ de la carte, bouton d'avancement du bout —
@@ -21840,10 +21852,7 @@ function ovParcoursHtml(f){
      endroit du cran qui la porte. La maquette ne la montre pas ; l'y garder ne coûte qu'une carte
      et retirer une condition d'entrée d'une vue « toute la fiche » serait une perte sèche.
      TOUT Y EST INERTE (doctrine du plan, re-confirmée cinq fois) : aucun `data-ck`. */
-  const plan=flowPlan(f);if(!plan.order.length)return '';
-  const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
-  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
-  const off=offPathSet(f,state.nav,state.navPos);
+  const _pc=planCtx(f);if(!_pc)return '';const {plan,num,md,off}=_pc;
   const bx='<span class="pc-box" aria-hidden="true"></span>';
   const item=st=>{const cr=stepCR(stepText(st));
     const cl=stepIsCrit(st)?' crit':(stepIsVigil(st)?' vig':'');
@@ -21922,9 +21931,7 @@ function staticSection(f){
   state.navPos=state.nav.length-1;   // même règle que le journal : la position EST le bout
   const cur=state.nav[state.navPos];
   const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
-  const tipDone=(()=>{const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='decision')return {d:null,t:null};
-    const steps=clean(stepsOf(b));const seq=state.navSeq[state.navPos]||1;
-    let d=0;steps.forEach((s,i)=>{if(state.checked[seq+':'+cur+':'+i])d++;});return {d,t:steps.length};})();
+  const tipDone=blockTip(f,cur);   // I8 v5.10.2 : compteur du bout, une seule fabrique
   /* LOT T8 — « TOUTE LA FICHE » EST UN CRAN DE DENSITÉ, ET IL SE REGARDE DE TROIS FAÇONS.
      Ce ne sont PAS trois vues nouvelles : ce sont les trois rendus que le dépôt possède déjà,
      rassemblés sous le cran qui les concerne tous les trois — la PAGE (le tableau statique), le
@@ -22306,11 +22313,8 @@ function svGridPlan(f){
    (`grid-column` / `grid-row`). L'ÉTAT DE SESSION est peint ici comme avant (✓, ● ici, hors
    chemin, ×n) : la vue reste INERTE (aucun `data-ck`), taper une cellule appelle `svJump`. */
 function svAlgoHtml(f){
-  const plan=flowPlan(f);if(!plan.order.length)return '';
+  const _pc=planCtx(f);if(!_pc)return '';const {plan,num,md,off}=_pc;
   const g=svGridPlan(f);if(!g.nodes.length)return '';
-  const num={};plan.order.forEach((id,ix)=>{num[id]=ix+1;});
-  const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{md[m.id]=m;});
-  const off=offPathSet(f,state.nav,state.navPos);
   const at=n=>` style="grid-column:${n.col} / span ${n.span};grid-row:${n.row}"`;
   const metaH=(id,dec)=>{const m=md[id]||{};const bits=[];
     if((m.total||0)>1)bits.push(`<span class="sv-x">×${m.total}</span>`);
