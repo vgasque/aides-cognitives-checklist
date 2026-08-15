@@ -353,8 +353,11 @@
   .acc-sw::after{content:"";position:absolute;inset:-4px}
   .acc-sw.on{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.08)}
   .acc-sw:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
-  .acc-sw.a-clinique{background:#1f5fa6}.acc-sw.a-teal{background:#0f766e}.acc-sw.a-violet{background:#6d28d9}.acc-sw.a-indigo{background:#4338ca}.acc-sw.a-framboise{background:#be185d}.acc-sw.a-ardoise{background:#475569}
-  [data-theme="dark"] .acc-sw.a-clinique{background:#2e71c2}[data-theme="dark"] .acc-sw.a-teal{background:#0d9488}[data-theme="dark"] .acc-sw.a-violet{background:#8b5cf6}[data-theme="dark"] .acc-sw.a-indigo{background:#6366f1}[data-theme="dark"] .acc-sw.a-framboise{background:#db2777}[data-theme="dark"] .acc-sw.a-ardoise{background:#64748b}
+  /* v5.10.5 (signalé à l'usage) : la PREMIÈRE pastille montre la couleur RÉELLE du disque par
+     défaut — `--sys`, celle que `.bar-acct.on` porte sans accent choisi — et plus un bleu
+     qu'aucun disque n'affiche. `var(--sys)` suit les deux thèmes tout seul. */
+  .acc-sw.a-clinique{background:var(--sys)}.acc-sw.a-teal{background:#0f766e}.acc-sw.a-violet{background:#6d28d9}.acc-sw.a-indigo{background:#4338ca}.acc-sw.a-framboise{background:#be185d}.acc-sw.a-ardoise{background:#475569}
+  [data-theme="dark"] .acc-sw.a-teal{background:#0d9488}[data-theme="dark"] .acc-sw.a-violet{background:#8b5cf6}[data-theme="dark"] .acc-sw.a-indigo{background:#6366f1}[data-theme="dark"] .acc-sw.a-framboise{background:#db2777}[data-theme="dark"] .acc-sw.a-ardoise{background:#64748b}
   [data-theme="dark"] .ai-card,[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
   /* (Snackbar : tokens --rt-* fixes -> aucun override sombre nécessaire.) */
   /* Champs de saisie, pastilles neutres, panneaux : plus AUCUN override sombre — leurs fonds
@@ -4237,9 +4240,15 @@
   body.view-read .read-side .cncard :is(.tm-label,.cn-val){display:flex;align-items:center;min-height:44px}
   body.view-read .read-side .cncard .tm-label{flex:1;min-width:0;justify-content:flex-start;font-size:12px;font-weight:600;color:var(--ink-2);margin:0;min-height:0;-webkit-line-clamp:2}
   body.view-read .read-side .cncard .cn-val{flex:none;font-size:15px;font-weight:700;color:var(--ink)}
-  body.view-read .read-side .cncard .cn-log,
   body.view-read .read-side .cncard .cn-note,
   body.view-read .read-side .cncard .cn-reset{display:none}
+  /* v5.10.5 (signalé à l'usage : « consigné T+… il y a … ne s'affiche pas » dans la sidebar —
+     seul le volet étroit le montrait) : la ligne de consignation N'EST PLUS masquée en rangée.
+     Elle passe SOUS la rangée (pleine largeur, `order` la met après les boutons − / + dans le
+     flux flex) — l'alignement label | valeur | boutons ne bouge pas, et `.cn-log:empty` la
+     retire toujours quand il n'y a rien à dire. */
+  body.view-read .read-side .cncard{flex-wrap:wrap}
+  body.view-read .read-side .cncard .cn-log{display:block;flex:1 1 100%;order:10;margin-top:0}
   /* ⚠ `margin-top` ANNULÉ DANS LA VARIANTE EN RANGÉE (v5.6, signalé à l'usage : « le texte et le
      chiffre des compteurs ne sont pas alignés verticalement avec les boutons − / + : ils sont
      légèrement au-dessus »). Mesuré : 4 px. `.cn-ctrl` porte `margin-top:8px`, écrit pour la
@@ -6089,9 +6098,16 @@
   .mon-sess{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(30px,7vw,46px);font-weight:700;line-height:1;color:var(--ok)}
   .mon-sess.exo{color:var(--link)}
   .mon-hint{margin-left:auto;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
-  .mon-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px}
+  /* ⚠ PAYSAGE (v5.10.5, signalé à l'usage : « tout se superpose ») : deux défauts conjugués —
+     le grand corps était calibré en `vw` SEUL (20 vw de 844 px = 169 px sur un écran de 390 de
+     haut : la colonne déborde), et `justify-content:center` DÉVERSE le débordement des deux
+     côtés, donc PAR-DESSUS la rangée du haut (« 00:01 » sur « Cycle RCP », mesuré à la capture).
+     Le corps se borne désormais aussi par la HAUTEUR (min(20vw, 32vh) — inchangé en portrait,
+     où 20 vw est déjà le plus petit des deux), et le centrage est `safe` : quand ça ne tient
+     pas, on aligne au début au lieu de recouvrir. */
+  .mon-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:safe center;gap:6px}
   .mon-lbl{font-size:clamp(15px,3.4vw,22px);font-weight:700;color:var(--ink-soft);line-height:1.2}
-  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(64px,20vw,190px);font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(64px,min(20vw,32vh),190px);font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
   .mon-val.due{color:var(--verify-hi)}
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--verify-hi)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}

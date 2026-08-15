@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lOzwATBt57s1d+mSEAh9+y5Wg71rmkCKkHO+Z7SEtfo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lFjGni2/9yNMzdDNNvtN04mbK5XzWbsPktxYG1e41ZQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -707,8 +707,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .acc-sw::after{content:"";position:absolute;inset:-4px}
   .acc-sw.on{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.08)}
   .acc-sw:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
-  .acc-sw.a-clinique{background:#1f5fa6}.acc-sw.a-teal{background:#0f766e}.acc-sw.a-violet{background:#6d28d9}.acc-sw.a-indigo{background:#4338ca}.acc-sw.a-framboise{background:#be185d}.acc-sw.a-ardoise{background:#475569}
-  html[data-theme="dark"] .acc-sw.a-clinique{background:#2e71c2}html[data-theme="dark"] .acc-sw.a-teal{background:#0d9488}html[data-theme="dark"] .acc-sw.a-violet{background:#8b5cf6}html[data-theme="dark"] .acc-sw.a-indigo{background:#6366f1}html[data-theme="dark"] .acc-sw.a-framboise{background:#db2777}html[data-theme="dark"] .acc-sw.a-ardoise{background:#64748b}
+  /* v5.10.5 (signalé à l'usage) : la PREMIÈRE pastille montre la couleur RÉELLE du disque par
+     défaut — `--sys`, celle que `.bar-acct.on` porte sans accent choisi — et plus un bleu
+     qu'aucun disque n'affiche. `var(--sys)` suit les deux thèmes tout seul. */
+  .acc-sw.a-clinique{background:var(--sys)}.acc-sw.a-teal{background:#0f766e}.acc-sw.a-violet{background:#6d28d9}.acc-sw.a-indigo{background:#4338ca}.acc-sw.a-framboise{background:#be185d}.acc-sw.a-ardoise{background:#475569}
+  html[data-theme="dark"] .acc-sw.a-teal{background:#0d9488}html[data-theme="dark"] .acc-sw.a-violet{background:#8b5cf6}html[data-theme="dark"] .acc-sw.a-indigo{background:#6366f1}html[data-theme="dark"] .acc-sw.a-framboise{background:#db2777}html[data-theme="dark"] .acc-sw.a-ardoise{background:#64748b}
   html[data-theme="dark"] .ai-card,html[data-theme="dark"] .ai-modal .ai-card{background:var(--surface);color:var(--ink)}
   /* (Snackbar : tokens --rt-* fixes -> aucun override sombre nécessaire.) */
   /* Champs de saisie, pastilles neutres, panneaux : plus AUCUN override sombre — leurs fonds
@@ -4591,9 +4594,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-side .cncard :is(.tm-label,.cn-val){display:flex;align-items:center;min-height:44px}
   body.view-read .read-side .cncard .tm-label{flex:1;min-width:0;justify-content:flex-start;font-size:12px;font-weight:600;color:var(--ink-2);margin:0;min-height:0;-webkit-line-clamp:2}
   body.view-read .read-side .cncard .cn-val{flex:none;font-size:15px;font-weight:700;color:var(--ink)}
-  body.view-read .read-side .cncard .cn-log,
   body.view-read .read-side .cncard .cn-note,
   body.view-read .read-side .cncard .cn-reset{display:none}
+  /* v5.10.5 (signalé à l'usage : « consigné T+… il y a … ne s'affiche pas » dans la sidebar —
+     seul le volet étroit le montrait) : la ligne de consignation N'EST PLUS masquée en rangée.
+     Elle passe SOUS la rangée (pleine largeur, `order` la met après les boutons − / + dans le
+     flux flex) — l'alignement label | valeur | boutons ne bouge pas, et `.cn-log:empty` la
+     retire toujours quand il n'y a rien à dire. */
+  body.view-read .read-side .cncard{flex-wrap:wrap}
+  body.view-read .read-side .cncard .cn-log{display:block;flex:1 1 100%;order:10;margin-top:0}
   /* ⚠ `margin-top` ANNULÉ DANS LA VARIANTE EN RANGÉE (v5.6, signalé à l'usage : « le texte et le
      chiffre des compteurs ne sont pas alignés verticalement avec les boutons − / + : ils sont
      légèrement au-dessus »). Mesuré : 4 px. `.cn-ctrl` porte `margin-top:8px`, écrit pour la
@@ -6443,9 +6452,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mon-sess{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(30px,7vw,46px);font-weight:700;line-height:1;color:var(--ok)}
   .mon-sess.exo{color:var(--link)}
   .mon-hint{margin-left:auto;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
-  .mon-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px}
+  /* ⚠ PAYSAGE (v5.10.5, signalé à l'usage : « tout se superpose ») : deux défauts conjugués —
+     le grand corps était calibré en `vw` SEUL (20 vw de 844 px = 169 px sur un écran de 390 de
+     haut : la colonne déborde), et `justify-content:center` DÉVERSE le débordement des deux
+     côtés, donc PAR-DESSUS la rangée du haut (« 00:01 » sur « Cycle RCP », mesuré à la capture).
+     Le corps se borne désormais aussi par la HAUTEUR (min(20vw, 32vh) — inchangé en portrait,
+     où 20 vw est déjà le plus petit des deux), et le centrage est `safe` : quand ça ne tient
+     pas, on aligne au début au lieu de recouvrir. */
+  .mon-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:safe center;gap:6px}
   .mon-lbl{font-size:clamp(15px,3.4vw,22px);font-weight:700;color:var(--ink-soft);line-height:1.2}
-  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(64px,20vw,190px);font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(64px,min(20vw,32vh),190px);font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
   .mon-val.due{color:var(--verify-hi)}
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--verify-hi)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
@@ -10488,6 +10504,17 @@ function cxEnter(f,target){
      la règle « rien ne bouge sous le doigt » vise le second cas, pas celui-ci. */
   cxScrollTo(target);
   }
+/* ⚠ ENTRER N'EST PAS REGARDER (v5.10.5). Chez un invité non-lead, « ouvrir » une complication
+   est une CONSULTATION : `jumpToBlock` — la même navigation locale que taper un nœud du plan
+   (bloc visité → défilement ; jamais visité → carte locale, la machinerie du détaché couvre déjà
+   ce cas). `cxEnter`, lui, DÉCLARE l'événement (ancre de retour, repli du passage interrompu) :
+   c'est un geste de conduite, il reste au lead. Cible externe : même porte que cxEnter (openRel). */
+function cxGo(f,target){
+  if(typeof Share!=='undefined'&&Share.mode==='guest'&&Share.role!=='lead'){
+    const local=(f&&f.blocks||[]).some(b=>b&&b.id===target);
+    if(!local){if(relTarget(target))openRel(target);return;}
+    jumpToBlock(f,target);return;}
+  cxEnter(f,target);}
 /* Le bloc d'excursion, quelle que soit la vue : dernière carte du journal en dynamique, cellule
    du tableau en statique. Une seule fabrique — deux défilements écrits séparément finiraient par
    diverger, et l'un des deux manquait déjà. */
@@ -14039,6 +14066,10 @@ function applyViewChrome(){
       position : à décider séparément, pas par effet de bord. */
    const enSession=crisis&&!!Runtime.started;
    {const ab=document.getElementById('allBtn');
+    /* (v5.10.5 : l'excursion avait été offerte AVANT la session pour la préférence « Toute la
+       fiche » — retirée le jour même à la demande de l'auteur : « enlève le bouton “un bloc”
+       dans la barre flottante avant que la session n'ait démarré ». Hors session, le dock reste
+       ce que la v5.6 en dit ; l'aller-retour Un bloc ⇄ Toute la fiche vit EN session.) */
     const okAll=enSession&&!state.previewFrom&&hasFlow(state.fiche);
     ab.hidden=!okAll;
     if(okAll){const st=state.readMode==='static';
@@ -17614,8 +17645,11 @@ function shareGlobTag(){
        dans `share_pull`). Le champ `revoked_at` n'existe que dans la table, donc le filtre était
        toujours vrai et le compte incluait les coupés — l'hôte aurait lu « ⇄ 2 » avec un seul
        participant réellement présent. Un compte faux dans une zone d'état est pire qu'aucun. */
+    /* v5.10.5 : le compte n'inclut plus un participant SANS NOUVELLES (cf. shareSeenLost) —
+       un « ⇄ 1 » qui survit à la déconnexion de l'invité est un compte faux, le défaut exact
+       que ce filtre a déjà corrigé pour `revoked`. */
     if(Share.mode==='host')return '⇄'+(Share.participants||[])
-      .filter(p=>p&&!p.owner&&!p.revoked&&!p.detached).length;
+      .filter(sharePresent).length;
     /* UNE OFFRE DE PASSATION SE DIT DANS LE QUAI, ET LE GESTE VIT DANS LE MENU — c'est la doctrine
        déjà appliquée à « Recommencer le parcours » (v4.23.8). Le quai est une zone d'ÉTAT à
        position constante : un mot y change sans rien déplacer, alors qu'une rangée qui apparaîtrait
@@ -17890,9 +17924,33 @@ function shareNavNorm(nav,navSeq){
   // attribut. Une valeur fautive est ramenée à 1 plutôt que de faire tomber tout le lot.
   const seqs=navSeq.map(x=>{const n=Math.round(+x);return (Number.isFinite(n)&&n>0&&n<1e6)?n:1;});
   return {nav:ids,navSeq:seqs};}
+/* ⚠ L'ANCRE D'EXCURSION VOYAGE AVEC LA NAVIGATION (v5.10.5, signalé à l'usage : « si l'hôte
+   ouvre une complication et coche, l'invité voit “Terminer l'algorithme” puis “surveillance en
+   cours” »). `SHARE_TRAVELS` listait `cxBack` depuis l'origine — mais NI `shareSnap` NI le
+   payload `nav` ne l'ont jamais porté : moitié de chemin écrite, la famille exacte du
+   `fold.exercise` d'avant v4.50.0. Sans l'ancre, la carte d'excursion de l'invité passait pour
+   un bloc terminal ordinaire : « Terminer l'algorithme ✓ » au lieu du retour « ↩ Reprendre »
+   (v4.26.0) — et `data-ovend` n'étant pas un geste réservé, un invité pouvait poser le drapeau
+   de fin depuis une complication. RÈGLE 15 tenue : l'ancre n'est QUE des références — un numéro
+   de visite (déjà transmis) et un id de bloc (validé contre NOTRE copie de la fiche à
+   l'application, comme `tkRefNorm`). */
+function shareCxbNorm(cxb,navSeq){
+  const o={};if(!cxb||typeof cxb!=='object'||Array.isArray(cxb))return o;
+  const seqs=new Set((navSeq||[]).map(Number));
+  for(const k of Object.keys(cxb)){const n=Math.round(+k);const v=cxb[k];
+    if(!Number.isFinite(n)||n<=0||!seqs.has(n)||!v||typeof v!=='object')continue;
+    const id=safeId(v.id,'b');if(!id)continue;
+    o[n]={id:id,t:+v.t||0};}
+  return o;}
+/* Ne garder que les ancres dont la cible EXISTE dans notre copie de la fiche — un id inconnu
+   n'est pas une ancre, c'est du bruit (ou pire). */
+function cxbForFiche(cxb,f){
+  const o={};for(const k in (cxb||{})){const v=cxb[k];
+    if(v&&(f&&f.blocks||[]).some(b=>b&&b.id===v.id))o[k]=v;}
+  return o;}
 function shareFold(events,base){
   const s=Object.assign({checked:{},verified:{},vgaps:{},counters:{},timers:{},nav:[],navSeq:[],
-    events:[],flowEnded:false,annex:[],startedAt:0,exercise:false},base||{});
+    cxb:{},events:[],flowEnded:false,annex:[],startedAt:0,exercise:false},base||{});
   for(const e of (events||[])){
     const p=e.payload||{};
     switch(e.kind){
@@ -17914,7 +17972,7 @@ function shareFold(events,base){
          écrite dans `data-ck`, et le régime de `nav` est « anchored » — donc appliqué EN DIRECT,
          sans rechargement, sur l'écran de chacun. */
       case 'nav':     {const n=shareNavNorm(p.nav,p.navSeq);
-        if(n){s.nav=n.nav;s.navSeq=n.navSeq;}break;}
+        if(n){s.nav=n.nav;s.navSeq=n.navSeq;s.cxb=shareCxbNorm(p.cxb,n.navSeq);}break;}
       case 'flow_end':s.flowEnded=!!p.on; break;
       /* L'HEURE À LAQUELLE LE SOIN A COMMENCÉ, pas celle de la jointure. Sans elle, un renfort
          arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 voyait son chrono partir de zéro et
@@ -17957,6 +18015,9 @@ function shareSnap(R,flowEnded){
     counters:cn,timers:tm,
     events:(R.events||[]).map(e=>({id:e.id,t:+e.t||0,ref:e.ref||null,voidAt:e.voidAt||null})),
     nav:(R.nav||[]).slice(),navSeq:(R.navSeq||[]).slice(),flowEnded:!!flowEnded,
+    /* Les ancres d'excursion (cf. shareCxbNorm) : références seules — visite → id de bloc. */
+    cxb:(()=>{const o={},cb=R.cxBack||{};for(const k in cb){const v=cb[k];
+      if(v&&v.id)o[k]={id:String(v.id),t:+v.t||0};}return o;})(),
     /* LE PLACARD D'EXERCICE VOYAGE (v4.50.0). `openSharedFiche` lisait déjà `fold.exercise` — mais
        AUCUN émetteur ne l'a jamais posé : moitié de chemin écrite, et la ligne se lisait comme si
        elle marchait. Mesuré : hôte en répétition = bandeau hachuré, en-tête hachuré, pilule
@@ -18001,7 +18062,7 @@ function shareDiff(a,b){
   // NAVIGATION : le couple nav/navSeq voyage INDISSOCIABLE — les clés de cochage valent
   // « visite:bloc:index », et transmettre l'un sans l'autre orphelinerait toutes les coches.
   if(a.nav.join('|')!==b.nav.join('|')||a.navSeq.join('|')!==b.navSeq.join('|'))
-    out.push({kind:'nav',payload:{nav:b.nav.slice(),navSeq:b.navSeq.slice()}});
+    out.push({kind:'nav',payload:{nav:b.nav.slice(),navSeq:b.navSeq.slice(),cxb:b.cxb||{}}});
   if(a.flowEnded!==b.flowEnded)out.push({kind:'flow_end',payload:{on:b.flowEnded}});
   /* `session_start` PORTE AUSSI LE PLACARD, et c'est le bon véhicule : le drapeau d'exercice est
      posé par `startExercise` qui appelle `freshRuntime` — il ne peut donc changer QU'AVEC le
@@ -19707,7 +19768,7 @@ function bindReadEvents(f,blk,cur){
        DÉMARRÉE : proposé sans elle, il ferait démarrer la session de l'hôte par la première action
        de l'invité — donc un re-rendu complet sous son doigt. */
     ...(Share.mode==='host'
-      ? [{label:'Partage en cours ('+(Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length+')',
+      ? [{label:'Partage en cours ('+(Share.participants||[]).filter(sharePresent).length+')',
           ic:'⇄',sub:'code, participants, arrêt',act:openShareSheet}]
       /* JAMAIS GRISÉE (décision utilisateur, v4.47.0). Le partage exige une session démarrée — la
          contrainte est réelle : sans elle, la première action de l'invité déclencherait
@@ -19975,7 +20036,7 @@ function bindReadEvents(f,blk,cur){
 function bindNavEvents(f,blk){
   // Complications (v4.26.0) — mêmes gestes qu'en journal ; câblage direct (pas de délégation ici).
   main.querySelectorAll('[data-cxopen]').forEach(b=>b.onclick=()=>{state.cxOpen=!state.cxOpen;renderOvOnly();});
-  main.querySelectorAll('[data-cxgo]').forEach(b=>b.onclick=()=>{state.cxOpen=false;cxEnter(f,b.dataset.cxgo);});
+  main.querySelectorAll('[data-cxgo]').forEach(b=>b.onclick=()=>{state.cxOpen=false;cxGo(f,b.dataset.cxgo);});
   main.querySelectorAll('[data-cxback]').forEach(b=>b.onclick=()=>cxResume(f,b.dataset.cxback));
   const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
     if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
@@ -20814,7 +20875,7 @@ bindModalDismiss(refModal,closeRefSheet);
        l'index reparaît — c'est le modèle QRH de l'objet à index unique, pas un bouton par
        urgence. La touche garde la même position dans les deux cas : c'est ce qui s'apprend. */
     const list=cxAll(state.fiche);
-    if(list.length===1){dockSheetClose();cxEnter(state.fiche,list[0].target);return;}
+    if(list.length===1){dockSheetClose();cxGo(state.fiche,list[0].target);return;}
     const on=!state.cxOpen;dockSheetClose();
     if(on){state.cxOpen=true;ck.classList.add('on');ck.setAttribute('aria-expanded','true');renderDockSheet();}};}
  {const tk=document.getElementById('tkKey');
@@ -20833,7 +20894,7 @@ bindModalDismiss(refModal,closeRefSheet);
     const t=e.target;
     if(t.closest('[data-dsx]')){dockSheetClose();return;}
     const cg=t.closest('[data-cxgo]');
-    if(cg){dockSheetClose();cxEnter(state.fiche,cg.dataset.cxgo);return;}
+    if(cg){dockSheetClose();cxGo(state.fiche,cg.dataset.cxgo);return;}
     const pk=t.closest('[data-tkpick]');
     if(pk){const ev=(Runtime.events||[]).find(x=>x.id===state.tkSheet);if(!ev)return;
       let ref=null;try{ref=tkRefNorm(JSON.parse(pk.dataset.tkpick));}catch(_){}
@@ -21048,7 +21109,11 @@ function syncCxKey(crisis){
        cesse d'être tapable, parce qu'une liste dont les rangées disparaissent ne s'apprend pas. */
     const curId=state.nav&&state.nav[state.navPos];
     const dedans=list.length===1&&!!curId&&list[0].target===curId;
-    const okCx=!!list.length&&!dedans&&!(Share.mode==='guest'&&Share.role!=='lead');
+    /* v5.10.5 (demande utilisateur : « l'invité n'a pas accès aux boutons pour ouvrir les
+       complications ») : la touche ⚡ n'exclut plus l'invité — chez lui elle CONSULTE (cxGo →
+       jumpToBlock : navigation locale, mêmes règles que taper un nœud du plan — jamais
+       d'entrée déclarée, jamais d'ancre posée). */
+    const okCx=!!list.length&&!dedans;
     ck.hidden=!okCx;
     /* A106 : ⚡︎ était le CARACTÈRE (avec son U+FE0E de précaution), il devient le tracé `bolt`. */
     if(okCx&&!ck.querySelector('svg'))ck.querySelector('.dp-ic').innerHTML=uiIcon('bolt',13,{sw:2.2});
@@ -21192,12 +21257,19 @@ function bindRailTm(){
   box.querySelectorAll('.tmcard').forEach(card=>{
     const id=(card.id||'').replace(/^tmcard-/,'');if(!id)return;
     if(state.railTmOpen&&state.railTmOpen[id])card.classList.add('tm-open');
-    card.addEventListener('click',e=>{
+    /* ⚠ AFFECTATION, JAMAIS addEventListener (v5.10.5, signalé à l'usage : « la carte minuteur de
+       la sidebar ne s'ouvre plus… et par moments se rebloque en cours de session », surtout en
+       partagé). `repaintRailLad()` rappelle bindRailTm à CHAQUE coche — locale ou distante — sur
+       des cartes qui, elles, ne sont PAS remplacées : addEventListener s'EMPILAIT, et le clic
+       basculait n fois. Parité paire = carte inerte, impaire = elle remarche — exactement le
+       « par moments » rapporté, et le partage multiplie les recâblages dès l'amorçage. `onclick`
+       remplace au lieu d'empiler : idempotent par construction, comme bindRailLad au-dessous. */
+    card.onclick=e=>{
       if(e.target.closest('button,a,input,select,textarea'))return;
       state.railTmOpen=state.railTmOpen||Object.create(null);
       const on=!card.classList.contains('tm-open');
       card.classList.toggle('tm-open',on);
-      if(on)state.railTmOpen[id]=true;else delete state.railTmOpen[id];});});}
+      if(on)state.railTmOpen[id]=true;else delete state.railTmOpen[id];};});}
 function bindRailLad(){
   const lad=main.querySelector('.rail-lad');if(!lad)return;
   /* Le repli d'une ligne défile DANS son conteneur — sauf sur la page d'avant le soin, où
@@ -21511,6 +21583,9 @@ function shareApplyAnchored(f,evs,muet){
         // LOCALE ultérieure réutiliserait un numéro déjà pris — et deux passages partageraient
         // leurs clés de cochage.
         Runtime.seq=Math.max(Runtime.seq||0,...nn.navSeq);
+        // L'ancre d'excursion suit la navigation qu'elle qualifie — régime « anchored », donc
+        // REMPLACÉE comme nav/navSeq, jamais fusionnée (cf. shareCxbNorm, v5.10.5).
+        Runtime.cxBack=cxbForFiche(shareCxbNorm(p.cxb,nn.navSeq),f);
         bindStateToRuntime();      // pose aussi navPos au BOUT : le journal n'a pas de curseur
         /* ATTRIBUTION POSÉE ICI, ET NULLE PART AILLEURS. C'est le seul point où une navigation
            DISTANTE devient la position courante — `onEvents` le manquait dans un cas (le drain
@@ -21823,7 +21898,7 @@ function bindOverviewEvents(f){
     //  divergent — ne pas les factoriser sans décision : la version du rail ancre sur
     //  `.rail-lad`, celle de la feuille sur son propre corps.)
     const co=t.closest('[data-cxopen]');if(co){state.cxOpen=!state.cxOpen;renderOvOnly();return;}
-    const cg=t.closest('[data-cxgo]');if(cg){state.cxOpen=false;cxEnter(f,cg.dataset.cxgo);return;}
+    const cg=t.closest('[data-cxgo]');if(cg){state.cxOpen=false;cxGo(f,cg.dataset.cxgo);return;}
     const cb2=t.closest('[data-cxback]');if(cb2){cxResume(f,cb2.dataset.cxback);return;}
     const nx=t.closest('[data-ovnext]');
     if(nx){if(nx.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
@@ -27097,7 +27172,7 @@ Auth._load();
    cible que `.bar-acct.on`. Le drapeau `body[data-accent]` reste posé sur le corps parce que
    c'est la portée d'un réglage d'utilisateur, pas parce que quelque chose d'autre s'y teinte. */
 const ACCENT_IDS=['','teal','violet','indigo','framboise','ardoise'];
-const ACCENT_LBL={'':'Bleu clinique',teal:'Sarcelle',violet:'Violet',indigo:'Indigo',framboise:'Framboise',ardoise:'Ardoise'};
+const ACCENT_LBL={'':'Par défaut',teal:'Sarcelle',violet:'Violet',indigo:'Indigo',framboise:'Framboise',ardoise:'Ardoise'};
 function currentAccent(){try{const a=localStorage.getItem(spaceKey('ac-accent'))||'';return ACCENT_IDS.indexOf(a)>=0?a:'';}catch(e){return '';}}
 function applyAccent(a){a=ACCENT_IDS.indexOf(a)>=0?a:'';if(!Auth.signedIn())a='';
   if(a)document.body.dataset.accent=a;else delete document.body.dataset.accent;
@@ -28231,6 +28306,21 @@ const Sync={
    branche un bus en processus et fait dialoguer deux pages SANS réseau ni Supabase — la logique
    d'application se teste donc pour de vrai, et la RLS reste couverte par rls-tests.sql. */
 const SHARE_NOMINAL_MS=2000, SHARE_STALE_MS=4000, SHARE_MAX_BATCH=50;
+/* ⚠ PRÉSENCE OBSERVÉE, JAMAIS DÉCLARÉE (v5.10.5, signalé à l'usage : « si l'invité se
+   déconnecte, pas de mise à jour côté hôte — il apparaît toujours, et ⇄ 1 reste »). Fermer
+   l'application n'émet RIEN : la seule trace d'un départ silencieux est `last_seen_at`, que le
+   serveur date à chaque pull/push du participant et renvoie (`seen`). Un participant sans
+   nouvelle depuis 30 s — 2,5 × la période de sondage la plus lente (10 s ± 20 %), la même
+   arithmétique que `isStale()` pour notre propre lien — cesse d'être COMPTÉ (⇄ n, menu ⋯) et se
+   présente « absent » dans la fenêtre de session. Comparaison en heure SERVEUR (`Share.now()`),
+   `seen` étant côté serveur. Rien n'est déduit ni jugé (§ 2 : on recopie une heure) et rien
+   n'est révoqué : son prochain sondage le refait présent, sans autre geste. */
+const SHARE_SEEN_LOST_MS=30000;
+function shareSeenLost(p){
+  try{if(!p||p.owner)return false;
+    const t=Date.parse(p.seen||'');if(!Number.isFinite(t))return false;
+    return (Share.now()-t)>SHARE_SEEN_LOST_MS;}catch(e){return false;}}
+function sharePresent(p){return !!p&&!p.owner&&!p.revoked&&!p.detached&&!shareSeenLost(p);}
 /* ÉTAT DE LA PASSATION — en mémoire seulement. Une offre est un MOMENT, pas un contrat : la
    retrouver après un rechargement ferait apparaître une proposition que plus personne ne se
    rappelle avoir faite. `_hoOffer` = on me propose (invité) ; `_hoTake` = quelqu'un a pris, il
@@ -28417,7 +28507,7 @@ const Share={
            change ce que le menu affiche sans changer le nombre de lignes. Et on ne refait le menu
            que si elle a bougé — le sondage passe ici toutes les deux secondes. */
         {const sig=q=>(q||[]).filter(x=>x&&!x.owner)
-           .map(x=>x.id+':'+(x.role||'')+(x.revoked?'R':'')+(x.detached?'D':'')).join('|');
+           .map(x=>x.id+':'+(x.role||'')+(x.revoked?'R':'')+(x.detached?'D':'')+(shareSeenLost(x)?'S':'')).join('|');
          const bouge=sig(this.participants)!==sig(p.participants);
          this.participants=p.participants||[];
          if(bouge)try{shareMenuRefresh();}catch(_){}}
@@ -28806,6 +28896,8 @@ function openSharedFiche(){
   const f=migrate(JSON.parse(JSON.stringify(snap)));
   const fold=Share.fold||shareFold([]);
   Runtime=buildRuntime(f,Object.assign({shared:true},fold));
+  // L'ancre d'excursion du pli — validée contre NOTRE copie de la fiche (cf. shareCxbNorm).
+  Runtime.cxBack=cxbForFiche(fold.cxb,f);
   /* `started` VRAI, et c'est le correctif central. Il valait faux pour empêcher l'enregistrement
      local — mais une trentaine de sites de mutation sont gardés par `if(Runtime.started)`, si bien
      que l'invité ne parvenait même pas jusqu'à l'émission : ses coches ne quittaient jamais son
@@ -28885,15 +28977,20 @@ function shareSheetHtml(){
   const parts=(Share.participants||[]).filter(p=>!p.owner);
   const rows=parts.map(p=>{
     const att=_shPend[p.id]&&!p.revoked;
-    const cls=p.revoked?' off':(p.detached?' off':(att?' wait':''));
-    const etat=p.revoked?'coupé':(p.detached?'seul':(att?'coupure…':(p.role==='lead'?'conduit':'relève')));
+    /* v5.10.5 : un participant SANS NOUVELLES (cf. shareSeenLost) se présente « absent », en
+       retrait comme un coupé — et l'offre de main ne se propose pas (« le bouton ne se propose
+       que sur un participant vivant »). « Couper » reste : l'hôte peut fermer la place d'un
+       parti. Son prochain sondage le refait présent tel quel. */
+    const perdu=shareSeenLost(p);
+    const cls=p.revoked?' off':(p.detached?' off':(perdu?' off':(att?' wait':'')));
+    const etat=p.revoked?'coupé':(p.detached?'seul':(perdu?'absent':(att?'coupure…':(p.role==='lead'?'conduit':'relève'))));
     /* DONNER LA MAIN — une OFFRE, et le libellé le dit. Le rôle ne change pas au tap : il changera
        quand l'autre l'aura PRISE. C'est l'échange en trois temps (AC 61-115), et c'est ce qui
        empêche qu'une checklist se retrouve conduite par quelqu'un qui a posé son téléphone. */
     const off=_hoOffered===p.id;
     return '<div class="sh-p'+cls+'"><span class="n">'+esc(p.label||'Invité')+'</span>'
       +'<span class="r">'+etat+'</span>'
-      +(p.revoked||p.detached||p.role==='lead'?''
+      +(p.revoked||p.detached||p.role==='lead'||perdu?''
         :'<button class="btn sm" data-shlead="'+esc(p.id)+'"'+(off?' disabled':'')+'>'
          +(off?'proposée…':'Donner la main')+'</button>')
       +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
