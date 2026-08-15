@@ -1,5 +1,45 @@
 # Journal des modifications
 
+## [5.10.4] — 2026-08-15
+### L'en-tête ne bat plus sous le rail A→Z, le viewport iOS se recolle, le filtre est rond
+
+- **L'en-tête d'accueil ne bat plus pendant le glisser sur le rail A→Z** (signalé à l'usage :
+  « en haut de la liste, l'affichage saute très rapidement entre vue pliée/dépliée »). Chaque
+  mouvement de doigt sur le rail pose un défilement ABSOLU ; près du haut de l'annuaire, deux
+  lettres voisines encadrent l'hystérésis 80/40 de `syncHdrScroll` et le repli battait à la
+  cadence du doigt (114 ↔ 62 px par évènement pointeur). L'hystérésis protège d'un doigt qui
+  hésite EN DÉFILANT ; elle ne peut rien contre des sauts qui la traversent en entier. Pendant la
+  visée (`html.azr-aim`), l'état plié/déplié est désormais FIGÉ — le geste du rail n'est pas un
+  geste de défilement — et se rejoue UNE fois à la relâche. Vérifié à la sonde : état constant
+  sur un va-et-vient A↔D complet, une seule bascule au lâcher.
+- **Le décalage résiduel du viewport visuel iOS se répare d'office** (signalé à l'usage, capture :
+  toast « fichier ignoré » au MILIEU de l'écran, en-tête invisible sous la barre d'état, bande
+  vide sous le pied de page). Le clavier PANORAMIQUE le viewport visuel dans le viewport de mise
+  en page (`offsetTop` > 0) ; à la fermeture, WebKit ne recolle pas toujours les deux — surtout
+  quand le fond était verrouillé par une fenêtre, donc sans évènement de défilement pour
+  resynchroniser. Hors pincement et hors clavier, un `offsetTop` non nul est TOUJOURS incohérent :
+  on recolle en déplaçant le défilement de mise en page de l'offset (`scrollBy`) — le contenu
+  visible ne bouge pas d'un pixel, seuls l'en-tête collant et les couches fixes retrouvent
+  l'écran. Déclenché aux seuls moments où l'état peut naître (fermeture du clavier, perte de
+  focus, retour de bfcache), jamais en continu. À confirmer à l'usage sur appareil (l'état n'est
+  pas reproductible hors iOS réel).
+- **Le déclencheur de filtre est un CERCLE calé sur le champ de recherche** (demande de l'auteur ;
+  il rendait 38 × 48, un OVALE). `align-self:stretch` + `aspect-ratio:1` ne fait pas un rond en
+  flex — la largeur se détermine AVANT que l'étirement ne fixe la hauteur, le transfert n'a jamais
+  lieu (mesuré). Aucun nombre n'étant juste à écrire (champ à 48 px au tactile, ~44 au pointeur
+  fin), la hauteur du champ est MESURÉE et posée dans `--srch-h` (`syncSrchH` — au rendu, au
+  redimensionnement, au changement de taille du texte ; doctrine « une barre de chrome se mesure,
+  elle ne se devine pas »). Mesuré après : 48 × 48.
+- **Prompt IA resserré** (demandes de l'auteur ; les jalons de boucle y figuraient déjà depuis la
+  v5.5.0). (1) Formulation LA PLUS COURTE POSSIBLE partout — étapes, surveillances, confirmation,
+  notForget — avec l'exception écrite : les CRITÈRES diagnostiques restent COMPLETS, on raccourcit
+  la formulation, jamais la liste. (2) Les noms de minuteurs/compteurs sont À LA FOIS titre et
+  ligne de journal : 1 à 3 mots, relus seuls, et un compteur doit se lire SUIVI D'UN NUMÉRO
+  (« Choc n° 3 » — objet compté au singulier, jamais un pluriel ni un intitulé abstrait). (3) La
+  parcimonie ⚠/△ existait déjà (plafonds par bloc ET par fiche) : elle entre dans la check-list
+  finale « AVANT DE RÉPONDRE », avec les libellés de compteurs. (4) Corrigé un bogue de l'exemple
+  du schéma : l'id `"b2"` y figurait DEUX fois — l'exemple violait sa propre règle d'unicité.
+
 ## [5.10.3] — 2026-08-15
 ### Le tick gaté (jamais ralenti), les relances iOS comptées, AGENTS.md scindé
 
@@ -1009,129 +1049,3 @@ Le reste, les vrais vestiges, est purgé ; et la purge a mis au jour un défaut 
 Bilan : 88 lignes supprimées, 36 ajoutées. Vérifié : `npm run check` complet, 894 tests × deux
 moteurs, passe d'audit COMPLÈTE (19 harnais). Le gisement « commentaires périmés » était petit à
 dessein — le reste des 839 Ko est de la doctrine volontaire, et il reste en place.
-
-## [5.1.1] — 2026-08-05
-### La palette de catégories re-résolue en espace perceptuel — six teintes corrigées, à problème nommé chacune
-
-L'action 7 de l'audit v5.0.0 (« désaturer les catégories ») avait été refusée sur mesure — à
-raison pour une désaturation d'ensemble. Rejouée en OKLCH (point 1 de l'audit direction A), la
-bonne métrique montre que le problème était PONCTUEL, pas global : trois catégories étaient
-perceptuellement COLLÉES à un registre d'alerte, deux l'étaient entre elles, et quatre passaient
-sous 3:1 sur surface sombre.
-
-- **Ce qui était mesuré (dE_OK, distance OKLab ×100)** : l'olive #806311 à **3,0** du registre
-  ambre `--verify` — au premier regard, une catégorie pouvait se lire comme un signal de
-  vigilance ; le vermillon à 3,1 de `--critical-bd` ; le vert #1d7449 à 3,3 de `--ok` ; les deux
-  sarcelle/bleu à 5,1 l'une de l'autre ; et #45556b, #0d5b56, #4b3fa6, #7a2f6b entre 2,26 et
-  2,56:1 sur le sombre (la couleur stockée est rendue brute dans les deux thèmes).
-- **La correction est chirurgicale** : six teintes bougent (0, 2, 4, 5, 6, 9), sept sont
-  intactes. Déplacements minuscules — dE_OK 1,3 à 2,8, sauf l'indigo (6,2) qui devait remonter
-  pour son contraste sombre (2,37 → 3,10). Plancher des distances : **3,0 → 4,0**. Le caractère
-  sourd de la palette est conservé (chroma quasi inchangée) : un premier solveur qui maximisait
-  librement les distances proposait des néons, et a été corrigé en objectif lexicographique sur
-  les plus petites distances.
-- **⚠ Les contraintes de clair sont celles du test de régression #3**, pas « sur blanc » : texte
-  couleur sur sa teinte à 15 % ≥ 4,5:1 ET blanc sur couleur pleine ≥ 4,5:1. Un premier jet
-  contraint « sur blanc » a produit trois teintes que `npm test` a refusées (3,74-3,95) — le
-  garde-fou a fait son travail, et le solveur reprend désormais `tint15`/`ratio` à l'identique.
-- **Sans rupture par construction** : la couleur vit dans la catégorie stockée — les choix
-  existants ne changent pas d'un pixel ; seuls le nuancier proposé et `defaultCats` (nouvelles
-  installations) sont corrigés. Trois teintes restent < 3:1 en sombre (#45556b, #0d5b56,
-  #7a2f6b) : aucun candidat conforme n'existe dans le budget de reconnaissabilité (vérifié au
-  solveur) — dit, pas caché, et atténué par la règle « la couleur n'est jamais seule ».
-- **Et « Urgences » par défaut porte enfin le vermillon.** `defaultCats()` lui donnait `#1f5fa6` —
-  le bleu `--primary` — depuis sa création en v3.0.0 ; la règle « pas de bleu primaire pour une
-  catégorie » posée en v4.1.0 avait corrigé le nuancier **sans toucher le jeu par défaut**
-  (vérifié à l'historique : le commit de la règle ne modifie pas `defaultCats`). Aligné sur
-  `#b23240`, la couleur que la doctrine destine nommément aux catégories d'urgence — nouvelles
-  installations seulement, aucune migration des catégories existantes.
-
-## [5.1.0] — 2026-08-05
-### Direction « Instrument clinique » — six lots de matière issus d'un audit UX externe, aucun contrôle déplacé
-
-Un audit UX/direction artistique complet (7 axes, mesures sur l'application réelle à 320/390/1280,
-deux thèmes) a conclu que l'interface était conforme et confortable, et a proposé une direction de
-modernisation « Instrument clinique », validée sur prototype comparatif A/B. Tout ce qui suit est
-de la MATIÈRE : aucune position de contrôle ne change, aucune règle de sûreté n'est touchée.
-
-- **Une seule voix système à la fois.** Mesuré à 390×844 : au premier lancement, le bandeau
-  « 2 fiches d'exemple ajoutées » et la notice « Vous êtes l'auteur… » s'empilaient — premier
-  contenu clinique à 39 % de l'écran, et les deux textes énonçaient la même responsabilité
-  éditoriale. Le bandeau absorbe désormais le texte de la notice ; tant qu'il est visible, la
-  notice attend son tour et paraît à l'acquittement (« J'ai compris » ou ✕). ⚠ La garde teste la
-  classe `body.view-home` — le même prédicat que la visibilité CSS du bandeau — et non
-  `state.view`, qui vaut `'library'` sur l'accueil (payé à la première livraison).
-- **La recherche est un creux.** Le champ passe sur `--surface-2` avec un filet d'1 px (les 2 px
-  de bordure rendus au rembourrage) : une zone de saisie se distingue d'une carte de contenu par
-  le renfoncement — et en sombre `--surface-2` est plus foncé que la surface, le creux tient dans
-  les deux thèmes. Le placeholder garde sa phrase entière et s'**ellipse** quand la place manque,
-  au lieu de se couper en plein mot (défaut mesuré à 390 px).
-- **Les lettres du répertoire parlent serif.** La lettre de classement (`.dir-l`) passe en Source
-  Serif 4 13,5 px/600 — la police et la graisse déjà embarquées : un index d'ouvrage, pas du
-  chrome. Le rail A→Z reste en mono (cibles minuscules, la lisibilité prime).
-- **Une seule famille d'ombres en clair.** Les élévations du thème clair (`--shadow`, `-lg`,
-  `-up`, `-dock`, `-bar`) sont teintées primaire (23,71,127), comme l'étaient déjà les boutons
-  remplis ; les voiles restent à l'encre (un voile assombrit, il n'élève pas) et le sombre garde
-  ses ombres noires.
-- **Neuf variantes tonales suivent leur base.** `--primary-soft/-100/-200`, `--ok-soft`,
-  `--done-bg`, `--tag-bg` (clair) et leurs pendantes sombres se **dérivent** par `color-mix`
-  (`@supports`, repli hex intact), aux pourcentages mesurés qui reproduisent le hex actuel à
-  ≤ 4/255 par canal — aucun changement visible, mais changer une base met à jour sa famille.
-  `--primary-300`, `--critical-soft` et `--verify-soft` restent en hex : leur écart au mélange
-  pur (Δ 5 à 16) est un accord de teinte voulu.
-- **Au palier cockpit (≥ 1200 px), le chrome s'efface derrière ses contrôles.** Mesuré à
-  1280 px : la rangée de commandes était une bande blanche de bord à bord au contenu arrêté à
-  x = 256 (1024 px de vide). Les deux rangées collantes prennent le fond de page ; boutons et
-  cartes, qui portent déjà leurs bordures, se lisent comme des contrôles posés sur la page.
-- **Pilote View Transitions.** Les traversées accueil → fiche (sans session vive) et
-  fiche → bibliothèque se font en fondu de 180 ms piloté par le moteur (`vtWrap`) — trois
-  gardes : API présente (sinon comportement d'avant au caractère près), aucune crise à l'écran
-  (le mouvement reste réservé à l'alarme), et `prefers-reduced-motion` coupe tout. ⚠ Sous VT le
-  rendu est asynchrone d'une frame : deux sondes qui lisaient le DOM juste après un clic de
-  carte ont été mises au standard du dépôt (attente de condition réelle, discipline `amorce()`).
-- **L'écran de bienvenue étroit est composé.** Le glyphe de marque (masque `logo-glyph.svg`,
-  couleur de filet, décoratif) habite les ~430 px de vide mesurés entre le texte et
-  « Commencer » ; `text-wrap:balance` équilibre les titres non clampés.
-- **Étudiés et écartés, avec la raison** (consignée dans AGENTS.md) : entrées `@starting-style`
-  (les keyframes `veilIn`/`riseIn`/`menuIn` couvrent déjà le besoin), duplication des neutres en
-  oklch (une copie par token est la liste tenue en double de v4.37.0), scrims dérivés de
-  `--ink` (en sombre l'encre est claire : le voile deviendrait blanchâtre).
-
-## [5.0.10] — 2026-08-05
-### Une connexion IndexedDB fermée n'est plus une panne : elle se reprend toute seule
-
-Signalé à l'usage sur un appareil synchronisé — « Erreur inattendue · Détail technique : Failed to
-execute 'transaction' on 'IDBDatabase' : The database connection is closing ».
-
-- **La cause.** Une connexion IndexedDB se ferme **sans que l'application le demande** : quand un
-  autre onglet migre la base ou l'efface, `onversionchange` la libère (c'est nous qui appelons
-  `close()` là) ; une page qui commence à se recharger les ferme toutes — et la bascule d'espace
-  comme l'écouteur `storage` déclenchent un `location.reload()` sans arrêter la synchronisation ;
-  un moteur mobile peut enfin les reprendre en arrière-plan. Le handle mort restait posé, et
-  **toute transaction suivante levait `InvalidStateError`** : la synchronisation échouait, et le
-  message affiché livrait le libellé brut du moteur — qui ne désigne pas sa cause et envoie
-  chercher la panne du mauvais côté (réseau, serveur, compte).
-- **Le remède, en un seul point d'écriture.** Toute méthode publique du backend IndexedDB est
-  enveloppée **par une boucle, jamais par une liste** : une méthode ajoutée demain est couverte
-  sans qu'on y pense (même patron que `persistLive` pour la session et `edCommit` pour le
-  brouillon — une liste recopiée finit toujours par diverger, et le trou est silencieux). Un
-  handle mort n'est plus jamais gardé, et l'appel qui tombe dessus **rouvre et réessaie une fois**
-  — au-delà l'erreur remonte, une base réellement indisponible devant se voir. Un drapeau
-  interdit cette reprise pendant un **effacement** de données : rouvrir recréerait la base qu'on
-  efface.
-- **⚠ Piège de spécification, appris à la mesure** : l'événement `close` ne se déclenche **pas**
-  sur une fermeture explicite — il est réservé aux fermetures anormales. Un correctif qui n'aurait
-  écouté que lui serait resté inerte sur le chemin le plus fréquent.
-- **Le message cesse de livrer le libellé du moteur.** Nouvelle famille d'erreur de
-  synchronisation : « Stockage momentanément indisponible » dit la cause probable (application
-  ouverte dans un autre onglet, page en cours de rechargement), **qu'aucune donnée n'est perdue**
-  et que la synchronisation reprend automatiquement.
-- **Le dernier angle mort du dispositif est fermé** (`scripts/audit-stockage.mjs`, 19ᵉ harnais).
-  Le stockage local — la fonction dont tout dépend en intervention — n'était mesuré que par ses
-  parties **pures** : `npm run check` lit du texte, `npm test` charge `index.html?__actest`, qui
-  n'amorce pas l'application et n'ouvre donc **aucune base réelle**. Les deux garde-fous étaient
-  verts pendant que la synchronisation échouait chez l'utilisateur. Le harnais coupe la connexion
-  *sous* l'application, exactement comme le moteur le ferait, et vérifie que l'appel suivant
-  réussit — lecture comme écriture groupée, par où passe le pull de synchronisation. Vérifié
-  capable d'échouer sur les deux moteurs.
-

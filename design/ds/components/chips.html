@@ -6903,9 +6903,19 @@
      du bouton filtrer pour qu'il soit beau à côté de la barre de recherche — garde un bouton
      rond »). Il valait 38 px face à un champ de 48 : deux objets d'une même rangée qui ne
      s'alignent ni en haut ni en bas se lisent comme deux niveaux (la règle est déjà écrite pour la
-     phase et le titre dans l'éditeur). `align-self:stretch` le cale sur la rangée quelle que soit
-     la hauteur du champ, et `aspect-ratio:1` le garde ROND sans écrire un second nombre. */
-  .hdr-search .filt-tog{align-self:stretch;width:auto;height:auto;aspect-ratio:1}
+     phase et le titre dans l'éditeur).
+     ⚠ `align-self:stretch` + `aspect-ratio:1` NE FAIT PAS UN ROND, ET C'EST MESURÉ (v5.10.4,
+     signalé à l'usage : « bouton filtre rond parfait adapté à la taille du champ recherche »).
+     La version précédente s'y fiait ; or en flex, la LARGEUR (taille principale) se détermine
+     AVANT que l'étirement ne fixe la hauteur — `aspect-ratio` ne transfère donc jamais la hauteur
+     étirée, et le bouton rendait 38 × 48 : un OVALE (mesuré, Chromium ; le transfert ne marche
+     qu'avec une hauteur DÉFINIE — position absolue ou hauteur explicite). Comme aucun nombre
+     n'est juste à écrire (le champ vaut 48 px au tactile — police 16, règle 9 — et ~44 au
+     pointeur fin), la hauteur du champ est MESURÉE et posée dans `--srch-h` (`syncSrchH`,
+     re-posée au rendu, au redimensionnement et au changement de taille du texte) : c'est la
+     doctrine « une barre de chrome se mesure, elle ne se devine pas ». Le repli 38 px ne sert
+     qu'à la toute première peinture, avant la mesure. */
+  .hdr-search .filt-tog{width:var(--srch-h,38px);height:var(--srch-h,38px)}
   .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
     /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
        même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
