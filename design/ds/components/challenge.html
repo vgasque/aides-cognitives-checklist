@@ -2472,7 +2472,16 @@
      Le calcul n'a QUE des entrées stables (hauteur de boîte dérivée de `100svh`, hauteur
      intrinsèque des lettres) et ne tourne QU'au rendu et au redimensionnement : rien qui suive la
      barre d'outils, donc rien qui bouge sous le doigt (leçon v5.0.2). */
-  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden}
+  /* ⚠ LE RAIL NE SE SÉLECTIONNE PAS (signalé à l'usage : « le texte du rail est sélectionnable →
+     bug, et ça sélectionne si on reste appuyé trop longtemps dessus »). Viser une lettre, c'est
+     POSER LE DOIGT ET GLISSER — un geste qui commence par un appui maintenu, donc précisément ce
+     que WebKit interprète sur du texte comme le début d'une sélection : rectangle bleu, poignées,
+     loupe, menu « Copier ». Le geste est alors CAPTURÉ par la sélection, le rail cesse de suivre
+     le doigt, et il faut taper ailleurs pour désarmer. `touch-action:none` tenait déjà le
+     défilement natif à distance, mais une sélection n'est pas un défilement : elle passe à côté.
+     Rien n'est perdu — ces vingt-six lettres ne sont pas un contenu qu'on copie, ce sont des
+     commandes, et `user-select` s'hérite, donc les boutons sont couverts par la même ligne. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   /* La classe n'est posée qu'UNE FOIS le décalage calculé : avant, les lettres restent centrées
      dans leur boîte — jamais collées en haut le temps d'une image. */
   .azrail.azr-pin{justify-content:flex-start;padding-top:var(--azr-pt,8px)}
@@ -6916,6 +6925,41 @@
      doctrine « une barre de chrome se mesure, elle ne se devine pas ». Le repli 38 px ne sert
      qu'à la toute première peinture, avant la mesure. */
   .hdr-search .filt-tog{width:var(--srch-h,38px);height:var(--srch-h,38px)}
+  /* ⚠ LE GLYPHE SUIT LE BOUTON (signalé à l'usage : « augmente la taille des traits dans filtrer
+     pour que ça corresponde mieux à la taille du bouton »). Le tracé est écrit à 16 px dans la
+     coque statique — calibre d'un temps où le rond en faisait 38 ; contre un champ de 48 il n'en
+     occupait plus qu'un tiers, et trois traits fins perdus au centre d'un grand rond se lisent
+     comme un pictogramme lointain, pas comme une commande. 20 px pour 48, c'est le rapport
+     encre/rond de « ＋ » (15 dans 36) : la rangée cesse d'avoir deux densités d'icône.
+     ON NE TOUCHE PAS À LA COQUE : `width`/`height` y sont des attributs de PRÉSENTATION, que le
+     CSS remplace — et le tracé est DUPLIQUÉ dans `uiIcon`, donc chaque édition du balisage est
+     une édition à faire deux fois. L'ÉPAISSEUR SUIT D'ELLE-MÊME, ce qui est tout l'objet de la
+     demande : `stroke-width` vit dans le viewBox de 24, les traits passent donc de 1,47 px rendus
+     à 1,83 sans qu'aucune valeur d'épaisseur ne soit écrite quelque part. */
+  .filt-tog>svg{width:20px;height:20px;flex:none}
+  /* ⚠ RESSERRÉ, IL PREND LE GABARIT DE SES VOISINS ET NON CELUI DU CHAMP (signalé à l'usage :
+     « lorsque l'en-tête d'accueil est replié quand on scrolle : change la taille du bouton filtre
+     — et des traits dedans — pour que ça corresponde à la taille des boutons ＋ et compte »).
+     Au repos il est SEUL en face du champ, et s'aligner sur lui est justement ce que la mesure de
+     `--srch-h` est venue garantir. Une fois l'identité partie (7a), la rangée persistante porte
+     « ＋ », le filtre et le compte : trois boutons voisins, dont un de 48 px contre deux de 36 —
+     c'est-à-dire exactement le défaut « deux contrôles d'une même rangée qui ne font pas la même
+     hauteur se lisent comme deux niveaux », mais retourné, et cette fois c'est le champ qui n'est
+     plus le voisin. Le bouton suit donc la troupe : 36 px comme `.hdr-new` et `.bar-acct` sous
+     780, 32 sous 360 comme eux — et le halo rend la cible à 44 dans les deux cas. */
+  body.home-slim header.bar.home .filt-tog{width:36px;height:36px;min-height:36px}
+  body.home-slim header.bar.home .filt-tog>svg{width:16px;height:16px}
+  /* ⚠ DÉCLARÉ ICI, PAS DANS LE BLOC `359.98` DU HAUT DE FEUILLE OÙ VIVENT SES DEUX VOISINS : la
+     règle de 36 px ci-dessus a la MÊME spécificité (0,3,2), donc à distance c'est l'ORDRE qui
+     trancherait — et ce bloc-là est écrit cinq mille lignes plus haut, il serait silencieusement
+     sans effet. Pour une géométrie, on ne dépend jamais de l'ordre sans le dire (même leçon que le
+     bloc 399.98 de l'en-tête). Halo 6/1 px, la recette déjà motivée pour « Créer » et le compte :
+     32 + 12 = 44 en hauteur, et 1 px en largeur seulement pour ne pas mordre sur la cible du
+     voisin dans une rangée à 2 px d'écart. */
+  @media (max-width:359.98px){
+    body.home-slim header.bar.home .filt-tog{width:32px;height:32px;min-height:32px}
+    body.home-slim header.bar.home .filt-tog::after{inset:-6px -1px}
+  }
   .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
     /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
        même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour

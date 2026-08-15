@@ -1,5 +1,57 @@
 # Journal des modifications
 
+## [5.10.5] — 2026-08-15
+### Le bouton filtrer se lit, il prend le gabarit de ses voisins une fois l'en-tête replié, et le rail A→Z ne se sélectionne plus
+
+- **L'icône du filtre remplit son rond** (signalé à l'usage : « augmente la taille des traits dans
+  filtrer pour que ça corresponde mieux à la taille du bouton »). Le tracé était écrit à 16 px dans
+  la coque statique — calibre d'un temps où le rond en faisait 38 ; depuis que la v5.10.4 cale le
+  bouton sur la hauteur MESURÉE du champ (48 px au tactile), il n'en occupait plus qu'un tiers, et
+  trois traits fins perdus au centre d'un grand rond se lisent comme un pictogramme lointain, pas
+  comme une commande. Porté à 20 px, soit le rapport encre/rond de « ＋ » (15 dans 36) : la rangée
+  cesse d'avoir deux densités d'icône. L'ÉPAISSEUR SUIT D'ELLE-MÊME, ce qui était la demande —
+  `stroke-width` vit dans le viewBox de 24, donc les traits passent de 1,47 px rendus à 1,83 sans
+  qu'aucune valeur d'épaisseur ne soit écrite quelque part. La taille est posée en CSS et non dans
+  le balisage : `width`/`height` y sont des attributs de PRÉSENTATION, que le CSS remplace — et le
+  tracé étant DUPLIQUÉ dans la table `uiIcon`, toute édition du balisage serait à faire deux fois.
+- **En-tête replié, le bouton filtrer prend le gabarit de « ＋ » et du compte** (signalé à l'usage :
+  « lorsque l'en-tête d'accueil est replié quand on scrolle, change la taille du bouton filtre — et
+  des traits dedans — pour que ça corresponde à la taille des boutons ＋ et compte »). Au repos il
+  est SEUL en face du champ, et s'aligner sur lui est exactement ce que la mesure de `--srch-h` est
+  venue garantir en v5.10.4. Mais une fois l'identité partie (7a), la rangée persistante porte
+  « ＋ », le filtre et le compte : trois boutons voisins, dont un de 48 px contre deux de 36 —
+  c'est-à-dire le défaut « deux contrôles d'une même rangée qui ne font pas la même hauteur se
+  lisent comme deux niveaux », retourné, le champ n'étant plus le voisin. Sous `body.home-slim` il
+  suit donc la troupe : 36 px (icône 16) comme `.hdr-new` et `.bar-acct`, 32 sous 360 px comme eux,
+  et le halo rend la cible à 44 px dans les deux cas. Mesuré une fois replié : filtre 36 × 36,
+  « ＋ » 36 × 36, compte 36 × 36, tous centrés sur le même axe ; à 340 px de large, les trois à
+  32 × 32 avec le même halo `-6px -1px`, donc cible 34 × 44 inchangée.
+  ⚠ La règle des 32 px est déclarée AU SITE DU BOUTON et non dans le bloc `359.98` du haut de
+  feuille où vivent ses deux voisins : elle y aurait eu la MÊME spécificité (0,3,2) que celle des
+  36 px écrite cinq mille lignes plus bas, donc perdu par le seul ORDRE, silencieusement. Pour une
+  géométrie, on ne dépend jamais de l'ordre sans le dire.
+- **Le rail A→Z ne se sélectionne plus** (signalé à l'usage : « le texte du rail est sélectionnable
+  → bug, et ça sélectionne si on reste appuyé trop longtemps dessus »). Viser une lettre, c'est
+  poser le doigt et glisser — un geste qui COMMENCE par un appui maintenu, donc précisément ce que
+  WebKit interprète sur du texte comme le début d'une sélection : rectangle bleu, poignées, loupe,
+  menu « Copier ». Le geste est alors CAPTURÉ par la sélection, le rail cesse de suivre le doigt,
+  et il faut taper ailleurs pour désarmer. `touch-action:none` tenait déjà le défilement natif à
+  distance, mais une sélection n'est pas un défilement : elle passait à côté. `user-select:none` +
+  `-webkit-touch-callout:none` sur `.azrail`, et rien n'est perdu — ces vingt-six lettres ne sont
+  pas un contenu qu'on copie, ce sont des commandes. `user-select` s'héritant, les boutons sont
+  couverts par la même ligne (vérifié : `none` sur le conteneur ET sur le bouton).
+- **Outillage d'audit — le cache vert est PAR HARNAIS et `--rouges` rejoue PAR SECTION** (travail
+  déjà en place dans le dépôt, publié ici avec la version qui le nomme). Le cache était
+  tout-ou-rien : un octet changé dans `audit-qr.mjs` faisait repayer `doctrine` (217 s). L'empreinte
+  SHA-256 est désormais par harnais — socle commun + son script + ses `deps` déclarées — et la passe
+  complète ne rejoue que ce dont un intrant a changé, en LISTANT les harnais réutilisés ; les
+  `check-*.mjs` sont sciemment hors empreinte (aucun harnais ne les lit, les inclure fabriquait des
+  repasses fantômes). `--rouges` lit les NOMS des sections rouges dans la sortie capturée et ne
+  rejoue qu'elles, avec trois garde-fous : attribution seulement si le harnais a atteint son bilan
+  (`##SEC` présent — sinon repli sur le harnais ENTIER, jamais trop peu), rouge FORCÉ si un `--grep`
+  rejoue moins de sections qu'attendu, et jamais de vert de cache écrit par un rejeu par sections.
+  Mesuré : confirmer un correctif tombe de 97 s à 0,5 s, repasse inchangée 0,25 s.
+
 ## [5.10.4] — 2026-08-15
 ### L'en-tête ne bat plus sous le rail A→Z, le viewport iOS se recolle, le filtre est rond
 
@@ -1012,40 +1064,3 @@ exercice » n'allume plus l'accueil avant le premier geste.
   sur les DEUX moteurs — dont « pdf.js n'est pas chargé par la frappe », mesuré sur page
   rechargée), 25 témoins unitaires de l'index (bitmap, front-codage, résilience), sonde dédiée du
   correctif exercice ; passes complètes 17/17 check · 920 × 2 tests · 20/20 harnais.
-
-## [5.1.2] — 2026-08-05
-### Purge des commentaires orphelins (règle 14) — et la rangée de commandes ne disparaît plus d'une fiche sans annexe
-
-Passe d'hygiène demandée sur les ~839 Ko de commentaires du monofichier : le croisement de tous
-les identifiants cités en commentaire avec le code réel n'a trouvé que 34 absents, presque tous
-des mentions historiques volontaires (tombstones, renvois aux pièges de cascade) — conservées.
-Le reste, les vrais vestiges, est purgé ; et la purge a mis au jour un défaut réel.
-
-- **⚠ Correctif `syncDock` (retombée de purge, règle 14)** : depuis les lots T8/A (v5.0.0) la
-  rangée de commandes porte `#allBtn` et `#refBtn`, mais son test de visibilité lisait encore
-  `#modeSeg` et `#planBtn` (toujours null) en ignorant `#allBtn` — une fiche À ALGORITHME mais
-  SANS annexe (Consulter masqué) perdait donc la rangée entière, « ⤢ Tout voir » compris, en
-  silence. Les fiches d'exemple ayant toutes des annexes, aucun harnais ne rencontrait le cas.
-  Prouvé par une sonde qui le CONSTRUIT : rouge sur l'ancienne logique (rangée masquée, bouton à
-  0 px), verte sur la corrigée, fichier restauré à l'octet entre les deux (leçon v4.31.1).
-- **Six blocs de commentaires orphelins du sélecteur de mode** (`#modeSeg`, `.ctrl-sp` — purgés au
-  lot A) flottaient dans le CSS sans plus aucune règle en dessous : remplacés par un tombstone de
-  trois lignes. La seule doctrine encore vivante — le fond de pastille n'est jamais `--surface`,
-  qui s'inverse entre thèmes — déménage sur le composant `.seg` générique, où elle s'applique.
-- **Le « HUITIÈME PIÈGE DE CASCADE » vivait en DEUX versions successives** (l'originale et sa
-  réécriture v4.55.0, conservées côte à côte par erreur) : dédoublonné, et mis à jour — la
-  surface qu'il cite (mode lecteur) est partie au lot T14 ; la leçon de spécificité reste.
-- **Trois commentaires remis au vrai** : la recette 320 px citait `.ctrl-sp` au présent ; le bloc
-  d'enroulement portait une phrase MUTILÉE par une ancienne édition (deux moitiés de phrases
-  recollées) ; la délégation de la feuille Plan justifiait son choix par `#pmViews`, disparu en
-  v4.25.0. Et la bannière « ORGANIGRAMME HYBRIDE (mode Détails) » — vue supprimée en v4.25.0 —
-  renommée « ÉCHELLE DU PLAN », ce qu'elle contient réellement.
-- **Code mort purgé** : `modeTopSegH` (constante vide et son interpolation, vestige de la bascule
-  d'en-tête) et le mécanisme `kb-open` entier — deux écouteurs posaient une classe que plus
-  aucune règle CSS ne lit depuis que les actions d'éditeur vivent dans l'en-tête sticky.
-- **Le CHANGELOG revient à 20 entrées** (il en comptait 28) : les neuf plus anciennes (4.70.1 →
-  4.74.0) rejoignent `docs/changelog/v4.md` telles quelles, sans réécriture.
-
-Bilan : 88 lignes supprimées, 36 ajoutées. Vérifié : `npm run check` complet, 894 tests × deux
-moteurs, passe d'audit COMPLÈTE (19 harnais). Le gisement « commentaires périmés » était petit à
-dessein — le reste des 839 Ko est de la doctrine volontaire, et il reste en place.
