@@ -5219,10 +5219,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      vertical remonte à la page sans élastique, l'horizontal défile comme avant. */
   /* La règle vaut pour les DEUX défileurs inline du plan : `.flow-scroll` (organigramme) ET
      `.sv-scroll` (tableau statique façon SFAR — c'est LUI que le signalement visait : « mode
-     plan de page SFAR », défilement horizontal des colonnes de branches). */
-  @media (hover:none) and (pointer:coarse){
-    main .alg-panel .flow-scroll,main .flow-scroll,main .sv-scroll{max-height:none;overflow-y:clip}
-  }
+     plan de page SFAR », défilement horizontal des colonnes de branches).
+     ⚠ ELLE VIT DANS LE BLOC TACTILE DE FIN DE FEUILLE, PAS ICI (v5.10.5, CI rouge le jour même) :
+     `check-type` localise la liste « 16 px tactile » sur la PREMIÈRE occurrence du littéral média
+     « hover:none et pointer:coarse, accolade collée » — un second bloc identique posé plus haut
+     dans la feuille l'a AVEUGLÉ (les six champs de la liste déclarés « absents ») ; et il scanne
+     le texte BRUT, commentaires compris — écrire le littéral dans ce commentaire suffisait à le
+     re-casser, c'est arrivé dans la même heure. Le bloc de fin de feuille est la source de vérité
+     unique du média tactile : on s'y range, et on ne le cite pas au motif près. */
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
      Encre et fond fixes dans les deux thèmes (cf. --qr-ink), bordure pour détacher la zone de
@@ -8446,6 +8450,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}
+    /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
+       iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme
+       avant. La doctrine complète vit au site de `.flow-scroll` ; la règle vit ICI parce que ce
+       bloc est LE média tactile de la feuille (check-type le localise en première occurrence). */
+    main .alg-panel .flow-scroll,main .flow-scroll,main .sv-scroll{max-height:none;overflow-y:clip}
   }
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
      papier, où la fiche s'imprime comme un document. Ils ne sont plus dans header.bar depuis
