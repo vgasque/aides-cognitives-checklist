@@ -4248,7 +4248,13 @@
      flux flex) — l'alignement label | valeur | boutons ne bouge pas, et `.cn-log:empty` la
      retire toujours quand il n'y a rien à dire. */
   body.view-read .read-side .cncard{flex-wrap:wrap}
-  body.view-read .read-side .cncard .cn-log{display:block;flex:1 1 100%;order:10;margin-top:0}
+  /* v5.10.5 (retour utilisateur : « pas très joli ») : en rangée, la consignation est une
+     SOUS-LIGNE, pas un second titre — maigre, encre douce, rattachée à son compteur par un
+     liseré fin. La graisse mono 700 du volet vient de la carte en colonne, où elle vit sous le
+     grand chiffre ; en rangée elle pesait autant que le libellé. */
+  body.view-read .read-side .cncard .cn-log{display:block;flex:1 1 100%;order:10;margin-top:0;
+    font-weight:400;color:var(--ink-soft);border-left:2px solid var(--line);padding-left:8px}
+  body.view-read .read-side .cncard .cn-log .cn-ago{color:var(--ink-soft)}
   /* ⚠ `margin-top` ANNULÉ DANS LA VARIANTE EN RANGÉE (v5.6, signalé à l'usage : « le texte et le
      chiffre des compteurs ne sont pas alignés verticalement avec les boutons − / + : ils sont
      légèrement au-dessus »). Mesuré : 4 px. `.cn-ctrl` porte `margin-top:8px`, écrit pour la
@@ -4842,6 +4848,19 @@
   .flow-prev:not(.on) .flow-zoom{display:none}
   .flow-prev:not(.on) .flow-scroll{overflow:hidden;margin-bottom:0}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
+  /* ⚠ SUR ÉCRAN TACTILE, LE PLAN INLINE NE DÉFILE PLUS VERTICALEMENT EN INTERNE (v5.10.5,
+     signalé à l'usage : « ok de défiler de droite à gauche, mais pas de haut en bas à l'intérieur
+     du plan — problématique en navigation iPhone en inline ; en plein écran, le problème ne se
+     pose plus »). Un défileur interne BORNÉ en hauteur avale le pan VERTICAL : au milieu d'une
+     page qu'on parcourt au pouce, le geste de page se fait capturer par le plan. Le défilement
+     HORIZONTAL n'a pas ce défaut — un conteneur qui ne déborde qu'en X laisse le pan vertical
+     remonter à la page (comportement natif) — il est donc CONSERVÉ. En inline tactile, le plan
+     prend sa hauteur entière et c'est la page qui défile ; le PLEIN ÉCRAN garde son défileur
+     (c'est sa surface à lui, il n'y a pas de page dessous à atteindre). Portée : `main` — les
+     feuilles plein écran vivent hors de lui. */
+  @media (hover:none) and (pointer:coarse){
+    main .alg-panel .flow-scroll,main .flow-scroll{max-height:none}
+  }
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
      Encre et fond fixes dans les deux thèmes (cf. --qr-ink), bordure pour détacher la zone de
@@ -6458,6 +6477,9 @@
   .sh-p{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--line)}
   .sh-p .n{flex:1;min-width:0;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  /* v5.10.5 — mention « sans nouvelles · N min » : une information en bas de casse, pas un état
+     de plus dans le registre des mots d'état (qui restent seuls en petites capitales). */
+  .sh-p .sh-quiet{font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-soft)}
   .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
   .sh-p.wait .r{color:var(--verify)}
   #shareModal .sh-none{margin:6px 0 0;font-size:13.5px;color:var(--ink-soft)}

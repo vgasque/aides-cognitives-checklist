@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lFjGni2/9yNMzdDNNvtN04mbK5XzWbsPktxYG1e41ZQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-PqR3ky8bKOYlZuxyBGsIsLLm6NVwmIoMGB2cj9zMaMI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4602,7 +4602,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      flux flex) — l'alignement label | valeur | boutons ne bouge pas, et `.cn-log:empty` la
      retire toujours quand il n'y a rien à dire. */
   body.view-read .read-side .cncard{flex-wrap:wrap}
-  body.view-read .read-side .cncard .cn-log{display:block;flex:1 1 100%;order:10;margin-top:0}
+  /* v5.10.5 (retour utilisateur : « pas très joli ») : en rangée, la consignation est une
+     SOUS-LIGNE, pas un second titre — maigre, encre douce, rattachée à son compteur par un
+     liseré fin. La graisse mono 700 du volet vient de la carte en colonne, où elle vit sous le
+     grand chiffre ; en rangée elle pesait autant que le libellé. */
+  body.view-read .read-side .cncard .cn-log{display:block;flex:1 1 100%;order:10;margin-top:0;
+    font-weight:400;color:var(--ink-soft);border-left:2px solid var(--line);padding-left:8px}
+  body.view-read .read-side .cncard .cn-log .cn-ago{color:var(--ink-soft)}
   /* ⚠ `margin-top` ANNULÉ DANS LA VARIANTE EN RANGÉE (v5.6, signalé à l'usage : « le texte et le
      chiffre des compteurs ne sont pas alignés verticalement avec les boutons − / + : ils sont
      légèrement au-dessus »). Mesuré : 4 px. `.cn-ctrl` porte `margin-top:8px`, écrit pour la
@@ -5196,6 +5202,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-prev:not(.on) .flow-zoom{display:none}
   .flow-prev:not(.on) .flow-scroll{overflow:hidden;margin-bottom:0}
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
+  /* ⚠ SUR ÉCRAN TACTILE, LE PLAN INLINE NE DÉFILE PLUS VERTICALEMENT EN INTERNE (v5.10.5,
+     signalé à l'usage : « ok de défiler de droite à gauche, mais pas de haut en bas à l'intérieur
+     du plan — problématique en navigation iPhone en inline ; en plein écran, le problème ne se
+     pose plus »). Un défileur interne BORNÉ en hauteur avale le pan VERTICAL : au milieu d'une
+     page qu'on parcourt au pouce, le geste de page se fait capturer par le plan. Le défilement
+     HORIZONTAL n'a pas ce défaut — un conteneur qui ne déborde qu'en X laisse le pan vertical
+     remonter à la page (comportement natif) — il est donc CONSERVÉ. En inline tactile, le plan
+     prend sa hauteur entière et c'est la page qui défile ; le PLEIN ÉCRAN garde son défileur
+     (c'est sa surface à lui, il n'y a pas de page dessous à atteindre). Portée : `main` — les
+     feuilles plein écran vivent hors de lui. */
+  @media (hover:none) and (pointer:coarse){
+    main .alg-panel .flow-scroll,main .flow-scroll{max-height:none}
+  }
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
      Encre et fond fixes dans les deux thèmes (cf. --qr-ink), bordure pour détacher la zone de
@@ -6812,6 +6831,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sh-p{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--line)}
   .sh-p .n{flex:1;min-width:0;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  /* v5.10.5 — mention « sans nouvelles · N min » : une information en bas de casse, pas un état
+     de plus dans le registre des mots d'état (qui restent seuls en petites capitales). */
+  .sh-p .sh-quiet{font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-soft)}
   .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
   .sh-p.wait .r{color:var(--verify)}
   #shareModal .sh-none{margin:6px 0 0;font-size:13.5px;color:var(--ink-soft)}
@@ -28309,18 +28331,28 @@ const SHARE_NOMINAL_MS=2000, SHARE_STALE_MS=4000, SHARE_MAX_BATCH=50;
 /* ⚠ PRÉSENCE OBSERVÉE, JAMAIS DÉCLARÉE (v5.10.5, signalé à l'usage : « si l'invité se
    déconnecte, pas de mise à jour côté hôte — il apparaît toujours, et ⇄ 1 reste »). Fermer
    l'application n'émet RIEN : la seule trace d'un départ silencieux est `last_seen_at`, que le
-   serveur date à chaque pull/push du participant et renvoie (`seen`). Un participant sans
-   nouvelle depuis 30 s — 2,5 × la période de sondage la plus lente (10 s ± 20 %), la même
-   arithmétique que `isStale()` pour notre propre lien — cesse d'être COMPTÉ (⇄ n, menu ⋯) et se
-   présente « absent » dans la fenêtre de session. Comparaison en heure SERVEUR (`Share.now()`),
-   `seen` étant côté serveur. Rien n'est déduit ni jugé (§ 2 : on recopie une heure) et rien
-   n'est révoqué : son prochain sondage le refait présent, sans autre geste. */
-const SHARE_SEEN_LOST_MS=30000;
-function shareSeenLost(p){
-  try{if(!p||p.owner)return false;
-    const t=Date.parse(p.seen||'');if(!Number.isFinite(t))return false;
-    return (Share.now()-t)>SHARE_SEEN_LOST_MS;}catch(e){return false;}}
-function sharePresent(p){return !!p&&!p.owner&&!p.revoked&&!p.detached&&!shareSeenLost(p);}
+   serveur date à chaque pull/push du participant et renvoie (`seen`). Comparaison en heure
+   SERVEUR (`Share.now()`), `seen` étant côté serveur. Rien n'est déduit ni jugé (§ 2 : on
+   recopie une heure) et rien n'est révoqué : un sondage suivant refait le participant présent,
+   sans autre geste. */
+/* ⚠ LE SEUIL EST CLINIQUE, PAS RÉSEAU (v5.10.5, retour utilisateur sur les 30 s initiales :
+   « en situation d'urgence ça peut arriver de lâcher son téléphone 1, 2 min, des fois plus ») :
+   un téléphone posé pendant un geste NE quitte PAS la session. Trois régimes, donc :
+   - silence ≤ 45 s : rien à dire (le sondage le plus lent fait 10 s ± 20 %) ;
+   - 45 s à 3 min : le participant reste PRÉSENT et compté — la fenêtre de session porte juste
+     « sans nouvelles · N min », une information, pas un verdict ;
+   - au-delà de 3 min : « absent », hors compte ⇄ et menu.
+   Et le départ EXPLICITE n'attend pas ce seuil : « Quitter le partage » émet un évènement
+   `presence` (genre réservé depuis l'origine, jamais branché — accepté tel quel par la liste
+   blanche du serveur), et l'hôte l'affiche « parti » à la seconde. */
+const SHARE_SEEN_QUIET_MS=45000, SHARE_SEEN_LOST_MS=180000;
+function shareSeenSilenceMs(p){
+  try{if(!p||p.owner)return 0;
+    const t=Date.parse(p.seen||'');if(!Number.isFinite(t))return 0;
+    return Math.max(0,Share.now()-t);}catch(e){return 0;}}
+function shareSeenLost(p){return shareSeenSilenceMs(p)>SHARE_SEEN_LOST_MS;}
+function shareLeft(p){try{return !!(p&&Share._left&&Share._left[p.id]);}catch(e){return false;}}
+function sharePresent(p){return !!p&&!p.owner&&!p.revoked&&!p.detached&&!shareLeft(p)&&!shareSeenLost(p);}
 /* ÉTAT DE LA PASSATION — en mémoire seulement. Une offre est un MOMENT, pas un contrat : la
    retrouver après un rechargement ferait apparaître une proposition que plus personne ne se
    rappelle avoir faite. `_hoOffer` = on me propose (invité) ; `_hoTake` = quelqu'un a pris, il
@@ -28340,6 +28372,7 @@ const Share={
   lastOk:0, participants:[], fiche:null,
   _q:[], _inflight:false, _timer:null, _samples:[], _act:0, _fails:0, _resync:false,
   _ids:[],                    // couples « numéro:identifiant » reçus, dans l'ordre — l'ENTRÉE du pli
+  _left:{},                   // départs EXPLICITES reçus (presence quit) — id → 1 (cf. shareLeft)
 
   _io:{
     open:(id,sid,fid,snap,role,ttl)=>rpc('share_open',{p_id:id,p_session_id:sid,p_fiche_id:fid,
@@ -28507,7 +28540,9 @@ const Share={
            change ce que le menu affiche sans changer le nombre de lignes. Et on ne refait le menu
            que si elle a bougé — le sondage passe ici toutes les deux secondes. */
         {const sig=q=>(q||[]).filter(x=>x&&!x.owner)
-           .map(x=>x.id+':'+(x.role||'')+(x.revoked?'R':'')+(x.detached?'D':'')+(shareSeenLost(x)?'S':'')).join('|');
+           .map(x=>x.id+':'+(x.role||'')+(x.revoked?'R':'')+(x.detached?'D':'')
+             +(shareLeft(x)?'P':'')+(shareSeenLost(x)?'S':'')
+             +(shareSeenSilenceMs(x)>SHARE_SEEN_QUIET_MS?'Q'+Math.round(shareSeenSilenceMs(x)/60000):'')).join('|');
          const bouge=sig(this.participants)!==sig(p.participants);
          this.participants=p.participants||[];
          if(bouge)try{shareMenuRefresh();}catch(_){}}
@@ -28625,6 +28660,11 @@ const Share={
            même durée de vie ni la même condition. */
         const q=(this.participants||[]).find(x=>x&&x.id===e.actor);
         navBy=(q&&q.label)||'un participant';anno=true;}
+      /* DÉPART EXPLICITE (v5.10.5) : « Quitter le partage » émet `presence{state:'quit'}` — on
+         l'affiche « parti » sans attendre le seuil de silence. Aucun état de session n'est
+         touché : c'est une information de fenêtre, pas un évènement de soin. */
+      if(e.kind==='presence'&&e.actor&&e.actor!==this.me&&(e.payload||{}).state==='quit'){
+        this._left[e.actor]=1;try{shareMenuRefresh();}catch(_){}anno=true;continue;}
       if(e.kind!=='handoff'||e.actor===this.me)continue;
       const p=e.payload||{};
       /* SANS CE RAFRAÎCHISSEMENT, « Prendre la main » N'APPARAISSAIT JAMAIS : l'offre arrive par
@@ -28880,7 +28920,7 @@ const Share={
   stop(){this._ticketClear();
     this.mode='off';this.status='off';clearTimeout(this._timer);this._timer=null;this._ids=[];
     this._q=[];this._saveQ();this.share=this.secret=this.me=this.role=null;
-    this.participants=[];this.fiche=this.fold=null;}
+    this.participants=[];this.fiche=this.fold=null;this._left={};}
 };
 /* ═══ ÉCRAN D'ENTRÉE DE L'INVITÉ ═══════════════════════════════════════════════════════════════
    OUVERTURE DE LA FICHE MIROIR. `openRead` est INUTILISABLE ici, et pas seulement par commodité :
@@ -28977,20 +29017,25 @@ function shareSheetHtml(){
   const parts=(Share.participants||[]).filter(p=>!p.owner);
   const rows=parts.map(p=>{
     const att=_shPend[p.id]&&!p.revoked;
-    /* v5.10.5 : un participant SANS NOUVELLES (cf. shareSeenLost) se présente « absent », en
-       retrait comme un coupé — et l'offre de main ne se propose pas (« le bouton ne se propose
-       que sur un participant vivant »). « Couper » reste : l'hôte peut fermer la place d'un
-       parti. Son prochain sondage le refait présent tel quel. */
-    const perdu=shareSeenLost(p);
-    const cls=p.revoked?' off':(p.detached?' off':(perdu?' off':(att?' wait':'')));
-    const etat=p.revoked?'coupé':(p.detached?'seul':(perdu?'absent':(att?'coupure…':(p.role==='lead'?'conduit':'relève'))));
+    /* v5.10.5 : trois régimes de présence (cf. SHARE_SEEN_QUIET_MS) — « parti » (départ
+       explicite, immédiat), « absent » (silence > 3 min), et entre 45 s et 3 min le participant
+       reste PRÉSENT avec la mention « sans nouvelles · N min » : une information, pas un
+       verdict — en urgence on pose son téléphone. L'offre de main ne se propose ni à un parti ni
+       à un absent ; « Couper » reste. */
+    const parti=shareLeft(p);
+    const perdu=!parti&&shareSeenLost(p);
+    const silence=shareSeenSilenceMs(p);
+    const calme=!parti&&!perdu&&!p.revoked&&!p.detached&&silence>SHARE_SEEN_QUIET_MS;
+    const cls=p.revoked?' off':(p.detached?' off':(parti||perdu?' off':(att?' wait':'')));
+    const etat=p.revoked?'coupé':(p.detached?'seul':(parti?'parti':(perdu?'absent':(att?'coupure…':(p.role==='lead'?'conduit':'relève')))))
+      +(calme?' <span class="sh-quiet">· sans nouvelles '+Math.round(silence/60000)+' min</span>':'');
     /* DONNER LA MAIN — une OFFRE, et le libellé le dit. Le rôle ne change pas au tap : il changera
        quand l'autre l'aura PRISE. C'est l'échange en trois temps (AC 61-115), et c'est ce qui
        empêche qu'une checklist se retrouve conduite par quelqu'un qui a posé son téléphone. */
     const off=_hoOffered===p.id;
     return '<div class="sh-p'+cls+'"><span class="n">'+esc(p.label||'Invité')+'</span>'
       +'<span class="r">'+etat+'</span>'
-      +(p.revoked||p.detached||p.role==='lead'||perdu?''
+      +(p.revoked||p.detached||p.role==='lead'||perdu||parti?''
         :'<button class="btn sm" data-shlead="'+esc(p.id)+'"'+(off?' disabled':'')+'>'
          +(off?'proposée…':'Donner la main')+'</button>')
       +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
@@ -29130,6 +29175,12 @@ async function quitShare(){
   if(!await confirmDlg('Vous ne verrez plus cette session. Ce que vous avez déjà relevé reste dans '
     +'le compte-rendu du soignant — c’est un enregistrement de soin. '+perdu,
     {title:'Quitter le partage ?',yes:'Quitter',danger:true}))return;
+  /* ⚠ UN DÉPART EXPLICITE SE DIT (v5.10.5) : sans cette ligne, l'hôte n'apprenait le départ que
+     par le silence (seuil de 3 min). Meilleur effort — si le réseau le perd, le seuil reste le
+     filet ; on n'attend pas la réponse pour rendre la main à l'utilisateur. */
+  try{if(Share.mode==='guest'&&Share.status==='active'&&Share.secret)
+    Share._io.push(Share.secret,Share.share,[{event_id:Share._uuid(),kind:'presence',
+      ts:new Date(Share.now()).toISOString(),payload:{state:'quit'}}]).catch(()=>{});}catch(e){}
   Share.stop();
   Runtime=makeRuntime();
   state.view='library';state.fiche=null;
