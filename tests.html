@@ -2071,6 +2071,35 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('et son absence est DITE, pas taue',row.data.vElsewhere===true);
     eq('les coches, elles, montent normalement',Object.keys(row.data.checked).length,1);
   }
+  /* v5.10.2 — `sessionFromRow` était le SEUL point d'entrée de données distantes sans
+     assainisseur (les fiches et protocoles passent par migrate). `sanitizeSession` est une liste
+     GRISE : les champs connus sont bornés par les grammaires existantes (SHARE_KEY_RX,
+     shareNavNorm, tkRefNorm), les inconnus TRAVERSENT — une liste blanche perdrait les champs
+     d'un client plus récent au premier aller-retour LWW. */
+  group('sanitizeSession() — règle 5 appliquée aux sessions synchronisées');
+  {
+    const hostile=JSON.parse('{"__proto__":{"pollue":1},"ficheId":"__proto__","name":"N",'
+      +'"checked":{"1:b1:0":true,"<img src=x>":true},"counters":{"c1":"7"},'
+      +'"nav":["b1"],"navSeq":[1],'
+      +'"events":[{"t":"5","label":"Mon mot","ref":{"type":"zzz"}},null],'
+      +'"champInconnu":"x"}');
+    const s=A.sanitizeSession(hostile);
+    // JSON.parse pose __proto__ en propriété PROPRE ; Object.assign la recopiait par [[Set]],
+    // c'est-à-dire écrivait le PROTOTYPE de la cible — le motif exact du §3 de l'audit.
+    ok('__proto__ propre n\'atteint jamais le prototype', !('pollue' in s));
+    ok('ficheId hostile substitué (safeId)', s.ficheId!=='__proto__');
+    ok('clé d\'état hors grammaire filtrée', !('<img src=x>' in s.checked));
+    ok('clé d\'état conforme conservée', s.checked['1:b1:0']===true);
+    eq('compteur coercé en nombre', s.counters['c1'], 7);
+    eq('nav/navSeq passent par shareNavNorm', [s.nav,s.navSeq], [['b1'],[1]]);
+    eq('évènement nul filtré, t coercé', [s.events.length,s.events[0].t], [1,5]);
+    ok('le libellé d\'un repère SURVIT (il monte dans son propre historique)', s.events[0].label==='Mon mot');
+    ok('une référence de type inconnu est rejetée, jamais recopiée', !('ref' in s.events[0]));
+    ok('un champ INCONNU traverse (liste grise, pas blanche)', s.champInconnu==='x');
+    const back=A.sessionFromRow({id:'s9',exercise:false,data:hostile,updated_at:'2026-01-01T00:00:00Z',deleted_at:null});
+    ok('sessionFromRow passe par l\'assainisseur', !('pollue' in back) && !('<img src=x>' in back.checked));
+    eq('l\'identité vient de la LIGNE, jamais du blob', back.id, 's9');
+  }
   /* ===== ÉTAPE B — LE POOL ================================================================ */
   /* Fixture v3 conservée : elle décrit une aide telle qu'un utilisateur l'écrivait avant
      la v5, et c'est exactement ce que `migrate` doit encore savoir NORMALISER — la conversion

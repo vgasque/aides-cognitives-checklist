@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-L7P7iEpPfSMwSxv7R7jqP4Z+/djt/UhcKbEuuIWJPEo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-gH1T0g/SIMen1qiwOKD4AHGw3vDjexLqBJyru3oYiio='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -27126,9 +27126,57 @@ function sessionToRow(o,uidv){
   return {id:o.id,owner:uidv,data:data,exercise:!!o.exercise,
     updated_at:new Date(o.updatedAt||o.savedAt||Date.now()).toISOString(),
     deleted_at:o.deletedAt?new Date(o.deletedAt).toISOString():null};}
+/* UNE SESSION DISTANTE PASSE PAR ICI, ET NULLE PART AILLEURS (v5.10.2 — la règle 5 appliquée aux
+   sessions). C'était le SEUL point d'entrée de données distantes sans assainisseur : fiches et
+   protocoles passent par migrate()/migrateProtocol() trois lignes plus haut, les sessions étaient
+   écrites TELLES QUELLES en IndexedDB. La RLS borne la table à son propriétaire et tout est esc()
+   à l'affichage — ce qui se jouait n'est pas une XSS mais la règle elle-même, l'absence de tout
+   PLAFOND (une ligne gonflée grossit IndexedDB sans borne), et le motif __proto__ : JSON.parse
+   pose `__proto__` en propriété PROPRE, qu'`Object.assign` recopie par [[Set]] — c'est-à-dire
+   écrit le PROTOTYPE de la cible.
+   LISTE GRISE, PAS BLANCHE : les champs CONNUS sont bornés et normalisés, les inconnus TRAVERSENT
+   (moins BAD_KEYS) — une liste blanche perdrait en silence les champs d'un client plus récent au
+   premier aller-retour LWW, le défaut que la synchro existe pour éviter. Les grammaires sont
+   celles qui existent déjà : SHARE_KEY_RX pour les clés d'état, shareNavNorm pour nav/navSeq,
+   tkRefNorm pour les références du journal — une seconde grammaire divergerait (§ 5.5). */
+function sanitizeSession(d){
+  const out={};for(const k of Object.keys(d)){if(BAD_KEYS.indexOf(k)>=0)continue;out[k]=d[k];}
+  out.ficheId=safeId(out.ficheId,'f');out.ficheTitle=sstr(out.ficheTitle,300);out.name=sstr(out.name,160);
+  out.startedAt=+out.startedAt||0;out.savedAt=+out.savedAt||0;out.aidRev=+out.aidRev||0;
+  out.live=!!out.live;out.exercise=!!out.exercise;
+  ['checked','verified','vgaps','stepTexts'].forEach(k=>{
+    const src=(out[k]&&typeof out[k]==='object')?out[k]:{};const m=Object.create(null);let n=0;
+    for(const key of Object.keys(src)){if(n>=4000)break;if(!SHARE_KEY_RX.test(key))continue;m[key]=src[key];n++;}
+    out[k]=m;});
+  {const nv=shareNavNorm(out.nav,out.navSeq);
+   out.nav=nv?nv.nav:[];out.navSeq=nv?nv.navSeq:[];}
+  {const src=(out.counters&&typeof out.counters==='object')?out.counters:{};const m=Object.create(null);let n=0;
+   for(const key of Object.keys(src)){if(n>=500)break;if(!SAFE_ID.test(key))continue;m[key]=+src[key]||0;n++;}
+   out.counters=m;}
+  {const src=(out.timers&&typeof out.timers==='object')?out.timers:{};const m=Object.create(null);let n=0;
+   for(const key of Object.keys(src)){if(n>=200)break;if(!SAFE_ID.test(key))continue;const t=src[key]&&typeof src[key]==='object'?src[key]:{};
+     m[key]={elapsedMs:+t.elapsedMs||0,cycles:+t.cycles||0,running:!!t.running,stoppedAt:+t.stoppedAt||0};n++;}
+   out.timers=m;}
+  {const src=(out.cxBack&&typeof out.cxBack==='object')?out.cxBack:{};const m=Object.create(null);
+   for(const key of Object.keys(src)){if(!/^\d{1,6}$/.test(key))continue;const v=src[key];
+     m[key]=typeof v==='string'?{id:safeId(v,'b'),t:0}:{id:safeId(v&&v.id,'b'),t:+((v&&v.t)||0)};}
+   out.cxBack=m;}
+  // ⚠ pas `sarr` ici : c'est un borneur de tableaux de CHAÎNES (chaque entrée passe par sstr) —
+  // sur des tableaux d'OBJETS il rendait des '[object Object]' et vidait le journal (mesuré).
+  const rawArr=v=>Array.isArray(v)?v:[];
+  out.extraTimers=rawArr(out.extraTimers).slice(0,100).map(x=>({id:safeId(x&&x.id,'t'),label:sstr(x&&x.label,120),seconds:+((x&&x.seconds)||0),autoloop:!!(x&&x.autoloop)}));
+  out.extraCounters=rawArr(out.extraCounters).slice(0,100).map(x=>({id:safeId(x&&x.id,'n'),label:sstr(x&&x.label,120)}));
+  out.events=rawArr(out.events).slice(0,5000).map(e=>{
+    if(!e||typeof e!=='object')return null;
+    const ev={};for(const k of Object.keys(e)){if(BAD_KEYS.indexOf(k)>=0)continue;ev[k]=e[k];}
+    ev.t=+ev.t||0;if(ev.voidAt!==undefined)ev.voidAt=+ev.voidAt||0;
+    if(ev.label!==undefined)ev.label=sstr(ev.label,200);
+    const r=tkRefNorm(ev.ref);if(r)ev.ref=r;else delete ev.ref;
+    return ev;}).filter(Boolean);
+  return out;}
 function sessionFromRow(row){
   const d=(row.data&&typeof row.data==='object')?row.data:{};
-  return Object.assign({},d,{id:row.id,
+  return Object.assign(sanitizeSession(d),{id:row.id,
     exercise:!!row.exercise,
     verified:{},vgaps:{},          // jamais reçues : elles ne sont jamais parties
     updatedAt:Date.parse(row.updated_at)||Date.now(),
@@ -29282,7 +29330,7 @@ if(location.search.indexOf('__actest')>=0){
     svGridPlan,svDistribute,svValidWarn,svSources,svCountsTxt,posoParts,SV_TRACKS,SV_TRUNK,
     posoTokens,posoName,posoScore,posoRank,posoSplit,
     qrRawBits,qrTotalCw,qrGen,qrRs,qrAlign,qrDataCw,qrInterleave,qrEncode,qrSvg,qrMul,
-    TAG_CORE,sanitizeTags,tagAll,tagSuggest,tagShort,tagLabel,tagRank,tkRefNorm,tkLabels,tkParseTime,Share,sessionToRow,sessionFromRow,shareNavNorm,
+    TAG_CORE,sanitizeTags,tagAll,tagSuggest,tagShort,tagLabel,tagRank,tkRefNorm,tkLabels,tkParseTime,Share,sessionToRow,sessionFromRow,sanitizeSession,shareNavNorm,
     tmStopFrom,liveWhere,liveWhereText,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,Share,
