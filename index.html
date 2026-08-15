@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-F1hbWU2wgUpG7mgpwoAENWGIRq1mwdEBiGCzM/iZaZ4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-f3fp75X8xeANCe/kNyxokEy3j8GXxFn+JKr7KieIagw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2860,7 +2860,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      défilement natif à distance, mais une sélection n'est pas un défilement : elle passe à côté.
      Rien n'est perdu — ces vingt-six lettres ne sont pas un contenu qu'on copie, ce sont des
      commandes, et `user-select` s'hérite, donc les boutons sont couverts par la même ligne. */
-  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 2px 8px 1px;touch-action:none;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  /* ⚠ LE RAIL SE RESSERRE PAR SON REMBOURRAGE, PAS PAR SON CORPS DE TEXTE (v5.10.8, demande de
+     l'auteur : « réduis légèrement la taille du texte du rail pour diminuer encore l'espace »).
+     LES DEUX MOITIÉS DE LA DEMANDE N'ONT PAS LE MÊME SORT, et il faut dire pourquoi.
+     · LE CORPS NE PEUT PAS BAISSER : 11 px EST le plancher typographique (règle 9), et `.azrail
+       button` y est déjà posé. Descendre en dessous ne serait pas un arbitrage de goût — la règle
+       tient pour un écran tenu à bout de bras, en gant, sous stress — et `check-type` le refuse.
+     · ET CELA N'AURAIT DE TOUTE FAÇON RIEN GAGNÉ : mesuré, la largeur du rail ne vient PAS du
+       glyphe (une lettre à 11 px en fait ~7) mais du `min-width:24px` des boutons, qui est la
+       cible minimale WCAG 2.5.8 et que la sonde a11y vérifie (`w < 24` ⇒ rouge, à toute largeur).
+       Un corps plus petit aurait rendu les lettres moins lisibles pour exactement 0 px.
+     Ce qui restait de vraiment récupérable, c'est le rembourrage HORIZONTAL du rail lui-même :
+     3 px (2 à droite, 1 à gauche) posés autour de boutons déjà centrés dans leurs 24 px. Rail
+     27 → 24 px, mesuré, et ces 3 px vont à la colonne. Le rembourrage VERTICAL de 8 px reste : il
+     est le pas du calage de `bindAzRail` (`--azr-pt`), pas une décoration. */
+  .azrail{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 0;touch-action:none;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   /* La classe n'est posée qu'UNE FOIS le décalage calculé : avant, les lettres restent centrées
      dans leur boîte — jamais collées en haut le temps d'une image. */
   .azrail.azr-pin{justify-content:flex-start;padding-top:var(--azr-pt,8px)}
@@ -2940,8 +2954,36 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        rétrécissaient au retour. C'est le MÊME défaut que la v5.0.3 avait corrigé côté RECHERCHE et
        que la voie LARGE tient depuis toujours (`padding-right:32px`, sans condition) : la moitié
        étroite était restée conditionnelle. Un annuaire dont le pas change selon ce qu'il contient
-       est un annuaire qu'on réapprend ; la gouttière appartient à la PAGE, pas au rail. */
-    body.view-home .home-main{padding-right:16px}
+       est un annuaire qu'on réapprend ; la gouttière appartient à la PAGE, pas au rail.
+       ⚠ 16 → 12 px (v5.10.8, signalé à l'usage : « diminue l'écart entre les cartes d'accueil et le
+       rail A-Z », en voie ÉTROITE — la voie large n'est pas concernée, ses 32 px de gouttière pour
+       un rail de 30 laissent DEUX pixels, mesurés à 1280). Le raisonnement de v5.0.3 est inchangé,
+       seule sa marge de sécurité se resserre : mesuré à 390 px, la carte finissait à 355 et le rail
+       commence à 363 — 8 px de blanc, quand la contrainte réelle est que les deux ZONES TACTILES
+       ne se touchent pas. RE-MESURÉ AVANT DE DÉCIDER, et le chiffre de 2020 a vieilli : dans la
+       rangée d'aujourd'hui l'épingle ☆ n'est PAS au bord (`.pinbtn` s'arrête à 319, elle n'a pas de
+       halo, et la date puis le chevron la séparent du bord) — la cible la plus proche du rail finit
+       donc 40 px avant la carte, pas 4. Il n'y avait plus rien à protéger dans ces 8 px. À 12, la
+       carte finit à 359, la première lettre commence toujours à 364, et 45 px séparent l'épingle du
+       rail. On rend 4 px de largeur à CHAQUE rangée, à toutes les largeurs étroites.
+       ⚠ PUIS 12 → 10, PUIS 10 → 8 px (« rétrécis encore l'espace entre les cartes et le rail »),
+       et 8 est le PLANCHER — il se déduit, il ne se choisit pas. Le rail vient de passer de 27 à
+       24 px (son rembourrage horizontal, cf. `.azrail`) : il commence donc à 366 pour 18 px de
+       marge de page, dont il mord 6. Une gouttière de 8 place le bord de rangée à 363 (mesuré :
+       372 de colonne − 8 de gouttière − 1 de bordure du livre), soit 3 px de jointure, du même
+       ordre que les 2 px de la voie large mesurés à 1280 — les deux régimes cessent d'avoir deux
+       écarts différents pour une même jointure. À 6, le fond translucide du rail
+       (`color-mix(… 85%, transparent)`) se poserait SUR le bord de la rangée, qui transparaîtrait
+       dessous. Ce plancher est une géométrie, pas un goût — et il se recalcule si le rail change
+       de largeur : gouttière = 18 (marge de page) − (rail − 12).
+       ⚠ ET LA GOUTTIÈRE NE DÉPEND PAS DU RAIL — c'est la moitié de la règle qu'il ne faut jamais
+       reperdre (« même largeur de carte, rail ou pas »). Elle est posée sur `body.view-home`, sans
+       condition : `.azr-on` a été PURGÉE en v5.6 précisément pour cela, et le rail est `fixed`,
+       donc hors flux — il ne peut par construction rien retirer à la colonne. Répertoire, recherche,
+       bibliothèque vide, une seule lettre, rail retiré faute de hauteur : le pas de la grille est le
+       même partout. Toute règle future qui accrocherait cette valeur à l'existence du rail
+       réintroduirait l'annuaire qu'on réapprend à chaque geste. */
+    body.view-home .home-main{padding-right:8px}
     /* ⚠ ET LA CAUSE RESTANTE N'EST PAS UNE MESURE, C'EST LE REBOND DE FIN DE PAGE (signalé à
        l'usage : « ça se produit quand on arrive en fin de scroll de page, quand il y a le
        bounce »). Pendant le rubber-band, WebKit TRANSLATE le document ET les éléments
@@ -3655,34 +3697,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock{background:var(--sys);border-bottom:0;color:var(--sys-ink)}
   /* Il PROLONGE la capsule : coins vifs en haut (la jointure ne se voit pas), arrondis en bas
      (c'est là que l'objet s'arrête). Un seul objet, deux étages. */
-  .rt-dock .rt-head{margin-bottom:8px}
   .rt-dock .rt-head b,.rt-dock .tk-head b{color:var(--sys-ink-2)}
   .rt-dock .rt-ic{color:var(--sys-ink-2)}
-  /* ⚠ LA RÉSERVE SUIT LA TAILLE DU BOUTON, ET LES DEUX SE LISENT ENSEMBLE (v5.6, signalé à
-     l'usage : « le ✕ se superpose à “Son activé” »). La rangée réserve 40 px à droite pour son ✕
-     ancré — mais dans le volet il fait 48, et les 8 px manquants étaient exactement le
-     recouvrement mesuré (600, 700, 768 px : le seul régime où la rangée tient sur une ligne).
-     Une place RÉSERVÉE qui ne vaut pas la taille de l'objet réservé n'est pas une réserve. */
-  .rt-dock .rt-x{color:var(--sys-ink-2);min-width:48px;min-height:48px}
-  /* 48 de bouton + 8 d'écart : deux cibles de 44 px qui se TOUCHENT sont déjà un défaut — c'est
-     la règle du rail A→Z, prise ici pour la même raison (un pouce ganté ne vise pas au pixel). */
-  /* ⚠ LE COULOIR DU ✕ RESTE SUR LA RANGÉE, ET DEUX ESSAIS L'ONT CONFIRMÉ (v5.6). Le déplacer sur
-     le TITRE — en rembourrage puis en largeur maximale — a été mesuré PIRE dans les deux cas : le
-     rembourrage faisait enrouler le titre SOUS le ✕ (176 px, quatre lignes), et la largeur maximale
-     le rétrécissait assez pour qu'un autre contrôle monte à sa droite… donc sous le ✕. Une réserve
-     de rangée protège la ligne ENTIÈRE, ce qu'aucune borne posée sur un seul enfant ne fait. La
-     place se gagne ailleurs, en raccourcissant ce qui peut l'être.
-     ⚠ ÉPILOGUE (v5.6) : la question ne se pose plus dans cet en-tête — le son et la veille sont
-     descendus au PIED du panneau (`.rt-set`), et `.rt-wl` est PURGÉE avec la règle qui la servait.
-     La réserve du ✕ reste : elle protège la rangée, quel que soit ce qu'on y met demain. */
-  .rt-dock .rt-head{padding-right:56px}
-  /* ⚠ LE ✕ S'ALIGNE SUR LE TITRE, PAS SUR LA BOÎTE. Il est ancré en haut à droite (patron
-     v4.55.3, sa place réservée par le rembourrage de la rangée) et fait 48 px de cible ; le
-     titre, lui, n'en faisait que 13 — le ✕ paraissait donc posé une demi-ligne trop bas, entre
-     le titre et la rangée qui s'enroule dessous. On donne au titre la MÊME hauteur de boîte :
-     les deux se centrent alors l'un sur l'autre, et le bouton « son » continue de s'enrouler
-     en dessous sans rien déplacer. */
-  .rt-dock .rt-head>b{min-height:48px;display:flex;align-items:center}
+  /* ⚠ TROIS RÈGLES SONT PURGÉES ICI (v5.10.8, règle 14) ET C'EST LEUR CAUSE COMMUNE QUI A DISPARU.
+     Elles répondaient toutes à un ✕ HORS FLUX dans une rangée qui débordait : la réserve
+     `padding-right:56px` (« une place réservée qui ne vaut pas la taille de l'objet réservé n'est
+     pas une réserve », le ✕ recouvrant « Son activé » à 600-768 px), les 48 px de bouton, et le
+     `min-height:48px` réinjecté sur le TITRE pour que le ✕ ne paraisse pas posé une demi-ligne
+     trop bas. Depuis la fusion de l'en-tête et du sous-titre « Minuteurs », la rangée n'a plus que
+     deux enfants — un mot court et un ✕ EN FLUX —, elle ne peut plus déborder, il n'y a plus rien
+     à réserver, et les deux se centrent l'un sur l'autre sans qu'on l'écrive. Le ✕ garde ses 48 px
+     de CIBLE, qui viennent maintenant du halo (36 + 12) et ne coûtent plus de hauteur.
+     ⚠ CE QUI RESTE VRAI ET NE DOIT PAS ÊTRE REPERDU : le couloir du ✕ appartient à la RANGÉE,
+     jamais au titre. Deux essais l'ont mesuré en v5.6 — un rembourrage sur le titre le faisait
+     enrouler SOUS le ✕ (176 px, quatre lignes), une largeur maximale laissait un autre contrôle
+     monter à sa droite, donc sous le ✕. Le jour où l'on remet quoi que ce soit dans cette rangée,
+     c'est la rangée qui protège la ligne, pas une borne posée sur un seul enfant. */
+  .rt-dock .rt-x{color:var(--sys-ink-2)}
   .rt-dock .fam-n{background:var(--sys-2);color:var(--sys-ink-2);border-color:var(--sys-line)}
   .rt-dock :is(.rt-sound,.rt-warn){background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink-2)}
   .rt-dock .rt-sound.off{color:var(--warn-sys);border-color:var(--warn-line);background:var(--warn-sys-bg)}
@@ -3712,7 +3743,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock .tmcard .tm-label{min-height:2lh}
   .rt-dock .tm-meta{color:var(--sys-ink-2);margin:-2px 0 4px}
   .rt-dock :is(.tm-val,.cn-val){font-size:var(--t-step-l);font-weight:700;color:var(--sys-ink)}
-  .rt-dock .tm-cyc{font-size:var(--t-cap);color:var(--sys-ink-2)}
+  .rt-dock :is(.tm-cyc,.tm-kind){font-size:var(--t-cap);color:var(--sys-ink-2)}
   /* Sur la matière SYSTÈME, le registre a sa valeur propre : `--verify-hi` est calibré sur la
      matière de TRAVAIL et n'y tiendrait pas 4,5:1 (doctrine des trois matières). */
   .rt-dock .tm-stop{color:var(--warn-sys)}
@@ -4511,8 +4542,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      pied (`.rt-set`) : la rangée est libre, et une CAUTION muette n'aurait de toute façon rien
      averti. La classe `.rt-wl` disparaît avec la règle qui la servait (règle 14). */
 
-  .rt-head{position:relative;display:flex;align-items:center;gap:8px;margin-bottom:10px;
-    flex-wrap:wrap;padding-right:40px}
+  /* ⚠ ÉPILOGUE DE L'ANCRAGE (v5.10.8) — LA CROIX EST REDEVENUE UN ENFANT DE LA RANGÉE. Le patron
+     `absolute` + `padding-right` réservé ci-dessus répondait à une rangée QUI DÉBORDAIT : titre +
+     avertissement + son + veille, 331 px demandés pour 221 à 320 px. Cette rangée n'existe plus —
+     les deux interrupteurs sont au pied (`.rt-set`), `.rt-wl` est purgée, et depuis la v5.10.8 le
+     titre est le sous-titre « Minuteurs » : il reste DEUX enfants, un mot court et un ✕.
+     Ancrer une croix hors flux dans une rangée qui ne peut plus déborder coûtait alors une vraie
+     hauteur : la rangée se dimensionnait sur le seul titre (17 px), et l'on RÉINJECTAIT à la main
+     `min-height:48px` sur ce titre pour que la croix ne paraisse pas flotter une demi-ligne trop
+     bas — c'est-à-dire qu'on payait la hauteur de la croix DEUX fois. En flux, la rangée fait
+     exactement la hauteur du plus grand de ses deux enfants, et les deux se centrent d'eux-mêmes.
+     La réserve `padding-right` part avec l'ancrage : elle protégeait une place que plus rien ne
+     dispute. */
+  .rt-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
   /* `min-width:0` : sans lui, `flex:1` ne descend jamais sous la largeur du contenu (le minimum
      automatique d'un élément flex), et le titre pousse tout le reste dehors. */
   .rt-head b{color:var(--ink-soft);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
@@ -4526,8 +4568,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border-top:1px solid var(--work-line)}
   .rt-panel .rt-set{border-top-color:var(--sys-line)}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
-  /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente. */
-  .rt-x{position:absolute;top:0;right:0;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
+  /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente.
+     `position:relative` porte le HALO tactile (cf. le bloc A8 plus bas) : le dessin reste à 36 px,
+     la cible monte à 48 sans épaissir la rangée d'un pixel. */
+  .rt-x{position:relative;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:36px;min-height:36px;border-radius:8px;cursor:pointer;flex:none}
   .rt-x:hover{background:var(--surface-2);color:var(--ink)}
   .rt-x:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (min-width:1000px){.rt-x{display:none}}
@@ -4570,7 +4614,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read .read-side .tmcard.due .tm-label{color:var(--warn);font-weight:800}
   body.view-read .read-side .tmcard .tm-meta,
   body.view-read .read-side .tmcard .tm-bar-wrap,
-  body.view-read .read-side .tmcard .tm-cyc{display:none}
+  body.view-read .read-side .tmcard .tm-cyc,
+  /* La marque de nature suit la barre et les cycles : le rail resserre les cartes à la valeur et
+     aux commandes, et une seule des trois lignes qui reste serait une asymétrie sans raison. */
+  body.view-read .read-side .tmcard .tm-kind{display:none}
   body.view-read .read-side .tm-val{font-size:17.5px}
   /* Les commandes se déplient au tap ; l'échu montre les siennes d'emblée. */
   body.view-read .read-side .tmcard:not(.tm-open):not(.due) .tm-ctrl{display:none}
@@ -4667,6 +4714,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tm-val,.cn-val{font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
   .tm-val{color:var(--tcol)}
   .tm-cyc{font-size:12px;color:var(--ink-soft);margin-top:2px}
+  /* La NATURE de la carte (chronomètre) occupe la ligne où l'intervalle met sa barre et ses
+     cycles : même métrique que `.tm-cyc`, même encre douce — une nature n'est pas un état, elle ne
+     prend donc aucun registre. `margin-top:8px` et non 2 : elle remplace `.tm-bar-wrap` (6 px de
+     marge) EN PLUS de la ligne de cycles, sans quoi la valeur et la marque se toucheraient. */
+  .tm-kind{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-soft);margin-top:8px}
+  .tm-kind svg{flex:none}
   /* Ligne « arrêté depuis » : AMBRE TEXTUEL, jamais un aplat (A11). Corps du texte courant,
      interligne serré, deux lignes au plus — au-delà d'une heure la durée s'écrit h:mm:ss et le
      motif suit ; on ne veut ni troncature (un chiffre amputé est pire qu'absent) ni carte qui
@@ -4814,11 +4867,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      retour d'usage) ; et `html[data-theme="dark"] .empty{background:…}`, de spécificité supérieure
      à `.tk-panel`, écrasait le fond du panneau en thème SOMBRE. Un nom propre supprime les deux. */
   .tk-panel.tk-slim .tk-head{margin-bottom:0}
+  /* L'INVITATION du journal vide : registre de LÉGENDE (11 px, encre douce), jamais de notice —
+     pas de cadre, pas d'aplat, pas de glyphe d'alerte. `margin:0` : le titre pose déjà ses 8 px
+     au-dessus et le panneau son rembourrage en dessous (cf. « une section respire autant des deux
+     côtés de son filet »). */
+  .tk-empty{margin:0;font-size:11px;line-height:1.4;color:var(--ink-soft)}
+  .rt-dock .tk-empty{color:var(--sys-ink-2)}
   /* v5.4.1 — SOUS-TITRES DE FAMILLE du panneau (Minuteurs / Compteurs ; le journal a le sien) :
      grammaire .tk-head (petites capitales), compte en pilule mono. Le premier colle à l'en-tête
      du panneau ; les suivants portent un filet de séparation (.fam-sep), comme le journal. */
+  /* v5.10.8 : `.rt-head+.rt-famh{margin-top:0}` est PURGÉE avec sa cause (règle 14). Elle collait
+     le PREMIER sous-titre à l'en-tête — or l'en-tête EST ce sous-titre depuis la fusion, et les
+     deux qui restent (Compteurs, Jalons) portent tous `.fam-sep`, dont la marge gagne. Le
+     sélecteur ne pouvait donc plus matcher : une règle morte qui décrit une structure disparue
+     est pire qu'absente, elle fait croire à un réglage qui n'opère plus. */
   .rt-famh{margin:14px 0 8px}
-  .rt-head+.rt-famh{margin-top:0}
   .rt-famh.fam-sep{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
   :is(.rt-famh,.rail-fam)+.rt-counters{margin-top:0}
   .rail-fam{margin-top:16px}
@@ -5151,7 +5214,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de recherche du panneau) grossissent franchement. */
   :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb){position:relative}
   :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb)::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
-  .rt-x{min-height:44px;min-width:44px}
+  /* ⚠ `.rt-x` A REJOINT LE HALO (v5.10.8), ET LA PHRASE CI-DESSUS EST DONC À MOITIÉ PÉRIMÉE : il
+     ne vivait dans aucune rangée mesurée TANT QU'IL ÉTAIT HORS FLUX. Depuis qu'il est un enfant de
+     `.rt-head`, grossir franchement veut dire épaissir la rangée — 48 px de bouton pour un titre
+     de 17, sur un écran de soin. Le halo est VERTICAL SEUL (`inset:-6px 0`), comme l'exige la
+     règle juste au-dessus : un débordement à droite entrerait dans le `scrollWidth` de la rangée,
+     que le harnais doctrine mesure. 36 de dessin + 12 de halo = 48 de cible, au-dessus des 44. */
+  .rt-x::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
   .rt-find input{min-height:44px}
   /* `.st-seg` est le segmenté de STATUT des ÉDITEURS — hors surface de crise, donc hors du seuil
      de 44 px (vérifié : aucune émission en lecture). 38 px tient largement les 24×24 de
@@ -9095,7 +9164,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.10.7';
+const APP_VERSION='5.10.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18206,6 +18275,18 @@ function timerStopHtml(t,now){
   const d=Math.max(0,(now||Date.now())-t.stoppedAt);
   return `<div class="tm-stop" id="tmstop-${t.id}">△ arrêté depuis <b>${fmtMs(d)}</b>${
     t.stopClosed?' — application fermée, le temps n’a pas été rattrapé':''}</div>`;}
+/* ⚠ UN CHRONOMÈTRE DIT QU'IL EN EST UN (v5.10.8, signalé à l'usage : « les chronomètres s'affichent
+   pareils que les minuteurs, impossible à distinguer visuellement »). Il n'y avait AUCUNE marque
+   positive : la seule différence était une ABSENCE — pas de barre, pas de « Cycles : n » —, et une
+   absence ne se lit pas, surtout sur un minuteur qu'on vient de poser (barre pleine, « Cycles : 0 »
+   ressemble déjà à « rien »). Le nom par défaut disait bien « Chronomètre », mais il disparaît dès
+   que l'auteur nomme l'objet, c'est-à-dire toujours. Un temps qui MONTE et un temps qui DESCEND
+   commandent des gestes opposés : les confondre en réanimation, c'est lire « 05:00 » comme « il
+   reste cinq minutes » quand il s'est écoulé cinq minutes.
+   LA MARQUE OCCUPE LA PLACE DE LA BARRE ET DU COMPTE DE CYCLES — le même emplacement, jamais un
+   emplacement nouveau : les deux natures ont alors la même silhouette, et c'est la LIGNE qui les
+   sépare, pas la hauteur de la carte. Glyphe ET mot (règle 8), aucune couleur : ce n'est pas un
+   état, c'est une nature. Rien ne bouge sur les minuteurs d'intervalle. */
 function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw,cyc=t.type==='interval'?'Cycles : '+t.cycles:'';
   const lbl=esc(t.label)||(t.type==='interval'?'Minuteur':'Chronomètre');
   // « ↺ + durée initiale » (décision utilisateur) : on VOIT ce que redonnera la réinitialisation
@@ -18217,7 +18298,8 @@ function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw
   const meta=tmLabelParts(t.label).meta;
   return `<div class="tmcard${stCls}" id="tmcard-${esc(t.id)}" role="group" aria-label="${lbl}"><div class="tm-label" id="tmlab-${esc(t.id)}">${esc(timerStateLabel(t))}</div>${meta?`<div class="tm-meta">${esc(meta)}</div>`:''}
     <div class="tm-val" id="tmval-${esc(t.id)}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
-    ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="transform:${barTf(bw)}"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`:''}
+    ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="transform:${barTf(bw)}"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`
+      :`<div class="tm-kind">${uiIcon('stopwatch',12)} Chronomètre · le temps monte</div>`}
     ${timerStopHtml(t)}
     <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${esc(t.id)}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button>${timerDue(t)&&!t.ack?`<button type="button" class="tm-btn tm-ack" data-tmack="${esc(t.id)}" aria-label="Acquitter l’alarme — ${lbl} ; le minuteur reste échu, seul le bandeau se tait">✓ Vu</button>`:''}<button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${esc(t.id)}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
 // Rangée COMPACTE d'un minuteur ad hoc (48px) : libellé · temps · ⟲ relance · ✕ suppression.
@@ -18567,14 +18649,26 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
       +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml()
       +(jalonsB?`<div class="rail-head rail-fam"><span class="rail-title">Jalons</span>${jalons.length>1?`<span class="rail-n">${jalons.length}</span>`:''}</div>${jalonsB}`:'')
       +`<div class="rt-set">${sound}</div>`;}
-  const cards=`<div class="tk-head rt-famh"><b>Minuteurs${famN(nt)}</b></div>${timersB}`
+  /* ⚠ L'EN-TÊTE DU VOLET **EST** LE SOUS-TITRE « MINUTEURS » (v5.10.8, signalé à l'usage : « la
+     ligne “Minuteurs · compteurs · journal” avec croix prend beaucoup de hauteur »). Mesuré à
+     390 px : 48 px de rangée de titre + 8 d'écart + 17 de sous-titre « MINUTEURS » + 8 = 81 px
+     avant la première carte, pour DEUX rangées qui nomment la même chose à un mot près — c'est
+     exactement le doublon de vocabulaire qu'AC 120-71B §5.5 proscrit, payé ici en hauteur d'écran
+     pendant un soin. Les deux rangées portaient déjà la MÊME grammaire (`.tk-head b` et
+     `.rt-head b` sont la même déclaration : 11 px, petites capitales, `--sys-ink-2`) : les fondre
+     ne crée aucune forme nouvelle, elle en supprime une redondante.
+     Le titre du volet devient donc le premier sous-titre de famille, et le ✕ vit dans SA rangée —
+     « Compteurs » et « Jalons » gardent la leur, inchangées. La fermeture reste TRIPLE (V1) : le
+     ✕ est là, à 36 px de dessin pour 48 de cible (halo, cf. `.rt-x`), et le re-tap du quai, Échap
+     et le tap hors volet n'ont pas bougé. Mesuré après : 44 px au lieu de 81. */
+  const cards=timersB
     +`<div class="tk-head rt-famh fam-sep"><b>Compteurs${famN(cl.length)}</b></div>`
     +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml()
     +(jalonsB?`<div class="tk-head rt-famh fam-sep"><b>Jalons${famN(jalons.length)}</b></div>${jalonsB}`:'');
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
-  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs · compteurs · journal</b><button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}<div class="rt-set">${sound}</div></div>`;}
+  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs${famN(nt)}</b><button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}<div class="rt-set">${sound}</div></div>`;}
 /* timekeeperPanel : journal d'horodatage. Bouton « Horodater » -> ajoute un repère à l'heure
    courante avec un libellé automatique ("Action N"), renommable à tout moment (même a
    posteriori en reprenant une session). Chaque ligne montre l'heure (HH:MM:SS) et le délai
@@ -18877,7 +18971,25 @@ function timekeeperPanel(){const ev=Runtime.events||[];
      l'on en a besoin. Le panneau redevient ce qu'il est : la LECTURE du journal. La maquette ne
      l'y met pas non plus. `#tkAdd` reste dans MUTE_SEL : le sélecteur ne matche plus rien, et le
      retirer serait parier qu'aucun chemin ne le réintroduira. */
-  return `<div class="tk-panel${ev.length?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions${ev.length>1?`<span class="fam-n">${ev.length}</span>`:''}</b></div>${rows}</div>`;}
+  /* ⚠ UN JOURNAL VIDE DISAIT SON NOM ET RIEN D'AUTRE (v5.10.8, signalé à l'usage). Le panneau
+     replié montrait « JOURNAL DES ACTIONS » au-dessus du vide — dans le rail, le titre lui-même est
+     masqué par le dépliant qui le porte déjà (`.rail-fold .tk-panel .tk-head b`), et il ne restait
+     donc STRICTEMENT RIEN. Or c'est exactement l'endroit où l'on découvre la capacité : le geste
+     qui remplit ce journal est ailleurs, dans le dock, depuis que « Noter l'heure » a quitté le
+     panneau (v5.6) — la lecture ne dit plus par quel geste on écrit.
+     · C'EST UNE INVITATION, PAS UN ÉTAT : même distinction que le chapeau « Ne pas oublier »
+       affiché vide (v4.76.0), et que les deux portes du panneau minuteurs (v5.6). Rien n'AFFIRME
+       « 0 repère » — la phrase dit ce qu'on peut faire.
+     · ELLE NE PARAÎT QU'EN SESSION : hors session la touche qu'elle nomme n'existe pas, et une
+       consigne qui désigne un bouton absent est pire qu'un silence.
+     · ELLE DISPARAÎT AU PREMIER REPÈRE, et elle ne clignotera pas : un repère ANNULÉ reste dans la
+       chronologie (`voidAt` conserve, il ne retire pas), donc le journal ne redevient jamais vide
+       une fois écrit — aucune mémoire à tenir, aucune remise à zéro à câbler.
+     · AUCUNE COULEUR, AUCUN CADRE, 11 px en encre douce : c'est le registre de la légende, pas
+       celui d'une notice — le mode crise ne se fait pas interpeller (règle 11). */
+  const vide=(!ev.length&&!!(Runtime&&Runtime.started))
+    ?`<p class="tk-empty">Chaque tap sur « Noter l’heure », en bas de l’écran, inscrit ici l’heure d’un geste.</p>`:'';
+  return `<div class="tk-panel${(ev.length||vide)?'':' tk-slim'}"><div class="tk-head"><b>Journal des actions${ev.length>1?`<span class="fam-n">${ev.length}</span>`:''}</b></div>${vide}${rows}</div>`;}
 /* Câblage du JOURNAL DES ACTIONS, isolé pour être REJOUÉ après une mise à jour chirurgicale du seul
    panneau (`renderTkOnly`). Un `render()` complet reconstruit tout le DOM et remet à 0 le `scrollTop`
    du RAIL (`overflow-y:auto`) : la barre latérale « remontait » à chaque « Noter l'heure » (retour
@@ -23688,6 +23800,11 @@ function edAddOpen(f){
   m.classList.add('on');
   const first=body.querySelector('.ep-row');if(first)first.focus();}
 function edAddClose(){const m=edAddModal();if(m)m.classList.remove('on');}
+/* La porte ne se ferme pas, elle PASSE LA MAIN : ce qui suit (re-rendu, ancrage sur l'objet neuf,
+   focus dans son champ) est la seconde moitié du même geste. Cf. `modalHandoffClose`, et le
+   dossier v5.10.8 : sans cela, la restauration de position du gestionnaire de fenêtres annulait
+   l'ancrage une micro-tâche plus tard, sur tactile seulement. */
+function edAddHandoff(){modalHandoffClose(edAddModal());}
 /* CHAQUE TYPE A SON POINT D'INSERTION, ET UN SEUL. Les valeurs par défaut sont celles que
    portaient les six anciens boutons — on a supprimé les PORTES, pas les gestes. Après l'ajout,
    la fenêtre se ferme et l'éditeur se re-rend : l'objet neuf est déjà à l'écran, sinon la porte
@@ -23703,7 +23820,7 @@ function edAdd(f,kind,pre){
   else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
   else if(kind==='cx')(f.excursions=f.excursions||[]).push({label:'',target:''});
   else if(ED_ADD_LIST[kind]){const key=ED_ADD_LIST[kind];edPut(f,key,edList(f,key).concat(''));}
-  edAddClose();renderEditor();
+  edAddHandoff();renderEditor();
   /* Le DOCUMENT est le seul type qui n'ajoute pas une ligne au brouillon : il ouvre le sélecteur
      de fichier de l'appareil. Le clic est déclenché DANS la même tâche que celui de la palette —
      `renderEditor()` est synchrone —, sinon l'activation utilisateur serait perdue et le
@@ -23730,12 +23847,28 @@ function edAdd(f,kind,pre){
      distingue par l'attribut qui porte l'index : `data-ti` pour un minuteur, `data-ci` pour un
      compteur. Leçon : quand deux objets se mettent à partager une classe, tout sélecteur qui les
      visait « par la classe » devient ambigu — et l'ambiguïté ne se voit pas, elle se subit. */
+  /* ⚠ ON ANCRE EN HAUT CE QUI A UNE TÊTE À SOI, ON CENTRE CE QUI N'EST QU'UNE LIGNE (v5.10.8,
+     question de l'auteur : « le scroll peut-il afficher le début du bloc en haut de la page ?
+     sinon peu visible »). `block:'center'` centre la BOÎTE dans la fenêtre, sans rien savoir des
+     couches collantes : mesuré, un bloc d'étapes neuf fait 552 px et une décision 587 — sur une
+     fenêtre de 844 le titre tombait à 181 px, donc 120 px de vide sous l'en-tête ; sur une fenêtre
+     de 667 (iPhone SE, ou n'importe quel téléphone en paysage) le même calcul le pose à 40, c'est-
+     à-dire DERRIÈRE l'en-tête collant, qui en fait 61. On ne voyait plus le titre de ce qu'on
+     venait de créer — exactement ce qui est signalé, et le cas s'aggrave avec la hauteur de l'objet.
+     `block:'start'` pose le HAUT de l'objet en haut de la zone utile, et rien à calculer : le
+     `scroll-padding-top` global (`--stick-top + 8`, déjà divisé par le zoom) est honoré par le
+     défilement natif — c'est la ligne posée pour WCAG 2.4.11, qui sert ici une seconde fois.
+     ⚠ ET LES LISTES GARDENT LEUR CENTRAGE, ce n'est pas un oubli. Une dose, une vérification, un
+     différentiel, une source : l'objet créé est UNE ligne de 44 px, et son sens vient du titre de
+     section AU-DESSUS d'elle. L'ancrer en haut collerait la ligne sous l'en-tête et pousserait sa
+     section hors de l'écran — on saurait où écrire sans savoir dans quoi. Un bloc, une carte de
+     minuteur, une complication portent leur propre titre : eux n'ont besoin de rien au-dessus. */
   const CIBLE={steps:'.blk',decision:'.blk.blk-dec',interval:'.tmedit[data-ti]',
     stopwatch:'.tmedit[data-ti]',counter:'.tmedit[data-ci]',cx:'.cx-edit-row'};
   if(ED_ADD_LIST[kind]){const r=main.querySelectorAll('[data-key="'+ED_ADD_LIST[kind]+'"]');
     const c=r[r.length-1];if(c){c.scrollIntoView({block:'center'});c.focus();}return;}
   if(CIBLE[kind]){const r=main.querySelectorAll(CIBLE[kind]);const c=r[r.length-1];
-    if(c){c.scrollIntoView({block:'center'});
+    if(c){c.scrollIntoView({block:'start'});
       const f2=c.querySelector('input,textarea,select');if(f2)f2.focus({preventScroll:true});}}}
 /* LA PORTE D'UNE RÉFÉRENCE (v5.0.0, refonte des protocoles). Même composant, même fenêtre, même
    grammaire que celle des aides — mais une AUTRE liste, parce qu'une référence n'a ni bloc, ni
@@ -23769,7 +23902,7 @@ function edAddOpenProto(p){
   m.classList.add('on');
   const first=body.querySelector('.ep-row');if(first)first.focus();}
 function edAddProto(p,kind){
-  edAddClose();
+  edAddHandoff();
   /* Le document ouvre le SÉLECTEUR DE FICHIER : le clic doit partir DANS LA MÊME TÂCHE que celui
      de la palette (`renderProtocolEdit` est synchrone), sinon l'activation utilisateur est perdue
      et le navigateur refuse d'ouvrir le sélecteur (leçon v4.71.0). */
@@ -23788,7 +23921,10 @@ function edAddProto(p,kind){
     const inputs=fs?fs.closest('.list-edit').querySelectorAll('input[type=text]'):[];
     e=inputs.length?inputs[inputs.length-1]:null;}
   else if(kind==='body')e=document.getElementById('p-body');
-  if(e){e.scrollIntoView({block:'center'});e.focus({preventScroll:true});}}
+  /* Même partage que la porte des aides : le CORPS RÉDIGÉ est un objet à part entière (son propre
+     titre, toute la hauteur de l'écran) et s'ancre en haut ; une SOURCE est une ligne dont le sens
+     vient de sa section, elle se centre. */
+  if(e){e.scrollIntoView({block:kind==='body'?'start':'center'});e.focus({preventScroll:true});}}
 /* ⚠ UNE SEULE FABRIQUE DE RANGÉE POUR LES DEUX PORTES (signalé à l'usage : « uniformise la taille
    des items de la porte d'un protocole avec ceux des aides »). Elles avaient chacune leur gabarit
    — `.ep-g`/`.ep-n`/`.ep-c` d'un côté, `.ep-grp`/`.ep-tx` de l'autre —, donc deux dessins, deux
@@ -24478,7 +24614,17 @@ function bindEditorEvents(f){
       keepAnchor(anc,renderEditor);});
     if(b.kind!=='decision'){const ns=card.querySelector('select[data-target]');if(ns)ns.addEventListener('change',e=>{b.next=e.target.value||null;renderEditor();});
       const nl=card.querySelector('[data-bnextlbl]');if(nl)nl.addEventListener('input',e=>{b.nextLbl=e.target.value;});}
-    const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});renderEditor();};
+    /* ⚠ « + AJOUTER UNE RÉPONSE » ÉTAIT LE DERNIER AJOUT SANS ANCRAGE NI FOCUS (v5.10.8, trouvé en
+       balayant les frères du défaut de la porte « ＋ »). Un `renderEditor()` nu : le focus retombait
+       sur `body`, la rangée neuve naissait au ras du bord bas (mesuré : haut à 770 pour 844 de
+       fenêtre) et rien ne disait où écrire. Ses voisins immédiats — étape, rappel, jalon — ancrent
+       sur le bloc et posent le focus dans le champ neuf depuis la v4.77.0 ; cette rangée-ci avait
+       simplement été oubliée. Même geste, même sélecteur d'ancre, même `preventScroll` (l'ancrage
+       a déjà placé la page, le focus n'a pas à la redéplacer). */
+    const ao=card.querySelector('[data-addopt]');if(ao)ao.onclick=()=>{b.options.push({label:'',target:''});
+      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
+      const os=[...main.querySelectorAll('.blk[data-bid="'+CSS.escape(b.id)+'"] .optedit input[data-of="label"]')];
+      if(os.length)os[os.length-1].focus({preventScroll:true});};
     /* `data-optdel` et non `data-rmopt` (v4.62.0) : l'ancien nom était un HOMONYME du verbe du
        mode lecteur (« reader option » là-bas, « remove option » ici) — et `[data-rmopt]` figurait
        dans `MUTE_SEL`, si bien que le bouton « supprimer une réponse » de l'ÉDITEUR était bridé
@@ -29637,13 +29783,44 @@ function _bgLock(){_bgScrollY=window.scrollY;
   document.documentElement.classList.toggle('modal-full',_bgWasFull);
   document.body.classList.add('modal-open');
   document.body.classList.toggle('modal-full',_bgWasFull);}
-function _bgUnlock(){if(!document.body.classList.contains('modal-open'))return;
+/* ⚠ LA CEINTURE PEUT DÉFAIRE UNE NAVIGATION VOULUE — D'OÙ `restaure` (v5.10.8, signalé à l'usage :
+   « en mode édition, quand on clique sur ajouter (étape, chronomètre, minuteur, compteur…) le scroll
+   ne descend pas jusqu'à la case qui vient d'être créée »).
+   MESURÉ AVANT DE TOUCHER, et le défaut n'était pas où on le cherchait : `edAdd` défilait
+   PARFAITEMENT (trace : y 1200 → 4996 dans la même tâche que le clic). C'est la micro-tâche
+   suivante qui le rembobinait — l'observateur de fenêtres appelle `_bgUnlock`, qui restaurait
+   `_bgScrollY` et ramenait à 1200, l'objet neuf restant 3 000 px sous le pli. Le symptôme
+   « rien ne se passe » est donc un geste JUSTE, annulé 1 ms plus tard.
+   ⚠ ET SEULEMENT SUR TACTILE, ce qui explique le signalement : la restauration est gardée par
+   `pointer:coarse`. Sur ordinateur le défilement tenait — un défaut invisible partout où l'on
+   développe, visible partout où l'on soigne. Même famille que le dossier « bande basse iOS ».
+   La ceinture RESTE (elle protège d'un moteur qui bouge pendant le verrou, cf. ci-dessous) : ce
+   qu'on ajoute, c'est la possibilité pour l'appelant de dire qu'il PREND LA MAIN — cf.
+   `modalHandoffClose`. Une ceinture ne doit pas décider à la place de qui conduit. */
+function _bgUnlock(restaure){if(!document.body.classList.contains('modal-open'))return;
   document.documentElement.classList.remove('modal-open','modal-full');
   document.body.classList.remove('modal-open','modal-full');
   // Ceinture : overflow:hidden ne déplace pas le défilement, mais on restaure quand même la
   // position mémorisée (un moteur qui aurait bougé pendant le verrou revient au pixel).
-  if(_bgWasFull||matchMedia('(pointer:coarse)').matches)window.scrollTo(0,_bgScrollY);
+  if(restaure!==false&&(_bgWasFull||matchMedia('(pointer:coarse)').matches))window.scrollTo(0,_bgScrollY);
   _bgWasFull=false;}
+/* FERMER EN PASSANT LA MAIN. Pour une fenêtre dont la fermeture est le DÉBUT d'un geste et non sa
+   fin — la porte « ＋ » crée un objet et amène l'auteur dessus —, les deux réflexes du gestionnaire
+   sont à contretemps : rendre le focus au bouton qui a ouvert (il n'existe plus, le formulaire
+   vient d'être re-rendu) et rendre la position de défilement (elle annule le geste). On les coupe
+   ICI, à la source, plutôt que de faire courir l'appelant après eux :
+   · `_modalReturnFocus` est mis à néant AVANT que l'observateur ne le lise ;
+   · le verrou de fond est levé TOUT DE SUITE, sans restauration — l'observateur trouvera le fond
+     déjà déverrouillé et sortira sans rien faire.
+   ⚠ SYNCHRONE, ET C'EST LE POINT : l'observateur de mutations est une MICRO-TÂCHE, il passe donc
+   APRÈS tout ce que l'appelant fait dans la même tâche. Attendre de lui qu'il ne dérange rien est
+   un pari sur un ordre d'exécution ; le couper d'avance est une propriété.
+   ⚠ NE PAS L'UTILISER POUR UNE FERMETURE ORDINAIRE (✕, Échap, tap hors fenêtre) : là, rendre le
+   focus au bouton d'ouverture et la position d'avant est exactement ce qu'il faut faire. */
+function modalHandoffClose(m){
+  if(m)m.classList.remove('on');
+  _modalReturnFocus=null;
+  if(!_topModal())_bgUnlock(false);}
 new MutationObserver(muts=>{muts.forEach(m=>{
   const el=m.target;if(!el.classList||!el.classList.contains('ai-modal'))return;
   const wasOn=/\bon\b/.test(m.oldValue||''),isOn=el.classList.contains('on');

@@ -5989,6 +5989,95 @@ await sec('ACCUEIL · les catégories vides ne mènent nulle part', async () => 
   await page.close();
 });
 
+/* ══ LA PORTE « ＋ » DE L'ÉDITEUR AMÈNE SUR CE QU'ELLE CRÉE (v5.10.8) ═══════════════════════════
+   CETTE SECTION EXISTE PARCE QUE RIEN NE REGARDAIT CE CHEMIN. Signalé à l'usage : « en mode
+   édition, quand on clique sur ajouter (étape, chronomètre, minuteur, compteur…) le scroll ne
+   descend pas jusqu'à la case qui vient d'être créée ». Le geste défilait correctement, puis
+   `_bgUnlock` — appelé une MICRO-TÂCHE plus tard par l'observateur de fenêtres — restaurait la
+   position d'avant l'ouverture de la palette et l'annulait. Aucune porte ne l'a vu : `check-*` est
+   statique, `tests.html` n'exerce que des fonctions PURES, et aucun des vingt harnais n'ouvrait
+   cette palette. Pire, pendant le correctif une `ReferenceError` a vécu dans `edAdd` en laissant
+   toute la passe VERTE — d'où le `pageerror` ci-dessous, qui l'aurait attrapée seul.
+   ⚠ ELLE MESURE EN POINTEUR GROSSIER, ET C'EST TOUT LE SUJET. La restauration fautive était gardée
+   par `matchMedia('(pointer:coarse)')` : sur ordinateur le défilement tenait, le défaut n'existait
+   QUE sur téléphone et tablette — invisible partout où l'on développe, systématique partout où
+   l'on soigne. Un témoin vérifie donc d'abord que le régime tactile est bien émulé : sans lui, la
+   sonde mesurerait un contexte où le défaut ne peut pas se produire, et son vert ne vaudrait rien.
+   ⚠ ET ELLE MESURE `haut ≈ --stick-top`, PAS « visible ». Le second défaut, trouvé à la question
+   « le scroll peut-il afficher le début du bloc en haut ? », était un `block:'center'` qui centre
+   la boîte sans rien savoir des couches collantes : à 844 le titre d'un bloc neuf tombait à 181
+   (visible, mais 120 px de vide au-dessus), à 667 il tombait à 40, DERRIÈRE un en-tête de 61. Un
+   témoin « l'objet est visible » aurait été vert dans les deux cas. On mesure donc l'ancrage.
+   ⚠ ENFIN, LES LISTES GARDENT LEUR CENTRAGE, et le témoin le TIENT plutôt qu'il ne le constate :
+   une dose est une ligne de 44 px dont le sens vient du titre de section au-dessus d'elle.
+   L'ancrer en haut la collerait sous l'en-tête et pousserait sa section hors de l'écran. */
+await sec('ÉDITEUR · la porte « ＋ » amène sur ce qu\'elle crée', async () => {
+for (const H of [844, 667]) {
+  const page = await br.newPage({viewport:{width:390,height:H},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const f=fiches.find(x=>/cardiaque/i.test(x.title))||fiches[0];
+    /* LE VRAI POINT D'ENTRÉE (doctrine v4.40.0) : `openEdit` pose le brouillon, la sauvegarde de
+       version et l'état de restauration — un `state.view='edit'` à la main sauterait tout cela. */
+    await openEdit(f.id);await w(500);
+    const stick=Math.round(parseFloat(getComputedStyle(document.documentElement)
+      .getPropertyValue('--stick-top'))||0);
+    const out={coarse:matchMedia('(pointer:coarse)').matches,stick,vh:innerHeight,cas:{}};
+    const ouvrir=async kind=>{
+      window.scrollTo(0,1200);await w(150);
+      const porte=document.getElementById('edAddOpen');if(!porte)return null;
+      porte.click();await w(300);
+      const row=[...document.querySelectorAll('[data-edadd]')].find(b=>b.dataset.edadd===kind);
+      if(!row)return null;
+      row.click();await w(400);return true;};
+    /* OBJETS À TÊTE PROPRE : on exige l'ANCRAGE (haut ≈ --stick-top), pas la visibilité. */
+    for(const [kind,sel] of [['steps','.blk'],['decision','.blk.blk-dec'],
+        ['interval','.tmedit[data-ti]'],['counter','.tmedit[data-ci]'],['cx','.cx-edit-row']]){
+      const n0=document.querySelectorAll(sel).length;
+      if(!await ouvrir(kind)){out.cas[kind]={absent:true};continue;}
+      const l=[...document.querySelectorAll(sel)];const c=l[l.length-1];
+      const bb=c.getBoundingClientRect();
+      out.cas[kind]={cree:l.length>n0,haut:Math.round(bb.top),
+        focusDedans:c.contains(document.activeElement)};}
+    /* LIGNE DE LISTE : on exige le CENTRAGE — la ligne visible ET son titre de section avec elle. */
+    for(const [kind,key] of [['poso','posology']]){
+      const n0=document.querySelectorAll('[data-key="'+key+'"]').length;
+      if(!await ouvrir(kind)){out.cas[kind]={absent:true};continue;}
+      const l=[...document.querySelectorAll('[data-key="'+key+'"]')];const c=l[l.length-1];
+      const bb=c.getBoundingClientRect();
+      const fs=c.closest('.list-edit');const lab=fs?fs.querySelector('label'):null;
+      const lb=lab?lab.getBoundingClientRect():null;
+      out.cas[kind]={cree:l.length>n0,haut:Math.round(bb.top),
+        focus:c===document.activeElement,
+        ligneVisible:bb.top>=0&&bb.bottom<=innerHeight,
+        titreSection:!!lb&&lb.top>=0&&lb.bottom<=innerHeight};}
+    return out;});
+  const P=`${H}`;
+  // TÉMOIN : sans pointeur grossier, le défaut d'origine ne peut PAS se produire — un vert
+  // obtenu ici ne prouverait rien. Il échoue bruyamment plutôt que de rassurer à tort.
+  t(`${P} · témoin : le régime TACTILE est bien émulé (pointer:coarse)`, r.coarse===true);
+  t(`${P} · témoin : les couches collantes sont mesurées`, r.stick>0, `--stick-top = ${r.stick}`);
+  for(const k of ['steps','decision','interval','counter','cx']){
+    const c=r.cas[k]||{};
+    t(`${P} · « ${k} » : l'objet est bien créé`, c.cree===true, JSON.stringify(c));
+    // ANCRÉ EN HAUT : sous les couches collantes, et pas 120 px plus bas non plus.
+    t(`${P} · « ${k} » : son DÉBUT se pose sous les couches collantes`,
+      typeof c.haut==='number'&&c.haut>=r.stick&&c.haut<=r.stick+24,
+      `haut = ${c.haut} px (attendu entre ${r.stick} et ${r.stick+24})`);
+    t(`${P} · « ${k} » : le focus est DANS l'objet créé`, c.focusDedans===true);}
+  {const c=r.cas.poso||{};
+   t(`${P} · « poso » : la ligne est bien créée`, c.cree===true, JSON.stringify(c));
+   t(`${P} · « poso » : la ligne est visible ET focalisée`,
+     c.ligneVisible===true&&c.focus===true, JSON.stringify(c));
+   t(`${P} · « poso » : son TITRE DE SECTION reste à l'écran (centrage tenu)`,
+     c.titreSection===true, `haut de ligne = ${c.haut} px`);}
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
