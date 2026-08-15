@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.10.5] — 2026-08-15
-### Le bouton filtrer se lit, il prend le gabarit de ses voisins une fois l'en-tête replié, et le rail A→Z ne se sélectionne plus
+### Le rail A→Z tient enfin sous le doigt, la fenêtre compte cesse de glisser, le partage montre les complications et la présence réelle
 
 - **L'icône du filtre remplit son rond** (signalé à l'usage : « augmente la taille des traits dans
   filtrer pour que ça corresponde mieux à la taille du bouton »). Le tracé était écrit à 16 px dans
@@ -51,6 +51,66 @@
   (`##SEC` présent — sinon repli sur le harnais ENTIER, jamais trop peu), rouge FORCÉ si un `--grep`
   rejoue moins de sections qu'attendu, et jamais de vert de cache écrit par un rejeu par sections.
   Mesuré : confirmer un correctif tombe de 97 s à 0,5 s, repasse inchangée 0,25 s.
+
+- **L'en-tête ne disparaît plus pendant la visée du rail A→Z** (signalé à l'usage, prouvé à la
+  VIDÉO image par image : à chaque grande pose vers le haut, l'en-tête `sticky` quittait l'écran
+  ~2 frames puis se recollait — pendant que le rail, `fixed` depuis v5.0.2, ne cillait pas). C'est
+  le retard de compositeur WebKit sur les collants lors d'un `scrollTo` instantané en séquence
+  tactile : aucun gel d'état n'y pouvait rien, ce n'est pas un état qui change, c'est le rendu d'un
+  état juste. Pendant `html.azr-aim` l'en-tête passe donc en `fixed` (même famille de remède que le
+  rail), `body` compense sa place par `--hdr-h`, et tout se remet en place à la relâche —
+  géométriquement une identité, vérifiée à la sonde sur les deux moteurs. Au passage : les cibles
+  de `jump` sont bornées au défilement maximal et calculées sur `stickHeight()` (somme de hauteurs,
+  jamais le bas observé d'une pile translatable — le dernier lecteur de position que la purge
+  v5.0.2 avait laissé), le relais de titre `ttl-on` est gelé pendant la visée, et `--hdr-h` est
+  re-mesurée après chaque bascule d'état (elle restait périmée d'une passe : 63 px annoncés pour un
+  en-tête de 115).
+- **Le rail A→Z se centre sur l'écran en voie étroite** (vidéo : bloc de lettres à ~23 % de l'écran).
+  Le centre se calculait sur `documentElement.clientHeight`, la seule mesure de la formule dont le
+  comportement sous zoom DIVERGE entre moteurs ; il se dérive désormais de la boîte du rail
+  elle-même (géométrie `svh`, stable par construction). La voie large garde la mesure d'origine —
+  exacte sur coque fixe, témoin doctrine 1280×900 à l'appui.
+- **Le sélecteur A-Z/Catégories se rapproche de l'en-tête** (2 px dessus, 8 px dessous — resserré
+  deux fois à la demande), **ouvrir un protocole commence en haut de page** (même artefact Safari
+  et même garde-fou que les éditeurs v4.4.7 : le haut est ré-affirmé à l'arrivée), et **les deux
+  bascules de l'en-tête d'accueil ont leur micro-animation** — au dépliage l'identité et les chips
+  fondent en place (140 ms, opacité + 3 px composite), au repli la rangée persistante recomposée
+  fond sur le même tempo ; la hauteur, elle, ne s'anime jamais (check-anim, mesuré v4.41.0).
+- **La fenêtre Compte & synchronisation ne glisse plus latéralement** (signalé avec vidéo,
+  instrumenté SUR l'appareil : « corps +2 px » — un artefact d'arrondi au zoom fractionnaire, pas
+  un contenu, 42 combinaisons balayées sans un élément trop large ; or 2 px suffisent à iOS pour
+  ouvrir le pan élastique). La rangée des accents PLIE au lieu de figer 244 px (`flex:none` →
+  `0 1 auto`), et les axes sans usage sont FERMÉS : X sur `.ai-modal` et `.ai-body` (dont l'axe
+  implicite — `overflow-y:auto` seul calcule X en `auto`). La première pastille d'accent reprend la
+  couleur RÉELLE du disque par défaut (`var(--sys)`, « Par défaut ») ; la consignation des
+  compteurs (« consigné T+… · il y a … ») s'affiche aussi dans la sidebar, en sous-ligne au liseré
+  — elle pesait comme un second titre.
+- **Les plans inline ne capturent plus le pouce** (iPhone : le pan vertical restait piégé dans le
+  tableau SFAR et l'organigramme, avec retour élastique même sans débordement — un axe `auto`
+  rebondit sur iOS même vide). Sur écran tactile, `.sv-scroll` et `.flow-scroll` inline prennent
+  leur hauteur entière et l'axe vertical est fermé : le pouce fait défiler la PAGE, le défilement
+  horizontal des colonnes est conservé. Les feuilles plein écran gardent leur défileur — c'est leur
+  surface, il n'y a pas de page dessous.
+- **Le mode moniteur tient en paysage** (tout se superposait : le grand corps était calibré en
+  `vw` seul — 169 px sur un écran de 390 de haut — et le centrage déversait le débordement sur la
+  rangée du haut). Corps borné par `min(20vw, 32vh)`, centrage `safe`.
+- **Partage : l'invité voit les complications, et ce qu'il voit est vrai.** L'ancre d'excursion
+  voyage enfin (`SHARE_TRAVELS` listait `cxBack` depuis l'origine sans que le snapshot ni le
+  payload `nav` ne l'aient jamais portée — la famille exacte du `fold.exercise` d'avant v4.50.0) :
+  sans elle, la carte de complication passait chez l'invité pour un bloc terminal ordinaire
+  (« Terminer l'algorithme ✓ » puis « surveillance en cours » au lieu du retour « ↩ Reprendre »).
+  Références seules, validées contre la copie locale de la fiche (règle 15). La touche
+  ⚡ Complications est rendue à l'invité en CONSULTATION (`jumpToBlock` — la navigation locale du
+  plan, jamais d'entrée déclarée). Et les cartes minuteurs de la sidebar ne se bloquent plus par
+  moments en partagé : `bindRailTm` empilait un écouteur à chaque coche (parité paire = carte
+  inerte) — affectation `onclick`, idempotente.
+- **Partage : la présence affichée est la présence réelle, sans juger un téléphone posé.** Trois
+  régimes (retour utilisateur : « en urgence ça peut arriver de lâcher son téléphone 1, 2 min ») :
+  silence ≤ 45 s, rien ; jusqu'à 3 min, présent et compté avec la mention « sans nouvelles ·
+  N min » ; au-delà, « absent », hors compte ⇄ et menu. Le départ EXPLICITE n'attend pas :
+  « Quitter le partage » émet `presence{quit}` (genre réservé depuis l'origine, jamais branché —
+  la liste blanche du serveur l'acceptait déjà, zéro changement de schéma) et l'hôte affiche
+  « parti » à la seconde. `last_seen_at` était renvoyé par le serveur et jamais lu.
 
 ## [5.10.4] — 2026-08-15
 ### L'en-tête ne bat plus sous le rail A→Z, le viewport iOS se recolle, le filtre est rond
