@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-PqR3ky8bKOYlZuxyBGsIsLLm6NVwmIoMGB2cj9zMaMI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-hd+IUcaGvttRL484EaFPh/aZuX5hevJATdqf/4/ZgAg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5211,9 +5211,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      remonter à la page (comportement natif) — il est donc CONSERVÉ. En inline tactile, le plan
      prend sa hauteur entière et c'est la page qui défile ; le PLEIN ÉCRAN garde son défileur
      (c'est sa surface à lui, il n'y a pas de page dessous à atteindre). Portée : `main` — les
-     feuilles plein écran vivent hors de lui. */
+     feuilles plein écran vivent hors de lui.
+     ⚠ ET L'AXE VERTICAL EST FERMÉ, PAS SEULEMENT VIDÉ (`overflow-y:clip`, retour utilisateur
+     après le premier correctif : « j'ai quand même un retour de scroll — effet élastique — en
+     vertical »). `max-height:none` supprimait le DÉBORDEMENT, pas la DÉFILABILITÉ : un axe
+     `auto` rebondit sur iOS même sans un pixel à défiler. `clip` retire l'axe lui-même — le pan
+     vertical remonte à la page sans élastique, l'horizontal défile comme avant. */
+  /* La règle vaut pour les DEUX défileurs inline du plan : `.flow-scroll` (organigramme) ET
+     `.sv-scroll` (tableau statique façon SFAR — c'est LUI que le signalement visait : « mode
+     plan de page SFAR », défilement horizontal des colonnes de branches). */
   @media (hover:none) and (pointer:coarse){
-    main .alg-panel .flow-scroll,main .flow-scroll{max-height:none}
+    main .alg-panel .flow-scroll,main .flow-scroll,main .sv-scroll{max-height:none;overflow-y:clip}
   }
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
      ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
@@ -6778,7 +6786,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Compte, elle, n'héberge aucun défileur horizontal — vérifié ci-dessus. On étendra si le même
      glissement est signalé ailleurs, fenêtre par fenêtre. */
   #authModal{touch-action:pan-y}
-  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}
+  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
+  /* ⚠ L'AXE HORIZONTAL DES FENÊTRES EST FERMÉ (`overflow-x:clip`, v5.10.5 — signalé à l'usage
+     avec vidéo puis MESURÉ par instrumentation sur l'appareil : « on peut scroller de gauche à
+     droite dans la fenêtre compte »). CE N'EST PAS un cache-misère : le contenu a été balayé
+     7 largeurs × 3 zooms × 2 moteurs sans un seul élément plus large que la carte, et le
+     débordement résiduel mesuré SUR l'appareil est de 2 px — un artefact d'ARRONDI au zoom
+     fractionnaire (taille S = 90 %), pas un contenu. Or sur iOS, 2 px suffisent : l'axe devient
+     panoramiquable, et l'élastique donne au geste une amplitude de dizaines de pixels. Une
+     fenêtre est un DOCUMENT VERTICAL par construction (tout contenu large y défile dans son
+     propre conteneur interne) : fermer l'axe ne retire rien à personne — il supprime un axe que
+     rien n'utilise, et que seul l'arrondi savait ouvrir. */
   /* iOS Safari — LA FENÊTRE ÉTAIT COUPÉE EN BAS (retour utilisateur v4.29.3 : « le contenu ne
      scrolle pas sur cette bande ») : un overlay `fixed; inset:0` se dimensionne sur le GRAND
      viewport iOS (barre d'outils repliée) — barre visible, le bas de l'overlay passe DERRIÈRE
@@ -7076,7 +7094,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      défileur — leur imposer un squelette exigerait d'inventer un corps là où il n'y en a pas. */
   .ai-card:has(>.ai-body){display:flex;flex-direction:column;
     max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
-  .ai-card>.ai-body{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
+  /* ⚠ `overflow-y:auto` SEUL FAIT DE X UN `auto` IMPLICITE (v5.10.5, suite du dossier
+     « fenêtre compte » : l'axe fermé sur `.ai-modal` n'a rien changé — l'instrumentation disait
+     « fenêtre −1 px · CORPS +2 px » : le défileur qui portait les 2 px d'arrondi, c'est CE
+     corps-ci. La spécification calcule `visible` en `auto` dès que l'autre axe défile). Même
+     fermeture que la fenêtre : l'axe horizontal n'a aucun usage ici, le contenu large défile
+     dans ses conteneurs internes. */
+  .ai-card>.ai-body{overflow-y:auto;overflow-x:clip;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
   /* Tout ce qui n'est pas le corps est FIXE : l'en-tête, le sélecteur de type de « Créer », le
      champ de filtre des sélecteurs, le pied d'actions et la note de bas de fenêtre. */
   .ai-card:has(>.ai-body)>:not(.ai-body){flex:0 0 auto}
@@ -29920,6 +29944,7 @@ if(location.search.indexOf('__actest')>=0){
     d.querySelector('#bfReload').addEventListener('click',()=>location.reload());
   }catch(e){}});
 }
+
 </script>
 </body>
 </html>
