@@ -1208,8 +1208,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        et mesuré faux en v5.6 : un élément de largeur nulle consomme ses gaps et déplace le
        champ) ; c'est l'élévation transitionnée ci-dessus qui marque le resserrement. */
     body:not(.home-slim) header.bar.home :is(.brand,#homeChrome){animation:hdrDeplie .14s ease-out}
+    /* … et le REPLI a son marquage symétrique (v5.10.5, retour utilisateur : « je ne vois pas de
+       micro-animation qui réduit la barre ») : la rangée persistante — qui vient de se
+       recomposer d'un coup (le champ partage sa ligne avec ＋, filtre et compte) — fond en place
+       sur le même tempo. La HAUTEUR, elle, reste non animée, et c'est un choix, pas un oubli :
+       animer la mise en page de l'objet le plus collant de l'écran coûterait une passe de layout
+       par image (check-anim l'interdit, mesuré v4.41.0 : jusqu'à 38 % d'un cœur). */
+    body.home-slim header.bar.home .id-row{animation:hdrReplie .14s ease-out}
   }
   @keyframes hdrDeplie{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+  @keyframes hdrReplie{from{opacity:.45}to{opacity:1}}
   body.home-slim header.bar.home{box-shadow:var(--shadow);border-bottom-color:transparent}
   /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
      déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
@@ -2468,9 +2476,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      12 px EN BAS, et cela ne coûte rien là où l'écart existait déjà : les marges de frères
      ADJACENTES fusionnent (max(12,16)=16), donc le répertoire ne bouge pas d'un pixel — c'est un
      PLANCHER, pas une addition. */
-  /* v5.10.5 (demande utilisateur) : la marge HAUTE passe de 12 à 4 px — le sélecteur A-Z/Catégories
-     se rapproche de l'en-tête ; la marge basse garde ses 12 px vers le répertoire. */
-  .grp-row{display:flex;align-items:stretch;gap:8px;margin:4px 0 12px}
+  /* v5.10.5 (demande utilisateur, resserré deux fois : « réduis encore en haut et en bas
+     légèrement ») : le sélecteur A-Z/Catégories se cale à 2 px sous l'en-tête et 8 px au-dessus
+     du répertoire (valeurs de l'échelle fermée ; l'essentiel du blanc restant est le rembourrage
+     de `main`, commun à toutes les vues). */
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 8px}
   .grp-row:empty{display:none}
   /* `.grp-row .filt-tog` est PURGÉE : le déclencheur ne vit plus dans la rangée de groupement,
      il ne quitte plus le champ de recherche (règle 14). */
@@ -6563,7 +6573,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      430 px le contrôle passe dessous plutôt que de comprimer l'un ou l'autre. */
   .set-row{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin-bottom:6px}
   .set-row .set-l{flex:1 1 auto;font-size:13.5px;font-weight:650;color:var(--ink)}
-  .set-row .statuseg,.set-row .accent-row{flex:none}
+  .set-row .statuseg{flex:none}
+  /* ⚠ LA RANGÉE D'ACCENTS PLIE, ELLE NE FIGE PAS SA LARGEUR (v5.10.5, signalé à l'usage avec
+     vidéo : « on peut scroller de gauche à droite dans la fenêtre » — connecté seulement, la
+     rangée n'existant que connectée). `flex:none` la posait à sa largeur max-content — 6
+     pastilles × 34 px + 5 gaps = 244 px — quand le corps de la carte n'offre que ~232 px CSS sur
+     iPhone à 130 % : 12 px de débordement, et `.ai-body` devenait un défileur horizontal. Son
+     `flex-wrap` interne était inopérant tant que l'ITEM refusait de rétrécir. Mesuré muet sur
+     simulateur 402 pt (3 px) et sur bureau (ça tient) — c'est la largeur du POINT du zoom et de
+     l'appareil réels qui l'a révélé : borner, jamais figer, une rangée qui sait passer à la
+     ligne. */
+  .set-row .accent-row{flex:0 1 auto;min-width:0;max-width:100%}
   .auth-card-in{display:flex;align-items:center;gap:12px;margin-bottom:4px}
   .auth-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;letter-spacing:.5px;flex:none}
   .auth-id{min-width:0}
