@@ -935,15 +935,17 @@
   /* (Les commentaires du sélecteur de mode — écart `.ctrl-sp`, géométrie/registre/graisse de la
      pastille `#modeSeg` — sont partis avec le composant, PURGÉ au lot A v5.0.0, règle 14 ; la
      doctrine de la pastille vit sur le composant `.seg` générique et dans AGENTS.md.) */
-  /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée SOUS la rangée de commandes : son `top`
-     cumule la hauteur d'en-tête et celle des commandes (--ctrl-h, mesurée par syncHdrScroll). */
+  /* RANGÉE D'ÉTAT — l'affichage : ce qui se passe. Collée sous l'en-tête. (Elle se collait sous
+     la rangée de commandes #crisisCtrl via `--ctrl-h` ; la rangée est partie en v5.6 — dock bas —
+     et la variable, restée écrite à 0px à chaque scroll pour un élément inexistant, est PURGÉE en
+     v5.10.2 : son `top` ne cumule plus que la hauteur d'en-tête.) */
   /* LA CAPSULE D'ÉTAT (lot 2) — matière SYSTÈME, l'un des deux seuls objets sombres du produit.
      Elle ne porte plus de bande : c'est la MATIÈRE qui la sépare du travail, plus un filet. Son
      conteneur reste collant sous l'en-tête et transparent — la capsule flotte sur l'ambiance.
      A9 — HAUTEUR D'ÉTAT FIXE : 50 px de haut quel que soit l'état (veille, échu, alarme). Un
      changement d'état NON commandé ne déplace jamais rien ; seule l'expansion COMMANDÉE par un
      tap (le volet) a droit à la hauteur. */
-  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--ctrl-h,0px));z-index:15;background:var(--amb);padding:8px 14px}
+  #crisisDock{position:sticky;top:var(--hdr-h,64px);z-index:15;background:var(--amb);padding:8px 14px}
   #crisisDock[hidden]{display:none}
   /* DIRECTION A, lot 4 (audit post-v5.0.10) — AU PALIER COCKPIT, LE CHROME S'EFFACE DERRIÈRE SES
      CONTRÔLES. Mesuré à 1280 px : la rangée de commandes est une bande blanche de bord à bord
