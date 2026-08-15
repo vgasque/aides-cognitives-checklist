@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NVhLwcyhJI9qLQuwAAnhWOFncXw+P9dbwkGruMUTdLo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-hoXvb3srHG5XaAQfu+wFSjPq85Yorb0wldKowTcOIOs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2940,6 +2940,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        du système, rebond et inertie compris. C'est aussi la portée JUSTE — le rebond n'a besoin
        d'être supprimé que pendant qu'on VISE une surface fixe. */
     html.azr-aim,html.azr-aim body{overscroll-behavior-y:none}
+    /* ⚠ PENDANT LA VISÉE, L'EN-TÊTE EST FIXE — PAS COLLANT (v5.10.5, prouvé à la VIDÉO image par
+       image : sur iOS, à chaque grande pose de défilement VERS LE HAUT, l'en-tête `sticky`
+       disparaissait de l'écran pendant ~2 frames (33 ms) puis se recollait — « dès qu'on remonte,
+       peu importe l'endroit » — pendant que le rail, LUI, ne cillait pas). C'est le même défaut
+       de compositeur que le dossier v5.0.2 : un `sticky` est RE-CALÉ après coup sur la position
+       de défilement, et un `scrollTo` instantané pendant une séquence tactile le fait peindre une
+       frame avec l'ANCIEN décalage — hors écran quand on remonte, simplement couvert quand on
+       descend (d'où l'asymétrie observée). Aucune mesure JS ne peut le voir (Blink et WebKit de
+       bureau peignent juste), aucun gel de classes n'y peut rien : ce n'est pas un état qui
+       change, c'est le rendu d'un état juste. Une couche FIXE, elle, n'est pas couplée au
+       défilement — c'est exactement pourquoi le rail est `fixed` depuis v5.0.2. Donc, LE TEMPS DU
+       GESTE : l'en-tête sort du flux (`fixed`, même position visuelle — il est toujours épinglé
+       en haut) et `body` reprend sa place par `padding-top:var(--hdr-h)` — la hauteur MESURÉE de
+       l'en-tête, constante pendant la visée puisque ses bascules d'état sont gelées. Les offsets
+       de mise en page (donc les cibles de `jump`) sont préservés à l'identique : ce que l'en-tête
+       rend au flux, le rembourrage le reprend. À la relâche, tout se remet en place dans la même
+       passe — géométriquement une identité, vérifié à la sonde sur les deux moteurs. */
+    html.azr-aim header.bar{position:fixed;top:0;left:0;right:0}
+    html.azr-aim body{padding-top:var(--hdr-h,64px)}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */
@@ -14503,9 +14522,17 @@ function syncHdrScroll(){
   const _cb=document.getElementById('crisisBand');
   /* Le bandeau n'existe plus en lecture : le relais est donc PERMANENT dès qu'une fiche est
      ouverte — sinon le titre n'existerait nulle part tant qu'on n'a pas défilé. */
+  /* ⚠ LE GEL DE LA VISÉE COUVRE TOUT L'EN-TÊTE, PAS LE SEUL REPLI (v5.10.5, signalé à l'usage :
+     « quand on arrive tout en haut l'en-tête saute pendant moins d'une seconde »). La v5.10.4
+     n'avait figé que `home-slim` ; le relais de titre (`ttl-on`, seuil 110 px) battait encore —
+     et chaque saut du rail traverse ce seuil d'un coup, exactement comme il traverse
+     l'hystérésis 80/40. Même règle, même levier : pendant `html.azr-aim`, AUCUNE bascule d'état
+     de l'en-tête ; `azrAim(false)` rejoue la passe à la relâche et pose tout, une fois. */
+  const _aim=document.documentElement.classList.contains('azr-aim');
+  let _bascule=false;
   const t=(state.view==='read'&&!!state.fiche)?true
     :((_cb&&!_cb.hidden)?_cb.getBoundingClientRect().bottom<=_hbB:window.scrollY>110);
-  if(t!==_hdrTtl){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);}
+  if(t!==_hdrTtl&&!_aim){_hdrTtl=t;_hb.classList.toggle('ttl-on',t);_bascule=true;}
   /* ══ 7a — SUR L'ACCUEIL ÉTROIT, SEULE LA RECHERCHE COLLE ═══════════════════════════════════
      Mesuré par la planche : l'en-tête d'accueil est le plus haut du produit — jusqu'à quatre
      rangées empilées, TOUTES collantes, 178 px sur 600. Trois réglages et un titre n'ont pas à
@@ -14532,7 +14559,16 @@ function syncHdrScroll(){
       et un en-tête qui bouge pendant qu'on vise déplace ce qu'on vise (famille du dossier
       « géométrie qui répond au geste »). `azrAim(false)` rejoue une passe à la relâche pour poser
       l'état final, une fois. */
-   if(cond!==_hdrSlim&&!document.documentElement.classList.contains('azr-aim')){_hdrSlim=cond;document.body.classList.toggle('home-slim',cond);syncHomeNew(cond);}}
+   if(cond!==_hdrSlim&&!_aim){_hdrSlim=cond;document.body.classList.toggle('home-slim',cond);syncHomeNew(cond);_bascule=true;}}
+  /* ⚠ RE-MESURE APRÈS BASCULE (v5.10.5, attrapé par la sonde d'identité de la visée) : la hauteur
+     est mesurée en TÊTE de passe, les bascules d'état arrivent en QUEUE — après un repli ou un
+     dépliage, `--hdr-h` restait donc en retard d'UNE passe, et au repos (plus aucun évènement de
+     défilement) FAUSSE jusqu'au prochain geste : 63 px annoncés pour un en-tête de 115. Inaperçu
+     tant qu'aucun consommateur ne lisait la valeur à cet instant précis ; le rembourrage de visée
+     (`html.azr-aim body{padding-top:var(--hdr-h)}`) l'a révélé — 52 px de saut mesurés au
+     pointerdown. Une lecture de plus, SEULEMENT dans les passes qui ont réellement basculé. */
+  if(_bascule){const h2=Math.round(_hb.getBoundingClientRect().height/zoomF())+'px';
+   if(_hdrHCss!==h2){_hdrHCss=h2;document.documentElement.style.setProperty('--hdr-h',h2);}}
 }
 /* UNE PASSE PAR IMAGE, PAS PAR ÉVÈNEMENT (v5.0.9). `syncHdrScroll` LIT quatre rectangles puis
    ÉCRIT trois propriétés sur `<html>` ; branchée directement sur l'évènement, elle intercale ce
@@ -15062,8 +15098,21 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
      position de défilement, et posée en ABSOLU (`scrollTo` / `scrollTop =`). Deux appels pour la
      même lettre visent alors exactement le même point : idempotent par construction, donc rien à
      accumuler et rien à corriger. Les offsets sont en px CSS non zoomés — ce que `scrollTo`
-     attend —, seul `stickBase()` est une mesure VISUELLE et se divise par `zoomF()` (règle
-     v4.13.1). */
+     attend —, seule la hauteur de la pile collante est une mesure VISUELLE et se divise par
+     `zoomF()` (règle v4.13.1).
+     ⚠ ET CETTE MESURE EST `stickHeight()`, JAMAIS `stickBase()` (v5.10.5, signalé à l'usage :
+     « en arrivant tout en haut l'en-tête saute pendant moins d'une seconde », inchangé après le
+     gel des bascules d'état — donc le mouvement ne venait PAS d'un changement d'état).
+     `stickBase()` lit le `bottom` OBSERVÉ de l'en-tête collant : une position, donc une valeur
+     que le compositeur iOS peut rendre TRANSITOIREMENT fausse pendant le rattrapage d'un grand
+     saut (le rect reflète une frame que l'écran n'a pas encore — même dossier que le calcul en
+     absolu ci-dessus, v5.0.2, qui avait purgé tous les lecteurs de position SAUF celui-là).
+     Chaque relevé transitoire recalculait une cible différente pour la MÊME lettre : l'idempotence
+     tombait, les poses se corrigeaient en rafale ~1 s — le « saut » du haut. `stickHeight()` est
+     la SOMME DES HAUTEURS de la pile (leçon v5.0.9, celle de `--stick-top`) : indépendante de
+     tout défilement, et ÉGALE à `stickBase()` au repos sur l'accueil (en-tête collé en haut de
+     fenêtre, quai absent — vérifié à la sonde sur les deux moteurs). En bas, l'écrêtage à `max`
+     masquait déjà ce défaut ; en haut, rien ne le bornait. */
   const offY=el=>{let y=0,e=el;while(e){y+=e.offsetTop;e=e.offsetParent;}return y;};
   const jump=L=>{const g=main.querySelector(`[data-azg="${CSS.escape(L)}"]`);if(!g)return;
     const sc=mqHomeWide.matches?main.querySelector('.home-main'):null;
@@ -15078,7 +15127,18 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
        licite (cf. ci-dessus : idempotent par construction) : la seconde mesure l'en-tête dans
        l'état où le saut l'a mis, et l'hystérésis 80/40 de `syncHdrScroll` interdit toute
        oscillation entre les deux. */
-    const cible=()=>Math.max(0,Math.round(offY(g)-stickBase()/zoomF()-8));
+    /* ⚠ ET LA CIBLE SE BORNE AUSSI EN BAS (v5.10.5, signalé à l'usage : « quand on arrive tout
+       en bas ça saute plusieurs fois », surtout en partant du haut de page — en-tête déployé et
+       FIGÉ tel quel pendant la visée, donc document à sa hauteur maximale). Les dernières lettres
+       visent un offset AU-DELÀ du défilement maximal : Blink écrête en silence, mais iOS règle
+       une pose hors-borne pendant une séquence tactile par un REBOND animé — et le doigt qui
+       micro-bouge en bas en repose une par évènement pointeur : autant de rebonds. On écrête
+       nous-mêmes : l'idempotence tient (deux poses de la même lettre visent le même point borné)
+       et la pose hors-borne disparaît à la source. `scrollHeight`/`clientHeight` du défileur de
+       document sont homogènes à `scrollTop` par définition — zoom compris, aucune division. */
+    const cible=()=>{const se=document.scrollingElement;
+      const max=Math.max(0,se.scrollHeight-se.clientHeight);
+      return Math.min(max,Math.max(0,Math.round(offY(g)-stickHeight()/zoomF()-8)));};
     window.scrollTo(0,cible());syncHdrScroll();window.scrollTo(0,cible());};
   rail.querySelectorAll('[data-azl]').forEach(b=>b.onclick=()=>jump(b.dataset.azl));   // un point porte SA lettre
   /* LE MAPPING DOIGT → LETTRE EST RELEVÉ UNE FOIS, À LA PRISE (v5.0.1). Il était re-mesuré à
@@ -15108,11 +15168,23 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
    défaut qu'on vient de corriger, en pire parce que rien ne le dirait. On la retire aussi au
    niveau du document, en capture, et au retour au premier plan. */
 function azrAim(on){const h=document.documentElement;if(h.classList.contains('azr-aim')===!!on)return;
+  /* À la prise : une passe FRAÎCHE avant de geler — le rembourrage de visée consomme `--hdr-h` à
+     l'instant même où la classe se pose, et la valeur doit être celle de l'en-tête tel qu'il est
+     (cf. la re-mesure après bascule dans syncHdrScroll, v5.10.5). */
+  if(on&&typeof syncHdrScroll==='function')syncHdrScroll();
   h.classList.toggle('azr-aim',!!on);
   /* À la relâche : l'état plié/déplié de l'en-tête, FIGÉ pendant la visée (cf. syncHdrScroll),
      se rejoue UNE fois — l'en-tête se pose alors dans l'état que la position finale commande,
      sans avoir battu pendant le geste. */
-  if(!on&&typeof syncHdrScroll==='function')syncHdrScroll();}
+  if(!on&&typeof syncHdrScroll==='function'){syncHdrScroll();
+    /* ⚠ ET L'ON RÉ-ÉCRÊTE APRÈS LA POSE (v5.10.5, même dossier que la borne de `jump`) : la passe
+       rejouée peut COMPACTER l'en-tête (sticky, DANS le flux — `home-slim`, ~114 → 61 px), donc
+       RACCOURCIR le document ; un relâchement tout en bas laisse alors scrollY au-delà du nouveau
+       maximum. Blink écrête en silence ; iOS règle l'excès en rebond visible. On écrête dans la
+       même passe — no-op partout ailleurs. */
+    const se=document.scrollingElement;
+    const max=Math.max(0,se.scrollHeight-se.clientHeight);
+    if(se.scrollTop>max)se.scrollTop=max;}}
 addEventListener('pointerup',()=>azrAim(false),true);
 addEventListener('pointercancel',()=>azrAim(false),true);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)azrAim(false);});

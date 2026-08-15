@@ -2586,6 +2586,25 @@
        du système, rebond et inertie compris. C'est aussi la portée JUSTE — le rebond n'a besoin
        d'être supprimé que pendant qu'on VISE une surface fixe. */
     html.azr-aim,html.azr-aim body{overscroll-behavior-y:none}
+    /* ⚠ PENDANT LA VISÉE, L'EN-TÊTE EST FIXE — PAS COLLANT (v5.10.5, prouvé à la VIDÉO image par
+       image : sur iOS, à chaque grande pose de défilement VERS LE HAUT, l'en-tête `sticky`
+       disparaissait de l'écran pendant ~2 frames (33 ms) puis se recollait — « dès qu'on remonte,
+       peu importe l'endroit » — pendant que le rail, LUI, ne cillait pas). C'est le même défaut
+       de compositeur que le dossier v5.0.2 : un `sticky` est RE-CALÉ après coup sur la position
+       de défilement, et un `scrollTo` instantané pendant une séquence tactile le fait peindre une
+       frame avec l'ANCIEN décalage — hors écran quand on remonte, simplement couvert quand on
+       descend (d'où l'asymétrie observée). Aucune mesure JS ne peut le voir (Blink et WebKit de
+       bureau peignent juste), aucun gel de classes n'y peut rien : ce n'est pas un état qui
+       change, c'est le rendu d'un état juste. Une couche FIXE, elle, n'est pas couplée au
+       défilement — c'est exactement pourquoi le rail est `fixed` depuis v5.0.2. Donc, LE TEMPS DU
+       GESTE : l'en-tête sort du flux (`fixed`, même position visuelle — il est toujours épinglé
+       en haut) et `body` reprend sa place par `padding-top:var(--hdr-h)` — la hauteur MESURÉE de
+       l'en-tête, constante pendant la visée puisque ses bascules d'état sont gelées. Les offsets
+       de mise en page (donc les cibles de `jump`) sont préservés à l'identique : ce que l'en-tête
+       rend au flux, le rembourrage le reprend. À la relâche, tout se remet en place dans la même
+       passe — géométriquement une identité, vérifié à la sonde sur les deux moteurs. */
+    html.azr-aim header.bar{position:fixed;top:0;left:0;right:0}
+    html.azr-aim body{padding-top:var(--hdr-h,64px)}
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */
