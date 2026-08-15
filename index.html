@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-hoXvb3srHG5XaAQfu+wFSjPq85Yorb0wldKowTcOIOs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lOzwATBt57s1d+mSEAh9+y5Wg71rmkCKkHO+Z7SEtfo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1199,7 +1199,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      reduced-motion, et zéro pixel de géométrie déplacé. */
   @media (prefers-reduced-motion:no-preference){
     header.bar.home{transition:box-shadow .16s ease,border-bottom-color .16s ease}
+    /* v5.10.5 (demande utilisateur : « micro-animation non bloquante quand l'en-tête se
+       réduit/se développe, très rapide très discret ») — CE QUI ARRIVE fond en place. La hauteur,
+       elle, ne s'anime JAMAIS (check-anim : animer la mise en page de l'objet le plus collant de
+       l'écran coûterait une passe de layout par image). Au DÉPLIAGE, l'identité et les chips
+       réapparaissent : opacité + glissement COMPOSITE de 3 px, 140 ms, une fois par bascule. Au
+       REPLI, ce qui part disparaît avec sa ligne (`display:none` — le faire fondre a été essayé
+       et mesuré faux en v5.6 : un élément de largeur nulle consomme ses gaps et déplace le
+       champ) ; c'est l'élévation transitionnée ci-dessus qui marque le resserrement. */
+    body:not(.home-slim) header.bar.home :is(.brand,#homeChrome){animation:hdrDeplie .14s ease-out}
   }
+  @keyframes hdrDeplie{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
   body.home-slim header.bar.home{box-shadow:var(--shadow);border-bottom-color:transparent}
   /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
      déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
@@ -2458,7 +2468,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      12 px EN BAS, et cela ne coûte rien là où l'écart existait déjà : les marges de frères
      ADJACENTES fusionnent (max(12,16)=16), donc le répertoire ne bouge pas d'un pixel — c'est un
      PLANCHER, pas une addition. */
-  .grp-row{display:flex;align-items:stretch;gap:8px;margin:12px 0}
+  /* v5.10.5 (demande utilisateur) : la marge HAUTE passe de 12 à 4 px — le sélecteur A-Z/Catégories
+     se rapproche de l'en-tête ; la marge basse garde ses 12 px vers le répertoire. */
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:4px 0 12px}
   .grp-row:empty{display:none}
   /* `.grp-row .filt-tog` est PURGÉE : le déclencheur ne vit plus dans la rangée de groupement,
      il ne quitte plus le champ de recherche (règle 14). */
@@ -14226,7 +14238,11 @@ function render(){_renderN++;
   // un peu descendu ». Garde-fous : seulement à l'ARRIVÉE (un re-rendu en cours d'édition ne
   // repasse pas ici) et, pour l'échéance tardive, seulement si le décalage est PETIT (< 160 px :
   // on corrige un artefact, jamais un défilement volontaire de l'utilisateur).
-  if((state.view==='edit'||state.view==='protocolEdit')&&_lastView!==state.view){
+  /* v5.10.5 : la LECTURE d'un protocole reçoit le même garde-fou (signalé à l'usage : « lorsqu'on
+     ouvre un protocole on ne commence pas en haut de la page ») — même artefact Safari, même
+     remède. PAS la lecture de fiche : sa réentrée atterrit sur le bout (`landOnBout`, plus bas),
+     que la ré-affirmation du haut viendrait combattre. */
+  if((state.view==='edit'||state.view==='protocolEdit'||state.view==='protocolRead')&&_lastView!==state.view){
     const v=state.view;
     requestAnimationFrame(()=>{if(state.view===v&&window.scrollY)window.scrollTo(0,0);});
     setTimeout(()=>{if(state.view===v&&window.scrollY&&window.scrollY<160)window.scrollTo(0,0);},300);
@@ -15016,9 +15032,18 @@ function azrCentrer(rail,deja){
      ⚠ LA CIBLE SE MESURE, ELLE NE SE DÉDUIT PAS D'UNE FORMULE : le haut de la boîte vaut le bas de
      l'en-tête en voie étroite, mais PAS en voie large (mesuré 110 px pour un en-tête de 61) — une
      formule « rends la hauteur de l'en-tête » y laissait 24 px d'écart.
-     ⚠ ET LA HAUTEUR DE RÉFÉRENCE EST `documentElement.clientHeight` : la seule qui ne suive NI la
-     barre d'outils NI le clavier, donc la seule qui ne fasse pas bouger les lettres pendant qu'on
-     s'en sert (leçon v5.0.2 — on n'ancre jamais à un repère qu'on ne contrôle pas). */
+     ⚠ ET LA HAUTEUR DE RÉFÉRENCE SE DÉRIVE DE LA BOÎTE DU RAIL, PLUS JAMAIS DE
+     `documentElement.clientHeight` (v5.10.5, signalé à l'usage : « jamais centrée », vidéo à
+     l'appui — bloc de lettres à ~23 % de l'écran). `clientHeight` était choisi comme « la seule
+     hauteur qui ne suive ni la barre d'outils ni le clavier » (leçon v5.0.2) — mais son
+     COMPORTEMENT SOUS `zoom` DIVERGE ENTRE MOTEURS : les moteurs de bureau le rendent NON zoomé
+     (la division par z est alors juste, sondé vert sur Chromium ET WebKit aux deux zooms), iOS
+     le rend dans l'espace zoomé ou au small viewport selon le chrome — la même formule y centre
+     trop haut. Or la boîte du rail EST déjà la géométrie stable qu'on cherche : sa hauteur est
+     `100svh` par le CSS (constante, barre déployée), son bas est donc le bord bas du small
+     viewport moins la réserve déclarée (6 px, + `--sab` en app installée). On reconstruit le
+     bord d'écran depuis `b.bottom` — même source, mêmes unités visuelles que tout le reste de
+     la formule, zéro mesure au comportement divergent. */
   const z=zoomF();
   const b=rail.getBoundingClientRect();
   const a1=ls[0].getBoundingClientRect(),a2=ls[ls.length-1].getBoundingClientRect();
@@ -15026,7 +15051,16 @@ function azrCentrer(rail,deja){
   /* Clampé à la place réellement disponible : rendre plus rognerait des lettres, et une lettre
      coupée est une lettre injoignable en silence — c'est déjà la raison d'être du repli complet
      du rail quand il ne tient pas. */
-  const veut=(document.documentElement.clientHeight/z)/2-C/2-b.top/z;
+  /* En voie LARGE, la boîte n'est pas ancrée `svh` (elle est `absolute` dans la coque fixe,
+     réserve basse 12 px) et il n'y a pas de barre d'outils mobile : la mesure d'origine y est
+     exacte (témoin doctrine 1280×900, écart ≤ 2 px) — la dérivation par la boîte ne vaut que là
+     où le CSS `svh` la gouverne, c'est-à-dire la voie étroite. */
+  const sab=matchMedia('(display-mode:standalone)').matches
+    ?(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0):0;
+  const ecran=mqHomeWide.matches
+    ?document.documentElement.clientHeight/z
+    :(b.bottom+(6+sab)*z)/z;   // bord bas du small viewport, en px CSS non zoomés
+  const veut=ecran/2-C/2-b.top/z;
   const pt=Math.max(0,Math.min(H-C,veut));
   rail.style.setProperty('--azr-pt',Math.round(pt)+'px');
   rail.classList.add('azr-pin');}

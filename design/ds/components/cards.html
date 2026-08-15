@@ -845,7 +845,17 @@
      reduced-motion, et zéro pixel de géométrie déplacé. */
   @media (prefers-reduced-motion:no-preference){
     header.bar.home{transition:box-shadow .16s ease,border-bottom-color .16s ease}
+    /* v5.10.5 (demande utilisateur : « micro-animation non bloquante quand l'en-tête se
+       réduit/se développe, très rapide très discret ») — CE QUI ARRIVE fond en place. La hauteur,
+       elle, ne s'anime JAMAIS (check-anim : animer la mise en page de l'objet le plus collant de
+       l'écran coûterait une passe de layout par image). Au DÉPLIAGE, l'identité et les chips
+       réapparaissent : opacité + glissement COMPOSITE de 3 px, 140 ms, une fois par bascule. Au
+       REPLI, ce qui part disparaît avec sa ligne (`display:none` — le faire fondre a été essayé
+       et mesuré faux en v5.6 : un élément de largeur nulle consomme ses gaps et déplace le
+       champ) ; c'est l'élévation transitionnée ci-dessus qui marque le resserrement. */
+    body:not(.home-slim) header.bar.home :is(.brand,#homeChrome){animation:hdrDeplie .14s ease-out}
   }
+  @keyframes hdrDeplie{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
   body.home-slim header.bar.home{box-shadow:var(--shadow);border-bottom-color:transparent}
   /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
      déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
@@ -2104,7 +2114,9 @@
      12 px EN BAS, et cela ne coûte rien là où l'écart existait déjà : les marges de frères
      ADJACENTES fusionnent (max(12,16)=16), donc le répertoire ne bouge pas d'un pixel — c'est un
      PLANCHER, pas une addition. */
-  .grp-row{display:flex;align-items:stretch;gap:8px;margin:12px 0}
+  /* v5.10.5 (demande utilisateur) : la marge HAUTE passe de 12 à 4 px — le sélecteur A-Z/Catégories
+     se rapproche de l'en-tête ; la marge basse garde ses 12 px vers le répertoire. */
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:4px 0 12px}
   .grp-row:empty{display:none}
   /* `.grp-row .filt-tog` est PURGÉE : le déclencheur ne vit plus dans la rangée de groupement,
      il ne quitte plus le champ de recherche (règle 14). */
