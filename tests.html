@@ -176,10 +176,16 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
 
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
-  const hay=A.ficheHaystack({title:'ACR',confirmation:['Pas de pouls'],blocks:[{kind:'do',title:'RCP',items:['Amiodarone 300 mg'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{kind:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]});
+  // ⚠ Fixture MIGRÉE : les listes (confirmation, différentiels…) sont des vues sur le pool depuis
+  // l'étape B — sur un objet brut, listOf() rend [] et le témoin ne rencontre pas son cas. C'est
+  // ainsi que « les différentiels sont introuvables à la recherche » (corrigé v5.10.2) est resté
+  // invisible : l'accès direct `f.differentials` rendait toujours undefined sur une fiche réelle.
+  const hay=A.ficheHaystack(A.migrate({title:'ACR',confirmation:['Pas de pouls'],differentials:['Œdème de Quincke'],blocks:[{kind:'do',title:'RCP',items:['Amiodarone 300 mg'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{kind:'decision',title:'Rythme',question:'Choquable ?',options:[{label:'Oui choquable'}]}]}));
   ok('haystack inclut une étape', hay.indexOf('amiodarone')>=0);
   ok('haystack inclut une question de décision', hay.indexOf('choquable')>=0);
   ok('haystack inclut un libellé d’option', hay.indexOf('oui choquable')>=0);
+  ok('haystack inclut un critère de confirmation (vue du pool)', hay.indexOf('pouls')>=0);
+  ok('haystack inclut un DIAGNOSTIC DIFFÉRENTIEL (défaut v5.10.2)', hay.indexOf('quincke')>=0);
 
   group('recherche multi-mots (v4.4.4) — qTerms/hayMatch');
   eq('découpage + normalisation', A.qTerms(' Choc  Anaph '), ['choc','anaph']);
@@ -394,22 +400,34 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   eq('giga-octets', A.fmtBytes(2147483648), '2,00 Go');
 
   group('flattenFiche() / diffFicheLines()');
-  const fF={title:'T',status:'draft',local:'Ctx',confirmation:['c1'],
+  // ⚠ Les fixtures passent par migrate() — LE témoin qui manquait. Depuis l'étape B (v5.0.0) les
+  // cinq listes sont des VUES sur le pool : un objet brut `{confirmation:['c1']}` ne rencontre pas
+  // le cas réel, et c'est ainsi que le défaut corrigé en v5.10.2 (diff de versions aveugle sur
+  // cinq listes sur six, `f[k]` lu en direct alors que migrate SUPPRIME ces champs) est resté
+  // vert pendant qu'on « restaurait à l'aveugle ».
+  const fF=A.migrate({title:'T',status:'draft',local:'Ctx',confirmation:['c1'],verify:['v1'],
+    notForget:['n1'],differentials:['d1'],posology:['Adré : 0,5 mg'],sources:['SFAR 2024'],
     blocks:[{id:'b1',kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{id:'b2',kind:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
-    timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]};
+    timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]});
   const fl=A.flattenFiche(fF);
   ok('aplatit le titre', fl.indexOf('Titre · T')>=0);
   ok('aplatit l\'état brouillon', fl.indexOf('État · brouillon')>=0);
+  ok('confirmation (vue sur le pool, pas un champ)', fl.indexOf('Confirmation · c1')>=0);
+  ok('à vérifier', fl.indexOf('À vérifier · v1')>=0);
+  ok('ne pas oublier (rôle do + memory)', fl.indexOf('Ne pas oublier · n1')>=0);
+  ok('différentiel', fl.indexOf('Différentiels · d1')>=0);
+  ok('posologie (son libellé manquait aussi de la table)', fl.indexOf('Posologie · Adré : 0,5 mg')>=0);
+  ok('références (resté un CHAMP, accès direct légitime)', fl.indexOf('Références · SFAR 2024')>=0);
   ok('étape préfixée par son bloc', fl.indexOf('Bloc « B » · s1')>=0);
   ok('question de décision', fl.indexOf('Bloc « D » · Q ?')>=0);
   ok('option de décision', fl.indexOf('Bloc « D » — option · Oui')>=0);
   ok('minuteur avec durée', fl.indexOf('Minuteur · Cycle (120 s)')>=0);
   ok('compteur', fl.indexOf('Compteur · Adré')>=0);
   eq('fiche nulle → []', A.flattenFiche(null), []);
-  const fA={title:'T',confirmation:['a','b'],blocks:[{kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
-  const fB={title:'T',confirmation:['a'],blocks:[{kind:'do',title:'B',items:['s1','s2'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]};
+  const fA=A.migrate({title:'T',confirmation:['a','b'],blocks:[{kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]});
+  const fB=A.migrate({title:'T',confirmation:['a'],blocks:[{kind:'do',title:'B',items:['s1','s2'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))}]});
   const d=A.diffFicheLines(fA,fB); // cur=fA, old=fB : restaurer fB retirerait 'b', ajouterait 's2'
-  ok('diff détecte une suppression', d.removed.some(x=>/·\s*b$/.test(x)));
+  ok('diff détecte une suppression (liste du pool)', d.removed.some(x=>/·\s*b$/.test(x)));
   ok('diff détecte un ajout', d.added.some(x=>/s2$/.test(x)));
   eq('aucune diff si identiques', A.diffFicheLines(fA,fA), {removed:[],added:[]});
 

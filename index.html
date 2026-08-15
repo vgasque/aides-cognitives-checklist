@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-F9dCnaINHBTSJM+AimxChX3bJM8GJm2XVgPNm7O5lOo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-VbLLvXuf51FRZ8NU6x1mMv7bnjF3viQTjiQ/0ScPQVE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10436,7 +10436,11 @@ const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').to
 // est donc exclu du cache et recalcul\u00e9 \u00e0 chaque appel.
 const _hayCache=new WeakMap();
 function ficheHaystack(f){let h=_hayCache.get(f);
-  if(h===undefined){const parts=[f.title,f.code,f.local,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...(f.differentials||[]),...(f.sources||[])];
+  // `differentials` passe par `listOf` comme ses quatre sœurs (v5.10.2) : c'est une vue sur le
+  // pool depuis l'étape B — l'accès direct `f.differentials` rendait toujours `undefined`, et la
+  // recherche ne trouvait JAMAIS une fiche par son diagnostic différentiel (aggravé par
+  // `_hayCache`, qui figeait le résultat amputé). `sources` reste un champ, son accès est le bon.
+  if(h===undefined){const parts=[f.title,f.code,f.local,...listOf(f,'confirmation'),...listOf(f,'verify'),...listOf(f,'posology'),...listOf(f,'notForget'),...listOf(f,'differentials'),...(f.sources||[])];
     (f.blocks||[]).forEach(b=>{parts.push(b&&b.title,b&&b.question);(b?stepsOf(b):[]).forEach(s=>parts.push(s));((b&&b.options)||[]).forEach(o=>parts.push(o&&o.label));});
     h=txNorm(stripBold(parts.filter(Boolean).join(' ')));_hayCache.set(f,h);}
   return h+' '+txNorm(catName(f));}
@@ -28818,7 +28822,13 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // simple comparaison d'ensembles (ajouté / retiré), suffisante pour juger avant de restaurer.
 function flattenFiche(f){if(!f)return[];const L=[];const add=(sec,v)=>{v=String(v==null?'':v).trim();if(v)L.push(sec+' · '+v);};
   add('Titre',f.title);add('Validation',f.validatedAt);add('Contexte',f.local);add('État',f.status==='draft'?'brouillon':'validée');
-  ['confirmation','verify','notForget','differentials','sources','posology'].forEach(k=>(f[k]||[]).forEach(v=>add({confirmation:'Confirmation',verify:'À vérifier',notForget:'Ne pas oublier',differentials:'Différentiels',sources:'Références'}[k],v)));
+  // Les cinq listes sont des VUES sur le pool d'items (v5.0.0, étape B) : `migrate` SUPPRIME les
+  // champs de premier niveau — un accès `f[k]` direct rend `undefined` et le diff de versions
+  // devenait aveugle sur cinq listes sur six (défaut v5.10.2 : « on restaure à l'aveugle »).
+  // Seul `sources` est resté un champ (métadonnée bibliographique, pas du contenu de crise).
+  [['confirmation','Confirmation'],['verify','À vérifier'],['notForget','Ne pas oublier'],
+   ['differentials','Différentiels'],['posology','Posologie']].forEach(([k,lbl])=>listOf(f,k).forEach(v=>add(lbl,v)));
+  (f.sources||[]).forEach(v=>add('Références',v));
   (f.blocks||[]).forEach(b=>{const t=b.title||(b.kind==='decision'?'Décision':'Étapes');
     if(b.kind==='decision'){add('Bloc « '+t+' »',b.question);(b.options||[]).forEach(o=>add('Bloc « '+t+' » — option',o&&o.label));}
     else stepsOf(b).forEach(s=>add('Bloc « '+t+' »',s));});
