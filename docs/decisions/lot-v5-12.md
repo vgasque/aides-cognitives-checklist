@@ -151,3 +151,16 @@ contre un saut à chaque geste de lecture. ⚠ Et le corollaire de méthode : le
 RIEN (vingt-six sauts, chrome immobile au pixel) — ce qui n'était pas une infirmation mais une
 INFORMATION : le défaut vivait donc dans ce que le harnais ne simule pas, le clavier. Un vert qui
 n'explique pas un rouge observé désigne la frontière de l'instrument, pas l'absence de défaut.
+
+**A186. UN CONTRÔLE QU'ON TAPE PLUSIEURS FOIS NE DOIT NI BOUGER, NI SE SÉLECTIONNER.** Deux défauts
+d'un même geste — parcourir les occurrences d'une recherche — et le premier ne venait pas du chrome
+qu'on soupçonnait. (a) **Il ne bouge pas** : le compte « n / N » encadré par les deux flèches prend
+NEUF largeurs distinctes sur douze sauts (27,1 → 34,3 px : les chiffres n'ont pas la même chasse, et
+« 10 / 70 » est plus long que « 9 / 70 »), donc le bouton « › » se déplaçait de 7 px À CHAQUE CLIC,
+sous le doigt qui le vise. Chiffres à chasse fixe (`tabular-nums`) ET largeur minimale — le premier
+seul ne suffit pas, le passage à trois caractères reste un caractère de plus. (b) **Il ne se
+sélectionne pas** : un double-tap sur un contrôle est un GESTE, pas une intention de lire (idiome
+déjà tenu par le rail A→Z). Vaut pour tout contrôle à taps répétés — les titres repliables des
+références en sont. ⚠ Corollaire de diagnostic : « ça saute encore un peu » après un correctif de
+chrome ne désigne pas forcément le chrome ; ici c'était la CIBLE qui se dérobait, pas le cadre qui
+bougeait. Mesurer la position du bouton, pas seulement celle du bandeau.

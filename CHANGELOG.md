@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.12.6] — 2026-08-16
+### Le bouton « › » ne se dérobe plus sous le doigt, et un double-tap ne sélectionne plus le texte
+
+- **Le saut résiduel n'était pas le chrome : c'était le bouton lui-même** (signalé à l'usage : « ça
+  saute moins mais encore un peu »). Mesuré sur douze sauts d'affilée : la largeur du compte
+  d'occurrences prend **neuf valeurs distinctes** (27,1 → 34,3 px) — les chiffres n'ont pas la même
+  chasse, et « 10 / 70 » est plus long que « 9 / 70 » — si bien que le bouton « › » **se déplaçait
+  de 7 px à chaque clic**, c'est-à-dire sous le doigt qui le vise. Chiffres à chasse fixe et
+  largeur minimale : après correctif, **une** seule largeur, **une** seule position, sur les mêmes
+  douze sauts et aux deux moteurs.
+- **Un double-tap sur un contrôle est un geste, pas une intention de lire** (« empêche sélection de
+  texte en appuyant sur les boutons ‹ et › »). La navigation d'occurrences ne se sélectionne plus —
+  même idiome que le rail A→Z, qui le fait depuis toujours pour la même raison. Les titres
+  repliables des références suivent : on les tape aussi plusieurs fois de suite.
+- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; les cinq sondes de la série
+  restent vertes.
+
 ## [5.12.5] — 2026-08-16
 ### Le chrome ne saute plus quand on parcourt les occurrences — une géométrie de chrome ne se dérive pas du défilement
 
@@ -848,32 +865,3 @@ remplacer coûterait**. Doctrine : `AGENTS.md` A131 et A132.
   identifiants d'items d'un pool partagé et se relie aux autres par ses branches — en importer un
   sous-ensemble produirait des blocs vides et des branches qui ne mènent nulle part. Un algorithme
   partiel n'est pas un algorithme allégé, c'est un algorithme cassé.
-
-## [5.8.1] — 2026-08-13
-### L'atelier d'import, jusqu'au bout : le filtre atteint tout ce qui s'écrit
-
-`5.8.0` avait posé le grain de l'import — l'entité — sans le tenir partout : trois choses
-raisonnaient encore **en bloc** derrière l'atelier, et la rangée taisait ce qui permet de décider.
-Doctrine : `AGENTS.md` A130.
-
-- **Les catégories suivent la sélection.** Elles entraient *toutes*, y compris celles que seules
-  les entités décochées employaient : on repartait avec des catégories vides dans son rail, créées
-  par un import qu'on venait justement de restreindre. La règle qui en sort est plus large que le
-  cas : *le filtrage doit atteindre tout ce qui s'écrit, pas seulement les entités.*
-- **La question destructive annonce la sélection, pas le fichier** — « remplacé(e)s par les
-  **n éléments cochés** ». Depuis l'atelier les deux ne sont plus la même chose, et c'est la seule
-  question destructive du parcours : y annoncer le fichier ferait croire qu'on récupère ce qu'on
-  vient d'écarter.
-- **« ⟳ déjà présent » se dit sur la rangée, avant la question « Doublons ».** La rangée porte le
-  fait ; le sort reste décidé par la question groupée. Elle n'apparaît **que là où la collision
-  peut avoir lieu** — identifiants conservés, donc même espace : sur un fichier venu d'ailleurs ils
-  sont régénérés à l'écriture, et annoncer un doublon que l'écriture ne verra pas serait un
-  mensonge. *Un contrôle « remplacer / garder les deux » par rangée a été écarté* : décocher porte
-  déjà le grain, tandis que ce choix-là est une stratégie, globale par nature.
-- **La rangée dit ce que l'entité embarque**, dans les mots de l'écran d'entrée : « 2 blocs ·
-  1 minuteur · 1 complication déclarée ». C'est la seule chose qui distingue un algorithme complet
-  d'une ébauche sans ouvrir le fichier. Une phrase, **deux lecteurs**, donc un seul calcul ; seuls
-  les seuils diffèrent, et chacun est motivé.
-- **Détail de plancher** : à 320 px les deux gestes de l'atelier tenaient sur une ligne mais s'y
-  cassaient chacun en deux. La rangée enroule désormais plutôt que les mots — les boutons restent
-  côte à côte à 44 px, c'est le compte qui passe dessous.

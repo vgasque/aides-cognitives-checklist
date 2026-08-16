@@ -3151,8 +3151,21 @@
   .rt-find-all{padding:0 0 10px}
   .rt-find-all input{min-height:44px;font-size:16px}
   .rt-find-all .rt-fnav .mini{width:44px;height:44px}
-  .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft)}
+  /* ⚠ LE COMPTE NE DOIT PAS DÉPLACER LES BOUTONS QU'ON TAPE (signalé à l'usage : « ça saute moins
+     mais encore un peu »). Mesuré, douze sauts d'affilée : la largeur du compte prend NEUF valeurs
+     distinctes (27,1 → 34,3 px) — les chiffres n'ont pas la même chasse et « 10 / 70 » est plus
+     long que « 9 / 70 » — et le bouton « › » se déplaçait donc de 7 px À CHAQUE CLIC, c'est-à-dire
+     sous le doigt qui le vise. Deux remèdes cumulés : chiffres à chasse FIXE (`tabular-nums`), et
+     une largeur MINIMALE qui absorbe le passage à trois caractères. Le bouton ne bouge plus.
+     ⚠ ET ON NE SÉLECTIONNE PAS DU TEXTE EN TAPANT DEUX FOIS (même signalement : « empêche
+     sélection de texte en appuyant sur les boutons ‹ et ›, ça sélectionne quand on clique
+     plusieurs fois rapidement dessus »). Un double-tap sur un contrôle est un GESTE, pas une
+     intention de lire : même idiome que le rail A→Z, qui le fait depuis toujours pour la même
+     raison. */
+  .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft);
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .rt-fnav .mini{width:30px;height:30px}
+  #pfCount{min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
   /* ⚠ UN SURLIGNAGE DÉFINIT SES DEUX COULEURS, JAMAIS UNE SEULE (défaut MESURÉ à l'audit, et il
      était le mien) : `color:inherit` prend l'encre du CONTEXTE et la pose sur un fond qui, lui,
      est fixe — donc le contraste dépend de l'endroit où le mot se trouve. Mesuré : 3,64:1 en
@@ -7896,7 +7909,10 @@
      ouverte (elle n'a ni marge, ni bordure, ni rembourrage — les marges de son premier enfant
      traversent donc comme avant qu'elle existe). Son seul rôle est d'être masquable d'un bloc. */
   .md-sect{display:block}
-  .md-fbtn{display:flex;align-items:center;gap:8px;width:100%;min-height:32px;padding:0;border:0;background:none;
+  /* Même règle que la navigation d'occurrences : on replie/déplie en tapant plusieurs fois, et
+     un double-tap ne doit pas se mettre à sélectionner le titre. */
+  .md-fbtn{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    display:flex;align-items:center;gap:8px;width:100%;min-height:32px;padding:0;border:0;background:none;
     font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}
   .md-fbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
   .md-fch{flex:none;margin-left:auto;display:inline-flex;color:var(--ink-soft)}
