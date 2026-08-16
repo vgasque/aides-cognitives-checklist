@@ -10487,15 +10487,24 @@ function newPc(){
 function teardownPc(){try{if(pc)pc.close();}catch(e){}
   pc=null;dc=null;clearInterval(pingTimer);clearInterval(statsTimer);
   $('stRtt').textContent='RTT : —';$('stPair').textContent='Paire retenue : —';}
+let qrCycleTimer=0;
 function showQrParts(parts,box){
+  clearInterval(qrCycleTimer);
   box.classList.remove('hide');box.innerHTML='';
-  parts.forEach((p,i)=>{const c=qrCanvas(p,6);
-    if(!c)return log('part trop longue pour le QR maison ('+p.length+' car.)','ko');
-    const w=document.createElement('div');w.style.textAlign='center';w.appendChild(c);
-    if(parts.length>1){const cap=document.createElement('div');
-      cap.textContent='code '+(i+1)+' / '+parts.length+' — scanner LES DEUX';
-      cap.style.cssText='font:13px ui-monospace,monospace;color:#000';w.appendChild(cap);}
-    box.appendChild(w);});
+  const cvs=parts.map(p=>qrCanvas(p,6));
+  if(cvs.some(c=>!c))return log('part trop longue pour le QR maison','ko');
+  const w=document.createElement('div');w.style.textAlign='center';w.appendChild(cvs[0]);
+  box.appendChild(w);
+  if(parts.length>1){
+    // jsQR ne décode qu'UN code par image, et deux jeux de mires dans le champ peuvent même
+    // casser la détection : on ALTERNE les parties au MÊME endroit, comme le mode rafale —
+    // le scanner accumule (dédup par contenu), l'autre appareil n'a qu'à rester dans le champ.
+    const cap=document.createElement('div');
+    cap.style.cssText='font:13px ui-monospace,monospace;color:#000';w.appendChild(cap);
+    let k=0;const paint=()=>{const i=k%cvs.length;w.replaceChild(cvs[i],w.firstChild);
+      cap.textContent='code '+(i+1)+' / '+cvs.length+' — rester dans le champ, la lecture alterne';
+      k++;};
+    paint();qrCycleTimer=setInterval(paint,1200);}
   $('sigOut').value=parts.join('\n');}
 /* Boucle de scan d'une charge de signalisation, avec RETOUR VISIBLE à chaque code lu —
    « plus rien à l'écran » n'est pas un diagnostic. kind='A' (hôte) ou 'O' (invité). */
@@ -10515,6 +10524,7 @@ function bindChannel(ch){
   dc=ch;dc.binaryType='arraybuffer';
   dc.onopen=()=>{log('DataChannel OUVERT','ok');$('benchCard').classList.remove('hide');
     camStop();$('scanRow').classList.add('hide');$('pairQr').classList.add('hide');
+    clearInterval(qrCycleTimer);
     if(navigator.wakeLock)navigator.wakeLock.request('screen')
       .then(l=>{window._wl=l;log('écran maintenu éveillé (wake lock)');})
       .catch(e=>log('wake lock refusé : '+e.message,'warn'));
