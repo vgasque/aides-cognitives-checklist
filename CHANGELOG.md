@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [5.11.1] — 2026-08-16
+### La pastille de destination dit le mot « catégorie » — un verbe ne désigne pas son objet
+
+- **« Garder Réanimation » ne disait pas ce qu'on gardait** (signalé à l'usage : « "Garder" pas
+  suffisamment clair pour dire qu'on parle de la catégorie »). Le libellé NOMMAIT bien la valeur —
+  l'exigence tenue en A83 — mais laissait le CHAMP à deviner : posé à côté d'une pastille
+  « Perso », il pouvait se lire comme « garder cette fiche ». Les quatre états de la pastille
+  portent désormais le nom du champ : **« Catégorie du fichier : Réanimation »** (défaut, quand le
+  fichier classe l'entité), **« Catégorie du fichier : aucune »** (défaut, quand il ne la classe
+  pas), **« Catégorie : Réanimation »** (choix explicite, avec sa pastille de couleur) et **« Sans
+  catégorie »**. La provenance reste dite — « du fichier » signifie que rien n'a été décidé à votre
+  place. Le menu suit : « Garder **la catégorie** du fichier ».
+- **Et le bandeau ne dit plus deux fois « Plusieurs »** : ses deux pastilles étant côte à côte, un
+  même mot sur les deux ne se distinguait pas. Elles nomment leur champ dans tous leurs états —
+  « Plusieurs bibliothèques » / « Plusieurs catégories », et « Catégorie du fichier » sans nom pour
+  le défaut commun (le bandeau commande plusieurs rangées, chacune garde la sienne : c'est la
+  rangée qui la nomme).
+- Le **titre au survol prolonge** le libellé au lieu de le répéter (plus de « Catégorie de
+  destination : Catégorie du fichier : X ») : il dit ce que le geste fera — « toucher pour
+  changer » — et, sur le défaut, ce que « du fichier » implique à l'écriture.
+- Pas d'abréviation en « Cat. » : le mot entier tient (la ligne s'enroule déjà), et une
+  abréviation est exactement ce qu'on ne relit pas sous fatigue. Sonde jetable 12/12 aux deux
+  moteurs et aux deux largeurs ; `npm run check`, `npm test` (2×1126) et l'audit COMPLET (25/25)
+  verts.
+
 ## [5.11.0] — 2026-08-16
 ### L'atelier d'import dit aussi **où** ça va — bibliothèque et catégorie, rangée par rangée
 
@@ -1103,47 +1128,3 @@ intermédiaires ? ») puis décision R1+R2 sur maquette chiffrée à l'échelle 
   vivants, « ici » qui suit la navigation) ; passes complètes 16/16 check · 939 × 2 tests ·
   **20/20 harnais du premier coup**. Trois leçons de sonde consignées (compter les titres sans
   distinguer résumé et corps replié ; référence DOM détachée après re-rendu).
-
-## [5.4.2] — 2026-08-07
-### Six correctifs d'usage — clavier du volet, surligneur PDF, quai accès unique, repères qui suivent
-
-Tous signalés à l'usage réel (PWA/smartphone), chacun vérifié à la mesure sur les deux moteurs.
-
-- **Le bandeau système passe au-dessus du rail A→Z** : le rail (fixe, z 15, voile de fond)
-  peignait par-dessus « Nouvelle version disponible », masquait sa droite et pouvait intercepter
-  le tap sur son × (`touch-action:none` sur toute sa bande). `.sys-banner` prend
-  `position:relative; z-index:16` — au-dessus du rail, toujours sous l'en-tête (20) : une
-  notification qu'on doit lire et rejeter prime sur trois lettres d'index recouvertes
-  transitoirement.
-- **Modifier une heure dans le volet ne fait plus sauter le scroll** (« très mal géré quand le
-  clavier s'ouvre ») — deux causes cumulées : le `focus()` programmatique défilait le DOCUMENT
-  pour « révéler » un champ déjà sous le doigt dans une couche fixe (→ `preventScroll`, règle
-  v4.78.0) ; et la hauteur du volet était bornée sur `--vvh`, que le CLAVIER rétrécit — elle
-  passe à `100svh` (constante : ni barre d'outils ni clavier), la règle du rail A→Z (v5.0.1)
-  appliquée au clavier près. Vérifié : focus → 0 px de saut page et volet, hauteur immune au
-  rétrécissement de `--vvh`.
-- **Le surligneur PDF est FIXE, il ne suit plus le thème** (« pas assez visible, encore plus en
-  clair ») : une page PDF garde SES couleurs — `--verify-soft` + multiply donnait un crème quasi
-  invisible en clair et un autre rendu en sombre pour le même document. Jetons fixes deux-thèmes
-  `--pdf-hl`/`--pdf-hl-ring` : jaune surligneur universel en fondu NORMAL (multiply s'éteint sur
-  fond sombre) + anneau ambre — bande effective #FFEE99 sur page blanche, voile éclaircissant +
-  anneau sur page sombre. La pilule ‹ n/N · p. x › passe à l'**ardoise fixe** `--rt-*` (celle du
-  toast) : identique dans les deux thèmes, lisible sur toute page.
-- **« Dans les documents » respire** : 24 px au-dessus du titre du groupe (il se lisait comme la
-  méta de la dernière carte de résultats).
-- **Les repères posologiques suivent le bloc courant pendant la navigation** (bug confirmé — le
-  classement v4.23.0 n'était calculé qu'au rendu complet) : générateurs à site unique
-  (`posBlockHtml`/`posRailHtml`) et `repaintPoso()` rejouée par les trois chemins ciblés (journal,
-  statique, mono-bloc) — jamais au cochage ; le pli « n autres repères » garde son état. Vérifié :
-  « Continuer » vers un bloc → son médicament passe en tête.
-- **Le quai est l'accès unique au panneau en étroit** (décision utilisateur : « il appartient
-  maintenant au rail ») : la rangée repliée du flux est SUPPRIMÉE (`.rt-collapsed`, `#rtOpen`,
-  `rtRowLabel` — règle 14, grep vérifié) — le double accès de la v5.4.1 avait perdu sa moitié le
-  jour où le volet a su suivre le défilement. Le volet se rend même sans minuteur ni compteur (le
-  journal y loge) ; le rappel du quai devient le seul annonciateur de ce qui est caché. Limite
-  dite : sur une fiche mono-bloc en étroit, « Noter l'heure » s'atteint par le quai (cette carte
-  n'a jamais porté le bouton M2 — l'aligner serait une décision séparée).
-- Témoins : trois sondes passent par le vrai geste du quai (ex-`#rtOpen`) ; les fixtures des
-  témoins d'atterrissage v5.0.7 construisent désormais leur cas (le panneau du flux payait ~70 px
-  de leur marge de défilement — sans lui, le contrefactuel s'écrêtait). Passes : 16/16 check ·
-  939 × 2 tests · 20/20 harnais.

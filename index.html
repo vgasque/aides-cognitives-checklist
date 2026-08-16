@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-R50bXmBdWTyqZAN8tXldA86mDpHFX/1vNK9+E85SoQw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-BrdEkZbQBQh0BhfFxXFDYGMA+GyKap0TnqpY110dpDY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7367,10 +7367,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .imp-pick:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .imp-pick .cat-dot{flex:none}
   .imp-pick>span:not(.cat-dot){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  /* « Garder celle du fichier » n'est pas un choix comme un autre : c'est le DÉFAUT, l'état où
+  /* « Catégorie du fichier » n'est pas un choix comme un autre : c'est le DÉFAUT, l'état où
      l'atelier n'a rien décidé à la place de l'auteur. Il se lit en encre douce et sans pastille
      — une pastille annoncerait une couleur qu'on ne connaît pas encore (elle dépend de ce que la
-     destination contient déjà). Jamais la couleur seule (règle 8) : le mot est là. */
+     destination contient déjà). Jamais la couleur seule (règle 8) : le mot est là — et depuis
+     v5.11.1 le mot « catégorie » y est aussi, un verbe ne désignant pas son objet. */
   .imp-pick.keep{font-weight:600;color:var(--ink-soft);border-style:dashed}
   /* Publier dans une bibliothèque PARTAGÉE reste un acte annoncé (doctrine d'origine : « jamais
      en silence »). La question oui/non a disparu — c'est ce bandeau de pied qui la remplace, et
@@ -9239,7 +9240,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.11.0';
+const APP_VERSION='5.11.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -26614,15 +26615,21 @@ function impRowHtml(r){
     +`</span></label>`
     +(r.dup?`<div class="imp-diff" data-impdiff="${esc(r.key)}" hidden></div>`:'')
     +`</div>`;}
-/* CE QUE LA PASTILLE DIT DE LA CATÉGORIE. « Garder » NOMME ce qu'il garde (« Garder Réanimation »)
-   plutôt que de renvoyer à un fichier qu'on ne peut plus ouvrir : c'est la même exigence qu'A83 —
-   une commande ne dit que ce qu'elle sait, mais elle le dit. Quand le fichier ne classe pas cette
-   entité, « garder » est honnêtement « aucune ». */
+/* CE QUE LA PASTILLE DIT DE LA CATÉGORIE — ET ELLE DIT LE MOT « CATÉGORIE » (signalé à l'usage :
+   « "Garder" pas suffisamment clair pour dire qu'on parle de la catégorie »). Elle affichait
+   « Garder Réanimation », qui NOMME bien ce qu'il garde (exigence A83) mais laisse le CHAMP à
+   deviner : posée à côté d'une pastille « Perso », elle pouvait se lire comme « garder cette
+   fiche ». Un verbe ne désigne pas son objet ; le nom du champ, si. Les quatre états le portent
+   donc, y compris ceux qui semblaient évidents — c'est la parité qui rend la ligne lisible d'un
+   coup d'œil, pas chaque libellé pris isolément. La provenance reste dite (« du fichier » = le
+   défaut, rien n'a été décidé à votre place), et le titre/`aria-label` complet la redit.
+   ⚠ NE PAS ABRÉGER EN « Cat. » : le mot entier tient (la ligne s'enroule déjà, `flex-wrap`), et
+   une abréviation est exactement ce qu'on ne relit pas sous fatigue. */
 function impCatLabel(r){
-  if(r.cat===IMP_KEEP)return {txt:r.srcCat?('Garder '+r.srcCat):'Garder : aucune',col:'',keep:true};
+  if(r.cat===IMP_KEEP)return {txt:'Catégorie du fichier : '+(r.srcCat||'aucune'),col:'',keep:true};
   if(!r.cat)return {txt:'Sans catégorie',col:'',keep:false};
   const c=categories.find(x=>x.id===r.cat&&catScope(x)===(r.lib||null));
-  return c?{txt:c.name,col:safeColor(c.color),keep:false}:{txt:'Sans catégorie',col:'',keep:false};}
+  return c?{txt:'Catégorie : '+c.name,col:safeColor(c.color),keep:false}:{txt:'Sans catégorie',col:'',keep:false};}
 function impPickHtml(kind,key,txt,col,cls,aria){
   return `<button type="button" class="imp-pick${cls||''}" data-${kind}="${esc(key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(aria)}" title="${esc(aria)}">`
     +(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')
@@ -26634,8 +26641,11 @@ function impPickHtml(kind,key,txt,col,cls,aria){
 const impLibChoix=()=>impLibOptions().length>1;
 function impDestHtml(r){
   const L=impCatLabel(r);
-  return (impLibChoix()?impPickHtml('implib',r.key,impLibName(r.lib),'',' ','Bibliothèque de destination : '+impLibName(r.lib)):'')
-    +impPickHtml('impcat',r.key,L.txt,L.col,L.keep?' keep':'','Catégorie de destination : '+L.txt);}
+  // Le titre PROLONGE le libellé visible, il ne le répète pas : la pastille dit déjà « Catégorie
+  // … », le titre dit ce que le geste fera (« destination », « toucher pour changer »). Un
+  // « Catégorie de destination : Catégorie du fichier : X » serait du bégaiement au survol.
+  return (impLibChoix()?impPickHtml('implib',r.key,impLibName(r.lib),'',' ','Bibliothèque de destination : '+impLibName(r.lib)+' — toucher pour changer'):'')
+    +impPickHtml('impcat',r.key,L.txt,L.col,L.keep?' keep':'',L.txt+(L.keep?' — la catégorie n\'a pas été changée : celle du fichier sera retrouvée par son nom dans la destination, ou créée':'')+' — toucher pour changer');}
 // Repeint la SEULE ligne de destination touchée : reconstruire la liste sous le doigt lui ferait
 // perdre le focus et remonterait le défilement (leçon v4.78.0, déjà tenue par `impSetAll`).
 function impPaintDest(keys){
@@ -26663,7 +26673,10 @@ function impSyncDest(){
   bl.hidden=!impLibChoix();
   bl.disabled=bc.disabled=!n;
   const lib=impCommun(r=>r.lib);
-  bl.querySelector('span').textContent=n?(lib===undefined?'Plusieurs':impLibName(lib)):'Bibliothèque';
+  /* ⚠ « Plusieurs » TOUT SEUL NE DIT PAS DE QUOI (même défaut que « Garder », signalé à l'usage) :
+     les deux pastilles du bandeau sont côte à côte, et deux « Plusieurs » identiques ne se
+     distinguent pas. Chacune nomme donc son champ, dans TOUS ses états — y compris l'état vide. */
+  bl.querySelector('span').textContent=n?(lib===undefined?'Plusieurs bibliothèques':impLibName(lib)):'Bibliothèque';
   /* LE BANDEAU DIT LE CHOIX, LA RANGÉE DIT SON EFFET — et c'est pour cela qu'ils ne portent pas
      le même libellé sur la même valeur. Mesuré à la sonde : en comparant les ÉTIQUETTES RENDUES,
      le bandeau annonçait « Plusieurs » à l'OUVERTURE de l'atelier, alors que rien n'avait encore
@@ -26675,11 +26688,13 @@ function impSyncDest(){
   const v=impCommun(r=>r.cat),libC=lib;
   let txt='Catégorie',col='',keep=false;
   if(n){
-    if(v===undefined)txt='Plusieurs';
-    else if(v===IMP_KEEP){txt='Garder celle du fichier';keep=true;}
+    if(v===undefined)txt='Plusieurs catégories';
+    // Au bandeau, « du fichier » ne peut pas NOMMER la catégorie gardée : il commande plusieurs
+    // rangées, et chacune garde la sienne. C'est la rangée qui la nomme.
+    else if(v===IMP_KEEP){txt='Catégorie du fichier';keep=true;}
     else if(!v)txt='Sans catégorie';
     else{const cc=libC===undefined?null:categories.find(x=>x.id===v&&catScope(x)===(libC||null));
-      if(cc){txt=cc.name;col=safeColor(cc.color);}else txt='Plusieurs';}}
+      if(cc){txt='Catégorie : '+cc.name;col=safeColor(cc.color);}else txt='Plusieurs catégories';}}
   bc.className='imp-pick'+(keep?' keep':'');
   bc.innerHTML=(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')+`<span>${esc(txt)}</span>`;
   impSyncWarn();}
@@ -26719,7 +26734,7 @@ function openImpCatMenu(rows,trigger){
   const lib=impCommun2(rows,r=>r.lib);
   const cats=lib===undefined?[]:catsSorted(lib);
   openPickMenu(host,{aria:'Catégorie',sheet:true,trigger,
-    options:[{val:IMP_KEEP,name:'Garder celle du fichier',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'},
+    options:[{val:IMP_KEEP,name:'Garder la catégorie du fichier',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'},
              {val:'',name:'Sans catégorie',col:''}]
       .concat(cats.map(c=>({val:c.id,name:c.name,col:safeColor(c.color)}))),
     value:(rows.length===1?rows[0].cat:impCommun2(rows,r=>r.cat)),
