@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.12.7] — 2026-08-16
+### Le chrome suit le clavier — mais il se pose, au lieu de tout suivre ou de tout geler
+
+- **Il ne s'affichait toujours pas au premier résultat d'une recherche, clavier ouvert** (signalé à
+  l'usage). Ma v5.12.5 gelait **trop** : `--vvt` n'était relue qu'au changement de **hauteur** du
+  viewport visuel — or le panoramique du clavier arrive **après** son ouverture, pas avec elle. Le
+  décalage retenu était donc celui de l'instant du redimensionnement, c'est-à-dire **zéro**, et le
+  chrome restait hors de l'écran tant qu'aucune autre ouverture ou fermeture ne survenait.
+- **Deux modes de défaillance opposés, et la frontière était mal placée.** Tout suivre (v5.12.0)
+  faisait sauter le chrome à chaque saut d'occurrence, parce que le système re-panoramique pour
+  garder le champ focalisé sous les yeux ; tout geler (v5.12.5) le laissait hors de l'écran au
+  premier résultat. La bonne frontière n'est ni « toujours » ni « jamais » : c'est **quand ça s'est
+  arrêté de bouger**. Un changement de hauteur (le clavier s'ouvre ou se ferme) s'applique
+  immédiatement — c'est un fait accompli. Un changement de décalage seul attend un court repos :
+  une rafale de sauts d'occurrence ne produit alors qu'**un** recalage, à la fin, au lieu d'un par
+  clic.
+- C'est la version « qui se pose » de la règle du dossier (*une géométrie de chrome ne se dérive
+  pas d'un état transitoire*, v5.0.9) : on ne refuse plus l'information, on attend qu'elle soit
+  stable.
+- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; les cinq sondes de la série
+  restent vertes. ⚠ Limite inchangée et redite : le harnais ne peut pas piloter
+  `visualViewport.offsetTop` — il mesure le câblage et la géométrie, jamais la réaction d'iOS. Ce
+  réglage-là se juge sur appareil.
+
 ## [5.12.6] — 2026-08-16
 ### Le bouton « › » ne se dérobe plus sous le doigt, et un double-tap ne sélectionne plus le texte
 
@@ -837,31 +861,3 @@ d'implémentation externe, avec ses maquettes aux trois formats. Doctrine : `AGE
 - **Ce qui n'est pas livré, et pourquoi** : le cartouche ne se répète pas en tête de chaque feuille
   imprimée — seul un en-tête de table le fait nativement, et le simuler demanderait de reperdre la
   grille unique. Le pied porte titre et révision, donc une page détachée reste identifiable.
-
-
-## [5.9.0] — 2026-08-13
-### L'atelier d'import va jusqu'à la question destructive
-
-`5.8.0` avait posé le grain — l'entité — et `5.8.1` l'avait tenu partout. Restait le geste que
-l'atelier existe précisément pour éclairer : **remplacer**. La rangée annonçait qu'une entité était
-« déjà présente » sans dire ni **laquelle des deux versions est la plus fraîche**, ni **ce que
-remplacer coûterait**. Doctrine : `AGENTS.md` A131 et A132.
-
-- **La rangée dit laquelle des deux est la plus récente** — « le fichier est plus récent »,
-  « votre version est plus récente », « même version ». Le second cas est le seul où remplacer
-  **perd du travail** : il prend le registre ATTENTION, en texte et avec son glyphe, jamais un
-  aplat. Aucun champ nouveau : `updatedAt` **est** la révision, celle-là même dont le compte rendu
-  se sert déjà pour dire sur quelle version un soin a été conduit.
-- **⚠ Et l'horodatage est lu *avant* la normalisation**, parce que celle-ci en pose un quand il
-  manque — un fichier ancien se serait donc annoncé « plus récent » que tout ce qu'on possède, sur
-  la seule question destructive du parcours. Sans date des deux côtés, la rangée **se tait** plutôt
-  que de deviner.
-- **« Comparer » déplie ce que remplacer changerait**, ligne à ligne : ce que le fichier
-  apporterait, ce qu'il emporterait. C'est le comparateur de « Versions », inchangé — pas un
-  second, qui finirait par répondre autre chose sur la même paire d'objets. Les **références** ont
-  leur propre aplatissement (leur corps est du texte, ses lignes sont ses unités) : sans lui, la
-  moitié de la bibliothèque n'aurait eu aucune réponse à la même question.
-- **Ce qui n'est pas fait, et pourquoi** : descendre au **grain du bloc**. Un bloc ne porte que des
-  identifiants d'items d'un pool partagé et se relie aux autres par ses branches — en importer un
-  sous-ensemble produirait des blocs vides et des branches qui ne mènent nulle part. Un algorithme
-  partiel n'est pas un algorithme allégé, c'est un algorithme cassé.

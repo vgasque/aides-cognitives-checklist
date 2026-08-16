@@ -136,7 +136,7 @@ couvrir. Même famille que le témoin géométrique aveugle à l'écrêtage (A16
 contre la référence de l'utilisateur, et se vérifier sur quatre ÉTATS successifs quand la propriété
 en jeu est la stabilité.
 
-**A185. UNE GÉOMÉTRIE DE CHROME NE SE DÉRIVE JAMAIS D'UN ÉTAT QUI DÉPEND DU DÉFILEMENT — Y COMPRIS
+**A185 (RÉVISÉE EN v5.12.7 — LIRE A187 AVEC).** UNE GÉOMÉTRIE DE CHROME NE SE DÉRIVE JAMAIS D'UN ÉTAT QUI DÉPEND DU DÉFILEMENT — Y COMPRIS
 QUAND CET ÉTAT VIENT DU SYSTÈME.** La règle existait (v5.0.9 ; `azrPoseBox` en v5.6, dont le haut est
 mesuré puis GELÉ pour que les lettres du rail ne bougent pas sous le doigt) ; la v5.12.0 l'a violée
 sans le voir, parce que la valeur en cause vient du navigateur et non de nous : clavier ouvert,
@@ -164,3 +164,15 @@ déjà tenu par le rail A→Z). Vaut pour tout contrôle à taps répétés — 
 références en sont. ⚠ Corollaire de diagnostic : « ça saute encore un peu » après un correctif de
 chrome ne désigne pas forcément le chrome ; ici c'était la CIBLE qui se dérobait, pas le cadre qui
 bougeait. Mesurer la position du bouton, pas seulement celle du bandeau.
+
+**A187. ENTRE « TOUT SUIVRE » ET « TOUT GELER », LA FRONTIÈRE EST « QUAND ÇA S'EST ARRÊTÉ DE
+BOUGER ».** A185 avait raison de refuser le suivi permanent (le chrome sautait à chaque saut
+d'occurrence) mais s'est trompée de remède : geler `--vvt` entre deux changements de HAUTEUR
+laissait le chrome hors de l'écran au premier résultat d'une recherche, **parce que le panoramique
+du clavier arrive APRÈS son ouverture, pas avec elle** — le décalage retenu à l'instant du
+redimensionnement vaut zéro. Deux modes de défaillance opposés, donc, et la bonne réponse n'est
+aucun des deux extrêmes : un changement de HAUTEUR (fait accompli) s'applique immédiatement ; un
+changement de DÉCALAGE seul attend un court repos, si bien qu'une rafale de gestes ne produit qu'un
+seul recalage, à la fin. ⚠ Leçon de méthode, et c'est la troisième fois de ce lot qu'elle se paie :
+quand un correctif crée le défaut symétrique de celui qu'il répare, ce n'est pas le sens du
+correctif qui est faux, c'est qu'on a répondu par un ABSOLU à une question de SEUIL.

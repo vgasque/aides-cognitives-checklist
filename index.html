@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-sl1sEGPMSIUwFedjBYYWaeh6wQjN95E6BOyAMgNdSCM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-g8JbPYcVfxCYLfyv7KjhQInKNEoPHd6PzgKWwwE7e8k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9458,7 +9458,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.12.6';
+const APP_VERSION='5.12.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -28672,13 +28672,36 @@ const VVT_MIN_CLAVIER=60;
      le focus à un champ plus bas, clavier déjà ouvert), le chrome garde le décalage du dernier
      évènement de hauteur. C'est le bon compromis — ce cas laisse le chrome à quelques dizaines de
      pixels près, quand l'ancien comportement le faisait sauter à CHAQUE geste de lecture. */
+  /* ⚠ IL FAUT SUIVRE, MAIS SE POSER — et c'est la correction de la v5.12.5, qui gelait trop
+     (signalé à l'usage : « lorsque le clavier est affiché sur tablette/smartphone, ça continue à
+     ne pas s'afficher au PREMIER affichage d'une recherche »). Deux modes de défaillance opposés,
+     et le réglage doit tenir entre les deux :
+      · TOUT SUIVRE (v5.12.0) : le chrome saute à chaque saut d'occurrence, parce que le système
+        re-panoramique pour garder le champ focalisé sous les yeux ;
+      · TOUT GELER (v5.12.5) : `--vvt` n'était relue qu'au changement de HAUTEUR — or le
+        panoramique du clavier arrive APRÈS son ouverture, pas avec elle. Le décalage retenu était
+        donc celui de l'instant du redimensionnement, c'est-à-dire ZÉRO, et le chrome restait hors
+        de l'écran tant qu'aucune autre ouverture/fermeture ne survenait : exactement « au premier
+        affichage d'une recherche ».
+     La bonne frontière n'est ni « toujours » ni « jamais », c'est **quand ça s'est arrêté de
+     bouger**. Un changement de HAUTEUR (le clavier s'ouvre ou se ferme) s'applique
+     IMMÉDIATEMENT — c'est un fait accompli. Un changement de DÉCALAGE seul attend un court repos :
+     une rafale de sauts d'occurrence ne produit alors qu'un seul recalage, à la fin, au lieu d'un
+     par clic. C'est la version « qui se pose » de la règle v5.0.9 (une géométrie de chrome ne se
+     dérive pas d'un état transitoire) : on ne refuse plus l'information, on attend qu'elle soit
+     stable. */
+  const POSE_MS=180;
+  let _vvtT=null;
+  const poseVvt=(t,tout_de_suite)=>{
+    if(Math.abs(t-lastT)<.5)return;
+    clearTimeout(_vvtT);
+    const ecrire=()=>{lastT=t;document.documentElement.style.setProperty('--vvt',t+'px');};
+    if(tout_de_suite)ecrire();else _vvtT=setTimeout(ecrire,POSE_MS);};
   const set=()=>{const h=vv.height;
     const clavier=(window.innerHeight-h)>VVT_MIN_CLAVIER;   // un clavier OCCUPE de la hauteur (cf. ci-dessus)
-    if(Math.abs(h-last)<.5)return;                          // hauteur inchangée -> on ne touche à RIEN
-    last=h;
-    const t=clavier?Math.max(0,vv.offsetTop||0):0;
-    if(Math.abs(t-lastT)>=.5){lastT=t;document.documentElement.style.setProperty('--vvt',t+'px');}
-    document.documentElement.style.setProperty('--vvh',h+'px');};
+    const hBouge=Math.abs(h-last)>=.5;
+    if(hBouge){last=h;document.documentElement.style.setProperty('--vvh',h+'px');}
+    poseVvt(clavier?Math.max(0,vv.offsetTop||0):0,hBouge);};
   /* v4.29.7 : iOS peut CORRIGER la géométrie de la WebView (ex. après le bug de la PWA amputée)
      SANS émettre resize sur visualViewport — une valeur posée au lancement restait alors fausse
      pour toute la session. On écoute large (fenêtre, orientation, retour au premier plan) ET on
