@@ -85,7 +85,7 @@
   <div class="row">
     <button id="btnEv">Envoyer un évènement</button>
     <button id="btnBlob">Envoyer 2 Mio (fiche simulée)</button>
-    <button id="btnRestart">ICE restart (M7)</button>
+    <button id="btnRestart">Ré-apparier (M5/M7)</button>
   </div>
 </div>
 
@@ -120,13 +120,17 @@
 <details>
   <summary>Campagne de mesure (grille M1-M9) et service de la page</summary>
   <div class="kv">
-M1 Wi-Fi commun SANS internet (mode avion + Wi-Fi) : établissement, RTT, 2 Mio. Croisé iPhone↔Android/ordinateur.
+M1 Wi-Fi commun SANS internet : mode avion D'ABORD, Wi-Fi réactivé, apparier ENSUITE (une bascule
+   d'interface APRÈS appariement tue le canal — c'est M5/M7, pas un échec de M1).
+   Mesurer : établissement, RTT, 2 Mio. Croisé iPhone↔Android/ordinateur.
 M2 Wi-Fi à isolation client (Wi-Fi invité) : échec attendu, à confirmer.
 M3 Hotspot d'un iPhone AVEC cellulaire : P2P hôte-du-hotspot ↔ client ?
 M4 Candidats avec/sans permission caméra (case à cocher du volet 1) : IP réelles vs .local.
 M5 Internet revient pendant que le canal est ouvert : le canal survit ? Supabase re-joignable sans toucher au Wi-Fi ?
 M6 Verrouillage d'écran / bascule d'app : survie du canal, durée.
-M7 Coupure du point d'accès 10-30 s : bouton « ICE restart », délai de récupération.
+M7 Coupure du point d'accès 10-30 s : le canal revient-il seul (disconnected→connected) ?
+   S'il tombe en FAILED, il ne revient JAMAIS seul (mesuré 16/08) : « Ré-apparier » côté hôte,
+   la caméra de l'invité se relance seule — chronométrer le double scan de reprise.
 M8 Rafales QR : 1/5/20 Kio, cadence, codes manqués, temps total.
 M9 Canal pré-établi PENDANT que le cloud marche, puis coupure d'internet : les évènements passent sans geste ?
 
@@ -10460,8 +10464,22 @@ function newPc(){
   p.oniceconnectionstatechange=()=>{
     $('stIce').textContent='ICE : '+p.iceConnectionState;
     log('ICE → '+p.iceConnectionState,p.iceConnectionState==='connected'?'ok':
-        (p.iceConnectionState==='failed'?'ko':''));};
+        (p.iceConnectionState==='failed'?'ko':''));
+    // Un canal FAILED ne revient jamais seul (sockets morts après bascule d'interface,
+    // mesuré sur iPhone 16/08) : la seule reprise est un RÉ-APPARIEMENT complet.
+    if(p.iceConnectionState==='failed'){
+      if(mode==='host'){$('pairCard').classList.remove('hide');
+        $('pairSteps').textContent='Lien perdu — appuyer sur « Ré-apparier » (banc), puis re-scanner des deux côtés.';
+        log('lien perdu : appuyer sur « Ré-apparier »','warn');}
+      else if(mode==='guest'){log('lien perdu : en attente de la NOUVELLE offre de l\'hôte','warn');
+        guestScan();}}};
+  p.onconnectionstatechange=()=>log('conn → '+p.connectionState,
+    p.connectionState==='failed'?'ko':'');
+  p.onicecandidateerror=e=>log('candidat en erreur : '+e.errorCode+' '+e.errorText,'warn');
   return p;}
+function teardownPc(){try{if(pc)pc.close();}catch(e){}
+  pc=null;dc=null;clearInterval(pingTimer);clearInterval(statsTimer);
+  $('stRtt').textContent='RTT : —';$('stPair').textContent='Paire retenue : —';}
 function showQrParts(parts,box){
   box.classList.remove('hide');box.innerHTML='';
   for(const p of parts){const c=qrCanvas(p,6);
@@ -10471,6 +10489,9 @@ function bindChannel(ch){
   dc=ch;dc.binaryType='arraybuffer';
   dc.onopen=()=>{log('DataChannel OUVERT','ok');$('benchCard').classList.remove('hide');
     camStop();$('scanRow').classList.add('hide');$('pairQr').classList.add('hide');
+    if(navigator.wakeLock)navigator.wakeLock.request('screen')
+      .then(l=>{window._wl=l;log('écran maintenu éveillé (wake lock)');})
+      .catch(e=>log('wake lock refusé : '+e.message,'warn'));
     clearInterval(pingTimer);pingTimer=setInterval(()=>{
       if(dc.readyState==='open')dc.send(JSON.stringify({k:'ping',t:performance.now()}));},2000);
     clearInterval(statsTimer);statsTimer=setInterval(statPair,2000);};
@@ -10505,13 +10526,13 @@ async function statPair(){
   const f=c=>c?(c.candidateType+' '+(c.address||c.ip||'?')+':'+c.port):'?';
   $('stPair').textContent='Paire retenue : '+f(l)+'  ⇄  '+f(r);}
 
-async function startHost(reoffer){
+async function startHost(){
   mode='host';$('pairCard').classList.remove('hide');
   $('pairTitle').textContent='Hôte — étape 1 : faire scanner ce code par l\'invité';
   if($('camFirst').checked&&!scanStream){try{await camStart($('scanVideo'));}
     catch(e){log('caméra refusée : '+e.message,'warn');}}
   if(!pc){pc=newPc();bindChannel(pc.createDataChannel('ac',{ordered:true}));}
-  const off=await pc.createOffer(reoffer?{iceRestart:true}:{});
+  const off=await pc.createOffer();
   await pc.setLocalDescription(off);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
   log('candidats hôte : '+cpt.c.join(' , '));
@@ -10528,15 +10549,21 @@ async function applyAnswer(a){
 async function startGuest(){
   mode='guest';$('pairCard').classList.remove('hide');
   $('pairTitle').textContent='Invité — étape 1 : scanner le code de l\'hôte';
-  try{await camStart($('scanVideo'));$('scanRow').classList.remove('hide');}
-  catch(e){log('caméra refusée ('+e.message+') — utiliser le copier/coller','warn');}
+  await guestScan();}
+async function guestScan(){ // aussi RE-armé automatiquement quand le lien tombe en failed
+  $('pairCard').classList.remove('hide');
+  if(!scanStream){try{await camStart($('scanVideo'));}
+    catch(e){return log('caméra refusée ('+e.message+') — utiliser le copier/coller','warn');}}
+  $('scanRow').classList.remove('hide');
   const store={parts:new Map()};
-  if(scanStream)scanLoop($('scanVideo'),async txt=>{
-    if(sigFeed(store,txt)&&store.kind==='O'){scanRun++;await applyOffer(await sigUnpack(store));}});
-}
+  scanLoop($('scanVideo'),async txt=>{
+    if(sigFeed(store,txt)&&store.kind==='O'){scanRun++;await applyOffer(await sigUnpack(store));}});}
 async function applyOffer(o){
   log('offre reçue — candidats : '+o.c.join(' , '));
-  const fresh=!pc;if(fresh){pc=newPc();pc.ondatachannel=e=>bindChannel(e.channel);}
+  // Toute offre reçue alors qu'une connexion existe déjà = ré-appariement : on repart d'une
+  // connexion NEUVE (un pc failed a ses sockets morts, il n'est pas réparable).
+  if(pc){teardownPc();log('reconstruction complète de la connexion');}
+  pc=newPc();pc.ondatachannel=e=>bindChannel(e.channel);
   await pc.setRemoteDescription({type:'offer',sdp:sdpRebuild(o)});
   const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
@@ -10561,9 +10588,12 @@ $('btnBlob').onclick=async()=>{
     dc.send(buf.subarray(o,Math.min(o+CH,SZ)));}
   dc.send(JSON.stringify({k:'be',sha:h}));
   log('blob poussé dans le canal en '+((performance.now()-t0)/1000).toFixed(2)+' s (envoi local)');};
-$('btnRestart').onclick=()=>{
-  if(mode==='host')startHost(true);
-  else log('ICE restart : à déclencher côté hôte (l\'invité ré-appliquera la nouvelle offre)','warn');};
+$('btnRestart').onclick=async()=>{
+  if(mode!=='host')
+    return log('ré-appariement : geste de l\'HÔTE — ici, la caméra se relance seule dès que le lien tombe','warn');
+  teardownPc();
+  $('camFirst').checked=true; // il faudra re-scanner la réponse : caméra d'office
+  await startHost();};
 
 /* ---- Rafale QR (M8) ---- */
 let txTimer=0;
@@ -10674,9 +10704,12 @@ async function loopback(say){
   p1.close();p2.close();}
 
 /* ---- Aiguillage ---- */
+document.addEventListener('visibilitychange',()=>{ // wake lock perdu à chaque bascule d'app
+  if(document.visibilityState==='visible'&&navigator.wakeLock&&dc&&dc.readyState==='open')
+    navigator.wakeLock.request('screen').then(l=>window._wl=l).catch(()=>{});});
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=async()=>{
   const m=b.dataset.mode;
-  if(m==='host')await startHost(false);
+  if(m==='host')await startHost();
   else if(m==='guest')await startGuest();
   else if(m==='tx')$('txCard').classList.remove('hide');
   else if(m==='rx'){$('rxCard').classList.remove('hide');await startRx();}
