@@ -64,6 +64,8 @@
 
 <div class="card hide" id="pairCard">
   <h2 id="pairTitle">Appariement</h2>
+  <div id="netAlert" class="hide" style="border:2px solid #c22;border-radius:8px;padding:10px;
+       color:#c22;font-weight:600;margin:8px 0"></div>
   <div id="pairSteps"></div>
   <div class="qrbox hide" id="pairQr"></div>
   <div class="row hide" id="scanRow"><video id="scanVideo" playsinline muted></video></div>
@@ -10432,7 +10434,20 @@ function candWarn(list,quoi){
       '. Données cellulaires actives ? → mode avion sur les DEUX, Wi-Fi seul, recharger. '+
       'Déjà en mode avion ? → le Wi-Fi est IPv6-only : le P2P passera par l\'IPv6 — vérifier sur '+
       'les DEUX iPhones : Réglages → Confidentialité et sécurité → Réseau local → Safari AUTORISÉ, '+
-      'et des IPv6 au même préfixe','warn');}
+      'et des IPv6 au même préfixe','warn');
+  return true;}
+/* Bandeau rouge au-dessus du QR quand MES candidats ne portent aucune adresse locale : la ligne
+   de journal ne suffisait pas, on scannait quand même (terrain, 3 essais). */
+function netAlert(bad){
+  const na=$('netAlert');
+  if(!bad){na.classList.add('hide');na.textContent='';return;}
+  na.classList.remove('hide');
+  na.textContent='⚠ CET APPAREIL N\'EST PAS SUR UN RÉSEAU LOCAL — ses candidats sont ceux du '+
+    'réseau mobile (ou d\'un réseau IPv6-only). Scanner échouera. Contrôle qui départage tout : '+
+    'Réglages → Wi-Fi → ⓘ sur le réseau coché → « Adresse IP ». Si elle affiche 192.168.x/10.x '+
+    'alors que ce bandeau persiste après RECHARGEMENT, le blocage est dans Safari (Relais privé '+
+    'iCloud, « Limiter le suivi de l\'adresse IP », Réseau local). Si aucune adresse n\'y figure, '+
+    'l\'appareil n\'est simplement pas associé au Wi-Fi (mode avion réel ✈, Wi-Fi coché ✓, recharger).';}
 function sdpRebuild(o){
   const fp=[...unb64u(o.f)].map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(':');
   const L=['v=0','o=- 4262 2 IN IP4 127.0.0.1','s=-','t=0 0','a=group:BUNDLE 0',
@@ -10627,7 +10642,7 @@ async function startHost(){
   await pc.setLocalDescription(off);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
   log('candidats hôte : '+cpt.c.join(' , '));
-  candWarn(cpt.c,'MES candidats');
+  netAlert(candWarn(cpt.c,'MES candidats'));
   myCands=cpt.c;
   hostNonce=Math.random().toString(36).slice(2,6);
   showQrParts(await sigPack('O',Object.assign({k:hostNonce},cpt)),$('pairQr'));
@@ -10668,7 +10683,8 @@ async function applyOffer(o){
   await pc.setRemoteDescription({type:'offer',sdp:sdpRebuild(o)});
   const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
-  candWarn(cpt.c,'MES candidats');
+  log('mes candidats (invité) : '+cpt.c.join(' , '));
+  netAlert(candWarn(cpt.c,'MES candidats'));
   myCands=cpt.c;
   pairVerdict(myCands,o.c);
   showQrParts(await sigPack('A',Object.assign({k:offerNonce},cpt)),$('pairQr'));
