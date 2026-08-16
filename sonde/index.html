@@ -120,8 +120,10 @@
 <details>
   <summary>Campagne de mesure (grille M1-M9) et service de la page</summary>
   <div class="kv">
-M1 Wi-Fi commun SANS internet : mode avion D'ABORD, Wi-Fi réactivé, apparier ENSUITE (une bascule
-   d'interface APRÈS appariement tue le canal — c'est M5/M7, pas un échec de M1).
+M1 Wi-Fi commun SANS internet : mode avion sur LES DEUX iPhones D'ABORD (données cellulaires
+   vraiment coupées — sinon Safari s'ancre sur le réseau MOBILE : « 192.0.0.x » dans les
+   candidats = ce piège, mesuré le 17/08), Wi-Fi réactivé, recharger, apparier ENSUITE (une
+   bascule d'interface APRÈS appariement tue le canal — c'est M5/M7, pas un échec de M1).
    Mesurer : établissement, RTT, 2 Mio. Croisé iPhone↔Android/ordinateur.
 M2 Wi-Fi à isolation client (Wi-Fi invité) : échec attendu, à confirmer.
 M3 Hotspot d'un iPhone AVEC cellulaire : P2P hôte-du-hotspot ↔ client ?
@@ -10404,6 +10406,19 @@ function sdpExtract(sdp){
   return {u:g(/a=ice-ufrag:(\S+)/),p:g(/a=ice-pwd:(\S+)/),
     f:fp?b64u(Uint8Array.from(fp.split(':').map(h=>parseInt(h,16)))):null,
     s:g(/a=setup:(\S+)/),c:[...new Set(cands)]};}
+/* Piège vécu (17/08, iPhone) : données cellulaires actives → Safari ancre WebRTC sur le réseau
+   MOBILE (192.0.0.x = interface CLAT d'iOS, ou IPv6 publique seule) et l'offre ne porte AUCUNE
+   adresse du Wi-Fi local — l'autre appareil vérifie 15 s dans le vide puis failed. On le DIT. */
+function candWarn(list,quoi){
+  const ip=c=>c.split('~')[0];
+  if(list.some(c=>ip(c).endsWith('.local')))return; // noms mDNS : interface inconnaissable
+  const priv=list.some(c=>/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|f[cde]|fe80)/i.test(ip(c)));
+  if(priv)return;
+  const clat=list.some(c=>ip(c).startsWith('192.0.0.'));
+  log('AUCUNE adresse Wi-Fi locale dans '+quoi+
+      (clat?' (192.0.0.x = interface CELLULAIRE iOS)':' (IPv6 publique seule : chances réduites)')+
+      ' — mettre les DEUX iPhones en mode avion, réactiver le Wi-Fi seul, recharger, recommencer',
+      clat?'ko':'warn');}
 function sdpRebuild(o){
   const fp=[...unb64u(o.f)].map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(':');
   const L=['v=0','o=- 4262 2 IN IP4 127.0.0.1','s=-','t=0 0','a=group:BUNDLE 0',
@@ -10572,6 +10587,7 @@ async function startHost(){
   await pc.setLocalDescription(off);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
   log('candidats hôte : '+cpt.c.join(' , '));
+  candWarn(cpt.c,'MES candidats');
   hostNonce=Math.random().toString(36).slice(2,6);
   showQrParts(await sigPack('O',Object.assign({k:hostNonce},cpt)),$('pairQr'));
   $('pairSteps').textContent='Étape 2 : scanner en retour le code RÉPONSE affiché par l\'invité (ou coller sa charge ci-dessous).';
@@ -10585,6 +10601,7 @@ async function startHost(){
 }
 async function applyAnswer(a){
   log('réponse reçue — application');
+  candWarn(a.c,'la réponse REÇUE (côté invité)');
   await pc.setRemoteDescription({type:'answer',sdp:sdpRebuild(a)});}
 async function startGuest(){
   mode='guest';$('pairCard').classList.remove('hide');
@@ -10598,6 +10615,7 @@ async function guestScan(){ // aussi RE-armé automatiquement quand le lien tomb
   scanSignal('O','l\'offre',async o=>{scanRun++;await applyOffer(o);});}
 async function applyOffer(o){
   log('offre reçue — candidats : '+o.c.join(' , '));
+  candWarn(o.c,'l\'offre REÇUE (côté hôte)');
   // Toute offre reçue alors qu'une connexion existe déjà = ré-appariement : on repart d'une
   // connexion NEUVE (un pc failed a ses sockets morts, il n'est pas réparable).
   if(pc){teardownPc();log('reconstruction complète de la connexion');}
@@ -10607,6 +10625,7 @@ async function applyOffer(o){
   await pc.setRemoteDescription({type:'offer',sdp:sdpRebuild(o)});
   const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
+  candWarn(cpt.c,'MES candidats');
   showQrParts(await sigPack('A',Object.assign({k:offerNonce},cpt)),$('pairQr'));
   $('pairTitle').textContent='Invité — étape 2 : faire scanner ce code RÉPONSE par l\'hôte';
   $('pairSteps').textContent='La connexion s\'établit dès que l\'hôte a scanné.';}
