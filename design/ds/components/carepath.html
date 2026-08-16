@@ -6193,7 +6193,7 @@
      ambre + le mot « échu », jamais la couleur seule. */
   #monMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
   #monMode.on{display:flex}
-  @supports (height:100dvh){#monMode{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}}
+  @supports (height:100dvh){#monMode{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}}   /* --vvt : cf. « une hauteur ne suffit pas » (couches plein écran) */
   .mon-top{display:flex;align-items:baseline;gap:12px;flex:none}
   .mon-sess{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(30px,7vw,46px);font-weight:700;line-height:1;color:var(--ok)}
   .mon-sess.exo{color:var(--link)}
@@ -6530,8 +6530,28 @@
      est `window.visualViewport.height` : --vvh est posée et tenue à jour par JS (resize/scroll
      du visualViewport), dvh ne sert plus que de REPLI avant la première mesure. Même division
      par --zf que toute hauteur de fenêtre (règle v4.24.0). */
+  /* ⚠ v5.10.9 — UNE HAUTEUR NE SUFFIT PAS : IL FAUT AUSSI LA POSITION (signalé à l'usage avec
+     quatre captures : « fenêtre et fond gris coupés, avec clavier c'est beaucoup plus visible »).
+     `--vvh` donnait la BONNE hauteur à une couche posée à la MAUVAISE origine. Sur iOS, ouvrir le
+     clavier ne rétrécit pas le viewport de MISE EN PAGE : il PANORAMIQUE le viewport VISUEL à
+     l'intérieur (`visualViewport.offsetTop` > 0) pour montrer le champ focalisé. Or `position:fixed`
+     s'ancre au viewport de mise en page : la couche restait collée à un `top:0` désormais AU-DESSUS
+     de l'écran. Mesuré sur les captures : hauteur ~660 px, décalage ~370 — il ne restait qu'une
+     bande de 290 px de voile gris en haut de l'écran, la carte amputée de son titre, et le reste de
+     la page à nu SOUS le voile. Ce n'était donc jamais « sans raison » : le défaut se voit
+     exactement quand `offsetTop` n'est pas nul, c'est-à-dire surtout clavier ouvert.
+     `--vvt` porte ce décalage et la couche se repose dessus : `top` + `height` décrivent alors le
+     rectangle RÉELLEMENT visible, et non plus sa seule taille. Hors iOS (et clavier fermé) `--vvt`
+     vaut 0 et la règle est à l'octet celle d'avant — vérifié à la sonde aux deux moteurs.
+     ⚠ NE PAS confondre avec le recollage `unpan()` (v5.10.4), qui traite le décalage RÉSIDUEL après
+     fermeture du clavier : il s'interdit d'agir tant qu'un champ est focalisé — donc précisément
+     pendant tout ce que montrent les captures. Les deux sont complémentaires : `unpan` répare un
+     état incohérent, `--vvt` rend les couches justes dans un état parfaitement cohérent.
+     ⚠ BORNÉ AUX COUCHES PLEIN ÉCRAN, et c'est délibéré : le chrome collant de la PAGE (en-tête,
+     quai, dock) est ancré au viewport de mise en page avec le document qu'il commande — le suivre
+     séparément le décollerait de son contenu. */
   @supports (height:100dvh){
-    .ai-modal,.lightbox,#flowFull,#joinScreen{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
+    .ai-modal,.lightbox,#flowFull,#joinScreen{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
   /* FENÊTRE D'APPARIEMENT (v4.47.0). ORDRE IMPOSÉ PAR LA MESURE, pas par l'esthétique : à 320×568
      une maquette « QR d'abord » faisait 572 px de carte pour 568 de fenêtre — « Arrêter le

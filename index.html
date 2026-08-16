@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-f3fp75X8xeANCe/kNyxokEy3j8GXxFn+JKr7KieIagw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-oLu/zsOgAv28rOvz7P/jLdAFhh2qdWmYXRsGDsO6zng='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6547,7 +6547,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ambre + le mot « échu », jamais la couleur seule. */
   #monMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
   #monMode.on{display:flex}
-  @supports (height:100dvh){#monMode{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}}
+  @supports (height:100dvh){#monMode{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}}   /* --vvt : cf. « une hauteur ne suffit pas » (couches plein écran) */
   .mon-top{display:flex;align-items:baseline;gap:12px;flex:none}
   .mon-sess{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(30px,7vw,46px);font-weight:700;line-height:1;color:var(--ok)}
   .mon-sess.exo{color:var(--link)}
@@ -6884,8 +6884,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      est `window.visualViewport.height` : --vvh est posée et tenue à jour par JS (resize/scroll
      du visualViewport), dvh ne sert plus que de REPLI avant la première mesure. Même division
      par --zf que toute hauteur de fenêtre (règle v4.24.0). */
+  /* ⚠ v5.10.9 — UNE HAUTEUR NE SUFFIT PAS : IL FAUT AUSSI LA POSITION (signalé à l'usage avec
+     quatre captures : « fenêtre et fond gris coupés, avec clavier c'est beaucoup plus visible »).
+     `--vvh` donnait la BONNE hauteur à une couche posée à la MAUVAISE origine. Sur iOS, ouvrir le
+     clavier ne rétrécit pas le viewport de MISE EN PAGE : il PANORAMIQUE le viewport VISUEL à
+     l'intérieur (`visualViewport.offsetTop` > 0) pour montrer le champ focalisé. Or `position:fixed`
+     s'ancre au viewport de mise en page : la couche restait collée à un `top:0` désormais AU-DESSUS
+     de l'écran. Mesuré sur les captures : hauteur ~660 px, décalage ~370 — il ne restait qu'une
+     bande de 290 px de voile gris en haut de l'écran, la carte amputée de son titre, et le reste de
+     la page à nu SOUS le voile. Ce n'était donc jamais « sans raison » : le défaut se voit
+     exactement quand `offsetTop` n'est pas nul, c'est-à-dire surtout clavier ouvert.
+     `--vvt` porte ce décalage et la couche se repose dessus : `top` + `height` décrivent alors le
+     rectangle RÉELLEMENT visible, et non plus sa seule taille. Hors iOS (et clavier fermé) `--vvt`
+     vaut 0 et la règle est à l'octet celle d'avant — vérifié à la sonde aux deux moteurs.
+     ⚠ NE PAS confondre avec le recollage `unpan()` (v5.10.4), qui traite le décalage RÉSIDUEL après
+     fermeture du clavier : il s'interdit d'agir tant qu'un champ est focalisé — donc précisément
+     pendant tout ce que montrent les captures. Les deux sont complémentaires : `unpan` répare un
+     état incohérent, `--vvt` rend les couches justes dans un état parfaitement cohérent.
+     ⚠ BORNÉ AUX COUCHES PLEIN ÉCRAN, et c'est délibéré : le chrome collant de la PAGE (en-tête,
+     quai, dock) est ancré au viewport de mise en page avec le document qu'il commande — le suivre
+     séparément le décollerait de son contenu. */
   @supports (height:100dvh){
-    .ai-modal,.lightbox,#flowFull,#joinScreen{bottom:auto;height:calc(var(--vvh,100dvh) / var(--zf,1))}
+    .ai-modal,.lightbox,#flowFull,#joinScreen{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
   /* FENÊTRE D'APPARIEMENT (v4.47.0). ORDRE IMPOSÉ PAR LA MESURE, pas par l'esthétique : à 320×568
      une maquette « QR d'abord » faisait 572 px de carte pour 568 de fenêtre — « Arrêter le
@@ -9164,7 +9184,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.10.8';
+const APP_VERSION='5.10.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11156,7 +11176,14 @@ function seedsHidden(){try{return localStorage.getItem(spaceKey('ac-seeds-hidden
 // aléatoire pour une bibliothèque (le jeu de catégories est un document synchronisé unique -> pas
 // besoin de déterminisme, et on évite toute collision d'id avec le Perso ou une autre bibliothèque).
 function newCatId(name,scope){if(scope)return uid('c');let id=detCatId(name),n=2;while(categories.some(c=>c.id===id))id=detCatId(name)+'-'+(n++);return id;}
-const catOf=f=>categories.find(c=>c.id===f.category)||null;
+/* ⚠ UN ID DE CATÉGORIE SE RÉSOUT DANS SA BIBLIOTHÈQUE (v5.10.9). La recherche était globale, alors
+   que les ids ne sont uniques que PAR bibliothèque — déterministes au Perso (dérivés du nom), donc
+   deux bibliothèques peuvent porter le même : `find` renvoyait la première du tableau, c'est-à-dire
+   la catégorie d'une AUTRE bibliothèque, avec sa couleur et son nom. C'est la moitié « ça s'affiche
+   quand même » du défaut d'import corrigé au même endroit. Une référence qui ne se résout pas dans
+   la bibliothèque de l'entité n'est pas une catégorie d'à côté : c'est une référence morte, et on
+   n'affiche rien (l'import et le changement de bibliothèque la vident déjà à la source). */
+const catOf=f=>categories.find(c=>c.id===f.category&&catScope(c)===((f&&f.library)||null))||null;
 const catName=f=>{const c=catOf(f);return c?c.name:'';};
 // Pastille « d'où vient ce résultat » : la recherche portant sur TOUTES les bibliothèques, on
 // indique la bibliothèque de chaque carte pour ne pas confondre deux fiches homonymes. Rien hors
@@ -16713,7 +16740,7 @@ function editorMetaFieldsHtml(d,prefix,L){
    pointillé (ouvre le gestionnaire sans perdre le brouillon). Listbox ARIA : flèches, Entrée,
    Échap (referme et rend le focus au déclencheur), clic hors menu. */
 function catPickerHtml(d){
-  const c=categories.find(x=>x.id===d.category);
+  const c=catOf(d);   // résolu DANS la bibliothèque du brouillon (cf. catOf) — le menu ne propose que celles-là
   const cur=c?`<button type="button" class="cat-chip-selected" data-catmenu style="--catcol:${safeColor(c.color)}" aria-haspopup="listbox" aria-expanded="false" title="Changer de catégorie"><span class="cat-dot"></span>${esc(c.name)}</button>`
     :`<button type="button" class="cat-chip-selected none" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Choisir une catégorie">Sans catégorie</button>`;
   return cur+`<button type="button" class="cat-chip-other" data-catmenu aria-haspopup="listbox" aria-expanded="false">Autre…</button>`;}
@@ -16797,14 +16824,18 @@ function bindEditorMetaFields(d,prefix,o){
   {const scopeSel=document.getElementById(prefix+'-scope');if(scopeSel)scopeSel.onchange=async()=>{
     const av=d.library||null,ns=scopeSel.value||null;
     if(av!==ns){
-      const est=prefix==='f'?'fiche':'protocole';
+      // ACCORD EN GENRE — « fiche » est féminin, « protocole » masculin : les deux entités
+      // partagent ces textes, et les articles/participes étaient figés au féminin (« Publier la
+      // protocole », signalé à l'usage). Les cinq mots qui s'accordent sont donc portés par des
+      // variables, pas par la chaîne.
+      const fem=prefix==='f',est=fem?'fiche':'protocole',ce=fem?'Cette':'Ce',la=fem?'la':'le',il=fem?'elle':'il',pub=fem?'publiée':'publié';
       const cand=JSON.parse(JSON.stringify(d));cand.library=ns;
       const orig=(prefix==='f'?fiches:protocols).find(x=>x.id===d.id)||{library:av};
       const ok=await confirmDraftLibChange(cand,orig,{
-        out:n=>'Cette '+est+' va quitter la bibliothèque partagée « '+n+' » : les autres membres n\'y auront plus accès'+(prefix==='f'?', et les notes personnelles qu\'ils y avaient attachées ne leur seront plus visibles':'')+'. Prévenez-les avant si besoin.',
-        outYes:'Déplacer la '+est,
-        into:(n,dr)=>'Cette '+est+' va être publiée dans « '+n+' » : elle sera visible par tous les membres'+(dr?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',
-        intoYes:'Publier la '+est});
+        out:n=>ce+' '+est+' va quitter la bibliothèque partagée « '+n+' » : les autres membres n\'y auront plus accès'+(fem?', et les notes personnelles qu\'ils y avaient attachées ne leur seront plus visibles':'')+'. Prévenez-les avant si besoin.',
+        outYes:'Déplacer '+la+' '+est,
+        into:(n,dr)=>ce+' '+est+' va être '+pub+' dans « '+n+' » : '+il+' sera visible par tous les membres'+(dr?' pouvant éditer (brouillon masqué aux lecteurs)':'')+'.',
+        intoYes:'Publier '+la+' '+est});
       if(!ok){scopeSel.value=av||'';return;}}
     d.library=ns;
     const cc=d.category;if(cc){const cat=categories.find(x=>x.id===cc);if(!cat||(cat.library||null)!==(ns||null))d.category='';}
@@ -26568,10 +26599,33 @@ function readImportFile(file){const r=new FileReader();
       fiches=fiches.filter(x=>(x.library||null)!==targetLib);
       if(hasProtos){for(const pr of protocols.filter(x=>(x.library||null)===targetLib))await softDeleteProtocol(pr);
         protocols=protocols.filter(x=>(x.library||null)!==targetLib);}}
-    // Catégories importées : rattachées à la bibliothèque de DESTINATION (chaque bibliothèque a
-    // son propre jeu de catégories) ; ajoutées seulement si absentes de ce jeu-là.
-    sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;c.library=targetLib;
-      if(!categories.some(x=>x.id===c.id&&(x.library||null)===targetLib))categories.push(c);});
+    /* Catégories importées : rattachées à la bibliothèque de DESTINATION (chaque bibliothèque a
+       son propre jeu de catégories).
+       ⚠ LA CLÉ DE RÉCONCILIATION EST LE NOM, PAS L'ID (v5.10.9, signalé à l'usage : « à l'import de
+       fiches qui ont des catégories qui ne sont pas dans la bibliothèque d'import, elles s'affichent
+       quand même — encore plus s'il y a une catégorie qui porte le même nom »). Ces deux lignes ne
+       regardaient que l'id, et un id de catégorie n'a de sens QUE dans sa bibliothèque : ils sont
+       déterministes au Perso (« c-reanimation », dérivé du nom) et aléatoires en bibliothèque
+       partagée (`newCatId`). D'où deux défauts symétriques, tous deux visibles au rail :
+        · vers une bibliothèque PARTAGÉE : l'id Perso entrant n'y existait pas -> on posait une
+          SECONDE catégorie du MÊME id dans `categories`. Or `catOf()` résout un id sans regarder la
+          bibliothèque et renvoie la première trouvée : la carte portait la couleur de l'AUTRE.
+        · vers le PERSO : l'id partagé entrant est aléatoire, donc jamais reconnu -> une catégorie
+          « Réanimation » de plus à côté de celle qui existait, même nom, deux rangées, les fiches
+          réparties entre les deux.
+       On réutilise donc la catégorie de destination dès que le NOM s'y trouve (comparé par
+       `catSlug` : sans casse ni accents, comme partout ailleurs), on n'en crée une qu'à défaut, et
+       un id déjà pris — fût-ce dans une AUTRE bibliothèque — est régénéré. `catMap` repointe
+       ensuite les entités importées : c'est ce qui rend l'opération sûre, l'id d'origine n'étant
+       qu'une adresse locale au fichier. Table nue (`Object.create(null)`, règle 6) : ses clés
+       viennent du fichier importé. */
+    const catMap=Object.create(null);
+    sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;
+      const slug=catSlug(c.name);
+      const dej=slug?catsForScope(targetLib).find(x=>catSlug(x.name)===slug):null;
+      if(dej){catMap[c.id]=dej.id;return;}
+      const id=categories.some(x=>x.id===c.id)?newCatId(c.name,targetLib):c.id;
+      catMap[c.id]=id;categories.push({id,name:c.name,color:c.color,library:targetLib});});
     await saveCats(targetLib);
     // (`sameSpace` est calculé PLUS HAUT, avant l'atelier : même espace -> les ids sont conservés
     // (restauration/fusion), donc un doublon est possible et la rangée l'annonce. Autre espace, ou
@@ -26599,9 +26653,11 @@ function readImportFile(file){const r=new FileReader();
       // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
       // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
       await importAtts(d,zipAtts,sameSpace);
-      // Référence de catégorie orpheline (id absent du fichier importé ET du jeu de catégories de
-      // la bibliothèque de destination) : on la vide plutôt que de laisser migrateCategories() la
-      // transformer en catégorie fantôme (elle traiterait l'id brut comme un nom lisible).
+      // La catégorie suit `catMap` (réconciliation par nom ci-dessus) ; puis référence orpheline
+      // (id absent du fichier importé ET du jeu de catégories de la bibliothèque de destination) :
+      // on la vide plutôt que de laisser migrateCategories() la transformer en catégorie fantôme
+      // (elle traiterait l'id brut comme un nom lisible).
+      if(d.category&&catMap[d.category])d.category=catMap[d.category];
       if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===targetLib))d.category='';
       if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
       else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
@@ -26613,6 +26669,7 @@ function readImportFile(file){const r=new FileReader();
       for(let d of imp.protocols){d=migrateProtocol(d);
         d.library=targetLib;
         await importAtts(d,zipAtts,sameSpace);
+        if(d.category&&catMap[d.category])d.category=catMap[d.category];   // cf. catMap (fiches)
         if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===targetLib))d.category='';
         if(d.id&&existingP.has(d.id)&&replace){if(await persistProtocol(d)){const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);addedP++;}}
         else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await persistProtocol(d)){protocols.push(d);addedP++;}}}}
@@ -27599,9 +27656,17 @@ applyZoom(currentZoom());
 /* --vvh (v4.29.4) : hauteur RÉELLEMENT visible, depuis visualViewport — la seule mesure fiable
    sur iOS (barre d'outils, clavier, PWA installée). En px CSS non zoomés, comme innerHeight :
    les consommateurs divisent par --zf. Mise à jour à chaque changement du viewport visuel. */
+/* --vvt (v5.10.9) : DÉCALAGE du viewport visuel dans le viewport de mise en page. Posée par le
+   même observateur et sur les mêmes évènements que --vvh, parce que c'est la même mesure en deux
+   composantes — une couche plein écran a besoin des DEUX pour décrire le rectangle visible (cf.
+   « une hauteur ne suffit pas », feuille de style). Bornée à 0 : `offsetTop` peut être légèrement
+   négatif pendant l'élastique iOS, et un `top` négatif décollerait la couche vers le haut, soit le
+   défaut qu'on corrige. Même unité que --vvh (px non zoomés) -> les consommateurs divisent par --zf. */
 {const vv=window.visualViewport;
- if(vv){let last=-1;
-  const set=()=>{const h=vv.height;if(Math.abs(h-last)<.5)return;last=h;
+ if(vv){let last=-1,lastT=-1;
+  const set=()=>{const h=vv.height,t=Math.max(0,vv.offsetTop||0);
+    if(Math.abs(t-lastT)>=.5){lastT=t;document.documentElement.style.setProperty('--vvt',t+'px');}
+    if(Math.abs(h-last)<.5)return;last=h;
     document.documentElement.style.setProperty('--vvh',h+'px');};
   /* v4.29.7 : iOS peut CORRIGER la géométrie de la WebView (ex. après le bug de la PWA amputée)
      SANS émettre resize sur visualViewport — une valeur posée au lancement restait alors fausse
