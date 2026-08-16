@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [5.12.8] — 2026-08-16
+### Le décalage du clavier n'était ni trop suivi ni trop gelé : il était déphasé
+
+- **Une vidéo de l'auteur a tranché** — la première preuve directe de cette série, et elle montre
+  les deux symptômes à **0,6 seconde d'intervalle** sur le même geste (recherche dans une
+  référence, clavier ouvert, iPad) :
+  - **t = 4,4 s** — l'en-tête a **complètement disparu**, le contenu monte sous la barre du
+    navigateur : le décalage n'était **pas encore** appliqué ;
+  - **t = 5,0 s** — l'en-tête est **poussé vers le bas**, avec du contenu visible **au-dessus** de
+    lui : le décalage était appliqué alors qu'il n'était **déjà plus** bon.
+- Ce n'était donc ni « trop suivre » (v5.12.0) ni « trop geler » (v5.12.5) : c'était **déphasé**.
+  Le délai de repos de 180 ms introduit en v5.12.7 produisait les **deux** symptômes tour à tour.
+  Une couche calée sur le viewport visuel doit se recaler **à l'instant exact où il bouge** — il
+  n'y a pas de bon délai, il n'y a que le bon moment. Le décalage s'applique désormais sans aucun
+  différé.
+- **Ce qui reste, et qui n'était pas en cause** : la garde du clavier (v5.12.5) — sans clavier,
+  aucun décalage n'est retenu, donc le rebond élastique de fin de course ne déplace rien ; et le
+  compte d'occurrences à chasse fixe (v5.12.6), qui empêchait le bouton « › » de se dérober sous
+  le doigt.
+- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; les cinq sondes de la série
+  restent vertes. ⚠ Ce réglage ne se juge que sur appareil : le harnais ne pilote pas
+  `visualViewport`. C'est précisément pourquoi la vidéo valait trois versions de tâtonnement — et
+  la leçon est consignée (A188) : **quand un instrument ne peut pas voir le défaut, demander une
+  trace plutôt que d'itérer à l'aveugle.**
+
 ## [5.12.7] — 2026-08-16
 ### Le chrome suit le clavier — mais il se pose, au lieu de tout suivre ou de tout geler
 
@@ -815,49 +840,3 @@ parfaitement fonctionnelle, le service worker resservant l'ancien HTML. Ensemble
 
 Chaque correctif est vérifié au rendu, et le nouveau témoin d'excursion a été **vérifié capable
 d'échouer** — défaut réintroduit, contrôle rouge, fichier restauré à l'octet.
-
-## [5.10.0] — 2026-08-14
-### La vue « Page » devient un document
-
-La Page SFAR était une bonne vue d'algorithme enfermée dans une mauvaise page : une colonne qu'on
-déroule, **sans titre, sans date, sans source**, et **sans les repères posologiques** — qui partent
-dans le rail au-delà de 780 px, donc n'existaient nulle part sur le papier. Quatre lots d'un brief
-d'implémentation externe, avec ses maquettes aux trois formats. Doctrine : `AGENTS.md` A133 à A138.
-
-- **Une COQUE de feuille** — cartouche daté (sur-titre, titre, révision, comptes), trois cellules
-  d'entrée, l'algorithme et sa **colonne de référence** (surveillances, complications « à tout
-  moment », minuteurs et compteurs déclarés), les **doses en pied sur trois colonnes** avec la
-  source et un pied de page. Ce qui n'a rien à dire n'existe pas : pas de dose → pas de bande, pas
-  de surveillance ni d'excursion → pas de colonne, et l'algorithme prend toute la zone.
-- **⚠ L'avertissement de validation s'affiche enfin.** Certaines fiches portent, dans leurs
-  sources, « Fiche générée par IA le … — à relire et valider avant usage » — le prompt d'import
-  l'impose. Cette phrase n'apparaissait **nulle part** à l'écran : une feuille imprimée et affichée
-  au mur sans elle est un danger. Elle est dans le cartouche, au registre ALERTE en **contour**,
-  jamais un aplat.
-- **Le tracé passe en GRILLE UNIQUE** — six pistes, tronc sur quatre, centré. Les branches étaient
-  des conteneurs imbriqués : la largeur se divisait à chaque niveau (1130 → 565 → 282 → 141), et
-  sur une fiche à quatre niveaux la partie la plus **grave** de l'algorithme finissait dans la
-  colonne la plus étroite, empilée, fourches masquées. Chaque nœud est désormais un **frère** placé
-  par `grid-column`/`grid-row` : il occupe l'étendue libre à sa ligne, donc **une branche profonde
-  peut être plus large que celle dont elle descend** (répartition au prorata de la hauteur, minimum
-  une piste, reste à la plus haute). La fourche est dessinée **en divs**, ses bras en pourcentage
-  du centre de chaque branche : la géométrie suit la grille sans qu'on la mesure.
-- **Une largeur d'AUTEUR, et le zoom pour l'ajuster.** La feuille fait 1130 px à toutes les
-  largeurs et **ne se reflue plus** : aux trois formats c'est la même image — celle qui se
-  mémorise — et c'est l'échelle qui s'adapte (`⤢ Ajusté`, `−`/`＋`, `1:1`, par pas discrets).
-  Elle s'ouvre toujours à la taille d'auteur : ajuster d'office mettrait toutes les cibles sous
-  13 px réels dans un écran qu'on ouvre pendant un soin.
-- **L'impression en fait un vrai document** : aucune cellule coupée, doses à 3 colonnes en paysage
-  et 2 en portrait, k = 1 — et surtout **l'état de session ne s'imprime pas** (✓, « ici », « hors
-  chemin », « ×n » décrivent une réanimation qui n'a plus lieu ; une feuille au mur qui porte le ✓
-  d'une session passée est une feuille fausse). Le test du lot : si la sortie papier est utilisable
-  **sans** l'application, la page est réussie.
-- **« Tableau », avant le soin, ouvre la même feuille** — un seul générateur des deux côtés. Elle y
-  est inerte au geste près de l'échelle : on vient la regarder, pas la conduire. **Et la même
-  fenêtre s'ouvre depuis le soin**, par une porte « ⤢ Plein écran » de l'onglet Page : même coque,
-  même sortie, même page — jamais une seconde surface à tenir.
-- **Les retours ↺ ne mordent plus sur un bloc** (signalé à l'usage) : dans une grille à six pistes,
-  la voie traversait les branches voisines. Ses deux extrémités sont bornées à la gouttière.
-- **Ce qui n'est pas livré, et pourquoi** : le cartouche ne se répète pas en tête de chaque feuille
-  imprimée — seul un en-tête de table le fait nativement, et le simuler demanderait de reperdre la
-  grille unique. Le pied porte titre et révision, donc une page détachée reste identifiable.

@@ -165,8 +165,8 @@ références en sont. ⚠ Corollaire de diagnostic : « ça saute encore un peu 
 chrome ne désigne pas forcément le chrome ; ici c'était la CIBLE qui se dérobait, pas le cadre qui
 bougeait. Mesurer la position du bouton, pas seulement celle du bandeau.
 
-**A187. ENTRE « TOUT SUIVRE » ET « TOUT GELER », LA FRONTIÈRE EST « QUAND ÇA S'EST ARRÊTÉ DE
-BOUGER ».** A185 avait raison de refuser le suivi permanent (le chrome sautait à chaque saut
+**A187 (INFIRMÉE EN v5.12.8 — LIRE A188).** ENTRE « TOUT SUIVRE » ET « TOUT GELER », LA FRONTIÈRE
+SERAIT « QUAND ÇA S'EST ARRÊTÉ DE BOUGER ». A185 avait raison de refuser le suivi permanent (le chrome sautait à chaque saut
 d'occurrence) mais s'est trompée de remède : geler `--vvt` entre deux changements de HAUTEUR
 laissait le chrome hors de l'écran au premier résultat d'une recherche, **parce que le panoramique
 du clavier arrive APRÈS son ouverture, pas avec elle** — le décalage retenu à l'instant du
@@ -176,3 +176,19 @@ changement de DÉCALAGE seul attend un court repos, si bien qu'une rafale de ges
 seul recalage, à la fin. ⚠ Leçon de méthode, et c'est la troisième fois de ce lot qu'elle se paie :
 quand un correctif crée le défaut symétrique de celui qu'il répare, ce n'est pas le sens du
 correctif qui est faux, c'est qu'on a répondu par un ABSOLU à une question de SEUIL.
+
+**A188. IL N'Y A PAS DE BON DÉLAI, IL N'Y A QUE LE BON MOMENT — ET C'EST UNE VIDÉO QUI L'A MONTRÉ.**
+A187 posait un repos de 180 ms pour tenir entre « tout suivre » et « tout geler ». Une VIDÉO de
+l'auteur — la première preuve directe de cette série — montre les DEUX symptômes à 0,6 seconde
+d'intervalle sur le même geste : à t = 4,4 s l'en-tête a complètement disparu (décalage PAS ENCORE
+appliqué), à t = 5,0 s il est poussé vers le bas avec du contenu AU-DESSUS de lui (décalage
+appliqué alors qu'il n'était DÉJÀ PLUS bon). Le défaut n'était donc pas l'amplitude du suivi mais sa
+PHASE : une couche calée sur le viewport visuel se recale à l'instant exact où il bouge, ou elle
+oscille entre les deux fautes. Tout différé est un déphasage.
+⚠ ET LA LEÇON DE MÉTHODE, qui vaut plus que le correctif : le harnais ne pilote pas
+`visualViewport`, donc AUCUNE de ces trois versions n'était mesurable — j'ai itéré trois fois sur un
+modèle mental d'iOS, en annonçant chaque fois une explication plausible. **Quand l'instrument ne peut
+pas voir le défaut, on demande une trace (vidéo, capture horodatée) au lieu d'itérer à l'aveugle** ;
+une hypothèse invérifiable qu'on livre est une dette, même verte à tous les contrôles. Corollaire
+déjà rencontré en A185 sous une autre forme : un vert qui n'explique pas un rouge observé désigne la
+frontière de l'instrument.
