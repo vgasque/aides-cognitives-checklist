@@ -1,5 +1,28 @@
 # Journal des modifications
 
+## [5.12.3] — 2026-08-16
+### La colonne sommaire suit le clavier, elle aussi — la même faute, une famille plus loin
+
+- **La sidebar ne suivait pas** (signalé à l'usage : « lorsqu'on est en haut de page et qu'on doit
+  scroller en bas avec le mode recherche — défilement automatique à la 1ʳᵉ occurrence — la sidebar
+  ne suit pas »). Mesuré : la colonne suit parfaitement… **clavier fermé**. Or on est en train de
+  taper dans son champ de recherche, donc le clavier est ouvert — et elle s'ancre sur
+  **`--stick-top`**, un SECOND token que le garde-fou de la v5.12.1 ne surveillait pas.
+- **Deux tokens d'ancrage existaient, je n'en avais corrigé qu'un.** `--hdr-h` (l'en-tête seul) et
+  `--stick-top` (toute la pile collante, quai de crise compris). Les **cinq** colonnes ancrées sur
+  le second — sommaire d'une référence, rail de lecture, plan de l'aide — ont donc continué de
+  disparaître clavier ouvert pendant une version de plus. `--stick-off` est leur origine ;
+  `--stick-top` reste la **hauteur** qu'il a toujours été (une hauteur ne se décale pas, seule une
+  origine le fait — les mélanger raccourcirait les colonnes en plus de les déplacer).
+- **Le garde-fou surveille désormais les deux**, et il a immédiatement attrapé un **sixième site**
+  que je n'avais pas vu : le volet du quai de crise, qui s'ouvrait hors de l'écran clavier ouvert.
+  Neuf couches contrôlées, une exemption motivée. Vérifié capable d'échouer sur le nouveau token.
+- Le **rembourrage de défilement** (`scroll-padding-top`) suit la même origine : c'est lui qui
+  décide où atterrit un `scrollIntoView` — donc exactement le geste signalé.
+- Mesuré aux deux moteurs : après le saut à la 1ʳᵉ occurrence la colonne est à 69 px ; à 370 px de
+  panoramique elle passe à 439, et le champ de recherche reste dans la zone visible. Hors clavier,
+  géométrie identique à l'octet. `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
+
 ## [5.12.2] — 2026-08-16
 ### L'en-tête cesse de sauter au défilement, et l'accueil large suit enfin le clavier
 
@@ -980,132 +1003,3 @@ disparaître le cas d'un autre témoin (`cycleHint`). Quatre sections entrent da
 (P1, Q2, P4b, Q1), toutes **vérifiées capables d'échouer** — défauts réintroduits, 9 rouges au
 total, fichiers restaurés à l'octet. Le cliquet `pointer-events:none` de `check-anim` passe de 18 à
 19, motivé sur place. 47 témoins purs neufs (1040 au total, sur les deux moteurs).
-
-## [5.6.0] — 2026-08-09
-### Refonte complète du design — direction « verre clinique, mat »
-
-Refonte menée avec Claude Design (phases 0 à 6 : audit de l'existant, directions explorées,
-convergence, design system, écrans qui font foi, passation en sept lots). Les maquettes livrées
-sont la référence d'implémentation ; ce qui suit est ce qui a été porté dans le monofichier, avec
-les décisions consignées — la doctrine complète est dans `AGENTS.md` § « Refonte v5.6 ».
-
-**TROIS MATIÈRES, TROIS NATURES.** Sombre (`--sys`) = SYSTÈME : la capsule d'état et le dock, les
-deux seuls objets sombres du produit — trouvables sans lire. Blanc (`--work`) = TRAVAIL : carte,
-feuilles, éditeurs ; seule matière qui projette une ombre. Gris (`--amb`) = AMBIANCE. La
-séparation commandes/affichage de l'ECAM passe désormais par la MATIÈRE, plus par des bandes et
-des filets empilés — ce qui **rouvre la v4.25.0** en gardant son esprit et en inversant sa forme.
-
-- **Lot 1 — tokens.** Nouveau bloc `:root` (matières, encres, registres, échelle typographique
-  fermée à sept crans `11 / 12 / 13,5 / 15 / 17,5 / 21 / 24`, rayons `8 / 10 / 12 / 14`, une
-  seule ombre, cibles, mouvement) ; les anciens noms deviennent des ALIAS, aucune règle CSS n'a
-  eu à changer pour que le fichier compile. **Un seul ambre** (`--verify` et `--alert` fusionnent
-  en `--warn`) et **un seul rouge**. Nuit redessinée en OLED GRIS (`#0d0f13`) : sur OLED, le noir
-  pur fait « trou » et le halo des textes clairs fatigue. Trois fontes vendorisées (Manrope
-  variable 500-800, IBM Plex Mono 600/700, 45 Ko au total, précachées) : le SERIF ne sort que sur
-  un titre de fiche, le MONO que sur une valeur, Manrope tient tout le reste.
-  **⚠ TROIS TOKENS NE SONT PAS DES ALIAS, et les harnais l'ont prouvé** : `--paper` reste un
-  blanc FIXE (aliasé sur la matière travail, le QR se peignait en encre sombre sur fond sombre —
-  indéchiffrable, et le défaut ne se serait vu qu'au moment de scanner) ; `--shadow-up` garde son
-  décalage négatif ; `--ctl-line` tient 3:1 là où le `--line-strong` du système n'en fait que 1,6
-  — WCAG 2.2 § 1.4.11 vise les bordures de COMPOSANT, c'est-à-dire la case qu'on vise avec des
-  gants. Le bloc de dérivation `color-mix` de la direction A est retiré : les valeurs tonales du
-  nouveau système sont des accords qu'aucun mélange ne reproduit.
-- **Lot 2 — chrome de crise : deux objets, deux natures.** `#crisisBand` (comme bande),
-  `#crisisCtrl` et `#crisisDock` (comme rangées) laissent la place à une **capsule d'état**
-  (matière système, gabarit constant de 50 px, tap = volet minuteurs/compteurs/journal) et à un
-  **dock bas de quatre touches** (⤢ Tout voir · ▤ Consulter · ⚡︎ Complications · ⏱ Noter l'heure).
-  Chrome haut **175 → 131 px** à 390 px, trois `border-bottom` empilés en moins, et les quatre
-  gestes de session sous le pouce. En-tête à trois zones ancrées (A14) : le **sur-titre
-  « ■ MODE CRISE » passe AU-DESSUS du titre** — accolé au nom de la fiche, le statut se lisait
-  comme un fragment de ce nom — et la pilule `#hdrCrisis` est purgée (un seul énoncé du mode).
-  `fitCtrlRow` disparaît avec la rangée qu'elle ajustait ; `syncHdrScroll` reste, parce que
-  `--hdr-h` et `--stick-top` nourrissent le rail A→Z, le rail de lecture, `stickBase()` et le
-  `scroll-margin` qui empêche le masquage total d'une cible d'ancre (exigence AA).
-- **Lot 3 — carte de travail et journal.** L'étape critique se **MARQUE** (case rouge + ⚠ + corps
-  17,5 px + cadence mono ambre) et ne prend plus **ni cadre ni aplat** : mesuré à l'usage, à cinq
-  étapes l'aplat happait l'œil et détruisait la lecture de la séquence — l'aplat coloré est
-  désormais réservé à l'alarme active, et il n'y en a qu'un à l'écran. « ICI » quitte la carte
-  (trois signaux l'y désignaient déjà, `aria-current` compris) et ne vit plus que dans une LISTE.
-  L'historique du journal se replie en **une ligne-bilan qui se tire** (« ⌄ fait · ✓ n passages ·
-  a→b ») dès qu'elle existe : ~11 objets à l'écran contre 25.
-- **Lot 4 — rail et cockpit.** Cartes de minuteur à gabarit FIXE entre veille et échu (A9 : un
-  changement d'état non commandé ne déplace jamais rien — le piège n'est pas la structure, c'est
-  le libellé qui passe sur deux lignes). **A15 : « Consulter » n'évince plus le bloc au cockpit**
-  — à partir de 1200 px la référence s'ouvre dans la colonne d'état, le bloc reste sous les yeux
-  et cochable ; sous 1200 px elle reste une excursion à retour nommé.
-- **Lot 5 — accueil.** Navigation uniformisée : le sélecteur « A–Z | Catégories » choisit la CLÉ
-  DE GROUPEMENT de la même liste, et le rail droit est le MÊME index dans les deux modes (lettres
-  ↔ pastilles de catégorie) — on ne perd jamais de fiche en changeant de clé, c'est ce qui
-  distingue un groupement d'un filtre. Le résumé des filtres actifs rejoint l'en-tête de section.
-  La session vive devient le seul objet sombre de l'accueil.
-- **Lots 6 et 7 — fenêtres, documents, éditeur.** Re-peau par les tokens ; les règles nommées du
-  plan étaient déjà tenues (listes cochables jamais barrées, session terminée = archive sans
-  matière système ni dock, exercice = placard permanent jamais filigrane).
-
-**Volets système — doctrine d'occultation consignée (V1-V3).** Un volet ne s'ouvre que sur tap
-d'une touche du dock ; fermeture triple (re-tap, ✕, tap hors volet) plus le retour système ;
-l'alarme reste TOUJOURS en vue (capsule en haut, volets en bas — règle FMA de l'ECAM) ; hauteur
-plafonnée à 45 % et l'interruption s'annonce en tête (AC 120-71B §5.5). **⏱ l'heure prime** : le
-tap horodate immédiatement, le volet n'est que la nomination facultative. **⚡︎ bifurcation
-annoncée** : nom, condition d'entrée et destination avant le tap — et **à un seul événement il n'y
-a pas d'index**, la touche porte son nom et l'on entre d'un tap.
-
-**Ce que les harnais ont attrapé, et qui n'aurait pas été vu autrement** : le QR indéchiffrable en
-thème sombre, l'ombre montante devenue descendante, la capsule à 27 px de cible dans l'en-tête, le
-focus invisible sur un champ d'éditeur, le segment ÉCHU sacrifié par la boucle d'ajustement parce
-qu'un `flex:none` l'empêchait de rétrécir, et une fonction (`ovPaintLive`) emportée par une
-suppression à la tranche. Les témoins ont été **retargés, jamais désarmés** : ce qui change est
-l'adresse d'un composant, pas la propriété mesurée — et là où la propriété elle-même a changé
-(l'échelle typographique, le seuil du code d'appariement, « ICI » sur la carte), le témoin dit
-désormais ce que la règle veut dire plutôt qu'un chiffre.
-
-**Passe de fidélité aux maquettes (même version).** Relecture écran par écran contre les planches
-« 4 — Écrans », qui font foi ; les divergences relevées portaient toutes sur la MATIÈRE et la
-DENSITÉ, jamais sur la structure :
-- **Carte de bloc** : plus de liseré d'accent ni de pastille numérotée — la carte est une surface
-  de travail (filet fin, rayon 14, rembourrage 18, l'ombre unique), son en-tête est « BLOC n » en
-  petites capitales grises avec le compte en mono à droite, et le titre prend le cran 21. A12 est
-  tenue autrement et mieux : la position se lit à ce que la carte est le seul bloc OUVERT, en tête
-  de journal, et porte `aria-current="step"` — le seul des trois canaux qu'un lecteur d'écran voit.
-- **Pied de carte** : « Vérifier :: » et « Continuer » sur UNE rangée, le premier à gauche, le
-  second dernier et pleine largeur restante ; et « Vérifier :: » n'existe que si le bloc porte
-  réellement des challenges (A7 était écrite, elle n'était pas appliquée).
-- **Chapeau « Ne pas oublier »** : replié, ce n'est plus un pavé au registre ALERTE en tête de la
-  colonne d'action mais une LIGNE — ■ rouge, mot en encre douce, compte en pilule neutre. Déplié
-  et hors session, il reprend son cadre : c'est alors la condition d'entrée, et le registre est
-  juste. Un pavé rouge permanent désensibilisait au rouge exactement comme l'aplat d'une étape.
-- **Rail** : la colonne AFFICHE, on la touche pour COMMANDER. Une carte de minuteur y montre nom ·
-  cycles · valeur (76 px) ; barre, « Cycles : n » et boutons ne paraissent qu'au tap — sauf pour un
-  minuteur ÉCHU, dont le « RELANCER » reste sous les yeux, et pour les ± d'un compteur, devenu une
-  RANGÉE. Un repère posologique signalé s'y marque sans aplat. Le panneau et le volet gardent la
-  carte complète : on les ouvre justement pour régler.
-- **Accueil** : la recherche devient une carte de travail (elle était un creux gris, lu comme une
-  zone désactivée), l'avatar un carré arrondi de matière système à initiales (le disque bleu plein
-  était le plus gros aplat coloré de l'écran, devant tout contenu clinique), les deux autres
-  boutons d'en-tête des glyphes de commande, et le sélecteur « A–Z | Catégories » prend sa propre
-  rangée au-dessus des sections qu'il réordonne.
-- **Case d'étape à 26 px** (la cible reste la rangée entière, 60 px).
-- **Au cockpit, la capsule cesse d'être une capsule** (signalé à l'usage : « sur ordinateur ça
-  fait moche »). Montée dans l'en-tête, elle y gardait sa MATIÈRE SYSTÈME : une pilule sombre
-  posée sur une barre claire, entre un titre et deux glyphes — un objet qui a l'air d'un contrôle
-  sans en être un. La matière suit désormais le LOGEMENT : dans l'en-tête, l'état est du contenu
-  d'en-tête (encre de la barre, registres du thème clair pour l'alarme, fond transparent), et il
-  est CENTRÉ EN ABSOLU comme A14 l'exige — un titre long ne déplace plus l'alarme. Le sombre reste
-  là où il veut dire quelque chose : la capsule en étroit et le dock. Coût de hauteur nul (65 px,
-  inchangé), cible 44 px par le halo.
-  ⚠ Deux défauts trouvés en le faisant : `flex:1` dans un conteneur en ajustement au contenu
-  effondrait la boîte, et la boucle d'ajustement — qui MESURE — en concluait que plus rien ne
-  tenait : elle sacrifiait le segment ÉCHU et n'affichait que « +1 ». Et `audit-a11y` CRÉDITAIT un
-  halo forfaitaire de 8 px dès qu'un élément était en position relative, au lieu de lire l'inset
-  réel : il déclarait trop petite une cible de 46 px, et — plus grave — en offrait 8 gratuitement à
-  tout élément positionné pour un autre motif. Il mesure désormais ; il a immédiatement trouvé une
-  compaction morte qui rabotait les touches du dock à 41 px.
-
-⚠ Deux défauts introduits par cette passe et rattrapés par les harnais : le nom d'un minuteur repris
-en `--ink-3` tombait à **2,32:1** (l'encre d'étiquette n'est jamais du texte porteur — règle écrite
-depuis la v4.5), et l'étiquette d'un bloc HORS TRONC affichait « ⚡ Bloc » alors qu'un bloc détaché
-n'a, par construction, pas de numéro.
-
-Contrôles : `npm run check` vert (échelles typo, espacement, rayons, couleurs, paliers, SW,
-vendor, uploads, SQL, stores, icônes, harnais, hashs CSP), `npm test` 952/952 sur les deux
-moteurs, `npm run audit` **25/25 tâches vertes** (20 harnais), `design:build` régénéré.

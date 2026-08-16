@@ -110,3 +110,15 @@ d'abord été référencée sans être déclarée : `npm run check` restait VERT
 n'est pas une erreur de syntaxe — et l'application ne démarrait plus. C'est `npm test` qui
 l'attrape, comme il attrape le piège des hashs CSP. Les dix-neuf contrôles statiques mesurent des
 FORMES ; seul un démarrage mesure qu'elle vit.
+
+**A183. IL Y A DEUX TOKENS D'ANCRAGE DU CHROME, PAS UN — ET UN GARDE-FOU QUI N'EN VOIT QU'UN LAISSE
+PASSER L'AUTRE.** `--hdr-h` (l'en-tête seul) et `--stick-top` (toute la pile collante, quai de crise
+compris). La v5.12.1 a créé `--hdr-off` et son contrôle ; les CINQ colonnes ancrées sur le second —
+sommaire d'une référence, rail de lecture, plan de l'aide — ont donc continué de disparaître clavier
+ouvert pendant une version de plus (« lorsqu'on doit scroller en bas avec le mode recherche, la
+sidebar ne suit pas »). `--stick-off` est leur ORIGINE ; `--stick-top` reste la HAUTEUR qu'il a
+toujours été — une hauteur ne se décale pas, seule une origine le fait, et les mélanger
+raccourcirait les colonnes en plus de les déplacer. Le contrôle étendu aux deux tokens a
+immédiatement attrapé un SIXIÈME site jamais soupçonné (le volet du quai). ⚠ Leçon de méthode :
+quand on écrit un garde-fou pour une famille de règles, **énumérer la famille avant de coder le
+contrôle** — sinon il gèle la moitié qu'on connaissait et certifie l'autre.

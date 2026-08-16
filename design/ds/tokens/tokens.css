@@ -12,6 +12,13 @@
      `--vvt` : décalage du viewport visuel (posé par l'observateur du viewport, ÷ --zf comme toute
      mesure réinjectée, règle v4.24.0). Les deux valent 0 tant que rien ne bouge. */
   --hdr-off:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));
+  /* Et son jumeau pour ce qui s'accroche sous TOUTE la pile collante (en-tête + quai de crise) :
+     `--stick-top` est cette somme de hauteurs, `--stick-off` en est l'ORIGINE à l'écran.
+     ⚠ POURQUOI DEUX TOKENS ET NON UN SEUL `--stick-top` CORRIGÉ : `--stick-top` sert AUSSI de
+     HAUTEUR (`height:calc(100vh - var(--stick-top) - 20px)`) et de `scroll-padding`. Une hauteur
+     ne se décale pas ; seule une ORIGINE le fait. Mélanger les deux rendrait les colonnes trop
+     courtes de la valeur du panoramique, en plus de les déplacer. */
+  --stick-off:calc(var(--stick-top,64px) + var(--vvt,0px) / var(--zf,1));
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);

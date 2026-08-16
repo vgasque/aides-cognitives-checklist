@@ -13,11 +13,17 @@
  * corrigée dans n−2, en silence. Le remède est le même partout — UN token, un seul lecteur par
  * site — et ce contrôle rend le remède auto-exécutoire.
  *
- * CE QUI EST MESURÉ. Toute propriété `top` qui s'ancre sur la hauteur de l'en-tête doit tenir
- * compte du viewport visuel — soit par `--hdr-off` (le token qui porte les deux), soit en ajoutant
- * `--vvt` elle-même. `--hdr-h` reste libre partout ailleurs (hauteurs, `padding-top` de
- * compensation) : ce n'est pas la variable qui est proscrite, c'est son usage comme ORIGINE d'une
- * couche collante sans le décalage du clavier.
+ * CE QUI EST MESURÉ. Toute propriété `top` qui s'ancre sur la hauteur du chrome doit tenir compte
+ * du viewport visuel — par `--hdr-off` / `--stick-off` (les tokens qui portent les deux), ou en
+ * ajoutant `--vvt` elle-même. DEUX tokens d'ancrage existent et le contrôle surveille les deux :
+ * `--hdr-h` (l'en-tête seul) et `--stick-top` (toute la pile collante, quai de crise compris) —
+ * la v5.12.1 n'en couvrait qu'un, et les CINQ colonnes collantes ancrées sur le second
+ * (sommaire d'une référence, rail de lecture, plan) ont continué de disparaître clavier ouvert
+ * pendant une version de plus : « lorsqu'on est en haut de page et qu'on doit scroller en bas avec
+ * le mode recherche, la sidebar ne suit pas ». La même faute, une famille plus loin.
+ * Ces variables restent libres partout ailleurs (hauteurs, `scroll-padding`, compensations) : ce
+ * n'est pas la variable qui est proscrite, c'est son usage comme ORIGINE d'une couche collante
+ * sans le décalage du clavier.
  *
  * EXEMPTIONS NOMMÉES ET MOTIVÉES, comme dans check-type et check-paliers — une exemption anonyme
  * rouvrirait la porte qu'on vient de fermer.
@@ -45,8 +51,8 @@ const EXEMPTIONS = [{ sel: /\.azrail/, pourquoi: 'haut gelé par mesure (v5.6) ;
 const fautes = [];
 for (const m of css.matchAll(/[{;]\s*top\s*:\s*([^;}]+)/g)) {
   const val = m[1];
-  if (!/--hdr-h/.test(val)) continue;
-  if (/--hdr-off|--vvt/.test(val)) continue;          // le décalage du clavier est pris en compte
+  if (!/--hdr-h|--stick-top/.test(val)) continue;   // les DEUX tokens d'ancrage du chrome
+  if (/--hdr-off|--stick-off|--vvt/.test(val)) continue;   // le décalage du clavier est pris en compte
   // Contexte : le sélecteur qui précède, pour NOMMER la règle en défaut.
   const avant = css.slice(0, m.index);
   const sel = (avant.slice(avant.lastIndexOf('}') + 1).trim().split('\n').pop() || '').trim();
@@ -55,13 +61,14 @@ for (const m of css.matchAll(/[{;]\s*top\s*:\s*([^;}]+)/g)) {
 }
 
 if (fautes.length) {
-  console.error('✗ check-stick : ' + fautes.length + ' règle(s) posent leur ORIGINE sur --hdr-h au'
-    + ' lieu de --hdr-off (elles ne suivront pas le viewport visuel, donc disparaîtront clavier ouvert) :');
+  console.error('✗ check-stick : ' + fautes.length + ' règle(s) posent leur ORIGINE sur une HAUTEUR de'
+    + ' chrome sans le décalage du viewport visuel — elles disparaîtront clavier ouvert :');
   fautes.forEach(f => console.error('   · ' + (f.sel || '(sélecteur non isolé)') + '  →  top:' + f.val));
-  console.error('   Remède : top:var(--hdr-off) — le token porte --hdr-h ET --vvt (cf. :root).');
+  console.error('   Remède : --hdr-off (sous l’en-tête seul) ou --stick-off (sous toute la pile'
+    + ' collante) — ces tokens portent la hauteur ET --vvt (cf. :root).');
   process.exit(1);
 }
 
-const lus = [...css.matchAll(/[{;]\s*top\s*:\s*[^;}]*--hdr-off/g)].length;
-console.log('✓ check-stick : ' + lus + ' couche(s) collante(s) sous l’en-tête, toutes sur --hdr-off'
+const lus = [...css.matchAll(/[{;]\s*top\s*:\s*[^;}]*(--hdr-off|--stick-off)/g)].length;
+console.log('✓ check-stick : ' + lus + ' couche(s) collante(s) du chrome, toutes sur --hdr-off/--stick-off'
   + ' (elles suivent l’en-tête ET le viewport visuel) ; ' + EXEMPTIONS.length + ' exemption(s) motivée(s).');

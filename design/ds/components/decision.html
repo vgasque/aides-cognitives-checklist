@@ -73,6 +73,13 @@
      `--vvt` : décalage du viewport visuel (posé par l'observateur du viewport, ÷ --zf comme toute
      mesure réinjectée, règle v4.24.0). Les deux valent 0 tant que rien ne bouge. */
   --hdr-off:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));
+  /* Et son jumeau pour ce qui s'accroche sous TOUTE la pile collante (en-tête + quai de crise) :
+     `--stick-top` est cette somme de hauteurs, `--stick-off` en est l'ORIGINE à l'écran.
+     ⚠ POURQUOI DEUX TOKENS ET NON UN SEUL `--stick-top` CORRIGÉ : `--stick-top` sert AUSSI de
+     HAUTEUR (`height:calc(100vh - var(--stick-top) - 20px)`) et de `scroll-padding`. Une hauteur
+     ne se décale pas ; seule une ORIGINE le fait. Mélanger les deux rendrait les colonnes trop
+     courtes de la valeur du panoramique, en plus de les déplacer. */
+  --stick-off:calc(var(--stick-top,64px) + var(--vvt,0px) / var(--zf,1));
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
@@ -431,7 +438,7 @@
      sur <html> par syncHdrScroll, déjà divisée par le zoom : une ligne suffit, et elle profite à
      tout défilement natif (focus clavier, ancres, recherche dans la page, scrollIntoView du
      panneau minuteurs). Harnais : sonde 2.4.11 d'audit-a11y.mjs. */
-  html{scroll-padding-top:calc(var(--stick-top,64px) + 8px)}
+  html{scroll-padding-top:calc(var(--stick-off) + 8px)}
   button{font-family:inherit;cursor:pointer}input,textarea,select{font-family:inherit;font-size:16px;max-width:100%}textarea{resize:vertical}
   /* Écrans tactiles : `manipulation` garde défilement et pincement, ne retire que le DOUBLE-TAP
      ZOOM. Ce que ce réglage évite AUJOURD'HUI, ce n'est plus le délai de ~350 ms (Safari ne l'a
@@ -519,7 +526,7 @@
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
-      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
+      position:sticky;top:calc(var(--stick-off) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:17.5px}
   }
@@ -3171,7 +3178,7 @@
        donc celui qui ORIENTE, pas celui qu'on LIT. C'est l'inverse de la doctrine du dossier : la
        colonne d'orientation est DÉSATURÉE, la colonne de travail est la SURFACE (règle déjà
        appliquée au rail de lecture et à l'Échelle, v4.59.0). */
-    aside.ref-toc{display:block;position:sticky;top:calc(var(--stick-top,64px) + 8px);
+    aside.ref-toc{display:block;position:sticky;top:calc(var(--stick-off) + 8px);
       background:none;border:0;border-radius:0;padding:10px 0;
       max-height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 24px);overflow-y:auto}
   }
@@ -3438,7 +3445,11 @@
      le volet COMMENCE au bas de la capsule, il ne peut donc rien couvrir d'elle — il ne recouvre
      que le rembourrage du quai, qui n'affiche rien. Et il reste SOUS l'en-tête et le bandeau
      (z 20), qui restent les couches système du dessus. */
-  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--quai-b, var(--stick-top,110px)) - 8px);z-index:16;
+  /* Le volet du quai s'accroche au BAS de la capsule (`--quai-b`, mesurée) — il rejoint donc la
+     même règle que les autres couches de chrome : + le panoramique du viewport visuel, sinon il
+     s'ouvre hors de l'écran clavier ouvert (attrapé par `check-stick` en étendant celui-ci au
+     second token d'ancrage — je ne l'avais pas vu). */
+  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--quai-b, var(--stick-top,110px)) - 8px + var(--vvt,0px) / var(--zf,1));z-index:16;
     background:var(--surface);border-radius:0 0 var(--r-3) var(--r-3);box-shadow:var(--shadow-lg);
     max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);
     overflow-y:auto;overscroll-behavior:contain}
@@ -7625,7 +7636,7 @@
     /* HAUTEUR DÉFINIE (pas max-height) : les trois zones se répartissent l'espace, et chacune
        borne son propre débordement — sans hauteur définie, `flex:1` sur l'Échelle n'aurait rien
        à répartir et tout retomberait dans un défileur unique (le défaut corrigé v4.23.0). */
-    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+    body.view-read .read-side{position:sticky;top:calc(var(--stick-off) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
       border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
     /* UN SEUL DÉFILEUR (v4.23.0, retour d'usage). Un temps découpé en trois zones bornées
        défilant chacune sur elle-même : la posologie ne se faisait plus repousser, mais chaque
@@ -7800,7 +7811,7 @@
        traversent la structure pour atteindre les champs. Elle n'apparaît qu'à 1200 px, comme le
        cockpit de lecture : à 1000, les trois colonnes laisseraient trop peu à l'écriture. */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:none}
-    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+    body.view-read .read-plan{position:sticky;top:calc(var(--stick-off) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
       border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
     /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
        `ovPlanLadderHtml` désaturé que dans le rail — seul le logement change. */
@@ -7826,7 +7837,7 @@
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
-      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
+      position:sticky;top:calc(var(--stick-off) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
   }
   /* Colonne droite de l'éditeur (>= 1000px). Côté FICHE elle porte l'algorithme (cf.
