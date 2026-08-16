@@ -1842,8 +1842,10 @@
   rassemble : chaque remarque nomme sa CIBLE et l'action proposée ; un volet « △ Relecture · n »
   en pied les liste et **ancre** vers la ligne concernée (flash, sans voler le curseur : l'auteur
   vient de LIRE le bilan, il choisit ce qu'il corrige). **JAMAIS BLOQUANT, JAMAIS ROUGE** — et
-  le volet le DIT en toutes lettres (« aucune de ces remarques n'empêche d'enregistrer — c'est
-  vous qui connaissez votre service ») : l'ambre est le registre du « on se trompe ici », le rouge
+  le volet le DIT en toutes lettres (« aucune de ces remarques n'empêche d'enregistrer — vous
+  gardez le contrôle » ; la formule d'origine, « c'est vous qui connaissez votre service »,
+  est remplacée en v5.13.5 sur décision de l'auteur) : l'ambre est le registre du « on se
+  trompe ici », le rouge
   reste à ce qui tue. Le volet **disparaît quand il n'y a rien à dire** : un panneau qui affirme
   « 0 remarque » est du bruit permanent. **K4, « IDENTITÉ » REPLIABLE** : titre, catégorie,
   bibliothèque, code, validation et état occupaient tout le haut — l'auteur traversait six champs
