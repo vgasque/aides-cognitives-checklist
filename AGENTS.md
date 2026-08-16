@@ -443,6 +443,13 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
   diff de versions devenait aveugle sur cinq listes sur six. ⚠ `tests.html` se lit en OCTETS :
   `grep` sans `-a` le croit binaire et répond zéro sur TOUT — le piège qui a fait dire « 0
   test » à un audit entier (toujours `grep -a` sur ce fichier).
+  `check-stick.mjs` (v5.12.1) tient LE DÉCALAGE « SOUS L'EN-TÊTE » : aucune propriété `top` ne
+  s'ancre sur `--hdr-h` sans tenir compte de `--vvt` (le décalage du viewport visuel, clavier
+  ouvert) — elles lisent `--hdr-off`, qui porte les deux. Il naît d'une récidive : la v5.12.0 a
+  fait suivre le clavier au chrome collant mais n'a corrigé que TROIS des CINQ sites qui
+  recopiaient le calcul, et `#refBar` — la barre de recherche d'une référence — continuait de
+  disparaître dans le cas qu'on venait de réparer. Une exemption nommée (`.azrail`, dont le haut
+  est gelé par mesure). Vérifié capable d'échouer.
   `check-harnais.mjs` (v5.0.0) rend auto-exécutoire la discipline née avec le lanceur parallèle :
   (1) tout `scripts/audit-*.mjs` sur disque figure dans `HARNAIS` (audit-run.mjs) et
   réciproquement — un harnais créé mais non listé ne tournerait JAMAIS dans `npm run audit`, et le

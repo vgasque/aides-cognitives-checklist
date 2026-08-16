@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-HIMYR3NT00AlWlB9G3QgcjcLucABK7LvEKmS2RBoGqE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NNk1fiTLLSWyxrfvNasAyUbM0zCg5oExRq8eC3TUbTw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -415,6 +415,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      écrire --line:var(--line) formerait un cycle, la propriété deviendrait invalide à la valeur
      calculée et TOUTES les règles qui la consomment perdraient leur valeur. */
   :root{
+  /* ═══ SOUS L'EN-TÊTE — UNE SEULE ÉCRITURE (v5.12.1) ═══════════════════════════════════════
+     Tout ce qui colle SOUS l'en-tête doit être à la même hauteur que lui, clavier compris. Le
+     calcul était recopié à cinq endroits (`#crisisDock`, `#refBar`, `.ed-grab`, la barre de
+     sélection, l'en-tête lui-même) — et la v5.12.0 n'en a corrigé que trois : `#refBar`, la barre
+     de recherche d'une référence, est restée sur l'ancien calcul et DISPARAISSAIT donc encore
+     clavier ouvert (signalé à l'usage : « l'en-tête apparaît maintenant mais pas le bandeau
+     recherche sur iPad/iPhone »). C'est la faute que ce dépôt paie le plus souvent : une règle
+     tenue à la main dans n sites, corrigée dans n−2. Un token, un seul lecteur par site.
+     `--hdr-h` : hauteur RÉELLE de l'en-tête (posée par `syncHdrScroll`).
+     `--vvt` : décalage du viewport visuel (posé par l'observateur du viewport, ÷ --zf comme toute
+     mesure réinjectée, règle v4.24.0). Les deux valent 0 tant que rien ne bouge. */
+  --hdr-off:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
@@ -1333,7 +1345,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      A9 — HAUTEUR D'ÉTAT FIXE : 50 px de haut quel que soit l'état (veille, échu, alarme). Un
      changement d'état NON commandé ne déplace jamais rien ; seule l'expansion COMMANDÉE par un
      tap (le volet) a droit à la hauteur. */
-  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));z-index:15;background:var(--amb);padding:8px 14px}
+  #crisisDock{position:sticky;top:var(--hdr-off);z-index:15;background:var(--amb);padding:8px 14px}
   #crisisDock[hidden]{display:none}
   /* DIRECTION A, lot 4 (audit post-v5.0.10) — AU PALIER COCKPIT, LE CHROME S'EFFACE DERRIÈRE SES
      CONTRÔLES. Mesuré à 1280 px : la rangée de commandes est une bande blanche de bord à bord
@@ -2544,7 +2556,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'en-tête 61, haut de la barre 189, soit 128 px de vide, dont 61 dus à ce seul `--hdr-h`.
      Deux défileurs, deux décalages : `--hdr-h` en étroit, ZÉRO en large (le second est posé dans
      le bloc ≥ 780 px, auprès de la déclaration qui rend `.home-main` défilant). */
-  .sel-bar{position:sticky;top:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));z-index:14;display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+  .sel-bar{position:sticky;top:var(--hdr-off);z-index:14;display:flex;align-items:center;flex-wrap:wrap;gap:8px;
     margin:0 0 10px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-md);
     background:var(--surface);box-shadow:var(--shadow)}
   .sel-n{font-size:var(--t-meta);font-weight:700;color:var(--ink);white-space:nowrap}
@@ -3356,7 +3368,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      aides ») : c'est exactement la grammaire de `#crisisCtrl` au-dessus de `#crisisDock` — deux
      rangées de MÊME chrome, chacune bordée en bas. Continuité ne veut pas dire indistinction :
      le fond commun fait le bloc, le filet dit qu'il a deux étages. */
-  #refBar{position:fixed;left:0;right:0;top:var(--hdr-h,64px);z-index:14;
+  #refBar{position:fixed;left:0;right:0;top:var(--hdr-off);z-index:14;
     background:var(--surface);border-bottom:1px solid var(--line)}
   #refBar>.ref-toc{max-width:1064px;margin:0 auto;padding:0 18px}
   /* ⚠ VINGTIÈME PIÈGE DE CASCADE (v5.3.1, signalé à l'usage : « résultats de recherche très
@@ -5603,7 +5615,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      v4.55.3, ligne d'état v4.56.3) : on EMPILE, et le ✕ est ANCRÉ en haut à droite avec sa place
      réservée par un rembourrage — jamais un objet de rangée qui dispute la largeur au texte.
      Ordre : la CONSIGNE d'abord (c'est l'impératif du moment), le nom de l'objet ensuite. */
-  .ed-grab{position:sticky;top:calc(var(--hdr-h,64px) + 6px);z-index:6;display:flex;flex-direction:column;align-items:stretch;gap:2px;
+  .ed-grab{position:sticky;top:calc(var(--hdr-off) + 6px);z-index:6;display:flex;flex-direction:column;align-items:stretch;gap:2px;
     background:var(--primary-soft);border:1px solid var(--primary);border-radius:var(--radius-md);padding:8px 56px 10px 12px;margin:0 0 12px}
   .ed-grab .eg-l{order:1;min-width:0;font-size:13.5px;color:var(--primary-dk);overflow-wrap:break-word}
   .ed-grab .eg-h{order:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-dk);opacity:.85}
@@ -9405,7 +9417,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.12.0';
+const APP_VERSION='5.12.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

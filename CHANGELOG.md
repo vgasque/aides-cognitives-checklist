@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.12.1] — 2026-08-16
+### La barre de recherche d'une référence suit le clavier, elle aussi — et la règle cesse d'être tenue à la main
+
+- **`#refBar` restait en arrière** (signalé à l'usage : « l'en-tête apparaît maintenant mais pas le
+  bandeau recherche sur iPad/iPhone »). La v5.12.0 a fait suivre le viewport visuel au chrome
+  collant — clavier ouvert, un `sticky` calé sur le viewport de **mise en page** passe au-dessus de
+  l'écran — mais le décalage « sous l'en-tête » était **recopié dans cinq règles** et je n'en avais
+  corrigé que trois. La barre de recherche d'une référence est restée sur l'ancien calcul, et
+  continuait donc de disparaître exactement dans le cas qu'on venait de réparer.
+- **Un token, un seul lecteur par site** : `--hdr-off` porte la hauteur de l'en-tête **et** le
+  décalage du viewport visuel ; les cinq règles le lisent. Mesuré : à 370 px de panoramique,
+  l'en-tête passe de 0 à 370 et la barre de recherche de 61 à 431 — elles restent solidaires.
+- **Et la règle devient auto-exécutoire** (`check-stick.mjs`, dix-neuvième garde-fou) : aucune
+  propriété `top` ne peut s'ancrer sur la hauteur de l'en-tête sans tenir compte du clavier. C'est
+  la faute que ce dépôt paie le plus souvent et qu'il a déjà nommée ailleurs (MUTE_SEL, la table
+  MIME des harnais) — une règle répartie dans *n* sites finit corrigée dans *n*−2, en silence.
+  Vérifié capable d'échouer : la règle remise dans son état d'avant fait rougir le contrôle, qui la
+  nomme.
+- Une **exemption nommée et motivée** : le rail A→Z. Son haut est mesuré puis **gelé** (v5.6 — une
+  géométrie de chrome ne se dérive jamais d'un état qui dépend du défilement, sinon ses lettres,
+  qui sont centrées, se déplacent de 26 px sous le doigt). Lui faire suivre le viewport déplacerait
+  son haut sans son bas : un demi-correctif pire que le défaut, et le cas ne se rencontre pas —
+  clavier ouvert, on tape dans la recherche, on ne vise pas une lettre du rail.
+
 ## [5.12.0] — 2026-08-16
 ### Agir sur plusieurs fiches d'un geste, et replier un long document
 
@@ -1105,45 +1129,3 @@ la doctrine QRH, alors que le runtime connaît les deux nombres (`passInfo`, les
 
 Rotation du journal (règle des 20 entrées) : 5.0.0 → 5.0.2 partent dans
 `docs/changelog/v5.md` (créé), 4.77.0 → 4.79.0 rejoignent `docs/changelog/v4.md`.
-
-## [5.4.4] — 2026-08-08
-### Les audits cessent d'être chronophages — sections ciblables, tranches, cache vert (aucune sonde changée)
-
-Audit du dispositif d'audit lui-même, demandé par l'auteur (« peut-on réduire le temps en
-gardant la même sécurité ? »). Mesuré d'abord : la passe complète coûtait **216,7 s de temps
-mural, et audit-doctrine à lui seul EST ce temps mural** (le pool absorbe les 19 autres harnais
-pendant qu'il tourne) ; surtout, confirmer UN témoin corrigé coûtait le harnais ENTIER, « et ça
-plusieurs fois, pour plusieurs fichiers » — 29 des 45 derniers commits touchant `index.html`
-avaient dû toucher des `audit-*.mjs`.
-
-- **Sections ciblables** (`secRunner` dans `harness.mjs`) : les 51 sections de doctrine et les
-  23 de partage — indépendantes par construction, seul état partagé les compteurs ok/ko — sont
-  enveloppées dans `await sec('nom', …)`. `node scripts/audit-doctrine.mjs --grep <motif>`
-  confirme une section en **1,5 à 8 s au lieu de 216,7** ; un motif sans correspondance ÉCHOUE
-  bruyamment en listant les sections (une passe vide aurait l'air verte) ; toute passe filtrée
-  s'annonce PARTIELLE jusque dans son bilan final. La transformation (mécanique, script à garde
-  d'abandon) est **vérifiée par équivalence** : sortie byte-identique à l'avant-refactor,
-  737/737 et 291/291 contrôles, même ordre.
-- **Tranches parallèles** (`tranches: n` dans `HARNAIS`) : doctrine se joue en 4 processus
-  `--shard k/4`, a11y en 2 (découpe du tableau SURFACES ; la sonde focus 2.4.11 en tranche 1
-  seule), partage en 2. Passe complète **216,7 → 156,4 s** au pool par défaut, **126,0 s** à
-  `AC_JOBS=5` (mesuré vert ; le défaut RESTE 4 — protection CI et règle « un rouge sous charge
-  se confirme en rejouant seul »). GARDE-FOU : chaque tranche imprime `##SEC joues=j total=N`
-  et le lanceur vérifie que la somme couvre le total — une tranche qui perdrait des sections
-  serait une troncature silencieuse ; vérifié CAPABLE D'ÉCHOUER (rouge fabriqué puis restauré).
-- **`npm run audit -- --rouges`** rejoue les seuls harnais rouges de la dernière passe (état
-  dans `.audit-etat.json`, racine, gitignoré), annoncé PARTIELLE ; aucun rouge enregistré → il
-  le dit et sort vert.
-- **Cache de passe verte** : une passe complète verte enregistre le SHA-256 de tout ce qui peut
-  influencer un verdict (servables de la racine, `vendor/`, `scripts/*.mjs`, moteur) ; si rien
-  n'a changé, `npm run audit` LE DIT au lieu de rejouer — des entrées identiques octet à octet
-  donnent le même verdict — et `--force` rejoue quand même. Une passe partielle n'écrit ni ne
-  consomme jamais ce cache.
-- **Ce qui n'a pas été fait, et pourquoi** (écrit dans AGENTS.md) : pas de carte « fichier
-  modifié → harnais à jouer » (monofichier + dix-neuf pièges de cascade : une édition CSS
-  anodine casse des témoins dans des harnais sans rapport — une carte serait un vert menteur) ;
-  pas de témoins auto-régénérés façon snapshots (un contrôle qui ne peut plus échouer ne prouve
-  rien, leçon v4.31.1) ; k5 non découpé (scénario séquentiel monopage, ~67 s incompressibles).
-  **La porte de commit est strictement inchangée** : la passe COMPLÈTE avant chaque commit, que
-  la CI rejoue. Le coût de PENSER les témoins quand le code change n'est pas racheté : c'est lui
-  la garantie.
