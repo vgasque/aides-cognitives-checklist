@@ -563,8 +563,17 @@
      ⚠ ET C'EST UNE CLASSE, PAS UNE MEDIA QUERY : la présence d'un clavier ne se déduit d'aucune
      largeur. `html.kbd` est posée par l'observateur du viewport visuel, sur le même prédicat que
      `--vvt` (un clavier OCCUPE de la hauteur). */
-  html.kbd header.bar,html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,
-  html.kbd .rt-dock{position:static}
+  html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,html.kbd .rt-dock{position:static}
+  /* ⚠ L'EN-TÊTE S'EFFACE, IL NE PASSE PAS DESSOUS (correctif, capture à l'appui : « pas une bonne
+     solution »). Le libérer ne suffisait pas : libéré, il défile — donc il revient en haut du
+     document quand on y remonte, et se retrouvait alors DANS LA MÊME BANDE que la colonne du champ.
+     Lui passer devant la faisait masquer le champ ; lui passer dessous faisait recouvrir l'en-tête
+     par la colonne, ce qui se voit et ne ressemble à rien. Deux chromes qui se disputent la même
+     bande n'ont pas de bon ordre d'empilement : il faut qu'un seul soit là.
+     Pendant la frappe, c'est la colonne — elle porte ce qu'on écrit et ce qu'on cherche. L'en-tête
+     (retour, statut, thème, menu) n'a aucun rôle à ce moment-là et revient intact dès que le
+     clavier se ferme. Rien ne se superpose, rien ne se masque, rien ne saute. */
+  html.kbd header.bar{display:none}
   /* ═══ CE QUI DOIT RESTER EN PLACE DEVIENT UNE COUCHE DU VIEWPORT VISUEL ════════════════════
      Demande de l'auteur, après que « libérer » a échoué sur le logement du champ : « pas moyen de
      fixer la sidebar de manière à ce que ça ne bouge pas quoi qu'il arrive, tout en la gardant

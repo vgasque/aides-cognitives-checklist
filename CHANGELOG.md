@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.13.4] — 2026-08-16
+### Pendant la frappe, l'en-tête s'efface — deux chromes ne se disputent pas une bande
+
+- **La v5.13.3 faisait recouvrir l'en-tête par la colonne** (« pas une bonne solution », capture à
+  l'appui). Le fond du problème : *libérer* l'en-tête ne suffisait pas. Libéré, il défile — donc il
+  **revient en haut du document** quand on y remonte, et se retrouve alors **dans la même bande**
+  que la colonne du champ. Lui passer devant masquait le champ ; lui passer dessous faisait
+  recouvrir l'en-tête, ce qui se voit et ne ressemble à rien.
+- **Deux chromes qui se disputent la même bande n'ont pas de bon ordre d'empilement : il faut qu'un
+  seul soit là.** Pendant la frappe, c'est la colonne — elle porte ce qu'on écrit et ce qu'on
+  cherche. L'en-tête (retour, statut, thème, menu) n'a aucun rôle à ce moment-là : il **s'efface**,
+  et revient intact dès que le clavier se ferme. Rien ne se superpose, rien ne se masque, rien ne
+  saute.
+- Mesuré aux deux moteurs et aux deux largeurs : clavier ouvert l'en-tête est `display:none` et la
+  colonne occupe le rectangle visible de bout en bout ; clavier fermé l'en-tête est de retour,
+  collant à 0. `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
+
 ## [5.13.3] — 2026-08-16
 ### La colonne passe devant la décoration — sinon on la perd en remontant
 
@@ -558,96 +575,3 @@
   et leurs articles étaient figés au féminin dans la chaîne — avec eux le démonstratif (« Cette
   protocole »), le pronom et le participe (« va être publiée »). Les cinq mots qui s'accordent
   sont désormais portés par des variables, pas par la chaîne.
-
-## [5.10.8] — 2026-08-15
-### Le volet respire, un chronomètre dit qu'il en est un, et la porte « ＋ » de l'éditeur ramène enfin sur ce qu'elle crée
-
-- **La porte « ＋ » de l'éditeur amenait bien sur l'objet créé — une micro-tâche l'annulait**
-  (signalé à l'usage : « en mode édition, quand on clique sur ajouter (étape, chronomètre,
-  minuteur, compteur…) le scroll ne descend pas jusqu'à la case qui vient d'être créée »). Le
-  geste était JUSTE : trace instrumentée, `edAdd` défilait de y = 1200 à 4996 dans la même tâche
-  que le clic. C'est l'observateur de fenêtres qui rembobinait juste après — `_bgUnlock` restaure
-  la position mémorisée à l'ouverture de la fenêtre, et ramenait à 1200, l'objet neuf restant
-  3 000 px sous le pli. Le symptôme « rien ne se passe » était donc un geste correct, défait 1 ms
-  plus tard. **Et seulement sur tactile** : cette restauration est gardée par `pointer:coarse` —
-  sur ordinateur le défilement tenait, défaut invisible partout où l'on développe et systématique
-  partout où l'on soigne (même famille que le dossier « bande basse iOS »). La ceinture reste (elle
-  protège d'un moteur qui bougerait pendant le verrou) ; on lui ajoute le cas où l'appelant PREND
-  LA MAIN : `modalHandoffClose` met le retour de focus à néant et lève le verrou de fond
-  SYNCHRONIQUEMENT, sans restaurer — l'observateur, qui est une micro-tâche, trouve ensuite le fond
-  déjà déverrouillé et ne dérange rien. Couper d'avance est une propriété ; espérer un ordre
-  d'exécution est un pari. Les fermetures ordinaires (✕, Échap, tap hors fenêtre) gardent leur
-  comportement, qui est le bon. Vaut aussi pour la porte des RÉFÉRENCES (`edAddProto`).
-- **Le début de l'objet créé se pose sous les couches collantes, il ne se centre plus**
-  (question de l'auteur : « le scroll peut-il afficher le début du bloc en haut de la page ? sinon
-  peu visible »). `block:'center'` centre la BOÎTE dans la fenêtre sans rien savoir du chrome
-  collant : mesuré, un bloc d'étapes neuf fait 552 px et une décision 587 — sur une fenêtre de 844
-  le titre tombait à 181 px (visible, mais 120 px de vide au-dessus) ; sur une fenêtre de **667**
-  (iPhone SE, ou n'importe quel téléphone en paysage) le même calcul le posait à **40**, c'est-à-dire
-  DERRIÈRE un en-tête de 61 — on ne voyait plus le titre de ce qu'on venait de créer, et le cas
-  s'aggrave avec la hauteur de l'objet. `block:'start'` suffit, sans rien calculer : le
-  `scroll-padding-top` global (`--stick-top + 8`, déjà divisé par le zoom), posé en v4.30.0 pour
-  WCAG 2.4.11, est honoré par le défilement natif et sert ici une seconde fois. Mesuré après :
-  **haut = 69 px** pour les cinq types structurés, aux deux hauteurs. **Les listes gardent leur
-  centrage**, et ce n'est pas un oubli : une dose, une vérification, un différentiel, une source
-  sont UNE ligne de 44 px dont le sens vient du titre de section au-dessus d'elle — l'ancrer en
-  haut la collerait sous l'en-tête et pousserait sa section hors de l'écran. Règle : *on ancre en
-  haut ce qui a une tête à soi, on centre ce qui n'est qu'une ligne.*
-- **« + Ajouter une réponse » rejoint ses frères** : c'était le dernier ajout de l'éditeur à faire
-  un `renderEditor()` nu — le focus retombait sur `body` et la rangée neuve naissait au ras du bord
-  bas (mesuré : haut à 770 pour 844 de fenêtre). Étape, rappel et jalon ancrent et focalisent
-  depuis la v4.77.0 ; cette rangée avait simplement été oubliée.
-- **UNE SONDE TIENT DÉSORMAIS CE CHEMIN, qui n'était mesuré par RIEN** (`audit-doctrine`, section
-  « ÉDITEUR · la porte "＋" amène sur ce qu'elle crée »). C'est la leçon la plus coûteuse de ce lot :
-  `check-*` est statique, `tests.html` n'exerce que des fonctions PURES, et aucun des vingt harnais
-  n'ouvrait cette palette — si bien que, pendant le correctif lui-même, une `ReferenceError` a vécu
-  dans `edAdd` (une déclaration `const CIBLE` emportée par une réécriture de commentaire) en
-  laissant **toute la passe verte**, seule la console du navigateur la voyant. La sonde ouvre la
-  vraie porte (`openEdit`, jamais un `state.view` posé à la main), en pointeur GROSSIER émulé et
-  aux deux hauteurs 844 et 667, et mesure l'ANCRAGE (`haut ≈ --stick-top`) plutôt que la
-  visibilité — un témoin « l'objet est visible » aurait été vert dans les deux cas du défaut. Deux
-  témoins gardent la sonde honnête : le régime tactile doit être réellement émulé (sans lui, le
-  défaut ne peut pas se produire et le vert ne vaudrait rien) et l'objet doit avoir été réellement
-  créé. Vérifiée **capable d'échouer sur les trois défauts**, fichier restauré à l'octet
-  (sha256 recontrôlé) : porte qui ne passe pas la main → 14 rouges ; retour au centrage → 9 rouges ;
-  `ReferenceError` → capturée par `pageerror`. À noter, et c'est le genre de fait qu'on n'apprend
-  qu'en essayant : réintroduire la seule restauration de `_bgUnlock` ne reproduit PLUS rien, le
-  déverrouillage synchrone la désamorçant en amont.
-- **La ligne « Minuteurs · compteurs · journal » du volet est fondue dans le sous-titre
-  « Minuteurs »** (signalé à l'usage : « prend beaucoup de hauteur »). Les deux rangées disaient la
-  même chose à un mot près, avec la MÊME grammaire CSS (11 px, petites capitales) : c'est le doublon
-  de vocabulaire qu'AC 120-71B §5.5 proscrit, payé en hauteur d'écran pendant un soin. Le titre du
-  volet devient le premier sous-titre de famille et le ✕ vit dans SA rangée ; « Compteurs » et
-  « Jalons » ne bougent pas. Le ✕ repasse EN FLUX (ancré hors flux, il obligeait à réinjecter
-  `min-height:48px` sur le titre pour ne pas flotter — on payait sa hauteur deux fois) et prend ses
-  48 px de cible par un HALO vertical : 36 px de dessin, 0 px de hauteur en plus. Mesuré à 390 px :
-  **81 px → 44 px** avant la première carte, fermeture triple intacte, aucun débordement de rangée.
-  Trois règles CSS devenues sans cause sont purgées (règle 14).
-- **Un chronomètre dit qu'il en est un** (signalé à l'usage : « les chronomètres s'affichent pareils
-  que les minuteurs, impossible à distinguer visuellement »). Il n'y avait aucune marque positive :
-  la seule différence était une ABSENCE — pas de barre, pas de « Cycles : n » —, et une absence ne
-  se lit pas, surtout à côté d'un minuteur neuf où « Cycles : 0 » ressemble déjà à rien. Le nom par
-  défaut disait bien « Chronomètre », mais il disparaît dès que l'auteur nomme l'objet, c'est-à-dire
-  toujours. Or un temps qui MONTE et un temps qui DESCEND commandent des gestes opposés. La ligne
-  « ⏱ Chronomètre · le temps monte » occupe EXACTEMENT l'emplacement de la barre et du compte de
-  cycles : même silhouette, c'est la ligne qui sépare, pas la hauteur. Glyphe et mot (règle 8),
-  aucune couleur — ce n'est pas un état, c'est une nature.
-- **Un journal vide dit par quel geste on le remplit** : « Chaque tap sur "Noter l'heure", en bas de
-  l'écran, inscrit ici l'heure d'un geste. » Le panneau ne montrait que son titre au-dessus du vide —
-  et dans le rail, le titre lui-même est masqué par le dépliant qui le porte, si bien qu'il ne
-  restait STRICTEMENT rien, à l'endroit précis où l'on découvre la capacité (le geste vit dans le
-  dock depuis que « Noter l'heure » a quitté le panneau en v5.6). C'est une INVITATION, pas un état :
-  rien n'affirme « 0 repère ». Elle ne paraît qu'en session — hors session la touche qu'elle nomme
-  n'existe pas — et ne peut pas clignoter, un repère annulé restant dans la chronologie.
-- **Les cartes d'accueil gagnent 9 px sur le rail A→Z, en voie étroite** (signalé à l'usage, puis
-  « rétrécis encore »). Gouttière 16 → 8 px et rail 27 → 24 px. Le motif des 16 px a été RE-MESURÉ
-  et avait vieilli : il protégeait le halo de l'épingle ☆, or `.pinbtn` s'arrête aujourd'hui 40 px
-  avant le bord et n'a pas de halo — il n'y avait plus rien à protéger. **Le texte du rail, lui, ne
-  pouvait pas baisser** : 11 px EST le plancher typographique (règle 9), `check-type` le refuse, et
-  cela n'aurait rien gagné — la largeur du rail vient du `min-width:24px` des boutons, cible
-  minimale WCAG 2.5.8, pas du glyphe. Les 3 px récupérables étaient le rembourrage horizontal du
-  rail. Résultat mesuré à 390 px : rangée 355 → 363, rail à 366, jointure de 3 px, soit l'écart de
-  la voie large (2 px à 1280) — les deux régimes cessent d'avoir deux valeurs pour une même
-  jointure. Vérifié aussi à 320 et 768. **La largeur de carte est identique avec et sans rail**
-  (342 px mesurés en répertoire ET en recherche) : la gouttière n'a jamais été conditionnée au rail
-  depuis la v5.6, et la règle est désormais écrite sur place pour ne pas se reperdre.

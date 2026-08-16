@@ -308,7 +308,7 @@ la colonne garde la place que la grille lui donne, sans une seule mesure en JS.
 de la frappe devient une couche du viewport visuel (A195).** Aucun des deux n'essaie de poursuivre
 quoi que ce soit.
 
-**A196. ENTRE LA DÉCORATION ET CE QU'ON ÉCRIT, C'EST CE QU'ON ÉCRIT QUI PASSE DEVANT.** La couche du
+**A196 (REMPLACÉE EN v5.13.4 — LIRE A197).** ENTRE LA DÉCORATION ET CE QU'ON ÉCRIT, CE QU'ON ÉCRIT PASSERAIT DEVANT. La couche du
 champ était bien épinglée au rectangle visible, mais l'en-tête — LIBÉRÉ, donc défilant — revient en
 haut du document quand on y remonte, et repassait par-dessus elle (rang 20 contre 16) : on perdait le
 champ au moment précis où l'on tapait dedans. La couche du champ prend donc le rang le plus haut du
@@ -318,3 +318,15 @@ géométrie — sa boîte ne fait que la hauteur de son résumé, le champ étan
 bien que le plafond et le défileur de la colonne l'ÉCRÊTAIENT (mesuré : champ disparu). Elle reste
 telle quelle. Étendre un remède à un logement qui n'est pas en cause, sur la seule ressemblance des
 noms, est exactement le schéma qui a coûté onze versions à ce dossier.
+
+**A197. DEUX CHROMES NE SE DISPUTENT PAS UNE BANDE — IL FAUT QU'UN SEUL SOIT LÀ.** A196 réglait le
+conflit par l'empilement : la couche du champ passait devant l'en-tête. Refusé à l'écran, capture à
+l'appui (« pas une bonne solution ») — et c'était prévisible : passer devant MASQUE l'en-tête,
+passer derrière fait RECOUVRIR la colonne. Aucun ordre n'est bon, parce que le problème n'est pas
+l'ordre : c'est que deux chromes occupent la même bande. Libérer l'en-tête ne l'évitait pas —
+libéré, il défile, donc il REVIENT en haut du document dès qu'on y remonte, précisément là où la
+couche du champ est ancrée. Pendant la frappe, la bande appartient donc à UN seul : la colonne, qui
+porte ce qu'on écrit et ce qu'on cherche. L'en-tête — retour, statut, thème, menu — n'a aucun rôle à
+cet instant : il s'efface et revient intact à la fermeture du clavier. ⚠ Règle générale : quand deux
+éléments de chrome se disputent une même bande, on ne cherche pas le bon z-index, on décide LEQUEL
+DES DEUX A UN RÔLE À CET INSTANT — l'autre part.
