@@ -78,7 +78,7 @@ entre deux frappes, et le contenu sautait à chaque lettre. Un écran qui bouge 
 coûte plus que le sommaire ne rend. Il revient quand le champ se vide — et la croix qui le vide est
 CELLE DE L'ACCUEIL (`.srch-x`), pas un second dessin.
 
-**A179. LE CHROME COLLANT SUIT LE VIEWPORT VISUEL.** La v5.10.9 avait laissé le chrome de page hors
+**A179 (RESTREINTE EN v5.12.10 — LIRE A190).** LE CHROME COLLANT SUIT LE VIEWPORT VISUEL. La v5.10.9 avait laissé le chrome de page hors
 de portée du correctif `--vvt` (« il est ancré au viewport de mise en page avec le document qu'il
 commande »). L'usage tranche : clavier ouvert, un `sticky` calé sur `top:0` du viewport de mise en
 page passe AU-DESSUS de l'écran — on perd la barre de recherche au moment précis où l'on tape dedans.
@@ -111,7 +111,7 @@ n'est pas une erreur de syntaxe — et l'application ne démarrait plus. C'est `
 l'attrape, comme il attrape le piège des hashs CSP. Les dix-neuf contrôles statiques mesurent des
 FORMES ; seul un démarrage mesure qu'elle vit.
 
-**A183. IL Y A DEUX TOKENS D'ANCRAGE DU CHROME, PAS UN — ET UN GARDE-FOU QUI N'EN VOIT QU'UN LAISSE
+**A183 (CADUQUE EN v5.12.10, LIRE A190 — le second token n'a plus lieu d'être décalé).** IL Y AVAIT DEUX TOKENS D'ANCRAGE DU CHROME, PAS UN — ET UN GARDE-FOU QUI N'EN VOIT QU'UN LAISSE
 PASSER L'AUTRE.** `--hdr-h` (l'en-tête seul) et `--stick-top` (toute la pile collante, quai de crise
 compris). La v5.12.1 a créé `--hdr-off` et son contrôle ; les CINQ colonnes ancrées sur le second —
 sommaire d'une référence, rail de lecture, plan de l'aide — ont donc continué de disparaître clavier
@@ -204,3 +204,25 @@ chrome collant ; les flèches, elles, visent explicitement et défilent toujours
 diagnostic, et elle clôt une série de cinq versions : je cherchais ce qui BOUGEAIT (le chrome, sa
 phase, son seuil) alors qu'il fallait chercher ce qui DEMANDAIT à bouger. Un effet observé sur A
 peut n'avoir aucune cause dans A — mesurer les APPELS, pas seulement les positions.
+
+**A190. `sticky` NE SE DÉCALE PAS, `fixed` SE DÉCALE — ET C'EST LA DISTINCTION QUI MANQUAIT DEPUIS
+CINQ VERSIONS.** L'auteur a fini de cerner le cas en une phrase : « ça fonctionne nickel SAUF avec
+les claviers à l'écran ». Or `--vvt` ne vaut jamais autre chose que zéro hors clavier logiciel :
+tout ce qui avait été signalé depuis la v5.12.0 vivait donc exactement dans le seul cas que ce
+décalage touche. Il fallait le retirer de la moitié à laquelle il ne s'applique pas :
+ · `position:sticky` vit DANS LE FLUX — quand le clavier s'ouvre, le système fait défiler la PAGE
+   pour amener le champ focalisé sous les yeux, et un élément collant suit son document. Lui ajouter
+   le décalage le compte DEUX FOIS : il descend dans la zone visible et laisse voir du contenu
+   au-dessus de lui (t = 5,0 s, première vidéo).
+ · `position:fixed` est ancré au viewport de MISE EN PAGE et ne suit rien : il a besoin du décalage
+   (couches plein écran de la v5.10.9, confirmées à l'usage ; `#refBar`, dont la disparition avait
+   ouvert le dossier). Même chose pour une coque qui ne défile pas (accueil large).
+A179 est donc RESTREINTE et A183 CADUQUE. Le garde-fou est inversé : c'est le `position:` du bloc
+qui décide, et il est vérifié capable d'échouer DANS LES DEUX SENS. ⚠ Il a raté le second sens au
+premier essai — `top:var(--hdr-off)` ne mentionne littéralement aucune hauteur, donc échappait au
+motif : c'était exactement la forme qu'avait prise le défaut. **Un contrôle doit reconnaître le
+défaut SOUS LA FORME OÙ IL EXISTE, pas sous celle qu'on avait en tête en l'écrivant.**
+⚠ ET LA LEÇON QUI CLÔT LE DOSSIER : cinq versions de correctifs successifs sur un mécanisme que le
+harnais ne peut pas piloter, alors que la phrase décisive — « sauf avec les claviers à l'écran » —
+délimitait le cas d'un coup. Quand un défaut résiste, faire préciser QUAND il n'apparaît PAS vaut
+mieux qu'une hypothèse de plus : le complémentaire est souvent plus informatif que le cas.

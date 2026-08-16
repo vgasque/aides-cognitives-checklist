@@ -1,6 +1,6 @@
 /* Tokens extraits de index.html (source de vérité) — ne pas éditer ici. */
 :root{
-  /* ═══ SOUS L'EN-TÊTE — UNE SEULE ÉCRITURE (v5.12.1) ═══════════════════════════════════════
+  /* ═══ SOUS L'EN-TÊTE, POUR LES COUCHES **FIXES** SEULEMENT (v5.12.1, restreint en v5.12.10) ══
      Tout ce qui colle SOUS l'en-tête doit être à la même hauteur que lui, clavier compris. Le
      calcul était recopié à cinq endroits (`#crisisDock`, `#refBar`, `.ed-grab`, la barre de
      sélection, l'en-tête lui-même) — et la v5.12.0 n'en a corrigé que trois : `#refBar`, la barre
@@ -10,15 +10,12 @@
      tenue à la main dans n sites, corrigée dans n−2. Un token, un seul lecteur par site.
      `--hdr-h` : hauteur RÉELLE de l'en-tête (posée par `syncHdrScroll`).
      `--vvt` : décalage du viewport visuel (posé par l'observateur du viewport, ÷ --zf comme toute
-     mesure réinjectée, règle v4.24.0). Les deux valent 0 tant que rien ne bouge. */
+     mesure réinjectée, règle v4.24.0). Les deux valent 0 tant que rien ne bouge.
+     ⚠ RÉSERVÉ AUX COUCHES `position:fixed` (aujourd'hui `#refBar`) : un élément COLLANT vit dans
+     le flux et suit déjà la page, lui ajouter le décalage le compte deux fois — cf. « ce qui est
+     sticky ne se décale pas ». Le jumeau `--stick-off`, créé en v5.12.3 pour les colonnes
+     collantes, est PARTI avec elles : plus aucun lecteur, donc plus de token (règle 14). */
   --hdr-off:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));
-  /* Et son jumeau pour ce qui s'accroche sous TOUTE la pile collante (en-tête + quai de crise) :
-     `--stick-top` est cette somme de hauteurs, `--stick-off` en est l'ORIGINE à l'écran.
-     ⚠ POURQUOI DEUX TOKENS ET NON UN SEUL `--stick-top` CORRIGÉ : `--stick-top` sert AUSSI de
-     HAUTEUR (`height:calc(100vh - var(--stick-top) - 20px)`) et de `scroll-padding`. Une hauteur
-     ne se décale pas ; seule une ORIGINE le fait. Mélanger les deux rendrait les colonnes trop
-     courtes de la valeur du panoramique, en plus de les déplacer. */
-  --stick-off:calc(var(--stick-top,64px) + var(--vvt,0px) / var(--zf,1));
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);

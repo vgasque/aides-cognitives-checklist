@@ -1,5 +1,38 @@
 # Journal des modifications
 
+## [5.12.10] — 2026-08-16
+### Ce qui est `sticky` ne se décale pas — ce qui est `fixed`, si (retour en arrière assumé)
+
+- **L'auteur a fini de cerner le cas** : « ça fonctionne nickel **sauf avec les claviers à l'écran**
+  sur tablette/smartphone ». Or le décalage du viewport visuel ne vaut jamais autre chose que zéro
+  hors clavier logiciel : **tout** ce qui a été signalé depuis la v5.12.0 — en-tête qui saute, qui
+  disparaît, qui est poussé vers le bas avec du contenu au-dessus — vit exactement dans le seul cas
+  que ce décalage touche. C'était lui.
+- **La distinction que je n'avais pas faite**, et qui explique toutes les observations :
+  - `position:sticky` vit **dans le flux**. Quand le clavier s'ouvre, le système fait défiler la
+    **page** pour amener le champ focalisé sous les yeux — et un élément collant suit son document.
+    Lui ajouter le décalage, c'est le compter **deux fois** : il descend dans la zone visible et
+    laisse voir du contenu au-dessus de lui (capturé à t = 5,0 s sur la première vidéo).
+  - `position:fixed` est ancré au viewport de **mise en page** et ne suit rien. Lui a bel et bien
+    besoin du décalage — c'est le correctif v5.10.9 des couches plein écran, que l'auteur avait
+    confirmé, et c'est `#refBar`, la barre de recherche d'une référence, dont la disparition avait
+    ouvert tout ce dossier.
+- **Retour en arrière assumé sur les v5.12.0 à v5.12.3** : l'en-tête, le quai de crise, la barre de
+  sélection, la poignée d'édition et les cinq colonnes collantes (sommaire, rail de lecture, plan)
+  retrouvent leur ancrage nu. Gardent le décalage : les couches plein écran, `#refBar`, le volet du
+  quai, et la coque de l'accueil large — qui n'est ni collante ni défilante, donc ne peut suivre par
+  elle-même. Le token `--stick-off`, créé en v5.12.3 pour les colonnes, part avec elles (plus aucun
+  lecteur, règle 14).
+- **Le garde-fou est inversé, et c'est désormais le `position:` qui décide** : une couche fixe doit
+  porter le décalage, une couche collante ne doit pas. Vérifié capable d'échouer **dans les deux
+  sens**. Il a d'ailleurs raté le second au premier essai — `top:var(--hdr-off)` ne mentionne
+  littéralement aucune hauteur — ce qui est exactement la forme qu'avait prise le défaut : un
+  contrôle qui ne voit pas la forme du défaut ne vaut rien.
+- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; sondes mises au nouveau contrat.
+  ⚠ **Ce qu'il faut vérifier sur appareil** : si l'en-tête redevenait introuvable clavier ouvert, la
+  conclusion serait que `sticky` ne suit pas ce panoramique — et le remède ne serait pas un décalage
+  de plus, mais de passer l'en-tête en `fixed` piloté sur l'évènement du viewport.
+
 ## [5.12.9] — 2026-08-16
 ### Ce qui bougeait à chaque frappe, c'était un défilement inutile — pas le chrome
 
@@ -699,66 +732,3 @@
   entrées A réconciliées, zéro réécriture, classement chronologique par lot — le numéro A est
   l'adresse que la doctrine se cite à elle-même). AGENTS.md garde les 15 règles, la publication,
   les garde-fous et la carte ; toute nouvelle entrée A va dans le fichier de son lot.
-
-## [5.10.2] — 2026-08-15
-### Audit de code externe : quatre bogues, deux garde-fous, quatre duplications
-
-Audit transverse du monofichier (code mort, duplication, PWA, sécurité) par balayage outillé —
-836 fonctions, 1 916 interpolations, 245 ids, 227 exports de test — chaque constat **re-vérifié de
-première main** avant correction : trois « morts » du balayage étaient des faux positifs
-(`#addImg`, `wakeActive`, `SHARE_DROP`/`vfActor`), et la leçon est écrite (A157). Doctrine :
-`AGENTS.md` A154 à A158.
-
-**Les bogues utilisateur.**
-- **Le diff « Versions » était aveugle sur cinq listes sur six.** `flattenFiche` lisait
-  `f.confirmation`/`verify`/`notForget`/`differentials`/`posology` — des champs que `migrate`
-  **supprime** depuis l'étape B (v5.0.0) : sur toute fiche réelle, restaurer une version se
-  décidait sans voir aucune modification de ces listes. La table de libellés omettait en plus
-  `posology`. Les deux passent par `listOf()`, la vue sur le pool — et les témoins, restés verts
-  sur des fixtures brutes jamais migrées, **rencontrent désormais leur cas** (fixtures migrées,
-  assertions sur les cinq listes).
-- **La recherche ne trouvait jamais une fiche par son diagnostic différentiel** — le même résidu
-  (`f.differentials` lu en direct) dans `ficheHaystack`, figé par son cache. Pour un répertoire
-  dont le motif d'usage est « le tableau ne colle pas », c'était le trou le plus clinique du lot.
-- **Les sessions synchronisées entraient sans assainisseur** : `sessionFromRow` écrivait le blob
-  distant tel quel en IndexedDB (fiches et protocoles passent par `migrate`). `sanitizeSession`
-  applique la règle 5 en **liste grise** — champs connus bornés par les grammaires existantes
-  (`SHARE_KEY_RX`, `shareNavNorm`, `tkRefNorm`), champs inconnus qui traversent, motif
-  `__proto__` fermé. 13 témoins.
-- **Quatre lecteurs d'ids fantômes** (`#crisisCtrl` ×3, `#planBtn` ×2, `#endSess`) : l'un
-  recalculait `--ctrl-h` à « 0px » **à chaque évènement de défilement** pour un élément parti en
-  v5.6, les autres étaient des câblages morts. Purgés avec leurs épitaphes.
-
-**Les garde-fous (le trou par lequel tout cela était entré).**
-- `check-ids` : tout `getElementById` littéral doit avoir une émission (id littéral ou fabrique
-  déclarée). `check-actest` : toute clé exportée vers `__ac_test__` doit être citée par un témoin
-  ou un harnais, doublons interdits — trois doublons dédoublonnés, 13 clés sans valeur de test
-  retirées, et le **cœur du modèle v4** (`poolOf`, `roleItems`, `setStepStr`, `v4SanItem`,
-  `v4Level`, `V4_ROLES`) reçoit ses vrais témoins. Les deux vérifiés capables d'échouer.
-- `check-colors` couvre désormais le **manifeste** : `theme_color`/`background_color` portaient
-  des hex hors palette (#ffffff, #e9edf2) — splash hors tokens à chaque lancement, invisible d'un
-  contrôle borné au `<style>`. Alignés sur `THEME_COLOR.light`.
-
-**Les duplications** (« une seule vérité par geste ») : `paintCheckRow` — la peinture du cochage
-vivait en deux copies mot pour mot, la divergence v4.42.0 revenue par une autre porte ;
-`planCtx` — le préambule de plan recopié six fois, dont une où il était calculé puis jeté ;
-`conduiteRows` — les rangées communes des menus invité/hôte (le sous-titre divergent de
-« Consulter » est une raison documentée, pas un accident) ; `bindPreviewBack` et `blockTip` — les
-paires jumelles fiche/protocole. Purgés avec leurs témoins (règle 14) : `flowOrder`,
-`svBranchIssue`, `svLoopTargets`, `cxOne`.
-
-**Sécurité** (audit exhaustif : **0 XSS exploitable**, RLS sans faille, 0 sink dangereux) : la
-barrière devient **locale** — `esc()` sur 27 identifiants interpolés, `CSS.escape` sur les cinq
-sélecteurs construits, le backtick non échappé **vérifié** inerte, invariant écrit sur
-`_reportDoc` (seul endroit où une chaîne devient un document), commentaire de décision sur
-l'absence de rate-limit de `share_join`.
-
-**PWA** : cache statique pérenne `STATIC_CACHE` (~120 Ko de polices/icônes n'étaient
-re-téléchargés à chaque release que parce que la clé de cache change — le motif pdf.js
-généralisé), préchargement des quatre polices embarquées, `display_override` au manifeste.
-
-**Et une attribution fausse corrigée dans la doctrine** : A153 imputait les 2-3 s de blanc iOS au
-parse des 2,4 Mo. Mesuré (copie sans commentaires, CPU ×6) : **1,26 Mo de commentaires = ~0,1 s**
-— le blanc vit dans la couche iOS (processus, WebKit, worker), hors de portée du code. Le retrait
-des commentaires à la publication est **disqualifié** comme levier de démarrage ; reste
-l'hypothèse d'éviction mémoire, à instrumenter avant d'agir.
