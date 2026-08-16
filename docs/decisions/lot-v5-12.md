@@ -78,7 +78,7 @@ entre deux frappes, et le contenu sautait à chaque lettre. Un écran qui bouge 
 coûte plus que le sommaire ne rend. Il revient quand le champ se vide — et la croix qui le vide est
 CELLE DE L'ACCUEIL (`.srch-x`), pas un second dessin.
 
-**A179 (RESTREINTE EN v5.12.10 — LIRE A190).** LE CHROME COLLANT SUIT LE VIEWPORT VISUEL. La v5.10.9 avait laissé le chrome de page hors
+**A179 (restriction ANNULÉE en v5.12.11 — A190 était fausse).** LE CHROME COLLANT SUIT LE VIEWPORT VISUEL. La v5.10.9 avait laissé le chrome de page hors
 de portée du correctif `--vvt` (« il est ancré au viewport de mise en page avec le document qu'il
 commande »). L'usage tranche : clavier ouvert, un `sticky` calé sur `top:0` du viewport de mise en
 page passe AU-DESSUS de l'écran — on perd la barre de recherche au moment précis où l'on tape dedans.
@@ -111,7 +111,7 @@ n'est pas une erreur de syntaxe — et l'application ne démarrait plus. C'est `
 l'attrape, comme il attrape le piège des hashs CSP. Les dix-neuf contrôles statiques mesurent des
 FORMES ; seul un démarrage mesure qu'elle vit.
 
-**A183 (CADUQUE EN v5.12.10, LIRE A190 — le second token n'a plus lieu d'être décalé).** IL Y AVAIT DEUX TOKENS D'ANCRAGE DU CHROME, PAS UN — ET UN GARDE-FOU QUI N'EN VOIT QU'UN LAISSE
+**A183 (rétablie en v5.12.11 — A190 était fausse).** IL Y AVAIT DEUX TOKENS D'ANCRAGE DU CHROME, PAS UN — ET UN GARDE-FOU QUI N'EN VOIT QU'UN LAISSE
 PASSER L'AUTRE.** `--hdr-h` (l'en-tête seul) et `--stick-top` (toute la pile collante, quai de crise
 compris). La v5.12.1 a créé `--hdr-off` et son contrôle ; les CINQ colonnes ancrées sur le second —
 sommaire d'une référence, rail de lecture, plan de l'aide — ont donc continué de disparaître clavier
@@ -205,7 +205,7 @@ diagnostic, et elle clôt une série de cinq versions : je cherchais ce qui BOUG
 phase, son seuil) alors qu'il fallait chercher ce qui DEMANDAIT à bouger. Un effet observé sur A
 peut n'avoir aucune cause dans A — mesurer les APPELS, pas seulement les positions.
 
-**A190. `sticky` NE SE DÉCALE PAS, `fixed` SE DÉCALE — ET C'EST LA DISTINCTION QUI MANQUAIT DEPUIS
+**A190 (FAUSSE — ANNULÉE EN v5.12.11 ; LIRE A191).** `sticky` NE SE DÉCALERAIT PAS, `fixed` SE DÉCALERAIT — ET C'EST LA DISTINCTION QUI MANQUAIT DEPUIS
 CINQ VERSIONS.** L'auteur a fini de cerner le cas en une phrase : « ça fonctionne nickel SAUF avec
 les claviers à l'écran ». Or `--vvt` ne vaut jamais autre chose que zéro hors clavier logiciel :
 tout ce qui avait été signalé depuis la v5.12.0 vivait donc exactement dans le seul cas que ce
@@ -226,3 +226,20 @@ défaut SOUS LA FORME OÙ IL EXISTE, pas sous celle qu'on avait en tête en l'é
 harnais ne peut pas piloter, alors que la phrase décisive — « sauf avec les claviers à l'écran » —
 délimitait le cas d'un coup. Quand un défaut résiste, faire préciser QUAND il n'apparaît PAS vaut
 mieux qu'une hypothèse de plus : le complémentaire est souvent plus informatif que le cas.
+
+**A191. ONZE VERSIONS SUR UN MÉCANISME QUE L'INSTRUMENT NE PEUT PAS VOIR — LA FAUTE EST DE MÉTHODE,
+PAS DE RÉGLAGE.** A190 affirmait qu'une couche `sticky` suit la page quand le clavier s'ouvre, et
+n'a donc pas besoin du décalage du viewport visuel. C'est FAUX, et le retour d'usage l'a établi en
+une phrase : « le volet continue de sauter, l'en-tête disparaît au scroll en recherche, la sidebar
+aussi ». Sur iOS, `sticky` se cale sur le viewport de MISE EN PAGE exactement comme `fixed` — les
+deux sortent de l'écran quand le viewport visuel est panoramiqué. La v5.12.10 est annulée.
+Ce qu'il faut retenir dépasse ce défaut. Onze versions ont été livrées sur un comportement que le
+harnais NE PEUT PAS PILOTER (`visualViewport` n'est pas scriptable en test), chacune fondée sur un
+modèle mental d'iOS présenté comme une explication — et chacune vérifiée « aux deux moteurs » sur
+ce qu'elle pouvait mesurer, c'est-à-dire pas sur le défaut. Les quatre corrections de la série qui
+tiennent (`scrollIntoView` inutile, chasse du compte, centrage de la croix, garde du rebond) sont
+précisément les quatre qui étaient MESURABLES.
+**RÈGLE : quand un défaut n'est pas reproductible par l'instrument, on ne livre pas d'hypothèse. On
+instrumente l'appareil, ou on change de conception pour supprimer la classe de défauts.** Livrer une
+hypothèse invérifiable, même verte à vingt contrôles, c'est demander à l'utilisateur de faire le
+travail de l'instrument — onze fois de suite, ici.

@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [5.12.11] — 2026-08-16
+### Retour à l'état v5.12.9 — j'arrête les correctifs à l'aveugle et je pose le problème
+
+- **La v5.12.10 était une régression, et elle est annulée.** J'avais retiré le décalage du viewport
+  visuel aux couches `sticky` en supposant qu'elles suivent la page. Le retour d'usage est sans
+  appel — *« le volet continue de sauter, l'en-tête disparaît au scroll en recherche, la sidebar
+  aussi »* : sur iOS, une couche `sticky` se cale sur le viewport de **mise en page**, exactement
+  comme une couche `fixed`. Les deux disparaissent quand le viewport visuel est panoramiqué. Ma
+  distinction était fausse.
+- **Ce qui est gardé de la série**, parce que ces points-là ont été mesurés et confirmés : plus
+  aucun `scrollIntoView` inutile pendant la frappe (v5.12.9), le compte d'occurrences à chasse fixe
+  qui empêchait le bouton « › » de se dérober (v5.12.6), la croix d'effacement centrée sur son
+  champ (v5.12.4), la garde du clavier qui empêche le rebond élastique de déplacer quoi que ce soit
+  (v5.12.5). Aucune de ces quatre corrections n'était en cause.
+- **Ce qui reste ouvert, et que je ne corrigerai pas d'une onzième hypothèse** : le comportement du
+  chrome quand un clavier LOGICIEL est ouvert. Onze versions ont été livrées sur un mécanisme que
+  le harnais ne peut pas piloter — `visualViewport` n'est pas scriptable en test — et chacune
+  reposait sur un modèle mental d'iOS, pas sur une mesure. C'est la faute de méthode, pas le
+  réglage.
+- La suite tient en un choix, posé à l'auteur plutôt que tranché seul : instrumenter l'appareil
+  (afficher les valeurs réelles du viewport pendant qu'on tape, pour corriger sur des chiffres),
+  ou **renoncer à épingler le chrome pendant la frappe** (le laisser défiler et laisser le
+  navigateur garder le champ focalisé visible, ce qu'il fait très bien) — solution la plus simple
+  et la seule qui supprime la classe de défauts au lieu de la déplacer.
+
 ## [5.12.10] — 2026-08-16
 ### Ce qui est `sticky` ne se décale pas — ce qui est `fixed`, si (retour en arrière assumé)
 
@@ -706,29 +731,3 @@
   parcimonie ⚠/△ existait déjà (plafonds par bloc ET par fiche) : elle entre dans la check-list
   finale « AVANT DE RÉPONDRE », avec les libellés de compteurs. (4) Corrigé un bogue de l'exemple
   du schéma : l'id `"b2"` y figurait DEUX fois — l'exemple violait sa propre règle d'unicité.
-
-## [5.10.3] — 2026-08-15
-### Le tick gaté (jamais ralenti), les relances iOS comptées, AGENTS.md scindé
-
-- **Le battement interne est GATÉ, pas ralenti** (R6, mesuré avant ET après). Une fiche simplement
-  ouverte — sans session — payait le tick complet 3,3 fois par seconde : 40 travaux inutiles en
-  3 s (refreshTimersDOM, paintCnAgo, updateRtStrip, monRender), et l'accueil balayait tout le
-  document à la même cadence sans aucune session vive. La condition devient « une session AFFICHE
-  du temps » (sessions vives, essai K5, invité). **La granularité est intouchée par
-  construction** : la cadence de 300 ms ne bouge pas — retard de bascule de seconde mesuré
-  79-288 ms avant, 97-304 ms après (même enveloppe), latence du geste 1 ms, travaux en session
-  strictement identiques. ⚠ Le réveil « aligné sur la seconde », envisagé, est **rejeté au
-  calcul** et le refus est écrit au site : chaque minuteur franchit sa seconde à sa propre phase —
-  un réveil calé sur l'horloge murale afficherait la bascule jusqu'à une seconde en retard.
-- **Les relances complètes se comptent** (P2, diagnostic de l'hypothèse d'éviction d'A153). Les
-  2-3 s de blanc au retour vivent dans la couche iOS ; la seule question ouverte est leur
-  FRÉQUENCE. Journal par jour (démarrages complets / reprises sans relance, fenêtre 14 j, une clé
-  locale), lu dans Compte › « Sur cet appareil ». Instrumentation **temporaire** (précédent
-  v4.29.x), jamais chez l'invité.
-- **AGENTS.md scindé : 797 → 49 Ko de noyau.** Le fichier canonique dépassait la fenêtre de
-  contexte de tout outil IA — les instructions étaient tronquées en silence à chaque session, le
-  défaut exact que le découpage du changelog avait guéri en v5.0.0. La doctrine détaillée vit dans
-  `docs/decisions/` (six fichiers, déplacement **à l'octet** : empreintes sha256 embarquées, 164
-  entrées A réconciliées, zéro réécriture, classement chronologique par lot — le numéro A est
-  l'adresse que la doctrine se cite à elle-même). AGENTS.md garde les 15 règles, la publication,
-  les garde-fous et la carte ; toute nouvelle entrée A va dans le fichier de son lot.
