@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-aCwNsy10oxspihPb8dnDBkO4J1ilUA/eKDDIel7eCKI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-4wMbiJDb38PCyjTTTC2KsX0P+mA+rHOjWBGCm7cYLd8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -918,14 +918,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      largeur. `html.kbd` est posée par l'observateur du viewport visuel, sur le même prédicat que
      `--vvt` (un clavier OCCUPE de la hauteur). */
   html.kbd header.bar,html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,
-  html.kbd aside.ref-toc,html.kbd .rt-dock,html.kbd #refBar{position:static}
-  /* `#refBar` porte une compensation de flux (le contenu est décalé de sa hauteur tant qu'elle
-     flotte) : rendue au flux, elle occupe sa propre place et la compensation deviendrait une
-     bande morte — le défaut que le dossier « bande basse iOS » a déjà coûté une fois. */
-  html.kbd body.refbar-on main{padding-top:0}
-  /* Une colonne libérée rend aussi sa hauteur : bornée, elle deviendrait un défileur dans le
-     défileur, et l'on ne saurait plus lequel répond au doigt. */
-  html.kbd aside.ref-toc{max-height:none;overflow:visible}
+  html.kbd .rt-dock{position:static}
+  /* ⚠ ON NE LIBÈRE JAMAIS LE CONTENEUR DU CHAMP QU'ON TAPE, et c'est la correction d'une
+     régression que j'ai introduite en écrivant cette règle (signalée à l'usage : « la barre suit
+     bien au scroll SAUF avec le clavier, dans ce cas out of view, ça remonte et je ne vois pas ce
+     que je tape »). J'avais rendu au flux la barre fixée d'une référence ET la colonne sommaire —
+     or c'est là que vit le champ de recherche. Rendus au flux, ils reprennent leur place EN HAUT
+     DU DOCUMENT ; le navigateur, qui doit montrer le champ focalisé, n'a alors qu'un moyen : y
+     ramener la page. D'où le retour en haut, et la perte de l'endroit qu'on lisait.
+     LA RÈGLE EST DONC PLUS PRÉCISE QU'« ON LIBÈRE TOUT » : on libère la DÉCORATION — ce qui
+     oriente, annonce, commande —, jamais le logement de ce qu'on est en train d'écrire. Celui-là
+     reste épinglé : c'est le seul élément dont le navigateur garantit lui-même la visibilité, et
+     le laisser fixe est ce qui permet de taper sans perdre sa page. */
   /* Le rail A→Z est `fixed` et ne peut pas retomber dans un flux : il n'en a pas. Pendant la
      frappe il ne sert à rien (on tape, on ne vise pas une lettre) et il flotterait à côté de la
      zone visible — il se retire, et revient avec le clavier. */
@@ -9477,7 +9481,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.13.0';
+const APP_VERSION='5.13.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

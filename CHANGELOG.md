@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.13.1] — 2026-08-16
+### On libère la décoration, jamais le logement de ce qu'on écrit
+
+- **Correction d'une régression de la v5.13.0, introduite une heure plus tôt** (signalée à l'usage :
+  « la barre suit bien au scroll **sauf avec le clavier** : dans ce cas out of view, ça remonte et
+  je ne vois pas ce que je tape »). En libérant le chrome, j'avais rendu au flux **la barre fixée
+  d'une référence et la colonne sommaire** — or c'est là que vit le champ de recherche. Rendus au
+  flux, ils reprennent leur place **en haut du document** ; le navigateur, qui doit montrer le champ
+  focalisé, n'a alors qu'un moyen d'y parvenir : **ramener la page en haut**. D'où le retour au
+  début et la perte de l'endroit qu'on lisait.
+- **La règle devient plus précise qu'« on libère tout »** : on libère la **décoration** — ce qui
+  oriente, annonce, commande (en-tête, quai de crise, barre de sélection, poignée d'édition, volet
+  du quai, rail A→Z) — et **jamais le logement de ce qu'on est en train d'écrire**. Celui-là reste
+  épinglé : c'est le seul élément dont le navigateur garantit lui-même la visibilité, et le laisser
+  fixe est précisément ce qui permet de taper sans perdre sa page.
+- Mesuré aux deux moteurs : clavier ouvert, l'en-tête est `static` et défile de −600 px avec la
+  page, tandis que la colonne sommaire — qui porte le champ — reste `sticky`. `npm run check`
+  20/20, `npm test` 2×1126, audit COMPLET 25/25.
+
 ## [5.13.0] — 2026-08-16
 ### Clavier ouvert : plus rien n'est épinglé — on cesse de poursuivre le viewport
 
@@ -615,115 +634,3 @@
   jamais pour des octets différents — re-taguer une version déjà construite quelque part revient
   à publier deux caches sous une seule clé. Le contenu de cette version est celui de l'entrée
   5.10.5 ci-dessous, intégralement.
-
-## [5.10.5] — 2026-08-15
-### Le rail A→Z tient enfin sous le doigt, la fenêtre compte cesse de glisser, le partage montre les complications et la présence réelle
-
-- **L'icône du filtre remplit son rond** (signalé à l'usage : « augmente la taille des traits dans
-  filtrer pour que ça corresponde mieux à la taille du bouton »). Le tracé était écrit à 16 px dans
-  la coque statique — calibre d'un temps où le rond en faisait 38 ; depuis que la v5.10.4 cale le
-  bouton sur la hauteur MESURÉE du champ (48 px au tactile), il n'en occupait plus qu'un tiers, et
-  trois traits fins perdus au centre d'un grand rond se lisent comme un pictogramme lointain, pas
-  comme une commande. Porté à 20 px, soit le rapport encre/rond de « ＋ » (15 dans 36) : la rangée
-  cesse d'avoir deux densités d'icône. L'ÉPAISSEUR SUIT D'ELLE-MÊME, ce qui était la demande —
-  `stroke-width` vit dans le viewBox de 24, donc les traits passent de 1,47 px rendus à 1,83 sans
-  qu'aucune valeur d'épaisseur ne soit écrite quelque part. La taille est posée en CSS et non dans
-  le balisage : `width`/`height` y sont des attributs de PRÉSENTATION, que le CSS remplace — et le
-  tracé étant DUPLIQUÉ dans la table `uiIcon`, toute édition du balisage serait à faire deux fois.
-- **En-tête replié, le bouton filtrer prend le gabarit de « ＋ » et du compte** (signalé à l'usage :
-  « lorsque l'en-tête d'accueil est replié quand on scrolle, change la taille du bouton filtre — et
-  des traits dedans — pour que ça corresponde à la taille des boutons ＋ et compte »). Au repos il
-  est SEUL en face du champ, et s'aligner sur lui est exactement ce que la mesure de `--srch-h` est
-  venue garantir en v5.10.4. Mais une fois l'identité partie (7a), la rangée persistante porte
-  « ＋ », le filtre et le compte : trois boutons voisins, dont un de 48 px contre deux de 36 —
-  c'est-à-dire le défaut « deux contrôles d'une même rangée qui ne font pas la même hauteur se
-  lisent comme deux niveaux », retourné, le champ n'étant plus le voisin. Sous `body.home-slim` il
-  suit donc la troupe : 36 px (icône 16) comme `.hdr-new` et `.bar-acct`, 32 sous 360 px comme eux,
-  et le halo rend la cible à 44 px dans les deux cas. Mesuré une fois replié : filtre 36 × 36,
-  « ＋ » 36 × 36, compte 36 × 36, tous centrés sur le même axe ; à 340 px de large, les trois à
-  32 × 32 avec le même halo `-6px -1px`, donc cible 34 × 44 inchangée.
-  ⚠ La règle des 32 px est déclarée AU SITE DU BOUTON et non dans le bloc `359.98` du haut de
-  feuille où vivent ses deux voisins : elle y aurait eu la MÊME spécificité (0,3,2) que celle des
-  36 px écrite cinq mille lignes plus bas, donc perdu par le seul ORDRE, silencieusement. Pour une
-  géométrie, on ne dépend jamais de l'ordre sans le dire.
-- **Le rail A→Z ne se sélectionne plus** (signalé à l'usage : « le texte du rail est sélectionnable
-  → bug, et ça sélectionne si on reste appuyé trop longtemps dessus »). Viser une lettre, c'est
-  poser le doigt et glisser — un geste qui COMMENCE par un appui maintenu, donc précisément ce que
-  WebKit interprète sur du texte comme le début d'une sélection : rectangle bleu, poignées, loupe,
-  menu « Copier ». Le geste est alors CAPTURÉ par la sélection, le rail cesse de suivre le doigt,
-  et il faut taper ailleurs pour désarmer. `touch-action:none` tenait déjà le défilement natif à
-  distance, mais une sélection n'est pas un défilement : elle passait à côté. `user-select:none` +
-  `-webkit-touch-callout:none` sur `.azrail`, et rien n'est perdu — ces vingt-six lettres ne sont
-  pas un contenu qu'on copie, ce sont des commandes. `user-select` s'héritant, les boutons sont
-  couverts par la même ligne (vérifié : `none` sur le conteneur ET sur le bouton).
-- **Outillage d'audit — le cache vert est PAR HARNAIS et `--rouges` rejoue PAR SECTION** (travail
-  déjà en place dans le dépôt, publié ici avec la version qui le nomme). Le cache était
-  tout-ou-rien : un octet changé dans `audit-qr.mjs` faisait repayer `doctrine` (217 s). L'empreinte
-  SHA-256 est désormais par harnais — socle commun + son script + ses `deps` déclarées — et la passe
-  complète ne rejoue que ce dont un intrant a changé, en LISTANT les harnais réutilisés ; les
-  `check-*.mjs` sont sciemment hors empreinte (aucun harnais ne les lit, les inclure fabriquait des
-  repasses fantômes). `--rouges` lit les NOMS des sections rouges dans la sortie capturée et ne
-  rejoue qu'elles, avec trois garde-fous : attribution seulement si le harnais a atteint son bilan
-  (`##SEC` présent — sinon repli sur le harnais ENTIER, jamais trop peu), rouge FORCÉ si un `--grep`
-  rejoue moins de sections qu'attendu, et jamais de vert de cache écrit par un rejeu par sections.
-  Mesuré : confirmer un correctif tombe de 97 s à 0,5 s, repasse inchangée 0,25 s.
-
-- **L'en-tête ne disparaît plus pendant la visée du rail A→Z** (signalé à l'usage, prouvé à la
-  VIDÉO image par image : à chaque grande pose vers le haut, l'en-tête `sticky` quittait l'écran
-  ~2 frames puis se recollait — pendant que le rail, `fixed` depuis v5.0.2, ne cillait pas). C'est
-  le retard de compositeur WebKit sur les collants lors d'un `scrollTo` instantané en séquence
-  tactile : aucun gel d'état n'y pouvait rien, ce n'est pas un état qui change, c'est le rendu d'un
-  état juste. Pendant `html.azr-aim` l'en-tête passe donc en `fixed` (même famille de remède que le
-  rail), `body` compense sa place par `--hdr-h`, et tout se remet en place à la relâche —
-  géométriquement une identité, vérifiée à la sonde sur les deux moteurs. Au passage : les cibles
-  de `jump` sont bornées au défilement maximal et calculées sur `stickHeight()` (somme de hauteurs,
-  jamais le bas observé d'une pile translatable — le dernier lecteur de position que la purge
-  v5.0.2 avait laissé), le relais de titre `ttl-on` est gelé pendant la visée, et `--hdr-h` est
-  re-mesurée après chaque bascule d'état (elle restait périmée d'une passe : 63 px annoncés pour un
-  en-tête de 115).
-- **Le rail A→Z se centre sur l'écran en voie étroite** (vidéo : bloc de lettres à ~23 % de l'écran).
-  Le centre se calculait sur `documentElement.clientHeight`, la seule mesure de la formule dont le
-  comportement sous zoom DIVERGE entre moteurs ; il se dérive désormais de la boîte du rail
-  elle-même (géométrie `svh`, stable par construction). La voie large garde la mesure d'origine —
-  exacte sur coque fixe, témoin doctrine 1280×900 à l'appui.
-- **Le sélecteur A-Z/Catégories se rapproche de l'en-tête** (2 px dessus, 8 px dessous — resserré
-  deux fois à la demande), **ouvrir un protocole commence en haut de page** (même artefact Safari
-  et même garde-fou que les éditeurs v4.4.7 : le haut est ré-affirmé à l'arrivée), et **les deux
-  bascules de l'en-tête d'accueil ont leur micro-animation** — au dépliage l'identité et les chips
-  fondent en place (140 ms, opacité + 3 px composite), au repli la rangée persistante recomposée
-  fond sur le même tempo ; la hauteur, elle, ne s'anime jamais (check-anim, mesuré v4.41.0).
-- **La fenêtre Compte & synchronisation ne glisse plus latéralement** (signalé avec vidéo,
-  instrumenté SUR l'appareil : « corps +2 px » — un artefact d'arrondi au zoom fractionnaire, pas
-  un contenu, 42 combinaisons balayées sans un élément trop large ; or 2 px suffisent à iOS pour
-  ouvrir le pan élastique). La rangée des accents PLIE au lieu de figer 244 px (`flex:none` →
-  `0 1 auto`), et les axes sans usage sont FERMÉS : X sur `.ai-modal` et `.ai-body` (dont l'axe
-  implicite — `overflow-y:auto` seul calcule X en `auto`). La première pastille d'accent reprend la
-  couleur RÉELLE du disque par défaut (`var(--sys)`, « Par défaut ») ; la consignation des
-  compteurs (« consigné T+… · il y a … ») s'affiche aussi dans la sidebar, en sous-ligne au liseré
-  — elle pesait comme un second titre.
-- **Les plans inline ne capturent plus le pouce** (iPhone : le pan vertical restait piégé dans le
-  tableau SFAR et l'organigramme, avec retour élastique même sans débordement — un axe `auto`
-  rebondit sur iOS même vide). Sur écran tactile, `.sv-scroll` et `.flow-scroll` inline prennent
-  leur hauteur entière et l'axe vertical est fermé : le pouce fait défiler la PAGE, le défilement
-  horizontal des colonnes est conservé. Les feuilles plein écran gardent leur défileur — c'est leur
-  surface, il n'y a pas de page dessous.
-- **Le mode moniteur tient en paysage** (tout se superposait : le grand corps était calibré en
-  `vw` seul — 169 px sur un écran de 390 de haut — et le centrage déversait le débordement sur la
-  rangée du haut). Corps borné par `min(20vw, 32vh)`, centrage `safe`.
-- **Partage : l'invité voit les complications, et ce qu'il voit est vrai.** L'ancre d'excursion
-  voyage enfin (`SHARE_TRAVELS` listait `cxBack` depuis l'origine sans que le snapshot ni le
-  payload `nav` ne l'aient jamais portée — la famille exacte du `fold.exercise` d'avant v4.50.0) :
-  sans elle, la carte de complication passait chez l'invité pour un bloc terminal ordinaire
-  (« Terminer l'algorithme ✓ » puis « surveillance en cours » au lieu du retour « ↩ Reprendre »).
-  Références seules, validées contre la copie locale de la fiche (règle 15). La touche
-  ⚡ Complications est rendue à l'invité en CONSULTATION (`jumpToBlock` — la navigation locale du
-  plan, jamais d'entrée déclarée). Et les cartes minuteurs de la sidebar ne se bloquent plus par
-  moments en partagé : `bindRailTm` empilait un écouteur à chaque coche (parité paire = carte
-  inerte) — affectation `onclick`, idempotente.
-- **Partage : la présence affichée est la présence réelle, sans juger un téléphone posé.** Trois
-  régimes (retour utilisateur : « en urgence ça peut arriver de lâcher son téléphone 1, 2 min ») :
-  silence ≤ 45 s, rien ; jusqu'à 3 min, présent et compté avec la mention « sans nouvelles ·
-  N min » ; au-delà, « absent », hors compte ⇄ et menu. Le départ EXPLICITE n'attend pas :
-  « Quitter le partage » émet `presence{quit}` (genre réservé depuis l'origine, jamais branché —
-  la liste blanche du serveur l'acceptait déjà, zéro changement de schéma) et l'hôte affiche
-  « parti » à la seconde. `last_seen_at` était renvoyé par le serveur et jamais lu.

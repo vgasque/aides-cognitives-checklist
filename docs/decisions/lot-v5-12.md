@@ -279,3 +279,13 @@ qu'une hypothèse de plus (« sauf avec les claviers à l'écran » a délimité
 mesurer les APPELS et pas seulement les positions (A189) ; et un contrôle doit reconnaître le défaut
 sous la forme où il EXISTE, pas sous celle qu'on avait en tête (deux fois : `--hdr-off` invisible au
 motif, puis `html.kbdX` qui satisfaisait encore le sélecteur).
+
+**A194. ON LIBÈRE LA DÉCORATION, JAMAIS LE LOGEMENT DE CE QU'ON ÉCRIT.** A192 disait « le chrome de
+page redevient du flux » — trop large, et la régression a été immédiate : la barre fixée d'une
+référence et la colonne sommaire PORTENT le champ de recherche. Rendues au flux, elles reprennent
+leur place EN HAUT DU DOCUMENT ; le navigateur, qui doit montrer le champ focalisé, n'a alors qu'un
+moyen d'y parvenir — ramener la page en haut. L'auteur l'a vu en une phrase : « out of view, ça
+remonte et je ne vois pas ce que je tape ». La frontière juste passe donc entre ce qui ORIENTE
+(en-tête, quai, barre de sélection, poignée, volet, rail : libéré) et ce qui REÇOIT LA FRAPPE
+(épinglé). Le second est le seul élément dont le navigateur garantit lui-même la visibilité : le
+laisser fixe est ce qui permet de taper sans perdre sa page.
