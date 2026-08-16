@@ -307,3 +307,14 @@ la colonne garde la place que la grille lui donne, sans une seule mesure en JS.
 ⚠ Et la répartition finale se lit en une phrase : **la décoration se retire (A192/A194), le logement
 de la frappe devient une couche du viewport visuel (A195).** Aucun des deux n'essaie de poursuivre
 quoi que ce soit.
+
+**A196. ENTRE LA DÉCORATION ET CE QU'ON ÉCRIT, C'EST CE QU'ON ÉCRIT QUI PASSE DEVANT.** La couche du
+champ était bien épinglée au rectangle visible, mais l'en-tête — LIBÉRÉ, donc défilant — revient en
+haut du document quand on y remonte, et repassait par-dessus elle (rang 20 contre 16) : on perdait le
+champ au moment précis où l'on tapait dedans. La couche du champ prend donc le rang le plus haut du
+chrome, sous les fenêtres seulement, et reçoit un fond opaque (sans quoi le texte défilerait au
+travers). ⚠ ET CE QUI N'A PAS ÉTÉ TOUCHÉ EST UNE DÉCISION : la barre de la voie étroite a une AUTRE
+géométrie — sa boîte ne fait que la hauteur de son résumé, le champ étant rendu en dessous —, si
+bien que le plafond et le défileur de la colonne l'ÉCRÊTAIENT (mesuré : champ disparu). Elle reste
+telle quelle. Étendre un remède à un logement qui n'est pas en cause, sur la seule ressemblance des
+noms, est exactement le schéma qui a coûté onze versions à ce dossier.

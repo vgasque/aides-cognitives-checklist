@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.13.3] — 2026-08-16
+### La colonne passe devant la décoration — sinon on la perd en remontant
+
+- **Dernier point signalé, capture à l'appui** : « quand je suis avec le clavier et que je rescroll
+  en haut, je perds le champ ». La colonne était bien épinglée au rectangle visible ; mais l'en-tête
+  est **libéré** — il défile avec la page —, donc il disparaît dès qu'on descend et **revient en
+  haut du document** quand on y remonte. Il repassait alors **par-dessus** la colonne (rang 20
+  contre 16) et masquait précisément le champ qu'on est en train de taper.
+- **La couche du champ prend donc le rang le plus haut du chrome** : entre les deux, c'est ce qu'on
+  écrit qui gagne, jamais ce qui décore. Elle reste sous les fenêtres — une modale recouvre tout —
+  et reçoit un fond opaque, sans quoi le texte de la page défilerait au travers.
+- **Ce que je n'ai pas touché, et c'est une décision** : la barre de recherche de la voie étroite.
+  Je lui avais appliqué le même traitement qu'à la colonne ; la mesure l'a refusé — sa boîte ne fait
+  que la hauteur de son résumé (45 px) et le champ est rendu **en dessous**, si bien qu'un plafond
+  avec défileur l'**écrêtait** et faisait disparaître le champ. Le cas signalé est la colonne ;
+  toucher au second logement sans qu'il soit en cause est exactement le schéma qui a coûté onze
+  versions à ce dossier. Il reste tel qu'il était et se traitera le jour où il sera signalé, avec
+  sa géométrie propre.
+- Mesuré aux deux moteurs : page défilée de 1500 px **et** remontée en haut, le champ reste
+  atteignable (`elementFromPoint` le rend lui-même) et dans la zone visible. `npm run check` 20/20,
+  `npm test` 2×1126, audit COMPLET 25/25.
+
 ## [5.13.2] — 2026-08-16
 ### La sidebar ne bouge plus, quoi qu'il arrive — parce qu'elle décrit le rectangle visible
 
@@ -629,20 +651,3 @@
   jointure. Vérifié aussi à 320 et 768. **La largeur de carte est identique avec et sans rail**
   (342 px mesurés en répertoire ET en recherche) : la gouttière n'a jamais été conditionnée au rail
   depuis la v5.6, et la règle est désormais écrite sur place pour ne pas se reperdre.
-
-## [5.10.7] — 2026-08-15
-### Le rail A→Z ne saute plus en fin de liste — en PWA installée aussi
-
-- **Le maximum de défilement se calcule avec la plus grande des deux hauteurs** (`pageMaxScroll`,
-  signalé à l'usage : « sur l'app PWA ça saute encore alors que même numéro de version » — Safari
-  sain, PWA seule en défaut). Reproduit et MESURÉ dans le simulateur, en vraie web app installée :
-  en STANDALONE, `documentElement.clientHeight` rapporte 812 px pour un `innerHeight` de 874 — la
-  borne `scrollHeight − clientHeight` surestimait donc le maximum de ~60 px, chaque pose du bas du
-  rail partait au-delà de la fin réelle du document, et l'élastique iOS enchaînait les rebonds
-  (5 réversions de direction mesurées sur un seul geste). Dans l'ONGLET Safari,
-  `clientHeight = innerHeight` et la borne était exacte — c'est pourquoi le défaut ne se voyait
-  qu'en PWA, et survivait à tous les correctifs validés en onglet. La borne prend désormais la plus
-  grande des deux hauteurs (`clientHeight` vs `innerHeight ÷ zoomF()`) : écrêter quelques pixels
-  avant le bord est invisible, écrêter au-delà rebondit. Après correctif, même geste, même
-  appareil : 0 réversion, le défilement s'arrête à la fin exacte. Les deux écrêtages (cible de
-  `jump` et re-borne à la relâche) passent par la même fonction — une seule vérité.

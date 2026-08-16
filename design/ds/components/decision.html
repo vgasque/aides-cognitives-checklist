@@ -583,10 +583,25 @@
      `left`/`width` restent `auto` : sur un élément positionné, `auto` vaut la POSITION STATIQUE —
      la colonne garde donc exactement la place que la grille lui donnait, sans qu'on ait à mesurer
      quoi que ce soit en JS. */
+  /* ⚠ ET ELLE PASSE AU-DESSUS DE LA DÉCORATION, sinon on la perd en remontant (signalé à l'usage,
+     capture à l'appui : « quand je suis avec le clavier et que je rescroll en haut, je perds le
+     champ »). L'en-tête est LIBÉRÉ — il défile avec la page —, donc il disparaît dès qu'on descend
+     mais REVIENT en haut du document quand on y remonte ; il repassait alors par-dessus la colonne
+     (z 20 contre 16) et masquait précisément le champ qu'on est en train de taper. La couche du
+     champ prend donc le rang le plus haut du chrome : entre deux, c'est ce qu'on écrit qui gagne,
+     jamais ce qui décore. (Elle reste SOUS les fenêtres, à 55 : une modale recouvre tout.) */
   html.kbd aside.ref-toc{position:fixed;top:calc(var(--vvt,0px) / var(--zf,1));
-    height:calc(var(--vvh,100dvh) / var(--zf,1));max-height:none;overflow-y:auto;overscroll-behavior:contain;z-index:16}
-  html.kbd #refBar{top:calc(var(--vvt,0px) / var(--zf,1));
-    max-height:calc(var(--vvh,100dvh) / var(--zf,1));overflow-y:auto;overscroll-behavior:contain}
+    height:calc(var(--vvh,100dvh) / var(--zf,1));max-height:none;overflow-y:auto;overscroll-behavior:contain;z-index:21}
+  /* ⚠ LA BARRE ÉTROITE N'EST PAS TOUCHÉE, et c'est une décision, pas un oubli. Je lui avais
+     appliqué le même traitement qu'à la colonne ; la mesure l'a refusé : sa boîte ne fait que la
+     hauteur de son RÉSUMÉ (45 px, `--refbar-h`) et le champ est rendu EN DESSOUS — un plafond avec
+     défileur l'écrêtait donc, et le champ disparaissait. Le cas signalé par l'auteur est la COLONNE
+     (capture d'iPad à l'appui) ; toucher au second logement sans qu'il soit en cause, c'est le
+     schéma qui a coûté onze versions à ce dossier. Il reste tel qu'il était, et se traitera le jour
+     où il sera signalé — avec sa géométrie propre, qui n'est pas celle de la colonne. */
+  /* Une couche posée sur le contenu doit avoir un fond OPAQUE : sans lui, le texte de la page
+     défilerait au travers de la colonne, sous les yeux de qui tape. */
+  html.kbd aside.ref-toc{background:var(--bg)}
   /* ⚠ ON NE LIBÈRE JAMAIS LE CONTENEUR DU CHAMP QU'ON TAPE, et c'est la correction d'une
      régression que j'ai introduite en écrivant cette règle (signalée à l'usage : « la barre suit
      bien au scroll SAUF avec le clavier, dans ce cas out of view, ça remonte et je ne vois pas ce
