@@ -10641,7 +10641,7 @@ async function startHost(){
       scanRun++;await applyAnswer(a);});}
 }
 async function applyAnswer(a){
-  log('réponse reçue — application');
+  log('réponse reçue — candidats invité : '+a.c.join(' , '));
   candWarn(a.c,'la réponse REÇUE (côté invité)');
   pairVerdict(myCands,a.c);
   await pc.setRemoteDescription({type:'answer',sdp:sdpRebuild(a)});}
