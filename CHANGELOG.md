@@ -1,5 +1,40 @@
 # Journal des modifications
 
+## [5.12.2] — 2026-08-16
+### L'en-tête cesse de sauter au défilement, et l'accueil large suit enfin le clavier
+
+- **L'en-tête sautait au défilement, et la page continuait de descendre en fin de course**
+  (signalé à l'usage, sur téléphone, tablette ET ordinateur, en portrait comme en paysage). C'est
+  une **régression de la v5.12.0**, et elle mérite d'être nommée : en rendant le chrome collant
+  tributaire de `--vvt`, je l'ai rendu tributaire d'une valeur **qui n'est pas stable pendant le
+  défilement**. `visualViewport.offsetTop` devient non nul pendant le rebond élastique de fin de
+  course et pendant un pincement, **sans qu'aucun clavier ne soit ouvert** : l'en-tête suivait ces
+  micro-décalages, donc il sautait, et il descendait avec le rebond.
+- **La garde est la définition même du cas à couvrir** : un clavier **occupe de la hauteur**. Le
+  panoramique n'est retenu que si le viewport visuel est réellement plus **court** que celui de
+  mise en page ; un panoramique sans rétrécissement n'est pas un clavier, c'est un artefact de
+  geste. Le seuil (60 px) est sous toute barre d'accessoires de clavier et très au-dessus de
+  l'amplitude d'un rebond, qui ne rétrécit rien. C'est le pendant exact de la garde d'`unpan()`
+  (v5.10.4), qui refuse d'agir tant qu'un champ est focalisé — les deux décrivent la même
+  frontière, chacune de son côté.
+- **En accueil large, la barre de recherche ne suivait toujours pas** (« ça fonctionne mieux quand
+  elle est dans l'en-tête, mais quand elle est dans la sidebar elle ne suit pas »). Le correctif de
+  la v5.12.0 déplaçait des couches **collantes** ; là il n'y en a aucune — la coque est de hauteur
+  fixe (`100dvh`) et les colonnes défilent dedans. Or `dvh` **ne rétrécit pas** quand le clavier
+  s'ouvre : il suit le chrome du navigateur, pas le clavier. Le cadre restait donc à pleine
+  hauteur, le clavier en recouvrait le bas, et le panoramique emportait le haut hors de l'écran.
+  La coque se borne désormais à la hauteur **réellement visible** et descend du panoramique : elle
+  occupe exactement le rectangle visible, ses colonnes défilent dedans comme avant. Mesuré : zone
+  visible de 440 px commençant 394 px plus bas → coque de 440 px à 394, champ de recherche à 407,
+  donc dedans.
+- Hors clavier, les deux règles sont **à l'octet** celles d'avant : `--vvt` vaut 0 et `--vvh`
+  retombe sur `100dvh`. Sondes 6/6 (coque) et 5/5 (chrome collant) aux deux moteurs ;
+  `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
+- Note de méthode, pour la prochaine fois : la constante de garde a d'abord été **référencée sans
+  être déclarée** — `npm run check` restait **vert** (une `ReferenceError` n'est pas une erreur de
+  syntaxe) et l'application ne démarrait plus. C'est `npm test` qui l'attrape, comme il attrape le
+  piège des hashs CSP : une porte statique ne remplace pas un démarrage réel.
+
 ## [5.12.1] — 2026-08-16
 ### La barre de recherche d'une référence suit le clavier, elle aussi — et la règle cesse d'être tenue à la main
 
@@ -1074,58 +1109,3 @@ n'a, par construction, pas de numéro.
 Contrôles : `npm run check` vert (échelles typo, espacement, rayons, couleurs, paliers, SW,
 vendor, uploads, SQL, stores, icônes, harnais, hashs CSP), `npm test` 952/952 sur les deux
 moteurs, `npm run audit` **25/25 tâches vertes** (20 harnais), `design:build` régénéré.
-
-## [5.5.0] — 2026-08-08
-### Les boucles évoluent au compte : jalons, renvoi d'excursion, période de cycle
-
-Audit demandé par l'auteur sur le déroulé de l'algorithme : *« l'ACR restera toujours
-choquable / pas choquable / RACS — mais au bout de 3 CEE, se poser la question d'une FV
-réfractaire, qui fera changer les pads ; puis l'analyse reste toutes les 2 minutes, commune
-avec le début »*. Le déroulé en boucle était couvert (« ↺ reprendre à n », passages ×n,
-convergence) ; ce qui n'existait pas, c'est un contenu qui **change au k-ième passage ou au
-n-ième choc**. L'auteur n'avait que du texte statique (du bruit avant le seuil) ou une
-excursion « à tout moment » dont l'**entrée reposait sur la mémoire du compte** — l'inverse de
-la doctrine QRH, alors que le runtime connaît les deux nombres (`passInfo`, les compteurs).
-
-- **P1 — le jalon de boucle** (`b.milestones`, facultatif, ≤ 3 par bloc) : une phrase d'auteur
-  conditionnée « à partir du nᵉ passage » ou « quand le compteur X atteint n ». Modèle ECL sur
-  la carte du bout : la ligne existe dès le premier passage, estompée, **condition en toutes
-  lettres et progression vivante** (« Chocs délivrés 2/3 » en mono) ; au seuil elle passe au
-  registre ATTENTION — ambre, jamais rouge, franchissement en ≥ (un fait ne s'acquitte pas), et
-  **rien ne se déclenche** (règle 11 : pas de son, pas de saut — mesuré Δ = 0 px ; l'annonce
-  passe par `#srLive`). Repeinture chirurgicale dans `setCounterVal`, **avant** le garde `!el` :
-  en étroit, le volet des compteurs peut être absent du DOM pendant qu'un évènement distant
-  incrémente — le jalon, lui, est sur la carte et doit suivre. Un compteur qui ne résout pas
-  rejette la rangée dans `migrate` (un jalon qui ne mesure pas est mort).
-- **P2 — le renvoi est une porte d'excursion, pas une navigation nouvelle** : `go` désigne la
-  cible d'une excursion **déclarée** et le bouton ⚡ réutilise `data-cxgo`, donc `cxEnter`, ses
-  gardes de partage et son retour prévu (« ↩ Reprendre » — l'analyse reprend, commune avec le
-  début). Le bouton n'est tapable qu'au seuil : avant, la rangée ⚡ constante du pied suffit —
-  l'action au pied de l'alerte est la règle ECAM déjà écrite pour `onDue`.
-- **P3 — l'état au point de décision** : la progression vivante du jalon met le compte sous les
-  yeux à l'endroit où l'on répond (le rang « passage n/N » existait déjà sur la carte).
-- **P4 — la boucle dit sa période** : quand la fiche déclare **un seul** minuteur à cycles,
-  les renvois de boucle textuels la portent (« ↺ reprendre à 2 · toutes les 2 min », statique
-  et parcours) ; à deux minuteurs, rien — annoter serait une devinette.
-- **Les vues de structure annoncent les jalons d'emblée** (rien de caché qui ne s'annonce) :
-  marqueur △ + détail déplié dans l'Échelle (forme neutre — colonne désaturée), lignes inertes
-  dans le Parcours et le Statique, condition en toutes lettres partout.
-- **Éditeur** : rangées de jalon par bloc (condition · seuil · compteur · renvoi vers une
-  excursion déclarée), porte d'ajout masquée au plafond de 3 ; la bascule vers « compteur »
-  pré-pointe le premier compteur — on ne fabrique jamais l'état que `migrate` rejette.
-- **La fiche d'exemple ACR exerce le mécanisme** (lot T13) : excursion « FV réfractaire (CEE
-  inefficaces) », bloc hors chaîne (pads en antéro-postérieur), jalon « Chocs délivrés ≥ 3 »
-  avec renvoi. Le **prompt IA** documente `milestones` et interdit d'inventer un seuil clinique.
-- **Qualification réglementaire écrite avant le développement**
-  (`docs/deploiement-et-conformite.md` § 2, « Le cas des jalons de boucle ») : une règle
-  d'auteur affichée au moment que l'auteur a défini — même famille qu'`onDue` ; aucun paramètre
-  patient (les compteurs comptent des gestes de l'équipe) ; la ligne à ne pas franchir est
-  nommée (paramètre patient, seuil déduit par le logiciel, déclenchement autonome).
-- **Témoins** : 17 contrôles purs (`tests.html` — sanitisation, progression, `cycleHint`),
-  section doctrine « QRH · jalons de boucle » (12 contrôles qui construisent leur cas sur
-  l'ACR, vérifiée **capable d'échouer** : activation neutralisée → 4 rouges, fichier restauré à
-  l'octet), 2 contrôles de contrat dans `audit-prompt` (le jalon du schéma traverse `migrate`).
-  `SHARE_KEEP` couvre déjà (`blocks` voyage entier) — `schema.sql` inchangé.
-
-Rotation du journal (règle des 20 entrées) : 5.0.0 → 5.0.2 partent dans
-`docs/changelog/v5.md` (créé), 4.77.0 → 4.79.0 rejoignent `docs/changelog/v4.md`.

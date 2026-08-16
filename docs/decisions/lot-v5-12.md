@@ -84,3 +84,29 @@ commande »). L'usage tranche : clavier ouvert, un `sticky` calé sur `top:0` du
 page passe AU-DESSUS de l'écran — on perd la barre de recherche au moment précis où l'on tape dedans.
 `header.bar` et ce qui colle sous lui portent donc `+ var(--vvt)`. Restent hors de portée, et c'est
 dit : les défileurs INTERNES, dont la colonne `.home-main` de l'accueil large.
+
+**A180. UNE MESURE DU VIEWPORT VISUEL N'EST PAS STABLE PENDANT LE DÉFILEMENT.** Régression de la
+v5.12.0, signalée à l'usage sur les trois familles d'écran : en rendant le chrome collant tributaire
+de `--vvt`, on l'a rendu tributaire d'une valeur que le REBOND ÉLASTIQUE de fin de course et le
+pincement font varier — sans qu'aucun clavier ne soit ouvert. L'en-tête suivait ces micro-décalages :
+il sautait, et il descendait avec le rebond. La garde est la définition même du cas à couvrir : **un
+clavier occupe de la hauteur**, donc le panoramique n'est retenu que si le viewport visuel est
+réellement plus COURT que celui de mise en page. Pendant de la garde d'`unpan()` (v5.10.4), qui
+refuse d'agir tant qu'un champ est focalisé : les deux décrivent la même frontière, chacune de son
+côté. ⚠ Règle générale qui en sort : **avant de brancher une géométrie sur une mesure du viewport,
+se demander ce qui d'AUTRE la fait bouger.**
+
+**A181. UNE COQUE DE HAUTEUR FIXE NE SE « SUIT » PAS — ELLE SE RECADRE.** En accueil large il n'y a
+aucune couche collante : la coque est calée sur `100dvh` et les colonnes défilent dedans. Or `dvh`
+ne rétrécit PAS quand le clavier s'ouvre (il suit le chrome du navigateur, pas le clavier) — le
+cadre restait à pleine hauteur, le clavier en recouvrait le bas, et le panoramique emportait le haut
+hors de l'écran. On borne donc la coque à la hauteur RÉELLEMENT visible et on la descend du
+panoramique : elle occupe exactement le rectangle visible. Corollaire de méthode : un correctif qui
+déplace des couches collantes ne couvre PAS un écran qui n'en a aucune — vérifier la nature du
+logement avant de généraliser un remède.
+
+**A182. UNE PORTE STATIQUE NE REMPLACE PAS UN DÉMARRAGE RÉEL.** La constante de garde d'A180 a
+d'abord été référencée sans être déclarée : `npm run check` restait VERT — une `ReferenceError`
+n'est pas une erreur de syntaxe — et l'application ne démarrait plus. C'est `npm test` qui
+l'attrape, comme il attrape le piège des hashs CSP. Les dix-neuf contrôles statiques mesurent des
+FORMES ; seul un démarrage mesure qu'elle vit.

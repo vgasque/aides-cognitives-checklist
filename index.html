@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NNk1fiTLLSWyxrfvNasAyUbM0zCg5oExRq8eC3TUbTw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-+dsxerzFQOg0EzJ7v7UEucFIB7TYDcAmzxfvfzIF9OQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7873,7 +7873,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        Aides <-> Protocoles. min-height:0 : sans lui, flexbox refuse de rétrécir le corps et le
        scroll interne casse. */
     body.view-home{height:calc(100dvh / var(--zf,1));overflow:hidden}
-    body.view-home .app{height:calc(100dvh / var(--zf,1));min-height:0;padding-bottom:0}
+    /* ⚠ EN ACCUEIL LARGE, LA COQUE EST DE HAUTEUR FIXE ET LES COLONNES DÉFILENT DEDANS — donc
+       rien, ici, ne « suit » le viewport visuel : c'est la coque ENTIÈRE qu'il faut recadrer
+       (signalé à l'usage : « ça fonctionne mieux quand la barre de recherche est dans l'en-tête,
+       mais quand elle est dans la sidebar elle ne suit pas »). Le correctif de la v5.12.0 déplaçait
+       des couches COLLANTES ; ici il n'y en a aucune — la barre vit en tête d'une colonne qui
+       défile à l'intérieur d'un cadre calé sur `100dvh`, et `dvh` ne rétrécit PAS quand le clavier
+       s'ouvre (il suit le chrome du navigateur, pas le clavier). Le cadre restait donc à pleine
+       hauteur, le clavier en recouvrait le bas, et le panoramique emportait le haut hors de l'écran.
+       On borne la coque à la hauteur RÉELLEMENT visible et on la descend du panoramique : elle
+       occupe alors exactement le rectangle visible, et ses colonnes défilent dedans comme avant.
+       `--vvh`/`--vvt` valent 0 et 100dvh hors clavier (cf. la garde `VVT_MIN_CLAVIER`) : la règle
+       est alors à l'octet celle d'avant. */
+    body.view-home .app{height:calc(var(--vvh,100dvh) / var(--zf,1));margin-top:calc(var(--vvt,0px) / var(--zf,1));min-height:0;padding-bottom:0}
     body.view-home header.bar{flex:none}
     body.view-home footer.tools{flex:none}
     body.view-home main{flex:1;min-height:0;display:flex;gap:0;padding:0;max-width:none;margin:0;overflow:hidden}
@@ -9417,7 +9429,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.12.1';
+const APP_VERSION='5.12.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -28590,9 +28602,26 @@ applyZoom(currentZoom());
    « une hauteur ne suffit pas », feuille de style). Bornée à 0 : `offsetTop` peut être légèrement
    négatif pendant l'élastique iOS, et un `top` négatif décollerait la couche vers le haut, soit le
    défaut qu'on corrige. Même unité que --vvh (px non zoomés) -> les consommateurs divisent par --zf. */
+/* ⚠ `--vvt` NE VAUT QUE SOUS CLAVIER, ET C'EST UNE CORRECTION DE LA v5.12.0 (signalé à l'usage :
+   « en scroll sur smartphone, tablette ou desktop, l'en-tête SAUTE au scroll, et tout en bas du
+   scroll continue à descendre alors que pas besoin »). En rendant le chrome collant tributaire de
+   `--vvt`, la v5.12.0 l'a rendu tributaire d'une valeur qui n'est PAS STABLE PENDANT LE
+   DÉFILEMENT : `offsetTop` devient non nul pendant le rebond élastique de fin de course et pendant
+   un pincement, sans qu'aucun clavier ne soit ouvert. L'en-tête suivait donc ces micro-décalages —
+   il sautait, et il descendait avec le rebond.
+   LA GARDE EST LA DÉFINITION MÊME DU CAS À COUVRIR : un clavier OCCUPE DE LA HAUTEUR. Le
+   panoramique n'est retenu que si le viewport visuel est réellement plus COURT que celui de mise
+   en page ; un panoramique sans rétrécissement n'est pas un clavier, c'est un artefact de geste.
+   Le seuil est en dessous de toute barre d'accessoires de clavier (~44 px de dessin plus la marge
+   du système) et très au-dessus de l'amplitude d'un rebond, qui ne rétrécit RIEN. C'est le pendant
+   exact de la garde d'`unpan()` (v5.10.4), qui refuse d'agir tant qu'un champ est focalisé : les
+   deux décrivent la même frontière, chacune de son côté. */
+const VVT_MIN_CLAVIER=60;
 {const vv=window.visualViewport;
  if(vv){let last=-1,lastT=-1;
-  const set=()=>{const h=vv.height,t=Math.max(0,vv.offsetTop||0);
+  const set=()=>{const h=vv.height;
+    const clavier=(window.innerHeight-h)>VVT_MIN_CLAVIER;   // un clavier OCCUPE de la hauteur (cf. ci-dessus)
+    const t=clavier?Math.max(0,vv.offsetTop||0):0;
     if(Math.abs(t-lastT)>=.5){lastT=t;document.documentElement.style.setProperty('--vvt',t+'px');}
     if(Math.abs(h-last)<.5)return;last=h;
     document.documentElement.style.setProperty('--vvh',h+'px');};

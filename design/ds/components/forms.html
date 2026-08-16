@@ -7519,7 +7519,19 @@
        Aides <-> Protocoles. min-height:0 : sans lui, flexbox refuse de rétrécir le corps et le
        scroll interne casse. */
     body.view-home{height:calc(100dvh / var(--zf,1));overflow:hidden}
-    body.view-home .app{height:calc(100dvh / var(--zf,1));min-height:0;padding-bottom:0}
+    /* ⚠ EN ACCUEIL LARGE, LA COQUE EST DE HAUTEUR FIXE ET LES COLONNES DÉFILENT DEDANS — donc
+       rien, ici, ne « suit » le viewport visuel : c'est la coque ENTIÈRE qu'il faut recadrer
+       (signalé à l'usage : « ça fonctionne mieux quand la barre de recherche est dans l'en-tête,
+       mais quand elle est dans la sidebar elle ne suit pas »). Le correctif de la v5.12.0 déplaçait
+       des couches COLLANTES ; ici il n'y en a aucune — la barre vit en tête d'une colonne qui
+       défile à l'intérieur d'un cadre calé sur `100dvh`, et `dvh` ne rétrécit PAS quand le clavier
+       s'ouvre (il suit le chrome du navigateur, pas le clavier). Le cadre restait donc à pleine
+       hauteur, le clavier en recouvrait le bas, et le panoramique emportait le haut hors de l'écran.
+       On borne la coque à la hauteur RÉELLEMENT visible et on la descend du panoramique : elle
+       occupe alors exactement le rectangle visible, et ses colonnes défilent dedans comme avant.
+       `--vvh`/`--vvt` valent 0 et 100dvh hors clavier (cf. la garde `VVT_MIN_CLAVIER`) : la règle
+       est alors à l'octet celle d'avant. */
+    body.view-home .app{height:calc(var(--vvh,100dvh) / var(--zf,1));margin-top:calc(var(--vvt,0px) / var(--zf,1));min-height:0;padding-bottom:0}
     body.view-home header.bar{flex:none}
     body.view-home footer.tools{flex:none}
     body.view-home main{flex:1;min-height:0;display:flex;gap:0;padding:0;max-width:none;margin:0;overflow:hidden}
