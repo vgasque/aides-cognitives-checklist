@@ -192,3 +192,15 @@ pas voir le défaut, on demande une trace (vidéo, capture horodatée) au lieu d
 une hypothèse invérifiable qu'on livre est une dette, même verte à tous les contrôles. Corollaire
 déjà rencontré en A185 sous une autre forme : un vert qui n'explique pas un rouge observé désigne la
 frontière de l'instrument.
+
+**A189. UN GESTE QUI NE DÉPLACE RIEN N'EST PAS UN GESTE GRATUIT.** `pfRun` se terminait par
+`pfGo(0)`, donc chaque lettre tapée émettait un `scrollIntoView`. Mesuré au harnais : la page ne
+bougeait PAS D'UN PIXEL — `scrollY` identique d'une frappe à l'autre — mais l'appel était bien émis,
+cinq fois pour six lettres. Sur iOS, c'est l'APPEL qui fait re-panoramiquer le viewport visuel pour
+garder le champ focalisé sous les yeux : le chrome, qui suit ce panoramique, bougeait donc à chaque
+lettre. Pendant la frappe, on ne déplace donc la page que si l'occurrence n'est pas DÉJÀ sous les
+yeux — « sous les yeux » se calculant sur la bande réellement visible (clavier compris) et sous le
+chrome collant ; les flèches, elles, visent explicitement et défilent toujours. ⚠ Leçon de
+diagnostic, et elle clôt une série de cinq versions : je cherchais ce qui BOUGEAIT (le chrome, sa
+phase, son seuil) alors qu'il fallait chercher ce qui DEMANDAIT à bouger. Un effet observé sur A
+peut n'avoir aucune cause dans A — mesurer les APPELS, pas seulement les positions.
