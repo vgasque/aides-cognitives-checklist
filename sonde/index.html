@@ -139,6 +139,9 @@ M9 Canal pré-établi PENDANT que le cloud marche, puis coupure d'internet : les
 Pièges iOS mesurés (16-17/08) :
 — Réglages → Confidentialité et sécurité → Réseau local → Safari : AUTORISÉ sur les deux, sinon
   l'UDP local est jeté en silence (checking 15 s → failed alors que tout est bien configuré) ;
+— « Relais privé » iCloud (Réglages → [nom] → iCloud) et « Limiter le suivi de l'adresse IP »
+  (Réglages → Wi-Fi → ⓘ, par réseau) : à DÉSACTIVER pour le test — connus pour perturber
+  WebRTC dans Safari ; le VERDICT du journal compare les candidats des deux téléphones ;
 — 192.0.0.x dans les candidats = CLAT (réseau IPv6-only) : cellulaire actif OU Wi-Fi sans IPv4 ;
 — bonus observé : deux iPhones avec IPv6 cellulaire publique se connectent par INTERNET sans
   serveur (mode avion coupé) — utile, mais ce n'est plus du « local », et l'UDP mobile est fragile.
@@ -10484,7 +10487,27 @@ let pc=null,dc=null,statsTimer=0,pingTimer=0,blobRx=null,mode='';
 // PÉRIMÉ (celle d'un appariement précédent, encore affichée chez l'invité) est REJETÉE avec un
 // message — piège vécu sur iPhone : l'hôte la scannait, elle consommait l'appariement en
 // silence, et « plus rien ».
-let hostNonce=null,offerNonce=null;
+let hostNonce=null,offerNonce=null,myCands=null;
+/* Dès qu'un appareil connaît LES DEUX jeux de candidats, il rend un VERDICT de compatibilité —
+   comparer deux journaux à l'œil ne marche pas (terrain 17/08 : préfixes IPv6 changeant d'un
+   essai à l'autre, moitié de l'image toujours manquante). */
+function pairVerdict(mine,theirs){
+  if(!mine||!theirs)return;
+  const ip=c=>c.split('~')[0],p64=a=>a.toLowerCase().split(':').slice(0,4).join(':');
+  const v6=l=>l.map(ip).filter(a=>a.includes(':')&&!a.endsWith('.local'));
+  const priv=a=>/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(a);
+  const v4=l=>l.map(ip).filter(priv);
+  if(mine.concat(theirs).some(c=>ip(c).endsWith('.local')))
+    return log('VERDICT : candidats mDNS présents — réseau commun indécidable ici, on laisse ICE juger','warn');
+  if(v6(mine).some(a=>v6(theirs).some(b=>p64(a)===p64(b))))
+    return log('VERDICT : même réseau IPv6 (/64 commun) — un chemin local existe','ok');
+  if(v4(mine).length&&v4(theirs).length)
+    return log('VERDICT : IPv4 privées des deux côtés ('+v4(mine)[0]+' ⇄ '+v4(theirs)[0]+') — chemin local plausible','ok');
+  log('VERDICT : AUCUN réseau commun entre les candidats des deux téléphones — ils ne se voient '+
+      'pas sur un même réseau local. Sur LES DEUX : (1) même Wi-Fi coché dans Réglages → Wi-Fi ; '+
+      '(2) Réglages → Wi-Fi → ⓘ → « Limiter le suivi de l\'adresse IP » DÉSACTIVÉ ; '+
+      '(3) Réglages → [votre nom] → iCloud → Relais privé DÉSACTIVÉ (connu pour perturber '+
+      'WebRTC dans Safari) ; (4) données cellulaires coupées (mode avion) ; puis recharger','ko');}
 function gatherDone(p){return new Promise(res=>{
   if(p.iceGatheringState==='complete')return res();
   const to=setTimeout(()=>{log('gathering incomplet après 5 s — on continue','warn');res();},5000);
@@ -10605,6 +10628,7 @@ async function startHost(){
   const cpt=sdpExtract(pc.localDescription.sdp);
   log('candidats hôte : '+cpt.c.join(' , '));
   candWarn(cpt.c,'MES candidats');
+  myCands=cpt.c;
   hostNonce=Math.random().toString(36).slice(2,6);
   showQrParts(await sigPack('O',Object.assign({k:hostNonce},cpt)),$('pairQr'));
   $('pairSteps').textContent='Étape 2 : scanner en retour le code RÉPONSE affiché par l\'invité (ou coller sa charge ci-dessous).';
@@ -10619,6 +10643,7 @@ async function startHost(){
 async function applyAnswer(a){
   log('réponse reçue — application');
   candWarn(a.c,'la réponse REÇUE (côté invité)');
+  pairVerdict(myCands,a.c);
   await pc.setRemoteDescription({type:'answer',sdp:sdpRebuild(a)});}
 async function startGuest(){
   mode='guest';$('pairCard').classList.remove('hide');
@@ -10644,6 +10669,8 @@ async function applyOffer(o){
   const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
   candWarn(cpt.c,'MES candidats');
+  myCands=cpt.c;
+  pairVerdict(myCands,o.c);
   showQrParts(await sigPack('A',Object.assign({k:offerNonce},cpt)),$('pairQr'));
   $('pairTitle').textContent='Invité — étape 2 : faire scanner ce code RÉPONSE par l\'hôte';
   $('pairSteps').textContent='La connexion s\'établit dès que l\'hôte a scanné.';
