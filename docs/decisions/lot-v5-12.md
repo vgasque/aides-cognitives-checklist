@@ -243,3 +243,39 @@ précisément les quatre qui étaient MESURABLES.
 instrumente l'appareil, ou on change de conception pour supprimer la classe de défauts.** Livrer une
 hypothèse invérifiable, même verte à vingt contrôles, c'est demander à l'utilisateur de faire le
 travail de l'instrument — onze fois de suite, ici.
+
+---
+
+# Lot v5.13 — clavier ouvert : on cesse de poursuivre le viewport
+
+**A192. UN CHROME ÉPINGLÉ NE PEUT PAS SUIVRE LE VIEWPORT VISUEL — ALORS IL SE RETIRE.** Sur iOS,
+ouvrir le clavier logiciel ne rétrécit pas le viewport de MISE EN PAGE : il PANORAMIQUE le viewport
+visuel à l'intérieur. Or `position:fixed` ET `position:sticky` se calent tous deux sur le premier —
+les deux sortent de l'écran. Onze versions ont été dépensées à les y ramener en recalculant leur
+`top` à chaque évènement : c'est courir après une cible que le système déplace pendant qu'on la
+vise, et le résultat est d'échanger une disparition contre des sauts (en-tête absent, en-tête poussé
+vers le bas avec du contenu au-dessus, volet qui saute à chaque frappe — trois symptômes, tous
+constatés). **La règle retenue** : tant que le clavier est ouvert, le chrome de PAGE redevient du
+flux (`html.kbd … {position:static}`) et défile avec le contenu. Rien ne peut sauter, puisque plus
+rien n'essaie de tenir une position ; et le navigateur garde le champ focalisé visible, ce qu'il
+fait mieux que nous — il est le seul à savoir où il vient de panoramiquer. Ce qu'on perd est dit :
+pendant la frappe, l'en-tête et le sommaire ne sont plus épinglés. ⚠ LES COUCHES PLEIN ÉCRAN sont
+hors de portée : une modale, la visionneuse ou l'écran d'invité RECOUVRENT la page et n'ont pas de
+flux où retomber — elles gardent le dispositif v5.10.9, confirmé à l'usage. ⚠ ET CE QUI EST RENDU AU
+FLUX REND AUSSI SA COMPENSATION : la barre fixée d'une référence décale le contenu de sa hauteur
+tant qu'elle flotte ; rendue au flux elle occupe sa place, et garder la compensation créerait une
+bande morte (défaut déjà payé, dossier « bande basse iOS »).
+
+**A193. LA LEÇON DE MÉTHODE DU DOSSIER, ET ELLE VAUT PLUS QUE LE CORRECTIF.** Ce défaut n'était pas
+reproductible par l'instrument — `visualViewport` n'est pas scriptable en test. Onze versions ont
+pourtant été livrées, chacune fondée sur un modèle mental d'iOS présenté comme une explication, et
+chacune « vérifiée aux deux moteurs » sur tout sauf sur le défaut. Les quatre corrections de la
+série qui tiennent (`scrollIntoView` inutile à chaque frappe, chasse fixe du compte d'occurrences,
+centrage de la croix sur son champ, garde contre le rebond élastique) sont EXACTEMENT les quatre qui
+étaient mesurables. **RÈGLE : quand un défaut n'est pas reproductible par l'instrument, on ne livre
+pas d'hypothèse — on instrumente l'appareil, ou on change de conception pour supprimer la classe de
+défauts.** Corollaires vérifiés en chemin : faire préciser QUAND un défaut n'apparaît PAS vaut mieux
+qu'une hypothèse de plus (« sauf avec les claviers à l'écran » a délimité le cas d'un coup) ;
+mesurer les APPELS et pas seulement les positions (A189) ; et un contrôle doit reconnaître le défaut
+sous la forme où il EXISTE, pas sous celle qu'on avait en tête (deux fois : `--hdr-off` invisible au
+motif, puis `html.kbdX` qui satisfaisait encore le sélecteur).

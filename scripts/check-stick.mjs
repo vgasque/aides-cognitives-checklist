@@ -1,35 +1,30 @@
-/* CE QUI COLLE SOUS L'EN-TÊTE LIT UN SEUL TOKEN (v5.12.1).
+/* LE CHROME DE PAGE NE POURSUIT PAS LE VIEWPORT VISUEL — IL SE RETIRE (v5.13.0).
  *
- * POURQUOI. Le décalage « sous l'en-tête » était recopié dans cinq règles (`#crisisDock`,
- * `#refBar`, `.ed-grab`, la barre de sélection, l'en-tête lui-même). La v5.12.0 a fait suivre le
- * viewport visuel au chrome collant — clavier ouvert, un `sticky` calé sur le viewport de MISE EN
- * PAGE passe au-dessus de l'écran — mais n'a corrigé que TROIS de ces cinq sites. `#refBar`, la
- * barre de recherche d'une référence, est restée sur l'ancien calcul et continuait donc de
- * disparaître exactement dans le cas qu'on venait de réparer : « l'en-tête apparaît maintenant
- * mais pas le bandeau recherche sur iPad/iPhone ».
+ * HISTOIRE, parce qu'elle EST la règle, et qu'elle a coûté onze versions.
+ * Sur iOS, ouvrir le clavier logiciel ne rétrécit pas le viewport de MISE EN PAGE : il PANORAMIQUE
+ * le viewport visuel à l'intérieur. Or `position:fixed` ET `position:sticky` se calent tous deux
+ * sur le premier — les DEUX sortent donc de l'écran. La v5.12.0 a voulu les y ramener en ajoutant
+ * le décalage (`--vvt`) à leur `top`, et ce contrôle a d'abord servi à IMPOSER ce décalage. Ce qui
+ * a suivi, retour d'usage après retour d'usage : en-tête absent, en-tête poussé vers le bas avec
+ * du contenu au-dessus, volet qui saute à chaque frappe. Poursuivre une cible que le système
+ * déplace pendant qu'on la vise ne peut pas marcher — au mieux on remplace une disparition par des
+ * sauts.
  *
- * C'est la faute que ce dépôt paie le plus souvent, et qu'il a déjà nommée ailleurs (MUTE_SEL, la
- * table MIME des harnais, les listes tenues à la main) : une règle répartie dans n sites finit
- * corrigée dans n−2, en silence. Le remède est le même partout — UN token, un seul lecteur par
- * site — et ce contrôle rend le remède auto-exécutoire.
+ * LA RÈGLE RETENUE (décision de l'auteur) : pendant que le clavier est ouvert, le chrome de PAGE
+ * redevient du flux (`html.kbd … {position:static}`) et défile avec le contenu. Rien ne peut
+ * sauter, puisque plus rien n'essaie de tenir une position ; et le navigateur garde le champ
+ * focalisé visible, ce qu'il fait mieux que nous.
  *
- * CE QUI EST MESURÉ. Toute propriété `top` qui s'ancre sur la hauteur du chrome doit tenir compte
- * du viewport visuel — par `--hdr-off` / `--stick-off` (les tokens qui portent les deux), ou en
- * ajoutant `--vvt` elle-même. DEUX tokens d'ancrage existent et le contrôle surveille les deux :
- * `--hdr-h` (l'en-tête seul) et `--stick-top` (toute la pile collante, quai de crise compris) —
- * la v5.12.1 n'en couvrait qu'un, et les CINQ colonnes collantes ancrées sur le second
- * (sommaire d'une référence, rail de lecture, plan) ont continué de disparaître clavier ouvert
- * pendant une version de plus : « lorsqu'on est en haut de page et qu'on doit scroller en bas avec
- * le mode recherche, la sidebar ne suit pas ». La même faute, une famille plus loin.
- * Ces variables restent libres partout ailleurs (hauteurs, `scroll-padding`, compensations) : ce
- * n'est pas la variable qui est proscrite, c'est son usage comme ORIGINE d'une couche collante
- * sans le décalage du clavier.
+ * CE QUI EST DONC MESURÉ, et c'est l'INVERSE de ce que ce fichier contrôlait :
+ *   1. aucune ORIGINE (`top:`) de chrome de page ne lit `--vvt` — on ne poursuit plus rien ;
+ *   2. la classe `html.kbd` existe ET libère au moins l'en-tête — sans quoi la règle serait écrite
+ *      mais sans effet, et c'est justement la moitié qu'on oublie.
+ * Les COUCHES PLEIN ÉCRAN gardent `--vvt` et sont hors de portée : une modale, la visionneuse ou
+ * l'écran d'invité RECOUVRENT la page, elles n'ont pas de flux où retomber (v5.10.9, confirmée à
+ * l'usage). Elles se reconnaissent à leur `height` calée sur `--vvh`.
  *
- * EXEMPTIONS NOMMÉES ET MOTIVÉES, comme dans check-type et check-paliers — une exemption anonyme
- * rouvrirait la porte qu'on vient de fermer.
- *
- * VÉRIFIÉ CAPABLE D'ÉCHOUER (leçon v4.31.1) : la règle `#refBar` remise dans son état d'avant
- * (`top:var(--hdr-h,64px)`) fait rougir ce contrôle, qui la nomme ; fichier restauré à l'octet.
+ * VÉRIFIÉ CAPABLE D'ÉCHOUER DANS LES DEUX SENS : `--vvt` réintroduit dans le `top` de l'en-tête
+ * -> rouge ; règle `html.kbd` retirée -> rouge. Fichier restauré à l'octet.
  */
 import { readFileSync } from 'node:fs';
 
@@ -37,38 +32,37 @@ const src = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = src.slice(src.indexOf('<style>'), src.lastIndexOf('</style>'))
                .replace(/\/\*[\s\S]*?\*\//g, '');          // les commentaires CITENT la règle
 
-/* On lit les DÉCLARATIONS `top:` (jamais `padding-top`, `scroll-padding-top`, `--azr-top`…) :
-   le motif exige un début de déclaration — accolade, point-virgule ou début de bloc. */
-/* `.azrail` — LE RAIL A→Z. Son haut est MESURÉ puis GELÉ dans `--azr-top` (v5.6 : une géométrie
-   de chrome ne se dérive jamais d'un état qui dépend du défilement — sinon ses lettres, qui sont
-   CENTRÉES, se déplacent de 26 px sous le doigt). Lui faire suivre `--vvt` déplacerait son HAUT
-   sans déplacer son BAS, donc grandirait sa boîte et redéplacerait ces mêmes lettres : un
-   demi-correctif pire que le défaut. Et le cas ne se rencontre pas — clavier ouvert, on TAPE dans
-   la recherche, on ne vise pas une lettre du rail. Décision revue le jour où le rail devra rester
-   utilisable pendant la frappe. */
-const EXEMPTIONS = [{ sel: /\.azrail/, pourquoi: 'haut gelé par mesure (v5.6) ; le suivre déplacerait ses lettres centrées' }];
-
 const fautes = [];
-for (const m of css.matchAll(/[{;]\s*top\s*:\s*([^;}]+)/g)) {
-  const val = m[1];
-  if (!/--hdr-h|--stick-top/.test(val)) continue;   // les DEUX tokens d'ancrage du chrome
-  if (/--hdr-off|--stick-off|--vvt/.test(val)) continue;   // le décalage du clavier est pris en compte
-  // Contexte : le sélecteur qui précède, pour NOMMER la règle en défaut.
-  const avant = css.slice(0, m.index);
-  const sel = (avant.slice(avant.lastIndexOf('}') + 1).trim().split('\n').pop() || '').trim();
-  if (EXEMPTIONS.some(e => e.sel.test(sel))) continue;
-  fautes.push({ sel: sel.slice(0, 90), val: val.trim().slice(0, 80) });
+
+/* 1. Aucune ORIGINE de chrome ne poursuit le viewport. Une règle qui pose `height` sur `--vvh` est
+      une couche plein écran : elle n'a pas de flux où retomber, elle est hors sujet. */
+for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  const sel = m[1].trim().split('\n').pop().trim(), corps = m[2];
+  const top = /(?:^|;)\s*top\s*:\s*([^;]+)/.exec(corps);
+  if (!top || !/--vvt/.test(top[1])) continue;
+  if (/--vvh/.test(corps)) continue;                        // couche plein écran (cf. en-tête)
+  fautes.push({ sel, quoi: 'poursuit le viewport visuel (`--vvt` dans son `top`)',
+    remede: 'le chrome de page ne poursuit rien : il se retire via `html.kbd`' });
 }
 
+/* 2. Et la règle qui LIBÈRE existe vraiment. */
+/* ⚠ FRONTIÈRE DE MOT OBLIGATOIRE : sans `(?![\w-])`, un sélecteur renommé `html.kbdX` satisfaisait
+   encore le motif (le `[^{]*` enjambait le suffixe) — le contrôle restait vert alors que la règle
+   ne s'appliquait plus. Vu à la vérification de capacité d'échouer, pas en le relisant. */
+const KBD = /html\.kbd(?![\w-])/;
+const libere = new RegExp(KBD.source + '[^{]*\\{[^}]*position\\s*:\\s*static').test(css)
+            && new RegExp(KBD.source + '[^{]*header\\.bar').test(css);
+if (!libere) fautes.push({ sel: 'html.kbd',
+  quoi: 'la règle qui libère le chrome est absente ou ne couvre pas `header.bar`',
+  remede: 'sans elle, le chrome reste épinglé hors de l’écran clavier ouvert' });
+
 if (fautes.length) {
-  console.error('✗ check-stick : ' + fautes.length + ' règle(s) posent leur ORIGINE sur une HAUTEUR de'
-    + ' chrome sans le décalage du viewport visuel — elles disparaîtront clavier ouvert :');
-  fautes.forEach(f => console.error('   · ' + (f.sel || '(sélecteur non isolé)') + '  →  top:' + f.val));
-  console.error('   Remède : --hdr-off (sous l’en-tête seul) ou --stick-off (sous toute la pile'
-    + ' collante) — ces tokens portent la hauteur ET --vvt (cf. :root).');
+  console.error('✗ check-stick : ' + fautes.length + ' problème(s) d’ancrage du chrome :');
+  fautes.forEach(f => console.error('   · ' + f.sel.slice(0, 80) + '\n       ' + f.quoi + '\n       ' + f.remede));
   process.exit(1);
 }
 
-const lus = [...css.matchAll(/[{;]\s*top\s*:\s*[^;}]*(--hdr-off|--stick-off)/g)].length;
-console.log('✓ check-stick : ' + lus + ' couche(s) collante(s) du chrome, toutes sur --hdr-off/--stick-off'
-  + ' (elles suivent l’en-tête ET le viewport visuel) ; ' + EXEMPTIONS.length + ' exemption(s) motivée(s).');
+const couches = [...css.matchAll(/(?:^|;)\s*top\s*:\s*[^;]*--vvt/g)].length;
+const n = (css.match(/html\.kbd(?![\w-])/g) || []).length;
+console.log('✓ check-stick : aucun chrome de page ne poursuit le viewport visuel ; ' + n
+  + ' sélecteur(s) le libèrent sous clavier ; ' + couches + ' couche(s) plein écran gardent le décalage.');

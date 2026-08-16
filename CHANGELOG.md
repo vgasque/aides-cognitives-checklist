@@ -1,5 +1,41 @@
 # Journal des modifications
 
+## [5.13.0] — 2026-08-16
+### Clavier ouvert : plus rien n'est épinglé — on cesse de poursuivre le viewport
+
+- **Décision de l'auteur après onze versions de correctifs**, et c'est la seule qui supprime la
+  classe de défauts au lieu de la déplacer. Le problème, dit simplement : sur iOS, ouvrir le
+  clavier logiciel ne rétrécit pas le viewport de **mise en page** — il **panoramique** le viewport
+  visuel à l'intérieur. Or c'est au premier que se calent `position:fixed` **et** `position:sticky`
+  (les deux — c'est ce que la v5.12.10 avait supposé à tort). Tout chrome épinglé sort donc de
+  l'écran, et le poursuivre avec une variable recalculée à chaque évènement revient à courir après
+  une cible que le système déplace pendant qu'on la vise : onze versions y sont passées, pour
+  remplacer une disparition par des sauts.
+- **Ce qu'on fait à la place : on ne poursuit rien.** Tant que le clavier est ouvert, le chrome de
+  page redevient du **flux** — en-tête, quai de crise, barre de sélection, poignée d'édition,
+  colonne sommaire, volet du quai, barre fixée d'une référence. Il défile avec le contenu, comme
+  n'importe quoi d'autre. Rien ne peut plus sauter, puisque plus rien n'essaie de tenir une
+  position. Et ce qui compte pendant la frappe reste sous les yeux : **le navigateur garde le champ
+  focalisé visible**, c'est son travail et il le fait mieux que nous — il est le seul à savoir où
+  il vient de panoramiquer.
+- **Ce qu'on perd, et c'est assumé** : pendant la frappe, l'en-tête et le sommaire ne sont plus
+  épinglés ; ils reprennent leur place dès que le clavier se ferme. On échange une position tenue
+  par intermittence contre un comportement stable et prévisible.
+- **Les couches plein écran ne sont pas concernées** : une fenêtre modale, la visionneuse PDF ou
+  l'écran d'entrée d'un invité n'ont pas de flux où retomber — elles recouvrent la page. Elles
+  gardent le dispositif de la v5.10.9, que l'usage avait confirmé.
+- Le rail A→Z, qui est `fixed` et n'a aucun flux, **se retire** pendant la frappe : on tape, on ne
+  vise pas une lettre. La compensation de flux de la barre fixée est annulée avec elle — une barre
+  rendue au flux occupe sa place, et garder la compensation créerait une bande morte (défaut déjà
+  payé une fois, dossier « bande basse iOS »).
+- Le garde-fou est **inversé** et garde la nouvelle règle : aucun chrome de page ne peut lire le
+  décalage du viewport, et la règle qui libère doit exister **et** couvrir l'en-tête. Vérifié
+  capable d'échouer dans les deux sens — il a d'ailleurs raté le second au premier essai, faute
+  d'une frontière de mot (`html.kbdX` satisfaisait le motif).
+- Mesuré aux deux moteurs et aux deux largeurs : sans clavier l'en-tête est collant, clavier ouvert
+  il est `static` et défile de −600 px avec la page, clavier refermé il revient se coller à 0.
+  `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
+
 ## [5.12.11] — 2026-08-16
 ### Retour à l'état v5.12.9 — j'arrête les correctifs à l'aveugle et je pose le problème
 
@@ -691,43 +727,3 @@
   « Quitter le partage » émet `presence{quit}` (genre réservé depuis l'origine, jamais branché —
   la liste blanche du serveur l'acceptait déjà, zéro changement de schéma) et l'hôte affiche
   « parti » à la seconde. `last_seen_at` était renvoyé par le serveur et jamais lu.
-
-## [5.10.4] — 2026-08-15
-### L'en-tête ne bat plus sous le rail A→Z, le viewport iOS se recolle, le filtre est rond
-
-- **L'en-tête d'accueil ne bat plus pendant le glisser sur le rail A→Z** (signalé à l'usage :
-  « en haut de la liste, l'affichage saute très rapidement entre vue pliée/dépliée »). Chaque
-  mouvement de doigt sur le rail pose un défilement ABSOLU ; près du haut de l'annuaire, deux
-  lettres voisines encadrent l'hystérésis 80/40 de `syncHdrScroll` et le repli battait à la
-  cadence du doigt (114 ↔ 62 px par évènement pointeur). L'hystérésis protège d'un doigt qui
-  hésite EN DÉFILANT ; elle ne peut rien contre des sauts qui la traversent en entier. Pendant la
-  visée (`html.azr-aim`), l'état plié/déplié est désormais FIGÉ — le geste du rail n'est pas un
-  geste de défilement — et se rejoue UNE fois à la relâche. Vérifié à la sonde : état constant
-  sur un va-et-vient A↔D complet, une seule bascule au lâcher.
-- **Le décalage résiduel du viewport visuel iOS se répare d'office** (signalé à l'usage, capture :
-  toast « fichier ignoré » au MILIEU de l'écran, en-tête invisible sous la barre d'état, bande
-  vide sous le pied de page). Le clavier PANORAMIQUE le viewport visuel dans le viewport de mise
-  en page (`offsetTop` > 0) ; à la fermeture, WebKit ne recolle pas toujours les deux — surtout
-  quand le fond était verrouillé par une fenêtre, donc sans évènement de défilement pour
-  resynchroniser. Hors pincement et hors clavier, un `offsetTop` non nul est TOUJOURS incohérent :
-  on recolle en déplaçant le défilement de mise en page de l'offset (`scrollBy`) — le contenu
-  visible ne bouge pas d'un pixel, seuls l'en-tête collant et les couches fixes retrouvent
-  l'écran. Déclenché aux seuls moments où l'état peut naître (fermeture du clavier, perte de
-  focus, retour de bfcache), jamais en continu. À confirmer à l'usage sur appareil (l'état n'est
-  pas reproductible hors iOS réel).
-- **Le déclencheur de filtre est un CERCLE calé sur le champ de recherche** (demande de l'auteur ;
-  il rendait 38 × 48, un OVALE). `align-self:stretch` + `aspect-ratio:1` ne fait pas un rond en
-  flex — la largeur se détermine AVANT que l'étirement ne fixe la hauteur, le transfert n'a jamais
-  lieu (mesuré). Aucun nombre n'étant juste à écrire (champ à 48 px au tactile, ~44 au pointeur
-  fin), la hauteur du champ est MESURÉE et posée dans `--srch-h` (`syncSrchH` — au rendu, au
-  redimensionnement, au changement de taille du texte ; doctrine « une barre de chrome se mesure,
-  elle ne se devine pas »). Mesuré après : 48 × 48.
-- **Prompt IA resserré** (demandes de l'auteur ; les jalons de boucle y figuraient déjà depuis la
-  v5.5.0). (1) Formulation LA PLUS COURTE POSSIBLE partout — étapes, surveillances, confirmation,
-  notForget — avec l'exception écrite : les CRITÈRES diagnostiques restent COMPLETS, on raccourcit
-  la formulation, jamais la liste. (2) Les noms de minuteurs/compteurs sont À LA FOIS titre et
-  ligne de journal : 1 à 3 mots, relus seuls, et un compteur doit se lire SUIVI D'UN NUMÉRO
-  (« Choc n° 3 » — objet compté au singulier, jamais un pluriel ni un intitulé abstrait). (3) La
-  parcimonie ⚠/△ existait déjà (plafonds par bloc ET par fiche) : elle entre dans la check-list
-  finale « AVANT DE RÉPONDRE », avec les libellés de compteurs. (4) Corrigé un bogue de l'exemple
-  du schéma : l'id `"b2"` y figurait DEUX fois — l'exemple violait sa propre règle d'unicité.

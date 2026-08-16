@@ -61,22 +61,6 @@
      écrire --line:var(--line) formerait un cycle, la propriété deviendrait invalide à la valeur
      calculée et TOUTES les règles qui la consomment perdraient leur valeur. */
   :root{
-  /* ═══ SOUS L'EN-TÊTE, POUR LES COUCHES **FIXES** SEULEMENT (v5.12.1, restreint en v5.12.10) ══
-     Tout ce qui colle SOUS l'en-tête doit être à la même hauteur que lui, clavier compris. Le
-     calcul était recopié à cinq endroits (`#crisisDock`, `#refBar`, `.ed-grab`, la barre de
-     sélection, l'en-tête lui-même) — et la v5.12.0 n'en a corrigé que trois : `#refBar`, la barre
-     de recherche d'une référence, est restée sur l'ancien calcul et DISPARAISSAIT donc encore
-     clavier ouvert (signalé à l'usage : « l'en-tête apparaît maintenant mais pas le bandeau
-     recherche sur iPad/iPhone »). C'est la faute que ce dépôt paie le plus souvent : une règle
-     tenue à la main dans n sites, corrigée dans n−2. Un token, un seul lecteur par site.
-     `--hdr-h` : hauteur RÉELLE de l'en-tête (posée par `syncHdrScroll`).
-     `--vvt` : décalage du viewport visuel (posé par l'observateur du viewport, ÷ --zf comme toute
-     mesure réinjectée, règle v4.24.0). Les deux valent 0 tant que rien ne bouge.
-     ⚠ RÉSERVÉ AUX COUCHES `position:fixed` (aujourd'hui `#refBar`) : un élément COLLANT vit dans
-     le flux et suit déjà la page, lui ajouter le décalage le compte deux fois — cf. « ce qui est
-     sticky ne se décale pas ». Le jumeau `--stick-off`, créé en v5.12.3 pour les colonnes
-     collantes, est PARTI avec elles : plus aucun lecteur, donc plus de token (règle 14). */
-  --hdr-off:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));
   /* ─── 1. MATIÈRES ─────────────────────────────────────────────────────────────────────── */
   --amb:#f4f5f7;--amb-2:#eceef1;--work:#ffffff;--work-line:rgba(20,24,29,.08);
   --sys:#1d232b;--sys-hi:#2b333e;--sys-2:rgba(255,255,255,.07);--sys-line:rgba(255,255,255,.18);
@@ -541,28 +525,57 @@
      contraire à la doctrine du chrome de crise (un en-tête qui raccourcit son encombrement de
      flux fait remonter tout le contenu d'un coup). Seul le TITRE entre dans la barre, par relais
      mesuré (.ttl-on), sans changer sa hauteur. Jamais de texte tassé. */
-  /* ⚠ CE QUI EST `sticky` NE SE DÉCALE PAS — CE QUI EST `fixed`, SI (v5.12.10, et c'est un
-     RETOUR EN ARRIÈRE assumé sur les v5.12.0 à v5.12.3).
-     L'auteur a fini de cerner le cas : « ça fonctionne nickel SAUF avec les claviers à l'écran sur
-     tablette/smartphone ». Or `--vvt` ne vaut jamais autre chose que zéro hors clavier logiciel :
-     tout ce qui a été signalé depuis la v5.12.0 — en-tête qui saute, qui disparaît, qui est poussé
-     vers le bas avec du contenu au-dessus — vit donc exactement dans le seul cas que ce décalage
-     touche. C'est lui.
-     LA DISTINCTION QUE JE N'AVAIS PAS FAITE, et qui explique TOUTES les observations :
-      · `position:sticky` vit DANS LE FLUX. Quand le clavier s'ouvre, le système fait défiler la
-        PAGE pour amener le champ focalisé sous les yeux — et un élément collant suit son document.
-        Lui ajouter le décalage, c'est le compter DEUX FOIS : il descend alors dans la zone visible
-        et laisse voir du contenu au-dessus de lui (capturé à t = 5,0 s sur la première vidéo).
-      · `position:fixed` est ancré au viewport de MISE EN PAGE et ne suit rien. Lui, a bel et bien
-        besoin du décalage — c'est le correctif de la v5.10.9 sur les couches plein écran, que
-        l'auteur a confirmé (« ça fonctionne mieux »), et c'est aussi `#refBar`, la barre de
-        recherche d'une référence, dont la disparition avait ouvert tout ce dossier.
-     Le chrome collant revient donc à `--hdr-h` / `--stick-top` nus. Ce qui GARDE le décalage :
-     les couches plein écran, `#refBar`, le volet du quai, et la coque de l'accueil large — qui
-     n'est ni collante ni défilante (son `body` ne défile pas), donc ne peut suivre par elle-même.
-     ⚠ SI L'EN-TÊTE REDEVIENT INTROUVABLE CLAVIER OUVERT, la conclusion sera que `sticky` ne suit
-     PAS ce panoramique, et le remède ne sera pas un décalage de plus : ce sera de le passer en
-     `fixed` piloté sur l'évènement du viewport, avec la compensation de flux qui va avec. */
+  /* ⚠ L'EN-TÊTE SUIT LE VIEWPORT VISUEL (signalé à l'usage : « si clavier ouvert en mode
+     smartphone/tablette, l'en-tête n'est plus sticky, donc on perd la barre de recherche »).
+     Même cause que les couches plein écran de la v5.10.9, et je l'avais explicitement laissée
+     hors de portée là-bas — « le chrome collant de la PAGE est ancré au viewport de mise en page
+     avec le document qu'il commande ». L'usage tranche : ouvrir le clavier PANORAMIQUE le viewport
+     visuel dans le viewport de mise en page, et un `sticky` calé sur `top:0` de ce dernier passe
+     AU-DESSUS de l'écran — on perd la barre au moment précis où l'on tape dedans.
+     `--vvt` porte ce décalage (÷ --zf comme toute mesure réinjectée, règle v4.24.0). À clavier
+     fermé elle vaut 0 et la règle est à l'octet celle d'avant.
+     ⚠ CE QUI RESTE HORS DE PORTÉE, et c'est dit : les défileurs INTERNES (la colonne `.home-main`
+     de l'accueil large) ne sont pas le viewport — leur `sticky` se règle sur leur propre bord, et
+     le panoramique du clavier ne s'y applique pas de la même façon. Le cas signalé est le
+     téléphone et la tablette, où la page EST le défileur. */
+  /* ═══ CLAVIER LOGICIEL OUVERT : RIEN N'EST ÉPINGLÉ (v5.13.0) ═══════════════════════════════
+     Décision de l'auteur après onze versions de correctifs, et c'est la seule qui SUPPRIME la
+     classe de défauts au lieu de la déplacer.
+     LE PROBLÈME, DIT SIMPLEMENT : sur iOS, ouvrir le clavier ne rétrécit pas le viewport de MISE
+     EN PAGE — il PANORAMIQUE le viewport visuel à l'intérieur. Or c'est au premier que se calent
+     `position:fixed` ET `position:sticky` (les deux, contrairement à ce que la v5.12.10 avait
+     supposé). Tout chrome épinglé sort donc de l'écran, et le poursuivre avec une variable
+     recalculée à chaque évènement, c'est courir après une cible que le système déplace pendant
+     qu'on la vise : onze versions y ont été passées, avec pour seul résultat de remplacer une
+     disparition par des sauts — l'auteur a vu tour à tour l'en-tête absent, l'en-tête poussé vers
+     le bas avec du contenu au-dessus, et le volet qui saute à chaque frappe.
+     CE QU'ON FAIT À LA PLACE : on ne poursuit rien. Le temps que le clavier est ouvert, le chrome
+     REDEVIENT DU FLUX — il défile avec la page, comme n'importe quel contenu. Rien ne peut plus
+     sauter, puisque plus rien n'essaie de tenir une position. Et ce qui compte pendant la frappe
+     reste sous les yeux : le navigateur garde LE CHAMP FOCALISÉ visible, c'est son travail et il
+     le fait bien — mieux que nous, puisqu'il est le seul à savoir où il vient de panoramiquer.
+     CE QU'ON PERD, ET C'EST ASSUMÉ : pendant la frappe, l'en-tête et le sommaire ne sont plus
+     épinglés ; ils reviennent à leur place dès que le clavier se ferme. On échange une position
+     tenue par intermittence contre un comportement stable et prévisible.
+     ⚠ LES COUCHES PLEIN ÉCRAN NE SONT PAS CONCERNÉES : une fenêtre modale, la visionneuse ou
+     l'écran d'entrée d'un invité n'ont pas de flux où retomber — elles RECOUVRENT la page. Elles
+     gardent le dispositif de la v5.10.9 (`--vvh` + `--vvt`), que l'usage avait confirmé.
+     ⚠ ET C'EST UNE CLASSE, PAS UNE MEDIA QUERY : la présence d'un clavier ne se déduit d'aucune
+     largeur. `html.kbd` est posée par l'observateur du viewport visuel, sur le même prédicat que
+     `--vvt` (un clavier OCCUPE de la hauteur). */
+  html.kbd header.bar,html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,
+  html.kbd aside.ref-toc,html.kbd .rt-dock,html.kbd #refBar{position:static}
+  /* `#refBar` porte une compensation de flux (le contenu est décalé de sa hauteur tant qu'elle
+     flotte) : rendue au flux, elle occupe sa propre place et la compensation deviendrait une
+     bande morte — le défaut que le dossier « bande basse iOS » a déjà coûté une fois. */
+  html.kbd body.refbar-on main{padding-top:0}
+  /* Une colonne libérée rend aussi sa hauteur : bornée, elle deviendrait un défileur dans le
+     défileur, et l'on ne saurait plus lequel répond au doigt. */
+  html.kbd aside.ref-toc{max-height:none;overflow:visible}
+  /* Le rail A→Z est `fixed` et ne peut pas retomber dans un flux : il n'en a pas. Pendant la
+     frappe il ne sert à rien (on tape, on ne vise pas une lettre) et il flotterait à côté de la
+     zone visible — il se retire, et revient avec le clavier. */
+  html.kbd .azrail{display:none}
   header.bar{position:sticky;top:0;z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
   .id-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
@@ -3027,7 +3040,7 @@
      aides ») : c'est exactement la grammaire de `#crisisCtrl` au-dessus de `#crisisDock` — deux
      rangées de MÊME chrome, chacune bordée en bas. Continuité ne veut pas dire indistinction :
      le fond commun fait le bloc, le filet dit qu'il a deux étages. */
-  #refBar{position:fixed;left:0;right:0;top:var(--hdr-off);z-index:14;
+  #refBar{position:fixed;left:0;right:0;top:var(--hdr-h,64px);z-index:14;
     background:var(--surface);border-bottom:1px solid var(--line)}
   #refBar>.ref-toc{max-width:1064px;margin:0 auto;padding:0 18px}
   /* ⚠ VINGTIÈME PIÈGE DE CASCADE (v5.3.1, signalé à l'usage : « résultats de recherche très
@@ -3470,7 +3483,7 @@
      même règle que les autres couches de chrome : + le panoramique du viewport visuel, sinon il
      s'ouvre hors de l'écran clavier ouvert (attrapé par `check-stick` en étendant celui-ci au
      second token d'ancrage — je ne l'avais pas vu). */
-  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--quai-b, var(--stick-top,110px)) - 8px + var(--vvt,0px) / var(--zf,1));z-index:16;
+  .rt-dock{position:fixed;left:14px;right:14px;top:calc(var(--quai-b, var(--stick-top,110px)) - 8px);z-index:16;
     background:var(--surface);border-radius:0 0 var(--r-3) var(--r-3);box-shadow:var(--shadow-lg);
     max-height:calc((var(--vvh,100dvh) / var(--zf,1) - var(--stick-top,110px))*.8);
     overflow-y:auto;overscroll-behavior:contain}
