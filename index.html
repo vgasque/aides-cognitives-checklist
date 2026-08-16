@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-/ssLzGGdcwCDLbgFh/+Cf39zSFhQXGlo4HuJ6B1+rKw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-pBZZDmi6jzPOGbPseyCr2ohVy2V+2HzI+O5aZ5uZOco='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3443,7 +3443,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-fold:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le champ porte la croix : `position:relative` sur la boîte, et de la place à droite pour que
      le texte ne passe pas dessous (même géométrie que la boîte de recherche de l'accueil). */
-  .rt-find{position:relative}
+  /* La boîte du champ : elle n'enveloppe QUE l'input, donc elle ne grandit pas quand la navigation
+     d'occurrences apparaît — c'est ce qui fige la croix (cf. `protoFindHtml`). */
+  .rt-fin{position:relative;display:block}
   .rt-find #pfQ{padding-right:32px}   /* 6 (droite de la croix) + 26 (sa largeur) — échelle fermée */
   /* ⚠ `.srch-x` NE SE CENTRE PAS TOUTE SEULE : dans l'en-tête elle doit son alignement au `flex`
      de `.srch-box`, qui n'existe pas ici — posée telle quelle elle collait en HAUT du champ
@@ -3452,8 +3454,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ⚠ ET SA CIBLE MONTE À 44 px, parce que ce champ vit AUSSI dans la feuille « Toute la fiche »
      du mode crise — l'audit a11y l'a attrapée à 38×38 pour un seuil de 44 (règle 9). Le halo
      `::after` grandit, le dessin ne bouge pas : 26 + 2×9 = 44. */
-  .rt-find .srch-x{top:50%;transform:translateY(-50%)}
-  .rt-find .srch-x::after{inset:-9px}
+  .rt-fin .srch-x{top:50%;transform:translateY(-50%)}
+  .rt-fin .srch-x::after{inset:-9px}
   /* Recherche fructueuse -> le sommaire s'efface (cf. `pfSyncFind`). Le champ, la navigation
      d'occurrences et les documents trouvés restent : c'est ce qu'on regarde à ce moment-là. */
   .ref-toc.finding .rt-lnk,.ref-toc.finding .rt-h2{display:none}
@@ -9440,7 +9442,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.12.3';
+const APP_VERSION='5.12.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16759,10 +16761,19 @@ const emptyLine=txt=>`<p class="empty-line">${esc(txt)}</p>`;
    même geste : deux croix dessinées séparément finiraient par ne pas se ressembler, et l'on
    apprendrait deux fois la même chose. Elle ne paraît que s'il y a du texte à effacer. */
 function protoFindHtml(ph,aria,cls){
-  return `<div class="rt-find${cls?' '+cls:''}"><input type="search" id="pfQ" placeholder="${esc(ph||'Chercher dans la référence…')}" `
+  /* ⚠ LA CROIX A SA PROPRE BOÎTE, ET C'EST LA CONDITION POUR QU'ELLE NE BOUGE PAS (signalé à
+     l'usage, deux fois : « pas centrée, trop basse et trop à droite », puis « en fait change de
+     position en fonction de ce qu'on écrit »). `.rt-find` est une COLONNE FLEX qui grandit avec ce
+     qu'on tape — la navigation d'occurrences puis les documents trouvés s'y ajoutent : mesuré,
+     52 px à vide, 88 px avec des résultats. Une croix centrée sur ce conteneur descendait donc de
+     14 px dès la première occurrence, et son bord droit dépassait de 2 px celui du champ (le
+     conteneur a 8 px de rembourrage que le champ n'a pas). Le repère doit être le CHAMP, jamais
+     ce qui l'entoure : `.rt-fin` n'enveloppe que lui, et la croix s'y centre une fois pour
+     toutes. */
+  return `<div class="rt-find${cls?' '+cls:''}"><span class="rt-fin"><input type="search" id="pfQ" placeholder="${esc(ph||'Chercher dans la référence…')}" `
     +`aria-label="${esc(aria||'Chercher dans cette référence')}" autocomplete="off">`
     +`<button type="button" id="pfX" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche">`
-    +`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>`
+    +`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button></span>`
     +`<div class="rt-fnav" id="pfNav" hidden><button type="button" class="mini" id="pfPrev" aria-label="Occurrence précédente">‹</button>`
     +`<span id="pfCount" role="status"></span>`
     +`<button type="button" class="mini" id="pfNext" aria-label="Occurrence suivante">›</button></div></div>`

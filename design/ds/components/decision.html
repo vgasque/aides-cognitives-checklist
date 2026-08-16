@@ -3089,7 +3089,9 @@
   .rt-fold:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le champ porte la croix : `position:relative` sur la boîte, et de la place à droite pour que
      le texte ne passe pas dessous (même géométrie que la boîte de recherche de l'accueil). */
-  .rt-find{position:relative}
+  /* La boîte du champ : elle n'enveloppe QUE l'input, donc elle ne grandit pas quand la navigation
+     d'occurrences apparaît — c'est ce qui fige la croix (cf. `protoFindHtml`). */
+  .rt-fin{position:relative;display:block}
   .rt-find #pfQ{padding-right:32px}   /* 6 (droite de la croix) + 26 (sa largeur) — échelle fermée */
   /* ⚠ `.srch-x` NE SE CENTRE PAS TOUTE SEULE : dans l'en-tête elle doit son alignement au `flex`
      de `.srch-box`, qui n'existe pas ici — posée telle quelle elle collait en HAUT du champ
@@ -3098,8 +3100,8 @@
      ⚠ ET SA CIBLE MONTE À 44 px, parce que ce champ vit AUSSI dans la feuille « Toute la fiche »
      du mode crise — l'audit a11y l'a attrapée à 38×38 pour un seuil de 44 (règle 9). Le halo
      `::after` grandit, le dessin ne bouge pas : 26 + 2×9 = 44. */
-  .rt-find .srch-x{top:50%;transform:translateY(-50%)}
-  .rt-find .srch-x::after{inset:-9px}
+  .rt-fin .srch-x{top:50%;transform:translateY(-50%)}
+  .rt-fin .srch-x::after{inset:-9px}
   /* Recherche fructueuse -> le sommaire s'efface (cf. `pfSyncFind`). Le champ, la navigation
      d'occurrences et les documents trouvés restent : c'est ce qu'on regarde à ce moment-là. */
   .ref-toc.finding .rt-lnk,.ref-toc.finding .rt-h2{display:none}

@@ -122,3 +122,16 @@ raccourcirait les colonnes en plus de les déplacer. Le contrôle étendu aux de
 immédiatement attrapé un SIXIÈME site jamais soupçonné (le volet du quai). ⚠ Leçon de méthode :
 quand on écrit un garde-fou pour une famille de règles, **énumérer la famille avant de coder le
 contrôle** — sinon il gèle la moitié qu'on connaissait et certifie l'autre.
+
+**A184. UN ÉLÉMENT SE CENTRE SUR LA RÉFÉRENCE QUE L'ŒIL UTILISE, PAS SUR LA BOÎTE LA PLUS FACILE À
+INTERROGER.** La croix d'effacement d'une recherche était centrée sur le CONTENEUR du champ — or ce
+conteneur est une colonne qui grandit avec ce qu'on tape (navigation d'occurrences, puis documents
+trouvés) : mesuré 52 px à vide, 88 px dès la première occurrence, donc une croix qui descend de
+14 px à la deuxième lettre, et qui dépasse de 2 px le bord droit du champ (le conteneur a 8 px de
+rembourrage que le champ n'a pas). Signalé deux fois — « pas centrée » puis « change de position en
+fonction de ce qu'on écrit », la seconde phrase désignant la cause. Le repère est désormais une
+boîte qui n'enveloppe QUE l'input. ⚠ ET LE COROLLAIRE DE MÉTHODE : mes premiers témoins mesuraient
+le centrage CONTRE LE CONTENEUR — ils étaient donc VERTS sur le défaut même qu'ils prétendaient
+couvrir. Même famille que le témoin géométrique aveugle à l'écrêtage (A167) : un témoin doit mesurer
+contre la référence de l'utilisateur, et se vérifier sur quatre ÉTATS successifs quand la propriété
+en jeu est la stabilité.
