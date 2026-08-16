@@ -135,3 +135,19 @@ le centrage CONTRE LE CONTENEUR — ils étaient donc VERTS sur le défaut même
 couvrir. Même famille que le témoin géométrique aveugle à l'écrêtage (A167) : un témoin doit mesurer
 contre la référence de l'utilisateur, et se vérifier sur quatre ÉTATS successifs quand la propriété
 en jeu est la stabilité.
+
+**A185. UNE GÉOMÉTRIE DE CHROME NE SE DÉRIVE JAMAIS D'UN ÉTAT QUI DÉPEND DU DÉFILEMENT — Y COMPRIS
+QUAND CET ÉTAT VIENT DU SYSTÈME.** La règle existait (v5.0.9 ; `azrPoseBox` en v5.6, dont le haut est
+mesuré puis GELÉ pour que les lettres du rail ne bougent pas sous le doigt) ; la v5.12.0 l'a violée
+sans le voir, parce que la valeur en cause vient du navigateur et non de nous : clavier ouvert,
+chaque défilement programmatique fait RE-PANORAMIQUER le viewport visuel pour garder le champ
+focalisé sous les yeux, donc `offsetTop` change à CHAQUE saut d'occurrence, et le chrome sautait avec
+lui (« lorsque je clique sur les flèches ‹ et › pour parcourir la recherche, l'en-tête et la sidebar
+sautent »). `--vvt` ne se relit donc que quand la HAUTEUR du viewport visuel change — le clavier
+s'ouvre, se ferme, change de taille — et reste gelée entre deux. ⚠ Le coût est nommé : un
+re-panoramique SANS changement de hauteur (focus déplacé vers un champ plus bas, clavier déjà
+ouvert) laisse le chrome au décalage du dernier évènement de hauteur — quelques dizaines de pixels,
+contre un saut à chaque geste de lecture. ⚠ Et le corollaire de méthode : le harnais ne reproduisait
+RIEN (vingt-six sauts, chrome immobile au pixel) — ce qui n'était pas une infirmation mais une
+INFORMATION : le défaut vivait donc dans ce que le harnais ne simule pas, le clavier. Un vert qui
+n'explique pas un rouge observé désigne la frontière de l'instrument, pas l'absence de défaut.

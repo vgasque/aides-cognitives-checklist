@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [5.12.5] — 2026-08-16
+### Le chrome ne saute plus quand on parcourt les occurrences — une géométrie de chrome ne se dérive pas du défilement
+
+- **L'en-tête et la sidebar sautaient à chaque clic sur ‹ / ›** (signalé à l'usage). Le harnais ne
+  reproduit rien sur ordinateur : à 1280 px, vingt-six sauts d'occurrence, l'en-tête reste à 0, la
+  colonne à 69, `--hdr-h` et `--stick-top` constants. C'est donc **le clavier**. Ouvert, chaque
+  défilement programmatique fait **re-panoramiquer** le viewport visuel pour garder le champ
+  focalisé sous les yeux : `offsetTop` change à chaque saut, et le chrome — qui le suit depuis la
+  v5.12.0 — sautait avec lui.
+- **La règle existait déjà dans ce dossier, une famille plus loin** : *une géométrie de chrome ne
+  se dérive jamais d'un état qui dépend du défilement* (v5.0.9, puis le rail A→Z en v5.6, dont le
+  haut est mesuré puis **gelé** pour exactement la même raison — sinon ses lettres bougent sous le
+  doigt). Le décalage se relit donc quand la **hauteur** du viewport visuel change — c'est-à-dire
+  quand le clavier s'ouvre, se ferme ou change de taille — et reste **gelé** entre deux. Le chrome
+  est immobile pendant qu'on parcourt les occurrences.
+- **Ce que ça coûte, et c'est dit** : si le système re-panoramique sans changer la hauteur (passer
+  le focus à un champ plus bas, clavier déjà ouvert), le chrome garde le décalage du dernier
+  évènement de hauteur. Le bon compromis : ce cas laisse le chrome à quelques dizaines de pixels
+  près, quand l'ancien comportement le faisait sauter à **chaque** geste de lecture.
+- Les cinq sondes de la série restent vertes aux deux moteurs (chrome collant, coque large, colonne
+  sommaire, croix, navigation d'occurrences) ; `npm run check` 20/20, `npm test` 2×1126, audit
+  COMPLET 25/25. ⚠ Comme pour toute la série `--vvt` : le comportement **sous vrai clavier iOS** ne
+  se vérifie que sur appareil — le harnais mesure le câblage et la géométrie, pas la réaction du
+  système.
+
 ## [5.12.4] — 2026-08-16
 ### La croix d'effacement cesse de bouger avec ce qu'on tape
 
@@ -852,99 +877,3 @@ Doctrine : `AGENTS.md` A130.
 - **Détail de plancher** : à 320 px les deux gestes de l'atelier tenaient sur une ligne mais s'y
   cassaient chacun en deux. La rangée enroule désormais plutôt que les mots — les boutons restent
   côte à côte à 44 px, c'est le compte qui passe dessous.
-
-## [5.8.0] — 2026-08-13
-### « Voir avant d'écrire, revenir sans chercher »
-
-Fin du lot v5.7 : son dernier item de plan — **l'atelier d'import** —, les deux retours au soin
-qui manquaient, et les deux correctifs *à zéro pixel* que le **refus** du « plan de vol » sur
-l'écran de crise avait révélés. Comme le lot précédent, rien ici ne déduit quoi que ce soit d'un
-paramètre patient. La doctrine est dans `AGENTS.md` § « Lot v5.7 » (A124 à A129).
-
-**Ce qui entre dans la bibliothèque**
-
-- **L'atelier d'import — le grain n'est plus le fichier, c'est l'entité.** Un `.json` ou un `.zip`
-  entrait EN BLOC : on répondait à trois questions (destination, fusion, doublons) sans avoir
-  jamais vu ce qu'il contenait. Sur un export de bibliothèque, c'est dix-huit aides qu'on acceptait
-  sur la foi d'un nom de fichier, et le seul recours après coup était de les supprimer une par une.
-  L'ordre est renversé : **d'abord ce que l'on importe, ensuite où**. Une rangée par entité — type,
-  titre, **état déclaré par le fichier**, ce qu'il reste à relire, nombre de PDF —, tout coché au
-  départ : l'atelier sert à *retirer*, il ne demande pas de tout re-cocher.
-- **Le filtrage précède toute écriture**, et c'est le point dur : les deux listes sont réduites à
-  la sélection *avant* les questions, donc avant `migrate`, `persist` et surtout `importAtts`. Un
-  binaire du `.zip` n'entre **jamais** pour une entité décochée — non par un filtre posé après
-  coup, mais parce que la liste filtrée est la seule qui existe ensuite.
-- **L'état entrant est préservé** : les trois portes forçaient « Brouillon ». C'était un proxy de
-  « vous n'avez pas encore relu ceci » ; l'atelier montre désormais cet état *avant* l'écriture,
-  rangée par rangée. Le coût du forçage était réel — **restaurer une sauvegarde ramenait dix-huit
-  aides validées en brouillon**, donc hors de l'accès de crise (un brouillon ne s'épingle pas et
-  reste masqué aux lecteurs d'une bibliothèque partagée). L'objection est nommée dans la doctrine :
-  ce qui protège du « Validée » non relu, c'est la rangée qui le dit, plus le prompt IA qui impose
-  `"status":"draft"` — contrat vérifié par `audit-prompt`.
-- **La pastille « △ n »** est le *même* calcul que le volet « Relecture » de l'éditeur : deux
-  comptes écrits séparément divergeraient. Elle ne conditionne rien — une remarque de relecture
-  n'est pas un refus.
-- Trois défauts trouvés sur le trajet et corrigés : un fichier ne portant **que** des références
-  répondait « Import interrompu » alors qu'il était parfaitement valide ; un contenu vide disait
-  « 0 fiche importée », une phrase qui ne désigne pas sa cause ; les questions comptaient le
-  *fichier* au lieu de la *sélection*.
-
-**Revenir au soin**
-
-- **Rouvrir l'application pendant une session vive dépose dans le soin**, plus sur l'accueil : un
-  tap de moins au seul moment où l'on n'en a aucun à donner. Trois bornes — une seule session
-  vive, dix minutes sans le moindre geste au plus, et jamais quand un lien d'invité est présent.
-  Le « ‹ » de l'en-tête ramène à la bibliothèque : personne n'est enfermé.
-- **La barre de retour au bloc courant** est affinée sur trois signalements : elle ne **clignote**
-  plus au re-rendu (un nœud détaché n'est pas « hors zone » — l'observateur surveillait l'ancienne
-  carte), elle prend la **boîte de la barre flottante** au lieu de celle de la page, et elle
-  **s'empile** sur le volet du dock au lieu de le recouvrir, en redescendant d'elle-même à sa
-  fermeture.
-- **Le passage qu'on interrompt se replie.** Après une complication reprise, deux cartes ouvertes
-  du même bloc se suivaient avec les mêmes étapes. La navigation, elle, était juste — un témoin
-  écrit *avant* toute correction l'a tranché. L'invariant du journal n'est pas touché : on ne
-  transforme pas le passage en chip, on pose le repli manuel, et un tap rouvre l'ancienne carte.
-
-**Lire l'état**
-
-- **Un minuteur armé puis mis en pause cesse d'être muet.** Il ne figurait dans aucun segment de
-  la capsule et n'avait pas d'alarme à venir : il n'existait donc nulle part sans ouvrir le volet,
-  alors qu'il porte un temps qui a cessé d'avancer. « ⏸ n en pause » rejoint le rappel du quai.
-- **La progression d'un jalon sort de son bloc** : « Chocs 2/3 » disparaissait dès qu'on était
-  ailleurs, pendant que le compte, lui, continuait d'avancer. Elle rejoint le volet, en quatrième
-  famille — une ligne, pas une carte, et aucun geste n'y est posé.
-- **Le plan de vol est refusé sur le chrome de crise et livré dans le moniteur.** Éprouvée contre
-  le contenu réel des fiches, la proposition ne gardait qu'un bénéfice rare pour ~52 px permanents
-  dans une colonne dont le budget est tenu à 30 % ; sur un afficheur qu'on lit à deux mètres, les
-  pixels sont gratuits et une bande de temps est la bonne forme. Trois registres de trait, et l'on
-  ne peut pas confondre un fait avec une promesse : point = c'est arrivé, trait plein = c'est daté,
-  tiret = c'est projeté si rien n'est touché. Un jalon compté n'y entre jamais — le dater
-  reviendrait à prédire le rythme auquel l'équipe va agir.
-
-**Géométrie, densité, finitions**
-
-- **En exercice, le volet recouvrait la capsule de 63 px** : le bandeau du placard vit dans le
-  flux et pousse le quai vers le bas, alors que la position du volet se dérivait d'une *somme de
-  hauteurs*. Il suit désormais le bas **réel** du quai — correctif borné au volet : partout
-  ailleurs, une géométrie de chrome continue de ne jamais dériver d'une position de défilement.
-- **En session, le haut de page cesse d'être du vide sous le quai** (18 → 8 px à 390, 24 → 14 à
-  1280) : le quai ferme déjà le haut, cet écart n'y sépare plus deux objets.
-- **La ligne de reprise après interruption** est refaite : une rangée *dans* la carte, un nombre
-  qui **vit** (un nombre figé qui annonce « il y a 6:12 » ment dès la minute suivante), et une
-  sortie explicite à 44 px.
-- **Les cartes épinglées prennent le rythme du répertoire** — elles s'étalaient sur toute la
-  largeur (976 px contre 320) pour l'accès le plus rapide du produit.
-- **Le parcours inerte se resserre en deux passes** (416 → 368 px avant le soin, 435 → 411 en
-  session) : les marges cèdent, jamais le contenu. Le plancher est dit — 32 px hors crise, et en
-  session un **pas** de 44 px que la règle des cibles rend non négociable.
-- **Balayage des glyphes littéraux** : six sites passent aux tracés `uiIcon`, et les deux familles
-  qui restent en texte sont nommées (le vocabulaire abrégé des renvois, les glyphes de commande du
-  dock).
-
-**Témoins**
-
-Deux entrées neuves : la section `A129 · l'atelier d'import` d'`audit-doctrine` — vrai `.zip`
-fabriqué par `zipBuild`, entré par le point d'entrée réel, vérifiée capable d'échouer (filtrage
-neutralisé et forçage réintroduit → trois rouges) — et la surface `atelier d'import` d'`audit-a11y`,
-qui construit son cas avec les deux natures **et** une pastille : sans elles, la moitié des objets
-de la rangée ne serait pas mesurée.
