@@ -525,7 +525,20 @@
      contraire à la doctrine du chrome de crise (un en-tête qui raccourcit son encombrement de
      flux fait remonter tout le contenu d'un coup). Seul le TITRE entre dans la barre, par relais
      mesuré (.ttl-on), sans changer sa hauteur. Jamais de texte tassé. */
-  header.bar{position:sticky;top:0;z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
+  /* ⚠ L'EN-TÊTE SUIT LE VIEWPORT VISUEL (signalé à l'usage : « si clavier ouvert en mode
+     smartphone/tablette, l'en-tête n'est plus sticky, donc on perd la barre de recherche »).
+     Même cause que les couches plein écran de la v5.10.9, et je l'avais explicitement laissée
+     hors de portée là-bas — « le chrome collant de la PAGE est ancré au viewport de mise en page
+     avec le document qu'il commande ». L'usage tranche : ouvrir le clavier PANORAMIQUE le viewport
+     visuel dans le viewport de mise en page, et un `sticky` calé sur `top:0` de ce dernier passe
+     AU-DESSUS de l'écran — on perd la barre au moment précis où l'on tape dedans.
+     `--vvt` porte ce décalage (÷ --zf comme toute mesure réinjectée, règle v4.24.0). À clavier
+     fermé elle vaut 0 et la règle est à l'octet celle d'avant.
+     ⚠ CE QUI RESTE HORS DE PORTÉE, et c'est dit : les défileurs INTERNES (la colonne `.home-main`
+     de l'accueil large) ne sont pas le viewport — leur `sticky` se règle sur leur propre bord, et
+     le panoramique du clavier ne s'y applique pas de la même façon. Le cas signalé est le
+     téléphone et la tablette, où la page EST le défileur. */
+  header.bar{position:sticky;top:calc(var(--vvt,0px) / var(--zf,1));z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
   .id-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
      éléments souples (retour, titre, segments chrono) rétrécissent avec ellipse/clip. Seul
@@ -966,7 +979,7 @@
      A9 — HAUTEUR D'ÉTAT FIXE : 50 px de haut quel que soit l'état (veille, échu, alarme). Un
      changement d'état NON commandé ne déplace jamais rien ; seule l'expansion COMMANDÉE par un
      tap (le volet) a droit à la hauteur. */
-  #crisisDock{position:sticky;top:var(--hdr-h,64px);z-index:15;background:var(--amb);padding:8px 14px}
+  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));z-index:15;background:var(--amb);padding:8px 14px}
   #crisisDock[hidden]{display:none}
   /* DIRECTION A, lot 4 (audit post-v5.0.10) — AU PALIER COCKPIT, LE CHROME S'EFFACE DERRIÈRE SES
      CONTRÔLES. Mesuré à 1280 px : la rangée de commandes est une bande blanche de bord à bord
@@ -2131,6 +2144,81 @@
      de `main`, commun à toutes les vues). */
   .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 8px}
   .grp-row:empty{display:none}
+  /* ═══ A170 — LE MODE SÉLECTION VIT DANS LA RANGÉE DE GROUPEMENT ═══════════════════════════
+     Et NON dans l'en-tête (décision de l'auteur : « l'en-tête est déjà saturé »). Le logement est
+     juste : cette rangée est celle où l'on choisit COMMENT ce qu'on voit est rangé, juste
+     au-dessus du répertoire sur lequel on va agir — agir sur ce qu'on vient de trier y appartient.
+     L'en-tête garde ses quatre commandes d'ACCÈS (identité, recherche, Créer, compte), qui sont
+     celles dont on a besoin en urgence.
+     ⚠ NE PAS ÉCRIRE QU'ELLE « ACCUEILLE DÉJÀ FILTRES » : c'était vrai en v5.0.3, ça ne l'est
+     plus — le déclencheur a rejoint le champ de recherche et `.grp-row .filt-tog` a été PURGÉE
+     (cf. juste au-dessus). Le bouton de sélection est donc le SECOND habitant de cette rangée,
+     pas un troisième, et la justification ne s'appuie sur aucun précédent (A72).
+     Il pousse à droite : le groupement reste à sa place apprise, et rien ne bouge quand la
+     sélection s'ouvre ou se ferme. */
+  .sel-tog{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer}
+  .sel-tog:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .sel-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ⚠ LA COUCHE ÉTAIT BONNE, SA PLACE NE L'ÉTAIT PAS — trois retours de l'auteur, et le dernier
+     corrige ce que j'avais déduit du premier :
+       1. « revois le design du bandeau de sélection qui est fixed, ça rend très mal sur écrans
+          moins larges que desktop » + « le bandeau est très bas : A-Z/Catégories et Sélectionner
+          disparaît quand il apparaît -> espace mort en haut » ;
+       2. « mais si doit rester sticky en scroll » ;
+       3. « la couche flottante était parfaite, c'est juste que c'était mal placé car trop
+          d'espace mort entre le haut et le bandeau ».
+     J'avais lu (1) comme « ne pas flotter » et fondu le bandeau DANS la rangée de groupement —
+     ce qui lui coûtait le suivi au défilement, exactement ce que (2) réclamait. (3) tranche : le
+     défaut n'était pas de flotter, c'était de flotter LOIN. Le bandeau était inséré en tête du
+     RÉPERTOIRE, donc APRÈS le bandeau de jointure, les cartes de session vive et les notices : au
+     repos il tombait à ~200 px du haut, et tout ce qui le séparait de l'en-tête se lisait comme
+     du vide entre la commande et ce sur quoi elle agit.
+     Il est donc redevenu ce qu'il était — une couche collante — mais PREMIER élément de la
+     colonne, sous l'en-tête réel (`--hdr-h`, mesurée par `syncHdrScroll` ; patron de
+     `#crisisDock`, jamais une constante). Même endroit au repos et en défilement, ce qui est
+     exactement ce qu'on attend d'une barre de sélection. Il s'enroule au lieu de se comprimer :
+     sur 320 px, sept commandes tiennent en trois rangs lisibles plutôt qu'en une ligne illisible.
+     LEÇON DE MÉTHODE, consignée parce qu'elle a coûté deux allers-retours : un retour qui dit
+     « ça rend mal » nomme un SYMPTÔME, pas une cause. J'ai supprimé le mécanisme au lieu de
+     chercher ce qui, de sa position ou de sa nature, produisait le symptôme. */
+  /* ⚠ ET LE DÉCALAGE DÉPEND DE QUI DÉFILE — c'est la cause MESURÉE du « toujours trop bas, crée
+     beaucoup d'espace mort » qui restait après la remontée en tête de colonne. Un `sticky` se
+     règle sur son PROPRE défileur, et l'accueil en a deux : sous 780 px c'est la PAGE (le
+     décalage doit alors valoir la hauteur de l'en-tête fixe, sinon la barre passe dessous), au-delà
+     c'est `.home-main` lui-même (`overflow-y:auto`, coque fixe) — et là le même décalage s'ajoute
+     À L'INTÉRIEUR du défileur, sous un en-tête qui ne le recouvre pas. Mesuré à 1194 px : bas de
+     l'en-tête 61, haut de la barre 189, soit 128 px de vide, dont 61 dus à ce seul `--hdr-h`.
+     Deux défileurs, deux décalages : `--hdr-h` en étroit, ZÉRO en large (le second est posé dans
+     le bloc ≥ 780 px, auprès de la déclaration qui rend `.home-main` défilant). */
+  .sel-bar{position:sticky;top:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));z-index:14;display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+    margin:0 0 10px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-md);
+    background:var(--surface);box-shadow:var(--shadow)}
+  .sel-n{font-size:var(--t-meta);font-weight:700;color:var(--ink);white-space:nowrap}
+  .sel-bar .sel-sp{flex:1 1 auto}
+  .sel-bar .btn{flex:none;min-height:32px;padding:0 10px;font-size:11px}
+  /* La case d'une rangée : cible ≥ 32 px hors crise (règle 9), et un VRAI rôle de case à cocher
+     (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
+     sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */
+  .dir-ck{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--primary);cursor:pointer}
+  .dir-ck::before{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--surface)}
+  .dir-ck>svg{position:relative;opacity:0}
+  .dir-row.selon .dir-ck::before{background:var(--primary);border-color:var(--primary)}
+  .dir-row.selon .dir-ck>svg{opacity:1;color:var(--surface)}
+  .dir-ck:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
+  /* ⚠ LA COCHE EST UNE COLONNE DE LA GRILLE, PAS UN INTRUS (correctif, signalé à l'usage :
+     « réduis l'espace entre la coche et le reste de la carte — c'est encore plus marquant sur
+     plusieurs colonnes »). `.dir-row` est une GRILLE à deux pistes (`minmax(0,1fr) auto`) :
+     glisser un troisième enfant en tête le posait dans la piste SOUPLE, et le contenu passait
+     dans la piste `auto` — d'où le fossé mesuré à l'écran, qui grandissait avec la largeur de la
+     carte puisque c'est `1fr` qui l'ouvrait. On déclare la piste : `auto` pour la coche, la
+     souple revient au contenu. Le rembourrage gauche se réduit d'autant pour que la coche ne
+     coûte que sa cible (32 px, règle 9) et pas un renfoncement. */
+  .dir-row.selm{grid-template-columns:auto minmax(0,1fr) auto;padding-left:2px;gap:2px}
+  .dir-row.selm .card-open{cursor:pointer}
+  .dir-row.selon{border-color:var(--primary);background:var(--primary-soft)}
+  /* En sélection, l'épingle se retire : c'est un geste d'ACCÈS au milieu d'un écran de GESTION,
+     et sa cible est à 8 px de la case — un tap manqué changerait l'accès direct de crise. */
+  .dir-row.selm .pinbtn{display:none}
   /* `.grp-row .filt-tog` est PURGÉE : le déclencheur ne vit plus dans la rangée de groupement,
      il ne quitte plus le champ de recherche (règle 14). */
   /* L'HABILLAGE du sélecteur de groupement (fond d'ambiance + contour, décision utilisateur) ; la
@@ -2970,6 +3058,32 @@
      niveau commun. */
   .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
     padding:0 8px 6px}
+  /* A171 — « Tout replier / Tout déplier » vit dans l'en-tête du SOMMAIRE, et nulle part ailleurs :
+     c'est déjà la carte du document, l'endroit où l'on décide de ce qu'on veut voir. Il n'ajoute
+     donc aucune commande au corps du texte, qui reste ce qu'on lit. Le libellé DIT L'ACTION, pas
+     l'état (« Tout replier » quand il reste quelque chose à replier), et bascule avec lui — un
+     bouton dont le nom ne change pas laisse deviner ce qu'il fera. */
+  .rt-h:has(.rt-fold){display:flex;align-items:center;gap:8px}
+  .rt-fold{margin-left:auto;flex:none;min-height:32px;padding:0 8px;border:0;border-radius:8px;background:none;
+    font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--link);cursor:pointer}
+  .rt-fold:hover{background:var(--surface-2)}
+  .rt-fold:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Le champ porte la croix : `position:relative` sur la boîte, et de la place à droite pour que
+     le texte ne passe pas dessous (même géométrie que la boîte de recherche de l'accueil). */
+  .rt-find{position:relative}
+  .rt-find #pfQ{padding-right:32px}   /* 6 (droite de la croix) + 26 (sa largeur) — échelle fermée */
+  /* ⚠ `.srch-x` NE SE CENTRE PAS TOUTE SEULE : dans l'en-tête elle doit son alignement au `flex`
+     de `.srch-box`, qui n'existe pas ici — posée telle quelle elle collait en HAUT du champ
+     (signalé à l'usage : « la croix n'est pas centrée ni verticalement ni horizontalement »).
+     On la centre explicitement sur l'axe vertical, et `right` la place sur l'autre.
+     ⚠ ET SA CIBLE MONTE À 44 px, parce que ce champ vit AUSSI dans la feuille « Toute la fiche »
+     du mode crise — l'audit a11y l'a attrapée à 38×38 pour un seuil de 44 (règle 9). Le halo
+     `::after` grandit, le dessin ne bouge pas : 26 + 2×9 = 44. */
+  .rt-find .srch-x{top:50%;transform:translateY(-50%)}
+  .rt-find .srch-x::after{inset:-9px}
+  /* Recherche fructueuse -> le sommaire s'efface (cf. `pfSyncFind`). Le champ, la navigation
+     d'occurrences et les documents trouvés restent : c'est ce qu'on regarde à ce moment-là. */
+  .ref-toc.finding .rt-lnk,.ref-toc.finding .rt-h2{display:none}
   .rt-lnk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;
     padding:6px 8px;min-height:32px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
     font-family:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -4863,6 +4977,15 @@
   .catmenu.sheet .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:var(--line-strong);margin:4px auto 10px}
   .catmenu.sheet .catmenu-row{min-height:48px}
   .catmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
+  /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne
+     le menu à 420 px centrés »). Sur 1194 px, huit catégories étalées sur toute la largeur ne se
+     balaient plus d'un regard — l'œil parcourt un rail vide entre la pastille et la coche. On la
+     borne et on la centre : elle reste une feuille (même composant, même geste, même poignée),
+     elle cesse d'être une bannière. Le seuil est le palier 780 déjà déclaré — celui-là même où le
+     menu ANCRÉ redevenait possible avant que l'atelier n'impose la feuille partout. */
+  @media (min-width:780px){
+    .catmenu.sheet{left:50%;right:auto;transform:translateX(-50%);width:min(420px,92vw)}
+  }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
   /* ══ A8 — LA CIBLE VIENT DU HALO, LE DESSIN NE GROSSIT PAS (audit 8b) ════════════════════
@@ -7412,6 +7535,16 @@
        livre n'existe plus. La teinte de confirmation revient donc par-dessus le blanc. */
     .dir-book .dir-row.live{background:var(--ok-soft)}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
+    /* C'EST `.home-main` QUI DÉFILE ICI : la barre de sélection colle donc à SON bord, pas sous un
+       en-tête qui ne la recouvre jamais (cf. « le décalage dépend de qui défile »).
+       ⚠ ET LE REMBOURRAGE HAUT DE LA COLONNE COMPTE AUSSI. Une marge négative ne suffit PAS —
+       essayée, mesurée, sans effet : un élément collant est BORNÉ PAR LA BOÎTE DE CONTENU de son
+       bloc conteneur, il ne peut pas remonter dans son rembourrage (18 px restaient). C'est donc
+       le rembourrage qui cède, et seulement quand la barre est là (`:has`) : elle le reprend à son
+       compte pour que le contenu garde son air. Coins hauts carrés — une barre posée sur le bord
+       d'un défileur n'a pas de coin à montrer là-haut. */
+    .home-main:has(>.sel-bar){padding-top:0}
+    .home-main>.sel-bar{top:0;margin:0 0 10px;padding:14px 10px;border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md)}
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.typebar,.scopebar,.catbar){display:none}
@@ -7716,6 +7849,32 @@
   .md-h2{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:20px 0 8px;color:var(--ink-soft)}
   .md-h3{font-size:12px;font-weight:700;margin:14px 0 4px;color:var(--ink)}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
+  /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════
+     Le bouton n'ajoute AUCUN corps ni aucune couleur : il hérite entièrement de son titre, et ne
+     se distingue que par le chevron et la main du curseur. Un titre qui changerait d'apparence en
+     devenant repliable donnerait deux graphies pour une même hiérarchie, et l'œil lirait deux
+     niveaux là où il n'y en a qu'un. La cible s'étend sur toute la largeur (`width:100%`) : sur un
+     document, le geste naturel est de taper le titre, pas de viser un chevron de 15 px. */
+  /* La section est un CONTENEUR NEUTRE : elle ne doit rien changer au rendu quand elle est
+     ouverte (elle n'a ni marge, ni bordure, ni rembourrage — les marges de son premier enfant
+     traversent donc comme avant qu'elle existe). Son seul rôle est d'être masquable d'un bloc. */
+  .md-sect{display:block}
+  .md-fbtn{display:flex;align-items:center;gap:8px;width:100%;min-height:32px;padding:0;border:0;background:none;
+    font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}
+  .md-fbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
+  .md-fch{flex:none;margin-left:auto;display:inline-flex;color:var(--ink-soft)}
+  /* LE CHEVRON DIT L'ÉTAT, dans la convention universelle des arborescences : FERMÉ il pointe à
+     DROITE (ce qui suit est replié), OUVERT il pointe en BAS (le contenu est dessous).
+     ⚠ Mesuré à l'écran avant d'écrire ceci : le tracé `chev` du fichier pointe à DROITE au repos —
+     une première version le tournait de 180°, ce qui donnait un chevron vers la GAUCHE sur les
+     sections ouvertes, c'est-à-dire un signe qui ne veut rien dire. C'est 90°.
+     Rotation seule : une transformation, jamais une propriété de mise en page (check-anim). */
+  .md-fch>svg{transform:rotate(90deg);transition:transform .18s ease}
+  .md-fold.closed .md-fch>svg{transform:rotate(0deg)}
+  /* Une section fermée montre qu'il y a quelque chose dessous, sans le dire deux fois : le titre
+     garde son filet, et rien ne s'ajoute. */
+  .md-fold.closed{opacity:1}
+  @media (prefers-reduced-motion:reduce){.md-fch>svg{transition:none}}
   .md-p{margin:0 0 10px;color:var(--ink)}
   .md-ul,.md-ol{margin:0 0 10px;padding-left:20px}
   .md-ul li,.md-ol li{margin:2px 0}
@@ -8258,6 +8417,12 @@
     .read-head h2{font-size:21px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
   @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
+    /* A171 — UN REPLI EST UNE COMMODITÉ D'ÉCRAN : sur papier, tout se déploie. Imprimer un
+       document amputé des sections qu'on avait refermées pour lire serait la pire des surprises,
+       et c'est exactement le genre de défaut qu'on ne découvre qu'après l'impression. Le chevron,
+       lui, ne s'imprime pas — il ne désigne aucun geste sur du papier. */
+    .md-sect[hidden]{display:block!important}
+    .md-fch{display:none!important}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}

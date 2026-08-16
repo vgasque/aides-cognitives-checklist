@@ -1,5 +1,55 @@
 # Journal des modifications
 
+## [5.12.0] — 2026-08-16
+### Agir sur plusieurs fiches d'un geste, et replier un long document
+
+- **Sélection multiple dans la bibliothèque** (demande de l'auteur). « ⊞ Sélectionner » ouvre un
+  mode où l'on coche des rangées — l'appui long sur une rangée y mène aussi — puis **Déplacer…**
+  (vers une autre bibliothèque), **Ranger…** (dans une catégorie) et **Supprimer…**. Chacun de ces
+  gestes coûtait jusqu'ici un aller-retour PAR FICHE, et le seul recours après un import raté était
+  de supprimer une par une. Le déclencheur vit dans la **rangée A–Z / Catégories**, pas dans
+  l'en-tête (« l'en-tête est déjà saturé ») ; en sélection cette rangée s'efface, avec les notices
+  et les cartes de session vive — on ne re-range pas pendant qu'on coche.
+- **Trois garde-fous qui ne se négocient pas** : le mode **ne survit pas à l'accueil** (l'accueil
+  est aussi l'écran qu'on ouvre en urgence) et se ferme quand on change de bibliothèque ; **on ne
+  coche que ce qu'on peut modifier** — sur une bibliothèque dont on est lecteur, le déclencheur
+  n'existe pas ; **« Ranger » se ferme** quand les éléments cochés ne partagent pas une
+  bibliothèque, et dit pourquoi — un id de catégorie n'a de sens que dans la sienne.
+- **La suppression en lot fait LIRE** (décision de l'auteur : confirmation forte). La fenêtre
+  **énumère les titres** qui vont disparaître, signale ceux qui sont dans une bibliothèque partagée,
+  et le bouton reste **fermé** tant que « J'ai lu cette liste » n'est pas coché. Un nombre à
+  retaper se tape sans regarder ce qu'il compte ; un mot à recopier se recopie de même.
+- **Titres H1/H2/H3 repliables dans une référence** (demande de l'auteur), avec « Tout replier /
+  Tout déplier » dans l'en-tête du sommaire. Replier un H1 emporte ses H2 et H3 ; un titre sans
+  corps n'est pas repliable. **Les replis sont mémorisés par protocole** — mais dans une préférence
+  LOCALE, jamais dans le document : ils n'ont rien à faire dans ce qu'on partage, exporte et
+  synchronise. La clé est le **titre**, pas son rang, pour survivre à une insertion ailleurs. Le
+  sommaire et la recherche **ouvrent ce qu'ils visent** (un résultat dans une section repliée est
+  invisible ; un sommaire qui mène à un titre sans son corps ne mène nulle part). Sur papier, tout
+  se déploie. Le titre **reste un titre** : le bouton vit dedans, pour ne pas lui retirer sa
+  sémantique au moment précis où l'on ajoute une raison de s'en servir.
+- **Recherche dans une référence** : une **croix** efface le champ, retire les surlignages et rend
+  le sommaire — c'est celle de l'accueil, pas un second dessin. Et **le sommaire s'efface dès la
+  première lettre** : sommaire et résultats répondent à la même question et se contredisent à
+  l'écran ; ne l'escamoter que sur résultat le faisait réapparaître entre deux frappes, et le
+  contenu sautait à chaque lettre.
+- **L'en-tête ne se perd plus quand le clavier s'ouvre** (signalé à l'usage). Même cause que les
+  fenêtres coupées de la v5.10.9, que j'y avais explicitement laissée hors de portée : ouvrir le
+  clavier panoramique le viewport visuel dans le viewport de mise en page, et un `sticky` calé sur
+  le second passe au-dessus de l'écran — on perdait la barre de recherche au moment précis où l'on
+  tape dedans. `header.bar` et ce qui colle sous lui suivent désormais `--vvt`.
+- Sous le capot, quatre choses apprises **à la mesure**, consignées avec ce qu'elles corrigent
+  (`docs/decisions/lot-v5-12.md`, A170-A179) : un `sticky` se règle sur **son** défileur et
+  l'accueil en a deux (128 px de vide mesurés à 1194 px) ; une marge négative ne rattrape pas le
+  rembourrage d'un défileur ; un `z-index` ne compare que des frères de **contexte** (la barre
+  `sticky` en créait un et enfermait le menu sous le rail A–Z) ; et une coche glissée dans une
+  grille à deux pistes ouvre un fossé qui grandit avec la carte. Une case grisée « lecture seule »
+  que j'avais dessinée a été **retirée** : la sonde a prouvé qu'aucun écran ne peut l'atteindre.
+- Sondes jetables 29/29 (sélection) et 43/43 (repli), aux deux moteurs et aux deux largeurs,
+  vérifiées capables d'échouer ; `npm run check` 19/19, `npm test` 2×1126, audit COMPLET 25/25 —
+  dont un rouge attrapé au passage : la nouvelle croix faisait 38 px pour un seuil de 44 sur une
+  surface de crise.
+
 ## [5.11.1] — 2026-08-16
 ### La pastille de destination dit le mot « catégorie » — un verbe ne désigne pas son objet
 
@@ -1097,34 +1147,3 @@ avaient dû toucher des `audit-*.mjs`.
   **La porte de commit est strictement inchangée** : la passe COMPLÈTE avant chaque commit, que
   la CI rejoue. Le coût de PENSER les témoins quand le code change n'est pas racheté : c'est lui
   la garantie.
-
-## [5.4.3] — 2026-08-07
-### Le rail droit se rééquilibre à 780-1199 px — les familles de traçabilité réunies partout
-
-Audit demandé par l'auteur (« la sidebar n'est-elle pas trop chargée aux largeurs
-intermédiaires ? ») puis décision R1+R2 sur maquette chiffrée à l'échelle des mesures réelles.
-
-- **Le constat mesuré** (session réelle, fenêtre du rail 642 px) : 1 625 px de contenu —
-  **60 % enterré** sous un pli invisible (barres de défilement masquées au repos), le journal à
-  **583 px sous le pli**, séparé des compteurs par la posologie et toute l'Échelle : la
-  séparation exacte que la v5.4.0 avait corrigée en étroit, jamais portée au rail.
-- **R1 — le journal remonte contre les compteurs, en dépliant d'une ligne** (`details.rail-fold`,
-  résumé en grammaire `.rail-head` + compte) : les trois familles de traçabilité redeviennent
-  voisines à TOUTES les largeurs. Replié par défaut sous 1200 px, **déplié par défaut en
-  cockpit** (rail à 4 zones). Le compte du résumé suit chaque repère, local ou distant.
-- **R2 — sous 1200 px, l'Échelle devient un dépliant d'une ligne** annonçant son compte ET la
-  position courante (« ici : ① Mesures immédiates »), régénérée à chaque navigation sans toucher
-  à l'état ouvert/fermé. À ≥ 1200, rien ne change : l'Échelle vit dépliée dans la colonne du plan.
-- **Rien ne se déplie ni ne se replie tout seul** (règle 11) : seul le tap sur le résumé (ou
-  Entrée/Espace — `<details>` natifs, `aria-expanded`, cibles 44 px, focus visible). État
-  transitoire par fiche (`SHARE_LOCAL`, remis aux défauts de largeur à l'ouverture) — regarder
-  n'est pas régler. Conformité argumentée : une zone repliée qui S'ANNONCE est plus fidèle à
-  l'ECAM qu'un contenu enterré muet (modèle ECL v4.16.4) ; l'état VIVANT (chronos, compteurs,
-  échu) n'est jamais replié ; même grammaire de dépliant que le chapeau et l'index ⚡ (§5.5).
-- **Résultat** : contenu du rail à 900 px **1 625 → ≤ 1 100 px**, plus rien de caché qui ne
-  s'annonce. Divergence assumée avec la maquette (dite dans AGENTS.md) : « Surveiller ensuite »
-  vit dans le corps de l'Échelle et se replie avec elle — sa source reste la section ③ du flux.
-- Sondes dédiées vertes sur Chromium et WebKit (défauts par largeur, dépliage réel, comptes
-  vivants, « ici » qui suit la navigation) ; passes complètes 16/16 check · 939 × 2 tests ·
-  **20/20 harnais du premier coup**. Trois leçons de sonde consignées (compter les titres sans
-  distinguer résumé et corps replié ; référence DOM détachée après re-rendu).

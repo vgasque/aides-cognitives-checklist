@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-BrdEkZbQBQh0BhfFxXFDYGMA+GyKap0TnqpY110dpDY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-HIMYR3NT00AlWlB9G3QgcjcLucABK7LvEKmS2RBoGqE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -879,7 +879,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      contraire à la doctrine du chrome de crise (un en-tête qui raccourcit son encombrement de
      flux fait remonter tout le contenu d'un coup). Seul le TITRE entre dans la barre, par relais
      mesuré (.ttl-on), sans changer sa hauteur. Jamais de texte tassé. */
-  header.bar{position:sticky;top:0;z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
+  /* ⚠ L'EN-TÊTE SUIT LE VIEWPORT VISUEL (signalé à l'usage : « si clavier ouvert en mode
+     smartphone/tablette, l'en-tête n'est plus sticky, donc on perd la barre de recherche »).
+     Même cause que les couches plein écran de la v5.10.9, et je l'avais explicitement laissée
+     hors de portée là-bas — « le chrome collant de la PAGE est ancré au viewport de mise en page
+     avec le document qu'il commande ». L'usage tranche : ouvrir le clavier PANORAMIQUE le viewport
+     visuel dans le viewport de mise en page, et un `sticky` calé sur `top:0` de ce dernier passe
+     AU-DESSUS de l'écran — on perd la barre au moment précis où l'on tape dedans.
+     `--vvt` porte ce décalage (÷ --zf comme toute mesure réinjectée, règle v4.24.0). À clavier
+     fermé elle vaut 0 et la règle est à l'octet celle d'avant.
+     ⚠ CE QUI RESTE HORS DE PORTÉE, et c'est dit : les défileurs INTERNES (la colonne `.home-main`
+     de l'accueil large) ne sont pas le viewport — leur `sticky` se règle sur leur propre bord, et
+     le panoramique du clavier ne s'y applique pas de la même façon. Le cas signalé est le
+     téléphone et la tablette, où la page EST le défileur. */
+  header.bar{position:sticky;top:calc(var(--vvt,0px) / var(--zf,1));z-index:20;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
   .id-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
      éléments souples (retour, titre, segments chrono) rétrécissent avec ellipse/clip. Seul
@@ -1320,7 +1333,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      A9 — HAUTEUR D'ÉTAT FIXE : 50 px de haut quel que soit l'état (veille, échu, alarme). Un
      changement d'état NON commandé ne déplace jamais rien ; seule l'expansion COMMANDÉE par un
      tap (le volet) a droit à la hauteur. */
-  #crisisDock{position:sticky;top:var(--hdr-h,64px);z-index:15;background:var(--amb);padding:8px 14px}
+  #crisisDock{position:sticky;top:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));z-index:15;background:var(--amb);padding:8px 14px}
   #crisisDock[hidden]{display:none}
   /* DIRECTION A, lot 4 (audit post-v5.0.10) — AU PALIER COCKPIT, LE CHROME S'EFFACE DERRIÈRE SES
      CONTRÔLES. Mesuré à 1280 px : la rangée de commandes est une bande blanche de bord à bord
@@ -2485,6 +2498,81 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de `main`, commun à toutes les vues). */
   .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 8px}
   .grp-row:empty{display:none}
+  /* ═══ A170 — LE MODE SÉLECTION VIT DANS LA RANGÉE DE GROUPEMENT ═══════════════════════════
+     Et NON dans l'en-tête (décision de l'auteur : « l'en-tête est déjà saturé »). Le logement est
+     juste : cette rangée est celle où l'on choisit COMMENT ce qu'on voit est rangé, juste
+     au-dessus du répertoire sur lequel on va agir — agir sur ce qu'on vient de trier y appartient.
+     L'en-tête garde ses quatre commandes d'ACCÈS (identité, recherche, Créer, compte), qui sont
+     celles dont on a besoin en urgence.
+     ⚠ NE PAS ÉCRIRE QU'ELLE « ACCUEILLE DÉJÀ FILTRES » : c'était vrai en v5.0.3, ça ne l'est
+     plus — le déclencheur a rejoint le champ de recherche et `.grp-row .filt-tog` a été PURGÉE
+     (cf. juste au-dessus). Le bouton de sélection est donc le SECOND habitant de cette rangée,
+     pas un troisième, et la justification ne s'appuie sur aucun précédent (A72).
+     Il pousse à droite : le groupement reste à sa place apprise, et rien ne bouge quand la
+     sélection s'ouvre ou se ferme. */
+  .sel-tog{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer}
+  .sel-tog:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .sel-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* ⚠ LA COUCHE ÉTAIT BONNE, SA PLACE NE L'ÉTAIT PAS — trois retours de l'auteur, et le dernier
+     corrige ce que j'avais déduit du premier :
+       1. « revois le design du bandeau de sélection qui est fixed, ça rend très mal sur écrans
+          moins larges que desktop » + « le bandeau est très bas : A-Z/Catégories et Sélectionner
+          disparaît quand il apparaît -> espace mort en haut » ;
+       2. « mais si doit rester sticky en scroll » ;
+       3. « la couche flottante était parfaite, c'est juste que c'était mal placé car trop
+          d'espace mort entre le haut et le bandeau ».
+     J'avais lu (1) comme « ne pas flotter » et fondu le bandeau DANS la rangée de groupement —
+     ce qui lui coûtait le suivi au défilement, exactement ce que (2) réclamait. (3) tranche : le
+     défaut n'était pas de flotter, c'était de flotter LOIN. Le bandeau était inséré en tête du
+     RÉPERTOIRE, donc APRÈS le bandeau de jointure, les cartes de session vive et les notices : au
+     repos il tombait à ~200 px du haut, et tout ce qui le séparait de l'en-tête se lisait comme
+     du vide entre la commande et ce sur quoi elle agit.
+     Il est donc redevenu ce qu'il était — une couche collante — mais PREMIER élément de la
+     colonne, sous l'en-tête réel (`--hdr-h`, mesurée par `syncHdrScroll` ; patron de
+     `#crisisDock`, jamais une constante). Même endroit au repos et en défilement, ce qui est
+     exactement ce qu'on attend d'une barre de sélection. Il s'enroule au lieu de se comprimer :
+     sur 320 px, sept commandes tiennent en trois rangs lisibles plutôt qu'en une ligne illisible.
+     LEÇON DE MÉTHODE, consignée parce qu'elle a coûté deux allers-retours : un retour qui dit
+     « ça rend mal » nomme un SYMPTÔME, pas une cause. J'ai supprimé le mécanisme au lieu de
+     chercher ce qui, de sa position ou de sa nature, produisait le symptôme. */
+  /* ⚠ ET LE DÉCALAGE DÉPEND DE QUI DÉFILE — c'est la cause MESURÉE du « toujours trop bas, crée
+     beaucoup d'espace mort » qui restait après la remontée en tête de colonne. Un `sticky` se
+     règle sur son PROPRE défileur, et l'accueil en a deux : sous 780 px c'est la PAGE (le
+     décalage doit alors valoir la hauteur de l'en-tête fixe, sinon la barre passe dessous), au-delà
+     c'est `.home-main` lui-même (`overflow-y:auto`, coque fixe) — et là le même décalage s'ajoute
+     À L'INTÉRIEUR du défileur, sous un en-tête qui ne le recouvre pas. Mesuré à 1194 px : bas de
+     l'en-tête 61, haut de la barre 189, soit 128 px de vide, dont 61 dus à ce seul `--hdr-h`.
+     Deux défileurs, deux décalages : `--hdr-h` en étroit, ZÉRO en large (le second est posé dans
+     le bloc ≥ 780 px, auprès de la déclaration qui rend `.home-main` défilant). */
+  .sel-bar{position:sticky;top:calc(var(--hdr-h,64px) + var(--vvt,0px) / var(--zf,1));z-index:14;display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+    margin:0 0 10px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-md);
+    background:var(--surface);box-shadow:var(--shadow)}
+  .sel-n{font-size:var(--t-meta);font-weight:700;color:var(--ink);white-space:nowrap}
+  .sel-bar .sel-sp{flex:1 1 auto}
+  .sel-bar .btn{flex:none;min-height:32px;padding:0 10px;font-size:11px}
+  /* La case d'une rangée : cible ≥ 32 px hors crise (règle 9), et un VRAI rôle de case à cocher
+     (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
+     sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */
+  .dir-ck{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--primary);cursor:pointer}
+  .dir-ck::before{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--line-strong);border-radius:var(--r-1);background:var(--surface)}
+  .dir-ck>svg{position:relative;opacity:0}
+  .dir-row.selon .dir-ck::before{background:var(--primary);border-color:var(--primary)}
+  .dir-row.selon .dir-ck>svg{opacity:1;color:var(--surface)}
+  .dir-ck:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
+  /* ⚠ LA COCHE EST UNE COLONNE DE LA GRILLE, PAS UN INTRUS (correctif, signalé à l'usage :
+     « réduis l'espace entre la coche et le reste de la carte — c'est encore plus marquant sur
+     plusieurs colonnes »). `.dir-row` est une GRILLE à deux pistes (`minmax(0,1fr) auto`) :
+     glisser un troisième enfant en tête le posait dans la piste SOUPLE, et le contenu passait
+     dans la piste `auto` — d'où le fossé mesuré à l'écran, qui grandissait avec la largeur de la
+     carte puisque c'est `1fr` qui l'ouvrait. On déclare la piste : `auto` pour la coche, la
+     souple revient au contenu. Le rembourrage gauche se réduit d'autant pour que la coche ne
+     coûte que sa cible (32 px, règle 9) et pas un renfoncement. */
+  .dir-row.selm{grid-template-columns:auto minmax(0,1fr) auto;padding-left:2px;gap:2px}
+  .dir-row.selm .card-open{cursor:pointer}
+  .dir-row.selon{border-color:var(--primary);background:var(--primary-soft)}
+  /* En sélection, l'épingle se retire : c'est un geste d'ACCÈS au milieu d'un écran de GESTION,
+     et sa cible est à 8 px de la case — un tap manqué changerait l'accès direct de crise. */
+  .dir-row.selm .pinbtn{display:none}
   /* `.grp-row .filt-tog` est PURGÉE : le déclencheur ne vit plus dans la rangée de groupement,
      il ne quitte plus le champ de recherche (règle 14). */
   /* L'HABILLAGE du sélecteur de groupement (fond d'ambiance + contour, décision utilisateur) ; la
@@ -3324,6 +3412,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      niveau commun. */
   .rt-h{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
     padding:0 8px 6px}
+  /* A171 — « Tout replier / Tout déplier » vit dans l'en-tête du SOMMAIRE, et nulle part ailleurs :
+     c'est déjà la carte du document, l'endroit où l'on décide de ce qu'on veut voir. Il n'ajoute
+     donc aucune commande au corps du texte, qui reste ce qu'on lit. Le libellé DIT L'ACTION, pas
+     l'état (« Tout replier » quand il reste quelque chose à replier), et bascule avec lui — un
+     bouton dont le nom ne change pas laisse deviner ce qu'il fera. */
+  .rt-h:has(.rt-fold){display:flex;align-items:center;gap:8px}
+  .rt-fold{margin-left:auto;flex:none;min-height:32px;padding:0 8px;border:0;border-radius:8px;background:none;
+    font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--link);cursor:pointer}
+  .rt-fold:hover{background:var(--surface-2)}
+  .rt-fold:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Le champ porte la croix : `position:relative` sur la boîte, et de la place à droite pour que
+     le texte ne passe pas dessous (même géométrie que la boîte de recherche de l'accueil). */
+  .rt-find{position:relative}
+  .rt-find #pfQ{padding-right:32px}   /* 6 (droite de la croix) + 26 (sa largeur) — échelle fermée */
+  /* ⚠ `.srch-x` NE SE CENTRE PAS TOUTE SEULE : dans l'en-tête elle doit son alignement au `flex`
+     de `.srch-box`, qui n'existe pas ici — posée telle quelle elle collait en HAUT du champ
+     (signalé à l'usage : « la croix n'est pas centrée ni verticalement ni horizontalement »).
+     On la centre explicitement sur l'axe vertical, et `right` la place sur l'autre.
+     ⚠ ET SA CIBLE MONTE À 44 px, parce que ce champ vit AUSSI dans la feuille « Toute la fiche »
+     du mode crise — l'audit a11y l'a attrapée à 38×38 pour un seuil de 44 (règle 9). Le halo
+     `::after` grandit, le dessin ne bouge pas : 26 + 2×9 = 44. */
+  .rt-find .srch-x{top:50%;transform:translateY(-50%)}
+  .rt-find .srch-x::after{inset:-9px}
+  /* Recherche fructueuse -> le sommaire s'efface (cf. `pfSyncFind`). Le champ, la navigation
+     d'occurrences et les documents trouvés restent : c'est ce qu'on regarde à ce moment-là. */
+  .ref-toc.finding .rt-lnk,.ref-toc.finding .rt-h2{display:none}
   .rt-lnk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;
     padding:6px 8px;min-height:32px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
     font-family:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -5217,6 +5331,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .catmenu.sheet .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:var(--line-strong);margin:4px auto 10px}
   .catmenu.sheet .catmenu-row{min-height:48px}
   .catmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
+  /* ⚠ UNE FEUILLE PLEINE LARGEUR N'A DE SENS QUE SUR UN TÉLÉPHONE (décision de l'auteur : « borne
+     le menu à 420 px centrés »). Sur 1194 px, huit catégories étalées sur toute la largeur ne se
+     balaient plus d'un regard — l'œil parcourt un rail vide entre la pastille et la coche. On la
+     borne et on la centre : elle reste une feuille (même composant, même geste, même poignée),
+     elle cesse d'être une bannière. Le seuil est le palier 780 déjà déclaré — celui-là même où le
+     menu ANCRÉ redevenait possible avant que l'atelier n'impose la feuille partout. */
+  @media (min-width:780px){
+    .catmenu.sheet{left:50%;right:auto;transform:translateX(-50%);width:min(420px,92vw)}
+  }
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
   /* ══ A8 — LA CIBLE VIENT DU HALO, LE DESSIN NE GROSSIT PAS (audit 8b) ════════════════════
@@ -7766,6 +7889,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        livre n'existe plus. La teinte de confirmation revient donc par-dessus le blanc. */
     .dir-book .dir-row.live{background:var(--ok-soft)}
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
+    /* C'EST `.home-main` QUI DÉFILE ICI : la barre de sélection colle donc à SON bord, pas sous un
+       en-tête qui ne la recouvre jamais (cf. « le décalage dépend de qui défile »).
+       ⚠ ET LE REMBOURRAGE HAUT DE LA COLONNE COMPTE AUSSI. Une marge négative ne suffit PAS —
+       essayée, mesurée, sans effet : un élément collant est BORNÉ PAR LA BOÎTE DE CONTENU de son
+       bloc conteneur, il ne peut pas remonter dans son rembourrage (18 px restaient). C'est donc
+       le rembourrage qui cède, et seulement quand la barre est là (`:has`) : elle le reprend à son
+       compte pour que le contenu garde son air. Coins hauts carrés — une barre posée sur le bord
+       d'un défileur n'a pas de coin à montrer là-haut. */
+    .home-main:has(>.sel-bar){padding-top:0}
+    .home-main>.sel-bar{top:0;margin:0 0 10px;padding:14px 10px;border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md)}
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.typebar,.scopebar,.catbar){display:none}
@@ -8070,6 +8203,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-h2{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin:20px 0 8px;color:var(--ink-soft)}
   .md-h3{font-size:12px;font-weight:700;margin:14px 0 4px;color:var(--ink)}
   .md-body :is(h1,h2,h3):first-child,.md-preview :is(h1,h2,h3):first-child{margin-top:2px}
+  /* ═══ A171 — LE TITRE REPLIABLE ═══════════════════════════════════════════════════════════
+     Le bouton n'ajoute AUCUN corps ni aucune couleur : il hérite entièrement de son titre, et ne
+     se distingue que par le chevron et la main du curseur. Un titre qui changerait d'apparence en
+     devenant repliable donnerait deux graphies pour une même hiérarchie, et l'œil lirait deux
+     niveaux là où il n'y en a qu'un. La cible s'étend sur toute la largeur (`width:100%`) : sur un
+     document, le geste naturel est de taper le titre, pas de viser un chevron de 15 px. */
+  /* La section est un CONTENEUR NEUTRE : elle ne doit rien changer au rendu quand elle est
+     ouverte (elle n'a ni marge, ni bordure, ni rembourrage — les marges de son premier enfant
+     traversent donc comme avant qu'elle existe). Son seul rôle est d'être masquable d'un bloc. */
+  .md-sect{display:block}
+  .md-fbtn{display:flex;align-items:center;gap:8px;width:100%;min-height:32px;padding:0;border:0;background:none;
+    font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}
+  .md-fbtn:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
+  .md-fch{flex:none;margin-left:auto;display:inline-flex;color:var(--ink-soft)}
+  /* LE CHEVRON DIT L'ÉTAT, dans la convention universelle des arborescences : FERMÉ il pointe à
+     DROITE (ce qui suit est replié), OUVERT il pointe en BAS (le contenu est dessous).
+     ⚠ Mesuré à l'écran avant d'écrire ceci : le tracé `chev` du fichier pointe à DROITE au repos —
+     une première version le tournait de 180°, ce qui donnait un chevron vers la GAUCHE sur les
+     sections ouvertes, c'est-à-dire un signe qui ne veut rien dire. C'est 90°.
+     Rotation seule : une transformation, jamais une propriété de mise en page (check-anim). */
+  .md-fch>svg{transform:rotate(90deg);transition:transform .18s ease}
+  .md-fold.closed .md-fch>svg{transform:rotate(0deg)}
+  /* Une section fermée montre qu'il y a quelque chose dessous, sans le dire deux fois : le titre
+     garde son filet, et rien ne s'ajoute. */
+  .md-fold.closed{opacity:1}
+  @media (prefers-reduced-motion:reduce){.md-fch>svg{transition:none}}
   .md-p{margin:0 0 10px;color:var(--ink)}
   .md-ul,.md-ol{margin:0 0 10px;padding-left:20px}
   .md-ul li,.md-ol li{margin:2px 0}
@@ -8612,6 +8771,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-head h2{font-size:21px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
   @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
+    /* A171 — UN REPLI EST UNE COMMODITÉ D'ÉCRAN : sur papier, tout se déploie. Imprimer un
+       document amputé des sections qu'on avait refermées pour lire serait la pire des surprises,
+       et c'est exactement le genre de défaut qu'on ne découvre qu'après l'impression. Le chevron,
+       lui, ne s'imprime pas — il ne désigne aucun geste sur du papier. */
+    .md-sect[hidden]{display:block!important}
+    .md-fch{display:none!important}
     /* Un conteneur à défilement s'imprime TRONQUÉ : à l'impression le tableau se déploie. */
     .md-tw{overflow:visible;break-inside:avoid}.md-tbl{min-width:0;font-size:11px}.md-tbl tr{break-inside:avoid}
     .forget-strip{break-inside:avoid}
@@ -9240,7 +9405,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.11.1';
+const APP_VERSION='5.12.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9692,6 +9857,11 @@ function saveProfileCache(){const k=profileCacheKey();if(!k)return;try{localStor
 function loadProfileCache(){const k=profileCacheKey();if(!k)return;try{const p=JSON.parse(localStorage.getItem(k)||'null');if(!p)return;myLibraries=sanitizeLibs(p.libraries);myIsAppAdmin=p.isAppAdmin===true;}catch(e){}}
 let state={view:'library',readStack:[],q:'',cat:'',scope:null,filtersOpen:false,draft:null,fiche:null,edGrab:null,nav:[],navSeq:[],navPos:0,checked:{},verified:{},vgaps:{},showFlow:false,rtOpen:false,libLimit:LIB_PAGE,
   noteEdit:false,  // édition de la note personnelle (lecture seule par défaut en mode crise)
+  /* MODE SÉLECTION de l'accueil (A170) : `selOn` = la bibliothèque est en gestion, `sel` = Set des
+     ids cochés. JAMAIS persisté, et quitter l'accueil le referme (`render`) — c'est un mode de
+     GESTE, pas un état de l'application : le retrouver ouvert au retour d'une fiche serait un
+     piège, l'écran d'accueil étant aussi celui qu'on ouvre en urgence. */
+  selOn:false,sel:null,
   section:'all',           // FILTRE DE TYPE (lot T9) : 'all' (défaut) | 'fiches' | 'protocols' — mémorisé par espace
   protocol:null,pdraft:null,   // protocole affiché (protocolRead) / brouillon (protocolEdit)
   // Coches ÉPHÉMÈRES des listes cochables de la vue protocole (v4.5.4) : {index -> bool}, remises
@@ -10054,6 +10224,109 @@ function mdRender(src,ctx){ctx=ctx||{};
       // restent posées (anti-CLS) ; la réduction ne s'applique qu'au-dessus de 560px (cf. CSS).
       return '<figure class="md-fig'+(MD_SC[im.scale]||'')+'"><img src="'+data+'" data-full="'+data+'"'+dim+' data-cap="'+esc(cap)+'" alt="'+esc(cap)+'" loading="lazy" decoding="async">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';}
     return '<p class="md-p">'+b.lines.map(mdInline).join('<br>')+'</p>';}).join('');}
+/* ═══ A171 — LES TITRES D'UNE RÉFÉRENCE SE REPLIENT ═══════════════════════════════════════════
+   Demande de l'auteur : « vue protocoles : titres H1 H2 H3 repliables en mode lecture ». Une
+   référence se CONSULTE — on y vient chercher UNE section (c'est déjà la raison d'être du
+   sommaire M5) — et sur un document de plusieurs milliers de pixels, replier ce qu'on a lu ou ce
+   qui ne concerne pas le patient devant soi remplace dix défilements par un tap.
+   ⚠ CONSTRUIT APRÈS LE RENDU, JAMAIS DANS `mdRender` : le parseur reste PUR et NON interactif —
+   c'est la règle du dépôt (les aperçus sont inertes) et celle que le sommaire M5 suit déjà. Un
+   dépliant posé au parsing voyagerait dans TOUT rendu markdown, y compris le compte rendu PDF.
+   ⚠ ET LE TITRE RESTE UN TITRE : on n'écrit pas `role="button"` sur un `<h2>` (cela lui retirerait
+   sa sémantique de titre, donc la navigation par titres des lecteurs d'écran, au moment précis où
+   l'on ajoute une raison de s'en servir). Le bouton vit DANS le titre et n'enveloppe que son
+   texte ; l'ancre du sommaire (`h.id`) reste sur le titre lui-même.
+   ⚠ REPLIS MÉMORISÉS PAR PROTOCOLE (décision de l'auteur) — mais dans une préférence LOCALE, pas
+   dans la donnée : un repli est une commodité de lecture, il n'a rien à faire dans un document
+   qu'on partage, qu'on exporte et qu'on synchronise (les coches d'un protocole, elles, restent
+   ÉPHÉMÈRES : ce sont deux choses différentes, et la seconde vaut décision clinique).
+   ⚠ ET LA CLÉ EST LE TITRE, PAS SON RANG : les index de document se décalent dès qu'on insère une
+   section, et l'on retrouverait « replié » sur une autre. Le slug du texte survit à l'édition
+   d'ailleurs dans le document. */
+const MD_FOLD_MAX=50;                      // au-delà, on oublie les plus anciennes (borne écrite)
+function mdFoldAll(){try{const o=JSON.parse(localStorage.getItem(spaceKey('ac-fold'))||'{}');
+  return (o&&typeof o==='object'&&!Array.isArray(o))?o:{};}catch(e){return {};}}
+function mdFoldGet(id){const o=mdFoldAll(),v=id?o[id]:null;return new Set(Array.isArray(v)?v:[]);}
+function mdFoldSet(id,set){if(!id)return;
+  try{const o=mdFoldAll();
+    if(set.size)o[id]=[...set];else delete o[id];
+    // Borne : on ne garde que les MD_FOLD_MAX dernières entrées écrites (l'ordre d'insertion des
+    // clés d'un objet est celui de leur création — la plus ancienne part la première).
+    const k=Object.keys(o);if(k.length>MD_FOLD_MAX)k.slice(0,k.length-MD_FOLD_MAX).forEach(x=>delete o[x]);
+    localStorage.setItem(spaceKey('ac-fold'),JSON.stringify(o));}catch(e){}}
+const MD_HLEV=h=>h.classList.contains('md-h1')?1:(h.classList.contains('md-h2')?2:3);
+/* Pose les dépliants sur `root` et applique l'état mémorisé de `id`.
+   L'ORDRE DE PARCOURS EST INVERSE, et ce n'est pas un détail : en enveloppant d'abord la section
+   du titre le plus BAS, le titre au-dessus ramasse ensuite ce paquet DÉJÀ CONSTITUÉ comme un seul
+   frère. Le repli d'un H1 emporte donc ses H2 et leurs H3, gratuitement, sans qu'on ait à décrire
+   la hiérarchie nulle part. */
+function mdFoldApply(root,id){
+  /* La garde se lit DANS LE DOM, jamais sur un drapeau porté par l'élément : le panneau d'aperçu
+     de l'éditeur réécrit son `innerHTML` à chaque pause de frappe, et un drapeau posé sur le
+     conteneur survivrait au contenu qu'il décrit — les dépliants ne seraient jamais reposés. */
+  if(!root||root.querySelector(':scope>.md-fold'))return;
+  const hs=[...root.querySelectorAll(':scope>.md-h1,:scope>.md-h2,:scope>.md-h3')];
+  if(!hs.length)return;
+  const replies=mdFoldGet(id),vus=Object.create(null);
+  for(let i=hs.length-1;i>=0;i--){
+    const h=hs[i],lv=MD_HLEV(h),corps=[];
+    for(let n=h.nextElementSibling;n;n=n.nextElementSibling){
+      if(n.classList.contains('md-h1')||n.classList.contains('md-h2')||n.classList.contains('md-h3')){
+        if(MD_HLEV(n)<=lv)break;}
+      corps.push(n);}
+    // Un titre sans corps ne se replie pas : le dépliant n'ouvrirait rien (aucun bouton mort).
+    if(!corps.length)continue;
+    const sec=document.createElement('div');sec.className='md-sect';
+    h.after(sec);corps.forEach(n=>sec.appendChild(n));
+    h._sec=sec;}
+  // Deuxième passe, dans l'ordre du DOCUMENT : les clés doivent se numéroter comme on lit.
+  hs.forEach(h=>{
+    if(!h._sec)return;
+    const base=catSlug(h.textContent)||'s';
+    const k=base+'~'+((vus[base]=(vus[base]||0)+1));
+    h._fkey=k;h._sec.id='mdsect-'+safeId(catSlug(k).replace(/~/g,'-'),'s');
+    const b=document.createElement('button');
+    b.type='button';b.className='md-fbtn';b.setAttribute('aria-controls',h._sec.id);
+    while(h.firstChild)b.appendChild(h.firstChild);
+    b.insertAdjacentHTML('beforeend','<span class="md-fch" aria-hidden="true">'+uiIcon('chev',15,{sw:2.2})+'</span>');
+    h.appendChild(b);h.classList.add('md-fold');
+    b.onclick=()=>mdFoldToggle(h,id);
+    mdFoldPaint(h,!replies.has(k));});}
+function mdFoldPaint(h,ouvert){
+  if(!h._sec)return;
+  h._sec.hidden=!ouvert;h.classList.toggle('closed',!ouvert);
+  const b=h.querySelector('.md-fbtn');if(b)b.setAttribute('aria-expanded',ouvert?'true':'false');}
+function mdFoldToggle(h,id){
+  const ouvert=!!(h._sec&&h._sec.hidden);
+  mdFoldPaint(h,ouvert);
+  const s=mdFoldGet(id);if(ouvert)s.delete(h._fkey);else s.add(h._fkey);mdFoldSet(id,s);
+  mdFoldSyncBtn();}
+/* Les titres repliables de la LECTURE (jamais ceux d'un aperçu d'éditeur : le bouton global vit
+   dans le sommaire, qui n'existe qu'en lecture). */
+const mdFoldHs=()=>[...(main?main.querySelectorAll('.md-body .md-fold'):[])];
+function mdFoldSyncBtn(){
+  const b=document.getElementById('rtFold');if(!b)return;
+  const hs=mdFoldHs();
+  b.hidden=!hs.length;   // rien à replier -> pas de bouton (aucune commande morte)
+  if(hs.length)b.textContent=hs.every(h=>h.classList.contains('closed'))?'Tout déplier':'Tout replier';}
+/* TOUT REPLIER / TOUT DÉPLIER. La bascule se décide sur l'état RÉEL : tant qu'il reste une section
+   ouverte, le bouton replie (c'est le geste attendu quand on veut la vue d'ensemble) ; une fois
+   tout replié, il déplie. Un seul passage d'écriture pour les n sections. */
+function mdFoldToggleAll(id){
+  const hs=mdFoldHs();if(!hs.length)return;
+  const ouvrir=hs.every(h=>h.classList.contains('closed'));
+  const s=mdFoldGet(id);
+  hs.forEach(h=>{mdFoldPaint(h,ouvrir);if(ouvrir)s.delete(h._fkey);else s.add(h._fkey);});
+  mdFoldSet(id,s);mdFoldSyncBtn();}
+/* OUVRIR CE QU'IL FAUT POUR MONTRER `el` — et l'état suit, parce qu'il est devenu vrai : la
+   section EST ouverte à l'écran, la mémoire doit dire la même chose. Sans cela, un résultat de
+   recherche atteint dans une section repliée serait invisible (`hidden` : ni peint, ni défilable,
+   ni trouvable par `scrollIntoView`) et le sommaire mènerait à un titre sans son corps. */
+function mdFoldReveal(el,id){
+  for(let n=el;n&&n!==document.body;n=n.parentElement){
+    if(!n.classList||!n.classList.contains('md-sect')||!n.hidden)continue;
+    const h=n.previousElementSibling;
+    if(h&&h._sec===n)mdFoldToggle(h,id);else n.hidden=false;}}
 // Texte brut pour la recherche plein texte (retire le balisage, garde légendes et libellés de liens).
 function mdStrip(src){return sstr(src,MD_MAX_CHARS).split('\n').map(l=>l
     .replace(/^```.*$/,'').replace(/^(---+|\*\*\*+)\s*$/,'')
@@ -14466,6 +14739,7 @@ let _grpSegI=null;   // dernier cran du groupement, pour rejouer le glissement a
 function render(){_renderN++;
   if(window._kbSync)_kbSync();   // A1 : la classe du clavier ne survit pas à la mort de son champ
   if(state.view==='library')state.readStack=[];   // la pile d'origine (v4.28.0) ne survit pas à l'accueil
+  if(state.view!=='library'&&state.selOn)selEnd(false);   // le mode sélection ne survit pas à l'accueil (A170)
   // Position de la BIBLIOTHÈQUE mémorisée quand on la quitte : ouvrir une fiche remet en haut
   // (le début de la fiche doit être visible), revenir restaure là où on en était dans la liste.
   if(_lastView==='library'&&state.view!=='library')_libScrollY=window.scrollY;
@@ -15578,8 +15852,209 @@ function emptyIntroHtml(kind){const c=EMPTY_INTRO[kind];if(!c)return '';
 function openCreateFor(kind){
   if(state.section!==kind)setSection(kind,true,{keepCat:true,silent:true});
   openCreateDlg();}
+/* ═══ A170 — SÉLECTION MULTIPLE DANS LA BIBLIOTHÈQUE ══════════════════════════════════════════
+   Demande de l'auteur : « déplacer plusieurs fiches (entre bibliothèques, entre catégories),
+   supprimer plusieurs fiches à la fois (avec pour la suppression une confirmation forte) ».
+   Jusqu'ici chacun de ces gestes coûtait un ALLER-RETOUR PAR FICHE — ouvrir, éditer, changer,
+   enregistrer, revenir — et le seul recours après un import raté était de supprimer une par une
+   (c'est d'ailleurs ce que disait déjà la doctrine de l'atelier d'import, A129).
+   TROIS PROPRIÉTÉS QUI NE SE NÉGOCIENT PAS :
+    · **Le mode ne survit pas à l'accueil** (`render`) : l'accueil est aussi l'écran qu'on ouvre
+      en urgence, et le retrouver en gestion après avoir consulté une fiche serait un piège.
+    · **On ne coche que ce qu'on peut MODIFIER** (`canEditFiche`) : dans une bibliothèque partagée
+      dont on est LECTEUR, la case n'existe pas — proposer un geste que le serveur refusera
+      (la RLS est l'autorité) serait un bouton mort doublé d'un mensonge.
+    · **La catégorie ne se pose que sur une destination COMMUNE** : un id de catégorie n'a de sens
+      que dans SA bibliothèque (v5.10.9). Sur une sélection éparpillée, la commande se FERME et
+      dit pourquoi, au lieu d'écrire une référence qui ne résoudrait nulle part. */
+const selSet=()=>(state.sel||(state.sel=new Set()));
+const selEnt=()=>{const out=[];
+  selSet().forEach(id=>{const f=(fiches||[]).find(x=>x&&x.id===id);
+    if(f){out.push({o:f,kind:'f'});return;}
+    const p=(protocols||[]).find(x=>x&&x.id===id);if(p)out.push({o:p,kind:'p'});});
+  return out;};
+/* LA SÉLECTION APPARTIENT À UNE BIBLIOTHÈQUE, et le mode s'y ferme quand on en change. Deux
+   raisons, pas une : les éléments cochés ne sont plus À L'ÉCRAN (on agirait sur ce qu'on ne voit
+   pas — c'est la règle du bouton « Tout »), et une bibliothèque en LECTURE SEULE n'a même pas de
+   quoi ouvrir le mode. `_selScope` retient celle où l'on a commencé ; `renderHomeList` compare. */
+let _selScope=null;
+function selStart(id){state.selOn=true;_selScope=state.scope||null;selSet().clear();if(id)selSet().add(id);}
+// `redo` : le re-rendu de la vue COURANTE (jamais `renderFiches` en dur — la vue « Tout »
+// réutilise ce binder, cf. le commentaire de `renderHomeList`).
+function selEnd(redo){state.selOn=false;state.sel=null;if(redo)redo();}
+function selToggle(id){const s=selSet();if(s.has(id))s.delete(id);else s.add(id);}
+/* Case d'une rangée. Le garde `canEditFiche` est une CEINTURE, pas un cas d'usage : la liste
+   d'accueil ne montre JAMAIS qu'une bibliothèque à la fois — y compris en recherche, où `cran()`
+   applique le périmètre courant depuis la v5.6 —, et sur une bibliothèque dont on est lecteur le
+   déclencheur du mode n'existe pas. Modifiable et non modifiable ne se côtoient donc pas dans une
+   même liste, et j'ai retiré le rendu « case grisée » que j'avais écrit pour ce cas : la sonde a
+   refusé de l'atteindre, c'était du style fantôme (règle 14 — on ne garde pas un composant qui ne
+   peut pas paraître). Le garde reste, lui, parce qu'il coûte un test et couvrirait un futur écran
+   qui mélangerait les deux. */
+function selCkHtml(x){
+  if(!state.selOn||!canEditFiche(x))return '';
+  const t=String(x.title||'').trim()||'Sans titre';
+  return `<button type="button" class="dir-ck" data-selid="${esc(x.id)}" role="checkbox" aria-checked="${selSet().has(x.id)?'true':'false'}" aria-label="Sélectionner ${esc(t)}">${uiIcon('check',15,{sw:3})}</button>`;}
+const selRowCls=x=>state.selOn?(' selm'+(selSet().has(x.id)?' selon':'')):'';
+// Le déclencheur, dans la rangée de groupement (cf. CSS). Il n'existe que si l'on peut agir :
+// lecteur d'une bibliothèque partagée -> rien à sélectionner, donc pas de bouton (jamais de
+// commande morte).
+function selTogHtml(){
+  if(state.selOn||!canEditScope(state.scope))return '';
+  return `<button type="button" class="sel-tog" id="selTog">${uiIcon('check',13,{sw:3})}Sélectionner</button>`;}
+/* La barre d'actions. Elle NE DIT QUE CE QU'ELLE SAIT (A83) : le compte, et pour chaque commande
+   la raison de sa fermeture quand elle est fermée. « Catégorie » se ferme sur une sélection
+   éparpillée entre bibliothèques ; tout se ferme à zéro coché. */
+function selBarHtml(){
+  if(!state.selOn)return '';
+  const ent=selEnt(),n=ent.length;
+  const libs=[...new Set(ent.map(e=>e.o.library||null))];
+  const catOk=n>0&&libs.length===1;
+  /* Le compte est un `status` : il change sans que le focus bouge, un lecteur d'écran doit
+     l'entendre. Les libellés sont COURTS parce qu'ils vivent dans une rangée de contrôles —
+     « Ranger… » plutôt que « Ranger dans une catégorie… » —, et chacun porte son intitulé long
+     en `title` pour qui hésite. */
+  return `<div class="sel-bar" role="group" aria-label="Actions sur la sélection">
+    <span class="sel-n" id="selN" role="status">${n?n+' coché'+(n>1?'s':''):'Rien de coché'}</span>
+    <button type="button" class="btn sm" id="selAll" title="Cocher tout ce que la liste affiche">Tout</button>
+    <button type="button" class="btn sm" id="selNone"${n?'':' disabled'}>Aucun</button>
+    <span class="sel-sp"></span>
+    <button type="button" class="btn sm" id="selLib"${n?'':' disabled'} title="Déplacer vers une autre bibliothèque">Déplacer…</button>
+    <button type="button" class="btn sm" id="selCat"${catOk?'':' disabled'} title="${(n&&!catOk)?'Les éléments cochés ne sont pas dans la même bibliothèque — une catégorie n\'existe que dans la sienne':'Ranger dans une catégorie'}">Ranger…</button>
+    <button type="button" class="btn sm danger" id="selDel"${n?'':' disabled'} title="Supprimer les éléments cochés">Supprimer…</button>
+    <button type="button" class="btn sm" id="selCancel" title="Quitter le mode sélection">Annuler</button>
+  </div>`;}
+// Écriture d'un lot : chaque entité repasse par SON point de persistance (fiches et protocoles
+// sont des clones, mais pas le même store ni le même assainisseur) — jamais un `Data.put` direct.
+async function selWrite(ent){for(const e of ent){e.o.updatedAt=Date.now();
+  if(e.kind==='f')await persist(e.o);else await persistProtocol(e.o);}}
+/* DÉPLACER VERS UNE BIBLIOTHÈQUE. Deux conséquences, dites AVANT : entrer dans une partagée, c'est
+   publier à toute l'équipe (même promesse qu'à l'import, A166) ; en sortir, c'est retirer l'accès
+   aux autres. Et la CATÉGORIE est invalidée par le déplacement — mêmes raisons qu'à l'atelier
+   (A163) : son id ne désigne rien dans la nouvelle bibliothèque. On la RETROUVE PAR SON NOM quand
+   la destination a la même (c'est le geste attendu : « je range ces fiches ailleurs, mêmes
+   rayons »), et on la vide seulement à défaut — jamais on ne CRÉE de catégorie ici, un
+   déplacement n'est pas un import. */
+async function selMoveLib(lib,redo){
+  const ent=selEnt();if(!ent.length)return;
+  const sortants=ent.filter(e=>(e.o.library||null)&&(e.o.library||null)!==lib);
+  const entrants=ent.filter(e=>lib&&(e.o.library||null)!==lib);
+  const dest=lib?('« '+(libName(lib)||'la bibliothèque partagée')+' »'):'votre bibliothèque perso';
+  if(entrants.length&&!await confirmDlg(
+    entrants.length+' élément'+(entrants.length>1?'s vont':' va')+' être publié'+(entrants.length>1?'s':'')+' dans '+dest
+    +' : visible'+(entrants.length>1?'s':'')+' par tous les membres.',
+    {title:'Publier dans la bibliothèque partagée',yes:'Déplacer'}))return;
+  if(!entrants.length&&sortants.length&&!await confirmDlg(
+    sortants.length+' élément'+(sortants.length>1?'s vont':' va')+' quitter une bibliothèque partagée : les autres membres n\'y auront plus accès. Prévenez-les avant si besoin.',
+    {title:'Retirer de la bibliothèque partagée',yes:'Déplacer',danger:true}))return;
+  let perdues=0;
+  ent.forEach(e=>{
+    if((e.o.library||null)===lib)return;
+    const av=e.o.category?categories.find(c=>c.id===e.o.category&&catScope(c)===(e.o.library||null)):null;
+    e.o.library=lib||null;
+    if(av){const slug=catSlug(av.name);
+      const eq=slug?catsForScope(lib).find(c=>catSlug(c.name)===slug):null;
+      e.o.category=eq?eq.id:'';if(!eq)perdues++;}
+    else e.o.category='';});
+  await selWrite(ent);
+  // La destination devient la vue : sinon les éléments déplacés « disparaîtraient » de l'écran.
+  state.scope=lib||null;state.cat='';
+  toast(ent.length+' élément'+(ent.length>1?'s déplacés':' déplacé')+' dans '+dest
+    +(perdues?' · '+perdues+' catégorie'+(perdues>1?'s':'')+' sans équivalent : '+(perdues>1?'elles ont':'elle a')+' été retirée'+(perdues>1?'s':''):'')+'.',
+    perdues?7000:4000,!!perdues);
+  redo();}
+async function selSetCat(cat,redo){
+  const ent=selEnt();if(!ent.length)return;
+  ent.forEach(e=>{e.o.category=cat||'';});
+  await selWrite(ent);
+  const c=cat?categories.find(x=>x.id===cat):null;
+  toast(ent.length+' élément'+(ent.length>1?'s rangés':' rangé')+(c?' dans « '+c.name+' »':' sans catégorie')+'.');
+  redo();}
+/* SUPPRESSION EN LOT — CONFIRMATION FORTE (décision de l'auteur). La fenêtre ÉNUMÈRE ce qui va
+   disparaître et la case est l'accusé de lecture de cette liste : sans elle, le bouton reste
+   FERMÉ (`checkRequired`). C'est la seule forme qui fait LIRE — un nombre à retaper se tape sans
+   regarder ce qu'il compte, et un mot à recopier se recopie de même.
+   La liste est BORNÉE À DIX titres, le reste compté : au-delà, une énumération ne se lit plus et
+   la fenêtre déborderait ; et l'on ne peut pas prétendre faire lire ce qu'on ne montre pas — le
+   compte, lui, reste exact.
+   ⚠ ET LES SESSIONS SUIVENT LA FICHE, comme à la suppression unitaire : les laisser produirait un
+   historique renvoyant à une aide qui n'existe plus. */
+async function selDelete(redo){
+  const ent=selEnt();if(!ent.length)return;
+  const noms=ent.map(e=>String(e.o.title||'').trim()||'Sans titre');
+  const N=10,liste=noms.slice(0,N).map(t=>' · '+t).join('\n')+(noms.length>N?'\n · … et '+(noms.length-N)+' autre'+(noms.length-N>1?'s':''):'');
+  const part=ent.filter(e=>e.o.library).length;
+  const r=await confirmDlg(
+    'Vont disparaître :\n'+liste
+    +(part?'\n\nDont '+part+' dans une bibliothèque partagée : '+(part>1?'ils disparaîtront':'il disparaîtra')+' aussi pour tous ses membres.':'')
+    +'\n\nCette action est irréversible.',
+    {title:'Supprimer '+ent.length+' élément'+(ent.length>1?'s':'')+' ?',
+     yes:'Supprimer',danger:true,check:'J\'ai lu cette liste',checkRequired:true});
+  if(!r||!r.checked)return;
+  for(const e of ent){
+    if(e.kind==='f'){await softDelete(e.o);
+      const rel=sessions.filter(s=>s.ficheId===e.o.id);
+      for(const s of rel)await Data.delSession(s.id);
+      sessions=sessions.filter(s=>s.ficheId!==e.o.id);
+      if(liveSessions[e.o.id])delete liveSessions[e.o.id];
+      if(Runtime.ficheId===e.o.id)resetRuntime();
+      fiches=fiches.filter(x=>x.id!==e.o.id);}
+    else{await softDeleteProtocol(e.o);protocols=protocols.filter(x=>x.id!==e.o.id);}}
+  const n=ent.length;selEnd(false);
+  toast(n+' élément'+(n>1?'s supprimés':' supprimé')+'.');
+  redo();}
+/* Câblage de la barre et du déclencheur. `redo` est TOUJOURS `cfg.rerender` — la vue « Tout »
+   réutilise ce binder, et nommer une vue en dur la ferait basculer (leçon v5.0.0). */
+function bindSelBar(cfg){
+  const redo=(cfg&&cfg.rerender)||renderFiches;
+  {const b=document.getElementById('selTog');if(b)b.onclick=()=>{selStart(null);redo();};}
+  {const b=document.getElementById('selCancel');if(b)b.onclick=()=>selEnd(redo);}
+  // « Tout » = tout ce que la liste MONTRE (filtres et recherche compris) et qu'on peut modifier :
+  // sélectionner au-delà de l'écran serait agir sur ce qu'on ne voit pas.
+  {const b=document.getElementById('selAll');if(b)b.onclick=()=>{
+     main.querySelectorAll('[data-selid]').forEach(c=>selSet().add(c.dataset.selid));redo();};}
+  {const b=document.getElementById('selNone');if(b)b.onclick=()=>{selSet().clear();redo();};}
+  {const b=document.getElementById('selLib');if(b)b.onclick=()=>openPickMenu(b.parentNode,
+     {aria:'Bibliothèque',sheet:true,trigger:b,options:impLibOptions(),
+      value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'';})(),
+      onPick:v=>selMoveLib(v||null,redo)});}
+  {const b=document.getElementById('selCat');if(b&&!b.disabled)b.onclick=()=>{
+     const lib=(selEnt()[0]||{o:{}}).o.library||null;
+     openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:b,
+       options:[{val:'',name:'Sans catégorie',col:''}].concat(catsSorted(lib).map(c=>({val:c.id,name:c.name,col:safeColor(c.color)}))),
+       value:(()=>{const v=[...new Set(selEnt().map(e=>e.o.category||''))];return v.length===1?v[0]:'';})(),
+       onPick:v=>selSetCat(v,redo),
+       action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(lib)}});};}
+  {const b=document.getElementById('selDel');if(b)b.onclick=()=>selDelete(redo);}
+  bindSelLongPress(cfg);}
+/* APPUI LONG : le raccourci qu'on tente d'instinct sur téléphone. Il n'ouvre le mode que sur la
+   rangée pressée, et il est TENU par trois gardes, parce qu'un mode de gestion ouvert par accident
+   sur l'écran d'accès serait exactement ce que la règle 11 proscrit ailleurs :
+    · 500 ms, et le geste est ANNULÉ dès 10 px de déplacement — un défilement au pouce commence
+      par un appui, et il ne doit jamais devenir une sélection ;
+    · le clic qui SUIT l'appui long est absorbé (sinon la fiche s'ouvrirait par-dessus) ;
+    · seulement sur ce qu'on peut modifier, et jamais quand le mode est déjà ouvert (il n'y
+      apporterait rien, la rangée entière cochant déjà). */
+let _lpT=null,_lpEat=0;
+function bindSelLongPress(cfg){
+  const redo=(cfg&&cfg.rerender)||renderFiches;
+  const stop=()=>{if(_lpT){clearTimeout(_lpT);_lpT=null;}};
+  main.querySelectorAll('.dir-row').forEach(row=>{
+    const op=row.querySelector('[data-open]');if(!op)return;
+    row.onpointerdown=e=>{
+      if(state.selOn||e.button)return;
+      const id=op.dataset.open,x0=e.clientX,y0=e.clientY;
+      const x=(fiches||[]).concat(protocols||[]).find(y=>y&&y.id===id);
+      if(!x||!canEditFiche(x))return;
+      stop();
+      row.onpointermove=m=>{if(Math.abs(m.clientX-x0)>10||Math.abs(m.clientY-y0)>10)stop();};
+      _lpT=setTimeout(()=>{_lpT=null;_lpEat=Date.now();
+        if(navigator.vibrate)try{navigator.vibrate(12);}catch(_){}
+        selStart(id);redo();},500);};
+    row.onpointerup=stop;row.onpointercancel=stop;row.onpointerleave=stop;});}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
+  if(state.selOn&&((_selScope||null)!==(state.scope||null)||!canEditScope(state.scope)))selEnd(false);   // cf. selStart
   // Le re-rendu remplace la rangée de catégories (dans l'en-tête, V5) : on mémorise son
   // défilement horizontal pour le restaurer (sinon cliquer un filtre ramenait la rangée au début).
   const _oldCatRow=document.getElementById('homeChrome').querySelector('.catbar .chiprow');const _catRowX=_oldCatRow?_oldCatRow.scrollLeft:0;
@@ -15691,7 +16166,11 @@ function renderHomeList(cfg){
     /* LE RÉSUMÉ DES FILTRES EST RAPPELÉ DANS L'EN-TÊTE DE SECTION : un filtre posé ne doit
        jamais être invisible — c'est la contrepartie de les avoir rangés derrière un déclencheur. */
     const filtTail=filtersSummary();
-    listHtml=`<div class="dir-wrap"><div class="grp-row">${list.length?homeGroupSegHtml():''}</div>${list.length?
+    /* EN SÉLECTION, LA RANGÉE DE GROUPEMENT S'EFFACE (décision de l'auteur : « pas besoin de
+       A-Z/Catégories en mode sélection »). C'est juste : on ne re-range pas pendant qu'on coche,
+       et le bandeau porte déjà tout ce dont le geste a besoin. Deux gains : la liste remonte
+       d'une rangée sous le bandeau, et il ne reste qu'UNE grammaire de commandes à l'écran. */
+    listHtml=`<div class="dir-wrap"><div class="grp-row">${(list.length&&!state.selOn)?homeGroupSegHtml()+selTogHtml():''}</div>${list.length?
       (tiles.length?`<div class="dir-h"><b>${cfg.pinnedLbl(tiles.length)} ★</b></div>
         <div class="dir-book pinned"><div class="dir-grid">${tiles.map(cfg.row).join('')}</div></div>`:'')
       +`<div class="dir-h"><b>Répertoire</b><span class="dir-hs">${list.length} ${cfg.countLbl(list.length)} · ${cfg.listTitle()}${scopeTail}${filtTail}</span></div>`
@@ -15706,10 +16185,11 @@ function renderHomeList(cfg){
   main.innerHTML=`
     ${wide?homeSideHtml():''}
     <div class="home-main">
-    ${homeJoinHtml()}
-    ${cfg.topHtml?cfg.topHtml():''}
+    ${selBarHtml()}
+    ${state.selOn?'':`${homeJoinHtml()}
+    ${cfg.topHtml?cfg.topHtml():''}`}
     <div class="notice" id="syncErrNotice" hidden></div>
-    ${cfg.notices?cfg.notices():''}
+    ${state.selOn?'':(cfg.notices?cfg.notices():'')}
     ${listHtml}
     </div>${railHtml}`;
   // (`azr-on` est PURGÉE avec la condition qu'elle servait : la gouttière est désormais réservée
@@ -15765,7 +16245,18 @@ function renderHomeList(cfg){
   // Ouverture d'une carte : le TITRE est le bouton (zone étendue à toute la carte par son
   // ::after — cf. .card-open) ; vrai <button>, clavier natif. Épingle et badge « À compléter »
   // sont des frères posés AU-DESSUS (z-index) : leurs taps n'atteignent jamais ce bouton.
-  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>cfg.open(el.dataset.open);});
+  /* ⚠ EN SÉLECTION, LE TITRE COCHE AU LIEU D'OUVRIR (A170). C'est le seul moyen d'avoir une cible
+     à la mesure du doigt : la case fait 32 px, la rangée en fait 300 de large. Une rangée en
+     LECTURE SEULE, elle, garde son ouverture — on peut vouloir aller la lire, et lui refuser les
+     deux gestes ne protégerait rien. */
+  main.querySelectorAll('[data-open]').forEach(el=>{el.onclick=()=>{
+    const id=el.dataset.open;
+    if(Date.now()-_lpEat<600)return;   // le clic qui suit un appui long est absorbé
+    if(state.selOn){const x=(fiches||[]).concat(protocols||[]).find(y=>y&&y.id===id);
+      if(x&&canEditFiche(x)){selToggle(id);cfg.rerender();return;}}
+    cfg.open(id);};});
+  main.querySelectorAll('[data-selid]').forEach(b=>b.onclick=e=>{e.stopPropagation();selToggle(b.dataset.selid);cfg.rerender();});
+  bindSelBar(cfg);
   // Résultat trouvé dans un document : on ouvre la visionneuse À LA PAGE, comme Finder ouvre le
   // fichier. C'est ici, et seulement ici, que pdf.js est chargé — sur un geste, jamais à la frappe.
   main.querySelectorAll('[data-docgo]').forEach(b=>b.onclick=()=>{
@@ -15847,7 +16338,8 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        la sous-ligne : la couleur d'une catégorie n'est jamais seule (SPEC crise §1). */
     row:f=>{const isLive=sessionLive(f.id);const cc=catOf(f);const inQ=txNorm(state.q);
       return `
-      <div class="dir-row${isLive?' live':''}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
+      <div class="dir-row${isLive?' live':''}${selRowCls(f)}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
+        ${selCkHtml(f)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(f.id)}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
           <span class="dir-sub">${dirKindHtml('f')}${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b class="${metaDur(f.discriminant).trim()}">${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span class="dir-cat${metaDur(cc.name)}">${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code${metaDur(f.code)}">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
@@ -15941,7 +16433,8 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
     row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
       return `
-      <div class="dir-row"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
+      <div class="dir-row${selRowCls(p)}"${cc?` style="--catcol:${safeColor(cc.color)}"`:''}>
+        ${selCkHtml(p)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(p.id)}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
           <span class="dir-sub">${dirKindHtml('p')}${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span class="dir-cat${metaDur(cc.name)}">${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code${metaDur(p.code)}">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
@@ -16225,9 +16718,16 @@ let _pfRoot='.md-body';
 /* L'état vide « en ligne » : un seul point d'écriture, donc un seul dessin. `esc()` parce que
    certains appelants composent leur phrase avec des données (nom de filtre, titre de fiche). */
 const emptyLine=txt=>`<p class="empty-line">${esc(txt)}</p>`;
+/* ⚠ LA CROIX EST CELLE DE L'ACCUEIL (`.srch-x`), pas un second dessin (demande de l'auteur :
+   « ajoute petite croix au texte de recherche pour effacer le texte et réinitialiser la
+   recherche — comme sur la page d'accueil »). Même classe, même cible élargie par `::after`,
+   même geste : deux croix dessinées séparément finiraient par ne pas se ressembler, et l'on
+   apprendrait deux fois la même chose. Elle ne paraît que s'il y a du texte à effacer. */
 function protoFindHtml(ph,aria,cls){
   return `<div class="rt-find${cls?' '+cls:''}"><input type="search" id="pfQ" placeholder="${esc(ph||'Chercher dans la référence…')}" `
     +`aria-label="${esc(aria||'Chercher dans cette référence')}" autocomplete="off">`
+    +`<button type="button" id="pfX" class="srch-x" hidden aria-label="Effacer la recherche" title="Effacer la recherche">`
+    +`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>`
     +`<div class="rt-fnav" id="pfNav" hidden><button type="button" class="mini" id="pfPrev" aria-label="Occurrence précédente">‹</button>`
     +`<span id="pfCount" role="status"></span>`
     +`<button type="button" class="mini" id="pfNext" aria-label="Occurrence suivante">›</button></div></div>`
@@ -16270,7 +16770,10 @@ function pfRun(q){
   const s=txNorm(String(q||'').trim());
   const nav=document.getElementById('pfNav');
   pfDocsRun(s.length<2?'':q);
-  if(!bd||s.length<2){if(nav)nav.hidden=true;return;}
+  // ⚠ LA SORTIE COURTE DOIT RESYNCHRONISER, ELLE AUSSI (mesuré : la croix vidait le champ et
+  // retirait les surlignages, mais laissait le sommaire escamoté et la croix visible — c'est par
+  // ICI que passe un champ vidé, et le `return` sautait par-dessus la remise en état).
+  if(!bd||s.length<2){if(nav)nav.hidden=true;pfSyncFind();return;}
   const w=document.createTreeWalker(bd,NodeFilter.SHOW_TEXT,{acceptNode:n=>
     (n.nodeValue&&n.nodeValue.trim()&&n.parentElement&&n.parentElement.tagName!=='SCRIPT')
       ?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
@@ -16290,13 +16793,39 @@ function pfRun(q){
       i=txNorm(cur.nodeValue).indexOf(s);
       if(i>=0)dec=0;}});
   if(nav){nav.hidden=!_pfHits.length;}
+  pfSyncFind();
   pfGo(0);}
+/* ⚠ PENDANT UNE RECHERCHE FRUCTUEUSE, LE SOMMAIRE S'EFFACE (signalé à l'usage : « en mode
+   recherche, lorsqu'on a trouvé du texte, enlever le sommaire car fait perdre beaucoup
+   d'espace »). C'est juste, et pas seulement une question de place : un sommaire et une liste de
+   résultats répondent à la MÊME question — où aller — et se contredisent à l'écran, le premier
+   proposant des sections quand le second désigne des occurrences. Sur écran étroit, où le
+   sommaire est un dépliant en tête du corps, il repoussait en plus le texte qu'on vient de
+   trouver.
+   IL NE PART QUE S'IL Y A DES RÉSULTATS : sur une recherche à zéro occurrence, il reste — c'est
+   alors la seule chose qui aide encore, et le faire disparaître ne rendrait que du vide. Il
+   revient dès que le champ se vide. */
+function pfSyncFind(){
+  const x=document.getElementById('pfX'),q=document.getElementById('pfQ');
+  const saisi=!!(q&&q.value);
+  if(x)x.hidden=!saisi;
+  /* ⚠ DÈS LA PREMIÈRE LETTRE, résultats ou non (décision de l'auteur, qui étend la règle : « y
+     compris quand absence de résultat, dès qu'on tape du texte doit enlever le sommaire »). Ma
+     version d'abord ne l'escamotait que sur résultat, au motif qu'à zéro le sommaire « aide
+     encore ». C'est faux à l'usage : entre deux frappes, il apparaissait et disparaissait sous
+     les doigts — le contenu sautait à chaque lettre. Un écran qui bouge pendant qu'on tape coûte
+     plus que le sommaire ne rend. Il revient quand le champ se vide, pas avant. */
+  document.querySelectorAll('.ref-toc').forEach(n=>n.classList.toggle('finding',saisi));}
 function pfGo(i){
   if(!_pfHits.length){const c=document.getElementById('pfCount');if(c)c.textContent='aucun résultat';return;}
   _pfI=((i%_pfHits.length)+_pfHits.length)%_pfHits.length;
   _pfHits.forEach((m,k)=>m.classList.toggle('cur',k===_pfI));
   const c=document.getElementById('pfCount');
   if(c)c.textContent=(_pfI+1)+' / '+_pfHits.length;
+  /* A171 — un résultat dans une section repliée est INVISIBLE (`hidden` : ni peint, ni défilable).
+     On ouvre ce qu'il faut avant de viser, sinon la recherche annoncerait « 3 / 7 » en ne montrant
+     rien — le pire des deux mondes, puisqu'elle aurait raison. */
+  mdFoldReveal(_pfHits[_pfI],_pfEnt&&_pfEnt.id);
   _pfHits[_pfI].scrollIntoView({block:'center'});}
 function bindProtoFind(root,ent){
   if(root)_pfRoot=root;
@@ -16308,7 +16837,12 @@ function bindProtoFind(root,ent){
     if(e.key==='Escape'){q.value='';_pfQ='';pfRun('');}});
   const pv=document.getElementById('pfPrev'),nx=document.getElementById('pfNext');
   if(pv)pv.onclick=()=>pfGo(_pfI-1);
-  if(nx)nx.onclick=()=>pfGo(_pfI+1);}
+  if(nx)nx.onclick=()=>pfGo(_pfI+1);
+  // La croix EFFACE ET RÉINITIALISE (surlignages retirés, sommaire rendu), puis rend le focus au
+  // champ : on efface pour re-chercher, pas pour partir ailleurs.
+  {const x=document.getElementById('pfX');
+   if(x)x.onclick=()=>{q.value='';_pfQ='';pfRun('');q.focus();};}
+  pfSyncFind();}
 /* I8 (v5.10.2) — LE RETOUR D'APERÇU, UNE SEULE FABRIQUE. Le bloc « Retour à l'édition » (garde
    anti double-tap 700 ms comprise) vivait en deux copies, fiche et protocole — la paire jumelle
    canonique de ce fichier. Seuls varient le champ d'état à vider et le texte du badge. */
@@ -16375,7 +16909,7 @@ function renderProtocolRead(){
           fenêtre, le sommaire occupe la marge gauche. La place existe alors pour les deux.
         · en dessous de 1000 : le dépliant. Le sommaire ne disparaît jamais, il change de forme. */
      const large=mqReadWide.matches;
-     const liens=hs.length?(`<div class="rt-h rt-h2">Sommaire</div>`+hs.map(h=>
+     const liens=hs.length?(`<div class="rt-h rt-h2">Sommaire<button type="button" class="rt-fold" id="rtFold" hidden>Tout replier</button></div>`+hs.map(h=>
        `<button type="button" class="rt-lnk${h.classList.contains('md-h2')?' rt-2':''}" data-rtgo="${esc(h.id)}">${esc(h.textContent)}</button>`).join('')):'';
      const nav=document.createElement(large?'aside':'details');
      nav.className='ref-toc';
@@ -16416,10 +16950,26 @@ function renderProtocolRead(){
        nav.addEventListener('toggle',syncRefBar);syncRefBar();}
      nav.querySelectorAll('[data-rtgo]').forEach(b=>b.onclick=()=>{
        const t=document.getElementById(b.dataset.rtgo);if(!t)return;
+       /* A171 — DEUX CHOSES À OUVRIR, ET LA SONDE M'A REPRIS SUR LA SECONDE. `mdFoldReveal` remonte
+          les ANCÊTRES (le titre visé peut vivre sous un H1 replié) ; mais la section du titre
+          lui-même n'est pas son ancêtre, c'est son FRÈRE suivant — et sauter à « Contre-indications »
+          pour n'y trouver que son titre est précisément ce qu'un sommaire ne doit pas faire. On
+          ouvre donc aussi la sienne : venir d'un sommaire, c'est demander à LIRE cette section.
+          ⚠ La recherche, elle, ne le fait pas : un mot trouvé DANS un titre ne dit pas qu'on veut
+          déplier ce qui suit — elle n'ouvre que ce qu'il faut pour montrer le résultat. */
+       mdFoldReveal(t,p.id);
+       if(t._sec&&t._sec.hidden)mdFoldToggle(t,p.id);
        /* Le défilement de la PAGE, pas d'un conteneur : le corps d'une référence vit dans le flux.
           `scroll-padding-top` (v4.30.0) place déjà la cible sous les couches collantes. */
        t.scrollIntoView({block:'start'});t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),900);});
-     bindProtoFind('.md-body',p);}}
+     bindProtoFind('.md-body',p);}
+   /* APRÈS le sommaire, et l'ordre compte : c'est lui qui pose les ancres (`h.id`) et lit le
+      TEXTE des titres pour ses libellés. Replier d'abord ne casserait rien aujourd'hui (le
+      chevron est un SVG, sans contenu textuel), mais ferait dépendre le sommaire d'un détail du
+      dépliant — deux composants qui se lisent l'un l'autre finissent par se casser l'un l'autre. */
+   if(bd)mdFoldApply(bd,p.id);
+   {const fb=document.getElementById('rtFold');if(fb)fb.onclick=()=>mdFoldToggleAll(p.id);}
+   mdFoldSyncBtn();}
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   // Badge d'en-tête : statut (+ date de validation si posée), ex. « ✓ Validé · 03/2026 ».
   updateHdrStatusBadge(p.status,false,p.validatedAt?valToDisplay(p.validatedAt):'');
@@ -16608,8 +17158,13 @@ function renderProtocolEdit(){
   // Peint sur place (le rendu n'est pas rejoué à la frappe), au rythme débouncé de l'aperçu.
   const paintMiUse=()=>{const used=new Set();mdBlocks(p.body||'').forEach(b=>{if(b.t==='img')used.add(b.id);});
     main.querySelectorAll('[data-miuse]').forEach(s=>{s.hidden=used.has(s.dataset.miuse);});};
-  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});paintMiUse();},300);};
+  /* L'APERÇU SE REPLIE COMME LA LECTURE (demande de l'auteur : « visible dans Essayer aussi ») :
+     l'auteur doit voir ce que son lecteur verra, replis compris, et sur le MÊME état mémorisé —
+     c'est le même protocole. `mdFoldApply` est idempotent et se garde sur le DOM, donc le rejouer
+     à chaque pause de frappe ne coûte que le test. */
+  const schedulePrev=()=>{clearTimeout(_mdPrevTimer);_mdPrevTimer=setTimeout(()=>{const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdRender(p.body,{images:p.images});mdFoldApply(pv,p.id);}paintMiUse();},300);};
   ta.addEventListener('input',()=>{p.body=ta.value;schedulePrev();});
+  {const pv=document.getElementById('mdPreview');if(pv)mdFoldApply(pv,p.id);}   // rendu INITIAL de l'aperçu
   paintMiUse();
   const takeImg=pImgTaker(p,ta);
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>{const k=b.dataset.mdtool;
@@ -16641,7 +17196,7 @@ function renderProtocolEdit(){
   main.querySelectorAll('[data-miscale]').forEach(sel=>sel.onchange=()=>{
     const im=(p.images||[]).find(x=>x.id===sel.dataset.miscale);if(!im)return;
     im.scale=_scale(sel.value);
-    const pv=document.getElementById('mdPreview');if(pv)pv.innerHTML=mdRender(p.body,{images:p.images});
+    const pv=document.getElementById('mdPreview');if(pv){pv.innerHTML=mdRender(p.body,{images:p.images});mdFoldApply(pv,p.id);}
     ta.dispatchEvent(new Event('input',{bubbles:false}));});   // auto-enregistrement du brouillon
   // Vignette ET bouton « ＋ Insérer dans le texte » (même attribut data-miref) : insèrent une
   // NOUVELLE référence à la même image (une image peut illustrer 2 passages). Le bouton est
@@ -16847,7 +17402,18 @@ function openPickMenu(host,opts){
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'');
   const veil=document.createElement('div');veil.className='catmenu-veil'+(sheet?' sheet':'');
-  host.appendChild(veil);host.appendChild(menu);
+  /* ⚠ UNE FEUILLE SE MONTE SUR `<body>`, JAMAIS DANS SON DÉCLENCHEUR (signalé à l'usage : « les
+     sélecteurs Ranger et Déplacer s'affichent mal lorsqu'il y a la sidebar » ; « sur écrans moins
+     larges le rail A-Z s'affiche AU-DESSUS des sélecteurs »). Les deux symptômes ont la même
+     cause, et elle n'est pas un z-index trop bas : la barre de sélection est `position:sticky`
+     AVEC un `z-index`, donc elle crée un CONTEXTE D'EMPILEMENT. Le menu, monté dedans, voyait son
+     `z-index:70` ramené au rang de son hôte (14) — le rail A–Z, `fixed` en z 15 sur `<body>`,
+     passait donc devant. Un z-index ne compare que des frères de contexte.
+     Une feuille étant `position:fixed`, son hôte ne lui sert PAS à se placer : on la monte à la
+     racine, où son z-index se compare enfin à ceux des autres couches. Le menu ANCRÉ, lui, garde
+     son hôte — c'est de lui qu'il tire sa position. */
+  const mount=sheet?document.body:host;
+  mount.appendChild(veil);mount.appendChild(menu);
   /* CE QUI EST « DÉPLIÉ », C'EST LE DÉCLENCHEUR TOUCHÉ — pas tous ceux de l'hôte. La marque était
      posée sur `host [data-catmenu]`, ce qui suffisait dans l'éditeur (les deux déclencheurs y
      vivent dans l'hôte et ouvrent le même menu) mais MENT dans l'atelier : l'hôte est le bandeau,
@@ -28308,12 +28874,23 @@ function confirmDlg(msg,opts){opts=opts||{};return new Promise(res=>{
     // « destructeur = danger »), même si l'appel de base n'était pas `danger`. Exception
     // `checkSafe:true` : la case est PROTECTRICE (ex. « ramener les fiches hors compte »),
     // la cocher ne doit pas peindre l'action en danger.
-    const upd=()=>{y.className='btn '+((opts.danger||(cb.checked&&!opts.checkSafe))?'danger':'primary');};cb.onchange=upd;upd();
-  }else{row.hidden=true;cb.onchange=null;y.className='btn '+(opts.danger?'danger':'primary');}
+    /* ⚠ `checkRequired` (v5.12.0) — LA CASE OUVRE LE BOUTON, elle ne fait plus que le peindre.
+       Jusqu'ici une case ne CONDITIONNAIT rien : on pouvait valider sans la cocher, et son rôle
+       se réduisait à une couleur. C'est assez pour une option ; ce n'est pas assez pour une
+       suppression EN LOT, où la fenêtre énumère ce qui va disparaître et où la case est
+       l'accusé de lecture de cette liste. Avec ce drapeau, le bouton principal reste FERMÉ
+       (`:disabled`, apparence de fermé du dossier) tant que la case n'est pas cochée — le geste
+       ne peut pas être franchi machinalement. Les appels existants ne le passent pas et ne
+       changent donc pas d'un pixel. */
+    const upd=()=>{y.className='btn '+((opts.danger||(cb.checked&&!opts.checkSafe))?'danger':'primary');
+      if(opts.checkRequired)y.disabled=!cb.checked;};cb.onchange=upd;upd();
+  }else{row.hidden=true;cb.onchange=null;y.disabled=false;y.className='btn '+(opts.danger?'danger':'primary');}
   confirmModal.classList.add('on');});}
 // Résolution : en mode case à cocher, `true` (validation) -> {checked}, tout le reste -> null ;
 // sinon on transmet la valeur brute (true/false/null).
-function _confirmEnd(v){confirmModal.classList.remove('on');const r=_confirmRes;_confirmRes=null;if(!r)return;
+function _confirmEnd(v){confirmModal.classList.remove('on');
+  document.getElementById('confirmYes').disabled=false;   // le verrou `checkRequired` ne survit pas à la fenêtre
+  const r=_confirmRes;_confirmRes=null;if(!r)return;
   r(_confirmCheck?(v===true?{checked:!!document.getElementById('confirmCheck').checked}:null):v);}
 document.getElementById('confirmYes').onclick=()=>_confirmEnd(true);
 document.getElementById('confirmNo').onclick=()=>_confirmEnd(false);
