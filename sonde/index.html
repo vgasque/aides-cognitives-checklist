@@ -10489,6 +10489,7 @@ function newPc(){
     // mesuré sur iPhone 16/08) : la seule reprise est un RÉ-APPARIEMENT complet.
     if(p.iceConnectionState==='failed'){
       if(mode==='host'){$('pairCard').classList.remove('hide');
+        camStop();$('scanRow').classList.add('hide'); // batterie : rien à scanner tant qu'on n'a pas ré-apparié
         $('pairSteps').textContent='Lien perdu — appuyer sur « Ré-apparier » (banc), puis re-scanner des deux côtés.';
         log('lien perdu : appuyer sur « Ré-apparier »','warn');}
       else if(mode==='guest'){
@@ -10610,7 +10611,8 @@ async function startGuest(){
 async function guestScan(){ // aussi RE-armé automatiquement quand le lien tombe en failed
   $('pairCard').classList.remove('hide');
   if(!scanStream){try{await camStart($('scanVideo'));}
-    catch(e){return log('caméra refusée ('+e.message+') — utiliser le copier/coller','warn');}}
+    catch(e){return log('caméra refusée ('+e.message+') — retaper « Invité WebRTC » pour la '+
+      'relancer d\'un geste, ou utiliser le copier/coller','warn');}}
   $('scanRow').classList.remove('hide');
   scanSignal('O','l\'offre',async o=>{scanRun++;await applyOffer(o);});}
 async function applyOffer(o){
@@ -10628,7 +10630,11 @@ async function applyOffer(o){
   candWarn(cpt.c,'MES candidats');
   showQrParts(await sigPack('A',Object.assign({k:offerNonce},cpt)),$('pairQr'));
   $('pairTitle').textContent='Invité — étape 2 : faire scanner ce code RÉPONSE par l\'hôte';
-  $('pairSteps').textContent='La connexion s\'établit dès que l\'hôte a scanné.';}
+  $('pairSteps').textContent='La connexion s\'établit dès que l\'hôte a scanné.';
+  // Batterie : la réponse est affichée, l'invité n'a PLUS rien à scanner — caméra coupée.
+  // Elle se relance SEULE (gestionnaire failed) si le lien échoue et qu'une offre doit revenir.
+  camStop();$('scanRow').classList.add('hide');
+  log('caméra coupée (plus rien à scanner) — elle se relancera seule au besoin');}
 $('sigApply').onclick=async()=>{try{
   const store={parts:new Map()};let done=false;
   for(const line of $('sigIn').value.split(/\s+/))if(line)done=sigFeed(store,line)||done;
