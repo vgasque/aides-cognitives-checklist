@@ -10454,6 +10454,11 @@ function scanLoop(video,onText){
 
 /* ---- WebRTC : hôte / invité / banc ---- */
 let pc=null,dc=null,statsTimer=0,pingTimer=0,blobRx=null,mode='';
+// Jeton d'appariement : l'offre porte un jeton, la réponse le renvoie. Une réponse au jeton
+// PÉRIMÉ (celle d'un appariement précédent, encore affichée chez l'invité) est REJETÉE avec un
+// message — piège vécu sur iPhone : l'hôte la scannait, elle consommait l'appariement en
+// silence, et « plus rien ».
+let hostNonce=null,offerNonce=null;
 function gatherDone(p){return new Promise(res=>{
   if(p.iceGatheringState==='complete')return res();
   const to=setTimeout(()=>{log('gathering incomplet après 5 s — on continue','warn');res();},5000);
@@ -10471,7 +10476,9 @@ function newPc(){
       if(mode==='host'){$('pairCard').classList.remove('hide');
         $('pairSteps').textContent='Lien perdu — appuyer sur « Ré-apparier » (banc), puis re-scanner des deux côtés.';
         log('lien perdu : appuyer sur « Ré-apparier »','warn');}
-      else if(mode==='guest'){log('lien perdu : en attente de la NOUVELLE offre de l\'hôte','warn');
+      else if(mode==='guest'){
+        $('pairQr').classList.add('hide');$('pairQr').innerHTML=''; // réponse morte = piège
+        log('lien perdu : en attente de la NOUVELLE offre de l\'hôte','warn');
         guestScan();}}};
   p.onconnectionstatechange=()=>log('conn → '+p.connectionState,
     p.connectionState==='failed'?'ko':'');
@@ -10482,9 +10489,28 @@ function teardownPc(){try{if(pc)pc.close();}catch(e){}
   $('stRtt').textContent='RTT : —';$('stPair').textContent='Paire retenue : —';}
 function showQrParts(parts,box){
   box.classList.remove('hide');box.innerHTML='';
-  for(const p of parts){const c=qrCanvas(p,6);
-    if(c){box.appendChild(c);}else log('part trop longue pour le QR maison ('+p.length+' car.)','ko');}
+  parts.forEach((p,i)=>{const c=qrCanvas(p,6);
+    if(!c)return log('part trop longue pour le QR maison ('+p.length+' car.)','ko');
+    const w=document.createElement('div');w.style.textAlign='center';w.appendChild(c);
+    if(parts.length>1){const cap=document.createElement('div');
+      cap.textContent='code '+(i+1)+' / '+parts.length+' — scanner LES DEUX';
+      cap.style.cssText='font:13px ui-monospace,monospace;color:#000';w.appendChild(cap);}
+    box.appendChild(w);});
   $('sigOut').value=parts.join('\n');}
+/* Boucle de scan d'une charge de signalisation, avec RETOUR VISIBLE à chaque code lu —
+   « plus rien à l'écran » n'est pas un diagnostic. kind='A' (hôte) ou 'O' (invité). */
+function scanSignal(kind,label,onDone){
+  const store={parts:new Map()},seen=new Set();
+  scanLoop($('scanVideo'),async txt=>{try{
+    txt=String(txt).trim();
+    if(seen.has(txt))return;seen.add(txt);
+    if(!new RegExp('^'+kind+'\\d\\d:').test(txt))
+      return log('QR lu : pas '+label+' (ignoré)','warn');
+    if(!sigFeed(store,txt))
+      return log('QR lu : partie '+store.parts.size+'/'+(store.n||'?')+' de '+label,'ok');
+    log('QR lu : '+label+' complète');
+    await onDone(await sigUnpack(store),store,seen);
+  }catch(e){log('erreur au scan : '+e.message,'ko');}});}
 function bindChannel(ch){
   dc=ch;dc.binaryType='arraybuffer';
   dc.onopen=()=>{log('DataChannel OUVERT','ok');$('benchCard').classList.remove('hide');
@@ -10536,12 +10562,16 @@ async function startHost(){
   await pc.setLocalDescription(off);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
   log('candidats hôte : '+cpt.c.join(' , '));
-  showQrParts(await sigPack('O',cpt),$('pairQr'));
+  hostNonce=Math.random().toString(36).slice(2,6);
+  showQrParts(await sigPack('O',Object.assign({k:hostNonce},cpt)),$('pairQr'));
   $('pairSteps').textContent='Étape 2 : scanner en retour le code RÉPONSE affiché par l\'invité (ou coller sa charge ci-dessous).';
   if(scanStream){$('scanRow').classList.remove('hide');
-    const store={parts:new Map()};
-    scanLoop($('scanVideo'),async txt=>{
-      if(sigFeed(store,txt)&&store.kind==='A'){scanRun++;await applyAnswer(await sigUnpack(store));}});}
+    scanSignal('A','la réponse',async(a,store)=>{
+      // `seen` garde les codes périmés : ils restent devant la caméra, on ne les relit pas.
+      if(a.k!==hostNonce){store.parts.clear();store.kind=null;store.n=0;
+        return log('réponse PÉRIMÉE (appariement précédent) — attendre que l\'invité affiche sa '+
+                   'NOUVELLE réponse, puis la scanner ; la lecture continue','ko');}
+      scanRun++;await applyAnswer(a);});}
 }
 async function applyAnswer(a){
   log('réponse reçue — application');
@@ -10555,27 +10585,31 @@ async function guestScan(){ // aussi RE-armé automatiquement quand le lien tomb
   if(!scanStream){try{await camStart($('scanVideo'));}
     catch(e){return log('caméra refusée ('+e.message+') — utiliser le copier/coller','warn');}}
   $('scanRow').classList.remove('hide');
-  const store={parts:new Map()};
-  scanLoop($('scanVideo'),async txt=>{
-    if(sigFeed(store,txt)&&store.kind==='O'){scanRun++;await applyOffer(await sigUnpack(store));}});}
+  scanSignal('O','l\'offre',async o=>{scanRun++;await applyOffer(o);});}
 async function applyOffer(o){
   log('offre reçue — candidats : '+o.c.join(' , '));
   // Toute offre reçue alors qu'une connexion existe déjà = ré-appariement : on repart d'une
   // connexion NEUVE (un pc failed a ses sockets morts, il n'est pas réparable).
   if(pc){teardownPc();log('reconstruction complète de la connexion');}
+  $('pairQr').innerHTML=''; // jamais deux réponses à l'écran : l'ancienne est un piège
+  offerNonce=o.k||null;
   pc=newPc();pc.ondatachannel=e=>bindChannel(e.channel);
   await pc.setRemoteDescription({type:'offer',sdp:sdpRebuild(o)});
   const ans=await pc.createAnswer();await pc.setLocalDescription(ans);await gatherDone(pc);
   const cpt=sdpExtract(pc.localDescription.sdp);
-  showQrParts(await sigPack('A',cpt),$('pairQr'));
+  showQrParts(await sigPack('A',Object.assign({k:offerNonce},cpt)),$('pairQr'));
   $('pairTitle').textContent='Invité — étape 2 : faire scanner ce code RÉPONSE par l\'hôte';
   $('pairSteps').textContent='La connexion s\'établit dès que l\'hôte a scanné.';}
-$('sigApply').onclick=async()=>{
+$('sigApply').onclick=async()=>{try{
   const store={parts:new Map()};let done=false;
   for(const line of $('sigIn').value.split(/\s+/))if(line)done=sigFeed(store,line)||done;
   if(!done)return log('charge incomplète ou invalide','ko');
   const obj=await sigUnpack(store);
-  if(store.kind==='O')await applyOffer(obj);else await applyAnswer(obj);};
+  if(store.kind==='O')await applyOffer(obj);
+  else if(hostNonce&&obj.k&&obj.k!==hostNonce)
+    log('réponse PÉRIMÉE (appariement précédent) — refaire générer/coller la nouvelle','ko');
+  else await applyAnswer(obj);
+}catch(e){log('erreur à l\'application : '+e.message,'ko');}};
 $('btnEv').onclick=()=>{const n=(window._evN=(window._evN||0)+1);
   dc.send(JSON.stringify({k:'ev',n,at:new Date().toISOString()}));log('évènement #'+n+' envoyé');};
 $('btnBlob').onclick=async()=>{
