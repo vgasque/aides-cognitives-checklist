@@ -1,5 +1,60 @@
 # Journal des modifications
 
+## [5.11.0] — 2026-08-16
+### L'atelier d'import dit aussi **où** ça va — bibliothèque et catégorie, rangée par rangée
+
+- **On peut enfin choisir la destination d'un import, et pas seulement son contenu** (question de
+  l'auteur : « comment définir les catégories et bibliothèques de une ou multiples fiches à
+  l'import ? »). La v5.0 avait renversé l'ordre — d'abord CE QUE l'on importe, ensuite OÙ — mais
+  le « OÙ » était resté ce qu'il était avant l'atelier : une question oui/non posée APRÈS lui, et
+  seulement si une bibliothèque partagée éditable se trouvait sélectionnée à l'accueil. Trois
+  manques : on ne pouvait viser QUE cette bibliothèque-là (depuis l'accueil « Perso », la question
+  ne se posait même pas et tout y tombait) ; la **catégorie n'était pas réglable du tout** ; et le
+  grain était le FICHIER, alors que celui de l'atelier est l'ENTITÉ depuis la v5.0 — un export de
+  bibliothèque entière ne pouvait pas se répartir entre deux rayons. **Chaque rangée porte
+  désormais sa destination** : une bibliothèque et une catégorie, réglées d'une touche, vues avant
+  que rien ne soit écrit.
+- **Le bandeau de tête n'est pas un réglage global à côté des rangées : c'est la même commande.**
+  Il affiche la valeur commune des rangées **cochées**, « Plusieurs » quand elles divergent, et la
+  pose sur ces mêmes rangées quand on l'actionne — jamais sur les décochées. « Tout ranger dans
+  Réanimation » est donc « tout cocher » puis un geste, et régler une seule rangée est le même
+  geste sur elle seule.
+- **Le défaut ne décide rien à votre place** : chaque rangée part sur « garder celle du fichier »
+  — le comportement d'avant, réconcilié par nom dans la destination (v5.10.9) — et le dit en
+  nommant ce qu'elle garde (« Garder Réanimation »), pour ne pas avoir à rouvrir le fichier.
+  Changer la bibliothèque d'une rangée **remet sa catégorie sur ce défaut** : un id de catégorie
+  n'a de sens que dans sa bibliothèque, le conserver pointerait sur rien — ou sur autre chose.
+- **La question « Où importer ? » disparaît, l'avertissement qu'elle portait reste.** Publier dans
+  une bibliothèque partagée n'est jamais silencieux : un bandeau de pied **nomme** les
+  bibliothèques visées et **compte** les éléments cochés (« 3 éléments iront dans « CH Le Mans » :
+  visibles par tous les membres »), et se tait quand tout va au Perso. Registre attention, jamais
+  rouge : ce n'est pas un danger, c'est une portée.
+- **« Remplacer tout » n'est plus proposé quand l'import vise plusieurs bibliothèques.** Une
+  suppression totale doit nommer ce qu'elle vide ; « remplacer les bibliothèques choisies »
+  viderait deux bibliothèques entières sur une phrase au pluriel, dont l'une peut-être pour une
+  seule fiche qu'on y a glissée. Le geste reste possible — on importe vers une destination à la
+  fois — mais il ne se propose plus par inadvertance. La fusion, elle, n'a jamais eu besoin d'une
+  destination unique.
+- Sous le capot, trois décisions qui se voient à l'usage : la destination **voyage avec son
+  entité** (une destination retrouvée après coup par l'index d'origine se désaligne au premier
+  filtrage — une fiche écrite dans la bibliothèque de sa voisine, en silence) ; la table de
+  résolution des catégories est indexée par **(bibliothèque, id source)**, parce que deux rangées
+  peuvent garder la même catégorie du fichier vers deux destinations où elle ne porte pas le même
+  identifiant ; et une catégorie n'est créée que lorsqu'une entité la réclame **dans la
+  bibliothèque où elle la réclame**.
+- Le menu de choix est **le même composant** pour la catégorie de l'éditeur, la catégorie d'une
+  rangée et sa bibliothèque : trois copies de sa machinerie (voile, piège clavier, filtre, retour
+  de focus) auraient divergé. Il se présente en **feuille à toute largeur** dans l'atelier —
+  mesuré : ancré, il atterrissait une centaine de pixels sous le bas de la liste, détaché de la
+  pastille qui l'ouvre, une rangée n'ayant aucun ancêtre positionné. Et « déplié » marque enfin la
+  pastille touchée, non les boutons du bandeau.
+- Détail de la doctrine (`docs/decisions/lot-v5-11.md`, A159-A169), dont deux corrections de ce
+  que j'allais écrire, prises à la mesure : le bandeau annonçait « Plusieurs » à l'ouverture parce
+  qu'il comparait les étiquettes rendues et non le choix ; et le remplacement d'un menu par le
+  suivant est une **ceinture**, pas la réparation d'un symptôme — la feuille couvre les autres
+  pastilles, aucun doigt ne peut en atteindre une seconde sans avoir refermé la première.
+  Sonde jetable : 36 contrôles, deux moteurs, deux largeurs, vérifiée capable d'échouer.
+
 ## [5.10.9] — 2026-08-16
 ### Une fenêtre coupée par le clavier, une catégorie qui vient d'à côté, et « la protocole »
 
@@ -1092,84 +1147,3 @@ Tous signalés à l'usage réel (PWA/smartphone), chacun vérifié à la mesure 
   témoins d'atterrissage v5.0.7 construisent désormais leur cas (le panneau du flux payait ~70 px
   de leur marge de défilement — sans lui, le contrefactuel s'écrêtait). Passes : 16/16 check ·
   939 × 2 tests · 20/20 harnais.
-
-## [5.4.1] — 2026-08-07
-### Le volet du quai devient un étage du chrome, les familles se nomment, et le chrome ≥ 1200 px monte dans l'en-tête
-
-Trois retours d'usage, chacun tranché sur maquette ou après itérations mesurées à l'écran.
-
-- **Le dépliant du quai est un volet FIXE, étage du bloc de chrome** (question de l'auteur :
-  « contraire à ECAM/QRH ? » — non : ouvert et fermé par l'utilisateur seul, jamais
-  d'auto-ouverture, l'alarme jamais masquée — même statut de consultation que le menu ⋯). Il SUIT
-  le défilement : minuteurs, compteurs et journal restent sous les yeux en parcourant les étapes.
-  Après trois retours (« pas une continuité du quai », « fixed dans fixed », « deuxième niveau de
-  scroll ») : PLEINE largeur, collé au quai (le filet du quai fait la séparation d'étages, patron
-  #refBar), panneau intérieur sans boîte, UN seul défileur, en-tête ✕ non épinglé. Fermeture par
-  re-tap du quai, ✕, Échap et retour système (`_histArm`/`_histBackAction`). La rangée du flux
-  garde sa géométrie de poussée : deux accès, deux arbitrages.
-- **Les familles se nomment** (« minuteurs / compteurs / journal peu identifiables — tout se colle
-  et se mélange ») : sous-titres MINUTEURS / COMPTEURS / JOURNAL DES ACTIONS partout — grammaire
-  `.tk-head` + compte en pilule dans le panneau et le volet, `.rail-head` + `.rail-n` dans le rail
-  large. Les compteurs n'avaient aucun en-tête ; « ＋ Minuteur PA » rejoint la famille des
-  minuteurs qu'il crée.
-- **À ≥ 1200 px, le chrome de crise monte dans l'EN-TÊTE** (option A′, choisie sur maquette après
-  DEUX itérations refusées — la bande pleine largeur réservait ~110 px pour des contrôles qui ne
-  vivaient qu'à gauche ; la version « colonne du plan » empilait trois boutons en volant sa
-  hauteur au plan). « Tout voir », « Consulter » et le chrono SESSION vivent dans
-  `#hdrCrisisSlot`, entre le titre et les actions — chrome NOMADE au patron du pied de page
-  (déplacés, jamais recréés), `body.chrome-hdr`, `stickBase`/`stickHeight` cessent de compter des
-  rangées dont la hauteur est déjà celle de l'en-tête. **Coût de hauteur nul, mesuré** : en-tête
-  65 px inchangé (compaction du dessin, jamais des cibles — halos de 44 px, attrapé par
-  `audit-a11y` : 8 rouges sur le bouton Session à 37 px, réparés par le halo standard). Les trois
-  colonnes commencent à ~83 px ; plus de bande ni d'« effet de tronquage » pour toute lecture de
-  fiche à ce palier, statique et mono-bloc comprises. Sous 1200 px, rien ne change.
-- Sondes dédiées 9/9 (Chromium + WebKit) : chrome dans l'en-tête, une seule rangée, en-tête ≤
-  70 px, `--stick-top` = en-tête seul, état visible après 800 px de défilement, mono-bloc couvert,
-  390 px inchangé. Passes complètes : 16/16 check · 939 × 2 tests · 20/20 harnais.
-
-## [5.4.0] — 2026-08-07
-### Le journal des actions rejoint le dépliant minuteurs, et l'heure se corrige comme on la tape
-
-Trois retours d'usage en situation réelle, traités après proposition de solutions et décisions
-de l'auteur ; plus un chantier vérifié resté en attente de publication (16 px tactile).
-
-- **La correction d'heure accepte ce qui a un sens, et refuse en le disant** (« entrer 1547 pour
-  15h47 ne fonctionne pas — trop strict ») : l'ancien format exigeait `H:MM[:SS]`, or le champ est
-  `inputmode=numeric` et le clavier numérique d'iOS n'a pas de deux-points — le format canonique
-  était intapable sur la cible principale ; et l'échec était MUET (saisie jetée sans un mot), d'où
-  l'impression d'un format encore plus strict. `tkParseTime` (pure, 19 tests) lit les séparateurs
-  libres (`15:47`, `15h47`, `15.47`, `15 47`) et les chiffres nus par longueur (`1547` → 15:47:00,
-  `154723` → 15:47:23) ; une valeur impossible est REFUSÉE, plus écrêtée (« 15:87 » devenait
-  15:59 — une heure fabriquée dans une trace de soin). Sur Entrée, l'illisible laisse le champ
-  ouvert avec le registre ATTENTION (△ + « ex. 1547 ou 15:47 ») ; sur blur, le retour à l'ancienne
-  heure s'annonce (#srLive).
-- **Chips de recul « −1 · −2 · −5 min »** pendant l'édition d'une heure : le cas réel est
-  « rattraper un geste noté en retard » — un tap vaut mieux qu'une heure retapée ; même mécanique
-  non destructive (`origT` + « ↺ revenir »). Le tap passe par `preventDefault` au `pointerdown`
-  (le blur détruirait la chip avant son click — leçon `.li-tools` v4.77.0), le chemin clavier par
-  `relatedTarget`.
-- **En étroit, le journal vit dans le dépliant minuteurs** (« ne pas mettre les compteurs et le
-  journal au même endroit m'a perturbé — pour changer l'un puis l'autre on passe au-dessus des
-  étapes ») : une seule rangée « Minuteurs · compteurs · journal — comptes », posée sous la carte
-  du bloc (la place T2 du journal) ; ouverte du quai, tout arrive ensemble sous le quai (M11
-  tenu : quai immobile, mesuré). Le geste fréquent ne bouge pas — « ⏱ Noter » et l'accusé restent
-  dans la carte (M7) ; en large, le rail est inchangé ; une fiche sans minuteur ni compteur garde
-  son journal autonome. `rtRowLabel` = source unique du libellé ; `renderTkOnly` repeint le compte
-  de la rangée repliée quand le panneau n'est pas dans le DOM (repère posé depuis la carte ou reçu
-  d'une session partagée — sinon compte périmé affiché comme vivant). Deux témoins d'`audit-partage`
-  passent désormais par le vrai geste d'ouverture.
-- **Un dépliant se reconnaît avant de se lire** (« difficile d'identifier que c'est un menu
-  déroulant ») : rangée repliée en `--surface-3` — le ton du chrome, distinct dans les deux
-  thèmes ; le contenu clinique reste seul en carte blanche — et déclencheur « ▾ Afficher » en
-  pilule bordée. Niché dans le panneau, le journal est une section à filet, pas une carte dans la
-  carte.
-- **Publication du chantier « 16 px tactile » resté en attente** (signalé à l'usage iPhone :
-  « quand on clique à l'intérieur d'un protocole l'écran zoome ») : le champ « Chercher dans la
-  référence » était né à 12 px hors du bloc tactile des 16 px — Safari iOS zoomait au focus.
-  `check-type` exige désormais que tout sélecteur posant < 16 px sur un champ figure dans la liste
-  tactile ; il a attrapé trois autres champs jamais signalés (phase de bloc, lignes du chapeau,
-  nom de minuteur). Les références « v5.3.2 » de ce chantier sont réalignées sur la version qui
-  l'embarque réellement.
-- Passes complètes : 16/16 check · 939 × 2 tests (Chromium + WebKit) · 20/20 harnais ; sonde de
-  parcours dédiée 25/25 sur les deux moteurs (fusion, saisie, chips, refus annoncé, quai immobile,
-  large inchangé, fiche sans minuteur).

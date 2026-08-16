@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-oLu/zsOgAv28rOvz7P/jLdAFhh2qdWmYXRsGDsO6zng='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-R50bXmBdWTyqZAN8tXldA86mDpHFX/1vNK9+E85SoQw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5191,16 +5191,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .catmenu-new:hover{background:var(--surface-2)}
   .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-family:inherit;font-size:13.5px}
   .catmenu-veil{display:none}
-  /* Mobile (< 780) : le menu devient une BOTTOM SHEET (poignée, voile, rangées 48px, au pouce).
-     La poignée vit dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile :
-     un glissement sur le fond assombri ne doit jamais faire défiler la page derrière. */
-  @media (max-width:779.98px){
-    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:12px 12px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
-    .catmenu-head{border-radius:12px 12px 0 0}
-    .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:var(--line-strong);margin:4px auto 10px}
-    .catmenu-row{min-height:48px}
-    .catmenu-veil{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
-  }
+  /* LE MENU DEVIENT UNE BOTTOM SHEET (poignée, voile, rangées 48px, au pouce). La poignée vit
+     dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile : un glissement sur
+     le fond assombri ne doit jamais faire défiler la page derrière.
+     ⚠ LE PALIER EST PASSÉ DE LA FEUILLE AU JS (v5.11.0), et la règle a donc UNE seule écriture.
+     Elle vivait dans `@media (max-width:779.98px)`, ce qui liait la FORME du menu à la seule
+     largeur ; or l'atelier d'import en a besoin en feuille À TOUTE LARGEUR. La raison est
+     MESURÉE, et ce n'est pas celle qu'on croit : un menu `absolute` se pose par rapport au
+     premier ancêtre POSITIONNÉ, et une rangée d'atelier n'en a aucun — à 1194×834, ouvert sur la
+     dernière rangée, il atterrissait à 494→834, soit une CENTAINE de pixels sous le bas de la
+     liste (394), détaché de la pastille qui l'ouvre. Positionner la rangée ne répare pas
+     davantage (même géométrie mesurée) et exposerait au contraire le menu à l'`overflow` du
+     corps de fenêtre. La feuille, elle, se pose toujours au même endroit et ne dépend d'aucun
+     ancêtre — c'est déjà ce que le téléphone recevait.
+     ⚠ ET LA GÉOMÉTRIE NE PROUVE PAS LA VISIBILITÉ : `getBoundingClientRect` ignore l'écrêtage
+     d'un ancêtre — mesuré, un témoin géométrique restait VERT sur le défaut réintroduit. Le seul
+     témoin qui discrimine est le test de TOUCHER (`elementFromPoint`), et c'est lui que porte la
+     sonde. Leçon v4.31.1, repayée ici.
+     `openPickMenu` pose donc `.sheet` quand l'appelant l'exige OU sous 780 px : même seuil, même
+     rendu, une définition. Ce que ça change, et c'est dit : le menu ne se reforme plus si l'on
+     PIVOTE l'appareil menu ouvert — il garde la forme qu'il avait à l'ouverture, ce qui est sans
+     conséquence pour une surface transitoire. */
+  .catmenu.sheet{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:12px 12px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
+  .catmenu.sheet .catmenu-head{border-radius:12px 12px 0 0}
+  .catmenu.sheet .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:var(--line-strong);margin:4px auto 10px}
+  .catmenu.sheet .catmenu-row{min-height:48px}
+  .catmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
   /* ══ A8 — LA CIBLE VIENT DU HALO, LE DESSIN NE GROSSIT PAS (audit 8b) ════════════════════
@@ -7332,6 +7348,35 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .imp-cmp:hover{background:var(--surface-2)}
   .imp-cmp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .imp-diff{margin:6px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface-2);max-height:280px;overflow:auto;overscroll-behavior:contain}
+  /* ═══ A159 — LA DESTINATION SE RÈGLE DANS L'ATELIER, ET PAR RANGÉE ════════════════════════
+     Un SEUL composant de choix, `.imp-pick`, dans les deux logements : le bandeau (qui règle les
+     rangées COCHÉES d'un geste) et la rangée (qui porte la sienne). Deux dessins séparés
+     auraient fini par se répondre différemment sur la même question — et surtout, l'auteur
+     aurait eu deux affordances à apprendre pour un seul choix. Le bandeau n'est donc pas un
+     réglage « global » à côté des rangées : c'est la MÊME commande, appliquée à plusieurs.
+     Cible ≥ 32 px (hors crise, règle 9), corps sur l'échelle fermée, rayon 8. */
+  .imp-dest{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface-2)}
+  .imp-dest-l{font-size:var(--t-meta);color:var(--ink-soft)}
+  /* La ligne de destination d'une rangée : elle vit DANS `.imp-tx`, sous la sous-ligne de méta,
+     parce qu'elle décrit la même entité — la sortir du <label> l'aurait détachée de son titre.
+     Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
+     ne coche pas la rangée. */
+  .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+  .imp-pick:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .imp-pick:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .imp-pick .cat-dot{flex:none}
+  .imp-pick>span:not(.cat-dot){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* « Garder celle du fichier » n'est pas un choix comme un autre : c'est le DÉFAUT, l'état où
+     l'atelier n'a rien décidé à la place de l'auteur. Il se lit en encre douce et sans pastille
+     — une pastille annoncerait une couleur qu'on ne connaît pas encore (elle dépend de ce que la
+     destination contient déjà). Jamais la couleur seule (règle 8) : le mot est là. */
+  .imp-pick.keep{font-weight:600;color:var(--ink-soft);border-style:dashed}
+  /* Publier dans une bibliothèque PARTAGÉE reste un acte annoncé (doctrine d'origine : « jamais
+     en silence »). La question oui/non a disparu — c'est ce bandeau de pied qui la remplace, et
+     il ne dit que ce qu'il sait : combien d'éléments, vers quelles bibliothèques. Registre
+     ATTENTION (--verify), jamais rouge : ce n'est pas un danger, c'est une portée. */
+  .imp-warn{margin:8px 0 0;padding:8px 10px;border:1px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--verify-soft);color:var(--verify);font-size:var(--t-meta);font-weight:600}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
@@ -8924,7 +8969,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <button type="button" class="btn" id="impNone">Tout décocher</button>
     <span class="imp-n" id="impN"></span>
   </div>
+  <!-- A159 — LE BANDEAU N'EST PAS UN RÉGLAGE GLOBAL À CÔTÉ DES RANGÉES : c'est la même commande
+       que celle d'une rangée, appliquée aux COCHÉES. Il affiche donc leur valeur COMMUNE, et
+       « Plusieurs » quand elles diffèrent — il ne prétend jamais à une valeur que les rangées
+       n'ont pas. `.imp-dest` est un conteneur ancré (le menu s'y pose). -->
+  <div class="imp-dest" id="impDest">
+    <span class="imp-dest-l" id="impDestL">Ranger les éléments cochés dans</span>
+    <button type="button" class="imp-pick" id="impDestLib" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span>Bibliothèque</span></button>
+    <button type="button" class="imp-pick" id="impDestCat" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span>Catégorie</span></button>
+  </div>
   <div id="impList" class="ai-body imp-list"></div>
+  <p class="imp-warn" id="impWarn" hidden></p>
   <div class="imp-foot">
     <button type="button" class="btn" id="impCancel">Annuler</button>
     <button type="button" class="btn primary" id="impGo">Importer</button>
@@ -9184,7 +9239,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.10.9';
+const APP_VERSION='5.11.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11163,7 +11218,12 @@ function catNbSousFiltre(cid){
   return arr.filter(x=>(state.scope?x.library===state.scope:!x.library)&&x.category===cid&&(ed||x.status!=='draft')).length;}
 const catsUtiles=(scope)=>catsSorted(scope).filter(c=>catNbSousFiltre(c.id)>0||state.cat===c.id);
 // Bibliothèque dont on gère les catégories : en édition = celle de la fiche ; sinon = bibliothèque affichée.
-function activeCatScope(){return state.view==='edit'?(state.draft?(state.draft.library||null):null):(state.scope||null);}
+/* Surcharge de bibliothèque gérée — déclarée ICI, auprès de son lecteur, et non auprès de
+   `openCatMgr` : `activeCatScope` est appelée dès les premiers rendus, et une liaison `let`
+   déclarée 15 000 lignes plus bas serait dans sa zone morte temporelle. */
+let _catScopeForce=undefined;
+function activeCatScope(){if(_catScopeForce!==undefined)return _catScopeForce;   // surcharge explicite (atelier d'import, A159)
+  return state.view==='edit'?(state.draft?(state.draft.library||null):null):(state.scope||null);}
 function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
 /* UN SEUL CRÉNEAU DE MESSAGE SYSTÈME À LA FOIS (audit v5.0.10, direction A) : mesuré à 390×844,
    le bandeau système ET la notice auteur s'empilaient au premier lancement — premier contenu
@@ -16744,22 +16804,62 @@ function catPickerHtml(d){
   const cur=c?`<button type="button" class="cat-chip-selected" data-catmenu style="--catcol:${safeColor(c.color)}" aria-haspopup="listbox" aria-expanded="false" title="Changer de catégorie"><span class="cat-dot"></span>${esc(c.name)}</button>`
     :`<button type="button" class="cat-chip-selected none" data-catmenu aria-haspopup="listbox" aria-expanded="false" title="Choisir une catégorie">Sans catégorie</button>`;
   return cur+`<button type="button" class="cat-chip-other" data-catmenu aria-haspopup="listbox" aria-expanded="false">Autre…</button>`;}
-function openCatMenu(host,d,rerender,trigger){
-  if(host.querySelector('.catmenu'))return;
-  const cats=catsSorted(d.library);
-  const row=(id,name,col)=>`<button type="button" class="catmenu-row" role="option" aria-selected="${(d.category||'')===id?'true':'false'}" data-catopt="${esc(id)}"><span class="cat-dot" style="--catcol:${col||'var(--line-strong)'}"></span><span class="cm-nm">${esc(name)}</span>${(d.category||'')===id?`<span class="cm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:''}</button>`;
-  const menu=document.createElement('div');menu.className='catmenu';menu.setAttribute('role','listbox');menu.setAttribute('aria-label','Catégorie');
-  menu.innerHTML=`<div class="catmenu-head">${cats.length>8?'<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer les catégories">':''}</div>
-    ${row('','Sans catégorie','')}
-    ${cats.map(c=>row(c.id,c.name,safeColor(c.color))).join('')}
-    <div class="catmenu-sep"></div>
-    <button type="button" class="catmenu-new">＋ Nouvelle catégorie</button>`;
-  const veil=document.createElement('div');veil.className='catmenu-veil';
+/* ═══ MENU ANCRÉ GÉNÉRIQUE (v5.11.0) — le CORPS EXACT de l'ancien `openCatMenu`, extrait ═══════
+   POURQUOI L'EXTRAIRE PLUTÔT QUE D'EN ÉCRIRE UN SECOND : l'atelier d'import a besoin du même menu
+   pour la CATÉGORIE et pour la BIBLIOTHÈQUE d'une rangée — soit trois usages du même objet. Trois
+   copies de trente lignes de machinerie (voile, piège clavier, filtre, fermeture, retour de
+   focus, `aria-expanded` sur les déclencheurs) auraient divergé : c'est la leçon du serveur
+   statique recopié dans onze harnais (v4.45.0) et des listes tenues à la main (MUTE_SEL). Le DOM
+   et les classes sont INCHANGÉS — le menu de l'éditeur rend le même HTML qu'avant, à l'octet près
+   du nom de l'attribut d'option (`data-catopt` -> `data-pickopt`, qu'aucun harnais ne cite).
+   `opts` : {aria, options:[{val,name,col,dot,tt}], value, onPick(val), action:{label,fn},
+   trigger, seuilFiltre}. `col` vide -> pastille neutre ; `dot:false` -> aucune pastille.
+   ⚠ LES VALEURS SONT DES CHAÎNES : elles transitent par un attribut. Les appelants qui ont besoin
+   d'un troisième état (l'atelier : « garder celle du fichier ») emploient une SENTINELLE que
+   `SAFE_ID` ne peut pas produire — cf. IMP_KEEP. */
+/* UN SEUL MENU OUVERT À LA FOIS, et le suivant REMPLACE le précédent — au lieu du garde d'avant,
+   `if(host.querySelector('.catmenu'))return;`, qui ne faisait RIEN de visible.
+   ⚠ CE QUE LA MESURE DIT, ET QUI CORRIGE CE QUE J'ALLAIS ÉCRIRE : j'ai posé ce remplacement en
+   croyant fermer un défaut atteignable — l'atelier aligne deux déclencheurs par rangée, et le
+   voile ne ferme pas sur un clic portant `[data-catmenu]`, donc taper la pastille d'une autre
+   rangée aurait laissé le menu de la précédente ouvert avec ses options. La sonde a refusé le
+   scénario : sous forme de FEUILLE, le menu et son voile COUVRENT les pastilles (Playwright :
+   « .catmenu-row intercepts pointer events »), et aucun doigt ne peut atteindre un second
+   déclencheur sans avoir refermé le premier. Le remplacement reste — il coûte rien et rend le
+   composant juste hors de ce logement (un appelant futur en menu ANCRÉ y serait exposé) — mais
+   il est une CEINTURE, pas la réparation d'un symptôme observé, et il se dit comme telle (A72 :
+   un commentaire qui affirme un mécanisme inexistant finit par le faire « réparer »).
+   L'`aria-expanded`, lui, était bel et bien faux, et de façon atteignable — voir plus bas. */
+let _pickClose=null;
+function openPickMenu(host,opts){
+  if(_pickClose)_pickClose(false);
+  const O=opts.options||[],val=String(opts.value==null?'':opts.value),trigger=opts.trigger;
+  const row=o=>{const v=String(o.val==null?'':o.val),sel=v===val;
+    return `<button type="button" class="catmenu-row" role="option" aria-selected="${sel?'true':'false'}" data-pickopt="${esc(v)}"${o.tt?` title="${esc(o.tt)}"`:''}>`
+      +(o.dot===false?'':`<span class="cat-dot" style="--catcol:${o.col||'var(--line-strong)'}"></span>`)
+      +`<span class="cm-nm">${esc(o.name)}</span>${sel?`<span class="cm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:''}</button>`;};
+  // Feuille imposée par l'appelant (atelier d'import : le corps de fenêtre couperait un menu
+  // ancré) ou par la largeur — le seuil de la feuille de style d'hier, à l'identique.
+  const sheet=!!opts.sheet||window.innerWidth<780;
+  const menu=document.createElement('div');menu.className='catmenu'+(sheet?' sheet':'');menu.setAttribute('role','listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
+  menu.innerHTML=`<div class="catmenu-head">${O.length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
+    +O.map(row).join('')
+    +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'');
+  const veil=document.createElement('div');veil.className='catmenu-veil'+(sheet?' sheet':'');
   host.appendChild(veil);host.appendChild(menu);
-  host.querySelectorAll('[data-catmenu]').forEach(b=>b.setAttribute('aria-expanded','true'));
+  /* CE QUI EST « DÉPLIÉ », C'EST LE DÉCLENCHEUR TOUCHÉ — pas tous ceux de l'hôte. La marque était
+     posée sur `host [data-catmenu]`, ce qui suffisait dans l'éditeur (les deux déclencheurs y
+     vivent dans l'hôte et ouvrent le même menu) mais MENT dans l'atelier : l'hôte est le bandeau,
+     et la pastille d'une rangée n'y est pas — c'étaient donc les boutons du bandeau qui
+     s'annonçaient dépliés pendant qu'on réglait une rangée. Repli sur l'hôte quand l'appelant ne
+     nomme pas son déclencheur, pour ne rien retirer à un appel qui n'en passerait pas. */
+  const marques=trigger?[trigger]:[...host.querySelectorAll('[data-catmenu]')];
+  marques.forEach(b=>b.setAttribute('aria-expanded','true'));
   const close=(refocus)=>{menu.remove();veil.remove();document.removeEventListener('pointerdown',out,true);document.removeEventListener('keydown',keys,true);
-    host.querySelectorAll('[data-catmenu]').forEach(b=>b.setAttribute('aria-expanded','false'));
+    marques.forEach(b=>{if(document.contains(b))b.setAttribute('aria-expanded','false');});
+    if(_pickClose===close)_pickClose=null;
     if(refocus&&trigger&&document.contains(trigger))trigger.focus();};
+  _pickClose=close;
   const out=e=>{if(!menu.contains(e.target)&&!e.target.closest('[data-catmenu]'))close(false);};
   const rows=()=>[...menu.querySelectorAll('.catmenu-row,.catmenu-new')].filter(r=>r.style.display!=='none');
   const keys=e=>{
@@ -16771,14 +16871,19 @@ function openCatMenu(host,d,rerender,trigger){
     r[(i+(e.key==='ArrowDown'?1:-1)+r.length)%r.length].focus();};
   document.addEventListener('pointerdown',out,true);
   document.addEventListener('keydown',keys,true);
-  menu.querySelectorAll('[data-catopt]').forEach(b=>b.onclick=()=>{d.category=b.dataset.catopt;close(false);rerender();});
-  {const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);openCatMgr();};}
+  menu.querySelectorAll('[data-pickopt]').forEach(b=>b.onclick=()=>{const v=b.dataset.pickopt;close(false);opts.onPick(v);});
+  if(opts.action){const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);opts.action.fn();};}
   const fl=menu.querySelector('.catmenu-filter');
   if(fl){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
       menu.querySelectorAll('.catmenu-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});});
     fl.focus();}
   else{const first=menu.querySelector('.catmenu-row');if(first)first.focus();}
   veil.onclick=()=>close(false);}
+function openCatMenu(host,d,rerender,trigger){
+  openPickMenu(host,{aria:'Catégorie',value:d.category||'',trigger,
+    options:[{val:'',name:'Sans catégorie',col:''}].concat(catsSorted(d.library).map(c=>({val:c.id,name:c.name,col:safeColor(c.color)}))),
+    onPick:v=>{d.category=v;rerender();},
+    action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr()}});}
 // Câblage des champs partagés. o = {fem, rerender, preview} ; d = objet brouillon vivant
 // (state.draft ou state.pdraft — même référence tant que l'éditeur est affiché).
 function bindEditorMetaFields(d,prefix,o){
@@ -26066,8 +26171,21 @@ document.getElementById('filtSheetClear').onclick=()=>{
 const catModal=document.getElementById('catModal');
 let catDelId=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
 const catCount=id=>fiches.filter(f=>f.category===id).length;
-function openCatMgr(){catDelId=null;_catHost='catMgrBody';catModal.classList.add('on');renderCatMgr();}
-function closeCatMgr(){catModal.classList.remove('on');if(state.view==='edit')renderEditor();else if(state.view==='protocolEdit')renderProtocolEdit();else if(state.view==='library')renderLibrary();}
+/* BIBLIOTHÈQUE GÉRÉE — normalement DÉDUITE du contexte (`activeCatScope`), sauf quand l'appelant
+   la connaît mieux que le contexte : l'atelier d'import règle la destination d'une RANGÉE, qui
+   peut viser une autre bibliothèque que celle affichée à l'accueil (A159). Sans cette surcharge,
+   « ＋ Nouvelle catégorie » aurait créé la catégorie dans la MAUVAISE bibliothèque, en silence —
+   et elle n'aurait pas paru dans le menu qui vient de l'ouvrir. La surcharge ne survit pas à la
+   fermeture : le contexte reprend la main. */
+function openCatMgr(lib){catDelId=null;_catHost='catMgrBody';
+  _catScopeForce=(lib===undefined)?undefined:(lib||null);
+  catModal.classList.add('on');renderCatMgr();}
+function closeCatMgr(){catModal.classList.remove('on');_catScopeForce=undefined;
+  // L'atelier d'import est une fenêtre OUVERTE DERRIÈRE celle-ci : elle se repeint sur place
+  // (les catégories neuves doivent paraître dans ses menus), et surtout on ne re-rend PAS la
+  // vue de fond, qui la détruirait sous elle.
+  if(document.getElementById('impModal').classList.contains('on')){paintImpList();return;}
+  if(state.view==='edit')renderEditor();else if(state.view==='protocolEdit')renderProtocolEdit();else if(state.view==='library')renderLibrary();}
 function renderCatMgr(){
   const body=document.getElementById(_catHost);if(!body)return;const scp=activeCatScope();const scoped=catsSorted(scp);
   body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);
@@ -26374,6 +26492,37 @@ function impDupRel(entrant,mien){
   if(typeof entrant!=='number'||!isFinite(entrant))return '';
   if(typeof mien!=='number'||!isFinite(mien))return '';
   return entrant===mien?'egal':(entrant>mien?'neuf':'vieux');}
+/* ═══ A159 — L'ATELIER DIT AUSSI **OÙ** ÇA VA, ET RANGÉE PAR RANGÉE ═══════════════════════════
+   A129 avait renversé l'ordre : d'abord CE QUE l'on importe, ensuite OÙ. Le « OÙ » était pourtant
+   resté ce qu'il était avant l'atelier — une question oui/non posée APRÈS, et seulement si une
+   bibliothèque partagée éditable se trouvait sélectionnée à l'accueil. Trois manques, tous
+   signalés à l'usage (« comment définir les catégories et bibliothèques de une ou multiples
+   fiches à l'import ? ») :
+    · on ne pouvait viser QUE la bibliothèque déjà sélectionnée — depuis l'accueil « Perso », la
+      question ne se posait même pas et tout tombait au Perso ;
+    · la CATÉGORIE n'était pas réglable du tout : elle venait du fichier, un point c'est tout ;
+    · et le grain était le FICHIER, alors que le grain de l'atelier est l'ENTITÉ depuis A129 — un
+      export de bibliothèque entière ne pouvait pas se répartir entre deux rayons.
+   Chaque rangée porte donc sa destination : une bibliothèque et une catégorie. Le bandeau de tête
+   est la MÊME commande appliquée aux rangées COCHÉES (cf. CSS) — pas un réglage global à côté.
+   ⚠ LE DÉFAUT NE DÉCIDE RIEN À LA PLACE DE L'AUTEUR : la catégorie vaut `IMP_KEEP`, « garder
+   celle du fichier », qui est le comportement d'AVANT ce lot, réconcilié par nom dans la
+   destination (v5.10.9). L'atelier ne se met à ranger que si on le lui demande.
+   ⚠ ET LA SENTINELLE NE PEUT PAS ÊTRE UN IDENTIFIANT : les valeurs de menu transitent par un
+   attribut, donc par une chaîne, et `SAFE_ID` (`[A-Za-z0-9_-]`) ne produit jamais de « ~ ». Sans
+   quoi une catégorie nommée de la bonne façon vaudrait « garder », en silence. */
+const IMP_KEEP='~garder';
+// Destination initiale d'une rangée : la bibliothèque affichée à l'accueil si l'on peut y écrire
+// (c'est le contexte du geste), le Perso sinon — exactement la valeur que l'ancienne question
+// oui/non proposait par défaut.
+function impLibDefaut(){return (state.scope&&canEditScope(state.scope))?state.scope:null;}
+// Bibliothèques OFFERTES : le Perso, plus celles où l'on peut écrire. Un lecteur n'y voit pas
+// celles qu'il ne peut que consulter — proposer une destination interdite serait un bouton mort.
+function impLibOptions(){
+  return [{val:'',name:'Ma bibliothèque perso',dot:false}]
+    .concat(sortedLibraries().filter(l=>l.role==='editor'||l.role==='admin')
+      .map(l=>({val:l.id,name:l.name+' (partagée)',dot:false})));}
+const impLibName=lib=>lib?(libName(lib)||'Bibliothèque partagée'):'Perso';
 function impRowsOf(imp,sameSpace){
   const rows=[];
   // Le JUMEAU, pas un booléen : c'est de lui qu'on tire l'horodatage à comparer. Le prédicat est
@@ -26381,16 +26530,23 @@ function impRowsOf(imp,sameSpace){
   // l'objet au lieu de le compter.
   const jum=(arr,id)=>(sameSpace&&id)?(arr.find(x=>x.id===id)||null):null;
   const brut=d=>(d&&typeof d.updatedAt==='number'&&isFinite(d.updatedAt))?d.updatedAt:null;
+  // Le nom que le FICHIER donne à la catégorie de l'entité : c'est ce que « garder celle du
+  // fichier » gardera, et la rangée le NOMME plutôt que de dire « celle du fichier » — l'auteur
+  // n'a pas à ouvrir le fichier pour savoir ce qu'il accepte. Table nue : clés venues du fichier.
+  const src=Object.create(null);
+  sanitizeCats(imp.categories).forEach(c=>{if(c.id)src[c.id]=c.name;});
+  const lib0=impLibDefaut();
+  const pose=(r,o)=>{r.lib=lib0;r.cat=IMP_KEEP;r.srcCat=(o.category&&src[o.category])||'';return r;};
   imp.fiches.forEach((d,i)=>{
     const av=brut(d);                                  // ⚠ AVANT migrate, qui en poserait un
     const o=imp.fiches[i]=migrate(d),m=jum(fiches,o.id);
-    rows.push({key:'f:'+i,o,mien:m,fem:true,kind:'Aide',notes:reviewNotes(o).length,dup:!!m,
-      rel:m?impDupRel(av,m.updatedAt):''});});
+    rows.push(pose({key:'f:'+i,o,mien:m,fem:true,kind:'Aide',notes:reviewNotes(o).length,dup:!!m,
+      rel:m?impDupRel(av,m.updatedAt):''},o));});
   imp.protocols.forEach((d,i)=>{
     const av=brut(d);
     const o=imp.protocols[i]=migrateProtocol(d),m=jum(protocols,o.id);
-    rows.push({key:'p:'+i,o,mien:m,fem:false,kind:'Référence',notes:reviewNotesProto(o).length,dup:!!m,
-      rel:m?impDupRel(av,m.updatedAt):''});});
+    rows.push(pose({key:'p:'+i,o,mien:m,fem:false,kind:'Référence',notes:reviewNotesProto(o).length,dup:!!m,
+      rel:m?impDupRel(av,m.updatedAt):''},o));});
   return rows;}
 /* ═══ A132 — SAVOIR LEQUEL EST LE PLUS RÉCENT NE DIT PAS CE QU'ON PERDRAIT ════════════════════
    Dernier étage de l'atelier, et il ferme la promesse « voir avant d'écrire » : sur une entité
@@ -26453,9 +26609,123 @@ function impRowHtml(r){
     // A132 — sur une entité déjà présente seulement : ailleurs il n'y a rien à comparer, et un
     // bouton qui n'ouvrirait rien serait un bouton mort.
     +(r.dup?`<button type="button" class="imp-cmp" data-impcmp="${esc(r.key)}" aria-expanded="false">Comparer</button>`:'')
-    +`</span></span></label>`
+    +`</span>`
+    +`<span class="imp-drow" data-impdrow="${esc(r.key)}">${impDestHtml(r)}</span>`
+    +`</span></label>`
     +(r.dup?`<div class="imp-diff" data-impdiff="${esc(r.key)}" hidden></div>`:'')
     +`</div>`;}
+/* CE QUE LA PASTILLE DIT DE LA CATÉGORIE. « Garder » NOMME ce qu'il garde (« Garder Réanimation »)
+   plutôt que de renvoyer à un fichier qu'on ne peut plus ouvrir : c'est la même exigence qu'A83 —
+   une commande ne dit que ce qu'elle sait, mais elle le dit. Quand le fichier ne classe pas cette
+   entité, « garder » est honnêtement « aucune ». */
+function impCatLabel(r){
+  if(r.cat===IMP_KEEP)return {txt:r.srcCat?('Garder '+r.srcCat):'Garder : aucune',col:'',keep:true};
+  if(!r.cat)return {txt:'Sans catégorie',col:'',keep:false};
+  const c=categories.find(x=>x.id===r.cat&&catScope(x)===(r.lib||null));
+  return c?{txt:c.name,col:safeColor(c.color),keep:false}:{txt:'Sans catégorie',col:'',keep:false};}
+function impPickHtml(kind,key,txt,col,cls,aria){
+  return `<button type="button" class="imp-pick${cls||''}" data-${kind}="${esc(key)}" data-catmenu aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(aria)}" title="${esc(aria)}">`
+    +(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')
+    +`<span>${esc(txt)}</span></button>`;}
+/* La pastille de BIBLIOTHÈQUE ne paraît que s'il y a un choix à faire : sans compte, ou sans
+   bibliothèque partagée éditable, il n'existe qu'une destination — un bouton qui n'ouvrirait
+   qu'une ligne serait un bouton mort (même règle que « Comparer », qui ne paraît que sur un
+   doublon). L'import va alors au Perso, comme avant ce lot. */
+const impLibChoix=()=>impLibOptions().length>1;
+function impDestHtml(r){
+  const L=impCatLabel(r);
+  return (impLibChoix()?impPickHtml('implib',r.key,impLibName(r.lib),'',' ','Bibliothèque de destination : '+impLibName(r.lib)):'')
+    +impPickHtml('impcat',r.key,L.txt,L.col,L.keep?' keep':'','Catégorie de destination : '+L.txt);}
+// Repeint la SEULE ligne de destination touchée : reconstruire la liste sous le doigt lui ferait
+// perdre le focus et remonterait le défilement (leçon v4.78.0, déjà tenue par `impSetAll`).
+function impPaintDest(keys){
+  (keys||_impRows.map(r=>r.key)).forEach(k=>{
+    const host=document.querySelector(`#impList [data-impdrow="${CSS.escape(k)}"]`),r=_impRows.find(x=>x.key===k);
+    if(host&&r)host.innerHTML=impDestHtml(r);});
+  impSyncDest();}
+/* Les rangées que le bandeau commande : les COCHÉES. Zéro cochée -> il ne commande rien et le dit
+   (le bouton d'import est déjà fermé dans cet état, cf. `impSyncSel`). */
+const impCibles=()=>_impRows.filter(r=>_impSel.has(r.key));
+/* Valeur COMMUNE d'un champ sur un ensemble de rangées, ou `undefined` si elles divergent. Le
+   bandeau n'affiche jamais une valeur que les rangées n'ont pas : « Plusieurs » est un état, pas
+   un défaut caché. UN SEUL prédicat pour les deux logements (le bandeau interroge les cochées,
+   un menu interroge celles qu'il commande) — deux, écrits à côté, répondraient un jour autre
+   chose sur le même ensemble. */
+function impCommun2(rows,f){if(!rows.length)return undefined;
+  const v=f(rows[0]);return rows.every(r=>f(r)===v)?v:undefined;}
+const impCommun=f=>impCommun2(impCibles(),f);
+function impSyncDest(){
+  const c=impCibles(),n=c.length;
+  document.getElementById('impDestL').textContent=n
+    ?('Ranger '+(n>1?('les '+n+' cochés'):'l\'élément coché')+' dans')
+    :'Cochez au moins un élément pour choisir sa destination';
+  const bl=document.getElementById('impDestLib'),bc=document.getElementById('impDestCat');
+  bl.hidden=!impLibChoix();
+  bl.disabled=bc.disabled=!n;
+  const lib=impCommun(r=>r.lib);
+  bl.querySelector('span').textContent=n?(lib===undefined?'Plusieurs':impLibName(lib)):'Bibliothèque';
+  /* LE BANDEAU DIT LE CHOIX, LA RANGÉE DIT SON EFFET — et c'est pour cela qu'ils ne portent pas
+     le même libellé sur la même valeur. Mesuré à la sonde : en comparant les ÉTIQUETTES RENDUES,
+     le bandeau annonçait « Plusieurs » à l'OUVERTURE de l'atelier, alors que rien n'avait encore
+     été décidé — les rangées portaient bien toutes le même choix (« garder »), mais chacune garde
+     une catégorie différente, donc affiche un texte différent. « Plusieurs » désignait la
+     conséquence, pas la commande, et se lisait comme un désordre. On compare donc la VALEUR :
+     `IMP_KEEP` et « aucune » ont le même sens dans toutes les bibliothèques. Un ID, lui, n'a de
+     sens que dans la sienne (v5.10.9) : il n'est « commun » que si la bibliothèque l'est aussi. */
+  const v=impCommun(r=>r.cat),libC=lib;
+  let txt='Catégorie',col='',keep=false;
+  if(n){
+    if(v===undefined)txt='Plusieurs';
+    else if(v===IMP_KEEP){txt='Garder celle du fichier';keep=true;}
+    else if(!v)txt='Sans catégorie';
+    else{const cc=libC===undefined?null:categories.find(x=>x.id===v&&catScope(x)===(libC||null));
+      if(cc){txt=cc.name;col=safeColor(cc.color);}else txt='Plusieurs';}}
+  bc.className='imp-pick'+(keep?' keep':'');
+  bc.innerHTML=(col?`<span class="cat-dot" style="--catcol:${col}"></span>`:'')+`<span>${esc(txt)}</span>`;
+  impSyncWarn();}
+/* Publier dans une bibliothèque PARTAGÉE reste ANNONCÉ (la question oui/non qui le faisait a
+   disparu avec ce lot). Le bandeau ne compte que ce qui est COCHÉ et ne nomme que les
+   bibliothèques réellement visées — il se tait quand tout va au Perso. */
+function impSyncWarn(){
+  const w=document.getElementById('impWarn'),c=impCibles().filter(r=>r.lib);
+  if(!c.length){w.hidden=true;w.textContent='';return;}
+  const noms=[...new Set(c.map(r=>impLibName(r.lib)))];
+  w.hidden=false;
+  w.textContent='△ '+c.length+' élément'+(c.length>1?'s iront':' ira')+' dans '
+    +noms.map(n=>'« '+n+' »').join(' et ')+' : visible'+(c.length>1?'s':'')+' par tous les membres.';}
+/* ── Poser une destination sur un ENSEMBLE de rangées ────────────────────────────────────────
+   Un seul point d'écriture pour les deux logements (rangée = un élément, bandeau = les cochés) :
+   deux chemins d'écriture finiraient par appliquer des règles différentes, et celle qui suit
+   compte. ⚠ CHANGER DE BIBLIOTHÈQUE INVALIDE LA CATÉGORIE CHOISIE : un id de catégorie n'a de
+   sens que dans SA bibliothèque (v5.10.9) — le garder pointerait sur rien, ou pire sur autre
+   chose. On retombe alors sur le défaut, « garder celle du fichier », qui est le seul choix
+   toujours valable ; « sans catégorie » est conservé, lui, puisqu'il ne désigne aucun id. */
+function impPoseLib(rows,lib){rows.forEach(r=>{if(r.lib===lib)return;r.lib=lib;
+  if(r.cat!==IMP_KEEP&&r.cat)r.cat=IMP_KEEP;});
+  impPaintDest(rows.map(r=>r.key));}
+function impPoseCat(rows,cat){rows.forEach(r=>{r.cat=cat;});impPaintDest(rows.map(r=>r.key));}
+// Les deux menus de l'atelier. `sheet:true` — cf. le CSS : un menu ancré serait coupé par le
+// corps défilant de la fenêtre. L'hôte est le bandeau, qui vit HORS de ce défileur.
+function openImpLibMenu(rows,trigger){
+  const host=document.getElementById('impDest');
+  openPickMenu(host,{aria:'Bibliothèque',sheet:true,trigger,options:impLibOptions(),
+    value:(impCommun2(rows,r=>r.lib)||''),
+    onPick:v=>impPoseLib(rows,v||null)});}
+function openImpCatMenu(rows,trigger){
+  const host=document.getElementById('impDest');
+  // Les catégories offertes sont celles de la DESTINATION. Si les rangées visées ne partagent pas
+  // la même bibliothèque, il n'existe pas de jeu commun : on ne propose alors que les deux choix
+  // qui ont un sens partout (garder / aucune) plutôt qu'une liste qui mentirait sur la moitié.
+  const lib=impCommun2(rows,r=>r.lib);
+  const cats=lib===undefined?[]:catsSorted(lib);
+  openPickMenu(host,{aria:'Catégorie',sheet:true,trigger,
+    options:[{val:IMP_KEEP,name:'Garder celle du fichier',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'},
+             {val:'',name:'Sans catégorie',col:''}]
+      .concat(cats.map(c=>({val:c.id,name:c.name,col:safeColor(c.color)}))),
+    value:(rows.length===1?rows[0].cat:impCommun2(rows,r=>r.cat)),
+    onPick:v=>impPoseCat(rows,v===IMP_KEEP?IMP_KEEP:(v||'')),
+    // « ＋ Nouvelle catégorie » n'a de sens que si l'on sait DANS QUOI la créer.
+    action:lib===undefined?null:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(lib)}});}
 function paintImpList(){document.getElementById('impList').innerHTML=_impRows.map(impRowHtml).join('');impSyncSel();}
 /* Le pied ANNONCE ce qu'on obtient avant de fermer (patron de la feuille de filtres, A26). Le
    bouton est FERMÉ à zéro sélection — apparence de « fermé » du dossier (`:disabled`), et le
@@ -26465,7 +26735,8 @@ function impSyncSel(){
   document.getElementById('impN').textContent=n+' / '+tot+' coché'+(n>1?'s':'');
   const go=document.getElementById('impGo');
   go.textContent=n?('Importer '+(n>1?('les '+n+' éléments'):'cet élément')):'Importer';
-  go.disabled=!n;}
+  go.disabled=!n;
+  impSyncDest();}   // le bandeau commande les COCHÉES : il change avec la sélection
 function impSetAll(on){_impSel.clear();if(on)_impRows.forEach(r=>_impSel.add(r.key));
   // On ÉCRIT sur les cases en place, jamais un re-rendu : reconstruire la liste sous le doigt
   // lui ferait perdre le focus et remonterait le défilement (leçon v4.78.0).
@@ -26478,16 +26749,33 @@ function importWorkshop(imp,zip,sameSpace){
   _impSel=new Set(_impRows.map(r=>r.key));
   document.getElementById('impIntro').textContent=
     'Ce fichier contient '+_impRows.length+' élément'+(_impRows.length>1?'s':'')
-    +(zip?' et ses documents PDF':'')+'. Décochez ce que vous ne voulez pas : rien n\'est écrit avant votre validation. '
+    +(zip?' et ses documents PDF':'')+'. Décochez ce que vous ne voulez pas, réglez où chacun va : rien n\'est écrit avant votre validation. '
     +'L\'état (Validée / À relire / Brouillon) est celui du fichier.';
   paintImpList();
   impModal.classList.add('on');
   return new Promise(res=>{_impRes=res;});}
 function _impEnd(v){impModal.classList.remove('on');const r=_impRes;_impRes=null;_impRows=[];if(r)r(v);}
-document.getElementById('impGo').onclick=()=>{if(_impSel&&_impSel.size)_impEnd(new Set(_impSel));};
+/* CE QUE L'ATELIER REND (A159) : la sélection ET la destination de chaque rangée retenue, clés
+   comprises. La destination est une TABLE NUE indexée par la clé de rangée — l'appelant filtre
+   ses deux tableaux par index et doit pouvoir retrouver, pour chaque entité gardée, où elle va.
+   Une valeur transportée « à côté » (par ordre implicite) se serait désalignée au premier
+   filtrage, et le défaut aurait été d'écrire une fiche dans la bibliothèque de sa voisine. */
+document.getElementById('impGo').onclick=()=>{if(!_impSel||!_impSel.size)return;
+  const dest=Object.create(null);
+  _impRows.forEach(r=>{if(_impSel.has(r.key))dest[r.key]={lib:r.lib||null,cat:r.cat};});
+  _impEnd({sel:new Set(_impSel),dest});};
 document.getElementById('impCancel').onclick=()=>_impEnd(null);
 document.getElementById('impAll').onclick=()=>impSetAll(true);
 document.getElementById('impNone').onclick=()=>impSetAll(false);
+/* Les deux pastilles d'une RANGÉE : délégué, comme « Comparer » — la liste est reconstruite à
+   chaque atelier, et un écouteur par rangée serait dix-huit écouteurs à reposer. */
+document.getElementById('impList').addEventListener('click',e=>{
+  const b=e.target&&e.target.closest?e.target.closest('[data-implib],[data-impcat]'):null;if(!b)return;
+  const k=b.dataset.implib||b.dataset.impcat,r=_impRows.find(x=>x.key===k);if(!r)return;
+  (b.dataset.implib?openImpLibMenu:openImpCatMenu)([r],b);});
+/* Le BANDEAU : la même commande, sur les rangées cochées. */
+document.getElementById('impDestLib').onclick=e=>{const c=impCibles();if(c.length)openImpLibMenu(c,e.currentTarget);};
+document.getElementById('impDestCat').onclick=e=>{const c=impCibles();if(c.length)openImpCatMenu(c,e.currentTarget);};
 /* A132 — le dépliant de comparaison. DÉLÉGUÉ (la liste est reconstruite à chaque atelier), et le
    diff est calculé À L'OUVERTURE, jamais au rendu de la liste : sur dix-huit entités, ce serait
    dix-huit aplatissements pour un dépliant qu'on n'ouvrira peut-être pas.
@@ -26560,27 +26848,42 @@ function readImportFile(file){const r=new FileReader();
        s'il peut y avoir doublon — sans lui, la rangée annoncerait « déjà présent » sur un import
        venu d'ailleurs, dont les ids sont de toute façon régénérés à l'écriture. */
     const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());
-    const sel=await importWorkshop(imp,!!zipAtts,sameSpace);
-    if(!sel){pendingOpenImport=false;return;}
-    imp.fiches=imp.fiches.filter((_,i)=>sel.has('f:'+i));
-    imp.protocols=imp.protocols.filter((_,i)=>sel.has('p:'+i));
+    const atelier=await importWorkshop(imp,!!zipAtts,sameSpace);
+    if(!atelier){pendingOpenImport=false;return;}
+    const sel=atelier.sel,destOf=atelier.dest;
+    /* LA DESTINATION VOYAGE AVEC SON ENTITÉ (A159). Les deux tableaux sont filtrés sur la
+       sélection, et la destination de chaque rangée gardée est rangée EN PARALLÈLE, dans le même
+       passage. Une destination transportée « à côté » — retrouvée après coup par l'index d'origine
+       — se serait désalignée au premier filtrage, et le défaut aurait été d'écrire une fiche dans
+       la bibliothèque de sa voisine : silencieux, et faux là où ça compte le plus. */
+    const garde=(arr,pfx)=>{const out=[],dst=[];
+      arr.forEach((d,i)=>{const k=pfx+i;if(!sel.has(k))return;
+        out.push(d);dst.push(destOf[k]||{lib:null,cat:IMP_KEEP});});
+      return {out,dst};};
+    const F=garde(imp.fiches,'f:'),P=garde(imp.protocols,'p:');
+    imp.fiches=F.out;imp.protocols=P.out;
     /* LES CATÉGORIES SUIVENT LA SÉLECTION (A130). Elles entraient TOUTES, y compris celles que
        seules les entités décochées employaient : on repartait avec des catégories vides dans son
        rail, créées par un import qu'on avait justement restreint. Reste de l'import en bloc — le
-       filtrage doit atteindre tout ce qui s'écrit, pas seulement les entités. */
-    {const gardees=new Set(imp.fiches.concat(imp.protocols).map(x=>x&&x.category).filter(Boolean));
+       filtrage doit atteindre tout ce qui s'écrit, pas seulement les entités.
+       A159 RESSERRE ENCORE : une catégorie du fichier n'est retenue que si une entité gardée la
+       GARDE. Celles dont toutes les entités ont été rangées ailleurs à l'atelier n'ont plus rien
+       à écrire — les faire entrer serait la même catégorie vide, par une autre porte. */
+    {const gardees=new Set();
+      const vus=(o,d)=>{if(d.cat===IMP_KEEP&&o&&o.category)gardees.add(o.category);};
+      F.out.forEach((o,i)=>vus(o,F.dst[i]));P.out.forEach((o,i)=>vus(o,P.dst[i]));
       imp.categories=(Array.isArray(imp.categories)?imp.categories:[]).filter(c=>c&&gardees.has(c.id));}
-    // DESTINATION : Perso par défaut. Si une bibliothèque PARTAGÉE ÉDITABLE est sélectionnée à
-    // l'accueil, on DEMANDE (importer dans une bibliothèque partagée = publier à toute l'équipe :
-    // jamais en silence). Lecteur d'une bibliothèque partagée -> Perso d'office (pas de droits).
-    let targetLib=null;
     const nSel=imp.fiches.length+imp.protocols.length;
-    if(state.scope&&canEditScope(state.scope)){
-      const dest=await confirmDlg('Où importer '+(nSel>1?'ces '+nSel+' éléments':'cet élément')+' ?',{title:'Destination de l\'import',yes:'Dans « '+(libName(state.scope)||'la bibliothèque partagée')+' » (visible par les membres)',no:'Dans ma bibliothèque perso'});
-      if(dest===null){pendingOpenImport=false;return;}
-      if(dest)targetLib=state.scope;
-    }
-    const scopeLbl=targetLib?('« '+(libName(targetLib)||'la bibliothèque partagée')+' »'):'votre bibliothèque perso';
+    /* LA QUESTION « OÙ ? » A DISPARU, ET C'EST LE CŒUR D'A159 : elle ne pouvait proposer que la
+       bibliothèque déjà sélectionnée à l'accueil, en oui/non, pour le fichier ENTIER. L'atelier
+       la remplace par un choix par rangée, VU avant d'écrire — ce qui est plus, pas moins. La
+       promesse « publier dans une bibliothèque partagée ne se fait jamais en silence » est tenue
+       par le bandeau d'avertissement de l'atelier (`impSyncWarn`), qui nomme les bibliothèques
+       visées et compte les éléments. */
+    const libs=[...new Set(F.dst.concat(P.dst).map(d=>d.lib||null))];
+    const uneSeule=libs.length===1?libs[0]:undefined;
+    const scopeLbl=libs.length>1?'les bibliothèques choisies'
+      :(uneSeule?('« '+(libName(uneSeule)||'la bibliothèque partagée')+' »'):'votre bibliothèque perso');
     // Fonctionne pour une librairie entière comme pour une fiche seule (fiches = tableau de 1).
     // SÉCURITÉ : l'option destructive "remplacer entièrement" n'est proposée que pour un
     // import de PLUSIEURS fiches, et ne touche QUE la bibliothèque de destination.
@@ -26588,17 +26891,23 @@ function readImportFile(file){const r=new FileReader();
     // (une étape destructive doit pouvoir être annulée proprement).
     // Le compte est celui de la SÉLECTION, jamais celui du fichier : une question qui annoncerait
     // dix-huit fiches pour deux cochées mesurerait le fichier, pas ce qu'on est en train de faire.
-    const merge=nSel>1?await confirmDlg('Import de '+nSel+' éléments.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
+    /* ⚠ ET « REMPLACER » N'EST PLUS PROPOSÉ QUAND L'IMPORT VISE PLUSIEURS BIBLIOTHÈQUES (A159).
+       Une suppression totale doit NOMMER ce qu'elle vide : « remplacer les bibliothèques
+       choisies » viderait deux bibliothèques entières sur une phrase au pluriel, dont l'une
+       peut-être pour une seule fiche qu'on y a glissée. Le geste reste possible — on importe vers
+       une destination à la fois — mais il ne se propose pas par inadvertance. La fusion, elle,
+       n'a jamais eu besoin de destination unique. */
+    const merge=(nSel>1&&libs.length===1)?await confirmDlg('Import de '+nSel+' éléments.',{title:'Importer',yes:'Fusionner avec '+scopeLbl,no:'REMPLACER '+scopeLbl}):true;
     if(merge===null){pendingOpenImport=false;return;}
     const hasProtos=Array.isArray(imp.protocols)&&imp.protocols.length>0;
     // « par les n éléments COCHÉS », et non « par le contenu du fichier » : depuis l'atelier, les
     // deux ne sont plus la même chose — annoncer le fichier ferait croire qu'on récupère ce qu'on
     // vient d'écarter, sur la seule question destructive du parcours.
     if(!merge){if(!await confirmDlg('Toutes les fiches'+(hasProtos?' et tous les protocoles':'')+' de '+scopeLbl+' seront supprimé(e)s puis remplacé(e)s par les '+nSel+' éléments cochés. Continuer ?',{title:'Remplacer la bibliothèque',yes:'Tout remplacer',danger:true}))return void(pendingOpenImport=false);
-      for(const f of fiches.filter(x=>(x.library||null)===targetLib))await softDelete(f);
-      fiches=fiches.filter(x=>(x.library||null)!==targetLib);
-      if(hasProtos){for(const pr of protocols.filter(x=>(x.library||null)===targetLib))await softDeleteProtocol(pr);
-        protocols=protocols.filter(x=>(x.library||null)!==targetLib);}}
+      for(const f of fiches.filter(x=>(x.library||null)===uneSeule))await softDelete(f);
+      fiches=fiches.filter(x=>(x.library||null)!==uneSeule);
+      if(hasProtos){for(const pr of protocols.filter(x=>(x.library||null)===uneSeule))await softDeleteProtocol(pr);
+        protocols=protocols.filter(x=>(x.library||null)!==uneSeule);}}
     /* Catégories importées : rattachées à la bibliothèque de DESTINATION (chaque bibliothèque a
        son propre jeu de catégories).
        ⚠ LA CLÉ DE RÉCONCILIATION EST LE NOM, PAS L'ID (v5.10.9, signalé à l'usage : « à l'import de
@@ -26619,14 +26928,27 @@ function readImportFile(file){const r=new FileReader();
        ensuite les entités importées : c'est ce qui rend l'opération sûre, l'id d'origine n'étant
        qu'une adresse locale au fichier. Table nue (`Object.create(null)`, règle 6) : ses clés
        viennent du fichier importé. */
+    /* A159 — LA TABLE EST INDEXÉE PAR (BIBLIOTHÈQUE, ID SOURCE), et ce n'est pas un détail : deux
+       rangées peuvent GARDER la même catégorie du fichier vers DEUX destinations différentes, où
+       elle ne porte pas le même identifiant. Une table indexée par le seul id source aurait
+       renvoyé la première résolution à toutes les autres — c'est-à-dire l'id d'une catégorie
+       d'une AUTRE bibliothèque, le défaut même que la v5.10.9 vient de fermer.
+       Et la résolution est PARESSEUSE : une catégorie n'est créée que lorsqu'une entité la
+       réclame réellement, dans la bibliothèque où elle la réclame. */
     const catMap=Object.create(null);
-    sanitizeCats(imp.categories).forEach(c=>{if(!c.id)return;
+    const srcCats=sanitizeCats(imp.categories);
+    const catsTouchees=new Set();
+    const resoudreCat=(lib,id)=>{
+      const k=(lib||'')+'\u0000'+id;
+      if(k in catMap)return catMap[k];
+      const c=srcCats.find(x=>x.id===id);
+      if(!c){catMap[k]='';return '';}
       const slug=catSlug(c.name);
-      const dej=slug?catsForScope(targetLib).find(x=>catSlug(x.name)===slug):null;
-      if(dej){catMap[c.id]=dej.id;return;}
-      const id=categories.some(x=>x.id===c.id)?newCatId(c.name,targetLib):c.id;
-      catMap[c.id]=id;categories.push({id,name:c.name,color:c.color,library:targetLib});});
-    await saveCats(targetLib);
+      const dej=slug?catsForScope(lib).find(x=>catSlug(x.name)===slug):null;
+      if(dej){catMap[k]=dej.id;return dej.id;}
+      const nid=categories.some(x=>x.id===c.id)?newCatId(c.name,lib):c.id;
+      categories.push({id:nid,name:c.name,color:c.color,library:lib});
+      catsTouchees.add(lib||'');catMap[k]=nid;return nid;};
     // (`sameSpace` est calculé PLUS HAUT, avant l'atelier : même espace -> les ids sont conservés
     // (restauration/fusion), donc un doublon est possible et la rangée l'annonce. Autre espace, ou
     // ancien fichier sans empreinte -> ids TOUJOURS régénérés : un id encore possédé par un autre
@@ -26648,36 +26970,49 @@ function readImportFile(file){const r=new FileReader();
        c'était mentir sur la donnée — et surtout casser la restauration d'une sauvegarde, où dix-
        huit aides validées revenaient toutes en brouillon, donc hors de l'accès de crise
        (un brouillon ne s'épingle pas, et il est masqué aux lecteurs d'une bibliothèque partagée). */
-    for(let d of imp.fiches){d=migrate(d);
-      d.library=targetLib;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
+    /* LA DESTINATION D'UNE ENTITÉ EST CELLE DE SA RANGÉE (A159) — un seul point d'application,
+       partagé par les fiches et les protocoles, parce que la règle est la même et qu'écrite deux
+       fois elle divergerait. `IMP_KEEP` = garder la catégorie du fichier, résolue par son nom dans
+       CETTE bibliothèque ; sinon la catégorie choisie à l'atelier, qui vient déjà de son jeu. */
+    const poserDest=(d,dst)=>{
+      d.library=dst.lib||null;   // migrate() vide libraryId (sécurité) -> on pose la destination choisie
+      d.category=(dst.cat===IMP_KEEP)?(d.category?resoudreCat(d.library,d.category):'')
+                                     :(dst.cat||'');
+      // Référence orpheline (catégorie absente du jeu de la bibliothèque de destination) : on la
+      // vide plutôt que de laisser migrateCategories() la transformer en catégorie fantôme (elle
+      // traiterait l'id brut comme un nom lisible).
+      if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===d.library))d.category='';};
+    for(let i=0;i<imp.fiches.length;i++){const d=migrate(imp.fiches[i]);
+      poserDest(d,F.dst[i]);
       // Documents PDF : binaires du .zip restaurés s'ils manquent, références sans binaire
       // conservées seulement en même espace (cf. importAtts — jamais d'écrasement d'un existant).
       await importAtts(d,zipAtts,sameSpace);
-      // La catégorie suit `catMap` (réconciliation par nom ci-dessus) ; puis référence orpheline
-      // (id absent du fichier importé ET du jeu de catégories de la bibliothèque de destination) :
-      // on la vide plutôt que de laisser migrateCategories() la transformer en catégorie fantôme
-      // (elle traiterait l'id brut comme un nom lisible).
-      if(d.category&&catMap[d.category])d.category=catMap[d.category];
-      if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===targetLib))d.category='';
-      if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const i=fiches.findIndex(x=>x.id===d.id);if(i>=0)fiches[i]=d;else fiches.push(d);added.push(d.id);}}
+      if(d.id&&existing.has(d.id)&&replace){if(await persist(d)){const j=fiches.findIndex(x=>x.id===d.id);if(j>=0)fiches[j]=d;else fiches.push(d);added.push(d.id);}}
       else{if(!d.id||existing.has(d.id)||!sameSpace)d.id=uid();existing.add(d.id);if(await persist(d)){fiches.push(d);added.push(d.id);}}}
     // PROTOCOLES du fichier (champ facultatif `protocols`, absent des anciens exports) : mêmes
     // règles que les fiches (assainissement migrateProtocol, ids conservés si même espace,
     // documents PDF restaurés/filtrés par importAtts).
     let addedP=0;
     if(hasProtos){const existingP=new Set(protocols.map(x=>x.id));
-      for(let d of imp.protocols){d=migrateProtocol(d);
-        d.library=targetLib;
+      for(let i=0;i<imp.protocols.length;i++){const d=migrateProtocol(imp.protocols[i]);
+        poserDest(d,P.dst[i]);   // même règle que les fiches, même code
         await importAtts(d,zipAtts,sameSpace);
-        if(d.category&&catMap[d.category])d.category=catMap[d.category];   // cf. catMap (fiches)
-        if(d.category&&!categories.some(c=>c.id===d.category&&(c.library||null)===targetLib))d.category='';
-        if(d.id&&existingP.has(d.id)&&replace){if(await persistProtocol(d)){const i=protocols.findIndex(x=>x.id===d.id);if(i>=0)protocols[i]=d;else protocols.push(d);addedP++;}}
+        if(d.id&&existingP.has(d.id)&&replace){if(await persistProtocol(d)){const j=protocols.findIndex(x=>x.id===d.id);if(j>=0)protocols[j]=d;else protocols.push(d);addedP++;}}
         else{if(!d.id||existingP.has(d.id)||!sameSpace)d.id=uid('p');existingP.add(d.id);if(await persistProtocol(d)){protocols.push(d);addedP++;}}}}
+    /* Les catégories s'enregistrent APRÈS les deux boucles : c'est là seulement qu'on sait
+       lesquelles ont réellement été créées, la résolution étant paresseuse. Une par bibliothèque
+       TOUCHÉE — `saveCats` horodate et marque « à pousser » PAR bibliothèque, et en marquer une
+       où rien n'a changé enverrait une synchro pour rien. */
+    for(const lib of catsTouchees)await saveCats(lib||null);
     // Depuis la fenêtre IA : on ouvre directement la fiche importée plutôt que la bibliothèque.
     const openId=pendingOpenImport&&added.length?added[added.length-1]:null;pendingOpenImport=false;
     // On AFFICHE la destination (sinon des fiches importées « dans Perso » depuis une bibliothèque
     // partagée sélectionnée sembleraient avoir disparu).
-    state.scope=targetLib;state.cat='';
+    /* On AFFICHE la destination — mais laquelle, quand il y en a plusieurs ? Celle du DERNIER
+       élément écrit : c'est le fil du geste, et l'alternative (rester où l'on était) donnerait
+       l'écran le plus trompeur de tous, une bibliothèque inchangée après un import réussi. */
+    state.scope=(P.dst.length?P.dst[P.dst.length-1].lib:(F.dst.length?F.dst[F.dst.length-1].lib:null))||null;
+    state.cat='';
     if(openId)openRead(openId);else{state.view='library';render();}
     if(added.length||addedP)toast([added.length?(added.length>1?added.length+' fiches importées':'1 fiche importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.');}
     // Le fichier était lisible (parse passé plus haut) : un échec ICI est un problème de stockage

@@ -155,6 +155,7 @@ fichiers restent **normatifs** — on les consulte À LA DEMANDE avant de touche
 | [`docs/decisions/lot-v5-10.md`](docs/decisions/lot-v5-10.md) (13 Ko) | **A133-A138** — la Page devient un document (grille unique) |
 | [`docs/decisions/lot-v5-10-1.md`](docs/decisions/lot-v5-10-1.md) (30 Ko) | **A139-A153** — audit design externe |
 | [`docs/decisions/lot-v5-10-2.md`](docs/decisions/lot-v5-10-2.md) (4 Ko) | **A154-A158** — audit de code externe |
+| [`docs/decisions/lot-v5-11.md`](docs/decisions/lot-v5-11.md) (8 Ko) | **A159-A169** — l'atelier d'import dit aussi **où** ça va (destination par rangée) |
 
 Le classement des A-entrées est CHRONOLOGIQUE (par lot) et non thématique, à dessein : la doctrine
 se cite elle-même par numéro (« cf. A140 ») — le numéro EST l'adresse, et une dispersion par thème
@@ -480,6 +481,12 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 
 > **Déplacée dans [`docs/decisions/lot-v5-10-2.md`](docs/decisions/lot-v5-10-2.md)** (v5.10.3) — contenu repris à
 > l'octet, rien n'est réécrit : Lot v5.10.2 — audit de code externe, A154 à A158.
+
+## Lot v5.11 — l'atelier d'import dit aussi « où » ça va
+
+> **Vit dans [`docs/decisions/lot-v5-11.md`](docs/decisions/lot-v5-11.md)** — A159 à A169 : destination
+> (bibliothèque **et** catégorie) réglable RANGÉE PAR RANGÉE dans l'atelier, bandeau qui commande les
+> cochées, « garder celle du fichier » par défaut, menus en feuille à toute largeur.
 
 ## Conventions de code
 

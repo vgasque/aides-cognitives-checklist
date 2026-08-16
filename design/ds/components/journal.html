@@ -4837,16 +4837,32 @@
   .catmenu-new:hover{background:var(--surface-2)}
   .catmenu-filter{width:calc(100% - 4px);margin:2px 2px 6px;height:36px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-family:inherit;font-size:13.5px}
   .catmenu-veil{display:none}
-  /* Mobile (< 780) : le menu devient une BOTTOM SHEET (poignée, voile, rangées 48px, au pouce).
-     La poignée vit dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile :
-     un glissement sur le fond assombri ne doit jamais faire défiler la page derrière. */
-  @media (max-width:779.98px){
-    .catmenu{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:12px 12px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
-    .catmenu-head{border-radius:12px 12px 0 0}
-    .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:var(--line-strong);margin:4px auto 10px}
-    .catmenu-row{min-height:48px}
-    .catmenu-veil{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
-  }
+  /* LE MENU DEVIENT UNE BOTTOM SHEET (poignée, voile, rangées 48px, au pouce). La poignée vit
+     dans l'en-tête collant (.catmenu-head) ; touch-action:none sur le voile : un glissement sur
+     le fond assombri ne doit jamais faire défiler la page derrière.
+     ⚠ LE PALIER EST PASSÉ DE LA FEUILLE AU JS (v5.11.0), et la règle a donc UNE seule écriture.
+     Elle vivait dans `@media (max-width:779.98px)`, ce qui liait la FORME du menu à la seule
+     largeur ; or l'atelier d'import en a besoin en feuille À TOUTE LARGEUR. La raison est
+     MESURÉE, et ce n'est pas celle qu'on croit : un menu `absolute` se pose par rapport au
+     premier ancêtre POSITIONNÉ, et une rangée d'atelier n'en a aucun — à 1194×834, ouvert sur la
+     dernière rangée, il atterrissait à 494→834, soit une CENTAINE de pixels sous le bas de la
+     liste (394), détaché de la pastille qui l'ouvre. Positionner la rangée ne répare pas
+     davantage (même géométrie mesurée) et exposerait au contraire le menu à l'`overflow` du
+     corps de fenêtre. La feuille, elle, se pose toujours au même endroit et ne dépend d'aucun
+     ancêtre — c'est déjà ce que le téléphone recevait.
+     ⚠ ET LA GÉOMÉTRIE NE PROUVE PAS LA VISIBILITÉ : `getBoundingClientRect` ignore l'écrêtage
+     d'un ancêtre — mesuré, un témoin géométrique restait VERT sur le défaut réintroduit. Le seul
+     témoin qui discrimine est le test de TOUCHER (`elementFromPoint`), et c'est lui que porte la
+     sonde. Leçon v4.31.1, repayée ici.
+     `openPickMenu` pose donc `.sheet` quand l'appelant l'exige OU sous 780 px : même seuil, même
+     rendu, une définition. Ce que ça change, et c'est dit : le menu ne se reforme plus si l'on
+     PIVOTE l'appareil menu ouvert — il garde la forme qu'il avait à l'ouverture, ce qui est sans
+     conséquence pour une surface transitoire. */
+  .catmenu.sheet{position:fixed;left:0;right:0;bottom:0;top:auto;max-width:none;min-width:0;max-height:min(calc(70vh / var(--zf,1)),480px);border-radius:12px 12px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:70}
+  .catmenu.sheet .catmenu-head{border-radius:12px 12px 0 0}
+  .catmenu.sheet .catmenu-head::before{content:"";display:block;width:44px;height:4px;border-radius:3px;background:var(--line-strong);margin:4px auto 10px}
+  .catmenu.sheet .catmenu-row{min-height:48px}
+  .catmenu-veil.sheet{display:block;position:fixed;inset:0;background:var(--scrim-soft);z-index:69;touch-action:none}
   /* Sélecteur d'ÉTAT segmenté (V5) : ○ Brouillon / △ À relire / ✓ Validé(e) + phrase d'aide. */
   .statuseg{display:flex;gap:6px;flex-wrap:wrap}
   /* ══ A8 — LA CIBLE VIENT DU HALO, LE DESSIN NE GROSSIT PAS (audit 8b) ════════════════════
@@ -6978,6 +6994,35 @@
   .imp-cmp:hover{background:var(--surface-2)}
   .imp-cmp:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .imp-diff{margin:6px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface-2);max-height:280px;overflow:auto;overscroll-behavior:contain}
+  /* ═══ A159 — LA DESTINATION SE RÈGLE DANS L'ATELIER, ET PAR RANGÉE ════════════════════════
+     Un SEUL composant de choix, `.imp-pick`, dans les deux logements : le bandeau (qui règle les
+     rangées COCHÉES d'un geste) et la rangée (qui porte la sienne). Deux dessins séparés
+     auraient fini par se répondre différemment sur la même question — et surtout, l'auteur
+     aurait eu deux affordances à apprendre pour un seul choix. Le bandeau n'est donc pas un
+     réglage « global » à côté des rangées : c'est la MÊME commande, appliquée à plusieurs.
+     Cible ≥ 32 px (hors crise, règle 9), corps sur l'échelle fermée, rayon 8. */
+  .imp-dest{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface-2)}
+  .imp-dest-l{font-size:var(--t-meta);color:var(--ink-soft)}
+  /* La ligne de destination d'une rangée : elle vit DANS `.imp-tx`, sous la sous-ligne de méta,
+     parce qu'elle décrit la même entité — la sortir du <label> l'aurait détachée de son titre.
+     Un descendant INTERACTIF n'active pas son label (mesuré en A132), donc régler la destination
+     ne coche pas la rangée. */
+  .imp-drow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .imp-pick{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:100%;font:inherit;font-size:var(--t-cap);font-weight:700;min-height:32px;padding:4px 10px;border:1px solid var(--ctl-line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+  .imp-pick:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .imp-pick:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .imp-pick .cat-dot{flex:none}
+  .imp-pick>span:not(.cat-dot){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* « Garder celle du fichier » n'est pas un choix comme un autre : c'est le DÉFAUT, l'état où
+     l'atelier n'a rien décidé à la place de l'auteur. Il se lit en encre douce et sans pastille
+     — une pastille annoncerait une couleur qu'on ne connaît pas encore (elle dépend de ce que la
+     destination contient déjà). Jamais la couleur seule (règle 8) : le mot est là. */
+  .imp-pick.keep{font-weight:600;color:var(--ink-soft);border-style:dashed}
+  /* Publier dans une bibliothèque PARTAGÉE reste un acte annoncé (doctrine d'origine : « jamais
+     en silence »). La question oui/non a disparu — c'est ce bandeau de pied qui la remplace, et
+     il ne dit que ce qu'il sait : combien d'éléments, vers quelles bibliothèques. Registre
+     ATTENTION (--verify), jamais rouge : ce n'est pas un danger, c'est une portée. */
+  .imp-warn{margin:8px 0 0;padding:8px 10px;border:1px solid var(--verify-bd);border-radius:var(--radius-md);background:var(--verify-soft);color:var(--verify);font-size:var(--t-meta);font-weight:600}
   .imp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
   .imp-foot .btn{flex:1 1 auto}
   /* ═══ ZONE DE DÉPÔT PARTAGÉE (v5.0.0) — UN composant, TROIS natures ═══════════════════════
