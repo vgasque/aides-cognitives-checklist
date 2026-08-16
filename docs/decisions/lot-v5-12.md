@@ -289,3 +289,21 @@ remonte et je ne vois pas ce que je tape ». La frontière juste passe donc entr
 (en-tête, quai, barre de sélection, poignée, volet, rail : libéré) et ce qui REÇOIT LA FRAPPE
 (épinglé). Le second est le seul élément dont le navigateur garantit lui-même la visibilité : le
 laisser fixe est ce qui permet de taper sans perdre sa page.
+
+**A195. CE QUI DOIT RESTER EN PLACE NE DÉCRIT PAS UNE POSITION DANS LA PAGE — IL DÉCRIT LE RECTANGLE
+VISIBLE.** C'est la règle que le dossier cherchait depuis quinze versions, et la preuve était sous
+nos yeux depuis la v5.10.9 : les FENÊTRES ne bougent pas sous le clavier, l'usage l'a confirmé.
+Pourquoi elles et pas le chrome ? Parce qu'elles sont ÉPINGLÉES **ET** DIMENSIONNÉES sur le viewport
+visuel — `top:--vvt` AVEC `height:--vvh`. Les deux ensemble ne décrivent pas un point d'ancrage,
+elles décrivent le rectangle visible ; rien ne peut en sortir un élément qui le décrit.
+Tout ce qui a échoué n'en faisait qu'une moitié : « collant sous l'en-tête » (une position, aucune
+taille), « collant + décalage » (position corrigée, taille toujours celle de la page), « libéré »
+(ni l'un ni l'autre). **Une moitié de rectangle ne tient pas.**
+Le logement du champ de recherche devient donc, le temps du clavier, une couche du viewport visuel —
+colonne du sommaire en voie large, barre fixée en voie étroite. Sa hauteur étant celle du visible,
+il DÉFILE À L'INTÉRIEUR dès que son contenu dépasse : la seconde moitié de la demande vient avec la
+première. `left`/`width` restent `auto`, qui vaut la POSITION STATIQUE sur un élément positionné —
+la colonne garde la place que la grille lui donne, sans une seule mesure en JS.
+⚠ Et la répartition finale se lit en une phrase : **la décoration se retire (A192/A194), le logement
+de la frappe devient une couche du viewport visuel (A195).** Aucun des deux n'essaie de poursuivre
+quoi que ce soit.

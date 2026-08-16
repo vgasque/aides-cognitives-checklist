@@ -1,5 +1,33 @@
 # Journal des modifications
 
+## [5.13.2] — 2026-08-16
+### La sidebar ne bouge plus, quoi qu'il arrive — parce qu'elle décrit le rectangle visible
+
+- **Question de l'auteur, après que « libérer » a échoué** : « pas moyen de fixer la sidebar de
+  manière à ce que ça ne bouge pas quoi qu'il arrive, tout en la gardant défilable si le contenu est
+  plus long que l'écran ? » **Si** — et la preuve était sous nos yeux depuis la v5.10.9 : les
+  **fenêtres** ne bougent pas, ce que l'usage avait confirmé. Pourquoi elles et pas le reste ? Parce
+  qu'elles sont **épinglées ET dimensionnées** sur le viewport visuel (`top` = décalage,
+  `height` = hauteur visible). Elles ne décrivent pas une position dans la page : **elles décrivent
+  le rectangle visible**. Rien ne peut les en sortir.
+- **Tout ce qui a échoué n'en faisait qu'une moitié** : « collant sous l'en-tête » (une position,
+  pas de taille), « collant + décalage » (position corrigée, taille toujours celle de la page),
+  « libéré » (ni l'un ni l'autre). Une moitié de rectangle ne tient pas.
+- Le temps que le clavier est ouvert, **le logement du champ de recherche devient donc une couche du
+  viewport visuel** — la colonne sommaire en voie large, la barre fixée en voie étroite. Et comme sa
+  hauteur est exactement celle du visible, **elle défile à l'intérieur** dès que son contenu
+  dépasse : c'est la seconde moitié de la demande, et elle vient avec la première. `left` et
+  `width` restent `auto`, donc la colonne garde la place que la grille lui donne — rien n'est mesuré
+  en JS.
+- Mesuré aux deux moteurs et aux deux largeurs, en la soumettant à **tout** ce qui la faisait bouger
+  jusqu'ici : zone visible de 400 px commençant 380 px plus bas → elle est à 380, haute de 400, dans
+  sa colonne ; on défile la page de 1200 px → **elle ne bouge pas d'un pixel** ; le système
+  re-panoramique (ce que fait iOS à chaque frappe) → elle suit exactement le nouveau rectangle et le
+  champ reste visible ; clavier refermé → elle retrouve son ancrage d'avant.
+- La décoration, elle, reste **libérée** (v5.13.0) : en-tête, quai de crise, barre de sélection,
+  poignée d'édition, volet du quai, rail A→Z. `npm run check` 20/20, `npm test` 2×1126, audit
+  COMPLET 25/25.
+
 ## [5.13.1] — 2026-08-16
 ### On libère la décoration, jamais le logement de ce qu'on écrit
 
@@ -618,19 +646,3 @@
   avant le bord est invisible, écrêter au-delà rebondit. Après correctif, même geste, même
   appareil : 0 réversion, le défilement s'arrête à la fin exacte. Les deux écrêtages (cible de
   `jump` et re-borne à la relâche) passent par la même fonction — une seule vérité.
-
-## [5.10.6] — 2026-08-15
-### Republication — la v5.10.5 existait en deux exemplaires et la PWA installée gardait le premier
-
-- **Pourquoi une 5.10.6 sans nouveau contenu : le cache `5.10.5` est brûlé.** Deux publications
-  distinctes ont porté le numéro 5.10.5 le même jour (les correctifs du filtre le matin, puis le
-  lot complet — rail, fenêtre compte, partage — le soir, tag déplacé). Or `sw.js` était IDENTIQUE
-  À L'OCTET entre les deux : le navigateur ne détecte une mise à jour qu'au changement de ce
-  fichier, donc une PWA installée sur la v5.10.5 du matin ne se mettait PLUS JAMAIS à jour — même
-  nom de cache, précache du matin servi à vie, pied de page affichant « v5.10.5 » en toute bonne
-  foi (vécu sur appareil : le rail sautait encore alors que Safari, hors PWA, était sain). C'est
-  le piège documenté en tête d'AGENTS.md (« changer les fichiers ne suffit pas à changer ce qui
-  tourne »), version collision : un numéro de version est un NOM DE CACHE, il ne se réutilise
-  jamais pour des octets différents — re-taguer une version déjà construite quelque part revient
-  à publier deux caches sous une seule clé. Le contenu de cette version est celui de l'entrée
-  5.10.5 ci-dessous, intégralement.

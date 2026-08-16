@@ -565,6 +565,28 @@
      `--vvt` (un clavier OCCUPE de la hauteur). */
   html.kbd header.bar,html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,
   html.kbd .rt-dock{position:static}
+  /* ═══ CE QUI DOIT RESTER EN PLACE DEVIENT UNE COUCHE DU VIEWPORT VISUEL ════════════════════
+     Demande de l'auteur, après que « libérer » a échoué sur le logement du champ : « pas moyen de
+     fixer la sidebar de manière à ce que ça ne bouge pas quoi qu'il arrive, tout en la gardant
+     défilable si le contenu est plus long que l'écran ? » Si — et la preuve était sous nos yeux
+     depuis la v5.10.9 : les FENÊTRES ne bougent pas, l'auteur l'a confirmé. Pourquoi ? Parce
+     qu'elles sont ÉPINGLÉES **ET** DIMENSIONNÉES sur le viewport visuel : `top:--vvt` avec
+     `height:--vvh`. Elles ne décrivent pas une position dans la page, elles décrivent LE RECTANGLE
+     VISIBLE — donc rien ne peut les en sortir, quel que soit le panoramique.
+     TOUT CE QUI A ÉCHOUÉ N'EN FAISAIT QU'UNE MOITIÉ : « collant à --hdr-h » (position sans taille),
+     « collant + décalage » (position corrigée, taille toujours celle de la page), « libéré »
+     (ni l'un ni l'autre). Une moitié de rectangle ne tient pas.
+     La colonne du sommaire et la barre fixée d'une référence — les deux logements du champ de
+     recherche — deviennent donc, LE TEMPS DU CLAVIER, des couches du viewport visuel. Et comme
+     leur hauteur est exactement celle du visible, elles défilent À L'INTÉRIEUR dès que leur contenu
+     dépasse : c'est la seconde moitié de la demande, et elle vient avec la première.
+     `left`/`width` restent `auto` : sur un élément positionné, `auto` vaut la POSITION STATIQUE —
+     la colonne garde donc exactement la place que la grille lui donnait, sans qu'on ait à mesurer
+     quoi que ce soit en JS. */
+  html.kbd aside.ref-toc{position:fixed;top:calc(var(--vvt,0px) / var(--zf,1));
+    height:calc(var(--vvh,100dvh) / var(--zf,1));max-height:none;overflow-y:auto;overscroll-behavior:contain;z-index:16}
+  html.kbd #refBar{top:calc(var(--vvt,0px) / var(--zf,1));
+    max-height:calc(var(--vvh,100dvh) / var(--zf,1));overflow-y:auto;overscroll-behavior:contain}
   /* ⚠ ON NE LIBÈRE JAMAIS LE CONTENEUR DU CHAMP QU'ON TAPE, et c'est la correction d'une
      régression que j'ai introduite en écrivant cette règle (signalée à l'usage : « la barre suit
      bien au scroll SAUF avec le clavier, dans ce cas out of view, ça remonte et je ne vois pas ce

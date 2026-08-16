@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-4wMbiJDb38PCyjTTTC2KsX0P+mA+rHOjWBGCm7cYLd8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-97HoeIThdlwk7pJuwiCUmIC/jbq7yee2t/IyTbns3BM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -919,6 +919,28 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `--vvt` (un clavier OCCUPE de la hauteur). */
   html.kbd header.bar,html.kbd #crisisDock,html.kbd .sel-bar,html.kbd .ed-grab,
   html.kbd .rt-dock{position:static}
+  /* ═══ CE QUI DOIT RESTER EN PLACE DEVIENT UNE COUCHE DU VIEWPORT VISUEL ════════════════════
+     Demande de l'auteur, après que « libérer » a échoué sur le logement du champ : « pas moyen de
+     fixer la sidebar de manière à ce que ça ne bouge pas quoi qu'il arrive, tout en la gardant
+     défilable si le contenu est plus long que l'écran ? » Si — et la preuve était sous nos yeux
+     depuis la v5.10.9 : les FENÊTRES ne bougent pas, l'auteur l'a confirmé. Pourquoi ? Parce
+     qu'elles sont ÉPINGLÉES **ET** DIMENSIONNÉES sur le viewport visuel : `top:--vvt` avec
+     `height:--vvh`. Elles ne décrivent pas une position dans la page, elles décrivent LE RECTANGLE
+     VISIBLE — donc rien ne peut les en sortir, quel que soit le panoramique.
+     TOUT CE QUI A ÉCHOUÉ N'EN FAISAIT QU'UNE MOITIÉ : « collant à --hdr-h » (position sans taille),
+     « collant + décalage » (position corrigée, taille toujours celle de la page), « libéré »
+     (ni l'un ni l'autre). Une moitié de rectangle ne tient pas.
+     La colonne du sommaire et la barre fixée d'une référence — les deux logements du champ de
+     recherche — deviennent donc, LE TEMPS DU CLAVIER, des couches du viewport visuel. Et comme
+     leur hauteur est exactement celle du visible, elles défilent À L'INTÉRIEUR dès que leur contenu
+     dépasse : c'est la seconde moitié de la demande, et elle vient avec la première.
+     `left`/`width` restent `auto` : sur un élément positionné, `auto` vaut la POSITION STATIQUE —
+     la colonne garde donc exactement la place que la grille lui donnait, sans qu'on ait à mesurer
+     quoi que ce soit en JS. */
+  html.kbd aside.ref-toc{position:fixed;top:calc(var(--vvt,0px) / var(--zf,1));
+    height:calc(var(--vvh,100dvh) / var(--zf,1));max-height:none;overflow-y:auto;overscroll-behavior:contain;z-index:16}
+  html.kbd #refBar{top:calc(var(--vvt,0px) / var(--zf,1));
+    max-height:calc(var(--vvh,100dvh) / var(--zf,1));overflow-y:auto;overscroll-behavior:contain}
   /* ⚠ ON NE LIBÈRE JAMAIS LE CONTENEUR DU CHAMP QU'ON TAPE, et c'est la correction d'une
      régression que j'ai introduite en écrivant cette règle (signalée à l'usage : « la barre suit
      bien au scroll SAUF avec le clavier, dans ce cas out of view, ça remonte et je ne vois pas ce
@@ -9481,7 +9503,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.13.1';
+const APP_VERSION='5.13.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
