@@ -1234,8 +1234,10 @@ begin
      Les images de BLOC sont retirées séparément : elles vivent dans chaque élément de `blocks`. */
   select coalesce(jsonb_object_agg(k, v), '{}'::jsonb) into v_snap
     from jsonb_each(p_fiche_snap) as e(k, v)
-   where k in ('id','title','discriminant','code','status','validation','blocks','start','timers','counters',
-               'items');   -- v5.0.0 : les six listes v3 sont devenues des items à rôle (pool `items`)
+   where k in ('id','title','discriminant','code','status','validatedAt','blocks','start','timers','counters',
+               'items');   -- v5.0.0 : les six listes v3 sont devenues des items à rôle (pool `items`),
+                           -- et `validation` s'appelle `validatedAt` (renommage en place dans `migrate`) :
+                           -- l'ancien nom, resté ici, filtrait la date de validation à l'arrivée.
   if v_snap ? 'blocks' and jsonb_typeof(v_snap->'blocks') = 'array' then
     select jsonb_set(v_snap, '{blocks}', coalesce(jsonb_agg(b - 'image' - 'images'), '[]'::jsonb))
       into v_snap from jsonb_array_elements(v_snap->'blocks') as b;
