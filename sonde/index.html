@@ -10460,21 +10460,14 @@ function sdpRebuild(o){
     L.push('a=candidate:'+(i+1)+' 1 udp '+(2113937151-i)+' '+k[0]+' '+k[1]+' typ host generation 0');});
   L.push('a=end-of-candidates');
   return L.join('\r\n')+'\r\n';}
-async function sigPack(kind,obj){ // → {parts:["O11:xxxx",…], z} (i, n = 1 chiffre)
-  const raw=enc(JSON.stringify(obj)),z=await deflate(raw),body=b64u(z);
-  const CH=190,parts=[];const n=Math.ceil(body.length/CH);
-  for(let i=0;i<n;i++)parts.push(kind+(i+1)+n+':'+body.slice(i*CH,(i+1)*CH));
-  log('signal '+kind+' : JSON '+raw.length+' o → compressé '+z.length+' o → '+n+' code(s) QR');
-  return {parts,z};}
-async function sigUnpack(store){ // store = {kind, n, parts:Map} complet → objet
-  let body='';for(let i=1;i<=store.n;i++)body+=store.parts.get(i);
-  return JSON.parse(dec(await inflate(unb64u(body))));}
-function sigFeed(store,txt){ // renvoie true si le message est complet
-  const m=String(txt).trim().match(/^([OA])(\d)(\d):([A-Za-z0-9_-]+)$/);
-  if(!m)return false;
-  if(store.kind&&store.kind!==m[1])return false;
-  store.kind=m[1];store.n=+m[3];store.parts.set(+m[2],m[4]);
-  return store.parts.size===store.n;}
+/* UN SEUL FORMAT pour tout l'optique (décision utilisateur) : la famille fontaine.
+   « S<t>:<b64> » = trame SOLO (charge entière dans un code → QR statique, cas nominal) ;
+   « FM:{t,…} » = fiche du transfert ; « Fxxx:<b64> » = bloc/réparation. Le copier/coller
+   transporte la ligne solo quelle que soit sa taille (le texte n'a pas la limite des 213 o). */
+async function sigLine(kind,obj){
+  const raw=enc(JSON.stringify(obj)),z=await deflate(raw);
+  log('signal '+kind+' : JSON '+raw.length+' o → compressé '+z.length+' o');
+  return {line:'S'+kind+':'+b64u(z),z};}
 
 /* ---- Caméra + boucle de scan (partagée : appariement et rafale) ---- */
 let scanStream=null,scanRun=0;
@@ -10564,21 +10557,26 @@ let qrCycleTimer=0;
    indifférent). Le repli copier/coller reste le format séquentiel dans sigOut. */
 async function sigShow(kind,obj,box){
   clearInterval(qrCycleTimer);
-  const p=await sigPack(kind,obj);
-  $('sigOut').value=p.parts.join('\n');
+  const p=await sigLine(kind,obj);
+  $('sigOut').value=p.line;
   box.classList.remove('hide');box.innerHTML='';
-  if(p.parts.length===1){const c=qrCanvas(p.parts[0],6);if(c)box.appendChild(c);return;}
+  const solo=qrCanvas(p.line,6); // null si trop long pour un code — c'est LA porte
+  if(solo){box.appendChild(solo);return log('signal '+kind+' : un seul code, statique');}
   qrCycleTimer=ltShowLoop(box,p.z,{t:kind},3);
   log('signal '+kind+' en rafale fontaine ('+Math.ceil(p.z.length/138)+' blocs) — laisser l\'écran dans le champ');}
 /* Boucle de scan d'une charge de signalisation, avec RETOUR VISIBLE à chaque code lu —
    « plus rien à l'écran » n'est pas un diagnostic. kind='A' (hôte) ou 'O' (invité). */
 function scanSignal(kind,label,onDone){
-  const store={parts:new Map()},seen=new Set();let fount=null;
-  const reset=()=>{store.parts.clear();store.kind=null;store.n=0;fount=null;};
+  let fount=null;const seen=new Set();
+  const reset=()=>{fount=null;};
   scanLoop($('scanVideo'),async txt=>{try{
     txt=String(txt).trim();
     if(seen.has(txt))return;seen.add(txt);
-    // — voie fontaine (charge de signalisation longue) —
+    // — trame SOLO : la charge entière dans un code —
+    const sm=txt.match(new RegExp('^S'+kind+':([A-Za-z0-9_-]+)$'));
+    if(sm){log('QR lu : '+label+' complète (code unique)');
+      await onDone(JSON.parse(dec(await inflate(unb64u(sm[1])))),reset);return;}
+    // — fiche + blocs (charge longue) —
     if(txt.startsWith('FM:')){const m=JSON.parse(txt.slice(3));
       if(m.t!==kind)return log('QR lu : pas '+label+' (ignoré)','warn');
       if(!fount){fount=ltNewRx(m);log('QR lu : fiche de '+label+' — '+m.k+' bloc(s)');}
@@ -10590,13 +10588,7 @@ function scanSignal(kind,label,onDone){
       if(done){log('QR lu : '+label+' complète (fontaine)');
         await onDone(JSON.parse(dec(await inflate(ltBytes(fount)))),reset);}
       return;}
-    // — voie séquentielle (charge courte ou copier/coller) —
-    if(!new RegExp('^'+kind+'\\d\\d:').test(txt))
-      return log('QR lu : pas '+label+' (ignoré)','warn');
-    if(!sigFeed(store,txt))
-      return log('QR lu : partie '+store.parts.size+'/'+(store.n||'?')+' de '+label,'ok');
-    log('QR lu : '+label+' complète');
-    await onDone(await sigUnpack(store),reset);
+    return log('QR lu : pas '+label+' (ignoré)','warn');
   }catch(e){log('erreur au scan : '+e.message,'ko');}});}
 function bindChannel(ch){
   dc=ch;dc.binaryType='arraybuffer';
@@ -10704,11 +10696,10 @@ async function applyOffer(o){
   camStop();$('scanRow').classList.add('hide');
   log('caméra coupée (plus rien à scanner) — elle se relancera seule au besoin');}
 $('sigApply').onclick=async()=>{try{
-  const store={parts:new Map()};let done=false;
-  for(const line of $('sigIn').value.split(/\s+/))if(line)done=sigFeed(store,line)||done;
-  if(!done)return log('charge incomplète ou invalide','ko');
-  const obj=await sigUnpack(store);
-  if(store.kind==='O')await applyOffer(obj);
+  const m=$('sigIn').value.trim().match(/^S([OA]):([A-Za-z0-9_-]+)$/);
+  if(!m)return log('charge invalide — attendu une ligne « SO:… » ou « SA:… »','ko');
+  const obj=JSON.parse(dec(await inflate(unb64u(m[2]))));
+  if(m[1]==='O')await applyOffer(obj);
   else if(hostNonce&&obj.k&&obj.k!==hostNonce)
     log('réponse PÉRIMÉE (appariement précédent) — refaire générer/coller la nouvelle','ko');
   else await applyAnswer(obj);
