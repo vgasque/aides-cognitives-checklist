@@ -11009,6 +11009,11 @@ async function loopback(say){
 
 /* ---- Aiguillage ---- */
 document.addEventListener('visibilitychange',()=>{ // wake lock perdu à chaque bascule d'app
+  // Instrumentation M6 : horodater l'arrière-plan/le retour et l'état du canal à cet instant —
+  // le journal raconte seul « verrouillé à HH:MM:SS, canal encore open/closed au réveil ».
+  log(document.visibilityState==='hidden'
+    ?'page en ARRIÈRE-PLAN (verrouillage/bascule) — canal : '+(dc?dc.readyState:'aucun')
+    :'page de RETOUR au premier plan — canal : '+(dc?dc.readyState:'aucun'),'warn');
   if(document.visibilityState==='visible'&&navigator.wakeLock&&dc&&dc.readyState==='open')
     navigator.wakeLock.request('screen').then(l=>window._wl=l).catch(()=>{});});
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=async()=>{

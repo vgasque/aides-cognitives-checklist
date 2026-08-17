@@ -11,6 +11,7 @@ node_modules/
 /.[a-z0-9-]*.mjs
 /.[a-z0-9-]*.png
 /.[a-z0-9-]*.html
+/.[a-z0-9-]*.md
 
 # État du lanceur d'audits (cache de passe verte + rouges à rejouer) — jamais versionné.
 /.audit-etat.json
