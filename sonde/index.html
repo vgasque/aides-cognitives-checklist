@@ -139,6 +139,13 @@ M7 Coupure du point d'accès 10-30 s : le canal revient-il seul (disconnected→
 M8 Rafales QR : 1/5/20 Kio, cadence, codes manqués, temps total.
 M9 Canal pré-établi PENDANT que le cloud marche, puis coupure d'internet : les évènements passent sans geste ?
 
+INVARIANT pour l'intégration (pas testé par la sonde, gravé ici) : un instantané optique PORTE
+L'IDENTITÉ de sa session dans la charge, et le récepteur REFUSE toute émission qui ne correspond
+pas à sa session vive — même porte d'entrée que le réseau (shareFold/SHARE_APPLY), jamais un
+chemin de côté. Scanner par mégarde la rafale d'une AUTRE fiche = un message, ZÉRO écriture
+(doctrine « Continuer seul » : la fusion inter-sessions produit du faux plausible). Le jeton
+d'appariement couvre déjà la signalisation ; ceci couvre les données.
+
 Pièges iOS mesurés (16-17/08) :
 — Réglages → Confidentialité et sécurité → Réseau local → Safari : AUTORISÉ sur les deux, sinon
   l'UDP local est jeté en silence (checking 15 s → failed alors que tout est bien configuré) ;
