@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-l+qAYUBTcTR67ysOhMo/k8HCG0UpwVh0Yxr/8JsaVYc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-jGPOdIFGjxmqDgiW+SH727kNSsk2yL5OHWxkEYxGZIU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7262,6 +7262,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:var(--critical-soft);border-left:4px solid var(--critical-bd);border-radius:0 8px 8px 0}
   #joinScreen .join-err[hidden]{display:none}
   .join-go{width:100%;min-height:48px;font-size:15px}
+  /* ── Partage en direct / par l'écran (v5.14.2, remédiation d'après maquettes) ──
+     La caméra est BORNÉE (signalé tablette : « la fenêtre photo dépasse du cadre ») : jamais de
+     hauteur en vh (règle 10), un ratio et une largeur maximale suffisent. Notices = registre
+     (fond doux + glyphe + mot, jamais la couleur seule) ; boutons en rangée à gouttière. */
+  #shareBody video,#joinScreen video{width:100%;max-width:340px;aspect-ratio:3/4;object-fit:cover;
+    border-radius:var(--r-3);display:block;margin:12px auto 0;background:var(--sys)}
+  #shareBody .qr,#jsAnswer .qr{display:block;width:min(100%,200px);margin:14px auto 6px}
+  #shareBody .sl-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  #shareBody .sl-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:10px 12px;
+    border-radius:var(--r-2);font-size:var(--t-body);line-height:1.45;background:var(--warn-soft);
+    color:var(--warn);border:1px solid var(--warn-line)}
+  #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
+  #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
+    text-align:center;margin:6px 0 0}
   .join-info{margin:16px 0 0;font-size:13.5px;color:var(--ink-soft)}
   .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700;color:var(--link)}
   .join-info p{margin:8px 0 0;line-height:1.5}
@@ -9536,7 +9550,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.1';
+const APP_VERSION='5.14.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15508,6 +15522,7 @@ function homeSideHtml(){
       // Historique GLOBAL (v4.56.0, demande utilisateur — le compte de sessions a quitté les
       // rangées du répertoire, cet accès prend le relais). Masqué à zéro : aucun bouton mort.
       return n?`<div class="hs-sep"></div><button class="hs-row" data-sesshist aria-haspopup="dialog">${uiIcon('archive',16)}<span class="hs-name">Historique des sessions</span><span class="hs-n">${n}</span></button>`:'';})()}
+    <div class="hs-sep"></div><button class="hs-row" data-joinsess aria-haspopup="dialog"><span class="hj-ic" aria-hidden="true">⇄</span><span class="hs-name">Rejoindre une session</span></button>
   </aside>`;}
 // Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderFiches/renderProtocols).
 // RECHERCHE TRANSVERSALE : la même requête est aussi évaluée sur L'AUTRE section (en urgence, on
@@ -15644,6 +15659,11 @@ function bindHomeChrome(rerender){
   // Historique GLOBAL des sessions (v4.56.0, demande utilisateur) : la fenêtre existante en mode
   // « toutes les fiches » — l'entrée par fiche du menu ⋯ est inchangée.
   qsa('[data-sesshist]').forEach(b=>b.onclick=()=>openSessHist());
+  /* REJOINDRE SANS CODE NI RÉSEAU (v5.14.2, signalé à l'usage : « impossible de rejoindre —
+     la fenêtre exige un code ou un lien, donc internet »). L'écran d'entrée devient joignable
+     d'un geste depuis l'accueil : c'est LUI qui porte « Scanner le code de l'hôte » et
+     « Recevoir par l'écran », les deux chemins hors ligne. */
+  qsa('[data-joinsess]').forEach(b=>b.onclick=()=>openJoinScreen(''));
 }
 /* Rail alphabétique : tap = saut vers la lettre, GLISSER le long des lettres = parcourir (index
    iOS — pointer capture, un jump par lettre traversée). Le défileur dépend de la largeur : la
@@ -30882,6 +30902,7 @@ function shareSheetHtml(){
     +'<div class="sh-acts">'
     +'<button class="btn" id="shAdmit">Nouveau code</button>'
     +'<button class="btn" id="shSwLocal">Passer en direct…</button>'
+    +'<button class="btn" id="shOptic">Par l’écran…</button>'
     +'<button class="btn danger" id="shEnd">Arrêter le partage…</button></div>'
     +'<p class="sh-note">Couper quelqu\'un lui retire l\'écriture immédiatement et lui rend sa place ; '
     +'il ne peut revenir qu\'avec un nouveau code, que vous seul pouvez donner.</p>';}
@@ -30918,6 +30939,11 @@ function renderShareSheet(force){
     /* BASCULE MANUELLE cloud → direct (v5.14, étape 4 — maquettes figées : « forcer » = un
        RÉ-APPARIEMENT propre, jamais une migration à chaud ; l'état de l'hôte est la source,
        rien à fusionner). Les invités re-scannent — le dialogue le dit AVANT. */
+    /* « Par l'écran » depuis la feuille CLOUD aussi (v5.14.2, signalé à l'usage : « plus de
+       connexion, impossible de passer par l'écran depuis l'hôte ») — le partage cloud reste
+       ouvert, l'émission optique est ADDITIVE, et elle marche sans aucun réseau. */
+    const so=document.getElementById('shOptic');
+    if(so)so.onclick=()=>{slOptiqueTx();};
     const sw=document.getElementById('shSwLocal');
     if(sw)sw.onclick=async()=>{
       if(!await confirmDlg('Le partage continue EN DIRECT, sans serveur, sur le réseau local. '
@@ -30951,17 +30977,22 @@ function slSecret(){const b=new Uint8Array(18);crypto.getRandomValues(b);
   return [...b].map(x=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[x%31]).join('');}
 function slLocalCand(c){return (c||[]).some(x=>{const a=String(x).split('~')[0];
   return /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/.test(a)||a.indexOf('.local')>=0;});}
+function slLiveOk(){return !!(SL&&SL.live&&Share.mode==='host'&&Share.status==='active');}
 function slSheet(phase){
   const body=document.getElementById('shareBody');if(!body)return;
   if(phase==='live'){
+    /* GARDE D'ÉTAT (signalé à l'usage : « après Arrêter, la fenêtre fait comme s'il y avait
+       toujours un partage ») : « live » ne s'affiche que si le partage l'est VRAIMENT. */
+    if(!slLiveOk()){SL=null;shareModal.classList.remove('on');return;}
     const n=1+((Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length||0);
-    body.innerHTML='<p><b>✓ En direct</b> — '+n+' participant'+(n>1?'s':'')+' sur ce réseau, '
-      +'sans serveur.</p>'
-      +'<button class="btn" id="slInvite">Inviter un autre</button> '
+    body.innerHTML='<div class="sl-note ok"><span aria-hidden="true">✓</span><span><b>En direct'
+      +'</b> — '+n+' participant'+(n>1?'s':'')+' · sans serveur</span></div>'
+      +'<div class="sl-actions">'
+      +'<button class="btn" id="slInvite">Inviter un autre</button>'
+      +'<button class="btn" id="slOptic2">Par l’écran…</button>'
       +(Auth.signedIn()&&Sync.online()
-        ?'<button class="btn" id="slSwCloud">Passer en ligne…</button> ':'')
-      +'<button class="btn" id="slOptic2">Par l’écran…</button> '
-      +'<button class="btn" id="slEnd">Arrêter le partage</button>';
+        ?'<button class="btn" id="slSwCloud">Passer en ligne…</button>':'')
+      +'<button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
     document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
     const swc=document.getElementById('slSwCloud');
     if(swc)swc.addEventListener('click',async()=>{
@@ -30972,19 +31003,55 @@ function slSheet(phase){
       await Share.endShare();SL=null;
       startShare(f);});
     document.getElementById('slEnd').addEventListener('click',async()=>{
+      if(!await confirmDlg('Les participants ne suivront plus la session. Votre session, elle, '
+        +'continue.',{title:'Arrêter le partage ?',yes:'Arrêter',danger:true}))return;
+      slScanStop();clearInterval(_ltTimer);
       await Share.endShare();SL=null;shareModal.classList.remove('on');});
     const opt=document.getElementById('slOptic2');
     if(opt)opt.addEventListener('click',()=>{slOptiqueTx();});
     return;}
-  body.innerHTML=(phase==='offer-warn'
-      ?'<p><b>⚠ Aucun réseau local vu</b> — vérifiez le Wi-Fi (coché ✓) des deux appareils.</p>'
-      :'<p><b>⚠ Partage en direct</b> — même réseau Wi-Fi, sans internet ni compte.</p>')
+  if(phase==='mirror'){
+    /* LE MIROIR N'EST PLUS UN CUL-DE-SAC (signalé à l'usage : « impossible de faire
+       l'aller-retour pour resynchroniser ») : la feuille du miroir porte la re-réception.
+       La passation par l'écran, elle, reste un RESTE NOMMÉ (retour invité→hôte, A205). */
+    body.innerHTML='<div class="sl-note"><span aria-hidden="true">⧗</span><span><b>Miroir</b>'
+      +' — vue à '+esc(_slMirror?fmtHM(_slMirror.at):'—')+' · pas du direct</span></div>'
+      +'<video id="slVideo" playsinline muted hidden></video>'
+      +'<div class="sl-actions">'
+      +'<button class="btn primary" id="slReRx">Recevoir une mise à jour</button></div>'
+      +'<p class="sl-cap" id="slStat" role="status"></p>';
+    document.getElementById('slReRx').addEventListener('click',async()=>{
+      const v=document.getElementById('slVideo'),st=document.getElementById('slStat');
+      const say=t=>{st.textContent=t;};
+      v.hidden=false;document.getElementById('slReRx').disabled=true;
+      const rx=ltRx();let done=false;
+      try{
+        await slScanStart(v,async(txt,bin)=>{
+          if(done)return;
+          const res=ltRxFeed(rx,bin);
+          if(res==='more'||res==='dup'){
+            if(rx.st)say(rx.st.nRec+' / '+rx.st.k+' — restez face à l’écran de l’hôte');return;}
+          if(res!=='done')return;
+          done=true;slScanStop();v.hidden=true;
+          let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
+          if(o&&await slOptiqueGot(o,say)){slSheet('mirror');}
+          else{document.getElementById('slReRx').disabled=false;
+            if(!o)say('Réception illisible — réessayez.');}
+        });
+      }catch(e){v.hidden=true;document.getElementById('slReRx').disabled=false;
+        say('Caméra indisponible — autorisez-la, puis réessayez.');}});
+    return;}
+  body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>'
+    +(phase==='offer-warn'
+      ?'<b>Aucun réseau local vu</b> — Wi-Fi coché ✓ sur les deux appareils'
+      :'<b>Partage en direct</b> — même Wi-Fi, sans internet ni compte')+'</span></div>'
     +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
-    +'<p>L’invité : « Rejoindre une session » → « Scanner ». Puis scannez SA réponse :</p>'
+    +'<p class="sl-cap">L’invité : menu de l’accueil → « Rejoindre une session » → « Scanner »</p>'
     +'<video id="slVideo" playsinline muted hidden></video>'
-    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button>'
-    +'<button class="btn" id="slOptic">Par l’écran (aucun réseau)…</button>'
-    +'<p id="slStat" role="status"></p>';
+    +'<div class="sl-actions">'
+    +'<button class="btn primary" id="slScanBtn">Scanner sa réponse</button>'
+    +'<button class="btn" id="slOptic">Par l’écran…</button></div>'
+    +'<p class="sl-cap" id="slStat" role="status"></p>';
   document.getElementById('slOptic').addEventListener('click',()=>{slOptiqueTx();});
   document.getElementById('slScanBtn').addEventListener('click',async()=>{
     const v=document.getElementById('slVideo'),st=document.getElementById('slStat');
@@ -31008,15 +31075,17 @@ let _ltTimer=0;
 async function slOptiqueTx(){
   const R=Runtime;
   if(!R||!R.started||!R.fiche){toast('⚠ Aucune session en cours à transmettre.',5000,true);return;}
+  const cloudActif=Share.mode==='host'&&Share.status==='active'&&Share.share!=='local';
   const z=await ltSnapPack(R.sessionId||'',sharePayload(R.fiche),shareSnap(null,!!state.flowEnded));
   const tx=ltTx(z,0);
   tx.setH4(new Uint8Array(await crypto.subtle.digest('SHA-256',z)).slice(0,4));
+  closeShareSheet();               // le minuteur de la feuille cloud repeindrait par-dessus
   const body=document.getElementById('shareBody');if(!body)return;
   shareModal.classList.add('on');
-  body.innerHTML='<p><b>⇆ Par l’écran</b> — l’autre appareil filme ce code, c’est tout. '
-    +'Instantané daté, pas du direct.</p>'
-    +'<div id="ltQr"></div><p id="ltCap" role="status"></p>'
-    +'<button class="btn" id="ltStop">Arrêter</button>';
+  body.innerHTML='<div class="sl-note"><span aria-hidden="true">⇆</span><span><b>Par l’écran</b>'
+    +' — l’autre appareil filme, c’est tout · instantané daté, pas du direct</span></div>'
+    +'<div id="ltQr"></div><p class="sl-cap" id="ltCap" role="status"></p>'
+    +'<div class="sl-actions"><button class="btn" id="ltStop">Arrêter</button></div>';
   const qr=document.getElementById('ltQr'),cap=document.getElementById('ltCap');
   let pos=0;clearInterval(_ltTimer);
   const paint=()=>{qr.innerHTML=qrSvgQ(qrEncodeB(tx.frameAt(pos),4),'Synchro par l’écran');
@@ -31025,7 +31094,9 @@ async function slOptiqueTx(){
   paint();_ltTimer=setInterval(paint,Math.round(1000/6));
   document.getElementById('ltStop').addEventListener('click',()=>{
     clearInterval(_ltTimer);
-    if(SL&&SL.live)slSheet('live');else shareModal.classList.remove('on');});}
+    if(slLiveOk())slSheet('live');
+    else if(cloudActif)openShareSheet();
+    else shareModal.classList.remove('on');});}
 /* RÉCEPTION OPTIQUE — miroir DATÉ. Invariant du lot : une émission qui n'est pas MA session
    vive = un message, ZÉRO écriture. L'heure d'émission de l'hôte corrige grossièrement les
    horloges (précision ≈ durée du transfert). */
@@ -31062,17 +31133,27 @@ async function startShareLocal(f){
     state.confOpen=false;
     if(!ensureStarted())return;
     render();}
-  slScanStop();
-  if(SL&&SL.pc&&!SL.live){try{SL.pc.pc.close();}catch(e){}}
-  if(!SL||!SL.live)SL={f,hub:slHub({now:()=>Date.now(),uid:()=>uid('p'),secret:slSecret,
+  /* La feuille CLOUD arme un minuteur de re-rendu (_shTimer) qui repeignait PAR-DESSUS la
+     feuille locale — « l'écran arrive sur la nouvelle fenêtre puis revient sur l'ancienne » :
+     on ferme le régime cloud AVANT d'ouvrir le nôtre, toujours. */
+  closeShareSheet();
+  slScanStop();clearInterval(_ltTimer);
+  if(SL&&SL.pc&&!slLiveOk()){try{SL.pc.pc.close();}catch(e){}}
+  if(!slLiveOk())SL={f,hub:slHub({now:()=>Date.now(),uid:()=>uid('p'),secret:slSecret,
     shareId:uid('shl'),fiche:sharePayload(f),guestRole:'scribe',hostLabel:'Hôte'}),live:false};
   shareModal.classList.add('on');
-  if(SL.live)slSheet('live');else await slOffer();}
+  if(slLiveOk())slSheet('live');else await slOffer();}
 async function startShare(f){
   /* CES DEUX REFUS RÉPONDENT À UN TAP sur « Partager la session… », depuis une fiche ouverte —
      donc, presque toujours, pendant une session de crise, où la file les retenait tous : le
      bouton ne produisait RIEN, et le message surgissait à l'accueil, longtemps après, sans plus
      rien à quoi le rattacher. */
+  /* UN PARTAGE EN DIRECT DÉJÀ ACTIF S'AFFICHE, il ne se re-crée pas (v5.14.2, signalé à
+     l'usage : le bouton relançait un appariement par-dessus le partage en cours). Idem pour
+     un MIROIR « par l'écran » : sa feuille porte la re-réception. */
+  if(slLiveOk()){closeShareSheet();shareModal.classList.add('on');slSheet('live');return;}
+  if(_slMirror&&Runtime.started){closeShareSheet();shareModal.classList.add('on');
+    slSheet('mirror');return;}
   /* SANS COMPTE OU SANS INTERNET → le partage EN DIRECT (v5.14, étape 3c). Le refus d'avant
      (« demande un compte ») cesse d'être un mur : le même geste ouvre l'appariement local. */
   if(!Auth.signedIn()||!Sync.online())return startShareLocal(f);
@@ -31154,6 +31235,14 @@ function openJoinScreen(code){
   _joinRefuse=null;
   const x=document.getElementById('joinX');
   if(x)x.hidden=SHARE_NOTRACE;          // pas de « derrière » sur un appareil vierge : pas de sortie
+  /* REMISE À NEUF des chemins hors ligne (v5.14.2, signalé à l'usage : « une fois “Scanner”
+     tapé, bouton grisé pour toujours ») : chaque OUVERTURE de l'écran repart d'un état propre —
+     caméra coupée, boutons rendus, vidéos et réponses cachées. L'état d'un essai précédent
+     n'est jamais un verrou. */
+  try{slScanStop();}catch(_){}
+  for(const id of ['joinScan','joinOptic']){const b=document.getElementById(id);if(b)b.disabled=false;}
+  for(const id of ['jsVideo','jsAnswer','jsStat']){const el=document.getElementById(id);
+    if(el){el.hidden=true;if(id==='jsAnswer')el.innerHTML='';}}
   joinScreen.hidden=false;
   if(inp&&!inp.value)try{inp.focus();}catch(_){}}
 /* FERMER L'ÉCRAN D'ENTRÉE. Trois chemins pour un seul geste — la croix, Échap, et le retour

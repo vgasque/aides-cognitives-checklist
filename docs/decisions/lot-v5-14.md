@@ -193,3 +193,17 @@ alerte d'âge.
 l'appariement/optique (charges synthétiques), le secours chaud M9 (canal de signalisation
 serveur + rejeu = geste utilisateur), le retour optique invité→hôte (repères annexes), la
 release `./release.sh 5.14.0` + CHANGELOG, et le TEST TERRAIN à deux iPhones du flux intégré.
+
+## A207 — v5.14.2 : le premier passage réel corrige neuf défauts d'assemblage
+
+L'auteur a essayé la v5.14.0 en conditions réelles : neuf défauts, tous corrigés le jour même
+(détail au CHANGELOG 5.14.2). Les leçons durables : (1) **une entrée hors ligne doit exister
+AVANT la fonctionnalité** — l'écran « Rejoindre » n'était joignable que par code/lien, donc par
+internet ; il vit désormais au menu de l'accueil ; (2) **deux régimes de feuille ne partagent
+pas un minuteur de re-rendu** — le `_shTimer` de la feuille cloud repeignait par-dessus la
+feuille locale (le « deux clics ») : tout changement de régime commence par `closeShareSheet()` ;
+(3) **un état d'interface se REGARDE, ne se mémorise pas** — `SL.live` mentait après « Arrêter » ;
+la garde est `slLiveOk()` (mode+statut de `Share`), jamais un drapeau local ; (4) **chaque
+ouverture d'écran repart d'un état propre** — un bouton grisé n'est jamais un verrou définitif ;
+(5) le harnais a attrapé la seule dérive maquette mesurable (QR > 200 px) — les huit autres
+étaient INVISIBLES aux portes : l'essai réel reste la dernière porte, comme au spike.
