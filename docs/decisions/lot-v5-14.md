@@ -26,3 +26,22 @@ requêtes (URL, corps, en-têtes identiques) ; le harnais `audit-partage`, qui i
 `rest` et vérifie l'ordre « couper PUIS rendre la main », passe tel quel (134/134) — c'est
 la preuve que le fil n'a pas bougé. Hashs CSP rejoués (règle 3), passe d'audit complète
 verte (25/25).
+
+## A199 — Le noyau pur du transport local : signalisation compacte, trame RPC, hub d'hôte
+
+**Décision (étape 2a).** Trois pièces PURES, testées une à une (14 témoins, deux moteurs) :
+`slSdpExtract`/`slSdpRebuild` (jamais le SDP brut — le quintuple ufrag/pwd/empreinte/rôle/
+candidats, aller-retour sans perte, quintuple incomplet → null) ; `slRpcPack`/`slRpcReply`/
+`slRpcUnpack` (trame {i,n,p}→{i,r}|{i,e}, l'illisible rend null, jamais d'exception depuis le
+fil) ; `slHub` — la sémantique serveur tenue par l'HÔTE : séquence sous compteur unique, dédup
+par event_id, **actor déduit du secret** (jamais un paramètre), capacités par `shareCan`
+(miroir existant du serveur), empreinte de flux au format exact de `_streamHash`. Le temps
+s'INJECTE (`now`) : l'horloge de l'hôte fait foi — il est déjà l'autorité clinique.
+
+**Durcissement assumé** : au hub, un participant coupé perd lecture ET écriture — le § 3.1
+notait côté serveur « couper ne retire que l'écriture » comme point à durcir ; entre deux
+appareils, on durcit d'emblée. **Piège de vocabulaire payé en route** : `handoff` est un verbe
+OUVERT (c'est ainsi qu'un invité ACCEPTE la main) — le témoin de capacité vise `uncheck`,
+réellement lead-seulement. Étape 2b à suivre : câblage WebRTC + objet ShareLocal sur les huit
+verbes, canal injectable (RTCDataChannel en prod, paire locale au harnais — les portes restent
+déterministes, jamais dépendantes de l'état réseau du poste).

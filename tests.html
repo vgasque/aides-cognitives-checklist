@@ -1298,6 +1298,52 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     A.shareOffset([{t0:0,t1:100,srv:1050},{t0:0,t1:100,srv:50},{t0:0,t1:100,srv:60}]),10);
   ok('aucune mesure exploitable : null, jamais une valeur inventée',A.shareOffset([])===null);
 
+  // ── Partage LOCAL (v5.14, étape 2a) — signalisation compacte, trame RPC, hub d'hôte ──
+  {const sdp='v=0\r\no=- 1 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\n'+
+     'm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n'+
+     'a=candidate:842 1 udp 2113937151 192.168.1.10 54321 typ host generation 0\r\n'+
+     'a=candidate:843 1 udp 2113937151 192.168.1.10 54321 typ host generation 0\r\n'+
+     'a=ice-ufrag:wXyZ\r\na=ice-pwd:nLp3qTncIC1wOTaHc2jB39Q8\r\n'+
+     'a=fingerprint:sha-256 84:1B:86:E0:2F:11\r\na=setup:actpass\r\n';
+   const x=A.slSdpExtract(sdp);
+   eq('extraction compacte : quintuple complet, candidats dédupliqués',
+     x,{u:'wXyZ',p:'nLp3qTncIC1wOTaHc2jB39Q8',f:'84:1B:86:E0:2F:11',s:'actpass',
+        c:['192.168.1.10~54321']});
+   eq('reconstruire puis ré-extraire rend l’IDENTIQUE (aller-retour sans perte)',
+     A.slSdpExtract(A.slSdpRebuild(x)),x);
+   ok('un quintuple incomplet ne reconstruit RIEN (jamais un SDP invalide)',
+     A.slSdpRebuild({u:'a',p:'b'})===null);}
+  {const m=A.slRpcUnpack(A.slRpcPack(7,'pull',{since:3}));
+   eq('trame RPC : aller-retour',{i:m.i,n:m.n,p:m.p},{i:7,n:'pull',p:{since:3}});
+   eq('réponse d’erreur : {i,e}',A.slRpcUnpack(A.slRpcReply(7,null,'auth')),{i:7,e:'auth'});
+   ok('une trame illisible rend null, jamais une exception',
+     A.slRpcUnpack('§§')===null&&A.slRpcUnpack('{"x":1}')===null);}
+  {let t=1000,n=0;
+   const hub=A.slHub({now:()=>t,uid:()=>'id'+(++n),secret:()=>'sec'+n,
+     shareId:'sh1',fiche:{id:'f1'},guestRole:'scribe',hostLabel:'Hôte'});
+   const j=hub.join('IADE');
+   ok('jointure : secret propre, rôle d’invité, fiche livrée',
+     j.ok&&j.secret!==hub.hostSecret()&&j.role==='scribe'&&j.fiche.id==='f1');
+   const p1=hub.push(j.secret,[{event_id:'e1',kind:'check',payload:{k:'1:b1:0'},ts:'T'},
+                              {event_id:'e1',kind:'check',payload:{k:'1:b1:0'},ts:'T'}]);
+   eq('séquence allouée, DOUBLON refusé par event_id',
+     {a:p1.accepted,r:p1.rejected,seq:p1.seq},{a:1,r:1,seq:1});
+   eq('capacité par rôle : un scribe ne DÉ-coche pas (uncheck = lead seul, miroir de shareCan)',
+     hub.push(j.secret,[{event_id:'e2',kind:'uncheck',payload:{k:'1:b1:0'}}]).rejected,1);
+   ok('secret inconnu : refusé — l’acteur se DÉDUIT, il ne se déclare pas',
+     hub.push('faux',[{event_id:'e3',kind:'check'}]).ok===false);
+   const pl=await hub.pull(j.secret,0);
+   ok('pull : l’évènement porte l’acteur déduit du secret',
+     pl.events.length===1&&pl.events[0].actor===j.me&&pl.events[0].seq===1);
+   ok('empreinte de flux au format du client (sha-256 hex de « seq:id »)',
+     /^[0-9a-f]{64}$/.test(pl.stream));
+   hub.revoke(j.me);
+   ok('révoqué : l’écriture est refusée',
+     hub.push(j.secret,[{event_id:'e4',kind:'check'}]).ok===false);
+   hub.end();
+   eq('terminé : le pull le DIT au lieu de se taire',
+     (await hub.pull(hub.hostSecret(),0)).status,'ended');}
+
   group('Partage de session — transport');
   // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
   // même couture que le harnais remplacera par un bus en processus pour faire dialoguer deux pages.

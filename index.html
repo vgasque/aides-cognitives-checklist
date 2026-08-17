@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-rpZS230HdirBdNKy2Zi+20QmSDkdcGKp4XwJzJYuLkw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-EK+LYtcURUNbJf7OLIDxpb8DtGb/vsFIfV3CHP2t7sU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -19109,6 +19109,111 @@ function shareOffset(samples,maxRtt){
   const m=offs.length>>1;
   return Math.round(offs.length%2?offs[m]:(offs[m-1]+offs[m])/2);}
 
+/* ===== PARTAGE LOCAL — noyau pur (v5.14, étape 2a, lot « partage sans serveur ») =====
+   Trois pièces PURES, testées une à une (?__actest), pour le transport pair-à-pair validé par
+   le spike (étude hors dépôt, A198+). Le câblage WebRTC — impur — viendra à l'étape 2b ; ici,
+   rien ne touche au réseau, au DOM ni à l'horloge murale (le temps s'INJECTE).
+
+   1. SIGNALISATION COMPACTE. On ne transmet JAMAIS le SDP brut (~1 500 o) : on extrait le
+      quintuple {ufrag, pwd, empreinte DTLS, rôle, candidats hôte} (~130 o compressés = un QR)
+      et on RECONSTRUIT un SDP minimal de l'autre côté. Validé à parité brut/reconstruit sur
+      Chromium ET WebKit par la sonde.
+   2. TRAME RPC. Le canal transporte les verbes `_io` tels quels : {i,n,p} → {i,r}|{i,e}.
+      Une trame illisible rend null — l'appelant ignore, jamais d'exception depuis le fil.
+   3. LE HUB. Quand il n'y a pas de serveur, l'HÔTE tient la sémantique serveur — les mêmes
+      règles que `supabase/schema.sql` § 8, réduites à un partage : allocation de séquence sous
+      compteur unique (l'ordre des numéros EST l'ordre de visibilité), dédup par `event_id`,
+      `actor` DÉDUIT du secret (jamais un paramètre — l'attribution EST le contrôle),
+      capacités par rôle via `shareCan` (déjà le miroir exact du serveur), empreinte de flux
+      au MÊME format que `_streamHash` (sha-256 des couples « seq:id » joints par des
+      virgules). Le pli, l'application, la file hors-ligne ne changent pas : un journal
+      append-only se moque de qui le numérote. */
+function slSdpExtract(sdp){
+  const g=re=>{const m=String(sdp).match(re);return m?m[1]:null;};
+  const fp=g(/a=fingerprint:sha-256 ([0-9A-F:]+)/i);
+  return {u:g(/a=ice-ufrag:(\S+)/),p:g(/a=ice-pwd:(\S+)/),f:fp?fp.toUpperCase():null,
+    s:g(/a=setup:(\S+)/),
+    c:[...String(sdp).matchAll(/a=candidate:\S+ 1 udp \d+ (\S+) (\d+) typ host/gi)]
+      .map(m=>m[1]+'~'+m[2]).filter((v,i,a)=>a.indexOf(v)===i)};}
+function slSdpRebuild(o){
+  if(!o||!o.u||!o.p||!o.f||!o.s||!Array.isArray(o.c))return null;
+  const L=['v=0','o=- 4262 2 IN IP4 127.0.0.1','s=-','t=0 0','a=group:BUNDLE 0',
+    'a=msid-semantic: WMS','m=application 9 UDP/DTLS/SCTP webrtc-datachannel',
+    'c=IN IP4 0.0.0.0','a=ice-ufrag:'+o.u,'a=ice-pwd:'+o.p,
+    'a=fingerprint:sha-256 '+o.f,'a=setup:'+o.s,'a=mid:0','a=sctp-port:5000',
+    'a=max-message-size:262144'];
+  o.c.forEach((cd,i)=>{const k=String(cd).split('~');
+    L.push('a=candidate:'+(i+1)+' 1 udp '+(2113937151-i)+' '+k[0]+' '+k[1]+' typ host generation 0');});
+  L.push('a=end-of-candidates');
+  return L.join('\r\n')+'\r\n';}
+function slRpcPack(id,name,params){return JSON.stringify({i:id,n:name,p:params});}
+function slRpcReply(id,result,err){return JSON.stringify(err?{i:id,e:String(err)}:{i:id,r:result});}
+function slRpcUnpack(txt){
+  try{const m=JSON.parse(txt);
+    if(!m||typeof m!=='object'||m.i===undefined)return null;
+    return (m.n||m.e!==undefined||m.r!==undefined)?m:null;
+  }catch(e){return null;}}
+/* Le hub. `o` injecte tout l'impur : now() (l'horloge de l'hôte fait foi — c'est déjà lui
+   l'autorité clinique), uid() (identifiants), secret() (jetons d'accès). Les plafonds serveur
+   qui protègent un RELAIS PARTAGÉ (quota de partages, fenêtre d'admission datée) n'ont pas
+   d'objet entre deux appareils appariés par QR : le canal DTLS est déjà la porte. Restent ceux
+   qui protègent la SÉMANTIQUE : rôles, dédup, bornes de lot. */
+function slHub(o){
+  const H={seq:0,events:[],parts:[],status:'active',fiche:o.fiche||null};
+  const now=()=>new Date(o.now()).toISOString();
+  const findBySecret=s=>H.parts.find(p=>p.secret===s&&!p.revoked);
+  const pub=p=>({id:p.id,label:p.label,role:p.role,owner:!!p.owner,seen:p.seen,
+    revoked:!!p.revoked,detached:!!p.detached});
+  H.parts.push({id:o.uid(),secret:o.secret(),label:o.hostLabel||'Hôte',role:'lead',
+    owner:true,seen:o.now(),revoked:false,detached:false});
+  const streamHash=async()=>{
+    const b=await crypto.subtle.digest('SHA-256',
+      new TextEncoder().encode(H.events.map(e=>e.seq+':'+e.id).join(',')));
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');};
+  return {
+    st:H,
+    hostSecret(){return H.parts[0].secret;},
+    join(label){
+      if(H.status!=='active')return {ok:false,err:'ended'};
+      if(H.parts.filter(p=>!p.revoked).length>=8)return {ok:false,err:'full'};
+      const p={id:o.uid(),secret:o.secret(),label:sstr(label,24)||'Invité',
+        role:o.guestRole||'scribe',owner:false,seen:o.now(),revoked:false,detached:false};
+      H.parts.push(p);
+      return {ok:true,share:o.shareId,me:p.id,secret:p.secret,role:p.role,
+        fiche:H.fiche,since:H.seq,server_time:now()};},
+    async pull(secret,since){
+      const p=findBySecret(secret);
+      if(!p)return {ok:false,err:'auth'};
+      if(H.status!=='active')return {ok:true,status:H.status,events:[],seq:H.seq,
+        n_events:H.events.length,participants:H.parts.map(pub),server_time:now()};
+      p.seen=o.now();
+      const ev=H.events.filter(e=>e.seq>(since||0)).slice(0,500);
+      return {ok:true,status:p.revoked?'revoked':H.status,role:p.role,me:p.id,
+        events:ev,seq:H.seq,n_events:H.events.length,stream:await streamHash(),
+        participants:H.parts.map(pub),server_time:now(),
+        fiche:(!since&&!p.owner)?H.fiche:undefined};},
+    push(secret,events){
+      const p=findBySecret(secret);
+      if(!p)return {ok:false,err:'auth'};
+      if(H.status!=='active')return {ok:false,err:'ended'};
+      if(p.detached)return {ok:false,err:'detached'};
+      p.seen=o.now();
+      let accepted=0,rejected=0;
+      for(const e of (events||[]).slice(0,50)){
+        if(!e||!e.event_id||!e.kind){rejected++;continue;}
+        if(H.events.some(x=>x.id===e.event_id)){rejected++;continue;}
+        if(!p.owner&&!shareCan(p.role,e.kind)){rejected++;continue;}
+        H.seq++;
+        H.events.push({seq:H.seq,id:e.event_id,actor:p.id,kind:sstr(e.kind,24),
+          payload:e.payload||{},ts:e.ts||now(),at:now()});
+        accepted++;}
+      return {ok:true,accepted,rejected,seq:H.seq,status:H.status,server_time:now()};},
+    revoke(pid){const p=H.parts.find(x=>x.id===pid&&!x.owner);
+      if(!p)return {ok:false};p.revoked=true;return {ok:true};},
+    setRole(pid,role){const p=H.parts.find(x=>x.id===pid);
+      if(!p)return {ok:false};p.role=sstr(role,24);return {ok:true};},
+    end(){H.status='ended';return {ok:true};}};}
+
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
    timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
      'interval' -> temps restant qui descend + barre de progression + "Cycles : n".
@@ -31203,7 +31308,8 @@ if(location.search.indexOf('__actest')>=0){
     sanitizeTags,tagAll,tagSuggest,tagLabel,tagRank,tkRefNorm,tkLabels,tkParseTime,Share,sessionToRow,sessionFromRow,sanitizeSession,shareNavNorm,
     tmStopFrom,liveWhereText,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
-    sharePayload,shareCan,shareFold,shareStateHash,shareOffset,blankFiche,
+    sharePayload,shareCan,shareFold,shareStateHash,shareOffset,
+    slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,blankFiche,
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,
