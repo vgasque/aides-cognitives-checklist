@@ -10812,12 +10812,21 @@ function ltShowLoop(box,bytes,extra,fps){
   cap.style.cssText='font:13px ui-monospace,monospace;color:#000';
   w.appendChild(metaCv);w.appendChild(cap);box.appendChild(w);
   cap.textContent='fiche du transfert (répétée)';
-  let i=0,tick=1;
+  /* ORDONNANCEMENT HYBRIDE (M8 mesuré 17/08 : caméra quasi sans perte → le séquentiel battait
+     la fontaine 1/6-méta). Cycle = fiche, puis les k blocs DANS L'ORDRE (= vitesse du séquentiel
+     en conditions propres), puis quelques réparations seulement (l'assurance, au prix juste).
+     Le récepteur est inchangé : même format, seul l'ordre d'émission bouge. Les trames du
+     balayage sont FIXES → pré-rendues une fois. */
+  const sweep=[];for(let j=0;j<k;j++)sweep.push(qrCanvas(ltFrame(seed,j,k,cdf,blocks),5,4));
+  const rep=Math.max(1,Math.ceil(k/4)),cycle=1+k+rep;
+  let t=0,iRep=k;
   return setInterval(()=>{
-    let cv,txt;
-    if(tick++%6===0){cv=metaCv;txt='fiche du transfert (répétée)';}
-    else{cv=qrCanvas(ltFrame(seed,i,k,cdf,blocks),5,4);
-      txt=i<k?'bloc '+(i+1)+' / '+k:'réparation n° '+(i-k+1);i++;}
+    const pos=t%cycle;let cv,txt;
+    if(pos===0){cv=metaCv;txt='fiche du transfert (répétée)';}
+    else if(pos<=k){cv=sweep[pos-1];txt='bloc '+pos+' / '+k;}
+    else{cv=qrCanvas(ltFrame(seed,iRep,k,cdf,blocks),5,4);
+      txt='réparation n° '+(iRep-k+1);iRep++;}
+    t++;
     if(cv){w.replaceChild(cv,w.firstChild);cap.textContent=txt;}
   },1000/fps);}
 /* Réception d'une trame binaire ; renvoie {sid,i,d} ou null. */
@@ -10860,6 +10869,7 @@ $('txStop').onclick=()=>{clearInterval(txTimer);$('txQr').innerHTML='';};
 async function startRx(){
   try{await camStart($('rxVideo'));}catch(e){return log('caméra refusée : '+e.message,'ko');}
   let meta=null,parts=new Map(),t0=0,dupes=0,fount=null,fFrames=0;
+  const fSeen=new Set(); // trames DISTINCTES : les relectures de la même trame ne comptent pas
   const grid=$('rxGrid');
   const fini=async(z,dt,attendu,extra)=>{scanRun++;camStop();
     const h=await sha8(z),raw=await inflate(z);
@@ -10871,6 +10881,8 @@ async function startRx(){
     const bf=ltParse(bin);
     if(bf){if(!fount)return; // fiche pas encore vue : elle repasse
       if(bf.sid!==(fount.seed&0xffff))return;
+      const key=bf.sid+':'+bf.i;
+      if(fSeen.has(key))return;fSeen.add(key);
       t0=t0||performance.now();fFrames++;
       const done=ltFeed(fount,bf.i,bf.d);
       for(let j=0;j<fount.k;j++)if(fount.rec[j]&&grid.children[j])grid.children[j].className='got';
@@ -10883,7 +10895,7 @@ async function startRx(){
     txt=String(txt||'').trim();
     if(txt.startsWith('FM:')){const mm=JSON.parse(txt.slice(3));
       if(mm.t&&mm.t!=='D')return; // fiche de SIGNALISATION : pas pour le récepteur de rafale
-      if(fount&&mm.seed!==fount.seed){fount=ltNewRx(mm);fFrames=0;t0=0;
+      if(fount&&mm.seed!==fount.seed){fount=ltNewRx(mm);fFrames=0;t0=0;fSeen.clear();
         grid.innerHTML='';for(let i=0;i<mm.k;i++)grid.appendChild(document.createElement('i'));
         return log('nouvelle émission détectée — récepteur réinitialisé','warn');}
       if(!fount){const m=mm;fount=ltNewRx(m);
