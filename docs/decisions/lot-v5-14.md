@@ -130,3 +130,22 @@ mDNS + IPv4) — jamais l'offre de l'environnement, qui varie d'un poste à l'au
 états pilotée par charges synthétiques, sans caméra) ; fermeture de la feuille pendant
 l'appariement = pc abandonné sans fuite bruyante mais sans nettoyage exhaustif ; billet de
 reprise invité inopérant en local (rechargement → ré-appariement, cohérent avec l'étude M6).
+
+## A204 — Étape 4 : la bascule est un ré-appariement dit d'avance ; le quai n'a rien à apprendre
+
+**Décision.** Deux boutons symétriques, deux dialogues qui disent le prix AVANT : la feuille
+cloud gagne « Passer en direct… » (fin du partage serveur → appariement local, mêmes gestes) ;
+la feuille locale gagne « Passer en ligne… » (visible seulement si compte + internet). Toujours
+un RÉ-APPARIEMENT propre — jamais une migration à chaud : l'état de l'hôte est la source, les
+participants re-scannent/re-rejoignent, la session de l'hôte ne bouge pas d'un pixel.
+
+**Le quai n'a RIEN eu à apprendre, et c'est une découverte d'architecture** : ses mots (`figé`,
+`coupé`, `⇄N`, `main`/`suit`) émergent de la péremption et des statuts, pas du transport — en
+local, un canal mort produit `figé` par la même mécanique que le cloud. Le transport se lit dans
+la FEUILLE (« ✓ En direct — sans serveur »), le quai reste la zone d'état à position constante.
+
+**DÉFÉRÉ, et pourquoi** : le secours chaud pré-apparié (M9 — signalisation du canal via le
+relais pendant que le cloud marche) exige un CANAL DE SIGNALISATION côté serveur
+(schema.sql + rejeu sur l'instance = geste de l'utilisateur). Inscrit comme exigence de la
+prochaine évolution serveur, avec la bascule AUTOMATIQUE qui en dépend. La bascule manuelle
+ci-dessus est le régime intermédiaire assumé.
