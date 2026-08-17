@@ -1,5 +1,46 @@
 # Journal des modifications
 
+## [5.14.0] — 2026-08-17
+### Le partage sans serveur — en direct sur le réseau local, ou par la lumière de l'écran
+
+Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (« Partager ») :
+
+- **En direct (nouveau).** Sans compte ou sans internet, la feuille de partage affiche un code
+  QR d'appariement : l'invité le scanne (« Rejoindre une session » → « Scanner le code de
+  l'hôte »), montre sa réponse, et les deux appareils dialoguent **directement sur le réseau
+  local** — un Wi-Fi commun suffit, même sans internet, sans serveur, pas même un STUN (validé
+  sur iPhones réels : appariement ~10 s, une fiche de 2 Mio en 0,3 s). L'appareil de l'hôte
+  tient l'autorité que le serveur tenait : numérotation, attribution par secret, rôles — le
+  même vocabulaire fermé voyage, jamais un texte libre. Multi-invités par « Inviter un autre » ;
+  une réponse d'un appariement précédent est refusée à voix haute (jeton).
+- **Par l'écran (nouveau).** Sans AUCUN réseau, un instantané daté de la session passe par la
+  lumière : l'hôte affiche une boucle de codes (code fontaine systématique, trames binaires
+  auto-descriptives — ~20 Kio en ~4 s mesurés), l'autre appareil filme, la jauge ne descend
+  jamais, et son écran devient un **miroir daté** (« Vue à 14:02 — miroir, pas du direct »).
+  L'instantané porte l'identité de session — une émission qui n'est pas la session attendue est
+  refusée avec un message, **zéro écriture** — et l'heure d'émission de l'hôte, qui rattrape
+  des horloges décalées de plusieurs minutes à quelques secondes près.
+- **Bascule dite d'avance.** « Passer en direct… » depuis la feuille en ligne, « Passer en
+  ligne… » depuis la feuille locale : toujours un ré-appariement propre annoncé par un dialogue
+  (les participants re-scannent, la session de l'hôte ne bouge pas) — jamais de migration à
+  chaud. Le quai n'a rien eu à apprendre : « figé »/« coupé » émergent de la même péremption
+  quel que soit le canal.
+- **Deuxième exception à la règle zéro-dépendance** (décision de l'auteur, modèle pdf.js) :
+  le décodeur de QR jsQR 1.4.0 (Apache-2.0) entre vendorisé — chargé paresseusement au premier
+  scan, cache séparé versionné par sa version, garde-fous `check-vendor`/`check-sw` étendus et
+  vérifiés capables d'échouer, témoin encodeur-maison → décodeur-vendorisé dans les tests.
+- **Sous le capot** : la couture `_io` du partage est désormais COMPLÈTE (revoke/setRole/end —
+  un transport = huit verbes, plus rien à recopier) ; noyau pur `slHub` (séquence, dédup par
+  identifiant d'évènement, capacités par rôle) testé témoin par témoin ; l'encodeur QR maison
+  accepte les octets bruts et un masque épinglé (`qrEncodeB`, rendu de `qrSvg` inchangé).
+- **Conformité** : la notice de l'écran d'entrée distingue les trois canaux, et le registre
+  gagne un § 3.2 — pour les modes sans serveur, la ligne destinataires/sous-traitants est VIDE,
+  et les quatre limites mesurées sont écrites (application déjà installée requise ; réseau
+  local commun exigé — isolation client, VPN et autorisation « Réseau local » iOS peuvent
+  bloquer ; verrouillage d'écran = suspension, réparée par ré-appariement ; « par l'écran » =
+  synchro par geste, pas du direct). Le § 2 ne bouge pas : ces modes RECOPIENT, rien n'est
+  déduit. Doctrine du lot : `docs/decisions/lot-v5-14.md` (A198-A206).
+
 ## [5.13.5] — 2026-08-16
 ### « Vous gardez le contrôle »
 
@@ -482,58 +523,3 @@
   abréviation est exactement ce qu'on ne relit pas sous fatigue. Sonde jetable 12/12 aux deux
   moteurs et aux deux largeurs ; `npm run check`, `npm test` (2×1126) et l'audit COMPLET (25/25)
   verts.
-
-## [5.11.0] — 2026-08-16
-### L'atelier d'import dit aussi **où** ça va — bibliothèque et catégorie, rangée par rangée
-
-- **On peut enfin choisir la destination d'un import, et pas seulement son contenu** (question de
-  l'auteur : « comment définir les catégories et bibliothèques de une ou multiples fiches à
-  l'import ? »). La v5.0 avait renversé l'ordre — d'abord CE QUE l'on importe, ensuite OÙ — mais
-  le « OÙ » était resté ce qu'il était avant l'atelier : une question oui/non posée APRÈS lui, et
-  seulement si une bibliothèque partagée éditable se trouvait sélectionnée à l'accueil. Trois
-  manques : on ne pouvait viser QUE cette bibliothèque-là (depuis l'accueil « Perso », la question
-  ne se posait même pas et tout y tombait) ; la **catégorie n'était pas réglable du tout** ; et le
-  grain était le FICHIER, alors que celui de l'atelier est l'ENTITÉ depuis la v5.0 — un export de
-  bibliothèque entière ne pouvait pas se répartir entre deux rayons. **Chaque rangée porte
-  désormais sa destination** : une bibliothèque et une catégorie, réglées d'une touche, vues avant
-  que rien ne soit écrit.
-- **Le bandeau de tête n'est pas un réglage global à côté des rangées : c'est la même commande.**
-  Il affiche la valeur commune des rangées **cochées**, « Plusieurs » quand elles divergent, et la
-  pose sur ces mêmes rangées quand on l'actionne — jamais sur les décochées. « Tout ranger dans
-  Réanimation » est donc « tout cocher » puis un geste, et régler une seule rangée est le même
-  geste sur elle seule.
-- **Le défaut ne décide rien à votre place** : chaque rangée part sur « garder celle du fichier »
-  — le comportement d'avant, réconcilié par nom dans la destination (v5.10.9) — et le dit en
-  nommant ce qu'elle garde (« Garder Réanimation »), pour ne pas avoir à rouvrir le fichier.
-  Changer la bibliothèque d'une rangée **remet sa catégorie sur ce défaut** : un id de catégorie
-  n'a de sens que dans sa bibliothèque, le conserver pointerait sur rien — ou sur autre chose.
-- **La question « Où importer ? » disparaît, l'avertissement qu'elle portait reste.** Publier dans
-  une bibliothèque partagée n'est jamais silencieux : un bandeau de pied **nomme** les
-  bibliothèques visées et **compte** les éléments cochés (« 3 éléments iront dans « CH Le Mans » :
-  visibles par tous les membres »), et se tait quand tout va au Perso. Registre attention, jamais
-  rouge : ce n'est pas un danger, c'est une portée.
-- **« Remplacer tout » n'est plus proposé quand l'import vise plusieurs bibliothèques.** Une
-  suppression totale doit nommer ce qu'elle vide ; « remplacer les bibliothèques choisies »
-  viderait deux bibliothèques entières sur une phrase au pluriel, dont l'une peut-être pour une
-  seule fiche qu'on y a glissée. Le geste reste possible — on importe vers une destination à la
-  fois — mais il ne se propose plus par inadvertance. La fusion, elle, n'a jamais eu besoin d'une
-  destination unique.
-- Sous le capot, trois décisions qui se voient à l'usage : la destination **voyage avec son
-  entité** (une destination retrouvée après coup par l'index d'origine se désaligne au premier
-  filtrage — une fiche écrite dans la bibliothèque de sa voisine, en silence) ; la table de
-  résolution des catégories est indexée par **(bibliothèque, id source)**, parce que deux rangées
-  peuvent garder la même catégorie du fichier vers deux destinations où elle ne porte pas le même
-  identifiant ; et une catégorie n'est créée que lorsqu'une entité la réclame **dans la
-  bibliothèque où elle la réclame**.
-- Le menu de choix est **le même composant** pour la catégorie de l'éditeur, la catégorie d'une
-  rangée et sa bibliothèque : trois copies de sa machinerie (voile, piège clavier, filtre, retour
-  de focus) auraient divergé. Il se présente en **feuille à toute largeur** dans l'atelier —
-  mesuré : ancré, il atterrissait une centaine de pixels sous le bas de la liste, détaché de la
-  pastille qui l'ouvre, une rangée n'ayant aucun ancêtre positionné. Et « déplié » marque enfin la
-  pastille touchée, non les boutons du bandeau.
-- Détail de la doctrine (`docs/decisions/lot-v5-11.md`, A159-A169), dont deux corrections de ce
-  que j'allais écrire, prises à la mesure : le bandeau annonçait « Plusieurs » à l'ouverture parce
-  qu'il comparait les étiquettes rendues et non le choix ; et le remplacement d'un menu par le
-  suivant est une **ceinture**, pas la réparation d'un symptôme — la feuille couvre les autres
-  pastilles, aucun doigt ne peut en atteindre une seconde sans avoir refermé la première.
-  Sonde jetable : 36 contrôles, deux moteurs, deux largeurs, vérifiée capable d'échouer.
