@@ -47,6 +47,7 @@ const STATIC = liste('STATIC_ASSETS');
 const ASSETS = [...new Set([...liste('ASSETS'), ...(sw.includes('...STATIC_ASSETS') ? STATIC : [])])];
 const CORE = liste('CORE_ASSETS');
 const PDFJS = liste('PDFJS_ASSETS');
+const JSQR = liste('JSQR_ASSETS');
 const fautes = [];
 if (!sw.includes('...STATIC_ASSETS'))
   fautes.push('ASSETS ne reprend plus ...STATIC_ASSETS : la règle 13 (« tout fichier servi entre dans ASSETS ») perd les statiques');
@@ -54,7 +55,7 @@ if (STATIC.some(a => CORE.includes(a)))
   fautes.push('un actif est à la fois CORE_ASSETS et STATIC_ASSETS : deux caches se disputeraient la même clé');
 
 /* 1. Existence sur le disque. */
-for (const [nom, arr] of [['ASSETS', ASSETS], ['CORE_ASSETS', CORE], ['PDFJS_ASSETS', PDFJS], ['STATIC_ASSETS', STATIC]])
+for (const [nom, arr] of [['ASSETS', ASSETS], ['CORE_ASSETS', CORE], ['PDFJS_ASSETS', PDFJS], ['JSQR_ASSETS', JSQR], ['STATIC_ASSETS', STATIC]])
   for (const p of arr) {
     const f = join(ROOT, p.replace(/^\.\//, ''));
     if (!existsSync(f)) fautes.push(`${nom} référence « ${p} », absent du dépôt`);
@@ -89,5 +90,5 @@ if (fautes.length) {
   for (const f of fautes) console.error('    ' + f);
   process.exit(1);
 }
-console.log(`✓ check-sw : ${ASSETS.length} asset(s) + ${PDFJS.length} pdf.js présents, noyau cohérent, ` +
+console.log(`✓ check-sw : ${ASSETS.length} asset(s) + ${PDFJS.length} pdf.js + ${JSQR.length} jsQR présents, noyau cohérent, ` +
   `racine sans oubli, CACHE aligné sur APP_VERSION (v${vApp}).`);

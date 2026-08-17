@@ -37,6 +37,12 @@ const PDFJS_ASSETS = [
   './vendor/pdfjs/pdf.min.js',
   './vendor/pdfjs/pdf.worker.min.js'
 ];
+// Versionné par jsQR (vendor/jsqr/README.txt) : même motif que pdf.js, mêmes raisons, même
+// garde-fou (check-vendor relie la note et cette clé). Décodeur du partage sans serveur (v5.14).
+const JSQR_CACHE = 'aides-cognitives-jsqr-1.4.0';
+const JSQR_ASSETS = [
+  './vendor/jsqr/jsQR.js'
+];
 /* Actifs IMMUABLES entre publications (polices, icônes, logo) : cache SÉPARÉ, versionné À PART —
    le motif pdf.js GÉNÉRALISÉ (v5.10.2). Avant, le renommage de CACHE à chaque release purgeait
    puis re-téléchargeait ces ~120 Ko parfaitement inchangés — exactement le défaut déjà corrigé
@@ -108,6 +114,13 @@ self.addEventListener('install', e => {
         if (await c.match(a)) continue;
         try { await c.add(a); } catch (e) {}
       }
+    }),
+    // jsQR : même régime best-effort — un scan reste possible en ligne si le précache a raté.
+    caches.open(JSQR_CACHE).then(async c => {
+      for (const a of JSQR_ASSETS) {
+        if (await c.match(a)) continue;
+        try { await c.add(a); } catch (e) {}
+      }
     })
   ]).then(() => self.skipWaiting()));
 });
@@ -115,7 +128,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== PDFJS_CACHE && k !== STATIC_CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== PDFJS_CACHE && k !== JSQR_CACHE && k !== STATIC_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
       // Annonce la version du worker aux pages ouvertes : index.html la compare à son APP_VERSION
       // et affiche le message JUSTE — « déjà à jour » (la page servie est déjà la nouvelle) ou,
@@ -194,11 +207,12 @@ self.addEventListener('fetch', e => {
     if (resp.ok && resp.type === 'basic') {
       const path = new URL(req.url).pathname;
       const isPdfjs = path.indexOf('/vendor/pdfjs/') >= 0;
+      const isJsqr = path.indexOf('/vendor/jsqr/') >= 0;
       // Un actif statique se rafraîchit dans SON cache pérenne — l'y ranger sous CACHE le ferait
       // re-télécharger à la release suivante, le défaut que STATIC_CACHE vient de fermer.
       const isStatic = STATIC_ASSETS.some(a => path === new URL(a, self.location).pathname);
       const copy = resp.clone();
-      return caches.open(isPdfjs ? PDFJS_CACHE : (isStatic ? STATIC_CACHE : CACHE)).then(c => c.put(req, copy));
+      return caches.open(isPdfjs ? PDFJS_CACHE : (isJsqr ? JSQR_CACHE : (isStatic ? STATIC_CACHE : CACHE))).then(c => c.put(req, copy));
     }
   }).catch(() => {}));
   e.respondWith(

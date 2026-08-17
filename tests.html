@@ -1369,6 +1369,12 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    let to='';try{await mort.io.pull('x','sh2',0);}catch(e){to=e.message;}
    eq('personne en face : le verbe échoue en TIMEOUT borné, il ne pend jamais',to,'timeout');}
 
+  // ── Étape 3a : le décodeur VENDORISÉ relit ce que l'encodeur MAISON écrit (chargement
+  // paresseux compris — c'est le témoin qui resservira au test d'une mise à jour de jsQR) ──
+  ok('encode → décode : charge courte (v1-v4)',await A.qrSelftest('AC-714208'));
+  ok('encode → décode : charge longue (v10, près du plafond des 213 o)',
+    await A.qrSelftest('S'.repeat(190)));
+
   group('Partage de session — transport');
   // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
   // même couture que le harnais remplacera par un bus en processus pour faire dialoguer deux pages.

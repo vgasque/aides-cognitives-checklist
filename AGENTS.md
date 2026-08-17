@@ -7,7 +7,12 @@ PWA médicale **monofichier** (`index.html`), JavaScript vanille, **aucune dépe
 Stockage local-first (IndexedDB) ; synchro cloud Supabase optionnelle (RLS). Utilisée en urgence
 vitale, sous stress : clarté et robustesse priment.
 
-> **Exception UNIQUE à la règle zéro-dépendance : pdf.js** (visionneuse des documents PDF).
+> **Exceptions à la règle zéro-dépendance : pdf.js** (visionneuse des documents PDF) **et,
+> depuis v5.14, jsQR** (décodeur des QR d'appariement et de synchro optique du partage sans
+> serveur — même régime : vendorisé dans `vendor/jsqr/`, version notée dans son `README.txt`,
+> chargé paresseusement au premier scan, cache séparé `JSQR_CACHE` gardé par `check-vendor`,
+> témoin encodeur-maison→décodeur dans `tests.html` ; décision explicite de l'auteur,
+> 17/08/2026).
 > Vendorisé dans `vendor/pdfjs/` (version figée, notée dans `vendor/pdfjs/README.txt`), chargé
 > **paresseusement** (`import()` au premier document ouvert — jamais au démarrage), **précaché
 > par `sw.js`** (hors ligne dès l'installation).
@@ -115,8 +120,9 @@ ne s'apprend en lisant le code** — elles viennent d'incidents mesurés, et plu
     jamais cassées par une mise à jour que l'utilisateur n'a pas choisie — les renommages internes
     se convertissent EN PLACE dans `migrate` ; (c) la rupture est annoncée dans les notes de
     version. Ajouter un champ reste libre ; en retirer un engage ces trois obligations.
-13. **Aucune dépendance runtime**, à l'unique exception de pdf.js vendorisé (chargé paresseusement,
-    précaché). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`). **Une POLICE embarquée
+13. **Aucune dépendance runtime**, aux exceptions vendorisées près : pdf.js et, depuis v5.14,
+    jsQR (chacune chargée paresseusement, précachée dans son cache versionné, gardée par
+    `check-vendor`). Tout fichier servi doit entrer dans `ASSETS` (`sw.js`). **Une POLICE embarquée
     depuis v4.61.0** (`vendor/fonts/source-serif-4-latin-600.woff2`, 21 Ko, SIL OFL) : ce n'est
     pas une dépendance runtime — aucun code, aucun appel réseau — mais un ACTIF SERVI, donc soumis
     à la même règle (entrée dans `ASSETS`, `font-src 'self'`, mise à jour = décision explicite

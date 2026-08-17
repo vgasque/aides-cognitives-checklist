@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-35TeXfCarm1hrkWqZ9krdb5brPcQaFoBfHngqdSiO1U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-VMEmvVlUqm4UEyHetyxCx/+wVQP10NaHRRvX73Yi+cA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -18420,6 +18420,36 @@ function qrSvg(text,label){
     'role="img" aria-label="'+esc(label||'Code à scanner')+'">'+
     '<rect width="'+side+'" height="'+side+'" fill="var(--paper)"/>'+
     '<path d="'+d+'" fill="var(--qr-ink)"/></svg>';}
+/* ── DÉCODEUR vendorisé (v5.14, étape 3a) — l'asymétrie encodeur-maison/décodeur-vendorisé.
+   L'app SCANNE désormais (appariement direct, synchro optique) : décoder un QR — binarisation,
+   perspective, Reed-Solomon en lecture — est hors de portée d'une implémentation raisonnable,
+   et jsQR (Apache-2.0, ~251 Ko) est vendorisé sur le motif pdf.js : vendor/jsqr/ + cache
+   SÉPARÉ versionné par SA version (JSQR_CACHE, gardé par check-vendor), chargé PARESSEUSEMENT
+   au premier scan — jamais au démarrage. Décision explicite de l'auteur (17/08/2026). */
+let _qrDecP=null;
+function qrDecLoad(){
+  if(window.jsQR)return Promise.resolve(window.jsQR);
+  if(_qrDecP)return _qrDecP;
+  _qrDecP=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='vendor/jsqr/jsQR.js';
+    s.onload=()=>{window.jsQR?res(window.jsQR):rej(new Error('jsQR absent après chargement'));};
+    s.onerror=()=>{_qrDecP=null;rej(new Error('décodeur QR introuvable'));};
+    document.head.appendChild(s);});
+  return _qrDecP;}
+/* Témoin de santé du COUPLE encodeur-maison → décodeur-vendorisé : encode, peint sur un canvas,
+   relit, compare. C'est lui qui donne au décodeur son témoin de commit (tests.html) — et il
+   resservira tel quel au test hors-ligne d'une mise à jour de jsQR. */
+async function qrSelftest(text){
+  const q=qrEncode(String(text));if(!q)return false;
+  const jsqr=await qrDecLoad();
+  const sc=4,quiet=4,side=(q.n+quiet*2)*sc;
+  const c=document.createElement('canvas');c.width=c.height=side;
+  const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,side,side);g.fillStyle='#000';
+  for(let y=0;y<q.n;y++)for(let x=0;x<q.n;x++)
+    if(q.m[y*q.n+x])g.fillRect((x+quiet)*sc,(y+quiet)*sc,sc,sc);
+  const r=jsqr(g.getImageData(0,0,side,side).data,side,side,{inversionAttempts:'dontInvert'});
+  return !!r&&r.data===String(text);}
 
 /* ===== PARTAGE DE SESSION — noyau pur =====
    Fonctions SANS effet de bord, testables une par une (?__actest). Tout ce qui touche au réseau,
@@ -31363,7 +31393,7 @@ if(location.search.indexOf('__actest')>=0){
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,slClient,slHostIo,blankFiche,
+    slWirePair,slServe,slClient,slHostIo,qrSelftest,blankFiche,
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,

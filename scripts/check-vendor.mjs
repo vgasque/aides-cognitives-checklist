@@ -56,6 +56,25 @@ if (mDecl && mCache) {
   }
 }
 
+/* ---- jsQR : même motif que pdf.js (v5.14) — la note, la clé de cache et l'octet ---- */
+const jsqrReadme = await readFile(ROOT + 'vendor/jsqr/README.txt', 'utf8');
+const jDecl = jsqrReadme.match(/jsqr\s+([0-9]+(?:\.[0-9]+)*)/);
+const jCache = sw.match(/const JSQR_CACHE\s*=\s*'([^']*)'/);
+if (!jDecl) fautes.push("vendor/jsqr/README.txt : version introuvable (attendu « jsqr X.Y.Z »)");
+if (!jCache) fautes.push("sw.js : JSQR_CACHE introuvable");
+if (jDecl && jCache && !jCache[1].endsWith('-' + jDecl[1]))
+  fautes.push(`jsQR ${jDecl[1]} (README) mais JSQR_CACHE = '${jCache[1]}' — clé inchangée : les appareils installés garderaient l'ancien décodeur`);
+const jTaille = jsqrReadme.match(/jsQR\.js\s*\(([\d\s\u00a0\u202f]+)\s*octets\)/);
+if (!jTaille) fautes.push("vendor/jsqr/README.txt : « jsQR.js (N octets) » introuvable");
+else {
+  const attendu = parseInt(jTaille[1].replace(/[\s\u00a0\u202f]/g, ''), 10);
+  let reel = null;
+  try { reel = (await stat(ROOT + 'vendor/jsqr/jsQR.js')).size; }
+  catch { fautes.push('vendor/jsqr/jsQR.js : annoncé dans README.txt, absent du disque'); }
+  if (reel !== null && reel !== attendu)
+    fautes.push(`jsQR.js : ${reel} octets sur le disque, ${attendu} annoncés dans README.txt`);
+}
+
 /* ---- polices : la taille annoncée est la taille réelle, POUR CHACUNE ----
    v5.6 : la refonte « verre clinique » vendorise trois familles (Source Serif 4, Manrope, IBM
    Plex Mono) au lieu d'une. Le contrôle lisait la PREMIÈRE ligne « <fichier>.woff2 (N octets) »
@@ -82,4 +101,4 @@ if (fautes.length) {
   fautes.forEach(f => console.error('    ' + f));
   process.exit(1);
 }
-console.log(`✓ check-vendor : pdf.js ${mDecl[1]} — clé de cache alignée ; ${annonces.length} police(s) conformes à leur note.`);
+console.log(`✓ check-vendor : pdf.js ${mDecl[1]} et jsQR ${jDecl ? jDecl[1] : '?'} — clés de cache alignées ; ${annonces.length} police(s) conformes à leur note.`);

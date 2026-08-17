@@ -74,3 +74,21 @@ transfert, quelques secondes) pour dater ses repères annexes — sans cela, un 
 deux minutes classerait ses repères au mauvais endroit du journal de l'hôte. L'erreur ABSOLUE
 de l'horloge de l'hôte est assumée : une seule ligne de temps cohérente, celle de l'autorité
 clinique — l'ordre et les durées sont exacts, les étiquettes murales suivent sa montre.
+
+## A201 — Le décodeur QR entre au vendor : jsQR 1.4.0, sur le motif pdf.js exactement
+
+**Décision (étape 3a).** L'app va SCANNER (appariement direct, synchro optique) ; décoder —
+binarisation, perspective, Reed-Solomon en lecture — est hors de portée d'une implémentation
+maison raisonnable. jsQR 1.4.0 (Apache-2.0, 256 885 octets, build UMD amont non minifié) est
+vendorisé avec TOUTE la discipline du précédent : `vendor/jsqr/` + `README.txt` (version,
+taille à l'octet, licence, marche de mise à jour) ; cache SÉPARÉ `JSQR_CACHE` versionné par SA
+version (précaché best-effort, jamais bloquant pour l'install) ; chargement PARESSEUX
+(`qrDecLoad`, injection `<script>` au premier scan — `script-src 'self'` le permet, jamais au
+démarrage) ; routage fetch et purge d'activation étendus. `check-sw` compte ses entrées,
+`check-vendor` relie note↔clé↔octets — VÉRIFIÉ CAPABLE D'ÉCHOUER sur la taille ET sur la clé,
+puis restauré. `AGENTS.md` (préambule + règle 13) dit désormais DEUX exceptions vendorisées.
+
+**Le témoin est le couple, pas la bibliothèque** : `qrSelftest` encode avec l'encodeur MAISON,
+peint, RELIT avec le décodeur vendorisé (chargement paresseux compris) — deux témoins au
+commit (charge courte, charge v10 près du plafond), et c'est le même geste qui servira au test
+hors-ligne d'une future mise à jour de jsQR.
