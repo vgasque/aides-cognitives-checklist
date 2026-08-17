@@ -1344,6 +1344,31 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('terminé : le pull le DIT au lieu de se taire',
      (await hub.pull(hub.hostSecret(),0)).status,'ended');}
 
+  // ── Étape 2b : la couture ENTIÈRE sur un canal injectable (hôte sert, invité consomme) ──
+  {let t=2000,n=0;
+   const hub=A.slHub({now:()=>t,uid:()=>'q'+(++n),secret:()=>'k'+n,
+     shareId:'sh2',fiche:{id:'f2'},guestRole:'scribe'});
+   const [wa,wb]=A.slWirePair();
+   A.slServe(hub,wa);
+   const cli=A.slClient(wb,{timeoutMs:200});
+   const j=await cli.io.join(null,'IADE');
+   ok('join par le canal : secret + fiche arrivent',j.ok&&!!j.secret&&j.fiche.id==='f2');
+   const pu=await cli.io.push(j.secret,'sh2',[{event_id:'w1',kind:'check',payload:{k:'1:b1:0'}}]);
+   eq('push par le canal : séquence allouée par le hub',pu.seq,1);
+   const pl=await cli.io.pull(j.secret,'sh2',0);
+   ok('pull par le canal : évènement, acteur déduit, heure de l’HÔTE',
+     pl.events.length===1&&pl.events[0].actor===j.me&&pl.server_time===new Date(2000).toISOString());
+   const hio=A.slHostIo(hub);
+   ok('l’hôte parle à son propre hub par la MÊME couture (revoke → écriture refusée)',
+     (await hio.revoke('sh2',j.me)).ok===true&&
+     (await cli.io.push(j.secret,'sh2',[{event_id:'w2',kind:'check'}])).ok===false);
+   let err='';try{await cli.call('inconnu',{});}catch(e){err=e.message;}
+   eq('verbe inconnu : une ERREUR nommée revient, jamais un silence',err,'verbe');
+   const [wc]=A.slWirePair(); // fil dont personne n'écoute l'autre bout
+   const mort=A.slClient(wc,{timeoutMs:20});
+   let to='';try{await mort.io.pull('x','sh2',0);}catch(e){to=e.message;}
+   eq('personne en face : le verbe échoue en TIMEOUT borné, il ne pend jamais',to,'timeout');}
+
   group('Partage de session — transport');
   // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
   // même couture que le harnais remplacera par un bus en processus pour faire dialoguer deux pages.

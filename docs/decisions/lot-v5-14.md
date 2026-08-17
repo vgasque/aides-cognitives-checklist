@@ -45,3 +45,20 @@ OUVERT (c'est ainsi qu'un invité ACCEPTE la main) — le témoin de capacité v
 réellement lead-seulement. Étape 2b à suivre : câblage WebRTC + objet ShareLocal sur les huit
 verbes, canal injectable (RTCDataChannel en prod, paire locale au harnais — les portes restent
 déterministes, jamais dépendantes de l'état réseau du poste).
+
+## A200 — La couture entière sur un canal injectable : slServe / slClient / slHostIo
+
+**Décision (étape 2b).** Le transport local parle par un CANAL au contrat minimal
+`{send(txt), onmessage}` : `slServe(hub, wire)` côté hôte (trame → verbe du hub → réponse,
+jamais d'exception depuis le fil), `slClient(wire)` côté invité (les HUIT verbes `_io`,
+corrélés par identifiant, TIMEOUT borné — un verbe ne pend jamais), `slHostIo(hub)` pour que
+l'hôte parle à son propre hub par la même couture, sans fil. `slWirePair()` fournit la paire
+locale des témoins : les portes du dépôt restent DÉTERMINISTES, jamais suspendues à l'état
+réseau du poste (leçon VPN du spike).
+
+**Deux économies doctrinales.** (1) La colle WebRTC (RTCPeerConnection, gathering) n'est PAS
+posée ici : sans appelant d'interface elle serait du code mort — elle arrive à l'étape 3 avec
+la feuille de partage qui l'appelle. (2) Aucun « ping » d'horloge dédié : chaque `pull` porte
+déjà `server_time`, le chemin `_sample`/`shareOffset` existant fait de l'horloge de l'hôte la
+référence sans un octet de plus. 6 témoins neufs (join/push/pull par le canal, revoke par la
+couture hôte, verbe inconnu → erreur nommée, personne en face → timeout).
