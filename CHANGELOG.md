@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.14.1] — 2026-08-17
+### Le clavier de l'accueil revient — le champ ne se tue plus lui-même
+
+- **Depuis la v5.13.4, taper le champ de recherche de l'accueil n'ouvrait plus le clavier sur
+  téléphone et tablette** (signalé à l'usage). La cause : « pendant la frappe, l'en-tête
+  s'efface » (`html.kbd header.bar{display:none}`) avait été conçu pour la recherche des
+  RÉFÉRENCES, dont le champ vit dans la colonne — mais le champ de l'accueil vit DANS
+  l'en-tête. Le clavier s'ouvrait, l'en-tête disparaissait, **le champ qu'on venait de toucher
+  était détruit avec lui**, le focus tombait, le clavier se refermait aussitôt : le champ se
+  tuait lui-même, en une fraction de seconde, et aucune mesure du harnais ne pouvait le voir
+  (il ne pilote pas le clavier).
+- **La règle devient : l'en-tête ne s'efface que si le champ actif vit AILLEURS.** Quand le
+  champ focalisé est dans l'en-tête, c'est LUI le chrome de frappe — il reste. C'est le
+  principe même de la 5.13.4 (« un seul chrome à la fois ») appliqué dans les deux sens. La
+  recherche des références garde son plein-écran de frappe, l'accueil retrouve son clavier.
+- Un seul poseur de `html.kbd`, vérifié : `body.kb-open` (l'effacement du dock au focus) est
+  une autre classe, un autre mécanisme — les deux ne se marchent pas dessus.
+
 ## [5.14.0] — 2026-08-17
 ### Le partage sans serveur — en direct sur le réseau local, ou par la lumière de l'écran
 
@@ -498,28 +516,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   vérifiées capables d'échouer ; `npm run check` 19/19, `npm test` 2×1126, audit COMPLET 25/25 —
   dont un rouge attrapé au passage : la nouvelle croix faisait 38 px pour un seuil de 44 sur une
   surface de crise.
-
-## [5.11.1] — 2026-08-16
-### La pastille de destination dit le mot « catégorie » — un verbe ne désigne pas son objet
-
-- **« Garder Réanimation » ne disait pas ce qu'on gardait** (signalé à l'usage : « "Garder" pas
-  suffisamment clair pour dire qu'on parle de la catégorie »). Le libellé NOMMAIT bien la valeur —
-  l'exigence tenue en A83 — mais laissait le CHAMP à deviner : posé à côté d'une pastille
-  « Perso », il pouvait se lire comme « garder cette fiche ». Les quatre états de la pastille
-  portent désormais le nom du champ : **« Catégorie du fichier : Réanimation »** (défaut, quand le
-  fichier classe l'entité), **« Catégorie du fichier : aucune »** (défaut, quand il ne la classe
-  pas), **« Catégorie : Réanimation »** (choix explicite, avec sa pastille de couleur) et **« Sans
-  catégorie »**. La provenance reste dite — « du fichier » signifie que rien n'a été décidé à votre
-  place. Le menu suit : « Garder **la catégorie** du fichier ».
-- **Et le bandeau ne dit plus deux fois « Plusieurs »** : ses deux pastilles étant côte à côte, un
-  même mot sur les deux ne se distinguait pas. Elles nomment leur champ dans tous leurs états —
-  « Plusieurs bibliothèques » / « Plusieurs catégories », et « Catégorie du fichier » sans nom pour
-  le défaut commun (le bandeau commande plusieurs rangées, chacune garde la sienne : c'est la
-  rangée qui la nomme).
-- Le **titre au survol prolonge** le libellé au lieu de le répéter (plus de « Catégorie de
-  destination : Catégorie du fichier : X ») : il dit ce que le geste fera — « toucher pour
-  changer » — et, sur le défaut, ce que « du fichier » implique à l'écriture.
-- Pas d'abréviation en « Cat. » : le mot entier tient (la ligne s'enroule déjà), et une
-  abréviation est exactement ce qu'on ne relit pas sous fatigue. Sonde jetable 12/12 aux deux
-  moteurs et aux deux largeurs ; `npm run check`, `npm test` (2×1126) et l'audit COMPLET (25/25)
-  verts.

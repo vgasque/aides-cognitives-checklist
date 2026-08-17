@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-MXL5+i08DkefrYtaKXkESD8JdacCmcwMkReorByM4F4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-l+qAYUBTcTR67ysOhMo/k8HCG0UpwVh0Yxr/8JsaVYc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9536,7 +9536,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.0';
+const APP_VERSION='5.14.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -29192,8 +29192,19 @@ const VVT_MIN_CLAVIER=60;
     if(Math.abs(t-lastT)>=.5){lastT=t;document.documentElement.style.setProperty('--vvt',t+'px');}
     /* `html.kbd` — clavier logiciel ouvert : le chrome de PAGE se retire (cf. la feuille de style).
        Posée ici parce que c'est le même prédicat que `--vvt` et qu'un second poseur, ailleurs,
-       finirait par répondre autre chose sur le même état. */
-    document.documentElement.classList.toggle('kbd',clavier);};
+       finirait par répondre autre chose sur le même état.
+       ⚠ SAUF SI LE CHAMP QUI A OUVERT LE CLAVIER VIT DANS L'EN-TÊTE (v5.14.1, signalé à
+       l'usage : « le clavier de l'accueil ne s'affiche plus »). La règle `html.kbd
+       header.bar{display:none}` a été conçue pour la recherche des RÉFÉRENCES, dont le champ
+       vit dans la colonne — mais le champ de recherche de l'ACCUEIL vit DANS l'en-tête :
+       clavier s'ouvre → en-tête masqué → le champ touché est détruit AVEC lui → focus perdu →
+       le clavier se referme aussitôt. Le champ se tuait lui-même, et aucune mesure du harnais
+       ne le voyait (il ne pilote pas le clavier). Quand le champ actif est dans l'en-tête,
+       l'en-tête reste — c'est LUI le chrome de frappe, exactement le principe de la 5.13.4
+       (« un seul chrome à la fois ») appliqué dans l'autre sens. */
+    const dansHdr=(()=>{try{const a=document.activeElement;
+      return !!(a&&a.closest&&a.closest('header.bar'));}catch(e){return false;}})();
+    document.documentElement.classList.toggle('kbd',clavier&&!dansHdr);};
   /* v4.29.7 : iOS peut CORRIGER la géométrie de la WebView (ex. après le bug de la PWA amputée)
      SANS émettre resize sur visualViewport — une valeur posée au lancement restait alors fausse
      pour toute la session. On écoute large (fenêtre, orientation, retour au premier plan) ET on
