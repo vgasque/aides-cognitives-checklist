@@ -62,3 +62,15 @@ la feuille de partage qui l'appelle. (2) Aucun « ping » d'horloge dédié : ch
 déjà `server_time`, le chemin `_sample`/`shareOffset` existant fait de l'horloge de l'hôte la
 référence sans un octet de plus. 6 témoins neufs (join/push/pull par le canal, revoke par la
 couture hôte, verbe inconnu → erreur nommée, personne en face → timeout).
+
+## Exigence pour l'étape 5 (notée le 17/08, question de l'auteur : « et si les deux téléphones
+## n'ont pas la même heure à la minute près ? »)
+
+En ligne et en direct, la question est réglée par construction : `shareOffset` corrige chaque
+appareil vers la référence (serveur, ou hôte via le `server_time` du hub — déjà branché, zéro
+code). PAR L'ÉCRAN, il n'y a pas d'échantillons : **l'instantané optique doit porter l'heure
+d'émission de l'hôte**, et l'invité en déduit un décalage grossier (précision ≈ durée du
+transfert, quelques secondes) pour dater ses repères annexes — sans cela, un invité décalé de
+deux minutes classerait ses repères au mauvais endroit du journal de l'hôte. L'erreur ABSOLUE
+de l'horloge de l'hôte est assumée : une seule ligne de temps cohérente, celle de l'autorité
+clinique — l'ordre et les durées sont exacts, les étiquettes murales suivent sa montre.
