@@ -10467,9 +10467,10 @@ function sdpRebuild(o){
   L.push('a=end-of-candidates');
   return L.join('\r\n')+'\r\n';}
 /* UN SEUL FORMAT pour tout l'optique (décision utilisateur) : la famille fontaine.
-   « S<t>:<b64> » = trame SOLO (charge entière dans un code → QR statique, cas nominal) ;
-   « FM:{t,…} » = fiche du transfert ; « Fxxx:<b64> » = bloc/réparation. Le copier/coller
-   transporte la ligne solo quelle que soit sa taille (le texte n'a pas la limite des 213 o). */
+   « S<t>:<b64> » = trame SOLO texte (charge entière dans un code → QR statique, cas nominal) ;
+   sinon trames BINAIRES auto-descriptives (en-tête 18 o : type, graine, séquence, k, taille,
+   sha-4 — voir ltFrame). Le copier/coller transporte la ligne solo quelle que soit sa taille
+   (le texte n'a pas la limite des 213 o). */
 async function sigLine(kind,obj){
   const raw=enc(JSON.stringify(obj)),z=await deflate(raw);
   log('signal '+kind+' : JSON '+raw.length+' o → compressé '+z.length+' o');
@@ -10568,7 +10569,7 @@ async function sigShow(kind,obj,box){
   box.classList.remove('hide');box.innerHTML='';
   const solo=qrCanvas(p.line,6); // null si trop long pour un code — c'est LA porte
   if(solo){box.appendChild(solo);return log('signal '+kind+' : un seul code, statique');}
-  qrCycleTimer=ltShowLoop(box,p.z,{t:kind},3);
+  qrCycleTimer=await ltShowLoop(box,p.z,{O:1,A:2}[kind],3);
   log('signal '+kind+' en rafale fontaine ('+Math.ceil(p.z.length/LT_CH)+' blocs) — laisser l\'écran dans le champ');}
 /* Boucle de scan d'une charge de signalisation, avec RETOUR VISIBLE à chaque code lu —
    « plus rien à l'écran » n'est pas un diagnostic. kind='A' (hôte) ou 'O' (invité). */
@@ -10576,29 +10577,25 @@ function scanSignal(kind,label,onDone){
   let fount=null;const seen=new Set();
   const reset=()=>{fount=null;};
   scanLoop($('scanVideo'),async(txt,st,bin)=>{try{
-    // — trame binaire de flux —
+    // — trame binaire auto-descriptive —
     const bf=ltParse(bin);
-    if(bf){const key='B'+bf.sid+':'+bf.i;
+    if(bf){if(bf.type!==({O:1,A:2})[kind])return; // pas pour moi
+      const key=bf.seed+':'+bf.i;
       if(seen.has(key))return;seen.add(key);
-      if(!fount||bf.sid!==(fount.seed&0xffff))return; // pas ma session : la fiche tranchera
+      if(!fount||fount.seed!==bf.seed){ // première trame OU émetteur redémarré
+        if(fount)log('nouvelle émission détectée — récepteur réinitialisé','warn');
+        fount=ltRxFromFrame(bf);log('QR lu : '+label+' en '+bf.k+' bloc(s)');}
       const done=ltFeed(fount,bf.i,bf.d);
       log('QR lu : '+fount.nRec+'/'+fount.k+' bloc(s) de '+label,'ok');
       if(done){log('QR lu : '+label+' complète (fontaine)');
         await onDone(JSON.parse(dec(await inflate(ltBytes(fount)))),reset);}
       return;}
-    txt=String(txt).trim();
+    txt=String(txt||'').trim();
     if(seen.has(txt))return;seen.add(txt);
     // — trame SOLO : la charge entière dans un code —
     const sm=txt.match(new RegExp('^S'+kind+':([A-Za-z0-9_-]+)$'));
     if(sm){log('QR lu : '+label+' complète (code unique)');
       await onDone(JSON.parse(dec(await inflate(unb64u(sm[1])))),reset);return;}
-    // — fiche du transfert (émetteur redémarré → graine neuve → récepteur réinitialisé) —
-    if(txt.startsWith('FM:')){const m=JSON.parse(txt.slice(3));
-      if(m.t!==kind)return log('QR lu : pas '+label+' (ignoré)','warn');
-      if(fount&&m.seed!==fount.seed){fount=ltNewRx(m);
-        return log('nouvelle émission détectée — récepteur réinitialisé','warn');}
-      if(!fount){fount=ltNewRx(m);log('QR lu : fiche de '+label+' — '+m.k+' bloc(s)');}
-      return;}
     return log('QR lu : pas '+label+' (ignoré)','warn');
   }catch(e){log('erreur au scan : '+e.message,'ko');}});}
 function bindChannel(ch){
@@ -10787,53 +10784,60 @@ function ltBytes(st){const all=new Uint8Array(st.k*st.ch);
    pour qu'un récepteur arrivé en route s'accroche) + blocs systématiques + réparations.
    `extra` entre dans la méta (t:'O'/'A' = signalisation, t:'D' = données de rafale).
    Renvoie l'id du minuteur — l'appelant le range et le coupe. */
-/* Trames de flux BINAIRES : en-tête 6 octets [0xF7, session(2), séquence(3)] + 207 octets de
-   charge = 213 pile (v10-M). La session (16 bits de la graine) rend chaque trame
-   auto-descriptive : un émetteur redémarré RÉINITIALISE le récepteur au lieu de le corrompre.
-   Masque épinglé (4) sur les trames ; la fiche, rare, garde le concours des masques. */
-const LT_CH=207,LT_MAGIC=0xF7;
-function ltFrame(seed,i,k,cdf,blocks){
-  const f=new Uint8Array(6+LT_CH);
-  f[0]=LT_MAGIC;f[1]=seed&0xff;f[2]=(seed>>8)&0xff;
-  f[3]=i&0xff;f[4]=(i>>8)&0xff;f[5]=(i>>16)&0xff;
-  const d=f.subarray(6);
-  for(const j of ltIndices(seed,i,k,cdf))xorInto(d,blocks[j]);
+/* Trames de flux ENTIÈREMENT AUTO-DESCRIPTIVES (le vrai truc de decimen : pas de trame
+   « fiche » du tout — leur en-tête de 22 o est DANS chaque trame). En-tête 18 octets :
+   [0xF7, type(1 : 0=données 1=offre 2=réponse), graine(4), séquence(3), k(2), taille(3),
+   sha-4(4)] + 195 octets de charge = 213 pile (v10-M). N'importe quelle trame captée, même en
+   plein vol, initialise le récepteur : zéro temps d'antenne en méta, zéro délai d'accrochage,
+   redémarrage de l'émetteur détecté trame par trame (graine neuve). Masque épinglé (4). */
+const LT_CH=195,LT_MAGIC=0xF7;
+function ltFrame(p,i){ // p = {type,seed,k,z,h4,blocks,cdf}
+  const f=new Uint8Array(18+LT_CH);
+  f[0]=LT_MAGIC;f[1]=p.type;
+  f[2]=p.seed&0xff;f[3]=(p.seed>>>8)&0xff;f[4]=(p.seed>>>16)&0xff;f[5]=(p.seed>>>24)&0xff;
+  f[6]=i&0xff;f[7]=(i>>8)&0xff;f[8]=(i>>16)&0xff;
+  f[9]=p.k&0xff;f[10]=(p.k>>8)&0xff;
+  f[11]=p.z&0xff;f[12]=(p.z>>8)&0xff;f[13]=(p.z>>16)&0xff;
+  f.set(p.h4,14);
+  const d=f.subarray(18);
+  for(const j of ltIndices(p.seed,i,p.k,p.cdf))xorInto(d,p.blocks[j]);
   return f;}
-function ltShowLoop(box,bytes,extra,fps){
+async function ltShowLoop(box,bytes,type,fps){
   const CH=LT_CH,k=Math.ceil(bytes.length/CH),seed=(Math.random()*0xffffffff)>>>0;
   const blocks=[];for(let j=0;j<k;j++){const b=new Uint8Array(CH);
     b.set(bytes.subarray(j*CH,Math.min((j+1)*CH,bytes.length)));blocks.push(b);}
-  const cdf=ltCdf(k);
-  const metaCv=qrCanvas('FM:'+JSON.stringify(Object.assign({k,z:bytes.length,seed,ch:CH},extra)),5);
-  if(!metaCv){log('méta trop longue pour le QR maison','ko');return 0;}
+  const p={type,seed,k,z:bytes.length,h4:ltHex4(await sha8(bytes)),blocks,cdf:ltCdf(k)};
   box.classList.remove('hide');box.innerHTML='';
   const w=document.createElement('div');w.style.textAlign='center';
   const cap=document.createElement('div');
   cap.style.cssText='font:13px ui-monospace,monospace;color:#000';
-  w.appendChild(metaCv);w.appendChild(cap);box.appendChild(w);
-  cap.textContent='fiche du transfert (répétée)';
-  /* ORDONNANCEMENT HYBRIDE (M8 mesuré 17/08 : caméra quasi sans perte → le séquentiel battait
-     la fontaine 1/6-méta). Cycle = fiche, puis les k blocs DANS L'ORDRE (= vitesse du séquentiel
-     en conditions propres), puis quelques réparations seulement (l'assurance, au prix juste).
-     Le récepteur est inchangé : même format, seul l'ordre d'émission bouge. Les trames du
-     balayage sont FIXES → pré-rendues une fois. */
-  const sweep=[];for(let j=0;j<k;j++)sweep.push(qrCanvas(ltFrame(seed,j,k,cdf,blocks),5,4));
-  const rep=Math.max(1,Math.ceil(k/4)),cycle=1+k+rep;
-  let t=0,iRep=k;
+  /* ORDONNANCEMENT HYBRIDE (M8 mesuré 17/08 : caméra quasi sans perte → le séquentiel battait la
+     fontaine naïve). Cycle = les k blocs DANS L'ORDRE (vitesse du séquentiel en conditions
+     propres, trames pré-rendues), puis ⌈k/4⌉ réparations (l'assurance au prix juste). Plus de
+     fiche : chaque trame porte tout l'en-tête. */
+  const sweep=[];for(let j=0;j<k;j++)sweep.push(qrCanvas(ltFrame(p,j),5,4));
+  if(sweep.some(c=>!c)){log('trame trop longue pour le QR maison','ko');return 0;}
+  w.appendChild(sweep[0]);w.appendChild(cap);box.appendChild(w);cap.textContent='bloc 1 / '+k;
+  const rep=Math.max(1,Math.ceil(k/4)),cycle=k+rep;
+  let t=1,iRep=k;
   return setInterval(()=>{
     const pos=t%cycle;let cv,txt;
-    if(pos===0){cv=metaCv;txt='fiche du transfert (répétée)';}
-    else if(pos<=k){cv=sweep[pos-1];txt='bloc '+pos+' / '+k;}
-    else{cv=qrCanvas(ltFrame(seed,iRep,k,cdf,blocks),5,4);
-      txt='réparation n° '+(iRep-k+1);iRep++;}
+    if(pos<k){cv=sweep[pos];txt='bloc '+(pos+1)+' / '+k;}
+    else{cv=qrCanvas(ltFrame(p,iRep),5,4);txt='réparation n° '+(iRep-k+1);iRep++;}
     t++;
     if(cv){w.replaceChild(cv,w.firstChild);cap.textContent=txt;}
   },1000/fps);}
-/* Réception d'une trame binaire ; renvoie {sid,i,d} ou null. */
+/* Réception d'une trame binaire ; renvoie {type,seed,i,k,z,h,d} ou null. */
 function ltParse(bin){
-  if(!bin||bin.length!==6+LT_CH||bin[0]!==LT_MAGIC)return null;
-  return {sid:bin[1]|(bin[2]<<8),i:bin[3]|(bin[4]<<8)|(bin[5]<<16),
-          d:Uint8Array.from(bin).subarray(6)};}
+  if(!bin||bin.length!==18+LT_CH||bin[0]!==LT_MAGIC)return null;
+  const u=Uint8Array.from(bin);
+  return {type:u[1],seed:(u[2]|(u[3]<<8)|(u[4]<<16)|(u[5]<<24))>>>0,
+    i:u[6]|(u[7]<<8)|(u[8]<<16),k:u[9]|(u[10]<<8),z:u[11]|(u[12]<<8)|(u[13]<<16),
+    h:[...u.subarray(14,18)].map(b=>b.toString(16).padStart(2,'0')).join(''),
+    d:u.subarray(18)};}
+function ltHex4(h){const b=new Uint8Array(4); // sha8 hex → 4 octets d'en-tête
+  for(let i=0;i<4;i++)b[i]=parseInt(h.slice(i*2,i*2+2),16)||0;return b;}
+function ltRxFromFrame(bf){return ltNewRx({k:bf.k,z:bf.z,seed:bf.seed,ch:LT_CH,h:bf.h});}
 let txTimer=0;
 function fakeSnap(size){ // pseudo-shareSnap : structure répétitive, compresse comme le vrai
   const o={checked:{},verified:{},counters:{},events:[]};let i=0;
@@ -10863,7 +10867,7 @@ $('txStart').onclick=async()=>{
   const k=Math.ceil(z.length/LT_CH);
   $('txInfo').textContent='fontaine : '+raw.length+' o → '+z.length+' o → '+k+' blocs, '+fps+'/s '+
     '(≈'+Math.ceil(k*1.15/fps)+' s théoriques, quel que soit ce qui est raté)';
-  txTimer=ltShowLoop(box,z,{t:'D',b:raw.length,h},fps);
+  txTimer=await ltShowLoop(box,z,0,fps);
   log('rafale FONTAINE démarrée : '+k+' blocs, trames infinies');};
 $('txStop').onclick=()=>{clearInterval(txTimer);$('txQr').innerHTML='';};
 async function startRx(){
@@ -10877,12 +10881,16 @@ async function startRx(){
         (raw.length/dt).toFixed(0)+' o/s effectifs'+(extra||'')+') — sha '+h+
         (h===attendu?' ✓':' ✗ attendu '+attendu),h===attendu?'ok':'ko');};
   scanLoop($('rxVideo'),async(txt,st,bin)=>{
-    // — mode fontaine (trames binaires) —
+    // — mode fontaine (trames binaires auto-descriptives) —
     const bf=ltParse(bin);
-    if(bf){if(!fount)return; // fiche pas encore vue : elle repasse
-      if(bf.sid!==(fount.seed&0xffff))return;
-      const key=bf.sid+':'+bf.i;
+    if(bf){if(bf.type!==0)return; // trame de SIGNALISATION : pas pour le récepteur de rafale
+      const key=bf.seed+':'+bf.i;
       if(fSeen.has(key))return;fSeen.add(key);
+      if(!fount||fount.seed!==bf.seed){ // première trame OU émetteur redémarré
+        if(fount)log('nouvelle émission détectée — récepteur réinitialisé','warn');
+        fount=ltRxFromFrame(bf);fFrames=0;t0=0;
+        grid.innerHTML='';for(let i=0;i<bf.k;i++)grid.appendChild(document.createElement('i'));
+        log('émission fontaine : '+bf.k+' blocs, '+bf.z+' o compressés');}
       t0=t0||performance.now();fFrames++;
       const done=ltFeed(fount,bf.i,bf.d);
       for(let j=0;j<fount.k;j++)if(fount.rec[j]&&grid.children[j])grid.children[j].className='got';
@@ -10893,15 +10901,6 @@ async function startRx(){
         ((fFrames/fount.k-1)*100).toFixed(0)+' %');
       return;}
     txt=String(txt||'').trim();
-    if(txt.startsWith('FM:')){const mm=JSON.parse(txt.slice(3));
-      if(mm.t&&mm.t!=='D')return; // fiche de SIGNALISATION : pas pour le récepteur de rafale
-      if(fount&&mm.seed!==fount.seed){fount=ltNewRx(mm);fFrames=0;t0=0;fSeen.clear();
-        grid.innerHTML='';for(let i=0;i<mm.k;i++)grid.appendChild(document.createElement('i'));
-        return log('nouvelle émission détectée — récepteur réinitialisé','warn');}
-      if(!fount){const m=mm;fount=ltNewRx(m);
-      t0=t0||performance.now();
-      grid.innerHTML='';for(let i=0;i<m.k;i++)grid.appendChild(document.createElement('i'));
-      log('méta fontaine : '+m.k+' blocs, '+m.z+' o compressés');}return;}
     // — mode séquentiel —
     if(txt.startsWith('RM:')){if(!meta){meta=JSON.parse(txt.slice(3));t0=t0||performance.now();
       grid.innerHTML='';for(let i=0;i<meta.n;i++)grid.appendChild(document.createElement('i'));
