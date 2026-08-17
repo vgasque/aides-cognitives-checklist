@@ -96,6 +96,7 @@
   <div class="row">
     Taille : <select id="txSize"><option value="1024">1 Kio</option><option value="5120" selected>5 Kio</option><option value="20480">20 Kio</option></select>
     Cadence : <select id="txFps"><option>2</option><option selected>4</option><option>6</option><option>8</option></select> codes/s
+    Mode : <select id="txMode"><option value="fount" selected>fontaine (LT)</option><option value="seq">séquentiel</option></select>
     <button class="primary" id="txStart">Émettre</button><button id="txStop">Stop</button>
   </div>
   <div class="kv" id="txInfo"></div>
@@ -10723,7 +10724,55 @@ $('btnRestart').onclick=async()=>{
   $('camFirst').checked=true; // il faudra re-scanner la réponse : caméra d'office
   await startHost();};
 
-/* ---- Rafale QR (M8) ---- */
+/* ---- Rafale QR (M8) ----
+   Deux modes. SÉQUENTIEL : carrousel de trames numérotées — rater la trame 7 oblige à attendre
+   son retour. FONTAINE (Luby Transform, idée reprise de decimen-optical-transfer SANS sa pile) :
+   chaque trame est un XOR de blocs choisis par un tirage REPRODUCTIBLE (graine + n° de trame) ;
+   n'importe quelles ~K×1,15 trames distinctes, dans n'importe quel ordre, reconstituent le tout —
+   l'émetteur est un robinet, le récepteur se sert, la progression ne fait que monter. */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296;};}
+function ltCdf(k){ // soliton robuste (c=0.1, δ=0.5), table de tirage du degré
+  if(k===1)return [0,1];
+  const c=0.1,delta=0.5,R=Math.max(1,c*Math.log(k/delta)*Math.sqrt(k)),kR=Math.max(2,Math.round(k/R));
+  const w=[0];let Z=0;
+  for(let d=1;d<=k;d++){
+    const rho=d===1?1/k:1/(d*(d-1));
+    const tau=d<kR?R/(d*k):(d===kR?R*Math.log(R/delta)/k:0);
+    w[d]=rho+tau;Z+=w[d];}
+  const cdf=[0];let acc=0;
+  for(let d=1;d<=k;d++){acc+=w[d]/Z;cdf[d]=acc;}
+  return cdf;}
+function ltIndices(seed,i,k,cdf){ // ensemble des blocs XORés dans la trame i — même calcul TX/RX
+  // SYSTÉMATIQUE : les k premières trames SONT les blocs (premier passage aussi efficace que le
+  // séquentiel) ; les suivantes sont des mélanges de réparation (surcoût mesuré 88 % → ~25 %).
+  if(i<k)return new Set([i]);
+  const rng=mulberry32((seed^Math.imul(i+1,0x9E3779B9))>>>0);
+  const r=rng();let d=1;while(d<cdf.length-1&&r>cdf[d])d++;d=Math.min(d,k);
+  const set=new Set();while(set.size<d)set.add(Math.floor(rng()*k));
+  return set;}
+function xorInto(a,b){for(let i=0;i<a.length;i++)a[i]^=b[i];}
+function ltNewRx(meta){return {k:meta.k,z:meta.z,b:meta.b,h:meta.h,seed:meta.seed,ch:meta.ch,
+  cdf:ltCdf(meta.k),rec:new Array(meta.k).fill(null),nRec:0,pend:[],seen:new Set()};}
+function ltFeed(st,i,data){ // épluchage (belief propagation) — renvoie true si complet
+  if(st.seen.has(i)||st.nRec===st.k)return st.nRec===st.k;
+  st.seen.add(i);
+  const idx=ltIndices(st.seed,i,st.k,st.cdf),d=data.slice(0,st.ch);
+  for(const j of [...idx])if(st.rec[j]){xorInto(d,st.rec[j]);idx.delete(j);}
+  if(idx.size===1){const j=[...idx][0];if(!st.rec[j]){st.rec[j]=d;st.nRec++;}}
+  else if(idx.size>1)st.pend.push({idx,d});
+  let again=true; // propager : toute équation réduite à un bloc en livre un nouveau
+  while(again){again=false;
+    for(let p=st.pend.length-1;p>=0;p--){const f=st.pend[p];
+      for(const q of [...f.idx])if(st.rec[q]){xorInto(f.d,st.rec[q]);f.idx.delete(q);}
+      if(f.idx.size<=1){st.pend.splice(p,1);
+        if(f.idx.size===1){const j=[...f.idx][0];
+          if(!st.rec[j]){st.rec[j]=f.d;st.nRec++;again=true;}}}}}
+  return st.nRec===st.k;}
+function ltBytes(st){const all=new Uint8Array(st.k*st.ch);
+  for(let j=0;j<st.k;j++)all.set(st.rec[j],j*st.ch);
+  return all.slice(0,st.z);}
 let txTimer=0;
 function fakeSnap(size){ // pseudo-shareSnap : structure répétitive, compresse comme le vrai
   const o={checked:{},verified:{},counters:{},events:[]};let i=0;
@@ -10734,25 +10783,70 @@ function fakeSnap(size){ // pseudo-shareSnap : structure répétitive, compresse
   return enc(JSON.stringify(o)).slice(0,size);}
 $('txStart').onclick=async()=>{
   clearInterval(txTimer);
-  const size=+$('txSize').value,fps=+$('txFps').value,raw=fakeSnap(size);
-  const z=await deflate(raw),CH=138,n=Math.ceil(z.length/CH),h=await sha8(z);
-  const frames=['RM:'+JSON.stringify({n,b:raw.length,z:z.length,h})];
-  for(let i=0;i<n;i++)
-    frames.push('R'+i.toString(36).padStart(2,'0')+n.toString(36).padStart(2,'0')+':'+
-                b64u(z.subarray(i*CH,(i+1)*CH)));
-  $('txInfo').textContent=raw.length+' o → '+z.length+' o compressés → '+n+' trames + méta, '+fps+'/s '+
-    '(théorique : '+Math.ceil((n+1)/fps)+' s/tour)';
-  const cvs=frames.map(f=>qrCanvas(f,5));
-  if(cvs.some(c=>!c))return log('une trame dépasse la capacité du QR maison','ko');
-  let k=0;const box=$('txQr');
-  txTimer=setInterval(()=>{box.innerHTML='';box.appendChild(cvs[k%cvs.length]);k++;},1000/fps);
-  log('rafale démarrée : '+frames.length+' trames en boucle');};
+  const size=+$('txSize').value,fps=+$('txFps').value,mode=$('txMode').value,raw=fakeSnap(size);
+  const z=await deflate(raw),CH=138,h=await sha8(z),box=$('txQr');
+  if(mode==='seq'){
+    const n=Math.ceil(z.length/CH);
+    const frames=['RM:'+JSON.stringify({n,b:raw.length,z:z.length,h})];
+    for(let i=0;i<n;i++)
+      frames.push('R'+i.toString(36).padStart(2,'0')+n.toString(36).padStart(2,'0')+':'+
+                  b64u(z.subarray(i*CH,(i+1)*CH)));
+    $('txInfo').textContent='séquentiel : '+raw.length+' o → '+z.length+' o → '+n+' trames + méta, '+
+      fps+'/s (théorique : '+Math.ceil((n+1)/fps)+' s/tour)';
+    const cvs=frames.map(f=>qrCanvas(f,5));
+    if(cvs.some(c=>!c))return log('une trame dépasse la capacité du QR maison','ko');
+    let k=0;
+    txTimer=setInterval(()=>{box.innerHTML='';box.appendChild(cvs[k%cvs.length]);k++;},1000/fps);
+    return log('rafale SÉQUENTIELLE démarrée : '+frames.length+' trames en boucle');}
+  // FONTAINE : blocs bourrés à CH octets, trames i=0,1,2,… jamais deux fois la même,
+  // méta re-émise toutes les 8 trames pour les arrivées en cours de route.
+  const k=Math.ceil(z.length/CH),seed=(Math.random()*0xffffffff)>>>0;
+  const blocks=[];for(let j=0;j<k;j++){const b=new Uint8Array(CH);
+    b.set(z.subarray(j*CH,Math.min((j+1)*CH,z.length)));blocks.push(b);}
+  const cdf=ltCdf(k);
+  const metaCv=qrCanvas('FM:'+JSON.stringify({k,b:raw.length,z:z.length,h,seed,ch:CH}),5);
+  if(!metaCv)return log('méta trop longue pour le QR maison','ko');
+  $('txInfo').textContent='fontaine : '+raw.length+' o → '+z.length+' o → '+k+' blocs, '+fps+'/s '+
+    '(≈'+Math.ceil(k*1.15/fps)+' s théoriques, quel que soit ce qui est raté)';
+  let i=0,tick=0;
+  txTimer=setInterval(()=>{
+    box.innerHTML='';
+    if(tick++%8===0)return box.appendChild(metaCv);
+    const d=blocks[0].slice();d.fill(0);
+    for(const j of ltIndices(seed,i,k,cdf))xorInto(d,blocks[j]);
+    const cv=qrCanvas('F'+i.toString(36).padStart(3,'0')+':'+b64u(d),5);
+    if(cv)box.appendChild(cv);
+    i++;},1000/fps);
+  log('rafale FONTAINE démarrée : '+k+' blocs, trames infinies');};
 $('txStop').onclick=()=>{clearInterval(txTimer);$('txQr').innerHTML='';};
 async function startRx(){
   try{await camStart($('rxVideo'));}catch(e){return log('caméra refusée : '+e.message,'ko');}
-  let meta=null,parts=new Map(),t0=0,dupes=0;
+  let meta=null,parts=new Map(),t0=0,dupes=0,fount=null,fFrames=0;
   const grid=$('rxGrid');
+  const fini=async(z,dt,attendu,extra)=>{scanRun++;camStop();
+    const h=await sha8(z),raw=await inflate(z);
+    log('rafale COMPLÈTE : '+raw.length+' o en '+dt.toFixed(1)+' s ('+
+        (raw.length/dt).toFixed(0)+' o/s effectifs'+(extra||'')+') — sha '+h+
+        (h===attendu?' ✓':' ✗ attendu '+attendu),h===attendu?'ok':'ko');};
   scanLoop($('rxVideo'),async(txt,st)=>{
+    // — mode fontaine —
+    if(txt.startsWith('FM:')){if(!fount){const m=JSON.parse(txt.slice(3));fount=ltNewRx(m);
+      t0=t0||performance.now();
+      grid.innerHTML='';for(let i=0;i<m.k;i++)grid.appendChild(document.createElement('i'));
+      log('méta fontaine : '+m.k+' blocs, '+m.z+' o compressés');}return;}
+    const fm=txt.match(/^F([0-9a-z]{3}):([A-Za-z0-9_-]+)$/);
+    if(fm){if(!fount)return; // méta pas encore vue : elle repasse toutes les 8 trames
+      t0=t0||performance.now();fFrames++;
+      const done=ltFeed(fount,parseInt(fm[1],36),unb64u(fm[2]));
+      for(let j=0;j<fount.k;j++)if(fount.rec[j]&&grid.children[j])grid.children[j].className='got';
+      $('rxInfo').textContent=fount.nRec+'/'+fount.k+' blocs — '+fFrames+' trames lues ('+
+        (fFrames?(100*fount.nRec/Math.max(1,fount.k)).toFixed(0):0)+' %) — '+
+        st.hits+' lectures/'+st.tries+' essais';
+      if(done)await fini(ltBytes(fount),(performance.now()-t0)/1000,fount.h,
+        ', '+fFrames+' trames pour '+fount.k+' blocs = surcoût '+
+        ((fFrames/fount.k-1)*100).toFixed(0)+' %');
+      return;}
+    // — mode séquentiel —
     if(txt.startsWith('RM:')){if(!meta){meta=JSON.parse(txt.slice(3));t0=t0||performance.now();
       grid.innerHTML='';for(let i=0;i<meta.n;i++)grid.appendChild(document.createElement('i'));
       log('méta : '+meta.n+' trames, '+meta.z+' o compressés');}return;}
@@ -10763,13 +10857,9 @@ async function startRx(){
     const n=meta?meta.n:parseInt(m[2],36);
     $('rxInfo').textContent=parts.size+'/'+n+' trames — '+dupes+' doublons — '+
       st.hits+' lectures/'+st.tries+' essais';
-    if(meta&&parts.size===meta.n){scanRun++;camStop();
+    if(meta&&parts.size===meta.n){
       let body='';for(let j=0;j<meta.n;j++)body+=parts.get(j);
-      const z=unb64u(body),dt=(performance.now()-t0)/1000,h=await sha8(z);
-      const raw=await inflate(z);
-      log('rafale COMPLÈTE : '+raw.length+' o en '+dt.toFixed(1)+' s ('+
-          (raw.length/dt).toFixed(0)+' o/s effectifs) — sha '+h+
-          (h===meta.h?' ✓':' ✗ attendu '+meta.h),h===meta.h?'ok':'ko');}});}
+      await fini(unb64u(body),(performance.now()-t0)/1000,meta.h,', '+dupes+' doublons');}});}
 
 /* ---- Auto-test + boucle locale ---- */
 async function autoTest(){
@@ -10792,6 +10882,22 @@ async function autoTest(){
   const raw=fakeSnap(5120),z=await deflate(raw),back=await inflate(z);
   say('deflate/inflate : '+raw.length+' → '+z.length+' → '+back.length+' o '+
       (dec(back)===dec(raw)?'✓':'✗'),dec(back)===dec(raw)?'ok':'ko');
+  // fontaine LT : 30 % de trames PERDUES, ordre mélangé — doit aboutir quand même
+  {const CH=138,k=Math.ceil(z.length/CH),seed=0xC0FFEE^k,cdf=ltCdf(k);
+   const blocks=[];for(let j=0;j<k;j++){const b=new Uint8Array(CH);
+     b.set(z.subarray(j*CH,Math.min((j+1)*CH,z.length)));blocks.push(b);}
+   const st=ltNewRx({k,b:raw.length,z:z.length,h:'',seed,ch:CH});
+   const ids=[];for(let i=0;i<k*4;i++)if((Math.imul(i,2654435761)>>>8)%10>=3)ids.push(i);
+   for(let a=ids.length-1;a>0;a--){const b=(Math.imul(a,40503)>>>4)%(a+1);
+     [ids[a],ids[b]]=[ids[b],ids[a]];}
+   let fed=0,done=false;
+   for(const i of ids){fed++;const d=new Uint8Array(CH);
+     for(const j of ltIndices(seed,i,k,cdf))xorInto(d,blocks[j]);
+     if(ltFeed(st,i,d)){done=true;break;}}
+   const ok=done&&dec(await inflate(ltBytes(st)))===dec(raw);
+   say('fontaine LT : '+k+' blocs, 30 % perdues, ordre mélangé → '+
+       (ok?'reconstitué avec '+fed+' trames (surcoût '+((fed/k-1)*100).toFixed(0)+' %)':'ÉCHEC'),
+       ok?'ok':'ko');}
   await loopback(say);}
 async function loopback(say){
   say=say||((t,c)=>log(t,c));
