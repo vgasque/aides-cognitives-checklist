@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-ZRfilXbKj5EeU+x3/rJdhMREvwiTUtALPiBFY5E1Qus='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-rpZS230HdirBdNKy2Zi+20QmSDkdcGKp4XwJzJYuLkw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -29767,7 +29767,21 @@ const Share={
     admit:(share,secs)=>rpc('share_admit',{p_share:share,p_seconds:secs}),
     join:(code,label)=>rpc('share_join',{p_code:code,p_label:label}),
     pull:(secret,share,since)=>rpc('share_pull',{p_secret:secret,p_share:share,p_since:since}),
-    push:(secret,share,events)=>rpc('share_push',{p_secret:secret,p_share:share,p_events:events})},
+    push:(secret,share,events)=>rpc('share_push',{p_secret:secret,p_share:share,p_events:events}),
+    /* VERBES D'HÔTE (v5.14, lot « partage sans serveur », étape 1). Ils vivaient en PATCH
+       PostgREST écrits EN DUR dans revoke/_reclaimLead/endShare/grantLead : la couture était
+       incomplète, et un transport alternatif aurait dû RECOPIER leur sémantique au lieu de la
+       brancher. Trois verbes suffisent — grantLead et _reclaimLead écrivent le même geste
+       (poser un rôle). Le comportement au fil ne change pas d'un octet : mêmes URL, mêmes
+       corps, mêmes en-têtes — le harnais qui intercepte `rest` le vérifie tel quel. */
+    revoke:(share,pid)=>rest('PATCH','/rest/v1/session_participants?share_id=eq.'
+      +encodeURIComponent(share)+'&participant=eq.'+encodeURIComponent(pid),
+      {revoked_at:new Date().toISOString()},{'Prefer':'return=minimal'}),
+    setRole:(share,pid,role)=>rest('PATCH','/rest/v1/session_participants?share_id=eq.'
+      +encodeURIComponent(share)+'&participant=eq.'+encodeURIComponent(pid),
+      {role:role},{'Prefer':'return=minimal'}),
+    end:(share)=>rest('PATCH','/rest/v1/shared_sessions?id=eq.'+encodeURIComponent(share),
+      {status:'ended',expires_at:new Date().toISOString()},{'Prefer':'return=minimal'})},
 
   // Heure SERVEUR estimée. Tout ce qui est horodaté passe par ici — pas seulement les minuteurs :
   // sans cela, deux appareils dont les horloges divergent produiraient un compte-rendu dont
@@ -30150,9 +30164,7 @@ const Share={
      serveur qui fait foi, et un bouton qui ment sur un droit d'accès est pire que pas de bouton. */
   async revoke(pid){
     if(this.mode!=='host'||!this.share||!pid)return false;
-    try{await rest('PATCH','/rest/v1/session_participants?share_id=eq.'+encodeURIComponent(this.share)
-      +'&participant=eq.'+encodeURIComponent(pid),{revoked_at:new Date().toISOString()},
-      {'Prefer':'return=minimal'});
+    try{await this._io.revoke(this.share,pid);
       /* COUPER CELUI QUI TIENT LA MAIN LA REND À L'HÔTE. Sans cela, on obtient l'état que
          l'invariant 1 interdit : « un seul lead à tout instant, jamais deux, JAMAIS ZÉRO ». Le
          partage garderait un lead révoqué, l'hôte resterait scribe, et le prochain invité admis
@@ -30172,8 +30184,7 @@ const Share={
       if(!p||p.role!=='lead')return false;
       const moi=(this.participants||[]).find(x=>x.owner);
       if(!moi)return false;
-      await rest('PATCH','/rest/v1/session_participants?share_id=eq.'+encodeURIComponent(this.share)
-        +'&participant=eq.'+encodeURIComponent(moi.id),{role:'lead'},{'Prefer':'return=minimal'});
+      await this._io.setRole(this.share,moi.id,'lead');
       this.role='lead';_hoOffered=null;_hoTake=null;
       try{announce('La main vous revient.');}catch(e){}
       return true;
@@ -30185,8 +30196,7 @@ const Share={
   async endShare(){
     if(this.mode!=='host'||!this.share)return false;
     let ok=false;
-    try{await rest('PATCH','/rest/v1/shared_sessions?id=eq.'+encodeURIComponent(this.share),
-      {status:'ended',expires_at:new Date().toISOString()},{'Prefer':'return=minimal'});ok=true;}catch(e){}
+    try{await this._io.end(this.share);ok=true;}catch(e){}
     this.stop();_shareBase=null;
     return ok;},
   async joinByCode(code,label){
@@ -30256,9 +30266,7 @@ const Share={
      le pire cas laisse ZÉRO lead, état dégradé mais non ambigu, que l'hôte corrige d'un geste. */
   async grantLead(pid){
     if(this.mode!=='host'||!this.share||!pid)return false;
-    const q=(id,role)=>rest('PATCH','/rest/v1/session_participants?share_id=eq.'
-      +encodeURIComponent(this.share)+'&participant=eq.'+encodeURIComponent(id),
-      {role:role},{'Prefer':'return=minimal'});
+    const q=(id,role)=>this._io.setRole(this.share,id,role);
     try{
       const moi=(this.participants||[]).find(x=>x.owner);
       if(moi)await q(moi.id,'scribe');
