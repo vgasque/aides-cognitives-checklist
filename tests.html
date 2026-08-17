@@ -1375,6 +1375,25 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('encode → décode : charge longue (v10, près du plafond des 213 o)',
     await A.qrSelftest('S'.repeat(190)));
 
+  // ── Étape 3b : la colle WebRTC — NÉGOCIATION complète sur SDP reconstruits, jamais la
+  // connectivité (elle dépend du poste — VPN… — et une porte de commit doit être déterministe) ──
+  {const h=await A.slPcHost();
+   ok('hôte : offre compacte complète (ufrag, pwd, empreinte, rôle actpass)',
+     !!(h.offer.u&&h.offer.p&&h.offer.f&&h.offer.s==='actpass'));
+   const g=await A.slPcGuest(h.offer);
+   ok('invité : le SDP reconstruit est ACCEPTÉ et la réponse est compacte',
+     !!(g.answer.u&&g.answer.p&&g.answer.f&&g.answer.s));
+   await h.answer(g.answer);
+   ok('négociation COMPLÈTE : état stable des deux côtés',
+     h.pc.signalingState==='stable'&&g.pc.signalingState==='stable');
+   const w=A.slChanWire(h.dc);
+   ok('le canal réel se coule dans le contrat {send,onmessage} de la couture',
+     typeof w.send==='function'&&('onmessage' in w));
+   let bad='';try{await A.slPcGuest({u:'x'});}catch(e){bad=e.message;}
+   eq('une offre invalide est REFUSÉE nommément, jamais un pc à moitié construit',
+     bad,'offre invalide');
+   h.pc.close();g.pc.close();}
+
   group('Partage de session — transport');
   // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
   // même couture que le harnais remplacera par un bus en processus pour faire dialoguer deux pages.

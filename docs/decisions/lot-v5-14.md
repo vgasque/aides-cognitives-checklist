@@ -92,3 +92,17 @@ puis restauré. `AGENTS.md` (préambule + règle 13) dit désormais DEUX excepti
 peint, RELIT avec le décodeur vendorisé (chargement paresseux compris) — deux témoins au
 commit (charge courte, charge v10 près du plafond), et c'est le même geste qui servira au test
 hors-ligne d'une future mise à jour de jsQR.
+
+## A202 — La colle WebRTC : le canal réel derrière le même contrat, témoins sans connectivité
+
+**Décision (étape 3b).** `slPcHost`/`slPcGuest` (RTCPeerConnection à `iceServers:[]` — aucun
+serveur, pas même STUN : sur un réseau local les candidats hôte suffisent, validé iPhones),
+négociation NON-TRICKLE (rassemblement attendu, plafonné 5 s) pour que l'offre tienne dans UN
+code ; `slChanWire` coule le RTCDataChannel dans le contrat `{send,onmessage}` de la couture.
+**Doctrine des témoins** : ils vérifient la NÉGOCIATION (SDP reconstruits ACCEPTÉS des deux
+côtés, état `stable`, offre invalide refusée nommément) et JAMAIS la connectivité — elle dépend
+de l'état réseau du poste (leçon VPN du spike), et une porte de commit doit être déterministe ;
+la connectivité, c'est le terrain et la sonde qui la prouvent. 5 témoins, deux moteurs — WebKit
+accepte la reconstruction à CHAQUE commit désormais. Reste de l'étape 3 (3c) : l'interface
+d'appariement dans `#shareModal` selon les maquettes figées, l'entrée invité, et le branchement
+de `Share` sur `slHostIo`/`slClient`.

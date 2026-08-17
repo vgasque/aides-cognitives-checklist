@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-VMEmvVlUqm4UEyHetyxCx/+wVQP10NaHRRvX73Yi+cA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-OGsbm2gRLKL8PyYPCa8f8+SrqHXGUDFwg6EsXBv0qhY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -19296,6 +19296,39 @@ function slHostIo(hub){ // côté HÔTE : son propre hub, sans fil — même cou
     revoke:async(share,pid)=>hub.revoke(pid),
     setRole:async(share,pid,role)=>hub.setRole(pid,role),
     end:async()=>hub.end()};}
+/* ── Étape 3b : la COLLE WebRTC — le canal réel derrière le même contrat ───────────────────
+   `iceServers:[]` : AUCUN serveur, pas même STUN — sur un réseau local les candidats hôte
+   suffisent (validé sur iPhones réels par le spike). La négociation est NON-TRICKLE : on
+   attend la fin du rassemblement (plafonnée à 5 s — un rassemblement qui traîne n'empêche pas
+   d'émettre ce qu'on a) pour que l'offre tienne dans UN code. Les témoins de commit vérifient
+   la NÉGOCIATION (les deux pairs acceptent les SDP reconstruits, état `stable` des deux
+   côtés) et JAMAIS la connectivité : elle dépend de l'état réseau du poste (VPN…), et une
+   porte de commit ne doit pas — c'est le terrain et la sonde qui la prouvent. */
+function slChanWire(dc){ // RTCDataChannel → contrat {send,onmessage} de slServe/slClient
+  const w={onmessage:null,send:t=>{try{dc.send(t);}catch(e){}}};
+  dc.onmessage=e=>{if(w.onmessage&&typeof e.data==='string')w.onmessage(e.data);};
+  return w;}
+function slGatherDone(pc){return new Promise(res=>{
+  if(pc.iceGatheringState==='complete')return res();
+  const to=setTimeout(res,5000);
+  pc.addEventListener('icegatheringstatechange',()=>{
+    if(pc.iceGatheringState==='complete'){clearTimeout(to);res();}});});}
+async function slPcHost(){
+  const pc=new RTCPeerConnection({iceServers:[]});
+  const dc=pc.createDataChannel('ac',{ordered:true});
+  await pc.setLocalDescription(await pc.createOffer());
+  await slGatherDone(pc);
+  return {pc,dc,offer:slSdpExtract(pc.localDescription.sdp),
+    async answer(a){const sdp=slSdpRebuild(a);if(!sdp)throw new Error('réponse invalide');
+      await pc.setRemoteDescription({type:'answer',sdp});}};}
+async function slPcGuest(offer){
+  const sdp=slSdpRebuild(offer);if(!sdp)throw new Error('offre invalide');
+  const pc=new RTCPeerConnection({iceServers:[]});
+  const channel=new Promise(res=>{pc.ondatachannel=e=>res(e.channel);});
+  await pc.setRemoteDescription({type:'offer',sdp});
+  await pc.setLocalDescription(await pc.createAnswer());
+  await slGatherDone(pc);
+  return {pc,answer:slSdpExtract(pc.localDescription.sdp),channel};}
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
    timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
@@ -31393,7 +31426,7 @@ if(location.search.indexOf('__actest')>=0){
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,slClient,slHostIo,qrSelftest,blankFiche,
+    slWirePair,slServe,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,qrSelftest,blankFiche,
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,
