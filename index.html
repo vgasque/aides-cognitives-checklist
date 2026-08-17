@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-OGsbm2gRLKL8PyYPCa8f8+SrqHXGUDFwg6EsXBv0qhY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Kpu55CdN7aopw/oLLANhbZWqAPmKTtwzLe8uTt92I6g='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9364,6 +9364,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     </select>
     <p class="join-err" id="joinErr" role="alert" hidden></p>
     <button class="btn primary join-go" id="joinGo">Rejoindre</button>
+    <label class="join-lab">Sans internet — l'hôte affiche un code d'appariement</label>
+    <button class="btn join-go" id="joinScan">Scanner le code de l'hôte</button>
+    <video id="jsVideo" playsinline muted hidden></video>
+    <div id="jsAnswer" hidden></div>
+    <p class="join-err" id="jsStat" role="status" hidden></p>
     <details class="join-info">
       <summary>Ce qui est enregistré, et par qui</summary>
       <p><b>Qui est responsable.</b> La session appartient au soignant qui vous a montré le code —
@@ -19161,7 +19166,10 @@ function shareOffset(samples,maxRtt){
 function slSdpExtract(sdp){
   const g=re=>{const m=String(sdp).match(re);return m?m[1]:null;};
   const fp=g(/a=fingerprint:sha-256 ([0-9A-F:]+)/i);
-  return {u:g(/a=ice-ufrag:(\S+)/),p:g(/a=ice-pwd:(\S+)/),f:fp?fp.toUpperCase():null,
+  /* L'empreinte voyage en hex NU (sans les deux-points) : −31 caractères avant compression —
+     c'est ce qui fait tenir une offre à candidat mDNS (nom de 36 car.) dans UN code QR. */
+  return {u:g(/a=ice-ufrag:(\S+)/),p:g(/a=ice-pwd:(\S+)/),
+    f:fp?fp.toUpperCase().replace(/:/g,''):null,
     s:g(/a=setup:(\S+)/),
     c:[...String(sdp).matchAll(/a=candidate:\S+ 1 udp \d+ (\S+) (\d+) typ host/gi)]
       .map(m=>m[1]+'~'+m[2]).filter((v,i,a)=>a.indexOf(v)===i)};}
@@ -19170,7 +19178,8 @@ function slSdpRebuild(o){
   const L=['v=0','o=- 4262 2 IN IP4 127.0.0.1','s=-','t=0 0','a=group:BUNDLE 0',
     'a=msid-semantic: WMS','m=application 9 UDP/DTLS/SCTP webrtc-datachannel',
     'c=IN IP4 0.0.0.0','a=ice-ufrag:'+o.u,'a=ice-pwd:'+o.p,
-    'a=fingerprint:sha-256 '+o.f,'a=setup:'+o.s,'a=mid:0','a=sctp-port:5000',
+    'a=fingerprint:sha-256 '+String(o.f).replace(/(..)(?=.)/g,'$1:'),
+    'a=setup:'+o.s,'a=mid:0','a=sctp-port:5000',
     'a=max-message-size:262144'];
   o.c.forEach((cd,i)=>{const k=String(cd).split('~');
     L.push('a=candidate:'+(i+1)+' 1 udp '+(2113937151-i)+' '+k[0]+' '+k[1]+' typ host generation 0');});
@@ -19289,10 +19298,16 @@ function slClient(wire,opts){ // côté INVITÉ : la couture _io ENTIÈRE, servi
     setRole:(share,pid,role)=>call('setRole',{pid,role}),
     end:()=>call('end',{})}};}
 function slHostIo(hub){ // côté HÔTE : son propre hub, sans fil — même couture, zéro réseau
-  return {open:async()=>({ok:true}),admit:async()=>({ok:true}),
+  /* L'hôte cloud n'a PAS de secret (le serveur l'authentifie par session) : `Share` appelle donc
+     pull/push avec secret nul. Ici, nul = le secret d'hôte du hub — même convention, zéro
+     changement dans `Share`. Et `open` rend la FORME que `Share.host()` attend (share, code nul,
+     heure) : c'est ce qui permet de réutiliser host() tel quel en mode local. */
+  return {open:async()=>({ok:true,share:'local',code:null,join_open_until:null,
+      expires_at:null,server_time:new Date().toISOString()}),
+    admit:async()=>({ok:true}),
     join:async()=>({ok:false,err:'local'}),
-    pull:(secret,share,since)=>hub.pull(secret,since),
-    push:async(secret,share,events)=>hub.push(secret,events),
+    pull:(secret,share,since)=>hub.pull(secret==null?hub.hostSecret():secret,since),
+    push:async(secret,share,events)=>hub.push(secret==null?hub.hostSecret():secret,events),
     revoke:async(share,pid)=>hub.revoke(pid),
     setRole:async(share,pid,role)=>hub.setRole(pid,role),
     end:async()=>hub.end()};}
@@ -19329,6 +19344,69 @@ async function slPcGuest(offer){
   await pc.setLocalDescription(await pc.createAnswer());
   await slGatherDone(pc);
   return {pc,answer:slSdpExtract(pc.localDescription.sdp),channel};}
+/* Charges d'appariement (« SO:… » offre, « SA:… » réponse, jeton `k` dedans — une réponse d'un
+   appariement périmé se refuse à voix haute). BINAIRE, pas compressé : ufrag/pwd/empreinte/UUID
+   mDNS sont de l'ENTROPIE, deflate n'y mord pas (mesuré : il déborde des 213 o d'un code QR
+   dès qu'un candidat mDNS s'invite). En binaire : IPv4 = 6 o, mDNS = 18 o, empreinte = 32 o
+   bruts → ~95 o, base64url ~130 caractères — UN code, avec marge. */
+function slPairPack(o){
+  const A=[1,(o.s==='actpass'?1:0)];
+  const putS=v=>{const b=new TextEncoder().encode(String(v||''));A.push(b.length);
+    for(const x of b)A.push(x);};
+  putS(o.k);putS(o.u);putS(o.p);
+  for(let i=0;i<64;i+=2)A.push(parseInt(String(o.f).slice(i,i+2),16)||0);
+  const cs=(o.c||[]).slice(0,6);A.push(cs.length);
+  for(const cd of cs){const sp=String(cd).split('~'),ad=sp[0],pt=(+sp[1]||0)&0xffff;
+    const m4=ad.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+    const mm=ad.match(/^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})\.local$/i);
+    if(m4)A.push(0,+m4[1]&255,+m4[2]&255,+m4[3]&255,+m4[4]&255,pt>>8,pt&255);
+    else if(mm){A.push(1);const h=mm.slice(1).join('').toLowerCase();
+      for(let i=0;i<32;i+=2)A.push(parseInt(h.slice(i,i+2),16));A.push(pt>>8,pt&255);}
+    else{A.push(2);putS(ad);A.push(pt>>8,pt&255);}}
+  let s='';for(const b of A)s+=String.fromCharCode(b);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function slPairUnpack(b64){
+  try{
+    let s=String(b64).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';
+    const u=Uint8Array.from(atob(s),ch=>ch.charCodeAt(0));let i=0;
+    if(u[i++]!==1)return null;
+    const o={s:u[i++]?'actpass':'active'};
+    const rdS=()=>{const n=u[i++];const v=new TextDecoder().decode(u.slice(i,i+n));i+=n;return v;};
+    o.k=rdS();o.u=rdS();o.p=rdS();
+    o.f=[...u.slice(i,i+32)].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();i+=32;
+    const n=u[i++];o.c=[];
+    for(let j=0;j<n;j++){const t=u[i++];
+      if(t===0){o.c.push(u[i]+'.'+u[i+1]+'.'+u[i+2]+'.'+u[i+3]+'~'+((u[i+4]<<8)|u[i+5]));i+=6;}
+      else if(t===1){const h=[...u.slice(i,i+16)].map(b=>b.toString(16).padStart(2,'0')).join('');i+=16;
+        o.c.push(h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'
+          +h.slice(20)+'.local~'+((u[i]<<8)|u[i+1]));i+=2;}
+      else{const ad=rdS();o.c.push(ad+'~'+((u[i]<<8)|u[i+1]));i+=2;}}
+    return (o.u&&o.p&&/^[0-9A-F]{64}$/.test(o.f))?o:null;
+  }catch(e){return null;}}
+/* Scan caméra ÉPHÉMÈRE (doctrine des maquettes : la caméra ne vit que pendant un scan attendu).
+   Le décodeur vendorisé se charge au premier appel ; l'appelant coupe via slScanStop dès que la
+   charge attendue est lue. */
+const _slScan={run:0,stream:null};
+async function slScanStart(video,onText){
+  const jsqr=await qrDecLoad();
+  const st=await navigator.mediaDevices.getUserMedia(
+    {video:{facingMode:'environment',width:{ideal:1280}},audio:false});
+  _slScan.stream=st;video.srcObject=st;await video.play();
+  const my=++_slScan.run;
+  const cv=document.createElement('canvas'),g=cv.getContext('2d',{willReadFrequently:true});
+  let last=0;
+  (function tick(t){
+    if(my!==_slScan.run)return;
+    requestAnimationFrame(tick);
+    if(t-last<90||!video.videoWidth)return;
+    last=t;
+    const w=Math.min(video.videoWidth,720),h=Math.round(video.videoHeight*w/video.videoWidth);
+    cv.width=w;cv.height=h;g.drawImage(video,0,0,w,h);
+    const r=jsqr(g.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
+    if(r&&r.data)onText(String(r.data));
+  })(0);}
+function slScanStop(){_slScan.run++;
+  if(_slScan.stream){_slScan.stream.getTracks().forEach(t=>t.stop());_slScan.stream=null;}}
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
    timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
@@ -30730,13 +30808,87 @@ if(shareModal)bindModalDismiss(shareModal,closeShareSheet);
    n'en a pas besoin) ; et sans session démarrée, il n'y a rien à partager. Le motif est dit sur
    place, jamais un « refusé » indifférencié : celui-ci n'a de raison d'être que face à un appelant
    anonyme, pour ne pas devenir un oracle. */
+/* ═══ PARTAGE EN DIRECT (local, v5.14 étape 3c) — l'assemblage des briques témoignées ═══
+   Un seul geste (« Partager ») : sans compte OU sans internet, la MÊME feuille montre
+   l'appariement direct (maquettes figées). L'hôte : QR d'offre (jeton dedans) → scan de la
+   réponse → canal → `slServe(hub)` + `Share.host()` INCHANGÉ sur `slHostIo`. Multi-invités :
+   « Inviter un autre » régénère offre+jeton sur le MÊME hub. Vocabulaire à l'écran : jamais
+   WebRTC/P2P — « en direct ». */
+let SL=null; // appariement hôte en cours : {f,hub,pc,jeton,payload,live}
+function slSecret(){const b=new Uint8Array(18);crypto.getRandomValues(b);
+  return [...b].map(x=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[x%31]).join('');}
+function slLocalCand(c){return (c||[]).some(x=>{const a=String(x).split('~')[0];
+  return /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/.test(a)||a.indexOf('.local')>=0;});}
+function slSheet(phase){
+  const body=document.getElementById('shareBody');if(!body)return;
+  if(phase==='live'){
+    const n=1+((Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length||0);
+    body.innerHTML='<p><b>✓ En direct</b> — '+n+' participant'+(n>1?'s':'')+' sur ce réseau, '
+      +'sans serveur.</p>'
+      +'<button class="btn" id="slInvite">Inviter un autre</button> '
+      +'<button class="btn" id="slEnd">Arrêter le partage</button>';
+    document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
+    document.getElementById('slEnd').addEventListener('click',async()=>{
+      await Share.endShare();SL=null;shareModal.classList.remove('on');});
+    return;}
+  body.innerHTML=(phase==='offer-warn'
+      ?'<p><b>⚠ Aucun réseau local vu</b> — vérifiez le Wi-Fi (coché ✓) des deux appareils.</p>'
+      :'<p><b>⚠ Partage en direct</b> — même réseau Wi-Fi, sans internet ni compte.</p>')
+    +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
+    +'<p>L’invité : « Rejoindre une session » → « Scanner ». Puis scannez SA réponse :</p>'
+    +'<video id="slVideo" playsinline muted hidden></video>'
+    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button>'
+    +'<p id="slStat" role="status"></p>';
+  document.getElementById('slScanBtn').addEventListener('click',async()=>{
+    const v=document.getElementById('slVideo'),st=document.getElementById('slStat');
+    v.hidden=false;document.getElementById('slScanBtn').disabled=true;
+    try{
+      await slScanStart(v,async txt=>{
+        if(!txt.startsWith('SA:'))return;
+        const a=slPairUnpack(txt.slice(3));if(!a)return;
+        if(a.k!==SL.jeton){st.textContent='Réponse d’un appariement précédent — attendez la nouvelle, la lecture continue.';return;}
+        slScanStop();v.hidden=true;
+        try{await SL.pc.answer(a);st.textContent='Connexion…';}
+        catch(e){st.textContent='Ça n’a pas abouti — « Inviter un autre » pour réessayer.';}
+      });
+    }catch(e){v.hidden=true;document.getElementById('slScanBtn').disabled=false;
+      st.textContent='Caméra indisponible — autorisez-la dans les réglages, puis réessayez.';}
+  });}
+async function slOffer(){
+  SL.jeton=Math.random().toString(36).slice(2,6);
+  SL.pc=await slPcHost();
+  SL.payload='SO:'+slPairPack(Object.assign({k:SL.jeton},SL.pc.offer));
+  SL.pc.dc.onopen=()=>{slGuestUp(SL.pc.dc);};
+  slSheet(slLocalCand(SL.pc.offer.c)?'offer':'offer-warn');}
+async function slGuestUp(dc){
+  slServe(SL.hub,slChanWire(dc));
+  if(!SL.live){SL.live=true;
+    Share._io=slHostIo(SL.hub);
+    const r=await Share.host(SL.f).catch(()=>null);
+    if(!r||!r.ok){toast('⚠ Le partage en direct n’a pas pu démarrer.',6000,true);return;}}
+  slSheet('live');}
+async function startShareLocal(f){
+  if(!Runtime.started){
+    if(!await confirmDlg('Partager exige une session en cours. Démarrer la session maintenant '
+      +'(chrono, minuteurs et journal des actions) puis ouvrir le partage en direct ?',
+      {title:'Démarrer et partager ?',yes:'Démarrer et partager'}))return;
+    state.confOpen=false;
+    if(!ensureStarted())return;
+    render();}
+  slScanStop();
+  if(SL&&SL.pc&&!SL.live){try{SL.pc.pc.close();}catch(e){}}
+  if(!SL||!SL.live)SL={f,hub:slHub({now:()=>Date.now(),uid:()=>uid('p'),secret:slSecret,
+    shareId:uid('shl'),fiche:sharePayload(f),guestRole:'scribe',hostLabel:'Hôte'}),live:false};
+  shareModal.classList.add('on');
+  if(SL.live)slSheet('live');else await slOffer();}
 async function startShare(f){
   /* CES DEUX REFUS RÉPONDENT À UN TAP sur « Partager la session… », depuis une fiche ouverte —
      donc, presque toujours, pendant une session de crise, où la file les retenait tous : le
      bouton ne produisait RIEN, et le message surgissait à l'accueil, longtemps après, sans plus
      rien à quoi le rattacher. */
-  if(!Auth.signedIn()){toast('Partager une session demande un compte : la session transite par le '
-    +'serveur. Votre renfort, lui, n\'en a pas besoin — il rejoint avec un code.',9000,true);return;}
+  /* SANS COMPTE OU SANS INTERNET → le partage EN DIRECT (v5.14, étape 3c). Le refus d'avant
+     (« demande un compte ») cesse d'être un mur : le même geste ouvre l'appariement local. */
+  if(!Auth.signedIn()||!Sync.online())return startShareLocal(f);
   /* SESSION NON DÉMARRÉE : on ne renvoie pas l'utilisateur à un autre bouton, on lui propose de
      faire les deux d'un coup. Le dialogue dit ce que démarrer ENGAGE — c'est un évènement
      clinique (chrono, minuteurs, journal, entrée à l'historique), pas un réglage. */
@@ -30907,7 +31059,43 @@ if(joinScreen){
   // « 0 » pour « O » consommerait une tentative sur un code qui en compte peu.
   inp.addEventListener('input',()=>{const p=shareCodeFmt(shareCodeNorm(inp.value));
     if(p!==inp.value)inp.value=p;});
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();joinGo();}});}
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();joinGo();}});
+  /* REJOINDRE EN DIRECT (v5.14, étape 3c) : scanner l'offre de l'hôte, montrer la réponse,
+     puis la machinerie invitée EXISTANTE court sur le canal — joinByCode appelle _io.join, et
+     le join local ignore le code (la porte, c'est le canal apparié par jeton). */
+  const jsBtn=document.getElementById('joinScan');
+  if(jsBtn)jsBtn.addEventListener('click',async()=>{
+    const video=document.getElementById('jsVideo'),ans=document.getElementById('jsAnswer'),
+          st=document.getElementById('jsStat');
+    const say=t=>{st.hidden=false;st.textContent=t;};
+    video.hidden=false;jsBtn.disabled=true;let got=false;
+    try{
+      await slScanStart(video,async txt=>{
+        if(got||!txt.startsWith('SO:'))return;got=true;
+        slScanStop();video.hidden=true;
+        try{
+          const o=slPairUnpack(txt.slice(3));if(!o)throw new Error('illisible');
+          const g=await slPcGuest(o);
+          ans.hidden=false;
+          ans.innerHTML=qrSvg('SA:'+slPairPack(Object.assign({k:o.k},g.answer)),
+            'Réponse — à faire scanner par l’hôte');
+          say('Montrez ce code à l’hôte, la connexion suivra.');
+          const dc=await g.channel;
+          const go=async()=>{
+            const cli=slClient(slChanWire(dc));
+            Share._io=cli.io;
+            const lbl=(document.getElementById('joinRole')||{}).value||'Renfort';
+            let r=null;try{r=await Share.joinByCode('AAAA2222',lbl);}catch(e){}
+            if(!r||!r.ok){say('Ça n’a pas abouti — réessayez.');jsBtn.disabled=false;got=false;return;}
+            ans.hidden=true;st.hidden=true;
+            if(joinScreen)joinScreen.hidden=true;
+            openSharedFiche();};
+          if(dc.readyState==='open')go();else dc.onopen=go;
+        }catch(e){say('Code illisible — réessayez.');jsBtn.disabled=false;got=false;video.hidden=false;}
+      });
+    }catch(e){video.hidden=true;jsBtn.disabled=false;
+      say('Caméra indisponible — autorisez-la, puis réessayez.');}
+  });}
 // Reprise immédiate au retour au premier plan : la cadence de fond n'existe pas sur iOS, et
 // l'écran est de toute façon déjà marqué périmé (lastOk est vieux au réveil).
 document.addEventListener('visibilitychange',()=>{
@@ -31426,7 +31614,8 @@ if(location.search.indexOf('__actest')>=0){
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
-    slWirePair,slServe,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,qrSelftest,blankFiche,
+    slWirePair,slServe,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
+    qrSelftest,blankFiche,
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,

@@ -106,3 +106,27 @@ la connectivité, c'est le terrain et la sonde qui la prouvent. 5 témoins, deux
 accepte la reconstruction à CHAQUE commit désormais. Reste de l'étape 3 (3c) : l'interface
 d'appariement dans `#shareModal` selon les maquettes figées, l'entrée invité, et le branchement
 de `Share` sur `slHostIo`/`slClient`.
+
+## A203 — L'assemblage : « Partager » sans compte ou sans internet ouvre l'appariement direct
+
+**Décision (étape 3c).** Le MÊME geste « Partager la session » : sans compte OU sans internet,
+la feuille `#shareModal` montre l'appariement direct (l'ancien refus « demande un compte »
+cesse d'être un mur). Hôte : QR d'offre (jeton dedans, préflight « aucun réseau local vu » en
+notice six mots) → scan de la réponse (caméra éphémère, réponse d'un appariement périmé
+refusée à voix haute) → canal → `slServe(hub)` et **`Share.host()` INCHANGÉ sur `slHostIo`** ;
+multi-invités par « Inviter un autre » (offre+jeton neufs, même hub). Invité : `#joinScreen`
+gagne « Scanner le code de l'hôte » → réponse en QR → **`Share.joinByCode()` et TOUTE la
+machinerie invitée existante courent sur le canal** (le join local ignore le code : la porte,
+c'est le canal apparié). Vocabulaire à l'écran : « en direct », jamais WebRTC/P2P.
+
+**Payé en route, et c'est la leçon de l'étape** : la charge d'appariement compressée
+(deflate+b64) DÉBORDAIT d'un code QR dès qu'un candidat mDNS s'invitait — ufrag, pwd,
+empreinte et UUID sont de l'ENTROPIE, deflate n'y mord pas. `slPairPack`/`slPairUnpack`
+empaquettent en BINAIRE (IPv4 6 o, mDNS 18 o, empreinte 32 o bruts, l'illisible rend null) :
+~95 octets, un code avec marge. Le témoin de taille est SYNTHÉTIQUE et figé (pire cas courant,
+mDNS + IPv4) — jamais l'offre de l'environnement, qui varie d'un poste à l'autre.
+
+**Restes nommés de l'étape 3** (pas des oublis) : harnais UI de l'appariement local (machine à
+états pilotée par charges synthétiques, sans caméra) ; fermeture de la feuille pendant
+l'appariement = pc abandonné sans fuite bruyante mais sans nettoyage exhaustif ; billet de
+reprise invité inopérant en local (rechargement → ré-appariement, cohérent avec l'étude M6).

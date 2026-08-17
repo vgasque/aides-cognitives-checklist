@@ -1306,8 +1306,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      'a=ice-ufrag:wXyZ\r\na=ice-pwd:nLp3qTncIC1wOTaHc2jB39Q8\r\n'+
      'a=fingerprint:sha-256 84:1B:86:E0:2F:11\r\na=setup:actpass\r\n';
    const x=A.slSdpExtract(sdp);
-   eq('extraction compacte : quintuple complet, candidats dédupliqués',
-     x,{u:'wXyZ',p:'nLp3qTncIC1wOTaHc2jB39Q8',f:'84:1B:86:E0:2F:11',s:'actpass',
+   eq('extraction compacte : quintuple complet, empreinte en hex NU, candidats dédupliqués',
+     x,{u:'wXyZ',p:'nLp3qTncIC1wOTaHc2jB39Q8',f:'841B86E02F11',s:'actpass',
         c:['192.168.1.10~54321']});
    eq('reconstruire puis ré-extraire rend l’IDENTIQUE (aller-retour sans perte)',
      A.slSdpExtract(A.slSdpRebuild(x)),x);
@@ -1392,7 +1392,20 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    let bad='';try{await A.slPcGuest({u:'x'});}catch(e){bad=e.message;}
    eq('une offre invalide est REFUSÉE nommément, jamais un pc à moitié construit',
      bad,'offre invalide');
-   h.pc.close();g.pc.close();}
+   h.pc.close();g.pc.close();
+   // charge d'appariement : aller-retour, et UN code QR — sur une offre SYNTHÉTIQUE figée
+   // (le pire cas courant : candidat mDNS de 36 car.) — jamais sur celle de l'environnement,
+   // qui varie d'un poste à l'autre (leçon : un témoin doit être déterministe).
+   const obj={k:'j4x2',u:'wXyZ8aBc',p:'nLp3qTncIC1wOTaHc2jB39Q8',
+     f:'84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9',s:'actpass',
+     c:['9b0e1adb-ef3c-4d91-9293-30c565438ab7.local~61735','192.168.1.10~54321']};
+   const packed=A.slPairPack(obj);
+   eq('slPairPack/slPairUnpack : aller-retour sans perte (jeton, mDNS et IPv4 compris)',
+     A.slPairUnpack(packed),{s:obj.s,k:obj.k,u:obj.u,p:obj.p,f:obj.f,c:obj.c});
+   ok('une charge illisible rend null, jamais une exception',
+     A.slPairUnpack('§§§')===null&&A.slPairUnpack('AAAA')===null);
+   ok('la charge d’appariement (candidat mDNS compris) tient dans UN code (≤ 213 o)',
+     ('SO:'+packed).length<=213);}
 
   group('Partage de session — transport');
   // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
