@@ -401,6 +401,40 @@ service). En usage individuel, le soignant l'est pour lui-même.
 
 ---
 
+### 3.2 Modes sans serveur — « en direct » et « par l'écran » (v5.14)
+
+Depuis la v5.14, le partage dispose de deux modes qui ne font transiter **aucune donnée par un
+tiers** — il n'y a pas de serveur du tout :
+
+- **En direct** : les deux appareils s'apparient par un code QR affiché/scanné dans la pièce,
+  puis dialoguent directement sur le réseau local (canal WebRTC chiffré de bout en bout par
+  DTLS, sans STUN ni relais). Le vocabulaire transmis est LE MÊME que le mode en ligne (liste
+  blanche de la fiche, gestes comme références, jamais de texte libre) ; l'appareil de l'hôte
+  tient le rôle d'autorité que le serveur tenait (numérotation, attribution par secret, rôles).
+  Rien n'est conservé hors des appareils présents ; le secret d'un participant vit en mémoire et
+  meurt avec le canal (un rechargement = ré-appariement).
+- **Par l'écran** : un INSTANTANÉ daté (identité de session, projection de fiche en liste
+  blanche, heure d'émission de l'hôte, état de session) passe par la lumière — une boucle de
+  codes QR filmée par l'autre appareil. Aucune onde, aucun réseau. Le récepteur devient un
+  MIROIR daté ; une émission qui n'est pas sa session vive est refusée sans rien écrire.
+
+**Au registre** : pour ces deux modes, la ligne « destinataires/sous-traitants » est VIDE — le
+relais Supabase n'intervient pas, et les durées serveur (fenêtre, TTL, purge) sont sans objet.
+La notice affichée à l'invité (`#joinScreen`) dit les deux régimes ; les deux textes évoluent
+ensemble, ou aucun.
+
+**Limites connues, assumées et dites** (mesurées lors du spike d'août 2026) :
+1. L'invité doit déjà avoir l'application sur son appareil (installée ou en cache) — hors
+   ligne, personne ne peut la lui servir. Le flux « invité vierge par lien » reste en-ligne.
+2. « En direct » exige un réseau local commun (un Wi-Fi même sans internet) ; les Wi-Fi à
+   isolation client (invités/hospitaliers) peuvent le bloquer, un VPN/MDM actif aussi
+   (symptôme : « bloqué à checking »), et iOS exige l'autorisation « Réseau local » de Safari.
+3. Le verrouillage de l'écran suspend le canal en quelques secondes (iOS) : l'application
+   maintient l'écran éveillé pendant le partage, et une coupure se répare par ré-appariement.
+4. « Par l'écran » n'est pas du direct : c'est une synchro par geste, à refaire pour
+   rafraîchir (ordre de grandeur mesuré : 20 Kio ≈ 4 s d'écran à caméra).
+
+
 ## 4. Modèle — conditions d'utilisation
 
 > Modèle court à adapter et faire valider (référent qualité / juridique).

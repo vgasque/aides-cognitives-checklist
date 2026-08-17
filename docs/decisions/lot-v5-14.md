@@ -173,3 +173,23 @@ trame étrangère → null, QR binaire 213 o. RESTES nommés : pas de retour inv
 annexes optiques — exigera le format et le geste symétriques), pas d'a11y dédiée aux nouveaux
 états de feuille (états, pas fenêtres), débit non re-mesuré in-app (le spike fait foi :
 20 Kio ≈ 4 s).
+
+## A206 — Étapes 6-7 : la conformité dit les deux régimes, les limites sont écrites
+
+**Décision.** La notice de `#joinScreen` (« Où et combien de temps ») distingue désormais les
+trois canaux : en ligne = relais Supabase purgé ; en direct / par l'écran = « rien ne quitte
+les appareils présents — réseau local chiffré ou lumière de l'écran, sans serveur ni tiers ».
+Le registre gagne un **§ 3.2** (docs/deploiement-et-conformite.md) : pour les modes sans
+serveur, la ligne destinataires/sous-traitants est VIDE, les durées serveur sont sans objet,
+l'hôte tient l'autorité que le serveur tenait — et les QUATRE limites mesurées au spike sont
+écrites (app déjà installée requise ; réseau local commun exigé, isolation/VPN/« Réseau
+local » iOS ; verrouillage = suspension, réparée par ré-appariement ; « par l'écran » = synchro
+par geste, ~20 Kio ≈ 4 s). Notice et registre évoluent ensemble, ou aucun (règle 15).
+Le § 2 (statut non-DM) n'a pas bougé : les deux modes RECOPIENT — l'un par le réseau local,
+l'autre par la lumière — et ne déduisent rien ; le miroir daté affiche une heure, jamais une
+alerte d'âge.
+
+**LE LOT v5.14 A SES SEPT ÉTAPES.** Restent, hors lot et nommés : le harnais UI de
+l'appariement/optique (charges synthétiques), le secours chaud M9 (canal de signalisation
+serveur + rejeu = geste utilisateur), le retour optique invité→hôte (repères annexes), la
+release `./release.sh 5.14.0` + CHANGELOG, et le TEST TERRAIN à deux iPhones du flux intégré.
