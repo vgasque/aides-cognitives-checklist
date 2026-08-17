@@ -1407,6 +1407,35 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('la charge d’appariement (candidat mDNS compris) tient dans UN code (≤ 213 o)',
      ('SO:'+packed).length<=213);}
 
+  // ── Étape 5 : synchro optique — fontaine systématique, trames auto-descriptives,
+  // identité de session et heure d'émission DANS la charge ──
+  {const snap={checked:{'12:b1:0':1},verified:{},counters:{c1:3},timers:{},events:[
+     {id:'e1',t:1723800000000,ref:'tk:4',voidAt:null}],nav:[],navSeq:[],flowEnded:false};
+   const fiche={id:'f9',title:'Test',items:[]};
+   const z=await A.ltSnapPack('sess-42',fiche,snap);
+   const o=await A.ltSnapUnpack(z);
+   ok('la charge optique porte l’IDENTITÉ de session, la FICHE et l’HEURE d’émission',
+     o.sess==='sess-42'&&o.fiche.id==='f9'&&typeof o.at==='number'&&
+     JSON.stringify(o.snap)===JSON.stringify(snap));
+   // transfert simulé : 30 % de trames PERDUES, ordre mélangé — reconstitution intègre
+   const tx=A.ltTx(z,0);
+   const rx=A.ltRx();let fed=0,st=null,pos=0;const kept=[];
+   for(let i=0;i<tx.cycle*4;i++){const f=tx.frameAt(pos++);
+     if((Math.imul(i,2654435761)>>>8)%10>=3)kept.push(f);}
+   for(let a=kept.length-1;a>0;a--){const b=(Math.imul(a,40503)>>>4)%(a+1);
+     const t=kept[a];kept[a]=kept[b];kept[b]=t;}
+   for(const f of kept){fed++;st=A.ltRxFeed(rx,f);if(st==='done')break;}
+   ok('fontaine : 30 % perdues, ordre mélangé → reconstitué ('+fed+' trames pour '
+     +tx.k+' blocs)',st==='done');
+   const o2=await A.ltSnapUnpack(A.ltRxBytes(rx));
+   ok('…et la charge relue est INTÈGRE (identité, heure, instantané identiques)',
+     o2.sess===o.sess&&o2.at===o.at&&JSON.stringify(o2.snap)===JSON.stringify(o.snap));
+   ok('une trame étrangère rend null (magie/longueur), jamais une exception',
+     A.ltParse(new Uint8Array(5))===null&&A.ltParse(null)===null);
+   // le QR binaire à masque épinglé rend une matrice — la brique d'affichage des trames
+   ok('qrEncodeB accepte une trame binaire de 213 o (masque épinglé)',
+     !!A.qrEncodeB(tx.frameAt(0),4));}
+
   group('Partage de session — transport');
   // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
   // même couture que le harnais remplacera par un bus en processus pour faire dialoguer deux pages.

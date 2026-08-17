@@ -149,3 +149,27 @@ relais pendant que le cloud marche) exige un CANAL DE SIGNALISATION côté serve
 (schema.sql + rejeu sur l'instance = geste de l'utilisateur). Inscrit comme exigence de la
 prochaine évolution serveur, avec la bascule AUTOMATIQUE qui en dépend. La bascule manuelle
 ci-dessus est le régime intermédiaire assumé.
+
+## A205 — Étape 5 : « Par l'écran » — la synchro optique entre dans l'app
+
+**Décision.** Le canal du ZÉRO réseau, porté de la sonde avec ses trois leçons de terrain :
+fontaine SYSTÉMATIQUE (les k blocs dans l'ordre puis ⌈k/4⌉ réparations — la fontaine naïve
+perdait contre un carrousel, mesuré), trames binaires AUTO-DESCRIPTIVES 18+195 o (accrochage
+sur n'importe quelle trame, redémarrage détecté par graine), QR en mode octet à masque épinglé
+(`qrEncodeB` ; `qrSvg` refactorisé en `qrSvgQ`+wrapper, rendu inchangé à l'octet).
+La CHARGE porte les deux invariants gravés au lot : {sess, fiche (projection liste blanche),
+at (heure d'émission de l'hôte, `Share.now()`), snap}. Émission : « Par l'écran… » dans la
+feuille locale (offre ET live) — 6 codes/s, arrêt d'un tap. Réception : « Recevoir par
+l'écran » dans #joinScreen — jauge qui ne descend jamais, puis MIROIR DATÉ (annonce « Vue à
+HH:MM — miroir, pas du direct ») via `openSharedFiche()` inchangé (Share.fiche/fold posés,
+offset grossier = at − horloge locale : des horloges décalées de minutes se rattrapent à
+l'épaisseur du transfert).
+
+**L'invariant qui refuse** : une émission dont l'identité n'est pas MA session vive (ou mon
+miroir précédent de la même session) = un message, ZÉRO écriture — la doctrine « Continuer
+seul » (fusion inter-sessions = faux plausible) appliquée à l'optique. Témoins : charge
+optique (identité+fiche+heure), transfert simulé 30 % de pertes + ordre mélangé → intègre,
+trame étrangère → null, QR binaire 213 o. RESTES nommés : pas de retour invité→hôte (repères
+annexes optiques — exigera le format et le geste symétriques), pas d'a11y dédiée aux nouveaux
+états de feuille (états, pas fenêtres), débit non re-mesuré in-app (le spike fait foi :
+20 Kio ≈ 4 s).

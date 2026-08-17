@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-pFN7xYZ4kXiAkaAbLPlCzcd7erTMvDQUdp/jeuxWcKA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-tuWGVOhiroqid6mZhyw0haxtW3NRQ06675ThRFcZtc0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9366,6 +9366,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <button class="btn primary join-go" id="joinGo">Rejoindre</button>
     <label class="join-lab">Sans internet — l'hôte affiche un code d'appariement</label>
     <button class="btn join-go" id="joinScan">Scanner le code de l'hôte</button>
+    <button class="btn join-go" id="joinOptic">Recevoir par l'écran (aucun réseau)</button>
     <video id="jsVideo" playsinline muted hidden></video>
     <div id="jsAnswer" hidden></div>
     <p class="join-err" id="jsStat" role="status" hidden></p>
@@ -18403,28 +18404,35 @@ function qrBuild(cw,ver,mask){
   return {n:n,m:m};}
 // Renvoie {n, m, version} — m = matrice n×n de 0/1, lignes du haut vers le bas. null si trop long
 // (l'appelant décide : jamais d'échec muet).
-function qrEncode(text){
-  const bytes=new TextEncoder().encode(String(text));
+/* v5.14 (étape 5) : l'entrée en OCTETS BRUTS — le mode octet du QR porte du binaire, le détour
+   base64 gaspillerait un tiers de la capacité des trames optiques ; et `mask` épinglable pour
+   les trames de FLUX (tout masque déclaré est valide au décodage, sauter le concours des 8
+   masques accélère ~4× — l'affichage statique garde le concours). */
+function qrEncodeB(bytes,mask){
   let ver=0,cw=null;
   for(let v=1;v<=QR_MAXVER;v++){const d=qrDataCw(bytes,v);if(d){ver=v;cw=qrInterleave(d,v);break;}}
   if(!ver)return null;
-  let best=null,bestP=Infinity;
-  for(let k=0;k<8;k++){const r=qrBuild(cw,ver,k),pen=qrPenalty(r.n,r.m);
-    if(pen<bestP){bestP=pen;best=r;}}
+  let best=null;
+  if(mask!=null)best=qrBuild(cw,ver,mask);
+  else{let bestP=Infinity;
+    for(let k=0;k<8;k++){const r=qrBuild(cw,ver,k),pen=qrPenalty(r.n,r.m);
+      if(pen<bestP){bestP=pen;best=r;}}}
   best.version=ver;return best;}
+function qrEncode(text,mask){return qrEncodeB(new TextEncoder().encode(String(text)),mask);}
 /* Rendu SVG. Encre et fond FIXES dans les deux thèmes (`--qr-ink` sur `--paper`) : `--ink` est
    clair en sombre, un QR peint avec lui serait blanc sur blanc — donc invisible, et le défaut ne
    se verrait qu'au moment de scanner. Zone de silence de 4 modules : elle fait partie de la
    norme, sans elle un lecteur peut refuser le code. `shape-rendering=crispEdges` : sans lui
    l'anticrénelage brouille les bords des modules et dégrade la lecture à petite taille. */
-function qrSvg(text,label){
-  const q=qrEncode(text);if(!q)return '';
+function qrSvgQ(q,label){
+  if(!q)return '';
   const quiet=4,n=q.n,side=n+quiet*2;let d='';
   for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(q.m[y*n+x])d+='M'+(x+quiet)+' '+(y+quiet)+'h1v1h-1z';
   return '<svg class="qr" viewBox="0 0 '+side+' '+side+'" shape-rendering="crispEdges" '+
     'role="img" aria-label="'+esc(label||'Code à scanner')+'">'+
     '<rect width="'+side+'" height="'+side+'" fill="var(--paper)"/>'+
     '<path d="'+d+'" fill="var(--qr-ink)"/></svg>';}
+function qrSvg(text,label){return qrSvgQ(qrEncode(text),label);}
 /* ── DÉCODEUR vendorisé (v5.14, étape 3a) — l'asymétrie encodeur-maison/décodeur-vendorisé.
    L'app SCANNE désormais (appariement direct, synchro optique) : décoder un QR — binarisation,
    perspective, Reed-Solomon en lecture — est hors de portée d'une implémentation raisonnable,
@@ -19383,6 +19391,104 @@ function slPairUnpack(b64){
       else{const ad=rdS();o.c.push(ad+'~'+((u[i]<<8)|u[i+1]));i+=2;}}
     return (o.u&&o.p&&/^[0-9A-F]{64}$/.test(o.f))?o:null;
   }catch(e){return null;}}
+/* ═══ SYNCHRO OPTIQUE « Par l'écran » (v5.14, étape 5) — le canal du ZÉRO réseau ═══
+   Code fontaine (Luby, soliton robuste, variante SYSTÉMATIQUE) validé par le spike : 20 Kio en
+   ~3-4 s d'écran à caméra. Trames BINAIRES AUTO-DESCRIPTIVES (pas de trame « fiche ») :
+   en-tête 18 o [magie 0xF7, type, graine 32 bits, séquence 24 bits, k 16 bits, taille 24 bits,
+   sha-4] + 195 o — n'importe quelle trame captée initialise le récepteur, un émetteur redémarré
+   se détecte par graine. Cycle HYBRIDE : les k blocs DANS L'ORDRE (vitesse d'un carrousel en
+   conditions propres — mesuré : la fontaine naïve perdait), puis ⌈k/4⌉ réparations.
+   La CHARGE porte les deux invariants du lot : l'IDENTITÉ de session (le récepteur refuse tout
+   ce qui n'est pas sa session vive — un message, ZÉRO écriture) et l'HEURE D'ÉMISSION de l'hôte
+   (des horloges décalées de minutes se rattrapent à quelques secondes près). */
+function ltMulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296;};}
+function ltCdf(k){
+  if(k===1)return [0,1];
+  const c=0.1,delta=0.5,R=Math.max(1,c*Math.log(k/delta)*Math.sqrt(k)),kR=Math.max(2,Math.round(k/R));
+  const w=[0];let Z=0;
+  for(let d=1;d<=k;d++){
+    const rho=d===1?1/k:1/(d*(d-1));
+    const tau=d<kR?R/(d*k):(d===kR?R*Math.log(R/delta)/k:0);
+    w[d]=rho+tau;Z+=w[d];}
+  const cdf=[0];let acc=0;
+  for(let d=1;d<=k;d++){acc+=w[d]/Z;cdf[d]=acc;}
+  return cdf;}
+function ltIndices(seed,i,k,cdf){
+  if(i<k)return new Set([i]); // SYSTÉMATIQUE : les k premières trames SONT les blocs
+  const rng=ltMulberry((seed^Math.imul(i+1,0x9E3779B9))>>>0);
+  const r=rng();let d=1;while(d<cdf.length-1&&r>cdf[d])d++;d=Math.min(d,k);
+  const set=new Set();while(set.size<d)set.add(Math.floor(rng()*k));
+  return set;}
+function ltXor(a,b){for(let i=0;i<a.length;i++)a[i]^=b[i];}
+const LT_CH=195,LT_MAGIC=0xF7;
+function ltFrame(p,i){ // p={type,seed,k,z,h4:Uint8Array(4),blocks,cdf}
+  const f=new Uint8Array(18+LT_CH);
+  f[0]=LT_MAGIC;f[1]=p.type;
+  f[2]=p.seed&0xff;f[3]=(p.seed>>>8)&0xff;f[4]=(p.seed>>>16)&0xff;f[5]=(p.seed>>>24)&0xff;
+  f[6]=i&0xff;f[7]=(i>>8)&0xff;f[8]=(i>>16)&0xff;
+  f[9]=p.k&0xff;f[10]=(p.k>>8)&0xff;
+  f[11]=p.z&0xff;f[12]=(p.z>>8)&0xff;f[13]=(p.z>>16)&0xff;
+  f.set(p.h4,14);
+  const d=f.subarray(18);
+  for(const j of ltIndices(p.seed,i,p.k,p.cdf))ltXor(d,p.blocks[j]);
+  return f;}
+function ltParse(bin){
+  if(!bin||bin.length!==18+LT_CH||bin[0]!==LT_MAGIC)return null;
+  const u=bin instanceof Uint8Array?bin:Uint8Array.from(bin);
+  return {type:u[1],seed:(u[2]|(u[3]<<8)|(u[4]<<16)|(u[5]<<24))>>>0,
+    i:u[6]|(u[7]<<8)|(u[8]<<16),k:u[9]|(u[10]<<8),z:u[11]|(u[12]<<8)|(u[13]<<16),
+    h:[...u.slice(14,18)].map(b=>b.toString(16).padStart(2,'0')).join(''),
+    d:u.slice(18)};}
+function ltTx(bytes,type){ // → {frames:i=>Uint8Array, k, cycle} — l'appelant cadence et affiche
+  const k=Math.ceil(bytes.length/LT_CH),seed=(Math.random()*0xffffffff)>>>0;
+  const blocks=[];for(let j=0;j<k;j++){const b=new Uint8Array(LT_CH);
+    b.set(bytes.subarray(j*LT_CH,Math.min((j+1)*LT_CH,bytes.length)));blocks.push(b);}
+  const p={type,seed,k,z:bytes.length,h4:new Uint8Array(4),blocks,cdf:ltCdf(k)};
+  const rep=Math.max(1,Math.ceil(k/4)),cycle=k+rep;
+  let iRep=k;
+  return {k,cycle,setH4:h4=>{p.h4=h4;},
+    frameAt:pos=>ltFrame(p,(pos%cycle)<k?(pos%cycle):iRep++)};}
+function ltRx(){ // récepteur par épluchage — ltRxFeed(st,bin) → 'done' quand complet
+  return {st:null,seen:new Set()};}
+function ltRxFeed(rx,bin){
+  const bf=ltParse(bin);if(!bf)return null;
+  const key=bf.seed+':'+bf.i;
+  if(rx.seen.has(key))return 'dup';
+  rx.seen.add(key);
+  if(!rx.st||rx.st.seed!==bf.seed){ // première trame OU émetteur redémarré
+    rx.st={seed:bf.seed,type:bf.type,k:bf.k,z:bf.z,h:bf.h,cdf:ltCdf(bf.k),
+      rec:new Array(bf.k).fill(null),nRec:0,pend:[]};}
+  const st=rx.st;
+  if(st.nRec===st.k)return 'done';
+  const idx=ltIndices(st.seed,bf.i,st.k,st.cdf),d=bf.d.slice(0,LT_CH);
+  for(const j of [...idx])if(st.rec[j]){ltXor(d,st.rec[j]);idx.delete(j);}
+  if(idx.size===1){const j=[...idx][0];if(!st.rec[j]){st.rec[j]=d;st.nRec++;}}
+  else if(idx.size>1)st.pend.push({idx,d});
+  let again=true;
+  while(again){again=false;
+    for(let p=st.pend.length-1;p>=0;p--){const f=st.pend[p];
+      for(const q of [...f.idx])if(st.rec[q]){ltXor(f.d,st.rec[q]);f.idx.delete(q);}
+      if(f.idx.size<=1){st.pend.splice(p,1);
+        if(f.idx.size===1){const j=[...f.idx][0];
+          if(!st.rec[j]){st.rec[j]=f.d;st.nRec++;again=true;}}}}}
+  return st.nRec===st.k?'done':'more';}
+function ltRxBytes(rx){const st=rx.st,all=new Uint8Array(st.k*LT_CH);
+  for(let j=0;j<st.k;j++)all.set(st.rec[j],j*LT_CH);
+  return all.slice(0,st.z);}
+/* La CHARGE optique : {sess, fiche, at (heure d'émission de l'hôte), snap} → deflate → trames.
+   Le JSON d'un instantané COMPRESSE, lui (contrairement à la signalisation) : deflate y reste. */
+async function ltSnapPack(sess,fiche,snap){ // fiche = la PROJECTION sharePayload (liste blanche)
+  const raw=new TextEncoder().encode(JSON.stringify(
+    {sess:String(sess||''),fiche,at:Share.now(),snap}));
+  return new Uint8Array(await new Response(new Blob([raw]).stream()
+    .pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());}
+async function ltSnapUnpack(bytes){
+  const raw=await new Response(new Blob([bytes]).stream()
+    .pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+  const o=JSON.parse(new TextDecoder().decode(raw));
+  return (o&&typeof o==='object'&&o.snap&&o.fiche&&typeof o.at==='number')?o:null;}
 /* Scan caméra ÉPHÉMÈRE (doctrine des maquettes : la caméra ne vit que pendant un scan attendu).
    Le décodeur vendorisé se charge au premier appel ; l'appelant coupe via slScanStop dès que la
    charge attendue est lue. */
@@ -19403,7 +19509,7 @@ async function slScanStart(video,onText){
     const w=Math.min(video.videoWidth,720),h=Math.round(video.videoHeight*w/video.videoWidth);
     cv.width=w;cv.height=h;g.drawImage(video,0,0,w,h);
     const r=jsqr(g.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
-    if(r&&r.data)onText(String(r.data));
+    if(r&&(r.data||r.binaryData))onText(String(r.data||''),r.binaryData);
   })(0);}
 function slScanStop(){_slScan.run++;
   if(_slScan.stream){_slScan.stream.getTracks().forEach(t=>t.stop());_slScan.stream=null;}}
@@ -30840,6 +30946,7 @@ function slSheet(phase){
       +'<button class="btn" id="slInvite">Inviter un autre</button> '
       +(Auth.signedIn()&&Sync.online()
         ?'<button class="btn" id="slSwCloud">Passer en ligne…</button> ':'')
+      +'<button class="btn" id="slOptic2">Par l’écran…</button> '
       +'<button class="btn" id="slEnd">Arrêter le partage</button>';
     document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
     const swc=document.getElementById('slSwCloud');
@@ -30852,6 +30959,8 @@ function slSheet(phase){
       startShare(f);});
     document.getElementById('slEnd').addEventListener('click',async()=>{
       await Share.endShare();SL=null;shareModal.classList.remove('on');});
+    const opt=document.getElementById('slOptic2');
+    if(opt)opt.addEventListener('click',()=>{slOptiqueTx();});
     return;}
   body.innerHTML=(phase==='offer-warn'
       ?'<p><b>⚠ Aucun réseau local vu</b> — vérifiez le Wi-Fi (coché ✓) des deux appareils.</p>'
@@ -30860,7 +30969,9 @@ function slSheet(phase){
     +'<p>L’invité : « Rejoindre une session » → « Scanner ». Puis scannez SA réponse :</p>'
     +'<video id="slVideo" playsinline muted hidden></video>'
     +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button>'
+    +'<button class="btn" id="slOptic">Par l’écran (aucun réseau)…</button>'
     +'<p id="slStat" role="status"></p>';
+  document.getElementById('slOptic').addEventListener('click',()=>{slOptiqueTx();});
   document.getElementById('slScanBtn').addEventListener('click',async()=>{
     const v=document.getElementById('slVideo'),st=document.getElementById('slStat');
     v.hidden=false;document.getElementById('slScanBtn').disabled=true;
@@ -30876,6 +30987,46 @@ function slSheet(phase){
     }catch(e){v.hidden=true;document.getElementById('slScanBtn').disabled=false;
       st.textContent='Caméra indisponible — autorisez-la dans les réglages, puis réessayez.';}
   });}
+/* ÉMISSION OPTIQUE (étape 5) — l'hôte affiche la boucle de trames, l'autre appareil filme.
+   La charge = {identité de session, fiche projetée, heure d'émission de l'hôte, instantané} ;
+   cadence 6 codes/s, cycle hybride, masque épinglé sur les trames de flux. */
+let _ltTimer=0;
+async function slOptiqueTx(){
+  const R=Runtime;
+  if(!R||!R.started||!R.fiche){toast('⚠ Aucune session en cours à transmettre.',5000,true);return;}
+  const z=await ltSnapPack(R.sessionId||'',sharePayload(R.fiche),shareSnap(null,!!state.flowEnded));
+  const tx=ltTx(z,0);
+  tx.setH4(new Uint8Array(await crypto.subtle.digest('SHA-256',z)).slice(0,4));
+  const body=document.getElementById('shareBody');if(!body)return;
+  shareModal.classList.add('on');
+  body.innerHTML='<p><b>⇆ Par l’écran</b> — l’autre appareil filme ce code, c’est tout. '
+    +'Instantané daté, pas du direct.</p>'
+    +'<div id="ltQr"></div><p id="ltCap" role="status"></p>'
+    +'<button class="btn" id="ltStop">Arrêter</button>';
+  const qr=document.getElementById('ltQr'),cap=document.getElementById('ltCap');
+  let pos=0;clearInterval(_ltTimer);
+  const paint=()=>{qr.innerHTML=qrSvgQ(qrEncodeB(tx.frameAt(pos),4),'Synchro par l’écran');
+    cap.textContent=(pos%tx.cycle)<tx.k?('bloc '+((pos%tx.cycle)+1)+' / '+tx.k):'réparation';
+    pos++;};
+  paint();_ltTimer=setInterval(paint,Math.round(1000/6));
+  document.getElementById('ltStop').addEventListener('click',()=>{
+    clearInterval(_ltTimer);
+    if(SL&&SL.live)slSheet('live');else shareModal.classList.remove('on');});}
+/* RÉCEPTION OPTIQUE — miroir DATÉ. Invariant du lot : une émission qui n'est pas MA session
+   vive = un message, ZÉRO écriture. L'heure d'émission de l'hôte corrige grossièrement les
+   horloges (précision ≈ durée du transfert). */
+let _slMirror=null; // {sess, at} — la session que CE miroir reflète
+async function slOptiqueGot(o,say){
+  if(Runtime&&Runtime.started&&!(_slMirror&&_slMirror.sess===String(o.sess))){
+    say('Cet écran diffuse une AUTRE session — réception refusée, rien n’a été écrit.');
+    return false;}
+  Share.fiche=o.fiche;
+  Share.fold=Object.assign({},o.snap);
+  Share.offset=o.at-Date.now(); // l'heure de l'hôte devient la référence, à peu près
+  _slMirror={sess:String(o.sess),at:o.at};
+  if(!openSharedFiche()){say('Instantané illisible.');return false;}
+  try{announce('Vue à '+fmtHM(o.at)+' — miroir, pas du direct.');}catch(e){}
+  return true;}
 async function slOffer(){
   SL.jeton=Math.random().toString(36).slice(2,6);
   SL.pc=await slPcHost();
@@ -31116,6 +31267,33 @@ if(joinScreen){
         }catch(e){say('Code illisible — réessayez.');jsBtn.disabled=false;got=false;video.hidden=false;}
       });
     }catch(e){video.hidden=true;jsBtn.disabled=false;
+      say('Caméra indisponible — autorisez-la, puis réessayez.');}
+  });
+  /* RÉCEPTION OPTIQUE (étape 5) : filmer la boucle de trames de l'hôte — la jauge ne fait que
+     monter (fontaine), et à 100 % l'écran devient un MIROIR DATÉ de la session de l'hôte. */
+  const joBtn=document.getElementById('joinOptic');
+  if(joBtn)joBtn.addEventListener('click',async()=>{
+    const video=document.getElementById('jsVideo'),st=document.getElementById('jsStat');
+    const say=t=>{st.hidden=false;st.textContent=t;};
+    video.hidden=false;joBtn.disabled=true;
+    const rx=ltRx();let done=false;
+    try{
+      await slScanStart(video,async(txt,bin)=>{
+        if(done)return;
+        const res=ltRxFeed(rx,bin);
+        if(res==='more'||res==='dup'){
+          if(rx.st)say(rx.st.nRec+' / '+rx.st.k+' — gardez l’écran de l’hôte dans le champ');
+          return;}
+        if(res!=='done')return;
+        done=true;slScanStop();video.hidden=true;
+        let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
+        if(!o){say('Réception illisible — réessayez.');joBtn.disabled=false;done=false;return;}
+        if(await slOptiqueGot(o,say)){
+          st.hidden=true;
+          if(joinScreen)joinScreen.hidden=true;}
+        else joBtn.disabled=false;
+      });
+    }catch(e){video.hidden=true;joBtn.disabled=false;
       say('Caméra indisponible — autorisez-la, puis réessayez.');}
   });}
 // Reprise immédiate au retour au premier plan : la cadence de fond n'existe pas sur iOS, et
@@ -31637,7 +31815,8 @@ if(location.search.indexOf('__actest')>=0){
     sharePayload,shareCan,shareFold,shareStateHash,shareOffset,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
     slWirePair,slServe,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
-    qrSelftest,blankFiche,
+    ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,
+    qrSelftest,qrEncodeB,blankFiche,
     shareSnap,shareDiff,
     shareApplyMode,vfTime,vfActor,vfMapNorm,buildRuntime,crisisOnScreen,state,Runtime,
     shareGlobTag,SHARE_STATUS_TAG,shareJoinUrl,
