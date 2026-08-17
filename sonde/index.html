@@ -10460,12 +10460,12 @@ function sdpRebuild(o){
     L.push('a=candidate:'+(i+1)+' 1 udp '+(2113937151-i)+' '+k[0]+' '+k[1]+' typ host generation 0');});
   L.push('a=end-of-candidates');
   return L.join('\r\n')+'\r\n';}
-async function sigPack(kind,obj){ // → parties « O11:xxxx » (i, n = 1 chiffre)
+async function sigPack(kind,obj){ // → {parts:["O11:xxxx",…], z} (i, n = 1 chiffre)
   const raw=enc(JSON.stringify(obj)),z=await deflate(raw),body=b64u(z);
   const CH=190,parts=[];const n=Math.ceil(body.length/CH);
   for(let i=0;i<n;i++)parts.push(kind+(i+1)+n+':'+body.slice(i*CH,(i+1)*CH));
   log('signal '+kind+' : JSON '+raw.length+' o → compressé '+z.length+' o → '+n+' code(s) QR');
-  return parts;}
+  return {parts,z};}
 async function sigUnpack(store){ // store = {kind, n, parts:Map} complet → objet
   let body='';for(let i=1;i<=store.n;i++)body+=store.parts.get(i);
   return JSON.parse(dec(await inflate(unb64u(body))));}
@@ -10558,37 +10558,45 @@ function teardownPc(){try{if(pc)pc.close();}catch(e){}
   pc=null;dc=null;clearInterval(pingTimer);clearInterval(statsTimer);
   $('stRtt').textContent='RTT : —';$('stPair').textContent='Paire retenue : —';}
 let qrCycleTimer=0;
-function showQrParts(parts,box){
+/* Affiche une charge de signalisation. Cas nominal (un seul code) : QR STATIQUE. Charge plus
+   longue (IPv6…) : rafale FONTAINE — même machinerie que le mode rafale, plus d'alternance
+   « partie 1/2 » à gérer (jsQR ne lit qu'un code par image, et la fontaine rend l'ordre
+   indifférent). Le repli copier/coller reste le format séquentiel dans sigOut. */
+async function sigShow(kind,obj,box){
   clearInterval(qrCycleTimer);
+  const p=await sigPack(kind,obj);
+  $('sigOut').value=p.parts.join('\n');
   box.classList.remove('hide');box.innerHTML='';
-  const cvs=parts.map(p=>qrCanvas(p,6));
-  if(cvs.some(c=>!c))return log('part trop longue pour le QR maison','ko');
-  const w=document.createElement('div');w.style.textAlign='center';w.appendChild(cvs[0]);
-  box.appendChild(w);
-  if(parts.length>1){
-    // jsQR ne décode qu'UN code par image, et deux jeux de mires dans le champ peuvent même
-    // casser la détection : on ALTERNE les parties au MÊME endroit, comme le mode rafale —
-    // le scanner accumule (dédup par contenu), l'autre appareil n'a qu'à rester dans le champ.
-    const cap=document.createElement('div');
-    cap.style.cssText='font:13px ui-monospace,monospace;color:#000';w.appendChild(cap);
-    let k=0;const paint=()=>{const i=k%cvs.length;w.replaceChild(cvs[i],w.firstChild);
-      cap.textContent='code '+(i+1)+' / '+cvs.length+' — rester dans le champ, la lecture alterne';
-      k++;};
-    paint();qrCycleTimer=setInterval(paint,1200);}
-  $('sigOut').value=parts.join('\n');}
+  if(p.parts.length===1){const c=qrCanvas(p.parts[0],6);if(c)box.appendChild(c);return;}
+  qrCycleTimer=ltShowLoop(box,p.z,{t:kind},3);
+  log('signal '+kind+' en rafale fontaine ('+Math.ceil(p.z.length/138)+' blocs) — laisser l\'écran dans le champ');}
 /* Boucle de scan d'une charge de signalisation, avec RETOUR VISIBLE à chaque code lu —
    « plus rien à l'écran » n'est pas un diagnostic. kind='A' (hôte) ou 'O' (invité). */
 function scanSignal(kind,label,onDone){
-  const store={parts:new Map()},seen=new Set();
+  const store={parts:new Map()},seen=new Set();let fount=null;
+  const reset=()=>{store.parts.clear();store.kind=null;store.n=0;fount=null;};
   scanLoop($('scanVideo'),async txt=>{try{
     txt=String(txt).trim();
     if(seen.has(txt))return;seen.add(txt);
+    // — voie fontaine (charge de signalisation longue) —
+    if(txt.startsWith('FM:')){const m=JSON.parse(txt.slice(3));
+      if(m.t!==kind)return log('QR lu : pas '+label+' (ignoré)','warn');
+      if(!fount){fount=ltNewRx(m);log('QR lu : fiche de '+label+' — '+m.k+' bloc(s)');}
+      return;}
+    const fm=txt.match(/^F([0-9a-z]{3}):([A-Za-z0-9_-]+)$/);
+    if(fm){if(!fount)return; // la fiche repasse dans un instant, inutile d'alarmer
+      const done=ltFeed(fount,parseInt(fm[1],36),unb64u(fm[2]));
+      log('QR lu : '+fount.nRec+'/'+fount.k+' bloc(s) de '+label,'ok');
+      if(done){log('QR lu : '+label+' complète (fontaine)');
+        await onDone(JSON.parse(dec(await inflate(ltBytes(fount)))),reset);}
+      return;}
+    // — voie séquentielle (charge courte ou copier/coller) —
     if(!new RegExp('^'+kind+'\\d\\d:').test(txt))
       return log('QR lu : pas '+label+' (ignoré)','warn');
     if(!sigFeed(store,txt))
       return log('QR lu : partie '+store.parts.size+'/'+(store.n||'?')+' de '+label,'ok');
     log('QR lu : '+label+' complète');
-    await onDone(await sigUnpack(store),store,seen);
+    await onDone(await sigUnpack(store),reset);
   }catch(e){log('erreur au scan : '+e.message,'ko');}});}
 function bindChannel(ch){
   dc=ch;dc.binaryType='arraybuffer';
@@ -10646,12 +10654,12 @@ async function startHost(){
   netAlert(candWarn(cpt.c,'MES candidats'));
   myCands=cpt.c;
   hostNonce=Math.random().toString(36).slice(2,6);
-  showQrParts(await sigPack('O',Object.assign({k:hostNonce},cpt)),$('pairQr'));
+  await sigShow('O',Object.assign({k:hostNonce},cpt),$('pairQr'));
   $('pairSteps').textContent='Étape 2 : scanner en retour le code RÉPONSE affiché par l\'invité (ou coller sa charge ci-dessous).';
   if(scanStream){$('scanRow').classList.remove('hide');
-    scanSignal('A','la réponse',async(a,store)=>{
+    scanSignal('A','la réponse',async(a,reset)=>{
       // `seen` garde les codes périmés : ils restent devant la caméra, on ne les relit pas.
-      if(a.k!==hostNonce){store.parts.clear();store.kind=null;store.n=0;
+      if(a.k!==hostNonce){reset();
         return log('réponse PÉRIMÉE (appariement précédent) — attendre que l\'invité affiche sa '+
                    'NOUVELLE réponse, puis la scanner ; la lecture continue','ko');}
       scanRun++;await applyAnswer(a);});}
@@ -10688,7 +10696,7 @@ async function applyOffer(o){
   netAlert(candWarn(cpt.c,'MES candidats'));
   myCands=cpt.c;
   pairVerdict(myCands,o.c);
-  showQrParts(await sigPack('A',Object.assign({k:offerNonce},cpt)),$('pairQr'));
+  await sigShow('A',Object.assign({k:offerNonce},cpt),$('pairQr'));
   $('pairTitle').textContent='Invité — étape 2 : faire scanner ce code RÉPONSE par l\'hôte';
   $('pairSteps').textContent='La connexion s\'établit dès que l\'hôte a scanné.';
   // Batterie : la réponse est affichée, l'invité n'a PLUS rien à scanner — caméra coupée.
@@ -10773,6 +10781,33 @@ function ltFeed(st,i,data){ // épluchage (belief propagation) — renvoie true 
 function ltBytes(st){const all=new Uint8Array(st.k*st.ch);
   for(let j=0;j<st.k;j++)all.set(st.rec[j],j*st.ch);
   return all.slice(0,st.z);}
+/* Émetteur fontaine générique : boucle méta (« fiche du transfert », ré-émise 1 trame sur 6,
+   pour qu'un récepteur arrivé en route s'accroche) + blocs systématiques + réparations.
+   `extra` entre dans la méta (t:'O'/'A' = signalisation, t:'D' = données de rafale).
+   Renvoie l'id du minuteur — l'appelant le range et le coupe. */
+function ltShowLoop(box,bytes,extra,fps){
+  const CH=138,k=Math.ceil(bytes.length/CH),seed=(Math.random()*0xffffffff)>>>0;
+  const blocks=[];for(let j=0;j<k;j++){const b=new Uint8Array(CH);
+    b.set(bytes.subarray(j*CH,Math.min((j+1)*CH,bytes.length)));blocks.push(b);}
+  const cdf=ltCdf(k);
+  const metaCv=qrCanvas('FM:'+JSON.stringify(Object.assign({k,z:bytes.length,seed,ch:CH},extra)),5);
+  if(!metaCv){log('méta trop longue pour le QR maison','ko');return 0;}
+  box.classList.remove('hide');box.innerHTML='';
+  const w=document.createElement('div');w.style.textAlign='center';
+  const cap=document.createElement('div');
+  cap.style.cssText='font:13px ui-monospace,monospace;color:#000';
+  w.appendChild(metaCv);w.appendChild(cap);box.appendChild(w);
+  cap.textContent='fiche du transfert (répétée)';
+  let i=0,tick=1;
+  return setInterval(()=>{
+    let cv,txt;
+    if(tick++%6===0){cv=metaCv;txt='fiche du transfert (répétée)';}
+    else{const d=new Uint8Array(CH);
+      for(const j of ltIndices(seed,i,k,cdf))xorInto(d,blocks[j]);
+      cv=qrCanvas('F'+i.toString(36).padStart(3,'0')+':'+b64u(d),5);
+      txt=i<k?'bloc '+(i+1)+' / '+k:'réparation n° '+(i-k+1);i++;}
+    if(cv){w.replaceChild(cv,w.firstChild);cap.textContent=txt;}
+  },1000/fps);}
 let txTimer=0;
 function fakeSnap(size){ // pseudo-shareSnap : structure répétitive, compresse comme le vrai
   const o={checked:{},verified:{},counters:{},events:[]};let i=0;
@@ -10798,25 +10833,11 @@ $('txStart').onclick=async()=>{
     let k=0;
     txTimer=setInterval(()=>{box.innerHTML='';box.appendChild(cvs[k%cvs.length]);k++;},1000/fps);
     return log('rafale SÉQUENTIELLE démarrée : '+frames.length+' trames en boucle');}
-  // FONTAINE : blocs bourrés à CH octets, trames i=0,1,2,… jamais deux fois la même,
-  // méta re-émise toutes les 8 trames pour les arrivées en cours de route.
-  const k=Math.ceil(z.length/CH),seed=(Math.random()*0xffffffff)>>>0;
-  const blocks=[];for(let j=0;j<k;j++){const b=new Uint8Array(CH);
-    b.set(z.subarray(j*CH,Math.min((j+1)*CH,z.length)));blocks.push(b);}
-  const cdf=ltCdf(k);
-  const metaCv=qrCanvas('FM:'+JSON.stringify({k,b:raw.length,z:z.length,h,seed,ch:CH}),5);
-  if(!metaCv)return log('méta trop longue pour le QR maison','ko');
+  // FONTAINE : émetteur générique partagé avec la signalisation (t:'D' = données).
+  const k=Math.ceil(z.length/CH);
   $('txInfo').textContent='fontaine : '+raw.length+' o → '+z.length+' o → '+k+' blocs, '+fps+'/s '+
     '(≈'+Math.ceil(k*1.15/fps)+' s théoriques, quel que soit ce qui est raté)';
-  let i=0,tick=0;
-  txTimer=setInterval(()=>{
-    box.innerHTML='';
-    if(tick++%8===0)return box.appendChild(metaCv);
-    const d=blocks[0].slice();d.fill(0);
-    for(const j of ltIndices(seed,i,k,cdf))xorInto(d,blocks[j]);
-    const cv=qrCanvas('F'+i.toString(36).padStart(3,'0')+':'+b64u(d),5);
-    if(cv)box.appendChild(cv);
-    i++;},1000/fps);
+  txTimer=ltShowLoop(box,z,{t:'D',b:raw.length,h},fps);
   log('rafale FONTAINE démarrée : '+k+' blocs, trames infinies');};
 $('txStop').onclick=()=>{clearInterval(txTimer);$('txQr').innerHTML='';};
 async function startRx(){
@@ -10830,7 +10851,9 @@ async function startRx(){
         (h===attendu?' ✓':' ✗ attendu '+attendu),h===attendu?'ok':'ko');};
   scanLoop($('rxVideo'),async(txt,st)=>{
     // — mode fontaine —
-    if(txt.startsWith('FM:')){if(!fount){const m=JSON.parse(txt.slice(3));fount=ltNewRx(m);
+    if(txt.startsWith('FM:')){const mm=JSON.parse(txt.slice(3));
+      if(mm.t&&mm.t!=='D')return; // fiche de SIGNALISATION : pas pour le récepteur de rafale
+      if(!fount){const m=mm;fount=ltNewRx(m);
       t0=t0||performance.now();
       grid.innerHTML='';for(let i=0;i<m.k;i++)grid.appendChild(document.createElement('i'));
       log('méta fontaine : '+m.k+' blocs, '+m.z+' o compressés');}return;}
