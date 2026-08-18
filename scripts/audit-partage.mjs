@@ -2301,6 +2301,30 @@ await sec('v5.14.17 · retour de l\'invité + menu sans export sur l\'aide reçu
     r.carteTxt.slice(0, 80));
   t('« Reprendre » ramène sur l\'aide reçue', r.retourVue === 'read' && r.partagee
     && r.retourTitre === 'Aide reçue X', JSON.stringify({ v: r.retourVue, t: r.retourTitre }));
+  /* L'INVITÉ EN LIGNE/DIRECT (v5.14.18, signalé : « une autre de ses aides est cochable comme
+     si une session était démarrée ») : sur SA propre aide, parcours INERTE et bouton Démarrer ;
+     sur la fiche PARTAGÉE, la rangée « Montrer à un autre écran » (relais optique). */
+  const r3 = await page.evaluate(async () => {
+    _slMirror = null; _shParked = null;
+    const fh = Object.assign(JSON.parse(JSON.stringify(fiches[0])),
+      { id: 'fiche-hote-2', title: 'Aide reçue Y' });
+    Share.mode = 'guest'; Share.status = 'active'; Share.me = 'g1';
+    Share.fiche = sharePayload(fh); Share.fold = { sessId: 'sess-hote-2' };
+    openSharedFiche();
+    await new Promise(x => setTimeout(x, 350));
+    const menu = () => { try { _moreBuild(); } catch (e) {}
+      return (_moreRows || []).map(r => r === 'sep' ? '' : r.label).join(' | '); };
+    const mShared = menu();
+    openRead(fiches[0].id);
+    await new Promise(x => setTimeout(x, 400));
+    return { mShared, entree: !!document.getElementById('sessStart'),
+      cochables: document.querySelectorAll('[data-ck]').length };
+  });
+  t('la fiche PARTAGÉE d\'un invité en ligne offre le relais « Montrer à un autre écran »',
+    /Montrer à un autre écran/.test(r3.mShared) && !/Exporter/.test(r3.mShared),
+    r3.mShared.slice(0, 160));
+  t('SA propre aide garde son entrée — parcours inerte, zéro coche fantôme',
+    r3.entree === true && r3.cochables === 0, JSON.stringify(r3));
   await page.close();
 });
 

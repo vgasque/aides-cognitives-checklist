@@ -512,3 +512,48 @@ reçue ? c'est voulu ? » (non). Trois faits structuraux découverts :
 transporte la PROJECTION `sharePayload` (liste blanche de 14 champs), reconstruite en mémoire
 (`migrate` en point d'entrée), jamais écrite (IndexedDB et compte intacts, `sessionId` nul,
 `persistLive` refuse). L'export au menu était le seul trou — fermé, témoin 8/8.
+
+## A220 — Les aides PROPRES de l'invité redeviennent normales ; l'invité peut relayer par l'écran
+
+**Signalé à l'usage (v5.14.18)**, quatre points :
+- **« Une autre de ses aides est cochable comme si une session était démarrée, bandeau
+  différent »** : `gesteEntree` était conditionné au MODE GLOBAL (`Share.mode!=='guest'`) —
+  la garde visait la fiche PARTAGÉE, où `Runtime.started` est de toute façon vrai. Supprimée :
+  sur SES aides, l'invité retrouve le parcours inerte et l'entrée normale.
+- **`ensureStarted` refusait TOUTE session locale à un invité** — règle pensée pour l'appareil
+  emprunté. AFFINÉE : le refus ne vaut plus qu'en mode SANS TRACE (`SHARE_NOTRACE`) ; un invité
+  sur SON appareil démarre ses propres sessions (son historique). DEUX gardes tiennent
+  l'étanchéité : la fiche partagée reste refusée (première ligne, `started` vrai), et
+  `shareEmitDiff` n'émet JAMAIS une session locale d'invité (`R.sessionId` non nul) — ses clés
+  parleraient d'une autre fiche sur le fil de l'hôte.
+- **« 2 participants » à un seul invité** : la feuille directe comptait `1 + invités` (l'hôte
+  se comptait lui-même) quand la feuille cloud compte les INVITÉS — harmonisé : invités
+  présents seulement, et « personne n'a encore rejoint » à zéro.
+- **« Montrer à un autre écran »** : l'invité relaie la session en fontaine optique — le miroir
+  relaie l'identité qu'il reflète, l'invité en ligne/direct celle apprise par `session_start`
+  (payload gagne `id`, clé déjà en liste blanche — zéro changement serveur) ; l'hôte reconnaît
+  donc aussi les RETOURS d'un écran servi par ce relais. La feuille d'émission s'adapte au
+  rôle : ni sélecteur de modes ni « Recevoir en retour » chez un invité (seul le vrai hôte
+  consomme les retours — son `Runtime.sessionId` en est la clé).
+- La notice du mode direct dit son PRÉREQUIS : « même Wi-Fi requis », « un réseau local SANS
+  internet convient (Wi-Fi d'établissement, box coupée) » — signalé : l'ancien texte laissait
+  croire que le mode marchait sans aucun réseau.
+
+## A221 — Audit de sécurité du canal direct : pourquoi un tiers sur le Wi-Fi ne peut rien
+
+**Question d'audit de l'auteur** : « ce mode direct toujours à l'écoute peut-il être une faille —
+un tiers sur le réseau peut-il injecter une fausse session, forcer de mauvaises informations ? »
+Réponse écrite au registre (§ 3.2, « Modèle de menace du canal direct ») ; l'essentiel :
+1. DTLS de bout en bout, authentifié par l'EMPREINTE de certificat échangée dans la
+   signalisation — qui passe par les QR écran-à-écran (canal physique, jeton anti-réponse
+   périmée) ou par le relais authentifié (HTTPS, secrets, RLS). Un tiers réseau ne peut pas
+   s'interposer sans altérer l'un de ces deux canaux, qu'il ne voit pas. Le relais était DÉJÀ
+   l'autorité du partage en ligne : le secours chaud ne lui accorde aucune confiance nouvelle.
+2. RIEN N'ÉCOUTE : aucun port ouvert, aucune découverte ; ICE ne répond qu'aux identifiants de
+   la négociation en cours ; le hub ne parle qu'aux canaux appariés ; l'admission EST le canal.
+3. Écrire exige un secret de participant remis PAR le canal apparié ; un coupé perd l'écriture
+   au hub même avec un client modifié.
+4. L'optique exige d'être physiquement filmé ; autre session/aide = refus sans écriture ;
+   règles 5 et 15 aux points d'entrée.
+Limites dites : les noms mDNS révèlent la PRÉSENCE d'un appareil (pas son contenu) ; l'appareil
+physiquement compromis reste hors modèle, comme partout.

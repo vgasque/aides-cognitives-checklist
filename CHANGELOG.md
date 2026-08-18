@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.14.18] — 2026-08-18
+### Les aides propres de l'invité redeviennent normales — et l'invité relaie par l'écran
+
+- **Consulter ses propres aides pendant un partage redevient normal** (signalé) : plus de
+  coches fantômes ni de bandeau de session sur une aide non démarrée — et un invité sur SON
+  appareil peut démarrer ses propres sessions (le refus ne vaut plus que sur appareil sans
+  trace) ; ses sessions locales n'alimentent jamais le fil de l'hôte.
+- **« Montrer à un autre écran »** (signalé : « pas de bouton pour redonner le code ») :
+  l'invité — miroir ou en ligne/direct — relaie la session en fontaine optique ; l'hôte
+  reconnaît la session relayée, retours compris. La feuille d'émission s'adapte au rôle.
+- **Le compte de participants est juste** (signalé : « 2 participants » à un seul) : la
+  feuille directe comptait l'hôte avec — elle compte désormais les invités présents, comme la
+  feuille en ligne.
+- **La notice du mode direct dit son prérequis** (signalé) : « même Wi-Fi requis — un réseau
+  local SANS internet convient (Wi-Fi d'établissement, box coupée) ».
+- **Audit de sécurité du canal direct** (question) : modèle de menace écrit au registre
+  (§ 3.2) — chiffrement de bout en bout authentifié par empreinte via QR physique ou relais
+  authentifié, rien n'écoute, l'admission est le canal apparié, l'optique exige d'être filmé.
+
 ## [5.14.17] — 2026-08-18
 ### L'invité navigue sans perdre sa session — et une aide reçue ne s'exporte pas
 
@@ -357,20 +376,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   ambre. Un seul texte, une seule occurrence, les deux éditeurs le partagent. La doctrine qui le
   cite (`conventions-de-code.md`) est mise à jour en même temps — une formule citée ailleurs qu'à
   son point d'émission est une formule qui diverge.
-
-## [5.13.4] — 2026-08-16
-### Pendant la frappe, l'en-tête s'efface — deux chromes ne se disputent pas une bande
-
-- **La v5.13.3 faisait recouvrir l'en-tête par la colonne** (« pas une bonne solution », capture à
-  l'appui). Le fond du problème : *libérer* l'en-tête ne suffisait pas. Libéré, il défile — donc il
-  **revient en haut du document** quand on y remonte, et se retrouve alors **dans la même bande**
-  que la colonne du champ. Lui passer devant masquait le champ ; lui passer dessous faisait
-  recouvrir l'en-tête, ce qui se voit et ne ressemble à rien.
-- **Deux chromes qui se disputent la même bande n'ont pas de bon ordre d'empilement : il faut qu'un
-  seul soit là.** Pendant la frappe, c'est la colonne — elle porte ce qu'on écrit et ce qu'on
-  cherche. L'en-tête (retour, statut, thème, menu) n'a aucun rôle à ce moment-là : il **s'efface**,
-  et revient intact dès que le clavier se ferme. Rien ne se superpose, rien ne se masque, rien ne
-  saute.
-- Mesuré aux deux moteurs et aux deux largeurs : clavier ouvert l'en-tête est `display:none` et la
-  colonne occupe le rectangle visible de bout en bout ; clavier fermé l'en-tête est de retour,
-  collant à 0. `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.

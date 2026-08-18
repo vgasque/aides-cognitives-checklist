@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-yrB4sGHwwdtFL2rRCV2yqDgRXg83Lh4W0jNczfo02Q4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-spawdVmzbsO8eVfpeIdFVwQVayrctsLXHSpKlyv6nuE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.17';
+const APP_VERSION='5.14.18';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13620,12 +13620,12 @@ function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,t
    question ne se pose d'ailleurs qu'une fois — ouvrir l'éditeur TERMINE la session (K5), donc la
    fiche ne peut pas changer sous une session vive. */
 function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
-  /* L'INVITÉ NE DÉMARRE JAMAIS DE SESSION LOCALE. C'est le point exact où l'étanchéité se joue :
-     sans cette garde, sa première coche créerait chez lui un enregistrement de session — donc une
-     trace de soin sur un téléphone emprunté, et une fiche de session dans l'historique de
-     quelqu'un qui n'a fait que regarder. Ses gestes partent sur le fil ; l'enregistrement
-     appartient à l'hôte, qui le partage ensuite par les voies ordinaires. */
-  try{if(Share.mode==='guest')return false;}catch(e){}
+  /* L'INVITÉ SANS TRACE NE DÉMARRE JAMAIS DE SESSION LOCALE — téléphone emprunté : une trace de
+     soin n'y a rien à faire. AFFINÉ v5.14.18 : un invité sur SON PROPRE appareil (compte,
+     bibliothèque) peut démarrer une session sur SES aides — c'est son historique ; la fiche
+     PARTAGÉE, elle, reste refusée par la première ligne (`Runtime.started` y est vrai), et ses
+     sessions locales n'émettent JAMAIS sur le fil (garde `shareEmitDiff`). */
+  try{if(Share.mode==='guest'&&SHARE_NOTRACE)return false;}catch(e){}
   /* ═══ K5 — « ▶ ESSAYER » : UNE SESSION QUI NE LAISSE RIEN (v4.72.0) ═══════════════════════
      L'aperçu refusait TOUTE session : on regardait un rendu inerte, donc on ne pouvait pas voir
      ce qu'on venait d'écrire se COMPORTER — or c'est précisément ce que l'auteur doit vérifier
@@ -19151,7 +19151,8 @@ function shareFold(events,base){
          arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 voyait son chrono partir de zéro et
          son compte rendu dater le début du soin à son arrivée — les deux documents d'un même soin
          devenaient alors impossibles à recouper au débrief. */
-      case 'session_start': if(+p.t)s.startedAt=+p.t; s.exercise=!!p.exo; break;
+      case 'session_start': if(+p.t)s.startedAt=+p.t; s.exercise=!!p.exo;
+        if(p.id)s.sessId=String(p.id); break;
       case 'mark':    {const id=_fid(p.id,'e'),ex=s.events.find(x=>x.id===id);
         if(ex){ex.t=_fnum(p.t,ex.t);ex.ref=tkRefNorm(p.ref);if(e.actor)ex.a=e.actor;}
         else s.events.push({id:id,t:_fnum(p.t,e.ts),ref:tkRefNorm(p.ref),a:e.actor});
@@ -19243,7 +19244,11 @@ function shareDiff(a,b){
      serveur valide le `kind`, pas la forme du payload, et `session_start` est déjà réservé au
      lead — un scribe ne peut pas déguiser une session réelle en répétition. */
   if(a.startedAt!==b.startedAt&&b.startedAt)
-    out.push({kind:'session_start',payload:{t:b.startedAt,exo:!!b.exercise}});
+    /* `id` = l'identité OPTIQUE de la session (v5.14.18) : c'est elle qui permet à un INVITÉ de
+       « montrer à un autre écran » une fontaine que l'HÔTE saura reconnaître (retours compris).
+       La clé `id` est déjà dans la liste blanche des payloads — rien ne change au serveur. */
+    out.push({kind:'session_start',payload:{t:b.startedAt,exo:!!b.exercise,
+      id:(typeof Runtime!=='undefined'&&Runtime&&Runtime.sessionId)||undefined}});
   return out;}
 /* Base de comparaison de l'émission. Remise à jour APRÈS l'application d'un lot distant : sans
    cela, ce qu'on vient de recevoir serait re-diffé et RENVOYÉ à l'expéditeur — un écho qui ferait
@@ -19252,6 +19257,10 @@ let _shareBase=null;
 function shareEmitDiff(R){
   try{
     if(Share.mode==='off'||!R||!R.fiche)return 0;
+    /* La session partagée d'un invité n'a PAS de dossier local (`sessionId` nul) — toute autre
+       session (la sienne, sur ses aides) est LOCALE et ne doit jamais alimenter le fil de
+       l'hôte : ses clés parleraient d'une autre fiche. */
+    if(Share.mode==='guest'&&R.sessionId)return 0;
     const now=shareSnap(R,!!state.flowEnded);
     if(!_shareBase){_shareBase=now;return 0;}
     const evs=shareDiff(_shareBase,now);
@@ -20950,7 +20959,11 @@ function renderRead(){
      déclaration lève — c'est la zone morte temporelle, la faute exacte payée au lot T3 (tout le
      rendu échouait, et ni `npm test` ni `npm run check` ne l'auraient vu : aucun des deux
      n'exerce un rendu). */
-  const gesteEntree=!Runtime.started&&!state.previewFrom&&(()=>{try{return Share.mode!=='guest';}catch(e){return true;}})();
+  /* PLUS DE CONDITION SUR LE MODE GLOBAL (v5.14.18, signalé : « une autre aide de l'invité est
+     cochable comme si une session était démarrée, et le bandeau diffère ») : la garde « pas de
+     bouton Démarrer chez l'invité » visait la fiche PARTAGÉE — où `Runtime.started` est de
+     toute façon vrai. Sur SES aides, l'invité retrouve le parcours inerte et l'entrée normale. */
+  const gesteEntree=!Runtime.started&&!state.previewFrom;
   const ladRail=(()=>{
     /* ⚠ `hasFlow` N'EST PAS LE BON CRITÈRE ICI (v5.6, signalé à l'usage : « avec un seul bloc
        d'une seule étape, le parcours inerte ne s'affiche pas »). `hasFlow` répond « y a-t-il un
@@ -21392,10 +21405,12 @@ function bindReadEvents(f,blk,cur){
     ...((Share.isStale()&&Share.status==='active')
       ? [{label:'Continuer seul…',ic:uiIcon('undo',16),sub:'le lien ne répond plus',act:continueAlone}]
       : []),
-    /* Le MIROIR optique a sa feuille (resynchroniser, renvoyer) — c'est sa seule machinerie. */
+    /* Le MIROIR optique a sa feuille (resynchroniser, renvoyer) — c'est sa seule machinerie ;
+       l'invité en ligne/direct, lui, peut RELAYER la session à un autre écran (v5.14.18). */
     ...(_slMirror
       ? [{label:'Par l’écran…',ic:'⇆',sub:'resynchroniser ou renvoyer vos repères',act:openCurrentShare}]
-      : []),
+      : [{label:'Montrer à un autre écran',ic:'⇆',
+          sub:'la session défile en codes — l’autre filme',act:()=>slOptiqueTx()}]),
     'sep',
     {label:'Quitter le partage…',ic:uiIcon('stop',16),danger:true,sub:'vous ne suivrez plus la session',act:quitShare}
   ]);
@@ -31296,10 +31311,12 @@ function slSheet(phase){
     /* GARDE D'ÉTAT (signalé à l'usage : « après Arrêter, la fenêtre fait comme s'il y avait
        toujours un partage ») : « live » ne s'affiche que si le partage l'est VRAIMENT. */
     if(!slLiveOk()){SL=null;shareModal.classList.remove('on');return;}
-    const n=1+((Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length||0);
+    /* On compte les INVITÉS présents, jamais les écrans (v5.14.18, signalé : « 2 participants »
+       à un seul invité — le +1 de l'hôte se lisait comme un fantôme, surtout après une bascule). */
+    const n=(Share.participants||[]).filter(p=>!p.owner&&!p.revoked&&!shareLeft(p)).length;
     const enLigneOk=Auth.signedIn()&&Sync.online();
     body.innerHTML='<div class="sl-status"><span class="sl-dot"></span>'
-      +n+' participant'+(n>1?'s':'')+' · en direct</div>'
+      +(n?n+' participant'+(n>1?'s':'')+' · en direct':'en direct — personne n\u2019a encore rejoint')+'</div>'
       +slModeSegHtml('direct')
       +sharePartRowsHtml()
       +'<div class="sl-actions">'
@@ -31322,7 +31339,8 @@ function slSheet(phase){
       +' — vue à '+esc(_slMirror?fmtHM(_slMirror.at):'—')+' · pas du direct</span></div>'
       +'<div class="sl-actions">'
       +'<button class="btn primary" id="slReRx">Resynchroniser</button>'
-      +'<button class="btn" id="slRet">Renvoyer mes repères</button></div>'
+      +'<button class="btn" id="slRet">Renvoyer mes repères</button>'
+      +'<button class="btn ghost" id="slShow">Montrer à un autre écran</button></div>'
       +'<div id="slStat" role="status"></div>';
     const reRx=async()=>{
       const st=document.getElementById('slStat');
@@ -31344,6 +31362,8 @@ function slSheet(phase){
           }});
       }catch(e){slCamRefused(st,reRx,()=>{shareModal.classList.remove('on');});}};
     document.getElementById('slReRx').addEventListener('click',reRx);
+    {const sh=document.getElementById('slShow');
+     if(sh)sh.addEventListener('click',()=>{slOptiqueTx();});}
     /* Le RETOUR du miroir : mes repères (journal référentiel, rien d'autre) partent en
        fontaine — l'hôte les filme et son journal s'annote (maquette 05). */
     document.getElementById('slRet').addEventListener('click',async()=>{
@@ -31368,10 +31388,11 @@ function slSheet(phase){
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>'
     +(phase==='offer-warn'
       ?'Aucun réseau local vu — vérifiez le Wi-Fi'
-      :'Pas d’internet — partage en direct')+'</span></div>'
+      :'Pas d’internet — partage en direct, même Wi-Fi requis')+'</span></div>'
     +slModeSegHtml('direct')
     +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
-    +'<p class="sl-cap">l’invité scanne, puis vous scannez sa réponse</p>'
+    +'<p class="sl-cap">l’invité scanne, puis vous scannez sa réponse<br>'
+    +'un réseau local SANS internet convient (Wi-Fi d’établissement, box coupée)</p>'
     +'<div class="sl-actions">'
     +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button></div>'
     +'<div id="slStat" role="status"></div>';
@@ -31443,11 +31464,16 @@ async function slOptiqueTx(){
   if(!await slEnsureSession())return;
   const R=Runtime;
   const cloudActif=Share.mode==='host'&&Share.status==='active'&&Share.share!=='local';
-  const z=await ltSnapPack(R.sessionId||(_slMirror&&_slMirror.sess)||'',
-    /* `shareSnap(Runtime, …)` et non `null` (v5.14.16, payé par le témoin du retour) : avec
-       `null` l'instantané ÉMIS ÉTAIT VIDE depuis la v5.14.0 — la fiche voyageait, les coches,
-       minuteurs et repères JAMAIS. Le miroir montrait une session au propre, pas la session. */
-    sharePayload(R.fiche),shareSnap(R,!!state.flowEnded));
+  /* L'identité de session, par rôle : l'HÔTE a la sienne ; un MIROIR relaie celle qu'il
+     reflète ; un INVITÉ en ligne/direct relaie celle apprise par `session_start` (v5.14.18,
+     signalé : « pas de bouton pour redonner le code à l'écran ») — l'hôte reconnaîtra donc
+     aussi les RETOURS d'un écran servi par ce relais. */
+  const sess=R.sessionId||(_slMirror&&_slMirror.sess)||(Share.fold&&Share.fold.sessId)||'';
+  const hote=!!R.sessionId;
+  /* `shareSnap(Runtime, …)` et non `null` (v5.14.16, payé par le témoin du retour) : avec
+     `null` l'instantané ÉMIS ÉTAIT VIDE depuis la v5.14.0 — la fiche voyageait, les coches,
+     minuteurs et repères JAMAIS. Le miroir montrait une session au propre, pas la session. */
+  const z=await ltSnapPack(sess,sharePayload(R.fiche),shareSnap(R,!!state.flowEnded));
   const tx=ltTx(z,0);
   tx.setH4(new Uint8Array(await crypto.subtle.digest('SHA-256',z)).slice(0,4));
   closeShareSheet();               // le minuteur de la feuille cloud repeindrait par-dessus
@@ -31455,14 +31481,14 @@ async function slOptiqueTx(){
   shareModal.classList.add('on');
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⇆</span><span><b>Par l’écran</b>'
     +' — l’autre appareil filme, c’est tout · instantané daté, pas du direct</span></div>'
-    +slModeSegHtml('optic')
+    +(hote?slModeSegHtml('optic'):'')
     +'<div id="ltQr"></div><p class="sl-cap" id="ltCap" role="status"></p>'
     +'<div class="sl-actions">'
-    +'<button class="btn" id="ltRx">Recevoir en retour</button>'
+    +(hote?'<button class="btn" id="ltRx">Recevoir en retour</button>':'')
     +'<button class="btn ghost" id="ltStop">Arrêter</button></div>'
     +'<div id="ltStat" role="status"></div>';
   ltShowLoop(tx);
-  slModeSegBind('optic');
+  if(hote)slModeSegBind('optic');
   /* L'ALLER-RETOUR (v5.14.16, signalé : « une sorte de synchronisation ») : l'hôte cesse
      d'émettre, filme l'écran de l'invité, et les repères de celui-ci ANNOTENT le journal —
      puis l'émission reprend, l'instantané ré-emballé portant les repères reçus. */

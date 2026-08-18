@@ -430,6 +430,29 @@ personnelle) est remis à chaque invité par le canal direct chiffré — rien d
 La notice affichée à l'invité (`#joinScreen`) dit les deux régimes ; les deux textes évoluent
 ensemble, ou aucun.
 
+**Modèle de menace du canal direct** (v5.14.18, question d'audit : « un tiers malveillant sur le
+réseau peut-il injecter une fausse session ? ») — non, et voici pourquoi, point par point :
+1. **Le canal est chiffré de bout en bout** (DTLS, natif WebRTC) et son authentification repose
+   sur l'**empreinte de certificat** (32 octets) échangée dans la signalisation : le navigateur
+   REFUSE tout pair dont le certificat ne correspond pas. Un tiers sur le Wi-Fi ne peut donc
+   s'interposer qu'en altérant la signalisation elle-même — or elle passe soit par les **QR
+   écran-à-écran** (canal physique, hors de portée du réseau ; jeton anti-réponse-périmée), soit
+   par le **relais authentifié** (HTTPS + secrets de participants + RLS) pour le secours chaud.
+   Le relais était déjà l'autorité du partage en ligne : aucune confiance NOUVELLE n'est accordée.
+2. **Rien n'écoute** : pas de port ouvert, pas de service de découverte. Un pair WebRTC ne répond
+   qu'aux vérifications ICE portant les identifiants (`ufrag`/`pwd`) de la négociation en cours ;
+   le hub de l'hôte ne parle qu'aux canaux déjà appariés, et l'admission n'est PAS un code — c'est
+   la possession du canal apparié.
+3. **Injecter des évènements** exige un secret de participant, remis à l'admission par le canal
+   apparié — un tiers non admis ne peut rien pousser ; un participant coupé perd l'écriture au
+   serveur du hub, pas seulement à l'écran.
+4. **Le mode optique** exige d'être physiquement FILMÉ (geste délibéré) ; une fontaine d'une autre
+   session ou d'une autre aide est refusée sans écriture ; tout contenu reçu passe par les points
+   d'entrée de la règle 5 (`migrate`, `esc()`), et aucun texte libre ne traverse (règle 15).
+Limites honnêtes : les noms mDNS des candidats révèlent la PRÉSENCE d'un appareil sur le réseau
+local (pas son contenu) ; et un appareil physiquement compromis reste hors du modèle — comme pour
+tout le reste de l'application.
+
 **Limites connues, assumées et dites** (mesurées lors du spike d'août 2026) :
 1. L'invité doit déjà avoir l'application sur son appareil (installée ou en cache) — hors
    ligne, personne ne peut la lui servir. Le flux « invité vierge par lien » reste en-ligne.
