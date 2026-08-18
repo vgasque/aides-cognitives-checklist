@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.14.7] — 2026-08-18
+### Le sélecteur de mode partout, dans son conteneur, en haut — et plus de cul-de-sac
+
+- **Le sélecteur ne disparaît plus** (signalé : « parfois pas de sélecteur, et si je clique il
+  disparaît ») : un seul constructeur le pose sur TOUS les états de la feuille — en ligne,
+  appariement, en direct, émission optique, échec. Cliquer un cran mène toujours à un état qui
+  le porte aussi ; cliquer le cran actif ne fait rien.
+- **Les pastilles de la maquette 08** : point vert sur le cran actif, gris sinon, ⧗ pour
+  « Par l'écran » — dans le composant segmenté canonique (pastille glissante), habillé du
+  CONTENEUR du sélecteur de l'accueil (fond d'ambiance, filet, coins arrondis, pastille en
+  retrait), et placé EN HAUT de la feuille, sous la notice (signalé : « en bas — ce serait
+  mieux en haut »).
+- **« Aucune session en cours à transmettre » n'est plus un cul-de-sac** (signalé) : la garde
+  commune fait ce que fait tout le reste de l'app — session démarrée → on y va ; fiche ouverte
+  sans session → « Démarrer et partager ? » ; pas de fiche du tout → le seul vrai refus, qui
+  dit quoi faire (« Ouvrez d'abord l'aide cognitive à partager »).
+
 ## [5.14.6] — 2026-08-18
 ### Le sélecteur de mode est LE segmenté de l'application — pas une imitation
 
@@ -453,28 +470,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   repliables des références suivent : on les tape aussi plusieurs fois de suite.
 - `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; les cinq sondes de la série
   restent vertes.
-
-## [5.12.5] — 2026-08-16
-### Le chrome ne saute plus quand on parcourt les occurrences — une géométrie de chrome ne se dérive pas du défilement
-
-- **L'en-tête et la sidebar sautaient à chaque clic sur ‹ / ›** (signalé à l'usage). Le harnais ne
-  reproduit rien sur ordinateur : à 1280 px, vingt-six sauts d'occurrence, l'en-tête reste à 0, la
-  colonne à 69, `--hdr-h` et `--stick-top` constants. C'est donc **le clavier**. Ouvert, chaque
-  défilement programmatique fait **re-panoramiquer** le viewport visuel pour garder le champ
-  focalisé sous les yeux : `offsetTop` change à chaque saut, et le chrome — qui le suit depuis la
-  v5.12.0 — sautait avec lui.
-- **La règle existait déjà dans ce dossier, une famille plus loin** : *une géométrie de chrome ne
-  se dérive jamais d'un état qui dépend du défilement* (v5.0.9, puis le rail A→Z en v5.6, dont le
-  haut est mesuré puis **gelé** pour exactement la même raison — sinon ses lettres bougent sous le
-  doigt). Le décalage se relit donc quand la **hauteur** du viewport visuel change — c'est-à-dire
-  quand le clavier s'ouvre, se ferme ou change de taille — et reste **gelé** entre deux. Le chrome
-  est immobile pendant qu'on parcourt les occurrences.
-- **Ce que ça coûte, et c'est dit** : si le système re-panoramique sans changer la hauteur (passer
-  le focus à un champ plus bas, clavier déjà ouvert), le chrome garde le décalage du dernier
-  évènement de hauteur. Le bon compromis : ce cas laisse le chrome à quelques dizaines de pixels
-  près, quand l'ancien comportement le faisait sauter à **chaque** geste de lecture.
-- Les cinq sondes de la série restent vertes aux deux moteurs (chrome collant, coque large, colonne
-  sommaire, croix, navigation d'occurrences) ; `npm run check` 20/20, `npm test` 2×1126, audit
-  COMPLET 25/25. ⚠ Comme pour toute la série `--vvt` : le comportement **sous vrai clavier iOS** ne
-  se vérifie que sur appareil — le harnais mesure le câblage et la géométrie, pas la réaction du
-  système.

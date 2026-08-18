@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-u4QCKQwL1bgt4AZarDqfKI3HXAtiZqhcC9/2VB4wzLU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-pMdISbstl9iKU3+TkUss11ILdaU4R1uAEePHoGqffhQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7279,6 +7279,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
     text-align:center;margin:6px 0 0}
+  /* Pastilles des crans du sélecteur de mode (maquette 08) : vert = cran ACTIF, gris sinon,
+     ⧗ (mono) pour le ponctuel. Portées par le composant .seg canonique, sans le modifier. */
+  #shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
+  #shareBody .seg-btn.on .sdot{background:var(--ok)}
+  #shareBody .seg-btn .sdot.t{width:auto;height:auto;border-radius:0;background:none;
+    font-family:var(--f-mono);font-size:11px;font-weight:700;line-height:1;color:inherit}
+  /* Conteneur du sélecteur de mode : la recette du sélecteur de l'ACCUEIL (fond d'ambiance,
+     filet, coins r-2, pastille en retrait de 2 px) adaptée à la feuille. */
+  #shareBody .seg{background:var(--amb);border:1px solid var(--line);
+    border-radius:var(--r-2);padding:2px;margin:12px 0 0}
+  #shareBody .seg .seg-pill{top:2px;bottom:2px;left:2px;border-radius:var(--r-1);
+    width:calc((100% - 4px - (var(--seg-n,3) - 1) * var(--seg-gap,8px)) / var(--seg-n,3))}
   /* Ligne d'état à point PULSANT (maquettes 01/08) — pulsation d'OPACITÉ seule (peinture). */
   .sl-status{display:flex;align-items:center;gap:8px;justify-content:center;
     font-size:var(--t-meta);color:var(--ink-2);margin-top:10px}
@@ -9611,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.6';
+const APP_VERSION='5.14.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -30999,6 +31011,7 @@ function shareSheetHtml(){
      passé, et « Nouveau code » devient l'action évidente. */
   const porte=!!code;
   return '<p class="sh-fiche">'+esc(f?f.title:'')+'</p>'
+    +slModeSegHtml('cloud')
     +(porte
       ? '<p class="sh-lead">Faites-le scanner, ou dictez-le. Il ne sert <b>qu\'une fois</b>.</p>'
         +'<p class="sh-code" id="shCode">'+esc(shareCodeFmt(code))+'</p>'
@@ -31022,12 +31035,6 @@ function shareSheetHtml(){
     +'<div class="sh-acts">'
     +'<button class="btn" id="shAdmit">Nouveau code</button>'
     +'<button class="btn danger" id="shEnd">Arrêter le partage…</button></div>'
-    +'<div class="seg" style="--seg-n:3;--seg-i:0" role="radiogroup" aria-label="Mode de partage">'
-    +'<span class="seg-pill" aria-hidden="true"></span>'
-    +'<button type="button" class="seg-btn on" role="radio" aria-checked="true">En ligne</button>'
-    +'<button type="button" class="seg-btn" id="shSwLocal" role="radio" aria-checked="false">En direct</button>'
-    +'<button type="button" class="seg-btn" id="shOptic" role="radio" aria-checked="false">Par l’écran</button></div>'
-    +'<p class="sl-cap">l’app choisit seule — forcer si besoin</p>'
     +'<p class="sh-note">Couper quelqu\'un lui retire l\'écriture immédiatement et lui rend sa place ; '
     +'il ne peut revenir qu\'avec un nouveau code, que vous seul pouvez donner.</p>';}
 function shPaintWhen(){
@@ -31063,19 +31070,7 @@ function renderShareSheet(force){
     /* BASCULE MANUELLE cloud → direct (v5.14, étape 4 — maquettes figées : « forcer » = un
        RÉ-APPARIEMENT propre, jamais une migration à chaud ; l'état de l'hôte est la source,
        rien à fusionner). Les invités re-scannent — le dialogue le dit AVANT. */
-    /* « Par l'écran » depuis la feuille CLOUD aussi (v5.14.2, signalé à l'usage : « plus de
-       connexion, impossible de passer par l'écran depuis l'hôte ») — le partage cloud reste
-       ouvert, l'émission optique est ADDITIVE, et elle marche sans aucun réseau. */
-    const so=document.getElementById('shOptic');
-    if(so)so.onclick=()=>{slOptiqueTx();};
-    const sw=document.getElementById('shSwLocal');
-    if(sw)sw.onclick=async()=>{
-      if(!await confirmDlg('Le partage continue EN DIRECT, sans serveur, sur le réseau local. '
-        +'Chaque participant devra scanner le nouveau code. Votre session ne bouge pas.',
-        {title:'Passer en direct ?',yes:'Passer en direct'}))return;
-      const f=Runtime.fiche;
-      await Share.endShare();
-      startShareLocal(f);};
+    slModeSegBind('cloud');
   }
   shPaintWhen();}
 function openShareSheet(){
@@ -31101,6 +31096,47 @@ function slSecret(){const b=new Uint8Array(18);crypto.getRandomValues(b);
   return [...b].map(x=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[x%31]).join('');}
 function slLocalCand(c){return (c||[]).some(x=>{const a=String(x).split('~')[0];
   return /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/.test(a)||a.indexOf('.local')>=0;});}
+/* LE SÉLECTEUR DE MODE, UN SEUL CONSTRUCTEUR (v5.14.7, signalé à l'usage : « parfois pas de
+   sélecteur, et si je clique il disparaît ») : il vit sur TOUS les états de la feuille —
+   en ligne, appariement, en direct, émission optique — avec le composant .seg canonique et
+   les pastilles de la maquette 08 (vert = cran actif, gris sinon, ⧗ pour le ponctuel).
+   Cliquer le cran ACTIF ne fait rien ; cliquer un autre cran mène à un état qui PORTE AUSSI
+   le sélecteur — il ne disparaît plus jamais. */
+function slModeSegHtml(active){
+  const online=Auth.signedIn()&&Sync.online();
+  const idx={cloud:0,direct:1,optic:2}[active]||0;
+  const b=(mode,lbl,dot,dis)=>'<button type="button" class="seg-btn'+(active===mode?' on':'')
+    +'" data-shmode="'+mode+'" role="radio" aria-checked="'+(active===mode?'true':'false')+'"'
+    +(dis?' disabled':'')+'>'+dot+'<span>'+lbl+'</span></button>';
+  return '<div class="seg" style="--seg-n:3;--seg-i:'+idx+'" role="radiogroup" aria-label="Mode de partage">'
+    +'<span class="seg-pill" aria-hidden="true"></span>'
+    +b('cloud','En ligne','<span class="sdot"></span>',!online&&active!=='cloud')
+    +b('direct','En direct','<span class="sdot"></span>',false)
+    +b('optic','Par l\u2019écran','<span class="sdot t" aria-hidden="true">\u29d7</span>',false)
+    +'</div><p class="sl-cap">'
+    +(online||active==='cloud'
+      ?'l\u2019app choisit seule \u2014 forcer si besoin'
+      :'\u00ab En ligne \u00bb reviendra avec internet')+'</p>';}
+function slModeSegBind(active){
+  document.querySelectorAll('#shareBody [data-shmode]').forEach(btn=>btn.onclick=async()=>{
+    const m=btn.dataset.shmode;
+    if(m===active)return;
+    if(active==='optic')clearInterval(_ltTimer);
+    if(m==='optic'){slOptiqueTx();return;}
+    if(m==='direct'){
+      if(slLiveOk()){slSheet('live');return;}
+      if(active==='cloud'){
+        if(!await confirmDlg('Le partage continue EN DIRECT, sans serveur, sur le réseau local. '
+          +'Chaque participant devra scanner le nouveau code. Votre session ne bouge pas.',
+          {title:'Passer en direct ?',yes:'Passer en direct'}))return;
+        const f=Runtime.fiche;await Share.endShare();startShareLocal(f);return;}
+      startShareLocal((SL&&SL.f)||Runtime.fiche);return;}
+    if(m==='cloud'){
+      if(!await confirmDlg('Le partage continue EN LIGNE (par le serveur). Chaque participant '
+        +'devra rejoindre avec le nouveau code. Votre session ne bouge pas.',
+        {title:'Passer en ligne ?',yes:'Passer en ligne'}))return;
+      const f=(SL&&SL.f)||Runtime.fiche;
+      await Share.endShare();SL=null;startShare(f);return;}});}
 function slLiveOk(){return !!(SL&&SL.live&&Share.mode==='host'&&Share.status==='active');}
 function slSheet(phase){
   const body=document.getElementById('shareBody');if(!body)return;
@@ -31112,34 +31148,17 @@ function slSheet(phase){
     const enLigneOk=Auth.signedIn()&&Sync.online();
     body.innerHTML='<div class="sl-status"><span class="sl-dot"></span>'
       +n+' participant'+(n>1?'s':'')+' · en direct</div>'
-      +'<div class="seg" style="--seg-n:3;--seg-i:1" role="radiogroup" aria-label="Mode de partage">'
-      +'<span class="seg-pill" aria-hidden="true"></span>'
-      +'<button type="button" class="seg-btn" id="slSwCloud" role="radio" aria-checked="false"'
-      +(enLigneOk?'':' disabled')+'>En ligne</button>'
-      +'<button type="button" class="seg-btn on" role="radio" aria-checked="true">En direct</button>'
-      +'<button type="button" class="seg-btn" id="slOptic2" role="radio" aria-checked="false">Par l’écran</button>'
-      +'</div><p class="sl-cap">'
-      +(enLigneOk?'l’app choisit seule — forcer si besoin':'« En ligne » reviendra avec internet')
-      +'</p>'
+      +slModeSegHtml('direct')
       +'<div class="sl-actions">'
       +'<button class="btn" id="slInvite">Inviter un autre</button>'
       +'<button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
     document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
-    const swc=document.getElementById('slSwCloud');
-    if(swc)swc.addEventListener('click',async()=>{
-      if(!await confirmDlg('Le partage continue EN LIGNE (par le serveur). Chaque participant '
-        +'devra rejoindre avec le nouveau code. Votre session ne bouge pas.',
-        {title:'Passer en ligne ?',yes:'Passer en ligne'}))return;
-      const f=SL.f;
-      await Share.endShare();SL=null;
-      startShare(f);});
+    slModeSegBind('direct');
     document.getElementById('slEnd').addEventListener('click',async()=>{
       if(!await confirmDlg('Les participants ne suivront plus la session. Votre session, elle, '
         +'continue.',{title:'Arrêter le partage ?',yes:'Arrêter',danger:true}))return;
       slScanStop();clearInterval(_ltTimer);
       await Share.endShare();SL=null;shareModal.classList.remove('on');});
-    const opt=document.getElementById('slOptic2');
-    if(opt)opt.addEventListener('click',()=>{slOptiqueTx();});
     return;}
   if(phase==='mirror'){
     /* LE MIROIR N'EST PLUS UN CUL-DE-SAC (signalé à l'usage : « impossible de faire
@@ -31175,13 +31194,13 @@ function slSheet(phase){
     +(phase==='offer-warn'
       ?'Aucun réseau local vu — vérifiez le Wi-Fi'
       :'Pas d’internet — partage en direct')+'</span></div>'
+    +slModeSegHtml('direct')
     +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
     +'<p class="sl-cap">l’invité scanne, puis vous scannez sa réponse</p>'
     +'<div class="sl-actions">'
-    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button>'
-    +'<button class="btn" id="slOptic">Par l’écran</button></div>'
+    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button></div>'
     +'<div id="slStat" role="status"></div>';
-  document.getElementById('slOptic').addEventListener('click',()=>{slOptiqueTx();});
+  slModeSegBind('direct');
   const scanRep=async()=>{
     const st=document.getElementById('slStat');
     try{
@@ -31205,10 +31224,12 @@ function slPairFail(){
   const body=document.getElementById('shareBody');if(!body)return;
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>Ça n’a pas abouti'
     +'</span></div>'
+    +slModeSegHtml('direct')
     +'<div class="sl-actions">'
     +'<button class="btn primary" id="slRetry">Réessayer</button>'
     +'<button class="btn" id="slOptic3">Par l’écran</button>'
     +'<button class="btn ghost" id="slSkip">Continuer sans partage</button></div>';
+  slModeSegBind('direct');
   document.getElementById('slRetry').addEventListener('click',()=>{slOffer();});
   document.getElementById('slOptic3').addEventListener('click',()=>{slOptiqueTx();});
   document.getElementById('slSkip').addEventListener('click',()=>{
@@ -31217,9 +31238,23 @@ function slPairFail(){
    La charge = {identité de session, fiche projetée, heure d'émission de l'hôte, instantané} ;
    cadence 6 codes/s, cycle hybride, masque épinglé sur les trames de flux. */
 let _ltTimer=0;
+/* LA GARDE COMMUNE (v5.14.7, signalé à l'usage : « Aucune session en cours » est un
+   CUL-DE-SAC — partout ailleurs l'app PROPOSE de démarrer). Une seule règle pour tous les
+   modes : session démarrée → oui ; fiche ouverte sans session → le dialogue « Démarrer et
+   partager ? » ; pas de fiche → le seul vrai refus, qui dit QUOI faire. */
+async function slEnsureSession(){
+  if(Runtime&&Runtime.started&&Runtime.fiche)return true;
+  if(!Runtime||!Runtime.fiche){
+    toast('⚠ Ouvrez d’abord l’aide cognitive à partager.',6000,true);return false;}
+  if(!await confirmDlg('Partager exige une session en cours. Démarrer la session maintenant '
+    +'(chrono, minuteurs et journal des actions) ?',
+    {title:'Démarrer et partager ?',yes:'Démarrer et partager'}))return false;
+  state.confOpen=false;
+  if(!ensureStarted())return false;
+  render();return true;}
 async function slOptiqueTx(){
+  if(!await slEnsureSession())return;
   const R=Runtime;
-  if(!R||!R.started||!R.fiche){toast('⚠ Aucune session en cours à transmettre.',5000,true);return;}
   const cloudActif=Share.mode==='host'&&Share.status==='active'&&Share.share!=='local';
   const z=await ltSnapPack(R.sessionId||'',sharePayload(R.fiche),shareSnap(null,!!state.flowEnded));
   const tx=ltTx(z,0);
@@ -31229,6 +31264,7 @@ async function slOptiqueTx(){
   shareModal.classList.add('on');
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⇆</span><span><b>Par l’écran</b>'
     +' — l’autre appareil filme, c’est tout · instantané daté, pas du direct</span></div>'
+    +slModeSegHtml('optic')
     +'<div id="ltQr"></div><p class="sl-cap" id="ltCap" role="status"></p>'
     +'<div class="sl-actions"><button class="btn" id="ltStop">Arrêter</button></div>';
   const qr=document.getElementById('ltQr'),cap=document.getElementById('ltCap');
@@ -31237,6 +31273,7 @@ async function slOptiqueTx(){
     cap.textContent=(pos%tx.cycle)<tx.k?('bloc '+((pos%tx.cycle)+1)+' / '+tx.k):'réparation';
     pos++;};
   paint();_ltTimer=setInterval(paint,Math.round(1000/6));
+  slModeSegBind('optic');
   document.getElementById('ltStop').addEventListener('click',()=>{
     clearInterval(_ltTimer);
     if(slLiveOk())slSheet('live');
@@ -31339,13 +31376,8 @@ async function slSbGuestSwitch(){
        de panne retentera — jamais de boucle serrée, le rythme est celui du sondage. */
   }finally{_slSwitching=false;}}
 async function startShareLocal(f){
-  if(!Runtime.started){
-    if(!await confirmDlg('Partager exige une session en cours. Démarrer la session maintenant '
-      +'(chrono, minuteurs et journal des actions) puis ouvrir le partage en direct ?',
-      {title:'Démarrer et partager ?',yes:'Démarrer et partager'}))return;
-    state.confOpen=false;
-    if(!ensureStarted())return;
-    render();}
+  if(!await slEnsureSession())return;
+  f=f||Runtime.fiche;
   /* La feuille CLOUD arme un minuteur de re-rendu (_shTimer) qui repeignait PAR-DESSUS la
      feuille locale — « l'écran arrive sur la nouvelle fenêtre puis revient sur l'ancienne » :
      on ferme le régime cloud AVANT d'ouvrir le nôtre, toujours. */

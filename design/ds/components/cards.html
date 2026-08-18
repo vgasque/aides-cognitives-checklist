@@ -6925,6 +6925,18 @@
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
     text-align:center;margin:6px 0 0}
+  /* Pastilles des crans du sélecteur de mode (maquette 08) : vert = cran ACTIF, gris sinon,
+     ⧗ (mono) pour le ponctuel. Portées par le composant .seg canonique, sans le modifier. */
+  #shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
+  #shareBody .seg-btn.on .sdot{background:var(--ok)}
+  #shareBody .seg-btn .sdot.t{width:auto;height:auto;border-radius:0;background:none;
+    font-family:var(--f-mono);font-size:11px;font-weight:700;line-height:1;color:inherit}
+  /* Conteneur du sélecteur de mode : la recette du sélecteur de l'ACCUEIL (fond d'ambiance,
+     filet, coins r-2, pastille en retrait de 2 px) adaptée à la feuille. */
+  #shareBody .seg{background:var(--amb);border:1px solid var(--line);
+    border-radius:var(--r-2);padding:2px;margin:12px 0 0}
+  #shareBody .seg .seg-pill{top:2px;bottom:2px;left:2px;border-radius:var(--r-1);
+    width:calc((100% - 4px - (var(--seg-n,3) - 1) * var(--seg-gap,8px)) / var(--seg-n,3))}
   /* Ligne d'état à point PULSANT (maquettes 01/08) — pulsation d'OPACITÉ seule (peinture). */
   .sl-status{display:flex;align-items:center;gap:8px;justify-content:center;
     font-size:var(--t-meta);color:var(--ink-2);margin-top:10px}
