@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-TP8mZvMg4iuG95tCj/ZQ3agiJnIp6OKOFz2Vyq88/bE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-TJQPf27I+BDNNFJlrfQigDquUEgL/8FIgXaOn2JOrrU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7268,9 +7268,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (fond doux + glyphe + mot, jamais la couleur seule) ; boutons en rangée à gouttière. */
   #shareBody video,#joinScreen video{width:100%;max-width:340px;aspect-ratio:3/4;object-fit:cover;
     border-radius:var(--r-3);display:block;margin:12px auto 0;background:var(--sys)}
-  #shareBody .qr,#jsAnswer .qr{display:block;width:min(100%,200px);margin:14px auto 6px}
-  #shareBody .sl-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  #shareBody .sl-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:10px 12px;
+  #shareBody .qr,#jsAnswer .qr{display:block;width:min(100%,200px);margin:14px auto 6px;
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--r-1);padding:12px}
+  #shareBody .sl-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  #shareBody .sl-actions .btn{width:100%;min-height:48px;justify-content:center}
+  #shareBody .sl-actions .btn.ghost{min-height:44px}
+  #shareBody .sl-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:8px 12px;
     border-radius:var(--r-2);font-size:var(--t-body);line-height:1.45;background:var(--warn-soft);
     color:var(--warn);border:1px solid var(--warn-line)}
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
@@ -9608,7 +9611,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.3';
+const APP_VERSION='5.14.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -30322,6 +30325,11 @@ const Share={
       {role:role},{'Prefer':'return=minimal'}),
     end:(share)=>rest('PATCH','/rest/v1/shared_sessions?id=eq.'+encodeURIComponent(share),
       {status:'ended',expires_at:new Date().toISOString()},{'Prefer':'return=minimal'})},
+  /* LA COUTURE PAR DÉFAUT SE MÉMORISE (v5.14.4, signalé à l'usage : « remets le code du
+     partage en ligne ») : un essai LOCAL remplaçait `_io` et ne le rendait JAMAIS — tout
+     partage en ligne suivant passait par le hub (open local → code nul → « porte fermée »).
+     Tout chemin CLOUD commence par restaurer `_ioRest`. */
+  _ioRest:null,
 
   // Heure SERVEUR estimée. Tout ce qui est horodaté passe par ici — pas seulement les minuteurs :
   // sans cela, deux appareils dont les horloges divergent produiraient un compte-rendu dont
@@ -30925,6 +30933,7 @@ function openSharedFiche(){
    MISE À JOUR CHIRURGICALE : le compte à rebours vit dans un nœud texte isolé, la liste n'est
    reconstruite que si sa signature change. Une fenêtre qui se réécrit en bloc chaque seconde
    avale les taps — 13 % mesurés sur le quai, qui fait exactement cela. */
+Share._ioRest=Share._io;
 const shareModal=document.getElementById('shareModal');
 let _shTimer=null,_shSig='',_shPend={};
 function shOpenMs(){return Math.max(0,(Share.joinUntil||0)-Share.now());}
@@ -31152,13 +31161,13 @@ function slSheet(phase){
     return;}
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>'
     +(phase==='offer-warn'
-      ?'<b>Aucun réseau local vu</b> — Wi-Fi coché ✓ sur les deux appareils'
-      :'<b>Partage en direct</b> — même Wi-Fi, sans internet ni compte')+'</span></div>'
+      ?'Aucun réseau local vu — vérifiez le Wi-Fi'
+      :'Pas d’internet — partage en direct')+'</span></div>'
     +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
-    +'<p class="sl-cap">L’invité : menu de l’accueil → « Rejoindre une session » → « Scanner »</p>'
+    +'<p class="sl-cap">l’invité scanne, puis vous scannez sa réponse</p>'
     +'<div class="sl-actions">'
-    +'<button class="btn primary" id="slScanBtn">Scanner sa réponse</button>'
-    +'<button class="btn" id="slOptic">Par l’écran…</button></div>'
+    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button>'
+    +'<button class="btn" id="slOptic">Par l’écran</button></div>'
     +'<div id="slStat" role="status"></div>';
   document.getElementById('slOptic').addEventListener('click',()=>{slOptiqueTx();});
   const scanRep=async()=>{
@@ -31173,10 +31182,25 @@ function slSheet(phase){
           ui.flash();ui.close();
           try{await SL.pc.answer(a);
             st.innerHTML='<p class="sl-cap">Connexion…</p>';}
-          catch(e){st.innerHTML='<p class="sl-cap">Ça n’a pas abouti — « Inviter un autre » pour réessayer.</p>';}
+          catch(e){slPairFail();}
         }});
     }catch(e){slCamRefused(st,scanRep,()=>{shareModal.classList.remove('on');});}};
   document.getElementById('slScanBtn').addEventListener('click',scanRep);}
+/* ÉCHEC D'APPARIEMENT (maquette 07) — trois sorties, toujours les mêmes, toujours dans cet
+   ordre : réparer (Réessayer = TOUT à neuf), l'autre méthode, s'en passer. Jamais un code
+   d'erreur, jamais un « vérifiez que… ». */
+function slPairFail(){
+  const body=document.getElementById('shareBody');if(!body)return;
+  body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>Ça n’a pas abouti'
+    +'</span></div>'
+    +'<div class="sl-actions">'
+    +'<button class="btn primary" id="slRetry">Réessayer</button>'
+    +'<button class="btn" id="slOptic3">Par l’écran</button>'
+    +'<button class="btn ghost" id="slSkip">Continuer sans partage</button></div>';
+  document.getElementById('slRetry').addEventListener('click',()=>{slOffer();});
+  document.getElementById('slOptic3').addEventListener('click',()=>{slOptiqueTx();});
+  document.getElementById('slSkip').addEventListener('click',()=>{
+    shareModal.classList.remove('on');});}
 /* ÉMISSION OPTIQUE (étape 5) — l'hôte affiche la boucle de trames, l'autre appareil filme.
    La charge = {identité de session, fiche projetée, heure d'émission de l'hôte, instantané} ;
    cadence 6 codes/s, cycle hybride, masque épinglé sur les trames de flux. */
@@ -31276,6 +31300,7 @@ async function startShare(f){
     state.confOpen=false;
     if(!ensureStarted())return;
     render();}
+  if(Share._ioRest)Share._io=Share._ioRest;   // un essai local ne détourne plus le cloud
   const r=await Share.host(f).catch(()=>null);
   if(!r||!r.ok){
     toast(r&&r.err==='draft'
@@ -31352,8 +31377,9 @@ function openJoinScreen(code){
   for(const id of ['joinScan','joinOptic']){const b=document.getElementById(id);if(b)b.disabled=false;}
   for(const id of ['jsAnswer','jsStat']){const el=document.getElementById(id);
     if(el){el.hidden=true;if(id==='jsAnswer')el.innerHTML='';}}
-  joinScreen.hidden=false;
-  if(inp&&!inp.value)try{inp.focus();}catch(_){}}
+  joinScreen.hidden=false;}
+  /* (v5.14.4) plus d'AUTOFOCUS du champ code : sur mobile il levait le clavier d'office alors
+     que l'écran offre désormais trois chemins — taper un code n'est plus LE geste par défaut. */
 /* FERMER L'ÉCRAN D'ENTRÉE. Trois chemins pour un seul geste — la croix, Échap, et le retour
    système —, tous vers `closeJoinScreen`, comme le veut la doctrine des fenêtres (« le popstate
    emprunte le MÊME chemin que l'affordance visible, donc ses effets de bord »). Refuse de
@@ -31423,6 +31449,7 @@ async function joinGo(){
     +code.length+'.');return;}
   const lbl=(document.getElementById('joinRole')||{}).value||'Renfort';
   if(btn){btn.disabled=true;btn.textContent='Connexion…';}
+  if(Share._ioRest)Share._io=Share._ioRest;   // rejoindre PAR CODE = toujours le serveur
   let r=null,reseau=false;
   try{r=await Share.joinByCode(code,lbl);}catch(e){reseau=true;}
   if(btn){btn.disabled=false;btn.textContent='Rejoindre';}

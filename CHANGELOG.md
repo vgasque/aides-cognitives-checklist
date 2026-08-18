@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.14.4] — 2026-08-18
+### Le code du partage en ligne revient, et les feuilles collent enfin aux maquettes
+
+- **Le code du partage en ligne avait disparu — trouvé et corrigé** : un essai « en direct »
+  remplaçait la couture réseau du partage et ne la rendait JAMAIS — tout partage en ligne
+  suivant passait en silence par le canal local (ouverture locale → pas de code → « la porte
+  est fermée »). La couture d'origine est mémorisée et RESTAURÉE sur tout chemin cloud
+  (héberger comme rejoindre par code).
+- **Conformité aux maquettes, vérifiée capture contre capture cette fois** (03 et 07 côte à
+  côte avec l'app) : notices fines d'une ligne aux mots exacts (« ⚠ Pas d'internet — partage
+  en direct »), QR dans sa carte bordée, légende « l'invité scanne, puis vous scannez sa
+  réponse », **boutons empilés pleine largeur** (primaire → neutre → fantôme) au lieu des
+  rangées.
+- **L'échec d'appariement suit la maquette 07** : « ⚠ Ça n'a pas abouti » + trois sorties,
+  toujours les mêmes, toujours dans cet ordre — Réessayer (tout à neuf), Par l'écran,
+  Continuer sans partage. Jamais un code d'erreur.
+- **Plus d'autofocus du champ code** à l'ouverture de « Rejoindre une session » : sur mobile
+  il levait le clavier d'office, alors que taper un code n'est plus le seul chemin.
+
 ## [5.14.3] — 2026-08-18
 ### Les écrans du partage rejoignent les maquettes — captures à l'appui
 
@@ -468,38 +487,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
 - Mesuré aux deux moteurs : après le saut à la 1ʳᵉ occurrence la colonne est à 69 px ; à 370 px de
   panoramique elle passe à 439, et le champ de recherche reste dans la zone visible. Hors clavier,
   géométrie identique à l'octet. `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
-
-## [5.12.2] — 2026-08-16
-### L'en-tête cesse de sauter au défilement, et l'accueil large suit enfin le clavier
-
-- **L'en-tête sautait au défilement, et la page continuait de descendre en fin de course**
-  (signalé à l'usage, sur téléphone, tablette ET ordinateur, en portrait comme en paysage). C'est
-  une **régression de la v5.12.0**, et elle mérite d'être nommée : en rendant le chrome collant
-  tributaire de `--vvt`, je l'ai rendu tributaire d'une valeur **qui n'est pas stable pendant le
-  défilement**. `visualViewport.offsetTop` devient non nul pendant le rebond élastique de fin de
-  course et pendant un pincement, **sans qu'aucun clavier ne soit ouvert** : l'en-tête suivait ces
-  micro-décalages, donc il sautait, et il descendait avec le rebond.
-- **La garde est la définition même du cas à couvrir** : un clavier **occupe de la hauteur**. Le
-  panoramique n'est retenu que si le viewport visuel est réellement plus **court** que celui de
-  mise en page ; un panoramique sans rétrécissement n'est pas un clavier, c'est un artefact de
-  geste. Le seuil (60 px) est sous toute barre d'accessoires de clavier et très au-dessus de
-  l'amplitude d'un rebond, qui ne rétrécit rien. C'est le pendant exact de la garde d'`unpan()`
-  (v5.10.4), qui refuse d'agir tant qu'un champ est focalisé — les deux décrivent la même
-  frontière, chacune de son côté.
-- **En accueil large, la barre de recherche ne suivait toujours pas** (« ça fonctionne mieux quand
-  elle est dans l'en-tête, mais quand elle est dans la sidebar elle ne suit pas »). Le correctif de
-  la v5.12.0 déplaçait des couches **collantes** ; là il n'y en a aucune — la coque est de hauteur
-  fixe (`100dvh`) et les colonnes défilent dedans. Or `dvh` **ne rétrécit pas** quand le clavier
-  s'ouvre : il suit le chrome du navigateur, pas le clavier. Le cadre restait donc à pleine
-  hauteur, le clavier en recouvrait le bas, et le panoramique emportait le haut hors de l'écran.
-  La coque se borne désormais à la hauteur **réellement visible** et descend du panoramique : elle
-  occupe exactement le rectangle visible, ses colonnes défilent dedans comme avant. Mesuré : zone
-  visible de 440 px commençant 394 px plus bas → coque de 440 px à 394, champ de recherche à 407,
-  donc dedans.
-- Hors clavier, les deux règles sont **à l'octet** celles d'avant : `--vvt` vaut 0 et `--vvh`
-  retombe sur `100dvh`. Sondes 6/6 (coque) et 5/5 (chrome collant) aux deux moteurs ;
-  `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
-- Note de méthode, pour la prochaine fois : la constante de garde a d'abord été **référencée sans
-  être déclarée** — `npm run check` restait **vert** (une `ReferenceError` n'est pas une erreur de
-  syntaxe) et l'application ne démarrait plus. C'est `npm test` qui l'attrape, comme il attrape le
-  piège des hashs CSP : une porte statique ne remplace pas un démarrage réel.
