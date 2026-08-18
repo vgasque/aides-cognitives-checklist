@@ -163,7 +163,7 @@ fichiers restent **normatifs** — on les consulte À LA DEMANDE avant de touche
 | [`docs/decisions/lot-v5-10-2.md`](docs/decisions/lot-v5-10-2.md) (4 Ko) | **A154-A158** — audit de code externe |
 | [`docs/decisions/lot-v5-11.md`](docs/decisions/lot-v5-11.md) (8 Ko) | **A159-A169** — l'atelier d'import dit aussi **où** ça va (destination par rangée) |
 | [`docs/decisions/lot-v5-12.md`](docs/decisions/lot-v5-12.md) (9 Ko) | **A170-A179** — sélection multiple à l'accueil, titres repliables des références |
-| [`docs/decisions/lot-v5-14.md`](docs/decisions/lot-v5-14.md) | **A198-A219** — partage sans serveur, CLOS et validé terrain (couture `_io`, ShareLocal/QR/optique, secours chaud, bascules seamless deux sens, aller-retour optique) |
+| [`docs/decisions/lot-v5-14.md`](docs/decisions/lot-v5-14.md) | **A198-A221** — partage sans serveur, CLOS et validé terrain (couture `_io`, ShareLocal/QR/optique, secours chaud, bascules seamless deux sens, aller-retour et relais optiques, modèle de menace § 3.2) |
 
 Le classement des A-entrées est CHRONOLOGIQUE (par lot) et non thématique, à dessein : la doctrine
 se cite elle-même par numéro (« cf. A140 ») — le numéro EST l'adresse, et une dispersion par thème
