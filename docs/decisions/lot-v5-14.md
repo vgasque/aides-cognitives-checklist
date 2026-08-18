@@ -317,3 +317,24 @@ elle (9/9).
   (lien `#j=` ou code nu → jointure serveur, rédaction « scanné » au refus). C'est le payload
   qui décide, jamais un réglage ; une fontaine en cours n'est pas interrompue par un autre code
   aperçu dans le champ.
+
+## A213 — La mise à jour se DEMANDE, elle ne fait plus que s'annoncer
+
+**Signalé à l'usage (v5.14.10)** : « il ne me prévient plus tout le temps quand des mises à
+jour sont dispo ». Deux défauts, un ancien et un structurel :
+
+- **Le créneau #sysBanner est PARTAGÉ et le bouton était à qui l'avait pris en dernier** : les
+  écrivains « fiches d'exemple » (v5.0.0) et « code de session reçu » (v4.47.0) réaffectent
+  #sbReload (« J'ai compris », « Rejoindre ») ; l'écrivain « Nouvelle version », premier arrivé
+  historiquement, ne restaurait RIEN — après un passage des autres (fréquent depuis les tests
+  du partage v5.14), son bandeau s'affichait avec un bouton qui ne rechargeait plus. RÈGLE :
+  chaque écrivain du bandeau pose texte ET action, toujours (`sbNewVersion`).
+- **L'annonce à l'activation ne touche que les pages OUVERTES à cet instant** : une activation
+  app fermée (cas fréquent en PWA iOS — la vérification de sw.js court en parallèle du
+  lancement) était perdue À JAMAIS, et personne ne redemandait. GUICHET DE VERSION dans sw.js
+  (`{type:'sw-version'}` → réponse du même type) : la page interroge le worker au chargement et
+  à chaque retour au premier plan. La réponse porte un type DISTINCT de `sw-activated` pour
+  rester SILENCIEUSE quand les versions concordent — l'égalité est l'état normal, pas une
+  nouvelle ; seule une discordance affiche le bandeau. Prouvé sous sonde dynamique (vrai worker,
+  vraie page contrôlée : réponse `aides-cognitives-v5.14.9`, bandeau resté caché sur égalité,
+  bouton « Recharger »).

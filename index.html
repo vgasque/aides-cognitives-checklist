@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Tp8svObj4/0UJi43wQX9XPrNl3oTdHK6cFhlcytTP8w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-tR0nUy9eMVQbq8gI84TBVrfyOrBXsKhyrOpNfoh71WU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.9';
+const APP_VERSION='5.14.10';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -32366,16 +32366,32 @@ if(location.search.indexOf('__actest')>=0){
     // JAMAIS de rechargement forcé : en pleine crise, on ne recharge pas l'écran sous les doigts
     // de l'utilisateur. Silencieux à la toute 1ʳᵉ installation (hadController faux).
     const hadController=!!navigator.serviceWorker.controller;
+    /* LE BANDEAU SE RÉÉCRIT EN ENTIER (v5.14.10, signalé : « il ne me prévient plus tout le
+       temps ») : le créneau #sysBanner est PARTAGÉ (fiches d'exemple v5.0.0, code de session
+       reçu v4.47.0) et ces écrivains RÉAFFECTENT le bouton #sbReload (« J'ai compris »,
+       « Rejoindre ») — l'écrivain « Nouvelle version », premier arrivé historiquement, ne
+       restaurait RIEN : après un passage des autres, son bandeau s'affichait avec un bouton qui
+       ne rechargeait plus. Chaque écrivain pose désormais texte ET action, toujours. */
+    const sbNewVersion=v=>{
+      const b=document.getElementById('sysBanner');if(!b)return;
+      b.querySelector('.sb-txt').textContent='Nouvelle version disponible'+(v?' (v'+v+')':'')+' — rechargez la page pour l\'utiliser.';
+      const a=document.getElementById('sbReload');
+      a.textContent='Recharger';a.onclick=()=>location.reload();
+      b.hidden=false;};
     navigator.serviceWorker.addEventListener('message',ev=>{
-      const d=ev.data||{};if(d.type!=='sw-activated'||!hadController)return;
+      const d=ev.data||{};
       const v=String(d.version||'').replace(/[^0-9.]/g,'');
+      /* Réponse au GUICHET (« sw-version ») : silencieuse quand tout concorde — l'égalité est
+         l'état normal, pas une nouvelle. C'est le filet des activations manquées : une mise à
+         jour activée app FERMÉE n'a prévenu personne, le guichet la rattrape au chargement et à
+         chaque retour au premier plan. */
+      if(d.type==='sw-version'){if(v&&v!==APP_VERSION)sbNewVersion(v);return;}
+      if(d.type!=='sw-activated'||!hadController)return;
       // Version déjà servie -> simple confirmation transitoire (snackbar). Version en attente ->
       // bandeau système PERSISTANT (registre INFORMATION, taxonomie V5) : visible jusqu'à action
       // ou rejet, seulement sur l'accueil (body.view-home — il ATTEND le retour à l'accueil).
       if(v===APP_VERSION)toast('Application mise à jour (v'+APP_VERSION+') — vous utilisez déjà la nouvelle version.',9000);
-      else{const b=document.getElementById('sysBanner');
-        b.querySelector('.sb-txt').textContent='Nouvelle version disponible'+(v?' (v'+v+')':'')+' — rechargez la page pour l\'utiliser.';
-        b.hidden=false;}});
+      else sbNewVersion(v);});
     // OBLIGATOIRE avec addEventListener : démarre la file des messages du worker (sans cet appel
     // — ou sans passer par `onmessage =` — le navigateur retient les messages indéfiniment).
     if(navigator.serviceWorker.startMessages)navigator.serviceWorker.startMessages();
@@ -32383,10 +32399,13 @@ if(location.search.indexOf('__actest')>=0){
     // — le navigateur ne revérifie alors jamais sw.js et la mise à jour n'est jamais proposée.
     // On force la vérification à CHAQUE retour au premier plan (+ filet horaire) ; sw.js est
     // servi en no-cache (_headers), l'appel est donc bon marché et silencieux.
+    const ping=()=>{try{const c=navigator.serviceWorker.controller;
+      if(c)c.postMessage({type:'sw-version'});}catch(e){}};
     navigator.serviceWorker.register('./sw.js').then(reg=>{
       const upd=()=>{try{reg.update().catch(()=>{});}catch(e){}};
-      document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')upd();});
+      document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){upd();ping();}});
       setInterval(upd,60*60*1000);
+      ping();
     }).catch(()=>{});
   });}
   // Bandeau système : actions câblées une fois (élément statique du squelette).

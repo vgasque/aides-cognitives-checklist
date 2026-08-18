@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.14.10] — 2026-08-18
+### La mise à jour prévient à nouveau, à coup sûr
+
+- **Le bandeau « Nouvelle version » retrouve son bouton** (signalé : « il ne me prévient plus
+  tout le temps ») : le créneau du bandeau système est partagé, et deux autres messages
+  (« fiches d'exemple », « code de session reçu ») réaffectaient le bouton sans que l'écrivain
+  de mise à jour ne le restaure — après un passage des autres, « Recharger » ne rechargeait
+  plus. Chaque écrivain pose désormais texte ET action.
+- **Une mise à jour activée app fermée n'est plus perdue** : l'annonce ne touchait que les
+  pages ouvertes à l'instant de l'activation — cas raté fréquent en PWA iOS. La page interroge
+  désormais le worker (guichet de version) au chargement et à chaque retour au premier plan ;
+  silence complet quand les versions concordent, bandeau seulement en cas de retard réel.
+
 ## [5.14.9] — 2026-08-18
 ### Les bascules prouvées de bout en bout, l'invité qui re-rentre en un geste, un seul œil pour trois codes
 
@@ -446,28 +459,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   visible, **un** quand elle ne l'est pas, **un** par clic sur ‹ ›. Vérifié capable d'échouer
   (comportement d'avant réintroduit : cinq appels).
 - `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
-
-## [5.12.8] — 2026-08-16
-### Le décalage du clavier n'était ni trop suivi ni trop gelé : il était déphasé
-
-- **Une vidéo de l'auteur a tranché** — la première preuve directe de cette série, et elle montre
-  les deux symptômes à **0,6 seconde d'intervalle** sur le même geste (recherche dans une
-  référence, clavier ouvert, iPad) :
-  - **t = 4,4 s** — l'en-tête a **complètement disparu**, le contenu monte sous la barre du
-    navigateur : le décalage n'était **pas encore** appliqué ;
-  - **t = 5,0 s** — l'en-tête est **poussé vers le bas**, avec du contenu visible **au-dessus** de
-    lui : le décalage était appliqué alors qu'il n'était **déjà plus** bon.
-- Ce n'était donc ni « trop suivre » (v5.12.0) ni « trop geler » (v5.12.5) : c'était **déphasé**.
-  Le délai de repos de 180 ms introduit en v5.12.7 produisait les **deux** symptômes tour à tour.
-  Une couche calée sur le viewport visuel doit se recaler **à l'instant exact où il bouge** — il
-  n'y a pas de bon délai, il n'y a que le bon moment. Le décalage s'applique désormais sans aucun
-  différé.
-- **Ce qui reste, et qui n'était pas en cause** : la garde du clavier (v5.12.5) — sans clavier,
-  aucun décalage n'est retenu, donc le rebond élastique de fin de course ne déplace rien ; et le
-  compte d'occurrences à chasse fixe (v5.12.6), qui empêchait le bouton « › » de se dérober sous
-  le doigt.
-- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; les cinq sondes de la série
-  restent vertes. ⚠ Ce réglage ne se juge que sur appareil : le harnais ne pilote pas
-  `visualViewport`. C'est précisément pourquoi la vidéo valait trois versions de tâtonnement — et
-  la leçon est consignée (A188) : **quand un instrument ne peut pas voir le défaut, demander une
-  trace plutôt que d'itérer à l'aveugle.**

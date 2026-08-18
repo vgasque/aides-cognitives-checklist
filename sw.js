@@ -30,7 +30,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v5.14.9';
+const CACHE = 'aides-cognitives-v5.14.10';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -137,6 +137,18 @@ self.addEventListener('activate', e => {
       .then(() => self.clients.matchAll({ type: 'window' }))
       .then(cs => cs.forEach(c => c.postMessage({ type: 'sw-activated', version: CACHE })))
   );
+});
+
+/* LA VERSION SE DEMANDE, elle ne fait plus que s'annoncer (v5.14.10, signalé : « il ne me
+   prévient plus tout le temps »). L'annonce à l'activation ne touche que les pages OUVERTES à
+   cet instant : une activation app fermée (cas fréquent en PWA iOS — la vérification de sw.js
+   court en parallèle du lancement) était perdue À JAMAIS, et personne ne redemandait. La page
+   interroge donc AUSSI le worker (au chargement et à chaque retour au premier plan) ; la
+   réponse porte un type distinct pour rester SILENCIEUSE quand les versions concordent —
+   l'égalité est l'état normal, pas une nouvelle. */
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'sw-version' && e.source)
+    e.source.postMessage({ type: 'sw-version', version: CACHE });
 });
 
 self.addEventListener('fetch', e => {
