@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-0v+uI8tAb9sT9/dfGrVRBRFAd6tz9zoa+x6/9PoaDkg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-yrB4sGHwwdtFL2rRCV2yqDgRXg83Lh4W0jNczfo02Q4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.16';
+const APP_VERSION='5.14.17';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16558,7 +16558,13 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       // CONFIRMATION, jamais pendant une recherche ni au-dessus d'une session encore vive.
       if(lastEndedSession&&!sessions.some(x=>x.id===lastEndedSession.id))lastEndedSession=null;
       const recapH=lastEndedSession?`<div class="last-sess${lastEndedSession.exercise?' exo':''}"><span class="lsr-ic" aria-hidden="true">${lastEndedSession.exercise?'▲':uiIcon('check',15,{sw:3,cls:''})}</span><div class="lsr-tx"><b>${lastEndedSession.exercise?'Exercice terminé':'Session terminée'}</b> — ${esc(lastEndedSession.title)} · ${esc(fmtMs(lastEndedSession.dur))} · ${lastEndedSession.done}/${lastEndedSession.passes} bloc${lastEndedSession.passes>1?'s':''} ✓</div><button class="btn sm" id="lsrReport">Compte-rendu</button><button class="notice-x" id="lsrX" aria-label="Masquer le bilan">×</button></div>`:'';
-      return recapH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${esc(R.ficheId)}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span>${(()=>{const w=liveWhereText(R);return w?`<span class="ls-w">${esc(w)}</span>`:'';})()}</div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${esc(R.ficheId)}">Reprendre</button><button class="ls-end" data-endlive="${esc(R.ficheId)}">Terminer</button></div>`).join('')}</div>`:'');},
+      const shH=sharedSessionLive()
+        ?`<div class="live-sessions"><div class="ls-card"><span class="sess-dot"></span>`
+          +`<div class="ls-info" data-openshared role="button" tabindex="0">`
+          +`<b class="ls-k">${Share.mode==='guest'?'Session partagée':'Miroir « par l’écran »'}</b>`
+          +`<span class="ls-t">${esc(sharedTitle()||'Sans titre')}</span></div>`
+          +`<button class="btn sm primary" data-openshared>Reprendre</button></div></div>`:'';
+      return recapH+shH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${esc(R.ficheId)}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span>${(()=>{const w=liveWhereText(R);return w?`<span class="ls-w">${esc(w)}</span>`:'';})()}</div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${esc(R.ficheId)}">Reprendre</button><button class="ls-end" data-endlive="${esc(R.ficheId)}">Terminer</button></div>`).join('')}</div>`:'');},
     notices:()=>`
       ${(!state.scope&&!noticeHidden()&&!sysBannerOn())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
       ${(!state.scope&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
@@ -16594,6 +16600,8 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
       {const nx=document.getElementById('noticeX');if(nx)nx.onclick=()=>{try{localStorage.setItem('ac-notice-hidden','1');}catch(e){}redo();};}
       {const sa=document.getElementById('seedAdd');if(sa)sa.onclick=addSeedFiches;}
       {const sx=document.getElementById('seedX');if(sx)sx.onclick=()=>{try{localStorage.setItem(spaceKey('ac-seeds-hidden'),'1');}catch(e){}redo();};}
+      main.querySelectorAll('[data-openshared]').forEach(el=>{el.onclick=backToShared;
+        el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();backToShared();}};});
       main.querySelectorAll('[data-openlive]').forEach(el=>{el.onclick=()=>openRead(el.dataset.openlive);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRead(el.dataset.openlive);}};});
       main.querySelectorAll('[data-endlive]').forEach(b=>b.onclick=async()=>{const id=b.dataset.endlive,R=liveSessions[id];if(R&&await confirmEndSession(R)){endSession(R);if(Runtime.ficheId===id)resetRuntime();redo();}});
       main.querySelectorAll('[data-pin]').forEach(b=>b.onclick=e=>{e.stopPropagation();togglePin(b.dataset.pin);redo();});
@@ -19035,7 +19043,7 @@ function shareOverPaint(){
    plus rien à ne plus suivre) et l'écran d'entrée se rouvre, prêt à scanner ou saisir. */
 function rejoinShare(){
   try{Share.stop();}catch(e){}
-  slSbReset();
+  slSbReset();_shParked=null;_slMirror=null;
   Runtime=makeRuntime();
   state.view='library';state.fiche=null;
   render();
@@ -21366,7 +21374,7 @@ function bindReadEvents(f,blk,cur){
     ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
     ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:subConsulter,act:()=>openRefSheet()}]:[])];
   _moreBuild=null;
-  if(!state.previewFrom&&Share.mode==='guest')_moreBuild=()=>setMoreMenu([
+  if(!state.previewFrom&&sharedShown())_moreBuild=()=>setMoreMenu([
     /* PRENDRE LA MAIN — DANS LE MENU DE L'INVITÉ, et c'est le seul endroit où elle a un sens :
        c'est lui qu'on sert. Elle vivait dans le menu ORDINAIRE — celui de l'hôte —, où la
        condition `Share.mode==='guest'` ne pouvait jamais être vraie : la rangée n'existait donc
@@ -21384,10 +21392,20 @@ function bindReadEvents(f,blk,cur){
     ...((Share.isStale()&&Share.status==='active')
       ? [{label:'Continuer seul…',ic:uiIcon('undo',16),sub:'le lien ne répond plus',act:continueAlone}]
       : []),
+    /* Le MIROIR optique a sa feuille (resynchroniser, renvoyer) — c'est sa seule machinerie. */
+    ...(_slMirror
+      ? [{label:'Par l’écran…',ic:'⇆',sub:'resynchroniser ou renvoyer vos repères',act:openCurrentShare}]
+      : []),
     'sep',
     {label:'Quitter le partage…',ic:uiIcon('stop',16),danger:true,sub:'vous ne suivrez plus la session',act:quitShare}
   ]);
   else if(!state.previewFrom)_moreBuild=()=>setMoreMenu([
+    /* L'invité qui consulte UNE AUTRE aide garde un chemin de RETOUR à position constante —
+       c'était le « impossible de revenir » signalé. */
+    ...(sharedSessionLive()
+      ? [{label:'Revenir à la session partagée',ic:'⇄',
+          sub:sharedTitle(),act:backToShared},'sep']
+      : []),
     ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
     ...conduiteRows('surveillances, documents…'),
     'sep',
@@ -21407,9 +21425,12 @@ function bindReadEvents(f,blk,cur){
          session n'est pas anodin (chrono, minuteurs, journal, entrée dans l'historique) et ne doit
          pas se produire par surprise au détour d'un menu. Le geste reste à un tap de plus, jamais
          à une découverte. */
-      : [{label:'Partager la session…',ic:'⇄',
+      : (sharedSessionLive()
+        /* Un invité ne devient pas hôte au détour d'un menu : SA session est celle qu'il SUIT. */
+        ? []
+        : [{label:'Partager la session…',ic:'⇄',
           sub:started?'un collègue suit sur son téléphone':'démarre la session, puis partage',
-          act:()=>startShare(f)}]),
+          act:()=>startShare(f)}])),
     {label:'Répéter en exercice',ic:'▲',disabled:started&&!Runtime.exercise,
       sub:started&&!Runtime.exercise?'session en cours':(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
       return ts?'dernier : '+new Date(ts).toLocaleDateString('fr-FR'):'aucune trace clinique';})(),act:()=>startExercise(f)},
@@ -26622,6 +26643,11 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(i
   // L'ÉCHELLE DE LA FEUILLE N'EST JAMAIS MÉMORISÉE (lot Page, v5.10.0) : on ouvre toujours à la
   // taille d'AUTEUR. C'est une consultation, pas un réglage — même statut que `state.allTab`.
   svZoom=1;
+  /* GARER LE MIROIR (v5.14.17) : la session reçue « par l'écran » ne vit que dans `Runtime` —
+     la remplacer sans la garer la détruisait. L'invité en ligne/direct n'en a pas besoin :
+     son pli la reconstruit (`backToShared` → `openSharedFiche`). */
+  if(Runtime&&Runtime.started&&Runtime.fiche&&!Runtime.sessionId&&_slMirror
+    &&Runtime.ficheId!==id)_shParked=Runtime;
   if(liveSessions[id]){Runtime=liveSessions[id];Runtime.fiche=f;}
   /* ⚠ LE RUNTIME CONSERVÉ GARDAIT UNE FICHE PÉRIMÉE (trouvé à la sonde, lot T7). Quand on rouvre
      une fiche déjà chargée et non démarrée, on ne reconstruit pas le Runtime — c'est voulu (rien
@@ -30946,6 +30972,37 @@ const Share={
    `started` est remis à FAUX après `buildRuntime` (qui le déduit de la présence d'une session) :
    l'invité n'a pas de session locale, il regarde celle d'un autre. C'est ce qui garantit qu'aucun
    enregistrement ne se crée chez lui — le quai, lui, n'en dépend plus (cf. `crisisOnScreen`). */
+/* SESSION PARTAGÉE SUR CET APPAREIL (v5.14.17, signalé : « consulter d'autres aides reste en
+   mode partage, puis impossible de revenir »). Deux faits structuraux : (1) le menu invité
+   était conditionné au MODE GLOBAL, pas à la fiche AFFICHÉE — il suivait l'invité sur ses
+   propres aides ; (2) `openRead` REMPLACE `Runtime` — naviguer détruisait la session partagée
+   elle-même, et la fiche reçue n'ayant pas de carte, aucun chemin n'y ramenait.
+   Le retour a DEUX régimes : l'invité en ligne/direct se RECONSTRUIT du pli (`openSharedFiche`
+   — le pli est son état, il n'a rien perdu) ; le MIROIR optique, sans transport, se GARE
+   (`_shParked` : l'objet Runtime survit tel quel, ses ancres de minuteurs sont des heures). */
+let _shParked=null;
+function sharedRt(){
+  if(_slMirror){
+    if(Runtime&&Runtime.started&&Runtime.fiche&&!Runtime.sessionId)return Runtime;
+    if(_shParked&&_shParked.started)return _shParked;}
+  return null;}
+function sharedSessionLive(){
+  return !!(Share.mode==='guest'&&Share.fiche)||!!sharedRt();}
+/* La session partagée est-elle CELLE QU'ON AFFICHE ? (le menu invité ne vaut que là) */
+function sharedShown(){
+  return !!(Runtime&&Runtime.started&&Runtime.fiche&&!Runtime.sessionId
+    &&(Share.mode==='guest'||_slMirror)&&state.fiche===Runtime.fiche);}
+function sharedTitle(){
+  if(Share.mode==='guest'&&Share.fiche)return Share.fiche.title||'';
+  const R=sharedRt();return (R&&R.fiche&&R.fiche.title)||'';}
+function backToShared(){
+  if(Share.mode==='guest'&&Share.fiche){openSharedFiche();return;}
+  const R=sharedRt();if(!R)return;
+  Runtime=R;_shParked=null;
+  bindStateToRuntime();
+  state.fiche=Runtime.fiche;state.view='read';state.readStack=[];
+  state.confOpen=false;state.showFlow=false;state.previewFrom=null;state.rtOpen=false;
+  render();}
 function openSharedFiche(){
   const snap=Share.fiche;if(!snap)return false;
   const f=migrate(JSON.parse(JSON.stringify(snap)));
@@ -31766,6 +31823,7 @@ async function quitShare(){
       ts:new Date(Share.now()).toISOString(),payload:{state:'quit'}}]).catch(()=>{});}catch(e){}
   Share.stop();
   slSbReset();   // le canal dormant meurt avec la participation — sinon il MENT au rôle suivant
+  _shParked=null;_slMirror=null;
   Runtime=makeRuntime();
   state.view='library';state.fiche=null;
   render();

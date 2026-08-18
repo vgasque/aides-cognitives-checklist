@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.14.17] — 2026-08-18
+### L'invité navigue sans perdre sa session — et une aide reçue ne s'exporte pas
+
+- **Consulter ses propres aides pendant un partage ne piège plus l'invité** (signalé) : le
+  menu de partage ne suit plus l'invité partout (il ne vaut que sur la fiche partagée), et
+  deux chemins de retour existent — « Revenir à la session partagée » dans le menu ⋯ de toute
+  autre aide, et une carte « Session partagée » / « Miroir » à l'accueil, avec Reprendre.
+  Sous le capot, naviguer DÉTRUISAIT la session reçue : l'invité en ligne se reconstruit de
+  son pli, le miroir optique est garé et restauré tel quel.
+- **Une aide reçue temporairement ne s'exporte pas** (signalé : « c'est voulu ? » — non) : le
+  miroir optique n'ayant aucun mode de transport, l'aide reçue portait le menu complet
+  (Exporter, Dupliquer, Modifier). Elle porte désormais le menu de l'invité — et la réponse à
+  la question : oui, l'envoi est temporaire par construction (projection en liste blanche,
+  reconstruite en mémoire, jamais écrite sur l'appareil ni le compte).
+
 ## [5.14.16] — 2026-08-18
 ### L'aller-retour « par l'écran » — et l'instantané optique qui partait vide
 
@@ -359,25 +374,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
 - Mesuré aux deux moteurs et aux deux largeurs : clavier ouvert l'en-tête est `display:none` et la
   colonne occupe le rectangle visible de bout en bout ; clavier fermé l'en-tête est de retour,
   collant à 0. `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
-
-## [5.13.3] — 2026-08-16
-### La colonne passe devant la décoration — sinon on la perd en remontant
-
-- **Dernier point signalé, capture à l'appui** : « quand je suis avec le clavier et que je rescroll
-  en haut, je perds le champ ». La colonne était bien épinglée au rectangle visible ; mais l'en-tête
-  est **libéré** — il défile avec la page —, donc il disparaît dès qu'on descend et **revient en
-  haut du document** quand on y remonte. Il repassait alors **par-dessus** la colonne (rang 20
-  contre 16) et masquait précisément le champ qu'on est en train de taper.
-- **La couche du champ prend donc le rang le plus haut du chrome** : entre les deux, c'est ce qu'on
-  écrit qui gagne, jamais ce qui décore. Elle reste sous les fenêtres — une modale recouvre tout —
-  et reçoit un fond opaque, sans quoi le texte de la page défilerait au travers.
-- **Ce que je n'ai pas touché, et c'est une décision** : la barre de recherche de la voie étroite.
-  Je lui avais appliqué le même traitement qu'à la colonne ; la mesure l'a refusé — sa boîte ne fait
-  que la hauteur de son résumé (45 px) et le champ est rendu **en dessous**, si bien qu'un plafond
-  avec défileur l'**écrêtait** et faisait disparaître le champ. Le cas signalé est la colonne ;
-  toucher au second logement sans qu'il soit en cause est exactement le schéma qui a coûté onze
-  versions à ce dossier. Il reste tel qu'il était et se traitera le jour où il sera signalé, avec
-  sa géométrie propre.
-- Mesuré aux deux moteurs : page défilée de 1500 px **et** remontée en haut, le champ reste
-  atteignable (`elementFromPoint` le rend lui-même) et dans la zone visible. `npm run check` 20/20,
-  `npm test` 2×1126, audit COMPLET 25/25.

@@ -479,3 +479,36 @@ secours chaud), qui permettrait à l'isolé de rejoindre seul un partage cloud r
 - ⚠ Leçon de harnais payée dans la foulée : un remplacement GLOBAL dans le fichier du harnais a
   aussi réécrit la base vide (voulue) du témoin du journal référentiel — rouge immédiat à la
   passe complète, restauré. Un patch scripté mutile ce qu'il ne distingue pas (famille `$$`).
+
+## A219 — L'invité navigue sans perdre sa session ; une aide reçue ne s'exporte pas
+
+**Signalé à l'usage (v5.14.17)** : « un invité qui consulte d'autres aides de sa bibliothèque
+reste en mode partage, puis impossible de revenir » ; « pourquoi peut-il exporter l'aide
+reçue ? c'est voulu ? » (non). Trois faits structuraux découverts :
+
+- **Le menu invité était conditionné au MODE GLOBAL** (`Share.mode==='guest'`), pas à la fiche
+  AFFICHÉE : il suivait l'invité sur ses propres aides (« Quitter le partage » sur SA fiche).
+  Nouveau prédicat `sharedShown()` — le menu invité ne vaut que sur LA fiche partagée.
+- **`openRead` REMPLACE `Runtime`** : naviguer détruisait la session partagée elle-même — et la
+  fiche reçue n'ayant pas de carte en bibliothèque, aucun chemin n'y ramenait. Le retour a
+  DEUX RÉGIMES : l'invité en ligne/direct se RECONSTRUIT du pli (`openSharedFiche` — le pli
+  est son état, rien n'est perdu) ; le MIROIR optique, sans transport ni pli vivant, se GARE
+  (`_shParked` : l'objet Runtime survit tel quel — ses ancres de minuteurs sont des heures).
+  Chemins de retour : rangée « Revenir à la session partagée » au menu ⋯ de toute autre fiche,
+  et CARTE à l'accueil (patron des sessions vives : « Session partagée » / « Miroir » +
+  Reprendre). Résidu nommé : pendant qu'un invité en ligne navigue ailleurs, un lot distant
+  s'applique au Runtime affiché (clés d'une autre fiche — invisibles et inertes, purgées au
+  retour par la reconstruction du pli) — antérieur, sans effet visible, non traité.
+- **Le MIROIR optique n'a AUCUN mode de transport** (`Share.mode` reste `off`) : toutes les
+  gardes fondées sur le mode le rataient — d'où le menu ORDINAIRE complet sur l'aide reçue :
+  Exporter, Dupliquer, Modifier. Or la promesse (notice + § 3.1) est qu'« aucune donnée
+  durable ne reste chez l'invité » : l'export d'une aide reçue temporairement la contredisait.
+  Le menu de l'aide reçue est désormais le menu INVITÉ (+ « Par l'écran… » vers la feuille de
+  resynchronisation) — ni export, ni duplication, ni édition ; l'export de SES PROPRES aides
+  est intact. Un invité ne devient pas non plus hôte au détour d'un menu (« Partager la
+  session » masqué tant qu'une session partagée vit).
+
+**Réponse à la question posée** : oui, l'envoi est TEMPORAIRE par construction — la fontaine
+transporte la PROJECTION `sharePayload` (liste blanche de 14 champs), reconstruite en mémoire
+(`migrate` en point d'entrée), jamais écrite (IndexedDB et compte intacts, `sessionId` nul,
+`persistLive` refuse). L'export au menu était le seul trou — fermé, témoin 8/8.

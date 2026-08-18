@@ -2255,6 +2255,55 @@ await sec('v5.14.16 · retour optique : repères datés, refus d\'une autre sess
   await page.close();
 });
 
+
+/* ═══ v5.14.17 — L'INVITÉ GARDE SON CHEMIN DE RETOUR ; JAMAIS L'EXPORT D'UNE AIDE REÇUE ═══
+   Signalé : « un invité qui consulte d'autres aides reste en mode partage, puis impossible de
+   revenir » + « pourquoi peut-il exporter l'aide reçue ? ». Le miroir optique est le cas le
+   plus dur (AUCUN mode de transport — toutes les gardes fondées sur Share.mode le rataient). */
+await sec('v5.14.17 · retour de l\'invité + menu sans export sur l\'aide reçue', async () => {
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const f = Object.assign(JSON.parse(JSON.stringify(fiches[0])),
+      { id: 'fiche-hote', title: 'Aide reçue X' });
+    const ok = await slOptiqueGot({ sess: 'sess-hote', at: Date.now(),
+      fiche: sharePayload(f), snap: shareSnap(null, false) }, () => {});
+    await new Promise(x => setTimeout(x, 400));
+    const menu = () => { try { _moreBuild(); } catch (e) {}
+      return (_moreRows || []).map(r => r === 'sep' ? '' : r.label).join(' | '); };
+    const m1 = menu();                        // sur l'aide REÇUE
+    openRead(fiches[0].id);                   // une aide de SA bibliothèque
+    await new Promise(x => setTimeout(x, 400));
+    const m2 = menu();
+    state.view = 'library'; state.fiche = null; render();
+    await new Promise(x => setTimeout(x, 300));
+    const carte = !!document.querySelector('[data-openshared]');
+    const carteTxt = (document.querySelector('.ls-card') || {}).textContent || '';
+    const btn = document.querySelector('button[data-openshared]');
+    if (btn) btn.click();
+    await new Promise(x => setTimeout(x, 400));
+    return { ok, m1, m2, carte, carteTxt,
+      retourVue: state.view, retourTitre: state.fiche && state.fiche.title,
+      partagee: state.fiche === Runtime.fiche };
+  });
+  t('le miroir s\'ouvre (session non stockée)', r.ok === true, JSON.stringify(r).slice(0, 120));
+  t('l\'aide REÇUE : ni export, ni duplication, ni édition au menu',
+    !/Exporter|Dupliquer|Modifier/.test(r.m1), r.m1.slice(0, 160));
+  t('… mais « Par l\'écran » et « Quitter le partage »',
+    /Par l’écran/.test(r.m1) && /Quitter le partage/.test(r.m1), r.m1.slice(0, 160));
+  t('sur SA PROPRE aide : le retour à la session partagée est au menu',
+    /Revenir à la session partagée/.test(r.m2), r.m2.slice(0, 160));
+  t('… sans « Partager la session » (un invité ne devient pas hôte)',
+    !/Partager la session/.test(r.m2), r.m2.slice(0, 160));
+  t('… et l\'export de SA propre aide reste là', /Exporter l’aide/.test(r.m2), '');
+  t('l\'accueil porte la carte de la session reçue', r.carte && /Miroir|partagée/.test(r.carteTxt),
+    r.carteTxt.slice(0, 80));
+  t('« Reprendre » ramène sur l\'aide reçue', r.retourVue === 'read' && r.partagee
+    && r.retourTitre === 'Aide reçue X', JSON.stringify({ v: r.retourVue, t: r.retourTitre }));
+  await page.close();
+});
+
 const bilanSec = sec.bilan();
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : '')
