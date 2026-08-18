@@ -418,3 +418,34 @@ plus gentil que lui est un banc qui ment. Trois correctifs :
 **Leçon** : un vocabulaire de partage a DEUX étages (genres ET clés de payload) — étendre l'un
 sans l'autre produit un évènement qui circule VIDE, le mode de défaillance le plus silencieux
 qui soit. La parité est désormais gardée aux deux étages.
+
+## A217 — La feuille directe devient une vraie feuille d'hôte ; la réouverture retrouve son mode
+
+**Confirmé sur le terrain (v5.14.15)** : après rejeu du schéma, l'appariement silencieux et les
+bascules seamless FONCTIONNENT sur les deux iPhones. Quatre suites, toutes signalées :
+
+- **L'instrument de terrain (A215) est RETIRÉ, service rendu** — il a désigné le maillon fautif
+  (l'amputation serveur, A216) en un aller-retour ; le laisser eût été du bruit permanent pour
+  un diagnostic ponctuel. La pastille reste, elle : c'est de l'état, pas du diagnostic.
+- **Les commandes de l'hôte existent AUSSI en direct** (« pourquoi je n'ai pas les mêmes
+  contrôles que le mode en ligne pour donner la main, couper ? ») : le hub servait déjà
+  revoke/setRole/handoff — seule la feuille ne les montrait pas. Les rangées de participants
+  et leurs liaisons sont EXTRAITES en fabrique commune (`sharePartRowsHtml`/`sharePartBind`),
+  les deux feuilles l'appellent ; la feuille directe se repeint sur le même signal que le
+  menu ⋯ (signature des participants dans `_cycle`).
+- **La pastille « En ligne » dit que le retour est POSSIBLE** (verte dès que compte + internet),
+  symétrique de la pastille « En direct » = canal dormant prêt. Vert = disponible, pilule =
+  actif : une seule sémantique.
+- **Rouvrir le partage rouvre SON MODE** : le menu « Partage en cours (n) » appelait la
+  feuille CLOUD en dur — en mode direct, elle s'affichait sans code ni participants, partage
+  fantôme. `openCurrentShare` dispatche : direct vif → feuille directe ; miroir → feuille
+  miroir ; sinon → feuille cloud.
+
+**Question posée et tranchée SANS code** : un invité dont l'écran gèle en mode direct parce
+qu'il a QUITTÉ le réseau local (Wi-Fi → 5G) ne peut déclencher AUCUNE bascule, ni pour tous ni
+pour lui : il n'a plus aucun canal vers l'hôte (le LAN est parti, et aucun partage cloud
+n'existe tant que l'hôte est en direct). La reprise est HÔTE-CENTRÉE, et c'est conforme à la
+doctrine (l'hôte est l'autorité) : l'hôte repasse « En ligne » — les invités restés sur le LAN
+suivent seuls — puis donne un code neuf à l'isolé. Piste future nommée, non ouverte : un
+« billet de retour » pré-distribué par le canal direct pendant qu'il vit (le symétrique du
+secours chaud), qui permettrait à l'isolé de rejoindre seul un partage cloud ré-ouvert.

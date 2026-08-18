@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.14.15] — 2026-08-18
+### La feuille directe a les commandes de l'hôte, la réouverture retrouve son mode
+
+- **« Donner la main » et « Couper » existent désormais en mode direct** (signalé) : le moteur
+  local savait déjà les faire, seule la feuille ne les montrait pas — les rangées de
+  participants sont maintenant communes aux deux feuilles, avec les mêmes états (relève,
+  conduit, parti, sans nouvelles…).
+- **La pastille « En ligne » verdit quand le retour est possible** (compte + internet),
+  symétrique de « En direct » = canal dormant prêt. Vert = disponible, pilule = actif.
+- **Rouvrir le partage rouvre le mode EN COURS** (signalé : « le mode direct ne se rouvre
+  pas ») : le menu ouvrait la feuille cloud en dur — partage fantôme sans code ni
+  participants. Direct vif → feuille directe ; miroir → miroir ; sinon → cloud.
+- La ligne de diagnostic (v5.14.13) est retirée : service rendu — elle a désigné le défaut
+  serveur en un aller-retour.
+
 ## [5.14.14] — 2026-08-18
 ### Le vrai coupable du secours chaud : le serveur amputait l'offre
 
@@ -377,22 +392,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
 - La décoration, elle, reste **libérée** (v5.13.0) : en-tête, quai de crise, barre de sélection,
   poignée d'édition, volet du quai, rail A→Z. `npm run check` 20/20, `npm test` 2×1126, audit
   COMPLET 25/25.
-
-## [5.13.1] — 2026-08-16
-### On libère la décoration, jamais le logement de ce qu'on écrit
-
-- **Correction d'une régression de la v5.13.0, introduite une heure plus tôt** (signalée à l'usage :
-  « la barre suit bien au scroll **sauf avec le clavier** : dans ce cas out of view, ça remonte et
-  je ne vois pas ce que je tape »). En libérant le chrome, j'avais rendu au flux **la barre fixée
-  d'une référence et la colonne sommaire** — or c'est là que vit le champ de recherche. Rendus au
-  flux, ils reprennent leur place **en haut du document** ; le navigateur, qui doit montrer le champ
-  focalisé, n'a alors qu'un moyen d'y parvenir : **ramener la page en haut**. D'où le retour au
-  début et la perte de l'endroit qu'on lisait.
-- **La règle devient plus précise qu'« on libère tout »** : on libère la **décoration** — ce qui
-  oriente, annonce, commande (en-tête, quai de crise, barre de sélection, poignée d'édition, volet
-  du quai, rail A→Z) — et **jamais le logement de ce qu'on est en train d'écrire**. Celui-là reste
-  épinglé : c'est le seul élément dont le navigateur garantit lui-même la visibilité, et le laisser
-  fixe est précisément ce qui permet de taper sans perdre sa page.
-- Mesuré aux deux moteurs : clavier ouvert, l'en-tête est `static` et défile de −600 px avec la
-  page, tandis que la colonne sommaire — qui porte le champ — reste `sticky`. `npm run check`
-  20/20, `npm test` 2×1126, audit COMPLET 25/25.

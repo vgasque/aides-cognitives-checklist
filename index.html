@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-rQsHNFrpGpcGJykvEsxWg0E8A7FRJkNYLG8TFdiHiK8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-B/pNlIYScWHyR9nEo13cHr9fbNG/J8j958aKZjxtVGE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.14';
+const APP_VERSION='5.14.15';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21382,7 +21382,7 @@ function bindReadEvents(f,blk,cur){
        de l'invité — donc un re-rendu complet sous son doigt. */
     ...(Share.mode==='host'
       ? [{label:'Partage en cours ('+(Share.participants||[]).filter(sharePresent).length+')',
-          ic:'⇄',sub:'code, participants, arrêt',act:openShareSheet}]
+          ic:'⇄',sub:'code, participants, arrêt',act:openCurrentShare}]
       /* JAMAIS GRISÉE (décision utilisateur, v4.47.0). Le partage exige une session démarrée — la
          contrainte est réelle : sans elle, la première action de l'invité déclencherait
          `ensureStarted` chez l'hôte, donc un re-rendu complet sous son doigt. Mais faire porter
@@ -29177,6 +29177,10 @@ function closeMoreMenu(){if(moreMenuEl.hidden)return;moreMenuEl.hidden=true;hdrM
    est ouvert à cet instant il se repeint en place. */
 let _moreBuild=null;
 function shareMenuRefresh(){
+  /* La feuille DIRECTE montre les participants (v5.14.15) : elle se repeint sur le même signal
+     que le menu — un changement de la signature des participants (_cycle). */
+  try{if(typeof slLiveOk==='function'&&slLiveOk()&&shareModal&&shareModal.classList.contains('on')
+    &&document.querySelector('#shareBody .sl-status'))slSheet('live');}catch(e){}
   if(typeof _moreBuild!=='function')return;
   try{_moreBuild();}catch(e){return;}
   if(moreMenuEl&&!moreMenuEl.hidden)openMoreMenu();}
@@ -31007,9 +31011,11 @@ function shareJoinUrl(code){
     if(/^https?:/i.test(o))return o+location.pathname+'#j='+code;
   }catch(e){}
   return null;}
-function shareSheetHtml(){
-  const f=Runtime.fiche,code=Share.code||'';
-  const url=shareJoinUrl(code);
+/* RANGÉES DE PARTICIPANTS — PARTAGÉES par la feuille cloud ET la feuille directe (v5.14.15,
+   signalé : « pourquoi je n'ai pas les mêmes contrôles que le mode en ligne pour donner la
+   main, couper ? »). Le hub local sert déjà revoke/setRole/handoff — seule la feuille ne les
+   montrait pas. Une seule fabrique, deux feuilles. */
+function sharePartRowsHtml(){
   const parts=(Share.participants||[]).filter(p=>!p.owner);
   const rows=parts.map(p=>{
     const att=_shPend[p.id]&&!p.revoked;
@@ -31035,6 +31041,18 @@ function shareSheetHtml(){
         :'<button class="btn sm" data-shlead="'+esc(p.id)+'"'+(off?' disabled':'')+'>'
          +(off?'proposée…':'Donner la main')+'</button>')
       +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
+  return '<p class="sh-h">Participants ('+parts.length+')</p>'
+    +(rows||'<p class="sh-none">Personne n\'a encore rejoint.</p>');}
+function sharePartBind(body,repaint){
+  body.querySelectorAll('[data-shlead]').forEach(b=>b.onclick=()=>{
+    if(Share.offerLead(b.dataset.shlead))repaint();});
+  body.querySelectorAll('[data-shcut]').forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.shcut;_shPend[id]=1;repaint();
+    if(!await Share.revoke(id)){delete _shPend[id];repaint();
+      toast('⚠ La coupure n\'a pas pu être transmise — réessayez.',6000);}});}
+function shareSheetHtml(){
+  const f=Runtime.fiche,code=Share.code||'';
+  const url=shareJoinUrl(code);
   /* PORTE FERMÉE = ON N'AFFICHE PLUS DE CODE. Tant que le code restait peint, l'hôte le dictait
      alors qu'il était déjà consommé (une jointure le brûle, avant l'échéance) : il croyait donner
      un accès, l'autre lisait « refusé », et personne ne pouvait comprendre. On dit ce qui s'est
@@ -31042,7 +31060,6 @@ function shareSheetHtml(){
   const porte=!!code;
   return '<p class="sh-fiche">'+esc(f?f.title:'')+'</p>'
     +slModeSegHtml('cloud')
-    +'<p class="sl-cap" id="sbDiag">'+esc(slSbDiagTxt())+'</p>'
     +(porte
       ? '<p class="sh-lead">Faites-le scanner, ou dictez-le. Il ne sert <b>qu\'une fois</b>.</p>'
         +'<p class="sh-code" id="shCode">'+esc(shareCodeFmt(code))+'</p>'
@@ -31061,8 +31078,7 @@ function shareSheetHtml(){
         +'<p class="sh-adr">Ce lien contient le code — ouvrez-le, ou dictez l’adresse puis le code.</p>'
       : '<p class="sh-adr warn">Cette page n’a pas d’adresse partageable (fichier local) : '
         +'le code seul est encodé. Donnez à votre collègue l’adresse de l’application.</p>')
-    +'<p class="sh-h">Participants ('+parts.length+')</p>'
-    +(rows||'<p class="sh-none">Personne n\'a encore rejoint.</p>')
+    +sharePartRowsHtml()
     +'<div class="sh-acts">'
     +'<button class="btn" id="shAdmit">Nouveau code</button>'
     +'<button class="btn danger" id="shEnd">Arrêter le partage…</button></div>'
@@ -31083,12 +31099,7 @@ function renderShareSheet(force){
     Object.keys(_shPend).join(','),_hoOffered||''].join('|');
   if(force||sig!==_shSig){
     _shSig=sig;body.innerHTML=shareSheetHtml();
-    body.querySelectorAll('[data-shlead]').forEach(b=>b.onclick=()=>{
-      if(Share.offerLead(b.dataset.shlead))renderShareSheet(true);});
-    body.querySelectorAll('[data-shcut]').forEach(b=>b.onclick=async()=>{
-      const id=b.dataset.shcut;_shPend[id]=1;renderShareSheet(true);
-      if(!await Share.revoke(id)){delete _shPend[id];renderShareSheet(true);
-        toast('⚠ La coupure n\'a pas pu être transmise — réessayez.',6000);}});
+    sharePartBind(body,()=>renderShareSheet(true));
     const ad=document.getElementById('shAdmit');
     if(ad)ad.onclick=async()=>{ad.disabled=true;const r=await Share.admit(120);ad.disabled=false;
       if(r&&r.ok)renderShareSheet(true);else toast('⚠ Impossible d\'ouvrir un nouveau code.',6000);};
@@ -31104,6 +31115,14 @@ function renderShareSheet(force){
     slModeSegBind('cloud');
   }
   shPaintWhen();}
+/* ROUVRIR LE PARTAGE = ROUVRIR SON MODE (v5.14.15, signalé : « le mode direct ne se rouvre
+   pas même si actif ») : le menu appelait la feuille CLOUD en dur — en mode direct elle
+   s'affichait sans code ni participants, comme un partage fantôme. */
+function openCurrentShare(){
+  if(slLiveOk()){closeShareSheet();shareModal.classList.add('on');slSheet('live');return;}
+  if(_slMirror&&Runtime.started){closeShareSheet();shareModal.classList.add('on');
+    slSheet('mirror');return;}
+  openShareSheet();}
 function openShareSheet(){
   if(!shareModal)return;
   shareModal.classList.add('on');_shSig='';renderShareSheet(true);
@@ -31141,7 +31160,7 @@ function slModeSegHtml(active){
     +(dis?' disabled':'')+'>'+dot+'<span>'+lbl+'</span></button>';
   return '<div class="seg" style="--seg-n:3;--seg-i:'+idx+'" role="radiogroup" aria-label="Mode de partage">'
     +'<span class="seg-pill" aria-hidden="true"></span>'
-    +b('cloud','En ligne','<span class="sdot"></span>',!online&&active!=='cloud')
+    +b('cloud','En ligne','<span class="sdot'+(online?' ok':'')+'"></span>',!online&&active!=='cloud')
     +b('direct','En direct','<span class="sdot'
       +((typeof slSbReady==='function'&&slSbReady())||slLiveOk()?' ok':'')+'"></span>',false)
     +b('optic','Par l\u2019écran','<span class="sdot t" aria-hidden="true">\u29d7</span>',false)
@@ -31209,10 +31228,12 @@ function slSheet(phase){
     body.innerHTML='<div class="sl-status"><span class="sl-dot"></span>'
       +n+' participant'+(n>1?'s':'')+' · en direct</div>'
       +slModeSegHtml('direct')
+      +sharePartRowsHtml()
       +'<div class="sl-actions">'
       +'<button class="btn" id="slInvite">Inviter un autre</button>'
       +'<button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
     document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
+    sharePartBind(body,()=>slSheet('live'));
     slModeSegBind('direct');
     document.getElementById('slEnd').addEventListener('click',async()=>{
       if(!await confirmDlg('Les participants ne suivront plus la session. Votre session, elle, '
@@ -31380,7 +31401,7 @@ const slSb={dcs:[],dc:null,pc:null};
 let _slSwitching=false;
 function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
   for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
-  slSb.dcs=[];slSb.dc=null;slSb.pc=null;slSb.diagH=null;}
+  slSb.dcs=[];slSb.pc=null;slSb.dc=null;}
 /* La véracité est PAR RÔLE (v5.14.12) : chez l'HÔTE seuls comptent les canaux de SES invités ;
    un `slSb.dc` restant d'un ancien rôle invité (les deux téléphones échangent leurs rôles en
    test) faisait verdir une pastille sans aucun canal utilisable — et `readyState` se vérifie
@@ -31393,24 +31414,7 @@ function slSbReady(){
    réseau, et la bascule sans QR ne peut pas suivre. */
 function slSegDotRefresh(){
   const b=document.querySelector('#shareBody .seg-btn[data-shmode="direct"] .sdot');
-  if(b)b.classList.toggle('ok',slSbReady()||slLiveOk());
-  const d=document.getElementById('sbDiag');if(d)d.textContent=slSbDiagTxt();}
-/* L'INSTRUMENT DE TERRAIN (v5.14.13, signalé : pastille jamais verte sur le même Wi-Fi alors
-   que l'appariement QR passe). La pastille est binaire ; cette ligne dit OÙ la chaîne casse,
-   avec ce que l'HÔTE sait : aucune offre = le relais ou l'émission invitée ; offre à 0
-   candidat = iOS n'a rien rassemblé sans caméra ; offre + réponse sans canal = le réseau
-   filtre la résolution mDNS (Bonjour) — le flux QR y survit car sa réponse, créée caméra
-   allumée, porte de vraies IP. */
-function slSbDiagTxt(){
-  if(Share.mode!=='host'||Share.share==='local')return '';
-  const n=(Share.participants||[]).filter(x=>!x.owner&&!x.revoked).length;
-  if(!n)return 'appariement auto : en attente d\u2019un participant';
-  const d=slSb.diagH;
-  if(!d)return 'appariement auto : en attente de l\u2019offre de l\u2019invit\u00e9\u2026';
-  if(d.open)return 'appariement auto : canal pr\u00eat';
-  return 'appariement auto : offre re\u00e7ue ('+d.n+' candidat'+(d.n>1?'s':'')+')'
-    +(d.a?' \u00b7 r\u00e9ponse envoy\u00e9e':'')
-    +(d.ice?' \u00b7 connexion : '+d.ice:'');}
+  if(b)b.classList.toggle('ok',slSbReady()||slLiveOk());}
 async function slSbGuestKick(){
   if(slSb.pc||slSb.dc)return;
   slSb.pc={};                                  // verrou immédiat (l'amorçage est asynchrone)
@@ -31435,18 +31439,12 @@ async function slSbOnSig(ev){
   try{
     if(Share.mode==='host'&&p.t==='o'&&p.o&&!(SL&&SL.live)){
       const o=slPairUnpack(String(p.o));if(!o)return;
-      slSb.diagH={n:(o.c||[]).length,a:false,ice:'',open:false};
       const h=await slPcGuest(o);
-      try{h.pc.oniceconnectionstatechange=()=>{
-        if(slSb.diagH)slSb.diagH.ice=h.pc.iceConnectionState;
-        try{slSegDotRefresh();}catch(_){}};}catch(_){}
       h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc});
-          if(slSb.diagH)slSb.diagH.open=true;
           dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slSegDotRefresh();}catch(_){}};
           try{slSegDotRefresh();}catch(_){}};
         dc.readyState==='open'?go():dc.onopen=go;});
-      Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(Object.assign({k:o.k},h.answer))});
-      if(slSb.diagH){slSb.diagH.a=true;try{slSegDotRefresh();}catch(_){}}}
+      Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(Object.assign({k:o.k},h.answer))});}
     else if(Share.mode==='guest'&&p.t==='a'&&p.to===Share.me&&slSb.pc&&slSb.pc.answer&&p.a){
       const a=slPairUnpack(String(p.a));if(!a)return;
       if(a.k!==slSb.pc.k)return;   // réponse d'une offre morte : on n'empoisonne pas le pc courant
