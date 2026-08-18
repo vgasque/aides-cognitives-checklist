@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.14.13] — 2026-08-18
+### La feuille de l'hôte dit où l'appariement silencieux casse
+
+- **Une ligne de diagnostic sous le sélecteur de mode** (signalé : pastille jamais verte sur le
+  même Wi-Fi alors que l'appariement QR fonctionne) : « en attente de l'offre… », « offre
+  reçue (n candidats) · réponse envoyée · connexion : … », « canal prêt ». Elle dit, avec ce
+  que l'hôte sait, lequel des trois maillons casse — l'émission de l'offre, le rassemblement
+  des candidats sans caméra (iOS), ou la résolution mDNS que certains réseaux filtrent (le
+  flux QR y survit : sa réponse, créée caméra allumée, porte de vraies IP).
+
 ## [5.14.12] — 2026-08-18
 ### Le secours chaud survit aux rôles échangés — et la panne brutale est prouvée
 
@@ -410,28 +420,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
 - Mesuré aux deux moteurs et aux deux largeurs : sans clavier l'en-tête est collant, clavier ouvert
   il est `static` et défile de −600 px avec la page, clavier refermé il revient se coller à 0.
   `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.
-
-## [5.12.11] — 2026-08-16
-### Retour à l'état v5.12.9 — j'arrête les correctifs à l'aveugle et je pose le problème
-
-- **La v5.12.10 était une régression, et elle est annulée.** J'avais retiré le décalage du viewport
-  visuel aux couches `sticky` en supposant qu'elles suivent la page. Le retour d'usage est sans
-  appel — *« le volet continue de sauter, l'en-tête disparaît au scroll en recherche, la sidebar
-  aussi »* : sur iOS, une couche `sticky` se cale sur le viewport de **mise en page**, exactement
-  comme une couche `fixed`. Les deux disparaissent quand le viewport visuel est panoramiqué. Ma
-  distinction était fausse.
-- **Ce qui est gardé de la série**, parce que ces points-là ont été mesurés et confirmés : plus
-  aucun `scrollIntoView` inutile pendant la frappe (v5.12.9), le compte d'occurrences à chasse fixe
-  qui empêchait le bouton « › » de se dérober (v5.12.6), la croix d'effacement centrée sur son
-  champ (v5.12.4), la garde du clavier qui empêche le rebond élastique de déplacer quoi que ce soit
-  (v5.12.5). Aucune de ces quatre corrections n'était en cause.
-- **Ce qui reste ouvert, et que je ne corrigerai pas d'une onzième hypothèse** : le comportement du
-  chrome quand un clavier LOGICIEL est ouvert. Onze versions ont été livrées sur un mécanisme que
-  le harnais ne peut pas piloter — `visualViewport` n'est pas scriptable en test — et chacune
-  reposait sur un modèle mental d'iOS, pas sur une mesure. C'est la faute de méthode, pas le
-  réglage.
-- La suite tient en un choix, posé à l'auteur plutôt que tranché seul : instrumenter l'appareil
-  (afficher les valeurs réelles du viewport pendant qu'on tape, pour corriger sur des chiffres),
-  ou **renoncer à épingler le chrome pendant la frappe** (le laisser défiler et laisser le
-  navigateur garder le champ focalisé visible, ce qu'il fait très bien) — solution la plus simple
-  et la seule qui supprime la classe de défauts au lieu de la déplacer.

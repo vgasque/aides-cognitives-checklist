@@ -369,3 +369,25 @@ téléphones — la perte d'INTERNET ne le touche pas, et la bascule automatique
 échoués) l'emprunte sans geste : c'est la phase 3, mesurée. Ce qui le tue : la perte du Wi-Fi
 LUI-MÊME (il ne reste alors que l'optique), ou un invité qui n'est pas sur le même réseau
 local (pastille grise à demeure — le pré-appariement est impossible sans LAN commun).
+
+## A215 — L'instrument de terrain : la feuille de l'hôte dit OÙ l'appariement silencieux casse
+
+**Signalé à l'usage (v5.14.13)** : même Wi-Fi, 5.14.12 des deux côtés, appariement QR
+fonctionnel — et la pastille « En direct » ne verdit jamais. La sonde locale a BLANCHI le code
+(candidats mDNS emballés, reconstruits, acceptés par le pair sur les deux régimes Chromium) et
+mis au jour l'asymétrie structurelle des deux flux : dans le flux QR, la RÉPONSE de l'invité
+est créée CAMÉRA ALLUMÉE, donc avec de vraies IP — ICE se rattrape par candidats réflexifs
+même sans résolution Bonjour ; le flux silencieux est mDNS des DEUX côtés — un réseau qui
+filtre le multicast le tue, lui seul. L'autre hypothèse ouverte : iOS qui ne rassemblerait
+AUCUN candidat sans caméra dans le délai de 5 s.
+
+La pastille étant binaire, la feuille cloud de l'hôte porte désormais UNE ligne discrète
+(`#sbDiag`, registre sl-cap) qui dit où la chaîne casse, avec ce que l'hôte sait :
+- « en attente de l'offre de l'invité… » qui dure = le relais ne porte pas les `sig` ou
+  l'invité n'émet pas ;
+- « offre reçue (0 candidat) » = iOS n'a rien rassemblé sans caméra — défaut d'app à traiter ;
+- « offre reçue (n) · réponse envoyée · connexion : checking/failed » = le réseau filtre la
+  résolution mDNS (Bonjour) : limite réseau, le QR reste le chemin ;
+- « canal prêt » = tout va bien (la pastille est verte).
+Alimentée dans la branche hôte du `sig` (compte de candidats de l'offre, réponse émise, état
+ICE réel via `oniceconnectionstatechange`, ouverture du canal), effacée par l'ardoise propre.
