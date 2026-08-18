@@ -2060,6 +2060,133 @@ await sec('v5.6 · un lot distant n\'est jamais perdu', async () => {
 }
 });
 
+
+/* ═══ v5.14.9 — BASCULE EN LIGNE ⇄ EN DIRECT SANS RE-SCAN (E2E, signalé : « tous les
+   participants sont déconnectés » ; « inversement non plus »').
+   Deux PAGES réelles (hôte, invité) dans le même contexte, un relais en mémoire (slHub +
+   BroadcastChannel) qui joue Supabase, et de VRAIS RTCPeerConnection entre les deux pages :
+   le secours chaud s'apparie en silence, puis le tap « En direct » emporte l'invité SANS QR,
+   puis « En ligne » le ramène SANS re-saisie (billet « gc » par le canal). Le flux COMPLET —
+   aucune brique applicative simulée ; seul le transport serveur est remplacé, comme partout
+   dans ce harnais. */
+await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent les deux sens', async () => {
+  /* Chromium HEADLESS masque les IP locales derrière des noms mDNS mais ne fait tourner AUCUN
+     répondeur mDNS : les candidats sont irrésolubles entre deux pages et ICE échoue à coup sûr —
+     un artefact du banc, pas de l'application (Safari/Chrome de production embarquent Bonjour).
+     On lève l'obfuscation ICI SEULEMENT ; WebKit ne la pratique pas. */
+  const brE = NOM_MOTEUR === 'chromium'
+    ? await moteur().launch({ args: ['--disable-features=WebRtcHideLocalIpsWithMdns'] })
+    : br;
+  const ctx = await brE.newContext({ viewport: { width: 390, height: 844 } });
+  const H = await ctx.newPage();
+  await session(H);
+  const G = await ctx.newPage();
+  await G.goto(`http://localhost:${port}/index.html`);
+  /* PAS `amorce()` ici : les deux pages PARTAGENT le contexte (BroadcastChannel l'exige), donc
+     le stockage amorcé par l'hôte — l'écran de bienvenue n'existe plus pour la seconde page.
+     L'invité n'a besoin que d'une app démarrée. */
+  await G.waitForFunction(() => typeof Share === 'object' && typeof openSharedFiche === 'function',
+    null, { timeout: 15000 });
+
+  // Le relais : un hub en mémoire dans la page HÔTE + un guichet BroadcastChannel pour l'invité.
+  await H.evaluate(() => {
+    window.__cloudEnded = 0;
+    const hub = slHub({ now: () => Date.now(), uid: (() => { let n = 0; return () => 'r' + (++n); })(),
+      secret: (() => { let n = 0; return () => 'sec' + (++n); })(),
+      shareId: 'bus1', fiche: null, guestRole: 'scribe', hostLabel: 'Hôte' });
+    const io = {
+      open: async () => ({ ok: true, share: 'bus1', code: 'AAAA2222',
+        join_open_until: new Date(Date.now() + 120e3).toISOString(),
+        expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() }),
+      admit: async () => ({ ok: true, code: 'BBBB3333',
+        join_open_until: new Date(Date.now() + 120e3).toISOString(), server_time: new Date().toISOString() }),
+      join: async (code, label) => hub.join(label),
+      pull: async (s, sh, since) => hub.pull(hub.hostSecret(), since),
+      push: async (s, sh, ev) => hub.push(hub.hostSecret(), ev),
+      revoke: async (sh, pid) => hub.revoke(pid),
+      setRole: async (sh, pid, role) => hub.setRole(pid, role),
+      /* `end` compte au lieu d'agir : en production il vise l'ANCIEN identifiant de partage,
+         sans effet sur le nouveau — un hub unique ne sait pas jouer cette distinction. */
+      end: async () => { window.__cloudEnded++; return { ok: true }; } };
+    Share._io = io; Share._ioRest = io; Auth.signedIn = () => true;
+    const bc = new BroadcastChannel('acbus');
+    bc.onmessage = async ev => { const m = ev.data || {}; if (!m.q) return; let r = null;
+      try {
+        if (m.v === 'join') r = hub.join(m.p.label);
+        else if (m.v === 'pull') r = await hub.pull(m.p.secret, m.p.since);
+        else if (m.v === 'push') r = hub.push(m.p.secret, m.p.events);
+      } catch (e) {}
+      bc.postMessage({ i: m.i, r }); };
+    window.__bc = bc;
+    confirmDlg = async () => true;
+  });
+  await G.evaluate(() => {
+    const bc = new BroadcastChannel('acbus'); let n = 0; const pend = {};
+    bc.onmessage = ev => { const m = ev.data || {}; if (m.q || !pend[m.i]) return;
+      const w = pend[m.i]; delete pend[m.i]; w(m.r); };
+    const call = (v, p) => new Promise(res => { const i = ++n; pend[i] = res;
+      bc.postMessage({ q: 1, i, v, p });
+      setTimeout(() => { if (pend[i]) { delete pend[i]; res(null); } }, 4000); });
+    const io = { open: async () => null, admit: async () => null,
+      join: (code, label) => call('join', { label }),
+      pull: (s, sh, since) => call('pull', { secret: s, since }),
+      push: (s, sh, ev) => call('push', { secret: s, events: ev }),
+      revoke: async () => null, setRole: async () => null, end: async () => null };
+    Share._io = io; Share._ioRest = io; Auth.signedIn = () => true;
+    confirmDlg = async () => true;
+  });
+
+  await H.evaluate(async () => { await startShare(Runtime.fiche); });
+  const j = await G.evaluate(async () => {
+    const r = await Share.joinByCode('AAAA2222', 'IADE').catch(e => ({ ok: false, err: String(e) }));
+    if (r && r.ok) openSharedFiche();
+    return r; });
+  t('l\'invité rejoint le relais', !!(j && j.ok), JSON.stringify(j));
+
+  /* Le secours chaud doit s'apparier TOUT SEUL — offre `sig` de l'invité, réponse de l'hôte,
+     ICE réel entre les deux pages. */
+  const pretH = await H.waitForFunction(() =>
+    slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 })
+    .then(() => true).catch(() => false);
+  const pretG = pretH && await G.waitForFunction(() => !!slSb.dc, null, { timeout: 10000 })
+    .then(() => true).catch(() => false);
+  t('le canal dormant s\'apparie en silence (vrais RTCPeerConnection)', pretH && pretG,
+    'hôte:' + pretH + ' invité:' + pretG);
+  const dot = await H.evaluate(() => {
+    const b = document.querySelector('#shareBody .seg-btn[data-shmode="direct"] .sdot');
+    return b ? b.classList.contains('ok') : null; });
+  t('la pastille « En direct » dit que le canal est prêt', dot === true, String(dot));
+
+  /* Le TAP « En direct » : l'hôte bascule, l'invité SUIT — personne ne scanne. */
+  await H.click('#shareBody .seg-btn[data-shmode="direct"]');
+  const basH = await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true,
+    null, { timeout: 20000 }).then(() => true).catch(() => false);
+  const basG = basH && await G.waitForFunction(() =>
+    Share._io !== Share._ioRest && Share.status === 'active' && Share.share && Share.share !== 'bus1',
+    null, { timeout: 20000 }).then(() => true).catch(() => false);
+  const endTot = await H.evaluate(() => window.__cloudEnded);
+  t('« En direct » : l\'hôte bascule sur le hub local', basH, '');
+  t('… et l\'invité SUIT par son canal dormant, sans QR', basG, '');
+  t('le partage cloud n\'est terminé qu\'en DIFFÉRÉ (le « go » a le temps de partir)',
+    endTot === 0, 'end=' + endTot);
+  const titreG = await G.evaluate(() => (Runtime && Runtime.fiche && Runtime.fiche.title) || null);
+  const titreH = await H.evaluate(() => (Runtime && Runtime.fiche && Runtime.fiche.title) || null);
+  t('l\'état complet a voyagé par le canal (même fiche des deux côtés)',
+    !!titreG && titreG === titreH, titreG + ' vs ' + titreH);
+
+  /* Le TAP « En ligne » : billet « gc » par le canal, personne ne ressaisit de code. */
+  await H.click('#shareBody .seg-btn[data-shmode="cloud"]');
+  const revH = await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL,
+    null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const revG = revH && await G.waitForFunction(() =>
+    Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active',
+    null, { timeout: 20000 }).then(() => true).catch(() => false);
+  t('« En ligne » : l\'hôte repasse par le serveur', revH, '');
+  t('… et l\'invité le rejoint avec le billet « gc », sans re-saisie', revG, '');
+  await ctx.close();
+  if (brE !== br) await brE.close();
+});
+
 const bilanSec = sec.bilan();
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : '')

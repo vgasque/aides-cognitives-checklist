@@ -423,7 +423,10 @@ relais Supabase n'intervient pas, et les durées serveur (fenêtre, TTL, purge) 
 **Secours chaud (v5.14.5)** : pendant qu'un partage EN LIGNE fonctionne, les appareils préparent
 le canal direct en silence — les descripteurs techniques du canal (dont des adresses IP LOCALES)
 transitent alors par le relais, comme évènements `sig`, purgés avec le reste et invisibles au
-compte-rendu ; si internet tombe, le partage bascule seul sur ce canal.
+compte-rendu ; si internet tombe, le partage bascule seul sur ce canal. Les bascules CHOISIES
+empruntent les mêmes chemins (v5.14.9) : vers le direct, un signal `sig` sans contenu part par le
+relais ; vers le serveur, le **code d'admission** (huit caractères opaques, aucune donnée
+personnelle) est remis à chaque invité par le canal direct chiffré — rien d'autre ne s'y ajoute.
 La notice affichée à l'invité (`#joinScreen`) dit les deux régimes ; les deux textes évoluent
 ensemble, ou aucun.
 

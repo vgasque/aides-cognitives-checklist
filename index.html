@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-35ooqfLGHsBRToNN4ZE82F18qLieSNt4T/fsnLpIhSA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Tp8svObj4/0UJi43wQX9XPrNl3oTdHK6cFhlcytTP8w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7281,7 +7281,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     text-align:center;margin:6px 0 0}
   /* Pastilles des crans du sélecteur de mode (maquette 08) : vert = cran ACTIF, gris sinon,
      ⧗ (mono) pour le ponctuel. Portées par le composant .seg canonique, sans le modifier. */
-  #shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
+  #shareBody .seg-btn .sdot.ok{background:var(--ok)}
+#shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
   #shareBody .seg-btn.on .sdot{background:var(--ok)}
   #shareBody .seg-btn .sdot.t{width:auto;height:auto;border-radius:0;background:none;
     font-family:var(--f-mono);font-size:11px;font-weight:700;line-height:1;color:inherit}
@@ -9453,8 +9454,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <p class="join-err" id="joinErr" role="alert" hidden></p>
     <button class="btn primary join-go" id="joinGo">Rejoindre</button>
     <label class="join-lab">Sans internet — l'hôte affiche un code d'appariement</label>
-    <button class="btn join-go" id="joinScan">Scanner le code de l'hôte</button>
-    <button class="btn join-go" id="joinOptic">Recevoir par l'écran (aucun réseau)</button>
+    <button class="btn join-go" id="joinScanAll">Scanner un code</button>
     <div id="jsAnswer" hidden></div>
     <p class="join-err" id="jsStat" role="status" hidden></p>
     <details class="join-info">
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.8';
+const APP_VERSION='5.14.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18994,10 +18994,16 @@ function shareOverHtml(){
     :(Share.status==='expired'
       ?'Le partage a atteint sa durée maximale.'
       :'Le soignant a terminé la session.');
+  /* REJOINDRE SANS DÉTOUR (v5.14.9, signalé : « il doit quitter le partage puis recliquer
+     sur rejoindre ») — sur « terminé » et « expiré », l'écran propose directement le retour à
+     l'écran d'entrée. JAMAIS sur « retiré » : reproposer l'entrée à quelqu'un qu'on vient de
+     couper expressément contredirait la décision du conducteur. */
+  const re=Share.status!=='revoked'
+    ?`<button type="button" class="btn sm primary" id="soRejoin">Rejoindre à nouveau…</button>`:'';
   return `<div class="share-over" role="status">${uiIcon('warn',16)}<div class="so-b">`
     +`<b>Le partage de session a été interrompu.</b> ${esc(cause)}`
     +` Cet écran reste lisible, figé sur le dernier état reçu — plus rien n’y est transmis ni reçu.`
-    +`<div class="so-act"><button type="button" class="btn sm" id="soQuit">Quitter le partage…</button></div>`
+    +`<div class="so-act">${re}<button type="button" class="btn sm" id="soQuit">Quitter le partage…</button></div>`
     +`</div></div>`;}
 /* POSE / RETRAIT SUR PLACE, sans re-rendre quoi que ce soit. Le bandeau se glisse juste AVANT le
    parcours de soin, c'est-à-dire à l'endroit exact où `renderRead` l'écrit — les deux chemins
@@ -19015,7 +19021,17 @@ function shareOverPaint(){
      qu'occupe le bandeau dans `renderRead`. */
   else{const apres=main.querySelector('.forget-strip,.care-flat,.ov-wrap,.sv-wrap,.nav-wrap');
     if(apres)apres.insertAdjacentHTML('beforebegin',h);else main.insertAdjacentHTML('afterbegin',h);}
-  const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;}
+  const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;
+  const rj=document.getElementById('soRejoin');if(rj)rj.onclick=rejoinShare;}
+/* Le retour direct : on quitte SANS le dialogue de départ (le partage est déjà mort, il n'y a
+   plus rien à ne plus suivre) et l'écran d'entrée se rouvre, prêt à scanner ou saisir. */
+function rejoinShare(){
+  try{Share.stop();}catch(e){}
+  slSbReset();
+  Runtime=makeRuntime();
+  state.view='library';state.fiche=null;
+  render();
+  openJoinScreen('');}
 function bindLeadGuard(){
   const garde=e=>{
     let m=null;try{m=Share.mode;}catch(_){return;}
@@ -30564,7 +30580,7 @@ const Share={
         }else if(ajour)this._resync=false;
         /* SECOURS CHAUD : l'invité propose son canal dès que le fil est SAIN (jamais pendant
            une panne — l'offre passerait par le relais qui ne répond plus). */
-        if(this.mode==='guest'&&this.share!=='local')try{slSbGuestKick();}catch(_){}
+        if(this.mode==='guest'&&this._io===Share._ioRest)try{slSbGuestKick();}catch(_){}
       }
     }catch(e){this._fails++;try{slSbFail();}catch(_){}}
     finally{this._inflight=false;
@@ -31111,7 +31127,8 @@ function slModeSegHtml(active){
   return '<div class="seg" style="--seg-n:3;--seg-i:'+idx+'" role="radiogroup" aria-label="Mode de partage">'
     +'<span class="seg-pill" aria-hidden="true"></span>'
     +b('cloud','En ligne','<span class="sdot"></span>',!online&&active!=='cloud')
-    +b('direct','En direct','<span class="sdot"></span>',false)
+    +b('direct','En direct','<span class="sdot'
+      +((typeof slSbReady==='function'&&slSbReady())||slLiveOk()?' ok':'')+'"></span>',false)
     +b('optic','Par l\u2019écran','<span class="sdot t" aria-hidden="true">\u29d7</span>',false)
     +'</div><p class="sl-cap">'
     +(online||active==='cloud'
@@ -31126,7 +31143,7 @@ function slModeSegBind(active){
     if(m==='direct'){
       if(slLiveOk()){slSheet('live');return;}
       if(active==='cloud'){
-        const prets=slSb.dcs.length;
+        const prets=slSb.dcs.filter(d=>d.dc&&d.dc.readyState==='open').length;
         const total=(Share.participants||[]).filter(x=>!x.owner&&!x.revoked).length;
         if(prets){
           if(!await confirmDlg(prets>=total
@@ -31144,6 +31161,12 @@ function slModeSegBind(active){
         const f=Runtime.fiche;await Share.endShare();startShareLocal(f);return;}
       startShareLocal((SL&&SL.f)||Runtime.fiche);return;}
     if(m==='cloud'){
+      const nG=(slLiveOk()&&SL&&SL.hub)?SL.hub.st.parts.filter(p=>!p.owner&&!p.revoked).length:0;
+      if(nG){
+        if(!await confirmDlg('Le partage repasse EN LIGNE (par le serveur). Les participants '
+          +'connectés basculent automatiquement — personne ne ressaisit de code.',
+          {title:'Passer en ligne ?',yes:'Passer en ligne'}))return;
+        slGoCloud();return;}
       if(!await confirmDlg('Le partage continue EN LIGNE (par le serveur). Chaque participant '
         +'devra rejoindre avec le nouveau code. Votre session ne bouge pas.',
         {title:'Passer en ligne ?',yes:'Passer en ligne'}))return;
@@ -31313,7 +31336,7 @@ async function slOffer(){
   SL.pc.dc.onopen=()=>{slGuestUp(SL.pc.dc);};
   slSheet(slLocalCand(SL.pc.offer.c)?'offer':'offer-warn');}
 async function slGuestUp(dc){
-  slServe(SL.hub,slChanWire(dc));
+  const w=slChanWire(dc);slServe(SL.hub,w);(SL.wires=SL.wires||[]).push(w);
   if(!SL.live){SL.live=true;
     Share._io=slHostIo(SL.hub);
     const r=await Share.host(SL.f).catch(()=>null);
@@ -31333,14 +31356,26 @@ let _slSwitching=false;
 function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
   for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
   slSb.dcs=[];slSb.dc=null;slSb.pc=null;}
+function slSbReady(){return !!slSb.dc||slSb.dcs.some(d=>d.dc&&d.dc.readyState==='open');}
+/* La pastille « En direct » dit l'état RÉEL du canal dormant (vert = prêt) — c'est aussi le
+   diagnostic de terrain : si elle ne verdit jamais, l'appariement silencieux échoue sur ce
+   réseau, et la bascule sans QR ne peut pas suivre. */
+function slSegDotRefresh(){
+  const b=document.querySelector('#shareBody .seg-btn[data-shmode="direct"] .sdot');
+  if(b)b.classList.toggle('ok',slSbReady()||slLiveOk());}
 async function slSbGuestKick(){
   if(slSb.pc||slSb.dc)return;
   slSb.pc={};                                  // verrou immédiat (l'amorçage est asynchrone)
   try{
     const g=await slPcHost();
     slSb.pc=g;
-    g.dc.onopen=()=>{slSb.dc=g.dc;};
+    g.dc.onopen=()=>{slSb.dc=g.dc;try{slSegDotRefresh();}catch(_){}};
+    g.dc.onclose=()=>{if(slSb.dc===g.dc)slSb.dc=null;if(slSb.pc===g)slSb.pc=null;};
     Share.emit('sig',{t:'o',o:slPairPack(g.offer)});
+    /* MONTRE DE 30 s (v5.14.9, terrain) : un échec ICE laissait le verrou posé À JAMAIS —
+       plus aucune tentative ensuite. Canal jamais ouvert = on jette et on laissera le
+       prochain sondage sain re-proposer. */
+    setTimeout(()=>{if(!slSb.dc&&slSb.pc===g){try{g.pc.close();}catch(_){}slSb.pc=null;}},30000);
   }catch(e){slSb.pc=null;}}
 async function slSbOnSig(ev){
   const p=ev.payload||{};
@@ -31348,7 +31383,9 @@ async function slSbOnSig(ev){
     if(Share.mode==='host'&&p.t==='o'&&p.o&&!(SL&&SL.live)){
       const o=slPairUnpack(String(p.o));if(!o)return;
       const h=await slPcGuest(o);
-      h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc});};
+      h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc});
+          dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slSegDotRefresh();}catch(_){}};
+          try{slSegDotRefresh();}catch(_){}};
         dc.readyState==='open'?go():dc.onopen=go;});
       Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(h.answer)});}
     else if(Share.mode==='guest'&&p.t==='a'&&p.to===Share.me&&slSb.pc&&slSb.pc.answer&&p.a){
@@ -31357,6 +31394,10 @@ async function slSbOnSig(ev){
     /* « go » : l'HÔTE demande la bascule (geste manuel, réseau encore vivant) — l'invité
        rejoint par son canal dormant, sans QR. */
     else if(Share.mode==='guest'&&p.t==='go'&&slSb.dc)slSbGuestSwitch();
+    /* « gc » : l'HÔTE repasse EN LIGNE et remet à CET invité, par le canal direct, un code
+       d'admission neuf — l'invité rejoint le serveur sans rien ressaisir. */
+    else if(Share.mode==='guest'&&p.t==='gc'&&p.to===Share.me&&p.code
+      &&Share._io!==Share._ioRest)slGcJoin(String(p.code));
   }catch(e){}}
 function slSbFail(){
   if(_slSwitching||Share._fails<2||Share.share==='local')return;
@@ -31375,7 +31416,15 @@ async function slSbGoSwitch(){
     await Share._io.push(Share.secret,Share.share,ev);
   }catch(e){}
   await slSbHostSwitch('Le partage passe en direct — les participants suivent.');
-  if(endIo&&oldShare&&oldShare!=='local')try{endIo.end(oldShare);}catch(e){}}
+  /* La feuille sous les yeux de l'hôte est encore la feuille CLOUD : on la remplace par l'état
+     vivant (closeShareSheet d'abord — son minuteur repeindrait par-dessus). */
+  try{if(shareModal.classList.contains('on')){closeShareSheet();
+    shareModal.classList.add('on');slSheet('live');}}catch(e){}
+  /* FIN DIFFÉRÉE (v5.14.9, terrain) : terminer le partage cloud TOUT DE SUITE peut effacer le
+     « go » avant que les invités (cadence 2-10 s) l'aient tiré. Douze secondes couvrent deux
+     cadences ; un invité sans canal verra ENSUITE « partage terminé », jamais un silence. */
+  if(endIo&&oldShare&&oldShare!=='local')
+    setTimeout(()=>{try{endIo.end(oldShare);}catch(e){}},12000);}
 async function slSbHostSwitch(say){
   if(_slSwitching)return;_slSwitching=true;
   try{
@@ -31386,7 +31435,8 @@ async function slSbHostSwitch(say){
     Share.stop();Share._io=slHostIo(hub);
     SL={f,hub,live:true};
     const r=await Share.host(f).catch(()=>null);
-    if(r&&r.ok){for(const d of dcs)slServe(hub,slChanWire(d.dc));
+    if(r&&r.ok){SL.wires=[];
+      for(const d of dcs){const w=slChanWire(d.dc);slServe(hub,w);SL.wires.push(w);}
       try{announce(say||'Le réseau a lâché — le partage continue en direct.');}catch(e){}}
     else SL=null;
   }finally{_slSwitching=false;}}
@@ -31408,6 +31458,63 @@ async function slSbGuestSwitch(){
       try{announce('Vous suivez en direct.');}catch(e){}}
     /* échec (l'hôte n'a pas encore basculé ?) : le canal est GARDÉ, la prochaine détection
        de panne retentera — jamais de boucle serrée, le rythme est celui du sondage. */
+  }finally{_slSwitching=false;}}
+/* BASCULE DIRECT → EN LIGNE SANS RE-SAISIE (v5.14.9, signalé : « inversement non plus »).
+   Un code cloud n'a qu'un LOGEMENT côté serveur et meurt à la première entrée : on sert donc
+   les invités UN PAR UN — code neuf (`admit`), billet « gc » poussé par le hub encore branché,
+   attente de son entrée, suivant. Si l'ouverture cloud échoue (internet menteur), on RE-HÉBERGE
+   sur le MÊME hub : les secrets des invités restent valides et le nouvel instantané complet est
+   idempotent au pli — personne n'est déconnecté. */
+async function slGoCloud(){
+  const f=(SL&&SL.f)||Runtime.fiche,hub=SL&&SL.hub;
+  const guests=hub?hub.st.parts.filter(p=>!p.owner&&!p.revoked):[];
+  if(!hub||!guests.length){await Share.endShare();SL=null;startShare(f);return;}
+  if(_slSwitching)return;_slSwitching=true;
+  try{
+    Share.stop();
+    if(Share._ioRest)Share._io=Share._ioRest;
+    let r=null;try{r=await Share.host(f);}catch(e){}
+    if(!r||!r.ok){
+      Share._io=slHostIo(hub);
+      await Share.host(f).catch(()=>null);
+      SL.live=true;slSheet('live');
+      toast(r&&r.err==='draft'
+        ?'⚠ Une fiche en brouillon ne se diffuse pas hors du compte.'
+        :'⚠ Internet indisponible — le partage reste en direct.',6000,true);
+      return;}
+    for(const g of guests){
+      let a=null;try{a=await Share.admit(120);}catch(e){}
+      if(!a||!a.ok||!a.code)continue;
+      const avant=(Share.participants||[]).filter(x=>!x.owner).length;
+      hub.push(hub.hostSecret(),[{event_id:uid('e'),kind:'sig',
+        payload:{t:'gc',to:g.id,code:String(a.code)},ts:new Date().toISOString()}]);
+      const t0=Date.now();
+      while(Date.now()-t0<15000){
+        await new Promise(x=>setTimeout(x,500));
+        if((Share.participants||[]).filter(x=>!x.owner).length>avant)break;}}
+    SL=null;slSbReset();
+    /* Le hub reste servi 20 s — le temps qu'un billet en vol soit consommé — puis se ferme :
+       un invité resté local verra « partage terminé », jamais un silence. */
+    setTimeout(()=>{try{hub.end();}catch(e){}},20000);
+    openShareSheet();render();
+    try{announce('Le partage repasse en ligne.');}catch(e){}
+  }finally{_slSwitching=false;}}
+/* Le billet « gc » côté invité : rejoindre le serveur avec le code reçu par le canal — trois
+   essais espacés, et un échec RESTE en direct (on ne casse jamais le transport qui marche). */
+async function slGcJoin(code){
+  if(_slSwitching)return;_slSwitching=true;
+  try{
+    const ioAvant=Share._io;
+    const moi=(Share.participants||[]).find(x=>x.id===Share.me);
+    const lbl=(moi&&moi.label)||'Renfort';
+    Share._io=Share._ioRest;
+    let r=null;
+    for(let i=0;i<3&&!(r&&r.ok);i++){
+      if(i)await new Promise(x=>setTimeout(x,2000));
+      r=await Share.joinByCode(String(code||''),lbl).catch(()=>null);}
+    if(r&&r.ok){slSbReset();openSharedFiche();
+      try{announce('Vous suivez en ligne.');}catch(e){}}
+    else Share._io=ioAvant;
   }finally{_slSwitching=false;}}
 async function startShareLocal(f){
   if(!await slEnsureSession())return;
@@ -31520,7 +31627,7 @@ function openJoinScreen(code){
      caméra coupée, boutons rendus, vidéos et réponses cachées. L'état d'un essai précédent
      n'est jamais un verrou. */
   try{slScanStop();}catch(_){}
-  for(const id of ['joinScan','joinOptic']){const b=document.getElementById(id);if(b)b.disabled=false;}
+  {const b=document.getElementById('joinScanAll');if(b)b.disabled=false;}
   for(const id of ['jsAnswer','jsStat']){const el=document.getElementById(id);
     if(el){el.hidden=true;if(id==='jsAnswer')el.innerHTML='';}}
   joinScreen.hidden=false;}
@@ -31618,77 +31725,77 @@ if(joinScreen){
   inp.addEventListener('input',()=>{const p=shareCodeFmt(shareCodeNorm(inp.value));
     if(p!==inp.value)inp.value=p;});
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();joinGo();}});
-  /* REJOINDRE EN DIRECT (v5.14, étape 3c) : scanner l'offre de l'hôte, montrer la réponse,
-     puis la machinerie invitée EXISTANTE court sur le canal — joinByCode appelle _io.join, et
-     le join local ignore le code (la porte, c'est le canal apparié par jeton). */
-  const jsBtn=document.getElementById('joinScan');
+  /* SCANNER UNIQUE (v5.14.9, signalé : « ne peut-on pas simplifier avec un seul bouton ? ») —
+     UN œil, TROIS familles reconnues à la volée, sans que l'invité ait à savoir laquelle il
+     regarde : trame optique (binaire 0xF7 → fontaine, jauge), offre d'appariement direct
+     (« SO: » → réponse à faire scanner), code du partage en ligne (lien #j= ou code nu →
+     jointure serveur). C'est le format qui décide, jamais un réglage. */
+  const jsBtn=document.getElementById('joinScanAll');
   const joinScanGo=async()=>{
     const ans=document.getElementById('jsAnswer'),st=document.getElementById('jsStat');
     const say=t=>{st.hidden=false;st.textContent=t;};
     jsBtn.disabled=true;let got=false;
+    const rx=ltRx();let opt=false;
     try{
-      await slScanOverlay({hint:'Visez le code de l’hôte',
+      await slScanOverlay({hint:'Visez le code ou l’écran de l’hôte',ring:true,
         onCancel:()=>{jsBtn.disabled=false;},
         onText:async(txt,bin,ui)=>{
-          if(got||!txt.startsWith('SO:'))return;got=true;
-          ui.flash();ui.close();
-          try{
-            const o=slPairUnpack(txt.slice(3));if(!o)throw new Error('illisible');
-            const g=await slPcGuest(o);
-            ans.hidden=false;
-            ans.innerHTML=qrSvg('SA:'+slPairPack(Object.assign({k:o.k},g.answer)),
-              'Réponse — à faire scanner par l’hôte');
-            say('Montrez ce code à l’hôte, la connexion suivra.');
-            const dc=await g.channel;
-            const go=async()=>{
-              const cli=slClient(slChanWire(dc));
-              Share._io=cli.io;
-              const lbl=(document.getElementById('joinRole')||{}).value||'Renfort';
-              let r=null;try{r=await Share.joinByCode('AAAA2222',lbl);}catch(e){}
-              if(!r||!r.ok){say('Ça n’a pas abouti — réessayez.');jsBtn.disabled=false;got=false;return;}
-              ans.hidden=true;st.hidden=true;
-              if(joinScreen)joinScreen.hidden=true;
-              openSharedFiche();};
-            if(dc.readyState==='open')go();else dc.onopen=go;
-          }catch(e){say('Code illisible — réessayez.');jsBtn.disabled=false;got=false;}
+          if(got)return;
+          /* 1. Trames optiques — la jauge ne fait que monter (fontaine). */
+          if(bin&&bin.length&&bin[0]===LT_MAGIC){
+            const res=ltRxFeed(rx,bin);
+            if(res==='more'||res==='dup'){opt=true;
+              if(rx.st)ui.ring(rx.st.nRec/rx.st.k);return;}
+            if(res!=='done')return;
+            got=true;ui.ring(1);ui.flash();ui.close();
+            let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
+            if(!o){say('Réception illisible — réessayez.');jsBtn.disabled=false;got=false;return;}
+            if(await slOptiqueGot(o,say)){st.hidden=true;
+              if(joinScreen)joinScreen.hidden=true;}
+            else jsBtn.disabled=false;
+            return;}
+          if(opt)return;   // une fontaine est en cours : on ne se laisse pas distraire
+          /* 2. Offre d'appariement direct. */
+          if(txt&&txt.startsWith('SO:')){
+            got=true;ui.flash();ui.close();
+            try{
+              const o=slPairUnpack(txt.slice(3));if(!o)throw new Error('illisible');
+              const g=await slPcGuest(o);
+              ans.hidden=false;
+              ans.innerHTML=qrSvg('SA:'+slPairPack(Object.assign({k:o.k},g.answer)),
+                'Réponse — à faire scanner par l’hôte');
+              say('Montrez ce code à l’hôte, la connexion suivra.');
+              const dc=await g.channel;
+              const go=async()=>{
+                const cli=slClient(slChanWire(dc));
+                Share._io=cli.io;
+                const lbl=(document.getElementById('joinRole')||{}).value||'Renfort';
+                let r=null;try{r=await Share.joinByCode('AAAA2222',lbl);}catch(e){}
+                if(!r||!r.ok){say('Ça n’a pas abouti — réessayez.');jsBtn.disabled=false;got=false;return;}
+                ans.hidden=true;st.hidden=true;
+                if(joinScreen)joinScreen.hidden=true;
+                openSharedFiche();};
+              if(dc.readyState==='open')go();else dc.onopen=go;
+            }catch(e){say('Code illisible — réessayez.');jsBtn.disabled=false;got=false;}
+            return;}
+          /* 3. Code du partage en ligne — lien #j=… (QR de la feuille de l'hôte) ou code nu. */
+          const mj=txt?String(txt).match(/#j=([0-9A-Za-z-]+)/):null;
+          const cand=shareCodeNorm(mj?mj[1]:String(txt||''));
+          if(shareCodeValid(cand)){
+            got=true;ui.flash();ui.close();
+            const inp=document.getElementById('joinCode');
+            if(inp)inp.value=shareCodeFmt(cand);
+            SHARE_JOIN=cand;               // rédaction « scanné » si le serveur refuse
+            await joinGo();
+            if(Share.mode!=='guest'){got=false;jsBtn.disabled=false;}
+            return;}
         }});
     }catch(e){jsBtn.disabled=false;
       const cam=document.getElementById('jsAnswer');cam.hidden=false;
       slCamRefused(cam,()=>{cam.hidden=true;cam.innerHTML='';joinScanGo();},
         ()=>{cam.hidden=true;cam.innerHTML='';});}
   };
-  if(jsBtn)jsBtn.addEventListener('click',joinScanGo);
-  /* RÉCEPTION OPTIQUE (étape 5) : filmer la boucle de trames de l'hôte — la jauge ne fait que
-     monter (fontaine), et à 100 % l'écran devient un MIROIR DATÉ de la session de l'hôte. */
-  const joBtn=document.getElementById('joinOptic');
-  const joinOpticGo=async()=>{
-    const st=document.getElementById('jsStat');
-    const say=t=>{st.hidden=false;st.textContent=t;};
-    joBtn.disabled=true;
-    const rx=ltRx();let done=false;
-    try{
-      await slScanOverlay({hint:'Visez l’écran de l’hôte',ring:true,
-        onCancel:()=>{joBtn.disabled=false;},
-        onText:async(txt,bin,ui)=>{
-          if(done)return;
-          const res=ltRxFeed(rx,bin);
-          if(res==='more'||res==='dup'){
-            if(rx.st)ui.ring(rx.st.nRec/rx.st.k);return;}
-          if(res!=='done')return;
-          done=true;ui.ring(1);ui.flash();ui.close();
-          let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
-          if(!o){say('Réception illisible — réessayez.');joBtn.disabled=false;done=false;return;}
-          if(await slOptiqueGot(o,say)){
-            st.hidden=true;
-            if(joinScreen)joinScreen.hidden=true;}
-          else joBtn.disabled=false;
-        }});
-    }catch(e){joBtn.disabled=false;
-      const cam=document.getElementById('jsAnswer');cam.hidden=false;
-      slCamRefused(cam,()=>{cam.hidden=true;cam.innerHTML='';joinOpticGo();},
-        ()=>{cam.hidden=true;cam.innerHTML='';});}
-  };
-  if(joBtn)joBtn.addEventListener('click',joinOpticGo);}
+  if(jsBtn)jsBtn.addEventListener('click',joinScanGo);}
 // Reprise immédiate au retour au premier plan : la cadence de fond n'existe pas sur iOS, et
 // l'écran est de toute façon déjà marqué périmé (lastOk est vieux au réveil).
 document.addEventListener('visibilitychange',()=>{

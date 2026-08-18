@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [5.14.9] — 2026-08-18
+### Les bascules prouvées de bout en bout, l'invité qui re-rentre en un geste, un seul œil pour trois codes
+
+- **Les deux sens de bascule marchent, et c'est prouvé** (signalé : « ne fonctionne pas ;
+  inversement non plus ») : une section E2E du harnais joue désormais le flux COMPLET — deux
+  pages réelles, un relais en mémoire, de vrais canaux WebRTC — et sa première exécution a
+  reproduit l'échec du terrain. Corrigé : un échec d'appariement silencieux laissait un verrou
+  posé à jamais (plus aucune tentative ensuite) — une montre de 30 s jette et retente ; les
+  canaux fermés se purgent ; la fin du partage cloud est différée pour que le signal de bascule
+  ait le temps d'atteindre chacun.
+- **Direct → en ligne devient seamless aussi** : au tap « En ligne », chaque invité reçoit par
+  le canal direct un code d'admission neuf (un par un — un code ne loge qu'une entrée) et
+  rejoint le serveur tout seul. Si internet ment, personne n'est déconnecté : le partage reste
+  en direct et le dit.
+- **La pastille « En direct » dit l'état réel du canal dormant** (verte = prêt) : si elle ne
+  verdit jamais sur votre réseau, l'appariement silencieux n'y passe pas (multicast filtré ?)
+  et le parcours QR reste le chemin — le dialogue l'annonce honnêtement.
+- **L'invité déconnecté re-rentre en un geste** (signalé) : « Rejoindre à nouveau… » sur
+  l'écran gelé rouvre directement l'écran d'entrée — jamais proposé à un participant COUPÉ
+  expressément.
+- **Un seul bouton « Scanner un code »** à l'écran d'entrée (signalé) : le format décide —
+  rafale optique, code d'appariement direct, ou code du partage en ligne (lien ou QR de la
+  feuille de l'hôte), reconnus à la volée.
+- Registre § 3.2 complété : les bascules choisies empruntent les mêmes chemins déclarés ; le
+  code d'admission (opaque, huit caractères) transite par le canal direct chiffré.
+
 ## [5.14.8] — 2026-08-18
 ### Passer en direct ne déconnecte plus personne
 
@@ -445,27 +471,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   `visualViewport`. C'est précisément pourquoi la vidéo valait trois versions de tâtonnement — et
   la leçon est consignée (A188) : **quand un instrument ne peut pas voir le défaut, demander une
   trace plutôt que d'itérer à l'aveugle.**
-
-## [5.12.7] — 2026-08-16
-### Le chrome suit le clavier — mais il se pose, au lieu de tout suivre ou de tout geler
-
-- **Il ne s'affichait toujours pas au premier résultat d'une recherche, clavier ouvert** (signalé à
-  l'usage). Ma v5.12.5 gelait **trop** : `--vvt` n'était relue qu'au changement de **hauteur** du
-  viewport visuel — or le panoramique du clavier arrive **après** son ouverture, pas avec elle. Le
-  décalage retenu était donc celui de l'instant du redimensionnement, c'est-à-dire **zéro**, et le
-  chrome restait hors de l'écran tant qu'aucune autre ouverture ou fermeture ne survenait.
-- **Deux modes de défaillance opposés, et la frontière était mal placée.** Tout suivre (v5.12.0)
-  faisait sauter le chrome à chaque saut d'occurrence, parce que le système re-panoramique pour
-  garder le champ focalisé sous les yeux ; tout geler (v5.12.5) le laissait hors de l'écran au
-  premier résultat. La bonne frontière n'est ni « toujours » ni « jamais » : c'est **quand ça s'est
-  arrêté de bouger**. Un changement de hauteur (le clavier s'ouvre ou se ferme) s'applique
-  immédiatement — c'est un fait accompli. Un changement de décalage seul attend un court repos :
-  une rafale de sauts d'occurrence ne produit alors qu'**un** recalage, à la fin, au lieu d'un par
-  clic.
-- C'est la version « qui se pose » de la règle du dossier (*une géométrie de chrome ne se dérive
-  pas d'un état transitoire*, v5.0.9) : on ne refuse plus l'information, on attend qu'elle soit
-  stable.
-- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; les cinq sondes de la série
-  restent vertes. ⚠ Limite inchangée et redite : le harnais ne peut pas piloter
-  `visualViewport.offsetTop` — il mesure le câblage et la géométrie, jamais la réaction d'iOS. Ce
-  réglage-là se juge sur appareil.

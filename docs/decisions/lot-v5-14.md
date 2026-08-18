@@ -272,3 +272,48 @@ la même destination par deux chemins, dont un cassé. Corrigé en réutilisant 
 **Limite nommée** : le sens retour (direct → en ligne) reste un re-appariement par code — le
 canal direct ne peut pas distribuer de nouveaux secrets cloud sans machinerie d'admission
 inverse ; à ouvrir si le besoin se confirme sur le terrain.
+
+## A211 — Les deux sens de bascule tiennent, prouvés de bout en bout (E2E réel au harnais)
+
+**Signalé à l'usage (v5.14.9)** : « ne fonctionne pas ; inversement non plus » — la v5.14.8
+avait raccordé la bascule manuelle aux canaux dormants sans JAMAIS exercer la chaîne complète
+(seules ses briques étaient testées). La section E2E d'`audit-partage` la joue désormais en
+entier : deux PAGES réelles dans un même contexte, un relais en mémoire (slHub +
+BroadcastChannel) qui joue Supabase, et de VRAIS `RTCPeerConnection` entre les pages — la
+première exécution a reproduit l'échec du terrain, puis chaque correctif s'est vérifié contre
+elle (9/9).
+
+- **La montre de 30 s** : un échec ICE laissait le verrou d'appariement (`slSb.pc`) posé À
+  JAMAIS — plus aucune tentative ensuite, secours mort en silence. Canal jamais ouvert → on
+  jette, et le prochain sondage sain re-propose. Les canaux FERMÉS se purgent des deux côtés
+  (`onclose`), et le compte du dialogue ne compte que les canaux réellement OUVERTS.
+- **La pastille « En direct » dit l'état RÉEL du canal dormant** (verte = prêt) — c'est aussi
+  le diagnostic de terrain : si elle ne verdit jamais, l'appariement silencieux échoue sur ce
+  réseau (mDNS/Bonjour filtré ?) et la bascule sans QR ne peut pas suivre — le parcours QR
+  reste alors le chemin, et le dialogue le dit.
+- **Sens direct → EN LIGNE sans re-saisie** : un code cloud n'a qu'un LOGEMENT et meurt à la
+  première entrée — l'hôte sert donc les invités UN PAR UN (`admit` → billet `sig {t:'gc',to,
+  code}` poussé par le hub encore branché → attente de l'entrée → suivant). Échec d'ouverture
+  cloud (internet menteur) : on RE-HÉBERGE sur le MÊME hub — les secrets des invités restent
+  valides, le nouvel instantané complet est idempotent au pli, personne n'est déconnecté. Le
+  hub survit 20 s après la migration puis se ferme : un invité resté local voit « partage
+  terminé », jamais un silence.
+- **Le canal dormant ne se propose que sur le transport SERVEUR** (`_io === _ioRest`) — en
+  mode direct, l'offre partirait dans le hub local pour rien.
+- **Artefact de banc nommé** : Chromium headless masque les IP locales derrière des noms mDNS
+  mais ne fait tourner AUCUN répondeur — ICE échoue à coup sûr entre deux pages. Le harnais
+  lève l'obfuscation (`--disable-features=WebRtcHideLocalIpsWithMdns`) DANS LA SECTION
+  SEULEMENT ; en production, Safari/Chrome embarquent Bonjour.
+
+## A212 — L'invité déconnecté re-rentre en un geste ; un seul œil pour trois codes
+
+- **« Rejoindre à nouveau… »** sur l'écran gelé de l'invité (terminé, expiré) : quitte sans le
+  dialogue de départ (le partage est déjà mort) et rouvre l'écran d'entrée. JAMAIS sur
+  « retiré » : reproposer l'entrée à quelqu'un qu'on vient de couper expressément contredirait
+  la décision du conducteur (exigence explicite de l'auteur).
+- **Scanner UNIQUE à l'écran d'entrée** (« ne peut-on pas simplifier avec un seul bouton ? ») :
+  un bouton, trois familles reconnues au FORMAT — trame optique (binaire 0xF7 → fontaine,
+  jauge), offre d'appariement (« SO: » → réponse à faire scanner), code du partage en ligne
+  (lien `#j=` ou code nu → jointure serveur, rédaction « scanné » au refus). C'est le payload
+  qui décide, jamais un réglage ; une fontaine en cours n'est pas interrompue par un autre code
+  aperçu dans le champ.
