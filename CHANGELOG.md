@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.14.14] — 2026-08-18
+### Le vrai coupable du secours chaud : le serveur amputait l'offre
+
+- **L'appariement silencieux ne pouvait fonctionner sur AUCUN réseau** (trouvé grâce à la
+  ligne de diagnostic v5.14.13 : « en attente de l'offre… » à demeure) : la liste blanche des
+  CLÉS de payload de `share_push` — l'étage jumeau du vocabulaire des genres — ne connaissait
+  pas les clés du secours chaud : le serveur acceptait l'évènement `sig` et le vidait de son
+  offre. ⚠ **`supabase/schema.sql` est à REJOUER sur l'instance** : c'est le correctif.
+- **Le banc ne peut plus mentir sur ce point** : le hub local du harnais ampute désormais les
+  payloads exactement comme le serveur, et `check-sql` garde la parité des clés comme celle
+  des genres (39 identiques, camelCase compris) — vérifié capable d'échouer des deux côtés.
+
 ## [5.14.13] — 2026-08-18
 ### La feuille de l'hôte dit où l'appariement silencieux casse
 
@@ -384,39 +396,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
 - Mesuré aux deux moteurs : clavier ouvert, l'en-tête est `static` et défile de −600 px avec la
   page, tandis que la colonne sommaire — qui porte le champ — reste `sticky`. `npm run check`
   20/20, `npm test` 2×1126, audit COMPLET 25/25.
-
-## [5.13.0] — 2026-08-16
-### Clavier ouvert : plus rien n'est épinglé — on cesse de poursuivre le viewport
-
-- **Décision de l'auteur après onze versions de correctifs**, et c'est la seule qui supprime la
-  classe de défauts au lieu de la déplacer. Le problème, dit simplement : sur iOS, ouvrir le
-  clavier logiciel ne rétrécit pas le viewport de **mise en page** — il **panoramique** le viewport
-  visuel à l'intérieur. Or c'est au premier que se calent `position:fixed` **et** `position:sticky`
-  (les deux — c'est ce que la v5.12.10 avait supposé à tort). Tout chrome épinglé sort donc de
-  l'écran, et le poursuivre avec une variable recalculée à chaque évènement revient à courir après
-  une cible que le système déplace pendant qu'on la vise : onze versions y sont passées, pour
-  remplacer une disparition par des sauts.
-- **Ce qu'on fait à la place : on ne poursuit rien.** Tant que le clavier est ouvert, le chrome de
-  page redevient du **flux** — en-tête, quai de crise, barre de sélection, poignée d'édition,
-  colonne sommaire, volet du quai, barre fixée d'une référence. Il défile avec le contenu, comme
-  n'importe quoi d'autre. Rien ne peut plus sauter, puisque plus rien n'essaie de tenir une
-  position. Et ce qui compte pendant la frappe reste sous les yeux : **le navigateur garde le champ
-  focalisé visible**, c'est son travail et il le fait mieux que nous — il est le seul à savoir où
-  il vient de panoramiquer.
-- **Ce qu'on perd, et c'est assumé** : pendant la frappe, l'en-tête et le sommaire ne sont plus
-  épinglés ; ils reprennent leur place dès que le clavier se ferme. On échange une position tenue
-  par intermittence contre un comportement stable et prévisible.
-- **Les couches plein écran ne sont pas concernées** : une fenêtre modale, la visionneuse PDF ou
-  l'écran d'entrée d'un invité n'ont pas de flux où retomber — elles recouvrent la page. Elles
-  gardent le dispositif de la v5.10.9, que l'usage avait confirmé.
-- Le rail A→Z, qui est `fixed` et n'a aucun flux, **se retire** pendant la frappe : on tape, on ne
-  vise pas une lettre. La compensation de flux de la barre fixée est annulée avec elle — une barre
-  rendue au flux occupe sa place, et garder la compensation créerait une bande morte (défaut déjà
-  payé une fois, dossier « bande basse iOS »).
-- Le garde-fou est **inversé** et garde la nouvelle règle : aucun chrome de page ne peut lire le
-  décalage du viewport, et la règle qui libère doit exister **et** couvrir l'en-tête. Vérifié
-  capable d'échouer dans les deux sens — il a d'ailleurs raté le second au premier essai, faute
-  d'une frontière de mot (`html.kbdX` satisfaisait le motif).
-- Mesuré aux deux moteurs et aux deux largeurs : sans clavier l'en-tête est collant, clavier ouvert
-  il est `static` et défile de −600 px avec la page, clavier refermé il revient se coller à 0.
-  `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.

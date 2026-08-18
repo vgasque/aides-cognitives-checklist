@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-5V6qy9GenXuprDx4nVpYVG6pqeUA2RVsCdgpuJ/riLg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-rQsHNFrpGpcGJykvEsxWg0E8A7FRJkNYLG8TFdiHiK8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.13';
+const APP_VERSION='5.14.14';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18646,6 +18646,14 @@ function sharePayload(f){
    geste est attribué, et une avance venue d'un autre écran se dit. */
 const SHARE_KINDS_ANY=['sig','check','verify','gap','counter','timer_arm','timer_stop','mark','mark_void',
   'nav','flow_end','cx','presence','detach','offline_mark','handoff'];
+/* LISTE BLANCHE DES CLÉS DE PAYLOAD — le MIROIR CLIENT de celle de `share_push` (v4.54.0), et
+   la parité est GARDÉE par check-sql (v5.14.14, A216). Elle existe parce que le hub local doit
+   AMPUTER comme le serveur ampute : la v5.14.5 avait ajouté le genre `sig` sans étendre la
+   liste SQL — le serveur retirait `o` (offre) et `a` (réponse) et l'appariement silencieux
+   mourait en silence, pendant que le hub du harnais, qui ne filtrait rien, restait VERT. Un
+   double du serveur qui ne reproduit pas ses amputations est un banc qui ment. */
+const SHARE_PAYLOAD_KEYS=['k','t','id','v','running','elapsedMs','cycles','anchor',
+  'nav','navSeq','on','exo','ref','was','to','take','o','a','code'];
 const SHARE_KINDS_LEAD=['uncheck','timer_reset','end','session_start'];
 function shareCan(role,kind){
   if(SHARE_KINDS_ANY.indexOf(kind)>=0)return role==='scribe'||role==='lead';
@@ -19372,8 +19380,14 @@ function slHub(o){
         if(H.events.some(x=>x.id===e.event_id)){rejected++;continue;}
         if(!p.owner&&!shareCan(p.role,e.kind)){rejected++;continue;}
         H.seq++;
+        /* L'AMPUTATION DU SERVEUR, REPRODUITE : seules les clés de la liste blanche survivent
+           (share_push fait exactement cela) — le hub est un double, pas un serveur plus gentil. */
+        const pl=Object.create(null);
+        if(e.payload&&typeof e.payload==='object')
+          for(const kk of Object.keys(e.payload))
+            if(SHARE_PAYLOAD_KEYS.indexOf(kk)>=0)pl[kk]=e.payload[kk];
         H.events.push({seq:H.seq,id:e.event_id,actor:p.id,kind:sstr(e.kind,24),
-          payload:e.payload||{},ts:e.ts||now(),at:now()});
+          payload:Object.assign({},pl),ts:e.ts||now(),at:now()});
         accepted++;}
       return {ok:true,accepted,rejected,seq:H.seq,status:H.status,server_time:now()};},
     revoke(pid){const p=H.parts.find(x=>x.id===pid&&!x.owner);

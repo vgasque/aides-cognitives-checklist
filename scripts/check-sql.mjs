@@ -203,7 +203,10 @@ for (const rel of FICHIERS) {
   const idx = join(ROOT, 'index.html'), sch = join(ROOT, 'supabase/schema.sql');
   if (existsSync(idx) && existsSync(sch)) {
     const js = readFileSync(idx, 'utf8'), sq = readFileSync(sch, 'utf8');
-    const mots = t => [...t.matchAll(/'([a-z_]+)'/g)].map(x => x[1]).sort();
+    /* [a-zA-Z_]\w* et non [a-z_]+ (v5.14.14) : les clés camelCase (`elapsedMs`, `navSeq`)
+       étaient invisibles DES DEUX CÔTÉS — une divergence sur elles n'aurait jamais rougi. Les
+       genres, tous en minuscules, ne changent pas. */
+    const mots = t => [...t.matchAll(/'([a-zA-Z_]\w*)'/g)].map(x => x[1]).sort();
     const liste = (txt, rx) => { const m = txt.match(rx); return m ? mots(m[1]) : null; };
     const cAny  = liste(js, /const SHARE_KINDS_ANY\s*=\s*\[([\s\S]*?)\]/);
     const cLead = liste(js, /const SHARE_KINDS_LEAD\s*=\s*\[([\s\S]*?)\]/);
@@ -230,6 +233,20 @@ for (const rel of FICHIERS) {
     cmp('ouvert aux deux rôles', cAny, sAny);
     cmp('réservé au lead', cLead, sLead);
     if (cAny && cLead) nCaps = cAny.length + cLead.length;
+    /* PARITÉ DES CLÉS DE PAYLOAD (v5.14.14, A216) — la leçon jumelle des genres, payée au prix
+       fort : la v5.14.5 a ajouté le GENRE `sig` (parité 20/20 verte) sans étendre la liste
+       blanche des CLÉS de `share_push` — le serveur amputait `o` (offre) et `a` (réponse), et
+       l'appariement silencieux mourait en silence pendant que le hub du harnais, qui ne
+       filtrait rien, restait vert. La liste vit désormais des deux côtés (SHARE_PAYLOAD_KEYS,
+       que le hub applique) et TOUTE divergence est rouge. */
+    const cKeys = liste(js, /const SHARE_PAYLOAD_KEYS\s*=\s*\[([\s\S]*?)\]/);
+    /* DEUX « where k in ( » vivent dans le schéma : celui de la FICHE (share_open) et celui du
+       PAYLOAD (share_push) — l'ancrage sur `jsonb_each(e->'payload')` désigne le bon sans
+       dépendre de leur ordre. */
+    const mKeys = sq.match(/jsonb_each\(e->'payload'\)[\s\S]*?where k in \(([\s\S]*?)\)\)/);
+    const sKeys = mKeys ? mots(mKeys[1].replace(/\/\*[\s\S]*?\*\//g, '')) : null;
+    cmp('clés de payload autorisées', cKeys, sKeys);
+    if (cKeys) nCaps += cKeys.length;
   }
 }
 

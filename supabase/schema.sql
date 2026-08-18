@@ -1529,7 +1529,15 @@ begin
                   coalesce((select jsonb_object_agg(k, v)
                               from jsonb_each(e->'payload') as kv(k, v)
                              where k in ('k','t','id','v','running','elapsedMs','cycles','anchor',
-                                         'nav','navSeq','on','exo','ref','was','to','take')),
+                                         'nav','navSeq','on','exo','ref','was','to','take',
+                                         /* v5.14.14 — clés du secours chaud (A216) : la v5.14.5
+                                            a ajouté le GENRE `sig` sans étendre CETTE liste —
+                                            le serveur amputait `o` (offre) et `a` (réponse), et
+                                            l'appariement silencieux mourait en silence. `code`
+                                            ne voyage que sur le hub local (billet gc), listé ici
+                                            pour la PARITÉ stricte avec SHARE_PAYLOAD_KEYS,
+                                            gardée par check-sql. */
+                                         'o','a','code')),
                            '{}'::jsonb)
                 else '{}'::jsonb end                           as payload,
            nullif(e->>'ts','')::timestamptz                     as client_ts,

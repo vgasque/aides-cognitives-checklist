@@ -391,3 +391,30 @@ La pastille étant binaire, la feuille cloud de l'hôte porte désormais UNE lig
 - « canal prêt » = tout va bien (la pastille est verte).
 Alimentée dans la branche hôte du `sig` (compte de candidats de l'offre, réponse émise, état
 ICE réel via `oniceconnectionstatechange`, ouverture du canal), effacée par l'ardoise propre.
+
+## A216 — Le serveur amputait l'offre : la liste blanche des CLÉS n'avait pas suivi le genre `sig`
+
+**Trouvé par l'instrument de terrain (v5.14.14)** : « en attente de l'offre de l'invité… » à
+demeure, alors que `share_kind_allowed('scribe','sig')` répondait `true`. La v5.14.5 avait
+ajouté le GENRE `sig` aux deux vocabulaires (parité 20/20, verte) — mais `share_push` passe
+AUSSI chaque payload à une **liste blanche de clés** (v4.54.0, « on ne garde que les
+autorisées ») qui ne connaissait ni `o` (offre) ni `a` (réponse) : le serveur acceptait
+l'évènement et l'amputait de son contenu. L'hôte recevait `{t:'o'}` sans offre — retour
+silencieux, appariement mort sur TOUS les réseaux, depuis le premier jour de M9.
+
+**Pourquoi trois harnais verts n'ont rien vu** : le hub local (`slHub`) est « la sémantique du
+serveur tenue par l'hôte » — mais il ne reproduisait PAS l'amputation. Un double du serveur
+plus gentil que lui est un banc qui ment. Trois correctifs :
+- `schema.sql` : `o`, `a`, `code` entrent dans la liste blanche (⚠ REJEU sur l'instance
+  requis — c'est LE correctif). `code` ne voyage que sur le hub local (billet gc), listé pour
+  la parité stricte.
+- `SHARE_PAYLOAD_KEYS` (index.html) : la liste vit aussi côté client, et **le hub ampute
+  désormais comme le serveur** — la section E2E aurait rougi sur ce défaut.
+- `check-sql` : parité des CLÉS comme celle des genres (39 identiques), ancrée sur
+  `jsonb_each(e->'payload')` (deux « where k in ( » vivent dans le schéma — le premier est la
+  fiche), mots élargis au camelCase (`elapsedMs`/`navSeq` étaient invisibles des deux côtés).
+  Vérifié capable d'échouer dans les deux sens, fichiers restaurés à l'octet.
+
+**Leçon** : un vocabulaire de partage a DEUX étages (genres ET clés de payload) — étendre l'un
+sans l'autre produit un évènement qui circule VIDE, le mode de défaillance le plus silencieux
+qui soit. La parité est désormais gardée aux deux étages.
