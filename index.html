@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-jGPOdIFGjxmqDgiW+SH727kNSsk2yL5OHWxkEYxGZIU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-TP8mZvMg4iuG95tCj/ZQ3agiJnIp6OKOFz2Vyq88/bE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7276,6 +7276,46 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
     text-align:center;margin:6px 0 0}
+  /* Ligne d'état à point PULSANT (maquettes 01/08) — pulsation d'OPACITÉ seule (peinture). */
+  .sl-status{display:flex;align-items:center;gap:8px;justify-content:center;
+    font-size:var(--t-meta);color:var(--ink-2);margin-top:10px}
+  .sl-dot{width:7px;height:7px;border-radius:999px;background:var(--ok);flex:none;
+    animation:sldot 2s ease-in-out infinite}
+  @keyframes sldot{0%,100%{opacity:1}50%{opacity:.35}}
+  /* ÉCRAN DE SCAN PLEIN ÉCRAN (maquettes 03b/04b) : cadre de visée à quatre coins, consigne
+     courte, flash vert 240 ms + vibration à la lecture, jauge anneau pour la réception optique
+     (elle ne fait que MONTER — transition de PEINTURE, stroke-dashoffset). Même famille de
+     surface que #joinScreen : plein écran, pas une .ai-modal. */
+  #scanOv{position:fixed;inset:0;z-index:97;background:var(--sys);
+    display:flex;align-items:center;justify-content:center}
+  #scanOv[hidden]{display:none}
+  #scanOv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  #scanOv .sc-frame{position:relative;width:min(64vw,240px);aspect-ratio:1/1}
+  #scanOv .sc-frame i{position:absolute;width:26px;height:26px;
+    border:3px solid var(--sys-ink);opacity:.92}
+  #scanOv .sc-frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:var(--r-1) 0 0 0}
+  #scanOv .sc-frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 var(--r-1) 0 0}
+  #scanOv .sc-frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 var(--r-1)}
+  #scanOv .sc-frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 var(--r-1) 0}
+  #scanOv .sc-hint{position:absolute;left:16px;right:16px;
+    bottom:calc(96px + env(safe-area-inset-bottom));text-align:center;
+    font-size:var(--t-item);font-weight:var(--w-ui);color:var(--sys-ink)}
+  #scanOv .sc-cancel{position:absolute;left:50%;transform:translateX(-50%);
+    bottom:calc(24px + env(safe-area-inset-bottom));min-height:var(--hit)}
+  #scanOv .sc-flash{position:absolute;inset:0;background:var(--ok);opacity:0;pointer-events:none}
+  #scanOv .sc-flash.on{animation:scfl 240ms var(--ease-out)}
+  @keyframes scfl{0%{opacity:.32}100%{opacity:0}}
+  #scanOv .sc-ring{position:absolute;width:120px;height:120px;transform:rotate(-90deg)}
+  #scanOv .sc-ring .bgc{fill:none;stroke:var(--sys-2);stroke-width:9}
+  #scanOv .sc-ring .fgc{fill:none;stroke:var(--ok-sys);stroke-width:9;stroke-linecap:round;
+    stroke-dasharray:326;stroke-dashoffset:326;
+    transition:stroke-dashoffset var(--dur-2) var(--ease-out)}
+  #scanOv .sc-pct{position:absolute;font-family:var(--f-mono);font-size:var(--t-val);
+    font-weight:var(--w-strong);color:var(--sys-ink)}
+  @media (prefers-reduced-motion:reduce){
+    .sl-dot{animation:none}
+    #scanOv .sc-flash.on{animation:none}
+    #scanOv .sc-ring .fgc{transition:none}}
   .join-info{margin:16px 0 0;font-size:13.5px;color:var(--ink-soft)}
   .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700;color:var(--link)}
   .join-info p{margin:8px 0 0;line-height:1.5}
@@ -8049,6 +8089,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
       width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
     body.view-home main{position:relative}
     #histBtn{display:none}
+    #joinBtn{display:none}
   }
   /* RAIL DE LECTURE — dès 1000 px (v5.6, maquette ; c'était 780 depuis la v4.23.0). La décision
      d'origine — « action + structure de front », l'idéal ECAM E/WD + SD — n'est pas remise en
@@ -9198,6 +9239,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          large par le CSS (la rangée data-sesshist de la sidebar prend le relais) et masqué
          tant qu'aucune session n'est archivée (renderHomeList). -->
     <button class="tlink" id="histBtn" hidden>Historique des sessions</button>
+    <!-- Rejoindre une session, voie ÉTROITE aussi (v5.14.3, signalé à l'usage : « pas de bouton
+         sur tablette/smartphone — pas de sidebar ») : même patron que l'historique, masqué en
+         large où la rangée data-joinsess de la sidebar prend le relais. Jamais masqué en étroit :
+         c'est l'entrée HORS LIGNE de l'invité. -->
+    <button class="tlink" id="joinBtn">Rejoindre une session</button>
     <!-- (« Importer » a déménagé dans le dialogue Créer — méthode « Importer un fichier .json ».) -->
     <!-- « Exporter tout » et la taille du texte vivent désormais dans la fenêtre COMPTE (V5) :
          « Exporter mes données » + sélecteur S/M/L/XL, préférences par utilisateur. -->
@@ -9354,6 +9400,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      « ferme » pas cet écran, on rejoint ou on s'en va. Il s'affiche AVANT toute écriture sur
      l'appareil : c'est la contrepartie de l'information préalable, qui ne vaut rien si la collecte
      a déjà eu lieu quand on l'affiche. -->
+<!-- ÉCRAN DE SCAN (v5.14.2, maquettes 03b/04b) : plein écran comme #joinScreen, PAS une
+     .ai-modal — la caméra EST la surface, quatre coins de visée, consigne courte, flash vert à
+     la lecture, jauge anneau pour la réception optique, « Annuler » toujours au même endroit. -->
+<div id="scanOv" hidden role="dialog" aria-modal="true" aria-label="Scanner un code">
+  <video id="scanOvVideo" playsinline muted></video>
+  <div class="sc-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <svg class="sc-ring" id="scanOvRing" viewBox="0 0 120 120" hidden aria-hidden="true">
+    <circle class="bgc" cx="60" cy="60" r="52"/><circle class="fgc" id="scanOvRingF" cx="60" cy="60" r="52"/></svg>
+  <div class="sc-pct" id="scanOvPct" hidden></div>
+  <div class="sc-flash" id="scanOvFlash" aria-hidden="true"></div>
+  <p class="sc-hint" id="scanOvHint">Visez le code</p>
+  <button class="btn sc-cancel" id="scanOvX">Annuler</button>
+</div>
 <div id="joinScreen" hidden>
   <div class="ai-card dlg-480 join-card" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
     <p class="join-eye">Aides cognitives</p>
@@ -9381,7 +9440,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     <label class="join-lab">Sans internet — l'hôte affiche un code d'appariement</label>
     <button class="btn join-go" id="joinScan">Scanner le code de l'hôte</button>
     <button class="btn join-go" id="joinOptic">Recevoir par l'écran (aucun réseau)</button>
-    <video id="jsVideo" playsinline muted hidden></video>
     <div id="jsAnswer" hidden></div>
     <p class="join-err" id="jsStat" role="status" hidden></p>
     <details class="join-info">
@@ -9550,7 +9608,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.2';
+const APP_VERSION='5.14.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14085,7 +14143,12 @@ function updateRtStrip(now){
      BORNÉ EN CODE, et ce n'est pas décoratif : la boucle ne pouvant pas l'expulser, elle ne
      rattraperait pas un libellé trop long. 18 caractères ≈ les 120 px du pire cas. */
   const shTag=shareGlobTag();
-  const globLbl=sstr((Runtime.exercise?'▲ Exercice':'● Session')+(shTag?' · '+shTag:''),18);
+  /* LE MOT DU TRANSPORT (v5.14.3, maquette 02) : en partage LOCAL, « ● Session » devient
+     « ● Direct » — UN mot change dans le quai, à position constante, dans le budget des 18
+     caractères (« ● Direct · ⇄2 » = 13). Les états dégradés (figé, coupé) restent les mêmes
+     mots, quel que soit le canal. */
+  const enDirect=Share.share==='local'&&Share.mode!=='off';
+  const globLbl=sstr((Runtime.exercise?'▲ Exercice':(enDirect?'● Direct':'● Session'))+(shTag?' · '+shTag:''),18);
   /* LE VERT NE MENT PAS. `● Session` est vert « actif nominal » (ECAM) ; dès que le lien n'est plus
      nominal, cette assertion tombe et l'encre passe au NEUTRE — pas à l'ambre, qui reste réservé au
      minuteur échu (un second ambre dans la même rangée les affaiblirait tous les deux). Le mot du
@@ -15664,6 +15727,7 @@ function bindHomeChrome(rerender){
      d'un geste depuis l'accueil : c'est LUI qui porte « Scanner le code de l'hôte » et
      « Recevoir par l'écran », les deux chemins hors ligne. */
   qsa('[data-joinsess]').forEach(b=>b.onclick=()=>openJoinScreen(''));
+  {const jb=document.getElementById('joinBtn');if(jb)jb.onclick=()=>openJoinScreen('');}
 }
 /* Rail alphabétique : tap = saut vers la lettre, GLISSER le long des lettres = parcourir (index
    iOS — pointer capture, un jump par lettre traversée). Le défileur dépend de la largeur : la
@@ -19535,7 +19599,44 @@ async function slScanStart(video,onText){
     if(r&&(r.data||r.binaryData))onText(String(r.data||''),r.binaryData);
   })(0);}
 function slScanStop(){_slScan.run++;
-  if(_slScan.stream){_slScan.stream.getTracks().forEach(t=>t.stop());_slScan.stream=null;}}
+  if(_slScan.stream){_slScan.stream.getTracks().forEach(t=>t.stop());_slScan.stream=null;}
+  const ov=document.getElementById('scanOv');if(ov)ov.hidden=true;}
+/* L'ÉCRAN DE SCAN (maquettes 03b/04b) — la caméra plein écran, la visée, le retour à la
+   lecture (flash vert 240 ms + vibration), la jauge anneau en réception optique. Rend `ui`
+   {flash, ring, hint, close} à l'appelant ; « Annuler » coupe tout et rend la main. */
+async function slScanOverlay(o){
+  const ov=document.getElementById('scanOv'),video=document.getElementById('scanOvVideo');
+  const ring=document.getElementById('scanOvRing'),ringF=document.getElementById('scanOvRingF');
+  const pct=document.getElementById('scanOvPct'),hint=document.getElementById('scanOvHint');
+  const fl=document.getElementById('scanOvFlash');
+  hint.textContent=o.hint||'Visez le code';
+  /* ⚠ `hidden` n'est PAS une propriété des éléments SVG (piège payé : `ring.hidden=false`
+     posait un expando et l'attribut restait — jauge invisible). Par ATTRIBUT, toujours. */
+  if(o.ring){ring.removeAttribute('hidden');pct.hidden=false;
+    ringF.style.strokeDashoffset='326';pct.textContent='0 %';}
+  else{ring.setAttribute('hidden','');pct.hidden=true;}
+  ov.hidden=false;
+  const ui={
+    flash(){fl.classList.remove('on');void fl.offsetWidth;fl.classList.add('on');
+      try{if(navigator.vibrate)navigator.vibrate(40);}catch(e){}},
+    ring(p,txt){ringF.style.strokeDashoffset=String(Math.max(0,Math.round(326*(1-p))));
+      pct.textContent=txt||(Math.round(p*100)+' %');},
+    hint(t){hint.textContent=t;},
+    close(){slScanStop();}};
+  document.getElementById('scanOvX').onclick=()=>{ui.close();if(o.onCancel)o.onCancel();};
+  try{await slScanStart(video,(txt,bin)=>o.onText(txt,bin,ui));}
+  catch(e){ov.hidden=true;throw e;}
+  return ui;}
+/* REFUS D'AUTORISATION (maquette 05) — un bouton qui répare, une échappatoire, six mots. */
+function slCamRefusedHtml(){
+  return '<div class="sl-note"><span aria-hidden="true">⚠</span><span><b>Caméra non autorisée'
+    +'</b></span></div>'
+    +'<div class="sl-actions"><button class="btn primary" id="slCamRetry">Autoriser la caméra'
+    +'</button><button class="btn ghost" id="slCamSkip">Continuer sans partage</button></div>';}
+function slCamRefused(container,retry,skip){
+  container.innerHTML=slCamRefusedHtml();
+  document.getElementById('slCamRetry').addEventListener('click',retry);
+  document.getElementById('slCamSkip').addEventListener('click',skip);}
 
 /* ===== Runtime panel (rendu des minuteurs/compteurs en lecture) =====
    timerCard(t)   : carte d'un minuteur. 'stopwatch' -> temps qui monte ;
@@ -30901,9 +31002,12 @@ function shareSheetHtml(){
     +(rows||'<p class="sh-none">Personne n\'a encore rejoint.</p>')
     +'<div class="sh-acts">'
     +'<button class="btn" id="shAdmit">Nouveau code</button>'
-    +'<button class="btn" id="shSwLocal">Passer en direct…</button>'
-    +'<button class="btn" id="shOptic">Par l’écran…</button>'
     +'<button class="btn danger" id="shEnd">Arrêter le partage…</button></div>'
+    +'<div class="statuseg" role="radiogroup" aria-label="Mode de partage">'
+    +'<button type="button" class="st-seg on" role="radio" aria-checked="true">En ligne</button>'
+    +'<button type="button" class="st-seg" id="shSwLocal" role="radio" aria-checked="false">En direct</button>'
+    +'<button type="button" class="st-seg" id="shOptic" role="radio" aria-checked="false">Par l’écran</button></div>'
+    +'<div class="st-hint">continu — par le serveur, purgé après la session</div>'
     +'<p class="sh-note">Couper quelqu\'un lui retire l\'écriture immédiatement et lui rend sa place ; '
     +'il ne peut revenir qu\'avec un nouveau code, que vous seul pouvez donner.</p>';}
 function shPaintWhen(){
@@ -30985,13 +31089,19 @@ function slSheet(phase){
        toujours un partage ») : « live » ne s'affiche que si le partage l'est VRAIMENT. */
     if(!slLiveOk()){SL=null;shareModal.classList.remove('on');return;}
     const n=1+((Share.participants||[]).filter(p=>!p.owner&&!p.revoked).length||0);
-    body.innerHTML='<div class="sl-note ok"><span aria-hidden="true">✓</span><span><b>En direct'
-      +'</b> — '+n+' participant'+(n>1?'s':'')+' · sans serveur</span></div>'
+    const enLigneOk=Auth.signedIn()&&Sync.online();
+    body.innerHTML='<div class="sl-status"><span class="sl-dot"></span>'
+      +n+' participant'+(n>1?'s':'')+' · en direct</div>'
+      +'<div class="statuseg" role="radiogroup" aria-label="Mode de partage">'
+      +'<button type="button" class="st-seg" id="slSwCloud" role="radio" aria-checked="false"'
+      +(enLigneOk?'':' disabled')+'>En ligne</button>'
+      +'<button type="button" class="st-seg on" role="radio" aria-checked="true">En direct</button>'
+      +'<button type="button" class="st-seg" id="slOptic2" role="radio" aria-checked="false">Par l’écran</button>'
+      +'</div><div class="st-hint">'
+      +(enLigneOk?'continu — sans serveur, sur ce réseau':'continu — sans serveur ; « En ligne » reviendra avec internet')
+      +'</div>'
       +'<div class="sl-actions">'
       +'<button class="btn" id="slInvite">Inviter un autre</button>'
-      +'<button class="btn" id="slOptic2">Par l’écran…</button>'
-      +(Auth.signedIn()&&Sync.online()
-        ?'<button class="btn" id="slSwCloud">Passer en ligne…</button>':'')
       +'<button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
     document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
     const swc=document.getElementById('slSwCloud');
@@ -31016,30 +31126,29 @@ function slSheet(phase){
        La passation par l'écran, elle, reste un RESTE NOMMÉ (retour invité→hôte, A205). */
     body.innerHTML='<div class="sl-note"><span aria-hidden="true">⧗</span><span><b>Miroir</b>'
       +' — vue à '+esc(_slMirror?fmtHM(_slMirror.at):'—')+' · pas du direct</span></div>'
-      +'<video id="slVideo" playsinline muted hidden></video>'
       +'<div class="sl-actions">'
       +'<button class="btn primary" id="slReRx">Recevoir une mise à jour</button></div>'
-      +'<p class="sl-cap" id="slStat" role="status"></p>';
-    document.getElementById('slReRx').addEventListener('click',async()=>{
-      const v=document.getElementById('slVideo'),st=document.getElementById('slStat');
-      const say=t=>{st.textContent=t;};
-      v.hidden=false;document.getElementById('slReRx').disabled=true;
+      +'<div id="slStat" role="status"></div>';
+    const reRx=async()=>{
+      const st=document.getElementById('slStat');
+      const say=t=>{st.innerHTML='<p class="sl-cap">'+esc(t)+'</p>';};
       const rx=ltRx();let done=false;
       try{
-        await slScanStart(v,async(txt,bin)=>{
-          if(done)return;
-          const res=ltRxFeed(rx,bin);
-          if(res==='more'||res==='dup'){
-            if(rx.st)say(rx.st.nRec+' / '+rx.st.k+' — restez face à l’écran de l’hôte');return;}
-          if(res!=='done')return;
-          done=true;slScanStop();v.hidden=true;
-          let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
-          if(o&&await slOptiqueGot(o,say)){slSheet('mirror');}
-          else{document.getElementById('slReRx').disabled=false;
-            if(!o)say('Réception illisible — réessayez.');}
-        });
-      }catch(e){v.hidden=true;document.getElementById('slReRx').disabled=false;
-        say('Caméra indisponible — autorisez-la, puis réessayez.');}});
+        await slScanOverlay({hint:'Visez l’écran de l’hôte',ring:true,
+          onCancel:()=>{},
+          onText:async(txt,bin,ui)=>{
+            if(done)return;
+            const res=ltRxFeed(rx,bin);
+            if(res==='more'||res==='dup'){
+              if(rx.st)ui.ring(rx.st.nRec/rx.st.k);return;}
+            if(res!=='done')return;
+            done=true;ui.ring(1);ui.flash();ui.close();
+            let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
+            if(o&&await slOptiqueGot(o,say)){slSheet('mirror');}
+            else if(!o)say('Réception illisible — réessayez.');
+          }});
+      }catch(e){slCamRefused(st,reRx,()=>{shareModal.classList.remove('on');});}};
+    document.getElementById('slReRx').addEventListener('click',reRx);
     return;}
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>'
     +(phase==='offer-warn'
@@ -31047,27 +31156,27 @@ function slSheet(phase){
       :'<b>Partage en direct</b> — même Wi-Fi, sans internet ni compte')+'</span></div>'
     +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
     +'<p class="sl-cap">L’invité : menu de l’accueil → « Rejoindre une session » → « Scanner »</p>'
-    +'<video id="slVideo" playsinline muted hidden></video>'
     +'<div class="sl-actions">'
     +'<button class="btn primary" id="slScanBtn">Scanner sa réponse</button>'
     +'<button class="btn" id="slOptic">Par l’écran…</button></div>'
-    +'<p class="sl-cap" id="slStat" role="status"></p>';
+    +'<div id="slStat" role="status"></div>';
   document.getElementById('slOptic').addEventListener('click',()=>{slOptiqueTx();});
-  document.getElementById('slScanBtn').addEventListener('click',async()=>{
-    const v=document.getElementById('slVideo'),st=document.getElementById('slStat');
-    v.hidden=false;document.getElementById('slScanBtn').disabled=true;
+  const scanRep=async()=>{
+    const st=document.getElementById('slStat');
     try{
-      await slScanStart(v,async txt=>{
-        if(!txt.startsWith('SA:'))return;
-        const a=slPairUnpack(txt.slice(3));if(!a)return;
-        if(a.k!==SL.jeton){st.textContent='Réponse d’un appariement précédent — attendez la nouvelle, la lecture continue.';return;}
-        slScanStop();v.hidden=true;
-        try{await SL.pc.answer(a);st.textContent='Connexion…';}
-        catch(e){st.textContent='Ça n’a pas abouti — « Inviter un autre » pour réessayer.';}
-      });
-    }catch(e){v.hidden=true;document.getElementById('slScanBtn').disabled=false;
-      st.textContent='Caméra indisponible — autorisez-la dans les réglages, puis réessayez.';}
-  });}
+      await slScanOverlay({hint:'Visez la réponse de l’invité',
+        onCancel:()=>{},
+        onText:async(txt,bin,ui)=>{
+          if(!txt.startsWith('SA:'))return;
+          const a=slPairUnpack(txt.slice(3));if(!a)return;
+          if(a.k!==SL.jeton){ui.hint('Réponse périmée — attendez la nouvelle');return;}
+          ui.flash();ui.close();
+          try{await SL.pc.answer(a);
+            st.innerHTML='<p class="sl-cap">Connexion…</p>';}
+          catch(e){st.innerHTML='<p class="sl-cap">Ça n’a pas abouti — « Inviter un autre » pour réessayer.</p>';}
+        }});
+    }catch(e){slCamRefused(st,scanRep,()=>{shareModal.classList.remove('on');});}};
+  document.getElementById('slScanBtn').addEventListener('click',scanRep);}
 /* ÉMISSION OPTIQUE (étape 5) — l'hôte affiche la boucle de trames, l'autre appareil filme.
    La charge = {identité de session, fiche projetée, heure d'émission de l'hôte, instantané} ;
    cadence 6 codes/s, cycle hybride, masque épinglé sur les trames de flux. */
@@ -31241,7 +31350,7 @@ function openJoinScreen(code){
      n'est jamais un verrou. */
   try{slScanStop();}catch(_){}
   for(const id of ['joinScan','joinOptic']){const b=document.getElementById(id);if(b)b.disabled=false;}
-  for(const id of ['jsVideo','jsAnswer','jsStat']){const el=document.getElementById(id);
+  for(const id of ['jsAnswer','jsStat']){const el=document.getElementById(id);
     if(el){el.hidden=true;if(id==='jsAnswer')el.innerHTML='';}}
   joinScreen.hidden=false;
   if(inp&&!inp.value)try{inp.focus();}catch(_){}}
@@ -31340,65 +31449,73 @@ if(joinScreen){
      puis la machinerie invitée EXISTANTE court sur le canal — joinByCode appelle _io.join, et
      le join local ignore le code (la porte, c'est le canal apparié par jeton). */
   const jsBtn=document.getElementById('joinScan');
-  if(jsBtn)jsBtn.addEventListener('click',async()=>{
-    const video=document.getElementById('jsVideo'),ans=document.getElementById('jsAnswer'),
-          st=document.getElementById('jsStat');
+  const joinScanGo=async()=>{
+    const ans=document.getElementById('jsAnswer'),st=document.getElementById('jsStat');
     const say=t=>{st.hidden=false;st.textContent=t;};
-    video.hidden=false;jsBtn.disabled=true;let got=false;
+    jsBtn.disabled=true;let got=false;
     try{
-      await slScanStart(video,async txt=>{
-        if(got||!txt.startsWith('SO:'))return;got=true;
-        slScanStop();video.hidden=true;
-        try{
-          const o=slPairUnpack(txt.slice(3));if(!o)throw new Error('illisible');
-          const g=await slPcGuest(o);
-          ans.hidden=false;
-          ans.innerHTML=qrSvg('SA:'+slPairPack(Object.assign({k:o.k},g.answer)),
-            'Réponse — à faire scanner par l’hôte');
-          say('Montrez ce code à l’hôte, la connexion suivra.');
-          const dc=await g.channel;
-          const go=async()=>{
-            const cli=slClient(slChanWire(dc));
-            Share._io=cli.io;
-            const lbl=(document.getElementById('joinRole')||{}).value||'Renfort';
-            let r=null;try{r=await Share.joinByCode('AAAA2222',lbl);}catch(e){}
-            if(!r||!r.ok){say('Ça n’a pas abouti — réessayez.');jsBtn.disabled=false;got=false;return;}
-            ans.hidden=true;st.hidden=true;
-            if(joinScreen)joinScreen.hidden=true;
-            openSharedFiche();};
-          if(dc.readyState==='open')go();else dc.onopen=go;
-        }catch(e){say('Code illisible — réessayez.');jsBtn.disabled=false;got=false;video.hidden=false;}
-      });
-    }catch(e){video.hidden=true;jsBtn.disabled=false;
-      say('Caméra indisponible — autorisez-la, puis réessayez.');}
-  });
+      await slScanOverlay({hint:'Visez le code de l’hôte',
+        onCancel:()=>{jsBtn.disabled=false;},
+        onText:async(txt,bin,ui)=>{
+          if(got||!txt.startsWith('SO:'))return;got=true;
+          ui.flash();ui.close();
+          try{
+            const o=slPairUnpack(txt.slice(3));if(!o)throw new Error('illisible');
+            const g=await slPcGuest(o);
+            ans.hidden=false;
+            ans.innerHTML=qrSvg('SA:'+slPairPack(Object.assign({k:o.k},g.answer)),
+              'Réponse — à faire scanner par l’hôte');
+            say('Montrez ce code à l’hôte, la connexion suivra.');
+            const dc=await g.channel;
+            const go=async()=>{
+              const cli=slClient(slChanWire(dc));
+              Share._io=cli.io;
+              const lbl=(document.getElementById('joinRole')||{}).value||'Renfort';
+              let r=null;try{r=await Share.joinByCode('AAAA2222',lbl);}catch(e){}
+              if(!r||!r.ok){say('Ça n’a pas abouti — réessayez.');jsBtn.disabled=false;got=false;return;}
+              ans.hidden=true;st.hidden=true;
+              if(joinScreen)joinScreen.hidden=true;
+              openSharedFiche();};
+            if(dc.readyState==='open')go();else dc.onopen=go;
+          }catch(e){say('Code illisible — réessayez.');jsBtn.disabled=false;got=false;}
+        }});
+    }catch(e){jsBtn.disabled=false;
+      const cam=document.getElementById('jsAnswer');cam.hidden=false;
+      slCamRefused(cam,()=>{cam.hidden=true;cam.innerHTML='';joinScanGo();},
+        ()=>{cam.hidden=true;cam.innerHTML='';});}
+  };
+  if(jsBtn)jsBtn.addEventListener('click',joinScanGo);
   /* RÉCEPTION OPTIQUE (étape 5) : filmer la boucle de trames de l'hôte — la jauge ne fait que
      monter (fontaine), et à 100 % l'écran devient un MIROIR DATÉ de la session de l'hôte. */
   const joBtn=document.getElementById('joinOptic');
-  if(joBtn)joBtn.addEventListener('click',async()=>{
-    const video=document.getElementById('jsVideo'),st=document.getElementById('jsStat');
+  const joinOpticGo=async()=>{
+    const st=document.getElementById('jsStat');
     const say=t=>{st.hidden=false;st.textContent=t;};
-    video.hidden=false;joBtn.disabled=true;
+    joBtn.disabled=true;
     const rx=ltRx();let done=false;
     try{
-      await slScanStart(video,async(txt,bin)=>{
-        if(done)return;
-        const res=ltRxFeed(rx,bin);
-        if(res==='more'||res==='dup'){
-          if(rx.st)say(rx.st.nRec+' / '+rx.st.k+' — gardez l’écran de l’hôte dans le champ');
-          return;}
-        if(res!=='done')return;
-        done=true;slScanStop();video.hidden=true;
-        let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
-        if(!o){say('Réception illisible — réessayez.');joBtn.disabled=false;done=false;return;}
-        if(await slOptiqueGot(o,say)){
-          st.hidden=true;
-          if(joinScreen)joinScreen.hidden=true;}
-        else joBtn.disabled=false;
-      });
-    }catch(e){video.hidden=true;joBtn.disabled=false;
-      say('Caméra indisponible — autorisez-la, puis réessayez.');}
-  });}
+      await slScanOverlay({hint:'Visez l’écran de l’hôte',ring:true,
+        onCancel:()=>{joBtn.disabled=false;},
+        onText:async(txt,bin,ui)=>{
+          if(done)return;
+          const res=ltRxFeed(rx,bin);
+          if(res==='more'||res==='dup'){
+            if(rx.st)ui.ring(rx.st.nRec/rx.st.k);return;}
+          if(res!=='done')return;
+          done=true;ui.ring(1);ui.flash();ui.close();
+          let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
+          if(!o){say('Réception illisible — réessayez.');joBtn.disabled=false;done=false;return;}
+          if(await slOptiqueGot(o,say)){
+            st.hidden=true;
+            if(joinScreen)joinScreen.hidden=true;}
+          else joBtn.disabled=false;
+        }});
+    }catch(e){joBtn.disabled=false;
+      const cam=document.getElementById('jsAnswer');cam.hidden=false;
+      slCamRefused(cam,()=>{cam.hidden=true;cam.innerHTML='';joinOpticGo();},
+        ()=>{cam.hidden=true;cam.innerHTML='';});}
+  };
+  if(joBtn)joBtn.addEventListener('click',joinOpticGo);}
 // Reprise immédiate au retour au premier plan : la cadence de fond n'existe pas sur iOS, et
 // l'écran est de toute façon déjà marqué périmé (lastOk est vieux au réveil).
 document.addEventListener('visibilitychange',()=>{

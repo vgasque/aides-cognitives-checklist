@@ -6922,6 +6922,46 @@
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
     text-align:center;margin:6px 0 0}
+  /* Ligne d'état à point PULSANT (maquettes 01/08) — pulsation d'OPACITÉ seule (peinture). */
+  .sl-status{display:flex;align-items:center;gap:8px;justify-content:center;
+    font-size:var(--t-meta);color:var(--ink-2);margin-top:10px}
+  .sl-dot{width:7px;height:7px;border-radius:999px;background:var(--ok);flex:none;
+    animation:sldot 2s ease-in-out infinite}
+  @keyframes sldot{0%,100%{opacity:1}50%{opacity:.35}}
+  /* ÉCRAN DE SCAN PLEIN ÉCRAN (maquettes 03b/04b) : cadre de visée à quatre coins, consigne
+     courte, flash vert 240 ms + vibration à la lecture, jauge anneau pour la réception optique
+     (elle ne fait que MONTER — transition de PEINTURE, stroke-dashoffset). Même famille de
+     surface que #joinScreen : plein écran, pas une .ai-modal. */
+  #scanOv{position:fixed;inset:0;z-index:97;background:var(--sys);
+    display:flex;align-items:center;justify-content:center}
+  #scanOv[hidden]{display:none}
+  #scanOv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  #scanOv .sc-frame{position:relative;width:min(64vw,240px);aspect-ratio:1/1}
+  #scanOv .sc-frame i{position:absolute;width:26px;height:26px;
+    border:3px solid var(--sys-ink);opacity:.92}
+  #scanOv .sc-frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:var(--r-1) 0 0 0}
+  #scanOv .sc-frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 var(--r-1) 0 0}
+  #scanOv .sc-frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 var(--r-1)}
+  #scanOv .sc-frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 var(--r-1) 0}
+  #scanOv .sc-hint{position:absolute;left:16px;right:16px;
+    bottom:calc(96px + env(safe-area-inset-bottom));text-align:center;
+    font-size:var(--t-item);font-weight:var(--w-ui);color:var(--sys-ink)}
+  #scanOv .sc-cancel{position:absolute;left:50%;transform:translateX(-50%);
+    bottom:calc(24px + env(safe-area-inset-bottom));min-height:var(--hit)}
+  #scanOv .sc-flash{position:absolute;inset:0;background:var(--ok);opacity:0;pointer-events:none}
+  #scanOv .sc-flash.on{animation:scfl 240ms var(--ease-out)}
+  @keyframes scfl{0%{opacity:.32}100%{opacity:0}}
+  #scanOv .sc-ring{position:absolute;width:120px;height:120px;transform:rotate(-90deg)}
+  #scanOv .sc-ring .bgc{fill:none;stroke:var(--sys-2);stroke-width:9}
+  #scanOv .sc-ring .fgc{fill:none;stroke:var(--ok-sys);stroke-width:9;stroke-linecap:round;
+    stroke-dasharray:326;stroke-dashoffset:326;
+    transition:stroke-dashoffset var(--dur-2) var(--ease-out)}
+  #scanOv .sc-pct{position:absolute;font-family:var(--f-mono);font-size:var(--t-val);
+    font-weight:var(--w-strong);color:var(--sys-ink)}
+  @media (prefers-reduced-motion:reduce){
+    .sl-dot{animation:none}
+    #scanOv .sc-flash.on{animation:none}
+    #scanOv .sc-ring .fgc{transition:none}}
   .join-info{margin:16px 0 0;font-size:13.5px;color:var(--ink-soft)}
   .join-info>summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700;color:var(--link)}
   .join-info p{margin:8px 0 0;line-height:1.5}
@@ -7695,6 +7735,7 @@
       width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
     body.view-home main{position:relative}
     #histBtn{display:none}
+    #joinBtn{display:none}
   }
   /* RAIL DE LECTURE — dès 1000 px (v5.6, maquette ; c'était 780 depuis la v4.23.0). La décision
      d'origine — « action + structure de front », l'idéal ECAM E/WD + SD — n'est pas remise en

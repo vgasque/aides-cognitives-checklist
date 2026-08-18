@@ -207,3 +207,19 @@ la garde est `slLiveOk()` (mode+statut de `Share`), jamais un drapeau local ; (4
 ouverture d'écran repart d'un état propre** — un bouton grisé n'est jamais un verrou définitif ;
 (5) le harnais a attrapé la seule dérive maquette mesurable (QR > 200 px) — les huit autres
 étaient INVISIBLES aux portes : l'essai réel reste la dernière porte, comme au spike.
+
+## A208 — v5.14.3 : la conformité aux maquettes se VÉRIFIE à la capture, pas à l'intention
+
+L'auteur a comparé l'implémentation aux maquettes figées : « pas du tout respecté ». Reprise
+composant par composant, chaque état CAPTURÉ dans le navigateur avant release : écran de scan
+PLEIN ÉCRAN unique aux quatre usages (visée quatre coins, quatre mots, flash vert + vibration,
+Annuler fixe — piège payé : `hidden` n'est pas une propriété des éléments SVG, la jauge restait
+invisible) ; jauge anneau de réception (peinture seule) ; segmenté « Mode » (composant
+`statuseg` existant) dans LES DEUX feuilles avec l'indisponible expliqué ; point pulsant ;
+patron refus caméra (un bouton qui répare + l'échappatoire) ; le mot du quai « ● Session » →
+« ● Direct » (un mot, 18 caractères ECAM) ; « Rejoindre une session » en voie ÉTROITE du pied
+de page (patron histBtn — la sidebar n'existe pas sur mobile/tablette). Cliquet
+pointer-events:none monté à 20 (flash = annonciateur pur, A68/4). MÉTHODE RETENUE : une reprise
+d'interface se clôt par des captures d'écran état par état contre la maquette — l'intention ne
+compte pas, le pixel oui. Restes nommés au CHANGELOG (fondu du mot du quai, écran 09a, badge
+09b, fondu inter-codes écarté sciemment).

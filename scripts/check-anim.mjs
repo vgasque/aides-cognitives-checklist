@@ -141,7 +141,10 @@ for (const m of html.matchAll(/addEventListener\s*\(\s*['"]animationend['"]\s*,/
    couvre toute la largeur et ne doit rien intercepter, seul le bouton qu'elle porte est tapable
    (`.bkr{pointer-events:auto}`). Sans cela elle volerait les taps sur la colonne d'action tant
    qu'elle est à l'écran — c'est-à-dire précisément quand on défile pour lire. */
-const PE_MAX = 19;
+/* v5.14.3 : +1 — `#scanOv .sc-flash`, le flash vert de lecture de l'écran de scan (maquette
+   03b). Annonciateur pur : une couche pleine qui s'allume 240 ms à la lecture d'un code et ne
+   reçoit JAMAIS un tap — le cas exact que A68/4 autorise. */
+const PE_MAX = 20;
 const nPe = styles.map(sansCommentaires).join('\n').split(/pointer-events\s*:\s*none/).length - 1;
 if (nPe > PE_MAX)
   fautes.push({ ou: `pointer-events:none × ${nPe}`, prop: `cliquet à ${PE_MAX} (A68/4)` });

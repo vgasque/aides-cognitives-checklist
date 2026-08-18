@@ -1,5 +1,37 @@
 # Journal des modifications
 
+## [5.14.3] — 2026-08-18
+### Les écrans du partage rejoignent les maquettes — captures à l'appui
+
+Reprise design complète contre les maquettes figées « Partage sans effort » (signalé à
+l'usage : « tu n'as pas du tout respecté les mockups »), chaque état vérifié par capture :
+
+- **L'écran de scan est PLEIN ÉCRAN** (maquettes 03b/04b) : la caméra est la surface, cadre de
+  visée à quatre coins, consigne en quatre mots (« Visez le code de l'hôte »), **flash vert
+  240 ms + vibration** à la lecture, « Annuler » toujours au même endroit. Les quatre scans
+  (réponse hôte, offre invité, réception optique, mise à jour du miroir) partagent ce seul
+  composant. Piège payé : `hidden` n'est pas une propriété des éléments SVG — la jauge restait
+  invisible ; par attribut, toujours.
+- **La réception optique a sa JAUGE ANNEAU** qui ne fait que monter, pourcentage au centre —
+  transition de peinture seule, éteinte sous `prefers-reduced-motion`.
+- **Le sélecteur segmenté « Mode »** (maquette 08) remplace les boutons « Passer en… » dans
+  les deux feuilles : En ligne · En direct · Par l'écran, l'actif marqué, l'indisponible grisé
+  avec sa raison dans la ligne d'aide (« “En ligne” reviendra avec internet »).
+- **La ligne d'état à point pulsant** (« ● 2 participants · en direct ») — pulsation d'opacité
+  2 s, le cliquet `pointer-events:none` monté à 20 pour le flash (décision motivée dans
+  check-anim, A68/4).
+- **Le refus d'autorisation suit la maquette 05** : « ⚠ Caméra non autorisée » + UN bouton qui
+  répare (« Autoriser la caméra ») + « Continuer sans partage », partout.
+- **Le mot du quai** (maquette 02) : en partage local, « ● Session » devient « ● Direct » —
+  un seul mot change, à position constante, dans le budget ECAM des 18 caractères.
+- **« Rejoindre une session » existe aussi SANS sidebar** (signalé : rien sur
+  tablette/smartphone) : en bas de la page d'accueil, voie étroite du pied de page — le patron
+  exact de « Historique des sessions », masqué en large où la sidebar prend le relais.
+- Restes nommés, non couverts et dits : le fondu croisé du mot du quai (le texte se repeint
+  sans fondu), l'écran de reprise « La session n'a rien perdu. » (09a), le badge « hors
+  ligne · HH:MM » au journal (09b), et le fondu entre codes optiques — écarté SCIEMMENT : la
+  netteté des trames prime pour le décodeur d'en face.
+
 ## [5.14.2] — 2026-08-18
 ### Le partage en direct remis d'aplomb — neuf défauts d'usage, signalés et corrigés
 
@@ -471,27 +503,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   être déclarée** — `npm run check` restait **vert** (une `ReferenceError` n'est pas une erreur de
   syntaxe) et l'application ne démarrait plus. C'est `npm test` qui l'attrape, comme il attrape le
   piège des hashs CSP : une porte statique ne remplace pas un démarrage réel.
-
-## [5.12.1] — 2026-08-16
-### La barre de recherche d'une référence suit le clavier, elle aussi — et la règle cesse d'être tenue à la main
-
-- **`#refBar` restait en arrière** (signalé à l'usage : « l'en-tête apparaît maintenant mais pas le
-  bandeau recherche sur iPad/iPhone »). La v5.12.0 a fait suivre le viewport visuel au chrome
-  collant — clavier ouvert, un `sticky` calé sur le viewport de **mise en page** passe au-dessus de
-  l'écran — mais le décalage « sous l'en-tête » était **recopié dans cinq règles** et je n'en avais
-  corrigé que trois. La barre de recherche d'une référence est restée sur l'ancien calcul, et
-  continuait donc de disparaître exactement dans le cas qu'on venait de réparer.
-- **Un token, un seul lecteur par site** : `--hdr-off` porte la hauteur de l'en-tête **et** le
-  décalage du viewport visuel ; les cinq règles le lisent. Mesuré : à 370 px de panoramique,
-  l'en-tête passe de 0 à 370 et la barre de recherche de 61 à 431 — elles restent solidaires.
-- **Et la règle devient auto-exécutoire** (`check-stick.mjs`, dix-neuvième garde-fou) : aucune
-  propriété `top` ne peut s'ancrer sur la hauteur de l'en-tête sans tenir compte du clavier. C'est
-  la faute que ce dépôt paie le plus souvent et qu'il a déjà nommée ailleurs (MUTE_SEL, la table
-  MIME des harnais) — une règle répartie dans *n* sites finit corrigée dans *n*−2, en silence.
-  Vérifié capable d'échouer : la règle remise dans son état d'avant fait rougir le contrôle, qui la
-  nomme.
-- Une **exemption nommée et motivée** : le rail A→Z. Son haut est mesuré puis **gelé** (v5.6 — une
-  géométrie de chrome ne se dérive jamais d'un état qui dépend du défilement, sinon ses lettres,
-  qui sont centrées, se déplacent de 26 px sous le doigt). Lui faire suivre le viewport déplacerait
-  son haut sans son bas : un demi-correctif pire que le défaut, et le cas ne se rencontre pas —
-  clavier ouvert, on tape dans la recherche, on ne vise pas une lettre du rail.
