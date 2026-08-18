@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.14.12] — 2026-08-18
+### Le secours chaud survit aux rôles échangés — et la panne brutale est prouvée
+
+- **« Canaux pas prêts » pour toujours, corrigé** (signalé : « j'ai rejoint depuis plusieurs
+  minutes, toujours ce message ») : un état d'appariement périmé d'une participation
+  précédente (deux téléphones qui échangent leurs rôles à chaque essai) bloquait toute
+  nouvelle proposition de canal. L'ardoise est désormais remise à neuf à l'entrée de chaque
+  participation — et la pastille « En direct » ne peut plus verdir sur un canal mort d'un
+  ancien rôle.
+- **Réponses croisées neutralisées** : quand plusieurs offres d'appariement vivent dans le
+  journal, la réponse d'une offre morte pouvait empoisonner la connexion en cours (empreinte
+  d'un autre pair). Chaque offre porte un jeton ; une réponse sans le bon jeton est ignorée.
+- **La question « et si perte de réseau brutale ? » a sa preuve** : la section E2E du harnais
+  joue désormais le cycle entier — appariement silencieux, bascule manuelle, retour en ligne,
+  re-formation du secours, puis mort brutale du relais : l'hôte et l'invité se retrouvent en
+  direct SANS AUCUN geste (12 témoins verts). Le canal dormant est un lien Wi-Fi local :
+  la perte d'internet ne le touche pas ; seule la perte du Wi-Fi lui-même le tue (il reste
+  alors « Par l'écran »), et un invité hors du réseau local ne peut pas se pré-apparier
+  (pastille grise à demeure).
+
 ## [5.14.11] — 2026-08-18
 ### Le dialogue « Passer en direct ? » dit la bonne chose dans chaque cas
 
@@ -415,36 +435,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   ou **renoncer à épingler le chrome pendant la frappe** (le laisser défiler et laisser le
   navigateur garder le champ focalisé visible, ce qu'il fait très bien) — solution la plus simple
   et la seule qui supprime la classe de défauts au lieu de la déplacer.
-
-## [5.12.10] — 2026-08-16
-### Ce qui est `sticky` ne se décale pas — ce qui est `fixed`, si (retour en arrière assumé)
-
-- **L'auteur a fini de cerner le cas** : « ça fonctionne nickel **sauf avec les claviers à l'écran**
-  sur tablette/smartphone ». Or le décalage du viewport visuel ne vaut jamais autre chose que zéro
-  hors clavier logiciel : **tout** ce qui a été signalé depuis la v5.12.0 — en-tête qui saute, qui
-  disparaît, qui est poussé vers le bas avec du contenu au-dessus — vit exactement dans le seul cas
-  que ce décalage touche. C'était lui.
-- **La distinction que je n'avais pas faite**, et qui explique toutes les observations :
-  - `position:sticky` vit **dans le flux**. Quand le clavier s'ouvre, le système fait défiler la
-    **page** pour amener le champ focalisé sous les yeux — et un élément collant suit son document.
-    Lui ajouter le décalage, c'est le compter **deux fois** : il descend dans la zone visible et
-    laisse voir du contenu au-dessus de lui (capturé à t = 5,0 s sur la première vidéo).
-  - `position:fixed` est ancré au viewport de **mise en page** et ne suit rien. Lui a bel et bien
-    besoin du décalage — c'est le correctif v5.10.9 des couches plein écran, que l'auteur avait
-    confirmé, et c'est `#refBar`, la barre de recherche d'une référence, dont la disparition avait
-    ouvert tout ce dossier.
-- **Retour en arrière assumé sur les v5.12.0 à v5.12.3** : l'en-tête, le quai de crise, la barre de
-  sélection, la poignée d'édition et les cinq colonnes collantes (sommaire, rail de lecture, plan)
-  retrouvent leur ancrage nu. Gardent le décalage : les couches plein écran, `#refBar`, le volet du
-  quai, et la coque de l'accueil large — qui n'est ni collante ni défilante, donc ne peut suivre par
-  elle-même. Le token `--stick-off`, créé en v5.12.3 pour les colonnes, part avec elles (plus aucun
-  lecteur, règle 14).
-- **Le garde-fou est inversé, et c'est désormais le `position:` qui décide** : une couche fixe doit
-  porter le décalage, une couche collante ne doit pas. Vérifié capable d'échouer **dans les deux
-  sens**. Il a d'ailleurs raté le second au premier essai — `top:var(--hdr-off)` ne mentionne
-  littéralement aucune hauteur — ce qui est exactement la forme qu'avait prise le défaut : un
-  contrôle qui ne voit pas la forme du défaut ne vaut rien.
-- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; sondes mises au nouveau contrat.
-  ⚠ **Ce qu'il faut vérifier sur appareil** : si l'en-tête redevenait introuvable clavier ouvert, la
-  conclusion serait que `sticky` ne suit pas ce panoramique — et le remède ne serait pas un décalage
-  de plus, mais de passer l'en-tête en `fixed` piloté sur l'évènement du viewport.

@@ -2183,6 +2183,35 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   t('« En ligne » : l\'hôte repasse par le serveur', revH, '');
   t('… et l\'invité le rejoint avec le billet « gc », sans re-saisie', revG, '');
+
+  /* PHASE 3 — LA PANNE BRUTALE (la question de terrain : « si perte de réseau brutale, le
+     canal direct sera-t-il réellement transmis ? »). Le secours chaud doit s'être RE-FORMÉ
+     après le retour en ligne (ardoise propre + re-proposition automatique), puis le relais
+     MEURT d'un coup : les deux côtés doivent se retrouver en direct SANS AUCUN geste. */
+  const rearmH = revG && await H.waitForFunction(() =>
+    slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 })
+    .then(() => true).catch(() => false);
+  const rearmG = rearmH && await G.waitForFunction(() => !!slSb.dc, null, { timeout: 10000 })
+    .then(() => true).catch(() => false);
+  t('le secours chaud se RE-FORME après le retour en ligne', rearmH && rearmG,
+    'hôte:' + rearmH + ' invité:' + rearmG);
+
+
+  await H.evaluate(() => { window.__panne = true;
+    const io = Share._io;
+    Share._io = Object.assign({}, io, {
+      pull: async () => { throw new Error('panne'); },
+      push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io;
+    window.__bc.onmessage = () => {};   // le relais ne répond plus à l'invité non plus
+  });
+  const autoH = await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true,
+    null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const autoG = autoH && await G.waitForFunction(() =>
+    Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1',
+    null, { timeout: 40000 }).then(() => true).catch(() => false);
+  t('PANNE BRUTALE du relais : l\'hôte bascule TOUT SEUL en direct', autoH, '');
+  t('… et l\'invité le suit TOUT SEUL par le canal dormant — zéro geste', autoG, '');
   await ctx.close();
   if (brE !== br) await brE.close();
 });

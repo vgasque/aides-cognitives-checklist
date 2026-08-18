@@ -338,3 +338,34 @@ jour sont dispo ». Deux défauts, un ancien et un structurel :
   nouvelle ; seule une discordance affiche le bandeau. Prouvé sous sonde dynamique (vrai worker,
   vraie page contrôlée : réponse `aides-cognitives-v5.14.9`, bandeau resté caché sur égalité,
   bouton « Recharger »).
+
+## A214 — L'ardoise propre, le jeton de corrélation — et la panne brutale prouvée
+
+**Signalé à l'usage (v5.14.12)** : « j'ai rejoint depuis plusieurs minutes, toujours “canaux pas
+prêts” — et si perte de réseau brutale, le canal sera-t-il réellement transmis ? ». Trois
+correctifs, tous trouvés OU vérifiés par la section E2E (portée à 12 témoins — phase 3 : le
+relais MEURT d'un coup, les deux côtés se retrouvent en direct sans aucun geste) :
+
+- **ARDOISE PROPRE à l'entrée de toute participation** (`slSbReset` dans joinGo, startShare,
+  quitShare — et AVANT le join dans slGcJoin) : deux téléphones qui échangent leurs rôles
+  gardaient un `slSb` périmé qui bloquait le garde d'amorçage — l'invité ne proposait plus
+  JAMAIS son canal (« pas prêts » pour toujours), et la pastille montrait un canal mort. Dans
+  slGcJoin l'ordre était le piège fin : le premier sondage sain kicke PENDANT `joinByCode`,
+  un reset après coup tuait ce kick tout frais.
+- **JETON DE CORRÉLATION offre↔réponse** (champ `k` de slPairPack, comme le flux QR) :
+  plusieurs offres peuvent vivre dans le journal (re-pull depuis 0, retentative de la montre) —
+  sans jeton, la réponse d'une offre MORTE s'appliquait au pc courant et l'empoisonnait
+  (empreinte DTLS d'un autre pair) : ICE condamné, et la réponse légitime tombait en
+  InvalidState. Une réponse sans le jeton du pc courant est IGNORÉE.
+- **`slSbReady()` est PAR RÔLE** : chez l'hôte seuls comptent les canaux de SES invités —
+  un `slSb.dc` d'un ancien rôle invité faisait verdir la pastille sans canal utilisable ;
+  et `readyState` se vérifie toujours, un canal mort n'est pas un canal.
+- **SL tombe AVANT la boucle des billets « gc »** (slGoCloud) : un invité repassé au cloud
+  re-propose son canal immédiatement — le garde de l'hôte (`!(SL&&SL.live)`) mangeait cette
+  offre tant que SL vivait, la consommant sans réponse.
+
+**Réponse à la question de terrain** : le canal dormant est un lien Wi-Fi LOCAL entre les deux
+téléphones — la perte d'INTERNET ne le touche pas, et la bascule automatique (~2 sondages
+échoués) l'emprunte sans geste : c'est la phase 3, mesurée. Ce qui le tue : la perte du Wi-Fi
+LUI-MÊME (il ne reste alors que l'optique), ou un invité qui n'est pas sur le même réseau
+local (pastille grise à demeure — le pré-appariement est impossible sans LAN commun).

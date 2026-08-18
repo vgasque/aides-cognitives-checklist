@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-qzz8aqLj3+iNDjqEFlZtfZw/NsIIo+auukMJvuEucyY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-VRQKQhhFF+1kAkiFrEfsCnpGJ57cxCdFg1/S5T0+hEw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.11';
+const APP_VERSION='5.14.12';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -31366,7 +31366,13 @@ let _slSwitching=false;
 function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
   for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
   slSb.dcs=[];slSb.dc=null;slSb.pc=null;}
-function slSbReady(){return !!slSb.dc||slSb.dcs.some(d=>d.dc&&d.dc.readyState==='open');}
+/* La véracité est PAR RÔLE (v5.14.12) : chez l'HÔTE seuls comptent les canaux de SES invités ;
+   un `slSb.dc` restant d'un ancien rôle invité (les deux téléphones échangent leurs rôles en
+   test) faisait verdir une pastille sans aucun canal utilisable — et `readyState` se vérifie
+   TOUJOURS, un canal mort n'est pas un canal. */
+function slSbReady(){
+  if(Share.mode==='host')return slSb.dcs.some(d=>d.dc&&d.dc.readyState==='open');
+  return !!(slSb.dc&&slSb.dc.readyState==='open');}
 /* La pastille « En direct » dit l'état RÉEL du canal dormant (vert = prêt) — c'est aussi le
    diagnostic de terrain : si elle ne verdit jamais, l'appariement silencieux échoue sur ce
    réseau, et la bascule sans QR ne peut pas suivre. */
@@ -31378,10 +31384,15 @@ async function slSbGuestKick(){
   slSb.pc={};                                  // verrou immédiat (l'amorçage est asynchrone)
   try{
     const g=await slPcHost();
+    /* JETON DE CORRÉLATION (v5.14.12) : plusieurs offres peuvent vivre dans le journal (re-pull
+       depuis 0, retentative de la montre) — sans jeton, une réponse d'une offre MORTE
+       s'appliquait au pc courant et l'empoisonnait (empreinte DTLS d'un autre pair). Même
+       mécanique que le flux QR (`SL.jeton`). */
+    g.k=Math.random().toString(36).slice(2,6);
     slSb.pc=g;
     g.dc.onopen=()=>{slSb.dc=g.dc;try{slSegDotRefresh();}catch(_){}};
     g.dc.onclose=()=>{if(slSb.dc===g.dc)slSb.dc=null;if(slSb.pc===g)slSb.pc=null;};
-    Share.emit('sig',{t:'o',o:slPairPack(g.offer)});
+    Share.emit('sig',{t:'o',o:slPairPack(Object.assign({k:g.k},g.offer))});
     /* MONTRE DE 30 s (v5.14.9, terrain) : un échec ICE laissait le verrou posé À JAMAIS —
        plus aucune tentative ensuite. Canal jamais ouvert = on jette et on laissera le
        prochain sondage sain re-proposer. */
@@ -31397,9 +31408,10 @@ async function slSbOnSig(ev){
           dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slSegDotRefresh();}catch(_){}};
           try{slSegDotRefresh();}catch(_){}};
         dc.readyState==='open'?go():dc.onopen=go;});
-      Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(h.answer)});}
+      Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(Object.assign({k:o.k},h.answer))});}
     else if(Share.mode==='guest'&&p.t==='a'&&p.to===Share.me&&slSb.pc&&slSb.pc.answer&&p.a){
       const a=slPairUnpack(String(p.a));if(!a)return;
+      if(a.k!==slSb.pc.k)return;   // réponse d'une offre morte : on n'empoisonne pas le pc courant
       await slSb.pc.answer(a);}
     /* « go » : l'HÔTE demande la bascule (geste manuel, réseau encore vivant) — l'invité
        rejoint par son canal dormant, sans QR. */
@@ -31492,6 +31504,12 @@ async function slGoCloud(){
         ?'⚠ Une fiche en brouillon ne se diffuse pas hors du compte.'
         :'⚠ Internet indisponible — le partage reste en direct.',6000,true);
       return;}
+    /* SL TOMBE AVANT LA BOUCLE (v5.14.12, trouvé au harnais) : un invité déjà passé au cloud
+       re-propose son canal dormant IMMÉDIATEMENT — or le garde de l'hôte (`!(SL&&SL.live)`)
+       mangeait cette offre tant que SL vivait, la consommant sans réponse : le secours ne se
+       re-formait qu'à la montre de 30 s. Le hub, lui, vit dans sa fermeture — rien d'autre ne
+       change. */
+    SL=null;slSbReset();
     for(const g of guests){
       let a=null;try{a=await Share.admit(120);}catch(e){}
       if(!a||!a.ok||!a.code)continue;
@@ -31502,7 +31520,6 @@ async function slGoCloud(){
       while(Date.now()-t0<15000){
         await new Promise(x=>setTimeout(x,500));
         if((Share.participants||[]).filter(x=>!x.owner).length>avant)break;}}
-    SL=null;slSbReset();
     /* Le hub reste servi 20 s — le temps qu'un billet en vol soit consommé — puis se ferme :
        un invité resté local verra « partage terminé », jamais un silence. */
     setTimeout(()=>{try{hub.end();}catch(e){}},20000);
@@ -31517,12 +31534,17 @@ async function slGcJoin(code){
     const ioAvant=Share._io;
     const moi=(Share.participants||[]).find(x=>x.id===Share.me);
     const lbl=(moi&&moi.label)||'Renfort';
+    /* ARDOISE PROPRE AVANT le join (v5.14.12, trouvé au harnais) : le premier sondage sain
+       KICKE pendant `joinByCode` — un reset après coup TUAIT ce kick tout frais, et le kick
+       suivant recevait la réponse de l'offre morte (empreinte DTLS d'un autre pc) : ICE
+       empoisonné, secours jamais re-formé. */
+    slSbReset();
     Share._io=Share._ioRest;
     let r=null;
     for(let i=0;i<3&&!(r&&r.ok);i++){
       if(i)await new Promise(x=>setTimeout(x,2000));
       r=await Share.joinByCode(String(code||''),lbl).catch(()=>null);}
-    if(r&&r.ok){slSbReset();openSharedFiche();
+    if(r&&r.ok){openSharedFiche();
       try{announce('Vous suivez en ligne.');}catch(e){}}
     else Share._io=ioAvant;
   }finally{_slSwitching=false;}}
@@ -31564,6 +31586,7 @@ async function startShare(f){
     if(!ensureStarted())return;
     render();}
   if(Share._ioRest)Share._io=Share._ioRest;   // un essai local ne détourne plus le cloud
+  slSbReset();                                // ardoise propre : même règle qu'à la jointure
   const r=await Share.host(f).catch(()=>null);
   if(!r||!r.ok){
     toast(r&&r.err==='draft'
@@ -31615,6 +31638,7 @@ async function quitShare(){
     Share._io.push(Share.secret,Share.share,[{event_id:Share._uuid(),kind:'presence',
       ts:new Date(Share.now()).toISOString(),payload:{state:'quit'}}]).catch(()=>{});}catch(e){}
   Share.stop();
+  slSbReset();   // le canal dormant meurt avec la participation — sinon il MENT au rôle suivant
   Runtime=makeRuntime();
   state.view='library';state.fiche=null;
   render();
@@ -31712,6 +31736,11 @@ async function joinGo(){
     +code.length+'.');return;}
   const lbl=(document.getElementById('joinRole')||{}).value||'Renfort';
   if(btn){btn.disabled=true;btn.textContent='Connexion…';}
+  /* NOUVELLE PARTICIPATION = ARDOISE PROPRE (v5.14.12, terrain : deux téléphones qui échangent
+     leurs rôles à chaque essai). Un slSb PÉRIMÉ d'un rôle précédent bloquait le garde
+     d'amorçage (`if(slSb.pc||slSb.dc)return`) : l'invité ne proposait plus JAMAIS son canal —
+     « canaux pas prêts » pour toujours, et une pastille verte qui montrait un canal mort. */
+  slSbReset();
   if(Share._ioRest)Share._io=Share._ioRest;   // rejoindre PAR CODE = toujours le serveur
   let r=null,reseau=false;
   try{r=await Share.joinByCode(code,lbl);}catch(e){reseau=true;}
