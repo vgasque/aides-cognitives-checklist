@@ -420,6 +420,10 @@ tiers** — il n'y a pas de serveur du tout :
 
 **Au registre** : pour ces deux modes, la ligne « destinataires/sous-traitants » est VIDE — le
 relais Supabase n'intervient pas, et les durées serveur (fenêtre, TTL, purge) sont sans objet.
+**Secours chaud (v5.14.5)** : pendant qu'un partage EN LIGNE fonctionne, les appareils préparent
+le canal direct en silence — les descripteurs techniques du canal (dont des adresses IP LOCALES)
+transitent alors par le relais, comme évènements `sig`, purgés avec le reste et invisibles au
+compte-rendu ; si internet tombe, le partage bascule seul sur ce canal.
 La notice affichée à l'invité (`#joinScreen`) dit les deux régimes ; les deux textes évoluent
 ensemble, ou aucun.
 

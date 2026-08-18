@@ -223,3 +223,23 @@ pointer-events:none monté à 20 (flash = annonciateur pur, A68/4). MÉTHODE RET
 d'interface se clôt par des captures d'écran état par état contre la maquette — l'intention ne
 compte pas, le pixel oui. Restes nommés au CHANGELOG (fondu du mot du quai, écran 09a, badge
 09b, fondu inter-codes écarté sciemment).
+
+## A209 — M9 : le secours chaud — la bascule qui n'existe pas
+
+**Décision (v5.14.5, GO de l'auteur).** Pendant qu'un partage EN LIGNE fonctionne, l'invité
+propose en silence un canal direct (évènement `sig` via le relais : offre compacte slPairPack),
+l'hôte répond, le canal s'ouvre et DORT. À deux échecs de sondage (~10 s), l'hôte rejoue le
+geste manuel ÉPROUVÉ (stop → hub → Share.host() : le diff initial rembobine tout l'état — zéro
+machinerie de fusion neuve), sert les canaux dormants ; l'invité re-joint par le sien et
+reconstruit son pli. Le quai passe à « ● Direct », une annonce d'une phrase, rien d'autre.
+Retour au cloud = un TAP (le sens panne est automatique, le sens confort est un choix).
+L'invité n'amorce JAMAIS pendant une panne (l'offre passerait par un relais muet) ; un join
+raté garde le canal pour la détection suivante — le rythme est celui du sondage, jamais une
+boucle serrée.
+
+**Trois garde-fous ont travaillé** : check-sql (parité client/serveur des capacités — `sig`
+ajouté aux DEUX vocabulaires, 20/20) ; le témoin « tout genre est classé » (a EXIGÉ le régime
+`sig:'none'`) ; le pli ignore `sig` (témoin dédié — jamais dans le journal ni le compte-rendu).
+**⚠ schema.sql À REJOUER sur l'instance** (le serveur refuse `sig` jusque-là — le secours ne
+s'amorce pas, rien d'autre ne change). Registre § 3.2 complété : les descripteurs du canal
+(adresses IP locales) transitent par le relais pendant la préparation, purgés comme le reste.

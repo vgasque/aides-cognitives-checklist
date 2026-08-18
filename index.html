@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-TJQPf27I+BDNNFJlrfQigDquUEgL/8FIgXaOn2JOrrU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-GXNFCu6bGjRopFJCUKM3Xu51z0DVKMRzFGKmxrXUEMw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7279,6 +7279,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
     text-align:center;margin:6px 0 0}
+  /* Segmenté du MODE de partage (maquette 08) : deux lignes — libellé + sous-mot
+     (continu/ponctuel, ou la raison d'une indisponibilité). 11 px = plancher, jamais moins. */
+  #shareBody .statuseg .st-seg{flex-direction:column;gap:2px;min-height:48px;
+    padding:6px 12px;line-height:1.2}
+  #shareBody .statuseg .st-seg .sub{font-size:11px;font-weight:400;color:var(--soft)}
+  #shareBody .statuseg .st-seg.on .sub{color:var(--ink-soft)}
   /* Ligne d'état à point PULSANT (maquettes 01/08) — pulsation d'OPACITÉ seule (peinture). */
   .sl-status{display:flex;align-items:center;gap:8px;justify-content:center;
     font-size:var(--t-meta);color:var(--ink-2);margin-top:10px}
@@ -9611,7 +9617,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.4';
+const APP_VERSION='5.14.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -18632,7 +18638,7 @@ function sharePayload(f){
    L'OBJECTION D'AMBIGUÏTÉ (§5.5, « qui fait quoi », qu'Airbus supprime par un ECP unique) est
    réelle et reçoit ici la réponse constante du projet : on n'INTERDIT pas, on ANNONCE — chaque
    geste est attribué, et une avance venue d'un autre écran se dit. */
-const SHARE_KINDS_ANY=['check','verify','gap','counter','timer_arm','timer_stop','mark','mark_void',
+const SHARE_KINDS_ANY=['sig','check','verify','gap','counter','timer_arm','timer_stop','mark','mark_void',
   'nav','flow_end','cx','presence','detach','offline_mark','handoff'];
 const SHARE_KINDS_LEAD=['uncheck','timer_reset','end','session_start'];
 function shareCan(role,kind){
@@ -18705,6 +18711,9 @@ const SHARE_APPLY={
      propriétaire du partage peut l'écrire. Un rôle qu'un évènement suffirait à changer serait un
      rôle que n'importe quel participant s'accorderait. */
   presence:'none', detach:'none', handoff:'none', end:'none',
+  /* `sig` (M9) : plomberie du secours chaud — routé au gestionnaire AVANT les appliqueurs,
+     jamais une once d'interface. */
+  sig:'none',
   /* L'ANNEXE SE PEINT, elle ne se plie pas dans l'état. Classée 'none', elle était REÇUE et
      jetée : le pli l'accumulait dans un tableau que personne ne lisait. C'est pourtant la seule
      chose qu'un participant détaché puisse encore transmettre. 'live' parce qu'elle s'insère
@@ -30445,7 +30454,7 @@ const Share={
       }
       const p=await this._io.pull(this.secret,this.share,this.cursor);
       this._sample(t0,p&&p.server_time);
-      if(!p||!p.ok){this._fails++;}
+      if(!p||!p.ok){this._fails++;try{slSbFail();}catch(_){}}
       else{
         this._fails=0;this.lastOk=Date.now();
         const stAv=this.status;
@@ -30499,6 +30508,9 @@ const Share={
         const ev=p.events||[];
         if(ev.length){this.applied+=ev.length;this.cursor=ev[ev.length-1].seq;this._act=Date.now();
           for(const e of ev)this._ids.push(e.seq+':'+e.id);
+          /* SECOURS CHAUD : les évènements `sig` sont de la PLOMBERIE de transport — routés au
+             gestionnaire, jamais aux appliqueurs d'interface (le pli, lui, les ignore déjà). */
+          for(const e of ev)if(e.kind==='sig')try{slSbOnSig(e);}catch(_){}
           /* LE PLI EST L'ÉTAT DE L'INVITÉ, la peinture n'en est que le reflet. Chez l'hôte, la
              session locale fait autorité et le pli n'aurait aucun sens ; chez l'invité il n'y a
              RIEN d'autre — d'où l'accumulation incrémentale, qui est aussi ce qui permet à une
@@ -30509,7 +30521,7 @@ const Share={
              avancé : l'écran restait figé sur un parcours amputé que plus rien ne rejouait. On
              resynchronise l'écran sur l'état réellement en mémoire, ce qui est toujours mieux
              qu'un DOM qui ment, et l'on garde une trace en console pour le diagnostic. */
-          try{this.onEvents(ev);}
+          try{this.onEvents(ev.filter(e=>e.kind!=='sig'));}
           catch(e){try{console.error('partage : lot non appliqué en entier',e);
             if(state.view==='read'&&state.fiche===Runtime.fiche)render();}catch(_){}}}
         /* AVANCER JUSQU'À LA BORNE HAUTE DU SERVEUR — sinon le curseur se bloque sur un TROU.
@@ -30544,8 +30556,11 @@ const Share={
           const h=await this._streamHash();
           if(h!==p.stream)this._desync('empreinte');else this._resync=false;
         }else if(ajour)this._resync=false;
+        /* SECOURS CHAUD : l'invité propose son canal dès que le fil est SAIN (jamais pendant
+           une panne — l'offre passerait par le relais qui ne répond plus). */
+        if(this.mode==='guest'&&this.share!=='local')try{slSbGuestKick();}catch(_){}
       }
-    }catch(e){this._fails++;}
+    }catch(e){this._fails++;try{slSbFail();}catch(_){}}
     finally{this._inflight=false;
       /* UN DÉTACHÉ CONTINUE DE SONDER, lentement : sa file d'annexes doit encore ATTEINDRE l'hôte.
          Cesser tout de suite reviendrait à garder la trace pour soi au moment précis où elle n'a
@@ -30745,6 +30760,7 @@ const Share={
     if(this.mode!=='host'||!this.share)return false;
     let ok=false;
     try{await this._io.end(this.share);ok=true;}catch(e){}
+    try{slSbReset();}catch(e){}
     this.stop();_shareBase=null;
     return ok;},
   async joinByCode(code,label){
@@ -31013,10 +31029,13 @@ function shareSheetHtml(){
     +'<button class="btn" id="shAdmit">Nouveau code</button>'
     +'<button class="btn danger" id="shEnd">Arrêter le partage…</button></div>'
     +'<div class="statuseg" role="radiogroup" aria-label="Mode de partage">'
-    +'<button type="button" class="st-seg on" role="radio" aria-checked="true">En ligne</button>'
-    +'<button type="button" class="st-seg" id="shSwLocal" role="radio" aria-checked="false">En direct</button>'
-    +'<button type="button" class="st-seg" id="shOptic" role="radio" aria-checked="false">Par l’écran</button></div>'
-    +'<div class="st-hint">continu — par le serveur, purgé après la session</div>'
+    +'<button type="button" class="st-seg on" role="radio" aria-checked="true">En ligne'
+    +'<span class="sub">continu</span></button>'
+    +'<button type="button" class="st-seg" id="shSwLocal" role="radio" aria-checked="false">'
+    +'En direct<span class="sub">continu</span></button>'
+    +'<button type="button" class="st-seg" id="shOptic" role="radio" aria-checked="false">'
+    +'Par l’écran<span class="sub">ponctuel</span></button></div>'
+    +'<p class="sl-cap">l’app choisit seule — forcer si besoin</p>'
     +'<p class="sh-note">Couper quelqu\'un lui retire l\'écriture immédiatement et lui rend sa place ; '
     +'il ne peut revenir qu\'avec un nouveau code, que vous seul pouvez donner.</p>';}
 function shPaintWhen(){
@@ -31103,12 +31122,13 @@ function slSheet(phase){
       +n+' participant'+(n>1?'s':'')+' · en direct</div>'
       +'<div class="statuseg" role="radiogroup" aria-label="Mode de partage">'
       +'<button type="button" class="st-seg" id="slSwCloud" role="radio" aria-checked="false"'
-      +(enLigneOk?'':' disabled')+'>En ligne</button>'
-      +'<button type="button" class="st-seg on" role="radio" aria-checked="true">En direct</button>'
-      +'<button type="button" class="st-seg" id="slOptic2" role="radio" aria-checked="false">Par l’écran</button>'
-      +'</div><div class="st-hint">'
-      +(enLigneOk?'continu — sans serveur, sur ce réseau':'continu — sans serveur ; « En ligne » reviendra avec internet')
-      +'</div>'
+      +(enLigneOk?'':' disabled')+'>En ligne<span class="sub">'
+      +(enLigneOk?'continu':'pas d’internet')+'</span></button>'
+      +'<button type="button" class="st-seg on" role="radio" aria-checked="true">En direct'
+      +'<span class="sub">continu</span></button>'
+      +'<button type="button" class="st-seg" id="slOptic2" role="radio" aria-checked="false">'
+      +'Par l’écran<span class="sub">ponctuel</span></button>'
+      +'</div><p class="sl-cap">l’app choisit seule — forcer si besoin</p>'
       +'<div class="sl-actions">'
       +'<button class="btn" id="slInvite">Inviter un autre</button>'
       +'<button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
@@ -31258,6 +31278,74 @@ async function slGuestUp(dc){
     const r=await Share.host(SL.f).catch(()=>null);
     if(!r||!r.ok){toast('⚠ Le partage en direct n’a pas pu démarrer.',6000,true);return;}}
   slSheet('live');}
+/* ═══ SECOURS CHAUD (M9, v5.14.5) — la bascule qui n'existe pas ═══════════════════════════
+   PENDANT que le relais fonctionne, l'invité PROPOSE un canal direct (il crée l'offre — les
+   rôles WebRTC sont indépendants des rôles cliniques) par un évènement `sig` ; l'hôte RÉPOND
+   par le même chemin ; le canal s'ouvre et DORT. Quand le sondage échoue (2 échecs ≈ 10 s),
+   l'hôte rejoue le geste MANUEL déjà éprouvé (stop → hub → Share.host() — le diff initial
+   rembobine TOUT l'état dans le hub) et sert les canaux dormants ; l'invité re-joint par son
+   canal et re-amorce son pli depuis zéro : AUCUNE fusion, la machinerie existante fait tout.
+   Le retour au cloud reste un TAP (segmenté « En ligne ») — le sens panne est automatique,
+   le sens confort reste un choix. ⚠ EXIGE le rejeu de schema.sql (genre `sig`) sur l'instance. */
+const slSb={dcs:[],dc:null,pc:null};
+let _slSwitching=false;
+function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
+  for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
+  slSb.dcs=[];slSb.dc=null;slSb.pc=null;}
+async function slSbGuestKick(){
+  if(slSb.pc||slSb.dc)return;
+  slSb.pc={};                                  // verrou immédiat (l'amorçage est asynchrone)
+  try{
+    const g=await slPcHost();
+    slSb.pc=g;
+    g.dc.onopen=()=>{slSb.dc=g.dc;};
+    Share.emit('sig',{t:'o',o:slPairPack(g.offer)});
+  }catch(e){slSb.pc=null;}}
+async function slSbOnSig(ev){
+  const p=ev.payload||{};
+  try{
+    if(Share.mode==='host'&&p.t==='o'&&p.o&&!(SL&&SL.live)){
+      const o=slPairUnpack(String(p.o));if(!o)return;
+      const h=await slPcGuest(o);
+      h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc});};
+        dc.readyState==='open'?go():dc.onopen=go;});
+      Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(h.answer)});}
+    else if(Share.mode==='guest'&&p.t==='a'&&p.to===Share.me&&slSb.pc&&slSb.pc.answer&&p.a){
+      const a=slPairUnpack(String(p.a));if(!a)return;
+      await slSb.pc.answer(a);}
+  }catch(e){}}
+function slSbFail(){
+  if(_slSwitching||Share._fails<2||Share.share==='local')return;
+  if(Share.mode==='host'&&slSb.dcs.length)slSbHostSwitch();
+  else if(Share.mode==='guest'&&slSb.dc)slSbGuestSwitch();}
+async function slSbHostSwitch(){
+  if(_slSwitching)return;_slSwitching=true;
+  try{
+    const f=Runtime.fiche;if(!f)return;
+    const dcs=slSb.dcs.slice();slSb.dcs=[];slSb.pc=null;slSb.dc=null;
+    const hub=slHub({now:()=>Date.now(),uid:()=>uid('p'),secret:slSecret,
+      shareId:uid('shl'),fiche:sharePayload(f),guestRole:'scribe',hostLabel:'Hôte'});
+    Share.stop();Share._io=slHostIo(hub);
+    SL={f,hub,live:true};
+    const r=await Share.host(f).catch(()=>null);
+    if(r&&r.ok){for(const d of dcs)slServe(hub,slChanWire(d.dc));
+      try{announce('Le réseau a lâché — le partage continue en direct.');}catch(e){}}
+    else SL=null;
+  }finally{_slSwitching=false;}}
+async function slSbGuestSwitch(){
+  if(_slSwitching)return;_slSwitching=true;
+  try{
+    const dc=slSb.dc;
+    const moi=(Share.participants||[]).find(x=>x.id===Share.me);
+    const lbl=(moi&&moi.label)||'Renfort';
+    const cli=slClient(slChanWire(dc));
+    Share._io=cli.io;
+    const r=await Share.joinByCode('AAAA2222',lbl).catch(()=>null);
+    if(r&&r.ok){slSb.dc=null;slSb.pc=null;openSharedFiche();
+      try{announce('Le réseau a lâché — vous suivez en direct.');}catch(e){}}
+    /* échec (l'hôte n'a pas encore basculé ?) : le canal est GARDÉ, la prochaine détection
+       de panne retentera — jamais de boucle serrée, le rythme est celui du sondage. */
+  }finally{_slSwitching=false;}}
 async function startShareLocal(f){
   if(!Runtime.started){
     if(!await confirmDlg('Partager exige une session en cours. Démarrer la session maintenant '

@@ -1,5 +1,28 @@
 # Journal des modifications
 
+## [5.14.5] — 2026-08-18
+### Le secours chaud : internet tombe, le partage ne s'en aperçoit presque pas
+
+- **La bascule automatique en ligne → en direct existe** (M9 de l'étude). Pendant qu'un partage
+  en ligne fonctionne, l'invité propose EN SILENCE un canal direct (évènement `sig` par le
+  relais — l'offre compacte de ~130 octets), l'hôte répond par le même chemin, et le canal
+  s'ouvre puis DORT. Si le sondage échoue (~10 s de panne), l'hôte rejoue automatiquement le
+  geste manuel déjà éprouvé — le diff initial rembobine tout l'état dans le hub local — et sert
+  les canaux dormants ; l'invité re-joint par son canal et reconstruit son pli : AUCUNE fusion,
+  aucun geste, l'écran annonce d'une phrase et le quai passe à « ● Direct ».
+- **Le retour au cloud reste un tap** (segmenté « En ligne ») : le sens PANNE est automatique,
+  le sens confort reste un choix — automatisable plus tard si l'usage le réclame.
+- **`sig` est de la plomberie, et trois garde-fous le savent** : émissible par les deux rôles
+  (parité client/serveur vérifiée par check-sql, 20 capacités), ignoré par le pli donc par le
+  journal et le compte-rendu (témoin), régime d'application `none` (le témoin « tout genre est
+  classé » l'a exigé). Le registre § 3.2 dit ce qui transite désormais par le relais pendant la
+  préparation (descripteurs du canal, dont des adresses IP locales — purgés comme le reste).
+- **⚠ `supabase/schema.sql` est À REJOUER sur l'instance** (le serveur doit accepter le genre
+  `sig`) : sans ce rejeu, le secours chaud ne s'amorce pas — et rien d'autre ne change.
+- Maquette 08 complétée au passage : le sélecteur de mode porte ses SOUS-MOTS
+  (continu/ponctuel, ou la raison d'une indisponibilité) et la légende « l'app choisit seule —
+  forcer si besoin ».
+
 ## [5.14.4] — 2026-08-18
 ### Le code du partage en ligne revient, et les feuilles collent enfin aux maquettes
 
@@ -464,26 +487,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
 - Note de méthode : mes premiers témoins mesuraient le centrage **contre le conteneur** — ils
   étaient donc verts sur le défaut même qu'ils prétendaient couvrir. Un témoin doit mesurer contre
   la référence que l'œil utilise, pas contre la boîte la plus facile à interroger.
-
-## [5.12.3] — 2026-08-16
-### La colonne sommaire suit le clavier, elle aussi — la même faute, une famille plus loin
-
-- **La sidebar ne suivait pas** (signalé à l'usage : « lorsqu'on est en haut de page et qu'on doit
-  scroller en bas avec le mode recherche — défilement automatique à la 1ʳᵉ occurrence — la sidebar
-  ne suit pas »). Mesuré : la colonne suit parfaitement… **clavier fermé**. Or on est en train de
-  taper dans son champ de recherche, donc le clavier est ouvert — et elle s'ancre sur
-  **`--stick-top`**, un SECOND token que le garde-fou de la v5.12.1 ne surveillait pas.
-- **Deux tokens d'ancrage existaient, je n'en avais corrigé qu'un.** `--hdr-h` (l'en-tête seul) et
-  `--stick-top` (toute la pile collante, quai de crise compris). Les **cinq** colonnes ancrées sur
-  le second — sommaire d'une référence, rail de lecture, plan de l'aide — ont donc continué de
-  disparaître clavier ouvert pendant une version de plus. `--stick-off` est leur origine ;
-  `--stick-top` reste la **hauteur** qu'il a toujours été (une hauteur ne se décale pas, seule une
-  origine le fait — les mélanger raccourcirait les colonnes en plus de les déplacer).
-- **Le garde-fou surveille désormais les deux**, et il a immédiatement attrapé un **sixième site**
-  que je n'avais pas vu : le volet du quai de crise, qui s'ouvrait hors de l'écran clavier ouvert.
-  Neuf couches contrôlées, une exemption motivée. Vérifié capable d'échouer sur le nouveau token.
-- Le **rembourrage de défilement** (`scroll-padding-top`) suit la même origine : c'est lui qui
-  décide où atterrit un `scrollIntoView` — donc exactement le geste signalé.
-- Mesuré aux deux moteurs : après le saut à la 1ʳᵉ occurrence la colonne est à 69 px ; à 370 px de
-  panoramique elle passe à 439, et le champ de recherche reste dans la zone visible. Hors clavier,
-  géométrie identique à l'octet. `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.

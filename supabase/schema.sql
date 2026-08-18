@@ -1124,8 +1124,12 @@ returns boolean language sql immutable set search_path = public, pg_temp as $$
        exactement la configuration la mieux documentée du dossier (McEvoy 2014 : le LECTEUR tient
        l'appareil et guide). Le critère « détruit / ne détruit pas » était déjà celui écrit ici
        pour `mark_void` ; il vaut pour tous. */
+    -- `sig` (v5.14.5, M9 « secours chaud ») : descripteurs du canal de secours pair-à-pair
+    -- (offre/réponse compactées), échangés PENDANT que le relais fonctionne pour que la perte
+    -- d'internet ne coupe pas le partage. Ouvert aux deux rôles (l'invité PROPOSE, l'hôte
+    -- RÉPOND) ; ignoré par les plis et les comptes-rendus ; purgé avec le reste.
     when p_kind in ('check','verify','gap','counter','timer_arm','timer_stop','mark','mark_void',
-                    'nav','flow_end','cx','presence','detach','offline_mark','handoff')
+                    'nav','flow_end','cx','presence','detach','offline_mark','handoff','sig')
       then p_role in ('scribe','lead')
     -- `session_start` porte l'heure à laquelle le SOIN a commencé, pas celle de la jointure. Sans
     -- lui, un renfort arrivé à 14 h 12 sur une réanimation débutée à 13 h 55 date le début du soin

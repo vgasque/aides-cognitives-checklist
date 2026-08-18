@@ -1436,6 +1436,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('qrEncodeB accepte une trame binaire de 213 o (masque épinglé)',
      !!A.qrEncodeB(tx.frameAt(0),4));}
 
+  // ── M9 (secours chaud) : le genre `sig` est de la PLOMBERIE — émissible par les deux rôles,
+  // invisible au pli (donc au journal et au compte-rendu) ──
+  ok('sig : émissible par le scribe ET le lead (miroir du serveur, parité check-sql)',
+    A.shareCan('scribe','sig')&&A.shareCan('lead','sig'));
+  {const f=A.shareFold([{kind:'sig',actor:'x',payload:{t:'o',o:'xxxx'}},
+     {kind:'check',actor:'x',payload:{k:'1:b1:0'}}]);
+   ok('sig : le pli l’IGNORE — une coche à côté passe, rien de sig ne reste',
+     f.checked['1:b1:0']===true&&f.events.length===0);}
+
   group('Partage de session — transport');
   // La couture `_io` est NEUTRALISÉE : sans cela ces tests partiraient sur le réseau. C'est la
   // même couture que le harnais remplacera par un bus en processus pour faire dialoguer deux pages.
