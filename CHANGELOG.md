@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.14.8] — 2026-08-18
+### Passer en direct ne déconnecte plus personne
+
+- **La bascule choisie emprunte les canaux dormants** (signalé : « quand je switche en ligne →
+  en direct, tous les participants sont déconnectés ») : le secours chaud pré-apparie déjà les
+  canaux directs pendant que le cloud marche — le geste manuel du sélecteur les utilise
+  désormais au lieu de repartir sur du QR. L'hôte prévient par le relais encore vivant
+  (`sig « go »`), transite par le chemin éprouvé de la panne, et les invités re-joignent seuls
+  par leur canal (trois essais espacés couvrent la course). Personne ne scanne rien.
+- **Le dialogue dit le compte exact** : « les participants basculent automatiquement » si tous
+  les canaux dorment, « N sur M basculent, les autres devront scanner » sinon — et l'ancien
+  parcours par QR ne reste que quand aucun canal n'est prêt (premières secondes du partage).
+- **Le partage en ligne est terminé proprement côté serveur** après la bascule : un invité sans
+  canal dormant voit l'écran « partage terminé », pas un silence.
+- Limite nommée : le sens retour (direct → en ligne) reste un re-appariement par code.
+
 ## [5.14.7] — 2026-08-18
 ### Le sélecteur de mode partout, dans son conteneur, en haut — et plus de cul-de-sac
 
@@ -453,20 +469,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   restent vertes. ⚠ Limite inchangée et redite : le harnais ne peut pas piloter
   `visualViewport.offsetTop` — il mesure le câblage et la géométrie, jamais la réaction d'iOS. Ce
   réglage-là se juge sur appareil.
-
-## [5.12.6] — 2026-08-16
-### Le bouton « › » ne se dérobe plus sous le doigt, et un double-tap ne sélectionne plus le texte
-
-- **Le saut résiduel n'était pas le chrome : c'était le bouton lui-même** (signalé à l'usage : « ça
-  saute moins mais encore un peu »). Mesuré sur douze sauts d'affilée : la largeur du compte
-  d'occurrences prend **neuf valeurs distinctes** (27,1 → 34,3 px) — les chiffres n'ont pas la même
-  chasse, et « 10 / 70 » est plus long que « 9 / 70 » — si bien que le bouton « › » **se déplaçait
-  de 7 px à chaque clic**, c'est-à-dire sous le doigt qui le vise. Chiffres à chasse fixe et
-  largeur minimale : après correctif, **une** seule largeur, **une** seule position, sur les mêmes
-  douze sauts et aux deux moteurs.
-- **Un double-tap sur un contrôle est un geste, pas une intention de lire** (« empêche sélection de
-  texte en appuyant sur les boutons ‹ et › »). La navigation d'occurrences ne se sélectionne plus —
-  même idiome que le rail A→Z, qui le fait depuis toujours pour la même raison. Les titres
-  repliables des références suivent : on les tape aussi plusieurs fois de suite.
-- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25 ; les cinq sondes de la série
-  restent vertes.

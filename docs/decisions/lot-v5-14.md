@@ -243,3 +243,32 @@ ajouté aux DEUX vocabulaires, 20/20) ; le témoin « tout genre est classé » 
 **⚠ schema.sql À REJOUER sur l'instance** (le serveur refuse `sig` jusque-là — le secours ne
 s'amorce pas, rien d'autre ne change). Registre § 3.2 complété : les descripteurs du canal
 (adresses IP locales) transitent par le relais pendant la préparation, purgés comme le reste.
+
+## A210 — La bascule MANUELLE emprunte les canaux dormants (personne ne re-scanne)
+
+**Signalé à l'usage (v5.14.8)** : « lorsque je switche en ligne → en direct, tous les
+participants sont déconnectés ». Le secours chaud (A209) pré-apparie les canaux directs pendant
+que le cloud marche — mais le geste MANUEL du sélecteur les ignorait et repartait sur du QR :
+la même destination par deux chemins, dont un cassé. Corrigé en réutilisant le chemin éprouvé :
+
+- **`sig {t:'go'}`** — le réseau marche encore au moment du geste, donc l'hôte PRÉVIENT :
+  l'évènement est poussé DIRECTEMENT (hors file, `_io.push` immédiat) avant la transition ;
+  les invités le reçoivent à leur cadence de sondage (≤ 5 s) et re-joignent par leur canal
+  dormant. Aucun QR, aucun geste invité.
+- **La transition hôte est CELLE de la panne** (`slSbHostSwitch`, inchangée) — pas un second
+  mécanisme à fiabiliser ; seule l'annonce diffère (« Le partage passe en direct — les
+  participants suivent. » au lieu de « Le réseau a lâché »).
+- **Tentatives espacées côté invité** : l'hôte sert peut-être une ou deux secondes APRÈS le
+  join — trois essais à 2 s couvrent la course (jamais de boucle serrée). Un échec garde le
+  canal, comme en A209.
+- **Le partage cloud est TERMINÉ côté serveur après coup** (meilleur effort, `_ioRest.end`) :
+  pas de session zombie jusqu'au TTL, et un invité SANS canal dormant voit l'écran « partage
+  terminé » existant — pas un silence.
+- **Le dialogue dit la vérité AVANT le geste** : « les participants basculent automatiquement »
+  si tous les canaux dorment, « N sur M basculent, les autres devront scanner » sinon, et
+  l'ancien texte (chacun re-scanne) uniquement quand AUCUN canal n'est prêt — l'honnêteté du
+  compte remplace une promesse uniforme.
+
+**Limite nommée** : le sens retour (direct → en ligne) reste un re-appariement par code — le
+canal direct ne peut pas distribuer de nouveaux secrets cloud sans machinerie d'admission
+inverse ; à ouvrir si le besoin se confirme sur le terrain.
