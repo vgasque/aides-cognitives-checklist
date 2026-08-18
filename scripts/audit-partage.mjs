@@ -2216,6 +2216,45 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   if (brE !== br) await brE.close();
 });
 
+
+/* ═══ v5.14.16 — LE RETOUR OPTIQUE (maquette 05) : repères datés, jamais une coche ═══
+   Tout le chemin SAUF la caméra (le décodeur QR a son témoin dédié) : emballage ltRetPack →
+   trames fontaine → réception → slOptiqueGot. Trois propriétés : les repères ANNOTENT le
+   journal de la session vive ; une AUTRE session est refusée sans écriture ; re-scanner le
+   même retour ne duplique RIEN (ids stables). */
+await sec('v5.14.16 · retour optique : repères datés, refus d\'une autre session, idempotence', async () => {
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const sess = Runtime.sessionId;
+    const roule = async (z) => {
+      const tx = ltTx(z, 1);
+      tx.setH4(new Uint8Array(await crypto.subtle.digest('SHA-256', z)).slice(0, 4));
+      const rx = ltRx();
+      for (let i = 0; i < tx.k + Math.ceil(tx.k / 4) + 4; i++)
+        if (ltRxFeed(rx, tx.frameAt(i)) === 'done') break;
+      return ltSnapUnpack(ltRxBytes(rx)); };
+    const avant = (shareSnap(Runtime, false).events || []).length;
+    const o = await roule(await ltRetPack(sess, [{ id: 'zz1', t: Date.now(), ref: null }]));
+    const ok1 = o ? await slOptiqueGot(o, () => {}) : null;
+    const apres1 = (shareSnap(Runtime, false).events || []).length;
+    const ok2 = await slOptiqueGot(o, () => {});          // MÊME retour, re-scanné
+    const apres2 = (shareSnap(Runtime, false).events || []).length;
+    const oAutre = await roule(await ltRetPack('sess-autre', [{ id: 'zz2', t: Date.now(), ref: null }]));
+    const okAutre = oAutre ? await slOptiqueGot(oAutre, () => {}) : null;
+    const apres3 = (shareSnap(Runtime, false).events || []).length;
+    const ids = (shareSnap(Runtime, false).events || []).map(e => e.id);
+    return { sess: !!sess, avant, ok1, apres1, ok2, apres2, okAutre, apres3,
+             a1: ids.includes('zz1'), a2: ids.includes('zz2') }; });
+  t('le retour est reconnu et le journal s\'annote', r.sess && r.ok1 === true && r.a1
+    && r.apres1 === r.avant + 1, JSON.stringify(r));
+  t('re-scanner le même retour ne duplique rien', r.ok2 === true && r.apres2 === r.apres1,
+    'n=' + r.apres2);
+  t('une AUTRE session est refusée, zéro écriture', r.okAutre === false && !r.a2
+    && r.apres3 === r.apres2, JSON.stringify({ okAutre: r.okAutre, a2: r.a2 }));
+  await page.close();
+});
+
 const bilanSec = sec.bilan();
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : '')

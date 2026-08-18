@@ -449,3 +449,33 @@ doctrine (l'hôte est l'autorité) : l'hôte repasse « En ligne » — les invi
 suivent seuls — puis donne un code neuf à l'isolé. Piste future nommée, non ouverte : un
 « billet de retour » pré-distribué par le canal direct pendant qu'il vit (le symétrique du
 secours chaud), qui permettrait à l'isolé de rejoindre seul un partage cloud ré-ouvert.
+
+## A218 — L'aller-retour « par l'écran », aux termes de la maquette 05 — et l'instantané qui partait VIDE
+
+**Signalé à l'usage (v5.14.16)**, quatre demandes en une version :
+
+- **La jauge ne paraît que quand une fontaine coule** : un scan de code UNIQUE (rejoindre en
+  ligne, appariement direct) n'a rien à jauger — flash vert 120 ms (240 → 120, maquette 03) +
+  vibration, pas de son. Le premier appel à `ui.ring` révèle la jauge ; les appelants
+  n'annoncent plus `ring:true`.
+- **L'émission parle comme la maquette 04** : « le code change tout seul — restez face à
+  face » + « en cours d'envoi » — plus jamais « bloc x/x / réparation » (le compte technique
+  n'apprenait rien). Boucle d'affichage FACTORISÉE (`ltShowLoop`), employée par l'émission
+  complète et par le retour.
+- **L'ALLER-RETOUR** : la sémantique est celle de la maquette 05, FIGÉE — « ses propres gestes
+  remontent en repères datés qui annotent le journal de l'hôte sans toucher une seule coche —
+  "Continuer seul" réutilisé tel quel ; pas de fusion → pas de conflit ». Le miroir gagne
+  « Resynchroniser » + « Renvoyer mes repères » (fontaine `ltRetPack` : sess + journal
+  référentiel SEUL, ids stables) ; la feuille d'émission de l'hôte gagne « Recevoir en
+  retour » (l'émission s'arrête, filme, annote, puis REPREND — l'instantané ré-emballé porte
+  les repères reçus). Reconnaissance AUTOMATIQUE par identité de session : le retour n'annote
+  QUE la session vive de cet appareil ; autre session ou autre aide = un message, zéro
+  écriture ; re-scanner le même retour ne duplique rien (upsert par id — témoin dédié, 3/3).
+- **TROUVÉ PAR LE TÉMOIN, et c'était le plus grave : l'instantané optique partait VIDE depuis
+  la v5.14.0.** `shareSnap(R,…)` prend le Runtime en paramètre — `slOptiqueTx` l'appelait avec
+  `null` : la fiche voyageait, les coches, minuteurs et repères JAMAIS. Le miroir montrait une
+  session au propre, pas la session. (Les deux appels à base vide restants sont VOULUS : le
+  diff-depuis-rien est le mécanisme du rembobinage initial.)
+- ⚠ Leçon de harnais payée dans la foulée : un remplacement GLOBAL dans le fichier du harnais a
+  aussi réécrit la base vide (voulue) du témoin du journal référentiel — rouge immédiat à la
+  passe complète, restauré. Un patch scripté mutile ce qu'il ne distingue pas (famille `$$`).

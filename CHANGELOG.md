@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.14.16] — 2026-08-18
+### L'aller-retour « par l'écran » — et l'instantané optique qui partait vide
+
+- **Synchronisation par l'écran, dans les deux sens** (demandé) : l'invité qui a reçu un
+  miroir peut « Renvoyer mes repères » — l'hôte tape « Recevoir en retour », filme, et son
+  journal s'annote de repères datés (jamais une coche : la sémantique de la maquette 05,
+  « Continuer seul » réutilisé). L'émission reprend ensuite d'elle-même, enrichie. Même
+  session reconnue automatiquement ; une fontaine d'une autre session ou d'une autre aide est
+  refusée sans rien écrire ; re-scanner ne duplique rien.
+- **L'instantané optique partait VIDE depuis la v5.14.0** (trouvé par le nouveau témoin) : la
+  fiche voyageait, les coches, minuteurs et repères jamais — le miroir montrait une session au
+  propre. Corrigé (`shareSnap(Runtime,…)`).
+- **La jauge ne s'affiche que pendant une fontaine** (demandé) : un scan de code unique se
+  conclut par un flash vert 120 ms + vibration, sans son ni jauge (maquette 03).
+- **L'émission parle comme la maquette 04** : « le code change tout seul — restez face à
+  face » + « en cours d'envoi » — fini le « bloc x/x / réparation ».
+
 ## [5.14.15] — 2026-08-18
 ### La feuille directe a les commandes de l'hôte, la réouverture retrouve son mode
 
@@ -364,31 +381,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
 - Mesuré aux deux moteurs : page défilée de 1500 px **et** remontée en haut, le champ reste
   atteignable (`elementFromPoint` le rend lui-même) et dans la zone visible. `npm run check` 20/20,
   `npm test` 2×1126, audit COMPLET 25/25.
-
-## [5.13.2] — 2026-08-16
-### La sidebar ne bouge plus, quoi qu'il arrive — parce qu'elle décrit le rectangle visible
-
-- **Question de l'auteur, après que « libérer » a échoué** : « pas moyen de fixer la sidebar de
-  manière à ce que ça ne bouge pas quoi qu'il arrive, tout en la gardant défilable si le contenu est
-  plus long que l'écran ? » **Si** — et la preuve était sous nos yeux depuis la v5.10.9 : les
-  **fenêtres** ne bougent pas, ce que l'usage avait confirmé. Pourquoi elles et pas le reste ? Parce
-  qu'elles sont **épinglées ET dimensionnées** sur le viewport visuel (`top` = décalage,
-  `height` = hauteur visible). Elles ne décrivent pas une position dans la page : **elles décrivent
-  le rectangle visible**. Rien ne peut les en sortir.
-- **Tout ce qui a échoué n'en faisait qu'une moitié** : « collant sous l'en-tête » (une position,
-  pas de taille), « collant + décalage » (position corrigée, taille toujours celle de la page),
-  « libéré » (ni l'un ni l'autre). Une moitié de rectangle ne tient pas.
-- Le temps que le clavier est ouvert, **le logement du champ de recherche devient donc une couche du
-  viewport visuel** — la colonne sommaire en voie large, la barre fixée en voie étroite. Et comme sa
-  hauteur est exactement celle du visible, **elle défile à l'intérieur** dès que son contenu
-  dépasse : c'est la seconde moitié de la demande, et elle vient avec la première. `left` et
-  `width` restent `auto`, donc la colonne garde la place que la grille lui donne — rien n'est mesuré
-  en JS.
-- Mesuré aux deux moteurs et aux deux largeurs, en la soumettant à **tout** ce qui la faisait bouger
-  jusqu'ici : zone visible de 400 px commençant 380 px plus bas → elle est à 380, haute de 400, dans
-  sa colonne ; on défile la page de 1200 px → **elle ne bouge pas d'un pixel** ; le système
-  re-panoramique (ce que fait iOS à chaque frappe) → elle suit exactement le nouveau rectangle et le
-  champ reste visible ; clavier refermé → elle retrouve son ancrage d'avant.
-- La décoration, elle, reste **libérée** (v5.13.0) : en-tête, quai de crise, barre de sélection,
-  poignée d'édition, volet du quai, rail A→Z. `npm run check` 20/20, `npm test` 2×1126, audit
-  COMPLET 25/25.
