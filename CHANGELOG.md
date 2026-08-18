@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.14.11] — 2026-08-18
+### Le dialogue « Passer en direct ? » dit la bonne chose dans chaque cas
+
+- **« Chaque participant devra scanner… » ne s'affiche plus quand personne n'a rejoint**
+  (signalé : « pourquoi c'est marqué… ») : ce message confondait deux réalités. Personne n'a
+  encore rejoint → il n'y a personne à emporter, le dialogue dit simplement que le code
+  d'appariement s'affichera. Des participants suivent mais leurs canaux dormants ne sont pas
+  prêts → le dialogue explique la pastille (grise = pas prêt, comptez quelques secondes après
+  chaque arrivée), annonce le coût du « maintenant » (re-scan) et le bénéfice d'attendre la
+  pastille verte (bascule sans scan) — bouton « Passer en direct quand même ».
+
 ## [5.14.10] — 2026-08-18
 ### La mise à jour prévient à nouveau, à coup sûr
 
@@ -437,25 +448,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   ⚠ **Ce qu'il faut vérifier sur appareil** : si l'en-tête redevenait introuvable clavier ouvert, la
   conclusion serait que `sticky` ne suit pas ce panoramique — et le remède ne serait pas un décalage
   de plus, mais de passer l'en-tête en `fixed` piloté sur l'évènement du viewport.
-
-## [5.12.9] — 2026-08-16
-### Ce qui bougeait à chaque frappe, c'était un défilement inutile — pas le chrome
-
-- **Deuxième vidéo, et elle a écarté ma dernière hypothèse** (« moins marqué mais toujours présent
-  à chaque frappe de clavier »). J'y ai d'abord cherché la barre de suggestions d'iOS, qui aurait
-  changé la hauteur du clavier à chaque lettre : l'enregistrement montre qu'elle **ne bouge pas**.
-  La cause était ailleurs, et bien plus simple.
-- **`pfRun` se termine par `pfGo(0)`** : chaque lettre tapée relançait un `scrollIntoView` vers la
-  première occurrence. Mesuré au harnais : la page ne bougeait **pas d'un pixel** (`scrollY`
-  identique d'une frappe à l'autre) — mais **l'appel** était bien émis à chaque fois, **cinq fois
-  pour six lettres**. Or sur iOS c'est l'appel lui-même qui fait re-panoramiquer le viewport visuel
-  pour garder le champ focalisé sous les yeux ; le chrome, qui suit ce panoramique, bougeait donc à
-  chaque lettre.
-- **On ne supprime pas le suivi, on supprime le geste inutile qui le déclenchait** : pendant la
-  frappe, la page ne se déplace que si la première occurrence n'est **pas déjà sous les yeux** —
-  et « sous les yeux » se calcule sur la bande réellement visible (clavier compris) et sous le
-  chrome collant. Les flèches ‹ ›, elles, visent explicitement une occurrence et défilent toujours.
-- Mesuré aux deux moteurs : **zéro** appel pendant les six frappes quand la première occurrence est
-  visible, **un** quand elle ne l'est pas, **un** par clic sur ‹ ›. Vérifié capable d'échouer
-  (comportement d'avant réintroduit : cinq appels).
-- `npm run check` 20/20, `npm test` 2×1126, audit COMPLET 25/25.

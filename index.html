@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-tR0nUy9eMVQbq8gI84TBVrfyOrBXsKhyrOpNfoh71WU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-qzz8aqLj3+iNDjqEFlZtfZw/NsIIo+auukMJvuEucyY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.10';
+const APP_VERSION='5.14.11';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -31154,10 +31154,20 @@ function slModeSegBind(active){
               +'devront scanner le nouveau code.',
             {title:'Passer en direct ?',yes:'Passer en direct'}))return;
           slSbGoSwitch();return;}
-        if(!await confirmDlg('Le partage continue EN DIRECT, sans serveur, sur le réseau local. '
-          +'Chaque participant devra scanner le nouveau code (les canaux automatiques ne sont '
-          +'pas encore prêts). Votre session ne bouge pas.',
-          {title:'Passer en direct ?',yes:'Passer en direct'}))return;
+        /* prets = 0 : DEUX réalités différentes, dites séparément (v5.14.11, signalé) —
+           personne n'a rejoint (rien à emporter, aucun avertissement à donner) ; ou des
+           participants suivent mais leurs canaux dormants ne sont pas prêts (quelques
+           secondes après chaque arrivée — pastille « En direct » verte = prêt). */
+        if(!total){
+          if(!await confirmDlg('Le partage passe EN DIRECT, sans serveur. Personne n\'a '
+            +'encore rejoint — le code d\'appariement s\'affichera pour vos invités.',
+            {title:'Passer en direct ?',yes:'Passer en direct'}))return;
+          const f=Runtime.fiche;await Share.endShare();startShareLocal(f);return;}
+        if(!await confirmDlg('Les canaux automatiques ne sont pas prêts (pastille « En '
+          +'direct » grise — comptez quelques secondes après l\'arrivée de chaque '
+          +'participant). Basculer MAINTENANT : chaque participant devra scanner le nouveau '
+          +'code. Attendre la pastille verte permet une bascule sans scan.',
+          {title:'Passer en direct ?',yes:'Passer en direct quand même'}))return;
         const f=Runtime.fiche;await Share.endShare();startShareLocal(f);return;}
       startShareLocal((SL&&SL.f)||Runtime.fiche);return;}
     if(m==='cloud'){
