@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.14.6] — 2026-08-18
+### Le sélecteur de mode est LE segmenté de l'application — pas une imitation
+
+- Le sélecteur « En ligne · En direct · Par l'écran » utilise désormais le composant segmenté
+  CANONIQUE de l'application (`.seg`/`.seg-pill`/`.seg-btn` — celui de « Créer » et de la
+  bascule d'affichage) : pastille glissante sur trois pistes égales, registre
+  `--primary-soft`/`--primary-dk`, cibles 44 px. Les deux tentatives intermédiaires (boutons
+  bordés de `.statuseg`, puis un conteneur-pilule maison) sont SUPPRIMÉES — le design system
+  existait, il suffisait de le réutiliser (signalé à l'usage, capture à l'appui). La légende
+  dit la raison quand un cran est indisponible (« “En ligne” reviendra avec internet »).
+- Vérifié à la capture contre la maquette 08 : ligne d'état à point pulsant, segmenté à
+  pastille, légende, actions empilées pleine largeur.
+
 ## [5.14.5] — 2026-08-18
 ### Le secours chaud : internet tombe, le partage ne s'en aperçoit presque pas
 
@@ -465,25 +478,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   COMPLET 25/25. ⚠ Comme pour toute la série `--vvt` : le comportement **sous vrai clavier iOS** ne
   se vérifie que sur appareil — le harnais mesure le câblage et la géométrie, pas la réaction du
   système.
-
-## [5.12.4] — 2026-08-16
-### La croix d'effacement cesse de bouger avec ce qu'on tape
-
-- **Elle était trop basse, trop à droite — et elle se déplaçait pendant la frappe** (signalé à
-  l'usage, deux fois : « pas centrée ni verticalement ni horizontalement », puis « en fait change
-  de position en fonction de ce qu'on écrit »). Une seule cause : je l'avais centrée sur le
-  **conteneur** du champ, et ce conteneur est une colonne qui **grandit avec ce qu'on tape** — la
-  navigation d'occurrences puis les documents trouvés s'y ajoutent. Mesuré : 52 px à vide, 88 px
-  dès la première occurrence, donc une croix qui descend de 14 px à la deuxième lettre ; et son
-  bord droit dépassait de 2 px celui du champ, le conteneur ayant 8 px de rembourrage que le champ
-  n'a pas.
-- **Le repère doit être le champ, jamais ce qui l'entoure.** La croix a désormais sa propre boîte,
-  qui n'enveloppe que l'input : centrée dessus une fois pour toutes, à 6 px de son bord droit —
-  la même géométrie que la croix de l'accueil, dont elle est déjà le composant.
-- Mesuré aux deux moteurs et aux deux largeurs, sur les quatre états successifs d'une frappe
-  (une lettre, des résultats, zéro résultat, des résultats à nouveau) : écart vertical **0**,
-  écart droit **6 px**, position **identique** dans les quatre. Cible tactile 44 px conservée (ce
-  champ vit aussi dans la feuille « Toute la fiche » du mode crise).
-- Note de méthode : mes premiers témoins mesuraient le centrage **contre le conteneur** — ils
-  étaient donc verts sur le défaut même qu'ils prétendaient couvrir. Un témoin doit mesurer contre
-  la référence que l'œil utilise, pas contre la boîte la plus facile à interroger.
