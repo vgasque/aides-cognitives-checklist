@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-spawdVmzbsO8eVfpeIdFVwQVayrctsLXHSpKlyv6nuE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-J1fSyxGWxlGgd8REnyGbv9TKqudnEUo0wP/qbPuz9Ao='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.18';
+const APP_VERSION='5.14.19';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14595,7 +14595,8 @@ function applyViewChrome(){
       enregistré »), et qu'il ne manquait que la TEXTURE — laquelle vit sur l'en-tête. Un bandeau
       sans titre et sans phrase n'y serait plus qu'une bande hachurée vide. Restent l'exercice et
       l'invité, qui ont une PHRASE que la pilule ne dit pas. */
-   const bandOff=!(Runtime.exercise||(typeof Share!=='undefined'&&Share.mode==='guest'&&!state.previewFrom));
+   const bandOff=!(Runtime.exercise
+     ||(typeof sharedShown==='function'&&sharedShown()&&!state.previewFrom));
    /* ⚠ ESSAYÉ, MESURÉ, REFUSÉ (v5.0.0) — EFFACER LE BANDEAU-TITRE AU DÉMARRAGE.
       L'idée : il pèse 64 px à 320 et 390 px (44 à 430) en haut du premier écran de session, et le
       RELAIS de la barre (`#brandTitle`, v4.23.0) sait déjà porter le titre — on ne le supprimerait
@@ -14658,7 +14659,7 @@ function applyViewChrome(){
          tenant, ici, à partir de l'ÉTAT et de rien d'autre. */
       const xEss=crisis&&!!state.previewFrom;
       const xExo=on&&!xEss&&!!Runtime.exercise&&Runtime.ficheId===state.fiche.id;
-      const xInv=on&&!xEss&&!xExo&&Share.mode==='guest';
+      const xInv=on&&!xEss&&!xExo&&(typeof sharedShown==='function'&&sharedShown());
       bs.classList.toggle('exo',xExo);bs.classList.toggle('inv',xInv);
       m.textContent=xEss?'■ Aperçu':(!on?'':(xExo?'▲ Exercice':(xInv?'▪ Vous suivez':'■ Mode crise')));
       syncBrandSur();}}
@@ -14691,7 +14692,7 @@ function applyViewChrome(){
         L'EXERCICE GARDE LA PRIORITÉ sur le placard, et ce n'est pas négociable : « ceci est une
         répétition » prime sur « vous suivez » — le premier protège d'une méprise clinique, le
         second est une information de rôle, que le quai porte de toute façon en permanence. */
-     const inv=!exo&&Share.mode==='guest'&&!state.previewFrom;
+     const inv=!exo&&!state.previewFrom&&(typeof sharedShown==='function'&&sharedShown());
      /* L'ESSAI EST UNE EXCEPTION, ET IL L'EST DEVENU (cf. le bloc CSS `.ess`) : la barre dit le
         mode, le bandeau dit ce que la pilule ne peut pas dire — la texture et la conséquence. */
      const ess=!exo&&!!state.previewFrom;
@@ -14943,7 +14944,10 @@ function applyViewChrome(){
   syncZoomWidth();
   // Le bridage suit le RÔLE, pas le mode : un invité PROMU lead retrouve tout, sans re-rendu —
   // seule la classe change, donc aucune géométrie ne bouge quand la main passe.
-  try{document.body.classList.toggle('share-scribe',Share.mode==='guest'&&Share.role!=='lead');}catch(e){}
+  /* Le bridage du scribe ne vaut que SUR la fiche partagée (v5.14.19) — sur SES aides, avec SA
+     session, l'invité garde tous ses gestes. Le miroir (sans Share.mode) reste libre aussi. */
+  try{document.body.classList.toggle('share-scribe',
+    Share.mode==='guest'&&Share.role!=='lead'&&sharedShown());}catch(e){}
   /* LIEN MORT : L'ÉCRAN LE DIT, ET SES CONTRÔLES LE MONTRENT (proposition utilisateur). Même
      mécanique que `share-scribe` — une CLASSE sur `body`, aucune géométrie touchée, donc rien qui
      bouge sous les yeux de quelqu'un qui n'a rien demandé. Cf. `.share-over` (CSS) et
@@ -18773,7 +18777,10 @@ function vfMapNorm(m){const o={};for(const k in (m||{})){const n=vfNorm(m[k]);if
 function crisisOnScreen(){
   if(state.view!=='read')return false;
   if(Runtime.started)return true;
-  try{return Share.mode==='guest'&&!!Runtime.fiche;}catch(e){return false;}}
+  /* La branche « invité » a été RETIRÉE (v5.14.19, signalé : l'en-tête de crise suivait
+     l'invité sur SES aides). Sur la fiche PARTAGÉE, `Runtime.started` est vrai — la branche ne
+     couvrait donc QUE le cas fautif : une autre fiche, sans session, marquée « crise ». */
+  return false;}
 /* ═══ JETON D'ÉTAT DU PARTAGE DANS LE QUAI ═══════════════════════════════════════════════════
    Le partage doit dire DEUX choses en permanence, à position constante, sur les deux écrans : QUI
    TIENT LA MAIN (AC 120-71B §6.4 pt 1 : aucune ambiguïté possible, jamais) et SI CE QU'ON VOIT EST
@@ -31240,23 +31247,69 @@ function slLocalCand(c){return (c||[]).some(x=>{const a=String(x).split('~')[0];
    les pastilles de la maquette 08 (vert = cran actif, gris sinon, ⧗ pour le ponctuel).
    Cliquer le cran ACTIF ne fait rien ; cliquer un autre cran mène à un état qui PORTE AUSSI
    le sélecteur — il ne disparaît plus jamais. */
+/* JOIGNABILITÉ MESURÉE (v5.14.19, signalé : « retrouver internet ne rend pas la pastille
+   verte — pareil en Wi-Fi sans connexion ») : `navigator.onLine` dit « une interface réseau
+   est levée », pas « le serveur répond » — sur un Wi-Fi SANS internet il répond vrai, et
+   inversement rien ne repeignait la pastille quand la connexion revenait. Tant qu'un sélecteur
+   est à l'écran, une sonde légère (HEAD auth/health, 3,5 s de garde) interroge le serveur
+   toutes les 8 s + à chaque évènement online/offline, et repeint le sélecteur EN PLACE. */
+let _slNet={ok:null,timer:0,busy:false};
+async function slNetProbe(){
+  if(_slNet.busy)return;_slNet.busy=true;
+  let ok=false;
+  /* Les harnais posent `__acNetOk` : une porte de commit ne dépend jamais du réseau du poste. */
+  if(typeof window!=='undefined'&&window.__acNetOk!==undefined){
+    _slNet.busy=false;
+    if(window.__acNetOk!==_slNet.ok){_slNet.ok=!!window.__acNetOk;try{slSegNetPaint();}catch(e){}}
+    return;}
+  try{
+    if(navigator.onLine!==false){
+      const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),3500);
+      const r=await fetch(SUPA.url+'/auth/v1/health',
+        {method:'HEAD',cache:'no-store',signal:ctl.signal,headers:{apikey:SUPA.key}});
+      clearTimeout(t);ok=!!r&&(r.ok||r.status===401||r.status===404);}
+  }catch(e){ok=false;}
+  _slNet.busy=false;
+  if(ok!==_slNet.ok){_slNet.ok=ok;try{slSegNetPaint();}catch(e){}}}
+function slSegNetPaint(){
+  const seg=document.querySelector('#shareBody .seg');if(!seg)return;
+  const online=Auth.signedIn()&&_slNet.ok===true;
+  const on=seg.querySelector('.seg-btn.on');
+  const active=(on&&on.dataset.shmode)||'cloud';
+  const bc=seg.querySelector('.seg-btn[data-shmode="cloud"]');
+  if(bc){bc.disabled=!online&&active!=='cloud';
+    const d=bc.querySelector('.sdot');if(d)d.classList.toggle('ok',online&&active!=='cloud');}
+  const cap=document.querySelector('#shareBody .seg-cap');
+  if(cap)cap.textContent=(online||active==='cloud')
+    ?'l\u2019app choisit seule \u2014 forcer si besoin'
+    :'\u00ab En ligne \u00bb reviendra avec internet';}
+function slNetWatch(){
+  clearInterval(_slNet.timer);
+  _slNet.timer=setInterval(()=>{
+    if(!shareModal||!shareModal.classList.contains('on')
+      ||!document.querySelector('#shareBody .seg')){clearInterval(_slNet.timer);_slNet.timer=0;return;}
+    slNetProbe();},8000);
+  slNetProbe();}
+window.addEventListener('online',()=>{if(_slNet.timer)slNetProbe();});
+window.addEventListener('offline',()=>{_slNet.ok=false;try{slSegNetPaint();}catch(e){}});
 function slModeSegHtml(active){
-  const online=Auth.signedIn()&&Sync.online();
+  const online=Auth.signedIn()&&(_slNet.ok===null?Sync.online():_slNet.ok);
   const idx={cloud:0,direct:1,optic:2}[active]||0;
   const b=(mode,lbl,dot,dis)=>'<button type="button" class="seg-btn'+(active===mode?' on':'')
     +'" data-shmode="'+mode+'" role="radio" aria-checked="'+(active===mode?'true':'false')+'"'
     +(dis?' disabled':'')+'>'+dot+'<span>'+lbl+'</span></button>';
   return '<div class="seg" style="--seg-n:3;--seg-i:'+idx+'" role="radiogroup" aria-label="Mode de partage">'
     +'<span class="seg-pill" aria-hidden="true"></span>'
-    +b('cloud','En ligne','<span class="sdot'+(online?' ok':'')+'"></span>',!online&&active!=='cloud')
+    +b('cloud','En ligne','<span class="sdot'+(online&&active!=='cloud'?' ok':'')+'"></span>',!online&&active!=='cloud')
     +b('direct','En direct','<span class="sdot'
       +((typeof slSbReady==='function'&&slSbReady())||slLiveOk()?' ok':'')+'"></span>',false)
     +b('optic','Par l\u2019écran','<span class="sdot t" aria-hidden="true">\u29d7</span>',false)
-    +'</div><p class="sl-cap">'
+    +'</div><p class="sl-cap seg-cap">'
     +(online||active==='cloud'
       ?'l\u2019app choisit seule \u2014 forcer si besoin'
       :'\u00ab En ligne \u00bb reviendra avec internet')+'</p>';}
 function slModeSegBind(active){
+  slNetWatch();
   document.querySelectorAll('#shareBody [data-shmode]').forEach(btn=>btn.onclick=async()=>{
     const m=btn.dataset.shmode;
     if(m===active)return;

@@ -715,6 +715,10 @@ for(const w of [320,360,390]){
     const avant=el.hidden;                                  // aucune session locale : quai absent
     Share.mode='guest';Share.status='active';Share.role='scribe';
     Share.lastOk=Date.now();Share._act=Date.now();
+    /* LE CONTRAT RÉEL (v5.14.19) : chez l'invité, `openSharedFiche` pose TOUJOURS
+       `started=true` et `sessionId` nul — c'est CE fait qui porte le chrome de crise, plus
+       une branche sur le mode global (elle suivait l'invité jusque sur SES aides, signalé). */
+    Runtime.started=true;Runtime.sessionId=null;
     Runtime.startedAt=Date.now()-65000;                     // le chrono REÇU de l'hôte
     updateRtStrip();await new Promise(x=>setTimeout(x,250));
     const lu=()=>{const l=el.querySelector('.seg-l.seg-sess');

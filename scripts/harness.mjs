@@ -172,6 +172,9 @@ export function secRunner() {
    fait par le harnais (les URL et viewports varient). Rendu final attendu : l'accueil avec au
    moins une rangée ouvrable. */
 export async function amorce(page) {
+  /* BANC HERMÉTIQUE (v5.14.19) : la sonde de joignabilité du sélecteur de mode interroge le
+     VRAI serveur — une porte de commit ne dépend jamais du réseau du poste. Ici, joignable. */
+  try { await page.evaluate(() => { window.__acNetOk = true; }); } catch (e) {}
   await page.waitForFunction(() => !document.querySelector('.boot-load'));
   await page.evaluate(() => {
     const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent));

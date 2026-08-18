@@ -557,3 +557,29 @@ Réponse écrite au registre (§ 3.2, « Modèle de menace du canal direct ») ;
    règles 5 et 15 aux points d'entrée.
 Limites dites : les noms mDNS révèlent la PRÉSENCE d'un appareil (pas son contenu) ; l'appareil
 physiquement compromis reste hors modèle, comme partout.
+
+## A222 — La pastille « En ligne » MESURE la joignabilité ; le chrome de crise cesse de suivre l'invité
+
+**Deux signalements (v5.14.19)** :
+
+- **« Retrouver internet ne rend pas la pastille verte — pareil en Wi-Fi sans connexion »** :
+  deux défauts empilés. (1) Le sélecteur n'était peint qu'au rendu de la feuille — rien ne le
+  rafraîchissait au changement de connectivité. (2) `navigator.onLine` dit « une interface
+  réseau est levée », pas « le serveur répond » — sur un Wi-Fi SANS internet il répond vrai.
+  La pastille « En ligne » repose désormais sur une JOIGNABILITÉ MESURÉE : tant qu'un sélecteur
+  est à l'écran, une sonde légère (HEAD `auth/v1/health`, garde 3,5 s, CORS vérifié) interroge
+  le serveur toutes les 8 s + aux évènements online/offline, et repeint le sélecteur EN PLACE
+  (`slSegNetPaint` — crochet `.seg-cap`, exemption motivée de check-classes). BANC HERMÉTIQUE :
+  les harnais posent `window.__acNetOk` — une porte de commit ne dépend jamais du réseau du
+  poste (l'échec l'a prouvé sur-le-champ : la sonde réelle a rougi l'E2E).
+- **« Le bug d'en-tête chez l'invité n'est pas réglé en 5.14.18 »** — exact : la v5.14.18 avait
+  corrigé l'ENTRÉE (bouton Démarrer, coches) mais QUATRE écrivains du chrome restaient au mode
+  global : `crisisOnScreen` (branche invité), `xInv` (mot du mode), `inv` (bandeau « ▪ Vous
+  suivez »), `share-scribe` (bridage), `bandOff`. Le bandeau invité suivait donc l'invité sur
+  SES aides. Tous scopés sur le CONTRAT RÉEL : chez l'invité, la fiche suivie porte TOUJOURS
+  `started=true` et `sessionId` nul (`openSharedFiche`) — c'est CE couple qui porte le chrome
+  (`sharedShown`), jamais le mode. Sonde aller-retour verte : fiche partagée = chrome complet ;
+  SA propre aide = rigoureusement normale ; retour = chrome restauré.
+- **Témoins mis au contrat réel** (3 unitaires + 2 stubs de harnais qui construisaient un invité
+  SANS `started` — un état qui n'existe pas dans l'app) + témoin nouveau : « SES autres aides,
+  sans session, ne sont JAMAIS une crise ».

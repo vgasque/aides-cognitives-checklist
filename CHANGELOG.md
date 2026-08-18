@@ -1,5 +1,18 @@
 # Journal des modifications
 
+## [5.14.19] — 2026-08-19
+### La pastille « En ligne » mesure vraiment — et le chrome de crise lâche les aides propres de l'invité
+
+- **La pastille « En ligne » verdit quand le serveur répond, et seulement alors** (signalé :
+  « retrouver internet ne rend pas la pastille verte — pareil en Wi-Fi sans connexion ») :
+  tant que le sélecteur de mode est à l'écran, une sonde légère interroge le serveur toutes
+  les 8 secondes et repeint la pastille sur place. Un Wi-Fi sans internet ne la trompe plus,
+  et le retour d'internet se voit en quelques secondes, dans tous les modes.
+- **Le bandeau « Vous suivez » ne suit plus l'invité sur ses propres aides** (signalé — la
+  v5.14.18 avait corrigé l'entrée, pas l'en-tête) : bandeau, mot du mode, mode crise et
+  bridage du scribe ne valent plus que sur la fiche réellement suivie ; retour, aller et
+  chrome vérifiés par sonde dans les deux sens.
+
 ## [5.14.18] — 2026-08-18
 ### Les aides propres de l'invité redeviennent normales — et l'invité relaie par l'écran
 
@@ -365,14 +378,3 @@ Le partage de session ne dépend plus d'internet. Trois canaux, un seul geste (�
   bloquer ; verrouillage d'écran = suspension, réparée par ré-appariement ; « par l'écran » =
   synchro par geste, pas du direct). Le § 2 ne bouge pas : ces modes RECOPIENT, rien n'est
   déduit. Doctrine du lot : `docs/decisions/lot-v5-14.md` (A198-A206).
-
-## [5.13.5] — 2026-08-16
-### « Vous gardez le contrôle »
-
-- Le volet **Relecture** des deux éditeurs — aide cognitive et référence — disait « aucune de ces
-  remarques n'empêche d'enregistrer, **c'est vous qui connaissez votre service** ». Il dit désormais
-  « **vous gardez le contrôle** » (décision de l'auteur). Le rôle de la phrase ne change pas : dire
-  en toutes lettres que le volet n'est **jamais bloquant**, ce qui est la contrepartie du registre
-  ambre. Un seul texte, une seule occurrence, les deux éditeurs le partagent. La doctrine qui le
-  cite (`conventions-de-code.md`) est mise à jour en même temps — une formule citée ailleurs qu'à
-  son point d'émission est une formule qui diverge.

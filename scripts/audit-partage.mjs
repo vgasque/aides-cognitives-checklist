@@ -1793,6 +1793,9 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
     // On passe en INVITÉ par le vrai chemin d'affichage : le placard suit un rendu.
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
     Share.lastOk = Date.now(); Share.offset = 0;
+    /* Contrat réel v5.14.19 : chez l'invité, la fiche suivie n'a JAMAIS de dossier local —
+       c'est ce couple (started, sessionId nul) qui porte le chrome, plus le mode global. */
+    Runtime.sessionId = null;
     render(); await new Promise(x => setTimeout(x, 450));
     o.inviteTag = tag();
     o.inviteHachure = hach(band);
@@ -1869,6 +1872,7 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
     const band = document.getElementById('crisisBand');
     const H = () => Math.round(band.getBoundingClientRect().height * 10) / 10;
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'i'; Share.status = 'active';
+    Runtime.sessionId = null;    // contrat réel v5.14.19 : fiche suivie = sans dossier local
     Share.lastOk = Date.now(); Share.offset = 0;
     render(); await new Promise(x => setTimeout(x, 350));
     const avec = H();
@@ -2087,6 +2091,7 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
      L'invité n'a besoin que d'une app démarrée. */
   await G.waitForFunction(() => typeof Share === 'object' && typeof openSharedFiche === 'function',
     null, { timeout: 15000 });
+  await G.evaluate(() => { window.__acNetOk = true; });
 
   // Le relais : un hub en mémoire dans la page HÔTE + un guichet BroadcastChannel pour l'invité.
   await H.evaluate(() => {
@@ -2318,13 +2323,20 @@ await sec('v5.14.17 · retour de l\'invité + menu sans export sur l\'aide reçu
     openRead(fiches[0].id);
     await new Promise(x => setTimeout(x, 400));
     return { mShared, entree: !!document.getElementById('sessStart'),
-      cochables: document.querySelectorAll('[data-ck]').length };
+      cochables: document.querySelectorAll('[data-ck]').length,
+      /* v5.14.19 : le CHROME de crise ne suit pas l'invité sur ses aides. */
+      bande: (() => { const b = document.getElementById('crisisBand');
+        return !!(b && !b.hidden && b.classList.contains('inv')); })(),
+      bodyCrise: document.body.classList.contains('crisis-live'),
+      scribe: document.body.classList.contains('share-scribe') };
   });
   t('la fiche PARTAGÉE d\'un invité en ligne offre le relais « Montrer à un autre écran »',
     /Montrer à un autre écran/.test(r3.mShared) && !/Exporter/.test(r3.mShared),
     r3.mShared.slice(0, 160));
   t('SA propre aide garde son entrée — parcours inerte, zéro coche fantôme',
     r3.entree === true && r3.cochables === 0, JSON.stringify(r3));
+  t('… et le CHROME de crise ne le suit pas (bandeau, crisis-live, bridage scribe)',
+    !r3.bande && !r3.bodyCrise && !r3.scribe, JSON.stringify(r3));
   await page.close();
 });
 

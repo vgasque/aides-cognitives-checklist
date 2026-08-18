@@ -38,6 +38,7 @@ const FAMILIES = /^(pl|sv|ov|rm|cb|cx|rt|tk|care|flow|seg|stp)-/;
 // Exemptions explicites, avec leur raison — jamais de liste muette. Toutes sont des CROCHETS :
 // des classes qui existent pour être sélectionnées en JS, pas pour peindre.
 const EXEMPT = new Map([
+  ['seg-cap', 'crochet de CIBLAGE pour slSegNetPaint (v5.14.19) : la légende du sélecteur de mode se repeint EN PLACE quand la joignabilité change — le style vient de .sl-cap, la classe ne fait que désigner'],
   ['flow-scroll', 'conteneur de défilement du SVG : géométrie posée en style inline'],
   ['ov-wrap', 'crochet de DÉLÉGATION du journal (cf. bindOverviewEvents) — aucun style propre'],
   ['ov-journal', 'crochet de sélection JS (`.ov-journal .flow-end`) — aucun style propre'],

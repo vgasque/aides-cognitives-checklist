@@ -1672,11 +1672,15 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // crisis-live gouverne la mise en attente des snackbars (règle 11). Un invité qui SUIT une
   // session partagée n'a rien démarré localement : sans cet élargissement, toutes les banderoles
   // flottantes lui passeraient par-dessus la checklist.
-  {const S=A.Share, st=A.state, R=A.Runtime, vue=st.view, fic=R.fiche;
+  {const S=A.Share, st=A.state, R=A.Runtime, vue=st.view, fic=R.fiche,
+    dem=R.started, sid=R.sessionId;
    st.view='read';R.fiche=null;
    S.mode='off';
    ok('hors partage, le critère reste « ma session a démarré »',!A.crisisOnScreen());
-   S.mode='guest';S.status='active';R.fiche={id:'f1'};
+   /* v5.14.19 — LE CONTRAT RÉEL : chez l'invité, `openSharedFiche` pose TOUJOURS
+      `started=true` (et `sessionId` nul) — c'est CE fait qui porte crisis-live, plus une
+      branche sur le mode global, qui suivait l'invité jusque sur SES aides (signalé). */
+   S.mode='guest';S.status='active';R.fiche={id:'f1'};R.started=true;R.sessionId=null;
    ok('un invité qui suit une session partagée compte comme une crise à l’écran',A.crisisOnScreen());
    /* LA FIN DU PARTAGE N'EST PAS LA FIN DU SOIN. Le critère s'écrivait `status==='active'` : à
       l'instant où l'hôte coupait, `crisis-live` tombait sur l'écran de l'invité et déversait sur
@@ -1686,6 +1690,9 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('coupé, la fiche est encore en main : toujours une crise à l’écran',A.crisisOnScreen());
    S.status='ended';
    ok('idem pour une session terminée par l’hôte',A.crisisOnScreen());
+   S.status='active';R.started=false;
+   ok('mais SES autres aides, sans session, ne sont JAMAIS une crise',!A.crisisOnScreen());
+   R.started=dem;R.sessionId=sid;
    R.fiche=null;S.status='active';
    ok('mais plus rien à peindre : plus de crise à l’écran',!A.crisisOnScreen());
    st.view='library';R.fiche={id:'f1'};
