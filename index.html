@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-J1fSyxGWxlGgd8REnyGbv9TKqudnEUo0wP/qbPuz9Ao='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-l9P8bbBqOeduSwBHQXQiHu5S4i9teesF3kRmuluE8jc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.19';
+const APP_VERSION='5.14.20';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21410,7 +21410,9 @@ function bindReadEvents(f,blk,cur){
        déjà. La rangée n'existe pas tant que le lien est bon — proposer de bifurquer à quelqu'un qui
        est encore suivi serait l'inviter à casser une équipe qui fonctionne. */
     ...((Share.isStale()&&Share.status==='active')
-      ? [{label:'Continuer seul…',ic:uiIcon('undo',16),sub:'le lien ne répond plus',act:continueAlone}]
+      ? [{label:'Se reconnecter…',ic:'⇄',
+          sub:'scanner ou saisir un nouveau code de l\u2019h\u00f4te',act:()=>openJoinScreen('')},
+         {label:'Continuer seul…',ic:uiIcon('undo',16),sub:'le lien ne répond plus',act:continueAlone}]
       : []),
     /* Le MIROIR optique a sa feuille (resynchroniser, renvoyer) — c'est sa seule machinerie ;
        l'invité en ligne/direct, lui, peut RELAYER la session à un autre écran (v5.14.18). */
@@ -31253,13 +31255,13 @@ function slLocalCand(c){return (c||[]).some(x=>{const a=String(x).split('~')[0];
    inversement rien ne repeignait la pastille quand la connexion revenait. Tant qu'un sélecteur
    est à l'écran, une sonde légère (HEAD auth/health, 3,5 s de garde) interroge le serveur
    toutes les 8 s + à chaque évènement online/offline, et repeint le sélecteur EN PLACE. */
-let _slNet={ok:null,timer:0,busy:false};
+let _slNet={ok:null,at:0,timer:0,busy:false};
 async function slNetProbe(){
   if(_slNet.busy)return;_slNet.busy=true;
   let ok=false;
   /* Les harnais posent `__acNetOk` : une porte de commit ne dépend jamais du réseau du poste. */
   if(typeof window!=='undefined'&&window.__acNetOk!==undefined){
-    _slNet.busy=false;
+    _slNet.busy=false;_slNet.at=Date.now();
     if(window.__acNetOk!==_slNet.ok){_slNet.ok=!!window.__acNetOk;try{slSegNetPaint();}catch(e){}}
     return;}
   try{
@@ -31269,8 +31271,10 @@ async function slNetProbe(){
         {method:'HEAD',cache:'no-store',signal:ctl.signal,headers:{apikey:SUPA.key}});
       clearTimeout(t);ok=!!r&&(r.ok||r.status===401||r.status===404);}
   }catch(e){ok=false;}
-  _slNet.busy=false;
+  _slNet.busy=false;_slNet.at=Date.now();
   if(ok!==_slNet.ok){_slNet.ok=ok;try{slSegNetPaint();}catch(e){}}}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&_slNet.timer)slNetProbe();});
 function slSegNetPaint(){
   const seg=document.querySelector('#shareBody .seg');if(!seg)return;
   const online=Auth.signedIn()&&_slNet.ok===true;
@@ -31427,6 +31431,9 @@ function slSheet(phase){
         if(st)st.innerHTML='<p class="sl-cap">Aucun repère à renvoyer — « Noter l’heure » en pose un.</p>';
         return;}
       const z=await ltRetPack(sess,snap.events);
+      /* Marqués « renvoyés » dès l'émission — optimiste : si l'hôte n'a pas filmé, ils restent
+         dans SA fontaine suivante de toute façon (le retour renvoie TOUT le journal). */
+      _slMirror.sent=(snap.events||[]).map(e=>e.id);
       const tx=ltTx(z,1);
       tx.setH4(new Uint8Array(await crypto.subtle.digest('SHA-256',z)).slice(0,4));
       const body=document.getElementById('shareBody');if(!body)return;
@@ -31598,7 +31605,10 @@ async function slOptiqueGot(o,say){
   Share.fiche=o.fiche;
   Share.fold=Object.assign({},o.snap);
   Share.offset=o.at-Date.now(); // l'heure de l'hôte devient la référence, à peu près
-  _slMirror={sess:String(o.sess),at:o.at};
+  _slMirror={sess:String(o.sess),at:o.at,
+    /* Ce que l'hôte a DÉJÀ : ses propres repères reçus dans l'instantané — la base du calcul
+       « non renvoyé » du dialogue de départ (shareUnsent). */
+    sent:((o.snap&&o.snap.events)||[]).map(e=>e.id)};
   if(!openSharedFiche()){say('Instantané illisible.');return false;}
   try{announce('Vue à '+fmtHM(o.at)+' — miroir, pas du direct.');}catch(e){}
   return true;}
@@ -31848,14 +31858,20 @@ async function startShare(f){
     state.confOpen=false;
     if(!ensureStarted())return;
     render();}
+  /* LA MESURE PRIME LE DRAPEAU (v5.14.20, signalé) : `navigator.onLine` ment dans les deux
+     sens (Wi-Fi sans internet → vrai). Si la sonde a répondu « injoignable » il y a moins de
+     30 s, on ouvre DIRECTEMENT l'appariement direct — et si l'ouverture cloud échoue malgré
+     tout, on y BASCULE au lieu d'un refus sec (maquette 03 : « la feuille détecte l'absence
+     d'internet et montre directement l'appariement direct »). */
+  if(_slNet.ok===false&&Date.now()-_slNet.at<30000)return startShareLocal(f);
   if(Share._ioRest)Share._io=Share._ioRest;   // un essai local ne détourne plus le cloud
   slSbReset();                                // ardoise propre : même règle qu'à la jointure
   const r=await Share.host(f).catch(()=>null);
   if(!r||!r.ok){
-    toast(r&&r.err==='draft'
-      ? '⚠ Une fiche en brouillon ne se diffuse pas hors du compte.'
-      : '⚠ Le partage n\'a pas pu être ouvert. Vérifiez votre connexion, puis réessayez.',8000,true);
-    return;}
+    if(r&&r.err==='draft'){
+      toast('⚠ Une fiche en brouillon ne se diffuse pas hors du compte.',8000,true);return;}
+    toast('⚠ Serveur injoignable — partage en direct.',5000,true);
+    return startShareLocal(f);}
   openShareSheet();render();}
 /* CONTINUER SEUL — le repli hors dispositif, et la seule bifurcation qui se DATE.
    Ce que l'invité garde : son écran, tel quel, pleinement utilisable — c'est tout l'objet du
@@ -31887,11 +31903,41 @@ async function continueAlone(){
    Le dialogue de confirmation est ici LÉGITIME malgré la règle 11 : c'est exactement le patron du
    « Terminer la session ? », que la doctrine désigne comme la SEULE porte de sortie d'une session
    et qui est un dialogue confirmé, précisément parce qu'un arrêt ne doit pas tenir à un tap. */
+/* CE QUI N'EST PAS ENCORE PARTI (v5.14.20, demandé : « affiche s'il y a des actions non
+   transmises — uniquement dans ce cas ») : chez l'invité en ligne/direct, la vérité est la
+   FILE (`Share._q`) — ce qui y reste n'a pas atteint l'hôte et partira à la poubelle au
+   départ explicite (doctrine du gel : seule la bifurcation « Continuer seul » convertit).
+   Chez le MIROIR, la vérité est l'écart entre ses repères et ceux du dernier « Renvoyer ». */
+function shareUnsent(){
+  try{
+    if(Share.mode==='guest'&&Share._q&&Share._q.length){
+      const q=Share._q,cnt=ks=>q.filter(e=>ks.indexOf(e.kind)>=0).length;
+      const parts=[];
+      const c=cnt(['check']);if(c)parts.push(c+' coche'+(c>1?'s':''));
+      const m=cnt(['mark','mark_void']);if(m)parts.push(m+' rep\u00e8re'+(m>1?'s':''));
+      const n=cnt(['counter']);if(n)parts.push(n+' compteur'+(n>1?'s':''));
+      const t=cnt(['timer_arm','timer_stop']);if(t)parts.push(t+' minuteur'+(t>1?'s':''));
+      const reste=q.length-(c+m+n+t);if(reste>0)parts.push(reste+' autre'+(reste>1?'s':''));
+      return {n:q.length,txt:parts.join(', ')};}
+    if(_slMirror&&Runtime&&Runtime.started){
+      const sent=_slMirror.sent||[];
+      const p=(Runtime.events||[]).filter(e=>!e.annex&&sent.indexOf(e.id)<0);
+      if(p.length)return {n:p.length,txt:p.length+' rep\u00e8re'+(p.length>1?'s':''),miroir:true};}
+  }catch(e){}
+  return null;}
 async function quitShare(){
   const perdu=SHARE_NOTRACE
     ? 'Pour revenir, il faudra un NOUVEAU code : un code ne sert qu’une fois.'
     : 'Votre bibliothèque et vos fiches sont inchangées.';
-  if(!await confirmDlg('Vous ne verrez plus cette session. Ce que vous avez déjà relevé reste dans '
+  const u=shareUnsent();
+  const alerte=u
+    ? '\u26a0 '+u.txt+' relev\u00e9'+(u.n>1?'s':'')+' ici n\u2019'
+      +(u.n>1?'ont':'a')+' pas \u00e9t\u00e9 transmis'+(u.n>1?'':'')
+      +(u.miroir?' \u2014 \u00ab Renvoyer mes rep\u00e8res \u00bb avant de quitter les remettrait \u00e0 l\u2019h\u00f4te.'
+                :' \u00e0 l\u2019h\u00f4te \u2014 ils seront perdus.')+' '
+    : '';
+  if(!await confirmDlg(alerte+'Vous ne verrez plus cette session. Ce que vous avez déjà relevé '
+    +(u?'d\u2019AVANT la coupure ':'')+'reste dans '
     +'le compte-rendu du soignant — c’est un enregistrement de soin. '+perdu,
     {title:'Quitter le partage ?',yes:'Quitter',danger:true}))return;
   /* ⚠ UN DÉPART EXPLICITE SE DIT (v5.10.5) : sans cette ligne, l'hôte n'apprenait le départ que
@@ -32107,7 +32153,10 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Share.mode!=='off'&&Share.status==='active')Share._kick(0);});
 
 // Déclencheurs de synchro : retour en ligne, retour au premier plan.
-window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');paintStorage();Sync.full();});
+window.addEventListener('online',()=>{setSyncChip('ok','Synchronisé');paintStorage();Sync.full();
+  /* Reprise IMMÉDIATE du partage en ligne au retour du réseau (v5.14.20) : le sondage retente
+     de lui-même, mais à sa cadence — ici on ne fait pas attendre l'écran d'un invité figé. */
+  try{if(Share.mode!=='off'&&Share.status==='active')Share._kick(0);}catch(e){}});
 window.addEventListener('offline',()=>{setSyncChip('off','Hors-ligne');paintStorage();});   // D7 : la ligne « Hors ligne » du pied suit l'évènement
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')Sync.schedule();});
 

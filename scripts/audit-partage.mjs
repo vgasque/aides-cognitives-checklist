@@ -2340,6 +2340,33 @@ await sec('v5.14.17 · retour de l\'invité + menu sans export sur l\'aide reçu
   await page.close();
 });
 
+
+/* ═══ v5.14.20 — LE DÉPART DE L'INVITÉ NE CRIE QUE S'IL Y A DU NON-TRANSMIS ═══
+   Demandé : « affiche les actions non transmises — UNIQUEMENT si elles ne l'ont pas été,
+   sinon la fenêtre habituelle ». La vérité est la FILE : vide → dialogue ordinaire ;
+   pleine → l'avertissement détaille (coches, repères, compteurs, minuteurs). */
+await sec('v5.14.20 · départ invité : avertissement seulement si non-transmis', async () => {
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    Share.mode = 'guest'; Share.status = 'active'; Share.me = 'g'; Share._q = [];
+    let msg = null; confirmDlg = async m => { msg = m; return false; };
+    await quitShare(); const vide = msg;
+    Share._q = [{ kind: 'check', payload: {} }, { kind: 'mark', payload: {} },
+      { kind: 'counter', payload: {} }, { kind: 'timer_arm', payload: {} }];
+    await quitShare(); const plein = msg;
+    Share._q = []; Share.mode = 'off'; Share.status = 'off';
+    return { vide, plein };
+  });
+  t('file vide : la fenêtre HABITUELLE, sans avertissement', !/\u26a0|transmis/.test(r.vide),
+    r.vide.slice(0, 100));
+  t('file pleine : l\'avertissement détaille ce qui serait perdu',
+    /1 coche, 1 rep\u00e8re, 1 compteur, 1 minuteur/.test(r.plein) && /perdus/.test(r.plein),
+    r.plein.slice(0, 160));
+  await page.close();
+});
+
 const bilanSec = sec.bilan();
 await br.close(); srv.close();
 console.log(`\n${ok}/${ok + ko} contrôles partage OK` + (ko ? ` — ${ko} ÉCHEC(S)` : '')

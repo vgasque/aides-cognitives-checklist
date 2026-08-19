@@ -583,3 +583,30 @@ physiquement compromis reste hors modèle, comme partout.
 - **Témoins mis au contrat réel** (3 unitaires + 2 stubs de harnais qui construisaient un invité
   SANS `started` — un état qui n'existe pas dans l'app) + témoin nouveau : « SES autres aides,
   sans session, ne sont JAMAIS une crise ».
+
+## A223 — L'entrée « Partager » mesure ; l'invité figé se reconnecte ; le départ dit le non-transmis
+
+**Trois demandes (v5.14.20)** :
+
+- **L'entrée « Partager » route par la JOIGNABILITÉ MESURÉE, plus par `navigator.onLine`**
+  (signalé : « sans réseau, s'ouvre sur le direct avec Wi-Fi ») : si la sonde a répondu
+  « injoignable » il y a moins de 30 s → appariement direct D'EMBLÉE ; et si l'ouverture cloud
+  échoue malgré tout (Wi-Fi sans internet non encore mesuré) → BASCULE automatique vers le
+  direct avec un mot (« Serveur injoignable — partage en direct »), plus jamais le refus sec
+  « vérifiez votre connexion ». C'est la maquette 03 rendue vraie dans les deux sens. La
+  pastille, elle, était déjà mesurée (v5.14.19, sonde verte : grise+désactivée → verte+active
+  en ≤ 8 s) — s'y ajoute une sonde au retour au premier plan (iOS ne tire pas toujours
+  l'évènement `online` en PWA).
+- **Invité FIGÉ** : au menu, à côté de « Continuer seul », « Se reconnecter… » rouvre l'écran
+  d'entrée par-dessus l'écran figé (rien n'est perdu tant qu'on n'a pas rejoint) — scanner le
+  nouveau code de l'hôte (direct) ou en saisir un (en ligne). Et le retour du réseau KICK
+  immédiatement le sondage d'un partage actif — la reprise en ligne était déjà automatique
+  (le sondage ne s'arrête jamais), elle est maintenant immédiate.
+- **Le départ de l'invité dit ce qui n'est PAS transmis — seulement si c'est vrai** (demandé) :
+  la vérité est la FILE (`Share._q`) — vide → fenêtre habituelle, rien d'autre ; pleine →
+  l'avertissement détaille (« 2 coches, 1 repère, 1 minuteur … seront perdus »), car le départ
+  explicite JETTE la file (doctrine du gel : seule la bifurcation « Continuer seul » convertit
+  en annexes). Chez le MIROIR : l'écart entre ses repères et le dernier « Renvoyer » (liste
+  `sent` initialisée à la réception, mise à jour à l'émission — optimiste, et sans risque :
+  un retour renvoie TOUT le journal). Témoin : file vide = zéro avertissement ; file pleine =
+  détail exact.
