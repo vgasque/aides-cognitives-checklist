@@ -1,5 +1,40 @@
 # Journal des modifications
 
+## [5.15.0] — 2026-08-20
+### Les barres flottantes deviennent lisibles — planches Claude Design 17 et 18 (A222-A224)
+
+- **La nuit, la capsule et le dock se voient enfin** (planche 17, direction 1a) : la matière
+  système ne tenait que 1,09:1 contre le fond sombre — les trois matières n'en faisaient
+  qu'une. Elle MONTE (`#171a20` → `#333b47`) : le jour la plus sombre, la nuit la plus
+  claire — dans les deux cas la plus éloignée des deux autres. Un périmètre `--sys-edge`
+  (5,3:1, ombre interne de 1 px, le patron de la pastille Compte) borde carte de session,
+  quai, volet et capsule ; ≥ 1200 px la capsule quitte la matière et n'est pas cerclée.
+- **Ce que l'éclaircissement obligeait à déplacer, déplacé** : le creux de la touche ⏱ passe
+  au token `--sys-key` (.10 jour / .14 nuit), le filet ambre de l'alarme passe à `--alarm-bd`
+  (`--warn-line` le jour, `--warn-sys` la nuit — il tombait à 2,25:1), et la touche ⚡ ouverte
+  prend `--sys-hi` (attrapé par `audit-a11y` : l'encre rouge tombait à 3,9:1 sur le creux
+  générique). Nouveau token `--ctl-sys` : la limite d'un CONTRÔLE posé sur matière système
+  tient 3:1 dans les deux thèmes (« Terminer », chips et champ du volet, touche Exercice) —
+  les séparateurs gardent `--sys-line`, un séparateur n'est pas une cible.
+- **Le jour, le quai projette** (planche 18/P) : son ombre vivait en dur (noir pur, aveugle au
+  thème) et 6 px à 6 % ne se voyaient pas sous un tableau de posologies qui touche la barre
+  (colonne 358 px, quai 362). Elle passe au token `--shadow-up`, élargie 12 px / 32 px / 26 %,
+  à l'encre du thème. Aucune hauteur ne bouge. Deux pistes essayées et écartées, notées dans
+  la doctrine : fondu vers l'ambiance (1,06:1, invisible), bande de flou (halo noir dans les
+  coins arrondis).
+- **« Démarrer la session » se détache de sa barre** (planche 18/2a) : `--act` ne tenait que
+  1,68:1 contre le quai — la forme du bouton se confondait avec lui (le défaut de
+  « Reprendre » v5.10.0, jamais rejoué sur le geste d'entrée). Nouveau registre
+  `--act-sys:#7ab3f0` (7,2:1 clair, 5,1:1 sombre), encre `--on-sys-fill` ; libellé au corps de
+  l'acte (17,5 px) sans changer le gabarit ; sous 430 px effectifs « Exercice » passe au
+  glyphe seul (classe `zw430`, règle 10 — cible 44 px et `aria-label` conservés) et le geste
+  gagne 62 px de piste. Le coût, nommé : le bleu du quai n'est plus le bleu de la page — déjà
+  le régime des trois autres registres.
+- **Témoins** : nouvelle section doctrine « QUAI · le geste d'entrée se détache de sa barre »
+  (aplat ≥ 3:1 deux thèmes, périmètre nocturne ≥ 3:1, ombre montante le jour, cible du glyphe
+  seul), vérifiée capable d'échouer, défaut réintroduit puis fichier restauré à l'octet.
+  Doctrine complète : `docs/decisions/lot-v5-15.md` (A222-A224).
+
 ## [5.14.22] — 2026-08-19
 ### La file voyage avec l'invité — et le partage meurt avec sa session
 
@@ -304,35 +339,3 @@
   Continuer sans partage. Jamais un code d'erreur.
 - **Plus d'autofocus du champ code** à l'ouverture de « Rejoindre une session » : sur mobile
   il levait le clavier d'office, alors que taper un code n'est plus le seul chemin.
-
-## [5.14.3] — 2026-08-18
-### Les écrans du partage rejoignent les maquettes — captures à l'appui
-
-Reprise design complète contre les maquettes figées « Partage sans effort » (signalé à
-l'usage : « tu n'as pas du tout respecté les mockups »), chaque état vérifié par capture :
-
-- **L'écran de scan est PLEIN ÉCRAN** (maquettes 03b/04b) : la caméra est la surface, cadre de
-  visée à quatre coins, consigne en quatre mots (« Visez le code de l'hôte »), **flash vert
-  240 ms + vibration** à la lecture, « Annuler » toujours au même endroit. Les quatre scans
-  (réponse hôte, offre invité, réception optique, mise à jour du miroir) partagent ce seul
-  composant. Piège payé : `hidden` n'est pas une propriété des éléments SVG — la jauge restait
-  invisible ; par attribut, toujours.
-- **La réception optique a sa JAUGE ANNEAU** qui ne fait que monter, pourcentage au centre —
-  transition de peinture seule, éteinte sous `prefers-reduced-motion`.
-- **Le sélecteur segmenté « Mode »** (maquette 08) remplace les boutons « Passer en… » dans
-  les deux feuilles : En ligne · En direct · Par l'écran, l'actif marqué, l'indisponible grisé
-  avec sa raison dans la ligne d'aide (« “En ligne” reviendra avec internet »).
-- **La ligne d'état à point pulsant** (« ● 2 participants · en direct ») — pulsation d'opacité
-  2 s, le cliquet `pointer-events:none` monté à 20 pour le flash (décision motivée dans
-  check-anim, A68/4).
-- **Le refus d'autorisation suit la maquette 05** : « ⚠ Caméra non autorisée » + UN bouton qui
-  répare (« Autoriser la caméra ») + « Continuer sans partage », partout.
-- **Le mot du quai** (maquette 02) : en partage local, « ● Session » devient « ● Direct » —
-  un seul mot change, à position constante, dans le budget ECAM des 18 caractères.
-- **« Rejoindre une session » existe aussi SANS sidebar** (signalé : rien sur
-  tablette/smartphone) : en bas de la page d'accueil, voie étroite du pied de page — le patron
-  exact de « Historique des sessions », masqué en large où la sidebar prend le relais.
-- Restes nommés, non couverts et dits : le fondu croisé du mot du quai (le texte se repeint
-  sans fondu), l'écran de reprise « La session n'a rien perdu. » (09a), le badge « hors
-  ligne · HH:MM » au journal (09b), et le fondu entre codes optiques — écarté SCIEMMENT : la
-  netteté des trames prime pour le décodeur d'en face.

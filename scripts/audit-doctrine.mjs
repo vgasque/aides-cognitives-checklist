@@ -3046,6 +3046,63 @@ await sec('PARCOURS INERTE · les marqueurs sont lisibles', async () => {
 }
 });
 
+await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)', async () => {
+/* v5.15.0 — les témoins exigés par les planches 17/1a et 18/2a, sur l'écran HORS session (le
+   seul où le geste d'entrée existe), dans les DEUX thèmes :
+   (1) l'APLAT du bouton « Démarrer la session » tient 3:1 contre la matière système — 1.4.11
+       vise la LIMITE d'un composant, pas son texte : c'était le défaut, --act tenait 1,68:1 et
+       la forme du bouton se confondait avec sa propre barre (le défaut de « Reprendre »
+       [v5.10.0], jamais rejoué sur le geste d'entrée) ;
+   (2) la nuit, le quai se détache de l'ambiance par son PÉRIMÈTRE (--sys-edge, ombre interne,
+       3:1 contre le fond) — l'ombre montante y est none, assombrir du noir ne dit rien ; le
+       jour, c'est l'ombre montante élargie qui le détache (témoin : elle est bien posée) ;
+   (3) sous 430 px effectifs, « Exercice » passe au GLYPHE SEUL sans perdre ni sa cible (44 px,
+       A8) ni son nom accessible (aria-label posé par render()). */
+{
+  for (const theme of ['light','dark']) {
+    const page = await br.newPage({viewport:{width:390,height:844},colorScheme:theme});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    await ouvrirFiche(page,/Arrêt cardiaque/);
+    const r = await page.evaluate(()=>{
+      const lum=c=>{const m=String(c).match(/[\d.]+/g)||[0,0,0];
+        const v=m.slice(0,3).map(x=>{const u=(+x)/255;return u<=0.03928?u/12.92:Math.pow((u+0.055)/1.055,2.4);});
+        return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2];};
+      const ratio=(a,b)=>{const l1=lum(a),l2=lum(b);return +(((Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05))).toFixed(2);};
+      const sd=document.querySelector('.sd-in'),sb=document.getElementById('sessStart'),
+            ek=document.getElementById('exoKey');
+      const csd=getComputedStyle(sd),csb=getComputedStyle(sb);
+      /* La couleur du périmètre se lit dans l'ombre INTERNE calculée du quai. */
+      const shadow=csd.boxShadow||'';
+      const edge=(shadow.match(/rgba?\([^)]+\)/)||[null])[0];
+      return {
+        aplat:ratio(csb.backgroundColor,csd.backgroundColor),
+        inset:/inset/.test(shadow), montante:/-12px/.test(shadow),
+        edgeR:edge?ratio(edge,getComputedStyle(document.body).backgroundColor):0,
+        ekW:ek.getBoundingClientRect().width,
+        ekLblCache:getComputedStyle(ek.querySelector('.dp-lbl')).display==='none',
+        ekNom:(ek.getAttribute('aria-label')||'').length>3};});
+    const T=theme==='dark'?'sombre':'clair';
+    t(`${T} · l'aplat du geste d'entrée tient 3:1 sur sa barre (limite de composant, 1.4.11)`,
+      r.aplat>=3, `${r.aplat}:1`);
+    if(theme==='dark'){
+      t('sombre · le quai est bordé (périmètre en ombre INTERNE, pas d\'ombre portée)',
+        r.inset===true&&r.montante===false);
+      t('sombre · le périmètre tient 3:1 contre l\'ambiance', r.edgeR>=3, `${r.edgeR}:1`);
+    }else{
+      t('clair · l\'ombre montante élargie est posée sur le quai (le jour projette)',
+        r.montante===true&&r.inset===false);
+    }
+    t(`${T} · « Exercice » au glyphe seul garde sa cible (≥ 44 px) et son nom accessible`,
+      r.ekLblCache===true&&r.ekW>=44&&r.ekNom===true,
+      `largeur ${r.ekW} px, libellé caché ${r.ekLblCache}, aria-label ${r.ekNom}`);
+    await page.close();
+  }
+}
+});
+
 await sec('QUAI · la structure survit aux ticks', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
