@@ -610,3 +610,20 @@ physiquement compromis reste hors modèle, comme partout.
   `sent` initialisée à la réception, mise à jour à l'émission — optimiste, et sans risque :
   un retour renvoie TOUT le journal). Témoin : file vide = zéro avertissement ; file pleine =
   détail exact.
+
+## A224 — HEAD → 405 : la sonde déclarait le serveur injoignable à jamais — et le banc hermétique cachait exactement ce fetch
+
+**Terrain (v5.14.21)** : « j'étais en 5.14.19 et la pastille ne s'allumait pas » — le défaut
+tenait en une ligne : la sonde interrogeait en `HEAD`, l'endpoint `auth/v1/health` répond
+**405** à HEAD, et 405 n'était pas dans les statuts acceptés → `ok=false` à jamais, pastille
+grise même avec un internet parfait. Corrigé : `GET` (vérifié au curl : 200, `allow-origin`
+posé sur la réponse) et **tout statut HTTP vaut « joignable »** — c'est la JOIGNABILITÉ qu'on
+mesure, pas la santé du service.
+
+**Leçon de méthode, la vraie** : le stub d'hermétisme (`__acNetOk`, A222) court-circuitait
+exactement le fetch fautif — TOUTES les portes étaient vertes autour d'un appel jamais exercé.
+Un banc hermétique est juste (une porte de commit ne dépend pas du réseau du poste), mais il
+crée un angle mort DE CONSTRUCTION sur le contrat externe : ce contrat se vérifie À L'ÉCRITURE,
+hors porte (curl du statut réel + sonde jetable navigateur contre la vraie instance — faites
+cette fois, sonde verte). La v5.14.19 avait vérifié le CORS de l'endpoint… en GET, puis codé
+un HEAD : vérifier le contrat, c'est vérifier LA REQUÊTE QU'ON ENVOIE, pas sa voisine.

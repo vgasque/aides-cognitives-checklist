@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.14.21] — 2026-08-19
+### La pastille « En ligne » s'allume vraiment — le serveur refusait la question, pas la réponse
+
+- **Corrigé pour de bon** (signalé : « en 5.14.19 elle ne s'allumait pas ») : la sonde de
+  joignabilité interrogeait le serveur d'une manière qu'il refuse par principe (HEAD → 405),
+  et ce refus était lu « injoignable » — pastille grise à jamais, même avec un internet
+  parfait. La sonde interroge désormais en GET, et tout statut HTTP vaut « joignable » :
+  c'est la joignabilité qu'on mesure, pas la santé du service. Vérifié contre la vraie
+  instance, depuis un vrai navigateur.
+
 ## [5.14.20] — 2026-08-19
 ### L'entrée « Partager » mesure le réseau, l'invité figé se reconnecte, le départ dit le non-transmis
 
@@ -334,21 +344,3 @@ Premier passage en conditions réelles de la v5.14.0 (merci au rapporteur) — n
 - **Le miroir n'est plus un cul-de-sac** : sa feuille (tap sur « Partager ») affiche « vue à
   HH:MM » et porte « Recevoir une mise à jour ». La passation par l'écran, elle, reste une
   limite écrite (§ 3.2) : le retour invité→hôte est un chantier nommé, pas un oubli.
-
-## [5.14.1] — 2026-08-17
-### Le clavier de l'accueil revient — le champ ne se tue plus lui-même
-
-- **Depuis la v5.13.4, taper le champ de recherche de l'accueil n'ouvrait plus le clavier sur
-  téléphone et tablette** (signalé à l'usage). La cause : « pendant la frappe, l'en-tête
-  s'efface » (`html.kbd header.bar{display:none}`) avait été conçu pour la recherche des
-  RÉFÉRENCES, dont le champ vit dans la colonne — mais le champ de l'accueil vit DANS
-  l'en-tête. Le clavier s'ouvrait, l'en-tête disparaissait, **le champ qu'on venait de toucher
-  était détruit avec lui**, le focus tombait, le clavier se refermait aussitôt : le champ se
-  tuait lui-même, en une fraction de seconde, et aucune mesure du harnais ne pouvait le voir
-  (il ne pilote pas le clavier).
-- **La règle devient : l'en-tête ne s'efface que si le champ actif vit AILLEURS.** Quand le
-  champ focalisé est dans l'en-tête, c'est LUI le chrome de frappe — il reste. C'est le
-  principe même de la 5.13.4 (« un seul chrome à la fois ») appliqué dans les deux sens. La
-  recherche des références garde son plein-écran de frappe, l'accueil retrouve son clavier.
-- Un seul poseur de `html.kbd`, vérifié : `body.kb-open` (l'effacement du dock au focus) est
-  une autre classe, un autre mécanisme — les deux ne se marchent pas dessus.
