@@ -627,3 +627,34 @@ crée un angle mort DE CONSTRUCTION sur le contrat externe : ce contrat se véri
 hors porte (curl du statut réel + sonde jetable navigateur contre la vraie instance — faites
 cette fois, sonde verte). La v5.14.19 avait vérifié le CORS de l'endpoint… en GET, puis codé
 un HEAD : vérifier le contrat, c'est vérifier LA REQUÊTE QU'ON ENVOIE, pas sa voisine.
+
+## A225 — La file voyage avec l'invité ; le partage meurt avec sa session ; les mots du réveil
+
+**Cinq signalements (v5.14.22)** :
+
+- **LA FILE VOYAGE AVEC L'INVITÉ** (« mes modifications entre la dernière synchro et le switch
+  ne sont pas enregistrées ») : `joinByCode` recharge la file DU NOUVEAU partage (vide) — le
+  non-transmis mourait à CHAQUE bascule, dans les deux sens. La file est emportée puis
+  re-poussée après la jointure : mêmes ids (dédup serveur), mêmes clés (la MÊME session
+  continue). Témoin E2E : panne d'écriture simulée (`__noPush` — le pull respire, le push
+  meurt : la fenêtre exacte du bug), évènement en file, bascule, l'évènement atteint le hub.
+- **LE PARTAGE MEURT AVEC LA SESSION QU'IL REFLÈTE** (« deux sessions d'affilée sur la même
+  aide → l'invité se reconnecte sur l'ancienne, "reprise après interruption" sur une session
+  neuve ») : `endSession` ne touchait pas au partage — le partage ZOMBIE survivait (TTL 3 h)
+  et le billet de reprise de l'invité le ressuscitait, vieux gestes compris. `endSession` de
+  la session affichée termine désormais son partage actif : les invités lisent « Le soignant
+  a terminé la session », le billet s'efface au refus suivant. (Doctrine : le partage est un
+  MIROIR de la session — règle 15.)
+- **« Aucun réseau vu » propose « Par l'écran » SUR PLACE** (« pourquoi proposer le direct
+  sans wifi ? ») : sans réseau local, le direct ne peut pas aboutir — le chemin qui MARCHE
+  est à un tap, le sélecteur reste pour forcer.
+- **Les mots du réveil** : après une veille, « Inviter un autre » était le seul chemin de
+  ré-appariement chez l'hôte — le mot mentait. Même machinerie, le mot suit l'état : un
+  invité perdu → « Ré-apparier — nouveau code » (primaire) ; et une annonce au réveil de
+  l'hôte dit que le lien n'a pas survécu (jamais une fenêtre, règle 11). En ligne, la
+  reprise après veille était déjà automatique. LIMITE nommée : en direct, la reconnexion
+  après veille exige un re-scan — WebRTC ne survit pas à la veille iOS et il n'y a pas de
+  canal de signalisation sans relais (le « billet de retour » A217 reste la piste).
+- **« Renvoyer mes repères » dit pourquoi zéro** : les COCHES ne remontent jamais par l'écran
+  (maquette 05 — repères datés seuls) ; face à dix cases cochées, « aucun repère » se lisait
+  comme une panne. Le message explique et donne le geste (« Noter l'heure »).

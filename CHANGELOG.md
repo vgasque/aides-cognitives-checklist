@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [5.14.22] — 2026-08-19
+### La file voyage avec l'invité — et le partage meurt avec sa session
+
+- **Plus aucune action perdue à la bascule** (signalé) : ce qui n'avait pas encore été
+  transmis au moment d'un passage en ligne ⇄ en direct voyageait à la poubelle — la file de
+  l'invité est désormais emportée et re-poussée après la jointure (témoin de bout en bout :
+  panne d'écriture, bascule, l'évènement atteint l'hôte).
+- **Terminer la session termine son partage** (signalé : « l'invité se reconnecte sur
+  l'ancienne session ») : le partage zombie survivait des heures et le billet de reprise de
+  l'invité le ressuscitait — vieux gestes et « reprise après interruption » compris. Les
+  invités lisent désormais « Le soignant a terminé la session ».
+- **Sans aucun réseau, « Par l'écran » est proposé sur place** (signalé) — le direct ne peut
+  pas aboutir sans Wi-Fi commun, le chemin qui marche est à un tap.
+- **Après la veille, les mots justes** (signalé) : un invité perdu → « Ré-apparier — nouveau
+  code » (fini le « Inviter un autre » qui faisait bizarre), et l'hôte est prévenu au réveil
+  que le lien direct n'a pas survécu. En ligne, la reconnexion était déjà automatique ; en
+  direct, un re-scan reste physiquement nécessaire.
+- **« Renvoyer mes repères » explique le zéro** (signalé) : les coches ne remontent jamais
+  par l'écran — seuls les repères datés annotent le journal de l'hôte ; le message le dit et
+  donne le geste.
+
 ## [5.14.21] — 2026-08-19
 ### La pastille « En ligne » s'allume vraiment — le serveur refusait la question, pas la réponse
 
@@ -315,32 +336,3 @@ l'usage : « tu n'as pas du tout respecté les mockups »), chaque état vérifi
   sans fondu), l'écran de reprise « La session n'a rien perdu. » (09a), le badge « hors
   ligne · HH:MM » au journal (09b), et le fondu entre codes optiques — écarté SCIEMMENT : la
   netteté des trames prime pour le décodeur d'en face.
-
-## [5.14.2] — 2026-08-18
-### Le partage en direct remis d'aplomb — neuf défauts d'usage, signalés et corrigés
-
-Premier passage en conditions réelles de la v5.14.0 (merci au rapporteur) — neuf corrections :
-
-- **L'invité peut enfin arriver hors ligne** : le menu de l'accueil gagne « Rejoindre une
-  session » — c'est cet écran qui porte « Scanner le code de l'hôte » et « Recevoir par
-  l'écran ». Avant, il n'était joignable que par un code tapé ou un lien, donc par internet.
-- **Les feuilles locales suivent les maquettes** : notices registre (glyphe + mot sur fond
-  doux), QR cadré et plafonné à 200 px comme la feuille en ligne, rangées de boutons à
-  gouttière, légendes courtes — fini le « barbouilli ».
-- **La caméra est bornée** (tablette : la fenêtre photo débordait du cadre) : ratio 3/4,
-  largeur maximale, jamais une hauteur en vh.
-- **« Arrêter le partage » arrête vraiment** : la feuille « en direct » ne s'affiche plus que
-  si le partage l'est (garde d'état) — plus de fenêtre fantôme à la réouverture.
-- **« Scanner le code de l'hôte » ne reste plus grisé** : chaque ouverture de l'écran d'entrée
-  repart d'un état propre (caméra coupée, boutons rendus, vidéos cachées).
-- **« Passer en direct » ne demande plus deux clics** : le minuteur de re-rendu de la feuille
-  en ligne repeignait par-dessus la feuille locale — il est coupé avant chaque bascule, et
-  l'émission « par l'écran » fait de même.
-- **Un partage en direct actif se ré-affiche** au tap sur « Partager », il ne se re-crée pas
-  par-dessus lui-même.
-- **« Par l'écran » est joignable de partout côté hôte** : depuis la feuille en ligne aussi
-  (l'émission optique est additive, elle marche sans aucun réseau), avec retour à la bonne
-  feuille à l'arrêt.
-- **Le miroir n'est plus un cul-de-sac** : sa feuille (tap sur « Partager ») affiche « vue à
-  HH:MM » et porte « Recevoir une mise à jour ». La passation par l'écran, elle, reste une
-  limite écrite (§ 3.2) : le retour invité→hôte est un chantier nommé, pas un oubli.

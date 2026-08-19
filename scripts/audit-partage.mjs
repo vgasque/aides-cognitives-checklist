@@ -2119,7 +2119,9 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
       try {
         if (m.v === 'join') r = hub.join(m.p.label);
         else if (m.v === 'pull') r = await hub.pull(m.p.secret, m.p.since);
-        else if (m.v === 'push') r = hub.push(m.p.secret, m.p.events);
+        /* __noPush : simule le réseau qui MEURT à l'écriture (le pull respire encore) — c'est
+           la fenêtre exacte où une file non transmise existe au moment d'une bascule. */
+        else if (m.v === 'push') r = window.__noPush ? null : hub.push(m.p.secret, m.p.events);
       } catch (e) {}
       bc.postMessage({ i: m.i, r }); };
     window.__bc = bc;
@@ -2162,6 +2164,12 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     return b ? b.classList.contains('ok') : null; });
   t('la pastille « En direct » dit que le canal est prêt', dot === true, String(dot));
 
+  /* LA FILE VOYAGE (v5.14.22) : un évènement encore EN FILE chez l'invité au moment de la
+     bascule doit atteindre le journal de l'hôte APRÈS — c'était le « mes modifications entre
+     la dernière synchro et le switch ne sont pas enregistrées ». */
+  await H.evaluate(() => { window.__noPush = true; });
+  await G.evaluate(() => { Share._q.push({ event_id: 'carry1', kind: 'mark',
+    payload: { id: 'carry1', t: Date.now(), ref: null }, ts: new Date().toISOString() }); });
   /* Le TAP « En direct » : l'hôte bascule, l'invité SUIT — personne ne scanne. */
   await H.click('#shareBody .seg-btn[data-shmode="direct"]');
   const basH = await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true,
@@ -2178,6 +2186,12 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   const titreH = await H.evaluate(() => (Runtime && Runtime.fiche && Runtime.fiche.title) || null);
   t('l\'état complet a voyagé par le canal (même fiche des deux côtés)',
     !!titreG && titreG === titreH, titreG + ' vs ' + titreH);
+  const porte = basG && await H.waitForFunction(() =>
+    SL && SL.hub && SL.hub.st.events.some(e => e.id === 'carry1'), null, { timeout: 15000 })
+    .then(() => true).catch(() => false);
+  t('la FILE de l\'invité a voyagé : le non-transmis d\'avant la bascule atteint l\'hôte',
+    porte === true, '');
+  await H.evaluate(() => { window.__noPush = false; });   // le réseau d'écriture revit
 
   /* Le TAP « En ligne » : billet « gc » par le canal, personne ne ressaisit de code. */
   await H.click('#shareBody .seg-btn[data-shmode="cloud"]');

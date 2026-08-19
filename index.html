@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NxKVwK+Oy2PEKS+d8e6cjgPIOBnAqUo8fdXgh13S7eo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-EhqA+TNqcDVAatAf2fYt6NenPZ1QW43xQTtE7EqGrt0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9623,7 +9623,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.14.21';
+const APP_VERSION='5.14.22';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13672,6 +13672,13 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
 // l'accueil — en mémoire seulement (jamais persisté : la vérité archivée est la session).
 let lastEndedSession=null;
 function endSession(R){if(!R||!R.fiche)return;
+  /* LE PARTAGE MEURT AVEC LA SESSION QU'IL REFLÈTE (v5.14.22, signalé : « deux sessions
+     d'affilée sur la même aide → l'invité se reconnecte sur l'ancienne » — le partage ZOMBIE
+     survivait au TTL, et le billet de reprise de l'invité le ressuscitait, vieux gestes
+     compris : « reprise après interruption » sur une session qu'on croyait neuve). Les invités
+     lisent « Le soignant a terminé la session », leur billet s'efface au refus suivant. */
+  try{if(R===Runtime&&Share.mode==='host'&&Share.status==='active'){
+    Share.endShare();SL=null;slSbReset();}}catch(e){}
   Object.values(R.timers).forEach(t=>{if(t.running)toggleTimer(t);});
   setTimeout(wakeApply,0);   // la session finit : l'écran reprend la veille du système (11k)
   /* K5 — UN ESSAI NE S'ARCHIVE PAS. On arrête les minuteurs (ils tournent vraiment) et on s'en
@@ -31279,7 +31286,15 @@ async function slNetProbe(){
   _slNet.busy=false;_slNet.at=Date.now();
   if(ok!==_slNet.ok){_slNet.ok=ok;try{slSegNetPaint();}catch(e){}}}
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&_slNet.timer)slNetProbe();});
+  if(document.visibilityState==='visible'&&_slNet.timer)slNetProbe();
+  /* Réveil d'un HÔTE en direct (v5.14.22) : la veille tue les canaux WebRTC sans un mot — on
+     le DIT, et le geste juste est à un tap (feuille → « Ré-apparier »). Jamais de fenêtre
+     imposée (règle 11) : une annonce, rien d'autre. */
+  try{
+    if(document.visibilityState==='visible'&&slLiveOk()){
+      const morts=(Share.participants||[]).some(p=>!p.owner&&!p.revoked&&shareSeenLost(p));
+      if(morts)announce('Le lien direct n’a pas survécu à la veille — ré-appariez depuis la feuille de partage.');}
+  }catch(e){}});
 function slSegNetPaint(){
   const seg=document.querySelector('#shareBody .seg');if(!seg)return;
   const online=Auth.signedIn()&&_slNet.ok===true;
@@ -31376,13 +31391,19 @@ function slSheet(phase){
     /* On compte les INVITÉS présents, jamais les écrans (v5.14.18, signalé : « 2 participants »
        à un seul invité — le +1 de l'hôte se lisait comme un fantôme, surtout après une bascule). */
     const n=(Share.participants||[]).filter(p=>!p.owner&&!p.revoked&&!shareLeft(p)).length;
+    const perdu=(Share.participants||[]).some(p=>!p.owner&&!p.revoked
+      &&(shareLeft(p)||shareSeenLost(p)));
     const enLigneOk=Auth.signedIn()&&Sync.online();
     body.innerHTML='<div class="sl-status"><span class="sl-dot"></span>'
       +(n?n+' participant'+(n>1?'s':'')+' · en direct':'en direct — personne n\u2019a encore rejoint')+'</div>'
       +slModeSegHtml('direct')
       +sharePartRowsHtml()
       +'<div class="sl-actions">'
-      +'<button class="btn" id="slInvite">Inviter un autre</button>'
+      /* Après une veille, « Inviter un autre » était le SEUL chemin de ré-appariement — le mot
+         mentait (v5.14.22, signalé : « ça fait bizarre »). Même machinerie, le mot suit l'état :
+         un invité perdu → « Ré-apparier — nouveau code ». */
+      +'<button class="btn'+(perdu?' primary':'')+'" id="slInvite">'
+      +(perdu?'Ré-apparier — nouveau code':'Inviter un autre')+'</button>'
       +'<button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
     document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
     sharePartBind(body,()=>slSheet('live'));
@@ -31433,7 +31454,12 @@ function slSheet(phase){
       const snap=shareSnap(Runtime,!!state.flowEnded);
       if(!(snap.events||[]).length){
         const st=document.getElementById('slStat');
-        if(st)st.innerHTML='<p class="sl-cap">Aucun repère à renvoyer — « Noter l’heure » en pose un.</p>';
+        /* Les COCHES ne remontent jamais « par l'écran » (maquette 05 : repères datés seuls,
+           jamais une coche) — le dire, sinon « aucun repère » face à dix cases cochées se lit
+           comme une panne (v5.14.22, signalé). */
+        if(st)st.innerHTML='<p class="sl-cap">Aucun repère daté à renvoyer. Les coches ne '
+          +'remontent pas par l’écran — seuls les repères datés annotent le journal de '
+          +'l’hôte : « Noter l’heure » (dock) en crée un.</p>';
         return;}
       const z=await ltRetPack(sess,snap.events);
       /* Marqués « renvoyés » dès l'émission — optimiste : si l'hôte n'a pas filmé, ils restent
@@ -31452,14 +31478,19 @@ function slSheet(phase){
     return;}
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>'
     +(phase==='offer-warn'
-      ?'Aucun réseau local vu — vérifiez le Wi-Fi'
+      ?'Aucun réseau vu — sans Wi-Fi commun, passez « Par l’écran »'
       :'Pas d’internet — partage en direct, même Wi-Fi requis')+'</span></div>'
     +slModeSegHtml('direct')
     +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
     +'<p class="sl-cap">l’invité scanne, puis vous scannez sa réponse<br>'
     +'un réseau local SANS internet convient (Wi-Fi d’établissement, box coupée)</p>'
     +'<div class="sl-actions">'
-    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button></div>'
+    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button>'
+    /* Sans AUCUN réseau, le direct ne peut pas aboutir : l'issue est optique, offerte SUR
+       PLACE (v5.14.22, signalé : « pourquoi proposer le direct sans wifi ? ») — le sélecteur
+       reste là pour forcer, mais le chemin qui MARCHE est à un tap. */
+    +(phase==='offer-warn'?'<button class="btn" id="slOpticW">Par l’écran</button>':'')
+    +'</div>'
     +'<div id="slStat" role="status"></div>';
   slModeSegBind('direct');
   const scanRep=async()=>{
@@ -31477,7 +31508,9 @@ function slSheet(phase){
           catch(e){slPairFail();}
         }});
     }catch(e){slCamRefused(st,scanRep,()=>{shareModal.classList.remove('on');});}};
-  document.getElementById('slScanBtn').addEventListener('click',scanRep);}
+  document.getElementById('slScanBtn').addEventListener('click',scanRep);
+  {const ow=document.getElementById('slOpticW');
+   if(ow)ow.addEventListener('click',()=>{slOptiqueTx();});}}
 /* ÉCHEC D'APPARIEMENT (maquette 07) — trois sorties, toujours les mêmes, toujours dans cet
    ordre : réparer (Réessayer = TOUT à neuf), l'autre méthode, s'en passer. Jamais un code
    d'erreur, jamais un « vérifiez que… ». */
@@ -31746,6 +31779,11 @@ async function slSbGuestSwitch(){
     const dc=slSb.dc;
     const moi=(Share.participants||[]).find(x=>x.id===Share.me);
     const lbl=(moi&&moi.label)||'Renfort';
+    /* LA FILE VOYAGE AVEC L'INVITÉ (v5.14.22, signalé : « mes modifications entre la dernière
+       synchro et le switch ne sont pas enregistrées ») : `joinByCode` recharge la file DU
+       NOUVEAU partage (vide) — ce qui n'était pas parti mourrait à chaque bascule. On
+       l'emporte : mêmes ids (dédup serveur), mêmes clés (c'est la MÊME session qui continue). */
+    const portee=(Share._q||[]).slice();
     const cli=slClient(slChanWire(dc));
     Share._io=cli.io;
     /* TENTATIVES ESPACÉES : sur bascule demandée (« go »), l'hôte sert peut-être une ou deux
@@ -31754,7 +31792,9 @@ async function slSbGuestSwitch(){
     for(let i=0;i<3&&!(r&&r.ok);i++){
       if(i)await new Promise(x=>setTimeout(x,2000));
       r=await Share.joinByCode('AAAA2222',lbl).catch(()=>null);}
-    if(r&&r.ok){slSb.dc=null;slSb.pc=null;openSharedFiche();
+    if(r&&r.ok){slSb.dc=null;slSb.pc=null;
+      if(portee.length){Share._q=portee.concat(Share._q);Share._saveQ();Share._kick(0);}
+      openSharedFiche();
       try{announce('Vous suivez en direct.');}catch(e){}}
     /* échec (l'hôte n'a pas encore basculé ?) : le canal est GARDÉ, la prochaine détection
        de panne retentera — jamais de boucle serrée, le rythme est celui du sondage. */
@@ -31812,6 +31852,7 @@ async function slGcJoin(code){
     const ioAvant=Share._io;
     const moi=(Share.participants||[]).find(x=>x.id===Share.me);
     const lbl=(moi&&moi.label)||'Renfort';
+    const portee=(Share._q||[]).slice();   // la file voyage (v5.14.22), cf. slSbGuestSwitch
     /* ARDOISE PROPRE AVANT le join (v5.14.12, trouvé au harnais) : le premier sondage sain
        KICKE pendant `joinByCode` — un reset après coup TUAIT ce kick tout frais, et le kick
        suivant recevait la réponse de l'offre morte (empreinte DTLS d'un autre pc) : ICE
@@ -31822,7 +31863,9 @@ async function slGcJoin(code){
     for(let i=0;i<3&&!(r&&r.ok);i++){
       if(i)await new Promise(x=>setTimeout(x,2000));
       r=await Share.joinByCode(String(code||''),lbl).catch(()=>null);}
-    if(r&&r.ok){openSharedFiche();
+    if(r&&r.ok){
+      if(portee.length){Share._q=portee.concat(Share._q);Share._saveQ();Share._kick(0);}
+      openSharedFiche();
       try{announce('Vous suivez en ligne.');}catch(e){}}
     else Share._io=ioAvant;
   }finally{_slSwitching=false;}}
