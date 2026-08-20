@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-BOEGlyjE36nyr5fcoH+LpGvaFYwGKTFF+jmx0jOfbRs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lLsTGpXOrdN8D1hDTGwiLFyFiI6a08vozdGN6JFHGcE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5635,11 +5635,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      re-casser, c'est arrivé dans la même heure. Le bloc de fin de feuille est la source de vérité
      unique du média tactile : on s'y range, et on ne le cite pas au motif près. */
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
-     ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
+     240 px (v5.16.0, demandé à l'usage : « lisibles plus facilement / de plus loin ») met chaque
+     module au-dessus de 5 px dès la version 10 — le gain se prend sur la DISTANCE de scan, pas
+     sur un seuil de lisibilité qui était déjà tenu à 200. Les contextes serrés gardent leur
+     plafond propre (cf. .sh-qr et le bloc #shareBody plus bas).
      Encre et fond fixes dans les deux thèmes (cf. --qr-ink), bordure pour détacher la zone de
      silence d'un fond clair — sans elle le blanc du QR se fond dans la surface et le lecteur
      perd le repère. */
-  .qr{display:block;width:200px;height:200px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
+  .qr{display:block;width:240px;height:240px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
   .flow-zoom{display:flex;align-items:center;gap:6px;margin-bottom:6px}
   .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 10px;font-size:12px}
@@ -7273,8 +7276,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Le QR est PLAFONNÉ, et rétréci au palier le plus contraint : à 320×568 la carte dépassait de
      2 px et « Arrêter le partage » perdait 6 px de sa cible — pour un code qui reste scannable
      bien en dessous (4,8 px par module à 197 px, relu par le décodeur d'Apple ; à 141 px on est
-     encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm). */
-  .sh-qr .qr{width:min(200px,52vw);height:auto}
+     encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm).
+     v5.16.0 : plafond 200 → 240 px et 52 → 56 vw (« lisible de plus loin », demandé à l'usage) —
+     le palier < 360 px, lui, ne bouge PAS : c'est le cas mesuré ci-dessus, et y grossir le QR
+     referait passer « Arrêter le partage » sous la ligne de flottaison.
+     ⚠ PORTÉE `#shareModal` OBLIGATOIRE (attrapé par audit-partage en posant v5.16.0) : la carte
+     d'appariement vit AUSSI dans #shareBody, dont la règle « 260 px d'écran à écran » (id, plus
+     spécifique qu'un couple de classes) battrait ce plafond-ci — le conflit existait avant, il
+     était juste invisible tant que les deux règles disaient 200. */
+  #shareModal .sh-qr .qr{width:min(240px,56vw);height:auto}
   @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:24px;letter-spacing:3px}}
   #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .sh-p{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--line)}
@@ -7360,7 +7370,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (fond doux + glyphe + mot, jamais la couleur seule) ; boutons en rangée à gouttière. */
   #shareBody video,#joinScreen video{width:100%;max-width:340px;aspect-ratio:3/4;object-fit:cover;
     border-radius:var(--r-3);display:block;margin:12px auto 0;background:var(--sys)}
-  #shareBody .qr,#jsAnswer .qr{display:block;width:min(100%,200px);margin:14px auto 6px;
+  /* 260 px (v5.16.0) : ces QR-là se scannent D'ÉCRAN À ÉCRAN (appariement direct, synchro
+     optique, réponse de l'invité) — chaque pixel de plus se prend en distance et en tolérance
+     d'angle, et la feuille a la largeur pour. `height:auto` : la hauteur de base 240 de .qr ne
+     doit pas letterboxer un SVG dont la largeur suit min(100%,260px). */
+  #shareBody .qr,#jsAnswer .qr{display:block;width:min(100%,260px);height:auto;margin:14px auto 6px;
     background:var(--paper);border:1px solid var(--line);border-radius:var(--r-1);padding:12px}
   #shareBody .sl-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
   #shareBody .sl-actions .btn{width:100%;min-height:48px;justify-content:center}
@@ -9715,7 +9729,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.15.0';
+const APP_VERSION='5.16.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15165,8 +15179,11 @@ function renderLibrary(){
   /* Un .json ou un .zip lâché sur la bibliothèque s'importe — c'est l'écran où cela a un sens, et
      c'est le seul type qu'il accepte (une image lâchée ici est nommée et refusée, plutôt que de
      faire quitter l'app comme avant). Comme tout import, il passe par l'ATELIER (A129) : on voit
-     les entités du fichier et l'on choisit avant qu'une seule ligne ne soit écrite. */
-  upTarget('data',files=>{readImportFile(files[0]);});
+     les entités du fichier et l'on choisit avant qu'une seule ligne ne soit écrite.
+     PLUSIEURS fichiers se déposent d'un geste (A225) : ils s'importent EN FILE, un atelier après
+     l'autre — jamais en parallèle, les questions de destination/fusion restent posées PAR import. */
+  upTarget('data',async files=>{for(let i=0;i<files.length;i++)
+    await readImportFile(files[i],files.length>1?{i:i+1,n:files.length}:null);});
   state.section==='protocols'?renderProtocols():(state.section==='fiches'?renderFiches():renderAll());}
 // Titre courant dans la barre (fiche/protocole, lecture ou édition) : classe .titled tant qu'il
 // est non vide, sinon la marque revient. L'AFFICHAGE effectif attend le défilement (.ttl-on,
@@ -27551,14 +27568,22 @@ function crtCard(id,glyph,t,d){return `<button class="crt-card" id="${id}"><span
    même validation que partout ailleurs : un PDF ou une image lâchés ici sont refusés EN LE
    DISANT, là où l'ancienne zone les passait à `readImportFile` qui répondait « Fichier illisible ».
    Tout import passé par le dialogue arrive en BROUILLON ; `openAfter` n'ouvre la fiche que pour
-   la méthode IA. Un seul fichier : importer deux bibliothèques d'un geste n'a pas de sens, et
-   les questions de destination/fusion sont posées PAR import.
+   la méthode IA. PLUSIEURS fichiers d'un geste (A225, demandé à l'usage — la règle « un seul
+   fichier » de v5.11 tombe) : ils s'importent EN FILE, un atelier après l'autre, chaque atelier
+   NOMMANT son fichier (« fichier i/n ») — les questions de destination/fusion restent posées PAR
+   import, ce qui était tout l'argument de l'ancienne règle. Annuler un atelier n'abandonne QUE
+   son fichier : les suivants se présentent quand même (chaque import est indépendant).
+   `openAfter` ne vaut que pour le DERNIER fichier : ouvrir chaque fiche importée au milieu de la
+   file écraserait l'écran au moment où l'atelier suivant s'ouvre.
    ⚠ Les drapeaux et la fermeture du dialogue vivent dans le callback, donc APRÈS le choix du
    fichier : les deux chemins (clic et dépôt) se comportent enfin pareil, et annuler le sélecteur
    ne laisse plus le dialogue fermé sans rien avoir importé. */
 function bindCreateDrop(el,openAfter){
-  bindUpDrop(el,'data',files=>{
-    pendingOpenImport=openAfter;closeCreateDlg();readImportFile(files[0]);},false);}
+  bindUpDrop(el,'data',async files=>{
+    closeCreateDlg();
+    for(let i=0;i<files.length;i++){
+      pendingOpenImport=openAfter&&i===files.length-1;
+      await readImportFile(files[i],files.length>1?{i:i+1,n:files.length}:null);}},true);}
 function renderCreateDlg(screen,park){
   const proto=state.section==='protocols';
   // Le segment ne vit que sur l'écran des méthodes (les sous-écrans IA / import sont propres au
@@ -28216,14 +28241,16 @@ function impSetAll(on){_impSel.clear();if(on)_impRows.forEach(r=>_impSel.add(r.k
   // On ÉCRIT sur les cases en place, jamais un re-rendu : reconstruire la liste sous le doigt
   // lui ferait perdre le focus et remonterait le défilement (leçon v4.78.0).
   document.querySelectorAll('#impList [data-impsel]').forEach(cb=>{cb.checked=on;});impSyncSel();}
-function importWorkshop(imp,zip,sameSpace){
+function importWorkshop(imp,zip,sameSpace,lbl){
   if(_impRes){const r=_impRes;_impRes=null;r(null);}   // un seul atelier à la fois (patron confirmDlg)
   _impRows=impRowsOf(imp,sameSpace);
   // TOUT COCHÉ AU DÉPART : le geste ordinaire est « j'importe ce fichier » — l'atelier sert à
   // RETIRER ce dont on ne veut pas, il ne demande pas de tout re-cocher à la main.
   _impSel=new Set(_impRows.map(r=>r.key));
+  // `lbl` (A225) : dans une FILE d'imports, l'atelier nomme son fichier — sans cela, trois
+  // ateliers d'affilée seraient indiscernables.
   document.getElementById('impIntro').textContent=
-    'Ce fichier contient '+_impRows.length+' élément'+(_impRows.length>1?'s':'')
+    (lbl?lbl+' contient ':'Ce fichier contient ')+_impRows.length+' élément'+(_impRows.length>1?'s':'')
     +(zip?' et ses documents PDF':'')+'. Décochez ce que vous ne voulez pas, réglez où chacun va : rien n\'est écrit avant votre validation. '
     +'L\'état (Validée / À relire / Brouillon) est celui du fichier.';
   paintImpList();
@@ -28276,14 +28303,24 @@ document.getElementById('impList').addEventListener('change',e=>{
   if(cb.checked)_impSel.add(cb.dataset.impsel);else _impSel.delete(cb.dataset.impsel);
   impSyncSel();});
 bindModalDismiss(impModal,()=>_impEnd(null));
-function readImportFile(file){const r=new FileReader();
-  r.onload=async()=>{
+/* A225 — L'IMPORT EST APPELABLE EN FILE : la fonction rend une promesse tenue quand TOUT le
+   parcours est terminé (atelier, questions, écritures — ou abandon), ce qui permet d'enchaîner
+   plusieurs fichiers déposés d'un geste SANS jamais superposer deux ateliers. `pos` ({i,n},
+   facultatif) fait NOMMER le fichier par l'atelier et par les refus : trois ateliers muets
+   d'affilée ne diraient pas lequel montre quoi. */
+function readImportFile(file,pos){
+  const lbl=pos?'« '+upShortName(file&&file.name)+' » (fichier '+pos.i+'/'+pos.n+')':null;
+  return new Promise(fin=>{const r=new FileReader();
+    r.onerror=()=>{pendingOpenImport=false;toast('⚠ '+(lbl||'Fichier')+' illisible.');fin();};
+    r.onload=()=>_importRead(r.result,lbl).then(fin,fin);
+    r.readAsArrayBuffer(file);});}   // ArrayBuffer : nécessaire au .zip ; le .json est décodé en UTF-8
+async function _importRead(buf,lbl){
     // PARSE séparé du reste : « Fichier illisible » ne doit être dit QUE si le fichier est
     // illisible — pas quand une étape ultérieure (stockage saturé en milieu d'import…) échoue.
     // Deux formats acceptés (v4.5.0) : .json (historique) et .zip « avec documents » — détecté
     // à la SIGNATURE (PK\x03\x04), jamais à l'extension : donnees.json + documents/<id>.pdf.
     let imp,zipAtts=null;
-    try{const u8=new Uint8Array(r.result);let text;
+    try{const u8=new Uint8Array(buf);let text;
       if(u8[0]===0x50&&u8[1]===0x4B&&u8[2]===3&&u8[3]===4){
         const entries=await zipParse(u8);
         const j=entries.find(x=>/(^|\/)donnees\.json$/.test(x.name))||entries.find(x=>/\.json$/i.test(x.name));
@@ -28294,7 +28331,7 @@ function readImportFile(file){const r=new FileReader();
       }else text=new TextDecoder().decode(u8);
       const data=JSON.parse(stripJsonFences(text));
       imp=normalizeImport(Array.isArray(data)?{fiches:data,categories:[]}:data);}
-    catch(err){pendingOpenImport=false;toast('⚠ Fichier illisible.');return;}
+    catch(err){pendingOpenImport=false;toast('⚠ '+(lbl||'Fichier')+' illisible.');return;}
     /* STRUCTURE INCONNUE ≠ FICHIER ILLISIBLE, et le dire séparément est le vrai correctif
        (signalé à l'usage : « .json de v4 → fichier illisible »). Le fichier était parfaitement
        lisible — c'est une CLÉ qui manquait —, et le message envoyait chercher la panne du
@@ -28302,7 +28339,7 @@ function readImportFile(file){const r=new FileReader();
        champ. Un message qui ne désigne pas sa cause coûte plus qu'un message absent. */
     if(!Array.isArray(imp.fiches)&&!Array.isArray(imp.protocols)){
       pendingOpenImport=false;
-      toast('⚠ Ce fichier est un JSON valide, mais il ne contient ni « aids » ni « fiches » : '
+      toast('⚠ '+(lbl||'Ce fichier')+' est un JSON valide, mais il ne contient ni « aids » ni « fiches » : '
         +'ce n\'est pas un export de l\'application.',9000,true);return;}
     try{
     /* ATELIER (A129) — LE GRAIN DE L'IMPORT EST L'ENTITÉ, ET LE FILTRAGE PRÉCÈDE TOUTE ÉCRITURE.
@@ -28317,13 +28354,13 @@ function readImportFile(file){const r=new FileReader();
     imp.protocols=Array.isArray(imp.protocols)?imp.protocols:[];
     if(!imp.fiches.length&&!imp.protocols.length){
       pendingOpenImport=false;
-      toast('Ce fichier ne contient aucune aide ni référence — rien à importer.',7000,true);return;}
+      toast((lbl||'Ce fichier')+' ne contient aucune aide ni référence — rien à importer.',7000,true);return;}
     /* Fichier venu du MÊME espace local ? (empreinte d'origine, cf. commentaire de section).
        REMONTÉ AVANT L'ATELIER (A130) : c'est lui qui décide si un identifiant sera CONSERVÉ, donc
        s'il peut y avoir doublon — sans lui, la rangée annoncerait « déjà présent » sur un import
        venu d'ailleurs, dont les ids sont de toute façon régénérés à l'écriture. */
     const sameSpace=(typeof imp.origin==='string')&&imp.origin===spaceTag(currentSpace());
-    const atelier=await importWorkshop(imp,!!zipAtts,sameSpace);
+    const atelier=await importWorkshop(imp,!!zipAtts,sameSpace,lbl);
     if(!atelier){pendingOpenImport=false;return;}
     const sel=atelier.sel,destOf=atelier.dest;
     /* LA DESTINATION VOYAGE AVEC SON ENTITÉ (A159). Les deux tableaux sont filtrés sur la
@@ -28492,8 +28529,7 @@ function readImportFile(file){const r=new FileReader();
     if(added.length||addedP)toast([added.length?(added.length>1?added.length+' fiches importées':'1 fiche importée'):'',addedP?(addedP>1?addedP+' protocoles importés':'1 protocole importé'):''].filter(Boolean).join(' et ')+' dans '+scopeLbl+'.');}
     // Le fichier était lisible (parse passé plus haut) : un échec ICI est un problème de stockage
     // ou d'exécution, pas de fichier — message honnête, et ce qui a déjà été importé est conservé.
-    catch(err){pendingOpenImport=false;toast('⚠ Import interrompu ('+(sstr((err&&err.message)||'',120)||'erreur inattendue')+') — les éléments déjà importés sont conservés.',9000);}};
-  r.readAsArrayBuffer(file);}   // ArrayBuffer : nécessaire au .zip ; le .json est décodé en UTF-8
+    catch(err){pendingOpenImport=false;toast('⚠ Import interrompu ('+(sstr((err&&err.message)||'',120)||'erreur inattendue')+') — les éléments déjà importés sont conservés.',9000);}}
 /* L'UNIQUE entrée d'import est le dialogue « Créer », et elle passe par la porte : la taille est
    donc bornée AVANT lecture (`MAX_IMPORT_BYTES`). Il n'y avait aucun plafond, et
    `readAsArrayBuffer` sur un fichier de plusieurs centaines de Mo tue l'onglet sur téléphone —

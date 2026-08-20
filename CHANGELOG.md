@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [5.16.0] — 2026-08-20
+### Plusieurs fichiers d'un geste, des QR lisibles de plus loin (A225-A226)
+
+- **Importer plusieurs `.json`/`.zip` d'un seul geste** (demandé à l'usage) : le sélecteur
+  comme le glisser-déposer acceptent désormais plusieurs fichiers de données, traités **en
+  file** — un atelier après l'autre, jamais deux superposés, chaque atelier **nommant son
+  fichier** (« nom.json » — fichier 1/3). Les questions de destination, fusion et doublons
+  restent posées PAR import (l'argument de l'ancienne règle « un seul fichier », conservé
+  tel quel) ; annuler un atelier n'abandonne que son fichier, les suivants se présentent
+  quand même. Les refus nomment aussi leur fichier — indispensable au milieu d'une file.
+  Sous le capot, `readImportFile` rend une promesse tenue à la FIN du parcours complet, et
+  une erreur de lecture ne gèle plus la file (`FileReader.onerror` traité).
+  Les images et les PDF, eux, acceptaient déjà le geste multiple partout (porte unique
+  v5.0.0) — rien n'a changé de ce côté.
+- **Tous les QR grandissent d'un cran** (demandé à l'usage : « lisibles de plus loin ») —
+  la marge au-dessus du seuil de scan s'encaisse en distance et en tolérance d'angle :
+  240 px en fenêtre d'appariement (56vw plafonné ; le palier < 360 px ne bouge pas, c'est
+  le cas mesuré de v4.47.0 où « Arrêter le partage » passait sous la ligne de flottaison),
+  et **260 px** pour les QR qui se scannent d'écran à écran (appariement direct, synchro
+  optique, réponse de l'invité, aller-retour). Au passage, `audit-partage` a attrapé un
+  conflit de spécificité jusque-là invisible (la règle `#shareBody` battait le plafond de
+  la carte d'appariement — les deux disaient 200, le conflit ne se voyait pas) : la règle
+  de la carte est scopée `#shareModal`, et le témoin « plafonné à 240 px » reste MESURÉ.
+- **Vérifié** : sonde deux moteurs (sélecteur multiple, deux ateliers en file nommés,
+  annulation sans cascade), `audit-qr` 9/9 (décodage réel des captures), passe d'audit
+  complète 25/25 verte. Doctrine : `docs/decisions/lot-v5-16.md` (A225-A226).
+
 ## [5.15.0] — 2026-08-20
 ### Les barres flottantes deviennent lisibles — planches Claude Design 17 et 18 (A222-A224)
 

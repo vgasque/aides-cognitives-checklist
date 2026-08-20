@@ -625,7 +625,8 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
     r.qrTexte);
   t(`${w}×${h} · et le lien complet est donné en clair`, /#j=K7M2P4Q9$/.test(r.lien||''), r.lien);
   t(`${w}×${h} · le TITRE DE L'AIDE est à côté du code`, /Arrêt cardiaque/.test(r.titre), r.titre);
-  t(`${w}×${h} · le QR est présent et plafonné à 200 px`, r.qrLarge > 60 && r.qrLarge <= 200, `${r.qrLarge} px`);
+  // Plafond 200 -> 240 px (v5.16.0, demandé à l'usage : « lisibles de plus loin »).
+  t(`${w}×${h} · le QR est présent et plafonné à 240 px`, r.qrLarge > 60 && r.qrLarge <= 240, `${r.qrLarge} px`);
   /* CE QU'ON EXIGE VRAIMENT DE « ARRÊTER LE PARTAGE ». La première version de ce contrôle
      demandait qu'il soit visible SANS DÉFILER à toutes les largeurs. C'était trop, et cela se
      payait sur ce qui compte davantage : à 320×568, avec un code réellement lisible, un QR

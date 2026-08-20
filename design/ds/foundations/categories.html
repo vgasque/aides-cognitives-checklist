@@ -5281,11 +5281,14 @@
      re-casser, c'est arrivé dans la même heure. Le bloc de fin de feuille est la source de vérité
      unique du média tactile : on s'y range, et on ne le cite pas au motif près. */
   /* CODE QR — taille en px et non en %, parce qu'un QR se scanne : trop petit, le lecteur cale.
-     ~200 px met chaque module au-dessus de 4 px dès la version 10, ce qui passe partout à 30 cm.
+     240 px (v5.16.0, demandé à l'usage : « lisibles plus facilement / de plus loin ») met chaque
+     module au-dessus de 5 px dès la version 10 — le gain se prend sur la DISTANCE de scan, pas
+     sur un seuil de lisibilité qui était déjà tenu à 200. Les contextes serrés gardent leur
+     plafond propre (cf. .sh-qr et le bloc #shareBody plus bas).
      Encre et fond fixes dans les deux thèmes (cf. --qr-ink), bordure pour détacher la zone de
      silence d'un fond clair — sans elle le blanc du QR se fond dans la surface et le lecteur
      perd le repère. */
-  .qr{display:block;width:200px;height:200px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
+  .qr{display:block;width:240px;height:240px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
   .flow-zoom{display:flex;align-items:center;gap:6px;margin-bottom:6px}
   .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 10px;font-size:12px}
@@ -6919,8 +6922,15 @@
   /* Le QR est PLAFONNÉ, et rétréci au palier le plus contraint : à 320×568 la carte dépassait de
      2 px et « Arrêter le partage » perdait 6 px de sa cible — pour un code qui reste scannable
      bien en dessous (4,8 px par module à 197 px, relu par le décodeur d'Apple ; à 141 px on est
-     encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm). */
-  .sh-qr .qr{width:min(200px,52vw);height:auto}
+     encore à 3,4 px par module, au-dessus du seuil pratique d'un appareil photo à 20 cm).
+     v5.16.0 : plafond 200 → 240 px et 52 → 56 vw (« lisible de plus loin », demandé à l'usage) —
+     le palier < 360 px, lui, ne bouge PAS : c'est le cas mesuré ci-dessus, et y grossir le QR
+     referait passer « Arrêter le partage » sous la ligne de flottaison.
+     ⚠ PORTÉE `#shareModal` OBLIGATOIRE (attrapé par audit-partage en posant v5.16.0) : la carte
+     d'appariement vit AUSSI dans #shareBody, dont la règle « 260 px d'écran à écran » (id, plus
+     spécifique qu'un couple de classes) battrait ce plafond-ci — le conflit existait avant, il
+     était juste invisible tant que les deux règles disaient 200. */
+  #shareModal .sh-qr .qr{width:min(240px,56vw);height:auto}
   @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:24px;letter-spacing:3px}}
   #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .sh-p{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--line)}
@@ -7006,7 +7016,11 @@
      (fond doux + glyphe + mot, jamais la couleur seule) ; boutons en rangée à gouttière. */
   #shareBody video,#joinScreen video{width:100%;max-width:340px;aspect-ratio:3/4;object-fit:cover;
     border-radius:var(--r-3);display:block;margin:12px auto 0;background:var(--sys)}
-  #shareBody .qr,#jsAnswer .qr{display:block;width:min(100%,200px);margin:14px auto 6px;
+  /* 260 px (v5.16.0) : ces QR-là se scannent D'ÉCRAN À ÉCRAN (appariement direct, synchro
+     optique, réponse de l'invité) — chaque pixel de plus se prend en distance et en tolérance
+     d'angle, et la feuille a la largeur pour. `height:auto` : la hauteur de base 240 de .qr ne
+     doit pas letterboxer un SVG dont la largeur suit min(100%,260px). */
+  #shareBody .qr,#jsAnswer .qr{display:block;width:min(100%,260px);height:auto;margin:14px auto 6px;
     background:var(--paper);border:1px solid var(--line);border-radius:var(--r-1);padding:12px}
   #shareBody .sl-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
   #shareBody .sl-actions .btn{width:100%;min-height:48px;justify-content:center}
