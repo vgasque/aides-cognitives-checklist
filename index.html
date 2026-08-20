@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lLsTGpXOrdN8D1hDTGwiLFyFiI6a08vozdGN6JFHGcE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-DN9KtQOpe8UNtgxmNGLD9OMBTvUKiLYCdsX85z62Q+w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9729,7 +9729,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.16.0';
+const APP_VERSION='5.16.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10863,16 +10863,19 @@ function dataKind(u8){
   return (c===0x7B||c===0x5B||c===0x60)?'json':null;}
 /* LA TABLE. `accept` = ce que le sélecteur de fichier PROPOSE ; `sniff` = ce que la porte
    VÉRIFIE ; `max` = le plafond. Les trois sur la même ligne, donc indissociables.
-   `un` et `ind` sont les mots montrés à l'utilisateur — la zone NOMME ce qu'elle accepte, ce qui
-   rend un refus compréhensible avant même qu'il arrive. */
+   `un`, `pl` et `ind` sont les mots montrés à l'utilisateur — la zone NOMME ce qu'elle accepte,
+   ce qui rend un refus compréhensible avant même qu'il arrive. `pl` (v5.16.1, signalé à
+   l'usage) : la fenêtre de dépôt disait « Déposez UN PDF ou UNE image ici » — un singulier de
+   grammaire, lu comme une LIMITE par qui tient trois fichiers dans la main ; l'invitation parle
+   au pluriel, le refus (`un`) reste au singulier car il désigne UN fichier fautif. */
 const UP_KINDS={
   pdf:  {accept:'application/pdf,.pdf', sniff:isPdfBytes, max:MAX_PDF_BYTES,
-         un:'un PDF', ind:'PDF'},
+         un:'un PDF', pl:'vos PDF', ind:'PDF'},
   image:{accept:'image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif',
          sniff:u8=>!!imgKind(u8), max:MAX_IMG_BYTES,
-         un:'une image', ind:'PNG · JPEG · WebP · HEIC'},
+         un:'une image', pl:'vos images', ind:'PNG · JPEG · WebP · HEIC'},
   data: {accept:'application/json,.json,application/zip,.zip', sniff:u8=>!!dataKind(u8),
-         max:MAX_IMPORT_BYTES, un:'un fichier .json ou .zip', ind:'.json · .zip'}};
+         max:MAX_IMPORT_BYTES, un:'un fichier .json ou .zip', pl:'vos fichiers .json ou .zip', ind:'.json · .zip'}};
 /* Nature RÉELLE d'un fichier d'après ses octets — sert au ROUTAGE d'un dépôt : c'est le CONTENU
    qui décide où il va, jamais l'extension ni la zone visée. Aucune ambiguïté entre les trois
    (un PDF commence par « % », un zip par « PK », un JSON par « { » ou « [ »). */
@@ -10939,7 +10942,7 @@ function upDropHtml(kind,id,label,extra){
   return `<button type="button" class="up-drop${extra||''}" id="${esc(id)}" data-upkind="${esc(kind)}">`
     +uiIcon('download',15,{cls:'up-ic'})
     +`<span class="up-tx"><span class="up-t">${esc(label)}</span>`
-    +`<span class="up-d">${esc(K.ind)} — glissez ici ou cliquez</span></span></button>`;}
+    +`<span class="up-d">${esc(K.ind)} — glissez ici ou cliquez · plusieurs à la fois</span></span></button>`;}
 function bindUpDrop(el,kind,onFiles,multiple){
   if(!el)return;
   el.onclick=()=>pickFile(kind,onFiles,multiple);
@@ -10983,8 +10986,8 @@ function upDragShow(){
      vide, le peintre le remplit une fois. */
   {const ic=el.querySelector('.up-drag-ic');
    if(ic&&!ic.firstChild)ic.innerHTML=uiIcon('download',22);}
-  if(ks.length){t.textContent='Déposez '+ks.map(k=>UP_KINDS[k].un).join(' ou ')+' ici';
-    d.textContent=ks.map(k=>UP_KINDS[k].ind).join('  ·  ');}
+  if(ks.length){t.textContent='Déposez '+ks.map(k=>UP_KINDS[k].pl).join(' ou ')+' ici';
+    d.textContent=ks.map(k=>UP_KINDS[k].ind).join('  ·  ')+'  ·  plusieurs fichiers à la fois';}
   else{t.textContent='Rien ne se dépose sur cet écran';
     d.textContent='Ouvrez un éditeur pour joindre un document ou une image.';}
   el.classList.toggle('none',!ks.length);el.classList.add('on');}

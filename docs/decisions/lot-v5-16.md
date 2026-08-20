@@ -41,6 +41,22 @@ tout l'argument de l'ancienne règle, et il est conservé tel quel. Mécanique :
 ateliers en file nommés 1/2 puis 2/2, deux fiches écrites, et l'annulation du premier atelier
 qui laisse le second se présenter. La passe complète (`npm run audit`) est restée la porte.
 
+**ADDENDUM v5.16.1 — LE SINGULIER DE GRAMMAIRE SE LIT COMME UNE LIMITE.** Re-signalé après
+livraison : « quand je drag plusieurs PDF, ça me montre "déposez UN pdf ou UNE image" et il n'y
+a qu'un seul fichier dans la liste ». Trois sondes n'ont PAS reproduit la troncature (sélecteur
+multiple, drop DOM synthétique, drop CDP à vrais fichiers — fiche ET protocole, 2, 3 et 5
+documents entrés et affichés) : le code prend tout depuis la v5.0.0. Mais le TEXTE, lui, disait
+bien « Déposez un PDF ou une image ici » — le `un` de la table (`UP_KINDS[].un`, écrit pour
+NOMMER une nature) servait aussi d'invitation, où il se lit comme « un seul à la fois ». La
+table gagne un champ `pl` (« vos PDF », « vos images », « vos fichiers .json ou .zip ») :
+l'INVITATION (fenêtre de dépôt, sous-titre des zones « plusieurs fichiers à la fois ») parle au
+pluriel, le REFUS garde `un` — il désigne UN fichier fautif, et là le singulier est juste.
+Leçon : un même mot ne sert pas deux registres (nommer / inviter) — c'est la version textuelle
+de « une couleur n'est jamais seule ». Les causes résiduelles d'une troncature RÉELLE chez
+l'utilisateur, notées pour le terrain : glisser depuis la barre de téléchargements de Chrome ou
+une pile macOS (le drag ne porte qu'UN fichier), un PDF > 15 Mo refusé (toast de 8 s, ratable),
+ou une PWA installée servant encore l'ancienne version par son service worker.
+
 ## A226 — les QR grandissent d'un cran : la marge se prend en DISTANCE de scan
 
 **CONSTAT.** Tous les QR étaient plafonnés à 200 px — un plafond POSÉ SUR MESURE en v4.47.0
