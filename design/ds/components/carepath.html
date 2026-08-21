@@ -2363,12 +2363,123 @@
      l'en-tête 61, haut de la barre 189, soit 128 px de vide, dont 61 dus à ce seul `--hdr-h`.
      Deux défileurs, deux décalages : `--hdr-h` en étroit, ZÉRO en large (le second est posé dans
      le bloc ≥ 780 px, auprès de la déclaration qui rend `.home-main` défilant). */
-  .sel-bar{position:sticky;top:var(--hdr-h,64px);z-index:14;display:flex;align-items:center;flex-wrap:wrap;gap:8px;
-    margin:0 0 10px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-md);
+  /* ══ LE CONTENU DE LA BARRE — PLANCHE 20 : UNE LIGNE, 56 px, TOUJOURS ═══════════════════════
+     La COQUE ci-dessus ne bouge pas (place collante, matière, périmètre, marge) ; seul ce qu'elle
+     porte est repris, sous une contrainte unique : **la barre ne dépasse jamais 56 px de haut**,
+     à tout écran et dans tout état.
+     CE QUI RENDAIT MAL N'ÉTAIT PAS LA LARGEUR, C'ÉTAIT LA HAUTEUR (planche 20a, mesuré à 390 px) :
+     huit objets dans un `flex-wrap` avec une entretoise élastique, donc un rendu étroit SUBI et
+     non dessiné — dès que la ligne casse, `.sel-sp{flex:1 1 auto}` n'a plus rien à pousser, les
+     commandes se rangent dans un ordre que personne n'a choisi, et « Supprimer… » atterrissait
+     JUSTE SOUS « Tout », là où le pouce venait de taper. Le coût réel se payait en hauteur : la
+     barre étant collante, ses ~100 px de deux étages restaient à l'écran pendant TOUT le
+     défilement, sur le seul axe qui manque sur téléphone. Et cette hauteur était payée pour rien —
+     à l'ouverture, QUATRE commandes sur six sont mortes (rien n'est coché).
+     `.sel-sp` — l'entretoise élastique — EST PURGÉE (v5.17), pas masquée : elle n'est plus ni
+     émise ni stylée, et c'est ici son épitaphe. C'était le COUPLE `flex-wrap:wrap` + entretoise
+     qui fabriquait l'ordre aléatoire au repli ; en retirer un seul des deux aurait laissé l'autre
+     prêt à le refaire. Le compte devient le seul élément élastique — il porte `flex:1 1 auto` et
+     s'ellipse dans SON espace, ce qui garantit qu'aucun autre objet ne peut pousser la ligne.
+     Les deux planchers de la règle 9, abaissés ici à 32 px et 11 px sur des commandes dont l'une
+     est destructrice, remontent à 40 px et var(--t-body). */
+  .sel-bar{position:sticky;top:var(--hdr-h,64px);z-index:14;display:flex;align-items:center;flex-wrap:nowrap;gap:8px;
+    height:56px;margin:0 0 10px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--radius-md);
     background:var(--surface);box-shadow:var(--shadow)}
-  .sel-n{font-size:var(--t-meta);font-weight:700;color:var(--ink);white-space:nowrap}
-  .sel-bar .sel-sp{flex:1 1 auto}
-  .sel-bar .btn{flex:none;min-height:32px;padding:0 10px;font-size:11px}
+  .sel-n{flex:1 1 auto;min-width:0;font-size:var(--t-body);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Rien de coché : le compte n'est pas une information, c'est une attente — encre secondaire. */
+  .sel-bar[data-n="0"] .sel-n{color:var(--ink-2)}
+  /* ⚠ LE SECOND SÉLECTEUR N'EST PAS UN DOUBLON — c'est le piège de cascade du projet, attrapé par
+     le témoin de la planche (mesuré : 38 px là où 40 était écrit). `.btn.sm{min-height:38px}` vaut
+     (0,2,0) comme `.sel-bar .btn`, et il est déclaré BEAUCOUP plus bas dans la feuille : à
+     spécificité égale, l'ordre décide, et c'était lui. `.sel-bar .btn.sm` vaut (0,3,0) et tranche
+     sans dépendre de l'ordre. (Même famille que `.cbt-n` v4.23.5 et `.ls-card .btn.sm` v5.x.) */
+  .sel-bar .btn,.sel-bar .btn.sm{flex:none;min-height:40px;padding:0 12px;font-size:var(--t-body)}
+  /* LE SEGMENT « Tout cocher / Tout décocher ». Les deux libellés se disent EN ENTIER : « Tout »
+     et « Aucun » n'annonçaient pas ce qu'ils déclenchaient, et « Aucun » se lisait d'abord comme
+     un compte. En étroit la barre n'en montre qu'UN, celui qui a un sens dans l'état courant —
+     c'est ce qui laisse la place à la touche d'actes sans rien abréger. */
+  .sel-seg{display:inline-flex;flex:none;border:1px solid var(--ctl-line);border-radius:var(--radius-md);overflow:hidden}
+  .sel-seg .btn{border:0;border-radius:0;background:var(--surface);white-space:nowrap}
+  .sel-seg .btn+.btn{border-left:1px solid var(--line-strong)}
+  /* `chev` pointe à DROITE dans le jeu d'icônes ; ici il annonce une feuille qui monte du bas.
+     Une rotation STATIQUE, donc hors du périmètre de check-anim (rien n'est animé). */
+  .sel-do svg{transform:rotate(90deg)}
+  /* Le filet qui précède « Annuler » en large : il sépare les ACTES de la SORTIE. Il vit dans
+     `.sel-acts`, donc il disparaît avec elle en étroit — un séparateur sans rien à séparer. */
+  .sel-sep{flex:none;width:1px;height:24px;background:var(--line);margin:0 2px}
+  /* « Annuler » N'A PAS DE CONTOUR, ni sous son mot ni sous sa croix : c'est la SORTIE du mode,
+     pas une commande de la barre. Lui donner la même boîte qu'aux actes en ferait un quatrième
+     acte — et sur la maquette 20b, c'est le seul objet dessiné sans filet, aux deux largeurs.
+     (0,3,0) au survol : `.btn:hover` vaut (0,2,0) et repose un filet, l'ordre ne suffirait pas. */
+  .sel-bar .sel-x{border-color:transparent;background:none;color:var(--ink-2)}
+  .sel-bar .sel-x:hover{border-color:transparent;background:var(--surface-2)}
+  .sel-x .sel-g{font-size:15px;line-height:1}
+  /* CONSIGNE 8 — LE FILET DE « Supprimer… » PASSE À `--ctl-line`. `--critical-line` est un rose
+     pâle à 1,4:1 sur la matière blanche : il ne tient pas 1.4.11 (contraste des composants), et
+     c'est justement la commande dont le contour doit se voir. Le ROUGE reste où il porte du
+     sens — l'encre et le fond — et le filet prend le token que la doctrine assigne aux bordures
+     de composant (le seul qui tienne 3:1, cf. A67). */
+  .sel-bar .btn.danger{border-color:var(--ctl-line);background:var(--critical-soft)}
+  /* ⚠ LE SEUIL DE DÉPLIAGE PASSE PAR `html.zw1200`, PAS PAR UNE MEDIA QUERY (règle 10), ET IL EST
+     À 1200 px, PAS À 560. Deux corrections à la planche, toutes deux MESURÉES avant d'être
+     décidées — la planche dessine ses maquettes à la largeur d'un écran, or ni l'une ni l'autre
+     de ces deux quantités n'est celle dont la barre dispose.
+       1. PAS UNE MEDIA QUERY. Elle mesure la fenêtre du PÉRIPHÉRIQUE, pas la place de la mise en
+          page : sur une tablette de 1000 px au plus grand réglage de texte, la place réelle vaut
+          769 px et la media query répond 1000. La barre se déplierait dans une largeur qu'elle
+          n'a pas, en `nowrap`, donc en débordement SILENCIEUX — précisément ce que la règle 10
+          existe pour empêcher, et que le `nowrap` qu'on vient de poser aggrave.
+       2. PAS 560 px. Mesuré : la barre DÉPLIÉE réclame 757 px de largeur UTILE (compte 58 +
+          segment 221 + Bibliothèque 121 + Catégorie 104 + Supprimer 107 + filet + Annuler 77 +
+          six écarts + rembourrage). Les intitulés de la consigne 5 y sont pour beaucoup —
+          « Bibliothèque… » et « Catégorie… » coûtent 33 px de plus que « Déplacer… » et
+          « Ranger… ». À 560 px de fenêtre la barre n'a que 514 px : dépliée, elle débordait de
+          179 px, le compte écrasé à ZÉRO et tronqué. La maquette 20b tient parce qu'elle se
+          dessine à 744 px de BARRE ; à 744 px de FENÊTRE la barre en fait 698.
+       3. ET LA LARGEUR DE LA BARRE N'EST PAS MONOTONE EN LARGEUR DE FENÊTRE : à 780 px, la
+          colonne de gauche apparaît et lui PREND 224 px d'un coup — mesuré, la barre tombe de
+          698 px (fenêtre 744) à 474 px (fenêtre 780). Aucun palier ne peut donc être choisi
+          « au plus juste » : il faut celui à partir duquel la barre est large partout au-dessus.
+          Mesures : fenêtre 1000 -> barre 694 (insuffisant) ; 1100 -> 794 ; 1200 -> 894. Le palier
+          est donc 1200, déjà déclaré dans l'échelle fermée, avec 137 px de marge.
+     `@container`, qui mesurerait la vraie contrainte, reste ÉCARTÉ (cf. règle 10). */
+  /* REPLIÉ — une seule face du segment, les actes dans le tiroir, « Annuler » réduit à sa croix. */
+  html.zw1200 .sel-acts{display:none}
+  html.zw1200 .sel-bar[data-n="0"] .sel-seg .btn[data-sel="none"],
+  html.zw1200 .sel-bar:not([data-n="0"]) .sel-seg .btn[data-sel="all"]{display:none}
+  html.zw1200 .sel-bar .sel-x{width:40px;height:40px;padding:0}
+  html.zw1200 .sel-x .sel-lbl{display:none}
+  /* ══ SOUS 430 px EFFECTIFS — COMPRESSION, PUIS DÉPART DU SEGMENT ═════════════════════════════
+     Le compte est le seul élément élastique : tout ce qui manque à la ligne se prend SUR LUI, et
+     il s'ellipse. Mesuré à 390 px, avant correctif : le compte réduit à 47 px pour 58 nécessaires
+     — « 3 cochés » tronqué, c'est-à-dire le CHIFFRE de la sélection rogné par les commandes qui
+     agissent dessus. On rend les pixels par la recette v4.23.4 (écarts et rembourrages), jamais
+     par un renommage — les intitulés entiers sont tout l'objet de la planche. */
+  html.zw430 .sel-bar{gap:6px;padding:0 8px}
+  html.zw430 .sel-bar .btn:not(.sel-x){padding:0 10px}
+  /* … et sous 400 px effectifs la compression ne suffit plus (mesuré : 337 px nécessaires pour
+     314 disponibles à 360 px de fenêtre, 274 à 320). LE SEGMENT REJOINT ALORS LE TIROIR, qui le
+     rejoue comme il rejoue les actes — mais SEULEMENT s'il y a quelque chose à décocher : à zéro
+     coché il n'y a pas de tiroir (la touche d'actes n'existe qu'à partir d'une coche), et le
+     segment est la seule commande de la barre. L'y retirer laisserait un mode de sélection dans
+     lequel on ne peut RIEN cocher. */
+  html.zw400 .sel-bar:not([data-n="0"]) .sel-seg{display:none}
+  /* DÉPLIÉ — le tiroir s'ouvre SUR LA MÊME LIGNE (`display:contents` : les trois boutons
+     deviennent des enfants directs de la barre, aucun objet intermédiaire, aucune duplication de
+     balisage). La barre y est celle d'hier, mais à ordre IMPOSÉ et sans repli possible. */
+  html:not(.zw1200) .sel-do{display:none}
+  html:not(.zw1200) .sel-acts{display:contents}
+  html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 14px}
+  html:not(.zw1200) .sel-x .sel-g{display:none}
+  /* DÉPLIÉE, LA LIGNE SE LIT EN DEUX GROUPES : ce qui décrit la SÉLECTION (le compte et les deux
+     faces du segment) à gauche, ce qui AGIT sur elle à droite. La séparation se fait par une
+     marge automatique sur le segment, PAS par une entretoise — `.sel-sp` est purgée, et la
+     réintroduire ici rouvrirait le couple qui fabriquait l'ordre aléatoire au repli (consigne 1).
+     Le compte cesse alors de POUSSER (`flex:0 1 auto`) sans cesser de CÉDER : il reste le seul
+     élément qui rétrécit, donc le seul qui s'ellipse si le motif « · deux bibliothèques » est
+     long — aucun acte ne peut être rogné par lui. */
+  html:not(.zw1200) .sel-n{flex:0 1 auto}
+  html:not(.zw1200) .sel-seg{margin-right:auto}
   /* La case d'une rangée : cible ≥ 32 px hors crise (règle 9), et un VRAI rôle de case à cocher
      (le clavier la coche à l'Espace comme n'importe quelle case). La coche n'est peinte que
      sélectionnée — une case vide est un contour, jamais un glyphe fantôme. */
@@ -5145,6 +5256,17 @@
   .catmenu-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .catmenu-row .cm-ck{margin-left:auto;color:var(--primary);flex:none}
   .catmenu-row .cm-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Rappel de CONTEXTE d'une feuille (`opts.head`) : le compte, puis sa portée. Il se lit avant
+     l'acte, pas pendant — d'où la ligne de séparation, qui le sort du rang des options. */
+  /* Aligné sur le TEXTE des rangées, pas sur le bord du menu : 6 px de rembourrage de menu
+     rendus par la marge négative, puis 16 px pour retrouver le retrait d'une rangée. */
+  .cm-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;margin:0 -6px 4px;padding:2px 16px 8px;border-bottom:1px solid var(--line)}
+  .cm-head b{font-size:var(--t-body);font-weight:800;color:var(--ink)}
+  .cm-head span{font-size:var(--t-cap);font-weight:600;color:var(--ink-2)}
+  /* Registre critique dans une rangée de feuille : l'ENCRE, jamais un fond plein — une rangée
+     rouge pleine se lit comme un bouton déjà pressé. */
+  .catmenu-row.danger{color:var(--critical)}
+  .catmenu-row.danger:hover{background:var(--critical-soft)}
   .catmenu-sep{height:1px;background:var(--line);margin:4px 8px}
   .catmenu-new{display:flex;align-items:center;gap:8px;width:calc(100% - 4px);min-height:44px;margin:2px;padding:0 10px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;text-align:left}
   .catmenu-new:hover{background:var(--surface-2)}
@@ -7839,7 +7961,12 @@
        compte pour que le contenu garde son air. Coins hauts carrés — une barre posée sur le bord
        d'un défileur n'a pas de coin à montrer là-haut. */
     .home-main:has(>.sel-bar){padding-top:0}
-    .home-main>.sel-bar{top:0;margin:0 0 10px;padding:14px 10px;border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md)}
+    /* ⚠ LE REMBOURRAGE VERTICAL EST TOMBÉ À ZÉRO AVEC LA PLANCHE 20, et ce n'est pas un oubli :
+       la barre a désormais une HAUTEUR FIXE de 56 px, dans laquelle ses commandes de 40 px
+       trouvent déjà leur air (8 px de part et d'autre). Les 14 px d'ici s'ajoutaient à cette
+       hauteur — la barre aurait mesuré 56 px avec des boutons débordant de leur boîte de contenu,
+       ou 84 px si l'on avait laissé la hauteur libre : les deux cassent la contrainte de 56. */
+    .home-main>.sel-bar{top:0;margin:0 0 10px;padding:0 10px;border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md)}
     .home-main>*{max-width:1320px}
     /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
     body.view-home :is(.typebar,.scopebar,.catbar){display:none}

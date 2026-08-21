@@ -166,6 +166,7 @@ fichiers restent **normatifs** — on les consulte À LA DEMANDE avant de touche
 | [`docs/decisions/lot-v5-14.md`](docs/decisions/lot-v5-14.md) | **A198-A221** — partage sans serveur, CLOS et validé terrain (couture `_io`, ShareLocal/QR/optique, secours chaud, bascules seamless deux sens, aller-retour et relais optiques, modèle de menace § 3.2) |
 | [`docs/decisions/lot-v5-15.md`](docs/decisions/lot-v5-15.md) | **A222-A224** — les barres flottantes deviennent lisibles (planches 17-18) : la matière système MONTE la nuit + périmètre `--sys-edge`, ombre du quai élargie au token, registre `--act-sys` du geste d'entrée |
 | [`docs/decisions/lot-v5-16.md`](docs/decisions/lot-v5-16.md) | **A225-A226** — plusieurs `.json`/`.zip` d'un geste (file d'ateliers nommés, `readImportFile` promissifié) ; QR agrandis d'un cran (240/260 px, palier < 360 intact) |
+| [`docs/decisions/lot-v5-17.md`](docs/decisions/lot-v5-17.md) | **A227-A230** — la barre de sélection tient sur UNE LIGNE de 56 px (planche 20) : actes dans un tiroir, palier de dépliage mesuré à 1200 px et non 560, libellés qui disent ce qu'ils déclenchent |
 
 Le classement des A-entrées est CHRONOLOGIQUE (par lot) et non thématique, à dessein : la doctrine
 se cite elle-même par numéro (« cf. A140 ») — le numéro EST l'adresse, et une dispersion par thème
@@ -504,6 +505,9 @@ Ne jamais pousser (`git push`) sans demande explicite de l'utilisateur.
 > **Vit dans [`docs/decisions/lot-v5-12.md`](docs/decisions/lot-v5-12.md)** — A170 à A179 : sélection
 > multiple à l'accueil (déplacer, ranger, supprimer avec confirmation forte), titres H1/H2/H3
 > repliables et mémorisés par protocole, et le chrome collant qui suit enfin le viewport visuel.
+> **Le CONTENU de la barre a été refait en v5.17** (planche 20, A227-A230) : hauteur constante de
+> 56 px, actes dans un tiroir sous les 1200 px, libellés entiers — cf.
+> [`docs/decisions/lot-v5-17.md`](docs/decisions/lot-v5-17.md). La coque décrite ici n'a pas bougé.
 
 ## Lot v5.11 — l'atelier d'import dit aussi « où » ça va
 

@@ -1,5 +1,57 @@
 # Journal des modifications
 
+## [5.17.0] — 2026-08-21
+### La barre de sélection tient sur une ligne (planche 20, A227-A230)
+
+- **Une ligne, 56 px, à tout écran et dans tout état** — contre ~100 px sur téléphone.
+  Le défaut n'était pas la largeur : la barre est **collante**, donc ses deux étages
+  restaient à l'écran pendant tout le défilement, sur le seul axe qui manque sur
+  téléphone. Et cette hauteur était payée pour rien — à l'ouverture, **quatre commandes
+  sur six étaient mortes**. Le contenu est repris ; la coque (place collante, matière,
+  périmètre) ne bouge pas. Le contenu remonte de 44 px, et il n'existe plus d'état où la
+  barre grandit sous le doigt.
+- **Les actes passent dans un tiroir** : « Actions » ouvre la feuille que « Bibliothèque… »
+  et « Catégorie… » ouvraient déjà. Un tap de plus, une rangée de moins. **Rien de coché,
+  rien de mort** : la touche d'actes n'est pas grisée, elle n'existe pas — la barre est
+  alors trois objets sur une ligne courte. Les trois actes sont écrits **une seule fois** ;
+  la feuille les rejoue, elle ne les duplique pas.
+- **Les libellés disent ce qu'ils déclenchent** : « Tout » → **« Tout cocher »**, « Aucun »
+  → **« Tout décocher »** (un adjectif seul n'annonce rien, et « Aucun » se lisait d'abord
+  comme un compte) ; « Déplacer… » et « Ranger… » nomment désormais leur **destination** —
+  **« Bibliothèque… »**, **« Catégorie… »** —, la phrase entière étant reprise dans la
+  feuille et en nom accessible. Les infobulles longues disparaissent : un intitulé qui se
+  suffit ne se double pas d'une infobulle.
+- **Le compte porte l'état, et il ne se fait plus rogner.** Il est le seul élément
+  élastique de la ligne ; c'est aussi lui qui dit pourquoi « Catégorie… » est fermée
+  (« 3 cochés · deux bibliothèques ») — un `title` n'existe pas au doigt. Mesuré avant
+  correctif : réduit à 47 px pour 58 nécessaires à 390 px, à zéro à 320 px. Sous 430 px la
+  barre se comprime (écarts, rembourrages) ; sous 400 px le segment rejoint le tiroir —
+  sauf à zéro coché, où il est la seule commande et où il n'y a pas de tiroir.
+- **Le palier de dépliage est à 1200 px, pas à 560 comme l'annonçait la planche** — corrigé
+  **à la mesure**, avec deux raisons : la barre dépliée réclame **757 px de largeur utile**
+  (les intitulés entiers y sont pour beaucoup) et à 560 px elle n'en a que 514, d'où un
+  débordement de 179 px ; et la largeur de la barre **n'est pas monotone** en largeur de
+  fenêtre — à 780 px la colonne de gauche lui prend 224 px d'un coup (698 → 474 px mesurés).
+  Le seuil passe par `html.zw1200`, jamais par une media query (règle 10 : une media query
+  mesure le périphérique, pas la place disponible). Conséquence assumée : sur tablette et
+  sur beaucoup de portables, la feuille est le régime normal.
+- **Correctif de fond découvert au passage** : `syncZoomWidth()` ne se posait **qu'au
+  rendu**. Une rotation, une fenêtre tirée, un clavier qui s'ouvre ne re-rendent rien — les
+  paliers de largeur restaient donc ceux de la largeur précédente, indéfiniment sur un écran
+  qu'on ne quitte pas. Elle se repose désormais au redimensionnement et à la rotation.
+- **Accessibilité** : cibles remontées de 32 à **40 px** et corps de 11 à 13,5 px (les deux
+  planchers de la règle 9 étaient abaissés ici, sur des commandes dont l'une est
+  destructrice) ; le filet de « Supprimer… » passe à `--ctl-line` — `--critical-line` est un
+  rose pâle à 1,4:1 qui ne tient pas 1.4.11 — le rouge restant dans l'encre et le fond
+  (mesuré après correctif : filet 3,41:1 en clair, 3,33:1 en sombre) ; la croix garde son
+  nom accessible entier, c'est le libellé visible qui se replie.
+- **Témoin** : `audit-doctrine.mjs` mesure à 320, 390, 560, 744, 1200 et 1280 px, à zéro
+  comme à plusieurs cochés — hauteur exacte, débordement nul, **un seul rang**, compte non
+  tronqué, cibles ≥ 40 px, et le palier réellement franchi. Vérifié capable d'échouer : il a
+  lui-même trouvé un piège de cascade (`.btn.sm{min-height:38px}`, déclarée plus bas à
+  spécificité égale — 38 px mesurés là où 40 étaient écrits). Doctrine :
+  `docs/decisions/lot-v5-17.md`.
+
 ## [5.16.1] — 2026-08-20
 ### L'invitation au dépôt parle au pluriel (addendum A225)
 
@@ -328,58 +380,3 @@
   commune fait ce que fait tout le reste de l'app — session démarrée → on y va ; fiche ouverte
   sans session → « Démarrer et partager ? » ; pas de fiche du tout → le seul vrai refus, qui
   dit quoi faire (« Ouvrez d'abord l'aide cognitive à partager »).
-
-## [5.14.6] — 2026-08-18
-### Le sélecteur de mode est LE segmenté de l'application — pas une imitation
-
-- Le sélecteur « En ligne · En direct · Par l'écran » utilise désormais le composant segmenté
-  CANONIQUE de l'application (`.seg`/`.seg-pill`/`.seg-btn` — celui de « Créer » et de la
-  bascule d'affichage) : pastille glissante sur trois pistes égales, registre
-  `--primary-soft`/`--primary-dk`, cibles 44 px. Les deux tentatives intermédiaires (boutons
-  bordés de `.statuseg`, puis un conteneur-pilule maison) sont SUPPRIMÉES — le design system
-  existait, il suffisait de le réutiliser (signalé à l'usage, capture à l'appui). La légende
-  dit la raison quand un cran est indisponible (« “En ligne” reviendra avec internet »).
-- Vérifié à la capture contre la maquette 08 : ligne d'état à point pulsant, segmenté à
-  pastille, légende, actions empilées pleine largeur.
-
-## [5.14.5] — 2026-08-18
-### Le secours chaud : internet tombe, le partage ne s'en aperçoit presque pas
-
-- **La bascule automatique en ligne → en direct existe** (M9 de l'étude). Pendant qu'un partage
-  en ligne fonctionne, l'invité propose EN SILENCE un canal direct (évènement `sig` par le
-  relais — l'offre compacte de ~130 octets), l'hôte répond par le même chemin, et le canal
-  s'ouvre puis DORT. Si le sondage échoue (~10 s de panne), l'hôte rejoue automatiquement le
-  geste manuel déjà éprouvé — le diff initial rembobine tout l'état dans le hub local — et sert
-  les canaux dormants ; l'invité re-joint par son canal et reconstruit son pli : AUCUNE fusion,
-  aucun geste, l'écran annonce d'une phrase et le quai passe à « ● Direct ».
-- **Le retour au cloud reste un tap** (segmenté « En ligne ») : le sens PANNE est automatique,
-  le sens confort reste un choix — automatisable plus tard si l'usage le réclame.
-- **`sig` est de la plomberie, et trois garde-fous le savent** : émissible par les deux rôles
-  (parité client/serveur vérifiée par check-sql, 20 capacités), ignoré par le pli donc par le
-  journal et le compte-rendu (témoin), régime d'application `none` (le témoin « tout genre est
-  classé » l'a exigé). Le registre § 3.2 dit ce qui transite désormais par le relais pendant la
-  préparation (descripteurs du canal, dont des adresses IP locales — purgés comme le reste).
-- **⚠ `supabase/schema.sql` est À REJOUER sur l'instance** (le serveur doit accepter le genre
-  `sig`) : sans ce rejeu, le secours chaud ne s'amorce pas — et rien d'autre ne change.
-- Maquette 08 complétée au passage : le sélecteur de mode porte ses SOUS-MOTS
-  (continu/ponctuel, ou la raison d'une indisponibilité) et la légende « l'app choisit seule —
-  forcer si besoin ».
-
-## [5.14.4] — 2026-08-18
-### Le code du partage en ligne revient, et les feuilles collent enfin aux maquettes
-
-- **Le code du partage en ligne avait disparu — trouvé et corrigé** : un essai « en direct »
-  remplaçait la couture réseau du partage et ne la rendait JAMAIS — tout partage en ligne
-  suivant passait en silence par le canal local (ouverture locale → pas de code → « la porte
-  est fermée »). La couture d'origine est mémorisée et RESTAURÉE sur tout chemin cloud
-  (héberger comme rejoindre par code).
-- **Conformité aux maquettes, vérifiée capture contre capture cette fois** (03 et 07 côte à
-  côte avec l'app) : notices fines d'une ligne aux mots exacts (« ⚠ Pas d'internet — partage
-  en direct »), QR dans sa carte bordée, légende « l'invité scanne, puis vous scannez sa
-  réponse », **boutons empilés pleine largeur** (primaire → neutre → fantôme) au lieu des
-  rangées.
-- **L'échec d'appariement suit la maquette 07** : « ⚠ Ça n'a pas abouti » + trois sorties,
-  toujours les mêmes, toujours dans cet ordre — Réessayer (tout à neuf), Par l'écran,
-  Continuer sans partage. Jamais un code d'erreur.
-- **Plus d'autofocus du champ code** à l'ouverture de « Rejoindre une session » : sur mobile
-  il levait le clavier d'office, alors que taper un code n'est plus le seul chemin.

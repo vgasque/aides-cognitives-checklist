@@ -6139,6 +6139,69 @@ for (const H of [844, 667]) {
 }
 });
 
+/* ══ PLANCHE 20 — LA BARRE DE SÉLECTION : UNE LIGNE, 56 px, TOUJOURS ════════════════════════
+   Le témoin de la consigne 9, et il mesure la contrainte ELLE-MÊME plutôt qu'une mise en page :
+   `offsetHeight === 56` à 320, 390, 560 et 1280 px, à zéro comme à plusieurs cochés. Trois
+   mesures l'accompagnent, parce qu'une hauteur juste ne prouve pas une ligne juste — une barre
+   peut tenir 56 px en ROGNANT son contenu, et c'est précisément le défaut silencieux que ce
+   dépôt s'interdit (ECAM) :
+     · aucun débordement horizontal (`scrollWidth <= clientWidth`) ;
+     · un SEUL rang (tous les objets visibles centrés sur la même bande) ;
+     · le COMPTE jamais tronqué — c'est l'état de la sélection, et il est le seul élément
+       élastique : tout ce qui manque à la ligne se prend sur lui.
+   ⚠ LE PALIER SE FRANCHIT RÉELLEMENT : sans la vérification « déplié à 1280, replié en dessous »,
+   un vert ne dirait que « la barre tient », y compris si elle tenait en n'affichant jamais ses
+   actes. On mesure donc AUSSI ce qui est sur la ligne de part et d'autre de 1200 px. */
+await sec('SÉLECTION · une ligne, 56 px, à tout écran et dans tout état (planche 20)', async () => {
+for (const W of [320, 390, 560, 744, 1200, 1280]) {
+  const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w=ms=>new Promise(r=>setTimeout(r,ms));
+    const mes=()=>{const b=document.querySelector('.sel-bar');if(!b)return null;
+      /* `display:contents` n'a pas de boîte : ses ENFANTS sont les objets de la ligne. */
+      const kids=[...b.children]
+        .flatMap(k=>getComputedStyle(k).display==='contents'?[...k.children]:[k])
+        .filter(k=>getComputedStyle(k).display!=='none');
+      const n=document.getElementById('selN');
+      const centres=kids.map(k=>{const q=k.getBoundingClientRect();return q.top+q.height/2;});
+      return {h:b.offsetHeight, over:b.scrollWidth-b.clientWidth,
+        rangs:Math.round(Math.max(...centres)-Math.min(...centres)),
+        cptTronq:n.scrollWidth>n.clientWidth+1, cpt:n.textContent,
+        cible:Math.min(...kids.filter(k=>k.tagName==='BUTTON').map(k=>k.offsetHeight)),
+        ids:kids.map(k=>k.id||k.className).join(' ')};};
+    const out={};
+    document.getElementById('selTog').click(); await w(300);
+    out.zero=mes();
+    let c; while((c=[...document.querySelectorAll('[data-selid]')].filter(x=>x.getAttribute('aria-checked')!=='true')[0])){c.click();await w(150);}
+    out.n=selEnt().length;
+    out.plein=mes();
+    return out;});
+  const P=`${W}px`;
+  for (const [etat,m] of [['0 coché',r.zero],[r.n+' cochés',r.plein]]) {
+    t(`${P} · ${etat} : la barre mesure exactement 56 px`, m.h===56, `offsetHeight = ${m.h}`);
+    t(`${P} · ${etat} : aucun débordement horizontal`, m.over<=0, `scrollWidth - clientWidth = ${m.over}`);
+    // Les objets n'ont pas la même hauteur (le compte est un span) : on compare leurs CENTRES.
+    t(`${P} · ${etat} : un seul rang`, m.rangs<=1, `écart des centres = ${m.rangs} px — ${m.ids}`);
+    t(`${P} · ${etat} : le compte n'est pas tronqué`, m.cptTronq===false, `« ${m.cpt} »`);
+    t(`${P} · ${etat} : cibles ≥ 40 px (règle 9, plancher hors crise relevé par la planche)`,
+      m.cible>=40, `plus petite = ${m.cible} px`);
+  }
+  // À zéro coché, RIEN DE MORT : la touche d'actes n'existe pas, elle n'est pas grisée.
+  t(`${P} · 0 coché : la touche d'actes n'est pas rendue`, !/selDo/.test(r.zero.ids), r.zero.ids);
+  // Le palier de dépliage (1200 px EFFECTIFS, cf. .sel-bar) se franchit réellement.
+  const deplie=/selLib/.test(r.plein.ids)&&/selCat/.test(r.plein.ids)&&/selDel/.test(r.plein.ids);
+  const tiroir=/selDo/.test(r.plein.ids);
+  if (W>=1200) t(`${P} · déplié : les trois actes sont SUR la ligne, pas de touche d'actes`,
+    deplie&&!tiroir, r.plein.ids);
+  else t(`${P} · replié : une touche d'actes, aucun acte sur la ligne`,
+    tiroir&&!deplie, r.plein.ids);
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
