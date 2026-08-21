@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-sAAPxZgBDqxptoT516PYO6agyuqsWAhsmEcafRrIkmA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-ua97roefrV0Cz1tezQNWZMKjmAByNESqMtFb4Z7+Vsw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7024,7 +7024,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      pas, on aligne au début au lieu de recouvrir. */
   .mon-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:safe center;gap:6px}
   .mon-lbl{font-size:clamp(15px,3.4vw,22px);font-weight:700;color:var(--ink-soft);line-height:1.2}
-  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(64px,min(20vw,32vh),190px);font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+  /* ⚠ LE GRAND CHIFFRE PLAFONNE SOUS LA BANDE (v5.17.1). Il est l'objet PRIMAIRE de l'afficheur,
+     et c'est pour cela qu'il cède : sur un téléphone COUCHÉ (667×375), 32vh lui donnent 120 px
+     quand la place réelle sous l'en-tête, le pied et la bande n'en laisse que 79 — mesuré, il se
+     faisait recouvrir de 26 px, et un chiffre recouvert ne se lit pas du tout tandis qu'un
+     chiffre plus petit se lit encore très bien à deux mètres. `--mon-vmax` est posée par
+     `monPlace` sur la surface elle-même ; en son absence, rien ne change (190 px, le plafond
+     d'origine). Le plancher de 64 px du `clamp` reste intouchable — c'est lui que `monPlace`
+     réserve avant de compter ses rangées. */
+  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:min(clamp(64px,min(20vw,32vh),190px),var(--mon-vmax,190px));font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
   .mon-val.due{color:var(--verify-hi)}
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--verify-hi)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
@@ -7043,13 +7051,25 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mb-dot{position:absolute;top:4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;
     background:var(--ink-soft);display:grid;place-items:center}
   .mb-dot b{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:-14px;font-weight:700}
-  .mb-line{position:relative;height:32px;border-radius:var(--r-1);
+  /* La bande GRANDIT AVEC SES ÉCHÉANCES (v5.17.1) : une rangée chacune, sur le même axe. Le
+     `min-height` garde son corps quand rien n'est daté — l'axe au-dessus doit rester posé sur
+     quelque chose. */
+  .mb-line{position:relative;display:flex;flex-direction:column;gap:2px;min-height:32px;padding:4px 0;
+    border-radius:var(--r-1);
     background:linear-gradient(90deg,var(--surface-2) 0 28%,var(--surface-3) 28%,var(--surface-2))}
-  .mb-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ok)}
-  .mb-due{position:absolute;top:8px;font-size:12px;font-weight:700;color:var(--ink);
+  .mb-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ok);z-index:1}
+  .mb-row{position:relative;height:20px}
+  /* L'étiquette est CENTRÉE SUR SA HAUTEUR DE RANGÉE et non calée à un `top` absolu : c'est ce
+     `top:8px` commun qui empilait les quatre libellés au même endroit. */
+  .mb-due{position:absolute;top:0;height:20px;display:inline-flex;align-items:center;
+    font-size:12px;font-weight:700;color:var(--ink);
     border-left:2px solid var(--ink);padding-left:4px;white-space:nowrap}
-  .mb-ghost{position:absolute;top:8px;height:18px;border-left:2px dashed var(--ink-soft)}
+  /* Passé la moitié de l'axe, l'étiquette se pose À GAUCHE de sa marque : le filet change de
+     côté avec elle, sinon la marque ne désignerait plus l'instant. */
+  .mb-due.gche{border-left:0;padding-left:0;border-right:2px solid var(--ink);padding-right:4px}
+  .mb-ghost{position:absolute;top:1px;height:18px;border-left:2px dashed var(--ink-soft)}
   .mb-leg{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  .mb-plus{font-size:12px;font-weight:700;color:var(--ink-soft);margin-top:4px}
   .mb-sans{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
   .mb-sh{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);width:100%}
@@ -9856,7 +9876,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.17.0';
+const APP_VERSION='5.17.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -24922,7 +24942,7 @@ const MON_PAST_MS=120000, MON_FUT_MS=300000, MON_NOW=MON_PAST_MS/(MON_PAST_MS+MO
 function monBandData(timers,events,now){
   now=now||Date.now();
   const pos=t=>(t-now+MON_PAST_MS)/(MON_PAST_MS+MON_FUT_MS);
-  const dated=[],ghosts=[],sans=[];
+  const dated=[],sans=[];
   Object.values(timers||{}).forEach(t=>{
     if(!t)return;
     if(t.type!=='interval'){if(t.running)sans.push({lab:t.label||'Chronomètre',val:'en cours',kind:'chrono'});return;}
@@ -24930,10 +24950,17 @@ function monBandData(timers,events,now){
     if(tmIsDue(t)){sans.push({lab:t.label||'Minuteur',val:'échu',kind:'due'});return;}
     if(!t.running){if(per)sans.push({lab:t.label||'Minuteur',val:fmtMs(Math.max(0,per-t.elapsedMs)),kind:'pause'});return;}
     const fin=now+Math.max(0,per-(t.elapsedMs+(now-t.lastStart)));
-    if(pos(fin)<=1)dated.push({lab:t.label||'Minuteur',x:pos(fin),t:fin});
+    if(pos(fin)>1)return;
+    const d={lab:t.label||'Minuteur',x:pos(fin),t:fin,ghosts:[]};
     /* Les tours SUIVANTS, en creux : déterministes tant que personne n'y touche. Sans libellé —
-       ce ne sont pas des promesses, ce sont des projections, et le tiret le dit. */
-    if(t.autoloop&&per>0)for(let k=1;k<=3;k++){const g=pos(fin+k*per);if(g>1)break;ghosts.push(g);}
+       ce ne sont pas des promesses, ce sont des projections, et le tiret le dit.
+       ⚠ ILS SONT ATTACHÉS À LEUR MINUTEUR (v5.17.1) et non plus versés dans un tas commun : avec
+       plusieurs minuteurs, un tiret anonyme sur la ligne ne disait plus DE QUI il était le tour
+       suivant — l'information exacte que la bande existe pour porter.
+       Le `return` anticipé ci-dessus ne retire aucun tour : si la PREMIÈRE échéance sort déjà de
+       la fenêtre, `fin + k·per` en sort a fortiori et la boucle cassait dès k=1. */
+    if(t.autoloop&&per>0)for(let k=1;k<=3;k++){const g=pos(fin+k*per);if(g>1)break;d.ghosts.push(g);}
+    dated.push(d);
   });
   dated.sort((a,b)=>a.t-b.t);
   /* Le passé : les TROIS derniers repères, et deux points trop proches fusionnent — à −2 min sur
@@ -24942,7 +24969,72 @@ function monBandData(timers,events,now){
   const past=[];
   ev.forEach((e,i)=>{const x=pos(e.t);const p=past[past.length-1];
     if(p&&x-p.x<0.045){p.n++;p.lab='';}else past.push({x,n:1,lab:'',t:e.t,ix:i});});
-  return {past,dated,ghosts,sans};}
+  return {past,dated,sans};}
+/* COMBIEN DE RANGÉES LA HAUTEUR PERMET (v5.17.1). Une rangée par échéance règle la collision
+   HORIZONTALE, mais elle en ouvrait une VERTICALE : la bande est `flex:none` au-dessus d'un
+   `.mon-main` qui, lui, cède — à quatre rangées sur un téléphone COUCHÉ, le grand chiffre,
+   objet primaire de l'afficheur, se faisait recouvrir de 44 px (mesuré à 844×390 ; 54 px à
+   667×375). Le correctif d'un défaut ne doit pas en poser un autre, et surtout pas sur ce qui
+   compte le plus à deux mètres.
+   ON NE DEVINE DONC PAS UN PALIER DE HAUTEUR, ON MESURE LA PLACE QUI RESTE : hauteur de la
+   surface, moins l'en-tête, moins le pied, moins ce que le contenu de `.mon-main` VEUT.
+   ⚠ ON ADDITIONNE LES ENFANTS DE `.mon-main`, ON NE LIT PAS SON `scrollHeight` — c'était ma
+   première écriture, et elle était FAUSSE : `.mon-main` est `flex:1`, donc ÉTIRÉ, et le
+   `scrollHeight` d'un conteneur étiré vaut sa BOÎTE, pas son contenu. La place libre s'effondrait
+   et la bande tombait à deux rangées là où il y avait de quoi en tenir quatre (mesuré : 390×844,
+   2 rangées pour six minuteurs alors que 534 px restaient). La hauteur VOULUE par le contenu,
+   c'est la somme de ses enfants plus les écarts — elle, ne dépend pas de la bande, donc aucune
+   boucle (la bande décide de la place de main, main déciderait de celle de la bande).
+   ⚠ TOUT EN `offset/clientHeight`, JAMAIS EN `getBoundingClientRect` : sous le réglage de taille
+   du texte (`zoom` sur `<html>`), le premier rend des pixels de MISE EN PAGE et le second des
+   pixels PEINTS. Mélanger les deux comparerait deux unités (règle 10).
+   LE CHROME SE CALCULE SUR LES DONNÉES, pas sur une constante : la rangée « sans heure » et les
+   deux lignes de pied (légende des tours projetés, « + n plus tard ») coûtent des pixels bien
+   réels — les oublier laissait 10 à 26 px de recouvrement résiduel sur trois cas mesurés. Les
+   deux lignes de pied sont réservées dès qu'elles PEUVENT paraître : leur présence dépend du
+   nombre de rangées retenues, donc d'une valeur qu'on est en train de calculer. Majorer est la
+   seule sortie non circulaire, et elle tombe du bon côté — au pire une rangée de moins, jamais un
+   recouvrement. Le cap qui en découle n'est jamais silencieux : `.mb-plus` le dit. */
+const MON_RANG_H=22, MON_RANGS_MAX=4, MON_VAL_MIN=64;
+function monPlace(d){
+  const el=monMode();
+  if(!el)return{rangs:MON_RANGS_MAX,vmax:0};
+  const hh=q=>{const n=el.querySelector(q);return n?n.offsetHeight:0;};
+  /* TOUT CE QUE `.mon-main` PORTE EN PLUS DU CHIFFRE — et pas seulement son étiquette : quand un
+     minuteur est ÉCHU, une TROISIÈME ligne s'ajoute (« △ échu — à réévaluer »), et ne réserver
+     que l'étiquette laissait 8 px de recouvrement dans ce cas précis (attrapé par le témoin, pas
+     par moi : ma sonde à la main n'avait pas d'échu). On additionne donc les enfants réels, le
+     chiffre excepté — c'est lui qu'on est en train de dimensionner. */
+  const main0=document.getElementById('monMain');
+  const kids=main0?[...main0.children]:[];
+  const autres=kids.filter(n=>!n.classList.contains('mon-val'))
+                   .reduce((a,n)=>a+n.offsetHeight,0)+Math.max(0,kids.length-1)*6;   // .mon-main{gap:6px}
+  /* L'ORDRE DES DEUX DÉCISIONS EST CE QUI ÉVITE LA BOUCLE. On réserve d'abord à `.mon-main` son
+     PLANCHER (l'étiquette + les 64 px sous lesquels le chiffre ne descend jamais, plancher déjà
+     posé par son `clamp`), on en déduit les rangées, puis on rend au chiffre TOUT ce qui reste.
+     Aucune des deux étapes ne lit la hauteur de l'autre. */
+  const chrome=20/*axe*/+14/*passé*/+12/*marge*/
+    +((d&&d.sans.length)?44:0)                        /* « sans heure » : son intitulé + ses chips */
+    +((d&&d.dated.some(x=>x.ghosts.length))?22:0)     /* légende des tours projetés */
+    +((d&&d.dated.length>1)?22:0);                    /* « + n plus tard », majoré */
+  /* ⚠ `clientHeight` COMPREND LE REMBOURRAGE, et celui-ci n'est pas négligeable ici : il porte
+     `env(safe-area-inset-*)`, soit 28 px au minimum et davantage sur un appareil à encoche. Les
+     enfants, eux, vivent dans la BOÎTE DE CONTENU — les compter contre `clientHeight` offrait au
+     calcul 28 px qui n'existent pas, et le recouvrement revenait (mesuré : 19 px à 844×390 avec
+     quatre rangées). Le style calculé résout `env()` en pixels : c'est la seule lecture juste. */
+  const cs=getComputedStyle(el);
+  const hPad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+  const util=el.clientHeight-hPad-hh('.mon-top')-hh('.mon-foot')-autres;
+  const rangs=Math.max(1,Math.min(MON_RANGS_MAX,Math.floor((util-MON_VAL_MIN-chrome)/MON_RANG_H)));
+  return {rangs, vmax:Math.max(MON_VAL_MIN,util-chrome-rangs*MON_RANG_H)};}
+/* Écriture IDEMPOTENTE du plafond : `monRender` tourne à chaque tic (300 ms) et une écriture de
+   propriété custom invalide le style de la sous-arborescence. 0 = pas de plafond. */
+let _monVMax=-1;
+function monVMax(px){
+  if(px===_monVMax)return;
+  _monVMax=px;
+  const el=monMode();if(!el)return;
+  if(px)el.style.setProperty('--mon-vmax',px+'px');else el.style.removeProperty('--mon-vmax');}
 function monRender(){
   if(!monOn())return;
   const R=Runtime,now=Date.now(),f=R.fiche;
@@ -24975,17 +25067,43 @@ function monRender(){
   {const d=monBandData(R.timers,evs,now),el=document.getElementById('monBand');
    if(!el)return;
    const n=d.past.length+d.dated.length+d.sans.length;
-   if(n<2){if(el.innerHTML!==''){el.innerHTML='';}el.hidden=true;return;}
+   /* ⚠ LE CHIFFRE REPREND TOUTE SA TAILLE QUAND LA BANDE N'EST PAS LÀ : le plafond est POSÉ par
+      la bande, il doit donc partir avec elle — sinon un minuteur qu'on arrête laisserait
+      l'afficheur avec un chiffre rapetissé sans raison visible. */
+   if(n<2){if(el.innerHTML!==''){el.innerHTML='';}el.hidden=true;monVMax(0);return;}
    el.hidden=false;
    const pct=x=>(Math.max(0,Math.min(1,x))*100).toFixed(2)+'%';
+   /* ⚠ UNE ÉCHÉANCE PAR RANGÉE (v5.17.1, signalé à l'usage : « lorsque plusieurs minuteurs,
+      timeline ne s'affichent plus »). Les étiquettes vivaient TOUTES au même `top:8px` sur une
+      ligne unique : à quatre minuteurs, mesuré à 390 px, quatre chevauchements deux à deux et
+      DEUX étiquettes entièrement hors de l'écran (bords droits à 408 et 438 px pour 390
+      disponibles). Sur un afficheur qu'on lit à deux mètres, c'était une bouillie — les minuteurs
+      « ne s'affichaient plus » au sens propre.
+      Une rangée par échéance, sur le MÊME axe : deux marques alignées verticalement se lisent
+      alors comme une simultanéité, ce que la bande existe précisément pour montrer. La ligne de
+      « maintenant » traverse toutes les rangées, c'est elle qui les tient ensemble.
+      ⚠ ET L'ÉTIQUETTE BASCULE À GAUCHE DE SA MARQUE PASSÉ LA MOITIÉ DE L'AXE : elle grandit
+      toujours VERS LE CENTRE, donc elle ne peut plus sortir de la bande. Un libellé est borné à
+      18 signes (~115 px à 12 px gras) contre 142 px de demi-bande à 320 px, le plus étroit servi :
+      la garantie est arithmétique, pas espérée. */
+   const place=monPlace(d), RANGS=place.rangs;
+   monVMax(place.vmax);
+   const vus=d.dated.slice(0,RANGS), reste=d.dated.length-vus.length;
    const h='<div class="mb-ax"><span>−2 min</span><span>maintenant</span><span>+5 min</span></div>'
      +'<div class="mb-past">'+d.past.map(p=>'<span class="mb-dot" style="left:'+pct(p.x)+'">'
        +(p.n>1?'<b>'+p.n+'</b>':'')+'</span>').join('')+'</div>'
      +'<div class="mb-line"><span class="mb-now" style="left:'+pct(MON_NOW)+'"></span>'
-       +d.ghosts.map(g=>'<span class="mb-ghost" style="left:'+pct(g)+'"></span>').join('')
-       +d.dated.map(x=>'<span class="mb-due" style="left:'+pct(x.x)+'">'+esc(sstr(tmLabelParts(x.lab).name||'Minuteur',18))+'</span>').join('')
+       +vus.map(x=>'<span class="mb-row">'
+         +x.ghosts.map(g=>'<span class="mb-ghost" style="left:'+pct(g)+'"></span>').join('')
+         +'<span class="mb-due'+(x.x>0.5?' gche':'')+'" style="'
+           +(x.x>0.5?'right:'+pct(1-x.x):'left:'+pct(x.x))+'">'
+         +esc(sstr(tmLabelParts(x.lab).name||'Minuteur',18))+'</span></span>').join('')
      +'</div>'
-     +(d.ghosts.length?'<div class="mb-leg">┄ tours suivants — si rien n\'est touché</div>':'')
+     /* AUCUN ÉCART TU : au-delà de quatre rangées la bande mangerait le grand chiffre (elle est
+        `flex:none` au-dessus d'un `.mon-main` qui cède). On garde les échéances les plus PROCHES
+        — `dated` est trié par date — et l'on DIT combien attendent derrière. */
+     +(reste>0?'<div class="mb-plus">+ '+reste+' minuteur'+(reste>1?'s':'')+' plus tard</div>':'')
+     +(vus.some(x=>x.ghosts.length)?'<div class="mb-leg">┄ tours suivants — si rien n\'est touché</div>':'')
      +(d.sans.length?'<div class="mb-sans"><span class="mb-sh">sans heure</span>'
        +d.sans.map(u=>'<span class="mb-chip'+(u.kind==='due'?' due':'')+'">'
          +esc(sstr(tmLabelParts(u.lab).name||'Minuteur',16))+' · <b>'+esc(u.val)+'</b></span>').join('')+'</div>':'');

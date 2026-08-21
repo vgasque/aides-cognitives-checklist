@@ -6202,6 +6202,70 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
 }
 });
 
+/* ══ MONITEUR — LA BANDE DE TEMPS TIENT À PLUSIEURS MINUTEURS ══════════════════════════════
+   Signalé à l'usage : « lorsque plusieurs minuteurs, timeline ne s'affichent plus ». Le défaut
+   était GÉOMÉTRIQUE, et c'est pourquoi il vit ici et non dans `tests.html` : `monBandData` est
+   pure et ses onze témoins étaient verts — ils n'exerçaient qu'UN minuteur, et aucune fonction
+   pure ne peut voir que quatre étiquettes se peignent au même `top`. Mesuré avant correctif à
+   390 px : quatre chevauchements deux à deux, et deux étiquettes ENTIÈREMENT hors de l'écran.
+   Le paysage est dans la table à dessein : c'est là que le correctif a lui-même ouvert une
+   collision VERTICALE (la bande recouvrait le grand chiffre de 44 px), invisible en portrait. */
+await sec('MONITEUR · la bande de temps tient à plusieurs minuteurs', async () => {
+const CAS=[
+  {nom:'six qui tournent', t:[
+    {lab:'Cycle RCP (2 min)',sec:120,run:true,loop:true},{lab:'Adrénaline — prochaine dose',sec:240,run:true},
+    {lab:'Gaz du sang',sec:180,run:true},{lab:'Amiodarone — 2ᵉ dose',sec:200,run:true},
+    {lab:'Température centrale',sec:260,run:true},{lab:'Glycémie capillaire',sec:280,run:true}]},
+  {nom:'deux datés + une pause + un échu', t:[
+    {lab:'Cycle RCP (2 min)',sec:120,run:true,loop:true},{lab:'Adrénaline — prochaine dose',sec:240,run:true},
+    {lab:'Réévaluation neuro',sec:300,ago:120000},{lab:'Antibiothérapie',sec:120,ago:120000}]}];
+for (const {nom,t:spec} of CAS) {
+for (const [W,H] of [[320,844],[390,844],[844,390],[667,375]]) {
+  const page=await br.newPage({viewport:{width:W,height:H},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page); await ouvrirFiche(page,/Arrêt cardiaque/); await demarrerSession(page);
+  const r=await page.evaluate(async (spec)=>{
+    const w=ms=>new Promise(r=>setTimeout(r,ms)); const now=Date.now();
+    const T={}; spec.forEach((v,i)=>{T['k'+i]={id:'k'+i,label:v.lab,type:'interval',seconds:v.sec,
+      autoloop:!!v.loop,elapsedMs:v.ago||0,cycles:0,running:!!v.run,lastStart:now,stoppedAt:0};});
+    Runtime.timers=T; Runtime.events=[{t:now-45000},{t:now-20000}];
+    monOpen(); await w(400);
+    const el=document.getElementById('monBand');
+    if(el.hidden)return {vide:true};
+    const R=n=>{const q=n.getBoundingClientRect();
+      return {l:q.left,r:q.right,t:q.top,b:q.bottom};};
+    const marks=[...el.querySelectorAll('.mb-due')].map(n=>Object.assign(R(n),{txt:n.textContent}));
+    let chev=0;
+    for(let i=0;i<marks.length;i++)for(let j=i+1;j<marks.length;j++){const A=marks[i],B=marks[j];
+      if(A.l<B.r-0.5&&B.l<A.r-0.5&&A.t<B.b-0.5&&B.t<A.b-0.5)chev++;}
+    const li=R(el.querySelector('.mb-line'));
+    const dehors=marks.filter(m=>m.r>innerWidth+0.5||m.l<-0.5||m.r>li.r+0.5||m.l<li.l-0.5).map(m=>m.txt);
+    const val=document.querySelector('.mon-val');
+    const bande=R(el), vr=val?R(val):null;
+    const recouvre=vr?Math.max(0,Math.min(vr.b,bande.b)-Math.max(vr.t,bande.t)):0;
+    // Les tours PROJETÉS appartiennent à une rangée, donc à un minuteur nommé.
+    const ghOrphelins=[...el.querySelectorAll('.mb-ghost')].filter(g=>!g.closest('.mb-row')).length;
+    const plus=(el.querySelector('.mb-plus')||{}).textContent||'';
+    const dates=monBandData(Runtime.timers,Runtime.events,Date.now()).dated.length;
+    return {n:marks.length, chev, dehors, recouvre:Math.round(recouvre), ghOrphelins, plus, dates,
+      police:parseFloat(getComputedStyle(val).fontSize)};}, spec);
+  const P=`${nom} · ${W}×${H}`;
+  if(r.vide){t(`${P} : la bande est rendue`, false, 'bande masquée — le cas ne rencontre pas son objet'); await page.close(); continue;}
+  t(`${P} : aucune étiquette n'en recouvre une autre`, r.chev===0, `${r.chev} chevauchement(s)`);
+  t(`${P} : aucune étiquette hors de la bande ni de l'écran`, r.dehors.length===0, r.dehors.join(' | '));
+  t(`${P} : la bande ne recouvre pas le grand chiffre`, r.recouvre===0, `${r.recouvre} px de recouvrement`);
+  t(`${P} : le grand chiffre garde son plancher de 64 px`, r.police>=64, `${r.police} px`);
+  t(`${P} : les tours projetés appartiennent tous à un minuteur`, r.ghOrphelins===0, `${r.ghOrphelins} orphelin(s)`);
+  // AUCUN ÉCART TU : ce qui n'est pas montré est COMPTÉ à l'écran.
+  const cache=r.dates-r.n;
+  t(`${P} : ce qui ne tient pas est DIT (${r.dates} datés, ${r.n} montrés)`,
+    cache<=0 ? r.plus==='' : r.plus.includes('+ '+cache+' minuteur'),
+    `« ${r.plus} »`);
+  await page.close();
+}}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

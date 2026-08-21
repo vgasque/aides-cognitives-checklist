@@ -6670,7 +6670,15 @@
      pas, on aligne au début au lieu de recouvrir. */
   .mon-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:safe center;gap:6px}
   .mon-lbl{font-size:clamp(15px,3.4vw,22px);font-weight:700;color:var(--ink-soft);line-height:1.2}
-  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(64px,min(20vw,32vh),190px);font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+  /* ⚠ LE GRAND CHIFFRE PLAFONNE SOUS LA BANDE (v5.17.1). Il est l'objet PRIMAIRE de l'afficheur,
+     et c'est pour cela qu'il cède : sur un téléphone COUCHÉ (667×375), 32vh lui donnent 120 px
+     quand la place réelle sous l'en-tête, le pied et la bande n'en laisse que 79 — mesuré, il se
+     faisait recouvrir de 26 px, et un chiffre recouvert ne se lit pas du tout tandis qu'un
+     chiffre plus petit se lit encore très bien à deux mètres. `--mon-vmax` est posée par
+     `monPlace` sur la surface elle-même ; en son absence, rien ne change (190 px, le plafond
+     d'origine). Le plancher de 64 px du `clamp` reste intouchable — c'est lui que `monPlace`
+     réserve avant de compter ses rangées. */
+  .mon-val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:min(clamp(64px,min(20vw,32vh),190px),var(--mon-vmax,190px));font-weight:700;line-height:.95;letter-spacing:-2px;color:var(--ink)}
   .mon-val.due{color:var(--verify-hi)}
   .mon-due{font-size:clamp(16px,4vw,26px);font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--verify-hi)}
   .mon-none{font-size:clamp(16px,3.6vw,24px);color:var(--ink-soft)}
@@ -6689,13 +6697,25 @@
   .mb-dot{position:absolute;top:4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;
     background:var(--ink-soft);display:grid;place-items:center}
   .mb-dot b{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:-14px;font-weight:700}
-  .mb-line{position:relative;height:32px;border-radius:var(--r-1);
+  /* La bande GRANDIT AVEC SES ÉCHÉANCES (v5.17.1) : une rangée chacune, sur le même axe. Le
+     `min-height` garde son corps quand rien n'est daté — l'axe au-dessus doit rester posé sur
+     quelque chose. */
+  .mb-line{position:relative;display:flex;flex-direction:column;gap:2px;min-height:32px;padding:4px 0;
+    border-radius:var(--r-1);
     background:linear-gradient(90deg,var(--surface-2) 0 28%,var(--surface-3) 28%,var(--surface-2))}
-  .mb-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ok)}
-  .mb-due{position:absolute;top:8px;font-size:12px;font-weight:700;color:var(--ink);
+  .mb-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ok);z-index:1}
+  .mb-row{position:relative;height:20px}
+  /* L'étiquette est CENTRÉE SUR SA HAUTEUR DE RANGÉE et non calée à un `top` absolu : c'est ce
+     `top:8px` commun qui empilait les quatre libellés au même endroit. */
+  .mb-due{position:absolute;top:0;height:20px;display:inline-flex;align-items:center;
+    font-size:12px;font-weight:700;color:var(--ink);
     border-left:2px solid var(--ink);padding-left:4px;white-space:nowrap}
-  .mb-ghost{position:absolute;top:8px;height:18px;border-left:2px dashed var(--ink-soft)}
+  /* Passé la moitié de l'axe, l'étiquette se pose À GAUCHE de sa marque : le filet change de
+     côté avec elle, sinon la marque ne désignerait plus l'instant. */
+  .mb-due.gche{border-left:0;padding-left:0;border-right:2px solid var(--ink);padding-right:4px}
+  .mb-ghost{position:absolute;top:1px;height:18px;border-left:2px dashed var(--ink-soft)}
   .mb-leg{font-size:12px;color:var(--ink-soft);margin-top:4px}
+  .mb-plus{font-size:12px;font-weight:700;color:var(--ink-soft);margin-top:4px}
   .mb-sans{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
   .mb-sh{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);width:100%}

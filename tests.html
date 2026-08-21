@@ -2778,9 +2778,31 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('chronomètre → jamais sur l’axe', d.dated.length===0&&d.sans.length===1);}
   /* Les tours suivants d'un CYCLIQUE sont projetés ; ceux d'un non-cyclique n'existent pas. */
   {const c=A.monBandData({a:_t2({id:'a',running:true,lastStart:_now,autoloop:true})},[],_now);
-   ok('un cyclique projette ses tours suivants', c.ghosts.length>=1, String(c.ghosts.length));
+   ok('un cyclique projette ses tours suivants', c.dated[0].ghosts.length>=1, String(c.dated[0].ghosts.length));
    const nc=A.monBandData({a:_t2({id:'a',running:true,lastStart:_now})},[],_now);
-   eq('un non-cyclique n’en projette aucun', nc.ghosts.length, 0);}
+   eq('un non-cyclique n’en projette aucun', nc.dated[0].ghosts.length, 0);}
+  /* ⚠ PLUSIEURS MINUTEURS À LA FOIS — LE CAS QUI MANQUAIT, ET C'EST LUI QUI A CASSÉ (v5.17.1,
+     signalé à l'usage : « lorsque plusieurs minuteurs, timeline ne s'affichent plus »). Tous les
+     témoins ci-dessus n'exerçaient qu'UN minuteur : la structure ne pouvait pas dire qu'à
+     quatre, les étiquettes s'empilaient au même endroit et sortaient de l'écran. Un jeu de
+     témoins qui ne rencontre jamais la pluralité ne prouve rien sur elle. */
+  {const q=A.monBandData({
+     a:_t2({id:'a',label:'Cycle RCP',seconds:120,running:true,lastStart:_now,autoloop:true}),
+     b:_t2({id:'b',label:'Adrénaline',seconds:240,running:true,lastStart:_now}),
+     c:_t2({id:'c',label:'Gaz du sang',seconds:180,running:true,lastStart:_now})},[],_now);
+   eq('quatre minuteurs qui tournent → autant d’échéances datées', q.dated.length, 3);
+   ok('… triées par date, la plus proche d’abord',
+      q.dated[0].t<=q.dated[1].t&&q.dated[1].t<=q.dated[2].t,
+      q.dated.map(x=>x.lab).join(' < '));
+   ok('… chacune GARDE SON LIBELLÉ (aucune ne se perd)',
+      q.dated.map(x=>x.lab).join('|')==='Cycle RCP|Gaz du sang|Adrénaline', q.dated.map(x=>x.lab).join('|'));
+   /* Les tours projetés appartiennent à LEUR minuteur : versés dans un tas commun, un tiret ne
+      disait plus de qui il était le tour suivant — l'information même que la bande porte. */
+   ok('… et les tours projetés suivent leur minuteur, pas un tas commun',
+      q.dated.find(x=>x.lab==='Cycle RCP').ghosts.length>=1
+      && q.dated.find(x=>x.lab==='Adrénaline').ghosts.length===0);
+   ok('… aucune position hors de l’axe', q.dated.every(x=>x.x>=0&&x.x<=1),
+      q.dated.map(x=>x.x.toFixed(3)).join(' '));}
   /* Le passé : borné à trois, et deux points trop proches fusionnent. */
   {const ev=[{t:_now-100000},{t:_now-80000},{t:_now-60000},{t:_now-40000}];
    const d=A.monBandData({},ev,_now);
@@ -2794,7 +2816,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   {const d=A.monBandData({},[{t:_now-10000,voidAt:_now}],_now);
    eq('un repère annulé ne se dessine pas', d.past.length, 0);}
   eq('rien du tout → rien à dessiner',
-     JSON.stringify(A.monBandData({},[],_now)), JSON.stringify({past:[],dated:[],ghosts:[],sans:[]}));
+     JSON.stringify(A.monBandData({},[],_now)), JSON.stringify({past:[],dated:[],sans:[]}));
 
   /* ══ A131 — LEQUEL DES DEUX EST LE PLUS RÉCENT ? ═══════════════════════════════════════════
      Le prédicat que la rangée de l'atelier consulte pour dire ce que la question « Doublons »

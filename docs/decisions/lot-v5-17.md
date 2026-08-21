@@ -182,3 +182,96 @@ piège de cascade `.btn.sm{min-height:38px}` (déclarée plus bas, même spécif
 là où 40 étaient écrits, d'où `.sel-bar .btn.sm` à (0,3,0)) ; et l'état d'avant la planche
 (`flex-wrap:wrap` + rembourrage vertical) le passe au rouge sur les six largeurs. Fichier restauré
 à l'octet après l'essai.
+
+---
+
+## A231 — le plan de vol du moniteur tient à plusieurs minuteurs
+
+**SIGNALÉ À L'USAGE (21/08/2026)** : « bug mode moniteur : lorsque plusieurs minuteurs, timeline
+ne s'affichent plus ». Reproduit et mesuré avant d'être touché.
+
+**CONSTAT — DEUX DÉFAUTS, UN SEUL SYMPTÔME.** Toutes les étiquettes d'échéance vivaient au même
+`top:8px` sur une ligne unique de 32 px, chacune ancrée à gauche de sa marque et en `nowrap` :
+
+- à quatre minuteurs qui tournent, mesuré à 390 px de large, **quatre chevauchements deux à deux**
+  — les libellés se peignaient les uns sur les autres, illisibles ;
+- et **deux étiquettes entièrement hors de l'écran** (bords droits à 408 et 438 px pour 390
+  disponibles). Elles ne s'affichaient plus, au sens propre.
+
+Sur un afficheur qu'on lit à deux mètres, c'était une bouillie. **Un minuteur seul n'a jamais
+montré le défaut** : la bande ne paraît qu'à partir de DEUX objets à relier — d'où « lorsque
+plusieurs minuteurs ».
+
+**POURQUOI AUCUN TÉMOIN NE L'A VU.** `monBandData` est pure et couverte par onze témoins, tous
+verts. Ils n'exerçaient **qu'un seul minuteur à la fois**, et surtout : aucune fonction pure ne
+peut voir que quatre étiquettes se peignent au même endroit. Le défaut était **géométrique**.
+C'est la leçon de ce lot — un jeu de témoins qui ne rencontre jamais la pluralité ne prouve rien
+sur elle, et une propriété de mise en page se mesure dans un navigateur ou ne se mesure pas.
+
+**DÉCISION — UNE ÉCHÉANCE PAR RANGÉE, SUR LE MÊME AXE.** Deux marques alignées verticalement se
+lisent alors comme une simultanéité, ce que la bande existe précisément pour montrer ; la ligne de
+« maintenant » traverse toutes les rangées et les tient ensemble. Trois conséquences :
+
+- **L'étiquette bascule à gauche de sa marque passé la moitié de l'axe** : elle grandit toujours
+  vers le CENTRE, donc elle ne peut plus sortir de la bande. La garantie est arithmétique et non
+  espérée : un libellé est borné à 18 signes (~115 px à 12 px gras) contre 142 px de demi-bande à
+  320 px, le plus étroit servi. Le filet change de côté avec elle, sinon la marque ne désignerait
+  plus l'instant.
+- **Les tours projetés appartiennent désormais à LEUR minuteur** (`dated[].ghosts`) et non plus à
+  un tas commun : avec plusieurs minuteurs, un tiret anonyme sur la ligne ne disait plus de qui il
+  était le tour suivant — l'information exacte que la bande porte. `monBandData` ne rend donc plus
+  de champ `ghosts` de premier niveau.
+- **Aucun écart tu** : au-delà de ce que la hauteur permet, la bande garde les échéances les plus
+  PROCHES (`dated` est trié) et **dit combien attendent derrière** (`.mb-plus`).
+
+## A232 — corriger une collision horizontale en ouvrait une verticale
+
+**LE CORRECTIF D'A231 A POSÉ SON PROPRE DÉFAUT, et il a fallu le mesurer pour le voir.** La bande
+est `flex:none` au-dessus d'un `.mon-main` qui, lui, cède : à quatre rangées sur un téléphone
+**couché**, le grand chiffre — l'objet primaire de l'afficheur — se faisait recouvrir de **44 px**
+(844×390 ; 54 px à 667×375). En portrait, rien ne paraissait. Le portrait seul aurait signé un
+correctif qui déplaçait le défaut au lieu de le fermer.
+
+**DÉCISION — ON MESURE LA PLACE, ON NE DEVINE PAS UN PALIER DE HAUTEUR.** `monPlace` calcule, à
+chaque rendu, ce qui reste une fois posés l'en-tête, le pied et ce que `.mon-main` porte **en plus
+du chiffre** ; il en déduit le nombre de rangées, puis rend au chiffre tout le reste via
+`--mon-vmax`. L'ordre des deux décisions est ce qui évite la boucle : on réserve d'abord le
+PLANCHER de 64 px du chiffre (celui de son `clamp`, intouchable), on compte les rangées, on rend
+le solde. **Le grand chiffre cède parce qu'il est primaire** : un chiffre recouvert ne se lit pas
+du tout, un chiffre plus petit se lit encore très bien à deux mètres (mesuré : 120 → 71-78 px en
+paysage, jamais sous 64).
+
+**TROIS ERREURS DE MESURE, TOUTES ATTRAPÉES PAR LA MESURE ELLE-MÊME** — elles valent d'être
+écrites, parce que chacune rendait un calcul juste en apparence :
+
+1. **`scrollHeight` d'un conteneur ÉTIRÉ vaut sa boîte, pas son contenu.** `.mon-main` est
+   `flex:1` : lire son `scrollHeight` faisait s'effondrer la place libre, et la bande tombait à
+   deux rangées là où 534 px restaient. On additionne ses enfants.
+2. **`clientHeight` COMPREND le rembourrage**, et celui-ci porte `env(safe-area-inset-*)` — au
+   moins 28 px, davantage sur un appareil à encoche. Les enfants vivent dans la boîte de CONTENU :
+   le calcul s'offrait 28 px qui n'existaient pas, et le recouvrement revenait (19 px à 844×390).
+3. **Un minuteur ÉCHU ajoute une TROISIÈME ligne** à `.mon-main` (« △ échu — à réévaluer »). Ne
+   réserver que l'étiquette laissait 8 px de recouvrement dans ce seul cas — que ma sonde à la
+   main n'avait pas, et que le témoin d'audit a trouvé.
+
+Corollaire de méthode : **tout en `offset/clientHeight`, jamais en `getBoundingClientRect`** pour
+ce calcul — sous le réglage de taille du texte (`zoom` sur `<html>`), le premier rend des pixels
+de MISE EN PAGE et le second des pixels PEINTS ; les mélanger comparerait deux unités (règle 10).
+
+## Témoin (A231-A232)
+
+`audit-doctrine.mjs`, section **« MONITEUR · la bande de temps tient à plusieurs minuteurs »** —
+deux jeux (six minuteurs qui tournent ; deux datés + une pause + un échu) × quatre géométries dont
+**deux en paysage** (320×844, 390×844, 844×390, 667×375) :
+
+- aucune étiquette n'en recouvre une autre ;
+- aucune étiquette hors de la bande ni de l'écran ;
+- **la bande ne recouvre pas le grand chiffre**, et celui-ci garde son plancher de 64 px ;
+- les tours projetés appartiennent tous à un minuteur nommé ;
+- ce qui ne tient pas est **compté à l'écran**.
+
+Le paysage est dans la table à dessein : c'est la seule géométrie où A232 se manifeste.
+**Vérifié capable d'échouer** : le défaut d'origine réintroduit (étiquettes au même `top`, ancrage
+toujours à gauche) rougit les deux familles de contrôles sur les quatre géométries ; `index.html`
+restauré à l'octet. Deux témoins de pluralité ont aussi rejoint `tests.html` pour la fonction pure
+— c'est le cas qui manquait.
