@@ -130,8 +130,17 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
 2. Supabase → *Authentication → Emails → SMTP Settings* → *Custom SMTP* :
    hôte `smtp-relay.brevo.com`, port `587`, login + clé Brevo, expéditeur vérifié.
 3. *Authentication → Providers → Email* → **désactiver** « Confirm email ».
-4. *Authentication → Emails* → modèles **Magic Link** ET **Confirm signup** → insérer le code :
+4. *Authentication → Emails* → modèles **Magic Link** ET **Confirm signup** → coller le contenu de
+   [`supabase/email-code-connexion.html`](../supabase/email-code-connexion.html) (le même dans les
+   deux). Ce modèle reprend les tokens de l'app (matières, encres, registre ambre), n'appelle
+   **aucune ressource externe** — ni image, ni police, ni traceur — et n'interpole que
+   `{{ .Token }}` et `{{ .Email }}`. Il ne contient **volontairement aucun lien** : l'app se
+   connecte par SAISIE du code, et un e-mail de code sans lien est aussi la meilleure défense
+   anti-hameçonnage. Version minimale de secours si l'éditeur refuse le HTML complet :
    `<p>Votre code : {{ .Token }}</p>`.
+   ⚠ Le modèle annonce « valable **une heure** » : c'est le réglage *Authentication → Sessions →
+   **OTP expiry** = 3600 s*. Les deux se changent ENSEMBLE — un délai annoncé faux se paie en
+   support, et l'utilisateur n'a aucun moyen de savoir lequel des deux ment.
 
 Si vous utilisez un SMTP grand public (ex. **Gmail** : hôte `smtp.gmail.com`, port `587`,
 « mot de passe d'application »), l'expéditeur doit être votre propre adresse — les services

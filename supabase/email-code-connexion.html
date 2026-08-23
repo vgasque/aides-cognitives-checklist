@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Votre code de connexion — Aides cognitives</title>
+<!-- ===================================================================================
+     MODÈLE D'E-MAIL « CODE DE CONNEXION » (OTP) — Supabase / GoTrue.
+     À coller dans Authentication → Emails, modèles **Magic Link** ET **Confirm signup**
+     (les deux : un compte neuf reçoit le second, cf. docs/deploiement-et-conformite.md § 1.3).
+
+     RÈGLES QUI ONT DICTÉ CE FICHIER, et qui ne s'apprennent pas en le lisant :
+     · AUCUNE RESSOURCE EXTERNE — pas d'image, pas de police web, pas de suivi. Un e-mail qui
+       charge un logo distant se fait bloquer par la moitié des clients (et pose un traceur).
+       La marque est donc TYPOGRAPHIQUE : serif du titre (Source Serif 4 → Georgia en secours),
+       exactement la chaîne de `--f-title` de l'app.
+     · COULEURS = LES TOKENS DE L'APP, en littéral (un e-mail n'a pas de `var()` utilisable) :
+       ambiance #f4f5f7, travail #ffffff, filet #e3e6ea, encres #14181d et #5b6472 (jamais
+       --ink-3 en TEXTE : 2,3:1 sur blanc, la doctrine d'accessibilité l'interdit),
+       matière système #1d232b + #e6eaf0/#9aa5b3, bleu d'action #17477f, ambre #7a5900 sur
+       #fbf3dc. Toucher une valeur ici = la resynchroniser avec `:root` d'index.html.
+     · LE CODE EST L'OBJET DE L'E-MAIL : il est posé sur la matière système (la matière des
+       commandes de l'app), en chasse fixe, 34 px, chiffres espacés — lisible d'un coup d'œil sur
+       la notification comme à bout de bras.
+     · REGISTRE AMBRE = « attention, on peut se tromper » (règle 8) : jamais la couleur seule,
+       toujours un glyphe ET un mot — ici le glyphe ⚠ et la CONSIGNE elle-même en gras. Le
+       libellé « À vérifier » du registre interne de l'app a été RETIRÉ (retour de l'auteur,
+       23/08/2026) : il nomme une catégorie de doctrine, pas une action, et hors de l'app
+       personne ne peut le décoder — ce que le lecteur doit lire, c'est l'ordre à suivre.
+     · DURÉE DE VIE = CELLE DU SERVEUR, ÉCRITE EN TOUTES LETTRES : « une heure » correspond au
+       réglage Supabase *Authentication → OTP expiry* = 3600 s. Changer l'un OBLIGE à changer
+       l'autre : un délai annoncé faux se paie en support.
+     · TABLEAUX ET STYLES EN LIGNE : Outlook (moteur Word) ignore le CSS de `<head>` et les
+       mises en page modernes. Le `<style>` ne porte QUE le thème sombre — `prefers-color-scheme`
+       (Apple Mail, Mail iOS, Outlook macOS/iOS, Thunderbird) et le crochet `data-ogsc`
+       (Outlook.com, qui inverse de lui-même) — et la bascule mobile ; jamais rien de vital.
+       GMAIL n'honore ni l'un ni l'autre : il applique sa PROPRE inversion partielle, et c'est
+       la raison pour laquelle le pavé du code est peint en dur sur matière système — un fond
+       déjà sombre à texte blanc ne se fait pas inverser, le code reste lisible quoi qu'il arrive.
+     · PAS DE LIEN CLIQUABLE, et c'est délibéré : l'app ne se connecte que par SAISIE du code
+       ({{ .ConfirmationURL }} ouvrirait un navigateur qui ne rendrait pas la main à la PWA
+       installée). Un e-mail de code sans lien est aussi la meilleure défense anti-hameçonnage.
+     · `{{ .Token }}` = le code à 6 chiffres ; `{{ .Email }}` = le destinataire. Rien d'autre
+       n'est interpolé, et surtout aucun texte libre.
+     ================================================================================== -->
+<style>
+  /* Thème sombre : Apple Mail, Mail iOS, Outlook macOS. Les styles EN LIGNE gagnent sur une
+     feuille — d'où les !important, seul endroit du projet où ils sont légitimes. */
+  @media (prefers-color-scheme: dark) {
+    .m-amb   { background-color:#0d0f13 !important; }
+    .m-card  { background-color:#1e232b !important; border-color:#2c313a !important; }
+    .m-ink   { color:#e6eaf0 !important; }
+    .m-ink2  { color:#9aa5b3 !important; }
+    .m-rule  { border-color:#2c313a !important; background-color:#2c313a !important; }
+    .m-code  { background-color:#333b47 !important; border-color:#7c879a !important; }
+    .m-warn  { background-color:#2b2005 !important; border-color:#b45309 !important; }
+    .m-warn-ink { color:#fbbf24 !important; }
+    .m-act   { color:#8fb8e8 !important; }
+  }
+  /* OUTLOOK.COM / HOTMAIL — LE CROCHET `data-ogsc`. Ce client ignore `prefers-color-scheme` : en
+     mode sombre il INVERSE lui-même les couleurs qu'il trouve, et signe chaque élément retouché
+     d'un attribut `data-ogsc` (« original get style color »). Ces sélecteurs reprennent donc la
+     main sur SON inversion, avec exactement la même palette que le bloc ci-dessus — sans quoi il
+     éclaircit la carte mais laisse ses filets et ses encres à des valeurs qu'il a devinées.
+     Deux formes nécessaires : `[data-ogsc] .x` (l'attribut est posé sur un ANCÊTRE) et
+     `[data-ogsc].x` (posé sur l'élément lui-même, cas du <body> et de ses fonds). */
+  [data-ogsc].m-amb,  [data-ogsc] .m-amb   { background-color:#0d0f13 !important; }
+  [data-ogsc].m-card, [data-ogsc] .m-card  { background-color:#1e232b !important; border-color:#2c313a !important; }
+  [data-ogsc].m-ink,  [data-ogsc] .m-ink   { color:#e6eaf0 !important; }
+  [data-ogsc].m-ink2, [data-ogsc] .m-ink2  { color:#9aa5b3 !important; }
+  [data-ogsc].m-rule, [data-ogsc] .m-rule  { border-color:#2c313a !important; background-color:#2c313a !important; }
+  [data-ogsc].m-code, [data-ogsc] .m-code  { background-color:#333b47 !important; border-color:#7c879a !important; }
+  [data-ogsc].m-warn, [data-ogsc] .m-warn  { background-color:#2b2005 !important; border-color:#b45309 !important; }
+  [data-ogsc].m-warn-ink, [data-ogsc] .m-warn-ink { color:#fbbf24 !important; }
+  [data-ogsc].m-act,  [data-ogsc] .m-act   { color:#8fb8e8 !important; }
+  @media only screen and (max-width:600px) {
+    .m-pad   { padding:24px 20px !important; }
+    .m-digits{ font-size:30px !important; letter-spacing:7px !important; text-indent:7px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;width:100%;background-color:#f4f5f7;" class="m-amb">
+
+<!-- Aperçu en liste d'inbox : dit la NATURE du message sans révéler le code (un aperçu s'affiche
+     sur l'écran verrouillé). Les &zwnj; empêchent le client d'y agréger le début du corps. -->
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f4f5f7;">
+  Code à usage unique pour vous connecter à Aides cognitives.
+  &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f4f5f7;" class="m-amb">
+  <tr>
+    <td align="center" style="padding:32px 12px;">
+
+      <!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560"><tr><td><![endif]-->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;max-width:560px;background-color:#ffffff;border:1px solid #e3e6ea;border-radius:14px;" class="m-card">
+
+        <!-- ── Marque : nom en serif + sur-titre capitales espacées (l'en-tête de l'app) ── -->
+        <tr>
+          <td class="m-pad" style="padding:30px 34px 0 34px;font-family:Georgia,'Times New Roman',serif;">
+            <div class="m-ink" style="font-family:'Source Serif 4',Georgia,'Times New Roman',serif;font-size:17.5px;font-weight:600;letter-spacing:-.2px;line-height:1.2;color:#14181d;">Aides cognitives</div>
+            <div class="m-ink2" style="font-family:Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#5b6472;padding-top:4px;">Connexion</div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="m-pad" style="padding:18px 34px 0 34px;">
+            <div class="m-rule" style="height:1px;line-height:1px;font-size:0;background-color:#e3e6ea;">&nbsp;</div>
+          </td>
+        </tr>
+
+        <!-- ── Titre + phrase d'action ── -->
+        <tr>
+          <td class="m-pad" style="padding:22px 34px 0 34px;font-family:Helvetica,Arial,sans-serif;">
+            <h1 class="m-ink" style="margin:0;font-family:'Source Serif 4',Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;line-height:1.25;color:#14181d;">Votre code de connexion</h1>
+            <p class="m-ink2" style="margin:8px 0 0 0;font-size:15px;line-height:1.5;color:#5b6472;">Saisissez-le dans l’application, écran <strong class="m-ink" style="color:#14181d;font-weight:700;">Compte</strong>.</p>
+          </td>
+        </tr>
+
+        <!-- ── LE CODE, sur la matière système ── -->
+        <tr>
+          <td class="m-pad" style="padding:20px 34px 0 34px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#1d232b;border:1px solid #1d232b;border-radius:12px;" class="m-code">
+              <tr>
+                <td align="center" style="padding:22px 16px 20px 16px;font-family:Helvetica,Arial,sans-serif;">
+                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:#9aa5b3;">Code à usage unique</div>
+                  <div class="m-digits" style="font-family:'IBM Plex Mono',Menlo,Consolas,'Courier New',monospace;font-size:34px;font-weight:700;line-height:1.25;letter-spacing:9px;text-indent:9px;color:#ffffff;padding-top:10px;white-space:nowrap;mso-line-height-rule:exactly;">{{ .Token }}</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── Durée de vie : une ligne, à sa place, sans emphase ── -->
+        <tr>
+          <td class="m-pad" style="padding:12px 34px 0 34px;font-family:Helvetica,Arial,sans-serif;">
+            <p class="m-ink2" style="margin:0;font-size:13px;line-height:1.5;color:#5b6472;">Valable <strong class="m-ink" style="color:#14181d;font-weight:700;">une heure</strong>, une seule fois. Passé ce délai, redemandez-en un depuis l’application.</p>
+          </td>
+        </tr>
+
+        <!-- ── Registre AMBRE : glyphe + mot + couleur, jamais la couleur seule ── -->
+        <tr>
+          <td class="m-pad" style="padding:20px 34px 0 34px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#fbf3dc;border:1px solid #eddfb6;border-radius:10px;" class="m-warn">
+              <tr>
+                <td style="padding:12px 14px;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#7a5900;" class="m-warn-ink">
+                  <strong style="font-weight:700;">⚠ Ne communiquez ce code à personne.</strong> Il ouvre votre compte : ni l’équipe de l’application ni un collègue n’a de raison de vous le demander.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── Pied : provenance de la demande, puis mentions ── -->
+        <tr>
+          <td class="m-pad" style="padding:24px 34px 0 34px;">
+            <div class="m-rule" style="height:1px;line-height:1px;font-size:0;background-color:#e3e6ea;">&nbsp;</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="m-pad" style="padding:16px 34px 28px 34px;font-family:Helvetica,Arial,sans-serif;">
+            <p class="m-ink2" style="margin:0;font-size:12px;line-height:1.6;color:#5b6472;">Demande de connexion émise pour <span class="m-act" style="color:#17477f;font-weight:700;">{{ .Email }}</span>. Si elle ne vient pas de vous, ignorez ce message : sans ce code, aucun accès n’est ouvert.</p>
+            <p class="m-ink2" style="margin:10px 0 0 0;font-size:12px;line-height:1.6;color:#5b6472;">Aides cognitives — aide-mémoire clinique hors ligne. Message automatique, envoyé sans suivi ni pièce jointe. Ne pas répondre à ce mail.</p>
+          </td>
+        </tr>
+
+      </table>
+      <!--[if mso]></td></tr></table><![endif]-->
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
