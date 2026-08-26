@@ -30,11 +30,16 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    **seule forme servie** (pas d'étape de build) : la racine se déploie telle quelle.
 2. Publier en **HTTPS**. Attention : les protections diffèrent selon l'hébergeur, car le fichier
    `_headers` fourni (CSP, HSTS, anti-iframe, `no-cache` sur `sw.js`) est une convention
-   **Netlify / Cloudflare Pages** — **GitHub Pages l'ignore totalement**.
+   **Netlify / Cloudflare** — **GitHub Pages l'ignore totalement**.
 
-   | | GitHub Pages | Netlify / Cloudflare Pages |
+   > **DEPUIS LE 2026-08-26, LA PRODUCTION EST LA COLONNE DE DROITE** (Cloudflare) : `_headers`
+   > est **appliqué**, et cette table cesse de décrire une perte acceptée pour décrire un écart
+   > entre hébergeurs possibles. Elle reste normative pour tout déploiement en établissement, où
+   > GitHub Pages et l'intranet restent des cibles légitimes.
+
+   | | GitHub Pages | Netlify / Cloudflare |
    |---|---|---|
-   | Mise en place | Settings → Pages → branche `main`, racine | glisser-déposer le dossier |
+   | Mise en place | Settings → Pages → branche `main`, racine | connexion au dépôt Git, racine servie telle quelle |
    | CSP | balise `<meta>` d'`index.html` seulement | `<meta>` **et** en-tête HTTP (`_headers`) |
    | HSTS, `nosniff` | ✗ non appliqués | ✓ appliqués |
    | Anti-iframe (`X-Frame-Options`, `frame-ancestors`) | ✗ en-tête absent — **compensé dans le document** (v5.0.0) | ✓ en-tête appliqué |
@@ -93,11 +98,36 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
    alors écrit par *Settings → Pages*, **jamais à la main** : l'écrire avant que le DNS ne pointe
    fait échouer la vérification et bloque l'émission du certificat), **dans l'ordre INVERSE pour
    Cloudflare** (associer le domaine au projet d'abord, créer l'enregistrement DNS ensuite).
-   **L'hébergeur ne change pas** : c'est toujours GitHub Pages, et le tableau ci-dessus reste
-   vrai — mesuré le jour de la bascule, la réponse ne porte ni HSTS, ni `nosniff`, ni
-   `X-Frame-Options`, seulement `Cache-Control: max-age=600`. Ce qui change est l'**ORIGINE**, et
-   c'est tout l'intérêt : elle nous appartient désormais, donc un déménagement ultérieur vers
-   Netlify ou Cloudflare Pages — qui rendrait `_headers` effectif — ne coûtera plus rien.
+   À la bascule, **l'hébergeur ne changeait pas** : c'était encore GitHub Pages, et la réponse ne
+   portait ni HSTS, ni `nosniff`, ni `X-Frame-Options`, seulement `Cache-Control: max-age=600`.
+   Ce qui changeait était l'**ORIGINE**, et c'était tout l'intérêt : elle nous appartient, donc un
+   déménagement ultérieur ne coûtera plus rien.
+
+   **DÉCISION DATÉE (2026-08-26, LE MÊME JOUR) — L'HÉBERGEUR DEVIENT CLOUDFLARE.** Le
+   déménagement annoncé à la ligne précédente a été fait dans la foulée, précisément parce qu'il
+   était devenu gratuit en données : l'origine ne bouge pas, donc **aucune bibliothèque locale
+   n'est touchée**. Le gain est `_headers`, enfin appliqué — vérifié sur le domaine : CSP en
+   en-tête, HSTS, `nosniff`, `X-Frame-Options`, COOP, CORP, `Permissions-Policy`,
+   `Referrer-Policy`, et `no-cache` sur `/`, `/index.html` et `/sw.js`. Trois obligations en
+   découlent, toutes payées le jour même :
+   - **`.assetsignore` est OBLIGATOIRE.** L'ancien pipeline Pages excluait `node_modules`, `.git`
+     et `.DS_Store` d'office ; **Workers Assets ne le fait pas**, et la chaîne de déploiement
+     installe elle-même Wrangler dans le dépôt qu'elle s'apprête à publier (échec sur un binaire
+     de 145 Mio contre une limite de 25 Mio). Sans ce fichier, l'historique Git entier serait
+     publié à la racine du site.
+   - **`wrangler.jsonc` ferme `workers_dev` et `preview_urls`.** Cloudflare ouvre par défaut une
+     adresse `*.workers.dev` et une Preview URL par branche — donc autant d'**origines**
+     supplémentaires servant la même PWA, chacune avec sa propre bibliothèque locale invisible
+     depuis les autres. Le tableau de bord ne suffit pas : chaque publication réactive le réglage.
+   - **L'ordre d'association est INVERSE de celui de GitHub Pages** (domaine déclaré côté
+     Cloudflare d'abord, DNS ensuite) — écrit plus haut.
+   ⚠ **`html_handling` n'est PAS touché**, et c'est une décision : Cloudflare redirige
+   `/index.html` vers `/`, ce qui a cassé l'application entière sur WebKit (v5.17.3). Le
+   correctif vit dans `sw.js`, pas ici — la valeur `"none"` supprimerait aussi le service de `/`,
+   et l'application doit rester déployable là où un autre hébergeur normaliserait autrement.
+   Conséquence assumée : `tests.html` ne fonctionne plus **depuis le site déployé**
+   (`X-Frame-Options: DENY` interdit l'iframe dont il a besoin). Aucun effet sur `npm test`, qui
+   sert les fichiers en local.
 
    **CE QU'UN CHANGEMENT D'ORIGINE COÛTE, ET IL NE SE PAIE QU'UNE FOIS.** Tout le local-first est
    indexé PAR ORIGINE : IndexedDB (`fiches`, `sessions`, `attachments`), `localStorage`, les caches

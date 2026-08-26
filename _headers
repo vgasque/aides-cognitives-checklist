@@ -2,14 +2,25 @@
 # La CSP reste aussi présente en balise <meta> dans index.html pour l'ouverture hors hébergeur ;
 # la servir en en-tête HTTP est plus robuste (couvre aussi les réponses non-HTML).
 #
-# DÉCISION D'HÉBERGEMENT (2026-07-27, utilisateur) : la PRODUCTION est GitHub Pages, et l'app doit
-# RESTER DÉPLOYABLE AILLEURS (Netlify, Cloudflare Pages, intranet hospitalier HTTPS). Ce fichier
-# est donc maintenu à jour bien que GitHub Pages l'IGNORE TOTALEMENT : il n'est pas décoratif, il
-# est la posture servie partout ailleurs. Ce que GitHub Pages fait perdre est nommé et accepté
-# dans docs/deploiement-et-conformite.md § 1.1 — la CSP <meta> d'index.html reste, elle, active
-# partout, et c'est elle qui porte l'essentiel (script-src par hashs).
+# DÉCISION D'HÉBERGEMENT (2026-07-27, utilisateur) : la PRODUCTION était GitHub Pages, et l'app
+# doit RESTER DÉPLOYABLE AILLEURS (Netlify, Cloudflare, intranet hospitalier HTTPS). Ce fichier
+# était donc maintenu à jour bien que GitHub Pages l'IGNORE TOTALEMENT.
+#
+# MISE À JOUR (2026-08-26) : LA PRODUCTION EST CLOUDFLARE, ET CE FICHIER EST DÉSORMAIS APPLIQUÉ.
+# Il a été maintenu un an sans effet en production, sur le pari que ce jour viendrait ; le pari
+# est tenu. Tous les en-têtes ci-dessous sont VÉRIFIÉS servis sur le domaine — ne plus les lire
+# comme une intention. Deux conséquences pratiques :
+#   • le garde anti-iframe posé dans index.html en v5.0.0 (compensation de `frame-ancestors`)
+#     n'est plus le rempart UNIQUE, mais une seconde ligne — il reste en place, car il est le
+#     seul actif là où ce fichier est ignoré (GitHub Pages, ouverture en fichier local) ;
+#   • `X-Frame-Options: DENY` interdit désormais toute iframe, MÊME de même origine — donc
+#     tests.html ne fonctionne plus depuis le site DÉPLOYÉ. C'est voulu, et sans effet sur
+#     `npm test`, qui sert les fichiers depuis un serveur local qui ignore ce fichier.
+# Ce que GitHub Pages fait perdre reste nommé dans docs/deploiement-et-conformite.md § 1.1 (il
+# demeure une cible de déploiement légitime en établissement) — la CSP <meta> d'index.html reste,
+# elle, active partout, et c'est elle qui porte l'essentiel (script-src par hashs).
 /*
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-mshNTx6TCWoIdf4cyTxYje3hTNK/5FadPVF8IOAhPpo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-1KMmoWajDElo4vWCsCCE0XtV60czrQ/3r41+WOEmOio='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; frame-ancestors 'none'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer

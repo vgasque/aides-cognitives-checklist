@@ -98,6 +98,10 @@ const HARNAIS = [
   { nom: 'audit-complications', poids: 13 },
   { nom: 'audit-upload',        poids: 12 },
   { nom: 'audit-qr',            poids: 12, deps: ['scripts/qr-decode.swift'] },
+  // `deps` porte sw.js : c'est le SUJET de ce harnais, et il n'est lu par aucun autre. Sans cette
+  // déclaration, corriger le worker n'invaliderait pas son vert en cache — le seul contrôle
+  // dynamique du hors-ligne serait « réutilisé » sans avoir rejoué (v5.17.3).
+  { nom: 'audit-sw',            poids: 12, deps: ['sw.js'] },
   { nom: 'audit-exercice',      poids: 12 },
   { nom: 'audit-modeseg',       poids: 6 },
   { nom: 'audit-session-card',  poids: 5 },

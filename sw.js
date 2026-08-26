@@ -30,7 +30,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v5.17.2';
+const CACHE = 'aides-cognitives-v5.17.3';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -87,12 +87,49 @@ const ASSETS = [
 // l'apparence sans empêcher l'usage : un ajout futur à ASSETS est best-effort par défaut, ce qui
 // est le bon défaut pour une app dont la fonction première est d'exister hors ligne.
 const CORE_ASSETS = ['./index.html', './manifest.webmanifest'];
+
+/* UNE RÉPONSE REDIRIGÉE NE PEUT PAS SERVIR UNE NAVIGATION (v5.17.3 ; signalé sur iPhone :
+   « Safari ne peut pas ouvrir la page — Response served by service worker has redirections »).
+   Une requête de navigation a le mode de redirection "manual" : servir depuis le cache une
+   réponse dont le drapeau `redirected` est vrai est une ERREUR RÉSEAU. WebKit la refuse net,
+   Chromium la tolère — d'où un défaut INVISIBLE sur la machine de développement et fatal sur
+   la cible principale du projet. L'app ne s'ouvrait plus du tout : le pire mode de défaillance
+   pour un logiciel d'urgence.
+   Comment le drapeau arrivait là : l'hébergeur normalise les URL et redirige `/index.html`
+   vers `/` (Cloudflare Workers Assets, `html_handling: auto-trailing-slash` — GitHub Pages ne
+   le faisait pas, d'où l'apparition à la bascule). `fetch` suit la redirection, la réponse
+   obtenue porte `redirected: true`, et `addAll` la range telle quelle.
+   ⚠ LE CORRECTIF EST ICI, PAS DANS UN RÉGLAGE D'HÉBERGEUR. Neutraliser la redirection côté
+   Cloudflare (`html_handling: "none"`) supprimerait aussi le service de `/` — on échangerait un
+   défaut contre une racine morte —, et surtout l'application doit rester déployable ailleurs
+   (règle 13) : un hébergeur qui normalise autrement réintroduirait le défaut.
+   La reconstruction ne recopie QUE le type de contenu : réinjecter les en-têtes d'origine
+   ferait suivre un éventuel `content-encoding` alors que le corps lu par `.blob()` est DÉJÀ
+   décodé — la réponse serait alors illisible. */
+async function putDoc(cache, key, resp) {
+  if (!resp.redirected) return cache.put(key, resp);
+  const body = await resp.blob();
+  const h = new Headers();
+  const ct = resp.headers.get('content-type');
+  if (ct) h.set('content-type', ct);
+  return cache.put(key, new Response(body, { status: 200, statusText: 'OK', headers: h }));
+}
+
 self.addEventListener('install', e => {
   e.waitUntil(Promise.all([
-    // `addAll` est TOUT-OU-RIEN : réservé au noyau, c'est la propriété qu'on veut. Étendu aux 10
-    // icônes, il faisait échouer l'installation ENTIÈRE — donc supprimer tout le hors-ligne —
-    // pour un simple favicon en 404. Mesuré sous sonde : {active:false, controller:false}.
-    caches.open(CACHE).then(c => c.addAll(CORE_ASSETS)),
+    // NOYAU, TOUT-OU-RIEN — mais SANS `addAll`, qui rangerait la réponse redirigée telle quelle
+    // (cf. `putDoc`). La propriété qu'on veut est conservée par le `throw` : ou les deux entrent,
+    // ou l'installation échoue. Elle n'a jamais été étendue aux 10 icônes, qui feraient échouer
+    // l'installation ENTIÈRE — donc supprimer tout le hors-ligne — pour un favicon en 404.
+    // On DEMANDE `./` et non `./index.html` : c'est la forme qu'aucun hébergeur ne redirige,
+    // donc la redirection n'a même plus lieu. La clé ÉCRITE reste `./index.html`, seule clé lue
+    // par le repli de navigation. Ceinture (la requête) et bretelles (`putDoc`).
+    caches.open(CACHE).then(async c => {
+      const reqs = CORE_ASSETS.map(a => (a === './index.html' ? './' : a));
+      const resps = await Promise.all(reqs.map(r => fetch(r)));
+      if (resps.some(r => !r.ok)) throw new Error('noyau indisponible');
+      await Promise.all(CORE_ASSETS.map((key, i) => putDoc(c, key, resps[i])));
+    }),
     // Statiques : ne télécharger QUE ce qui manque (le cache survit aux versions de l'app) —
     // même boucle best-effort que pdf.js, même raison : rien d'ornemental ne doit pouvoir
     // empêcher le noyau hors-ligne d'exister.
@@ -187,17 +224,22 @@ self.addEventListener('fetch', e => {
     e.waitUntil(net.then(resp => {
       if (resp.ok && resp.type === 'basic') {
         const copy = resp.clone();
-        return caches.open(CACHE).then(c => c.put('./index.html', copy));
+        return caches.open(CACHE).then(c => putDoc(c, './index.html', copy));
       }
     }).catch(() => {}));
     // Repli : './index.html' D'ABORD — c'est la SEULE clé écrite, par l'installation comme par le
     // put ci-dessus. Matcher la requête brute ('/') d'abord servait une copie figée à l'install,
     // donc une version périmée hors ligne ; cette seconde clé n'est plus alimentée du tout (voir
     // CORE_ASSETS), le `caches.match(req)` final ne reste que par ceinture.
+    // ⚠ ON REFUSE UNE ENTRÉE REDIRIGÉE PLUTÔT QUE DE LA SERVIR (v5.17.3). `putDoc` empêche d'en
+    // écrire une, mais un cache écrit par un worker ANTÉRIEUR peut en contenir : la servir
+    // provoquerait « Response served by service worker has redirections » et l'app ne s'ouvrirait
+    // pas du tout. On retombe alors sur le réseau — dégradé, jamais mort — et le `put` ci-dessus
+    // répare l'entrée au passage.
     const cached = () => caches.match('./index.html').then(r => r || caches.match(req));
     e.respondWith((async () => {
       const c = await cached();
-      if (c) return c;                          // cache d'abord : ouverture instantanée, toujours
+      if (c && !c.redirected) return c;         // cache d'abord : ouverture instantanée, toujours
       return net.catch(() => Response.error()); // toute première visite : on attend le réseau
     })());
     return;
