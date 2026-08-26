@@ -45,10 +45,19 @@ try {
 
 console.log(`\n══ QR · relecture par le décodeur d'Apple (CoreImage) — moteur ${NOM_MOTEUR} ══`);
 
+/* Les témoins couvrent une ÉCHELLE DE LONGUEURS (8 · 30 · 35 · 64 · 94 caractères), parce que
+   c'est la longueur qui décide de la VERSION du QR — donc de la densité des modules, donc de ce
+   qu'un appareil photo arrive encore à décoder. Mesuré : v1 · v3 · v3 · v5 · v6.
+   Deux d'entre eux sont des liens RÉELS, et ils le restent : la production a déménagé sur son
+   propre domaine le 2026-08-26 (35 caractères, v3), mais le sous-répertoire (64, v5) n'est pas
+   devenu fictif pour autant — c'est la forme que prend tout déploiement en
+   `<compte>.github.io/<dépôt>/` ou dans un sous-chemin d'intranet, et remplacer l'un par l'autre
+   aurait laissé DEUX versions de QR sans aucun témoin (v5, et la marche v3→v5). */
 const CAS = [
   ['code seul (v1)',            'K7M2P4Q9'],
   ['lien court',                'https://exemple.fr/#j=K7M2P4Q9'],
-  ['lien GitHub Pages réel',    'https://vgasque.github.io/aides-cognitives-checklist/#j=ABCDEFGH'],
+  ['lien de production réel',   'https://aide.exemple.fr/#j=ABCDEFGH'],
+  ['lien en sous-répertoire',   'https://vgasque.github.io/aides-cognitives-checklist/#j=ABCDEFGH'],
   ['lien long (version haute)', 'https://exemple.fr/tres/long/chemin/pour/pousser/la/version/plus/haut/#j=ZZZZZZZZ&x=1234567890'],
   ['UTF-8 accentué',            'Réanimation — ⚠ cycle 2 min'],
 ];

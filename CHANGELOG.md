@@ -1,5 +1,48 @@
 # Journal des modifications
 
+## [5.17.2] — 2026-08-26
+### L'application a son nom de domaine : `https://aide.exemple.fr/`
+
+- **Ce qui change pour vous** : l'adresse. L'ancienne
+  (`vgasque.github.io/aides-cognitives-checklist/`) redirige définitivement vers la nouvelle —
+  rien à faire, sinon **réinstaller l'app** depuis la nouvelle adresse et **supprimer l'ancienne
+  icône** de l'écran d'accueil.
+- ⚠ **Les données sont stockées PAR ORIGINE, et l'origine vient de changer.** IndexedDB (fiches,
+  sessions, documents joints), les préférences et le cache hors ligne appartiennent à l'adresse
+  qui les a écrits : la nouvelle adresse s'ouvre donc sur une **bibliothèque vide**. Ce qui était
+  synchronisé revient à la connexion ; **ce qui était purement local doit être exporté depuis
+  l'ancienne installation** (fenêtre Compte → « Exporter mes données »), qui reste ouvrable tant
+  que son service worker sert son propre cache. C'est le prix d'un déménagement d'origine, il se
+  paie une fois — et pas deux : l'origine nous appartient désormais, elle ne bougera plus, même
+  si l'hébergeur change un jour.
+- **L'hébergeur, lui, ne change pas** : toujours GitHub Pages (DNS chez OVH, `CNAME aides →
+  vgasque.github.io.`, certificat Let's Encrypt automatique, HTTPS forcé). Mesuré le jour de la
+  bascule : service worker **actif** sur la nouvelle origine, les quatre caches remplis
+  (application, actifs immuables, pdf.js, jsQR) — donc le **hors-ligne fonctionne dès la première
+  visite** —, aucune erreur console, redirection `301` de l'ancienne URL vérifiée. Les en-têtes
+  que GitHub Pages ne sert pas le restent (ni HSTS, ni `nosniff`, ni `X-Frame-Options`, seul
+  `Cache-Control: max-age=600`) : le tableau du § 1.1 de `docs/deploiement-et-conformite.md`
+  était exact et l'est resté.
+- **Aucun code n'a eu à changer, et ce n'est pas de la chance** : tous les chemins de
+  `manifest.webmanifest` et de `sw.js` sont relatifs (`./`), donc le passage d'un sous-répertoire
+  à la racine d'un domaine ne casse aucun actif ; `"id": "./"` se résout sur l'origine et n'a
+  surtout pas été touché (porte à sens unique) ; et la connexion Supabase se fait par **code à
+  6 chiffres**, pas par lien de retour — il n'y avait donc aucune liste blanche de redirection à
+  mettre à jour.
+- **Pourquoi un sous-domaine et non `exemple.fr` nu** : l'identité d'une PWA vaut son ORIGINE
+  ENTIÈRE, d'où la règle « ne pas héberger une seconde PWA sur la même origine ». L'apex d'un nom
+  personnel est exactement l'endroit où un autre site finira par vivre.
+- **Les QR d'appariement s'allègent d'un cran, et le témoin reste un témoin réel**
+  (`audit-qr.mjs`) : le lien de production tombe de 64 à 35 caractères, soit **une version de QR
+  5 → 3** (mesuré) — moins de modules, donc une cible plus facile pour l'appareil photo d'en
+  face, à taille d'écran égale. Le lien en sous-répertoire est **conservé comme cas distinct**
+  plutôt que remplacé : c'est la forme de tout déploiement en sous-chemin (intranet,
+  `<compte>.github.io/<dépôt>/`), et l'échanger aurait laissé la version 5 — et la marche
+  v3 → v5 — sans aucun témoin.
+- **Documentation** : la décision est datée et écrite dans `docs/deploiement-et-conformite.md`
+  § 1.1, à côté de celle du 2026-07-27 qu'elle prolonge ; le README donne l'adresse et avertit
+  que l'adresse d'un déploiement se choisit **avant** de diffuser.
+
 ## [5.17.1] — 2026-08-21
 ### Mode moniteur : la bande de temps tient à plusieurs minuteurs (A231-A232)
 
@@ -387,36 +430,3 @@
   feuille de l'hôte), reconnus à la volée.
 - Registre § 3.2 complété : les bascules choisies empruntent les mêmes chemins déclarés ; le
   code d'admission (opaque, huit caractères) transite par le canal direct chiffré.
-
-## [5.14.8] — 2026-08-18
-### Passer en direct ne déconnecte plus personne
-
-- **La bascule choisie emprunte les canaux dormants** (signalé : « quand je switche en ligne →
-  en direct, tous les participants sont déconnectés ») : le secours chaud pré-apparie déjà les
-  canaux directs pendant que le cloud marche — le geste manuel du sélecteur les utilise
-  désormais au lieu de repartir sur du QR. L'hôte prévient par le relais encore vivant
-  (`sig « go »`), transite par le chemin éprouvé de la panne, et les invités re-joignent seuls
-  par leur canal (trois essais espacés couvrent la course). Personne ne scanne rien.
-- **Le dialogue dit le compte exact** : « les participants basculent automatiquement » si tous
-  les canaux dorment, « N sur M basculent, les autres devront scanner » sinon — et l'ancien
-  parcours par QR ne reste que quand aucun canal n'est prêt (premières secondes du partage).
-- **Le partage en ligne est terminé proprement côté serveur** après la bascule : un invité sans
-  canal dormant voit l'écran « partage terminé », pas un silence.
-- Limite nommée : le sens retour (direct → en ligne) reste un re-appariement par code.
-
-## [5.14.7] — 2026-08-18
-### Le sélecteur de mode partout, dans son conteneur, en haut — et plus de cul-de-sac
-
-- **Le sélecteur ne disparaît plus** (signalé : « parfois pas de sélecteur, et si je clique il
-  disparaît ») : un seul constructeur le pose sur TOUS les états de la feuille — en ligne,
-  appariement, en direct, émission optique, échec. Cliquer un cran mène toujours à un état qui
-  le porte aussi ; cliquer le cran actif ne fait rien.
-- **Les pastilles de la maquette 08** : point vert sur le cran actif, gris sinon, ⧗ pour
-  « Par l'écran » — dans le composant segmenté canonique (pastille glissante), habillé du
-  CONTENEUR du sélecteur de l'accueil (fond d'ambiance, filet, coins arrondis, pastille en
-  retrait), et placé EN HAUT de la feuille, sous la notice (signalé : « en bas — ce serait
-  mieux en haut »).
-- **« Aucune session en cours à transmettre » n'est plus un cul-de-sac** (signalé) : la garde
-  commune fait ce que fait tout le reste de l'app — session démarrée → on y va ; fiche ouverte
-  sans session → « Démarrer et partager ? » ; pas de fiche du tout → le seul vrai refus, qui
-  dit quoi faire (« Ouvrez d'abord l'aide cognitive à partager »).

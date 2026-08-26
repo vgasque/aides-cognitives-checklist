@@ -56,9 +56,14 @@ jamais la bibliothèque) :
 « brouillon », à adapter à vos protocoles et aux recommandations en vigueur.
 
 ## Installer comme application (PWA)
-Mode installable + hors ligne complet = hébergement **https** (le service worker ne fonctionne ni
-en fichier local ni en http simple) : GitHub Pages, Netlify / Cloudflare Pages, ou intranet https.
-Ouvrez l'URL, puis « Installer l'app » (iPhone : Safari → Partager → Sur l'écran d'accueil).
+**Instance publiée : <https://aide.exemple.fr/>** — ouvrez-la, puis « Installer l'app »
+(iPhone : Safari → Partager → Sur l'écran d'accueil).
+
+Pour héberger la vôtre : mode installable + hors ligne complet = hébergement **https** (le service
+worker ne fonctionne ni en fichier local ni en http simple) : GitHub Pages, Netlify / Cloudflare
+Pages, ou intranet https. ⚠ **Les données sont stockées par ORIGINE** (IndexedDB) : changer
+d'adresse plus tard repart d'une bibliothèque vide sur chaque appareil déjà installé — choisissez
+l'adresse définitive avant de diffuser (détail : `docs/deploiement-et-conformite.md`, § 1.1).
 
 Sans hébergement, ouvrir `index.html` suffit : l'app fonctionne et enregistre vos fiches ; seuls
 l'installation et le cache automatique demandent l'https.

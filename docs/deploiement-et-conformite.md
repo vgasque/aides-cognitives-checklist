@@ -72,14 +72,41 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
      muette), `screen-wake-lock` (besoin plausible en réanimation) et `web-share` (chemin
      obligatoire du téléchargement PDF en PWA installée). Le détail est commenté dans `_headers`.
    - **`"id": "./"` du manifeste NE DOIT PAS ÊTRE MODIFIÉ.** Par spécification, `id` se résout
-     par rapport à l'**origine**, pas au chemin du manifeste : sur un déploiement en
-     sous-répertoire (`<compte>.github.io/<dépôt>/`), l'identité vaut donc l'origine entière.
+     par rapport à l'**origine**, pas au chemin du manifeste : l'identité de l'application vaut
+     donc l'origine ENTIÈRE, quel que soit le chemin où elle est servie — hier un sous-répertoire
+     (`<compte>.github.io/<dépôt>/`), aujourd'hui la racine d'un domaine dédié.
      C'est une **porte à sens unique** : changer `id` ferait apparaître l'app comme une NOUVELLE
      application chez tout utilisateur l'ayant déjà installée — donc un doublon sur l'écran
      d'accueil, l'ancienne installation restant figée sur son propre cache. Contrainte qui en
-     découle, à respecter : **ne pas héberger une seconde PWA sur la même origine**. Un
-     déploiement sur une autre origine (Netlify, intranet) est en revanche sans problème :
-     l'identité y vaut cette origine-là.
+     découle, à respecter : **ne pas héberger une seconde PWA sur la même origine** — c'est la
+     raison qui a fait choisir un SOUS-DOMAINE dédié plutôt que l'apex (décision du 2026-08-26
+     ci-dessous) : l'apex d'un nom personnel est précisément l'endroit où un autre site viendra
+     un jour. Un déploiement sur une autre origine (Netlify, intranet) est en revanche sans
+     problème : l'identité y vaut cette origine-là.
+
+   **DÉCISION DATÉE (2026-08-26) — NOM DE DOMAINE PROPRE.** La production est servie sur
+   **`https://aide.exemple.fr/`** (DNS chez OVH : `CNAME aides → vgasque.github.io.` ; le fichier
+   `CNAME` du dépôt est posé par *Settings → Pages*, **jamais à la main** — l'écrire avant que le
+   DNS ne pointe fait échouer la vérification et bloque l'émission du certificat ; Let's Encrypt
+   automatique, *Enforce HTTPS* actif). **L'hébergeur ne change pas** : c'est toujours GitHub
+   Pages, et le tableau ci-dessus reste vrai — mesuré le jour de la bascule, la réponse de
+   `aide.exemple.fr` ne porte ni HSTS, ni `nosniff`, ni `X-Frame-Options`, seulement
+   `Cache-Control: max-age=600`. Ce qui change est l'**ORIGINE**, et c'est tout l'intérêt : elle
+   nous appartient désormais, donc un déménagement ultérieur vers Netlify ou Cloudflare Pages —
+   qui rendrait `_headers` effectif — ne coûtera plus rien.
+
+   **CE QU'UN CHANGEMENT D'ORIGINE COÛTE, ET IL NE SE PAIE QU'UNE FOIS.** Tout le local-first est
+   indexé PAR ORIGINE : IndexedDB (`fiches`, `sessions`, `attachments`), `localStorage`, les caches
+   du service worker. Un utilisateur déjà installé sur l'ancienne URL est donc redirigé (GitHub
+   sert un `301` de `<compte>.github.io/<dépôt>/` vers le domaine) **vers une bibliothèque vide** :
+   ce qui était synchronisé se retrouve à la connexion, ce qui était purement local demande un
+   export depuis l'ancienne installation — encore accessible tant que son service worker sert son
+   propre cache. D'où la règle : **le nom de domaine se choisit une fois pour toutes**, tant qu'il
+   n'y a pas d'utilisateurs installés ; revenir en arrière re-scinderait les données au lieu de les
+   réunir. Côté code, rien à changer, et ce n'est pas un hasard : tous les chemins de
+   `manifest.webmanifest` et de `sw.js` sont relatifs (`./`), et l'authentification Supabase passe
+   par un **code à 6 chiffres** (`/auth/v1/otp` + `/auth/v1/verify`) et non par un lien de retour —
+   il n'y a donc aucune liste blanche de redirection à tenir à jour au changement d'origine.
 
    **Conséquence du `no-cache` manquant sur la PAGE.** Le service worker sert l'application
    « cache d'abord » et rafraîchit sa copie en arrière-plan ; ce rafraîchissement suppose que son
