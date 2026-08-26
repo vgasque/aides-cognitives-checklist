@@ -18,3 +18,6 @@
 node_modules
 .git
 .DS_Store
+# La configuration de déploiement n'est pas un actif du site : Wrangler la LIT depuis le dépôt,
+# l'ignorer ici l'empêche seulement d'être PUBLIÉE à la racine du site.
+wrangler.jsonc

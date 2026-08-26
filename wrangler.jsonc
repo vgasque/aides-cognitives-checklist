@@ -1,0 +1,29 @@
+{
+  // Configuration de déploiement Cloudflare (Workers + actifs statiques).
+  //
+  // POURQUOI CE FICHIER EXISTE, ALORS QUE LE PROJET N'A AUCUN CODE SERVEUR : uniquement pour
+  // FERMER les deux adresses publiques que Cloudflare ouvre par défaut. Le message de
+  // déploiement est explicite — « Because 'workers_dev' is not in your Wrangler file, it will be
+  // ENABLED FOR THIS DEPLOYMENT BY DEFAULT ». Autrement dit, décocher la case dans le tableau de
+  // bord ne tient pas : chaque publication la recoche. Seule une valeur écrite ici est durable.
+  //
+  // ⚠ CE N'EST PAS UN RÉGLAGE COSMÉTIQUE. Chaque adresse supplémentaire est une ORIGINE de plus
+  // servant la MÊME application, et tout le stockage est indexé PAR ORIGINE (IndexedDB, réglages,
+  // caches du service worker). Quelqu'un qui installerait la PWA depuis `*.workers.dev` se
+  // retrouverait avec une bibliothèque SÉPARÉE, invisible depuis l'adresse réelle, et sans aucun
+  // signe que quelque chose cloche. Les Preview URLs font pire : une origine par branche et par
+  // commit. Une seule adresse doit exister — cf. `docs/deploiement-et-conformite.md` § 1.1.
+  "name": "aides-cognitives-checklist",
+  "compatibility_date": "2026-08-26",
+
+  // Le dépôt EST la forme servie, sans étape de build : le répertoire d'actifs est la racine.
+  // Ce que la racine ne doit pas publier est listé dans `.assetsignore` (node_modules, .git…).
+  "assets": {
+    "directory": "./"
+  },
+
+  // `preview_urls` hérite de `workers_dev` par défaut ; les deux sont écrits quand même, pour que
+  // la lecture du fichier n'exige pas de connaître cette règle d'héritage.
+  "workers_dev": false,
+  "preview_urls": false
+}
