@@ -1,0 +1,20 @@
+# Ce qui ne doit PAS être publié. Même format que `.gitignore`, lu par Wrangler à la racine du
+# répertoire d'actifs (Cloudflare Workers Assets).
+#
+# POURQUOI CE FICHIER EXISTE (26/08/2026, premier déploiement Cloudflare en échec). L'ancien
+# pipeline Cloudflare PAGES excluait `node_modules`, `.git` et `.DS_Store` d'office ; WORKERS
+# ASSETS, sur lequel tourne désormais le projet, ne le fait pas. Et la chaîne de déploiement
+# installe Wrangler DANS le `node_modules` du dépôt avant de publier ce même répertoire : son
+# binaire `workerd` pèse 145 Mio, au-dessus de la limite de 25 Mio par fichier — le déploiement
+# échouait donc sur un fichier que Cloudflare venait lui-même d'y déposer, et qui n'est aucune
+# de nos dépendances (`package.json` ne déclare que `playwright`, en DEV).
+#
+# ⚠ CE FICHIER NE DÉCIDE PAS DE CE QUI EST SERVI À L'UTILISATEUR — il retire seulement ce qui
+# n'a jamais eu à être publié. Le dépôt reste « la seule forme servie, sans étape de build » :
+# `index.html`, `sw.js`, le manifeste, les icônes et `vendor/` partent tels quels. Y ajouter
+# `docs/`, `design/`, `scripts/` ou `tests.html` serait une DÉCISION de périmètre, pas un
+# correctif : GitHub Pages les sert aujourd'hui, et un écart silencieux entre deux hébergeurs
+# est exactement ce que la doctrine de déploiement cherche à éviter.
+node_modules
+.git
+.DS_Store
