@@ -1,7 +1,7 @@
 # Journal des modifications
 
 ## [5.17.2] — 2026-08-26
-### L'application a son nom de domaine : `https://aide.exemple.fr/`
+### L'application a son propre nom de domaine
 
 - **Ce qui change pour vous** : l'adresse. L'ancienne
   (`vgasque.github.io/aides-cognitives-checklist/`) redirige définitivement vers la nouvelle —
@@ -29,7 +29,7 @@
   surtout pas été touché (porte à sens unique) ; et la connexion Supabase se fait par **code à
   6 chiffres**, pas par lien de retour — il n'y avait donc aucune liste blanche de redirection à
   mettre à jour.
-- **Pourquoi un sous-domaine et non `exemple.fr` nu** : l'identité d'une PWA vaut son ORIGINE
+- **Pourquoi un sous-domaine et non l'apex du domaine** : l'identité d'une PWA vaut son ORIGINE
   ENTIÈRE, d'où la règle « ne pas héberger une seconde PWA sur la même origine ». L'apex d'un nom
   personnel est exactement l'endroit où un autre site finira par vivre.
 - **Les QR d'appariement s'allègent d'un cran, et le témoin reste un témoin réel**

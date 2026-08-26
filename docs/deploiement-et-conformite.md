@@ -84,16 +84,20 @@ Durée : ~30 min. Aucune compétence serveur avancée requise.
      un jour. Un déploiement sur une autre origine (Netlify, intranet) est en revanche sans
      problème : l'identité y vaut cette origine-là.
 
-   **DÉCISION DATÉE (2026-08-26) — NOM DE DOMAINE PROPRE.** La production est servie sur
-   **`https://aide.exemple.fr/`** (DNS chez OVH : `CNAME aides → vgasque.github.io.` ; le fichier
-   `CNAME` du dépôt est posé par *Settings → Pages*, **jamais à la main** — l'écrire avant que le
-   DNS ne pointe fait échouer la vérification et bloque l'émission du certificat ; Let's Encrypt
-   automatique, *Enforce HTTPS* actif). **L'hébergeur ne change pas** : c'est toujours GitHub
-   Pages, et le tableau ci-dessus reste vrai — mesuré le jour de la bascule, la réponse de
-   `aide.exemple.fr` ne porte ni HSTS, ni `nosniff`, ni `X-Frame-Options`, seulement
-   `Cache-Control: max-age=600`. Ce qui change est l'**ORIGINE**, et c'est tout l'intérêt : elle
-   nous appartient désormais, donc un déménagement ultérieur vers Netlify ou Cloudflare Pages —
-   qui rendrait `_headers` effectif — ne coûtera plus rien.
+   **DÉCISION DATÉE (2026-08-26) — NOM DE DOMAINE PROPRE.** La production est servie sur un
+   **sous-domaine dédié d'un nom de domaine appartenant à l'auteur** (l'adresse elle-même n'est
+   pas écrite ici : le dépôt est public et n'a pas à faire l'annuaire de son auteur — elle se lit
+   dans la configuration de l'hébergeur, qui est sa seule source de vérité). Le montage : un
+   `CNAME` du sous-domaine vers l'hébergeur, posé chez le bureau d'enregistrement, et le domaine
+   déclaré côté hébergeur — **dans cet ordre pour GitHub Pages** (le fichier `CNAME` du dépôt est
+   alors écrit par *Settings → Pages*, **jamais à la main** : l'écrire avant que le DNS ne pointe
+   fait échouer la vérification et bloque l'émission du certificat), **dans l'ordre INVERSE pour
+   Cloudflare** (associer le domaine au projet d'abord, créer l'enregistrement DNS ensuite).
+   **L'hébergeur ne change pas** : c'est toujours GitHub Pages, et le tableau ci-dessus reste
+   vrai — mesuré le jour de la bascule, la réponse ne porte ni HSTS, ni `nosniff`, ni
+   `X-Frame-Options`, seulement `Cache-Control: max-age=600`. Ce qui change est l'**ORIGINE**, et
+   c'est tout l'intérêt : elle nous appartient désormais, donc un déménagement ultérieur vers
+   Netlify ou Cloudflare Pages — qui rendrait `_headers` effectif — ne coûtera plus rien.
 
    **CE QU'UN CHANGEMENT D'ORIGINE COÛTE, ET IL NE SE PAIE QU'UNE FOIS.** Tout le local-first est
    indexé PAR ORIGINE : IndexedDB (`fiches`, `sessions`, `attachments`), `localStorage`, les caches

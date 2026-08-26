@@ -56,7 +56,7 @@ jamais la bibliothèque) :
 « brouillon », à adapter à vos protocoles et aux recommandations en vigueur.
 
 ## Installer comme application (PWA)
-**Instance publiée : <https://aide.exemple.fr/>** — ouvrez-la, puis « Installer l'app »
+Ouvrez l'adresse où l'application est servie, puis « Installer l'app »
 (iPhone : Safari → Partager → Sur l'écran d'accueil).
 
 Pour héberger la vôtre : mode installable + hors ligne complet = hébergement **https** (le service
