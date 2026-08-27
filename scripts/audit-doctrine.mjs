@@ -6266,6 +6266,46 @@ for (const [W,H] of [[320,844],[390,844],[844,390],[667,375]]) {
 }}
 });
 
+/* ══ UNE DÉCISION MONTRE TOUTES SES BRANCHES, MÊME CELLES QUI N'ONT PAS DE BLOC ══════════════
+   (v5.17.4, signalé à l'usage : « le parcours s'affiche mal pour les blocs conditionnels,
+   uniquement certains s'affichent ».) Une option qui rejoint DIRECTEMENT le point de convergence
+   n'a aucune rangée à elle : `flowPlan` la rend en un seul `link`, et le parcours inerte — la
+   colonne d'orientation d'avant le soin ET du cockpit — effaçait alors son étiquette. Une
+   décision à deux issues n'en montrait qu'une, sans que rien ne le dise : c'est exactement le
+   mode de défaillance que la doctrine nomme « un contrôle qui a l'air vivant ».
+   L'invariant tient en une phrase, et il est INDÉPENDANT du dessin : le nombre d'étiquettes de
+   branche affichées vaut le nombre d'options de la décision. La fixture est minimale et son
+   graphe est le cas ORDINAIRE (b1 → décision → {tronc commun, détour qui reboucle}). */
+await sec('Parcours inerte · une décision montre TOUTES ses branches', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(async () => {
+    const f=migrate({id:'aud-cond',title:'Décision à branche vide',start:'b1',blocks:[
+      {id:'b1',title:'Départ',next:'d1',items:[]},
+      {id:'d1',type:'decision',title:'Choix',question:'Q ?',options:[
+        {label:'Oui — tout de suite',target:'b2'},{label:'Non — détour',target:'b3'}]},
+      {id:'b2',title:'Suite commune',next:null,items:[]},
+      {id:'b3',title:'Détour',next:'d1',items:[]}]});
+    fiches.push(f);await Data.put(f);openRead(f.id);
+  });
+  await page.waitForFunction(()=>document.body.classList.contains('view-read'));
+  await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+  const r=await page.evaluate(()=>{
+    const racine=document.querySelector('.read-plan .rail-lad')||document.querySelector('.pre-lad');
+    const kids=racine?[...racine.children]:[];
+    return {brc:kids.filter(e=>e.classList.contains('pl-brc')).map(e=>e.textContent.trim()),
+      jmp:kids.filter(e=>e.classList.contains('pl-jmp')).map(e=>e.textContent.trim()),
+      opts:((fiches.find(x=>x.id==='aud-cond').blocks.find(b=>b.id==='d1')||{}).options||[]).length};});
+  t('les deux branches de la décision sont nommées',r.brc.length===r.opts,
+    `${r.brc.length} étiquette(s) pour ${r.opts} option(s) : ${JSON.stringify(r.brc)}`);
+  t('la branche sans rangée dit où elle mène',
+    r.jmp.some(x=>/Suite commune/.test(x)),JSON.stringify(r.jmp));
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

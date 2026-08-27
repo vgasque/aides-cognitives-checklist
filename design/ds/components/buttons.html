@@ -6297,7 +6297,7 @@
   body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line::after{content:'';position:absolute;inset:-3px}
   body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
   /* L'étiquette de branche n'est pas une cible : elle suit le dessin compact des deux régimes. */
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-brc{min-height:28px;padding:2px 10px}
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){min-height:28px;padding:2px 10px}
   /* ⚠ ON NE TOUCHE QUE LA MARGE HAUTE : la BASSE fixe l'écart entre un titre et ses rangées, et
      un témoin exige qu'il soit le MÊME pour tous les titres de la colonne. En session, un des
      deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
@@ -6312,7 +6312,7 @@
   body.view-read:not(.crisis-live) .pre-lad{gap:4px}
   /* L'étiquette de branche n'est PAS une cible — c'est un intertitre : elle rend son rembourrage
      avant la session comme les rangées rendent le leur. */
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-brc{padding:2px 8px 0}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){padding:2px 8px 0}
   /* ⚠ DES BOUTONS, PLUS DES LIENS DE TEXTE (v5.6, demande de l'auteur : « rends-les plus
      visibles »). Ils ouvrent la fiche ENTIÈRE — c'est le geste le plus utile de cet écran après
      « démarrer » — et ils se lisaient comme une note de bas de section : 12 px, sans bord, sous
@@ -6373,6 +6373,16 @@
   .pl-brc span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--tag-ink);background:var(--tag-bg);border:1px solid var(--line);
     border-radius:8px;padding:2px 8px}
+  /* LE RENVOI D'UNE BRANCHE SANS RANGÉE (v5.17.4) : une option qui rejoint le tronc, reboucle ou
+     finit n'a pas de bloc à elle — sa seule chose à dire est « et ensuite, où ? ». Même objet que
+     `.pc-jmp` dans la vue « Parcours », donc même grammaire : boîte mono discrète, encre douce,
+     retrait aligné sur l'étiquette qu'elle suit. Inerte : le renvoi TAPABLE vit sur la rangée de
+     la décision juste au-dessus (`.pl-ref`) — deux cibles pour un même saut se disputeraient le
+     doigt dans une colonne de 223 px. */
+  .pl-jmp{padding:2px 8px 6px;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-jmp.d1{padding-left:20px}.pl-jmp.d2{padding-left:32px}.pl-jmp.d3{padding-left:48px}
+  .pl-jmp.loop{color:var(--link)}
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
@@ -7178,6 +7188,11 @@
   #shareBody .seg-btn .sdot.ok{background:var(--ok)}
 #shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
   #shareBody .seg-btn.on .sdot{background:var(--ok)}
+  /* Le cran FERMÉ (v5.17.4) : il garde l'encre du cran inactif — la lisibilité d'un texte ne se
+     négocie pas, et WCAG exempte les composants inactifs sans nous autoriser à les affadir — mais
+     le curseur dit qu'il ne bascule pas. Il reste TAPABLE, à dessein : c'est le tap qui explique
+     (cf. slCloudWhy). */
+  #shareBody .seg-btn[aria-disabled="true"]{cursor:not-allowed}
   #shareBody .seg-btn .sdot.t{width:auto;height:auto;border-radius:0;background:none;
     font-family:var(--f-mono);font-size:11px;font-weight:700;line-height:1;color:inherit}
   /* Conteneur du sélecteur de mode : la recette du sélecteur de l'ACCUEIL (fond d'ambiance,
@@ -8192,9 +8207,9 @@
        PLAN (20/32/48) alors que la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
        exactement là où l'œil cherche une verticale. On aligne SANS ajouter de retrait : la chip
        descend au retrait de la rangée, elle ne la pousse pas. */
-    .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1{padding-left:16px}
-    .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2{padding-left:28px}
-    .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3{padding-left:40px}
+    .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1,.rail-lad .pl-jmp.d1{padding-left:16px}
+    .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2,.rail-lad .pl-jmp.d2{padding-left:28px}
+    .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3,.rail-lad .pl-jmp.d3{padding-left:40px}
     .rail-lad .pl-line.cur .t{font-weight:800}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */

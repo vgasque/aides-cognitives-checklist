@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-1KMmoWajDElo4vWCsCCE0XtV60czrQ/3r41+WOEmOio='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-WmZRmDCICO9Prr19WmEGmJzsxiNTH8mAc8/vJSrhnnU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6651,7 +6651,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line::after{content:'';position:absolute;inset:-3px}
   body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
   /* L'étiquette de branche n'est pas une cible : elle suit le dessin compact des deux régimes. */
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-brc{min-height:28px;padding:2px 10px}
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){min-height:28px;padding:2px 10px}
   /* ⚠ ON NE TOUCHE QUE LA MARGE HAUTE : la BASSE fixe l'écart entre un titre et ses rangées, et
      un témoin exige qu'il soit le MÊME pour tous les titres de la colonne. En session, un des
      deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
@@ -6666,7 +6666,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-read:not(.crisis-live) .pre-lad{gap:4px}
   /* L'étiquette de branche n'est PAS une cible — c'est un intertitre : elle rend son rembourrage
      avant la session comme les rangées rendent le leur. */
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-brc{padding:2px 8px 0}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){padding:2px 8px 0}
   /* ⚠ DES BOUTONS, PLUS DES LIENS DE TEXTE (v5.6, demande de l'auteur : « rends-les plus
      visibles »). Ils ouvrent la fiche ENTIÈRE — c'est le geste le plus utile de cet écran après
      « démarrer » — et ils se lisaient comme une note de bas de section : 12 px, sans bord, sous
@@ -6727,6 +6727,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-brc span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;
     color:var(--tag-ink);background:var(--tag-bg);border:1px solid var(--line);
     border-radius:8px;padding:2px 8px}
+  /* LE RENVOI D'UNE BRANCHE SANS RANGÉE (v5.17.4) : une option qui rejoint le tronc, reboucle ou
+     finit n'a pas de bloc à elle — sa seule chose à dire est « et ensuite, où ? ». Même objet que
+     `.pc-jmp` dans la vue « Parcours », donc même grammaire : boîte mono discrète, encre douce,
+     retrait aligné sur l'étiquette qu'elle suit. Inerte : le renvoi TAPABLE vit sur la rangée de
+     la décision juste au-dessus (`.pl-ref`) — deux cibles pour un même saut se disputeraient le
+     doigt dans une colonne de 223 px. */
+  .pl-jmp{padding:2px 8px 6px;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-jmp.d1{padding-left:20px}.pl-jmp.d2{padding-left:32px}.pl-jmp.d3{padding-left:48px}
+  .pl-jmp.loop{color:var(--link)}
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
@@ -7532,6 +7542,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #shareBody .seg-btn .sdot.ok{background:var(--ok)}
 #shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
   #shareBody .seg-btn.on .sdot{background:var(--ok)}
+  /* Le cran FERMÉ (v5.17.4) : il garde l'encre du cran inactif — la lisibilité d'un texte ne se
+     négocie pas, et WCAG exempte les composants inactifs sans nous autoriser à les affadir — mais
+     le curseur dit qu'il ne bascule pas. Il reste TAPABLE, à dessein : c'est le tap qui explique
+     (cf. slCloudWhy). */
+  #shareBody .seg-btn[aria-disabled="true"]{cursor:not-allowed}
   #shareBody .seg-btn .sdot.t{width:auto;height:auto;border-radius:0;background:none;
     font-family:var(--f-mono);font-size:11px;font-weight:700;line-height:1;color:inherit}
   /* Conteneur du sélecteur de mode : la recette du sélecteur de l'ACCUEIL (fond d'ambiance,
@@ -8546,9 +8561,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        PLAN (20/32/48) alors que la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
        exactement là où l'œil cherche une verticale. On aligne SANS ajouter de retrait : la chip
        descend au retrait de la rangée, elle ne la pousse pas. */
-    .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1{padding-left:16px}
-    .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2{padding-left:28px}
-    .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3{padding-left:40px}
+    .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1,.rail-lad .pl-jmp.d1{padding-left:16px}
+    .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2,.rail-lad .pl-jmp.d2{padding-left:28px}
+    .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3,.rail-lad .pl-jmp.d3{padding-left:40px}
     .rail-lad .pl-line.cur .t{font-weight:800}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
@@ -9863,7 +9878,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="confirmModalTitle">Confirmer</h3><button class="ai-x" id="confirmX" aria-label="Fermer">×</button></div>
   <p id="confirmMsg" style="white-space:pre-line;font-size:15px;color:var(--ink)"></p>
   <label class="auth-check" id="confirmCheckRow" hidden><input type="checkbox" id="confirmCheck"><span id="confirmCheckLbl"></span></label>
-  <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="confirmNo">Annuler</button><button class="btn primary" id="confirmYes">Confirmer</button></div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="confirmNo">Annuler</button><button class="btn primary" id="confirmYes" data-dlgdef>Confirmer</button></div>
 </div></div>
 
 <script>
@@ -9876,7 +9891,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.17.3';
+const APP_VERSION='5.17.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13178,7 +13193,15 @@ async function updateStorageInfo(){
 function paintStorage(){
   // D7 : l'état réseau est relu À LA PEINTURE — il change bien plus souvent que le stockage,
   // et une ligne « Hors ligne » périmée serait pire que pas de ligne du tout.
-  if(_stgSnap)_stgSnap.offline=!navigator.onLine;
+  /* ⚠ ET LA PRÉSENCE D'UN COMPTE AUSSI (v5.17.4, signalé à l'usage : « quand on se connecte,
+     “sur cet appareil seulement” en bas de la page s'affiche toujours jusqu'à ce qu'on recharge »).
+     `signed` était figé dans l'instantané au moment de la MESURE (updateStorageInfo), laquelle
+     n'est rejouée ni à la connexion ni à la déconnexion quand l'espace ne bascule pas
+     (reconnexion au MÊME compte, déconnexion depuis une vue de lecture) : le pied annonçait donc
+     « copie unique, non protégé » à quelqu'un dont les fiches partaient déjà dans le cloud. Même
+     remède que pour le réseau — l'état volatil se relit à la peinture, jamais à la mesure. */
+  if(_stgSnap){_stgSnap.offline=!navigator.onLine;
+    _stgSnap.signed=(typeof Auth!=='undefined'&&Auth.signedIn());}
   const s=_stgSnap?storageState(_stgSnap):null;
   const el=document.getElementById('storageInfo');
   if(el){el.innerHTML=s?s.main:'';if(s)el.title=s.tip;}
@@ -23333,16 +23356,40 @@ function ovPlanLadderHtml(f,plan,num,md,off){
      d'orientation taisait précisément les trois choses qu'on ne trouve pas dans la colonne
      d'action au moment où l'on s'oriente.
      TOUT Y EST INERTE (doctrine du plan, re-confirmée trois fois) : aucune case, aucun démarrage. */
-  const items=plan.items;let h='',depth=0;const pend=[];
+  const items=plan.items;let h='',depth=0,prevK='';const pend=[];
   /* LA PHASE REGROUPE, ELLE NE CLASSE PAS : l'ordre des blocs est inchangé — on insère un
      intertitre quand la phase CHANGE. Un bloc sans phase n'en affiche aucune (héritage compris),
      donc une fiche qui n'en déclare pas se lit exactement comme avant. */
   let phCur=null;
   const arrow=(from,to)=>((num[to]||1e9)<(num[from]||0)?'↺':'→')+(num[to]||'?');
+  /* L'étiquette de branche a UN seul site de fabrication : elle sert à la première rangée d'une
+     branche ET à la branche qui n'en a AUCUNE (juste dessous). */
+  const brc=(lbl,d)=>`<div class="pl-brc d${Math.min(d,3)}"><span>${esc(String(stripBold(lbl)).trim().toUpperCase().slice(0,22))}</span></div>`;
+  const titreDe=id=>{const b=(f.blocks||[]).find(x=>x.id===id);return b?stripBold(b.title||''):'';};
   items.forEach(it=>{
-    if(it.k==='bropen'){depth++;pend[depth]=it.label;return;}
-    if(it.k==='brclose'){pend[depth]=null;depth--;return;}
-    if(it.k!=='block')return;   // liens/fins : déjà encodés dans la colonne renvois des blocs
+    if(it.k==='bropen'){depth++;pend[depth]=it.label;prevK='bropen';return;}
+    if(it.k==='brclose'){pend[depth]=null;depth--;prevK='brclose';return;}
+    if(it.k==='link'||it.k==='end'){
+      /* ⚠ UNE BRANCHE PEUT N'AVOIR AUCUNE RANGÉE À ELLE — ET ELLE DISPARAISSAIT EN ENTIER
+         (v5.17.4, signalé à l'usage : « le parcours s'affiche mal pour les blocs conditionnels,
+         uniquement certains s'affichent »). Ce n'est pas un cas tordu, c'est le cas ORDINAIRE
+         d'une option qui rejoint directement le point de convergence : `flowPlan` la rend en un
+         seul `link`, aucune rangée de bloc ne consomme donc son étiquette, et `brclose`
+         l'effaçait. Mesuré sur « Accouchement inopiné » : la branche « OUI — SUR PLACE » de
+         l'imminence était MUETTE quand « NON — TRANSPORT » s'affichait — une décision à deux
+         issues qui n'en montre qu'une se lit comme un rendu à moitié fait, et c'est exactement
+         ce qui a été signalé. La vue « Parcours » de « Tout voir », elle, le faisait déjà
+         (`ovParcoursHtml`, jmp) : on reprend sa règle, pas une seconde grammaire — l'étiquette,
+         puis où mène la branche. Les liens qui SUIVENT une rangée restent tus : la colonne de
+         renvois de cette rangée les porte déjà. */
+      if(prevK==='bropen'&&pend[depth]){
+        const lb=pend[depth];pend[depth]=null;
+        const t=it.k==='end'?'▪ fin'
+          :(it.back?'↺ ':'→ ')+(num[it.to]||'?')+' '+titreDe(it.to);
+        h+=brc(lb,it.depth)+`<div class="pl-jmp d${Math.min(it.depth,3)}${it.back?' loop':''}">${esc(t)}</div>`;}
+      prevK=it.k;return;}
+    if(it.k!=='block')return;   // rien d'autre ne se rend ici
+    prevK='block';
     const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
     const dec=b.kind==='decision';const m=md[it.id]||{};
     const steps=dec?[]:clean(stepsOf(b));
@@ -23359,7 +23406,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
        la BRANCHE qui y mène — c'est-à-dire ce qui vient AVANT lui. Au-dessus et en retrait, elle
        se lit comme ce qu'elle est : un intertitre de branche. Le mot entier, pas six lettres :
        « CHOQUABLE » et « NON CHOQUABLE » ne se distinguent que par leur début. */
-    const lbl=lblRaw?`<div class="pl-brc d${Math.min(it.depth,3)}"><span>${esc(String(stripBold(lblRaw)).trim().toUpperCase().slice(0,22))}</span></div>`:'';
+    const lbl=lblRaw?brc(lblRaw,it.depth):'';
     {const ph=phaseOf(f,it.id);
      if(ph&&ph!==phCur){phCur=ph;h+=`<div class="pl-phase">${esc(ph)}</div>`;}}
     const open=!!state.ovFold['l:'+it.id];
@@ -28971,6 +29018,10 @@ function syncBtnRefresh(){const b=document.getElementById('authSync');if(!b)retu
 // Pastille d'état : discrète, jamais bloquante. Connecté -> visible ; déconnecté -> masquée (app locale comme avant).
 function setSyncChip(state,text){
   _syncUi={state:state||'ok',text:text||'Connecté'};
+  /* Le pied de stockage suit la présence d'un compte, et c'est ICI le seul point de passage
+     commun aux deux bascules (connexion, déconnexion) — cf. paintStorage. Peinture SYNCHRONE de
+     deux libellés : aucune mesure n'est relancée. */
+  try{paintStorage();}catch(e){}
   if(_syncUi.state==='ok'&&Auth.signedIn())_lastSyncT=Date.now();
   if(!Auth.signedIn()&&document.body.dataset.accent)delete document.body.dataset.accent;   // l'accent est un attribut de session
   // Fenêtre Compte ouverte : sa ligne d'état ET le bouton « Synchroniser maintenant » suivent
@@ -30198,7 +30249,14 @@ function confirmDlg(msg,opts){opts=opts||{};return new Promise(res=>{
   document.getElementById('confirmModalTitle').textContent=opts.title||'Confirmer';
   document.getElementById('confirmMsg').textContent=msg;
   const y=document.getElementById('confirmYes');y.textContent=opts.yes||'Confirmer';
-  document.getElementById('confirmNo').textContent=opts.no||'Annuler';
+  const no=document.getElementById('confirmNo');no.textContent=opts.no||'Annuler';
+  /* POINT D'ENTRÉE DU CLAVIER (cf. _dlgFocus) : l'ACTION quand elle est ordinaire — Entrée
+     valide aussitôt, Tab mène à « Annuler » —, mais « Annuler » quand l'action est DESTRUCTRICE
+     ou encore fermée par une case à cocher. C'est la convention système, et elle a ici une raison
+     de plus : un Entrée réflexe ne doit jamais supprimer une fiche ni arrêter une session. */
+  const dflt=(opts.danger||opts.checkRequired)?no:y;
+  y.toggleAttribute('data-dlgfocus',dflt===y);
+  no.toggleAttribute('data-dlgfocus',dflt===no);
   const row=document.getElementById('confirmCheckRow'),cb=document.getElementById('confirmCheck');
   if(opts.check){row.hidden=false;cb.checked=false;document.getElementById('confirmCheckLbl').textContent=opts.check;
     // Cocher l'option rend l'action destructrice -> le bouton principal passe en rouge (convention
@@ -31759,18 +31817,47 @@ document.addEventListener('visibilitychange',()=>{
       const morts=(Share.participants||[]).some(p=>!p.owner&&!p.revoked&&shareSeenLost(p));
       if(morts)announce('Le lien direct n’a pas survécu à la veille — ré-appariez depuis la feuille de partage.');}
   }catch(e){}});
+/* ═══ POURQUOI « EN LIGNE » EST FERMÉ — ON LE DIT, ET LE TAP RÉPOND ═══════════════════════════
+   (v5.17.4, signalé à l'usage : « avec le mode direct on peut partager sans compte ; mais quand
+   on clique sur “En ligne”, grisé, on ne sait pas pourquoi ça ne fonctionne pas — il faudrait
+   une phrase du genre “compte nécessaire”, et expliquer comment marche le direct/hors ligne,
+   valable aussi si connecté ».)
+   DEUX DÉFAUTS, ET LE SECOND EXPLIQUE LE PREMIER :
+   · la légende ne connaissait qu'UNE cause (« reviendra avec internet ») alors que le cran est
+     fermé pour DEUX raisons distinctes — pas d'internet, ou pas de compte. Sans compte, attendre
+     le réseau n'apportera jamais rien : la phrase était fausse au moment où elle comptait ;
+   · le cran portait `disabled`, l'attribut natif, qui n'émet AUCUN évènement — le seul geste que
+     l'on fait pour comprendre ne produisait rien du tout. Il passe donc en `aria-disabled` : même
+     apparence, toujours annoncé fermé aux lecteurs d'écran, focalisable au clavier — et le tap
+     DIT la cause et ce qui marche à la place. C'est la doctrine du dépôt (« un bouton grisé n'est
+     acceptable que si une ligne voisine dit pourquoi », cf. `syncBtnRefresh`), poussée d'un cran :
+     ici la ligne voisine ne suffisait pas, puisqu'elle se trompait de cause. */
+const slCloudOff=()=>!Auth.signedIn()?'compte':'net';
+function slSegCap(online,active){
+  if(online||active==='cloud')return 'l\u2019app choisit seule \u2014 forcer si besoin';
+  return slCloudOff()==='compte'
+    ?'\u00ab En ligne \u00bb demande un compte \u2014 pas \u00ab En direct \u00bb'
+    :'\u00ab En ligne \u00bb reviendra avec internet';}
+/* La phrase LONGUE, celle du tap : la cause, puis les deux chemins qui marchent — l'explication
+   vaut aussi pour qui EST connecté (il ne sait pas plus ce que « En direct » recouvre). */
+function slCloudWhy(){
+  const suite=' \u00ab En direct \u00bb relie les appareils par un code \u00e0 scanner, sans '
+    +'serveur (un Wi-Fi commun suffit, m\u00eame sans internet) ; \u00ab Par l\u2019\u00e9cran \u00bb '
+    +'passe la session en codes film\u00e9s \u00e0 la cam\u00e9ra, sans aucun r\u00e9seau.';
+  return (slCloudOff()==='compte'
+    ?'Le partage \u00ab En ligne \u00bb demande un compte : c\u2019est le serveur du compte qui '
+      +'h\u00e9berge la session.'
+    :'Le partage \u00ab En ligne \u00bb demande internet.')+suite;}
 function slSegNetPaint(){
   const seg=document.querySelector('#shareBody .seg');if(!seg)return;
   const online=Auth.signedIn()&&_slNet.ok===true;
   const on=seg.querySelector('.seg-btn.on');
   const active=(on&&on.dataset.shmode)||'cloud';
   const bc=seg.querySelector('.seg-btn[data-shmode="cloud"]');
-  if(bc){bc.disabled=!online&&active!=='cloud';
+  if(bc){bc.setAttribute('aria-disabled',(!online&&active!=='cloud')?'true':'false');
     const d=bc.querySelector('.sdot');if(d)d.classList.toggle('ok',online&&active!=='cloud');}
   const cap=document.querySelector('#shareBody .seg-cap');
-  if(cap)cap.textContent=(online||active==='cloud')
-    ?'l\u2019app choisit seule \u2014 forcer si besoin'
-    :'\u00ab En ligne \u00bb reviendra avec internet';}
+  if(cap)cap.textContent=slSegCap(online,active);}
 function slNetWatch(){
   clearInterval(_slNet.timer);
   _slNet.timer=setInterval(()=>{
@@ -31785,22 +31872,22 @@ function slModeSegHtml(active){
   const idx={cloud:0,direct:1,optic:2}[active]||0;
   const b=(mode,lbl,dot,dis)=>'<button type="button" class="seg-btn'+(active===mode?' on':'')
     +'" data-shmode="'+mode+'" role="radio" aria-checked="'+(active===mode?'true':'false')+'"'
-    +(dis?' disabled':'')+'>'+dot+'<span>'+lbl+'</span></button>';
+    +' aria-disabled="'+(dis?'true':'false')+'">'+dot+'<span>'+lbl+'</span></button>';
   return '<div class="seg" style="--seg-n:3;--seg-i:'+idx+'" role="radiogroup" aria-label="Mode de partage">'
     +'<span class="seg-pill" aria-hidden="true"></span>'
     +b('cloud','En ligne','<span class="sdot'+(online&&active!=='cloud'?' ok':'')+'"></span>',!online&&active!=='cloud')
     +b('direct','En direct','<span class="sdot'
       +((typeof slSbReady==='function'&&slSbReady())||slLiveOk()?' ok':'')+'"></span>',false)
     +b('optic','Par l\u2019écran','<span class="sdot t" aria-hidden="true">\u29d7</span>',false)
-    +'</div><p class="sl-cap seg-cap">'
-    +(online||active==='cloud'
-      ?'l\u2019app choisit seule \u2014 forcer si besoin'
-      :'\u00ab En ligne \u00bb reviendra avec internet')+'</p>';}
+    +'</div><p class="sl-cap seg-cap">'+esc(slSegCap(online,active))+'</p>';}
 function slModeSegBind(active){
   slNetWatch();
   document.querySelectorAll('#shareBody [data-shmode]').forEach(btn=>btn.onclick=async()=>{
     const m=btn.dataset.shmode;
     if(m===active)return;
+    // Cran fermé : il ne bascule pas, mais il RÉPOND — cf. slCloudWhy. `direct` : c'est la
+    // réponse à un tap, jamais une nouvelle de fond (règle 11 / v4.55.4).
+    if(btn.getAttribute('aria-disabled')==='true'){toast(slCloudWhy(),11000,true);return;}
     if(active==='optic')clearInterval(_ltTimer);
     if(m==='optic'){slOptiqueTx();return;}
     if(m==='direct'){
@@ -31943,7 +32030,11 @@ function slSheet(phase){
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>'
     +(phase==='offer-warn'
       ?'Aucun réseau vu — sans Wi-Fi commun, passez « Par l’écran »'
-      :'Pas d’internet — partage en direct, même Wi-Fi requis')+'</span></div>'
+      /* La cause EXACTE, pas la plus fréquente : sans compte, « pas d'internet » est faux et
+         envoie chercher du réseau qui ne changera rien (v5.17.4). */
+      :slCloudOff()==='compte'
+        ?'Sans compte — partage en direct, même Wi-Fi requis'
+        :'Pas d’internet — partage en direct, même Wi-Fi requis')+'</span></div>'
     +slModeSegHtml('direct')
     +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
     +'<p class="sl-cap">l’invité scanne, puis vous scannez sa réponse<br>'
@@ -32930,6 +33021,22 @@ function _focusables(el){return [...el.querySelectorAll('a[href],button:not([dis
    le verrou de fond et le piège Tab, sans être des `.ai-modal` (CSS distinct, et Échap leur est
    déjà câblé nommément). `_layerTop()` sert au piège Tab ; il ne touche pas à `_topModal()`, dont
    dépendent Échap et le retour système. */
+/* ═══ LE FOCUS D'OUVERTURE N'EST PAS LA CROIX (v5.17.4, demande utilisateur : « rendre les
+   boutons des fenêtres de dialogue navigables au clavier — tab pour passer d'annuler au bouton
+   d'action, entrée pour valider ; implémentation système native, reste simple ».) ═════════════
+   Le piège Tab et l'activation par Entrée existaient DÉJÀ — ce sont les comportements natifs d'un
+   `<button>`. Ce qui manquait est le POINT D'ENTRÉE : le gestionnaire posait le focus sur le
+   premier élément focalisable, c'est-à-dire presque toujours le ✕. La première frappe d'Entrée
+   FERMAIT donc la fenêtre au lieu de valider, et l'on n'atteignait « Confirmer » qu'après deux
+   Tab — ce qui se vit comme « le clavier ne marche pas dans les dialogues ».
+   Deux règles, natives toutes les deux, aucun composant nouveau :
+   · une fenêtre peut DÉSIGNER son point d'entrée (`data-dlgfocus`) ;
+   · à défaut, on prend le premier focalisable qui n'est PAS la croix — et la croix seulement s'il
+     n'y a rien d'autre (fenêtre purement informative). */
+function _dlgFocus(el){const f=_focusables(el);
+  const pref=el.querySelector('[data-dlgfocus]');
+  if(pref&&f.indexOf(pref)>=0)return pref;
+  return f.find(x=>!x.classList.contains('ai-x'))||f[0]||el;}
 const LAYERS='#flowFull,#lightbox';
 function _layerTop(){const l=[...document.querySelectorAll(LAYERS)].filter(e=>e.classList.contains('on'));return l[l.length-1]||null;}
 let _layerReturnFocus=null;
@@ -33004,7 +33111,7 @@ new MutationObserver(muts=>{muts.forEach(m=>{
      la fenêtre d'appariement, qui reste ouverte pendant toute la fenêtre d'admission et rendrait la
      checklist de crise INDÉFILABLE au moment où l'hôte en a besoin. Tout le reste du gestionnaire
      (focus initial, piège Tab, Échap, retour système) s'applique inchangé. */
-  if(isOn&&!wasOn){if(_openModals().length<=1&&!el.classList.contains('sheet-live')){_modalReturnFocus=document.activeElement;_bgLock();}const f=_focusables(el);(f[0]||el).focus();_histArm();}
+  if(isOn&&!wasOn){if(_openModals().length<=1&&!el.classList.contains('sheet-live')){_modalReturnFocus=document.activeElement;_bgLock();}_dlgFocus(el).focus();_histArm();}
   else if(!isOn&&wasOn&&!_topModal()){_bgUnlock();
     if(_modalReturnFocus){try{_modalReturnFocus.focus();}catch(_){}_modalReturnFocus=null;}}
 });}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
@@ -33016,6 +33123,17 @@ document.addEventListener('keydown',e=>{
     if(lb&&lb.classList.contains('on')){e.preventDefault();closeLightbox();}
     return;
   }
+  /* ENTRÉE VALIDE — le « bouton par défaut » du dialogue système. Il ne s'applique qu'aux
+     fenêtres qui le DÉCLARENT (`data-dlgdef`), et jamais quand le focus est déjà sur un contrôle
+     dont Entrée a son propre sens (un autre bouton, un lien, un champ, une liste) : on n'écrase
+     aucun geste natif, on comble le seul trou — la case à cocher, le texte, la fenêtre elle-même.
+     Un bouton FERMÉ n'est jamais déclenché (le verrou `checkRequired` tient au clavier aussi). */
+  if(e.key==='Enter'&&modal&&!e.repeat&&!e.isComposing){
+    const def=modal.querySelector('[data-dlgdef]');
+    const a=document.activeElement;
+    if(def&&!def.disabled&&def.getAttribute('aria-disabled')!=='true'
+      &&!(a&&modal.contains(a)&&a.matches('button,a[href],select,textarea,input:not([type="checkbox"]):not([type="radio"])'))){
+      e.preventDefault();def.click();return;}}
   const layer=modal||_layerTop();   // un calque opaque piège le focus comme une fenêtre
   if(e.key==='Tab'&&layer){
     const modal=layer;

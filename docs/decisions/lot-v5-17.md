@@ -275,3 +275,140 @@ Le paysage est dans la table à dessein : c'est la seule géométrie où A232 se
 toujours à gauche) rougit les deux familles de contrôles sur les quatre géométries ; `index.html`
 restauré à l'octet. Deux témoins de pluralité ont aussi rejoint `tests.html` pour la fonction pure
 — c'est le cas qui manquait.
+
+---
+
+# Lot v5.17.4 — quatre défauts signalés à l'usage (A233 à A236)
+
+> Quatre retours d'usage, sans rapport entre eux sauf un : chacun est un écran qui **affirme
+> quelque chose de faux** — un pied qui dit « sur cet appareil seulement » alors que la
+> synchronisation tourne, une décision qui ne montre qu'une de ses deux branches, un bouton grisé
+> qui invoque la mauvaise cause, un dialogue où la première frappe d'Entrée annule au lieu de
+> valider. Aucun ne plante ; tous les quatre se lisent comme une panne.
+
+## A233 — l'état volatil se relit à la PEINTURE, jamais à la mesure
+
+**SIGNALÉ.** « Lorsqu'on se connecte, “sur cet appareil seulement” en bas de la page s'affiche
+toujours jusqu'à ce qu'on recharge la page. »
+
+**CAUSE.** `storageState()` est PURE et lit un instantané `_stgSnap`, produit par
+`updateStorageInfo()` — une mesure ASYNCHRONE (`navigator.storage.estimate`) rejouée au
+chargement, à l'enregistrement d'une fiche et au rendu des vues de lecture. `signed` y était figé
+**au moment de la mesure**. Or la connexion ne rejoue rien quand l'espace local ne bascule pas :
+reconnexion au MÊME compte, ou déconnexion depuis une vue qui ne re-rend pas la bibliothèque. Le
+pied continuait donc d'annoncer « copie unique · non protégé » à quelqu'un dont les fiches
+partaient déjà dans le cloud — c'est-à-dire l'inverse exact de la vérité, sur la seule ligne de
+l'écran qui répond à « suis-je à l'abri ? ».
+
+**CE QUI EST FAIT, ET POURQUOI C'EST LÀ.** Le remède existait déjà à côté, pour le réseau : D7
+relit `navigator.onLine` **à la peinture**, parce qu'il change bien plus souvent que le stockage.
+La présence d'un compte est de la même nature — un état volatil, pas une mesure coûteuse. On la
+relit donc au même endroit (`paintStorage`), et `setSyncChip()` — **le seul point de passage commun
+à la connexion ET à la déconnexion** — appelle la peinture. Aucune mesure n'est relancée : deux
+`innerHTML` de libellé.
+
+**LA RÈGLE GÉNÉRALE, PUISQU'ELLE VAUT AU-DELÀ D'ICI** : dans un instantané mesuré, tout champ qui
+peut changer SANS nouvelle mesure n'a rien à y faire — il se relit à l'affichage. Le confondre
+avec les champs coûteux (usage, quota, poids des documents) est ce qui a produit ce défaut.
+
+## A234 — une décision montre TOUTES ses branches, y compris celles qui n'ont pas de bloc
+
+**SIGNALÉ.** « Le parcours (avant début de session, et dans la barre latérale gauche sur
+ordinateur ou en bas sur téléphone) s'affiche mal pour les blocs conditionnels : uniquement
+certains s'affichent. »
+
+**CAUSE, ET ELLE N'EST PAS UN CAS TORDU.** `flowPlan` indente les branches d'une décision sous leur
+option et reprend le tronc au **point de convergence** (post-dominateur immédiat). Quand une option
+mène DIRECTEMENT à ce point de convergence — le cas le plus ordinaire qui soit : « oui → on
+continue, non → détour » —, elle n'a **aucune rangée à elle** : le plan la rend en un seul `link`.
+Or `ovPlanLadderHtml` gardait l'étiquette de branche en attente (`pend[depth]`) jusqu'à ce qu'une
+rangée de BLOC la consomme, et `brclose` l'effaçait. La branche disparaissait donc entièrement.
+
+Mesuré sur l'aide d'exemple « Accouchement inopiné » : la décision « Imminence » affichait
+« NON — TRANSPORT » et **rien** pour « OUI — SUR PLACE » ; idem pour « État du nouveau-né ». Une
+décision à deux issues qui n'en montre qu'une ne se lit pas comme un raccourci, elle se lit comme
+un rendu à moitié fait — et dans une colonne d'ORIENTATION, une branche cachée est une branche
+qu'on ne saura pas prendre (c'est déjà l'argument de l'enroulement des renvois, v4.55.3).
+
+**CE QUI EST FAIT.** La colonne écrit l'étiquette **et** dit où la branche mène (`.pl-jmp` :
+`→ 4 Suite commune`, `↺ 2 …`, `▪ fin`). Ce n'est pas une grammaire nouvelle : la vue « Parcours »
+de « Tout voir » (`ovParcoursHtml`) le faisait DÉJÀ, avec `.pc-jmp` — les deux vues divergeaient en
+silence, et c'est la plus consultée des deux qui avait tort. Le renvoi reste **inerte** : le saut
+tapable vit sur la rangée de la décision juste au-dessus (`.pl-ref`), et deux cibles pour un même
+saut se disputeraient le doigt dans une colonne de 223 px. Les liens qui SUIVENT une rangée restent
+tus — la colonne de renvois de cette rangée les porte déjà.
+
+## A235 — un cran fermé dit POURQUOI, et le tap répond
+
+**SIGNALÉ.** « Avec le mode direct il est possible de partager des sessions même sans compte
+connecté. Mais quand on clique sur “En ligne” (qui est grisé, et c'est normal), on ne sait pas
+pourquoi ça ne fonctionne pas : il faudrait une phrase d'erreur du genre “compte nécessaire pour
+partage en ligne”, et expliquer comment fonctionne le partage direct/hors ligne — valable aussi si
+connecté. »
+
+**DEUX DÉFAUTS, ET LE SECOND EXPLIQUE LE PREMIER.**
+
+1. **La légende ne connaissait qu'une cause.** Le cran « En ligne » est fermé si
+   `!Auth.signedIn() || !joignable` — deux réalités —, et la légende disait invariablement
+   « “En ligne” reviendra avec internet ». Sans compte, c'est **faux** : attendre le réseau
+   n'apportera jamais rien. Le bandeau de la feuille d'appariement faisait la même erreur
+   (« Pas d'internet — partage en direct »). Les deux disent désormais la cause exacte.
+2. **`disabled` n'émet aucun évènement.** Le seul geste qu'on fait pour comprendre — taper le cran
+   — ne produisait littéralement rien. Le cran passe donc en **`aria-disabled`** : même apparence,
+   toujours annoncé fermé aux lecteurs d'écran, focalisable au clavier, et le tap **répond**.
+
+**CE N'EST PAS UN RECUL SUR LA DOCTRINE DU « FERMÉ », C'EST SON PROLONGEMENT.** La règle du dépôt
+est « un bouton grisé n'est acceptable que si une ligne voisine dit pourquoi » (v4.79.0,
+`syncBtnRefresh`). Ici la ligne voisine existait et **se trompait de cause** : la rendre exacte
+était nécessaire, pas suffisant — sur un écran d'urgence, on tape avant de lire une légende de
+11 px. La réponse au tap (`slCloudWhy`, snackbar `direct:true` — une RÉPONSE à un geste, jamais une
+nouvelle de fond, cf. v4.55.4) dit la cause **puis les deux chemins qui marchent** : « En direct »
+relie les appareils par un code à scanner sans serveur, « Par l'écran » passe par la caméra sans
+aucun réseau. Cette seconde moitié vaut aussi pour qui EST connecté — c'était la demande.
+
+## A236 — les dialogues se conduisent au clavier, avec le comportement système
+
+**DEMANDÉ.** « Rendre les boutons des fenêtres de dialogue navigables au clavier (confirmer une
+action, supprimer une fiche/aide/protocole, arrêter une session, et toutes les fenêtres de ce
+type) : Tab pour passer d'“Annuler” au bouton d'action, Entrée pour valider. Implémentation
+système native, reste simple, ne complexifie rien. »
+
+**CE QUI EXISTAIT DÉJÀ, ET QU'IL NE FALLAIT PAS RÉÉCRIRE.** Le piège Tab, Échap, le retour du focus
+au déclencheur et l'activation d'un bouton par Entrée sont en place depuis la v4.21.0 — les trois
+derniers sont d'ailleurs le comportement NATIF de `<button>`. Le trou était ailleurs : le
+gestionnaire posait le focus d'ouverture sur le **premier** élément focalisable, c'est-à-dire
+presque toujours la croix de fermeture. La première frappe d'Entrée **fermait** donc la fenêtre, et
+l'on n'atteignait « Confirmer » qu'après deux Tab. Vu de l'usage : « le clavier ne marche pas dans
+les dialogues ».
+
+**DEUX RÈGLES, AUCUN COMPOSANT NOUVEAU.**
+
+- **Le point d'entrée.** Une fenêtre peut le désigner (`data-dlgfocus`) ; à défaut on prend le
+  premier focalisable qui n'est PAS la croix — et la croix seulement s'il n'y a rien d'autre.
+  `confirmDlg` s'en sert pour poser le focus sur **l'action** quand elle est ordinaire, et sur
+  **« Annuler »** quand elle est destructrice (`danger`) ou encore fermée par une case
+  (`checkRequired`). C'est la convention système, et elle a ici une raison de plus : un Entrée
+  réflexe ne doit jamais supprimer une fiche ni arrêter une session.
+- **Le bouton par défaut.** `data-dlgdef` (porté par `#confirmYes`) est déclenché par Entrée
+  **seulement** quand le focus n'est pas déjà sur un contrôle dont Entrée a son propre sens (autre
+  bouton, lien, champ, liste). On n'écrase donc aucun geste natif : on comble le seul trou, la case
+  à cocher et le corps de la fenêtre. Un bouton fermé n'est jamais déclenché — le verrou
+  `checkRequired` tient au clavier comme à la souris.
+
+**CE QUI N'A PAS ÉTÉ FAIT, ET POURQUOI.** Pas de `<dialog>` natif ni de `<form method="dialog">` :
+la migration toucherait les 22 fenêtres, leur CSS, le verrou de fond et le retour système, pour un
+gain nul sur ce qui était demandé. Et **`#endSessModal` n'a pas de bouton par défaut** : sa
+première touche est « Poursuivre » (l'action sûre) et « Terminer » reste à un geste délibéré —
+arrêter une session est l'action la plus lourde de l'app.
+
+## Témoin (A234)
+
+`audit-doctrine.mjs`, section **« Parcours inerte · une décision montre TOUTES ses branches »** :
+une fixture minimale au graphe ORDINAIRE (départ → décision → {tronc commun, détour qui reboucle})
+et un invariant indépendant du dessin — **le nombre d'étiquettes de branche affichées vaut le
+nombre d'options de la décision** —, plus le renvoi de la branche sans rangée. **Vérifié capable
+d'échouer** : le défaut réintroduit rend « 1 étiquette pour 2 options » ; `index.html` restauré à
+l'octet. A233, A235 et A236 ont été mesurés par une sonde jetable (focus d'ouverture, Tab, Entrée,
+Entrée sur bouton fermé, bascule du pied sans rechargement, cause et réponse du cran fermé), verte
+sur **les deux moteurs** — elle n'a pas été gardée : ses invariants tiennent au comportement natif
+du navigateur, pas à une géométrie qui dérive.
