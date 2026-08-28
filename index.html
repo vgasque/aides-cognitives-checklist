@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-3Zg0PPoaX/6ell60Hc6Q13ODZUmwOn0noBCFsKDF5ME='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-VsyLi0TWq79kNgLZGuWaYUZf37j58VLZxRBz8TxDl1U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2904,13 +2904,31 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      La rangée reprend donc les 16 px en marges NÉGATIVES et les rend en rembourrage : sa BOÎTE va
      d'un bord à l'autre, son CONTENU ne bouge pas d'un pixel. C'est une compensation, écrite comme
      telle — et elle vaut exactement le rembourrage de `.dir-book`, jamais un nombre choisi. */
-  .dir-book .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;height:auto;min-height:60px;padding-left:0;padding-right:24px}
+  .dir-book .dir-row{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;height:auto;min-height:60px;padding-left:0;padding-right:14px}
   /* ⚠ ET LA COMPENSATION EST BORNÉE AU PALIER OÙ LA CARTE A UN REMBOURRAGE (signalé à l'usage dans
      la foulée : « tu as cassé l'affichage des cartes en 2/3 colonnes »). `.dir-book` perd son
      `padding` à partir de 780 px — posée au niveau racine, la marge négative y tirait donc les
      rangées 16 px HORS de leur colonne. Une compensation vit avec ce qu'elle compense. */
+  /* ⚠ ET LE REMBOURRAGE DROIT REDEVIENT CELUI DE GAUCHE (v5.17.6, signalé à l'usage, capture et
+     flèche à l'appui : « réduis l'espace entre l'étoile et la fin de la carte sur la page
+     d'accueil, surtout en smartphone — c'est là que l'écart est le plus grand et ça sonne
+     mauvais »). MESURÉ à 390 px : le titre commence à 16 px du bord de la carte, l'étoile
+     s'arrêtait à **47** — presque trois fois plus, sur une rangée dont c'est le seul autre
+     objet. La rangée avait l'air de finir avant sa carte.
+     Le 40 n'était pas un choix de dessin : c'est 24 (l'ancienne valeur de base) + 16 (la
+     compensation de la marge négative ci-dessus), et personne n'avait re-regardé la somme.
+     À 16, la déclaration devient SYMÉTRIQUE — même rembourrage des deux côtés —, ce qui est la
+     seule forme qu'on retient sans la relire.
+     ⚠ IL RESTE 6-7 px D'ÉCART OPTIQUE (étoile à 23 du bord contre titre à 16), ET C'EST VOULU :
+     ce sont les flancs de la CIBLE de l'épingle (bouton 30 px pour un glyphe de 18, cf.
+     `.dir-row .pinbtn` — WCAG 2.5.8 se mesure sur la boîte, pas sur le dessin). Les rattraper par
+     une marge négative collerait la zone tactile au bord de la carte, donc au rail A→Z.
+     ⚠ ET C'EST LE RAIL QUI BORNE, PAS LE GOÛT : mesuré à 390 px, la carte finit à 364 et le rail
+     commence à 366 ; avec ce rembourrage le halo de l'épingle (`::before`, +4 px) s'arrête à 351,
+     soit 15 px de franc. C'est la contrainte à recalculer si l'un des deux bouge — pas le
+     nombre 16. */
   @media (max-width:779.98px){
-    .dir-book .dir-row{margin-inline:-16px;padding-left:16px;padding-right:40px}
+    .dir-book .dir-row{margin-inline:-16px;padding-left:16px;padding-right:16px}
   }
   .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
   /* ⚠ LES ÉPINGLÉES SONT UN RÉPERTOIRE COMME LES AUTRES (v5.7, signalé à l'usage : « les cartes
@@ -3338,6 +3356,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        donc 40 px avant la carte, pas 4. Il n'y avait plus rien à protéger dans ces 8 px. À 12, la
        carte finit à 359, la première lettre commence toujours à 364, et 45 px séparent l'épingle du
        rail. On rend 4 px de largeur à CHAQUE rangée, à toutes les largeurs étroites.
+       ⚠ CE CHIFFRE DE 40 A VIEILLI À SON TOUR (v5.17.6) : le rembourrage droit de la rangée est
+       passé de 40 à 16 px et l'épingle s'est rapprochée du bord — son halo s'arrête désormais à
+       351, soit 15 px avant le rail et non 45. LE PLANCHER DE 8 NE BOUGE PAS POUR AUTANT, parce
+       qu'il ne repose pas sur cette distance : son argument est la PEINTURE (sous 6, le fond
+       translucide du rail se poserait sur le bord de la rangée), et la surface tapable de la
+       rangée elle-même — `.card-open::after{inset:0}` — atteignait DÉJÀ le bord de la carte,
+       à 3 px du rail. Rapprocher l'épingle ne crée donc pas une adjacence neuve : elle change
+       seulement laquelle des deux actions de la rangée occupe cette bande.
        ⚠ PUIS 12 → 10, PUIS 10 → 8 px (« rétrécis encore l'espace entre les cartes et le rail »),
        et 8 est le PLANCHER — il se déduit, il ne se choisit pas. Le rail vient de passer de 27 à
        24 px (son rembourrage horizontal, cf. `.azrail`) : il commence donc à 366 pour 18 px de
@@ -8334,8 +8360,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .dir-book.pinned{margin-bottom:10px}
     .dir-book .dir-l{padding:14px 2px 6px}
     .dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+    /* Rembourrage SYMÉTRIQUE, même raison qu'en voie étroite (v5.17.6) : 24 laissait l'étoile à
+       30 px du bord pour un titre à 14. Ici le rail est à 32 px de la colonne, il ne borne rien. */
     .dir-book .dir-row{background:var(--work);border:1px solid var(--work-line);border-bottom:1px solid var(--work-line);
-      border-radius:var(--r-3);height:71px;min-height:0;padding-left:14px;padding-right:24px}
+      border-radius:var(--r-3);height:71px;min-height:0;padding-left:14px;padding-right:14px}
     .dir-book .dir-row::before{left:0;top:0;bottom:0;border-radius:var(--r-3) 0 0 var(--r-3)}
     /* ⚠ UNE RANGÉE EN SESSION GARDE SON FOND DE CARTE (v5.6, signalé à l'usage : « on a
        l'impression qu'elle n'a plus de fond de carte »). `.dir-book .dir-row.live{background:none}`
@@ -9895,7 +9923,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.17.5';
+const APP_VERSION='5.17.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

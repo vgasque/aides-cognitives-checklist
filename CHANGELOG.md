@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [5.17.6] — 2026-08-28
+### L'étoile revient au bord de sa carte
+
+- **Signalé à l'usage, capture et flèche à l'appui** : « réduis l'espace entre l'étoile et la fin
+  de la carte sur la page d'accueil — surtout visible en smartphone, c'est là que l'écart est le
+  plus grand et ça sonne mauvais ».
+- **Mesuré à 390 px** : le titre commence à 16 px du bord de la carte, l'étoile s'arrêtait à
+  **47** — presque trois fois plus, sur une rangée dont c'est le seul autre objet. La rangée avait
+  l'air de finir avant sa carte.
+- **Le 40 px de rembourrage droit n'était pas un choix de dessin** : c'est 24 (l'ancienne valeur de
+  base) + 16 (la compensation de la marge négative qui fait aller le fond d'une rangée d'un bord à
+  l'autre de sa carte, v5.6). Personne n'avait re-regardé la somme. Il passe à **16**, égal au
+  rembourrage gauche : la déclaration devient symétrique, ce qui est la seule forme qu'on retient
+  sans la relire. Même correction en voie large (24 → 14, égal à son propre rembourrage gauche).
+  Chaque rangée gagne au passage 24 px de largeur de titre en étroit.
+- **Il reste 6-7 px d'écart optique, et c'est voulu** : ce sont les flancs de la *cible* de
+  l'épingle (bouton de 30 px pour un glyphe de 18 — WCAG 2.5.8 se mesure sur la boîte, pas sur le
+  dessin). Les rattraper collerait la zone tactile au bord de la carte, donc au rail A→Z.
+- **Ce qui borne, c'est le rail, pas le goût** : à 390 px la carte finit à 364, le rail commence à
+  366, et le halo de l'épingle s'arrête désormais à 351 — **15 px de franc**. Le plancher de 8 px
+  de la gouttière carte↔rail ne bouge pas : son argument est la *peinture* (sous 6, le fond
+  translucide du rail se poserait sur le bord de la rangée), et la surface tapable de la rangée
+  elle-même atteignait **déjà** le bord de la carte, à 3 px du rail. Le commentaire de v5.10.8 qui
+  affirmait « la cible la plus proche du rail finit 40 px avant la carte » a été corrigé sur
+  place : une doctrine qui affirme un chiffre périmé est pire qu'aucune doctrine.
+- Vérifié à 320, 390 et 1280 px : titre à 17, étoile à 23, cible de l'épingle 30 × 28.
+
 ## [5.17.5] — 2026-08-28
 ### L'anneau de focus des fenêtres se pose à la main
 
@@ -529,23 +556,3 @@ sonde jetable, verte sur les DEUX moteurs.
   que l'hôte sait, lequel des trois maillons casse — l'émission de l'offre, le rassemblement
   des candidats sans caméra (iOS), ou la résolution mDNS que certains réseaux filtrent (le
   flux QR y survit : sa réponse, créée caméra allumée, porte de vraies IP).
-
-## [5.14.12] — 2026-08-18
-### Le secours chaud survit aux rôles échangés — et la panne brutale est prouvée
-
-- **« Canaux pas prêts » pour toujours, corrigé** (signalé : « j'ai rejoint depuis plusieurs
-  minutes, toujours ce message ») : un état d'appariement périmé d'une participation
-  précédente (deux téléphones qui échangent leurs rôles à chaque essai) bloquait toute
-  nouvelle proposition de canal. L'ardoise est désormais remise à neuf à l'entrée de chaque
-  participation — et la pastille « En direct » ne peut plus verdir sur un canal mort d'un
-  ancien rôle.
-- **Réponses croisées neutralisées** : quand plusieurs offres d'appariement vivent dans le
-  journal, la réponse d'une offre morte pouvait empoisonner la connexion en cours (empreinte
-  d'un autre pair). Chaque offre porte un jeton ; une réponse sans le bon jeton est ignorée.
-- **La question « et si perte de réseau brutale ? » a sa preuve** : la section E2E du harnais
-  joue désormais le cycle entier — appariement silencieux, bascule manuelle, retour en ligne,
-  re-formation du secours, puis mort brutale du relais : l'hôte et l'invité se retrouvent en
-  direct SANS AUCUN geste (12 témoins verts). Le canal dormant est un lien Wi-Fi local :
-  la perte d'internet ne le touche pas ; seule la perte du Wi-Fi lui-même le tue (il reste
-  alors « Par l'écran »), et un invité hors du réseau local ne peut pas se pré-apparier
-  (pastille grise à demeure).
