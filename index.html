@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-WmZRmDCICO9Prr19WmEGmJzsxiNTH8mAc8/vJSrhnnU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-3Zg0PPoaX/6ell60Hc6Q13ODZUmwOn0noBCFsKDF5ME='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7710,6 +7710,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:429.98px){:is(.pm-bar,.rs-bar){gap:8px;padding-left:12px;padding-right:12px}:is(.pm-body,.rs-body){padding-left:12px;padding-right:12px}}
   /* CONFIRMATIONS : petite carte CENTRÉE verticalement, à toutes les largeurs — jamais en plein
      écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
+  /* L'ANNEAU D'OUVERTURE D'UNE FENÊTRE — cf. `_dlgEnter` (v5.17.5). MÊME dessin que
+     `:focus-visible` partout ailleurs : c'est le même état, il n'a aucune raison de se dessiner
+     autrement, et c'est ce qui rend la transition invisible quand le clavier reprend la main. */
+  .ai-modal .dlg-ring:focus{outline:2px solid var(--primary);outline-offset:2px}
   .ai-modal.dlg-confirm{align-items:center}
   /* ══ QUATRIÈME PLACEMENT, ET C'EST UNE NATURE, PAS UNE QUATRIÈME LARGEUR (v5.6, décision
      utilisateur : « uniformise la vue filtrer, toujours une fenêtre qui ne prend pas toute la
@@ -9891,7 +9895,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.17.4';
+const APP_VERSION='5.17.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -33037,6 +33041,28 @@ function _dlgFocus(el){const f=_focusables(el);
   const pref=el.querySelector('[data-dlgfocus]');
   if(pref&&f.indexOf(pref)>=0)return pref;
   return f.find(x=>!x.classList.contains('ai-x'))||f[0]||el;}
+/* ⚠ ET IL DOIT SE VOIR — SINON LE CLAVIER N'EXISTE PAS (v5.17.5, signalé à l'usage : « je ne sais
+   pas quel bouton est sélectionné, et surtout ça paraît inconstant »).
+   MESURÉ sur LES DEUX MOTEURS, cinq fenêtres : après un geste SOURIS — c'est-à-dire le geste qui
+   ouvre un dialogue neuf fois sur dix —, `:focus-visible` ne s'allume PAS sur un focus
+   PROGRAMMATIQUE ; après une frappe clavier, si. Le même dialogue avait donc DEUX apparences,
+   et dans la plus fréquente rien à l'écran ne disait ce qu'Entrée allait faire : c'est
+   exactement l'inconstance signalée, et elle vient de l'heuristique du navigateur, pas du code.
+   Le dépôt connaissait déjà le piège dans l'AUTRE sens (audit-a11y v4.40.0 : « un `.focus()`
+   programmatique ne déclenche pas `:focus-visible` » — il y produisait des faux positifs ; ici il
+   produit un écran muet).
+   ⚠ MESURE AVANT REMÈDE, ET LA PREMIÈRE MESURE MENTAIT : `.btn.primary` porte une ÉLÉVATION
+   permanente en `box-shadow`, qu'une sonde « y a-t-il un anneau ? » compte pour un anneau. Le seul
+   bouton qui semblait marqué ne l'était pas. Ne jamais lire « box-shadow ≠ none » comme un focus.
+   ON POSE DONC L'ANNEAU NOUS-MÊMES, sur le SEUL élément qu'on focalise à l'ouverture, et il part
+   au premier `blur` : au geste suivant `:focus-visible` reprend la main, avec le MÊME dessin —
+   l'utilisateur ne voit aucune bascule. Pas de `:focus` nu en cascade sur toute la fenêtre : il
+   écraserait les anneaux accordés à leur fond (`.chip-edit`, `.ds-x`, matière sombre), où un
+   anneau primaire disparaîtrait — c'est la famille des pièges de cascade du dossier. */
+function _dlgEnter(el){const f=_dlgFocus(el);
+  if(f!==el){f.classList.add('dlg-ring');
+    f.addEventListener('blur',()=>f.classList.remove('dlg-ring'),{once:true});}
+  f.focus();}
 const LAYERS='#flowFull,#lightbox';
 function _layerTop(){const l=[...document.querySelectorAll(LAYERS)].filter(e=>e.classList.contains('on'));return l[l.length-1]||null;}
 let _layerReturnFocus=null;
@@ -33111,7 +33137,7 @@ new MutationObserver(muts=>{muts.forEach(m=>{
      la fenêtre d'appariement, qui reste ouverte pendant toute la fenêtre d'admission et rendrait la
      checklist de crise INDÉFILABLE au moment où l'hôte en a besoin. Tout le reste du gestionnaire
      (focus initial, piège Tab, Échap, retour système) s'applique inchangé. */
-  if(isOn&&!wasOn){if(_openModals().length<=1&&!el.classList.contains('sheet-live')){_modalReturnFocus=document.activeElement;_bgLock();}_dlgFocus(el).focus();_histArm();}
+  if(isOn&&!wasOn){if(_openModals().length<=1&&!el.classList.contains('sheet-live')){_modalReturnFocus=document.activeElement;_bgLock();}_dlgEnter(el);_histArm();}
   else if(!isOn&&wasOn&&!_topModal()){_bgUnlock();
     if(_modalReturnFocus){try{_modalReturnFocus.focus();}catch(_){}_modalReturnFocus=null;}}
 });}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});

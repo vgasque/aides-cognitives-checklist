@@ -1,5 +1,38 @@
 # Journal des modifications
 
+## [5.17.5] — 2026-08-28
+### L'anneau de focus des fenêtres se pose à la main
+
+- **Correctif du lot précédent, signalé le lendemain** : « je ne sais pas quel bouton est
+  sélectionné, et surtout ça paraît inconstant ». La v5.17.4 posait le bon focus à l'ouverture
+  d'une fenêtre — sur l'action, ou sur « Annuler » quand l'action est destructrice — mais **sans le
+  rendre visible**, et un état juste mais invisible est indiscernable d'un état absent.
+- **La cause, mesurée sur les deux moteurs et cinq fenêtres.** `:focus-visible` n'est pas un état,
+  c'est une **heuristique du navigateur** : sur un focus PROGRAMMATIQUE — celui que pose
+  l'ouverture d'une fenêtre —, elle ne s'allume que si la dernière interaction était au clavier.
+  Ouvrir un dialogue **à la souris**, c'est-à-dire le geste réel neuf fois sur dix, ne montrait
+  donc **aucun anneau** ; l'ouvrir juste après une frappe clavier en montrait un. Le même dialogue,
+  deux apparences — c'est exactement l'inconstance signalée, et elle vient du navigateur.
+- **L'anneau se pose donc à la main**, sur le SEUL élément focalisé à l'ouverture, et il part au
+  premier changement de focus : `:focus-visible` reprend alors la main **avec le même dessin**, si
+  bien qu'aucune bascule ne se voit. Écarté : un `:focus` nu en cascade sur toute la fenêtre, qui
+  aurait écrasé les anneaux accordés à leur fond (aplat primaire, matière système sombre) — un
+  anneau bleu y disparaît purement et simplement.
+- **Et la première mesure avait menti** : une sonde « y a-t-il un anneau ? » qui accepte
+  `box-shadow` déclare marqué le bouton principal, qui porte une **élévation permanente**. Le seul
+  bouton qui semblait indiqué était précisément celui qui ne l'était pas. Un anneau de focus se lit
+  sur `outline`, jamais sur l'ombre.
+- **Ce qui reste volontairement différent d'une fenêtre à l'autre** : le focus va sur l'action pour
+  une confirmation ordinaire, sur « Annuler » pour une confirmation destructrice. Ce n'est plus une
+  inconstance depuis que l'anneau se voit — c'est la convention système, et elle se **lit** : on
+  sait, avant de frapper Entrée, si l'on va valider ou renoncer.
+
+**Doctrine** : `docs/decisions/lot-v5-17.md`, entrée **A237**.
+**Témoin** : `audit-doctrine.mjs`, section « Fenêtres · le bouton focalisé se voit, même ouvert à
+la souris » — trois fenêtres, chacune ouverte **après un vrai geste souris** (c'est lui qui met le
+navigateur dans l'état où le défaut existe), lecture de l'`outline` seule, et vérification
+qu'aucun anneau ne reste collé après fermeture. **Vérifié capable d'échouer.**
+
 ## [5.17.4] — 2026-08-27
 ### Quatre écrans qui affirmaient du faux
 
@@ -516,14 +549,3 @@ sonde jetable, verte sur les DEUX moteurs.
   la perte d'internet ne le touche pas ; seule la perte du Wi-Fi lui-même le tue (il reste
   alors « Par l'écran »), et un invité hors du réseau local ne peut pas se pré-apparier
   (pastille grise à demeure).
-
-## [5.14.11] — 2026-08-18
-### Le dialogue « Passer en direct ? » dit la bonne chose dans chaque cas
-
-- **« Chaque participant devra scanner… » ne s'affiche plus quand personne n'a rejoint**
-  (signalé : « pourquoi c'est marqué… ») : ce message confondait deux réalités. Personne n'a
-  encore rejoint → il n'y a personne à emporter, le dialogue dit simplement que le code
-  d'appariement s'affichera. Des participants suivent mais leurs canaux dormants ne sont pas
-  prêts → le dialogue explique la pastille (grise = pas prêt, comptez quelques secondes après
-  chaque arrivée), annonce le coût du « maintenant » (re-scan) et le bénéfice d'attendre la
-  pastille verte (bascule sans scan) — bouton « Passer en direct quand même ».

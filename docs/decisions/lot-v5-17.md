@@ -412,3 +412,55 @@ l'octet. A233, A235 et A236 ont été mesurés par une sonde jetable (focus d'ou
 Entrée sur bouton fermé, bascule du pied sans rechargement, cause et réponse du cran fermé), verte
 sur **les deux moteurs** — elle n'a pas été gardée : ses invariants tiennent au comportement natif
 du navigateur, pas à une géométrie qui dérive.
+
+## A237 — l'anneau de focus d'une fenêtre se pose à la main (v5.17.5)
+
+**SIGNALÉ, le lendemain de A236.** « Bug dialogues au clavier : je ne sais pas quel bouton est
+sélectionné, et surtout ça paraît inconstant. »
+
+**CAUSE, MESURÉE SUR LES DEUX MOTEURS ET CINQ FENÊTRES.** `:focus-visible` n'est pas un état, c'est
+une **heuristique du navigateur** : sur un focus **programmatique** — celui que pose l'ouverture
+d'une fenêtre —, elle ne s'allume que si la dernière interaction était au clavier. Ouvrir un
+dialogue **à la souris**, c'est-à-dire le geste réel neuf fois sur dix, ne montrait donc **aucun
+anneau** ; l'ouvrir juste après une frappe clavier en montrait un. Le même dialogue, deux
+apparences, et dans la plus fréquente rien à l'écran ne disait ce qu'Entrée allait faire. A236
+avait donné le bon focus **sans le rendre visible** — un état juste, invisible, est indiscernable
+d'un état absent.
+
+Le dépôt connaissait déjà ce piège **dans l'autre sens** : `audit-a11y` (v4.40.0) a dû passer aux
+vraies frappes Tab parce qu'un `.focus()` programmatique ne déclenche pas `:focus-visible` et
+produisait des faux positifs en série. La même propriété produit ici un écran muet.
+
+**⚠ ET LA PREMIÈRE MESURE A MENTI.** Une sonde « y a-t-il un anneau ? » qui accepte
+`box-shadow !== none` déclare marqué… `.btn.primary`, qui porte une **élévation permanente**. Le
+seul bouton qui semblait indiqué était précisément celui qui ne l'était pas, et la conclusion
+inverse (« le ring marche ») a tenu une passe entière. **Un anneau de focus se lit sur `outline`,
+jamais sur l'ombre** — c'est de la même famille que « `check-colors` et `check-type` travaillent au
+motif et ne voient pas une règle disparue » : une sonde permissive est pire qu'aucune sonde.
+
+**CE QUI EST FAIT.** `_dlgEnter` pose la classe `.dlg-ring` sur le **seul** élément qu'il focalise,
+et l'ôte au premier `blur` : au geste suivant, `:focus-visible` reprend la main **avec le même
+dessin**, donc l'utilisateur ne voit aucune bascule.
+
+**CE QUI A ÉTÉ ÉCARTÉ, ET POURQUOI.** Un `:focus` nu en cascade sur toute la fenêtre
+(`.ai-modal :is(button,[tabindex]):focus`) aurait été plus court d'une ligne et **faux** : à
+(0,3,0) il bat les anneaux accordés à leur fond — `.chip-edit` sur aplat primaire, `.ds-x` sur
+matière système, tout ce qui vit sur du sombre — où un anneau `--primary` disparaît purement et
+simplement. C'est la famille des pièges de cascade du dossier ; on marque **un** élément, pas une
+sous-arborescence. `element.focus({focusVisible:true})` a été écarté aussi : Firefox seul
+l'implémente, ni Chromium ni WebKit — donc rien sur la cible principale.
+
+**CE QUI RESTE VOLONTAIREMENT DIFFÉRENT D'UNE FENÊTRE À L'AUTRE** : le focus va sur l'**action**
+pour une confirmation ordinaire et sur **« Annuler »** pour une confirmation destructrice (A236).
+Ce n'est plus une inconstance depuis que l'anneau se voit — c'est la convention système, et elle
+se **lit** : on sait, avant de frapper Entrée, si l'on va valider ou renoncer.
+
+## Témoin (A237)
+
+`audit-doctrine.mjs`, section **« Fenêtres · le bouton focalisé se voit, même ouvert à la
+souris »** — trois fenêtres (confirmation ordinaire, confirmation destructrice, fenêtre Compte),
+chacune ouverte **après un vrai geste souris** : c'est lui qui met le navigateur dans l'état où le
+défaut existe, et une sonde qui l'omet mesure un écran qui n'existe pas. La sonde ne lit que
+l'`outline`. Elle vérifie aussi qu'**aucun anneau ne reste collé** après la fermeture.
+**Vérifiée capable d'échouer** : marquage neutralisé → deux contrôles rouges, dont le cas
+discriminant (la première fenêtre, ouverte à la souris) ; `index.html` restauré à l'octet.

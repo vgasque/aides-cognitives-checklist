@@ -6306,6 +6306,58 @@ await sec('Parcours inerte · une décision montre TOUTES ses branches', async (
 }
 });
 
+/* ══ LE BOUTON QUI A LA MAIN SE VOIT, MÊME QUAND LA FENÊTRE A ÉTÉ OUVERTE À LA SOURIS ═════════
+   (v5.17.5, signalé à l'usage : « je ne sais pas quel bouton est sélectionné, et surtout ça
+   paraît inconstant ».) `:focus-visible` est une HEURISTIQUE : sur un focus PROGRAMMATIQUE — celui
+   que pose l'ouverture d'une fenêtre —, elle ne s'allume qu'après une interaction clavier. Le même
+   dialogue avait donc deux apparences, et dans la plus fréquente (ouvert à la souris) rien ne
+   disait ce qu'Entrée allait faire.
+   ⚠ LA SONDE NE REGARDE QUE L'`outline`, JAMAIS `box-shadow` : `.btn.primary` porte une ÉLÉVATION
+   permanente, et une sonde qui compte l'ombre pour un anneau déclare marqué le seul bouton qui ne
+   l'était pas — c'est l'erreur qu'a faite la première mesure de ce défaut.
+   Le geste SOURIS avant chaque ouverture n'est pas décoratif : c'est lui qui met le navigateur
+   dans l'état où le défaut existe. */
+await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const anneau=async()=>{await page.waitForTimeout(180);
+    return page.evaluate(()=>{const a=document.activeElement;if(!a)return null;
+      const cs=getComputedStyle(a);
+      return {el:a.id||a.className||a.tagName,
+        anneau:cs.outlineStyle!=='none'&&parseFloat(cs.outlineWidth)>0};});};
+  const souris=async()=>{await page.mouse.move(640,500);await page.mouse.down();await page.mouse.up();};
+  const fermer=async sel=>{await page.evaluate(s=>{const x=document.querySelector(s);if(x)x.click();},sel);
+    await page.waitForTimeout(180);};
+
+  await souris();
+  await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T'});});
+  let r=await anneau();
+  t('confirmation ordinaire : le bouton focalisé porte un anneau',!!r&&r.anneau,JSON.stringify(r));
+  t('… et c\'est l\'ACTION (Entrée valide)',!!r&&r.el==='confirmYes',JSON.stringify(r));
+  await fermer('#confirmModal .ai-x');
+
+  await souris();
+  await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T',danger:true,yes:'Supprimer'});});
+  r=await anneau();
+  t('confirmation destructrice : anneau visible',!!r&&r.anneau,JSON.stringify(r));
+  t('… et c\'est « Annuler » (Entrée ne supprime pas)',!!r&&r.el==='confirmNo',JSON.stringify(r));
+  await fermer('#confirmModal .ai-x');
+
+  await souris();
+  await page.evaluate(()=>document.getElementById('acctTop').click());
+  r=await anneau();
+  t('fenêtre Compte : le point d\'entrée porte un anneau',!!r&&r.anneau,JSON.stringify(r));
+  await fermer('#authModal .ai-x');
+
+  // L'ANNEAU NE COLLE PAS : il part au premier blur, `:focus-visible` reprend la main ensuite.
+  const reste=await page.evaluate(()=>document.querySelectorAll('.dlg-ring').length);
+  t('aucun anneau résiduel après fermeture',reste===0,`${reste} élément(s) marqué(s)`);
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
