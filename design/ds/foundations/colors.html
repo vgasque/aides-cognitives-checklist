@@ -962,9 +962,21 @@
      qui défile ici est une carte (--surface), pas le fond. */
   body.view-home header.bar{position:static}
   /* Même respiration qu'en large entre l'en-tête et « Accès direct » (mesuré 34 vs 18 — le
-     rembourrage de main s'ajoutait aux 16 px du titre de section) : 2 + 16 = 18. */
+     rembourrage de main s'ajoutait aux 16 px du titre de section) : 2 + 16 = 18. Et le titre
+     de résultats de recherche suit le même rythme (il naissait à margin-top:0, « très collé »). */
   @media (max-width:779.98px){
     body.view-home main{padding-top:2px}
+    body.view-home .list-title{margin-top:16px}
+    /* ZONE SÛRE DU HAUT (signalé sur iPhone installé : « le bandeau de sélection se retrouve
+       sous l'heure », idem intertitres collants) : l'en-tête est STATIQUE depuis v5.18 — il ne
+       coiffe plus l'écran une fois défilé, et plus rien ne portait env(safe-area-inset-top).
+       Un SOL fixe couvre la bande de l'encoche (le contenu ne défile plus sous l'heure), et
+       les collants s'arrêtent dessous. ÷ --zf : règle 10 (env est en px réels). En navigateur,
+       env vaut 0 : tout ceci est inerte. */
+    body.view-home::before{content:"";position:fixed;left:0;right:0;top:0;z-index:16;
+      height:calc(env(safe-area-inset-top,0px) / var(--zf,1));background:var(--bg);pointer-events:none}
+    body.view-home .dir-l{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
+    body.view-home .sel-bar{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
   }
   /* Maquette v5.18 : en VOIE ÉTROITE, la marque a la taille d'un titre de document (l'en-tête
      d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-IdypBlKDwfiB73jd9rfOJ7/vOhIT1l9MVl7XL3ViEKM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Hhe1dlrdM4s8a76aAQfKiul0DMnnR4yh3E8YjRv0esY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1316,9 +1316,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      qui défile ici est une carte (--surface), pas le fond. */
   body.view-home header.bar{position:static}
   /* Même respiration qu'en large entre l'en-tête et « Accès direct » (mesuré 34 vs 18 — le
-     rembourrage de main s'ajoutait aux 16 px du titre de section) : 2 + 16 = 18. */
+     rembourrage de main s'ajoutait aux 16 px du titre de section) : 2 + 16 = 18. Et le titre
+     de résultats de recherche suit le même rythme (il naissait à margin-top:0, « très collé »). */
   @media (max-width:779.98px){
     body.view-home main{padding-top:2px}
+    body.view-home .list-title{margin-top:16px}
+    /* ZONE SÛRE DU HAUT (signalé sur iPhone installé : « le bandeau de sélection se retrouve
+       sous l'heure », idem intertitres collants) : l'en-tête est STATIQUE depuis v5.18 — il ne
+       coiffe plus l'écran une fois défilé, et plus rien ne portait env(safe-area-inset-top).
+       Un SOL fixe couvre la bande de l'encoche (le contenu ne défile plus sous l'heure), et
+       les collants s'arrêtent dessous. ÷ --zf : règle 10 (env est en px réels). En navigateur,
+       env vaut 0 : tout ceci est inerte. */
+    body.view-home::before{content:"";position:fixed;left:0;right:0;top:0;z-index:16;
+      height:calc(env(safe-area-inset-top,0px) / var(--zf,1));background:var(--bg);pointer-events:none}
+    body.view-home .dir-l{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
+    body.view-home .sel-bar{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
   }
   /* Maquette v5.18 : en VOIE ÉTROITE, la marque a la taille d'un titre de document (l'en-tête
      d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du
@@ -9862,7 +9874,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.18.2';
+const APP_VERSION='5.18.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15404,6 +15416,17 @@ function updateHdrSec(){document.querySelectorAll('.typebar [data-section]').for
    if(!document.body.classList.contains('view-home'))return;
    if(matchMedia('(min-width:780px)').matches)return;
    e.preventDefault();qi.focus({preventScroll:true});});
+ /* v5.18.3 (signalé : « en scrollant, la barre saute et la bande disparaît ») — DÉFILER
+    REFERME LE CLAVIER (patron iOS Mail/Safari) : le dock cesse de courir après le viewport
+    visuel, la liste se lit plein écran, la pilule revient en bas. Garde de 600 ms : ouvrir le
+    clavier émet ses propres évènements de défilement. */
+ {let _qT=0;
+  qi.addEventListener('focus',()=>{_qT=Date.now();});
+  const ferme=()=>{if(document.activeElement===qi
+    &&document.documentElement.classList.contains('kbd')
+    &&Date.now()-_qT>600)qi.blur();};
+  window.addEventListener('scroll',ferme,{passive:true});
+  if(window.visualViewport)window.visualViewport.addEventListener('scroll',ferme,{passive:true});}
  qi.addEventListener('input',e=>{syncQClear();if(state.view!=='library')return;
    state.q=e.target.value;state.libLimit=LIB_PAGE;
    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{if(state.view==='library')render();},150);});}

@@ -257,3 +257,18 @@ pointerdown puis focus({preventScroll:true}) : même geste, zéro défilement. (
 en-tête → « Accès direct » valait 34 px en étroit contre 18 en large (le rembourrage de main
 s'ajoutait aux 16 du titre de section) : main passe à 2 px de rembourrage haut sur l'accueil
 étroit — 18 partout, mesuré.
+
+**A266. TROIS SUITES DU TERRAIN iPHONE (v5.18.3).** (1) **Défiler referme le clavier** (patron
+iOS Mail/Safari) — suivre le viewport visuel PENDANT un défilement clavier-ouvert est
+structurellement saccadé (les variables --vvt/--vvh sont sondées) : plutôt que courir, on
+constate que l'utilisateur qui défile a fini de taper — blur de #q au premier défilement
+(fenêtre + visualViewport, garde de 600 ms : l'ouverture du clavier émet ses propres
+évènements). La barre « qui saute » et la bande « qui disparaît » partent AVEC le clavier,
+proprement. (2) **Zone sûre du haut** : l'en-tête statique ne coiffe plus l'écran une fois
+défilé — le bandeau de sélection et les intertitres collants passaient SOUS l'heure/batterie
+en PWA installée, et le contenu défilait dans la bande de l'encoche. Un SOL fixe
+(body.view-home::before, hauteur env(safe-area-inset-top)/­--zf — règle 10) couvre la bande,
+et les deux collants s'arrêtent dessous ; inerte en navigateur (env = 0). Cliquet
+pointer-events → 22. (3) **Le rythme sous l'en-tête est UN** : le titre « Résultats — … »
+naissait à margin-top:0 (« très collé ») — 16 px comme les titres de section : 18 px sous
+l'en-tête partout, recherche comprise, mesuré.

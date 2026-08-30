@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.18.3] — 2026-08-30
+### Suites du terrain iPhone (A266)
+
+- **Défiler referme le clavier** (signalé : « en scrollant, la barre saute et la bande
+  disparaît »). Suivre le viewport visuel pendant un défilement clavier-ouvert est
+  structurellement saccadé (les variables sont sondées) — et l'utilisateur qui défile a fini de
+  taper : au premier défilement (fenêtre ou viewport visuel, garde de 600 ms car l'ouverture du
+  clavier émet ses propres évènements), le champ rend le focus, le clavier se referme, la
+  liste se lit plein écran et la pilule revient en bas. Le patron d'iOS Mail/Safari.
+- **La zone sûre du haut est couverte** (signalé en PWA installée : « le bandeau de sélection
+  se retrouve sous l'heure », idem pour les intertitres collants). L'en-tête est statique
+  depuis la v5.18 — une fois défilé, plus rien ne portait `env(safe-area-inset-top)` : un sol
+  fixe couvre la bande de l'encoche (le contenu ne défile plus sous l'heure) et le bandeau de
+  sélection comme les intertitres s'arrêtent dessous. Inerte en navigateur (env vaut 0).
+- **Le rythme sous l'en-tête est UN** : le titre « Résultats — toutes les bibliothèques »
+  naissait collé (marge haute nulle) — 18 px sous l'en-tête partout désormais (Accès direct,
+  Résultats, et la voie large), mesuré aux deux largeurs.
+
 ## [5.18.2] — 2026-08-30
 ### Le clavier iPhone, au propre (A265)
 
@@ -588,20 +606,3 @@ sonde jetable, verte sur les DEUX moteurs.
   (Exporter, Dupliquer, Modifier). Elle porte désormais le menu de l'invité — et la réponse à
   la question : oui, l'envoi est temporaire par construction (projection en liste blanche,
   reconstruite en mémoire, jamais écrite sur l'appareil ni le compte).
-
-## [5.14.16] — 2026-08-18
-### L'aller-retour « par l'écran » — et l'instantané optique qui partait vide
-
-- **Synchronisation par l'écran, dans les deux sens** (demandé) : l'invité qui a reçu un
-  miroir peut « Renvoyer mes repères » — l'hôte tape « Recevoir en retour », filme, et son
-  journal s'annote de repères datés (jamais une coche : la sémantique de la maquette 05,
-  « Continuer seul » réutilisé). L'émission reprend ensuite d'elle-même, enrichie. Même
-  session reconnue automatiquement ; une fontaine d'une autre session ou d'une autre aide est
-  refusée sans rien écrire ; re-scanner ne duplique rien.
-- **L'instantané optique partait VIDE depuis la v5.14.0** (trouvé par le nouveau témoin) : la
-  fiche voyageait, les coches, minuteurs et repères jamais — le miroir montrait une session au
-  propre. Corrigé (`shareSnap(Runtime,…)`).
-- **La jauge ne s'affiche que pendant une fontaine** (demandé) : un scan de code unique se
-  conclut par un flash vert 120 ms + vibration, sans son ni jauge (maquette 03).
-- **L'émission parle comme la maquette 04** : « le code change tout seul — restez face à
-  face » + « en cours d'envoi » — fini le « bloc x/x / réparation ».

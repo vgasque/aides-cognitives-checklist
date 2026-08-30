@@ -145,8 +145,10 @@ for (const m of html.matchAll(/addEventListener\s*\(\s*['"]animationend['"]\s*,/
    03b). Annonciateur pur : une couche pleine qui s'allume 240 ms à la lecture d'un code et ne
    reçoit JAMAIS un tap — le cas exact que A68/4 autorise. */
 /* 21 depuis v5.18.2 : le SOL du dock sous clavier (#homeDock::after, aplat opaque sous la
-   barre d'accessoires iOS) est un annonciateur au sens strict d'A68/4 — il ne reçoit rien. */
-const PE_MAX = 21;
+   barre d'accessoires iOS) est un annonciateur au sens strict d'A68/4 — il ne reçoit rien.
+   22 depuis v5.18.3 : même statut pour le SOL de la zone sûre du haut (body.view-home::before,
+   la bande de l'encoche — l'en-tête statique ne la couvre plus une fois défilé). */
+const PE_MAX = 22;
 const nPe = styles.map(sansCommentaires).join('\n').split(/pointer-events\s*:\s*none/).length - 1;
 if (nPe > PE_MAX)
   fautes.push({ ou: `pointer-events:none × ${nPe}`, prop: `cliquet à ${PE_MAX} (A68/4)` });
