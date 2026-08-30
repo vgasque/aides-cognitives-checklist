@@ -6983,6 +6983,10 @@
   .auth-why{margin-top:16px;border-top:1px solid var(--line);padding-top:10px}
   .auth-why>summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--link);list-style:none;display:flex;align-items:center;gap:6px;padding:4px 0}
   .auth-why>summary::-webkit-details-marker{display:none}
+  /* v5.18.5 : ce dépliant n'avait AUCUNE règle de focus — il rendait l'anneau PAR DÉFAUT du
+     navigateur (couleur hors palette, épaisseur non maîtrisée), seul de sa famille dans ce cas
+     (cf. `.acct-more`, `.pos-more`, `.rev-panel`). Trouvé en vérifiant la découpe des anneaux. */
+  .auth-why>summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:8px}
   .auth-why>summary::before{content:"▸";font-size:11px;opacity:.8;transition:transform .15s}
   .auth-why[open]>summary::before{transform:rotate(90deg)}
   .auth-why-body{padding-top:6px}
@@ -7460,6 +7464,17 @@
      fermeture que la fenêtre : l'axe horizontal n'a aucun usage ici, le contenu large défile
      dans ses conteneurs internes. */
   .ai-card>.ai-body{overflow-y:auto;overflow-x:clip;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
+  /* ⚠ …ET CE DÉFILEUR COUPAIT L'ANNEAU DE FOCUS (v5.18.5, signalé sur captures : « l'encadré de
+     sélection des champs est coupé par la fenêtre »). Un champ occupe TOUTE la largeur du corps :
+     son anneau (2 px + décalage) tombe donc pile sur le bord de découpe, et se voyait rogné à
+     gauche et à droite — un état de focus amputé est un défaut d'accessibilité, pas une coquette.
+     On ne rouvre PAS l'axe (le dossier ci-dessus l'a fermé pour de bonnes raisons) : on ÉCARTE le
+     bord de découpe de 4 px et on rend ces 4 px par une marge négative — le contenu ne bouge pas
+     d'un pixel, la découpe respire. `overflow-clip-margin` ne peut pas servir ici : un élément
+     qui défile (overflow-y:auto) est un conteneur de défilement, et la propriété y est ignorée.
+     `scroll-padding-block` fait le même office en HAUTEUR : un champ atteint au clavier ne se
+     colle plus au bord du scrollport, son anneau reste entier. */
+  .ai-card>.ai-body{padding-inline:4px;margin-inline:-4px;scroll-padding-block:4px}
   /* Tout ce qui n'est pas le corps est FIXE : l'en-tête, le sélecteur de type de « Créer », le
      champ de filtre des sélecteurs, le pied d'actions et la note de bas de fenêtre. */
   .ai-card:has(>.ai-body)>:not(.ai-body){flex:0 0 auto}

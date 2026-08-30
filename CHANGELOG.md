@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [5.18.5] — 2026-08-30
+### L'anneau de focus n'est plus rogné par les fenêtres (A268)
+
+- **Signalé sur captures** : « l'encadré de sélection des champs et des boutons est coupé par la
+  fenêtre, dans plusieurs modales ». Cause : le corps des fenêtres (`.ai-body`) ferme son axe
+  horizontal depuis la v5.10.5 — décision juste, gardée telle quelle — et un champ y occupe
+  TOUTE la largeur : son anneau (2 px de trait + 2 px de décalage) tombait pile sur le bord de
+  découpe et se voyait amputé à gauche et à droite. Un état de focus amputé est un défaut
+  d'accessibilité, pas une coquetterie.
+- **L'axe n'est pas rouvert** : le bord de découpe s'écarte de 4 px, rendus par une marge
+  négative — le contenu ne bouge pas d'un pixel (mesuré 423..857 avant et après), la découpe
+  respire. Vérifié au clavier à 1280 comme à 390 px : anneau entier, 4 px de marge de chaque
+  côté. En HAUTEUR, `scroll-padding` évite qu'un champ atteint au clavier ne se colle au bord
+  du scrollport.
+- **`overflow-clip-margin` ne pouvait pas servir** — la propriété faite pour ça est ignorée dès
+  que l'élément défile (`overflow-y:auto` en fait un conteneur de défilement) : c'est noté dans
+  la doctrine pour la prochaine fois.
+- **Trouvé en chemin** : le dépliant « Pourquoi créer un compte ? » n'avait AUCUNE règle de
+  focus — il rendait l'anneau par défaut du navigateur (couleur hors palette, épaisseur non
+  maîtrisée), seul de sa famille dans ce cas. Comblé.
+
 ## [5.18.4] — 2026-08-30
 ### Le clavier ne part plus tout seul (A267)
 
@@ -588,22 +609,3 @@ sonde jetable, verte sur les DEUX moteurs.
   v5.14.18 avait corrigé l'entrée, pas l'en-tête) : bandeau, mot du mode, mode crise et
   bridage du scribe ne valent plus que sur la fiche réellement suivie ; retour, aller et
   chrome vérifiés par sonde dans les deux sens.
-
-## [5.14.18] — 2026-08-18
-### Les aides propres de l'invité redeviennent normales — et l'invité relaie par l'écran
-
-- **Consulter ses propres aides pendant un partage redevient normal** (signalé) : plus de
-  coches fantômes ni de bandeau de session sur une aide non démarrée — et un invité sur SON
-  appareil peut démarrer ses propres sessions (le refus ne vaut plus que sur appareil sans
-  trace) ; ses sessions locales n'alimentent jamais le fil de l'hôte.
-- **« Montrer à un autre écran »** (signalé : « pas de bouton pour redonner le code ») :
-  l'invité — miroir ou en ligne/direct — relaie la session en fontaine optique ; l'hôte
-  reconnaît la session relayée, retours compris. La feuille d'émission s'adapte au rôle.
-- **Le compte de participants est juste** (signalé : « 2 participants » à un seul) : la
-  feuille directe comptait l'hôte avec — elle compte désormais les invités présents, comme la
-  feuille en ligne.
-- **La notice du mode direct dit son prérequis** (signalé) : « même Wi-Fi requis — un réseau
-  local SANS internet convient (Wi-Fi d'établissement, box coupée) ».
-- **Audit de sécurité du canal direct** (question) : modèle de menace écrit au registre
-  (§ 3.2) — chiffrement de bout en bout authentifié par empreinte via QR physique ou relais
-  authentifié, rien n'écoute, l'admission est le canal apparié, l'optique exige d'être filmé.

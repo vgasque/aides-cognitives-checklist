@@ -284,3 +284,17 @@ rangée de crans, un défilement horizontal). Une remise en page n'émet jamais 
 Vérifié dans les deux sens : le focus TIENT sur un recalage programmatique, il PART sur un
 glissement de 70 px. Leçon générale : pour distinguer « l'utilisateur a fait X » d'« il s'est
 passé X », écouter l'entrée, pas la conséquence.
+
+**A268. UN DÉFILEUR NE DOIT PAS ROGNER L'ANNEAU DE FOCUS** (v5.18.5, signalé sur captures :
+« l'encadré de sélection des champs est coupé par la fenêtre »). Le corps des fenêtres
+(`.ai-card>.ai-body`) ferme son axe horizontal depuis v5.10.5 — décision juste, gardée : un
+champ y occupe TOUTE la largeur, donc son anneau (2 px + 2 px de décalage) tombait pile sur le
+bord de découpe et se voyait amputé à gauche et à droite. Un état de focus amputé est un défaut
+d'accessibilité, pas une coquetterie. On n'a PAS rouvert l'axe : le bord de découpe s'écarte de
+4 px (`padding-inline:4px`) et ces 4 px sont rendus par une marge négative — le contenu ne bouge
+pas d'un pixel (mesuré 423..857 avant et après), la découpe respire. `overflow-clip-margin` ne
+pouvait pas servir : la propriété est ignorée sur un conteneur de défilement, ce qu'un
+`overflow-y:auto` fait de l'élément. `scroll-padding-block:4px` fait le même office en HAUTEUR
+(un champ atteint au clavier ne se colle plus au bord du scrollport). Trouvé en chemin et
+corrigé : `.auth-why>summary` n'avait AUCUNE règle de focus — il rendait l'anneau par défaut du
+navigateur, couleur hors palette, seul de sa famille dans ce cas.
