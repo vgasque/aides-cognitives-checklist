@@ -24,7 +24,9 @@ import { readFileSync } from 'node:fs';
 
 /* L'ÉCHELLE. Toute addition ici est une DÉCISION, et c'est tout l'objet du fichier : la liste ne
    s'édite pas pour faire passer le contrôle, elle s'édite pour acter un palier de plus. */
-const PALIERS = [360, 400, 430, 480, 560, 640, 780, 924, 1000, 1200];
+// 390 : palier v5.18 (maquette « Zero », 390 px) — sous lui, l'en-tête d'accueil rend son mot
+// « Créer » et la marque redescend à 21 px (la ligne n'a pas la place des deux).
+const PALIERS = [360, 390, 400, 430, 480, 560, 640, 780, 924, 1000, 1200];
 
 /* Exemptions NOMMÉES et MOTIVÉES — comme dans check-type. Une exemption anonyme rouvrirait la porte
    qu'on vient de fermer. (Aucune à ce jour : les douze paliers mesurés se rangent tous dans

@@ -912,10 +912,8 @@
   .bar-acct::after{content:"";position:absolute;inset:-4px}
   .hdr-badge{flex:none;font-size:11px;font-weight:700;background:var(--surface-3);color:var(--ink-soft);border-radius:8px;padding:2px 10px;white-space:nowrap;max-width:34vw;overflow:hidden;text-overflow:ellipsis}
   .hdr-badge[hidden]{display:none}
-  /* Recherche FIXE dans l'en-tête (accueil, V5, canvas turn 6) : en ligne dans la rangée en
-     large, rangée propre (pleine largeur) en étroit — elle reste sous le doigt au défilement. */
-  .hdr-search{display:none;position:relative;align-items:center;gap:8px;min-width:0}
-  header.bar.home .hdr-search{display:flex;flex:3 1 220px;max-width:640px}
+  /* v5.18 — la recherche vit dans #homeDock (hors en-tête), cf. le bloc du dock plus bas. */
+  .hdr-search{display:flex;position:relative;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
   /* Styles exacts du canvas (accueil, section 6) : bordure 2px srchBd (--line-hover) — plus
      marquée que les cartes à 1px, c'est l'élément interactif principal de l'en-tête ; fond =
      MÊME surface que les cartes ; glyphe ⌕ intégré au placeholder ; pas d'ombre (~40px). */
@@ -940,102 +938,82 @@
   .srch-x{position:absolute;right:6px;display:grid;place-items:center;width:26px;height:26px;border:0;
     border-radius:50%;background:transparent;color:var(--ink-soft);cursor:pointer;padding:0}
   .srch-x[hidden]{display:none}
+  /* ⌘K : le raccourci EXISTE depuis v4.31.0 — l'afficher (voie large seulement) le rend
+     découvrable. aria-hidden : c'est un rappel visuel, le champ porte déjà son nom. */
+  .dock-kbd{display:none;position:absolute;right:10px;align-items:center;
+    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);
+    border:1px solid var(--line);border-radius:var(--r-1);padding:1px 6px;pointer-events:none}
   .srch-x::after{content:"";position:absolute;inset:-6px}   /* cible ≥ 32px sans épaissir la rangée */
   .srch-x:hover{background:var(--surface-2);color:var(--ink)}
   .srch-x:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
-  /* ⚠ MÊME HAUTEUR D'EN-TÊTE SUR L'ACCUEIL ET EN LECTURE (v5.6, signalé à l'usage). Mesuré à
-     ≥ 780 px : 68 px sur l'accueil contre 61 en lecture, pour la seule raison que le champ de
-     recherche fait 47 px quand les contrôles de la rangée en font 40. L'en-tête est l'objet le
-     plus permanent du produit : sa hauteur ne doit pas dépendre de la vue, sinon tout ce qui s'y
-     accroche (les couches collantes, le rail A→Z, le décalage d'ancre) change avec elle.
-     Le champ descend à la hauteur de la rangée — au POINTEUR FIN uniquement : sous 780 px le
-     plancher de 16 px de la règle 9 s'applique et rien n'est négociable, c'est d'ailleurs là que
-     le champ prend sa propre ligne.
-     ⚠ CE QUI RESTE, ET QUI EST STRUCTUREL : en voie étroite l'accueil porte une RANGÉE DE PLUS
-     (la recherche, que la planche 7b a explicitement voulue dans l'en-tête). Les égaliser
-     supposerait de la retirer, ce que 7b refuse. Et une fois défilé, le resserrement (7a) les
-     ramène à 62 contre 61 : l'écart n'existe qu'au repos, là où l'on a la place. */
-  @media (min-width:780px){header.bar.home .hdr-search input{padding-top:8px;padding-bottom:8px;line-height:1.4}}
-  /* ⚠ ET C'EST LA RANGÉE QUI FIXE LA HAUTEUR, PAS SON CONTENU LE PLUS GRAND. Ajuster le champ au
-     pixel près revenait à courir après une valeur dérivée d'une police et d'un interlignage —
-     elle rebougera au premier changement de l'un des deux. Un plancher commun rend la hauteur
-     IDENTIQUE dans les deux vues par construction, quel que soit ce que la rangée porte. */
-  header.bar .id-row{min-height:40px}
-  @media (max-width:779.98px){header.bar.home .hdr-search{order:5;flex:1 1 100%;max-width:none;margin-top:2px}.hdr-search input{padding:12px 32px 12px 32px}}  /* 36px à gauche : la loupe SVG (absolue, left:12px) garde sa réserve — sans quoi elle chevauche le placeholder */
-  /* Chips bibliothèques/catégories de l'accueil étroit : dans l'en-tête (fixes au défilement). */
-  /* ══ 7a — CE QUI SE RETIRE AU DÉFILEMENT, SUR L'ACCUEIL ÉTROIT ══════════════════════════
-     `body.home-slim` est posée par `syncHdrScroll` au franchissement du seuil (80 px, retour à
-     40). Partent : l'identité (marque, Créer, thème, compte) et la rangée de chips. Reste : la
-     rangée de recherche, qui ne quitte jamais l'écran.
-     ⚠ ON MASQUE, ON NE DÉPLACE RIEN : le champ garde son abscisse et sa hauteur, et le
-     déclencheur de filtre reste à sa droite. Aucune transition sur une propriété de MISE EN PAGE
-     (check-anim l'interdit) : la bascule est nette, et c'est ce qu'on veut d'un seuil. */
-  /* CE QUI PART : la marque et son logo, la rangée de chips. CE QUI RESTE : le champ, « ＋ »,
-     le déclencheur de filtre et le compte — c'est la rangée persistante de la planche (« champ +
-     filtre + compte »). Le champ cesse de prendre toute la ligne pour la partager avec eux :
-     une seule rangée, donc, au lieu de deux. */
-  body.home-slim header.bar.home .brand,
-  body.home-slim header.bar.home .brand-logo,
-  body.home-slim #homeChrome{display:none}
-  /* ⚠ ET L'ORDRE SE REMET À ZÉRO. En voie étroite la recherche porte `order:5` pour tomber sur
-     sa propre ligne SOUS l'identité ; à l'état resserré elle PARTAGE la ligne, et cet ordre la
-     renvoyait alors à DROITE du compte — le champ se déplaçait de 44 px au franchissement du
-     seuil, ce que la planche interdit explicitement (« la position du champ ne bouge jamais »). */
-  body.home-slim header.bar.home .hdr-search{flex:1 1 0;min-width:0;margin-top:0;order:0}
-  body.home-slim header.bar.home .id-row{gap:8px}
-  /* ⚠ ET LA RANGÉE SE RESSERRE, DANS CE SEUL ÉTAT. La planche vise 58 px de chrome collant ; le
-     champ en fait 47 à lui seul (police de 16 px, plancher tactile de la règle 9 — ce n'est pas
-     négociable), donc le plancher réel est 47 + deux rembourrages. À 8/6 px la rangée mesure
-     61 px : c'est le fond du budget sans toucher ni au corps du champ ni à la cible de 44 px.
-     Les deux valeurs sont sur l'échelle fermée ; l'état de REPOS, lui, ne bouge pas d'un pixel. */
-  body.home-slim header.bar.home{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:6px}
-  /* ══ LA MICRO-ANIMATION DU RESSERREMENT (v5.6, demande utilisateur) ═══════════════════════
-     ⚠ CE QUI S'ANIME EST LA PEINTURE, JAMAIS LA MISE EN PAGE — et ce n'est pas une timidité,
-     c'est la seule chose possible ici. `check-anim` interdit toute propriété de mise en page dans
-     une transition, pour une raison mesurée (v4.41.0 : jusqu'à 38 % d'un cœur consommés par une
-     seule barre animée en `width`) ; animer la hauteur de l'en-tête forcerait une passe de mise
-     en page PAR IMAGE, sur l'objet le plus collant de l'écran, pendant un défilement.
-     ⚠ ET FAIRE FONDRE CE QUI PART A ÉTÉ ESSAYÉ, PUIS MESURÉ FAUX : pour être fondus, la marque et
-     le logo doivent rester dans le flux — or un élément de largeur nulle CONSOMME QUAND MÊME les
-     deux `column-gap` qui l'entourent, et le champ de recherche se déplaçait de 18 à 34 px au
-     franchissement du seuil. C'est exactement ce que la planche interdit (« la position du champ
-     ne bouge jamais ») ; ils gardent donc `display:none`, qui les retire vraiment.
-     CE QUI RESTE EST JUSTE, ET SUFFIT : l'en-tête PREND SON ÉLÉVATION en devenant une bande
-     resserrée qui flotte au-dessus de la liste. Deux propriétés de peinture, ~160 ms, aucune
-     boucle (l'hystérésis 80/40 interdit qu'elle se rejoue au bord du seuil), inerte sous
-     reduced-motion, et zéro pixel de géométrie déplacé. */
-  @media (prefers-reduced-motion:no-preference){
-    header.bar.home{transition:box-shadow .16s ease,border-bottom-color .16s ease}
-    /* v5.10.5 (demande utilisateur : « micro-animation non bloquante quand l'en-tête se
-       réduit/se développe, très rapide très discret ») — CE QUI ARRIVE fond en place. La hauteur,
-       elle, ne s'anime JAMAIS (check-anim : animer la mise en page de l'objet le plus collant de
-       l'écran coûterait une passe de layout par image). Au DÉPLIAGE, l'identité et les chips
-       réapparaissent : opacité + glissement COMPOSITE de 3 px, 140 ms, une fois par bascule. Au
-       REPLI, ce qui part disparaît avec sa ligne (`display:none` — le faire fondre a été essayé
-       et mesuré faux en v5.6 : un élément de largeur nulle consomme ses gaps et déplace le
-       champ) ; c'est l'élévation transitionnée ci-dessus qui marque le resserrement. */
-    body:not(.home-slim) header.bar.home :is(.brand,#homeChrome){animation:hdrDeplie .14s ease-out}
-    /* … et le REPLI a son marquage symétrique (v5.10.5, retour utilisateur : « je ne vois pas de
-       micro-animation qui réduit la barre ») : la rangée persistante — qui vient de se
-       recomposer d'un coup (le champ partage sa ligne avec ＋, filtre et compte) — fond en place
-       sur le même tempo. La HAUTEUR, elle, reste non animée, et c'est un choix, pas un oubli :
-       animer la mise en page de l'objet le plus collant de l'écran coûterait une passe de layout
-       par image (check-anim l'interdit, mesuré v4.41.0 : jusqu'à 38 % d'un cœur). */
-    body.home-slim header.bar.home .id-row{animation:hdrReplie .14s ease-out}
+  /* ═══ ACCUEIL v5.18 — L'EN-TÊTE REDEVIENT DU CONTENU, L'ACCÈS DESCEND AU POUCE ═══════════
+     L'en-tête d'accueil n'a plus d'ÉTATS : il est statique et défile avec la page (le mécanisme
+     home-slim — seuil 80/40, gels, re-mesures, déménagements de nœuds — est PURGÉ, lot v5.18).
+     Ce qui doit rester joignable partout vit dans #homeDock : une PILULE de recherche + l'îlot
+     de filtre, fixes en bas en voie étroite (zone du pouce), rangée statique sous l'en-tête en
+     voie large (au clavier, le bas d'écran n'est pas une zone de pouce).
+     Matière OPAQUE (A222 : un fond translucide rend le contraste invérifiable) ; l'îlot flotte
+     seul, donc contour --ctl-line (A43). La bande sous la pilule COUVRE le contenu — fondu de
+     20 px sur la seule arête haute : un fondu ne dissimule que ce qui va vers SA couleur, et ce
+     qui défile ici est une carte (--surface), pas le fond. */
+  body.view-home header.bar{position:static}
+  /* Maquette v5.18 : en VOIE ÉTROITE, la marque a la taille d'un titre de document (l'en-tête
+     d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du
+     chrome — même hauteur que partout (doctrine v5.6). Sous 390 px la ligne n'a pas la place du
+     mot ni des 24 px : marque 21, « ＋ » seul (réserve ≥ 8 px mesurée par la doctrine). */
+  @media (max-width:779.98px){
+    body.view-home .brand .brand-name{font-size:21px}
   }
-  @keyframes hdrDeplie{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
-  @keyframes hdrReplie{from{opacity:.45}to{opacity:1}}
-  body.home-slim header.bar.home{box-shadow:var(--shadow);border-bottom-color:transparent}
-  /* ⚠ « ＋ CRÉER » NE PART PAS AVEC EUX (7a) : il rejoint la rangée PERSISTANTE, à gauche du
-     déclencheur de filtre. Une action de création n'est pas un réglage — la perdre au défilement
-     obligerait à remonter tout l'annuaire pour créer une fiche. Il garde son gabarit et son
-     glyphe ; seul son logement change, et il n'y est jamais seul de son espèce (le filtre est à
-     côté), donc la rangée ne change pas de nature. */
-  .hdr-search .hdr-new{flex:none}
-  #homeChrome{order:6;width:100%;min-width:0}
-  #homeChrome[hidden]{display:none}
-  #homeChrome .scopebar{margin-bottom:6px}
-  #homeChrome .catbar{margin-bottom:0}
+  @media (min-width:390px) and (max-width:779.98px){
+    body.view-home .hdr-new{width:auto;padding:0 12px}
+    body.view-home .hdr-new .hdr-new-lbl{display:inline}
+  }
+
+  /* La session en cours (maquette) : registre CONFIRMATION — le SEUL aplat teinté de l'accueil,
+     c'est sa rareté qui la fait voir. En sombre, l'aplat ne borne plus rien (A222) : périmètre --ok. */
+  body.view-home .ls-card{background:var(--ok-soft);color:var(--ink)}
+  body.view-home .ls-info .ls-k{color:var(--ok)}
+  body.view-home .ls-info :is(.ls-t,.ls-w){color:var(--ink)}
+  body.view-home .ls-info .ls-w{color:var(--ink-soft)}
+  body.view-home .ls-chrono{color:var(--ink-soft)}
+  [data-theme="dark"] body.view-home .ls-card{box-shadow:inset 0 0 0 1px var(--ok)}
+  #homeDock{display:none}
+  body.view-home #homeDock{display:flex;flex-direction:column;align-items:stretch;gap:8px;
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    padding:18px 12px calc(12px + var(--sab,0px));
+    background:linear-gradient(to top,var(--bg) calc(100% - 20px),transparent)}
+  /* La rangée des filtres de recherche : chips de type + déclencheur de la feuille. Elle
+     n'existe QUE pendant une recherche (syncFiltTog) — hors recherche, la pilule est seule. */
+  /* padding haut/droit : le badge-compte déborde du bouton de 4 px, et un défileur horizontal
+     rogne aussi en Y — sans cet air, le chiffre serait amputé. */
+  .dock-filt{display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 0 0}
+  .dock-filt[hidden]{display:none}
+  .df-chips{display:flex;align-items:center;gap:8px;flex:none}
+  .dock-filt .filt-tog{margin-left:auto;width:auto;height:36px;min-height:36px;padding:0 12px;gap:6px}
+  .dock-filt .ft-lbl{font-size:12px;font-weight:700}
+  /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
+     est un bouton discret (même encre d'action), cible étendue par halo (patron .tag.todo). */
+  .dir-hf{position:relative;border:0;background:none;padding:0;margin:0;font:inherit;
+    color:var(--act);cursor:pointer;border-radius:var(--r-1)}
+  .dir-hf::after{content:"";position:absolute;inset:-8px}
+  .dir-hf:hover{text-decoration:underline}
+  .dir-hf:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  #homeDock .hdr-search input{border-radius:999px;box-shadow:var(--shadow)}
+  /* Clavier ouvert : le dock LOGE le champ qu'on tape — il ne se retire jamais (v5.13), il se
+     cale au bas du viewport VISUEL (--vvt/--vvh : couche calée sur le viewport, exemptée par
+     check-stick). 84 px = hauteur du dock hors zone sûre. */
+  html.kbd body.view-home #homeDock{bottom:auto;padding-bottom:12px;
+    top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1) - 84px)}
+  /* … et 44 px plus haut quand la rangée de filtres est là (36 de chips + 8 d'entre-deux). */
+  html.kbd body.view-home #homeDock:has(#dockFilt:not([hidden])){
+    top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1) - 128px)}
+  /* Le pied de page finit AU-DESSUS du dock, page courte comme page longue (signalé à l'usage :
+     « bas de page non visible à cause de la barre flottante ») : la réserve est le REMBOURRAGE
+     du pied lui-même — un ::after l'étendait SOUS le viewport, donc une page courte défilait de
+     96 px pour un pied qui restait sous le dock. --sab compte : le dock le porte aussi. */
+  @media (max-width:779.98px){
+    body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
+  }
   /* V5 : bandeau TITRE du mode crise — le titre de la fiche vit ici en permanence (toujours
      lisible en crise, canvas turn 6), registre ALERTE, bord à bord.
      v4.70.1 : il ne porte PLUS « ■ MODE CRISE ». Cf. « DEUX ANNONCIATEURS, DEUX OFFICES »
@@ -1850,8 +1828,12 @@
      d'en-tête. On récupère la dizaine de pixels nécessaire sans rapetisser le glyphe outre mesure :
      34 → 30px (‑4) et l'écart de colonne 10 → 8px (‑2 par écart). Le logo n'étant pas interactif,
      aucune règle de cible tactile ne s'y applique. */
-  @media (max-width:429.98px){
+  /* Étroit : logo 30 px — équilibré avec la marque à 21 (la maquette posait 32/23 ; ressenti
+     « un peu trop gros » à l'usage, descendu d'un cran ensemble). */
+  @media (max-width:779.98px){
     header.bar.home .brand-logo{width:30px;height:30px}
+  }
+  @media (max-width:429.98px){
     header.bar.home .id-row{column-gap:8px}
     /* ⚠ L'ABAISSEMENT DU MOT-MARQUE À 360 px N'EXISTE PLUS (v5.0.0, audit design A3-1) : il
        descendait 20 → 18 px pour rendre 14 px à la rangée d'identité. La marque étant désormais à
@@ -2092,14 +2074,16 @@
      .cat-dot (anneau de séparation) — jamais en aplat ; la SÉLECTION est le bleu système
      (encodage unique, jamais la couleur de la catégorie — un chip plein rouge se lirait comme
      une alarme). Pilule 36px min, bordure --line-strong (3:1) au repos. */
-  .catchip{display:inline-flex;align-items:center;gap:6px;min-height:36px;border:1px solid var(--line-strong);background:var(--surface);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  /* `.scopebtn` (chips TYPE de la feuille de filtres) partage la grammaire : son habillage
+     propre est parti avec la purge de `.scopebar` (v5.18) — même famille, même recette. */
+  .catchip,.scopebtn{display:inline-flex;align-items:center;gap:6px;min-height:36px;border:1px solid var(--line-strong);background:var(--surface);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s;color:var(--ink)}
   /* Zone de tap >= 44px sans grossir la pastille (halo cliquable, même technique que #cbTimers
      et .tag.todo) : pastilles filtrées/choisies au pouce en mobile, tap fréquent (HIG/MD3). */
-  .catchip{position:relative}
-  .catchip::after{content:"";position:absolute;inset:-4px -2px}
-  .catchip:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
-  .catchip.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary);font-weight:700}
-  [data-theme="dark"] .catchip.on{background:var(--primary-dk);color:var(--bg);border-color:var(--primary-dk)}
+  .catchip,.scopebtn{position:relative}
+  :is(.catchip,.scopebtn)::after{content:"";position:absolute;inset:-4px -2px}
+  :is(.catchip,.scopebtn):not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
+  :is(.catchip,.scopebtn).on{background:var(--primary);color:var(--on-primary);border-color:var(--primary);font-weight:700}
+  [data-theme="dark"] :is(.catchip,.scopebtn).on{background:var(--primary-dk);color:var(--bg);border-color:var(--primary-dk)}
   .catchip.mgr{border-style:dashed;color:var(--ink-soft)}
   /* Pastille de catégorie (règle UNIQUE du code couleur, SPEC crise §1) : 9px, ronde, anneau à
      la couleur du fond porteur — sépare la pastille d'un fond quelconque et la garde lisible
@@ -2107,8 +2091,6 @@
      anneau. La couleur n'est JAMAIS seule : toujours accompagnée du nom en toutes lettres. */
   .cat-dot{width:9px;height:9px;flex:none;border-radius:50%;background:var(--catcol,var(--line-strong));box-shadow:0 0 0 2px var(--surface)}
   .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
-  .scopebar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
-  .scopebar .chiprow{flex:1;min-width:0}
   /* ⚠ LES TROIS RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné
      avec « Toutes »). Les intitulés ont des longueurs différentes — TYPE 33 px, CATÉG. 46 —, donc
      chaque rangée de chips commençait ailleurs : 63 px contre 76, mesurés. Un `min-width` commun
@@ -2117,30 +2099,7 @@
      qu'on vient de mettre en place. */
   .scope-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px;
     min-width:48px}
-  /* inline-flex : la pastille ✎ de la chip active (34px, marges négatives) est ABSORBÉE par le
-     conteneur flex au lieu de gonfler la boîte de ligne (sinon la chip grandit et décale tout). */
-  /* line-height:normal : la chip ACTIVE est un <span> (pastille ✎ imbriquée, pas de bouton dans
-     un bouton) — sans lui, elle hériterait du 1.5 du body et serait plus haute que les chips
-     <button> (line-height UA), gonflant toute la rangée à la sélection. */
-  .scopebtn{position:relative;display:inline-flex;align-items:center;line-height:normal;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
-  /* Même micro-réponse que `.catchip` (signalé à l'usage : les chips de TYPE n'en avaient
-     aucune) — deux rangées de filtres voisines qui ne répondent pas pareil se lisent comme deux
-     composants, alors que c'est le même geste sur la même grammaire. */
-  .scopebtn:not(.on):hover{border-color:var(--line-hover);background:var(--surface-2)}
-  .scopebtn.on,.startbtn.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
-  .scopebtn.add{border-style:dashed;color:var(--primary);background:transparent}
-  /* Halo tactile (audit v4.5) : chips ~33px -> cible >= 44px, étendue en VERTICAL seulement
-     (les chips voisines se touchent horizontalement dans la rangée défilante). */
-  :is(.scopebtn,.catchip)::after{content:"";position:absolute;inset:-6px 0}
-  /* La chip ACTIVE n'est pas cliquable (span, déjà sélectionnée) : son halo interceptait les
-     taps destinés au ✎ imbriqué -> neutralisé (le ✎ passe aussi au-dessus via z-index). */
-  .scopebtn.on::after{pointer-events:none}
-  .scopebtn.on.edit{padding-right:4px}
-  /* Pastille ✎ DANS la chip active (canvas) : 34×34 translucide sur le fond plein de la chip,
-     débordant à droite pour ne pas la gonfler ; hérite du blanc de la chip active. */
-  .chip-edit{position:relative;z-index:1;display:inline-grid;place-items:center;width:28px;height:28px;margin:-8px 0 -8px 6px;border-radius:14px;background:color-mix(in srgb,var(--on-primary) 18%,transparent);color:inherit;border:0;cursor:pointer;vertical-align:middle}
-  .chip-edit:hover{background:color-mix(in srgb,var(--on-primary) 30%,transparent)}
-  .chip-edit:focus-visible{outline:2px solid var(--on-primary);outline-offset:-2px}
+  /* (`.chip-edit` — la pastille ✎ des chips bibliothèque — est PURGÉE v5.18 avec scopeBarHtml.) */
   .scopebtn svg{vertical-align:-2px}
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
@@ -2222,8 +2181,8 @@
      L'ancien composant .card/.cards est SUPPRIMÉ (émissions vérifiées au grep, règle 14) ;
      .card-open, lui, GARDE son nom : quatorze harnais ouvrent une fiche par ce sélecteur. */
   .dir-h{display:flex;align-items:center;gap:8px;margin:16px 0 8px;flex-wrap:wrap}
-  .dir-h>b{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .dir-h .dir-hs{font-size:11px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dir-h>b{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .dir-h .dir-hs{font-size:12px;font-weight:400;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* Tuile : UN SEUL <button> (★ et ● sont des spans — pas de descendant interactif), liseré de
      catégorie 4px par ::before (même canal --stripe que les anciennes cartes). */
   /* UNE SEULE RÈGLE FLUIDE, PARTAGÉE AVEC LE RÉPERTOIRE (v4.56.1, retour utilisateur « la
@@ -2289,13 +2248,27 @@
      grille fluide : la largeur existe, et une liste d'une seule colonne au milieu de 1 200 px
      laisse le regard traverser du vide. Le basculement suit le palier du rail (780), là où
      l'accueil passe de la voie unique à la coque à deux colonnes. */
-  /* `overflow:hidden` : depuis que les rangées vont d'un bord à l'autre (cf. `.dir-book .dir-row`),
-     le fond de la PREMIÈRE et de la DERNIÈRE dépasserait des coins arrondis. Aucun titre de lettre
-     n'est collant ici (vérifié) : rien à casser. */
-  .dir-book{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);padding:2px 16px;position:relative;overflow:hidden}
-  .dir-book.pinned{margin-bottom:4px}
-  .dir-l{display:flex;align-items:baseline;gap:8px;font-family:var(--serif);font-size:13.5px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
-  .dir-lr{flex:1;border-bottom:1px solid var(--line)}
+  /* v5.18 — le livre s'efface : chaque SECTION (bibliothèque, catégorie ou lettre selon le
+     rangement) a son intertitre COLLANT (position:sticky — zéro JS, zéro état ; il colle au
+     défileur de sa largeur : la page en étroit, .home-main en large) et sa grille de rangées.
+     En étroit la carte est portée par .dir-grid (coins nets, intertitres dehors). */
+  .dir-book{position:relative}
+  /* Maquette (t-h/z-h) : la bande est sur le FOND DE PAGE (--bg), pas sur la surface des
+     rangées — c'est sa matière qui la fait lire comme une bande au défilement (même sol que
+     l'en-tête de colonnes du tableau), le filet dessous la borde. */
+  .dir-l{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;padding:8px 16px 6px;
+    background:var(--bg);box-shadow:0 1px 0 var(--line);
+    font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+  .dir-l .dir-ll{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dir-lr{flex:1}
+  .dir-ln{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .dir-lk{flex:none;display:inline-flex;color:var(--ink-soft)}
+  /* Le ✎ d'une bibliothèque administrée — même office que le crayon de la colonne large. */
+  .dir-la{flex:none;position:relative;display:grid;place-items:center;width:28px;height:28px;margin:-4px 0;
+    border:0;border-radius:999px;background:none;color:var(--ink-soft);cursor:pointer}
+  .dir-la::after{content:"";position:absolute;inset:-8px}
+  .dir-la:hover{background:var(--surface-2)}
+  .dir-la:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
   .dir-dot{width:8px;height:8px;border-radius:999px;flex:none}
   /* Le sélecteur de clé de groupement — grammaire des chips de filtre (c'est de la même famille :
      un objet qui décide de ce qu'on voit), poussé au bout de l'en-tête de section. */
@@ -2315,7 +2288,18 @@
      légèrement ») : le sélecteur A-Z/Catégories se cale à 2 px sous l'en-tête et 8 px au-dessus
      du répertoire (valeurs de l'échelle fermée ; l'essentiel du blanc restant est le rembourrage
      de `main`, commun à toutes les vues). */
-  .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 8px}
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 8px;flex-wrap:wrap}
+  /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
+     des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
+     jamais une media query — règle 10). */
+  .qa-sec{margin:0 0 4px}
+  /* Étroit (A261) : deux tuiles par ligne dès 390 px ; le titre long gagne une 4e ligne et un
+     corps de 13,5 (l'ellipse reste la borne — la tuile OUVRE la fiche, le titre entier est à
+     un tap). La boîte reste bornée : c'est le témoin « titres longs » qui tient le plafond. */
+  @media (max-width:779.98px){
+    .qa-grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr))}
+    .qa-t{font-size:13.5px;-webkit-line-clamp:4}
+  }
   .grp-row:empty{display:none}
   /* ═══ A170 — LE MODE SÉLECTION VIT DANS LA RANGÉE DE GROUPEMENT ═══════════════════════════
      Et NON dans l'en-tête (décision de l'auteur : « l'en-tête est déjà saturé »). Le logement est
@@ -2329,7 +2313,7 @@
      pas un troisième, et la justification ne s'appuie sur aucun précédent (A72).
      Il pousse à droite : le groupement reste à sa place apprise, et rien ne bouge quand la
      sélection s'ouvre ou se ferme. */
-  .sel-tog{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer}
+  .sel-tog{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
   .sel-tog:hover{background:var(--surface-2);border-color:var(--ink-soft)}
   .sel-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* ⚠ LA COUCHE ÉTAIT BONNE, SA PLACE NE L'ÉTAIT PAS — trois retours de l'auteur, et le dernier
@@ -2382,7 +2366,7 @@
      s'ellipse dans SON espace, ce qui garantit qu'aucun autre objet ne peut pousser la ligne.
      Les deux planchers de la règle 9, abaissés ici à 32 px et 11 px sur des commandes dont l'une
      est destructrice, remontent à 40 px et var(--t-body). */
-  .sel-bar{position:sticky;top:var(--hdr-h,64px);z-index:14;display:flex;align-items:center;flex-wrap:nowrap;gap:8px;
+  .sel-bar{position:sticky;top:0;z-index:14;display:flex;align-items:center;flex-wrap:nowrap;gap:8px;
     height:56px;margin:0 0 10px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--radius-md);
     background:var(--surface);box-shadow:var(--shadow)}
   .sel-n{flex:1 1 auto;min-width:0;font-size:var(--t-body);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2509,32 +2493,16 @@
      MÉCANIQUE est celle de `.seg`. Écart de 2 px au lieu de 8 : il vit dans une rangée de
      contrôles, pas dans une fenêtre de réglages — c'est le seul écart, et la pastille le lit par
      `--seg-gap`. */
-  /* ⚠ `.seg.grp-seg` ET NON `.grp-seg` : à spécificité égale c'est l'ORDRE qui tranche, et `.seg`
-     est déclarée 4 000 lignes plus bas — son `gap:8px` gagnait, la pastille se calculait sur 2 px
-     et se peignait sur 8. Vingtième piège de cascade du dossier ; on passe par la spécificité,
-     jamais par la position. */
-  .seg.grp-seg{flex:none;--seg-gap:2px;gap:2px;background:var(--amb-2);border:1px solid var(--line);border-radius:var(--r-2);padding:2px}
-  .grp-seg .seg-btn{min-height:32px;padding:0 10px;border-radius:var(--r-1);font-size:11px;font-weight:700;white-space:nowrap;color:var(--ink-2)}
-  /* ⚠ LA PASTILLE SE MESURE SUR LA BOÎTE DE REMBOURRAGE, PAS SUR LES PISTES. Un élément absolu
-     résout ses pourcentages contre la boîte de REMBOURRAGE de son parent : les 2 px d'habillage
-     de ce sélecteur y entraient donc deux fois, et la pastille dépassait son segment de 5 px en
-     largeur et de 2 en abscisse. Les autres segmentés n'ont pas de rembourrage — c'est pour cela
-     que le défaut n'existe qu'ici, et pour cela qu'il se corrige ici. */
-  .grp-seg .seg-pill{top:2px;bottom:2px;left:2px;border-radius:var(--r-1);
-    width:calc((100% - 4px - var(--seg-gap,8px)) / var(--seg-n,2))}
-  /* ⚠ LA PASTILLE GARDE LE REGISTRE DU COMPOSANT (`--primary-soft` / `--primary-dk`), et ce n'est
-     pas une uniformisation gratuite : l'ancien cran actif était un aplat SOMBRE à encre claire,
-     et une encre claire sur une pastille ABSOLUE est invisible à toute mesure de contraste — le
-     harnais lit le fond des ANCÊTRES, où la pastille n'est pas (même angle mort que l'`opacity`
-     en v5.0.0). Mesuré 1,04:1, et c'était un faux positif du même genre que ceux qu'on corrige
-     partout : le texte était lisible, mais RIEN ne pouvait le prouver. Avec le registre du
-     composant, l'encre tient sur le fond du conteneur comme sur la pastille — la mesure vaut
-     dans les deux cas, ce qui est la seule façon d'être sûr. C'est aussi ce que la demande
-     appelait : « comme les sélecteurs de taille de texte et de thème ». Le fond d'ambiance et le
-     contour du conteneur, eux, sont conservés (décision utilisateur). */
-  .grp-seg .seg-btn:not(.on):hover{color:var(--ink)}
-  .azrail.catrail button{padding:0 4px;min-height:26px}
-  .azr-dot{display:block;width:8px;height:8px;border-radius:999px}
+  /* « Rangé par <clé> ⌄ » (maquette v5.18) — la phrase remplace le segmenté ; le menu est
+     openPickMenu (.catmenu), monté dans .rang-wrap au pointeur fin. */
+  .rang-wrap{position:relative;display:inline-flex;flex:none}
+  .rang-btn{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 8px 0 12px;
+    border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);
+    color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}
+  .rang-btn b{color:var(--ink);font-weight:800}
+  .rang-btn .rang-ch{transform:rotate(90deg);color:var(--ink-soft)}
+  .rang-btn:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .rang-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Dans le livre, les rangées n'ont plus de carte à elles : un filet les sépare, et la dernière
      d'un groupe n'en porte pas (c'est l'intertitre suivant qui borne). */
   .dir-grid{display:block}
@@ -2573,9 +2541,25 @@
      commence à 366 ; avec ce rembourrage le halo de l'épingle (`::before`, +4 px) s'arrête à 351,
      soit 15 px de franc. C'est la contrainte à recalculer si l'un des deux bouge — pas le
      nombre 16. */
-  @media (max-width:779.98px){
-    .dir-book .dir-row{margin-inline:-16px;padding-left:16px;padding-right:16px}
+  /* v5.18 : la carte est la SECTION (.dir-g), intertitre collant DEDANS — au défilement il
+     coiffe la carte au lieu de laisser les rangées passer à nu sous lui (signalé à l'usage :
+     « la bordure supérieure s'affiche mal »). `overflow:clip` arrondit sans devenir défileur
+     (hidden ferait de la carte le scrollport du sticky, qui ne collerait plus jamais). La
+     DERNIÈRE rangée rend son filet (sinon il longe le coin arrondi), et le survol ne teinte que
+     le FOND — repeindre le seul filet bas dessinait une bordure partielle. */
+  .dir-g{background:var(--surface);border:1px solid var(--work-line);border-radius:var(--r-3);overflow:clip;margin-bottom:8px}
+  /* Direction A (canvas « Accueil épuré ») : au POINTEUR FIN, l'étoile ne vit qu'au survol de
+     sa rangée (ou au focus clavier) — onze étoiles creuses étaient du bruit ; l'épinglée reste
+     pleine en permanence. Au tactile, rien ne change (pas de survol). Opacité : peinture seule
+     (check-anim), la boîte et la cible restent mesurables. */
+  @media (hover:hover) and (pointer:fine){
+    body.view-home .dir-row .pinbtn:not(.on){opacity:0}
+    body.view-home .dir-row:hover .pinbtn,body.view-home .dir-row:focus-within .pinbtn{opacity:1}
   }
+  .dir-book .dir-row{padding-left:16px;padding-right:16px}
+  .dir-grid>.dir-row:last-child{border-bottom:0}
+  .dir-book .dir-row:hover{border-color:var(--line)}
+  .dir-book .dir-row.live{background:var(--ok-soft)}
   .dir-book .dir-g:last-child .dir-grid .dir-row:last-child{border-bottom:0}
   /* ⚠ LES ÉPINGLÉES SONT UN RÉPERTOIRE COMME LES AUTRES (v5.7, signalé à l'usage : « les cartes
      épinglées prennent toute la largeur de la page — autant en mettre plusieurs colonnes quand la
@@ -2584,7 +2568,6 @@
      (trois colonnes) et une épinglée 976 — pleine largeur, pour l'accès le plus rapide du
      produit. Elles prennent la MÊME grille : c'est la règle « un seul dessin de rangée » (A16),
      et le rythme de l'annuaire ne doit pas changer d'une section à l'autre. */
-  .dir-book.pinned .dir-grid>.dir-row:last-child{border-bottom:0}
   /* Rangée : le TITRE est le vrai <button> (clavier natif) et son ::after couvre la rangée ;
      épingle et badge « À compléter » repassent au-dessus via z-index — même patron ARIA APG que
      les anciennes cartes (pas de bouton dans un bouton). Anneau de focus porté par la rangée. */
@@ -2736,6 +2719,10 @@
      nature — il n'a pas de redondance à céder. La classe est posée à l'ÉMISSION par `metaDur()`,
      seul point de décision, parce que le CSS ne sait pas compter des caractères. */
   .dir-sub>*{flex:none}
+  /* Maquette v5.18 : la catégorie de la méta porte sa pastille (la couleur n'est jamais seule,
+     le nom est là — SPEC crise §1). */
+  .dir-cat{display:inline-flex;align-items:center;gap:4px}
+  .dir-cat .cat-dot{width:7px;height:7px;box-shadow:none}
   .dir-sub>:is(b,.libtag,.dir-cat,.dir-code){flex:0 1 auto;min-width:2.5em;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* ⚠ PRIORITAIRE, PAS RIGIDE — ET C'EST UN TÉMOIN QUI A TRANCHÉ. Écrit `flex:none`, le jeton
@@ -2951,7 +2938,10 @@
        0 occurrence). Invisible tant que les lettres étaient ancrées en haut ; en les centrant, ce
        vide décalait tout le rail vers le haut. Corollaire de la règle 14 : une suppression emporte
        ce qui RÉSERVE sa place, pas seulement ce qui la cite. */
-    .azrail{position:fixed;right:0;top:var(--azr-top,calc(var(--hdr-h,64px) + 6px));bottom:calc(6px + env(safe-area-inset-bottom));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px}
+    /* v5.18 : les deux ancres sont des CONSTANTES — l'en-tête n'est plus collant (rien à
+       mesurer en haut) et le dock borne le bas. --azr-top reste une variable : azrCentrer
+       s'en sert comme repli avant sa première mesure. */
+    .azrail{position:fixed;right:0;top:var(--azr-top,120px);bottom:calc(96px + var(--sab,0px));z-index:15;background:color-mix(in srgb,var(--bg) 85%,transparent);border-radius:12px 0 0 12px}
     /* ⚠ ET LA MARGE BASSE DU MATÉRIEL EST LE SECOND TERME QUI BOUGE — `svh` NE SUFFISAIT PAS
        (signalé à l'usage : « ça persiste en partie, surtout quand on scroll vers le bas sur le
        rail : il remonte »). Dans Safari iOS, `env(safe-area-inset-bottom)` n'est PAS une
@@ -2967,9 +2957,9 @@
        RÈGLE : dans une hauteur qui doit être stable, `env(safe-area-inset-bottom)` est aussi
        suspect que `--vvh` — le vérifier avant de l'écrire. */
     @supports (height:100svh){
-      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px)}
+      .azrail{bottom:auto;height:calc(100svh / var(--zf,1) - var(--azr-top,120px) - 96px)}
       @media (display-mode:standalone){
-        .azrail{height:calc(100svh / var(--zf,1) - var(--azr-top,calc(var(--hdr-h,64px) + 6px)) - 6px - var(--sab,0px))}
+        .azrail{height:calc(100svh / var(--zf,1) - var(--azr-top,120px) - 96px - var(--sab,0px))}
       }
     }
     /* ⚠ CE N'EST PAS UN TAMPON ANTI-FAUSSE-MANŒUVRE, C'EST UNE RÉSERVATION (v5.0.3, question
@@ -3051,25 +3041,9 @@
        du système, rebond et inertie compris. C'est aussi la portée JUSTE — le rebond n'a besoin
        d'être supprimé que pendant qu'on VISE une surface fixe. */
     html.azr-aim,html.azr-aim body{overscroll-behavior-y:none}
-    /* ⚠ PENDANT LA VISÉE, L'EN-TÊTE EST FIXE — PAS COLLANT (v5.10.5, prouvé à la VIDÉO image par
-       image : sur iOS, à chaque grande pose de défilement VERS LE HAUT, l'en-tête `sticky`
-       disparaissait de l'écran pendant ~2 frames (33 ms) puis se recollait — « dès qu'on remonte,
-       peu importe l'endroit » — pendant que le rail, LUI, ne cillait pas). C'est le même défaut
-       de compositeur que le dossier v5.0.2 : un `sticky` est RE-CALÉ après coup sur la position
-       de défilement, et un `scrollTo` instantané pendant une séquence tactile le fait peindre une
-       frame avec l'ANCIEN décalage — hors écran quand on remonte, simplement couvert quand on
-       descend (d'où l'asymétrie observée). Aucune mesure JS ne peut le voir (Blink et WebKit de
-       bureau peignent juste), aucun gel de classes n'y peut rien : ce n'est pas un état qui
-       change, c'est le rendu d'un état juste. Une couche FIXE, elle, n'est pas couplée au
-       défilement — c'est exactement pourquoi le rail est `fixed` depuis v5.0.2. Donc, LE TEMPS DU
-       GESTE : l'en-tête sort du flux (`fixed`, même position visuelle — il est toujours épinglé
-       en haut) et `body` reprend sa place par `padding-top:var(--hdr-h)` — la hauteur MESURÉE de
-       l'en-tête, constante pendant la visée puisque ses bascules d'état sont gelées. Les offsets
-       de mise en page (donc les cibles de `jump`) sont préservés à l'identique : ce que l'en-tête
-       rend au flux, le rembourrage le reprend. À la relâche, tout se remet en place dans la même
-       passe — géométriquement une identité, vérifié à la sonde sur les deux moteurs. */
-    html.azr-aim header.bar{position:fixed;top:0;left:0;right:0}
-    html.azr-aim body{padding-top:var(--hdr-h,64px)}
+    /* (Le gel « en-tête fixe pendant la visée » de v5.10.5 est PURGÉ v5.18 : il
+       compensait le repositionnement d'un en-tête COLLANT — l'en-tête d'accueil est
+       désormais statique, il n'y a plus rien à compenser.) */
   }
   /* Extrait contextuel d'un résultat de recherche (v4.4.4) : 2 lignes max, termes en GRAISSE
      (jamais en couleur — les registres rouge/ambre gardent leur sens vital). */
@@ -5115,6 +5089,7 @@
      L'écart passe à 16 px et il est posé sur le SÉPARATEUR, pas sur le gap de la carte : le gap
      de 10 px règle aussi la distance au chrono et au bloc d'information, qui n'ont rien demandé. */
   .ls-card .ls-end{border-color:var(--sys-line);color:var(--crit-sys);margin-left:6px}
+  body.view-home .ls-card .ls-end{border-color:var(--line-strong);color:var(--critical)}
   /* ⚠ (0,3,0) ET NON (0,2,0), ET C'EST UN TÉMOIN D'USAGE QUI L'A DIT : « c'est normal que
      Reprendre et Terminer ne soient plus de la même taille ? ». Non. Écrite `.ls-card :is(.btn,
      .ls-end)`, la règle valait (0,2,0) — exactement comme `.btn.sm{min-height:38px}`, déclarée
@@ -7700,7 +7675,6 @@
      l'ancienne barre (52px + 8/12 de padding) mangeait trop d'écran sur mobile. */
   /* DEUX GROUPES SUR UNE LIGNE, chacun avec son intitulé — et l'enroulement comme filet : à
      320 px avec plusieurs bibliothèques, deux groupes comprimés seraient illisibles. */
-  .filterbar{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-bottom:8px}
   /* REPLI DES FILTRES (v5.0.0, audit design A3-1/A5-3 ; DÉCLENCHEUR DÉMÉNAGÉ EN v5.0.3) —
      cf. `filterFoldHtml` pour la doctrine. Il vit désormais CONTRE la recherche, dans l'en-tête :
      il ne coûte plus une ligne au premier écran, et il est GLYPHE SEUL, la place horizontale
@@ -7716,9 +7690,8 @@
      ANNONCER le résultat avant de fermer : on sait ce qu'on va trouver avant d'y aller. */
   #filtSheet .ai-card{display:flex;flex-direction:column;overflow:hidden}
   #filtSheetBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding:0 0 4px}
-  #filtSheetBody .filterbar{display:block;margin:0}
-  #filtSheetBody :is(.scopebar,.typebar,.catbar){display:block;margin:0 0 18px}
-  #filtSheetBody :is(.scopebar,.typebar,.catbar):last-child{margin-bottom:0}
+  #filtSheetBody :is(.typebar,.catbar){display:block;margin:0 0 18px}
+  #filtSheetBody :is(.typebar,.catbar):last-child{margin-bottom:0}
   #filtSheetBody .scope-lbl{display:block;min-width:0;margin:0 0 8px;
     font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
   /* Les chips ENROULENT ici : la feuille a la hauteur, et une bande à défilement horizontal
@@ -7753,23 +7726,7 @@
      ses voisins de l'en-tête, A30).
      ⚠ LA RÈGLE 8 RESTE TENUE : la couleur n'est jamais seule — c'est le NOMBRE de filtres posés
      qui dit l'état actif, en pastille, et le nom accessible le dit en toutes lettres. */
-  /* ⚠ CONTRE LE CHAMP, IL PREND LA HAUTEUR DU CHAMP (v5.6, demande de l'auteur : « adapte la taille
-     du bouton filtrer pour qu'il soit beau à côté de la barre de recherche — garde un bouton
-     rond »). Il valait 38 px face à un champ de 48 : deux objets d'une même rangée qui ne
-     s'alignent ni en haut ni en bas se lisent comme deux niveaux (la règle est déjà écrite pour la
-     phase et le titre dans l'éditeur).
-     ⚠ `align-self:stretch` + `aspect-ratio:1` NE FAIT PAS UN ROND, ET C'EST MESURÉ (v5.10.4,
-     signalé à l'usage : « bouton filtre rond parfait adapté à la taille du champ recherche »).
-     La version précédente s'y fiait ; or en flex, la LARGEUR (taille principale) se détermine
-     AVANT que l'étirement ne fixe la hauteur — `aspect-ratio` ne transfère donc jamais la hauteur
-     étirée, et le bouton rendait 38 × 48 : un OVALE (mesuré, Chromium ; le transfert ne marche
-     qu'avec une hauteur DÉFINIE — position absolue ou hauteur explicite). Comme aucun nombre
-     n'est juste à écrire (le champ vaut 48 px au tactile — police 16, règle 9 — et ~44 au
-     pointeur fin), la hauteur du champ est MESURÉE et posée dans `--srch-h` (`syncSrchH`,
-     re-posée au rendu, au redimensionnement et au changement de taille du texte) : c'est la
-     doctrine « une barre de chrome se mesure, elle ne se devine pas ». Le repli 38 px ne sert
-     qu'à la toute première peinture, avant la mesure. */
-  .hdr-search .filt-tog{width:var(--srch-h,38px);height:var(--srch-h,38px)}
+
   /* ⚠ LE GLYPHE SUIT LE BOUTON (signalé à l'usage : « augmente la taille des traits dans filtrer
      pour que ça corresponde mieux à la taille du bouton »). Le tracé est écrit à 16 px dans la
      coque statique — calibre d'un temps où le rond en faisait 38 ; contre un champ de 48 il n'en
@@ -7782,29 +7739,6 @@
      demande : `stroke-width` vit dans le viewBox de 24, les traits passent donc de 1,47 px rendus
      à 1,83 sans qu'aucune valeur d'épaisseur ne soit écrite quelque part. */
   .filt-tog>svg{width:20px;height:20px;flex:none}
-  /* ⚠ RESSERRÉ, IL PREND LE GABARIT DE SES VOISINS ET NON CELUI DU CHAMP (signalé à l'usage :
-     « lorsque l'en-tête d'accueil est replié quand on scrolle : change la taille du bouton filtre
-     — et des traits dedans — pour que ça corresponde à la taille des boutons ＋ et compte »).
-     Au repos il est SEUL en face du champ, et s'aligner sur lui est justement ce que la mesure de
-     `--srch-h` est venue garantir. Une fois l'identité partie (7a), la rangée persistante porte
-     « ＋ », le filtre et le compte : trois boutons voisins, dont un de 48 px contre deux de 36 —
-     c'est-à-dire exactement le défaut « deux contrôles d'une même rangée qui ne font pas la même
-     hauteur se lisent comme deux niveaux », mais retourné, et cette fois c'est le champ qui n'est
-     plus le voisin. Le bouton suit donc la troupe : 36 px comme `.hdr-new` et `.bar-acct` sous
-     780, 32 sous 360 comme eux — et le halo rend la cible à 44 dans les deux cas. */
-  body.home-slim header.bar.home .filt-tog{width:36px;height:36px;min-height:36px}
-  body.home-slim header.bar.home .filt-tog>svg{width:16px;height:16px}
-  /* ⚠ DÉCLARÉ ICI, PAS DANS LE BLOC `359.98` DU HAUT DE FEUILLE OÙ VIVENT SES DEUX VOISINS : la
-     règle de 36 px ci-dessus a la MÊME spécificité (0,3,2), donc à distance c'est l'ORDRE qui
-     trancherait — et ce bloc-là est écrit cinq mille lignes plus haut, il serait silencieusement
-     sans effet. Pour une géométrie, on ne dépend jamais de l'ordre sans le dire (même leçon que le
-     bloc 399.98 de l'en-tête). Halo 6/1 px, la recette déjà motivée pour « Créer » et le compte :
-     32 + 12 = 44 en hauteur, et 1 px en largeur seulement pour ne pas mordre sur la cible du
-     voisin dans une rangée à 2 px d'écart. */
-  @media (max-width:359.98px){
-    body.home-slim header.bar.home .filt-tog{width:32px;height:32px;min-height:32px}
-    body.home-slim header.bar.home .filt-tog::after{inset:-6px -1px}
-  }
   .filt-tog{flex:none;display:inline-flex;align-items:center;justify-content:center;
     /* 38 px, comme le sélecteur d'en face : deux contrôles de la même rangée qui ne font pas la
        même hauteur se lisent comme deux niveaux, alors qu'ils sont pairs (règle déjà posée pour
@@ -7831,8 +7765,6 @@
   .filt-tog.act:hover{background:var(--primary-hi);border-color:var(--primary-hi);color:var(--on-primary)}
   .filt-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .filt-n[hidden]{display:none}
-  .filterbar>*{flex:1 1 auto;min-width:0;margin-bottom:0}
-  .filterbar>.typebar{flex:0 1 auto}
   .typebar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
   .typebar .chiprow{flex:1;min-width:0}
   /* Sélecteur SEGMENTÉ à pastille glissante — composant GÉNÉRIQUE (v4.4.2), partagé par la tab
@@ -7865,9 +7797,6 @@
     transform:translateX(calc(var(--seg-i,0) * (100% + var(--seg-gap,8px))));
     background:var(--primary-soft);border-radius:10px;transition:transform .3s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
   .seg.i1 .seg-pill{transform:translateX(calc(100% + var(--seg-gap,8px)))}
-  /* Le temps d'UN calcul : la pastille est reposée à son ancien cran sans animer, pour que le
-     trajet vers le nouveau soit une transition et non un saut (cf. `#grpSeg`). */
-  .seg.seg-jump .seg-pill{transition:none}
   .seg-btn{min-width:0;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:10px;border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:color .3s}
   .seg-btn.on{color:var(--primary-dk)}   /* graisse CONSTANTE (v4.29.0) : le mot ne bouge pas */
   .seg-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -7909,7 +7838,7 @@
      (contraste), sur une teinte il redevient ce qu'il est — une donnée secondaire. */
   .hs-row.on{background:var(--primary-soft);color:var(--act);font-weight:700}
   [data-theme="dark"] .hs-row.on{background:var(--primary-soft);color:var(--primary-dk)}
-  .hs-row.on :is(.hs-n,.hs-sub){color:var(--ink-2)}
+  .hs-row.on .hs-n{color:var(--ink-2)}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hs-row>.hs-name{flex:1}
@@ -7956,9 +7885,6 @@
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
   button.hs-act:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
-  .hs-2l{flex:1;min-width:0}
-  .hs-2l .hs-name{display:block}
-  .hs-sub{display:block;font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:1px}
   .hs-sep{height:1px;flex:none;background:var(--line);margin:12px 8px}   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
   .hs-add{display:block;width:100%;margin-top:6px;padding:8px 12px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;color:var(--primary-dk);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;text-align:center}
   /* « ⚙ Gérer les catégories » = BASCULE DE MODE (grammaire : pointillé = créer, contour plein
@@ -7999,26 +7925,11 @@
     /* scrollbar-gutter DANS les panneaux (pas sur html, cf. v4.2.1) : la bascule
        Aides <-> Protocoles ne fait plus refluer la grille quand la barre apparaît/disparaît. */
     .home-side{display:flex;flex-direction:column;gap:2px;flex:none;width:250px;background:var(--work);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
-    /* Le répertoire cesse d'être UNE carte : chaque fiche redevient une carte, dans une grille
-       fluide (maquette 2f). La lettre reste l'intertitre de son groupe — c'est elle que le rail
-       A→Z vise. */
-    .dir-book{background:none;border:0;border-radius:0;padding:0}
-    .dir-book.pinned{margin-bottom:10px}
-    .dir-book .dir-l{padding:14px 2px 6px}
-    .dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
-    /* Rembourrage SYMÉTRIQUE, même raison qu'en voie étroite (v5.17.6) : 24 laissait l'étoile à
-       30 px du bord pour un titre à 14. Ici le rail est à 32 px de la colonne, il ne borne rien. */
-    .dir-book .dir-row{background:var(--work);border:1px solid var(--work-line);border-bottom:1px solid var(--work-line);
-      border-radius:var(--r-3);height:71px;min-height:0;padding-left:14px;padding-right:14px}
-    .dir-book .dir-row::before{left:0;top:0;bottom:0;border-radius:var(--r-3) 0 0 var(--r-3)}
-    /* ⚠ UNE RANGÉE EN SESSION GARDE SON FOND DE CARTE (v5.6, signalé à l'usage : « on a
-       l'impression qu'elle n'a plus de fond de carte »). `.dir-book .dir-row.live{background:none}`
-       vaut (0,3,0) contre (0,2,0) pour la règle de carte ci-dessus : elle gagnait, et l'état
-       EFFAÇAIT la matière au lieu de s'y ajouter. Un état se COMPOSE avec l'objet, il ne le
-       remplace pas — c'est la même faute que le `background:none` du livre appliqué là où le
-       livre n'existe plus. La teinte de confirmation revient donc par-dessus le blanc. */
-    .dir-book .dir-row.live{background:var(--ok-soft)}
-    .home-main{flex:1;min-width:0;overflow-y:auto;padding:18px 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
+    /* ⚠ PAS DE REMBOURRAGE HAUT SUR LE DÉFILEUR (v5.18, signalé sur captures) : un sticky
+       colle 18 px SOUS le bord et les rangées restent lisibles dans la bande du rembourrage,
+       au-dessus de l'intertitre. L'air passe au premier enfant — une marge défile, elle. */
+    .home-main{flex:1;min-width:0;overflow-y:auto;padding:0 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
+    .home-main>:first-child{margin-top:18px}
     /* C'EST `.home-main` QUI DÉFILE ICI : la barre de sélection colle donc à SON bord, pas sous un
        en-tête qui ne la recouvre jamais (cf. « le décalage dépend de qui défile »).
        ⚠ ET LE REMBOURRAGE HAUT DE LA COLONNE COMPTE AUSSI. Une marge négative ne suffit PAS —
@@ -8035,21 +7946,25 @@
        ou 84 px si l'on avait laissé la hauteur libre : les deux cassent la contrainte de 56. */
     .home-main>.sel-bar{top:0;margin:0 0 10px;padding:0 10px;border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md)}
     .home-main>*{max-width:1320px}
-    /* En large, bibliothèques et catégories vivent dans la colonne gauche (chips retirées du flux). */
-    body.view-home :is(.typebar,.scopebar,.catbar){display:none}
-    /* Rail alphabétique en COLONNE de bord (frère de .home-main dans le flex) ; l'accès à
-       l'historique global vit dans la sidebar (.hs-row data-sesshist) — le lien du pied de page
-       est la voie ÉTROITE, il disparaît ici. */
-    /* ⚠ LA GOUTTIÈRE DU RAIL EST RÉSERVÉE, MÊME QUAND IL N'Y A PAS DE RAIL (signalé à l'usage :
-       « les cartes sont de taille différente selon Tout / Aides / recherche »). Le rail n'existe
-       qu'en RÉPERTOIRE : en recherche il disparaît, la colonne de contenu gagnait ses 30 px, et
-       la grille fluide pouvait changer de nombre de colonnes — 312 px de rangée d'un côté, 322 de
-       l'autre, mesurés. Un annuaire dont le pas change quand on tape est un annuaire qu'on
-       réapprend à chaque geste. La gouttière est donc CONSTANTE et le rail s'y pose ou non. */
-    body.view-home .home-main{padding-right:32px}
-    body.view-home .azrail{position:absolute;right:0;top:0;bottom:0;
-      width:30px;border-left:1px solid var(--surface-2);background:var(--surface)}
-    body.view-home main{position:relative}
+    /* v5.18 : en voie large, l'index vit dans la COLONNE GAUCHE (des mots, pas des
+       lettres) — le rail A→Z n'existe qu'en étroit, et la gouttière de 32 px qu'il réservait
+       part avec lui. */
+    body.view-home .azrail{display:none}
+    /* Le dock redevient STATIQUE : il reprend sa place dans la rangée d'identité — la barre du
+       haut de la maquette (recherche au centre, Créer/Compte à droite). La marque garde la
+       largeur de la sidebar : la recherche commence au bord de la colonne de contenu. */
+    body.view-home #homeDock{position:static;flex:1 1 auto;flex-direction:row;min-width:0;margin:0;padding:0;border:0;background:none;gap:0}
+    body.view-home #homeDock .dock-filt{display:none}
+    body.view-home .id-row .brand{flex:0 0 auto;min-width:calc(250px - 56px)}
+
+    body.view-home #homeDock .hdr-search{flex:1 1 auto;min-width:0;max-width:640px}
+    /* Maquette : en large, le champ est une barre de VOLET (rayon de composant, hauteur de
+       rangée, raccourci ⌘K affiché) — la pilule est la forme du POUCE, pas du clavier. */
+    body.view-home #homeDock .hdr-search input{border-radius:var(--r-2);padding-top:8px;padding-bottom:8px;box-shadow:none}
+    body.view-home #homeDock .dock-kbd{display:inline-flex}
+    /* … mais il s'efface dès qu'on entre dans le champ ou qu'un texte y vit (la croix prend sa
+       place) : le raccourci est une INVITE, pas un meuble. */
+    body.view-home #homeDock .srch-box:is(:focus-within,:has(.srch-x:not([hidden]))) .dock-kbd{display:none}
     #histBtn{display:none}
     #joinBtn{display:none}
   }
@@ -8807,7 +8722,7 @@
      bibliothèque sur 2 colonnes quand la place le permet. */
   /* Large : plus de conteneur à défilement (wrap, overflow visible) -> le halo de tap déborde
      librement, le padding/marges compensés de .chiprow ne servent plus. */
-  @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow,.scopebar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
+  @media (min-width:780px){.chiprow{flex-wrap:nowrap}.catbar .chiprow{flex-wrap:wrap;overflow-x:visible;padding:0;margin:0}}
   /* (Répertoire d'accueil : grille unique auto-fill/minmax(290px,1fr) — cf. .dir-grid plus haut.) */
   /* ⚠ `.question` NE FIGURE PLUS ICI (v5.6) : ce bloc RÉDUIT sur écran étroit, et la question y
      était reposée à 21 px — un no-op tant que sa base valait 21, mais qui aurait ANNULÉ sa
@@ -8832,9 +8747,6 @@
   .more-menu:not([hidden]){transform-origin:top right;animation:menuIn .16s cubic-bezier(.2,0,0,1)}
   /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
-  /* Pilote View Transitions (direction A, lot 6) : fondu bref piloté par l'UA — la garde
-     d'activation (session, reduced-motion, support) vit dans vtWrap, côté JS. */
-  ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
   .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —

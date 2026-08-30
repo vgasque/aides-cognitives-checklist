@@ -1223,13 +1223,12 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
     /* ⚠ ON MESURE LE <span> DU TITRE, PAS LE <button> : celui-ci porte un rembourrage compensé
        et une line-height 'normal' — y compter des lignes rend un chiffre qui ne veut rien dire
        (piège tombé en écrivant ce contrôle : 46 px / 1 = « 46 lignes »). */
-    /* ⚠ LES ÉPINGLÉES SONT DES RANGÉES DEPUIS LA v5.6 (maquette 1a : le répertoire est UNE
-       carte, les épinglées une carte de rangées au-dessus). `.qa-tile` n'existe plus — le
-       mesurer rendait un ensemble VIDE, donc un témoin « cas adverse constitué » faux, et trois
-       contrôles verts sur rien. On mesure la rangée épinglée, qui est ce qui a remplacé la
-       tuile : même contrainte de boîte, même titre long. */
-    const rows=scan('.dir-book:not(.pinned) .dir-row','.dir-t'), tiles=scan('.dir-book.pinned .dir-row','.dir-t');
-    return {rows,tiles,
+    /* v5.18 (A245) : « Accès direct » n'existe qu'à ≥ 1200 px — des TUILES (.qa-tile) au-dessus
+       du tableau ; en deçà, les épinglées sont des rangées ordinaires du répertoire (étoile
+       remplie), déjà couvertes par `rows`. Le témoin de tuile ne vaut donc qu'en bureau. */
+    const desk=!document.documentElement.classList.contains('zw1200');
+    const rows=scan('.dir-book .dir-row','.dir-t'), tiles=scan('.qa-grid .qa-tile','.qa-t');
+    return {rows,tiles,desk,
       casRow:rows.some(x=>x.long), casTile:tiles.some(x=>x.long),
       pireRow:Math.max(0,...rows.map(x=>x.debord)), clipRow:Math.max(0,...rows.map(x=>x.clip)),
       pireTile:Math.max(0,...tiles.map(x=>x.debord)), clipTile:Math.max(0,...tiles.map(x=>x.clip)),
@@ -1252,11 +1251,12 @@ for (const [w,zm] of [[320,100],[390,100],[430,100],[1100,100],[1600,100],[390,1
      est inerte dès que le display calculé n'est pas `-webkit-box` — c'est ce qui, à 130 %, faisait
      passer un titre réel à trois lignes et poussait la méta hors du cadre (signalé à l'usage). */
   t(`${w}/z${zm} · le titre tient en deux lignes`, r.lignesRow<=2.05, `${r.lignesRow} ligne(s)`);
-  t(`${w}/z${zm} · la rangée épinglée ne déborde pas`, r.pireTile<=0, `${r.pireTile} px`);
+  t(`${w}/z${zm} · la tuile épinglée ne déborde pas`, r.pireTile<=0, `${r.pireTile} px`);
   t(`${w}/z${zm} · … et ne rogne rien`, r.clipTile<=1, `${r.clipTile} px rognés`);
-  /* PLAFOND DE CROISSANCE : la rangée épinglée est le premier objet de l'écran ; un titre long
-     ne doit pas la faire enfler au point de repousser le répertoire. */
-  t(`${w}/z${zm} · … et sa croissance reste bornée`, r.hTile<=105, `${r.hTile} px`);
+  /* PLAFOND DE CROISSANCE : la tuile est le premier objet de l'écran ; un titre long ne doit pas
+     la faire enfler au point de repousser le répertoire (clamp 3 lignes à 15 px en large,
+     4 lignes à 13,5 en étroit — A261). */
+  t(`${w}/z${zm} · … et sa croissance reste bornée`, r.hTile<=(r.desk?110:132), `${r.hTile} px`);
   await page.close();
 }
 });
@@ -1270,7 +1270,7 @@ await sec('Audit design · la feuille de filtres', async () => {
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const rangees=()=>document.querySelectorAll('.typebar,.scopebar,.catbar').length;
-    const tog=()=>{const b=document.getElementById('filtTog');return b&&!b.hidden?b:null;};
+    const tog=()=>{const b=document.getElementById('filtTog');return b&&!b.hidden&&b.offsetParent?b:null;};
     /* On mesure le BORD DROIT : le déclencheur grossit du chiffre qu'il porte, mais il est le
        dernier objet de sa rangée — sa position apprise est celle de son bord droit. */
     const bordD=()=>{const b=tog();return b?Math.round(b.getBoundingClientRect().right):null;};
@@ -1289,10 +1289,22 @@ await sec('Audit design · la feuille de filtres', async () => {
     const feuille=()=>document.getElementById('filtSheet').classList.contains('on');
     const familles=()=>[...document.querySelectorAll('#filtSheetBody .scope-lbl')]
       .filter(e=>e.offsetParent!==null).length;
+    /* v5.18 (décision utilisateur, maquette Zero) : HORS recherche, la pilule est SEULE — aucun
+       déclencheur nulle part. Les filtres vivent dans la FONCTION RECHERCHE : chercher fait
+       paraître la rangée (crans de type + « Filtrer ») au-dessus de la pilule. */
+    const reposTog=!!tog(), reposRangee=(()=>{const d=document.getElementById('dockFilt');
+      return !!d&&!d.hidden;})();
+    const qi=document.getElementById('q');
+    qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
     const repliRangees=rangees(), repliTog=!!tog(), yRepli=yPremier(), xRepli=bordD(), hRepli=hdrH();
-    if(!repliTog)return {repliRangees,repliTog,yRepli,xRepli,geo:null,ouvRangees:0,ouvTog:false,yOuvert:null,
+    const chercheRangee=(()=>{const d=document.getElementById('dockFilt');
+      return !!d&&!d.hidden&&d.offsetParent!==null;})();
+    const chercheChips=[...document.querySelectorAll('#dockFilt .scopebtn')].map(b=>b.textContent.trim());
+    if(!repliTog)return {reposTog,reposRangee,chercheRangee,chercheChips,
+      repliRangees,repliTog,yRepli,xRepli,geo:null,ouvRangees:0,ouvTog:false,yOuvert:null,
       actifRangees:0,actifTog:false,actifEtat:null,chipOn:false,apresRender:0,apresTog:false,apresEtat:null,
-      repliActifRangees:0,repliActifEtat:null,xRepliActif:null,avaitCat:false,deuxEtat:null,zeroEtat:null};
+      repliActifRangees:0,repliActifEtat:null,xRepliActif:null,avaitCat:false,deuxEtat:null,zeroEtat:null,
+      chipDirect:null,porte:null};
     /* v5.6 (maquette) — LE DÉCLENCHEUR VIT SUR LA RANGÉE DES CONTRÔLES DE LISTE, à son bord
        DROIT, en face du sélecteur de groupement. Il ne coûte toujours aucune ligne (cette rangée
        existe de toute façon) et il gagne son MOT, que l'en-tête ne pouvait pas lui offrir : à
@@ -1303,22 +1315,24 @@ await sec('Audit design · la feuille de filtres', async () => {
        mesurait le déclencheur contre le sélecteur de groupement, c'est-à-dire son adresse quand on
        est en haut de page ; or il en changeait au défilement. La propriété est désormais « il est
        contre le CHAMP DE RECHERCHE, et il y reste » : même rangée, à sa droite, dans l'écran. */
+    /* v5.18 : le déclencheur vit dans la RANGÉE DE RECHERCHE, au-dessus de la pilule, dans le
+       dock — la géométrie qui compte : au-dessus de la boîte, aligné à droite, dans l'écran. */
     const geo=(()=>{const b=tog(),q=document.querySelector('.hdr-search .srch-box');
       if(!b||!q)return null;const rb=b.getBoundingClientRect(),rq=q.getBoundingClientRect();
-      return {memeRangee:Math.abs((rb.top+rb.height/2)-(rq.top+rq.height/2))<=6,
-              aDroite:Math.round(rb.left-rq.right), h:Math.round(rb.height), w:Math.round(rb.width),
-              dansChamp:!!b.closest('.hdr-search'),
-              /* Il fait la HAUTEUR du champ d'en face, à quelques pixels près : deux objets voisins
-                 d'une même rangée qui ne s'alignent pas se lisent comme deux niveaux. */
-              hChamp:Math.round(rq.height),
-              dyHaut:Math.round(rb.top-rq.top), dyBas:Math.round(rq.bottom-rb.bottom),
+      return {auDessus:Math.round(rb.bottom)<=Math.round(rq.top)+1,
+              h:Math.round(rb.height), w:Math.round(rb.width),
+              dansDock:!!b.closest('#homeDock'),
               dansEcran:Math.round(rb.right)<=innerWidth};})();
-    /* Après défilement l'en-tête se resserre (`home-slim`) : le déclencheur doit être resté dans
-       le champ. On attend une image pour que la classe soit posée. */
+    /* Le dock est FIXE : défiler ne déplace ni la rangée ni le déclencheur. */
     window.scrollTo(0,600);
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    const apresScroll=!!(tog()&&tog().closest('.hdr-search'));
+    const apresScroll=!!(tog()&&tog().closest('#homeDock'));
     window.scrollTo(0,0);
+    /* Un cran de la rangée agit EN DIRECT — et il ne PERD pas la recherche (c'est son contexte). */
+    document.querySelector('#dockFilt [data-section="fiches"]').click(); await w(450);
+    const chipDirect={q:String(state.q||''),section:state.section,
+      on:!!document.querySelector('#dockFilt [data-section="fiches"].on')};
+    document.querySelector('#dockFilt [data-section="all"]').click(); await w(450);
     tog().click(); await w(500);
     const ouvRangees=rangees(), ouvTog=!!tog(), yOuvert=yPremier();
     const ouvFeuille=feuille(), ouvFam=familles(), hOuvert=hdrH();
@@ -1341,6 +1355,16 @@ await sec('Audit design · la feuille de filtres', async () => {
        du document reviendrait à compter l'intérieur d'un pli, la leçon déjà payée sur le rail
        (v5.4.3). Ce qui compte est que la SURFACE soit refermée et que l'annonce demeure. */
     const repliActifRangees=feuille()?1:0, repliActifEtat=etat(), xRepliActif=bordD();
+    /* HORS recherche, un filtre ACTIF reste annoncé ET modifiable : le fragment « filtres : … »
+       de la ligne Répertoire est la porte de la feuille (la rangée, elle, n'existe plus). */
+    qi.value='';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
+    const porte=(()=>{const d=document.getElementById('dockFilt');
+      const f=document.querySelector('.dir-hf');
+      return {rangeePartie:!d||d.hidden,ligne:!!f,texte:f?f.textContent.trim():''};})();
+    if(porte.ligne){document.querySelector('.dir-hf').click();await w(400);
+      porte.ouvre=feuille();
+      if(porte.ouvre){document.getElementById('filtSheetGo').click();await w(300);}}
+    qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
     /* Deux filtres : le chiffre COMPTE, il ne se contente pas d'exister.
        ⚠ Les chips sont re-rendues à chaque geste : on RE-INTERROGE le DOM, une référence gardée
        d'avant le clic désignerait un nœud détaché et le geste ne ferait rien. */
@@ -1365,6 +1389,7 @@ await sec('Audit design · la feuille de filtres', async () => {
     document.getElementById('filtSheetClear').click(); await w(400);
     const apresClear=etat(); document.getElementById('filtSheetGo').click(); await w(300);
     return {hRepli,hOuvert,ouvFeuille,ouvFam,piedAvant,nRangees,piedApres,nApres,fermee,etatApresPied,apresClear,
+            reposTog,reposRangee,chercheRangee,chercheChips,chipDirect,porte,
             repliRangees,repliTog,yRepli,xRepli,geo,apresScroll,ouvRangees,ouvTog,yOuvert,
             actifRangees,actifTog,actifEtat,chipOn,apresRender,apresTog,apresEtat,
             repliActifRangees,repliActifEtat,xRepliActif,avaitCat,deuxEtat,zeroEtat};});
@@ -1377,8 +1402,21 @@ await sec('Audit design · la feuille de filtres', async () => {
      chiffre en dur qui ne vaudrait que pour un état de connexion. */
   t('témoin : le cas est constitué (des rangées existent une fois dépliées)',
     r.ouvRangees>=2, `${r.ouvRangees} rangée(s)`);
-  t('au repos, les filtres sont repliés derrière UN déclencheur',
-    r.repliRangees===0&&r.repliTog===true, `${r.repliRangees} rangée(s), déclencheur ${r.repliTog}`);
+  /* v5.18 (décision utilisateur) : HORS recherche, la pilule est SEULE — les filtres vivent
+     dans la fonction recherche. */
+  t('hors recherche, la pilule est SEULE (aucun déclencheur, aucune rangée)',
+    r.reposTog===false&&r.reposRangee===false, `déclencheur ${r.reposTog}, rangée ${r.reposRangee}`);
+  t('chercher fait paraître la rangée de filtres, crans de type compris',
+    r.chercheRangee===true&&r.repliTog===true&&r.chercheChips.length===3,
+    JSON.stringify(r.chercheChips));
+  t('un cran de la rangée agit EN DIRECT, sans perdre la recherche',
+    !!r.chipDirect&&r.chipDirect.on===true&&r.chipDirect.section==='fiches'&&r.chipDirect.q==='a',
+    JSON.stringify(r.chipDirect));
+  t('hors recherche, un filtre ACTIF reste annoncé et MODIFIABLE (ligne Répertoire)',
+    !!r.porte&&r.porte.rangeePartie===true&&r.porte.ligne===true&&r.porte.ouvre===true,
+    JSON.stringify(r.porte));
+  t('… la feuille reste repliée tant qu\'on ne l\'appelle pas',
+    r.repliRangees===0, `${r.repliRangees} rangée(s) dépliées`);
   t('le déclencheur les ouvre', r.ouvRangees>=2&&r.ouvTog===true, `${r.ouvRangees} rangée(s)`);
   /* ══ v5.6, PLANCHE 8c — LA PROPRIÉTÉ A CHANGÉ, ET ELLE EST PLUS FORTE ══
      Le témoin d'avant mesurait un GAIN (« le repli remonte le contenu de ≥ 40 px ») : c'était
@@ -1410,23 +1448,19 @@ await sec('Audit design · la feuille de filtres', async () => {
   t('« Tout effacer » remet tout à zéro d\'un geste',
     !!r.apresClear&&r.apresClear.act===false&&r.apresClear.n==='',
     JSON.stringify(r.apresClear));
-  /* v5.0.3 — LE DÉCLENCHEUR VIT CONTRE LA RECHERCHE. La v5.0.0 le posait dans le flux, au-dessus
-     du contenu : une ligne permanente pour un geste rare. */
-  t('il vit contre le champ de recherche, à sa droite',
-    !!r.geo&&r.geo.memeRangee&&r.geo.aDroite>=0&&r.geo.dansEcran&&r.geo.dansChamp===true,
+  /* v5.0.3 posait le déclencheur CONTRE la recherche ; v5.18 (maquette Zero) le fait entrer
+     DANS la boîte — plus d'îlot séparé sur téléphone. */
+  t('la rangée vit AU-DESSUS de la pilule, dans le dock',
+    !!r.geo&&r.geo.auDessus===true&&r.geo.dansEcran&&r.geo.dansDock===true,
     JSON.stringify(r.geo));
   /* ⚠ ET IL Y RESTE APRÈS DÉFILEMENT — c'est le défaut signalé : il changeait d'adresse selon
      l'endroit où l'on se trouvait dans la page. Le témoin mesure donc les DEUX états. */
-  t('… et il y reste une fois l\'en-tête resserré', r.apresScroll===true, `${r.apresScroll}`);
+  t('… et défiler ne la déplace pas (dock fixe)', r.apresScroll===true, `${r.apresScroll}`);
   /* Cible ≥ 32 px hors mode crise (règle 9) — le halo ::after l'étend encore de 4 px. */
   t('… et sa cible reste réglementaire', !!r.geo&&r.geo.h>=32&&r.geo.w>=32,
     r.geo?`${r.geo.w}×${r.geo.h} px`:'—');
-  /* SIGNALÉ À L'USAGE (v5.0.3) : une hauteur FIXE de 36 px laissait 4 px de jeu en haut et en bas,
-     le champ montant à 43 px sur écran tactile. Deux objets voisins d'une même rangée qui ne
-     s'alignent ni en haut ni en bas se lisent comme deux objets sans rapport. */
-  t('… et il s’aligne exactement sur le sélecteur d’en face',
-    !!r.geo&&Math.abs(r.geo.h-r.geo.hChamp)<=1&&Math.abs(r.geo.dyHaut)<=1&&Math.abs(r.geo.dyBas)<=1,
-    r.geo?`${r.geo.h} px contre ${r.geo.hChamp} px (jeu ${r.geo.dyHaut}/${r.geo.dyBas})`:'—');
+  /* (Le témoin d'alignement « sur le sélecteur d'en face » est parti avec l'îlot : un bouton
+     DANS la boîte n'a plus de voisin à égaler — son centrage vertical est déjà mesuré. */
   /* LA CONTREPARTIE, ET C'EST LA GARANTIE QUI COMPTE (v5.0.3 : elle a CHANGÉ DE PORTEUR).
      La v5.0.0 forçait les rangées ouvertes dès qu'un filtre agissait, et retirait le
      déclencheur — donc un contrôle qui apparaît et disparaît selon l'état. L'état actif est
@@ -1588,6 +1622,7 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
     await page.evaluate(async()=>{const f=JSON.parse(JSON.stringify(fiches[0]));
       for(const ti of ['Bradycardie','Choc septique','Dyspnée','Hémorragie','Intubation']){
         const n=JSON.parse(JSON.stringify(f));n.id='x'+ti.slice(0,3);n.title=ti;fiches.push(migrate(n));}
+      state.homeGroup='az';   /* v5.18 : le rail n'indexe que l'ALPHABET — il n'existe qu'ici */
       render();await new Promise(r=>setTimeout(r,400));});
     await page.waitForTimeout(300);
     const r = await page.evaluate(()=>{
@@ -2572,8 +2607,11 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
    t(`${W} · le titre reste sur l'échelle typographique`,
      r.corps.length===1&&PALIERS_TXT.indexOf(v)>=0&&v>=15, JSON.stringify(r.corps));}
   t(`${W} · le titre n'est pas tronqué sur les exemples`, r.tronques===0, `${r.tronques}`);
-  t(`${W} · la catégorie vit dans le liseré, la pastille est purgée`,
-    r.liseCat===true&&r.pastille===0, `liseré=${r.liseCat} pastilles=${r.pastille}`);
+  /* v5.18 (A242) : la méta porte la catégorie en PASTILLE + NOM (la couleur n'est jamais
+     seule) — le liseré de rangée reste. Le témoin d'avant (« pastille purgée ») mesurait la
+     maquette 1a ; celle-ci l'a réintroduite, nom accolé. */
+  t(`${W} · la catégorie a sa pastille ET son nom, le liseré reste`,
+    r.liseCat===true&&r.pastille>=1, `liseré=${r.liseCat} pastilles=${r.pastille}`);
   t(`${W} · une session en cours se voit, et son chrono AVANCE`, r.live===true&&r.chronoAvance===true,
     `live=${r.live} avance=${r.chronoAvance}`);
   /* LA RANGÉE NE DÉBORDE PAS D'UN PIXEL, quelle que soit la largeur de PISTE. C'est ce qui
@@ -2657,19 +2695,22 @@ await sec('ACCUEIL · le rail A→Z ne suit aucune mesure mouvante', async () =>
   t('témoin : le corps de bindAzRail est bien trouvé', /const jump=/.test(fn), `${fn.length} caractères`);
   t('… le saut du rail ne se calcule jamais en relatif',
     !/scrollBy|scrollTop\s*\+=/.test(fn), (fn.match(/scrollBy|scrollTop\s*\+=/g) || []).join(' '));
-  /* Et la BOÎTE ne consomme plus `--hdr-h` autrement qu'en repli de première peinture : c'est une
-     propriété que `syncHdrScroll` réécrit à CHAQUE défilement, depuis un rect d'élément collant. */
-  t('… et sa boîte est gelée dans --azr-top, posée au rendu',
-    /top:var\(--azr-top,/.test(src) && /--azr-top/.test(horsStandalone)
-      && /rail\.style\.setProperty\('--azr-top'/.test(src),
-    `haut=${/top:var\(--azr-top,/.test(src)} hauteur=${/--azr-top/.test(horsStandalone)}`);
+  /* v5.18 (A243) : les DEUX ancres du rail sont des CONSTANTES — 120 px en haut (plus d'en-tête
+     collant à mesurer), 96 px en bas (le dock borne). Plus AUCUNE pose JS : un setProperty qui
+     réapparaîtrait serait la mesure mouvante que cette section proscrit. */
+  t('… et ses ancres sont des CONSTANTES (120 haut, 96 bas), sans pose JS',
+    /top:var\(--azr-top,120px\)/.test(src) && /--azr-top/.test(horsStandalone)
+      && !/setProperty\('--azr-top'/.test(src),
+    `haut=${/top:var\(--azr-top,120px\)/.test(src)} pose JS=${/setProperty\('--azr-top'/.test(src)}`);
 }
 /* ET LE SAUT RESTE JUSTE — un calcul absolu qui viserait mal serait pire que le pas relatif
    qu'il remplace. On mesure les deux propriétés qui comptent : la lettre atterrit JUSTE SOUS les
    couches collantes (c'est la promesse du geste), et deux appels de suite ne déplacent RIEN
    (l'idempotence est ce qui casse l'oscillation). Les deux voies de défilement sont couvertes :
    la fenêtre en étroit, la colonne `.home-main` en large. */
-for (const W of [390, 1100]) {
+/* v5.18 : le rail n'existe qu'en voie ÉTROITE et en rangement A–Z — en large, l'index est la
+   colonne gauche (des mots, pas des lettres), mesuré par sa propre section. */
+for (const W of [390]) {
   const page = await br.newPage({viewport:{width:W,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
@@ -2680,7 +2721,7 @@ for (const W of [390, 1100]) {
        contrôle ne rencontrerait pas son cas. */
     for(let i=0;i<12;i++)fiches.push(migrate({id:'zaz'+i,
       title:String.fromCharCode(67+i)+' fiche de répertoire '+i,blocks:[]}));
-    state.view='library';render();await w(400);
+    state.homeGroup='az';state.view='library';render();await w(400);
     const rail=document.getElementById('azRail');if(!rail)return null;
     const sc=matchMedia('(min-width:780px)').matches?document.querySelector('main .home-main'):null;
     const pos=()=>sc?Math.round(sc.scrollTop):Math.round(window.scrollY);
@@ -2690,8 +2731,10 @@ for (const W of [390, 1100]) {
     for(const L of [...rail.querySelectorAll('[data-azl]')].map(x=>x.dataset.azl).slice(0,5)){
       const a1=await go(L);
       const g=document.querySelector(`[data-azg="${L}"]`);
+      /* v5.18 : l'en-tête d'accueil est STATIQUE (il défile) et l'intertitre colle à 0 — la
+         référence du posé est le HAUT de la fenêtre, plus le bas d'un en-tête parti. */
       const haut=sc?g.getBoundingClientRect().top-sc.getBoundingClientRect().top
-        :g.getBoundingClientRect().top-document.querySelector('header.bar').getBoundingClientRect().bottom;
+        :g.getBoundingClientRect().top;
       const a2=await go(L),a3=await go(L);
       out.n++;out.ecarts.push(Math.round(haut));if(a1!==a2||a2!==a3)out.derives++;}
     return out;});
@@ -4038,14 +4081,15 @@ await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     for(const l of 'ABCDEFGHIJKLMNOPQRSTUVWX'.split('')){
       const f=blankFiche();f.title=l+' — démo';fiches.push(migrate(f));}
+    /* v5.18 : le rail n'existe qu'en rangement A–Z. */
+    state.homeGroup='az';
     await persist();render();await w(400);
     const g=()=>{const el=document.getElementById('azRail');
       if(!el||el.hidden)return null;
       const b=el.getBoundingClientRect(),l=el.querySelector('[data-azl]');
       return {top:Math.round(b.top),h:Math.round(b.height),
               l1:l?Math.round(l.getBoundingClientRect().top):null,
-              n:el.querySelectorAll('[data-azl]').length,
-              slim:document.body.classList.contains('home-slim')};};
+              n:el.querySelectorAll('[data-azl]').length};};
     const repos=g();
     window.scrollTo(0,400);await w(350);
     const defile=g();
@@ -4059,8 +4103,9 @@ await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
 
   t('témoin : le rail existe et porte plusieurs lettres',
     !!r.repos&&r.repos.n>=5, JSON.stringify(r.repos));
-  t('témoin : le défilement resserre bien l\'en-tête',
-    !!r.defile&&r.defile.slim===true, JSON.stringify(r.defile));
+  /* v5.18 : l'en-tête est statique — il n'y a plus de resserrement à constater ; le témoin
+     devient « on a réellement défilé » (le rail, lui, ne doit pas bouger). */
+  t('témoin : la page a réellement défilé', !!r.defile, JSON.stringify(r.defile));
   t('témoin : un tap sans effet sur le rail a bien eu lieu', r.avaitPin===true);
   const memes=(a,b)=>a&&b&&Math.abs(a.top-b.top)<=1&&Math.abs(a.h-b.h)<=1&&Math.abs(a.l1-b.l1)<=1;
   t('le rail ne bouge pas au défilement', memes(r.repos,r.defile),
@@ -4080,14 +4125,14 @@ await sec('v5.6 · le rail A→Z ne se déplace jamais', async () => {
     const a=ls[0].getBoundingClientRect(),z=ls[ls.length-1].getBoundingClientRect();
     const b=el.getBoundingClientRect();
     return {axe:Math.round((a.top+z.bottom)/2),ecran:Math.round(document.documentElement.clientHeight/2),
-      hautLettre:Math.round(a.top),hautBoite:Math.round(b.top),
-      hdr:Math.round(document.querySelector('header.bar').getBoundingClientRect().bottom)};});
+      hautLettre:Math.round(a.top),hautBoite:Math.round(b.top)};});
   t('témoin : les lettres tiennent dans la boîte (décalage non clampé)',
     !!cen&&cen.hautLettre>=cen.hautBoite-1, JSON.stringify(cen));
   t('le rail est centré sur l\'axe médian de l\'écran',
     !!cen&&Math.abs(cen.axe-cen.ecran)<=6, cen?`lettres ${cen.axe} · écran ${cen.ecran}`:'absent');
-  t('… sans qu\'aucune lettre ne passe derrière l\'en-tête',
-    !!cen&&cen.hautLettre>=cen.hdr, cen?`première lettre ${cen.hautLettre} · en-tête ${cen.hdr}`:'absent');
+  /* v5.18 : l'en-tête défile avec la page — la borne haute du rail est sa constante (120 px). */
+  t('… et la première lettre reste sous la borne haute écrite',
+    !!cen&&cen.hautLettre>=119, cen?`première lettre ${cen.hautLettre}`:'absent');
   t('… ni au retour en haut de page', memes(r.apres,r.remonte),
     `${JSON.stringify(r.apres)} → ${JSON.stringify(r.remonte)}`);
   await page.close();
@@ -5264,9 +5309,14 @@ await sec('v5.6 · l\'index A→Z s\'éclaircit pour rester centré', async () =
     await page.evaluate(async(k)=>{const w=m=>new Promise(r=>setTimeout(r,m));
       'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0,k)
         .forEach(x=>fiches.push(migrate({id:uid('f'),title:x+'zz test',blocks:[]})));
+      state.homeGroup='az';   /* v5.18 : le rail n'existe qu'en rangement A–Z */
       await persist();render();await w(500);},n);
     const r=await page.evaluate(()=>{
       const rail=document.querySelector('.azrail');
+      /* v5.18 : en voie LARGE le rail n'existe plus (display:none) — l'index est la colonne
+         gauche, des mots. Le témoin de cette largeur devient : le rail est bien retiré. */
+      if(matchMedia('(min-width:780px)').matches)
+        return {large:true,retire:!rail||getComputedStyle(rail).display==='none'};
       if(!rail||rail.hidden)return {replie:true};
       const tous=[...rail.querySelectorAll('[data-azl]')];
       const vis=tous.filter(b=>!b.hidden);
@@ -5277,6 +5327,10 @@ await sec('v5.6 · l\'index A→Z s\'éclaircit pour rester centré', async () =
         petits:vis.filter(b=>{const q=b.getBoundingClientRect();return q.height<23.5||q.width<23.5;}).length,
         couvre:pts.every(b=>!!b.dataset.azlDot&&/ ou /.test(b.getAttribute('aria-label')||''))};});
     const tag=`${W}×${H} · ${n} lettres`;
+    if(r.large){
+      t(`${tag} · en voie large, le rail est RETIRÉ (l'index est la colonne gauche)`,
+        r.retire===true, JSON.stringify(r));
+      await page.close();continue;}
     t(`${tag} · l'index est centré sur l'écran`, Math.abs(r.ecart)<=2, `${r.ecart} px`);
     t(`${tag} · … sans jamais rétrécir une cible sous 24 px`, r.petits===0, `${r.petits} trop petite(s)`);
     /* ⚠ LE TÉMOIN RENCONTRE SON CAS : à 26 lettres sur téléphone il DOIT y avoir des points, et à
@@ -5573,6 +5627,9 @@ await sec('Q1 · les propositions de relecture', async () => {
    répertoire contre 976 pour une épinglée. On mesure la PROPRIÉTÉ — même largeur de rangée dans
    les deux sections, à toutes les largeurs — et non le nombre de colonnes, qui dépend de la
    grille fluide et n'a pas à être encodé ici. */
+/* v5.18 (A261, décision utilisateur sur capture) : « Accès direct » est en TUILES à TOUTES
+   les largeurs — plusieurs par ligne dès que la place le permet (deux dès 390 px), titre long
+   à 4 lignes en étroit. La fiche reste AUSSI à sa place dans le répertoire. */
 await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
   const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
   await page.goto(`http://localhost:${port}/index.html`);
@@ -5583,17 +5640,31 @@ await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
     await page.setViewportSize({ width: w, height: 900 });
     await page.waitForTimeout(320);
     const r = await page.evaluate(() => {
-      const pb = document.querySelector('.dir-book.pinned');
-      const nb = [...document.querySelectorAll('.dir-book:not(.pinned)')][0];
+      const qa = document.querySelector('.qa-sec');
+      const vis = !!qa && getComputedStyle(qa).display !== 'none';
+      const tiles = qa ? [...qa.querySelectorAll('.qa-tile')] : [];
+      const book = document.querySelector('.dir-book');
       const lg = e => e ? Math.round(e.getBoundingClientRect().width) : 0;
-      return { ep: lg(pb && pb.querySelector('.dir-row')), rep: lg(nb && nb.querySelector('.dir-row')),
-        livre: lg(pb), n: pb ? pb.querySelectorAll('.dir-row').length : 0 }; });
-    t(`${w} px · témoin : les deux sections existent`, r.n >= 2 && r.rep > 0, JSON.stringify(r));
-    t(`${w} px · une rangée épinglée a la largeur d'une rangée du répertoire`,
-      r.ep > 0 && Math.abs(r.ep - r.rep) <= 2, `${r.ep} px vs ${r.rep} px`);
-    if (w >= 1100)
-      t(`${w} px · … donc elle ne prend PAS toute la largeur du livre`,
-        r.ep < r.livre - 40, `${r.ep} px dans ${r.livre} px`);
+      return { desk: !document.documentElement.classList.contains('zw1200'), vis,
+        nT: tiles.length, tuile: lg(tiles[0]), livre: lg(book),
+        tuileTops: tiles.slice(0, 2).map(e => Math.round(e.getBoundingClientRect().top)),
+        etoiles: document.querySelectorAll('.dir-row .pinbtn.on').length,
+        rangees: document.querySelectorAll('.dir-row').length }; });
+    t(`${w} px · témoin : deux épinglées existent, le répertoire les garde`,
+      r.etoiles >= 2 && r.rangees >= 2, JSON.stringify(r));
+    if (r.desk) {
+      t(`${w} px · ≥ 1200 : « Accès direct » rend ses tuiles`, r.vis === true && r.nT >= 2,
+        `${r.nT} tuile(s), visible ${r.vis}`);
+      t(`${w} px · … et une tuile ne prend PAS toute la largeur du livre`,
+        r.tuile > 0 && r.tuile < r.livre - 40, `${r.tuile} px dans ${r.livre} px`);
+    } else {
+      t(`${w} px · < 1200 : les TUILES restent (A261)`, r.vis === true && r.nT >= 2,
+        `${r.nT} tuile(s), visibles ${r.vis}`);
+      if (w <= 430)
+        t(`${w} px · … et DEUX tiennent sur une même ligne`,
+          r.tuileTops.length === 2 && Math.abs(r.tuileTops[0] - r.tuileTops[1]) <= 1,
+          JSON.stringify(r.tuileTops));
+    }
   }
   await page.close();
 });
