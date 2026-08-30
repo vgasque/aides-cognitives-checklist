@@ -21,14 +21,18 @@ for(const z of [100,130]){
  t(`accueil : le bas de la sidebar est DANS la fenêtre`, a&&a.deborde<=4, JSON.stringify(a));
  // B. page COURTE : pas de défilement dans le vide
  const b2=await p.evaluate(async()=>{
-  // ouvrir un protocole court
-  const seg=[...document.querySelectorAll('.seg-btn,[data-section]')].find(x=>/Protocole/i.test(x.textContent));
-  if(seg){seg.click();await new Promise(r=>setTimeout(r,350));}
-  const c=document.querySelector('.card-open');if(c){c.click();await new Promise(r=>setTimeout(r,400));}
+  /* ⚠ CE BLOC NE MESURAIT RIEN (trouvé en v5.19.1). Il cliquait `.seg-btn` en croyant basculer la
+     section — et attrapait celui du dialogue « Créer », qui pilotait `state.section` par effet de
+     bord ; la liste des protocoles étant VIDE dans le jeu d'exemple, `.card-open` valait null,
+     aucune fiche ne s'ouvrait, et B comme C mesuraient l'ACCUEIL en croyant mesurer une lecture.
+     Le harnais dépendait donc du défaut corrigé en v5.19.1, et sa couverture réelle est
+     l'accueil : c'est ce qu'il dit maintenant. ÉTENDRE À LA LECTURE demande un jeu d'exemple avec
+     une fiche assez COURTE pour tenir dans 800 px — sans quoi « défilement dans le vide » et
+     « page plus longue que la fenêtre » sont indiscernables. Écrit ici, pas fait. */
   const doc=document.documentElement;
   // scrollHeight/clientHeight sont dans le MÊME repère (px CSS) : leur différence est l'excédent réel.
   return {scrollable:Math.round(doc.scrollHeight-doc.clientHeight)};});
- t(`page courte : pas de défilement dans le vide (excédent ≤ 40px)`, b2.scrollable<=40, 'excédent='+b2.scrollable+'px');
+ t(`accueil : pas de défilement dans le vide (excédent ≤ 40px)`, b2.scrollable<=40, 'excédent='+b2.scrollable+'px');
  // C. SONDE GÉNÉRIQUE (v4.32.0) — le harnais ne regardait que deux surfaces nommées, et cinq
  // `vh` NUS avaient traversé le balayage : `.lightbox img` (82vh) faisait sortir la légende de
  // 51 px à 130 %, sans défilement possible. On lit ici le CSS RÉSOLU de tout élément visible et

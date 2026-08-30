@@ -1,5 +1,127 @@
 # Journal des modifications
 
+## [5.19.0] — 2026-08-30
+### La colonne gauche a trois étages, le pied ne dit plus deux fois la même chose (A269-A276)
+
+- **Mesuré avant de décider** (iPad 11″ paysage, 1194 × 834 → 774 px utiles) : avec 3
+  bibliothèques et 5 catégories, la colonne demandait **777 px**. Elle défilait d'un bloc, pied
+  compris — le ✓ « contenu trouvable par la recherche » était donc **coupé en pleine phrase**
+  (capture utilisateur), et avec lui le contrôle d'avant-départ « tout est sur l'appareil », qui
+  est précisément ce qu'on vient vérifier avant de partir sans réseau. À 10 catégories il
+  manquait 190 px.
+- **Trois étages, un seul défile** : le PÉRIMÈTRE (bibliothèques) est fixe en haut, les
+  CATÉGORIES sont le seul défileur — intertitre collant compris —, les COMMANDES et l'ÉTAT
+  forment un socle fixe en bas. Ce qui ne grandit pas ne bouge plus. Le pied nomade atterrit
+  désormais dans le socle (`.hs-foot`), ce qui est exactement ce qui le soustrait au défilement.
+- **Densité** : catégories et commandes en rangées de 32 et 34 px (le corps reste à 13,5 px,
+  seul le rembourrage tombe à 6) — **sept catégories tiennent sans défiler** là où cinq
+  débordaient. ⚠ Les comptes restent collés à droite : la maquette leur réservait la colonne de
+  34 px du crayon pour les aligner sur ceux des bibliothèques, écarté à la relecture
+  (« ça fait bizarre sinon »).
+- **La remise à zéro des catégories manquait** : « Toutes » existait pour les bibliothèques,
+  rien en face — on ne revenait à l'union qu'en re-tapant la rangée active, un geste que rien
+  n'annonce. Une rangée « Toutes les catégories » ferme la symétrie ; son compte est celui du
+  PÉRIMÈTRE choisi, pas de l'application entière.
+- **Une commande n'est plus dessinée comme un filtre** : icône, libellé en gras, chevron. Le
+  nombre en queue voulait dire « ce que la liste montre » pour une catégorie et « ce qu'il y a
+  derrière la porte » pour l'historique — deux sens pour un même signe.
+- **Le pied ne dit plus deux fois la même chose** : au nominal, les deux phrases « Documents
+  PDF : … » — qui commençaient par les mêmes mots et laissaient « (15) · Réindexer » partir
+  seul à la ligne suivante — fusionnent en **une rangée** « ✓ 15 documents prêts hors ligne »,
+  dépliable SUR PLACE (pas de fenêtre, règle 11). Dès qu'une des deux a quelque chose à
+  demander, la synthèse s'efface et les deux lignes reprennent la parole telles quelles,
+  registre ambre compris : **on ne masque jamais un état qui appelle un geste**.
+- **Aucun aplat** : la maquette posait la synthèse sur un fond vert doux ; refusé à la relecture
+  (« ça saute trop aux yeux ») — et le code disait déjà pourquoi, `refreshAttOffline` portant
+  « P3-11 : nominal = neutre » et `.pers-warn` colorant le TEXTE, jamais un fond. Un aplat vert
+  permanent aurait désensibilisé à l'ambre, seul registre qui doit se voir. L'accroche vient du
+  CHIFFRE en encre pleine : c'est ce qu'on vérifie.
+- **Le pied devient une colonne de rangées** (A271), sur les trois largeurs où il vit (250 px en
+  socle de colonne, ~574 et ~300 en voie étroite). La coulée `flex-wrap` mettait la version en
+  bout de la rangée des liens à 574 et la rejetait sous eux à 300 : l'ordre de lecture changeait
+  avec la largeur, et **trois bords gauches cohabitaient** (18 px pour une marque, 28 pour le
+  texte d'un lien, 36 pour celui d'un état), avec 2 px d'interligne entre des rangées de 32.
+  Désormais : une colonne, un interligne de 4 px, et **une seule colonne de texte à 20 px** —
+  marque de 14 px + gouttière de 6 — que les liens rejoignent en recevant leur icône (les mêmes
+  que dans la colonne). La marque de l'état de stockage sort du texte (elle n'existait que dans
+  l'état « Cloud », et décalait le premier mot d'une largeur variable selon l'état).
+- **Les deux lignes d'état prennent le même dessin** — elles sont toutes deux des commandes
+  (l'une ouvre la fenêtre Stockage, l'autre déplie) : marque, texte, chevron, et la hauteur de
+  32 px que la règle 9 leur devait déjà. `#storageInfo` vivait à 15,4 px depuis toujours.
+- **Une seule hauteur de rangée dans la colonne** : la première version densifiait les seules
+  catégories (32 px) et laissait les bibliothèques à 38 — deux hauteurs, à un filet d'écart, pour
+  deux listes qui font la même chose. 32 partout.
+- **Un seul dessin de marque dans le pied** (A272) : la pastille de synchro était son seul OBJET
+  — une pilule teintée de 22,7 px au milieu de lignes de 15,4 — et sa rangée n'avait rien dans la
+  colonne de marque. La pilule tombe, l'état rejoint la colonne, et son point plein cède la place
+  à un **glyphe par état** (✓ synchronisé, ↺ en cours, ⏸ hors-ligne, △ erreur, 🔒 en attente) au
+  gabarit des trois autres. Les états qui appellent un geste gardent leur encre de registre sur
+  le texte, jamais un fond.
+- **Les deux commandes du pied deviennent des boutons discrets** en voie étroite : en lien, elles
+  flottaient dans un bloc d'état, et leur cible se réduisait à la longueur du mot. Surface tonale
+  sans contour, 36 px. Coût mesuré et assumé : à 390 px les deux libellés entiers ne tiennent pas
+  sur une rangée (339 px pour 354 disponibles), elles s'empilent — 78 px au lieu de 32, compensé
+  en partie par l'interligne du pied ramené de 4 à 2 px.
+- **L'interligne du pied ne se réglait pas en pixels** : un `gap` unique se lisait 4, 12 puis
+  19 px selon les rangées qu'il séparait, parce qu'elles n'avaient pas la même hauteur (20 px pour
+  la version, 32 pour les deux commandes) et que le blanc interne d'une rangée s'ajoute au gap.
+  Les trois rangées font désormais 32, le gap tombe à 0, et le seul écart qui reste (6 px) sépare
+  les deux registres — commandes et état.
+- **Les rangées d'état s'arrêtent à leur texte** : elles prenaient toute la largeur, donc le
+  chevron se collait au bord droit en laissant des centaines de pixels de vide, et la marque
+  restait seule à l'autre bout. Le groupe marque · texte · chevron redevient un objet, au même
+  retrait (12 px) et au même rayon que les boutons du dessus ; la surface n'apparaît qu'au survol.
+  Toutes les marques du pied tombent alors sur la même verticale, boutons compris.
+- **Trois verticales dans la colonne, et trois seulement** (A273) : quatre libellés démarraient à
+  quatre abscisses (24 · 41 · 45,5 · 46), chaque famille posant son texte où sa marque tombait.
+  Une **colonne de marque de largeur fixe**, portée par toutes les rangées et laissée vide quand
+  il n'y a rien à y mettre, remet tout d'aplomb — marque à 24, libellé à 44, nombre au bord droit.
+  Le nombre passe **après** le crayon : c'est ce qui aligne les deux colonnes de comptes sans
+  réserver la case du crayon partout. Une seule hauteur de rangée (32), un seul filet, et les deux
+  pavés pleine largeur (« Nouvelle bibliothèque », « Gérer les catégories ») deviennent des
+  rangées discrètes. Le socle suit le contenu au lieu de laisser un trou de 120 px au milieu.
+- **Le socle se replie en une ligne** (A274) : il empilait cinq rangées de même forme sur 216 px
+  pour dire deux commandes et un état. Au nominal, les quatre lignes d'état deviennent
+  **« ✓ Tout est prêt · v5.19.0 »**, dépliable sur place ; dès qu'un fait appelle un geste
+  (documents manquants, index en échec, synchro refusée, stockage presque plein), elles reprennent
+  la parole telles quelles. Le dépliant est **subordonné** — ses rangées démarrent sous le texte
+  de la synthèse, pas sous sa marque.
+- **Intitulés réécrits, courts** : « Prêt hors ligne » puis « Utilisable sans réseau » ont été
+  essayés et abandonnés — le premier se lisait comme un état de connexion, le second ne couvrait
+  pas la recherche dans les documents. « 15 documents sur l'appareil », « Recherche dans les
+  documents », « 3 documents à télécharger », « Indexation en cours (4) ». Les actions de ces
+  rangées passent à 11 px : un lien de 13,5 px faisait un mot deux fois plus gros que sa phrase.
+- **Trois blancs verticaux, pas sept** : la colonne séparait ses blocs par 10 · 2 · 14 · 4 · 8 ·
+  12 · 31 px, chaque valeur héritée d'un réglage local. L'échelle est désormais 2 (entre rangées),
+  10 (d'un intertitre à sa première rangée), 12 (au-dessus d'un intertitre et de part et d'autre
+  d'un filet).
+- **Le type à créer ne filtre plus la liste** (A275, signalé à l'usage : « Créer → aide cognitive
+  mène à une vue filtrée qui n'est plus censée exister »). Le dialogue empruntait `state.section`
+  depuis la v4.4.2 — juste quand l'accueil était une liste par type, faux depuis que la liste est
+  l'union. Il a son propre cran. ⚠ **Deux harnais s'appuyaient sur ce défaut** : l'un gardait
+  l'ancien contrat, l'autre cliquait le sélecteur du dialogue en croyant changer de section — et,
+  la liste des protocoles étant vide dans le jeu d'exemple, ses deux témoins mesuraient l'accueil
+  en croyant mesurer une lecture. Les deux sont réécrits, et la lacune du second est écrite dans
+  le fichier.
+- **Dire ce qu'est une aide cognitive, et un protocole** (A276) : le dialogue « Créer » l'explique
+  en une phrase par nature, depuis la même source que les bandeaux. Et les deux bandeaux de
+  bibliothèque vide fusionnent en **un seul** qui pose les deux natures côte à côte — écrits pour
+  un accueil filtré par type, ils s'empilaient toujours ensemble depuis l'union, et la question
+  qu'on se pose vraiment (« quelle est la différence ? ») n'avait de réponse nulle part.
+- **Le rappel du raccourci suit le système** : `⌘K` sur Apple, `Ctrl K` ailleurs (le gestionnaire
+  acceptait déjà les deux, plus « / »), et le champ réserve la largeur du plus long des deux.
+- **En voie étroite, « Rangé par » et « Sélectionner » passent sous « Répertoire »** : ils
+  gouvernent cette liste, ils ne la précèdent pas.
+- **Les 18 px sous l'en-tête tombaient sur `#syncErrNotice`**, présent mais masqué — donc sur une
+  boîte sans hauteur : le premier bandeau touchait l'en-tête.
+- **Deux pièges payés en chemin**, tous deux notés sur place : (1) le bloc de style est déclaré
+  AVANT `.hs-row`, donc `.hs-cat{min-height:32px}` perdait la cascade **en silence** (rangées
+  mesurées à 38 px) — qualifié en `.hs-row.hs-cat` ; (2) la marge basse du filet de l'étage haut
+  s'échappait de sa boîte et ouvrait une bande de 12 px entre les deux étages, assez pour laisser
+  voir ce qui défile dessous : la marge tombe, et les deux étages fixes deviennent opaques et
+  au-dessus. Écart mesuré à 0, intertitre collé au bord du défileur, socle immobile sous
+  défilement (bas du pied identique avant et après).
+
 ## [5.18.5] — 2026-08-30
 ### L'anneau de focus n'est plus rogné par les fenêtres (A268)
 

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-qo42xwc/KqaR0XJ1dr4Vlw0AIogVXy0xmH5O1y8RWU4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-1V5fzt5c3TnIiXQPVAXYwgInWvtECVzjZOSlnaHX6Ww='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1297,7 +1297,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     border-radius:50%;background:transparent;color:var(--ink-soft);cursor:pointer;padding:0}
   .srch-x[hidden]{display:none}
   /* ⌘K : le raccourci EXISTE depuis v4.31.0 — l'afficher (voie large seulement) le rend
-     découvrable. aria-hidden : c'est un rappel visuel, le champ porte déjà son nom. */
+     découvrable. aria-hidden : c'est un rappel visuel, le champ porte déjà son nom.
+     ⚠ Le LIBELLÉ dépend du système (⌘K sur Apple, Ctrl K ailleurs) : il est posé au démarrage,
+     et le champ réserve la largeur du plus long des deux pour que son texte ne passe jamais
+     dessous — la place réservée ne doit pas dépendre du clavier de celui qui regarde. */
   .dock-kbd{display:none;position:absolute;right:10px;align-items:center;
     font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);
     border:1px solid var(--line);border-radius:var(--r-1);padding:1px 6px;pointer-events:none}
@@ -2678,7 +2681,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      légèrement ») : le sélecteur A-Z/Catégories se cale à 2 px sous l'en-tête et 8 px au-dessus
      du répertoire (valeurs de l'échelle fermée ; l'essentiel du blanc restant est le rembourrage
      de `main`, commun à toutes les vues). */
-  .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 8px;flex-wrap:wrap}
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 12px;flex-wrap:wrap}   /* v5.19.1 : elle précède désormais la LISTE, pas l'intertitre — il lui faut sa respiration à elle */
   /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
@@ -3522,6 +3525,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .emp-intro{text-align:left;padding:24px 20px;max-width:780px;margin-left:auto;margin-right:auto}
   .emp-intro>b{text-align:center;font-size:17.5px;color:var(--ink)}
   .emp-intro+.emp-intro{margin-top:12px}
+  /* Bandeau des DEUX natures : côte à côte dès qu'il y a la place, empilées sinon. */
+  .emp-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:20px}
+  .emp-nat-t{display:block;font-size:13.5px;margin-bottom:4px}
+  .emp-duo .emp-lede{text-align:left;margin-bottom:10px;color:var(--ink-soft)}
+  .emp-duo .emp-anat{margin-bottom:0}
+  .emp-cta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .crt-what{margin:0 0 12px;font-size:13.5px;line-height:1.45;color:var(--ink-soft)}
+  .crt-what strong{color:var(--ink);font-weight:700}
+  @media (max-width:559.98px){.emp-duo{grid-template-columns:minmax(0,1fr);gap:16px}}
   .emp-lede{margin:0 0 16px;text-align:center;font-size:13.5px;line-height:1.45}
   /* Le VERBE est ce qui distingue les deux natures : c'est le seul mot en encre pleine de la
      phrase, et il porte à lui seul la comparaison (« se déroule » / « se lit »). */
@@ -7170,23 +7182,102 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* (create-band supprimée — le choix de méthode vit dans le dialogue « Créer », SPEC §2.1.) */
   /* Pied de page COMPACT (une seule ligne qui replie au besoin) : version · synchro · stockage
      — tout le contenu passif tient sur ~34px ; « Installer l'app » s'y glisse s'il apparaît. */
-  footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}
+  /* ══ v5.19 — LE PIED EST UNE COLONNE DE RANGÉES, PLUS UNE COULÉE QUI ENJAMBE ════════════════
+     MESURÉ sur trois largeurs (250 px en socle de colonne, 574 et ~300 en voie étroite) : la
+     coulée `flex-wrap` mettait la VERSION en bout de la rangée des liens à 574, la rejetait sous
+     eux à 300, et n'alignait rien — trois bords gauches cohabitaient (18 px pour l'icône, 28 pour
+     le texte d'un lien, 36 pour celui d'un état), avec 2 px d'interligne entre des rangées de
+     32 px et 14 px de gouttière. L'ordre de lecture y changeait avec la largeur.
+     UNE COLONNE, UN BORD, UN RYTHME : les commandes gardent leur rangée (elles peuvent tenir à
+     deux de front), l'état descend en rangées empilées, et toutes les lignes partagent la même
+     colonne de texte à 19 px (marque de 14 px + 6 px). Interligne unique de 4 px.
+     Les deux lignes d'état sont des COMMANDES (l'une ouvre la fenêtre Stockage, l'autre déplie) :
+     elles prennent donc le même dessin — marque, texte, chevron — et la hauteur de 32 px que la
+     règle 9 leur devait déjà (`#storageInfo` en était à 15,4 px depuis toujours). */
+  footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:0}
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
-  .tools-actions{display:contents}   /* le bouton (masqué par défaut) devient un item direct de la ligne */
-  .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .tools-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
+  .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:24px}
+  /* La pastille de synchro était le seul OBJET du pied (pilule de 22,7 px au milieu de lignes de
+     15,4) et sa rangée n'avait rien dans la colonne de marque. La pilule tombe, l'état rejoint la
+     colonne ; les états actionnables gardent leur encre de registre sur le TEXTE, jamais un fond. */
+  /* ⚠ Un `gap` unique de 2 px se lisait 4, 12 puis 19 selon les rangées : leurs hauteurs
+     différaient (20 / 32) et le blanc interne s'AJOUTE au gap. Un interligne se règle en rendant
+     les rangées comparables — les trois font 32, gap 0, et le seul écart sépare les registres. */
+  footer.tools .tools-status{padding:0 12px;min-height:32px}
+  footer.tools .tools-status:has(.sync-chip[hidden]){padding-left:32px}
+  footer.tools .sync-chip{background:none;padding:0;border-radius:0;gap:6px;line-height:1.4}
+  footer.tools .sync-chip.off{background:none}
+  footer.tools .sync-chip.ok{background:none}
+  footer.tools .sync-chip.busy,footer.tools .sync-chip.pending{background:none}
+  footer.tools .sync-chip.err,footer.tools .sync-chip.rejected{background:none}
   .storage-gauge{font-size:11px;color:var(--ink-soft);line-height:1.4}
+  /* Le DÉPLIANT est subordonné à sa ligne : ses rangées démarrent sous le TEXTE de la synthèse,
+     pas sous sa marque — sans quoi rien ne dit qu'elles en découlent. Retrait seulement quand la
+     synthèse existe : forcé ouvert, le dépliant n'a pas de parent au-dessus de lui. */
+  footer.tools:has(#footSum:not([hidden])) #footFold{padding-left:20px}
+  /* Les actions des lignes d'état sont au corps de leur ligne (11 px), pas à celui d'un lien de
+     pied (13,5) : un mot deux fois plus gros que sa phrase cassait le bloc. */
+  footer.tools .stg-act{font-size:11px;font-weight:700;padding:0 8px;min-height:32px;gap:0}
+  /* Les deux rangées d'état, jumelles : marque 14 px, texte, chevron. */
+  /* La rangée s'arrête à son texte : pleine largeur, le chevron se collait au bord droit et
+     laissait des centaines de px de vide. En `fit-content`, marque · texte · chevron redeviennent
+     un objet, au retrait et au rayon des boutons ; surface tonale au survol seulement. */
+  footer.tools #storageInfo,footer.tools #attOffline,footer.tools #attIdx,footer.tools .foot-more{width:fit-content;padding:0 12px;border-radius:10px}
+  footer.tools #storageInfo,footer.tools #attOffline,footer.tools #attIdx{display:flex;align-items:center;gap:6px;min-height:32px;text-indent:0}
+  footer.tools #storageInfo:hover,footer.tools .foot-more:hover{background:var(--surface-2);color:var(--ink-soft)}
+  footer.tools .stg-tx{flex:0 1 auto;min-width:0}
+  footer.tools #storageInfo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .stg-ic{flex:none;display:inline-flex;width:14px;justify-content:center}
+  .stg-tx{flex:0 1 auto;min-width:0}
+  .stg-chev{flex:none}
+  /* Les commandes du pied rejoignent la même colonne : marque de 14 px, texte à 20 — et plus de
+     rembourrage horizontal, qui décalait leur texte de 10 px par rapport aux lignes d'état. */
+  /* Les deux commandes sont des BOUTONS, pas du texte bleu (voie étroite) : en lien, leur cible
+     se réduisait à la longueur du mot. Surface tonale sans contour — la forme la plus effacée qui
+     soit encore un objet. */
+  footer.tools .tools-actions>.tlink{min-height:36px;padding:0 12px;gap:6px;border-radius:10px;background:var(--surface-2);color:var(--primary-dk)}
+  footer.tools .tools-actions>.tlink:hover{background:var(--primary-soft)}
+  footer.tools .tools-actions>.tlink .stg-ic{width:14px}
+  footer.tools .tools-actions>.tlink .hj-ic{font-size:13.5px;line-height:1}
   /* Accueil large : le pied de page N'EXISTE PLUS en bas d'écran — son contenu (version,
      synchro, stockage) vit en bas de la sidebar (l'élément est DÉPLACÉ, jamais recréé :
      ses ids et écouteurs restent vivants — cf. placeFooter()). */
-  .home-side footer.tools{margin-top:auto;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--line);padding:12px 2px 2px;margin-top:auto}
+  /* ⚠ LE SOCLE N'A PLUS DE REMBOURRAGE À LUI (v5.19.1) : il en gardait 2 px, hérités de sa vie en
+     bas de page, et ses marques tombaient donc à 26 px quand celles de la colonne tombent à 24.
+     À zéro, ses rangées rejoignent exactement la grille de la colonne — et son filet fait la même
+     largeur que `.hs-sep` (la boîte de contenu de l'étage), avec le même 12/12 autour. */
+  .home-side footer.tools{align-items:stretch;border-top:1px solid var(--line);padding:12px 0 0;margin-top:10px}
+  /* Toutes les commandes du pied sont masquées en voie large (la colonne les porte) : leur
+     conteneur ne doit pas garder sa marge, qui ajoutait 6 px avant la synthèse. */
+  .home-side .tools-actions{margin-bottom:0}
   /* Registres du libellé de stockage — partagés par les DEUX pieds (sidebar et vues de lecture). */
   .storage-gauge .pers-warn,.crisis-footer .pers-warn{color:var(--verify)}
+  /* Le nominal ne cherche pas l'œil : pas d'aplat vert (cf. « P3-11 : nominal = neutre » plus
+     bas, et `.pers-warn` qui colore le TEXTE). Un aplat permanent désensibiliserait à l'ambre. */
+  /* La synthèse est une RANGÉE, pas une phrase suivie d'un lien (mesuré 47,4 px avec un `.tlink`
+     en queue : plus haut que ce qu'elle remplace). Une cible, 32 px (règle 9), chevron en queue. */
+  .foot-sum{padding:0}
+  .foot-more{display:flex;align-items:center;gap:6px;min-height:32px;border:0;background:none;font-family:inherit;font-size:11px;line-height:1.4;color:var(--ink-soft);text-align:left;cursor:pointer}
+  .foot-more .foot-t{flex:0 1 auto;min-width:0}
+  /* Même convention de dépliant que `.md-fch` : chevron À DROITE fermé, vers le BAS ouvert. */
+  /* Le numéro de version reste visible replié : c'est ce qu'on demande à un utilisateur au
+     téléphone, et le dépliant serait un geste de trop. */
+  .foot-more .foot-v{flex:none;color:var(--ink-soft);opacity:.75}
+  .foot-more .foot-chev{flex:none;transform:rotate(0deg)}
+  .foot-more[aria-expanded="true"] .foot-chev{transform:rotate(90deg)}
+  .foot-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:8px}
   .tlink{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   /* (La taille du texte vit dans la fenêtre Compte depuis V5 — plus de bouton Aa au pied de page.) */
   /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
   .sync-chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;line-height:1.7}
   .sync-chip[hidden]{display:none} /* le display:inline-flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
-  .sync-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.85}
+  /* v5.19 — LE POINT CÈDE LA PLACE À UN GLYPHE (signalé : « l'icône nuage et validé/en cours/
+     croix, peux-tu harmoniser l'affichage ? »). Le pied posait deux idiomes côte à côte : des
+     glyphes tracés de 14 px pour le stockage et les documents, un disque plein pour la synchro.
+     L'état de synchro prend donc son glyphe (✓ synchronisé, ⏱ en cours, △ erreur, 🔒 en attente,
+     ⏸ hors-ligne), au même gabarit et dans la même colonne : quatre marques, un seul dessin.
+     La COULEUR reste ce qui distingue les registres, elle n'est jamais seule (glyphe + mot). */
   .sync-chip.off{color:var(--ink-soft);background:var(--primary-soft)}
   .sync-chip.ok{color:var(--ok);background:var(--ok-soft)}
   .sync-chip.busy{color:var(--verify);background:var(--verify-soft)}
@@ -8229,9 +8320,65 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .fix-line{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 8px}
   .fix-line b{color:var(--ink);font-weight:700}
   .list-title span{font-weight:500;color:var(--ink-soft)}
-  .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
-  .home-side>.hs-h:first-child{margin-top:0}
-  .hs-row{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
+  /* ══ v5.19.1 — TROIS BLANCS, PAS SEPT ═══════════════════════════════════════════════════════
+     Mesuré dans la colonne : 10 · 2 · 14 · 4 · 8 · 12 · 31 px séparaient les blocs, sept valeurs
+     pour quatre situations (chacune héritée d'un réglage local). L'échelle est désormais :
+       2  entre deux rangées d'une même liste
+       10 d'un intertitre à sa première rangée (8 de marge + le gap de 2)
+       12 au-dessus d'un intertitre, et de part et d'autre d'un filet
+     Corollaire : un filet porte 10 de marge et non 12, le gap de 2 de son étage complétant. */
+  .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:12px 0 8px}
+  .hs-top>.hs-h:first-child{margin-top:0}
+  /* ══ v5.19 — LA COLONNE A TROIS ÉTAGES, ET UN SEUL DÉFILE ═══════════════════════════════════
+     MESURÉ AVANT DE DÉCIDER (iPad 11″ paysage, 1194 × 834 → 774 px utiles) : avec 3 bibliothèques
+     et 5 catégories la colonne demandait 777 px. Elle défilait D'UN BLOC, pied compris — donc le
+     ✓ « contenu trouvable par la recherche » était coupé EN PLEINE PHRASE (capture utilisateur),
+     et avec lui le contrôle d'avant-départ « tout est sur l'appareil », qui est précisément ce
+     qu'on vient vérifier avant de partir sans réseau. À 10 catégories il manquait 190 px.
+     Le remède n'est pas de raccourcir le pied mais de cesser de le faire défiler : le PÉRIMÈTRE
+     (bibliothèques) est fixe en haut, les CATÉGORIES sont le seul défileur, les COMMANDES et
+     l'ÉTAT sont un socle fixe en bas. Rien de ce qui ne grandit pas ne bouge plus.
+     La densité vient avec : toutes les rangées passent à 32 px (13,5 px conservé,
+     seul le rembourrage tombe à 6) — sept catégories tiennent sans défiler là où cinq
+     débordaient. ⚠ LES COMPTES RESTENT COLLÉS À DROITE (décision utilisateur, contre la maquette
+     qui leur réservait la colonne de 34 px du crayon : « ça fait bizarre sinon »). */
+  /* Étages fixes OPAQUES et au-dessus : la marge basse du filet de `.hs-top` s'échappait de sa
+     boîte et ouvrait 12 px par où l'on voyait défiler les catégories. */
+  .hs-top{flex:none;padding:12px 12px 0;display:flex;flex-direction:column;gap:2px;background:var(--work);position:relative;z-index:2}
+  .hs-top>.hs-sep{margin-bottom:0}
+  /* v5.19.1 : `0 1 auto` et non `1` — tant que tout tient, la colonne est tassée en haut (un trou
+     de 120 px au milieu se lit comme un défaut, pas comme de l'air) ; dès que la liste déborde, le
+     défileur prend toute la place restante et le socle revient se coller en bas. */
+  .hs-scroll{flex:0 1 auto;min-height:0;overflow-y:auto;padding:0 12px;display:flex;flex-direction:column;gap:2px;scrollbar-gutter:stable}
+  .hs-foot{flex:none;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px;background:var(--work);position:relative;z-index:2}
+  /* L'intertitre du seul défileur COLLE : une liste longue ne doit pas perdre son étiquette.
+     Marges négatives = il reprend le rembourrage de la colonne pour peindre bord à bord. */
+  .hs-h-stick{position:sticky;top:0;background:var(--work);margin:0 -12px 8px;padding:12px 24px 0;z-index:1}
+  /* Une COMMANDE n'est pas un filtre : icône, libellé en gras, chevron — et jamais de compte en
+     queue, qui voulait dire « ce que la liste montre » à côté et « ce qu'il y a derrière la
+     porte » ici (le nombre de l'historique reste, mais devant le chevron). */
+  .hs-row.hs-cmd{color:var(--primary-dk);font-weight:600}
+  .hs-mk .hj-ic{font-size:13.5px;line-height:1}   /* sinon le ⇄ à 15 px pousse la rangée à 32,5 */
+  .hs-cmd .hs-chev{flex:none;margin-left:6px;color:var(--line-strong)}
+  /* ⚠ UNE SEULE HAUTEUR DE RANGÉE (v5.19, question de l'auteur : « pourquoi la hauteur des
+     catégories est plus petite que celle des bibliothèques ? »). La v5.19 avait densifié les
+     seules catégories (32) en laissant les bibliothèques à 38 — deux hauteurs pour deux listes
+     qui font la MÊME chose (filtrer la vue), dans la même colonne, à un filet d'écart. C'était
+     un reste du panachage de deux directions de maquette, pas une décision : 32 partout. */
+  .hs-row{display:flex;align-items:center;gap:6px;width:100%;min-height:32px;padding:6px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
+  /* ══ v5.19.1 — TROIS VERTICALES : marque 24, libellé 44, nombre au bord droit ════════════════
+     Quatre libellés démarraient à quatre abscisses (24 · 41 · 45,5 · 46) : chaque famille posait
+     son texte où sa marque tombait. Remède : une colonne de marque de largeur FIXE, portée par
+     toutes les rangées, laissée VIDE quand il n'y a rien à y mettre.
+     ⚠ Le nombre passe APRÈS l'acte (crayon) : c'est ce qui aligne les deux colonnes de comptes
+     sans réserver la case du crayon partout (réserve écartée à la relecture). Un bouton n'en
+     contient pas un autre → le compte vit dans l'ENVELOPPE, qui porte fond et sélection. */
+  .hs-mk{flex:none;width:14px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+  .hs-ring{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--line-strong)}
+  .hs-wrap.on .hs-ring{border-color:var(--act)}
+  .hs-wrap.quiet .hs-row{color:var(--ink-soft);font-weight:500}
+  .hs-wrap.hs-cmd .hs-row{color:var(--primary-dk);font-weight:600}
+  .hs-wrap.hs-cmd .hs-chev{flex:none;width:14px;display:inline-flex;justify-content:center;color:var(--line-strong)}
   .hs-row:hover{background:var(--amb-2)}
   /* ⚠ SÉLECTION = TEINTE, PLUS APLAT PLEIN (v5.6, maquette 2f — signalé à l'usage : « la sidebar
      d'accueil, cases sélectionnées, n'est pas celle du mockup »). L'encodage reste le BLEU SYSTÈME
@@ -8241,20 +8388,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      graisse 700 : trois canaux, aucun n'est la couleur seule (règle 8).
      ET LE COMPTE REPREND SON ENCRE : sur un aplat plein il devait hériter de `--on-primary`
      (contraste), sur une teinte il redevient ce qu'il est — une donnée secondaire. */
-  .hs-row.on{background:var(--primary-soft);color:var(--act);font-weight:700}
-  html[data-theme="dark"] .hs-row.on{background:var(--primary-soft);color:var(--primary-dk)}
-  .hs-row.on .hs-n{color:var(--ink-2)}
+  .hs-wrap.on .hs-row{color:var(--act);font-weight:700}
+  html[data-theme="dark"] .hs-wrap.on .hs-row{color:var(--primary-dk)}
+  .hs-wrap.on .hs-n{color:var(--ink-2)}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hs-row>.hs-name{flex:1}
-  .hs-row .hs-n{margin-left:auto;color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums}
+  .hs-row .hs-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hs-n{color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums}
   .hs-row svg{flex:none}
   /* Rangée bibliothèque (canvas) : [ zone pick flex:1 | colonne 34px ] — la colonne existe sur
      TOUTES les rangées (compteurs alignés) : crayon ✎ (admin), cadenas non interactif (lecture
      seule), vide sinon. Le crayon est un bouton FRÈRE de la rangée (jamais de bouton imbriqué
      dans un bouton — ARIA APG), pleine hauteur (align-self:stretch -> cible ~34×48px). */
-  .hs-wrap{display:flex;align-items:center;gap:4px;border-radius:8px}
-  .hs-wrap .hs-row{flex:1;min-width:0}
+  .hs-wrap{display:flex;align-items:center;gap:4px;border-radius:8px;padding-right:12px}
+  .hs-wrap .hs-row{flex:1;min-width:0;padding-right:0}
   /* UNE RANGÉE, UN SEUL SURVOL (signalé à l'usage : « l'ombre des boutons de bibliothèque bugue
      en desktop — maintenant on a 2 boutons au même fond, et en sélectionner un casse
      l'affichage »). Depuis que l'aplat de sélection vit sur le CONTENEUR, la micro-réponse E5 du
@@ -8280,27 +8426,22 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      même colonne montrait donc deux encodages de la même chose, et l'encre blanche du bouton
      d'édition se retrouvait sur un fond clair dès qu'on la corrigeait à moitié. Un seul
      encodage : teinte + encre `--act`, ici comme ailleurs. */
-  .hs-wrap:has(>.hs-row.on){background:var(--primary-soft);border-radius:8px}
-  html[data-theme="dark"] .hs-wrap:has(>.hs-row.on){background:var(--primary-soft)}
-  .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--act)}
-  html[data-theme="dark"] .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--primary-dk)}
-  .hs-wrap:has(>.hs-row.on) button.hs-act:hover{color:var(--act);background:var(--primary-100)}
-  .hs-act{flex:none;width:34px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
+  .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
+  html[data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
+  .hs-wrap.on .hs-act{color:var(--act)}
+  html[data-theme="dark"] .hs-wrap.on .hs-act{color:var(--primary-dk)}
+  .hs-wrap.on button.hs-act:hover{color:var(--act);background:var(--primary-100)}
+  .hs-act{flex:none;width:24px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
   button.hs-act{cursor:pointer}
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
   button.hs-act:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
-  .hs-sep{height:1px;flex:none;background:var(--line);margin:12px 8px}   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
-  .hs-add{display:block;width:100%;margin-top:6px;padding:8px 12px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;color:var(--primary-dk);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;text-align:center}
-  /* « ⚙ Gérer les catégories » = BASCULE DE MODE (grammaire : pointillé = créer, contour plein
-     muted = gérer/configurer, fond plein = action primaire unique — jamais mélangées). Ouvre un
-     panneau INLINE juste en dessous (pas de dialogue) ; ouvert, bouton et panneau partagent
-     l'accent (lien visuel). */
-  .btn-manage-cats{display:block;width:100%;margin-top:6px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-family:inherit;font-size:13.5px;font-weight:400;text-align:center;cursor:pointer}
-  .btn-manage-cats:hover{background:var(--surface-2)}
-  .btn-manage-cats:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .hs-add:hover{background:var(--primary-soft)}
-  .hs-add:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
+  .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
+  /* « Nouvelle bibliothèque » et « Gérer les catégories » sont des RANGÉES depuis la v5.19.1
+     (`.hs-wrap.quiet`). La grammaire pointillé=créer / contour=gérer vaut dans un ÉDITEUR ; dans
+     une colonne de navigation elle donnait le plus de poids aux deux actions les plus rares et
+     coupait la seule liste qu'on parcourt. Décision d'auteur, sur maquette. */
   @media (min-width:780px){
     /* COQUE FIXE (canvas) : le shell verrouille la hauteur — en-tête et pied ne bougent jamais,
        SEULS la sidebar et le contenu scrollent (chacun le sien). C'est pour ça que la sidebar
@@ -8329,12 +8470,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* 255px en border-box (box-sizing global) = le rendu du canvas (230px hors padding). */
     /* scrollbar-gutter DANS les panneaux (pas sur html, cf. v4.2.1) : la bascule
        Aides <-> Protocoles ne fait plus refluer la grille quand la barre apparaît/disparaît. */
-    .home-side{display:flex;flex-direction:column;gap:2px;flex:none;width:250px;background:var(--work);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
+    /* v5.19 : plus de rembourrage ni de défilement ICI — chaque étage porte les siens
+       (.hs-top / .hs-scroll / .hs-foot), sans quoi le socle défilerait avec le reste. */
+    .home-side{display:flex;flex-direction:column;flex:none;width:250px;background:var(--work);border-right:1px solid var(--line);overflow:hidden}
     /* ⚠ PAS DE REMBOURRAGE HAUT SUR LE DÉFILEUR (v5.18, signalé sur captures) : un sticky
        colle 18 px SOUS le bord et les rangées restent lisibles dans la bande du rembourrage,
        au-dessus de l'intertitre. L'air passe au premier enfant — une marge défile, elle. */
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:0 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>:first-child{margin-top:18px}
+    /* ⚠ `#syncErrNotice` est PRÉSENT et masqué : c'est LUI le premier enfant, donc les 18 px
+       tombaient sur une boîte sans hauteur et le contenu touchait l'en-tête (signalé sur
+       capture). Quand il est masqué ET premier, l'air passe à son suivant — jamais les deux. */
+    .home-main>#syncErrNotice[hidden]:first-child+*{margin-top:18px}
     /* C'EST `.home-main` QUI DÉFILE ICI : la barre de sélection colle donc à SON bord, pas sous un
        en-tête qui ne la recouvre jamais (cf. « le décalage dépend de qui défile »).
        ⚠ ET LE REMBOURRAGE HAUT DE LA COLONNE COMPTE AUSSI. Une marge négative ne suffit PAS —
@@ -8365,7 +8512,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home #homeDock .hdr-search{flex:1 1 auto;min-width:0;max-width:640px}
     /* Maquette : en large, le champ est une barre de VOLET (rayon de composant, hauteur de
        rangée, raccourci ⌘K affiché) — la pilule est la forme du POUCE, pas du clavier. */
-    body.view-home #homeDock .hdr-search input{border-radius:var(--r-2);padding-top:8px;padding-bottom:8px;box-shadow:none}
+    body.view-home #homeDock .hdr-search input{border-radius:var(--r-2);padding-top:8px;padding-bottom:8px;padding-right:72px;box-shadow:none}
     body.view-home #homeDock .dock-kbd{display:inline-flex}
     /* … mais il s'efface dès qu'on entre dans le champ ou qu'un texte y vit (la croix prend sa
        place) : le raccourci est une INVITE, pas un meuble. */
@@ -8852,7 +8999,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .att-ix:empty{display:none}
   /* le geste du pied reste soudé à son séparateur : enroulé, « · » ne finit pas orphelin en
      bout de ligne pendant que « Réindexer » part seul à la ligne suivante. */
-  .attix-act{white-space:nowrap}
   /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
   .att-list{display:flex;flex-direction:column;gap:8px}
   .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:13.5px;text-align:left;cursor:pointer}
@@ -9153,7 +9299,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.hs-act,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
      survol = 1 px de lévitation, APPUI = léger enfoncement. transform/opacity SEULEMENT (règle
      v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au
@@ -9516,21 +9662,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        le plus long). Hiérarchie action > statut > métadonnées. -->
   <footer class="tools" id="appFooter">
     <div class="tools-actions">
-    <button class="tlink" id="installBtn">Installer l'app</button>
+    <button class="tlink" id="installBtn"><span class="stg-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></span>Installer l'app</button>
     <!-- Historique GLOBAL des sessions, voie ÉTROITE (< 780px : pas de sidebar) — masqué en
          large par le CSS (la rangée data-sesshist de la sidebar prend le relais) et masqué
          tant qu'aucune session n'est archivée (renderHomeList). -->
-    <button class="tlink" id="histBtn" hidden>Historique des sessions</button>
+    <button class="tlink" id="histBtn" hidden><span class="stg-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8"/><path d="M10 12h4"/></svg></span>Historique des sessions</button>
     <!-- Rejoindre une session, voie ÉTROITE aussi (v5.14.3, signalé à l'usage : « pas de bouton
          sur tablette/smartphone — pas de sidebar ») : même patron que l'historique, masqué en
          large où la rangée data-joinsess de la sidebar prend le relais. Jamais masqué en étroit :
          c'est l'entrée HORS LIGNE de l'invité. -->
-    <button class="tlink" id="joinBtn">Rejoindre une session</button>
+    <button class="tlink" id="joinBtn"><span class="stg-ic hj-ic" aria-hidden="true">⇄</span>Rejoindre une session</button>
     <!-- (« Importer » a déménagé dans le dialogue Créer — méthode « Importer un fichier .json ».) -->
     <!-- « Exporter tout » et la taille du texte vivent désormais dans la fenêtre COMPTE (V5) :
          « Exporter mes données » + sélecteur S/M/L/XL, préférences par utilisateur. -->
     </div>
-    <div class="tools-status"><span class="lbl" id="count"></span><div class="sync-chip" id="syncChip" hidden></div></div>
+    <!-- Synthèse du socle (v5.19.1) : il empilait CINQ rangées de même forme sur 216 px pour dire
+         deux commandes et un état. Au nominal les quatre lignes se replient en une ; dès qu'un
+         fait appelle un geste, elles reprennent la parole telles quelles. -->
+    <div class="storage-gauge foot-sum" id="footSum" hidden></div>
+    <div id="footFold">
+    <div class="tools-status"><div class="sync-chip" id="syncChip" hidden></div><span class="lbl" id="count"></span></div>
     <div class="storage-gauge" id="storageInfo"></div>
     <!-- Vérification hors-ligne des documents PDF (v4.20.0, besoin SMUR : savoir AVANT de
          partir sans réseau si tous les PDF référencés sont bien SUR l'appareil). -->
@@ -9540,6 +9691,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          contenu est trouvable. Masquée quand il n'y a rien à dire (aucun document, ou tout
          indexé et rien de scanné) : un panneau qui affirme « 0 » est du bruit permanent. -->
     <div class="storage-gauge att-offline" id="attIdx" hidden></div>
+    </div>
     <!-- SÉLECTEUR DE FICHIER UNIQUE (v5.0.0) : son `accept` est posé par `pickFile` depuis
          UP_KINDS, donc toujours d'accord avec la signature que la porte vérifiera. Il y en avait
          cinq, chacun avec son propre `accept` écrit à la main. -->
@@ -9889,7 +10041,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.18.5';
+const APP_VERSION='5.19.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10664,7 +10816,7 @@ function mdBlocks(src){
   if(code)out.push(code);   // ``` non refermé : dégradation propre, le contenu reste visible
   flushAll();return out;}
 // Icône de l'encadré typé : réutilise les glyphes de l'app (aucun nouveau dessin).
-const calloutIcon=k=>k==='crit'?uiIcon('warn',13):(k==='vig'?'<span class="mc-g" aria-hidden="true">△</span>':(k==='ok'?uiIcon('check',13,{sw:3}):uiIcon('info',13)));
+const calloutIcon=k=>k==='crit'?uiIcon('warn',14):(k==='vig'?'<span class="mc-g" aria-hidden="true">△</span>':(k==='ok'?uiIcon('check',13,{sw:3}):uiIcon('info',13)));
 // Échelles d'image : jeu FERMÉ (une classe, jamais un nombre interpolé dans un style).
 const MD_SCALES=[25,33,50,66,75,100];
 const MD_SC={25:' w25',33:' w33',50:' w50',66:' w66',75:' w75'};
@@ -10846,7 +10998,9 @@ const main=document.getElementById('main');
    recherche et le filtre vivent dans #homeDock, statique et hors de `main` — plus aucun
    nœud à déménager ni à sauver d'un wipe.) */
 function rescueFooter(){const ft=document.getElementById('appFooter');if(ft&&main.contains(ft))document.querySelector('.app').appendChild(ft);}
-function placeFooter(){const ft=document.getElementById('appFooter');const side=main.querySelector('.home-side');if(ft&&side&&ft.parentNode!==side)side.appendChild(ft);}
+/* v5.19 : le pied atterrit dans le SOCLE (.hs-foot), pas dans la colonne — c'est ce qui le
+   soustrait au défilement des catégories. Repli sur .home-side si le socle manquait. */
+function placeFooter(){const ft=document.getElementById('appFooter');const side=main.querySelector('.home-side .hs-foot')||main.querySelector('.home-side');if(ft&&side&&ft.parentNode!==side)side.appendChild(ft);}
 /* v5.4.1 — OPTION A DU CHROME COCKPIT (décision utilisateur sur maquette : « tout voir, consulter
    et chrono se mettent tout à gauche, mais la bande reste : du contenu du centre perdu »). À
    ≥ 1200 px en lecture de fiche, les DEUX rangées de crise quittent la bande pleine largeur et
@@ -13127,15 +13281,20 @@ async function chooseBackend(){try{await IDB.open();Data=IDB;const ex=await IDB.
    vit dans l'info-bulle et la fenêtre de stockage (openStorageInfo). o = instantané mesuré. */
 function storageState(o){
   const fmt=fmtBytes,used=fmt(o.usage);
-  let main,short,tip;
+  let main,short,tip,mark;
   if(o.signed){
     /* P3-11 (audit design v4.56) : un état NOMINAL permanent n'a pas à affirmer en `--ok` —
        même logique que « le non protégé est neutre » (v4.31.0). Le vert reste à la pastille de
        statut de synchro, qui, elle, change. */
-    main=uiIcon('cloud',13)+' <b>Cloud</b> · '+used+' sur l\'appareil';
+    /* v5.19 : la marque est RENDUE À PART (colonne de 14 px partagée avec les autres rangées du
+       pied) — dans le texte, elle décalait le premier mot d'une largeur qui changeait avec
+       l'état, et les deux états « cet appareil » n'en avaient aucune. */
+    mark=uiIcon('cloud',14);
+    main='<b>Cloud</b> · '+used+' sur l\'appareil';
     short=uiIcon('cloud',12)+' Cloud · '+used+' sur l\'appareil';
     tip='Vos fiches sont sauvegardées dans le cloud. Le « '+used+' » est seulement la copie hors-ligne sur CET appareil (sa limite, '+fmt(o.quota)+', ne concerne donc pas vos données) : même effacée du navigateur ou depuis un autre appareil, vous retrouvez tout en vous reconnectant. C\'est l\'intérêt de la synchronisation.';
   }else if(o.pers===true){
+    mark=uiIcon('phone',14);
     main='<b>Cet appareil seulement</b> · '+used+' · copie unique';
     short='Cet appareil seulement · '+used;
     tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(o.quota)+'), ici à l\'abri d\'un effacement automatique du navigateur. Connectez-vous pour la sauvegarder dans le cloud et y accéder depuis vos autres appareils.';
@@ -13144,12 +13303,13 @@ function storageState(o){
     // blindness) et émousse l'ambre des états réellement actionnables (« presque plein »,
     // documents PDF manquants). L'information reste entière : le mot « non protégé » + la
     // bulle d'aide disent le risque ; l'ambre est réservé à ce qui appelle un geste MAINTENANT.
+    mark=uiIcon('phone',14);
     main='<b>Cet appareil seulement</b> · '+used+' · non protégé';
     short='Cet appareil seulement · '+used;
     tip='Sans compte, cet appareil contient votre SEULE copie ('+used+' / '+fmt(o.quota)+') et le navigateur pourrait l\'effacer. Pour éviter toute perte : connectez-vous (sauvegarde dans le cloud) ou installez l\'app sur l\'écran d\'accueil.';
   }
   // « presque plein » : variante LONGUE seulement (le pied de lecture reste court et non alarmant).
-  if(o.quota&&o.usage/o.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',13)+' presque plein</span>';
+  if(o.quota&&o.usage/o.quota>0.85)main+=' · <span class="pers-warn">'+uiIcon('warn',14)+' presque plein</span>';
   /* D7 (audit design v4.56) : en extra-hospitalier le réseau tombe — et l'app fonctionne
      ENTIÈREMENT en local, mais rien ne le disait au moment où ça inquiète. Encre NEUTRE : c'est
      un état nominal (doctrine « le non protégé est neutre »), l'ambre reste pour un échec
@@ -13158,7 +13318,7 @@ function storageState(o){
     main+=' · Hors ligne — tout fonctionne sur l’appareil';
     short+=' · Hors ligne';}
   if(o.attBytes)tip+=' Dont '+fmt(o.attBytes)+' de documents PDF joints.';
-  return {main,short,tip};
+  return {main,short,tip,mark};
 }
 // Dernier état mesuré : le pied des vues de lecture se rend de façon SYNCHRONE, alors que
 // l'estimation du stockage est asynchrone -> on garde l'instantané pour que le rendu dispose
@@ -13200,7 +13360,10 @@ function paintStorage(){
     _stgSnap.signed=(typeof Auth!=='undefined'&&Auth.signedIn());}
   const s=_stgSnap?storageState(_stgSnap):null;
   const el=document.getElementById('storageInfo');
-  if(el){el.innerHTML=s?s.main:'';if(s)el.title=s.tip;}
+  if(el){el.innerHTML=s?('<span class="stg-ic">'+(s.mark||'')+'</span><span class="stg-tx">'+s.main+'</span>'
+    +uiIcon('chev',14,{sw:2.4,cls:'stg-chev'})):'';
+    if(s)el.title=s.tip;}
+  if(typeof syncFootSum==='function')syncFootSum();   // le stockage entre dans la décision de repli
   const cf=main&&main.querySelector?main.querySelector('.crisis-footer .cf-stg'):null;
   if(cf){cf.innerHTML=s?s.short:'';if(s)cf.title=s.tip;}
 }
@@ -13210,21 +13373,37 @@ function paintStorage(){
 // ou compte des manquants (△ ambre, registre ATTENTION) avec bouton « Télécharger » immédiat —
 // sans attendre le téléchargement de fond de la prochaine synchro. Rafraîchie avec l'état de
 // stockage, à la fin des téléchargements de fond et après un téléchargement manuel.
-async function refreshAttOffline(){
+/* `_attSum` retient le compte de chaque ligne de documents QUAND elle est au nominal (null
+   sinon) : la synthèse ne se déduit jamais du HTML rendu. Seul l'enrobage note l'état. */
+const _attSum={off:null,idx:null};
+let _footOpen=false;
+async function refreshAttOffline(){try{await _attOfflineBody();}finally{syncFootSum();}}
+/* Rangée d'état : marque · texte · action éventuelle — la même grammaire que #storageInfo et la
+   synthèse, donc la même grille. */
+const stgRow=(mark,txt,act)=>'<span class="stg-ic">'+mark+'</span><span class="stg-tx">'+txt+'</span>'+(act||'');
+const stgAct=(id,lbl)=>'<button class="tlink stg-act" id="'+id+'">'+lbl+'</button>';
+async function _attOfflineBody(){
   const el=document.getElementById('attOffline');if(!el)return;
+  /* 0 et non `null` quand il n'y a RIEN à dire (pas de documents, pas de support) : `null` veut
+     dire « cette ligne a quelque chose à demander » et forcerait le dépliant ouvert à vie chez
+     quelqu'un qui n'a joint aucun PDF. */
+  _attSum.off=0;
   if(!supportsAttachments()){el.hidden=true;return;}
   let info=null;
   try{info=attMissingInfo((fiches||[]).concat(protocols||[]),await IDB.getAttIds(),
     (typeof Auth!=='undefined'&&Auth.signedIn())?(Auth.user()||{}).id:null);}catch(e){}
   if(!info||!info.total){el.hidden=true;return;}
-  el.hidden=false;
+  el.hidden=false;_attSum.off=null;
   if(!info.missing.length){
-    el.innerHTML=uiIcon('check',12)+' Documents PDF : tous sur cet appareil ('+info.total+')';   // P3-11 : nominal = neutre
+    _attSum.off=info.total;
+    el.innerHTML=stgRow(uiIcon('check',14),info.total+' document'+(info.total>1?'s':'')+' sur l’appareil');   // P3-11 : nominal = neutre
     el.title='Les '+info.total+' documents PDF référencés par vos fiches et protocoles sont téléchargés : consultables sans aucun réseau (mode avion, zone blanche).';
     return;}
   const n=info.missing.length;
-  el.innerHTML='<span class="pers-warn">'+uiIcon('warn',12)+' '+n+' document'+(n>1?'s':'')+' PDF pas encore sur cet appareil</span>'
-    +(Object.keys(info.paths).length?' · <button class="tlink" id="attOffDl">Télécharger</button>':' · connectez-vous avec du réseau pour les récupérer');
+  el.innerHTML=stgRow('<span class="pers-warn">'+uiIcon('warn',14)+'</span>',
+    '<span class="pers-warn">'+n+' document'+(n>1?'s':'')+' à télécharger</span>',
+    Object.keys(info.paths).length?stgAct('attOffDl','Télécharger'):'');
+  if(!Object.keys(info.paths).length)el.title='Connectez-vous avec du réseau pour les récupérer.';
   el.title='Ces documents ne seraient pas consultables sans réseau. Téléchargez-les avant de partir en intervention.';
   const b=document.getElementById('attOffDl');if(b)b.onclick=()=>dlMissingAtts();
 }
@@ -13234,10 +13413,12 @@ async function refreshAttOffline(){
    `ixLoadAll`) : cette ligne est devenue un INDICATEUR d'avancement, et son bouton « Indexer »
    un filet pour les cas où la file s'est arrêtée (essais épuisés, stockage plein) — plus jamais
    le chemin nominal. */
-async function refreshAttIdx(){
+async function refreshAttIdx(){try{await _attIdxBody();}finally{syncFootSum();}}
+async function _attIdxBody(){
   paintIxChips();   // la rangée de l'éditeur et la ligne du pied disent la MÊME chose
   const el=document.getElementById('attIdx');if(!el)return;
-  if(!supportsAttachments()){el.hidden=true;return;}
+  _attSum.idx=null;
+  if(!supportsAttachments()){el.hidden=true;_attSum.idx=0;return;}
   let pend=[];try{pend=await ixPending();}catch(e){}
   const stalled=ixStalled();
   const vals=[...attIx.values()];
@@ -13252,13 +13433,14 @@ async function refreshAttIdx(){
   el.hidden=false;
   // 1. EN COURS — l'état vivant passe avant tout le reste.
   if(_ixBusy||_ixQ.length){
-    el.innerHTML=uiIcon('doc',12)+' Indexation des documents en cours… ('+(_ixQ.length+1)+' restant'+pluriel(_ixQ.length+1)+')';
+    el.innerHTML=stgRow(uiIcon('doc',14),'Indexation en cours ('+(_ixQ.length+1)+')');
     el.title='Le contenu des PDF devient consultable par la recherche. Vous pouvez continuer à utiliser l’application.';
     return;}
   // 2. BLOQUÉ — essais épuisés dans cette session. Registre ATTENTION : quelque chose est à faire.
   if(stalled.length){
-    el.innerHTML='<span class="pers-warn">'+uiIcon('warn',12)+' '+stalled.length+' document'+pluriel(stalled.length)+' PDF non indexé'+pluriel(stalled.length)+' (échec)</span>'
-      +' · <button class="tlink" id="attIdxGo">Réessayer</button>';
+    el.innerHTML=stgRow('<span class="pers-warn">'+uiIcon('warn',14)+'</span>',
+      '<span class="pers-warn">'+stalled.length+' document'+pluriel(stalled.length)+' non indexé'+pluriel(stalled.length)+'</span>',
+      stgAct('attIdxGo','Réessayer'));
     el.title='L’indexation a échoué plusieurs fois — le plus souvent parce que la visionneuse PDF n’est pas encore téléchargée, ou que le stockage est saturé. Le document reste consultable ; seule la recherche dans son contenu manque.';
     {const b=document.getElementById('attIdxGo');
      if(b)b.onclick=()=>{Promise.all(stalled.map(ixReset)).then(refreshAttIdx);};}
@@ -13266,26 +13448,49 @@ async function refreshAttIdx(){
   // 3. À FAIRE — documents déjà là, jamais indexés (le rattrapage reste un GESTE, jamais une
   //    tâche de fond spontanée).
   if(pend.length){
-    el.innerHTML=uiIcon('doc',12)+' '+pend.length+' document'+pluriel(pend.length)+' PDF pas encore indexé'+pluriel(pend.length)
-      +' · <button class="tlink" id="attIdxGo">Indexer</button>';
+    el.innerHTML=stgRow(uiIcon('doc',14),pend.length+' document'+pluriel(pend.length)+' à indexer',
+      stgAct('attIdxGo','Indexer'));
     el.title='Tant qu’un document n’est pas indexé, la recherche ne trouve pas ce qu’il contient (elle trouve la fiche qui le porte).';
     relance();return;}
   // 4. SANS TEXTE — un scan n'est pas un échec, c'est un document sans rien à indexer.
   if(scans||bad){
     const n=scans+bad;
-    el.innerHTML='<span class="pers-warn">'+uiIcon('warn',12)+' '+n+' document'+pluriel(n)+' PDF sans texte'
+    el.innerHTML=stgRow('<span class="pers-warn">'+uiIcon('warn',14)+'</span>',
+      '<span class="pers-warn">'+n+' document'+pluriel(n)+' sans texte'
       +(scans&&!bad?' (scanné'+pluriel(scans)+')':(bad&&!scans?' (illisible'+pluriel(bad)+')':''))+'</span>'
-      +(done?' · '+done+' indexé'+pluriel(done):'')
-      +'<span class="attix-act"> · <button class="tlink" id="attIdxAll">Réindexer</button></span>';
+      +(done?' · '+done+' indexé'+pluriel(done):''),
+      stgAct('attIdxAll','Réindexer'));
     el.title='Un document scanné est une image de pages : il n’a aucun texte à indexer, la recherche ne peut pas trouver ce qu’il contient. Il reste consultable normalement.';
     tout();return;}
   // 5. NOMINAL — confirmation positive, et la porte de sortie de tout doute sur l'index.
   if(done){
-    el.innerHTML=uiIcon('check',12)+' Documents PDF : contenu trouvable par la recherche ('+done+')'
-      +'<span class="attix-act"> · <button class="tlink" id="attIdxAll">Réindexer</button></span>';
+    _attSum.idx=done;
+    el.innerHTML=stgRow(uiIcon('check',14),'Recherche dans les documents',stgAct('attIdxAll','Réindexer'));
     el.title='Le texte de ces documents est indexé : la recherche y trouve un mot et vous mène à la page. « Réindexer » reconstruit l’index si un résultat vous paraît faux — les documents ne sont pas touchés.';
     tout();return;}
-  el.hidden=true;}
+  el.hidden=true;_attSum.idx=0;return;}
+/* SYNTHÈSE DU SOCLE (S1) : une ligne quand tout est prêt, dépliée SUR PLACE à la demande (pas de
+   fenêtre, règle 11). Ouverture forcée par les faits ACTIONNABLES seuls : documents manquants ou
+   index en échec, synchro err/pending/rejected, stockage presque plein. « Hors-ligne » et
+   « en cours » n'y sont pas — ils se résolvent seuls, et les états actionnables lèvent déjà
+   `#syncErrNotice`. L'ouverture est volatile par choix. */
+function syncFootSum(){
+  const s=document.getElementById('footSum'),f=document.getElementById('footFold');
+  if(!s||!f)return;
+  const chip=document.getElementById('syncChip');
+  const syncBad=!!(chip&&!chip.hidden&&(chip.classList.contains('err')||chip.classList.contains('pending')||chip.classList.contains('rejected')));
+  const stgBad=!!(_stgSnap&&_stgSnap.quota&&_stgSnap.usage/_stgSnap.quota>0.85);
+  const ok=(_attSum.off!=null&&_attSum.idx!=null)&&!syncBad&&!stgBad;
+  if(!ok){s.hidden=true;s.innerHTML='';f.hidden=false;_footOpen=false;return;}
+  s.hidden=false;f.hidden=!_footOpen;
+  s.innerHTML='<button type="button" class="foot-more" id="footMore" aria-expanded="'+(_footOpen?'true':'false')+'">'
+    +'<span class="stg-ic">'+uiIcon('check',14)+'</span>'
+    +'<span class="foot-t">Tout est prêt</span>'
+    +'<span class="foot-v">v'+esc(APP_VERSION)+'</span>'
+    +uiIcon('chev',14,{sw:2.4,cls:'foot-chev'})+'</button>';
+  s.title='Rien ne demande d’action : fiches enregistrées, documents sur l’appareil et trouvables par la recherche. Dépliez pour le détail.';
+  const b=document.getElementById('footMore');
+  if(b)b.onclick=()=>{_footOpen=!_footOpen;syncFootSum();};}
 // Téléchargement MANUEL des documents manquants (même chemin cloud que _syncAttachments —
 // séquentiel, progression affichée dans la ligne, bilan en snackbar). Une erreur par document
 // n'arrête pas les autres (un document jamais envoyé depuis son appareil d'origine est
@@ -15822,6 +16027,14 @@ function catbarHtml(){
   return `<div class="catbar"><span class="scope-lbl">Catég.</span><div class="chiprow">${chips}</div></div>`;}
 // Colonne gauche de l'accueil LARGE (>= 780px, canvas turn 6) : sections, bibliothèques (avec
 // compte d'éléments de la section active), catégories (pastille + compte), actions Gérer/Créer.
+/* UNE SEULE FABRIQUE DE RANGÉE (v5.19.1) : marque 14 px (vide si aucune), libellé, acte éventuel,
+   puis le nombre au bord droit de l'ENVELOPPE — un bouton n'en contient pas un autre, et le
+   crayon doit passer avant le nombre pour que les deux colonnes de comptes s'alignent. */
+function hsRow(o){
+  return `<div class="hs-wrap${o.on?' on':''}${o.cls?' '+o.cls:''}">`
+    +`<button class="hs-row" ${o.attrs||''}><span class="hs-mk">${o.mark||''}</span>`
+    +`<span class="hs-name">${o.label}</span></button>${o.act||''}${o.tail||''}</div>`;}
+const HS_RING='<span class="hs-ring"></span>';
 function homeSideHtml(){
   /* v5.18 (décision utilisateur) — LA SIDEBAR FILTRE, À UNE SEULE GRAMMAIRE ; « Rangé par »
      LIT. Bibliothèques : « Toutes » (défaut, l'union) ou une seule — un filtre de VUE, patron
@@ -15834,30 +16047,49 @@ function homeSideHtml(){
   const scope=visAll.filter(homeLibOn);
   const cnt=Object.create(null);
   scope.forEach(x=>{const c=catOf(x);if(c)cnt[c.id]=(cnt[c.id]||0)+1;});
-  const bibIdx=`<div class="hs-wrap"><button class="hs-row${state.homeLib==null?' on':''}" data-libsel="*" aria-pressed="${state.homeLib==null?'true':'false'}"><span class="hs-name">Toutes</span><span class="hs-n">${visAll.length}</span></button><span class="hs-act" aria-hidden="true"></span></div>`
+  const num=n=>`<span class="hs-n">${n}</span>`;
+  const bibIdx=hsRow({on:state.homeLib==null,mark:HS_RING,label:'Toutes',tail:num(visAll.length),
+      attrs:`data-libsel="*" aria-pressed="${state.homeLib==null?'true':'false'}"`})
     +bibs.filter(g=>g.key!=null).map(g=>{
     const admin=g.lib&&(g.lib.role==='admin'||myIsAppAdmin);
     const ro=g.lib&&!canEditScope(g.lib.id);
     const on=state.homeLib===g.key;
-    return `<div class="hs-wrap"><button class="hs-row${on?' on':''}" data-libsel="${esc(g.key)}" aria-pressed="${on?'true':'false'}">`
-      +`<span class="hs-name">${esc(g.L)}</span><span class="hs-n">${g.items.length}</span></button>${
-        admin?`<button class="hs-act" data-libedit="${esc(g.lib.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(g.L)} »">${uiIcon('pen',14)}</button>`
+    return hsRow({on,label:esc(g.L),tail:num(g.items.length),
+      attrs:`data-libsel="${esc(g.key)}" aria-pressed="${on?'true':'false'}"`,
+      act:admin?`<button class="hs-act" data-libedit="${esc(g.lib.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(g.L)} »">${uiIcon('pen',14)}</button>`
         :(ro?`<span class="hs-act" title="Lecture seule — bibliothèque institutionnelle">${uiIcon('lock',14)}</span>`
-        :(g.lib?`<span class="hs-act" title="Lecture-écriture">${uiIcon('lockopen',14)}</span>`:`<span class="hs-act" aria-hidden="true"></span>`))
-      }</div>`;}).join('');
+        :(g.lib?`<span class="hs-act" title="Lecture-écriture">${uiIcon('lockopen',14)}</span>`:''))});}).join('');
   const catIdx=categories.filter(c=>(cnt[c.id]||0)>0||state.cat===c.id).sort(byCatName).map(c=>
-    `<button class="hs-row${state.cat===c.id?' on':''}" data-cat="${esc(c.id)}" aria-pressed="${state.cat===c.id?'true':'false'}">`
-    +`<span class="cat-dot" style="--catcol:${safeColor(c.color)}"></span>`
-    +`<span class="hs-name">${esc(c.name)}</span><span class="hs-n">${cnt[c.id]||0}</span></button>`).join('');
+    hsRow({on:state.cat===c.id,label:esc(c.name),tail:num(cnt[c.id]||0),
+      mark:`<span class="cat-dot" style="--catcol:${safeColor(c.color)}"></span>`,
+      attrs:`data-cat="${esc(c.id)}" aria-pressed="${state.cat===c.id?'true':'false'}"`})).join('');
+  /* LA REMISE À ZÉRO DES CATÉGORIES MANQUAIT (v5.19). « Toutes » existait pour les bibliothèques,
+     rien pour les catégories : on ne pouvait revenir à l'union qu'en re-tapant la rangée active —
+     un geste que rien n'annonce. Une seule grammaire des deux côtés, et le compte est celui du
+     PÉRIMÈTRE (bibliothèque choisie), pas de l'application entière. */
+  const catAll=hsRow({on:!state.cat,mark:HS_RING,label:'Toutes les catégories',tail:num(scope.length),
+    attrs:`data-catall aria-pressed="${state.cat?'false':'true'}"`});
+  const chev=`<span class="hs-chev">${uiIcon('chev',14,{sw:2.2,cls:''})}</span>`;
   return `<aside class="home-side">
-    <div class="hs-h">Bibliothèques</div>${bibIdx}
-    ${myIsAppAdmin?`<button class="hs-add" data-newlib>＋ Nouvelle bibliothèque</button>`:''}
-    <div class="hs-sep"></div>
-    <div class="hs-h">Catégories</div>${catIdx}
-    <button class="btn-manage-cats" data-catmgr aria-haspopup="dialog">${uiIcon('gear',13)} Gérer les catégories</button>
-    ${(()=>{const n=sessions.filter(x=>!x.live).length;
-      return n?`<div class="hs-sep"></div><button class="hs-row" data-sesshist aria-haspopup="dialog">${uiIcon('archive',16)}<span class="hs-name">Historique des sessions</span><span class="hs-n">${n}</span></button>`:'';})()}
-    <div class="hs-sep"></div><button class="hs-row" data-joinsess aria-haspopup="dialog"><span class="hj-ic" aria-hidden="true">⇄</span><span class="hs-name">Rejoindre une session</span></button>
+    <div class="hs-top">
+      <div class="hs-h">Bibliothèques</div>${bibIdx}
+      ${myIsAppAdmin?hsRow({cls:'quiet',label:'Nouvelle bibliothèque',attrs:'data-newlib',
+        mark:uiIcon('plus',14)}):''}
+      <div class="hs-sep"></div>
+    </div>
+    <div class="hs-scroll">
+      <div class="hs-h hs-h-stick">Catégories</div>${catAll}${catIdx}
+      ${hsRow({cls:'quiet',label:'Gérer les catégories',mark:uiIcon('gear',14),
+        attrs:'data-catmgr aria-haspopup="dialog"'})}
+    </div>
+    <div class="hs-foot">
+      <div class="hs-sep"></div>
+      ${(()=>{const n=sessions.filter(x=>!x.live).length;
+        return n?hsRow({cls:'hs-cmd',label:'Historique des sessions',mark:uiIcon('archive',14),
+          tail:chev,attrs:'data-sesshist aria-haspopup="dialog"'}):'';})()}
+      ${hsRow({cls:'hs-cmd',label:'Rejoindre une session',mark:'<span class="hj-ic" aria-hidden="true">⇄</span>',
+        tail:chev,attrs:'data-joinsess aria-haspopup="dialog"'})}
+    </div>
   </aside>`;}
 // Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderFiches/renderProtocols).
 // RECHERCHE TRANSVERSALE : la même requête est aussi évaluée sur L'AUTRE section (en urgence, on
@@ -15989,6 +16221,10 @@ function bindHomeChrome(rerender){
      re-tap = retirer. C'est elle qui remplace le déclencheur de filtre en voie large. */
   main.querySelectorAll('.home-side [data-cat]').forEach(b=>b.onclick=()=>{
     state.cat=(state.cat===b.dataset.cat)?null:b.dataset.cat;rerender();});
+  // « Toutes les catégories » : retour à l'union, sans toucher à la bibliothèque (un verbe par
+  // commande). Idempotent — re-taper la rangée déjà active ne fait rien.
+  main.querySelectorAll('.home-side [data-catall]').forEach(b=>b.onclick=()=>{
+    if(state.cat===null)return;state.cat=null;rerender();});
   // Historique GLOBAL des sessions (v4.56.0, demande utilisateur) : la fenêtre existante en mode
   // « toutes les fiches » — l'entrée par fiche du menu ⋯ est inchangée.
   qsa('[data-sesshist]').forEach(b=>b.onclick=()=>openSessHist());
@@ -16290,6 +16526,7 @@ function paintDirLive(){
 const EMPTY_INTRO={
   fiches:{titre:'Aucune aide cognitive',
     lede:'Une aide cognitive <strong>se déroule</strong> pendant le soin.',
+    dlg:'Elle <strong>se déroule</strong> pendant le soin : des étapes qu\'on coche, des décisions qui aiguillent, des minuteurs qui tournent.',
     cta:'Créer une aide cognitive',
     lignes:[
       {ic:'check',t:'Des étapes',d:'qu\'on coche une par une, groupées en blocs.'},
@@ -16299,6 +16536,7 @@ const EMPTY_INTRO={
       {ic:'stopwatch',t:'Minuteurs et compteurs',d:'qui tournent pendant la session.'}]},
   protocols:{titre:'Aucun protocole',
     lede:'Un protocole <strong>se lit</strong> : une référence, une procédure, un PDF.',
+    dlg:'Il <strong>se lit</strong> : une référence, une procédure, un PDF — sans session ni minuteur.',
     cta:'Créer un protocole',
     lignes:[
       {ic:'doc',t:'Un texte qu\'on parcourt',d:'— titres, listes, tableaux, encadrés, et les PDF joints.'},
@@ -16310,12 +16548,34 @@ function emptyIntroHtml(kind){const c=EMPTY_INTRO[kind];if(!c)return '';
     <ul class="emp-anat">${c.lignes.map(l=>
       `<li><span class="emp-ic"${l.ton?` data-ton="${l.ton}"`:''}>${uiIcon(l.ic,16)}</span><span><b>${l.t}</b> ${l.d}</span></li>`).join('')}</ul>
     <button class="btn primary" data-emptynew="${kind}">${c.cta}</button></div>`;}
+/* ⚠ UN SEUL BANDEAU QUAND LES DEUX NATURES COEXISTENT (v5.19.1, signalé à l'usage). Les deux
+   cartes ont été écrites quand l'accueil était filtré PAR TYPE : chacune paraissait seule, en
+   réponse à « cette liste-là est vide ». Depuis que la liste est l'UNION (v5.18), elles
+   s'empilent toujours ensemble — deux titres « Aucune… », deux boutons primaires, et la question
+   qu'on se pose vraiment (« quelle est la différence ? ») n'est répondue nulle part. Un seul
+   bandeau la pose donc de front, les deux natures côte à côte, et garde UN bouton plein (règle
+   de grammaire : une seule action primaire) ; le second est en contour. */
+function emptyIntroBothHtml(){
+  const bloc=k=>{const c=EMPTY_INTRO[k];
+    return `<div class="emp-nat"><b class="emp-nat-t">${k==='fiches'?'Aide cognitive':'Protocole'}</b>
+      <p class="emp-lede">${c.lede.replace(/^Une aide cognitive |^Un protocole /,'')}</p>
+      <ul class="emp-anat">${c.lignes.slice(0,3).map(l=>
+        `<li><span class="emp-ic"${l.ton?` data-ton="${l.ton}"`:''}>${uiIcon(l.ic,16)}</span><span><b>${l.t}</b> ${l.d}</span></li>`).join('')}</ul></div>`;};
+  return `<div class="empty emp-intro"><b>Votre bibliothèque est vide</b>
+    <p class="emp-lede">Deux natures de contenu, deux usages — vous pouvez créer les deux.</p>
+    <div class="emp-duo">${bloc('fiches')}${bloc('protocols')}</div>
+    <div class="emp-cta">
+      <button class="btn primary" data-emptynew="fiches">${EMPTY_INTRO.fiches.cta}</button>
+      <button class="btn" data-emptynew="protocols">${EMPTY_INTRO.protocols.cta}</button>
+    </div></div>`;}
 /* Le bouton d'une carte crée SON type : on aligne le filtre d'accueil avant d'ouvrir, puisque
-   `state.section` est la source unique du type dans le dialogue « Créer » (v4.4.2) — c'est le
-   même aiguillage que son sélecteur segmenté, et le retour de l'éditeur retrouve la bonne liste. */
-function openCreateFor(kind){
-  if(state.section!==kind)setSection(kind,true,{keepCat:true,silent:true});
-  openCreateDlg();}
+   ⚠ LE TYPE À CRÉER N'EST PLUS `state.section` (v5.19.1, signalé à l'usage : « Créer → aide
+   cognitive mène à une vue filtrée qui n'est plus censée exister »). Il l'était depuis la v4.4.2,
+   quand l'accueil ÉTAIT une liste par type : choisir ce qu'on allait créer et filtrer ce qu'on
+   regardait étaient alors le même geste. Depuis la v5.18 la liste est l'UNION et le type est un
+   filtre de recherche : emprunter `state.section` filtrait la vue DERRIÈRE le dialogue, sans que
+   rien ne l'ait demandé. Le dialogue a donc son propre cran, `_crtKind`. */
+function openCreateFor(kind){_crtKind=(kind==='protocols')?'protocols':'fiches';openCreateDlg();}
 /* ═══ A170 — SÉLECTION MULTIPLE DANS LA BIBLIOTHÈQUE ══════════════════════════════════════════
    Demande de l'auteur : « déplacer plusieurs fiches (entre bibliothèques, entre catégories),
    supprimer plusieurs fiches à la fois (avec pour la suppression une confirmation forte) ».
@@ -16639,7 +16899,8 @@ function renderHomeList(cfg){
   const dansFiltre=!!(state.q||state.cat);
   const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
   const emptyHtml=introK.length
-    ?(state.scope?emptyLine('Cette bibliothèque partagée est vide.'):'')+introK.map(emptyIntroHtml).join('')
+    ?(state.scope?emptyLine('Cette bibliothèque partagée est vide.'):'')
+      +(introK.length>1?emptyIntroBothHtml():introK.map(emptyIntroHtml).join(''))
     :`<div class="empty"><b>${dansFiltre?'Aucun résultat':cfg.empty.title}</b>${
         dansFiltre?(state.q?'Rien ne correspond à cette recherche.':'Rien ne correspond à ce filtre.')
                   :cfg.empty.libRead}</div>`;
@@ -16697,8 +16958,11 @@ function renderHomeList(cfg){
          AUSSI dans le répertoire (un raccourci ne déménage rien). */
       (tiles.length&&!state.selOn?`<div class="qa-sec"><div class="dir-h"><b>Accès direct</b><span class="dir-hs">${tiles.length} épinglée${tiles.length>1?'s':''}</span></div>
         <div class="qa-grid">${tiles.map(cfg.tile).join('')}</div></div>`:'')
-      +`<div class="grp-row">${(list.length&&!state.selOn&&!desk)?homeRangHtml()+selTogHtml():''}</div>`
+      /* v5.19.1 (signalé à l'usage) : en voie ÉTROITE, « Rangé par » et « Sélectionner » passent
+         SOUS l'intertitre « Répertoire » — ils gouvernent cette liste, ils ne la précèdent pas.
+         En large ils vivent déjà DANS la rangée du titre (`desk`), rien n'y change. */
       +`<div class="dir-h"><b>Répertoire</b>${desk&&!state.selOn?homeRangHtml():''}<span class="dir-hs">${list.length} ${cfg.countLbl(list.length)}${majTail}${filtTail}</span>${desk?selTogHtml():''}</div>`
+      +`<div class="grp-row">${(list.length&&!state.selOn&&!desk)?homeRangHtml()+selTogHtml():''}</div>`
       +`<div class="dir-book">`
       +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}">${secHead(g)}<div class="dir-grid">${g.items.map(rowFor).join('')}</div></div>`).join('')
       +`</div>`
@@ -18178,6 +18442,7 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
      dessin pour la même idée serait deux choses à apprendre (règle du menu ⋯). */
   table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M9.5 9.5V20M3 15h18"/>',
   phone:'<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.2h2"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
   /* « VOUS » — le pendant de `book` sur la pastille de provenance (`searchLibTag` : « 🕮 Partagée »
      contre « Perso »). Il MANQUAIT, et `uiIcon` rend alors un <svg> de la bonne taille SANS aucun
      tracé : la pilule « Perso » réservait 11 px de vide, un dessin absent ne se voyant ni à la
@@ -22309,7 +22574,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        dont les items ne sont pas des boîtes ne peut pas être espacée par `gap` — c'est la boîte
        qui reçoit l'écart, pas le texte. */
     const _lg=[];
-    if(_its.some(it=>+it.level===3))_lg.push(uiIcon('warn',12)+' vital');
+    if(_its.some(it=>+it.level===3))_lg.push(uiIcon('warn',14)+' vital');
     if(_its.some(it=>+it.level===2))_lg.push('△ à vérifier');
     if(_its.some(it=>(it.expect||'').trim()))_lg.push('<span class="lg-r">réponse</span> attendue');
     const legH=_lg.length?`<div class="stp-legend">${_lg.map(x=>`<span class="lg-it">${x}</span>`).join('')}</div>`:'';
@@ -22692,7 +22957,7 @@ function refSheetHtml(f){
      dessin est repris, la duplication non — à rouvrir ensemble si l'arbitrage a changé. */
   const rsRow=x=>{const cr=stepCR(stepText(x));
     const cl=stepIsCrit(x)?' crit':(stepIsVigil(x)?' vig':'');
-    return `<div class="rs-row${cl}"><span class="rs-t">${cl===' crit'?uiIcon('warn',13)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="rs-v">${esc(cr.r)}</span>`:''}</div>`;};
+    return `<div class="rs-row${cl}"><span class="rs-t">${cl===' crit'?uiIcon('warn',14)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="rs-v">${esc(cr.r)}</span>`:''}</div>`;};
   const ddx=clean(listOf(f,'differentials'));
   const diff=ddx.length?`<div class="rs-rows">${ddx.map(rsRow).join('')}</div>`:'';
   const gal=(f.images||[]).length?`<div class="gallery">${f.images.map(im=>`<div class="gthumb"><img src="${im.data}" data-full="${im.data}" data-cap="${esc(im.caption||'')}" alt="${esc(im.caption||'')}"${im.w&&im.h?` width="${im.w}" height="${im.h}"`:''} loading="lazy" decoding="async">${im.caption?`<div class="gcap">${esc(im.caption)}</div>`:''}</div>`).join('')}</div>`:'';
@@ -24122,14 +24387,14 @@ async function refreshPreReady(f){
   const n=info.total,doc=n+' document'+(n>1?'s':'');
   if(!info.missing.length){
     el.className='pre-ready';
-    el.innerHTML=uiIcon('check',13)+' '+esc(doc)+' · tous disponibles hors ligne';
+    el.innerHTML=uiIcon('check',14)+' '+esc(doc)+' · tous disponibles hors ligne';
     el.title='Consultables sans aucun réseau (mode avion, zone blanche).';return;}
   /* Le NOM de ce qui manque, pas seulement le compte : « un document » n'aide pas à décider s'il
      faut attendre le réseau, « Protocole SFAR 2024 » oui. Au-delà d'un manquant, on compte. */
   const noms=(f.docs||[]).filter(a=>a&&info.missing.indexOf(a.id)>=0).map(a=>a.name||'sans nom');
   const quoi=noms.length===1?' ('+esc(noms[0])+')':'';
   el.className='pre-ready warn';
-  el.innerHTML=uiIcon('warn',13)+' '+esc(doc)+' · <b>'+noms.length+' non disponible'
+  el.innerHTML=uiIcon('warn',14)+' '+esc(doc)+' · <b>'+noms.length+' non disponible'
     +(noms.length>1?'s':'')+' hors ligne</b>'+quoi
     /* Sans compte ni chemin de stockage, il n'y a rien à télécharger : on dit POURQUOI plutôt que
        d'omettre le geste — une absence non expliquée se lit comme une panne (même phrase que la
@@ -24168,7 +24433,7 @@ function ovParcoursHtml(f){
   const bx='<span class="pc-box" aria-hidden="true"></span>';
   const item=st=>{const cr=stepCR(stepText(st));
     const cl=stepIsCrit(st)?' crit':(stepIsVigil(st)?' vig':'');
-    return `<div class="pc-it${cl}">${bx}<span class="pc-t">${cl===' crit'?uiIcon('warn',13)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="pc-r">${esc(cr.r)}</span>`:''}</div>`;};
+    return `<div class="pc-it${cl}">${bx}<span class="pc-t">${cl===' crit'?uiIcon('warn',14)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="pc-r">${esc(cr.r)}</span>`:''}</div>`;};
   const nb=plan.order.length;
   let h=`<div class="pc-sub"><b>Fiche entière · ${nb} bloc${nb>1?'s':''}</b><span>lecture — la coche vit au bloc</span></div>`;
   {const ent=clean(listOf(f,'confirmation')),ddx=clean(listOf(f,'differentials'));
@@ -24463,7 +24728,7 @@ function svCartoucheHtml(f){
     +`<div class="sv-cid"><div class="sv-csur">${esc(['Aide cognitive'].concat(sur).join(' · '))}</div>`
     +`<div class="sv-ctitle">${esc(f.title||'Sans titre')}</div></div>`
     +((rev||cnt)?`<div class="sv-cmeta">${rev?`révision <b>${esc(rev)}</b>`:''}${cnt?`<span class="sv-cnt">${esc(cnt)}</span>`:''}</div>`:'')
-    +(warn.length?`<div class="sv-cwarn">${warn.map(w=>`${uiIcon('warn',13)} ${esc(w)}`).join('<br>')}</div>`:'')
+    +(warn.length?`<div class="sv-cwarn">${warn.map(w=>`${uiIcon('warn',14)} ${esc(w)}`).join('<br>')}</div>`:'')
     +`</div>`;}
 
 /* ── LOT 1 · LES BANDES ───────────────────────────────────────────────────────────────────────
@@ -24479,7 +24744,7 @@ function svBandTopHtml(f){
   const cells=[];
   if(conf.length)cells.push(svCellHtml('','Reconnaître — critères d’entrée',conf));
   if(diff.length)cells.push(svCellHtml('','Éliminer — tableau atypique ?',diff));
-  if(nf.length)cells.push(svCellHtml(' sv-nf',uiIcon('warn',13)+' Ne pas oublier',nf));
+  if(nf.length)cells.push(svCellHtml(' sv-nf',uiIcon('warn',14)+' Ne pas oublier',nf));
   return cells.length?`<div class="sv-band-top c${cells.length}">${cells.join('')}</div>`:'';}
 /* LA COLONNE DE RÉFÉRENCE — ce qui se consulte À CÔTÉ du geste, jamais dans la séquence :
    surveillances, complications « à tout moment », minuteurs et compteurs déclarés. Les
@@ -25399,7 +25664,7 @@ function reviewPanelHtml(f,notes){
      demandait un clic pour lire un BILAN, c'est-à-dire exactement la chose qu'on ne clique pas.
      Il reste repliable : c'est une consultation, pas un réglage — l'état n'est pas persisté.
      Vaut pour les DEUX éditeurs, aide et référence : un seul dessin, une seule habitude. */
-  return `<details class="rev-panel" open><summary role="status">${uiIcon('warn',13)}<b>Relecture · ${n.length}</b><span class="rev-res">${esc(res)}</span></summary>`
+  return `<details class="rev-panel" open><summary role="status">${uiIcon('warn',14)}<b>Relecture · ${n.length}</b><span class="rev-res">${esc(res)}</span></summary>`
     +n.map(x=>`<button type="button" class="rev-row" data-revgo="${esc(x.at)}"><b>${esc(x.cible)}</b><span>${esc(x.txt.replace(/^△\s*/,''))}</span></button>`).join('')
     +(of.length?`<div class="rev-offs"><div class="rev-offh">Ce que votre texte permettrait d’ajouter</div>`
       +of.map(o=>`<div class="rev-off"><div class="rev-oft"><b>${esc(o.cible)}</b><span>${esc(o.txt)}</span></div><button type="button" class="btn rev-ok" data-revoff="${esc(o.id)}">${esc(o.btn)}</button><button type="button" class="rev-no" data-revoffno="${esc(o.id)}" aria-label="Écarter cette proposition">✕</button></div>`).join('')
@@ -25983,7 +26248,7 @@ function jalonEditor(b){
     return `<div class="jl-edit"><div class="jl-e1"><select data-jlat="${i}" aria-label="Condition du jalon"><option value="pass"${j.at!=='count'?' selected':''}>au nᵉ passage</option><option value="count"${j.at==='count'?' selected':''}${cns.length?'':' disabled'}>quand un compteur atteint n</option></select><input type="number" data-jln="${i}" value="${j.n}" min="1" max="99" inputmode="numeric" aria-label="Seuil n du jalon">${cnSel}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
   return `${js.length?`<div class="sub">Jalons de boucle — mis en avant quand le compte y est</div>${rows}`:''}${js.length<3?`<button class="add-line" data-jladd title="Un rappel qui se met en avant au nᵉ passage du bloc, ou quand un compteur atteint un seuil (ex. 3 CEE → envisager une FV réfractaire)">+ Jalon de boucle (au nᵉ passage, à n chocs…)</button>`:''}`;}
 function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',13):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',14):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -26392,7 +26657,7 @@ function bindEditorEvents(f){
         try{e.target.setSelectionRange(sc.rest.length,sc.rest.length);}catch(_){}
         const li=e.target.closest('.li');
         if(li){li.classList.toggle('li-crit',sc.mark==='⚠ ');li.classList.toggle('li-vigil',sc.mark==='△ ');
-          const bx=li.querySelector('.li-mk');if(bx)bx.innerHTML=sc.mark==='⚠ '?uiIcon('warn',13):'△';
+          const bx=li.querySelector('.li-mk');if(bx)bx.innerHTML=sc.mark==='⚠ '?uiIcon('warn',14):'△';
           const tg=li.querySelector('.crit-tgl');
           if(tg){tg.classList.toggle('on',sc.mark==='⚠ ');tg.classList.toggle('vig',sc.mark==='△ ');
             tg.innerHTML=sc.mark==='△ '?'△':uiIcon('warn',14);}}}
@@ -27829,9 +28094,10 @@ let pendingOpenImport=false;   // ouvrir directement la fiche importée (méthod
 const createSeg=document.getElementById('createSeg');
 createSeg.querySelector('[data-createkind="fiches"] .seg-ic').innerHTML=uiIcon('doc',18);
 createSeg.querySelector('[data-createkind="protocols"] .seg-ic').innerHTML=uiIcon('book',18);
-const updateCreateSeg=()=>paintSeg(createSeg,'data-createkind',state.section==='protocols');
-// silent : l'accueil est sous le voile du dialogue — pas d'animation de bascule de section.
-async function pickCreateKind(s){setSection(s,true,{keepCat:true,silent:true});updateCreateSeg();
+// Le cran du dialogue « Créer » — indépendant du filtre de type de la liste (cf. openCreateFor).
+let _crtKind='fiches';
+const updateCreateSeg=()=>paintSeg(createSeg,'data-createkind',_crtKind==='protocols');
+async function pickCreateKind(s){_crtKind=(s==='protocols')?'protocols':'fiches';updateCreateSeg();
   renderCreateDlg('methods',await getDraftPark());}
 createSeg.querySelectorAll('[data-createkind]').forEach(b=>b.onclick=()=>pickCreateKind(b.dataset.createkind));
 createSeg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();
@@ -27840,6 +28106,9 @@ createSeg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.pr
 // sur iOS, un clavier encore ouvert à cet instant se referme de façon asynchrone et re-décale
 // la page APRÈS le scrollTo(0,0) de l'éditeur qui suit (v4.4.7 — cf. garde-fou de render()).
 async function openCreateDlg(){try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
+  /* Ouvert depuis l'en-tête : on part du type que la recherche filtre, s'il en filtre un — c'est
+     l'intention la plus probable — mais on ne le MODIFIE jamais. */
+  if(state.section==='protocols'||state.section==='fiches')_crtKind=state.section;
   updateCreateSeg();renderCreateDlg('methods',await getDraftPark());createModal.classList.add('on');}
 function closeCreateDlg(){createModal.classList.remove('on');}
 function crtCard(id,glyph,t,d){return `<button class="crt-card" id="${id}"><span class="crt-ic" aria-hidden="true">${glyph}</span><span><span class="crt-t">${t}</span><br><span class="crt-d">${d}</span></span><span class="crt-chev" aria-hidden="true">›</span></button>`;}
@@ -27864,7 +28133,7 @@ function bindCreateDrop(el,openAfter){
       pendingOpenImport=openAfter&&i===files.length-1;
       await readImportFile(files[i],files.length>1?{i:i+1,n:files.length}:null);}},true);}
 function renderCreateDlg(screen,park){
-  const proto=state.section==='protocols';
+  const proto=_crtKind==='protocols';
   // Le segment ne vit que sur l'écran des méthodes (les sous-écrans IA / import sont propres au
   // type déjà choisi et offrent leur propre retour « ‹ Autres méthodes »).
   createSeg.hidden=(screen!=='methods');
@@ -27899,7 +28168,11 @@ function renderCreateDlg(screen,park){
   }
   // Brouillon de CRÉATION auto-enregistré en attente (jamais publié) : proposé en tête.
   const slot=park&&park[proto?'p':'f'];const resume=(slot&&slot.isNew)?slot:null;
+  /* v5.19.1 (demande de l'auteur) : le dialogue DIT ce qu'on s'apprête à créer. Une phrase, pas
+     un cours — l'anatomie complète vit dans le bandeau de bibliothèque vide, d'où vient ce texte
+     (source unique : `EMPTY_INTRO`, jamais recopiée). */
   body.innerHTML=`
+    <p class="crt-what">${EMPTY_INTRO[proto?'protocols':'fiches'].dlg}</p>
     <div class="crt-list">
     ${resume?crtCard('crtResume',uiIcon('undo',26),'Reprendre le brouillon en cours',esc(resume.draft.title||'Sans titre')+' — auto-enregistré à '+fmtHMS(resume.ts)):''}
     ${crtCard('crtManual',uiIcon('pen',26),'Manuellement',proto?'Texte structuré, documents joints':'Éditeur complet — blocs, décisions, minuteurs')}
@@ -28911,6 +29184,10 @@ function authStateHtml(){
 function syncBtnRefresh(){const b=document.getElementById('authSync');if(!b)return;
   const off=_syncUi.state==='off';b.disabled=off||_syncUi.state==='busy';
   b.title=off?'Hors ligne : la synchronisation reprendra automatiquement au retour du réseau.':'';}
+/* Un glyphe par état, du même jeu que les autres marques du pied. « Hors-ligne » prend la PAUSE
+   (l'infobulle du bouton le dit : la synchro reprendra au retour du réseau), « en attente » et
+   « refusé » le cadenas et le triangle de leurs registres respectifs. */
+const SYNC_ICO={ok:'check',busy:'history',off:'pause',err:'warn',pending:'lock',rejected:'warn'};
 // Pastille d'état : discrète, jamais bloquante. Connecté -> visible ; déconnecté -> masquée (app locale comme avant).
 function setSyncChip(state,text){
   _syncUi={state:state||'ok',text:text||'Connecté'};
@@ -28934,11 +29211,15 @@ function setSyncChip(state,text){
     ini.hidden=!show;ini.textContent=show?em.slice(0,2).toUpperCase():'';
     if(top){top.classList.toggle('ini-on',show);top.title=show?'Compte — '+em:'Compte';}}}
   const chip=document.getElementById('syncChip');if(!chip){updateSyncBanner();return;}
-  if(!Auth.signedIn()){chip.hidden=true;updateSyncBanner();return;}
-  chip.hidden=false;chip.className='sync-chip '+(state||'ok');chip.textContent=text||'Connecté';
+  if(!Auth.signedIn()){chip.hidden=true;if(typeof syncFootSum==='function')syncFootSum();updateSyncBanner();return;}
+  chip.hidden=false;chip.className='sync-chip '+(state||'ok');
+  /* Marque de 14 px, comme les trois autres rangées du pied (cf. le bloc CSS `.sync-chip`). */
+  {const ic=SYNC_ICO[state||'ok']||'check';   // nom CALCULÉ : hors portée de check-icons, les six
+   chip.innerHTML='<span class="stg-ic">'+uiIcon(ic,14)+'</span>'+esc(text||'Connecté');}  // noms sont vérifiés à la main
   const clickable=state==='err'||state==='pending'||state==='rejected';
   chip.onclick=clickable?(state==='err'?openSyncErr:openAuth):null;
   chip.title=state==='err'?"Cliquer pour voir le détail de l'erreur":(clickable?"Cliquer pour plus d'informations":'');
+  if(typeof syncFootSum==='function')syncFootSum();   // l'état de synchro entre dans la décision de repli
   updateSyncBanner();}
 // Bandeau (page d'accueil UNIQUEMENT, cf. renderFiches) qui reprend l'état de la pastille de
 // synchro mais en beaucoup plus court : juste le titre, pas le paragraphe d'explication (réservé à
@@ -29512,7 +29793,7 @@ const storageModal=document.getElementById('storageModal');
 function storageExplainHtml(){return `<p class="auth-sub" style="margin-top:0">Vos fiches peuvent être enregistrées de deux façons :</p>
     <div class="stg-card stg-local"><div class="stg-h"><span class="stg-ic">${uiIcon('phone',19)}</span><b>Sur cet appareil (hors-ligne)</b></div>
       <p>Gardées <b>uniquement dans la mémoire de ce téléphone/ordinateur</b>, comme des notes sur un seul carnet.</p>
-      <p class="stg-warn">${uiIcon('warn',13)} Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — aucune autre copie.</p>
+      <p class="stg-warn">${uiIcon('warn',14)} Si le navigateur fait du ménage, ou si l'appareil est perdu, cassé, réinitialisé ou changé, <b>vos fiches sont perdues</b> — aucune autre copie.</p>
       <p class="stg-tip">${uiIcon('bulb',13)} Sans compte, pensez à <b>exporter</b> régulièrement (bouton Compte → « Exporter mes données ») : un fichier de sauvegarde à garder ailleurs et à réimporter au besoin (dialogue Créer → « Importer un fichier (.json ou .zip) »).</p></div>
     <div class="stg-card stg-cloud"><div class="stg-h"><span class="stg-ic">${uiIcon('cloud',19)}</span><b>En ligne, avec un compte (synchronisation)</b></div>
       <p>En vous connectant, une <b>copie de sécurité</b> est aussi gardée dans un <b>espace en ligne protégé</b> (le « cloud »).</p>
@@ -33126,6 +33407,11 @@ document.addEventListener('keydown',e=>{
    « / » ou Cmd/Ctrl+K focalisent la recherche de l'accueil — convention 2026 (palette ⌘K).
    Inerte quand on tape déjà dans un champ, quand une fenêtre est ouverte, ou hors accueil
    (la recherche n'existe que là — SPEC §5 : recherche FIXE de l'accueil). */
+/* Le rappel visuel dit la touche DU SYSTÈME : ⌘ n'existe pas sur Windows ni sur Linux, où la
+   combinaison est Ctrl+K (le gestionnaire, lui, a toujours accepté les deux, plus « / »). */
+{const kb=document.getElementById('q')&&document.querySelector('.dock-kbd');
+ if(kb){const plat=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||navigator.userAgent||'';
+   kb.textContent=/Mac|iPhone|iPad|iPod/i.test(plat)?'⌘K':'Ctrl K';}}
 document.addEventListener('keydown',e=>{
   const k=(e.key==='/'&&!e.metaKey&&!e.ctrlKey&&!e.altKey)||((e.metaKey||e.ctrlKey)&&!e.altKey&&(e.key==='k'||e.key==='K'));
   if(!k)return;

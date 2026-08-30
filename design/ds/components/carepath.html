@@ -943,7 +943,10 @@
     border-radius:50%;background:transparent;color:var(--ink-soft);cursor:pointer;padding:0}
   .srch-x[hidden]{display:none}
   /* ⌘K : le raccourci EXISTE depuis v4.31.0 — l'afficher (voie large seulement) le rend
-     découvrable. aria-hidden : c'est un rappel visuel, le champ porte déjà son nom. */
+     découvrable. aria-hidden : c'est un rappel visuel, le champ porte déjà son nom.
+     ⚠ Le LIBELLÉ dépend du système (⌘K sur Apple, Ctrl K ailleurs) : il est posé au démarrage,
+     et le champ réserve la largeur du plus long des deux pour que son texte ne passe jamais
+     dessous — la place réservée ne doit pas dépendre du clavier de celui qui regarde. */
   .dock-kbd{display:none;position:absolute;right:10px;align-items:center;
     font-family:var(--mono);font-size:11px;font-weight:700;color:var(--soft);
     border:1px solid var(--line);border-radius:var(--r-1);padding:1px 6px;pointer-events:none}
@@ -2324,7 +2327,7 @@
      légèrement ») : le sélecteur A-Z/Catégories se cale à 2 px sous l'en-tête et 8 px au-dessus
      du répertoire (valeurs de l'échelle fermée ; l'essentiel du blanc restant est le rembourrage
      de `main`, commun à toutes les vues). */
-  .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 8px;flex-wrap:wrap}
+  .grp-row{display:flex;align-items:stretch;gap:8px;margin:2px 0 12px;flex-wrap:wrap}   /* v5.19.1 : elle précède désormais la LISTE, pas l'intertitre — il lui faut sa respiration à elle */
   /* v5.18 — l'ACCÈS DIRECT (tuiles épinglées) n'existe qu'à ≥ 1200 px : en étroit les étoiles
      des rangées suffisent, et une section de plus retardait la liste (seuil via html.zw1200,
      jamais une media query — règle 10). */
@@ -3168,6 +3171,15 @@
   .emp-intro{text-align:left;padding:24px 20px;max-width:780px;margin-left:auto;margin-right:auto}
   .emp-intro>b{text-align:center;font-size:17.5px;color:var(--ink)}
   .emp-intro+.emp-intro{margin-top:12px}
+  /* Bandeau des DEUX natures : côte à côte dès qu'il y a la place, empilées sinon. */
+  .emp-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:20px}
+  .emp-nat-t{display:block;font-size:13.5px;margin-bottom:4px}
+  .emp-duo .emp-lede{text-align:left;margin-bottom:10px;color:var(--ink-soft)}
+  .emp-duo .emp-anat{margin-bottom:0}
+  .emp-cta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .crt-what{margin:0 0 12px;font-size:13.5px;line-height:1.45;color:var(--ink-soft)}
+  .crt-what strong{color:var(--ink);font-weight:700}
+  @media (max-width:559.98px){.emp-duo{grid-template-columns:minmax(0,1fr);gap:16px}}
   .emp-lede{margin:0 0 16px;text-align:center;font-size:13.5px;line-height:1.45}
   /* Le VERBE est ce qui distingue les deux natures : c'est le seul mot en encre pleine de la
      phrase, et il porte à lui seul la comparaison (« se déroule » / « se lit »). */
@@ -6816,23 +6828,102 @@
   /* (create-band supprimée — le choix de méthode vit dans le dialogue « Créer », SPEC §2.1.) */
   /* Pied de page COMPACT (une seule ligne qui replie au besoin) : version · synchro · stockage
      — tout le contenu passif tient sur ~34px ; « Installer l'app » s'y glisse s'il apparaît. */
-  footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:2px 14px;align-items:center}
+  /* ══ v5.19 — LE PIED EST UNE COLONNE DE RANGÉES, PLUS UNE COULÉE QUI ENJAMBE ════════════════
+     MESURÉ sur trois largeurs (250 px en socle de colonne, 574 et ~300 en voie étroite) : la
+     coulée `flex-wrap` mettait la VERSION en bout de la rangée des liens à 574, la rejetait sous
+     eux à 300, et n'alignait rien — trois bords gauches cohabitaient (18 px pour l'icône, 28 pour
+     le texte d'un lien, 36 pour celui d'un état), avec 2 px d'interligne entre des rangées de
+     32 px et 14 px de gouttière. L'ordre de lecture y changeait avec la largeur.
+     UNE COLONNE, UN BORD, UN RYTHME : les commandes gardent leur rangée (elles peuvent tenir à
+     deux de front), l'état descend en rangées empilées, et toutes les lignes partagent la même
+     colonne de texte à 19 px (marque de 14 px + 6 px). Interligne unique de 4 px.
+     Les deux lignes d'état sont des COMMANDES (l'une ouvre la fenêtre Stockage, l'autre déplie) :
+     elles prennent donc le même dessin — marque, texte, chevron — et la hauteur de 32 px que la
+     règle 9 leur devait déjà (`#storageInfo` en était à 15,4 px depuis toujours). */
+  footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:0}
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
-  .tools-actions{display:contents}   /* le bouton (masqué par défaut) devient un item direct de la ligne */
-  .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .tools-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
+  .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:24px}
+  /* La pastille de synchro était le seul OBJET du pied (pilule de 22,7 px au milieu de lignes de
+     15,4) et sa rangée n'avait rien dans la colonne de marque. La pilule tombe, l'état rejoint la
+     colonne ; les états actionnables gardent leur encre de registre sur le TEXTE, jamais un fond. */
+  /* ⚠ Un `gap` unique de 2 px se lisait 4, 12 puis 19 selon les rangées : leurs hauteurs
+     différaient (20 / 32) et le blanc interne s'AJOUTE au gap. Un interligne se règle en rendant
+     les rangées comparables — les trois font 32, gap 0, et le seul écart sépare les registres. */
+  footer.tools .tools-status{padding:0 12px;min-height:32px}
+  footer.tools .tools-status:has(.sync-chip[hidden]){padding-left:32px}
+  footer.tools .sync-chip{background:none;padding:0;border-radius:0;gap:6px;line-height:1.4}
+  footer.tools .sync-chip.off{background:none}
+  footer.tools .sync-chip.ok{background:none}
+  footer.tools .sync-chip.busy,footer.tools .sync-chip.pending{background:none}
+  footer.tools .sync-chip.err,footer.tools .sync-chip.rejected{background:none}
   .storage-gauge{font-size:11px;color:var(--ink-soft);line-height:1.4}
+  /* Le DÉPLIANT est subordonné à sa ligne : ses rangées démarrent sous le TEXTE de la synthèse,
+     pas sous sa marque — sans quoi rien ne dit qu'elles en découlent. Retrait seulement quand la
+     synthèse existe : forcé ouvert, le dépliant n'a pas de parent au-dessus de lui. */
+  footer.tools:has(#footSum:not([hidden])) #footFold{padding-left:20px}
+  /* Les actions des lignes d'état sont au corps de leur ligne (11 px), pas à celui d'un lien de
+     pied (13,5) : un mot deux fois plus gros que sa phrase cassait le bloc. */
+  footer.tools .stg-act{font-size:11px;font-weight:700;padding:0 8px;min-height:32px;gap:0}
+  /* Les deux rangées d'état, jumelles : marque 14 px, texte, chevron. */
+  /* La rangée s'arrête à son texte : pleine largeur, le chevron se collait au bord droit et
+     laissait des centaines de px de vide. En `fit-content`, marque · texte · chevron redeviennent
+     un objet, au retrait et au rayon des boutons ; surface tonale au survol seulement. */
+  footer.tools #storageInfo,footer.tools #attOffline,footer.tools #attIdx,footer.tools .foot-more{width:fit-content;padding:0 12px;border-radius:10px}
+  footer.tools #storageInfo,footer.tools #attOffline,footer.tools #attIdx{display:flex;align-items:center;gap:6px;min-height:32px;text-indent:0}
+  footer.tools #storageInfo:hover,footer.tools .foot-more:hover{background:var(--surface-2);color:var(--ink-soft)}
+  footer.tools .stg-tx{flex:0 1 auto;min-width:0}
+  footer.tools #storageInfo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .stg-ic{flex:none;display:inline-flex;width:14px;justify-content:center}
+  .stg-tx{flex:0 1 auto;min-width:0}
+  .stg-chev{flex:none}
+  /* Les commandes du pied rejoignent la même colonne : marque de 14 px, texte à 20 — et plus de
+     rembourrage horizontal, qui décalait leur texte de 10 px par rapport aux lignes d'état. */
+  /* Les deux commandes sont des BOUTONS, pas du texte bleu (voie étroite) : en lien, leur cible
+     se réduisait à la longueur du mot. Surface tonale sans contour — la forme la plus effacée qui
+     soit encore un objet. */
+  footer.tools .tools-actions>.tlink{min-height:36px;padding:0 12px;gap:6px;border-radius:10px;background:var(--surface-2);color:var(--primary-dk)}
+  footer.tools .tools-actions>.tlink:hover{background:var(--primary-soft)}
+  footer.tools .tools-actions>.tlink .stg-ic{width:14px}
+  footer.tools .tools-actions>.tlink .hj-ic{font-size:13.5px;line-height:1}
   /* Accueil large : le pied de page N'EXISTE PLUS en bas d'écran — son contenu (version,
      synchro, stockage) vit en bas de la sidebar (l'élément est DÉPLACÉ, jamais recréé :
      ses ids et écouteurs restent vivants — cf. placeFooter()). */
-  .home-side footer.tools{margin-top:auto;flex-direction:column;align-items:flex-start;gap:4px;border-top:1px solid var(--line);padding:12px 2px 2px;margin-top:auto}
+  /* ⚠ LE SOCLE N'A PLUS DE REMBOURRAGE À LUI (v5.19.1) : il en gardait 2 px, hérités de sa vie en
+     bas de page, et ses marques tombaient donc à 26 px quand celles de la colonne tombent à 24.
+     À zéro, ses rangées rejoignent exactement la grille de la colonne — et son filet fait la même
+     largeur que `.hs-sep` (la boîte de contenu de l'étage), avec le même 12/12 autour. */
+  .home-side footer.tools{align-items:stretch;border-top:1px solid var(--line);padding:12px 0 0;margin-top:10px}
+  /* Toutes les commandes du pied sont masquées en voie large (la colonne les porte) : leur
+     conteneur ne doit pas garder sa marge, qui ajoutait 6 px avant la synthèse. */
+  .home-side .tools-actions{margin-bottom:0}
   /* Registres du libellé de stockage — partagés par les DEUX pieds (sidebar et vues de lecture). */
   .storage-gauge .pers-warn,.crisis-footer .pers-warn{color:var(--verify)}
+  /* Le nominal ne cherche pas l'œil : pas d'aplat vert (cf. « P3-11 : nominal = neutre » plus
+     bas, et `.pers-warn` qui colore le TEXTE). Un aplat permanent désensibiliserait à l'ambre. */
+  /* La synthèse est une RANGÉE, pas une phrase suivie d'un lien (mesuré 47,4 px avec un `.tlink`
+     en queue : plus haut que ce qu'elle remplace). Une cible, 32 px (règle 9), chevron en queue. */
+  .foot-sum{padding:0}
+  .foot-more{display:flex;align-items:center;gap:6px;min-height:32px;border:0;background:none;font-family:inherit;font-size:11px;line-height:1.4;color:var(--ink-soft);text-align:left;cursor:pointer}
+  .foot-more .foot-t{flex:0 1 auto;min-width:0}
+  /* Même convention de dépliant que `.md-fch` : chevron À DROITE fermé, vers le BAS ouvert. */
+  /* Le numéro de version reste visible replié : c'est ce qu'on demande à un utilisateur au
+     téléphone, et le dépliant serait un geste de trop. */
+  .foot-more .foot-v{flex:none;color:var(--ink-soft);opacity:.75}
+  .foot-more .foot-chev{flex:none;transform:rotate(0deg)}
+  .foot-more[aria-expanded="true"] .foot-chev{transform:rotate(90deg)}
+  .foot-more:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:8px}
   .tlink{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:600;padding:6px 10px;min-height:32px;display:inline-flex;align-items:center;gap:4px;border-radius:8px}.tlink:hover{background:var(--primary-soft)}#installBtn{display:none}
   /* (La taille du texte vit dans la fenêtre Compte depuis V5 — plus de bouton Aa au pied de page.) */
   /* Pastille d'état de synchro : discrète, jamais bloquante (app critique). */
   .sync-chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;line-height:1.7}
   .sync-chip[hidden]{display:none} /* le display:inline-flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
-  .sync-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.85}
+  /* v5.19 — LE POINT CÈDE LA PLACE À UN GLYPHE (signalé : « l'icône nuage et validé/en cours/
+     croix, peux-tu harmoniser l'affichage ? »). Le pied posait deux idiomes côte à côte : des
+     glyphes tracés de 14 px pour le stockage et les documents, un disque plein pour la synchro.
+     L'état de synchro prend donc son glyphe (✓ synchronisé, ⏱ en cours, △ erreur, 🔒 en attente,
+     ⏸ hors-ligne), au même gabarit et dans la même colonne : quatre marques, un seul dessin.
+     La COULEUR reste ce qui distingue les registres, elle n'est jamais seule (glyphe + mot). */
   .sync-chip.off{color:var(--ink-soft);background:var(--primary-soft)}
   .sync-chip.ok{color:var(--ok);background:var(--ok-soft)}
   .sync-chip.busy{color:var(--verify);background:var(--verify-soft)}
@@ -7875,9 +7966,65 @@
   .fix-line{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 8px}
   .fix-line b{color:var(--ink);font-weight:700}
   .list-title span{font-weight:500;color:var(--ink-soft)}
-  .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:16px 0 8px}
-  .home-side>.hs-h:first-child{margin-top:0}
-  .hs-row{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:8px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
+  /* ══ v5.19.1 — TROIS BLANCS, PAS SEPT ═══════════════════════════════════════════════════════
+     Mesuré dans la colonne : 10 · 2 · 14 · 4 · 8 · 12 · 31 px séparaient les blocs, sept valeurs
+     pour quatre situations (chacune héritée d'un réglage local). L'échelle est désormais :
+       2  entre deux rangées d'une même liste
+       10 d'un intertitre à sa première rangée (8 de marge + le gap de 2)
+       12 au-dessus d'un intertitre, et de part et d'autre d'un filet
+     Corollaire : un filet porte 10 de marge et non 12, le gap de 2 de son étage complétant. */
+  .hs-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:0 12px;margin:12px 0 8px}
+  .hs-top>.hs-h:first-child{margin-top:0}
+  /* ══ v5.19 — LA COLONNE A TROIS ÉTAGES, ET UN SEUL DÉFILE ═══════════════════════════════════
+     MESURÉ AVANT DE DÉCIDER (iPad 11″ paysage, 1194 × 834 → 774 px utiles) : avec 3 bibliothèques
+     et 5 catégories la colonne demandait 777 px. Elle défilait D'UN BLOC, pied compris — donc le
+     ✓ « contenu trouvable par la recherche » était coupé EN PLEINE PHRASE (capture utilisateur),
+     et avec lui le contrôle d'avant-départ « tout est sur l'appareil », qui est précisément ce
+     qu'on vient vérifier avant de partir sans réseau. À 10 catégories il manquait 190 px.
+     Le remède n'est pas de raccourcir le pied mais de cesser de le faire défiler : le PÉRIMÈTRE
+     (bibliothèques) est fixe en haut, les CATÉGORIES sont le seul défileur, les COMMANDES et
+     l'ÉTAT sont un socle fixe en bas. Rien de ce qui ne grandit pas ne bouge plus.
+     La densité vient avec : toutes les rangées passent à 32 px (13,5 px conservé,
+     seul le rembourrage tombe à 6) — sept catégories tiennent sans défiler là où cinq
+     débordaient. ⚠ LES COMPTES RESTENT COLLÉS À DROITE (décision utilisateur, contre la maquette
+     qui leur réservait la colonne de 34 px du crayon : « ça fait bizarre sinon »). */
+  /* Étages fixes OPAQUES et au-dessus : la marge basse du filet de `.hs-top` s'échappait de sa
+     boîte et ouvrait 12 px par où l'on voyait défiler les catégories. */
+  .hs-top{flex:none;padding:12px 12px 0;display:flex;flex-direction:column;gap:2px;background:var(--work);position:relative;z-index:2}
+  .hs-top>.hs-sep{margin-bottom:0}
+  /* v5.19.1 : `0 1 auto` et non `1` — tant que tout tient, la colonne est tassée en haut (un trou
+     de 120 px au milieu se lit comme un défaut, pas comme de l'air) ; dès que la liste déborde, le
+     défileur prend toute la place restante et le socle revient se coller en bas. */
+  .hs-scroll{flex:0 1 auto;min-height:0;overflow-y:auto;padding:0 12px;display:flex;flex-direction:column;gap:2px;scrollbar-gutter:stable}
+  .hs-foot{flex:none;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px;background:var(--work);position:relative;z-index:2}
+  /* L'intertitre du seul défileur COLLE : une liste longue ne doit pas perdre son étiquette.
+     Marges négatives = il reprend le rembourrage de la colonne pour peindre bord à bord. */
+  .hs-h-stick{position:sticky;top:0;background:var(--work);margin:0 -12px 8px;padding:12px 24px 0;z-index:1}
+  /* Une COMMANDE n'est pas un filtre : icône, libellé en gras, chevron — et jamais de compte en
+     queue, qui voulait dire « ce que la liste montre » à côté et « ce qu'il y a derrière la
+     porte » ici (le nombre de l'historique reste, mais devant le chevron). */
+  .hs-row.hs-cmd{color:var(--primary-dk);font-weight:600}
+  .hs-mk .hj-ic{font-size:13.5px;line-height:1}   /* sinon le ⇄ à 15 px pousse la rangée à 32,5 */
+  .hs-cmd .hs-chev{flex:none;margin-left:6px;color:var(--line-strong)}
+  /* ⚠ UNE SEULE HAUTEUR DE RANGÉE (v5.19, question de l'auteur : « pourquoi la hauteur des
+     catégories est plus petite que celle des bibliothèques ? »). La v5.19 avait densifié les
+     seules catégories (32) en laissant les bibliothèques à 38 — deux hauteurs pour deux listes
+     qui font la MÊME chose (filtrer la vue), dans la même colonne, à un filet d'écart. C'était
+     un reste du panachage de deux directions de maquette, pas une décision : 32 partout. */
+  .hs-row{display:flex;align-items:center;gap:6px;width:100%;min-height:32px;padding:6px 12px;border:0;border-radius:8px;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;text-align:left}
+  /* ══ v5.19.1 — TROIS VERTICALES : marque 24, libellé 44, nombre au bord droit ════════════════
+     Quatre libellés démarraient à quatre abscisses (24 · 41 · 45,5 · 46) : chaque famille posait
+     son texte où sa marque tombait. Remède : une colonne de marque de largeur FIXE, portée par
+     toutes les rangées, laissée VIDE quand il n'y a rien à y mettre.
+     ⚠ Le nombre passe APRÈS l'acte (crayon) : c'est ce qui aligne les deux colonnes de comptes
+     sans réserver la case du crayon partout (réserve écartée à la relecture). Un bouton n'en
+     contient pas un autre → le compte vit dans l'ENVELOPPE, qui porte fond et sélection. */
+  .hs-mk{flex:none;width:14px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+  .hs-ring{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--line-strong)}
+  .hs-wrap.on .hs-ring{border-color:var(--act)}
+  .hs-wrap.quiet .hs-row{color:var(--ink-soft);font-weight:500}
+  .hs-wrap.hs-cmd .hs-row{color:var(--primary-dk);font-weight:600}
+  .hs-wrap.hs-cmd .hs-chev{flex:none;width:14px;display:inline-flex;justify-content:center;color:var(--line-strong)}
   .hs-row:hover{background:var(--amb-2)}
   /* ⚠ SÉLECTION = TEINTE, PLUS APLAT PLEIN (v5.6, maquette 2f — signalé à l'usage : « la sidebar
      d'accueil, cases sélectionnées, n'est pas celle du mockup »). L'encodage reste le BLEU SYSTÈME
@@ -7887,20 +8034,19 @@
      graisse 700 : trois canaux, aucun n'est la couleur seule (règle 8).
      ET LE COMPTE REPREND SON ENCRE : sur un aplat plein il devait hériter de `--on-primary`
      (contraste), sur une teinte il redevient ce qu'il est — une donnée secondaire. */
-  .hs-row.on{background:var(--primary-soft);color:var(--act);font-weight:700}
-  [data-theme="dark"] .hs-row.on{background:var(--primary-soft);color:var(--primary-dk)}
-  .hs-row.on .hs-n{color:var(--ink-2)}
+  .hs-wrap.on .hs-row{color:var(--act);font-weight:700}
+  [data-theme="dark"] .hs-wrap.on .hs-row{color:var(--primary-dk)}
+  .hs-wrap.on .hs-n{color:var(--ink-2)}
   .hs-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .hs-row .hs-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hs-row>.hs-name{flex:1}
-  .hs-row .hs-n{margin-left:auto;color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums}
+  .hs-row .hs-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hs-n{color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums}
   .hs-row svg{flex:none}
   /* Rangée bibliothèque (canvas) : [ zone pick flex:1 | colonne 34px ] — la colonne existe sur
      TOUTES les rangées (compteurs alignés) : crayon ✎ (admin), cadenas non interactif (lecture
      seule), vide sinon. Le crayon est un bouton FRÈRE de la rangée (jamais de bouton imbriqué
      dans un bouton — ARIA APG), pleine hauteur (align-self:stretch -> cible ~34×48px). */
-  .hs-wrap{display:flex;align-items:center;gap:4px;border-radius:8px}
-  .hs-wrap .hs-row{flex:1;min-width:0}
+  .hs-wrap{display:flex;align-items:center;gap:4px;border-radius:8px;padding-right:12px}
+  .hs-wrap .hs-row{flex:1;min-width:0;padding-right:0}
   /* UNE RANGÉE, UN SEUL SURVOL (signalé à l'usage : « l'ombre des boutons de bibliothèque bugue
      en desktop — maintenant on a 2 boutons au même fond, et en sélectionner un casse
      l'affichage »). Depuis que l'aplat de sélection vit sur le CONTENEUR, la micro-réponse E5 du
@@ -7926,27 +8072,22 @@
      même colonne montrait donc deux encodages de la même chose, et l'encre blanche du bouton
      d'édition se retrouvait sur un fond clair dès qu'on la corrigeait à moitié. Un seul
      encodage : teinte + encre `--act`, ici comme ailleurs. */
-  .hs-wrap:has(>.hs-row.on){background:var(--primary-soft);border-radius:8px}
-  [data-theme="dark"] .hs-wrap:has(>.hs-row.on){background:var(--primary-soft)}
-  .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--act)}
-  [data-theme="dark"] .hs-wrap:has(>.hs-row.on) .hs-act{color:var(--primary-dk)}
-  .hs-wrap:has(>.hs-row.on) button.hs-act:hover{color:var(--act);background:var(--primary-100)}
-  .hs-act{flex:none;width:34px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
+  .hs-wrap.on{background:var(--primary-soft);border-radius:8px}
+  [data-theme="dark"] .hs-wrap.on{background:var(--primary-soft)}
+  .hs-wrap.on .hs-act{color:var(--act)}
+  [data-theme="dark"] .hs-wrap.on .hs-act{color:var(--primary-dk)}
+  .hs-wrap.on button.hs-act:hover{color:var(--act);background:var(--primary-100)}
+  .hs-act{flex:none;width:24px;align-self:stretch;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft)}
   button.hs-act{cursor:pointer}
   button.hs-act:hover{color:var(--primary-dk);background:color-mix(in srgb,var(--primary) 8%,transparent)}
   button.hs-act:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   /* (.hs-dot supprimé v4.3.0 : la sidebar utilise la pastille commune .cat-dot, ronde + anneau.) */
-  .hs-sep{height:1px;flex:none;background:var(--line);margin:12px 8px}   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
-  .hs-add{display:block;width:100%;margin-top:6px;padding:8px 12px;border:1.5px dashed var(--line-strong);border-radius:8px;background:none;color:var(--primary-dk);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;text-align:center}
-  /* « ⚙ Gérer les catégories » = BASCULE DE MODE (grammaire : pointillé = créer, contour plein
-     muted = gérer/configurer, fond plein = action primaire unique — jamais mélangées). Ouvre un
-     panneau INLINE juste en dessous (pas de dialogue) ; ouvert, bouton et panneau partagent
-     l'accent (lien visuel). */
-  .btn-manage-cats{display:block;width:100%;margin-top:6px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-soft);font-family:inherit;font-size:13.5px;font-weight:400;text-align:center;cursor:pointer}
-  .btn-manage-cats:hover{background:var(--surface-2)}
-  .btn-manage-cats:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .hs-add:hover{background:var(--primary-soft)}
-  .hs-add:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .hs-sep{height:1px;flex:none;background:var(--line);margin:10px 0}   /* + le gap de 2 = 12 */
+  .hs-foot>.hs-sep:first-child{margin-top:12px}   /* aucun gap avant lui : il porte les 12 */   /* flex:none : jamais compressé à 0 quand la sidebar déborde */
+  /* « Nouvelle bibliothèque » et « Gérer les catégories » sont des RANGÉES depuis la v5.19.1
+     (`.hs-wrap.quiet`). La grammaire pointillé=créer / contour=gérer vaut dans un ÉDITEUR ; dans
+     une colonne de navigation elle donnait le plus de poids aux deux actions les plus rares et
+     coupait la seule liste qu'on parcourt. Décision d'auteur, sur maquette. */
   @media (min-width:780px){
     /* COQUE FIXE (canvas) : le shell verrouille la hauteur — en-tête et pied ne bougent jamais,
        SEULS la sidebar et le contenu scrollent (chacun le sien). C'est pour ça que la sidebar
@@ -7975,12 +8116,18 @@
     /* 255px en border-box (box-sizing global) = le rendu du canvas (230px hors padding). */
     /* scrollbar-gutter DANS les panneaux (pas sur html, cf. v4.2.1) : la bascule
        Aides <-> Protocoles ne fait plus refluer la grille quand la barre apparaît/disparaît. */
-    .home-side{display:flex;flex-direction:column;gap:2px;flex:none;width:250px;background:var(--work);border-right:1px solid var(--line);padding:16px 12px;overflow-y:auto;scrollbar-gutter:stable}
+    /* v5.19 : plus de rembourrage ni de défilement ICI — chaque étage porte les siens
+       (.hs-top / .hs-scroll / .hs-foot), sans quoi le socle défilerait avec le reste. */
+    .home-side{display:flex;flex-direction:column;flex:none;width:250px;background:var(--work);border-right:1px solid var(--line);overflow:hidden}
     /* ⚠ PAS DE REMBOURRAGE HAUT SUR LE DÉFILEUR (v5.18, signalé sur captures) : un sticky
        colle 18 px SOUS le bord et les rangées restent lisibles dans la bande du rembourrage,
        au-dessus de l'intertitre. L'air passe au premier enfant — une marge défile, elle. */
     .home-main{flex:1;min-width:0;overflow-y:auto;padding:0 22px calc(24px + env(safe-area-inset-bottom));scrollbar-gutter:stable}
     .home-main>:first-child{margin-top:18px}
+    /* ⚠ `#syncErrNotice` est PRÉSENT et masqué : c'est LUI le premier enfant, donc les 18 px
+       tombaient sur une boîte sans hauteur et le contenu touchait l'en-tête (signalé sur
+       capture). Quand il est masqué ET premier, l'air passe à son suivant — jamais les deux. */
+    .home-main>#syncErrNotice[hidden]:first-child+*{margin-top:18px}
     /* C'EST `.home-main` QUI DÉFILE ICI : la barre de sélection colle donc à SON bord, pas sous un
        en-tête qui ne la recouvre jamais (cf. « le décalage dépend de qui défile »).
        ⚠ ET LE REMBOURRAGE HAUT DE LA COLONNE COMPTE AUSSI. Une marge négative ne suffit PAS —
@@ -8011,7 +8158,7 @@
     body.view-home #homeDock .hdr-search{flex:1 1 auto;min-width:0;max-width:640px}
     /* Maquette : en large, le champ est une barre de VOLET (rayon de composant, hauteur de
        rangée, raccourci ⌘K affiché) — la pilule est la forme du POUCE, pas du clavier. */
-    body.view-home #homeDock .hdr-search input{border-radius:var(--r-2);padding-top:8px;padding-bottom:8px;box-shadow:none}
+    body.view-home #homeDock .hdr-search input{border-radius:var(--r-2);padding-top:8px;padding-bottom:8px;padding-right:72px;box-shadow:none}
     body.view-home #homeDock .dock-kbd{display:inline-flex}
     /* … mais il s'efface dès qu'on entre dans le champ ou qu'un texte y vit (la croix prend sa
        place) : le raccourci est une INVITE, pas un meuble. */
@@ -8498,7 +8645,6 @@
   .att-ix:empty{display:none}
   /* le geste du pied reste soudé à son séparateur : enroulé, « · » ne finit pas orphelin en
      bout de ligne pendant que « Réindexer » part seul à la ligne suivante. */
-  .attix-act{white-space:nowrap}
   /* ----- Documents PDF joints : liste en lecture (boutons >=44px) + lignes de l'éditeur ----- */
   .att-list{display:flex;flex-direction:column;gap:8px}
   .att-row{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);color:var(--ink);font-size:13.5px;text-align:left;cursor:pointer}
@@ -8799,7 +8945,7 @@
   /* Bandeau système (INFO persistante, hors crise) : même entrée que le bandeau de crise. */
   .sys-banner:not([hidden]){animation:cbIn .25s ease}
   /* Survols des rangées/menus : fondu court au lieu du changement sec (aucun délai perçu). */
-  .hs-row,.hs-act,.hs-add,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
+  .hs-row,.hs-act,.mm-row,.att-row,.hdr-back,.hdr-new,.hdr-more,.hdr-act2,.tlink{transition:background-color .15s,color .15s}
   /* E5 (audit design v4.57.0) : l'app paraît « vivante sous le doigt » sans rien déplacer —
      survol = 1 px de lévitation, APPUI = léger enfoncement. transform/opacity SEULEMENT (règle
      v4.41.0 : jamais une propriété de mise en page), 120 ms, et le survol ne s'applique qu'au

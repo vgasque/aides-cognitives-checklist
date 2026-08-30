@@ -2849,15 +2849,20 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
     if(sb&&!sb.hidden)document.getElementById('sbX').click();
     state.section='all';render();});
   await page.waitForTimeout(450);
-  const c0=await page.evaluate(()=>document.querySelectorAll('.emp-intro').length);
+  /* v5.19.1 : UN bandeau qui présente les DEUX natures (elles y sont comparées) — la propriété
+     gardée reste la même, mais elle se compte sur les invites, pas sur les bandeaux. */
+  const c0=await page.evaluate(()=>({n:document.querySelectorAll('.emp-intro').length,
+    k:document.querySelectorAll('[data-emptynew]').length}));
   const x=await page.$('#noticeX');
   if(!x)t('témoin : un bandeau fermable est présent', false, 'aucune croix');
   else{
-    t('témoin : un bandeau fermable est présent, et les 2 cartes sont là', c0===2, `${c0} carte(s)`);
+    t('témoin : un bandeau fermable est présent, et les 2 invites sont là',
+      c0.n===1&&c0.k===2, JSON.stringify(c0));
     await x.click();await page.waitForTimeout(500);
-    const c1=await page.evaluate(()=>({n:document.querySelectorAll('.emp-intro').length,s:state.section}));
+    const c1=await page.evaluate(()=>({n:document.querySelectorAll('.emp-intro').length,
+      k:document.querySelectorAll('[data-emptynew]').length,s:state.section}));
     t('fermer un bandeau n\'efface pas une des deux invites',
-      c1.n===2&&c1.s==='all', JSON.stringify(c1));}
+      c1.n===1&&c1.k===2&&c1.s==='all', JSON.stringify(c1));}
   await page.close();
 }
 });
@@ -2893,12 +2898,14 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
     /* Aucun glyphe VIDE : `uiIcon` rend un <svg> sans tracé pour un nom inconnu — un dessin
        absent ne se voit pas à la relecture, seulement à l'écran. */
     icVides:[...document.querySelectorAll('.emp-ic svg')].filter(s=>!s.innerHTML.trim()).length}));
-  for(const [sec,att] of [['all',['fiches','protocols']],['fiches',['fiches']],['protocols',['protocols']]]){
+  /* v5.19.1 : en vue « Tout », les deux natures tiennent dans UN bandeau (elles y sont
+     comparées, ce que deux cartes empilées ne faisaient pas) — d'où 1 bandeau pour 2 boutons. */
+  for(const [sec,att,nb] of [['all',['fiches','protocols'],1],['fiches',['fiches'],1],['protocols',['protocols'],1]]){
     await page.evaluate(s=>{state.section=s;state.q='';state.cat='';render();},sec);
     await page.waitForTimeout(300);
     const r=await lire();
-    t(`vue « ${sec} » · ${att.length} carte(s), du ou des types créables ici`,
-      r.cartes===att.length&&JSON.stringify(r.kinds)===JSON.stringify(att), JSON.stringify(r.kinds));
+    t(`vue « ${sec} » · ${nb} bandeau(x), ${att.length} type(s) créable(s) ici`,
+      r.cartes===nb&&JSON.stringify(r.kinds)===JSON.stringify(att), `${r.cartes} bandeau(x) · `+JSON.stringify(r.kinds));
     t(`vue « ${sec} » · chaque ligne se lit d'un trait, glyphes présents`,
       r.coupees===0&&r.icVides===0, `${r.coupees} coupée(s), ${r.icVides} glyphe(s) vide(s)`);
   }
@@ -2914,10 +2921,16 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
       continue;}
     await page.click(`[data-emptynew="${k}"]`);
     await page.waitForTimeout(350);
-    const r=await page.evaluate(()=>({ouvert:document.getElementById('createModal').classList.contains('on'),
-      section:state.section}));
-    t(`« ${k} » ouvre le dialogue Créer sur SON type`, r.ouvert===true&&r.section===k,
-      `ouvert=${r.ouvert} section=${r.section}`);
+    /* v5.19.1 : le type à créer n'est plus `state.section` — le dialogue a son propre cran, et
+       ouvrir « Créer » ne doit PLUS filtrer la liste derrière lui (signalé à l'usage). On lit donc
+       le cran VISIBLE du sélecteur segmenté, et l'on exige que le filtre n'ait pas bougé. */
+    const r=await page.evaluate(()=>{
+      const on=document.querySelector('#createSeg [data-createkind].on,#createSeg [data-createkind][aria-selected="true"]');
+      return {ouvert:document.getElementById('createModal').classList.contains('on'),
+        cran:on?on.dataset.createkind:null,section:state.section};});
+    t(`« ${k} » ouvre le dialogue Créer sur SON type`, r.ouvert===true&&r.cran===k,
+      `ouvert=${r.ouvert} cran=${r.cran}`);
+    t(`… sans filtrer la liste derrière le dialogue`, r.section==='all', `section=${r.section}`);
     await page.keyboard.press('Escape');await page.waitForTimeout(250);
   }
   /* SOUS UN FILTRE : aucune carte, aucun bouton — on doit un résultat, pas un cours. */
@@ -6098,9 +6111,12 @@ await sec('ACCUEIL · les catégories vides ne mènent nulle part', async () => 
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    /* v5.19.1 : le compte et l'état sélectionné vivent sur l'ENVELOPPE (`.hs-wrap`), pas sur le
+       bouton — le crayon doit passer avant le nombre pour aligner les deux colonnes de comptes. */
     const lire=()=>[...document.querySelectorAll('.home-side .hs-row[data-cat]')].map(b=>({
       id:b.dataset.cat,n:b.querySelector('.hs-name').textContent,
-      c:b.querySelector('.hs-n').textContent,on:b.classList.contains('on')}));
+      c:(b.parentNode.querySelector('.hs-n')||{textContent:''}).textContent,
+      on:b.parentNode.classList.contains('on')}));
     state.view='library';state.cat=null;render();await w(400);
     const nominal=lire();
     const tous=categories.length;

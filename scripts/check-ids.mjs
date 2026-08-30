@@ -33,6 +33,7 @@ for (const m of src.matchAll(/\bid\s*=\s*'([A-Za-z][\w-]*)'/g)) emitted.add(m[1]
 const FACTORIES = [
   { rx: /upDropHtml\(\s*'[^']*'\s*,\s*'([A-Za-z][\w-]*)'/g, why: "upDropHtml(kind, id, …) émet id=\"${esc(id)}\"" },
   { rx: /crtCard\(\s*'([A-Za-z][\w-]*)'/g,                  why: "crtCard(id, …) émet la carte du dialogue Créer" },
+  { rx: /stgAct\(\s*'([A-Za-z][\w-]*)'/g,                   why: "stgAct(id, libellé) émet l'action d'une rangée d'état du pied" },
 ];
 for (const f of FACTORIES) for (const m of src.matchAll(f.rx)) emitted.add(m[1]);
 
