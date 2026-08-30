@@ -272,3 +272,15 @@ et les deux collants s'arrêtent dessous ; inerte en navigateur (env = 0). Cliqu
 pointer-events → 22. (3) **Le rythme sous l'en-tête est UN** : le titre « Résultats — … »
 naissait à margin-top:0 (« très collé ») — 16 px comme les titres de section : 18 px sous
 l'en-tête partout, recherche comprise, mesuré.
+
+**A267. ON ÉCOUTE LE GESTE, JAMAIS L'ÉVÈNEMENT DE DÉFILEMENT** (signalé le jour même :
+« si la page rétrécit pendant une recherche qui s'affine, le clavier disparaît ? »). A266
+refermait le clavier sur `scroll` — mais une liste qui RACCOURCIT sous la frappe fait recaler
+le défilement par le navigateur, qui émet `scroll` sans qu'aucun doigt n'ait bougé : le clavier
+se fermait en pleine saisie, c'est-à-dire au pire moment. La garde de 600 ms n'y pouvait rien
+(le cas arrive bien après). Seul un GLISSEMENT réel referme désormais : `touchmove` de plus de
+10 px vertical, né HORS de #homeDock (dans le champ, le geste est celui du curseur ; dans la
+rangée de crans, un défilement horizontal). Une remise en page n'émet jamais de touchmove.
+Vérifié dans les deux sens : le focus TIENT sur un recalage programmatique, il PART sur un
+glissement de 70 px. Leçon générale : pour distinguer « l'utilisateur a fait X » d'« il s'est
+passé X », écouter l'entrée, pas la conséquence.

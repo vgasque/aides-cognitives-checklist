@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.18.4] — 2026-08-30
+### Le clavier ne part plus tout seul (A267)
+
+- **Signalé le jour même** : « si la page rétrécit pendant une recherche qui s'affine, le
+  clavier disparaît ? ». Oui — et c'était une faille de conception, pas un réglage : la v5.18.3
+  refermait le clavier sur l'ÉVÈNEMENT `scroll`, or une liste qui RACCOURCIT sous la frappe fait
+  recaler le défilement par le navigateur, qui émet `scroll` sans qu'aucun doigt n'ait bougé. Le
+  clavier se fermait donc en pleine saisie, au pire moment. La garde de 600 ms n'y pouvait rien :
+  le cas arrive bien après l'ouverture.
+- **Seul un GLISSEMENT réel referme désormais** : `touchmove` de plus de 10 px vertical, né HORS
+  du dock (dans le champ, le geste est celui du curseur ; dans la rangée de crans, un défilement
+  horizontal). Une remise en page n'émet jamais de touchmove. Vérifié dans les deux sens : le
+  focus TIENT sur un recalage programmatique, il PART sur un glissement de 70 px.
+- **La leçon, écrite dans la doctrine** : pour distinguer « l'utilisateur a fait X » de « il
+  s'est passé X », écouter l'ENTRÉE, jamais la conséquence.
+
 ## [5.18.3] — 2026-08-30
 ### Suites du terrain iPhone (A266)
 
@@ -591,18 +607,3 @@ sonde jetable, verte sur les DEUX moteurs.
 - **Audit de sécurité du canal direct** (question) : modèle de menace écrit au registre
   (§ 3.2) — chiffrement de bout en bout authentifié par empreinte via QR physique ou relais
   authentifié, rien n'écoute, l'admission est le canal apparié, l'optique exige d'être filmé.
-
-## [5.14.17] — 2026-08-18
-### L'invité navigue sans perdre sa session — et une aide reçue ne s'exporte pas
-
-- **Consulter ses propres aides pendant un partage ne piège plus l'invité** (signalé) : le
-  menu de partage ne suit plus l'invité partout (il ne vaut que sur la fiche partagée), et
-  deux chemins de retour existent — « Revenir à la session partagée » dans le menu ⋯ de toute
-  autre aide, et une carte « Session partagée » / « Miroir » à l'accueil, avec Reprendre.
-  Sous le capot, naviguer DÉTRUISAIT la session reçue : l'invité en ligne se reconstruit de
-  son pli, le miroir optique est garé et restauré tel quel.
-- **Une aide reçue temporairement ne s'exporte pas** (signalé : « c'est voulu ? » — non) : le
-  miroir optique n'ayant aucun mode de transport, l'aide reçue portait le menu complet
-  (Exporter, Dupliquer, Modifier). Elle porte désormais le menu de l'invité — et la réponse à
-  la question : oui, l'envoi est temporaire par construction (projection en liste blanche,
-  reconstruite en mémoire, jamais écrite sur l'appareil ni le compte).
