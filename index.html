@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NlHvh322fGucWeu6a9alSCtvAHE6NiXs5d1nMkC7L0U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-IdypBlKDwfiB73jd9rfOJ7/vOhIT1l9MVl7XL3ViEKM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1315,6 +1315,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      20 px sur la seule arête haute : un fondu ne dissimule que ce qui va vers SA couleur, et ce
      qui défile ici est une carte (--surface), pas le fond. */
   body.view-home header.bar{position:static}
+  /* Même respiration qu'en large entre l'en-tête et « Accès direct » (mesuré 34 vs 18 — le
+     rembourrage de main s'ajoutait aux 16 px du titre de section) : 2 + 16 = 18. */
+  @media (max-width:779.98px){
+    body.view-home main{padding-top:2px}
+  }
   /* Maquette v5.18 : en VOIE ÉTROITE, la marque a la taille d'un titre de document (l'en-tête
      d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du
      chrome — même hauteur que partout (doctrine v5.6). Sous 390 px la ligne n'a pas la place du
@@ -1372,6 +1377,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1));
     transform:translateY(-100%);
     background:var(--bg);border-top:1px solid var(--line)}
+  /* v5.18.2 (signalé sur iPhone : « alternance fond uni / fond transparent / clavier ») — la
+     BARRE D'ACCESSOIRES d'iOS (flèches + ✓) vit ENTRE le viewport visuel et le clavier :
+     translucide, elle laissait voir les rangées de la page qui continuent dessous. On ne peut
+     ni la retirer ni la mesurer — mais on peut peindre le SOL : un aplat opaque sous le dock
+     couvre tout ce qui vivrait entre lui et le clavier (240 px, largement au-delà de la barre ;
+     le clavier recouvre le reste). Hors interaction (pointer-events:none), hors flux. */
+  html.kbd body.view-home #homeDock::after{content:"";position:absolute;top:100%;left:0;right:0;
+    height:240px;background:var(--bg);pointer-events:none}
   /* Le pied de page finit AU-DESSUS du dock, page courte comme page longue (signalé à l'usage :
      « bas de page non visible à cause de la barre flottante ») : la réserve est le REMBOURRAGE
      du pied lui-même — un ::after l'étendait SOUS le viewport, donc une page courte défilait de
@@ -9849,7 +9862,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.18.1';
+const APP_VERSION='5.18.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15379,6 +15392,18 @@ function updateHdrSec(){document.querySelectorAll('.typebar [data-section]').for
 // Recherche FIXE de l'en-tête (V5) : champ STATIQUE (jamais re-rendu -> le focus survit aux
 // re-rendus), débouncé 150 ms — re-filtrer à chaque frappe ferait ramer la saisie sur mobile.
 {const qi=document.getElementById('q');
+ /* v5.18.2 (signalé sur iPhone : « quand on tape la barre en bas, le scroll fait n'importe
+    quoi et descend ») — au FOCUS d'un champ, iOS fait défiler le DOCUMENT pour amener le champ
+    « en vue » ; or la pilule est FIXE et se repositionne elle-même au viewport visuel
+    (html.kbd) : ce défilement automatique est inutile et part vers le bas. En étroit sur
+    l'accueil, on prend le focus NOUS-MÊMES, sans défilement : preventDefault sur pointerdown
+    (ce qui annule aussi le focus natif) puis focus({preventScroll:true}) — le geste utilisateur
+    reste le déclencheur, le clavier s'ouvre normalement. */
+ qi.addEventListener('pointerdown',e=>{
+   if(document.activeElement===qi)return;
+   if(!document.body.classList.contains('view-home'))return;
+   if(matchMedia('(min-width:780px)').matches)return;
+   e.preventDefault();qi.focus({preventScroll:true});});
  qi.addEventListener('input',e=>{syncQClear();if(state.view!=='library')return;
    state.q=e.target.value;state.libLimit=LIB_PAGE;
    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{if(state.view==='library')render();},150);});}

@@ -245,3 +245,15 @@ par `top:calc(--vvt + --vvh)` + `translateY(-100%)` : le bas du dock épouse EXA
 du viewport visuel, quelle que soit sa hauteur (rangée de filtres comprise). Et clavier
 ouvert, le dock devient OPAQUE avec un filet haut (A222) : le fondu est la robe du bas
 d'écran, pas d'une barre ancrée au clavier. Mesuré : dockBas = vvBottom au pixel.
+
+**A265. TROIS FINITIONS DU CLAVIER ET DE LA RESPIRATION (v5.18.2, sur iPhone réel).** (1) La
+bande translucide sous la barre d'accessoires iOS (flèches + ✓) laissait voir les rangées :
+la barre est au SYSTÈME (ni retirable ni mesurable — le viewport visuel s'arrête au-dessus
+d'elle), mais le sol est à nous — un ::after opaque de 240 px sous le dock couvre tout
+l'entre-deux (annonciateur A68/4, cliquet pointer-events monté à 21). (2) Taper la pilule
+faisait défiler la page vers le bas : le défilement automatique d'iOS « amène en vue » un champ
+FIXE qui se repositionne déjà seul (html.kbd) — en étroit sur l'accueil, preventDefault sur
+pointerdown puis focus({preventScroll:true}) : même geste, zéro défilement. (3) L'écart
+en-tête → « Accès direct » valait 34 px en étroit contre 18 en large (le rembourrage de main
+s'ajoutait aux 16 du titre de section) : main passe à 2 px de rembourrage haut sur l'accueil
+étroit — 18 partout, mesuré.

@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.18.2] — 2026-08-30
+### Le clavier iPhone, au propre (A265)
+
+- **La bande sous la barre d'accessoires iOS devient unie** (signalé, capture à l'appui :
+  « alternance fond uni / fond transparent / clavier, ça fait bizarre »). La barre (flèches + ✓)
+  est au SYSTÈME — ni retirable ni mesurable, le viewport visuel s'arrête au-dessus d'elle —
+  mais ce qu'on voyait à travers était à nous : les rangées de la page qui continuent dessous.
+  Un SOL opaque de 240 px sous le dock couvre tout l'entre-deux ; la barre translucide d'iOS se
+  pose désormais sur un fond calme.
+- **Taper la pilule ne fait plus défiler la page** (signalé : « le scroll fait n'importe quoi et
+  descend »). Au focus d'un champ, iOS fait défiler le document pour « l'amener en vue » — or la
+  pilule est FIXE et se repositionne déjà seule au viewport visuel : ce défilement automatique
+  était inutile et partait vers le bas. En étroit sur l'accueil, le focus est pris à la main
+  (preventDefault sur pointerdown puis focus sans défilement) : même geste, clavier inchangé,
+  zéro mouvement.
+- **La respiration en-tête → « Accès direct » s'aligne sur le large** : 34 px en étroit contre
+  18 en large (le rembourrage de main s'ajoutait aux 16 px du titre de section) — 18 partout,
+  mesuré aux deux largeurs.
+
 ## [5.18.1] — 2026-08-30
 ### Deux retours d'usage sur la v5.18.0, le jour même
 
@@ -586,18 +605,3 @@ sonde jetable, verte sur les DEUX moteurs.
   conclut par un flash vert 120 ms + vibration, sans son ni jauge (maquette 03).
 - **L'émission parle comme la maquette 04** : « le code change tout seul — restez face à
   face » + « en cours d'envoi » — fini le « bloc x/x / réparation ».
-
-## [5.14.15] — 2026-08-18
-### La feuille directe a les commandes de l'hôte, la réouverture retrouve son mode
-
-- **« Donner la main » et « Couper » existent désormais en mode direct** (signalé) : le moteur
-  local savait déjà les faire, seule la feuille ne les montrait pas — les rangées de
-  participants sont maintenant communes aux deux feuilles, avec les mêmes états (relève,
-  conduit, parti, sans nouvelles…).
-- **La pastille « En ligne » verdit quand le retour est possible** (compte + internet),
-  symétrique de « En direct » = canal dormant prêt. Vert = disponible, pilule = actif.
-- **Rouvrir le partage rouvre le mode EN COURS** (signalé : « le mode direct ne se rouvre
-  pas ») : le menu ouvrait la feuille cloud en dur — partage fantôme sans code ni
-  participants. Direct vif → feuille directe ; miroir → miroir ; sinon → cloud.
-- La ligne de diagnostic (v5.14.13) est retirée : service rendu — elle a désigné le défaut
-  serveur en un aller-retour.
