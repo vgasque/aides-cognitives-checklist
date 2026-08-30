@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-mPIkpeM/MDTee9U2V/m5btqb1Sm8Ih30m4of2h2BhVM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-NlHvh322fGucWeu6a9alSCtvAHE6NiXs5d1nMkC7L0U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -985,6 +985,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (retour, statut, thème, menu) n'a aucun rôle à ce moment-là et revient intact dès que le
      clavier se ferme. Rien ne se superpose, rien ne se masque, rien ne saute. */
   html.kbd header.bar{display:none}
+  /* v5.18.1 : l'accueil est EXEMPTÉ — son en-tête est statique (il défile, il n'occupe rien) et
+     il PORTE #homeDock : le retirer détruirait le champ qu'on tape (spirale v5.14.1) et ferait
+     sauter la page. C'est le dock, fixé au viewport visuel, qui est le chrome de frappe. */
+  html.kbd body.view-home header.bar{display:flex}
   /* ═══ CE QUI DOIT RESTER EN PLACE DEVIENT UNE COUCHE DU VIEWPORT VISUEL ════════════════════
      Demande de l'auteur, après que « libérer » a échoué sur le logement du champ : « pas moyen de
      fixer la sidebar de manière à ce que ça ne bouge pas quoi qu'il arrive, tout en la gardant
@@ -1356,11 +1360,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Clavier ouvert : le dock LOGE le champ qu'on tape — il ne se retire jamais (v5.13), il se
      cale au bas du viewport VISUEL (--vvt/--vvh : couche calée sur le viewport, exemptée par
      check-stick). 84 px = hauteur du dock hors zone sûre. */
-  html.kbd body.view-home #homeDock{bottom:auto;padding-bottom:12px;
-    top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1) - 84px)}
-  /* … et 44 px plus haut quand la rangée de filtres est là (36 de chips + 8 d'entre-deux). */
-  html.kbd body.view-home #homeDock:has(#dockFilt:not([hidden])){
-    top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1) - 128px)}
+  /* v5.18.1 (signalé sur iPhone : « barre très moche clavier ouvert ») — l'ancrage par
+     CONSTANTE de hauteur (top = bas du viewport − 84 px, − 128 avec la rangée de filtres)
+     laissait un vide au-dessus du clavier dès que la géométrie réelle divergeait (barre
+     d'accessoires, réglages). Le bas du dock épouse désormais EXACTEMENT le bas du viewport
+     visuel : top = vvt + vvh, remonté de sa PROPRE hauteur (translateY(-100%) — transform
+     statique, aucune constante, la rangée de filtres comprise). Et clavier ouvert, le dock
+     flotte en plein écran : matière OPAQUE + filet haut (le fondu est la robe du bas d'écran,
+     pas d'une barre ancrée au clavier — A222). */
+  html.kbd body.view-home #homeDock{bottom:auto;padding:10px 12px;
+    top:calc(var(--vvt,0px) / var(--zf,1) + var(--vvh,100dvh) / var(--zf,1));
+    transform:translateY(-100%);
+    background:var(--bg);border-top:1px solid var(--line)}
   /* Le pied de page finit AU-DESSUS du dock, page courte comme page longue (signalé à l'usage :
      « bas de page non visible à cause de la barre flottante ») : la réserve est le REMBOURRAGE
      du pied lui-même — un ::after l'étendait SOUS le viewport, donc une page courte défilait de
@@ -9838,7 +9849,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.18.0';
+const APP_VERSION='5.18.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16609,12 +16620,17 @@ function renderHomeList(cfg){
     const desk=wide&&!document.documentElement.classList.contains('zw1200')&&!state.selOn;
     const rowFor=cfg.row;
     /* En SÉLECTION, la rangée de rangement s'efface (décision de l'auteur, v5.12). */
-    listHtml=`<div class="dir-wrap"><div class="grp-row">${(list.length&&!state.selOn&&!desk)?homeRangHtml()+selTogHtml():''}</div>${list.length?
+    /* Ordre UNIFORME à toutes les largeurs (signalé : « pourquoi Rangé par apparaît au-dessus
+       des épinglées, contrairement au bureau ? ») : tuiles d'accès direct D'ABORD, puis les
+       commandes, puis le répertoire — en large elles vivent SUR la ligne RÉPERTOIRE (A257a),
+       en étroit sur leur rangée, juste au-dessus d'elle. */
+    listHtml=`<div class="dir-wrap">${list.length?
       /* v5.18 (A261, décision utilisateur sur capture) : l'accès direct est en TUILES à toutes
          les largeurs — plusieurs par ligne dès que la place le permet ; les fiches restent
          AUSSI dans le répertoire (un raccourci ne déménage rien). */
       (tiles.length&&!state.selOn?`<div class="qa-sec"><div class="dir-h"><b>Accès direct</b><span class="dir-hs">${tiles.length} épinglée${tiles.length>1?'s':''}</span></div>
         <div class="qa-grid">${tiles.map(cfg.tile).join('')}</div></div>`:'')
+      +`<div class="grp-row">${(list.length&&!state.selOn&&!desk)?homeRangHtml()+selTogHtml():''}</div>`
       +`<div class="dir-h"><b>Répertoire</b>${desk&&!state.selOn?homeRangHtml():''}<span class="dir-hs">${list.length} ${cfg.countLbl(list.length)}${majTail}${filtTail}</span>${desk?selTogHtml():''}</div>`
       +`<div class="dir-book">`
       +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}">${secHead(g)}<div class="dir-grid">${g.items.map(rowFor).join('')}</div></div>`).join('')
@@ -29775,7 +29791,12 @@ const VVT_MIN_CLAVIER=60;
        ne le voyait (il ne pilote pas le clavier). Quand le champ actif est dans l'en-tête,
        l'en-tête reste — c'est LUI le chrome de frappe, exactement le principe de la 5.13.4
        (« un seul chrome à la fois ») appliqué dans l'autre sens. */
+    /* v5.18.1 : le champ de l'accueil vit dans #homeDock, qui vit dans l'en-tête (A249) — mais
+       le dock est FIXÉ au viewport visuel et gère sa propre géométrie clavier (translateY) :
+       pour lui, la classe DOIT se poser (et l'en-tête d'accueil est exempté du retrait, cf.
+       feuille de style). La garde ne vaut plus que pour un champ d'en-tête HORS dock. */
     const dansHdr=(()=>{try{const a=document.activeElement;
+      if(a&&a.closest&&a.closest('#homeDock'))return false;
       return !!(a&&a.closest&&a.closest('header.bar'));}catch(e){return false;}})();
     document.documentElement.classList.toggle('kbd',clavier&&!dansHdr);};
   /* v4.29.7 : iOS peut CORRIGER la géométrie de la WebView (ex. après le bug de la PWA amputée)

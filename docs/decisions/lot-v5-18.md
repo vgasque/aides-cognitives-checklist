@@ -222,3 +222,26 @@ ne gouverne plus que la COMPOSITION : « Rangé par » et « Sélectionner » su
 (A257a), tuiles au-dessus (A261). Et au POINTEUR FIN, l'étoile ne vit qu'au survol de sa rangée
 (ou au focus clavier) — onze étoiles creuses étaient du bruit ; l'épinglée reste pleine, le
 tactile ne change pas (pas de survol). Opacité seule : peinture, boîte et cible intactes.
+
+**A263. L'ORDRE DES BLOCS EST LE MÊME À TOUTES LES LARGEURS** (signalé après publication :
+« pourquoi Rangé par apparaît au-dessus des épinglées, contrairement au bureau ? ») : tuiles
+d'accès direct D'ABORD, puis les commandes, puis le répertoire. La rangée « Rangé par +
+Sélectionner » s'émettait avant les tuiles en deçà de 1200 px — un vestige de l'ordre d'avant
+A257a, jamais réaligné. En large, les commandes vivent SUR la ligne RÉPERTOIRE ; en étroit,
+sur leur rangée juste au-dessus d'elle — mais toujours SOUS les épinglées : l'accès direct est
+la première chose de la liste, à toutes les largeurs.
+
+**A264. LE DOCK ÉPOUSE LE CLAVIER — sans constante, et la classe se pose vraiment** (signalé
+sur iPhone après publication : « clavier ouvert, la barre de recherche est très moche » —
+pilule flottant à ~130 px au-dessus du clavier, contenu nu dans l'entre-deux). DEUX racines :
+(1) la garde v5.14.1 « champ dans l'en-tête → ne jamais poser `html.kbd` » datait d'avant
+A249 — le champ vit désormais dans #homeDock, DANS l'en-tête : la classe ne se posait JAMAIS
+sur la recherche d'accueil, et tout l'habillage clavier était mort ; la garde apprend le dock
+(un champ de #homeDock POSE la classe — le dock gère sa propre géométrie), et l'en-tête
+d'ACCUEIL est exempté du retrait `html.kbd` (il est statique — il défile —, et le cacher
+détruirait le champ tapé : la spirale v5.14.1 exactement). (2) l'ancrage par CONSTANTE
+(top = bas du viewport − 84/128 px) cassait dès que la géométrie réelle divergeait — remplacé
+par `top:calc(--vvt + --vvh)` + `translateY(-100%)` : le bas du dock épouse EXACTEMENT le bas
+du viewport visuel, quelle que soit sa hauteur (rangée de filtres comprise). Et clavier
+ouvert, le dock devient OPAQUE avec un filet haut (A222) : le fondu est la robe du bas
+d'écran, pas d'une barre ancrée au clavier. Mesuré : dockBas = vvBottom au pixel.

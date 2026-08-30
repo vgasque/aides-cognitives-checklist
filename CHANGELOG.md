@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.18.1] — 2026-08-30
+### Deux retours d'usage sur la v5.18.0, le jour même
+
+- **L'ordre des blocs est le même à toutes les largeurs** (signalé : « pourquoi Rangé par
+  apparaît au-dessus des épinglées, contrairement au bureau ? ») : tuiles d'accès direct
+  D'ABORD, puis « Rangé par » + « Sélectionner », puis le RÉPERTOIRE. En deçà de 1200 px, la
+  rangée de commandes s'émettait encore avant les tuiles — un vestige de l'ordre d'avant leur
+  déménagement sur la ligne RÉPERTOIRE au bureau. Au passage, une liste VIDE n'émet plus de
+  rangée de commandes du tout : rien à ranger, rien à sélectionner (le témoin doctrine acte
+  cette absence).
+- **Clavier ouvert, la barre de recherche épouse le clavier** (signalé sur iPhone, capture à
+  l'appui : pilule flottant à ~130 px au-dessus du clavier, contenu nu dans l'entre-deux).
+  Deux racines (A264) : la garde v5.14.1 « champ dans l'en-tête → ne jamais poser `html.kbd` »
+  datait d'avant le déménagement du champ dans #homeDock — la classe ne se posait JAMAIS sur
+  la recherche d'accueil, tout l'habillage clavier était mort ; et l'ancrage par CONSTANTE
+  (bas du viewport − 84 px) cassait dès que la géométrie réelle divergeait. Désormais : la
+  garde apprend le dock (qui gère sa propre géométrie), l'en-tête d'ACCUEIL est exempté du
+  retrait sous clavier (il est statique — il défile — et il porte le champ qu'on tape), et le
+  bas du dock épouse EXACTEMENT le bas du viewport visuel (`translateY(-100%)`, aucune
+  constante, rangée de filtres comprise), en matière OPAQUE avec un filet haut. Mesuré au
+  pixel en simulation ; le juge final reste l'iPhone réel.
+
 ## [5.18.0] — 2026-08-30
 ### L'accueil sans mécanisme — refonte complète, conçue sur maquettes et corrigée à l'usage
 
@@ -579,15 +601,3 @@ sonde jetable, verte sur les DEUX moteurs.
   participants. Direct vif → feuille directe ; miroir → miroir ; sinon → cloud.
 - La ligne de diagnostic (v5.14.13) est retirée : service rendu — elle a désigné le défaut
   serveur en un aller-retour.
-
-## [5.14.14] — 2026-08-18
-### Le vrai coupable du secours chaud : le serveur amputait l'offre
-
-- **L'appariement silencieux ne pouvait fonctionner sur AUCUN réseau** (trouvé grâce à la
-  ligne de diagnostic v5.14.13 : « en attente de l'offre… » à demeure) : la liste blanche des
-  CLÉS de payload de `share_push` — l'étage jumeau du vocabulaire des genres — ne connaissait
-  pas les clés du secours chaud : le serveur acceptait l'évènement `sig` et le vidait de son
-  offre. ⚠ **`supabase/schema.sql` est à REJOUER sur l'instance** : c'est le correctif.
-- **Le banc ne peut plus mentir sur ce point** : le hub local du harnais ampute désormais les
-  payloads exactement comme le serveur, et `check-sql` garde la parité des clés comme celle
-  des genres (39 identiques, camelCase compris) — vérifié capable d'échouer des deux côtés.

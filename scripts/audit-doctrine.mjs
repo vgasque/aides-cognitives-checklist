@@ -1662,8 +1662,11 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
     t(`${w} px · la colonne ne s'élargit pas quand le rail disparaît`,
       g.avec.util===g.sans.util, `${g.avec.util} px avec rail, ${g.sans.util} sans`);
     t(`${w} px · témoin : le rail a bien disparu`, g.sans.rail===false, JSON.stringify(g.sans));
-    t(`${w} px · la rangée de contrôles respire sous elle, avec ou sans cartes`,
-      g.avec.ecart>=12&&g.sans.ecart>=12, `${g.avec.ecart} px avec, ${g.sans.ecart} sans`);
+    /* v5.18 (A263) : sur une liste VIDE la rangée de commandes n'est plus émise du tout —
+       rien à ranger, rien à sélectionner : une rangée morte serait pire qu'aucune. Le témoin
+       « sans cartes » devient donc son ABSENCE, pas sa respiration. */
+    t(`${w} px · la rangée de contrôles respire sous elle (et disparaît sans cartes)`,
+      g.avec.ecart>=12&&g.sans.ecart===null, `${g.avec.ecart} px avec, ${g.sans.ecart} sans`);
     await page.close();
   }
 }
