@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.19.6] — 2026-08-31
+### L'anneau de focus repris par un `#id` : une propriété corrigée, deux trous fermés (A285)
+
+- **Un `#id` reprenait EN SILENCE la respiration d'A268** (A285, signalé sur capture : « la
+  bordure du bouton *Tout* est toujours coupée par la fenêtre »). La feuille de filtres portait
+  depuis la v5.6 `#filtSheetBody{padding:0 0 4px}` : un `#id` l'emporte sur `.ai-card>.ai-body`,
+  et le RACCOURCI `padding` remettait l'axe inline à zéro — en laissant vivre la marge négative,
+  qui dès lors ne compensait plus rien. Résultat PIRE que l'état d'avant A268 : chips 4 px à
+  gauche du titre, pile sur la découpe, anneau de focus rasé. Mesuré : garde gauche 0 px pour
+  « Tout », « Toutes » et « Gérer », contre 3,9 px dans les seize autres corps de fenêtre.
+  Correctif d'une propriété : `padding-block:0 4px` — on n'écrit que l'axe qu'on règle, l'axe
+  inline reste à la règle commune ; effet second voulu, les chips s'alignent enfin sur le titre.
+- **Le trou de cascade se ferme en garde-fou** : `check-ring.mjs` (dans `npm run check`, donc en
+  CI) lit les corps de fenêtre dans la coque — jamais une liste tenue à la main — et refuse toute
+  règle qui les CIBLE par leur `#id` en posant une respiration inline < 4 px (les règles visant
+  un DESCENDANT ne sont pas concernées). Né ROUGE sur l'état d'avant correctif.
+- **Le trou de couverture aussi** : la feuille de filtres n'était ouverte par AUCUNE des
+  vingt-cinq surfaces d'`audit-a11y` — c'est ce qui a laissé sept mois au défaut. Elle entre au
+  balayage par son VRAI point d'entrée (`#filtTog`, qui n'existe que pendant une recherche) :
+  conforme aux deux thèmes du premier coup. Leçon v4.75.0 redite au prix fort : un défaut hors
+  périmètre n'est pas un défaut absent.
+
 ## [5.19.5] — 2026-08-31
 ### Les mineurs de l'audit : la rangée d'éditeur suit la largeur effective, la doctrine se navigue (A284)
 
@@ -760,20 +782,3 @@ sonde jetable, verte sur les DEUX moteurs.
   lui-même trouvé un piège de cascade (`.btn.sm{min-height:38px}`, déclarée plus bas à
   spécificité égale — 38 px mesurés là où 40 étaient écrits). Doctrine :
   `docs/decisions/lot-v5-17.md`.
-
-## [5.16.1] — 2026-08-20
-### L'invitation au dépôt parle au pluriel (addendum A225)
-
-- **« Déposez UN PDF ou UNE image ici » se lisait comme une limite** (re-signalé après la
-  v5.16.0 : « quand je drag plusieurs PDF, ça me montre "déposer un fichier ou une image" et
-  un seul s'affiche ») : le singulier de la table `UP_KINDS` — écrit pour NOMMER une nature —
-  servait aussi d'invitation. La fenêtre de dépôt dit désormais « Déposez **vos** PDF ou
-  **vos** images ici », son sous-titre et celui des zones ajoutent « **plusieurs fichiers à
-  la fois** » ; le refus, lui, garde le singulier — il désigne UN fichier fautif. Nouveau
-  champ `pl` dans la table (l'invitation et le refus ne partagent plus le même mot).
-- **La troncature elle-même n'a pas été reproduite** : trois sondes (sélecteur multiple, drop
-  DOM, drop CDP à vrais fichiers — éditeurs de fiche ET de protocole) entrent tous les
-  fichiers, comme depuis la v5.0.0. Causes résiduelles côté poste, notées dans la doctrine :
-  drag depuis la barre de téléchargements ou une pile macOS (UN seul fichier porté), PDF
-  > 15 Mo refusé (message de 8 s, ratable), service worker servant encore l'ancienne version.
-  Addendum : `docs/decisions/lot-v5-16.md` (A225).

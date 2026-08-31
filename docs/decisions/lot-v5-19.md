@@ -381,3 +381,32 @@ profil devient celui de la largeur effective. LES QUATRE PALIERS RESTANTS SANS z
 bandes SFAR 1000, rs-bar 924, tg-row 480, home 390) sont des paliers de COMPOSITION à dégradation
 douce : aucun tort mesuré sous zoom, on ne convertit pas d'office — candidats si un signalement
 d'usage arrive, et ce paragraphe est leur adresse.
+
+**A285 (v5.19.6). UN `#id` REPRENAIT EN SILENCE LA RESPIRATION D'A268 — ET LA SEULE FENÊTRE QUE
+NUL HARNAIS N'OUVRAIT ÉTAIT CELLE OÙ ÇA SE VOYAIT.** Signalé sur capture (« pourquoi la bordure du
+bouton *Tout* est toujours coupée par la fenêtre ? je pensais que ce bug avait été réglé »). A268
+(v5.18.5) avait écarté de 4 px le bord de découpe du corps des fenêtres — `.ai-card>.ai-body{
+padding-inline:4px;margin-inline:-4px}` — pour que l'anneau de focus (2 px + 2 px de décalage)
+tienne entier. La feuille de filtres portait, depuis la v5.6, `#filtSheetBody{…;padding:0 0 4px}` :
+un `#id` (1,0,0) l'emporte sur `.ai-card>.ai-body` (0,2,0), et le RACCOURCI `padding` repose les
+quatre côtés — donc l'axe inline à zéro. **Le résultat était PIRE que l'état d'avant A268**, parce
+que la moitié qui survivait était la marge négative : elle ne compensait plus rien, et les chips
+partaient 4 px PLUS à gauche que le titre de la fenêtre, pile sur la découpe. Mesuré à l'ouverture
+réelle de la feuille : garde gauche **0 px** pour « Tout », « Toutes » et « Gérer », contre 3,9 px
+dans les **seize** autres corps de fenêtre — et l'écart d'alignement chip/titre de 32,5 contre 36,4.
+Correctif d'une propriété : `padding-block:0 4px` — on ne règle que l'axe qu'on veut, l'axe inline
+reste à la règle commune. Effet second constaté et voulu : les chips s'alignent enfin sur le titre
+(36,4 = 36,4).
+
+**LES DEUX TROUS QUE CE DÉFAUT DÉSIGNE, ET CE QUI LES FERME.** (1) *La cascade* :
+`scripts/check-ring.mjs` (dans `npm run check`, donc en CI) lit les corps de fenêtre dans la coque
+— jamais une liste tenue à la main — et refuse toute règle qui les CIBLE par leur `#id` en posant
+une respiration inline < 4 px ; une règle qui vise un DESCENDANT (`#filtSheetBody .chiprow`) n'est
+pas concernée, elle ne touche pas le bord de découpe. Né ROUGE sur l'état d'avant correctif, vert
+après, fichier restauré à l'octet. (2) *La couverture* : **la feuille de filtres n'était ouverte
+par aucune des vingt-cinq surfaces d'`audit-a11y`** — la surface qu'on ouvre le plus souvent depuis
+la recherche vivait hors du balayage, et c'est ce qui a laissé sept mois au défaut. Elle y entre,
+par son VRAI point d'entrée (`#filtTog`, qui n'existe que pendant une recherche depuis v5.18) :
+conforme aux deux thèmes du premier coup. Leçon déjà écrite en v4.75.0 et redite au prix fort :
+**un défaut hors périmètre n'est pas un défaut absent** — et la garde d'A268 était vérifiée sur
+les seize fenêtres qu'on regardait.

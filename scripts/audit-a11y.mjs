@@ -429,6 +429,17 @@ const SURFACES = [
   { nom:'entrée invité',       w:320,  scope:'#joinScreen', fn: async()=>{
       openJoinScreen('K7M2P4Q9');
       const d=document.querySelector('#joinScreen .join-info'); if(d)d.open=true; } },
+  /* LA FEUILLE DE FILTRES n'était ouverte par AUCUNE des surfaces de ce tableau (v5.19.6) — et
+     c'est par là qu'un `#id` a pu reprendre en silence la respiration d'A268 (`padding` en
+     raccourci) et rogner l'anneau de focus des chips, sept mois durant, sur la surface que l'on
+     ouvre le plus souvent depuis la recherche. Point d'entrée RÉEL : le déclencheur `#filtTog`,
+     qui n'existe que PENDANT une recherche (v5.18) — on pose donc la requête dans l'état que
+     l'application lit elle-même, puis `render()` décide. */
+  { nom:'feuille de filtres',  w:390,  scope:'#filtSheet', must:'#filtSheetBody .scopebtn', fn: async()=>{
+      state.q='br'; state.view='library'; render();
+      await new Promise(r=>setTimeout(r,350));
+      const t=document.getElementById('filtTog'); if(t)t.click();
+      await new Promise(r=>setTimeout(r,450)); } },
   { nom:'nouvelle biblio.',    w:390,  scope:'#newLibModal', fn: async()=>{
       // openNewLib est gardée par myIsAppAdmin : garde MÉTIER légitime, dont la vraie barrière
       // est la RLS serveur. On la lève pour auditer le RENDU, ce qui est l'objet du harnais.

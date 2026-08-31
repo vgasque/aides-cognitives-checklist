@@ -7841,7 +7841,15 @@
      Dans une feuille, elles tiennent d'un coup, l'écran entier leur appartient, et le pied peut
      ANNONCER le résultat avant de fermer : on sait ce qu'on va trouver avant d'y aller. */
   #filtSheet .ai-card{display:flex;flex-direction:column;overflow:hidden}
-  #filtSheetBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding:0 0 4px}
+  /* ⚠ `padding` EN RACCOURCI TUAIT LA RESPIRATION D'A268 (v5.19.6, signalé sur capture :
+     « la bordure du bouton Tout est toujours coupée par la fenêtre »). `.ai-card>.ai-body` écarte
+     le bord de découpe de 4 px et rend ces 4 px par une marge négative ; un `#id` l'emporte sur
+     `.ai-card>.ai-body`, donc ce raccourci remettait le padding inline à 0 — en LAISSANT vivre la
+     marge négative, qui dès lors ne compensait plus rien : les chips partaient 4 px PLUS à gauche,
+     pile sur la découpe, anneau de focus rasé. Mesuré : 0 px de garde à gauche pour « Tout »,
+     « Toutes » et « Gérer », contre 3,9 px partout ailleurs. On n'écrit donc que l'axe qu'on
+     veut régler (`padding-block`) et l'axe inline reste à la règle commune. */
+  #filtSheetBody{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding-block:0 4px}
   #filtSheetBody :is(.typebar,.catbar){display:block;margin:0 0 18px}
   #filtSheetBody :is(.typebar,.catbar):last-child{margin-bottom:0}
   #filtSheetBody .scope-lbl{display:block;min-width:0;margin:0 0 8px;
