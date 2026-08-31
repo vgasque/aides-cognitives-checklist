@@ -1,5 +1,45 @@
 # Journal des modifications
 
+## [5.19.2] — 2026-08-31
+### Le halo de cible se vérifie en capture, la feuille qui dépasse le dit (A278-A279)
+
+Second volet de l'audit design v5.19 — publié avec la 5.19.1 (fusionnée ici), les deux
+corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
+
+- **« filtres : aides » était une cible de 72×18 px, sous les 24 de WCAG 2.5.8 (A278).** Sa
+  conformité reposait sur un halo `::after` de −8 px — rogné par la chaîne d'ancêtres en
+  `overflow:hidden` qui ellipse les longs résumés : mesuré à l'`elementFromPoint`, un tap à
+  5 px du rectangle atteignait `.dir-wrap`, jamais le bouton. Le dessin porte désormais
+  lui-même les 24 px (`.dir-hf` en inline-flex, `min-height:24px` — la rangée absorbe les
+  ~6 px), le halo ne restant qu'en bonus là où le clip le laisse vivre.
+- **Le trou du garde-fou, plus grave que le défaut : `audit-a11y` créditait les halos SANS
+  vérifier la capture.** La sonde cibles lisait les insets du `::after` et comptait la
+  surface — tout halo rogné par un clip passait vert (famille v4.31.1 : un contrôle aveugle
+  au défaut qu'il couvre ne prouve rien). Elle teste désormais la CAPTURE : pour tout élément
+  dont la conformité repose sur le halo, `elementFromPoint` au milieu de chaque côté à halo
+  non nul doit rendre l'élément — sinon « halo rogné, capture perdue ». Deux garde-fous
+  appris à la première passe : garde d'occlusion (le centre inatteignable — fenêtre ouverte
+  par-dessus — n'est pas un halo rogné : la sonde rougissait sur le chrome DERRIÈRE la
+  feuille Plan), et abstention hors fenêtre. Plus une surface d'état nouvelle, « filtres
+  posés » : le déclencheur n'existe qu'avec un filtre actif et ne vivait dans AUCUNE surface
+  mesurée (un défaut hors scope n'est pas un défaut absent, v4.75.0). Preuve rouge→vert :
+  sonde ajoutée AVANT le correctif, passe rouge sur le seul témoin visé, puis verte.
+- **La Page SFAR annonce son débordement horizontal (A279).** Mesuré : 904 px visibles pour
+  1131 de feuille à 1280 — la colonne « NE PAS OUBLIER » coupée en plein mot, et les barres
+  de défilement en incrustation ne laissent aucun indice tant qu'on ne défile pas.
+  L'ajustement d'office reste REFUSÉ (k ≈ 0,28 à 390 px tuerait toute cible — cf. `svZoom`
+  et l'épitaphe `.pg-wide`) : ce qui manquait, c'est que la coupe se DISE. Un mot en encre
+  seconde dans la barre d'échelle — « la feuille dépasse à droite — défiler, ou “⤢ Ajusté” » —
+  posé/levé par `svApplyZoom` sur la mesure réelle du défileur, dans les deux logements de la
+  feuille. Vérifié aux trois états : annoncé à l'ouverture, tu après « Ajusté » (80 %), de
+  retour à 1:1.
+- **Les trois autres signalements de l'audit, vérifiés puis classés** : la bascule de thème
+  « lente » était un artefact de mesure (pane masqué au rendu étranglé — le thème s'applique
+  en synchrone, aucune transition couleur > 0,3 s ; corriger au symptôme aurait été le piège
+  A267) ; la troncature des titres du rail est un arbitrage écrit (« un titre ellipsé se
+  devine, un renvoi tronqué ne se répare pas ») ; le bandeau auteur est déjà conditionnel
+  (un seul créneau avec le bandeau système, fermeture définitive mémorisée).
+
 ## [5.19.1] — 2026-08-31
 ### La pile du quai se purge à toute fermeture, et une seule primaire verte (A277)
 
