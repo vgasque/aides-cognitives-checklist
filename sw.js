@@ -30,7 +30,7 @@
 //  code et restent intactes à chaque mise à jour, tant que l'URL reste la même.
 // =============================================================================
 // IMPORTANT : garder cette version synchronisée avec APP_VERSION dans index.html.
-const CACHE = 'aides-cognitives-v5.19.3';
+const CACHE = 'aides-cognitives-v5.19.4';
 // Versionné par pdf.js (vendor/pdfjs/README.txt) : à changer UNIQUEMENT quand pdf.js est mis à jour.
 const PDFJS_CACHE = 'aides-cognitives-pdfjs-4.10.38';
 const PDFJS_ASSETS = [
@@ -165,7 +165,9 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== PDFJS_CACHE && k !== JSQR_CACHE && k !== STATIC_CACHE).map(k => caches.delete(k))))
+      // `caches.keys()` est indexé par ORIGINE, pas par scope : sans le préfixe, un déploiement
+      // en sous-répertoire (intranet, cf. conformité § 1.1) effacerait les caches des PWA voisines.
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('aides-cognitives-') && k !== CACHE && k !== PDFJS_CACHE && k !== JSQR_CACHE && k !== STATIC_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
       // Annonce la version du worker aux pages ouvertes : index.html la compare à son APP_VERSION
       // et affiche le message JUSTE — « déjà à jour » (la page servie est déjà la nouvelle) ou,

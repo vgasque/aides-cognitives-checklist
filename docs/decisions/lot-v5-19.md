@@ -1,4 +1,4 @@
-# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A282, dont l'audit interne v5.19.3 en fin de fichier)
+# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A283, dont l'audit interne v5.19.3-4 en fin de fichier)
 
 > Conçu sur l'artefact « Sidebar et bas de page » (canvas Claude Design, 30/08/2026), chaque
 > décision mesurée sur l'app SERVIE avant d'être retenue. Point de départ : deux captures — la
@@ -347,3 +347,22 @@ GitHub Pages. COROLLAIRE qui donne sa force à la décision : ce qui ne doit PAS
 règle pas à l'`.assetsignore`, il SORT DU DÉPÔT — `sonde/index.html` (313 Ko de sonde WebRTC
 d'un spike clos, jumelle à l'octet d'un fichier délibérément gitignoré, entrée par le trou « le
 motif des sondes ne couvre que la racine ») est supprimée, son exemplaire local gitignoré reste.
+
+**A283 (v5.19.4). LES TROIS TROUS DE L'AUDIT SE FERMENT EN GARDE-FOUS — ET LE DERNIER ATTRAPE UN
+QUATRIÈME MORT LE JOUR DE SA NAISSANCE.** `check-tokens` (token déclaré ↔ lu, deux sens — le trou
+d'A280), le sens inverse de `check-ids` (sélecteur `#id` stylé → émis — le trou de #f-validation),
+et `check-fns` (déclaration top-niveau → citée ailleurs — le trou de catsUtiles), tous trois nés
+ROUGES sur défaut fabriqué puis restaurés à l'octet. `check-fns` a immédiatement trouvé
+`enLigneOk`, une locale calculée puis jamais lue, que l'audit humain-et-agents avait manquée.
+Deux pièges payés en route : (1) deux commentaires JS citent `<style>` sans fermeture — sur le
+fichier brut, ils s'apparient de travers avec tout bloc ajouté plus bas ; les commentaires tombent
+AVANT l'appariement (dépouilleur partagé `strip-comments.mjs`, une seule source pour les trois
+contrôles — un nom cité dans la doctrine ne compte jamais comme un usage, c'est ainsi que
+filtersActive avait survécu). (2) Une citation en CHAÎNE compte comme usage : le contrôle ne peut
+pas fabriquer de faux rouge, seulement manquer un mort — l'asymétrie est choisie et écrite.
+Durcissements du même lot : le pli d'un QR passe par `slFoldSan` (grammaires du chemin en ligne,
+liste FERMÉE — un miroir ne réécrit rien —, témoin dans tests.html), `ltSnapUnpack` décompresse
+BORNÉ à 4 Mo (le flux s'annule, comme `inflateBounded`), la purge des caches du SW se limite au
+préfixe `aides-cognitives-` (l'origine n'est pas le scope), `esc()` rejoint les six sites d'id qui
+y avaient échappé, et cinq duplications certaines sont factorisées (renommage minuteur/compteur,
+`selBounds` ×3, `slBusySheet` ×2, `attInfoFor` ×2, `ovNavPush`/`ovNavDone`).

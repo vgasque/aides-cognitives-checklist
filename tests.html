@@ -2238,6 +2238,25 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('sessionFromRow passe par l\'assainisseur', !('pollue' in back) && !('<img src=x>' in back.checked));
     eq('l\'identité vient de la LIGNE, jamais du blob', back.id, 's9');
   }
+  /* v5.19.4 — le pli d'un QR optique passe par slFoldSan : grammaires du chemin en ligne,
+     bornes de sanitizeSession, liste FERMÉE (un miroir ne réécrit rien — pas le besoin LWW
+     qui fait de sanitizeSession une liste grise). */
+  group('slFoldSan() — le pli reçu par QR est normalisé');
+  {
+    const hostile=JSON.parse('{"__proto__":{"pollue":1},"checked":{"1:b1:0":1,"<img src=x>":1},'
+      +'"counters":{"c1":"3","général":"9"},"timers":{"t1":{"running":1,"elapsedMs":"250"}},'
+      +'"events":[{"id":"e1","t":"5","label":"écrit pendant le soin","ref":{"type":"zzz"},"voidAt":null},null],'
+      +'"nav":["b1"],"navSeq":[1],"exercise":1,"champInconnu":"x"}');
+    const s=A.slFoldSan(hostile);
+    ok('__proto__ propre neutralisé', !('pollue' in s));
+    ok('clé de coche hors grammaire filtrée, conforme coercée en booléen', !('<img src=x>' in s.checked)&&s.checked['1:b1:0']===true);
+    eq('compteur coercé, clé hors SAFE_ID filtrée', [s.counters.c1,'général' in s.counters], [3,false]);
+    eq('minuteur reconstruit champ à champ', s.timers.t1, {running:true,elapsedMs:250,cycles:0,anchor:0});
+    eq('évènement nul filtré, ref inconnue rejetée, AUCUN label ne traverse (règle 15)',
+       [s.events.length,s.events[0].ref,'label' in s.events[0]], [1,null,false]);
+    eq('liste FERMÉE : un champ inconnu ne traverse pas', 'champInconnu' in s, false);
+    eq('nav/navSeq par shareNavNorm, exercise coercé', [s.nav,s.exercise], [['b1'],true]);
+  }
   /* v5.10.2 (check-actest) : le cœur du modèle v4 — pool, rôles, verbes — était exporté « pour
      test » et cité NULLE PART. C'est le trou par lequel flattenFiche est resté vert pendant que
      le diff de versions devenait aveugle : un export sans témoin est un faux vert. */

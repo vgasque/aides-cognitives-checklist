@@ -22,6 +22,7 @@
    portée d'un contrôle statique — leur compte est affiché, pas vérifié.
    ============================================================================ */
 import { readFileSync } from 'node:fs';
+import { stripComments } from './strip-comments.mjs';
 
 const src = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
@@ -52,5 +53,26 @@ if (orphans.length) {
   orphans.forEach(id => console.error('    #' + id + ' (' + readers.get(id) + ' lecteur(s)) — un contrôle qui a l\'air vivant et ne fait rien'));
   process.exit(1);
 }
-console.log('✓ check-ids : ' + readers.size + ' id(s) littéraux lus, tous émis (' +
+
+/* SENS INVERSE (audit v5.19.4) : un sélecteur `#id` de la FEUILLE doit viser un id émis —
+   c'est par ce trou que #f-validation (règle morte) et #readTopSeg (purge v5.6 à moitié faite,
+   masqué à l'impression six versions durant) sont passés. Les sélecteurs sont pris entre `}` et
+   `{` (jamais dans les valeurs : un hex #fff n'est pas un sélecteur). Les commentaires tombent
+   AVANT l'appariement des blocs : deux commentaires JS citent `<style>` sans fermeture — sur le
+   fichier brut, ils s'apparieraient de travers avec tout bloc ajouté plus bas (mesuré). */
+const cssOrphans = new Set();
+for (const st of stripComments(src).matchAll(/<style>([\s\S]*?)<\/style>/g)) {
+  const css = st[1];
+  for (const chunk of css.split('}')) {
+    const sel = chunk.split('{')[0];
+    for (const m of sel.matchAll(/#([A-Za-z][\w-]*)/g))
+      if (!emitted.has(m[1])) cssOrphans.add(m[1]);
+  }
+}
+if (cssOrphans.size) {
+  console.error('✗ check-ids : ' + cssOrphans.size + ' sélecteur(s) #id stylés mais émis NULLE PART :');
+  [...cssOrphans].sort().forEach(id => console.error('    #' + id + ' — règle morte (ou purge à moitié faite, règle 14)'));
+  process.exit(1);
+}
+console.log('✓ check-ids : ' + readers.size + ' id(s) littéraux lus, tous émis ; sélecteurs #id de la feuille tous émis (' +
   dynamic + ' appel(s) à id calculé, hors portée d\'un contrôle statique).');

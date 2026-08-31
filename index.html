@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-h2aylWpCgLO/Cmj/uEHduyr6IIas/q9nCUXT3cKnE78='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-c92dcNmTOBXpqQRhT99Z6tvpjeHHP8PZOpTLgpV3HKs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10057,7 +10057,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.19.3';
+const APP_VERSION='5.19.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10312,7 +10312,7 @@ const IDB={
   // Index de recherche des documents (store 'attidx', v6). `getIxAll` est le SEUL getAll du
   // fichier qu'on s'autorise au démarrage : ces enregistrements pèsent quelques dizaines de Ko,
   // pas quelques Mo (c'est tout l'objet du store séparé).
-  getIx(id){return req2p(this._s('attidx','readonly').get(id),null);},
+  getIx(id){return req2p(this._s('attidx','readonly').get(id),null);},   // surface de HARNAIS (audit-pdfsearch) seule (Q3, v5.19.4)
   putIx(rec){return req2p(this._s('attidx','readwrite').put(rec));},
   delIx(id){return req2p(this._s('attidx','readwrite').delete(id));},
   getIxAll(){return req2p(this._s('attidx','readonly').getAll(),[]);}
@@ -10626,7 +10626,7 @@ let _rollOnce=false;   // le volet du quai se déroule au tap qui l'ouvre — pa
 const WAKE_OK=(typeof navigator!=='undefined'&&!!navigator.wakeLock&&typeof navigator.wakeLock.request==='function');
 let wakeWanted=(()=>{try{return localStorage.getItem(spaceKey('ac-wake'))!=='0';}catch(e){return true;}})();
 let _wakeSentinel=null,_wakeBusy=false;
-function wakeActive(){return !!_wakeSentinel;}
+function wakeActive(){return !!_wakeSentinel;}   // surface de HARNAIS (audit-doctrine) seule (Q3, v5.19.4)
 async function wakeApply(){
   if(!WAKE_OK||_wakeBusy)return;
   const veut=wakeWanted&&crisisOnScreen()&&document.visibilityState==='visible';
@@ -12454,6 +12454,7 @@ function bItemMove(src,i,dst,j){
 /* ★ MÉMOIRE (lot T7) : les items étoilés d'une fiche, avec le bloc d'où ils viennent. UNE seule
    fonction — le chapeau, son garde-fou et le volet de relecture doivent compter la MÊME chose ;
    trois calculs séparés divergeraient, et le dépôt a déjà payé cette leçon quatre fois. */
+// Surface de TEST (__ac_test__), zéro appelant applicatif : délibéré (audit v5.19.4, Q3).
 function memItemsOf(f){return ((f&&f.blocks)||[]).flatMap((b,bi)=>bItems(b).filter(it=>it.memory)
   .map(it=>({t:v4ItemToStr(it),src:(b.title||('Bloc '+(bi+1))),bid:b.id})));}
 /* Le chapeau agrège les memory items DU POOL — ceux de portée fiche (ex-`notForget`) et ceux
@@ -13402,9 +13403,7 @@ async function _attOfflineBody(){
      quelqu'un qui n'a joint aucun PDF. */
   _attSum.off=0;
   if(!supportsAttachments()){el.hidden=true;return;}
-  let info=null;
-  try{info=attMissingInfo((fiches||[]).concat(protocols||[]),await IDB.getAttIds(),
-    (typeof Auth!=='undefined'&&Auth.signedIn())?(Auth.user()||{}).id:null);}catch(e){}
+  const info=await attInfoFor((fiches||[]).concat(protocols||[]));
   if(!info||!info.total){el.hidden=true;return;}
   el.hidden=false;_attSum.off=null;
   if(!info.missing.length){
@@ -17843,12 +17842,15 @@ function bindProtoTasks(p){
     li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl();}};});}
 /* Barre d'outils du contenu rédigé : insertions Markdown au curseur / sur la sélection.
    wrapBold (fiches) est réutilisé pour le gras ; les autres actions sont locales ici. */
-function mdWrapSel(inp,mark){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+// Bornes de sélection ordonnées d'un champ ([a,b,valeur] ; curseur en fin si aucune) — trois
+// copies factorisées (audit v5.19.4).
+function selBounds(inp){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;return a>b?[b,a,v]:[a,b,v];}
+function mdWrapSel(inp,mark){const [a,b,v]=selBounds(inp);
   inp.value=v.slice(0,a)+mark+v.slice(a,b)+mark+v.slice(b);
   inp.focus();inp.setSelectionRange(a+mark.length,b+mark.length);
   inp.dispatchEvent(new Event('input',{bubbles:false}));}
 // Un titre POSÉ SUR UN TITRE remplace son niveau (H2 puis H1 donnait « # ## texte », v4.4.2).
-function mdPrefixLines(inp,prefix,numbered){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+function mdPrefixLines(inp,prefix,numbered){const [a,b,v]=selBounds(inp);
   const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
   const head=/^#/.test(prefix),quo=/^>/.test(prefix),tsk=/^- \[/.test(prefix);
   // Un titre posé sur un titre REMPLACE son niveau ; une citation typée posée sur une citation
@@ -18888,7 +18890,7 @@ function flowRoute(C){const{blocks,byId,pos,botOfY}=C;const{HG,VG,SLOOP}=FLOWK;
 // 4. DESSIN des blocs (fond clippé, bandeau d'en-tête, pastille DÉPART, items, vignette d'image,
 // halo bleu du bloc courant) -> chaîne des nœuds.
 function flowNodesSVG(C){const{blocks,pos,LAY,start}=C;const{LH,TLH,HPAD,IMG_H,IMG_PAD,IMG_GAP}=FLOWK;
-  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,cx=L.cx,isS=b.id===start,W=p.w,cid='cp'+b.id;
+  let nodes='';blocks.forEach(b=>{const p=pos[b.id];if(!p)return;const L=LAY[b.id],dec=L.dec,cx=L.cx,isS=b.id===start,W=p.w,cid='cp'+esc(b.id);
     /* Registre ALERTE en CONTOUR pour une cible de complication : le CORPS garde le fond neutre
        des blocs d'étapes, seuls le bandeau, le liseré et le cadre passent au rouge. */
     const fill=dec?'#fdf9ec':'#f7fafd',stroke=cx?'#c43d34':(dec?'#e3cf9c':'#c5d2df'),tcol=cx?'#a32e1f':(dec?'#7a5900':'#101b28');const h=p.h,hh=L.headerH;
@@ -19128,6 +19130,8 @@ function qrDecLoad(){
 /* Témoin de santé du COUPLE encodeur-maison → décodeur-vendorisé : encode, peint sur un canvas,
    relit, compare. C'est lui qui donne au décodeur son témoin de commit (tests.html) — et il
    resservira tel quel au test hors-ligne d'une mise à jour de jsQR. */
+// Surface de TEST (témoin encodeur-maison→décodeur exigé par la décision jsQR du 17/08/2026),
+// zéro appelant applicatif : délibéré (audit v5.19.4, Q3).
 async function qrSelftest(text){
   const q=qrEncode(String(text));if(!q)return false;
   const jsqr=await qrDecLoad();
@@ -19317,7 +19321,7 @@ function shareApplyMode(kind){return SHARE_APPLY[kind]||'deferred';}
 function vfNorm(v){return (v&&typeof v==='object')?{a:v.a||null,t:+v.t||0}
   :(typeof v==='number'?{a:null,t:v}:null);}
 function vfTime(v){const n=vfNorm(v);return n?n.t:0;}
-function vfActor(v){const n=vfNorm(v);return n?n.a:null;}
+function vfActor(v){const n=vfNorm(v);return n?n.a:null;}   // surface de TEST seule (Q3, v5.19.4)
 function vfMapNorm(m){const o={};for(const k in (m||{})){const n=vfNorm(m[k]);if(n)o[k]=n;}return o;}
 // Acteur du geste courant : `null` hors partage (« moi », il n'y a personne d'autre) ; l'identifiant
 // public du participant sinon. C'est ce qui permettra au compte-rendu de dire QUI a constaté quoi.
@@ -19768,6 +19772,28 @@ function shareSnap(R,flowEnded){
        en la croyant réelle est précisément ce que le placard existe pour empêcher. */
     exercise:!!R.exercise,
     startedAt:+R.startedAt||0};}
+/* Assainit un PLI reçu du dehors (QR optique — seul intrant distant qui restait pris brut,
+   audit v5.19.4) : grammaires du chemin en ligne (shareNavNorm/shareCxbNorm/vfMapNorm/tkRefNorm),
+   bornes de sanitizeSession. Liste FERMÉE — un miroir ne réécrit rien, pas le besoin LWW qui
+   fait de sanitizeSession une liste grise. Aucun label d'évènement ne traverse (règle 15). */
+function slFoldSan(s){
+  s=(s&&typeof s==='object')?s:{};
+  const map=(src,max,rx,f)=>{const m=Object.create(null);let n=0;
+    if(src&&typeof src==='object')for(const k of Object.keys(src)){
+      if(n>=max)break;if(!rx.test(k))continue;m[k]=f(src[k]);n++;}
+    return m;};
+  const nv=shareNavNorm(s.nav,s.navSeq)||{nav:[],navSeq:[]};
+  return {checked:map(s.checked,4000,SHARE_KEY_RX,v=>!!v),
+    verified:vfMapNorm(map(s.verified,4000,SHARE_KEY_RX,v=>v)),
+    vgaps:vfMapNorm(map(s.vgaps,4000,SHARE_KEY_RX,v=>v)),
+    counters:map(s.counters,500,SAFE_ID,v=>+v||0),
+    timers:map(s.timers,200,SAFE_ID,t=>{t=(t&&typeof t==='object')?t:{};
+      return {running:!!t.running,elapsedMs:+t.elapsedMs||0,cycles:+t.cycles||0,anchor:+t.anchor||0};}),
+    events:(Array.isArray(s.events)?s.events:[]).slice(0,5000)
+      .filter(e=>e&&typeof e==='object')
+      .map(e=>({id:sstr(e.id,80),t:+e.t||0,ref:tkRefNorm(e.ref),voidAt:e.voidAt==null?null:(+e.voidAt||0)})),
+    nav:nv.nav,navSeq:nv.navSeq,cxb:shareCxbNorm(s.cxb,nv.navSeq),
+    flowEnded:!!s.flowEnded,exercise:!!s.exercise,startedAt:+s.startedAt||0};}
 function shareDiff(a,b){
   a=a||shareSnap(null,false);b=b||shareSnap(null,false);
   const out=[];
@@ -19840,6 +19866,7 @@ function shareRebase(){try{if(Share.mode!=='off')_shareBase=shareSnap(Runtime,!!
 /* Empreinte stable d'un état. FNV-1a 32 bits — même algorithme que `spaceTag`. Les clés sont
    TRIÉES : sans cela deux appareils ayant reçu les mêmes évènements dans un ordre d'insertion
    différent obtiendraient des empreintes différentes et se déclareraient périmés à tort. */
+// L'empreinte vit côté TESTS/harnais (zéro appelant applicatif — délibéré, audit v5.19.4, Q3).
 function shareStateHash(s){
   const parts=[];
   parts.push('c:'+Object.keys(s.checked||{}).filter(k=>s.checked[k]).sort().join(','));
@@ -20215,9 +20242,13 @@ async function ltRetPack(sess,events){
   return new Uint8Array(await new Response(new Blob([raw]).stream()
     .pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());}
 async function ltSnapUnpack(bytes){
-  const raw=await new Response(new Blob([bytes]).stream()
-    .pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
-  const o=JSON.parse(new TextDecoder().decode(raw));
+  // Décompression BORNÉE (4 Mo) : même précaution qu'`inflateBounded` côté zip — le flux d'un
+  // QR hostile s'annule au dépassement, il ne se matérialise pas.
+  const rd=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const parts=[];let n=0;
+  for(;;){const r=await rd.read();if(r.done)break;
+    n+=r.value.length;if(n>4194304){rd.cancel();return null;}parts.push(r.value);}
+  const o=JSON.parse(await new Blob(parts).text());
   if(!(o&&typeof o==='object'&&typeof o.at==='number'))return null;
   if(Array.isArray(o.ret))return o;
   return (o.snap&&o.fiche)?o:null;}
@@ -20306,7 +20337,7 @@ function slCamRefused(container,retry,skip){
 function timerStopHtml(t,now){
   if(!timerPaused(t)||!t.stoppedAt)return '';
   const d=Math.max(0,(now||Date.now())-t.stoppedAt);
-  return `<div class="tm-stop" id="tmstop-${t.id}">△ arrêté depuis <b>${fmtMs(d)}</b>${
+  return `<div class="tm-stop" id="tmstop-${esc(t.id)}">△ arrêté depuis <b>${fmtMs(d)}</b>${
     t.stopClosed?' — application fermée, le temps n’a pas été rattrapé':''}</div>`;}
 /* ⚠ UN CHRONOMÈTRE DIT QU'IL EN EST UN (v5.10.8, signalé à l'usage : « les chronomètres s'affichent
    pareils que les minuteurs, impossible à distinguer visuellement »). Il n'y avait AUCUNE marque
@@ -20331,10 +20362,10 @@ function timerCard(t){const d=timerDisplay(t,Date.now());const val=d.val,bw=d.bw
   const meta=tmLabelParts(t.label).meta;
   return `<div class="tmcard${stCls}" id="tmcard-${esc(t.id)}" role="group" aria-label="${lbl}"><div class="tm-label" id="tmlab-${esc(t.id)}">${esc(timerStateLabel(t))}</div>${meta?`<div class="tm-meta">${esc(meta)}</div>`:''}
     <div class="tm-val" id="tmval-${esc(t.id)}" role="timer" aria-label="${lbl} : ${val}">${val}</div>
-    ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${t.id}" style="transform:${barTf(bw)}"></div></div><div class="tm-cyc" id="tmcyc-${t.id}">${cyc}</div>`
+    ${t.type==='interval'?`<div class="tm-bar-wrap"><div class="tm-bar" id="tmbar-${esc(t.id)}" style="transform:${barTf(bw)}"></div></div><div class="tm-cyc" id="tmcyc-${esc(t.id)}">${cyc}</div>`
       :`<div class="tm-kind">${uiIcon('stopwatch',12)} Chronomètre · le temps monte</div>`}
     ${timerStopHtml(t)}
-    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${t.id}" data-tmtoggle="${esc(t.id)}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button>${timerDue(t)&&!t.ack?`<button type="button" class="tm-btn tm-ack" data-tmack="${esc(t.id)}" aria-label="Acquitter l’alarme — ${lbl} ; le minuteur reste échu, seul le bandeau se tait">✓ Vu</button>`:''}<button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${esc(t.id)}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
+    <div class="tm-ctrl"><button class="tm-btn tm-main${t.running?' run':''}" id="tmbtn-${esc(t.id)}" data-tmtoggle="${esc(t.id)}" aria-label="${timerBtnLabel(t)} — ${lbl}">${timerBtnHtml(t)}</button>${timerDue(t)&&!t.ack?`<button type="button" class="tm-btn tm-ack" data-tmack="${esc(t.id)}" aria-label="Acquitter l’alarme — ${lbl} ; le minuteur reste échu, seul le bandeau se tait">✓ Vu</button>`:''}<button class="tm-btn tm-reset" id="tmreset-${t.id}" data-tmreset="${esc(t.id)}"${t.running?' disabled':''} title="Maintenir pour remettre à zéro (↺ ${resetDur})" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">${resetLbl}</span><span class="tmr-hint">maintenir</span></button></div></div>`;}
 // Rangée COMPACTE d'un minuteur ad hoc (48px) : libellé · temps · ⟲ relance · ✕ suppression.
 function timerMiniRow(t){const d=timerDisplay(t,Date.now());
   /* Un ad hoc sans nom se numérote À L'AFFICHAGE (rang parmi les ad hoc), jamais à l'écriture —
@@ -20418,7 +20449,7 @@ function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)
      mot vient après ou jamais. La suppression vit au même endroit, au registre du ✕ des minis. */
   const nom=c.adhoc?`<button type="button" class="cn-nm" data-cnname="${esc(c.id)}" aria-label="Nommer ce compteur">${c.label?uiIcon('pen',13):'— nommer'}</button><button type="button" class="cn-nm cn-rm" data-cnrm="${esc(c.id)}" aria-label="Supprimer ce compteur">✕</button>`:'';
   const linked=c.timerId&&Runtime.timers[c.timerId];
-  return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${c.adhoc&&!c.label?'Compteur '+((Runtime.adhocCounters||[]).indexOf(c)+1):lbl}${nom}</div><div class="cn-val" id="cnval-${esc(c.id)}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-log" id="cnlog-${c.id}">${cnLogTxt(c.id)}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${esc(c.id)}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${esc(c.id)}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div>${linked?`<div class="cn-note">＋ relance le minuteur « ${esc(Runtime.timers[c.timerId].label)||'Minuteur'} »</div>`:''}<button class="cn-reset tm-reset" data-cnreset="${esc(c.id)}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
+  return `<div class="cncard" role="group" aria-label="${lbl}"><div class="tm-label">${c.adhoc&&!c.label?'Compteur '+((Runtime.adhocCounters||[]).indexOf(c)+1):lbl}${nom}</div><div class="cn-val" id="cnval-${esc(c.id)}" role="status" aria-label="${lbl} : ${v}">${v}</div><div class="cn-log" id="cnlog-${esc(c.id)}">${cnLogTxt(c.id)}</div><div class="cn-ctrl"><button class="cn-btn" data-cndec="${esc(c.id)}" data-step="${c.step||1}" aria-label="Diminuer — ${lbl}">−</button><button class="cn-btn" data-cninc="${esc(c.id)}" data-step="${c.step||1}" aria-label="Augmenter — ${lbl}">+</button></div>${linked?`<div class="cn-note">＋ relance le minuteur « ${esc(Runtime.timers[c.timerId].label)||'Minuteur'} »</div>`:''}<button class="cn-reset tm-reset" data-cnreset="${esc(c.id)}" title="Maintenir pour remettre à zéro" aria-label="Remettre à zéro — ${lbl}"><span class="tmr-lab">Remettre à zéro</span><span class="tmr-hint">maintenir</span></button></div>`;}
 /* « CONSIGNÉ À … » — LA TRACE SE VOIT, POUR NE PAS ÊTRE REFAITE (v5.0.0, demande utilisateur :
    « éviter de le faire 2 fois »). Incrémenter POSE DÉJÀ un repère horodaté dans le journal
    (`ref:{type:'counter',…}`, v4.52.0) — mais rien ne le disait, et l'on pouvait aller « Noter
@@ -22130,32 +22161,24 @@ function bindReadEvents(f,blk,cur){
     ensureStarted();persistLive(Runtime,true);render();});
   /* NOMMER, PLUS TARD OU JAMAIS. Un champ, dans le volet, au même endroit que l'étiquetage d'un
      repère — c'est la seule saisie de cette famille, et elle est facultative par construction. */
-  /* NOMMER UN MINUTEUR AD HOC — jumeau exact du geste du compteur ci-dessous. La SUPPRESSION
-     existait déjà sur la rangée compacte (`data-tmrm`, plus bas) : on ne la réécrit pas.
-     ⚠ Le `pointerdown` du champ : le commit RE-REND, donc la classe `kb-open` d'A1 serait orpheline
-     — elle est réévaluée à chaque rendu depuis A92, il n'y a donc rien de particulier à tenir. */
+  /* UN SEUL geste de renommage inline pour minuteur ET compteur (jumeaux factorisés, audit
+     v5.19.4 — ils avaient déjà commencé leur vie en copie). Entrée = valide, Échap = annule. */
+  const inlineRename=(btn,obj,aria)=>{
+    if(!obj)return;
+    const box=btn.parentElement;if(!box||box.querySelector('.cn-input'))return;
+    const i=document.createElement('input');i.type='text';i.className='cn-input';i.maxLength=40;
+    i.value=obj.label||'';i.setAttribute('aria-label',aria);
+    const fin=(ok)=>{if(!i.isConnected)return;
+      if(ok)obj.label=sstr(i.value,40).trim();
+      persistLive(Runtime,true);render();};
+    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fin(true);}else if(e.key==='Escape'){e.preventDefault();fin(false);}};
+    i.onblur=()=>fin(true);
+    box.appendChild(i);i.focus();i.select();};
   main.querySelectorAll('[data-tmname]').forEach(b=>b.onclick=()=>{
-    const t=Runtime.timers[b.dataset.tmname];if(!t||!t.adhoc)return;
-    const box=b.parentElement;if(!box||box.querySelector('.cn-input'))return;
-    const i=document.createElement('input');i.type='text';i.className='cn-input';i.maxLength=40;
-    i.value=t.label||'';i.setAttribute('aria-label','Nom du minuteur');
-    const fin=(ok)=>{if(!i.isConnected)return;
-      if(ok)t.label=sstr(i.value,40).trim();
-      persistLive(Runtime,true);render();};
-    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fin(true);}else if(e.key==='Escape'){e.preventDefault();fin(false);}};
-    i.onblur=()=>fin(true);
-    box.appendChild(i);i.focus();i.select();});
-  main.querySelectorAll('[data-cnname]').forEach(b=>b.onclick=()=>{
-    const c=(Runtime.adhocCounters||[]).find(x=>x.id===b.dataset.cnname);if(!c)return;
-    const box=b.parentElement;if(!box||box.querySelector('.cn-input'))return;
-    const i=document.createElement('input');i.type='text';i.className='cn-input';i.maxLength=40;
-    i.value=c.label||'';i.setAttribute('aria-label','Nom du compteur');
-    const fin=(ok)=>{if(!i.isConnected)return;
-      if(ok)c.label=sstr(i.value,40).trim();
-      persistLive(Runtime,true);render();};
-    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();fin(true);}else if(e.key==='Escape'){e.preventDefault();fin(false);}};
-    i.onblur=()=>fin(true);
-    box.appendChild(i);i.focus();i.select();});
+    const t=Runtime.timers[b.dataset.tmname];
+    inlineRename(b,(t&&t.adhoc)?t:null,'Nom du minuteur');});
+  main.querySelectorAll('[data-cnname]').forEach(b=>b.onclick=()=>
+    inlineRename(b,(Runtime.adhocCounters||[]).find(x=>x.id===b.dataset.cnname),'Nom du compteur'));
   main.querySelectorAll('[data-cnrm]').forEach(b=>b.onclick=async()=>{
     const id=b.dataset.cnrm;const v=Runtime.counters[id]||0;
     /* Un compte non nul est une TRACE : on ne l'efface pas d'un tap. Les repères déjà posés, eux,
@@ -24110,9 +24133,12 @@ function ovAnswer(f,btn){
   if(idx!=null&&state.nav[idx+1]===target){ovScrollToInst(idx+1);return;}
   ovDropOpens();
   const src=idx!=null?idx:state.nav.length-1;   // ancre = l'instance d'où part le geste
-  if(state.nav[state.nav.length-1]!==dec){state.nav.push(dec);state.navSeq.push(++Runtime.seq);}
-  state.nav.push(target);state.navSeq.push(++Runtime.seq);
-  state.navPos=state.nav.length-1;
+  if(state.nav[state.nav.length-1]!==dec)ovNavPush(dec);
+  ovNavPush(target);ovNavDone(src);}
+// Fil de navigation : nav + navSeq d'un même geste, puis position/persistance/re-rendu ciblé —
+// la queue commune d'ovAnswer et ovNewPass (factorisée, audit v5.19.4).
+function ovNavPush(id){state.nav.push(id);state.navSeq.push(++Runtime.seq);}
+function ovNavDone(src){state.navPos=state.nav.length-1;
   if(Runtime.started)persistLive(Runtime);
   ovAdvanceRender(src,state.nav.length-1);}
 // « ↺ Refaire » (instance complète) / « Commencer ici → » (bloc de la suite) : NOUVELLE carte
@@ -24121,10 +24147,7 @@ function ovNewPass(f,id){
   if(!f.blocks.some(b=>b.id===id))return;
   ovDropOpens();
   const src=state.nav.length-1;
-  state.nav.push(id);state.navSeq.push(++Runtime.seq);
-  state.navPos=state.nav.length-1;
-  if(Runtime.started)persistLive(Runtime);
-  ovAdvanceRender(src,state.nav.length-1);}
+  ovNavPush(id);ovNavDone(src);}
 // Écouteurs du journal : DÉLÉGATION sur .ov-wrap (survit aux re-rendus internes) ; seuls
 // « Recommencer » (geste maintenir) et les images sont câblés par élément. Le clavier n'est
 // intercepté que pour les étapes (role=checkbox) — les boutons ont leur activation native.
@@ -24415,9 +24438,7 @@ function preSessionHtml(f,avecParcours){
 async function refreshPreReady(f){
   const el=document.getElementById('preReady');if(!el)return;
   if(!f||!(f.docs||[]).length||!supportsAttachments()){el.hidden=true;return;}
-  let info=null;
-  try{info=attMissingInfo([f],await IDB.getAttIds(),
-    (typeof Auth!=='undefined'&&Auth.signedIn())?(Auth.user()||{}).id:null);}catch(e){}
+  const info=await attInfoFor([f]);
   if(!info||!info.total){el.hidden=true;return;}
   el.hidden=false;
   const n=info.total,doc=n+' document'+(n>1?'s':'');
@@ -27027,7 +27048,7 @@ function bindListEditors(d,rerender){d=d||state.draft;rerender=rerender||renderE
    présents — le même geste dé-graisse). Sans sélection : insère une paire ** vide, curseur au
    milieu. Après modification, on émet 'input' pour que les écouteurs existants reportent la
    valeur dans state.draft (aucun autre canal d'écriture). */
-function wrapBold(inp){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+function wrapBold(inp){const [a,b,v]=selBounds(inp);
   const sel=v.slice(a,b);let nv,ca,cb;
   if(sel&&v.slice(Math.max(0,a-2),a)==='**'&&v.slice(b,b+2)==='**'){nv=v.slice(0,a-2)+sel+v.slice(b+2);ca=a-2;cb=b-2;}                    // sélection déjà entourée -> retire
   else if(sel.length>=5&&sel.slice(0,2)==='**'&&sel.slice(-2)==='**'){nv=v.slice(0,a)+sel.slice(2,-2)+v.slice(b);ca=a;cb=b-4;}            // ** inclus dans la sélection -> retire
@@ -30420,6 +30441,10 @@ function attStoragePath(libraryId,ownerUid,attId){return libraryId?('l/'+library
 // ignorés), `haveIds` = ids présents en IndexedDB, `uid` = utilisateur connecté (sans lui,
 // pas de chemins cloud). Dédoublonne les documents partagés ; le chemin suit la première
 // entité VIVANTE qui référence le document (même règle que _syncAttachments).
+// Lecture commune des deux afficheurs (pied de stockage, avant-départ) : null = rien à dire.
+async function attInfoFor(list){
+  try{return attMissingInfo(list,await IDB.getAttIds(),
+    (typeof Auth!=='undefined'&&Auth.signedIn())?(Auth.user()||{}).id:null);}catch(e){return null;}}
 function attMissingInfo(entities,haveIds,uid){
   const have=new Set(haveIds||[]),seen=new Set(),paths=Object.create(null),missing=[];
   (entities||[]).forEach(f=>{if(!f||f.deletedAt)return;(f.docs||[]).forEach(a=>{
@@ -31982,10 +32007,15 @@ function renderShareSheet(force){
 /* ROUVRIR LE PARTAGE = ROUVRIR SON MODE (v5.14.15, signalé : « le mode direct ne se rouvre
    pas même si actif ») : le menu appelait la feuille CLOUD en dur — en mode direct elle
    s'affichait sans code ni participants, comme un partage fantôme. */
-function openCurrentShare(){
-  if(slLiveOk()){closeShareSheet();shareModal.classList.add('on');slSheet('live');return;}
+/* Partage/miroir déjà actif → sa feuille d'état, jamais un second appariement (deux portes,
+   un seul juge — factorisé, audit v5.19.4). */
+function slBusySheet(){
+  if(slLiveOk()){closeShareSheet();shareModal.classList.add('on');slSheet('live');return true;}
   if(_slMirror&&Runtime.started){closeShareSheet();shareModal.classList.add('on');
-    slSheet('mirror');return;}
+    slSheet('mirror');return true;}
+  return false;}
+function openCurrentShare(){
+  if(slBusySheet())return;
   openShareSheet();}
 function openShareSheet(){
   if(!shareModal)return;
@@ -32182,7 +32212,6 @@ function slSheet(phase){
     const n=(Share.participants||[]).filter(p=>!p.owner&&!p.revoked&&!shareLeft(p)).length;
     const perdu=(Share.participants||[]).some(p=>!p.owner&&!p.revoked
       &&(shareLeft(p)||shareSeenLost(p)));
-    const enLigneOk=Auth.signedIn()&&Sync.online();
     body.innerHTML='<div class="sl-status"><span class="sl-dot"></span>'
       +(n?n+' participant'+(n>1?'s':'')+' · en direct':'en direct — personne n\u2019a encore rejoint')+'</div>'
       +slModeSegHtml('direct')
@@ -32434,12 +32463,14 @@ async function slOptiqueGot(o,say){
     say('Cet écran diffuse une AUTRE session — réception refusée, rien n’a été écrit.');
     return false;}
   Share.fiche=o.fiche;
-  Share.fold=Object.assign({},o.snap);
+  // La fiche passe par migrate() (openSharedFiche) ; le pli passe par slFoldSan — c'était le
+  // seul intrant distant pris BRUT (audit v5.19.4).
+  Share.fold=slFoldSan(o.snap);
   Share.offset=o.at-Date.now(); // l'heure de l'hôte devient la référence, à peu près
   _slMirror={sess:String(o.sess),at:o.at,
     /* Ce que l'hôte a DÉJÀ : ses propres repères reçus dans l'instantané — la base du calcul
        « non renvoyé » du dialogue de départ (shareUnsent). */
-    sent:((o.snap&&o.snap.events)||[]).map(e=>e.id)};
+    sent:(Share.fold.events||[]).map(e=>e.id)};
   if(!openSharedFiche()){say('Instantané illisible.');return false;}
   try{announce('Vue à '+fmtHM(o.at)+' — miroir, pas du direct.');}catch(e){}
   return true;}
@@ -32683,9 +32714,7 @@ async function startShare(f){
   /* UN PARTAGE EN DIRECT DÉJÀ ACTIF S'AFFICHE, il ne se re-crée pas (v5.14.2, signalé à
      l'usage : le bouton relançait un appariement par-dessus le partage en cours). Idem pour
      un MIROIR « par l'écran » : sa feuille porte la re-réception. */
-  if(slLiveOk()){closeShareSheet();shareModal.classList.add('on');slSheet('live');return;}
-  if(_slMirror&&Runtime.started){closeShareSheet();shareModal.classList.add('on');
-    slSheet('mirror');return;}
+  if(slBusySheet())return;
   /* SANS COMPTE OU SANS INTERNET → le partage EN DIRECT (v5.14, étape 3c). Le refus d'avant
      (« demande un compte ») cesse d'être un mur : le même geste ouvre l'appariement local. */
   if(!Auth.signedIn()||!Sync.online())return startShareLocal(f);
@@ -33559,7 +33588,7 @@ if(location.search.indexOf('__actest')>=0){
     sanitizeTags,tagAll,tagSuggest,tagLabel,tagRank,tkRefNorm,tkLabels,tkParseTime,Share,sessionToRow,sessionFromRow,sanitizeSession,shareNavNorm,
     tmStopFrom,liveWhereText,
     QR_ECW,QR_BLK,QR_MAXVER,QR_EXP,QR_LOG,
-    sharePayload,shareCan,shareFold,shareStateHash,shareOffset,
+    sharePayload,shareCan,shareFold,shareStateHash,shareOffset,slFoldSan,
     slSdpExtract,slSdpRebuild,slRpcPack,slRpcReply,slRpcUnpack,slHub,
     slWirePair,slServe,slClient,slHostIo,slChanWire,slPcHost,slPcGuest,slPairPack,slPairUnpack,
     ltParse,ltTx,ltRx,ltRxFeed,ltRxBytes,ltSnapPack,ltSnapUnpack,

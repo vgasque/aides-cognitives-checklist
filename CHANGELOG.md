@@ -1,5 +1,33 @@
 # Journal des modifications
 
+## [5.19.4] — 2026-08-31
+### Phase 3 de l'audit : trois garde-fous nouveaux, le pli QR assaini, cinq duplications factorisées (A283)
+
+- **Trois trous de l'audit fermés en garde-fous**, chacun né ROUGE sur défaut fabriqué puis
+  restauré à l'octet : `check-tokens` (token CSS déclaré ↔ lu, le trou du survol `--hover`),
+  `check-ids` sens inverse (sélecteur `#id` stylé → émis, le trou de `#f-validation`),
+  `check-fns` (déclaration top-niveau → citée ailleurs, le trou de `catsUtiles`). Les
+  commentaires sont dépouillés d'abord (`strip-comments.mjs`, source unique) — un nom cité
+  dans la doctrine n'est pas un usage. **`check-fns` a attrapé un 4ᵉ mort dès sa naissance**
+  (`enLigneOk`, locale jamais lue), supprimé.
+- **Le pli reçu par QR passe par `slFoldSan`** — c'était le seul intrant distant pris brut :
+  grammaires du chemin en ligne (shareNavNorm, vfMapNorm, tkRefNorm), bornes de
+  sanitizeSession, liste fermée (un miroir ne réécrit rien), témoin dans tests.html (+7
+  assertions, aucun label d'évènement ne traverse — règle 15). `ltSnapUnpack` décompresse
+  borné à 4 Mo (le flux s'annule, comme `inflateBounded`).
+- **Durcissements** : la purge des caches du SW se limite au préfixe `aides-cognitives-`
+  (l'origine n'est pas le scope — un déploiement intranet en sous-répertoire n'effacera pas
+  les PWA voisines) ; `esc()` rejoint les six sites d'id qui y avaient échappé (couverts par
+  safeId en amont, mais la règle v5.10.2 « échapper au site » y était cassée).
+- **Cinq duplications factorisées, comportement identique** : renommage inline
+  minuteur/compteur (jumeaux), `selBounds` (×3), `slBusySheet` (refus « partage déjà actif »
+  ×2), `attInfoFor` (×2), `ovNavPush`/`ovNavDone` (queue de navigation ×2).
+- **Piège découvert et fermé en route** : deux commentaires JS citent `<style>` sans
+  fermeture — sur le fichier brut, ils s'appariaient de travers avec tout bloc ajouté plus
+  bas ; l'appariement des blocs se fait désormais commentaires retirés.
+- Les cinq fonctions de test embarquées et les deux surfaces de harnais portent leur marqueur
+  « délibéré » (décision Q3) — un futur audit ne les re-signalera pas.
+
 ## [5.19.3] — 2026-08-31
 ### Audit interne complet : le survol qui ne peignait rien, le code mort purgé, la doctrine qui dit vrai (A280-A282)
 
@@ -756,38 +784,3 @@ sonde jetable, verte sur les DEUX moteurs.
 - **Vérifié** : sonde deux moteurs (sélecteur multiple, deux ateliers en file nommés,
   annulation sans cascade), `audit-qr` 9/9 (décodage réel des captures), passe d'audit
   complète 25/25 verte. Doctrine : `docs/decisions/lot-v5-16.md` (A225-A226).
-
-## [5.15.0] — 2026-08-20
-### Les barres flottantes deviennent lisibles — planches Claude Design 17 et 18 (A222-A224)
-
-- **La nuit, la capsule et le dock se voient enfin** (planche 17, direction 1a) : la matière
-  système ne tenait que 1,09:1 contre le fond sombre — les trois matières n'en faisaient
-  qu'une. Elle MONTE (`#171a20` → `#333b47`) : le jour la plus sombre, la nuit la plus
-  claire — dans les deux cas la plus éloignée des deux autres. Un périmètre `--sys-edge`
-  (5,3:1, ombre interne de 1 px, le patron de la pastille Compte) borde carte de session,
-  quai, volet et capsule ; ≥ 1200 px la capsule quitte la matière et n'est pas cerclée.
-- **Ce que l'éclaircissement obligeait à déplacer, déplacé** : le creux de la touche ⏱ passe
-  au token `--sys-key` (.10 jour / .14 nuit), le filet ambre de l'alarme passe à `--alarm-bd`
-  (`--warn-line` le jour, `--warn-sys` la nuit — il tombait à 2,25:1), et la touche ⚡ ouverte
-  prend `--sys-hi` (attrapé par `audit-a11y` : l'encre rouge tombait à 3,9:1 sur le creux
-  générique). Nouveau token `--ctl-sys` : la limite d'un CONTRÔLE posé sur matière système
-  tient 3:1 dans les deux thèmes (« Terminer », chips et champ du volet, touche Exercice) —
-  les séparateurs gardent `--sys-line`, un séparateur n'est pas une cible.
-- **Le jour, le quai projette** (planche 18/P) : son ombre vivait en dur (noir pur, aveugle au
-  thème) et 6 px à 6 % ne se voyaient pas sous un tableau de posologies qui touche la barre
-  (colonne 358 px, quai 362). Elle passe au token `--shadow-up`, élargie 12 px / 32 px / 26 %,
-  à l'encre du thème. Aucune hauteur ne bouge. Deux pistes essayées et écartées, notées dans
-  la doctrine : fondu vers l'ambiance (1,06:1, invisible), bande de flou (halo noir dans les
-  coins arrondis).
-- **« Démarrer la session » se détache de sa barre** (planche 18/2a) : `--act` ne tenait que
-  1,68:1 contre le quai — la forme du bouton se confondait avec lui (le défaut de
-  « Reprendre » v5.10.0, jamais rejoué sur le geste d'entrée). Nouveau registre
-  `--act-sys:#7ab3f0` (7,2:1 clair, 5,1:1 sombre), encre `--on-sys-fill` ; libellé au corps de
-  l'acte (17,5 px) sans changer le gabarit ; sous 430 px effectifs « Exercice » passe au
-  glyphe seul (classe `zw430`, règle 10 — cible 44 px et `aria-label` conservés) et le geste
-  gagne 62 px de piste. Le coût, nommé : le bleu du quai n'est plus le bleu de la page — déjà
-  le régime des trois autres registres.
-- **Témoins** : nouvelle section doctrine « QUAI · le geste d'entrée se détache de sa barre »
-  (aplat ≥ 3:1 deux thèmes, périmètre nocturne ≥ 3:1, ombre montante le jour, cible du glyphe
-  seul), vérifiée capable d'échouer, défaut réintroduit puis fichier restauré à l'octet.
-  Doctrine complète : `docs/decisions/lot-v5-15.md` (A222-A224).
