@@ -31,7 +31,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A225-A226 | `lot-v5-16.md` | Multi-import, QR agrandis |
 | A227-A237 | `lot-v5-17.md` | Barre de sélection sur une ligne, moniteur multi-minuteurs, écrans véridiques |
 | A238-A268 | `lot-v5-18.md` | L'accueil sans mécanisme |
-| A269-A283 | `lot-v5-19.md` | Colonne à trois étages, pied unifié, audit design (halo en capture), audit interne v5.19.3-4 (tokens/ids/fonctions gardés par contrôle, CHANGELOG exécutoire, périmètre de déploiement, pli QR assaini) |
+| A269-A284 | `lot-v5-19.md` | Colonne à trois étages, pied unifié, audit design (halo en capture), audit interne v5.19.3-5 (tokens/ids/fonctions gardés par contrôle, CHANGELOG exécutoire, périmètre de déploiement, pli QR assaini, chaîne d'éditeur en paliers zw) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 
 ⚠ Six fichiers (`conventions-de-code`, `refonte-v5-6`, `lots-v5-7-a-v5-9`, `lot-v5-10`,

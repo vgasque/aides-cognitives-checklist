@@ -1,4 +1,4 @@
-# Aides cognitives — Lignes directrices du design (v5.0)
+# Aides cognitives — Lignes directrices du design (v5.0, relu v5.19.5)
 
 PWA médicale monofichier, utilisée **en urgence vitale, sous stress** : la clarté et la
 robustesse priment sur toute considération esthétique. Tout choix de design se juge à
@@ -18,6 +18,21 @@ versions, dont tout le chantier du partage de session, **puis à la v4.55 pendan
 chantier v5** : il a décrit trois surfaces supprimées (le rail ①②③, le mode lecteur, la
 bascule Guidé/Statique) jusqu'à ce que l'auteur le demande. À relire à chaque lot qui
 touche une surface — c'est la seule protection dont il dispose.
+
+> **RELECTURE v5.19.5 (audit, 31/08/2026).** Les PRINCIPES de ce fichier (couleur, registres,
+> typographie, saillance, cascade, garde-fous) restent exacts ; sa nomenclature a été vérifiée
+> au grep. QUATRE surfaces décrites ici ont été REFONDUES depuis — pour elles, la vérité vit
+> dans `docs/decisions/` (index : `docs/README.md`) :
+> - **L'ACCUEIL** (§ ci-dessous, v4.56/v5.0) — refondu au lot v5.18 (A238-A268) : en-tête
+>   statique, accès dans `#homeDock`, UNION des bibliothèques, sidebar-filtres ; `home-slim`
+>   et les rescues sont PURGÉS. Puis colonne gauche à trois étages et pied unifié au lot
+>   v5.19 (A269-A277).
+> - **Les barres flottantes** (quai, dock) — matière et périmètre revus au lot v5.15
+>   (A222-A224).
+> - **La barre de sélection** — refaite planche 20 au lot v5.17 (A227-A230, une ligne de
+>   56 px).
+> - **Les paliers de largeur** — la chaîne de compression de la rangée d'ÉDITEUR passe par
+>   les classes `html.zw640/430/360`, plus par des media queries (v5.19.5, règle 10).
 
 ## Couleur — sémantique FIXE
 

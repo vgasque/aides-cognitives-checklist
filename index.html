@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-c92dcNmTOBXpqQRhT99Z6tvpjeHHP8PZOpTLgpV3HKs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-69qiyy2N3E3m2rOWUaN907PRiTTCNiFRJV9bjeF74CM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1052,13 +1052,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ‹ · ÉDITION · badge · Aperçu · Enregistrer · ⋯ sur UNE ligne. Le badge d'état NE DISPARAÎT
      JAMAIS (décision v4.3.0 — annonce d'état permanente) : il s'ellipse (plafond serré) ;
      thème et compte s'effacent (accessibles partout ailleurs), les actions se compactent. */
-  @media (max-width:639.98px){
-    :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
-    :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
-    :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px;font-size:12px}
-    :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
-  }
+  /* Chaîne d'ÉDITEUR en paliers zw (640→430→360, v5.19.5) et non en media queries : sous zoom
+     texte, la pénurie arrive à la largeur EFFECTIVE (règle 10). Ordre gardé — à spécificité
+     égale entre zw, c'est lui qui départage, comme entre les media qu'ils remplacent. */
+  html.zw640 :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
+  html.zw640 :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
+  html.zw640 :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
+  html.zw640 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px;font-size:12px}
+  html.zw640 :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
   /* ÉDITEURS, toutes largeurs : répartition de la pénurie dans la rangée — le BADGE se
      compresse en premier (ellipse, plancher 40px — jamais masqué), l'indicateur de mode garde
      un plancher qui laisse lire « ÉDITION » (il ne disparaît à aucune largeur). */
@@ -1075,20 +1076,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
      Passé par un `#id` : les paliers plus étroits redéclarent `.hdr-act2{padding:0 8px}` plus bas
      dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
-  @media (max-width:429.98px){
-    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
-    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
-    :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
-    :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
-    /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
-       se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
-    :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
-    :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
-    :is(body.view-edit,body.view-pedit) .id-row .brand{min-width:56px}
-    :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
-    :is(body.view-edit,body.view-pedit) .hdr-badge{min-width:36px}
-  }
+  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
+  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
+  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
+  /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
+     se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
+  html.zw430 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .id-row .brand{min-width:56px}
+  html.zw430 :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-badge{min-width:36px}
   /* 320 px (v4.43.0, décision utilisateur) — le commentaire ci-dessus visait 360 px et le tenait ;
      à 320, `⋯` sortait de 6,2 px de l'écran (mesuré Chromium ET WebKit, bouton VISIBLE
      `display:grid`, donc des pixels inatteignables). Même recette que la rangée de crise, sur les
@@ -1097,10 +1096,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      plancher) est inchangée. Déclaré APRÈS le bloc 429.98 : à spécificité égale, l'ordre décide. */
   @media (max-width:359.98px){
     header.bar:not(.home) .id-row{gap:4px}
-    :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
-    :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   }
+  html.zw360 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
+  html.zw360 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
+  html.zw360 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
   /* En crise, la marque s'efface tant que la zone haute est visible : c'est #crisisBand qui porte
@@ -10057,7 +10056,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.19.4';
+const APP_VERSION='5.19.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -23706,7 +23705,11 @@ function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/1
    dépliée réclame 757 px de largeur utile : cf. le long commentaire de `.sel-bar` dans le CSS,
    qui donne les mesures et dit pourquoi ni une media query ni le palier 560 de la planche ne
    pouvaient convenir. */
-const ZOOM_W_STEPS=[1200,560,430,400,360,300];
+// 640 (v5.19.5) : la chaîne de compression de la rangée d'ÉDITEUR (640→430→360) passe aux zw —
+// mesuré sous zoom 130 % : la recette anti-chevauchement des halos ne s'appliquait pas à largeur
+// effective < 430 (le tap partait au dernier élément du DOM), et « Aperçu » restait en toutes
+// lettres là où l'icône s'imposait. Équivalence exacte à zoom 1, prouvée aux 4 témoins.
+const ZOOM_W_STEPS=[1200,640,560,430,400,360,300];
 function syncZoomWidth(){
   const w=window.innerWidth/zoomF();
   const cl=document.documentElement.classList;
@@ -30636,6 +30639,7 @@ function pullMissedIds(rows,byId){const out=[];
   return out;}
 const Sync={
   running:false,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
+  /* ===== Sync · cadence — porte d'entrée et reprise (online/schedule/full/_scheduleRetry) ===== */
   online(){return navigator.onLine!==false;},
   // Débounce : regroupe les écritures rapprochées en une seule synchro.
   schedule(){if(!Auth.signedIn())return;clearTimeout(this._pt);this._pt=setTimeout(()=>this.full(),900);},
@@ -30687,6 +30691,7 @@ const Sync={
   _scheduleRetry(){clearTimeout(this._retryTimer);
     this._retryDelay=Math.min(this._retryDelay?this._retryDelay*2:5000,120000);
     this._retryTimer=setTimeout(()=>{if(this.online())this.full();},this._retryDelay);},
+  /* ===== Sync · PULL — première synchro, curseurs, application locale (_initIfNeeded/_pullTable/_pull…) ===== */
   // Première synchro pour ce compte : si le cloud est VIDE, on téléverse la bibliothèque locale
   // existante (on la marque `dirty`). S'il contient déjà des données, on n'écrase rien (on adopte
   // le cloud ; le PULL apportera tout). Évite de polluer le cloud avec la fiche d'exemple.
@@ -30843,6 +30848,7 @@ const Sync={
     addMem:p=>protocols.push(p),
     dropMem:id=>{const i=protocols.findIndex(x=>x.id===id);if(i>=0)protocols.splice(i,1);},
     replaceMem:p=>{const i=protocols.findIndex(x=>x.id===p.id);if(i>=0)protocols[i]=p;else if(!p.deletedAt)protocols.push(p);}});},
+  /* ===== Sync · PUSH — le local-first vers le cloud (_reclaimBlocked/_pushTable/_push…) ===== */
   // PUSH GÉNÉRIQUE d'une table {id, data jsonb, ...} — même patron que _pullTable : mécanique
   // UNIQUE (un correctif de la boucle de retry ne s'écrit plus qu'une fois), spécificités par cfg.
   //   cfg = { table, getAllLocal, dataPut, dataDel, toRow,
@@ -30950,6 +30956,7 @@ const Sync={
       addMem:x=>protocols.push(x),
       replaceMem:x=>{const i=protocols.findIndex(y=>y.id===x.id);if(i>=0)protocols[i]=x;else if(!x.deletedAt)protocols.push(x);},
       dropMem:id=>{const i=protocols.findIndex(y=>y.id===id);if(i>=0)protocols.splice(i,1);}});},
+  /* ===== Sync · annexes — documents PDF, catégories, notes (_syncAttachments/_syncCats/_syncNotes) ===== */
   // ----- Documents PDF : synchronisation avec le bucket Storage 'attachments' -----
   // Appelée APRÈS _pull/_reconcileShared : l'ensemble local des références (fiches vivantes +
   // tombstones pas encore poussés) est frais. Réservée au backend IDB (pas de blobs en repli KV).
@@ -31104,6 +31111,7 @@ const Sync={
     // Re-rendu UNIQUEMENT si la note de la fiche ouverte a changé À DISTANCE, en lecture seule
     // (en édition, on ne touche à rien : pas de vol de focus, la version tapée ici gagnera).
     if(openChanged&&state.view==='read'&&!state.noteEdit)render();},
+  /* ===== Sync · réconciliation des partagés + profil (_reconcileShared/loadProfile) ===== */
   // Réconciliation des fiches PARTAGÉES : retire localement celles devenues inaccessibles (fiche
   // déplacée hors de la biblio, membre retiré, biblio supprimée). Les fiches Perso ne sont jamais
   // touchées. En cas d'échec réseau, on ne supprime rien (sécurité).
@@ -31238,6 +31246,7 @@ const Share={
      Tout chemin CLOUD commence par restaurer `_ioRest`. */
   _ioRest:null,
 
+  /* ===== Share · horloge de Cristian et fraîcheur (now/staleMs/isStale/canWrite) ===== */
   // Heure SERVEUR estimée. Tout ce qui est horodaté passe par ici — pas seulement les minuteurs :
   // sans cela, deux appareils dont les horloges divergent produiraient un compte-rendu dont
   // l'ordre est faux tout en paraissant parfaitement crédible.
@@ -31274,6 +31283,7 @@ const Share={
     b[6]=(b[6]&0x0f)|0x40;b[8]=(b[8]&0x3f)|0x80;
     const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
     return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);},
+  /* ===== Share · cadence adaptative du sondage (_base/_delay/_kick) ===== */
   // Période NOMINALE, hors repli et hors gigue : c'est la promesse de fraîcheur du miroir, et
   // c'est donc elle — jamais le repli — dont le seuil de péremption est solidaire (cf. staleLimit).
   _base(){
@@ -31302,6 +31312,7 @@ const Share={
   async _loadQ(share){try{const v=await Data.getShareQ();
     this._q=(v&&v.share===share&&Array.isArray(v.q))?v.q:[];}catch(e){this._q=[];}},
 
+  /* ===== Share · émission — file locale persistée puis push (emit/_saveQ/_loadQ) ===== */
   /* ÉMISSION. Un évènement part avec l'heure du GESTE, jamais celle de l'envoi : une action
      relevée hors réseau et transmise dix minutes plus tard doit se ranger à l'heure où le soignant
      l'a faite. La file est PERSISTÉE — tout l'état vivant du projet l'est, précisément parce qu'un
@@ -31337,6 +31348,7 @@ const Share={
     const o=shareOffset(this._samples);
     if(o!==null)this.offset=o;},   // mesure trop lente -> on GARDE le dernier bon décalage
 
+  /* ===== Share · le cycle — push de la file, pull, mesure d'horloge, resynchronisation (_cycle/_desync) ===== */
   async _cycle(){
     if(this.mode==='off'||this._inflight)return;
     this._inflight=true;
@@ -31487,6 +31499,7 @@ const Share={
           compte-rendu.
      Ce qui n'est pas applicable en direct est MIS EN FILE (`_defer`) et attendra un geste local :
      doctrine « acquittement par l'action », déjà employée pour le repli des cartes. */
+  /* ===== Share · application des lots reçus (onEvents → SHARE_APPLY) et crochets d'état ===== */
   _defer:[],
   onEvents(ev){
     /* ⚠ L'ÉTAT S'APPLIQUE TOUJOURS ; SEULE LA PEINTURE DÉPEND DE LA VUE (v5.6, signalé à l'usage :
@@ -31583,6 +31596,7 @@ const Share={
      `body` ; le quai, lui, suit déjà par `updateRtStrip`. */
   onStatus(st,av){try{shareOverPaint();}catch(e){}},
 
+  /* ===== Share · gestes de l'HÔTE (host/admit/revoke/_reclaimLead/endShare) ===== */
   /* OUVERTURE PAR L'HÔTE. Le partage ne s'ouvre QUE sur une session déjà démarrée — sinon la
      première action de l'invité déclencherait `ensureStarted` chez l'hôte, donc un `render()`
      complet et une cinquantaine de pixels de chrome collant apparaissant AU-DESSUS de son doigt.
@@ -31661,6 +31675,7 @@ const Share={
     try{slSbReset();}catch(e){}
     this.stop();_shareBase=null;
     return ok;},
+  /* ===== Share · gestes de l'INVITÉ (joinByCode/billet de reprise/resume) ===== */
   async joinByCode(code,label){
     const t0=Date.now();
     const r=await this._io.join(String(code||'').toUpperCase().trim(),label||'Invité');
@@ -31711,6 +31726,7 @@ const Share={
     this._kick(0);
     return true;},
 
+  /* ===== Share · passation de la main (offerLead/takeLead/grantLead) ===== */
   /* PROPOSER LA MAIN (hôte) — une OFFRE, pas une décision. Le rôle ne change pas ici : il
      changera quand l'autre l'aura PRISE, et c'est cette asymétrie qui fait la sûreté du geste.
      Rien ne se re-rend chez personne : l'offre est un mot dans une surface déjà présente. */
@@ -31737,6 +31753,7 @@ const Share={
       return true;
     }catch(e){return false;}},
 
+  /* ===== Share · fins — freeze (le lien meurt) vs stop (l'écran est quitté) ===== */
   /* DEUX SORTIES, ET LA DISTINCTION EST DOCTRINALE, pas cosmétique.
      `freeze` = le LIEN meurt (coupé par l'hôte, expiré, détaché, session terminée) : le sondage
      s'arrête, la file part — ce qu'elle contient ne sera jamais délivré et le prétendre serait

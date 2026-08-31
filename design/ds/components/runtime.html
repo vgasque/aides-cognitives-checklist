@@ -698,13 +698,14 @@
      ‹ · ÉDITION · badge · Aperçu · Enregistrer · ⋯ sur UNE ligne. Le badge d'état NE DISPARAÎT
      JAMAIS (décision v4.3.0 — annonce d'état permanente) : il s'ellipse (plafond serré) ;
      thème et compte s'effacent (accessibles partout ailleurs), les actions se compactent. */
-  @media (max-width:639.98px){
-    :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
-    :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
-    :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px;font-size:12px}
-    :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
-  }
+  /* Chaîne d'ÉDITEUR en paliers zw (640→430→360, v5.19.5) et non en media queries : sous zoom
+     texte, la pénurie arrive à la largeur EFFECTIVE (règle 10). Ordre gardé — à spécificité
+     égale entre zw, c'est lui qui départage, comme entre les media qu'ils remplacent. */
+  html.zw640 :is(body.view-edit,body.view-pedit) #hdrBackLbl{display:none}
+  html.zw640 :is(body.view-edit,body.view-pedit) .hdr-back{padding:0 8px 0 4px}
+  html.zw640 :is(body.view-edit,body.view-pedit) .hdr-badge{max-width:20vw}
+  html.zw640 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px;font-size:12px}
+  html.zw640 :is(body.view-edit,body.view-pedit) .bar-acct{display:none}
   /* ÉDITEURS, toutes largeurs : répartition de la pénurie dans la rangée — le BADGE se
      compresse en premier (ellipse, plancher 40px — jamais masqué), l'indicateur de mode garde
      un plancher qui laisse lire « ÉDITION » (il ne disparaît à aucune largeur). */
@@ -721,20 +722,18 @@
      centre : le glyphe ▶ est alors exactement dans son disque, comme ◐ et ⋯ à côté de lui.
      Passé par un `#id` : les paliers plus étroits redéclarent `.hdr-act2{padding:0 8px}` plus bas
      dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
-  @media (max-width:429.98px){
-    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
-    :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
-    :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
-    :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
-    /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
-       se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
-    :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
-    :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
-    :is(body.view-edit,body.view-pedit) .id-row .brand{min-width:56px}
-    :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
-    :is(body.view-edit,body.view-pedit) .hdr-badge{min-width:36px}
-  }
+  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
+  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
+  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
+  /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
+     se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
+  html.zw430 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-more{width:38px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .id-row .brand{min-width:56px}
+  html.zw430 :is(body.view-edit,body.view-pedit) #brandSub{letter-spacing:1px}
+  html.zw430 :is(body.view-edit,body.view-pedit) .hdr-badge{min-width:36px}
   /* 320 px (v4.43.0, décision utilisateur) — le commentaire ci-dessus visait 360 px et le tenait ;
      à 320, `⋯` sortait de 6,2 px de l'écran (mesuré Chromium ET WebKit, bouton VISIBLE
      `display:grid`, donc des pixels inatteignables). Même recette que la rangée de crise, sur les
@@ -743,10 +742,10 @@
      plancher) est inchangée. Déclaré APRÈS le bloc 429.98 : à spécificité égale, l'ordre décide. */
   @media (max-width:359.98px){
     header.bar:not(.home) .id-row{gap:4px}
-    :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
-    :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
-    :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   }
+  html.zw360 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
+  html.zw360 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
+  html.zw360 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   .id-row .brand{flex:0 1 auto}
   header.bar:not(.home) .id-row .brand{flex:1}
   /* En crise, la marque s'efface tant que la zone haute est visible : c'est #crisisBand qui porte

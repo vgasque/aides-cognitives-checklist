@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.19.5] — 2026-08-31
+### Les mineurs de l'audit : la rangée d'éditeur suit la largeur effective, la doctrine se navigue (A284)
+
+- **La chaîne de compression de la rangée d'éditeur (640→430→360) passe aux paliers `zw`**
+  (A284). Mesuré sous zoom texte 130 % : la recette anti-chevauchement des halos ne
+  s'appliquait pas à largeur EFFECTIVE < 430 (le tap partait au dernier élément du DOM) et
+  « Aperçu » restait en toutes lettres là où l'icône s'imposait. Équivalence exacte à zoom 1
+  prouvée aux quatre témoins (620/420/350/700 px), deux moteurs — et le piège de mesure A267
+  évité en route (un « débordement de 161 px » qui n'était qu'un artefact de repère visuel).
+  Les quatre paliers de composition restants ne se convertissent pas d'office : arbitrage
+  écrit dans A284.
+- **`Share` et `Sync` se naviguent** : quatorze sous-bannières `/* ===== … ===== */` aux
+  frontières logiques des deux modules (cadence, PULL, PUSH, annexes ; horloge, émission,
+  cycle, application, gestes hôte/invité, passation, fins) — la commande d'index du
+  monofichier les liste désormais. Aucun code déplacé.
+- **`GUIDELINES.md` relu** (il l'exigeait lui-même) : les principes tiennent, une note datée
+  renvoie les quatre surfaces refondues (accueil v5.18, colonne/pied v5.19, barres v5.15,
+  sélection v5.17) vers leurs lots ; `design/README` corrige ses fiches « ~275 Ko » (réel :
+  ~815) et consigne les deux `git gc`.
+
 ## [5.19.4] — 2026-08-31
 ### Phase 3 de l'audit : trois garde-fous nouveaux, le pli QR assaini, cinq duplications factorisées (A283)
 
@@ -757,30 +777,3 @@ sonde jetable, verte sur les DEUX moteurs.
   drag depuis la barre de téléchargements ou une pile macOS (UN seul fichier porté), PDF
   > 15 Mo refusé (message de 8 s, ratable), service worker servant encore l'ancienne version.
   Addendum : `docs/decisions/lot-v5-16.md` (A225).
-
-## [5.16.0] — 2026-08-20
-### Plusieurs fichiers d'un geste, des QR lisibles de plus loin (A225-A226)
-
-- **Importer plusieurs `.json`/`.zip` d'un seul geste** (demandé à l'usage) : le sélecteur
-  comme le glisser-déposer acceptent désormais plusieurs fichiers de données, traités **en
-  file** — un atelier après l'autre, jamais deux superposés, chaque atelier **nommant son
-  fichier** (« nom.json » — fichier 1/3). Les questions de destination, fusion et doublons
-  restent posées PAR import (l'argument de l'ancienne règle « un seul fichier », conservé
-  tel quel) ; annuler un atelier n'abandonne que son fichier, les suivants se présentent
-  quand même. Les refus nomment aussi leur fichier — indispensable au milieu d'une file.
-  Sous le capot, `readImportFile` rend une promesse tenue à la FIN du parcours complet, et
-  une erreur de lecture ne gèle plus la file (`FileReader.onerror` traité).
-  Les images et les PDF, eux, acceptaient déjà le geste multiple partout (porte unique
-  v5.0.0) — rien n'a changé de ce côté.
-- **Tous les QR grandissent d'un cran** (demandé à l'usage : « lisibles de plus loin ») —
-  la marge au-dessus du seuil de scan s'encaisse en distance et en tolérance d'angle :
-  240 px en fenêtre d'appariement (56vw plafonné ; le palier < 360 px ne bouge pas, c'est
-  le cas mesuré de v4.47.0 où « Arrêter le partage » passait sous la ligne de flottaison),
-  et **260 px** pour les QR qui se scannent d'écran à écran (appariement direct, synchro
-  optique, réponse de l'invité, aller-retour). Au passage, `audit-partage` a attrapé un
-  conflit de spécificité jusque-là invisible (la règle `#shareBody` battait le plafond de
-  la carte d'appariement — les deux disaient 200, le conflit ne se voyait pas) : la règle
-  de la carte est scopée `#shareModal`, et le témoin « plafonné à 240 px » reste MESURÉ.
-- **Vérifié** : sonde deux moteurs (sélecteur multiple, deux ateliers en file nommés,
-  annulation sans cascade), `audit-qr` 9/9 (décodage réel des captures), passe d'audit
-  complète 25/25 verte. Doctrine : `docs/decisions/lot-v5-16.md` (A225-A226).

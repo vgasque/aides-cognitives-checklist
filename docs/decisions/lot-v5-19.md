@@ -1,4 +1,4 @@
-# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A283, dont l'audit interne v5.19.3-4 en fin de fichier)
+# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A284, dont l'audit interne v5.19.3-5 en fin de fichier)
 
 > Conçu sur l'artefact « Sidebar et bas de page » (canvas Claude Design, 30/08/2026), chaque
 > décision mesurée sur l'app SERVIE avant d'être retenue. Point de départ : deux captures — la
@@ -366,3 +366,18 @@ BORNÉ à 4 Mo (le flux s'annule, comme `inflateBounded`), la purge des caches d
 préfixe `aides-cognitives-` (l'origine n'est pas le scope), `esc()` rejoint les six sites d'id qui
 y avaient échappé, et cinq duplications certaines sont factorisées (renommage minuteur/compteur,
 `selBounds` ×3, `slBusySheet` ×2, `attInfoFor` ×2, `ovNavPush`/`ovNavDone`).
+
+**A284 (v5.19.5). LA CHAÎNE D'ÉDITEUR PASSE AUX PALIERS zw — ET L'ARBITRAGE DES QUATRE AUTRES EST
+ÉCRIT.** Mesuré sous zoom 130 % (piège A267 évité : le « débordement de 161 px » du premier relevé
+était un artefact de repère — gBCR en pixels visuels contre clientWidth en pixels de mise en page,
+l'arithmétique 615×0,3−23,4 le prouvait ; `scrollWidth` 615/615 tranchait) : le tort réel est que
+la recette anti-chevauchement des halos (bloc 429.98) ne s'appliquait pas à largeur EFFECTIVE
+< 430 — le défaut documenté « le tap part au dernier élément du DOM » — et qu'« Aperçu » restait
+en toutes lettres (100 px) là où l'icône de 36 s'imposait. La chaîne 640→430→360 de la rangée
+d'éditeur passe aux classes `html.zw640/430/360` (640 rejoint ZOOM_W_STEPS), ordre gardé — à
+spécificité égale entre zw, c'est lui qui départage, comme entre les media remplacées. Équivalence
+exacte à zoom 1 prouvée aux quatre témoins (620/420/350/700 px), deux moteurs ; sous zoom, le
+profil devient celui de la largeur effective. LES QUATRE PALIERS RESTANTS SANS zw (dir-grid 640,
+bandes SFAR 1000, rs-bar 924, tg-row 480, home 390) sont des paliers de COMPOSITION à dégradation
+douce : aucun tort mesuré sous zoom, on ne convertit pas d'office — candidats si un signalement
+d'usage arrive, et ce paragraphe est leur adresse.
