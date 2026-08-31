@@ -143,6 +143,38 @@ const AUDIT = `(() => {
         const crisis=document.body.classList.contains('view-read');
         const need=crisis?44:24;
         if(h<need||w<24) out.targets.push({sel:el.className||el.tagName,w,h,need,txt:(el.textContent||'').trim().slice(0,24)});
+        /* ⚠ LE HALO SE VÉRIFIE EN CAPTURE, PAS SEULEMENT EN GÉOMÉTRIE (audit design v5.19).
+           La sonde lisait les insets du ::after et créditait la surface — sans jamais vérifier
+           qu'un tap dans le halo ATTEINT l'élément. Or un ancêtre en overflow:hidden rogne le
+           pseudo-élément : le halo existe en géométrie et n'existe pas au doigt. Mesuré sur
+           « filtres : aides » (.dir-hf, 72×18, halo -8px rogné par .dir-hs) : elementFromPoint
+           à 5 px au-dessus du rectangle rendait .dir-wrap, pas le bouton — un vert faux, la
+           famille exacte de la leçon v4.31.1 (un contrôle aveugle au défaut qu'il couvre).
+           On ne teste que les éléments dont la conformité REPOSE sur le halo (boîte seule sous
+           le seuil), au MILIEU de chaque côté à halo non nul, et seulement si le point est dans
+           la fenêtre — hors fenêtre on s'abstient, on ne fabrique pas de rouge. */
+        else if(hasHalo&&cible===el&&(r.height<need||r.width<24)){
+          const iw=window.innerWidth,ih=window.innerHeight;
+          const cx=r.left+r.width/2,cy=r.top+r.height/2;const pts=[];
+          /* GARDE D'OCCLUSION : si le CENTRE même de l'élément n'est pas atteignable (fenêtre
+             ouverte par-dessus, voile), le halo n'est pas le sujet — la première passe de cette
+             sonde a rougi sur le chrome DERRIÈRE la feuille Plan, un rouge fabriqué. On ne juge
+             la capture du halo que d'un élément dont la boîte, elle, capte. */
+          const c0=(cx>0&&cy>0&&cx<iw&&cy<ih)?document.elementFromPoint(cx,cy):null;
+          if(!c0||(c0!==el&&!el.contains(c0))){/* occlus ou hors fenêtre : pas de verdict */}
+          else{
+          if(r.height<need){if(neg(ha.top)>0.5)pts.push([cx,r.top-neg(ha.top)/2]);
+            if(neg(ha.bottom)>0.5)pts.push([cx,r.bottom+neg(ha.bottom)/2]);}
+          if(r.width<24){if(neg(ha.left)>0.5)pts.push([r.left-neg(ha.left)/2,cy]);
+            if(neg(ha.right)>0.5)pts.push([r.right+neg(ha.right)/2,cy]);}
+          for(const p of pts){
+            if(p[0]<1||p[1]<1||p[0]>iw-1||p[1]>ih-1)continue;
+            const hit=document.elementFromPoint(p[0],p[1]);
+            if(hit&&hit!==el&&!el.contains(hit)){
+              out.targets.push({sel:(el.className||el.tagName)+' — halo rogné, capture perdue',w,h,need,txt:(el.textContent||'').trim().slice(0,24)});
+              break;}
+          }}
+        }
       }
     });
   });
@@ -296,6 +328,14 @@ const SURFACES = [
       fiches.length=0; protocols.length=0;
       state.section='all'; state.q=''; state.cat=''; state.view='library';
       render(); await new Promise(r=>setTimeout(r,400)); } },
+  /* FILTRES POSÉS (audit design v5.19) : le déclencheur « filtres : … » (.dir-hf) n'existe
+     qu'avec un filtre actif — il ne vivait donc dans AUCUNE surface mesurée, et son halo rogné
+     par .dir-hs (overflow:hidden) est resté invisible au harnais. Un défaut hors scope n'est
+     pas un défaut absent (leçon v4.75.0, redite). Le filtre se pose par l'état que l'app lit
+     elle-même (state.section), puis render() décide — on ne fabrique pas l'écran. */
+  { nom:'état · filtres posés', w:1100, must:'.dir-hf', fn: async()=>{
+      state.section='fiches'; state.view='library'; render();
+      await new Promise(r=>setTimeout(r,400)); } },
   { nom:'état · recherche active', w:390, prep:'read', must:'mark.pf-h', fn: async()=>{
       const b=document.getElementById('allBtn'); if(b)b.click();
       await new Promise(r=>setTimeout(r,600));

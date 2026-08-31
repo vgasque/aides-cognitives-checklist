@@ -1016,8 +1016,16 @@
   .dock-filt .filt-tog{margin-left:auto;width:auto;height:36px;min-height:36px;padding:0 12px;gap:6px}
   .dock-filt .ft-lbl{font-size:12px;font-weight:700}
   /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
-     est un bouton discret (même encre d'action), cible étendue par halo (patron .tag.todo). */
-  .dir-hf{position:relative;border:0;background:none;padding:0;margin:0;font:inherit;
+     est un bouton discret (même encre d'action).
+     ⚠ LA CIBLE NE PEUT PAS VENIR DU SEUL HALO ICI (audit design v5.19, mesuré) : le bouton vit
+     dans `.dir-hs`, qui est en overflow:hidden pour ellipser les longs résumés — le ::after de
+     -8px y était ROGNÉ, et un tap à 5 px du rectangle atteignait .dir-wrap, pas le bouton
+     (elementFromPoint ; zone réelle 72×18, sous les 24 px de WCAG 2.5.8). Le dessin porte donc
+     lui-même les 24 px (inline-flex centré — la rangée .dir-h absorbe les ~6 px), et le halo ne
+     reste qu'en BONUS là où le clip le laisse vivre. La sonde de capture d'audit-a11y garde
+     désormais ce cas (« halo rogné, capture perdue »). */
+  .dir-hf{position:relative;display:inline-flex;align-items:center;min-height:24px;
+    border:0;background:none;padding:0;margin:0;font:inherit;
     color:var(--act);cursor:pointer;border-radius:var(--r-1)}
   .dir-hf::after{content:"";position:absolute;inset:-8px}
   .dir-hf:hover{text-decoration:underline}
@@ -6498,7 +6506,12 @@
   /* L'ÉCHELLE — cinq pas discrets, jamais une échelle continue (le texte « bave » quand le moteur
      travaille une image mise en cache au lieu de re-tramer). La barre vit HORS du défileur : elle
      ne doit ni défiler ni se mettre à l'échelle avec ce qu'elle commande. */
-  .sv-zoom{display:flex;align-items:center;gap:6px;margin:0 0 6px}
+  .sv-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 6px}
+  /* L'annonce du débordement (cf. svZoomBarHtml) : un MOT dans la barre d'échelle, encre
+     seconde — pas un registre d'alerte, la feuille n'a rien de faux, elle a un bord. `hidden`
+     est posé/levé par svApplyZoom sur la mesure du défileur ; en voie étroite le mot passe à
+     la ligne (flex-wrap ci-dessus), il ne pousse jamais les boutons hors de portée. */
+  .sv-ovf{min-width:0;font-size:var(--t-cap);font-weight:600;color:var(--ink-2)}
   .sv-zb{min-height:44px;padding:0 10px;background:var(--surface);border:1px solid var(--ctl-line);border-radius:var(--r-1);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer}
   .sv-zb:hover{background:var(--amb-2)}
   /* La porte plein écran porte son VERBE et son glyphe : c'est une ouverture, pas un réglage

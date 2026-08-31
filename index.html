@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-1V5fzt5c3TnIiXQPVAXYwgInWvtECVzjZOSlnaHX6Ww='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-S6tdFC2Yg029CMxLUi/JMWdQ8uvlvNQYqs8rXbGn0t8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1370,8 +1370,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dock-filt .filt-tog{margin-left:auto;width:auto;height:36px;min-height:36px;padding:0 12px;gap:6px}
   .dock-filt .ft-lbl{font-size:12px;font-weight:700}
   /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
-     est un bouton discret (même encre d'action), cible étendue par halo (patron .tag.todo). */
-  .dir-hf{position:relative;border:0;background:none;padding:0;margin:0;font:inherit;
+     est un bouton discret (même encre d'action).
+     ⚠ LA CIBLE NE PEUT PAS VENIR DU SEUL HALO ICI (audit design v5.19, mesuré) : le bouton vit
+     dans `.dir-hs`, qui est en overflow:hidden pour ellipser les longs résumés — le ::after de
+     -8px y était ROGNÉ, et un tap à 5 px du rectangle atteignait .dir-wrap, pas le bouton
+     (elementFromPoint ; zone réelle 72×18, sous les 24 px de WCAG 2.5.8). Le dessin porte donc
+     lui-même les 24 px (inline-flex centré — la rangée .dir-h absorbe les ~6 px), et le halo ne
+     reste qu'en BONUS là où le clip le laisse vivre. La sonde de capture d'audit-a11y garde
+     désormais ce cas (« halo rogné, capture perdue »). */
+  .dir-hf{position:relative;display:inline-flex;align-items:center;min-height:24px;
+    border:0;background:none;padding:0;margin:0;font:inherit;
     color:var(--act);cursor:pointer;border-radius:var(--r-1)}
   .dir-hf::after{content:"";position:absolute;inset:-8px}
   .dir-hf:hover{text-decoration:underline}
@@ -6852,7 +6860,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* L'ÉCHELLE — cinq pas discrets, jamais une échelle continue (le texte « bave » quand le moteur
      travaille une image mise en cache au lieu de re-tramer). La barre vit HORS du défileur : elle
      ne doit ni défiler ni se mettre à l'échelle avec ce qu'elle commande. */
-  .sv-zoom{display:flex;align-items:center;gap:6px;margin:0 0 6px}
+  .sv-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 6px}
+  /* L'annonce du débordement (cf. svZoomBarHtml) : un MOT dans la barre d'échelle, encre
+     seconde — pas un registre d'alerte, la feuille n'a rien de faux, elle a un bord. `hidden`
+     est posé/levé par svApplyZoom sur la mesure du défileur ; en voie étroite le mot passe à
+     la ligne (flex-wrap ci-dessus), il ne pousse jamais les boutons hors de portée. */
+  .sv-ovf{min-width:0;font-size:var(--t-cap);font-weight:600;color:var(--ink-2)}
   .sv-zb{min-height:44px;padding:0 10px;background:var(--surface);border:1px solid var(--ctl-line);border-radius:var(--r-1);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer}
   .sv-zb:hover{background:var(--amb-2)}
   /* La porte plein écran porte son VERBE et son glyphe : c'est une ouverture, pas un réglage
@@ -24664,10 +24677,16 @@ function svApplyZoom(racine){
   const E=svSheetEls(racine||svRoot());if(!E)return;
   const k=svZoom;
   const v=E.wrap.querySelector('.sv-zv');if(v)v.textContent=Math.round(k*100)+'%';
-  if(Math.abs(k-1)<0.001){E.ca.classList.remove('z');E.ca.style.width='';E.ca.style.height='';E.sh.style.transform='';return;}
-  E.ca.classList.add('z');E.sh.style.transform='scale('+k+')';
+  if(Math.abs(k-1)<0.001){E.ca.classList.remove('z');E.ca.style.width='';E.ca.style.height='';E.sh.style.transform='';}
+  else{E.ca.classList.add('z');E.sh.style.transform='scale('+k+')';
   E.ca.style.width=Math.round(E.sh.offsetWidth*k)+'px';
   E.ca.style.height=Math.round(E.sh.offsetHeight*k)+'px';}
+  /* L'annonce suit la MESURE, jamais un état déduit : après chaque écriture d'échelle on relit
+     le défileur (cette fonction est déjà « une mesure après rendu, groupée » — svPaintArrows —
+     donc la relecture ne coûte pas une passe de plus). Marge de 4 px : un arrondi de sous-pixel
+     ne doit pas faire clignoter le mot. */
+  const ov=E.wrap.querySelector('.sv-ovf');
+  if(ov)ov.hidden=!(E.sc.scrollWidth>E.sc.clientWidth+4);}
 function svZoomStep(a,racine){
   const E=svSheetEls(racine||svRoot());
   if(a==='fit'&&E){const w=E.sc.clientWidth,sw=E.sh.offsetWidth||1;
@@ -24691,6 +24710,14 @@ function svZoomBarHtml(plein){
     +`<span class="sv-zv" aria-live="off">100%</span>`
     +`<button type="button" class="sv-zb" data-svzoom="in" aria-label="Agrandir">＋</button>`
     +`<button type="button" class="sv-zb" data-svzoom="reset" title="Taille d’auteur">1:1</button>`
+    /* L'ANNONCE DU DÉBORDEMENT (audit design v5.19, mesuré : 904 px visibles pour 1131 de
+       feuille à 1280 — la colonne « NE PAS OUBLIER » coupée en plein mot, et les barres de
+       défilement en incrustation ne laissent AUCUN indice tant qu'on ne défile pas). L'ajustement
+       d'office reste REFUSÉ (cf. le commentaire de svZoom : k=0,28 à 390 px tuerait toute cible) ;
+       ce qui manquait, c'est que la coupe se DISE. Le mot vit dans la barre d'échelle — là où
+       vivent aussi les gestes qui y répondent, « ⤢ Ajusté » en tête — et svApplyZoom le montre
+       ou le tait sur la MESURE réelle du défileur, à chaque échelle et à chaque largeur. */
+    +`<span class="sv-ovf" hidden>la feuille dépasse à droite — défiler, ou « ⤢ Ajusté »</span>`
     +`</div>`;}
 
 /* ── LOT 1 · LE CARTOUCHE ─────────────────────────────────────────────────────────────────────

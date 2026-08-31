@@ -225,3 +225,50 @@ voie étroite, « Rangé par » et « Sélectionner » passent SOUS l'intertitre
 gouvernent cette liste, ils ne la précèdent pas. (3) Les 18 px qui séparent le contenu de
 l'en-tête tombaient sur `#syncErrNotice`, présent mais MASQUÉ — donc sur une boîte sans hauteur,
 et le premier bandeau touchait l'en-tête.
+
+**A278. LE HALO SE VÉRIFIE EN CAPTURE, PAS SEULEMENT EN GÉOMÉTRIE** (audit design externe
+v5.19.0, mesuré sur l'app servie).
+
+- **Le défaut** : le bouton « filtres : aides » (`.dir-hf`, ligne Répertoire) mesurait 72×18 px
+  et sa cible reposait sur un halo `::after` de −8 px — or ce halo était ROGNÉ par la chaîne
+  d'ancêtres en `overflow:hidden` qui ellipse les longs résumés : `elementFromPoint` à 5 px du
+  rectangle rendait `.dir-wrap`, jamais le bouton. Zone réelle 72×18, sous les 24 px de
+  WCAG 2.5.8.
+- **Le trou du garde-fou, plus grave que le défaut** : `audit-a11y` lisait les insets du halo et
+  créditait la surface SANS vérifier qu'un tap y atteint l'élément — tout halo rogné par un clip
+  passait vert. La famille exacte de la leçon v4.31.1 : un contrôle aveugle au défaut qu'il
+  prétend couvrir ne prouve rien.
+- **Les deux réponses** : (1) le dessin porte lui-même les 24 px (`.dir-hf` en inline-flex,
+  `min-height:24px` — la rangée `.dir-h` absorbe les ~6 px ; le halo ne reste qu'en bonus là où
+  le clip le laisse vivre) ; (2) la sonde cibles d'`audit-a11y` teste désormais la CAPTURE : pour
+  tout élément dont la conformité repose sur le halo, `elementFromPoint` au milieu de chaque côté
+  à halo non nul doit rendre l'élément — sinon « halo rogné, capture perdue ».
+- **Deux garde-fous de la sonde elle-même**, appris à la première passe : une GARDE D'OCCLUSION
+  (si le centre même de l'élément n'est pas atteignable — fenêtre ouverte par-dessus — le halo
+  n'est pas le sujet : la première passe rougissait sur le chrome DERRIÈRE la feuille Plan, un
+  rouge fabriqué) ; et hors fenêtre on S'ABSTIENT, on ne fabrique pas de verdict.
+- **Et une surface d'état nouvelle, « filtres posés »** : le déclencheur `.dir-hf` n'existe
+  qu'avec un filtre actif — il ne vivait donc dans AUCUNE des surfaces mesurées (un défaut hors
+  scope n'est pas un défaut absent, leçon v4.75.0). Le filtre se pose par l'état que l'app lit
+  elle-même (`state.section`), puis `render()` décide.
+- **Preuve rouge→vert** : sonde ajoutée AVANT le correctif — passe rouge sur le seul témoin visé
+  (deux thèmes), puis correctif CSS, passe verte (541/541).
+
+**A279. LA FEUILLE QUI DÉPASSE LE DIT** (même audit, mesuré : 904 px visibles pour 1131 de
+feuille à 1280 — la colonne « NE PAS OUBLIER » coupée en plein mot, et les barres de défilement
+en incrustation ne laissent aucun indice tant qu'on ne défile pas).
+
+- **Ce qui ne change PAS** : l'ajustement d'office à l'ouverture reste refusé, pour les raisons
+  déjà écrites (k ≈ 0,28 à 390 px ramène toute cible sous 13 px ; même à 1280, k = 0,775 ramène
+  44 px à 34 — cf. le commentaire de `svZoom` et l'épitaphe de `.pg-wide`). L'échelle reste un
+  geste.
+- **Ce qui change** : la coupe se DIT. Un mot dans la barre d'échelle — « la feuille dépasse à
+  droite — défiler, ou “⤢ Ajusté” » — en encre seconde (pas un registre d'alerte : la feuille
+  n'a rien de faux, elle a un bord), posé/levé par `svApplyZoom` sur la MESURE du défileur
+  (`scrollWidth > clientWidth + 4`), donc juste à chaque échelle, à chaque largeur, dans les
+  DEUX logements de la feuille (onglet Page et fenêtre « Tableau » — svApplyZoom est déjà leur
+  passe commune de mesure). Il vit dans la barre d'échelle parce que les gestes qui y répondent
+  y vivent aussi, « ⤢ Ajusté » en tête. `flex-wrap` sur la barre : en voie étroite le mot passe
+  à la ligne, il ne pousse jamais un bouton hors de portée.
+- **Vérifié aux trois états** : annoncé à l'ouverture (904/1131), tu après « Ajusté » (80 %),
+  de retour à 1:1.
