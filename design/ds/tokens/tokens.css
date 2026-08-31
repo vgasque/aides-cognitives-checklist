@@ -74,10 +74,7 @@
   --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --f-title:'Source Serif 4',Georgia,'Times New Roman',serif;
   --t-cap:11px;--t-meta:12px;--t-body:13.5px;--t-item:15px;--t-step:17.5px;--t-step-l:21px;--t-val:24px;
-  --w-ui:600;--w-strong:700;--w-max:800;
-  /* A13 : DEUX crans de glyphe, pas plus — glyphe de commande 15 px (la cible vient du HALO,
-     jamais du dessin) ; micro-glyphe inline au corps du texte qu'il accompagne. */
-  --g-cmd:15px;
+  --w-ui:600;--w-strong:700;
   /* ─── 5. RAYONS — fermés à 4 crans, la pilule n'existe pas ──────────────────────────────
      Exception unique : les chips de filtre, où la pilule EST la forme du composant. */
   --r-1:8px;--r-2:10px;--r-3:12px;--r-4:14px;
@@ -97,9 +94,9 @@
      légitime que si elle mesure autre chose qu'une fenêtre — un texte, un champ, une colonne — et
      le dit sur place. */
   --dlg-confirm:420px;--dlg-std:480px;--dlg-atelier:720px;
-  --hit:44px;--hit-crisis:48px;
+  --hit:44px;
   /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
-  --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;
+  --ease-out:cubic-bezier(.2,.8,.2,1);--dur-2:200ms;
   /* ══ 9. ALIAS — les anciens noms pointent vers les nouveaux ═══════════════════════════════ */
   --bg:var(--amb);--surface:var(--work);--surface-2:var(--amb-2);--surface-3:var(--amb-2);
   --input-bg:var(--work);--line-hover:var(--line-strong);
@@ -113,7 +110,7 @@
   --paper:#ffffff;
   --ink-soft:var(--ink-2);--soft:var(--ink-3);--tag-ink:var(--ink-2);--tag-bg:var(--amb-2);
   --primary:var(--act);--primary-dk:var(--act);--primary-hi:var(--act);
-  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;
+  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;
   --on-primary:var(--work);--link:var(--act);--flow-cur:var(--act);
   --done-bg:var(--ok-soft);--done-line:#bfd8c6;
   --critical:var(--crit);--critical-soft:var(--crit-soft);--critical-line:#ecc4bc;
@@ -148,7 +145,7 @@
      la barre sombre et étale un halo noir autour d'elle). La nuit ne projette toujours pas
      (--shadow-up:none en sombre) : la séparation nocturne vient du périmètre --sys-edge. */
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
-  --shadow-dock:none;--shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
+  --shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
   /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
      MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un

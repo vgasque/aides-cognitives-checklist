@@ -1,5 +1,55 @@
 # Journal des modifications
 
+## [5.19.3] — 2026-08-31
+### Audit interne complet : le survol qui ne peignait rien, le code mort purgé, la doctrine qui dit vrai (A280-A282)
+
+Audit transverse en quatre passes (code mort, PWA/performance, sécurité, outillage), chaque
+constat contre-vérifié, cinq arbitrages posés à l'auteur avant le premier geste. Verdict
+d'ensemble : aucune XSS atteignable, aucun secret exposé, RLS et `search_path` corrects sur les
+24 fonctions `SECURITY DEFINER`, une seule vraie duplication de bloc dans 1,97 Mo de JS. Les
+correctifs, sans changer un seul comportement voulu :
+
+- **Deux survols inertes réparés (A280)** : `.rt-lnk` (sommaire d'une référence) et `.at-b`
+  (onglets) lisaient `var(--hover)` — un token JAMAIS déclaré, déclaration invalide au calcul,
+  survol qui ne peignait rien dans les deux thèmes. Peints avec la famille vivante (`--amb-2`
+  le jour ; `--hover-dk` la nuit, `-hi` sur surface élevée), prouvé à la sonde : fond calculé
+  non transparent au survol réel, 2 thèmes × 2 moteurs, 8/8.
+- **Code mort purgé (règle 14, zéro émission vérifiée au grep)** : `catsUtiles` +
+  `catNbSousFiltre` (remplacées par l'union v5.18, jamais purgées), `filtersActive`,
+  `_ROLE_LBL` ; six tokens déclarés-jamais-lus (`--w-max`, `--g-cmd`, `--hit-crisis`,
+  `--dur-1`, `--primary-300` ×2, `--shadow-dock`) ; deux sélecteurs `#id` orphelins
+  (`#f-validation.val-bad`, `#readTopSeg` dans `@media print` — purge v5.6 enfin achevée).
+- **Le palier 1200 n'a plus qu'UNE copie** : le bloc d'origine (§ LARGEURS) avait été réaffirmé
+  plus bas pour gagner la cascade, puis les deux copies ont divergé en silence (`.ed-cockpit`
+  240 ici, 220 là — la cascade tranchait pour 220, la copie d'origine était morte avec un
+  commentaire annonçant 220 au-dessus d'une ligne écrivant 240). Le bloc mort est purgé, 220
+  confirmé par l'auteur, la doctrine « pour une géométrie, ne jamais dépendre de l'ordre »
+  déménagée sur la copie vivante.
+- **Quatre commentaires qui mentaient corrigés** : `fitCtrlRow()` décrite au présent
+  (supprimée en v5.6, son épitaphe existait 21 000 lignes plus loin), `--primary-300`
+  documentée en service, « structure 220 » sur la ligne à 240, et `_headers` qui justifiait
+  `no-cache` par une stratégie « réseau d'abord » révolue depuis v4.4.6.
+- **La règle des 20 du CHANGELOG devient exécutoire (A281)** : `scripts/check-changelog.mjs`
+  (dans `npm run check`, donc CI) — compte ≤ 20 et aucune entrée en double avec une archive.
+  Né ROUGE sur l'état réel à 21 entrées, vert après archivage de [5.14.21] puis [5.14.22]
+  (en FIN d'archive, convention constatée et désormais écrite). L'alias `npm run ci`, jamais
+  appelé et divergent du workflow, est retiré.
+- **Le périmètre de déploiement est tranché (A282, décision utilisateur)** : le dépôt est servi
+  EN ENTIER — et ce qui ne doit pas être public SORT du dépôt : `sonde/index.html` (313 Ko de
+  sonde WebRTC d'un spike clos v5.14, jumelle à l'octet d'un fichier délibérément gitignoré,
+  publiée à `/sonde/` faute d'index) est supprimée.
+- **La doctrine devient navigable par toute IA** : `docs/README.md` créé (carte plage A-xxx →
+  fichier, sans passer par AGENTS.md) ; l'index d'AGENTS.md corrigé — le lot v5.13 (A192-A197,
+  second chapitre de `lot-v5-12.md`) n'était indexé NULLE PART, trois plages annoncées étaient
+  fausses (v5.12 « A170-A179 » pour A170-A197, v5.17 « A227-A230 » pour A227-A237, v5.18
+  « A238-A261 » pour A238-A268) ; README remis d'aplomb (« onze harnais » → 21, hébergement
+  Workers Assets + adresse de production, contenu du dépôt complété).
+- **Écarté en connaissance de cause** : pas de `Cache-Control: immutable` sur `vendor/` —
+  les fichiers n'y sont pas nommés par hash, un an d'immutabilité HTTP ferait servir un vieux
+  pdf.js après une mise à jour de sécurité (le piège v5.0.0 « la mise à jour qui n'atteint
+  personne », au niveau HTTP) ; et pas de re-fusion des `.md`, qui recréerait la troncature
+  silencieuse à 797 Ko documentée en v5.10.3.
+
 ## [5.19.2] — 2026-08-31
 ### Le halo de cible se vérifie en capture, la feuille qui dépasse le dit (A278-A279)
 
@@ -741,34 +791,3 @@ sonde jetable, verte sur les DEUX moteurs.
   (aplat ≥ 3:1 deux thèmes, périmètre nocturne ≥ 3:1, ombre montante le jour, cible du glyphe
   seul), vérifiée capable d'échouer, défaut réintroduit puis fichier restauré à l'octet.
   Doctrine complète : `docs/decisions/lot-v5-15.md` (A222-A224).
-
-## [5.14.22] — 2026-08-19
-### La file voyage avec l'invité — et le partage meurt avec sa session
-
-- **Plus aucune action perdue à la bascule** (signalé) : ce qui n'avait pas encore été
-  transmis au moment d'un passage en ligne ⇄ en direct voyageait à la poubelle — la file de
-  l'invité est désormais emportée et re-poussée après la jointure (témoin de bout en bout :
-  panne d'écriture, bascule, l'évènement atteint l'hôte).
-- **Terminer la session termine son partage** (signalé : « l'invité se reconnecte sur
-  l'ancienne session ») : le partage zombie survivait des heures et le billet de reprise de
-  l'invité le ressuscitait — vieux gestes et « reprise après interruption » compris. Les
-  invités lisent désormais « Le soignant a terminé la session ».
-- **Sans aucun réseau, « Par l'écran » est proposé sur place** (signalé) — le direct ne peut
-  pas aboutir sans Wi-Fi commun, le chemin qui marche est à un tap.
-- **Après la veille, les mots justes** (signalé) : un invité perdu → « Ré-apparier — nouveau
-  code » (fini le « Inviter un autre » qui faisait bizarre), et l'hôte est prévenu au réveil
-  que le lien direct n'a pas survécu. En ligne, la reconnexion était déjà automatique ; en
-  direct, un re-scan reste physiquement nécessaire.
-- **« Renvoyer mes repères » explique le zéro** (signalé) : les coches ne remontent jamais
-  par l'écran — seuls les repères datés annotent le journal de l'hôte ; le message le dit et
-  donne le geste.
-
-## [5.14.21] — 2026-08-19
-### La pastille « En ligne » s'allume vraiment — le serveur refusait la question, pas la réponse
-
-- **Corrigé pour de bon** (signalé : « en 5.14.19 elle ne s'allumait pas ») : la sonde de
-  joignabilité interrogeait le serveur d'une manière qu'il refuse par principe (HEAD → 405),
-  et ce refus était lu « injoignable » — pastille grise à jamais, même avec un internet
-  parfait. La sonde interroge désormais en GET, et tout statut HTTP vaut « joignable » :
-  c'est la joignabilité qu'on mesure, pas la santé du service. Vérifié contre la vraie
-  instance, depuis un vrai navigateur.

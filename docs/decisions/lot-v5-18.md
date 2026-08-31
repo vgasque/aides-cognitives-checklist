@@ -1,4 +1,4 @@
-# Lot v5.18 — l'accueil sans mécanisme (A238-A261)
+# Lot v5.18 — l'accueil sans mécanisme (A238-A268)
 
 > Conçu sur l'artefact « Accueil — la barre d'en-tête » (canvas Claude Design, 29/08/2026),
 > chaque décision mesurée au rendu avant d'être retenue. Point de départ : « le principe de

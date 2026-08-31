@@ -1,6 +1,8 @@
 # Lot v5.17 — la barre de sélection tient sur une ligne
 
-> Doctrine du lot v5.17 — **A227 à A230**. Une planche de Claude Design (« Barre de sélection —
+> Doctrine du lot v5.17 — **A227 à A237** (cette introduction décrit A227-A230, la planche 20 ;
+> A231-A237 sont venues au fil des correctifs v5.17.x, plus bas — la plage annoncée s'était
+> arrêtée à A230, corrigée à l'audit v5.19.3). Une planche de Claude Design (« Barre de sélection —
 > planche 20 », 21/08/2026) reprend le CONTENU de `.sel-bar` sous une contrainte unique : **la
 > barre ne dépasse jamais 56 px de haut**, à tout écran et dans tout état. La coque ne change pas
 > (place collante, matière, périmètre, marge) — c'est ce qu'elle porte qui est refait.

@@ -20,7 +20,14 @@ Code réalisé avec Claude AI.
   version majeure ;
 - `docs/deploiement-et-conformite.md` — kit de déploiement en établissement + statut
   réglementaire (non-DM), modèles RGPD et conditions d'utilisation ;
+- `docs/decisions/` — la doctrine détaillée du projet (décisions numérotées A1…, par lot) ;
+  l'index de navigation est dans `docs/README.md` ;
 - `AGENTS.md` — instructions pour les contributeurs (humains ou IA) ; `CLAUDE.md` l'importe ;
+- `vendor/` — les deux seules bibliothèques embarquées (pdf.js, jsQR — vendorisées, chargées
+  paresseusement) et les polices ;
+- `design/` — le design system généré depuis `index.html` (`npm run design:build`) ;
+- `_headers`, `wrangler.jsonc`, `.assetsignore` — en-têtes de sécurité et déploiement
+  Cloudflare Workers Assets (la production) ;
 - `tests.html`, `scripts/`, `release.sh` — tests et outillage de publication.
 
 Les fichiers de l'application (`index.html`, `sw.js`, manifest, icônes) doivent rester ensemble
@@ -59,9 +66,13 @@ jamais la bibliothèque) :
 Ouvrez l'adresse où l'application est servie, puis « Installer l'app »
 (iPhone : Safari → Partager → Sur l'écran d'accueil).
 
+La production de l'auteur est servie sur **Cloudflare Workers Assets** (configuration :
+`wrangler.jsonc` + `.assetsignore`) à l'adresse `https://aides.gasque.fr/`.
+
 Pour héberger la vôtre : mode installable + hors ligne complet = hébergement **https** (le service
-worker ne fonctionne ni en fichier local ni en http simple) : GitHub Pages, Netlify / Cloudflare
-Pages, ou intranet https. ⚠ **Les données sont stockées par ORIGINE** (IndexedDB) : changer
+worker ne fonctionne ni en fichier local ni en http simple) : Cloudflare (Workers Assets ou
+Pages), GitHub Pages, Netlify, ou intranet https. ⚠ **Les données sont stockées par ORIGINE**
+(IndexedDB) : changer
 d'adresse plus tard repart d'une bibliothèque vide sur chaque appareil déjà installé — choisissez
 l'adresse définitive avant de diffuser (détail : `docs/deploiement-et-conformite.md`, § 1.1).
 
@@ -95,9 +106,10 @@ inaudible : le flash d'écran sert d'alerte de secours.
   sw.js + package.json) et vérifie syntaxe/tests ; le rédacteur (humain ou IA) complète ensuite le
   CHANGELOG et committe avec les notes de version. Ne jamais modifier le numéro à la main (voir `AGENTS.md`).
 - **Tests** : `npm test` (Playwright headless) ou ouvrir `tests.html` **servi en http**
-  (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` vérifie la
-  syntaxe des scripts inline, les couleurs (tokens) et la fraîcheur des hashs CSP ; `npm run audit`
-  rejoue les onze harnais de mesure (accessibilité, doctrine, surfaces). L'intégration continue
+  (`python3 -m http.server` puis `http://localhost:8000/tests.html`). `npm run check` enchaîne
+  la vingtaine de garde-fous statiques (syntaxe, couleurs, classes, échelles typographique et
+  d'espacement, service worker, SQL, CHANGELOG, hashs CSP…) ; `npm run audit`
+  rejoue les **21 harnais** de mesure (accessibilité, doctrine, surfaces). L'intégration continue
   (`.github/workflows/ci.yml`) rejoue check + `design:check` + tests à chaque push, et l'audit en
   mode indicatif (non bloquant).
 
@@ -106,8 +118,9 @@ inaudible : le flash d'écran sert d'alerte de secours.
   bibliothèque tierce. Rien n'est chargé depuis un autre domaine.
 - **Content-Security-Policy stricte** (`index.html` et `_headers`) : `default-src 'self'`, seules
   les connexions vers votre projet Supabase sont autorisées, `object-src 'none'`. Nota : le fichier
-  `_headers` n'est appliqué que par Netlify / Cloudflare Pages ; sur GitHub Pages, seule la CSP de
-  la balise `<meta>` s'applique (comparatif : `docs/deploiement-et-conformite.md`, § 1.1).
+  `_headers` est appliqué par la production Cloudflare (Workers Assets), comme par Netlify et
+  Cloudflare Pages ; GitHub Pages l'ignore et seule la CSP de la balise `<meta>` s'y applique
+  (comparatif : `docs/deploiement-et-conformite.md`, § 1.1).
 - **Contenu importé neutralisé** : tout JSON importé ou reçu du cloud est nettoyé (échappement
   HTML systématique, identifiants et couleurs validés, images limitées) — un fichier piégé ne peut
   pas exécuter de code.

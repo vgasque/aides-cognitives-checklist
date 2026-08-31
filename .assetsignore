@@ -11,10 +11,16 @@
 #
 # ⚠ CE FICHIER NE DÉCIDE PAS DE CE QUI EST SERVI À L'UTILISATEUR — il retire seulement ce qui
 # n'a jamais eu à être publié. Le dépôt reste « la seule forme servie, sans étape de build » :
-# `index.html`, `sw.js`, le manifeste, les icônes et `vendor/` partent tels quels. Y ajouter
-# `docs/`, `design/`, `scripts/` ou `tests.html` serait une DÉCISION de périmètre, pas un
-# correctif : GitHub Pages les sert aujourd'hui, et un écart silencieux entre deux hébergeurs
-# est exactement ce que la doctrine de déploiement cherche à éviter.
+# `index.html`, `sw.js`, le manifeste, les icônes et `vendor/` partent tels quels.
+#
+# DÉCISION DE PÉRIMÈTRE PRISE (31/08/2026, utilisateur — audit v5.19.3) : le dépôt est servi EN
+# ENTIER, `docs/`, `design/`, `scripts/`, `supabase/` et `tests.html` compris. Rien n'y est
+# secret (le schéma SQL est de la sécurité par conception, la doctrine est publique par nature),
+# et exclure ici seulement creuserait un écart silencieux avec GitHub Pages, qui sert tout —
+# exactement ce que la doctrine de déploiement refuse. Corollaire : ce qui ne doit PAS être
+# public ne se règle pas ici, il SORT DU DÉPÔT (précédent : `sonde/index.html`, sonde de spike
+# clos supprimée à cette même date — son jumeau gitignoré `.sonde-p2p.html` reste le seul
+# exemplaire, local).
 node_modules
 .git
 .DS_Store

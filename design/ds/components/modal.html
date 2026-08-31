@@ -9,8 +9,8 @@
      fin d'algorithme) ; --verify ambré = décisions/vigilance ; --critical vermillon = danger.
      Neutres : --surface-2 (panneaux/survols), --surface-3 (badges neutres, statuts achromatiques),
      --line-strong (bordures de composants, contraste >= 3:1). Gamme primaire claire :
-     --primary-100 (fonds de tags), --primary-200 (bordures douces), --primary-300 (bordures
-     marquées). --primary-hi : fond de SURVOL des boutons remplis (en sombre, --primary-dk devient
+     --primary-100 (fonds de tags), --primary-200 (bordures douces).
+     --primary-hi : fond de SURVOL des boutons remplis (en sombre, --primary-dk devient
      l'accent TEXTE clair — le survol ne peut plus s'y adosser). --verify-line/--critical-line :
      bordures DOUCES des encadrés ambrés/vermillon ; les notices de la taxonomie V5 (bord gauche
      4px) empruntent la couleur du texte sémantique lui-même. --alert-* : banderoles d'alarme
@@ -135,10 +135,7 @@
   --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --f-title:'Source Serif 4',Georgia,'Times New Roman',serif;
   --t-cap:11px;--t-meta:12px;--t-body:13.5px;--t-item:15px;--t-step:17.5px;--t-step-l:21px;--t-val:24px;
-  --w-ui:600;--w-strong:700;--w-max:800;
-  /* A13 : DEUX crans de glyphe, pas plus — glyphe de commande 15 px (la cible vient du HALO,
-     jamais du dessin) ; micro-glyphe inline au corps du texte qu'il accompagne. */
-  --g-cmd:15px;
+  --w-ui:600;--w-strong:700;
   /* ─── 5. RAYONS — fermés à 4 crans, la pilule n'existe pas ──────────────────────────────
      Exception unique : les chips de filtre, où la pilule EST la forme du composant. */
   --r-1:8px;--r-2:10px;--r-3:12px;--r-4:14px;
@@ -158,9 +155,9 @@
      légitime que si elle mesure autre chose qu'une fenêtre — un texte, un champ, une colonne — et
      le dit sur place. */
   --dlg-confirm:420px;--dlg-std:480px;--dlg-atelier:720px;
-  --hit:44px;--hit-crisis:48px;
+  --hit:44px;
   /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
-  --ease-out:cubic-bezier(.2,.8,.2,1);--dur-1:120ms;--dur-2:200ms;
+  --ease-out:cubic-bezier(.2,.8,.2,1);--dur-2:200ms;
   /* ══ 9. ALIAS — les anciens noms pointent vers les nouveaux ═══════════════════════════════ */
   --bg:var(--amb);--surface:var(--work);--surface-2:var(--amb-2);--surface-3:var(--amb-2);
   --input-bg:var(--work);--line-hover:var(--line-strong);
@@ -174,7 +171,7 @@
   --paper:#ffffff;
   --ink-soft:var(--ink-2);--soft:var(--ink-3);--tag-ink:var(--ink-2);--tag-bg:var(--amb-2);
   --primary:var(--act);--primary-dk:var(--act);--primary-hi:var(--act);
-  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;--primary-300:#8fb4de;
+  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;
   --on-primary:var(--work);--link:var(--act);--flow-cur:var(--act);
   --done-bg:var(--ok-soft);--done-line:#bfd8c6;
   --critical:var(--crit);--critical-soft:var(--crit-soft);--critical-line:#ecc4bc;
@@ -209,7 +206,7 @@
      la barre sombre et étale un halo noir autour d'elle). La nuit ne projette toujours pas
      (--shadow-up:none en sombre) : la séparation nocturne vient du périmètre --sys-edge. */
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
-  --shadow-dock:none;--shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
+  --shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
   /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
      MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un
@@ -311,7 +308,7 @@
      (seuil du harnais : 30) — la hachure d'exercice devenait douteuse la nuit, c'est-à-dire
      exactement ce que la v4.28.0 avait corrigé et que le témoin existe pour empêcher. On rend
      l'écart par le BLEU, pas par la lumière : 35 mesurés, et la teinte reste une teinte. */
-  --primary-soft:#12263f;--primary-100:#12263f;--primary-200:#2c4b6e;--primary-300:#2c4b6e;
+  --primary-soft:#12263f;--primary-100:#12263f;--primary-200:#2c4b6e;
   --critical-line:#3a1f1c;--verify-line:#3a2f12;--done-line:#1e3a28;--on-primary:#0d0f13;
   --scrim-soft:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.62);--scrim-full:rgba(0,0,0,.94);
   --hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;
@@ -551,21 +548,13 @@
     .ref-grid.with-toc{grid-template-columns:240px minmax(0,780px) minmax(0,1fr);gap:0 20px}
   }
   @media (min-width:1200px){
-    /* Fiche : lecture plafonnée 860px + rail élargi 360px (chiffres lisibles à distance).
-       `body.view-edit` N'EST PAS LISTÉ ICI — et ne doit pas l'être : le bloc 1000 (§ éditeurs,
-       plus bas) le reprend à spécificité ÉGALE et gagne par l'ordre de déclaration, si bien que la
-       règle serait MORTE tout en donnant l'illusion d'être appliquée. C'est le 4ᵉ incident de ce
-       type dans ce fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
-       GÉOMÉTRIE, ne jamais dépendre de l'ordre. L'éditeur rend donc 1fr+320 au-delà de 1200 px —
-       mesuré, et c'est ce que dit AGENTS.md depuis v4.34.0. */
-    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}
-    /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
-    /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
-    :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
-    :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
-      position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
-      overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
+    /* ⚠ LES RÈGLES DE GRILLE DE CE PALIER VIVENT PLUS BAS (« Palier 1200 », § éditeurs) :
+       déclarées ici, AVANT le bloc 1000, elles perdaient la cascade à spécificité égale — le
+       palier avait donc été recopié là-bas, puis les deux copies ont DIVERGÉ en silence
+       (.ed-cockpit disait 240 ici, 220 là-bas ; la cascade tranchait pour 220 et la copie d'ici
+       était morte avec un commentaire qui annonçait 220 au-dessus d'une ligne écrivant 240).
+       Purgé à l'audit v5.19.3 : ne pas réintroduire de géométrie de grille dans CE bloc — la
+       copie vivante est l'autre. Ne reste ici que la taille des chiffres du rail. */
     body.view-read .read-side .tm-val,body.view-read .read-side .cn-val{font-size:17.5px}
   }
   /* EN-TÊTE CLAIR par défaut (inversion 4.0.0) : la barre prend la couleur du fond de page —
@@ -1604,8 +1593,10 @@
      permanent). Les positions restent constantes entre appareils : seules les MARGES bougent.
      Déclaré APRÈS le bloc 399.98 (spécificité égale, l'ordre décide — 5ᵉ piège de cascade du
      projet). Harnais : audit-doctrine mesure désormais 320 en plus de 360/375/390. */
-  /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE — ET C'EST MESURÉ, PAS SEUILLÉ
-     (v4.73.1). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
+  /* QUAND LA COMPRESSION NE SUFFIT PLUS, LA RANGÉE S'ENROULE (v4.73.1 — doctrine d'ORIGINE ;
+     le mécanisme de MESURE qui la servait, `fitCtrlRow`, a été supprimé en v5.6 avec la rangée
+     qu'il ajustait : cf. son épitaphe près de `syncZoomWidth`. L'enroulement est depuis NATUREL,
+     `flex-wrap` — commentaire suivant. Le raisonnement reste, il explique la règle vivante). La recette de compression (v4.30.0, v4.43.0) est calibrée pour le PLANCHER SERVI,
      320 px. À 130 % sur un écran de 390, la mise en page n'a que 300 px effectifs — sous ce
      plancher — et aucun réglage de marge ne peut plus rendre les pixels manquants. Le choix n'est
      donc plus « compresser ou déborder » mais « un libellé inaccessible ou une seconde ligne ».
@@ -1613,12 +1604,13 @@
      accepté d'échanger de la hauteur contre de la lisibilité — c'est la seule lecture cohérente de
      son réglage. La doctrine « pas de 2ᵉ ligne » vise le coût PERMANENT d'une rangée qui
      s'épaissirait pour tout le monde ; ici elle n'apparaît que lorsque la rangée déborde VRAIMENT.
-     LA DÉCISION EST UNE MESURE, exactement comme celle du quai (« on écrit, et tant que ça déborde
-     on retire un segment ») : `fitCtrlRow()` remet la rangée à plat, lit son débordement réel, et
-     n'enroule que s'il existe. Aucun seuil de largeur en dur — ceux qui avaient été essayés pour le
-     quai se sont révélés FAUX, et ici ils dépendraient en plus de la fonte du système, de la
-     longueur des libellés et du zoom. Corollaire : le comportement de tous les appareils servis
-     reste inchangé au pixel, puisqu'il n'y a rien à enrouler quand rien ne déborde.
+     LA DÉCISION ÉTAIT UNE MESURE, exactement comme celle du quai (« on écrit, et tant que ça
+     déborde on retire un segment ») : `fitCtrlRow()` remettait la rangée à plat, lisait son
+     débordement réel, et n'enroulait que s'il existait. Aucun seuil de largeur en dur — ceux qui
+     avaient été essayés pour le quai se sont révélés FAUX, et ici ils dépendraient en plus de la
+     fonte du système, de la longueur des libellés et du zoom. Corollaire, toujours vrai avec le
+     `flex-wrap` naturel : le comportement de tous les appareils servis reste inchangé au pixel,
+     puisqu'il n'y a rien à enrouler quand rien ne déborde.
      CE QUI EST PRÉSERVÉ : l'ORDRE des contrôles, les
      libellés ENTIERS (aucun renommage, aucun pictogramme orphelin : « deux pictogrammes voisins
      sans mot se confondent sous stress »), les cibles de 44 px, et la constance positionnelle —
@@ -3429,7 +3421,12 @@
   .rt-lnk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;
     padding:6px 8px;min-height:32px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
     font-family:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .rt-lnk:hover{background:var(--hover)}
+  /* ⚠ `--hover` N'A JAMAIS EXISTÉ (audit v5.19.3) : deux survols le lisaient sans qu'aucune
+     déclaration ne le porte — déclaration invalide au calcul, survol INERTE dans les deux thèmes,
+     invisible de check-colors qui vérifie les valeurs, pas l'usage des tokens. On peint avec la
+     famille vivante : l'ambiance le jour, `--hover-dk(-hi)` la nuit (cf. leur déclaration). */
+  .rt-lnk:hover{background:var(--amb-2)}
+  [data-theme="dark"] .rt-lnk:hover{background:var(--hover-dk)}
   .rt-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .rt-2{padding-left:20px;font-weight:500;color:var(--ink-soft)}
   .rt-find{padding-bottom:0}
@@ -3998,7 +3995,10 @@
     cursor:pointer;touch-action:manipulation;border-radius:8px 8px 0 0}
   .at-b.on{color:var(--primary-dk);border-bottom-color:var(--primary);font-weight:600}
   .at-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  @media (pointer:fine){.at-b:not(.on):hover{background:var(--hover)}}
+  /* `--hover` n'existait pas (cf. .rt-lnk) ; surface ÉLEVÉE → `-hi` la nuit, `--hover-dk` nu
+     (#1c1d21) serait indiscernable de la matière de travail (#1e232b). */
+  @media (pointer:fine){.at-b:not(.on):hover{background:var(--surface-2)}
+    [data-theme="dark"] .at-b:not(.on):hover{background:var(--hover-dk-hi)}}
   .all-svg{margin:0 0 10px}
   .care-flat{margin:0 0 6px}
   .cf-stage{padding:0 0 20px}
@@ -5225,8 +5225,6 @@
   .field input[type=text],.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink)}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
   .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
-  /* Date de validation non interprétée : on signale (bordure rouge) sans bloquer la saisie. */
-  #f-validation.val-bad{border-color:var(--critical);background:var(--critical-soft)}
   /* ═══ MK-flux ÉTENDU AUX LISTES (v5.0.0, demande utilisateur : « harmoniser avec les étapes
      dans les blocs ») : même cycle que `.blk .li` — au REPOS la ligne est du TEXTE (aucun chrome,
      poignée ⠿ visible à gauche : l'affordance ne se découvre pas au tap), à l'ÉDITION le champ se
@@ -8408,9 +8406,14 @@
     /* L'aperçu Markdown inline du protocole devient redondant avec la colonne : masqué en large. */
     body.view-pedit .md-prev-h,body.view-pedit .md-preview{display:none}
   }
-  /* Palier 1200 RÉAFFIRMÉ ici : la règle d'origine (§ LARGEURS, haut du fichier) est déclarée
-     AVANT le bloc 1000 ci-dessus et perdait donc la cascade à spécificité égale — la checklist
-     restait en 1fr au lieu de son plafond de 860px. Collision constatée par mesure. */
+  /* Palier 1200 — COPIE UNIQUE depuis l'audit v5.19.3 : la règle d'origine (§ LARGEURS, haut du
+     fichier) était déclarée AVANT le bloc 1000 et perdait la cascade à spécificité égale (la
+     checklist restait en 1fr au lieu de son plafond — collision constatée par mesure), d'où cette
+     réaffirmation ; le bloc d'origine, devenu mort, a divergé (240/220) avant d'être purgé.
+     `body.view-edit` SANS .ed-cockpit n'est pas repris ici — le bloc 1000 le sert (1fr+320), et
+     lister une géométrie deux fois pour qu'un ordre de déclaration la départage est le 4ᵉ incident
+     de ce type du fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
+     GÉOMÉTRIE, ne jamais dépendre de l'ordre. */
   @media (min-width:1200px){
     body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
@@ -9031,7 +9034,7 @@
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:21px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,#readTopSeg,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
     /* A171 — UN REPLI EST UNE COMMODITÉ D'ÉCRAN : sur papier, tout se déploie. Imprimer un
        document amputé des sections qu'on avait refermées pour lire serait la pire des surprises,
        et c'est exactement le genre de défaut qu'on ne découvre qu'après l'impression. Le chevron,

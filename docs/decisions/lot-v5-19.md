@@ -1,4 +1,4 @@
-# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A277)
+# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A282, dont l'audit interne v5.19.3 en fin de fichier)
 
 > Conçu sur l'artefact « Sidebar et bas de page » (canvas Claude Design, 30/08/2026), chaque
 > décision mesurée sur l'app SERVIE avant d'être retenue. Point de départ : deux captures — la
@@ -305,3 +305,45 @@ en incrustation ne laissent aucun indice tant qu'on ne défile pas).
   à la ligne, il ne pousse jamais un bouton hors de portée.
 - **Vérifié aux trois états** : annoncé à l'ouverture (904/1131), tu après « Ajusté » (80 %),
   de retour à 1:1.
+
+---
+
+# Audit interne v5.19.3 — le code mort qu'aucun garde-fou ne voyait (A280-A282)
+
+> Audit transverse demandé par l'auteur (31/08/2026) : quatre passes parallèles (code mort,
+> PWA/performance, sécurité, outillage/doc), chaque constat contre-vérifié avant d'agir, cinq
+> questions posées et tranchées AVANT le premier geste. Ligne de base verte de bout en bout ;
+> tout ce qui suit a été corrigé sans changer un seul comportement voulu.
+
+**A280. UN TOKEN SE VÉRIFIE DÉCLARÉ *ET* LU — LE SURVOL QUI NE PEIGNAIT RIEN.** `var(--hover)`
+était lu par deux règles (`.rt-lnk:hover`, `.at-b:not(.on):hover`) et déclaré NULLE PART : une
+déclaration invalide au calcul, donc deux survols inertes en production, dans les deux thèmes —
+la famille vivante s'appelle `--hover-dk(-hi)` et il manquait la moitié claire. C'est le mode de
+défaillance « règle qui a l'air vivante » que `check-classes` traque pour les classes, transposé
+aux tokens, où AUCUN contrôle n'existe : `check-colors` vérifie qu'aucun hex ne fuit hors d'un
+token, jamais qu'un token déclaré sert ni qu'un token lu existe. Corrigé avec la famille
+existante (`--amb-2` le jour ; la nuit, `--hover-dk` sur l'ambiance et `-hi` sur surface élevée
+— `#1c1d21` nu serait indiscernable de `#1e232b`), PROUVÉ à la sonde (fond calculé au survol
+réel, 2 thèmes × 2 moteurs, 8/8). Dans le même trou : SIX tokens déclarés-jamais-lus purgés
+(`--w-max`, `--g-cmd`, `--hit-crisis`, `--dur-1`, `--primary-300` ×2 thèmes, `--shadow-dock`),
+dont `--hit-crisis` — la cible tactile de crise NOMMÉE dans l'échelle et appliquée nulle part.
+Le garde-fou « token déclaré ↔ lu » est le premier de la phase 3 de l'audit.
+
+**A281. LA RÈGLE DES 20 DU CHANGELOG DEVIENT EXÉCUTOIRE.** Elle était écrite deux fois (README,
+règle de publication) et appliquée par personne : `release.sh` INSÈRE en tête et n'élague
+jamais, aucun `check-*` ne lisait `CHANGELOG.md` — le profil exact de règle fuyante que la
+v5.0.0 avait documenté, re-mesuré à 21 entrées. `scripts/check-changelog.mjs` (dans `npm run
+check`, donc CI) compte ≤ 20 ET refuse toute entrée présente à la fois au CHANGELOG et dans une
+archive (un déplacement à moitié fait serait un double). Né ROUGE sur l'état à 21, vert après
+l'archivage de [5.14.21] — un garde-fou qui ne peut pas échouer ne prouve rien (v4.31.1).
+Convention d'archivage constatée et désormais écrite : EN FIN d'archive, telles quelles.
+
+**A282. LE PÉRIMÈTRE DE DÉPLOIEMENT EST TRANCHÉ : LE DÉPÔT EST SERVI EN ENTIER.** La question
+traînait depuis le 26/08 (`.assetsignore` : « une DÉCISION de périmètre, pas un correctif ») ;
+80 % des 25,9 Mo publiés ne sont pas l'application. Décision utilisateur (31/08/2026) : on
+assume — rien n'y est secret (le schéma SQL est de la sécurité par conception, la doctrine est
+publique par nature), et exclure côté Cloudflare seulement creuserait un écart silencieux avec
+GitHub Pages. COROLLAIRE qui donne sa force à la décision : ce qui ne doit PAS être public ne se
+règle pas à l'`.assetsignore`, il SORT DU DÉPÔT — `sonde/index.html` (313 Ko de sonde WebRTC
+d'un spike clos, jumelle à l'octet d'un fichier délibérément gitignoré, entrée par le trou « le
+motif des sondes ne couvre que la racine ») est supprimée, son exemplaire local gitignoré reste.
