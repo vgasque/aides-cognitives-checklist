@@ -10,7 +10,7 @@
        fenêtre de garde on ressort vers la bibliothèque.
    Supprimer ce fichier avec le lecteur aurait donc emporté six invariants sans rapport — c'est
    exactement la « purge à moitié faite » que la doctrine nomme, à l'envers. */
-import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce} from './harness.mjs';
+import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
 
 const { port, srv } = await serveApp();
 const br=await moteur().launch();const p=await br.newPage({viewport:{width:1000,height:950},deviceScaleFactor:2});
@@ -51,5 +51,45 @@ t('« ‹ » porte le TITRE de la fiche d’origine', r5.lbl===r5.lblA, r5.lbl);
 t('triple tap nerveux : on est sur l’ORIGINE, jamais à la bibliothèque (garde 700 ms + .guarded)',
   r5.apres.vue==='read'&&r5.apres.surOrigine&&r5.apres.guard, JSON.stringify(r5.apres));
 t('après la fenêtre de garde, « ‹ » sort vers la bibliothèque (pile vidée)', r5.fin==='library');
+/* ═══ PILE DU QUAI (v5.19.1, audit design v5.19) — deux invariants nés d'un bug mesuré :
+   Tout voir → Consulter (colonne du cockpit, DANS `main`) → « Un bloc » ; le rendu complet du
+   retour détruisait la colonne mais `body.ref-col-on` et le `dp-back` de #refBtn survivaient —
+   « Revenir » vert plein masquait la commande Consulter, un tap le dissipait sans autre effet.
+   Et pendant que les deux feuilles étaient ouvertes, DEUX primaires vertes voisines.
+   Invariants : (1) après toute séquence ouvrir/fermer croisée, AUCUN bouton de retour dont le
+   niveau de pile est résolu ; (2) jamais plus d'UNE primaire verte — le sommet de pile. */
+console.log('=== pile du QUAI : dp-back purgé quelle que soit la porte de sortie, une seule primaire verte ===');
+{
+ const p2=await br.newPage({viewport:{width:1280,height:800}});
+ p2.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+ await p2.goto(`http://localhost:${port}/index.html`);
+ await amorce(p2);await ouvrirFiche(p2,'Arr.t cardiaque');await demarrerSession(p2);
+ const lit=()=>p2.evaluate(()=>({
+   verts:[...document.querySelectorAll('#sessionDock .sd-key.dp-back')].filter(b=>!b.hidden).length,
+   allBack:document.getElementById('allBtn').classList.contains('dp-back'),
+   refBack:document.getElementById('refBtn').classList.contains('dp-back'),
+   refLbl:document.querySelector('#refBtn .dp-lbl').textContent.trim(),
+   colOn:document.body.classList.contains('ref-col-on'),
+   colDom:!!document.querySelector('.read-side .ref-col'),
+   modalOn:document.getElementById('refModal').classList.contains('on')}));
+ const tap=async id=>{await p2.evaluate(i=>document.getElementById(i).click(),id);
+   await p2.waitForTimeout(500);};
+ await tap('allBtn');const e1=await lit();
+ await tap('refBtn');const e2=await lit();
+ await tap('allBtn');const e3=await lit();
+ await tap('refBtn');const e4=await lit();
+ t('Tout voir : « Un bloc » seul porte le vert', e1.verts===1&&e1.allBack&&!e1.refBack, JSON.stringify(e1));
+ t('Consulter PAR-DESSUS : le sommet de pile prend le vert, « Un bloc » le rend (jamais deux)',
+   e2.verts===1&&e2.refBack&&!e2.allBack&&e2.colOn&&e2.colDom, JSON.stringify(e2));
+ t('« Un bloc » dépile TOUT : aucun retour résolu encore affiché, état Consulter purgé',
+   e3.verts===0&&e3.refLbl==='Consulter'&&!e3.colOn&&!e3.colDom&&!e3.modalOn, JSON.stringify(e3));
+ t('… et le re-tap Consulter rouvre une VRAIE consultation (pas un fantôme à dissiper)',
+   e4.refBack&&e4.colOn&&e4.colDom, JSON.stringify(e4));
+ /* La fermeture par la porte NORMALE rend le vert au niveau du dessous. */
+ await tap('allBtn');await tap('refBtn');await tap('refBtn');const e5=await lit();
+ t('fermer Consulter pendant l’excursion : le vert REDESCEND sur « Un bloc »',
+   e5.verts===1&&e5.allBack&&!e5.refBack&&e5.refLbl==='Consulter', JSON.stringify(e5));
+ await p2.close();
+}
 await p.close();await br.close();srv.close();
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);process.exit(ko?1:0);

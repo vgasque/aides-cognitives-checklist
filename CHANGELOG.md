@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [5.19.1] — 2026-08-31
+### La pile du quai se purge à toute fermeture, et une seule primaire verte (A277)
+
+- **Le bug, mesuré à l'audit design v5.19** (desktop 1280, session vive) : Tout voir →
+  Consulter → retour par « Un bloc » laissait le quai en « Revenir au bloc en cours » vert
+  plein alors qu'on était déjà sur le bloc — il masquait la commande Consulter, et un tap le
+  dissipait sans autre effet. La cause est une asymétrie de logement : à ≥ 1200 px la
+  consultation vit en colonne DANS `main` (A15), que le rendu complet du retour d'excursion
+  venait de détruire — mais son état (`body.ref-col-on`, le `dp-back` de `#refBtn`) vit HORS
+  de `main` et survivait.
+- **Réconciliation à chaque `render()`** : si l'état dit « colonne ouverte » mais qu'aucune
+  `.ref-col` n'existe plus dans le DOM, la fermeture passe par `closeRefSheet()` — la porte
+  unique, quelle que soit la porte de SORTIE. Sémantique de pile : dépiler un niveau du
+  dessous emporte ce qui était posé dessus. Le même filet couvre le trou voisin jamais
+  signalé : franchir le palier 1200 vers le bas avec la colonne ouverte la tuait de la même
+  façon. (La feuille `#refModal` des voies étroites vit hors de `main` et survit à bon
+  droit — rien à réconcilier.)
+- **Une seule primaire verte — le sommet de pile.** SFAR + Consulter ouverts montraient DEUX
+  vertes côte à côte (« Un bloc » + « Revenir ») : deux référents pour un même signe
+  (AC 120-71B § 5.5). Quand Consulter est ouvert par-dessus, c'est lui le sommet : « Un
+  bloc » garde libellé et geste mais rend le vert, et le reprend à la fermeture de la
+  consultation. Écrit aux deux points qui peignent ces boutons (`applyViewChrome`,
+  `syncRefBtn`).
+- **Témoin de non-régression** : `audit-retour.mjs`, section « pile du QUAI » — cinq mesures
+  (une seule verte à chaque étage, purge complète après la séquence croisée, re-tap qui
+  rouvre une vraie consultation, vert qui redescend), vérifiées capables d'échouer contre
+  l'`index.html` d'avant le correctif (3 rouges montrant les symptômes exacts), fichier
+  restauré à l'octet.
+
 ## [5.19.0] — 2026-08-30
 ### La colonne gauche a trois étages, le pied ne dit plus deux fois la même chose (A269-A276)
 
@@ -703,31 +732,3 @@ sonde jetable, verte sur les DEUX moteurs.
   parfait. La sonde interroge désormais en GET, et tout statut HTTP vaut « joignable » :
   c'est la joignabilité qu'on mesure, pas la santé du service. Vérifié contre la vraie
   instance, depuis un vrai navigateur.
-
-## [5.14.20] — 2026-08-19
-### L'entrée « Partager » mesure le réseau, l'invité figé se reconnecte, le départ dit le non-transmis
-
-- **« Partager la session » choisit son mode en MESURANT** (signalé) : serveur injoignable
-  mesuré → appariement direct d'emblée ; échec d'ouverture en ligne (Wi-Fi sans internet) →
-  bascule automatique vers le direct avec un mot — plus jamais « vérifiez votre connexion ».
-- **Invité au lien figé** : « Se reconnecter… » au menu (scanner ou saisir un nouveau code,
-  l'écran figé reste intact tant qu'on n'a pas rejoint), et le retour du réseau relance le
-  sondage immédiatement. La pastille « En ligne » gagne aussi une mesure au retour au premier
-  plan (iOS ne tire pas toujours l'évènement réseau en PWA).
-- **Quitter le partage n'avertit que s'il y a de quoi** (demandé) : file transmise → fenêtre
-  habituelle ; actions en attente → le dialogue détaille ce qui serait perdu (« 2 coches,
-  1 repère, 1 minuteur… ») ; chez le miroir, les repères non renvoyés — avec le geste qui les
-  sauverait.
-
-## [5.14.19] — 2026-08-19
-### La pastille « En ligne » mesure vraiment — et le chrome de crise lâche les aides propres de l'invité
-
-- **La pastille « En ligne » verdit quand le serveur répond, et seulement alors** (signalé :
-  « retrouver internet ne rend pas la pastille verte — pareil en Wi-Fi sans connexion ») :
-  tant que le sélecteur de mode est à l'écran, une sonde légère interroge le serveur toutes
-  les 8 secondes et repeint la pastille sur place. Un Wi-Fi sans internet ne la trompe plus,
-  et le retour d'internet se voit en quelques secondes, dans tous les modes.
-- **Le bandeau « Vous suivez » ne suit plus l'invité sur ses propres aides** (signalé — la
-  v5.14.18 avait corrigé l'entrée, pas l'en-tête) : bandeau, mot du mode, mode crise et
-  bridage du scribe ne valent plus que sur la fiche réellement suivie ; retour, aller et
-  chrome vérifiés par sonde dans les deux sens.

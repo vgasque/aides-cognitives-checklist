@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-S6tdFC2Yg029CMxLUi/JMWdQ8uvlvNQYqs8rXbGn0t8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-wRqLuUcTM6hnhkGBOytSk7/HWQk08rvXQ1e64Svely8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10054,7 +10054,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.19.0';
+const APP_VERSION='5.19.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15292,7 +15292,15 @@ function applyViewChrome(){
          MON format d'ouverture ». C'est symétrique par construction : qui lit d'ordinaire la fiche
          entière voit un ⤢ neutre au repos, et un ↩ vert quand il est allé voir un bloc. */
       const chezSoi=state.readMode===currentReadMode();
-      ab.classList.toggle('dp-back',!chezSoi);
+      /* ⚠ UNE SEULE PRIMAIRE VERTE — LE SOMMET DE PILE (v5.19.1, audit design v5.19 : « SFAR +
+         Consulter ouverts, le quai montrait DEUX primaires vertes côte à côte »). Le vert dit
+         « ceci vous ramène d'où vous venez » ; deux retours remplis côte à côte, c'est deux
+         référents pour un même signe (AC 120-71B § 5.5) et l'inflation qui vide le registre.
+         Quand Consulter est ouvert PAR-DESSUS l'excursion « Tout voir », c'est LUI le sommet de
+         pile : « Un bloc » reste présent et actif (il dépile les deux niveaux d'un tap), mais
+         il rend le vert au retour du dessus. `syncRefBtn` rejoue cette règle à chaque
+         ouverture/fermeture de la consultation. */
+      ab.classList.toggle('dp-back',!chezSoi&&!refOpenNow());
       ab.querySelector('.dp-lbl').textContent=st?'Un bloc':'Tout voir';
       ab.setAttribute('aria-label',chezSoi
         ?(st?'Voir un bloc à la fois':'Tout voir — la fiche entière, puis retour au bloc')
@@ -15482,6 +15490,17 @@ function render(){_renderN++;
   else if(state.view==='protocolRead')renderProtocolRead();
   else if(state.view==='protocolEdit')renderProtocolEdit();
   else renderRead();
+  /* ⚠ LA COLONNE « CONSULTER » NE SURVIT PAS À UN RENDU COMPLET — SON ÉTAT NON PLUS (v5.19.1,
+     audit design v5.19 : Tout voir → Consulter → « Un bloc » laissait le quai en « Revenir »
+     vert PLEIN, masquant la commande Consulter, un tap le dissipant sans autre effet). À
+     ≥ 1200 px la consultation vit DANS `.read-side` (A15), donc DANS `main` : le rendu complet
+     du retour d'excursion venait de la détruire, mais `body.ref-col-on` et le `dp-back` de
+     `#refBtn` vivent HORS de `main` et survivaient — un bouton de retour dont le niveau de pile
+     était résolu. La règle est celle d'une pile : dépiler un niveau du dessous (« Un bloc »)
+     emporte ce qui était posé dessus — la fermeture passe par `closeRefSheet`, la porte unique,
+     quelle que soit la porte de SORTIE empruntée. (La feuille `#refModal`, elle, vit hors de
+     `main` et survit à bon droit : `refSheetOpen()` reste alors vrai, rien à réconcilier.) */
+  if(document.body.classList.contains('ref-col-on')&&!document.querySelector('.read-side .ref-col'))closeRefSheet();
   updateRtStrip();   // APRÈS le rendu de la vue : position réelle du panneau minuteurs
   // Pied de page allégé : les comptes fiches/protocoles vivent dans la sidebar — seule la version reste.
   document.getElementById('count').textContent='v'+APP_VERSION;
@@ -23058,12 +23077,18 @@ function closeRefSheet(){
    place. Une excursion se referme toujours par le contrôle qui l'a ouverte. */
 function refOpenNow(){return refSheetOpen()||document.body.classList.contains('ref-col-on');}
 function syncRefBtn(){
-  const rb=document.getElementById('refBtn');if(!rb||rb.hidden)return;
   const on=refOpenNow();
-  rb.classList.toggle('dp-back',on);
-  rb.querySelector('.dp-lbl').textContent=on?'Revenir':'Consulter';
-  rb.setAttribute('aria-label',on?'Revenir au bloc en cours':'Consulter — surveillances, différentiels, documents');
-  rb.setAttribute('aria-expanded',on?'true':'false');}
+  const rb=document.getElementById('refBtn');
+  if(rb&&!rb.hidden){
+    rb.classList.toggle('dp-back',on);
+    rb.querySelector('.dp-lbl').textContent=on?'Revenir':'Consulter';
+    rb.setAttribute('aria-label',on?'Revenir au bloc en cours':'Consulter — surveillances, différentiels, documents');
+    rb.setAttribute('aria-expanded',on?'true':'false');}
+  /* Le vert change de main AVEC la pile (v5.19.1) : ouvrir Consulter le prend à « Un bloc »,
+     le fermer le lui rend — même règle que dans `applyViewChrome`, rejouée ici parce que
+     l'ouverture/fermeture de la consultation ne repasse pas toujours par un rendu complet. */
+  const ab=document.getElementById('allBtn');
+  if(ab&&!ab.hidden)ab.classList.toggle('dp-back',state.readMode!==currentReadMode()&&!on);}
 bindModalDismiss(refModal,closeRefSheet);
 {const rx=document.getElementById('refX');if(rx)rx.onclick=closeRefSheet;
  const rb=document.getElementById('refBtn');if(rb)rb.onclick=()=>{if(refOpenNow())closeRefSheet();else openRefSheet();};

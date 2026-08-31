@@ -1,4 +1,4 @@
-# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A276)
+# Lot v5.19 — la colonne à trois étages, le pied qui ne se répète plus (A269-A277)
 
 > Conçu sur l'artefact « Sidebar et bas de page » (canvas Claude Design, 30/08/2026), chaque
 > décision mesurée sur l'app SERVIE avant d'être retenue. Point de départ : deux captures — la
@@ -225,6 +225,39 @@ voie étroite, « Rangé par » et « Sélectionner » passent SOUS l'intertitre
 gouvernent cette liste, ils ne la précèdent pas. (3) Les 18 px qui séparent le contenu de
 l'en-tête tombaient sur `#syncErrNotice`, présent mais MASQUÉ — donc sur une boîte sans hauteur,
 et le premier bandeau touchait l'en-tête.
+
+**A277. LA PILE DU QUAI SE PURGE À TOUTE FERMETURE — ET UNE SEULE PRIMAIRE VERTE, LE SOMMET
+(v5.19.1).** Mesuré à l'audit design v5.19 (desktop 1280, session vive sur l'ACR) : Tout voir →
+Consulter → retour par « Un bloc » laissait le quai en « Revenir au bloc en cours » vert PLEIN
+alors qu'on était déjà sur le bloc — il masquait la commande Consulter, et un tap le dissipait
+sans autre effet. Et pendant que les deux feuilles étaient ouvertes, DEUX primaires vertes
+côte à côte (« Un bloc » + « Revenir »).
+
+- **La cause n'est pas un oubli de `syncRefBtn`, c'est une asymétrie de LOGEMENT.** À ≥ 1200 px
+  la consultation vit en COLONNE dans `.read-side` (A15), donc DANS `main` : le rendu complet du
+  retour d'excursion la détruisait avec le reste de la vue. Mais son ÉTAT — `body.ref-col-on` et
+  le `dp-back` de `#refBtn` — vit HORS de `main`, et survivait. Un bouton de retour dont le
+  niveau de pile était résolu restait donc affiché, et il MENTAIT (la feuille `#refModal`,
+  elle, vit hors de `main` et survit à bon droit — rien à réconcilier de ce côté).
+- **La réponse est une RÉCONCILIATION à chaque `render()`**, après le dispatch de vue : si
+  `ref-col-on` est posé mais qu'aucune `.ref-col` n'existe plus dans le DOM, la fermeture passe
+  par `closeRefSheet()` — la porte UNIQUE, quelle que soit la porte de SORTIE empruntée. C'est
+  la sémantique d'une pile : dépiler un niveau du dessous (« Un bloc ») emporte ce qui était
+  posé dessus. Le même filet couvre le trou voisin jamais signalé : franchir le palier 1200 vers
+  le bas avec la colonne ouverte (`_onReadBp` → `render()`) la tuait de la même façon.
+- **Une seule primaire verte : le vert change de main AVEC la pile.** Le registre CONFIRMATION
+  rempli dit « ceci vous ramène d'où vous venez » ; deux retours remplis voisins, c'est deux
+  référents pour un même signe (AC 120-71B § 5.5) et l'inflation qui vide le vert de son sens —
+  l'argument exact de v5.10.5 sur le vert permanent, rejoué au pluriel. Quand Consulter est
+  ouvert par-dessus l'excursion, c'est LUI le sommet : `#allBtn` garde son libellé et son geste
+  (il dépile tout d'un tap) mais rend le vert ; à la fermeture de la consultation, le vert
+  REDESCEND. Écrit aux deux points qui peignent ces boutons (`applyViewChrome` et `syncRefBtn`),
+  car l'ouverture/fermeture de la consultation ne repasse pas toujours par un rendu complet.
+- **Témoin : `audit-retour.mjs`, section « pile du QUAI »** — cinq mesures (une seule verte à
+  chaque étage, purge complète après la séquence croisée, re-tap qui rouvre une VRAIE
+  consultation, vert qui redescend), vérifiées CAPABLES D'ÉCHOUER contre l'`index.html` d'avant
+  le correctif : 3 rouges montrant exactement les symptômes rapportés (`verts:2`, puis
+  `colOn` sans `colDom`), fichier restauré à l'octet.
 
 **A278. LE HALO SE VÉRIFIE EN CAPTURE, PAS SEULEMENT EN GÉOMÉTRIE** (audit design externe
 v5.19.0, mesuré sur l'app servie).
