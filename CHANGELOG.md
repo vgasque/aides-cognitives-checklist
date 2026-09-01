@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.20.3] — 2026-09-01
+### La suppression de compte oubliait une clé que la déconnexion retirait (A290)
+
+- **Un reliquat d'« éditions retenues » survivait à l'effacement TOTAL de l'appareil** :
+  `wipeLocal()` (suppression de compte) et `wipeCurrentSpace()` (déconnexion en effaçant
+  l'appareil) recopiaient chacun leur liste de clés locales — la seconde retirait
+  `ac-held-edits`, la première non, et sa boucle générique de rattrapage exige un `@` que la
+  forme nue de la clé n'a pas. Prouvé à la sonde par le vrai appel, deux moteurs : la clé nue
+  SURVIT quand tout le reste part.
+- **Correctif structurel, pas une ligne dans une liste** : `WIPE_SPACE_KEYS`, liste UNIQUE des
+  clés d'espace, consommée par les deux effacements (`wipeLocal` y concatène ses extras
+  d'appareil). Une liste recopiée diverge, une liste unique non — même remède que `MUTE_SEL`
+  (v4.4.2) et `SHARE_KINDS` (A216). Rouge→vert rejoué à la sonde après correctif. Détail : A290
+  (`docs/decisions/lot-v5-20.md`).
+
 ## [5.20.2] — 2026-09-01
 ### Assainissement mesuré : trois garde-fous nés rouges, purges prouvées, vingt factorisations (A289)
 
@@ -665,74 +680,3 @@ nombre d'options), et il est **vérifié capable d'échouer** (défaut réintrod
 sonde jetable, verte sur les DEUX moteurs.
 **Portes** : `npm run check` (21 contrôles) · `npm test` **1169 tests × 2 moteurs** ·
 `npm run audit` **21 harnais, 26/26 tâches vertes**.
-
-## [5.17.3] — 2026-08-26
-### L'application ne s'ouvrait plus sur iPhone — et l'hébergement gagne ses en-têtes
-
-- **⚠ CORRECTIF CRITIQUE, signalé à l'usage** : « Safari ne peut pas ouvrir la page — *Response
-  served by service worker has redirections* ». L'application ne démarrait **pas du tout** sur
-  iPhone. Pour un logiciel qu'on ouvre en urgence vitale, c'est le pire mode de défaillance
-  possible.
-- **La chaîne, mesurée de bout en bout.** Une requête de navigation a le mode de redirection
-  `"manual"` : lui servir depuis le cache une réponse dont le drapeau `redirected` est vrai est
-  une **erreur réseau**, pas une dégradation. Or le nouvel hébergeur normalise les URL et redirige
-  `/index.html` vers `/` en 307 ; `fetch` suivait la redirection, la réponse obtenue portait
-  `redirected: true`, et `addAll` la rangeait telle quelle à l'installation. La première
-  navigation servie depuis ce cache était alors refusée.
-- **Pourquoi personne ne l'avait vu : WebKit refuse, Chromium tolère.** Le défaut était donc
-  **invisible sur la machine de développement** et fatal sur la cible principale déclarée du
-  projet. Il avait même été repéré et mesuré la veille — sur Chromium — puis jugé « fenêtre de
-  risque étroite ». Le jugement était faux parce que la mesure ne portait que sur un moteur.
-- **Le correctif est dans `sw.js`, pas dans un réglage d'hébergeur**, et c'est délibéré :
-  neutraliser la redirection côté Cloudflare (`html_handling: "none"`) supprimerait aussi le
-  service de `/` — on échangerait un défaut contre une racine morte — et l'application doit
-  **rester déployable ailleurs** (règle 13), où un autre hébergeur normaliserait autrement.
-  Trois lignes de défense : l'installation **demande `./`** (la forme qu'aucun hébergeur ne
-  redirige) tout en écrivant sous la clé `./index.html` ; `putDoc` **reconstruit** toute réponse
-  redirigée avant de la ranger ; et le repli de navigation **refuse de servir** une entrée
-  redirigée qu'un worker antérieur aurait laissée, retombant sur le réseau — dégradé, jamais mort.
-- **La propriété tout-ou-rien du noyau est conservée** sans `addAll` : ou le document et le
-  manifeste entrent tous les deux, ou l'installation échoue. Elle n'a jamais été étendue aux
-  icônes, qui feraient échouer l'installation entière pour un favicon en 404.
-- **Un vingt-et-unième harnais, parce que rien ne mesurait ce terrain** : `audit-sw.mjs`. Le
-  hors-ligne est la fonction dont tout dépend en intervention, et `check-sw.mjs` n'en voyait que
-  le **statique** (entrées présentes, noyau ⊆ ASSETS, `CACHE` aligné). Le nouveau harnais monte
-  **deux serveurs** — l'un qui redirige `/index.html`, l'autre qui sert à plat — et joue les mêmes
-  six contrôles sur chacun : le worker s'installe et remplit son cache, le noyau y est, **le
-  document n'est pas une réponse redirigée**, c'est bien l'application, une navigation servie par
-  le worker aboutit, la page est contrôlée. **12/12 sur Chromium ET sur WebKit.** Vérifié capable
-  d'échouer : défaut réintroduit → rouge sur le cas qui redirige, **vert sur le cas à plat** (il
-  discrimine le défaut, il ne signale pas « quelque chose ») ; `sw.js` restauré à l'octet,
-  empreinte sha256 comparée.
-- **Deux pièges de MESURE attrapés en écrivant ce harnais**, tous deux capables de fabriquer un
-  faux rouge : (a) `page.waitForFunction` avec un prédicat **`async`** reçoit une **Promesse**,
-  toujours vraie — l'attente réussissait au premier sondage sans rien vérifier, et la sonde lisait
-  ensuite un cache pas encore écrit ; l'attente est désormais pilotée depuis Node, où le `await`
-  est réel. (b) Sur WebKit, `Cache.match('./index.html')` **ne retrouve pas** une entrée pourtant
-  présente — vérifié en dumpant `cache.keys()` : elle y est, sous son URL absolue. Les deux sont
-  consignés sur place.
-
-### L'hébergement passe sur Cloudflare — `_headers` cesse d'être décoratif
-
-- **Toute la posture de sécurité est désormais SERVIE**, et mesurée sur le domaine : CSP en
-  en-tête HTTP (en plus de la balise), `Strict-Transport-Security`, `X-Content-Type-Options`,
-  `X-Frame-Options`, COOP, CORP, `Permissions-Policy` à 21 capacités, `Referrer-Policy`, et
-  `Cache-Control: no-cache` sur `/`, `/index.html` et `/sw.js`. Le fichier `_headers` était
-  maintenu à jour depuis un an **en sachant que GitHub Pages l'ignorait totalement** ; il est
-  enfin appliqué. Le garde anti-iframe posé dans le document en v5.0.0 passe de rempart unique à
-  seconde ligne.
-- **L'origine ne change pas** (le domaine était déjà en place), donc **aucune donnée locale n'a
-  été touchée** — c'est précisément ce que le nom de domaine avait acheté une version plus tôt.
-- **`.assetsignore`** : l'ancien pipeline Pages excluait `node_modules`, `.git` et `.DS_Store`
-  d'office, Workers Assets ne le fait pas. Le premier déploiement échouait sur un `workerd` de
-  145 Mio que la chaîne de déploiement avait elle-même installé dans le dépôt. Vérifié : `.git`,
-  `node_modules`, `_headers` et `wrangler.jsonc` répondent tous **404**.
-- **`wrangler.jsonc` ferme les deux adresses publiques que Cloudflare ouvre par défaut** —
-  le sous-domaine `*.workers.dev` et une Preview URL par branche et par commit. Une case décochée
-  dans le tableau de bord ne tient pas : chaque publication la recoche. Ce n'est pas cosmétique —
-  chaque adresse est une **origine** de plus servant la même application, et une PWA installée
-  depuis l'une d'elles aurait une bibliothèque séparée, invisible depuis l'autre, sans aucun signe.
-- **Ce qui n'a pas été fait, et pourquoi** : `html_handling` n'est pas touché (cf. plus haut), et
-  `tests.html` cesse de fonctionner **depuis le site déployé** — il charge l'application dans une
-  iframe, que `X-Frame-Options: DENY` interdit désormais. Sans effet sur `npm test`, qui tourne
-  contre un serveur local ; c'est le durcissement qui fait son travail, pas une régression.

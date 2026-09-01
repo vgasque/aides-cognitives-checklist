@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A289)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A290)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -149,3 +149,21 @@ JS : 457 blocs > 6 lignes SANS trace dans docs — migration d'abord, jamais sup
 navigation, 7 sites), le repli `Math.random` de `uid`, et un effet de bord réel à corriger à
 part : `ac-held-edits` survit à `wipeLocal()` (l'effacement TOTAL ne retire pas cette clé, que
 `wipeCurrentSpace` retire).
+
+## A290 — l'effacement TOTAL oubliait une clé que l'effacement d'espace retirait (v5.20.3)
+
+Deux effacements, deux listes recopiées : `wipeLocal()` (suppression de compte — TOUT l'appareil)
+et `wipeCurrentSpace()` (déconnexion avec « effacer aussi cet appareil » — l'espace courant seul)
+énuméraient chacune les clés localStorage NUES du propriétaire de la base historique. La seconde
+retirait `ac-held-edits` (éditions retenues), la première non — et sa boucle générique de
+rattrapage exige un `@` dans la clé, que la forme nue n'a pas. **Un reliquat d'édition retenue
+survivait donc à la suppression de compte**, le geste dont la promesse est précisément de ne rien
+laisser. Prouvé à la sonde par le vrai appel (`wipeLocal()` en page, clé semée nue + suffixée,
+deux moteurs) : nue SURVIT, tout le reste part ; après correctif, tout part.
+
+Le correctif est STRUCTUREL, pas une ligne ajoutée à une liste : `WIPE_SPACE_KEYS`, LA liste
+unique des clés d'espace, consommée par les deux effacements (`wipeLocal` la concatène à ses
+extras d'appareil — auth, registre d'espaces, marqueurs). Une clé d'espace nouvelle entre au seul
+endroit qui existe ; la divergence qui a produit ce bogue ne peut plus se réinstaller. C'est le
+même remède que `MUTE_SEL` (v4.4.2) et `SHARE_KINDS` (A216) : une liste recopiée diverge, une
+liste unique non.

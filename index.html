@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lqWnAZRVZLECK02jxKCkqVd6pQpN5llbZYtwIHSKlGU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-EwAZl42mvSoMagEa/UtF0KwY/nqJRMOPgnont5a2AAI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10067,7 +10067,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.20.2';
+const APP_VERSION='5.20.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -29422,6 +29422,12 @@ function updateSyncBanner(){
 let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
 // Efface TOUTES les données locales de cet appareil (IndexedDB de TOUS les espaces + clés de
 // synchro, y compris les clés suffixées par espace). Irréversible.
+/* Clés localStorage NUES d'un espace (formes du propriétaire de la base historique, cf.
+   spaceKeyFor) — LA liste des DEUX effacements. Deux listes recopiées avaient déjà divergé :
+   `ac-held-edits` survivait à wipeLocal (l'effacement TOTAL de la suppression de compte) alors
+   que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
+   un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
+const WIPE_SPACE_KEYS=['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits','ac-att-del','ac-section'];
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
   // base qu'on efface, ou bloquerait le deleteDatabase. Aucun `sealed=false` : l'appelant recharge.
@@ -29433,7 +29439,7 @@ async function wipeLocal(){
   const names=new Set(['ac-db']);
   spaces.concat([currentSpace()]).forEach(s=>{names.add(dbNameFor(s,owner));names.add('ac-db-'+(s||'anon'));});
   for(const n of names){try{await new Promise(res=>{const r=indexedDB.deleteDatabase(n);r.onsuccess=r.onerror=r.onblocked=()=>res();});}catch(e){}}
-  try{['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-cats-dirty:','ac-cats-updated:','ac-lib-usage','ac-notice-hidden','ac-seeds-hidden','ac-auth','ac-pins','ac-onboarded','ac-space','ac-db-owner','ac-spaces','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
+  try{WIPE_SPACE_KEYS.concat(['ac-cats-dirty:','ac-cats-updated:','ac-notice-hidden','ac-auth','ac-onboarded','ac-space','ac-db-owner','ac-spaces']).forEach(k=>localStorage.removeItem(k));
     for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k)continue;
       if(k.indexOf('ac-sync-init-')===0||k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0||k.indexOf('ac-profile-')===0
         ||((k.indexOf('ac-')===0||k.indexOf('_v1@')>0)&&k.indexOf('@')>0))localStorage.removeItem(k);}
@@ -29456,7 +29462,7 @@ async function wipeCurrentSpace(){
     // Propriétaire de la base historique : ses clés localStorage sont NUES (sans suffixe
     // d'espace, cf. spaceKeyFor) — ce sont donc les mêmes noms que wipeLocal() connaît déjà.
     if(owner===space){
-      ['fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-held-edits','ac-att-del','ac-section'].forEach(k=>localStorage.removeItem(k));
+      WIPE_SPACE_KEYS.forEach(k=>localStorage.removeItem(k));
       for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&(k.indexOf('ac-cats-dirty:')===0||k.indexOf('ac-cats-updated:')===0))localStorage.removeItem(k);}
     }
     localStorage.removeItem('ac-sync-init-'+space);
