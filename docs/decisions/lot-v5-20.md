@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A288)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A289)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -82,3 +82,70 @@ re-interroge le document à chaque lecture, et le défaut a été re-mesuré une
 cette sonde-là avant tout correctif (600 → 0 confirmé). Le témoin d'`audit-doctrine` (« le
 défilement survit au re-rendu ») joue les deux défileurs ET le geste signalé par son vrai chemin
 (`openMembers` → `closeMembers(true)` + `renderLibrary()`) ; né ROUGE sur ses trois assertions.
+
+## A289 — assainissement mesuré : trois garde-fous nés rouges, purges prouvées, vingt factorisations (v5.20.2)
+
+**Le chantier part d'un inventaire, pas d'une intuition** (phase 0, 31/08/2026) : chaque candidat
+« code mort » vérifié au grep toutes formes confondues (destructuration, indexation dynamique,
+`tests.html` en `grep -a`, harnais compris), chaque doublon relu dans le code réel, chaque piste
+de performance chiffrée à la sonde (médianes, deux moteurs, CPU ×6). Verdict perf : rien à
+optimiser — boot dominé par le PARSE (510 ms sur 673 à ×6, le JS applicatif pèse ~40 ms),
+interactions à 10-16 ms même bridées, écouteurs délégués (+0 par coche), timers déjà gatés (R6).
+Le seul levier mesurable est la masse de commentaires (55,6 % du fichier ; borne haute −70 ms à
+×6 sur la variante dépouillée) — le resserrement reste un chantier documentaire, pas une
+optimisation.
+
+**Trois trous de garde-fous, fermés et PROUVÉS capables d'échouer** (nés rouges sur l'état
+d'avant purge, verts après) :
+- `check-fns` sens 2 : un `let` top-niveau ÉCRIT mais jamais LU est mort — le compte de citations
+  ne le voit pas, une écriture cite le nom (`_homeGk`, `_selScope` vivaient là ; le second avec un
+  commentaire décrivant une comparaison qui n'a jamais existé). ⚠ Leçon en l'écrivant : nommer
+  les morts dans le commentaire du contrôle les maintenait en vie — le contrôle est dans son
+  propre corpus.
+- `check-ids` sens 3 : un id ÉMIS en attribut littéral doit être LU quelque part. Né rouge sur
+  **20** croix de fermeture de modales (câblage par la classe `.ai-x`, l'attribut ne servait à
+  rien) — dont `mgrSheetX`, née en v5.20.0 PENDANT l'inventaire : le trou fabriquait encore.
+- `check-icons` sens 3 : toute entrée de table d'icônes doit être citée hors de la table et hors
+  de la feuille (un sélecteur CSS sur une classe jamais émise est une règle morte, pas un usage).
+  Né rouge sur `h-main`/`h-forget`/`h-img` — dictionnaire + CSS + un commentaire, zéro émission.
+
+**Purges** (règle 14, zéro citation restante) : côté CSS `.tag.draft`, `.pl-lnk.loop`, cinq états
+de `.pc-card` (la vue spatiale v4.6), `.blk-type.steps/.decision`, `.hs-row.hs-cmd` (la classe
+vit sur le wrap), la famille `h-*` ci-dessus, quatre écrasements morts (`.options` gap:10 sur
+ligne ADJACENTE, `.sv-jl` entière, `.rt-find input` min-height:38, `.pl-line .n` non touché —
+PROBABLE) et trois copies de palier strictement incluses. ⚠ `header.bar.home .id-row` L2260 est
+GARDÉE : son ordre est le dix-neuvième piège de cascade, seul le double de la plage ≤ 360 part.
+Côté JS : `flowCtx.curId` (7 écritures, 0 lecture), les 20 ids, `IMG_PAD` destructuré pour rien,
+quatre commentaires menteurs. **Faux positifs écartés et documentés** : FLOWK vivant en entier
+(destructuré dans quatre fonctions — l'analyse `.nom` ne voyait pas la destructuration),
+POSO_SYN indexé dynamiquement, `ah`/`ahb`/`rt`/`mdsect-`/`catMgrBody`/`selN` vivants par des
+chemins dynamiques prouvés.
+
+**Vingt factorisations à sortie identique** (méthode v5.19.4 : le SÛR seulement), dont les
+invariants que la doctrine énonçait sans les tenir : `slRxOnText` (récepteur de fontaine optique,
+la plus grosse zone dupliquée du fichier, sa divergence de ré-armement neutralisée), `memOps`
+(« replaceMem ne ré-insère jamais un supprimé » vivait en six copies), `paintCkLi` +
+`rerenderCkAnchored` (le cœur de cochage, v4.42.0), `homeCmp` (« UN SEUL TRI » enfin vrai par
+construction), `bindRefBody` (le commun d'A15), `hexDigest` (invariant de protocole),
+`_guestReset` (le « pli neuf » identique sur les deux portes), `markPrefsDirty` (six copies qui
+se citaient l'une l'autre en commentaire), et les artisanaux : `blocksById`, `sessUpsert`,
+`attFetchOne`, `slNewHub`, `decTaken`, `revGoFlash`, `empAnatHtml`, `relRowHtml`, `catOpts`,
+`mdSplice`, `blkTopHtml`. Deux contournements résorbés (les fetch bornés artisanaux passent par
+`acFetch`) ; l'étanchéité `migrate`/`sanitizeCats`/`acceptFile` vérifiée ligne à ligne — aucun
+chemin ne les contourne.
+
+**Et un défaut visible débusqué par la purge elle-même** : `.pc-card:not(.cur):not(.done) .pc-n`
+pesait (0,4,0) avec deux `:not` d'états MORTS et écrasait `.pc-n.ok` (0,2,0) — le ✓ de « Quand
+l'utiliser » s'affichait sur fond neutre, encre grise. Prouvé à la sonde par le vrai chemin
+(session → `#allBtn` → onglet Parcours), deux moteurs, avant ET après : fond `--ok`, encre
+`--on-primary` désormais. La règle simplifiée (`.pc-card .pc-n`) rend la main à `.ok` par
+l'ordre, à spécificité égale.
+
+**Reste en attente d'arbitrage, sciemment non fait** : les gardes `typeof` toujours vraies
+(~40), le resserrement des commentaires (CSS ~250-280 Ko dont la doctrine vit déjà dans docs/ ;
+JS : 457 blocs > 6 lignes SANS trace dans docs — migration d'abord, jamais suppression), les
+écrasements PROBABLES (`.dir-book .dir-row` au commentaire menteur L2911, `.rt-dock`,
+`.hs-wrap.on` sombre), treize groupes de factorisation PROBABLES (dont la quadruple mutation de
+navigation, 7 sites), le repli `Math.random` de `uid`, et un effet de bord réel à corriger à
+part : `ac-held-edits` survit à `wipeLocal()` (l'effacement TOTAL ne retire pas cette clé, que
+`wipeCurrentSpace` retire).

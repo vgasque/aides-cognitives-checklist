@@ -1,5 +1,40 @@
 # Journal des modifications
 
+## [5.20.2] — 2026-09-01
+### Assainissement mesuré : trois garde-fous nés rouges, purges prouvées, vingt factorisations (A289)
+
+- **Trois trous de garde-fous fermés, chacun PROUVÉ né ROUGE** sur l'état d'avant correctif :
+  `check-fns` détecte les `let` top-niveau écrits mais jamais LUS (deux vivaient ainsi, dont un
+  au commentaire décrivant une comparaison jamais écrite) ; `check-ids` gagne le sens « id émis →
+  lu » — **20 croix de fermeture de modales** portaient un id que rien ne lisait (le câblage
+  passe par `.ai-x`), dont une née en v5.20.0 PENDANT l'inventaire même ; `check-icons` gagne la
+  passe « entrée de table jamais citée » — trois en-têtes (`h-main`, `h-img`, `h-forget`)
+  vivaient en fantômes (dictionnaire + CSS + un commentaire, zéro émission).
+- **Code mort purgé au grep** (règle 14, zéro citation restante) : douze purges CSS (`.tag.draft`,
+  `.pl-lnk.loop`, cinq états de `.pc-card`, `.blk-type.steps/.decision`, `.hs-row.hs-cmd`, la
+  famille `h-*`, quatre écrasements dont un `gap:10px` écrasé par la ligne ADJACENTE, trois
+  copies de palier strictement incluses — la copie du « dix-neuvième piège de cascade » est
+  GARDÉE, son ordre est sa raison d'être) ; côté JS `flowCtx.curId` (7 écritures, 0 lecture),
+  les 20 ids, quatre commentaires menteurs. Faux positifs écartés avec preuve (FLOWK destructuré,
+  POSO_SYN indexé dynamiquement).
+- **Vingt factorisations à sortie identique** — les invariants que la doctrine énonçait sans les
+  tenir n'existent plus qu'une fois : récepteur de fontaine optique (la plus grosse zone
+  dupliquée du fichier, sa divergence de ré-armement neutralisée), fermetures mémoire de la
+  synchro (« ne jamais ré-insérer un supprimé » vivait en six copies), cœur de cochage
+  local/distant, tri unique de l'accueil, gestes communs de « Consulter », empreinte SHA-256 de
+  protocole, « pli neuf » de l'invité identique sur ses deux portes, marquage des préférences
+  (six copies qui se citaient l'une l'autre en commentaire) ; deux fetch bornés artisanaux
+  passent par `acFetch`.
+- **Le ✓ de « Quand l'utiliser » retrouve son vert** : la règle `:not(.cur):not(.done)` pesait
+  (0,4,0) avec deux états MORTS et écrasait `.pc-n.ok` — badge sur fond neutre, encre grise,
+  prouvé à la sonde par le vrai chemin (session → Tout voir → Parcours) sur deux moteurs, avant
+  et après correctif (fond `--ok`, encre `--on-primary` désormais).
+- **Verdict performance, chiffré pour ne plus y revenir** : le boot est dominé par le PARSE
+  (510 ms sur 673 à CPU ×6 ; le JS applicatif pèse ~40 ms), les interactions tiennent en
+  10-16 ms même bridées, +0 écouteur par coche, timers déjà gatés — rien à optimiser ; le seul
+  levier mesurable est la masse de commentaires (55,6 % du fichier), chantier documentaire à
+  arbitrer séparément. Détail complet : A289 (`docs/decisions/lot-v5-20.md`).
+
 ## [5.20.1] — 2026-09-01
 ### En voie large, l'accueil repartait de zéro à chaque re-rendu (A288)
 
@@ -701,46 +736,3 @@ sonde jetable, verte sur les DEUX moteurs.
   `tests.html` cesse de fonctionner **depuis le site déployé** — il charge l'application dans une
   iframe, que `X-Frame-Options: DENY` interdit désormais. Sans effet sur `npm test`, qui tourne
   contre un serveur local ; c'est le durcissement qui fait son travail, pas une régression.
-
-## [5.17.2] — 2026-08-26
-### L'application a son propre nom de domaine
-
-- **Ce qui change pour vous** : l'adresse. L'ancienne
-  (`vgasque.github.io/aides-cognitives-checklist/`) redirige définitivement vers la nouvelle —
-  rien à faire, sinon **réinstaller l'app** depuis la nouvelle adresse et **supprimer l'ancienne
-  icône** de l'écran d'accueil.
-- ⚠ **Les données sont stockées PAR ORIGINE, et l'origine vient de changer.** IndexedDB (fiches,
-  sessions, documents joints), les préférences et le cache hors ligne appartiennent à l'adresse
-  qui les a écrits : la nouvelle adresse s'ouvre donc sur une **bibliothèque vide**. Ce qui était
-  synchronisé revient à la connexion ; **ce qui était purement local doit être exporté depuis
-  l'ancienne installation** (fenêtre Compte → « Exporter mes données »), qui reste ouvrable tant
-  que son service worker sert son propre cache. C'est le prix d'un déménagement d'origine, il se
-  paie une fois — et pas deux : l'origine nous appartient désormais, elle ne bougera plus, même
-  si l'hébergeur change un jour.
-- **L'hébergeur, lui, ne change pas** : toujours GitHub Pages (DNS chez OVH, `CNAME aides →
-  vgasque.github.io.`, certificat Let's Encrypt automatique, HTTPS forcé). Mesuré le jour de la
-  bascule : service worker **actif** sur la nouvelle origine, les quatre caches remplis
-  (application, actifs immuables, pdf.js, jsQR) — donc le **hors-ligne fonctionne dès la première
-  visite** —, aucune erreur console, redirection `301` de l'ancienne URL vérifiée. Les en-têtes
-  que GitHub Pages ne sert pas le restent (ni HSTS, ni `nosniff`, ni `X-Frame-Options`, seul
-  `Cache-Control: max-age=600`) : le tableau du § 1.1 de `docs/deploiement-et-conformite.md`
-  était exact et l'est resté.
-- **Aucun code n'a eu à changer, et ce n'est pas de la chance** : tous les chemins de
-  `manifest.webmanifest` et de `sw.js` sont relatifs (`./`), donc le passage d'un sous-répertoire
-  à la racine d'un domaine ne casse aucun actif ; `"id": "./"` se résout sur l'origine et n'a
-  surtout pas été touché (porte à sens unique) ; et la connexion Supabase se fait par **code à
-  6 chiffres**, pas par lien de retour — il n'y avait donc aucune liste blanche de redirection à
-  mettre à jour.
-- **Pourquoi un sous-domaine et non l'apex du domaine** : l'identité d'une PWA vaut son ORIGINE
-  ENTIÈRE, d'où la règle « ne pas héberger une seconde PWA sur la même origine ». L'apex d'un nom
-  personnel est exactement l'endroit où un autre site finira par vivre.
-- **Les QR d'appariement s'allègent d'un cran, et le témoin reste un témoin réel**
-  (`audit-qr.mjs`) : le lien de production tombe de 64 à 35 caractères, soit **une version de QR
-  5 → 3** (mesuré) — moins de modules, donc une cible plus facile pour l'appareil photo d'en
-  face, à taille d'écran égale. Le lien en sous-répertoire est **conservé comme cas distinct**
-  plutôt que remplacé : c'est la forme de tout déploiement en sous-chemin (intranet,
-  `<compte>.github.io/<dépôt>/`), et l'échanger aurait laissé la version 5 — et la marche
-  v3 → v5 — sans aucun témoin.
-- **Documentation** : la décision est datée et écrite dans `docs/deploiement-et-conformite.md`
-  § 1.1, à côté de celle du 2026-07-27 qu'elle prolonge ; le README donne l'adresse et avertit
-  que l'adresse d'un déploiement se choisit **avant** de diffuser.

@@ -21,7 +21,7 @@
    `getElementById(variable)` ou un id construit (`'tmcard-'+t.id`) sort de la
    portée d'un contrôle statique — leur compte est affiché, pas vérifié.
    ============================================================================ */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { stripComments } from './strip-comments.mjs';
 
 const src = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -74,5 +74,33 @@ if (cssOrphans.size) {
   [...cssOrphans].sort().forEach(id => console.error('    #' + id + ' — règle morte (ou purge à moitié faite, règle 14)'));
   process.exit(1);
 }
-console.log('✓ check-ids : ' + readers.size + ' id(s) littéraux lus, tous émis ; sélecteurs #id de la feuille tous émis (' +
+/* SENS 3 (assainissement v5.20.x) : un id ÉMIS en attribut littéral doit être LU quelque part —
+   20 croix de fermeture de modales ont vécu avec un id que rien ne lisait (app, feuille, aria,
+   tests, harnais), le câblage passant par la classe `.ai-x` — la 20ᵉ (mgrSheetX) née en v5.20.0
+   pendant l'inventaire même : le trou fabriquait encore. Émission d'ATTRIBUT seulement : le
+   lookbehind exclut `x.id='p'+i` (propriété, préfixe dynamique — consommé autrement). Est « lu » :
+   toute occurrence du nom HORS attribut id= dans index.html, tests.html, sw.js ou scripts/ — une
+   citation en chaîne compte (jamais de faux rouge). Les ids passés aux FABRIQUES ci-dessus sont
+   hors portée de ce sens : l'argument du point d'appel cite le nom par construction. Le lookbehind
+   écarte aussi `const id='lib-'+…` : une VARIABLE nommée id n'émet pas d'attribut. */
+const EXEMPT_EMIS = new Map([
+  // id -> raison (aucun à ce jour — un id lu par un chemin invisible au grep s'exempte ICI)
+]);
+const emittedAttr = new Set();
+for (const m of src.matchAll(/(?<![.\w$])(?<!const )(?<!let )(?<!var )id\s*=\s*(?:"([A-Za-z][\w-]*)"|'([A-Za-z][\w-]*)')/g))
+  emittedAttr.add(m[1] || m[2]);
+let horsEmission = src.replace(/(?<![.\w$])(?<!const )(?<!let )(?<!var )id\s*=\s*(?:"[A-Za-z][\w-]*"|'[A-Za-z][\w-]*')/g, 'id=%%');
+horsEmission += readFileSync(new URL('../tests.html', import.meta.url), 'utf8')
+  + readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+for (const f of readdirSync(new URL('../scripts/', import.meta.url)))
+  if (f.endsWith('.mjs')) horsEmission += readFileSync(new URL('../scripts/' + f, import.meta.url), 'utf8');
+const emisJamaisLus = [...emittedAttr].filter(id => !EXEMPT_EMIS.has(id)
+  && !new RegExp('(?<![\\w$-])' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w$-])').test(horsEmission)).sort();
+if (emisJamaisLus.length) {
+  console.error('✗ check-ids : ' + emisJamaisLus.length + ' id(s) émis que RIEN ne lit (app, feuille, aria, tests, harnais) :');
+  emisJamaisLus.forEach(id => console.error('    id="' + id + '" — attribut mort (le câblage passe ailleurs, ou purge à faire)'));
+  process.exit(1);
+}
+console.log('✓ check-ids : ' + readers.size + ' id(s) littéraux lus, tous émis ; sélecteurs #id de la feuille tous émis ; ' +
+  emittedAttr.size + ' id(s) émis tous lus quelque part (' +
   dynamic + ' appel(s) à id calculé, hors portée d\'un contrôle statique).');

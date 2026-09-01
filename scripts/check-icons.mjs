@@ -92,5 +92,44 @@ if (fautes.length) {
   console.log('  Un nom absent ne lève aucune erreur : il rend un blanc à la bonne taille.\n');
   process.exit(1);
 }
-console.log(`✓ check-icons : ${verifies} nom(s) d’icône littéral(aux) vérifié(s), tous présents et tracés`
-  + ` (appels à nom calculé : hors portée d’un contrôle statique).`);
+
+/* SENS 3 (assainissement v5.20.x) : toute ENTRÉE de table doit être citée hors de la table —
+   trois en-têtes ont vécu en fantômes (dictionnaire + règles CSS + un commentaire, zéro émission).
+   Le corpus de citation est donc index.html SANS commentaires, SANS la feuille de style (un
+   sélecteur `.x` sur une classe jamais émise est une règle morte, pas un usage d'icône) et SANS
+   les tables elles-mêmes ; plus tests.html (brut : le dépouilleur JS s'y étrangle sur une chaîne
+   `accept="image/*"`, mesuré) et scripts/ dépouillés. Citation en chaîne = usage (jamais de faux
+   rouge — un nom d'icône porté par une variable vit par le littéral de sa table voisine). */
+const EXEMPT_TABLE = new Map([
+  // nom -> raison (aucune à ce jour — une entrée consommée par un chemin invisible s'exempte ICI)
+]);
+{
+  const { stripComments } = await import('./strip-comments.mjs');
+  const { readdirSync } = await import('node:fs');
+  let corpus = stripComments(html).replace(/<style>[\s\S]*?<\/style>/g, '<style></style>');
+  // Les tables tombent du corpus : une clé ne se cite pas elle-même.
+  for (const fn of ['uiIcon', 'headerIcon']) {
+    const i = corpus.indexOf(`function ${fn}(`);
+    if (i < 0) continue;
+    const a = corpus.indexOf('const P={', i), b = corpus.indexOf('};', a);
+    if (a >= 0 && b >= 0) corpus = corpus.slice(0, a) + corpus.slice(b);
+  }
+  corpus += readFileSync(new URL('../tests.html', import.meta.url), 'utf8');
+  for (const f of readdirSync(new URL('../scripts/', import.meta.url)))
+    if (f.endsWith('.mjs')) corpus += stripComments(readFileSync(new URL('../scripts/' + f, import.meta.url), 'utf8'));
+  const fantomes = [];
+  for (const fn of ['uiIcon', 'headerIcon']) {
+    const t = table(fn);
+    if (!t) continue;
+    for (const k of t.keys())
+      if (!EXEMPT_TABLE.has(k) && !new RegExp('(?<![\\w$-])' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w$-])').test(corpus))
+        fantomes.push(`${fn}() : entrée « ${k} » citée NULLE PART hors de la table — tracé mort`);
+  }
+  if (fantomes.length) {
+    console.log(`\n✗ check-icons : ${fantomes.length} entrée(s) de table jamais consommée(s) :`);
+    fantomes.forEach(m => console.log('   ' + m));
+    process.exit(1);
+  }
+}
+console.log(`✓ check-icons : ${verifies} nom(s) d’icône littéral(aux) vérifié(s), tous présents et tracés ;`
+  + ` entrées de table toutes citées (appels à nom calculé : hors portée d’un contrôle statique).`);

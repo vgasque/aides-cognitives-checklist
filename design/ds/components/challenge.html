@@ -1775,7 +1775,6 @@
   @media (min-width:780px){
     /* ≥ 780 px : les commandes rejoignent le retrait du contenu (18 px), que le quai avait déjà. */
     .dock-in{padding:0 18px;align-items:center;gap:10px}
-    #crisisDock .dock-in{padding-inline:0}
     /* overflow:visible : en bande étroite `overflow:hidden` cache le trop-plein d'un intitulé ;
        en cartes détachées il rognerait au contraire les coins arrondis et bordures de la 1ʳᵉ. */
     #cbTimers{flex:1;gap:12px;padding:10px 16px;align-items:center;overflow:hidden}
@@ -1917,7 +1916,6 @@
     header.bar.home .brand-logo{margin-right:0}
   }
   @media (max-width:359.98px){
-    header.bar.home .id-row{column-gap:4px}
     header.bar.home .hdr-acts{gap:2px}
     header.bar.home :is(.hdr-new,.bar-acct){width:32px;height:32px}
     /* LA CIBLE NE DESCEND PAS AVEC LE BOUTON : le halo passe de 4 à 6 px, donc 32 + 12 = 44 px,
@@ -2870,7 +2868,6 @@
     /* ⚠ EN VOIE ÉTROITE, LA CARTE ÉTAIT SUR LE GROUPE — elle est désormais sur le LIVRE, qui
        contient tous les groupes : la laisser ici produisait une carte DANS la carte (double
        cadre) et son `overflow:hidden` rognait le liseré de catégorie posé dans la marge. */
-    .dir-grid{display:block}
     .dir-wrap>.dir-grid{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);overflow:hidden}
     /* Le séparateur interne passe de `--surface-2` à `--line` : une SURFACE employée comme
        filet est invisible par construction (v5.0.0, A1-3). Le cadre, lui, est sur la carte. */
@@ -3113,7 +3110,6 @@
      états — glyphe + libellé suffisent (ECAM : jamais la couleur seule ; ici, pas de couleur
      du tout). L'espace avant la méta vient du gap du conteneur. */
   .status-tag{display:inline-block;vertical-align:middle;font-size:11px;font-weight:700;line-height:1.5;padding:2px 8px;border-radius:8px;background:var(--tag-bg);color:var(--tag-ink)}
-  .tag.draft{background:var(--tag-bg);color:var(--tag-ink)}
   /* Soulignement pointillé = affordance « détail au tap » (sinon le badge paraît statique). */
   .tag.todo{background:var(--tag-bg);color:var(--tag-ink);position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
   /* Zone tactile étendue (~36 px) sans grossir le badge : pseudo-élément cliquable autour. */
@@ -3238,7 +3234,6 @@
      porte le registre, plus de badge d'icône ni de pip (chrome retiré, V5). */
   .block-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .block-h.h-verify{color:var(--verify)}
-  .block-h.h-forget{color:var(--critical)}
   .block-h .sec-badge,.block-h .pip{display:none}
   /* Bloc « Confirmation diagnostique » REPLIABLE (V5) : l'en-tête de section devient le bouton. */
   /* Gabarit COLLAPSE du canvas : tag 11/800 --soft + summary 12/700 --link + chevron --link,
@@ -3452,7 +3447,7 @@
      égalise — et la leçon vaut au-delà de ce champ : quand un objet est encadré par deux traits,
      ce sont les DEUX écarts qui se règlent, jamais un seul. */
   .rt-find{display:flex;flex-direction:column;gap:6px;padding:8px 8px 0}
-  .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 8px;border:1px solid var(--line-strong);
+  .rt-find input{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--line-strong);
     border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   /* ⚠ UN CHANGEMENT DE COULEUR DE FILET N'EST PAS UN ANNEAU DE FOCUS (trouvé par l'extension du
      périmètre d'`audit-a11y` aux surfaces manquantes, v5.0.0 — troisième défaut à moi). Le champ
@@ -3624,17 +3619,17 @@
   .pc-row.cur .pc-rh{padding-bottom:8px}
   .pc-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);
     border-radius:var(--radius-md);padding:10px 12px;margin:0 0 10px}
-  .pc-card.d1{margin-left:12px}.pc-card.d2{margin-left:24px}.pc-card.d3{margin-left:32px}
-  .pc-card.cur{border-color:var(--primary);border-left-color:var(--primary);box-shadow:var(--shadow)}
-  .pc-card.done{border-left-color:var(--ok)}
-  .pc-card.dec{border-left-color:var(--verify-bd)}
+  /* Seuls `entry` et `exc` sont émis (ovParcoursHtml) : les états d1-d3, cur, done, dec, off de
+     la vue spatiale v4.6 sont purgés (assainissement v5.20.x) — l'état d'un passage vit sur `.pc-row`. */
   .pc-card.exc{border-left-color:var(--critical-bd)}
   .pc-card.entry{background:var(--surface-2)}
-  .pc-card.off{opacity:1}
   .pc-h{display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
   .pc-n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-family:var(--mono);font-size:11px;font-weight:700;color:var(--on-primary);background:var(--primary)}
-  .pc-card:not(.cur):not(.done) .pc-n{background:var(--surface);color:var(--ink-soft);border:1.5px solid var(--line-strong)}
+  /* Badge neutre par défaut ; `.ok` (déclaré APRÈS, même spécificité) reprend le vert. L'écriture
+     d'origine `:not(.cur):not(.done)` — états morts — pesait (0,4,0) et écrasait `.ok` : le ✓ de
+     « Quand l'utiliser » s'affichait sur fond neutre, prouvé à la sonde deux moteurs (v5.20.2). */
+  .pc-card .pc-n{background:var(--surface);color:var(--ink-soft);border:1.5px solid var(--line-strong)}
   .pc-n.ok{background:var(--ok);color:var(--on-primary);border:0}
   .pc-ht{flex:1;min-width:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
   /* L'item : case INERTE (aucun `data-ck`, `aria-hidden`), texte, valeur attendue en pilule mono. */
@@ -4004,7 +3999,7 @@
   .cf-stage:last-child{padding-bottom:6px}
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
-     seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
+     seule la couleur suit l'état, comme h-verify suit le sien. */
   .cp-h{margin:6px 0 10px}
   @media (min-width:1000px){.cp-h{margin-top:10px}}
   /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
@@ -4087,19 +4082,15 @@
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}
   .block-h .sec-ic{flex-shrink:0}
-  .h-confirm .sec-badge,.h-img .sec-badge{background:var(--primary-100)}
+  /* (Assainissement v5.20.x : la famille h-main, h-img, h-forget — dictionnaire, CSS et
+     commentaires — est purgée : zéro émission, `headerIcon` n'est appelé qu'avec h-doc,
+     h-notes, h-confirm, h-verify, h-diff, et h-pos est émis en dur.) */
+  .h-confirm .sec-badge{background:var(--primary-100)}
   .h-verify .sec-badge{background:var(--verify-soft)}
-  .h-forget .sec-badge{background:var(--critical-soft)}
-  /* Le triangle (WARN_GLYPH) est dessiné bas dans son viewBox : remonté d'1 px pour rester centré sur le titre. */
-  .h-forget .sec-ic{position:relative;top:-1px}
   .h-diff .sec-badge{background:var(--surface-3)}
-  .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px var(--primary-200)}
   .h-confirm{color:var(--primary-dk)} .h-confirm .pip{background:var(--primary)}
   .h-verify{color:var(--verify)} .h-verify .pip{background:var(--verify)}
-  .h-forget{color:var(--critical)} .h-forget .pip{background:var(--critical)}
   .h-diff{color:var(--ink-soft)} .h-diff .pip{background:var(--ink-soft)}
-  .h-img{color:var(--primary-dk)} .h-img .pip{background:var(--primary)}
-  .h-main{color:var(--primary-dk)}
   .h-pos{color:var(--ink-soft)}
   /* Panneau ALGORITHME repliable (canvas turn 6) — le contenu SVG lui-même est inchangé. */
   .alg-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
@@ -4345,8 +4336,7 @@
      `check-type` ne pouvait rien voir — c'est la HIÉRARCHIE qui était fausse, pas la valeur, et
      aucun contrôle statique ne mesure une hiérarchie. */
   .question{font-size:var(--t-step);font-weight:700;line-height:1.3;margin:2px 0 10px;overflow-wrap:break-word}
-  .options{display:grid;gap:10px}
-  .options{gap:8px}
+  .options{display:grid;gap:8px}
   /* Options de décision : MÊME hauteur que les rangées d'étapes (64px — retour utilisateur,
      conforme au canvas) ; une seule échelle de cliquables dans le parcours. */
   /* 16.5px comme `ol.steps li .txt` (v4.24.0) : choisir une branche est au moins aussi engageant
@@ -4609,7 +4599,6 @@
   .pl-jll{list-style:none;margin:4px 0 0;padding:0;font-size:12px;color:var(--ink-soft)}
   .pl-jll li{padding:2px 0}
   .pc-jl{font-size:12px;color:var(--ink-soft);padding:4px 0}
-  .sv-jl{margin:4px 0 0;font-size:12px;color:var(--ink-soft)}
   /* Éditeur des jalons : carte au ton du chrome (--surface-2), et le champ NUMÉRIQUE reçoit son
      gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
   .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2)}
@@ -5813,9 +5802,9 @@
   .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15px}
   .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:8px}
-  .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
   /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
-     registre d'attente — l'ambre du `.decision` y était emprunté. Pilule neutre mono. */
+     registre d'attente — l'ambre du badge de décision y était emprunté. Pilule neutre mono.
+     (Les variantes steps/decision, jamais émises — l'éditeur n'a que tm-kind —, sont purgées.) */
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px}
@@ -6225,7 +6214,6 @@
   .pl-q{font-size:11px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
-  .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .pl-lnk:hover{border-color:var(--primary)}
   .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* ----- v4.12.0 : ÉCHELLE ECAM (mode compact) — une ligne par bloc, renvois abrégés. ----- */
@@ -8021,7 +8009,6 @@
   /* Une COMMANDE n'est pas un filtre : icône, libellé en gras, chevron — et jamais de compte en
      queue, qui voulait dire « ce que la liste montre » à côté et « ce qu'il y a derrière la
      porte » ici (le nombre de l'historique reste, mais devant le chevron). */
-  .hs-row.hs-cmd{color:var(--primary-dk);font-weight:600}
   .hs-mk .hj-ic{font-size:13.5px;line-height:1}   /* sinon le ⇄ à 15 px pousse la rangée à 32,5 */
   .hs-cmd .hs-chev{flex:none;margin-left:6px;color:var(--line-strong)}
   /* ⚠ UNE SEULE HAUTEUR DE RANGÉE (v5.19, question de l'auteur : « pourquoi la hauteur des

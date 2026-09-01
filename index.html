@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-fSBr2bfOToNVy1jjcVhs5/0YP7AvjuPAmsENChSUIkA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lqWnAZRVZLECK02jxKCkqVd6pQpN5llbZYtwIHSKlGU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2129,7 +2129,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (min-width:780px){
     /* ≥ 780 px : les commandes rejoignent le retrait du contenu (18 px), que le quai avait déjà. */
     .dock-in{padding:0 18px;align-items:center;gap:10px}
-    #crisisDock .dock-in{padding-inline:0}
     /* overflow:visible : en bande étroite `overflow:hidden` cache le trop-plein d'un intitulé ;
        en cartes détachées il rognerait au contraire les coins arrondis et bordures de la 1ʳᵉ. */
     #cbTimers{flex:1;gap:12px;padding:10px 16px;align-items:center;overflow:hidden}
@@ -2271,7 +2270,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     header.bar.home .brand-logo{margin-right:0}
   }
   @media (max-width:359.98px){
-    header.bar.home .id-row{column-gap:4px}
     header.bar.home .hdr-acts{gap:2px}
     header.bar.home :is(.hdr-new,.bar-acct){width:32px;height:32px}
     /* LA CIBLE NE DESCEND PAS AVEC LE BOUTON : le halo passe de 4 à 6 px, donc 32 + 12 = 44 px,
@@ -3224,7 +3222,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* ⚠ EN VOIE ÉTROITE, LA CARTE ÉTAIT SUR LE GROUPE — elle est désormais sur le LIVRE, qui
        contient tous les groupes : la laisser ici produisait une carte DANS la carte (double
        cadre) et son `overflow:hidden` rognait le liseré de catégorie posé dans la marge. */
-    .dir-grid{display:block}
     .dir-wrap>.dir-grid{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);overflow:hidden}
     /* Le séparateur interne passe de `--surface-2` à `--line` : une SURFACE employée comme
        filet est invisible par construction (v5.0.0, A1-3). Le cadre, lui, est sur la carte. */
@@ -3467,7 +3464,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      états — glyphe + libellé suffisent (ECAM : jamais la couleur seule ; ici, pas de couleur
      du tout). L'espace avant la méta vient du gap du conteneur. */
   .status-tag{display:inline-block;vertical-align:middle;font-size:11px;font-weight:700;line-height:1.5;padding:2px 8px;border-radius:8px;background:var(--tag-bg);color:var(--tag-ink)}
-  .tag.draft{background:var(--tag-bg);color:var(--tag-ink)}
   /* Soulignement pointillé = affordance « détail au tap » (sinon le badge paraît statique). */
   .tag.todo{background:var(--tag-bg);color:var(--tag-ink);position:relative;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
   /* Zone tactile étendue (~36 px) sans grossir le badge : pseudo-élément cliquable autour. */
@@ -3592,7 +3588,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      porte le registre, plus de badge d'icône ni de pip (chrome retiré, V5). */
   .block-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .block-h.h-verify{color:var(--verify)}
-  .block-h.h-forget{color:var(--critical)}
   .block-h .sec-badge,.block-h .pip{display:none}
   /* Bloc « Confirmation diagnostique » REPLIABLE (V5) : l'en-tête de section devient le bouton. */
   /* Gabarit COLLAPSE du canvas : tag 11/800 --soft + summary 12/700 --link + chevron --link,
@@ -3806,7 +3801,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      égalise — et la leçon vaut au-delà de ce champ : quand un objet est encadré par deux traits,
      ce sont les DEUX écarts qui se règlent, jamais un seul. */
   .rt-find{display:flex;flex-direction:column;gap:6px;padding:8px 8px 0}
-  .rt-find input{width:100%;min-height:38px;font-size:12px;padding:6px 8px;border:1px solid var(--line-strong);
+  .rt-find input{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--line-strong);
     border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   /* ⚠ UN CHANGEMENT DE COULEUR DE FILET N'EST PAS UN ANNEAU DE FOCUS (trouvé par l'extension du
      périmètre d'`audit-a11y` aux surfaces manquantes, v5.0.0 — troisième défaut à moi). Le champ
@@ -3978,17 +3973,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pc-row.cur .pc-rh{padding-bottom:8px}
   .pc-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);
     border-radius:var(--radius-md);padding:10px 12px;margin:0 0 10px}
-  .pc-card.d1{margin-left:12px}.pc-card.d2{margin-left:24px}.pc-card.d3{margin-left:32px}
-  .pc-card.cur{border-color:var(--primary);border-left-color:var(--primary);box-shadow:var(--shadow)}
-  .pc-card.done{border-left-color:var(--ok)}
-  .pc-card.dec{border-left-color:var(--verify-bd)}
+  /* Seuls `entry` et `exc` sont émis (ovParcoursHtml) : les états d1-d3, cur, done, dec, off de
+     la vue spatiale v4.6 sont purgés (assainissement v5.20.x) — l'état d'un passage vit sur `.pc-row`. */
   .pc-card.exc{border-left-color:var(--critical-bd)}
   .pc-card.entry{background:var(--surface-2)}
-  .pc-card.off{opacity:1}
   .pc-h{display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
   .pc-n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-family:var(--mono);font-size:11px;font-weight:700;color:var(--on-primary);background:var(--primary)}
-  .pc-card:not(.cur):not(.done) .pc-n{background:var(--surface);color:var(--ink-soft);border:1.5px solid var(--line-strong)}
+  /* Badge neutre par défaut ; `.ok` (déclaré APRÈS, même spécificité) reprend le vert. L'écriture
+     d'origine `:not(.cur):not(.done)` — états morts — pesait (0,4,0) et écrasait `.ok` : le ✓ de
+     « Quand l'utiliser » s'affichait sur fond neutre, prouvé à la sonde deux moteurs (v5.20.2). */
+  .pc-card .pc-n{background:var(--surface);color:var(--ink-soft);border:1.5px solid var(--line-strong)}
   .pc-n.ok{background:var(--ok);color:var(--on-primary);border:0}
   .pc-ht{flex:1;min-width:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
   /* L'item : case INERTE (aucun `data-ck`, `aria-hidden`), texte, valeur attendue en pilule mono. */
@@ -4358,7 +4353,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cf-stage:last-child{padding-bottom:6px}
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
-     seule la couleur suit l'état, comme h-verify/h-forget suivent le leur. */
+     seule la couleur suit l'état, comme h-verify suit le sien. */
   .cp-h{margin:6px 0 10px}
   @media (min-width:1000px){.cp-h{margin-top:10px}}
   /* Lien « Tableau atypique ? » (étape ① -> différentiels de l'étape ③) : cible 44px (crise). */
@@ -4441,19 +4436,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* V5 : plus de badge d'icône — kicker textuel seul (le registre passe par la couleur du texte). */
   .block-h .sec-badge{display:none}
   .block-h .sec-ic{flex-shrink:0}
-  .h-confirm .sec-badge,.h-img .sec-badge{background:var(--primary-100)}
+  /* (Assainissement v5.20.x : la famille h-main, h-img, h-forget — dictionnaire, CSS et
+     commentaires — est purgée : zéro émission, `headerIcon` n'est appelé qu'avec h-doc,
+     h-notes, h-confirm, h-verify, h-diff, et h-pos est émis en dur.) */
+  .h-confirm .sec-badge{background:var(--primary-100)}
   .h-verify .sec-badge{background:var(--verify-soft)}
-  .h-forget .sec-badge{background:var(--critical-soft)}
-  /* Le triangle (WARN_GLYPH) est dessiné bas dans son viewBox : remonté d'1 px pour rester centré sur le titre. */
-  .h-forget .sec-ic{position:relative;top:-1px}
   .h-diff .sec-badge{background:var(--surface-3)}
-  .h-main .sec-badge{background:var(--surface);box-shadow:inset 0 0 0 1px var(--primary-200)}
   .h-confirm{color:var(--primary-dk)} .h-confirm .pip{background:var(--primary)}
   .h-verify{color:var(--verify)} .h-verify .pip{background:var(--verify)}
-  .h-forget{color:var(--critical)} .h-forget .pip{background:var(--critical)}
   .h-diff{color:var(--ink-soft)} .h-diff .pip{background:var(--ink-soft)}
-  .h-img{color:var(--primary-dk)} .h-img .pip{background:var(--primary)}
-  .h-main{color:var(--primary-dk)}
   .h-pos{color:var(--ink-soft)}
   /* Panneau ALGORITHME repliable (canvas turn 6) — le contenu SVG lui-même est inchangé. */
   .alg-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}
@@ -4699,8 +4690,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `check-type` ne pouvait rien voir — c'est la HIÉRARCHIE qui était fausse, pas la valeur, et
      aucun contrôle statique ne mesure une hiérarchie. */
   .question{font-size:var(--t-step);font-weight:700;line-height:1.3;margin:2px 0 10px;overflow-wrap:break-word}
-  .options{display:grid;gap:10px}
-  .options{gap:8px}
+  .options{display:grid;gap:8px}
   /* Options de décision : MÊME hauteur que les rangées d'étapes (64px — retour utilisateur,
      conforme au canvas) ; une seule échelle de cliquables dans le parcours. */
   /* 16.5px comme `ol.steps li .txt` (v4.24.0) : choisir une branche est au moins aussi engageant
@@ -4963,7 +4953,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-jll{list-style:none;margin:4px 0 0;padding:0;font-size:12px;color:var(--ink-soft)}
   .pl-jll li{padding:2px 0}
   .pc-jl{font-size:12px;color:var(--ink-soft);padding:4px 0}
-  .sv-jl{margin:4px 0 0;font-size:12px;color:var(--ink-soft)}
   /* Éditeur des jalons : carte au ton du chrome (--surface-2), et le champ NUMÉRIQUE reçoit son
      gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
   .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2)}
@@ -6167,9 +6156,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .blk-top .grab{flex:none;border-color:transparent;background:none;color:var(--ink-soft);width:34px;height:34px;font-size:15px}
   .blk-top .grab:hover{background:var(--surface-2);color:var(--ink)}
   .blk-type{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:8px}
-  .blk-type.steps{background:var(--surface-3);color:var(--ink)}.blk-type.decision{background:var(--verify-soft);color:var(--verify)}
   /* P3-3 (audit design v4.56) : « Cycle »/« Chrono » sont des ÉTIQUETTES DE TYPE, pas un
-     registre d'attente — l'ambre du `.decision` y était emprunté. Pilule neutre mono. */
+     registre d'attente — l'ambre du badge de décision y était emprunté. Pilule neutre mono.
+     (Les variantes steps/decision, jamais émises — l'éditeur n'a que tm-kind —, sont purgées.) */
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg)}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px}
@@ -6579,7 +6568,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-q{font-size:11px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
   .pl-lnk{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
-  .pl-lnk.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary-soft)}
   .pl-lnk:hover{border-color:var(--primary)}
   .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* ----- v4.12.0 : ÉCHELLE ECAM (mode compact) — une ligne par bloc, renvois abrégés. ----- */
@@ -8375,7 +8363,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Une COMMANDE n'est pas un filtre : icône, libellé en gras, chevron — et jamais de compte en
      queue, qui voulait dire « ce que la liste montre » à côté et « ce qu'il y a derrière la
      porte » ici (le nombre de l'historique reste, mais devant le chevron). */
-  .hs-row.hs-cmd{color:var(--primary-dk);font-weight:600}
   .hs-mk .hj-ic{font-size:13.5px;line-height:1}   /* sinon le ⇄ à 15 px pousse la rangée à 32,5 */
   .hs-cmd .hs-chev{flex:none;margin-left:6px;color:var(--line-strong)}
   /* ⚠ UNE SEULE HAUTEUR DE RANGÉE (v5.19, question de l'auteur : « pourquoi la hauteur des
@@ -9758,7 +9745,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      méthodes »). Un import passé par ici s'ouvre dans l'ATELIER, comme tous les autres : il n'est
      plus forcé en Brouillon (v5.7, A129 — l'état vient du fichier et se lit avant écriture). -->
 <div class="ai-modal" id="createModal" role="dialog" aria-modal="true" aria-labelledby="createModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="createModalTitle">Créer</h3><button class="ai-x" id="createX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="createModalTitle">Créer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <!-- Type de contenu : MÊME sélecteur segmenté à pastille glissante que la tab bar basse
        (composant .seg partagé). STATIQUE — jamais réécrit par renderCreateDlg (qui ne touche
        que #createBody) : sans quoi la pastille sauterait au lieu de glisser. -->
@@ -9775,7 +9762,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      parcourt, pas un choix borné. Corps peint à l'ouverture (`paintImpList`) : rien ici, sinon
      deux sources pour les mêmes rangées. -->
 <div class="ai-modal" id="impModal" role="dialog" aria-modal="true" aria-labelledby="impTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="impTitle">Importer</h3><button class="ai-x" id="impX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="impTitle">Importer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p class="imp-intro" id="impIntro"></p>
   <div class="imp-tools">
     <button type="button" class="btn" id="impAll">Tout cocher</button>
@@ -9809,7 +9796,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      visibles d'un coup, un pied qui ANNONCE le résultat avant de fermer. Le corps est peint à
      l'ouverture (`paintFiltSheet`) : rien ici, sinon deux sources pour les mêmes chips. -->
 <div class="ai-modal dlg-center" id="filtSheet" role="dialog" aria-modal="true" aria-labelledby="filtSheetTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="filtSheetTitle">Filtrer</h3><button class="ai-x" id="filtSheetX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="filtSheetTitle">Filtrer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="filtSheetBody" class="ai-body"></div>
   <div class="fs-foot"><button type="button" class="btn ghost" id="filtSheetClear">Tout effacer</button><button type="button" class="btn primary" id="filtSheetGo"></button></div>
 </div></div>
@@ -9818,43 +9805,43 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      l'ouverture (`paintMgrSheet`) et chaque rangée mène à #catModal, #membersModal ou
      #newLibModal. -->
 <div class="ai-modal dlg-center" id="mgrSheet" role="dialog" aria-modal="true" aria-labelledby="mgrSheetTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="mgrSheetTitle">Gérer</h3><button class="ai-x" id="mgrSheetX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="mgrSheetTitle">Gérer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="mgrSheetBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="catMgrBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="authModalTitle">Compte &amp; synchronisation</h3><button class="ai-x" id="authX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="authModalTitle">Compte &amp; synchronisation</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="authBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="storageModal" role="dialog" aria-modal="true" aria-labelledby="storageModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="storageModalTitle">Où sont enregistrées vos fiches ?</h3><button class="ai-x" id="storageX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="storageModalTitle">Où sont enregistrées vos fiches ?</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="storageBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="syncErrModal" role="dialog" aria-modal="true" aria-labelledby="syncErrModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="syncErrModalTitle">Erreur de synchronisation</h3><button class="ai-x" id="syncErrX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="syncErrModalTitle">Erreur de synchronisation</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="syncErrBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="membersModal" role="dialog" aria-modal="true" aria-labelledby="membersModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="membersModalTitle">Gérer la bibliothèque</h3><button class="ai-x" id="membersX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="membersModalTitle">Gérer la bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="membersBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="newLibModal" role="dialog" aria-modal="true" aria-labelledby="newLibModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="newLibModalTitle">Nouvelle bibliothèque</h3><button class="ai-x" id="newLibX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="newLibModalTitle">Nouvelle bibliothèque</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="newLibBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="pendingModal" role="dialog" aria-modal="true" aria-labelledby="pendingModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="pendingModalTitle">Comptes en attente</h3><button class="ai-x" id="pendingX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="pendingModalTitle">Comptes en attente</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="pendingBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="sessModal" role="dialog" aria-modal="true" aria-labelledby="sessModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="sessModalTitle">Historique des sessions</h3><button class="ai-x" id="sessX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="sessModalTitle">Historique des sessions</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="sessBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="versModal" role="dialog" aria-modal="true" aria-labelledby="versModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="versModalTitle">Versions précédentes</h3><button class="ai-x" id="versX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="versModalTitle">Versions précédentes</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="versBody" class="ai-body"></div>
   <p class="ai-note" id="versNote"></p>
 </div></div>
@@ -9865,7 +9852,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      deviendrait indéfilable au moment précis où il en a besoin. Le piège de superposition est
      connu (z 55 pour une `.ai-modal`) : elle monte au-dessus. -->
 <div class="ai-modal sheet-live" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="shareTitle">Partager cette session</h3><button class="ai-x" id="shareX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="shareTitle">Partager cette session</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="shareBody" class="ai-body"></div>
 </div></div>
 <!-- ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0) — PAS une `.ai-modal`, et c'est délibéré : il n'y a rien
@@ -9942,7 +9929,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   </div>
 </div>
 <div class="ai-modal" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle"><div class="ai-card dlg-480">
-  <div class="ai-top"><h3 id="welcomeModalTitle">Bienvenue dans Aides cognitives</h3><button class="ai-x" id="welcomeX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="welcomeModalTitle">Bienvenue dans Aides cognitives</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p><strong>1 · Vous rédigez, vous validez.</strong> L'app ne contient aucun protocole imposé : vous créez vos fiches (à la main ou via « Créer via IA ») et vous restez responsable du contenu clinique. Deux fiches d'exemple peuvent être ajoutées depuis l'accueil — relisez-les avant tout usage.</p>
   <!-- J0-D5 (lot T13) — DEUX PARAGRAPHES SONT PARTIS, ET C'EST LA CONTRAINTE DE L'AUDIT APPLIQUÉE
        À CET ÉCRAN : « aucun tutoriel ». Décrire les étapes cochables, les minuteurs et les
@@ -9970,14 +9957,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      autonome, lisible sans aucun visualiseur, et la seule sortie qui ne dépende pas du dialogue
      d'impression du système — donc le repli quand celui-ci manque (PWA installée sur iOS). -->
 <div class="ai-modal" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="reportModalTitle">Compte-rendu de session</h3><button class="ai-x" id="reportX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="reportModalTitle">Compte-rendu de session</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="reportBody" class="report-preview ai-body"></div>
   <div class="rp-acts"><button class="btn" id="reportDownload">Fichier .html</button><button class="btn primary" id="reportPrint">Enregistrer en PDF</button></div>
 </div></div>
 <!-- Sélecteur de document existant (éditeurs de fiche ET de protocole) : liste FILTRABLE — un
      menu déroulant ne passe pas à l'échelle à 50+ documents. Accessibilité .ai-modal standard. -->
 <div class="ai-modal" id="attPickModal" role="dialog" aria-modal="true" aria-labelledby="attPickTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="attPickTitle">Joindre un document existant</h3><button class="ai-x" id="attPickX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="attPickTitle">Joindre un document existant</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p>Le document sera <b>partagé</b> : le remplacer le mettra à jour sur toutes les fiches et tous les protocoles qui l'utilisent.</p>
   <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="attPickQ" placeholder="Filtrer par nom ou origine…"></div>
   <div id="attPickList" class="att-list attpick-list ai-body"></div>
@@ -9985,7 +9972,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <!-- Sélecteur « Voir aussi » (éditeurs de fiche ET de protocole) : lier une AIDE ou un PROTOCOLE
      du même périmètre — même design que « Joindre un document existant » (liste filtrable). -->
 <div class="ai-modal" id="relPickModal" role="dialog" aria-modal="true" aria-labelledby="relPickTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="relPickTitle">Lier une aide ou un protocole</h3><button class="ai-x" id="relPickX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="relPickTitle">Lier une aide ou un protocole</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p>Le lien apparaît en lecture, dans la section <b>« Voir aussi »</b> — un raccourci, pas une copie.</p>
   <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input id="relPickQ" placeholder="Filtrer par titre ou code…"></div>
   <div id="relPickList" class="att-list attpick-list ai-body"></div>
@@ -10000,7 +9987,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="pdf-card">
     <div class="pdf-bar"><h3 id="pdfModalTitle" class="pdf-title">Document</h3>
       <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button><button class="fz" id="pdfDl" title="Télécharger le document" aria-label="Télécharger le document"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button></div>
-      <button class="ai-x" id="pdfX" aria-label="Fermer le document">×</button></div>
+      <button class="ai-x" aria-label="Fermer le document">×</button></div>
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
     <!-- Occurrences de la recherche DANS le document (v5.3.0) : pilule flottante, présente
          seulement quand la visionneuse a été ouverte depuis un résultat. On navigue par PAGE
@@ -10064,7 +10051,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ✕/Échap/fond = ABANDON (résout null), distinct du bouton secondaire qui peut porter une
      action alternative (ex. import : « garder les deux »). -->
 <div class="ai-modal dlg-confirm" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle"><div class="ai-card">
-  <div class="ai-top"><h3 id="confirmModalTitle">Confirmer</h3><button class="ai-x" id="confirmX" aria-label="Fermer">×</button></div>
+  <div class="ai-top"><h3 id="confirmModalTitle">Confirmer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <p id="confirmMsg" style="white-space:pre-line;font-size:15px;color:var(--ink)"></p>
   <label class="auth-check" id="confirmCheckRow" hidden><input type="checkbox" id="confirmCheck"><span id="confirmCheckLbl"></span></label>
   <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="confirmNo">Annuler</button><button class="btn primary" id="confirmYes" data-dlgdef>Confirmer</button></div>
@@ -10080,7 +10067,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.20.1';
+const APP_VERSION='5.20.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -11383,7 +11370,7 @@ let flowZoom=1;
 function applyFlowZoom(){document.querySelectorAll('.flow-scroll svg, #flowFull .ff-scroll svg').forEach(s=>{const bw=+s.getAttribute('data-bw')||300,bh=+s.getAttribute('data-bh')||200;s.style.width=Math.round(bw*flowZoom)+'px';s.style.height=Math.round(bh*flowZoom)+'px';});document.querySelectorAll('.fzv').forEach(v=>v.textContent=Math.round(flowZoom*100)+'%');}
 function zoomStep(a){if(a==='in')flowZoom=Math.min(4,Math.round((flowZoom+0.25)*100)/100);else if(a==='out')flowZoom=Math.max(0.4,Math.round((flowZoom-0.25)*100)/100);else flowZoom=1;applyFlowZoom();}
 // Contexte de l'algorithme actuellement affiché (fiche + bloc courant), pour le plein écran.
-let flowCtx={f:null,curId:null};
+let flowCtx={f:null};
 // Rend cliquables les images intégrées au SVG (vignettes des blocs) -> ouverture en plein écran.
 function bindSvgImages(container){if(!container)return;container.querySelectorAll('image[data-full]').forEach(im=>{im.style.cursor='zoom-in';im.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openLightbox(im.getAttribute('data-full'),'');};});}
 /* ===== SVG navigable (v4.7.0) =====
@@ -11697,6 +11684,11 @@ function scheduleFlowPreview(f){if(flowPrevTimer)clearTimeout(flowPrevTimer);
 // Le champ `order` reste dans le modèle (compatibilité ascendante), il n'ordonne plus l'accueil.
 const _collator=new Intl.Collator('fr',{sensitivity:'base',numeric:true});
 const byTitle=(a,b)=>_collator.compare(String(a.title||''),String(b.title||''));
+// UN SEUL TRI pour tout l'accueil (fiches, protocoles, union) : épinglés -> frecency -> alphabétique.
+// `sc` reste local à chaque liste (frecency active en recherche seulement).
+const homeCmp=sc=>(a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b);
+// Réponse PRISE d'une décision : celle dont la cible correspond à l'entrée SUIVANTE du fil.
+const decTaken=(b,idx)=>((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null);
 // Recherche PLEIN TEXTE, insensible aux accents : la requête « adrenaline » doit trouver une fiche
 // où le mot n'apparaît que dans une étape (« Adrénaline titrée… »), pas seulement dans le titre.
 const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -12011,9 +12003,7 @@ function togglePin(id){const i=pins.indexOf(id);
   if(i<0&&pinBlocked(id)){toast('Un brouillon ne s’épingle pas en accès direct — passez-le à « À relire » ou « Validée ».',5000,true);return;}
   if(i>=0)pins.splice(i,1);else pins.unshift(id);pins=pins.slice(0,50);
   try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
-  // Marque le document perso « à pousser » (même mécanique que saveCats) et programme une synchro.
-  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
-  if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}
+  schedulePrefsPush();}   // marque le document perso « à pousser » et programme une synchro
 // ----- FRECENCY (v4.4.6) : fréquence + récence d'OUVERTURE par fiche/protocole (même famille
 // que ac-pins / ac-lib-usage, un espace par compte). N'ordonne QUE les résultats de RECHERCHE :
 // « ana » remonte la fiche qu'on ouvre le plus en tapant ça (Spotlight).
@@ -12050,12 +12040,11 @@ function bumpUsage(id){if(!id)return;
   const ids=Object.keys(_frecency);
   if(ids.length>200)ids.sort((a,b)=>(_frecency[a].t||0)-(_frecency[b].t||0)).slice(0,ids.length-200).forEach(k=>{delete _frecency[k];});
   try{localStorage.setItem(spaceKey('ac-usage'),JSON.stringify(_frecency));}catch(e){}
-  // Push throttlé : marque le document perso « à pousser » (même mécanique que togglePin)
-  // au plus toutes les 10 minutes — jamais une écriture réseau par simple ouverture.
+  // Push throttlé : marque « à pousser » au plus toutes les 10 minutes — jamais une écriture
+  // réseau par simple ouverture.
   try{const k=spaceKey('ac-usage-pushmark');
     if(Date.now()-(+localStorage.getItem(k)||0)>600000){localStorage.setItem(k,String(Date.now()));
-      localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');
-      if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}}catch(e){}}
+      schedulePrefsPush();}}catch(e){}}
 // Score PUR (testé via ?__actest) : le compte d'ouvertures, amorti par l'ancienneté du dernier
 // usage — pleine valeur ≤ 15 j, demi-valeur ≤ 60 j, quart au-delà (l'historique ancien compte
 // encore : en médecine d'urgence, une fiche saisonnière revient).
@@ -12121,10 +12110,13 @@ function bibGroups(list){const gm=Object.create(null);
   return out;}
 function qaPick(list,pinIds){
   return list.filter(x=>pinIds.indexOf(x.id)>=0).sort((a,b)=>pinIds.indexOf(a.id)-pinIds.indexOf(b.id));}
-// Préférences par utilisateur (thème/taille/accent, v4.5) : même mécanique que togglePin — le document
-// perso est marqué « à pousser », la synchro embarque data.prefs au prochain passage.
+// Marque le document perso « à pousser » — LE point unique (assainissement v5.20.x : la paire
+// updated/dirty vivait en six copies, chacune commentant « même mécanique que… » l'autre).
+function markPrefsDirty(){
+  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}}
+// Préférences par utilisateur (thème/taille/accent, v4.5) : marque + programme une synchro.
 function schedulePrefsPush(){
-  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
+  markPrefsDirty();
   if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}
 // Catégories TOUJOURS affichées par ordre alphabétique (filtres, sélecteur, gestionnaire), quel que
 // soit l'ordre de création/stockage. localeCompare 'fr' -> tri correct des accents.
@@ -12134,6 +12126,9 @@ const byCatName=(a,b)=>(a.name||'').localeCompare(b.name||'','fr',{sensitivity:'
 const catScope=c=>(c&&c.library)||null;
 const catsForScope=scope=>categories.filter(c=>catScope(c)===(scope||null));
 const catsSorted=(scope)=>catsForScope(scope).slice().sort(byCatName);
+// Options d'un sélecteur de catégorie : « Sans catégorie » puis les catégories données —
+// partagé par la barre de sélection, le menu de l'éditeur et l'atelier d'import.
+const catOpts=cats=>[{val:'',name:'Sans catégorie',col:''}].concat(cats.map(c=>({val:c.id,name:c.name,col:safeColor(c.color)})));
 /* UN FILTRE QUI NE FILTRE RIEN N'EST PAS UN FILTRE (audit externe v5.10.1). Sur une installation
    neuve, le rail de l'accueil affichait NEUF catégories dont SIX à zéro : six rangées qui mènent à
    une liste vide, en tête de l'écran qu'on ouvre en premier. C'est la règle « un panneau vide est
@@ -13112,8 +13107,11 @@ function latestPass(nav,navSeq,blockId){nav=nav||[];let idx=-1,total=0;
 // ni atteignables depuis la position courante (BFS sur TOUTES les arêtes sortantes). Un saut
 // n'insère jamais de visites fictives dans nav[] (traçabilité de session) : les blocs survolés
 // restent hors chemin tant qu'on n'y agit pas.
+// Index {id -> bloc}, PREMIER gagnant — l'invariant partagé des quatre lecteurs du plan
+// (offPathSet, flowPlan, minimapData, svGridPlan) : un id dupliqué garde sa première définition.
+function blocksById(blocks){const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});return byId;}
 function offPathSet(f,nav,navPos){const blocks=(f&&f.blocks)||[];const out=new Set();if(!blocks.length)return out;
-  const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const byId=blocksById(blocks);
   const keep={};(nav||[]).forEach(id=>{keep[id]=true;});
   const len=(nav||[]).length;
   const np=Math.max(0,Math.min(navPos==null?len-1:navPos,len-1));
@@ -13181,7 +13179,7 @@ function instComplete(f,nav,navSeq,checked,idx){
 const _planCache=new WeakMap();
 function flowPlan(f){
   const hit=_planCache.get(f);if(hit)return hit;
-  const blocks=(f&&f.blocks)||[];const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const blocks=(f&&f.blocks)||[];const byId=blocksById(blocks);
   const items=[],order=[];const out={items,order};
   if(!blocks.length){_planCache.set(f,out);return out;}
   const X='#exit';   // sentinelle : les ids de blocs (SAFE_ID) ne contiennent jamais '#'
@@ -13276,7 +13274,7 @@ function cycleTxt(f){const t=cycleHint(f);if(!t)return '';
 // chips/minimap (v4.8.0) et de la peinture du SVG (v4.7.0). seq=0 : bloc jamais visité
 // (sentinelle — les vrais seq commencent à 1 ; cocher déclenche alors l'EXTENSION DE VISITE).
 function minimapData(f,nav,navSeq,checked,navPos){const blocks=(f&&f.blocks)||[];
-  const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const byId=blocksById(blocks);
   const off=offPathSet(f,nav,navPos);
   const len=(nav||[]).length;
   const np=Math.max(0,Math.min(navPos==null?len-1:navPos,len-1));
@@ -13543,9 +13541,7 @@ async function dlMissingAtts(){
   try{
     for(let i=0;i<info.missing.length;i++){const id=info.missing[i];
       if(el)el.innerHTML='Téléchargement des documents… '+(i+1)+'/'+info.missing.length;
-      try{const r=await storageReq('GET',info.paths[id]);const buf=await r.arrayBuffer();
-        await attPut({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:info.paths[id]});
-        ok++;refreshAttRow(id);}
+      try{await attFetchOne(id,info.paths[id]);ok++;}
       catch(e){ko++;}}
   }finally{_attOffBusy=false;}
   toast(ko?'⚠ '+ko+' document(s) impossible(s) à télécharger — pas encore envoyé(s) depuis l\'appareil où ils ont été ajoutés, ou réseau coupé. Réessayez plus tard.'
@@ -14086,6 +14082,9 @@ function warnSessionSaveFailed(){const now=Date.now();if(now-_sessWarnAt<60000)r
 function _putSessionSafe(s){
   if(s&&typeof s==='object'){s.dirty=true;s.updatedAt=Date.now();}
   try{const p=Data.putSession(s);if(p&&p.catch)p.catch(warnSessionSaveFailed);}catch(e){warnSessionSaveFailed();}}
+// Upsert d'une session archivée : écriture sûre + miroir mémoire — l'unique geste des deux
+// écrivains (persistLive, endSession).
+function sessUpsert(s){_putSessionSafe(s);const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);}
 // Persistance (auto-save) débouncée par runtime ; immediate=true pour figer sur sortie/alarme.
 /* ⚠ Q2 — L'HORODATAGE DU DERNIER GESTE VIT ICI, ET NULLE PART AILLEURS (v5.7).
    `persistLive` est le point d'étranglement de TOUTE mutation de session — c'est déjà ce qui
@@ -14116,7 +14115,7 @@ function persistLive(R,immediate){if(!R||!R.started||!R.fiche)return;
      Ce qui lui est refusé n'est donc pas la session, c'est l'ENREGISTREMENT : aucune écriture dans
      son stockage, aucune entrée dans son historique. Le dossier appartient à l'hôte. */
   if(Share.mode==='guest')return;
-  const doIt=()=>{R._pt=null;const s=snapshotSession(R,true);_putSessionSafe(s);const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);};
+  const doIt=()=>{R._pt=null;sessUpsert(snapshotSession(R,true));};
   if(immediate){if(R._pt){clearTimeout(R._pt);R._pt=null;}doIt();}else{if(R._pt)return;R._pt=setTimeout(doIt,700);}}
 function persistAllLive(){Object.values(liveSessions).forEach(R=>persistLive(R,true));}
 // Démarre la session de la fiche active DÈS la 1ʳᵉ action (cocher / minuteur / compteur / horodatage).
@@ -14203,8 +14202,7 @@ function endSession(R){if(!R||!R.fiche)return;
      s'interdit déjà par d'autres moyens. */
   if(R.essai){R.started=false;R.essai=false;R.sessionId=null;R.name='';return;}
   R.startedAt=R.startedAt||Date.now();
-  const s=snapshotSession(R,false);_putSessionSafe(s);
-  const i=sessions.findIndex(x=>x.id===s.id);if(i>=0)sessions[i]=s;else sessions.push(s);
+  const s=snapshotSession(R,false);sessUpsert(s);
   try{const nv=R.nav||[];
     const done=nv.reduce((n,id,ix)=>n+(instComplete(R.fiche,nv,R.navSeq,R.checked,ix)?1:0),0);
     lastEndedSession={id:s.id,title:R.fiche.title||'Aide cognitive',dur:Math.max(0,Date.now()-R.startedAt),passes:nv.length,done,exercise:!!R.exercise};}catch(e){}
@@ -15491,7 +15489,7 @@ function applyViewChrome(){
    peut encore être attaché (mesuré). Le compteur, lui, tranche : si un rendu a eu lieu entre le
    `blur` et le tour de boucle suivant, c'est lui qui a retiré le champ. */
 let _renderN=0;
-let _homeGk='bib',_homeDup=new Set();   // clé du dernier rendu (searchLibTag) + titres homonymes
+let _homeDup=new Set();   // titres homonymes du dernier rendu (searchLibTag)
 function render(){_renderN++;
   if(window._kbSync)_kbSync();   // A1 : la classe du clavier ne survit pas à la mort de son champ
   if(state.view==='library')state.readStack=[];   // la pile d'origine (v4.28.0) ne survit pas à l'accueil
@@ -16648,11 +16646,13 @@ const EMPTY_INTRO={
       {ic:'doc',t:'Un texte qu\'on parcourt',d:'— titres, listes, tableaux, encadrés, et les PDF joints.'},
       {ic:'check',t:'Des cases pour ne pas perdre sa place',d:'— elles s\'effacent en sortant : rien ne s\'y enregistre.'},
       {ic:'stopwatch',ton:'off',t:'Aucune session, aucun minuteur',d:'— c\'est ce qui le distingue d\'une aide cognitive.'}]}};
+// Ligne d'anatomie d'un écran vide — partagée par le bandeau simple et le bandeau à deux natures.
+const empAnatHtml=lignes=>lignes.map(l=>
+  `<li><span class="emp-ic"${l.ton?` data-ton="${l.ton}"`:''}>${uiIcon(l.ic,16)}</span><span><b>${l.t}</b> ${l.d}</span></li>`).join('');
 function emptyIntroHtml(kind){const c=EMPTY_INTRO[kind];if(!c)return '';
   return `<div class="empty emp-intro"><b>${c.titre}</b>
     <p class="emp-lede">${c.lede}</p>
-    <ul class="emp-anat">${c.lignes.map(l=>
-      `<li><span class="emp-ic"${l.ton?` data-ton="${l.ton}"`:''}>${uiIcon(l.ic,16)}</span><span><b>${l.t}</b> ${l.d}</span></li>`).join('')}</ul>
+    <ul class="emp-anat">${empAnatHtml(c.lignes)}</ul>
     <button class="btn primary" data-emptynew="${kind}">${c.cta}</button></div>`;}
 /* ⚠ UN SEUL BANDEAU QUAND LES DEUX NATURES COEXISTENT (v5.19.1, signalé à l'usage). Les deux
    cartes ont été écrites quand l'accueil était filtré PAR TYPE : chacune paraissait seule, en
@@ -16665,8 +16665,7 @@ function emptyIntroBothHtml(){
   const bloc=k=>{const c=EMPTY_INTRO[k];
     return `<div class="emp-nat"><b class="emp-nat-t">${k==='fiches'?'Aide cognitive':'Protocole'}</b>
       <p class="emp-lede">${c.lede.replace(/^Une aide cognitive |^Un protocole /,'')}</p>
-      <ul class="emp-anat">${c.lignes.slice(0,3).map(l=>
-        `<li><span class="emp-ic"${l.ton?` data-ton="${l.ton}"`:''}>${uiIcon(l.ic,16)}</span><span><b>${l.t}</b> ${l.d}</span></li>`).join('')}</ul></div>`;};
+      <ul class="emp-anat">${empAnatHtml(c.lignes.slice(0,3))}</ul></div>`;};
   return `<div class="empty emp-intro"><b>Votre bibliothèque est vide</b>
     <p class="emp-lede">Deux natures de contenu, deux usages — vous pouvez créer les deux.</p>
     <div class="emp-duo">${bloc('fiches')}${bloc('protocols')}</div>
@@ -16706,9 +16705,9 @@ const selEnt=()=>{const out=[];
 /* LA SÉLECTION APPARTIENT À UNE BIBLIOTHÈQUE, et le mode s'y ferme quand on en change. Deux
    raisons, pas une : les éléments cochés ne sont plus À L'ÉCRAN (on agirait sur ce qu'on ne voit
    pas — c'est la règle du bouton « Tout »), et une bibliothèque en LECTURE SEULE n'a même pas de
-   quoi ouvrir le mode. `_selScope` retient celle où l'on a commencé ; `renderHomeList` compare. */
-let _selScope=null;
-function selStart(id){state.selOn=true;_selScope=state.scope||null;selSet().clear();if(id)selSet().add(id);}
+   quoi ouvrir le mode. (Le `_selScope` qui devait retenir la bibliothèque de départ n'a jamais
+   eu de lecteur — écrit, jamais lu : purgé, assainissement v5.20.x.) */
+function selStart(id){state.selOn=true;selSet().clear();if(id)selSet().add(id);}
 // `redo` : le re-rendu de la vue COURANTE (jamais `renderFiches` en dur — la vue « Tout »
 // réutilise ce binder, cf. le commentaire de `renderHomeList`).
 function selEnd(redo){state.selOn=false;state.sel=null;if(redo)redo();}
@@ -16917,7 +16916,7 @@ function bindSelBar(cfg){
   {const b=document.getElementById('selCat');if(b&&!b.disabled)b.onclick=()=>{
      const lib=(selEnt()[0]||{o:{}}).o.library||null;
      openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),
-       options:[{val:'',name:'Sans catégorie',col:''}].concat(catsSorted(lib).map(c=>({val:c.id,name:c.name,col:safeColor(c.color)}))),
+       options:catOpts(catsSorted(lib)),
        value:(()=>{const v=[...new Set(selEnt().map(e=>e.o.category||''))];return v.length===1?v[0]:'';})(),
        onPick:v=>selSetCat(v,redo),
        action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(lib)}});};}
@@ -17030,7 +17029,6 @@ function renderHomeList(cfg){
     const az=gk==='bib'?bibGroups(list.slice().sort(byTitle))
             :gk==='cat'?catGroups(list.slice().sort(byTitle))
                        :azGroups(list.slice().sort(byTitle),x=>x.title||'');
-    _homeGk=gk;
     const filtTail=filtersSummary();
     /* Les comptes de TENUE À JOUR (brouillons, validations > 2 ans) vivent dans l'en-tête du
        répertoire : c'est le seul endroit où ce travail se voit sans le chercher. */
@@ -17183,7 +17181,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
        l'on peut éditer SA bibliothèque (par fiche) ; le cran catégorie agit partout, par nom. */
     list:(q)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
       const ok=f=>homeLibOn(f)&&catFilterOn(f)&&(canEditFiche(f)||f.status!=='draft')&&(!q||hayMatch(ficheHaystack(f),T)||!!entityDocHit(f,T));
-      return fiches.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(ok);},
+      return fiches.slice().sort(homeCmp(sc)).filter(ok);},
     // SESSIONS EN COURS (SPEC §5) : une CARTE par session (surface, liseré primaire 3px), point
     // vert + kicker + titre, CHRONO mono vivant (mis à jour par tickAll), « Reprendre » plein,
     // « Terminer » en texte rouge (destructif : jamais plein, jamais premier).
@@ -17294,7 +17292,7 @@ function renderAll(){
        puis alphabétique, exactement comme chaque liste séparée. */
     list:(q,canEdit)=>{const A=cfgF.list(q,canEdit).concat(cfgP.list(q,canEdit));const now=Date.now();
       const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
-      return A.sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b));},
+      return A.sort(homeCmp(sc));},
     row:x=>est(x)==='p'?cfgP.row(x):cfgF.row(x),
     tile:x=>est(x)==='p'?cfgP.tile(x):cfgF.tile(x),
     topHtml:cfgF.topHtml,notices:cfgF.notices,bind:cfgF.bind,
@@ -17315,7 +17313,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
     /* v5.18 : même règle que les aides — union, brouillons par item, catégorie par nom. */
     list:(q)=>{const T=qTerms(q);const now=Date.now();const sc=x=>q?frecencyScore(_frecency[x.id],now):0;
       const ok=p=>homeLibOn(p)&&catFilterOn(p)&&(canEditFiche(p)||p.status!=='draft')&&(!q||hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T));
-      return protocols.slice().sort((a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b)).filter(ok);},
+      return protocols.slice().sort(homeCmp(sc)).filter(ok);},
     /* Même rangée que les fiches (un seul langage sur tout l'accueil) ; « n PDF » reste — c'est
        la nature même d'un protocole documentaire — « Rédigé » part avec le compte de sessions. */
     row:p=>{const nDoc=(p.docs||[]).length;const cc=catOf(p);const inQ=txNorm(state.q);
@@ -17784,7 +17782,7 @@ function renderProtocolRead(){
     ${p.status==='review'?`<div class="notice">${uiIcon('warn',15)}<div><b>À relire</b> — ce protocole est signalé à relire avant validation.</div></div>`:''}
     ${docs}
     ${body}
-    ${rel.length?`<div class="links"><b>Voir aussi (${rel.length})</b><div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div></div>`:''}
+    ${rel.length?`<div class="links"><b>Voir aussi (${rel.length})</b>${relRowHtml(rel)}</div>`:''}
     ${(()=>{const refs=clean(p.sources||[]);return refs.length?`<div class="refs"><b>Références</b><ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol></div>`:'';})()}
     ${(!docs&&!body)?'<div class="empty"><b>Protocole vide</b>Ajoutez un PDF ou un contenu rédigé via « Modifier ».</div>':''}
     ${readFooterHtml()}
@@ -17953,11 +17951,13 @@ function mdPrefixLines(inp,prefix,numbered){const [a,b,v]=selBounds(inp);
   const clean=l=>head?l.replace(/^#{1,3}\s+/,''):(quo?l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,'')
     :(tsk?l.replace(/^\s*(?:[-*]|\d{1,3}[.)])\s+/,'').replace(MD_TASK_RX,''):l));
   const seg=v.slice(ls,end).split('\n').map((l,i)=>(numbered?(i+1)+'. ':prefix)+clean(l)).join('\n');
-  inp.value=v.slice(0,ls)+seg+v.slice(end);
-  // Réécrire .value remet le curseur À LA FIN du textarea : on le repose en fin de segment
-  // modifié (même idiome que mdCalloutLines/mdInsertAt) — sinon la frappe suivante partait
-  // tout en bas du document.
-  inp.focus();const c=ls+seg.length;inp.setSelectionRange(c,c);
+  mdSplice(inp,v,ls,end,seg);}
+// Réécrit [from,to) du textarea par `seg` et repose le curseur EN FIN DE SEGMENT (réécrire
+// .value le remettait à la fin du document : la frappe suivante partait tout en bas), puis
+// rejoue `input` — l'idiome unique des trois poseurs Markdown.
+function mdSplice(inp,v,from,to,seg){
+  inp.value=v.slice(0,from)+seg+v.slice(to);
+  inp.focus();const c=from+seg.length;inp.setSelectionRange(c,c);
   inp.dispatchEvent(new Event('input',{bubbles:false}));}
 /* Pose un ENCADRÉ TYPÉ sur les lignes sélectionnées, à la forme canonique de GitHub :
      > [!CAUTION]
@@ -17965,20 +17965,16 @@ function mdPrefixLines(inp,prefix,numbered){const [a,b,v]=selBounds(inp);
    (marqueur seul sur sa ligne — c'est la seule forme que GitHub, pandoc et Typora rendent en
    encadré ; l'app accepte aussi la forme d'une seule ligne, mais on ne la PRODUIT pas.)
    Un encadré posé sur un encadré remplace son registre — jamais d'empilement. */
-function mdCalloutLines(inp,word){const v=inp.value;let a=inp.selectionStart==null?v.length:inp.selectionStart,b=inp.selectionEnd==null?v.length:inp.selectionEnd;if(a>b){const t=a;a=b;b=t;}
+function mdCalloutLines(inp,word){const [a,b,v]=selBounds(inp);
   const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
   const body=v.slice(ls,end).split('\n')
     .map(l=>l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,''))
     .filter((l,i,arr)=>arr.length===1||l.trim()!=='')
     .map(l=>'> '+l).join('\n');
   const seg='> [!'+word+']\n'+(body||'> ');
-  inp.value=v.slice(0,ls)+seg+v.slice(end);
-  inp.focus();const c=ls+seg.length;inp.setSelectionRange(c,c);
-  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+  mdSplice(inp,v,ls,end,seg);}
 function mdInsertAt(inp,text){const v=inp.value;const a=inp.selectionStart==null?v.length:inp.selectionStart;
-  inp.value=v.slice(0,a)+text+v.slice(a);
-  inp.focus();inp.setSelectionRange(a+text.length,a+text.length);
-  inp.dispatchEvent(new Event('input',{bubbles:false}));}
+  mdSplice(inp,v,a,a,text);}
 /* Images du contenu rédigé (v4.4.3) : chaque image insérée a SA taille d'affichage, réglée ici
    (jamais tapée dans le texte — le champ resterait effaçable à la main, et un ancien client
    perdrait l'image ; cf. la doctrine « marqueur d'étape hors du champ », v4.3.0).
@@ -18137,6 +18133,8 @@ function renderProtocolEdit(){
    ou même bibliothèque), comme les documents partagés. ----- */
 function relTarget(id){return fiches.find(x=>x.id===id&&!x.deletedAt)||protocols.find(x=>x.id===id&&!x.deletedAt)||null;}
 function relKindOf(id){return protocols.some(x=>x.id===id)?'p':'f';}
+// Rangée « Voir aussi » — partagée entre la lecture de protocole et la feuille Consulter.
+const relRowHtml=rel=>`<div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div>`;
 // Cœur PUR (testé par tests.html) : candidats liables d'une entité — aides d'abord puis
 // protocoles, chacun dans l'ordre de la bibliothèque ; hors soi-même, déjà liés et corbeille.
 function relCandidatesFor(entity,fs,ps){
@@ -18375,7 +18373,7 @@ function openPickMenu(host,opts){
   veil.onclick=()=>close(false);}
 function openCatMenu(host,d,rerender,trigger){
   openPickMenu(host,{aria:'Catégorie',value:d.category||'',trigger,
-    options:[{val:'',name:'Sans catégorie',col:''}].concat(catsSorted(d.library).map(c=>({val:c.id,name:c.name,col:safeColor(c.color)}))),
+    options:catOpts(catsSorted(d.library)),
     onPick:v=>{d.category=v;rerender();},
     action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr()}});}
 // Câblage des champs partagés. o = {fem, rerender, preview} ; d = objet brouillon vivant
@@ -18515,7 +18513,7 @@ function newProtocol(){if(!canEditScope(state.scope)){toast('Lecture seule : vou
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
 // Triangle « attention » UNIQUE (bandeau Brouillon, Ne pas oublier, toasts, erreurs de synchro…) :
-// tracé partagé entre uiIcon('warn') et headerIcon('h-forget'), jamais redessiné en dur.
+// tracé de uiIcon('warn'), jamais redessiné en dur (l'entrée h-forget qui le partageait est purgée).
 const WARN_GLYPH='<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>';
 // Tracés PARTAGÉS entre uiIcon et headerIcon (un dessin = une source — un doublon inline finit
 // toujours par diverger). N'EN METTRE ICI QU'À PARTIR DU DEUXIÈME LECTEUR : une constante à
@@ -18614,11 +18612,8 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
 // la couleur du header), donc cohérent avec le code couleur existant (bleu/ambré/vermillon/gris).
 function headerIcon(cls){const P={
   'h-confirm':'<path d="M20 6L9 17l-5-5"/>',
-  'h-main':'<path d="M9 6h11M9 12h11M9 18h7"/><circle cx="4.5" cy="6" r="1.4"/><circle cx="4.5" cy="12" r="1.4"/><circle cx="4.5" cy="18" r="1.4"/>',
   'h-verify':'<path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
-  'h-forget':WARN_GLYPH,
   'h-diff':'<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M8 18h6a4 4 0 004-4v-1"/>',
-  'h-img':IMG_GLYPH,
   'h-doc':DOC_GLYPH,
   'h-notes':'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/>'};
   const p=P[cls];return p?`<span class="sec-badge"><svg class="sec-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg></span>`:'<span class="pip"></span>';}
@@ -18754,7 +18749,7 @@ function _buildFlowSVG(f){
   return `<svg width="${C.svgW}" height="${C.svgH}" viewBox="0 0 ${C.svgW} ${C.svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto" data-bw="${C.svgW}" data-bh="${C.svgH}" data-startcx="${startCx}"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#93a0ad"/></marker><marker id="ahb" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#b7791f"/></marker></defs>${C.edges}${nodes}</svg>`;
 }
 // 1. MESURE : mise en page interne de chaque bloc -> C.LAY.
-function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE_MAX,MINW,MAXW,CW,IMG_H,IMG_PAD,IMG_GAP}=FLOWK;
+function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE_MAX,MINW,MAXW,CW,IMG_H,IMG_GAP}=FLOWK;
   // Mise en page de chaque bloc : texte ENROULÉ (jamais tronqué), TOUTES les étapes/options (sans
   // limite). LARGEUR ajustée au contenu (chaque bloc se resserre sur sa plus longue ligne) pour
   // éviter l'espace vide à droite du texte.
@@ -19572,12 +19567,21 @@ function applyCheck(k,on){
    journal) — la divergence exacte que la v4.42.0 a payée, revenue par une autre porte. Démarre la
    session au premier geste, persiste, et rend TRUE si un re-rendu complet ancré a eu lieu (toute
    première action) : l'appelant s'arrête là, le DOM qu'il tenait n'existe plus. */
-function paintCheckRow(li,k,on,kb){
-  const justStarted=ensureStarted();persistLive(Runtime);
-  if(justStarted){renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}return true;}
+// Peinture d'une coche d'étape — LE cœur partagé du cochage local (paintCheckRow) et distant
+// (SHARE_APPLY) : classe, aria, glyphe, trace do-verify. Sa duplication a déjà laissé diverger
+// les deux chemins une fois (cf. le dossier du cœur de cochage, v4.42.0).
+function paintCkLi(li,k,on){
   li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
   const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
-  paintStepTrace(li,k);
+  paintStepTrace(li,k);}
+// Re-rendu ANCRÉ sur une étape + refocus clavier : l'étape tapée ne bouge pas d'un pixel (ECAM).
+function rerenderCkAnchored(k,kb){
+  renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');
+  if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}}
+function paintCheckRow(li,k,on,kb){
+  const justStarted=ensureStarted();persistLive(Runtime);
+  if(justStarted){rerenderCkAnchored(k,kb);return true;}
+  paintCkLi(li,k,on);
   return false;}
 function canToggleStep(on){
   try{
@@ -20039,6 +20043,11 @@ function slRpcUnpack(txt){
    qui protègent un RELAIS PARTAGÉ (quota de partages, fenêtre d'admission datée) n'ont pas
    d'objet entre deux appareils appariés par QR : le canal DTLS est déjà la porte. Restent ceux
    qui protègent la SÉMANTIQUE : rôles, dédup, bornes de lot. */
+// Empreinte SHA-256 hexadécimale d'une chaîne — « même entrée, même algorithme » est un invariant
+// de PROTOCOLE (le serveur recalcule la sienne, cf. Share._streamHash) : UNE implémentation.
+async function hexDigest(str){
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
 function slHub(o){
   const H={seq:0,events:[],parts:[],status:'active',fiche:o.fiche||null};
   const now=()=>new Date(o.now()).toISOString();
@@ -20047,10 +20056,7 @@ function slHub(o){
     revoked:!!p.revoked,detached:!!p.detached});
   H.parts.push({id:o.uid(),secret:o.secret(),label:o.hostLabel||'Hôte',role:'lead',
     owner:true,seen:o.now(),revoked:false,detached:false});
-  const streamHash=async()=>{
-    const b=await crypto.subtle.digest('SHA-256',
-      new TextEncoder().encode(H.events.map(e=>e.seq+':'+e.id).join(',')));
-    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');};
+  const streamHash=()=>hexDigest(H.events.map(e=>e.seq+':'+e.id).join(','));
   return {
     st:H,
     hostSecret(){return H.parts[0].secret;},
@@ -21028,9 +21034,7 @@ function _tagsWrite(v){
   return _tags;}
 function setMyTags(v){
   _tagsWrite(v);
-  // Les préférences voyagent avec le document perso : même marqueur que le thème ou l'accent.
-  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));
-      localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}
+  markPrefsDirty();   // les préférences voyagent avec le document perso
   return _tags;}
 function tagRank(q,items){
   const hay=String(q==null?'':q);
@@ -22373,7 +22377,7 @@ function bindReadEvents(f,blk,cur){
   main.querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>resumeSession(b.dataset.resume));
   main.querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>exportSessionReport(b.dataset.report));
   main.querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>deleteSession(b.dataset.delsess));
-  flowCtx={f,curId:cur};
+  flowCtx={f};
   bindFlowZoom();applyFlowZoom();restoreFlow();
   refreshTimersDOM();
   if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
@@ -22446,8 +22450,7 @@ function bindNavEvents(f,blk){
     // faisait les deux — c'est la divergence que la duplication de ce cœur de cochage a laissé
     // s'installer. Re-rendu ANCRÉ : l'étape tapée ne bouge pas d'un pixel (doctrine ECAM).
     if(!on&&finAvant){
-      renderKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');
-      if(kb){const nl=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');if(nl)nl.focus();}
+      rerenderCkAnchored(k,kb);
       return;}
     // V5 : « Continuer » passe au registre CONFIRMATION (vert) dès que TOUT le bloc est coché
     // (mise à jour DOM directe, cohérente avec le cochage sans re-rendu).
@@ -22599,7 +22602,7 @@ function blockTip(f,cur){const b=f.blocks.find(x=>x.id===cur);if(!b||b.kind==='d
 function ovHistRowHtml(f,id,idx,topo){
   const b=f.blocks.find(x=>x.id===id);if(!b)return '';
   const dec=b.kind==='decision';
-  const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
+  const taken=dec?decTaken(b,idx):null;
   const tt=String(stripBold(b.title||'')).trim()||(dec?'Décision':'Étapes');
   const pi=passInfo(state.nav,idx);
   let right='';
@@ -22631,7 +22634,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   // Passage entré par une COMPLICATION : annoncé en toutes lettres (⚡ + mot, jamais le glyphe seul).
   const cxTag=(Runtime.cxBack||{})[seq]?' <span class="cx-tag">⚡ complication</span>':'';
   const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
-  const taken=dec?((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null):null;
+  const taken=dec?decTaken(b,idx):null;
   let bodyH='',count='';
   if(dec){
     /* ⚠ CHAQUE ISSUE ANNONCE SA DESTINATION (v5.6, maquette « cas difficiles » : « on sait où
@@ -23111,7 +23114,7 @@ function refSheetHtml(f){
   const refs=clean(f.sources);
   const refsH=refs.length?`<ol>${refs.map(r=>`<li>${fmt(r)}</li>`).join('')}</ol>`:'';
   const rel=(f.links||[]).map(id=>relTarget(id)).filter(Boolean);
-  const relH=rel.length?`<div class="related-row">${rel.map(r=>`<button class="btn sm" data-openrel="${esc(r.id)}">${uiIcon(relKindOf(r.id)==='p'?'book':'doc',13)}${esc(r.title)||'Sans titre'} →</button>`).join('')}</div>`:'';
+  const relH=rel.length?relRowHtml(rel):'';
   // v4.23.0 : PAS de copie du chapeau « Ne pas oublier » ici (décision utilisateur). Il est déjà
   // en tête de fiche, entier et jamais replié ; un pavé rouge rouvert à chaque consultation
   // repoussait ce qu'on vient réellement chercher (une dose, un différentiel) sans rien apporter.
@@ -23140,18 +23143,21 @@ function refSheetHtml(f){
     +sec('refs','Références',refsH)
     +sec('rel','Voir aussi ('+rel.length+')',relH);
   return body||'<p class="ai-note" style="text-align:center">Cette fiche n’a pas encore de contenu à consulter.</p>';}
+/* Mêmes gestes qu'en flux, re-câblés dans la feuille OU la colonne (les câblages d'origine sont
+   portés par `main`, qui ne les contient pas) — LE commun des deux régimes qu'A15 exige : deux
+   rendus séparés auraient divergé, c'est la leçon du cœur de cochage (v4.42.0). */
+function bindRefBody(root,f,scrollHost,sect){
+  root.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.docs||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,f);});
+  hydrateAttThumbs(f);
+  root.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{closeRefSheet();openRel(b.dataset.openrel);});
+  root.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  if(sect){const d=root.querySelector('[data-rs="'+sect+'"]');
+    if(d){d.open=true;scrollWithin(scrollHost,d,'start');d.classList.add('rs-flash');setTimeout(()=>d.classList.remove('rs-flash'),1200);}}}
 function renderRefSheet(sect){
   const f=state.fiche;if(!f||!refSheetOpen())return;
   const body=document.getElementById('refBody');
   body.innerHTML=refSheetHtml(f);
-  // Mêmes gestes qu'en flux, re-câblés dans la feuille (les câblages d'origine sont portés par
-  // `main`, qui ne la contient pas — elle survit ainsi aux re-rendus, comme la feuille Plan).
-  body.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.docs||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,f);});
-  hydrateAttThumbs(f);
-  body.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{closeRefSheet();openRel(b.dataset.openrel);});
-  body.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
-  if(sect){const d=body.querySelector('[data-rs="'+sect+'"]');
-    if(d){d.open=true;scrollWithin(refModal,d,'start');d.classList.add('rs-flash');setTimeout(()=>d.classList.remove('rs-flash'),1200);}}}
+  bindRefBody(body,f,refModal,sect);}
 /* ══ A15 — « CONSULTER » N'ÉVINCE PAS LE BLOC AU COCKPIT (v5.6, lot 4) ═══════════════════════
    Sous 1200 px, la référence est une EXCURSION : elle remplace la vue de travail, et son retour
    est nommé, à position constante — c'est le contrat de toute excursion du dossier.
@@ -23169,13 +23175,8 @@ function renderRefCol(sect){
   if(!box){box=document.createElement('div');box.className='ref-col';host.insertBefore(box,host.firstChild);}
   box.innerHTML=`<div class="rc-head"><span class="rc-t">▤ Consulter</span>`
     +`<button type="button" class="rc-back" data-refback>↩ Revenir</button></div>`+refSheetHtml(f);
-  box.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.docs||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,f);});
-  hydrateAttThumbs(f);
-  box.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{closeRefSheet();openRel(b.dataset.openrel);});
-  box.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
+  bindRefBody(box,f,host,sect);
   box.querySelectorAll('[data-refback]').forEach(b=>b.onclick=closeRefSheet);
-  if(sect){const d=box.querySelector('[data-rs="'+sect+'"]');
-    if(d){d.open=true;scrollWithin(host,d,'start');d.classList.add('rs-flash');setTimeout(()=>d.classList.remove('rs-flash'),1200);}}
   document.body.classList.add('ref-col-on');
   return true;}
 function openRefSheet(sect){
@@ -23847,7 +23848,7 @@ window.addEventListener('orientationchange',()=>setTimeout(syncZoomWidth,350)); 
    sur les bandes du mode STATIQUE (`svStickBands`), où une seule mesure par rendu suffit.
    Historique complet dans git (tag v4.24.0) si la question devait être rouverte. */
 function ovPaintLive(f){
-  flowCtx={f,curId:state.nav[state.navPos]};
+  flowCtx={f};
   {const fs=main.querySelector('.flow-scroll');if(fs)flowPaintState(fs,f);}}
 
 function stickBase(){
@@ -24064,9 +24065,7 @@ function sharePaintLive(f,e){
     // simplement rien à peindre. Ce n'est pas un échec.
     const li=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');
     if(!li)return true;
-    li.classList.toggle('done',on);li.setAttribute('aria-checked',on?'true':'false');
-    const box=li.querySelector('.box');if(box)box.innerHTML=on?uiIcon('check',19,{sw:3,cls:''}):'';
-    paintStepTrace(li,k);
+    paintCkLi(li,k,on);
     const sec=li.closest('.ov-block');
     if(sec){_shareRemote=true;try{ovAfterCheck(f,sec,k);}finally{_shareRemote=false;}}
     return true;}
@@ -24364,7 +24363,7 @@ function renderOvOnly(){
   // v4.18.0 : le SVG vit dans le Plan (affichage « Schéma ») — rebrancher zoom/plein
   // écran/navigation après le re-rendu ciblé (bindFlowZoom peint aussi l'état, v4.7.0).
   {const fs=main.querySelector('.flow-scroll');if(fs){bindFlowZoom();applyFlowZoom();restoreFlow();}}
-  flowCtx={f,curId:N.cur};
+  flowCtx={f};
   // v4.23.0 : le plan n'est plus dans .ov-wrap — s'il est OUVERT en feuille, il porte l'état de
   // session (✓, ● ici, hors chemin) et doit donc se repeindre avec le journal.
   if(planSheetOpen())renderPlanSheet();
@@ -24993,7 +24992,7 @@ function svDistribute(span,hs){
   return w;}
 function svGridPlan(f){
   const plan=flowPlan(f),items=plan.items,blocks=(f&&f.blocks)||[];
-  const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});
+  const byId=blocksById(blocks);
   // ÉTAPE 1 — l'arbre des segments, en espace LOCAL (aucune colonne encore attribuée).
   let i=0;
   const segs=()=>{const out=[];
@@ -25267,7 +25266,7 @@ function renderSvOnly(){
   if(!f||!wrap)return render();
   const N=staticSection(f);
   wrap.innerHTML=N.inner;
-  flowCtx={f,curId:N.cur};
+  flowCtx={f};
   svPaintArrows();
   repaintPoso();   // v5.4.2 : le classement « bloc courant » suit aussi les sauts du statique
   bindStaticEvents(f);}
@@ -25528,7 +25527,7 @@ function renderNavOnly(){
   // Panneau algorithme ouvert : le SVG suit le bloc courant par PEINTURE de classes (v4.7.0) —
   // plus aucune reconstruction de la mise en page à la navigation.
   {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}
-  flowCtx={f,curId:N.cur};
+  flowCtx={f};
   bindNavEvents(f,N.blk);
   repaintPoso();   // v5.4.2 : cf. renderOvOnly — même règle pour le rendu guidé mono-bloc
   if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
@@ -25684,8 +25683,12 @@ function edRevPaint(f){
   b.onclick=()=>{
     const el=document.getElementById('revPanel');if(!el)return;
     const dt=el.querySelector('details.rev-panel');if(dt)dt.open=true;
-    el.scrollIntoView({block:'center'});
-    el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);};}
+    revGoFlash(el);};}
+// Amène l'élément au centre et le fait clignoter UNE fois — 1300 ms, calé sur l'animation CSS
+// `revFl` (1.2 s) : les quatre ancrages de la relecture partagent ce geste.
+function revGoFlash(el){
+  el.scrollIntoView({block:'center'});
+  el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);}
 /* ANCRAGE : taper une remarque amène à la ligne concernée et la FAIT CLIGNOTER une fois. On ne
    met PAS le focus dans le champ — l'auteur vient de LIRE le bilan, il choisit ce qu'il corrige ;
    voler le curseur déciderait à sa place. */
@@ -25772,8 +25775,7 @@ function reviewOfferTake(f,id){
     if(!it)return;
     it.memory=true;renderEditor();
     const el=main.querySelector('#nfGuard')||main.querySelector('.blk');
-    if(el){el.scrollIntoView({block:'center'});el.classList.add('rev-flash');
-      setTimeout(()=>el.classList.remove('rev-flash'),1300);}
+    if(el)revGoFlash(el);
     return;}
   edAdd(f,o.kind,o.pre);}
 function bindRevPanel(){
@@ -25790,8 +25792,7 @@ function bindRevPanel(){
     /* PAS de `behavior:'smooth'` : mesuré, il ne défilait pas du tout ici (6 400 px d'écart, le
        mouvement n'aboutissait jamais), et le reste du fichier ne défile jamais en animé — un
        écran qui glisse longuement est exactement ce que la doctrine évite. */
-    el.scrollIntoView({block:'center'});
-    el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);});}
+    revGoFlash(el);});}
 /* LA RELECTURE D'UNE RÉFÉRENCE (v5.0.0, refonte des protocoles). Le volet des AIDES lit des
    garde-fous de checklist (memory items, longueur des challenges) qui n'ont aucun sens ici : une
    référence n'a ni bloc ni étape. Ce qu'on peut lui dire est d'un autre ordre — ce qui MANQUE
@@ -26415,8 +26416,12 @@ function jalonEditor(b){
     const goSel=exs.length?`<select data-jlgo="${i}" aria-label="Renvoi du jalon vers une complication (facultatif)"><option value="">sans renvoi</option>${exs.map(c=>`<option value="${esc(c.target)}"${c.target===j.go?' selected':''}>⚡ ${esc(c.label||'Complication')}</option>`).join('')}</select>`:'';
     return `<div class="jl-edit"><div class="jl-e1"><select data-jlat="${i}" aria-label="Condition du jalon"><option value="pass"${j.at!=='count'?' selected':''}>au nᵉ passage</option><option value="count"${j.at==='count'?' selected':''}${cns.length?'':' disabled'}>quand un compteur atteint n</option></select><input type="number" data-jln="${i}" value="${j.n}" min="1" max="99" inputmode="numeric" aria-label="Seuil n du jalon">${cnSel}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
   return `${js.length?`<div class="sub">Jalons de boucle — mis en avant quand le compte y est</div>${rows}`:''}${js.length<3?`<button class="add-line" data-jladd title="Un rappel qui se met en avant au nᵉ passage du bloc, ou quand un compteur atteint un seuil (ex. 3 CEE → envisager une FV réfractaire)">+ Jalon de boucle (au nᵉ passage, à n chocs…)</button>`:''}`;}
-function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}"><div class="blk-top"><span class="blk-n dec" aria-hidden="true">◆</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Réévaluation)" aria-label="Titre de la décision">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}"><div class="blk-top"><span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span><input type="text" data-bf="title" value="${esc(b.title)}" placeholder="Titre (ex. Mesures immédiates)" aria-label="Titre du bloc">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button><div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',14):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+/* Chapeau commun des DEUX gabarits de bloc (badge, titre, phase, poignée, « Bloc de départ ») —
+   deux branches d'une même fonction qui recopiaient ce préfixe à l'identique. */
+function blkTopHtml(b,blocks,badge,ph,al){
+  return `<div class="blk-top">${badge}<input type="text" data-bf="title" value="${esc(b.title)}" placeholder="${ph}" aria-label="${al}">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button>`;}
+function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,blocks,'<span class="blk-n dec" aria-hidden="true">◆</span>','Titre (ex. Réévaluation)','Titre de la décision')}<div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,blocks,`<span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span>`,'Titre (ex. Mesures immédiates)','Titre du bloc')}<div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',14):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button><span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -26702,8 +26707,7 @@ function renderEditor(){_renderN++;
      focus volé (l'auteur cherche, il n'écrit pas encore) ni de modification. */
   main.querySelectorAll('[data-edgo]').forEach(b=>b.onclick=()=>{
     const el=main.querySelector('.blk[data-bid="'+CSS.escape(b.dataset.edgo)+'"]');if(!el)return;
-    el.scrollIntoView({block:'center'});
-    el.classList.add('rev-flash');setTimeout(()=>el.classList.remove('rev-flash'),1300);});
+    revGoFlash(el);});
   {const gx=document.getElementById('edGrabX');if(gx)gx.onclick=edGrabDrop;}
   /* Échap repose l'objet — geste d'annulation universel de l'app (modales, lecteur, plan). Posé
      UNE fois, à la première ouverture d'éditeur : `_edEscBound` évite d'empiler un écouteur par
@@ -26712,7 +26716,7 @@ function renderEditor(){_renderN++;
     document.addEventListener('keydown',e=>{
       if(e.key==='Escape'&&state.edGrab&&(state.view==='edit'||state.view==='protocolEdit')){
         e.preventDefault();edGrabDrop();}});}
-  flowCtx={f,curId:null};
+  flowCtx={f};
   bindFlowZoom();applyFlowZoom();restoreFlow();
   /* L'ENTREBÂILLEMENT NE RE-REND RIEN. Le schéma est déjà dans le DOM (entrebâillé, il est
      seulement rogné) : déplier n'est qu'un changement de classe, donc pas une ligne de la page ne
@@ -28941,9 +28945,8 @@ function openImpCatMenu(rows,trigger){
   const lib=impCommun2(rows,r=>r.lib);
   const cats=lib===undefined?[]:catsSorted(lib);
   openPickMenu(host,{aria:'Catégorie',sheet:true,trigger,
-    options:[{val:IMP_KEEP,name:'Garder la catégorie du fichier',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'},
-             {val:'',name:'Sans catégorie',col:''}]
-      .concat(cats.map(c=>({val:c.id,name:c.name,col:safeColor(c.color)}))),
+    options:[{val:IMP_KEEP,name:'Garder la catégorie du fichier',dot:false,tt:'Défaut — la catégorie du fichier, retrouvée par son nom dans la destination, ou créée si elle n\'y est pas'}]
+      .concat(catOpts(cats)),
     value:(rows.length===1?rows[0].cat:impCommun2(rows,r=>r.cat)),
     onPick:v=>impPoseCat(rows,v===IMP_KEEP?IMP_KEEP:(v||'')),
     // « ＋ Nouvelle catégorie » n'a de sens que si l'on sait DANS QUOI la créer.
@@ -29982,8 +29985,7 @@ async function repairApp(){
   // hors ligne, la purge s'exécutait et le rechargement donnait une page blanche : le worker qu'on
   // s'apprête à détruire répondait à la question « ai-je du réseau ? ». Une clé de cache inédite
   // à chaque appel ne peut jamais correspondre (sw.js refuse en outre de se cacher lui-même).
-  try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),4000);
-    await fetch('./sw.js?_probe='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(t);}
+  try{await acFetch('./sw.js?_probe='+Date.now(),{cache:'no-store'},4000);}
   catch(e){toast('⚠ Réparation impossible sans connexion : elle retirerait la copie hors-ligne de l\'application. Réessayez avec du réseau.',9000);return false;}
   try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs)await r.unregister();}}catch(e){}
   try{if(window.caches){const keys=await caches.keys();for(const k of keys)await caches.delete(k);}}catch(e){}
@@ -30502,9 +30504,7 @@ async function backfillSessSync(){
   return n;}
 function setSessSync(on){
   _sessSyncWrite(on);
-  // Le RÉGLAGE lui-même voyage dans les préférences : même marqueur que le thème ou l'accent.
-  try{localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));
-      localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}}
+  markPrefsDirty();}   // le RÉGLAGE lui-même voyage dans les préférences
 /* Écriture SANS marquage — le chemin du PULL, comme pour les étiquettes : confondre les deux
    ferait repousser au serveur ce qu'on vient d'en recevoir, à chaque synchro. Le rattrapage, lui,
    vaut des DEUX côtés : un appareil qui APPREND que l'option est active doit envoyer son
@@ -30559,6 +30559,13 @@ async function storageReq(method,path,body,ctype,extra){await Auth.ensureFresh()
   const r=await acFetch(SUPA.url+'/storage/v1/object/attachments/'+path,{method:method,headers:h,body:body},NET_TIMEOUT_BLOB_MS);
   if(!r.ok){const t=await r.text().catch(()=>'');const err=new Error('REST '+r.status+' '+String(t).slice(0,200));err.status=r.status;throw err;}
   return r;}
+// Télécharge le binaire d'UN document du bucket et le range en IndexedDB, rangée rafraîchie —
+// la FORME de l'enregistrement (dirty:0, remotePath) est l'invariant partagé du bouton
+// « tout télécharger » et du téléchargement de fond de la synchro : une seule écriture.
+async function attFetchOne(id,path){
+  const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
+  await attPut({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:path});
+  refreshAttRow(id);}
 // File LOCALE des suppressions distantes à rejouer (un chemin n'y entre que quand plus AUCUNE
 // entité ne référence son document) : vidée à chaque synchro, survit aux redémarrages.
 const ATT_PATH_RX=/^[ul]\/[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.pdf$/;
@@ -30578,9 +30585,9 @@ async function reassignFicheId(f){
   const i=fiches.findIndex(x=>x.id===oldId);if(i>=0)fiches[i]=f;
   if(notes[oldId]){notes[f.id]=notes[oldId];delete notes[oldId];try{await Data.setNotes(notes);}catch(e){}}
   const p=pins.indexOf(oldId);if(p>=0){pins[p]=f.id;
-    // Même mécanique que togglePin : épingles rangées dans le document de catégories PERSO -> à pousser.
-    try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));
-        localStorage.setItem(spaceKey('ac-cats-updated:'),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'),'1');}catch(e){}}
+    // Épingles rangées dans le document de catégories PERSO -> à pousser.
+    try{localStorage.setItem(spaceKey('ac-pins'),JSON.stringify(pins));}catch(e){}
+    markPrefsDirty();}
   for(const s of sessions.filter(s=>s.ficheId===oldId)){s.ficheId=f.id;_putSessionSafe(s);}
   try{for(const b of await Data.getBackups(oldId)){await Data.delBackup(b.bid);b.ficheId=f.id;await Data.putBackup(b);}}catch(e){}
   if(liveSessions[oldId]){liveSessions[f.id]=liveSessions[oldId];delete liveSessions[oldId];liveSessions[f.id].ficheId=f.id;liveSessions[f.id].fiche=f;}
@@ -30733,6 +30740,12 @@ function pullMissedIds(rows,byId){const out=[];
     if(!SAFE_ID.test(id))continue;const local=byId[id];
     if(local?(Date.parse(r.updated_at)||0)>(local.updatedAt||0):!r.deleted_at)out.push(id);}
   return out;}
+// Fermetures MÉMOIRE d'une table synchronisée (fiches, sessions, protocoles — pull ET push) :
+// l'invariant « replaceMem ne ré-insère JAMAIS un supprimé (deletedAt) » vivait en six copies.
+const memOps=arr=>({
+  addMem:x=>arr.push(x),
+  dropMem:id=>{const i=arr.findIndex(y=>y.id===id);if(i>=0)arr.splice(i,1);},
+  replaceMem:x=>{const i=arr.findIndex(y=>y.id===x.id);if(i>=0)arr[i]=x;else if(!x.deletedAt)arr.push(x);}});
 const Sync={
   running:false,_pt:null,_cursorKey:'ac-sync-cursor',_retryTimer:null,_retryDelay:0,lastError:null,lastErrorAt:0,
   /* ===== Sync · cadence — porte d'entrée et reprise (online/schedule/full/_scheduleRetry) ===== */
@@ -30910,10 +30923,7 @@ const Sync={
     if(applied&&!document.body.classList.contains('crisis-live'))render();
     return conflicts;},
   async _pull(){return this._pullTable({table:'cognitive_aids',store:'fiches',cursorKey:this._cursorKey,
-    getAllLocal:()=>Data.getAll(),fromRow:ficheFromRow,
-    addMem:f=>fiches.push(f),
-    dropMem:id=>{const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);},
-    replaceMem:f=>{const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches[i]=f;else if(!f.deletedAt)fiches.push(f);},
+    getAllLocal:()=>Data.getAll(),fromRow:ficheFromRow,...memOps(fiches),
     backup:local=>Data.putBackup({bid:uid('bk'),ficheId:local.id,at:Date.now(),data:JSON.parse(JSON.stringify(local))}),
     // Fiche supprimée (ailleurs, ou par un éditeur de la bibliothèque) : ma note personnelle
     // attachée est effacée aussi (t:'' poussé -> propagation à mes autres appareils).
@@ -30924,10 +30934,7 @@ const Sync={
   async _pullSessions(){
     if(!sessSyncOn())return false;
     return this._pullTable({table:'sessions',cursorKey:'ac-sync-cursor-sess',
-      getAllLocal:()=>Data.getSessions(),fromRow:sessionFromRow,
-      addMem:x=>sessions.push(x),
-      dropMem:id=>{const i=sessions.findIndex(y=>y.id===id);if(i>=0)sessions.splice(i,1);},
-      replaceMem:x=>{const i=sessions.findIndex(y=>y.id===x.id);if(i>=0)sessions[i]=x;else if(!x.deletedAt)sessions.push(x);}});},
+      getAllLocal:()=>Data.getSessions(),fromRow:sessionFromRow,...memOps(sessions)});},
   async _pushSessions(){
     if(!sessSyncOn())return false;
     return this._pushTable({table:'sessions',
@@ -30935,15 +30942,9 @@ const Sync={
       // ouvrir un second canal de partage, sans code, sans rôle et sans péremption.
       getAllLocal:async()=>(await Data.getSessions()).filter(x=>!x.live),
       dataPut:x=>Data.putSession(x),dataDel:id=>Data.delSession(id),toRow:sessionToRow,
-      clone:x=>JSON.parse(JSON.stringify(x)),idPrefix:'s',fromRow:sessionFromRow,
-      addMem:x=>sessions.push(x),
-      replaceMem:x=>{const i=sessions.findIndex(y=>y.id===x.id);if(i>=0)sessions[i]=x;else if(!x.deletedAt)sessions.push(x);},
-      dropMem:id=>{const i=sessions.findIndex(y=>y.id===id);if(i>=0)sessions.splice(i,1);}});},
+      clone:x=>JSON.parse(JSON.stringify(x)),idPrefix:'s',fromRow:sessionFromRow,...memOps(sessions)});},
   async _pullProtocols(){return this._pullTable({table:'protocols',cursorKey:'ac-sync-cursor-prot',
-    getAllLocal:()=>Data.getProtocols(),fromRow:protocolFromRow,
-    addMem:p=>protocols.push(p),
-    dropMem:id=>{const i=protocols.findIndex(x=>x.id===id);if(i>=0)protocols.splice(i,1);},
-    replaceMem:p=>{const i=protocols.findIndex(x=>x.id===p.id);if(i>=0)protocols[i]=p;else if(!p.deletedAt)protocols.push(p);}});},
+    getAllLocal:()=>Data.getProtocols(),fromRow:protocolFromRow,...memOps(protocols)});},
   /* ===== Sync · PUSH — le local-first vers le cloud (_reclaimBlocked/_pushTable/_push…) ===== */
   // PUSH GÉNÉRIQUE d'une table {id, data jsonb, ...} — même patron que _pullTable : mécanique
   // UNIQUE (un correctif de la boucle de retry ne s'écrit plus qu'une fois), spécificités par cfg.
@@ -31034,10 +31035,7 @@ const Sync={
       repair:f=>reassignFicheId(f),
       // Réconciliation « droits perdus » (cf. _reclaimBlocked) : clonage via migrate + accès
       // au tableau mémoire, mêmes briques que le pull.
-      clone:f=>migrate(JSON.parse(JSON.stringify(f))),idPrefix:'f',fromRow:ficheFromRow,
-      addMem:f=>fiches.push(f),
-      replaceMem:f=>{const i=fiches.findIndex(x=>x.id===f.id);if(i>=0)fiches[i]=f;else if(!f.deletedAt)fiches.push(f);},
-      dropMem:id=>{const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);}});},
+      clone:f=>migrate(JSON.parse(JSON.stringify(f))),idPrefix:'f',fromRow:ficheFromRow,...memOps(fiches)});},
   async _pushProtocols(){
     return this._pushTable({table:'protocols',getAllLocal:()=>Data.getProtocols(),dataPut:p=>Data.putProtocol(p),dataDel:id=>Data.delProtocol(id),toRow:protocolToRow,
       // Réparation 403 : contrairement aux fiches (reassignFicheId), aucun rattachement local à
@@ -31048,10 +31046,7 @@ const Sync={
         const i=protocols.findIndex(x=>x.id===oldId);if(i>=0)protocols[i]=p;
         if(state.protocol&&state.protocol.id===oldId)state.protocol=p;
         if(state.pdraft&&state.pdraft.id===oldId)state.pdraft.id=p.id;},
-      clone:x=>migrateProtocol(JSON.parse(JSON.stringify(x))),idPrefix:'p',fromRow:protocolFromRow,
-      addMem:x=>protocols.push(x),
-      replaceMem:x=>{const i=protocols.findIndex(y=>y.id===x.id);if(i>=0)protocols[i]=x;else if(!x.deletedAt)protocols.push(x);},
-      dropMem:id=>{const i=protocols.findIndex(y=>y.id===id);if(i>=0)protocols.splice(i,1);}});},
+      clone:x=>migrateProtocol(JSON.parse(JSON.stringify(x))),idPrefix:'p',fromRow:protocolFromRow,...memOps(protocols)});},
   /* ===== Sync · annexes — documents PDF, catégories, notes (_syncAttachments/_syncCats/_syncNotes) ===== */
   // ----- Documents PDF : synchronisation avec le bucket Storage 'attachments' -----
   // Appelée APRÈS _pull/_reconcileShared : l'ensemble local des références (fiches vivantes +
@@ -31103,10 +31098,7 @@ const Sync={
     const missing=Object.keys(paths).filter(id=>!have.has(id));
     if(missing.length&&!this._attDl){this._attDl=true;
       (async()=>{try{for(const id of missing){
-          try{const r=await storageReq('GET',paths[id]);const buf=await r.arrayBuffer();
-            await attPut({id:id,buf:buf,size:buf.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:paths[id]});
-            refreshAttRow(id);   // rangée à l'écran : badge « à télécharger » caché + vignette posée (v4.4.6)
-          }catch(e){}}
+          try{await attFetchOne(id,paths[id]);}catch(e){}}
       }finally{this._attDl=false;refreshAttOffline();}})();}   // v4.20.0 : la ligne « Documents PDF » reflète l'arrivée des binaires
     if(firstErr)throw firstErr;
   },
@@ -31372,9 +31364,7 @@ const Share={
   /* Empreinte du flux REÇU, à comparer à celle que le serveur calcule sur le flux ÉCRIT.
      Même entrée, même algorithme (SHA-256, natif des deux côtés) : aucune implémentation maison à
      tenir synchronisée entre JavaScript et PL/pgSQL. */
-  async _streamHash(){
-    const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(this._ids.join(',')));
-    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');},
+  _streamHash(){return hexDigest(this._ids.join(','));},
   _uuid(){const b=new Uint8Array(16);crypto.getRandomValues(b);
     b[6]=(b[6]&0x0f)|0x40;b[8]=(b[8]&0x3f)|0x80;
     const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -31772,14 +31762,18 @@ const Share={
     this.stop();_shareBase=null;
     return ok;},
   /* ===== Share · gestes de l'INVITÉ (joinByCode/billet de reprise/resume) ===== */
+  // État « pli neuf » de l'invité — IDENTIQUE sur les deux portes (joinByCode, resume) : un champ
+  // ajouté à l'une et pas à l'autre ferait diverger deux reprises du même partage.
+  _guestReset(fiche,status,t0,serverTime){
+    this.status=status;this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;
+    this.fiche=fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];
+    this._samples=[];this._sample(t0,serverTime);},
   async joinByCode(code,label){
     const t0=Date.now();
     const r=await this._io.join(String(code||'').toUpperCase().trim(),label||'Invité');
     if(!r||!r.ok)return r||{ok:false,err:'refused'};
     this.mode='guest';this.share=r.share;this.secret=r.secret;this.me=r.me;this.role=r.role;
-    this.status='active';this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;
-    this.fiche=r.fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];
-    this._samples=[];this._sample(t0,r.server_time);
+    this._guestReset(r.fiche,'active',t0,r.server_time);
     await this._loadQ(r.share);
     this._ticketSave();
     this._kick(0);
@@ -31813,9 +31807,7 @@ const Share={
     let r=null;try{r=await this._io.pull(tk.k,tk.s,0);}catch(e){}
     if(!r||!r.ok||!r.fiche){this._ticketClear();return false;}
     this.mode='guest';this.share=tk.s;this.secret=tk.k;this.me=r.me||tk.m;this.role=r.role||tk.r;
-    this.status=r.status||'active';this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;
-    this.fiche=r.fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];
-    this._samples=[];this._sample(t0,r.server_time);
+    this._guestReset(r.fiche,r.status||'active',t0,r.server_time);
     if(Array.isArray(r.events)&&r.events.length){this.fold=shareFold(r.events);
       this.cursor=r.events[r.events.length-1].seq||0;for(const e of r.events)this._ids.push(e.seq+':'+e.id);}
     this.participants=r.participants||[];
@@ -32176,15 +32168,14 @@ async function slNetProbe(){
     return;}
   try{
     if(navigator.onLine!==false){
-      const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),3500);
       /* GET et non HEAD (v5.14.21, terrain : « en 5.14.19 elle ne s'allumait pas ») — l'endpoint
          répond 405 à HEAD, statut que la sonde n'acceptait pas : injoignable À JAMAIS, même
          avec un internet parfait. Le stub d'hermétisme du banc court-circuitait exactement ce
          fetch — vérifié cette fois au curl (GET+apikey : 200, allow-origin posé). Tout statut
          HTTP vaut « joignable » : c'est la JOIGNABILITÉ qu'on mesure, pas la santé du service. */
-      const r=await fetch(SUPA.url+'/auth/v1/health',
-        {method:'GET',cache:'no-store',signal:ctl.signal,headers:{apikey:SUPA.key}});
-      clearTimeout(t);ok=!!r&&r.status>0;}
+      const r=await acFetch(SUPA.url+'/auth/v1/health',
+        {method:'GET',cache:'no-store',headers:{apikey:SUPA.key}},3500);
+      ok=!!r&&r.status>0;}
   }catch(e){ok=false;}
   _slNet.busy=false;_slNet.at=Date.now();
   if(ok!==_slNet.ok){_slNet.ok=ok;try{slSegNetPaint();}catch(e){}}}
@@ -32359,21 +32350,10 @@ function slSheet(phase){
     const reRx=async()=>{
       const st=document.getElementById('slStat');
       const say=t=>{st.innerHTML='<p class="sl-cap">'+esc(t)+'</p>';};
-      const rx=ltRx();let done=false;
       try{
         await slScanOverlay({hint:'Visez l’écran de l’hôte',
           onCancel:()=>{},
-          onText:async(txt,bin,ui)=>{
-            if(done)return;
-            const res=ltRxFeed(rx,bin);
-            if(res==='more'||res==='dup'){
-              if(rx.st)ui.ring(rx.st.nRec/rx.st.k);return;}
-            if(res!=='done')return;
-            done=true;ui.ring(1);ui.flash();ui.close();
-            let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
-            if(o&&await slOptiqueGot(o,say)){slSheet('mirror');}
-            else if(!o)say('Réception illisible — réessayez.');
-          }});
+          onText:slRxOnText(say,()=>{slSheet('mirror');})});
       }catch(e){slCamRefused(st,reRx,()=>{shareModal.classList.remove('on');});}};
     document.getElementById('slReRx').addEventListener('click',reRx);
     {const sh=document.getElementById('slShow');
@@ -32530,20 +32510,10 @@ async function slOptiqueTx(){
     clearInterval(_ltTimer);
     const st=document.getElementById('ltStat');
     const say=t=>{if(st)st.innerHTML='<p class="sl-cap">'+esc(t)+'</p>';};
-    const rx=ltRx();let done=false;
     try{
       await slScanOverlay({hint:'Visez l’écran de l’invité',
         onCancel:()=>{slOptiqueTx();},
-        onText:async(txt,bin,ui)=>{
-          if(done)return;
-          const res=ltRxFeed(rx,bin);
-          if(res==='more'||res==='dup'){if(rx.st)ui.ring(rx.st.nRec/rx.st.k);return;}
-          if(res!=='done')return;
-          done=true;ui.ring(1);ui.flash();ui.close();
-          let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
-          if(o&&await slOptiqueGot(o,say))slOptiqueTx();
-          else if(!o){say('Réception illisible — réessayez.');}
-        }});
+        onText:slRxOnText(say,()=>{slOptiqueTx();})});
     }catch(e){slCamRefused(st,()=>{},()=>{});}});
   document.getElementById('ltStop').addEventListener('click',()=>{
     clearInterval(_ltTimer);
@@ -32554,6 +32524,21 @@ async function slOptiqueTx(){
    vive = un message, ZÉRO écriture. L'heure d'émission de l'hôte corrige grossièrement les
    horloges (précision ≈ durée du transfert). */
 let _slMirror=null; // {sess, at} — la session que CE miroir reflète
+/* Récepteur d'une FONTAINE optique : rend la fermeture `onText` de slScanOverlay — jauge qui ne
+   fait que monter, dépaquetage à la complétion, continuation `onDone` au succès. Invité et hôte
+   partagent CE corps (leurs copies avaient déjà commencé à diverger) ; propriété conservée :
+   après un dépaquetage illisible le scan reste clos, on re-tape pour réessayer. */
+function slRxOnText(say,onDone){
+  const rx=ltRx();let done=false;
+  return async(txt,bin,ui)=>{
+    if(done)return;
+    const res=ltRxFeed(rx,bin);
+    if(res==='more'||res==='dup'){if(rx.st)ui.ring(rx.st.nRec/rx.st.k);return;}
+    if(res!=='done')return;
+    done=true;ui.ring(1);ui.flash();ui.close();
+    let o=null;try{o=await ltSnapUnpack(ltRxBytes(rx));}catch(e){}
+    if(o&&await slOptiqueGot(o,say))await onDone();
+    else if(!o)say('Réception illisible — réessayez.');};}
 async function slOptiqueGot(o,say){
   const sess=String(o.sess||'');
   /* RETOUR DE REPÈRES (maquette 05) : n'annote QUE la session vive de CET appareil — une
@@ -32695,13 +32680,16 @@ async function slSbGoSwitch(){
      cadences ; un invité sans canal verra ENSUITE « partage terminé », jamais un silence. */
   if(endIo&&oldShare&&oldShare!=='local')
     setTimeout(()=>{try{endIo.end(oldShare);}catch(e){}},12000);}
+// Hub LOCAL neuf pour la fiche f — LE littéral des deux portes (bascule Supabase→local et départ
+// local direct) : un champ ajouté à l'une et pas à l'autre ferait deux protocoles.
+function slNewHub(f){return slHub({now:()=>Date.now(),uid:()=>uid('p'),secret:slSecret,
+  shareId:uid('shl'),fiche:sharePayload(f),guestRole:'scribe',hostLabel:'Hôte'});}
 async function slSbHostSwitch(say){
   if(_slSwitching)return;_slSwitching=true;
   try{
     const f=Runtime.fiche;if(!f)return;
     const dcs=slSb.dcs.slice();slSb.dcs=[];slSb.pc=null;slSb.dc=null;
-    const hub=slHub({now:()=>Date.now(),uid:()=>uid('p'),secret:slSecret,
-      shareId:uid('shl'),fiche:sharePayload(f),guestRole:'scribe',hostLabel:'Hôte'});
+    const hub=slNewHub(f);
     Share.stop();Share._io=slHostIo(hub);
     SL={f,hub,live:true};
     const r=await Share.host(f).catch(()=>null);
@@ -32815,8 +32803,7 @@ async function startShareLocal(f){
   closeShareSheet();
   slScanStop();clearInterval(_ltTimer);
   if(SL&&SL.pc&&!slLiveOk()){try{SL.pc.pc.close();}catch(e){}}
-  if(!slLiveOk())SL={f,hub:slHub({now:()=>Date.now(),uid:()=>uid('p'),secret:slSecret,
-    shareId:uid('shl'),fiche:sharePayload(f),guestRole:'scribe',hostLabel:'Hôte'}),live:false};
+  if(!slLiveOk())SL={f,hub:slNewHub(f),live:false};
   shareModal.classList.add('on');
   if(slLiveOk())slSheet('live');else await slOffer();}
 async function startShare(f){
