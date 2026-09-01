@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A290)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A291)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -167,3 +167,25 @@ extras d'appareil — auth, registre d'espaces, marqueurs). Une clé d'espace no
 endroit qui existe ; la divergence qui a produit ce bogue ne peut plus se réinstaller. C'est le
 même remède que `MUTE_SEL` (v4.4.2) et `SHARE_KINDS` (A216) : une liste recopiée diverge, une
 liste unique non.
+
+## A291 — soixante-quatre gardes `typeof` d'un monde révolu (v5.20.4)
+
+`if(typeof Sync!=='undefined')Sync.schedule();`, `typeof zoomF==='function'?zoomF():1`,
+`typeof Auth==='undefined'||!Auth.signedIn()`… — soixante-quatre gardes sur des symboles
+TOP-NIVEAU du seul script applicatif, héritées des chantiers où `Sync`, `Share` ou `zoomF`
+n'existaient pas encore. Elles étaient toutes toujours vraies, et l'argument est STRUCTUREL,
+pas un inventaire : (a) pour un `const` en zone morte temporelle, `typeof` LÈVE au lieu de
+répondre `'undefined'` — si un seul de ces sites s'exécutait au top-niveau avant la déclaration,
+l'application ne démarrerait pas, or elle démarre ; (b) le run-to-completion garantit que tout
+gestionnaire, timer ou callback court APRÈS l'évaluation complète du script, où tout est déclaré.
+La garde ne pouvait donc même pas rendre le service qu'elle affichait.
+
+Purgées par familles au grep (`Sync`/`Auth`/`Share`/`Runtime`/`state`, les fonctions
+`zoomF`/`stickBase`/`sharedShown`/`syncFootSum`/`syncHdrScroll`/`monOn`/`_topModal`…, les
+`navigator`/`document`/`window` toujours définis en contexte navigateur, et les
+`X.schedule&&X.schedule()` du même acabit). **Gardés en connaissance de cause** : les vrais tests
+d'API sur des OBJETS (`navigator.wakeLock`, `document.elementsFromPoint`, `rec.blob.arrayBuffer`,
+`AbortController` — cf. la note d'acFetch) et les tests de TYPE sur des données ou des paramètres
+(`typeof before==='function'`, `state.allFrom.y==='number'`) — eux disent quelque chose de vrai.
+Le repli `Math.random` de `uid` reste aussi, en attente d'arbitrage (échouer bruyamment serait
+plus juste que dégrader l'aléa en silence).

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-EwAZl42mvSoMagEa/UtF0KwY/nqJRMOPgnont5a2AAI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lvUZFmZABxYeGHYo9nWR82n8+365utuURmNhIHYnS/w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10067,7 +10067,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.20.3';
+const APP_VERSION='5.20.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10420,7 +10420,7 @@ function canReturnToAnon(status,everSynced,liveCount){
   return (status==='pending'||status==='rejected')&&!everSynced&&liveCount>0;}
 // CET appareil a-t-il déjà synchronisé le compte courant ? En cas de doute (stockage illisible),
 // répond OUI : on préfère ne pas proposer le retour plutôt que risquer une collision d'ids.
-function accountEverSynced(){const u=(typeof Auth!=='undefined'&&Auth.user())||null;
+function accountEverSynced(){const u=Auth.user()||null;
   try{return !!(u&&u.id&&localStorage.getItem('ac-sync-init-'+u.id));}catch(e){return true;}}
 // Transfert INVERSE : ramène tout le contenu local du compte courant vers l'espace « sans
 // compte », puis bascule dessus (même bascule atomique par reload qu'un changement de compte).
@@ -10465,7 +10465,7 @@ async function anonFicheCount(){
 // compte (garde-fou espaces). Même bascule atomique qu'un changement de compte ; une
 // connexion ultérieure depuis cet espace re-proposera d'« emporter » les fiches.
 function switchToAnonSpace(){
-  if(typeof Auth!=='undefined'&&Auth.signedIn())return;
+  if(Auth.signedIn())return;
   persistAllLive();
   try{localStorage.setItem('ac-space','');}catch(e){}
   location.reload();}
@@ -10633,7 +10633,7 @@ let _rollOnce=false;   // le volet du quai se déroule au tap qui l'ouvre — pa
    quand la propriété vaut `undefined` (un navigateur peut la déclarer sans l'implémenter, et un
    harnais qui la neutralise la laisse en place). Sans cela la ligne s'afficherait là où rien ne
    peut se produire — l'inverse de la dégradation silencieuse. */
-const WAKE_OK=(typeof navigator!=='undefined'&&!!navigator.wakeLock&&typeof navigator.wakeLock.request==='function');
+const WAKE_OK=(!!navigator.wakeLock&&typeof navigator.wakeLock.request==='function');
 let wakeWanted=(()=>{try{return localStorage.getItem(spaceKey('ac-wake'))!=='0';}catch(e){return true;}})();
 let _wakeSentinel=null,_wakeBusy=false;
 function wakeActive(){return !!_wakeSentinel;}   // surface de HARNAIS (audit-doctrine) seule (Q3, v5.19.4)
@@ -11611,7 +11611,7 @@ function cxEnter(f,target){
    ce cas). `cxEnter`, lui, DÉCLARE l'événement (ancre de retour, repli du passage interrompu) :
    c'est un geste de conduite, il reste au lead. Cible externe : même porte que cxEnter (openRel). */
 function cxGo(f,target){
-  if(typeof Share!=='undefined'&&Share.mode==='guest'&&Share.role!=='lead'){
+  if(Share.mode==='guest'&&Share.role!=='lead'){
     const local=(f&&f.blocks||[]).some(b=>b&&b.id===target);
     if(!local){if(relTarget(target))openRel(target);return;}
     jumpToBlock(f,target);return;}
@@ -12117,7 +12117,7 @@ function markPrefsDirty(){
 // Préférences par utilisateur (thème/taille/accent, v4.5) : marque + programme une synchro.
 function schedulePrefsPush(){
   markPrefsDirty();
-  if(typeof Sync!=='undefined'&&typeof Auth!=='undefined'&&Auth.signedIn())Sync.schedule();}
+  if(Auth.signedIn())Sync.schedule();}
 // Catégories TOUJOURS affichées par ordre alphabétique (filtres, sélecteur, gestionnaire), quel que
 // soit l'ordre de création/stockage. localeCompare 'fr' -> tri correct des accents.
 const byCatName=(a,b)=>(a.name||'').localeCompare(b.name||'','fr',{sensitivity:'base'});
@@ -13370,14 +13370,14 @@ async function updateStorageInfo(){
     else{
       // Poids des documents PDF joints (somme des métadonnées en mémoire — aucun blob n'est relu).
       let attB=0;fiches.forEach(x=>(x.docs||[]).forEach(a=>attB+=a.size||0));
-      _stgSnap={signed:(typeof Auth!=='undefined'&&Auth.signedIn()),pers,usage:est.usage,quota:est.quota,attBytes:attB,offline:!navigator.onLine};
+      _stgSnap={signed:(Auth.signedIn()),pers,usage:est.usage,quota:est.quota,attBytes:attB,offline:!navigator.onLine};
     }
   }catch(e){_stgSnap=null;}
   paintStorage();
   refreshAttOffline();   // même cadence : la ligne « Documents PDF » du pied de la sidebar
   /* … et son pendant SUR LA FICHE : le téléchargement de fond de la synchro rend une pièce
      disponible pendant qu'on lit la page d'entrée — la ligne doit le dire sans qu'on recharge. */
-  if(typeof state!=='undefined'&&state.view==='read'&&state.fiche)refreshPreReady(state.fiche);
+  if(state.view==='read'&&state.fiche)refreshPreReady(state.fiche);
 }
 // Écrit le libellé aux deux endroits possibles (la sidebar est masquée en lecture, le pied de
 // lecture n'existe pas à l'accueil : chacun se remplit s'il est présent).
@@ -13392,13 +13392,13 @@ function paintStorage(){
      « copie unique, non protégé » à quelqu'un dont les fiches partaient déjà dans le cloud. Même
      remède que pour le réseau — l'état volatil se relit à la peinture, jamais à la mesure. */
   if(_stgSnap){_stgSnap.offline=!navigator.onLine;
-    _stgSnap.signed=(typeof Auth!=='undefined'&&Auth.signedIn());}
+    _stgSnap.signed=(Auth.signedIn());}
   const s=_stgSnap?storageState(_stgSnap):null;
   const el=document.getElementById('storageInfo');
   if(el){el.innerHTML=s?('<span class="stg-ic">'+(s.mark||'')+'</span><span class="stg-tx">'+s.main+'</span>'
     +uiIcon('chev',14,{sw:2.4,cls:'stg-chev'})):'';
     if(s)el.title=s.tip;}
-  if(typeof syncFootSum==='function')syncFootSum();   // le stockage entre dans la décision de repli
+  syncFootSum();   // le stockage entre dans la décision de repli
   const cf=main&&main.querySelector?main.querySelector('.crisis-footer .cf-stg'):null;
   if(cf){cf.innerHTML=s?s.short:'';if(s)cf.title=s.tip;}
 }
@@ -13531,7 +13531,7 @@ function syncFootSum(){
 let _attOffBusy=false;
 async function dlMissingAtts(){
   if(_attOffBusy)return;
-  if(typeof Auth==='undefined'||!Auth.signedIn()){toast('Connectez-vous pour récupérer les documents depuis le cloud.');return;}
+  if(!Auth.signedIn()){toast('Connectez-vous pour récupérer les documents depuis le cloud.');return;}
   if(navigator.onLine===false){toast('⚠ Aucun réseau : connectez-vous à Internet puis réessayez.');return;}
   const el=document.getElementById('attOffline');
   let info=null;
@@ -13630,14 +13630,14 @@ async function load(){
   // compte » depuis la confirmation de déconnexion (passés par un reload, cf. doSignOut et
   // returnLocalDataToAnon) : rouvrir l'écran de connexion, pour arriver au même endroit que
   // sans effacement (la fenêtre Compte restait alors ouverte sur le formulaire de connexion).
-  try{if(localStorage.getItem('ac-reopen-auth')){localStorage.removeItem('ac-reopen-auth');if(typeof openAuth==='function')openAuth();}}catch(e){}
+  try{if(localStorage.getItem('ac-reopen-auth')){localStorage.removeItem('ac-reopen-auth');openAuth();}}catch(e){}
   // Transfert « Les emporter dans ce compte » échoué avant le reload (cf. connexion) : expliquer.
   try{if(localStorage.getItem('ac-move-failed')){localStorage.removeItem('ac-move-failed');
     toast('⚠ Le transfert des fiches locales vers le compte a échoué : elles restent « hors compte », accessibles via le lien de l\'écran de connexion.',12000);}}catch(e){}
   // Données prêtes (backend choisi) : on lance une première synchro si l'utilisateur est connecté.
   // Les modifications faites pendant une déconnexion sont d'abord soumises à confirmation
   // (appareil partagé) — le push les retient de toute façon tant que ce n'est pas tranché.
-  if(typeof Sync!=='undefined'&&Auth.signedIn())confirmHeldEdits().then(()=>Sync.full()).catch(()=>{});
+  if(Auth.signedIn())confirmHeldEdits().then(()=>Sync.full()).catch(()=>{});
 }
 /* Fermeture standard d'une fenêtre (.ai-modal), câblée UNE fois par fenêtre : le bouton ✕ (.ai-x)
    et le clic sur le fond déclenchent la même fonction de fermeture (Échap est géré globalement,
@@ -13657,7 +13657,7 @@ async function saveCats(scope){try{await Data.setCats(categories);}catch(e){}
   // Horodatage + marqueur "à pousser" PAR BIBLIOTHÈQUE (clé '' = Perso, sinon id de bibliothèque).
   const sk=(scope===undefined?activeCatScope():scope)||'';
   try{localStorage.setItem(spaceKey('ac-cats-updated:'+sk),String(Date.now()));localStorage.setItem(spaceKey('ac-cats-dirty:'+sk),'1');}catch(e){}
-  if(typeof Sync!=='undefined')Sync.schedule();}
+  Sync.schedule();}
 /* ----- Modifications faites DÉCONNECTÉ dans l'espace d'un compte (appareil partagé) -----
    Après une déconnexion, l'espace local du compte reste affiché et modifiable (promesse
    hors-ligne). Revers : n'importe qui passant derrière sur le MÊME appareil peut alors créer,
@@ -13673,7 +13673,7 @@ function heldEdits(){try{const a=JSON.parse(localStorage.getItem(spaceKey('ac-he
 function setHeldEdits(a){try{a&&a.length?localStorage.setItem(spaceKey('ac-held-edits'),JSON.stringify(a.slice(0,500))):localStorage.removeItem(spaceKey('ac-held-edits'));}catch(e){}}
 function markHeldEdit(id){
   if(currentSpace()==='')return;                                  // espace sans compte : géré par le dialogue « emporter »
-  if(typeof Auth!=='undefined'&&Auth.signedIn())return;           // connecté : synchro immédiate, rien à retenir
+  if(Auth.signedIn())return;           // connecté : synchro immédiate, rien à retenir
   const a=heldEdits();if(a.indexOf(id)<0){a.push(id);setHeldEdits(a);}}
 // À la reconnexion (saisie du code, ouverture de l'app ou de la fenêtre Compte) : liste les
 // fiches modifiées pendant la déconnexion et demande quoi en faire AVANT tout push.
@@ -13694,19 +13694,19 @@ async function confirmHeldEdits(){
   try{ans=await confirmDlg('Pendant que ce compte était déconnecté, '+ids.length+' fiche'+(ids.length>1?'s ont été modifiées':' a été modifiée')+' sur cet appareil : '+labels.join(', ')+(more>0?' et '+more+' autre'+(more>1?'s':''):'')+'. Si c\'est bien vous, synchronisez-les ; sinon, écartez-les (les versions de votre espace en ligne seront rétablies).',
     {title:'Modifications hors connexion',yes:'Les synchroniser',no:'Les écarter'});}
   finally{_heldDlgOpen=false;}
-  if(ans===true){setHeldEdits([]);if(typeof Sync!=='undefined')Sync.schedule();}
+  if(ans===true){setHeldEdits([]);Sync.schedule();}
   else if(ans===false){
     for(const id of ids){try{await Data.del(id);}catch(e){}
       const i=fiches.findIndex(x=>x.id===id);if(i>=0)fiches.splice(i,1);
       if(liveSessions[id]){delete liveSessions[id];}}
     try{localStorage.removeItem(spaceKey(Sync._cursorKey));}catch(e){}   // re-pull complet (idempotent) -> versions cloud rétablies
-    setHeldEdits([]);render();if(typeof Sync!=='undefined')Sync.schedule();
+    setHeldEdits([]);render();Sync.schedule();
     toast('Modifications écartées : les versions de votre espace en ligne seront rétablies à la prochaine synchronisation.');}
 }
 async function persist(f){try{f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);
   // Attribution : si connecté, on signe la modification (affiché dans les bibliothèques partagées).
-  if(typeof Auth!=='undefined'&&Auth.signedIn()){const u=Auth.user();if(u&&u.email)f.updatedBy=u.email;}
-  await Data.put(f);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}catch(e){toast('⚠ Stockage saturé. Exportez vos fiches puis allégez les images.',9000);return false;}}
+  if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)f.updatedBy=u.email;}
+  await Data.put(f);updateStorageInfo();Sync.schedule();return true;}catch(e){toast('⚠ Stockage saturé. Exportez vos fiches puis allégez les images.',9000);return false;}}
 // Enregistre la note personnelle d'une fiche (débouncé par l'appelant). t vide = effacement :
 // l'entrée est conservée (t:'') pour propager l'effacement aux autres appareils (last-write-wins).
 async function saveNote(ficheId,text){
@@ -13714,7 +13714,7 @@ async function saveNote(ficheId,text){
   if(!t.trim()&&!notes[ficheId])return;                       // jamais eu de note -> rien à créer
   notes[ficheId]={t:t.trim()?t:'',at:Date.now(),dirty:true};
   try{await Data.setNotes(notes);}catch(e){toast('⚠ Stockage saturé : note non enregistrée.');return;}
-  if(typeof Sync!=='undefined')Sync.schedule();}
+  Sync.schedule();}
 // Suppression : DOUCE (tombstone) si connecté -> propage l'effacement aux autres appareils, purgée
 // localement une fois poussée (Sync._push). Si DÉCONNECTÉ : suppression DURE (aucun cloud à informer
 // -> pas de tombstone inutile qui encombrerait le stockage hors-ligne ; comportement identique à avant).
@@ -13727,25 +13727,25 @@ async function softDelete(f){if(!f)return;
   // Dans l'espace d'un COMPTE — même déconnecté (hors-ligne) — on pose un TOMBSTONE : sans lui,
   // une fiche supprimée hors-ligne restait dans le cloud et sur les autres appareils, et le
   // curseur de pull (conservé par espace) ne la re-téléchargeait jamais -> divergence définitive.
-  const anonSpace=(typeof currentSpace==='function')?currentSpace()==='':true;
-  if(anonSpace&&(typeof Auth==='undefined'||!Auth.signedIn())){
+  const anonSpace=(currentSpace()==='');
+  if(anonSpace&&(!Auth.signedIn())){
     if(notes[f.id]){delete notes[f.id];try{await Data.setNotes(notes);}catch(e){}}
     try{await Data.del(f.id);}catch(e){warnDeleteFailed();}return;}
   // La note personnelle attachée suit le sort de la fiche (t:'' -> propagé aux autres appareils).
   if(notes[f.id]&&notes[f.id].t){notes[f.id]={t:'',at:Date.now(),dirty:true};try{await Data.setNotes(notes);}catch(e){}}
-  f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);try{await Data.put(f);}catch(e){warnDeleteFailed();}if(typeof Sync!=='undefined')Sync.schedule();}
+  f.deletedAt=Date.now();f.updatedAt=Date.now();f.dirty=true;markHeldEdit(f.id);try{await Data.put(f);}catch(e){warnDeleteFailed();}Sync.schedule();}
 // Protocoles : même mécanique que persist()/softDelete() pour les fiches. (La retenue des
 // modifications hors connexion — heldEdits — reste propre aux fiches ; à étendre avec la
 // synchronisation des protocoles.)
 async function persistProtocol(p){try{p.updatedAt=Date.now();p.dirty=true;
-  if(typeof Auth!=='undefined'&&Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
-  await Data.putProtocol(p);updateStorageInfo();if(typeof Sync!=='undefined')Sync.schedule();return true;}
+  if(Auth.signedIn()){const u=Auth.user();if(u&&u.email)p.updatedBy=u.email;}
+  await Data.putProtocol(p);updateStorageInfo();Sync.schedule();return true;}
   catch(e){toast('⚠ Stockage saturé. Exportez vos données puis allégez les images.',9000);return false;}}
 async function softDeleteProtocol(p){if(!p)return;
-  const anonSpace=(typeof currentSpace==='function')?currentSpace()==='':true;
-  if(anonSpace&&(typeof Auth==='undefined'||!Auth.signedIn())){try{await Data.delProtocol(p.id);}catch(e){warnDeleteFailed();}return;}
+  const anonSpace=(currentSpace()==='');
+  if(anonSpace&&(!Auth.signedIn())){try{await Data.delProtocol(p.id);}catch(e){warnDeleteFailed();}return;}
   p.deletedAt=Date.now();p.updatedAt=Date.now();p.dirty=true;try{await Data.putProtocol(p);}catch(e){warnDeleteFailed();}
-  if(typeof Sync!=='undefined')Sync.schedule();}
+  Sync.schedule();}
 // Ramasse-miettes des documents PDF : supprime les blobs qu'AUCUNE entité ne référence plus
 // (fiches vivantes ET tombstones — un tombstone garde ses métadonnées tant qu'il n'est pas purgé,
 // donc son document reste restaurable). Appelé au démarrage (load) : simple, idempotent, rattrape
@@ -14498,7 +14498,7 @@ function syncBlkReturn(){
     b.onclick=()=>{const c=_bkrCard;if(!c)return;
       /* Le MÊME atterrissage que partout ailleurs : sous les couches collantes, jamais collé
          au bord. C'est une navigation DEMANDÉE d'un tap, pas un défilement autonome. */
-      const y=window.scrollY+c.getBoundingClientRect().top-(typeof stickBase==='function'?stickBase():64)-8;
+      const y=window.scrollY+c.getBoundingClientRect().top-(stickBase())-8;
       window.scrollTo({top:Math.max(0,y),behavior:'auto'});};}
   _bkrIo=obsBkr(host,card);}
 /* Le compte se peint SUR PLACE (anti-churn) : hors de la clé, il ne peut pas provoquer de
@@ -14520,7 +14520,7 @@ function majBkrCnt(host,cnt){
    l'observateur AU LIEU d'attendre le prochain tick. Aucun délai, aucun seuil : la barre ne peut
    plus se tromper de sujet. */
 function obsBkr(host,card){
-  const top=Math.round((typeof stickBase==='function'?stickBase():64));
+  const top=Math.round((stickBase()));
   const dh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock-h'))||64;
   const bas=Math.round(dh+16);
   const io=new IntersectionObserver(es=>{es.forEach(e=>{
@@ -14796,7 +14796,7 @@ function updateRtStrip(now){
        l'intermittence mesurée : une largeur mesurée avec la fonte de repli n'est pas celle qu'on
        aura. Sans ce terme, la première mesure — souvent faite avant que Manrope ne s'applique —
        était retenue pour toujours. Il ne prend que deux valeurs, donc au plus une re-mesure. */
-    +'|'+((typeof document!=='undefined'&&document.fonts)?document.fonts.status:'');
+    +'|'+(document.fonts?document.fonts.status:'');
   /* STRUCTURE puis VALEURS, dans cet ordre — et les valeurs sont peintes AVANT toute mesure,
      sinon la boucle d'ajustement mesurerait des segments vides et croirait que tout tient. */
   /* Les VALEURS sont peintes à part (`textContent`), donc absentes de la chaîne : un fantôme qui
@@ -14919,7 +14919,7 @@ function updateRtStrip(now){
       recouvre (doctrine v4.30.0), pour que le retour système le referme au lieu de sortir. */
    if(!mqRail.matches){const open=!state.rtOpen;state.rtOpen=open?'dock':false;
      if(open){_rollOnce=true;                       // le déroulé appartient à CE tap, et à lui seul
-       if(typeof _histArm==='function')_histArm();}
+       _histArm();}
      renderKeepAnchor('#cbTimers');return;}
    const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
@@ -15046,7 +15046,7 @@ async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?
       _putSessionSafe(t);
       sessions=sessions.filter(x=>x.id!==id);
       Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});
-      Sync.schedule&&Sync.schedule();render();return;}}
+      Sync.schedule();render();return;}}
   try{await Data.delSession(id);}catch(e){}sessions=sessions.filter(x=>x.id!==id);Object.values(liveSessions).forEach(R=>{if(R.sessionId===id){delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';}});render();}
 
 /* ===== Render =====
@@ -15116,7 +15116,7 @@ function applyViewChrome(){
       sans titre et sans phrase n'y serait plus qu'une bande hachurée vide. Restent l'exercice et
       l'invité, qui ont une PHRASE que la pilule ne dit pas. */
    const bandOff=!(Runtime.exercise
-     ||(typeof sharedShown==='function'&&sharedShown()&&!state.previewFrom));
+     ||(sharedShown()&&!state.previewFrom));
    /* ⚠ ESSAYÉ, MESURÉ, REFUSÉ (v5.0.0) — EFFACER LE BANDEAU-TITRE AU DÉMARRAGE.
       L'idée : il pèse 64 px à 320 et 390 px (44 à 430) en haut du premier écran de session, et le
       RELAIS de la barre (`#brandTitle`, v4.23.0) sait déjà porter le titre — on ne le supprimerait
@@ -15179,7 +15179,7 @@ function applyViewChrome(){
          tenant, ici, à partir de l'ÉTAT et de rien d'autre. */
       const xEss=crisis&&!!state.previewFrom;
       const xExo=on&&!xEss&&!!Runtime.exercise&&Runtime.ficheId===state.fiche.id;
-      const xInv=on&&!xEss&&!xExo&&(typeof sharedShown==='function'&&sharedShown());
+      const xInv=on&&!xEss&&!xExo&&(sharedShown());
       bs.classList.toggle('exo',xExo);bs.classList.toggle('inv',xInv);
       m.textContent=xEss?'■ Aperçu':(!on?'':(xExo?'▲ Exercice':(xInv?'▪ Vous suivez':'■ Mode crise')));
       syncBrandSur();}}
@@ -15212,7 +15212,7 @@ function applyViewChrome(){
         L'EXERCICE GARDE LA PRIORITÉ sur le placard, et ce n'est pas négociable : « ceci est une
         répétition » prime sur « vous suivez » — le premier protège d'une méprise clinique, le
         second est une information de rôle, que le quai porte de toute façon en permanence. */
-     const inv=!exo&&!state.previewFrom&&(typeof sharedShown==='function'&&sharedShown());
+     const inv=!exo&&!state.previewFrom&&(sharedShown());
      /* L'ESSAI EST UNE EXCEPTION, ET IL L'EST DEVENU (cf. le bloc CSS `.ess`) : la barre dit le
         mode, le bandeau dit ce que la pilule ne peut pas dire — la texture et la conséquence. */
      const ess=!exo&&!!state.previewFrom;
@@ -15430,7 +15430,7 @@ function applyViewChrome(){
    if(th){th.hidden=!(state.view==='read'||state.view==='protocolRead');
      if(!th.hidden&&!th.innerHTML)applyTheme(_themeMode());}}
   // Menu ⋯ : réinitialisé à chaque rendu — chaque vue fiche/protocole (re)déclare ses rangées.
-  if(typeof setMoreMenu==='function')setMoreMenu(null);
+  setMoreMenu(null);
   // Le pied de page vit DANS la sidebar sur l'accueil large : avant tout main.innerHTML, on le
   // remet dans .app (sinon le wipe le détruirait — ids et écouteurs perdus) ; renderHomeList
   // le replacera en bas de la sidebar si elle existe. Même sauvetage pour le chrome de crise,
@@ -15852,7 +15852,7 @@ function syncHdrScroll(){
      tient toujours là où elle protège. Ici, le volet est une surface TRANSITOIRE qu'on ouvre d'un
      tap : elle doit suivre la capsule où qu'elle soit, et c'est précisément ce qu'on lui demande. */
   {const q=document.getElementById('crisisDock');
-   const z=(typeof zoomF==='function'?zoomF():1)||1;
+   const z=zoomF()||1;
    const b=(q&&!q.hidden)?Math.round(q.getBoundingClientRect().bottom/z):0;
    const nv=b>0?b+'px':'';
    if(_quaiB!==nv){_quaiB=nv;
@@ -16464,7 +16464,7 @@ window.addEventListener('orientationchange',()=>setTimeout(azrPoseBox,350));
    innerHeight est en px VISUELS : divisé par zoomF(), comme toute mesure réinjectée (règle 10). */
 function pageMaxScroll(){
   const se=document.scrollingElement||document.documentElement;
-  const z=(typeof zoomF==='function'?zoomF():1)||1;
+  const z=zoomF()||1;
   const vue=Math.max(se.clientHeight,Math.round(window.innerHeight/z));
   return Math.max(0,se.scrollHeight-vue);}
 function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)return;
@@ -16563,12 +16563,12 @@ function azrAim(on){const h=document.documentElement;if(h.classList.contains('az
   /* À la prise : une passe FRAÎCHE avant de geler — le rembourrage de visée consomme `--hdr-h` à
      l'instant même où la classe se pose, et la valeur doit être celle de l'en-tête tel qu'il est
      (cf. la re-mesure après bascule dans syncHdrScroll, v5.10.5). */
-  if(on&&typeof syncHdrScroll==='function')syncHdrScroll();
+  if(on)syncHdrScroll();
   h.classList.toggle('azr-aim',!!on);
   /* À la relâche : l'état plié/déplié de l'en-tête, FIGÉ pendant la visée (cf. syncHdrScroll),
      se rejoue UNE fois — l'en-tête se pose alors dans l'état que la position finale commande,
      sans avoir battu pendant le geste. */
-  if(!on&&typeof syncHdrScroll==='function'){syncHdrScroll();
+  if(!on){syncHdrScroll();
     /* Écrêtage de sûreté (v5.10.5) : si la passe rejouée raccourcit le document, un relâchement
        tout en bas laisserait scrollY au-delà du maximum — iOS le règle en rebond visible. */
     const se=document.scrollingElement;
@@ -19939,7 +19939,7 @@ function shareDiff(a,b){
        « montrer à un autre écran » une fontaine que l'HÔTE saura reconnaître (retours compris).
        La clé `id` est déjà dans la liste blanche des payloads — rien ne change au serveur. */
     out.push({kind:'session_start',payload:{t:b.startedAt,exo:!!b.exercise,
-      id:(typeof Runtime!=='undefined'&&Runtime&&Runtime.sessionId)||undefined}});
+      id:(Runtime&&Runtime.sessionId)||undefined}});
   return out;}
 /* Base de comparaison de l'émission. Remise à jour APRÈS l'application d'un lot distant : sans
    cela, ce qu'on vient de recevoir serait re-diffé et RENVOYÉ à l'expéditeur — un écho qui ferait
@@ -20713,7 +20713,7 @@ function tmReflow(now){
     if(tl.some(t=>!t))return;                       // une carte sans minuteur : on ne touche à rien
     const want=tmLiveOrder(tl,now).map(t=>'tmcard-'+t.id);
     if(want.join('|')===list.map(c=>c.id).join('|'))return;
-    const z=(typeof zoomF==='function'?zoomF():1)||1;
+    const z=zoomF()||1;
     const av=new Map(list.map(c=>[c.id,c.getBoundingClientRect().top]));
     const mk=document.createComment('tm');p.insertBefore(mk,list[0]);
     want.forEach(id=>{const el=document.getElementById(id);if(el)p.insertBefore(el,mk);});
@@ -20919,8 +20919,8 @@ const tagSrc=(f,ex)=>({
   counters:[...((f&&f.counters)||[]),...((ex&&ex.counters)||[])]});
 /* Les objets ad hoc du Runtime VIF — un seul point de lecture, pour que les six appelants ne
    recopient pas la même expression (elle finirait par diverger). */
-const rtExtra=()=>({timers:Object.values((typeof Runtime!=='undefined'&&Runtime.timers)||{}).filter(t=>t&&t.adhoc),
-  counters:((typeof Runtime!=='undefined'&&Runtime.adhocCounters)||[])});
+const rtExtra=()=>({timers:Object.values(Runtime.timers||{}).filter(t=>t&&t.adhoc),
+  counters:(Runtime.adhocCounters||[])});
 function tagAll(f,tags,ex){
   const out=[],vus=Object.create(null);const S=tagSrc(f,ex);
   /* ⚠ UN OBJET SANS NOM EXISTE QUAND MÊME (v5.6, signalé à l'usage : « un compteur sans nom ne
@@ -21313,7 +21313,7 @@ function tkPaintSug(id,q){
      « Action n ». C'est le comportement juste — son vocabulaire est le sien — mais le taire
      laisserait croire à un mot partagé. On ne le signale QUE pendant un partage : hors partage la
      question ne se pose pas, et la mention serait du bruit. Un mot, jamais une couleur seule. */
-  const part=(typeof Share!=='undefined')&&Share.mode!=='off';
+  const part=Share.mode!=='off';
   z.innerHTML=hits.map(h=>{
     const perso=part&&h.src==='perso';
     return '<button type="button" class="tk-pick'+(perso?' own':'')+'" data-tkpick="'
@@ -23498,7 +23498,7 @@ function syncCxKey(crisis){
    patron que `--dock-h`, mesuré au même endroit et au même moment. */
 function syncSheetH(){
   const sh=document.getElementById('dockSheet');
-  const v=(sh&&!sh.hidden)?Math.round(sh.getBoundingClientRect().height/((typeof zoomF==='function'?zoomF():1)||1)):0;
+  const v=(sh&&!sh.hidden)?Math.round(sh.getBoundingClientRect().height/(zoomF()||1)):0;
   const cur=document.documentElement.style.getPropertyValue('--sheet-h');
   const nv=v?(v+8)+'px':'0px';
   if(cur!==nv)document.documentElement.style.setProperty('--sheet-h',nv);}
@@ -23812,7 +23812,7 @@ function syncZoomWidth(){
   ZOOM_W_STEPS.forEach(b=>cl.toggle('zw'+b,w<b));
   /* v5.18 : l'accueil large a DEUX densités (cartes < 1200, tableau au-delà) — franchir le
      palier re-rend la liste. Idempotent hors accueil. */
-  if(av!==cl.contains('zw1200')&&state.view==='library'&&typeof render==='function')try{render();}catch(e){}
+  if(av!==cl.contains('zw1200')&&state.view==='library')try{render();}catch(e){}
   // Le menu ⋯ peut être OUVERT quand la place change (rotation, clavier, taille du texte) : sa
   // hauteur est une mesure, elle se refait donc ici aussi. No-op s'il est fermé.
   try{fitMoreMenu();}catch(e){}}
@@ -23909,7 +23909,7 @@ function ovScrollToInst(idx){ovScrollEl(main.querySelector('.ov-block[data-ovi="
    geste local peint les deux d'un coup — l'utilisateur voit sa navigation ET ce qui l'attendait,
    dans le même mouvement. C'est exactement « l'acquittement par l'action ». */
 function shareDrainDefer(){
-  const S=(typeof Share!=='undefined')?Share:null;
+  const S=Share;
   const q=(S&&S._defer)||[];
   if(!q.length)return 0;
   S._defer=[];
@@ -24806,7 +24806,7 @@ function svSheetEls(racine){const wrap=(racine||main).querySelector('.sv-wrap');
   const sc=wrap.querySelector('.sv-scroll'),ca=wrap.querySelector('.sv-calant'),sh=wrap.querySelector('.sv-sheet');
   return (sc&&ca&&sh)?{wrap,sc,ca,sh}:null;}
 // La feuille du moment : celle de la fenêtre « Tableau » si elle est ouverte, sinon celle de main.
-function svRoot(){return (typeof planSheetOpen==='function'&&planSheetOpen()&&_pmVue==='page')
+function svRoot(){return (planSheetOpen()&&_pmVue==='page')
   ?document.getElementById('planBody'):main;}
 /* UN CALANT PARENT reçoit W×k et H×k — sinon le défileur ignore la transformation et ne défile
    sur rien. `offsetWidth`/`offsetHeight` sont des mesures de MISE EN PAGE : elles ignorent le
@@ -25443,7 +25443,7 @@ function monRender(){
      source que le compte-rendu : aucune seconde vérité, et un repère sans étiquette retombe sur
      « Repère n » plutôt que sur un mot inventé (règle du journal référentiel). */
   const evs=(R.events||[]).filter(e=>!e.voidAt);
-  const labs=tkLabels(evs,f,typeof myTags==='function'?myTags():[]);
+  const labs=tkLabels(evs,f,myTags());
   const last=evs.length?evs[evs.length-1]:null;
   const fh=last?`Dernier repère : <b>${esc(labs[evs.length-1]||'Repère')}</b> · ${esc(fmtHMS(last.t))}`
     :'Aucun repère horodaté';
@@ -25819,13 +25819,13 @@ function reviewPanelHtml(f,notes){
   const n=notes||reviewNotes(f);
   /* Q1 — le volet existe aussi quand il n'a que des PROPOSITIONS à faire : une fiche sans défaut
      est précisément celle à qui il reste le plus à apprendre. */
-  if(!n.length&&!((typeof reviewOffers==='function'&&f&&f.blocks)?reviewOffers(f):[]).length)return '';
+  if(!n.length&&!((f&&f.blocks)?reviewOffers(f):[]).length)return '';
   /* UNE LIGNE, DÉPLIABLE (maquette MK). Le volet vit en pied de page et n'a qu'un travail :
      dire COMBIEN il reste à relire, et sur quoi, sans manger l'écran. Replié, il tient en une
      ligne — compte + cibles abrégées ; déplié, il rend ses rangées d'ancrage. La remarque
      DÉTAILLÉE, elle, vit sous la ligne qu'elle vise (`stepNote`) : ici c'est un BILAN, pas une
      seconde explication. */
-  const of=(typeof reviewOffers==='function'&&f&&f.blocks)?reviewOffers(f):[];
+  const of=(f&&f.blocks)?reviewOffers(f):[];
   const res=n.map(x=>x.cible).join(' · ');
   /* ⚠ OUVERT PAR DÉFAUT (demande utilisateur, et c'est cohérent) : le volet N'EXISTE PAS quand il
      n'a rien à dire (`if(!n.length)return ''`) — il ne peut donc jamais être du bruit permanent,
@@ -27723,7 +27723,7 @@ async function openPdfViewer(att,entity,page,hl){
     // Pas encore sur cet appareil : tentative de téléchargement IMMÉDIATE si connecté (le
     // téléchargement de fond de la synchro n'est peut-être pas passé par ce document).
     // `entity` (fiche ou protocole hôte) fournit le périmètre -> chemin cloud.
-    if(typeof Auth!=='undefined'&&Auth.signedIn()&&navigator.onLine!==false){
+    if(Auth.signedIn()&&navigator.onLine!==false){
       toast('Téléchargement du document…');
       try{const path=attStoragePath(entity?(entity.library||null):null,(Auth.user()||{}).id,att.id);
         const r=await storageReq('GET',path);const buf=await r.arrayBuffer();
@@ -29384,7 +29384,7 @@ function setSyncChip(state,text){
     ini.hidden=!show;ini.textContent=show?em.slice(0,2).toUpperCase():'';
     if(top){top.classList.toggle('ini-on',show);top.title=show?'Compte — '+em:'Compte';}}}
   const chip=document.getElementById('syncChip');if(!chip){updateSyncBanner();return;}
-  if(!Auth.signedIn()){chip.hidden=true;if(typeof syncFootSum==='function')syncFootSum();updateSyncBanner();return;}
+  if(!Auth.signedIn()){chip.hidden=true;syncFootSum();updateSyncBanner();return;}
   chip.hidden=false;chip.className='sync-chip '+(state||'ok');
   /* Marque de 14 px, comme les trois autres rangées du pied (cf. le bloc CSS `.sync-chip`). */
   {const ic=SYNC_ICO[state||'ok']||'check';   // nom CALCULÉ : hors portée de check-icons, les six
@@ -29392,7 +29392,7 @@ function setSyncChip(state,text){
   const clickable=state==='err'||state==='pending'||state==='rejected';
   chip.onclick=clickable?(state==='err'?openSyncErr:openAuth):null;
   chip.title=state==='err'?"Cliquer pour voir le détail de l'erreur":(clickable?"Cliquer pour plus d'informations":'');
-  if(typeof syncFootSum==='function')syncFootSum();   // l'état de synchro entre dans la décision de repli
+  syncFootSum();   // l'état de synchro entre dans la décision de repli
   updateSyncBanner();}
 // Bandeau (page d'accueil UNIQUEMENT, cf. renderFiches) qui reprend l'état de la pastille de
 // synchro mais en beaucoup plus court : juste le titre, pas le paragraphe d'explication (réservé à
@@ -29878,7 +29878,7 @@ function bindAccountPrefs(body){
       +'serveur de synchronisation et disponibles sur vos autres appareils. Les sessions en cours '
       +'ne partent jamais, et la trace de vérification reste sur l’appareil qui l’a produite.',
       {title:'Synchroniser l’historique ?',yes:'Synchroniser'}))return;
-    setSessSync(on);renderAuth();if(on)Sync.schedule&&Sync.schedule();};}
+    setSessSync(on);renderAuth();if(on)Sync.schedule();};}
   bindTagsPref(body);
   {const ex=body.querySelector('#authExport');if(ex)ex.onclick=exportAll;}}
 // Écran de connexion (déconnecté) : saisie de l'e-mail puis du code OTP reçu.
@@ -29954,7 +29954,7 @@ function renderAuthLogin(body){
       // Reconnexion au MÊME compte : d'éventuelles modifications faites pendant la déconnexion
       // (appareil partagé) sont soumises à confirmation AVANT la première synchro.
       await confirmHeldEdits();
-      if(typeof Sync!=='undefined')Sync.full();};
+      Sync.full();};
   }}
 const authModal=document.getElementById('authModal');
 function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth();
@@ -30122,7 +30122,7 @@ let _moreBuild=null;
 function shareMenuRefresh(){
   /* La feuille DIRECTE montre les participants (v5.14.15) : elle se repeint sur le même signal
      que le menu — un changement de la signature des participants (_cycle). */
-  try{if(typeof slLiveOk==='function'&&slLiveOk()&&shareModal&&shareModal.classList.contains('on')
+  try{if(slLiveOk()&&shareModal&&shareModal.classList.contains('on')
     &&document.querySelector('#shareBody .sl-status'))slSheet('live');}catch(e){}
   if(typeof _moreBuild!=='function')return;
   try{_moreBuild();}catch(e){return;}
@@ -30549,7 +30549,7 @@ function attStoragePath(libraryId,ownerUid,attId){return libraryId?('l/'+library
 // Lecture commune des deux afficheurs (pied de stockage, avant-départ) : null = rien à dire.
 async function attInfoFor(list){
   try{return attMissingInfo(list,await IDB.getAttIds(),
-    (typeof Auth!=='undefined'&&Auth.signedIn())?(Auth.user()||{}).id:null);}catch(e){return null;}}
+    (Auth.signedIn())?(Auth.user()||{}).id:null);}catch(e){return null;}}
 function attMissingInfo(entities,haveIds,uid){
   const have=new Set(haveIds||[]),seen=new Set(),paths=Object.create(null),missing=[];
   (entities||[]).forEach(f=>{if(!f||f.deletedAt)return;(f.docs||[]).forEach(a=>{
@@ -31382,7 +31382,7 @@ const Share={
     // En arrière-plan iOS SUSPEND l'environnement JS : ce n'est pas un ralentissement, c'est un
     // arrêt. On n'annonce donc aucune cadence de fond — cette valeur ne vaut que pour les moteurs
     // qui continuent de tourner.
-    if(typeof document!=='undefined'&&document.visibilityState==='hidden')return 15000;
+    if(document.visibilityState==='hidden')return 15000;
     const idle=Date.now()-this._act;
     /* PLANCHER DE 5 s TANT QU'UNE CRISE EST À L'ÉCRAN. La dégradation à 10 s suppose que
        « personne ne fait rien » — or pendant un cycle de compressions de deux minutes, PERSONNE NE
@@ -31392,7 +31392,7 @@ const Share={
        de six requêtes vides par minute ; le coût de l'autre côté est un miroir qui retarde au pire
        instant. `crisisOnScreen` est le prédicat unique de « une crise est à l'écran », déjà
        employé par le quai et la mise en attente des banderoles. */
-    const sol=(typeof crisisOnScreen==='function'&&crisisOnScreen())?5000:10000;
+    const sol=crisisOnScreen()?5000:10000;
     return idle<30000?SHARE_NOMINAL_MS:(idle<120000?5000:sol);},
   _delay(){
     const back=this._fails?Math.min(30000,SHARE_NOMINAL_MS*Math.pow(2,this._fails)):0;
@@ -32168,7 +32168,7 @@ async function slNetProbe(){
   if(_slNet.busy)return;_slNet.busy=true;
   let ok=false;
   /* Les harnais posent `__acNetOk` : une porte de commit ne dépend jamais du réseau du poste. */
-  if(typeof window!=='undefined'&&window.__acNetOk!==undefined){
+  if(window.__acNetOk!==undefined){
     _slNet.busy=false;_slNet.at=Date.now();
     if(window.__acNetOk!==_slNet.ok){_slNet.ok=!!window.__acNetOk;try{slSegNetPaint();}catch(e){}}
     return;}
@@ -32255,7 +32255,7 @@ function slModeSegHtml(active){
     +'<span class="seg-pill" aria-hidden="true"></span>'
     +b('cloud','En ligne','<span class="sdot'+(online&&active!=='cloud'?' ok':'')+'"></span>',!online&&active!=='cloud')
     +b('direct','En direct','<span class="sdot'
-      +((typeof slSbReady==='function'&&slSbReady())||slLiveOk()?' ok':'')+'"></span>',false)
+      +(slSbReady()||slLiveOk()?' ok':'')+'"></span>',false)
     +b('optic','Par l\u2019écran','<span class="sdot t" aria-hidden="true">\u29d7</span>',false)
     +'</div><p class="sl-cap seg-cap">'+esc(slSegCap(online,active))+'</p>';}
 function slModeSegBind(active){
@@ -33634,10 +33634,10 @@ function _histBackAction(){
      son ✕ et que le re-tap du quai (mêmes effets de bord, aucun état intermédiaire). */
   if(state.rtOpen==='dock'&&document.querySelector('.rt-dock'))
     return()=>{state.rtOpen=false;renderKeepAnchor('#cbTimers');};
-  if(typeof monOn==='function'&&monOn())return monClose;
+  if(monOn())return monClose;
   const ff=document.getElementById('flowFull');
   if(ff&&ff.classList.contains('on'))return closeFlowFull;
-  if(typeof lb!=='undefined'&&lb&&lb.classList.contains('on'))return closeLightbox;
+  if(lb&&lb.classList.contains('on'))return closeLightbox;
   const hb=document.getElementById('hdrBack');
   if(hb&&!hb.hidden&&state.view!=='library')return()=>hb.click();
   return null;
@@ -33657,7 +33657,7 @@ window.addEventListener('popstate',e=>{
    Jamais par-dessus une fenêtre ouverte : les modales gardent leur propre Échap et passent
    d'abord (le volet vit SOUS elles, il n'a pas à voler leur geste). */
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&state.rtOpen==='dock'&&!(typeof _topModal==='function'&&_topModal())){
+  if(e.key==='Escape'&&state.rtOpen==='dock'&&!_topModal()){
     state.rtOpen=false;renderKeepAnchor('#cbTimers');}});
 /* v5.4.2-r : l'état des dépliants du rail (journal, Échelle) — TRANSITOIRE, par fiche, jamais
    persisté ni synchronisé (regarder n'est pas régler). Capture : `toggle` ne bulle pas. */
