@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A293)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A294)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -244,3 +244,29 @@ n'est réécrit. Le chantier d'assainissement ouvert au rapport de phase 0 (A289
 restent, sciemment non faits et en attente d'arbitrage : les blocs de 7-10 lignes, les
 écrasements CSS PROBABLES, les treize factorisations PROBABLES et le repli `Math.random` de
 `uid`.
+
+## A294 — la quadruple mutation de navigation n'existe plus qu'une fois (v5.20.7)
+
+Le motif `nav.push(id) · navSeq.push(++Runtime.seq) · navPos=nav.length-1 · persistLive` — les
+quatre écritures qui font avancer une session vers un bloc — survivait EN CLAIR sur huit sites
+malgré la factorisation partielle de v5.19.4 (`ovNavPush`/`ovNavDone`, qui ne couvrait que le
+journal). C'est l'invariant le plus critique du mode crise : les clés de cochage valent
+`seq:idBloc:index` (un décalage nav/navSeq orpheline les coches — 48 disparues en un rendu sur
+une fiche de 8×6, le précédent documenté), et le partage transporte le couple indissociablement
+(`shareFold` refuse des longueurs divergentes).
+
+`navAdvance(id,persist)` porte désormais la mutation ENTIÈRE ; le re-rendu reste chez l'appelant
+(c'est la queue qui différait légitimement site par site : `renderOvOnly`, `renderNavOnly`,
+`renderSvOnly`, rendu complet). Ralliés à sortie identique : `cxGo` (persist:false — il persiste
+inconditionnellement juste après, via `ensureStarted`), `cxResume` (le `flowEnded=false` remonte
+d'une ligne, immatériel : `snapshotSession` ne le lit pas), les deux branches de `jumpToBlock`,
+le « Continuer » guidé, `data-goto`, `data-ovnext`, `svJump`. Restent hors du motif, à dessein :
+`ovNavPush`/`ovNavDone` (le journal pousse parfois DEUX ids avant de conclure) et la remise à
+zéro de `restartCourse` (un reset n'est pas une avancée).
+
+**SIGNALEMENT mis au jour par la factorisation, comportement conservé tel quel** : le
+« Continuer » guidé et `data-goto` n'appelaient historiquement AUCUN `persistLive` — un
+rechargement juste après perd ce pas de navigation (les coches, elles, persistent par
+`applyCheck`). Les deux sites portent désormais `persist:false` en toutes lettres : corriger ce
+trou est un choix d'UN caractère, visible, qui attend un arbitrage — il change ce qui est écrit
+sur le disque à chaque « Continuer », ce n'est pas un geste d'assainissement.

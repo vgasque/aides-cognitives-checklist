@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lNzBAPYL8K/tkicmzT67QMOsPYU+P9HoOEewOLK//0A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-N88P9odZSC5u67ENm9AlKFSxofPUzu5O3XjgfWsOld0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7995,7 +7995,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.20.6';
+const APP_VERSION='5.20.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9327,7 +9327,7 @@ function cxEnter(f,target){
      doctrine autorise (« repli manuel = ligne d'état au maximum »), rien n'est perdu, un tap
      rouvre. Détail : doctrine-js.md J15. */
   if(state.navPos>=0)state.ovFold[state.navPos]=true;
-  state.nav.push(target);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+  navAdvance(target,false);
   Runtime.cxBack=Runtime.cxBack||{};if(from&&from!==target)Runtime.cxBack[Runtime.seq]={id:from,t:Date.now()};
   state.flowEnded=false;state.ovVerify=null;
   const just=ensureStarted();persistLive(Runtime);
@@ -9365,9 +9365,8 @@ function cxScrollTo(target){
 function cxResume(f,backId){
   if(!f||!(f.blocks||[]).some(b=>b&&b.id===backId))return;
   ovDropOpens();
-  state.nav.push(backId);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
   state.flowEnded=false;
-  if(Runtime.started)persistLive(Runtime);
+  navAdvance(backId);
   if(state.readMode==='overview'&&hasFlow(f)){renderOvOnly();ovScrollTo(backId);}
   else render();
   {const cards=document.querySelectorAll('.ov-wrap .ov-block');const last=cards[cards.length-1];
@@ -9379,11 +9378,10 @@ function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   if(state.readMode==='overview'&&hasFlow(f)){
     // JOURNAL (v4.9.0) : bloc visité = simple défilement vers sa dernière carte (regarder ne
     // réécrit rien) ; jamais visité = il ENTRE au bout du journal (nouvelle carte), puis défilement.
-    if(!lp){ovDropOpens();state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
-      if(Runtime.started)persistLive(Runtime);renderOvOnly();}
+    if(!lp){ovDropOpens();navAdvance(id);renderOvOnly();}
     ovScrollTo(id);return;}
   if(lp)state.navPos=lp.idx;   // guidé : bloc visité = déplacement du curseur (non destructif)
-  else{state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;if(Runtime.started)persistLive(Runtime);}
+  else navAdvance(id);
   scrollNavNext=true;renderNavOnly();}
 // `before` : true = fermer le plein écran de l'algorithme (compat historique), ou une FONCTION
 // à exécuter avant le saut (v4.23.0 : la feuille Plan y passe closePlanSheet — taper un nœud,
@@ -18668,7 +18666,7 @@ function bindNavEvents(f,blk){
     // (chrono, minuteurs) continue — la clôture est un choix séparé et confirmé.
     // Fin d'algorithme : l'ÉTAT des étapes ②/③ du parcours change -> rendu complet.
     if(!(blk.next&&f.blocks.some(b=>b.id===blk.next))){state.flowEnded=true;render();return;}
-    state.nav.push(blk.next);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;
+    navAdvance(blk.next,false);scrollNavNext=true;
     // Seul « Continuer » qui touche AUTRE CHOSE que la navigation : le repli différé de l'étape ①
     // (une fois par session) -> rendu complet ; ensuite, mise à jour ciblée.
     if(Runtime.started&&confWasOpen)render();else renderNavOnly();};
@@ -18676,7 +18674,7 @@ function bindNavEvents(f,blk){
   const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;renderNavOnly();};
   const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;renderNavOnly();};
 
-  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){state.nav.push(t);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;scrollNavNext=true;renderNavOnly();}});
+  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){navAdvance(t,false);scrollNavNext=true;renderNavOnly();}});
   const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;renderNavOnly();}};
   main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
   // Fil d'Ariane à hauteur fixe : la position COURANTE est toujours visible (auto-centrée
@@ -20223,6 +20221,15 @@ function ovAnswer(f,btn){
   ovNavPush(target);ovNavDone(src);}
 // Fil de navigation : nav + navSeq d'un même geste, puis position/persistance/re-rendu ciblé —
 // la queue commune d'ovAnswer et ovNewPass (factorisée, audit v5.19.4).
+/* AVANCÉE DU FIL — les quatre écritures indissociables du mode crise : nav et navSeq avancent
+   ENSEMBLE (le couple des clés de cochage et du partage, cf. shareFold), la position saute au
+   bout, la session vive est persistée. Le re-rendu reste chez l'appelant. `persist:false` pour
+   les trois sites qui persistent AUTREMENT ou pas du tout (cxGo : ensureStarted puis persistLive
+   inconditionnel juste après ; « Continuer » guidé et data-goto : aucun persistLive HISTORIQUEMENT,
+   comportement conservé tel quel et signalé — A294). */
+function navAdvance(id,persist){
+  state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
+  if(persist!==false&&Runtime.started)persistLive(Runtime);}
 function ovNavPush(id){state.nav.push(id);state.navSeq.push(++Runtime.seq);}
 function ovNavDone(src){state.navPos=state.nav.length-1;
   if(Runtime.started)persistLive(Runtime);
@@ -20295,8 +20302,7 @@ function bindOverviewEvents(f){
       if(Runtime.started)state.confOpen=false;
       ovDropOpens();
       const srcIx=state.nav.length-1;
-      state.nav.push(nx.dataset.ovnext);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
-      if(Runtime.started)persistLive(Runtime);
+      navAdvance(nx.dataset.ovnext);
       // Repli différé de l'étape ① : rendu COMPLET (le rail change) — une fois par session,
       // le défilement d'alignement reste ; sinon rendu ANCRÉ sans saut (v4.16.3).
       if(Runtime.started&&confWasOpen){render();ovScrollToInst(state.nav.length-1);}
@@ -21037,8 +21043,7 @@ function svPaintArrows(racine){
 // doigt), JAMAIS de démarrage de session (naviguer ≠ agir).
 function svJump(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
   const lp=latestPass(state.nav,state.navSeq,id);
-  if(!lp){state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
-    if(Runtime.started)persistLive(Runtime);renderSvOnly();}
+  if(!lp){navAdvance(id);renderSvOnly();}
   const el=main.querySelector('.sv-wrap [data-svgo="'+CSS.escape(id)+'"]');
   if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}}
 // Délégation unique sur .sv-wrap (survit aux re-rendus internes) : renvoi = défilement + flash

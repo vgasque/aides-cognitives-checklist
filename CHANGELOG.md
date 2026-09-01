@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.20.7] — 2026-09-01
+### La quadruple mutation de navigation n'existe plus qu'une fois (A294)
+
+- **`nav.push · navSeq.push(++seq) · navPos=bout · persistLive` survivait en clair sur huit
+  sites** malgré la factorisation partielle de v5.19.4 (`ovNavPush`/`ovNavDone`, bornée au
+  journal). C'est l'invariant le plus critique du mode crise : les clés de cochage valent
+  `seq:idBloc:index` — un décalage nav/navSeq orpheline les coches (48 disparues en un rendu,
+  le précédent documenté) — et le partage transporte le couple indissociablement (`shareFold`
+  refuse des longueurs divergentes). `navAdvance(id,persist)` porte désormais la mutation
+  entière ; le re-rendu, seule chose qui différait légitimement, reste chez l'appelant.
+- **Ralliés à sortie identique** : `cxGo`, `cxResume`, les deux branches de `jumpToBlock`, le
+  « Continuer » guidé, `data-goto`, `data-ovnext`, `svJump`. Hors motif à dessein :
+  `ovNavPush`/`ovNavDone` (le journal pousse parfois deux ids avant de conclure) et la remise à
+  zéro de `restartCourse` (un reset n'est pas une avancée).
+- **Signalement mis au jour, comportement conservé tel quel** : le « Continuer » guidé et
+  `data-goto` n'appelaient historiquement aucun `persistLive` — les deux sites portent désormais
+  `persist:false` en toutes lettres, et corriger ce trou est un choix d'un caractère qui attend
+  un arbitrage (il change ce qui s'écrit sur le disque à chaque « Continuer »). Détail : A294
+  (`docs/decisions/lot-v5-20.md`).
+
 ## [5.20.6] — 2026-09-01
 ### Les commentaires longs du script suivent ceux de la feuille (A293) — le chantier d'assainissement est clos
 
@@ -568,48 +588,3 @@ corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
   bas du dock épouse EXACTEMENT le bas du viewport visuel (`translateY(-100%)`, aucune
   constante, rangée de filtres comprise), en matière OPAQUE avec un filet haut. Mesuré au
   pixel en simulation ; le juge final reste l'iPhone réel.
-
-## [5.18.0] — 2026-08-30
-### L'accueil sans mécanisme — refonte complète, conçue sur maquettes et corrigée à l'usage
-
-Chantier mené sur le canvas « Accueil — la barre d'en-tête » puis ajusté en direct sur captures
-de l'auteur ; chaque arbitrage est consigné dans `docs/decisions/lot-v5-18.md` (A238-A262).
-Point de départ : « le principe de l'en-tête qui se rétrécit est bien, l'implémentation est
-mauvaise » — huit rouages (repli home-slim, seuils, hystérésis, re-mesures, rescues) pour 52 px.
-
-- **L'en-tête n'a plus d'états** : il est statique et défile — le défilement EST l'état. En
-  étroit, marque 21 px / logo 30 (descendus d'un cran après essai à 23/32 : « un peu trop
-  gros ») et « Créer » garde son mot dès 390 px (palier déclaré). En voie large, la RECHERCHE
-  est la barre du haut (⌘K en invite, effacée au focus), marque à la largeur de la sidebar.
-- **L'accès vit dans le dock** : pilule de recherche FIXE en bas en étroit (zone du pouce,
-  patron Safari/Maps), qui loge le champ sous le clavier (`--vvt`/`--vvh`) ; rangée d'en-tête
-  en large. **Les filtres vivent dans la fonction recherche** : hors recherche la pilule est
-  seule ; chercher fait paraître les crans Tout · Aides · Protocoles (qui agissent sans perdre
-  la requête) et « Filtrer (n) » ; hors recherche, un filtre actif reste modifiable par le
-  bouton « filtres : … » de la ligne RÉPERTOIRE — l'état n'est jamais piégé.
-- **La liste est l'UNION des bibliothèques**, en trois rangements — « Rangé par
-  <bibliothèque · catégorie · A–Z> ⌄ », une phrase-menu, **retenue par compte et synchronisée
-  entre appareils** (`data.prefs.homeGroup`, sans jamais re-ranger l'écran ouvert). Sections
-  en CARTES, intertitre collant DEDANS (il coiffe la carte au défilement), provenance des
-  homonymes, pastille + nom de catégorie sur chaque rangée.
-- **Un SEUL dessin de rangée à toutes les largeurs** (direction A du canvas « Accueil épuré »,
-  retenue contre un tableau 6 colonnes essayé puis rejeté : ses colonnes répétaient les
-  intertitres et ses cases vides s'écrivaient en tirets) : titre + ligne de méta — nature ·
-  discriminant · catégorie · code · date seulement si elle existe. Au pointeur fin, l'étoile
-  ne vit qu'au survol de sa rangée ; l'épinglée reste pleine, le tactile ne change pas.
-- **La sidebar (≥ 780) filtre, à une seule grammaire** : « Toutes » ou une bibliothèque
-  (filtre de vue, patron Finder — le rangement n'est jamais touché), catégories du périmètre
-  choisi avec comptes stables ; le bouton filtre n'existe plus en voie large. « Rangé par » et
-  « Sélectionner » rejoignent la ligne RÉPERTOIRE à ≥ 1200, harmonisée à 12 px.
-- **Accès direct en TUILES à toutes les largeurs** — deux par ligne dès 390 px, titre long à
-  4 lignes (13,5 px) en étroit ; la fiche reste aussi à sa place dans le répertoire.
-- **Corrigés en route, sur captures** : le pied de page finit au-dessus du dock (page courte
-  comme longue, `--sab` compté) ; la visée du rail A→Z ne soustrait plus un en-tête qui ne
-  colle plus (65 px trop bas) et son centrage compte la réserve du dock ; les chips de type de
-  la feuille avaient perdu leur habillage avec une purge (elles partagent désormais la recette
-  des chips de catégorie) ; le fondu d'ouverture/fermeture d'une fiche est retiré (pilote View
-  Transitions purgé — le glissement du retour de pile reste) ; tablette en rangées (la grille
-  de cartes intermédiaire a vécu).
-- **Sous le capot** : purge à grep de home-slim, des rescues, du seg de groupement et de
-  `vtWrap` ; témoins doctrine réécrits sur la sémantique v5.18 (dix sections) ; passes
-  complètes vertes à chaque étape (26/26 harnais, tests 1169 × 2 moteurs).
