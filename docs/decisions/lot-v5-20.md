@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A292)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A293)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -215,3 +215,32 @@ correspondante de la borne mesurée en A289 (le boot est parse-bound).
 
 Les commentaires JS suivent le même chemin au lot suivant (A293) — leur gisement est plus gros
 (54 % du JS) et leur migration exige la même discipline.
+
+## A293 — les commentaires longs du script suivent ceux de la feuille (v5.20.6)
+
+Le pendant JS d'A292, même méthode, plus gros gisement : le JS portait 54 % de commentaires, et
+l'inventaire y comptait 500 blocs de plus de six lignes. Les **239 blocs de PLUS de dix lignes
+(384 Ko)** sont repris **à l'octet** dans [`doctrine-js.md`](doctrine-js.md) sous les ids stables
+**J1…J239**, puis resserrés sur place : la contrainte que le code ne peut pas dire — les
+invariants en toutes lettres (« la SEULE barrière anti-XSS », « migrate est le point
+d'ASSAINISSEMENT », « ICI, ET NULLE PART AILLEURS », « échouer bruyamment, jamais deviner »…),
+les ⚠, les marqueurs Q/K/R/P, les renvois A-xxx — et le renvoi « Détail : doctrine-js.md J‹n› ».
+Le grand commentaire d'architecture de tête (HTML) et les 261 blocs de 7-10 lignes déjà denses
+ne bougent pas.
+
+La différence technique avec le CSS : un run de `//` ne se reconnaît PAS à l'œil — une ligne
+commençant par `//` DANS un template literal est du code. Les blocs ont donc été cartographiés au
+TOKENISEUR D'ÉTATS (chaînes, templates `${}` imbriqués, regex — celui de la sonde de la phase 0),
+et le masque prouvé JUSTE avant toute édition : le script dont on blanchit tous les commentaires
+détectés doit compiler (`vm.Script`). Les blocs têtes ou queues d'un `/*` enjambant une ligne de
+code gardent leurs délimiteurs de bord. Après chaque tranche : syntaxe, hashs CSP (règle 3 — le
+script inline change), et les contrôles sensibles aux commentaires (`check-fns`, `check-actions`,
+`check-actest`, `check-upload`, `check-stores`) — aucun nom du dépôt ne vivait par le seul
+commentaire supprimé, zéro rouge de bout en bout.
+
+Bilan des deux déménagements (A292 + A293) : **index.html passe de 2 891 à 2 440 Ko (−451 Ko,
+−15,6 %)** et de 33 874 à 29 059 lignes ; toute la doctrine reste adressable (C‹n›/J‹n›), rien
+n'est réécrit. Le chantier d'assainissement ouvert au rapport de phase 0 (A289) est clos ;
+restent, sciemment non faits et en attente d'arbitrage : les blocs de 7-10 lignes, les
+écrasements CSS PROBABLES, les treize factorisations PROBABLES et le repli `Math.random` de
+`uid`.

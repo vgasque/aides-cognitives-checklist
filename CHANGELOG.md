@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [5.20.6] — 2026-09-01
+### Les commentaires longs du script suivent ceux de la feuille (A293) — le chantier d'assainissement est clos
+
+- **Le pendant JS de la v5.20.5, plus gros gisement** : les 239 blocs de commentaires JS de PLUS
+  de dix lignes (384 Ko — le JS portait 54 % de commentaires) sont repris **à l'octet** dans
+  `docs/decisions/doctrine-js.md` sous les ids stables **J1…J239**, puis resserrés sur place :
+  les invariants en toutes lettres (« la SEULE barrière anti-XSS », « migrate est le point
+  d'ASSAINISSEMENT », « ICI, ET NULLE PART AILLEURS »…), les ⚠, les marqueurs Q/K/R/P, les
+  renvois A-xxx, et « Détail : doctrine-js.md J‹n› ». Le grand commentaire d'architecture de
+  tête et les 261 blocs de 7-10 lignes déjà denses ne bougent pas.
+- **La différence technique avec le CSS** : un run de `//` ne se reconnaît pas à l'œil — une
+  ligne commençant par `//` DANS un template literal est du code. Les blocs ont été cartographiés
+  au tokeniseur d'états et le masque PROUVÉ juste avant toute édition (le script blanchi de tous
+  les commentaires détectés doit compiler, `vm.Script`) ; les blocs enjambant une ligne de code
+  gardent leurs délimiteurs de bord. Hashs CSP rejoués à chaque tranche (règle 3) ; les contrôles
+  sensibles aux commentaires (`check-fns`, `check-actions`, `check-actest`, `check-upload`,
+  `check-stores`) verts de bout en bout — aucun nom ne vivait par le seul commentaire supprimé.
+- **Bilan des deux déménagements (A292 + A293)** : `index.html` passe de **2 891 à 2 440 Ko
+  (−451 Ko, −15,6 %)** et de 33 874 à 29 059 lignes. Mesuré au même protocole que la phase 0 :
+  boot à CPU ×6 **714 → 691 ms** (vierge) et **354 → 334 ms** (avec données) ; pleine vitesse
+  103 → 99 / 57 → 51 ms (Chromium), 110 → 105 / 74 → 68 ms (WebKit) — la fraction attendue de la
+  borne parse d'A289. Le chantier ouvert au rapport de phase 0 est clos ; restent en attente
+  d'arbitrage les blocs de 7-10 lignes, les écrasements CSS PROBABLES, les treize factorisations
+  PROBABLES et le repli `Math.random` de `uid`. Détail : A293 (`docs/decisions/lot-v5-20.md`).
+
 ## [5.20.5] — 2026-09-01
 ### Les commentaires longs de la feuille de style déménagent, comme AGENTS.md avant eux (A292)
 
@@ -588,30 +613,3 @@ mauvaise » — huit rouages (repli home-slim, seuils, hystérésis, re-mesures,
 - **Sous le capot** : purge à grep de home-slim, des rescues, du seg de groupement et de
   `vtWrap` ; témoins doctrine réécrits sur la sémantique v5.18 (dix sections) ; passes
   complètes vertes à chaque étape (26/26 harnais, tests 1169 × 2 moteurs).
-
-## [5.17.6] — 2026-08-28
-### L'étoile revient au bord de sa carte
-
-- **Signalé à l'usage, capture et flèche à l'appui** : « réduis l'espace entre l'étoile et la fin
-  de la carte sur la page d'accueil — surtout visible en smartphone, c'est là que l'écart est le
-  plus grand et ça sonne mauvais ».
-- **Mesuré à 390 px** : le titre commence à 16 px du bord de la carte, l'étoile s'arrêtait à
-  **47** — presque trois fois plus, sur une rangée dont c'est le seul autre objet. La rangée avait
-  l'air de finir avant sa carte.
-- **Le 40 px de rembourrage droit n'était pas un choix de dessin** : c'est 24 (l'ancienne valeur de
-  base) + 16 (la compensation de la marge négative qui fait aller le fond d'une rangée d'un bord à
-  l'autre de sa carte, v5.6). Personne n'avait re-regardé la somme. Il passe à **16**, égal au
-  rembourrage gauche : la déclaration devient symétrique, ce qui est la seule forme qu'on retient
-  sans la relire. Même correction en voie large (24 → 14, égal à son propre rembourrage gauche).
-  Chaque rangée gagne au passage 24 px de largeur de titre en étroit.
-- **Il reste 6-7 px d'écart optique, et c'est voulu** : ce sont les flancs de la *cible* de
-  l'épingle (bouton de 30 px pour un glyphe de 18 — WCAG 2.5.8 se mesure sur la boîte, pas sur le
-  dessin). Les rattraper collerait la zone tactile au bord de la carte, donc au rail A→Z.
-- **Ce qui borne, c'est le rail, pas le goût** : à 390 px la carte finit à 364, le rail commence à
-  366, et le halo de l'épingle s'arrête désormais à 351 — **15 px de franc**. Le plancher de 8 px
-  de la gouttière carte↔rail ne bouge pas : son argument est la *peinture* (sous 6, le fond
-  translucide du rail se poserait sur le bord de la rangée), et la surface tapable de la rangée
-  elle-même atteignait **déjà** le bord de la carte, à 3 px du rail. Le commentaire de v5.10.8 qui
-  affirmait « la cible la plus proche du rail finit 40 px avant la carte » a été corrigé sur
-  place : une doctrine qui affirme un chiffre périmé est pire qu'aucune doctrine.
-- Vérifié à 320, 390 et 1280 px : titre à 17, étoile à 23, cible de l'épingle 30 × 28.
