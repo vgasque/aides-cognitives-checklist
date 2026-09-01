@@ -12,18 +12,10 @@
      token. */
   --sys-edge:transparent;--sys-key:rgba(255,255,255,.1);
   --line:#e3e6ea;--line-strong:#c3ccd6;
-  /* --ctl-line : LA SEULE DÉVIATION ASSUMÉE À tokens.css, et elle est motivée. Le système pose
-     --line-strong:#c3ccd6, soit 1,6:1 sur blanc : parfait pour un filet de carte, INSUFFISANT
-     pour la bordure d'un composant, que WCAG 2.2 § 1.4.11 exige à 3:1. Or ce token habille aussi
-     les CASES À COCHER et les bordures de champs — c'est-à-dire l'objet qu'on vise avec des gants,
-     sous stress, au soleil. On garde donc la valeur du système partout où il s'agit de dessiner,
-     et un token à 3:1 là où il s'agit de VISER. Deux rôles, deux tokens : la règle 8 du dossier. */
-  /* ⚠ 3:1 SUR L'AMBIANCE AUSSI, PAS SEULEMENT SUR LE TRAVAIL (v5.6, trouvé au balayage). Le token
-     des BORDURES DE COMPOSANT (WCAG 2.2 § 1.4.11 — « la case qu'on vise avec des gants ») tenait
-     3,08:1 sur le blanc du travail mais seulement 2,82 sur le gris d'ambiance, où vivent pourtant
-     des contrôles bordés (le déclencheur de filtres de l'accueil). Assombri d'un cran : 3,13 sur
-     l'ambiance, 3,41 sur le travail — les deux au-dessus du seuil, et le dessin ne change pas de
-     nature. Le thème sombre tenait déjà (3,68 / 4,05). */
+  /* --ctl-line : LA SEULE DÉVIATION ASSUMÉE À tokens.css — --line-strong DESSINE (filets), ce
+     token se VISE : bordure de COMPOSANT à 3:1 (WCAG 2.2 § 1.4.11, « la case qu'on vise avec des
+     gants »). Deux rôles, deux tokens (règle 8). ⚠ Le seuil tient sur l'AMBIANCE aussi, pas
+     seulement sur le travail — des contrôles bordés y vivent. Détail : doctrine-css.md C2. */
   --ctl-line:#828c98;
   /* --ctl-sys : LE MÊME « DEUX RÔLES, DEUX TOKENS », PORTÉ À LA MATIÈRE SYSTÈME (v5.15.0,
      planche 17). --sys-line DESSINE (séparateurs .ds-row du volet — un séparateur n'est pas une
@@ -128,22 +120,11 @@
   /* Une seule matière projette : tous les anciens noms d'ombre y pointent. Les VOILES, eux, ne
      sont pas des élévations — un voile assombrit, il n'élève pas : ils restent à l'encre. */
   --shadow:var(--shadow-work);--shadow-lg:var(--shadow-work);
-  /* ⚠ `--shadow-up` N'EST PAS UN ALIAS DE `--shadow-work`, et le harnais l'a rattrapé. Une ombre
-     MONTANTE (porte « ＋ » collée en pied, barre d'actions basse) doit se répandre vers le HAUT,
-     du côté d'où vient le contenu : avec un décalage POSITIF, l'objet paraît enfoncé au lieu de
-     flotter — et pour un objet à coins arrondis, c'est son ombre qui épouse le rayon, jamais un
-     voile (v4.78.0). MÊME ENCRE que l'ombre unique — c'est bien UNE matière qui projette, seule
-     sa direction change — mais PLUS LARGE ET PLUS DENSE depuis v5.15.0 (planche 18/P : 6→12 px,
-     24→32 px, 6 %→26 %) : sur du papier blanc, un objet sombre qui flotte au-dessus d'un tableau
-     de posologies doit PROJETER, et 6 px à 6 % ne se voyaient pas — sur téléphone la colonne de
-     lecture fait 358 px et le quai 362, le contenu touche la barre ; le desktop, lui, a son
-     couloir calme par construction (260/340 px de marge). Deux pistes ESSAYÉES ET ÉCARTÉES sur
-     maquettes, à ne pas reproposer « pour renforcer » : un fondu vers l'ambiance (blanc contre
-     ambiance = 1,06:1, invisible — et sur matière sombre la teinte se lit comme une bande claire,
-     à l'envers) ; une bande de flou backdrop-filter (sur une barre à coins arrondis, sans
-     recouvrement il reste des angles nets dans l'arrondi, avec recouvrement le flou échantillonne
-     la barre sombre et étale un halo noir autour d'elle). La nuit ne projette toujours pas
-     (--shadow-up:none en sombre) : la séparation nocturne vient du périmètre --sys-edge. */
+  /* ⚠ `--shadow-up` N'EST PAS UN ALIAS DE `--shadow-work` : ombre MONTANTE (même encre — une
+     seule matière projette, seule la direction change —, élargie et densifiée v5.15.0). Deux
+     pistes ESSAYÉES ET ÉCARTÉES, à ne pas reproposer « pour renforcer » : fondu vers l'ambiance,
+     bande de flou backdrop-filter. La nuit ne projette pas (none en sombre) : la séparation vient
+     de --sys-edge. Détail : doctrine-css.md C3. */
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
   --shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);

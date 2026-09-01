@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A291)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A292)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -189,3 +189,29 @@ d'API sur des OBJETS (`navigator.wakeLock`, `document.elementsFromPoint`, `rec.b
 (`typeof before==='function'`, `state.allFrom.y==='number'`) — eux disent quelque chose de vrai.
 Le repli `Math.random` de `uid` reste aussi, en attente d'arbitrage (échouer bruyamment serait
 plus juste que dégrader l'aléa en silence).
+
+## A292 — les commentaires longs de la feuille de style déménagent, comme AGENTS.md avant eux (v5.20.5)
+
+Le CSS pesait 832 Ko dont **66,6 % de commentaires** ; l'inventaire de la phase 0 y comptait 291
+blocs de plus de six lignes (345 Ko). Le même mal que celui que la v5.10.3 a guéri pour
+AGENTS.md : la doctrine vivait au point d'usage, mais en NARRATIF — l'histoire, les mesures, les
+pistes écartées —, et la feuille devenait illisible d'un bloc à l'autre.
+
+**La méthode est celle du déménagement v5.10.3, pas celle du résumé destructeur** : les 135 blocs
+de PLUS de dix lignes (252 Ko ; les 19 bannières de section restent, les 137 blocs de 7-10 lignes
+déjà denses aussi) sont d'abord repris **à l'octet** dans
+[`doctrine-css.md`](doctrine-css.md), chacun sous un id stable **C1…C135**, dans l'ordre de la
+feuille — puis, et seulement puis, le commentaire en place est resserré à l'essentiel : la
+CONTRAINTE que le code ne peut pas dire (valeurs à ne pas changer, ordres de cascade, ⚠), les
+renvois A-xxx, et le renvoi « Détail : doctrine-css.md C‹n› ». Rien n'est perdu par
+construction : un bloc resserré qui doit regagner son détail le retrouve sous son id.
+
+Gardé en tête d'exécution : les ÉPITAPHES (citations backtick de classes purgées, que
+`check-classes` exige) survivent dans chaque résumé ; aucun résumé ne cite de couleur littérale
+(`check-colors`) ni ne contient de fermeture de commentaire en son milieu (le piège v4.74.0) ;
+aucune ligne de code n'a bougé — `design:build` ne régénère que des fiches allégées. Bilan :
+**index.html perd ~196 Ko (2 891 → 2 695 Ko)** ; l'effet perf attendu est la fraction
+correspondante de la borne mesurée en A289 (le boot est parse-bound).
+
+Les commentaires JS suivent le même chemin au lot suivant (A293) — leur gisement est plus gros
+(54 % du JS) et leur migration exige la même discipline.
