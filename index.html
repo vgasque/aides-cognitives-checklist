@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-R6BX5xuTFxvN8v9IrmnwiWvJrCIfEnz1DWolkzjGkkE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-hJg3dJkLDzbrGa2TIgvhdl1KttZQ9mYwCo2Et47iPJU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7988,7 +7988,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.21.0';
+const APP_VERSION='5.21.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9795,10 +9795,14 @@ let _catScopeForce=undefined;
    uniques QUE par bibliothèque). Il ne doit JAMAIS atteindre `saveCats`, qui en fait une clé
    de synchro — tous ses appelants passent un périmètre explicite. */
 const CAT_ALL='*';
+/* PÉRIMÈTRE AFFICHÉ À L'ACCUEIL — source UNIQUE. `state.homeLib` : null = « Toutes » (l'union),
+   '' = Perso, sinon un id. Les lecteurs restés sur `state.scope` y voyaient toujours `null`. */
+const homeScope=()=>state.homeLib||null;
 function activeCatScope(){if(_catScopeForce!==undefined)return _catScopeForce;   // surcharge explicite (atelier d'import, A159)
   if(state.view==='edit')return state.draft?(state.draft.library||null):null;
-  if(state.view==='library')return state.homeLib==null?CAT_ALL:(state.homeLib||null);
-  return state.scope||null;}
+  if(state.view==='protocolEdit')return state.pdraft?(state.pdraft.library||null):null;
+  if(state.view==='library')return state.homeLib==null?CAT_ALL:homeScope();
+  return null;}
 // Périmètres montrés par le gestionnaire. Sur « Toutes » : Perso + les bibliothèques qu'on peut
 // écrire — une bibliothèque en lecture seule y serait une commande morte (règle 14).
 function catMgrScopes(){const scp=activeCatScope();
@@ -12617,19 +12621,7 @@ function applyViewChrome(){
   // le replacera en bas de la sidebar si elle existe. Même sauvetage pour le chrome de crise,
   // qui vit dans la colonne du plan en cockpit (v5.4.1).
   rescueFooter();rescueCrisisChrome();
-  {const hn=document.getElementById('hdrNew');
-   if(state.view==='library'&&canEditScope(state.scope)){hn.hidden=false;
-     /* ⚠ IL NE CHANGE PLUS D'HABIT QUAND UNE SESSION TOURNE (v5.6, signalé à l'usage : « pas le
-        même design de bouton Créer »). La règle « un seul bouton rempli par écran » (v4.0.3) a
-        été écrite pour les boutons de TEXTE du flux, où « Créer » et « Reprendre » se disputent
-        vraiment le regard. `#hdrNew` est un glyphe de 36 px dans la rangée d'identité : il n'est
-        pas rempli, il ne concurrence rien, et le teinter selon un état du CONTENU faisait
-        changer d'apparence un contrôle du CHROME — c'est-à-dire exactement ce que la constance
-        positionnelle interdit, sur la seule rangée qui ne doit jamais se réapprendre. La
-        saillance de « Reprendre » vient de sa carte, qui est déjà la seule masse de l'écran. */
-     hn.title=state.section==='protocols'?'Créer un protocole':'Créer une aide cognitive';
-     hn.onclick=()=>openCreateDlg();}   // dialogue « Créer » (SPEC §2.1) : 3 méthodes
-   else hn.hidden=true;}
+  syncNewBtn();
   // Recherche FIXE de l'en-tête : valeur resynchronisée (bascule de section, filtres) sans
   // écraser une saisie en cours (champ focalisé = source de vérité).
   {const qi=document.getElementById('q');if(state.view==='library'&&document.activeElement!==qi&&qi.value!==state.q)qi.value=state.q;
@@ -13280,6 +13272,19 @@ function homeSideHtml(){
    Détail : doctrine-js.md J77. */
 const mgrLibs=()=>sortedLibraries().filter(l=>l.role==='admin'||myIsAppAdmin);
 const mgrDeux=()=>mgrLibs().length>0||myIsAppAdmin;
+/* « Créer » de l'en-tête — MÊME PATRON QUE `syncMgrBtn`, et pour la même raison : sa condition
+   dépend de la bibliothèque AFFICHÉE, or un tap de la colonne gauche ne rejoue que la liste
+   (`cfg.rerender`), jamais `applyViewChrome`. Une décision, deux appelants — sinon le bouton
+   reste celui de la bibliothèque précédente.
+   ⚠ IL NE CHANGE PAS D'HABIT QUAND UNE SESSION TOURNE (v5.6, signalé : « pas le même design de
+   bouton Créer ») : « un seul bouton rempli par écran » (v4.0.3) vise les boutons de TEXTE du
+   flux ; `#hdrNew` est un glyphe du CHROME, et le teinter selon un état du CONTENU romprait la
+   constance positionnelle sur la seule rangée qui ne doit jamais se réapprendre. */
+function syncNewBtn(){const hn=document.getElementById('hdrNew');if(!hn)return;
+  if(state.view!=='library'||!canEditScope(homeScope())){hn.hidden=true;return;}
+  hn.hidden=false;
+  hn.title=state.section==='protocols'?'Créer un protocole':'Créer une aide cognitive';
+  hn.onclick=()=>openCreateDlg();}   // dialogue « Créer » (SPEC §2.1) : 3 méthodes
 function syncMgrBtn(){const b=document.getElementById('mgrBtn');if(!b)return;
   const lbl=mgrDeux()?'Gérer les catégories et les bibliothèques':'Gérer les catégories';
   b.querySelector('.mgr-lbl').textContent=lbl;b.setAttribute('aria-label',lbl);b.title=lbl;}
@@ -13348,7 +13353,9 @@ function crossHitsHtml(q,other){
   /* Le renvoi croisé compte ce que l'AUTRE type donnerait DANS LES MÊMES CRANS (v5.6) : sans
      cela il annonçait « n aides correspondent aussi » pour des aides que le filtre posé écarte —
      on aurait basculé de type pour ne rien trouver. */
-  const cran=x=>(state.scope?x.library===state.scope:!x.library)&&(!state.cat||x.category===state.cat);
+  // Les MÊMES prédicats que la liste, pas une copie : `state.scope` ne bornait plus rien (le
+  // compte ne voyait que le Perso) et la catégorie s'y comparait par id, non par nom (v5.18).
+  const cran=x=>homeLibOn(x)&&catFilterOn(x);
   const T=qTerms(q);
   const n=other==='protocols'
     ?protocols.filter(p=>vis(p)&&cran(p)&&(hayMatch(protocolHaystack(p),T)||!!entityDocHit(p,T))).length
@@ -13443,6 +13450,7 @@ function bindHomeChrome(rerender){
   qsa('[data-joinsess]').forEach(b=>b.onclick=()=>openJoinScreen(''));
   {const jb=document.getElementById('joinBtn');if(jb)jb.onclick=()=>openJoinScreen('');}
   {const mb=document.getElementById('mgrBtn');if(mb){mb.onclick=openHomeMgr;syncMgrBtn();}}
+  syncNewBtn();   // la bibliothèque affichée vient peut-être de changer (cf. sa déclaration)
 }
 /* Rail alphabétique : tap = saut, GLISSER = parcourir (index iOS — pointer capture, un jump par
    lettre traversée). Défileur selon la largeur (.home-main ou fenêtre). Toute mesure rect est en
@@ -13763,7 +13771,7 @@ const selRowCls=x=>state.selOn?(' selm'+(selSet().has(x.id)?' selon':'')):'';
 // lecteur d'une bibliothèque partagée -> rien à sélectionner, donc pas de bouton (jamais de
 // commande morte).
 function selTogHtml(){
-  if(state.selOn||!canEditScope(state.scope))return '';
+  if(state.selOn||!canEditScope(homeScope()))return '';
   return `<button type="button" class="sel-tog" id="selTog">${uiIcon('check',13,{sw:3})}Sélectionner</button>`;}
 /* La barre d'actions. Elle NE DIT QUE CE QU'ELLE SAIT (A83) : le compte, et pour chaque commande
    la raison de sa fermeture quand elle est fermée. « Catégorie » se ferme sur une sélection
@@ -14022,7 +14030,7 @@ function renderHomeList(cfg){
   const dansFiltre=!!(state.q||state.cat);
   const introK=(!dansFiltre&&canEdit)?(cfg.kinds||[]):[];
   const emptyHtml=introK.length
-    ?(state.scope?emptyLine('Cette bibliothèque partagée est vide.'):'')
+    ?(homeScope()?emptyLine('Cette bibliothèque partagée est vide.'):'')
       +(introK.length>1?emptyIntroBothHtml():introK.map(emptyIntroHtml).join(''))
     :`<div class="empty"><b>${dansFiltre?'Aucun résultat':cfg.empty.title}</b>${
         dansFiltre?(state.q?'Rien ne correspond à cette recherche.':'Rien ne correspond à ce filtre.')
@@ -14217,8 +14225,8 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
           +`<button class="btn sm primary" data-openshared>Reprendre</button></div></div>`:'';
       return recapH+shH+(liveArr.length?`<div class="live-sessions">${liveArr.map(R=>`<div class="ls-card"><span class="sess-dot"></span><div class="ls-info" data-openlive="${esc(R.ficheId)}" role="button" tabindex="0"><b class="ls-k">Session en cours</b><span class="ls-t">${esc(R.fiche.title||'Sans titre')}</span>${(()=>{const w=liveWhereText(R);return w?`<span class="ls-w">${esc(w)}</span>`:'';})()}</div><span class="ls-chrono" data-lschrono="${R.startedAt}">${fmtMs(Date.now()-R.startedAt)}</span><button class="btn sm primary" data-openlive="${esc(R.ficheId)}">Reprendre</button><button class="ls-end" data-endlive="${esc(R.ficheId)}">Terminer</button></div>`).join('')}</div>`:'');},
     notices:()=>`
-      ${(!state.scope&&!noticeHidden()&&!sysBannerOn())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
-      ${(!state.scope&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
+      ${(!homeScope()&&!noticeHidden()&&!sysBannerOn())?`<div class="notice">${uiIcon('info',15)}<div>Vous êtes l'auteur et le responsable du contenu. Validez chaque fiche et tenez la date à jour.</div><button class="notice-x" id="noticeX" aria-label="Masquer">×</button></div>`:''}
+      ${(!homeScope()&&!fiches.some(f=>!f.library)&&!seedsHidden())?`<div class="notice">${uiIcon('bulb',15)}<div><b>Besoin d'exemples pour commencer ?</b> Ajoutez les deux fiches d'exemple (Anaphylaxie, Arrêt cardiaque) pour découvrir l'application — à relire et adapter avant tout usage clinique.<div style="margin-top:9px"><button class="btn sm primary" id="seedAdd">Ajouter les fiches d'exemple</button></div></div><button class="notice-x" id="seedX" aria-label="Masquer">×</button></div>`:''}`,
     /* RANGÉE du répertoire (v4.56.0 — remplace la carte ; décisions utilisateur : épingle,
        date de validation et « À compléter » CONSERVÉES, compte de sessions retiré — l'historique
        global de la sidebar prend le relais). Pastille + NOM de catégorie en toutes lettres dans
@@ -15423,6 +15431,17 @@ function draftReadStatusFields(d,prefix){
   const stEl=document.getElementById(prefix+'-status');if(stEl)d.status=stEl.value==='draft'?'draft':'';
   const fvEl=document.getElementById(prefix+'-validation');if(fvEl)d.validatedAt=parseValidation(fvEl.value)||d.validatedAt||'';
   d.validatedAt=parseValidation(d.validatedAt)||'';}
+/* CRÉER DANS LA BIBLIOTHÈQUE AFFICHÉE — et le DIRE. Une entité neuve naît `validated` (migrate
+   ne laisse pas la chaîne vide), donc visible de tous les membres aussitôt : « publier à l'équipe
+   jamais silencieux » (A166) vaut ici comme à l'import. Rien à demander pour le Perso ni pour
+   « Toutes ». ⚠ L'appelant court-circuite sur `lib` AVANT l'await — sans quoi `newFiche()` cesse
+   d'être synchrone dans le cas nominal (trois harnais font `newFiche(); render();`). */
+function confirmNewInLib(lib,fem){
+  if(!lib)return Promise.resolve(true);
+  const est=fem?'fiche':'protocole',ce=fem?'Cette':'Ce',il=fem?'elle':'il',pub=fem?'créée':'créé';
+  return confirmDlg(ce+' '+est+' va être '+pub+' dans « '+(libName(lib)||'la bibliothèque partagée')
+    +' » : '+il+' sera visible par tous les membres.',
+    {title:'Publier dans la bibliothèque partagée',yes:'Créer '+(fem?'la fiche':'le protocole')});}
 // CHANGEMENT DE BIBLIOTHÈQUE : conséquences irréversibles pour les AUTRES -> confirmation
 // explicite (sortie d'une bibliothèque partagée : les membres perdent l'accès ; entrée :
 // publication à toute l'équipe). msgs = textes propres à l'entité. Renvoie false = abandon.
@@ -15460,8 +15479,10 @@ async function openProtocolEdit(id){const p=protocols.find(x=>x.id===id);if(!p)r
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.pdraft=migrateProtocol(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='protocolEdit';render();}
-function newProtocol(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
-  const d=blankProtocol();d.library=state.scope||null;state.pdraft=d;draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
+async function newProtocol(){const lib=homeScope();
+  if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de protocole dans cette bibliothèque.');return;}
+  if(lib&&!await confirmNewInLib(lib,false))return;
+  const d=blankProtocol();d.library=lib;state.pdraft=d;draftNewAtts=[];state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='protocolEdit';render();}
 /* Icônes SVG inline « de texte » (remplacent les emojis : rendu identique sur tous les appareils,
    couleur = currentColor donc thème respecté, pas de style emoji qui jure avec l'interface).
    Même langage graphique que le reste : trait 2, viewBox 24, bouts arrondis. */
@@ -23059,7 +23080,10 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
   if(park&&!park.isNew&&park.forId===id&&JSON.stringify(park.draft)!==draftBase){
     state.draft=migrate(JSON.parse(JSON.stringify(park.draft)));draftNewAtts=(park.newAtts||[]).slice();state.draftRestored=park.ts;}
   state.view='edit';render();}
-function newFiche(){if(!canEditScope(state.scope)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}const d=blankFiche();d.library=state.scope||null;state.draft=d;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+async function newFiche(){const lib=homeScope();
+  if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}
+  if(lib&&!await confirmNewInLib(lib,true))return;
+  const d=blankFiche();d.library=lib;state.draft=d;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -24194,7 +24218,7 @@ const IMP_KEEP='~garder';
 // Destination initiale d'une rangée : la bibliothèque affichée à l'accueil si l'on peut y écrire
 // (c'est le contexte du geste), le Perso sinon — exactement la valeur que l'ancienne question
 // oui/non proposait par défaut.
-function impLibDefaut(){return (state.scope&&canEditScope(state.scope))?state.scope:null;}
+function impLibDefaut(){const l=homeScope();return (l&&canEditScope(l))?l:null;}
 // Bibliothèques OFFERTES : le Perso, plus celles où l'on peut écrire. Un lecteur n'y voit pas
 // celles qu'il ne peut que consulter — proposer une destination interdite serait un bouton mort.
 function impLibOptions(){

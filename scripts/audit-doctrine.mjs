@@ -6409,6 +6409,93 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
 }
 });
 
+/* ══ LE PÉRIMÈTRE AFFICHÉ COMMANDE LES COMMANDES ═════════════════════════════════════════════
+   Suite d'A303 : six lecteurs interrogeaient encore `state.scope`, qui vaut TOUJOURS `null` à
+   l'accueil depuis la v5.18 — donc `canEditScope` répondait « oui » partout. « Sélectionner » et
+   « Créer » se proposaient sur une bibliothèque en LECTURE SEULE (commandes mortes, ce que leur
+   propre commentaire promet d'éviter) et une création partait au Perso quel que soit le filtre.
+   ⚠ LE DERNIER CAS EST LE PIÈGE DE LA CORRECTION ELLE-MÊME : un tap de la colonne gauche ne
+   rejoue que la LISTE (`cfg.rerender`), jamais `applyViewChrome` — une condition devenue variable
+   y reste donc périmée. C'est pour ça que la décision vit dans `syncNewBtn`, appelée des deux
+   côtés (patron `syncMgrBtn`), et c'est ça qu'on mesure. */
+await sec('ACCUEIL · le périmètre affiché commande « Créer » et « Sélectionner »', async () => {
+{
+  const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
+  page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    myLibraries.length = 0;
+    myLibraries.push({ id: 'lib-a', name: 'Bibliothèque A', role: 'admin' },
+                     { id: 'lib-ro', name: 'Bibliothèque lecture', role: 'viewer' });
+    const mk = (id, t, lib) => { const f = JSON.parse(JSON.stringify(fiches[0]));
+      f.id = id; f.title = t; f.library = lib; f.category = ''; fiches.push(f); };
+    mk('a1', 'Alpha un', 'lib-a'); mk('r1', 'Read un', 'lib-ro');
+    render(); await w(300);
+    const etat = () => ({ lib: state.homeLib, selTog: !!document.getElementById('selTog'),
+      creer: !document.getElementById('hdrNew').hidden, imp: impLibDefaut() });
+    // On repasse par « Toutes » avant chaque cible : la rangée est une BASCULE (re-tap = null).
+    const aller = async k => {
+      if (state.homeLib != null) { const t = [...document.querySelectorAll('.home-side [data-libsel]')]
+          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await w(200); }
+      if (k) { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
+          .find(y => y.dataset.libsel === k); if (x) x.click(); }
+      await w(300); };
+    const out = {};
+    // 1 — « TOUTES » : tout est ouvert, et `newFiche()` reste SYNCHRONE (contrat de trois harnais).
+    await aller(null); out.toutes = etat();
+    newFiche();                       // sans await, exactement comme audit-k5 et audit-upload
+    out.toutes.synchrone = !!state.draft;
+    out.toutes.draftLib = state.draft ? (state.draft.library || '(perso)') : null;
+    state.draft = null; state.view = 'library'; render(); await w(250);
+    // 2 — LECTURE SEULE : aucune commande morte, et la création est refusée.
+    await aller('lib-ro'); out.ro = etat();
+    newFiche(); await w(250); out.ro.refus = !state.draft;
+    // 3 — ADMINISTRABLE : les commandes reviennent (donc le chrome n'est pas resté périmé), et la
+    //     création vise la bibliothèque APRÈS l'avoir annoncée.
+    await aller('lib-a'); out.adm = etat();
+    const pr = newFiche(); await w(300);
+    out.adm.dit = (document.getElementById('confirmMsg') || {}).textContent || '';
+    out.adm.rienAvantAccord = !state.draft;
+    document.getElementById('confirmYes').click(); await pr; await w(250);
+    out.adm.draftLib = state.draft ? state.draft.library : null;
+    out.adm.identOuvert = !!document.querySelector('.ed-ident[open]');
+    state.draft = null; state.view = 'library'; render(); await w(250);
+    // 4 — REFUSER ne crée rien.
+    await aller('lib-a');
+    const pr2 = newFiche(); await w(300);
+    out.refus = { vu: document.getElementById('confirmModal').classList.contains('on') };
+    document.getElementById('confirmNo').click(); await pr2; await w(250);
+    out.refus.rien = !state.draft;
+    // 5 — l'édition de PROTOCOLE gère les catégories de SA bibliothèque.
+    state.pdraft = { id: 'p1', library: 'lib-a' }; state.view = 'protocolEdit';
+    out.proto = activeCatScope();
+    state.pdraft = null; state.view = 'library'; render();
+    return out;
+  });
+  t('témoin : sur « Toutes », les deux commandes existent',
+    r.toutes.selTog === true && r.toutes.creer === true, JSON.stringify(r.toutes));
+  t('… et `newFiche()` reste SYNCHRONE, au Perso',
+    r.toutes.synchrone === true && r.toutes.draftLib === '(perso)', JSON.stringify(r.toutes));
+  t('lecture seule : pas de « Sélectionner »', r.ro.selTog === false, JSON.stringify(r.ro));
+  t('lecture seule : pas de « Créer »', r.ro.creer === false, JSON.stringify(r.ro));
+  t('… ni destination d’import', r.ro.imp === null, String(r.ro.imp));
+  t('… et la création est refusée', r.ro.refus === true);
+  t('administrable : le chrome n’est pas resté périmé (les deux commandes reviennent)',
+    r.adm.selTog === true && r.adm.creer === true, JSON.stringify(r.adm));
+  t('… la destination d’import suit', r.adm.imp === 'lib-a', String(r.adm.imp));
+  t('… la publication est ANNONCÉE avant tout brouillon',
+    /visible par tous les membres/.test(r.adm.dit) && r.adm.rienAvantAccord === true, r.adm.dit);
+  t('… puis la fiche naît DANS la bibliothèque', r.adm.draftLib === 'lib-a', String(r.adm.draftLib));
+  t('… destination visible : le dépliant d’identité est ouvert', r.adm.identOuvert === true);
+  t('refuser ne crée rien', r.refus.vu === true && r.refus.rien === true, JSON.stringify(r.refus));
+  t('l’édition de protocole gère les catégories de SA bibliothèque', r.proto === 'lib-a',
+    String(r.proto));
+  await page.close();
+}
+});
+
 /* ══ SÉLECTION — CE QU'ON DÉPLACE NE DISPARAÎT PAS ═══════════════════════════════════════════
    Signalé. « La destination devient la vue » était écrit sur `state.scope`, que l'accueil ne lit
    plus depuis la v5.18 (la colonne filtre par `state.homeLib`) : la ligne était un no-op et le

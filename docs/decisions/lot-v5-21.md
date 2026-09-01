@@ -1,4 +1,4 @@
-# Lot v5.21 — les catégories retrouvent leur bibliothèque, la main se reprend (A297-A303)
+# Lot v5.21 — les catégories retrouvent leur bibliothèque, la main se reprend (A297-A304)
 
 > Six signalements d'usage du 01/09/2026, plus un vestige mis au jour en les instruisant. Trois
 > d'entre eux ont la MÊME cause de fond : la refonte d'accueil v5.18 a remplacé `state.scope` par
@@ -210,6 +210,52 @@ Et la ligne « Cette bibliothèque partagée est vide » est **doublement morte*
 inatteignable — une bibliothèque vide n'a pas de rangée dans la colonne (`bibGroups` ne liste que
 les groupes ayant des items), on ne peut donc pas filtrer dessus.
 
+## A304 — le périmètre affiché commande les commandes (v5.21.1)
+
+Suite immédiate d'A303, et **même cause de fond** : `state.scope` vaut TOUJOURS `null` à l'accueil
+depuis la v5.18, donc `canEditScope(state.scope)` répondait « oui » partout et six lecteurs
+décidaient sur un champ mort. Ils sont ralliés à **une source unique**, `homeScope()` — plutôt qu'à
+six expressions qui divergeraient à nouveau, ce qui est exactement l'histoire de ce lot :
+
+```js
+const homeScope = () => state.homeLib || null;   // null = « Toutes », '' = Perso, sinon un id
+```
+
+- **Plus de commandes mortes en LECTURE SEULE.** Mesuré : sur une bibliothèque `viewer`,
+  « Sélectionner » ET « Créer » s'affichaient tous deux. Ils disparaissent — ce que le commentaire
+  de `selTogHtml` promettait déjà en toutes lettres — et la création est refusée avec sa raison.
+- **Créer dans la bibliothèque qu'on regarde, et le DIRE.** Une fiche naissait au Perso quel que
+  soit le filtre. Elle naît désormais dans la bibliothèque affichée — **mais une entité neuve naît
+  `validated`** (`migrate` ne laisse pas la chaîne vide : ce n'est PAS un brouillon masqué), donc
+  visible de tous les membres aussitôt. La publication est donc annoncée **avant qu'aucun brouillon
+  n'existe** (`confirmNewInLib`, patron de `confirmDraftLibChange`), refuser ne crée rien, et le
+  dépliant d'identité — ouvert d'office sur une fiche neuve — montre la destination. C'est A166
+  appliqué à la création : « publier à l'équipe, jamais silencieux ».
+- **Destination d'import** (`impLibDefaut`) et **renvoi croisé de recherche** suivent. Le second
+  cumulait deux erreurs : il ne comptait que le Perso, et comparait la catégorie **par id** là où la
+  v5.18 compare **par nom** — il partage désormais les prédicats de la liste (`homeLibOn`,
+  `catFilterOn`) au lieu de les recopier.
+- **L'édition de PROTOCOLE** gère les catégories de SA bibliothèque (`activeCatScope` y retombait
+  sur `state.scope`), et la ligne « Cette bibliothèque partagée est vide » redevient atteignable.
+
+⚠ **LE PIÈGE DE LA CORRECTION ELLE-MÊME — attrapé avant livraison, et c'est la leçon.** La
+condition de `#hdrNew` était **constante** (`canEditScope(null)` = toujours vrai) : la placer dans
+`applyViewChrome`, qui ne tourne qu'au rendu COMPLET, ne coûtait rien. Devenue **variable**, elle y
+devient périmée — un tap de la colonne gauche ne rejoue que la LISTE (`cfg.rerender`), et le bouton
+restait celui de la bibliothèque précédente. La décision vit donc dans `syncNewBtn()`, appelée des
+deux côtés : **patron exact de `syncMgrBtn`**, qui existait déjà pour cette raison-là.
+
+RÈGLE : rendre variable une condition jusque-là constante oblige à re-vérifier **qui la rejoue**.
+Le témoin le mesure — sans l'appel de `bindHomeChrome`, « lecture seule : pas de Créer » vire au
+rouge.
+
+⚠ **`newFiche()` DOIT RESTER SYNCHRONE dans le cas nominal.** Trois harnais font
+`newFiche(); render();` sans `await`. Le court-circuit `if (lib && !await confirmNewInLib(...))`
+garantit que l'`await` **n'est jamais évalué** quand la cible est le Perso ou « Toutes » : le corps
+s'exécute alors entièrement de façon synchrone, et `state.draft` est posé avant le `render()` de
+l'appelant. Un `await` inconditionnel — même sur une valeur non-Promise — suspendrait et casserait
+les trois.
+
 ## Les garde-fous du lot, et pourquoi ils tiennent
 
 Deux sections neuves, chacune **vérifiée capable d'échouer** (défaut réintroduit, rouge exactement
@@ -229,4 +275,9 @@ fin de parcours, où le dernier déplacement visait le Perso et où l'ancien cod
 toute façon. Déplacé au point où il mesure. **Un contrôle aveugle au défaut qu'il prétend couvrir
 ne vaut rien** — il faut le vérifier rouge, pas seulement l'écrire.
 
-Bilan : partage 331 → 349 contrôles, doctrine 92 → 93 sections.
+- `audit-doctrine` · « le périmètre affiché commande *Créer* et *Sélectionner* » (A304) —
+  13 contrôles, **vérifié capable d'échouer DEUX FOIS** : lecteurs remis sur `state.scope` →
+  9 rouges ; appel de `syncNewBtn` retiré de `bindHomeChrome` → 1 rouge, précisément celui du
+  périmage. Il garde aussi le contrat de synchronicité de `newFiche()`.
+
+Bilan : partage 331 → 349 contrôles, doctrine 92 → 94 sections.
