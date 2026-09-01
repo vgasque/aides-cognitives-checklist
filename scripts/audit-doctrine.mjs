@@ -6409,6 +6409,80 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
 }
 });
 
+/* ══ SÉLECTION — CE QU'ON DÉPLACE NE DISPARAÎT PAS ═══════════════════════════════════════════
+   Signalé. « La destination devient la vue » était écrit sur `state.scope`, que l'accueil ne lit
+   plus depuis la v5.18 (la colonne filtre par `state.homeLib`) : la ligne était un no-op et le
+   défaut qu'elle prévenait était revenu — filtre posé sur A, déplacement vers B, la liste tombe
+   à zéro sans un mot. Trois branches, parce que la bonne réponse n'est pas la même :
+     · un filtre est posé → il SUIT la destination ;
+     · « Toutes » → on ne pose AUCUN filtre (rien ne disparaît, et l'utilisateur n'a rien demandé) ;
+     · destination Perso → le filtre suit vers Perso ('') et non vers « Toutes » (null). */
+await sec('SÉLECTION · ce qu\'on déplace ne disparaît pas de l\'écran', async () => {
+{
+  const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
+  page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    myLibraries.length = 0;
+    myLibraries.push({ id: 'lib-a', name: 'Bibliothèque A', role: 'admin' },
+                     { id: 'lib-b', name: 'Bibliothèque B', role: 'admin' });
+    const mk = (id, t, lib) => { const f = JSON.parse(JSON.stringify(fiches[0]));
+      f.id = id; f.title = t; f.library = lib; f.category = ''; fiches.push(f); };
+    mk('a1', 'Alpha un', 'lib-a'); mk('a2', 'Alpha deux', 'lib-a'); mk('b1', 'Beta un', 'lib-b');
+    render(); await w(300);
+    const titres = () => [...document.querySelectorAll('.card-open')].map(x => x.textContent.trim());
+    const filtre = k => { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
+        .find(y => y.dataset.libsel === k); if (x) x.click(); };
+    // Le trajet RÉEL : « Sélectionner » → cocher → « Bibliothèque… » → destination → confirmer.
+    const bouger = async (ids, dest) => {
+      document.getElementById('selTog').click(); await w(250);
+      for (const id of ids) { const c = document.querySelector(`[data-selid="${id}"]`); if (c) c.click(); await w(80); }
+      document.getElementById('selLib').click(); await w(250);
+      const o = document.querySelector(`[data-pickopt="${dest}"]`); if (o) o.click(); await w(300);
+      if (document.getElementById('confirmModal').classList.contains('on'))
+        document.getElementById('confirmYes').click();
+      await w(600);
+      if (state.selOn) { document.getElementById('selCancel').click(); await w(200); }
+    };
+    const out = {};
+    // 1 — FILTRE POSÉ sur A, destination B : la vue suit, les déplacés restent à l'écran.
+    filtre('lib-a'); await w(300);
+    out.avant = { lib: state.homeLib, n: titres().length };
+    await bouger(['a1', 'a2'], 'lib-b');
+    out.versB = { lib: state.homeLib, n: titres().length, vus: titres().includes('Alpha un') };
+    /* Lu ICI, et pas en fin de scénario : le dernier déplacement du parcours vise le Perso, où
+       l'ancienne ligne écrivait `null` — l'assertion serait restée verte sur le défaut. */
+    out.scope = state.scope;
+    // 2 — SUR « TOUTES » : aucun filtre n'est posé par le déplacement.
+    filtre('lib-b'); await w(200);            // re-tap : retour à « Toutes »
+    out.toutes = state.homeLib;
+    await bouger(['a1'], 'lib-a');
+    out.apresToutes = { lib: state.homeLib, vus: titres().includes('Alpha un') };
+    // 3 — DESTINATION PERSO : le filtre suit vers Perso (''), jamais vers « Toutes » (null).
+    filtre('lib-a'); await w(300);
+    await bouger(['a1'], '');
+    out.versPerso = { lib: state.homeLib, vus: titres().includes('Alpha un') };
+    return out;
+  });
+  t('témoin : le filtre posé ne montre que la bibliothèque A', r.avant.lib === 'lib-a' && r.avant.n === 2,
+    JSON.stringify(r.avant));
+  t('déplacer vers B : le filtre SUIT la destination', r.versB.lib === 'lib-b', String(r.versB.lib));
+  t('… et les éléments déplacés restent à l’écran', r.versB.vus === true && r.versB.n === 3,
+    JSON.stringify(r.versB));
+  t('témoin : le re-tap ramène « Toutes »', r.toutes === null, String(r.toutes));
+  t('sur « Toutes », aucun filtre n’est POSÉ par un déplacement', r.apresToutes.lib === null,
+    String(r.apresToutes.lib));
+  t('… et rien ne disparaît non plus', r.apresToutes.vus === true);
+  t('destination Perso : le filtre suit vers Perso, pas vers « Toutes »', r.versPerso.lib === '',
+    JSON.stringify(r.versPerso));
+  t('… et l’élément reste à l’écran', r.versPerso.vus === true);
+  t('… sans écrire l’ancien `state.scope`', r.scope === null, String(r.scope));
+  await page.close();
+}
+});
+
 /* ══ MONITEUR — LA BANDE DE TEMPS TIENT À PLUSIEURS MINUTEURS ══════════════════════════════
    Signalé à l'usage : « lorsque plusieurs minuteurs, timeline ne s'affichent plus ». Le défaut
    était GÉOMÉTRIQUE, et c'est pourquoi il vit ici et non dans `tests.html` : `monBandData` est

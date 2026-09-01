@@ -1,5 +1,90 @@
 # Journal des modifications
 
+## [5.21.0] — 2026-09-01
+### Six signalements d'usage : les catégories retrouvent leur bibliothèque, la main se reprend (A297-A303)
+
+- **« Gérer les catégories » n'affichait plus rien** (A297). Deux causes empilées. (1)
+  `x.onclick=openCatMgr` **en référence nue** : `openCatMgr(lib)` prend une bibliothèque depuis
+  A159, il recevait donc l'**ÉVÈNEMENT de clic** comme périmètre — `_catScopeForce` valait un
+  `MouseEvent`, `catsForScope` ne trouvait rien, la fenêtre s'ouvrait vide sous un en-tête
+  « Catégories de la bibliothèque » sans nom. La porte du pouce (`openHomeMgr`) appelait sans
+  argument : d'où le « pas sur téléphone ». Deux sites enveloppés (`paintFiltSheet`,
+  `bindHomeChrome`), comme `paintMgrSheet` le faisait déjà. (2) Derrière, `activeCatScope()`
+  lisait `state.scope`, que **plus rien n'écrit à l'accueil depuis la v5.18** (la colonne gauche
+  filtre par `state.homeLib`) : le gestionnaire retombait toujours sur le Perso, quelle que soit
+  la bibliothèque affichée.
+- **Le gestionnaire montre une SECTION PAR BIBLIOTHÈQUE** (A298, décision de l'auteur : « c'est un
+  vrai bug » de ne pas distinguer les catégories selon leur bibliothèque). Il suit désormais le
+  filtre de la colonne ; sur « Toutes », il liste chaque périmètre administrable sous son propre
+  intitulé (Perso puis chacune), avec sa palette, **ses comptes bornés à elle** (`catCount(id,
+  scope)` — deux bibliothèques peuvent porter le même id), **ses cibles de déplacement bornées à
+  elle** (déplacer une fiche de bibliothèque vers une catégorie du Perso serait une référence
+  morte), une clé de suppression portée à `scope|id`, et **son propre « ＋ Ajouter »** — plutôt
+  qu'un sélecteur de destination. Les bibliothèques en lecture seule en sont exclues (commande
+  morte, règle 14).
+- **Une seule rangée par nom dans la colonne gauche** (A299). Le filtre de catégorie compare par
+  NOM à travers l'union depuis la v5.18 : deux homonymes de bibliothèques différentes
+  produisaient **deux rangées qui filtraient exactement la même chose**, ne différant que par la
+  couleur de leur pastille. Elles fusionnent (compte cumulé, cran lu sur le nom comme le filtre)
+  et, quand les couleurs divergent, la **pastille les montre TOUTES** (`.cat-multi`, parts
+  égales) : aucune n'est reniée. Écartés à la mesure : une seule couleur (elle mentirait sur les
+  autres) et un filtre par bibliothèque (il reviendrait sur la v5.18).
+- **La jauge de « Maintenir » ne s'affichait plus** dans le volet des minuteurs (A300, signalé).
+  `.rt-dock .tm-btn:hover` vaut (0,3,0) et battait `.tm-reset.holding` (0,2,0) : son raccourci
+  `background:` remettait `background-image` à **none** — le piège déjà nommé au bloc de survol
+  nocturne. Invisible à toute sonde qui dispatche un `pointerdown` **sans déplacer le pointeur**,
+  et sur iPhone le survol reste collé après le toucher, donc la jauge manquait aussi là.
+  `:not(.holding)` ; vérifié au VRAI survol sur les deux moteurs (`background-image:none` avant,
+  jauge à 47 % après).
+- **La bordure du volet suit enfin la partie qui se déroule** (A301, signalé). Capsule et volet
+  forment un objet à deux étages (mêmes bords, volet ancré au bas de la capsule, coins bas
+  transférés) — mais le périmètre nocturne `--sys-edge` était posé sur `#cbTimers` seul, et le
+  volet, qui ne projette pas d'ombre la nuit, n'avait **aucun bord**. Trois côtés (gauche, droite,
+  bas) : le haut est la JOINTURE, où la capsule pose déjà son trait — un anneau complet doublerait
+  la ligne à 2 px. Inerte le jour (`--sys-edge` transparent, le volet garde son élévation).
+- **L'hôte qui coupe ne gèle plus celui qui CONDUIT** (A302, signalé). L'hôte qui a donné la main
+  garde le droit d'arrêter (**propriété de la ligne, pas capacité de rôle** : `endShare`, `revoke`,
+  `admit`, `setRole` passent par la RLS `owner = auth.uid()`) : son arrêt figeait l'écran de celui
+  qui conduisait la checklist. Trois réponses. (1) `Share.soloLead`, décidé dans `_cycle` **à la
+  transition de statut**, sur le rôle que le serveur vient de rapporter — après, on ne sonde plus :
+  le lien meurt, la conduite continue, même machinerie que « Continuer seul » (rien ne part,
+  `canWrite` exige `status==='active'`), bandeau qui le dit et **pas de « Rejoindre à nouveau »**,
+  qui raserait le Runtime en pleine conduite. `revoked` EXCLU : couper rend d'abord la main
+  (`_reclaimLead`), et c'est une décision qui concerne la personne. (2) Le dialogue d'arrêt cessait
+  de dire vrai — « Votre session, elle, continue » était écrit en supposant que l'hôte conduit :
+  il **nomme** désormais celui qui a la main et rappelle la porte non destructrice. (3) **« Reprendre
+  la main »** : `_reclaimLead` existait **sans aucune porte**, le seul moyen de reprendre la conduite
+  était de COUPER la personne. Un UPDATE de rôle, rien d'autre ne bouge. Et perdre la main
+  s'annonce chez l'invité, symétrique de `takeLead`.
+- **Ce qu'on déplace ne disparaît plus de l'écran** (A303, signalé). « La destination devient la
+  vue » était écrit sur `state.scope`, que l'accueil ne lit plus depuis la v5.18 : la ligne était
+  un **no-op** et le défaut qu'elle prévenait était revenu — filtre posé sur la bibliothèque A,
+  déplacement d'une sélection vers B, **la liste tombe de deux rangées à zéro sans un mot** (mesuré
+  au vrai trajet). Le filtre SUIT désormais la destination ; sur « Toutes » on n'en pose **aucun**
+  (rien ne disparaît, et l'utilisateur n'a rien demandé) ; vers le Perso il suit vers Perso (`''`)
+  et non vers « Toutes » (`null`). `state.cat=''` reste inconditionnel — cette moitié-là n'était
+  pas morte : le déplacement invalide la catégorie.
+- **Garde-fous** : deux sections neuves, chacune **vérifiée capable d'échouer** (défaut réintroduit,
+  rouge exactement sur les bonnes assertions, fichier restauré à l'octet). `audit-partage`
+  « l'hôte coupe, le CONDUCTEUR poursuit » (11 contrôles, trois témoins : scribe → gèle, coupé →
+  gèle, promu → poursuit) et sa section « couper celui qui conduit » étendue à la feuille ;
+  `audit-doctrine` « ce qu'on déplace ne disparaît pas de l'écran » (9 contrôles, trois branches).
+  Un dixième contrôle est né NON DISCRIMINANT — il lisait `state.scope` en fin de parcours, où
+  l'ancien code écrivait `null` de toute façon : déplacé au point où il mesure. Partage 331 → 349
+  contrôles, doctrine 92 → 93 sections.
+- **Signalé, non traité** (arbitrage en attente) : `state.scope` vaut toujours `null` à l'accueil,
+  et six autres lecteurs s'en remettent encore à lui — `selTogHtml` et `#hdrNew` proposent
+  « Sélectionner » et « Créer » sur une bibliothèque en LECTURE SEULE (commandes mortes),
+  `newFiche`/`newProtocol` créent au Perso quel que soit le filtre, `impLibDefaut` propose Perso à
+  l'import, le renvoi croisé de recherche sous-compte, `activeCatScope` retombe dessus en édition
+  de PROTOCOLE, et la ligne « Cette bibliothèque partagée est vide » est morte (une bibliothèque
+  vide n'a pas de rangée dans la colonne). Compromis assumé de ce lot : la rangée du conducteur
+  porte deux boutons, donc un nom long y tronque comme il tronquait déjà sur les rangées de
+  scribe — deux mises en page mesurées et écartées (elles font passer TOUTES les rangées à deux
+  lignes, y compris à 430 px).
+- Vérifié : `npm run check` complet, 1176 tests × 2 moteurs, audit COMPLET 26/26. CHANGELOG à 20
+  ([5.18.3] archivée en fin de `docs/changelog/v5.md`).
+
 ## [5.20.9] — 2026-09-01
 ### La vue guidée est purgée : le journal sert tout, l'aperçu vide compris (A296)
 
@@ -570,21 +655,3 @@ corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
   focus TIENT sur un recalage programmatique, il PART sur un glissement de 70 px.
 - **La leçon, écrite dans la doctrine** : pour distinguer « l'utilisateur a fait X » de « il
   s'est passé X », écouter l'ENTRÉE, jamais la conséquence.
-
-## [5.18.3] — 2026-08-30
-### Suites du terrain iPhone (A266)
-
-- **Défiler referme le clavier** (signalé : « en scrollant, la barre saute et la bande
-  disparaît »). Suivre le viewport visuel pendant un défilement clavier-ouvert est
-  structurellement saccadé (les variables sont sondées) — et l'utilisateur qui défile a fini de
-  taper : au premier défilement (fenêtre ou viewport visuel, garde de 600 ms car l'ouverture du
-  clavier émet ses propres évènements), le champ rend le focus, le clavier se referme, la
-  liste se lit plein écran et la pilule revient en bas. Le patron d'iOS Mail/Safari.
-- **La zone sûre du haut est couverte** (signalé en PWA installée : « le bandeau de sélection
-  se retrouve sous l'heure », idem pour les intertitres collants). L'en-tête est statique
-  depuis la v5.18 — une fois défilé, plus rien ne portait `env(safe-area-inset-top)` : un sol
-  fixe couvre la bande de l'encoche (le contenu ne défile plus sous l'heure) et le bandeau de
-  sélection comme les intertitres s'arrêtent dessous. Inerte en navigateur (env vaut 0).
-- **Le rythme sous l'en-tête est UN** : le titre « Résultats — toutes les bibliothèques »
-  naissait collé (marge haute nulle) — 18 px sous l'en-tête partout désormais (Accès direct,
-  Résultats, et la voie large), mesuré aux deux largeurs.

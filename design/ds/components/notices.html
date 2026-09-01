@@ -226,6 +226,11 @@
      à (1,1,1)) : elle remplace notamment l'ombre montante du quai (--shadow-up, none en sombre)
      et l'ombre en dur du volet .ds-card, inutiles sur du quasi-noir. */
   [data-theme="dark"] :is(.ls-card,.sd-in,.ds-card,#cbTimers){box-shadow:inset 0 0 0 1px var(--sys-edge)}
+  /* ⚠ L'ANNEAU SUIT LE VOLET (signalé : « la bordure ne suit pas »). Capsule et volet sont UN
+     objet à deux étages, mais l'anneau s'arrêtait à la capsule et le volet, sans ombre la nuit,
+     n'avait aucun bord. TROIS côtés : le haut est la jointure, où la capsule pose déjà son trait
+     (un anneau complet doublerait la ligne). Inerte le jour (--sys-edge transparent). */
+  [data-theme="dark"] .rt-dock{box-shadow:inset 1px 0 0 var(--sys-edge),inset -1px 0 0 var(--sys-edge),inset 0 -1px 0 var(--sys-edge)}
   /* ≥ 1200 px la capsule QUITTE la matière système (body.chrome-hdr : elle monte dans l'en-tête,
      fond transparent) : aucun anneau — on cerclerait un objet qui n'existe plus comme surface. */
   [data-theme="dark"] body.chrome-hdr #cbTimers{box-shadow:none}
@@ -1589,6 +1594,9 @@
      sur la sélection bleue. Dans une pilule à fond maîtrisé (méta, chip éditeur) : 8px sans
      anneau. La couleur n'est JAMAIS seule : toujours accompagnée du nom en toutes lettres. */
   .cat-dot{width:9px;height:9px;flex:none;border-radius:50%;background:var(--catcol,var(--line-strong));box-shadow:0 0 0 2px var(--surface)}
+  /* Homonymes fusionnés en UNE rangée : la pastille porte les couleurs de chaque bibliothèque en
+     parts égales, plutôt qu'une seule qui mentirait sur les autres. */
+  .cat-multi{background:linear-gradient(90deg,var(--catcols,var(--line-strong)))}
   .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
   /* ⚠ LES TROIS RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné
      avec « Toutes »). Les intitulés ont des longueurs différentes — TYPE 33 px, CATÉG. 46 —, donc
@@ -2761,7 +2769,11 @@
   .rt-dock .tm-ctrl{flex-direction:row;flex-wrap:wrap;gap:8px;margin-top:8px}
   .rt-dock .tm-btn{width:auto;flex:1 1 120px;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
   .rt-dock .tm-main{background:none;border-color:var(--sys-ink-2);color:var(--sys-ink);font-weight:800}
-  .rt-dock .tm-btn:hover{background:var(--sys-2)}
+  /* ⚠ `:not(.holding)` : à (0,3,0) cette règle battait `.tm-reset.holding` (0,2,0) et son
+     raccourci `background:` remettait background-image à zéro — jauge de « Maintenir » effacée
+     au survol, donc aussi au toucher iOS (survol collant). Même piège qu'au bloc nocturne ~670 ;
+     invisible à une sonde qui dispatche pointerdown sans bouger le pointeur. */
+  .rt-dock .tm-btn:not(.holding):hover{background:var(--sys-2)}
   .rt-dock .tmr-hint{color:var(--sys-ink-2)}
   .rt-dock .tm-mini{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
   .rt-dock .tmm-b{color:var(--sys-ink-2)}
@@ -6673,6 +6685,10 @@
   .cm-confirm p{font-size:12px;color:var(--ink);margin:0 0 8px;line-height:1.45}
   .cm-confirm select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);margin-bottom:8px}
   .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
+  .cm-none{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 10px}
+  /* Sections empilées (« Toutes ») : seule celle qui SUIT un « Ajouter » respire — la première
+     colle au haut de la fenêtre, comme avant. */
+  .cm-add+.cm-scope{margin-top:20px}
   .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
   .cm-add input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
   /* ===== Ajustements transverses ===== */

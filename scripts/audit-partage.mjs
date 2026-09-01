@@ -1388,6 +1388,10 @@ await sec(`PARTAGE · l'avancée chez l'hôte ÉMET — moteur ${NOM_MOTEUR}`, a
   await page.close();
 }});
 
+/* Une seule manœuvre, une seule section : le MÊME décor — « l'hôte a donné la main » — porte
+   trois mesures. Reprendre la main était impossible sans COUPER la personne (`_reclaimLead`
+   existait sans porte), et le dialogue d'arrêt affirmait « votre session continue » alors que
+   c'est l'écran de l'AUTRE qui est en jeu. */
 await sec(`PARTAGE · couper celui qui conduit rend la main — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
@@ -1402,10 +1406,46 @@ await sec(`PARTAGE · couper celui qui conduit rend la main — moteur ${NOM_MOT
     // L'état d'après une passation : l'invité conduit, l'hôte a relâché.
     Share.participants = [{ id: 'p0', label: 'Hôte', role: 'scribe', owner: true },
                           { id: 'p1', label: 'IADE', role: 'lead', owner: false }];
-    const ok = await Share.revoke('p1');
-    return { ok, patchs: patchs.map(x => ({ pid: /participant=eq\.([^&]+)/.exec(x.u)[1], b: x.b })),
-             roleApres: Share.role };
+    const out = {};
+
+    // 1 — LA FEUILLE. « Donner la main » n'a plus de sens : c'est « Reprendre » qu'on doit lire.
+    openShareSheet(); await new Promise(x => setTimeout(x, 300));
+    const corps = document.getElementById('shareBody');
+    out.reprendre = !!corps.querySelector('[data-shback="p1"]');
+    out.donner = !!corps.querySelector('[data-shlead="p1"]');
+
+    // 2 — LE DIALOGUE D'ARRÊT nomme celui qui conduit (on ANNULE : rien ne doit être arrêté).
+    document.getElementById('shEnd').click(); await new Promise(x => setTimeout(x, 250));
+    out.dlg = (document.getElementById('confirmMsg') || {}).textContent || '';
+    document.getElementById('confirmNo').click(); await new Promise(x => setTimeout(x, 250));
+    out.statutApresAnnule = Share.status;
+
+    // 3 — REPRENDRE : un seul rôle réécrit, la personne RESTE dans la session.
+    corps.querySelector('[data-shback="p1"]').click(); await new Promise(x => setTimeout(x, 300));
+    out.patchsReprise = patchs.map(x => ({ pid: /participant=eq\.([^&]+)/.exec(x.u)[1], b: x.b }));
+    out.roleApresReprise = Share.role;
+    out.toujoursLa = (Share.participants || []).some(x => x.id === 'p1');
+
+    // 4 — COUPER celui qui conduit rend AUSSI la main (invariant « jamais zéro lead »).
+    patchs.length = 0;
+    Share.role = 'scribe';
+    Share.participants = [{ id: 'p0', label: 'Hôte', role: 'scribe', owner: true },
+                          { id: 'p1', label: 'IADE', role: 'lead', owner: false }];
+    out.ok = await Share.revoke('p1');
+    out.patchs = patchs.map(x => ({ pid: /participant=eq\.([^&]+)/.exec(x.u)[1], b: x.b }));
+    out.roleApres = Share.role;
+    return out;
   });
+  t('la rangée dit « Reprendre la main »', r.reprendre === true);
+  t('… et non « Donner la main » (elle est déjà donnée)', r.donner === false);
+  t('le dialogue d’arrêt NOMME celui qui conduit', /IADE/.test(r.dlg), r.dlg);
+  t('… et ne prétend plus que « votre session continue »',
+    !/Votre session, elle, continue/.test(r.dlg), r.dlg);
+  t('… annuler n’arrête rien', r.statutApresAnnule === 'active');
+  t('reprendre n’écrit QU’UN rôle', r.patchsReprise.length === 1
+    && r.patchsReprise[0].pid === 'p0' && r.patchsReprise[0].b.role === 'lead',
+    JSON.stringify(r.patchsReprise));
+  t('… sans couper personne', r.toujoursLa === true && r.roleApresReprise === 'lead');
   t('la coupure part', r.ok === true);
   t('… et la main revient à l’hôte', r.patchs.some(x => x.pid === 'p0' && x.b.role === 'lead'),
     JSON.stringify(r.patchs));
@@ -1812,6 +1852,86 @@ await sec(`PARTAGE · le menu suit, le lien mort refuse — moteur ${NOM_MOTEUR}
   t('… et le refus est ANNONCÉ', /retiré|transmis/i.test(r.annonce), r.annonce);
   t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   t('mais un DÉTACHÉ continue de travailler', r.detacheTravaille === true);
+  await page.close();
+}
+});
+
+/* ── L'HÔTE COUPE : CELUI QUI CONDUIT NE GÈLE PAS ────────────────────────────────────────────
+   Signalé à l'usage. L'hôte qui a DONNÉ la main garde le droit d'arrêter (propriété de la ligne,
+   pas capacité de rôle) : son arrêt figeait l'écran de celui qui conduisait la checklist. On
+   passe par le VRAI chemin — la bascule se décide dans `_cycle`, à la transition de statut, sur
+   le rôle que le serveur vient de rapporter ; la poser à la main ne mesurerait rien. */
+await sec(`PARTAGE · l'hôte coupe, le CONDUCTEUR poursuit — moteur ${NOM_MOTEUR}`, async () => {
+{
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    const f = fiches.find(x => /Arrêt/.test(x.title)) || fiches[0];
+    const etat = { status: 'active', role: 'scribe' };
+    Share._io.join = async () => ({ ok: true, share: 's1', secret: 'x'.repeat(24), me: 'p1',
+      role: 'scribe', fiche: sharePayload(f), server_time: new Date().toISOString() });
+    Share._io.pull = async () => ({ ok: true, status: etat.status, role: etat.role, events: [],
+      seq: 0, n_events: 0, participants: [], server_time: new Date().toISOString() });
+    Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
+    openJoinScreen('K7M2P4Q9'); await joinGo(); await new Promise(x => setTimeout(x, 500));
+    // Le compteur vit dans un panneau replié sous le seuil du rail (même remède qu'au bloc voisin).
+    state.rtOpen = true; render(); await new Promise(x => setTimeout(x, 400));
+
+    const out = {};
+    const cycle = async () => { Share._kick(0); await new Promise(x => setTimeout(x, 500)); };
+    const incr = async () => { const b = document.querySelector('[data-cninc]'); if (!b) return null;
+      const id = b.dataset.cninc, a = Runtime.counters[id];
+      b.click(); await new Promise(x => setTimeout(x, 400));
+      return Runtime.counters[id] > a; };
+
+    // 1 — le serveur promeut l'invité : il CONDUIT.
+    etat.role = 'lead'; await cycle();
+    out.estLead = Share.role === 'lead';
+
+    // 2 — l'hôte arrête. Transition 'active' → 'ended', décidée dans _cycle.
+    etat.status = 'ended'; await cycle();
+    out.solo = Share.soloLead === true;
+    out.pasFige = shareFrozen() === false;
+    out.pasGrise = !document.body.classList.contains('share-dead');
+    out.travaille = await incr();
+    out.bandeau = (main.querySelector('.share-over') || {}).textContent || '';
+    out.rejoindre = !!document.getElementById('soRejoin');
+    out.quitter = !!document.getElementById('soQuit');
+    out.toasts = document.querySelectorAll('.toast').length;
+    out.modales = document.querySelectorAll('.ai-modal.on').length;
+
+    // 3 — TÉMOIN : le même arrêt sur un SCRIBE gèle, comme avant.
+    Share.stop(); Runtime = makeRuntime();
+    openJoinScreen('K7M2P4Q9'); etat.status = 'active'; etat.role = 'scribe';
+    await joinGo(); await new Promise(x => setTimeout(x, 500));
+    state.rtOpen = true; render(); await new Promise(x => setTimeout(x, 400));
+    etat.status = 'ended'; await cycle();
+    out.scribeSolo = Share.soloLead === true;
+    out.scribeFige = shareFrozen() === true;
+    out.scribeTravaille = await incr();
+
+    // 4 — TÉMOIN : COUPÉ n'est pas ARRÊTÉ, même en tenant la main (la coupure rend la main).
+    Share.stop(); Runtime = makeRuntime();
+    openJoinScreen('K7M2P4Q9'); etat.status = 'active'; etat.role = 'lead';
+    await joinGo(); await new Promise(x => setTimeout(x, 500));
+    await cycle();
+    etat.status = 'revoked'; await cycle();
+    out.coupeSolo = Share.soloLead === true;
+    out.coupeFige = shareFrozen() === true;
+    return out;
+  });
+  t('témoin : le serveur a bien promu l’invité', r.estLead === true);
+  t('l’arrêt de l’hôte ne gèle pas le CONDUCTEUR', r.solo === true && r.pasFige === true);
+  t('… son écran n’est pas mis en apparence désactivée', r.pasGrise === true);
+  t('… et il continue de travailler', r.travaille === true);
+  t('le bandeau DIT que l’écran reste le sien', /poursuivez la checklist/i.test(r.bandeau), r.bandeau);
+  t('… sans « Rejoindre à nouveau » (il raserait la conduite en cours)', r.rejoindre === false);
+  t('… mais avec une porte de sortie', r.quitter === true);
+  t('… sans banderole ni fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
+  t('TÉMOIN scribe : le même arrêt gèle', r.scribeSolo === false && r.scribeFige === true);
+  t('… et ses gestes ne passent plus', r.scribeTravaille === false);
+  t('TÉMOIN coupé : tenir la main n’exempte pas d’une coupure',
+    r.coupeSolo === false && r.coupeFige === true);
   await page.close();
 }
 });

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vdBDifS2fzTLmQ5y5takkT4NZNLlLV3Jv7s9H4jc0HE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-R6BX5xuTFxvN8v9IrmnwiWvJrCIfEnz1DWolkzjGkkE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -580,6 +580,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      à (1,1,1)) : elle remplace notamment l'ombre montante du quai (--shadow-up, none en sombre)
      et l'ombre en dur du volet .ds-card, inutiles sur du quasi-noir. */
   html[data-theme="dark"] :is(.ls-card,.sd-in,.ds-card,#cbTimers){box-shadow:inset 0 0 0 1px var(--sys-edge)}
+  /* ⚠ L'ANNEAU SUIT LE VOLET (signalé : « la bordure ne suit pas »). Capsule et volet sont UN
+     objet à deux étages, mais l'anneau s'arrêtait à la capsule et le volet, sans ombre la nuit,
+     n'avait aucun bord. TROIS côtés : le haut est la jointure, où la capsule pose déjà son trait
+     (un anneau complet doublerait la ligne). Inerte le jour (--sys-edge transparent). */
+  html[data-theme="dark"] .rt-dock{box-shadow:inset 1px 0 0 var(--sys-edge),inset -1px 0 0 var(--sys-edge),inset 0 -1px 0 var(--sys-edge)}
   /* ≥ 1200 px la capsule QUITTE la matière système (body.chrome-hdr : elle monte dans l'en-tête,
      fond transparent) : aucun anneau — on cerclerait un objet qui n'existe plus comme surface. */
   html[data-theme="dark"] body.chrome-hdr #cbTimers{box-shadow:none}
@@ -1943,6 +1948,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sur la sélection bleue. Dans une pilule à fond maîtrisé (méta, chip éditeur) : 8px sans
      anneau. La couleur n'est JAMAIS seule : toujours accompagnée du nom en toutes lettres. */
   .cat-dot{width:9px;height:9px;flex:none;border-radius:50%;background:var(--catcol,var(--line-strong));box-shadow:0 0 0 2px var(--surface)}
+  /* Homonymes fusionnés en UNE rangée : la pastille porte les couleurs de chaque bibliothèque en
+     parts égales, plutôt qu'une seule qui mentirait sur les autres. */
+  .cat-multi{background:linear-gradient(90deg,var(--catcols,var(--line-strong)))}
   .tag .cat-dot,.cat-chip-selected .cat-dot{width:8px;height:8px;box-shadow:none}
   /* ⚠ LES TROIS RANGÉES DE FILTRES PARTENT DU MÊME x (signalé à l'usage : « Tout » pas aligné
      avec « Toutes »). Les intitulés ont des longueurs différentes — TYPE 33 px, CATÉG. 46 —, donc
@@ -3115,7 +3123,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock .tm-ctrl{flex-direction:row;flex-wrap:wrap;gap:8px;margin-top:8px}
   .rt-dock .tm-btn{width:auto;flex:1 1 120px;background:none;border:1px solid var(--sys-line);color:var(--sys-ink);min-height:44px}
   .rt-dock .tm-main{background:none;border-color:var(--sys-ink-2);color:var(--sys-ink);font-weight:800}
-  .rt-dock .tm-btn:hover{background:var(--sys-2)}
+  /* ⚠ `:not(.holding)` : à (0,3,0) cette règle battait `.tm-reset.holding` (0,2,0) et son
+     raccourci `background:` remettait background-image à zéro — jauge de « Maintenir » effacée
+     au survol, donc aussi au toucher iOS (survol collant). Même piège qu'au bloc nocturne ~670 ;
+     invisible à une sonde qui dispatche pointerdown sans bouger le pointeur. */
+  .rt-dock .tm-btn:not(.holding):hover{background:var(--sys-2)}
   .rt-dock .tmr-hint{color:var(--sys-ink-2)}
   .rt-dock .tm-mini{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
   .rt-dock .tmm-b{color:var(--sys-ink-2)}
@@ -7027,6 +7039,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cm-confirm p{font-size:12px;color:var(--ink);margin:0 0 8px;line-height:1.45}
   .cm-confirm select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);margin-bottom:8px}
   .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
+  .cm-none{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 10px}
+  /* Sections empilées (« Toutes ») : seule celle qui SUIT un « Ajouter » respire — la première
+     colle au haut de la fenêtre, comme avant. */
+  .cm-add+.cm-scope{margin-top:20px}
   .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
   .cm-add input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
   /* ===== Ajustements transverses ===== */
@@ -7972,7 +7988,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.20.9';
+const APP_VERSION='5.21.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9772,8 +9788,21 @@ const catsUtilesAll=()=>{const byN=Object.create(null);
    `openCatMgr` : `activeCatScope` est appelée dès les premiers rendus, et une liaison `let`
    déclarée 15 000 lignes plus bas serait dans sa zone morte temporelle. */
 let _catScopeForce=undefined;
+/* ⚠ L'ACCUEIL SUIT `homeLib`, PAS `scope` : depuis la v5.18 la colonne gauche FILTRE par
+   `state.homeLib` et plus rien n'écrit `state.scope` à l'accueil — le gestionnaire retombait
+   donc toujours sur le Perso, quelle que soit la bibliothèque affichée. CAT_ALL = « Toutes » :
+   le gestionnaire montre alors une section par bibliothèque (les ids de catégorie ne sont
+   uniques QUE par bibliothèque). Il ne doit JAMAIS atteindre `saveCats`, qui en fait une clé
+   de synchro — tous ses appelants passent un périmètre explicite. */
+const CAT_ALL='*';
 function activeCatScope(){if(_catScopeForce!==undefined)return _catScopeForce;   // surcharge explicite (atelier d'import, A159)
-  return state.view==='edit'?(state.draft?(state.draft.library||null):null):(state.scope||null);}
+  if(state.view==='edit')return state.draft?(state.draft.library||null):null;
+  if(state.view==='library')return state.homeLib==null?CAT_ALL:(state.homeLib||null);
+  return state.scope||null;}
+// Périmètres montrés par le gestionnaire. Sur « Toutes » : Perso + les bibliothèques qu'on peut
+// écrire — une bibliothèque en lecture seule y serait une commande morte (règle 14).
+function catMgrScopes(){const scp=activeCatScope();
+  return scp===CAT_ALL?[null].concat(sortedLibraries().filter(l=>canEditScope(l.id)).map(l=>l.id)):[scp];}
 function noticeHidden(){try{return localStorage.getItem('ac-notice-hidden')==='1';}catch(e){return false;}}
 /* UN SEUL CRÉNEAU DE MESSAGE SYSTÈME À LA FOIS (audit v5.0.10, direction A) : mesuré à 390×844,
    le bandeau système ET la notice auteur s'empilaient au premier lancement — premier contenu
@@ -12631,7 +12660,7 @@ function applyViewChrome(){
      mécanique que `share-scribe` — une CLASSE sur `body`, aucune géométrie touchée, donc rien qui
      bouge sous les yeux de quelqu'un qui n'a rien demandé. Cf. `.share-over` (CSS) et
      `shareOverHtml` (le bandeau qui l'accompagne). */
-  try{document.body.classList.toggle('share-dead',Share.mode==='guest'&&SHARE_DEAD.indexOf(Share.status)>=0);}catch(e){}
+  try{document.body.classList.toggle('share-dead',shareFrozen());}catch(e){}
   // Sortie de crise : rejouer les notifications mises en attente (une par une, règle V5).
   if(!document.body.classList.contains('crisis-live'))flushHeldToasts();
 }
@@ -13102,7 +13131,11 @@ function paintFiltSheet(){
      temps où le type était une navigation de premier niveau). */
   b.querySelectorAll('[data-section]').forEach(x=>x.onclick=()=>{setSection(x.dataset.section,true,{keepCat:true});paintFiltSheet();});
   b.querySelectorAll('[data-cat]').forEach(x=>x.onclick=()=>{const c=x.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;render();paintFiltSheet();});
-  b.querySelectorAll('[data-catmgr]').forEach(x=>x.onclick=openCatMgr);
+  /* ⚠ JAMAIS la référence nue : `openCatMgr(lib)` prend une bibliothèque (A159) et recevait
+     l'ÉVÈNEMENT de clic comme périmètre — `_catScopeForce` = MouseEvent, zéro catégorie trouvée
+     (« plus aucune catégorie »). La porte du pouce appelait sans argument : d'où « pas sur
+     téléphone ». On enveloppe, comme `paintMgrSheet`. */
+  b.querySelectorAll('[data-catmgr]').forEach(x=>x.onclick=()=>openCatMgr());
   paintFiltFoot();}
 /* LE PIED ANNONCE LE RÉSULTAT, ET C'EST TOUT SON OBJET. Le compte est celui de la liste
    RÉELLEMENT rendue dessous — on ne recompte pas, on lit ce que le rendu vient de produire :
@@ -13190,10 +13223,26 @@ function homeSideHtml(){
       act:admin?`<button class="hs-act" data-libedit="${esc(g.lib.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(g.L)} »">${uiIcon('pen',14)}</button>`
         :(ro?`<span class="hs-act" title="Lecture seule — bibliothèque institutionnelle">${uiIcon('lock',14)}</span>`
         :(g.lib?`<span class="hs-act" title="Lecture-écriture">${uiIcon('lockopen',14)}</span>`:''))});}).join('');
-  const catIdx=categories.filter(c=>(cnt[c.id]||0)>0||state.cat===c.id).sort(byCatName).map(c=>
-    hsRow({on:state.cat===c.id,label:esc(c.name),tail:num(cnt[c.id]||0),
-      mark:`<span class="cat-dot" style="--catcol:${safeColor(c.color)}"></span>`,
-      attrs:`data-cat="${esc(c.id)}" aria-pressed="${state.cat===c.id?'true':'false'}"`})).join('');
+  /* ⚠ UNE RANGÉE PAR NOM (signalé à l'usage). Le filtre de catégorie compare par NOM à travers
+     l'union (v5.18) : deux homonymes de bibliothèques différentes produisaient DEUX rangées qui
+     filtraient exactement la même chose, ne différant que par la couleur de leur pastille. On
+     fusionne — compte cumulé, cran lu sur le NOM comme le filtre —, et quand les couleurs
+     divergent la pastille les montre TOUTES : aucune n'est reniée, et le réglage par bibliothèque
+     reste au gestionnaire, seul endroit où l'on agit sur une catégorie précise. */
+  const catNom=_catFiltName();
+  const catIdx=(()=>{const par=new Map();
+    categories.forEach(c=>{const n=txNorm(c.name||'');if(!n)return;
+      const g=par.get(n)||{n,c,nb:0,cols:[]};
+      g.nb+=(cnt[c.id]||0);
+      const col=safeColor(c.color);if(col&&g.cols.indexOf(col)<0)g.cols.push(col);
+      par.set(n,g);});
+    return [...par.values()].filter(g=>g.nb>0||catNom===g.n).sort((a,b)=>byCatName(a.c,b.c)).map(g=>{
+      const on=catNom===g.n;
+      const dot=g.cols.length>1
+        ? `<span class="cat-dot cat-multi" style="--catcols:${g.cols.map((c,i)=>`${c} ${Math.round(i*100/g.cols.length)}% ${Math.round((i+1)*100/g.cols.length)}%`).join(',')}"></span>`
+        : `<span class="cat-dot" style="--catcol:${g.cols[0]||''}"></span>`;
+      return hsRow({on,label:esc(g.c.name),tail:num(g.nb),mark:dot,
+        attrs:`data-cat="${esc(g.c.id)}" aria-pressed="${on?'true':'false'}"`});}).join('');})();
   /* LA REMISE À ZÉRO DES CATÉGORIES MANQUAIT (v5.19). « Toutes » existait pour les bibliothèques,
      rien pour les catégories : on ne pouvait revenir à l'union qu'en re-tapant la rangée active —
      un geste que rien n'annonce. Une seule grammaire des deux côtés, et le compte est celui du
@@ -13365,7 +13414,7 @@ function bindHomeChrome(rerender){
   // dock, câblés une fois au démarrage.
   const qsa=s=>[...main.querySelectorAll(s)];
   {const ch=main.querySelector('[data-crosssec]');if(ch)ch.onclick=()=>setSection(ch.dataset.crosssec,true);}
-  qsa('[data-catmgr]').forEach(b=>b.onclick=openCatMgr);
+  qsa('[data-catmgr]').forEach(b=>b.onclick=()=>openCatMgr());   // ⚠ pas la référence nue : cf. paintFiltSheet
   qsa('[data-newlib]').forEach(b=>b.onclick=openNewLib);
   // Crayon ✎ d'une bibliothèque administrée (intertitre de section, colonne large) : Membres.
   qsa('[data-libedit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openMembers(b.dataset.libedit);});
@@ -13823,8 +13872,13 @@ async function selMoveLib(lib,redo){
       e.o.category=eq?eq.id:'';if(!eq)perdues++;}
     else e.o.category='';});
   await selWrite(ent);
-  // La destination devient la vue : sinon les éléments déplacés « disparaîtraient » de l'écran.
-  state.scope=lib||null;state.cat='';
+  /* ⚠ LA DESTINATION DEVIENT LA VUE — via `homeLib`, pas `scope` : depuis la v5.18 la colonne
+     gauche filtre par `state.homeLib`, et cette ligne écrivait encore l'ancien `state.scope` que
+     l'accueil ne lit plus. Le défaut qu'elle prévenait était donc revenu (mesuré : 2 rangées → 0).
+     Sur « Toutes » (`homeLib` null) rien ne disparaît : on ne pose pas un filtre non demandé.
+     `state.cat` se vide dans tous les cas — le déplacement invalide la catégorie (cf. plus haut). */
+  if(state.homeLib!=null)state.homeLib=lib||'';
+  state.cat='';
   toast(ent.length+' élément'+(ent.length>1?'s déplacés':' déplacé')+' dans '+dest
     +(perdues?' · '+perdues+' catégorie'+(perdues>1?'s':'')+' sans équivalent : '+(perdues>1?'elles ont':'elle a')+' été retirée'+(perdues>1?'s':''):'')+'.',
     perdues?7000:4000,!!perdues);
@@ -16369,6 +16423,14 @@ const MUTE_SEL='[data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggl
 /* `detached` N'EN EST PAS : celui qui a poursuivi seul travaille sur SA session, et lui refuser ses
    gestes serait lui retirer le repli hors dispositif qu'on vient de lui donner (AC 120-64 §9.a). */
 const SHARE_DEAD=['revoked','ended','expired'];
+/* ⚠ CELUI QUI TIENT LA MAIN NE GÈLE PAS (signalé à l'usage). L'hôte qui a donné la main garde le
+   droit d'ARRÊTER (propriété de la ligne, pas capacité de rôle) : couper coupait donc l'écran de
+   celui qui CONDUISAIT. Le lien meurt, la conduite continue — même machinerie que « Continuer
+   seul » : rien ne part plus (`canWrite` exige `status==='active'`), l'écran reste opérable.
+   `revoked` EXCLU : couper quelqu'un lui rend d'abord la main (`_reclaimLead`), et c'est une
+   décision qui le concerne. Comme après un détachement, rien n'est archivé chez l'invité. */
+function shareFrozen(){try{
+  return Share.mode==='guest'&&SHARE_DEAD.indexOf(Share.status)>=0&&!Share.soloLead;}catch(e){return false;}}
 /* ═══ LIEN MORT — CE QUE L'INVITÉ VOIT (proposition utilisateur) ═══════════════════════════════
    Bandeau DANS LE FLUX, jamais une modale (règle 11 — l'invité doit pouvoir continuer à LIRE) ;
    contrôles en apparence désactivée (`body.share-dead`, patron `share-scribe` — le seul greying
@@ -16388,6 +16450,15 @@ function shareOverHtml(){
     :(Share.status==='expired'
       ?'Le partage a atteint sa durée maximale.'
       :'Le soignant a terminé la session.');
+  /* CONDUCTEUR : l'écran n'est pas figé, il est à lui. Pas de « Rejoindre à nouveau » ici —
+     il rendrait le Runtime vierge (`rejoinShare`) au milieu d'une conduite en cours. */
+  if(Share.soloLead)
+    return `<div class="share-over" role="status">${uiIcon('warn',16)}<div class="so-b">`
+      +`<b>Le partage de session a été interrompu.</b> ${esc(cause)}`
+      +` Vous teniez la main : cet écran reste le vôtre et vous poursuivez la checklist —`
+      +` plus rien n’y est transmis ni reçu.`
+      +`<div class="so-act"><button type="button" class="btn sm" id="soQuit">Quitter le partage…</button></div>`
+      +`</div></div>`;
   /* REJOINDRE SANS DÉTOUR (v5.14.9, signalé : « il doit quitter le partage puis recliquer
      sur rejoindre ») — sur « terminé » et « expiré », l'écran propose directement le retour à
      l'écran d'entrée. JAMAIS sur « retiré » : reproposer l'entrée à quelqu'un qu'on vient de
@@ -16405,7 +16476,7 @@ function shareOverHtml(){
    L'insertion pousse le contenu vers le BAS : rien ne remonte, et l'invité ne perd donc pas la
    ligne qu'il lisait. */
 function shareOverPaint(){
-  try{document.body.classList.toggle('share-dead',Share.mode==='guest'&&SHARE_DEAD.indexOf(Share.status)>=0);}catch(e){}
+  try{document.body.classList.toggle('share-dead',shareFrozen());}catch(e){}
   const vieux=main.querySelector('.share-over');
   const h=shareOverHtml();
   if(!h){if(vieux)vieux.remove();return;}
@@ -16430,7 +16501,7 @@ function bindLeadGuard(){
   const garde=e=>{
     let m=null;try{m=Share.mode;}catch(_){return;}
     if(m!=='guest')return;
-    if(SHARE_DEAD.indexOf(Share.status)>=0){
+    if(shareFrozen()){                               // le conducteur resté seul n'est PAS bridé
       const mu=e.target&&e.target.closest?e.target.closest(MUTE_SEL):null;
       if(mu){e.preventDefault();e.stopPropagation();
         announce(Share.status==='revoked'
@@ -16439,7 +16510,7 @@ function bindLeadGuard(){
         return;}}
     const el=e.target&&e.target.closest?e.target.closest(LEAD_ONLY_SEL):null;
     if(!el)return;
-    if(Share.canWrite('nav'))return;                 // un invité PROMU lead passe
+    if(Share.canWrite('nav')||Share.soloLead)return; // invité PROMU lead, ou conducteur resté seul
     e.preventDefault();e.stopPropagation();
     announce(Share.status!=='active'
       ? 'Le partage est arrêté : ce geste n’est pas transmis.'
@@ -23817,7 +23888,10 @@ document.getElementById('filtSheetClear').onclick=()=>{
   render();paintFiltSheet();};
 const catModal=document.getElementById('catModal');
 let catDelId=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
-const catCount=id=>fiches.filter(f=>f.category===id).length;
+// Compte BORNÉ À LA BIBLIOTHÈQUE : le gestionnaire montre plusieurs périmètres à la fois et
+// deux bibliothèques peuvent porter le même id de catégorie (A-doctrine « un id se résout dans
+// sa bibliothèque »).
+const catCount=(id,scope)=>fiches.filter(f=>f.category===id&&(f.library||null)===(scope||null)).length;
 /* BIBLIOTHÈQUE GÉRÉE — normalement DÉDUITE du contexte (`activeCatScope`), sauf quand l'appelant
    la connaît mieux que le contexte : l'atelier d'import règle la destination d'une RANGÉE, qui
    peut viser une autre bibliothèque que celle affichée à l'accueil (A159). Sans cette surcharge,
@@ -23833,24 +23907,44 @@ function closeCatMgr(){catModal.classList.remove('on');_catScopeForce=undefined;
   // vue de fond, qui la détruirait sous elle.
   if(document.getElementById('impModal').classList.contains('on')){paintImpList();return;}
   if(state.view==='edit')renderEditor();else if(state.view==='protocolEdit')renderProtocolEdit();else if(state.view==='library')renderLibrary();}
+/* SECTIONS PAR BIBLIOTHÈQUE (signalé à l'usage) : sur « Toutes », le gestionnaire liste chaque
+   périmètre sous son propre intitulé, avec sa palette et son « ＋ Ajouter » — c'est le seul
+   endroit où deux catégories homonymes se distinguent (la colonne gauche, elle, les fusionne :
+   son filtre compare par NOM). Le périmètre d'une rangée voyage en `data-cscope`, jamais en
+   variable de fermeture : une section n'écrit que dans SA bibliothèque. */
+function catMgrRowsHtml(scp){
+  const scoped=catsSorted(scp),cle=c=>(scp||'')+'|'+c.id;
+  return (scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`
+            :'<p class="cm-scope">Catégories de votre espace personnel.</p>')
+  +scoped.map(c=>{const n=catCount(c.id,scp);
+    const conf=catDelId===cle(c)?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${scoped.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
+    return `<div class="cm-row" data-cid="${esc(c.id)}" data-cscope="${esc(scp||'')}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
+  }).join('')
+  +(scoped.length?'':'<p class="cm-none">Aucune catégorie pour le moment.</p>')
+  +`<div class="cm-add"><input data-cnew="${esc(scp||'')}" placeholder="Nouvelle catégorie…" aria-label="Nom de la nouvelle catégorie"><button class="btn primary sm" data-cadd="${esc(scp||'')}">Ajouter</button></div>`;}
 function renderCatMgr(){
-  const body=document.getElementById(_catHost);if(!body)return;const scp=activeCatScope();const scoped=catsSorted(scp);
-  body.innerHTML=`${scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`:'<p class="cm-scope">Catégories de votre espace personnel.</p>'}`+scoped.map(c=>{const n=catCount(c.id);
-    const conf=catDelId===c.id?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> fiche${n>1?'s':''}. Choisissez où déplacer ces fiches avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${scoped.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
-    return `<div class="cm-row" data-cid="${esc(c.id)}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} fiche${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
-  }).join('')+`${scoped.length?'':'<p style="font-size:var(--t-body);color:var(--ink-soft);margin:0 0 10px">Aucune catégorie pour le moment.</p>'}<div class="cm-add"><input id="cmNew" placeholder="Nouvelle catégorie…"><button class="btn primary sm" id="cmAdd">Ajouter</button></div>`;
-  body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid;const c=categories.find(x=>x.id===cid);if(!c)return;
+  const body=document.getElementById(_catHost);if(!body)return;
+  const scopes=catMgrScopes();
+  body.innerHTML=scopes.map(catMgrRowsHtml).join('');
+  body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid,scp=row.dataset.cscope||null;
+    const c=categories.find(x=>x.id===cid&&catScope(x)===scp);if(!c)return;
+    const cle=scp===null?'|'+cid:scp+'|'+cid;
     const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(scp);});
     row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats(scp);renderCatMgr();});
-    const ad=row.querySelector('[data-askdel]');if(ad)ad.onclick=()=>{catDelId=cid;renderCatMgr();};
+    const ad=row.querySelector('[data-askdel]');if(ad)ad.onclick=()=>{catDelId=cle;renderCatMgr();};
     const cn=row.querySelector('[data-canceldel]');if(cn)cn.onclick=()=>{catDelId=null;renderCatMgr();};
     const cf=row.querySelector('[data-confdel]');if(cf)cf.onclick=async()=>{const sel=row.querySelector('[data-movesel]');const target=sel?sel.value:'';
-      const moved=fiches.filter(f=>f.category===cid);for(const ff of moved){ff.category=target;await persist(ff);}
-      categories=categories.filter(x=>x.id!==cid);if(state.cat===cid)state.cat=target||'';
+      const moved=fiches.filter(f=>f.category===cid&&(f.library||null)===scp);for(const ff of moved){ff.category=target;await persist(ff);}
+      categories=categories.filter(x=>!(x.id===cid&&catScope(x)===scp));if(state.cat===cid)state.cat=target||'';
       // Brouillon en cours d'édition : il pointe peut-être sur la catégorie supprimée (copie de la fiche).
       if(state.draft&&state.draft.category===cid)state.draft.category=target||'';
       await saveCats(scp);catDelId=null;renderCatMgr();};});
-  const add=document.getElementById('cmAdd');if(add)add.onclick=async()=>{const inp=document.getElementById('cmNew');const name=(inp.value||'').trim();if(!name)return;categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],library:scp});await saveCats(scp);renderCatMgr();};
+  body.querySelectorAll('[data-cadd]').forEach(b=>b.onclick=async()=>{
+    const scp=b.dataset.cadd||null;
+    const inp=[...body.querySelectorAll('[data-cnew]')].find(x=>x.dataset.cnew===b.dataset.cadd);
+    const name=((inp&&inp.value)||'').trim();if(!name)return;
+    categories.push({id:newCatId(name,scp),name,color:PALETTE[catsForScope(scp).length%PALETTE.length],library:scp});
+    await saveCats(scp);renderCatMgr();});
 }
 bindModalDismiss(catModal,closeCatMgr);
 /* La porte « + » passe par le gestionnaire commun : Échap, clic de voile, piège de focus et
@@ -26469,6 +26563,7 @@ const Share={
   codeTakenBy:null,                      // qui l'a consommé — pour le DIRE, jamais pour l'accès
   share:null, secret:null, me:null, role:null,
   status:'off',               // 'active' | 'revoked' | 'detached' | 'expired' | 'ended'
+  soloLead:false,             // le lien est mort ALORS QUE cet invité tenait la main : il poursuit
   cursor:0, seq:0, nEvents:0, applied:0, offset:0,
   lastOk:0, participants:[], fiche:null,
   _q:[], _inflight:false, _timer:null, _samples:[], _act:0, _fails:0, _resync:false,
@@ -26614,14 +26709,22 @@ const Share={
       else{
         this._fails=0;this.lastOk=Date.now();
         const stAv=this.status;
+        const roleAv=this.role;
         this.status=p.status;this.role=p.role||this.role;this.me=p.me||this.me;
+        // Symétrique de takeLead : perdre la main se dit, sinon les gestes réservés se ferment sans cause.
+        if(this.mode==='guest'&&roleAv==='lead'&&this.role!=='lead')
+          try{announce('La main est revenue au soignant qui a ouvert la session.');}catch(e){}
         // GELER SUR LA TRANSITION, jamais à chaque tour : un détaché reste 'detached' cycle après
         // cycle, et re-geler reconvertirait sa file d'annexes déjà converties, en leur donnant à
         // chaque fois de nouveaux identifiants — donc des doublons au journal de l'hôte.
         // Un statut TERMINAL est une décision, pas une panne : on cesse de sonder (sinon le
         // sondage continue indéfiniment contre un partage mort) et on le DIT — jamais un silence
         // qu'on prendrait pour un réseau capricieux.
-        if(this.status!=='active'&&this.status!==stAv){this.freeze(this.status);}
+        if(this.status!=='active'&&this.status!==stAv){
+          /* Le conducteur garde son écran (cf. shareFrozen). Décidé AVANT freeze, sur le rôle que
+             le serveur vient de rapporter — après, on ne sonde plus. */
+          if(this.mode==='guest'&&this.role==='lead'&&this.status!=='revoked')this.soloLead=true;
+          this.freeze(this.status);}
         if(this.status!==stAv){try{this.onStatus(this.status,stAv);}catch(e){}}
         /* LE CODE EST MORT DÈS QUE QUELQU'UN ENTRE : `share_join` met `code_hash` et
            `join_open_until` à NULL — l'hôte dictait un code consommé avec décompte (donnée périmée
@@ -26881,7 +26984,7 @@ const Share={
   // État « pli neuf » de l'invité — IDENTIQUE sur les deux portes (joinByCode, resume) : un champ
   // ajouté à l'une et pas à l'autre ferait diverger deux reprises du même partage.
   _guestReset(fiche,status,t0,serverTime){
-    this.status=status;this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;
+    this.status=status;this.soloLead=false;this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;
     this.fiche=fiche;this.fold=null;this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._ids=[];
     this._samples=[];this._sample(t0,serverTime);},
   async joinByCode(code,label){
@@ -26991,6 +27094,7 @@ const Share={
   stop(){this._ticketClear();
     this.mode='off';this.status='off';clearTimeout(this._timer);this._timer=null;this._ids=[];
     this._q=[];this._saveQ();this.share=this.secret=this.me=this.role=null;
+    this.soloLead=false;
     this.participants=[];this.fiche=this.fold=null;this._left={};}
 };
 /* ═══ ÉCRAN D'ENTRÉE DE L'INVITÉ ═══════════════════════════════════════════════════════════════
@@ -27119,7 +27223,12 @@ function sharePartRowsHtml(){
     const off=_hoOffered===p.id;
     return '<div class="sh-p'+cls+'"><span class="n">'+esc(p.label||'Invité')+'</span>'
       +'<span class="r">'+etat+'</span>'
-      +(p.revoked||p.detached||p.role==='lead'||perdu||parti?''
+      /* REPRENDRE LA MAIN — `_reclaimLead` existait sans aucune porte : le seul moyen de
+         reprendre la conduite était de COUPER la personne, geste destructeur pour une reprise
+         d'équipe. Ici, un UPDATE de rôle, rien d'autre ne bouge. */
+      +(p.revoked||p.detached||perdu||parti?''
+        :p.role==='lead'
+        ?'<button class="btn sm" data-shback="'+esc(p.id)+'">Reprendre la main</button>'
         :'<button class="btn sm" data-shlead="'+esc(p.id)+'"'+(off?' disabled':'')+'>'
          +(off?'proposée…':'Donner la main')+'</button>')
       +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
@@ -27128,6 +27237,11 @@ function sharePartRowsHtml(){
 function sharePartBind(body,repaint){
   body.querySelectorAll('[data-shlead]').forEach(b=>b.onclick=()=>{
     if(Share.offerLead(b.dataset.shlead))repaint();});
+  body.querySelectorAll('[data-shback]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
+    if(!await Share._reclaimLead(b.dataset.shback))
+      toast('⚠ La main n\'a pas pu être reprise — réessayez.',6000);
+    Share._kick(0);repaint();});
   body.querySelectorAll('[data-shcut]').forEach(b=>b.onclick=async()=>{
     const id=b.dataset.shcut;_shPend[id]=1;repaint();
     if(!await Share.revoke(id)){delete _shPend[id];repaint();
@@ -27187,8 +27301,17 @@ function renderShareSheet(force){
       if(r&&r.ok)renderShareSheet(true);else toast('⚠ Impossible d\'ouvrir un nouveau code.',6000);};
     const en=document.getElementById('shEnd');
     if(en)en.onclick=async()=>{
-      if(!await confirmDlg('Les participants ne suivront plus la session. Votre session, elle, '
-        +'continue — et le relevé de chacun reste dans votre compte-rendu.',
+      /* ⚠ LE TEXTE DISAIT « VOTRE SESSION CONTINUE » — écrit en supposant que l'hôte conduit.
+         Quand il a donné la main, c'est l'écran de l'AUTRE qui est en jeu : on le nomme, et on
+         rappelle la porte non destructrice (« Reprendre la main »). */
+      const men=(Share.participants||[]).find(x=>x&&!x.owner&&x.role==='lead'&&!x.revoked&&!x.detached);
+      if(!await confirmDlg(men
+        ? '⚠ '+(men.label||'Un participant')+' conduit la session — vous lui avez donné la main. '
+          +'Arrêter coupe le lien : son écran reste le sien et il peut poursuivre, mais vous ne '
+          +'verrez plus ce qu’il fait et ce qu’il relèvera ensuite n’entrera pas dans votre '
+          +'compte-rendu. Pour reprendre la conduite sans couper, utilisez « Reprendre la main ».'
+        : 'Les participants ne suivront plus la session. Votre session, elle, '
+          +'continue — et le relevé de chacun reste dans votre compte-rendu.',
         {title:'Arrêter le partage ?',yes:'Arrêter',danger:true}))return;
       await Share.endShare();closeShareSheet();render();};
     /* BASCULE MANUELLE cloud → direct (v5.14, étape 4 — maquettes figées : « forcer » = un
