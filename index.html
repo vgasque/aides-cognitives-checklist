@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-a77mCQLIObIAiKNVFqxAVWzOBWsBvbOs45vtjh9kqzU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vdBDifS2fzTLmQ5y5takkT4NZNLlLV3Jv7s9H4jc0HE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3438,21 +3438,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* « À vérifier » : panneaux NEUTRES (V5) — l'ambre reste porté par l'en-tête de section
      (la couleur signale le registre, pas chaque item). */
   ul.diff li{color:var(--ink-soft)}
-  .nav-wrap{margin-bottom:6px;scroll-margin-top:72px}
-  .nav-wrap.dec{border-radius:8px;padding:12px 14px;margin-bottom:10px}
-  /* Fil d'Ariane : EMPREINTE VERTICALE FIXE (v4.4.1, règle ECAM — un long parcours ne doit
-     jamais allonger la page ni repousser les étapes hors de l'écran). Une seule ligne à
-     défilement horizontal (même geste que la barre de minuteurs #cbTimers), pas de barre de
-     défilement visible ; la position COURANTE est auto-centrée à chaque rendu (bindReadEvents),
-     l'historique reste consultable d'un glissement. */
-  .crumbs{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);margin:2px 0 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .crumbs::-webkit-scrollbar{display:none}
-  .crumbs .cb{flex:none;background:var(--tag-bg);color:var(--ink-soft);padding:4px 10px;min-height:32px;display:inline-flex;align-items:center;border-radius:12px;cursor:pointer;white-space:nowrap}.crumbs .cb:not(.cur):hover{background:var(--primary-200)}.crumbs .cb.cur{background:var(--link);color:var(--surface);cursor:default}
-  html[data-theme="dark"] .crumbs .cb:not(.cur):hover{background:var(--hover-dk-hi)}
-  .crumbs .cb-n{font-family:var(--mono);font-size:11px;opacity:.7;margin-left:2px}
-  .node-title .pass-n{font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:600;color:var(--primary);margin-left:6px}
-  .node-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
-  .nav-wrap.dec .node-title{color:var(--verify)}
+  /* (Épitaphe v5.20.9, A296 : la vue guidée est PURGÉE et son CSS — `.nav-wrap`, `.crumbs`/
+     `.cb`/`.cb-n`, `.node-title`, `.flow-nav`, `#navBack` — est SUPPRIMÉ avec elle ;
+     `.opt`/`.options`/`.question`/`.arr`/`.pass-n` restent, le journal les émet.) */
   /* ⚠ LA QUESTION EST SOUS LE TITRE DANS LA HIÉRARCHIE, DONC SOUS LUI DANS L'ÉCHELLE (v5.6,
      signalé à l'usage : « titre du bloc et question du bloc s'affichent en même grandeur ->
      perturbant »). Les deux étaient à 21 px / 700 : le nom du bloc et son contenu criaient
@@ -3472,7 +3460,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--work);border:2px solid var(--verify-bd);border-radius:var(--r-3);padding:10px 16px;min-height:64px;font-size:var(--t-step);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
   .opt:hover{background:var(--verify-soft)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
   .opt-go{margin-left:auto;flex:none;font-size:var(--t-meta);font-weight:700;color:var(--act);white-space:nowrap}
-  .nav-wrap.dec{background:var(--verify-soft);border:1px solid var(--verify-bd);border-left:4px solid var(--verify-bd)}
   /* L'issue PRISE reste marquée au registre de la POSITION (bleu) : elle ne dit plus « à
      choisir » mais « voici par où l'on est passé » — c'est un état de parcours, pas un choix. */
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--primary-soft);border-color:var(--primary)}.opt.taken .arr{color:var(--primary)}
@@ -4297,8 +4284,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'ajustement — c'est le défaut que la capsule vient de payer (6 px de débordement
      permanents). Les deux contrôles qui ne vivent dans aucune rangée ajustée (`.rt-x`, le champ
      de recherche du panneau) grossissent franchement. */
-  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb){position:relative}
-  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk,.crumbs .cb)::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
+  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk){position:relative}
+  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk)::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
   /* ⚠ `.rt-x` A REJOINT LE HALO (v5.10.8), ET LA PHRASE CI-DESSUS EST DONC À MOITIÉ PÉRIMÉE : il
      ne vivait dans aucune rangée mesurée TANT QU'IL ÉTAIT HORS FLUX. Depuis qu'il est un enfant de
      `.rt-head`, grossir franchement veut dire épaissir la rangée — 48 px de bouton pour un titre
@@ -4722,16 +4709,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .btn.cont{flex:1 1 auto;width:100%;min-height:50px;font-weight:800;font-size:15px;letter-spacing:.3px;border-radius:8px;border:2px solid var(--ok);display:flex;align-items:center;justify-content:center;gap:6px}
   .btn.cont.idle{background:transparent;border:2px solid var(--line);color:var(--ink-soft);cursor:default}
   .btn.cont.idle:hover{background:transparent}
-  /* §9 nav secondaire : [ Bloc précédent | Recommencer ] flex, sous le bloc courant. */
-  .flow-nav{display:flex;gap:8px;margin:10px 0 20px}  /* respire avant la section suivante (contexte local) */
-  .flow-nav>button{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid var(--line);border-radius:8px;background:transparent;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--ink-soft);padding:6px}
-  .flow-nav>#navBack{color:var(--link)}
-  .flow-nav>button:hover{background:var(--surface)}
-  .flow-nav>button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .flow-nav>button[disabled]{opacity:.4;cursor:default}
-  .flow-nav>button[disabled]:hover{background:transparent}
-  /* Même correctif que ci-dessus : le jumeau du plein écran portait `opacity:.6`. */
-  .flow-nav .tmr-hint{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
   .flow-end{margin-top:16px;padding:14px;text-align:center;border:2px solid var(--done-line);border-radius:8px;color:var(--ok);font-size:15px;font-weight:800;letter-spacing:1px}
   /* ----- Vue d'ensemble du mode crise (v4.6.0) : tous les blocs à la suite ----- */
@@ -7082,7 +7059,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.ai-x,.rel-x,.back,.crumbs .cb,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -7311,7 +7288,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .read-grid{display:block!important;grid-template-columns:none!important;gap:0!important;max-width:none!important}
     .read-head h2{font-size:21px!important}   /* corps unique, ni 21 ni 24 selon l'écran */
   }
-  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local,.nav-wrap{box-shadow:none}
+  @media print{body{background:var(--paper)}header.bar,#crisisBand,#cbTimers,footer.tools,.more-menu,.back,.notice,.flow-ctrl,.lightbox,.rt-panel,.tk-panel,.sess-list,.notes-block,.ov-redo,.flow-zoom,.ref-toc{display:none!important}main{padding:0}ol.steps li,ul.flat li,.local{box-shadow:none}
     /* A171 — UN REPLI EST UNE COMMODITÉ D'ÉCRAN : sur papier, tout se déploie. Imprimer un
        document amputé des sections qu'on avait refermées pour lire serait la pire des surprises,
        et c'est exactement le genre de défaut qu'on ne découvre qu'après l'impression. Le chevron,
@@ -7995,7 +7972,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.20.8';
+const APP_VERSION='5.20.9';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8437,9 +8414,8 @@ function setHomeGroup(v){if(v!=='bib'&&v!=='cat'&&v!=='az')return;
 /* Préférence du mode de lecture (v4.6.0) — par utilisateur (spaceKey local), synchronisée via
    data.prefs.readMode. La synchro ne fait qu'ÉCRIRE la préférence locale : elle ne bascule JAMAIS
    la vue ouverte (changer l'écran pendant un soin serait une action non commandée — ECAM). */
-const READ_MODES=['overview','guided','static'];   // 'guided' toléré en LECTURE de préférence seulement (fusion v4.16.0)
+const READ_MODES=['overview','static'];   // ('guided' PURGÉ v5.20.9, A296 — une préférence ancienne retombe sur 'overview' par le repli ci-dessous)
 function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';
-  if(m==='guided')return 'overview';   // v4.16.0 : le guidé est FUSIONNÉ dans le journal (fil condensé)
   return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
 /* Le PLAN n'a plus qu'UNE vue (l'Échelle) depuis v4.25.0 : PLAN_VIEWS / currentPlanView /
@@ -9137,23 +9113,6 @@ const valToDisplay=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})$/);return m
 // Préserve la position de défilement de l'aperçu algorithme (.flow-scroll) entre deux rendus,
 // pour qu'elle ne se réinitialise pas quand on coche une case, horodate, enregistre une session…
 let flowScroll={left:0,top:0};
-// Quand on AVANCE/RECULE dans le parcours (Continuer/Suivant/option/Précédent/Recommencer), on
-// repositionne la vue sur le bloc à cocher (.nav-wrap) pour ne pas avoir à remonter la page.
-let scrollNavNext=false;
-// On positionne le FIL D'ARIANE (ou, à défaut, le bloc à cocher) juste sous l'en-tête fixe : on
-// mesure la hauteur réelle de l'en-tête (variable selon l'encoche iPhone) pour ne pas tomber trop bas.
-function scrollNavIntoView(){const wrap=main.querySelector('.nav-wrap');if(!wrap)return;const target=wrap.querySelector('.crumbs')||wrap.querySelector('.node-title')||wrap;const hdr=document.querySelector('header.bar');const hh=hdr?hdr.getBoundingClientRect().height:60;
-  // v4.14.4 (ECAM : rien ne bouge si rien ne le justifie) : si le fil d'Ariane ET le bloc à
-  // cocher sont DÉJÀ entièrement visibles sous l'en-tête, on ne défile PAS — l'ancien
-  // alignement systématique du fil sous l'en-tête faisait sauter la vue de ~200 px à chaque
-  // « Continuer » alors que tout était sous les yeux.
-  const tr=target.getBoundingClientRect(),wr=wrap.getBoundingClientRect();
-  if(tr.top>=hh-2&&wr.bottom<=window.innerHeight+2)return;
-  const y=Math.max(0,Math.round(window.scrollY+tr.top-hh-8));
-  // On ne fait que REMONTER vers le bloc à cocher (quand il est passé au-dessus). Si on est déjà
-  // au-dessus (ex. en train de regarder le schéma de l'algorithme), on NE descend PAS -> on peut
-  // voir l'algorithme et commencer à cocher en même temps.
-  if(y<window.scrollY-1)window.scrollTo(0,y);}
 function captureFlow(){const el=main.querySelector('.flow-scroll');if(el)flowScroll={left:el.scrollLeft,top:el.scrollTop};}
 // Centre horizontalement le défilement sur le centre du BLOC DE DÉPART (data-startcx, en coordonnées
 // SVG non zoomées -> ×flowZoom). À l'ouverture (left=null) le départ est ainsi pile au milieu, même
@@ -9176,7 +9135,7 @@ function bindSvgImages(container){if(!container)return;container.querySelectorAl
    PEINT par classes après insertion (fn-cur / fn-ok / fn-off — flowPaintState, données
    minimapData) et re-peint à chaque changement sans reconstruire la mise en page. Taper un
    nœud = y ALLER (jumpToBlock) — JAMAIS de cochage dans le SVG, ni de démarrage de session
-   (naviguer ≠ agir, même règle que data-goto). L'aperçu de l'éditeur reste inerte. */
+   (naviguer ≠ agir). L'aperçu de l'éditeur reste inerte. */
 function flowPaintState(container,f){if(!container||!f)return;
   const by={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos).forEach(m=>{by[m.id]=m;});
   container.querySelectorAll('g[data-fnode]').forEach(g=>{const m=by[g.getAttribute('data-fnode')];
@@ -9373,16 +9332,11 @@ function cxResume(f,backId){
    if(last){last.classList.add('cx-return');last.addEventListener('animationend',()=>last.classList.remove('cx-return'),{once:true});}}
   }
 function jumpToBlock(f,id){if(!f||!(f.blocks||[]).some(b=>b.id===id))return;
-  const lp=latestPass(state.nav,state.navSeq,id);
-  if(state.readMode==='static'&&hasFlow(f)){svJump(f,id);return;}   // v4.13.0 : tout est déjà à l'écran
-  if(state.readMode==='overview'&&hasFlow(f)){
-    // JOURNAL (v4.9.0) : bloc visité = simple défilement vers sa dernière carte (regarder ne
-    // réécrit rien) ; jamais visité = il ENTRE au bout du journal (nouvelle carte), puis défilement.
-    if(!lp){ovDropOpens();navAdvance(id);renderOvOnly();}
-    ovScrollTo(id);return;}
-  if(lp)state.navPos=lp.idx;   // guidé : bloc visité = déplacement du curseur (non destructif)
-  else navAdvance(id);
-  scrollNavNext=true;renderNavOnly();}
+  if(readModeOf(f)==='static'){svJump(f,id);return;}   // v4.13.0 : tout est déjà à l'écran
+  // JOURNAL (v4.9.0) : bloc visité = simple défilement vers sa dernière carte (regarder ne
+  // réécrit rien) ; jamais visité = il ENTRE au bout du journal (nouvelle carte), puis défilement.
+  if(!latestPass(state.nav,state.navSeq,id)){ovDropOpens();navAdvance(id);renderOvOnly();}
+  ovScrollTo(id);}
 // `before` : true = fermer le plein écran de l'algorithme (compat historique), ou une FONCTION
 // à exécuter avant le saut (v4.23.0 : la feuille Plan y passe closePlanSheet — taper un nœud,
 // c'est y ALLER, donc rendre la main à l'action).
@@ -10267,7 +10221,7 @@ function posoCardsHtml(list,hay){
    l'ordre du moment où la fiche avait été OUVERTE. Même défaut que le plan de gauche (v4.73.0,
    `repaintRailLad`), même remède : une GÉNÉRATION À SITE UNIQUE (`posBlockHtml`/`posRailHtml`,
    consommés par renderRead ET par la repeinture) et `repaintPoso()` appelée par les mêmes chemins
-   ciblés que le plan (renderOvOnly / renderSvOnly / renderNavOnly) — la NAVIGATION, jamais le
+   ciblés que le plan (renderOvOnly / renderSvOnly) — la NAVIGATION, jamais le
    cochage, qui ne change pas de bloc. Le pli « n autres repères » garde l'état que l'utilisateur
    lui a donné (déplier est un choix, la repeinture n'a pas à le défaire). */
 function posBlockHtml(f){const c=posoCardsHtml(listOf(f,'posology'),curBlockHay(f));
@@ -10665,13 +10619,11 @@ function migrateCategories(){const changed=[];const byName={};categories.forEach
   fiches.forEach(f=>{const cv=f.category;if(!cv)return;if(categories.some(c=>c.id===cv))return;const name=String(cv).trim();if(!name){f.category='';changed.push(f);return;}
     let id=byName[name.toLowerCase()];if(!id){id=newCatId(name,null);categories.push({id,name,color:PALETTE[pi++%PALETTE.length],library:null});byName[name.toLowerCase()]=id;}f.category=id;changed.push(f);});return changed;}
 const hasFlow=f=>(f.blocks||[]).length>1||(f.blocks||[]).some(b=>b.kind==='decision');
-/* LE MODE DE RENDU D'UNE FICHE — SOURCE UNIQUE (v5.6). `hasFlow` répond « y a-t-il un
-   BRANCHEMENT ? », ce qui décide de la BASCULE de format ; le RENDU, lui, ne dépend que de
-   l'existence d'un bloc : une fiche d'un seul bloc est une séquence d'un, et la carte de travail
-   la sert comme les autres. `guided` ne subsiste que pour ce qui n'a aucun bloc (l'aperçu d'un
-   brouillon vide). */
-const readModeOf=f=>((f&&f.blocks&&f.blocks.length)
-  ?(hasFlow(f)&&state.readMode==='static'?'static':'overview'):'guided');
+/* LE MODE DE RENDU D'UNE FICHE — SOURCE UNIQUE (v5.6 ; la vue GUIDÉE est PURGÉE en v5.20.9,
+   A296 : elle ne servait plus que l'aperçu d'un brouillon SANS bloc, que le journal rend
+   proprement). `hasFlow` répond « y a-t-il un BRANCHEMENT ? », ce qui décide de la BASCULE de
+   format ; le journal sert tout le reste — séquence d'un et fiche vide comprises. */
+const readModeOf=f=>((f&&hasFlow(f)&&state.readMode==='static')?'static':'overview');
 /* ----- Vue d'ensemble du mode crise (v4.6.0) : fonctions PURES (testées via ?__actest) ----- */
 // (`flowOrder` — le BFS topologique d'origine — est PURGÉE v5.10.2 : `flowPlan` l'a remplacée
 //  pour tous les appelants et elle dupliquait l'algorithme de parcours ; règle 14, témoins partis
@@ -11850,7 +11802,7 @@ const Q2_ABSENCE_MS=120000;
    Détail : doctrine-js.md J44. */
 function paintResume(){
   const ex=document.getElementById('ovResume');
-  const host=document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap');
+  const host=document.querySelector('.ov-block.cur,.sv-cell.cur');
   if(!state.resumeSince||!host||!crisisOnScreen()){if(ex)ex.remove();return;}
   const val=sinceTxt(state.resumeSince,Date.now());
   if(ex&&ex.parentNode===host){const v=ex.querySelector('.rsm-v');
@@ -11883,7 +11835,7 @@ document.addEventListener('visibilitychange',()=>{
 let _bkrIo=null,_bkrCard=null,_bkrKey='';
 function syncBlkReturn(){
   const host=document.getElementById('blkReturn');if(!host)return;
-  const card=(state.view==='read'&&crisisOnScreen())?document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap'):null;
+  const card=(state.view==='read'&&crisisOnScreen())?document.querySelector('.ov-block.cur,.sv-cell.cur'):null;
   if(!card||!('IntersectionObserver' in window)){
     if(card===_bkrCard&&!_bkrKey)return;
     if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
@@ -16461,7 +16413,7 @@ function shareOverPaint(){
   /* `querySelector` rend le PREMIER en ordre de DOCUMENT, pas dans l'ordre du sélecteur : le
      chapeau « Ne pas oublier » l'emporte donc quand il existe, ce qui est exactement la place
      qu'occupe le bandeau dans `renderRead`. */
-  else{const apres=main.querySelector('.forget-strip,.care-flat,.ov-wrap,.sv-wrap,.nav-wrap');
+  else{const apres=main.querySelector('.forget-strip,.care-flat,.ov-wrap,.sv-wrap');
     if(apres)apres.insertAdjacentHTML('beforebegin',h);else main.insertAdjacentHTML('afterbegin',h);}
   const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;
   const rj=document.getElementById('soRejoin');if(rj)rj.onclick=rejoinShare;}
@@ -17927,68 +17879,18 @@ function renderTkOnly(){
 /* ===== Read (mode crise / lecture) =====
    renderRead() : fiche active — titre+méta, chapeau « Ne pas oublier », parcours de soin ①②③
    (v4.4.0), annexes ; en large la colonne droite collante ; gestion au menu ⋯ ; la 2e moitié
-   rattache les écouteurs (minuteurs/compteurs en DOM direct, sans render). Section NAVIGATION
-   (v4.4.5) extraite pour renderNavOnly() — le geste répété de la crise mérite la même chirurgie
-   que le cochage ; renvoie ce que les deux consomment (HTML + bloc courant pour câblage et halo
-   SVG). Détail : doctrine-js.md J128. */
-function navSection(f){
-  const npos=Math.min(state.navPos==null?state.nav.length-1:state.navPos,state.nav.length-1);state.navPos=npos;
-  const cur=state.nav[npos];const curSeq=state.navSeq[npos]||1;const atTip=npos>=state.nav.length-1;const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];const flow=hasFlow(f);let navHtml='',crumbsH='',navRowH='',blockDone=null,blockTot=null;
-  if(blk){const occ={},totOcc={};state.nav.forEach(id=>{totOcc[id]=(totOcc[id]||0)+1;});
-    // Numérotation des PASSAGES : quand une boucle ramène sur un bloc déjà visité, chaque passage
-    // est une NOUVELLE INSTANCE (seq distinct -> cases neuves) ; on l'indique (#1, #2…) pour qu'il
-    // soit clair qu'on continue une nouvelle fois et qu'on ne « revient » pas en arrière.
-    // Fil d'Ariane seulement à partir du 2e bloc : au 1er, il ne fait que doubler le titre du bloc
-    // (et n'offre aucun retour possible) -> un élément interactif de moins sur l'écran de crise.
-    crumbsH=(flow&&state.nav.length>1)?`<div class="crumbs">${state.nav.map((id,i)=>{const b=f.blocks.find(x=>x.id===id);occ[id]=(occ[id]||0)+1;const tag=totOcc[id]>1?` <span class="cb-n">#${occ[id]}</span>`:'';return `<span class="cb${i===npos?' cur':''}" data-crumb="${i}" role="button" tabindex="0">${i+1} · ${esc((b&&b.title)||'?')}${tag}</span>`;}).join('')}</div>`:'';
-    const curOcc=state.nav.slice(0,npos+1).filter(x=>x===cur).length,curTot=totOcc[cur]||1;
-    const passTag=curTot>1?` <span class="pass-n">tour ${curOcc}/${curTot}</span>`:'';
-    // §12 : la nav secondaire est TOUJOURS présente sous le bloc — « Bloc précédent » désactivé
-    // au premier bloc (l'état s'annonce, pas de bouton fantôme).
-    const backBtn='<button class="btn sm" id="navBack"'+(npos>0?'':' disabled')+'>'+uiIcon('back',13)+' Bloc précédent</button>';
-    // « Recommencer » seulement à la position actuelle (au bout) : en mode RELECTURE d'un pas
-    // précédent, on évite la surcharge de boutons (« Repartir d'ici » + le fil d'Ariane suffisent).
-    // MAINTENIR pour recommencer : efface tout le chemin parcouru -> même geste anti-accidentel
-    // que la réinitialisation d'un minuteur (un appui bref, même en stress, ne déclenche rien).
-    const resetBtn='';   // v4.23.8 : « Recommencer le parcours » vit dans le menu ⋯ (restartCourse)
-    navRowH=(flow||npos>0)?`<div class="flow-nav">${backBtn}${resetBtn}</div>`:'';
-    const histBtn=!atTip?'<button class="btn primary sm" id="navFwd">Continuer →</button><button class="btn sm" id="navResume">'+uiIcon('undo',13)+' Repartir d’ici (efface la suite)</button>':'';
-    const imgH=blk.image?`<img class="node-img" loading="lazy" decoding="async" src="${blk.image}" data-full="${blk.image}"${blk.imageW&&blk.imageH?` width="${blk.imageW}" height="${blk.imageH}"`:''} alt="">`:'';
-    if(blk.kind==='decision'){const taken=state.nav[npos+1];
-      const opts=(blk.options||[]).map((o,i)=>{const sel=!atTip&&o.target&&o.target===taken;const arr=sel?'<span class="arr">✓</span>':'<span class="arr">'+uiIcon('chev',18,{sw:2.4,cls:''})+'</span>';return `<button class="opt${sel?' taken':''}" ${atTip?`data-goto="${esc(o.target||'')}"`:'disabled'}><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${arr}</button>`;}).join('');
-      navHtml=`<div class="nav-wrap dec">${crumbsH?'':''}<div class="node-title">Décision · ${esc(blk.title)||'Réévaluation'}${passTag}</div>${imgH}<div class="question">${fmt(blk.question)||'…'}</div><div class="options">${opts}</div>${histBtn?`<div class="flow-ctrl">${histBtn}</div>`:''}</div>`;}
-    else{const steps=clean(stepsOf(blk));
-      // V5 : « Continuer » passe au registre CONFIRMATION (vert) quand TOUTES les étapes du bloc
-      // sont cochées — le bouton dit « le bloc est fait » sans avoir à recompter.
-      const done=steps.filter((s,i)=>state.checked[curSeq+':'+blk.id+':'+i]).length;
-      const allDone=done>=steps.length;   // bloc vide : rien à cocher -> actif d'emblée
-      // Canvas section 6 : UN bouton, deux états. Désactivé, il DIT pourquoi et combien il reste ;
-      // actif, il ANNONCE la destination (« Continuer — {nextLbl} → », nextLbl déclaré dans le
-      // bloc, repli = titre du bloc suivant) ; dernier bloc -> « Terminer l'algorithme ✓ ».
-      const nextB=blk.next?f.blocks.find(b=>b.id===blk.next):null;
-      const goLbl=nextB?('Continuer — '+((blk.nextLbl||'').trim()||(nextB.title||'').trim()||'suite')+' →'):'Terminer l\u2019algorithme ✓';
-      const contLbl=allDone?goLbl:('Cochez les étapes restantes ('+(steps.length-done)+')');
-      // §8 : « Terminer l'algorithme ✓ » n'arrête PAS la session — il affiche l'état FIN
-      // (surveillance en cours) ; « Terminer la session… » y est un choix séparé, confirmé.
-      const flowEnd=atTip&&allDone&&!nextB&&state.flowEnded;
-      const fwdc=flowEnd
-        ?`<div class="flow-end">Algorithme terminé — surveillance en cours</div>`
-        :(atTip?`<button class="btn cont ${allDone?'okay':'idle'}" id="navNext" data-contlbl="${esc(goLbl)}"${allDone?'':' aria-disabled="true"'}>${esc(contLbl)}</button>`:histBtn);
-      blockDone=done;blockTot=steps.length;
-      navHtml=`<div class="nav-wrap"><div class="node-title">Bloc · ${esc(blk.title)||'Étapes'}${passTag} — <span id="ntCount">${done}/${steps.length}</span> coché</div>${imgH}${stepsListHtml(steps,curSeq,blk.id,{items:bItems(blk)})}<div class="flow-ctrl">${fwdc}</div>${cxAll(f).length?cxRowHtml(cxAll(f),false,blk.id):''}</div>`;}}
-  return {blk,cur,atTip,crumbsH,navHtml,navRowH,blockDone,blockTot};}
+   rattache les écouteurs (minuteurs/compteurs en DOM direct, sans render). (La section
+   NAVIGATION de la vue guidée — navSection/renderNavOnly/bindNavEvents — est PURGÉE v5.20.9,
+   A296 : le journal sert tout, fiche sans bloc comprise. Histoire : doctrine-js.md J128.) */
 // Sous-titre du panneau « Algorithme » : compteur n/total quand le bloc courant est cochable —
-// partagé entre le rendu complet (renderRead) et la mise à jour ciblée (renderNavOnly).
+// partagé entre le rendu complet (renderRead) et la mise à jour ciblée du journal (ovToggleStep).
 const algSubHtml=(done,tot)=>'· carte des blocs — synchronisée'+(tot!=null?` · <span id="algCount">${done}/${tot}</span> coché`:'');
 function renderRead(){
   captureFlow();
   const f=state.fiche;if(!f){state.view='library';return render();}
-  // v4.6.0 : deux modes de lecture ('overview' défaut / 'guided') ; v4.16.0 : le guidé fusionne
-  // dans le journal pour les fiches à algorithme.
-  /* ⚠⚠ LE GUIDÉ N'EXISTE PLUS NON PLUS EN MONO-BLOC (v5.6, signalé à l'usage) : un bloc est une
-     SÉQUENCE D'UN (`flowPlan` une entrée, `ovPresList` un passage, le bout toujours une carte) —
-     le journal sert les deux cas. La BASCULE reste masquée sans algorithme (`hasFlow`) ;
-     `navSection` n'est plus atteint que par l'APERÇU d'un brouillon sans bloc. Détail : doctrine-js.md J129. */
+  /* Deux modes de rendu depuis la purge de la vue guidée (v5.20.9, A296) : journal ('overview',
+     qui sert aussi la séquence d'un et la fiche sans bloc — v5.6) et tableau ('static'). La
+     BASCULE de format reste masquée sans algorithme (`hasFlow`). Histoire : doctrine-js.md J129. */
   const rMode=readModeOf(f);
   const useOv=rMode==='overview',useSv=rMode==='static';
   const confItems=clean(listOf(f,'confirmation'));
@@ -18019,8 +17921,8 @@ function renderRead(){
      doit pouvoir lire tout ce que le rendu a préparé. D'où la lecture de `Runtime.started` : la
      constante `started` de `renderRead` est déclarée plus bas, et l'utiliser ici serait une zone
      morte temporelle — la faute exacte payée au lot T3. */
-  const N=useOv?overviewSection(f):(useSv?staticSection(f):navSection(f));
-  const blk=N.blk,cur=N.cur,crumbsH=N.crumbsH||'',navHtml=N.navHtml,navRowH=N.navRowH||'',blockDone=N.blockDone,blockTot=N.blockTot;
+  const N=useSv?staticSection(f):overviewSection(f);
+  const blk=N.blk,cur=N.cur,navHtml=N.navHtml,blockDone=N.blockDone,blockTot=N.blockTot;
   // (gallery / docs / refs : rendus par la feuille Consulter — refSheetHtml — depuis v4.23.0.)
   // « Ne pas oublier » : bandeau compact SOUS le titre, kicker ■ + UNE LIGNE PAR ÉLÉMENT
   // (décision utilisateur — jamais en coulée).
@@ -18199,8 +18101,8 @@ function renderRead(){
   {const body=avantSession
      ?preSessionHtml(f,preLad)+localH+((wideRead||avantSession)?'':posH)
      :agirDabord
-     ?crumbsH+navHtml+navRowH+(wideRead||state.rtOpen==='dock'?'':rtH)+(wideRead?'':tkH)+localH+algH+(wideRead?'':posH)
-     :(wideRead||state.rtOpen==='dock'?'':rtH)+algH+crumbsH+navHtml+navRowH+(wideRead?'':tkH)+localH+(wideRead?'':posH);
+     ?navHtml+(wideRead||state.rtOpen==='dock'?'':rtH)+(wideRead?'':tkH)+localH+algH+(wideRead?'':posH)
+     :(wideRead||state.rtOpen==='dock'?'':rtH)+algH+navHtml+(wideRead?'':tkH)+localH+(wideRead?'':posH);
    if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   // v4.23.0 : ③ ne garde que « △ À vérifier » — ce qui tue reste dans le FLUX (AC 120-71B) ;
   // les différentiels partent dans la feuille Consulter (lien « Tableau atypique ? » de ①).
@@ -18556,7 +18458,7 @@ function bindReadEvents(f,blk,cur){
   main.querySelectorAll('[data-tmrestart]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmrestart];if(!t)return;
     t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
   // (La bascule de mode est câblée UNE FOIS, hors de `main` — cf. #modeSeg plus bas.)
-  // Navigation + cochage — rebranchés aussi par renderNavOnly (guidé) / renderOvOnly (ensemble).
+  // Navigation + cochage — rebranchés aussi par renderOvOnly (journal).
   /* ⚠ LA MÊME RÉSOLUTION QUE `renderRead`, ET C'EST LA MÊME FONCTION (v5.6). Elle était RECOPIÉE
      ici : le jour où la fiche mono-bloc est passée à la carte de travail, le RENDU a suivi et pas
      le CÂBLAGE — on rendait le journal en branchant les gestes de l'ancienne vue guidée, si bien
@@ -18566,8 +18468,7 @@ function bindReadEvents(f,blk,cur){
      et aux verbes du lecteur (v4.55.0). */
   const rm=readModeOf(f);
   if(rm==='overview')bindOverviewEvents(f);
-  else if(rm==='static'){bindStaticEvents(f);svPaintArrows();}
-  else bindNavEvents(f,blk);
+  else{bindStaticEvents(f);svPaintArrows();}
   main.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // Documents PDF -> visionneuse intégrée (le blob est lu dans IndexedDB à l'ouverture).
   bindAttList(f);
@@ -18640,90 +18541,6 @@ function bindReadEvents(f,blk,cur){
   flowCtx={f};
   bindFlowZoom();applyFlowZoom();restoreFlow();
   refreshTimersDOM();
-  if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
-}
-// Écouteurs de la SECTION NAVIGATION (extraits de bindReadEvents, v4.4.5) : rebranchés par le
-// rendu complet ET par renderNavOnly (le remplacement du DOM orphelines les handlers).
-// Navigation NON DESTRUCTIVE : le fil d'Ariane et Précédent/Continuer déplacent seulement un
-// CURSEUR (state.navPos) sans rien effacer -> on peut revenir en arrière puis ré-avancer en
-// gardant toute la progression. Seul « Continuer/option » (au bout) étend le parcours, et
-// « Repartir d'ici (efface la suite) » tronque volontairement la suite pour repartir d'ici.
-function bindNavEvents(f,blk){
-  // Complications (v4.26.0) — mêmes gestes qu'en journal ; câblage direct (pas de délégation ici).
-  main.querySelectorAll('[data-cxopen]').forEach(b=>b.onclick=()=>{state.cxOpen=!state.cxOpen;renderOvOnly();});
-  main.querySelectorAll('[data-cxgo]').forEach(b=>b.onclick=()=>{state.cxOpen=false;cxGo(f,b.dataset.cxgo);});
-  main.querySelectorAll('[data-cxback]').forEach(b=>b.onclick=()=>cxResume(f,b.dataset.cxback));
-  const nx=document.getElementById('navNext');if(nx)nx.onclick=()=>{
-    if(nx.getAttribute('aria-disabled')==='true')return;   // étapes restantes : le libellé l'annonce, le clic est ignoré (ECAM)
-    // REPLI DIFFÉRÉ de l'étape ① (v4.4.2) : « Continuer → » est le premier geste qui ACQUITTE la
-    // phase de confirmation (le bloc précédent est entièrement coché) ET qui déplace déjà le
-    // contexte à la demande de l'utilisateur (scrollNavNext -> scrollNavIntoView, qui ne fait que
-    // REMONTER). Replier ici est donc gratuit et invisible : l'écran de crise s'épure sans qu'aucun
-    // contenu ne bouge sous le doigt — ce qu'un repli au cochage ne peut pas garantir (ensureStarted).
-    const confWasOpen=(state.confOpen!==undefined?state.confOpen:!Runtime.started);
-    if(Runtime.started)state.confOpen=false;
-    // « Terminer l'algorithme ✓ » ≠ terminer la session : on AFFICHE l'état fin (§8), la session
-    // (chrono, minuteurs) continue — la clôture est un choix séparé et confirmé.
-    // Fin d'algorithme : l'ÉTAT des étapes ②/③ du parcours change -> rendu complet.
-    if(!(blk.next&&f.blocks.some(b=>b.id===blk.next))){state.flowEnded=true;render();return;}
-    navAdvance(blk.next);scrollNavNext=true;
-    // Seul « Continuer » qui touche AUTRE CHOSE que la navigation : le repli différé de l'étape ①
-    // (une fois par session) -> rendu complet ; ensuite, mise à jour ciblée.
-    if(Runtime.started&&confWasOpen)render();else renderNavOnly();};
-  const fwb=document.getElementById('navFwd');if(fwb)fwb.onclick=()=>{state.navPos=Math.min(state.navPos+1,state.nav.length-1);scrollNavNext=true;renderNavOnly();};
-  const rsm=document.getElementById('navResume');if(rsm)rsm.onclick=()=>{state.nav.length=state.navPos+1;state.navSeq.length=state.navPos+1;renderNavOnly();};
-  const bk=document.getElementById('navBack');if(bk)bk.onclick=()=>{state.navPos=Math.max(0,state.navPos-1);scrollNavNext=true;renderNavOnly();};
-
-  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const t=b.dataset.goto;if(t&&f.blocks.some(x=>x.id===t)){navAdvance(t);scrollNavNext=true;renderNavOnly();}});
-  const goCrumb=i=>{if(i>=0&&i<state.nav.length){state.navPos=i;renderNavOnly();}};
-  main.querySelectorAll('[data-crumb]').forEach(c=>{c.onclick=()=>goCrumb(+c.dataset.crumb);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();goCrumb(+c.dataset.crumb);}};});
-  // Fil d'Ariane à hauteur fixe : la position COURANTE est toujours visible (auto-centrée
-  // dans la ligne défilante — même logique que la chip de bibliothèque active de l'accueil).
-  {const cw=main.querySelector('.crumbs');const cc=cw&&cw.querySelector('.cb.cur');
-   if(cc&&cw.scrollWidth>cw.clientWidth)cw.scrollLeft=Math.max(0,cc.offsetLeft-cw.clientWidth/2+cc.clientWidth/2);}
-  // Image du bloc courant -> plein écran (le rendu complet câble déjà toutes les images ;
-  // après une mise à jour ciblée, seule celle du nouveau bloc est à rebrancher).
-  main.querySelectorAll('.nav-wrap img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
-  // Cocher une étape DÉMARRE la session (1ʳᵉ action) et l'auto-enregistre.
-  // Accessible clavier/lecteur d'écran : role=checkbox + aria-checked (posés au rendu), Entrée/Espace.
-  // MISE À JOUR CIBLÉE du <li> coché, pas de render() : reconstruire toute la vue (galerie
-  // d'images base64 à re-parser, SVG de l'algorithme) coûtait des dizaines de ms par tap sur
-  // mobile — or c'est LE geste répété du mode crise. Seul lecteur de state.checked au rendu :
-  // la ligne d'étape elle-même (vérifié) -> rien d'autre à rafraîchir. Exception : la toute
-  // première action démarre la session (le bandeau apparaît) -> re-rendu complet, une seule fois.
-  main.querySelectorAll('[data-ck]').forEach(li=>{const tgl=kb=>{const k=li.dataset.ck;const on=!state.checked[k];
-    /* `applyCheck` remet lui-même `state.flowEnded` à false : on capture l'état AVANT, sinon la
-       condition « la fin était actée, il faut re-rendre » ne se déclenche plus jamais — c'est
-       exactement la régression qu'`audit-doctrine` a attrapée en centralisant le cœur (le
-       journal, lui, teste la PRÉSENCE de la bannière dans le DOM, donc il y était insensible). */
-    const finAvant=state.flowEnded;
-    if(!applyCheck(k,on))return;   // I4 : cœur UNIQUE — garde de rôle, trace, haptique, drapeau de fin
-    if(paintCheckRow(li,k,on,kb))return;   // C3 : peinture UNIQUE (démarrage ancré compris)
-    // DÉCOCHER ANNULE LA FIN DE L'ALGORITHME (v4.42.0) — symétrique du journal, qui le fait en
-    // deux temps (`ovToggleStep` remet le drapeau à false, puis `ovAfterCheck` re-rend en ancré
-    // si la bannière traîne encore). Ici le reset vivait dans la branche `else` du bloc `if(nn)`
-    // ci-dessous — or quand la fin est actée, `#navNext` N'EXISTE PLUS : `navSection` le REMPLACE
-    // par la bannière `.flow-end`. `nn` étant null, tout le bloc était sauté et le reset ne
-    // s'exécutait JAMAIS dans le seul cas où il sert. Mesuré en mode guidé (une fiche mono-bloc,
-    // ce que rend `blankFiche()`) : « Algorithme terminé — surveillance en cours » restait à
-    // l'écran après décochage, et « Terminer l'algorithme » ne revenait pas. Le journal, lui,
-    // faisait les deux — c'est la divergence que la duplication de ce cœur de cochage a laissé
-    // s'installer. Re-rendu ANCRÉ : l'étape tapée ne bouge pas d'un pixel (doctrine ECAM).
-    if(!on&&finAvant){
-      rerenderCkAnchored(k,kb);
-      return;}
-    // V5 : « Continuer » passe au registre CONFIRMATION (vert) dès que TOUT le bloc est coché
-    // (mise à jour DOM directe, cohérente avec le cochage sans re-rendu).
-    {const nn=document.getElementById('navNext');
-     if(nn){const boxes=[...main.querySelectorAll('[data-ck]')];const dn=boxes.filter(x=>state.checked[x.dataset.ck]).length;const all=dn>=boxes.length;
-       nn.classList.toggle('okay',all);nn.classList.toggle('idle',!all);
-       nn.textContent=all?(nn.dataset.contlbl||'Continuer →'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
-       // (Le `state.flowEnded=false` qui vivait ici est remonté au-dessus, hors du `if(nn)` :
-       //  à cet endroit il ne pouvait plus rien remettre à false — voir le commentaire.)
-       if(all)nn.removeAttribute('aria-disabled');else nn.setAttribute('aria-disabled','true');
-       const nt=document.getElementById('ntCount');if(nt)nt.textContent=dn+'/'+boxes.length;
-       const ac=document.getElementById('algCount');if(ac)ac.textContent=dn+'/'+boxes.length;}}
-    if(kb)li.focus();};li.onclick=()=>tgl(false);li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl(true);}};});
 }
 /* ===== Vue d'ensemble = JOURNAL DE PARCOURS (v4.9.0 — remplace la vue spatiale v4.6.0) =====
    nav[] EST une chronologie : chaque passage est une carte POSTÉE (modèle ECAM) ; repli en ligne
@@ -20336,8 +20153,8 @@ async function restartCourse(f){
   state.nav.length=0;state.navSeq.length=0;state.nav.push(f.start);state.navSeq.push(++Runtime.seq);
   state.navPos=0;state.flowEnded=false;state.ovFold={};state.ovVerify=null;
   if(Runtime.started)persistLive(Runtime);
-  if(state.readMode==='overview'&&hasFlow(f))renderOvOnly();else{scrollNavNext=true;render();}}
-/* Re-rendu CIBLÉ de la vue d'ensemble (pendant de renderNavOnly) : reconstruit l'INTÉRIEUR de
+  if(state.readMode==='overview'&&hasFlow(f))renderOvOnly();else render();}
+/* Re-rendu CIBLÉ de la vue d'ensemble : reconstruit l'INTÉRIEUR de
    .ov-wrap (Recommencer, structures) sans toucher au reste de la vue — le conteneur garde ses
    écouteurs délégués. Structure inattendue -> repli complet sûr. */
 function renderOvOnly(){
@@ -20627,11 +20444,9 @@ function startSessionGesture(){
   state.confOpen=false;
   if(!ensureStarted())return false;
   render();
-  /* Les TROIS densités ont chacune leur porteur de « bloc courant » : `boutEl` couvre le journal
-     (`.ov-block`) et le statique (`.sv-cell.cur`) ; une fiche SANS algorithme est rendue en vue
-     guidée, où le bloc est `.nav-wrap` — l'oublier, c'est ne rien faire précisément sur les fiches
-     mono-bloc, sans que rien ne le dise. */
-  const el=boutEl()||main.querySelector('.nav-wrap');
+  /* Deux porteurs de « bloc courant » depuis la purge de la vue guidée (A296) : `boutEl` couvre
+     le journal (`.ov-block`) et le statique (`.sv-cell.cur`) — le journal sert aussi mono-bloc. */
+  const el=boutEl();
   if(el){const st=stickBase(),r=el.getBoundingClientRect();
     // Hors de vue par le haut (masqué par les couches collantes) ou trop bas pour qu'on en voie
     // quoi que ce soit d'utile : on l'amène sous le quai. Sinon on ne touche à rien.
@@ -21299,43 +21114,6 @@ function monRender(){
        +d.sans.map(u=>'<span class="mb-chip'+(u.kind==='due'?' due':'')+'">'
          +esc(sstr(tmLabelParts(u.lab).name||'Minuteur',16))+' · <b>'+esc(u.val)+'</b></span>').join('')+'</div>':'');
    if(el.innerHTML!==h)el.innerHTML=h;}}
-/* Mise à jour CIBLÉE de la navigation entre blocs (v4.4.5) : remplace SEULEMENT le fil d'Ariane,
-   le bloc courant, la rangée « Bloc précédent / Recommencer », le compteur du panneau algorithme
-   et le halo du SVG — sans reconstruire le reste de la vue (galerie d'images base64, parcours de
-   soin, documents, note…), qui coûtait des dizaines de ms par tap sur mobile. Même philosophie
-   que le cochage d'étape (audit v4.4.4). Les cas qui changent l'état GLOBAL de la vue restent des
-   render() complets : fin d'algorithme (étapes ②/③ du rail changent), repli différé de l'étape ①.
-   Structure inattendue (pas de .nav-wrap : aperçu, fiche sans bloc) -> repli complet sûr. */
-function renderNavOnly(){
-  if(state.readMode==='overview'&&state.fiche&&hasFlow(state.fiche))return renderOvOnly();   // v4.6.0 : dispatcheur
-  if(state.readMode==='static'&&state.fiche&&hasFlow(state.fiche))return renderSvOnly();     // v4.13.0
-  const f=state.fiche;
-  const wrap=main.querySelector('.nav-wrap');
-  if(!f||!wrap)return render();
-  captureFlow();
-  // v4.14.4 (ECAM) : ANCRAGE du remplacement — le nouveau bloc apparaît exactement là où
-  // était l'ancien (le mélange insertions ± scroll-anchoring du navigateur faisait dériver
-  // la vue de ~70 px à chaque « Continuer ») ; le rattrapage éventuel reste à
-  // scrollNavIntoView, qui ne bouge plus rien quand tout est déjà visible.
-  const N=navSection(f);   // pur générateur de HTML : ne touche pas au DOM, donc hors de l'ancrage
-  // Fil d'Ariane : remplacé / créé (2e bloc) / retiré, TOUJOURS accroché au bloc courant.
-  {const old=main.querySelector('.crumbs');if(old)old.remove();}
-  keepAnchor('.nav-wrap',()=>{
-    if(N.crumbsH)wrap.insertAdjacentHTML('beforebegin',N.crumbsH);
-    // Rangée « Bloc précédent / Recommencer » (état disabled du premier bloc recalculé).
-    {const old=main.querySelector('.flow-nav');if(old)old.remove();}
-    if(N.navRowH)wrap.insertAdjacentHTML('afterend',N.navRowH);
-    wrap.outerHTML=N.navHtml;   // le bloc courant (étapes cochables ou décision)
-  });
-  {const sub=main.querySelector('.alg-panel .alg-sub');if(sub)sub.innerHTML=algSubHtml(N.blockDone,N.blockTot);}
-  // Panneau algorithme ouvert : le SVG suit le bloc courant par PEINTURE de classes (v4.7.0) —
-  // plus aucune reconstruction de la mise en page à la navigation.
-  {const fs=main.querySelector('.alg-panel .flow-scroll');if(fs)flowPaintState(fs,f);}
-  flowCtx={f};
-  bindNavEvents(f,N.blk);
-  repaintPoso();   // v5.4.2 : cf. renderOvOnly — même règle pour le rendu guidé mono-bloc
-  if(scrollNavNext){scrollNavNext=false;scrollNavIntoView();}
-}
 
 /* ===== Editor =====
    Briques HTML : listEditor() (listes simples), targetSelect() (bloc cible), imageEditor(),
@@ -27284,7 +27062,7 @@ function openSharedFiche(){
      la conséquence du geste PROPRE de l'invité — la règle 11 ne proscrit que le DISTANT. Même
      ancrage que partout (`stickBase`). Détail : doctrine-js.md J226. */
   try{announce('Vous suivez : '+f.title);}catch(e){}
-  try{const cur=document.querySelector('.ov-wrap .ov-block:last-of-type,.nav-wrap');
+  try{const cur=document.querySelector('.ov-wrap .ov-block:last-of-type');
     if(cur)ovScrollEl(cur);}catch(e){}
   return true;}
 /* ═══ FENÊTRE D'APPARIEMENT DE L'HÔTE ═════════════════════════════════════════════════════════

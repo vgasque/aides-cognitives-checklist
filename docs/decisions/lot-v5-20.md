@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A295)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A296)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -293,3 +293,28 @@ gestes (le cran « Continuer » est fermé tant que le bloc ne l'est pas, A234),
 complet. Vérifié CAPABLE D'ÉCHOUER (méthode v4.31.1) : `persist:false` réintroduit sur le site
 `data-ovnext` → rouge exactement sur l'assertion d'émission, l'avancée locale restant verte ;
 fichier restauré à l'octet, témoin re-vert.
+
+## A296 — la vue guidée est purgée : le journal sert tout, l'aperçu vide compris (v5.20.9)
+
+Le vestige qu'A295 avait mis au jour tombe. La vue guidée (`navSection`, `bindNavEvents`,
+`renderNavOnly`, la mécanique `scrollNavNext`/`scrollNavIntoView`, le fil d'Ariane
+`.crumbs`/`.cb`, `.nav-wrap`, `.node-title`, `.flow-nav`, les commandes `#navNext`/`#navFwd`/
+`#navResume`/`#navBack`/`data-goto`/`data-crumb`) ne servait plus que l'aperçu d'un brouillon
+SANS bloc — où elle ne rendait RIEN (`blk` indéfini, tout son corps sauté). Mesuré avant de
+trancher : `overviewSection` sur une fiche sans bloc ne plante pas et rend un « Parcours » vide
+de 93 octets — l'aperçu garde le même chrome et gagne un intertitre. `readModeOf` n'a donc plus
+que deux réponses (journal, tableau), `'guided'` sort de `READ_MODES` (une préférence ancienne
+retombe sur `'overview'` par le repli existant), et `jumpToBlock` se simplifie sur le prédicat
+de l'app (`readModeOf`) au lieu du couple readMode/hasFlow — au passage, un saut sur fiche
+mono-bloc rejoint le comportement du journal (défilement vers la carte) au lieu de l'ancien
+curseur guidé, la doctrine v5.6 enfin vraie partout.
+
+Discipline de purge (règle 14) : suppressions par pré-image VÉRIFIÉE UNIQUE (jamais un motif),
+épitaphe CSS au format que `check-classes` exige, membres retirés des unions partagées (halo,
+focus-visible, print, sélecteurs de repli) sans toucher leurs frères vivants (`.opt`,
+`.options`, `.question`, `.arr`, `.pass-n`, `.btn.cont`, `.flow-end`, `.tmr-hint` : le journal
+et les minuteurs les émettent), harnais doctrine mis au propre (`#navNext` sorti d'une union de
+sonde, deux commentaires périmés corrigés). Ce sont les garde-fous d'A289 qui ont énuméré le CSS
+orphelin (`check-classes` sens inverse, `check-ids` #stylé→émis) — le trou par lequel `.pl-stp`
+était passé en v4.25.0 ne peut plus produire une purge à moitié faite. Bilan : ~265 lignes et
+~16 Ko de vue morte en moins ; `main` ne porte plus qu'un chemin de navigation par mode.

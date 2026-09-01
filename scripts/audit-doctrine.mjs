@@ -466,7 +466,7 @@ await sec('Rendu guidé · décocher annule la fin de l\'algorithme', async () =
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r=await page.evaluate(async()=>{
-    // Fiche MONO-BLOC : pas d'algorithme -> rendu guidé (`navSection`), pas le journal.
+    // Fiche MONO-BLOC : pas d'algorithme — le JOURNAL la sert (v5.6 ; la vue guidée est purgée, A296).
     const f=migrate({id:'dgui',title:'Sonde guidée',blocks:[
       {id:'b1',kind:'do',title:'Bloc unique',items:['Étape A','Étape B'].map(x=>v4MakeItem(uid('i'),'do',x))}],start:'b1'});
     await Data.put(f);fiches.push(f);
@@ -474,7 +474,7 @@ await sec('Rendu guidé · décocher annule la fin de l\'algorithme', async () =
     /* Une fiche SANS branchement n'a pas de bascule de format — c'est la part juste de la
        doctrine d'origine — mais elle rend bien la carte de travail. */
     const guide=!document.querySelector('#readTopSeg')&&!!document.querySelector('.ov-block');
-    const av=()=>document.querySelector('[data-ovnext],[data-ovend],#navNext');
+    const av=()=>document.querySelector('[data-ovnext],[data-ovend]');   // (#navNext purgé avec la vue guidée, A296)
     /* ⚠ ON RE-INTERROGE LE DOM À CHAQUE COCHE : la carte du journal se repeint, donc une liste
        collectée d'avance ne contient plus que des nœuds détachés — on n'en cochait qu'un seul, et
        le bouton restait « Cochez les étapes restantes ». */
@@ -551,7 +551,8 @@ await sec('ECAM · ancrage — résidu nul au geste de première action', async 
      d'historique, donc l'ancre visée n'existe plus par construction. La compensation, elle, est
      faite par `ovAdvanceRender` sur l'instance du geste (dérive mesurée 0 px, v4.16.3).
      Ce qui reste STRICTEMENT mesurable ici est donc « l'ancrage est invoqué » ; la dérive, elle,
-     est mesurée juste en dessous sur le rendu GUIDÉ, où l'ancre survit au re-rendu. */
+     est mesurée juste en dessous sur le re-rendu où l'ancre survit (décochage après fin — la vue
+     guidée qui servait ce rôle est purgée, A296). */
   /* LE RE-RENDU CIBLÉ OÙ L'ANCRE SURVIT — c'est ici que la DÉRIVE est réellement mesurable.
      ⚠ v5.6 : ce contrôle passait par `renderNavOnly` sur une fiche mono-bloc, seul reste de la
      vue guidée ; celle-ci rend désormais la carte de travail comme les autres. Le geste qui

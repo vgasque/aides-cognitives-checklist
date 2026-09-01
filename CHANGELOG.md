@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [5.20.9] — 2026-09-01
+### La vue guidée est purgée : le journal sert tout, l'aperçu vide compris (A296)
+
+- **Le vestige mis au jour en A295 tombe** : `navSection`, `bindNavEvents`, `renderNavOnly`, la
+  mécanique `scrollNavNext`/`scrollNavIntoView`, le fil d'Ariane, `.nav-wrap`, `.flow-nav` et
+  les commandes `#navNext`/`#navFwd`/`#navResume`/`#navBack`/`data-goto`/`data-crumb` ne
+  servaient plus que l'aperçu d'un brouillon SANS bloc — où la vue ne rendait RIEN. Mesuré avant
+  de trancher : le journal rend cette même fiche sans planter (« Parcours » vide, même chrome).
+  `readModeOf` n'a plus que deux réponses, `'guided'` sort de `READ_MODES` (une ancienne
+  préférence retombe sur `'overview'`), et `jumpToBlock` se décide sur `readModeOf` — au
+  passage, un saut sur fiche mono-bloc rejoint le comportement du journal, la doctrine v5.6
+  enfin vraie partout.
+- **Purge disciplinée (règle 14)** : suppressions par pré-image vérifiée UNIQUE, épitaphe CSS au
+  format exigé par `check-classes`, membres retirés des unions partagées sans toucher leurs
+  frères vivants (`.opt`, `.options`, `.question`, `.arr`, `.pass-n`, `.btn.cont`, `.flow-end`,
+  `.tmr-hint` — le journal et les minuteurs les émettent), harnais doctrine mis au propre. Ce
+  sont les garde-fous d'A289 qui ont énuméré le CSS orphelin : une purge à moitié faite façon
+  `.pl-stp` (v4.25.0) ne peut plus passer. Bilan : ~265 lignes et ~16 Ko de vue morte en moins.
+  Vérifié : check complet, 1 176 tests × 2 moteurs, audit complet 26/26. Détail : A296
+  (`docs/decisions/lot-v5-20.md`).
+
 ## [5.20.8] — 2026-09-01
 ### Le signalement d'A294, re-mesuré : un vestige, pas un trou — et le témoin qui manquait (A295)
 
@@ -567,22 +588,3 @@ corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
 - **Le rythme sous l'en-tête est UN** : le titre « Résultats — toutes les bibliothèques »
   naissait collé (marge haute nulle) — 18 px sous l'en-tête partout désormais (Accès direct,
   Résultats, et la voie large), mesuré aux deux largeurs.
-
-## [5.18.2] — 2026-08-30
-### Le clavier iPhone, au propre (A265)
-
-- **La bande sous la barre d'accessoires iOS devient unie** (signalé, capture à l'appui :
-  « alternance fond uni / fond transparent / clavier, ça fait bizarre »). La barre (flèches + ✓)
-  est au SYSTÈME — ni retirable ni mesurable, le viewport visuel s'arrête au-dessus d'elle —
-  mais ce qu'on voyait à travers était à nous : les rangées de la page qui continuent dessous.
-  Un SOL opaque de 240 px sous le dock couvre tout l'entre-deux ; la barre translucide d'iOS se
-  pose désormais sur un fond calme.
-- **Taper la pilule ne fait plus défiler la page** (signalé : « le scroll fait n'importe quoi et
-  descend »). Au focus d'un champ, iOS fait défiler le document pour « l'amener en vue » — or la
-  pilule est FIXE et se repositionne déjà seule au viewport visuel : ce défilement automatique
-  était inutile et partait vers le bas. En étroit sur l'accueil, le focus est pris à la main
-  (preventDefault sur pointerdown puis focus sans défilement) : même geste, clavier inchangé,
-  zéro mouvement.
-- **La respiration en-tête → « Accès direct » s'aligne sur le large** : 34 px en étroit contre
-  18 en large (le rembourrage de main s'ajoutait aux 16 px du titre de section) — 18 partout,
-  mesuré aux deux largeurs.

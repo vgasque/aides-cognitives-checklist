@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A295** (et ça continue), attribués dans
+Les décisions de conception portent des numéros **A1 → A296** (et ça continue), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
 réorganisation thématique casserait chaque renvoi. Pour chercher par SUJET, la carte thématique
@@ -32,7 +32,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A227-A237 | `lot-v5-17.md` | Barre de sélection sur une ligne, moniteur multi-minuteurs, écrans véridiques |
 | A238-A268 | `lot-v5-18.md` | L'accueil sans mécanisme |
 | A269-A285 | `lot-v5-19.md` | Colonne à trois étages, pied unifié, audit design (halo en capture), audit interne v5.19.3-5 (tokens/ids/fonctions gardés par contrôle, CHANGELOG exécutoire, périmètre de déploiement, pli QR assaini, chaîne d'éditeur en paliers zw), anneau de focus repris par un `#id` (A285) |
-| A286-A295 | `lot-v5-20.md` | Le rail A→Z pose sous ce qui coiffe (barre de sélection, bande de zone sûre) ; la gestion des catégories et des bibliothèques descend au socle en voie étroite ; les défileurs de l’accueil large gardent leur position à travers un re-rendu |
+| A286-A296 | `lot-v5-20.md` | Le rail A→Z pose sous ce qui coiffe (barre de sélection, bande de zone sûre) ; la gestion des catégories et des bibliothèques descend au socle en voie étroite ; les défileurs de l’accueil large gardent leur position à travers un re-rendu |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |
