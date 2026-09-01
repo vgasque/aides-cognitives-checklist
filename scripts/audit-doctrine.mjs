@@ -1672,6 +1672,61 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
 }
 });
 
+/* ⚠ EN VOIE LARGE, LES DÉFILEURS DE L'ACCUEIL VIVENT DANS `main.innerHTML` (v5.20.1, signalé à
+   l'usage : « si on clique sur modifier bibliothèque dans la LISTE puis qu'on ferme la fenêtre, on
+   ne revient pas au scroll initial : on revient en haut de la page »). `.home-main` (la liste) et
+   `.hs-scroll` (les catégories de la colonne) ont leur propre `overflow-y` et sont RECONSTRUITS à
+   chaque re-rendu : leur position retombait à 0, alors qu'en voie étroite le navigateur la garde
+   tout seul — le même geste n'avait donc pas le même effet à 390 et à 1280.
+   ⚠ PIÈGE DE MESURE (famille A267) : la première sonde interrogeait le nœud capturé AVANT le
+   re-rendu — donc un nœud DÉTACHÉ, qui répond 0 quoi qu'il arrive. On re-interroge le document à
+   chaque lecture ; sans cela le témoin serait rouge même une fois le défaut corrigé. */
+await sec('Accueil large · le défilement survit au re-rendu', async () => {
+{
+  const page = await br.newPage({viewport:{width:1280,height:844}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  const r = await page.evaluate(async()=>{
+    const f=JSON.parse(JSON.stringify(fiches[0]));
+    myLibraries=[{id:'lib1',name:'Équipe déchocage',role:'admin'}];
+    for(let i=0;i<14;i++){
+      const c={id:'c'+i,name:'Catégorie '+String.fromCharCode(65+i),color:'#4477aa'};categories.push(c);
+      for(let k=0;k<3;k++){const n=JSON.parse(JSON.stringify(f));
+        n.id='y'+i+'-'+k;n.title='Fiche '+i+'.'+k;n.category=c.id;n.library=(k?'lib1':'');
+        fiches.push(migrate(n));}}
+    render();await new Promise(r=>setTimeout(r,400));
+    /* ⚠ On RE-INTERROGE à chaque fois : le nœud d'avant le rendu est détaché (cf. en-tête). */
+    const q=s=>document.querySelector(s);
+    const liste=()=>q('.home-main'),cote=()=>q('.hs-scroll');
+    const marge=e=>Math.max(0,e.scrollHeight-e.clientHeight);
+    const peutL=marge(liste()),peutC=marge(cote());
+    liste().scrollTop=600;cote().scrollTop=80;
+    await new Promise(r=>setTimeout(r,150));
+    const avant={l:liste().scrollTop,c:cote().scrollTop};
+    render();await new Promise(r=>setTimeout(r,300));
+    const rendu={l:liste().scrollTop,c:cote().scrollTop};
+    /* Le geste SIGNALÉ, par son vrai chemin : le ✎ d'une bibliothèque pris dans la LISTE, puis la
+       fermeture qui suit un enregistrement de nom (`closeMembers(true)` + `renderLibrary()`). */
+    liste().scrollTop=600;await new Promise(r=>setTimeout(r,150));
+    const crayon=!!document.querySelector('main .dir-la');
+    openMembers('lib1');await new Promise(r=>setTimeout(r,350));
+    const ouverte=document.getElementById('membersModal').classList.contains('on');
+    closeMembers(true);renderLibrary();await new Promise(r=>setTimeout(r,350));
+    return {peutL,peutC,avant,rendu,crayon,ouverte,ferme:{l:liste().scrollTop,c:cote().scrollTop}};});
+  t('témoin : les deux défileurs ont de la marge, et le ✎ est bien dans la liste',
+    r.peutL>600&&r.peutC>80&&r.crayon===true&&r.ouverte===true, JSON.stringify(r));
+  t('la LISTE garde sa position à travers un re-rendu',
+    r.avant.l===600&&r.rendu.l===600, JSON.stringify(r));
+  t('la colonne de CATÉGORIES aussi',
+    r.avant.c===80&&r.rendu.c===80, JSON.stringify(r));
+  t('… et fermer la fenêtre d\'une bibliothèque ne remonte pas en haut',
+    r.ferme.l===600, JSON.stringify(r));
+  await page.close();
+}
+});
+
 /* ⚠ UN SAUT DU RAIL POSE SOUS CE QUI COIFFE LE HAUT, JAMAIS DESSOUS (v5.20.0, signalé à l'usage :
    « le premier résultat de la lettre est masqué »). Depuis la v5.18 l'en-tête est STATIQUE et la
    cible avait cessé d'ôter quoi que ce soit — mais deux objets coiffent encore ce haut, et aucun

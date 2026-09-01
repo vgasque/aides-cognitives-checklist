@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.20.1] — 2026-09-01
+### En voie large, l'accueil repartait de zéro à chaque re-rendu (A288)
+
+- **« On ne revient pas au scroll initial, on revient en haut de la page »** (A288, signalé à
+  l'usage après le ✎ *modifier bibliothèque* pris dans la LISTE de cartes). Le ✎ n'y est pour
+  rien : c'est la fermeture qui, après un enregistrement de nom, re-rend l'accueil. Or à partir de
+  780 px la page ne défile plus — ce sont `.home-main` (la liste) et `.hs-scroll` (les catégories
+  de la colonne gauche) qui portent le défilement, et tous deux sont **reconstruits** par
+  `main.innerHTML`. Mesuré : **600 → 0** pour la liste, **80 → 0** pour la colonne, à CHAQUE
+  re-rendu — donc aussi en épinglant, en filtrant, en cochant. En voie étroite le défileur est la
+  page, que le navigateur ne bouge pas : le même geste n'avait donc pas le même effet à 390 et à
+  1280, et c'est cette asymétrie qui tranchait la question.
+- **Correctif au patron de `.read-side`** (v4.23.5, même défaut sur le rail de lecture) : capture
+  avant, restauration après, **bornée au nouveau contenu** — une liste raccourcie par un filtre ne
+  doit pas poser hors borne. La mémoire par section de `setSection` l'emporte toujours : deux
+  crans ne partagent pas une position.
+- **Un piège de mesure évité en route** (famille A267) : la première sonde interrogeait le nœud
+  capturé AVANT le re-rendu — donc un nœud DÉTACHÉ, qui répond 0 quoi qu'il arrive, et qui aurait
+  affiché « rouge » même une fois le défaut corrigé. Le défaut a été re-mesuré avec une sonde qui
+  re-interroge le document ; le témoin (`audit-doctrine`, « le défilement survit au re-rendu »)
+  couvre les deux défileurs ET le geste signalé par son vrai chemin, et il est né ROUGE.
+
 ## [5.20.0] — 2026-09-01
 ### Le rail A→Z posait sa lettre sous ce qui coiffe l'écran ; la gestion descend au pouce (A286-A287)
 
@@ -722,43 +744,3 @@ sonde jetable, verte sur les DEUX moteurs.
 - **Documentation** : la décision est datée et écrite dans `docs/deploiement-et-conformite.md`
   § 1.1, à côté de celle du 2026-07-27 qu'elle prolonge ; le README donne l'adresse et avertit
   que l'adresse d'un déploiement se choisit **avant** de diffuser.
-
-## [5.17.1] — 2026-08-21
-### Mode moniteur : la bande de temps tient à plusieurs minuteurs (A231-A232)
-
-- **Signalé à l'usage** : « lorsque plusieurs minuteurs, timeline ne s'affichent plus ».
-  Reproduit et mesuré — c'étaient **deux défauts pour un seul symptôme**. Toutes les
-  étiquettes d'échéance vivaient au même `top` sur une ligne unique : à quatre minuteurs
-  qui tournent, mesuré à 390 px, **quatre chevauchements deux à deux** et **deux étiquettes
-  entièrement hors de l'écran** (bords à 408 et 438 px pour 390 disponibles). Sur un
-  afficheur qu'on lit à deux mètres, une bouillie. Un minuteur seul ne montrait rien — la
-  bande ne paraît qu'à partir de deux objets à relier, d'où « lorsque plusieurs minuteurs ».
-- **Une échéance par rangée, sur le même axe** : deux marques alignées verticalement se
-  lisent désormais comme une simultanéité, ce que la bande existe pour montrer, et la ligne
-  de « maintenant » les traverse toutes. L'étiquette **bascule à gauche de sa marque** passé
-  la moitié de l'axe : elle grandit toujours vers le centre, donc elle ne peut plus sortir
-  de la bande — la garantie est arithmétique (18 signes ≈ 115 px contre 142 px de
-  demi-bande à 320 px, le plus étroit servi), pas espérée.
-- **Les tours projetés appartiennent à LEUR minuteur** : versés dans un tas commun, un tiret
-  ne disait plus de qui il était le tour suivant — l'information même que la bande porte.
-- **Aucun écart tu** : au-delà de ce que la hauteur permet, la bande garde les échéances les
-  plus proches et **dit combien attendent derrière**.
-- **Le correctif a d'abord posé son propre défaut, et le paysage l'a révélé** : la bande
-  étant `flex:none` au-dessus d'un `.mon-main` qui cède, quatre rangées sur un téléphone
-  **couché** recouvraient le grand chiffre de 44 px (54 px à 667×375). En portrait, rien ne
-  paraissait. La place est désormais **mesurée** à chaque rendu, et le grand chiffre cède —
-  parce qu'il est primaire : un chiffre recouvert ne se lit pas du tout, un chiffre plus
-  petit se lit encore très bien à deux mètres (120 → 71-78 px en paysage, jamais sous 64).
-- **Pourquoi aucun témoin ne l'avait vu** : `monBandData` est pure et ses onze témoins
-  étaient verts — ils n'exerçaient **qu'un seul minuteur**, et aucune fonction pure ne peut
-  voir que quatre étiquettes se peignent au même endroit. Le défaut était **géométrique**.
-  Deux témoins de pluralité rejoignent `tests.html`, et un harnais mesure désormais la
-  chose elle-même : `audit-doctrine.mjs`, deux jeux de minuteurs × quatre géométries dont
-  **deux en paysage** (aucun chevauchement, rien hors champ, la bande ne recouvre pas le
-  chiffre, plancher de 64 px tenu, tours projetés tous rattachés, écart compté à l'écran).
-  Vérifié capable d'échouer, `index.html` restauré à l'octet.
-- Trois erreurs de mesure attrapées en chemin et consignées, parce que chacune rendait un
-  calcul juste en apparence : le `scrollHeight` d'un conteneur **étiré** vaut sa boîte et
-  non son contenu ; `clientHeight` **comprend le rembourrage** (qui porte ici les marges
-  matérielles) ; un minuteur **échu** ajoute une troisième ligne à réserver. Doctrine :
-  `docs/decisions/lot-v5-17.md` (A231-A232).

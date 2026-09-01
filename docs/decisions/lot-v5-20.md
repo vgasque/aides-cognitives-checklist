@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A287)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A288)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -57,3 +57,28 @@ La feuille rejoint les surfaces d'`audit-a11y` **par son vrai point d'entrée** 
 posé dans l'état que l'application lit elle-même puis `render()` — jamais un `classList.add('on')`
 sur une fenêtre vide, doctrine v4.40.0) : contraste, cibles et anneau de focus mesurés dans les
 deux thèmes.
+
+**A288. EN VOIE LARGE, LES DÉFILEURS DE L'ACCUEIL VIVENT DANS `main.innerHTML` — DONC ILS
+REPARTAIENT DE ZÉRO.** Signalé : « si on clique sur *modifier bibliothèque* dans la liste de cartes
+(pas dans la fenêtre) puis qu'on ferme la fenêtre, on ne revient pas au scroll initial : on revient
+en haut de la page ». Le ✎ n'y est pour rien : c'est la fermeture qui, après un enregistrement de
+nom, appelle `renderLibrary()`. Or à partir de 780 px la page ne défile plus — ce sont
+**`.home-main`** (la liste) et **`.hs-scroll`** (les catégories de la colonne) qui portent
+`overflow-y`, et tous deux sont RECONSTRUITS par `main.innerHTML` : leur position retombait à 0.
+Mesuré : **600 → 0** pour la liste, **80 → 0** pour la colonne, à chaque re-rendu — donc aussi en
+épinglant, en filtrant, en cochant. En voie ÉTROITE le défileur est la PAGE, que `innerHTML` ne
+touche pas : le navigateur gardait la position tout seul. **Le même geste n'avait pas le même
+effet à 390 et à 1280**, et c'est cette asymétrie qui tranche la question « faut-il préserver ? ».
+
+Correctif au patron de `.read-side` (v4.23.5, même défaut sur le rail de lecture) : capture avant,
+restauration après, **bornée au nouveau contenu** — une liste raccourcie par un filtre ne doit pas
+poser hors borne. `setSection` garde SA mémoire par section : elle repose sa valeur après ce
+rendu, donc elle l'emporte, et deux crans ne partagent toujours pas une position.
+
+⚠ **PIÈGE DE MESURE, ÉVITÉ EN ROUTE (famille A267).** La première sonde interrogeait le nœud
+capturé AVANT le re-rendu — un nœud DÉTACHÉ, qui répond `scrollTop = 0` quoi qu'il arrive. Elle
+aurait donc affiché « rouge » même une fois le défaut corrigé, et « vert » nulle part. Le témoin
+re-interroge le document à chaque lecture, et le défaut a été re-mesuré une seconde fois avec
+cette sonde-là avant tout correctif (600 → 0 confirmé). Le témoin d'`audit-doctrine` (« le
+défilement survit au re-rendu ») joue les deux défileurs ET le geste signalé par son vrai chemin
+(`openMembers` → `closeMembers(true)` + `renderLibrary()`) ; né ROUGE sur ses trois assertions.
