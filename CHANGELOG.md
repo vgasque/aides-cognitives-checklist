@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.20.8] — 2026-09-01
+### Le signalement d'A294, re-mesuré : un vestige, pas un trou — et le témoin qui manquait (A295)
+
+- **Mesurer avant de corriger, et le signalement s'est dégonflé** : `#navNext` et `data-goto`
+  — les deux sites sans `persistLive` d'A294 — ne vivent que dans la vue guidée, que
+  `readModeOf` ne sert qu'aux fiches SANS AUCUN BLOC (l'aperçu d'un brouillon vide, fusion
+  v4.16). Sondé sur fiche à blocs (journal et statique, session vive) : zéro occurrence des
+  deux contrôles ; sur fiche sans bloc : aucun non plus (rien à continuer). L'implication
+  décrite en A294 — l'invité qui resterait en arrière — ne pouvait pas se produire : le
+  « Continuer » réel est celui du journal (`data-ovnext`), qui persiste et émet. Les deux
+  `,false` tombent quand même (uniformisation, neutre par construction) ; `persist:false` ne
+  reste que sur `cxGo`, qui persiste autrement.
+- **La propriété qui compte gagne son témoin** : `audit-partage` § « l'avancée chez l'hôte
+  ÉMET » — session réelle, bloc coché par ses vrais gestes (le cran « Continuer » est fermé
+  tant que le bloc ne l'est pas, A234), base de diff remise à zéro, tap sur `data-ovnext`,
+  exigence d'un évènement `nav` au fil portant le COUPLE nav/navSeq complet. Vérifié CAPABLE
+  D'ÉCHOUER (méthode v4.31.1) : défaut réintroduit sur le site → rouge exactement sur
+  l'assertion d'émission, l'avancée locale restant verte ; restauré à l'octet, re-vert.
+  Détail : A295 (`docs/decisions/lot-v5-20.md`).
+
 ## [5.20.7] — 2026-09-01
 ### La quadruple mutation de navigation n'existe plus qu'une fois (A294)
 
@@ -566,25 +586,3 @@ corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
 - **La respiration en-tête → « Accès direct » s'aligne sur le large** : 34 px en étroit contre
   18 en large (le rembourrage de main s'ajoutait aux 16 px du titre de section) — 18 partout,
   mesuré aux deux largeurs.
-
-## [5.18.1] — 2026-08-30
-### Deux retours d'usage sur la v5.18.0, le jour même
-
-- **L'ordre des blocs est le même à toutes les largeurs** (signalé : « pourquoi Rangé par
-  apparaît au-dessus des épinglées, contrairement au bureau ? ») : tuiles d'accès direct
-  D'ABORD, puis « Rangé par » + « Sélectionner », puis le RÉPERTOIRE. En deçà de 1200 px, la
-  rangée de commandes s'émettait encore avant les tuiles — un vestige de l'ordre d'avant leur
-  déménagement sur la ligne RÉPERTOIRE au bureau. Au passage, une liste VIDE n'émet plus de
-  rangée de commandes du tout : rien à ranger, rien à sélectionner (le témoin doctrine acte
-  cette absence).
-- **Clavier ouvert, la barre de recherche épouse le clavier** (signalé sur iPhone, capture à
-  l'appui : pilule flottant à ~130 px au-dessus du clavier, contenu nu dans l'entre-deux).
-  Deux racines (A264) : la garde v5.14.1 « champ dans l'en-tête → ne jamais poser `html.kbd` »
-  datait d'avant le déménagement du champ dans #homeDock — la classe ne se posait JAMAIS sur
-  la recherche d'accueil, tout l'habillage clavier était mort ; et l'ancrage par CONSTANTE
-  (bas du viewport − 84 px) cassait dès que la géométrie réelle divergeait. Désormais : la
-  garde apprend le dock (qui gère sa propre géométrie), l'en-tête d'ACCUEIL est exempté du
-  retrait sous clavier (il est statique — il défile — et il porte le champ qu'on tape), et le
-  bas du dock épouse EXACTEMENT le bas du viewport visuel (`translateY(-100%)`, aucune
-  constante, rangée de filtres comprise), en matière OPAQUE avec un filet haut. Mesuré au
-  pixel en simulation ; le juge final reste l'iPhone réel.

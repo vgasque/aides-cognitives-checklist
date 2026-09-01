@@ -1,4 +1,4 @@
-# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A294)
+# Lot v5.20 — ce qui coiffe le haut, ce qui manque au pouce (A286-A295)
 
 > Deux signalements à l'usage du 01/09/2026, tous deux nés de la refonte d'accueil v5.18 : le rail
 > A→Z qui pose sa lettre SOUS un objet collant, et la gestion (catégories, bibliothèques) devenue
@@ -270,3 +270,26 @@ rechargement juste après perd ce pas de navigation (les coches, elles, persiste
 `applyCheck`). Les deux sites portent désormais `persist:false` en toutes lettres : corriger ce
 trou est un choix d'UN caractère, visible, qui attend un arbitrage — il change ce qui est écrit
 sur le disque à chaque « Continuer », ce n'est pas un geste d'assainissement.
+
+## A295 — le signalement d'A294, re-mesuré : un vestige, pas un trou — et le témoin qui manquait (v5.20.8)
+
+Avant de « corriger » le persist:false d'A294, on a mesuré OÙ vivent réellement `#navNext` et
+`data-goto` — et le signalement s'est dégonflé : `readModeOf` (source unique du mode de rendu)
+ne sert la vue guidée qu'aux fiches SANS AUCUN BLOC (« l'aperçu d'un brouillon vide », fusion
+v4.16). Sondé sur fiche à blocs, session vive, journal ET statique : **zéro `#navNext`, zéro
+`data-goto`** ; sur fiche sans bloc : `navSection` rend, mais sans un seul de ces contrôles (rien
+à continuer, rien vers quoi aller). Les deux sites étaient donc des gestes d'un chemin mort —
+l'implication décrite en A294 (l'invité qui reste en arrière sur « Continuer ») ne pouvait pas se
+produire : le « Continuer » RÉEL est celui du journal (`data-ovnext`), qui persiste et émet.
+Leçon redite : mesurer l'app servie avant de qualifier un défaut — l'analyse au code seul avait
+surestimé la portée.
+
+Les deux `,false` tombent quand même (uniformisation, neutre par construction : contrôles
+inatteignables, et `persistLive` sortirait de toute façon hors session) — `persist:false` ne
+reste que sur `cxGo`, avec sa raison. Et la propriété qui COMPTE gagne son témoin :
+`audit-partage` § « l'avancée chez l'hôte ÉMET » — session réelle, bloc coché par ses vrais
+gestes (le cran « Continuer » est fermé tant que le bloc ne l'est pas, A234), base de diff remise
+à zéro, tap sur `data-ovnext`, et l'on exige l'évènement `nav` au fil avec le COUPLE nav/navSeq
+complet. Vérifié CAPABLE D'ÉCHOUER (méthode v4.31.1) : `persist:false` réintroduit sur le site
+`data-ovnext` → rouge exactement sur l'assertion d'émission, l'avancée locale restant verte ;
+fichier restauré à l'octet, témoin re-vert.

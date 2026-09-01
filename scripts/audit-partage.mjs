@@ -1343,6 +1343,51 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
    lui aussi. Ce n'est pas bloquant pour l'hôte — ses gardes sortent sur `mode!=='guest'` — mais
    faire reposer un invariant AFFICHÉ sur la porte de sortie d'une garde, c'est le laisser dépendre
    d'un détail d'implémentation. */
+await sec(`PARTAGE · l'avancée chez l'hôte ÉMET — moteur ${NOM_MOTEUR}`, async () => {
+{
+  /* A295 (v5.20.8) — le « Continuer » RÉEL de l'hôte est celui du JOURNAL (data-ovnext) : son
+     avancée passe par navAdvance → persistLive → shareEmitDiff, et rien d'autre ne rattraperait
+     un pas de navigation non émis (l'écran de l'invité resterait sur le bloc d'avant jusqu'au
+     geste suivant de l'hôte). Vérifié CAPABLE D'ÉCHOUER (méthode v4.31.1) : `persist:false`
+     réintroduit sur l'appel navAdvance du site data-ovnext → ce témoin rougit (l'avancée locale
+     a lieu, zéro évènement 'nav' au fil) ; fichier restauré à l'octet ensuite. */
+  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  await session(page);
+  const r = await page.evaluate(async () => {
+    Share.mode = 'host'; Share.role = 'lead'; Share.me = 'hote'; Share.status = 'active';
+    Share.lastOk = Date.now(); Share._q = [];
+    /* Le cran « Continuer » est FERMÉ tant que le bloc n'est pas coché (aria-disabled, A234) :
+       on coche d'abord les étapes du bloc courant — par leurs vrais gestes. */
+    for (let i = 0; i < 12; i++) {
+      const c = main.querySelector('[data-ck][aria-checked="false"]');
+      if (!c) break; c.click(); await new Promise(x => setTimeout(x, 120));
+    }
+    await new Promise(x => setTimeout(x, 200));
+    Share._q = []; shareRebase();   // base remise APRÈS les coches : seul « Continuer » fera un diff
+    const navAvant = Runtime.nav.length;
+    const b = main.querySelector('[data-ovnext]:not([aria-disabled="true"])');
+    if (!b) return { pasDeBouton: true };
+    b.click();
+    await new Promise(x => setTimeout(x, 300));
+    const navEvts = Share._q.filter(e => e && e.kind === 'nav');
+    const dernier = navEvts[navEvts.length - 1] || null;
+    return {
+      avance: Runtime.nav.length === navAvant + 1,
+      emis: navEvts.length >= 1,
+      couple: !!dernier && Array.isArray(dernier.payload && dernier.payload.nav)
+        && Array.isArray(dernier.payload.navSeq)
+        && dernier.payload.nav.length === dernier.payload.navSeq.length
+        && dernier.payload.nav.length === Runtime.nav.length,
+    };
+  });
+  t(`le journal offre un « Continuer » (data-ovnext)`, !r.pasDeBouton);
+  t(`l'avancée locale a eu lieu`, !!r.avance);
+  t(`l'avancée ÉMET un évènement 'nav' au fil (persistLive → shareEmitDiff)`, !!r.emis,
+    `nav avancé sans émission : le miroir de l'invité resterait en arrière`);
+  t(`l'évènement transporte le COUPLE nav/navSeq complet, longueurs égales`, !!r.couple);
+  await page.close();
+}});
+
 await sec(`PARTAGE · couper celui qui conduit rend la main — moteur ${NOM_MOTEUR}`, async () => {
 {
   const page = await br.newPage({ viewport: { width: 390, height: 844 } });
