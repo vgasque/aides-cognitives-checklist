@@ -1,5 +1,37 @@
 # Journal des modifications
 
+## [5.20.0] — 2026-09-01
+### Le rail A→Z posait sa lettre sous ce qui coiffe l'écran ; la gestion descend au pouce (A286-A287)
+
+- **Le premier résultat de la lettre était masqué** (A286, signalé à l'usage : « depuis la refonte
+  de l'en-tête, le scroll s'affiche mal — le premier résultat de la lettre est masqué »). C'est un
+  reste de la v5.18 : l'en-tête d'accueil y est devenu STATIQUE, la cible du saut a donc cessé de
+  soustraire quoi que ce soit — mais DEUX objets coiffent encore le haut du défileur. La **barre
+  de sélection** (collante à 0) avalait l'intertitre entier et **17 px de la première rangée** ;
+  la **bande de zone sûre** de l'iPhone installé — posée dans ce même lot v5.18 pour que rien ne
+  défile sous l'heure — faisait s'épingler l'intertitre à 47 px, où il recouvrait la rangée qu'il
+  annonce (**39 px de 60 mesurés**). La cible ôte désormais cette coiffe, LUE au moment du saut et
+  jamais écrite en constante ; équivalence prouvée au pixel là où rien ne coiffe, en voie étroite
+  comme en voie large, sur les deux moteurs.
+- **Pourquoi vingt et un harnais ne voyaient rien, et ce qui change** : `env(safe-area-inset-top)`
+  vaut 0 dans un navigateur — la moitié du défaut n'existait que sur un appareil INSTALLÉ, l'autre
+  demandait le mode sélection, qu'aucune sonde du rail n'activait. Le témoin (`audit-doctrine`,
+  « le rail A→Z pose sous ce qui coiffe ») joue trois cas — nominal, sélection, **encoche
+  simulée** par un littéral de 47 px — et il est né ROUGE sur les trois assertions qu'il fallait.
+- **Gérer les catégories et les bibliothèques, sans colonne gauche** (A287, signalé à l'usage :
+  « sur smartphone il n'y a pas de sidebar : je ne peux plus gérer les catégories, et les
+  bibliothèques je ne peux les gérer qu'en vue *Rangé par bibliothèque* »). Sous 780 px, « Gérer
+  les catégories » n'était atteignable QUE par la feuille de filtres, dont le déclencheur n'existe
+  que pendant une recherche ; et le ✎ d'une bibliothèque administrée ne paraît que sur
+  l'intertitre de section, donc dans un rangement sur trois. Une **rangée au socle**, masquée
+  ≥ 780 px où la colonne gauche reprend la main — même patron et même cause que « Rejoindre une
+  session » (v5.14.3). Elle **n'invente aucune fenêtre** : mêmes rangées, mêmes attributs, mêmes
+  lecteurs que la colonne (`#catModal`, `#membersModal`, `#newLibModal`). Le socle n'ouvre jamais
+  une feuille d'UNE rangée — sans bibliothèque à administrer, elle dit « Gérer les catégories » et
+  va droit au gestionnaire ; et l'on ne liste que ce qui se gère (une bibliothèque en lecture
+  seule serait une commande morte, règle 14). La feuille entre dans les surfaces d'`audit-a11y`
+  par son vrai point d'entrée.
+
 ## [5.19.6] — 2026-08-31
 ### L'anneau de focus repris par un `#id` : une propriété corrigée, deux trous fermés (A285)
 
@@ -730,55 +762,3 @@ sonde jetable, verte sur les DEUX moteurs.
   non son contenu ; `clientHeight` **comprend le rembourrage** (qui porte ici les marges
   matérielles) ; un minuteur **échu** ajoute une troisième ligne à réserver. Doctrine :
   `docs/decisions/lot-v5-17.md` (A231-A232).
-
-## [5.17.0] — 2026-08-21
-### La barre de sélection tient sur une ligne (planche 20, A227-A230)
-
-- **Une ligne, 56 px, à tout écran et dans tout état** — contre ~100 px sur téléphone.
-  Le défaut n'était pas la largeur : la barre est **collante**, donc ses deux étages
-  restaient à l'écran pendant tout le défilement, sur le seul axe qui manque sur
-  téléphone. Et cette hauteur était payée pour rien — à l'ouverture, **quatre commandes
-  sur six étaient mortes**. Le contenu est repris ; la coque (place collante, matière,
-  périmètre) ne bouge pas. Le contenu remonte de 44 px, et il n'existe plus d'état où la
-  barre grandit sous le doigt.
-- **Les actes passent dans un tiroir** : « Actions » ouvre la feuille que « Bibliothèque… »
-  et « Catégorie… » ouvraient déjà. Un tap de plus, une rangée de moins. **Rien de coché,
-  rien de mort** : la touche d'actes n'est pas grisée, elle n'existe pas — la barre est
-  alors trois objets sur une ligne courte. Les trois actes sont écrits **une seule fois** ;
-  la feuille les rejoue, elle ne les duplique pas.
-- **Les libellés disent ce qu'ils déclenchent** : « Tout » → **« Tout cocher »**, « Aucun »
-  → **« Tout décocher »** (un adjectif seul n'annonce rien, et « Aucun » se lisait d'abord
-  comme un compte) ; « Déplacer… » et « Ranger… » nomment désormais leur **destination** —
-  **« Bibliothèque… »**, **« Catégorie… »** —, la phrase entière étant reprise dans la
-  feuille et en nom accessible. Les infobulles longues disparaissent : un intitulé qui se
-  suffit ne se double pas d'une infobulle.
-- **Le compte porte l'état, et il ne se fait plus rogner.** Il est le seul élément
-  élastique de la ligne ; c'est aussi lui qui dit pourquoi « Catégorie… » est fermée
-  (« 3 cochés · deux bibliothèques ») — un `title` n'existe pas au doigt. Mesuré avant
-  correctif : réduit à 47 px pour 58 nécessaires à 390 px, à zéro à 320 px. Sous 430 px la
-  barre se comprime (écarts, rembourrages) ; sous 400 px le segment rejoint le tiroir —
-  sauf à zéro coché, où il est la seule commande et où il n'y a pas de tiroir.
-- **Le palier de dépliage est à 1200 px, pas à 560 comme l'annonçait la planche** — corrigé
-  **à la mesure**, avec deux raisons : la barre dépliée réclame **757 px de largeur utile**
-  (les intitulés entiers y sont pour beaucoup) et à 560 px elle n'en a que 514, d'où un
-  débordement de 179 px ; et la largeur de la barre **n'est pas monotone** en largeur de
-  fenêtre — à 780 px la colonne de gauche lui prend 224 px d'un coup (698 → 474 px mesurés).
-  Le seuil passe par `html.zw1200`, jamais par une media query (règle 10 : une media query
-  mesure le périphérique, pas la place disponible). Conséquence assumée : sur tablette et
-  sur beaucoup de portables, la feuille est le régime normal.
-- **Correctif de fond découvert au passage** : `syncZoomWidth()` ne se posait **qu'au
-  rendu**. Une rotation, une fenêtre tirée, un clavier qui s'ouvre ne re-rendent rien — les
-  paliers de largeur restaient donc ceux de la largeur précédente, indéfiniment sur un écran
-  qu'on ne quitte pas. Elle se repose désormais au redimensionnement et à la rotation.
-- **Accessibilité** : cibles remontées de 32 à **40 px** et corps de 11 à 13,5 px (les deux
-  planchers de la règle 9 étaient abaissés ici, sur des commandes dont l'une est
-  destructrice) ; le filet de « Supprimer… » passe à `--ctl-line` — `--critical-line` est un
-  rose pâle à 1,4:1 qui ne tient pas 1.4.11 — le rouge restant dans l'encre et le fond
-  (mesuré après correctif : filet 3,41:1 en clair, 3,33:1 en sombre) ; la croix garde son
-  nom accessible entier, c'est le libellé visible qui se replie.
-- **Témoin** : `audit-doctrine.mjs` mesure à 320, 390, 560, 744, 1200 et 1280 px, à zéro
-  comme à plusieurs cochés — hauteur exacte, débordement nul, **un seul rang**, compte non
-  tronqué, cibles ≥ 40 px, et le palier réellement franchi. Vérifié capable d'échouer : il a
-  lui-même trouvé un piège de cascade (`.btn.sm{min-height:38px}`, déclarée plus bas à
-  spécificité égale — 38 px mesurés là où 40 étaient écrits). Doctrine :
-  `docs/decisions/lot-v5-17.md`.

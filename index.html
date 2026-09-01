@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-4iisM9Y8XKRHxlBPYGN64+aZcsRJIdpaedPut8rnuWg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Rag03iLDJYyd6bD5V8/HjqPJn/xWZJQx6otMkqvX2mY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8537,6 +8537,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home #homeDock .srch-box:is(:focus-within,:has(.srch-x:not([hidden]))) .dock-kbd{display:none}
     #histBtn{display:none}
     #joinBtn{display:none}
+    #mgrBtn{display:none}   /* v5.20.0 : la colonne gauche porte déjà data-catmgr et les ✎ */
   }
   /* RAIL DE LECTURE — dès 1000 px (v5.6, maquette ; c'était 780 depuis la v4.23.0). La décision
      d'origine — « action + structure de front », l'idéal ECAM E/WD + SD — n'est pas remise en
@@ -9695,6 +9696,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          large où la rangée data-joinsess de la sidebar prend le relais. Jamais masqué en étroit :
          c'est l'entrée HORS LIGNE de l'invité. -->
     <button class="tlink" id="joinBtn"><span class="stg-ic hj-ic" aria-hidden="true">⇄</span>Rejoindre une session</button>
+    <!-- Gérer catégories/bibliothèques, voie ÉTROITE (v5.20.0, signalé à l'usage : « pas de
+         sidebar sur smartphone : je ne peux plus gérer les catégories, et les bibliothèques
+         seulement en vue Rangé par bibliothèque ») — MÊME patron et MÊME cause que le bouton
+         ci-dessus : masqué en large, où les rangées data-catmgr/data-libedit de la colonne
+         gauche prennent le relais. Libellé posé par `syncMgrBtn` (il ne promet les
+         bibliothèques que s'il y en a une à administrer). -->
+    <button class="tlink" id="mgrBtn" aria-haspopup="dialog"><span class="stg-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span class="mgr-lbl">Gérer les catégories</span></button>
     <!-- (« Importer » a déménagé dans le dialogue Créer — méthode « Importer un fichier .json ».) -->
     <!-- « Exporter tout » et la taille du texte vivent désormais dans la fenêtre COMPTE (V5) :
          « Exporter mes données » + sélecteur S/M/L/XL, préférences par utilisateur. -->
@@ -9804,6 +9812,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="filtSheetTitle">Filtrer</h3><button class="ai-x" id="filtSheetX" aria-label="Fermer">×</button></div>
   <div id="filtSheetBody" class="ai-body"></div>
   <div class="fs-foot"><button type="button" class="btn ghost" id="filtSheetClear">Tout effacer</button><button type="button" class="btn primary" id="filtSheetGo"></button></div>
+</div></div>
+<!-- GÉRER, EN VOIE ÉTROITE (v5.20.0) : la contrepartie des rangées de gestion de la colonne
+     gauche, qui n'existe pas sous 780 px. Elle n'invente aucune fenêtre — le corps est peint à
+     l'ouverture (`paintMgrSheet`) et chaque rangée mène à #catModal, #membersModal ou
+     #newLibModal. -->
+<div class="ai-modal dlg-center" id="mgrSheet" role="dialog" aria-modal="true" aria-labelledby="mgrSheetTitle"><div class="ai-card dlg-480">
+  <div class="ai-top"><h3 id="mgrSheetTitle">Gérer</h3><button class="ai-x" id="mgrSheetX" aria-label="Fermer">×</button></div>
+  <div id="mgrSheetBody" class="ai-body"></div>
 </div></div>
 <div class="ai-modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="catModalTitle">Gérer les catégories</h3><button class="ai-x" id="catX" aria-label="Fermer">×</button></div>
@@ -10064,7 +10080,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.19.6';
+const APP_VERSION='5.20.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16127,6 +16143,45 @@ function homeSideHtml(){
         tail:chev,attrs:'data-joinsess aria-haspopup="dialog"'})}
     </div>
   </aside>`;}
+/* ══ GÉRER SANS COLONNE GAUCHE (v5.20.0, signalé à l'usage : « sur smartphone il n'y a pas de
+   sidebar : je ne peux plus gérer les catégories, et les bibliothèques seulement en vue Rangé par
+   bibliothèque ») ════════════════════════════════════════════════════════════════════════════
+   Même patron et même cause que « Rejoindre une session » (v5.14.3) : une rangée au socle, masquée
+   ≥ 780. Elle N'INVENTE AUCUNE FENÊTRE — #catModal, #membersModal et #newLibModal existent, ce
+   sont les mêmes rangées (`hsRow`), les mêmes attributs (`data-catmgr`/`data-libedit`/`data-newlib`)
+   et les mêmes lecteurs que la colonne gauche. Deux règles de politesse :
+   · LE SOCLE N'OUVRE JAMAIS UNE FEUILLE D'UNE SEULE RANGÉE — sans bibliothèque à administrer, la
+     rangée dit « Gérer les catégories » et va DROIT au gestionnaire ; libellé et destination
+     disent alors la même chose, et l'on n'ajoute pas un tap pour rien.
+   · ON NE LISTE QUE CE QUI SE GÈRE : une bibliothèque en lecture seule n'a rien à modifier, une
+     rangée pour elle serait une commande morte (règle 14). Elle reste lisible partout ailleurs. */
+const mgrLibs=()=>sortedLibraries().filter(l=>l.role==='admin'||myIsAppAdmin);
+const mgrDeux=()=>mgrLibs().length>0||myIsAppAdmin;
+function syncMgrBtn(){const b=document.getElementById('mgrBtn');if(!b)return;
+  const lbl=mgrDeux()?'Gérer les catégories et les bibliothèques':'Gérer les catégories';
+  b.querySelector('.mgr-lbl').textContent=lbl;b.setAttribute('aria-label',lbl);b.title=lbl;}
+function openHomeMgr(){if(!mgrDeux()){openCatMgr();return;}
+  mgrSheet.classList.add('on');paintMgrSheet();}
+function closeMgrSheet(){mgrSheet.classList.remove('on');}
+function paintMgrSheet(){const b=document.getElementById('mgrSheetBody');if(!b)return;
+  const vis=(fiches||[]).concat(protocols||[]).filter(x=>x&&!x.deletedAt);
+  const num=n=>`<span class="hs-n">${n}</span>`;
+  const chev=`<span class="hs-chev">${uiIcon('chev',14,{sw:2.2,cls:''})}</span>`;
+  b.innerHTML=`<div class="hs-h">Catégories</div>`
+    +hsRow({cls:'hs-cmd',label:'Gérer les catégories',mark:uiIcon('gear',14),tail:chev,
+      attrs:'data-catmgr aria-haspopup="dialog"'})
+    +`<div class="hs-sep"></div><div class="hs-h">Bibliothèques</div>`
+    +mgrLibs().map(l=>hsRow({label:esc(l.name||'Bibliothèque partagée'),mark:uiIcon('pen',14),
+      tail:num(vis.filter(x=>(x.library||'')===l.id).length),
+      attrs:`data-libedit="${esc(l.id)}" aria-haspopup="dialog"`})).join('')
+    +(myIsAppAdmin?hsRow({cls:'quiet',label:'Nouvelle bibliothèque',mark:uiIcon('plus',14),
+      attrs:'data-newlib aria-haspopup="dialog"'}):'');
+  /* Câblage LOCAL (patron `paintFiltSheet`) : `bindHomeChrome` ne parcourt que `main`, et la
+     feuille vit dans la coque. La feuille RESTE ouverte sous la fenêtre appelée — on revient donc
+     à la liste qu'on gérait, et le gestionnaire de modales empile déjà focus, Échap et retour. */
+  b.querySelectorAll('[data-catmgr]').forEach(x=>x.onclick=()=>openCatMgr());
+  b.querySelectorAll('[data-libedit]').forEach(x=>x.onclick=()=>openMembers(x.dataset.libedit));
+  b.querySelectorAll('[data-newlib]').forEach(x=>x.onclick=openNewLib);}
 // Écouteurs du chrome commun. `rerender` = re-rendu de la vue hôte (renderFiches/renderProtocols).
 // RECHERCHE TRANSVERSALE : la même requête est aussi évaluée sur L'AUTRE section (en urgence, on
 // ne doit pas avoir à se souvenir d'où vit un contenu). Bloc discret sous les résultats ; le tap
@@ -16270,6 +16325,7 @@ function bindHomeChrome(rerender){
      « Recevoir par l'écran », les deux chemins hors ligne. */
   qsa('[data-joinsess]').forEach(b=>b.onclick=()=>openJoinScreen(''));
   {const jb=document.getElementById('joinBtn');if(jb)jb.onclick=()=>openJoinScreen('');}
+  {const mb=document.getElementById('mgrBtn');if(mb){mb.onclick=openHomeMgr;syncMgrBtn();}}
 }
 /* Rail alphabétique : tap = saut vers la lettre, GLISSER le long des lettres = parcourir (index
    iOS — pointer capture, un jump par lettre traversée). Le défileur dépend de la largeur : la
@@ -16451,9 +16507,23 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
      fenêtre, quai absent — vérifié à la sonde sur les deux moteurs). En bas, l'écrêtage à `max`
      masquait déjà ce défaut ; en haut, rien ne le bornait. */
   const offY=el=>{let y=0,e=el;while(e){y+=e.offsetTop;e=e.offsetParent;}return y;};
+  /* ⚠ CE QUI COIFFE LE HAUT DU DÉFILEUR SE SOUSTRAIT DE LA CIBLE (v5.20.0, signalé à l'usage :
+     « le premier résultat de la lettre est masqué »). L'en-tête est statique depuis v5.18 et la
+     cible avait cessé d'ôter quoi que ce soit — mais DEUX objets coiffent encore ce haut, et
+     aucun harnais ne les voyait : la BANDE DE ZONE SÛRE de l'iPhone installé (le collant s'arrête
+     dessous, `env ÷ --zf` — nul en navigateur, donc invisible à toute sonde) et la BARRE DE
+     SÉLECTION, collante à 0 (mesuré : 48 px d'intertitre et 17 px de rangée avalés).
+     On LIT les deux au moment du saut plutôt que d'écrire une constante : `top` calculé est déjà
+     en px de mise en page, la hauteur est une mesure VISUELLE donc ÷ zoomF (règle 10). */
+  const coiffe=g=>{const dl=g.querySelector('.dir-l');
+    let h=dl?(parseFloat(getComputedStyle(dl).top)||0):0;
+    const sb=main.querySelector('.sel-bar');
+    if(sb)h=Math.max(h,(parseFloat(getComputedStyle(sb).top)||0)+sb.getBoundingClientRect().height/zoomF());
+    return h;};
   const jump=L=>{const g=main.querySelector(`[data-azg="${CSS.escape(L)}"]`);if(!g)return;
+    const co=coiffe(g);
     const sc=mqHomeWide.matches?main.querySelector('.home-main'):null;
-    if(sc){sc.scrollTop=Math.max(0,Math.round(offY(g)-offY(sc)-8));return;}
+    if(sc){sc.scrollTop=Math.max(0,Math.round(offY(g)-offY(sc)-8-co));return;}
     /* v5.18 : l'en-tête d'accueil est STATIQUE — il défile, rien ne colle au-dessus de la
        lettre visée (l'intertitre de SA section colle à 0, sur sa carte). La cible est le haut
        de la section, sans soustraire un en-tête parti (65 px trop bas, mesuré par le témoin). */
@@ -16462,7 +16532,7 @@ function bindAzRail(){const rail=document.getElementById('azRail');if(!rail)retu
        nous-mêmes, l'idempotence tient (deux poses de la même lettre visent le même point). */
     const cible=()=>{
       const max=pageMaxScroll();
-      return Math.min(max,Math.max(0,Math.round(offY(g)-8)));};
+      return Math.min(max,Math.max(0,Math.round(offY(g)-8-co)));};
     window.scrollTo(0,cible());};
   rail.querySelectorAll('[data-azl]').forEach(b=>b.onclick=()=>jump(b.dataset.azl));   // un point porte SA lettre
   /* LE MAPPING DOIGT → LETTRE EST RELEVÉ UNE FOIS, À LA PRISE (v5.0.1). Il était re-mesuré à
@@ -17033,6 +17103,7 @@ function renderHomeList(cfg){
   // Voie étroite vers l'historique global (le lien du pied de page — la sidebar n'existe pas
   // sous 780 px) : visible seulement s'il y a quelque chose à ouvrir (aucun bouton mort).
   {const hb=document.getElementById('histBtn');if(hb)hb.hidden=!sessions.some(x=>!x.live);}
+  syncMgrBtn();   // le libellé ne promet les bibliothèques que s'il y en a une à administrer
   updateSyncBanner();
   // Ouverture d'une carte : le TITRE est le bouton (zone étendue à toute la carte par son
   // ::after — cf. .card-open) ; vrai <button>, clavier natif. Épingle et badge « À compléter »
@@ -28282,6 +28353,8 @@ bindModalDismiss(createModal,closeCreateDlg);
    d'édition, sinon bibliothèque affichée. À la fermeture, la vue active est re-rendue. */
 const filtSheet=document.getElementById('filtSheet');
 bindModalDismiss(filtSheet,closeFiltSheet);
+const mgrSheet=document.getElementById('mgrSheet');
+bindModalDismiss(mgrSheet,closeMgrSheet);
 document.getElementById('filtSheetGo').onclick=closeFiltSheet;
 /* « Tout effacer » remet les TROIS familles à leur cran neutre d'un geste — on ne défait pas un
    corpus restreint chip par chip. Il n'apparaît que s'il y a quelque chose à effacer. */

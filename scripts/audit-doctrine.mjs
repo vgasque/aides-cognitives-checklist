@@ -1672,6 +1672,67 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
 }
 });
 
+/* ⚠ UN SAUT DU RAIL POSE SOUS CE QUI COIFFE LE HAUT, JAMAIS DESSOUS (v5.20.0, signalé à l'usage :
+   « le premier résultat de la lettre est masqué »). Depuis la v5.18 l'en-tête est STATIQUE et la
+   cible avait cessé d'ôter quoi que ce soit — mais deux objets coiffent encore ce haut, et aucun
+   harnais ne les voyait : la BARRE DE SÉLECTION (collante à 0) et la BANDE DE ZONE SÛRE de
+   l'iPhone installé. On mesure les deux, plus le nominal (témoin d'équivalence : rien ne bouge là
+   où rien ne coiffe).
+   ⚠ LA BANDE SE SIMULE, ET C'EST TOUT LE PROPOS : `env(safe-area-inset-top)` vaut 0 dans un
+   navigateur — c'est exactement pourquoi le défaut a survécu à vingt et un harnais. On substitue
+   donc la MÊME géométrie par un littéral (47 px, iPhone à encoche), sans toucher au code mesuré. */
+await sec('Accueil · le rail A→Z pose sous ce qui coiffe', async () => {
+{
+  const TT=['Anaphylaxie','Bradycardie','Choc septique','Dyspnée','Éclampsie','Fibrillation',
+            'Grossesse','Hémorragie','Intubation','Jugulaire','Kaliémie','Laryngospasme'];
+  for(const cas of ['nominal','sélection','encoche']){
+    const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.goto(`http://localhost:${port}/index.html`);
+    await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+    await amorce(page);
+    if(cas==='encoche')await page.addStyleTag({content:'@media (max-width:779.98px){body.view-home::before{height:47px}body.view-home .dir-l{top:47px}body.view-home .sel-bar{top:47px}}'});
+    await page.evaluate(async(TT)=>{const f=JSON.parse(JSON.stringify(fiches[0]));
+      for(const ti of TT){for(let k=0;k<3;k++){
+        const n=JSON.parse(JSON.stringify(f));n.id='x'+ti.slice(0,4)+k;n.title=ti+' '+k;fiches.push(migrate(n));}}
+      state.homeGroup='az';render();await new Promise(r=>setTimeout(r,400));},TT);
+    if(cas==='sélection'){await page.click('#selTog');await page.waitForTimeout(400);}
+    await page.waitForTimeout(300);
+    const r = await page.evaluate(async()=>{
+      const out=[];
+      for(const L of ['F','I']){
+        const b=document.querySelector(`#azRail [data-azl="${L}"]`);
+        if(!b){out.push({L,rail:false});continue;}
+        b.click();await new Promise(r=>setTimeout(r,300));
+        const g=document.querySelector(`[data-azg="${L}"]`);
+        const head=g.querySelector('.dir-l'),row=g.querySelector('.dir-row');
+        /* Le bas de ce qui coiffe : la barre de sélection quand elle est là, sinon la bande de
+           zone sûre (hauteur du `::before` fixe — mesurée, pas déduite). */
+        const sb=document.querySelector('.sel-bar');
+        const bas=sb?sb.getBoundingClientRect().bottom:(parseFloat(getComputedStyle(document.body,'::before').height)||0);
+        const hb=head.getBoundingClientRect();
+        out.push({L,rail:true,bas:Math.round(bas),head:Math.round(hb.top),headBas:Math.round(hb.bottom),
+          row:Math.round(row.getBoundingClientRect().top)});}
+      return out;});
+    t(`${cas} · témoin : le rail rend ses lettres`, r.every(x=>x.rail), JSON.stringify(r));
+    /* L'INTERTITRE de la lettre visée est ENTIER sous la coiffe — s'il l'est, la rangée qui le
+       suit l'est aussi ; et c'est lui qui dit à quelle lettre on vient d'arriver. */
+    t(`${cas} · l'intertitre de la lettre visée n'est jamais coiffé`,
+      r.every(x=>x.rail&&x.head>=x.bas), JSON.stringify(r));
+    /* … ET LA PREMIÈRE RANGÉE NON PLUS — c'est le défaut signalé, mot pour mot. L'intertitre
+       COLLANT s'épingle sous la coiffe : si la section vise trop haut, il recouvre la rangée
+       qu'il annonce au lieu de la précéder (39 px de 60 mesurés sur l'encoche). */
+    t(`${cas} · la première rangée de la lettre est entière sous son intertitre`,
+      r.every(x=>x.rail&&x.row>=x.headBas&&x.row>=x.bas), JSON.stringify(r));
+    /* … et l'on reste À PORTÉE, pas repoussé au milieu de l'écran : 8 px de garde, la valeur de
+       la cible. On borne des deux côtés — un saut « prudent » de 100 px serait un autre défaut. */
+    t(`${cas} · … et il se pose à 8 px de la coiffe (jamais plus bas)`,
+      r.every(x=>x.rail&&x.head-x.bas<=12), JSON.stringify(r));
+    await page.close();
+  }
+}
+});
+
 await sec('Recherche · la croix d\'effacement', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:844},hasTouch:true});

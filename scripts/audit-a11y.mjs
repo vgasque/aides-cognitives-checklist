@@ -440,6 +440,17 @@ const SURFACES = [
       await new Promise(r=>setTimeout(r,350));
       const t=document.getElementById('filtTog'); if(t)t.click();
       await new Promise(r=>setTimeout(r,450)); } },
+  /* LA FEUILLE « GÉRER » (v5.20.0) : la contrepartie ÉTROITE des rangées de gestion de la colonne
+     gauche — elle n'existe donc que sous 780 px, et rien d'autre ici ne l'ouvre. Point d'entrée
+     RÉEL : `#mgrBtn` au socle. Elle ne s'ouvre que s'il y a une bibliothèque à administrer (sinon
+     la rangée va DROIT au gestionnaire de catégories) : on pose donc le profil que l'application
+     lit elle-même, puis `render()` décide. */
+  { nom:'feuille gérer',       w:390,  scope:'#mgrSheet', must:'#mgrSheetBody [data-libedit]', fn: async()=>{
+      myLibraries=[{id:'lib1',name:'Équipe déchocage',role:'admin'}];
+      state.view='library'; render();
+      await new Promise(r=>setTimeout(r,350));
+      const t=document.getElementById('mgrBtn'); if(t)t.click();
+      await new Promise(r=>setTimeout(r,450)); } },
   { nom:'nouvelle biblio.',    w:390,  scope:'#newLibModal', fn: async()=>{
       // openNewLib est gardée par myIsAppAdmin : garde MÉTIER légitime, dont la vraie barrière
       // est la RLS serveur. On la lève pour auditer le RENDU, ce qui est l'objet du harnais.
