@@ -1,4 +1,4 @@
-# Lot v5.21 — les catégories retrouvent leur bibliothèque, la main se reprend (A297-A304)
+# Lot v5.21 — les catégories retrouvent leur bibliothèque, la main se reprend (A297-A305)
 
 > Six signalements d'usage du 01/09/2026, plus un vestige mis au jour en les instruisant. Trois
 > d'entre eux ont la MÊME cause de fond : la refonte d'accueil v5.18 a remplacé `state.scope` par
@@ -256,6 +256,50 @@ s'exécute alors entièrement de façon synchrone, et `state.draft` est posé av
 l'appelant. Un `await` inconditionnel — même sur une valeur non-Promise — suspendrait et casserait
 les trois.
 
+## A305 — deux commandes qui mentaient : la lecture seule, et le compte (v5.21.2)
+
+**(1) Le gestionnaire de catégories s'ouvrait sur une bibliothèque en LECTURE SEULE**, et ce
+n'était pas une commande morte : c'était une commande **menteuse**. Mesuré — champ de nom
+éditable, 13 pastilles, bouton Supprimer, « ＋ Ajouter », et le renommage **s'appliquait
+localement** (`Trauma` → `RENOMMÉ`, marqué « à pousser ») avant d'être refusé par la RLS. C'est
+« cocher dans le vide en croyant contribuer », transposé aux catégories.
+
+La cause tient en une ligne : le filtre `canEditScope` n'était posé que sur **une des deux
+branches** de `catMgrScopes()` — celle de « Toutes » (A298). Le cas « une seule bibliothèque
+affichée » passait au travers.
+
+```js
+// avant : le filtre ne vivait que dans la branche CAT_ALL
+return scp===CAT_ALL?[null].concat(sortedLibraries().filter(l=>canEditScope(l.id)).map(l=>l.id)):[scp];
+// après : UN prédicat, les deux branches
+return (scp===CAT_ALL?[null].concat(sortedLibraries().map(l=>l.id)):[scp]).filter(canEditScope);
+```
+
+RÈGLE, et c'est la troisième fois de ce lot : **un prédicat écrit deux fois finit par ne valoir que
+d'un côté.** La commande disparaît maintenant à ses TROIS portes (colonne gauche, puce « Gérer » de
+la feuille étroite, feuille du pouce) par un prédicat unique `catMgrOn()` ; `#mgrBtn` se masque
+quand il n'y a plus rien à gérer du tout, et son libellé dit « Gérer les bibliothèques » quand seules
+celles-ci restent. Défense en profondeur : forcée par un autre chemin, la fenêtre **dit pourquoi**
+elle est vide, sans un seul contrôle.
+
+**(2) Le gestionnaire n'affichait pas le bon nombre** (signalé). Il ne comptait que les **fiches**,
+là où la colonne gauche compte l'union fiches + protocoles : les deux divergeaient du nombre exact
+de protocoles rangés là. Et le défaut ne s'arrêtait pas à l'affichage — **supprimer une catégorie
+ne déplaçait que les fiches**, laissant la `category` des protocoles pointer sur une catégorie
+disparue. `catItems(id,scope)` devient la source unique du contenu d'une catégorie : compte,
+confirmation et déplacement en découlent, chaque nature repassant par SON point de persistance
+(patron de `selWrite` — un `Data.put` direct sauterait `migrateProtocol`). Le libellé suit :
+« n éléments », comme le répertoire, puisque les deux natures y sont.
+
+⚠ **DEUX FAUSSES PISTES, ÉCARTÉES PAR LA MESURE ET NON PAR LE RAISONNEMENT** — les deux auraient
+produit un correctif inutile, et la seconde un témoin menteur :
+
+- les entités soft-supprimées **semblaient** comptées : `load()` les écarte déjà
+  (`fiches=allFiches.filter(f=>!f.deletedAt)`), le cas était fabriqué par la sonde elle-même ;
+- la colonne gauche **semblait** avoir perdu son compte : `hsRow` le pose **à côté** du bouton,
+  dans `.hs-wrap`, et le chercher DANS `[data-cat]` rend toujours « absent ». Le témoin porte ce
+  piège en commentaire — sans quoi il aurait mesuré un vert sur un rouge.
+
 ## Les garde-fous du lot, et pourquoi ils tiennent
 
 Deux sections neuves, chacune **vérifiée capable d'échouer** (défaut réintroduit, rouge exactement
@@ -280,4 +324,9 @@ ne vaut rien** — il faut le vérifier rouge, pas seulement l'écrire.
   9 rouges ; appel de `syncNewBtn` retiré de `bindHomeChrome` → 1 rouge, précisément celui du
   périmage. Il garde aussi le contrat de synchronicité de `newFiche()`.
 
-Bilan : partage 331 → 349 contrôles, doctrine 92 → 94 sections.
+- `audit-doctrine` · « le gestionnaire compte comme la colonne, et déplace tout » (A305) —
+  6 contrôles, plus deux ajoutés à la section d'A304 (même décor : une manœuvre, une section).
+  **Vérifiés capables d'échouer** : les deux défauts réintroduits → 6 rouges exactement sur les
+  assertions visées, `index.html` restauré à l'octet.
+
+Bilan : partage 331 → 349 contrôles, doctrine 92 → 95 sections.

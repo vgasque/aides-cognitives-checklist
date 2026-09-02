@@ -6409,6 +6409,62 @@ for (const W of [320, 390, 560, 744, 1200, 1280]) {
 }
 });
 
+/* ══ LE GESTIONNAIRE DE CATÉGORIES COMPTE COMME LA COLONNE ═══════════════════════════════════
+   Signalé : « le gestionnaire n'affiche pas le bon nombre de fiches/aides par catégories ». Il ne
+   comptait que les FICHES, alors que la colonne gauche compte l'union fiches + protocoles : les
+   deux divergeaient du nombre exact de protocoles rangés là. Et le défaut ne s'arrêtait pas à
+   l'affichage — la suppression d'une catégorie ne déplaçait que les fiches, laissant la
+   `category` des protocoles pointer sur une catégorie disparue. On mesure donc les DEUX. */
+await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout', async () => {
+{
+  const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
+  page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    const mkF = (id, t, cat) => { const f = JSON.parse(JSON.stringify(fiches[0]));
+      f.id = id; f.title = t; f.library = null; f.category = cat; fiches.push(f); };
+    mkF('f1', 'Fiche ajoutée', 'c-urgences');
+    protocols.push(migrateProtocol({ id: 'p1', title: 'Protocole un', category: 'c-urgences', library: null, body: 'x' }));
+    protocols.push(migrateProtocol({ id: 'p2', title: 'Protocole deux', category: 'c-urgences', library: null, body: 'y' }));
+    render(); await w(400);
+    const out = {};
+    out.reel = fiches.concat(protocols).filter(x => x.category === 'c-urgences' && !x.library).length;
+    out.protos = protocols.filter(p => p.category === 'c-urgences' && !p.library).length;
+    /* ⚠ `hsRow` pose le compte À CÔTÉ du bouton, dans `.hs-wrap` : le chercher DANS `[data-cat]`
+       rend toujours « absent » et ferait passer un rouge pour un vert. */
+    const wrap = [...document.querySelectorAll('.home-side .hs-wrap')]
+      .find(x => { const b = x.querySelector('[data-cat]'); return b && /Urgences/.test(b.textContent); });
+    out.colonne = wrap ? (wrap.querySelector('.hs-n') || {}).textContent : '(absente)';
+    document.querySelector('.home-side [data-catmgr]').click(); await w(300);
+    const ligne = () => [...document.getElementById('catMgrBody').querySelectorAll('.cm-row')]
+      .find(x => x.dataset.cid === 'c-urgences');
+    out.gestionnaire = ligne().querySelector('.cm-count').textContent;
+    // Supprimer en déplaçant vers « SMUR » : les DEUX natures doivent suivre.
+    ligne().querySelector('[data-askdel]').click(); await w(250);
+    out.confirmation = (ligne().querySelector('.cm-confirm p') || {}).textContent || '';
+    ligne().querySelector('[data-movesel]').value = 'c-smur';
+    ligne().querySelector('[data-confdel]').click(); await w(700);
+    out.apres = { protosDeplaces: protocols.filter(p => p.category === 'c-smur').length,
+      orphelins: fiches.concat(protocols).filter(x => x.category === 'c-urgences').length,
+      supprimee: !categories.some(c => c.id === 'c-urgences') };
+    return out;
+  });
+  t('témoin : la catégorie contient bien des protocoles', r.protos === 2, String(r.protos));
+  t('la colonne annonce le compte réel', r.colonne === String(r.reel), `${r.colonne} vs ${r.reel}`);
+  t('le gestionnaire annonce LE MÊME', r.gestionnaire.startsWith(String(r.reel)),
+    `${r.gestionnaire} vs ${r.reel}`);
+  t('… et la confirmation de suppression aussi',
+    r.confirmation.includes(r.reel + ' élément'), r.confirmation);
+  t('supprimer déplace AUSSI les protocoles', r.apres.protosDeplaces === r.protos,
+    JSON.stringify(r.apres));
+  t('… et ne laisse aucune référence morte', r.apres.orphelins === 0 && r.apres.supprimee === true,
+    JSON.stringify(r.apres));
+  await page.close();
+}
+});
+
 /* ══ LE PÉRIMÈTRE AFFICHÉ COMMANDE LES COMMANDES ═════════════════════════════════════════════
    Suite d'A303 : six lecteurs interrogeaient encore `state.scope`, qui vaut TOUJOURS `null` à
    l'accueil depuis la v5.18 — donc `canEditScope` répondait « oui » partout. « Sélectionner » et
@@ -6452,6 +6508,16 @@ await sec('ACCUEIL · le périmètre affiché commande « Créer » et « Sélec
     // 2 — LECTURE SEULE : aucune commande morte, et la création est refusée.
     await aller('lib-ro'); out.ro = etat();
     newFiche(); await w(250); out.ro.refus = !state.draft;
+    /* Le GESTIONNAIRE DE CATÉGORIES en fait partie : sur une lecture seule il offrait champ,
+       palette, Supprimer et « ＋ Ajouter », et le renommage s'appliquait LOCALEMENT avant d'être
+       refusé par la RLS — « croire contribuer », pire qu'une commande morte. */
+    out.ro.gerer = !!document.querySelector('.home-side [data-catmgr]');
+    out.ro.scopesGeres = catMgrScopes().length;
+    openCatMgr(); await w(250);                       // forcé : la fenêtre doit DIRE pourquoi
+    { const bd = document.getElementById('catMgrBody');
+      out.ro.fen = { txt: (bd.textContent || '').slice(0, 60),
+        controles: bd.querySelectorAll('.cm-name,[data-setcol],[data-askdel],[data-cadd]').length }; }
+    closeCatMgr(); await w(200);
     // 3 — ADMINISTRABLE : les commandes reviennent (donc le chrome n'est pas resté périmé), et la
     //     création vise la bibliothèque APRÈS l'avoir annoncée.
     await aller('lib-a'); out.adm = etat();
@@ -6482,6 +6548,10 @@ await sec('ACCUEIL · le périmètre affiché commande « Créer » et « Sélec
   t('lecture seule : pas de « Créer »', r.ro.creer === false, JSON.stringify(r.ro));
   t('… ni destination d’import', r.ro.imp === null, String(r.ro.imp));
   t('… et la création est refusée', r.ro.refus === true);
+  t('… ni gestionnaire de catégories (rien n’y est gérable)',
+    r.ro.gerer === false && r.ro.scopesGeres === 0, JSON.stringify(r.ro.scopesGeres));
+  t('… et forcée, la fenêtre DIT pourquoi, sans un seul contrôle',
+    /lecture seule/i.test(r.ro.fen.txt) && r.ro.fen.controles === 0, JSON.stringify(r.ro.fen));
   t('administrable : le chrome n’est pas resté périmé (les deux commandes reviennent)',
     r.adm.selTog === true && r.adm.creer === true, JSON.stringify(r.adm));
   t('… la destination d’import suit', r.adm.imp === 'lib-a', String(r.adm.imp));

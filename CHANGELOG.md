@@ -1,5 +1,42 @@
 # Journal des modifications
 
+## [5.21.2] — 2026-09-02
+### Deux commandes qui mentaient : la lecture seule, et le compte du gestionnaire (A305)
+
+- **Le gestionnaire de catégories s'ouvrait sur une bibliothèque en LECTURE SEULE** — et c'était
+  **pire qu'une commande morte**. Mesuré : champ de nom éditable, 13 pastilles de couleur, bouton
+  Supprimer, « ＋ Ajouter » ; et le renommage **s'appliquait localement** (`Trauma` → `RENOMMÉ`,
+  marqué « à pousser ») avant d'être refusé par la RLS. L'utilisateur croyait contribuer — le pire
+  mode de défaillance du dossier, transposé aux catégories.
+  **Cause : le filtre `canEditScope` n'était posé que sur UNE des deux branches** de
+  `catMgrScopes()` — celle de « Toutes ». Le cas « une seule bibliothèque affichée » passait au
+  travers. Un seul prédicat désormais, appliqué aux deux : `…filter(canEditScope)`.
+- **La commande disparaît à ses trois portes** (colonne gauche, puce « Gérer » de la feuille
+  étroite, feuille du pouce) via un prédicat unique `catMgrOn()`, et `#mgrBtn` se masque quand il
+  n'y a plus rien à gérer du tout — sinon son libellé dit désormais « Gérer les bibliothèques ».
+  Défense en profondeur : forcée par un autre chemin, la fenêtre **dit pourquoi** elle est vide et
+  n'affiche pas un seul contrôle.
+- **Le gestionnaire n'affichait pas le bon nombre** (signalé). Il ne comptait que les **fiches**,
+  alors que la colonne gauche compte l'union fiches + protocoles : les deux divergeaient du nombre
+  exact de protocoles rangés dans la catégorie. Et le défaut ne s'arrêtait pas à l'affichage —
+  **supprimer une catégorie ne déplaçait que les fiches**, laissant la `category` des protocoles
+  pointer sur une catégorie disparue. `catItems(id,scope)` devient la source unique du contenu
+  d'une catégorie : le compte, la confirmation et le déplacement en découlent, chaque nature
+  repassant par SON point de persistance (patron de `selWrite`). Le libellé suit : « n éléments »,
+  comme le répertoire, puisque les deux natures y sont.
+- ⚠ **Deux fausses pistes écartées à la mesure, pas au raisonnement.** (1) Les entités
+  soft-supprimées semblaient comptées — `load()` les écarte déjà (`fiches=allFiches.filter(f=>!f.deletedAt)`),
+  le cas était fabriqué par ma sonde. (2) La colonne gauche semblait avoir perdu son compte —
+  `hsRow` le pose **à côté** du bouton, dans `.hs-wrap` : le chercher DANS `[data-cat]` rend
+  toujours « absent ». Le témoin porte ce piège en commentaire, sans quoi il aurait mesuré un vert
+  sur un rouge.
+- **Garde-fous** : `audit-doctrine` § « le gestionnaire compte comme la colonne, et déplace tout »
+  (6 contrôles, 94 → 95 sections) et deux contrôles ajoutés à § « le périmètre affiché commande… »
+  (même décor, une manœuvre une section). **Vérifiés capables d'échouer** : les deux défauts
+  réintroduits → 6 rouges exactement sur les bonnes assertions, `index.html` restauré à l'octet.
+- Vérifié : `npm run check` complet, 1176 tests × 2 moteurs, audit COMPLET 26/26 (deux passes,
+  avant et après le numéro de version).
+
 ## [5.21.1] — 2026-09-02
 ### Le périmètre affiché commande enfin les commandes (A304)
 
@@ -655,24 +692,3 @@ corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
   voir ce qui défile dessous : la marge tombe, et les deux étages fixes deviennent opaques et
   au-dessus. Écart mesuré à 0, intertitre collé au bord du défileur, socle immobile sous
   défilement (bas du pied identique avant et après).
-
-## [5.18.5] — 2026-08-30
-### L'anneau de focus n'est plus rogné par les fenêtres (A268)
-
-- **Signalé sur captures** : « l'encadré de sélection des champs et des boutons est coupé par la
-  fenêtre, dans plusieurs modales ». Cause : le corps des fenêtres (`.ai-body`) ferme son axe
-  horizontal depuis la v5.10.5 — décision juste, gardée telle quelle — et un champ y occupe
-  TOUTE la largeur : son anneau (2 px de trait + 2 px de décalage) tombait pile sur le bord de
-  découpe et se voyait amputé à gauche et à droite. Un état de focus amputé est un défaut
-  d'accessibilité, pas une coquetterie.
-- **L'axe n'est pas rouvert** : le bord de découpe s'écarte de 4 px, rendus par une marge
-  négative — le contenu ne bouge pas d'un pixel (mesuré 423..857 avant et après), la découpe
-  respire. Vérifié au clavier à 1280 comme à 390 px : anneau entier, 4 px de marge de chaque
-  côté. En HAUTEUR, `scroll-padding` évite qu'un champ atteint au clavier ne se colle au bord
-  du scrollport.
-- **`overflow-clip-margin` ne pouvait pas servir** — la propriété faite pour ça est ignorée dès
-  que l'élément défile (`overflow-y:auto` en fait un conteneur de défilement) : c'est noté dans
-  la doctrine pour la prochaine fois.
-- **Trouvé en chemin** : le dépliant « Pourquoi créer un compte ? » n'avait AUCUNE règle de
-  focus — il rendait l'anneau par défaut du navigateur (couleur hors palette, épaisseur non
-  maîtrisée), seul de sa famille dans ce cas. Comblé.
