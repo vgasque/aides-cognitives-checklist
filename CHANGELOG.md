@@ -1,5 +1,33 @@
 # Journal des modifications
 
+## [5.21.4] — 2026-09-03
+### Le compte des relances est posé : l'éviction n'est pas le sujet, l'instrumentation part (A307)
+
+- **Le diagnostic P2 des relances iOS (v5.10.3) est CLOS par la mesure qu'il demandait.** Lu sur
+  l'iPhone de l'auteur, Compte › « Sur cet appareil » : **33 relances complètes sur 7 jours pour
+  109 reprises sans relance** — un retour sur quatre à froid (≈ 4,7 par jour), trois sur quatre
+  depuis la mémoire. Le critère posé en v5.10.3 (« b élevé et PROCHE de r = évincée presque à
+  chaque retour ») n'est pas atteint, et le quart restant mêle des causes qui n'ont rien à voir
+  avec la pression mémoire : premier lancement de la journée, retour après plusieurs heures (iOS
+  jette un contenu web resté longtemps en arrière-plan, quel que soit son poids), fermetures par
+  le sélecteur d'apps, et les **rechargements de mise à jour** — cinq publications dans la fenêtre.
+- **Verdict : l'hypothèse d'éviction d'A153 tombe, le poids du monofichier est définitivement un
+  NON-SUJET runtime.** Même sur la fraction réellement évincée, le levier serait nul : la décision
+  de jetsam d'iOS se prend sur l'empreinte du processus WebKit (tas, DOM, code compilé — des
+  dizaines de Mo contre des plafonds en centaines), dont les 2,4 Mo de source, et les 1,26 Mo de
+  commentaires qui n'alimentent rien de tout cela, sont quelques pour cent. Les pistes (a) et (b)
+  d'A153 restent fermées, « monofichier sans build » n'est pas rouvert, le CSS critique (R2)
+  reste abandonné. Rien n'est implémenté côté empreinte : il n'y a rien à implémenter.
+- **L'instrumentation part avec le diagnostic** (précédent : la ligne diag `ih/vv/dvh` de
+  v4.29.x) : `bootLogBump` et son écouteur `visibilitychange`, la ligne « Relances complètes »
+  du Compte et sa lecture. La clé `ac-boot-log` déposée par les versions 5.10.3 à 5.21.3 est
+  effacée au démarrage (une ligne au site de l'ancien journal, patron du retrait d'`ac-pins`) ;
+  pour ré-instrumenter un jour, le tag v5.21.3 porte le code. Retrait vérifié au grep (zéro
+  émission), hashs CSP rejoués.
+- Doctrine : A307 dans `docs/decisions/lot-v5-21.md`, index AGENTS.md et `docs/README.md` mis à
+  jour (A297-A307). CHANGELOG à 20 ([5.19.1] archivée). Vérifié : check complet, 1176 tests ×
+  2 moteurs, audit COMPLET 26/26 (deux passes, avant et après le numéro de version).
+
 ## [5.21.3] — 2026-09-03
 ### La pastille d'un homonyme ne montre que ce qu'elle compte (A306)
 
@@ -574,32 +602,3 @@ corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
   A267) ; la troncature des titres du rail est un arbitrage écrit (« un titre ellipsé se
   devine, un renvoi tronqué ne se répare pas ») ; le bandeau auteur est déjà conditionnel
   (un seul créneau avec le bandeau système, fermeture définitive mémorisée).
-
-## [5.19.1] — 2026-08-31
-### La pile du quai se purge à toute fermeture, et une seule primaire verte (A277)
-
-- **Le bug, mesuré à l'audit design v5.19** (desktop 1280, session vive) : Tout voir →
-  Consulter → retour par « Un bloc » laissait le quai en « Revenir au bloc en cours » vert
-  plein alors qu'on était déjà sur le bloc — il masquait la commande Consulter, et un tap le
-  dissipait sans autre effet. La cause est une asymétrie de logement : à ≥ 1200 px la
-  consultation vit en colonne DANS `main` (A15), que le rendu complet du retour d'excursion
-  venait de détruire — mais son état (`body.ref-col-on`, le `dp-back` de `#refBtn`) vit HORS
-  de `main` et survivait.
-- **Réconciliation à chaque `render()`** : si l'état dit « colonne ouverte » mais qu'aucune
-  `.ref-col` n'existe plus dans le DOM, la fermeture passe par `closeRefSheet()` — la porte
-  unique, quelle que soit la porte de SORTIE. Sémantique de pile : dépiler un niveau du
-  dessous emporte ce qui était posé dessus. Le même filet couvre le trou voisin jamais
-  signalé : franchir le palier 1200 vers le bas avec la colonne ouverte la tuait de la même
-  façon. (La feuille `#refModal` des voies étroites vit hors de `main` et survit à bon
-  droit — rien à réconcilier.)
-- **Une seule primaire verte — le sommet de pile.** SFAR + Consulter ouverts montraient DEUX
-  vertes côte à côte (« Un bloc » + « Revenir ») : deux référents pour un même signe
-  (AC 120-71B § 5.5). Quand Consulter est ouvert par-dessus, c'est lui le sommet : « Un
-  bloc » garde libellé et geste mais rend le vert, et le reprend à la fermeture de la
-  consultation. Écrit aux deux points qui peignent ces boutons (`applyViewChrome`,
-  `syncRefBtn`).
-- **Témoin de non-régression** : `audit-retour.mjs`, section « pile du QUAI » — cinq mesures
-  (une seule verte à chaque étage, purge complète après la séquence croisée, re-tap qui
-  rouvre une vraie consultation, vert qui redescend), vérifiées capables d'échouer contre
-  l'`index.html` d'avant le correctif (3 rouges montrant les symptômes exacts), fichier
-  restauré à l'octet.

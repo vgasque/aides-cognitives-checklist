@@ -1,4 +1,4 @@
-# Lot v5.21 — les catégories retrouvent leur bibliothèque, la main se reprend (A297-A305)
+# Lot v5.21 — les catégories retrouvent leur bibliothèque, la main se reprend (A297-A307)
 
 > Six signalements d'usage du 01/09/2026, plus un vestige mis au jour en les instruisant. Trois
 > d'entre eux ont la MÊME cause de fond : la refonte d'accueil v5.18 a remplacé `state.scope` par
@@ -381,3 +381,53 @@ ne vaut rien** — il faut le vérifier rouge, pas seulement l'écrire.
   7 rouges, restauré à l'octet (sha256 comparé).
 
 Bilan : partage 331 → 349 contrôles, doctrine 92 → 96 sections.
+
+## A307 — le compte des relances est posé : l'éviction n'est pas le sujet, l'instrumentation part (v5.21.4)
+
+**Le diagnostic P2 (v5.10.3) est CLOS par la mesure qu'il demandait.** A153 (amendée v5.10.2) avait
+établi que les 2-3 s de blanc au retour sur la PWA iOS vivent dans la couche iOS — relance du
+processus, hors de portée du code — et que retirer 1,26 Mo de commentaires ne rend que ~0,1 s de
+parse. Restait UNE hypothèse non mesurée : un document plus léger serait moins souvent ÉVINCÉ sous
+pression mémoire, donc relancé moins souvent. Le journal `ac-boot-log` (démarrages complets `b`,
+reprises sans relance `r`, par jour) comptait pour trancher.
+
+**La donnée, lue dans Compte › « Sur cet appareil » sur l'iPhone de l'auteur (03/09/2026)** :
+
+| Fenêtre | Relances complètes `b` | Reprises sans relance `r` | Part des retours à froid |
+|---|---|---|---|
+| 7 jours | 33 | 109 | 33 / 142 ≈ 23 % (≈ 4,7 par jour, contre ≈ 15,6 reprises) |
+
+**Verdict : l'hypothèse tombe.** Le critère posé en v5.10.3 était « `b` élevé et PROCHE de `r` =
+l'app est évincée presque à chaque retour ». On mesure une relance pour trois reprises : trois
+retours sur quatre reprennent depuis la mémoire. Et le quart restant n'est PAS, pour l'essentiel,
+de l'éviction sous pression mémoire — le compteur ne dit pas la CAUSE d'un `b`, il les mélange
+toutes :
+· le premier lancement de la journée et tout retour après plusieurs heures — iOS jette le
+  processus d'un contenu web resté en arrière-plan au bout d'un délai, quel que soit son poids ;
+· les fermetures par le sélecteur d'apps, les redémarrages du téléphone ;
+· **les rechargements de mise à jour** — chaque tap sur le bandeau « Recharger » est un `b`, et la
+  fenêtre de mesure couvre cinq publications (v5.20.x → v5.21.3, du 01 au 03/09).
+Un rythme de ≈ 4,7 relances par jour est celui d'une app ouverte le matin et après chaque longue
+pause, pas celui d'un processus chassé entre deux consultations.
+
+**Et même sur la fraction évincée, le levier serait nul.** Ce qui pèse dans la décision de jetsam
+d'iOS, c'est l'empreinte du processus WebKit (tas JS, DOM, code compilé, bitmaps), qui se compte en
+dizaines de Mo, contre des plafonds en centaines ; les 2,4 Mo de SOURCE — dont 1,26 Mo de
+commentaires qui n'alimentent ni le tas, ni le DOM, ni le code compilé — en sont quelques pour cent
+au plus. Diviser le fichier par deux ne déplacerait aucune décision d'éviction. **Le poids du
+monofichier est donc définitivement un NON-SUJET runtime** : les pistes (a) et (b) d'A153 restent
+fermées, la propriété « monofichier sans build » n'est pas rouverte, et le CSS critique (R2) reste
+abandonné. Ce qui demeure vrai, et qui n'est pas du ressort du code : au retour à froid, iOS met
+2-3 s à recréer le processus ; la seule chose que l'application contrôle pendant ce délai est ce
+qu'elle montre — et ce point a déjà été arbitré (R2).
+
+**L'instrumentation part avec le diagnostic**, comme la ligne diag `ih/vv/dvh` de v4.29.x en son
+temps : `bootLogBump` et l'écouteur `visibilitychange` (fin du script), la ligne « Relances
+complètes » du Compte et sa lecture de la clé. La clé déposée par les versions 5.10.3 à 5.21.3
+est EFFACÉE au démarrage par une ligne au site même de l'ancien journal (patron du retrait
+d'`ac-pins` dans le transfert d'espace) ; elle ne figure pas dans `WIPE_SPACE_KEYS`, qui n'est
+lue qu'à l'effacement — un appareil qui ne s'efface jamais l'aurait gardée. Pour ré-instrumenter
+un jour : le tag v5.21.3 porte le code, avec son commentaire de méthode. Rien à mesurer à la sonde
+ici — le retrait se vérifie au grep (`boot-log`, `bootLog`, « Relances » : zéro émission), et
+`check-fns`/`check-ids`/`check-classes` restent verts (`.dev-line` et `.acct-more` gardent
+d'autres émetteurs).

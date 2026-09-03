@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-jnwA+DeAgNsncPoT0KO42pp9bJBqnkTLeNXMdKTifVc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-XiLw5j4vr+bxIQNJEBY4ZqDIaIIazdAyh+FtNPTfsO4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7988,7 +7988,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.21.3';
+const APP_VERSION='5.21.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -25186,15 +25186,8 @@ function accountPrefsHtml(slot){
   const z=currentZoom();
   const nl=myLibraries.length+1; // + Perso
   const HINT={90:'S · 90 %',100:'M · 100 %',115:'L · 115 %',130:'XL · 130 %'};
-  /* P2 (v5.10.3) — lecture du journal de relances (cf. bootLogBump, fin de fichier) : fenêtre
-     7 jours. La ligne n'existe que si un compte existe (rien à dire → rien) ; instrumentation
-     temporaire, part avec le diagnostic. */
-  const bl=(()=>{try{const o=JSON.parse(localStorage.getItem(spaceKey('ac-boot-log'))||'{}');
-    const days=Object.keys(o).sort().slice(-7);let b=0,r=0;days.forEach(d=>{b+=(o[d]&&o[d].b)||0;r+=(o[d]&&o[d].r)||0;});
-    return b?{b,r,n:days.length}:null;}catch(e){return null;}})();
   return `<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
     <p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
-    ${bl?`<p class="dev-line">Relances complètes : <b>${bl.b}</b> sur ${bl.n} jour${bl.n>1?'s':''} · <b>${bl.r}</b> reprise${bl.r>1?'s':''} sans relance<details class="acct-more"><summary>En savoir plus</summary>Diagnostic temporaire : chaque « relance complète » est un démarrage à froid de l'application — le délai de 2-3 s au retour. S'il est rare, le poids du fichier n'est pas un sujet ; s'il domine les reprises, l'empreinte mémoire se rediscute (mesure avant décision).</details></p>`:''}
     ${slot?`<div class="auth-actions" style="margin-bottom:14px">${slot}</div>`:''}
     <div class="auth-stats-h">Affichage</div>
     ${''/* ⚠ LE THÈME REJOINT LES RÉGLAGES (7a, « Points ouverts ») : il vivait dans l'en-tête de
@@ -28867,24 +28860,9 @@ if(location.search.indexOf('__actest')>=0){
      C'est tout le sens du correctif : sur un appareil vierge entré par appariement, l'application
      déposait 3,17 Mo et un worker avant d'avoir dit un mot. Cf. `shareBootDecide`. */
   const _entree=shareBootDecide();
-  /* P2 (v5.10.3) — INSTRUMENTATION DES RELANCES (diagnostic de l'hypothèse d'ÉVICTION, A153).
-     Les 2-3 s de blanc au retour vivent dans la couche iOS (relance du processus — mesuré,
-     v5.10.2) ; la seule question encore ouverte est leur FRÉQUENCE : un document plus léger
-     serait moins souvent évincé sous pression mémoire, et cela ne se décide pas sans compte.
-     On journalise PAR JOUR : `b` = démarrages complets (ce code ne court qu'à la relance — une
-     reprise depuis la mémoire ne ré-exécute rien), `r` = retours au premier plan SANS relance
-     (visibilitychange). Fenêtre glissante 14 jours, une clé localStorage, lue dans Compte ›
-     « Sur cet appareil ». INSTRUMENTATION TEMPORAIRE, à retirer une fois le diagnostic posé
-     (précédent : la ligne diag ih/vv/dvh de v4.29.x). Jamais chez l'INVITÉ (SHARE_NOTRACE —
-     il ne dépose rien). */
-  const bootLogBump=k=>{if(SHARE_NOTRACE)return;try{
-    const key=spaceKey('ac-boot-log');const day=new Date().toISOString().slice(0,10);
-    const o=JSON.parse(localStorage.getItem(key)||'{}');
-    const keep={};Object.keys(o).sort().slice(-14).forEach(x=>{keep[x]=o[x];});
-    keep[day]=keep[day]||{b:0,r:0};keep[day][k]=(keep[day][k]||0)+1;
-    localStorage.setItem(key,JSON.stringify(keep));}catch(e){}};
-  bootLogBump('b');
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')bootLogBump('r');});
+  /* Le journal de relances de v5.10.3 (diagnostic P2, `ac-boot-log`) est RETIRÉ avec son verdict
+     (A307) : la clé déposée par les versions 5.10.3-5.21.3 est effacée au démarrage. */
+  try{localStorage.removeItem(spaceKey('ac-boot-log'));}catch(e){}
   /* ===== PWA =====
      Enregistre le service worker (cache hors ligne) si disponible. Capte
      l'évènement beforeinstallprompt pour proposer "Installer l'app". */
