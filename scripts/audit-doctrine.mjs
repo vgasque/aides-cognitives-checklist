@@ -6465,6 +6465,81 @@ await sec('ACCUEIL · le gestionnaire compte comme la colonne, et déplace tout'
 }
 });
 
+/* ⚠ LA PASTILLE D'UNE RANGÉE FUSIONNÉE NE MONTRE QUE CE QU'ELLE COMPTE (A306, signalé : « si une
+   catégorie double de même nom mais couleur différente s'affiche puis se retire sur la sidebar,
+   la pastille bicolore ne se met pas à jour »). Les couleurs venaient de `categories` BRUT : une
+   homonyme d'une bibliothèque hors du filtre, ou à zéro élément, teintait la rangée, et changer de
+   bibliothèque ne changeait rien à la pastille. On mesure les trois périmètres, un aller-retour, le
+   chemin « une homonyme apparaît puis disparaît » (celui du gestionnaire : re-rendu de la liste),
+   et le compte de deux catégories de MÊME ID dans deux bibliothèques (A298), qui doit être une
+   somme et non un double. ⚠ Le compte vit À CÔTÉ du bouton, dans `.hs-wrap` (piège d'A305). */
+await sec('ACCUEIL · la pastille d\'un homonyme suit le périmètre affiché', async () => {
+{
+  const page = await br.newPage({ viewport: { width: 1280, height: 900 } });
+  page.on('pageerror', e => { ko++; console.log('  ✗ ERREUR PAGE : ' + e.message); });
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r = await page.evaluate(async () => {
+    const w = ms => new Promise(r => setTimeout(r, ms));
+    myLibraries.length = 0;
+    myLibraries.push({ id: 'lib1', name: 'CH Le Mans', role: 'admin' });
+    // Deux « Réanimation » qui comptent (Perso bleu, lib1 brun), une troisième à ZÉRO (vert),
+    // et deux « Trauma » de MÊME ID dans deux bibliothèques.
+    categories.push({ id: 'rea', name: 'Réanimation', color: '#2266aa', library: null });
+    categories.push({ id: 'rea2', name: 'Réanimation', color: '#aa5522', library: 'lib1' });
+    categories.push({ id: 'rea0', name: 'Réanimation', color: '#119933', library: 'lib1' });
+    categories.push({ id: 'dup', name: 'Trauma', color: '#7744aa', library: null });
+    categories.push({ id: 'dup', name: 'Trauma', color: '#7744aa', library: 'lib1' });
+    const mk = (id, lib, cat) => { const f = JSON.parse(JSON.stringify(fiches[0]));
+      f.id = id; f.title = 'Fiche ' + id; f.library = lib; f.category = cat; fiches.push(migrate(f)); };
+    for (let i = 0; i < 3; i++) { mk('p' + i, '', 'rea'); mk('l' + i, 'lib1', 'rea2'); }
+    mk('t1', '', 'dup'); mk('t2', '', 'dup'); mk('t3', 'lib1', 'dup');
+    state.homeLib = null; render(); await w(300);
+    const rangee = nom => {
+      const b = [...document.querySelectorAll('.home-side [data-cat]')].find(x => x.textContent.includes(nom));
+      if (!b) return null;
+      const d = b.querySelector('.cat-dot'), st = d.getAttribute('style') || '';
+      const cols = d.classList.contains('cat-multi')
+        ? [...st.matchAll(/#[0-9a-f]{6}/gi)].map(m => m[0].toLowerCase())
+        : [(st.match(/#[0-9a-f]{6}/i) || [''])[0].toLowerCase()];
+      return { multi: d.classList.contains('cat-multi'), cols, n: +b.parentElement.querySelector('.hs-n').textContent }; };
+    const aller = async k => {
+      if (state.homeLib != null) { const t = [...document.querySelectorAll('.home-side [data-libsel]')]
+          .find(y => y.dataset.libsel === '*'); if (t) t.click(); await w(200); }
+      if (k != null) { const x = [...document.querySelectorAll('.home-side [data-libsel]')]
+          .find(y => y.dataset.libsel === k); if (x) x.click(); }
+      await w(300); };
+    const toutes = rangee('Réanimation'), trauma = rangee('Trauma');
+    await aller('lib1'); const lib1 = rangee('Réanimation');
+    await aller(''); const perso = rangee('Réanimation');
+    await aller(null); const retour = rangee('Réanimation');
+    // Le chemin du gestionnaire : une homonyme qui compte apparaît, puis disparaît (re-rendu).
+    categories.push({ id: 'rea3', name: 'Réanimation', color: '#dd2200', library: 'lib1' });
+    mk('x1', 'lib1', 'rea3'); renderLibrary(); await w(300);
+    const avec = rangee('Réanimation');
+    categories = categories.filter(c => c.id !== 'rea3'); fiches = fiches.filter(f => f.id !== 'x1');
+    renderLibrary(); await w(300);
+    const sans = rangee('Réanimation');
+    return { toutes, trauma, lib1, perso, retour, avec, sans }; });
+  const memes = (a, b) => JSON.stringify((a || []).slice().sort()) === JSON.stringify(b.slice().sort());
+  t('« Toutes » : deux couleurs (celles qui comptent), 6 éléments — la troisième, à zéro, ne teinte rien',
+    !!r.toutes && r.toutes.multi && memes(r.toutes.cols, ['#2266aa', '#aa5522']) && r.toutes.n === 6, JSON.stringify(r.toutes));
+  t('deux catégories de même id dans deux bibliothèques : 3 éléments, pas 6',
+    !!r.trauma && r.trauma.n === 3, JSON.stringify(r.trauma));
+  t('sur lib1 : une seule couleur, la sienne, 3 éléments',
+    !!r.lib1 && !r.lib1.multi && memes(r.lib1.cols, ['#aa5522']) && r.lib1.n === 3, JSON.stringify(r.lib1));
+  t('sur Perso : une seule couleur, la sienne, 3 éléments',
+    !!r.perso && !r.perso.multi && memes(r.perso.cols, ['#2266aa']) && r.perso.n === 3, JSON.stringify(r.perso));
+  t('retour sur « Toutes » : la pastille redevient bicolore',
+    !!r.retour && r.retour.multi && memes(r.retour.cols, ['#2266aa', '#aa5522']), JSON.stringify(r.retour));
+  t('une homonyme qui compte apparaît : trois couleurs, 7 éléments',
+    !!r.avec && memes(r.avec.cols, ['#2266aa', '#aa5522', '#dd2200']) && r.avec.n === 7, JSON.stringify(r.avec));
+  t('… et disparaît : la pastille se met à jour (deux couleurs, 6 éléments)',
+    !!r.sans && memes(r.sans.cols, ['#2266aa', '#aa5522']) && r.sans.n === 6, JSON.stringify(r.sans));
+  await page.close();
+}
+});
+
 /* ══ LE PÉRIMÈTRE AFFICHÉ COMMANDE LES COMMANDES ═════════════════════════════════════════════
    Suite d'A303 : six lecteurs interrogeaient encore `state.scope`, qui vaut TOUJOURS `null` à
    l'accueil depuis la v5.18 — donc `canEditScope` répondait « oui » partout. « Sélectionner » et

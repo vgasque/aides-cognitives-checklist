@@ -300,6 +300,52 @@ produit un correctif inutile, et la seconde un témoin menteur :
   dans `.hs-wrap`, et le chercher DANS `[data-cat]` rend toujours « absent ». Le témoin porte ce
   piège en commentaire — sans quoi il aurait mesuré un vert sur un rouge.
 
+## A306 — la pastille d'un homonyme ne montre que ce qu'elle compte (v5.21.3)
+
+Signalé : « si une catégorie double de même nom mais couleur différente s'affiche puis se retire
+sur la sidebar, la pastille bicolore ne se met pas à jour ». Mesuré avant de corriger (deux
+moteurs) : sur « Toutes », la rangée « Réanimation » portait TROIS couleurs — dont celle d'une
+homonyme à ZÉRO élément —, et sur une seule bibliothèque, où une seule catégorie de ce nom existe,
+la pastille restait tricolore. La cause : A299 construisait les couleurs sur `categories` BRUT,
+là où le compte de la même rangée ne lisait que le périmètre. Une rangée qui montre une couleur
+qu'elle ne compte pas ment autant qu'un compte faux.
+
+La règle devient : **une couleur ne contribue que si sa catégorie est du périmètre affiché
+(`homeLibOn`, le même prédicat que la liste) et y compte au moins un élément** — ou porte le filtre
+actif, seule rangée qui reste à zéro (« un filtre posé ne doit jamais être invisible »). A299 n'est
+pas renié : quand deux homonymes COMPTENT, la pastille les montre toutes ; elle cesse seulement
+de montrer celles qui n'existent que dans une autre bibliothèque, ou nulle part.
+
+Attrapé en route, par la même relecture : **le compte était indexé par id**, or deux bibliothèques
+peuvent porter le même id de catégorie (A298) — deux « Trauma » de même id, l'un au Perso, l'autre
+en bibliothèque, se comptaient DEUX FOIS (mesuré : 6 pour 3 fiches). `catOf` résout déjà le couple
+id + bibliothèque : le compte est désormais une `Map` par OBJET de catégorie.
+
+### Signalement voisin, mesuré et NON reproduit : le ✎ du quart supérieur
+
+Le même envoi signalait qu'en voie étroite, taper le ✎ d'une bibliothèque dans l'intertitre d'une
+section « dans le quart supérieur de l'écran » remettait le défilement en haut à l'ouverture de
+« Modifier la bibliothèque », et pas plus bas. **Dix-huit cas joués, aucun ne bouge** — noté ici
+pour que la prochaine session ne les rejoue pas :
+
+- Chromium et WebKit de bureau, 390 px, pointeur grossier émulé (le verrou `html{overflow:hidden}`
+  n'existe QUE sous `pointer:coarse`, une sonde à pointeur fin ne mesure rien) : cinq hauteurs du
+  bouton (60 → 700 px), ouverture, fermeture par ✕ — position tenue au pixel ;
+- simulateur iPhone 17 (iOS 26.5), copie instrumentée servie en local avec témoin de défilement à
+  l'écran et stub de `list_members` (formulaire complet, comme un compte connecté) : Safari, PUIS
+  l'app INSTALLÉE (zone sûre réelle, intertitre collé sous la Dynamic Island) ; intertitre collé et
+  non collé, fermeture par ✕ et par « Enregistrer » — 613 → 613, 1087 → 1087 ;
+- `render()` rejoué PENDANT que la fenêtre est ouverte, verrou posé (le cas d'un pull de synchro ou
+  d'un rafraîchissement de profil chez un compte connecté), à quatre hauteurs ; et le réglage de
+  taille du texte (`zoom` 1,15 et 1,3 sur `<html>`).
+
+Ce qui n'a PAS pu être joué : un iOS antérieur à 26.5 (seul runtime installé), et le vrai compte
+Supabase de l'auteur. Pistes restantes, à mesurer sur l'appareil et non à corriger à l'aveugle :
+la version d'iOS ; un `.ai-modal.on` résiduel sous l'accueil au moment du tap (le verrou ne se
+poserait pas, et la fermeture restaurerait un `_bgScrollY` PÉRIMÉ — c'est le seul mécanisme du
+code qui puisse ramener en haut) ; un tap pendant la décélération d'un « flick ». Le patron reste
+celui d'A295 : on ne corrige pas un signalement qu'on n'a pas reproduit.
+
 ## Les garde-fous du lot, et pourquoi ils tiennent
 
 Deux sections neuves, chacune **vérifiée capable d'échouer** (défaut réintroduit, rouge exactement
@@ -329,4 +375,9 @@ ne vaut rien** — il faut le vérifier rouge, pas seulement l'écrire.
   **Vérifiés capables d'échouer** : les deux défauts réintroduits → 6 rouges exactement sur les
   assertions visées, `index.html` restauré à l'octet.
 
-Bilan : partage 331 → 349 contrôles, doctrine 92 → 95 sections.
+- `audit-doctrine` · « la pastille d'un homonyme suit le périmètre affiché » (A306) — 7 contrôles
+  (trois périmètres, aller-retour, homonyme qui apparaît puis disparaît par le chemin du gestionnaire,
+  même id dans deux bibliothèques). **Vérifié capable d'échouer** : `index.html` remis à HEAD →
+  7 rouges, restauré à l'octet (sha256 comparé).
+
+Bilan : partage 331 → 349 contrôles, doctrine 92 → 96 sections.

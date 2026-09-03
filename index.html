@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Z2tnEt7r9EXWmhAtugk/VsZI71sGQvpMHixTsxt1RIg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-jnwA+DeAgNsncPoT0KO42pp9bJBqnkTLeNXMdKTifVc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7988,7 +7988,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.21.2';
+const APP_VERSION='5.21.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13205,8 +13205,10 @@ function homeSideHtml(){
   const visAll=(fiches||[]).concat(protocols||[]).filter(x=>x&&(canEditFiche(x)||x.status!=='draft'));
   const bibs=bibGroups(visAll);
   const scope=visAll.filter(homeLibOn);
-  const cnt=Object.create(null);
-  scope.forEach(x=>{const c=catOf(x);if(c)cnt[c.id]=(cnt[c.id]||0)+1;});
+  /* Compte PAR OBJET de catégorie (Map), jamais par id : deux bibliothèques peuvent porter le
+     même id (A298), et `catOf` résout déjà le couple id + bibliothèque. */
+  const cnt=new Map();
+  scope.forEach(x=>{const c=catOf(x);if(c)cnt.set(c,(cnt.get(c)||0)+1);});
   const num=n=>`<span class="hs-n">${n}</span>`;
   const bibIdx=hsRow({on:state.homeLib==null,mark:HS_RING,label:'Toutes',tail:num(visAll.length),
       attrs:`data-libsel="*" aria-pressed="${state.homeLib==null?'true':'false'}"`})
@@ -13224,12 +13226,19 @@ function homeSideHtml(){
      filtraient exactement la même chose, ne différant que par la couleur de leur pastille. On
      fusionne — compte cumulé, cran lu sur le NOM comme le filtre —, et quand les couleurs
      divergent la pastille les montre TOUTES : aucune n'est reniée, et le réglage par bibliothèque
-     reste au gestionnaire, seul endroit où l'on agit sur une catégorie précise. */
+     reste au gestionnaire, seul endroit où l'on agit sur une catégorie précise.
+     ⚠ TOUTES CELLES QUI COMPTENT, PAS TOUTES CELLES QUI EXISTENT (A306, signalé : « la pastille
+     bicolore ne se met pas à jour ») : les couleurs venaient de `categories` BRUT — une homonyme
+     d'une bibliothèque hors du filtre, ou sans aucun élément dans le périmètre, teintait la
+     pastille d'une rangée qui ne la comptait pas, et le filtre de bibliothèque ne changeait rien.
+     Une couleur ne contribue que si sa catégorie est DU PÉRIMÈTRE AFFICHÉ (`homeLibOn`) et y
+     compte au moins un élément — ou porte le filtre actif, seule rangée qui reste à zéro. */
   const catNom=_catFiltName();
   const catIdx=(()=>{const par=new Map();
-    categories.forEach(c=>{const n=txNorm(c.name||'');if(!n)return;
+    categories.forEach(c=>{const n=txNorm(c.name||'');if(!n||!homeLibOn(c))return;
+      const k=cnt.get(c)||0;if(!k&&catNom!==n)return;
       const g=par.get(n)||{n,c,nb:0,cols:[]};
-      g.nb+=(cnt[c.id]||0);
+      g.nb+=k;
       const col=safeColor(c.color);if(col&&g.cols.indexOf(col)<0)g.cols.push(col);
       par.set(n,g);});
     return [...par.values()].filter(g=>g.nb>0||catNom===g.n).sort((a,b)=>byCatName(a.c,b.c)).map(g=>{
