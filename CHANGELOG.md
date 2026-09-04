@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.22.1] — 2026-09-04
+### Dans le rail, les deux ajouts sur une rangée sous les compteurs (A309)
+
+- **« ＋ Minuteur » et « ＋ Compteur » partagent une rangée** placée sous les compteurs, dans le rail
+  de session seulement. Ils occupaient deux boutons pointillés pleine largeur, chacun sous sa
+  famille (≈ 118 px au milieu de la colonne d'état, là où le rail coûte le plus à l'action à
+  820 px). Ce sont des gestes de session — minuteur ad hoc, compteur créé à 1 —, pas de
+  l'édition : ils gardent 44 px et restent visibles sans tap de plus (la variante « ＋ Ajouter… »
+  à choix a été écartée pour cette raison). Gain ≈ 54 px. Le choix de durée s'ouvre sous la
+  rangée ; le volet étroit ne change pas (« ＋ Minuteur » y reste dans sa famille, v5.4.1).
+- Garde-fou : `audit-doctrine` § « RAIL · les deux ajouts sur une rangée sous les compteurs »
+  (5 contrôles, 97 → 98 sections), vérifié capable d'échouer. Doctrine A309 dans
+  `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.3] archivée).
+- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
+
 ## [5.22.0] — 2026-09-04
 ### Le gestionnaire de catégories en liste, plus de couleurs, le rail de session à 280 px sur tablette (A308)
 
@@ -540,53 +555,3 @@
   bas ; l'appariement des blocs se fait désormais commentaires retirés.
 - Les cinq fonctions de test embarquées et les deux surfaces de harnais portent leur marqueur
   « délibéré » (décision Q3) — un futur audit ne les re-signalera pas.
-
-## [5.19.3] — 2026-08-31
-### Audit interne complet : le survol qui ne peignait rien, le code mort purgé, la doctrine qui dit vrai (A280-A282)
-
-Audit transverse en quatre passes (code mort, PWA/performance, sécurité, outillage), chaque
-constat contre-vérifié, cinq arbitrages posés à l'auteur avant le premier geste. Verdict
-d'ensemble : aucune XSS atteignable, aucun secret exposé, RLS et `search_path` corrects sur les
-24 fonctions `SECURITY DEFINER`, une seule vraie duplication de bloc dans 1,97 Mo de JS. Les
-correctifs, sans changer un seul comportement voulu :
-
-- **Deux survols inertes réparés (A280)** : `.rt-lnk` (sommaire d'une référence) et `.at-b`
-  (onglets) lisaient `var(--hover)` — un token JAMAIS déclaré, déclaration invalide au calcul,
-  survol qui ne peignait rien dans les deux thèmes. Peints avec la famille vivante (`--amb-2`
-  le jour ; `--hover-dk` la nuit, `-hi` sur surface élevée), prouvé à la sonde : fond calculé
-  non transparent au survol réel, 2 thèmes × 2 moteurs, 8/8.
-- **Code mort purgé (règle 14, zéro émission vérifiée au grep)** : `catsUtiles` +
-  `catNbSousFiltre` (remplacées par l'union v5.18, jamais purgées), `filtersActive`,
-  `_ROLE_LBL` ; six tokens déclarés-jamais-lus (`--w-max`, `--g-cmd`, `--hit-crisis`,
-  `--dur-1`, `--primary-300` ×2, `--shadow-dock`) ; deux sélecteurs `#id` orphelins
-  (`#f-validation.val-bad`, `#readTopSeg` dans `@media print` — purge v5.6 enfin achevée).
-- **Le palier 1200 n'a plus qu'UNE copie** : le bloc d'origine (§ LARGEURS) avait été réaffirmé
-  plus bas pour gagner la cascade, puis les deux copies ont divergé en silence (`.ed-cockpit`
-  240 ici, 220 là — la cascade tranchait pour 220, la copie d'origine était morte avec un
-  commentaire annonçant 220 au-dessus d'une ligne écrivant 240). Le bloc mort est purgé, 220
-  confirmé par l'auteur, la doctrine « pour une géométrie, ne jamais dépendre de l'ordre »
-  déménagée sur la copie vivante.
-- **Quatre commentaires qui mentaient corrigés** : `fitCtrlRow()` décrite au présent
-  (supprimée en v5.6, son épitaphe existait 21 000 lignes plus loin), `--primary-300`
-  documentée en service, « structure 220 » sur la ligne à 240, et `_headers` qui justifiait
-  `no-cache` par une stratégie « réseau d'abord » révolue depuis v4.4.6.
-- **La règle des 20 du CHANGELOG devient exécutoire (A281)** : `scripts/check-changelog.mjs`
-  (dans `npm run check`, donc CI) — compte ≤ 20 et aucune entrée en double avec une archive.
-  Né ROUGE sur l'état réel à 21 entrées, vert après archivage de [5.14.21] puis [5.14.22]
-  (en FIN d'archive, convention constatée et désormais écrite). L'alias `npm run ci`, jamais
-  appelé et divergent du workflow, est retiré.
-- **Le périmètre de déploiement est tranché (A282, décision utilisateur)** : le dépôt est servi
-  EN ENTIER — et ce qui ne doit pas être public SORT du dépôt : `sonde/index.html` (313 Ko de
-  sonde WebRTC d'un spike clos v5.14, jumelle à l'octet d'un fichier délibérément gitignoré,
-  publiée à `/sonde/` faute d'index) est supprimée.
-- **La doctrine devient navigable par toute IA** : `docs/README.md` créé (carte plage A-xxx →
-  fichier, sans passer par AGENTS.md) ; l'index d'AGENTS.md corrigé — le lot v5.13 (A192-A197,
-  second chapitre de `lot-v5-12.md`) n'était indexé NULLE PART, trois plages annoncées étaient
-  fausses (v5.12 « A170-A179 » pour A170-A197, v5.17 « A227-A230 » pour A227-A237, v5.18
-  « A238-A261 » pour A238-A268) ; README remis d'aplomb (« onze harnais » → 21, hébergement
-  Workers Assets + adresse de production, contenu du dépôt complété).
-- **Écarté en connaissance de cause** : pas de `Cache-Control: immutable` sur `vendor/` —
-  les fichiers n'y sont pas nommés par hash, un an d'immutabilité HTTP ferait servir un vieux
-  pdf.js après une mise à jour de sécurité (le piège v5.0.0 « la mise à jour qui n'atteint
-  personne », au niveau HTTP) ; et pas de re-fusion des `.md`, qui recréerait la troncature
-  silencieuse à 797 Ko documentée en v5.10.3.

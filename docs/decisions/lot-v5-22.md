@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A309)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -49,4 +49,27 @@ session sur tablette en portrait.
 teintes, `catLisible`, aller-retour, plancher 4,0 entre presets) ; `audit-doctrine` § « Catégories ·
 une palette à la fois, Ajouter en tête, même fenêtre depuis les éditeurs » (10 contrôles, 96 → 97
 sections), vérifié CAPABLE D'ÉCHOUER (palette forcée ouverte → 3 rouges sur les bonnes assertions,
+`index.html` restauré à l'octet).
+
+## A309 — dans le rail, les deux ajouts sur une rangée sous les compteurs (v5.22.1)
+
+**Demande de l'auteur** (04/09/2026, variante A du canvas « Catégories et rail tablette »). En
+session, le rail portait « ＋ Minuteur » sous le minuteur puis « ＋ Compteur » sous le compteur,
+deux boutons pointillés pleine largeur de 44 px, soit ≈ 118 px avec leurs marges au milieu de la
+colonne d'état — à 820 px, là où le rail coûte le plus à la colonne d'action.
+
+**Ce que ce n'est pas** : une rétrogradation. Ces boutons créent un minuteur ad hoc et un compteur
+créé à 1 — des gestes DE SESSION, pas de l'édition ; ils gardent 44 px (règle 9) et restent visibles
+sans tap supplémentaire. La variante B (« ＋ Ajouter… » qui ouvre un choix) a été écartée pour son
+tap de plus en crise.
+
+**Ce qui change** : dans le rail seulement (`mqRail`), les deux boutons partagent UNE rangée
+`.rt-adds` placée après les compteurs — même famille de geste (cf. le commentaire de `cnAddHtml`),
+gain ≈ 54 px. Le choix de durée (`.tm-add-d`) s'ouvre SOUS la rangée : `tmAddHtml` se scinde en
+`tmAddBtn` + `tmAddDur`, et le volet étroit reste inchangé — « ＋ Minuteur » y demeure dans sa
+famille (décision v5.4.1, qui vaut toujours là où la colonne ne coûte rien).
+
+**Garde-fou** : `audit-doctrine` § « RAIL · les deux ajouts sur une rangée sous les compteurs »
+(5 contrôles : même rangée, après les compteurs, côte à côte ≥ 44 px, durée sous la rangée, volet
+étroit inchangé ; 97 → 98 sections), vérifié CAPABLE D'ÉCHOUER (ancien ordre réintroduit → 4 rouges,
 `index.html` restauré à l'octet).

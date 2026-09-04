@@ -3458,6 +3458,8 @@
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12px;font-weight:700}
   .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
+  .rt-adds{display:flex;gap:8px}.rt-adds>.rt-add{flex:1;min-width:0}   /* A309 : une rangée, deux ajouts */
+  .rt-adds+.tm-add-d{margin-top:8px}
   /* GRAISSE 500, PAS 700 (correctif — signalé à l'usage : « le texte du minuteur en gras très noir
      saute aux yeux plus que le contenu du milieu, confirmation diagnostique, étapes… ; pareil pour
      les décomptes de compteurs »). Le constat est juste et c'est une inversion de saillance : le

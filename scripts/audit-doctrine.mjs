@@ -6926,6 +6926,47 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
 }
 });
 
+/* A309 — dans le RAIL, les deux ajouts (minuteur, compteur) tiennent sur une rangée sous les
+   compteurs, cibles de 44 px gardées, le choix de durée s'ouvre SOUS la rangée ; le volet étroit
+   garde « ＋ Minuteur » dans sa famille. */
+await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async () => {
+{
+  const page=await br.newPage({viewport:{width:820,height:1180}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Anaphylaxie/);
+  await demarrerSession(page);
+  const mesure=()=>page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));
+    const side=document.querySelector('.read-side'),tm=side&&side.querySelector('[data-rtadd]'),cn=side&&side.querySelector('[data-cnadd]');
+    if(!tm||!cn)return {absent:true,tm:!!tm,cn:!!cn};
+    const row=tm.closest('.rt-adds');const cnt=side.querySelector('.rt-counters');
+    const out={memeRangee:!!row&&row===cn.closest('.rt-adds'),
+      apresCompteurs:!!cnt&&!!row&&!!(cnt.compareDocumentPosition(row)&Node.DOCUMENT_POSITION_FOLLOWING),
+      hTm:Math.round(tm.getBoundingClientRect().height),hCn:Math.round(cn.getBoundingClientRect().height),
+      coteACote:Math.abs(tm.getBoundingClientRect().top-cn.getBoundingClientRect().top)<1,
+      rangeeH:row?Math.round(row.getBoundingClientRect().height):0};
+    tm.click();await w(300);
+    const d=document.querySelector('.read-side .tm-add-d');const r2=document.querySelector('.read-side .rt-adds');
+    out.choixSousLaRangee=!!d&&!!r2&&d.getBoundingClientRect().top>=r2.getBoundingClientRect().bottom-1;
+    out.durees=document.querySelectorAll('.read-side [data-rtnew]').length;
+    document.querySelector('.read-side [data-rtadd]').click();await w(200);
+    return out;});
+  const r=await mesure();
+  t('rail : « ＋ Minuteur » et « ＋ Compteur » sur la même rangée',r.memeRangee===true,JSON.stringify(r));
+  t('… placée APRÈS les compteurs',r.apresCompteurs===true,JSON.stringify(r));
+  t('… côte à côte, cibles ≥ 44 px',r.coteACote&&r.hTm>=44&&r.hCn>=44,JSON.stringify([r.coteACote,r.hTm,r.hCn]));
+  t('le choix de durée s\'ouvre sous la rangée',r.choixSousLaRangee===true&&r.durees===4,JSON.stringify([r.choixSousLaRangee,r.durees]));
+  // ÉTROIT : le volet garde l'ordre par famille (« ＋ Minuteur » avant les compteurs).
+  await page.setViewportSize({width:430,height:900});await page.waitForTimeout(500);
+  const e=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));
+    const b=document.getElementById('cbTimers');if(b)b.click();await w(400);
+    const tm=document.querySelector('.rt-dock [data-rtadd]'),cnt=document.querySelector('.rt-dock .rt-counters, .rt-dock [data-cnadd]');
+    return {tm:!!tm,avant:!!tm&&!!cnt&&!!(tm.compareDocumentPosition(cnt)&Node.DOCUMENT_POSITION_FOLLOWING),rangee:!!document.querySelector('.rt-dock .rt-adds')};});
+  t('volet étroit : inchangé, « ＋ Minuteur » reste dans sa famille',e.tm&&e.avant&&!e.rangee,JSON.stringify(e));
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

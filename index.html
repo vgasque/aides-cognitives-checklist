@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-1aJZBr0p1Horj78skiu/cEI5JZ30uauDNMQjD/adlJQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-d+l4ALM+OcU5Znjvj7ta1NrbM89Z3Uo+xa9bqy7hcRY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3812,6 +3812,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cncard .tm-label{justify-content:center;color:var(--ink-soft)}
   .rt-add{margin-top:10px;min-height:44px;border:1.5px dashed var(--line);border-radius:8px;color:var(--link);font-size:12px;font-weight:700}
   .read-side .rt-add{margin-top:10px}   /* respire comme l'écart des cartes ; 0 le collait (v4.23.5) */
+  .rt-adds{display:flex;gap:8px}.rt-adds>.rt-add{flex:1;min-width:0}   /* A309 : une rangée, deux ajouts */
+  .rt-adds+.tm-add-d{margin-top:8px}
   /* GRAISSE 500, PAS 700 (correctif — signalé à l'usage : « le texte du minuteur en gras très noir
      saute aux yeux plus que le contenu du milieu, confirmation diagnostique, étapes… ; pareil pour
      les décomptes de compteurs »). Le constat est juste et c'est une inversion de saillance : le
@@ -8006,7 +8008,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.22.0';
+const APP_VERSION='5.22.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -17429,17 +17431,17 @@ const TM_DUREES=[120,180,300,600];
 /* `tmAddName` et `TM_GENERIQUE` sont PURGÉS avec la devinette qu'ils servaient (règle 14) : ils
    ne filtraient que les libellés de repli d'une source qui, elle, était fausse. */
 function tmAddHtml(){
-  const ouvert=!!state.tmAddOpen;
   /* ⚠ PLUS DE « PA » PAR DÉFAUT (v5.6, demande de l'auteur) : le bouton ne dit que sa NATURE.
      ⚠ ET IL NE DEVINE PLUS DU TOUT (v5.6, signalé) : deviner depuis une source sans rapport avec
      le geste, c'est fabriquer un mot (A85) — le nom se pose APRÈS, « — nommer » sur la carte
      (A86) ; deux taps sans clavier, le clavier n'entre que si l'on VEUT nommer. Détail : doctrine-js.md J112. */
-  const t='Minuteur';
   /* ⚠ PLUS DE « 5:00 » DANS LE LIBELLÉ : la durée n'est plus décidée d'avance, elle se choisit au
      tap suivant. Un bouton qui annonce une valeur qu'il ne pose pas est de la mode confusion
      (A38) — il dit maintenant ce qu'il fait : ouvrir le choix. */
-  return `<button class="add-line rt-add" data-rtadd aria-expanded="${ouvert?'true':'false'}" title="Ajouter un minuteur pour cette session — la durée se choisit ensuite">＋ ${esc(t)}</button>`
-    +(ouvert?`<div class="tm-add-d" role="group" aria-label="Durée du nouveau minuteur"><span class="tm-add-h">Choisir la durée</span>${
+  return tmAddBtn()+tmAddDur();}
+const tmAddBtn=()=>`<button class="add-line rt-add" data-rtadd aria-expanded="${state.tmAddOpen?'true':'false'}" title="Ajouter un minuteur pour cette session — la durée se choisit ensuite">＋ Minuteur</button>`;
+function tmAddDur(){const ouvert=!!state.tmAddOpen;
+  return (ouvert?`<div class="tm-add-d" role="group" aria-label="Durée du nouveau minuteur"><span class="tm-add-h">Choisir la durée</span>${
       TM_DUREES.map(sec=>`<button type="button" class="tm-add-b" data-rtnew="${sec}">${fmtMs(sec*1000)}</button>`).join('')}</div>`:'');}
 /* La porte du compteur ad hoc. Même grammaire que « ＋ Minuteur » — c'est la même famille de
    geste, et le volet n'a pas la place d'en inventer une seconde. */
@@ -17555,12 +17557,15 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
       +`<span class="rt-jlc">${esc(j.cond)}</span>`
       +`<span class="rt-jlp" aria-label="${j.cur} sur un seuil de ${j.goal}">${j.cur}/${j.goal}</span></div>`).join('')
     :'';
-  const timersB=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}${tmAddHtml()}`;
+  const timersC=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}`;
+  const timersB=timersC+tmAddHtml();
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
   if(mqRail.matches){
-    return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}</div>${timersB}`
+    return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}</div>${timersC}`
       +`<div class="rail-head rail-fam"><span class="rail-title">Compteurs</span>${cl.length>1?`<span class="rail-n">${cl.length}</span>`:''}</div>`
-      +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')+cnAddHtml()
+      +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')
+      // A309 : les deux ajouts sur UNE rangée sous les compteurs (même famille de geste, 44 px gardés).
+      +`<div class="rt-adds">${tmAddBtn()}${cnAddHtml()}</div>`+tmAddDur()
       +(jalonsB?`<div class="rail-head rail-fam"><span class="rail-title">Jalons</span>${jalons.length>1?`<span class="rail-n">${jalons.length}</span>`:''}</div>${jalonsB}`:'')
       +`<div class="rt-set">${sound}</div>`;}
   /* ⚠ L'EN-TÊTE DU VOLET **EST** LE SOUS-TITRE « MINUTEURS » (v5.10.8, signalé — deux rangées qui
