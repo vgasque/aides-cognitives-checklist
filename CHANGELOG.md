@@ -1,5 +1,33 @@
 # Journal des modifications
 
+## [5.22.0] — 2026-09-04
+### Le gestionnaire de catégories en liste, plus de couleurs, le rail de session à 280 px sur tablette (A308)
+
+- **« Gérer les catégories » passe en LISTE.** La fenêtre répétait la palette sous chaque catégorie
+  (104 pastilles pour 8 catégories, 1 144 px de haut à 820 px de large) et le champ « Ajouter »,
+  seule action de création, était à 1 298 px sous le haut — hors écran. Désormais : « Ajouter » en
+  tête de chaque section, rangées de 44 px (pastille · nom · compte · ×), et la palette ne s'ouvre
+  que pour la catégorie dont on tape la pastille, une seule à la fois ; le focus revient sur la
+  pastille après le re-rendu. Huit catégories tiennent en 715 px. Toutes les portes mènent à la même
+  fenêtre — accueil, feuille « Gérer », atelier d'import, et « ＋ Nouvelle catégorie » des éditeurs
+  de fiche et de protocole (vérifié au témoin).
+- **Plus de couleurs, sans toucher au modèle.** Un curseur « Autre teinte » parcourt l'anneau
+  OKLCH L 0,48 · C 0,08 — la chroma maximale qui reste dans le gamut sur tout le tour ; les deux
+  contrastes de la régression #3 (blanc sur teinte pleine, teinte sur fond à 15 %) tiennent par
+  construction sur les 360 degrés (≥ 6,2 et ≥ 5,0). Aperçu en direct (pastille, chip), et un
+  garde-fou de proximité : « △ proche de « X » » sous 4,0 ΔE d'une catégorie du même périmètre ;
+  un hex importé illisible est dit « △ contraste faible ». Conversion maison, aucune dépendance,
+  aucune couleur littérale dans la feuille. Les treize presets ne changent pas. ⚠ Un premier jet à
+  C 0,10 écrêtait le cyan hors gamut — attrapé par le témoin d'aller-retour, corrigé avant livraison.
+- **Rail de session à 280 px entre 780 et 999 px** (320 dès 1000, palier déjà déclaré). Mesuré à
+  820 px : le rail prenait 41 % de la largeur et laissait 444 px à la colonne d'action, la largeur
+  d'un téléphone. Rendu à 280 : cartes minuteur 261 px, aucun débordement nouveau ; +40 px pour
+  l'action. À 1024 px rien ne change (648 / 320).
+- Garde-fous : `tests.html` § « anneau de teinte (A308) » (8 témoins), `audit-doctrine`
+  § « Catégories · une palette à la fois… » (10 contrôles, 96 → 97 sections), vérifié capable
+  d'échouer. Doctrine : `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.2] archivée).
+- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26.
+
 ## [5.21.4] — 2026-09-03
 ### Le compte des relances est posé : l'éviction n'est pas le sujet, l'instrumentation part (A307)
 
@@ -562,43 +590,3 @@ correctifs, sans changer un seul comportement voulu :
   pdf.js après une mise à jour de sécurité (le piège v5.0.0 « la mise à jour qui n'atteint
   personne », au niveau HTTP) ; et pas de re-fusion des `.md`, qui recréerait la troncature
   silencieuse à 797 Ko documentée en v5.10.3.
-
-## [5.19.2] — 2026-08-31
-### Le halo de cible se vérifie en capture, la feuille qui dépasse le dit (A278-A279)
-
-Second volet de l'audit design v5.19 — publié avec la 5.19.1 (fusionnée ici), les deux
-corrigent les quatre défauts réels que l'audit a mesurés sur l'app servie.
-
-- **« filtres : aides » était une cible de 72×18 px, sous les 24 de WCAG 2.5.8 (A278).** Sa
-  conformité reposait sur un halo `::after` de −8 px — rogné par la chaîne d'ancêtres en
-  `overflow:hidden` qui ellipse les longs résumés : mesuré à l'`elementFromPoint`, un tap à
-  5 px du rectangle atteignait `.dir-wrap`, jamais le bouton. Le dessin porte désormais
-  lui-même les 24 px (`.dir-hf` en inline-flex, `min-height:24px` — la rangée absorbe les
-  ~6 px), le halo ne restant qu'en bonus là où le clip le laisse vivre.
-- **Le trou du garde-fou, plus grave que le défaut : `audit-a11y` créditait les halos SANS
-  vérifier la capture.** La sonde cibles lisait les insets du `::after` et comptait la
-  surface — tout halo rogné par un clip passait vert (famille v4.31.1 : un contrôle aveugle
-  au défaut qu'il couvre ne prouve rien). Elle teste désormais la CAPTURE : pour tout élément
-  dont la conformité repose sur le halo, `elementFromPoint` au milieu de chaque côté à halo
-  non nul doit rendre l'élément — sinon « halo rogné, capture perdue ». Deux garde-fous
-  appris à la première passe : garde d'occlusion (le centre inatteignable — fenêtre ouverte
-  par-dessus — n'est pas un halo rogné : la sonde rougissait sur le chrome DERRIÈRE la
-  feuille Plan), et abstention hors fenêtre. Plus une surface d'état nouvelle, « filtres
-  posés » : le déclencheur n'existe qu'avec un filtre actif et ne vivait dans AUCUNE surface
-  mesurée (un défaut hors scope n'est pas un défaut absent, v4.75.0). Preuve rouge→vert :
-  sonde ajoutée AVANT le correctif, passe rouge sur le seul témoin visé, puis verte.
-- **La Page SFAR annonce son débordement horizontal (A279).** Mesuré : 904 px visibles pour
-  1131 de feuille à 1280 — la colonne « NE PAS OUBLIER » coupée en plein mot, et les barres
-  de défilement en incrustation ne laissent aucun indice tant qu'on ne défile pas.
-  L'ajustement d'office reste REFUSÉ (k ≈ 0,28 à 390 px tuerait toute cible — cf. `svZoom`
-  et l'épitaphe `.pg-wide`) : ce qui manquait, c'est que la coupe se DISE. Un mot en encre
-  seconde dans la barre d'échelle — « la feuille dépasse à droite — défiler, ou “⤢ Ajusté” » —
-  posé/levé par `svApplyZoom` sur la mesure réelle du défileur, dans les deux logements de la
-  feuille. Vérifié aux trois états : annoncé à l'ouverture, tu après « Ajusté » (80 %), de
-  retour à 1:1.
-- **Les trois autres signalements de l'audit, vérifiés puis classés** : la bascule de thème
-  « lente » était un artefact de mesure (pane masqué au rendu étranglé — le thème s'applique
-  en synchrone, aucune transition couleur > 0,3 s ; corriger au symptôme aurait été le piège
-  A267) ; la troncature des titres du rail est un arbitrage écrit (« un titre ellipsé se
-  devine, un renvoi tronqué ne se répare pas ») ; le bandeau auteur est déjà conditionnel
-  (un seul créneau avec le bandeau système, fermeture définitive mémorisée).

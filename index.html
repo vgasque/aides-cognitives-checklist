@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-XiLw5j4vr+bxIQNJEBY4ZqDIaIIazdAyh+FtNPTfsO4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-1aJZBr0p1Horj78skiu/cEI5JZ30uauDNMQjD/adlJQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6607,14 +6607,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Séparé des ÉDITEURS, qui gardent leur aperçu à >= 1000px (règle v4.5 inchangée) — les deux
      partageaient la même règle `.read-grid`, d'où la scission par classe de vue. */
   @media (min-width:780px){
-    /* ══ LA GRILLE CANONIQUE (7b) : 780-1199 = action fluide + état 320 ; ≥ 1200 = orientation
+    /* ══ LA GRILLE CANONIQUE (7b) : 780-999 = action fluide + état 280 (A308 : à 820 px, 320 laissait
+       444 px à l'action, la largeur d'un téléphone) ; 1000-1199 = état 320 ; ≥ 1200 = orientation
        240 + action fluide + état 320, gouttière 20. UNE SEULE grille pour l'accueil, l'avant-
        session, la session, l'éditeur et la référence — « une seule valeur, sinon l'œil doit
        réapprendre l'écran à chaque page ». La colonne de GAUCHE est toujours l'ORIENTATION,
        celle de DROITE toujours l'ÉTAT ou la RÉFÉRENCE, jamais l'inverse.
        ⚠ ET LA COLONNE D'ACTION EST FLUIDE : les plafonds successifs (860, puis 660, puis 760)
        étaient des accidents de maquette. Elle prend ce qui reste. */
-    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0 20px;align-items:start}
+    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:0 20px;align-items:start}
     /* ⚠ ÉPITAPHE — `.pg-wide` purgée (règle 14) : élargir la colonne d'action déplaçait l'ÉTAT vif
        en pleine session, refusé à l'usage ; l'ajustement d'office reste refusé (k = 0,775 → cible
        34 px, A8/A133), l'échelle reste un GESTE (« ⤢ Ajusté »). --stick-top : mesuré par
@@ -6744,6 +6745,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      lister une géométrie deux fois pour qu'un ordre de déclaration la départage est le 4ᵉ incident
      de ce type du fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
      GÉOMÉTRIE, ne jamais dépendre de l'ordre. */
+  /* A308 : l'état reprend 320 px dès 1000, où l'action n'en souffre plus. */
+  @media (min-width:1000px){body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}}
   @media (min-width:1200px){
     body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
@@ -7026,25 +7029,40 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      écrasait le titre à quelques caractères ; le % de zoom regagne au passage sa place
      (il n'était masqué que par manque de place, v4.4.4). */
   @media (max-width:560px){.pdf-title{font-size:13.5px}.pdf-bar{flex-wrap:wrap;row-gap:2px}.pdf-tools{flex-basis:100%;order:3}}
-  .cm-row{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surface)}
-  .cm-top{display:flex;gap:8px;align-items:center}
-  .cm-dot{width:18px;height:18px;border-radius:8px;flex-shrink:0}
-  .cm-name{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
+  /* Gestionnaire en liste (A308) : « Ajouter » en tête, rangées 44 px, palette d'une catégorie à
+     la fois. Détail : lot-v5-22.md A308. */
+  .cm-add{display:flex;gap:8px;align-items:center;margin:2px 0 10px}
+  .cm-add input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
+  .cm-list+.cm-scope{margin-top:20px}
+  .cm-row{border-top:1px solid var(--line)}
+  .cm-list>.cm-row:last-child{border-bottom:1px solid var(--line)}
+  .cm-row.open{background:var(--bg);margin:0 -4px;padding:0 4px;border-radius:8px;border-color:transparent}
+  .cm-top{display:grid;grid-template-columns:32px minmax(0,1fr) auto 34px;gap:8px;align-items:center;min-height:44px}
+  .cm-dot{width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer}
+  .cm-dot span{width:18px;height:18px;border-radius:8px;display:block}
+  .cm-dot:hover{background:var(--surface-2)}
+  .cm-row.open .cm-dot{box-shadow:0 0 0 2px var(--primary)}
+  .cm-name{min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
   .cm-count{font-size:11px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
-  .cm-sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.cm-sw .sw{width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid transparent}
+  .cm-pick{display:flex;flex-direction:column;gap:12px;padding:4px 0 12px}
+  .cm-sw{display:flex;gap:6px;flex-wrap:wrap}.cm-sw .sw{width:32px;height:32px;padding:0;border-radius:8px;cursor:pointer;border:2px solid transparent}
   .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.12)}
-  .cm-del{flex-shrink:0;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;cursor:pointer}
+  .cm-hue{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;align-items:center}
+  .cm-hue span{font-size:var(--t-cap);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+  .cm-hue output{font-family:var(--mono);font-size:var(--t-cap);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .cm-hue input{grid-column:1/-1;-webkit-appearance:none;appearance:none;width:100%;height:32px;margin:0;padding:0;border:0;border-radius:8px}
+  .cm-hue input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:40px;border-radius:8px;background:var(--surface);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--surface)}
+  .cm-hue input::-moz-range-thumb{width:14px;height:40px;border-radius:8px;background:var(--surface);border:2px solid var(--ink)}
+  .cm-prev{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .cm-pv.solid{display:inline-flex;align-items:center;padding:8px 12px;border-radius:14px;color:var(--on-primary);font-size:12px;font-weight:700}
+  .cm-pv-note{margin-left:auto;font-size:var(--t-cap);font-weight:600}.cm-pv-note.ok{color:var(--ok)}.cm-pv-note.warn{color:var(--verify)}
+  .cm-del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;cursor:pointer}
   .cm-del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
-  .cm-confirm{margin-top:10px;padding:10px;border:1px solid var(--critical-bd);background:var(--critical-soft);border-radius:8px}
+  .cm-confirm{margin:0 0 10px;padding:10px;border:1px solid var(--critical-bd);background:var(--critical-soft);border-radius:8px}
   .cm-confirm p{font-size:12px;color:var(--ink);margin:0 0 8px;line-height:1.45}
   .cm-confirm select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);margin-bottom:8px}
   .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
   .cm-none{font-size:var(--t-body);color:var(--ink-soft);margin:0 0 10px}
-  /* Sections empilées (« Toutes ») : seule celle qui SUIT un « Ajouter » respire — la première
-     colle au haut de la fenêtre, comme avant. */
-  .cm-add+.cm-scope{margin-top:20px}
-  .cm-add{display:flex;gap:8px;align-items:center;margin-top:6px}
-  .cm-add input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
   /* ===== Ajustements transverses ===== */
   /* Bordures des CHAMPS DE SAISIE : --line-strong (3,9:1) — la limite d'un composant interactif
      doit atteindre 3:1 (WCAG 1.4.11) ; le srchBd du canvas (1,6:1) est réservé à la barre de
@@ -7075,7 +7093,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -7988,7 +8006,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.21.4';
+const APP_VERSION='5.22.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8001,6 +8019,28 @@ const LIB_PAGE=60;
 // couleurs DÉJÀ STOCKÉES ne changent pas. Trois teintes restent < 3:1 sur surface sombre (aucun
 // candidat au solveur) — atténué par « la couleur n'est jamais seule ». Détail : doctrine-js.md J1.
 const PALETTE=['#b23240','#8d5c39','#786824','#4f6b1e','#096e50','#226a71','#1f6f96','#45556b','#0d5b56','#5156b6','#755a96','#7a2f6b','#95516c'];
+/* Anneau des catégories (A308) : OKLCH ↔ hex sans dépendance. L 0,48 · C 0,08 = la chroma maximale
+   DANS le gamut sur tout le tour (0,081, limitée vers 195°) ; les deux contrastes de la régression #3
+   tiennent partout (témoin tests.html) ; dEok = ΔE OKLab ×100 (J1). */
+const CAT_L=0.48,CAT_C=0.08;
+function hexToRgb(h){h=String(h).slice(1);if(h.length<6)h=h.split('').map(x=>x+x).join('');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255);}
+const rgbToHex=rgb=>'#'+rgb.map(v=>Math.round(Math.max(0,Math.min(1,v))*255).toString(16).padStart(2,'0')).join('');
+const srgbLin=v=>v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4);
+const srgbGam=v=>{v=Math.max(0,Math.min(1,v));return v<=0.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-0.055;};
+function rgbToOklab(r,g,b){const R=srgbLin(r),G=srgbLin(g),B=srgbLin(b);
+  const l=Math.cbrt(0.4122214708*R+0.5363325363*G+0.0514459929*B),m=Math.cbrt(0.2119034982*R+0.6806995451*G+0.1073969566*B),s=Math.cbrt(0.0883024619*R+0.2817188376*G+0.6299787005*B);
+  return [0.2104542553*l+0.7936177850*m-0.0040720468*s,1.9779984951*l-2.4285922050*m+0.4505937099*s,0.0259040371*l+0.7827717662*m-0.8086757660*s];}
+function oklabToRgb(L,a,b){const l_=L+0.3963377774*a+0.2158037573*b,m_=L-0.1055613458*a-0.0638541728*b,s_=L-0.0894841775*a-1.2914855480*b;
+  const l=l_*l_*l_,m=m_*m_*m_,s=s_*s_*s_;
+  return [srgbGam(4.0767416621*l-3.3077115913*m+0.2309699292*s),srgbGam(-1.2684380046*l+2.6097574011*m-0.3413193965*s),srgbGam(-0.0041960863*l-0.7034186147*m+1.7076147010*s)];}
+function oklchToHex(L,C,h){const r=h*Math.PI/180;return rgbToHex(oklabToRgb(L,C*Math.cos(r),C*Math.sin(r)));}
+function hexToOklch(hex){const[L,a,b]=rgbToOklab(...hexToRgb(hex));let h=Math.atan2(b,a)*180/Math.PI;if(h<0)h+=360;return [L,Math.hypot(a,b),h];}
+const catHueHex=h=>oklchToHex(CAT_L,CAT_C,h);
+function dEok(h1,h2){const A=rgbToOklab(...hexToRgb(h1)),B=rgbToOklab(...hexToRgb(h2));return 100*Math.hypot(A[0]-B[0],A[1]-B[1],A[2]-B[2]);}
+const relY=hex=>{const[r,g,b]=hexToRgb(hex).map(srgbLin);return .2126*r+.7152*g+.0722*b;};
+function wcagRatio(a,b){const A=relY(a),B=relY(b);return (Math.max(A,B)+.05)/(Math.min(A,B)+.05);}
+/* Régression #3 sur un hex quelconque (importé) : blanc sur pleine ET teinte sur fond à 15 %. */
+function catLisible(col){const tint=rgbToHex(hexToRgb(col).map(v=>v*.15+.85));return wcagRatio('#ffffff',col)>=4.5&&wcagRatio(col,tint)>=4.5;}
 /* ===== Backends (stockage LOCAL) =====
    Trois implémentations interchangeables, MÊME interface (`Data` pointe sur le choix de
    chooseBackend) : MEM (repli mémoire), KV (clé-valeur JSON — window.storage, sinon
@@ -23927,7 +23967,7 @@ document.getElementById('filtSheetClear').onclick=()=>{
   state.scope=null;state.homeLib=null;state.section='all';state.cat='';state.libLimit=LIB_PAGE;
   render();paintFiltSheet();};
 const catModal=document.getElementById('catModal');
-let catDelId=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
+let catDelId=null,catPickKey=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
 /* Contenu d'une catégorie — L'UNION fiches + protocoles, comme la colonne gauche (signalé :
    « le gestionnaire n'affiche pas le bon nombre »). Il ne comptait que les fiches, donc il
    divergeait de la colonne du nombre exact de protocoles rangés là — et la suppression n'en
@@ -23942,7 +23982,7 @@ const catCount=(id,scope)=>catItems(id,scope).length;
    « ＋ Nouvelle catégorie » aurait créé la catégorie dans la MAUVAISE bibliothèque, en silence —
    et elle n'aurait pas paru dans le menu qui vient de l'ouvrir. La surcharge ne survit pas à la
    fermeture : le contexte reprend la main. */
-function openCatMgr(lib){catDelId=null;_catHost='catMgrBody';
+function openCatMgr(lib){catDelId=null;catPickKey=null;_catHost='catMgrBody';
   _catScopeForce=(lib===undefined)?undefined:(lib||null);
   catModal.classList.add('on');renderCatMgr();}
 function closeCatMgr(){catModal.classList.remove('on');_catScopeForce=undefined;
@@ -23960,12 +24000,26 @@ function catMgrRowsHtml(scp){
   const scoped=catsSorted(scp),cle=c=>(scp||'')+'|'+c.id;
   return (scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`
             :'<p class="cm-scope">Catégories de votre espace personnel.</p>')
-  +scoped.map(c=>{const n=catCount(c.id,scp);
+  // « Ajouter » en tête (A308) : en pied, il sortait de l'écran dès huit catégories.
+  +`<div class="cm-add"><input data-cnew="${esc(scp||'')}" placeholder="Nouvelle catégorie…" aria-label="Nom de la nouvelle catégorie"><button class="btn primary sm" data-cadd="${esc(scp||'')}">Ajouter</button></div>`
+  +'<div class="cm-list">'
+  +scoped.map(c=>{const n=catCount(c.id,scp),col=safeColor(c.color),open=catPickKey===cle(c);
     const conf=catDelId===cle(c)?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> élément${n>1?'s':''}. Choisissez où déplacer ${n>1?'ces éléments':'cet élément'} avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${scoped.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
-    return `<div class="cm-row" data-cid="${esc(c.id)}" data-cscope="${esc(scp||'')}"><div class="cm-top"><span class="cm-dot" style="background:${safeColor(c.color)}"></span><input class="cm-name" data-cname value="${esc(c.name)}"><span class="cm-count">${n} élément${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div><div class="cm-sw">${PALETTE.map(col=>`<span class="sw ${c.color===col?'on':''}" data-setcol="${col}" style="background:${col}"></span>`).join('')}</div>${conf}</div>`;
+    return `<div class="cm-row${open?' open':''}" data-cid="${esc(c.id)}" data-cscope="${esc(scp||'')}"><div class="cm-top"><button type="button" class="cm-dot" data-pick="${esc(c.id)}" aria-expanded="${open?'true':'false'}" aria-label="Couleur de « ${esc(c.name)} »"><span style="background:${col}"></span></button><input class="cm-name" data-cname value="${esc(c.name)}" aria-label="Nom de la catégorie"><span class="cm-count">${n} élément${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div>${open?catPickHtml(c,scp):''}${conf}</div>`;
   }).join('')
   +(scoped.length?'':'<p class="cm-none">Aucune catégorie pour le moment.</p>')
-  +`<div class="cm-add"><input data-cnew="${esc(scp||'')}" placeholder="Nouvelle catégorie…" aria-label="Nom de la nouvelle catégorie"><button class="btn primary sm" data-cadd="${esc(scp||'')}">Ajouter</button></div>`;}
+  +'</div>';}
+/* Palette d'UNE catégorie à la fois (A308) : presets, curseur de teinte (dégradé calculé ici),
+   aperçu, et avertissement sous 4,0 ΔE d'une voisine du périmètre — jamais d'interdiction. */
+function catPickHtml(c,scp){const col=safeColor(c.color),hue=Math.round(hexToOklch(col)[2]);
+  const stops=[];for(let h=0;h<=360;h+=15)stops.push(catHueHex(h));
+  return `<div class="cm-pick"><div class="cm-sw" role="group" aria-label="Teintes proposées">${PALETTE.map((x,i)=>`<button type="button" class="sw${col===x?' on':''}" data-setcol="${x}" style="background:${x}" aria-label="Teinte ${i+1}"${col===x?' aria-pressed="true"':''}></button>`).join('')}</div>`
+  +`<label class="cm-hue"><span>Autre teinte</span><output data-hueval>${hue}°</output><input type="range" min="0" max="359" value="${hue}" data-hue aria-label="Teinte, en degrés" style="background:linear-gradient(90deg,${stops.join(',')})"></label>`
+  +`<div class="cm-prev" data-prev>${catPrevHtml(col,c,scp)}</div></div>`;}
+function catPrevHtml(col,c,scp){
+  const near=catsForScope(scp).filter(x=>x!==c).map(x=>({x,d:dEok(col,safeColor(x.color))})).filter(o=>o.d<4).sort((a,b)=>a.d-b.d)[0];
+  const note=near?['warn','△ proche de « '+esc(near.x.name)+' »']:catLisible(col)?['ok','✓ lisible']:['warn','△ contraste faible'];
+  return `<span class="cat-chip-selected cm-pv" style="--catcol:${col}">${esc(c.name)}</span><span class="cm-pv solid" style="background:${col}">${esc(c.name)}</span><span class="cm-pv-note ${note[0]}">${note[1]}</span>`;}
 function renderCatMgr(){
   const body=document.getElementById(_catHost);if(!body)return;
   const scopes=catMgrScopes();
@@ -23976,7 +24030,17 @@ function renderCatMgr(){
     const c=categories.find(x=>x.id===cid&&catScope(x)===scp);if(!c)return;
     const cle=scp===null?'|'+cid:scp+'|'+cid;
     const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(scp);});
+    // Ouvre/ferme la palette de la rangée ; le focus revient sur la pastille après re-rendu (A236).
+    const pk=row.querySelector('[data-pick]');if(pk)pk.onclick=()=>{catPickKey=catPickKey===cle?null:cle;renderCatMgr();
+      const r2=[...body.querySelectorAll('.cm-row')].find(r=>r.dataset.cid===cid&&(r.dataset.cscope||null)===scp);
+      const b2=r2&&r2.querySelector('[data-pick]');if(b2)b2.focus();};
     row.querySelectorAll('[data-setcol]').forEach(sw=>sw.onclick=()=>{c.color=sw.dataset.setcol;saveCats(scp);renderCatMgr();});
+    // Le curseur peint en place pendant le geste (un re-rendu casserait le glissement), enregistre au relâchement.
+    const hu=row.querySelector('[data-hue]');if(hu){hu.oninput=()=>{c.color=catHueHex(+hu.value);
+      row.querySelector('[data-hueval]').textContent=hu.value+'°';row.querySelector('.cm-dot span').style.background=c.color;
+      row.querySelectorAll('[data-setcol]').forEach(s=>{const on=s.dataset.setcol===c.color;s.classList.toggle('on',on);if(on)s.setAttribute('aria-pressed','true');else s.removeAttribute('aria-pressed');});
+      row.querySelector('[data-prev]').innerHTML=catPrevHtml(c.color,c,scp);};
+      hu.onchange=()=>saveCats(scp);}
     const ad=row.querySelector('[data-askdel]');if(ad)ad.onclick=()=>{catDelId=cle;renderCatMgr();};
     const cn=row.querySelector('[data-canceldel]');if(cn)cn.onclick=()=>{catDelId=null;renderCatMgr();};
     const cf=row.querySelector('[data-confdel]');if(cf)cf.onclick=async()=>{const sel=row.querySelector('[data-movesel]');const target=sel?sel.value:'';
@@ -28831,7 +28895,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={sinceTxt,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,hexToOklch,dEok,catLisible,CAT_L,CAT_C,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

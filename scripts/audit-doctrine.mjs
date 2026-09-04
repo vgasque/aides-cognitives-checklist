@@ -6871,6 +6871,61 @@ await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris',
 }
 });
 
+/* A308 — gestionnaire en liste : palette d'UNE catégorie à la fois, « Ajouter » en tête, curseur de
+   teinte lisible et persistant, et la MÊME fenêtre depuis les éditeurs (« ＋ Nouvelle catégorie »). */
+await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêtre depuis les éditeurs', async () => {
+{
+  const page=await br.newPage({viewport:{width:820,height:1180}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const out={};
+    document.querySelector('.home-side [data-catmgr]').click();await w(300);
+    const bd=document.getElementById('catMgrBody');
+    out.pastillesFermees=bd.querySelectorAll('[data-setcol]').length;
+    const add=bd.querySelector('.cm-add'),list=bd.querySelector('.cm-list');
+    out.ajoutAvant=!!(add&&list)&&!!(add.compareDocumentPosition(list)&Node.DOCUMENT_POSITION_FOLLOWING);
+    out.ajoutVisible=!!add&&add.getBoundingClientRect().bottom<innerHeight;
+    out.hauteurRangee=bd.querySelector('.cm-top').getBoundingClientRect().height;
+    const rows=()=>[...bd.querySelectorAll('.cm-row')];
+    rows()[0].querySelector('[data-pick]').click();await w(200);
+    out.ouvertes1=bd.querySelectorAll('.cm-row.open').length;
+    out.pastillesOuvertes=bd.querySelectorAll('.cm-row.open [data-setcol]').length;
+    out.focusPastille=!!document.activeElement&&document.activeElement.matches('[data-pick]');
+    rows()[1].querySelector('[data-pick]').click();await w(200);
+    out.ouvertes2=bd.querySelectorAll('.cm-row.open').length;
+    out.ouverteEstLa2e=rows()[1].classList.contains('open');
+    const row=bd.querySelector('.cm-row.open'),cid=row.dataset.cid,cat=categories.find(c=>c.id===cid&&!c.library);
+    const hu=row.querySelector('[data-hue]');hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);
+    out.couleur=cat.color;out.hexValide=/^#[0-9a-f]{6}$/.test(cat.color);out.lisible=catLisible(cat.color);
+    const [rr,gg,bb]=hexToRgb(cat.color).map(v=>Math.round(v*255));
+    out.pointSuit=getComputedStyle(row.querySelector('.cm-dot span')).backgroundColor===`rgb(${rr}, ${gg}, ${bb})`;
+    out.note=row.querySelector('.cm-pv-note').textContent;
+    hu.dispatchEvent(new Event('change'));await w(250);
+    out.persist=((await Data.getCats())||[]).some(c=>c.id===cid&&c.color===cat.color);
+    closeCatMgr();await w(200);
+    // Les DEUX éditeurs mènent à la même fenêtre par « ＋ Nouvelle catégorie ».
+    const porte=async()=>{const b=document.querySelector('#main [data-catmenu]');if(!b)return 'pas de menu';b.click();await w(250);
+      const nw=document.querySelector('.catmenu-new');if(!nw)return 'pas de « Nouvelle catégorie »';nw.click();await w(300);
+      const on=catModal.classList.contains('on'),liste=!!catModal.querySelector('.cm-add')&&!!catModal.querySelector('.cm-list');
+      closeCatMgr();await w(200);return on&&liste?'ok':`fenêtre ${on} liste ${liste}`;};
+    await openEdit(fiches[0].id);await w(500);out.ficheVue=state.view;out.porteFiche=await porte();
+    if(!protocols.length)await newProtocol();else await openProtocolEdit(protocols[0].id);await w(500);
+    out.protoVue=state.view;out.porteProto=await porte();
+    return out;});
+  t('aucune pastille tant qu\'aucune palette n\'est ouverte',r.pastillesFermees===0,`${r.pastillesFermees}`);
+  t('« Ajouter » précède la liste et reste à l\'écran',r.ajoutAvant&&r.ajoutVisible,JSON.stringify([r.ajoutAvant,r.ajoutVisible]));
+  t('rangée de 44 px',Math.abs(r.hauteurRangee-44)<1,`${r.hauteurRangee}`);
+  t('une palette ouverte = 13 pastilles, une seule rangée ouverte',r.ouvertes1===1&&r.pastillesOuvertes===13,JSON.stringify([r.ouvertes1,r.pastillesOuvertes]));
+  t('le focus revient sur la pastille',r.focusPastille===true,`${r.focusPastille}`);
+  t('ouvrir une autre rangée ferme la première',r.ouvertes2===1&&r.ouverteEstLa2e,JSON.stringify([r.ouvertes2,r.ouverteEstLa2e]));
+  t('curseur : hex valide, lisible, pastille peinte en direct',r.hexValide&&r.lisible&&r.pointSuit,JSON.stringify([r.couleur,r.lisible,r.pointSuit,r.note]));
+  t('… enregistré au relâchement',r.persist===true,`${r.persist}`);
+  t('éditeur de FICHE : « Nouvelle catégorie » ouvre la fenêtre en liste',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
+  t('éditeur de PROTOCOLE : idem',r.protoVue==='protocolEdit'&&r.porteProto==='ok',JSON.stringify([r.protoVue,r.porteProto]));
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
