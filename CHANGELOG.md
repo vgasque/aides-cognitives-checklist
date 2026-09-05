@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.22.7] — 2026-09-05
+### Le curseur de teinte se replie derrière un bouton « palette », quatorzième pastille (A315)
+
+- **Demande de l'auteur** : « cache la palette derrière un bouton à côté des presets avec un petit
+  bouton svg montrant la palette », « utilise uiIcon ». Dans la palette ouverte d'une catégorie,
+  les treize pastilles sont suivies d'une quatorzième : un bouton à icône `palette`, entrée
+  ajoutée à la table d'`uiIcon` (trait, grille 24, tenue par `check-icons`). Le curseur « Autre
+  teinte » et l'aperçu ne se rendent qu'au tap ; le pli fermé perd ≈ 110 px.
+- **L'état se voit** : replié par défaut ; ouvert d'office quand la couleur n'est pas un preset,
+  le bouton portant alors l'anneau de sélection comme la pastille d'un preset choisi ; le choix
+  de l'utilisateur l'emporte ensuite jusqu'au prochain pli. Focus rendu au bouton après re-rendu.
+- Garde-fou : deux contrôles ajoutés à la section A308 d'`audit-doctrine` (14 boutons, curseur
+  absent puis présent au tap ; pli rouvert sur une couleur hors preset → curseur d'office et bouton
+  marqué), vérifiés capables d'échouer. Doctrine A315 dans `docs/decisions/lot-v5-22.md`.
+  CHANGELOG à 20 ([5.20.2] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
+
 ## [5.22.6] — 2026-09-05
 ### L'anneau du curseur passe par les presets ; la palette, mesurée, reste (A314)
 
@@ -499,38 +516,3 @@
   d'appareil). Une liste recopiée diverge, une liste unique non — même remède que `MUTE_SEL`
   (v4.4.2) et `SHARE_KINDS` (A216). Rouge→vert rejoué à la sonde après correctif. Détail : A290
   (`docs/decisions/lot-v5-20.md`).
-
-## [5.20.2] — 2026-09-01
-### Assainissement mesuré : trois garde-fous nés rouges, purges prouvées, vingt factorisations (A289)
-
-- **Trois trous de garde-fous fermés, chacun PROUVÉ né ROUGE** sur l'état d'avant correctif :
-  `check-fns` détecte les `let` top-niveau écrits mais jamais LUS (deux vivaient ainsi, dont un
-  au commentaire décrivant une comparaison jamais écrite) ; `check-ids` gagne le sens « id émis →
-  lu » — **20 croix de fermeture de modales** portaient un id que rien ne lisait (le câblage
-  passe par `.ai-x`), dont une née en v5.20.0 PENDANT l'inventaire même ; `check-icons` gagne la
-  passe « entrée de table jamais citée » — trois en-têtes (`h-main`, `h-img`, `h-forget`)
-  vivaient en fantômes (dictionnaire + CSS + un commentaire, zéro émission).
-- **Code mort purgé au grep** (règle 14, zéro citation restante) : douze purges CSS (`.tag.draft`,
-  `.pl-lnk.loop`, cinq états de `.pc-card`, `.blk-type.steps/.decision`, `.hs-row.hs-cmd`, la
-  famille `h-*`, quatre écrasements dont un `gap:10px` écrasé par la ligne ADJACENTE, trois
-  copies de palier strictement incluses — la copie du « dix-neuvième piège de cascade » est
-  GARDÉE, son ordre est sa raison d'être) ; côté JS `flowCtx.curId` (7 écritures, 0 lecture),
-  les 20 ids, quatre commentaires menteurs. Faux positifs écartés avec preuve (FLOWK destructuré,
-  POSO_SYN indexé dynamiquement).
-- **Vingt factorisations à sortie identique** — les invariants que la doctrine énonçait sans les
-  tenir n'existent plus qu'une fois : récepteur de fontaine optique (la plus grosse zone
-  dupliquée du fichier, sa divergence de ré-armement neutralisée), fermetures mémoire de la
-  synchro (« ne jamais ré-insérer un supprimé » vivait en six copies), cœur de cochage
-  local/distant, tri unique de l'accueil, gestes communs de « Consulter », empreinte SHA-256 de
-  protocole, « pli neuf » de l'invité identique sur ses deux portes, marquage des préférences
-  (six copies qui se citaient l'une l'autre en commentaire) ; deux fetch bornés artisanaux
-  passent par `acFetch`.
-- **Le ✓ de « Quand l'utiliser » retrouve son vert** : la règle `:not(.cur):not(.done)` pesait
-  (0,4,0) avec deux états MORTS et écrasait `.pc-n.ok` — badge sur fond neutre, encre grise,
-  prouvé à la sonde par le vrai chemin (session → Tout voir → Parcours) sur deux moteurs, avant
-  et après correctif (fond `--ok`, encre `--on-primary` désormais).
-- **Verdict performance, chiffré pour ne plus y revenir** : le boot est dominé par le PARSE
-  (510 ms sur 673 à CPU ×6 ; le JS applicatif pèse ~40 ms), les interactions tiennent en
-  10-16 ms même bridées, +0 écouteur par coche, timers déjà gatés — rien à optimiser ; le seul
-  levier mesurable est la masse de commentaires (55,6 % du fichier), chantier documentaire à
-  arbitrer séparément. Détail complet : A289 (`docs/decisions/lot-v5-20.md`).

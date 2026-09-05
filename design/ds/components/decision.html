@@ -6706,6 +6706,9 @@
   .cm-pick{display:flex;flex-direction:column;gap:12px;padding:4px 0 12px}
   .cm-sw{display:flex;gap:6px;flex-wrap:wrap}.cm-sw .sw{width:32px;height:32px;padding:0;border-radius:8px;cursor:pointer;border:2px solid transparent}
   .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.12)}
+  .cm-sw .sw-more{display:grid;place-items:center;background:var(--surface);border:1.5px dashed var(--line-strong);color:var(--ink-2)}
+  .cm-sw .sw-more:hover{background:var(--surface-2)}
+  .cm-sw .sw-more[aria-expanded="true"]{border-style:solid;color:var(--primary)}
   .cm-hue{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;align-items:center}
   .cm-hue span{font-size:var(--t-cap);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
   .cm-hue output{font-family:var(--mono);font-size:var(--t-cap);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}

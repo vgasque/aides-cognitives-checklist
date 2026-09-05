@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A314)
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A315)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -221,3 +221,23 @@ inverse d'A312 ; 1189 → 1190), contrastes sur 120 teintes et `catLisible` cons
 CAPABLES D'ÉCHOUER (anneau constant réintroduit → 2 rouges, dont les treize écarts listés,
 `index.html` et `_headers` restaurés à l'octet). La section A308 d'`audit-doctrine` reste verte
 (11/11).
+
+## A315 — le curseur de teinte se replie derrière un bouton « palette », quatorzième pastille (v5.22.7)
+
+**Demande de l'auteur** (05/09/2026) : « cache la palette derrière un bouton à côté des presets
+avec un petit bouton svg montrant la palette », puis « utilise uiIcon ».
+
+**Ce qui change** : dans la palette ouverte d'une catégorie, les treize pastilles sont suivies d'une
+quatorzième, un bouton `.sw-more` à icône `palette` — entrée ajoutée à la table d'`uiIcon` (trait,
+grille 24, donc tenue par `check-icons` comme les autres), jamais un SVG posé à la main. Le
+curseur « Autre teinte » et l'aperçu ne se rendent qu'à la demande (`catHueOpen`), `aria-expanded`
+sur le bouton, focus rendu au bouton après re-rendu (A236). **Trois états, un seul principe : l'état
+se voit.** Fermé par défaut ; ouvert d'office quand la couleur de la catégorie n'est pas un preset
+(le bouton porte alors l'anneau `.on`, comme la pastille d'un preset choisi — c'est SA pastille) ;
+et le choix de l'utilisateur, une fois fait, l'emporte jusqu'au prochain pli (`null` = automatique).
+Le pli fermé perd ainsi ≈ 110 px, la palette redevient une rangée et demie.
+
+**Garde-fou** : deux contrôles ajoutés à la section A308 d'`audit-doctrine` — quatorze boutons dans
+la rangée, curseur absent avant le tap et présent après ; puis, la couleur devenue hors preset, le
+pli rouvert montre le curseur d'office avec le bouton en `.on` (13 contrôles) ; vérifié CAPABLE
+D'ÉCHOUER (curseur forcé ouvert → rouge sur le bon contrôle, `index.html` restauré à l'octet).

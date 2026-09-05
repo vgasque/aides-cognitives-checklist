@@ -6913,8 +6913,11 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     rows()[1].querySelector('[data-pick]').click();await w(200);
     out.ouvertes2=bd.querySelectorAll('.cm-row.open').length;
     out.ouverteEstLa2e=rows()[1].classList.contains('open');
-    const row=bd.querySelector('.cm-row.open'),cid=row.dataset.cid,cat=categories.find(c=>c.id===cid&&!c.library);
-    const orig=cat.color,hu=row.querySelector('[data-hue]');
+    let row=bd.querySelector('.cm-row.open');const cid=row.dataset.cid,cat=categories.find(c=>c.id===cid&&!c.library);
+    // A315 : le curseur est replié derrière le bouton « palette » (14ᵉ pastille) et se déplie au tap.
+    out.curseurCache=!row.querySelector('[data-hue]')&&!!row.querySelector('[data-huetog]')&&row.querySelectorAll('.cm-sw button').length===14;
+    row.querySelector('[data-huetog]').click();await w(200);row=bd.querySelector('.cm-row.open');
+    const orig=cat.color,hu=row.querySelector('[data-hue]');out.curseurOuvert=!!hu;
     // A312 : revenir au degré d'origine rend la couleur d'origine ; un degré de preset rend le preset.
     hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);const sur120=cat.color;
     hu.value=String(catHueDeg(orig));hu.dispatchEvent(new Event('input'));await w(60);
@@ -6927,6 +6930,9 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     out.note=row.querySelector('.cm-pv-note').textContent;
     hu.dispatchEvent(new Event('change'));await w(250);
     out.persist=((await Data.getCats())||[]).some(c=>c.id===cid&&c.color===cat.color);
+    // couleur hors preset : le pli rouvert montre le curseur d'office (l'état se voit).
+    rows()[1].querySelector('[data-pick]').click();await w(150);rows()[1].querySelector('[data-pick]').click();await w(200);
+    out.autoOuvert=!!bd.querySelector('.cm-row.open [data-hue]')&&bd.querySelector('.cm-row.open .sw-more').classList.contains('on');
     closeCatMgr();await w(200);
     // Les DEUX éditeurs mènent à la même fenêtre par « ＋ Nouvelle catégorie ».
     const porte=async()=>{const b=document.querySelector('#main [data-catmenu]');if(!b)return 'pas de menu';b.click();await w(250);
@@ -6945,6 +6951,8 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   t('ouvrir une autre rangée ferme la première',r.ouvertes2===1&&r.ouverteEstLa2e,JSON.stringify([r.ouvertes2,r.ouverteEstLa2e]));
   t('curseur : hex valide, lisible, pastille peinte en direct',r.hexValide&&r.lisible&&r.pointSuit,JSON.stringify([r.couleur,r.lisible,r.pointSuit,r.note]));
   t('… enregistré au relâchement',r.persist===true,`${r.persist}`);
+  t('le curseur est replié derrière le bouton palette (14ᵉ pastille) et se déplie au tap (A315)',r.curseurCache===true&&r.curseurOuvert===true,JSON.stringify([r.curseurCache,r.curseurOuvert]));
+  t('… et s\'ouvre d\'office quand la couleur n\'est pas un preset',r.autoOuvert===true,`${r.autoOuvert}`);
   t('revenir au degré d\'origine rend la couleur d\'origine, et 19° rend le vermillon (A312)',r.retour===true&&r.preset19==='#b23240',JSON.stringify([r.retour,r.preset19]));
   t('éditeur de FICHE : « Nouvelle catégorie » ouvre la fenêtre en liste',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
   t('éditeur de PROTOCOLE : idem',r.protoVue==='protocolEdit'&&r.porteProto==='ok',JSON.stringify([r.protoVue,r.porteProto]));
