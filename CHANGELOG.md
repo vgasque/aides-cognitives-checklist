@@ -1,5 +1,20 @@
 # Journal des modifications
 
+## [5.23.4] — 2026-09-05
+### Le journal du lien : les cinq dernières transitions, sur demande (A321, étape 5 et fin du lot)
+
+- **Un tap sur « Partager » montre ce qui s'est passé** : les cinq dernières transitions du lien,
+  horodatées (« 14:02 Passe en direct », « 14:05 Repasse en ligne »), sous le sélecteur des deux
+  feuilles de partage. Écrites par la même porte que le mot du quai et l'annonce, en mémoire
+  seulement : rien ne sort de l'appareil, le journal meurt avec la session.
+- **Bilan du lot « seamless »** : un seul état visible « ● Partagé » ; panne détectée en moins de
+  2,5 s au lieu de 5,2 ; retour en ligne automatique sous hystérésis ; réveil qui ramène l'hôte
+  seul ; chaque transition vue 8 s au quai et relue dans le journal.
+- Garde-fous : deux contrôles ajoutés à la section E2E des bascules d'`audit-partage` (25 → 27),
+  vérifiés capables d'échouer. Doctrine A321 dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20
+  ([5.21.1] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
+
 ## [5.23.3] — 2026-09-05
 ### Au réveil, l'hôte revient seul en ligne si le retour est armé (A320, étape 4)
 
@@ -342,40 +357,3 @@
   réintroduits → 6 rouges exactement sur les bonnes assertions, `index.html` restauré à l'octet.
 - Vérifié : `npm run check` complet, 1176 tests × 2 moteurs, audit COMPLET 26/26 (deux passes,
   avant et après le numéro de version).
-
-## [5.21.1] — 2026-09-02
-### Le périmètre affiché commande enfin les commandes (A304)
-
-- **Suite d'A303, et même cause de fond.** `state.scope` vaut **toujours `null` à l'accueil**
-  depuis la v5.18 : `canEditScope(state.scope)` répondait donc « oui » partout, et six lecteurs
-  décidaient sur un champ mort. Tous ralliés à `homeScope()` — **source unique** du périmètre
-  affiché (`null` = « Toutes », `''` = Perso, sinon un id) — plutôt qu'à six copies qui
-  divergeraient à nouveau.
-- **Plus de commandes mortes sur une bibliothèque en LECTURE SEULE** (mesuré : les deux
-  s'affichaient). « Sélectionner » disparaît — ce que son propre commentaire promettait déjà —,
-  « Créer » aussi, et la création est refusée avec sa raison.
-- **Créer dans la bibliothèque qu'on regarde, et le DIRE.** Une fiche naissait **au Perso** quelle
-  que soit la bibliothèque affichée. Elle naît désormais dans celle-ci — mais une entité neuve naît
-  `validated` (migrate ne laisse pas la chaîne vide), donc **visible de tous les membres
-  aussitôt** : la publication est annoncée AVANT qu'aucun brouillon n'existe (« publier à l'équipe
-  jamais silencieux », A166), refuser ne crée rien, et le dépliant d'identité de l'éditeur —
-  ouvert d'office sur une fiche neuve — montre la destination. Idem protocoles.
-- **La destination par défaut de l'atelier d'import** suit la bibliothèque affichée
-  (`impLibDefaut`), et **le renvoi croisé de recherche compte dans les MÊMES crans que la liste** :
-  il ne voyait que le Perso, et comparait la catégorie par id là où la v5.18 compare par **nom**.
-- **L'édition de PROTOCOLE gère les catégories de SA bibliothèque** (`activeCatScope` y retombait
-  sur `state.scope`), et la ligne « Cette bibliothèque partagée est vide » redevient atteignable.
-- ⚠ **LE PIÈGE DE LA CORRECTION ELLE-MÊME, attrapé avant livraison.** Une condition constante
-  devenue **variable** ne peut plus vivre dans `applyViewChrome` seul : un tap de la colonne gauche
-  ne rejoue que la LISTE (`cfg.rerender`), et `#hdrNew` restait celui de la bibliothèque
-  précédente. La décision vit donc dans `syncNewBtn()`, appelée des deux côtés — patron exact de
-  `syncMgrBtn`. Le témoin le prouve : sans l'appel de `bindHomeChrome`, « lecture seule : pas de
-  Créer » vire au rouge.
-- **Garde-fou** : `audit-doctrine` § « le périmètre affiché commande *Créer* et *Sélectionner* »
-  (13 contrôles, 93 → 94 sections), **vérifié capable d'échouer** deux fois — lecteurs remis sur
-  `state.scope` → 9 rouges ; appel de `syncNewBtn` retiré de `bindHomeChrome` → 1 rouge, celui du
-  périmage. `index.html` restauré à l'octet après chaque essai. Il vérifie aussi que `newFiche()`
-  reste **SYNCHRONE** dans le cas nominal : trois harnais font `newFiche(); render();`, et le
-  court-circuit sur `lib` AVANT l'`await` est ce qui le garantit.
-- Vérifié : `npm run check` complet, 1176 tests × 2 moteurs, audit COMPLET 26/26 (deux passes,
-  avant et après le numéro de version). CHANGELOG à 20 ([5.18.4] archivée).

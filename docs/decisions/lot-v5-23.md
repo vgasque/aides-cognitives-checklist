@@ -96,3 +96,22 @@ revenu, hystérésis rendue inatteignable → `slWake()` ramène l'hôte en lign
 écriture NON discriminante : le veilleur d'A319 ramenait l'hôte de toute façon (dwell raccourci au
 banc) — c'est en rendant l'hystérésis inatteignable que le témoin mesure le réveil et lui seul ;
 vérifié CAPABLE D'ÉCHOUER (branche de retour retirée → rouge, `index.html` restauré à l'octet).
+
+## A321 — le journal du lien : les cinq dernières transitions, sur demande (v5.23.4)
+
+**Ce qui change.** `slSay` — déjà la porte unique des transitions (A318) — retient aussi chaque mot
+horodaté dans `slSb.log` (cinq au plus, en mémoire seulement : le journal meurt avec la session,
+rien ne sort de l'appareil). `slLogHtml()` le rend dans les deux feuilles de partage, en ligne et
+en direct, sous le sélecteur : une liste sobre « 14:02 Passe en direct · 14:05 Repasse en ligne ».
+C'est la transparence discrète demandée : rien n'interrompt, tout se retrouve d'un tap sur
+« Partager ». Une seule source (le même appel qui parle au quai et au lecteur d'écran) — aucune
+transition ne peut être dite sans être journalisée, ni l'inverse.
+
+**Garde-fous** (section E2E des bascules, 25 → 27 contrôles) : le journal retient « Passe en
+direct » et « Repasse en ligne » (≤ 5 entrées) ; la feuille en montre autant de lignes ; vérifiés
+CAPABLES D'ÉCHOUER (écriture retirée → rouge, `index.html` restauré à l'octet).
+
+**Bilan du lot** (mesuré au harnais, E2E réel à deux pages) : détection de panne 5,2 s → < 2,5 s ;
+retour en ligne manuel → automatique sous hystérésis ; réveil : geste demandé → retour seul ; un seul
+état visible ; chaque transition vue au quai 8 s et lue dans le journal. Le partage reste un miroir
+ADDITIF (règle 15) : aucune de ces mesures n'attend le réseau sur un tap ou un rendu.

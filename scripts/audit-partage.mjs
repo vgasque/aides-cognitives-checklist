@@ -2455,6 +2455,11 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   const etatW = await H.evaluate(() => ({ share: Share.share, mode: Share.mode, sl: !!SL, auto: slSb.auto, net: _slNet.ok, live: slLiveOk(), morts: (Share.participants || []).filter(p => !p.owner && !p.revoked).length, sw: _slSwitching }));
   t('RÉVEIL, canaux morts et serveur revenu : l\'hôte repasse en ligne SEUL, sans attendre (A320)', wakeH, JSON.stringify(etatW));
   await H.evaluate(() => { shareSeenLost = window.__seenSain; });
+  // A321 — le journal du lien : les transitions, dans l'ordre, et visibles dans la feuille.
+  const jl = await H.evaluate(() => { openShareSheet(); const li = document.querySelectorAll('#shareBody .sl-log li').length;
+    return { txt: slSb.log.map(e => e.txt), li }; });
+  t('le journal du lien retient les transitions (≤ 5) (A321)', jl.txt.length > 0 && jl.txt.length <= 5 && jl.txt.includes('Repasse en ligne') && jl.txt.includes('Passe en direct'), JSON.stringify(jl.txt));
+  t('… et la feuille les montre', jl.li === jl.txt.length, jl.li + ' / ' + jl.txt.length);
   await ctx.close();
   if (brE !== br) await brE.close();
 });
