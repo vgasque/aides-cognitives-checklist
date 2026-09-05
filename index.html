@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-F45ezjhdF5LWHHqszfWnkn/YULsygyvRhll2HQhKJjk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-BYFINPwz1Fj+dAA5o2QB/50kMSuZaNBs78TvwDKioYU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8023,7 +8023,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.23.0';
+const APP_VERSION='5.23.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12091,7 +12091,8 @@ function updateRtStrip(now){
   /* A317 : UN état pour l'utilisateur — « ● Partagé » quel que soit le canal (le transport se lit
      dans la feuille et aux transitions) ; états dégradés inchangés. Budget 18 (« ● Partagé · ⇄2 » = 14). */
   const partage=Share.mode!=='off'&&Share.status==='active';
-  const globLbl=sstr((Runtime.exercise?'▲ Exercice':(partage?'● Partagé':'● Session'))+(shTag?' · '+shTag:''),18);
+  const say=slSb.say&&now<slSb.say.until?slSb.say.txt:null;   // A318 : mot de transition, 8 s
+  const globLbl=sstr(Runtime.exercise?'▲ Exercice':say?'● '+say:(partage?'● Partagé':'● Session')+(shTag?' · '+shTag:''),18);
   /* LE VERT NE MENT PAS. `● Session` est vert « actif nominal » (ECAM) ; dès que le lien n'est plus
      nominal, cette assertion tombe et l'encre passe au NEUTRE — pas à l'ambre, qui reste réservé au
      minuteur échu (un second ambre dans la même rangée les affaiblirait tous les deux). Le mot du
@@ -27568,7 +27569,8 @@ function slNetWatch(){
     slNetProbe();},8000);
   slNetProbe();}
 window.addEventListener('online',()=>{if(_slNet.timer)slNetProbe();});
-window.addEventListener('offline',()=>{_slNet.ok=false;try{slSegNetPaint();}catch(e){}});
+window.addEventListener('offline',()=>{_slNet.ok=false;try{slSegNetPaint();}catch(e){}
+  if(Share.mode!=='off'&&Share.share!=='local'){Share._fails=Math.max(Share._fails,2);try{slSbFail();}catch(e){}}});
 function slModeSegHtml(active){
   const online=Auth.signedIn()&&(_slNet.ok===null?Sync.online():_slNet.ok);
   const idx={cloud:0,direct:1,optic:2}[active]||0;
@@ -27924,11 +27926,14 @@ async function slGuestUp(dc){
    canal et re-amorce son pli depuis zéro : AUCUNE fusion, la machinerie existante fait tout.
    Le retour au cloud reste un TAP (segmenté « En ligne ») — le sens panne est automatique,
    le sens confort reste un choix. ⚠ EXIGE le rejeu de schema.sql (genre `sig`) sur l'instance. */
-const slSb={dcs:[],dc:null,pc:null};
+const slSb={dcs:[],dc:null,pc:null,say:null,said:false};
 let _slSwitching=false;
 function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
   for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
-  slSb.dcs=[];slSb.pc=null;slSb.dc=null;}
+  slSb.dcs=[];slSb.pc=null;slSb.dc=null;slSb.said=false;}
+// A318 : une transition se DIT — au quai (mot 8 s, lu par updateRtStrip) et au lecteur d'écran.
+function slSay(mot,sr){slSb.say={txt:mot,until:Date.now()+8000};try{announce(sr||mot);}catch(e){}}
+function slSbReadySay(){if(slSb.said)return;slSb.said=true;slSay('Secours prêt','Secours direct prêt — la session continuerait sans internet.');}
 /* La véracité est PAR RÔLE (v5.14.12) : chez l'HÔTE seuls comptent les canaux de SES invités ;
    un `slSb.dc` restant d'un ancien rôle invité (les deux téléphones échangent leurs rôles en
    test) faisait verdir une pastille sans aucun canal utilisable — et `readyState` se vérifie
@@ -27953,7 +27958,7 @@ async function slSbGuestKick(){
        mécanique que le flux QR (`SL.jeton`). */
     g.k=Math.random().toString(36).slice(2,6);
     slSb.pc=g;
-    g.dc.onopen=()=>{slSb.dc=g.dc;try{slSegDotRefresh();}catch(_){}};
+    g.dc.onopen=()=>{slSb.dc=g.dc;try{slSegDotRefresh();}catch(_){}slSbReadySay();};
     g.dc.onclose=()=>{if(slSb.dc===g.dc)slSb.dc=null;if(slSb.pc===g)slSb.pc=null;};
     Share.emit('sig',{t:'o',o:slPairPack(Object.assign({k:g.k},g.offer))});
     /* MONTRE DE 30 s (v5.14.9, terrain) : un échec ICE laissait le verrou posé À JAMAIS —
@@ -27969,7 +27974,7 @@ async function slSbOnSig(ev){
       const h=await slPcGuest(o);
       h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc});
           dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slSegDotRefresh();}catch(_){}};
-          try{slSegDotRefresh();}catch(_){}};
+          try{slSegDotRefresh();}catch(_){}slSbReadySay();};
         dc.readyState==='open'?go():dc.onopen=go;});
       Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(Object.assign({k:o.k},h.answer))});}
     else if(Share.mode==='guest'&&p.t==='a'&&p.to===Share.me&&slSb.pc&&slSb.pc.answer&&p.a){
@@ -27984,8 +27989,11 @@ async function slSbOnSig(ev){
     else if(Share.mode==='guest'&&p.t==='gc'&&p.to===Share.me&&p.code
       &&Share._io!==Share._ioRest)slGcJoin(String(p.code));
   }catch(e){}}
+/* A318 : détection ≤ 5 s — au premier raté la sonde de joignabilité tranche (au lieu d'attendre le
+   second sondage, 4 à 20 s) ; l'évènement `offline` tranche aussitôt. */
 function slSbFail(){
-  if(_slSwitching||Share._fails<2||Share.share==='local')return;
+  if(_slSwitching||Share.share==='local'||Share.mode==='off')return;
+  if(Share._fails<2){if(Share._fails===1)slNetProbe().then(()=>{if(_slNet.ok===false&&Share._fails>=1){Share._fails=2;slSbFail();}});return;}
   if(Share.mode==='host'&&slSb.dcs.length)slSbHostSwitch();
   else if(Share.mode==='guest'&&slSb.dc)slSbGuestSwitch();}
 /* BASCULE MANUELLE SANS QR (v5.14.8, signalé à l'usage : « tous les participants sont
@@ -28025,7 +28033,7 @@ async function slSbHostSwitch(say){
     const r=await Share.host(f).catch(()=>null);
     if(r&&r.ok){SL.wires=[];
       for(const d of dcs){const w=slChanWire(d.dc);slServe(hub,w);SL.wires.push(w);}
-      try{announce(say||'Le réseau a lâché — le partage continue en direct.');}catch(e){}}
+      slSay('Passe en direct',say||'Le réseau a lâché — le partage continue en direct.');}
     else SL=null;
   }finally{_slSwitching=false;}}
 async function slSbGuestSwitch(){
@@ -28050,7 +28058,7 @@ async function slSbGuestSwitch(){
     if(r&&r.ok){slSb.dc=null;slSb.pc=null;
       if(portee.length){Share._q=portee.concat(Share._q);Share._saveQ();Share._kick(0);}
       openSharedFiche();
-      try{announce('Vous suivez en direct.');}catch(e){}}
+      slSay('Suivi en direct','Vous suivez en direct.');}
     /* échec (l'hôte n'a pas encore basculé ?) : le canal est GARDÉ, la prochaine détection
        de panne retentera — jamais de boucle serrée, le rythme est celui du sondage. */
   }finally{_slSwitching=false;}}
@@ -28097,7 +28105,7 @@ async function slGoCloud(){
        un invité resté local verra « partage terminé », jamais un silence. */
     setTimeout(()=>{try{hub.end();}catch(e){}},20000);
     openShareSheet();render();
-    try{announce('Le partage repasse en ligne.');}catch(e){}
+    slSay('Repasse en ligne','Le partage repasse en ligne.');
   }finally{_slSwitching=false;}}
 /* Le billet « gc » côté invité : rejoindre le serveur avec le code reçu par le canal — trois
    essais espacés, et un échec RESTE en direct (on ne casse jamais le transport qui marche). */

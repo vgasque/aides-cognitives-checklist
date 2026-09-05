@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.23.1] — 2026-09-05
+### La panne se détecte en moins de 5 s, la transition se voit, le secours se dit (A318, étape 2)
+
+- **Détection** : le secours direct n'était déclenché qu'au second sondage raté, après le repli
+  exponentiel — 5,2 s mesurés en activité, jusqu'à 20 s au repos. Désormais, au premier raté la
+  sonde de joignabilité tranche, et l'évènement `offline` du système tranche aussitôt : moins de
+  2,5 s au harnais.
+- **La transition se voit** : les annonces ne parlaient qu'aux lecteurs d'écran. Une porte unique,
+  `slSay`, pose un mot au quai pendant 8 s (« ● Passe en direct », « ● Suivi en direct »,
+  « ● Repasse en ligne ») et la phrase au lecteur d'écran. Aucune fenêtre, aucun toast.
+- **« Secours prêt »** est dit une fois, des deux côtés, quand le canal dormant se forme : on sait
+  avant la coupure si la bascule sera silencieuse.
+- Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
+  (15 → 19), vérifiés capables d'échouer (chemin rapide retiré → 5 230 ms). Doctrine A318 dans
+  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.20.5] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
+
 ## [5.23.0] — 2026-09-05
 ### Un seul état visible : « ● Partagé » (A317, étape 1 du lot « seamless »)
 
@@ -501,21 +518,3 @@
   borne parse d'A289. Le chantier ouvert au rapport de phase 0 est clos ; restent en attente
   d'arbitrage les blocs de 7-10 lignes, les écrasements CSS PROBABLES, les treize factorisations
   PROBABLES et le repli `Math.random` de `uid`. Détail : A293 (`docs/decisions/lot-v5-20.md`).
-
-## [5.20.5] — 2026-09-01
-### Les commentaires longs de la feuille de style déménagent, comme AGENTS.md avant eux (A292)
-
-- **La méthode du déménagement v5.10.3, pas celle du résumé destructeur** : les 135 blocs de
-  commentaires CSS de PLUS de dix lignes (252 Ko sur les 66,6 % de commentaires que pèse la
-  feuille) sont d'abord repris **à l'octet** dans `docs/decisions/doctrine-css.md`, chacun sous
-  un id stable **C1…C135** — puis le commentaire en place est resserré à l'essentiel : la
-  contrainte que le code ne peut pas dire, les ⚠, les renvois A-xxx, et « Détail :
-  doctrine-css.md C‹n› ». Rien n'est perdu par construction ; les 19 bannières de section et les
-  137 blocs de 7-10 lignes déjà denses ne bougent pas.
-- **Discipline d'exécution** : aucune ligne de code CSS touchée, les épitaphes de purge (que
-  `check-classes` exige) survivent dans chaque résumé, aucun résumé ne cite une couleur littérale
-  ni ne contient une fermeture de commentaire en son milieu (le piège v4.74.0). Vérifié :
-  135/135 renvois posés, check complet, 1 176 tests × 2 moteurs, audit complet 26/26.
-- **Bilan** : `index.html` perd **~196 Ko** (2 891 → 2 695 Ko) ; l'effet au démarrage est la
-  fraction correspondante de la borne parse mesurée en A289. Détail : A292
-  (`docs/decisions/lot-v5-20.md`). Les commentaires JS suivent au lot suivant.

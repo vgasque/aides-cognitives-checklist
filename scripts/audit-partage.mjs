@@ -2329,6 +2329,8 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     const b = document.querySelector('#shareBody .seg-btn[data-shmode="direct"] .sdot');
     return b ? b.classList.contains('ok') : null; });
   t('la pastille « En direct » dit que le canal est prêt', dot === true, String(dot));
+  const saidHG = [await H.evaluate(() => slSb.said), await G.evaluate(() => slSb.said)];
+  t('« Secours prêt » est dit une fois, des deux côtés (A318)', saidHG[0] === true && saidHG[1] === true, JSON.stringify(saidHG));
 
   /* LA FILE VOYAGE (v5.14.22) : un évènement encore EN FILE chez l'invité au moment de la
      bascule doit atteindre le journal de l'hôte APRÈS — c'était le « mes modifications entre
@@ -2345,8 +2347,10 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   const endTot = await H.evaluate(() => window.__cloudEnded);
   t('« En direct » : l\'hôte bascule sur le hub local', basH, '');
-  // A317 : le quai dit « ● Partagé » quel que soit le canal.
-  const lblD = await H.evaluate(() => { render(); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
+  // A318 : le mot de transition tient 8 s au quai ; A317 : puis « ● Partagé » quel que soit le canal.
+  const motD = await H.evaluate(() => { updateRtStrip(Date.now()); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
+  t('le quai dit « ● Passe en direct » pendant la transition (A318)', /^● Passe en direct/.test(motD || ''), String(motD));
+  const lblD = await H.evaluate(() => { slSb.say = null; render(); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
   t('le quai dit « ● Partagé » en direct (A317)', /^● Partagé/.test(lblD || ''), String(lblD));
   t('… et l\'invité SUIT par son canal dormant, sans QR', basG, '');
   t('le partage cloud n\'est terminé qu\'en DIFFÉRÉ (le « go » a le temps de partir)',
@@ -2370,7 +2374,9 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active',
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   t('« En ligne » : l\'hôte repasse par le serveur', revH, '');
-  const lblC = await H.evaluate(() => { render(); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
+  const motC = await H.evaluate(() => { updateRtStrip(Date.now()); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
+  t('… « ● Repasse en ligne » pendant le retour (A318)', /^● Repasse en ligne/.test(motC || ''), String(motC));
+  const lblC = await H.evaluate(() => { slSb.say = null; render(); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
   t('… et le quai dit toujours « ● Partagé » (A317)', /^● Partagé/.test(lblC || ''), String(lblC));
   t('… et l\'invité le rejoint avec le billet « gc », sans re-saisie', revG, '');
 
@@ -2387,7 +2393,8 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     'hôte:' + rearmH + ' invité:' + rearmG);
 
 
-  await H.evaluate(() => { window.__panne = true;
+  // A318 : la sonde tranche au premier raté — la bascule part en moins de 2,5 s.
+  await H.evaluate(() => { window.__panne = true; window.__acNetOk = false; window.__t0 = Date.now();
     const io = Share._io;
     Share._io = Object.assign({}, io, {
       pull: async () => { throw new Error('panne'); },
@@ -2395,8 +2402,11 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     Share._ioRest = Share._io;
     window.__bc.onmessage = () => {};   // le relais ne répond plus à l'invité non plus
   });
+  await G.evaluate(() => { window.__acNetOk = false; });
   const autoH = await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true,
     null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const dtH = await H.evaluate(() => Date.now() - window.__t0);
+  t('… en moins de 2,5 s après la panne (A318)', autoH && dtH <= 2500, dtH + ' ms');
   const autoG = autoH && await G.waitForFunction(() =>
     Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1',
     null, { timeout: 40000 }).then(() => true).catch(() => false);
