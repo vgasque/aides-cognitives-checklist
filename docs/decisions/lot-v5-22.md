@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A310)
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A311)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -94,3 +94,29 @@ rembourrage du dock (20) et celui de la grille (18).
 bord droit du dock à ≤ 3 px du bord de la colonne d'action —, vérifié CAPABLE D'ÉCHOUER sur le
 défaut RÉEL (littéral réintroduit, token à 320 → écart −42 px) ; et NON sur un token remis à 320
 partout, car grille et dock suivent alors ensemble — c'est précisément ce que le correctif garantit.
+
+## A311 — sur « Toutes », une bande collante par bibliothèque dans le gestionnaire (v5.22.3)
+
+**Demande de l'auteur** (05/09/2026) : « améliorer la séparation des bibliothèques dans la fenêtre
+de modification des catégories ; design clair ».
+
+**Mesuré avant** (820 × 1180, Perso + deux bibliothèques éditables) : chaque section n'était
+introduite que par une phrase (« Catégories de la bibliothèque X (partagées avec ses membres). »)
+et un filet ; le champ « Ajouter » de la section suivante se collait visuellement à la liste de la
+précédente, et rien ne rappelait la bibliothèque une fois le corps défilé.
+
+**Ce qui change** : chaque bibliothèque devient une `<section class="cm-sec">` ouverte par une bande
+`.cm-l` au dessin exact de l'intertitre collant de l'accueil (`.dir-l`, A238-A268 : fond de page,
+filet dessous, capitales 11 px espacées, compte en mono à droite) — glyphe `user` pour « Espace
+personnel », `book` pour une bibliothèque, mention « partagée » à côté du nom ; 24 px entre deux
+sections ; la bande est `sticky` dans le défileur du corps, donc la bibliothèque reste nommée
+pendant qu'on fait défiler ses catégories. Le champ d'ajout d'une bibliothèque dit « Nouvelle
+catégorie partagée… », là où la phrase supprimée portait l'information. Aucune fenêtre nouvelle,
+aucune commande déplacée : « Ajouter » reste en tête (A308), les rangées et la palette sont celles
+d'A308.
+
+**Garde-fou** : `audit-doctrine` § « Catégories · une bande collante par bibliothèque »
+(5 contrôles : trois sections, texte des bandes, chaque « Ajouter » vise sa bibliothèque, 24 px
+d'écart, bande collante qui tient au haut du défileur — à 820 × 640 pour que le corps défile ;
+98 → 99 sections), vérifié CAPABLE D'ÉCHOUER (`position:static` sur la bande → rouge, `index.html`
+restauré à l'octet).

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-P2xw4sntLjvEQWl9P1P8FycydZlN4i/xHqJaOke98B8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-QTj541jp1wWYfs4arXb8oLGYpoake/W4ioyvE7jucQ0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7036,7 +7036,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      la fois. Détail : lot-v5-22.md A308. */
   .cm-add{display:flex;gap:8px;align-items:center;margin:2px 0 10px}
   .cm-add input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
-  .cm-list+.cm-scope{margin-top:20px}
+  /* A311 : bande collante par bibliothèque, même dessin que .dir-l ; 24 px entre deux sections. */
+  .cm-sec+.cm-sec{margin-top:24px}
+  .cm-l{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;margin:0 -4px;padding:8px 8px 6px;
+    background:var(--bg);box-shadow:0 1px 0 var(--line);color:var(--ink-2);
+    font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  .cm-ll{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cm-ls{flex:none;font-weight:600;letter-spacing:normal;text-transform:none;color:var(--ink-soft)}
+  .cm-ln{flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .cm-l+.cm-add{margin-top:12px}
   .cm-row{border-top:1px solid var(--line)}
   .cm-list>.cm-row:last-child{border-bottom:1px solid var(--line)}
   .cm-row.open{background:var(--bg);margin:0 -4px;padding:0 4px;border-radius:8px;border-color:transparent}
@@ -8009,7 +8017,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.22.2';
+const APP_VERSION='5.22.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -24004,17 +24012,18 @@ function closeCatMgr(){catModal.classList.remove('on');_catScopeForce=undefined;
    variable de fermeture : une section n'écrit que dans SA bibliothèque. */
 function catMgrRowsHtml(scp){
   const scoped=catsSorted(scp),cle=c=>(scp||'')+'|'+c.id;
-  return (scp?`<p class="cm-scope">Catégories de la bibliothèque <b>${esc(libName(scp)||'')}</b> (partagées avec ses membres).</p>`
-            :'<p class="cm-scope">Catégories de votre espace personnel.</p>')
+  // A311 : une section par bibliothèque, à intertitre COLLANT (patron .dir-l de l'accueil).
+  const nom=scp?libName(scp)||'':'Espace personnel',hid='cml-'+safeId(scp||'perso','l');
+  return `<section class="cm-sec" aria-labelledby="${hid}"><div class="cm-l">${uiIcon(scp?'book':'user',12)}<span class="cm-ll" id="${hid}">${esc(nom)}</span>${scp?'<span class="cm-ls">partagée</span>':''}<span class="cm-ln">${scoped.length}</span></div>`
   // « Ajouter » en tête (A308) : en pied, il sortait de l'écran dès huit catégories.
-  +`<div class="cm-add"><input data-cnew="${esc(scp||'')}" placeholder="Nouvelle catégorie…" aria-label="Nom de la nouvelle catégorie"><button class="btn primary sm" data-cadd="${esc(scp||'')}">Ajouter</button></div>`
+  +`<div class="cm-add"><input data-cnew="${esc(scp||'')}" placeholder="${scp?'Nouvelle catégorie partagée…':'Nouvelle catégorie…'}" aria-label="Nom de la nouvelle catégorie"><button class="btn primary sm" data-cadd="${esc(scp||'')}">Ajouter</button></div>`
   +'<div class="cm-list">'
   +scoped.map(c=>{const n=catCount(c.id,scp),col=safeColor(c.color),open=catPickKey===cle(c);
     const conf=catDelId===cle(c)?`<div class="cm-confirm">${n?`<p>« ${esc(c.name)} » contient <b>${n}</b> élément${n>1?'s':''}. Choisissez où déplacer ${n>1?'ces éléments':'cet élément'} avant de supprimer la catégorie :</p><select data-movesel><option value="">Laisser sans catégorie</option>${scoped.filter(x=>x.id!==c.id).map(x=>`<option value="${esc(x.id)}">Déplacer vers « ${esc(x.name)} »</option>`).join('')}</select>`:`<p>Supprimer « ${esc(c.name)} » ? (catégorie vide)</p>`}<div class="cm-cact"><button class="btn danger sm" data-confdel="${esc(c.id)}">${n?'Déplacer puis Supprimer':'Supprimer'}</button><button class="btn sm" data-canceldel>Annuler</button></div></div>`:'';
     return `<div class="cm-row${open?' open':''}" data-cid="${esc(c.id)}" data-cscope="${esc(scp||'')}"><div class="cm-top"><button type="button" class="cm-dot" data-pick="${esc(c.id)}" aria-expanded="${open?'true':'false'}" aria-label="Couleur de « ${esc(c.name)} »"><span style="background:${col}"></span></button><input class="cm-name" data-cname value="${esc(c.name)}" aria-label="Nom de la catégorie"><span class="cm-count">${n} élément${n>1?'s':''}</span><button class="cm-del" data-askdel="${esc(c.id)}" aria-label="Supprimer">×</button></div>${open?catPickHtml(c,scp):''}${conf}</div>`;
   }).join('')
   +(scoped.length?'':'<p class="cm-none">Aucune catégorie pour le moment.</p>')
-  +'</div>';}
+  +'</div></section>';}
 /* Palette d'UNE catégorie à la fois (A308) : presets, curseur de teinte (dégradé calculé ici),
    aperçu, et avertissement sous 4,0 ΔE d'une voisine du périmètre — jamais d'interdiction. */
 function catPickHtml(c,scp){const col=safeColor(c.color),hue=Math.round(hexToOklch(col)[2]);

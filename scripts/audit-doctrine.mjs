@@ -6971,6 +6971,38 @@ await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async ()
 }
 });
 
+/* A311 — sur « Toutes », le gestionnaire sépare les bibliothèques par une bande COLLANTE (patron
+   .dir-l) : nom, « partagée », compte ; 24 px entre sections ; la bande tient au haut du défileur. */
+await sec('Catégories · une bande collante par bibliothèque', async () => {
+{
+  const page=await br.newPage({viewport:{width:820,height:640}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));
+    myLibraries.length=0;myLibraries.push({id:'lib-a',name:'SMUR 31',role:'admin'},{id:'lib-b',name:'Urgences CHU',role:'editor'});
+    categories.push({id:'ca1',name:'Trauma',color:'#8d5c39',library:'lib-a'},{id:'cb1',name:'Pédiatrie',color:'#096e50',library:'lib-b'});
+    render();await w(300);
+    document.querySelector('.home-side [data-catmgr]').click();await w(300);
+    const bd=document.getElementById('catMgrBody'),secs=[...bd.querySelectorAll('.cm-sec')],out={};
+    out.sections=secs.length;
+    out.bandes=secs.map(s=>{const l=s.querySelector('.cm-l');return l?l.textContent.replace(/\s+/g,' ').trim():null;});
+    out.collante=secs.every(s=>getComputedStyle(s.querySelector('.cm-l')).position==='sticky');
+    out.ecart=secs.length>1?Math.round(secs[1].getBoundingClientRect().top-secs[0].getBoundingClientRect().bottom):null;
+    out.ajoutDansSaSection=secs.every(s=>{const a=s.querySelector('[data-cadd]');return !!a&&(a.dataset.cadd||'')===(s.querySelector('.cm-row')||{dataset:{cscope:a.dataset.cadd}}).dataset.cscope;});
+    out.defile=bd.scrollHeight>bd.clientHeight+40;
+    bd.scrollTop=220;await w(250);
+    const b=bd.querySelector('.cm-l').getBoundingClientRect(),t=bd.getBoundingClientRect();
+    out.tientEnHaut=Math.abs(b.top-t.top)<=1;out.aDefile=bd.scrollTop>150;
+    closeCatMgr();await w(150);return out;});
+  t('une section par bibliothèque éditable (Perso + 2)',r.sections===3,JSON.stringify(r.bandes));
+  t('la bande dit le nom, « partagée » et le compte',/^Espace personnel\s*8$/.test(r.bandes[0]||'')&&/^SMUR 31\s*partagée\s*1$/.test(r.bandes[1]||''),JSON.stringify(r.bandes));
+  t('chaque « Ajouter » vise SA bibliothèque',r.ajoutDansSaSection===true,`${r.ajoutDansSaSection}`);
+  t('24 px entre deux sections',r.ecart!==null&&Math.abs(r.ecart-24)<=1,`${r.ecart} px`);
+  t('la bande est collante et tient au haut du défileur',r.collante&&r.defile&&r.aDefile&&r.tientEnHaut,JSON.stringify([r.collante,r.defile,r.aDefile,r.tientEnHaut]));
+  await page.close();
+}
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

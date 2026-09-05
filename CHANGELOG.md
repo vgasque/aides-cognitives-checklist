@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.22.3] — 2026-09-05
+### Sur « Toutes », une bande collante par bibliothèque dans le gestionnaire de catégories (A311)
+
+- **Demande de l'auteur** : « améliorer la séparation des bibliothèques dans la fenêtre de
+  modification des catégories ; design clair ». Mesuré avant : chaque section n'était introduite
+  que par une phrase et un filet, et le champ « Ajouter » de la suivante se collait à la liste de
+  la précédente ; une fois le corps défilé, rien ne rappelait la bibliothèque.
+- **Chaque bibliothèque devient une section ouverte par une bande collante**, au dessin exact de
+  l'intertitre de l'accueil (fond de page, filet, capitales 11 px, compte en mono à droite) :
+  glyphe personne pour « Espace personnel », livre pour une bibliothèque, mention « partagée » à
+  côté du nom ; 24 px entre deux sections ; la bande tient au haut du défileur pendant qu'on fait
+  défiler ses catégories. Le champ d'ajout d'une bibliothèque dit « Nouvelle catégorie
+  partagée… », là où la phrase supprimée portait l'information. Rien d'autre ne bouge :
+  « Ajouter » en tête, rangées et palette d'A308.
+- Garde-fou : `audit-doctrine` § « Catégories · une bande collante par bibliothèque »
+  (5 contrôles, 98 → 99 sections), vérifié capable d'échouer. Doctrine A311 dans
+  `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.5] archivée).
+- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26 (deux passes,
+  avant et après le numéro de version).
+
 ## [5.22.2] — 2026-09-05
 ### La grille de lecture lit le token de colonne que le dock lisait déjà (A310)
 
@@ -527,23 +547,3 @@
   balayage par son VRAI point d'entrée (`#filtTog`, qui n'existe que pendant une recherche) :
   conforme aux deux thèmes du premier coup. Leçon v4.75.0 redite au prix fort : un défaut hors
   périmètre n'est pas un défaut absent.
-
-## [5.19.5] — 2026-08-31
-### Les mineurs de l'audit : la rangée d'éditeur suit la largeur effective, la doctrine se navigue (A284)
-
-- **La chaîne de compression de la rangée d'éditeur (640→430→360) passe aux paliers `zw`**
-  (A284). Mesuré sous zoom texte 130 % : la recette anti-chevauchement des halos ne
-  s'appliquait pas à largeur EFFECTIVE < 430 (le tap partait au dernier élément du DOM) et
-  « Aperçu » restait en toutes lettres là où l'icône s'imposait. Équivalence exacte à zoom 1
-  prouvée aux quatre témoins (620/420/350/700 px), deux moteurs — et le piège de mesure A267
-  évité en route (un « débordement de 161 px » qui n'était qu'un artefact de repère visuel).
-  Les quatre paliers de composition restants ne se convertissent pas d'office : arbitrage
-  écrit dans A284.
-- **`Share` et `Sync` se naviguent** : quatorze sous-bannières `/* ===== … ===== */` aux
-  frontières logiques des deux modules (cadence, PULL, PUSH, annexes ; horloge, émission,
-  cycle, application, gestes hôte/invité, passation, fins) — la commande d'index du
-  monofichier les liste désormais. Aucun code déplacé.
-- **`GUIDELINES.md` relu** (il l'exigeait lui-même) : les principes tiennent, une note datée
-  renvoie les quatre surfaces refondues (accueil v5.18, colonne/pied v5.19, barres v5.15,
-  sélection v5.17) vers leurs lots ; `design/README` corrige ses fiches « ~275 Ko » (réel :
-  ~815) et consigne les deux `git gc`.

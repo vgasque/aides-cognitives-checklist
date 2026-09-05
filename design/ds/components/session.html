@@ -6682,7 +6682,15 @@
      la fois. Détail : lot-v5-22.md A308. */
   .cm-add{display:flex;gap:8px;align-items:center;margin:2px 0 10px}
   .cm-add input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
-  .cm-list+.cm-scope{margin-top:20px}
+  /* A311 : bande collante par bibliothèque, même dessin que .dir-l ; 24 px entre deux sections. */
+  .cm-sec+.cm-sec{margin-top:24px}
+  .cm-l{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;margin:0 -4px;padding:8px 8px 6px;
+    background:var(--bg);box-shadow:0 1px 0 var(--line);color:var(--ink-2);
+    font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  .cm-ll{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cm-ls{flex:none;font-weight:600;letter-spacing:normal;text-transform:none;color:var(--ink-soft)}
+  .cm-ln{flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .cm-l+.cm-add{margin-top:12px}
   .cm-row{border-top:1px solid var(--line)}
   .cm-list>.cm-row:last-child{border-bottom:1px solid var(--line)}
   .cm-row.open{background:var(--bg);margin:0 -4px;padding:0 4px;border-radius:8px;border-color:transparent}
