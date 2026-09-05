@@ -2395,7 +2395,7 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
 
   // A318 : la sonde tranche au premier raté — la bascule part en moins de 2,5 s.
   await H.evaluate(() => { window.__panne = true; window.__acNetOk = false; window.__t0 = Date.now();
-    const io = Share._io;
+    const io = Share._io; window.__ioSain = io; window.__bcSain = window.__bc.onmessage;
     Share._io = Object.assign({}, io, {
       pull: async () => { throw new Error('panne'); },
       push: async () => { throw new Error('panne'); } });
@@ -2412,6 +2412,23 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     null, { timeout: 40000 }).then(() => true).catch(() => false);
   t('PANNE BRUTALE du relais : l\'hôte bascule TOUT SEUL en direct', autoH, '');
   t('… et l\'invité le suit TOUT SEUL par le canal dormant — zéro geste', autoG, '');
+
+  /* A319 — LE RÉSEAU REVIENT : l'hôte repasse en ligne TOUT SEUL (3 sondes OK, hystérésis raccourcie
+     au banc), les invités suivent par le billet « gc » ; le choix manuel n'est jamais contredit. */
+  const arme = await H.evaluate(() => slSb.auto === true);
+  t('la bascule de panne ARME le retour automatique (A319)', arme, String(arme));
+  await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000; window.__acProbeMs = 400;
+    Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; slNetWatch(); });
+  await G.evaluate(() => { window.__acNetOk = true; });
+  const backH = autoG && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL,
+    null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const backG = backH && await G.waitForFunction(() =>
+    Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active',
+    null, { timeout: 20000 }).then(() => true).catch(() => false);
+  t('RÉSEAU REVENU : l\'hôte repasse en ligne TOUT SEUL (A319)', backH, '');
+  t('… et l\'invité suit par le billet « gc », sans geste', backG, '');
+  const desarme = await H.evaluate(() => slSb.auto === false);
+  t('… et le retour DÉSARME (pas de boucle)', desarme, String(desarme));
   await ctx.close();
   if (brE !== br) await brE.close();
 });

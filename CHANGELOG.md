@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.23.2] — 2026-09-05
+### Le retour en ligne se fait seul après une panne, avec hystérésis (A319, étape 3)
+
+- **Le sens retour devient automatique**, à trois conditions : la bascule vers le direct venait
+  d'une panne (un choix manuel n'est jamais contredit), le serveur a répondu à trois sondes
+  consécutives, et au moins soixante secondes se sont écoulées en direct. Les invités suivent par
+  le billet d'admission remis par le canal chiffré, comme au tap. Rien ne s'ouvre à l'écran : le
+  quai dit « ● Repasse en ligne » pendant 8 s, la phrase va au lecteur d'écran.
+- **La sonde de joignabilité tourne aussi feuille fermée** tant que le retour est armé ; elle
+  s'arrête d'elle-même ensuite. Le retour désarme : pas de boucle.
+- **Conformité** : le § 3.2 de `docs/deploiement-et-conformite.md` dit le nouveau régime — rien de
+  nouveau ne sort de l'appareil.
+- Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
+  (19 → 23), vérifiés capables d'échouer (armement retiré → 3 rouges). Doctrine A319 dans
+  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.20.6] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
+
 ## [5.23.1] — 2026-09-05
 ### La panne se détecte en moins de 5 s, la transition se voit, le secours se dit (A318, étape 2)
 
@@ -493,28 +510,3 @@
   `persist:false` en toutes lettres, et corriger ce trou est un choix d'un caractère qui attend
   un arbitrage (il change ce qui s'écrit sur le disque à chaque « Continuer »). Détail : A294
   (`docs/decisions/lot-v5-20.md`).
-
-## [5.20.6] — 2026-09-01
-### Les commentaires longs du script suivent ceux de la feuille (A293) — le chantier d'assainissement est clos
-
-- **Le pendant JS de la v5.20.5, plus gros gisement** : les 239 blocs de commentaires JS de PLUS
-  de dix lignes (384 Ko — le JS portait 54 % de commentaires) sont repris **à l'octet** dans
-  `docs/decisions/doctrine-js.md` sous les ids stables **J1…J239**, puis resserrés sur place :
-  les invariants en toutes lettres (« la SEULE barrière anti-XSS », « migrate est le point
-  d'ASSAINISSEMENT », « ICI, ET NULLE PART AILLEURS »…), les ⚠, les marqueurs Q/K/R/P, les
-  renvois A-xxx, et « Détail : doctrine-js.md J‹n› ». Le grand commentaire d'architecture de
-  tête et les 261 blocs de 7-10 lignes déjà denses ne bougent pas.
-- **La différence technique avec le CSS** : un run de `//` ne se reconnaît pas à l'œil — une
-  ligne commençant par `//` DANS un template literal est du code. Les blocs ont été cartographiés
-  au tokeniseur d'états et le masque PROUVÉ juste avant toute édition (le script blanchi de tous
-  les commentaires détectés doit compiler, `vm.Script`) ; les blocs enjambant une ligne de code
-  gardent leurs délimiteurs de bord. Hashs CSP rejoués à chaque tranche (règle 3) ; les contrôles
-  sensibles aux commentaires (`check-fns`, `check-actions`, `check-actest`, `check-upload`,
-  `check-stores`) verts de bout en bout — aucun nom ne vivait par le seul commentaire supprimé.
-- **Bilan des deux déménagements (A292 + A293)** : `index.html` passe de **2 891 à 2 440 Ko
-  (−451 Ko, −15,6 %)** et de 33 874 à 29 059 lignes. Mesuré au même protocole que la phase 0 :
-  boot à CPU ×6 **714 → 691 ms** (vierge) et **354 → 334 ms** (avec données) ; pleine vitesse
-  103 → 99 / 57 → 51 ms (Chromium), 110 → 105 / 74 → 68 ms (WebKit) — la fraction attendue de la
-  borne parse d'A289. Le chantier ouvert au rapport de phase 0 est clos ; restent en attente
-  d'arbitrage les blocs de 7-10 lignes, les écrasements CSS PROBABLES, les treize factorisations
-  PROBABLES et le repli `Math.random` de `uid`. Détail : A293 (`docs/decisions/lot-v5-20.md`).

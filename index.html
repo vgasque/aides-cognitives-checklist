@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-BYFINPwz1Fj+dAA5o2QB/50kMSuZaNBs78TvwDKioYU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-uLZOXfJxA5zwGj/sJSELtLszzsqFSqgfFOHiwrbCZFk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8023,7 +8023,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.23.1';
+const APP_VERSION='5.23.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -27561,12 +27561,19 @@ function slSegNetPaint(){
     const d=bc.querySelector('.sdot');if(d)d.classList.toggle('ok',online&&active!=='cloud');}
   const cap=document.querySelector('#shareBody .seg-cap');
   if(cap)cap.textContent=slSegCap(online,active);}
+/* A319 : retour en ligne SEUL après une panne — 3 sondes OK et ≥ 60 s en direct (hystérésis), des
+   invités à ramener, jamais contre un choix manuel ; sans ouvrir la feuille (règle 11). */
+const slBackArmed=()=>Share.mode==='host'&&Share.share==='local'&&slSb.auto&&Auth.signedIn();
+function slBackTick(){if(!slBackArmed())return;
+  slSb.okRun=_slNet.ok===true?slSb.okRun+1:0;
+  const dwell=window.__acBackDwell||60000,invites=!!(SL&&SL.hub&&SL.hub.st.parts.some(p=>!p.owner&&!p.revoked));
+  if(slSb.okRun>=3&&invites&&Date.now()-slSb.since>=dwell&&!_slSwitching){slSb.auto=false;slGoCloud('Internet est revenu — le partage repasse en ligne.',true);}}
 function slNetWatch(){
   clearInterval(_slNet.timer);
   _slNet.timer=setInterval(()=>{
-    if(!shareModal||!shareModal.classList.contains('on')
-      ||!document.querySelector('#shareBody .seg')){clearInterval(_slNet.timer);_slNet.timer=0;return;}
-    slNetProbe();},8000);
+    const feuille=shareModal&&shareModal.classList.contains('on')&&document.querySelector('#shareBody .seg');
+    if(!feuille&&!slBackArmed()){clearInterval(_slNet.timer);_slNet.timer=0;return;}
+    slNetProbe().then(slBackTick);},window.__acProbeMs||8000);
   slNetProbe();}
 window.addEventListener('online',()=>{if(_slNet.timer)slNetProbe();});
 window.addEventListener('offline',()=>{_slNet.ok=false;try{slSegNetPaint();}catch(e){}
@@ -27926,7 +27933,7 @@ async function slGuestUp(dc){
    canal et re-amorce son pli depuis zéro : AUCUNE fusion, la machinerie existante fait tout.
    Le retour au cloud reste un TAP (segmenté « En ligne ») — le sens panne est automatique,
    le sens confort reste un choix. ⚠ EXIGE le rejeu de schema.sql (genre `sig`) sur l'instance. */
-const slSb={dcs:[],dc:null,pc:null,say:null,said:false};
+const slSb={dcs:[],dc:null,pc:null,say:null,said:false,auto:false,okRun:0,since:0};
 let _slSwitching=false;
 function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
   for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
@@ -27994,14 +28001,14 @@ async function slSbOnSig(ev){
 function slSbFail(){
   if(_slSwitching||Share.share==='local'||Share.mode==='off')return;
   if(Share._fails<2){if(Share._fails===1)slNetProbe().then(()=>{if(_slNet.ok===false&&Share._fails>=1){Share._fails=2;slSbFail();}});return;}
-  if(Share.mode==='host'&&slSb.dcs.length)slSbHostSwitch();
+  if(Share.mode==='host'&&slSb.dcs.length){slSb.auto=true;slSbHostSwitch();}
   else if(Share.mode==='guest'&&slSb.dc)slSbGuestSwitch();}
 /* BASCULE MANUELLE SANS QR (v5.14.8, signalé à l'usage : « tous les participants sont
    déconnectés — il faudrait que ce soit seamless ») : le réseau marche encore, donc on
    PRÉVIENT (sig « go » poussé DIRECTEMENT, hors file) avant de transiter par le chemin du
    basculement automatique ; les invités appariés en silence re-joignent seuls. Le partage
    cloud est terminé côté serveur APRÈS coup (meilleur effort). */
-async function slSbGoSwitch(){
+async function slSbGoSwitch(){slSb.auto=false;
   const oldShare=Share.share,endIo=Share._ioRest;
   try{
     const ev=[{event_id:Share._uuid(),kind:'sig',payload:{t:'go'},
@@ -28033,7 +28040,8 @@ async function slSbHostSwitch(say){
     const r=await Share.host(f).catch(()=>null);
     if(r&&r.ok){SL.wires=[];
       for(const d of dcs){const w=slChanWire(d.dc);slServe(hub,w);SL.wires.push(w);}
-      slSay('Passe en direct',say||'Le réseau a lâché — le partage continue en direct.');}
+      slSay('Passe en direct',say||'Le réseau a lâché — le partage continue en direct.');
+      if(slSb.auto){slSb.since=Date.now();slSb.okRun=0;slNetWatch();}}
     else SL=null;
   }finally{_slSwitching=false;}}
 async function slSbGuestSwitch(){
@@ -28068,7 +28076,7 @@ async function slSbGuestSwitch(){
    attente de son entrée, suivant. Si l'ouverture cloud échoue (internet menteur), on RE-HÉBERGE
    sur le MÊME hub : les secrets des invités restent valides et le nouvel instantané complet est
    idempotent au pli — personne n'est déconnecté. */
-async function slGoCloud(){
+async function slGoCloud(sr,quiet){
   const f=(SL&&SL.f)||Runtime.fiche,hub=SL&&SL.hub;
   const guests=hub?hub.st.parts.filter(p=>!p.owner&&!p.revoked):[];
   if(!hub||!guests.length){await Share.endShare();SL=null;startShare(f);return;}
@@ -28104,8 +28112,8 @@ async function slGoCloud(){
     /* Le hub reste servi 20 s — le temps qu'un billet en vol soit consommé — puis se ferme :
        un invité resté local verra « partage terminé », jamais un silence. */
     setTimeout(()=>{try{hub.end();}catch(e){}},20000);
-    openShareSheet();render();
-    slSay('Repasse en ligne','Le partage repasse en ligne.');
+    if(!quiet)openShareSheet();render();
+    slSay('Repasse en ligne',sr||'Le partage repasse en ligne.');
   }finally{_slSwitching=false;}}
 /* Le billet « gc » côté invité : rejoindre le serveur avec le code reçu par le canal — trois
    essais espacés, et un échec RESTE en direct (on ne casse jamais le transport qui marche). */
