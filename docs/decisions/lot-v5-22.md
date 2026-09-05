@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A309)
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A310)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -73,3 +73,24 @@ famille (décision v5.4.1, qui vaut toujours là où la colonne ne coûte rien).
 (5 contrôles : même rangée, après les compteurs, côte à côte ≥ 44 px, durée sous la rangée, volet
 étroit inchangé ; 97 → 98 sections), vérifié CAPABLE D'ÉCHOUER (ancien ordre réintroduit → 4 rouges,
 `index.html` restauré à l'octet).
+
+## A310 — la grille lit le token que le dock lisait déjà (v5.22.2)
+
+**Signalé par l'auteur** (05/09/2026) : « tu n'as pas adapté la taille de la barre flottante en bas
+depuis que tu as diminué la sidebar droite ». Exact, et la cause est une faute contre une règle
+écrite à la déclaration des tokens : « une seule source — le dock s'aligne dessus, et un changement
+de largeur de colonne n'a plus deux endroits où se faire ». A308 a posé `280px` EN LITTÉRAL dans la
+grille de lecture, alors que `#sessionDock .sd-in` et `#dockSheet .ds-card` calculent leur marge
+droite sur `--col-state`, resté à 320. Mesuré à 820 px en session : le dock s'arrêtait 42 px avant
+le bord de la colonne d'action.
+
+**Correctif** : `--col-state` devient le token PAR PALIER (`:root{--col-state:280px}` dans le bloc
+780, `320px` dans le bloc 1000), et les grilles de lecture (780, 1000, 1200, cockpit) lisent
+`var(--col-state)` / `var(--col-orient)` / `var(--col-gap)` au lieu de littéraux — grille, dock et
+volet ne peuvent plus diverger. Reste, symétrique et préexistant, l'écart de 2 px entre le
+rembourrage du dock (20) et celui de la grille (18).
+
+**Garde-fou** : un contrôle ajouté à la section A309 (même décor, une manœuvre une section) —
+bord droit du dock à ≤ 3 px du bord de la colonne d'action —, vérifié CAPABLE D'ÉCHOUER sur le
+défaut RÉEL (littéral réintroduit, token à 320 → écart −42 px) ; et NON sur un token remis à 320
+partout, car grille et dock suivent alors ensemble — c'est précisément ce que le correctif garantit.

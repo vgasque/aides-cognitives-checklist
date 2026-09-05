@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.22.2] — 2026-09-05
+### La grille de lecture lit le token de colonne que le dock lisait déjà (A310)
+
+- **Signalé par l'auteur** : « tu n'as pas adapté la taille de la barre flottante en bas depuis
+  que tu as diminué la sidebar droite ». Exact : A308 avait posé `280px` en littéral dans la grille
+  de lecture, alors que le dock flottant et son volet calculent leur marge droite sur `--col-state`,
+  resté à 320 — contre la règle écrite à la déclaration des tokens (« une seule source »). Mesuré à
+  820 px en session : le dock s'arrêtait 42 px avant le bord de la colonne d'action.
+- **Correctif** : `--col-state` devient un token PAR PALIER (280 dès 780, 320 dès 1000) et les
+  grilles de lecture (780, 1000, 1200, cockpit) lisent `var(--col-state)`, `var(--col-orient)`
+  et `var(--col-gap)` — grille, dock et volet ne peuvent plus diverger. Reste l'écart symétrique
+  et préexistant de 2 px entre le rembourrage du dock (20) et celui de la grille (18).
+- Garde-fou : un contrôle ajouté à la section A309 de `audit-doctrine` (bord droit du dock à
+  ≤ 3 px de la colonne d'action), vérifié capable d'échouer sur le défaut réel (littéral
+  réintroduit → écart −42 px). Doctrine A310 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20
+  ([5.19.4] archivée).
+- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit complet (deux passes ; la
+  machine étant très chargée ce jour, plusieurs sections à délais ont dû être rejouées, vertes
+  isolément et en tranches complètes).
+
 ## [5.22.1] — 2026-09-04
 ### Dans le rail, les deux ajouts sur une rangée sous les compteurs (A309)
 
@@ -527,31 +547,3 @@
   renvoie les quatre surfaces refondues (accueil v5.18, colonne/pied v5.19, barres v5.15,
   sélection v5.17) vers leurs lots ; `design/README` corrige ses fiches « ~275 Ko » (réel :
   ~815) et consigne les deux `git gc`.
-
-## [5.19.4] — 2026-08-31
-### Phase 3 de l'audit : trois garde-fous nouveaux, le pli QR assaini, cinq duplications factorisées (A283)
-
-- **Trois trous de l'audit fermés en garde-fous**, chacun né ROUGE sur défaut fabriqué puis
-  restauré à l'octet : `check-tokens` (token CSS déclaré ↔ lu, le trou du survol `--hover`),
-  `check-ids` sens inverse (sélecteur `#id` stylé → émis, le trou de `#f-validation`),
-  `check-fns` (déclaration top-niveau → citée ailleurs, le trou de `catsUtiles`). Les
-  commentaires sont dépouillés d'abord (`strip-comments.mjs`, source unique) — un nom cité
-  dans la doctrine n'est pas un usage. **`check-fns` a attrapé un 4ᵉ mort dès sa naissance**
-  (`enLigneOk`, locale jamais lue), supprimé.
-- **Le pli reçu par QR passe par `slFoldSan`** — c'était le seul intrant distant pris brut :
-  grammaires du chemin en ligne (shareNavNorm, vfMapNorm, tkRefNorm), bornes de
-  sanitizeSession, liste fermée (un miroir ne réécrit rien), témoin dans tests.html (+7
-  assertions, aucun label d'évènement ne traverse — règle 15). `ltSnapUnpack` décompresse
-  borné à 4 Mo (le flux s'annule, comme `inflateBounded`).
-- **Durcissements** : la purge des caches du SW se limite au préfixe `aides-cognitives-`
-  (l'origine n'est pas le scope — un déploiement intranet en sous-répertoire n'effacera pas
-  les PWA voisines) ; `esc()` rejoint les six sites d'id qui y avaient échappé (couverts par
-  safeId en amont, mais la règle v5.10.2 « échapper au site » y était cassée).
-- **Cinq duplications factorisées, comportement identique** : renommage inline
-  minuteur/compteur (jumeaux), `selBounds` (×3), `slBusySheet` (refus « partage déjà actif »
-  ×2), `attInfoFor` (×2), `ovNavPush`/`ovNavDone` (queue de navigation ×2).
-- **Piège découvert et fermé en route** : deux commentaires JS citent `<style>` sans
-  fermeture — sur le fichier brut, ils s'appariaient de travers avec tout bloc ajouté plus
-  bas ; l'appariement des blocs se fait désormais commentaires retirés.
-- Les cinq fonctions de test embarquées et les deux surfaces de harnais portent leur marqueur
-  « délibéré » (décision Q3) — un futur audit ne les re-signalera pas.

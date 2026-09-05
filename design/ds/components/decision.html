@@ -6263,7 +6263,8 @@
        celle de DROITE toujours l'ÉTAT ou la RÉFÉRENCE, jamais l'inverse.
        ⚠ ET LA COLONNE D'ACTION EST FLUIDE : les plafonds successifs (860, puis 660, puis 760)
        étaient des accidents de maquette. Elle prend ce qui reste. */
-    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:0 20px;align-items:start}
+    :root{--col-state:280px}   /* A310 : le dock lit le même token — une seule source */
+    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) var(--col-state);gap:0 var(--col-gap);align-items:start}
     /* ⚠ ÉPITAPHE — `.pg-wide` purgée (règle 14) : élargir la colonne d'action déplaçait l'ÉTAT vif
        en pleine session, refusé à l'usage ; l'ajustement d'office reste refusé (k = 0,775 → cible
        34 px, A8/A133), l'échelle reste un GESTE (« ⤢ Ajusté »). --stick-top : mesuré par
@@ -6394,11 +6395,11 @@
      de ce type du fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
      GÉOMÉTRIE, ne jamais dépendre de l'ordre. */
   /* A308 : l'état reprend 320 px dès 1000, où l'action n'en souffre plus. */
-  @media (min-width:1000px){body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}}
+  @media (min-width:1000px){:root{--col-state:320px}body.view-read .read-grid{grid-template-columns:minmax(0,1fr) var(--col-state)}}
   @media (min-width:1200px){
-    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}
+    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) var(--col-state)}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
+    body.view-read .read-grid.cockpit{grid-template-columns:var(--col-orient) minmax(0,1fr) var(--col-state)}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;

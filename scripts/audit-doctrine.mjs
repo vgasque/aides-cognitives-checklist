@@ -6945,6 +6945,9 @@ await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async ()
       hTm:Math.round(tm.getBoundingClientRect().height),hCn:Math.round(cn.getBoundingClientRect().height),
       coteACote:Math.abs(tm.getBoundingClientRect().top-cn.getBoundingClientRect().top)<1,
       rangeeH:row?Math.round(row.getBoundingClientRect().height):0};
+    // A310 : le dock flottant s'aligne sur la colonne d'ACTION (même token que la grille).
+    const dock=document.querySelector('#sessionDock .sd-in');
+    out.dockEcart=dock?Math.round(dock.getBoundingClientRect().right-(side.getBoundingClientRect().left-20)):null;
     tm.click();await w(300);
     const d=document.querySelector('.read-side .tm-add-d');const r2=document.querySelector('.read-side .rt-adds');
     out.choixSousLaRangee=!!d&&!!r2&&d.getBoundingClientRect().top>=r2.getBoundingClientRect().bottom-1;
@@ -6955,6 +6958,7 @@ await sec('RAIL · les deux ajouts sur une rangée sous les compteurs', async ()
   t('rail : « ＋ Minuteur » et « ＋ Compteur » sur la même rangée',r.memeRangee===true,JSON.stringify(r));
   t('… placée APRÈS les compteurs',r.apresCompteurs===true,JSON.stringify(r));
   t('… côte à côte, cibles ≥ 44 px',r.coteACote&&r.hTm>=44&&r.hCn>=44,JSON.stringify([r.coteACote,r.hTm,r.hCn]));
+  t('le dock flottant s\'arrête au bord de la colonne d\'action (A310)',r.dockEcart!==null&&Math.abs(r.dockEcart)<=3,`écart ${r.dockEcart} px (2 px de rembourrage attendus ; −42 avant A310)`);
   t('le choix de durée s\'ouvre sous la rangée',r.choixSousLaRangee===true&&r.durees===4,JSON.stringify([r.choixSousLaRangee,r.durees]));
   // ÉTROIT : le volet garde l'ordre par famille (« ＋ Minuteur » avant les compteurs).
   await page.setViewportSize({width:430,height:900});await page.waitForTimeout(500);

@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-d+l4ALM+OcU5Znjvj7ta1NrbM89Z3Uo+xa9bqy7hcRY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-P2xw4sntLjvEQWl9P1P8FycydZlN4i/xHqJaOke98B8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6617,7 +6617,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        celle de DROITE toujours l'ÉTAT ou la RÉFÉRENCE, jamais l'inverse.
        ⚠ ET LA COLONNE D'ACTION EST FLUIDE : les plafonds successifs (860, puis 660, puis 760)
        étaient des accidents de maquette. Elle prend ce qui reste. */
-    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:0 20px;align-items:start}
+    :root{--col-state:280px}   /* A310 : le dock lit le même token — une seule source */
+    body.view-read .read-grid{display:grid;grid-template-columns:minmax(0,1fr) var(--col-state);gap:0 var(--col-gap);align-items:start}
     /* ⚠ ÉPITAPHE — `.pg-wide` purgée (règle 14) : élargir la colonne d'action déplaçait l'ÉTAT vif
        en pleine session, refusé à l'usage ; l'ajustement d'office reste refusé (k = 0,775 → cible
        34 px, A8/A133), l'échelle reste un GESTE (« ⤢ Ajusté »). --stick-top : mesuré par
@@ -6748,11 +6749,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de ce type du fichier (cf. .read-grid v4.23.0, .cbt-n v4.23.5, .mode-seg v4.25.1) : pour une
      GÉOMÉTRIE, ne jamais dépendre de l'ordre. */
   /* A308 : l'état reprend 320 px dès 1000, où l'action n'en souffre plus. */
-  @media (min-width:1000px){body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}}
+  @media (min-width:1000px){:root{--col-state:320px}body.view-read .read-grid{grid-template-columns:minmax(0,1fr) var(--col-state)}}
   @media (min-width:1200px){
-    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) 320px}
+    body.view-read .read-grid{grid-template-columns:minmax(0,1fr) var(--col-state)}
     /* F4 au palier 1200 : le plan prend 240 px, la checklist garde son plafond de 860. */
-    body.view-read .read-grid.cockpit{grid-template-columns:240px minmax(0,1fr) 320px}
+    body.view-read .read-grid.cockpit{grid-template-columns:var(--col-orient) minmax(0,1fr) var(--col-state)}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
@@ -8008,7 +8009,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.22.1';
+const APP_VERSION='5.22.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
