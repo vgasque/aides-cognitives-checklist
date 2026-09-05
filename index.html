@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-x2mA19goNqHubKE0sZmwlqAsm0DHgrQXlawSaDDgfmM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-wxYPzYtu8Y7XRKb9eDDCGSCiVpLGr2eKV7x1oJFCQ+s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7058,7 +7058,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cm-name{min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
   .cm-count{font-size:11px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
   .cm-pick{display:flex;flex-direction:column;gap:12px;padding:4px 0 12px}
-  .cm-sw{display:flex;gap:6px;flex-wrap:wrap}.cm-sw .sw{width:32px;height:32px;padding:0;border-radius:8px;cursor:pointer;border:2px solid transparent}
+  .cm-sw{display:flex;gap:8px;flex-wrap:wrap}   /* A316 : 8 px, la pastille choisie déborde de ~6 px */
+  .cm-sw .sw{width:32px;height:32px;padding:0;border-radius:8px;cursor:pointer;border:2px solid transparent}
   .cm-sw .sw.on{border-color:transparent;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink);transform:scale(1.12)}
   .cm-sw .sw-more{display:grid;place-items:center;background:var(--surface);border:1.5px dashed var(--line-strong);color:var(--ink-2)}
   .cm-sw .sw-more:hover{background:var(--surface-2)}
@@ -8022,7 +8023,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.22.7';
+const APP_VERSION='5.22.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -24059,7 +24060,8 @@ function renderCatMgr(){
   body.querySelectorAll('.cm-row').forEach(row=>{const cid=row.dataset.cid,scp=row.dataset.cscope||null;
     const c=categories.find(x=>x.id===cid&&catScope(x)===scp);if(!c)return;
     const cle=scp===null?'|'+cid:scp+'|'+cid;
-    const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(scp);});
+    const nm=row.querySelector('[data-cname]');if(nm)nm.addEventListener('input',e=>{c.name=e.target.value;saveCats(scp);
+      const pv=row.querySelector('[data-prev]');if(pv)pv.innerHTML=catPrevHtml(safeColor(c.color),c,scp);});   // A316 : l'aperçu suit le nom
     // Ouvre/ferme la palette de la rangée ; le focus revient sur la pastille après re-rendu (A236).
     const pk=row.querySelector('[data-pick]');if(pk)pk.onclick=()=>{catPickKey=catPickKey===cle?null:cle;catPickOrig=safeColor(c.color);catHueOpen=null;renderCatMgr();
       const r2=[...body.querySelectorAll('.cm-row')].find(r=>r.dataset.cid===cid&&(r.dataset.cscope||null)===scp);

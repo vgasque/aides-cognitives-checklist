@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.22.8] — 2026-09-05
+### La pastille choisie ne mord plus ses voisines ; renommer repeint l'aperçu (A316)
+
+- **Signalés par l'auteur** : la pastille sélectionnée mordait sur toutes les autres, bouton
+  « palette » compris ; et le nouveau nom d'une catégorie ne s'affichait pas dans l'aperçu de la
+  palette. Mesuré : échelle 1,12 plus anneau de 4 px = 5,92 px de débord pour 6 px d'écart, soit
+  0,08 px de jeu — un contact à l'œil, horizontalement et vers la rangée du dessous ; et le champ
+  de nom n'écrivait que le modèle, sans repeindre l'aperçu.
+- **Correctifs** : écart des pastilles porté à 8 px (2,08 px de jeu) ; la frappe dans le champ de
+  nom repeint l'aperçu de la palette ouverte.
+- Garde-fous : deux contrôles ajoutés à la section A308 d'`audit-doctrine` (jeu ≥ 1,5 px entre
+  l'anneau et toute voisine, mesuré au rectangle ; les deux chips de l'aperçu portent le nom
+  saisi), vérifiés capables d'échouer (écart à 6 px → « jeu 0,08 px » ; repeinture retirée →
+  rouge). Doctrine A316 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.3] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro
+  de version.
+
 ## [5.22.7] — 2026-09-05
 ### Le curseur de teinte se replie derrière un bouton « palette », quatorzième pastille (A315)
 
@@ -501,18 +518,3 @@
   (`navigator.wakeLock`, `document.elementsFromPoint`, `AbortController`) et les tests de type
   sur des données ou des paramètres — eux disent quelque chose de vrai. Le repli `Math.random`
   de `uid` reste en attente d'arbitrage. Détail : A291 (`docs/decisions/lot-v5-20.md`).
-
-## [5.20.3] — 2026-09-01
-### La suppression de compte oubliait une clé que la déconnexion retirait (A290)
-
-- **Un reliquat d'« éditions retenues » survivait à l'effacement TOTAL de l'appareil** :
-  `wipeLocal()` (suppression de compte) et `wipeCurrentSpace()` (déconnexion en effaçant
-  l'appareil) recopiaient chacun leur liste de clés locales — la seconde retirait
-  `ac-held-edits`, la première non, et sa boucle générique de rattrapage exige un `@` que la
-  forme nue de la clé n'a pas. Prouvé à la sonde par le vrai appel, deux moteurs : la clé nue
-  SURVIT quand tout le reste part.
-- **Correctif structurel, pas une ligne dans une liste** : `WIPE_SPACE_KEYS`, liste UNIQUE des
-  clés d'espace, consommée par les deux effacements (`wipeLocal` y concatène ses extras
-  d'appareil). Une liste recopiée diverge, une liste unique non — même remède que `MUTE_SEL`
-  (v4.4.2) et `SHARE_KINDS` (A216). Rouge→vert rejoué à la sonde après correctif. Détail : A290
-  (`docs/decisions/lot-v5-20.md`).

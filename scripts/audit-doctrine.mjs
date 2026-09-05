@@ -6918,6 +6918,13 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     out.curseurCache=!row.querySelector('[data-hue]')&&!!row.querySelector('[data-huetog]')&&row.querySelectorAll('.cm-sw button').length===14;
     row.querySelector('[data-huetog]').click();await w(200);row=bd.querySelector('.cm-row.open');
     const orig=cat.color,hu=row.querySelector('[data-hue]');out.curseurOuvert=!!hu;
+    // A316 : la pastille choisie (échelle 1,12 + anneau 4 px) ne mord sur aucune voisine, palette comprise.
+    {const on=row.querySelector('.cm-sw .sw.on'),r=on.getBoundingClientRect(),ring={l:r.left-4,r:r.right+4,t:r.top-4,b:r.bottom+4};
+     // jeu minimal entre l'anneau et une voisine : à 6 px d'écart il restait 0,08 px (« ça se touche »).
+     out.jeu=Math.min(...[...row.querySelectorAll('.cm-sw button')].filter(b=>b!==on).map(b=>{const q=b.getBoundingClientRect();const dx=Math.max(ring.l-q.right,q.left-ring.r,0),dy=Math.max(ring.t-q.bottom,q.top-ring.b,0);return Math.hypot(dx,dy);}));}
+    // A316 : renommer repeint l'aperçu de la palette ouverte.
+    {const nm=row.querySelector('[data-cname]');nm.value='Réa nommée';nm.dispatchEvent(new Event('input'));await w(60);
+     out.apercuNom=[...row.querySelectorAll('.cm-pv')].map(x=>x.textContent.trim());}
     // A312 : revenir au degré d'origine rend la couleur d'origine ; un degré de preset rend le preset.
     hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);const sur120=cat.color;
     hu.value=String(catHueDeg(orig));hu.dispatchEvent(new Event('input'));await w(60);
@@ -6931,7 +6938,9 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     hu.dispatchEvent(new Event('change'));await w(250);
     out.persist=((await Data.getCats())||[]).some(c=>c.id===cid&&c.color===cat.color);
     // couleur hors preset : le pli rouvert montre le curseur d'office (l'état se voit).
-    rows()[1].querySelector('[data-pick]').click();await w(150);rows()[1].querySelector('[data-pick]').click();await w(200);
+    // (la rangée est retrouvée par id : renommée, elle a changé de place dans le tri)
+    const parId=()=>rows().find(r=>r.dataset.cid===cid);
+    parId().querySelector('[data-pick]').click();await w(150);parId().querySelector('[data-pick]').click();await w(200);
     out.autoOuvert=!!bd.querySelector('.cm-row.open [data-hue]')&&bd.querySelector('.cm-row.open .sw-more').classList.contains('on');
     closeCatMgr();await w(200);
     // Les DEUX éditeurs mènent à la même fenêtre par « ＋ Nouvelle catégorie ».
@@ -6951,6 +6960,8 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   t('ouvrir une autre rangée ferme la première',r.ouvertes2===1&&r.ouverteEstLa2e,JSON.stringify([r.ouvertes2,r.ouverteEstLa2e]));
   t('curseur : hex valide, lisible, pastille peinte en direct',r.hexValide&&r.lisible&&r.pointSuit,JSON.stringify([r.couleur,r.lisible,r.pointSuit,r.note]));
   t('… enregistré au relâchement',r.persist===true,`${r.persist}`);
+  t('la pastille choisie garde ≥ 1,5 px de jeu avec toute voisine, palette comprise (A316)',r.jeu>=1.5,`jeu ${(r.jeu||0).toFixed(2)} px`);
+  t('renommer repeint l\'aperçu (A316)',Array.isArray(r.apercuNom)&&r.apercuNom.length===2&&r.apercuNom.every(x=>x==='Réa nommée'),JSON.stringify(r.apercuNom));
   t('le curseur est replié derrière le bouton palette (14ᵉ pastille) et se déplie au tap (A315)',r.curseurCache===true&&r.curseurOuvert===true,JSON.stringify([r.curseurCache,r.curseurOuvert]));
   t('… et s\'ouvre d\'office quand la couleur n\'est pas un preset',r.autoOuvert===true,`${r.autoOuvert}`);
   t('revenir au degré d\'origine rend la couleur d\'origine, et 19° rend le vermillon (A312)',r.retour===true&&r.preset19==='#b23240',JSON.stringify([r.retour,r.preset19]));

@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A315)
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A316)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -241,3 +241,26 @@ Le pli fermé perd ainsi ≈ 110 px, la palette redevient une rangée et demie.
 la rangée, curseur absent avant le tap et présent après ; puis, la couleur devenue hors preset, le
 pli rouvert montre le curseur d'office avec le bouton en `.on` (13 contrôles) ; vérifié CAPABLE
 D'ÉCHOUER (curseur forcé ouvert → rouge sur le bon contrôle, `index.html` restauré à l'octet).
+
+## A316 — la pastille choisie ne mord plus ses voisines ; renommer repeint l'aperçu (v5.22.8)
+
+**Signalés par l'auteur** (05/09/2026) : (1) « revois l'espacement entre les pastilles : lorsque
+sélectionnée, [elle mord] toutes les autres pastilles y compris la nouvelle pastille pour ouvrir la
+palette » ; (2) « lorsqu'on modifie le nom de la catégorie, le nouveau nom ne s'affiche pas dans
+l'aperçu ».
+
+**Mesuré** : la pastille choisie grandit de 12 % (± 1,92 px) et porte un anneau de 4 px, soit
+5,92 px de débord pour un écart de 6 px — **0,08 px de jeu**, ce que l'œil lit comme un contact,
+horizontalement et sur la rangée du dessous. Et le champ de nom écrivait `c.name` sans repeindre
+l'aperçu de la palette ouverte, qui ne se re-rend qu'au tap d'une pastille.
+
+**Correctifs** : écart des pastilles porté à **8 px** (valeur de l'échelle fermée), soit 2,08 px de
+jeu ; et le gestionnaire `input` du nom repeint `[data-prev]` par `catPrevHtml` — le nom vit dans
+l'aperçu, il doit y suivre la frappe.
+
+**Garde-fous** : deux contrôles ajoutés à la section A308 d'`audit-doctrine` — jeu minimal entre
+l'anneau de la pastille choisie et toute voisine ≥ 1,5 px (mesuré au rectangle, palette comprise),
+et les deux chips de l'aperçu portent le nom saisi (15 contrôles) ; vérifiés CAPABLES D'ÉCHOUER
+(écart remis à 6 px → « jeu 0,08 px » ; repeinture retirée → rouge ; `index.html` restauré à
+l'octet). ⚠ Piège de harnais attrapé en route : une rangée RENOMMÉE change de place dans le tri par
+nom — la sonde la retrouve par id, jamais par index.
