@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A312)
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A313)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -146,3 +146,39 @@ preset et son jumeau d'anneau ne sont PAS la même couleur », la raison même d
 contrôle ajouté à la section A308 d'`audit-doctrine` (revenir au degré d'origine rend la couleur
 d'origine, 19° rend le vermillon), vérifié CAPABLE D'ÉCHOUER (accrochage retiré → rouge,
 `index.html` restauré à l'octet).
+
+## A313 — au clavier, le piège des fenêtres déplace lui-même le focus, l'anneau suit, les champs s'allument par la bordure (v5.22.5)
+
+**Signalé par l'auteur** (05/09/2026) : « Tab : le curseur se déplace mais pas le design autour du
+bouton ; et quelquefois le design autour du bouton se met autour des champs texte ».
+
+**Mesuré sur les deux moteurs, à la sonde, avant de corriger.** Le piège Tab des fenêtres ne
+prenait la main qu'aux deux BOUTS de la liste des focalisables ; entre les deux, c'est l'ordre
+natif du navigateur — et **WebKit saute les boutons par défaut** (réglage « Tab pour mettre chaque
+élément en évidence » désactivé). Dans « Gérer les catégories », cinq Tab passaient de champ en
+champ sans atteindre un bouton ; dans une confirmation, le troisième Tab sortait de la fenêtre et
+se perdait sur le corps de la page. L'anneau posé à l'ouverture (A237) partait au premier blur,
+et ce qui suivait ne se dessinait que si le moteur jugeait le focus « visible ». Les champs des
+fenêtres n'avaient aucun style de focus à eux : anneau par défaut du navigateur (noir 3 px sur
+WebKit, bleu sur Chromium), étranger au dessin ; et le halo de bouton (décalage 2 px) se posait
+sur le champ « Nouvelle catégorie… » à l'ouverture.
+
+**Ce qui change.**
+
+1. **Le piège déplace lui-même le focus à chaque Tab et Maj+Tab**, dans l'ordre du DOM des
+   focalisables, avec bouclage (`_focusables`) : WebKit ne peut plus sauter les boutons ni sortir
+   de la fenêtre. Le focus étant programmatique, **l'anneau est posé explicitement** sur l'élément
+   atteint (`_ringFocus`, extrait d'`_dlgEnter`) et retiré au blur suivant — même mécanisme
+   qu'A237, généralisé au clavier.
+2. **Le halo est réservé aux boutons** (`.dlg-ring:not(input):not(textarea):not(select)`) ; **un
+   champ de fenêtre signale son focus par sa bordure** (`outline` 2 px primaire à décalage 0,
+   bordure transparente — le dessin exact de `.field input:focus`), curseurs `range`, cases et
+   boutons radio exclus. Réponse à la question de l'auteur : oui, un halo de bouton autour d'un
+   champ texte est faux ; le focus d'un champ se lit à sa bordure, pas à une auréole.
+
+**Garde-fou** : cinq contrôles ajoutés à la section « Fenêtres · le bouton focalisé se voit, même
+ouvert à la souris » (même décor : ouverture à la souris) — quatre Tab restent dans la fenêtre,
+chaque arrêt porte l'anneau, les boutons sont atteints, les champs portent la bordure allumée et
+jamais l'anneau du navigateur, un bouton est atteint en quatre Tab depuis le gestionnaire ;
+joués VERTS sur Chromium ET WebKit, vérifiés CAPABLES D'ÉCHOUER (code d'avant réintroduit → 5 rouges
+sur WebKit, `index.html` et `_headers` restaurés à l'octet).

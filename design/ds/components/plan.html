@@ -5651,7 +5651,9 @@
   /* L'ANNEAU D'OUVERTURE D'UNE FENÊTRE — cf. `_dlgEnter` (v5.17.5). MÊME dessin que
      `:focus-visible` partout ailleurs : c'est le même état, il n'a aucune raison de se dessiner
      autrement, et c'est ce qui rend la transition invisible quand le clavier reprend la main. */
-  .ai-modal .dlg-ring:focus{outline:2px solid var(--primary);outline-offset:2px}
+  /* A313 : le halo est réservé aux boutons ; un champ signale son focus par sa bordure (dessin .field). */
+  .ai-modal .dlg-ring:not(input):not(textarea):not(select):focus{outline:2px solid var(--primary);outline-offset:2px}
+  .ai-modal :is(input:not([type=range]):not([type=checkbox]):not([type=radio]),textarea,select):focus{outline:2px solid var(--primary);outline-offset:0;border-color:transparent}
   .ai-modal.dlg-confirm{align-items:center}
   /* ══ QUATRIÈME PLACEMENT, ET C'EST UNE NATURE, PAS UNE QUATRIÈME LARGEUR (v5.6, décision
      utilisateur : « uniformise la vue filtrer, toujours une fenêtre qui ne prend pas toute la

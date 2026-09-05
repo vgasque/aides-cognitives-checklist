@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.22.5] — 2026-09-05
+### Au clavier, le piège des fenêtres déplace lui-même le focus, l'anneau suit, les champs s'allument par la bordure (A313)
+
+- **Signalé par l'auteur** : « Tab : le curseur se déplace mais pas le design autour du bouton ;
+  et quelquefois le design autour du bouton se met autour des champs texte ». Mesuré sur les deux
+  moteurs : le piège Tab ne prenait la main qu'aux deux bouts de la liste, et entre les deux c'est
+  l'ordre natif du navigateur — WebKit saute les boutons par défaut (cinq Tab de champ en champ
+  dans « Gérer les catégories », et dans une confirmation le troisième Tab sortait de la
+  fenêtre). Les champs des fenêtres n'avaient pas de style de focus à eux (anneau du navigateur,
+  noir 3 px sur WebKit) et le halo de bouton se posait sur le champ « Nouvelle catégorie… ».
+- **Le piège déplace lui-même le focus à chaque Tab et Maj+Tab**, dans l'ordre du DOM avec
+  bouclage, et **pose l'anneau** sur l'élément atteint (retiré au blur suivant) — le mécanisme
+  d'A237 généralisé au clavier. **Le halo est réservé aux boutons** ; un champ de fenêtre signale
+  son focus par sa bordure allumée, comme les champs des formulaires. Curseurs, cases et boutons
+  radio gardent leur anneau.
+- Garde-fou : cinq contrôles ajoutés à la section « Fenêtres · le bouton focalisé se voit… »
+  d'`audit-doctrine` (Tab reste dans la fenêtre, chaque arrêt porte l'anneau, les boutons sont
+  atteints, les champs portent la bordure allumée et jamais l'anneau du navigateur), verts sur
+  Chromium ET WebKit, vérifiés capables d'échouer (code d'avant → 5 rouges sur WebKit). Doctrine
+  A313 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.0] archivée).
+- Vérifié : `npm run check` complet, 1189 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
+
 ## [5.22.4] — 2026-09-05
 ### Un degré, une couleur : le curseur rend le preset ou la couleur d'origine à leur degré (A312)
 
@@ -511,35 +533,3 @@
   affiché « rouge » même une fois le défaut corrigé. Le défaut a été re-mesuré avec une sonde qui
   re-interroge le document ; le témoin (`audit-doctrine`, « le défilement survit au re-rendu »)
   couvre les deux défileurs ET le geste signalé par son vrai chemin, et il est né ROUGE.
-
-## [5.20.0] — 2026-09-01
-### Le rail A→Z posait sa lettre sous ce qui coiffe l'écran ; la gestion descend au pouce (A286-A287)
-
-- **Le premier résultat de la lettre était masqué** (A286, signalé à l'usage : « depuis la refonte
-  de l'en-tête, le scroll s'affiche mal — le premier résultat de la lettre est masqué »). C'est un
-  reste de la v5.18 : l'en-tête d'accueil y est devenu STATIQUE, la cible du saut a donc cessé de
-  soustraire quoi que ce soit — mais DEUX objets coiffent encore le haut du défileur. La **barre
-  de sélection** (collante à 0) avalait l'intertitre entier et **17 px de la première rangée** ;
-  la **bande de zone sûre** de l'iPhone installé — posée dans ce même lot v5.18 pour que rien ne
-  défile sous l'heure — faisait s'épingler l'intertitre à 47 px, où il recouvrait la rangée qu'il
-  annonce (**39 px de 60 mesurés**). La cible ôte désormais cette coiffe, LUE au moment du saut et
-  jamais écrite en constante ; équivalence prouvée au pixel là où rien ne coiffe, en voie étroite
-  comme en voie large, sur les deux moteurs.
-- **Pourquoi vingt et un harnais ne voyaient rien, et ce qui change** : `env(safe-area-inset-top)`
-  vaut 0 dans un navigateur — la moitié du défaut n'existait que sur un appareil INSTALLÉ, l'autre
-  demandait le mode sélection, qu'aucune sonde du rail n'activait. Le témoin (`audit-doctrine`,
-  « le rail A→Z pose sous ce qui coiffe ») joue trois cas — nominal, sélection, **encoche
-  simulée** par un littéral de 47 px — et il est né ROUGE sur les trois assertions qu'il fallait.
-- **Gérer les catégories et les bibliothèques, sans colonne gauche** (A287, signalé à l'usage :
-  « sur smartphone il n'y a pas de sidebar : je ne peux plus gérer les catégories, et les
-  bibliothèques je ne peux les gérer qu'en vue *Rangé par bibliothèque* »). Sous 780 px, « Gérer
-  les catégories » n'était atteignable QUE par la feuille de filtres, dont le déclencheur n'existe
-  que pendant une recherche ; et le ✎ d'une bibliothèque administrée ne paraît que sur
-  l'intertitre de section, donc dans un rangement sur trois. Une **rangée au socle**, masquée
-  ≥ 780 px où la colonne gauche reprend la main — même patron et même cause que « Rejoindre une
-  session » (v5.14.3). Elle **n'invente aucune fenêtre** : mêmes rangées, mêmes attributs, mêmes
-  lecteurs que la colonne (`#catModal`, `#membersModal`, `#newLibModal`). Le socle n'ouvre jamais
-  une feuille d'UNE rangée — sans bibliothèque à administrer, elle dit « Gérer les catégories » et
-  va droit au gestionnaire ; et l'on ne liste que ce qui se gère (une bibliothèque en lecture
-  seule serait une commande morte, règle 14). La feuille entre dans les surfaces d'`audit-a11y`
-  par son vrai point d'entrée.

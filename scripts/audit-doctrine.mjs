@@ -6867,6 +6867,25 @@ await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris',
   // L'ANNEAU NE COLLE PAS : il part au premier blur, `:focus-visible` reprend la main ensuite.
   const reste=await page.evaluate(()=>document.querySelectorAll('.dlg-ring').length);
   t('aucun anneau résiduel après fermeture',reste===0,`${reste} élément(s) marqué(s)`);
+  // A313 — AU CLAVIER : Tab reste DANS la fenêtre et l'anneau suit (Safari saute les boutons par
+  // défaut ; le piège déplace donc le focus lui-même et pose l'anneau à chaque pas).
+  await souris();
+  await page.evaluate(()=>{window.__d=confirmDlg('m',{title:'T'});});await page.waitForTimeout(180);
+  const pas=[];for(let i=0;i<4;i++){await page.keyboard.press('Tab');await page.waitForTimeout(120);
+    pas.push(await page.evaluate(()=>{const a=document.activeElement,m=document.getElementById('confirmModal'),cs=getComputedStyle(a);
+      return {dedans:m.contains(a),tag:a.tagName.toLowerCase(),anneau:cs.outlineStyle==='solid'&&parseFloat(cs.outlineWidth)>=2};}));}
+  t('confirmation : quatre Tab restent dans la fenêtre',pas.every(p=>p.dedans),JSON.stringify(pas));
+  t('… chaque arrêt porte l\'anneau',pas.every(p=>p.anneau),JSON.stringify(pas));
+  t('… et les boutons sont atteints (Safari les saute par défaut)',pas.filter(p=>p.tag==='button').length>=3,JSON.stringify(pas.map(p=>p.tag)));
+  await fermer('#confirmModal .ai-x');
+  await souris();
+  await page.evaluate(()=>openCatMgr());await page.waitForTimeout(250);
+  const ch=[];for(let i=0;i<4;i++){ch.push(await page.evaluate(()=>{const a=document.activeElement,cs=getComputedStyle(a);return {tag:a.tagName.toLowerCase(),style:cs.outlineStyle,offset:cs.outlineOffset};}));
+    await page.keyboard.press('Tab');await page.waitForTimeout(120);}
+  const champs=ch.filter(c=>c.tag==='input');
+  t('champs : bordure allumée (outline solid, décalage 0) — ni anneau du navigateur ni halo',champs.length>=1&&champs.every(c=>c.style==='solid'&&parseFloat(c.offset)===0),JSON.stringify(ch));
+  t('… et un bouton est atteint en quatre Tab',ch.some(c=>c.tag==='button'),JSON.stringify(ch.map(c=>c.tag)));
+  await page.evaluate(()=>closeCatMgr());await page.waitForTimeout(150);
   await page.close();
 }
 });

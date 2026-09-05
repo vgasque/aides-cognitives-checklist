@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lNLw9mvIqquCBg4N7X78UK1hf57NfVpXhlPyuWoD4eM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-+kwg0T3QcxFG1lOLXLudu1I+nMlzrJ7zmSL0RxXE1mk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -6005,7 +6005,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* L'ANNEAU D'OUVERTURE D'UNE FENÊTRE — cf. `_dlgEnter` (v5.17.5). MÊME dessin que
      `:focus-visible` partout ailleurs : c'est le même état, il n'a aucune raison de se dessiner
      autrement, et c'est ce qui rend la transition invisible quand le clavier reprend la main. */
-  .ai-modal .dlg-ring:focus{outline:2px solid var(--primary);outline-offset:2px}
+  /* A313 : le halo est réservé aux boutons ; un champ signale son focus par sa bordure (dessin .field). */
+  .ai-modal .dlg-ring:not(input):not(textarea):not(select):focus{outline:2px solid var(--primary);outline-offset:2px}
+  .ai-modal :is(input:not([type=range]):not([type=checkbox]):not([type=radio]),textarea,select):focus{outline:2px solid var(--primary);outline-offset:0;border-color:transparent}
   .ai-modal.dlg-confirm{align-items:center}
   /* ══ QUATRIÈME PLACEMENT, ET C'EST UNE NATURE, PAS UNE QUATRIÈME LARGEUR (v5.6, décision
      utilisateur : « uniformise la vue filtrer, toujours une fenêtre qui ne prend pas toute la
@@ -8017,7 +8019,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.22.4';
+const APP_VERSION='5.22.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -28689,10 +28691,9 @@ function _dlgFocus(el){const f=_focusables(el);
    à l'ouverture, retiré au premier `blur` (même dessin, aucune bascule visible). ⚠ Ne jamais lire
    « box-shadow ≠ none » comme un focus (élévation de `.btn.primary`) ; pas de `:focus` nu en
    cascade (écraserait les anneaux accordés à leur fond). Détail : doctrine-js.md J235. */
-function _dlgEnter(el){const f=_dlgFocus(el);
-  if(f!==el){f.classList.add('dlg-ring');
-    f.addEventListener('blur',()=>f.classList.remove('dlg-ring'),{once:true});}
-  f.focus();}
+// A313 : l'anneau se pose à CHAQUE focus voulu (ouverture, Tab) et part au blur suivant.
+function _ringFocus(f){f.classList.add('dlg-ring');f.addEventListener('blur',()=>f.classList.remove('dlg-ring'),{once:true});f.focus();}
+function _dlgEnter(el){const f=_dlgFocus(el);if(f!==el)_ringFocus(f);else f.focus();}
 const LAYERS='#flowFull,#lightbox';
 function _layerTop(){const l=[...document.querySelectorAll(LAYERS)].filter(e=>e.classList.contains('on'));return l[l.length-1]||null;}
 let _layerReturnFocus=null;
@@ -28776,10 +28777,11 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Tab'&&layer){
     const modal=layer;
     const f=_focusables(modal);if(!f.length){e.preventDefault();return;}
-    const first=f[0],last=f[f.length-1];
-    if(!modal.contains(document.activeElement)){e.preventDefault();first.focus();}
-    else if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
-    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    // A313 : le focus se déplace NOUS-MÊMES à chaque Tab (Safari saute les boutons par défaut, et
+    // l'ordre natif sortait de la fenêtre), avec l'anneau posé sur l'élément atteint.
+    e.preventDefault();
+    const i=f.indexOf(document.activeElement);
+    _ringFocus(f[i<0?0:(i+(e.shiftKey?-1:1)+f.length)%f.length]);
   }
 });
 // (kb-open PURGÉ, règle 14 : la classe n'avait plus AUCUN consommateur CSS depuis que les actions
