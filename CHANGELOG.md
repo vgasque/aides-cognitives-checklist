@@ -1,5 +1,28 @@
 # Journal des modifications
 
+## [5.22.6] — 2026-09-05
+### L'anneau du curseur passe par les presets ; la palette, mesurée, reste (A314)
+
+- **« On ne pouvait pas mieux faire ? »** Pour le curseur, si : l'anneau d'A308 (clarté et chroma
+  constantes) ne passait pas par les presets, et A312 n'était qu'un accrochage — la barre
+  montrait l'anneau, le résultat sautait à treize endroits. Trois anneaux ont été chiffrés sur
+  360° et dessinés sur le canvas ; retenu par l'auteur : **l'anneau ancré sur les presets**,
+  clarté et chroma interpolées en teinte entre presets voisins, clarté bornée là où la pastille
+  passait sous 4,5. Écart nul aux treize degrés, en gamut partout, blanc ≥ 5,50, pastille ≥ 4,50.
+  Le curseur devient le prolongement continu de la palette ; l'accrochage d'A312 n'a plus rien
+  à cacher.
+- **La palette elle-même reste**, mesurée : écart minimal 5,9 ΔE entre presets, contrastes de la
+  régression #3 partout, chips lisibles en sombre. Deux faiblesses connues (teintes vert-bleu
+  resserrées à 16-22°, trois presets sous 3:1 en pleine couleur sur fond sombre) ne se corrigent
+  pas sans coût : les contraintes clair et sombre se contredisent à cette chroma, et les couleurs
+  déjà stockées ne changent jamais — une palette re-résolue coexisterait avec l'ancienne en
+  quasi-doublons. Avec l'anneau ancré, les intervalles entre presets sont atteignables au curseur.
+- Garde-fous : `tests.html` — l'anneau passe par chaque preset, la teinte suit le degré entre
+  deux presets, le vermillon à 19° sans accrochage (1189 → 1190), contrastes sur 120 teintes
+  conservés ; vérifiés capables d'échouer (anneau constant → 2 rouges). Doctrine A314 dans
+  `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.1] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
+
 ## [5.22.5] — 2026-09-05
 ### Au clavier, le piège des fenêtres déplace lui-même le focus, l'anneau suit, les champs s'allument par la bordure (A313)
 
@@ -511,25 +534,3 @@
   10-16 ms même bridées, +0 écouteur par coche, timers déjà gatés — rien à optimiser ; le seul
   levier mesurable est la masse de commentaires (55,6 % du fichier), chantier documentaire à
   arbitrer séparément. Détail complet : A289 (`docs/decisions/lot-v5-20.md`).
-
-## [5.20.1] — 2026-09-01
-### En voie large, l'accueil repartait de zéro à chaque re-rendu (A288)
-
-- **« On ne revient pas au scroll initial, on revient en haut de la page »** (A288, signalé à
-  l'usage après le ✎ *modifier bibliothèque* pris dans la LISTE de cartes). Le ✎ n'y est pour
-  rien : c'est la fermeture qui, après un enregistrement de nom, re-rend l'accueil. Or à partir de
-  780 px la page ne défile plus — ce sont `.home-main` (la liste) et `.hs-scroll` (les catégories
-  de la colonne gauche) qui portent le défilement, et tous deux sont **reconstruits** par
-  `main.innerHTML`. Mesuré : **600 → 0** pour la liste, **80 → 0** pour la colonne, à CHAQUE
-  re-rendu — donc aussi en épinglant, en filtrant, en cochant. En voie étroite le défileur est la
-  page, que le navigateur ne bouge pas : le même geste n'avait donc pas le même effet à 390 et à
-  1280, et c'est cette asymétrie qui tranchait la question.
-- **Correctif au patron de `.read-side`** (v4.23.5, même défaut sur le rail de lecture) : capture
-  avant, restauration après, **bornée au nouveau contenu** — une liste raccourcie par un filtre ne
-  doit pas poser hors borne. La mémoire par section de `setSection` l'emporte toujours : deux
-  crans ne partagent pas une position.
-- **Un piège de mesure évité en route** (famille A267) : la première sonde interrogeait le nœud
-  capturé AVANT le re-rendu — donc un nœud DÉTACHÉ, qui répond 0 quoi qu'il arrive, et qui aurait
-  affiché « rouge » même une fois le défaut corrigé. Le défaut a été re-mesuré avec une sonde qui
-  re-interroge le document ; le témoin (`audit-doctrine`, « le défilement survit au re-rendu »)
-  couvre les deux défileurs ET le geste signalé par son vrai chemin, et il est né ROUGE.

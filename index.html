@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-+kwg0T3QcxFG1lOLXLudu1I+nMlzrJ7zmSL0RxXE1mk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-rCtDg51Qsaz3HCE1ABzoUymINn9HngrWdMDn7tscGwY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8019,7 +8019,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.22.5';
+const APP_VERSION='5.22.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8032,10 +8032,7 @@ const LIB_PAGE=60;
 // couleurs DÉJÀ STOCKÉES ne changent pas. Trois teintes restent < 3:1 sur surface sombre (aucun
 // candidat au solveur) — atténué par « la couleur n'est jamais seule ». Détail : doctrine-js.md J1.
 const PALETTE=['#b23240','#8d5c39','#786824','#4f6b1e','#096e50','#226a71','#1f6f96','#45556b','#0d5b56','#5156b6','#755a96','#7a2f6b','#95516c'];
-/* Anneau des catégories (A308) : OKLCH ↔ hex sans dépendance. L 0,48 · C 0,08 = la chroma maximale
-   DANS le gamut sur tout le tour (0,081, limitée vers 195°) ; les deux contrastes de la régression #3
-   tiennent partout (témoin tests.html) ; dEok = ΔE OKLab ×100 (J1). */
-const CAT_L=0.48,CAT_C=0.08;
+/* Anneau des catégories (A308, ancré A314) : OKLCH ↔ hex sans dépendance ; dEok = ΔE OKLab ×100 (J1). */
 function hexToRgb(h){h=String(h).slice(1);if(h.length<6)h=h.split('').map(x=>x+x).join('');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255);}
 const rgbToHex=rgb=>'#'+rgb.map(v=>Math.round(Math.max(0,Math.min(1,v))*255).toString(16).padStart(2,'0')).join('');
 const srgbLin=v=>v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4);
@@ -8048,7 +8045,6 @@ function oklabToRgb(L,a,b){const l_=L+0.3963377774*a+0.2158037573*b,m_=L-0.10556
   return [srgbGam(4.0767416621*l-3.3077115913*m+0.2309699292*s),srgbGam(-1.2684380046*l+2.6097574011*m-0.3413193965*s),srgbGam(-0.0041960863*l-0.7034186147*m+1.7076147010*s)];}
 function oklchToHex(L,C,h){const r=h*Math.PI/180;return rgbToHex(oklabToRgb(L,C*Math.cos(r),C*Math.sin(r)));}
 function hexToOklch(hex){const[L,a,b]=rgbToOklab(...hexToRgb(hex));let h=Math.atan2(b,a)*180/Math.PI;if(h<0)h+=360;return [L,Math.hypot(a,b),h];}
-const catHueHex=h=>oklchToHex(CAT_L,CAT_C,h);
 /* A312 : à un degré donné, TOUJOURS la même couleur — la couleur d'origine du pli, puis un preset
    (hors anneau : L et C diffèrent, jusqu'à 9 ΔE au même degré), puis seulement l'anneau. */
 const catHueDeg=hex=>Math.round(hexToOklch(hex)[2])%360;
@@ -8058,6 +8054,13 @@ const relY=hex=>{const[r,g,b]=hexToRgb(hex).map(srgbLin);return .2126*r+.7152*g+
 function wcagRatio(a,b){const A=relY(a),B=relY(b);return (Math.max(A,B)+.05)/(Math.min(A,B)+.05);}
 /* Régression #3 sur un hex quelconque (importé) : blanc sur pleine ET teinte sur fond à 15 %. */
 function catLisible(col){const tint=rgbToHex(hexToRgb(col).map(v=>v*.15+.85));return wcagRatio('#ffffff',col)>=4.5&&wcagRatio(col,tint)>=4.5;}
+/* A314 : l'anneau passe PAR les presets — L et C interpolées en teinte entre presets voisins, clarté
+   bornée pour tenir la pastille à 4,5 (témoin tests.html sur 120 teintes). */
+const CAT_ANK=PALETTE.map(p=>{const[L,C,h]=hexToOklch(p);return {L,C,h};}).sort((a,b)=>a.h-b.h);
+function catHueHex(h){h=((h%360)+360)%360;const n=CAT_ANK.length;let i=CAT_ANK.findIndex(x=>h<x.h);if(i<0)i=0;
+  const b=CAT_ANK[(i-1+n)%n],c=CAT_ANK[i];let hb=b.h,hc=c.h;if(hc<=hb)hc+=360;let hh=h;if(hh<hb)hh+=360;const t=(hh-hb)/(hc-hb);
+  let L=b.L+(c.L-b.L)*t;const C=b.C+(c.C-b.C)*t;let hex=oklchToHex(L,C,h);
+  while(!catLisible(hex)&&L>0.40){L-=0.004;hex=oklchToHex(L,C,h);}return hex;}
 /* ===== Backends (stockage LOCAL) =====
    Trois implémentations interchangeables, MÊME interface (`Data` pointe sur le choix de
    chooseBackend) : MEM (repli mémoire), KV (clé-valeur JSON — window.storage, sinon
@@ -28916,7 +28919,7 @@ if(location.search.indexOf('__acdebug')>=0){
 if(location.search.indexOf('__actest')>=0){
   window.__ac_test__={sinceTxt,endSessOpenTxt,monBandData,MON_NOW,reviewOffers,evDeltas,revisedSinceTxt,tmIsDue,tmLiveOrder,TM_SOON_MS,carryLineHtml,dlev,libVocab,spellFix,migrate,sanitizeCats,safeId,safeColor,safeImg,safeAttachment,safeFileName,attDlName,attStoragePath,attMissingInfo,attBuf,MAX_PDF_BYTES,MAX_ATT_PER_ENTITY,
     imgKind,dataKind,upDetect,upShortName,UP_KINDS,
-    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,CAT_L,CAT_C,
+    mdBlocks,mdInline,mdRender,mdStrip,migrateProtocol,blankProtocol,MD_MAX_CHARS,sstr,sarr,parseValidation,detCatId,catSlug,esc,staleDate,PALETTE,catHueHex,catHueSnap,catHueDeg,hexToOklch,dEok,catLisible,
     txNorm,ficheHaystack,sanitizePins,sanitizeLibs,fmtBytes,flattenFiche,diffFicheLines,stepTextFromKey,stripJsonFences,normalizeImport,impDupRel,impDiff,flattenProto,sanitizeNotes,dbNameFor,spaceKeyFor,spaceTag,uid,SAFE_ID,stepIsCrit,stepIsVigil,stepText,
     kvStoreKey,SYNC_KV_KEY,restErrStatus,isPersoRepairCandidate,idbDead,explainSyncError,pullMissedIds,liveFicheCount,canReturnToAnon,fmt,stripBold,completionSpots,wrapText,buildFlowSVG,AI_PROMPT,relCandidatesFor,byTitle,mdCells,storageState,nfGuardTxt,mdCallout,MD_SCALES,cxAll,cxDetached,jalonProg,jalonCondLbl,cycleHint,cycleTxt,
     ixTokens,ixBuild,ixOpen,ixSearch,ixPagesOf,IX_V,

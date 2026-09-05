@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A313)
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A314)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -182,3 +182,42 @@ chaque arrêt porte l'anneau, les boutons sont atteints, les champs portent la b
 jamais l'anneau du navigateur, un bouton est atteint en quatre Tab depuis le gestionnaire ;
 joués VERTS sur Chromium ET WebKit, vérifiés CAPABLES D'ÉCHOUER (code d'avant réintroduit → 5 rouges
 sur WebKit, `index.html` et `_headers` restaurés à l'octet).
+
+## A314 — l'anneau du curseur passe par les presets ; la palette elle-même, mesurée, reste (v5.22.6)
+
+**Demande de l'auteur** (05/09/2026) : « concernant la palette de couleur des catégories on ne
+pouvait pas mieux faire ? », puis « ok pour ça » devant la planche « Curseur — trois anneaux » du
+canvas, et « et pour les couleurs en elles-mêmes / la palette ? ».
+
+**Le curseur, oui : A312 était un pansement.** L'anneau d'A308 (L 0,48 · C 0,08 constantes) ne
+passait pas par les presets (clarté 0,43-0,52, chroma 0,04-0,16) ; A312 accrochait le curseur aux
+presets à leur degré, mais la barre montrait l'anneau et le résultat sautait à treize endroits.
+Trois anneaux chiffrés sur 360° (planche du canvas) : constant (écarts 1,1-9,1 ΔE aux presets),
+chroma maximale plafonnée à 0,12 (0,4-8,7 ΔE, plus vif mais toujours à côté), **ancré sur les
+presets** (L et C interpolées linéairement en teinte entre presets voisins : écart nul aux treize
+degrés, en gamut partout, blanc ≥ 5,50, pastille 4,49 sur un court segment → **clarté bornée** par
+descente de 0,004 jusqu'à `catLisible`, pastille ≥ 4,50). Retenu : l'anneau ancré (`CAT_ANK`,
+`catHueHex`). Le curseur devient le prolongement continu de la palette ; `catHueSnap` reste (la
+couleur d'origine du pli à son degré, et le hex exact du preset), mais n'a plus rien à cacher.
+`CAT_L`/`CAT_C` disparaissent.
+
+**La palette, non — et voici pourquoi, mesuré.** Les treize presets satisfont toutes les
+contraintes dures : ΔE minimal entre deux presets 5,9 (plancher 4,0), les deux contrastes de la
+régression #3 partout, chips lisibles en sombre (≥ 4,65). Deux faiblesses réelles : (1) un
+resserrement des teintes vertes-bleues — 166°, 188°, 204° à 16-22° d'écart, contre 41° ailleurs ;
+(2) trois presets sous 3:1 en couleur pleine sur fond sombre (`#0d5b56` 2,25, `#45556b` 2,35,
+`#7a2f6b` 2,08), déjà connus de J1 et atténués par « la couleur n'est jamais seule ». Ce qui
+empêche de « faire mieux » sans coût : la contrainte pastille ≥ 4,5 en clair veut L ≤ ~0,50, le
+3:1 en sombre voudrait L ≥ ~0,52 — les deux ne se tiennent pas ensemble à cette chroma (J1 l'avait
+établi au solveur) ; et **les couleurs déjà stockées ne changent pas** : une palette re-résolue
+coexisterait sur les appareils avec l'ancienne, avec des quasi-doublons sous 4,0 ΔE (deux teals
+voisins), soit exactement le défaut qu'on voudrait corriger. Le caractère sourd est une identité
+(v5.1.x), pas un défaut. Avec l'anneau ancré, les intervalles entre presets sont désormais
+atteignables au curseur : le resserrement des teals se contourne sans re-résoudre la palette.
+
+**Garde-fous** : `tests.html` — « l'anneau passe par chaque preset (A314) », « entre deux presets,
+la teinte suit le degré », « l'anneau rend le vermillon à 19° sans accrochage » (remplace le témoin
+inverse d'A312 ; 1189 → 1190), contrastes sur 120 teintes et `catLisible` conservés ; vérifiés
+CAPABLES D'ÉCHOUER (anneau constant réintroduit → 2 rouges, dont les treize écarts listés,
+`index.html` et `_headers` restaurés à l'octet). La section A308 d'`audit-doctrine` reste verte
+(11/11).

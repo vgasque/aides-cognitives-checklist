@@ -181,8 +181,8 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('chip (blanc) ≥ 4.5:1 sur 120 teintes', worstChip>=4.5, 'min '+worstChip.toFixed(2));
     ok('catLisible accepte tout l’anneau et chaque preset', A.PALETTE.concat([0,90,180,270].map(A.catHueHex)).every(A.catLisible));
     ok('catLisible refuse un hex trop clair', !A.catLisible('#dddddd'));
-    const [L,C,H]=A.hexToOklch(A.catHueHex(200));
-    ok('aller-retour hex → OKLCH sur l’anneau', Math.abs(L-A.CAT_L)<0.01&&Math.abs(C-A.CAT_C)<0.01&&Math.abs(H-200)<1, [L,C,H].map(x=>x.toFixed(3)).join(' '));
+    ok('l’anneau passe par chaque preset (A314)', A.PALETTE.every(p=>A.dEok(A.catHueHex(A.catHueDeg(p)),p)<0.5), A.PALETTE.map(p=>A.dEok(A.catHueHex(A.catHueDeg(p)),p).toFixed(2)).join(' '));
+    ok('entre deux presets, la teinte suit le degré', Math.abs(A.hexToOklch(A.catHueHex(200))[2]-200)<1.5, A.hexToOklch(A.catHueHex(200))[2].toFixed(1));
     ok('hexToOklch lit un hex court', Math.abs(A.hexToOklch('#000')[0])<0.01);
     let minD=99;for(let i=0;i<A.PALETTE.length;i++)for(let j=i+1;j<A.PALETTE.length;j++)minD=Math.min(minD,A.dEok(A.PALETTE[i],A.PALETTE[j]));
     ok('dEok : plancher 4,0 entre presets (J1)', minD>=4, 'min '+minD.toFixed(2));
@@ -194,7 +194,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('chaque preset se retrouve à son degré', A.PALETTE.every(p=>A.catHueSnap(A.catHueDeg(p),null)===p));
   ok('hors preset : l’anneau', A.catHueSnap(100,null)===A.catHueHex(100));
   ok('la couleur d’origine du pli prime à son degré', A.catHueSnap(A.catHueDeg('#123456'),'#123456')==='#123456');
-  ok('un preset et son jumeau d’anneau ne sont PAS la même couleur (la raison d’A312)', A.dEok('#b23240',A.catHueHex(19))>4);
+  ok('A314 : l’anneau rend le vermillon à 19° sans accrochage', A.dEok('#b23240',A.catHueHex(19))<0.5, A.catHueHex(19));
 
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
