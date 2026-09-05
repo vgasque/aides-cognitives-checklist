@@ -2429,6 +2429,32 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   t('… et l\'invité suit par le billet « gc », sans geste', backG, '');
   const desarme = await H.evaluate(() => slSb.auto === false);
   t('… et le retour DÉSARME (pas de boucle)', desarme, String(desarme));
+
+  /* A320 — RÉVEIL : seconde panne → direct ; la veille « tue » les canaux (participants perdus) ;
+     au réveil, serveur revenu → l'hôte repasse en ligne SEUL, sans hystérésis. */
+  const rearm2 = backG && await H.waitForFunction(() =>
+    slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 })
+    .then(() => true).catch(() => false);
+  await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { window.__acNetOk = false; });
+  const auto2 = rearm2 && await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true,
+    null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const autoG2 = auto2 && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1',
+    null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const invH = autoG2 && await H.waitForFunction(() => (Share.participants || []).some(p => !p.owner && !p.revoked),
+    null, { timeout: 20000 }).then(() => true).catch(() => false);
+  t('seconde panne : les deux repassent en direct (secours re-formé)', auto2 && autoG2 && invH, 'rearm=' + rearm2 + ' hôte=' + auto2 + ' invité=' + autoG2 + ' listé=' + invH);
+  // (hystérésis rendue inatteignable : seul le RÉVEIL peut ramener l'hôte ici)
+  await H.evaluate(() => { window.__seenSain = shareSeenLost; shareSeenLost = () => true; window.__acNetOk = true; window.__acBackDwell = 999999;
+    Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; slWake(); });
+  await G.evaluate(() => { window.__acNetOk = true; });
+  const wakeH = invH && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL,
+    null, { timeout: 30000 }).then(() => true).catch(() => false);
+  const etatW = await H.evaluate(() => ({ share: Share.share, mode: Share.mode, sl: !!SL, auto: slSb.auto, net: _slNet.ok, live: slLiveOk(), morts: (Share.participants || []).filter(p => !p.owner && !p.revoked).length, sw: _slSwitching }));
+  t('RÉVEIL, canaux morts et serveur revenu : l\'hôte repasse en ligne SEUL, sans attendre (A320)', wakeH, JSON.stringify(etatW));
+  await H.evaluate(() => { shareSeenLost = window.__seenSain; });
   await ctx.close();
   if (brE !== br) await brE.close();
 });

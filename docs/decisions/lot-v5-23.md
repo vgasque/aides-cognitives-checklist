@@ -76,3 +76,23 @@ Bancs : `__acBackDwell` et `__acProbeMs` raccourcissent hystérésis et cadence,
 **Garde-fous** (section E2E des bascules, 19 → 23 contrôles) : la panne ARME le retour ; réseau
 revenu, l'hôte repasse en ligne TOUT SEUL et l'invité suit par le billet « gc » ; le retour DÉSARME —
 vérifiés CAPABLES D'ÉCHOUER (armement retiré → 3 rouges, `index.html` restauré à l'octet).
+
+## A320 — au réveil, l'hôte revient seul en ligne si le retour est armé (v5.23.3)
+
+**Avant** (v5.14.22) : la veille tue les canaux WebRTC ; au réveil l'app annonçait « ré-appariez
+depuis la feuille » — un geste demandé, et seulement au lecteur d'écran.
+
+**Ce qui change.** Le corps du gestionnaire `visibilitychange` devient `slWake()` : un hôte en direct
+dont des participants sont perdus (`shareSeenLost`) et dont le retour est ARMÉ (bascule de panne,
+A319) sonde le serveur ; s'il répond, `slGoCloud` discret AUSSITÔT — sans hystérésis, un lien mort
+n'a rien à préserver. Sinon (mode direct choisi, ou serveur muet), le mot « ● Lien à refaire » au
+quai et la phrase au lecteur d'écran, par `slSay`. Limite écrite : un invité dont le canal est mort
+ne peut pas suivre le billet `gc` — il re-rentre par le geste d'A212 ; le QR reste le dernier
+recours, réservé au cas sans serveur ni canal.
+
+**Garde-fous** (section E2E des bascules, 23 → 25 contrôles) : seconde panne → les deux repassent en
+direct (secours re-formé après le retour d'A319) ; participants « perdus » (prédicat stubé), serveur
+revenu, hystérésis rendue inatteignable → `slWake()` ramène l'hôte en ligne seul. ⚠ Première
+écriture NON discriminante : le veilleur d'A319 ramenait l'hôte de toute façon (dwell raccourci au
+banc) — c'est en rendant l'hystérésis inatteignable que le témoin mesure le réveil et lui seul ;
+vérifié CAPABLE D'ÉCHOUER (branche de retour retirée → rouge, `index.html` restauré à l'octet).
