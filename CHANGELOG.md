@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.23.0] — 2026-09-05
+### Un seul état visible : « ● Partagé » (A317, étape 1 du lot « seamless »)
+
+- **Demande de l'auteur** : rendre le passage entre partage en ligne et partage direct le plus
+  autonome et le plus transparent possible, sans que l'utilisateur ait à se demander s'il doit
+  basculer. Six propositions acceptées, livrées en cinq étapes ; celle-ci est la première.
+- **Le quai dit « ● Partagé »** dès qu'un partage est actif, quel que soit le canal (en ligne ou
+  direct), là où il disait « ● Session » puis « ● Direct ». Le transport n'est plus un état à
+  surveiller : il se lit dans la feuille de partage et aux transitions, une phrase sur place. Les
+  états dégradés (« figé », « coupé ») gardent leurs mots.
+- Garde-fou : deux contrôles dans la section E2E des bascules d'`audit-partage`, vérifiés
+  capables d'échouer. Doctrine A317 dans `docs/decisions/lot-v5-23.md` (nouveau fichier du
+  lot). CHANGELOG à 20 ([5.20.4] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro
+  de version.
+
 ## [5.22.8] — 2026-09-05
 ### La pastille choisie ne mord plus ses voisines ; renommer repeint l'aperçu (A316)
 
@@ -503,18 +519,3 @@
 - **Bilan** : `index.html` perd **~196 Ko** (2 891 → 2 695 Ko) ; l'effet au démarrage est la
   fraction correspondante de la borne parse mesurée en A289. Détail : A292
   (`docs/decisions/lot-v5-20.md`). Les commentaires JS suivent au lot suivant.
-
-## [5.20.4] — 2026-09-01
-### Soixante-quatre gardes `typeof` d'un monde révolu (A291)
-
-- **`if(typeof Sync!=='undefined')Sync.schedule();` et ses soixante-trois cousines** — des gardes
-  sur des symboles top-niveau du seul script applicatif, héritées des chantiers où `Sync`,
-  `Share` ou `zoomF` n'existaient pas encore — sont purgées. L'argument est structurel, pas un
-  inventaire : pour un `const` en zone morte temporelle, `typeof` LÈVE au lieu de répondre
-  `'undefined'` (la garde ne pouvait pas rendre le service qu'elle affichait), et le
-  run-to-completion garantit que tout gestionnaire ou timer court après l'évaluation complète du
-  script. Zéro comportement changé — 1 176 tests × 2 moteurs et l'audit complet le confirment.
-- **Gardés en connaissance de cause** : les vrais tests d'API sur des objets
-  (`navigator.wakeLock`, `document.elementsFromPoint`, `AbortController`) et les tests de type
-  sur des données ou des paramètres — eux disent quelque chose de vrai. Le repli `Math.random`
-  de `uid` reste en attente d'arbitrage. Détail : A291 (`docs/decisions/lot-v5-20.md`).

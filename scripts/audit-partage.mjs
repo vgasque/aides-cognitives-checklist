@@ -2345,6 +2345,9 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   const endTot = await H.evaluate(() => window.__cloudEnded);
   t('« En direct » : l\'hôte bascule sur le hub local', basH, '');
+  // A317 : le quai dit « ● Partagé » quel que soit le canal.
+  const lblD = await H.evaluate(() => { render(); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
+  t('le quai dit « ● Partagé » en direct (A317)', /^● Partagé/.test(lblD || ''), String(lblD));
   t('… et l\'invité SUIT par son canal dormant, sans QR', basG, '');
   t('le partage cloud n\'est terminé qu\'en DIFFÉRÉ (le « go » a le temps de partir)',
     endTot === 0, 'end=' + endTot);
@@ -2367,6 +2370,8 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active',
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   t('« En ligne » : l\'hôte repasse par le serveur', revH, '');
+  const lblC = await H.evaluate(() => { render(); const e = document.querySelector('.seg-sess'); return e ? e.textContent.trim() : null; });
+  t('… et le quai dit toujours « ● Partagé » (A317)', /^● Partagé/.test(lblC || ''), String(lblC));
   t('… et l\'invité le rejoint avec le billet « gc », sans re-saisie', revG, '');
 
   /* PHASE 3 — LA PANNE BRUTALE (la question de terrain : « si perte de réseau brutale, le
