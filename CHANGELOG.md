@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## [5.22.4] — 2026-09-05
+### Un degré, une couleur : le curseur rend le preset ou la couleur d'origine à leur degré (A312)
+
+- **Signalé par l'auteur** : « même si le degré est le même je n'ai pas l'impression d'avoir la
+  même couleur ; deux catégories marquées « proche de… », je joue avec la molette, je reviens à la
+  couleur de base : plus de « proche de », et la couleur n'est pas la même ». Exact, et vérifié par
+  le calcul : les treize presets ne sont pas sur l'anneau du curseur (L 0,48 · C 0,08) — au même
+  degré, preset et couleur d'anneau diffèrent de 1,1 à 9,1 ΔE (le vermillon d'« Urgences » à 19°
+  redevenait un brun terne). Revenir « au même degré » rendait donc une autre couleur, et la
+  distance aux voisines changeait avec elle.
+- **Correctif** : à un degré donné, toujours la même couleur — d'abord la couleur du pli à son
+  ouverture (un hex importé hors anneau se retrouve), puis le preset dont le degré coïncide, et
+  seulement sinon l'anneau. La pastille du preset s'allume quand le curseur l'atteint.
+- Garde-fous : `tests.html` § « curseur : un degré, une couleur (A312) » (5 témoins, 1184 → 1189) ;
+  un contrôle ajouté à la section A308 d'`audit-doctrine`, vérifié capable d'échouer. Doctrine
+  A312 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.6] archivée).
+- Vérifié : `npm run check` complet, 1189 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
+
 ## [5.22.3] — 2026-09-05
 ### Sur « Toutes », une bande collante par bibliothèque dans le gestionnaire de catégories (A311)
 
@@ -525,25 +543,3 @@
   va droit au gestionnaire ; et l'on ne liste que ce qui se gère (une bibliothèque en lecture
   seule serait une commande morte, règle 14). La feuille entre dans les surfaces d'`audit-a11y`
   par son vrai point d'entrée.
-
-## [5.19.6] — 2026-08-31
-### L'anneau de focus repris par un `#id` : une propriété corrigée, deux trous fermés (A285)
-
-- **Un `#id` reprenait EN SILENCE la respiration d'A268** (A285, signalé sur capture : « la
-  bordure du bouton *Tout* est toujours coupée par la fenêtre »). La feuille de filtres portait
-  depuis la v5.6 `#filtSheetBody{padding:0 0 4px}` : un `#id` l'emporte sur `.ai-card>.ai-body`,
-  et le RACCOURCI `padding` remettait l'axe inline à zéro — en laissant vivre la marge négative,
-  qui dès lors ne compensait plus rien. Résultat PIRE que l'état d'avant A268 : chips 4 px à
-  gauche du titre, pile sur la découpe, anneau de focus rasé. Mesuré : garde gauche 0 px pour
-  « Tout », « Toutes » et « Gérer », contre 3,9 px dans les seize autres corps de fenêtre.
-  Correctif d'une propriété : `padding-block:0 4px` — on n'écrit que l'axe qu'on règle, l'axe
-  inline reste à la règle commune ; effet second voulu, les chips s'alignent enfin sur le titre.
-- **Le trou de cascade se ferme en garde-fou** : `check-ring.mjs` (dans `npm run check`, donc en
-  CI) lit les corps de fenêtre dans la coque — jamais une liste tenue à la main — et refuse toute
-  règle qui les CIBLE par leur `#id` en posant une respiration inline < 4 px (les règles visant
-  un DESCENDANT ne sont pas concernées). Né ROUGE sur l'état d'avant correctif.
-- **Le trou de couverture aussi** : la feuille de filtres n'était ouverte par AUCUNE des
-  vingt-cinq surfaces d'`audit-a11y` — c'est ce qui a laissé sept mois au défaut. Elle entre au
-  balayage par son VRAI point d'entrée (`#filtTog`, qui n'existe que pendant une recherche) :
-  conforme aux deux thèmes du premier coup. Leçon v4.75.0 redite au prix fort : un défaut hors
-  périmètre n'est pas un défaut absent.

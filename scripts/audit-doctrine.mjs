@@ -6895,7 +6895,13 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     out.ouvertes2=bd.querySelectorAll('.cm-row.open').length;
     out.ouverteEstLa2e=rows()[1].classList.contains('open');
     const row=bd.querySelector('.cm-row.open'),cid=row.dataset.cid,cat=categories.find(c=>c.id===cid&&!c.library);
-    const hu=row.querySelector('[data-hue]');hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);
+    const orig=cat.color,hu=row.querySelector('[data-hue]');
+    // A312 : revenir au degré d'origine rend la couleur d'origine ; un degré de preset rend le preset.
+    hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);const sur120=cat.color;
+    hu.value=String(catHueDeg(orig));hu.dispatchEvent(new Event('input'));await w(60);
+    out.retour=cat.color===orig&&sur120!==orig;
+    hu.value='19';hu.dispatchEvent(new Event('input'));await w(60);out.preset19=cat.color;
+    hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);
     out.couleur=cat.color;out.hexValide=/^#[0-9a-f]{6}$/.test(cat.color);out.lisible=catLisible(cat.color);
     const [rr,gg,bb]=hexToRgb(cat.color).map(v=>Math.round(v*255));
     out.pointSuit=getComputedStyle(row.querySelector('.cm-dot span')).backgroundColor===`rgb(${rr}, ${gg}, ${bb})`;
@@ -6920,6 +6926,7 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   t('ouvrir une autre rangée ferme la première',r.ouvertes2===1&&r.ouverteEstLa2e,JSON.stringify([r.ouvertes2,r.ouverteEstLa2e]));
   t('curseur : hex valide, lisible, pastille peinte en direct',r.hexValide&&r.lisible&&r.pointSuit,JSON.stringify([r.couleur,r.lisible,r.pointSuit,r.note]));
   t('… enregistré au relâchement',r.persist===true,`${r.persist}`);
+  t('revenir au degré d\'origine rend la couleur d\'origine, et 19° rend le vermillon (A312)',r.retour===true&&r.preset19==='#b23240',JSON.stringify([r.retour,r.preset19]));
   t('éditeur de FICHE : « Nouvelle catégorie » ouvre la fenêtre en liste',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
   t('éditeur de PROTOCOLE : idem',r.protoVue==='protocolEdit'&&r.porteProto==='ok',JSON.stringify([r.protoVue,r.porteProto]));
   await page.close();

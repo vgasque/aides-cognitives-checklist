@@ -189,6 +189,13 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('dEok : identité nulle, voisins proches', A.dEok('#1f6f96','#1f6f96')===0&&A.dEok(A.catHueHex(200),A.catHueHex(205))<4);
   }
 
+  group('curseur : un degré, une couleur (A312)');
+  ok('au degré d’un preset, le curseur rend le preset (vermillon à 19°)', A.catHueSnap(19,null)==='#b23240', A.catHueSnap(19,null));
+  ok('chaque preset se retrouve à son degré', A.PALETTE.every(p=>A.catHueSnap(A.catHueDeg(p),null)===p));
+  ok('hors preset : l’anneau', A.catHueSnap(100,null)===A.catHueHex(100));
+  ok('la couleur d’origine du pli prime à son degré', A.catHueSnap(A.catHueDeg('#123456'),'#123456')==='#123456');
+  ok('un preset et son jumeau d’anneau ne sont PAS la même couleur (la raison d’A312)', A.dEok('#b23240',A.catHueHex(19))>4);
+
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
   // ⚠ Fixture MIGRÉE : les listes (confirmation, différentiels…) sont des vues sur le pool depuis

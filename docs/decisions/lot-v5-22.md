@@ -1,4 +1,4 @@
-# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A311)
+# Lot v5.22 — le gestionnaire de catégories en liste, le rail de session à 280 px sur tablette (A308-A312)
 
 > Fichier normatif, suite de [`lot-v5-21.md`](lot-v5-21.md) (A297-A307). Les numéros A sont des
 > adresses : ne jamais renuméroter.
@@ -120,3 +120,29 @@ d'A308.
 d'écart, bande collante qui tient au haut du défileur — à 820 × 640 pour que le corps défile ;
 98 → 99 sections), vérifié CAPABLE D'ÉCHOUER (`position:static` sur la bande → rouge, `index.html`
 restauré à l'octet).
+
+## A312 — un degré, une couleur : le curseur rend le preset ou la couleur d'origine à leur degré (v5.22.4)
+
+**Signalé par l'auteur** (05/09/2026) : « des fois même si le ° est le même je n'ai pas l'impression
+d'avoir la même couleur ; deux catégories marquées « proche de… », je joue avec la molette, je
+reviens à la couleur de base : plus de « proche de », et la couleur n'est pas la même ».
+
+**Vérifié par le calcul avant de corriger** : les treize presets ne sont PAS sur l'anneau du
+curseur (L 0,48 · C 0,08) — leur clarté va de 0,43 à 0,52 et leur chroma de 0,04 à 0,16. Au même
+degré, preset et couleur d'anneau diffèrent de 1,1 à 9,1 ΔE : le vermillon `#b23240` (19°) devient
+un brun terne `#854a4b`, l'indigo `#5156b6` (277°) un ardoise `#52598a`. Revenir « au même degré »
+rendait donc une AUTRE couleur, et la distance aux voisines changeait avec elle — d'où le
+« proche de » qui disparaît. L'observation de l'auteur était exacte.
+
+**Correctif** (`catHueSnap`) : à un degré donné, toujours la même couleur — d'abord la couleur du
+pli à son ouverture (`catPickOrig`, à son propre degré : un hex importé hors anneau se retrouve),
+puis le preset dont le degré arrondi coïncide (les treize degrés sont distincts), et seulement
+sinon l'anneau. Les presets restent les repères ; l'anneau comble les intervalles. Le dégradé du
+curseur montre l'anneau, et à un degré de preset le résultat est le preset — c'est le prix d'un
+curseur idempotent, et la pastille `.on` du preset s'allume pour le dire.
+
+**Garde-fous** : `tests.html` § « curseur : un degré, une couleur (A312) » (5 témoins, dont « un
+preset et son jumeau d'anneau ne sont PAS la même couleur », la raison même du correctif) ; un
+contrôle ajouté à la section A308 d'`audit-doctrine` (revenir au degré d'origine rend la couleur
+d'origine, 19° rend le vermillon), vérifié CAPABLE D'ÉCHOUER (accrochage retiré → rouge,
+`index.html` restauré à l'octet).
