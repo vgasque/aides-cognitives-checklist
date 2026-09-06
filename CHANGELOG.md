@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## [5.26.3] — 2026-09-07
+### La bouée de bascule, et l'invité que rien n'atteint (A332, addendum)
+
+- **Questions de l'auteur** : « et si pas de retour de l'hôte ? une bouée envoyée lors du passage
+  de l'hôte en direct pour forcer les autres ? » ; « quid si un invité n'est pas sur le même
+  réseau ? » ; « quid de la reprise en ligne après perte totale réseau et Wi-Fi ? ».
+- **La bouée** : à sa bascule en direct, l'hôte le crie sur chaque canal dormant — le relais est
+  mort pour lui, mais le canal vit. L'invité qui la reçoit suit en direct même si son propre relais
+  répond encore, son billet cloud gardé ; au retour de l'hôte, il repasse en ligne seul. Avant, un
+  invité dont le relais répondait restait sur un partage que plus personne n'alimentait.
+- **L'invité hors du réseau commun**, que ni le direct ni la bouée n'atteignent, lit désormais
+  « △ Hôte silencieux · ① Recevoir » dans le quai au-delà de 45 s sans nouvelles de l'hôte, et sa
+  feuille dit ce qui reste vrai : ses gestes arrivent au journal et l'hôte les lira à son retour ;
+  sa progression à lui se reçoit par l'écran. Rien n'est jugé : une heure recopiée, effacée dès que
+  l'hôte reparle. Ses coches ne sont pas suspendues.
+- **Reprise après perte totale** : mesurée dans les trois cas (canal mort à la coupure, canal
+  survivant quelques secondes, rechargement pendant la panne) — même partage repris des deux côtés,
+  gestes de l'hôte gardés ; un partage expiré pendant une longue coupure dit « Se reconnecter ».
+- **Garde-fous** : section « hôte seul » réécrite autour de la bouée, section « invité hors du
+  réseau commun » (9 contrôles au total), vérifiées capables d'échouer sur le code d'avant.
+
 ## [5.26.2] — 2026-09-07
 ### Ce que la panne fait aux gestes du partage (A332)
 
@@ -375,20 +396,3 @@
   rouge). Doctrine A316 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.3] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro
   de version.
-
-## [5.22.7] — 2026-09-05
-### Le curseur de teinte se replie derrière un bouton « palette », quatorzième pastille (A315)
-
-- **Demande de l'auteur** : « cache la palette derrière un bouton à côté des presets avec un petit
-  bouton svg montrant la palette », « utilise uiIcon ». Dans la palette ouverte d'une catégorie,
-  les treize pastilles sont suivies d'une quatorzième : un bouton à icône `palette`, entrée
-  ajoutée à la table d'`uiIcon` (trait, grille 24, tenue par `check-icons`). Le curseur « Autre
-  teinte » et l'aperçu ne se rendent qu'au tap ; le pli fermé perd ≈ 110 px.
-- **L'état se voit** : replié par défaut ; ouvert d'office quand la couleur n'est pas un preset,
-  le bouton portant alors l'anneau de sélection comme la pastille d'un preset choisi ; le choix
-  de l'utilisateur l'emporte ensuite jusqu'au prochain pli. Focus rendu au bouton après re-rendu.
-- Garde-fou : deux contrôles ajoutés à la section A308 d'`audit-doctrine` (14 boutons, curseur
-  absent puis présent au tap ; pli rouvert sur une couleur hors preset → curseur d'office et bouton
-  marqué), vérifiés capables d'échouer. Doctrine A315 dans `docs/decisions/lot-v5-22.md`.
-  CHANGELOG à 20 ([5.20.2] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).

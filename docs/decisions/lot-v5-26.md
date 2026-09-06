@@ -129,3 +129,45 @@ resynchronisation en attente qui repeint par accident ; sa preuve isolée est la
 « rattrape » faux avant, vrai après). Pièges de banc : la classe `share-stale` se pose au TICK
 (attendre, pas lire l'instant du retour) ; le bridage ne se mesure qu'au-delà de `staleLimit`
 (≈ 5 s pages visibles, 37 s pages masquées — `_base()` vaut 15 s en arrière-plan).
+
+**Addendum v5.26.3 — la bouée, et l'invité que rien n'atteint (questions de l'auteur).**
+
+*« Et si pas de retour de l'hôte ? Bouée envoyée lors du passage de l'hôte en direct pour forcer le
+passage en direct chez les autres ? »* — Oui, et par le seul chemin qui vit encore : à la bascule,
+l'hôte sert déjà les canaux dormants de ses invités ; il y envoie désormais une **bouée**
+(`SL_BOUEE`, trame hors RPC : `slRpcUnpack` la rend nulle, ni le serveur du hub ni le client ne la
+lisent), et l'invité qui la reçoit sur son canal dormant bascule en direct (`slSbGuestSwitch`, son
+billet cloud gardé) **même si son propre relais répond encore** — le relais n'est mort que pour
+l'hôte, mais un partage cloud que l'hôte n'alimente plus ne vaut rien. Au retour de l'hôte, `rc`
+sur le hub le ramène en ligne (A322). Mesuré : bascule suivie, coche de l'hôte reçue en direct sans
+aucun retour, retour sur le même partage, invité repassé en ligne. La ligne « limite connue » de
+la section « hôte seul » est remplacée par ce témoin. L'écoute de la bouée est posée à la création
+du canal (`slSbGuestKick`) et remplacée par le client dès la bascule (`slChanWire`).
+
+*« Mais quid si un invité n'est pas sur le même réseau ? »* — Rien ne l'atteint : ni le direct ni
+la bouée n'existent sans canal, et le relais est mort pour l'hôte. Ce qu'on lui doit, c'est la
+vérité : **« △ Hôte silencieux · ① Recevoir »** dans le bandeau du quai (`slLink().hostQuiet`,
+`shareHostSilenceMs` — le `seen` de la rangée propriétaire, mis à jour à chaque sondage de l'hôte,
+lu en heure serveur : une heure recopiée, rien de jugé, § 2), au-delà du seuil clinique
+`SHARE_SEEN_QUIET_MS` (45 s, le même que celui de l'hôte pour ses invités), effacé dès que l'hôte
+reparle (fonction pure de l'état, A325). La feuille de l'invité dit la cause et ce qui reste vrai :
+ses gestes arrivent au journal et l'hôte les lira à son retour (`rehost` reprend depuis son
+curseur) ; ce qu'il ne voit plus, c'est la progression de l'hôte — « Recevoir » par l'écran
+(`slRxQ`) reste sa porte. Ni « perdu » ni « par l'écran » : ses coches ne sont pas suspendues.
+
+*« Et quid si reprise en ligne suite à perte totale réseau et Wi-Fi, pour l'hôte, pour l'invité ? »*
+— Mesuré (banc, A322 + ce lot) : (1) canal mort à la coupure — les deux se figent ; au retour,
+l'hôte pousse sa file (ses gestes de la panne, désormais gardés) sur le MÊME partage, l'invité
+rattrape par son curseur ; (2) canal survivant quelques secondes — l'hôte bascule en direct,
+l'invité suit par la bouée ou échoue sur un canal mourant ; au retour, l'hôte revient par son
+billet (avec ou sans invité sur le hub), l'invité par le sien (`slGuestBack` → `slResumeCloud`,
+écran repeint) ; (3) rechargement pendant la panne — A323 (hôte) et A325 (invité), billets en
+`sessionStorage`. Ce qui reste vrai : les coches de l'invité pendant la panne n'existent pas
+(bridage, dit) ; un partage cloud expiré pendant une longue coupure (3 h par défaut, purge 30 min
+après) donne « Partage expiré — Se reconnecter » (A324), un nouveau code à scanner.
+
+**Garde-fous** : section « hôte seul » réécrite (bouée, 4 contrôles) ; section « invité hors du
+réseau commun » (5 contrôles : silence court tant que l'hôte sonde, qui grandit dès qu'il se tait —
+au banc, son `_cycle` devient un no-op, un `clearTimeout` ne suffit pas car chaque émission
+re-kicke —, bandeau ≤ 48 px, feuille, effacement). Sur le code d'avant : bouée → rouge (l'invité ne
+suit pas), silence → la section échoue (`shareHostSilenceMs` inexistant).

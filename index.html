@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-JI+kqvtToXnmPjeEnuZgPa4OGDDzcFY0TkrBPQs5hII='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-RyiQSWAGPRILakqaxFP9b1BMeNzLl15aQyDb8Osu/ak='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8111,7 +8111,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.26.2';
+const APP_VERSION='5.26.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -26848,6 +26848,14 @@ function shareSeenSilenceMs(p){
     const t=Date.parse(p.seen||'');if(!Number.isFinite(t))return 0;
     return Math.max(0,Share.now()-t);}catch(e){return 0;}}
 function shareSeenLost(p){return shareSeenSilenceMs(p)>SHARE_SEEN_LOST_MS;}
+/* A332 (v5.26.3) : le silence de l'HÔTE, vu de l'invité — même source (`seen` de la rangée
+   propriétaire, mise à jour à chacun de ses sondages), même heure serveur. Une heure recopiée,
+   rien de jugé (§ 2). Fonction réassignable au banc (patron `shareSeenSilenceMs`, A324). */
+function shareHostSilenceMs(){
+  try{const o=(Share.participants||[]).find(p=>p&&p.owner),v=o&&o.seen;
+    // ISO côté serveur, NOMBRE côté hub local (`o.now()`) : les deux se lisent.
+    const t=typeof v==='number'?v:Date.parse(v||'');if(!Number.isFinite(t))return 0;
+    return Math.max(0,Share.now()-t);}catch(e){return 0;}}
 function shareLeft(p){try{return !!(p&&Share._left&&Share._left[p.id]);}catch(e){return false;}}
 function sharePresent(p){return !!p&&!p.owner&&!p.revoked&&!p.detached&&!shareLeft(p)&&!shareSeenLost(p);}
 /* ÉTAT DE LA PASSATION — en mémoire seulement. Une offre est un MOMENT, pas un contrat : la
@@ -27596,6 +27604,7 @@ function slWhy(mode){
   const l=slLink();
   if(l.lost&&l.why!=='expired')return 'Connexion perdue à '+fmtHM(l.since)+' — aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.'
     +(Share.mode==='guest'?' Vos coches sont suspendues ; seuls vos repères datés (« Noter l’heure ») repartent.':'');   // A332
+  if(mode==='hostquiet')return 'L’hôte ne donne plus signe depuis '+fmtHM(l.hostSince)+' — son réseau, pas le vôtre\u00a0: ce que vous relevez lui parviendra à son retour\u00a0; pour voir sa progression, recevez-la par l’écran.';
   if(mode==='cloud')return 'Internet répond — rien à régler.';
   if(mode==='optic')return 'Aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.';
   return !Auth.signedIn()?'Sans compte, le partage se fait en direct — un Wi-Fi commun suffit, même sans internet.'
@@ -27959,17 +27968,21 @@ function slSheet(phase){
       :'<b>Relève</b>\u00a0: vous cochez et notez, sans revenir en arrière — «\u00a0Noter l’heure\u00a0» (dock) pose un repère daté.';
     body.innerHTML=slStatusHtml(mir?'● Miroir':'● Vous suivez la session',
         mir?'vue à '+fmtHM(_slMirror.at)+' · par l’écran':l.lost?'par l’écran':direct?'en direct':'en ligne',
-        mir?'Instantané daté, pas du direct\u00a0: chacun vise l’écran de l’autre, à tour de rôle.':slWhy(l.lost?'optic':direct?'direct':'cloud'),false)
+        mir?'Instantané daté, pas du direct\u00a0: chacun vise l’écran de l’autre, à tour de rôle.':slWhy(l.lost?'optic':direct?'direct':l.hostQuiet?'hostquiet':'cloud'),false)
       +'<p class="sh-h">À faire'+(mir||l.lost?', dans l’ordre':'')+'</p>'
       +(l.lost&&l.why==='expired'
         ?slStep(1,'Se reconnecter','le partage a expiré pendant la coupure — demandez un nouveau code',
           slActs('<button class="btn primary" id="slJoin">Se reconnecter…</button>'))
         :mir||l.lost?slOpticStepsHtml('guest')
+        // A332 (v5.26.3) : l'hôte s'est tu — sa progression se reçoit par l'écran, le reste passe déjà.
+        :l.hostQuiet?slStep(1,'Recevoir la progression','par l’écran de l’hôte, quand il est à portée — vos gestes, eux, lui parviennent déjà',
+          slActs('<button class="btn primary" id="slRxQ">Recevoir</button>'))
         :slStep(1,'Rien','la session se suit seule\u00a0; si le réseau se perd, les étapes s’affichent ici','',true))
       +(mir?'':'<p class="sh-h">Votre rôle</p><p class="sh-legend">'+role+'</p>')
       +slActs('<button class="btn ghost" id="slShow">Montrer à un autre écran</button>')
       +slLogHtml()+stat;
     slPrefFocus(body);slOn('slJoin',()=>openJoinScreen(''));
+    slOn('slRxQ',()=>slRxStart(()=>slSheet(phase),'Visez l’écran de l’hôte'));
     slOpticBind('guest',()=>slSheet(phase));
     return;}
   /* APPARIEMENT DIRECT (offer) — ou, sans adresse locale vue, PAR L'ÉCRAN d'office (optic) : le chemin
@@ -28166,6 +28179,7 @@ async function slGuestUp(dc){
    canal et re-amorce son pli depuis zéro : AUCUNE fusion, la machinerie existante fait tout.
    Le retour au cloud reste un TAP (segmenté « En ligne ») — le sens panne est automatique,
    le sens confort reste un choix. ⚠ EXIGE le rejeu de schema.sql (genre `sig`) sur l'instance. */
+const SL_BOUEE='AC:GO';   // A332 — la bouée de bascule, hors trame RPC
 const slSb={dcs:[],dc:null,pc:null,say:null,said:false,auto:false,optic:false,okRun:0,since:0,log:[],cloud:null,dwellMs:60000,lastBack:0,expired:false,lostAt:0};
 /* A323 : le billet cloud de l'HÔTE (id, code, curseur, fiche) survit au rechargement — sessionStorage,
    même arbitrage que le billet de l'invité (J224) : rien de durable, aucune donnée clinique. */
@@ -28219,22 +28233,32 @@ function slLink(){
   const vif=p=>!p.owner&&!p.revoked&&shareSeenSilenceMs(p)<=SHARE_SEEN_QUIET_MS;
   if(Share.mode==='host')lost=direct?(slSb.auto&&!net&&Date.now()-slSb.since>15000&&!(Share.participants||[]).some(vif)):(Share._fails>=2&&!slSb.dcs.length);
   else lost=direct?(Share._fails>=2&&!net):(Share._fails>=2&&!slSb.dc);
-  return {lost,why:direct?'canal':'net',since:Share.lastOk};}
+  /* A332 (v5.26.3) : l'invité HORS du réseau commun, que ni le direct ni la bouée n'atteignent —
+     son relais répond, l'hôte s'est tu (panne côté hôte). Ni « perdu » ni « par l'écran » : ses
+     gestes arrivent au journal et l'hôte les lira à son retour ; ce qu'il ne voit plus, c'est la
+     progression de l'hôte. On le lui DIT, et « Recevoir » par l'écran reste sa porte. */
+  const sil=(Share.mode==='guest'&&!direct&&!lost)?shareHostSilenceMs():0;
+  const hostQuiet=sil>SHARE_SEEN_QUIET_MS;
+  return {lost,why:direct?'canal':'net',since:Share.lastOk,hostQuiet,hostSince:hostQuiet?Date.now()-sil:0};}
 let _lkSig='';
 // « Par l'écran » est le mode EN COURS (forcé, choisi d'office sans adresse locale, ou miroir) — pas seulement le lien perdu.
 const slOpticOn=()=>slSb.optic||!!(SL&&!SL.live&&SL.phase==='optic')||!!(_slMirror&&Runtime.started&&Share.mode==='off');
 function slLinkPaint(){const el=document.getElementById('linkBar');if(!el)return;
   const l=slLink(),hote=Share.mode==='host'||(Share.mode==='off'&&!_slMirror),opt=l.lost||slOpticOn();
-  const sig=opt?[l.lost?l.why:'opt',hote,Math.floor((l.since||0)/60000)].join('|'):'';
+  const hq=!opt&&!hote&&l.hostQuiet;   // A332 (v5.26.3) : l'hôte s'est tu, le relais de l'invité répond
+  const sig=opt?[l.lost?l.why:'opt',hote,Math.floor((l.since||0)/60000)].join('|'):hq?'hq|'+Math.floor(l.hostSince/60000):'';
   if(sig===_lkSig)return;_lkSig=sig;
-  if(!opt){el.hidden=true;el.innerHTML='';return;}
+  if(!opt&&!hq){el.hidden=true;el.innerHTML='';return;}
   if(l.lost&&!_slNet.timer)slNetWatch();   // la sonde veille : c'est elle qui verra revenir le réseau
   // A327 : même mode, mêmes verbes, mêmes numéros que slOpticStepsHtml — l'hôte reçoit aussi ; le
   // bandeau reste tant que le mode l'est, pour montrer / recevoir sans rouvrir la feuille.
   const act=(k,t)=>'<button type="button" class="lk-act" data-lk="'+k+'">'+t+'</button>';
-  const acts=l.lost&&l.why==='expired'?act('join','Se reconnecter…')
+  const acts=hq?act('rx','① Recevoir')
+    :l.lost&&l.why==='expired'?act('join','Se reconnecter…')
     :hote?act('show','① Montrer')+act('rx','② Recevoir'):act('rx','① Recevoir')+act('ret','② Renvoyer');
-  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="'+(l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since))+(hote?'':' — coches suspendues, repères seuls'):'Mode par l’écran — chacun vise l’écran de l’autre')+'">Par l’écran</span>'+acts
+  const titre=hq?'L’hôte ne donne plus signe depuis '+esc(fmtHM(l.hostSince))+' — vos gestes lui parviennent à son retour'
+    :l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since))+(hote?'':' — coches suspendues, repères seuls'):'Mode par l’écran — chacun vise l’écran de l’autre';
+  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="'+titre+'">'+(hq?'Hôte silencieux':'Par l’écran')+'</span>'+acts
     +'<button type="button" class="lk-act why" data-lk="why" aria-label="Pourquoi ? — les étapes du partage" title="Pourquoi ?">'+uiIcon('info',16)+'</button>';
   el.hidden=false;
   el.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>{const k=b.dataset.lk;
@@ -28262,6 +28286,12 @@ async function slSbGuestKick(){
     slSb.pc=g;
     g.dc.onopen=()=>{slSb.dc=g.dc;try{slModePaint();}catch(_){}slSbReadySay();};
     g.dc.onclose=()=>{if(slSb.dc===g.dc)slSb.dc=null;if(slSb.pc===g)slSb.pc=null;};
+    /* LA BOUÉE (A332, demande de l'auteur : « et si pas de retour de l'hôte ? ») : quand l'HÔTE
+       bascule en direct, il le crie sur chaque canal dormant — le relais est mort POUR LUI, mais le
+       canal, lui, vit. L'invité dont le relais répond encore suivrait sinon un partage cloud que
+       plus personne n'alimente. Trame hors RPC (`slRpcUnpack` la rend nulle : ni le serveur du hub
+       ni le client ne la lisent), remplacée par le client dès `slSbGuestSwitch` (slChanWire). */
+    g.dc.onmessage=e=>{if(e.data===SL_BOUEE&&slSb.dc===g.dc&&Share.mode==='guest'&&Share._io===Share._ioRest)slSbGuestSwitch();};
     Share.emit('sig',{t:'o',o:slPairPack(Object.assign({k:g.k},g.offer))});
     /* MONTRE DE 30 s (v5.14.9, terrain) : un échec ICE laissait le verrou posé À JAMAIS —
        plus aucune tentative ensuite. Canal jamais ouvert = on jette et on laissera le
@@ -28350,6 +28380,8 @@ async function slSbHostSwitch(say){
     const r=await Share.host(f).catch(()=>null);
     if(r&&r.ok){SL.wires=[];
       for(const d of dcs){const w=slChanWire(d.dc);slServe(hub,w);SL.wires.push(w);}
+      // La bouée (A332) : chaque invité apparié en silence suit, que SON relais réponde ou non.
+      for(const d of dcs)try{d.dc.send(SL_BOUEE);}catch(e){}
       slSay('Passe en direct',say||'Le réseau a lâché — le partage continue en direct.');
       if(slSb.auto){slSb.since=Date.now();slSb.okRun=0;slNetWatch();}}
     else SL=null;

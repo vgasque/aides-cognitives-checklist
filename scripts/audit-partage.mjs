@@ -2699,24 +2699,56 @@ await sec('v5.23.8 · la bannière n\'a pas de mémoire : perdue → effacée, d
    (3) l'invité revenu par `slResumeCloud` reconstruisait son pli sans repeindre l'écran ; et le
    bridage de l'invité périmé, voulu, ne se VOYAIT pas. Plus le minuteur : l'arrêt reçu n'était pas
    daté (« arrêté depuis » absent chez l'autre). Deux bancs, deux unités de verdict. */
-await sec('v5.26.2 · panne côté hôte seul : bascule sans suite, retour seul par le billet, rattrapage (A332)', async () => {
+await sec('v5.26.2 · panne côté hôte seul : la bouée fait suivre l\'invité, retour seul par le billet, rattrapage (A332)', async () => {
   const { H, G, pretH, close } = await bancRelais();
   await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); window.__opens = 0; });
-  // L'hôte seul perd internet : ses canaux dormants vivent (Wi-Fi commun intact), l'invité garde le relais.
+  // L'hôte seul perd internet : ses canaux dormants vivent (Wi-Fi commun intact), le relais de l'invité RÉPOND.
   await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
     Share._io = Object.assign({}, io, { pull: async () => { throw new Error('portail'); }, push: async () => { throw new Error('portail'); } });
     Share._ioRest = Share._io; });
   const dH = pretH && await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true, null, { timeout: 40000 }).then(() => true).catch(() => false);
-  const resteG = await G.evaluate(() => Share.share === 'bus1' && Share._io === Share._ioRest);
-  t('l\'hôte bascule en direct ; l\'invité, dont le relais répond, ne suit pas — limite connue, dite (A332)', dH && resteG, 'hôte=' + dH + ' invité=' + resteG);
+  // v5.26.3 : la bouée sur le canal dormant — l'invité suit en direct alors que son propre relais répond encore.
+  const dG = dH && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1', null, { timeout: 20000 }).then(() => true).catch(() => false);
+  const tkG = dG && await G.evaluate(() => !!(slSb.cloud && slSb.cloud.s === 'bus1'));
+  t('l\'hôte bascule en direct et sa BOUÉE fait suivre l\'invité dont le relais répondait encore, billet cloud gardé (A332)', dH && dG && tkG, 'hôte=' + dH + ' invité=' + dG + ' billet=' + tkG);
   const kH = await H.evaluate(async () => { const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck]);
     el.click(); await new Promise(r => setTimeout(r, 300)); return el.dataset.ck; });
+  await G.evaluate(k => { window.__kH = k; }, kH);
+  const vuDirect = dG && await G.waitForFunction(k => !!Runtime.checked[k], kH, { timeout: 15000 }).then(() => true).catch(() => false);
+  t('… en direct, la coche de l\'hôte atteint l\'invité sans attendre aucun retour', vuDirect, kH);
   await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000; Share._ioRest = window.__ioSain; slNetWatch(); });
   const back = dH && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL, null, { timeout: 40000 }).then(() => true).catch(() => false);
   const opens = await H.evaluate(() => window.__opens);
-  t('internet revenu : l\'hôte SANS invité sur son hub revient seul sur le MÊME partage, par son billet (A332)', back && opens === 0, 'repris=' + back + ' opens=' + opens);
-  const vu = back && await G.waitForFunction(k => !!Runtime.checked[k], kH, { timeout: 20000 }).then(() => true).catch(() => false);
-  t('… et la coche faite par l\'hôte pendant sa panne atteint l\'invité (A332)', vu, kH);
+  t('internet revenu : l\'hôte revient seul sur le MÊME partage, par son billet, sans nouvel « open » (A332)', back && opens === 0, 'repris=' + back + ' opens=' + opens);
+  const reG = back && await G.waitForFunction(() => Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active' && !!Runtime.checked[window.__kH], null, { timeout: 40000 }).then(() => true).catch(() => false);
+  t('… et l\'invité repasse en ligne sur ce partage (« rc »), la coche gardée', reG, '');
+  await close();
+});
+
+await sec('v5.26.3 · invité hors du réseau commun : l\'hôte silencieux se DIT, sa progression se reçoit par l\'écran (A332)', async () => {
+  const { H, G, close } = await bancRelais();
+  await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); });
+  // Aucun canal dormant (invité sur un autre réseau) : ni direct ni bouée ne peuvent l'atteindre.
+  await H.evaluate(() => { slSbReset(); }); await G.evaluate(() => { slSbReset(); });
+  const vif = await G.evaluate(async () => { await new Promise(r => setTimeout(r, 2500)); return shareHostSilenceMs(); });
+  t('tant que l\'hôte sonde, son silence vu de l\'invité reste court (source : `seen` de la rangée propriétaire)', vif >= 0 && vif < 2500, vif + ' ms');
+  // l'hôte se tait (son réseau, pas celui de l'invité) : son cycle devient un no-op — un simple clearTimeout ne suffit pas, chaque émission re-kicke
+  await H.evaluate(() => { window.__cycleSain = Share._cycle; Share._cycle = async () => {}; });
+  const tu = await G.waitForFunction(() => shareHostSilenceMs() > 3000, null, { timeout: 15000 }).then(() => true).catch(() => false);
+  t('… et grandit dès qu\'il se tait — mesuré, jamais déclaré', tu, '');
+  // Le seuil clinique est 45 s : on abaisse la source au banc (patron A324) pour lire l'état qu'il produit.
+  await G.evaluate(() => { window.__hsSain = shareHostSilenceMs; shareHostSilenceMs = () => 60000; });
+  const bar = await G.waitForFunction(() => { const e = document.getElementById('linkBar'); return e && !e.hidden && /Hôte silencieux/.test(e.textContent) && /① Recevoir/.test(e.textContent); }, null, { timeout: 8000 }).then(() => true).catch(() => false);
+  const st = await G.evaluate(() => ({ hq: slLink().hostQuiet, lost: slLink().lost, h: (document.getElementById('linkBar').getBoundingClientRect().height) }));
+  t('bandeau « △ Hôte silencieux · ① Recevoir » chez l\'invité — ni perdu ni par l\'écran, une ligne (A332)', bar && st.hq && !st.lost && st.h <= 48, JSON.stringify(st));
+  const feuille = await G.evaluate(async () => { openCurrentShare(); await new Promise(r => setTimeout(r, 400));
+    const b = document.getElementById('shareBody'); const ok = /ne donne plus signe/.test(b.textContent) && !!document.getElementById('slRxQ');
+    document.getElementById('shareModal').classList.remove('on'); return ok; });
+  t('… et la feuille dit la même chose : la cause, que ses gestes parviennent, « Recevoir »', feuille, '');
+  await G.evaluate(() => { shareHostSilenceMs = window.__hsSain; });
+  await H.evaluate(() => { Share._cycle = window.__cycleSain; Share._kick(0); });
+  const efface = await G.waitForFunction(() => document.getElementById('linkBar').hidden, null, { timeout: 8000 }).then(() => true).catch(() => false);
+  t('l\'hôte reparle → le bandeau s\'efface (fonction pure de l\'état, A325)', efface, '');
   await close();
 });
 
