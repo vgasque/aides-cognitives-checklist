@@ -11,6 +11,9 @@
      matière nocturne ÉCLAIRCIE il perd un cran (.10 jour → .14 nuit), donc deux valeurs, donc un
      token. */
   --sys-edge:transparent;--sys-key:rgba(255,255,255,.1);
+  /* ANNEAU D'ARRIVÉE du quai (v5.26.0, A331) : sombre sur la page claire, clair sur la nuit —
+     un signal, pas un registre, donc l'encre du quai lui-même. */
+  --dock-ring:rgba(29,35,43,.85);
   --line:#e3e6ea;--line-strong:#c3ccd6;
   /* --ctl-line : LA SEULE DÉVIATION ASSUMÉE À tokens.css — --line-strong DESSINE (filets), ce
      token se VISE : bordure de COMPOSANT à 3:1 (WCAG 2.2 § 1.4.11, « la case qu'on vise avec des

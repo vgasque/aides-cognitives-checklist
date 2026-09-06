@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.26.0] — 2026-09-06
+### Il reste un geste après avoir ouvert une carte, et le quai le dit (A331)
+
+- **Demande de l'auteur** : attirer l'attention sur le fait qu'après avoir ouvert une aide, il
+  faut encore démarrer la session — sans fondu en boucle (WCAG 2.2.2). Maquettes et démonstration
+  rejouable validées sur canvas ; les formes refusées sont consignées dans la doctrine.
+- **L'arrivée du quai** : à l'ouverture d'une fiche, avant la session, la capsule se relève une
+  fois (14 px, 280 ms) puis trois anneaux s'en éloignent de 12 px et s'effacent, à 0,9, 2,2 et
+  3,5 s — tout est fini à 4,8 s, rien ne boucle. L'anneau entoure la capsule entière, jamais le
+  bouton seul : il ne touche ni la touche Exercice ni le bouton. Sombre le jour, clair la nuit ;
+  nul sous « réduire les animations » ; jamais rejoué tant qu'on reste sur la fiche.
+- **La bulle d'apprentissage**, 16 px au-dessus du quai, pointée sur le bouton : « Rien n'est
+  lancé tant que vous consultez. Étapes, minuteurs, partage : "Démarrer la session". » Elle reste
+  tant qu'aucune session n'a été démarrée sur l'appareil, puis disparaît pour de bon. La réserve
+  de bas de page suit sa hauteur.
+- **« Exo. »** : sous 430 px la touche Exercice garde un mot tronqué au lieu de perdre son libellé.
+- **Garde-fous** : cliquet `pointer-events:none` de `check-anim` monté à 23 (l'anneau est un
+  annonciateur pur). Doctrine A331 dans `docs/decisions/lot-v5-26.md`, index mis à jour.
+
 ## [5.25.1] — 2026-09-06
 ### La carte « Quand l'utiliser » respire pareil en haut et en bas (A330, addendum)
 
@@ -377,22 +396,4 @@
   atteints, les champs portent la bordure allumée et jamais l'anneau du navigateur), verts sur
   Chromium ET WebKit, vérifiés capables d'échouer (code d'avant → 5 rouges sur WebKit). Doctrine
   A313 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.0] archivée).
-- Vérifié : `npm run check` complet, 1189 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
-
-## [5.22.4] — 2026-09-05
-### Un degré, une couleur : le curseur rend le preset ou la couleur d'origine à leur degré (A312)
-
-- **Signalé par l'auteur** : « même si le degré est le même je n'ai pas l'impression d'avoir la
-  même couleur ; deux catégories marquées « proche de… », je joue avec la molette, je reviens à la
-  couleur de base : plus de « proche de », et la couleur n'est pas la même ». Exact, et vérifié par
-  le calcul : les treize presets ne sont pas sur l'anneau du curseur (L 0,48 · C 0,08) — au même
-  degré, preset et couleur d'anneau diffèrent de 1,1 à 9,1 ΔE (le vermillon d'« Urgences » à 19°
-  redevenait un brun terne). Revenir « au même degré » rendait donc une autre couleur, et la
-  distance aux voisines changeait avec elle.
-- **Correctif** : à un degré donné, toujours la même couleur — d'abord la couleur du pli à son
-  ouverture (un hex importé hors anneau se retrouve), puis le preset dont le degré coïncide, et
-  seulement sinon l'anneau. La pastille du preset s'allume quand le curseur l'atteint.
-- Garde-fous : `tests.html` § « curseur : un degré, une couleur (A312) » (5 témoins, 1184 → 1189) ;
-  un contrôle ajouté à la section A308 d'`audit-doctrine`, vérifié capable d'échouer. Doctrine
-  A312 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.6] archivée).
 - Vérifié : `npm run check` complet, 1189 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
