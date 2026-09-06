@@ -2597,26 +2597,28 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      Rien à dire → AUCUNE ligne : un panneau qui affirme « 0 minuteur » est du bruit. */
   group('Q4 — ce que la fiche embarque (carryLineHtml)');
   const _cf=(o)=>Object.assign({blocks:[{id:'b1'},{id:'b2'}],timers:[],counters:[],excursions:[]},o);
-  eq('ni minuteur, ni compteur, ni complication → rien', A.carryLineHtml(_cf({})), '');
-  ok('un minuteur → le compte des blocs ET du minuteur',
-     /2 blocs · 1 minuteur/.test(A.carryLineHtml(_cf({timers:[{id:'t'}]}))));
-  ok('pluriels accordés',
-     /2 minuteurs · 2 compteurs/.test(A.carryLineHtml(_cf({timers:[{},{}],counters:[{},{}]}))));
-  ok('une complication se dit « déclarée »',
-     /1 complication déclarée/.test(A.carryLineHtml(_cf({excursions:[{}]}))));
+  /* v5.25.0 : la ligne dit ce qui est À DISPOSITION — les minuteurs, nom et période — et rien ne
+     « démarre » (correction de l'auteur : seul le chrono de session part). Sans minuteur, rien. */
+  eq('aucun minuteur → rien (compteurs et complications ne font plus de ligne)',
+     A.carryLineHtml(_cf({counters:[{},{}],excursions:[{}]})), '');
+  ok('un minuteur d’intervalle → « à disposition », nom et période',
+     /Minuteurs à disposition en session : Cycle RCP 2:00\./.test(A.carryLineHtml(_cf({timers:[{type:'interval',seconds:120,label:'Cycle RCP'}]}))));
+  ok('deux minuteurs séparés par « · »',
+     /Cycle RCP 2:00 · Adrénaline 4:00\./.test(A.carryLineHtml(_cf({timers:[{type:'interval',seconds:120,label:'Cycle RCP'},{type:'interval',seconds:240,label:'Adrénaline'}]}))));
+  ok('un chronomètre sans libellé prend son nom générique',
+     /Chronomètre\./.test(A.carryLineHtml(_cf({timers:[{type:'stopwatch'}]}))));
+  ok('jamais le mot « démarre »', !/démarr/.test(A.carryLineHtml(_cf({timers:[{type:'interval',seconds:120,label:'X'}]}))));
   ok('aucune fiche → aucune ligne', A.carryLineHtml(null)==='');
-  /* La ligne ne porte que du comptage : aucun texte d'auteur, donc rien à échapper — mais on
-     vérifie qu'elle n'ouvre pas de balise inattendue (esc() reste la seule barrière). */
-  ok('aucune balise autre que le conteneur',
-     (A.carryLineHtml(_cf({timers:[{}]})).match(/</g)||[]).length===2);
+  ok('le libellé est échappé',
+     !/<b>/.test(A.carryLineHtml(_cf({timers:[{type:'interval',seconds:60,label:'<b>x</b>'}]}))));
   /* A130 (v5.8.0) — UNE PHRASE, DEUX LECTEURS. `carryParts` est le calcul ; l'écran d'entrée et
      la rangée de l'atelier d'import s'en servent tous les deux, donc les mots ne peuvent pas
      diverger. Ce qui diffère est le SEUIL, et chacun est motivé : avant le soin, une fiche sans
      minuteur ni compteur ni complication n'a rien à annoncer ; dans l'atelier, le compte des
      BLOCS est précisément ce qui distingue un algorithme complet d'une ébauche. */
-  eq('la ligne d’entrée se tait, mais les parts existent (le seuil diffère, pas le calcul)',
+  eq('la ligne d’entrée se tait, mais les parts existent (l’atelier compte, l’entrée ne compte plus)',
      [A.carryLineHtml(_cf({})), A.carryParts(_cf({}))], ['', ['2 blocs']]);
-  eq('mêmes mots que la ligne d’entrée', A.carryParts(_cf({timers:[{}],counters:[{},{}],excursions:[{}]})),
+  eq('les mots de l’atelier', A.carryParts(_cf({timers:[{}],counters:[{},{}],excursions:[{}]})),
      ['2 blocs','1 minuteur','2 compteurs','1 complication déclarée']);
   eq('aucune fiche → aucune part', A.carryParts(null), []);
   eq('une fiche vide ne compte rien', A.carryParts({}), []);

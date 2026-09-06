@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [5.25.0] — 2026-09-06
+### L'écran d'entrée d'une aide se lit comme un écran de démarrage (A330)
+
+- **Demande de l'auteur** : « comprendre que c'est juste un écran de démarrage, que l'action se
+  situe après ; le plan n'est qu'un plan ». Mesuré avant : « Prise en charge » en titre, des
+  rangées blanches numérotées qui invitent au tap, des compteurs « 0/4 », et le seul mot qui disait
+  le contraire — « inerte » — à 11 px gris clair. Maquettes itérées sur canvas.
+- **Trois chapitres de même niveau, sans numéro** : les intitulés qui existaient sortent de leurs
+  cadres — « ■ Quand l'utiliser », « ■ Ne pas oublier », « Parcours » (sous-ligne « Aperçu — se
+  déroule après le démarrage ») —, un filet et un blanc ouvrent chacun. En session, rien ne change.
+- **Le plan est un aperçu à plat** : ni carte, ni pastille, ni « 0/4 » ; numéros, titres et renvois
+  gris ; la rangée de décision se tait quand ses branches sont étiquetées ; rangées de 32 px,
+  toujours dépliables. « Surveiller ensuite » reste au rail. Tableau et Schéma vivent sous le titre
+  « Parcours », à largeur de contenu, alignés à gauche.
+- **Rien ne démarre sauf le chrono** (correction de l'auteur) : le rail « Ce qui démarrera » devient
+  « En session » (« démarre avec la session » / « 2:00 cyclique, à lancer ») ; sur téléphone,
+  « Minuteurs à disposition en session : Cycle RCP 2:00 · Adrénaline 4:00. » remplace la ligne
+  « 5 blocs · 2 minuteurs · … ».
+- **Le sur-titre dit l'état** : « Avant la session · adulte », encre neutre, dans le logement que
+  « ■ Mode crise » prend au premier geste. Cockpit : même grammaire dans la colonne de gauche, sans
+  « ICI ». Notes locales, note personnelle et pied passent en queue sous un filet ; la porte « Le
+  tableau ne colle pas ? » à l'encre normale.
+- **Garde-fous** : témoins d'audit-doctrine réalignés (boutons sous « Parcours » et au-dessus de
+  l'aperçu, zéro « Prise en charge » avant la session), tests Q4 réécrits, `.conf-eh` purgé avec
+  épitaphe. Doctrine A330 dans `docs/decisions/lot-v5-25.md` ; formes refusées consignées.
+
 ## [5.24.2] — 2026-09-06
 ### L'audit du partage passe de 220 s à ~75 s ; l'invité reprend le cloud à la sonde (A329)
 
@@ -379,23 +405,3 @@
   `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.5] archivée).
 - Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26 (deux passes,
   avant et après le numéro de version).
-
-## [5.22.2] — 2026-09-05
-### La grille de lecture lit le token de colonne que le dock lisait déjà (A310)
-
-- **Signalé par l'auteur** : « tu n'as pas adapté la taille de la barre flottante en bas depuis
-  que tu as diminué la sidebar droite ». Exact : A308 avait posé `280px` en littéral dans la grille
-  de lecture, alors que le dock flottant et son volet calculent leur marge droite sur `--col-state`,
-  resté à 320 — contre la règle écrite à la déclaration des tokens (« une seule source »). Mesuré à
-  820 px en session : le dock s'arrêtait 42 px avant le bord de la colonne d'action.
-- **Correctif** : `--col-state` devient un token PAR PALIER (280 dès 780, 320 dès 1000) et les
-  grilles de lecture (780, 1000, 1200, cockpit) lisent `var(--col-state)`, `var(--col-orient)`
-  et `var(--col-gap)` — grille, dock et volet ne peuvent plus diverger. Reste l'écart symétrique
-  et préexistant de 2 px entre le rembourrage du dock (20) et celui de la grille (18).
-- Garde-fou : un contrôle ajouté à la section A309 de `audit-doctrine` (bord droit du dock à
-  ≤ 3 px de la colonne d'action), vérifié capable d'échouer sur le défaut réel (littéral
-  réintroduit → écart −42 px). Doctrine A310 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20
-  ([5.19.4] archivée).
-- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit complet (deux passes ; la
-  machine étant très chargée ce jour, plusieurs sections à délais ont dû être rejouées, vertes
-  isolément et en tranches complètes).

@@ -3631,8 +3631,11 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
       const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top):null;};
       const titres=[...document.querySelectorAll('main .cp-h')].map(e=>e.textContent.trim());
       const av={titres, consulter:document.querySelectorAll('main .annex-row').length,
-        liens:Y('.pre-links'), pec:(()=>{const h=[...document.querySelectorAll('main .cp-h')]
-          .find(x=>/Prise en charge/.test(x.textContent));return h?Math.round(h.getBoundingClientRect().top):null;})(),
+        /* v5.25.0 : « Prise en charge » n'existe plus avant la session — le chapitre « Parcours »
+           le remplace, et Tableau / Schéma vivent SOUS son titre, AU-DESSUS de la première rangée. */
+        liens:Y('.pre-links'), parc:(()=>{const h=[...document.querySelectorAll('.pre-ch')]
+          .find(x=>/Parcours/.test(x.textContent));return h?Math.round(h.getBoundingClientRect().top):null;})(),
+        rang1:Y('.pre-lad .pl-line'), pec:document.querySelectorAll('main .cp-h').length,
         hLien:(()=>{const b=document.querySelector('.pre-link');return b?Math.round(b.getBoundingClientRect().height):null;})(),
         rangee:(()=>{const l=document.querySelector('.rail-lad .pl-line');return l?Math.round(l.getBoundingClientRect().height):null;})()};
       /* SCHÉMA : il n'ouvrait RIEN — `openFlowFull(f)` prend la fiche et l'appel l'omettait. */
@@ -3658,8 +3661,10 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     t(`${nom} · « Surveillances & pièges » n'est pas sur l'écran d'entrée`,
       !r.av.titres.some(x=>/Surveillance/i.test(x)), JSON.stringify(r.av.titres));
     t(`${nom} · ni la rangée « Consulter »`, r.av.consulter===0, `${r.av.consulter}`);
-    t(`${nom} · Tableau/Schéma passent AU-DESSUS de « Prise en charge »`,
-      r.av.liens!=null&&r.av.pec!=null&&r.av.liens<r.av.pec, `liens ${r.av.liens}, PEC ${r.av.pec}`);
+    t(`${nom} · Tableau/Schéma vivent SOUS le titre « Parcours » et AU-DESSUS de l'aperçu`,
+      r.av.liens!=null&&r.av.parc!=null&&r.av.rang1!=null&&r.av.parc<r.av.liens&&r.av.liens<r.av.rang1,
+      `Parcours ${r.av.parc}, liens ${r.av.liens}, 1re rangée ${r.av.rang1}`);
+    t(`${nom} · … et « Prise en charge » n'est plus un titre de l'écran d'entrée`, r.av.pec===0, `${r.av.pec} .cp-h`);
     t(`${nom} · … et ce sont des boutons de 44 px`, r.av.hLien>=44, `${r.av.hLien} px`);
     /* Le parcours se resserre AVANT le soin — et pas d'un cheveu : la rangée passe sous les 44 px
        de la crise, qui ne s'appliquent pas ici, en restant au-dessus du plancher hors crise. */

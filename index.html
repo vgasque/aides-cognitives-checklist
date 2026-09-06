@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-0vRENg+uMlc2R/b+ohkGLcgCexo0Z2zC1NP0/srrZ1E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-SDknqckOh+fk5x/LbEfQsPks7UDkUQzGYjbSNi1tZ64='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1221,6 +1221,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      registres interdit. C'est le MOT DU MODE qui est incompressible (« LE MOT NE TOMBE JAMAIS »,
      juste en dessous) : c'est donc le discriminant qui s'ellipse s'il faut, et lui seul. */
   .brand-sur .bs-m{flex:none}
+  .brand-sur.pre .bs-m{color:var(--ink-2);font-weight:700}   /* « Avant la session » : un état, pas une alerte */
   .brand-sur .bs-d{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2);font-weight:700}
   .brand-sur .bs-d[hidden]{display:none}
   .brand-sur .bs-m:not(:empty)~.bs-d::before{content:"·";margin:0 6px;color:var(--line-strong);font-weight:400}
@@ -2653,16 +2654,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Deux cadres rouges qui se suivent, c'est l'inflation que ce dossier combat depuis la v4.23.0
      — la seconde masse ne dit plus rien. Le registre vit donc dans le TITRE et dans les
      marqueurs ; le cadre reste celui d'une carte de travail. */
-  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:12px 18px 0}
-  .conf-eh{display:flex;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:800;
-    letter-spacing:.09em;text-transform:uppercase;color:var(--crit)}
+  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:6px 18px 0}   /* v5.25.0 : le titre est au-dessus */
+  /* `.conf-eh` (titre DANS la carte) est PURGÉ en v5.25.0 : le titre est le chapitre `.pre-ch`,
+     posé au-dessus du cadre — le ■ et le registre --crit y vivent. */
   .conf-mk{font-size:var(--t-cap);line-height:1}
   .conf-block.entry ul.flat{padding:4px 0 0;border-top:0}
   ul.flat.confirm.entry li{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:0;
     font-size:var(--t-item);font-weight:600;color:var(--ink)}
   ul.flat.confirm.entry li::before{display:none}
   .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
-  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-3)}
+  /* v5.25.0 : la porte de sortie du diagnostic à l'encre NORMALE — sur l'écran dont la question
+     est « est-ce le bon cas », elle n'est pas hors chemin. */
+  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
@@ -4982,8 +4985,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (mêmes rangées, mêmes marqueurs — une seule façon de lire « la liste des blocs »), et les
      autres vues sont des LIENS de texte, jamais des tuiles : l'action de l'écran est au dock. */
   .pre-wrap{margin-top:2px}
-  .pre-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
-  .pre-t{font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  /* CHAPITRES DE L'ÉCRAN D'ENTRÉE (v5.25.0, canvas validé) : trois titres de MÊME niveau à
+     --t-item, sans numéro, un filet + 16 px de blanc avant, 8 px après ; le premier (sous la méta)
+     n'a pas de filet. Le ■ du registre critique reste sur les deux premiers. La queue (notes
+     locales, note personnelle, pied) passe sous un filet, hors chapitres. */
+  .pre-ch{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:20px 0 8px;padding-top:10px;border-top:1px solid var(--line)}
+  .cf-stage:first-child>.pre-ch:first-child,.read-plan .pre-ch{margin-top:0;padding-top:0;border-top:0}
+  .cf-stage+.cf-stage>.pre-ch:first-child{margin-top:0}   /* l'étage porte déjà 20 px de bas */
+  .pre-cht{display:flex;align-items:center;gap:8px;font-size:var(--t-item);font-weight:700;line-height:20px;color:var(--ink)}
+  .pre-ch.crit .pre-cht{color:var(--crit)}
+  .pre-chs{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pre-tail{margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
+  .pre-tail .local{margin:0 0 8px;padding:0;background:none;border:0;font-size:var(--t-meta)}
   /* « CE QUI DÉMARRERA » (7c) : des RANGÉES de lecture — nom à gauche, nature à droite. Aucun
      contrôle : rien ne s'arme avant le démarrage, et l'objet n'a donc pas la forme d'une carte
      de minuteur, qui, elle, se règle. */
@@ -4994,7 +5007,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
-  .pre-inert{margin-left:auto;font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   /* ⚠ « → aller à ce bloc » N'EXISTE PAS AVANT LE SOIN : y aller, c'est ouvrir la vue de travail
      sans avoir démarré — le bouton paraîtrait ne rien faire (on retomberait sur cette page). Le
      détail d'une ligne reste dépliable ; c'est le SAUT qui n'a pas de sens ici. `display:none`
@@ -5010,6 +5022,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Les SÉPARATIONS de section coûtaient 36 et 51 px de vide mesurés pour deux intertitres de
      19 px. On garde la hiérarchie (plus d'air au-dessus qu'au-dessous, A70) en la resserrant. */
   body.view-read:not(.crisis-live) .rail-lad .rail-head{margin-top:12px}
+  /* L'APERÇU À PLAT (v5.25.0) : ni carte ni pastille — numéro gris, titre gris, renvois gris ;
+     la rangée garde le plancher de 32 px (cible hors crise) et reste dépliable. Spécificité
+     alignée sur la compaction juste au-dessus (même nombre de classes, posée après). */
+  body.view-read .pre-lad.flat .pl-line{background:none;border:0;min-height:32px;padding:2px 0;gap:8px}
+  body.view-read .pre-lad.flat .pl-line.d1{padding-left:18px}
+  body.view-read .pre-lad.flat .pl-line.d2{padding-left:32px}
+  body.view-read .pre-lad.flat .pl-line.d3{padding-left:40px}
+  body.view-read .pre-lad.flat .pl-line .n{width:18px;height:auto;border:0;border-radius:0;background:none;justify-content:flex-end;color:var(--ink-3);font-size:var(--t-meta)}
+  body.view-read .pre-lad.flat .pl-line.dec .n::before{display:none}
+  body.view-read .pre-lad.flat .pl-line .t{color:var(--ink-2);font-size:var(--t-body)}
+  body.view-read .pre-lad.flat .pl-line .g,body.view-read .pre-lad.flat .pl-ref{color:var(--ink-3)}
+  body.view-read .pre-lad.flat .pl-brc{padding:4px 0 0 24px}
+  body.view-read .pre-lad.flat .pl-brc span{background:none;border:0;padding:0;color:var(--ink-3)}
+  body.view-read .pre-lad.flat .pl-line.wl .n{font-size:var(--t-body)}
   body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
   /* ⚠ En session, même dessin — mais le PAS reste 44 px, et c'est de l'arithmétique : dessin 38 px
      + halo de 3 (A8 : la cible vient du halo) sur la gouttière de 6 déjà là (A66) = 44 exactement.
@@ -5048,7 +5074,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-ready.warn{color:var(--verify-hi)}
   .pre-ready.warn .tic{color:var(--verify-hi)}
   .pre-ready b{font-weight:800}
-  .pre-links{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 4px}
+  .pre-links{display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 6px}
   .pre-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;
     background:var(--work);border:1px solid var(--ctl-line);border-radius:var(--r-2);
     padding:0 14px;min-height:44px;font-family:inherit;white-space:nowrap;
@@ -5059,7 +5085,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ⚠ `flex:1 1 0` ÉCRASAIT LE TROISIÈME (mesuré à 390 px : « Documents · 2 » cassé en deux
      lignes). Base sur le CONTENU : à deux boutons ils s'étirent encore à parts égales, à trois la
      RANGÉE passe à la ligne — on enroule, on ne coupe jamais un libellé en son milieu. */
-  @media (max-width:429.98px){.pre-link{flex:1 1 auto;min-width:0;padding:0 10px}}
+  /* v5.25.0 (décision de l'auteur, canvas) : à largeur de CONTENU, alignés à gauche — plus
+     d'étirement à parts égales sous 430 px ; la rangée enroule (flex-wrap), elle ne coupe rien. */
+  @media (max-width:429.98px){.pre-link{padding:0 10px}}
   /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
      demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
      Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
@@ -8045,7 +8073,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.24.2';
+const APP_VERSION='5.25.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12506,7 +12534,12 @@ function applyViewChrome(){
       const xExo=on&&!xEss&&!!Runtime.exercise&&Runtime.ficheId===state.fiche.id;
       const xInv=on&&!xEss&&!xExo&&(sharedShown());
       bs.classList.toggle('exo',xExo);bs.classList.toggle('inv',xInv);
-      m.textContent=xEss?'■ Aperçu':(!on?'':(xExo?'▲ Exercice':(xInv?'▪ Vous suivez':'■ Mode crise')));
+      /* v5.25.0 : AVANT la session, le même logement dit l'état en mots (« Avant la session »,
+         encre neutre — ce n'est pas une alerte) ; il cède la place à « ■ Mode crise » au
+         premier geste. Jamais chez l'invité (il a son mot) ni en aperçu d'essai. */
+      const xAvant=crisis&&!on&&!xEss&&!Runtime.started&&!sharedShown()&&hasFlow(state.fiche);
+      bs.classList.toggle('pre',xAvant);
+      m.textContent=xEss?'■ Aperçu':(!on?(xAvant?'Avant la session':''):(xExo?'▲ Exercice':(xInv?'▪ Vous suivez':'■ Mode crise')));
       syncBrandSur();}}
    if(crisis){
      /* ═══ DEUX ANNONCIATEURS, DEUX OFFICES (v4.70.1, demande utilisateur) ═══════════════════
@@ -18118,7 +18151,7 @@ function renderRead(){
        critère, SANS chevron (rien à replier avant d'avoir répondu). APRÈS : le dépliant de
        traçabilité, inchangé. Détail : doctrine-js.md J130. */
     if(!Runtime.started){
-      return `<section class="conf-block entry"><div role="heading" aria-level="2" class="conf-eh"><span class="conf-mk" aria-hidden="true">■</span>Quand l’utiliser</div>`
+      return preChapH('Quand l’utiliser',{crit:true})+`<section class="conf-block entry">`
         +`<ul class="flat confirm entry">${confItems.map(x=>`<li><span class="cf-mk" aria-hidden="true">■</span><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`
         +(diffH?`<button type="button" class="atyp-link" id="atypLink">Le tableau ne colle pas ? → ${clean(listOf(f,'differentials')).length} diagnostic${clean(listOf(f,'differentials')).length>1?'s':''} à éliminer ▸</button>`:'')
         +`</section>`;}
@@ -18152,7 +18185,8 @@ function renderRead(){
     const démarrée=Runtime.started;
     const fsFold=démarrée&&!state.fsOpen;
     const fsN=items.length;
-    return `<div class="forget-strip${items.length>4?' many':''}${démarrée?' fs-foldable':''}${fsFold?' fs-closed':''}">`
+    return (démarrée?'':preChapH('Ne pas oublier',{crit:true}))
+      +`<div class="forget-strip${items.length>4?' many':''}${démarrée?' fs-foldable':''}${fsFold?' fs-closed':''}">`
       /* ⚠ LA CIBLE EST LA RANGÉE ENTIÈRE, PAS LE MOT (v5.0.0, demande utilisateur — gants,
          stress, et WCAG 2.2 § 2.5.8). Le déclencheur était un bouton de la largeur de son texte,
          posé au bout de la ligne : ~90 px à viser d'un pouce ganté sur un objet qui, lui, fait
@@ -18162,7 +18196,7 @@ function renderRead(){
          bouton mort. */
       +(démarrée
         ?`<button type="button" class="fs-k fs-btn" id="fsTgl" aria-expanded="${fsFold?'false':'true'}"><span class="fs-kt">■ Ne pas oublier</span><span class="fs-tgl" data-n="${fsN}"><span class="fs-cnt">${fsFold?fsN:(fsN+' rappel'+(fsN>1?'s':''))}</span><span class="fs-chev" aria-hidden="true">${fsChev(fsFold)}</span></span><span class="fs-sp"></span><span class="sr-only">${fsN} rappel${fsN>1?'s':''}</span></button>`
-        :`<div class="fs-k"><span class="fs-kt">■ Ne pas oublier</span></div>`)
+        :'')   /* v5.25.0 : hors session le titre est le CHAPITRE, posé au-dessus du cadre */
       +`<div class="fs-list">${items.map(x=>`<div class="fs-i"><span class="ftxt">${fmt(x)}</span></div>`).join('')}</div></div>`;})();
   // Historique = sessions de cette fiche, EN EXCLUANT la session vive courante (affichée par le bandeau).
   const ss=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).sort((a,b)=>b.savedAt-a.savedAt);
@@ -18307,13 +18341,18 @@ function renderRead(){
      par cochage avant le 1er geste (touche PERMANENTE du dock, `ensureStarted` reste le point
      d'entrée unique) ; ⚠ l'INVITÉ et l'APERÇU D'ESSAI gardent la vue de travail ; les deux façons
      de regarder la fiche passent au-dessus de « Prise en charge ». Détail : doctrine-js.md J138. */
-  if(avantSession)stages.push({cls:'on',head:'',body:preLinksHtml(f)});
+  /* v5.25.0 (canvas validé) : avant la session, « Prise en charge » devient le chapitre
+     « Parcours » — Tableau / Schéma sous son titre, puis l'aperçu à plat, puis la ligne des
+     minuteurs ; au cockpit tout cela vit dans la colonne de gauche (railLadHtml), l'étage n'a
+     alors pas de corps. Les notes locales partent en queue (`.pre-tail`). */
   {const body=avantSession
-     ?preSessionHtml(f,preLad)+localH+((wideRead||avantSession)?'':posH)
+     ?(preLad?preLinksHtml(f)+preSessionHtml(f,true)+carryLineHtml(f):'')
      :agirDabord
      ?navHtml+(wideRead||state.rtOpen==='dock'?'':rtH)+(wideRead?'':tkH)+localH+algH+(wideRead?'':posH)
      :(wideRead||state.rtOpen==='dock'?'':rtH)+algH+navHtml+(wideRead?'':tkH)+localH+(wideRead?'':posH);
-   if(body)stages.push({cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
+   if(body)stages.push(avantSession
+     ?{cls:'on',head:'',chap:preChapH('Parcours',{sub:'Aperçu — se déroule après le démarrage.'}),body}
+     :{cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
   // v4.23.0 : ③ ne garde que « △ À vérifier » — ce qui tue reste dans le FLUX (AC 120-71B) ;
   // les différentiels partent dans la feuille Consulter (lien « Tableau atypique ? » de ①).
   /* ⚠ PAS AVANT LA SESSION (v5.6) : « Surveiller ensuite » revient dès le premier geste (voie
@@ -18344,8 +18383,8 @@ function renderRead(){
      son numéro et son titre. Hors session ils restent : on s'oriente avant d'agir, et les étages
      sont alors une vraie séquence à lire. */
   const pathH=stages.length>1
-    ?`<div class="care-flat">${stages.map((s,i)=>`<section class="cf-stage ${s.cls}">${(s.head&&!(agirDabord&&i===0))?`<div role="heading" aria-level="2" class="block-h cp-h">${s.head}</div>`:''}${s.body}</section>`).join('')}</div>`
-    :stages.map(s=>s.body).join('');
+    ?`<div class="care-flat">${stages.map((s,i)=>`<section class="cf-stage ${s.cls}">${s.chap||''}${(s.head&&!(agirDabord&&i===0))?`<div role="heading" aria-level="2" class="block-h cp-h">${s.head}</div>`:''}${s.body}</section>`).join('')}</div>`
+    :stages.map(s=>(s.chap||'')+s.body).join('');
   // DÉFILEMENT DU RAIL PRÉSERVÉ (v4.23.5) : `.read-side` a son propre `overflow-y:auto` ; comme
   // `main.innerHTML` reconstruit tout, son `scrollTop` retombait à 0 à CHAQUE re-rendu — la barre
   // latérale « remontait » dès qu'on touchait n'importe quel bouton (minuteur, compteur, son,
@@ -18366,10 +18405,10 @@ function renderRead(){
     ${dockPanel}
     ${(useSv||fsAvantBouton)?'':forgetStrip}
     ${pathH}
-    ${(avantSession&&!mqRail.matches)?carryLineHtml(f):''}
-    ${avantSession?'':annexRowHtml(f)}
+    ${avantSession?'<div class="pre-tail">'+localH:annexRowHtml(f)}
     ${preview?'':noteBlockHtml(f.id,started)}
     ${readFooterHtml()}
+    ${avantSession?'</div>':''}
     ${gridClose}`;
   updateStorageInfo();   // remplit le pied (mesure asynchrone) — même libellé que la sidebar
   if(_railY){const s=document.querySelector('.read-side');if(s)s.scrollTop=_railY;}
@@ -19673,6 +19712,13 @@ function railLadHtml(f){
      croire : il rend `ovParcoursHtml`, soit 7 CARTES et 22 items pour 1 321 caractères — un autre
      objet, pas un autre habillage. C'est la FEUILLE qui doublonne la COLONNE.
      La feuille reste joignable par le menu ⋯ « Se repérer » : rien n'est perdu, sauf un tap. */
+  /* v5.25.0 : AVANT la session, la colonne prend la grammaire de l'écran d'entrée — chapitre
+     « Parcours », Tableau / Schéma sous le titre, aperçu à plat SANS « ICI » (on n'est nulle
+     part), « Surveiller ensuite » gardé (colonne d'orientation). */
+  if(!Runtime.started){
+    const md2={};Object.keys(md).forEach(k=>{md2[k]=Object.assign({},md[k],{cur:false});});
+    return preChapH('Parcours',{sub:'Aperçu — se déroule après le démarrage.'})+preLinksHtml(f)
+      +`<div class="ov-plan rail-lad pre-lad flat">${ovPlanLadderHtml(f,plan,num,md2,off,{flat:true})}</div>`;}
   return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
 /* ═══ v5.4.2-r — LE RAIL SE RÉÉQUILIBRE À 780-1199 px (R1+R2, décision utilisateur, mesuré :
    60 % du contenu enterré). R1 : le JOURNAL remonte contre les compteurs (replié < 1200, déplié
@@ -19769,7 +19815,7 @@ function repaintRailLad(){
   host.innerHTML=h;
   if(box)box.scrollTop=y;
   bindRailLad();bindRailTm();}
-function ovPlanLadderHtml(f,plan,num,md,off){
+function ovPlanLadderHtml(f,plan,num,md,off,opt){opt=opt||{};
   /* LE PARCOURS INERTE PORTE LA FICHE ENTIÈRE (v5.0.0, lot M6, maquette `proto-r4`) — pas
      seulement la chaîne des blocs. Trois sections l'encadrent, et elles ne sont PAS décoratives :
      « Quand l'utiliser » est la condition d'entrée QRH (on entre, ou l'on n'entre pas),
@@ -19812,9 +19858,12 @@ function ovPlanLadderHtml(f,plan,num,md,off){
     if(dec){const opts=b.options||[];const ab=optAbbr(opts.map(o=>(o&&o.label)||''));
       g=opts.map((o,oi)=>{const tgt=(o&&o.target&&num[o.target])?o.target:null;
         const tk2=!!(m.taken&&o&&o.target===m.taken);
-        return `<b${tk2?' class="tk"':''}>${tk2?'✓':''}${esc(ab[oi])}</b>${tgt?`<span class="pl-ref" data-plref="${esc(tgt)}">${arrow(it.id,tgt)}</span>`:'▪'}`;}).join(' ');}
+        return `<b${tk2?' class="tk"':''}>${tk2?'✓':''}${esc(ab[oi])}</b>${tgt?`<span class="pl-ref" data-plref="${esc(tgt)}">${arrow(it.id,tgt)}</span>`:'▪'}`;}).join(' ');
+      /* À PLAT (v5.25.0) : les étiquettes de branche disent déjà « oui → 3 · non → 4 » — la
+         colonne se tait si TOUTES les options portent un libellé ; sinon les renvois restent. */
+      if(opt.flat&&opts.length&&opts.every(o=>o&&o.label))g='';}
     else{const nx=(b.next&&num[b.next])?b.next:null;
-      g=(steps.length?((m.done||0)+'/'+steps.length):'—')+' '+(nx?`<span class="pl-ref" data-plref="${esc(nx)}">${arrow(it.id,nx)}</span>`:'<span class="fin">▪fin</span>');}
+      g=(opt.flat?'':(steps.length?((m.done||0)+'/'+steps.length):'—')+' ')+(nx?`<span class="pl-ref" data-plref="${esc(nx)}">${arrow(it.id,nx)}</span>`:'<span class="fin">▪fin</span>');}
     const lblRaw=pend[depth];if(pend[depth])pend[depth]=null;
     /* LA CHIP DE BRANCHE EST SEULE SUR SA LIGNE (v5.0.0, maquette de la sidebar) : partagée avec
        le titre, elle le comprimait et se lisait comme une étiquette DU bloc, alors qu'elle nomme
@@ -19851,7 +19900,7 @@ function ovPlanLadderHtml(f,plan,num,md,off){
   {const w=clean(listOf(f,'verify'));
    /* « Surveiller ENSUITE » : sur 240 px, « après les gestes » passait sur deux lignes — un titre
       haché n'est plus un titre (même règle que l'en-tête de zone, v4.59.0). */
-   if(w.length){h+=`<div class="rail-head"><span class="rail-title">Surveiller ensuite</span><span class="rail-n">${w.length}</span></div>`
+   if(w.length&&!opt.noWatch){h+=`<div class="rail-head"><span class="rail-title">Surveiller ensuite</span><span class="rail-n">${w.length}</span></div>`
      +w.map(x=>{const cr=stepCR(stepText(x));
        return `<div class="pl-line wl"><span class="n mk" aria-hidden="true">△</span><span class="t">${fmt(cr.c)}</span><span class="g">${cr.r?esc(cr.r):''}</span></div>`;}).join('');}}
   return h;}
@@ -20450,16 +20499,25 @@ function carryLineHtml(f){
   // n'embarque ni minuteur, ni compteur, ni complication n'a rien à annoncer AVANT le soin ;
   // l'atelier, lui, montre les blocs, parce que là c'est ce qui distingue un algorithme d'une
   // ébauche. Même phrase, deux seuils, chacun motivé par sa question.
-  if(!(f.timers||[]).length&&!(f.counters||[]).length&&!(f.excursions||[]).length)return '';
-  return `<div class="carry-line">${esc(carryParts(f).join(' · '))}</div>`;}
+  /* v5.25.0 : la ligne ne compte plus (blocs, compteurs, complications) — elle dit ce qui est À
+     DISPOSITION en session, et seulement s'il y a un minuteur : nom et période, jamais « démarre ».
+     `carryParts` reste le calcul de l'atelier d'import (A130), la phrase d'entrée a divergé
+     À DESSEIN : là-bas on juge une fiche, ici on s'apprête à soigner. */
+  const tl=(f.timers||[]);if(!tl.length)return '';
+  const nm=t=>{const n=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
+    const per=t.type==='interval'?fmtMs((t.seconds||0)*1000).replace(/^0(\d):/,'$1:'):'';
+    return n+(per?' '+per:'');};
+  return `<div class="carry-line">Minuteurs à disposition en session : ${esc(tl.map(nm).join(' · '))}.</div>`;}
 function preStartHtml(f){
   const tl=(f.timers||[]);
   const li=t=>{const nm=esc(tmLabelParts(t.label).name)||(t.type==='interval'?'Minuteur':'Chronomètre');
     const per=t.type==='interval'?fmtMs((t.seconds||0)*1000).replace(/^0(\d):/,'$1:'):'';
-    const nat=t.type==='interval'?(t.autoloop?`${per}, cyclique`:`${per}`):'compte à partir de 0';
+    /* ⚠ RIEN NE PART SAUF LE CHRONO (v5.25.0, correction de l'auteur) : « Ce qui démarrera »
+       affirmait que les minuteurs partaient avec la session — ils sont À DISPOSITION, à lancer. */
+    const nat=(t.type==='interval'?(t.autoloop?`${per} cyclique`:`${per}`):'compte à partir de 0')+', à lancer';
     return `<div class="pre-row"><span class="pre-rn">${nm}</span><span class="pre-rv">${esc(nat)}</span></div>`;};
-  return `<div class="rail-head"><span class="rail-title">Ce qui démarrera</span><span class="rail-n">${tl.length+1}</span></div>`
-    +`<div class="pre-rows"><div class="pre-row"><span class="pre-rn">Chrono de session</span><span class="pre-rv">dès le premier geste</span></div>`
+  return `<div class="rail-head"><span class="rail-title">En session</span><span class="rail-n">${tl.length+1}</span></div>`
+    +`<div class="pre-rows"><div class="pre-row"><span class="pre-rn">Chrono de session</span><span class="pre-rv">démarre avec la session</span></div>`
     +tl.map(li).join('')+'</div>';}
 /* LA DERNIÈRE SESSION DE CETTE AIDE (7c) : une ligne, et le compte rendu à un tap. C'est une
    information de DÉBRIEF posée là où l'on décide d'en ouvrir une nouvelle — jamais une invite.
@@ -20484,12 +20542,18 @@ function preSessionHtml(f,avecParcours){
      d'entrée juste au-dessus demande précisément de décider. */
   const md={};minimapData(f,state.nav,state.navSeq,state.checked,state.navPos)
     .forEach(m=>{md[m.id]=Object.assign({},m,{cur:false});});
-  const n=plan.order.length;
-  const lad=ovPlanLadderHtml(f,plan,num,md,new Set());
-  const nd=(f.docs||[]).length;
-  const par=avecParcours?`<div class="pre-head"><span class="pre-t">Parcours · ${n} bloc${n>1?'s':''}</span>`
-    +`<span class="pre-inert">inerte</span></div><div class="rail-lad pre-lad">${lad}</div>`:'';
-  return `<div class="pre-wrap">${par}</div>`;}
+  /* v5.25.0 : l'aperçu est À PLAT (`flat`) — ni carte, ni compteur « 0/4 », ni renvoi sur la
+     rangée de décision (les étiquettes de branche suffisent) ; « Surveiller ensuite » reste au
+     rail. Le titre et le mot « inerte » ont cédé la place au chapitre « Parcours ». */
+  const lad=ovPlanLadderHtml(f,plan,num,md,new Set(),{flat:true,noWatch:true});
+  return `<div class="pre-wrap">${avecParcours?`<div class="rail-lad pre-lad flat">${lad}</div>`:''}</div>`;}
+/* CHAPITRES DE L'ÉCRAN D'ENTRÉE (v5.25.0, canvas validé par l'auteur) : trois titres de MÊME
+   niveau, sans numéro — « Quand l'utiliser » et « Ne pas oublier » SORTENT de leurs cadres (le
+   cadre ne porte plus que son contenu), « Parcours » est le troisième. Un filet et un blanc
+   ouvrent chacun ; aucun glyphe hors le ■ du registre critique. Titres redondants (« Confirmation
+   diagnostique », « À garder en tête ») et numéros REFUSÉS par l'auteur : ne pas les reproposer. */
+function preChapH(t,o){o=o||{};
+  return `<div role="heading" aria-level="2" class="pre-ch${o.crit?' crit':''}"><span class="pre-cht">${o.crit?'<span class="conf-mk" aria-hidden="true">■</span>':''}${esc(t)}</span>${o.sub?`<span class="pre-chs">${esc(o.sub)}</span>`:''}</div>`;}
 /* LES DEUX (OU TROIS) FAÇONS DE REGARDER LA FICHE AVANT DE LA DÉROULER (v5.6, demande de
    l'auteur) : des EXCURSIONS, pas des réglages — feuille plein écran fermée par ✕/Échap/retour
    système, page d'entrée intacte dessous (≠ axe de densité du dock, lot A). */

@@ -867,6 +867,7 @@
      registres interdit. C'est le MOT DU MODE qui est incompressible (« LE MOT NE TOMBE JAMAIS »,
      juste en dessous) : c'est donc le discriminant qui s'ellipse s'il faut, et lui seul. */
   .brand-sur .bs-m{flex:none}
+  .brand-sur.pre .bs-m{color:var(--ink-2);font-weight:700}   /* « Avant la session » : un état, pas une alerte */
   .brand-sur .bs-d{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2);font-weight:700}
   .brand-sur .bs-d[hidden]{display:none}
   .brand-sur .bs-m:not(:empty)~.bs-d::before{content:"·";margin:0 6px;color:var(--line-strong);font-weight:400}
@@ -2299,16 +2300,18 @@
      Deux cadres rouges qui se suivent, c'est l'inflation que ce dossier combat depuis la v4.23.0
      — la seconde masse ne dit plus rien. Le registre vit donc dans le TITRE et dans les
      marqueurs ; le cadre reste celui d'une carte de travail. */
-  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:12px 18px 0}
-  .conf-eh{display:flex;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:800;
-    letter-spacing:.09em;text-transform:uppercase;color:var(--crit)}
+  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:6px 18px 0}   /* v5.25.0 : le titre est au-dessus */
+  /* `.conf-eh` (titre DANS la carte) est PURGÉ en v5.25.0 : le titre est le chapitre `.pre-ch`,
+     posé au-dessus du cadre — le ■ et le registre --crit y vivent. */
   .conf-mk{font-size:var(--t-cap);line-height:1}
   .conf-block.entry ul.flat{padding:4px 0 0;border-top:0}
   ul.flat.confirm.entry li{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:0;
     font-size:var(--t-item);font-weight:600;color:var(--ink)}
   ul.flat.confirm.entry li::before{display:none}
   .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
-  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-meta);font-weight:600;color:var(--ink-3)}
+  /* v5.25.0 : la porte de sortie du diagnostic à l'encre NORMALE — sur l'écran dont la question
+     est « est-ce le bon cas », elle n'est pas hors chemin. */
+  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
@@ -4628,8 +4631,18 @@
      (mêmes rangées, mêmes marqueurs — une seule façon de lire « la liste des blocs »), et les
      autres vues sont des LIENS de texte, jamais des tuiles : l'action de l'écran est au dock. */
   .pre-wrap{margin-top:2px}
-  .pre-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
-  .pre-t{font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  /* CHAPITRES DE L'ÉCRAN D'ENTRÉE (v5.25.0, canvas validé) : trois titres de MÊME niveau à
+     --t-item, sans numéro, un filet + 16 px de blanc avant, 8 px après ; le premier (sous la méta)
+     n'a pas de filet. Le ■ du registre critique reste sur les deux premiers. La queue (notes
+     locales, note personnelle, pied) passe sous un filet, hors chapitres. */
+  .pre-ch{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:20px 0 8px;padding-top:10px;border-top:1px solid var(--line)}
+  .cf-stage:first-child>.pre-ch:first-child,.read-plan .pre-ch{margin-top:0;padding-top:0;border-top:0}
+  .cf-stage+.cf-stage>.pre-ch:first-child{margin-top:0}   /* l'étage porte déjà 20 px de bas */
+  .pre-cht{display:flex;align-items:center;gap:8px;font-size:var(--t-item);font-weight:700;line-height:20px;color:var(--ink)}
+  .pre-ch.crit .pre-cht{color:var(--crit)}
+  .pre-chs{font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pre-tail{margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
+  .pre-tail .local{margin:0 0 8px;padding:0;background:none;border:0;font-size:var(--t-meta)}
   /* « CE QUI DÉMARRERA » (7c) : des RANGÉES de lecture — nom à gauche, nature à droite. Aucun
      contrôle : rien ne s'arme avant le démarrage, et l'objet n'a donc pas la forme d'une carte
      de minuteur, qui, elle, se règle. */
@@ -4640,7 +4653,6 @@
   .pre-last{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
   .pre-lt{font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   .pre-lad{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:6px}
-  .pre-inert{margin-left:auto;font-size:var(--t-cap);font-weight:600;color:var(--ink-3)}
   /* ⚠ « → aller à ce bloc » N'EXISTE PAS AVANT LE SOIN : y aller, c'est ouvrir la vue de travail
      sans avoir démarré — le bouton paraîtrait ne rien faire (on retomberait sur cette page). Le
      détail d'une ligne reste dépliable ; c'est le SAUT qui n'a pas de sens ici. `display:none`
@@ -4656,6 +4668,20 @@
   /* Les SÉPARATIONS de section coûtaient 36 et 51 px de vide mesurés pour deux intertitres de
      19 px. On garde la hiérarchie (plus d'air au-dessus qu'au-dessous, A70) en la resserrant. */
   body.view-read:not(.crisis-live) .rail-lad .rail-head{margin-top:12px}
+  /* L'APERÇU À PLAT (v5.25.0) : ni carte ni pastille — numéro gris, titre gris, renvois gris ;
+     la rangée garde le plancher de 32 px (cible hors crise) et reste dépliable. Spécificité
+     alignée sur la compaction juste au-dessus (même nombre de classes, posée après). */
+  body.view-read .pre-lad.flat .pl-line{background:none;border:0;min-height:32px;padding:2px 0;gap:8px}
+  body.view-read .pre-lad.flat .pl-line.d1{padding-left:18px}
+  body.view-read .pre-lad.flat .pl-line.d2{padding-left:32px}
+  body.view-read .pre-lad.flat .pl-line.d3{padding-left:40px}
+  body.view-read .pre-lad.flat .pl-line .n{width:18px;height:auto;border:0;border-radius:0;background:none;justify-content:flex-end;color:var(--ink-3);font-size:var(--t-meta)}
+  body.view-read .pre-lad.flat .pl-line.dec .n::before{display:none}
+  body.view-read .pre-lad.flat .pl-line .t{color:var(--ink-2);font-size:var(--t-body)}
+  body.view-read .pre-lad.flat .pl-line .g,body.view-read .pre-lad.flat .pl-ref{color:var(--ink-3)}
+  body.view-read .pre-lad.flat .pl-brc{padding:4px 0 0 24px}
+  body.view-read .pre-lad.flat .pl-brc span{background:none;border:0;padding:0;color:var(--ink-3)}
+  body.view-read .pre-lad.flat .pl-line.wl .n{font-size:var(--t-body)}
   body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
   /* ⚠ En session, même dessin — mais le PAS reste 44 px, et c'est de l'arithmétique : dessin 38 px
      + halo de 3 (A8 : la cible vient du halo) sur la gouttière de 6 déjà là (A66) = 44 exactement.
@@ -4694,7 +4720,7 @@
   .pre-ready.warn{color:var(--verify-hi)}
   .pre-ready.warn .tic{color:var(--verify-hi)}
   .pre-ready b{font-weight:800}
-  .pre-links{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 4px}
+  .pre-links{display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 6px}
   .pre-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;
     background:var(--work);border:1px solid var(--ctl-line);border-radius:var(--r-2);
     padding:0 14px;min-height:44px;font-family:inherit;white-space:nowrap;
@@ -4705,7 +4731,9 @@
   /* ⚠ `flex:1 1 0` ÉCRASAIT LE TROISIÈME (mesuré à 390 px : « Documents · 2 » cassé en deux
      lignes). Base sur le CONTENU : à deux boutons ils s'étirent encore à parts égales, à trois la
      RANGÉE passe à la ligne — on enroule, on ne coupe jamais un libellé en son milieu. */
-  @media (max-width:429.98px){.pre-link{flex:1 1 auto;min-width:0;padding:0 10px}}
+  /* v5.25.0 (décision de l'auteur, canvas) : à largeur de CONTENU, alignés à gauche — plus
+     d'étirement à parts égales sous 430 px ; la rangée enroule (flex-wrap), elle ne coupe rien. */
+  @media (max-width:429.98px){.pre-link{padding:0 10px}}
   /* ══ « SURVEILLER ENSUITE » N'EST PAS UNE SÉQUENCE, DONC PAS UNE CARTE (v5.6, maquette —
      demande utilisateur : « rends-les plus inline ») ════════════════════════════════════════
      Les blocs se COMPTENT (d'où la carte) ; une surveillance se LIT. La maquette en fait des
