@@ -842,6 +842,9 @@
      hauteur entre dans --stick-top) ; cibles 32 px + halo 44 (règle 9). */
   .lk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:36px;margin:8px -14px -8px;padding:4px 14px;background:var(--verify-soft);border-top:1px solid var(--verify-line);color:var(--ink);font-size:12px}
   .lk-bar[hidden]{display:none}
+  /* A328 : au cockpit (capsule dans l'en-tête) le bandeau est une rangée COMPACTE sous la capsule —
+     bordée, arrondie, centrée ; jamais pleine largeur. */
+  body.chrome-hdr .lk-bar{position:sticky;top:calc(var(--hdr-off,64px) + 8px);z-index:15;margin:8px auto 0;width:max-content;max-width:calc(100% - 28px);padding:4px 12px;border:1px solid var(--verify-line);border-radius:var(--r-2);box-shadow:var(--shadow-work)}
   .lk-txt{font-weight:700;color:var(--verify);white-space:nowrap}
   .lk-act{position:relative;min-height:32px;padding:0 10px;border:1px solid var(--verify-line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .lk-act::after{content:"";position:absolute;inset:-6px}

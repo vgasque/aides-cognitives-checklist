@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-dfB5fO7oH+9yzGnJPTyC049H7TRsAscOS8MR5OsNeww='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-uc0GcuHcLy2eVVw4yKYycUB2JJ9vAhplSN3Tg/SiTjI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1196,6 +1196,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      hauteur entre dans --stick-top) ; cibles 32 px + halo 44 (règle 9). */
   .lk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:36px;margin:8px -14px -8px;padding:4px 14px;background:var(--verify-soft);border-top:1px solid var(--verify-line);color:var(--ink);font-size:12px}
   .lk-bar[hidden]{display:none}
+  /* A328 : au cockpit (capsule dans l'en-tête) le bandeau est une rangée COMPACTE sous la capsule —
+     bordée, arrondie, centrée ; jamais pleine largeur. */
+  body.chrome-hdr .lk-bar{position:sticky;top:calc(var(--hdr-off,64px) + 8px);z-index:15;margin:8px auto 0;width:max-content;max-width:calc(100% - 28px);padding:4px 12px;border:1px solid var(--verify-line);border-radius:var(--r-2);box-shadow:var(--shadow-work)}
   .lk-txt{font-weight:700;color:var(--verify);white-space:nowrap}
   .lk-act{position:relative;min-height:32px;padding:0 10px;border:1px solid var(--verify-line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .lk-act::after{content:"";position:absolute;inset:-6px}
@@ -8042,7 +8045,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.24.0';
+const APP_VERSION='5.24.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -8931,6 +8934,7 @@ function rescueCrisisChrome(){
   const slot=document.getElementById('hdrCrisisSlot');
   if(dk&&slot&&slot.contains(dk)){const sb=document.getElementById('sysBanner');
     sb.parentNode.insertBefore(dk,sb);}
+  const lb=document.getElementById('linkBar');if(lb&&dk&&lb.parentNode!==dk)dk.appendChild(lb);
   document.body.classList.remove('chrome-hdr');}
 /* v5.4.1 (2e passe — A′) : la destination est le CRÉNEAU STATIQUE de l'en-tête (plus la colonne
    du plan) — la bande disparaît pour TOUTE lecture de fiche à ce palier. */
@@ -8943,6 +8947,10 @@ function placeCrisisChrome(){
   if(!dk||!slot)return;
   if(!(mqReadWide.matches&&state.view==='read'&&state.fiche))return;
   if(dk.parentNode!==slot)slot.appendChild(dk);
+  // A328 : le bandeau « par l'écran » ne monte PAS dans l'en-tête (il y couvrait le titre) — il reste
+  // dans le flux, sous l'en-tête, en rangée compacte collante ; même patron nomade, jamais recréé.
+  const lb=document.getElementById('linkBar'),sb=document.getElementById('sysBanner');
+  if(lb&&sb&&lb.parentNode!==sb.parentNode)sb.parentNode.insertBefore(lb,sb);
   document.body.classList.add('chrome-hdr');}
 const clean=a=>(Array.isArray(a)?a:[]).map(s=>String(s==null?'':s).trim()).filter(Boolean);
 /* ===== Garde-fous de sécurité (assainissement des données importées/stockées) =====
@@ -27468,6 +27476,9 @@ function slOpticBind(role,fin){
   slOn('slRet',()=>slRetTx(fin));
   slOn('slModeBtn',()=>slModeSheet());}
 const slOn=(id,fn)=>{const b=document.getElementById(id);if(b)b.onclick=fn;};
+// Le focus d'ouverture va à l'ACTION de l'étape (ou à la rangée choisie), jamais au lien « Mode » —
+// l'anneau posé par _dlgEnter (A237) encadrait ce lien discret (signalé terrain).
+function slPrefFocus(body){const b=body.querySelector('.sl-step .btn,.sl-opt.on,.sl-actions .btn,.sh-acts .btn');if(b)b.setAttribute('data-dlgfocus','');}
 // « Envoyer le lien… » : la feuille de partage native, sinon le presse-papiers (jamais d'adresse à dicter).
 async function slSendLink(url){
   try{if(navigator.share){await navigator.share({url});return;}}catch(e){if(e&&e.name==='AbortError')return;}
@@ -27512,7 +27523,7 @@ function renderShareSheet(force){
   const sig=[Share.code,shOpenMs()>0,slSb.optic,slLink().lost,(Share.participants||[]).map(p=>p.id+':'+p.label+':'+p.role+':'+(p.revoked?1:0)+(p.detached?1:0)).join(','),
     Object.keys(_shPend).join(','),_hoOffered||'',slSb.log.length,(slSb.log[0]||{}).t].join('|');
   if(force||sig!==_shSig){
-    _shSig=sig;slSheetTitle('Partager cette session');body.innerHTML=shareSheetHtml();
+    _shSig=sig;slSheetTitle('Partager cette session');body.innerHTML=shareSheetHtml();slPrefFocus(body);
     sharePartBind(body,()=>renderShareSheet(true));
     slOpticBind('host',()=>renderShareSheet(true));
     slOn('shSend',()=>slSendLink(document.getElementById('shSend').dataset.url));
@@ -27622,9 +27633,9 @@ function slCloudWhy(){
     +'serveur (un Wi-Fi commun suffit, m\u00eame sans internet) ; \u00ab Par l\u2019\u00e9cran \u00bb '
     +'passe la session en codes film\u00e9s \u00e0 la cam\u00e9ra, sans aucun r\u00e9seau.';
   return (slCloudOff()==='compte'
-    ?'Le partage \u00ab En ligne \u00bb demande un compte : c\u2019est le serveur du compte qui '
+    ?'\u00ab En ligne \u00bb n\u00e9cessite un compte : c\u2019est le serveur du compte qui '
       +'h\u00e9berge la session.'
-    :'Le partage \u00ab En ligne \u00bb demande internet.')+suite;}
+    :'\u00ab En ligne \u00bb n\u00e9cessite internet.')+suite;}
 // La feuille « Mode » se repeint EN PLACE quand la joignabilité ou un canal dormant change.
 function slModePaint(){if(shareModal&&shareModal.classList.contains('on')&&document.querySelector('#shareBody .sl-modes'))slModeSheet();}
 /* A319 : retour en ligne SEUL après une panne — 3 sondes OK et ≥ 60 s en direct (hystérésis), des
@@ -27652,13 +27663,15 @@ window.addEventListener('offline',()=>{_slNet.ok=false;try{slModePaint();}catch(
 /* « MODE : AUTOMATIQUE › » — LA PORTE DE SECOURS (A327). Quatre rangées, Automatique en tête ;
    un mode fermé reste TAPABLE et dit pourquoi (v5.17.4) ; l'invité n'a pas cette porte. Le choix
    manuel tient jusqu'au retour à Automatique (A319 : jamais de bascule contre lui). */
-function slModeCur(){return slSb.optic?'optic':(Share.share==='local'||(SL&&!SL.live))?'direct':'cloud';}
+// Le TRANSPORT en cours — « par l'écran » est une couche par-dessus, jamais un transport (A328 :
+// le confondre fermait le partage en ligne et en ouvrait un neuf, l'invité restant sur l'ancien).
+function slModeCur(){return (Share.mode==='host'&&Share.share==='local')||(SL&&!SL.live)?'direct':(Share.mode==='host'&&Share.status==='active')?'cloud':'';}
 function slModeSheet(){
   const body=document.getElementById('shareBody');if(!body)return;
   slSheetTitle('Changer manuellement le mode');
   const online=Auth.signedIn()&&(_slNet.ok===null?Sync.online():_slNet.ok);
-  const cur=slModeCur(),auto=slModeWord()==='automatique';
-  const row=(m,t,sub,st,dis)=>{const on=m==='auto'?auto:!auto&&cur===m;
+  const cur=slModeCur(),auto=slModeWord()==='automatique',sel=slSb.optic?'optic':cur;
+  const row=(m,t,sub,st,dis)=>{const on=m==='auto'?auto:!auto&&sel===m;
     return '<button type="button" class="sl-opt'+(on?' on':'')+'" data-shmode="'+m+'" role="radio" aria-checked="'+(on?'true':'false')
       +'" aria-disabled="'+(dis?'true':'false')+'"><span class="sl-rad" aria-hidden="true"></span><span class="sl-ot">'+t+'<small>'+sub+'</small></span>'
       +(st?'<span class="sl-os'+(st.k?' '+st.k:'')+'">'+st.t+'</span>':'')+'</button>';};
@@ -27668,11 +27681,11 @@ function slModeSheet(){
     +'<div class="sl-modes" role="radiogroup" aria-label="Mode de partage">'
     +row('auto','Automatique','l’app choisit le mode et bascule seule, dans les deux sens',auto?{t:'actif',k:'ok'}:null)
     +row('cloud','En ligne','par internet, avec votre compte',
-      online?(cur==='cloud'&&!auto?{t:'actif',k:'ok'}:null):{t:slCloudOff()==='compte'?'demande un compte':'pas d’internet',k:'no'},!online&&cur!=='cloud')
+      online?(sel==='cloud'&&!auto?{t:'actif',k:'ok'}:null):{t:slCloudOff()==='compte'?'compte nécessaire':'pas d’internet',k:'no'},!online&&cur!=='cloud')
     +row('direct','En direct','Wi-Fi commun, sans internet — chacun scanne l’autre une fois',slSbReady()||slLiveOk()?{t:'prêt',k:'ok'}:null)
     +row('optic','Par l’écran','sans aucun réseau — montrer et recevoir, à tour de rôle',{t:'toujours'})
-    +'</div><p class="sh-legend">Un mode grisé répond quand même au tap\u00a0: il dit pourquoi il n’est pas possible.</p>';
-  slOn('slModeBack',()=>slSheetNow());
+    +'</div><p class="sh-legend">Un mode indisponible reste tapable et dit pourquoi.</p>';
+  slPrefFocus(body);slOn('slModeBack',()=>slSheetNow());
   body.querySelectorAll('[data-shmode]').forEach(b=>b.onclick=()=>slModeApply(b.dataset.shmode,b));}
 async function slModeApply(m,btn){
   if(btn&&btn.getAttribute('aria-disabled')==='true'){toast(slCloudWhy(),11000,true);return;}
@@ -27781,7 +27794,7 @@ function slSheet(phase){
       +(opt||invite?'':slActs('<button class="btn" id="slInvite">Inviter quelqu’un d’autre</button>'))
       +slLogHtml()+stat
       +'<div class="sh-acts"><button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
-    slOn('slInvite',()=>{slOffer();});
+    slPrefFocus(body);slOn('slInvite',()=>{slOffer();});
     sharePartBind(body,()=>slSheet('live'));
     slOpticBind('host',()=>slSheet('live'));
     slOn('slEnd',async()=>{
@@ -27807,7 +27820,7 @@ function slSheet(phase){
       +(mir?'':'<p class="sh-h">Votre rôle</p><p class="sh-legend">'+role+'</p>')
       +slActs('<button class="btn ghost" id="slShow">Montrer à un autre écran</button>')
       +slLogHtml()+stat;
-    slOn('slJoin',()=>openJoinScreen(''));
+    slPrefFocus(body);slOn('slJoin',()=>openJoinScreen(''));
     slOpticBind('guest',()=>slSheet(phase));
     return;}
   /* APPARIEMENT DIRECT (offer) — ou, sans adresse locale vue, PAR L'ÉCRAN d'office (optic) : le chemin
@@ -27824,7 +27837,7 @@ function slSheet(phase){
        +slStep(3,'C’est tout','la session suit en direct\u00a0; si internet revient, le partage repasse en ligne seul'))
     +slLogHtml()+stat
     +'<div class="sh-acts"><button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
-  slOpticBind('host',()=>slSheet(phase));
+  slPrefFocus(body);slOpticBind('host',()=>slSheet(phase));
   slOn('slOpticW',()=>{slSb.optic=true;slSheet('optic');});
   slOn('slEnd',()=>{slScanStop();clearInterval(_ltTimer);SL=null;slSb.optic=false;shareModal.classList.remove('on');});
   const scanRep=async()=>{
@@ -27964,14 +27977,17 @@ async function slOptiqueGot(o,say){
     try{announce('Repères de l’invité reçus — le journal est annoté.');}catch(e){}
     say('Repères reçus — le journal est annoté, aucune coche modifiée.');
     return true;}
-  if(Runtime&&Runtime.started&&!(_slMirror&&_slMirror.sess===sess)){
+  // A328 : un invité qui SUIT déjà cette session (en ligne ou en direct) la reçoit aussi par l'écran ;
+  // seule une AUTRE session est refusée (terrain : « Montrer » ne mettait rien à jour).
+  const suivie=(_slMirror&&_slMirror.sess===sess)||(Share.mode==='guest'&&!!Share.fold&&String(Share.fold.sessId||'')===sess);
+  if(Runtime&&Runtime.started&&!suivie){
     say('Cet écran diffuse une AUTRE session — réception refusée, rien n’a été écrit.');
     return false;}
   Share.fiche=o.fiche;
   // La fiche passe par migrate() (openSharedFiche) ; le pli passe par slFoldSan — c'était le
   // seul intrant distant pris BRUT (audit v5.19.4).
   Share.fold=slFoldSan(o.snap);
-  Share.offset=o.at-Date.now(); // l'heure de l'hôte devient la référence, à peu près
+  if(Share.mode!=='guest')Share.offset=o.at-Date.now(); // l'heure de l'hôte devient la référence (l'invité en ligne garde celle du serveur)
   _slMirror={sess:String(o.sess),at:o.at,
     /* Ce que l'hôte a DÉJÀ : ses propres repères reçus dans l'instantané — la base du calcul
        « non renvoyé » du dialogue de départ (shareUnsent). */

@@ -2325,6 +2325,13 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     .then(() => true).catch(() => false);
   t('le canal dormant s\'apparie en silence (vrais RTCPeerConnection)', pretH && pretG,
     'hôte:' + pretH + ' invité:' + pretG);
+  /* A328 : « par l'écran » forcé PAR-DESSUS le partage en ligne, puis « En ligne » : le MÊME partage
+     continue (jamais fermé et rouvert), les participants restent. */
+  const encore = await H.evaluate(async () => { const avant = Share.share, n = (Share.participants || []).filter(p => !p.owner).length;
+    slModeApply('optic'); await new Promise(x => setTimeout(x, 200)); const opt = slSb.optic && !!document.querySelector('#slShow');
+    await slModeApply('cloud'); await new Promise(x => setTimeout(x, 300));
+    return { opt, meme: Share.share === avant, optic: slSb.optic, n2: (Share.participants || []).filter(p => !p.owner).length === n }; });
+  t('« par l\'écran » forcé puis « En ligne » : le MÊME partage continue, participants intacts (A328)', encore.opt && encore.meme && !encore.optic && encore.n2, JSON.stringify(encore));
   const dot = await H.evaluate(() => { slModeSheet();
     const b = document.querySelector('#shareBody .sl-opt[data-shmode="direct"] .sl-os');
     return b ? b.textContent.trim() : null; });
@@ -2676,8 +2683,15 @@ await sec('v5.14.16 · retour optique : repères datés, refus d\'une autre sess
     const okAutre = oAutre ? await slOptiqueGot(oAutre, () => {}) : null;
     const apres3 = (shareSnap(Runtime, false).events || []).length;
     const ids = (shareSnap(Runtime, false).events || []).map(e => e.id);
-    return { sess: !!sess, avant, ok1, apres1, ok2, apres2, okAutre, apres3,
+    // A328 : un invité qui SUIT cette session (en ligne/direct) reçoit aussi son instantané par l'écran
+    Share.mode = 'guest'; Share.fold = Object.assign(Share.fold || {}, { sessId: String(sess) });
+    const snapOk = { sess: String(sess), at: Date.now(), fiche: sharePayload(Runtime.fiche), snap: shareSnap(Runtime, false) };
+    const okSuivi = await slOptiqueGot(snapOk, () => {});
+    const okSuiviAutre = await slOptiqueGot(Object.assign({}, snapOk, { sess: 'sess-autre' }), () => {});
+    return { sess: !!sess, avant, ok1, apres1, ok2, apres2, okAutre, apres3, okSuivi, okSuiviAutre,
              a1: ids.includes('zz1'), a2: ids.includes('zz2') }; });
+  t('un invité qui SUIT la session la reçoit aussi par l\'écran (A328)', r.okSuivi === true, String(r.okSuivi));
+  t('… mais une AUTRE session lui est refusée', r.okSuiviAutre === false, String(r.okSuiviAutre));
   t('le retour est reconnu et le journal s\'annote', r.sess && r.ok1 === true && r.a1
     && r.apres1 === r.avant + 1, JSON.stringify(r));
   t('re-scanner le même retour ne duplique rien', r.ok2 === true && r.apres2 === r.apres1,

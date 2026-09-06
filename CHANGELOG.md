@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [5.24.1] — 2026-09-06
+### Trois signalements terrain de la v5.24.0 (A328)
+
+- **« Montrer » ne mettait rien à jour chez l'invité** : la réception optique refusait tout
+  instantané dès qu'une session était démarrée sur l'appareil hors miroir — l'invité qui suit en
+  ligne ou en direct était exactement dans ce cas, et le refus était silencieux depuis le bandeau.
+  Une session est « suivie » si c'est le miroir courant ou celle dont l'invité tient l'identifiant ;
+  seule une autre session reste refusée. L'invité en ligne garde l'horloge du serveur.
+- **En ligne → par l'écran → en ligne : « Partagé · 0 », participants disparus, « En direct ·
+  prêt » à 0 participant** : le mode courant était lu comme « par l'écran » dès que ce mode était
+  forcé, donc « En ligne » partait dans la bascule, fermait le partage et en ouvrait un neuf pendant
+  que l'invité restait sur l'ancien (et son canal direct, pair-à-pair, survivait : « prêt »).
+  Règle : le mode courant est le TRANSPORT ; « par l'écran » est une couche par-dessus. Choisir le
+  transport déjà en cours ne fait que retirer la couche ; « En direct » depuis « par l'écran » passe
+  par la vraie bascule en ligne → direct.
+- **Bandeau au cockpit (≥ 1200)** : il montait dans l'en-tête avec la capsule et couvrait le titre ;
+  il reste sous l'en-tête, en rangée compacte collante, centrée, bordée et arrondie — pas pleine
+  largeur.
+- **Focus d'ouverture** : l'anneau tombait sur le lien « Mode : automatique › » ; il va à l'action
+  de l'étape. Libellés « compte nécessaire » et « Un mode indisponible reste tapable et dit
+  pourquoi ».
+- Garde-fous `audit-partage` : « par l'écran » forcé puis « En ligne » garde le même partage et ses
+  participants ; un invité qui suit la session reçoit son instantané par l'écran, une autre session
+  lui est refusée. Doctrine A328 dans `docs/decisions/lot-v5-24.md`.
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
+
 ## [5.24.0] — 2026-09-06
 ### La feuille de partage dit quoi faire : l'app décide le canal, les étapes suivent (A327)
 
