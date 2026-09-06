@@ -2266,9 +2266,9 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
       secret: (() => { let n = 0; return () => 'sec' + (++n); })(),
       shareId: 'bus1', fiche: null, guestRole: 'scribe', hostLabel: 'Hôte' });
     const io = {
-      open: async () => ({ ok: true, share: 'bus1', code: 'AAAA2222',
+      open: async (id, sid, fid, snap) => { window.__opens = (window.__opens || 0) + 1; hub.st.fiche = snap; return { ok: true, share: 'bus1', code: 'AAAA2222',
         join_open_until: new Date(Date.now() + 120e3).toISOString(),
-        expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() }),
+        expires_at: new Date(Date.now() + 3600e3).toISOString(), server_time: new Date().toISOString() }; },
       admit: async () => ({ ok: true, code: 'BBBB3333',
         join_open_until: new Date(Date.now() + 120e3).toISOString(), server_time: new Date().toISOString() }),
       join: async (code, label) => hub.join(label),
@@ -2426,7 +2426,9 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active',
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   t('RÉSEAU REVENU : l\'hôte repasse en ligne TOUT SEUL (A319)', backH, '');
-  t('… et l\'invité suit par le billet « gc », sans geste', backG, '');
+  const dG = await G.evaluate(() => ({ share: Share.share, mode: Share.mode, rest: Share._io === Share._ioRest, cloud: !!slSb.cloud, fails: Share._fails, status: Share.status, sw: _slSwitching }));
+  const dH = await H.evaluate(() => ({ share: Share.share, mode: Share.mode, sl: !!SL, opens: window.__opens, cloud: !!slSb.cloud }));
+  t('… et l\'invité suit par le billet « gc », sans geste', backG, JSON.stringify({ G: dG, H: dH }));
   const desarme = await H.evaluate(() => slSb.auto === false);
   t('… et le retour DÉSARME (pas de boucle)', desarme, String(desarme));
 
@@ -2460,6 +2462,73 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     return { txt: slSb.log.map(e => e.txt), li }; });
   t('le journal du lien retient les transitions (≤ 5) (A321)', jl.txt.length > 0 && jl.txt.length <= 5 && jl.txt.includes('Repasse en ligne') && jl.txt.includes('Passe en direct'), JSON.stringify(jl.txt));
   t('… et la feuille les montre', jl.li === jl.txt.length, jl.li + ' / ' + jl.txt.length);
+  /* A322 — CHUTE TOTALE DU WI-FI : le relais meurt (→ direct), puis le canal direct de l'invité meurt
+     aussi ; au retour, l'hôte REPREND LE MÊME partage cloud (aucun `open` de plus) et l'invité REPREND
+     SEUL avec son secret gardé ; un geste fait pendant le direct atteint le journal cloud. */
+  await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); window.__opens = 0; });
+  const rearm3 = await H.waitForFunction(() => slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 }).then(() => true).catch(() => false);
+  await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { window.__acNetOk = false; });
+  const d3H = rearm3 && await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const d3G = d3H && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const tkG = d3G && await G.evaluate(() => !!(slSb.cloud && slSb.cloud.s === 'bus1' && slSb.cloud.k));
+  t('chute 1/2 : les deux en direct, l\'invité GARDE son billet cloud (A322)', d3H && d3G && tkG, 'hôte=' + d3H + ' invité=' + d3G + ' billet=' + tkG);
+  await H.evaluate(() => { Share._q.push({ event_id: 'dir1', kind: 'mark', payload: { id: 'dir1', t: Date.now(), ref: null }, ts: new Date().toISOString() }); Share._kick(0); });
+  await H.waitForFunction(() => SL && SL.hub && SL.hub.st.events.some(e => e.id === 'dir1'), null, { timeout: 10000 }).catch(() => {});
+  // chute 2/2 : le canal direct de l'invité meurt (Wi-Fi coupé) — plus rien ne passe
+  await G.evaluate(() => { try { Share._io.pull = async () => { throw new Error('canal mort'); }; Share._io.push = async () => { throw new Error('canal mort'); }; } catch (e) {} });
+  // le réseau revient
+  await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; slNetWatch(); });
+  await G.evaluate(() => { window.__acNetOk = true; });
+  const reH = d3G && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const opens = await H.evaluate(() => window.__opens);
+  t('retour : l\'hôte REPREND le même partage cloud, sans nouvel « open » (A322)', reH && opens === 0, 'repris=' + reH + ' opens=' + opens);
+  const reG = reH && await G.waitForFunction(() => Share._io === Share._ioRest && Share.share === 'bus1' && Share.mode === 'guest' && Share.status === 'active', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const gG = await G.evaluate(async () => ({ share: Share.share, mode: Share.mode, rest: Share._io === Share._ioRest, cloud: !!slSb.cloud, fails: Share._fails, sw: _slSwitching, net: _slNet.ok, status: Share.status, tk: sessionStorage.getItem(Share._tk()), ck: slSb.cloud && slSb.cloud.k, probe: await (async () => { try { const r = await Share._ioRest.pull(slSb.cloud.k, slSb.cloud.s, 0); return { ok: !!(r && r.ok), fiche: !!(r && r.fiche), status: r && r.status, err: r && r.err, n: r && r.events && r.events.length }; } catch (e) { return String(e); } })() }));
+  t('… et l\'invité REPREND SEUL avec son secret — canal mort, sans code ni geste (A322)', reG, JSON.stringify(gG));
+  const vu = reG && await G.waitForFunction(() => (Share._ids || []).some(x => /:dir1$/.test(x)), null, { timeout: 15000 }).then(() => true).catch(() => false);
+  t('… le geste fait pendant le direct a rejoint le journal cloud (A322)', vu, '');
+  const dw = await H.evaluate(() => slSb.dwellMs);
+  t('l\'hystérésis a doublé après un retour automatique — garde anti-battement (A322)', dw >= 120000, dw + ' ms');
+  /* A322 — AUTRES SITUATIONS DE TERRAIN. (a) Panne SANS canal dormant (invité sur un autre réseau,
+     Wi-Fi isolé) : on ne bascule pas — le partage cloud continue seul au retour, zéro geste. */
+  await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); });
+  await H.waitForFunction(() => slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 }).catch(() => {});
+  await H.evaluate(() => { slSbReset(); window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { slSbReset(); window.__acNetOk = false; });
+  await H.waitForTimeout(8000);
+  const resteH = await H.evaluate(() => ({ share: Share.share, sl: !!SL, fails: Share._fails }));
+  t('(a) panne sans canal dormant : PAS de bascule, l\'hôte garde son partage cloud (A322)', resteH.share === 'bus1' && !resteH.sl && resteH.fails >= 1, JSON.stringify(resteH));
+  await H.evaluate(() => { window.__acNetOk = true; Share._io = window.__ioSain; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; Share._kick(0); });
+  await G.evaluate(() => { window.__acNetOk = true; Share._kick(0); });
+  const contH = await H.waitForFunction(() => Share.share === 'bus1' && Share._fails === 0 && Share.status === 'active', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const contG = await G.waitForFunction(() => Share.share === 'bus1' && Share._fails === 0 && Share.status === 'active', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  t('… et au retour du réseau les deux continuent sur le même partage, zéro geste', contH && contG, 'hôte=' + contH + ' invité=' + contG);
+
+  /* (c) Le réseau revient mais le SERVEUR répond en erreur : la reprise échoue, le direct reste,
+     le retour RESTE ARMÉ et aboutit quand le serveur répond de nouveau. */
+  const rearm5 = await H.waitForFunction(() => slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 }).then(() => true).catch(() => false);
+  await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { window.__acNetOk = false; });
+  const d5H = rearm5 && await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const d5G = d5H && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000;
+    const io = window.__ioSain; window.__io5xx = Object.assign({}, io, { pull: async () => ({ ok: false, err: 'server' }), open: async () => null });
+    Share._ioRest = window.__io5xx; slNetWatch(); });
+  await H.waitForTimeout(6000);
+  const enc = await H.evaluate(() => ({ share: Share.share, sl: !!SL, auto: slSb.auto, tk: !!slSb.cloud }));
+  t('(c) serveur en erreur au retour : le direct reste, le retour RESTE ARMÉ, le billet gardé (A322)', d5G && enc.share === 'local' && enc.sl && enc.auto === true && enc.tk, JSON.stringify(enc));
+  await H.evaluate(() => { Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; });
+  await G.evaluate(() => { window.__acNetOk = true; });
+  const ok5H = d5G && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const ok5G = ok5H && await G.waitForFunction(() => Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  t('… et aboutit quand le serveur répond de nouveau, l\'invité suivant', ok5H && ok5G, 'hôte=' + ok5H + ' invité=' + ok5G);
   await ctx.close();
   if (brE !== br) await brE.close();
 });

@@ -1,4 +1,4 @@
-# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A321)
+# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A322)
 
 > Fichier normatif, suite de [`lot-v5-22.md`](lot-v5-22.md) (A308-A316). Les numéros A sont des
 > adresses : ne jamais renuméroter. Demande de l'auteur (05/09/2026) : « améliorer le passage entre
@@ -115,3 +115,60 @@ CAPABLES D'ÉCHOUER (écriture retirée → rouge, `index.html` restauré à l'o
 retour en ligne manuel → automatique sous hystérésis ; réveil : geste demandé → retour seul ; un seul
 état visible ; chaque transition vue au quai 8 s et lue dans le journal. Le partage reste un miroir
 ADDITIF (règle 15) : aucune de ces mesures n'attend le réseau sur un tap ou un rendu.
+
+## A322 — le réseau de terrain : Wi-Fi instable, chute totale, portail captif, serveur en erreur (v5.23.5)
+
+**Demande de l'auteur** (06/09/2026) : « vérifie que ça tienne si la connexion Wi-Fi est instable,
+se déconnecte, repasse sur une page de connexion portail ; et quelles autres situations similaires
+pourraient bloquer en situation critique ? Teste-les. »
+
+**Ce que la mesure a trouvé avant correction.** (1) **Chute totale du Wi-Fi** (cloud ET canal
+direct perdus, puis retour) : l'hôte revenait en ligne sur un partage NEUF, le billet `gc` partait
+sur des canaux morts, l'invité restait en direct sur un canal mort — geste obligatoire des deux
+côtés. (2) **Serveur en erreur au retour** (internet revenu, Supabase en 5xx ou maintenance) : la
+tentative de retour échouait et DÉSARMAIT le retour automatique — plus aucune tentative ensuite. (3)
+**Battement** (Wi-Fi qui hoquette) : détection agressive (A318) sans garde côté panne, hystérésis
+fixe côté retour — une oscillation à chaque hoquet.
+
+**Ce qui change.**
+- **Reprise du MÊME partage cloud.** À la bascule de panne, l'hôte garde son billet cloud (id, code,
+  curseur) et l'invité le sien (id, secret). Au retour, `Share.rehost` reprend le partage existant
+  (aucun `open` : mêmes secrets, rien à re-saisir), pousse au journal cloud les gestes faits pendant
+  le direct (le hub local ne contient QUE ceux-là ; dédoublonnage par identifiant d'évènement), puis
+  dit `rc` aux invités encore sur le canal direct. Un invité au canal MORT reprend SEUL
+  (`slResumeCloud`, par le billet de reprise existant) dès que la sonde dit le serveur joignable —
+  sans code, sans geste. Un billet ne se consomme qu'à la réussite ; un échec restaure le transport
+  qui marchait (jamais de demi-état). Le partage neuf + `gc` reste le repli si le partage cloud a
+  expiré ou a été purgé.
+- **Le retour reste armé tant qu'il n'a pas abouti** : `slGoCloud` rend vrai ou faux ; un échec
+  remet le compteur de sondes et garde l'armement (test (c) : serveur en erreur puis rétabli → le
+  retour aboutit, l'invité suit).
+- **Garde anti-battement** : l'hystérésis double à chaque retour automatique (60 s → 120 → … ≤ 10
+  min) et se relâche après 10 min de calme ; l'évènement `offline` attend 1,5 s avant de trancher.
+- **Portail captif** : aucune ligne à changer, mesuré au raisonnement du contrat — le portail
+  intercepte l'HTTPS de la sonde (erreur TLS/CORS → `fetch` rejette → « injoignable ») et les
+  sondages du miroir (JSON illisible → échec) ; l'isolation client-à-client des portails tue aussi
+  le canal direct : c'est le cas « chute totale », couvert. L'écran de connexion du portail, lui,
+  n'est pas l'affaire de l'app.
+
+**Carte des situations de terrain** (E2E réel, deux pages, section « v5.14.9 · bascule »,
+27 → 36 contrôles) :
+
+| Situation | Comportement | Témoin |
+|---|---|---|
+| Relais mort, canal direct vivant | direct en < 2,5 s, retour seul (A318-A319) | oui |
+| Chute totale puis retour | même partage repris des deux côtés, gestes du direct au journal | oui |
+| Panne SANS canal dormant (invité sur un autre réseau, Wi-Fi isolé) | pas de bascule ; le cloud reprend seul au retour | oui |
+| Serveur en erreur au retour | direct maintenu, retour toujours armé, aboutit ensuite | oui |
+| Réveil après veille | A320 | oui |
+| Wi-Fi qui hoquette | détection 1,5 s côté `offline`, hystérésis doublée côté retour | mécanisme mesuré (dwell doublé), pas de scénario chronométré — non déterministe au banc |
+| Portail captif | = chute totale (contrat de la sonde) | par construction, non simulé |
+| Bascule Wi-Fi ↔ 4G d'un appareil | = canal mort + serveur joignable (reprise seule) | couvert par « chute totale » |
+| Partage cloud expiré pendant une longue panne | repli partage neuf + `gc` | chemin d'A210, non rejoué ici |
+| Rechargement de l'HÔTE pendant un partage direct | le hub meurt avec l'onglet — limite connue, hors lot | non |
+
+**Garde-fous** : 9 contrôles ajoutés ; vérifiés CAPABLES D'ÉCHOUER (reprise du même partage et
+reprise seule de l'invité retirées → 6 rouges, `index.html` restauré à l'octet). ⚠ Deux pièges de
+banc : le relais du banc ne portait pas la fiche (une reprise réelle la reçoit) — corrigé dans
+`io.open` ; et « en direct » chez l'invité se lit à `Share._io !== Share._ioRest`, jamais à
+`share === 'local'` (marqueur de l'hôte) — c'est ce prédicat faux qui laissait l'invité sans reprise.

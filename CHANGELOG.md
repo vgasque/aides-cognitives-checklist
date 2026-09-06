@@ -1,5 +1,28 @@
 # Journal des modifications
 
+## [5.23.5] — 2026-09-06
+### Le réseau de terrain : chute totale du Wi-Fi, serveur en erreur, battement, portail captif (A322)
+
+- **Demande de l'auteur** : vérifier que le partage tient si le Wi-Fi est instable, se coupe ou
+  renvoie sur une page de portail — et tester les autres situations de terrain. Trois défauts
+  trouvés à la mesure et corrigés.
+- **Chute totale puis retour** : l'hôte reprend le MÊME partage cloud (id, code, secrets des
+  invités inchangés) et y pousse les gestes faits pendant le direct ; un invité dont le canal direct
+  est mort reprend SEUL avec son secret dès que le serveur répond — sans code, sans geste. Avant, un
+  partage neuf était ouvert et l'invité restait bloqué.
+- **Serveur en erreur au retour** : la tentative échouée gardait le retour désarmé à jamais ; il
+  reste armé et aboutit quand le serveur répond de nouveau.
+- **Battement** : l'hystérésis double à chaque retour automatique (jusqu'à 10 min) et se relâche
+  après 10 min de calme ; l'évènement `offline` attend 1,5 s avant de trancher.
+- **Portail captif** : couvert par construction — la sonde et les sondages échouent à l'interception
+  HTTPS, et l'isolation du portail tue le canal direct : c'est la chute totale.
+- Garde-fous : neuf contrôles ajoutés à la section E2E des bascules d'`audit-partage` (27 → 36),
+  dont « panne sans canal dormant : le cloud reprend seul » et « serveur en erreur : retour armé »,
+  vérifiés capables d'échouer (6 rouges sur le code d'avant). Doctrine A322 avec la carte des
+  situations et de leurs témoins dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.21.2]
+  archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
+
 ## [5.23.4] — 2026-09-05
 ### Le journal du lien : les cinq dernières transitions, sur demande (A321, étape 5 et fin du lot)
 
@@ -320,40 +343,3 @@
   restauré à l'octet). CHANGELOG à 20 ([5.19.0] archivée). Vérifié : check complet, 1176 tests ×
   2 moteurs, audit COMPLET (un aléa de délai sur « un rechargement ne perd plus la session »,
   vert deux fois en rejeu isolé, sans rapport).
-
-## [5.21.2] — 2026-09-02
-### Deux commandes qui mentaient : la lecture seule, et le compte du gestionnaire (A305)
-
-- **Le gestionnaire de catégories s'ouvrait sur une bibliothèque en LECTURE SEULE** — et c'était
-  **pire qu'une commande morte**. Mesuré : champ de nom éditable, 13 pastilles de couleur, bouton
-  Supprimer, « ＋ Ajouter » ; et le renommage **s'appliquait localement** (`Trauma` → `RENOMMÉ`,
-  marqué « à pousser ») avant d'être refusé par la RLS. L'utilisateur croyait contribuer — le pire
-  mode de défaillance du dossier, transposé aux catégories.
-  **Cause : le filtre `canEditScope` n'était posé que sur UNE des deux branches** de
-  `catMgrScopes()` — celle de « Toutes ». Le cas « une seule bibliothèque affichée » passait au
-  travers. Un seul prédicat désormais, appliqué aux deux : `…filter(canEditScope)`.
-- **La commande disparaît à ses trois portes** (colonne gauche, puce « Gérer » de la feuille
-  étroite, feuille du pouce) via un prédicat unique `catMgrOn()`, et `#mgrBtn` se masque quand il
-  n'y a plus rien à gérer du tout — sinon son libellé dit désormais « Gérer les bibliothèques ».
-  Défense en profondeur : forcée par un autre chemin, la fenêtre **dit pourquoi** elle est vide et
-  n'affiche pas un seul contrôle.
-- **Le gestionnaire n'affichait pas le bon nombre** (signalé). Il ne comptait que les **fiches**,
-  alors que la colonne gauche compte l'union fiches + protocoles : les deux divergeaient du nombre
-  exact de protocoles rangés dans la catégorie. Et le défaut ne s'arrêtait pas à l'affichage —
-  **supprimer une catégorie ne déplaçait que les fiches**, laissant la `category` des protocoles
-  pointer sur une catégorie disparue. `catItems(id,scope)` devient la source unique du contenu
-  d'une catégorie : le compte, la confirmation et le déplacement en découlent, chaque nature
-  repassant par SON point de persistance (patron de `selWrite`). Le libellé suit : « n éléments »,
-  comme le répertoire, puisque les deux natures y sont.
-- ⚠ **Deux fausses pistes écartées à la mesure, pas au raisonnement.** (1) Les entités
-  soft-supprimées semblaient comptées — `load()` les écarte déjà (`fiches=allFiches.filter(f=>!f.deletedAt)`),
-  le cas était fabriqué par ma sonde. (2) La colonne gauche semblait avoir perdu son compte —
-  `hsRow` le pose **à côté** du bouton, dans `.hs-wrap` : le chercher DANS `[data-cat]` rend
-  toujours « absent ». Le témoin porte ce piège en commentaire, sans quoi il aurait mesuré un vert
-  sur un rouge.
-- **Garde-fous** : `audit-doctrine` § « le gestionnaire compte comme la colonne, et déplace tout »
-  (6 contrôles, 94 → 95 sections) et deux contrôles ajoutés à § « le périmètre affiché commande… »
-  (même décor, une manœuvre une section). **Vérifiés capables d'échouer** : les deux défauts
-  réintroduits → 6 rouges exactement sur les bonnes assertions, `index.html` restauré à l'octet.
-- Vérifié : `npm run check` complet, 1176 tests × 2 moteurs, audit COMPLET 26/26 (deux passes,
-  avant et après le numéro de version).
