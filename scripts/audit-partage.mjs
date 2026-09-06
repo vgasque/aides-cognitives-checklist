@@ -527,7 +527,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
       code: (document.getElementById('shCode') || {}).textContent || '',
       codePx: (() => { const e = document.getElementById('shCode');
         return e ? Math.round(parseFloat(getComputedStyle(e).fontSize)) : 0; })(),
-      lien: (document.getElementById('shLink') || {}).textContent || '',
+      lien: ((document.getElementById('shSend') || {}).dataset || {}).url || '',
       qrTexte: (() => { try { return shareJoinUrl('K7M2P4Q9'); } catch (e) { return null; } })(),
       titre: (document.querySelector('#shareModal .sh-fiche') || {}).textContent || '',
       qrLarge: qr ? Math.round(qr.getBoundingClientRect().width) : 0,
@@ -545,7 +545,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
         return !!m && m.scrollHeight > m.clientHeight - 1 && /auto|scroll/.test(getComputedStyle(m).overflowY); })(),
       fondVerrouille: document.documentElement.classList.contains('modal-open'),
       // Capturées PORTE OUVERTE : une fois le code consommé, ni l'adresse ni le QR n'ont de sens.
-      adresse: (document.querySelector('#shareModal .sh-adr') || {}).textContent || '',
+      adresse: ((document.getElementById('shSend') || {}).dataset || {}).url || (document.querySelector('#shareModal .sh-adr') || {}).textContent || '',
       participants: [...document.querySelectorAll('#shareModal .sh-p .n')].map(e => e.textContent),
       // L'ÉMISSION : l'ouverture doit avoir versé l'état COURANT dans la file (la session est
       // démarrée depuis le bootstrap), sinon un invité arriverait devant une fiche vierge.
@@ -560,7 +560,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
     await new Promise(x => setTimeout(x, 2600));
     out.codeApres = (document.getElementById('shCode') || {}).textContent || '';
     out.qrApres = !!document.querySelector('#shareModal .qr');
-    out.diApres = (document.querySelector('#shareModal .sh-lead') || {}).textContent || '';
+    out.diApres = (document.querySelector('#shareModal .sl-step') || {}).textContent || '';
     out.admetApres = !!document.getElementById('shAdmit');
     out.participants = [...document.querySelectorAll('#shareModal .sh-p .n')].map(e => e.textContent);
 
@@ -601,8 +601,8 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
   t(`${w}×${h} · la fenêtre s'ouvre`, r.ouverte, JSON.stringify(r).slice(0, 200));
   t(`${w}×${h} · le code DISPARAÎT dès qu'un participant entre`, !r.codeApres, r.codeApres);
   t(`${w}×${h} · … et le QR avec lui`, r.qrApres === false, 'QR encore peint');
-  t(`${w}×${h} · … la fenêtre dit QUI l'a consommé`, /IADE/.test(r.diApres) && /servi/i.test(r.diApres), r.diApres);
-  t(`${w}×${h} · … et « Nouveau code » reste offert`, r.admetApres, 'bouton absent');
+  t(`${w}×${h} · … la fenêtre dit QUI l'a consommé`, /IADE/.test(r.diApres) && /rejoint/i.test(r.diApres), r.diApres);
+  t(`${w}×${h} · … et « Inviter quelqu'un d'autre » reste offert`, r.admetApres, 'bouton absent');
   t(`${w}×${h} · le code est affiché en clair`, /K7M2-P4Q9/.test(r.code), r.code);
   /* LA TAILLE RENDUE, PAS LA VALEUR ÉCRITE. Le code a été agrandi trois fois sans le moindre
      effet à l'écran : `.ai-card p` (spécificité 0,1,1 — une classe ET un type) l'emportait sur
@@ -623,7 +623,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
      ou l'envoyer quand la caméra ne sert pas. */
   t(`${w}×${h} · le QR encode l'URL AVEC le code`, /^https?:\/\/.*#j=K7M2P4Q9$/.test(r.qrTexte||''),
     r.qrTexte);
-  t(`${w}×${h} · et le lien complet est donné en clair`, /#j=K7M2P4Q9$/.test(r.lien||''), r.lien);
+  t(`${w}×${h} · et « Envoyer le lien… » porte l'URL complète avec le code (A327)`, /#j=K7M2P4Q9$/.test(r.lien||''), r.lien);
   t(`${w}×${h} · le TITRE DE L'AIDE est à côté du code`, /Arrêt cardiaque/.test(r.titre), r.titre);
   // Plafond 200 -> 240 px (v5.16.0, demandé à l'usage : « lisibles de plus loin »).
   t(`${w}×${h} · le QR est présent et plafonné à 240 px`, r.qrLarge > 60 && r.qrLarge <= 240, `${r.qrLarge} px`);
@@ -655,7 +655,7 @@ for (const [w, h] of [[320, 568], [390, 844]]) {
      qui rend l'écran d'entrée trouvable. Le QR ne vaut que si l'appareil qui le scanne peut
      ATTEINDRE ce qu'il contient — servi depuis un fichier local ou `localhost`, il décode une URL
      que le téléphone d'un collègue ne joindra jamais. */
-  t(`${w}×${h} · l'adresse de jointure est écrite en clair`, /localhost|adresse/.test(r.adresse),
+  t(`${w}×${h} · l'adresse de jointure est portée par « Envoyer le lien… » (ou écrite si la page n'en a pas)`, /localhost|adresse/.test(r.adresse),
     r.adresse);
   t(`${w}×${h} · la confirmation d'arrêt passe AU-DESSUS de la fenêtre`, r.confAuDessus === true,
     `partage z=${r.zPartage}, confirmation z=${r.zConf}`);
@@ -2325,10 +2325,10 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     .then(() => true).catch(() => false);
   t('le canal dormant s\'apparie en silence (vrais RTCPeerConnection)', pretH && pretG,
     'hôte:' + pretH + ' invité:' + pretG);
-  const dot = await H.evaluate(() => {
-    const b = document.querySelector('#shareBody .seg-btn[data-shmode="direct"] .sdot');
-    return b ? b.classList.contains('ok') : null; });
-  t('la pastille « En direct » dit que le canal est prêt', dot === true, String(dot));
+  const dot = await H.evaluate(() => { slModeSheet();
+    const b = document.querySelector('#shareBody .sl-opt[data-shmode="direct"] .sl-os');
+    return b ? b.textContent.trim() : null; });
+  t('la feuille « Mode » dit que le canal direct est prêt (A327)', dot === 'prêt', String(dot));
   const saidHG = [await H.evaluate(() => slSb.said), await G.evaluate(() => slSb.said)];
   t('« Secours prêt » est dit une fois, des deux côtés (A318)', saidHG[0] === true && saidHG[1] === true, JSON.stringify(saidHG));
 
@@ -2339,7 +2339,7 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   await G.evaluate(() => { Share._q.push({ event_id: 'carry1', kind: 'mark',
     payload: { id: 'carry1', t: Date.now(), ref: null }, ts: new Date().toISOString() }); });
   /* Le TAP « En direct » : l'hôte bascule, l'invité SUIT — personne ne scanne. */
-  await H.click('#shareBody .seg-btn[data-shmode="direct"]');
+  await H.click('#shareBody .sl-opt[data-shmode="direct"]');
   const basH = await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true,
     null, { timeout: 20000 }).then(() => true).catch(() => false);
   const basG = basH && await G.waitForFunction(() =>
@@ -2367,7 +2367,8 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   await H.evaluate(() => { window.__noPush = false; });   // le réseau d'écriture revit
 
   /* Le TAP « En ligne » : billet « gc » par le canal, personne ne ressaisit de code. */
-  await H.click('#shareBody .seg-btn[data-shmode="cloud"]');
+  await H.evaluate(() => { slModeSheet(); });
+  await H.click('#shareBody .sl-opt[data-shmode="cloud"]');
   const revH = await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL,
     null, { timeout: 40000 }).then(() => true).catch(() => false);
   const revG = revH && await G.waitForFunction(() =>
@@ -2559,11 +2560,11 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   await H.evaluate(() => { window.__silSain = shareSeenSilenceMs; shareSeenSilenceMs = () => 1e9; });
   const lostG = d6G && await G.waitForFunction(() => { updateRtStrip(Date.now()); return slLink().lost === true && !document.getElementById('linkBar').hidden; }, null, { timeout: 30000 }).then(() => true).catch(() => false);
   const barG = await G.evaluate(() => { const b = document.getElementById('linkBar'); return { txt: b.textContent.replace(/\s+/g, ' ').trim().slice(0, 40), rx: !!b.querySelector('[data-lk="rx"]'), ret: !!b.querySelector('[data-lk="ret"]'), why: !!b.querySelector('[data-lk="why"]'), h: Math.round(b.getBoundingClientRect().height) }; });
-  t('invité, canal mort et serveur muet : bannière « Lien perdu » avec Recevoir / Renvoyer (A324)', lostG && barG.rx && barG.ret && barG.why && /Connexion perdue/.test(barG.txt), JSON.stringify(barG));
+  t('invité, canal mort et serveur muet : bannière « Lien perdu » avec Recevoir / Renvoyer (A324)', lostG && barG.rx && barG.ret && barG.why && /Par l’écran/.test(barG.txt), JSON.stringify(barG));
   t('… la bannière tient sur une rangée (≤ 48 px)', barG.h > 0 && barG.h <= 48, barG.h + ' px');
   const lostH = d6H && await H.waitForFunction(() => { updateRtStrip(Date.now()); return slLink().lost === true && !document.getElementById('linkBar').hidden; }, null, { timeout: 30000 }).then(() => true).catch(() => false);
-  const barH = await H.evaluate(() => { const b = document.getElementById('linkBar'); return { show: !!b.querySelector('[data-lk="show"]'), txt: b.textContent.replace(/\s+/g, ' ').trim().slice(0, 30) }; });
-  t('hôte, invités perdus et serveur muet : bannière avec « Montrer la progression » (A324)', lostH && barH.show, JSON.stringify(barH));
+  const barH = await H.evaluate(() => { const b = document.getElementById('linkBar'); return { show: !!b.querySelector('[data-lk="show"]'), rx: !!b.querySelector('[data-lk="rx"]'), txt: b.textContent.replace(/\s+/g, ' ').trim().slice(0, 30) }; });
+  t('hôte, invités perdus et serveur muet : bannière « ① Montrer · ② Recevoir » (A324, A327)', lostH && barH.show && barH.rx, JSON.stringify(barH));
   // la feuille de l'invité dit la même chose, avec les mêmes gestes
   const feuille = await G.evaluate(() => { openCurrentShare(); const b = document.getElementById('shareBody');
     const r = { note: /Connexion perdue/.test(b.textContent), rx: !!document.getElementById('slReRx'), ret: !!document.getElementById('slRet'), log: b.querySelectorAll('.sl-log li').length };

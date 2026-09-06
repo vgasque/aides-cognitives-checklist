@@ -5402,50 +5402,53 @@
   @supports (height:100dvh){
     .ai-modal,.lightbox,#flowFull,#joinScreen{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
-  /* FENÊTRE D'APPARIEMENT (v4.47.0). ORDRE IMPOSÉ PAR LA MESURE, pas par l'esthétique : à 320×568
-     une maquette « QR d'abord » faisait 572 px de carte pour 568 de fenêtre — « Arrêter le
-     partage » tombait sous la ligne de flottaison, et chaque participant ajoutait 56 px. On place
-     donc EN HAUT ce qui se dicte à voix haute (le titre de l'aide et le code), le QR ensuite et
-     plafonné, la liste bornée, l'arrêt en pied — jamais à l'intérieur d'une liste qui grandit. */
-  #shareModal .sh-lead{margin:0 0 10px;font-size:13.5px;line-height:1.4;color:var(--ink-soft)}
+  /* FEUILLE DE PARTAGE (A327) : ligne d'état, étapes numérotées (le bouton EST l'étape), participants
+     sur deux lignes, historique, arrêt en pied. Ordre code → QR gardé : mesuré à 320×568 (v4.47.0),
+     un QR d'abord passait « Arrêter le partage » sous la ligne de flottaison. */
   #shareModal .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  /* Le code se lit à voix haute dans une pièce bruyante : mono, très grand, chiffres tabulaires,
-     et un espacement qui sépare les caractères sans les détacher en deux mots. */
-  /* C'EST LE TEXTE QU'ON DICTE À VOIX HAUTE, souvent en tendant le téléphone à bout de bras : il
-     est le plus gros de la fenêtre, devant le titre. 34 px mesurés tenables jusqu'à 320 px avec le
-     reste de la carte au-dessus de la ligne de flottaison. */
-  #shareModal .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:5px;
+  .sl-st{display:flex;flex-direction:column;gap:2px;min-height:44px;margin:4px 0 0;padding:6px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .sl-w{font-size:var(--t-body);font-weight:700;color:var(--ink)}
+  .sl-w small{font-size:var(--t-body);font-weight:600;color:var(--ink-soft)}
+  .sl-row{display:flex;flex-direction:column;align-items:flex-end}
+  .sl-why{align-self:stretch;font-size:var(--t-meta);font-weight:600;color:var(--ink-soft)}
+  /* La porte « Mode : … › » : discrète (encre douce, 12 px), mais 44 px de haut. */
+  .sl-lnk{display:inline-flex;align-items:center;min-height:44px;margin:-6px -4px -12px 0;padding:0 4px;border:0;background:none;font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink-soft);cursor:pointer}
+  .sl-lnk.sl-back{margin:-8px 0 0 -4px;font-size:var(--t-body);color:var(--link)}
+  .sl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sl-step{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+  .sh-h+.sl-step{border-top:0}
+  .sl-num{flex:none;width:28px;height:28px;border-radius:999px;background:var(--primary-soft);color:var(--primary-dk);font-size:var(--t-body);font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+  .sl-num.done{background:var(--ok);color:var(--on-primary)}
+  .sl-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  #shareModal .sl-t{margin:0;font-size:var(--t-item);font-weight:700;line-height:1.3;color:var(--ink)}
+  .sl-t small{display:block;font-size:var(--t-body);font-weight:600;color:var(--ink-soft);margin-top:2px}
+  /* Le code se DICTE à bout de bras : mono, 24 px, chiffres tabulaires, interlettrage large. */
+  #shareModal .sh-code{margin:2px 0 0;font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:5px;
     text-align:center;color:var(--ink);font-variant-numeric:tabular-nums;user-select:all}
-  /* Le lien complet : sélectionnable d'un appui, coupé proprement s'il est long, jamais tronqué
-     par une ellipse — on doit pouvoir le lire en entier pour le dicter. */
-  #shareModal .sh-lnk{margin:0 0 4px;padding:8px 10px;font-family:var(--mono);font-size:12px;
-    line-height:1.45;text-align:center;color:var(--link);background:var(--surface-2);
-    border-radius:8px;overflow-wrap:anywhere;user-select:all}
-  #shareModal .sh-adr{margin:0 0 12px;font-size:12px;line-height:1.4;text-align:center;color:var(--ink-soft)}
-  #shareModal .sh-adr.warn{color:var(--verify);text-align:left}
-  #shareModal .sh-when{margin:0 0 12px;font-size:12px;text-align:center;color:var(--ink-soft)}
+  #shareModal .sh-when{margin:0;font-size:12px;text-align:center;color:var(--ink-soft)}
   #shareModal .sh-when.closed{color:var(--verify)}
   #shareModal .sh-when.soon{color:var(--verify);font-weight:700}
-  .sh-qr{display:flex;justify-content:center;margin:0 0 10px}
-  /* QR PLAFONNÉ (240 px / 56 vw depuis v5.16.0) ; le palier < 360 px ne bouge PAS — mesuré à
-     320×568, y grossir referait passer « Arrêter le partage » sous la ligne de flottaison (le code
-     reste scannable bien en dessous). ⚠ Portée `#shareModal` OBLIGATOIRE : la règle « 260 px » de
-     #shareBody (id) battrait ce plafond. Détail : doctrine-css.md C112. */
+  .sh-qr{display:flex;justify-content:center;margin:4px 0 0}
+  /* QR PLAFONNÉ (240 px / 56 vw) ; le palier < 360 px ne bouge PAS (mesuré à 320×568). ⚠ Portée
+     `#shareModal` obligatoire : la règle « 260 px » de #shareBody (id) battrait ce plafond. */
   #shareModal .sh-qr .qr{width:min(240px,56vw);height:auto}
   @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:24px;letter-spacing:3px}}
-  #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .sh-p{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--line)}
-  .sh-p .n{flex:1;min-width:0;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #shareModal .sh-adr.warn{margin:0;font-size:12px;line-height:1.4;color:var(--verify)}
+  #shareModal .sh-h{margin:12px 0 4px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .sh-p{display:flex;flex-direction:column;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+  .sh-p .l{display:flex;align-items:center;gap:8px;min-height:28px}
+  .sh-p .n{flex:1;min-width:0;font-size:var(--t-item);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  /* v5.10.5 — mention « sans nouvelles · N min » : une information en bas de casse, pas un état
-     de plus dans le registre des mots d'état (qui restent seuls en petites capitales). */
+  .sh-p .b{display:flex;gap:8px}
+  .sh-p .b .btn{flex:1 1 0;min-height:44px}
+  /* « sans nouvelles · N min » : une information en bas de casse, pas un état de plus (v5.10.5). */
   .sh-p .sh-quiet{font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-soft)}
   .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
   .sh-p.wait .r{color:var(--verify)}
-  #shareModal .sh-none{margin:6px 0 0;font-size:13.5px;color:var(--ink-soft)}
+  #shareModal .sh-none{margin:4px 0 0;font-size:var(--t-body);color:var(--ink-soft)}
+  #shareModal .sh-legend{margin:8px 0 0;font-size:var(--t-meta);line-height:1.4;color:var(--ink-soft)}
   .sh-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
   .sh-acts .btn{flex:1 1 auto;min-height:44px}
-  #shareModal .sh-note{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
   /* ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0). Plein écran, opaque, et le SEUL contenu de la page : il
      s'affiche à la place de l'application, pas par-dessus — l'amorçage normal n'a pas eu lieu (ni
      base, ni service worker, ni la moindre écriture), et c'est précisément ce que la notice
@@ -5507,24 +5510,21 @@
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
     text-align:center;margin:6px 0 0}
-  /* Pastilles des crans du sélecteur de mode (maquette 08) : vert = cran ACTIF, gris sinon,
-     ⧗ (mono) pour le ponctuel. Portées par le composant .seg canonique, sans le modifier. */
-  #shareBody .seg-btn .sdot.ok{background:var(--ok)}
-#shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
-  #shareBody .seg-btn.on .sdot{background:var(--ok)}
-  /* Le cran FERMÉ (v5.17.4) : il garde l'encre du cran inactif — la lisibilité d'un texte ne se
-     négocie pas, et WCAG exempte les composants inactifs sans nous autoriser à les affadir — mais
-     le curseur dit qu'il ne bascule pas. Il reste TAPABLE, à dessein : c'est le tap qui explique
-     (cf. slCloudWhy). */
-  #shareBody .seg-btn[aria-disabled="true"]{cursor:not-allowed}
-  #shareBody .seg-btn .sdot.t{width:auto;height:auto;border-radius:0;background:none;
-    font-family:var(--f-mono);font-size:11px;font-weight:700;line-height:1;color:inherit}
-  /* Conteneur du sélecteur de mode : la recette du sélecteur de l'ACCUEIL (fond d'ambiance,
-     filet, coins r-2, pastille en retrait de 2 px) adaptée à la feuille. */
-  #shareBody .seg{background:var(--amb);border:1px solid var(--line);
-    border-radius:var(--r-2);padding:2px;margin:12px 0 0}
-  #shareBody .seg .seg-pill{top:2px;bottom:2px;left:2px;border-radius:var(--r-1);
-    width:calc((100% - 4px - (var(--seg-n,3) - 1) * var(--seg-gap,8px)) / var(--seg-n,3))}
+  /* Feuille « Mode » (A327) : quatre rangées radio de 52 px, la choisie sur teinte de SÉLECTION ;
+     un mode fermé garde son encre (WCAG n'autorise pas à l'affadir) et reste tapable. */
+  .sl-modes{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+  .sl-opt{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:52px;padding:10px 8px;border:0;border-radius:var(--r-2);background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .sl-opt.on{background:var(--primary-soft)}
+  .sl-opt[aria-disabled="true"]{cursor:not-allowed}
+  .sl-opt:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sl-rad{flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--ctl-line);box-sizing:border-box;margin-top:2px}
+  .sl-opt.on .sl-rad{border-color:var(--primary);border-width:6px}
+  .sl-ot{flex:1;min-width:0;font-size:var(--t-item);font-weight:700;line-height:1.3}
+  .sl-opt.on .sl-ot{color:var(--primary-dk)}
+  .sl-ot small{display:block;font-size:var(--t-meta);font-weight:600;color:var(--ink-soft);margin-top:2px}
+  .sl-os{flex:none;font-size:var(--t-cap);font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-top:4px}
+  .sl-os.ok{color:var(--ok)}
+  .sl-os.no{color:var(--verify)}
   /* Ligne d'état à point PULSANT (maquettes 01/08) — pulsation d'OPACITÉ seule (peinture). */
   .sl-log{list-style:none;margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px;font-size:var(--t-cap);color:var(--ink-2)}
   .sl-log li{display:flex;gap:8px}.sl-lt{font-family:var(--mono);color:var(--ink-soft)}

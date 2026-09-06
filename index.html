@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-exfK6QA94GQ5bRqE+PDdFzngp9w2Zf5wgSIPkjbAAcY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-dfB5fO7oH+9yzGnJPTyC049H7TRsAscOS8MR5OsNeww='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5756,50 +5756,53 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @supports (height:100dvh){
     .ai-modal,.lightbox,#flowFull,#joinScreen{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}
   }
-  /* FENÊTRE D'APPARIEMENT (v4.47.0). ORDRE IMPOSÉ PAR LA MESURE, pas par l'esthétique : à 320×568
-     une maquette « QR d'abord » faisait 572 px de carte pour 568 de fenêtre — « Arrêter le
-     partage » tombait sous la ligne de flottaison, et chaque participant ajoutait 56 px. On place
-     donc EN HAUT ce qui se dicte à voix haute (le titre de l'aide et le code), le QR ensuite et
-     plafonné, la liste bornée, l'arrêt en pied — jamais à l'intérieur d'une liste qui grandit. */
-  #shareModal .sh-lead{margin:0 0 10px;font-size:13.5px;line-height:1.4;color:var(--ink-soft)}
+  /* FEUILLE DE PARTAGE (A327) : ligne d'état, étapes numérotées (le bouton EST l'étape), participants
+     sur deux lignes, historique, arrêt en pied. Ordre code → QR gardé : mesuré à 320×568 (v4.47.0),
+     un QR d'abord passait « Arrêter le partage » sous la ligne de flottaison. */
   #shareModal .sh-fiche{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  /* Le code se lit à voix haute dans une pièce bruyante : mono, très grand, chiffres tabulaires,
-     et un espacement qui sépare les caractères sans les détacher en deux mots. */
-  /* C'EST LE TEXTE QU'ON DICTE À VOIX HAUTE, souvent en tendant le téléphone à bout de bras : il
-     est le plus gros de la fenêtre, devant le titre. 34 px mesurés tenables jusqu'à 320 px avec le
-     reste de la carte au-dessus de la ligne de flottaison. */
-  #shareModal .sh-code{margin:0 0 6px;font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:5px;
+  .sl-st{display:flex;flex-direction:column;gap:2px;min-height:44px;margin:4px 0 0;padding:6px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .sl-w{font-size:var(--t-body);font-weight:700;color:var(--ink)}
+  .sl-w small{font-size:var(--t-body);font-weight:600;color:var(--ink-soft)}
+  .sl-row{display:flex;flex-direction:column;align-items:flex-end}
+  .sl-why{align-self:stretch;font-size:var(--t-meta);font-weight:600;color:var(--ink-soft)}
+  /* La porte « Mode : … › » : discrète (encre douce, 12 px), mais 44 px de haut. */
+  .sl-lnk{display:inline-flex;align-items:center;min-height:44px;margin:-6px -4px -12px 0;padding:0 4px;border:0;background:none;font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink-soft);cursor:pointer}
+  .sl-lnk.sl-back{margin:-8px 0 0 -4px;font-size:var(--t-body);color:var(--link)}
+  .sl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sl-step{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+  .sh-h+.sl-step{border-top:0}
+  .sl-num{flex:none;width:28px;height:28px;border-radius:999px;background:var(--primary-soft);color:var(--primary-dk);font-size:var(--t-body);font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+  .sl-num.done{background:var(--ok);color:var(--on-primary)}
+  .sl-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  #shareModal .sl-t{margin:0;font-size:var(--t-item);font-weight:700;line-height:1.3;color:var(--ink)}
+  .sl-t small{display:block;font-size:var(--t-body);font-weight:600;color:var(--ink-soft);margin-top:2px}
+  /* Le code se DICTE à bout de bras : mono, 24 px, chiffres tabulaires, interlettrage large. */
+  #shareModal .sh-code{margin:2px 0 0;font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:5px;
     text-align:center;color:var(--ink);font-variant-numeric:tabular-nums;user-select:all}
-  /* Le lien complet : sélectionnable d'un appui, coupé proprement s'il est long, jamais tronqué
-     par une ellipse — on doit pouvoir le lire en entier pour le dicter. */
-  #shareModal .sh-lnk{margin:0 0 4px;padding:8px 10px;font-family:var(--mono);font-size:12px;
-    line-height:1.45;text-align:center;color:var(--link);background:var(--surface-2);
-    border-radius:8px;overflow-wrap:anywhere;user-select:all}
-  #shareModal .sh-adr{margin:0 0 12px;font-size:12px;line-height:1.4;text-align:center;color:var(--ink-soft)}
-  #shareModal .sh-adr.warn{color:var(--verify);text-align:left}
-  #shareModal .sh-when{margin:0 0 12px;font-size:12px;text-align:center;color:var(--ink-soft)}
+  #shareModal .sh-when{margin:0;font-size:12px;text-align:center;color:var(--ink-soft)}
   #shareModal .sh-when.closed{color:var(--verify)}
   #shareModal .sh-when.soon{color:var(--verify);font-weight:700}
-  .sh-qr{display:flex;justify-content:center;margin:0 0 10px}
-  /* QR PLAFONNÉ (240 px / 56 vw depuis v5.16.0) ; le palier < 360 px ne bouge PAS — mesuré à
-     320×568, y grossir referait passer « Arrêter le partage » sous la ligne de flottaison (le code
-     reste scannable bien en dessous). ⚠ Portée `#shareModal` OBLIGATOIRE : la règle « 260 px » de
-     #shareBody (id) battrait ce plafond. Détail : doctrine-css.md C112. */
+  .sh-qr{display:flex;justify-content:center;margin:4px 0 0}
+  /* QR PLAFONNÉ (240 px / 56 vw) ; le palier < 360 px ne bouge PAS (mesuré à 320×568). ⚠ Portée
+     `#shareModal` obligatoire : la règle « 260 px » de #shareBody (id) battrait ce plafond. */
   #shareModal .sh-qr .qr{width:min(240px,56vw);height:auto}
   @media (max-width:359.98px){#shareModal .sh-qr .qr{width:40vw}#shareModal .sh-code{font-size:24px;letter-spacing:3px}}
-  #shareModal .sh-h{margin:14px 0 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .sh-p{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--line)}
-  .sh-p .n{flex:1;min-width:0;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #shareModal .sh-adr.warn{margin:0;font-size:12px;line-height:1.4;color:var(--verify)}
+  #shareModal .sh-h{margin:12px 0 4px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .sh-p{display:flex;flex-direction:column;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+  .sh-p .l{display:flex;align-items:center;gap:8px;min-height:28px}
+  .sh-p .n{flex:1;min-width:0;font-size:var(--t-item);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sh-p .r{flex:none;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  /* v5.10.5 — mention « sans nouvelles · N min » : une information en bas de casse, pas un état
-     de plus dans le registre des mots d'état (qui restent seuls en petites capitales). */
+  .sh-p .b{display:flex;gap:8px}
+  .sh-p .b .btn{flex:1 1 0;min-height:44px}
+  /* « sans nouvelles · N min » : une information en bas de casse, pas un état de plus (v5.10.5). */
   .sh-p .sh-quiet{font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-soft)}
   .sh-p.off .n{color:var(--ink-soft);text-decoration:line-through}
   .sh-p.wait .r{color:var(--verify)}
-  #shareModal .sh-none{margin:6px 0 0;font-size:13.5px;color:var(--ink-soft)}
+  #shareModal .sh-none{margin:4px 0 0;font-size:var(--t-body);color:var(--ink-soft)}
+  #shareModal .sh-legend{margin:8px 0 0;font-size:var(--t-meta);line-height:1.4;color:var(--ink-soft)}
   .sh-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
   .sh-acts .btn{flex:1 1 auto;min-height:44px}
-  #shareModal .sh-note{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--ink-soft)}
   /* ÉCRAN D'ENTRÉE D'UN INVITÉ (v4.47.0). Plein écran, opaque, et le SEUL contenu de la page : il
      s'affiche à la place de l'application, pas par-dessus — l'amorçage normal n'a pas eu lieu (ni
      base, ni service worker, ni la moindre écriture), et c'est précisément ce que la notice
@@ -5861,24 +5864,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #shareBody .sl-note.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--done-line)}
   #shareBody .sl-cap,#joinScreen .sl-cap{font-size:var(--t-meta);color:var(--soft);
     text-align:center;margin:6px 0 0}
-  /* Pastilles des crans du sélecteur de mode (maquette 08) : vert = cran ACTIF, gris sinon,
-     ⧗ (mono) pour le ponctuel. Portées par le composant .seg canonique, sans le modifier. */
-  #shareBody .seg-btn .sdot.ok{background:var(--ok)}
-#shareBody .seg-btn .sdot{width:6px;height:6px;border-radius:999px;background:var(--ink-3);flex:none}
-  #shareBody .seg-btn.on .sdot{background:var(--ok)}
-  /* Le cran FERMÉ (v5.17.4) : il garde l'encre du cran inactif — la lisibilité d'un texte ne se
-     négocie pas, et WCAG exempte les composants inactifs sans nous autoriser à les affadir — mais
-     le curseur dit qu'il ne bascule pas. Il reste TAPABLE, à dessein : c'est le tap qui explique
-     (cf. slCloudWhy). */
-  #shareBody .seg-btn[aria-disabled="true"]{cursor:not-allowed}
-  #shareBody .seg-btn .sdot.t{width:auto;height:auto;border-radius:0;background:none;
-    font-family:var(--f-mono);font-size:11px;font-weight:700;line-height:1;color:inherit}
-  /* Conteneur du sélecteur de mode : la recette du sélecteur de l'ACCUEIL (fond d'ambiance,
-     filet, coins r-2, pastille en retrait de 2 px) adaptée à la feuille. */
-  #shareBody .seg{background:var(--amb);border:1px solid var(--line);
-    border-radius:var(--r-2);padding:2px;margin:12px 0 0}
-  #shareBody .seg .seg-pill{top:2px;bottom:2px;left:2px;border-radius:var(--r-1);
-    width:calc((100% - 4px - (var(--seg-n,3) - 1) * var(--seg-gap,8px)) / var(--seg-n,3))}
+  /* Feuille « Mode » (A327) : quatre rangées radio de 52 px, la choisie sur teinte de SÉLECTION ;
+     un mode fermé garde son encre (WCAG n'autorise pas à l'affadir) et reste tapable. */
+  .sl-modes{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+  .sl-opt{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:52px;padding:10px 8px;border:0;border-radius:var(--r-2);background:none;font-family:inherit;text-align:left;color:var(--ink);cursor:pointer}
+  .sl-opt.on{background:var(--primary-soft)}
+  .sl-opt[aria-disabled="true"]{cursor:not-allowed}
+  .sl-opt:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sl-rad{flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--ctl-line);box-sizing:border-box;margin-top:2px}
+  .sl-opt.on .sl-rad{border-color:var(--primary);border-width:6px}
+  .sl-ot{flex:1;min-width:0;font-size:var(--t-item);font-weight:700;line-height:1.3}
+  .sl-opt.on .sl-ot{color:var(--primary-dk)}
+  .sl-ot small{display:block;font-size:var(--t-meta);font-weight:600;color:var(--ink-soft);margin-top:2px}
+  .sl-os{flex:none;font-size:var(--t-cap);font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-top:4px}
+  .sl-os.ok{color:var(--ok)}
+  .sl-os.no{color:var(--verify)}
   /* Ligne d'état à point PULSANT (maquettes 01/08) — pulsation d'OPACITÉ seule (peinture). */
   .sl-log{list-style:none;margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px;font-size:var(--t-cap);color:var(--ink-2)}
   .sl-log li{display:flex;gap:8px}.sl-lt{font-family:var(--mono);color:var(--ink-soft)}
@@ -8042,7 +8042,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.23.9';
+const APP_VERSION='5.24.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -15668,6 +15668,9 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   print:'<path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
   history:'<path d="M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
   back:'<path d="M15 6l-6 6 6 6"/>',
+  camera:'<path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>',
+  monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  share:'<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/>',
   /* E6 (audit design v4.57.0) : le ⤢ Unicode était le dernier glyphe de graisse étrangère au
      jeu d'icônes — même dessin (deux coins opposés qui s'écartent), mais au trait de la famille.
      Il garde sa DOCTRINE : c'est la grammaire des ouvertures plein écran, partout la même. */
@@ -25690,7 +25693,7 @@ function shareMenuRefresh(){
   /* La feuille DIRECTE montre les participants (v5.14.15) : elle se repeint sur le même signal
      que le menu — un changement de la signature des participants (_cycle). */
   try{if(slLiveOk()&&shareModal&&shareModal.classList.contains('on')
-    &&document.querySelector('#shareBody .sl-status'))slSheet('live');}catch(e){}
+    &&document.querySelector('#shareBody .sl-st'))slSheet('live');}catch(e){}
   if(typeof _moreBuild!=='function')return;
   try{_moreBuild();}catch(e){return;}
   if(moreMenuEl&&!moreMenuEl.hidden)openMoreMenu();}
@@ -27395,21 +27398,22 @@ function sharePartRowsHtml(){
       +(calme?' <span class="sh-quiet">· sans nouvelles '+Math.round(silence/60000)+' min</span>':'');
     /* DONNER LA MAIN — une OFFRE, et le libellé le dit. Le rôle ne change pas au tap : il changera
        quand l'autre l'aura PRISE. C'est l'échange en trois temps (AC 61-115), et c'est ce qui
-       empêche qu'une checklist se retrouve conduite par quelqu'un qui a posé son téléphone. */
+       empêche qu'une checklist se retrouve conduite par quelqu'un qui a posé son téléphone.
+       REPRENDRE LA MAIN : un UPDATE de rôle, jamais une coupure (geste destructeur). */
     const off=_hoOffered===p.id;
-    return '<div class="sh-p'+cls+'"><span class="n">'+esc(p.label||'Invité')+'</span>'
-      +'<span class="r">'+etat+'</span>'
-      /* REPRENDRE LA MAIN — `_reclaimLead` existait sans aucune porte : le seul moyen de
-         reprendre la conduite était de COUPER la personne, geste destructeur pour une reprise
-         d'équipe. Ici, un UPDATE de rôle, rien d'autre ne bouge. */
-      +(p.revoked||p.detached||perdu||parti?''
+    const acts=(p.revoked||p.detached||perdu||parti?''
         :p.role==='lead'
-        ?'<button class="btn sm" data-shback="'+esc(p.id)+'">Reprendre la main</button>'
-        :'<button class="btn sm" data-shlead="'+esc(p.id)+'"'+(off?' disabled':'')+'>'
+        ?'<button class="btn" data-shback="'+esc(p.id)+'">Reprendre la main</button>'
+        :'<button class="btn" data-shlead="'+esc(p.id)+'"'+(off?' disabled':'')+'>'
          +(off?'proposée…':'Donner la main')+'</button>')
-      +(p.revoked||p.detached?'':'<button class="btn sm" data-shcut="'+esc(p.id)+'">Couper</button>')+'</div>';}).join('');
-  return '<p class="sh-h">Participants ('+parts.length+')</p>'
-    +(rows||'<p class="sh-none">Personne n\'a encore rejoint.</p>');}
+      +(p.revoked||p.detached?'':'<button class="btn" data-shcut="'+esc(p.id)+'">Couper</button>');
+    return '<div class="sh-p'+cls+'"><div class="l"><span class="n">'+esc(p.label||'Invité')+'</span>'
+      +'<span class="r">'+etat+'</span></div>'+(acts?'<div class="b">'+acts+'</div>':'')+'</div>';}).join('');
+  // A327 : les trois mots du rôle expliqués en une ligne, à côté des boutons qui les portent.
+  return '<p class="sh-h">Participants</p>'
+    +(rows?rows+'<p class="sh-legend"><b>Relève</b> : coche et note, ne revient pas en arrière. '
+      +'<b>Donner la main</b> : il mène la session à votre place. <b>Couper</b> : il ne suit plus, sans perdre son écran.</p>'
+      :'<p class="sh-none">Personne pour l’instant.</p>');}
 function sharePartBind(body,repaint){
   body.querySelectorAll('[data-shlead]').forEach(b=>b.onclick=()=>{
     if(Share.offerLead(b.dataset.shlead))repaint();});
@@ -27422,92 +27426,130 @@ function sharePartBind(body,repaint){
     const id=b.dataset.shcut;_shPend[id]=1;repaint();
     if(!await Share.revoke(id)){delete _shPend[id];repaint();
       toast('⚠ La coupure n\'a pas pu être transmise — réessayez.',6000);}});}
+/* ═══ FEUILLE DE PARTAGE (A327, v5.24) — l'app décide le canal, la feuille dit QUOI FAIRE ═══
+   Un seul dessin, hôte et invité : ligne d'état (mode + raison), étapes numérotées dont le bouton
+   EST l'étape, participants, historique du lien, arrêt en pied. Plus de sélecteur en tête —
+   forcer un mode passe par « Mode : automatique › » (slModeSheet). */
+const slStep=(n,t,sub,extra,done)=>'<div class="sl-step"><span class="sl-num'+(done?' done':'')+'" aria-hidden="true">'
+  +(done?'✓':n)+'</span><div class="sl-body"><p class="sl-t">'+(done?'<span class="sr-only">fait — </span>':'')+t
+  +(sub?'<small>'+sub+'</small>':'')+'</p>'+(extra||'')+'</div></div>';
+const slActs=h=>'<div class="sl-actions">'+h+'</div>';
+function slSheetTitle(t){const h=document.getElementById('shareTitle');if(h&&h.textContent!==t)h.textContent=t;}
+// Le mot de la porte « Mode : … › » se DÉRIVE de l'état (A319 : jamais un drapeau à part).
+function slModeWord(){return slSb.optic?'forcé, par l’écran':(Share.share==='local'&&slLiveOk()&&!slSb.auto?'forcé, en direct':'automatique');}
+function slStatusHtml(word,mode,why,manual){
+  return '<div class="sl-st"><span class="sl-w">'+word+' <small>· '+esc(mode)+'</small></span>'
+    +'<div class="sl-row"><span class="sl-why">'+esc(why)+'</span>'
+    +(manual?'<button type="button" class="sl-lnk" id="slModeBtn">Mode : '+esc(slModeWord())+' ›</button>':'')
+    +'</div></div>';}
+// La raison du mode, en un mot ; « connexion perdue » l'emporte (A324).
+function slWhy(mode){
+  const l=slLink();
+  if(l.lost&&l.why!=='expired')return 'Connexion perdue à '+fmtHM(l.since)+' — aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.';
+  if(mode==='cloud')return 'Internet répond — rien à régler.';
+  if(mode==='optic')return 'Aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.';
+  return !Auth.signedIn()?'Sans compte, le partage se fait en direct — un Wi-Fi commun suffit, même sans internet.'
+    :_slNet.ok===true?'Sans passer par le serveur — par le Wi-Fi commun.'
+    :'Pas d’internet, mais un Wi-Fi commun : vos téléphones se relient entre eux.';}
+/* Les trois étapes « par l'écran », en miroir : l'hôte montre puis reçoit, l'invité reçoit puis
+   renvoie — mêmes numéros et mêmes verbes que le bandeau (slLinkPaint). */
+function slOpticStepsHtml(role){
+  const h=role==='host';
+  return slStep(1,h?'Montrer ma progression':'Recevoir la progression',
+      h?'votre collègue vise votre écran avec son appareil photo':'visez l’écran de la personne qui mène la session',
+      slActs('<button class="btn primary" id="'+(h?'slShow':'slReRx')+'">'+uiIcon(h?'monitor':'camera',18)+(h?'Montrer ma progression':'Recevoir la progression')+'</button>'))
+    +slStep(2,h?'Recevoir ses repères':'Renvoyer mes repères',
+      h?'vous visez son écran ; ses heures notées entrent dans votre journal':'elle vise votre écran ; vos heures notées entrent dans son journal',
+      slActs('<button class="btn" id="'+(h?'slReRx':'slRet')+'">'+uiIcon(h?'camera':'monitor',18)+(h?'Recevoir ses repères':'Renvoyer mes repères')+'</button>'))
+    +slStep(3,'Refaire l’étape 1 après chaque bloc franchi','dès que le réseau revient, le partage reprend seul — et ainsi de suite');}
+function slOpticBind(role,fin){
+  slOn('slShow',()=>{slOptiqueTx();});
+  slOn('slReRx',()=>slRxStart(fin,role==='host'?'Visez l’écran de l’invité':'Visez l’écran de l’hôte'));
+  slOn('slRet',()=>slRetTx(fin));
+  slOn('slModeBtn',()=>slModeSheet());}
+const slOn=(id,fn)=>{const b=document.getElementById(id);if(b)b.onclick=fn;};
+// « Envoyer le lien… » : la feuille de partage native, sinon le presse-papiers (jamais d'adresse à dicter).
+async function slSendLink(url){
+  try{if(navigator.share){await navigator.share({url});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  try{await navigator.clipboard.writeText(url);toast('Lien copié — collez-le dans un message.',4000);}
+  catch(e){toast('⚠ Copie impossible — dictez l’adresse de l’application, puis le code.',6000,true);}}
 function shareSheetHtml(){
-  const f=Runtime.fiche,code=Share.code||'';
-  const url=shareJoinUrl(code);
-  /* PORTE FERMÉE = ON N'AFFICHE PLUS DE CODE. Tant que le code restait peint, l'hôte le dictait
-     alors qu'il était déjà consommé (une jointure le brûle, avant l'échéance) : il croyait donner
-     un accès, l'autre lisait « refusé », et personne ne pouvait comprendre. On dit ce qui s'est
-     passé, et « Nouveau code » devient l'action évidente. */
-  const porte=!!code;
+  const f=Runtime.fiche,code=Share.code||'',url=shareJoinUrl(code),porte=!!code;
+  const n=(Share.participants||[]).filter(p=>!p.owner&&!p.revoked&&!shareLeft(p)).length;
+  const opt=slSb.optic||slLink().lost;
   return '<p class="sh-fiche">'+esc(f?f.title:'')+'</p>'
-    +slModeSegHtml('cloud')
-    +slLogHtml()
-    +(porte
-      ? '<p class="sh-lead">Faites-le scanner, ou dictez-le. Il ne sert <b>qu\'une fois</b>.</p>'
-        +'<p class="sh-code" id="shCode">'+esc(shareCodeFmt(code))+'</p>'
-      : '<p class="sh-lead">'+(Share.codeTakenBy
-          ? '<b>'+esc(Share.codeTakenBy)+'</b> a rejoint — le code a servi.'
-          : 'La porte est fermée.')+' Un code ne sert qu\'une fois.</p>')
-    +(porte?'<p class="sh-when'+(shOpenMs()?'':' closed')+'" id="shWhen"></p>':'')
-    +(porte?'<div class="sh-qr">'+qrSvg(url||code,'Code de session à scanner')+'</div>':'')
-    /* LE LIEN, EN CLAIR ET COMPLET. Le QR ne sert qu'à celui qui peut photographier l'écran ; au
-       téléphone, dans une autre pièce, ou quand la caméra refuse, c'est ce lien qu'on dicte ou
-       qu'on envoie. Il porte le code : l'invité n'a alors rien à saisir. `user-select:all` pour
-       qu'un seul appui le sélectionne en entier. */
-    +(!porte ? ''
-      : url
-      ? '<p class="sh-lnk" id="shLink">'+esc(url)+'</p>'
-        +'<p class="sh-adr">Ce lien contient le code — ouvrez-le, ou dictez l’adresse puis le code.</p>'
-      : '<p class="sh-adr warn">Cette page n’a pas d’adresse partageable (fichier local) : '
-        +'le code seul est encodé. Donnez à votre collègue l’adresse de l’application.</p>')
+    +slStatusHtml('● Partagé',opt?'par l’écran':'en ligne'+(n?' · '+n+' participant'+(n>1?'s':''):''),slWhy(opt?'optic':'cloud'),true)
+    +'<p class="sh-h">À faire, dans l’ordre</p>'
+    +(opt?slOpticStepsHtml('host')
+      /* PORTE OUVERTE : code AU-DESSUS du QR (ordre mesuré à 320×568, v4.47.0) ; le lien voyage par
+         un bouton, l'adresse brute ne s'affiche que si la page n'en a pas de partageable. */
+      :porte
+      ? slStep(1,'Faites scanner ce code','ou dictez-le — il ne sert qu’à une personne, pendant 2 min',
+          '<p class="sh-code" id="shCode">'+esc(shareCodeFmt(code))+'</p><p class="sh-when'+(shOpenMs()?'':' closed')+'" id="shWhen"></p>'
+          +'<div class="sh-qr">'+qrSvg(url||code,'Code de session à scanner')+'</div>'
+          +(url?slActs('<button class="btn" id="shSend" data-url="'+esc(url)+'">'+uiIcon('share',18)+'Envoyer le lien…</button>')
+            :'<p class="sh-adr warn">Cette page n’a pas d’adresse partageable (fichier local) : le code seul est encodé. '
+             +'Donnez à votre collègue l’adresse de l’application.</p>'))
+        +slStep(2,'C’est tout','votre collègue apparaît ci-dessous ; ce qu’il coche et note entre dans votre journal')
+      /* PORTE FERMÉE = plus de code peint (une jointure le brûle avant l'échéance). */
+      : slStep(1,'Code scanné',(Share.codeTakenBy?'<b>'+esc(Share.codeTakenBy)+'</b> a rejoint':'la porte est fermée')+' — un code ne sert qu’une fois','',true)
+        +slStep(2,'Rien d’autre','la session se suit seule ; si internet se coupe, les étapes s’affichent ici','',true))
     +sharePartRowsHtml()
-    +'<div class="sh-acts">'
-    +'<button class="btn" id="shAdmit">Nouveau code</button>'
-    +'<button class="btn danger" id="shEnd">Arrêter le partage…</button></div>'
-    +'<p class="sh-note">Couper quelqu\'un lui retire l\'écriture immédiatement et lui rend sa place ; '
-    +'il ne peut revenir qu\'avec un nouveau code, que vous seul pouvez donner.</p>';}
+    +(opt||(porte&&shOpenMs())?'':slActs('<button class="btn" id="shAdmit">Inviter quelqu’un d’autre</button>'))
+    +slLogHtml()+'<div id="slStat" role="status"></div>'
+    +'<div class="sh-acts"><button class="btn danger" id="shEnd">Arrêter le partage…</button></div>';}
 function shPaintWhen(){
   const el=document.getElementById('shWhen');if(!el)return;
   const ms=shOpenMs();
-  const t=ms?('ouvert encore '+Math.ceil(ms/1000)+' s'):'porte fermée — demandez un nouveau code pour un autre participant';
+  const t=ms?('encore '+Math.ceil(ms/1000)+' s'):'code expiré — « Inviter quelqu’un d’autre » en donne un nouveau';
   if(el.textContent!==t)el.textContent=t;
   el.classList.toggle('closed',!ms);
-  /* P3-14 (audit design v4.56) : sous 30 s, la fin de la fenêtre d'admission approche — c'est
-     une ATTENTE (`--verify`), jamais une alerte : rien n'est en train de mal tourner. */
+  // Sous 30 s, l'échéance approche : une ATTENTE (--verify), jamais une alerte (P3-14).
   el.classList.toggle('soon',!!ms&&ms<=30000);}
 function renderShareSheet(force){
   const body=document.getElementById('shareBody');if(!body)return;
-  const sig=[Share.code,(Share.participants||[]).map(p=>p.id+':'+p.label+':'+p.role+':'+(p.revoked?1:0)+(p.detached?1:0)).join(','),
-    Object.keys(_shPend).join(','),_hoOffered||''].join('|');
+  if(!force&&body.querySelector('.sl-modes'))return;   // la feuille « Mode » est ouverte : le tick ne repeint pas par-dessus
+  const sig=[Share.code,shOpenMs()>0,slSb.optic,slLink().lost,(Share.participants||[]).map(p=>p.id+':'+p.label+':'+p.role+':'+(p.revoked?1:0)+(p.detached?1:0)).join(','),
+    Object.keys(_shPend).join(','),_hoOffered||'',slSb.log.length,(slSb.log[0]||{}).t].join('|');
   if(force||sig!==_shSig){
-    _shSig=sig;body.innerHTML=shareSheetHtml();
+    _shSig=sig;slSheetTitle('Partager cette session');body.innerHTML=shareSheetHtml();
     sharePartBind(body,()=>renderShareSheet(true));
+    slOpticBind('host',()=>renderShareSheet(true));
+    slOn('shSend',()=>slSendLink(document.getElementById('shSend').dataset.url));
     const ad=document.getElementById('shAdmit');
     if(ad)ad.onclick=async()=>{ad.disabled=true;const r=await Share.admit(120);ad.disabled=false;
-      if(r&&r.ok)renderShareSheet(true);else toast('⚠ Impossible d\'ouvrir un nouveau code.',6000);};
-    const en=document.getElementById('shEnd');
-    if(en)en.onclick=async()=>{
-      /* ⚠ LE TEXTE DISAIT « VOTRE SESSION CONTINUE » — écrit en supposant que l'hôte conduit.
-         Quand il a donné la main, c'est l'écran de l'AUTRE qui est en jeu : on le nomme, et on
+      if(r&&r.ok)renderShareSheet(true);else toast('⚠ Impossible d\'ouvrir un nouveau code.',6000,true);};
+    slOn('shEnd',async()=>{
+      /* Quand l'hôte a donné la main, c'est l'écran de l'AUTRE qui est en jeu : on le nomme, et on
          rappelle la porte non destructrice (« Reprendre la main »). */
       const men=(Share.participants||[]).find(x=>x&&!x.owner&&x.role==='lead'&&!x.revoked&&!x.detached);
       if(!await confirmDlg(men
-        ? '⚠ '+(men.label||'Un participant')+' conduit la session — vous lui avez donné la main. '
-          +'Arrêter coupe le lien : son écran reste le sien et il peut poursuivre, mais vous ne '
-          +'verrez plus ce qu’il fait et ce qu’il relèvera ensuite n’entrera pas dans votre '
-          +'compte-rendu. Pour reprendre la conduite sans couper, utilisez « Reprendre la main ».'
-        : 'Les participants ne suivront plus la session. Votre session, elle, '
-          +'continue — et le relevé de chacun reste dans votre compte-rendu.',
+        ? '⚠ '+(men.label||'Un participant')+' conduit la session — vous lui avez donné la main.\n'
+          +'• Arrêter coupe le lien : son écran reste le sien, mais vous ne verrez plus ce qu’il fait, et sa suite n’entrera pas dans votre compte-rendu.\n'
+          +'• Pour reprendre la conduite sans couper : « Reprendre la main ».'
+        : 'Les participants ne suivront plus la session.\n'
+          +'• Votre session continue.\n• Le relevé de chacun reste dans votre compte-rendu.',
         {title:'Arrêter le partage ?',yes:'Arrêter',danger:true}))return;
-      await Share.endShare();closeShareSheet();render();};
-    /* BASCULE MANUELLE cloud → direct (v5.14, étape 4 — maquettes figées : « forcer » = un
-       RÉ-APPARIEMENT propre, jamais une migration à chaud ; l'état de l'hôte est la source,
-       rien à fusionner). Les invités re-scannent — le dialogue le dit AVANT. */
-    slModeSegBind('cloud');
+      slSb.optic=false;await Share.endShare();closeShareSheet();render();});
+    slNetWatch();
   }
   shPaintWhen();}
-/* ROUVRIR LE PARTAGE = ROUVRIR SON MODE (v5.14.15, signalé : « le mode direct ne se rouvre
-   pas même si actif ») : le menu appelait la feuille CLOUD en dur — en mode direct elle
-   s'affichait sans code ni participants, comme un partage fantôme. */
-/* Partage/miroir déjà actif → sa feuille d'état, jamais un second appariement (deux portes,
-   un seul juge — factorisé, audit v5.19.4). */
+/* LA FEUILLE À MONTRER, D'APRÈS L'ÉTAT — une seule porte (menu, fin d'émission optique, retour
+   de la feuille « Mode ») : partage/miroir déjà actif → sa feuille d'état, jamais un second
+   appariement (v5.14.15, audit v5.19.4). */
+function slPhase(){
+  if(Share.mode==='host'&&Share.status==='active'&&Share.share!=='local')return 'cloud';
+  if(slLiveOk())return 'live';
+  if(SL)return SL.phase||'offer';
+  if(Share.mode==='guest'&&Runtime.started)return 'guest';
+  if(_slMirror&&Runtime.started)return 'mirror';
+  return '';}
+function slSheetNow(){
+  const p=slPhase();if(!p){closeShareSheet();return false;}
+  shareModal.classList.add('on');if(p==='cloud')openShareSheet();else slSheet(p);return true;}
 function slBusySheet(){
-  if(slLiveOk()){closeShareSheet();shareModal.classList.add('on');slSheet('live');return true;}
-  if(Share.mode==='guest'&&Runtime.started){closeShareSheet();shareModal.classList.add('on');slSheet('guest');return true;}
-  if(_slMirror&&Runtime.started){closeShareSheet();shareModal.classList.add('on');
-    slSheet('mirror');return true;}
-  return false;}
+  const p=slPhase();if(!p||p==='cloud'||p==='offer'||p==='optic')return false;
+  closeShareSheet();shareModal.classList.add('on');slSheet(p);return true;}
 function openCurrentShare(){
   if(slBusySheet())return;
   openShareSheet();}
@@ -27530,9 +27572,6 @@ function slSecret(){const b=new Uint8Array(18);crypto.getRandomValues(b);
   return [...b].map(x=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[x%31]).join('');}
 function slLocalCand(c){return (c||[]).some(x=>{const a=String(x).split('~')[0];
   return /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/.test(a)||a.indexOf('.local')>=0;});}
-/* LE SÉLECTEUR DE MODE, UN SEUL CONSTRUCTEUR (v5.14.7) : il vit sur TOUS les états de la feuille
-   (.seg canonique, pastilles maquette 08) ; cliquer le cran actif ne fait rien, tout autre cran
-   mène à un état qui PORTE AUSSI le sélecteur. Détail : doctrine-js.md J229. */
 /* JOIGNABILITÉ MESURÉE (v5.14.19) : `navigator.onLine` ne dit pas « le serveur répond » (Wi-Fi
    sans internet = vrai) — tant qu'un sélecteur est à l'écran, sonde légère (HEAD auth/health,
    garde 3,5 s) toutes les 8 s + évènements online/offline, repeint EN PLACE.
@@ -27544,7 +27583,7 @@ async function slNetProbe(){
   /* Les harnais posent `__acNetOk` : une porte de commit ne dépend jamais du réseau du poste. */
   if(window.__acNetOk!==undefined){
     _slNet.busy=false;_slNet.at=Date.now();
-    if(window.__acNetOk!==_slNet.ok){_slNet.ok=!!window.__acNetOk;try{slSegNetPaint();}catch(e){}}
+    if(window.__acNetOk!==_slNet.ok){_slNet.ok=!!window.__acNetOk;try{slModePaint();}catch(e){}}
     return;}
   try{
     if(navigator.onLine!==false){
@@ -27558,7 +27597,7 @@ async function slNetProbe(){
       ok=!!r&&r.status>0;}
   }catch(e){ok=false;}
   _slNet.busy=false;_slNet.at=Date.now();
-  if(ok!==_slNet.ok){_slNet.ok=ok;try{slSegNetPaint();}catch(e){}}}
+  if(ok!==_slNet.ok){_slNet.ok=ok;try{slModePaint();}catch(e){}}}
 /* A320 : au réveil, un hôte direct aux canaux morts revient SEUL en ligne si le retour est armé et le
    serveur répond (un lien mort n'a rien à préserver : pas d'hystérésis) ; sinon on le dit. */
 async function slWake(){
@@ -27577,13 +27616,7 @@ document.addEventListener('visibilitychange',()=>{
    fermé, focalisable, et le tap DIT la cause (doctrine « un bouton grisé exige une ligne voisine
    qui dit pourquoi », cf. `syncBtnRefresh`). Détail : doctrine-js.md J230. */
 const slCloudOff=()=>!Auth.signedIn()?'compte':'net';
-function slSegCap(online,active){
-  if(online||active==='cloud')return 'l\u2019app choisit seule \u2014 forcer si besoin';
-  return slCloudOff()==='compte'
-    ?'\u00ab En ligne \u00bb demande un compte \u2014 pas \u00ab En direct \u00bb'
-    :'\u00ab En ligne \u00bb reviendra avec internet';}
-/* La phrase LONGUE, celle du tap : la cause, puis les deux chemins qui marchent — l'explication
-   vaut aussi pour qui EST connecté (il ne sait pas plus ce que « En direct » recouvre). */
+// La phrase du tap sur un mode fermé : la cause, puis les deux chemins qui marchent.
 function slCloudWhy(){
   const suite=' \u00ab En direct \u00bb relie les appareils par un code \u00e0 scanner, sans '
     +'serveur (un Wi-Fi commun suffit, m\u00eame sans internet) ; \u00ab Par l\u2019\u00e9cran \u00bb '
@@ -27592,16 +27625,8 @@ function slCloudWhy(){
     ?'Le partage \u00ab En ligne \u00bb demande un compte : c\u2019est le serveur du compte qui '
       +'h\u00e9berge la session.'
     :'Le partage \u00ab En ligne \u00bb demande internet.')+suite;}
-function slSegNetPaint(){
-  const seg=document.querySelector('#shareBody .seg');if(!seg)return;
-  const online=Auth.signedIn()&&_slNet.ok===true;
-  const on=seg.querySelector('.seg-btn.on');
-  const active=(on&&on.dataset.shmode)||'cloud';
-  const bc=seg.querySelector('.seg-btn[data-shmode="cloud"]');
-  if(bc){bc.setAttribute('aria-disabled',(!online&&active!=='cloud')?'true':'false');
-    const d=bc.querySelector('.sdot');if(d)d.classList.toggle('ok',online&&active!=='cloud');}
-  const cap=document.querySelector('#shareBody .seg-cap');
-  if(cap)cap.textContent=slSegCap(online,active);}
+// La feuille « Mode » se repeint EN PLACE quand la joignabilité ou un canal dormant change.
+function slModePaint(){if(shareModal&&shareModal.classList.contains('on')&&document.querySelector('#shareBody .sl-modes'))slModeSheet();}
 /* A319 : retour en ligne SEUL après une panne — 3 sondes OK et ≥ 60 s en direct (hystérésis), des
    invités à ramener, jamais contre un choix manuel ; sans ouvrir la feuille (règle 11). */
 const slBackArmed=()=>(Share.mode==='host'&&Share.share==='local'&&slSb.auto&&Auth.signedIn())
@@ -27617,86 +27642,94 @@ function slBackTick(){if(!slBackArmed())return;
 function slNetWatch(){
   clearInterval(_slNet.timer);
   _slNet.timer=setInterval(()=>{
-    const feuille=shareModal&&shareModal.classList.contains('on')&&document.querySelector('#shareBody .seg');
+    const feuille=shareModal&&shareModal.classList.contains('on');
     if(!feuille&&!slBackArmed()){clearInterval(_slNet.timer);_slNet.timer=0;return;}
     slNetProbe().then(slBackTick);},window.__acProbeMs||8000);
   slNetProbe();}
 window.addEventListener('online',()=>{if(_slNet.timer)slNetProbe();});
-window.addEventListener('offline',()=>{_slNet.ok=false;try{slSegNetPaint();}catch(e){}
+window.addEventListener('offline',()=>{_slNet.ok=false;try{slModePaint();}catch(e){}
   setTimeout(()=>{if(navigator.onLine===false&&Share.mode!=='off'&&Share.share!=='local'){Share._fails=Math.max(Share._fails,2);try{slSbFail();}catch(e){}}},1500);});
-function slModeSegHtml(active){
+/* « MODE : AUTOMATIQUE › » — LA PORTE DE SECOURS (A327). Quatre rangées, Automatique en tête ;
+   un mode fermé reste TAPABLE et dit pourquoi (v5.17.4) ; l'invité n'a pas cette porte. Le choix
+   manuel tient jusqu'au retour à Automatique (A319 : jamais de bascule contre lui). */
+function slModeCur(){return slSb.optic?'optic':(Share.share==='local'||(SL&&!SL.live))?'direct':'cloud';}
+function slModeSheet(){
+  const body=document.getElementById('shareBody');if(!body)return;
+  slSheetTitle('Changer manuellement le mode');
   const online=Auth.signedIn()&&(_slNet.ok===null?Sync.online():_slNet.ok);
-  const idx={cloud:0,direct:1,optic:2}[active]||0;
-  const b=(mode,lbl,dot,dis)=>'<button type="button" class="seg-btn'+(active===mode?' on':'')
-    +'" data-shmode="'+mode+'" role="radio" aria-checked="'+(active===mode?'true':'false')+'"'
-    +' aria-disabled="'+(dis?'true':'false')+'">'+dot+'<span>'+lbl+'</span></button>';
-  return '<div class="seg" style="--seg-n:3;--seg-i:'+idx+'" role="radiogroup" aria-label="Mode de partage">'
-    +'<span class="seg-pill" aria-hidden="true"></span>'
-    +b('cloud','En ligne','<span class="sdot'+(online&&active!=='cloud'?' ok':'')+'"></span>',!online&&active!=='cloud')
-    +b('direct','En direct','<span class="sdot'
-      +(slSbReady()||slLiveOk()?' ok':'')+'"></span>',false)
-    +b('optic','Par l\u2019écran','<span class="sdot t" aria-hidden="true">\u29d7</span>',false)
-    +'</div><p class="sl-cap seg-cap">'+esc(slSegCap(online,active))+'</p>';}
-function slModeSegBind(active){
-  slNetWatch();
-  document.querySelectorAll('#shareBody [data-shmode]').forEach(btn=>btn.onclick=async()=>{
-    const m=btn.dataset.shmode;
-    if(m===active)return;
-    // Cran fermé : il ne bascule pas, mais il RÉPOND — cf. slCloudWhy. `direct` : c'est la
-    // réponse à un tap, jamais une nouvelle de fond (règle 11 / v4.55.4).
-    if(btn.getAttribute('aria-disabled')==='true'){toast(slCloudWhy(),11000,true);return;}
-    if(active==='optic')clearInterval(_ltTimer);
-    if(m==='optic'){slOptiqueTx();return;}
-    if(m==='direct'){
-      if(slLiveOk()){slSheet('live');return;}
-      if(active==='cloud'){
-        const prets=slSb.dcs.filter(d=>d.dc&&d.dc.readyState==='open').length;
-        const total=(Share.participants||[]).filter(x=>!x.owner&&!x.revoked).length;
-        if(prets){
-          if(!await confirmDlg(prets>=total
-            ?'Le partage continue EN DIRECT, sans serveur. Les participants basculent '
-              +'automatiquement — personne ne scanne rien.'
-            :'Le partage continue EN DIRECT. '+prets+' participant'+(prets>1?'s':'')
-              +' sur '+total+' bascule'+(prets>1?'nt':'')+' automatiquement ; les autres '
-              +'devront scanner le nouveau code.',
-            {title:'Passer en direct ?',yes:'Passer en direct'}))return;
-          slSbGoSwitch();return;}
-        /* prets = 0 : DEUX réalités différentes, dites séparément (v5.14.11, signalé) —
-           personne n'a rejoint (rien à emporter, aucun avertissement à donner) ; ou des
-           participants suivent mais leurs canaux dormants ne sont pas prêts (quelques
-           secondes après chaque arrivée — pastille « En direct » verte = prêt). */
-        if(!total){
-          if(!await confirmDlg('Le partage passe EN DIRECT, sans serveur. Personne n\'a '
-            +'encore rejoint — le code d\'appariement s\'affichera pour vos invités.',
-            {title:'Passer en direct ?',yes:'Passer en direct'}))return;
-          const f=Runtime.fiche;await Share.endShare();startShareLocal(f);return;}
-        if(!await confirmDlg('Les canaux automatiques ne sont pas prêts (pastille « En '
-          +'direct » grise — comptez quelques secondes après l\'arrivée de chaque '
-          +'participant). Basculer MAINTENANT : chaque participant devra scanner le nouveau '
-          +'code. Attendre la pastille verte permet une bascule sans scan.',
-          {title:'Passer en direct ?',yes:'Passer en direct quand même'}))return;
+  const cur=slModeCur(),auto=slModeWord()==='automatique';
+  const row=(m,t,sub,st,dis)=>{const on=m==='auto'?auto:!auto&&cur===m;
+    return '<button type="button" class="sl-opt'+(on?' on':'')+'" data-shmode="'+m+'" role="radio" aria-checked="'+(on?'true':'false')
+      +'" aria-disabled="'+(dis?'true':'false')+'"><span class="sl-rad" aria-hidden="true"></span><span class="sl-ot">'+t+'<small>'+sub+'</small></span>'
+      +(st?'<span class="sl-os'+(st.k?' '+st.k:'')+'">'+st.t+'</span>':'')+'</button>';};
+  body.innerHTML='<button type="button" class="sl-lnk sl-back" id="slModeBack">‹ Retour</button>'
+    +'<p class="sh-legend">Utile seulement si l’app se trompe. Un choix fait ici tient jusqu’au retour à «\u00a0Automatique\u00a0». '
+    +'Vos invités suivent sans rien faire entre en ligne et en direct\u00a0; par l’écran, leurs étapes s’affichent chez eux.</p>'
+    +'<div class="sl-modes" role="radiogroup" aria-label="Mode de partage">'
+    +row('auto','Automatique','l’app choisit le mode et bascule seule, dans les deux sens',auto?{t:'actif',k:'ok'}:null)
+    +row('cloud','En ligne','par internet, avec votre compte',
+      online?(cur==='cloud'&&!auto?{t:'actif',k:'ok'}:null):{t:slCloudOff()==='compte'?'demande un compte':'pas d’internet',k:'no'},!online&&cur!=='cloud')
+    +row('direct','En direct','Wi-Fi commun, sans internet — chacun scanne l’autre une fois',slSbReady()||slLiveOk()?{t:'prêt',k:'ok'}:null)
+    +row('optic','Par l’écran','sans aucun réseau — montrer et recevoir, à tour de rôle',{t:'toujours'})
+    +'</div><p class="sh-legend">Un mode grisé répond quand même au tap\u00a0: il dit pourquoi il n’est pas possible.</p>';
+  slOn('slModeBack',()=>slSheetNow());
+  body.querySelectorAll('[data-shmode]').forEach(b=>b.onclick=()=>slModeApply(b.dataset.shmode,b));}
+async function slModeApply(m,btn){
+  if(btn&&btn.getAttribute('aria-disabled')==='true'){toast(slCloudWhy(),11000,true);return;}
+  const cur=slModeCur();
+  clearInterval(_ltTimer);
+  if(m==='auto'){slSb.optic=false;
+    if(Share.share==='local'&&slLiveOk()&&Auth.signedIn()){slSb.auto=true;slSb.since=Date.now();slSb.okRun=0;slNetWatch();}
+    slSheetNow();return;}
+  if(m==='optic'){slSb.optic=true;slSheetNow();return;}
+  slSb.optic=false;
+  if(m===cur){slSheetNow();return;}
+  if(m==='direct'){
+    if(SL&&!SL.live){SL.phase='offer';slSheet('offer');return;}
+    if(cur==='cloud'&&Share.mode==='host'&&Share.status==='active'){
+      const prets=slSb.dcs.filter(d=>d.dc&&d.dc.readyState==='open').length;
+      const total=(Share.participants||[]).filter(x=>!x.owner&&!x.revoked).length;
+      /* Forcer = un RÉ-APPARIEMENT propre, jamais une migration à chaud ; canaux dormants prêts →
+         bascule sans scan ; sinon les invités re-scannent, et le dialogue le dit AVANT. */
+      /* Les confirmations disent QUI fait QUOI, en lignes courtes (A327) — lisibles en un regard. */
+      if(prets){
+        if(!await confirmDlg('Le partage continue en direct, sans serveur.\n'
+          +(prets>=total?'• Vos participants basculent seuls — personne ne scanne.'
+            :'• '+prets+' participant'+(prets>1?'s':'')+' sur '+total+' bascule'+(prets>1?'nt':'')+' seul'+(prets>1?'s':'')+'.\n• Les autres scannent le nouveau code.')
+          +'\n• Votre session ne bouge pas.',
+          {title:'Passer en direct ?',yes:'Passer en direct'}))return;
+        slSbGoSwitch();return;}
+      if(!total){
+        if(!await confirmDlg('Le partage passe en direct, sans serveur.\n'
+          +'• Personne n’a encore rejoint : un code à scanner s’affichera.\n• Votre session ne bouge pas.',
+          {title:'Passer en direct ?',yes:'Passer en direct'}))return;
         const f=Runtime.fiche;await Share.endShare();startShareLocal(f);return;}
-      startShareLocal((SL&&SL.f)||Runtime.fiche);return;}
-    if(m==='cloud'){
-      const nG=(slLiveOk()&&SL&&SL.hub)?SL.hub.st.parts.filter(p=>!p.owner&&!p.revoked).length:0;
-      if(nG){
-        if(!await confirmDlg('Le partage repasse EN LIGNE (par le serveur). Les participants '
-          +'connectés basculent automatiquement — personne ne ressaisit de code.',
-          {title:'Passer en ligne ?',yes:'Passer en ligne'}))return;
-        slGoCloud();return;}
-      if(!await confirmDlg('Le partage continue EN LIGNE (par le serveur). Chaque participant '
-        +'devra rejoindre avec le nouveau code. Votre session ne bouge pas.',
+      if(!await confirmDlg('Le secours direct n’est pas encore prêt — il se forme quelques secondes après chaque arrivée.\n'
+        +'• Maintenant : chaque participant scanne un nouveau code.\n'
+        +'• Dans quelques secondes (« prêt » dans la liste) : bascule sans scan.',
+        {title:'Passer en direct ?',yes:'Basculer quand même',no:'Attendre'}))return;
+      const f=Runtime.fiche;await Share.endShare();startShareLocal(f);return;}
+    startShareLocal((SL&&SL.f)||Runtime.fiche);return;}
+  if(m==='cloud'){
+    const nG=(slLiveOk()&&SL&&SL.hub)?SL.hub.st.parts.filter(p=>!p.owner&&!p.revoked).length:0;
+    if(nG){
+      if(!await confirmDlg('Le partage repasse en ligne, par le serveur.\n'
+        +'• Vos participants basculent seuls — personne ne ressaisit de code.\n• Votre session ne bouge pas.',
         {title:'Passer en ligne ?',yes:'Passer en ligne'}))return;
-      const f=(SL&&SL.f)||Runtime.fiche;
-      await Share.endShare();SL=null;startShare(f);return;}});}
+      slGoCloud();return;}
+    if(!await confirmDlg('Le partage repasse en ligne, par le serveur.\n'
+      +'• Chaque participant rejoint avec le nouveau code.\n• Votre session ne bouge pas.',
+      {title:'Passer en ligne ?',yes:'Passer en ligne'}))return;
+    const f=(SL&&SL.f)||Runtime.fiche;
+    await Share.endShare();SL=null;startShare(f);}}
 function slLiveOk(){return !!(SL&&SL.live&&Share.mode==='host'&&Share.status==='active');}
 /* A324 : réception et retour « par l'écran », partagés par la feuille miroir, la feuille invité et
    la bannière. `fin` = la feuille à repeindre ensuite. */
-async function slRxStart(fin){
+async function slRxStart(fin,hint){
   const st=document.getElementById('slStat');
   const say=t=>{if(st)st.innerHTML='<p class="sl-cap">'+esc(t)+'</p>';};
-  try{await slScanOverlay({hint:'Visez l’écran de l’hôte',onCancel:()=>{},onText:slRxOnText(say,()=>{if(fin)fin();})});}
-  catch(e){slCamRefused(st,()=>slRxStart(fin),()=>{shareModal.classList.remove('on');});}}
+  try{await slScanOverlay({hint:hint||'Visez l’écran de l’hôte',onCancel:()=>{},onText:slRxOnText(say,()=>{if(fin)fin();})});}
+  catch(e){slCamRefused(st,()=>slRxStart(fin,hint),()=>{shareModal.classList.remove('on');});}}
 async function slRetTx(fin){
       const sess=(_slMirror&&_slMirror.sess)||(Share.fold&&Share.fold.sessId)||'';if(!sess)return;
       const snap=shareSnap(Runtime,!!state.flowEnded);
@@ -27725,90 +27758,75 @@ async function slRetTx(fin){
         clearInterval(_ltTimer);if(fin)fin();});}
 function slSheet(phase){
   const body=document.getElementById('shareBody');if(!body)return;
+  const stat='<div id="slStat" role="status"></div>';
+  const guest=phase==='guest'||phase==='mirror';
+  slSheetTitle(guest?'Session partagée':'Partager cette session');
+  const l=slLink(),opt=slSb.optic||l.lost;
   if(phase==='live'){
-    /* GARDE D'ÉTAT (signalé à l'usage : « après Arrêter, la fenêtre fait comme s'il y avait
-       toujours un partage ») : « live » ne s'affiche que si le partage l'est VRAIMENT. */
+    // « live » ne s'affiche que si le partage l'est VRAIMENT (signalé : « après Arrêter… »).
     if(!slLiveOk()){SL=null;shareModal.classList.remove('on');return;}
-    /* On compte les INVITÉS présents, jamais les écrans (v5.14.18, signalé : « 2 participants »
-       à un seul invité — le +1 de l'hôte se lisait comme un fantôme, surtout après une bascule). */
+    // On compte les INVITÉS présents, jamais les écrans (v5.14.18).
     const n=(Share.participants||[]).filter(p=>!p.owner&&!p.revoked&&!shareLeft(p)).length;
-    const perdu=(Share.participants||[]).some(p=>!p.owner&&!p.revoked
-      &&(shareLeft(p)||shareSeenLost(p)));
-    body.innerHTML='<div class="sl-status"><span class="sl-dot"></span>'
-      +(n?n+' participant'+(n>1?'s':'')+' · en direct':'en direct — personne n\u2019a encore rejoint')+'</div>'
-      +slModeSegHtml('direct')
+    const perdu=(Share.participants||[]).some(p=>!p.owner&&!p.revoked&&(shareLeft(p)||shareSeenLost(p)));
+    const invite=perdu||!n;
+    body.innerHTML=slStatusHtml('● Partagé',opt?'par l’écran':'en direct'+(n?' · '+n+' participant'+(n>1?'s':''):''),slWhy(opt?'optic':'direct'),true)
+      +'<p class="sh-h">À faire, dans l’ordre</p>'
+      +(opt?slOpticStepsHtml('host')
+        // Après une veille, le mot suit l'état : un invité perdu → « Ré-apparier — nouveau code ».
+        :invite?slStep(1,perdu?'Ré-apparier':'Inviter quelqu’un',perdu?'un invité a perdu le lien — un nouveau code à scanner':'personne ne suit encore',
+            slActs('<button class="btn primary" id="slInvite">'+(perdu?'Ré-apparier — nouveau code':'Inviter — nouveau code')+'</button>'))
+        :slStep(1,'Code scanné','','',true)
+         +slStep(2,'Rien d’autre','la session suit en direct\u00a0; si internet revient, le partage repasse en ligne seul','',true))
       +sharePartRowsHtml()
-      +slLogHtml()
-      +'<div class="sl-actions">'
-      /* Après une veille, « Inviter un autre » était le SEUL chemin de ré-appariement — le mot
-         mentait (v5.14.22, signalé : « ça fait bizarre »). Même machinerie, le mot suit l'état :
-         un invité perdu → « Ré-apparier — nouveau code ». */
-      +'<button class="btn'+(perdu?' primary':'')+'" id="slInvite">'
-      +(perdu?'Ré-apparier — nouveau code':'Inviter un autre')+'</button>'
-      +'<button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
-    document.getElementById('slInvite').addEventListener('click',()=>{slOffer();});
+      +(opt||invite?'':slActs('<button class="btn" id="slInvite">Inviter quelqu’un d’autre</button>'))
+      +slLogHtml()+stat
+      +'<div class="sh-acts"><button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
+    slOn('slInvite',()=>{slOffer();});
     sharePartBind(body,()=>slSheet('live'));
-    slModeSegBind('direct');
-    document.getElementById('slEnd').addEventListener('click',async()=>{
-      if(!await confirmDlg('Les participants ne suivront plus la session. Votre session, elle, '
-        +'continue.',{title:'Arrêter le partage ?',yes:'Arrêter',danger:true}))return;
-      slScanStop();clearInterval(_ltTimer);
+    slOpticBind('host',()=>slSheet('live'));
+    slOn('slEnd',async()=>{
+      if(!await confirmDlg('Les participants ne suivront plus la session.\n• Votre session continue.',
+        {title:'Arrêter le partage ?',yes:'Arrêter',danger:true}))return;
+      slScanStop();clearInterval(_ltTimer);slSb.optic=false;
       await Share.endShare();SL=null;shareModal.classList.remove('on');});
+    slNetWatch();return;}
+  if(guest){
+    const mir=phase==='mirror',direct=Share._io!==Share._ioRest;
+    const role=Share.role==='lead'
+      ?'<b>Conduit</b>\u00a0: vous menez la session\u00a0; l’hôte peut reprendre la main.'
+      :'<b>Relève</b>\u00a0: vous cochez et notez, sans revenir en arrière — «\u00a0Noter l’heure\u00a0» (dock) pose un repère daté.';
+    body.innerHTML=slStatusHtml(mir?'● Miroir':'● Vous suivez la session',
+        mir?'vue à '+fmtHM(_slMirror.at)+' · par l’écran':l.lost?'par l’écran':direct?'en direct':'en ligne',
+        mir?'Instantané daté, pas du direct\u00a0: chacun vise l’écran de l’autre, à tour de rôle.':slWhy(l.lost?'optic':direct?'direct':'cloud'),false)
+      +'<p class="sh-h">À faire'+(mir||l.lost?', dans l’ordre':'')+'</p>'
+      +(l.lost&&l.why==='expired'
+        ?slStep(1,'Se reconnecter','le partage a expiré pendant la coupure — demandez un nouveau code',
+          slActs('<button class="btn primary" id="slJoin">Se reconnecter…</button>'))
+        :mir||l.lost?slOpticStepsHtml('guest')
+        :slStep(1,'Rien','la session se suit seule\u00a0; si le réseau se perd, les étapes s’affichent ici','',true))
+      +(mir?'':'<p class="sh-h">Votre rôle</p><p class="sh-legend">'+role+'</p>')
+      +slActs('<button class="btn ghost" id="slShow">Montrer à un autre écran</button>')
+      +slLogHtml()+stat;
+    slOn('slJoin',()=>openJoinScreen(''));
+    slOpticBind('guest',()=>slSheet(phase));
     return;}
-  if(phase==='guest'){
-    const l=slLink();
-    body.innerHTML=(slLinkLine()||'<div class="sl-status"><span class="sl-dot ok"></span>vous suivez la session'+(Share._io!==Share._ioRest?' · en direct':' · en ligne')+'</div>')
-      +slLogHtml()
-      +'<div class="sl-actions">'
-      +(l.lost&&l.why==='expired'?'<button class="btn primary" id="slJoin">Se reconnecter…</button>':'')
-      +'<button class="btn" id="slReRx">Recevoir la progression</button>'
-      +'<button class="btn" id="slRet">Renvoyer mes repères</button>'
-      +'<button class="btn ghost" id="slShow">Montrer à un autre écran</button></div>'
-      +'<div id="slStat" role="status"></div>';
-    {const j=document.getElementById('slJoin');if(j)j.addEventListener('click',()=>openJoinScreen(''));}
-    document.getElementById('slReRx').addEventListener('click',()=>slRxStart(()=>slSheet('guest')));
-    document.getElementById('slRet').addEventListener('click',()=>slRetTx(()=>slSheet('guest')));
-    document.getElementById('slShow').addEventListener('click',()=>{slOptiqueTx();});
-    return;}
-  if(phase==='mirror'){
-    /* LE MIROIR N'EST PLUS UN CUL-DE-SAC (signalé à l'usage : « impossible de faire
-       l'aller-retour pour resynchroniser ») : la feuille du miroir porte la re-réception.
-       La passation par l'écran, elle, reste un RESTE NOMMÉ (retour invité→hôte, A205). */
-    body.innerHTML='<div class="sl-note"><span aria-hidden="true">⧗</span><span><b>Miroir</b>'
-      +' — vue à '+esc(_slMirror?fmtHM(_slMirror.at):'—')+' · pas du direct</span></div>'
-      +'<div class="sl-actions">'
-      +'<button class="btn primary" id="slReRx">Resynchroniser</button>'
-      +'<button class="btn" id="slRet">Renvoyer mes repères</button>'
-      +'<button class="btn ghost" id="slShow">Montrer à un autre écran</button></div>'
-      +'<div id="slStat" role="status"></div>';
-    document.getElementById('slReRx').addEventListener('click',()=>slRxStart(()=>slSheet('mirror')));
-    {const sh=document.getElementById('slShow');
-     if(sh)sh.addEventListener('click',()=>{slOptiqueTx();});}
-    /* Le RETOUR du miroir : mes repères (journal référentiel, rien d'autre) partent en
-       fontaine — l'hôte les filme et son journal s'annote (maquette 05). */
-    document.getElementById('slRet').addEventListener('click',()=>slRetTx(()=>slSheet('mirror')));
-    return;}
-  body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>'
-    +(phase==='offer-warn'
-      ?'Aucun réseau vu — sans Wi-Fi commun, passez « Par l’écran »'
-      /* La cause EXACTE, pas la plus fréquente : sans compte, « pas d'internet » est faux et
-         envoie chercher du réseau qui ne changera rien (v5.17.4). */
-      :slCloudOff()==='compte'
-        ?'Sans compte — partage en direct, même Wi-Fi requis'
-        :'Pas d’internet — partage en direct, même Wi-Fi requis')+'</span></div>'
-    +slModeSegHtml('direct')
-    +qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité')
-    +'<p class="sl-cap">l’invité scanne, puis vous scannez sa réponse<br>'
-    +'un réseau local SANS internet convient (Wi-Fi d’établissement, box coupée)</p>'
-    +'<div class="sl-actions">'
-    +'<button class="btn primary" id="slScanBtn">Scanner la réponse</button>'
-    /* Sans AUCUN réseau, le direct ne peut pas aboutir : l'issue est optique, offerte SUR
-       PLACE (v5.14.22, signalé : « pourquoi proposer le direct sans wifi ? ») — le sélecteur
-       reste là pour forcer, mais le chemin qui MARCHE est à un tap. */
-    +(phase==='offer-warn'?'<button class="btn" id="slOpticW">Par l’écran</button>':'')
-    +'</div>'
-    +'<div id="slStat" role="status"></div>';
-  slModeSegBind('direct');
+  /* APPARIEMENT DIRECT (offer) — ou, sans adresse locale vue, PAR L'ÉCRAN d'office (optic) : le chemin
+     qui MARCHE est à un tap (v5.14.22), et « Mode : … › » permet de forcer l'autre. */
+  SL.phase=phase;
+  body.innerHTML='<p class="sh-fiche">'+esc(SL.f?SL.f.title:'')+'</p>'
+    +slStatusHtml('● Partagé',phase==='optic'?'par l’écran':'en direct',slWhy(phase==='optic'?'optic':'direct'),true)
+    +'<p class="sh-h">À faire, dans l’ordre</p>'
+    +(phase==='optic'?slOpticStepsHtml('host')
+      :slStep(1,'Faites scanner ce code','avec l’appareil photo de son téléphone',qrSvg(SL.payload,'Code d’appariement — à scanner par l’invité'))
+       +slStep(2,'Scannez la réponse','elle s’affiche sur son écran',
+         slActs('<button class="btn primary" id="slScanBtn">'+uiIcon('camera',18)+'Scanner la réponse</button>'
+           +'<button class="btn ghost" id="slOpticW">Rien après 10\u00a0s\u00a0? Passer par l’écran</button>'))
+       +slStep(3,'C’est tout','la session suit en direct\u00a0; si internet revient, le partage repasse en ligne seul'))
+    +slLogHtml()+stat
+    +'<div class="sh-acts"><button class="btn danger" id="slEnd">Arrêter le partage…</button></div>';
+  slOpticBind('host',()=>slSheet(phase));
+  slOn('slOpticW',()=>{slSb.optic=true;slSheet('optic');});
+  slOn('slEnd',()=>{slScanStop();clearInterval(_ltTimer);SL=null;slSb.optic=false;shareModal.classList.remove('on');});
   const scanRep=async()=>{
     const st=document.getElementById('slStat');
     try{
@@ -27824,9 +27842,8 @@ function slSheet(phase){
           catch(e){slPairFail();}
         }});
     }catch(e){slCamRefused(st,scanRep,()=>{shareModal.classList.remove('on');});}};
-  document.getElementById('slScanBtn').addEventListener('click',scanRep);
-  {const ow=document.getElementById('slOpticW');
-   if(ow)ow.addEventListener('click',()=>{slOptiqueTx();});}}
+  slOn('slScanBtn',scanRep);
+  slNetWatch();}
 /* ÉCHEC D'APPARIEMENT (maquette 07) — trois sorties, toujours les mêmes, toujours dans cet
    ordre : réparer (Réessayer = TOUT à neuf), l'autre méthode, s'en passer. Jamais un code
    d'erreur, jamais un « vérifiez que… ». */
@@ -27834,16 +27851,12 @@ function slPairFail(){
   const body=document.getElementById('shareBody');if(!body)return;
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⚠</span><span>Ça n’a pas abouti'
     +'</span></div>'
-    +slModeSegHtml('direct')
-    +'<div class="sl-actions">'
-    +'<button class="btn primary" id="slRetry">Réessayer</button>'
+    +slActs('<button class="btn primary" id="slRetry">Réessayer</button>'
     +'<button class="btn" id="slOptic3">Par l’écran</button>'
-    +'<button class="btn ghost" id="slSkip">Continuer sans partage</button></div>';
-  slModeSegBind('direct');
-  document.getElementById('slRetry').addEventListener('click',()=>{slOffer();});
-  document.getElementById('slOptic3').addEventListener('click',()=>{slOptiqueTx();});
-  document.getElementById('slSkip').addEventListener('click',()=>{
-    shareModal.classList.remove('on');});}
+    +'<button class="btn ghost" id="slSkip">Continuer sans partage</button>');
+  slOn('slRetry',()=>{slOffer();});
+  slOn('slOptic3',()=>{slSb.optic=true;slSheet('optic');});
+  slOn('slSkip',()=>{shareModal.classList.remove('on');});}
 /* ÉMISSION OPTIQUE (étape 5) — l'hôte affiche la boucle de trames, l'autre appareil filme.
    La charge = {identité de session, fiche projetée, heure d'émission de l'hôte, instantané} ;
    cadence 6 codes/s, cycle hybride, masque épinglé sur les trames de flux. */
@@ -27877,7 +27890,6 @@ function ltShowLoop(tx){
 async function slOptiqueTx(){
   if(!await slEnsureSession())return;
   const R=Runtime;
-  const cloudActif=Share.mode==='host'&&Share.status==='active'&&Share.share!=='local';
   /* L'identité de session, par rôle : l'HÔTE a la sienne ; un MIROIR relaie celle qu'il
      reflète ; un INVITÉ en ligne/direct relaie celle apprise par `session_start` (v5.14.18,
      signalé : « pas de bouton pour redonner le code à l'écran ») — l'hôte reconnaîtra donc
@@ -27895,14 +27907,12 @@ async function slOptiqueTx(){
   shareModal.classList.add('on');
   body.innerHTML='<div class="sl-note"><span aria-hidden="true">⇆</span><span><b>Par l’écran</b>'
     +' — l’autre appareil filme, c’est tout · instantané daté, pas du direct</span></div>'
-    +(hote?slModeSegHtml('optic'):'')
     +'<div id="ltQr"></div><p class="sl-cap" id="ltCap" role="status"></p>'
     +'<div class="sl-actions">'
     +(hote?'<button class="btn" id="ltRx">Recevoir en retour</button>':'')
     +'<button class="btn ghost" id="ltStop">Arrêter</button></div>'
     +'<div id="ltStat" role="status"></div>';
   ltShowLoop(tx);
-  if(hote)slModeSegBind('optic');
   /* L'ALLER-RETOUR (v5.14.16, signalé : « une sorte de synchronisation ») : l'hôte cesse
      d'émettre, filme l'écran de l'invité, et les repères de celui-ci ANNOTENT le journal —
      puis l'émission reprend, l'instantané ré-emballé portant les repères reçus. */
@@ -27916,11 +27926,7 @@ async function slOptiqueTx(){
         onCancel:()=>{slOptiqueTx();},
         onText:slRxOnText(say,()=>{slOptiqueTx();})});
     }catch(e){slCamRefused(st,()=>{},()=>{});}});
-  document.getElementById('ltStop').addEventListener('click',()=>{
-    clearInterval(_ltTimer);
-    if(slLiveOk())slSheet('live');
-    else if(cloudActif)openShareSheet();
-    else shareModal.classList.remove('on');});}
+  document.getElementById('ltStop').addEventListener('click',()=>{clearInterval(_ltTimer);slSheetNow();});}
 /* RÉCEPTION OPTIQUE — miroir DATÉ. Invariant du lot : une émission qui n'est pas MA session
    vive = un message, ZÉRO écriture. L'heure d'émission de l'hôte corrige grossièrement les
    horloges (précision ≈ durée du transfert). */
@@ -27978,7 +27984,7 @@ async function slOffer(){
   SL.pc=await slPcHost();
   SL.payload='SO:'+slPairPack(Object.assign({k:SL.jeton},SL.pc.offer));
   SL.pc.dc.onopen=()=>{slGuestUp(SL.pc.dc);};
-  slSheet(slLocalCand(SL.pc.offer.c)?'offer':'offer-warn');}
+  slSheet(slLocalCand(SL.pc.offer.c)&&!slSb.optic?'offer':'optic');}
 async function slGuestUp(dc){
   const w=slChanWire(dc);slServe(SL.hub,w);(SL.wires=SL.wires||[]).push(w);
   if(!SL.live){SL.live=true;
@@ -27995,7 +28001,7 @@ async function slGuestUp(dc){
    canal et re-amorce son pli depuis zéro : AUCUNE fusion, la machinerie existante fait tout.
    Le retour au cloud reste un TAP (segmenté « En ligne ») — le sens panne est automatique,
    le sens confort reste un choix. ⚠ EXIGE le rejeu de schema.sql (genre `sig`) sur l'instance. */
-const slSb={dcs:[],dc:null,pc:null,say:null,said:false,auto:false,okRun:0,since:0,log:[],cloud:null,dwellMs:60000,lastBack:0,expired:false,lostAt:0};
+const slSb={dcs:[],dc:null,pc:null,say:null,said:false,auto:false,optic:false,okRun:0,since:0,log:[],cloud:null,dwellMs:60000,lastBack:0,expired:false,lostAt:0};
 /* A323 : le billet cloud de l'HÔTE (id, code, curseur, fiche) survit au rechargement — sessionStorage,
    même arbitrage que le billet de l'invité (J224) : rien de durable, aucune donnée clinique. */
 const SL_HOST_TK='ac-share-host-tk',SL_CLOUD_TK='ac-share-tk-cloud';
@@ -28031,7 +28037,7 @@ async function slHostRehost(){
 let _slSwitching=false;
 function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
   for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
-  slSb.dcs=[];slSb.pc=null;slSb.dc=null;slSb.said=false;}
+  slSb.dcs=[];slSb.pc=null;slSb.dc=null;slSb.said=false;slSb.optic=false;}
 // A318 : une transition se DIT — au quai (mot 8 s, lu par updateRtStrip) et au lecteur d'écran.
 function slSay(mot,sr){slSb.say={txt:mot,until:Date.now()+8000};slSb.log.unshift({t:Date.now(),txt:mot});slSb.log.length=Math.min(slSb.log.length,5);try{announce(sr||mot);}catch(e){}}
 // A321 : le journal du lien — les cinq dernières transitions, sur demande dans la feuille, en mémoire seulement.
@@ -28049,26 +28055,26 @@ function slLink(){
   if(Share.mode==='host')lost=direct?(slSb.auto&&!net&&Date.now()-slSb.since>15000&&!(Share.participants||[]).some(vif)):(Share._fails>=2&&!slSb.dcs.length);
   else lost=direct?(Share._fails>=2&&!net):(Share._fails>=2&&!slSb.dc);
   return {lost,why:direct?'canal':'net',since:Share.lastOk};}
-function slLinkLine(){const l=slLink();if(!l.lost)return '';
-  const q=l.why==='expired'?'Le partage a expiré pendant la coupure — reconnectez-vous avec un nouveau code.'
-    :'partage manuel par l’écran en attendant : internet et canal direct ne répondent plus, le partage reprendra seul au retour du réseau.';
-  return '<div class="sl-note"><span aria-hidden="true">△</span><span><b>Connexion perdue</b> depuis '+esc(fmtHM(l.since))+' — '+q+'</span></div>';}
 let _lkSig='';
+// « Par l'écran » est le mode EN COURS (forcé, choisi d'office sans adresse locale, ou miroir) — pas seulement le lien perdu.
+const slOpticOn=()=>slSb.optic||!!(SL&&!SL.live&&SL.phase==='optic')||!!(_slMirror&&Runtime.started&&Share.mode==='off');
 function slLinkPaint(){const el=document.getElementById('linkBar');if(!el)return;
-  const l=slLink(),hote=Share.mode==='host';
-  const sig=l.lost?[l.why,hote,Math.floor((l.since||0)/60000)].join('|'):'';
+  const l=slLink(),hote=Share.mode==='host'||(Share.mode==='off'&&!_slMirror),opt=l.lost||slOpticOn();
+  const sig=opt?[l.lost?l.why:'opt',hote,Math.floor((l.since||0)/60000)].join('|'):'';
   if(sig===_lkSig)return;_lkSig=sig;
-  if(!l.lost){el.hidden=true;el.innerHTML='';return;}
-  if(!_slNet.timer)slNetWatch();   // la sonde veille : c'est elle qui verra revenir le réseau
-  const acts=l.why==='expired'?'<button type="button" class="lk-act" data-lk="join">Se reconnecter…</button>'
-    :hote?'<button type="button" class="lk-act" data-lk="show">Montrer la progression</button>'
-    :'<button type="button" class="lk-act" data-lk="rx">Recevoir</button><button type="button" class="lk-act" data-lk="ret" title="Renvoyer mes repères datés">Renvoyer</button>';
-  // « depuis HH:MM » vit dans la feuille : la rangée doit tenir sur une ligne à 390 px
-  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="depuis '+esc(fmtHM(l.since))+' — partage manuel par l’écran">Connexion perdue</span>'+acts
-    +'<button type="button" class="lk-act why" data-lk="why" aria-label="Pourquoi ? — état du partage" title="Pourquoi ?">'+uiIcon('info',16)+'</button>';
+  if(!opt){el.hidden=true;el.innerHTML='';return;}
+  if(l.lost&&!_slNet.timer)slNetWatch();   // la sonde veille : c'est elle qui verra revenir le réseau
+  // A327 : même mode, mêmes verbes, mêmes numéros que slOpticStepsHtml — l'hôte reçoit aussi ; le
+  // bandeau reste tant que le mode l'est, pour montrer / recevoir sans rouvrir la feuille.
+  const act=(k,t)=>'<button type="button" class="lk-act" data-lk="'+k+'">'+t+'</button>';
+  const acts=l.lost&&l.why==='expired'?act('join','Se reconnecter…')
+    :hote?act('show','① Montrer')+act('rx','② Recevoir'):act('rx','① Recevoir')+act('ret','② Renvoyer');
+  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="'+(l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since)):'Mode par l’écran — chacun vise l’écran de l’autre')+'">Par l’écran</span>'+acts
+    +'<button type="button" class="lk-act why" data-lk="why" aria-label="Pourquoi ? — les étapes du partage" title="Pourquoi ?">'+uiIcon('info',16)+'</button>';
   el.hidden=false;
   el.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>{const k=b.dataset.lk;
-    if(k==='show')slOptiqueTx();else if(k==='rx')slRxStart();else if(k==='ret'){openCurrentShare();slRetTx();}
+    if(k==='show')slOptiqueTx();else if(k==='rx')slRxStart(null,hote?'Visez l’écran de l’invité':'Visez l’écran de l’hôte');
+    else if(k==='ret'){openCurrentShare();slRetTx();}
     else if(k==='join')openJoinScreen('');else openCurrentShare();});}
 function slSbReadySay(){if(slSb.said)return;slSb.said=true;slSay('Secours prêt','Secours direct prêt — la session continuerait sans internet.');}
 /* La véracité est PAR RÔLE (v5.14.12) : chez l'HÔTE seuls comptent les canaux de SES invités ;
@@ -28078,12 +28084,6 @@ function slSbReadySay(){if(slSb.said)return;slSb.said=true;slSay('Secours prêt'
 function slSbReady(){
   if(Share.mode==='host')return slSb.dcs.some(d=>d.dc&&d.dc.readyState==='open');
   return !!(slSb.dc&&slSb.dc.readyState==='open');}
-/* La pastille « En direct » dit l'état RÉEL du canal dormant (vert = prêt) — c'est aussi le
-   diagnostic de terrain : si elle ne verdit jamais, l'appariement silencieux échoue sur ce
-   réseau, et la bascule sans QR ne peut pas suivre. */
-function slSegDotRefresh(){
-  const b=document.querySelector('#shareBody .seg-btn[data-shmode="direct"] .sdot');
-  if(b)b.classList.toggle('ok',slSbReady()||slLiveOk());}
 async function slSbGuestKick(){
   if(slSb.pc||slSb.dc)return;
   slSb.pc={};                                  // verrou immédiat (l'amorçage est asynchrone)
@@ -28095,7 +28095,7 @@ async function slSbGuestKick(){
        mécanique que le flux QR (`SL.jeton`). */
     g.k=Math.random().toString(36).slice(2,6);
     slSb.pc=g;
-    g.dc.onopen=()=>{slSb.dc=g.dc;try{slSegDotRefresh();}catch(_){}slSbReadySay();};
+    g.dc.onopen=()=>{slSb.dc=g.dc;try{slModePaint();}catch(_){}slSbReadySay();};
     g.dc.onclose=()=>{if(slSb.dc===g.dc)slSb.dc=null;if(slSb.pc===g)slSb.pc=null;};
     Share.emit('sig',{t:'o',o:slPairPack(Object.assign({k:g.k},g.offer))});
     /* MONTRE DE 30 s (v5.14.9, terrain) : un échec ICE laissait le verrou posé À JAMAIS —
@@ -28110,8 +28110,8 @@ async function slSbOnSig(ev){
       const o=slPairUnpack(String(p.o));if(!o)return;
       const h=await slPcGuest(o);
       h.channel.then(dc=>{const go=()=>{slSb.dcs.push({actor:ev.actor,dc});
-          dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slSegDotRefresh();}catch(_){}};
-          try{slSegDotRefresh();}catch(_){}slSbReadySay();};
+          dc.onclose=()=>{slSb.dcs=slSb.dcs.filter(x=>x.dc!==dc);try{slModePaint();}catch(_){}};
+          try{slModePaint();}catch(_){}slSbReadySay();};
         dc.readyState==='open'?go():dc.onopen=go;});
       Share.emit('sig',{t:'a',to:ev.actor,a:slPairPack(Object.assign({k:o.k},h.answer))});}
     else if(Share.mode==='guest'&&p.t==='a'&&p.to===Share.me&&slSb.pc&&slSb.pc.answer&&p.a){
