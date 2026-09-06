@@ -1,4 +1,4 @@
-# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A324)
+# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A325)
 
 > Fichier normatif, suite de [`lot-v5-22.md`](lot-v5-22.md) (A308-A316). Les numéros A sont des
 > adresses : ne jamais renuméroter. Demande de l'auteur (05/09/2026) : « améliorer le passage entre
@@ -238,3 +238,39 @@ bannière ; invité au canal mort et serveur muet → bannière « Lien perdu »
 même vérité (état, gestes, journal) ; réseau revenu → reprise seule et bannières effacées des deux
 côtés ; partage expiré → l'invité le sait, « Se reconnecter… ». Vérifiés capables d'échouer (source
 d'état neutralisée → rouges, `index.html` restauré à l'octet).
+
+## A325 — l'invité rechargé en direct retrouve la session ; « Connexion perdue » (v5.23.8)
+
+**Demandes de l'auteur** : « vérifie côté invité si on rafraîchit la page pendant le direct » ; « Lien
+perdu » n'est pas clair — « Connexion perdue — partage manuel ».
+
+**Mesuré.** Un invité passé en direct n'avait plus que le billet du hub local en `sessionStorage`
+(écrasé par `joinByCode` sur le canal) ; rechargé, `Share.resume()` pullait le serveur avec l'id du
+hub local, était refusé, effaçait le billet — l'invité se retrouvait chez lui, sans session. Le hub
+et le canal WebRTC meurent avec l'onglet ; le seul fil qui peut survivre est le partage cloud.
+
+**Ce qui change.** Le billet cloud de l'invité (`slSb.cloud`, A322) est écrit en `sessionStorage`
+sous sa propre clé (`SL_CLOUD_TK`, `slCloudTkSave/Read` — même arbitrage J224), consommé à la
+reprise ou au refus. Au démarrage, si la reprise par le billet local échoue et qu'un billet cloud
+existe, `slBootCloudResume` sonde le serveur : s'il répond, `slResumeCloud` reprend le partage et
+`openSharedFiche` rouvre la session ; sinon le billet ATTEND, et la sonde (`slBackArmed`, troisième
+raison : mode `off` + billet cloud) retente à chaque réponse. Sans serveur ni canal : l'écran d'entrée
+et le code, seul chemin — dit.
+
+**Les mots.** « Lien perdu » devient **« Connexion perdue »** (bannière, feuille, journal, réveil) ;
+la feuille précise « partage manuel par l'écran en attendant » et le motif ; la bannière garde ses
+gestes courts (Recevoir · Renvoyer · Montrer la progression · Se reconnecter…) et tient sa ligne.
+
+**Garde-fous** (section E2E des bascules, 47 → 50 contrôles) : billet cloud en `sessionStorage`
+une fois en direct ; page invité RECHARGÉE (vrai `reload`, guichet du relais réinstallé par script
+d'initialisation) sans serveur → rien ne repart, le billet attend ; serveur revenu → reprise seule et
+session retrouvée. Vérifiés capables d'échouer (reprise au démarrage retirée → rouge, `index.html`
+restauré à l'octet).
+
+**Et la bannière n'a pas de mémoire** (demande de l'auteur : « vérifie qu'elle disparaît si la
+connexion revient, et qu'elle peut réapparaître, et ainsi de suite ») : elle est repeinte à chaque
+tick depuis `slLink()`, fonction PURE de l'état vivant (sondages ratés, sonde de joignabilité, canal
+dormant, drapeau « expiré ») — aucun état propre, sauf la signature qui évite de repeindre à
+l'identique. L'état redevenu sain, `lost` tombe et la rangée se cache ; l'état retombé, elle
+revient. Seul « expiré » colle, effacé par une nouvelle jointure. Mesuré : deux cycles complets
+(perdue → effacée → perdue → effacée) au banc, 50 → 52 contrôles.

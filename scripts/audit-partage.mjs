@@ -2559,14 +2559,14 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   await H.evaluate(() => { window.__silSain = shareSeenSilenceMs; shareSeenSilenceMs = () => 1e9; });
   const lostG = d6G && await G.waitForFunction(() => { updateRtStrip(Date.now()); return slLink().lost === true && !document.getElementById('linkBar').hidden; }, null, { timeout: 30000 }).then(() => true).catch(() => false);
   const barG = await G.evaluate(() => { const b = document.getElementById('linkBar'); return { txt: b.textContent.replace(/\s+/g, ' ').trim().slice(0, 40), rx: !!b.querySelector('[data-lk="rx"]'), ret: !!b.querySelector('[data-lk="ret"]'), why: !!b.querySelector('[data-lk="why"]'), h: Math.round(b.getBoundingClientRect().height) }; });
-  t('invité, canal mort et serveur muet : bannière « Lien perdu » avec Recevoir / Renvoyer (A324)', lostG && barG.rx && barG.ret && barG.why && /Lien perdu/.test(barG.txt), JSON.stringify(barG));
+  t('invité, canal mort et serveur muet : bannière « Lien perdu » avec Recevoir / Renvoyer (A324)', lostG && barG.rx && barG.ret && barG.why && /Connexion perdue/.test(barG.txt), JSON.stringify(barG));
   t('… la bannière tient sur une rangée (≤ 48 px)', barG.h > 0 && barG.h <= 48, barG.h + ' px');
   const lostH = d6H && await H.waitForFunction(() => { updateRtStrip(Date.now()); return slLink().lost === true && !document.getElementById('linkBar').hidden; }, null, { timeout: 30000 }).then(() => true).catch(() => false);
   const barH = await H.evaluate(() => { const b = document.getElementById('linkBar'); return { show: !!b.querySelector('[data-lk="show"]'), txt: b.textContent.replace(/\s+/g, ' ').trim().slice(0, 30) }; });
   t('hôte, invités perdus et serveur muet : bannière avec « Montrer la progression » (A324)', lostH && barH.show, JSON.stringify(barH));
   // la feuille de l'invité dit la même chose, avec les mêmes gestes
   const feuille = await G.evaluate(() => { openCurrentShare(); const b = document.getElementById('shareBody');
-    const r = { note: /Lien perdu/.test(b.textContent), rx: !!document.getElementById('slReRx'), ret: !!document.getElementById('slRet'), log: b.querySelectorAll('.sl-log li').length };
+    const r = { note: /Connexion perdue/.test(b.textContent), rx: !!document.getElementById('slReRx'), ret: !!document.getElementById('slRet'), log: b.querySelectorAll('.sl-log li').length };
     shareModal.classList.remove('on'); return r; });
   t('… et « Partager » chez l\'invité ouvre la même vérité : Lien perdu, Recevoir, Renvoyer, journal', feuille.note && feuille.rx && feuille.ret && feuille.log > 0, JSON.stringify(feuille));
   // le réseau revient : tout reprend seul, la bannière s'efface des deux côtés
@@ -2585,9 +2585,64 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   await G.evaluate(() => { window.__acNetOk = false; });
   const d7G = rearm7 && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1', null, { timeout: 40000 }).then(() => true).catch(() => false);
   await G.evaluate(() => { Share._io.pull = async () => { throw new Error('canal mort'); }; Share._io.push = async () => { throw new Error('canal mort'); };
-    Share._ioRest = Object.assign({}, Share._ioRest, { pull: async () => ({ ok: false, err: 'ended' }) }); window.__acNetOk = true; });
+    window.__ioSainG = Share._ioRest; Share._ioRest = Object.assign({}, Share._ioRest, { pull: async () => ({ ok: false, err: 'ended' }) }); window.__acNetOk = true; });
   const exp = d7G && await G.waitForFunction(() => { updateRtStrip(Date.now()); return slSb.expired === true && !!document.querySelector('#linkBar [data-lk="join"]'); }, null, { timeout: 30000 }).then(() => true).catch(() => false);
   t('partage expiré pendant la coupure : l\'invité le sait, la bannière propose « Se reconnecter… » (A324)', exp, '');
+
+  /* A325 — L'INVITÉ RECHARGE SA PAGE EN DIRECT : le billet du hub local meurt avec l'onglet ; le billet
+     cloud gardé reprend le partage dès que le serveur répond (au démarrage, ou plus tard par la sonde). */
+  // le relais revit ; l'hôte revient seul, l'invité (expiré, canal mort) rejoint à neuf — puis on refait une panne
+  await H.evaluate(() => { Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; window.__acNetOk = true; window.__acBackDwell = 1000; slNetWatch(); });
+  const hBack = await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const backTk = hBack && await G.evaluate(async () => { slSb.expired = false; sessionStorage.removeItem('ac-share-tk-cloud'); window.__acNetOk = true;
+    Share.stop(); Share._ioRest = window.__ioSainG || Share._ioRest; Share._io = Share._ioRest; const r = await Share.joinByCode('AAAA2222', 'IADE'); if (r && r.ok) openSharedFiche(); return !!(r && r.ok); });
+  const rearm8 = backTk && await H.waitForFunction(() => Share.share === 'bus1' && slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 40000 }).then(() => true).catch(() => false);
+  await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { window.__acNetOk = false; });
+  const d8G = rearm8 && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1' && !!sessionStorage.getItem('ac-share-tk-cloud'), null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const dg8 = await G.evaluate(() => ({ share: Share.share, direct: Share._io !== Share._ioRest, status: Share.status, mode: Share.mode, tk: !!sessionStorage.getItem('ac-share-tk-cloud'), cloud: !!slSb.cloud, dc: !!slSb.dc, fails: Share._fails }));
+  t('invité en direct : son billet cloud est en sessionStorage (A325)', d8G, JSON.stringify({ hBack, backTk, rearm8, G: dg8 }));
+  // rechargement de l'INVITÉ, relais toujours mort : le guichet BroadcastChannel se réinstalle avant le démarrage
+  await G.addInitScript(() => {
+    window.__acNetOk = false;
+    const bc = new BroadcastChannel('acbus'); let n = 0; const pend = {};
+    bc.onmessage = ev => { const m = ev.data || {}; if (m.q || !pend[m.i]) return; const w = pend[m.i]; delete pend[m.i]; w(m.r); };
+    const call = (v, p) => new Promise(res => { const i = ++n; pend[i] = res; bc.postMessage({ q: 1, i, v, p });
+      setTimeout(() => { if (pend[i]) { delete pend[i]; res(null); } }, 4000); });
+    const io = { open: async () => null, admit: async () => null, join: (code, label) => call('join', { label }),
+      pull: (s, sh, since) => call('pull', { secret: s, since }), push: (s, sh, ev) => call('push', { secret: s, events: ev }),
+      revoke: async () => null, setRole: async () => null, end: async () => null };
+    const t = setInterval(() => { if (typeof Share === 'undefined') return; clearInterval(t); Share._io = io; Share._ioRest = io; Auth.signedIn = () => true; confirmDlg = async () => true; }, 0);
+  });
+  if (d8G) await G.reload();
+  await G.waitForFunction(() => typeof Share === 'object' && Share._ioRest && Share._ioRest.open && !document.querySelector('.boot-load'), null, { timeout: 20000 }).catch(() => {});
+  await G.waitForTimeout(6000);
+  const apres = await G.evaluate(() => ({ mode: Share.mode, tk: !!sessionStorage.getItem('ac-share-tk-cloud') }));
+  t('rechargé sans serveur : rien ne repart, le billet cloud ATTEND (A325)', d8G && apres.mode === 'off' && apres.tk, JSON.stringify(apres));
+  await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; slNetWatch(); });
+  await G.evaluate(() => { window.__acNetOk = true; window.__acProbeMs = 400; slNetWatch(); });
+  const okG8 = d8G && await G.waitForFunction(() => Share.mode === 'guest' && Share.share === 'bus1' && Share.status === 'active' && document.body.classList.contains('view-read'), null, { timeout: 40000 }).then(() => true).catch(() => false);
+  t('serveur revenu : l\'invité rechargé REPREND seul le partage cloud et retrouve la session (A325)', okG8, '');
+  /* A325 — LA BANNIÈRE N'A PAS DE MÉMOIRE : repeinte au tick depuis slLink(), état vivant — perdue →
+     effacée → perdue → effacée, deux cycles. */
+  const cycle = async (k) => {
+    const rearm = await H.waitForFunction(() => Share.share === 'bus1' && slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 40000 }).then(() => true).catch(() => false);
+    await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+      Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+      Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+    await G.evaluate(() => { window.__acNetOk = false; });
+    const dG = rearm && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1', null, { timeout: 40000 }).then(() => true).catch(() => false);
+    await G.evaluate(() => { Share._io.pull = async () => { throw new Error('canal mort'); }; Share._io.push = async () => { throw new Error('canal mort'); }; });
+    const vis = dG && await G.waitForFunction(() => { updateRtStrip(Date.now()); return !document.getElementById('linkBar').hidden; }, null, { timeout: 30000 }).then(() => true).catch(() => false);
+    await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; slNetWatch(); });
+    await G.evaluate(() => { window.__acNetOk = true; });
+    const back = vis && await G.waitForFunction(() => Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active', null, { timeout: 40000 }).then(() => true).catch(() => false);
+    const cache = back && await G.waitForFunction(() => { updateRtStrip(Date.now()); return document.getElementById('linkBar').hidden; }, null, { timeout: 10000 }).then(() => true).catch(() => false);
+    t('cycle ' + k + ' : connexion perdue → bannière ; connexion revenue → bannière effacée (A325)', vis && cache, JSON.stringify({ rearm, dG, vis, back, cache }));
+  };
+  await cycle(1); await cycle(2);
   await ctx.close();
   if (brE !== br) await brE.close();
 });

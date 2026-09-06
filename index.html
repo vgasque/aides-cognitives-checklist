@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-DWaP266txZiHLzpglmKeTgvoBx2KeaSOHlr7aqqDxqM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-4ZVsaKncsZMf0NHBXE5hP2pL9KK3EaNZd9MTSj2q29M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8034,7 +8034,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.23.7';
+const APP_VERSION='5.23.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -27555,7 +27555,7 @@ async function slWake(){
   if(!(Share.participants||[]).some(p=>!p.owner&&!p.revoked&&shareSeenLost(p)))return;
   if(slBackArmed()){await slNetProbe();
     if(_slNet.ok===true&&!_slSwitching){slSb.auto=false;slGoCloud('Internet est revenu — le partage repasse en ligne.',true);return;}}
-  slSay('Lien à refaire','Le lien direct n’a pas survécu à la veille — ré-appariez depuis la feuille de partage.');}
+  slSay('Connexion perdue','Le lien direct n’a pas survécu à la veille — ré-appariez depuis la feuille de partage.');}
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState!=='visible')return;
   if(_slNet.timer)slNetProbe();
@@ -27595,9 +27595,10 @@ function slSegNetPaint(){
    invités à ramener, jamais contre un choix manuel ; sans ouvrir la feuille (règle 11). */
 const slBackArmed=()=>(Share.mode==='host'&&Share.share==='local'&&slSb.auto&&Auth.signedIn())
   ||(Share.mode==='off'&&Runtime.started&&!!slHostTkRead()&&Auth.signedIn())
+  ||(Share.mode==='off'&&!!slCloudTkRead())
   ||slLink().lost;
 function slBackTick(){if(!slBackArmed())return;
-  if(Share.mode==='off'){if(_slNet.ok===true)slHostRehost();return;}
+  if(Share.mode==='off'){if(_slNet.ok===true){if(slCloudTkRead())slBootCloudResume();else slHostRehost();}return;}
   slSb.okRun=_slNet.ok===true?slSb.okRun+1:0;
   const dwell=window.__acBackDwell||slSb.dwellMs,invites=!!(SL&&SL.hub&&SL.hub.st.parts.some(p=>!p.owner&&!p.revoked));
   if(slSb.okRun>=3&&invites&&Date.now()-slSb.since>=dwell&&!_slSwitching){slSb.okRun=0;
@@ -27986,7 +27987,18 @@ async function slGuestUp(dc){
 const slSb={dcs:[],dc:null,pc:null,say:null,said:false,auto:false,okRun:0,since:0,log:[],cloud:null,dwellMs:60000,lastBack:0,expired:false,lostAt:0};
 /* A323 : le billet cloud de l'HÔTE (id, code, curseur, fiche) survit au rechargement — sessionStorage,
    même arbitrage que le billet de l'invité (J224) : rien de durable, aucune donnée clinique. */
-const SL_HOST_TK='ac-share-host-tk';
+const SL_HOST_TK='ac-share-host-tk',SL_CLOUD_TK='ac-share-tk-cloud';
+// A325 : le billet cloud de l'invité passé en direct survit au rechargement (même arbitrage, J224).
+function slCloudTkSave(tk){slSb.cloud=tk;try{if(tk)sessionStorage.setItem(SL_CLOUD_TK,JSON.stringify(tk));else sessionStorage.removeItem(SL_CLOUD_TK);}catch(e){}}
+function slCloudTkRead(){try{const j=JSON.parse(sessionStorage.getItem(SL_CLOUD_TK)||'null');return j&&j.s&&j.k?j:null;}catch(e){return null;}}
+/* Au démarrage d'un invité rechargé EN DIRECT : le billet du hub local est mort avec l'onglet, le
+   billet cloud reprend le partage si le serveur répond ; sinon il attend la sonde. */
+async function slBootCloudResume(){
+  const tk=slCloudTkRead();if(!tk||Share.mode!=='off')return false;
+  await slNetProbe();if(_slNet.ok!==true){slNetWatch();return false;}
+  slSb.cloud=tk;const ok=await slResumeCloud();
+  if(ok&&Share.fiche)openSharedFiche();
+  return ok;}
 function slHostTkSave(){try{if(Share.mode!=='host'||!Share.share||Share.share==='local'||!Runtime.fiche)return;
   sessionStorage.setItem(SL_HOST_TK,JSON.stringify({share:Share.share,code:Share.code,joinUntil:Share.joinUntil,expiresAt:Share.expiresAt,cursor:Share.cursor,fiche:Runtime.fiche.id}));}catch(e){}}
 function slHostTkRead(){try{const j=JSON.parse(sessionStorage.getItem(SL_HOST_TK)||'null');return j&&j.share?j:null;}catch(e){return null;}}
@@ -28028,8 +28040,8 @@ function slLink(){
   return {lost,why:direct?'canal':'net',since:Share.lastOk};}
 function slLinkLine(){const l=slLink();if(!l.lost)return '';
   const q=l.why==='expired'?'Le partage a expiré pendant la coupure — reconnectez-vous avec un nouveau code.'
-    :'Internet et canal direct indisponibles. Le partage reprendra seul au retour du réseau ; en attendant, la progression passe par l’écran.';
-  return '<div class="sl-note"><span aria-hidden="true">△</span><span><b>Lien perdu</b> depuis '+esc(fmtHM(l.since))+' — '+q+'</span></div>';}
+    :'partage manuel par l’écran en attendant : internet et canal direct ne répondent plus, le partage reprendra seul au retour du réseau.';
+  return '<div class="sl-note"><span aria-hidden="true">△</span><span><b>Connexion perdue</b> depuis '+esc(fmtHM(l.since))+' — '+q+'</span></div>';}
 let _lkSig='';
 function slLinkPaint(){const el=document.getElementById('linkBar');if(!el)return;
   const l=slLink(),hote=Share.mode==='host';
@@ -28041,7 +28053,7 @@ function slLinkPaint(){const el=document.getElementById('linkBar');if(!el)return
     :hote?'<button type="button" class="lk-act" data-lk="show">Montrer la progression</button>'
     :'<button type="button" class="lk-act" data-lk="rx">Recevoir</button><button type="button" class="lk-act" data-lk="ret" title="Renvoyer mes repères datés">Renvoyer</button>';
   // « depuis HH:MM » vit dans la feuille : la rangée doit tenir sur une ligne à 390 px
-  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="depuis '+esc(fmtHM(l.since))+'">Lien perdu</span>'+acts
+  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="depuis '+esc(fmtHM(l.since))+' — partage manuel par l’écran">Connexion perdue</span>'+acts
     +'<button type="button" class="lk-act why" data-lk="why" aria-label="Pourquoi ? — état du partage" title="Pourquoi ?">'+uiIcon('info',16)+'</button>';
   el.hidden=false;
   el.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>{const k=b.dataset.lk;
@@ -28110,10 +28122,10 @@ async function slResumeCloud(){
   const tk=slSb.cloud;if(!tk||_slSwitching)return false;_slSwitching=true;
   const ioAvant=Share._io;
   try{let r=null;try{r=await Share._ioRest.pull(tk.k,tk.s,0);}catch(e){}
-    if(r&&r.ok===false){slSb.cloud=null;slSb.expired=true;slSb.lostAt=Date.now();slSay('Partage expiré','Le partage a expiré pendant la coupure — reconnectez-vous avec un nouveau code.');return false;}
+    if(r&&r.ok===false){slCloudTkSave(null);slSb.expired=true;slSb.lostAt=Date.now();slSay('Partage expiré','Le partage a expiré pendant la coupure — reconnectez-vous avec un nouveau code.');return false;}
     Share._io=Share._ioRest;try{sessionStorage.setItem(Share._tk(),JSON.stringify(tk));}catch(e){}
     const ok=await Share.resume();
-    if(ok){slSb.cloud=null;slSb.dc=null;slSb.pc=null;render();slSay('Repasse en ligne','Internet est revenu — vous suivez de nouveau en ligne.');}
+    if(ok){slCloudTkSave(null);slSb.dc=null;slSb.pc=null;render();slSay('Repasse en ligne','Internet est revenu — vous suivez de nouveau en ligne.');}
     else Share._io=ioAvant;   // échec : on ne casse jamais le transport qui marche
     return ok;
   }finally{_slSwitching=false;}}
@@ -28177,7 +28189,7 @@ async function slSbGuestSwitch(){
        NOUVEAU partage (vide) — ce qui n'était pas parti mourrait à chaque bascule. On
        l'emporte : mêmes ids (dédup serveur), mêmes clés (c'est la MÊME session qui continue). */
     const portee=(Share._q||[]).slice();
-    if(Share.share&&Share.share!=='local'&&Share.secret)slSb.cloud={s:Share.share,k:Share.secret,m:Share.me,r:Share.role};
+    if(Share.share&&Share.share!=='local'&&Share.secret)slCloudTkSave({s:Share.share,k:Share.secret,m:Share.me,r:Share.role});
     const cli=slClient(slChanWire(dc));
     Share._io=cli.io;
     /* TENTATIVES ESPACÉES : sur bascule demandée (« go »), l'hôte sert peut-être une ou deux
@@ -29209,6 +29221,7 @@ if(location.search.indexOf('__actest')>=0){
        purgé, participant coupé), le billet est effacé et l'application démarre normalement — il
        se retrouve chez lui, pas devant une erreur qu'il ne peut pas résoudre. */
     if(SHARE_RESUME){try{if(await Share.resume()&&Share.fiche){openSharedFiche();return;}}catch(e){}}
+    if(slCloudTkRead()){try{if(await slBootCloudResume())return;}catch(e){}}
     if(_entree&&!SHARE_NOTRACE)shareEntryArrived();
   }).catch(err=>{try{
     // Écran d'échec CENTRÉ, au registre ALERTE de la taxonomie (bord gauche 4px critique) —

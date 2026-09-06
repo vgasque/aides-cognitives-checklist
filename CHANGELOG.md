@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.23.8] — 2026-09-06
+### L'invité rechargé en direct retrouve la session ; « Connexion perdue » (A325)
+
+- **Demandes de l'auteur** : vérifier le rafraîchissement de la page invité pendant le direct ;
+  remplacer « Lien perdu » par une formulation claire ; vérifier que la bannière disparaît quand la
+  connexion revient et réapparaît si elle se perd de nouveau.
+- **Rechargement de l'invité en direct** : il ne tenait plus que le billet du hub local, mort avec
+  l'onglet — il se retrouvait chez lui. Son billet cloud est désormais gardé en `sessionStorage` ;
+  au démarrage, si le serveur répond, la session est retrouvée seule ; sinon le billet attend et la
+  sonde retente. Sans serveur ni canal : l'écran d'entrée et le code, seul chemin.
+- **« Connexion perdue »** partout (bannière, feuille, journal, réveil) ; la feuille précise
+  « partage manuel par l'écran en attendant » et le motif.
+- **La bannière n'a pas de mémoire** : repeinte au tick depuis l'état vivant, elle s'efface quand
+  la connexion revient et revient si elle se perd — deux cycles complets mesurés.
+- Garde-fous : cinq contrôles ajoutés à la section E2E des bascules d'`audit-partage` (47 → 52),
+  dont un vrai rechargement de la page invité, vérifiés capables d'échouer. Doctrine A325 dans
+  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.22.0] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
+
 ## [5.23.7] — 2026-09-06
 ### « Lien perdu » : une source d'état, une rangée, une feuille qui dit la même chose (A324)
 
@@ -288,31 +307,3 @@
   (5 contrôles, 97 → 98 sections), vérifié capable d'échouer. Doctrine A309 dans
   `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.3] archivée).
 - Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
-
-## [5.22.0] — 2026-09-04
-### Le gestionnaire de catégories en liste, plus de couleurs, le rail de session à 280 px sur tablette (A308)
-
-- **« Gérer les catégories » passe en LISTE.** La fenêtre répétait la palette sous chaque catégorie
-  (104 pastilles pour 8 catégories, 1 144 px de haut à 820 px de large) et le champ « Ajouter »,
-  seule action de création, était à 1 298 px sous le haut — hors écran. Désormais : « Ajouter » en
-  tête de chaque section, rangées de 44 px (pastille · nom · compte · ×), et la palette ne s'ouvre
-  que pour la catégorie dont on tape la pastille, une seule à la fois ; le focus revient sur la
-  pastille après le re-rendu. Huit catégories tiennent en 715 px. Toutes les portes mènent à la même
-  fenêtre — accueil, feuille « Gérer », atelier d'import, et « ＋ Nouvelle catégorie » des éditeurs
-  de fiche et de protocole (vérifié au témoin).
-- **Plus de couleurs, sans toucher au modèle.** Un curseur « Autre teinte » parcourt l'anneau
-  OKLCH L 0,48 · C 0,08 — la chroma maximale qui reste dans le gamut sur tout le tour ; les deux
-  contrastes de la régression #3 (blanc sur teinte pleine, teinte sur fond à 15 %) tiennent par
-  construction sur les 360 degrés (≥ 6,2 et ≥ 5,0). Aperçu en direct (pastille, chip), et un
-  garde-fou de proximité : « △ proche de « X » » sous 4,0 ΔE d'une catégorie du même périmètre ;
-  un hex importé illisible est dit « △ contraste faible ». Conversion maison, aucune dépendance,
-  aucune couleur littérale dans la feuille. Les treize presets ne changent pas. ⚠ Un premier jet à
-  C 0,10 écrêtait le cyan hors gamut — attrapé par le témoin d'aller-retour, corrigé avant livraison.
-- **Rail de session à 280 px entre 780 et 999 px** (320 dès 1000, palier déjà déclaré). Mesuré à
-  820 px : le rail prenait 41 % de la largeur et laissait 444 px à la colonne d'action, la largeur
-  d'un téléphone. Rendu à 280 : cartes minuteur 261 px, aucun débordement nouveau ; +40 px pour
-  l'action. À 1024 px rien ne change (648 / 320).
-- Garde-fous : `tests.html` § « anneau de teinte (A308) » (8 témoins), `audit-doctrine`
-  § « Catégories · une palette à la fois… » (10 contrôles, 96 → 97 sections), vérifié capable
-  d'échouer. Doctrine : `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.2] archivée).
-- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26.
