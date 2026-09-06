@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.25.1] — 2026-09-06
+### La carte « Quand l'utiliser » respire pareil en haut et en bas (A330, addendum)
+
+- **Signalé sur main** : sans diagnostic différentiel, le cadre « Quand l'utiliser » avait moins de
+  respiration sous le dernier critère qu'au-dessus du premier (mesuré à 390 px : 15 px contre 4).
+  Depuis que le titre vit au-dessus du cadre (v5.25.0), seul le lien « Le tableau ne colle pas ? »
+  fermait la carte — et il n'existe que si la fiche déclare des différentiels.
+- **Correction** : la carte porte 6 px en haut et en bas, la liste 4/4 ; le lien de sortie, quand
+  il existe, reprend les 6 px du bas pour rester au ras du cadre. Mesuré après : 15/15 sans lien,
+  lien au ras avec, hauteur de carte inchangée dans ce cas.
+
 ## [5.25.0] — 2026-09-06
 ### L'écran d'entrée d'une aide se lit comme un écran de démarrage (A330)
 
@@ -385,23 +396,3 @@
   un contrôle ajouté à la section A308 d'`audit-doctrine`, vérifié capable d'échouer. Doctrine
   A312 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.6] archivée).
 - Vérifié : `npm run check` complet, 1189 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
-
-## [5.22.3] — 2026-09-05
-### Sur « Toutes », une bande collante par bibliothèque dans le gestionnaire de catégories (A311)
-
-- **Demande de l'auteur** : « améliorer la séparation des bibliothèques dans la fenêtre de
-  modification des catégories ; design clair ». Mesuré avant : chaque section n'était introduite
-  que par une phrase et un filet, et le champ « Ajouter » de la suivante se collait à la liste de
-  la précédente ; une fois le corps défilé, rien ne rappelait la bibliothèque.
-- **Chaque bibliothèque devient une section ouverte par une bande collante**, au dessin exact de
-  l'intertitre de l'accueil (fond de page, filet, capitales 11 px, compte en mono à droite) :
-  glyphe personne pour « Espace personnel », livre pour une bibliothèque, mention « partagée » à
-  côté du nom ; 24 px entre deux sections ; la bande tient au haut du défileur pendant qu'on fait
-  défiler ses catégories. Le champ d'ajout d'une bibliothèque dit « Nouvelle catégorie
-  partagée… », là où la phrase supprimée portait l'information. Rien d'autre ne bouge :
-  « Ajouter » en tête, rangées et palette d'A308.
-- Garde-fou : `audit-doctrine` § « Catégories · une bande collante par bibliothèque »
-  (5 contrôles, 98 → 99 sections), vérifié capable d'échouer. Doctrine A311 dans
-  `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.5] archivée).
-- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26 (deux passes,
-  avant et après le numéro de version).

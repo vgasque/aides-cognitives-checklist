@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-SDknqckOh+fk5x/LbEfQsPks7UDkUQzGYjbSNi1tZ64='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-gSFxadYJ0t93UlX9H21nJTmCdcKRTd0ekRc4F3mRMkQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2654,18 +2654,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Deux cadres rouges qui se suivent, c'est l'inflation que ce dossier combat depuis la v4.23.0
      — la seconde masse ne dit plus rien. Le registre vit donc dans le TITRE et dans les
      marqueurs ; le cadre reste celui d'une carte de travail. */
-  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:6px 18px 0}   /* v5.25.0 : le titre est au-dessus */
+  /* v5.25.1 : respiration SYMÉTRIQUE (signalé : sans différentiel, 14 px au-dessus du premier
+     critère contre 4 sous le dernier) — la carte porte 6 px en haut ET en bas, la liste 4/4 ; le
+     lien de sortie, quand il existe, reprend les 6 px du bas pour rester au ras du cadre. */
+  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:6px 18px}
   /* `.conf-eh` (titre DANS la carte) est PURGÉ en v5.25.0 : le titre est le chapitre `.pre-ch`,
      posé au-dessus du cadre — le ■ et le registre --crit y vivent. */
   .conf-mk{font-size:var(--t-cap);line-height:1}
-  .conf-block.entry ul.flat{padding:4px 0 0;border-top:0}
+  .conf-block.entry ul.flat{padding:4px 0;border-top:0}
   ul.flat.confirm.entry li{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:0;
     font-size:var(--t-item);font-weight:600;color:var(--ink)}
   ul.flat.confirm.entry li::before{display:none}
   .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
   /* v5.25.0 : la porte de sortie du diagnostic à l'encre NORMALE — sur l'écran dont la question
      est « est-ce le bon cas », elle n'est pas hors chemin. */
-  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .conf-block.entry .atyp-link{margin:6px 0 -6px;padding:8px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
@@ -8073,7 +8076,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.25.0';
+const APP_VERSION='5.25.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

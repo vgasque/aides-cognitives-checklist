@@ -77,3 +77,11 @@ pour 1 334 avant. À 900 : grille 564 + 280, boutons 102 et 104 px de large. À 
 zéro `.cp-h` avant la session, rangée compacte 32 ≤ h < 44 inchangée. `tests.html` Q4 réécrit sur
 la nouvelle phrase (à disposition, jamais « démarre », libellé échappé). `check-classes` a fait
 purger `.conf-eh` (épitaphe posée) ; `check-space` a ramené trois retraits sur l'échelle fermée.
+
+**Addendum v5.25.1 — respiration symétrique de la carte « Quand l'utiliser » (signalé sur main).**
+Mesuré à 390 px : sans différentiel, 15 px au-dessus du premier critère contre 4 px sous le dernier —
+le titre parti au-dessus du cadre (A330), le `padding-bottom:0` de la carte n'était plus compensé
+que par le lien « Le tableau ne colle pas ? », absent quand la fiche n'a pas de différentiel. La
+carte porte 6 px en haut ET en bas, la liste 4/4 ; le lien, quand il existe, reprend les 6 px du
+bas (`margin-bottom:-6px`) pour rester au ras du cadre. Mesuré après : 15/15 sans lien, lien au ras
+(1 px de bordure) avec — hauteur de carte inchangée dans le cas avec lien.

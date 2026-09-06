@@ -2300,18 +2300,21 @@
      Deux cadres rouges qui se suivent, c'est l'inflation que ce dossier combat depuis la v4.23.0
      — la seconde masse ne dit plus rien. Le registre vit donc dans le TITRE et dans les
      marqueurs ; le cadre reste celui d'une carte de travail. */
-  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:6px 18px 0}   /* v5.25.0 : le titre est au-dessus */
+  /* v5.25.1 : respiration SYMÉTRIQUE (signalé : sans différentiel, 14 px au-dessus du premier
+     critère contre 4 sous le dernier) — la carte porte 6 px en haut ET en bas, la liste 4/4 ; le
+     lien de sortie, quand il existe, reprend les 6 px du bas pour rester au ras du cadre. */
+  .conf-block.entry{border-color:var(--work-line);box-shadow:var(--shadow-work);padding:6px 18px}
   /* `.conf-eh` (titre DANS la carte) est PURGÉ en v5.25.0 : le titre est le chapitre `.pre-ch`,
      posé au-dessus du cadre — le ■ et le registre --crit y vivent. */
   .conf-mk{font-size:var(--t-cap);line-height:1}
-  .conf-block.entry ul.flat{padding:4px 0 0;border-top:0}
+  .conf-block.entry ul.flat{padding:4px 0;border-top:0}
   ul.flat.confirm.entry li{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:0;
     font-size:var(--t-item);font-weight:600;color:var(--ink)}
   ul.flat.confirm.entry li::before{display:none}
   .cf-mk{flex:none;color:var(--crit);font-size:var(--t-cap)}
   /* v5.25.0 : la porte de sortie du diagnostic à l'encre NORMALE — sur l'écran dont la question
      est « est-ce le bon cas », elle n'est pas hors chemin. */
-  .conf-block.entry .atyp-link{margin-top:6px;padding:8px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .conf-block.entry .atyp-link{margin:6px 0 -6px;padding:8px 0;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   .conf-block.entry .atyp-link:hover{background:none;color:var(--ink-2)}
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
