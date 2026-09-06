@@ -274,3 +274,47 @@ dormant, drapeau « expiré ») — aucun état propre, sauf la signature qui é
 l'identique. L'état redevenu sain, `lost` tombe et la rangée se cache ; l'état retombé, elle
 revient. Seul « expiré » colle, effacé par une nouvelle jointure. Mesuré : deux cycles complets
 (perdue → effacée → perdue → effacée) au banc, 50 → 52 contrôles.
+
+## A326 — trois signalements d'affichage : tuile « En cours », rangées « Gérer », gestionnaire de catégories (v5.23.9)
+
+**Signalements de l'auteur** : (1) « dans les cartes des épinglés, quand il y a une session en
+cours, sur petit écran, “En cours” avec la pastille prend beaucoup de place — ça coupe le titre » ;
+(2) « rends l'ensemble du bouton “Gérer les catégories” cliquable, pas juste le texte, aussi la
+flèche » (feuille « Gérer ») ; (3) dans « Gérer les catégories », « les champs n'ont pas la même
+largeur selon la taille de “xx éléments” », et « quand on clique sur la croix, le bandeau rouge est
+trop collé au champ et le fond n'est pas gris — alors qu'en modifiant la couleur le fond est gris ».
+
+**1 · La tuile.** Le badge « ● En cours » vit à DROITE de la tuile, centré — maquette desktop
+(v4.56.1 : glissé dans la sous-ligne de 11 px, il l'étirait). Mais sous 780 px la grille pose des
+tuiles de 165 px (A261) : un badge de 77 px y laissait ~60 px au titre, coupé à chaque ligne sur
+une hauteur bornée à 4 lignes — le titre est la seule chose qu'une tuile doit dire. Mesuré à 390 px
+(deux tuiles de 169) : titre 137 px de large après, contre ~60 avant. Le badge descend SUR la
+sous-ligne, à gauche du discriminant, sans changer le DOM : la tuile devient une grille à deux
+rangées (`.qa-tx` en `display:contents`, titre sur les deux colonnes, badge en colonne 1 de la
+rangée 2, sous-ligne en colonne 2) — dans le bloc `@media (max-width:779.98px)` qui porte déjà
+la grille étroite d'A261. Hauteur de tuile inchangée (80,75 px à deux lignes de titre). Le MOT
+reste (règle 8 : jamais une couleur seule) ; l'option « garder juste la pastille », proposée par
+l'auteur, a été écartée pour cette raison. Au-dessus de 780 px, rien ne bouge.
+
+**2 · Les rangées de commande.** `hsRow` posait la queue (`tail` : chevron, nombre) APRÈS le
+bouton, dans l'enveloppe `.hs-wrap` — nécessaire quand un acte frère (crayon ✎) s'intercale, un
+bouton n'en contenant pas un autre (v5.19.1). Mais la même mécanique servait aux rangées SANS acte :
+« Gérer les catégories » (feuille « Gérer »), « Rejoindre une session », « Historique des sessions »,
+les bibliothèques de la feuille — et leur chevron, hors du bouton, était inerte. Désormais, sans
+acte, la queue entre DANS le bouton ; avec un acte, elle reste dans l'enveloppe, après lui.
+Mesuré en colonne de gauche : queue à 12 px du bord droit avant comme après (le bouton perd son
+`padding-right` sous `.hs-wrap`, l'enveloppe garde ses 12 px), nombres toujours alignés à droite
+entre une rangée à crayon et une rangée sans.
+
+**3 · Le gestionnaire.** (a) `.cm-top` avait une colonne `auto` pour le compte : « 0 élément » et
+« 12 éléments » ne font pas la même largeur, et c'est le champ de nom (`minmax(0,1fr)`) qui
+absorbait la différence — huit champs, plusieurs largeurs. Colonne FIXE de 76 px (« 999 éléments »
+à 11 px y tient), compte aligné à droite avec ellipse de sûreté ; mesuré : 189 px sur les huit.
+(b) La rangée en confirmation de suppression n'avait pas de classe d'état : `.cm-row.open` (palette
+ouverte) pose le fond `--bg`, la marge négative et le rayon, la confirmation ne posait rien — d'où le
+fond blanc et le bandeau à ~6 px du champ sur écran tactile (champ de 40 px dans une rangée de 44).
+La rangée prend `.ask` quand `catDelId` la désigne, même règle de fond que `.open` (sans l'anneau de
+la pastille, propre à la palette), et `.cm-confirm` respire de 8 px au-dessus (10 en dessous,
+inchangé). Palette ouverte PUIS croix : le bandeau suit les 12 px de pied de `.cm-pick`, comme avant.
+
+**Vérifié** : `npm run check` complet, 1190 tests × 2 moteurs, audit complet après le numéro.

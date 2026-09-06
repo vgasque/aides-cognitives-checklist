@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.23.9] — 2026-09-06
+### Trois signalements d'affichage : tuile « En cours », rangées « Gérer », gestionnaire de catégories (A326)
+
+- **Tuile épinglée en session, écran étroit** : « ● En cours » vivait à DROITE d'une tuile de
+  165 px et ne laissait qu'une soixantaine de pixels au titre, coupé à chaque ligne. Sous 780 px le
+  badge descend sur la sous-ligne, à gauche du discriminant ; le titre reprend toute la largeur
+  (mesuré à 390 px : 137 px de titre au lieu de ~60, hauteur de tuile inchangée). Le mot reste :
+  jamais une couleur seule (règle 8). Au-dessus de 780 px, rien ne change.
+- **Rangées « Gérer les catégories », « Rejoindre une session », « Historique des sessions »
+  (feuille « Gérer » et colonne de gauche)** : le chevron — et, sur une rangée sans crayon, le
+  nombre — vivaient HORS du bouton, dans l'enveloppe ; taper la flèche ne faisait rien. Sans acte
+  frère, la queue entre dans le bouton (`hsRow`) : toute la rangée répond. Position de la queue
+  inchangée au pixel (12 px du bord droit, mesuré), nombre toujours aligné à droite.
+- **Gestionnaire de catégories** : (a) la colonne « xx éléments » était `auto` — chaque rangée
+  taillait son champ de nom selon la longueur du compte (« 0 élément » ≠ « 12 éléments ») ; colonne
+  fixe de 76 px, compte aligné à droite, champs de même largeur sur toutes les rangées (mesuré :
+  189 px × 8). (b) Le bandeau rouge de confirmation collait au champ (≈ 6 px sur écran tactile, où
+  le champ fait 40 px) et la rangée gardait le fond blanc, alors que la palette ouverte pose le
+  fond gris de `--bg` : la rangée en confirmation prend la classe `.ask`, même sol que `.open`, et le
+  bandeau respire de 8 px.
+- Doctrine A326 dans `docs/decisions/lot-v5-23.md` ; index `AGENTS.md`/`docs/README.md` à
+  A317-A326.
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
+
 ## [5.23.8] — 2026-09-06
 ### L'invité rechargé en direct retrouve la session ; « Connexion perdue » (A325)
 

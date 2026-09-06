@@ -1761,6 +1761,14 @@
   @media (max-width:779.98px){
     .qa-grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr))}
     .qa-t{font-size:13.5px;-webkit-line-clamp:4}
+    /* « ● En cours » descend SUR la sous-ligne (signalé à l'usage) : à droite d'une tuile de
+       165 px il laissait ~60 px au titre. La coque devient une grille à deux rangées — titre
+       pleine largeur, puis [badge | sous-ligne] — sans changer le DOM (`.qa-tx` en `contents`). */
+    .qa-tile{display:grid;grid-template-columns:auto minmax(0,1fr);row-gap:4px;column-gap:0;align-content:center}
+    .qa-tile>.qa-tx{display:contents}
+    .qa-tile .qa-t{grid-column:1/-1}
+    .qa-tile .qa-sub{grid-column:2}
+    .qa-tile>.tag.live{grid-column:1;grid-row:2;margin-right:6px;align-self:center}
   }
   .grp-row:empty{display:none}
   /* ═══ A170 — LE MODE SÉLECTION VIT DANS LA RANGÉE DE GROUPEMENT ═══════════════════════════
@@ -6706,14 +6714,14 @@
   .cm-l+.cm-add{margin-top:12px}
   .cm-row{border-top:1px solid var(--line)}
   .cm-list>.cm-row:last-child{border-bottom:1px solid var(--line)}
-  .cm-row.open{background:var(--bg);margin:0 -4px;padding:0 4px;border-radius:8px;border-color:transparent}
-  .cm-top{display:grid;grid-template-columns:32px minmax(0,1fr) auto 34px;gap:8px;align-items:center;min-height:44px}
+  .cm-row.open,.cm-row.ask{background:var(--bg);margin:0 -4px;padding:0 4px;border-radius:8px;border-color:transparent}   /* .ask : confirmation de suppression, même sol que la palette */
+  .cm-top{display:grid;grid-template-columns:32px minmax(0,1fr) 76px 34px;gap:8px;align-items:center;min-height:44px}   /* compte à largeur fixe : l'input ne varie plus d'une rangée à l'autre */
   .cm-dot{width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer}
   .cm-dot span{width:18px;height:18px;border-radius:8px;display:block}
   .cm-dot:hover{background:var(--surface-2)}
   .cm-row.open .cm-dot{box-shadow:0 0 0 2px var(--primary)}
   .cm-name{min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);font-size:13.5px}
-  .cm-count{font-size:11px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cm-count{font-size:11px;color:var(--ink-soft);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;overflow:hidden;text-overflow:ellipsis}
   .cm-pick{display:flex;flex-direction:column;gap:12px;padding:4px 0 12px}
   .cm-sw{display:flex;gap:8px;flex-wrap:wrap}   /* A316 : 8 px, la pastille choisie déborde de ~6 px */
   .cm-sw .sw{width:32px;height:32px;padding:0;border-radius:8px;cursor:pointer;border:2px solid transparent}
@@ -6732,7 +6740,7 @@
   .cm-pv-note{margin-left:auto;font-size:var(--t-cap);font-weight:600}.cm-pv-note.ok{color:var(--ok)}.cm-pv-note.warn{color:var(--verify)}
   .cm-del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;cursor:pointer}
   .cm-del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
-  .cm-confirm{margin:0 0 10px;padding:10px;border:1px solid var(--critical-bd);background:var(--critical-soft);border-radius:8px}
+  .cm-confirm{margin:8px 0 10px;padding:10px;border:1px solid var(--critical-bd);background:var(--critical-soft);border-radius:8px}
   .cm-confirm p{font-size:12px;color:var(--ink);margin:0 0 8px;line-height:1.45}
   .cm-confirm select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);margin-bottom:8px}
   .cm-cact{display:flex;gap:8px;flex-wrap:wrap}
