@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [5.26.2] — 2026-09-07
+### Ce que la panne fait aux gestes du partage (A332)
+
+- **Signalé par l'auteur** : « arrêté depuis » n'apparaissait que chez celui qui avait arrêté le
+  minuteur ; que se passe-t-il quand un participant perd internet mais garde le Wi-Fi, ou perd
+  les deux ; et « quand les deux appareils passent hors ligne, l'invité ne peut plus rien cocher,
+  puis au retour en ligne chacun avance de son côté ». Tout a été MESURÉ au banc avant de corriger
+  (carte des situations dans la doctrine).
+- **Le minuteur arrêté est daté chez l'autre** : l'arrêt reçu prend l'heure de l'évènement (jamais
+  une clé de charge nouvelle — la liste blanche serveur est intacte), l'armement l'efface ; à la
+  jointure et par l'écran aussi. Avant, l'autre écran n'avait rien, ou gardait la date de son
+  propre arrêt précédent.
+- **L'hôte ne perd plus ses gestes faits pendant une panne** : lien figé, une coche de l'hôte
+  n'entrait pas dans la file (refusée pour péremption après que la base de comparaison avait
+  avancé) et n'atteignait jamais le journal ni l'invité. L'hôte n'est plus jamais refusé pour
+  péremption : la file persistée porte ses gestes au retour.
+- **Panne côté hôte seul** (portail captif de l'hôte, invités qui gardent internet) : l'hôte
+  basculait en direct sans qu'aucun invité le suive, puis restait en direct pour toujours au retour
+  du réseau — chacun avançait de son côté. Il revient désormais seul sur le MÊME partage par son
+  billet, même sans invité sur son hub, et les invités restés en ligne rattrapent ses gestes.
+- **La reprise de l'invité repeint l'écran** : revenu seul après une panne, il reconstruisait son
+  état sans le montrer et gardait l'écran d'avant la coupure. Le journal est rejoué par la voie
+  vivante.
+- **Le bridage de l'invité périmé se voit** : ses coches restent suspendues tant que le lien est
+  figé (décision gardée : elles ne remontent pas par l'écran), mais les contrôles le montrent
+  désormais, et la feuille comme le bandeau disent que seuls ses repères datés (« Noter l'heure »)
+  repartent.
+- **Garde-fous** : 4 tests unitaires (date d'arrêt = heure de l'évènement, aucune clé de charge
+  nouvelle, pli optique), 2 sections d'`audit-partage` (9 contrôles), vérifiées capables d'échouer
+  (6 rouges sur le code d'avant).
+
 ## [5.26.1] — 2026-09-06
 ### Les anneaux seuls, un temps après l'affichage (A331, addendum)
 
@@ -360,27 +391,4 @@
   absent puis présent au tap ; pli rouvert sur une couleur hors preset → curseur d'office et bouton
   marqué), vérifiés capables d'échouer. Doctrine A315 dans `docs/decisions/lot-v5-22.md`.
   CHANGELOG à 20 ([5.20.2] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
-
-## [5.22.6] — 2026-09-05
-### L'anneau du curseur passe par les presets ; la palette, mesurée, reste (A314)
-
-- **« On ne pouvait pas mieux faire ? »** Pour le curseur, si : l'anneau d'A308 (clarté et chroma
-  constantes) ne passait pas par les presets, et A312 n'était qu'un accrochage — la barre
-  montrait l'anneau, le résultat sautait à treize endroits. Trois anneaux ont été chiffrés sur
-  360° et dessinés sur le canvas ; retenu par l'auteur : **l'anneau ancré sur les presets**,
-  clarté et chroma interpolées en teinte entre presets voisins, clarté bornée là où la pastille
-  passait sous 4,5. Écart nul aux treize degrés, en gamut partout, blanc ≥ 5,50, pastille ≥ 4,50.
-  Le curseur devient le prolongement continu de la palette ; l'accrochage d'A312 n'a plus rien
-  à cacher.
-- **La palette elle-même reste**, mesurée : écart minimal 5,9 ΔE entre presets, contrastes de la
-  régression #3 partout, chips lisibles en sombre. Deux faiblesses connues (teintes vert-bleu
-  resserrées à 16-22°, trois presets sous 3:1 en pleine couleur sur fond sombre) ne se corrigent
-  pas sans coût : les contraintes clair et sombre se contredisent à cette chroma, et les couleurs
-  déjà stockées ne changent jamais — une palette re-résolue coexisterait avec l'ancienne en
-  quasi-doublons. Avec l'anneau ancré, les intervalles entre presets sont atteignables au curseur.
-- Garde-fous : `tests.html` — l'anneau passe par chaque preset, la teinte suit le degré entre
-  deux presets, le vermillon à 19° sans accrochage (1189 → 1190), contrastes sur 120 teintes
-  conservés ; vérifiés capables d'échouer (anneau constant → 2 rouges). Doctrine A314 dans
-  `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.1] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).

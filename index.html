@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-LfsEtee1+/7OfEDo1pR5663GeD/RLre6RivOrw9Sqig='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-JI+kqvtToXnmPjeEnuZgPa4OGDDzcFY0TkrBPQs5hII='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4098,16 +4098,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Les gestes restent CLIQUABLES : `bindLeadGuard` doit conserver la main pour annoncer le refus
      au lecteur d'écran — un contrôle éteint qui n'explique rien ne vaut pas mieux qu'un contrôle
      vif qui ne fait rien. */
-  body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
+  body:is(.share-dead,.share-stale) #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
     [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkKey),
-  body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
+  body:is(.share-dead,.share-stale) #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* La case à cocher perd son cadre fort : c'est le seul contrôle dont l'AFFORDANCE est un cadre,
      et le laisser à `--line-strong` la ferait encore lire comme « à cocher ». */
-  body.share-dead #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
+  body:is(.share-dead,.share-stale) #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
      été reconnu — elle n'a donc aucun coût d'attention le reste du temps, et à l'instant où elle
      s'affiche elle est la seule chose à faire sur cet écran. Registre INFORMATION de la taxonomie
@@ -8111,7 +8111,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.26.1';
+const APP_VERSION='5.26.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12089,6 +12089,9 @@ const TM_SOON_MS=20000;
 let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true,_rtsGhost=null;
 function updateRtStrip(now){
   now=now||Date.now();
+  /* A332 : le bridage de l'invité PÉRIMÉ se voit (le commentaire d'`emit` le promettait « à venir ») —
+     même dessin que `share-dead`, posé au tick puisque la péremption est un état qui bat. */
+  try{document.body.classList.toggle('share-stale',Share.mode==='guest'&&Share.status==='active'&&Share.isStale());}catch(e){}
   const crisis=state.view==='read'&&!!Runtime.fiche;
   // ÉCHU NON ACQUITTÉ (registre ATTENTION, règle ECAM v4.2.0) : un minuteur d'intervalle arrivé
   // au bout et non bouclé RESTE affiché en AMBRE dans la barre tant qu'il n'est ni relancé ni
@@ -16739,6 +16742,8 @@ function vfNow(){try{return Share.mode!=='off'?Share.now():Date.now();}catch(e){
    en pleine réanimation serait pire qu'un identifiant régénéré. */
 const _fid=(v,pfx)=>safeId(v,pfx);
 const _fnum=(v,def)=>{const n=+v;return Number.isFinite(n)?n:(def||0);};
+// Heure d'un évènement du fil (ISO serveur ou nombre), 0 si absente — A332 : la date d'arrêt d'un minuteur.
+const _ets=e=>{const v=e&&e.ts;const n=typeof v==='number'?v:Date.parse(v);return Number.isFinite(n)?n:0;};
 /* Une clé de cochage vaut `visite:bloc:index`. Elle sert d'INDEX d'objet (règle 6) ET de valeur
    d'attribut : un jeu de caractères fermé la rend sûre des deux côtés d'un coup. */
 const SHARE_KEY_RX=/^[A-Za-z0-9_-]{1,64}:[A-Za-z0-9_-]{1,64}:\d{1,4}$/;
@@ -16792,9 +16797,11 @@ function shareFold(events,base){
       case 'gap':     {const k=_fkey(p.k);
         if(k){s.vgaps[k]={a:e.actor,t:_fnum(p.t,e.ts)};delete s.verified[k];}break;}
       case 'counter': if(p.id!=null)s.counters[_fid(p.id,'c')]=_fnum(p.v,0); break;
+      /* A332 : la DATE D'ARRÊT ne voyage pas dans la charge (liste blanche serveur inchangée, A216) —
+         c'est l'heure de l'évènement lui-même ; l'armement la remet à zéro. */
       case 'timer_arm': case 'timer_stop': case 'timer_reset':
         if(p.id!=null)s.timers[_fid(p.id,'t')]={running:!!p.running,elapsedMs:_fnum(p.elapsedMs,0),
-          cycles:_fnum(p.cycles,0),anchor:_fnum(p.anchor,0)};
+          cycles:_fnum(p.cycles,0),anchor:_fnum(p.anchor,0),stoppedAt:p.running?0:_ets(e)};
         break;
       /* LES ÉLÉMENTS AUSSI, PAS SEULEMENT LES TABLEAUX. On ne contrôlait que `Array.isArray`
          et l'égalité des longueurs : `navSeq[i]` sert pourtant à FABRIQUER la clé de cochage
@@ -16831,7 +16838,8 @@ function shareFold(events,base){
 function shareSnap(R,flowEnded){
   R=R||{};
   const tm={};for(const k in (R.timers||{})){const t=R.timers[k]||{};
-    tm[k]={running:!!t.running,elapsedMs:+t.elapsedMs||0,cycles:+t.cycles||0,anchor:+t.lastStart||0};}
+    tm[k]={running:!!t.running,elapsedMs:+t.elapsedMs||0,cycles:+t.cycles||0,anchor:+t.lastStart||0,
+      stoppedAt:+t.stoppedAt||0};}   // A332 : lu par le pli optique ; jamais dans une charge (shareDiff l'ignore)
   const cn={};for(const k in (R.counters||{}))cn[k]=+R.counters[k]||0;
   return {checked:Object.assign({},R.checked),verified:vfMapNorm(R.verified),vgaps:vfMapNorm(R.vgaps),
     counters:cn,timers:tm,
@@ -16864,7 +16872,7 @@ function slFoldSan(s){
     vgaps:vfMapNorm(map(s.vgaps,4000,SHARE_KEY_RX,v=>v)),
     counters:map(s.counters,500,SAFE_ID,v=>+v||0),
     timers:map(s.timers,200,SAFE_ID,t=>{t=(t&&typeof t==='object')?t:{};
-      return {running:!!t.running,elapsedMs:+t.elapsedMs||0,cycles:+t.cycles||0,anchor:+t.anchor||0};}),
+      return {running:!!t.running,elapsedMs:+t.elapsedMs||0,cycles:+t.cycles||0,anchor:+t.anchor||0,stoppedAt:+t.stoppedAt||0};}),
     events:(Array.isArray(s.events)?s.events:[]).slice(0,5000)
       .filter(e=>e&&typeof e==='object')
       .map(e=>({id:sstr(e.id,80),t:+e.t||0,ref:tkRefNorm(e.ref),voidAt:e.voidAt==null?null:(+e.voidAt||0)})),
@@ -20227,6 +20235,10 @@ function sharePaintLive(f,e){
     // sinon un téléphone à l'horloge décalée afficherait un cycle de RCP faux.
     t.running=!!p.running;t.elapsedMs=+p.elapsedMs||0;t.cycles=+p.cycles||0;
     t.lastStart=p.running?((+p.anchor||Share.now())-Share.offset):0;
+    /* A332 : « arrêté depuis » chez l'AUTRE écran — l'arrêt reçu est daté de l'heure de l'évènement
+       (jamais un champ de charge), en heure locale ; sans cela le récepteur n'avait rien, ou
+       gardait la date de SON propre arrêt précédent. */
+    t.stoppedAt=p.running?0:((_ets(e)||Share.now())-Share.offset);t.stopClosed=false;
     syncTimerBtns(t);refreshTimersDOM();updateRtStrip();return true;}
   if(e.kind==='mark'){
     // La RÉFÉRENCE traverse, jamais le mot : le libellé est rendu ici depuis NOTRE copie de la
@@ -26956,7 +26968,11 @@ const Share={
        le rendait vrai. (Ce qu'il coche localement reste à l'écran, marqué non transmis : c'est
        l'objet du bridage visible, à venir — mais rien ne part.) */
     if(this.mode==='off')return null;
-    if(!this.canWrite(kind)){
+    /* A332 : l'HÔTE n'est jamais refusé pour PÉREMPTION — sa session locale fait autorité, et la
+       file persistée existe précisément pour porter ses gestes après la panne. Mesuré : une coche
+       faite lien figé n'entrait pas dans la file (base avancée, geste perdu pour toujours). */
+    const can=this.mode==='host'?(this.status==='active'&&shareCan(this.role,kind)):this.canWrite(kind);
+    if(!can){
       /* UN REFUS N'EST PAS UN SILENCE. `shareEmitDiff` avance la base de comparaison AVANT
          d'émettre : un genre refusé ici laissait donc l'état LOCAL modifié, la base alignée
          dessus, et l'autre écran ignorant tout — le geste ne repartait jamais, même après une
@@ -27326,6 +27342,12 @@ const Share={
     if(Array.isArray(r.events)&&r.events.length){this.fold=shareFold(r.events);
       this.cursor=r.events[r.events.length-1].seq||0;for(const e of r.events)this._ids.push(e.seq+':'+e.id);}
     this.participants=r.participants||[];
+    /* A332 : si la session partagée est DÉJÀ à l'écran (reprise après une panne, pas un
+       rechargement), le pli reconstruit ne repeignait RIEN — l'écran gardait l'état d'avant la
+       coupure, pour toujours. On rejoue le journal par la voie vivante, idempotente (celle de
+       `_desync`) ; au démarrage, `openSharedFiche` reconstruit et ce rejeu ne trouve aucun écran. */
+    if(Runtime&&Runtime.started&&Runtime.fiche&&!Runtime.sessionId)
+      try{this.onEvents((r.events||[]).filter(e=>e.kind!=='sig'));}catch(e){}
     this._kick(0);
     return true;},
 
@@ -27439,6 +27461,9 @@ function openSharedFiche(){
   Runtime=buildRuntime(f,Object.assign({shared:true},fold));
   // L'ancre d'excursion du pli — validée contre NOTRE copie de la fiche (cf. shareCxbNorm).
   Runtime.cxBack=cxbForFiche(fold.cxb,f);
+  // A332 : la date d'arrêt d'un minuteur du pli (heure serveur, ou de l'hôte par l'écran) → locale.
+  for(const id in Runtime.timers){const sv=fold.timers&&fold.timers[id];
+    if(sv&&!sv.running&&sv.stoppedAt){Runtime.timers[id].stoppedAt=sv.stoppedAt-Share.offset;Runtime.timers[id].stopClosed=false;}}
   /* `started` VRAI, et c'est le correctif central. Il valait faux pour empêcher l'enregistrement
      local — mais une trentaine de sites de mutation sont gardés par `if(Runtime.started)`, si bien
      que l'invité ne parvenait même pas jusqu'à l'émission : ses coches ne quittaient jamais son
@@ -27569,7 +27594,8 @@ function slStatusHtml(word,mode,why,manual){
 // La raison du mode, en un mot ; « connexion perdue » l'emporte (A324).
 function slWhy(mode){
   const l=slLink();
-  if(l.lost&&l.why!=='expired')return 'Connexion perdue à '+fmtHM(l.since)+' — aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.';
+  if(l.lost&&l.why!=='expired')return 'Connexion perdue à '+fmtHM(l.since)+' — aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.'
+    +(Share.mode==='guest'?' Vos coches sont suspendues ; seuls vos repères datés (« Noter l’heure ») repartent.':'');   // A332
   if(mode==='cloud')return 'Internet répond — rien à régler.';
   if(mode==='optic')return 'Aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.';
   return !Auth.signedIn()?'Sans compte, le partage se fait en direct — un Wi-Fi commun suffit, même sans internet.'
@@ -27768,7 +27794,10 @@ function slBackTick(){if(!slBackArmed())return;
   if(Share.mode==='guest'){if(_slNet.ok===true&&slGuestBack()&&!_slSwitching)slResumeCloud();return;}
   slSb.okRun=_slNet.ok===true?slSb.okRun+1:0;
   const dwell=window.__acBackDwell||slSb.dwellMs,invites=!!(SL&&SL.hub&&SL.hub.st.parts.some(p=>!p.owner&&!p.revoked));
-  if(slSb.okRun>=3&&invites&&Date.now()-slSb.since>=dwell&&!_slSwitching){slSb.okRun=0;
+  /* A332 : un hôte passé en direct SANS qu'aucun invité l'ait suivi (ses invités ont gardé internet :
+     panne côté hôte seul) restait en direct pour toujours — le retour exigeait des invités sur le hub.
+     Le billet cloud suffit : le MÊME partage reprend, et le journal du hub rejoint le fil. */
+  if(slSb.okRun>=3&&(invites||!!slSb.cloud)&&Date.now()-slSb.since>=dwell&&!_slSwitching){slSb.okRun=0;
     slGoCloud('Internet est revenu — le partage repasse en ligne.',true).then(ok=>{if(ok){slSb.auto=false;slSb.lastBack=Date.now();slSb.dwellMs=Math.min(600000,slSb.dwellMs*2);}else slSb.since=Date.now();});}}
 function slNetWatch(){
   clearInterval(_slNet.timer);
@@ -28205,7 +28234,7 @@ function slLinkPaint(){const el=document.getElementById('linkBar');if(!el)return
   const act=(k,t)=>'<button type="button" class="lk-act" data-lk="'+k+'">'+t+'</button>';
   const acts=l.lost&&l.why==='expired'?act('join','Se reconnecter…')
     :hote?act('show','① Montrer')+act('rx','② Recevoir'):act('rx','① Recevoir')+act('ret','② Renvoyer');
-  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="'+(l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since)):'Mode par l’écran — chacun vise l’écran de l’autre')+'">Par l’écran</span>'+acts
+  el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="'+(l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since))+(hote?'':' — coches suspendues, repères seuls'):'Mode par l’écran — chacun vise l’écran de l’autre')+'">Par l’écran</span>'+acts
     +'<button type="button" class="lk-act why" data-lk="why" aria-label="Pourquoi ? — les étapes du partage" title="Pourquoi ?">'+uiIcon('info',16)+'</button>';
   el.hidden=false;
   el.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>{const k=b.dataset.lk;
@@ -28361,7 +28390,7 @@ async function slSbGuestSwitch(){
 async function slGoCloud(sr,quiet){
   const f=(SL&&SL.f)||Runtime.fiche,hub=SL&&SL.hub,tk=slSb.cloud;
   const guests=hub?hub.st.parts.filter(p=>!p.owner&&!p.revoked):[];
-  if(!hub||!guests.length){await Share.endShare();SL=null;startShare(f);return true;}
+  if(!hub||(!guests.length&&!tk)){await Share.endShare();SL=null;startShare(f);return true;}   // A332 : un billet cloud vaut reprise, même sans invité sur le hub
   if(_slSwitching)return false;_slSwitching=true;
   try{
     Share.stop();

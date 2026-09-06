@@ -1981,7 +1981,18 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('aller-retour · la fin d’algorithme',plie.flowEnded,true);
     eq('aller-retour · les repères',plie.events.map(x=>x.id),['e1','e2']);
     ok('aller-retour · l’annulation est conservée',!!plie.events[1].voidAt&&!plie.events[0].voidAt);
-    eq('aller-retour · la trace do-verify',plie.verified['1:b1:0'].t,50);}
+    eq('aller-retour · la trace do-verify',plie.verified['1:b1:0'].t,50);
+    // A332 — la date d'arrêt d'un minuteur est l'HEURE DE L'ÉVÈNEMENT, jamais un champ de charge.
+    {const stop='2026-09-06T10:02:00.000Z';
+     const p2=A_.shareFold([{kind:'timer_arm',actor:'x',ts:'2026-09-06T10:00:00.000Z',payload:{id:'t1',running:true,elapsedMs:0,cycles:0,anchor:1}},
+       {kind:'timer_stop',actor:'x',ts:stop,payload:{id:'t1',running:false,elapsedMs:120000,cycles:0,anchor:0}}]);
+     eq('A332 · un arrêt reçu est daté de l’heure de l’évènement',p2.timers.t1.stoppedAt,Date.parse(stop));
+     const p3=A_.shareFold([{kind:'timer_stop',actor:'x',ts:stop,payload:{id:'t1',running:false}},
+       {kind:'timer_arm',actor:'x',ts:'2026-09-06T10:03:00.000Z',payload:{id:'t1',running:true,anchor:5}}]);
+     eq('A332 · l’armement remet la date d’arrêt à zéro',p3.timers.t1.stoppedAt,0);
+     eq('A332 · la charge ne porte toujours pas de date d’arrêt (liste blanche serveur, A216)',
+        'stoppedAt' in A_.shareDiff(vide,riche).find(e=>e.kind==='timer_arm').payload,false);
+     eq('A332 · le pli optique la garde',A_.slFoldSan({timers:{t1:{running:false,stoppedAt:'123'}}}).timers.t1.stoppedAt,123);}}
    // Un évènement émis est TOUJOURS du vocabulaire fermé — sinon le serveur le refuserait en
    // silence et l'écran de l'autre serait faux sans que rien ne le dise.
    {const tous=A_.shareDiff(vide,A_.shareSnap(R({checked:{k:true},counters:{c:1},
@@ -2273,7 +2284,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     ok('__proto__ propre neutralisé', !('pollue' in s));
     ok('clé de coche hors grammaire filtrée, conforme coercée en booléen', !('<img src=x>' in s.checked)&&s.checked['1:b1:0']===true);
     eq('compteur coercé, clé hors SAFE_ID filtrée', [s.counters.c1,'général' in s.counters], [3,false]);
-    eq('minuteur reconstruit champ à champ', s.timers.t1, {running:true,elapsedMs:250,cycles:0,anchor:0});
+    eq('minuteur reconstruit champ à champ', s.timers.t1, {running:true,elapsedMs:250,cycles:0,anchor:0,stoppedAt:0});
     eq('évènement nul filtré, ref inconnue rejetée, AUCUN label ne traverse (règle 15)',
        [s.events.length,s.events[0].ref,'label' in s.events[0]], [1,null,false]);
     eq('liste FERMÉE : un champ inconnu ne traverse pas', 'champInconnu' in s, false);

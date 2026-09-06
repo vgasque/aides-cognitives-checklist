@@ -3744,16 +3744,16 @@
      Les gestes restent CLIQUABLES : `bindLeadGuard` doit conserver la main pour annoncer le refus
      au lecteur d'écran — un contrôle éteint qui n'explique rien ne vaut pas mieux qu'un contrôle
      vif qui ne fait rien. */
-  body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
+  body:is(.share-dead,.share-stale) #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
     [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkKey),
-  body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
+  body:is(.share-dead,.share-stale) #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* La case à cocher perd son cadre fort : c'est le seul contrôle dont l'AFFORDANCE est un cadre,
      et le laisser à `--line-strong` la ferait encore lire comme « à cocher ». */
-  body.share-dead #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
+  body:is(.share-dead,.share-stale) #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
      été reconnu — elle n'a donc aucun coût d'attention le reste du temps, et à l'instant où elle
      s'affiche elle est la seule chose à faire sur cet écran. Registre INFORMATION de la taxonomie

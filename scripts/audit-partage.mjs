@@ -2690,6 +2690,85 @@ await sec('v5.23.8 · la bannière n\'a pas de mémoire : perdue → effacée, d
 });
 
 
+/* ═══ v5.26.2 — CE QUE LA PANNE FAIT AUX GESTES (A332) ═══
+   Trois signalements terrain, une même famille : (1) une panne côté HÔTE SEUL (portail captif de
+   l'hôte, invités sur un autre réseau ou gardant internet) le faisait basculer en direct sans que
+   personne ne le suive, puis le retour automatique exigeait des invités sur le hub — l'hôte restait
+   en direct pour toujours, chacun avançait de son côté ; (2) lien figé, une coche de l'HÔTE
+   n'entrait pas dans la file (`emit` refusait l'hôte pour péremption, base avancée : perdue) ;
+   (3) l'invité revenu par `slResumeCloud` reconstruisait son pli sans repeindre l'écran ; et le
+   bridage de l'invité périmé, voulu, ne se VOYAIT pas. Plus le minuteur : l'arrêt reçu n'était pas
+   daté (« arrêté depuis » absent chez l'autre). Deux bancs, deux unités de verdict. */
+await sec('v5.26.2 · panne côté hôte seul : bascule sans suite, retour seul par le billet, rattrapage (A332)', async () => {
+  const { H, G, pretH, close } = await bancRelais();
+  await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); window.__opens = 0; });
+  // L'hôte seul perd internet : ses canaux dormants vivent (Wi-Fi commun intact), l'invité garde le relais.
+  await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('portail'); }, push: async () => { throw new Error('portail'); } });
+    Share._ioRest = Share._io; });
+  const dH = pretH && await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const resteG = await G.evaluate(() => Share.share === 'bus1' && Share._io === Share._ioRest);
+  t('l\'hôte bascule en direct ; l\'invité, dont le relais répond, ne suit pas — limite connue, dite (A332)', dH && resteG, 'hôte=' + dH + ' invité=' + resteG);
+  const kH = await H.evaluate(async () => { const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck]);
+    el.click(); await new Promise(r => setTimeout(r, 300)); return el.dataset.ck; });
+  await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000; Share._ioRest = window.__ioSain; slNetWatch(); });
+  const back = dH && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const opens = await H.evaluate(() => window.__opens);
+  t('internet revenu : l\'hôte SANS invité sur son hub revient seul sur le MÊME partage, par son billet (A332)', back && opens === 0, 'repris=' + back + ' opens=' + opens);
+  const vu = back && await G.waitForFunction(k => !!Runtime.checked[k], kH, { timeout: 20000 }).then(() => true).catch(() => false);
+  t('… et la coche faite par l\'hôte pendant sa panne atteint l\'invité (A332)', vu, kH);
+  await close();
+});
+
+await sec('v5.26.2 · lien figé : minuteur daté, file de l\'hôte, bridage VISIBLE de l\'invité, reprise repeinte (A332)', async () => {
+  const { H, G, close } = await bancRelais();
+  await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); });
+  // Un minuteur arrêté par l'hôte est DATÉ chez l'invité (l'heure de l'évènement, jamais une charge).
+  const tid = await H.evaluate(() => Object.keys(Runtime.timers)[0]);
+  await H.evaluate(id => { toggleTimer(Runtime.timers[id]); persistLive(Runtime); }, tid);
+  await G.waitForFunction(id => Runtime.timers[id] && Runtime.timers[id].running, tid, { timeout: 15000 }).catch(() => {});
+  await H.evaluate(id => { toggleTimer(Runtime.timers[id]); persistLive(Runtime); }, tid);
+  const date = await G.waitForFunction(id => Runtime.timers[id] && !Runtime.timers[id].running && Runtime.timers[id].stoppedAt > 0, tid, { timeout: 15000 }).then(() => true).catch(() => false);
+  const ligne = date && await G.evaluate(id => /arrêté depuis/.test(timerStopHtml(Runtime.timers[id])), tid);
+  t('un minuteur arrêté par l\'hôte est daté chez l\'invité : « arrêté depuis » y paraît (A332)', date && ligne, 'daté=' + date + ' ligne=' + ligne);
+  // Chute totale sans canal : les deux perdent tout, le lien se fige (au-delà de staleLimit).
+  await H.evaluate(() => { slSbReset(); window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { slSbReset(); window.__acNetOk = false; window.__pullSain = Share._io.pull; window.__pushSain = Share._io.push;
+    Share._io.pull = async () => { throw new Error('panne'); }; Share._io.push = async () => { throw new Error('panne'); }; });
+  const figeH = await H.waitForFunction(() => Share.isStale() && slLink().lost, null, { timeout: 30000 }).then(() => true).catch(() => false);
+  const figeG = await G.waitForFunction(() => Share.isStale() && slLink().lost, null, { timeout: 30000 }).then(() => true).catch(() => false);
+  t('chute totale sans canal : lien figé et perdu des deux côtés', figeH && figeG, 'hôte=' + figeH + ' invité=' + figeG);
+  const hq = await H.evaluate(async () => { const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck]);
+    el.click(); await new Promise(r => setTimeout(r, 300)); return { k: el.dataset.ck, on: !!Runtime.checked[el.dataset.ck], q: Share._q.length }; });
+  t('l\'hôte figé COCHE : le geste entre dans la file (A332 — il était refusé, base avancée, perdu)', hq.on && hq.q === 1, JSON.stringify(hq));
+  const gq = await G.evaluate(async () => { await new Promise(r => setTimeout(r, 1200));
+    const stale = document.body.classList.contains('share-stale');
+    const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck]);
+    el.click(); await new Promise(r => setTimeout(r, 300)); return { on: !!Runtime.checked[el.dataset.ck], stale, q: Share._q.length }; });
+  t('l\'invité figé est bridé, et ça se VOIT (body.share-stale) ; rien n\'entre dans sa file', !gq.on && gq.stale && gq.q === 0, JSON.stringify(gq));
+  // Le réseau revient : la coche de l'hôte rejoint l'invité, le bridage tombe.
+  await H.evaluate(() => { window.__acNetOk = true; Share._io = window.__ioSain; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; Share._kick(0); });
+  await G.evaluate(() => { window.__acNetOk = true; Share._io.pull = window.__pullSain; Share._io.push = window.__pushSain; Share._kick(0); });
+  const vu = await G.waitForFunction(k => !!Runtime.checked[k] && !Share.isStale(), hq.k, { timeout: 40000 }).then(() => true).catch(() => false);
+  // la classe se pose au TICK (une seconde) : on attend qu'il passe, on ne lit pas l'instant du retour
+  const leve = vu && await G.waitForFunction(() => !document.body.classList.contains('share-stale'), null, { timeout: 5000 }).then(() => true).catch(() => false);
+  t('… au retour, la coche de l\'hôte faite lien figé atteint l\'invité, et le bridage tombe', vu && leve, 'vue=' + vu + ' levé=' + leve);
+  // Panne de l'INVITÉ seul, canal dormant vivant : il tente le direct (l'hôte ne sert pas), se fige ; l'hôte continue.
+  const dc = await G.waitForFunction(() => !!slSb.dc, null, { timeout: 30000 }).then(() => true).catch(() => false);
+  await G.evaluate(() => { window.__acNetOk = false; Share._io.pull = async () => { throw new Error('portail'); }; Share._io.push = async () => { throw new Error('portail'); }; });
+  const seulG = dc && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.isStale(), null, { timeout: 30000 }).then(() => true).catch(() => false);
+  const kH2 = await H.evaluate(async () => { const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck]);
+    el.click(); await new Promise(r => setTimeout(r, 300)); return el.dataset.ck; });
+  await G.evaluate(() => { window.__acNetOk = true; Share._ioRest.pull = window.__pullSain; Share._ioRest.push = window.__pushSain; });
+  const rep = seulG && await G.waitForFunction(() => Share._io === Share._ioRest && !Share.isStale(), null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const vu2 = rep && await G.waitForFunction(k => !!Runtime.checked[k], kH2, { timeout: 20000 }).then(() => true).catch(() => false);
+  t('panne de l\'invité seul : reprise seule par le billet, et l\'écran RATTRAPE la coche de l\'hôte (A332 — le pli se reconstruisait sans repeindre)', rep && vu2, 'tenté=' + seulG + ' repris=' + rep + ' vue=' + vu2);
+  await close();
+});
+
+
 /* ═══ v5.14.16 — LE RETOUR OPTIQUE (maquette 05) : repères datés, jamais une coche ═══
    Tout le chemin SAUF la caméra (le décodeur QR a son témoin dédié) : emballage ltRetPack →
    trames fontaine → réception → slOptiqueGot. Trois propriétés : les repères ANNOTENT le

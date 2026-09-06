@@ -61,3 +61,71 @@ anneaux restent, et ils partent un temps APRÈS l'affichage de la page, jamais d
 puis 0,8 · 2,1 · 3,4 s, fini à 4,7 s (toujours sous les 5 s). `@keyframes sd-in-arrive` purgé ;
 `.sd-arrive` ne pilote plus que `.sd-in::after`. La démonstration rejouable garde son relèvement
 à titre d'archive ; l'app fait foi.
+
+## A332 — ce que la panne fait aux gestes : file de l'hôte, retour sans invité, reprise repeinte, arrêt daté (v5.26.2)
+
+**Signalé par l'auteur** (06/09/2026) : (1) « arrêté depuis » ne s'affiche que chez celui qui a
+arrêté le minuteur — est-ce par design ? (2) que se passe-t-il quand un participant perd internet
+mais garde le Wi-Fi (portail captif), à un ou plusieurs invités ; et quand il perd les deux ?
+(3) « lorsque les deux appareils passent hors ligne on transmet par écran → l'invité ne peut plus
+rien cocher, et au retour en ligne le partage ne se synchronise plus, chacun avance de son côté ».
+
+**Mesuré d'abord** (sonde jetable sur le banc relais d'`audit-partage`, deux pages, secours chaud
+réel), avant toute ligne :
+
+| Situation | Avant | Cause |
+|---|---|---|
+| Minuteur arrêté par l'un | l'autre reçoit `running:false, stoppedAt:0` — pas de ligne ; et s'il avait lui-même arrêté ce minuteur avant, il GARDE sa vieille date (durée fausse) | `shareSnap`/`shareFold` ne portaient pas la date d'arrêt et le récepteur de `timer_stop` ne la posait pas |
+| Lien figé (> `staleLimit`, ≈ 5 s), l'HÔTE coche | coche locale, **file à 0**, absente du journal après le retour — perdue pour toujours | `emit` refusait l'hôte pour péremption après que `shareEmitDiff` avait avancé la base |
+| Lien figé, l'INVITÉ coche | refusé (« figé » au quai, annonce lecteur d'écran seule) — et rien ne le montre ; « Recevoir » par l'écran n'y change rien | design (« ne jamais cocher dans le vide »), antérieur au mode par l'écran ; bridage visible promis « à venir » dans `emit` |
+| L'INVITÉ SEUL perd internet, Wi-Fi commun intact | tente le direct sur son canal dormant, l'hôte ne le sert pas (il ne sert que quand SES sondages échouent) → figé, bandeau « Par l'écran » ; au retour, reprise seule mais **l'écran ne rattrape pas** les gestes de l'hôte faits pendant la panne | `Share.resume()` reconstruit le pli depuis zéro, rien ne repeint (`slBootCloudResume` appelle `openSharedFiche`, `slResumeCloud` non) |
+| L'HÔTE SEUL perd internet, canaux vivants | bascule en direct en ~5 s, sert ses canaux ; les invités, dont le relais répond, ne suivent JAMAIS (le `go` est manuel, le `sig` passe par le relais mort) ; « ⇄0 » puis « Connexion perdue » ; **au retour, l'hôte reste en direct pour toujours** — le bandeau s'efface, chacun avance de son côté | `slBackTick` exigeait des invités sur le hub ; `slGoCloud` sans invité ouvrait un partage NEUF |
+| Chute totale sans canal | figé des deux côtés ; les gestes NOUVEAUX se resynchronisent au retour | — |
+
+A322 tenait « portail captif = chute totale » : vrai seulement si l'isolation client-à-client tue le
+canal dormant. Sur de vrais téléphones le canal WebRTC met plusieurs secondes à se déclarer mort
+et l'hôte bascule sur un canal que l'invité ne peut plus emprunter — c'est le cas « hôte seul »
+ci-dessus, et vraisemblablement le terrain signalé. Réponse à la question 2 : le direct ne
+s'active jamais « juste pour » un invité, il est conduit par l'hôte ; à N invités, ceux dont le
+sondage échoue en même temps que celui de l'hôte suivent par leur canal (A209), les autres restent
+sur le relais et reçoivent tout au retour de l'hôte (ci-dessous).
+
+**Ce qui change** (aucune clé de charge nouvelle — la liste blanche serveur est intacte, A216) :
+1. **L'arrêt d'un minuteur est daté chez l'autre.** La date d'arrêt est **l'heure de l'évènement**
+   (`e.ts`, `_ets`) : `shareFold` la pose sur `timer_stop` et la remet à zéro sur `timer_arm`, le
+   récepteur vivant la convertit en heure locale (`− Share.offset`), `openSharedFiche` convertit
+   celle du pli à la jointure, `shareSnap` la porte pour le miroir optique (`slFoldSan` la garde ;
+   `shareDiff` ne l'émet jamais). Mesuré : hôte et invité à 1 ms près. Arbitrage A9 assumé : la
+   carte du récepteur gagne la ligne sans geste local — le régime `live` de `timer_stop` repeint
+   déjà cette carte, et une pause reçue est un geste de l'équipe.
+2. **L'hôte n'est jamais refusé pour péremption** (`emit`) : sa session locale fait autorité, la
+   file persistée existe pour porter ses gestes après la panne. Mesuré : file à 1, coche au journal
+   cloud et chez l'invité après le retour. Le refus reste entier pour l'invité.
+3. **Un hôte en direct sans invité revient par son billet** (`slBackTick` : `invites || slSb.cloud`
+   ; `slGoCloud` : sans invité MAIS avec billet → `rehost`, jamais un partage neuf). Mesuré :
+   même partage, zéro `open`, le journal du hub (dont la coche faite pendant la panne) rejoint le
+   fil et l'invité resté en ligne rattrape.
+4. **La reprise repeint** : `Share.resume()` rejoue le journal par la voie vivante et idempotente
+   (`onEvents`, celle de `_desync`) quand la session partagée est déjà à l'écran (`Runtime`
+   démarré sans dossier local) ; au démarrage rien ne change (`openSharedFiche` reconstruit).
+5. **Le bridage de l'invité périmé se voit** : `body.share-stale`, posé au tick (`updateRtStrip`),
+   même dessin que `share-dead` (encre secondaire, surface neutre, sans opacité, gestes cliquables
+   pour que le refus s'annonce). La feuille et le bandeau de l'invité disent ce qui reste ouvert :
+   « Vos coches sont suspendues ; seuls vos repères datés (« Noter l'heure ») repartent » — c'est
+   exactement ce que « Renvoyer » transporte (maquette 05). **Arbitrage** : on ne rouvre PAS les
+   coches à l'invité figé — elles ne remontent pas par l'écran et seraient écrasées à la
+   resynchronisation ; « Continuer seul » reste le repli pour qui veut conduire sa propre copie.
+
+**Ce qui reste dit et non corrigé** : un invité dont le relais répond ne suit pas un hôte passé en
+direct (il faudrait un signal hors relais ; le retour de l'hôte le rattrape désormais) ; un invité
+SEUL sans internet n'a que « Par l'écran » et ses repères, par construction.
+
+**Garde-fous** : `tests.html` — la date d'arrêt vient de `ts`, l'armement la remet à zéro, la charge
+n'en porte pas, `slFoldSan` la garde (4 tests) ; `audit-partage` — deux sections A332 (« panne côté
+hôte seul », « lien figé »), 9 contrôles, vérifiées CAPABLES D'ÉCHOUER : 6 rouges sur le code
+d'avant (`index.html` et `tests.html` remisés puis restaurés à l'octet). ⚠ Le dernier contrôle
+(reprise repeinte) reste vert sur le code d'avant DANS la section — la phase précédente laisse une
+resynchronisation en attente qui repeint par accident ; sa preuve isolée est la sonde (invité seul :
+« rattrape » faux avant, vrai après). Pièges de banc : la classe `share-stale` se pose au TICK
+(attendre, pas lire l'instant du retour) ; le bridage ne se mesure qu'au-delà de `staleLimit`
+(≈ 5 s pages visibles, 37 s pages masquées — `_base()` vaut 15 s en arrière-plan).
