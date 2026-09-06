@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.26.1] — 2026-09-06
+### Les anneaux seuls, un temps après l'affichage (A331, addendum)
+
+- **Demande de l'auteur** : plus de relèvement du quai à l'arrivée, seulement les trois anneaux —
+  et qu'ils partent un peu après l'affichage de la page, pas d'emblée.
+- **Ce qui change** : le premier anneau part à 800 ms, puis 2,1 s et 3,4 s ; tout est fini à
+  4,7 s, toujours sous les 5 s. Le quai est simplement là, immobile, dès l'ouverture. Le
+  `@keyframes` du relèvement est purgé.
+
 ## [5.26.0] — 2026-09-06
 ### Il reste un geste après avoir ouvert une carte, et le quai le dit (A331)
 
@@ -375,25 +384,3 @@
   conservés ; vérifiés capables d'échouer (anneau constant → 2 rouges). Doctrine A314 dans
   `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.1] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).
-
-## [5.22.5] — 2026-09-05
-### Au clavier, le piège des fenêtres déplace lui-même le focus, l'anneau suit, les champs s'allument par la bordure (A313)
-
-- **Signalé par l'auteur** : « Tab : le curseur se déplace mais pas le design autour du bouton ;
-  et quelquefois le design autour du bouton se met autour des champs texte ». Mesuré sur les deux
-  moteurs : le piège Tab ne prenait la main qu'aux deux bouts de la liste, et entre les deux c'est
-  l'ordre natif du navigateur — WebKit saute les boutons par défaut (cinq Tab de champ en champ
-  dans « Gérer les catégories », et dans une confirmation le troisième Tab sortait de la
-  fenêtre). Les champs des fenêtres n'avaient pas de style de focus à eux (anneau du navigateur,
-  noir 3 px sur WebKit) et le halo de bouton se posait sur le champ « Nouvelle catégorie… ».
-- **Le piège déplace lui-même le focus à chaque Tab et Maj+Tab**, dans l'ordre du DOM avec
-  bouclage, et **pose l'anneau** sur l'élément atteint (retiré au blur suivant) — le mécanisme
-  d'A237 généralisé au clavier. **Le halo est réservé aux boutons** ; un champ de fenêtre signale
-  son focus par sa bordure allumée, comme les champs des formulaires. Curseurs, cases et boutons
-  radio gardent leur anneau.
-- Garde-fou : cinq contrôles ajoutés à la section « Fenêtres · le bouton focalisé se voit… »
-  d'`audit-doctrine` (Tab reste dans la fenêtre, chaque arrêt porte l'anneau, les boutons sont
-  atteints, les champs portent la bordure allumée et jamais l'anneau du navigateur), verts sur
-  Chromium ET WebKit, vérifiés capables d'échouer (code d'avant → 5 rouges sur WebKit). Doctrine
-  A313 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.0] archivée).
-- Vérifié : `npm run check` complet, 1189 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).

@@ -55,3 +55,9 @@ page de démonstration rejouable, pane visible.
 
 **Garde-fous** : `check-anim` — cliquet `pointer-events:none` monté à 23 (l'anneau est un
 annonciateur pur) ; `check-tokens` (`--dock-ring` déclaré et lu) ; `check-classes` / `check-ids`.
+
+**Addendum v5.26.1 (demande de l'auteur).** Le RELÈVEMENT du quai est retiré : seuls les trois
+anneaux restent, et ils partent un temps APRÈS l'affichage de la page, jamais d'emblée — 800 ms,
+puis 0,8 · 2,1 · 3,4 s, fini à 4,7 s (toujours sous les 5 s). `@keyframes sd-in-arrive` purgé ;
+`.sd-arrive` ne pilote plus que `.sd-in::after`. La démonstration rejouable garde son relèvement
+à titre d'archive ; l'app fait foi.
