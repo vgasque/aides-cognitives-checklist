@@ -92,7 +92,7 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 const HARNAIS = [
   { nom: 'audit-doctrine',      poids: 217, tranches: 4, sections: true },
   { nom: 'audit-a11y',          poids: 128, tranches: 2 },
-  { nom: 'audit-partage',       poids: 76,  tranches: 2, sections: true },
+  { nom: 'audit-partage',       poids: 76,  tranches: 5, sections: true },
   { nom: 'audit-k5',            poids: 67 },
   { nom: 'audit-pdfsearch',     poids: 66 },
   { nom: 'audit-complications', poids: 13 },

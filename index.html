@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-uc0GcuHcLy2eVVw4yKYycUB2JJ9vAhplSN3Tg/SiTjI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-0vRENg+uMlc2R/b+ohkGLcgCexo0Z2zC1NP0/srrZ1E='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8045,7 +8045,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.24.1';
+const APP_VERSION='5.24.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -27640,12 +27640,16 @@ function slCloudWhy(){
 function slModePaint(){if(shareModal&&shareModal.classList.contains('on')&&document.querySelector('#shareBody .sl-modes'))slModeSheet();}
 /* A319 : retour en ligne SEUL après une panne — 3 sondes OK et ≥ 60 s en direct (hystérésis), des
    invités à ramener, jamais contre un choix manuel ; sans ouvrir la feuille (règle 11). */
+// A329 : l'invité en direct dont le canal faiblit et qui tient un billet cloud est ARMÉ lui aussi —
+// il reprend le cloud à la SONDE (≤ 8 s), plus seulement à son prochain sondage (repli jusqu'à 30 s).
+const slGuestBack=()=>Share.mode==='guest'&&Share._io!==Share._ioRest&&!!slSb.cloud&&(Share._fails>=1||slLink().lost);
 const slBackArmed=()=>(Share.mode==='host'&&Share.share==='local'&&slSb.auto&&Auth.signedIn())
   ||(Share.mode==='off'&&Runtime.started&&!!slHostTkRead()&&Auth.signedIn())
   ||(Share.mode==='off'&&!!slCloudTkRead())
-  ||slLink().lost;
+  ||slGuestBack()||slLink().lost;
 function slBackTick(){if(!slBackArmed())return;
   if(Share.mode==='off'){if(_slNet.ok===true){if(slCloudTkRead())slBootCloudResume();else slHostRehost();}return;}
+  if(Share.mode==='guest'){if(_slNet.ok===true&&slGuestBack()&&!_slSwitching)slResumeCloud();return;}
   slSb.okRun=_slNet.ok===true?slSb.okRun+1:0;
   const dwell=window.__acBackDwell||slSb.dwellMs,invites=!!(SL&&SL.hub&&SL.hub.st.parts.some(p=>!p.owner&&!p.revoked));
   if(slSb.okRun>=3&&invites&&Date.now()-slSb.since>=dwell&&!_slSwitching){slSb.okRun=0;
@@ -28117,7 +28121,7 @@ async function slSbGuestKick(){
     /* MONTRE DE 30 s (v5.14.9, terrain) : un échec ICE laissait le verrou posé À JAMAIS —
        plus aucune tentative ensuite. Canal jamais ouvert = on jette et on laissera le
        prochain sondage sain re-proposer. */
-    setTimeout(()=>{if(!slSb.dc&&slSb.pc===g){try{g.pc.close();}catch(_){}slSb.pc=null;}},30000);
+    setTimeout(()=>{if(!slSb.dc&&slSb.pc===g){try{g.pc.close();}catch(_){}slSb.pc=null;}},window.__acKickMs||30000);   // montre réglable au banc (A329)
   }catch(e){slSb.pc=null;}}
 async function slSbOnSig(ev){
   const p=ev.payload||{};

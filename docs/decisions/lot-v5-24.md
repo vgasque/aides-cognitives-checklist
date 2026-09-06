@@ -1,4 +1,4 @@
-# Lot v5.24 — la feuille de partage dit quoi faire : l'app décide, les étapes suivent (A327-A328)
+# Lot v5.24 — la feuille de partage dit quoi faire : l'app décide, les étapes suivent (A327-A329)
 
 > Fichier normatif, suite de [`lot-v5-23.md`](lot-v5-23.md) (A317-A326). Les numéros A sont des
 > adresses : ne jamais renuméroter. Demande de l'auteur (06/09/2026) : « maintenant que le partage
@@ -124,3 +124,46 @@ pourquoi » (rien n'est grisé).
 **Garde-fous** (`audit-partage`) : section « bascule en ligne⇄direct » — « par l'écran » forcé puis
 « En ligne » garde le MÊME partage et ses participants ; section « retour optique » — un invité qui
 suit la session reçoit son instantané par l'écran, une autre session lui reste refusée.
+
+## A329 — l'audit du partage passe de 220 s à ~75 s ; l'invité reprend le cloud à la sonde (v5.24.2)
+
+**Demande de l'auteur** : « pourquoi 414,9 s pour l'audit, c'est super long » — puis « fais le lot pour
+accélérer l'audit partage ».
+
+**Mesuré d'abord** (durée par section, désormais imprimée par `secRunner` — `⏱ n s` en fin de
+chaque section) : sur une tranche de 220 s, la section E2E « v5.14.9 · bascule en ligne⇄direct »
+pesait **167 à 208 s à elle seule**, tout le reste du harnais 50 s. Découper en tranches ne pouvait
+donc rien tant qu'elle restait UNE section. À l'intérieur (chronométrage des phases) : une attente
+de **35 s** dans le premier cycle A325 — la MONTRE DE 30 s de l'invité sur une offre de canal perdue
+pendant une bascule (`slSbGuestKick`) ; et, à chaque retour du réseau, **7 à 9 s** pendant lesquels
+l'invité en direct attendait son PROCHAIN SONDAGE (repli exponentiel jusqu'à 30 s) pour reprendre le
+cloud, alors que la sonde de joignabilité savait déjà que le serveur répondait.
+
+**Trois leviers.**
+1. **L'app (réel, pas seulement le banc)** : l'invité en direct qui tient un billet cloud et dont le
+   canal faiblit (`Share._fails ≥ 1` ou lien perdu) est ARMÉ dans `slBackArmed` (`slGuestBack`) ;
+   `slBackTick` le fait reprendre le cloud dès que la sonde répond (≤ 8 s en production, la
+   cadence de la sonde) au lieu du prochain sondage (≤ 30 s). C'est la promesse écrite d'A322 (« dès
+   que la sonde dit le serveur joignable ») enfin tenue à la lettre ; `_slSwitching` garde
+   l'exclusion avec `slSbFail`.
+2. **Un réglage de banc** : la montre de 30 s de l'offre devient `window.__acKickMs` (30 000 par
+   défaut, inchangé en production ; 3 000 au banc) — même régime que `__acProbeMs` et
+   `__acBackDwell`.
+3. **Le harnais** : la section E2E devient CINQ sections autonomes sur un banc partagé,
+   `bancRelais()` (relais BroadcastChannel, hôte en ligne, invité entré, secours chaud formé, ~8 s) —
+   bascules manuelles + panne brutale + retour + réveil (33 s), réseau de terrain A322-A323 (41 s),
+   lien perdu A324 (40 s), invité rechargé A325 (~38 s), cycles de bannière A325 (~44 s) ; le
+   lanceur joue `audit-partage` en 5 tranches (sections consécutives → tranches distinctes). Les
+   trois attentes fixes du scénario sont ramenées à ce qu'elles prouvent (8 → 4 s « pas de bascule »
+   quand une bascule part en < 2,5 s ; 6 → 3 s « retour non abouti » à 3 sondes de 400 ms ; 6 → 3 s
+   après rechargement), et une attente de 300 ms devenue rouge sous charge (pool 8, section
+   « continuer seul ») passe sur condition.
+
+**Résultat** : harnais `partage` seul, 220 s → **72 s** de temps mural (pool 4) ; passe complète
+**415 s → 251 s** (pool 4) — elle n'est plus bornée par lui. ⚠ Piège rencontré : chaque section restaure le relais avec
+`window.__bcSain` / `window.__ioSain`, sauvegardes que seule l'ancienne phase 3 posait — en
+section autonome le relais mourait et l'invité ne reprenait plus ; le banc pose les deux.
+
+**Ce qui n'a pas été fait** : `AC_JOBS` reste à 4 par défaut — à 8 sur ce Mac une section à
+attentes fixes a rougi une fois (corrigée), et rien ne garantit la CI ; `k5` (67 s) et
+`doctrine` (4 tranches) sont désormais la borne, hors de ce lot.

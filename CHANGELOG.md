@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.24.2] — 2026-09-06
+### L'audit du partage passe de 220 s à ~75 s ; l'invité reprend le cloud à la sonde (A329)
+
+- **Mesuré d'abord** : chaque section imprime désormais sa durée (`⏱`). Sur une tranche de 220 s, la
+  section E2E des bascules pesait 167 à 208 s à elle seule ; à l'intérieur, une attente de 35 s (la
+  montre de 30 s de l'invité sur une offre de canal perdue) et 7 à 9 s à chaque retour du réseau
+  (l'invité attendait son prochain sondage pour reprendre le cloud).
+- **L'app** : l'invité en direct qui tient un billet cloud et dont le canal faiblit reprend le cloud
+  dès que la sonde de joignabilité répond (≤ 8 s), plus seulement à son prochain sondage (repli
+  jusqu'à 30 s) — la promesse d'A322 tenue à la lettre.
+- **Le harnais** : la section E2E devient cinq sections autonomes sur un banc partagé
+  (`bancRelais`), jouées en cinq tranches ; montre d'offre réglable au banc (`__acKickMs`, 30 s
+  inchangés en production) ; trois attentes fixes ramenées à ce qu'elles prouvent, une attente de
+  300 ms passée sur condition. Résultat : harnais `partage` 220 s → 72 s de temps mural, passe complète 415 s → 251 s (pool 4).
+- Doctrine A329 dans `docs/decisions/lot-v5-24.md` ; index `AGENTS.md`/`docs/README.md` à A327-A329.
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
+
 ## [5.24.1] — 2026-09-06
 ### Trois signalements terrain de la v5.24.0 (A328)
 
@@ -382,18 +399,3 @@
 - Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit complet (deux passes ; la
   machine étant très chargée ce jour, plusieurs sections à délais ont dû être rejouées, vertes
   isolément et en tranches complètes).
-
-## [5.22.1] — 2026-09-04
-### Dans le rail, les deux ajouts sur une rangée sous les compteurs (A309)
-
-- **« ＋ Minuteur » et « ＋ Compteur » partagent une rangée** placée sous les compteurs, dans le rail
-  de session seulement. Ils occupaient deux boutons pointillés pleine largeur, chacun sous sa
-  famille (≈ 118 px au milieu de la colonne d'état, là où le rail coûte le plus à l'action à
-  820 px). Ce sont des gestes de session — minuteur ad hoc, compteur créé à 1 —, pas de
-  l'édition : ils gardent 44 px et restent visibles sans tap de plus (la variante « ＋ Ajouter… »
-  à choix a été écartée pour cette raison). Gain ≈ 54 px. Le choix de durée s'ouvre sous la
-  rangée ; le volet étroit ne change pas (« ＋ Minuteur » y reste dans sa famille, v5.4.1).
-- Garde-fou : `audit-doctrine` § « RAIL · les deux ajouts sur une rangée sous les compteurs »
-  (5 contrôles, 97 → 98 sections), vérifié capable d'échouer. Doctrine A309 dans
-  `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.3] archivée).
-- Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26 (deux passes).

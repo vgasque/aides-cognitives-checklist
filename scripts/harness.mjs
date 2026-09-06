@@ -153,7 +153,10 @@ export function secRunner() {
     if (tranche && i % tranche.n !== tranche.k - 1) return;
     joues++;
     console.log('\n══ ' + nom + ' ══');
+    const t0 = Date.now();
     await fn();
+    // Durée par section : c'est elle qui dit où va le temps mural d'une tranche (lot v5.24.2).
+    console.log(`   ⏱ ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   }
   sec.bilan = () => {
     if ((grep || tranche) && !joues) {

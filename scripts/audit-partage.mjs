@@ -799,7 +799,8 @@ await sec(`PARTAGE · continuer seul — moteur ${NOM_MOTEUR}`, async () => {
       { seq: 9, id: 'ax1', actor: 'renfort', kind: 'offline_mark',
         payload: { t: Date.now() - 60000, ref: null } },
     ]);
-    await new Promise(x => setTimeout(x, 300));
+    // Attente sur CONDITION (v5.24.2) : à 300 ms fixes, la section rougissait sous charge (pool 8).
+    for (let i = 0; i < 30 && (Runtime.events || []).length < avant.ev + 2; i++) await new Promise(x => setTimeout(x, 100));
     // v5.4.0 : en étroit le journal vit DANS le dépliant minuteurs — on l'ouvre par le VRAI
     // geste avant de compter ses rangées (l'entrée au journal, elle, se mesure sur Runtime).
     // v5.4.2 : la rangée repliée n'existe plus — le volet s'ouvre par le QUAI (accès unique).
@@ -2239,7 +2240,14 @@ await sec('v5.6 · un lot distant n\'est jamais perdu', async () => {
    puis « En ligne » le ramène SANS re-saisie (billet « gc » par le canal). Le flux COMPLET —
    aucune brique applicative simulée ; seul le transport serveur est remplacé, comme partout
    dans ce harnais. */
-await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent les deux sens', async () => {
+/* ═══ BANC RELAIS À DEUX PAGES (v5.24.2, A329) — UNE fabrique pour QUATRE sections ═══
+   La section E2E des bascules pesait 167 à 208 s à elle seule (tout le reste du harnais : 50 s) :
+   découper en tranches ne servait à rien tant qu'elle restait UNE section. Le banc — relais
+   BroadcastChannel, hôte en ligne, invité entré, secours chaud formé — se dresse en ~8 s ; chaque
+   section le dresse pour elle et se joue donc en parallèle des autres. Le harnais fixe aussi la
+   montre d'offre de l'invité à 3 s (`__acKickMs`, 30 s en production) : une offre perdue pendant une
+   bascule coûtait 30 s d'attente, mesuré. */
+async function bancRelais() {
   /* Chromium HEADLESS masque les IP locales derrière des noms mDNS mais ne fait tourner AUCUN
      répondeur mDNS : les candidats sont irrésolubles entre deux pages et ICE échoue à coup sûr —
      un artefact du banc, pas de l'application (Safari/Chrome de production embarquent Bonjour).
@@ -2257,11 +2265,11 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
      L'invité n'a besoin que d'une app démarrée. */
   await G.waitForFunction(() => typeof Share === 'object' && typeof openSharedFiche === 'function',
     null, { timeout: 15000 });
-  await G.evaluate(() => { window.__acNetOk = true; });
+  await G.evaluate(() => { window.__acNetOk = true; window.__acProbeMs = 400; window.__acKickMs = 3000; });
 
   // Le relais : un hub en mémoire dans la page HÔTE + un guichet BroadcastChannel pour l'invité.
   await H.evaluate(() => {
-    window.__cloudEnded = 0;
+    window.__cloudEnded = 0; window.__acProbeMs = 400;
     const hub = slHub({ now: () => Date.now(), uid: (() => { let n = 0; return () => 'r' + (++n); })(),
       secret: (() => { let n = 0; return () => 'sec' + (++n); })(),
       shareId: 'bus1', fiche: null, guestRole: 'scribe', hostLabel: 'Hôte' });
@@ -2291,6 +2299,8 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
       } catch (e) {}
       bc.postMessage({ i: m.i, r }); };
     window.__bc = bc;
+    // Sauvegardes que chaque section restaure après une panne simulée (le banc est autonome).
+    window.__bcSain = bc.onmessage; window.__ioSain = io;
     confirmDlg = async () => true;
   });
   await G.evaluate(() => {
@@ -2314,7 +2324,6 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     const r = await Share.joinByCode('AAAA2222', 'IADE').catch(e => ({ ok: false, err: String(e) }));
     if (r && r.ok) openSharedFiche();
     return r; });
-  t('l\'invité rejoint le relais', !!(j && j.ok), JSON.stringify(j));
 
   /* Le secours chaud doit s'apparier TOUT SEUL — offre `sig` de l'invité, réponse de l'hôte,
      ICE réel entre les deux pages. */
@@ -2323,6 +2332,12 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     .then(() => true).catch(() => false);
   const pretG = pretH && await G.waitForFunction(() => !!slSb.dc, null, { timeout: 10000 })
     .then(() => true).catch(() => false);
+  return { brE, ctx, H, G, j, pretH, pretG,
+    close: async () => { await ctx.close(); if (brE !== br) await brE.close(); } };
+}
+await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent les deux sens', async () => {
+  const { H, G, j, pretH, pretG, close } = await bancRelais();
+  t('l\'invité rejoint le relais', !!(j && j.ok), JSON.stringify(j));
   t('le canal dormant s\'apparie en silence (vrais RTCPeerConnection)', pretH && pretG,
     'hôte:' + pretH + ' invité:' + pretG);
   /* A328 : « par l'écran » forcé PAR-DESSUS le partage en ligne, puis « En ligne » : le MÊME partage
@@ -2470,6 +2485,11 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     return { txt: slSb.log.map(e => e.txt), li }; });
   t('le journal du lien retient les transitions (≤ 5) (A321)', jl.txt.length > 0 && jl.txt.length <= 5 && jl.txt.includes('Repasse en ligne') && jl.txt.includes('Passe en direct'), JSON.stringify(jl.txt));
   t('… et la feuille les montre', jl.li === jl.txt.length, jl.li + ' / ' + jl.txt.length);
+  await close();
+});
+
+await sec('v5.23.5 · réseau de terrain : chute totale, panne sans canal, serveur en erreur, rechargement de l\'hôte (A322-A323)', async () => {
+  const { H, G, close } = await bancRelais();
   /* A322 — CHUTE TOTALE DU WI-FI : le relais meurt (→ direct), puis le canal direct de l'invité meurt
      aussi ; au retour, l'hôte REPREND LE MÊME partage cloud (aucun `open` de plus) et l'invité REPREND
      SEUL avec son secret gardé ; un geste fait pendant le direct atteint le journal cloud. */
@@ -2508,7 +2528,7 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
     Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
   await G.evaluate(() => { slSbReset(); window.__acNetOk = false; });
-  await H.waitForTimeout(8000);
+  await H.waitForTimeout(4000);
   const resteH = await H.evaluate(() => ({ share: Share.share, sl: !!SL, fails: Share._fails }));
   t('(a) panne sans canal dormant : PAS de bascule, l\'hôte garde son partage cloud (A322)', resteH.share === 'bus1' && !resteH.sl && resteH.fails >= 1, JSON.stringify(resteH));
   await H.evaluate(() => { window.__acNetOk = true; Share._io = window.__ioSain; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; Share._kick(0); });
@@ -2529,7 +2549,7 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000;
     const io = window.__ioSain; window.__io5xx = Object.assign({}, io, { pull: async () => ({ ok: false, err: 'server' }), open: async () => null });
     Share._ioRest = window.__io5xx; slNetWatch(); });
-  await H.waitForTimeout(6000);
+  await H.waitForTimeout(3000);
   const enc = await H.evaluate(() => ({ share: Share.share, sl: !!SL, auto: slSb.auto, tk: !!slSb.cloud }));
   t('(c) serveur en erreur au retour : le direct reste, le retour RESTE ARMÉ, le billet gardé (A322)', d5G && enc.share === 'local' && enc.sl && enc.auto === true && enc.tk, JSON.stringify(enc));
   await H.evaluate(() => { Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; });
@@ -2552,6 +2572,11 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   t('serveur revenu : l\'hôte REPREND son partage après rechargement, sans nouvel « open » (A323)', reload && opens2 === 0, 'repris=' + reload + ' opens=' + opens2);
   const stillG = await G.evaluate(() => Share.share === 'bus1' && Share.status === 'active');
   t('… et l\'invité n\'a rien eu à faire', stillG, String(stillG));
+  await close();
+});
+
+await sec('v5.23.7 · lien perdu : bannière, feuille, partage expiré (A324)', async () => {
+  const { H, G, close } = await bancRelais();
   /* A324 — « LIEN PERDU » : une seule source d'état ; la bannière (dans le bandeau), la feuille et
      ses gestes disent la même chose ; elle disparaît seule à la reprise ; partage expiré = reconnexion. */
   const rearm6 = await H.waitForFunction(() => slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 }).then(() => true).catch(() => false);
@@ -2597,6 +2622,11 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   const exp = d7G && await G.waitForFunction(() => { updateRtStrip(Date.now()); return slSb.expired === true && !!document.querySelector('#linkBar [data-lk="join"]'); }, null, { timeout: 30000 }).then(() => true).catch(() => false);
   t('partage expiré pendant la coupure : l\'invité le sait, la bannière propose « Se reconnecter… » (A324)', exp, '');
 
+  await close();
+});
+
+await sec('v5.23.8 · l\'invité rechargé retrouve la session (A325)', async () => {
+  const { H, G, close } = await bancRelais();
   /* A325 — L'INVITÉ RECHARGE SA PAGE EN DIRECT : le billet du hub local meurt avec l'onglet ; le billet
      cloud gardé reprend le partage dès que le serveur répond (au démarrage, ou plus tard par la sonde). */
   // le relais revit ; l'hôte revient seul, l'invité (expiré, canal mort) rejoint à neuf — puis on refait une panne
@@ -2626,15 +2656,20 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   });
   if (d8G) await G.reload();
   await G.waitForFunction(() => typeof Share === 'object' && Share._ioRest && Share._ioRest.open && !document.querySelector('.boot-load'), null, { timeout: 20000 }).catch(() => {});
-  await G.waitForTimeout(6000);
+  await G.waitForTimeout(3000);
   const apres = await G.evaluate(() => ({ mode: Share.mode, tk: !!sessionStorage.getItem('ac-share-tk-cloud') }));
   t('rechargé sans serveur : rien ne repart, le billet cloud ATTEND (A325)', d8G && apres.mode === 'off' && apres.tk, JSON.stringify(apres));
   await H.evaluate(() => { window.__acNetOk = true; window.__acBackDwell = 1000; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; slNetWatch(); });
   await G.evaluate(() => { window.__acNetOk = true; window.__acProbeMs = 400; slNetWatch(); });
   const okG8 = d8G && await G.waitForFunction(() => Share.mode === 'guest' && Share.share === 'bus1' && Share.status === 'active' && document.body.classList.contains('view-read'), null, { timeout: 40000 }).then(() => true).catch(() => false);
   t('serveur revenu : l\'invité rechargé REPREND seul le partage cloud et retrouve la session (A325)', okG8, '');
-  /* A325 — LA BANNIÈRE N'A PAS DE MÉMOIRE : repeinte au tick depuis slLink(), état vivant — perdue →
-     effacée → perdue → effacée, deux cycles. */
+  await close();
+});
+
+/* A325 — LA BANNIÈRE N'A PAS DE MÉMOIRE : repeinte au tick depuis slLink(), état vivant — perdue →
+   effacée → perdue → effacée, deux cycles. */
+await sec('v5.23.8 · la bannière n\'a pas de mémoire : perdue → effacée, deux cycles (A325)', async () => {
+  const { H, G, close } = await bancRelais();
   const cycle = async (k) => {
     const rearm = await H.waitForFunction(() => Share.share === 'bus1' && slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 40000 }).then(() => true).catch(() => false);
     await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
@@ -2651,8 +2686,7 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
     t('cycle ' + k + ' : connexion perdue → bannière ; connexion revenue → bannière effacée (A325)', vis && cache, JSON.stringify({ rearm, dG, vis, back, cache }));
   };
   await cycle(1); await cycle(2);
-  await ctx.close();
-  if (brE !== br) await brE.close();
+  await close();
 });
 
 
