@@ -838,6 +838,15 @@
      désensibilise au rouge — le rouge ne vit que dans « ■ Crise ». Détail : doctrine-css.md C16. */
   #crisisBand{min-height:44px;padding:8px 18px 10px;background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;animation:cbIn .3s ease}
   #crisisBand[hidden]{display:none}
+  /* A324 : « Lien perdu » — une rangée ambre (registre △) sous la capsule, DANS le quai collant (sa
+     hauteur entre dans --stick-top) ; cibles 32 px + halo 44 (règle 9). */
+  .lk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:36px;margin:8px -14px -8px;padding:4px 14px;background:var(--verify-soft);border-top:1px solid var(--verify-line);color:var(--ink);font-size:12px}
+  .lk-bar[hidden]{display:none}
+  .lk-txt{font-weight:700;color:var(--verify);white-space:nowrap}
+  .lk-act{position:relative;min-height:32px;padding:0 10px;border:1px solid var(--verify-line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .lk-act::after{content:"";position:absolute;inset:-6px}
+  .lk-act.why{margin-left:auto;display:grid;place-items:center;width:32px;padding:0;border-color:transparent;background:transparent;color:var(--ink-2)}
+  .lk-act:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Étiquette d'état condensée : n'apparaît que quand le bandeau est passé dessous (.ttl-on) —
      l'annonce « mode crise » n'est donc jamais absente, seulement portée par l'un ou l'autre. */
   /* H concept B : plus de condition `.ttl-on` — la pilule est présente dès que la crise l'est,

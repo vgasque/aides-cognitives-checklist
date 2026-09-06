@@ -2544,6 +2544,50 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   t('serveur revenu : l\'hôte REPREND son partage après rechargement, sans nouvel « open » (A323)', reload && opens2 === 0, 'repris=' + reload + ' opens=' + opens2);
   const stillG = await G.evaluate(() => Share.share === 'bus1' && Share.status === 'active');
   t('… et l\'invité n\'a rien eu à faire', stillG, String(stillG));
+  /* A324 — « LIEN PERDU » : une seule source d'état ; la bannière (dans le bandeau), la feuille et
+     ses gestes disent la même chose ; elle disparaît seule à la reprise ; partage expiré = reconnexion. */
+  const rearm6 = await H.waitForFunction(() => slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 }).then(() => true).catch(() => false);
+  await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { window.__acNetOk = false; });
+  const d6H = rearm6 && await H.waitForFunction(() => Share.share === 'local' && SL && SL.live === true, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const d6G = d6H && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const avantH = await H.evaluate(() => { updateRtStrip(Date.now()); return { lost: slLink().lost, bar: !document.getElementById('linkBar').hidden }; });
+  t('en direct vivant : le lien n\'est PAS perdu, pas de bannière (A324)', d6G && !avantH.lost && !avantH.bar, JSON.stringify(avantH));
+  await G.evaluate(() => { Share._io.pull = async () => { throw new Error('canal mort'); }; Share._io.push = async () => { throw new Error('canal mort'); }; });
+  await H.evaluate(() => { window.__silSain = shareSeenSilenceMs; shareSeenSilenceMs = () => 1e9; });
+  const lostG = d6G && await G.waitForFunction(() => { updateRtStrip(Date.now()); return slLink().lost === true && !document.getElementById('linkBar').hidden; }, null, { timeout: 30000 }).then(() => true).catch(() => false);
+  const barG = await G.evaluate(() => { const b = document.getElementById('linkBar'); return { txt: b.textContent.replace(/\s+/g, ' ').trim().slice(0, 40), rx: !!b.querySelector('[data-lk="rx"]'), ret: !!b.querySelector('[data-lk="ret"]'), why: !!b.querySelector('[data-lk="why"]'), h: Math.round(b.getBoundingClientRect().height) }; });
+  t('invité, canal mort et serveur muet : bannière « Lien perdu » avec Recevoir / Renvoyer (A324)', lostG && barG.rx && barG.ret && barG.why && /Lien perdu/.test(barG.txt), JSON.stringify(barG));
+  t('… la bannière tient sur une rangée (≤ 48 px)', barG.h > 0 && barG.h <= 48, barG.h + ' px');
+  const lostH = d6H && await H.waitForFunction(() => { updateRtStrip(Date.now()); return slLink().lost === true && !document.getElementById('linkBar').hidden; }, null, { timeout: 30000 }).then(() => true).catch(() => false);
+  const barH = await H.evaluate(() => { const b = document.getElementById('linkBar'); return { show: !!b.querySelector('[data-lk="show"]'), txt: b.textContent.replace(/\s+/g, ' ').trim().slice(0, 30) }; });
+  t('hôte, invités perdus et serveur muet : bannière avec « Montrer la progression » (A324)', lostH && barH.show, JSON.stringify(barH));
+  // la feuille de l'invité dit la même chose, avec les mêmes gestes
+  const feuille = await G.evaluate(() => { openCurrentShare(); const b = document.getElementById('shareBody');
+    const r = { note: /Lien perdu/.test(b.textContent), rx: !!document.getElementById('slReRx'), ret: !!document.getElementById('slRet'), log: b.querySelectorAll('.sl-log li').length };
+    shareModal.classList.remove('on'); return r; });
+  t('… et « Partager » chez l\'invité ouvre la même vérité : Lien perdu, Recevoir, Renvoyer, journal', feuille.note && feuille.rx && feuille.ret && feuille.log > 0, JSON.stringify(feuille));
+  // le réseau revient : tout reprend seul, la bannière s'efface des deux côtés
+  await H.evaluate(() => { shareSeenSilenceMs = window.__silSain; window.__acNetOk = true; window.__acBackDwell = 1000; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; slNetWatch(); });
+  await G.evaluate(() => { window.__acNetOk = true; });
+  const okH6 = d6G && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL, null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const okG6 = okH6 && await G.waitForFunction(() => Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  const bars = [await H.evaluate(() => { updateRtStrip(Date.now()); return document.getElementById('linkBar').hidden; }), await G.evaluate(() => { updateRtStrip(Date.now()); return document.getElementById('linkBar').hidden; })];
+  t('réseau revenu : reprise seule des deux côtés, bannières effacées (A324)', okH6 && okG6 && bars[0] && bars[1], JSON.stringify([okH6, okG6, bars]));
+
+  /* Partage EXPIRÉ pendant la coupure : l'invité l'apprend, la bannière propose la reconnexion. */
+  const rearm7 = await H.waitForFunction(() => slSb.dcs.some(d => d.dc && d.dc.readyState === 'open'), null, { timeout: 30000 }).then(() => true).catch(() => false);
+  await H.evaluate(() => { window.__acNetOk = false; const io = Share._ioRest; window.__ioSain = io;
+    Share._io = Object.assign({}, io, { pull: async () => { throw new Error('panne'); }, push: async () => { throw new Error('panne'); } });
+    Share._ioRest = Share._io; window.__bc.onmessage = () => {}; });
+  await G.evaluate(() => { window.__acNetOk = false; });
+  const d7G = rearm7 && await G.waitForFunction(() => Share._io !== Share._ioRest && Share.status === 'active' && Share.share !== 'bus1', null, { timeout: 40000 }).then(() => true).catch(() => false);
+  await G.evaluate(() => { Share._io.pull = async () => { throw new Error('canal mort'); }; Share._io.push = async () => { throw new Error('canal mort'); };
+    Share._ioRest = Object.assign({}, Share._ioRest, { pull: async () => ({ ok: false, err: 'ended' }) }); window.__acNetOk = true; });
+  const exp = d7G && await G.waitForFunction(() => { updateRtStrip(Date.now()); return slSb.expired === true && !!document.querySelector('#linkBar [data-lk="join"]'); }, null, { timeout: 30000 }).then(() => true).catch(() => false);
+  t('partage expiré pendant la coupure : l\'invité le sait, la bannière propose « Se reconnecter… » (A324)', exp, '');
   await ctx.close();
   if (brE !== br) await brE.close();
 });

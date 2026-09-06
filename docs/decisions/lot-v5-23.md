@@ -1,4 +1,4 @@
-# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A323)
+# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A324)
 
 > Fichier normatif, suite de [`lot-v5-22.md`](lot-v5-22.md) (A308-A316). Les numéros A sont des
 > adresses : ne jamais renuméroter. Demande de l'auteur (05/09/2026) : « améliorer le passage entre
@@ -197,3 +197,44 @@ serveur revenu → l'hôte reprend SON partage sans nouvel `open`, l'invité n'a
 vérifiés CAPABLES D'ÉCHOUER (reprise retirée → rouge, `index.html` restauré à l'octet). Limite du
 banc écrite : un vrai `location.reload()` tuerait le relais du banc, qui vit dans la page de
 l'hôte — le témoin rejoue l'ÉTAT que laisse un rechargement, pas le rechargement.
+
+## A324 — « Lien perdu » : une source d'état, une rangée, une feuille qui dit la même chose (v5.23.7)
+
+**Demande de l'auteur** : quand ni « en ligne » ni « direct » ne portent plus, une petite bannière
+en haut — « connexion perdue, envoyer ma progression / recevoir une progression » —, peu haute, et
+cohérente avec ce que dit la feuille de partage quand on la rouvre : on sait ce qui se passe et
+pourquoi. Et la seconde limite d'A322 : un partage cloud expiré pendant une longue coupure.
+
+**Une source.** `slLink()` rend `{lost, why, since}` pour les deux rôles : « perdu » = plus aucun
+transport ne porte ET rien n'est en train de reprendre (pas de canal dormant, serveur injoignable
+à la sonde) ; chez l'hôte en direct, après 15 s de bascule et 45 s sans signe d'aucun invité
+(`SHARE_SEEN_QUIET_MS`) ; « expiré » = le partage cloud a été REFUSÉ pendant la coupure (un refus
+`ok:false` du serveur, distinct d'une panne, dans `slResumeCloud`). Tant que le lien est perdu, la
+sonde veille (`slBackArmed` y ajoute cette raison) : c'est elle qui verra revenir le réseau, et les
+mécanismes d'A319-A323 reprennent seuls.
+
+**Une rangée.** `#linkBar` vit DANS `#crisisDock`, sous la capsule — le quai collant, dont la
+hauteur entre déjà dans `--stick-top` (le rail se recale dessous, aucune mesure nouvelle) ; le
+bandeau `#crisisBand`, premier logement essayé, est masqué dans la mise en page courante — leçon
+« mesurer l'app, pas lire le CSS ». Ambre (registre △ : là où l'on risque de se tromper sur un
+miroir figé), 36-41 px, une ligne à 390 px (mesuré 41 ; « depuis HH:MM » vit dans la feuille,
+sinon la rangée passait à 81 px), peinte au tick par `updateRtStrip` sur signature (aucun
+re-rendu inutile). Gestes selon le rôle, cibles 32 px + halo 44 (règle 9) : hôte « Montrer la
+progression » (émission optique) ; invité « Recevoir » (filmer l'hôte) et « Renvoyer » (ses
+repères datés) ; expiré « Se reconnecter… » (écran d'entrée) ; et ⓘ « Pourquoi ? » ouvre la
+feuille. Termes retenus : « Lien perdu » (état), « Recevoir » / « Renvoyer » (gestes) — courts,
+sans jargon de transport.
+
+**Une feuille.** L'invité n'avait PAS de feuille de partage (« Partager » ouvrait la feuille cloud
+de l'hôte, avec son code) : `slSheet('guest')` — même ligne d'état (`slLinkLine`), journal du
+lien (A321), Recevoir / Renvoyer / Montrer, « Se reconnecter… » si expiré ; `slBusySheet` y mène.
+Les feuilles de l'hôte reçoivent la même ligne d'état. Réception et retour optiques deviennent
+DEUX fonctions (`slRxStart`, `slRetTx`) partagées par la feuille miroir, la feuille invité et la
+bannière — deux blocs inline en moins.
+
+**Garde-fous** (section E2E des bascules, 40 → 47 contrôles) : direct vivant → pas perdu, pas de
+bannière ; invité au canal mort et serveur muet → bannière « Lien perdu » avec Recevoir/Renvoyer/ⓘ,
+≤ 48 px ; hôte aux invités silencieux → « Montrer la progression » ; « Partager » chez l'invité →
+même vérité (état, gestes, journal) ; réseau revenu → reprise seule et bannières effacées des deux
+côtés ; partage expiré → l'invité le sait, « Se reconnecter… ». Vérifiés capables d'échouer (source
+d'état neutralisée → rouges, `index.html` restauré à l'octet).

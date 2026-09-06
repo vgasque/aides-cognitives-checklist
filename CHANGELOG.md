@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.23.7] — 2026-09-06
+### « Lien perdu » : une source d'état, une rangée, une feuille qui dit la même chose (A324)
+
+- **Demande de l'auteur** : quand ni « en ligne » ni « direct » ne portent plus, une petite bannière
+  en haut, peu haute, cohérente avec la feuille de partage. Et la seconde limite d'A322, le partage
+  expiré pendant une longue coupure.
+- **Une source d'état** `slLink()` : « perdu » = plus aucun transport ne porte et rien n'est en
+  train de reprendre ; « expiré » = le partage cloud a été refusé pendant la coupure. Tant que le lien
+  est perdu, la sonde veille et les reprises automatiques repartent seules au retour du réseau.
+- **Une rangée ambre de 41 px** sous la capsule, dans le quai collant (le rail se recale dessous) :
+  « △ Lien perdu », puis selon le rôle « Recevoir » et « Renvoyer » (invité), « Montrer la
+  progression » (hôte), « Se reconnecter… » (expiré), et ⓘ qui ouvre la feuille. Une ligne à 390 px.
+- **La feuille de l'invité naît** : même ligne d'état, journal du lien, mêmes gestes ; les feuilles
+  de l'hôte reçoivent la ligne d'état. Réception et retour optiques deviennent deux fonctions
+  partagées par la feuille miroir, la feuille invité et la bannière.
+- Garde-fous : sept contrôles ajoutés à la section E2E des bascules d'`audit-partage` (40 → 47),
+  vérifiés capables d'échouer (source d'état neutralisée → 5 rouges). Doctrine A324 dans
+  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.21.4] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
+
 ## [5.23.6] — 2026-09-06
 ### L'hôte rechargé reprend son partage cloud (A323)
 
@@ -296,31 +316,3 @@
   § « Catégories · une palette à la fois… » (10 contrôles, 96 → 97 sections), vérifié capable
   d'échouer. Doctrine : `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.19.2] archivée).
 - Vérifié : `npm run check` complet, 1184 tests × 2 moteurs, audit COMPLET 26/26.
-
-## [5.21.4] — 2026-09-03
-### Le compte des relances est posé : l'éviction n'est pas le sujet, l'instrumentation part (A307)
-
-- **Le diagnostic P2 des relances iOS (v5.10.3) est CLOS par la mesure qu'il demandait.** Lu sur
-  l'iPhone de l'auteur, Compte › « Sur cet appareil » : **33 relances complètes sur 7 jours pour
-  109 reprises sans relance** — un retour sur quatre à froid (≈ 4,7 par jour), trois sur quatre
-  depuis la mémoire. Le critère posé en v5.10.3 (« b élevé et PROCHE de r = évincée presque à
-  chaque retour ») n'est pas atteint, et le quart restant mêle des causes qui n'ont rien à voir
-  avec la pression mémoire : premier lancement de la journée, retour après plusieurs heures (iOS
-  jette un contenu web resté longtemps en arrière-plan, quel que soit son poids), fermetures par
-  le sélecteur d'apps, et les **rechargements de mise à jour** — cinq publications dans la fenêtre.
-- **Verdict : l'hypothèse d'éviction d'A153 tombe, le poids du monofichier est définitivement un
-  NON-SUJET runtime.** Même sur la fraction réellement évincée, le levier serait nul : la décision
-  de jetsam d'iOS se prend sur l'empreinte du processus WebKit (tas, DOM, code compilé — des
-  dizaines de Mo contre des plafonds en centaines), dont les 2,4 Mo de source, et les 1,26 Mo de
-  commentaires qui n'alimentent rien de tout cela, sont quelques pour cent. Les pistes (a) et (b)
-  d'A153 restent fermées, « monofichier sans build » n'est pas rouvert, le CSS critique (R2)
-  reste abandonné. Rien n'est implémenté côté empreinte : il n'y a rien à implémenter.
-- **L'instrumentation part avec le diagnostic** (précédent : la ligne diag `ih/vv/dvh` de
-  v4.29.x) : `bootLogBump` et son écouteur `visibilitychange`, la ligne « Relances complètes »
-  du Compte et sa lecture. La clé `ac-boot-log` déposée par les versions 5.10.3 à 5.21.3 est
-  effacée au démarrage (une ligne au site de l'ancien journal, patron du retrait d'`ac-pins`) ;
-  pour ré-instrumenter un jour, le tag v5.21.3 porte le code. Retrait vérifié au grep (zéro
-  émission), hashs CSP rejoués.
-- Doctrine : A307 dans `docs/decisions/lot-v5-21.md`, index AGENTS.md et `docs/README.md` mis à
-  jour (A297-A307). CHANGELOG à 20 ([5.19.1] archivée). Vérifié : check complet, 1176 tests ×
-  2 moteurs, audit COMPLET 26/26 (deux passes, avant et après le numéro de version).
