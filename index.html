@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Flduem34zZOC+Sk7/FmAF24IYIPlS+uLg0kBk2L0r9s='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-YRjT3J8mqls55wQSS1sLaM8dHJTlpVakOMlc0sNH1pg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8025,7 +8025,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.23.5';
+const APP_VERSION='5.23.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12364,6 +12364,7 @@ function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;cons
   else{Runtime=buildRuntime(f,s);Runtime.started=true;Runtime.startedAt=s.startedAt||Date.now();
     /* REPRENDRE ne re-lit PAS la révision : le soin a été conduit sur celle qui est archivée. */
     Runtime.aidRev=s.aidRev||0;liveSessions[f.id]=Runtime;persistLive(Runtime,true);}
+  setTimeout(()=>{try{slHostRehost();}catch(e){}},300);   // A323
   Runtime.fiche=f;bindStateToRuntime();state.fiche=f;state.showFlow=false;state.view='read';render();}
 async function deleteSession(id){if(!await confirmDlg('Supprimer cette session ?',{yes:'Supprimer',danger:true}))return;
   /* PIERRE TOMBALE PLUTÔT QUE SUPPRESSION DURE, dès que l'historique est synchronisé : sans elle,
@@ -27065,7 +27066,7 @@ const Share={
     this.participants=[];this.cursor=0;this.applied=0;this.seq=0;this.nEvents=0;this._ids=[];
     this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._q=[];
     this._samples=[];this._sample(t0,r.server_time);
-    _shareBase=shareSnap(null,false);shareEmitDiff(R);
+    _shareBase=shareSnap(null,false);shareEmitDiff(R);slHostTkSave();
     this._kick(0);
     return r;},
   /* A322 : reprendre le MÊME partage cloud après une panne (id et code inchangés) — les invités
@@ -27079,7 +27080,7 @@ const Share={
     this.fiche=sharePayload(f);this.fold=null;this.code=tk.code;this.joinUntil=tk.joinUntil||0;this.expiresAt=tk.expiresAt||0;
     this.participants=r.participants||[];this.cursor=tk.cursor||0;this.applied=0;this.seq=0;this.nEvents=0;this._ids=[];
     this.lastOk=Date.now();this._fails=0;this._act=Date.now();this._q=[];this._samples=[];this._sample(t0,r.server_time);
-    _shareBase=shareSnap(null,false);
+    _shareBase=shareSnap(null,false);shareEmitDiff(R);slHostTkSave();
     return true;},
   // Ré-ouvrir la porte : code NEUF, l'ancien meurt. C'est ce qui rend une coupure effective —
   // revenir exige un geste de l'hôte, sur SON écran.
@@ -27127,7 +27128,7 @@ const Share={
      `expires_at` est ramené à maintenant — sans quoi la ligne vivrait jusqu'à son terme (jusqu'à
      12 h) alors que la notice affichée à l'invité annonce une purge peu après la fin. C'est le
      code qui s'aligne sur la promesse, pas l'inverse. La purge passe 30 min plus tard. */
-  async endShare(){
+  async endShare(){slHostTkClear();
     if(this.mode!=='host'||!this.share)return false;
     let ok=false;
     try{await this._io.end(this.share);ok=true;}catch(e){}
@@ -27581,8 +27582,10 @@ function slSegNetPaint(){
   if(cap)cap.textContent=slSegCap(online,active);}
 /* A319 : retour en ligne SEUL après une panne — 3 sondes OK et ≥ 60 s en direct (hystérésis), des
    invités à ramener, jamais contre un choix manuel ; sans ouvrir la feuille (règle 11). */
-const slBackArmed=()=>Share.mode==='host'&&Share.share==='local'&&slSb.auto&&Auth.signedIn();
+const slBackArmed=()=>(Share.mode==='host'&&Share.share==='local'&&slSb.auto&&Auth.signedIn())
+  ||(Share.mode==='off'&&Runtime.started&&!!slHostTkRead()&&Auth.signedIn());
 function slBackTick(){if(!slBackArmed())return;
+  if(Share.mode==='off'){if(_slNet.ok===true)slHostRehost();return;}
   slSb.okRun=_slNet.ok===true?slSb.okRun+1:0;
   const dwell=window.__acBackDwell||slSb.dwellMs,invites=!!(SL&&SL.hub&&SL.hub.st.parts.some(p=>!p.owner&&!p.revoked));
   if(slSb.okRun>=3&&invites&&Date.now()-slSb.since>=dwell&&!_slSwitching){slSb.okRun=0;
@@ -27954,6 +27957,27 @@ async function slGuestUp(dc){
    Le retour au cloud reste un TAP (segmenté « En ligne ») — le sens panne est automatique,
    le sens confort reste un choix. ⚠ EXIGE le rejeu de schema.sql (genre `sig`) sur l'instance. */
 const slSb={dcs:[],dc:null,pc:null,say:null,said:false,auto:false,okRun:0,since:0,log:[],cloud:null,dwellMs:60000,lastBack:0};
+/* A323 : le billet cloud de l'HÔTE (id, code, curseur, fiche) survit au rechargement — sessionStorage,
+   même arbitrage que le billet de l'invité (J224) : rien de durable, aucune donnée clinique. */
+const SL_HOST_TK='ac-share-host-tk';
+function slHostTkSave(){try{if(Share.mode!=='host'||!Share.share||Share.share==='local'||!Runtime.fiche)return;
+  sessionStorage.setItem(SL_HOST_TK,JSON.stringify({share:Share.share,code:Share.code,joinUntil:Share.joinUntil,expiresAt:Share.expiresAt,cursor:Share.cursor,fiche:Runtime.fiche.id}));}catch(e){}}
+function slHostTkRead(){try{const j=JSON.parse(sessionStorage.getItem(SL_HOST_TK)||'null');return j&&j.share?j:null;}catch(e){return null;}}
+function slHostTkClear(){try{sessionStorage.removeItem(SL_HOST_TK);}catch(e){}}
+/* Après une reprise de session (« Reprendre » au retour d'un rechargement) : si un billet cloud
+   vise cette fiche et que le serveur répond, l'hôte reprend SON partage — les invités le retrouvent
+   seuls (A322). Serveur muet : le billet attend, la sonde retentera (slBackTick). */
+async function slHostRehost(){
+  const tk=slHostTkRead(),f=Runtime.fiche;
+  if(!tk||!f||tk.fiche!==f.id||!Runtime.started||Share.mode!=='off'||!Auth.signedIn()||_slSwitching)return false;
+  await slNetProbe();if(_slNet.ok!==true){slNetWatch();return false;}
+  _slSwitching=true;
+  try{if(Share._ioRest)Share._io=Share._ioRest;
+    const ok=await Share.rehost(tk);
+    if(ok){Share._kick(0);render();slSay('Repasse en ligne','Le partage reprend après le rechargement.');}
+    else slHostTkClear();   // refus définitif (expiré, purgé) : un billet mort ne se garde pas
+    return ok;
+  }finally{_slSwitching=false;}}
 let _slSwitching=false;
 function slSbReset(){try{if(slSb.pc)slSb.pc.pc.close();}catch(e){}
   for(const d of slSb.dcs){try{d.dc.close();}catch(e){}}
@@ -28042,7 +28066,7 @@ function slSbFail(){
    PRÉVIENT (sig « go » poussé DIRECTEMENT, hors file) avant de transiter par le chemin du
    basculement automatique ; les invités appariés en silence re-joignent seuls. Le partage
    cloud est terminé côté serveur APRÈS coup (meilleur effort). */
-async function slSbGoSwitch(){slSb.auto=false;slSb.cloud=null;
+async function slSbGoSwitch(){slSb.auto=false;slSb.cloud=null;slHostTkClear();
   const oldShare=Share.share,endIo=Share._ioRest;
   try{
     const ev=[{event_id:Share._uuid(),kind:'sig',payload:{t:'go'},

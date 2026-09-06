@@ -2529,6 +2529,21 @@ await sec('v5.14.9 · bascule en ligne⇄direct : les canaux dormants portent le
   const ok5H = d5G && await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && !SL, null, { timeout: 40000 }).then(() => true).catch(() => false);
   const ok5G = ok5H && await G.waitForFunction(() => Share._io === Share._ioRest && Share.share === 'bus1' && Share.status === 'active', null, { timeout: 40000 }).then(() => true).catch(() => false);
   t('… et aboutit quand le serveur répond de nouveau, l\'invité suivant', ok5H && ok5G, 'hôte=' + ok5H + ' invité=' + ok5G);
+
+  /* A323 — RECHARGEMENT DE L'HÔTE : ce qu'un rechargement laisse (Share à zéro, hub mort, billet en
+     sessionStorage) ; à la reprise de session, l'hôte reprend SON partage — serveur muet d'abord
+     (le billet attend), puis serveur revenu (la sonde reprend). L'invité ne bouge pas. */
+  const tkH = await H.evaluate(() => !!slHostTkRead());
+  t('l\'hôte tient un billet cloud en sessionStorage (A323)', tkH, String(tkH));
+  await H.evaluate(() => { window.__opens = 0; window.__acNetOk = false; Share.stop(); SL = null; slSbReset(); });
+  const r1 = await H.evaluate(async () => ({ ok: await slHostRehost(), mode: Share.mode, tk: !!slHostTkRead() }));
+  t('serveur muet à la reprise : rien ne repart, le billet ATTEND', r1.ok === false && r1.mode === 'off' && r1.tk, JSON.stringify(r1));
+  await H.evaluate(() => { window.__acNetOk = true; window.__acProbeMs = 400; slNetWatch(); });
+  const reload = await H.waitForFunction(() => Share.share === 'bus1' && Share.mode === 'host' && Share.status === 'active', null, { timeout: 20000 }).then(() => true).catch(() => false);
+  const opens2 = await H.evaluate(() => window.__opens);
+  t('serveur revenu : l\'hôte REPREND son partage après rechargement, sans nouvel « open » (A323)', reload && opens2 === 0, 'repris=' + reload + ' opens=' + opens2);
+  const stillG = await G.evaluate(() => Share.share === 'bus1' && Share.status === 'active');
+  t('… et l\'invité n\'a rien eu à faire', stillG, String(stillG));
   await ctx.close();
   if (brE !== br) await brE.close();
 });

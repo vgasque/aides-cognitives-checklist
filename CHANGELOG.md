@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.23.6] — 2026-09-06
+### L'hôte rechargé reprend son partage cloud (A323)
+
+- **Limite levée** : un rechargement de l'onglet de l'hôte tuait le partage. L'hôte tient
+  désormais un billet cloud en `sessionStorage` (rien de durable, aucune donnée clinique) ; à
+  « Reprendre » après un rechargement, si le serveur répond, il reprend son partage existant et y
+  rembobine l'état complet — les invités le retrouvent seuls. Serveur muet : le billet attend et la
+  sonde retente. Partage expiré ou purgé : billet effacé, chemin du partage neuf. Hôte en direct
+  sans serveur : le QR reste le seul chemin, dit dans la feuille.
+- Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
+  (36 → 40), vérifiés capables d'échouer. Doctrine A323 dans `docs/decisions/lot-v5-23.md`.
+  CHANGELOG à 20 ([5.21.3] archivée).
+- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
+
 ## [5.23.5] — 2026-09-06
 ### Le réseau de terrain : chute totale du Wi-Fi, serveur en erreur, battement, portail captif (A322)
 
@@ -310,36 +324,3 @@
 - Doctrine : A307 dans `docs/decisions/lot-v5-21.md`, index AGENTS.md et `docs/README.md` mis à
   jour (A297-A307). CHANGELOG à 20 ([5.19.1] archivée). Vérifié : check complet, 1176 tests ×
   2 moteurs, audit COMPLET 26/26 (deux passes, avant et après le numéro de version).
-
-## [5.21.3] — 2026-09-03
-### La pastille d'un homonyme ne montre que ce qu'elle compte (A306)
-
-- **La pastille multicolore de la colonne gauche ne se mettait pas à jour** (signalé : « si une
-  catégorie double de même nom mais couleur différente s'affiche puis se retire sur la sidebar,
-  la pastille bicolore ne se met pas à jour »). Mesuré sur les deux moteurs : sur « Toutes », la
-  rangée « Réanimation » portait TROIS couleurs, dont celle d'une homonyme à **zéro** élément ; sur
-  une seule bibliothèque, où une seule catégorie de ce nom existe, elle restait tricolore.
-  **Cause** : A299 (v5.21.0) construisait les couleurs sur `categories` BRUT, là où le compte de la
-  même rangée ne lisait que le périmètre. Une couleur ne contribue désormais que si sa catégorie
-  est **du périmètre affiché** (`homeLibOn`, le prédicat de la liste) **et y compte au moins un
-  élément** — ou porte le filtre actif, seule rangée qui reste à zéro. A299 n'est pas renié :
-  quand deux homonymes comptent, la pastille les montre toutes.
-- **Attrapé en route : le compte de la colonne était indexé par id**, or deux bibliothèques peuvent
-  porter le même id de catégorie (A298) — deux « Trauma » de même id, Perso et bibliothèque, se
-  comptaient DEUX FOIS (mesuré : 6 pour 3 fiches). `catOf` résout déjà le couple id + bibliothèque ;
-  le compte est une `Map` par objet de catégorie.
-- **Signalement voisin MESURÉ et NON reproduit** : « en voie étroite, le ✎ d'une bibliothèque
-  dans le quart supérieur de l'écran remet le défilement en haut à l'ouverture de *Modifier la
-  bibliothèque* ». Dix-huit cas joués sans qu'un pixel ne bouge — Chromium et WebKit au pointeur
-  grossier (le verrou de fond n'existe QUE sous `pointer:coarse`), cinq hauteurs ; **simulateur
-  iPhone 17 (iOS 26.5), en Safari puis en app INSTALLÉE** (zone sûre réelle), copie instrumentée
-  avec témoin de défilement à l'écran et liste des membres stubée, intertitre collé et non collé,
-  fermeture par ✕ et par « Enregistrer » ; `render()` rejoué fenêtre ouverte sous verrou (le cas
-  d'un pull de synchro chez un compte connecté) ; zoom de texte 1,15 et 1,3. Non joué : un iOS
-  antérieur à 26.5, le vrai compte de l'auteur. Pistes restantes écrites dans A306 ; le patron reste
-  celui d'A295 — on ne corrige pas ce qu'on n'a pas reproduit.
-- Garde-fou : `audit-doctrine` § « la pastille d'un homonyme suit le périmètre affiché »
-  (7 contrôles, 95 → 96 sections), vérifié CAPABLE D'ÉCHOUER (`index.html` remis à HEAD → 7 rouges,
-  restauré à l'octet). CHANGELOG à 20 ([5.19.0] archivée). Vérifié : check complet, 1176 tests ×
-  2 moteurs, audit COMPLET (un aléa de délai sur « un rechargement ne perd plus la session »,
-  vert deux fois en rejeu isolé, sans rapport).

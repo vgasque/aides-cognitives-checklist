@@ -1,4 +1,4 @@
-# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A322)
+# Lot v5.23 — le partage sans question : un état, une détection rapide, un retour seul (A317-A323)
 
 > Fichier normatif, suite de [`lot-v5-22.md`](lot-v5-22.md) (A308-A316). Les numéros A sont des
 > adresses : ne jamais renuméroter. Demande de l'auteur (05/09/2026) : « améliorer le passage entre
@@ -172,3 +172,28 @@ reprise seule de l'invité retirées → 6 rouges, `index.html` restauré à l'o
 banc : le relais du banc ne portait pas la fiche (une reprise réelle la reçoit) — corrigé dans
 `io.open` ; et « en direct » chez l'invité se lit à `Share._io !== Share._ioRest`, jamais à
 `share === 'local'` (marqueur de l'hôte) — c'est ce prédicat faux qui laissait l'invité sans reprise.
+
+## A323 — l'hôte rechargé reprend son partage cloud (v5.23.6)
+
+**Limite levée** (écrite en A322 : « rechargement de l'hôte pendant un partage direct — le hub meurt
+avec l'onglet »). Le hub local et les canaux WebRTC meurent avec l'onglet, c'est une propriété du
+navigateur ; ce qui peut survivre, c'est le PARTAGE CLOUD, et c'est lui que les invités savent
+reprendre seuls (A322).
+
+**Ce qui change.** L'hôte tient désormais un billet cloud en `sessionStorage` (id, code, curseur,
+fiche — même arbitrage que le billet de l'invité, J224 : rien de durable, aucune donnée clinique),
+écrit à `host()` et à `rehost()`, effacé à « Arrêter » et au geste manuel « En direct ». À la
+reprise de session (« Reprendre » après un rechargement), `slHostRehost` sonde le serveur : s'il
+répond, `Share.rehost` reprend le partage existant — et rembobine l'ÉTAT COMPLET vers le journal
+cloud (`shareEmitDiff`, le hub local ayant disparu) ; les invités le retrouvent seuls. Serveur
+muet : le billet attend, la sonde (`slBackTick`, seconde raison d'armement) retente à chaque
+réponse. Refus définitif (expiré, purgé) : billet effacé, chemin du partage neuf. Le cas « hôte
+en direct sans serveur, rechargé » reste ce qu'il est — un QR ; c'est le seul chemin sans serveur
+ni canal, et il est dit dans la feuille.
+
+**Garde-fous** (section E2E des bascules, 36 → 40 contrôles) : billet présent ; « rechargement »
+simulé (Share à zéro, hub mort, billet gardé) ; serveur muet → rien ne repart, le billet attend ;
+serveur revenu → l'hôte reprend SON partage sans nouvel `open`, l'invité n'a rien eu à faire —
+vérifiés CAPABLES D'ÉCHOUER (reprise retirée → rouge, `index.html` restauré à l'octet). Limite du
+banc écrite : un vrai `location.reload()` tuerait le relais du banc, qui vit dans la page de
+l'hôte — le témoin rejoue l'ÉTAT que laisse un rechargement, pas le rechargement.
