@@ -1,5 +1,38 @@
 # Journal des modifications
 
+## [5.28.0] — 2026-09-08
+### « Terminer la session » se trouve là où la session se lit, le menu ⋯ ne répète plus le dock, et la méta des cartes d'accueil dit un état en mots (A336-A338)
+
+- **Demandes de l'auteur**, dessinées d'abord sur un canevas (quatre pistes, puis le menu, puis
+  sept options de méta), validées avant tout code.
+- **A336 — Terminer la session.** Une rangée « Terminer la session… — confirmation demandée »
+  ferme le volet de session (étroit) et le rail d'état (large), sous un intertitre « Session ·
+  depuis HH:MM ». Contour, jamais un aplat ; le tap ouvre la fenêtre « Terminer la session ? »,
+  qui reste la SEULE porte. Jamais chez l'invité ni en aperçu. Un seul bouton permanent, pas de
+  rappels ; formes refusées listées dans la doctrine.
+- **A337 — Menu ⋯.** Trois natures de rangée de plus (`{head}`, `{tiles}`, `{fold}`) : les
+  ouvertures (Moniteur, Se repérer, Schéma, Consulter hors session) en tuiles, des intertitres
+  « Session » / « L'aide », le sous-titre SOUS le libellé sur une ligne (rangées 44 ou 52 px),
+  largeur 300 px, la rangée danger en pied encadré. **En session le menu ne répète pas le dock** :
+  Complication et Consulter en sortent (remplace la double entrée de v4.26.1) ; la gestion de
+  l'aide se replie derrière « L'aide › ». 14 → 7 rangées en session. « Recommencer le parcours »
+  n'existe qu'en session. Piège mesuré : le pli re-rend le menu, le clic remontait au document
+  et le fermait (`stopPropagation`).
+- **A338 — Méta des cartes d'accueil** (option J). À gauche l'identité : nature · discriminant ·
+  ● catégorie ; à droite UN état en mots, le plus urgent : En cours 12:04 › Brouillon / À relire ›
+  À compléter › Sans date › À revérifier 06/2023 › Validée 01/2025. Une taille, une graisse, aucun
+  glyphe ni point, l'ambre pour ce qui attend. « Validé » n'apparaît plus qu'avec sa date ;
+  le code sort de la rangée. Ligne de base alignée (écart 1 px mesuré) ; la catégorie s'abrège
+  la première, le discriminant ensuite (plancher 4 em), jamais la nature ni l'état. Sous 360 px
+  effectifs l'état passe sous l'identité, hauteur de rangée unique 76 px (320 : aucun
+  débordement).
+- Témoins adaptés : `audit-complications` (aucune rangée Complication en session),
+  `audit-retour`, `audit-doctrine` (date lue dans `.dir-st`). Doctrine dans
+  `docs/decisions/lot-v5-28.md` (nouveau), index AGENTS.md / docs/README.md, `design/ds/`
+  régénéré. CHANGELOG à 20 ([5.23.3] archivée).
+- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
+  version.
+
 ## [5.27.1] — 2026-09-07
 ### La barre de retour colle au quai, et les deux retours portent l'icône (A335)
 
@@ -387,19 +420,4 @@
 - Garde-fous : deux contrôles ajoutés à la section E2E des bascules d'`audit-partage` (25 → 27),
   vérifiés capables d'échouer. Doctrine A321 dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20
   ([5.21.1] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.3] — 2026-09-05
-### Au réveil, l'hôte revient seul en ligne si le retour est armé (A320, étape 4)
-
-- **Avant** : la veille tue les canaux directs, et au réveil l'app demandait un geste, au lecteur
-  d'écran seulement. **Désormais** : un hôte en direct après une panne, aux participants perdus,
-  sonde le serveur au réveil ; s'il répond, le partage repasse en ligne aussitôt et sans
-  hystérésis, un lien mort n'ayant rien à préserver. Sinon le quai dit « ● Lien à refaire » pendant
-  8 s. Un invité dont le canal est mort re-rentre par le geste existant ; le QR reste le dernier
-  recours.
-- Garde-fous : deux contrôles ajoutés à la section E2E des bascules d'`audit-partage` (23 → 25),
-  vérifiés capables d'échouer une fois l'hystérésis rendue inatteignable au banc (le veilleur
-  masquait le réveil). Doctrine A320 dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20
-  ([5.21.0] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.

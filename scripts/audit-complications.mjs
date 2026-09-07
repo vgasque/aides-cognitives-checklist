@@ -50,10 +50,13 @@ t('la cible externe annonce ce qu’elle ouvre (↗)',
 t('la cible interne annonce sa destination ET son retour',
   /→/.test(d1.rows[0])&&/retour/.test(d1.rows[0]), JSON.stringify(d1.rows[0]));
 t('re-presser le déclencheur referme l’index', d1.ferme);
+/* A337 (v5.28) : EN SESSION LE MENU NE RÉPÈTE PAS LE DOCK — la touche ⚡ du quai est constante,
+   la rangée « Complications (2) » du menu ⋯ n'existe donc plus qu'AVANT la session. */
 const dm=await p.evaluate(()=>{document.getElementById('hdrMore').click();
  const rows=[...document.querySelectorAll('#moreMenu .mm-row')].map(x=>x.textContent.replace(/\s+/g,' ').trim());
- document.getElementById('hdrMore').click();return rows.filter(x=>/Complication/.test(x));});
-t('menu ⋯ : UNE entrée constante « Complications (2) »', dm.length===1&&/\(2\)/.test(dm[0]), JSON.stringify(dm));
+ document.getElementById('hdrMore').click();
+ return {menu:rows.filter(x=>/Complication/.test(x)),dock:!document.getElementById('cxKey').hidden};});
+t('menu ⋯ en session : AUCUNE rangée Complication — le dock la porte (A337)', dm.menu.length===0&&dm.dock===true, JSON.stringify(dm));
 console.log('=== entrée / excursion / retour ===');
 const d2=await p.evaluate(async()=>{
  /* Une coche AVANT l'évènement : A333 mesure qu'elle survit au retour. */

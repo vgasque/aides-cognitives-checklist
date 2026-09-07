@@ -634,22 +634,37 @@
      par un `calc()` de variables viewport — juste sur Blink, faux en pratique : trois hypothèses
      de plateforme qui se MESURENT, ne se déduisent pas (dossier « bande basse iOS »).
      `overscroll-behavior:contain` : la page ne défile pas derrière. Détail : doctrine-css.md C14. */
-  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
+  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:min(300px,calc(100vw - 28px));background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
     overflow-y:auto;overscroll-behavior:contain}
   .more-menu[hidden]{display:none}
   .mm-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 10px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+  /* A337 : le sous-titre vit SOUS le libellé, sur UNE ligne coupée au besoin — la hauteur d'une
+     rangée est prévisible (44 ou 52 px), plus de rangée à trois lignes. */
+  .mm-row.two{min-height:52px;padding:6px 10px}
+  .mm-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .mm-sub{display:block;font-size:12px;line-height:1.3;color:var(--ink-soft);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mm-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
   .mm-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .mm-row[disabled]{opacity:.45;cursor:default}
   .mm-row[disabled]:hover{background:none}
   .mm-ic{flex:none;width:20px;text-align:center;color:var(--link);font-size:15px}
-  .mm-sub{font-size:13.5px;color:var(--ink-soft);font-weight:500}   /* suffixe inline « — hors urgence » */
+  .mm-chev{flex:none;display:inline-flex;color:var(--ink-soft)}
   .mm-sep{height:1px;background:var(--line);margin:4px 8px}
-  /* Action DESTRUCTIVE (canvas) : toujours dernière, isolée par un séparateur, jamais en fond
-     plein — rouge « raccrocher » (--critical couvre l'arrêt d'un processus vivant). */
+  /* A337 : INTERTITRE de groupe (Session · L'aide) — à huit rangées et plus, on balaie par groupe. */
+  .mm-head{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:10px 10px 4px}
+  /* A337 : les OUVERTURES en TUILES — elles ouvrent une vue, elles ne font rien ; quatre rangées
+     (176 px) tiennent en 56. Même classe `.mm-row` : clavier, focus et témoins inchangés. */
+  .mm-tiles{display:flex;gap:4px}
+  .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:56px;padding:6px 4px;background:var(--surface-2);font-size:11px;font-weight:700;text-align:center;line-height:1.1}
+  .mm-row.mm-tile .mm-ic{width:auto;display:inline-flex}
+  .mm-row.mm-tile:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
+  /* Action DESTRUCTIVE (canvas) : toujours dernière, jamais en fond plein — rouge « raccrocher »
+     (--critical couvre l'arrêt d'un processus vivant). A337 : c'est un PIED encadré, isolé par un
+     vide, plus un filet — le cadre porte la séparation. */
   .mm-row.danger{color:var(--critical);font-weight:700}
   .mm-row.danger .mm-ic{color:currentColor}
   .mm-row.danger:hover{background:color-mix(in srgb,var(--critical) 8%,transparent)}
+  .mm-row.mm-end{margin-top:6px;min-height:48px;border:1.5px solid color-mix(in srgb,var(--critical-bd) 45%,transparent)}
   /* SPEC §5 (éditeurs) : actions dans l'EN-TÊTE — Aperçu (tonal) + Enregistrer (rempli, à droite). */
   .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:14px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   .hdr-act2:hover{background:var(--primary-100)}
@@ -2022,7 +2037,7 @@
      11 px de l'accueil (14 des 26 éléments visibles y étaient au plancher). Un plancher est une
      exception motivée ; il ne peut pas être aussi le corps de texte de l'écran d'entrée. Les
      étiquettes de ZONE (« Type », « Catég. », `.rail-n`) restent à 11 : là, c'est légitime. */
-  .dir-sub{display:flex;align-items:center;gap:4px;margin-top:2px;min-width:0;font-size:12px;
+  .dir-sub{display:flex;align-items:baseline;gap:10px;margin-top:2px;min-width:0;font-size:12px;
     color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* ⚠ Ce qui déborde n'affame pas le reste : items DURS (chrono, registre, statut, date) jamais
      rétrécis ; items SOUPLES ellipsés chacun POUR SOI. Et un jeton de 5 caractères ou moins est
@@ -2031,9 +2046,13 @@
   .dir-sub>*{flex:none}
   /* Maquette v5.18 : la catégorie de la méta porte sa pastille (la couleur n'est jamais seule,
      le nom est là — SPEC crise §1). */
-  .dir-cat{display:inline-flex;align-items:center;gap:4px}
-  .dir-cat .cat-dot{width:7px;height:7px;box-shadow:none}
-  .dir-sub>:is(b,.libtag,.dir-cat,.dir-code){flex:0 1 auto;min-width:2.5em;
+  /* A338 : la ligne s'aligne sur la LIGNE DE BASE (nature 11 px, texte 12 px) ; la pastille se cale
+     au milieu des bas-de-casse. Nature et état sont DURS ; la catégorie s'abrège la première (flex-shrink
+     4), le discriminant ensuite et jamais sous 4 em — un discriminant de trente signes existe (témoin). */
+  .dir-cat .cat-dot{display:inline-block;vertical-align:middle;width:7px;height:7px;margin-right:4px;box-shadow:none}
+  .dir-id{display:contents}
+  .dir-id>b{flex:0 1 auto;min-width:4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dir-id>:is(.libtag,.dir-cat){flex:0 4 auto;min-width:2.5em;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* ⚠ PRIORITAIRE, PAS RIGIDE — ET C'EST UN TÉMOIN QUI A TRANCHÉ. Écrit `flex:none`, le jeton
      court ne cédait plus RIEN : mesuré à 330 px sur une rangée portant un chrono de session vive
@@ -2044,26 +2063,20 @@
      le jeton court cède — jamais sous trois caractères, où il cesserait de désigner quoi que ce
      soit. Aux largeurs où le manque est absorbable (390 px et au-delà), il garde sa largeur
      entière, ce qui est tout l'objet de la règle. */
-  .dir-sub>.m-dur{flex:0 1 auto;min-width:3ch}
+  .dir-id>.m-dur{flex:0 1 auto;min-width:3ch}
   /* ⚠ SOUS 400 px, LE PLANCHER DES ITEMS SOUPLES DESCEND. Le tag de nature est un item DUR de
      plus : sur la largeur la plus contrainte servie, avec un code et une catégorie très longs,
      la somme des items durs et des quatre planchers de 2,5 em dépassait la boîte — et c'est
      alors la DATE, dernier item dur, qui était POUSSÉE DEHORS. Or la règle est qu'un item ne
      disparaît pas : il s'abrège. On abaisse donc le plancher là, et là seulement — 2,5 em reste
      le bon compromis dès qu'il y a de la place. */
-  @media (max-width:399.98px){.dir-sub>:is(b,.libtag,.dir-cat,.dir-code){min-width:1.6em}}
+  @media (max-width:399.98px){.dir-id>:is(.libtag,.dir-cat){min-width:1.6em}}
   /* LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS (maquette). Une chip a une
      largeur INCOMPRESSIBLE : dans une grille d'accueil qui compte deux à quatre colonnes selon la
      largeur, elles se coupaient net dès que la piste rétrécissait — c'est ce qui a été signalé.
      Du texte, lui, s'ellipse proprement et par la QUEUE, donc dans l'ordre d'importance choisi.
      Les composants partagés (`.tag`, `.status-tag`) sont donc DÉSHABILLÉS ICI, et ici seulement :
      on ne touche pas à leur dessin ailleurs, où la chip a un sens. */
-  /* ⚠ QUATORZIÈME PIÈGE DE CASCADE : `.tag.todo` vaut (0,2,0) et est déclarée PLUS BAS que
-     `.dir-sub .tag` — à spécificité égale, c'est l'ORDRE qui tranche, et le fond gris de la chip
-     revenait. On passe par `.dir-row` (0,3,0), qui gagne quel que soit l'ordre : c'est la règle du
-     dossier depuis la v4.25.1 — « pour une géométrie, ne jamais dépendre de l'ordre ». */
-  .dir-row .dir-sub :is(.tag,.status-tag){background:none;border:0;padding:0;border-radius:0;
-    font-size:11px;font-weight:700;color:var(--ink-soft);text-decoration:none}
   /* Le tag de NATURE : du TEXTE en petites capitales, pas une pastille — c'est la doctrine de
      cette méta (« du texte séparé par des points, pas une suite de chips »), et ce n'est pas un
      détail de goût : mesuré, la pastille coûtait 16 px de chrome par rangée et faisait basculer
@@ -2072,16 +2085,16 @@
   .dir-kind{flex:none;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
     color:var(--ink-soft)}
   .dir-sub b{font-weight:700;color:var(--ink)}
-  .dir-row .dir-sub :is(.tag.todo,.tag.stale){color:var(--verify)}
-  /* Le point de séparation est posé par la CASCADE : rien à intercaler dans le gabarit, donc
-     aucun séparateur orphelin quand un élément manque. */
-  .dir-sub>*+*::before{content:"·";margin-right:4px;color:var(--line-strong);font-weight:400}
-  /* Cible du « △ À compléter » : rembourrage compensé de 4 px de CHAQUE côté — 6 px recouvraient
-     le bouton-titre de 13 px ; la pastille reste conforme par ISOLEMENT (WCAG 2.5.8). ⚠ La
-     compensation ne part JAMAIS vers le bas (elle passerait sur la rangée suivante, mesuré).
-     Détail : doctrine-css.md C49. */
-  .dir-row .dir-sub .tag.todo{padding:4px;margin:-4px;cursor:pointer}
-  .dir-sub .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* A338 : UN état par rangée, en mots, calé à droite — le plus urgent l'emporte ; ambre = attend
+     quelque chose de vous. Sous 360 px effectifs, identité et état ne tiennent pas sur une ligne
+     (mesuré : 268 px pour 208) : l'état passe SOUS l'identité, sur toutes les rangées. */
+  .dir-st{flex:none;margin-left:auto;padding-left:6px}
+  .dir-st.w{color:var(--verify)}
+  .dir-live{font-variant-numeric:tabular-nums}
+  html.zw360 .dir-sub{flex-direction:column;align-items:stretch;gap:2px}
+  html.zw360 .dir-id{display:flex;align-items:baseline;gap:10px;min-width:0}
+  html.zw360 .dir-st{margin-left:0;padding-left:0}
+  html.zw360 .dir-book .dir-row{min-height:76px}   /* deux lignes de méta : une seule hauteur de rangée */
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
   .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
     background:var(--catcol,var(--line-strong));border-radius:var(--radius-md) 0 0 var(--radius-md)}
@@ -2095,25 +2108,11 @@
      jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
      carte quand il y en a une, sur le blanc du livre sinon. */
   .dir-book .dir-row.live::before{width:3px}
-  /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
-     registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
-     VIVANT. Ce dernier est le plus juste des trois : il occupe une place DÉJÀ prise (une date de
-     validation n'apprend rien pendant qu'une session tourne), un temps qui s'incrémente est un
-     signal non ambigu — la couleur n'est donc jamais seule (règle 8) —, et l'on apprend en plus
-     DEPUIS COMBIEN DE TEMPS. */
+  /* SESSION EN COURS : le liseré passe au registre CONFIRMATION, la rangée en prend la teinte, et le
+     mot d'état devient le chrono vivant « En cours 12:04 » (A338 : en mots, sans glyphe ni mono). */
   .dir-row.live{background:var(--ok-soft)}
   .dir-row.live::before{background:var(--ok);width:4px}
-  .dir-live{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;
-    font-weight:700;color:var(--ok)}
-  .dir-live i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
-  /* Un seul mouvement, et il vit sur l'ACCUEIL — jamais dans la vue de crise, où il est réservé à
-     l'alarme (ECAM). Opacité seule, 2,4 s : très loin du seuil de 3 Hz de WCAG 2.3.1. */
-  @media (prefers-reduced-motion:no-preference){
-    .dir-live i{animation:dirBat 2.4s ease-in-out infinite}
-    @keyframes dirBat{0%,70%,100%{opacity:1}85%{opacity:.35}}
-  }
-  .dir-code{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
-  .dir-row :is(.pinbtn,.tag.todo){position:relative;z-index:1}
+  .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
      avec 4 px de rembourrage à droite il en dépassait de 5, donc était rogné (`overflow:hidden`),
@@ -3417,6 +3416,21 @@
   .rt-set{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding-top:12px;
     border-top:1px solid var(--work-line)}
   .rt-panel .rt-set{border-top-color:var(--sys-line)}
+  /* A336 : LA SESSION SE TERMINE LÀ OÙ ELLE SE LIT — pied du volet (étroit) et du rail (large),
+     après les réglages : dernière rangée, séparée d'un filet, loin du dock et de « Noter l'heure ».
+     Contour, jamais un aplat ; la fenêtre « Terminer la session ? » reste la seule porte. */
+  .rt-sess{margin-top:12px;padding-top:12px;border-top:1px solid var(--work-line)}
+  .rt-panel .rt-sess{border-top-color:var(--sys-line)}
+  .rt-since{font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-soft)}
+  .rt-end{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 14px;border:1.5px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--critical);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;text-align:left}
+  .rt-end .rt-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .rt-end:hover{background:color-mix(in srgb,var(--critical) 6%,transparent)}
+  .rt-end:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .rt-endtag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+  .rt-panel .rt-end{background:none;border-color:color-mix(in srgb,var(--crit-sys) 55%,transparent);color:var(--crit-sys)}
+  .rt-panel .rt-end:hover{background:var(--sys-2)}
+  .rt-panel :is(.rt-since,.rt-endtag){color:var(--sys-ink-2)}
+  .rt-panel .rt-end:focus-visible{outline-color:var(--sys-ink)}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente.
      `position:relative` porte le HALO tactile (cf. le bloc A8 plus bas) : le dessin reste à 36 px,

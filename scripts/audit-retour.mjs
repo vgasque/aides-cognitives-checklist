@@ -33,7 +33,7 @@ const m=await p.evaluate(async()=>{
  return {rows,noLeadSep:rows[0]!=='—',noDblSep:!rows.some((x,i)=>x==='—'&&rows[i-1]==='—'),
   ordre:ix(/^Complication/)<ix(/Se repérer/)&&ix(/Se repérer/)<ix(/Répéter en exercice/)&&ix(/Répéter en exercice/)<ix(/^Modifier/)&&ix(/^Modifier/)<ix(/^Exporter /),
   icons:uiIcon('ladder')!==uiIcon('flow')&&uiIcon('archive')!==uiIcon('history')&&uiIcon('ladder').includes('svg')&&uiIcon('archive').includes('svg')};});
-t('conduite → session → gestion → export (⚡ < repérer < exercice < Modifier < export)', m.ordre, JSON.stringify(m.rows));
+t('conduite → session → gestion → export (⚡ < repérer < exercice < Modifier < export) — avant la session : tuiles + intertitres, gestion à plat (A337)', m.ordre, JSON.stringify(m.rows));
 t('séparateurs normalisés (jamais en tête, jamais doublés)', m.noLeadSep&&m.noDblSep);
 t('icônes distinctes : ladder ≠ flow, archive ≠ history', m.icons);
 console.log('=== pile de retour + garde double-tap ===');

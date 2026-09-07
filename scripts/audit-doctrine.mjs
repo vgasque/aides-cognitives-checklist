@@ -2653,7 +2653,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
         [...sb2.children].forEach(e=>{if(e.getBoundingClientRect().right>rr.right+0.5)h++;});});return h;})(),
       /* Et la DATE, qui est un item DUR, ne doit jamais être amputée — un chiffre tronqué est
          pire qu'absent (règle du quai). */
-      dateCoupee:(()=>{let c2=0;rows.forEach(x=>{const e=x.querySelector('.card-date');
+      dateCoupee:(()=>{let c2=0;rows.forEach(x=>{const e=x.querySelector('.dir-st');
         if(e&&e.scrollWidth>e.clientWidth+1)c2++;});return c2;})(),
       pistes:getComputedStyle(rows[0].parentElement).gridTemplateColumns.split(' ').filter(Boolean).length,
       piste:Math.round(rows[0].getBoundingClientRect().width),

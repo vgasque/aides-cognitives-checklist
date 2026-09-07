@@ -386,7 +386,9 @@
   DÉCLENCHEUR (v4.26.1, décision utilisateur — UN bouton CONSTANT, pas un par événement) :
   `⚡ Complication(s) (n)` sur la carte du BOUT — étapes ET décision — qui ouvre l'INDEX
   `#cxModal` (grandes rangées : événement + « interrompt le parcours — retour prévu » ou
-  « ouvre : <aide> ↗ ») + la MÊME entrée au menu ⋯. C'est le modèle QRH/Stanford : UN objet à
+  « ouvre : <aide> ↗ ») + la MÊME entrée au menu ⋯ — **en session, cette double entrée n'existe
+  plus depuis la v5.28 (A337) : le dock porte la touche ⚡ constante, le menu ne le répète pas ;
+  la rangée du menu reste AVANT la session, où le dock ne l'a pas.** C'est le modèle QRH/Stanford : UN objet à
   index par onglets, pas un bouton de cockpit par urgence — l'appel automatique ECAM ne vaut que
   pour les pannes CAPTÉES, ce que l'app ne fait pas ; et N boutons rouges qui se ressemblent
   obligeraient à LIRE chacun sous stress, quand un mot constant à position constante s'apprend.
@@ -2938,6 +2940,9 @@
   sur deux lignes** et une **méta sur une seule**, ellipsée — dont l'ORDRE est celui de
   l'importance, puisque c'est la QUEUE qui tombe : état (chrono, statut, à compléter), puis
   discriminant, puis catégorie, et enfin code et date, qui sont ce qu'on peut perdre.
+  **ORDRE REVU EN v5.28 (A338, `lot-v5-28.md`)** : identité à gauche (nature · discriminant ·
+  ● catégorie), UN état en mots calé à droite ; la catégorie puis le discriminant s'abrègent,
+  jamais la nature ni l'état.
   **⚠ LES 71 px SONT LE RYTHME DE L'ANNUAIRE, PAS UNE PROPRIÉTÉ DE LA RANGÉE (v5.0.0, signalé à
   l'usage : « en mode recherche le texte dépasse des cartes d'accueil »)** : ils ont été posés sur
   un contenu BORNÉ par construction — titre à 2 lignes, méta à 1. En RECHERCHE la rangée porte EN
@@ -4023,7 +4028,9 @@
   en est sorti avec la surface, lot T14),
   puis le CYCLE DE VIE de la session (Répéter en exercice, Recommencer le parcours, Historique),
   puis la GESTION (Modifier, Versions, Dupliquer), puis les EXPORTS ; la rangée `danger`
-  (Terminer…) ferme toujours la liste. Avant, « Modifier »/« Versions » — DÉSACTIVÉES pendant
+  (Terminer…) ferme toujours la liste. **Refait en v5.28 (A337, `lot-v5-28.md`)** : ouvertures
+  en TUILES, intertitres, sous-titre sous le libellé, pli « L'aide › » en session, rangée danger
+  en pied encadré, et le menu ne répète pas le dock en session — l'ORDRE ci-dessus est conservé. Avant, « Modifier »/« Versions » — DÉSACTIVÉES pendant
   une session — trônaient en tête : deux rangées mortes au moment où le menu sert le plus.
   `setMoreMenu` NORMALISE les séparateurs (jamais en tête/queue, jamais deux de suite : un groupe
   conditionnel vide disparaît sans que l'appelant s'en soucie).
@@ -4148,7 +4155,8 @@
   modes. CSS retiré avec le composant : `.ov-controls`, `.btn.btn-hold` et son exception dans
   `holdToReset` (les seuls « maintenir » restants sont `.tm-reset`/`.cn-reset`).
 - **Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0)** : SEULE porte de sortie d'une
-  session (menu ⋯, fin d'algorithme, ✕ du bandeau sessions — jamais d'arrêt direct). Contexte
+  session (menu ⋯, fin d'algorithme, ✕ du bandeau sessions, et depuis la v5.28 la rangée au PIED du
+  volet et du rail — A336 — ; jamais d'arrêt direct). Contexte
   (titre + durée) et **conséquences annoncées avant le choix** ; « Poursuivre » = action sûre
   (contour, focus initial, Échap) ; « Terminer » = un des SEULS rouges pleins de l'app
   (`--critical-bd`). Terminer depuis l'écran de crise ramène à l'accueil. **Même registre pour

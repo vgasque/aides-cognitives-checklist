@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-32MDSu+FE3SMLo8yrFsKi6GFdpDbBkwDPFfChsVmpzk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-fZKr08HQXJ/YyKZvDHxywGQmJwdtHmV/v8a2YS9tH6c='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -988,22 +988,37 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      par un `calc()` de variables viewport — juste sur Blink, faux en pratique : trois hypothèses
      de plateforme qui se MESURENT, ne se déduisent pas (dossier « bande basse iOS »).
      `overscroll-behavior:contain` : la page ne défile pas derrière. Détail : doctrine-css.md C14. */
-  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:262px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
+  .more-menu{position:absolute;top:calc(100% + 6px);right:14px;width:min(300px,calc(100vw - 28px));background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;z-index:45;
     overflow-y:auto;overscroll-behavior:contain}
   .more-menu[hidden]{display:none}
   .mm-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 10px;border:0;background:none;border-radius:8px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+  /* A337 : le sous-titre vit SOUS le libellé, sur UNE ligne coupée au besoin — la hauteur d'une
+     rangée est prévisible (44 ou 52 px), plus de rangée à trois lignes. */
+  .mm-row.two{min-height:52px;padding:6px 10px}
+  .mm-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .mm-sub{display:block;font-size:12px;line-height:1.3;color:var(--ink-soft);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mm-row:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
   .mm-row:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .mm-row[disabled]{opacity:.45;cursor:default}
   .mm-row[disabled]:hover{background:none}
   .mm-ic{flex:none;width:20px;text-align:center;color:var(--link);font-size:15px}
-  .mm-sub{font-size:13.5px;color:var(--ink-soft);font-weight:500}   /* suffixe inline « — hors urgence » */
+  .mm-chev{flex:none;display:inline-flex;color:var(--ink-soft)}
   .mm-sep{height:1px;background:var(--line);margin:4px 8px}
-  /* Action DESTRUCTIVE (canvas) : toujours dernière, isolée par un séparateur, jamais en fond
-     plein — rouge « raccrocher » (--critical couvre l'arrêt d'un processus vivant). */
+  /* A337 : INTERTITRE de groupe (Session · L'aide) — à huit rangées et plus, on balaie par groupe. */
+  .mm-head{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);padding:10px 10px 4px}
+  /* A337 : les OUVERTURES en TUILES — elles ouvrent une vue, elles ne font rien ; quatre rangées
+     (176 px) tiennent en 56. Même classe `.mm-row` : clavier, focus et témoins inchangés. */
+  .mm-tiles{display:flex;gap:4px}
+  .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:56px;padding:6px 4px;background:var(--surface-2);font-size:11px;font-weight:700;text-align:center;line-height:1.1}
+  .mm-row.mm-tile .mm-ic{width:auto;display:inline-flex}
+  .mm-row.mm-tile:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
+  /* Action DESTRUCTIVE (canvas) : toujours dernière, jamais en fond plein — rouge « raccrocher »
+     (--critical couvre l'arrêt d'un processus vivant). A337 : c'est un PIED encadré, isolé par un
+     vide, plus un filet — le cadre porte la séparation. */
   .mm-row.danger{color:var(--critical);font-weight:700}
   .mm-row.danger .mm-ic{color:currentColor}
   .mm-row.danger:hover{background:color-mix(in srgb,var(--critical) 8%,transparent)}
+  .mm-row.mm-end{margin-top:6px;min-height:48px;border:1.5px solid color-mix(in srgb,var(--critical-bd) 45%,transparent)}
   /* SPEC §5 (éditeurs) : actions dans l'EN-TÊTE — Aperçu (tonal) + Enregistrer (rempli, à droite). */
   .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:14px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   .hdr-act2:hover{background:var(--primary-100)}
@@ -2376,7 +2391,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      11 px de l'accueil (14 des 26 éléments visibles y étaient au plancher). Un plancher est une
      exception motivée ; il ne peut pas être aussi le corps de texte de l'écran d'entrée. Les
      étiquettes de ZONE (« Type », « Catég. », `.rail-n`) restent à 11 : là, c'est légitime. */
-  .dir-sub{display:flex;align-items:center;gap:4px;margin-top:2px;min-width:0;font-size:12px;
+  .dir-sub{display:flex;align-items:baseline;gap:10px;margin-top:2px;min-width:0;font-size:12px;
     color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* ⚠ Ce qui déborde n'affame pas le reste : items DURS (chrono, registre, statut, date) jamais
      rétrécis ; items SOUPLES ellipsés chacun POUR SOI. Et un jeton de 5 caractères ou moins est
@@ -2385,9 +2400,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-sub>*{flex:none}
   /* Maquette v5.18 : la catégorie de la méta porte sa pastille (la couleur n'est jamais seule,
      le nom est là — SPEC crise §1). */
-  .dir-cat{display:inline-flex;align-items:center;gap:4px}
-  .dir-cat .cat-dot{width:7px;height:7px;box-shadow:none}
-  .dir-sub>:is(b,.libtag,.dir-cat,.dir-code){flex:0 1 auto;min-width:2.5em;
+  /* A338 : la ligne s'aligne sur la LIGNE DE BASE (nature 11 px, texte 12 px) ; la pastille se cale
+     au milieu des bas-de-casse. Nature et état sont DURS ; la catégorie s'abrège la première (flex-shrink
+     4), le discriminant ensuite et jamais sous 4 em — un discriminant de trente signes existe (témoin). */
+  .dir-cat .cat-dot{display:inline-block;vertical-align:middle;width:7px;height:7px;margin-right:4px;box-shadow:none}
+  .dir-id{display:contents}
+  .dir-id>b{flex:0 1 auto;min-width:4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dir-id>:is(.libtag,.dir-cat){flex:0 4 auto;min-width:2.5em;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* ⚠ PRIORITAIRE, PAS RIGIDE — ET C'EST UN TÉMOIN QUI A TRANCHÉ. Écrit `flex:none`, le jeton
      court ne cédait plus RIEN : mesuré à 330 px sur une rangée portant un chrono de session vive
@@ -2398,26 +2417,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      le jeton court cède — jamais sous trois caractères, où il cesserait de désigner quoi que ce
      soit. Aux largeurs où le manque est absorbable (390 px et au-delà), il garde sa largeur
      entière, ce qui est tout l'objet de la règle. */
-  .dir-sub>.m-dur{flex:0 1 auto;min-width:3ch}
+  .dir-id>.m-dur{flex:0 1 auto;min-width:3ch}
   /* ⚠ SOUS 400 px, LE PLANCHER DES ITEMS SOUPLES DESCEND. Le tag de nature est un item DUR de
      plus : sur la largeur la plus contrainte servie, avec un code et une catégorie très longs,
      la somme des items durs et des quatre planchers de 2,5 em dépassait la boîte — et c'est
      alors la DATE, dernier item dur, qui était POUSSÉE DEHORS. Or la règle est qu'un item ne
      disparaît pas : il s'abrège. On abaisse donc le plancher là, et là seulement — 2,5 em reste
      le bon compromis dès qu'il y a de la place. */
-  @media (max-width:399.98px){.dir-sub>:is(b,.libtag,.dir-cat,.dir-code){min-width:1.6em}}
+  @media (max-width:399.98px){.dir-id>:is(.libtag,.dir-cat){min-width:1.6em}}
   /* LA MÉTA EST DU TEXTE SÉPARÉ PAR DES POINTS, PAS UNE SUITE DE CHIPS (maquette). Une chip a une
      largeur INCOMPRESSIBLE : dans une grille d'accueil qui compte deux à quatre colonnes selon la
      largeur, elles se coupaient net dès que la piste rétrécissait — c'est ce qui a été signalé.
      Du texte, lui, s'ellipse proprement et par la QUEUE, donc dans l'ordre d'importance choisi.
      Les composants partagés (`.tag`, `.status-tag`) sont donc DÉSHABILLÉS ICI, et ici seulement :
      on ne touche pas à leur dessin ailleurs, où la chip a un sens. */
-  /* ⚠ QUATORZIÈME PIÈGE DE CASCADE : `.tag.todo` vaut (0,2,0) et est déclarée PLUS BAS que
-     `.dir-sub .tag` — à spécificité égale, c'est l'ORDRE qui tranche, et le fond gris de la chip
-     revenait. On passe par `.dir-row` (0,3,0), qui gagne quel que soit l'ordre : c'est la règle du
-     dossier depuis la v4.25.1 — « pour une géométrie, ne jamais dépendre de l'ordre ». */
-  .dir-row .dir-sub :is(.tag,.status-tag){background:none;border:0;padding:0;border-radius:0;
-    font-size:11px;font-weight:700;color:var(--ink-soft);text-decoration:none}
   /* Le tag de NATURE : du TEXTE en petites capitales, pas une pastille — c'est la doctrine de
      cette méta (« du texte séparé par des points, pas une suite de chips »), et ce n'est pas un
      détail de goût : mesuré, la pastille coûtait 16 px de chrome par rangée et faisait basculer
@@ -2426,16 +2439,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-kind{flex:none;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
     color:var(--ink-soft)}
   .dir-sub b{font-weight:700;color:var(--ink)}
-  .dir-row .dir-sub :is(.tag.todo,.tag.stale){color:var(--verify)}
-  /* Le point de séparation est posé par la CASCADE : rien à intercaler dans le gabarit, donc
-     aucun séparateur orphelin quand un élément manque. */
-  .dir-sub>*+*::before{content:"·";margin-right:4px;color:var(--line-strong);font-weight:400}
-  /* Cible du « △ À compléter » : rembourrage compensé de 4 px de CHAQUE côté — 6 px recouvraient
-     le bouton-titre de 13 px ; la pastille reste conforme par ISOLEMENT (WCAG 2.5.8). ⚠ La
-     compensation ne part JAMAIS vers le bas (elle passerait sur la rangée suivante, mesuré).
-     Détail : doctrine-css.md C49. */
-  .dir-row .dir-sub .tag.todo{padding:4px;margin:-4px;cursor:pointer}
-  .dir-sub .tag.todo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* A338 : UN état par rangée, en mots, calé à droite — le plus urgent l'emporte ; ambre = attend
+     quelque chose de vous. Sous 360 px effectifs, identité et état ne tiennent pas sur une ligne
+     (mesuré : 268 px pour 208) : l'état passe SOUS l'identité, sur toutes les rangées. */
+  .dir-st{flex:none;margin-left:auto;padding-left:6px}
+  .dir-st.w{color:var(--verify)}
+  .dir-live{font-variant-numeric:tabular-nums}
+  html.zw360 .dir-sub{flex-direction:column;align-items:stretch;gap:2px}
+  html.zw360 .dir-id{display:flex;align-items:baseline;gap:10px;min-width:0}
+  html.zw360 .dir-st{margin-left:0;padding-left:0}
+  html.zw360 .dir-book .dir-row{min-height:76px}   /* deux lignes de méta : une seule hauteur de rangée */
   /* Le liseré porte la CATÉGORIE — la pastille faisait double emploi (règle 14 : elle est purgée). */
   .dir-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
     background:var(--catcol,var(--line-strong));border-radius:var(--radius-md) 0 0 var(--radius-md)}
@@ -2449,25 +2462,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
      carte quand il y en a une, sur le blanc du livre sinon. */
   .dir-book .dir-row.live::before{width:3px}
-  /* SESSION EN COURS — trois canaux cumulés, aucun ne coûtant de hauteur : le liseré passe au
-     registre CONFIRMATION, la rangée en prend la teinte, et la DATE cède la place au CHRONO
-     VIVANT. Ce dernier est le plus juste des trois : il occupe une place DÉJÀ prise (une date de
-     validation n'apprend rien pendant qu'une session tourne), un temps qui s'incrémente est un
-     signal non ambigu — la couleur n'est donc jamais seule (règle 8) —, et l'on apprend en plus
-     DEPUIS COMBIEN DE TEMPS. */
+  /* SESSION EN COURS : le liseré passe au registre CONFIRMATION, la rangée en prend la teinte, et le
+     mot d'état devient le chrono vivant « En cours 12:04 » (A338 : en mots, sans glyphe ni mono). */
   .dir-row.live{background:var(--ok-soft)}
   .dir-row.live::before{background:var(--ok);width:4px}
-  .dir-live{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;
-    font-weight:700;color:var(--ok)}
-  .dir-live i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
-  /* Un seul mouvement, et il vit sur l'ACCUEIL — jamais dans la vue de crise, où il est réservé à
-     l'alarme (ECAM). Opacité seule, 2,4 s : très loin du seuil de 3 Hz de WCAG 2.3.1. */
-  @media (prefers-reduced-motion:no-preference){
-    .dir-live i{animation:dirBat 2.4s ease-in-out infinite}
-    @keyframes dirBat{0%,70%,100%{opacity:1}85%{opacity:.35}}
-  }
-  .dir-code{flex:none;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
-  .dir-row :is(.pinbtn,.tag.todo){position:relative;z-index:1}
+  .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */
   /* L'ÉPINGLE À 26 px GARDE UNE CIBLE DE 44 par un halo — mais le halo doit TENIR DANS LA RANGÉE :
      avec 4 px de rembourrage à droite il en dépassait de 5, donc était rogné (`overflow:hidden`),
@@ -3771,6 +3770,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-set{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding-top:12px;
     border-top:1px solid var(--work-line)}
   .rt-panel .rt-set{border-top-color:var(--sys-line)}
+  /* A336 : LA SESSION SE TERMINE LÀ OÙ ELLE SE LIT — pied du volet (étroit) et du rail (large),
+     après les réglages : dernière rangée, séparée d'un filet, loin du dock et de « Noter l'heure ».
+     Contour, jamais un aplat ; la fenêtre « Terminer la session ? » reste la seule porte. */
+  .rt-sess{margin-top:12px;padding-top:12px;border-top:1px solid var(--work-line)}
+  .rt-panel .rt-sess{border-top-color:var(--sys-line)}
+  .rt-since{font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-soft)}
+  .rt-end{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 14px;border:1.5px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--critical);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;text-align:left}
+  .rt-end .rt-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .rt-end:hover{background:color-mix(in srgb,var(--critical) 6%,transparent)}
+  .rt-end:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .rt-endtag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+  .rt-panel .rt-end{background:none;border-color:color-mix(in srgb,var(--crit-sys) 55%,transparent);color:var(--crit-sys)}
+  .rt-panel .rt-end:hover{background:var(--sys-2)}
+  .rt-panel :is(.rt-since,.rt-endtag){color:var(--sys-ink-2)}
+  .rt-panel .rt-end:focus-visible{outline-color:var(--sys-ink)}
   .rt-sound{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:44px;font-size:12px;font-weight:600}
   /* ✕ de repli du panneau (canvas) : en étroit seulement — en large la colonne est permanente.
      `position:relative` porte le HALO tactile (cf. le bloc A8 plus bas) : le dessin reste à 36 px,
@@ -8125,7 +8139,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.27.1';
+const APP_VERSION='5.28.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13885,8 +13899,20 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)azrAim(fals
 function sessionLive(id){const L=liveSessions[id];return !!(L&&L.started);}
 function dirLiveMs(id){const L=liveSessions[id];if(!L)return 0;
   const t0=L.startedAt||(L.rt&&L.rt.startedAt)||0;return t0?Math.max(0,Date.now()-t0):0;}
-function dirLiveHtml(id){
-  return `<span class="dir-live" data-dirlive="${esc(id)}"><i aria-hidden="true"></i><span class="sr-only">Session en cours depuis </span>${esc(fmtMs(dirLiveMs(id)))}</span>`;}
+/* A338 : UN état par rangée, le plus urgent, en mots : session vive > Brouillon / À relire >
+   À compléter > Sans date > À revérifier (+ date) > Validé(e) + date. Le dernier nœud du chrono
+   reste un texte nu : `paintDirLive` le réécrit chaque seconde. */
+function dirStateHtml(x,fem,isLive){
+  if(isLive)return `<span class="dir-st dir-live" data-dirlive="${esc(x.id)}"><span class="sr-only">Session en cours depuis </span><span>En cours </span>${esc(fmtMs(dirLiveMs(x.id)))}</span>`;
+  const k=statusKey(x.status);
+  if(k==='draft')return '<span class="dir-st">Brouillon</span>';
+  if(k==='review')return '<span class="dir-st w">À relire</span>';
+  const sp=fem?completionSpots(x):[];
+  if(sp.length)return `<span class="dir-st w" title="Reste à compléter : ${esc(sp.join(' · '))}">À compléter</span>`;
+  if(!x.validatedAt)return '<span class="dir-st w">Sans date</span>';
+  const d=esc(fmtDateShort(x.validatedAt)),full=esc(fmtDate(x.validatedAt));
+  if(staleDate(x.validatedAt))return `<span class="dir-st w" title="${full} — plus de 2 ans : à revérifier">À revérifier <span class="d">${d}</span></span>`;
+  return `<span class="dir-st" title="${full}">Validé${fem?'e':''} <span class="d">${d}</span></span>`;}
 function paintDirLive(){
   document.querySelectorAll('[data-dirlive]').forEach(e=>{
     const v=fmtMs(dirLiveMs(e.dataset.dirlive));
@@ -14458,7 +14484,7 @@ function _homeCfgF(){return {rerender:renderFiches,crossKind:'protocols',create:
         ${selCkHtml(f)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(f.id)}"><span class="dir-t">${esc(f.title)||'Sans titre'}</span></button>
-          <span class="dir-sub">${dirKindHtml('f')}${isLive?dirLiveHtml(f.id):''}${statusChip(f.status,true,{validatedAt:f.validatedAt})}${staleDate(f.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(f.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${(()=>{const sp=completionSpots(f);return sp.length?`<span class="tag todo" role="button" tabindex="0" data-todo aria-label="À compléter — ${esc(sp.join(' · '))}" title="Reste à compléter : ${esc(sp.join(' · '))}">△<span class="sr-only"> à compléter</span></span>`:'';})()}${f.discriminant?`<b class="${metaDur(f.discriminant).trim()}">${esc(f.discriminant)}</b>`:''}${searchLibTag(f)}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${f.code?`<span class="dir-code${metaDur(f.code)}">${esc(f.code)}</span>`:''}${(!isLive&&f.validatedAt)?`<span class="card-date${staleDate(f.validatedAt)?' stale':''}" title="${esc(fmtDate(f.validatedAt))}">${esc(fmtDateShort(f.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub"><span class="dir-id">${dirKindHtml('f')}${f.discriminant?`<b>${esc(f.discriminant)}</b>`:''}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${searchLibTag(f)}</span>${dirStateHtml(f,true,isLive)}</span>
           ${inQ?searchSnippet(ficheSnipParts(f),state.q)+docSnipHtml(f):''}
         </div>
         <button class="pinbtn${isPinned(f.id)?' on':''}" data-pin="${esc(f.id)}" aria-label="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(f.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(f.id))}</button>
@@ -14549,7 +14575,7 @@ function _homeCfgP(){return {rerender:renderProtocols,crossKind:'fiches',create:
         ${selCkHtml(p)}
         <div class="dir-main">
           <button class="card-open" data-open="${esc(p.id)}"><span class="dir-t">${esc(p.title)||'Sans titre'}</span></button>
-          <span class="dir-sub">${dirKindHtml('p')}${searchLibTag(p)}${statusChip(p.status,false,{validatedAt:p.validatedAt})}${staleDate(p.validatedAt)?`<span class="tag stale" title="${esc(fmtDate(p.validatedAt))} — plus de 2 ans : à revérifier">△<span class="sr-only"> à revérifier</span></span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${p.code?`<span class="dir-code${metaDur(p.code)}">${esc(p.code)}</span>`:''}${p.validatedAt?`<span class="card-date${staleDate(p.validatedAt)?' stale':''}" title="${esc(fmtDate(p.validatedAt))}">${esc(fmtDateShort(p.validatedAt))}</span>`:''}</span>
+          <span class="dir-sub"><span class="dir-id">${dirKindHtml('p')}${cc?`<span class="dir-cat${metaDur(cc.name)}"><span class="cat-dot" style="--catcol:${safeColor(cc.color)}"></span>${esc(cc.name)}</span>`:''}${nDoc?`<span>${nDoc} PDF</span>`:''}${searchLibTag(p)}</span>${dirStateHtml(p,false,false)}</span>
           ${inQ?searchSnippet(protoSnipParts(p),state.q)+docSnipHtml(p):''}
         </div>
         <button class="pinbtn${isPinned(p.id)?' on':''}" data-pin="${esc(p.id)}" aria-label="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}" title="${isPinned(p.id)?'Désépingler':'Épingler en accès direct'}">${pinIcon(isPinned(p.id))}</button>
@@ -17734,6 +17760,12 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
     :'';
   const timersC=`${tl.length?`<div class="rt-grid">${tl.map(timerCard).join('')}</div>`:''}${minis.map(timerMiniRow).join('')}`;
   const timersB=timersC+tmAddHtml();
+  /* A336 : la session se termine LÀ OÙ ELLE SE LIT — pied du volet et du rail, après les réglages ;
+     jamais chez l'invité (sa porte est « Quitter le partage »). Le tap n'arrête rien : il ouvre la
+     fenêtre « Terminer la session ? », seule porte de sortie (SPEC crise §3). */
+  const sessB=(Runtime.started&&!sharedShown()&&!state.previewFrom)
+    ?`<div class="rt-sess">${mqRail.matches?'<div class="rail-head"><span class="rail-title">Session</span>':'<div class="tk-head"><b>Session</b>'}<span class="rt-since">depuis ${new Date(Runtime.startedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span></div><button type="button" class="rt-end" id="rtEndSess">${uiIcon('stop',16)}<span class="rt-tx"><span>${Runtime.exercise?'Terminer l’exercice…':'Terminer la session…'}</span><span class="rt-endtag">confirmation demandée</span></span></button></div>`
+    :'';
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
   if(mqRail.matches){
     return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}</div>${timersC}`
@@ -17742,7 +17774,7 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
       // A309 : les deux ajouts sur UNE rangée sous les compteurs (même famille de geste, 44 px gardés).
       +`<div class="rt-adds">${tmAddBtn()}${cnAddHtml()}</div>`+tmAddDur()
       +(jalonsB?`<div class="rail-head rail-fam"><span class="rail-title">Jalons</span>${jalons.length>1?`<span class="rail-n">${jalons.length}</span>`:''}</div>${jalonsB}`:'')
-      +`<div class="rt-set">${sound}</div>`;}
+      +`<div class="rt-set">${sound}</div>`+sessB;}
   /* ⚠ L'EN-TÊTE DU VOLET **EST** LE SOUS-TITRE « MINUTEURS » (v5.10.8, signalé — deux rangées qui
      nomment la même chose, AC 120-71B §5.5 ; mesuré 81 → 44 px). Le ✕ vit dans SA rangée (48 px
      de cible via halo, cf. `.rt-x`) ; la fermeture reste TRIPLE (V1) : ✕, re-tap du quai, Échap,
@@ -17754,7 +17786,7 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
-  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs${famN(nt)}</b><button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}<div class="rt-set">${sound}</div></div>`;}
+  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs${famN(nt)}</b><button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}<div class="rt-set">${sound}</div>${sessB}</div>`;}
 /* timekeeperPanel : journal d'horodatage (Runtime.events / session.events) ; heure CORRIGEABLE,
    non destructive (`e.origT` + retour). REPÈRE RÉFÉRENTIEL (v4.47.0) : `{type:'counter', id, v}`,
    libellé DÉRIVÉ au RENDU par rang chronologique (« Action N » à l'écriture divergeait à deux
@@ -18579,11 +18611,15 @@ function bindReadEvents(f,blk,cur){
      l'étanchéité) et une PORTE DE SORTIE (`Share.stop()` n'avait aucun appelant). I8 (v5.10.2) :
      les quatre rangées de CONDUITE communes sortent en fabrique (§ 5.5) ; le SOUS-TITRE de
      « Consulter » reste un PARAMÈTRE (fiche dépouillée SHARE_KEEP). Détail : doctrine-js.md J141. */
-  const conduiteRows=subConsulter=>[
-    ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Mode moniteur',ic:uiIcon('expand',16),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
-    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',16),sub:'échelle des blocs',act:openPlanSheet}]:[]),
-    ...(hasFlow(f)?[{label:'Schéma de l’algorithme',ic:uiIcon('flow',16),sub:'plein écran, zoom',act:()=>openFlowFull(f)}]:[]),
-    ...(annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',16),sub:subConsulter,act:()=>openRefSheet()}]:[])];
+  /* A337 : EN SESSION LE MENU NE RÉPÈTE PAS LE DOCK — « Complication » et « Consulter » y sont des
+     touches constantes, toujours visibles (la double entrée datait de v4.26.1, avant le dock de
+     v5.6). Les OUVERTURES restantes tiennent en UNE rangée de tuiles. Détail : lot-v5-28.md A337. */
+  const conduiteTiles=subConsulter=>{const t=[
+    ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Moniteur',ic:uiIcon('expand',18),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
+    ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',18),sub:'échelle des blocs',act:openPlanSheet}]:[]),
+    ...(hasFlow(f)?[{label:'Schéma',ic:uiIcon('flow',18),sub:'schéma de l’algorithme, plein écran',act:()=>openFlowFull(f)}]:[]),
+    ...(!started&&annexRowHtml(f)?[{label:'Consulter',ic:uiIcon('book',18),sub:subConsulter,act:()=>openRefSheet()}]:[])];
+    return t.length?[{tiles:t}]:[];};
   _moreBuild=null;
   if(!state.previewFrom&&sharedShown())_moreBuild=()=>setMoreMenu([
     /* PRENDRE LA MAIN — DANS LE MENU DE L'INVITÉ, et c'est le seul endroit où elle a un sens :
@@ -18595,7 +18631,7 @@ function bindReadEvents(f,blk,cur){
       ? [{label:'Prendre la main',ic:'⇄',sub:'vous conduirez la checklist',
           act:()=>{if(Share.takeLead()){announce('Vous avez pris la main.');shareMenuRefresh();}}}]
       : []),
-    ...conduiteRows('ce qui a été transmis'),
+    ...conduiteTiles('ce qui a été transmis'),
     /* CONTINUER SEUL — n'apparaît QUE quand le lien est silencieux. C'est le repli hors dispositif
        (AC 120-64 §9.a) : plutôt qu'un écran figé, l'invité reprend la main sur l'instantané qu'il a
        déjà. La rangée n'existe pas tant que le lien est bon — proposer de bifurquer à quelqu'un qui
@@ -18621,9 +18657,9 @@ function bindReadEvents(f,blk,cur){
       ? [{label:'Revenir à la session partagée',ic:'⇄',
           sub:sharedTitle(),act:backToShared},'sep']
       : []),
-    ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:boltIcon(15),sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
-    ...conduiteRows('surveillances, documents…'),
-    'sep',
+    ...(!started&&cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:boltIcon(15),sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
+    ...conduiteTiles('surveillances, documents…'),
+    {head:'Session'},
     /* PARTAGER — dans le groupe de la CONDUITE EN COURS, jamais dans le chrome de crise : la
        rangée de commandes n'a que 2,1 px de marge à 320 px, et un contrôle qui apparaîtrait selon
        la largeur romprait la constance positionnelle. Le partage ne s'ouvre que sur une session
@@ -18644,15 +18680,23 @@ function bindReadEvents(f,blk,cur){
         /* Un invité ne devient pas hôte au détour d'un menu : SA session est celle qu'il SUIT. */
         ? []
         : [{label:'Partager la session…',ic:'⇄',
-          sub:started?'un collègue suit sur son téléphone':'démarre la session, puis partage',
+          sub:started?'un collègue suit en direct':'démarre la session, puis partage',
           act:()=>startShare(f)}])),
     {label:'Répéter en exercice',ic:'▲',disabled:started&&!Runtime.exercise,
       sub:started&&!Runtime.exercise?'session en cours':(()=>{const ts=sessions.reduce((m,x)=>(x.ficheId===f.id&&x.exercise&&x.savedAt>m)?x.savedAt:m,0);
       return ts?'dernier : '+new Date(ts).toLocaleDateString('fr-FR'):'aucune trace clinique';})(),act:()=>startExercise(f)},
-    ...(hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
+    // A337 : rien à recommencer avant le premier geste — la rangée n'existe qu'en session.
+    ...(started&&hasFlow(f)?[{label:'Recommencer le parcours',ic:uiIcon('undo',16),sub:'repart du début',act:()=>restartCourse(f)}]:[]),
     ...(()=>{const n=sessions.filter(s=>s.ficheId===f.id&&s.id!==Runtime.sessionId).length;
       return n?[{label:'Historique des sessions ('+n+')',ic:uiIcon('archive',16),act:()=>openSessHist(f.id)}]:[];})(),
-    'sep',
+    /* A337 : la GESTION de l'aide est À PLAT avant la session (c'est là qu'on l'édite) et se
+       REPLIE en session derrière une rangée « L'aide › » — à un tap de plus, jamais absente ;
+       « Modifier » et « Versions » y gardent leur mention « session en cours ». */
+    ...(started?['sep',{label:'L’aide',ic:uiIcon('doc',16),sub:'modifier, versions, exporter',fold:aideRows}]:[{head:'L’aide'},...aideRows]),
+    ...(started?['sep',{label:Runtime.exercise?'Terminer l’exercice…':'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
+  ]);
+  /* Les rangées de GESTION et d'EXPORT, une seule liste pour les deux états (à plat / pliée). */
+  const aideRows=[
     {label:'Modifier',ic:uiIcon('pen',16),sub:started?'session en cours':(canEditFiche(f)?'hors urgence':'lecture seule'),disabled:started||!canEditFiche(f),act:()=>openEdit(f.id)},
     ...(canEditFiche(f)?[{label:f.library?'Ma version écrasée':'Versions',ic:uiIcon('history',16),disabled:started,act:()=>openVersions(f.id)}]:[]),
     {label:'Dupliquer dans « Perso »',ic:uiIcon('copy',16),act:()=>dupToPerso('f',f)},
@@ -18663,11 +18707,9 @@ function bindReadEvents(f,blk,cur){
        exactement ce qu'elle fait (AC 120-71B). Le sous-titre nomme l'autre chemin plutôt que de
        laisser l'utilisateur le chercher. */
     {label:'Exporter l’aide (.json)',ic:uiIcon('download',16),
-      sub:'le contenu de la fiche, pas la session',act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
+      sub:'le contenu, pas la session',act:()=>exportData([f],'fiche-'+fileSlug(f.title))},
     {label:'Exporter l’aide en PDF',ic:uiIcon('print',16),
-      sub:started?'la session s’exporte par « Compte-rendu »':'le contenu de la fiche',act:exportPdfCurrent},
-    ...(started?['sep',{label:Runtime.exercise?'Terminer l’exercice…':'Terminer la session…',ic:uiIcon('stop',16),danger:true,act:endCurrentSession}]:[]),
-  ]);
+      sub:started?'la session : par « Compte-rendu »':'le contenu de la fiche',act:exportPdfCurrent}];
   if(_moreBuild)_moreBuild();
   main.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
   /* ÉCHELLE DU RAIL (v4.23.0) : mêmes gestes que dans le Plan — déplier une ligne, aller à un
@@ -18810,6 +18852,7 @@ function bindReadEvents(f,blk,cur){
   // Bouton à bascule : le libellé dit l'ÉTAT (« Son activé/coupé », comme « Thème : sombre »),
   // le title dit l'action, aria-pressed porte l'état pour les lecteurs d'écran. L'état « coupé »
   // est signalé en ambre : couper le son en crise est un choix risqué, il doit rester visible.
+  {const se=document.getElementById('rtEndSess');if(se)se.onclick=endCurrentSession;}   // A336
   const st=document.getElementById('soundToggle');if(st)st.onclick=()=>{soundOn=!soundOn;if(soundOn)ensureAudio();st.innerHTML=soundOn?uiIcon('bell',13)+' Son activé':uiIcon('belloff',13)+' Son coupé';st.classList.toggle('off',!soundOn);st.setAttribute('aria-pressed',soundOn?'true':'false');st.title=soundOn?'Le son est activé — appuyer pour couper':'Le son est coupé — appuyer pour activer';const sw=document.getElementById('soundWarn');if(sw)sw.style.display=soundOn?'':'none';};
   {const wt=document.getElementById('wakeToggle');
    if(wt)wt.onclick=()=>{wakeWanted=!wakeWanted;
@@ -25881,7 +25924,7 @@ function _themeMode(){return localStorage.getItem(spaceKey('ac-theme'))||localSt
    ici (Supprimer reste dans le pied d'éditeur). Fermeture : clic hors, Échap, navigation. */
 const hdrMoreBtn=document.getElementById('hdrMore'),moreMenuEl=document.getElementById('moreMenu');
 let _moreRows=null;
-function closeMoreMenu(){if(moreMenuEl.hidden)return;moreMenuEl.hidden=true;hdrMoreBtn.setAttribute('aria-expanded','false');}
+function closeMoreMenu(){_moreView=null;if(moreMenuEl.hidden)return;moreMenuEl.hidden=true;hdrMoreBtn.setAttribute('aria-expanded','false');}
 /* LE MENU SE REFAIT SANS RE-RENDRE LA CHECKLIST (v4.55.2).
    Les rangées sont construites au RENDU et stockées telles quelles : « Partage en cours (n) »
    gardait donc le compte du moment où la fiche avait été ouverte, et « Prendre la main » — qui
@@ -25900,18 +25943,40 @@ function shareMenuRefresh(){
   if(typeof _moreBuild!=='function')return;
   try{_moreBuild();}catch(e){return;}
   if(moreMenuEl&&!moreMenuEl.hidden)openMoreMenu();}
-function setMoreMenu(rows){
+/* A337 — QUATRE NATURES DE RANGÉE au-delà de la rangée et du 'sep' : `{head}` intertitre,
+   `{tiles:[…]}` rangée de tuiles (ouvertures), `{fold:[…],label,sub,ic}` pli rendu SUR PLACE
+   (même position, même largeur, première rangée = retour), et la rangée `danger` devient un PIED
+   encadré (`.mm-end`) — le 'sep' qui la précédait tombe, le cadre porte la séparation. */
+let _moreView=null;   // sous-liste ouverte (pli), null = menu de tête
+function mmNorm(rows){
   // Groupes CONDITIONNELS (v4.28.0) : on normalise les séparateurs au lieu de l'exiger de chaque
   // appelant — jamais de 'sep' en tête, en queue, ni deux de suite (un groupe vide disparaît).
   rows=(rows||[]).filter((r,i,a)=>r!=='sep'||(i>0&&a[i-1]!=='sep'));
+  rows=rows.filter((r,i,a)=>!(r==='sep'&&a[i+1]&&a[i+1].danger));
   while(rows.length&&rows[0]==='sep')rows.shift();
   while(rows.length&&rows[rows.length-1]==='sep')rows.pop();
+  return rows;}
+function setMoreMenu(rows){
+  rows=mmNorm(rows);
   _moreRows=rows.length?rows:null;hdrMoreBtn.hidden=!_moreRows;closeMoreMenu();}
+function mmRowHtml(r,i){
+  if(r==='sep')return '<div class="mm-sep" role="separator"></div>';
+  if(r.head)return `<div class="mm-head" role="presentation">${esc(r.head)}</div>`;
+  if(r.tiles)return `<div class="mm-tiles" role="presentation">${r.tiles.map((t,j)=>`<button class="mm-row mm-tile" role="menuitem" data-mmi="${i}" data-mmt="${j}" aria-label="${esc(t.label+(t.sub?' — '+t.sub:''))}"><span class="mm-ic" aria-hidden="true">${t.ic||''}</span><span>${esc(t.label)}</span></button>`).join('')}</div>`;
+  const two=!!r.sub;
+  return `<button class="mm-row${two?' two':''}${r.danger?' danger mm-end':''}" role="menuitem" data-mmi="${i}"${r.disabled?' disabled':''}><span class="mm-ic" aria-hidden="true">${r.ic||''}</span><span class="mm-tx"><span>${esc(r.label)}</span>${two?`<span class="mm-sub">${esc(r.sub)}</span>`:''}</span>${r.fold?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',16)}</span>`:''}</button>`;}
 function openMoreMenu(){
   if(!_moreRows)return;
-  moreMenuEl.innerHTML=_moreRows.map((r,i)=>r==='sep'?'<div class="mm-sep" role="separator"></div>'
-    :`<button class="mm-row${r.danger?' danger':''}" role="menuitem" data-mmi="${i}"${r.disabled?' disabled':''}><span class="mm-ic" aria-hidden="true">${r.ic||''}</span><span>${esc(r.label)}${r.sub?` <span class="mm-sub">— ${esc(r.sub)}</span>`:''}</span></button>`).join('');
-  moreMenuEl.querySelectorAll('[data-mmi]').forEach(b=>b.onclick=()=>{const r=_moreRows[+b.dataset.mmi];if(!r||r.disabled)return;closeMoreMenu();r.act();});
+  const shown=_moreView||_moreRows;
+  moreMenuEl.innerHTML=shown.map(mmRowHtml).join('');
+  moreMenuEl.querySelectorAll('[data-mmi]').forEach(b=>b.onclick=e=>{
+    let r=shown[+b.dataset.mmi];if(r&&r.tiles)r=r.tiles[+b.dataset.mmt];
+    if(!r||r.disabled)return;
+    /* Pli et retour RE-RENDENT le menu : le bouton tapé en sort, et le clic qui remonte au document
+       le croirait « hors menu » (fermeture) — on l'arrête là. */
+    if(r.fold){e.stopPropagation();_moreView=mmNorm([{label:r.label,ic:uiIcon('backto',16),sub:'retour au menu',act:()=>{_moreView=null;openMoreMenu();}},'sep',...r.fold]);openMoreMenu();return;}
+    if(_moreView&&+b.dataset.mmi===0){e.stopPropagation();r.act();return;}
+    closeMoreMenu();r.act();});
   moreMenuEl.hidden=false;hdrMoreBtn.setAttribute('aria-expanded','true');
   fitMoreMenu();
   /* ⚠ `preventScroll` — SANS LUI, OUVRIR LE MENU REMONTE LA PAGE (v5.6, signalé à l'usage).
