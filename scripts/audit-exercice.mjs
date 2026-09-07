@@ -155,7 +155,7 @@ const e4=await p.evaluate(async()=>{
  const on=document.querySelector('#reportModal.on,.ai-modal.on #reportBody');
  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await new Promise(r=>setTimeout(r,250));
  return {wm:/class="wm">EXERCICE/.test(h),meta:/répétition sans patient/.test(h),
-  cx:/⚡/.test(h)&&/Laryngospasme/.test(h),gap:/△ écart/.test(h),ver:/constatée/.test(h)};});
+  cx:/class="tic bolt"/.test(h)&&/Laryngospasme/.test(h),gap:/△ écart/.test(h),ver:/constatée/.test(h)};});
 t('compte-rendu FILIGRANÉ « EXERCICE »', e4.wm&&e4.meta, JSON.stringify(e4));
 t('compte-rendu : la complication ⚡ y figure (horodatée)', e4.cx);
 t('compte-rendu : la trace do-verify y figure (constat + écart)', e4.gap&&e4.ver);
@@ -198,7 +198,7 @@ const e7=await p.evaluate(async()=>{
  exportSessionReport(lastEndedSession.id);await new Promise(r=>setTimeout(r,400));
  const h=document.getElementById('reportBody').innerHTML;
  return {real,carte:card?card.textContent.slice(0,40):null,
-  wm:/class="wm">EXERCICE/.test(h),cx:/⚡/.test(h)&&/Laryngospasme/.test(h)};});
+  wm:/class="wm">EXERCICE/.test(h),cx:/class="tic bolt"/.test(h)&&/Laryngospasme/.test(h)};});
 /* v4.70.1 : la session RÉELLE n'a plus d'étiquette de bandeau — le mode se lit dans la barre,
    une seule fois. Le témoin mesure donc les DEUX moitiés : bandeau nu ET pilule « Crise ». */
 t('session réelle : bandeau nu, « ■ Mode crise » en tête, « ● Session » au quai',

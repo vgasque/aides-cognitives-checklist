@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.27.1] — 2026-09-07
+### La barre de retour colle au quai, et les deux retours portent l'icône (A335)
+
+- **Demande de l'auteur** : rapprocher un peu la barre verte « retour au bloc » de la barre
+  flottante, et remplacer les ↩ par une icône (barre et bouton « Reprendre » d'une complication).
+- **Mesuré** : 8 px en navigateur — mais `#blkReturn` et `#dockSheet` ajoutaient
+  `env(safe-area-inset-bottom)` à `--dock-h`, qui le contient déjà (hauteur mesurée du quai) :
+  42 px sur un iPhone installé. Le terme en double est retiré des deux règles ; 8 px partout,
+  prouvé à inset simulé (méthode A286).
+- **Icône `backto`** (celle de « Un bloc ») sur la barre et sur « Reprendre — ‹bloc› → », dans
+  le flux du texte pour rester collée au mot au passage à la ligne.
+- **Deux finitions** vues à la capture : « Bloc Bloc 1 » (préfixe en double) et les tags
+  « ⚡ complication » / « passage 1/2 » repris dans le libellé de la barre.
+- **L'éclair aussi** (demande de l'auteur) : les quinze « ⚡ » emoji restants passent par la
+  fabrique `boltIcon` ; classe `bolt`, seul glyphe REMPLI de la famille (`--bolt`/`--bolt-edge`,
+  deux thèmes) pour ressortir autant que l'emoji qu'il remplace. Le sélecteur « renvoi du
+  jalon » garde l'emoji dans ses `<option>` (pas de SVG possible, décision de l'auteur).
+- Doctrine A335 dans `docs/decisions/lot-v5-27.md`, `design/ds/` régénéré. CHANGELOG à 20
+  ([5.23.2] archivée).
+- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
+  version.
+
 ## [5.27.0] — 2026-09-07
 ### « Reprendre » revient sur l'étape interrompue, et la barre de retour ne survit plus à la fiche (A333-A334)
 
@@ -380,21 +402,4 @@
   vérifiés capables d'échouer une fois l'hystérésis rendue inatteignable au banc (le veilleur
   masquait le réveil). Doctrine A320 dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20
   ([5.21.0] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.2] — 2026-09-05
-### Le retour en ligne se fait seul après une panne, avec hystérésis (A319, étape 3)
-
-- **Le sens retour devient automatique**, à trois conditions : la bascule vers le direct venait
-  d'une panne (un choix manuel n'est jamais contredit), le serveur a répondu à trois sondes
-  consécutives, et au moins soixante secondes se sont écoulées en direct. Les invités suivent par
-  le billet d'admission remis par le canal chiffré, comme au tap. Rien ne s'ouvre à l'écran : le
-  quai dit « ● Repasse en ligne » pendant 8 s, la phrase va au lecteur d'écran.
-- **La sonde de joignabilité tourne aussi feuille fermée** tant que le retour est armé ; elle
-  s'arrête d'elle-même ensuite. Le retour désarme : pas de boucle.
-- **Conformité** : le § 3.2 de `docs/deploiement-et-conformite.md` dit le nouveau régime — rien de
-  nouveau ne sort de l'appareil.
-- Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
-  (19 → 23), vérifiés capables d'échouer (armement retiré → 3 rouges). Doctrine A319 dans
-  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.20.6] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.

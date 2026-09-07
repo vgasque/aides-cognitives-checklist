@@ -94,3 +94,44 @@ de tout changement de vue (la doctrine du retour système le dit déjà). Hors l
 trouve `card = null` et masque ; en lecture elle est idempotente (« ne réinstalle rien tant que la
 carte courante ne change pas »). Le tick garde son appel : le défilement ne passe pas par
 `render()`.
+
+## A335 — la barre de retour colle au quai, et les deux retours portent l'icône (v5.27.1)
+
+**La demande.** « Rapprocher un tout petit peu le bouton vert “retour au bloc” vers le bas, très
+décollé de la barre flottante ; et changer les emoji ↩ par un `uiIcon` — la barre comme le
+bouton “Reprendre” d'une complication. »
+
+**Mesuré.** En navigateur, l'écart barre → quai est de 8 px, celui du volet aussi : la maquette
+v5.6 les sépare « légèrement ». Mais `#blkReturn` et `#dockSheet` se posaient à
+`--dock-h + 8px + env(safe-area-inset-bottom)`, alors que `--dock-h` est la hauteur MESURÉE de
+`#sessionDock`, dont le rembourrage contient DÉJÀ cet inset : sur un iPhone installé (inset 34 px),
+l'écart valait **42 px** — invisible à toute sonde de bureau, où `env` vaut 0 (famille A286 : on
+mesure à inset simulé, un littéral de 34 px dans la règle qui le lit). Le terme en double est
+retiré des deux règles ; l'écart est 8 px partout, quai, volet et barre dans la même pile.
+
+**Deux finitions vues à la capture, faites dans la foulée** : la barre disait « Bloc Bloc 1 » (la
+pastille dit déjà « Bloc 1 » ; on la reprend telle quelle quand elle porte un numéro, sinon rien —
+une cible hors tronc n'a que l'éclair) et reprenait les tags de `.ov-t` dans son libellé
+(« ⚡ complication », « passage 1/2 ») — seuls les nœuds texte directs sont lus.
+
+**L'icône.** `backto` (déjà celle de « Un bloc » au quai, A106) remplace le glyphe ↩ : 16 px dans
+la barre (`flex:none`), 14 px dans « Reprendre — ‹bloc› → ». Dans le bouton, l'icône vit DANS le
+texte (un span) et non en item flex : au passage à la ligne elle reste collée à « Reprendre »
+au lieu de flotter seule à gauche (vu à 390 px). Les témoins lisent `textContent` : inchangés.
+
+**Addendum — l'éclair aussi (même version).** Demande de l'auteur : « remplace également les emoji
+éclair restants par le `uiIcon` existant, mais modifie l'icône pour qu'elle soit tout aussi
+brillante que l'emoji et que ça ressorte ». Le tracé `bolt` existait (dock, A106) mais l'emoji
+« ⚡ » survivait à quinze endroits — pastille et tag du journal, renvoi de jalon, menu ⋯, volet
+du dock, plan « Parcours », tableau statique, compte-rendu, sélecteur de blocs, palette et rangées
+de l'éditeur, rail, intitulé du champ. Une seule fabrique, `boltIcon(taille)`, et une classe `bolt`
+qui fait de l'éclair **le seul glyphe REMPLI de la famille** : `fill:var(--bolt)` (jaune
+`#f5b800` en clair, `#fbbf24` en sombre) et bord `--bolt-edge` (`#8a5200` / `#f59e0b`), trait à
+1,4 pour laisser voir la couleur. C'est l'emoji qu'il remplace qui fixe la règle : sur iOS il
+sortait déjà en couleur, l'utilisateur y est habitué, et un trait fin monochrome aurait été un
+recul de saillance. Les deux tokens sont déclarés dans les deux thèmes et lus (`check-tokens`),
+la couleur du rapport PDF est écrite en clair dans sa feuille autonome comme les autres.
+**Un site garde l'emoji, par décision de l'auteur** : les `<option>` du sélecteur « renvoi du
+jalon » de l'éditeur, où aucun SVG n'est possible. Les mentions restantes de « ⚡ » sont de la
+prose (guide d'import), pas des glyphes d'interface. Témoins : la pastille se reconnaît à
+`.ov-n .bolt` sans numéro (audit-complications), la cellule statique de même.

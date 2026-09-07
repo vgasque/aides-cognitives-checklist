@@ -35,6 +35,8 @@
      séquence. UN seul ambre (--verify et --alert fusionnent en --warn) et UN seul rouge. */
   --ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#e8f2ea;
   --warn:#7a5900;--warn-line:#b45309;--warn-soft:#fbf3dc;
+  /* L'ÉCLAIR de complication (v5.27.1, A335) : rempli comme l'emoji qu'il remplace, bord foncé. */
+  --bolt:#f5b800;--bolt-edge:#8a5200;
   --warn-sys:#fbbf24;--warn-sys-bg:#3c2b06;
   /* Filet de l'ALARME sur la capsule (v5.15.0, planche 17/1a) : sur la capsule nocturne ÉCLAIRCIE,
      --warn-line tombait de 3,5:1 à 2,25:1 — le filet suit donc la matière : --warn-line le jour

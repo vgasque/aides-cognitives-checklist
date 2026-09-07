@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-gjWeyAV1k2RnXPRUTYZbaZL0+ilUeO7hNWAp9GbWyG0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-32MDSu+FE3SMLo8yrFsKi6GFdpDbBkwDPFfChsVmpzk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -420,6 +420,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      séquence. UN seul ambre (--verify et --alert fusionnent en --warn) et UN seul rouge. */
   --ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#e8f2ea;
   --warn:#7a5900;--warn-line:#b45309;--warn-soft:#fbf3dc;
+  /* L'ÉCLAIR de complication (v5.27.1, A335) : rempli comme l'emoji qu'il remplace, bord foncé. */
+  --bolt:#f5b800;--bolt-edge:#8a5200;
   --warn-sys:#fbbf24;--warn-sys-bg:#3c2b06;
   /* Filet de l'ALARME sur la capsule (v5.15.0, planche 17/1a) : sur la capsule nocturne ÉCLAIRCIE,
      --warn-line tombait de 3,5:1 à 2,25:1 — le filet suit donc la matière : --warn-line le jour
@@ -548,6 +550,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --ink:#e6eaf0;--ink-2:#9aa5b3;--ink-3:#707c8c;
   --ok-rgb:74,222,128;--ok:rgb(var(--ok-rgb));--ok-soft:#12241a;
   --warn:#fbbf24;--warn-soft:#2b2005;--warn-line:#b45309;
+  --bolt:#fbbf24;--bolt-edge:#f59e0b;
   --crit:#ff7a70;--crit-line:#ff7a70;--crit-soft:#211114;
   --act:#8fb8e8;
   --shadow-work:none;--shadow-up:none;
@@ -1418,12 +1421,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      de la barre, à la ligne près (mêmes tokens de grille), et sa hauteur de départ vient de
      `--dock-h`, mesurée, plus 8 px d'écart : la maquette ne les colle pas, elle les sépare
      légèrement — le volet est une réponse au geste, pas un étage de la barre. */
-  #dockSheet{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  /* ⚠ PAS D'INSET ICI (v5.27.1, A335) : `--dock-h` est la hauteur MESURÉE de #sessionDock, qui
+     contient déjà `env(safe-area-inset-bottom)` dans son rembourrage — l'ajouter une seconde fois
+     posait volet et barre à 8 + 34 px du quai sur un iPhone installé (0 en navigateur : invisible
+     à toute sonde de bureau, d'où la mesure à inset simulé). */
+  #dockSheet{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + 8px);z-index:17;padding:0 14px;pointer-events:none}
   #dockSheet[hidden]{display:none}
   /* P1 — MÊME GÉOMÉTRIE QUE LE VOLET : la barre s'aligne sur la COLONNE D'ACTION, jamais sur la
      fenêtre (A24), et se pose AU-DESSUS du dock — un objet qui recouvrirait ses touches
      masquerait le geste qu'on vient de faire (A37). Elle ne prend aucune hauteur au flux. */
-  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 8px + env(safe-area-inset-bottom,0px));z-index:17;padding:0 14px;pointer-events:none}
+  #blkReturn{position:fixed;left:0;right:0;bottom:calc(var(--dock-h,64px) + var(--sheet-h,0px) + 8px);z-index:17;padding:0 14px;pointer-events:none}
   #blkReturn[hidden]{display:none}
   body.kb-open #blkReturn{display:none}
   @media (min-width:780px){#blkReturn{padding-inline:20px}}
@@ -1441,6 +1448,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .bkr .bkr-c{margin-left:auto;font-family:var(--mono);font-weight:600;font-size:12px;
     font-variant-numeric:tabular-nums;opacity:.75}
   .bkr .bkr-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bkr>svg{flex:none}
+  /* L'icône vit DANS le texte (un span), pas en item flex du bouton : au passage à la ligne elle
+     reste collée à « Reprendre » au lieu de flotter seule à gauche. */
+  .cx-back-top .btn svg{vertical-align:-2px}
   body.kb-open #dockSheet{bottom:8px}
   /* Les mêmes marges que la barre, aux mêmes paliers : le volet ne se centre jamais sur la
      fenêtre, il se cale sur la colonne qu'il commande. */
@@ -2013,6 +2024,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .notice-x:hover{background:rgba(0,0,0,.07)}
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
+  /* L'éclair est le seul glyphe REMPLI de la famille : il remplace l'emoji ⚡ (couleur sur iOS,
+     police-dépendant ailleurs) et doit ressortir autant que lui (demande de l'auteur, A335). */
+  svg.bolt{fill:var(--bolt);stroke:var(--bolt-edge)}
   /* Étoiles « Avec l'IA » (dialogue Créer) : dorées et pleines, comme l'emoji ✨ qu'elles remplacent. */
   /* P3-2 (audit design v4.56) : l'ambre vif `--alert` est réservé aux banderoles d'ALERTE —
      ici il ne faisait que décorer « Avec l'IA ». Registre INFORMATION, comme les deux autres
@@ -8111,7 +8125,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.27.0';
+const APP_VERSION='5.27.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9342,7 +9356,7 @@ function cxBackHtml(f,seq,tip){
   const cxb=(Runtime.cxBack||{})[seq];
   if(!cxb||!tip)return '';
   const bb=(f.blocks||[]).find(x=>x.id===cxb.id);
-  return `<div class="flow-ctrl cx-back-top"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}">↩ Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</button></div>`;}
+  return `<div class="flow-ctrl cx-back-top"><button type="button" class="btn cont okay" data-cxback="${esc(cxb.id)}"><span>${uiIcon('backto',14,{sw:2.2})} Reprendre — ${esc((bb&&bb.title)||'le parcours')} →</span></button></div>`;}
 /* (`cxListHtml` est purgée avec l'index de carte — cf. la note CSS des `.cx-*`.) */
 /* ═══ JALONS DE BOUCLE (v5.5.0, P1+P2+P3) — l'ÉVOLUTION DANS la boucle ═══
    Rendu sur la carte du BOUT seulement ; modèle ECL : contenu CONSTANT dès le premier passage,
@@ -9358,7 +9372,7 @@ function jalonsHtml(f,b,idx){
   const rows=js.map((j,i)=>{
     const p=jalonProg(j,pi.pass,j.counter?((Runtime.counters||{})[j.counter]||0):0);
     const ex=(p.active&&j.go)?cxAll(f).find(c=>c.target===j.go):null;
-    const btn=ex?`<button type="button" class="jl-go" data-cxgo="${esc(ex.target)}" title="${ex.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">⚡ ${esc(ex.label)}${ex.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`:'';
+    const btn=ex?`<button type="button" class="jl-go" data-cxgo="${esc(ex.target)}" title="${ex.kind==='ext'?'Ouvre une autre aide — ':'Interrompt le parcours, retour prévu — '}à tout moment">${boltIcon(14)} ${esc(ex.label)}${ex.kind==='ext'?' <span class="cx-ext" aria-hidden="true">↗</span>':''}</button>`:'';
     return `<div class="jl-row${p.active?' on':''}"><span class="jl-mk" aria-hidden="true">△</span><span class="jl-tx"><span class="jl-cond">${esc(jalonCondLbl(f,j))}</span> — ${fmt(j.text)}</span><span class="jl-prog" aria-label="${p.cur} sur un seuil de ${p.goal}">${p.cur}/${p.goal}</span>${btn}</div>`;});
   return `<div class="jl-wrap">${rows.join('')}</div>`;}
 /* Repeinture CHIRURGICALE (jamais un re-rendu — leçon du quai) : appelée par `setCounterVal`, le
@@ -11627,7 +11641,7 @@ function exportSessionReport(sessionId){
     const ix=(s.navSeq||[]).indexOf(+sq);const bid=ix>=0?(s.nav||[])[ix]:null;
     const bb=bid&&f?(f.blocks||[]).find(x=>x.id===bid):null;
     const fromB=f?(f.blocks||[]).find(x=>x.id===vv.id):null;
-    return {t:vv.t||0,h:`${vv.t?esc(fmtHMS(vv.t)):'—'} — ⚡ ${esc((bb&&bb.title)||'Complication')}${fromB?` <span class="muted">(pendant : ${esc(fromB.title||'')})</span>`:''}`};})
+    return {t:vv.t||0,h:`${vv.t?esc(fmtHMS(vv.t)):'—'} — ${boltIcon(13)} ${esc((bb&&bb.title)||'Complication')}${fromB?` <span class="muted">(pendant : ${esc(fromB.title||'')})</span>`:''}`};})
     .sort((a,b)=>a.t-b.t);
   const nVer=Object.keys(s.verified||{}).length;
   // vfTime : la trace porte {a,t} depuis v4.46.0 et un horodatage nu avant — les deux se lisent ici.
@@ -11665,7 +11679,7 @@ ${(()=>{
 <div class="bilan"><div class="bilan-dur"><span class="bd-v">${esc(dur)}</span><span class="bd-k">durée totale</span></div>${kpi?`<div class="kpis">${kpi}</div>`:''}</div>
 <h2>Chronologie des actions</h2><table><thead><tr><td><b>Heure</b></td><td><b>Écoulé</b></td><td><b>Écart</b></td><td><b>Action</b></td></tr></thead><tbody>${evRows}</tbody></table>
 <h2>Étapes réalisées</h2><ul>${stepRows}</ul>
-${cxRows.length?`<h2>⚡ Complications</h2><ul>${cxRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
+${cxRows.length?`<h2>${boltIcon(16)} Complications</h2><ul>${cxRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`:''}
 ${(nVer||gapRows.length)?`<h2>Vérification (do-verify)</h2><ul><li>${nVer} étape${nVer>1?'s':''} constatée${nVer>1?'s':''} ✓✓</li>${gapRows.map(x=>`<li>${x.h}</li>`).join('')}</ul>`
   /* UNE TRACE ABSENTE QUI NE SE DIT PAS EST PIRE QU'UNE TRACE ABSENTE. La passe do-verify ne
      monte pas au serveur (décision d'étape) : un compte rendu consulté sur un AUTRE appareil doit
@@ -11694,6 +11708,7 @@ td:first-child,td:nth-child(2){font-family:ui-monospace,"SF Mono",Menlo,Consolas
 .bilan-dur{display:flex;flex-direction:column;gap:2px}
 .bd-v{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:40px;font-weight:700;line-height:1;letter-spacing:-1px}
 .bd-k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#5b6570}
+.bolt{fill:#f5b800;stroke:#8a5200;vertical-align:-2px}
 .kpis{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
 .kpi{min-width:74px;background:#fff;border:1px solid #d5dbe2;border-radius:10px;padding:8px 12px;text-align:center}
 .kpi-v{display:block;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;line-height:1.1}
@@ -12047,9 +12062,14 @@ function syncBlkReturn(){
     if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
     _bkrCard=card;_bkrKey='';host.hidden=true;host.innerHTML='';return;}
   const num=(card.querySelector('.ov-n')||{}).textContent||'';
-  const ttl=(card.querySelector('.ov-t')||{}).textContent||'';
+  /* Le titre SEUL : `.ov-t` porte aussi ses tags (« passage 1/2 », « ⚡ complication »,
+     « par X ») — on ne lit que ses nœuds texte directs (v5.27.1). */
+  const ttl=[...((card.querySelector('.ov-t')||{}).childNodes||[])].filter(n=>n.nodeType===3).map(n=>n.textContent).join('');
   const cnt=(card.querySelector('.ov-c')||{}).textContent||'';
-  const nom=sstr((num?'Bloc '+num.trim().replace(/\D+$/,'')+(ttl?' · ':''):'')+ttl.trim(),40)||'le bloc en cours';
+  /* La pastille dit déjà « Bloc 3 » (ou « ⚡ » seul, hors tronc) : on la reprend telle quelle
+     quand elle porte un numéro — la préfixer donnait « Bloc Bloc 3 » (v5.27.1). */
+  const nt=num.trim(),pre=/\d/.test(nt)?nt:'';
+  const nom=sstr((pre?pre+(ttl?' · ':''):'')+ttl.trim(),40)||'le bloc en cours';
   const key=(card.getAttribute('data-ovi')||card.getAttribute('data-svgo')||'')+'|'+nom;
   const memeBarre=(key===_bkrKey&&!!host.firstElementChild);
   if(card===_bkrCard&&memeBarre){majBkrCnt(host,cnt);return;}
@@ -12057,7 +12077,7 @@ function syncBlkReturn(){
   if(_bkrIo){_bkrIo.disconnect();_bkrIo=null;}
   if(memeBarre){majBkrCnt(host,cnt);_bkrIo=obsBkr(host,card);return;}
   host.hidden=true;                               // jamais peinte avant le verdict
-  host.innerHTML='<button type="button" class="bkr" id="bkrBtn"><span aria-hidden="true">↩</span>'
+  host.innerHTML='<button type="button" class="bkr" id="bkrBtn">'+uiIcon('backto',16,{sw:2.2})
     +'<span class="bkr-t">'+esc(nom)+'</span>'+(cnt?'<span class="bkr-c">'+esc(cnt.trim())+'</span>':'')+'</button>';
   const b=document.getElementById('bkrBtn');
   if(b){b.setAttribute('aria-label','Revenir au bloc en cours — '+nom);
@@ -15787,6 +15807,9 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   bolt:'<path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/>'};
   const s=size||15,cls=opts.cls===undefined?'tic':opts.cls;
   return `<svg class="${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${opts.sw||2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name]||''}</svg>`;}
+/* L'éclair de complication, UNE fabrique pour ses quinze sites : classe `bolt` (rempli, cf. CSS),
+   trait fin pour laisser voir la couleur. */
+const boltIcon=s=>uiIcon('bolt',s,{sw:1.4,cls:'tic bolt'});
 // Petite icône d'en-tête de section (repère visuel rapide du TYPE de bloc). Trait = currentColor (suit
 // la couleur du header), donc cohérent avec le code couleur existant (bleu/ambré/vermillon/gris).
 function headerIcon(cls){const P={
@@ -18598,7 +18621,7 @@ function bindReadEvents(f,blk,cur){
       ? [{label:'Revenir à la session partagée',ic:'⇄',
           sub:sharedTitle(),act:backToShared},'sep']
       : []),
-    ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:'⚡',sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
+    ...(cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:boltIcon(15),sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
     ...conduiteRows('surveillances, documents…'),
     'sep',
     /* PARTAGER — dans le groupe de la CONDUITE EN COURS, jamais dans le chrome de crise : la
@@ -18973,7 +18996,7 @@ function ovNumHtml(complete,num,cx){
      numéroté, il se lirait « l'étape d'après » (mesuré en v4.26.0). Sa pastille ne porte donc que
      l'éclair, et « Bloc » sans numéro ne dirait rien. */
   return (complete?uiIcon('check',13,{sw:3.2,cls:''})+' ':'')
-    +(num?(cx?'⚡ ':'')+'Bloc '+num:(cx?'⚡':'Bloc'));}
+    +(num?(cx?boltIcon(13)+' ':'')+'Bloc '+num:(cx?boltIcon(13):'Bloc'));}
 function ovInstHtml(f,id,idx,topo,pres){
   const b=f.blocks.find(x=>x.id===id);if(!b)return '';
   const dec=b.kind==='decision';
@@ -18986,7 +19009,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   const closed=pres==='line';
   const passTag=pi.total>1?` <span class="pass-n">passage ${pi.pass}/${pi.total}</span>`:'';
   // Passage entré par une COMPLICATION : annoncé en toutes lettres (⚡ + mot, jamais le glyphe seul).
-  const cxTag=(Runtime.cxBack||{})[seq]?' <span class="cx-tag">⚡ complication</span>':'';
+  const cxTag=(Runtime.cxBack||{})[seq]?' <span class="cx-tag">'+boltIcon(11)+' complication</span>':'';
   const imgH=b.image?`<img class="node-img" loading="lazy" decoding="async" src="${b.image}" data-full="${b.image}"${b.imageW&&b.imageH?` width="${b.imageW}" height="${b.imageH}"`:''} alt="">`:'';
   const taken=dec?decTaken(b,idx):null;
   let bodyH='',count='';
@@ -19621,7 +19644,7 @@ function renderDockSheet(){
   let h='';
   if(state.cxOpen){
     const list=cxAll(f),curId=state.nav[state.navPos];
-    h=`<div class="ds-card"><div class="ds-head ds-cxh">⚡︎ Complications prévues ici · ${list.length}`
+    h=`<div class="ds-card"><div class="ds-head ds-cxh">${boltIcon(14)} Complications prévues ici · ${list.length}`
       +`<button type="button" class="ds-x" data-dsx aria-label="Fermer">✕</button></div>${dockSheetWarn()}`
       /* ⚡︎ BIFURCATION ANNONCÉE : nom en toutes lettres + condition d'entrée + DESTINATION. On
          sait AVANT de taper où l'on va, et qu'on reviendra. Le retour n'est jamais automatique. */
@@ -19694,7 +19717,7 @@ function syncCxKey(crisis){
     const okCx=!!list.length&&!dedans;
     ck.hidden=!okCx;
     /* A106 : ⚡︎ était le CARACTÈRE (avec son U+FE0E de précaution), il devient le tracé `bolt`. */
-    if(okCx&&!ck.querySelector('svg'))ck.querySelector('.dp-ic').innerHTML=uiIcon('bolt',13,{sw:2.2});
+    if(okCx&&!ck.querySelector('svg'))ck.querySelector('.dp-ic').innerHTML=boltIcon(13);
     if(okCx){const un=list.length===1?list[0]:null;
       const lbl=ck.querySelector('.dp-lbl');
       /* Le NOM d'une complication n'est pas une étiquette de commande : il ne se met pas en
@@ -20326,7 +20349,7 @@ function ovAfterCheck(f,sec,anchorKey){
      Une seule fabrique, deux appelants : c'est la règle du dossier, apprise sur le cœur de
      cochage (v4.42.0). */
   {const n=sec.querySelector('.ov-n');
-   if(n)n.innerHTML=ovNumHtml(all,sec.dataset.ovn,n.textContent.indexOf('⚡')>=0);}
+   if(n)n.innerHTML=ovNumHtml(all,sec.dataset.ovn,!!n.querySelector('.bolt'));}
   const adv=sec.querySelector('[data-ovnext],[data-ovend]');
   if(adv){adv.classList.toggle('okay',all);adv.classList.toggle('idle',!all);
     adv.textContent=all?(adv.dataset.contlbl||'Continuer →'):('Cochez les étapes restantes ('+(boxes.length-dn)+')');
@@ -20777,7 +20800,7 @@ function ovParcoursHtml(f){
   /* Les deux sections hors séquence ferment la vue, dans le même ordre que la colonne. */
   {const det=cxDetached(f);
    if(det.length)h+='<div class="pl-sech">À tout moment</div>'
-     +det.map(c=>`<section class="pc-card exc"><div class="pc-h"><span class="pc-n" aria-hidden="true">⚡</span><span class="pc-ht">${esc(c.label)}</span></div>`
+     +det.map(c=>`<section class="pc-card exc"><div class="pc-h"><span class="pc-n" aria-hidden="true">${boltIcon(14)}</span><span class="pc-ht">${esc(c.label)}</span></div>`
        +((f.blocks.find(x=>x.id===c.target)?clean(stepsOf(f.blocks.find(x=>x.id===c.target))).map(item).join(''):'<div class="pc-foot">↗ ouvre une autre aide</div>'))
        +'</section>').join('');}
   {const w=clean(listOf(f,'verify'));
@@ -21001,7 +21024,7 @@ function svRefHtml(f){
     const b=(f.blocks||[]).find(x=>x.id===c.target);if(!b)return;
     const steps=clean(stepsOf(b));
     out.push(`<div class="sv-cell sv-cx" data-svgo="${esc(c.target)}" role="button" tabindex="0" aria-label="${esc(c.label)} — aller à ce bloc">`
-      +`<p class="sv-h"><span class="sv-n" aria-hidden="true">⚡</span><span class="sv-t">${esc(c.label)}</span></p>`
+      +`<p class="sv-h"><span class="sv-n" aria-hidden="true">${boltIcon(13)}</span><span class="sv-t">${esc(c.label)}</span></p>`
       +`<ul class="sv-stp">${steps.map(st=>{const cr=stepCR(stepText(st));
         return `<li class="${stepIsCrit(st)?'crit':(stepIsVigil(st)?'vig':'')}">${fmt(cr.c)}${cr.r?` <span class="sv-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul></div>`);});
   const tl=(f.timers||[]),cl=(f.counters||[]);
@@ -21905,7 +21928,7 @@ function renderRelPickList(){
     const bl=(f.blocks||[]).filter(b=>!q||txNorm(nom(b)).includes(q));
     const oth=fiches.filter(x=>x.id!==f.id&&!x.deletedAt).concat(protocols.filter(x=>!x.deletedAt)).slice().sort(byTitle)
       .filter(x=>!q||txNorm((x.title||'')+' '+(x.code||'')).includes(q));
-    box.innerHTML=(bl.length?`<p class="pick-h">Blocs de cette fiche</p>`+bl.map(b=>`<button class="att-row" data-pick="${esc(b.id)}"><span class="att-ico">⚡</span><span class="att-name">${esc(nom(b))}</span></button>`).join(''):'')
+    box.innerHTML=(bl.length?`<p class="pick-h">Blocs de cette fiche</p>`+bl.map(b=>`<button class="att-row" data-pick="${esc(b.id)}"><span class="att-ico">${boltIcon(14)}</span><span class="att-name">${esc(nom(b))}</span></button>`).join(''):'')
       +(oth.length?`<p class="pick-h">Aides & protocoles</p>`+oth.map(o=>`<button class="att-row" data-pick="${esc(o.id)}"><span class="att-ico">${uiIcon(protocols.some(x=>x.id===o.id)?'book':'doc',16)}</span><span class="att-name">${esc(o.title||'Sans titre')}</span></button>`).join(''):'')
       ||('<p class="ai-note">Rien ne correspond au filtre.</p>');
     box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{
@@ -21987,12 +22010,12 @@ const ED_PALETTE=[
      portaient toutes deux « ⏱ » et ne se distinguaient que par le mot. Et le document passe par
      l'ICÔNE DE TRAIT de la famille plutôt que par « 📎 », un emoji en COULEUR qui s'imposait
      dans une liste par ailleurs monochrome — dans cette app la couleur porte un registre, elle
-     n'est jamais décorative (E6). « ⚡ » reste tel quel : c'est le glyphe de la complication
-     PARTOUT ailleurs dans le fichier, et une seconde forme ici serait le vrai défaut. */
+     n'est jamais décorative (E6). L'éclair passe par la MÊME fabrique `boltIcon` que partout
+     ailleurs dans le fichier (A335) : une seconde forme ici serait le vrai défaut. */
   {g:'Pendant la session',k:'interval',ic:uiIcon('alarm',17),   n:'Minuteur ou cycle',c:'durée + libellé'},
   {g:'Pendant la session',k:'stopwatch',ic:uiIcon('stopwatch',17),n:'Chronomètre',    c:'temps qui monte'},
   {g:'Pendant la session',k:'counter', ic:'№', n:'Compteur',        c:'chocs, doses…'},
-  {g:'Pendant la session',k:'cx',      ic:'⚡',n:'Complication',     c:'à tout moment'},
+  {g:'Pendant la session',k:'cx',      ic:boltIcon(17),n:'Complication',c:'à tout moment'},
   {g:'Contenu clinique',k:'poso',   ic:'▤', n:'Doses & seuils',  c:'consulté, pas coché'},
   {g:'Contenu clinique',k:'verify', ic:'△', n:'À vérifier',      c:'surveillances, pièges'},
   {g:'Contenu clinique',k:'diff',   ic:'≠', n:'Diagnostic différentiel',c:'si le tableau ne colle pas'},
@@ -22266,7 +22289,7 @@ function cxEditorRow(c,i,f,n){
   const blk=(f.blocks||[]).find(b=>b.id===c.target);
   const ext=blk?null:relTarget(c.target);
   const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
-  return `<div class="cx-edit-row${edGrabClsL('excursions',i)}">${edGrabHandleL('excursions',i,n||0,'la complication')}<span class="cx-edit-ic" aria-hidden="true">⚡</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
+  return `<div class="cx-edit-row${edGrabClsL('excursions',i)}">${edGrabHandleL('excursions',i,n||0,'la complication')}<span class="cx-edit-ic" aria-hidden="true">${boltIcon(14)}</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
 /* K7 (v4.70.0, maquette MK3) — LE MINUTEUR SE RÈGLE DANS SA CARTE DE LECTURE. C'était une rangée
    de champs alignés ; c'est maintenant la carte telle qu'elle apparaîtra dans le rail : nom en
    casse de phrase, précision en méta (`tmLabelParts` la sépare déjà à l'affichage), durée, type,
@@ -22363,9 +22386,9 @@ function edStructHtml(f){
        un bloc d'excursion n'est pas « l'étape d'après », c'est un événement qui peut survenir à
        tout moment — lui donner un rang le ferait lire comme une suite (v4.26.0, `flowPlan`
        l'exclut déjà de la numérotation). La colonne le DIT, au lieu de le taire. */
-    +(exc.length?`<div class="rail-head eds-hors"><span class="rail-title">⚡ À tout moment</span><span class="rail-n">hors numérotation</span></div>`
+    +(exc.length?`<div class="rail-head eds-hors"><span class="rail-title">${boltIcon(12)} À tout moment</span><span class="rail-n">hors numérotation</span></div>`
       +exc.map(c=>{const bb=bs.find(x=>x.id===c.target);
-        return `<button type="button" class="eds-row exc"${bb?` data-edgo="${esc(bb.id)}"`:''}><span class="eds-n">⚡</span><span class="eds-t">${esc(c.label||'Complication')}</span><span class="eds-c">${bb?'bloc':'autre aide ↗'}</span></button>`;}).join(''):'');}
+        return `<button type="button" class="eds-row exc"${bb?` data-edgo="${esc(bb.id)}"`:''}><span class="eds-n">${boltIcon(13)}</span><span class="eds-t">${esc(c.label||'Complication')}</span><span class="eds-c">${bb?'bloc':'autre aide ↗'}</span></button>`;}).join(''):'');}
 /* LA COLONNE DE DROITE PORTE L'ALGORITHME, PLUS UNE MAQUETTE (demande utilisateur, K1 v4.64.0 :
    le milieu EST le rendu). Le schéma monte dans la colonne COLLANTE ; sous 1000 px il reprend le
    flux. ⚠ IL NE SE REDESSINE PAS À LA FRAPPE (comportement d'avant, pas une régression) :
@@ -22466,7 +22489,7 @@ function renderEditor(){_renderN++;
     ${(f.timers||[]).length||(f.counters||[]).length?`<fieldset class="field ed-card"><label>Minuteurs & compteurs <span class="hint">disponibles pendant la session</span></label>
       ${(f.timers||[]).length?`<p class="sub2">Minuteurs</p>${edGrabRows('timers',f.timers,(t,i)=>timerEditorRow(t,i,(f.timers||[]).length))}`:''}
       ${(f.counters||[]).length?`<p class="sub2"${(f.timers||[]).length?' style="margin-top:14px"':''}>Compteurs</p>${edGrabRows('counters',f.counters,(c,i)=>counterEditorRow(c,i,f.timers,(f.counters||[]).length))}`:''}</fieldset>`:''}
-    ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>⚡ Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
+    ${(f.excursions||[]).length?`<fieldset class="field ed-card"><label>${boltIcon(14)} Complications — à tout moment <span class="hint">1 à 3 : l'essentiel — chaque bouton de plus dilue les autres. Cible = un bloc dédié de cette fiche, ou une autre aide</span></label>
       ${''/* B5 (v5.0.0, lot M3) — LES COMPLICATIONS SE RÉORDONNENT COMME TOUT LE RESTE. Le lot 2
       de la v4.75.0 avait étendu « prendre / poser » à HUIT listes en les adressant par la clé du
       modèle ; les excursions avaient été oubliées, et elles ont exactement la même forme (une

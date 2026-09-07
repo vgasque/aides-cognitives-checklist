@@ -63,10 +63,10 @@ const d2=await p.evaluate(async()=>{
  await new Promise(r=>setTimeout(r,450));
  const cur=document.querySelector('.ov-block.cur');
  return {bout:state.nav[state.nav.length-1],tag:!!cur.querySelector('.cx-tag'),
-  pastille:cur.querySelector('.ov-n').textContent.trim(),terminer:!!cur.querySelector('[data-ovend]'),
+  pastille:!!cur.querySelector('.ov-n .bolt')&&!/\d/.test(cur.querySelector('.ov-n').textContent),terminer:!!cur.querySelector('[data-ovend]'),
   reprendre:(cur.querySelector('[data-cxback]')||{}).textContent||null};});
 t('l’événement entre au bout du journal', d2.bout==='cxL');
-t('passage marqué « ⚡ complication », pastille ⚡', d2.tag&&d2.pastille==='⚡', JSON.stringify(d2));
+t('passage marqué « ⚡ complication », pastille ⚡ (icône `bolt`, sans numéro)', d2.tag&&d2.pastille===true, JSON.stringify(d2));
 t('« Terminer l’algorithme » supprimé pendant l’excursion', d2.terminer===false);
 t('« ↩ Reprendre » nomme le bloc interrompu', !!d2.reprendre&&/Reprendre/.test(d2.reprendre), ''+d2.reprendre);
 /* A333 (v5.27.0, décision de l'auteur — renverse A126) : « Reprendre » RAMÈNE le passage
@@ -137,7 +137,7 @@ const d7=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     HORS de la grille de l'algorithme. */
  const cell=document.querySelector('.sv-ref .sv-cell.sv-cx');
  return {ref:!!cell,horsGrille:!document.querySelector('.sv-algo .sv-cx'),
-   num:cell?cell.querySelector('.sv-n').textContent.trim():null};});
+   num:cell?(cell.querySelector('.sv-n .bolt')?'⚡':cell.querySelector('.sv-n').textContent.trim()):null};});
 t('Statique : la complication vit dans la colonne de référence, sans numéro (⚡)',
   d7.ref&&d7.horsGrille&&d7.num==='⚡', JSON.stringify(d7));
 /* LE SCHÉMA DIT AUSSI « À TOUT MOMENT » (v5.0.9). Il était la SEULE des quatre vues de structure
