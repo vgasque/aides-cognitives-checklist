@@ -171,3 +171,16 @@ réseau commun » (5 contrôles : silence court tant que l'hôte sonde, qui gran
 au banc, son `_cycle` devient un no-op, un `clearTimeout` ne suffit pas car chaque émission
 re-kicke —, bandeau ≤ 48 px, feuille, effacement). Sur le code d'avant : bouée → rouge (l'invité ne
 suit pas), silence → la section échoue (`shareHostSilenceMs` inexistant).
+
+**Addendum v5.26.4 — « et si son téléphone se met en veille, passe sur une autre appli ? »**
+(question de l'auteur). Alors l'hôte cesse de sonder (iOS suspend le JavaScript en arrière-plan),
+son `seen` se fige, et l'invité lit « Hôte silencieux » après les mêmes 45 s. Le FAIT est vrai —
+le miroir de l'invité n'est plus rafraîchi, et c'est ce qu'il doit savoir — mais le texte affirmait
+la CAUSE (« son réseau, pas le vôtre »), qu'on ne connaît pas. Arbitrages : (1) le seuil reste
+45 s, parce que l'app tient un verrou de veille pendant toute session vive (`wakeApply`) — l'écran
+de l'hôte ne s'éteint pas seul, un verrouillage ou un changement d'appli est un GESTE de l'hôte, et
+un miroir figé 45 s pendant une réanimation se dit ; (2) la cause ne s'affirme plus : « écran
+verrouillé, autre appli ou réseau, on ne sait pas », puis ce qui est sûr — rien n'est perdu, ce
+que l'invité relève parviendra, la progression se remet à jour dès le retour de l'hôte —, et
+« Recevoir par l'écran » n'est proposé QUE « s'il n'a plus de réseau ». Feuille, info-bulle du
+bandeau et sous-ligne de l'étape reformulées ; le témoin (« ne donne plus signe ») est inchangé.

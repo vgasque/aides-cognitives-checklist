@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.26.4] — 2026-09-07
+### « Hôte silencieux » ne dit plus la cause (A332, addendum)
+
+- **Question de l'auteur** : et si le téléphone de l'hôte se met en veille ou passe sur une autre
+  appli ? Alors l'hôte cesse de sonder et l'invité lit « Hôte silencieux » après 45 s — le fait
+  est vrai (son miroir n'est plus rafraîchi), mais le texte accusait le réseau.
+- **Ce qui change** : la cause ne s'affirme plus — « écran verrouillé, autre appli ou réseau, on
+  ne sait pas » —, puis ce qui est sûr : rien n'est perdu, ce que l'invité relève parviendra, et
+  la progression se remet à jour dès le retour de l'hôte. « Recevoir par l'écran » n'est proposé
+  que s'il n'a plus de réseau. Le seuil reste 45 s : l'app tient un verrou de veille pendant toute
+  session vive, l'écran de l'hôte ne s'éteint pas seul.
+
 ## [5.26.3] — 2026-09-07
 ### La bouée de bascule, et l'invité que rien n'atteint (A332, addendum)
 
@@ -377,22 +389,5 @@
 - Garde-fou : deux contrôles dans la section E2E des bascules d'`audit-partage`, vérifiés
   capables d'échouer. Doctrine A317 dans `docs/decisions/lot-v5-23.md` (nouveau fichier du
   lot). CHANGELOG à 20 ([5.20.4] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro
-  de version.
-
-## [5.22.8] — 2026-09-05
-### La pastille choisie ne mord plus ses voisines ; renommer repeint l'aperçu (A316)
-
-- **Signalés par l'auteur** : la pastille sélectionnée mordait sur toutes les autres, bouton
-  « palette » compris ; et le nouveau nom d'une catégorie ne s'affichait pas dans l'aperçu de la
-  palette. Mesuré : échelle 1,12 plus anneau de 4 px = 5,92 px de débord pour 6 px d'écart, soit
-  0,08 px de jeu — un contact à l'œil, horizontalement et vers la rangée du dessous ; et le champ
-  de nom n'écrivait que le modèle, sans repeindre l'aperçu.
-- **Correctifs** : écart des pastilles porté à 8 px (2,08 px de jeu) ; la frappe dans le champ de
-  nom repeint l'aperçu de la palette ouverte.
-- Garde-fous : deux contrôles ajoutés à la section A308 d'`audit-doctrine` (jeu ≥ 1,5 px entre
-  l'anneau et toute voisine, mesuré au rectangle ; les deux chips de l'aperçu portent le nom
-  saisi), vérifiés capables d'échouer (écart à 6 px → « jeu 0,08 px » ; repeinture retirée →
-  rouge). Doctrine A316 dans `docs/decisions/lot-v5-22.md`. CHANGELOG à 20 ([5.20.3] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro
   de version.
