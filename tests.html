@@ -887,6 +887,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('instComplete : bloc d’étapes tout coché pour CE passage', A.instComplete(ovF,['A'],[1],{'1:A:0':true,'1:A:1':true},0)===true&&A.instComplete(ovF,['A'],[1],{'1:A:0':true},0)===false);
   ok('instComplete : les coches d’un AUTRE passage ne comptent pas', A.instComplete(ovF,['A','D','R','D','R'],[1,2,3,4,5],{'3:R:0':true},4)===false);
   ok('instComplete : décision répondue / non répondue', A.instComplete(ovF,['A','D','S'],[1,2,3],{},1)===true&&A.instComplete(ovF,['A','D'],[1,2],{},1)===false);
+  ok('instComplete : une EXCURSION rangée entre la décision et sa cible ne compte pas (A333)', A.instComplete(ovF,['D','A','S'],[1,2,3],{},0,{2:{id:'D',t:0}})===true&&A.instComplete(ovF,['D','A','S'],[1,2,3],{},0)===false);
   // ovPresList (fil condensé v4.16.0) : 'open' carte / 'line' ligne d'état / 'chip' pastille.
   const P=(list)=>A.ovPresList(list.map(([c,m])=>({complete:c,manual:m})));
   eq('ovPresList : le bout est TOUJOURS une carte (même complet)', P([[true,null],[true,null]])[1], 'open');

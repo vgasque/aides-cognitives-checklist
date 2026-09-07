@@ -398,9 +398,12 @@
   « Terminer l'algorithme » SUPPRIMÉ pendant l'excursion (le parcours n'est pas fini, il est
   INTERROMPU) ; `↩ Reprendre — <bloc> →` TOUJOURS actif (non bloquant : on reprend quand
   l'événement est maîtrisé, pas quand les cases sont cochées) = LE contrôle rempli de l'écran
-  pendant l'excursion. `cxResume` = NOUVEAU passage du bloc interrompu, cases neuves — doctrine
+  pendant l'excursion. ~~`cxResume` = NOUVEAU passage du bloc interrompu, cases neuves — doctrine
   d'interruption AC 120-71B : on RE-vérifie après une interruption, l'ancienne carte reste
-  lisible juste au-dessus. `Runtime.cxBack={seq→blocId}` persiste dans la SESSION (export v3 des
+  lisible juste au-dessus.~~ **RENVERSÉ en v5.27.0 (A333, `lot-v5-27.md`, décision de l'auteur)** :
+  `cxResume` RAMÈNE le passage interrompu au bout du journal — même visite, coches gardées — et
+  la carte ⚡ se range juste avant lui ; A126 (repli du passage quitté) devient sans objet.
+  `Runtime.cxBack={seq→blocId}` persiste dans la SESSION (export v3 des
   fiches inchangé ; un ancien client ignore le champ ET la carte — le bloc reste un bloc).
   STRUCTURE : un bloc cible HORS séquence ne prend PAS de numéro de tronc (`flowPlan` l'exclut —
   numéroté, il se lisait « l'étape d'après », mesuré avant correction) ; il vit dans une section

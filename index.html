@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-QSbuNc3r5HNRO1wKQkFoaj7A97eosvkmDQvzrbItSD0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-gjWeyAV1k2RnXPRUTYZbaZL0+ilUeO7hNWAp9GbWyG0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8111,7 +8111,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.26.5';
+const APP_VERSION='5.27.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9317,8 +9317,10 @@ function flowPaintState(container,f){if(!container||!f)return;
     g.classList.toggle('fn-off',!!(m&&m.off));});}
 /* ═══ COMPLICATIONS « À TOUT MOMENT » (v4.26.0) — entrée PAR L'ÉVÉNEMENT ═══
    (QRH non-normal / ECAM : on traite puis on REVIENT, jamais laissé à la mémoire.) cxEnter local =
-   TOUJOURS un nouveau passage (≠ jumpToBlock) ; cxResume = NOUVEAU passage du bloc interrompu,
-   cases neuves (AC 120-71B). UN SEUL déclencheur, mot CONSTANT (v4.26.1, décision utilisateur) ;
+   TOUJOURS un nouveau passage (≠ jumpToBlock) ; cxResume = RETOUR SUR LE PASSAGE INTERROMPU,
+   coches gardées, l'excursion se range juste avant lui (v5.27.0, A333 — décision de l'auteur,
+   renverse A126 : « un bloc laissé ouvert, c'est perturbant »). UN SEUL déclencheur, mot CONSTANT
+   (v4.26.1, décision utilisateur) ;
    ⚠ à UN SEUL événement, pas d'index — l'événement DEVIENT le bouton (arbitrage tranché par
    l'auteur, v5.0.0 ; cible externe dite par « ↗ ») ; ⚠ on ne propose pas d'entrer là où l'on est
    déjà (à deux ou plus, l'index RESTE, la rangée courante s'annonce et n'est plus tapable).
@@ -9497,8 +9499,15 @@ function cxScrollTo(target){
 function cxResume(f,backId){
   if(!f||!(f.blocks||[]).some(b=>b&&b.id===backId))return;
   ovDropOpens();
-  state.flowEnded=false;
-  navAdvance(backId);
+  state.flowEnded=false;state.ovVerify=null;
+  /* A333 (v5.27.0) : on REVIENT sur le passage interrompu — même visite, mêmes coches — et il
+     redevient le bout ; la carte ⚡ se range juste avant lui. C'est ce que le bouton a toujours
+     dit (« ↩ Reprendre — ‹bloc› → ») ; un second passage (A126) laissait l'ancien ouvert et
+     incomplet au-dessus d'un neuf vide. Sans ancre ni passage à retrouver
+     (journal reçu d'un autre écran), l'ancien chemin reste : un passage neuf. */
+  const bout=state.nav.length-1;let k=-1;
+  if((Runtime.cxBack||{})[state.navSeq[bout]])for(let i=bout-1;i>=0;i--)if(state.nav[i]===backId){k=i;break;}
+  if(k>=0)navRestore(k);else navAdvance(backId);
   if(state.readMode==='overview'&&hasFlow(f)){renderOvOnly();ovScrollTo(backId);}
   else render();
   {const cards=document.querySelectorAll('.ov-wrap .ov-block');const last=cards[cards.length-1];
@@ -9548,8 +9557,10 @@ const byTitle=(a,b)=>_collator.compare(String(a.title||''),String(b.title||''));
 // UN SEUL TRI pour tout l'accueil (fiches, protocoles, union) : épinglés -> frecency -> alphabétique.
 // `sc` reste local à chaque liste (frecency active en recherche seulement).
 const homeCmp=sc=>(a,b)=>((isPinned(b.id)?1:0)-(isPinned(a.id)?1:0))||(sc(b)-sc(a))||byTitle(a,b);
-// Réponse PRISE d'une décision : celle dont la cible correspond à l'entrée SUIVANTE du fil.
-const decTaken=(b,idx)=>((b.options||[]).find(o=>o&&o.target&&o.target===state.nav[idx+1])||null);
+// Réponse PRISE d'une décision : celle dont la cible correspond à l'entrée SUIVANTE du fil
+// (hors excursions — navNextIdx, A333).
+const decTaken=(b,idx)=>{const nx=state.nav[navNextIdx(state.nav,state.navSeq,idx,Runtime.cxBack)];
+  return (b.options||[]).find(o=>o&&o.target&&o.target===nx)||null;};
 // Recherche PLEIN TEXTE, insensible aux accents : la requête « adrenaline » doit trouver une fiche
 // où le mot n'apparaît que dans une étape (« Adrénaline titrée… »), pas seulement dans le titre.
 const txNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -10871,9 +10882,10 @@ function ovPresList(arr){
   return out;}
 // Instance COMPLÈTE ? Bloc d'étapes : toutes cochées pour CE passage (seq) — bloc vide : complet
 // d'emblée ; décision : RÉPONDUE (l'entrée suivante du chemin est l'une de ses cibles).
-function instComplete(f,nav,navSeq,checked,idx){
+function instComplete(f,nav,navSeq,checked,idx,cxb){
   const b=((f&&f.blocks)||[]).find(x=>x&&x.id===(nav||[])[idx]);if(!b)return false;
-  if(b.kind==='decision')return (b.options||[]).some(o=>o&&o.target&&o.target===nav[idx+1]);
+  if(b.kind==='decision'){const nx=nav[navNextIdx(nav,navSeq,idx,cxb)];
+    return (b.options||[]).some(o=>o&&o.target&&o.target===nx);}
   const steps=clean(stepsOf(b));const seq=(navSeq&&navSeq[idx])||1;
   return steps.every((s,i)=>!!(checked&&checked[seq+':'+b.id+':'+i]));}
 /* ----- PLAN DE L'AIDE (v4.10.0) : l'algorithme ENTIER en arbre indenté -----
@@ -11833,7 +11845,7 @@ function endSession(R){if(!R||!R.fiche)return;
   R.startedAt=R.startedAt||Date.now();
   const s=snapshotSession(R,false);sessUpsert(s);
   try{const nv=R.nav||[];
-    const done=nv.reduce((n,id,ix)=>n+(instComplete(R.fiche,nv,R.navSeq,R.checked,ix)?1:0),0);
+    const done=nv.reduce((n,id,ix)=>n+(instComplete(R.fiche,nv,R.navSeq,R.checked,ix,R.cxBack)?1:0),0);
     lastEndedSession={id:s.id,title:R.fiche.title||'Aide cognitive',dur:Math.max(0,Date.now()-R.startedAt),passes:nv.length,done,exercise:!!R.exercise};}catch(e){}
   delete liveSessions[R.ficheId];R.started=false;R.sessionId=null;R.name='';
   /* LA FIN DE LA SESSION EST LA FIN DU PARTAGE — il n'y avait rien ici, et le partage survivait à
@@ -12905,6 +12917,10 @@ function render(){_renderN++;
   // trois couches collantes viennent d'être resynchronisées. Posé plus haut, il viserait la
   // géométrie de la vue précédente.
   if(_arriveeRead)landOnBout();
+  /* A334 : la barre « ↩ Bloc… » se resynchronise ICI, à tout changement de vue — le tick des
+     minuteurs, seul à l'appeler jusque-là, s'arrête avec la session : « Terminer » depuis la
+     fiche la laissait affichée sur l'accueil pour toujours (et le retour d'en-tête, une seconde). */
+  try{syncBlkReturn();}catch(e){}
 }
 /* ═══ RÉENTRÉE — ON REVIENT SUR LE SOIN, PAS SUR LE PRÉAMBULE (v5.0.0) ════════════════════════
    OUVRIR (on s'oriente : haut de fiche, condition d'entrée QRH) ≠ REVENIR pendant une session
@@ -18871,7 +18887,7 @@ function overviewSection(f){
   // FIL CONDENSÉ (v4.16.0) : présentation par passage (ovPresList — invariant : un passage
   // incomplet n'est JAMAIS une chip), puis assemblage CHRONOLOGIQUE — les chips consécutives
   // se regroupent en rangées, une carte/ligne coupe la rangée (l'ordre du fil est préservé).
-  const flags=state.nav.map((id,i)=>({complete:instComplete(f,state.nav,state.navSeq,state.checked,i),
+  const flags=state.nav.map((id,i)=>({complete:instComplete(f,state.nav,state.navSeq,state.checked,i,Runtime.cxBack),
     manual:state.ovFold[i]===true?true:(state.ovFold[i]===false?false:null)}));
   const pres=_printingOv?flags.map(()=>'open'):ovPresList(flags);
   if(state.ovVerify&&pres[state.ovVerify.idx])pres[state.ovVerify.idx]='open';
@@ -18964,7 +18980,7 @@ function ovInstHtml(f,id,idx,topo,pres){
   const seq=state.navSeq[idx]||1;
   const tip=idx===state.nav.length-1;
   const pi=passInfo(state.nav,idx);
-  const complete=instComplete(f,state.nav,state.navSeq,state.checked,idx);
+  const complete=instComplete(f,state.nav,state.navSeq,state.checked,idx,Runtime.cxBack);
   // Repli (v4.16.0) : la présentation vient d'ovPresList ('line' = ligne d'état) — calculée
   // au RENDU seulement, jamais pendant le cochage ; le choix manuel y est déjà prioritaire.
   const closed=pres==='line';
@@ -20125,6 +20141,7 @@ function shareApplyAnchored(f,evs,muet){
            casse l'alias en silence, et l'application se met à lire deux navigations différentes
            selon l'endroit. C'est ce qui s'est produit à la première écriture de cette fonction,
            attrapé par la sonde et non par la relecture. */
+        const _avantSeq=(Runtime.navSeq||[]).slice();
         Runtime.nav=nn.nav;Runtime.navSeq=nn.navSeq;
         // Le compteur de visites doit dépasser tout ce qui a été minté ailleurs, sinon une visite
         // LOCALE ultérieure réutiliserait un numéro déjà pris — et deux passages partageraient
@@ -20134,6 +20151,7 @@ function shareApplyAnchored(f,evs,muet){
         // REMPLACÉE comme nav/navSeq, jamais fusionnée (cf. shareCxbNorm, v5.10.5).
         Runtime.cxBack=cxbForFiche(shareCxbNorm(p.cxb,nn.navSeq),f);
         bindStateToRuntime();      // pose aussi navPos au BOUT : le journal n'a pas de curseur
+        ovFoldRemap(_avantSeq,nn.navSeq);   // A333 : un fil réordonné chez l'hôte, mes replis suivent leur visite
         /* ATTRIBUTION POSÉE ICI, ET NULLE PART AILLEURS. C'est le seul point où une navigation
            DISTANTE devient la position courante — `onEvents` le manquait dans un cas (le drain
            de la file par `rmResume` n'y repasse pas) et le posait dans un autre où il ne fallait
@@ -20353,7 +20371,8 @@ function ovAnswer(f,btn){
   const sec=btn.closest('.ov-block');const dec=sec.dataset.ovb;const target=btn.dataset.ovopt;
   if(!target||!f.blocks.some(b=>b.id===target))return;
   const idx=sec.dataset.ovi!=null?+sec.dataset.ovi:null;
-  if(idx!=null&&state.nav[idx+1]===target){ovScrollToInst(idx+1);return;}
+  {const nx=idx!=null?navNextIdx(state.nav,state.navSeq,idx,Runtime.cxBack):-1;
+   if(nx>=0&&state.nav[nx]===target){ovScrollToInst(nx);return;}}
   ovDropOpens();
   const src=idx!=null?idx:state.nav.length-1;   // ancre = l'instance d'où part le geste
   if(state.nav[state.nav.length-1]!==dec)ovNavPush(dec);
@@ -20368,6 +20387,31 @@ function ovAnswer(f,btn){
 function navAdvance(id,persist){
   state.nav.push(id);state.navSeq.push(++Runtime.seq);state.navPos=state.nav.length-1;
   if(persist!==false&&Runtime.started)persistLive(Runtime);}
+/* A333 — RAMENER un passage au bout du fil (reprise après complication) : EN PLACE, jamais un
+   tableau neuf (`state.nav` est l'alias de `Runtime.nav`), visite et coches conservées, replis
+   suivis par visite, le passage ramené rouvert. */
+function navRestore(k){
+  const avant=state.navSeq.slice();
+  const id=state.nav.splice(k,1)[0],sq=state.navSeq.splice(k,1)[0];
+  state.nav.push(id);state.navSeq.push(sq);state.navPos=state.nav.length-1;
+  ovFoldRemap(avant,state.navSeq);delete state.ovFold[state.navPos];
+  if(Runtime.started)persistLive(Runtime);}
+/* Les replis sont indexés par POSITION ; quand le fil se réordonne, chaque repli suit sa VISITE
+   (numéro unique par passage). Fil identique → no-op ; passage disparu → repli oublié. */
+function ovFoldRemap(avant,apres){
+  if(avant.join('|')===apres.join('|'))return;
+  const pos=Object.create(null);apres.forEach((sq,i)=>{pos[sq]=i;});
+  const o=state.ovFold,n={};
+  for(const key of Object.keys(o)){const m=/^(r:)?(\d+)$/.exec(key);
+    if(!m){n[key]=o[key];continue;}
+    const j=pos[avant[+m[2]]];if(j!=null)n[(m[1]||'')+j]=o[key];}
+  state.ovFold=n;}
+/* L'entrée SUIVANTE du fil saute les passages d'EXCURSION (ancre cxBack sur leur visite) :
+   depuis A333 une complication peut se ranger entre une décision et la cible qu'elle a désignée.
+   -1 s'il n'y en a pas. PURE : les ancres sont passées, jamais lues dans Runtime. */
+function navNextIdx(nav,navSeq,idx,cxb){const cb=cxb||{};
+  for(let j=idx+1;j<(nav||[]).length;j++)if(!cb[(navSeq||[])[j]])return j;
+  return -1;}
 function ovNavPush(id){state.nav.push(id);state.navSeq.push(++Runtime.seq);}
 function ovNavDone(src){state.navPos=state.nav.length-1;
   if(Runtime.started)persistLive(Runtime);

@@ -1,7 +1,8 @@
 /* AUDIT — COMPLICATIONS « À TOUT MOMENT » (v4.26.x). Entrée PAR L'ÉVÉNEMENT, modèle QRH : UN
    déclencheur constant (« ⚡ Complication(s) ») ouvre un INDEX par événement — pas un bouton par
-   urgence. Excursion tracée, « Terminer » supprimé pendant, RETOUR nommé toujours actif (cases
-   neuves — doctrine d'interruption AC 120-71B), sections « À tout moment » hors numérotation,
+   urgence. Excursion tracée, « Terminer » supprimé pendant, RETOUR nommé toujours actif (retour
+   sur le passage interrompu, coches gardées, carte ⚡ rangée juste avant — A333, v5.27.0 ; la
+   doctrine « cases neuves » d'A126 est renversée), sections « À tout moment » hors numérotation,
    cible externe = autre aide, zéro chrome sans déclaration, sélecteur filtrable de l'éditeur. */
 import { serveApp, moteur, NOM_MOTEUR, ROOT , items, amorce, ouvrirFiche, demarrerSession } from './harness.mjs';
 
@@ -55,6 +56,8 @@ const dm=await p.evaluate(()=>{document.getElementById('hdrMore').click();
 t('menu ⋯ : UNE entrée constante « Complications (2) »', dm.length===1&&/\(2\)/.test(dm[0]), JSON.stringify(dm));
 console.log('=== entrée / excursion / retour ===');
 const d2=await p.evaluate(async()=>{
+ /* Une coche AVANT l'évènement : A333 mesure qu'elle survit au retour. */
+ {const li=document.querySelector('.ov-block.cur ol.steps li:not(.done)');if(li)li.click();}await new Promise(r=>setTimeout(r,250));
  {const b=document.querySelector('#cxKey');if(b)b.click();}await new Promise(r=>setTimeout(r,300));
  [...document.querySelectorAll('#dockSheet .ds-row')].find(x=>/Laryngo/.test(x.textContent)).click();
  await new Promise(r=>setTimeout(r,450));
@@ -66,12 +69,22 @@ t('l’événement entre au bout du journal', d2.bout==='cxL');
 t('passage marqué « ⚡ complication », pastille ⚡', d2.tag&&d2.pastille==='⚡', JSON.stringify(d2));
 t('« Terminer l’algorithme » supprimé pendant l’excursion', d2.terminer===false);
 t('« ↩ Reprendre » nomme le bloc interrompu', !!d2.reprendre&&/Reprendre/.test(d2.reprendre), ''+d2.reprendre);
-const d3=await p.evaluate(async()=>{const avant=state.nav.length;
+/* A333 (v5.27.0, décision de l'auteur — renverse A126) : « Reprendre » RAMÈNE le passage
+   interrompu au bout du journal (même visite, mêmes coches) et la carte ⚡ se range juste avant
+   lui ; plus de second passage vide sous un ancien replié. */
+const d3=await p.evaluate(async()=>{const n=state.nav.length;
+ const iq=state.nav[n-2],sq=state.navSeq[n-2];           // le passage interrompu, replié
+ const coches=k=>Object.keys(state.checked).filter(x=>x.startsWith(k+':')&&state.checked[x]).length;
+ const avant=coches(sq);
  document.querySelector('[data-cxback]').click();await new Promise(r=>setTimeout(r,450));
- const cur=document.querySelector('.ov-block.cur');
- return {plus:state.nav.length>avant,neuves:cur.querySelectorAll('ol.steps li:not(.done)').length>0,
-  cartes:document.querySelectorAll('.ov-block').length>=3};});
-t('Reprendre = NOUVEAU passage, cases neuves (doctrine interruption)', d3.plus&&d3.neuves, JSON.stringify(d3));
+ const cards=[...document.querySelectorAll('.ov-block')];const cur=document.querySelector('.ov-block.cur');
+ return {meme:state.nav.length===n,bout:state.nav[n-1]===iq&&state.navSeq[n-1]===sq,coches:coches(sq)===avant&&avant>0,
+  ouvert:!!cur&&!cur.classList.contains('closed')&&cur.dataset.ovb===iq,
+  avantLui:cards.length>=2&&!!cards[cards.length-2].querySelector('.cx-tag'),
+  unSeul:cards.filter(c=>c.dataset.ovb===iq).length===1,cartes:cards.length>=2};});
+t('Reprendre = RETOUR sur le passage interrompu, même visite, aucun passage neuf (A333)', d3.meme&&d3.bout, JSON.stringify(d3));
+t('… ses coches d’avant l’évènement sont gardées', d3.coches, JSON.stringify(d3));
+t('… il est le bout, ouvert, seul de son bloc, la carte ⚡ juste avant lui', d3.ouvert&&d3.avantLui&&d3.unSeul, JSON.stringify(d3));
 t('l’excursion reste tracée (cartes conservées)', d3.cartes);
 const d4=await p.evaluate(async()=>{const n0=state.nav.filter(x=>x==='cxL').length;
  document.querySelector('#cxKey').click();await new Promise(r=>setTimeout(r,300));

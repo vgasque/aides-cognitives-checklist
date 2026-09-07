@@ -5817,7 +5817,10 @@ await sec('v5.7 · les épinglées ont le rythme du répertoire', async () => {
        n'est jamais une chip. Rien à corriger, seulement à présenter ;
    (b) ou bien `cxResume` redépose sur le bloc SUIVANT, et c'est un défaut net.
    Corriger sans avoir tranché, ce serait risquer d'effacer une trace de soin pour un symptôme
-   mal lu — la faute qu'A100, A107 et A113b ont déjà documentée. */
+   mal lu — la faute qu'A100, A107 et A113b ont déjà documentée.
+   ⚠ A333 (v5.27.0) : l'auteur a RENVERSÉ le verdict d'A126 — plus de second passage, le MÊME
+   passage revient au bout (coches gardées) et la carte ⚡ se range juste avant lui. La lecture (b)
+   reste le défaut net que ce témoin exclut. */
 await sec('⚡ la reprise après complication redépose sur le bloc interrompu', async () => {
   const page=await session(390);
   await page.waitForTimeout(400);
@@ -5843,16 +5846,15 @@ await sec('⚡ la reprise après complication redépose sur le bloc interrompu',
   /* LE CONTRÔLE QUI TRANCHE : le bout du journal doit être le bloc QU'ON A QUITTÉ, pas le suivant. */
   t('reprendre redépose sur le bloc INTERROMPU, pas sur le suivant',
     !!ap&&ap.id===av.id, 'quitté='+JSON.stringify(av)+' · repris='+JSON.stringify(ap));
-  /* Et le second passage est voulu : le bloc interrompu apparaît DEUX fois dans le journal. */
+  /* A333 : c'est LE MÊME passage qui revient — une seule carte de ce bloc, ouverte, et la
+     carte ⚡ juste avant elle. */
   const n=await page.evaluate(i=>[...document.querySelectorAll('.ov-block[data-ovb]')]
     .filter(c=>c.dataset.ovb===i).length, av.id);
-  t('… en postant un second passage, l’ancien restant lisible (doctrine d’interruption)', n>=2, n+' carte(s)');
-  /* ⚠ ET LE PASSAGE INTERROMPU EST REPLIÉ : deux cartes OUVERTES du même bloc, l'une au-dessus de
-     l'autre avec les mêmes étapes, se lisent comme un doublon. Le repli manuel (autorisé : « repli
-     manuel = ligne d'état au maximum ») laisse UNE seule carte ouverte, la neuve. */
-  const ouv=await page.evaluate(i=>[...document.querySelectorAll('.ov-block[data-ovb]')]
-    .filter(c=>c.dataset.ovb===i&&!c.classList.contains('closed')).length, av.id);
-  t('… mais UNE SEULE reste ouverte : l’interrompue se replie', ouv===1, ouv+' ouverte(s)');
+  t('… en UN SEUL passage : le même revient, aucun second posté (A333)', n===1, n+' carte(s)');
+  const fin=await page.evaluate(i=>{const cs=[...document.querySelectorAll('.ov-block[data-ovb]')];
+    const cur=cs[cs.length-1],prev=cs[cs.length-2];
+    return {ouv:!!cur&&cur.dataset.ovb===i&&!cur.classList.contains('closed'),cx:!!prev&&!!prev.querySelector('.cx-tag')};}, av.id);
+  t('… ouvert, et la carte ⚡ rangée juste avant lui', fin.ouv&&fin.cx, JSON.stringify(fin));
   await page.close();
 });
 

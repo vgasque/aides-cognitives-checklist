@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [5.27.0] — 2026-09-07
+### « Reprendre » revient sur l'étape interrompue, et la barre de retour ne survit plus à la fiche (A333-A334)
+
+- **Reprise après complication (A333)** — signalé par l'auteur : « ouvre une nouvelle étape,
+  devrait revenir vers l'ancienne et placer le bloc complication juste avant ; un bloc laissé
+  ouvert, c'est perturbant ». Mesuré avant : trois passages pour un geste (l'ancien replié avec sa
+  coche, la carte ⚡, un neuf vide). Désormais « ↩ Reprendre » RAMÈNE le passage interrompu au
+  bout du journal — même visite, coches gardées, plus de « passage 1/2 » — et la carte ⚡ se range
+  juste avant lui (`navRestore`, en place : `state.nav` reste l'alias de `Runtime.nav`). Ce
+  choix RENVERSE A126 (« nouveau passage, cases neuves ») par décision de l'auteur — et le
+  bouton l'a toujours dit : « ↩ Reprendre — ‹bloc› → » annonce un retour, pas un passage neuf ;
+  le texte d'origine est barré dans `conventions-de-code.md`, pas effacé.
+- **Ce que le réordonnement entraîne** : les replis, indexés par position, suivent leur visite
+  (`ovFoldRemap`, rejoué aussi chez l'invité qui reçoit le fil) ; « l'entrée suivante du fil »
+  saute les excursions (`navNextIdx`, pure) — sans cela une décision déjà répondue se rouvrait
+  parce qu'une carte ⚡ s'était rangée entre elle et sa cible (mesuré : la décision reste une
+  chip, sa réponse reste affichée, re-taper la réponse défile au lieu de reposter). Sans ancre
+  ni passage à retrouver, l'ancien chemin reste (passage neuf) — jamais un journal cassé.
+- **Barre « ↩ Bloc… » (A334)** — signalé : « apparaît sur la page d'accueil lorsqu'on termine la
+  session et qu'elle est visible ; est-ce la seule situation ? » Non : mesuré aux quatre portes,
+  « Terminer » la laissait pour toujours (le tick des minuteurs, seul à la resynchroniser,
+  s'arrête avec la session) et le retour d'en-tête une seconde. `render()` la resynchronise à
+  tout changement de vue.
+- Garde-fous : `audit-complications` et `audit-doctrine` réécrits sur la nouvelle règle (même
+  visite, coches gardées, une seule carte du bloc, ⚡ juste avant), un test unitaire
+  (`instComplete` saute une excursion). Doctrine A333-A334 dans `docs/decisions/lot-v5-27.md`
+  (nouveau fichier du lot), index AGENTS.md et docs/README.md. CHANGELOG à 20 ([5.23.1]
+  archivée).
+- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
+  version.
+
 ## [5.26.5] — 2026-09-07
 ### « Hôte silencieux » : la phrase passe au registre neutre (A332, addendum)
 
@@ -366,21 +397,4 @@
 - Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
   (19 → 23), vérifiés capables d'échouer (armement retiré → 3 rouges). Doctrine A319 dans
   `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.20.6] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.1] — 2026-09-05
-### La panne se détecte en moins de 5 s, la transition se voit, le secours se dit (A318, étape 2)
-
-- **Détection** : le secours direct n'était déclenché qu'au second sondage raté, après le repli
-  exponentiel — 5,2 s mesurés en activité, jusqu'à 20 s au repos. Désormais, au premier raté la
-  sonde de joignabilité tranche, et l'évènement `offline` du système tranche aussitôt : moins de
-  2,5 s au harnais.
-- **La transition se voit** : les annonces ne parlaient qu'aux lecteurs d'écran. Une porte unique,
-  `slSay`, pose un mot au quai pendant 8 s (« ● Passe en direct », « ● Suivi en direct »,
-  « ● Repasse en ligne ») et la phrase au lecteur d'écran. Aucune fenêtre, aucun toast.
-- **« Secours prêt »** est dit une fois, des deux côtés, quand le canal dormant se forme : on sait
-  avant la coupure si la bascule sera silencieuse.
-- Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
-  (15 → 19), vérifiés capables d'échouer (chemin rapide retiré → 5 230 ms). Doctrine A318 dans
-  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.20.5] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
