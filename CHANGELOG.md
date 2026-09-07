@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.26.5] — 2026-09-07
+### « Hôte silencieux » : la phrase passe au registre neutre (A332, addendum)
+
+- **Remarque de l'auteur** : « écran verrouillé, autre appli ou réseau, on ne sait pas » était
+  un peu familier. La feuille dit désormais « (écran verrouillé, autre application ou réseau : la
+  cause n'est pas connue) », puis ce qui est sûr — rien n'est perdu, ce que vous relevez lui
+  parviendra, sa progression se mettra à jour à son retour ; sans réseau de son côté, recevez-la
+  par l'écran. Info-bulle et sous-ligne de l'étape alignées.
+
 ## [5.26.4] — 2026-09-07
 ### « Hôte silencieux » ne dit plus la cause (A332, addendum)
 
@@ -375,19 +384,3 @@
   (15 → 19), vérifiés capables d'échouer (chemin rapide retiré → 5 230 ms). Doctrine A318 dans
   `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.20.5] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.0] — 2026-09-05
-### Un seul état visible : « ● Partagé » (A317, étape 1 du lot « seamless »)
-
-- **Demande de l'auteur** : rendre le passage entre partage en ligne et partage direct le plus
-  autonome et le plus transparent possible, sans que l'utilisateur ait à se demander s'il doit
-  basculer. Six propositions acceptées, livrées en cinq étapes ; celle-ci est la première.
-- **Le quai dit « ● Partagé »** dès qu'un partage est actif, quel que soit le canal (en ligne ou
-  direct), là où il disait « ● Session » puis « ● Direct ». Le transport n'est plus un état à
-  surveiller : il se lit dans la feuille de partage et aux transitions, une phrase sur place. Les
-  états dégradés (« figé », « coupé ») gardent leurs mots.
-- Garde-fou : deux contrôles dans la section E2E des bascules d'`audit-partage`, vérifiés
-  capables d'échouer. Doctrine A317 dans `docs/decisions/lot-v5-23.md` (nouveau fichier du
-  lot). CHANGELOG à 20 ([5.20.4] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro
-  de version.

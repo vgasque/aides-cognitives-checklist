@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-O2Hl5kgX96NGcNyEQZvxXP4ZTsTb+EvZZrXRZBvnn/M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-QSbuNc3r5HNRO1wKQkFoaj7A97eosvkmDQvzrbItSD0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8111,7 +8111,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.26.4';
+const APP_VERSION='5.26.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -27607,7 +27607,7 @@ function slWhy(mode){
   /* v5.26.4 (question de l'auteur : « et si son téléphone se met en veille, passe sur une autre
      appli ? ») : la CAUSE ne s'affirme pas — écran verrouillé, autre appli ou réseau, on ne sait
      pas. Le fait, lui, est sûr : le miroir n'est plus rafraîchi, et rien n'est perdu. */
-  if(mode==='hostquiet')return 'L’hôte ne donne plus signe depuis '+fmtHM(l.hostSince)+' — écran verrouillé, autre appli ou réseau, on ne sait pas. Rien n’est perdu\u00a0: ce que vous relevez lui parviendra, et sa progression se remettra à jour dès qu’il revient. S’il n’a plus de réseau, recevez-la par l’écran.';
+  if(mode==='hostquiet')return 'L’hôte ne donne plus signe depuis '+fmtHM(l.hostSince)+' (écran verrouillé, autre application ou réseau\u00a0: la cause n’est pas connue). Rien n’est perdu\u00a0: ce que vous relevez lui parviendra, et sa progression se mettra à jour à son retour. Sans réseau de son côté, recevez-la par l’écran.';
   if(mode==='cloud')return 'Internet répond — rien à régler.';
   if(mode==='optic')return 'Aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.';
   return !Auth.signedIn()?'Sans compte, le partage se fait en direct — un Wi-Fi commun suffit, même sans internet.'
@@ -27978,7 +27978,7 @@ function slSheet(phase){
           slActs('<button class="btn primary" id="slJoin">Se reconnecter…</button>'))
         :mir||l.lost?slOpticStepsHtml('guest')
         // A332 (v5.26.3) : l'hôte s'est tu — sa progression se reçoit par l'écran, le reste passe déjà.
-        :l.hostQuiet?slStep(1,'Recevoir la progression','par l’écran de l’hôte, s’il n’a plus de réseau — sinon tout se remet à jour dès son retour',
+        :l.hostQuiet?slStep(1,'Recevoir la progression','par l’écran de l’hôte, s’il n’a plus de réseau\u00a0; sinon tout se met à jour à son retour',
           slActs('<button class="btn primary" id="slRxQ">Recevoir</button>'))
         :slStep(1,'Rien','la session se suit seule\u00a0; si le réseau se perd, les étapes s’affichent ici','',true))
       +(mir?'':'<p class="sh-h">Votre rôle</p><p class="sh-legend">'+role+'</p>')
@@ -28259,7 +28259,7 @@ function slLinkPaint(){const el=document.getElementById('linkBar');if(!el)return
   const acts=hq?act('rx','① Recevoir')
     :l.lost&&l.why==='expired'?act('join','Se reconnecter…')
     :hote?act('show','① Montrer')+act('rx','② Recevoir'):act('rx','① Recevoir')+act('ret','② Renvoyer');
-  const titre=hq?'L’hôte ne donne plus signe depuis '+esc(fmtHM(l.hostSince))+' — veille, autre appli ou réseau\u00a0; rien n’est perdu'
+  const titre=hq?'L’hôte ne donne plus signe depuis '+esc(fmtHM(l.hostSince))+' — cause non connue (veille, autre application ou réseau)\u00a0; rien n’est perdu'
     :l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since))+(hote?'':' — coches suspendues, repères seuls'):'Mode par l’écran — chacun vise l’écran de l’autre';
   el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="'+titre+'">'+(hq?'Hôte silencieux':'Par l’écran')+'</span>'+acts
     +'<button type="button" class="lk-act why" data-lk="why" aria-label="Pourquoi ? — les étapes du partage" title="Pourquoi ?">'+uiIcon('info',16)+'</button>';
