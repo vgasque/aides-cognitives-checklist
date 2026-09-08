@@ -1,5 +1,40 @@
 # Journal des modifications
 
+## [5.28.1] — 2026-09-08
+### Le parcours dit enfin sa profondeur : un retrait par niveau, dans les quatre régimes (A339)
+
+- **Signalé à l'usage** : « parcours dans la page de démarrage d'une aide : indentation pas la
+  bonne, notamment avec des blocs conditionnels hiérarchisés ». Reproduit et **mesuré avant
+  correction**, sur une fiche à décision imbriquée.
+- **Ce qui était faux.** Dans l'aperçu de l'écran de démarrage, les étiquettes de branche étaient
+  toutes au MÊME retrait quel que soit leur niveau (« CHOQUABLE », profondeur 2, au même x que
+  « OUI », profondeur 1) et le renvoi d'une branche sans rangée se posait à GAUCHE du tronc. En
+  session, pire : les onze rangées de la colonne d'orientation à 10 px, étiquettes comprises —
+  **aucun retrait du tout**.
+- **La cause.** Quatre régimes écrivaient leurs retraits en ABSOLU (plan 24/32/48, colonne
+  20/28/40, rail 16/28/40, aperçu à plat 18/32/40), et chacun pose aussi sa gouttière par un
+  raccourci `padding` dont le sélecteur est plus spécifique : il remet `padding-left` à la
+  gouttière, **où que soient écrites les règles de retrait**. Les trois retraits de l'aperçu à plat
+  nés en v5.25.0 n'ont ainsi jamais rien fait.
+- **Le correctif.** Le retrait devient un token ADDITIF (`--pl-ind` : 12 / 24 / 32 px, l'échelle
+  déjà utilisée par la vue « Parcours »), ajouté à la gouttière de chaque régime
+  (`calc(<gouttière> + var(--pl-ind,0px))`). Un raccourci ne peut plus l'effacer sans effacer aussi
+  la gouttière ; l'alignement « la chip de branche sur le marqueur du bloc enfant » (v5.6) devient
+  STRUCTUREL au lieu d'être recopié ; douze règles de retrait absolu disparaissent pour trois
+  déclarations.
+- **Mesuré après** : aperçu de démarrage 0/12/24, étiquette et rangée enfant au même x à chaque
+  niveau ; session 10/22/34 ; le renvoi d'une branche suit sa branche. Aucune autre géométrie ne
+  bouge (gouttières, hauteurs et corps inchangés).
+- **Témoin** (`audit-doctrine`, « PARCOURS · le retrait dit la profondeur ») : fiche à décision
+  imbriquée, retrait STRICTEMENT croissant avant et pendant la session, étiquettes comprises.
+  Vérifié capable d'échouer (5 rouges sur l'état d'avant correctif). L'ancien témoin ne pouvait pas
+  voir le défaut : il comparait l'étiquette à sa rangée — quand tout est à plat, elles sont
+  alignées, et il était vert PARCE QUE la hiérarchie avait disparu.
+- Doctrine A339 dans `docs/decisions/lot-v5-28.md`, index `AGENTS.md` / `docs/README.md`,
+  `design/ds` régénéré, CHANGELOG à 20 ([5.23.4] archivée).
+- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET 29/29 après le numéro
+  de version.
+
 ## [5.28.0] — 2026-09-08
 ### « Terminer la session » se trouve là où la session se lit, le menu ⋯ ne répète plus le dock, et la méta des cartes d'accueil dit un état en mots (A336-A338)
 
@@ -405,19 +440,4 @@
   vérifiés capables d'échouer (6 rouges sur le code d'avant). Doctrine A322 avec la carte des
   situations et de leurs témoins dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.21.2]
   archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.4] — 2026-09-05
-### Le journal du lien : les cinq dernières transitions, sur demande (A321, étape 5 et fin du lot)
-
-- **Un tap sur « Partager » montre ce qui s'est passé** : les cinq dernières transitions du lien,
-  horodatées (« 14:02 Passe en direct », « 14:05 Repasse en ligne »), sous le sélecteur des deux
-  feuilles de partage. Écrites par la même porte que le mot du quai et l'annonce, en mémoire
-  seulement : rien ne sort de l'appareil, le journal meurt avec la session.
-- **Bilan du lot « seamless »** : un seul état visible « ● Partagé » ; panne détectée en moins de
-  2,5 s au lieu de 5,2 ; retour en ligne automatique sous hystérésis ; réveil qui ramène l'hôte
-  seul ; chaque transition vue 8 s au quai et relue dans le journal.
-- Garde-fous : deux contrôles ajoutés à la section E2E des bascules d'`audit-partage` (25 → 27),
-  vérifiés capables d'échouer. Doctrine A321 dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20
-  ([5.21.1] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.

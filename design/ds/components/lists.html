@@ -4669,11 +4669,18 @@
      prendre. Chaque bloc est une CARTE (v5.6) mais le MARQUEUR reste une PASTILLE : un numéro fondu
      dans le titre rendrait l'état à la couleur seule (règle 8) ; pas de liseré sur une rangée
      ordinaire (deux canaux pour un état). Détail : doctrine-css.md C101. */
-  .pl-line{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;
+  .pl-line{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px 6px calc(12px + var(--pl-ind,0px));
     background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);cursor:pointer}
-  .pl-line.d1{padding-left:24px}
-  .pl-line.d2{padding-left:32px}
-  .pl-line.d3{padding-left:48px}
+  /* ⚠ LE RETRAIT DE PROFONDEUR EST ADDITIF, ET IL A UNE SOURCE UNIQUE (v5.28.1, signalé à l'usage).
+     Chaque régime écrivait ses retraits ABSOLUS, et chacun pose sa gouttière par un RACCOURCI
+     `padding` — qui écrase le `padding-left` des classes de profondeur où qu'elles soient (spécificité
+     plus haute).
+     Mesuré : étiquettes de branche toutes à 8 px avant le soin, TOUTES les rangées à 10 px en
+     session — l'arbre était plat. Le retrait devient un token AJOUTÉ à la gouttière du régime :
+     un raccourci ne peut plus l'effacer sans effacer la gouttière. Détail : lot-v5-28.md A339. */
+  .pl-line.d1,.pl-brc.d1,.pl-jmp.d1{--pl-ind:12px}
+  .pl-line.d2,.pl-brc.d2,.pl-jmp.d2{--pl-ind:24px}
+  .pl-line.d3,.pl-brc.d3,.pl-jmp.d3{--pl-ind:32px}
   .pl-line .n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
     background:var(--surface);border:1.5px solid var(--line-strong)}
@@ -4725,23 +4732,25 @@
      est 32 px (cible hors crise) et il n'est pas négociable — c'est lui qui borne l'exercice, pas
      le goût ; en crise, le 44 px ne se négocie pas (bascule COMMANDÉE par le démarrage, A9 tenue).
      Détail : doctrine-css.md C103. */
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line{min-height:34px;padding:2px 10px;gap:8px}
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line{min-height:34px;padding:2px 10px 2px calc(10px + var(--pl-ind,0px));gap:8px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
+  /* L'étiquette de branche n'est PAS une cible — c'est un intertitre : elle rend son rembourrage
+     comme les rangées rendent le leur, et prend LEUR gouttière (l'alignement chip → marqueur du
+     bloc enfant en découle, à l'épaisseur du filet près). Posée ICI, avant l'aperçu à plat qui
+     s'en écarte : c'est l'ordre de source qui départage, à spécificité égale. */
+  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){padding:2px 8px 0 calc(10px + var(--pl-ind,0px))}
   /* Les SÉPARATIONS de section coûtaient 36 et 51 px de vide mesurés pour deux intertitres de
      19 px. On garde la hiérarchie (plus d'air au-dessus qu'au-dessous, A70) en la resserrant. */
   body.view-read:not(.crisis-live) .rail-lad .rail-head{margin-top:12px}
   /* L'APERÇU À PLAT (v5.25.0) : ni carte ni pastille — numéro gris, titre gris, renvois gris ;
      la rangée garde le plancher de 32 px (cible hors crise) et reste dépliable. Spécificité
      alignée sur la compaction juste au-dessus (même nombre de classes, posée après). */
-  body.view-read .pre-lad.flat .pl-line{background:none;border:0;min-height:32px;padding:2px 0;gap:8px}
-  body.view-read .pre-lad.flat .pl-line.d1{padding-left:18px}
-  body.view-read .pre-lad.flat .pl-line.d2{padding-left:32px}
-  body.view-read .pre-lad.flat .pl-line.d3{padding-left:40px}
+  body.view-read .pre-lad.flat .pl-line{background:none;border:0;min-height:32px;padding:2px 0 2px var(--pl-ind,0px);gap:8px}
   body.view-read .pre-lad.flat .pl-line .n{width:18px;height:auto;border:0;border-radius:0;background:none;justify-content:flex-end;color:var(--ink-3);font-size:var(--t-meta)}
   body.view-read .pre-lad.flat .pl-line.dec .n::before{display:none}
   body.view-read .pre-lad.flat .pl-line .t{color:var(--ink-2);font-size:var(--t-body)}
   body.view-read .pre-lad.flat .pl-line .g,body.view-read .pre-lad.flat .pl-ref{color:var(--ink-3)}
-  body.view-read .pre-lad.flat .pl-brc{padding:4px 0 0 24px}
+  body.view-read .pre-lad.flat :is(.pl-brc,.pl-jmp){padding:4px 0 0 var(--pl-ind,0px)}
   body.view-read .pre-lad.flat .pl-brc span{background:none;border:0;padding:0;color:var(--ink-3)}
   body.view-read .pre-lad.flat .pl-line.wl .n{font-size:var(--t-body)}
   body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
@@ -4750,27 +4759,21 @@
      Le pas se prend sur la RANGÉE, jamais sur l'écart ni la marge basse des titres (témoin rougit).
      L'écart restant avec l'avant-session (36 px) EST le pas : irréductible tant que les rangées
      sont tapables — audit-a11y rougirait. Détail : doctrine-css.md C104. */
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:2px 10px;gap:8px;
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:2px 10px 2px calc(10px + var(--pl-ind,0px));gap:8px;
     position:relative}
   body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line::after{content:'';position:absolute;inset:-3px}
   body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
   /* L'étiquette de branche n'est pas une cible : elle suit le dessin compact des deux régimes. */
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){min-height:28px;padding:2px 10px}
+  body.view-read.crisis-live :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){min-height:28px;padding:2px 10px 2px calc(10px + var(--pl-ind,0px))}
   /* ⚠ ON NE TOUCHE QUE LA MARGE HAUTE : la BASSE fixe l'écart entre un titre et ses rangées, et
      un témoin exige qu'il soit le MÊME pour tous les titres de la colonne. En session, un des
      deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
      paire ([10, 8] mesurés). La respiration se prend au-DESSUS, où elle n'engage personne. */
   body.view-read.crisis-live .rail-lad .rail-head{margin-top:12px}
   body.view-read.crisis-live .rail-lad .pl-sech{margin-top:10px}
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d1{padding-left:20px}
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d2{padding-left:28px}
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line.d3{padding-left:40px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:24px;height:24px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .rail-lad{gap:4px}
   body.view-read:not(.crisis-live) .pre-lad{gap:4px}
-  /* L'étiquette de branche n'est PAS une cible — c'est un intertitre : elle rend son rembourrage
-     avant la session comme les rangées rendent le leur. */
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){padding:2px 8px 0}
   /* Des BOUTONS de contour (`--ctl-line`, seul filet 3:1 — A67 ; glyphe 15 px, A13), jamais
      REMPLIS : le seul bouton rempli de l'écran reste « Confirmé — démarrer la session » (règle du
      bouton unique) — ce sont des LECTURES. Ligne « prêt » : du texte, ambre TEXTUEL quand une pièce
@@ -4813,8 +4816,7 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl-line.cur .t{font-weight:800}
   /* La chip de branche : SEULE sur sa ligne, en retrait du niveau qu'elle ouvre. */
-  .pl-brc{padding:8px 8px 4px}
-  .pl-brc.d1{padding-left:20px}.pl-brc.d2{padding-left:32px}.pl-brc.d3{padding-left:48px}
+  .pl-brc{padding:8px 8px 4px calc(12px + var(--pl-ind,0px))}
   /* ⚠ NEUTRE, ET C'EST DOCTRINAL (signalé à l'usage : « ça ressort beaucoup par rapport au reste
      de la page, je ne suis pas sûr que ce soit approuvé ECAM/QRH/FAA » — la remarque est juste).
      Cette chip nomme la BRANCHE qui mène au bloc ; ce n'est ni une alerte ni un point de
@@ -4832,9 +4834,8 @@
      retrait aligné sur l'étiquette qu'elle suit. Inerte : le renvoi TAPABLE vit sur la rangée de
      la décision juste au-dessus (`.pl-ref`) — deux cibles pour un même saut se disputeraient le
      doigt dans une colonne de 223 px. */
-  .pl-jmp{padding:2px 8px 6px;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-soft);
+  .pl-jmp{padding:2px 8px 6px calc(12px + var(--pl-ind,0px));font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-soft);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pl-jmp.d1{padding-left:20px}.pl-jmp.d2{padding-left:32px}.pl-jmp.d3{padding-left:48px}
   .pl-jmp.loop{color:var(--link)}
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
@@ -6454,12 +6455,9 @@
        leur échelle resserrée, ci-dessous. */
     /* ⚠ LA CHIP DE BRANCHE S'ALIGNE SUR LE MARQUEUR DU BLOC QU'ELLE OUVRE (signalé à l'usage :
        « réaligne les tags des options aux numéros de blocs enfants »). Elle avait les retraits du
-       PLAN (20/32/48) alors que la colonne resserre les siens (16/28/40) — 4 px d'écart, mesurés,
-       exactement là où l'œil cherche une verticale. On aligne SANS ajouter de retrait : la chip
-       descend au retrait de la rangée, elle ne la pousse pas. */
-    .rail-lad .pl-line.d1,.rail-lad .pl-brc.d1,.rail-lad .pl-jmp.d1{padding-left:16px}
-    .rail-lad .pl-line.d2,.rail-lad .pl-brc.d2,.rail-lad .pl-jmp.d2{padding-left:28px}
-    .rail-lad .pl-line.d3,.rail-lad .pl-brc.d3,.rail-lad .pl-jmp.d3{padding-left:40px}
+       PLAN quand la colonne resserrait les siens — 4 px d'écart, exactement là où l'œil cherche
+       une verticale. Depuis A339 l'alignement est STRUCTUREL : rangée et étiquette partagent la
+       gouttière du régime et ajoutent le MÊME `--pl-ind` ; il n'y a plus de triplet à recopier. */
     .rail-lad .pl-line.cur .t{font-weight:800}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */

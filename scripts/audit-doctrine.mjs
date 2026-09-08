@@ -2548,6 +2548,80 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
 }
 });
 
+/* ⚠ A339 — LE RETRAIT DE PROFONDEUR EXISTE, ET LES NIVEAUX DIFFÈRENT (signalé à l'usage :
+   « indentation pas la bonne, notamment avec des blocs conditionnels hiérarchisés »). Le témoin
+   voisin (« la chip s'aligne sur le marqueur ») ne pouvait PAS voir le défaut : quand tout est à
+   plat, l'étiquette et sa rangée sont alignées — il était vert parce que la hiérarchie avait
+   disparu. On mesure donc ce qui manquait : chaque niveau est STRICTEMENT plus en retrait que le
+   précédent, dans les deux régimes (aperçu de l'écran de démarrage, puis colonne en session), et
+   l'étiquette de branche reste sur le marqueur de la rangée qu'elle ouvre, à 1 px près (la rangée
+   est une carte, l'étiquette non). Fiche à décision IMBRIQUÉE : le défaut ne se voit qu'à deux
+   niveaux — d1 et d2 vivaient au même x. */
+await sec('PARCOURS · le retrait dit la profondeur (décisions imbriquées)', async () => {
+{
+  const FICHE_IMB={id:'imb1',title:'Imbriquée — témoin',kind:'algo',start:'a',
+    blocks:[
+      {id:'a',kind:'do',title:'Départ',items:items(['Poser le diagnostic']),next:'d1'},
+      {id:'d1',kind:'decision',title:'Instable ?',question:'Instable ?',
+       options:[{label:'Oui',target:'d2'},{label:'Non',target:'fin'}]},
+      {id:'d2',kind:'decision',title:'Rythme choquable ?',question:'Rythme choquable ?',
+       options:[{label:'Choquable',target:'b1'},{label:'Non choquable',target:'b2'}]},
+      {id:'b1',kind:'do',title:'Choc',items:items(['Choquer 150 J']),next:'fin'},
+      {id:'b2',kind:'do',title:'Adrénaline',items:items(['1 mg IV']),next:'fin'},
+      {id:'fin',kind:'do',title:'Surveillance',items:items(['Scope']),next:null}],
+    timers:[],counters:[],confirmation:[],verify:[],notForget:[],differentials:[],sources:[],images:[]};
+  const page = await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await page.evaluate(async f=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const nf=migrate(JSON.parse(JSON.stringify(f)));await Data.put(nf);fiches.push(nf);
+    openRead(nf.id);await w(700);},FICHE_IMB);
+  /* Le retrait se lit sur le RENDU, jamais sur la règle : c'est un raccourci `padding` d'un autre
+     régime qui l'effaçait, et lui n'apparaît dans aucune des règles qu'on croirait lire. */
+  const lire=()=>page.evaluate(()=>{
+    const zone=document.querySelector('.pre-lad')||document.querySelector('.read-plan .rail-lad');
+    if(!zone)return null;
+    const px=e=>Math.round(parseFloat(getComputedStyle(e).paddingLeft)||0);
+    const par=c=>{const o={};zone.querySelectorAll('.'+c).forEach(e=>{
+      const d=[...e.classList].find(x=>/^d[0-3]$/.test(x))||'d0';(o[d]=o[d]||[]).push(px(e));});return o;};
+    /* L'étiquette PUIS sa rangée : on compare le début du texte de l'une au marqueur de l'autre. */
+    const paires=[];zone.querySelectorAll('.pl-brc').forEach(b=>{
+      const n=b.nextElementSibling;if(!n||!n.classList.contains('pl-line'))return;
+      const sp=b.querySelector('span'),mk=n.querySelector('.n');if(!sp||!mk)return;
+      paires.push(Math.round(sp.getBoundingClientRect().left-mk.getBoundingClientRect().left));});
+    return {ligne:par('pl-line'),brc:par('pl-brc'),jmp:par('pl-jmp'),paires};});
+  const croit=o=>{const k=Object.keys(o||{}).filter(d=>o[d].length).sort();
+    if(k.length<2)return false;
+    for(const d of k)if([...new Set(o[d])].length!==1)return false;   // un niveau, UN retrait
+    for(let i=1;i<k.length;i++)if(o[k[i]][0]<=o[k[i-1]][0])return false;
+    return true;};
+  const avant=await lire();
+  t('témoin : l’aperçu de l’écran de démarrage porte trois niveaux',
+    !!avant&&Object.keys(avant.ligne).length>=3, JSON.stringify(avant&&avant.ligne));
+  t('avant la session, le retrait CROÎT avec la profondeur (rangées)',
+    croit(avant&&avant.ligne), JSON.stringify(avant&&avant.ligne));
+  t('… et les étiquettes de branche suivent leur niveau',
+    croit(avant&&avant.brc), JSON.stringify(avant&&avant.brc));
+  t('… le renvoi d’une branche sans rangée n’est jamais plus à gauche que son niveau',
+    !!avant&&Object.keys(avant.jmp).every(d=>avant.jmp[d].every(v=>v>=(avant.ligne[d]||[0])[0])),
+    JSON.stringify({jmp:avant&&avant.jmp,ligne:avant&&avant.ligne}));
+  t('… et chaque étiquette reste sur le marqueur de la rangée qu’elle ouvre',
+    !!avant&&avant.paires.length>=2&&avant.paires.every(v=>Math.abs(v)<=1), JSON.stringify(avant&&avant.paires));
+  await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    document.getElementById('sessStart').click();await w(700);});
+  const apres=await lire();
+  t('en session, la colonne garde la même croissance (rangées)',
+    croit(apres&&apres.ligne), JSON.stringify(apres&&apres.ligne));
+  t('… étiquettes comprises',
+    croit(apres&&apres.brc), JSON.stringify(apres&&apres.brc));
+  t('… et l’étiquette reste sur le marqueur de sa rangée',
+    !!apres&&apres.paires.length>=2&&apres.paires.every(v=>Math.abs(v)<=1), JSON.stringify(apres&&apres.paires));
+  await page.close();
+}
+});
+
 await sec('RÉFÉRENCE · le palier se franchit RÉELLEMENT', async () => {
 {
   const page = await br.newPage({viewport:{width:390,height:900},hasTouch:true});

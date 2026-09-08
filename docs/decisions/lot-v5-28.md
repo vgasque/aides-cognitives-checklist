@@ -147,3 +147,66 @@ que les items s'abrègent au lieu de tomber, l'ordre suit la lecture. « À comp
 un bouton sur la rangée (cible de 24 px en fin de ligne impossible sans déborder — mesuré) : ses
 points restent en info-bulle et sur la fiche. `dirLiveHtml` purgé, `dirStateHtml` le remplace ;
 `paintDirLive` inchangé (le dernier nœud du chrono reste un texte nu).
+
+## A339 — le retrait de profondeur du parcours : un token additif, une seule échelle
+
+**SIGNALÉ À L'USAGE (08/09/2026)** : « parcours dans la page de démarrage d'une aide : indentation
+pas la bonne, notamment avec des blocs conditionnels hiérarchisés ». Reproduit et **mesuré avant
+d'être touché**, sur une fiche à décision imbriquée (Instable ? → oui → Rythme choquable ? →
+choquable / non choquable).
+
+**CONSTAT — L'ARBRE ÉTAIT PLAT, ET PAS SEULEMENT LÀ.** Retraits mesurés (bord gauche du texte, en
+px, aperçu de l'écran de démarrage à 390 comme à 1400) :
+
+| rangée | profondeur | avant | attendu |
+|---|---|---|---|
+| `2 Instable ?` | 0 | 18 | 18 |
+| étiquette `OUI` | 1 | 26 | 30 |
+| `3 Rythme choquable ?` | 1 | 38 | 30 |
+| étiquette `CHOQUABLE` | 2 | **26** | 42 |
+| `4 Choc` | 2 | 46 | 42 |
+
+Deux niveaux d'étiquette **au même x** : la hiérarchie qu'elles nomment n'existait plus. Et le
+renvoi d'une branche sans rangée (`→ 6 Surveillance`, profondeur 1) se posait à 8 px, c'est-à-dire
+**plus à gauche que le tronc**. En SESSION, pire : les onze rangées du rail à `padding-left:10px`,
+étiquettes comprises — **aucun retrait du tout**.
+
+**LA CAUSE — UN RACCOURCI `padding` BAT TOUJOURS UN `padding-left` DE PROFONDEUR.** Quatre régimes
+écrivaient leurs retraits en ABSOLU (plan 24/32/48, colonne 20/28/40, rail 16/28/40, aperçu à plat
+18/32/40) ; or chaque régime pose aussi sa gouttière par un raccourci (`padding:2px 10px`) dont le
+sélecteur est plus spécifique que les classes de profondeur — il remet donc `padding-left` à la
+gouttière, **où que soient écrites les règles de retrait**. Les trois retraits de l'aperçu à plat
+nés en v5.25.0 n'ont ainsi JAMAIS rien fait : ils étaient écrasés par un bloc de la v5.6 posé
+soixante lignes plus bas ; le CHANGELOG de v5.25.0 annonce « trois retraits ramenés sur l'échelle
+d'espacement » — trois retraits morts. Même mécanisme pour les étiquettes (`.pl-brc`, `.pl-jmp`),
+avec en plus une seconde règle de même spécificité posée après elles.
+
+**DÉCISION — LE RETRAIT S'AJOUTE À LA GOUTTIÈRE, IL NE LA REMPLACE PAS.** Une seule échelle
+(12/24/32, celle de `.pc-row` dans la vue « Parcours » — pas une échelle de plus), portée par un
+token de profondeur commun aux trois objets de la colonne :
+
+```css
+.pl-line.d1,.pl-brc.d1,.pl-jmp.d1{--pl-ind:12px}   /* +24, +32 aux niveaux suivants */
+```
+
+et chaque régime écrit sa gouttière `calc(<sa valeur> + var(--pl-ind,0px))`. Trois conséquences
+qui sont l'essentiel du correctif :
+
+- **un raccourci ne peut plus effacer le retrait** sans effacer aussi la gouttière, c'est-à-dire
+  sans se voir immédiatement ;
+- **l'alignement « la chip de branche sur le marqueur du bloc enfant » (v5.6) devient structurel**
+  au lieu d'être recopié : étiquette et rangée partagent la gouttière du régime et ajoutent le
+  même token — à l'épaisseur du filet près (1 px, la rangée est une carte, l'étiquette non), ce que
+  le témoin d'`audit-doctrine` tolère déjà. Le triplet `.rail-lad` (16/28/40) qui existait pour
+  cela seul est retiré ;
+- **douze règles de retrait absolu disparaissent** pour trois déclarations de token.
+
+**MESURÉ APRÈS** : aperçu de démarrage 0/12/24, étiquette et rangée enfant au même x à tous les
+niveaux (30 et 30, 42 et 42) ; session 10/22/34, étiquette 1 px à gauche du marqueur ; le renvoi
+d'une branche sans rangée suit sa branche. Aucun autre pixel ne bouge : les régimes gardent leurs
+gouttières, leurs hauteurs et leurs corps.
+
+**Le témoin ne pouvait pas le voir**, et c'est la leçon : « la chip s'aligne sur le marqueur »
+compare l'étiquette à la rangée SUIVANTE — quand tout est à plat, elles sont alignées, et le
+contrôle est vert précisément parce que la hiérarchie a disparu. Un alignement ne prouve un retrait
+que si l'on mesure aussi que les niveaux DIFFÈRENT.
