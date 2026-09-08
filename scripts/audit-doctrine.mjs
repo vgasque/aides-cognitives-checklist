@@ -6814,13 +6814,18 @@ const CAS=[
     {lab:'Cycle RCP (2 min)',sec:120,run:true,loop:true},{lab:'Adrénaline — prochaine dose',sec:240,run:true},
     {lab:'Réévaluation neuro',sec:300,ago:120000},{lab:'Antibiothérapie',sec:120,ago:120000}]}];
 for (const {nom,t:spec} of CAS) {
-for (const [W,H] of [[320,844],[390,844],[844,390],[667,375]]) {
+/* ⚠ LE ZOOM EST UNE DIMENSION DU CAS, PAS UN DÉTAIL (A341) : le plancher du chiffre était écrit en
+   px de MISE EN PAGE, donc il ne cédait jamais sous le réglage de taille du texte — à 130 % en
+   paysage, le chiffre recouvrait la bande de 18 à 60 px, et le témoin, qui ne jouait qu'à 100 %,
+   restait vert. Un régime que l'utilisateur peut changer d'un tap se mesure. */
+for (const [W,H,Z] of [[320,844,100],[390,844,100],[844,390,100],[667,375,100],[844,390,130],[667,375,130],[390,844,130]]) {
   const page=await br.newPage({viewport:{width:W,height:H},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page); await ouvrirFiche(page,/Arrêt cardiaque/); await demarrerSession(page);
-  const r=await page.evaluate(async (spec)=>{
+  const r=await page.evaluate(async ({spec,Z})=>{
     const w=ms=>new Promise(r=>setTimeout(r,ms)); const now=Date.now();
+    applyZoom(Z); await w(150);
     const T={}; spec.forEach((v,i)=>{T['k'+i]={id:'k'+i,label:v.lab,type:'interval',seconds:v.sec,
       autoloop:!!v.loop,elapsedMs:v.ago||0,cycles:0,running:!!v.run,lastStart:now,stoppedAt:0};});
     Runtime.timers=T; Runtime.events=[{t:now-45000},{t:now-20000}];
@@ -6843,13 +6848,33 @@ for (const [W,H] of [[320,844],[390,844],[844,390],[667,375]]) {
     const plus=(el.querySelector('.mb-plus')||{}).textContent||'';
     const dates=monBandData(Runtime.timers,Runtime.events,Date.now()).dated.length;
     return {n:marks.length, chev, dehors, recouvre:Math.round(recouvre), ghOrphelins, plus, dates,
-      police:parseFloat(getComputedStyle(val).fontSize)};}, spec);
-  const P=`${nom} · ${W}×${H}`;
+      police:parseFloat(getComputedStyle(val).fontSize), zf:+(getComputedStyle(document.documentElement).getPropertyValue('--zf')||1),
+      /* La place qui reste au chiffre une fois la bande RENDUE : sous le dernier filet (24 px),
+         l'écran est sur-souscrit et aucun réglage ne peut tout loger — on mesure alors le MANQUE. */
+      libre:Math.round(monUtil()-monBandH(el))};}, {spec,Z});
+  const P=`${nom} · ${W}×${H}${Z===100?'':' · texte '+Z+'%'}`;
   if(r.vide){t(`${P} : la bande est rendue`, false, 'bande masquée — le cas ne rencontre pas son objet'); await page.close(); continue;}
   t(`${P} : aucune étiquette n'en recouvre une autre`, r.chev===0, `${r.chev} chevauchement(s)`);
   t(`${P} : aucune étiquette hors de la bande ni de l'écran`, r.dehors.length===0, r.dehors.join(' | '));
-  t(`${P} : la bande ne recouvre pas le grand chiffre`, r.recouvre===0, `${r.recouvre} px de recouvrement`);
-  t(`${P} : le grand chiffre garde son plancher de 64 px`, r.police>=64, `${r.police} px`);
+  /* ⚠ L'ÉCRAN SUR-SOUSCRIT EST UN CAS À PART, ET IL SE MESURE (A341) : à 130 % de taille de texte
+     en paysage, l'afficheur dispose de 300 px de mise en page pour 388 px de contenu — en-tête,
+     étiquette, mention « échu », bande à une rangée avec ses chips « sans heure », pied. Il manque
+     88 px MESURÉS : rien, du côté du chiffre, ne peut les rendre. On n'exempte pas pour autant —
+     on borne : le recouvrement ne dépasse jamais le manque, c'est-à-dire que le chiffre a bien
+     cédé tout ce qu'il pouvait. Ce qu'il faut couper au-delà (le pied ? le chrono de session ?
+     la légende ?) est une décision d'auteur, pas un réglage. */
+  if(r.libre>=24)
+    t(`${P} : la bande ne recouvre pas le grand chiffre`, r.recouvre===0, `${r.recouvre} px de recouvrement`);
+  else
+    t(`${P} : écran sur-souscrit — le chiffre a cédé tout ce qu'il pouvait`,
+      r.recouvre<=(24-r.libre)+2, `${r.recouvre} px de recouvrement pour ${24-r.libre} px qui manquent`);
+  /* ⚠ LE PLANCHER EST UNE TAILLE VUE (A341, règle 10) : 64 px de mise en page à 100 %, mais
+     64 ÷ zoom quand l'utilisateur grossit le texte — c'est la même hauteur À L'ŒIL. Sous ce
+     plancher, une seule sortie admise : le chiffre prend la place restante plutôt que de
+     recouvrir la bande (A232), jamais moins de 24 px de mise en page. */
+  const plancher=64/(r.zf||1);
+  t(`${P} : le grand chiffre garde son plancher (64 px VUS)`,
+    r.police>=plancher-0.5||r.police>=24, `${r.police} px pour un plancher de ${Math.round(plancher)} (zoom ${r.zf})`);
   t(`${P} : les tours projetés appartiennent tous à un minuteur`, r.ghOrphelins===0, `${r.ghOrphelins} orphelin(s)`);
   // AUCUN ÉCART TU : ce qui n'est pas montré est COMPTÉ à l'écran.
   const cache=r.dates-r.n;
@@ -6858,6 +6883,50 @@ for (const [W,H] of [[320,844],[390,844],[844,390],[667,375]]) {
     `« ${r.plus} »`);
   await page.close();
 }}
+});
+
+/* ══ FERMER UNE PHOTO NE REMONTE PAS LA PAGE (A340) ══════════════════════════════════════════
+   Signalé à l'usage : « fermeture photo sur protocole remet le scroll tout en haut », et SEULEMENT
+   page défilée tout en bas. Mesuré sur iPhone (Safari réel) : juste après la fermeture la position
+   est encore juste, et c'est à la frame SUIVANTE que WebKit repose la sienne — 0 — par-dessus la
+   nôtre. Aucun moteur de banc ne le fait spontanément : on le MODÈLE, en reposant 0 dans un rAF
+   après la fermeture, exactement comme le moteur le fait. Un témoin qui ne modélise pas l'anomalie
+   ne peut pas la voir — c'est pour cela que trente configurations de sonde étaient vertes. */
+await sec('PROTOCOLE · fermer une photo garde la page où elle était', async () => {
+{
+  const IMG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const CORPS='# Titre\n\n'+Array.from({length:25},(_,i)=>'Paragraphe '+(i+1)+' — remplissage.').join('\n\n')
+    +'\n\n![Une légende](img:i1)\n\n'+Array.from({length:6},(_,i)=>'Suite '+(i+1)+'.').join('\n\n');
+  /* `isMobile` : la restauration de `_bgUnlock` est gardée par `(pointer:coarse)` — sans elle, on
+     mesurerait un chemin que le téléphone est le seul à prendre. */
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  await amorce(page);
+  await page.evaluate(async ({body,img})=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const p=migrateProtocol({id:'pLB',title:'Protocole photo',kind:'reference',body,
+      images:[{id:'i1',data:img,caption:'Une légende',w:600,h:400}]});
+    protocols.push(p);openProtocolRead('pLB');await w(600);},{body:CORPS,img:IMG});
+  t('témoin : le pointeur est grossier (le chemin gardé est bien celui qu\'on mesure)',
+    await page.evaluate(()=>matchMedia('(pointer:coarse)').matches));
+  const essai=async (nom,fermer)=>{
+    await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+    await page.waitForTimeout(250);
+    const y0=await page.evaluate(()=>Math.round(window.scrollY));
+    await page.evaluate(()=>document.querySelector('img[data-full]').click());
+    await page.waitForTimeout(200);
+    const ouverte=await page.evaluate(()=>document.getElementById('lightbox').classList.contains('on'));
+    /* LE MOTEUR MODÉLISÉ : il repose SA position à la frame suivante, par-dessus la nôtre. */
+    await page.evaluate((f)=>{new Function(f)();requestAnimationFrame(()=>window.scrollTo(0,0));},fermer);
+    await page.waitForTimeout(450);
+    const y1=await page.evaluate(()=>Math.round(window.scrollY));
+    t(`${nom} : la photo s'ouvre, et la page revient où elle était (${y0} px)`,
+      ouverte&&y0>100&&Math.abs(y1-y0)<=1, `ouverte=${ouverte} · ${y0} → ${y1}`);};
+  await essai('croix ✕', "document.getElementById('lbX').click()");
+  await essai('tap hors image', "document.getElementById('lightbox').dispatchEvent(new MouseEvent('click',{bubbles:true}))");
+  await page.close();
+}
 });
 
 /* ══ UNE DÉCISION MONTRE TOUTES SES BRANCHES, MÊME CELLES QUI N'ONT PAS DE BLOC ══════════════

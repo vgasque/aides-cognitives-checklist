@@ -1,5 +1,44 @@
 # Journal des modifications
 
+## [5.28.2] — 2026-09-08
+### Fermer une photo garde la page où elle était, et le grand chiffre du moniteur ne recouvre plus la bande (A340-A341)
+
+- **A340 — la photo, tout en bas d'un protocole.** Signalé : « fermeture photo sur protocole remet
+  le scroll tout en haut », puis la précision décisive de l'auteur : *seulement page défilée tout en
+  bas, par la croix ou par un tap hors image*. **Trente configurations de banc étaient vertes**
+  (quatre portes de fermeture, deux moteurs, tactile et souris, zoom 100 et 130, `isMobile` posé
+  pour que la garde `(pointer:coarse)` soit celle du téléphone) : le défaut n'existe que sur le vrai
+  moteur. Mesuré sur iPhone (simulateur iOS 26.5, Safari réel, copie de banc instrumentée) : juste
+  après la fermeture la position est **encore juste** (1886), et c'est **à la frame suivante** que
+  WebKit repose la sienne — 0. La restauration de `_bgUnlock` n'était pas fausse, elle était trop
+  tôt : tant que `html{overflow:hidden}` tient, le moteur garde une position à lui et la repose au
+  layout suivant. Elle se repose donc aussi **après** le layout (deux frames), et seulement si la
+  position a bougé — jamais contre un geste de l'utilisateur. Vaut pour **toutes** les fenêtres,
+  pas seulement la photo. Prouvé sur l'appareil : +rAF, +100, +400, +900 ms → 1886.
+- **A341 — le moniteur en paysage, texte agrandi.** Trouvé en mesurant, puis demandé : le grand
+  chiffre **recouvrait la bande de 18 à 60 px** dès 130 % de taille de texte — ce qu'A232 avait
+  fermé, rouvert par deux portes. (1) Le chrome de la bande était **estimé par des littéraux** justes
+  à 100 % : 167 px rendus pour 90 estimés. Le plafond se prend désormais sur la bande **réellement
+  rendue** — ce n'est pas circulaire, sa hauteur ne dépend jamais du chiffre — et le chrome mesuré
+  sert au nombre de rangées du tic suivant. (2) Le plancher de 64 px était écrit en pixels de **mise
+  en page**, donc il ne cédait jamais sous le réglage de taille du texte, qui est un `zoom`
+  (règle 10) : il devient une taille **vue** (64 ÷ zoom), et sous elle le chiffre prend la place
+  restante plutôt que de recouvrir la bande (A232 : « un chiffre recouvert ne se lit pas du tout »).
+- **Ce que la mesure dit aussi** : à 844×390 avec le texte à 130 % et quatre minuteurs dont un en
+  pause et un échu, l'afficheur a 300 px pour 388 px de contenu — **il manque 88 px**, et ils ne sont
+  pas du côté du chiffre. Ce qu'il faudrait couper au-delà (pied, chrono de session, légende) est
+  une décision d'auteur : elle n'est pas prise ici.
+- **Témoins.** « PROTOCOLE · fermer une photo garde la page où elle était » **modèle** le moteur
+  (un `requestAnimationFrame` repose 0 après la fermeture) — sans ce modèle, aucun banc ne voit le
+  défaut ; deux portes, page tout en bas. « MONITEUR · la bande de temps tient à plusieurs
+  minuteurs » gagne la dimension **zoom** (100 et 130 %, sept formats), vérifie le plancher en
+  taille VUE, et sur un écran sur-souscrit ne s'exempte pas : il **borne** le recouvrement au manque
+  mesuré. Les deux vérifiés capables d'échouer, `index.html` restauré à l'octet.
+- Doctrine A340-A341 dans `docs/decisions/lot-v5-28.md`, index `AGENTS.md` / `docs/README.md`,
+  CHANGELOG à 20 ([5.23.5] archivée).
+- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET 29/29 après le numéro
+  de version.
+
 ## [5.28.1] — 2026-09-08
 ### Le parcours dit enfin sa profondeur : un retrait par niveau, dans les quatre régimes (A339)
 
@@ -417,27 +456,4 @@
 - Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
   (36 → 40), vérifiés capables d'échouer. Doctrine A323 dans `docs/decisions/lot-v5-23.md`.
   CHANGELOG à 20 ([5.21.3] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.5] — 2026-09-06
-### Le réseau de terrain : chute totale du Wi-Fi, serveur en erreur, battement, portail captif (A322)
-
-- **Demande de l'auteur** : vérifier que le partage tient si le Wi-Fi est instable, se coupe ou
-  renvoie sur une page de portail — et tester les autres situations de terrain. Trois défauts
-  trouvés à la mesure et corrigés.
-- **Chute totale puis retour** : l'hôte reprend le MÊME partage cloud (id, code, secrets des
-  invités inchangés) et y pousse les gestes faits pendant le direct ; un invité dont le canal direct
-  est mort reprend SEUL avec son secret dès que le serveur répond — sans code, sans geste. Avant, un
-  partage neuf était ouvert et l'invité restait bloqué.
-- **Serveur en erreur au retour** : la tentative échouée gardait le retour désarmé à jamais ; il
-  reste armé et aboutit quand le serveur répond de nouveau.
-- **Battement** : l'hystérésis double à chaque retour automatique (jusqu'à 10 min) et se relâche
-  après 10 min de calme ; l'évènement `offline` attend 1,5 s avant de trancher.
-- **Portail captif** : couvert par construction — la sonde et les sondages échouent à l'interception
-  HTTPS, et l'isolation du portail tue le canal direct : c'est la chute totale.
-- Garde-fous : neuf contrôles ajoutés à la section E2E des bascules d'`audit-partage` (27 → 36),
-  dont « panne sans canal dormant : le cloud reprend seul » et « serveur en erreur : retour armé »,
-  vérifiés capables d'échouer (6 rouges sur le code d'avant). Doctrine A322 avec la carte des
-  situations et de leurs témoins dans `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.21.2]
-  archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.

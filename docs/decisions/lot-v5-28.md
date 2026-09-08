@@ -210,3 +210,92 @@ gouttières, leurs hauteurs et leurs corps.
 compare l'étiquette à la rangée SUIVANTE — quand tout est à plat, elles sont alignées, et le
 contrôle est vert précisément parce que la hiérarchie a disparu. Un alignement ne prouve un retrait
 que si l'on mesure aussi que les niveaux DIFFÈRENT.
+
+## A340 — fermer une photo ne remonte plus la page (le moteur repose SA position une frame plus tard)
+
+**SIGNALÉ À L'USAGE (08/09/2026)** : « fermeture photo sur protocole remet le scroll tout en haut »,
+puis, à la question, la précision qui a tout débloqué : **« ne se produit que lorsque scroll tout en
+bas de la page, que l'on clique hors image ou sur la croix »**.
+
+**TRENTE CONFIGURATIONS DE SONDE ÉTAIENT VERTES**, et c'est la leçon du dossier. Fermeture par ✕,
+par tap hors image, par Échap, par retour système ; 390 tactile et 1400 souris ; zoom 100 et 130 ;
+`isMobile` posé pour que `(pointer:coarse)` corresponde — sans quoi on ne mesure même pas le chemin
+gardé ; image markdown d'une référence et image de bloc en session ; Chromium **et** WebKit de banc.
+Position conservée au pixel partout. **Le défaut n'existe que sur le vrai moteur**, et il a fallu
+aller le chercher là : iPhone 17 Pro du simulateur iOS 26.5, Safari réel, avec une copie de banc de
+l'app (hors dépôt) instrumentée pour journaliser la position à chaque étape.
+
+**LA MESURE, QUI DÉSIGNE LA CAUSE SANS AMBIGUÏTÉ** (page défilée tout en bas, y = 1886 = maximum) :
+
+```
+AV-OPEN   y=1886  mo=0  ovf=vis          (mo = verrou de fond, ovf = overflow de <html>)
+AP-OPEN   y=1886  mo=1  ovf=hid  bgY=1886   ← verrou posé, position mémorisée : juste
+AV-CLOSE  y=1886  mo=1  ovf=hid
+AP-CLOSE  y=1886  mo=0  ovf=vis            ← verrou levé, restauration faite : ENCORE JUSTE
+CLOSE+rAF y=0                              ← à la frame SUIVANTE, WebKit repose la sienne : 0
+CLOSE+100 y=0     CLOSE+400 y=0    CLOSE+900 y=0
+```
+
+La restauration de `_bgUnlock` n'était pas fausse : elle était **trop tôt**. Tant que
+`html{overflow:hidden}` tient, WebKit garde une position de défilement à lui ; en levant le verrou
+on lui rend la main, et il la repose **au layout suivant**, par-dessus la nôtre. Tout en bas de la
+page, sa position à lui est 0.
+
+**DÉCISION — ON REPOSE AUSSI APRÈS LE LAYOUT.** `_bgUnlock` restaure comme avant (rien ne change là
+où c'était déjà bon), puis vérifie et repose à la frame suivante, et une fois encore à la suivante :
+`if(Math.abs(window.scrollY-y)>1)` — on ne combat donc jamais un défilement que l'utilisateur
+viendrait de faire, on ne corrige que le pas de côté du moteur. La valeur est capturée dans une
+locale : un verrou posé entre-temps ne peut pas la déplacer. `modalHandoffClose` (restauration
+refusée) est inchangé. **La correction vaut pour TOUTES les fenêtres**, pas seulement la photo :
+c'est la même porte.
+
+**Prouvé sur l'appareil** — mêmes gestes, même page, après correctif : `CLOSE+rAF`, `+100`, `+400`,
+`+900` → **y = 1886**.
+
+**Témoin** (`audit-doctrine`, « PROTOCOLE · fermer une photo garde la page où elle était ») : le
+banc ne reproduit pas l'anomalie, on la **MODÈLE** — un `requestAnimationFrame` repose 0 juste après
+la fermeture, exactement comme le moteur. Deux portes mesurées (✕ et tap hors image), page tout en
+bas, `isMobile` pour que la garde `(pointer:coarse)` soit celle du téléphone. Vérifié capable
+d'échouer : 874 → 0 sur l'état d'avant correctif, `index.html` restauré à l'octet.
+
+## A341 — le plafond du grand chiffre du moniteur se prend sur la bande RENDUE, et son plancher est une taille VUE
+
+**TROUVÉ EN MESURANT (08/09/2026), puis demandé par l'auteur** : en balayant 56 configurations du
+moniteur pour un tout autre signalement, le grand chiffre **recouvrait la bande de 18 à 60 px** en
+PAYSAGE dès que la taille du texte passait à 130 % — exactement ce qu'A232 avait fermé, rouvert par
+une porte qu'A232 n'avait pas vue. Le témoin de l'époque ne jouait qu'à 100 % : un régime que
+l'utilisateur change d'un tap n'était mesuré nulle part.
+
+**DEUX CAUSES, ET ELLES SONT DE LA MÊME FAMILLE.**
+
+1. **Le chrome de la bande était estimé par des littéraux** (`20 axe + 14 passé + 12 marge + 44
+   sans-heure + 22 légende + 22 « +n »`), justes pour un rendu à 100 %. Mesuré à 130 % en paysage :
+   **167 px rendus pour 90 estimés**. `--mon-vmax`, calculé sur l'estimation, laissait au chiffre une
+   place qui n'existait pas. Le plafond se prend désormais sur la bande **réellement rendue**
+   (`monBandH`, marge comprise) — et ce n'est pas circulaire : la hauteur de la bande ne dépend que
+   de ses rangées et de ses chips, jamais du chiffre. Le chrome mesuré est retenu (`_monChrome`)
+   pour que le NOMBRE DE RANGÉES, lui, se décide sur la mesure du tic précédent plutôt que sur des
+   littéraux.
+2. **Le plancher de 64 px était écrit en pixels de MISE EN PAGE** — donc il ne cédait jamais sous le
+   réglage de taille du texte, alors que ce réglage est un `zoom` sur `<html>` (règle 10). 64 px vus
+   valent 49 px de mise en page à 130 % : diviser par `zoomF()` rend au chiffre la seule chose qui
+   compte — **sa hauteur à l'œil** — et libère la place qui manquait. `MON_VAL_ABS` (24 px) est le
+   dernier filet : sous lui, le chiffre prend la place restante plutôt que de recouvrir la bande,
+   conformément à A232 (« un chiffre recouvert ne se lit pas du tout, un chiffre plus petit se lit
+   encore très bien »).
+
+**CE QUE LA MESURE DIT AUSSI, ET QU'AUCUN RÉGLAGE NE PEUT CORRIGER.** À 844×390 avec le texte à
+130 % et quatre minuteurs dont un en pause et un échu, l'afficheur dispose de **300 px** de mise en
+page pour **388 px** de contenu : 28 de rembourrage (zone sûre comprise) + 46 d'en-tête + 26
+d'étiquette + 23 de chiffre au plancher absolu + 39 de mention « échu » + 179 de bande (une seule
+rangée, mais 18 d'axe, 14 de passé, 18 de légende, 18 de « + n plus tard » et 48 de chips « sans
+heure ») + 35 de pied. **Il manque 88 px, et ils ne sont pas du côté du chiffre.** Ce qu'il faut
+couper au-delà — le pied « Dernier repère » ? le chrono de session ? la légende des tours
+projetés ? — est une décision d'auteur, pas un réglage : elle n'est pas prise ici.
+
+**Témoin** (`audit-doctrine`, « MONITEUR · la bande de temps tient à plusieurs minuteurs ») : la
+table de cas gagne une dimension, **le zoom** (100 et 130 %, sept formats). Le plancher se vérifie
+en taille VUE (`64 ÷ zf`), et sur un écran sur-souscrit le contrôle ne s'exempte pas — il **borne** :
+le recouvrement ne dépasse jamais le manque mesuré, c'est-à-dire que le chiffre a bien cédé tout ce
+qu'il pouvait. Vérifié capable d'échouer sur l'état d'avant correctif (deux rouges), `index.html`
+restauré à l'octet.

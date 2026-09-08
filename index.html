@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-xF1PJA4n6T/8MKJjiSzeDcIDbHv36O6ugBfNtvJUjT4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-JWGN9T4PmEWJkM5mhvG9qAe09s1tC5zMFDjEjL4+Q4k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8137,7 +8137,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.28.1';
+const APP_VERSION='5.28.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21456,7 +21456,15 @@ function monBandData(timers,events,now){
    peints, règle 10). Le chrome se calcule sur les DONNÉES ; les deux lignes de pied sont MAJORÉES
    d'office (seule sortie non circulaire, tombe du bon côté) ; le cap n'est jamais silencieux
    (`.mb-plus`). Détail : doctrine-js.md J179. */
-const MON_RANG_H=22, MON_RANGS_MAX=4, MON_VAL_MIN=64;
+const MON_RANG_H=22, MON_RANGS_MAX=4, MON_VAL_MIN=64, MON_VAL_ABS=24;
+/* ⚠ LE PLANCHER DU CHIFFRE EST UNE TAILLE VUE, PAS UNE TAILLE DE MISE EN PAGE (v5.28.2, règle 10).
+   Écrit en px de mise en page, il ne cédait jamais sous le réglage de taille du texte : à 130 % en
+   paysage la place tombe à 300 px de haut et le chiffre, bloqué à 64, RECOUVRAIT la bande de 18 à
+   60 px — ce qu'A232 interdit. Divisé par le zoom, 64 px vus valent 49 px de mise en page à 130 % :
+   l'utilisateur qui grossit le texte ne perd rien de ce qu'il voit. `MON_VAL_ABS` est le dernier
+   filet quand même cela ne tient pas : le chiffre prend la place restante — plus petit se lit
+   encore, recouvert ne se lit pas du tout (A232). Détail : lot-v5-28.md A341. */
+const monValMin=()=>MON_VAL_MIN/zoomF();
 function monPlace(d){
   const el=monMode();
   if(!el)return{rangs:MON_RANGS_MAX,vmax:0};
@@ -21483,14 +21491,35 @@ function monPlace(d){
      enfants, eux, vivent dans la BOÎTE DE CONTENU — les compter contre `clientHeight` offrait au
      calcul 28 px qui n'existent pas, et le recouvrement revenait (mesuré : 19 px à 844×390 avec
      quatre rangées). Le style calculé résout `env()` en pixels : c'est la seule lecture juste. */
+  const util=monUtil();
+  /* ⚠ LE CHROME DE LA BANDE SE MESURE DÈS QU'ON L'A VU (v5.28.2) : les littéraux ci-dessus sont
+     une estimation d'un rendu à 100 % de taille de texte, et sous le réglage de l'utilisateur ils
+     SOUS-ESTIMENT (mesuré à 130 %, paysage : 146 px rendus pour 90 estimés) — le grand chiffre
+     débordait alors sur la bande de 18 à 60 px, ce qu'A232 interdit. `_monChrome` retient ce que
+     la bande a réellement coûté HORS rangées au dernier rendu : la valeur ne dépend pas du
+     chiffre, donc rien ne boucle. Détail : lot-v5-28.md A341. */
+  const chr=(_monChrome>=0)?_monChrome:chrome;
+  const rangs=Math.max(1,Math.min(MON_RANGS_MAX,Math.floor((util-monValMin()-chr)/MON_RANG_H)));
+  return {rangs, vmax:Math.max(MON_VAL_ABS,util-chr-rangs*MON_RANG_H)};}
+/* LA PLACE LIBRE HORS BANDE — même lecture pour le nombre de rangées et pour le plafond du
+   chiffre (une seule mesure, donc jamais deux qui divergent). */
+function monUtil(){
+  const el=monMode();if(!el)return 0;
+  const hh=q=>{const n=el.querySelector(q);return n?n.offsetHeight:0;};
+  const main0=document.getElementById('monMain');
+  const kids=main0?[...main0.children]:[];
+  const autres=kids.filter(n=>!n.classList.contains('mon-val'))
+                   .reduce((a,n)=>a+n.offsetHeight,0)+Math.max(0,kids.length-1)*6;
   const cs=getComputedStyle(el);
   const hPad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
-  const util=el.clientHeight-hPad-hh('.mon-top')-hh('.mon-foot')-autres;
-  const rangs=Math.max(1,Math.min(MON_RANGS_MAX,Math.floor((util-MON_VAL_MIN-chrome)/MON_RANG_H)));
-  return {rangs, vmax:Math.max(MON_VAL_MIN,util-chrome-rangs*MON_RANG_H)};}
+  return el.clientHeight-hPad-hh('.mon-top')-hh('.mon-foot')-autres;}
+/* Hauteur RÉELLE de la bande, marge haute comprise (elle sépare la bande du chiffre). */
+function monBandH(el){
+  if(!el||el.hidden)return 0;
+  return el.offsetHeight+(parseFloat(getComputedStyle(el).marginTop)||0);}
 /* Écriture IDEMPOTENTE du plafond : `monRender` tourne à chaque tic (300 ms) et une écriture de
    propriété custom invalide le style de la sous-arborescence. 0 = pas de plafond. */
-let _monVMax=-1;
+let _monVMax=-1, _monChrome=-1;
 function monVMax(px){
   if(px===_monVMax)return;
   _monVMax=px;
@@ -21531,7 +21560,7 @@ function monRender(){
    /* ⚠ LE CHIFFRE REPREND TOUTE SA TAILLE QUAND LA BANDE N'EST PAS LÀ : le plafond est POSÉ par
       la bande, il doit donc partir avec elle — sinon un minuteur qu'on arrête laisserait
       l'afficheur avec un chiffre rapetissé sans raison visible. */
-   if(n<2){if(el.innerHTML!==''){el.innerHTML='';}el.hidden=true;monVMax(0);return;}
+   if(n<2){if(el.innerHTML!==''){el.innerHTML='';}el.hidden=true;monVMax(0);_monChrome=-1;return;}
    el.hidden=false;
    const pct=x=>(Math.max(0,Math.min(1,x))*100).toFixed(2)+'%';
    /* ⚠ UNE ÉCHÉANCE PAR RANGÉE (v5.17.1, signalé à l'usage) — même axe, la ligne « maintenant »
@@ -21559,7 +21588,13 @@ function monRender(){
      +(d.sans.length?'<div class="mb-sans"><span class="mb-sh">sans heure</span>'
        +d.sans.map(u=>'<span class="mb-chip'+(u.kind==='due'?' due':'')+'">'
          +esc(sstr(tmLabelParts(u.lab).name||'Minuteur',16))+' · <b>'+esc(u.val)+'</b></span>').join('')+'</div>':'');
-   if(el.innerHTML!==h)el.innerHTML=h;}}
+   if(el.innerHTML!==h)el.innerHTML=h;
+   /* ⚠ LE PLAFOND DU CHIFFRE SE PREND SUR LA BANDE RENDUE, PAS SUR SON ESTIMATION : la hauteur de
+      la bande ne dépend que de ses rangées et de ses chips — jamais du chiffre —, donc la mesurer
+      APRÈS l'avoir écrite n'est pas circulaire, et c'est la seule valeur juste sous zoom. */
+   const hb=monBandH(el);
+   _monChrome=Math.max(0,Math.round(hb-vus.length*MON_RANG_H));
+   monVMax(Math.max(MON_VAL_ABS,Math.round(monUtil()-hb)));}}
 
 /* ===== Editor =====
    Briques HTML : listEditor() (listes simples), targetSelect() (bloc cible), imageEditor(),
@@ -29244,7 +29279,15 @@ function _bgUnlock(restaure){if(!document.body.classList.contains('modal-open'))
   document.body.classList.remove('modal-open','modal-full');
   // Ceinture : overflow:hidden ne déplace pas le défilement, mais on restaure quand même la
   // position mémorisée (un moteur qui aurait bougé pendant le verrou revient au pixel).
-  if(restaure!==false&&(_bgWasFull||matchMedia('(pointer:coarse)').matches))window.scrollTo(0,_bgScrollY);
+  /* ⚠ ET UNE RESTAURATION SYNCHRONE NE SUFFIT PAS SUR IOS (v5.28.2, signalé à l'usage :
+     « fermeture photo sur protocole remet le scroll tout en haut », page défilée TOUT EN BAS).
+     Mesuré sur iPhone : juste après la fermeture y vaut encore 1886, et c'est à la frame SUIVANTE
+     que WebKit repose SA position — 0 — en écrasant la nôtre. On la repose donc aussi APRÈS le
+     layout, tant qu'elle n'a pas été reprise par un geste. Détail : lot-v5-28.md A340. */
+  if(restaure!==false&&(_bgWasFull||matchMedia('(pointer:coarse)').matches)){
+    const y=_bgScrollY;window.scrollTo(0,y);
+    const reposer=()=>{if(Math.abs(window.scrollY-y)>1)window.scrollTo(0,y);};
+    requestAnimationFrame(()=>{reposer();requestAnimationFrame(reposer);});}
   _bgWasFull=false;}
 /* FERMER EN PASSANT LA MAIN : quand la fermeture est le DÉBUT d'un geste, on coupe À LA SOURCE
    les deux réflexes du gestionnaire (`_modalReturnFocus` mis à néant AVANT lecture ; verrou de
