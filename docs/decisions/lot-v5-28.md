@@ -299,3 +299,77 @@ en taille VUE (`64 ÷ zf`), et sur un écran sur-souscrit le contrôle ne s'exem
 le recouvrement ne dépasse jamais le manque mesuré, c'est-à-dire que le chiffre a bien cédé tout ce
 qu'il pouvait. Vérifié capable d'échouer sur l'état d'avant correctif (deux rouges), `index.html`
 restauré à l'octet.
+
+## A342 — le dernier repère quitte le pied et se pose sur la bande, à son instant
+
+**DEMANDE DE L'AUTEUR (08/09/2026)** : « et si on mettait plutôt le dernier repère sur la timeline
+de manière générale ? ». Puis, sur la robustesse : « plusieurs repères qui se suivent rapidement et
+ne laissent pas assez de place au texte, comment faire ? ». Puis, sur le premier dessin : « pourquoi
+ils doivent tous être alignés à gauche ? » — c'est cette question qui a tranché.
+
+**POURQUOI ÇA FAISAIT SENS.** La bande portait DÉJÀ un point par repère des deux dernières minutes,
+mais ils étaient **anonymes** (`lab` toujours vide dans `monBandData`) ; le pied disait *quoi* et
+*quand* mais n'avait **aucune position dans le temps**. Deux objets pour un seul fait, chacun amputé
+de la moitié de l'autre. Les réunir rend au repère sa place sur l'axe et libère les 46 px du pied
+(filet, respiration, ligne de 13 px) — sur un afficheur où il manquait 88 px à 130 % de texte en
+paysage, ce n'est pas rien.
+
+**L'ÉCHELLE EST LE VRAI PROBLÈME, ET ELLE SE MESURE.** La zone du passé fait 101 px pour 120 s :
+**1 px ≈ 1,2 s**. Quatre repères d'un ACR (intubation, reprise MCE, adrénaline, choc n°2) en 80 s
+tiennent dans **61 px** quand une étiquette de 18 signes en fait 90 à 115. En pratique courante,
+deux repères qui se suivent ne peuvent JAMAIS tenir côte à côte : la question n'est pas de les
+placer, c'est de choisir ce qu'on renonce à dire.
+
+**LE DESSIN, ET L'ERREUR QU'IL A FALLU DÉFAIRE.** Première proposition : une pile d'étiquettes
+alignées à GAUCHE, reliées à leur point par un trait vertical puis horizontal. L'auteur a demandé
+pourquoi l'alignement à gauche — et c'était bien lui le défaut : **c'est le segment horizontal qui
+fabriquait les croisements**. Le temps croît vers la droite, donc le plus récent est le plus à
+droite ; sa ligne horizontale, en bas, passe sous les verticales de tous les plus anciens.
+
+**LA RÈGLE RETENUE — L'ÉTIQUETTE COMMENCE À SON INSTANT.** Son bord gauche EST le moment. Il n'y a
+donc aucun segment horizontal, donc rien à croiser, et l'ordre naturel redevient possible : **le
+plus récent occupe la rangée du bas**, contre la bande, les plus anciens montent. La propriété tient
+par construction et à n'importe quel nombre de repères : *le trait d'un repère plus ancien est
+toujours à gauche des étiquettes des plus récents, qui commencent plus à droite que lui.*
+
+**CE QUI N'EST PAS NOMMÉ EST COMPTÉ**, avec la phrase que la bande dit déjà de l'autre côté :
+« + 1 minuteur plus tard » devient **« + 3 repères avant »**. Écartés : « 4 gestes en 1 min 20 » —
+*geste* est un second mot pour ce que l'app appelle partout un **repère** (doctrine : « un verbe qui
+a deux noms finit par n'en avoir aucun »), et la durée est déjà DESSINÉE par l'étalement des points
+sur un axe daté ; l'écrire répète la géométrie en mots, dans un format (« 1 min 20 ») qui n'est même
+pas celui de `fmtMs`.
+
+**LES SEPT POINTS DE ROBUSTESSE, TOUS TENUS ET MESURÉS :**
+
+1. **Le plus récent ne fusionne JAMAIS.** La fusion des points trop proches (< 4,5 %, ≈ 19 s) ne
+   s'applique plus qu'aux repères MUETS : les trois derniers portent leur libellé et gardent leur
+   point. Sans cela, le fait que le pied nommait se dissolvait dans un compte.
+2. **Libellé borné à 18 signes** (`sstr`), comme les étiquettes d'échéance.
+3. **Le trait de rappel est 1 px en encre douce.** 2 px en encre pleine est le registre « daté » :
+   il se lirait comme une échéance. Trois registres existaient, ils restent trois.
+4. **Les étiquettes ne dérivent pas** l'une par rapport à l'autre : chacune est ancrée à son
+   instant, elles glissent ensemble à la vitesse de l'axe (0,84 px/s).
+5. **La sortie de fenêtre est le même objet.** Au-delà de −2 min le repère n'a plus de position :
+   demi-point au bord gauche, chevron, et l'âge en toutes lettres (`monAge`, arrondi à la minute —
+   on ne feint pas une précision que l'axe ne montre plus). C'est ce que le pied garantissait et
+   qu'il fallait reprendre : **le dernier repère existe toujours, quel que soit son âge.**
+6. **Le nombre de noms est une MESURE, pas un dessin** : `min(3, place.rangs)` — le même budget que
+   les rangées d'échéances, donc trois en portrait et **un seul** en paysage à 130 % de texte.
+7. **La bande apparaît dès UN repère.** Le seuil « au moins deux objets à mettre en relation »
+   valait quand le pied existait ; un repère seul n'a plus d'autre endroit où se dire.
+
+**MESURÉ APRÈS, 20 configurations** (390×844, 320×568, 844×390 à 100 et 130 % ; rafale de 4, un
+seul, deux, huit serrés, dernier hors fenêtre) : zéro croisement, zéro chevauchement d'étiquettes,
+rien hors cadre, zéro recouvrement du grand chiffre, compte exact (8 repères → 3 nommés et « + 5
+repères avant »), et le pied nulle part.
+
+**Témoin** (`audit-doctrine`, « MONITEUR · le passé se nomme, et il tient en rafale ») : les mêmes
+invariants sur 12 combinaisons. ⚠ Un trait se glisse SOUS sa propre étiquette de 3 px — c'est le
+rattachement, pas un croisement : le contrôle ne compte que les traits qui traversent l'étiquette
+d'une AUTRE rangée (la première version du témoin comptait les siens et rougissait sur un dessin
+juste). Vérifié capable d'échouer : l'ordre inversé (plus récent en haut) donne 8 rouges,
+`index.html` restauré à l'octet.
+
+**Purge** (règle 14) : `.mon-foot` et `#monFoot` disparaissent — élément, règle CSS, rendu et
+lecture de hauteur dans `monUtil` ; `.mb-dot b` part avec le compte par point, que la phrase
+remplace.

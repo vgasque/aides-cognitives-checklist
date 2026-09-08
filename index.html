@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-JWGN9T4PmEWJkM5mhvG9qAe09s1tC5zMFDjEjL4+Q4k='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-8bGTz57ijm4hxTu5/CZ4wMXp+EBhYyI8SMC8y8qYb10='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5498,10 +5498,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mon-band[hidden]{display:none}
   .mb-ax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;
     color:var(--ink-soft);margin-bottom:4px}
-  .mb-past{position:relative;height:14px}
-  .mb-dot{position:absolute;top:4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;
-    background:var(--ink-soft);display:grid;place-items:center}
-  .mb-dot b{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:-14px;font-weight:700}
+  /* LE PASSÉ SE NOMME (v5.28.3, A342) — une pile d'étiquettes qui COMMENCENT à leur instant : le
+     bord gauche du texte EST le moment, donc aucun segment horizontal, donc rien à croiser. Le plus
+     récent occupe la rangée du bas, contre la bande ; les plus anciens montent, et ce qui n'est pas
+     nommé se compte en tête (`.mb-back`, le pendant de `.mb-plus` du côté du futur).
+     ⚠ Le trait de rappel est 1 px en encre douce : 2 px en encre pleine est le registre « daté »
+     et se lirait comme une échéance. Détail : lot-v5-28.md A342. */
+  .mb-past{position:relative}
+  .mb-dot{position:absolute;bottom:1px;width:8px;height:8px;margin-left:-4px;border-radius:50%;
+    background:var(--ink-soft)}
+  .mb-dot.now{background:var(--ink)}
+  .mb-lead{position:absolute;width:1px;background:var(--ink-soft)}
+  .mb-rep{position:absolute;height:16px;padding-left:4px;display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap}
+  .mb-rep i{font-family:var(--mono);font-style:normal;font-weight:600;color:var(--ink-3)}
+  .mb-back{position:absolute;top:0;left:0;height:16px;display:inline-flex;align-items:center;
+    font-size:12px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+  /* HORS DE L'AXE : demi-point au bord, chevron, et l'âge — on ne place pas ce qu'on ne peut situer. */
+  .mb-old{position:absolute;inset:0;display:flex;align-items:center;gap:6px;font-size:12px;
+    font-weight:700;color:var(--ink);white-space:nowrap}
+  .mb-oh{flex:none;width:4px;height:8px;border-radius:0 8px 8px 0;background:var(--ink)}
+  .mb-oa{font-family:var(--mono);font-weight:600;color:var(--ink-3)}
   /* La bande GRANDIT AVEC SES ÉCHÉANCES (v5.17.1) : une rangée chacune, sur le même axe. Le
      `min-height` garde son corps quand rien n'est daté — l'axe au-dessus doit rester posé sur
      quelque chose. */
@@ -5529,7 +5546,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mb-chip.due{color:var(--verify);border-color:var(--verify-line)}
   .mb-chip b{font-family:var(--mono);color:var(--ink);font-weight:700}
   .mb-chip.due b{color:var(--verify)}
-  .mon-foot{flex:none;font-size:clamp(13px,2.8vw,17px);color:var(--ink-soft);border-top:1px solid var(--line);padding-top:10px;line-height:1.4}
   /* I4 — densité « LECTEUR » : la liste est celle de la page, seuls les CORPS changent (modèle
      ECL : liste entière + curseur, pastilles du rail — jamais d'alerte). L'état ne disparaît
      jamais (ECAM) : le lecteur porte sa PROPRE bande de minuteurs, échus d'abord, jamais de
@@ -7807,7 +7823,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sens propre : un écran d'état qu'on lit sans le toucher, à 2 m. AUCUN contrôle : un tap
      n'importe où revient à la fiche (une surface sans commande ne peut pas être actionnée par
      erreur, et c'est précisément ce qu'on veut d'un appareil posé). -->
-<div id="monMode" role="dialog" aria-modal="true" aria-label="Mode moniteur — affichage seul"><div class="mon-top"><span class="mon-sess" id="monSess"></span><span class="mon-hint">tap = revenir</span></div><div class="mon-main" id="monMain"></div><div class="mon-band" id="monBand"></div><div class="mon-foot" id="monFoot"></div></div>
+<div id="monMode" role="dialog" aria-modal="true" aria-label="Mode moniteur — affichage seul"><div class="mon-top"><span class="mon-sess" id="monSess"></span><span class="mon-hint">tap = revenir</span></div><div class="mon-main" id="monMain"></div><div class="mon-band" id="monBand"></div></div>
 <div id="flowFull" role="dialog" aria-modal="true" aria-label="Schéma de l'algorithme — plein écran"><div class="ff-bar"><button class="fz" data-zoomf="out" aria-label="Dézoomer">−</button><span class="fzv">100%</span><button class="fz" data-zoomf="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-zoomf="reset">Rétablir</button><span class="fz-spc"></span><button class="fz fz-r" id="ffClose">Fermer ✕</button></div><div class="ff-scroll"></div></div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie"><button class="x" id="lbX" aria-label="Fermer l'image">×</button><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
 <!-- Dialogue « Créer » (SPEC gestion §2.1) : point d'entrée UNIQUE de la création — 3 méthodes
@@ -8137,7 +8153,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.28.2';
+const APP_VERSION='5.28.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21418,7 +21434,7 @@ function monClose(){const el=monMode();if(!el||!el.classList.contains('on'))retu
    ⚠ Un JALON COMPTÉ n'y entre JAMAIS (dater le 3ᵉ choc = prédire le rythme de l'équipe).
    Détail : doctrine-js.md J178. */
 const MON_PAST_MS=120000, MON_FUT_MS=300000, MON_NOW=MON_PAST_MS/(MON_PAST_MS+MON_FUT_MS);
-function monBandData(timers,events,now){
+function monBandData(timers,events,now,labels){
   now=now||Date.now();
   const pos=t=>(t-now+MON_PAST_MS)/(MON_PAST_MS+MON_FUT_MS);
   const dated=[],sans=[];
@@ -21442,12 +21458,20 @@ function monBandData(timers,events,now){
     dated.push(d);
   });
   dated.sort((a,b)=>a.t-b.t);
-  /* Le passé : les TROIS derniers repères, et deux points trop proches fusionnent — à −2 min sur
-     300 px, une session chargée en met huit, et huit points collés ne se lisent plus. */
-  const ev=(events||[]).filter(e=>e&&!e.voidAt&&now-e.t<=MON_PAST_MS).slice(-3);
+  /* LE PASSÉ SE NOMME (v5.28.3, A342) — les TROIS derniers repères portent leur libellé et ne
+     fusionnent JAMAIS : c'est le fait que le pied portait, il ne peut pas se dissoudre dans un
+     compte. Les plus anciens de la fenêtre fusionnent entre eux quand deux points se touchent
+     (à −2 min sur 300 px, une session chargée en met huit) et restent MUETS — ils sont comptés,
+     pas nommés, et c'est la bande qui le dit en toutes lettres. `labels` s'aligne sur `events`
+     (source unique `tkLabels`, celle du compte-rendu) ; sans lui, le passé reste anonyme comme
+     avant. Détail : lot-v5-28.md A342. */
+  const fen=[];
+  (events||[]).forEach((e,i)=>{if(e&&!e.voidAt&&now-e.t<=MON_PAST_MS)
+    fen.push({t:e.t,lab:(labels&&labels[i])||''});});
   const past=[];
-  ev.forEach((e,i)=>{const x=pos(e.t);const p=past[past.length-1];
-    if(p&&x-p.x<0.045){p.n++;p.lab='';}else past.push({x,n:1,lab:'',t:e.t,ix:i});});
+  fen.forEach((e,i)=>{const x=pos(e.t);const nom=i>=fen.length-MON_REP_NOM;const p=past[past.length-1];
+    if(!nom&&p&&!p.lab&&x-p.x<0.045){p.n++;return;}
+    past.push({x,n:1,lab:nom?(e.lab||'Repère'):'',t:e.t});});
   return {past,dated,sans};}
 /* COMBIEN DE RANGÉES LA HAUTEUR PERMET (v5.17.1) — on MESURE la place restante, pas un palier.
    ⚠ Additionner les ENFANTS de `.mon-main`, jamais son `scrollHeight` (conteneur `flex:1` étiré =
@@ -21457,6 +21481,12 @@ function monBandData(timers,events,now){
    d'office (seule sortie non circulaire, tombe du bon côté) ; le cap n'est jamais silencieux
    (`.mb-plus`). Détail : doctrine-js.md J179. */
 const MON_RANG_H=22, MON_RANGS_MAX=4, MON_VAL_MIN=64, MON_VAL_ABS=24;
+/* Le passé nommé : trois rangées au plus, 16 px chacune, 10 px pour la ligne des points. */
+const MON_REP_NOM=3, MON_REP_H=16, MON_REP_PTS=10;
+/* L'ÂGE D'UN REPÈRE SORTI DE L'AXE : en toutes lettres, parce qu'il n'a plus de position à lire.
+   Arrondi à la minute — on ne feint pas une précision que l'axe ne montre plus. */
+const monAge=ms=>{const m=Math.max(0,Math.round(ms/60000));
+  return m<60?('il y a '+m+' min'):('il y a '+Math.floor(m/60)+' h '+String(m%60).padStart(2,'0'));};
 /* ⚠ LE PLANCHER DU CHIFFRE EST UNE TAILLE VUE, PAS UNE TAILLE DE MISE EN PAGE (v5.28.2, règle 10).
    Écrit en px de mise en page, il ne cédait jamais sous le réglage de taille du texte : à 130 % en
    paysage la place tombe à 300 px de haut et le chiffre, bloqué à 64, RECOUVRAIT la bande de 18 à
@@ -21512,7 +21542,7 @@ function monUtil(){
                    .reduce((a,n)=>a+n.offsetHeight,0)+Math.max(0,kids.length-1)*6;
   const cs=getComputedStyle(el);
   const hPad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
-  return el.clientHeight-hPad-hh('.mon-top')-hh('.mon-foot')-autres;}
+  return el.clientHeight-hPad-hh('.mon-top')-autres;}
 /* Hauteur RÉELLE de la bande, marge haute comprise (elle sépare la bande du chiffre). */
 function monBandH(el){
   if(!el||el.hidden)return 0;
@@ -21544,23 +21574,26 @@ function monRender(){
   {const el=document.getElementById('monMain');if(el.innerHTML!==h)el.innerHTML=h;}
   /* Le DERNIER REPÈRE, en toutes lettres quand le vocabulaire le permet — `tkLabels` est la même
      source que le compte-rendu : aucune seconde vérité, et un repère sans étiquette retombe sur
-     « Repère n » plutôt que sur un mot inventé (règle du journal référentiel). */
+     « Repère n » plutôt que sur un mot inventé (règle du journal référentiel). Il ne vit plus dans
+     un PIED (v5.28.3, A342) : il est posé sur la bande, à son instant. */
   const evs=(R.events||[]).filter(e=>!e.voidAt);
   const labs=tkLabels(evs,f,myTags());
-  const last=evs.length?evs[evs.length-1]:null;
-  const fh=last?`Dernier repère : <b>${esc(labs[evs.length-1]||'Repère')}</b> · ${esc(fmtHMS(last.t))}`
-    :'Aucun repère horodaté';
-  {const el=document.getElementById('monFoot');if(el.innerHTML!==fh)el.innerHTML=fh;}
-  /* La bande. Elle n'existe que s'il y a au moins DEUX objets à mettre en relation : en dessous,
-     le grand chiffre au-dessus dit déjà tout, et un axe qui ne porte qu'un marqueur est une
-     redite — c'est l'objection qui l'a fait retirer du chrome, elle vaut ici aussi. */
-  {const d=monBandData(R.timers,evs,now),el=document.getElementById('monBand');
+  /* La bande. Elle n'existe que s'il y a au moins DEUX objets à mettre en relation — un axe qui
+     ne porte qu'un marqueur redit le grand chiffre. UNE exception depuis A342 : un repère suffit,
+     parce qu'il n'a plus d'autre endroit où se dire. */
+  {const d=monBandData(R.timers,evs,now,labs),el=document.getElementById('monBand');
    if(!el)return;
-   const n=d.past.length+d.dated.length+d.sans.length;
+   /* HORS FENÊTRE : le dernier repère a plus de 2 min et n'a donc pas de position. Il se pose au
+      BORD GAUCHE, demi-point et âge en toutes lettres — la convention hors-échelle. Sans cela on
+      perdrait ce que le pied garantissait : le dernier repère, quel que soit son âge. */
+   const dep=(!d.past.length&&evs.length)
+     ?{lab:labs[evs.length-1]||'Repère',age:monAge(now-evs[evs.length-1].t)}:null;
+   const nRep=d.past.length+(dep?1:0);
+   const n=nRep+d.dated.length+d.sans.length;
    /* ⚠ LE CHIFFRE REPREND TOUTE SA TAILLE QUAND LA BANDE N'EST PAS LÀ : le plafond est POSÉ par
       la bande, il doit donc partir avec elle — sinon un minuteur qu'on arrête laisserait
       l'afficheur avec un chiffre rapetissé sans raison visible. */
-   if(n<2){if(el.innerHTML!==''){el.innerHTML='';}el.hidden=true;monVMax(0);_monChrome=-1;return;}
+   if(nRep<1&&n<2){if(el.innerHTML!==''){el.innerHTML='';}el.hidden=true;monVMax(0);_monChrome=-1;return;}
    el.hidden=false;
    const pct=x=>(Math.max(0,Math.min(1,x))*100).toFixed(2)+'%';
    /* ⚠ UNE ÉCHÉANCE PAR RANGÉE (v5.17.1, signalé à l'usage) — même axe, la ligne « maintenant »
@@ -21570,9 +21603,30 @@ function monRender(){
    const place=monPlace(d), RANGS=place.rangs;
    monVMax(place.vmax);
    const vus=d.dated.slice(0,RANGS), reste=d.dated.length-vus.length;
+   /* ⚠ L'ÉTIQUETTE COMMENCE À SON INSTANT (A342) : son bord gauche EST le moment, donc il n'y a
+      AUCUN segment horizontal — et donc rien à croiser. Le plus récent occupe la rangée du BAS,
+      contre la bande ; les plus anciens montent. La propriété tient par construction : le trait
+      d'un repère plus ancien est toujours à GAUCHE des étiquettes des plus récents, qui commencent
+      plus à droite que lui. ⚠ Le trait de rappel fait 1 px en encre douce — 2 px en encre pleine
+      est le registre « daté », il se lirait comme une échéance. */
+   const nommes=d.past.filter(p=>p.lab).slice(-Math.max(1,Math.min(MON_REP_NOM,RANGS)));
+   const avant=d.past.reduce((a,p)=>a+p.n,0)-nommes.length;
+   const nRang=nommes.length+(avant>0?1:0);
+   const hPast=dep?18:(nRang*MON_REP_H+MON_REP_PTS);
+   const yBas=(k)=>((avant>0?1:0)+k)*MON_REP_H;   // rangée 0 = le compte, puis du plus ancien au plus récent
+   const passeH=dep
+     ? '<span class="mb-old"><span class="mb-oh" aria-hidden="true"></span>'
+       +'<span class="mb-ol">‹ '+esc(sstr(dep.lab,18))+'</span><span class="mb-oa">'+esc(dep.age)+'</span></span>'
+     : (avant>0?'<span class="mb-back">+ '+avant+' repère'+(avant>1?'s':'')+' avant</span>':'')
+       +nommes.map((p,k)=>{const y=yBas(k);
+         return '<span class="mb-lead" style="left:'+pct(p.x)+';top:'+(y+MON_REP_H-3)+'px;height:'
+             +Math.max(0,hPast-5-(y+MON_REP_H-3))+'px"></span>'
+           +'<span class="mb-rep" style="left:'+pct(p.x)+';top:'+y+'px">'+esc(sstr(p.lab,18))
+           +'<i>'+esc(fmtHM(p.t))+'</i></span>';}).join('')
+       +d.past.map(p=>'<span class="mb-dot'+(p===nommes[nommes.length-1]?' now':'')
+           +'" style="left:'+pct(p.x)+'"></span>').join('');
    const h='<div class="mb-ax"><span>−2 min</span><span>maintenant</span><span>+5 min</span></div>'
-     +'<div class="mb-past">'+d.past.map(p=>'<span class="mb-dot" style="left:'+pct(p.x)+'">'
-       +(p.n>1?'<b>'+p.n+'</b>':'')+'</span>').join('')+'</div>'
+     +'<div class="mb-past" style="height:'+hPast+'px">'+passeH+'</div>'
      +'<div class="mb-line"><span class="mb-now" style="left:'+pct(MON_NOW)+'"></span>'
        +vus.map(x=>'<span class="mb-row">'
          +x.ghosts.map(g=>'<span class="mb-ghost" style="left:'+pct(g)+'"></span>').join('')

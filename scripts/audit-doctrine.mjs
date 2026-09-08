@@ -6929,6 +6929,79 @@ await sec('PROTOCOLE · fermer une photo garde la page où elle était', async (
 }
 });
 
+/* ══ MONITEUR · LE PASSÉ SE NOMME, ET IL TIENT EN RAFALE (A342) ══════════════════════════════
+   La zone du passé fait 101 px pour 120 s : 1 px ≈ 1,2 s. Quatre repères d'un ACR en 80 s tiennent
+   dans 61 px quand une étiquette en fait 90 à 115 — aucune ne peut se poser à côté d'une autre.
+   L'invariant n'est donc pas « ça rentre » mais : chaque étiquette COMMENCE à son instant (aucun
+   segment horizontal, donc rien à croiser), le plus récent est en bas, ce qui n'est pas nommé est
+   COMPTÉ, et le dernier repère existe toujours quelque part — même sorti de la fenêtre. */
+await sec('MONITEUR · le passé se nomme, et il tient en rafale', async () => {
+const CAS={
+  'rafale de 4 en 80 s': [80, 42, 29, 8],
+  'un seul repère':      [35],
+  'huit repères serrés': [110, 96, 84, 71, 58, 40, 22, 6],
+  'dernier hors fenêtre':[420, 300],
+};
+for (const [nom, ages] of Object.entries(CAS)) {
+for (const [W,H,Z] of [[390,844,100],[320,568,100],[844,390,130]]) {
+  const page=await br.newPage({viewport:{width:W,height:H},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page); await ouvrirFiche(page,/Arrêt cardiaque/); await demarrerSession(page);
+  const r=await page.evaluate(async ({ages,Z})=>{
+    const w=ms=>new Promise(r=>setTimeout(r,ms)); const now=Date.now();
+    applyZoom(Z); await w(120);
+    Runtime.timers={k0:{id:'k0',label:'Cycle RCP',type:'interval',seconds:120,autoloop:true,
+        elapsedMs:30000,cycles:0,running:true,lastStart:now,stoppedAt:0},
+      k1:{id:'k1',label:'Adrénaline — prochaine dose',type:'interval',seconds:240,autoloop:false,
+        elapsedMs:0,cycles:0,running:true,lastStart:now,stoppedAt:0}};
+    /* Les repères se posent du plus ANCIEN au plus récent : `Runtime.events` est chronologique. */
+    Runtime.events=ages.slice().sort((a,b)=>b-a).map((a,i)=>({t:now-a*1000,kind:'mark',tag:'Geste '+(i+1)}));
+    monOpen(); await w(900);
+    const el=document.getElementById('monMode'), band=document.getElementById('monBand');
+    const R=n=>{const q=n.getBoundingClientRect();return {l:q.left,r:q.right,t:q.top,b:q.bottom};};
+    const reps=[...band.querySelectorAll('.mb-rep')].map(n=>Object.assign(R(n),{txt:n.textContent}));
+    const leads=[...band.querySelectorAll('.mb-lead')].map(R);
+    /* ⚠ Un trait se glisse SOUS sa propre étiquette (3 px) : c'est le rattachement, pas un
+       croisement. On ne compte que les traits qui traversent l'étiquette d'une AUTRE rangée. */
+    let croise=0;
+    leads.forEach((L,i)=>reps.forEach((E,j)=>{
+      if(i!==j&&L.l<E.r-0.5&&E.l<L.r-0.5&&L.t<E.b-0.5&&E.t<L.b-0.5)croise++;}));
+    let chev=0;
+    for(let i=0;i<reps.length;i++)for(let j=i+1;j<reps.length;j++){const A=reps[i],B=reps[j];
+      if(A.l<B.r-0.5&&B.l<A.r-0.5&&A.t<B.b-0.5&&B.t<A.b-0.5)chev++;}
+    const cadre=R(el);
+    const dehors=reps.filter(e=>e.r>cadre.r-1||e.l<cadre.l-1).map(e=>e.txt);
+    const val=el.querySelector('.mon-val');
+    const recouvre=val?Math.max(0,Math.min(R(val).b,R(band).b)-Math.max(R(val).t,R(band).t)):0;
+    /* Le plus récent occupe la rangée du BAS : c'est le geste qu'on cherche en premier. */
+    const bas=reps.length?reps.reduce((a,b)=>a.t>=b.t?a:b):null;
+    const dernier=Runtime.events[Runtime.events.length-1];
+    return {n:reps.length, croise, chev, dehors, recouvre:Math.round(recouvre),
+      back:(band.querySelector('.mb-back')||{}).textContent||'',
+      old:(band.querySelector('.mb-old')||{}).textContent||'',
+      basEstDernier:!!(bas&&dernier&&bas.txt.indexOf(tkLabels(Runtime.events,Runtime.fiche,myTags()).slice(-1)[0])===0),
+      pied:document.querySelectorAll('.mon-foot').length,
+      total:Runtime.events.length};}, {ages,Z});
+  const P=`${nom} · ${W}×${H}${Z===100?'':' · texte '+Z+'%'}`;
+  t(`${P} : aucun trait ne traverse une autre étiquette`, r.croise===0, `${r.croise} croisement(s)`);
+  t(`${P} : aucune étiquette n'en recouvre une autre`, r.chev===0, `${r.chev} chevauchement(s)`);
+  t(`${P} : aucune étiquette hors de l'écran`, r.dehors.length===0, r.dehors.join(' | '));
+  t(`${P} : le passé ne recouvre pas le grand chiffre`, r.recouvre===0, `${r.recouvre} px`);
+  /* LE DERNIER REPÈRE EXISTE TOUJOURS : nommé sur l'axe, ou posé au bord quand il en est sorti.
+     C'est ce que le pied garantissait et qu'A342 lui reprend — il ne peut pas se perdre en route. */
+  t(`${P} : le dernier repère est dit (nommé, ou posé au bord s'il est sorti de l'axe)`,
+    (r.n>0&&r.basEstDernier)||/il y a/.test(r.old), `${r.n} nommé(s) · « ${r.old} »`);
+  /* AUCUN ÉCART TU : ce qui n'est pas nommé est compté, et le compte est JUSTE. */
+  const cache=r.old?0:r.total-r.n;
+  t(`${P} : ce qui n'est pas nommé est compté (${cache} sur ${r.total})`,
+    cache<=0 ? r.back==='' : r.back.replace(/\s+/g,' ')===`+ ${cache} repère${cache>1?'s':''} avant`,
+    `« ${r.back} »`);
+  t(`${P} : le pied a disparu, la bande porte seule le dernier repère`, r.pied===0, String(r.pied));
+  await page.close();
+}}
+});
+
 /* ══ UNE DÉCISION MONTRE TOUTES SES BRANCHES, MÊME CELLES QUI N'ONT PAS DE BLOC ══════════════
    (v5.17.4, signalé à l'usage : « le parcours s'affiche mal pour les blocs conditionnels,
    uniquement certains s'affichent ».) Une option qui rejoint DIRECTEMENT le point de convergence

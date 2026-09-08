@@ -1,5 +1,50 @@
 # Journal des modifications
 
+## [5.28.3] — 2026-09-08
+### Le dernier repère quitte le pied du moniteur et se pose sur la bande, à son instant (A342)
+
+- **Demande de l'auteur** : « et si on mettait plutôt le dernier repère sur la timeline de manière
+  générale ? ». Ça faisait sens pour une raison précise : la bande portait **déjà** un point par
+  repère des deux dernières minutes, mais ils étaient **anonymes** ; le pied disait *quoi* et
+  *quand* sans aucune position dans le temps. Deux objets pour un seul fait, chacun amputé de la
+  moitié de l'autre.
+- **L'échelle est le vrai problème, et elle se mesure** : la zone du passé fait 101 px pour 120 s,
+  soit **1 px ≈ 1,2 s**. Quatre repères d'un ACR en 80 s tiennent dans 61 px quand une étiquette en
+  fait 90 à 115 : deux repères qui se suivent ne peuvent jamais tenir côte à côte.
+- **La règle : l'étiquette COMMENCE à son instant.** Son bord gauche est le moment, il n'y a donc
+  aucun segment horizontal — et donc rien à croiser. Le plus récent occupe la rangée du **bas**,
+  contre la bande ; les plus anciens montent. La propriété tient par construction, à n'importe quel
+  nombre de repères : le trait d'un repère plus ancien est toujours à gauche des étiquettes des plus
+  récents, qui commencent plus à droite que lui. (Le premier dessin alignait les étiquettes à
+  gauche ; c'est ce segment horizontal qui fabriquait les croisements — l'auteur l'a vu.)
+- **Ce qui n'est pas nommé est compté** : « **+ 3 repères avant** », la phrase que la bande dit déjà
+  de l'autre côté (« + 1 minuteur plus tard »), retournée vers le passé. Écarté : « 4 gestes en
+  1 min 20 » — *geste* est un second mot pour ce que l'app appelle partout un **repère**, et la
+  durée est déjà dessinée par l'étalement des points.
+- **Sept points de robustesse, tenus et mesurés** : le plus récent ne fusionne **jamais** (la
+  fusion des points trop proches ne vaut plus que pour les muets) ; libellé borné à 18 signes ; le
+  trait de rappel reste **1 px en encre douce** (2 px en encre pleine est le registre « daté ») ;
+  les étiquettes ne dérivent pas l'une par rapport à l'autre ; **hors des −2 min**, demi-point au
+  bord gauche et âge en toutes lettres, de sorte que le dernier repère existe toujours quelque part
+  — c'est ce que le pied garantissait ; le nombre de noms est une **mesure** (`min(3, rangs)`, le
+  budget des échéances : trois en portrait, un seul à 130 % en paysage) ; la bande apparaît dès
+  **un** repère, puisqu'il n'a plus d'autre endroit où se dire.
+- **Mesuré après, 20 configurations** (390×844, 320×568, 844×390 à 100 et 130 % ; rafale de quatre,
+  un seul, deux, huit serrés, dernier hors fenêtre) : zéro croisement, zéro chevauchement, rien hors
+  cadre, zéro recouvrement du grand chiffre, compte exact.
+- **Témoin** « MONITEUR · le passé se nomme, et il tient en rafale » (12 combinaisons). ⚠ Un trait
+  se glisse **sous** sa propre étiquette de 3 px — c'est le rattachement, pas un croisement : le
+  contrôle ne compte que les traits qui traversent l'étiquette d'une AUTRE rangée (sa première
+  version comptait les siens et rougissait sur un dessin juste). Vérifié capable d'échouer : l'ordre
+  inversé donne 8 rouges. Témoins `monBandData` réécrits (trois nommés au plus, ce sont les plus
+  récents, eux ne fusionnent jamais).
+- **Purge** (règle 14) : `.mon-foot` / `#monFoot` — élément, CSS, rendu et lecture de hauteur — et
+  `.mb-dot b`, le compte par point que la phrase remplace. L'afficheur regagne 46 px.
+- Doctrine A342 dans `docs/decisions/lot-v5-28.md`, index `AGENTS.md` / `docs/README.md`,
+  CHANGELOG à 20 ([5.23.6] archivée).
+- Vérifié : `npm run check` complet, 1200 tests × 2 moteurs, audit COMPLET 29/29 après le numéro
+  de version.
+
 ## [5.28.2] — 2026-09-08
 ### Fermer une photo garde la page où elle était, et le grand chiffre du moniteur ne recouvre plus la bande (A340-A341)
 
@@ -442,18 +487,4 @@
 - Garde-fous : sept contrôles ajoutés à la section E2E des bascules d'`audit-partage` (40 → 47),
   vérifiés capables d'échouer (source d'état neutralisée → 5 rouges). Doctrine A324 dans
   `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.21.4] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.6] — 2026-09-06
-### L'hôte rechargé reprend son partage cloud (A323)
-
-- **Limite levée** : un rechargement de l'onglet de l'hôte tuait le partage. L'hôte tient
-  désormais un billet cloud en `sessionStorage` (rien de durable, aucune donnée clinique) ; à
-  « Reprendre » après un rechargement, si le serveur répond, il reprend son partage existant et y
-  rembobine l'état complet — les invités le retrouvent seuls. Serveur muet : le billet attend et la
-  sonde retente. Partage expiré ou purgé : billet effacé, chemin du partage neuf. Hôte en direct
-  sans serveur : le QR reste le seul chemin, dit dans la feuille.
-- Garde-fous : quatre contrôles ajoutés à la section E2E des bascules d'`audit-partage`
-  (36 → 40), vérifiés capables d'échouer. Doctrine A323 dans `docs/decisions/lot-v5-23.md`.
-  CHANGELOG à 20 ([5.21.3] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.

@@ -2858,12 +2858,27 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
       && q.dated.find(x=>x.lab==='Adrénaline').ghosts.length===0);
    ok('… aucune position hors de l’axe', q.dated.every(x=>x.x>=0&&x.x<=1),
       q.dated.map(x=>x.x.toFixed(3)).join(' '));}
-  /* Le passé : borné à trois, et deux points trop proches fusionnent. */
+  /* A342 — LE PASSÉ SE NOMME : trois libellés au plus, et ceux-là ne fusionnent JAMAIS ; les plus
+     anciens fusionnent entre eux et restent muets, comptés par la bande. */
   {const ev=[{t:_now-100000},{t:_now-80000},{t:_now-60000},{t:_now-40000}];
-   const d=A.monBandData({},ev,_now);
-   ok('le passé est borné à trois repères', d.past.length<=3, String(d.past.length));
-   const col=A.monBandData({},[{t:_now-60000},{t:_now-59000}],_now);
-   ok('deux repères collés fusionnent et se comptent', col.past.length===1&&col.past[0].n===2);}
+   const d=A.monBandData({},ev,_now,['Un','Deux','Trois','Quatre']);
+   eq('trois repères nommés au plus', d.past.filter(p=>p.lab).length, 3);
+   eq('… et ce sont les plus RÉCENTS', d.past.filter(p=>p.lab).map(p=>p.lab).join(' '), 'Deux Trois Quatre');
+   ok('… le plus ancien reste muet', d.past.some(p=>!p.lab));
+   /* Sans libellé, la rangée ne s'invente pas un mot : elle dit « Repère », comme le pied le
+      faisait (règle du journal référentiel). */
+   ok('… un repère sans libellé retombe sur « Repère », jamais sur un mot inventé',
+      A.monBandData({},ev,_now).past.filter(p=>p.lab).every(p=>p.lab==='Repère'));}
+  /* Deux points collés : ils fusionnent tant qu'ils ne sont pas nommés — le fait que le pied
+     portait ne peut pas se dissoudre dans un compte. */
+  {const col=A.monBandData({},[{t:_now-90000},{t:_now-89000},{t:_now-60000},{t:_now-40000},{t:_now-20000}],_now,
+     ['A','B','C','D','E']);
+   ok('deux repères muets collés fusionnent et se comptent',
+      col.past.filter(p=>!p.lab).length===1&&col.past.filter(p=>!p.lab)[0].n===2,
+      JSON.stringify(col.past.map(p=>[p.lab,p.n])));
+   const prox=A.monBandData({},[{t:_now-60000},{t:_now-59000}],_now,['A','B']);
+   ok('… mais deux repères NOMMÉS ne fusionnent jamais, si collés soient-ils',
+      prox.past.length===2&&prox.past.every(p=>p.n===1));}
   /* Un repère hors fenêtre (plus de 2 min) ne se place pas. */
   {const d=A.monBandData({},[{t:_now-200000}],_now);
    eq('un repère trop ancien sort de la fenêtre', d.past.length, 0);}
