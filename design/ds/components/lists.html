@@ -4080,7 +4080,9 @@
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   /* ⚠ Tactile : le plan INLINE ne défile plus verticalement en interne — axe FERMÉ par
      `overflow-y:clip` (un axe auto rebondit sur iOS même vide) ; l'horizontal est conservé. Vaut
-     pour `.flow-scroll` ET `.sv-scroll` ; portée `main` (le plein écran garde son défileur). ⚠ Ne
+     pour `.flow-scroll` (portée `main` : #flowFull a SON défileur, `.ff-scroll`) ET `.sv-scroll`
+     PARTOUT (v5.28.4, A343) : la fenêtre « Tableau » défile elle-même, un second axe dedans
+     faisait un double défilement. ⚠ Ne
      JAMAIS écrire ici le littéral média tactile — check-type scanne le texte brut et se cale sur
      la PREMIÈRE occurrence (CI rouge v5.10.5). QR : taille en px (240, v5.16.0), jamais en % ;
      encre/fond fixes (--qr-ink), bordure = zone de silence. Détail : doctrine-css.md C87. */
@@ -7088,8 +7090,11 @@
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme
        avant. La doctrine complète vit au site de `.flow-scroll` ; la règle vit ICI parce que ce
-       bloc est LE média tactile de la feuille (check-type le localise en première occurrence). */
-    main .alg-panel .flow-scroll,main .flow-scroll,main .sv-scroll{max-height:none;overflow-y:clip}
+       bloc est LE média tactile de la feuille (check-type le localise en première occurrence).
+       `.sv-scroll` SANS portée (v5.28.4, A343) : la feuille SFAR se rend aussi dans la fenêtre
+       « Tableau » (#planBody), qui défile déjà — la borne `main` y laissait un axe `auto`, donc
+       un double défilement (mesuré : overflow-y auto dedans, hidden dans main). */
+    main .alg-panel .flow-scroll,main .flow-scroll,.sv-scroll{max-height:none;overflow-y:clip}
   }
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
      papier, où la fiche s'imprime comme un document. Ils ne sont plus dans header.bar depuis

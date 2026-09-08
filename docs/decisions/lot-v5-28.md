@@ -373,3 +373,38 @@ juste). Vérifié capable d'échouer : l'ordre inversé (plus récent en haut) d
 **Purge** (règle 14) : `.mon-foot` et `#monFoot` disparaissent — élément, règle CSS, rendu et
 lecture de hauteur dans `monUtil` ; `.mb-dot b` part avec le compte par point, que la phrase
 remplace.
+
+## A343 — la feuille SFAR n'a qu'UN axe vertical, dans `main` comme dans la fenêtre « Tableau »
+
+**SIGNALÉ À L'USAGE (08/09/2026)** : « en mode plein écran, en cliquant sur le bouton Tableau sur la
+page de démarrage d'une aide, le scroll vertical à l'intérieur de la page n'est pas bloqué et ça
+fait double scroll, c'est bizarre — harmonise pour que le scroll vertical soit non existant,
+exactement comme c'est déjà le cas » dans le cran « Toute la fiche » et dans la feuille Consulter.
+
+**LA CAUSE EST UNE PORTÉE.** C87 (v5.10.5) ferme l'axe vertical des défileurs inline de la feuille
+sur écran tactile — `overflow-y:clip`, parce qu'un axe `auto` rebondit sur iOS même sans un pixel à
+défiler et capture le pan du pouce — mais la règle était bornée à `main` : « le plein écran garde
+son défileur ». C'était vrai du SCHÉMA (`#flowFull` a son propre défileur, `.ff-scroll`, et pas de
+page dessous). C'était FAUX de la feuille SFAR : `svSheetHtml` se rend aussi dans `#planBody`, la
+fenêtre « Tableau » (`openPlanSheet('page')`, depuis « Tableau » de l'écran de démarrage et depuis
+« Plein écran » du cran Toute la fiche), et cette fenêtre est `.ai-modal`, donc DÉFILE ELLE-MÊME.
+Dedans, `.sv-scroll` gardait `overflow:auto` : un défileur dans le défileur — l'élastique iOS sous
+le pouce pendant que la fenêtre bouge derrière, le « double scroll ».
+
+**MESURÉ AVANT** (390 × 844, pointeur grossier émulé, Chromium ET WebKit) : `#planBody .sv-scroll`
+calcule `overflow-y: auto` (833 px de contenu pour 832 de boîte — un pixel, et l'axe entier),
+`main .sv-scroll` calcule `hidden` (c'est ce que `clip` devient quand l'autre axe est `auto`).
+
+**CORRECTIF : une portée retirée**, rien d'autre. Dans le bloc tactile de fin de feuille,
+`main .sv-scroll` devient `.sv-scroll` — la feuille n'a que deux sites de rendu et les deux vivent
+dans un défileur de page. `.flow-scroll` garde sa borne `main` (le seul autre plein écran, le
+schéma, a bien son défileur à lui). **Mesuré après** : `hidden` des deux côtés sur les deux moteurs ;
+l'échelle fait grandir la FENÊTRE (1018 → 1184 px de hauteur défilable à 120 %) et jamais un axe
+interne (0 px), le défilement horizontal des colonnes est intact.
+
+**Témoin** (`audit-doctrine`, « FEUILLE SFAR · un seul axe vertical, dans main comme dans la
+fenêtre « Tableau » ») : ouvre par le VRAI lien `[data-prelink="page"]`, vérifie d'abord que le
+régime tactile est émulé (sans lui le bloc ne s'applique pas et le vert ne vaudrait rien), lit le
+style calculé des deux sites, et exige que l'échelle grandisse la fenêtre. Vérifié capable
+d'échouer : règle bornée à `main` réintroduite → rouge sur la fenêtre, `index.html` restauré.
+

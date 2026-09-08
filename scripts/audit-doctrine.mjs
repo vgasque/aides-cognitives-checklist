@@ -7271,6 +7271,45 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
 }
 });
 
+/* ══ FEUILLE SFAR · UN SEUL AXE VERTICAL, DANS MAIN COMME DANS LA FENÊTRE « TABLEAU » (v5.28.4, A343) ═
+   Signalé à l'usage : depuis « Tableau » de l'écran d'entrée (ou « Plein écran » du cran Toute la
+   fiche), « le scroll vertical à l'intérieur de la page n'est pas bloqué et ça fait double
+   scroll ». La règle tactile de C87 (axe vertical FERMÉ par `overflow-y:clip`, l'horizontal des
+   colonnes conservé) était bornée à `main` ; la même feuille rendue dans `#planBody` gardait un
+   axe `auto` — un défileur dans le défileur de la fenêtre. On mesure le style CALCULÉ des deux
+   sites en pointeur grossier (sans lui, le bloc tactile ne s'applique pas et le vert ne vaut
+   rien) ; `clip` se calcule `hidden` quand l'autre axe est `auto`, c'est ce que l'on attend. Et
+   l'échelle doit faire grandir la FENÊTRE (le seul défileur), jamais un axe interne. */
+await sec('FEUILLE SFAR · un seul axe vertical, dans main comme dans la fenêtre « Tableau »', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);await ouvrirFiche(page,/cardiaque/i);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const axes=el=>el?{oy:getComputedStyle(el).overflowY,ox:getComputedStyle(el).overflowX}:null;
+    const out={coarse:matchMedia('(pointer:coarse)').matches};
+    // LE VRAI POINT D'ENTRÉE : le lien « Tableau » de l'écran de démarrage.
+    document.querySelector('[data-prelink="page"]').click();await w(400);
+    const m=document.getElementById('planModal'),sc=m.querySelector('#planBody .sv-scroll');
+    out.fenetre=m.classList.contains('on');out.fen=axes(sc);out.fenAxe=axes(m).oy;
+    const h0=m.scrollHeight;
+    m.querySelector('[data-svzoom="in"]').click();m.querySelector('[data-svzoom="in"]').click();await w(300);
+    out.zoom={avant:h0,apres:m.scrollHeight,interne:sc.scrollHeight-sc.clientHeight};
+    document.getElementById('planX').click();await w(300);
+    return out;});
+  await demarrerSession(page);
+  const r2=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    document.getElementById('allBtn').click();await w(500);
+    const sc=main.querySelector('.sv-scroll');
+    return {mode:state.readMode,main:sc?{oy:getComputedStyle(sc).overflowY,ox:getComputedStyle(sc).overflowX}:null};});
+  t('témoin : le régime TACTILE est bien émulé (pointer:coarse)',r.coarse===true);
+  t('témoin : « Tableau » ouvre bien la fenêtre, et c\'est elle qui défile',r.fenetre===true&&r.fenAxe==='auto',JSON.stringify([r.fenetre,r.fenAxe]));
+  t('fenêtre : l\'axe vertical de la feuille est FERMÉ, l\'horizontal conservé',!!r.fen&&r.fen.oy==='hidden'&&r.fen.ox==='auto',JSON.stringify(r.fen));
+  t('fenêtre : l\'échelle fait grandir la FENÊTRE, jamais un axe interne',r.zoom.apres>r.zoom.avant+40&&r.zoom.interne<=2,JSON.stringify(r.zoom));
+  t('main : le même axe fermé (statique, tactile)',r2.mode==='static'&&!!r2.main&&r2.main.oy==='hidden'&&r2.main.ox==='auto',JSON.stringify(r2));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

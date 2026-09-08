@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-8bGTz57ijm4hxTu5/CZ4wMXp+EBhYyI8SMC8y8qYb10='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-fOduJNsOj3WI/JS67FlnD33cx08Bp9xs8JpI3BNh924='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4434,7 +4434,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .flow-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:8px;-webkit-overflow-scrolling:touch;margin-bottom:14px;max-height:calc(75vh / var(--zf,1))}
   /* ⚠ Tactile : le plan INLINE ne défile plus verticalement en interne — axe FERMÉ par
      `overflow-y:clip` (un axe auto rebondit sur iOS même vide) ; l'horizontal est conservé. Vaut
-     pour `.flow-scroll` ET `.sv-scroll` ; portée `main` (le plein écran garde son défileur). ⚠ Ne
+     pour `.flow-scroll` (portée `main` : #flowFull a SON défileur, `.ff-scroll`) ET `.sv-scroll`
+     PARTOUT (v5.28.4, A343) : la fenêtre « Tableau » défile elle-même, un second axe dedans
+     faisait un double défilement. ⚠ Ne
      JAMAIS écrire ici le littéral média tactile — check-type scanne le texte brut et se cale sur
      la PREMIÈRE occurrence (CI rouge v5.10.5). QR : taille en px (240, v5.16.0), jamais en % ;
      encre/fond fixes (--qr-ink), bordure = zone de silence. Détail : doctrine-css.md C87. */
@@ -7442,8 +7444,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme
        avant. La doctrine complète vit au site de `.flow-scroll` ; la règle vit ICI parce que ce
-       bloc est LE média tactile de la feuille (check-type le localise en première occurrence). */
-    main .alg-panel .flow-scroll,main .flow-scroll,main .sv-scroll{max-height:none;overflow-y:clip}
+       bloc est LE média tactile de la feuille (check-type le localise en première occurrence).
+       `.sv-scroll` SANS portée (v5.28.4, A343) : la feuille SFAR se rend aussi dans la fenêtre
+       « Tableau » (#planBody), qui défile déjà — la borne `main` y laissait un axe `auto`, donc
+       un double défilement (mesuré : overflow-y auto dedans, hidden dans main). */
+    main .alg-panel .flow-scroll,main .flow-scroll,.sv-scroll{max-height:none;overflow-y:clip}
   }
   /* #crisisBand / #cbTimers : zone haute d'ÉCRAN (état de session vivante) — sans objet sur
      papier, où la fiche s'imprime comme un document. Ils ne sont plus dans header.bar depuis
@@ -8153,7 +8158,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.28.3';
+const APP_VERSION='5.28.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

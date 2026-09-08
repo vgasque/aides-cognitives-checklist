@@ -2290,6 +2290,12 @@
      perd le repère. */
 ```
 
+**Addendum v5.28.4 (A343)** : la portée `main` valait pour le SCHÉMA (`#flowFull` a son propre
+défileur `.ff-scroll`), pas pour la feuille SFAR, qui se rend aussi dans la fenêtre « Tableau »
+(`#planBody`) — une `.ai-modal` qui défile elle-même. `.sv-scroll` y gardait un axe `auto` : double
+défilement, mesuré sur les deux moteurs. La règle vaut désormais pour `.sv-scroll` SANS portée ;
+`.flow-scroll` garde la sienne. Détail : lot-v5-28.md A343.
+
 ## C88 — La porte elle-même : pointillé (grammaire « créer »), pleine largeur, ≥ 44 px.
 
 ```

@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.28.4] — 2026-09-08
+### La feuille SFAR n'a qu'un axe vertical, dans la fenêtre « Tableau » comme dans la fiche (A343)
+
+- **Signalé à l'usage** : depuis « Tableau » de l'écran de démarrage d'une aide (ou « Plein écran »
+  du cran Toute la fiche), « le scroll vertical à l'intérieur de la page n'est pas bloqué et ça fait
+  double scroll » — alors que dans la fiche et dans la feuille Consulter, l'axe est fermé.
+- **La cause est une portée** : la règle tactile de la v5.10.5 (C87 — axe vertical fermé par
+  `overflow-y:clip`, parce qu'un axe `auto` rebondit sur iOS même vide et capture le pouce) était
+  bornée à `main`, « le plein écran garde son défileur ». Vrai du schéma, qui a le sien ; faux de la
+  feuille SFAR, rendue aussi dans la fenêtre « Tableau », qui défile elle-même. Dedans, la feuille
+  gardait un second axe : un défileur dans le défileur.
+- **Mesuré avant** (390 × 844, pointeur grossier, Chromium et WebKit) : `overflow-y: auto` dans la
+  fenêtre, `hidden` dans la fiche. **Correctif** : la portée `main` est retirée pour `.sv-scroll`
+  (ses deux sites de rendu vivent dans un défileur de page) ; `.flow-scroll` garde la sienne.
+  **Mesuré après** : même axe fermé des deux côtés, l'échelle fait grandir la fenêtre et jamais un
+  axe interne, le défilement horizontal des colonnes intact.
+- **Témoin** (`audit-doctrine`) : ouvre par le vrai lien « Tableau », vérifie que le régime tactile
+  est émulé, lit le style calculé des deux sites, exige que l'échelle grandisse la fenêtre. Vérifié
+  capable d'échouer sur l'état d'avant.
+- Doctrine A343 + addendum C87, index (`AGENTS.md`, `docs/README.md`), `design/ds` régénéré,
+  CHANGELOG à 20 ([5.23.7] archivée).
+
 ## [5.28.3] — 2026-09-08
 ### Le dernier repère quitte le pied du moniteur et se pose sur la bande, à son instant (A342)
 
@@ -467,24 +489,4 @@
 - Garde-fous : cinq contrôles ajoutés à la section E2E des bascules d'`audit-partage` (47 → 52),
   dont un vrai rechargement de la page invité, vérifiés capables d'échouer. Doctrine A325 dans
   `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.22.0] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
-
-## [5.23.7] — 2026-09-06
-### « Lien perdu » : une source d'état, une rangée, une feuille qui dit la même chose (A324)
-
-- **Demande de l'auteur** : quand ni « en ligne » ni « direct » ne portent plus, une petite bannière
-  en haut, peu haute, cohérente avec la feuille de partage. Et la seconde limite d'A322, le partage
-  expiré pendant une longue coupure.
-- **Une source d'état** `slLink()` : « perdu » = plus aucun transport ne porte et rien n'est en
-  train de reprendre ; « expiré » = le partage cloud a été refusé pendant la coupure. Tant que le lien
-  est perdu, la sonde veille et les reprises automatiques repartent seules au retour du réseau.
-- **Une rangée ambre de 41 px** sous la capsule, dans le quai collant (le rail se recale dessous) :
-  « △ Lien perdu », puis selon le rôle « Recevoir » et « Renvoyer » (invité), « Montrer la
-  progression » (hôte), « Se reconnecter… » (expiré), et ⓘ qui ouvre la feuille. Une ligne à 390 px.
-- **La feuille de l'invité naît** : même ligne d'état, journal du lien, mêmes gestes ; les feuilles
-  de l'hôte reçoivent la ligne d'état. Réception et retour optiques deviennent deux fonctions
-  partagées par la feuille miroir, la feuille invité et la bannière.
-- Garde-fous : sept contrôles ajoutés à la section E2E des bascules d'`audit-partage` (40 → 47),
-  vérifiés capables d'échouer (source d'état neutralisée → 5 rouges). Doctrine A324 dans
-  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.21.4] archivée).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.
