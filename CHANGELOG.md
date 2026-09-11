@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.29.2] — 2026-09-11
+### Impression : un intitulé de branche ne finit jamais une page seul (A344)
+
+- Suite de la mesure page par page de v5.29.1 : une fourche plus haute qu'une page se déroule
+  cellule par cellule comme le tronc (mesuré sur l'état de mal : coupe entre 13 et 14, le trait de
+  la colonne reprend page suivante) ; restait le cas de l'intitulé « si ‹option› » en bas de page,
+  sa première cellule partant page suivante — `break-after:avoid` sur l'intitulé, comme sur la
+  décision. Une cellule plus haute qu'une page reste un problème de contenu (l'éditeur signale au-delà
+  de 8 étapes) ; un paginateur mesuré ne s'écrira que sur une fiche réelle qui imprime mal.
+- Doctrine A344 (addendum), CHANGELOG à 20 ([5.24.0] archivée).
+- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.29.1] — 2026-09-11
 ### « Exporter en PDF » imprime la Page (A344, impression)
 
@@ -469,44 +481,4 @@
 - Garde-fous `audit-partage` : « par l'écran » forcé puis « En ligne » garde le même partage et ses
   participants ; un invité qui suit la session reçoit son instantané par l'écran, une autre session
   lui est refusée. Doctrine A328 dans `docs/decisions/lot-v5-24.md`.
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
-
-## [5.24.0] — 2026-09-06
-### La feuille de partage dit quoi faire : l'app décide le canal, les étapes suivent (A327)
-
-- **Plus de sélecteur en tête de feuille.** Une ligne d'état dit le mode et sa raison en un mot
-  (« ● Partagé · en ligne — Internet répond, rien à régler » ; « · en direct — Pas d'internet, mais
-  un Wi-Fi commun » ; « · par l'écran — Connexion perdue à HH:MM, aucun réseau »). Le canal est
-  choisi par l'app : serveur joignable → en ligne ; serveur muet et adresse locale vue → en direct ;
-  aucune adresse locale → **par l'écran d'office** (la phase « offer-warn », un QR d'appariement voué
-  à l'échec sous un avertissement, disparaît).
-- **Une rubrique « À faire, dans l'ordre »** : étapes numérotées, le bouton EST l'étape, une étape
-  faite passe en ✓ vert avec le mot. En ligne : ① faire scanner (code au-dessus du QR, ordre mesuré
-  à 320×568) ② rien. En direct : ① faire scanner ② « Scanner la réponse » + « Rien après 10 s ?
-  Passer par l'écran » ③ rien. Par l'écran, en miroir : hôte ① Montrer ma progression ② Recevoir ses
-  repères ③ refaire l'étape 1 à chaque bloc ; invité ① Recevoir la progression ② Renvoyer mes
-  repères ③ refaire. L'invité en ligne lit « ✓ Rien » et son rôle expliqué en une phrase.
-- **« Envoyer le lien… »** (feuille de partage native, sinon presse-papiers) remplace l'adresse
-  brute ; « Nouveau code » devient « Inviter quelqu'un d'autre » ; participants sur deux lignes
-  (nom + rôle, puis Donner la main / Couper à 44 px) avec une légende d'une phrase ; l'historique du
-  lien reste au pied de chaque feuille.
-- **Le bandeau du mode crise = l'étape ① de la feuille, compressée** : « △ Par l'écran », hôte
-  « ① Montrer · ② Recevoir », invité « ① Recevoir · ② Renvoyer », ⓘ ouvre la feuille. **L'hôte
-  reçoit aussi** (demande de l'auteur) : le retour invité → hôte a sa porte dans le bandeau et dans
-  la feuille. **Le bandeau reste affiché tant que « par l'écran » est le mode en cours** (forcé,
-  choisi d'office, ou miroir), pour montrer / recevoir sans rouvrir la feuille. 41 px mesurés, une
-  ligne à 390 px.
-- **Confirmations de bascule** (« Passer en direct ? », « Passer en ligne ? ») et « Arrêter le
-  partage ? » réécrites pour se lire en un regard : une phrase, puis « qui fait quoi » en lignes
-  courtes ; « secours pas prêt » oppose « Attendre » à « Basculer quand même ».
-- **Porte de secours « Mode : automatique › »**, en petit sous la ligne d'état (« forcé, en
-  direct » / « forcé, par l'écran » après un choix — dérivé de l'état) : feuille « Changer
-  manuellement le mode » à quatre rangées, Automatique en tête (rend la main et réarme le retour
-  en ligne), En ligne, En direct (« prêt » quand le secours chaud est formé), Par l'écran
-  (« toujours »). Un mode fermé reste tapable et dit pourquoi. L'invité n'a pas cette porte.
-- Une seule porte pour « quelle feuille montrer » (`slPhase`/`slSheetNow`) ; purges :
-  `slModeSegHtml/Bind`, `slSegCap`, `slSegNetPaint`, `slSegDotRefresh`, `slLinkLine`, CSS
-  `.sh-lead`/`.sh-lnk`/`.sh-note`/`.seg` de la feuille.
-- Doctrine A327 dans `docs/decisions/lot-v5-24.md` ; index `AGENTS.md`/`docs/README.md`.
-  Harnais `audit-partage` réalignés (lien porté par le bouton, feuille « Mode », bandeaux).
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.

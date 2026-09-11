@@ -117,7 +117,10 @@ page 2. Ce qui se coupe et ce qui ne se coupe pas : une cellule et une décision
 (`break-inside:avoid`), la décision reste avec ce qui la suit (`break-after:avoid`), une FOURCHE peut
 se couper entre deux cellules — la garder entière repoussait la moitié de l'algorithme à la page
 suivante en laissant une demi-page blanche. Ce qui reste vrai d'A138 : l'état de session ne s'imprime
-pas. Ouvert : une fourche plus haute qu'une page.
+pas. **v5.29.2** : un intitulé de branche « si ‹option› » reste avec sa première cellule (`break-after:avoid`).
+Une fourche plus haute qu'une page se déroule cellule par cellule, comme le tronc (mesuré sur l'état de mal :
+coupe entre 13 et 14, le trait reprend page suivante) ; une CELLULE plus haute qu'une page est un problème de
+contenu (l'éditeur signale au-delà de 8 étapes) ; un paginateur mesuré n'est écrit que si une fiche réelle imprime mal.
 
 **MESURÉ APRÈS** (Chromium, 1280 × 900) : état de mal 740 × 2 992, ACR 740 × 1 839, les deux fiches
 d'exemple sur 959 et 929 px — c'est-à-dire UNE page A4 pour les fiches de cette taille, l'esprit du

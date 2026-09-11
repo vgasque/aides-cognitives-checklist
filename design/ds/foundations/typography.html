@@ -7209,7 +7209,7 @@
        fourche, elle, PEUT se couper entre deux cellules — la garder entière repoussait la moitié de
        l'algorithme à la page suivante en laissant une demi-page blanche. */
     .sv-cell,.sv-band,.sv-jrow,.sv-band-top>*,.sv-ref>*{break-inside:avoid}
-    .sv-band{break-after:avoid}
+    .sv-band,.sv-sh2{break-after:avoid}   /* un intitulé de branche « si … » ne finit jamais une page seul */
     .sv-cartouche{break-after:avoid}
     .sv-band-doses,.sv-band-top{break-inside:avoid}
     /* 3. L'état de session, retiré à la racine : classes d'état neutralisées, marqueurs masqués. */
