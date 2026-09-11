@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-CavEGTsBwZp+DlXw7UUVa4MIER5zNT1V/4jShVBM/g8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-/eY/rae9KiulgmBoi/dje/FFP3V+OIELEFuW1h9Fbnc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7490,7 +7490,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (soit toujours sur A4 ≈ 794 px : le contenu du rail était donc imprimé EN DOUBLE), et le titre
      changeait de corps (21 / 24 px). Un document clinique imprimé ne peut pas dépendre de la
      fenêtre où l'on se trouvait au moment de l'impression. On neutralise donc les trois. */
-  @page{margin:10mm 7mm}
+  /* LA FEUILLE EST LA PAGE (A344, v5.29.3 — signalé à l'usage : « l'impression rajoute des marges
+     sur A4 »). Les marges horizontales sont posées par la feuille ELLE-MÊME, pas par `@page` : un
+     navigateur qui ignore les marges de `@page` (c'est le cas de WebKit) y ajoutait les siennes,
+     puis réduisait la feuille pour l'y faire tenir — d'où une image plus petite ENTOURÉE de blanc.
+     Avec `margin:0` horizontal, la feuille occupe les 210 mm et porte son blanc dans son padding ;
+     si un moteur impose quand même ses marges, il réduit le tout PROPORTIONNELLEMENT, ce qui reste
+     la plus grande image possible et ne rogne jamais rien. Le padding se CALCULE pour que la zone
+     de contenu garde la largeur d'auteur au pixel près (710 px = 740 − 2 de bordure − 28 de
+     padding d'écran) : sans cela le contenu se refluerait et les voies mesurées seraient fausses. */
+  @page{size:A4;margin:10mm 0}
   @media print{
     /* 1. Le zoom de confort d'écran n'a aucun sens sur papier : le PDF part toujours à 100 %. */
     html{zoom:1!important}
@@ -7551,11 +7560,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .sv-calant.z>.sv-sheet{position:static!important;transform:none!important}
     /* A344 : la feuille GARDE sa largeur d'auteur sur le papier (A4 à 7 mm de marge = 741 px) — les
        voies mesurées ne sont justes qu'à cette géométrie ; reflouer la feuille les décalerait. */
-    .sv-sheet{border:0}
+    .sv-sheet{width:210mm!important;border:0;padding:0 calc((210mm - 710px) / 2);margin:0}
     /* La PAGE seule sur le papier : ni titre d'écran, ni onglets, ni recherche, ni quai, ni bulle. */
     body.print-page .read-main>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
     body.print-page #crisisDock,body.print-page .sd-hint-w,body.print-page #blkReturn{display:none!important}
     #sessionDock{display:none!important}   /* le quai est FIXÉ : sans cela il se répète sur chaque page */
+    /* ⚠ LES VOIES MESURÉES NE S'IMPRIMENT PAS, ET C'EST UNE QUESTION DE JUSTESSE (v5.29.3, mesuré).
+       Le calque est UN élément absolu à l'échelle de la feuille : la pagination le coupe net, alors
+       qu'elle POUSSE le contenu (une cellule ne se coupe pas). Mesuré sur l'ACR : le bloc visé
+       descend de 37 à 64 mm sur sa page selon ce qui a été repoussé, tandis que la flèche reste où
+       le flux non paginé l'avait mise — elle désigne alors le mauvais bloc. Mieux vaut rien qu'un
+       tracé faux. Rien n'est perdu : la ligne « SI … ALLER À n » et la pilule « ↺ revenir à n » sont
+       la VÉRITÉ TEXTUELLE (A134), et le dessin de STRUCTURE — tronc, fourche, rail — vit dans le
+       FLUX (pseudo-éléments des rangées) : il suit la pagination et reste juste. */
+    .sv-gut{display:none!important}
     .app{min-height:0!important;background:var(--paper)!important}   /* une hauteur d'ÉCRAN imprimait une page vide */
     html{background:var(--paper)!important}
     body.print-page .sv-wrap{margin:0!important}body.print-page main{padding:0!important}   /* 18 px de marge suffisaient à ouvrir une page de plus */
@@ -8203,7 +8221,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.29.2';
+const APP_VERSION='5.29.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21286,7 +21304,7 @@ function svTreePlan(f){
     if((col.kind==='fl'||col.kind==='fr')&&sameCol(tc,parentOf[col.id])){
       let e=edges.find(x=>x.k==='collect'&&x.to===to&&x.parent===col.parentId);
       if(!e){e={k:'collect',to,parent:col.parentId,cols:[],srcs:[]};edges.push(e);}
-      e.srcs.push(src);if(e.cols.indexOf(col.id)<0)e.cols.push(col.id);return;}
+      e.srcs.push(Object.assign({col:col.id},src));if(e.cols.indexOf(col.id)<0)e.cols.push(col.id);return;}
     if(col.kind==='rail'&&sameCol(tc,parentOf[col.id])){edges.push({k:'rail',src,to,col:col.id});return;}};
   cols.forEach(col=>col.rows.forEach(r=>{
     if(r.k==='dec')r.alts.forEach(a=>{
@@ -21400,7 +21418,15 @@ function svPaintArrows(racine){
     const q=s=>algo.querySelector(s);
     const badge=id=>R(q('[data-svgo="'+CSS.escape(id)+'"]>.sv-num'));
     const col=id=>R(q('[data-svcol="'+id+'"]'));
-    const src=s=>s.alt?R(q('[data-svalt="'+CSS.escape(s.alt)+'"]')):R(q('[data-svpill="'+CSS.escape(s.pill)+'"]'));
+    /* ⚠ UNE VOIE PART DU BORD DE LA BOÎTE, JAMAIS DE LA LIGNE (signalé à l'usage : « les flèches
+       commencent encore à l'intérieur du bloc en superposant au texte »). Une ligne « SI … ALLER À n »
+       occupe toute la largeur intérieure de la boîte de décision : partir de son bord droit, c'était
+       partir SUR le dernier mot et traverser la bordure — mesuré à 27 px de trait dans la boîte, six
+       fois sur les deux fiches réelles. On garde l'ORDONNÉE de la ligne (l'œil fait le lien) et on
+       prend l'ABSCISSE de la boîte. Une pilule, elle, est déjà sa propre boîte. */
+    const src=s=>{const el=s.alt?q('[data-svalt="'+CSS.escape(s.alt)+'"]'):q('[data-svpill="'+CSS.escape(s.pill)+'"]');
+      if(!el)return null;const a=R(el);const bx=R(el.closest('.sv-band,.sv-jrow'))||a;
+      return {t:a.t,b:a.b,cy:a.cy,l:bx.l,r:bx.r,cx:bx.cx};};
     const rootR=col(T.root.id);
     const LANE=rootR?rootR.r+14:0,LANE2=rootR?rootR.r+6:0;
     const P=(d,cls)=>{gh+=`<path class="${cls}" d="${d}"/>`;};
@@ -21415,7 +21441,7 @@ function svPaintArrows(racine){
       const fc=T.firstOf[to];const fkEl=fc&&(T.cols.find(c=>c.id===fc)||{}).kind!=='root'&&q('[data-svcol="'+fc+'"]')&&q('[data-svcol="'+fc+'"]').closest('.sv-fork');
       const fk=fkEl?R(fkEl):null;const barY=fk?fk.t-8:t.t-10;const xs=[t.cx];
       byT[to].forEach(e=>{const a=src(e.src);if(!a)return;xs.push(LANE);
-        P(`M${N(a.r-4)} ${N(a.cy)} H${N(LANE)} V${N(barY)}`,'lp');});
+        P(`M${N(a.r+2)} ${N(a.cy)} H${N(LANE)} V${N(barY)}`,'lp');});
       P(`M${N(Math.min(...xs))} ${N(barY)} H${N(Math.max(...xs))} M${N(t.cx)} ${N(barY)} V${N(t.t-1)}`,'lp');
       hDown(N(t.cx),N(t.t-1),'lph');});
     // (4) retours : voie de gauche de la colonne (décalée par voie), gauche du numéro cible.
@@ -21423,23 +21449,35 @@ function svPaintArrows(racine){
     const laneX=cid=>{const c=col(cid);if(!c)return 0;lanes[cid]=(lanes[cid]||0)+1;return c.l-7-(lanes[cid]-1)*5;};
     T.edges.filter(e=>e.k==='loop').forEach(e=>{const a=src(e.src),t=badge(e.to);if(!a||!t)return;
       const x=laneX(e.col);
-      P(`M${N(a.l)} ${N(a.cy)} H${N(x)} V${N(t.cy)} H${N(t.l-1)}`,'lp');hRight(N(t.l-1),N(t.cy),'lph');});
+      P(`M${N(a.l-2)} ${N(a.cy)} H${N(x)} V${N(t.cy)} H${N(t.l-1)}`,'lp');hRight(N(t.l-1),N(t.cy),'lph');});
     // collecteur sous la fourche : chaque bout de branche descend, la barre rejoint la voie du parent.
+    /* ⚠ UN COLLECTEUR DESCEND JUSTE CE QU'IL FAUT, ET DANS LE GAP — PAS SUR LE TRONC (signalé à
+       l'usage : « les flèches traversent des blocs »). Il descendait au bas de la fourche ENTIÈRE,
+       en longeant la colonne des numéros de sa branche : un grand rectangle vide qui se lit comme
+       un trait à travers l'algorithme. Chaque branche descend donc dans l'INTERSTICE à sa gauche
+       (12 px entre deux colonnes), et la barre se pose 14 px sous la source la plus basse — relevée
+       au besoin pour passer SOUS toute colonne sœur que le chemin longerait. */
     T.edges.filter(e=>e.k==='collect').forEach(e=>{const t=badge(e.to);if(!t)return;
-      const pts=e.srcs.map(s=>{const a=src(s);return a;}).filter(Boolean);if(!pts.length)return;
-      const fk=e.cols.map(col).filter(Boolean);const bottom=Math.max(...fk.map(c=>c.b));
-      const barY=bottom+8;const x=laneX(e.parent);
-      let xs=[];pts.forEach((a,k)=>{const c=fk[Math.min(k,fk.length-1)];const sx=(e.cols.length>1?col(e.cols[k])||c:c).l+14;xs.push(sx);
-        P(`M${N(a.l)} ${N(a.cy)} H${N(sx)} V${N(barY)}`,'lp');});
-      P(`M${N(Math.max(...xs))} ${N(barY)} H${N(x)} V${N(t.cy)} H${N(t.l-1)}`,'lp');hRight(N(t.l-1),N(t.cy),'lph');});
+      const sibs=T.cols.filter(c=>c.parentId===e.parent).map(c=>col(c.id)).filter(Boolean);
+      const x=laneX(e.parent);
+      const gapX=cid=>{const me=col(cid);if(!me)return x;
+        const g=sibs.filter(r=>r.r<=me.l+1).sort((a,b)=>b.r-a.r)[0];
+        return g?(g.r+me.l)/2:x;};
+      const legs=[];let barY=0;
+      e.srcs.forEach(s=>{const a=src(s);if(!a)return;const sx=gapX(s.col);legs.push({a,sx});if(a.cy+14>barY)barY=a.cy+14;});
+      if(!legs.length)return;
+      const rx=Math.max(...legs.map(l=>l.sx));
+      sibs.forEach(r=>{if(r.l<rx-1&&r.b+8>barY)barY=r.b+8;});
+      legs.forEach(l=>P(`M${N(l.a.l-2)} ${N(l.a.cy)} H${N(l.sx)} V${N(barY)}`,'lp'));
+      P(`M${N(rx)} ${N(barY)} H${N(x)} V${N(t.cy)} H${N(t.l-1)}`,'lp');hRight(N(t.l-1),N(t.cy),'lph');});
     // tiret vers le rail : la branche revient à la décision qui la distribue — ▲, elle « remonte ».
     T.edges.filter(e=>e.k==='rail').forEach(e=>{const a=src(e.src);const lvl=R(q('[data-svcol="'+e.col+'"]')&&q('[data-svcol="'+e.col+'"]').closest('.sv-lvl'));if(!a||!lvl)return;
       const rx=lvl.l-19+1;const first=badge((T.cols.find(c=>c.id===e.col)||{rows:[]}).rows.map(r=>r.id).find(Boolean)||'');
       const top=first?first.cy+8:a.cy-20;
-      P(`M${N(a.l)} ${N(a.cy)} H${N(rx)} V${N(top)}`,'lp');hUp(N(rx),N(top),'lph');});
+      P(`M${N(a.l-2)} ${N(a.cy)} H${N(rx)} V${N(top)}`,'lp');hUp(N(rx),N(top),'lph');});
     // réunion des branches d'un rail : pilules « ↓ continuer n » → voie intérieure → barre → numéro.
     T.edges.filter(e=>e.k==='railMerge').forEach(e=>{const t=badge(e.to);if(!t)return;const barY=t.t-10;const xs=[t.cx,LANE2];
-      e.srcs.forEach(s=>{const a=src(s);if(!a)return;P(`M${N(a.r+3)} ${N(a.cy)} H${N(LANE2)} V${N(barY)}`,'sp');});
+      e.srcs.forEach(s=>{const a=src(s);if(!a)return;P(`M${N(a.r+2)} ${N(a.cy)} H${N(LANE2)} V${N(barY)}`,'sp');});
       P(`M${N(Math.min(...xs))} ${N(barY)} H${N(Math.max(...xs))} M${N(t.cx)} ${N(barY)} V${N(t.t-1)}`,'sp');hDown(N(t.cx),N(t.t-1),'sph');});}
   {let gut=sheet.querySelector(':scope>.sv-gut');
    if(!gut){sheet.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=sheet.querySelector(':scope>.sv-gut');}

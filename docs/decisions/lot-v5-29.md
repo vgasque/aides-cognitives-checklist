@@ -100,27 +100,54 @@ en pied PARTOUT désormais, plus seulement sous 1000 px) ; la largeur d'auteur e
 `scale` (A133) ; 44 px de cible sur tout ce qui se tape ; l'avertissement de validation ; « ⤢
 Ajusté » = un tap, jamais mémorisé (48 % à 390 px, contre 32 % avant).
 
-**IMPRESSION (v5.29.1).** « Exporter en PDF » imprime LA PAGE — demande de l'auteur : « vérifie que
-quand on clique sur imprimer cette aide ça imprime bien cette page, pas les historiques de
-sessions ». Depuis v4.18.0 le gestionnaire `beforeprint` FORÇAIT la vue d'ensemble (journal + plan
-Détails) : avec une session en cours, c'est le journal de cette session qui partait sur le papier.
-Il force désormais le cran Page (`readMode='static'`, `allTab='page'`, `body.print-page`) pour toute
-aide à plus d'un bloc ; une aide mono-bloc garde la vue d'ensemble dépliée. `body.print-page` masque
-tout ce qui n'est pas la feuille (titre d'écran, onglets, recherche, bulle, retour au bloc) ; le quai
-`#sessionDock` est FIXÉ, donc il se répétait au bas de chaque page — masqué sans condition ; `.app`
-exigeait une hauteur d'écran, donc une page vide grise en fin de document — hauteur libre sur papier.
-La feuille GARDE sa largeur d'auteur (`@page{margin:10mm 7mm}` : A4 portrait = 741 px utiles pour
-740). **Mesuré page par page** (Chromium, `page.pdf` A4 après le vrai `beforeprint`) : l'état de mal
-tient sur 3 pages, l'ACR sur 2 ; les voies mesurées restent ALIGNÉES d'une page à l'autre — le moteur
-fragmente le calque absolu avec la feuille, une sortie « aller à 13 » émise page 1 entre dans le 13
-page 2. Ce qui se coupe et ce qui ne se coupe pas : une cellule et une décision jamais
-(`break-inside:avoid`), la décision reste avec ce qui la suit (`break-after:avoid`), une FOURCHE peut
-se couper entre deux cellules — la garder entière repoussait la moitié de l'algorithme à la page
-suivante en laissant une demi-page blanche. Ce qui reste vrai d'A138 : l'état de session ne s'imprime
-pas. **v5.29.2** : un intitulé de branche « si ‹option› » reste avec sa première cellule (`break-after:avoid`).
-Une fourche plus haute qu'une page se déroule cellule par cellule, comme le tronc (mesuré sur l'état de mal :
-coupe entre 13 et 14, le trait reprend page suivante) ; une CELLULE plus haute qu'une page est un problème de
-contenu (l'éditeur signale au-delà de 8 étapes) ; un paginateur mesuré n'est écrit que si une fiche réelle imprime mal.
+**LES VOIES PARTENT DU BORD DE LA BOÎTE, JAMAIS DE LA LIGNE (v5.29.3, signalé à l'usage : « les
+flèches commencent encore à l'intérieur du bloc en superposant au texte et traversent des blocs »).**
+Une ligne « SI … ALLER À n » occupe toute la largeur intérieure de sa boîte : partir de son bord
+droit, c'était partir SUR le dernier mot et traverser la bordure — MESURÉ à 27 px de trait dans la
+boîte, six fois sur les deux fiches réelles (sonde : chaque segment du calque contre chaque cellule).
+Une voie garde donc l'ORDONNÉE de sa ligne (l'œil fait le lien) et prend l'ABSCISSE de sa boîte ;
+une pilule, elle, est déjà sa propre boîte. Et un COLLECTEUR descend juste ce qu'il faut, dans
+l'INTERSTICE de 12 px à gauche de sa branche — il descendait au bas de la fourche entière en longeant
+la colonne des numéros, soit un grand rectangle vide qui se lit comme un trait à travers l'algorithme.
+La barre se pose 14 px sous la source la plus basse, relevée au besoin pour passer SOUS toute colonne
+sœur que le chemin longerait. Mesuré après : **zéro croisement** sur les deux fiches.
+
+**IMPRESSION (v5.29.1, complétée v5.29.3).** « Exporter en PDF » imprime LA PAGE — demande de
+l'auteur : « vérifie que quand on clique sur imprimer cette aide ça imprime bien cette page, pas les
+historiques de sessions ». Depuis v4.18.0 le gestionnaire `beforeprint` FORÇAIT la vue d'ensemble
+(journal + plan Détails) : avec une session en cours, c'est le journal de cette session qui partait
+sur le papier. Il force désormais le cran Page (`readMode='static'`, `allTab='page'`,
+`body.print-page`) pour toute aide à plus d'un bloc ; une aide mono-bloc garde la vue d'ensemble
+dépliée. `body.print-page` masque tout ce qui n'est pas la feuille ; le quai `#sessionDock` est FIXÉ,
+donc il se répétait au bas de chaque page — masqué sans condition ; `.app` exigeait une hauteur
+d'écran et `.sv-wrap` portait 18 px de marge, d'où une page vide en fin de document.
+· **LA FEUILLE EST LA PAGE** (v5.29.3, signalé : « l'impression rajoute des marges sur A4 »). Les
+  marges horizontales sont posées par la feuille ELLE-MÊME (`width:210mm`, padding calculé), pas par
+  `@page{margin}` : un moteur qui ignore ces marges — c'est le cas de WebKit — y ajoutait les siennes
+  puis réduisait la feuille pour l'y faire tenir, d'où une image plus petite ENTOURÉE de blanc. Avec
+  `margin:0` horizontal, la feuille occupe les 210 mm ; si un moteur impose quand même les siennes,
+  il réduit le tout PROPORTIONNELLEMENT — la plus grande image possible, jamais rognée. Le padding
+  se CALCULE (`calc((210mm - 710px) / 2)`) pour que la zone de contenu garde la largeur d'auteur au
+  pixel près : sans cela le contenu se refluerait et les voies mesurées seraient fausses. Mesuré :
+  colonne racine 670 px inchangée, texte de 11 à 198 mm sur 210, même nombre de pages que le
+  navigateur respecte `@page` ou impose ses marges.
+· ⚠ **LES VOIES MESURÉES NE S'IMPRIMENT PAS, ET C'EST UNE QUESTION DE JUSTESSE** (v5.29.3). Le calque
+  est UN élément absolu à l'échelle de la feuille : la pagination le coupe net, alors qu'elle POUSSE
+  le contenu (une cellule ne se coupe pas). Mesuré sur l'ACR : le bloc visé descend de 37 à 64 mm sur
+  sa page selon ce qui a été repoussé, tandis que la flèche reste où le flux non paginé l'avait mise
+  — elle désigne alors le mauvais bloc, et une voie coupée par un saut de page ne mène visiblement
+  nulle part. Mieux vaut rien qu'un tracé faux. Rien n'est perdu : la ligne « SI … ALLER À n » et la
+  pilule « ↺ revenir à n » sont la VÉRITÉ TEXTUELLE (A134), et le dessin de STRUCTURE — tronc,
+  fourche, rail — vit dans le FLUX (pseudo-éléments des rangées), donc il suit la pagination et reste
+  juste. Retirer `break-inside:avoid` ne sauve rien : mesuré, il reste un blanc résiduel, donc un
+  décalage. Un paginateur mesuré reste la seule voie pour retrouver les traits sur le papier ; il ne
+  s'écrira que si l'usage le réclame.
+· Ce qui se coupe et ce qui ne se coupe pas : une cellule et une décision jamais, la décision reste
+  avec ce qui la suit, un intitulé de branche avec sa première cellule ; une FOURCHE peut se couper
+  entre deux cellules — la garder entière repoussait la moitié de l'algorithme à la page suivante en
+  laissant une demi-page blanche. Ce qui reste vrai d'A138 : l'état de session ne s'imprime pas.
+  Mesuré : état de mal 3 pages, ACR 2. Ouvert : une CELLULE plus haute qu'une page (problème de
+  contenu — l'éditeur signale au-delà de 8 étapes).
 
 **MESURÉ APRÈS** (Chromium, 1280 × 900) : état de mal 740 × 2 992, ACR 740 × 1 839, les deux fiches
 d'exemple sur 959 et 929 px — c'est-à-dire UNE page A4 pour les fiches de cette taille, l'esprit du

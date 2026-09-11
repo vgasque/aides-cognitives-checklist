@@ -1,5 +1,36 @@
 # Journal des modifications
 
+## [5.29.3] — 2026-09-11
+### Les voies partent du bord de la boîte ; la feuille imprimée EST la page A4 (A344)
+
+- **Signalé à l'usage** : « les flèches commencent encore à l'intérieur du bloc en superposant au
+  texte et traversent des blocs », et « l'impression au format PDF rajoute des marges sur A4, quitte
+  à ajuster la taille globale proportionnellement ».
+- **Mesuré avant** (sonde : chaque segment du calque contre chaque cellule des deux fiches réelles) :
+  **six croisements**, tous du même type — une ligne « SI … ALLER À n » occupe toute la largeur
+  intérieure de sa boîte, donc partir de son bord droit, c'était partir sur le dernier mot et
+  traverser la bordure, 27 px de trait dans la boîte. **Correctif** : une voie garde l'ordonnée de sa
+  ligne et prend l'abscisse de sa BOÎTE. Et le collecteur d'une fourche descend désormais dans
+  l'interstice de 12 px à gauche de sa branche, 14 px sous la source la plus basse (relevé au besoin
+  pour passer sous une colonne sœur) — il descendait au bas de la fourche entière en longeant la
+  colonne des numéros, soit un grand rectangle vide lu comme un trait à travers l'algorithme.
+  **Mesuré après : zéro croisement.**
+- **La feuille imprimée est la page** : `width:210mm` et un padding calculé
+  (`calc((210mm - 710px) / 2)`) qui garde la zone de contenu à la largeur d'auteur au pixel près —
+  sans quoi le contenu se refluerait. Les marges horizontales ne viennent plus de `@page`, qu'un
+  moteur peut ignorer (WebKit) en ajoutant les siennes puis en réduisant la feuille pour l'y faire
+  tenir, d'où une image plus petite entourée de blanc. Mesuré : colonne racine 670 px inchangée,
+  texte de 11 à 198 mm sur 210, même nombre de pages selon que `@page` est respecté ou non.
+- ⚠ **Les voies mesurées ne s'impriment plus, et c'est une question de justesse** : le calque est un
+  élément absolu à l'échelle de la feuille, que la pagination coupe net alors qu'elle POUSSE le
+  contenu. Mesuré sur l'ACR : le bloc visé descend de 37 à 64 mm sur sa page selon ce qui a été
+  repoussé, pendant que la flèche reste où le flux non paginé l'avait mise — elle désigne le mauvais
+  bloc. Rien n'est perdu : la ligne « SI … ALLER À n » et la pilule « ↺ revenir à n » sont la vérité
+  textuelle depuis A134, et le dessin de structure (tronc, fourche, rail) vit dans le flux, donc il
+  suit la pagination et reste juste.
+- Doctrine A344 (deux addenda), index, `design/ds` régénéré, CHANGELOG à 20 ([5.24.1] archivée).
+- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.29.2] — 2026-09-11
 ### Impression : un intitulé de branche ne finit jamais une page seul (A344)
 
@@ -455,30 +486,4 @@
   inchangés en production) ; trois attentes fixes ramenées à ce qu'elles prouvent, une attente de
   300 ms passée sur condition. Résultat : harnais `partage` 220 s → 72 s de temps mural, passe complète 415 s → 251 s (pool 4).
 - Doctrine A329 dans `docs/decisions/lot-v5-24.md` ; index `AGENTS.md`/`docs/README.md` à A327-A329.
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
-
-## [5.24.1] — 2026-09-06
-### Trois signalements terrain de la v5.24.0 (A328)
-
-- **« Montrer » ne mettait rien à jour chez l'invité** : la réception optique refusait tout
-  instantané dès qu'une session était démarrée sur l'appareil hors miroir — l'invité qui suit en
-  ligne ou en direct était exactement dans ce cas, et le refus était silencieux depuis le bandeau.
-  Une session est « suivie » si c'est le miroir courant ou celle dont l'invité tient l'identifiant ;
-  seule une autre session reste refusée. L'invité en ligne garde l'horloge du serveur.
-- **En ligne → par l'écran → en ligne : « Partagé · 0 », participants disparus, « En direct ·
-  prêt » à 0 participant** : le mode courant était lu comme « par l'écran » dès que ce mode était
-  forcé, donc « En ligne » partait dans la bascule, fermait le partage et en ouvrait un neuf pendant
-  que l'invité restait sur l'ancien (et son canal direct, pair-à-pair, survivait : « prêt »).
-  Règle : le mode courant est le TRANSPORT ; « par l'écran » est une couche par-dessus. Choisir le
-  transport déjà en cours ne fait que retirer la couche ; « En direct » depuis « par l'écran » passe
-  par la vraie bascule en ligne → direct.
-- **Bandeau au cockpit (≥ 1200)** : il montait dans l'en-tête avec la capsule et couvrait le titre ;
-  il reste sous l'en-tête, en rangée compacte collante, centrée, bordée et arrondie — pas pleine
-  largeur.
-- **Focus d'ouverture** : l'anneau tombait sur le lien « Mode : automatique › » ; il va à l'action
-  de l'étape. Libellés « compte nécessaire » et « Un mode indisponible reste tapable et dit
-  pourquoi ».
-- Garde-fous `audit-partage` : « par l'écran » forcé puis « En ligne » garde le même partage et ses
-  participants ; un invité qui suit la session reçoit son instantané par l'écran, une autre session
-  lui est refusée. Doctrine A328 dans `docs/decisions/lot-v5-24.md`.
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
