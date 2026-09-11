@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.29.1] — 2026-09-11
+### « Exporter en PDF » imprime la Page (A344, impression)
+
+- **Demande de l'auteur** : « vérifie que quand on clique sur imprimer cette aide ça imprime bien
+  cette page — pas les historiques de sessions ». Mesuré avant : le gestionnaire d'impression
+  forçait la vue d'ensemble (journal + plan Détails) depuis v4.18.0 ; session en cours, c'est le
+  journal de cette session qui partait sur le papier, et le quai de session, fixé, se répétait au
+  bas de chaque page.
+- **Ce qui s'imprime est la Page** : cran Page forcé au moment d'imprimer pour toute aide à plus
+  d'un bloc (une aide mono-bloc garde la vue d'ensemble dépliée), `body.print-page` masque tout ce
+  qui n'est pas la feuille (titre d'écran, onglets, recherche, bulle, retour au bloc), le quai est
+  masqué sans condition, la coque ne réclame plus une hauteur d'écran et la marge sous la feuille
+  n'ouvre plus une page vide.
+- **Mesuré page par page** (Chromium, A4, après le vrai `beforeprint`) : état de mal sur 3 pages,
+  ACR sur 2 ; les voies mesurées restent alignées d'une page à l'autre (une sortie émise page 1 entre
+  dans son bloc page 2). Une cellule et une décision ne se coupent jamais, la décision reste avec ce
+  qui la suit, une fourche peut se couper entre deux cellules — la garder entière repoussait la
+  moitié de l'algorithme à la page suivante en laissant une demi-page blanche. Ouvert : une fourche
+  plus haute qu'une page.
+- Doctrine A344 (addendum impression), index, CHANGELOG à 20 ([5.23.9] archivée).
+- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.29.0] — 2026-09-11
 ### La Page : l'arbre est le fil (A344)
 
@@ -487,28 +509,4 @@
   `.sh-lead`/`.sh-lnk`/`.sh-note`/`.seg` de la feuille.
 - Doctrine A327 dans `docs/decisions/lot-v5-24.md` ; index `AGENTS.md`/`docs/README.md`.
   Harnais `audit-partage` réalignés (lien porté par le bouton, feuille « Mode », bandeaux).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
-
-## [5.23.9] — 2026-09-06
-### Trois signalements d'affichage : tuile « En cours », rangées « Gérer », gestionnaire de catégories (A326)
-
-- **Tuile épinglée en session, écran étroit** : « ● En cours » vivait à DROITE d'une tuile de
-  165 px et ne laissait qu'une soixantaine de pixels au titre, coupé à chaque ligne. Sous 780 px le
-  badge descend sur la sous-ligne, à gauche du discriminant ; le titre reprend toute la largeur
-  (mesuré à 390 px : 137 px de titre au lieu de ~60, hauteur de tuile inchangée). Le mot reste :
-  jamais une couleur seule (règle 8). Au-dessus de 780 px, rien ne change.
-- **Rangées « Gérer les catégories », « Rejoindre une session », « Historique des sessions »
-  (feuille « Gérer » et colonne de gauche)** : le chevron — et, sur une rangée sans crayon, le
-  nombre — vivaient HORS du bouton, dans l'enveloppe ; taper la flèche ne faisait rien. Sans acte
-  frère, la queue entre dans le bouton (`hsRow`) : toute la rangée répond. Position de la queue
-  inchangée au pixel (12 px du bord droit, mesuré), nombre toujours aligné à droite.
-- **Gestionnaire de catégories** : (a) la colonne « xx éléments » était `auto` — chaque rangée
-  taillait son champ de nom selon la longueur du compte (« 0 élément » ≠ « 12 éléments ») ; colonne
-  fixe de 76 px, compte aligné à droite, champs de même largeur sur toutes les rangées (mesuré :
-  189 px × 8). (b) Le bandeau rouge de confirmation collait au champ (≈ 6 px sur écran tactile, où
-  le champ fait 40 px) et la rangée gardait le fond blanc, alors que la palette ouverte pose le
-  fond gris de `--bg` : la rangée en confirmation prend la classe `.ask`, même sol que `.open`, et le
-  bandeau respire de 8 px.
-- Doctrine A326 dans `docs/decisions/lot-v5-23.md` ; index `AGENTS.md`/`docs/README.md` à
-  A317-A326.
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.

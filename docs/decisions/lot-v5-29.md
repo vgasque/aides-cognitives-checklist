@@ -100,11 +100,24 @@ en pied PARTOUT désormais, plus seulement sous 1000 px) ; la largeur d'auteur e
 `scale` (A133) ; 44 px de cible sur tout ce qui se tape ; l'avertissement de validation ; « ⤢
 Ajusté » = un tap, jamais mémorisé (48 % à 390 px, contre 32 % avant).
 
-**IMPRESSION.** La feuille GARDE sa largeur d'auteur sur le papier (`@page{margin:10mm 7mm}` : A4
-portrait = 741 px utiles pour 740) — reflouer la feuille décalerait les voies mesurées. Ce qui
-reste vrai d'A138 : l'état de session ne s'imprime pas, aucune cellule ne se coupe. Ce qui reste à
-mesurer avec une vraie maquette papier : une voie mesurée qui enjambe un saut de page (le calque est
-posé dans la géométrie d'écran, la coupe déplace le flux, pas le calque).
+**IMPRESSION (v5.29.1).** « Exporter en PDF » imprime LA PAGE — demande de l'auteur : « vérifie que
+quand on clique sur imprimer cette aide ça imprime bien cette page, pas les historiques de
+sessions ». Depuis v4.18.0 le gestionnaire `beforeprint` FORÇAIT la vue d'ensemble (journal + plan
+Détails) : avec une session en cours, c'est le journal de cette session qui partait sur le papier.
+Il force désormais le cran Page (`readMode='static'`, `allTab='page'`, `body.print-page`) pour toute
+aide à plus d'un bloc ; une aide mono-bloc garde la vue d'ensemble dépliée. `body.print-page` masque
+tout ce qui n'est pas la feuille (titre d'écran, onglets, recherche, bulle, retour au bloc) ; le quai
+`#sessionDock` est FIXÉ, donc il se répétait au bas de chaque page — masqué sans condition ; `.app`
+exigeait une hauteur d'écran, donc une page vide grise en fin de document — hauteur libre sur papier.
+La feuille GARDE sa largeur d'auteur (`@page{margin:10mm 7mm}` : A4 portrait = 741 px utiles pour
+740). **Mesuré page par page** (Chromium, `page.pdf` A4 après le vrai `beforeprint`) : l'état de mal
+tient sur 3 pages, l'ACR sur 2 ; les voies mesurées restent ALIGNÉES d'une page à l'autre — le moteur
+fragmente le calque absolu avec la feuille, une sortie « aller à 13 » émise page 1 entre dans le 13
+page 2. Ce qui se coupe et ce qui ne se coupe pas : une cellule et une décision jamais
+(`break-inside:avoid`), la décision reste avec ce qui la suit (`break-after:avoid`), une FOURCHE peut
+se couper entre deux cellules — la garder entière repoussait la moitié de l'algorithme à la page
+suivante en laissant une demi-page blanche. Ce qui reste vrai d'A138 : l'état de session ne s'imprime
+pas. Ouvert : une fourche plus haute qu'une page.
 
 **MESURÉ APRÈS** (Chromium, 1280 × 900) : état de mal 740 × 2 992, ACR 740 × 1 839, les deux fiches
 d'exemple sur 959 et 929 px — c'est-à-dire UNE page A4 pour les fiches de cette taille, l'esprit du

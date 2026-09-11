@@ -7198,7 +7198,18 @@
     /* A344 : la feuille GARDE sa largeur d'auteur sur le papier (A4 à 7 mm de marge = 741 px) — les
        voies mesurées ne sont justes qu'à cette géométrie ; reflouer la feuille les décalerait. */
     .sv-sheet{border:0}
-    .sv-cell,.sv-band,.sv-jrow,.sv-fork,.sv-band-top>*,.sv-ref>*{break-inside:avoid}
+    /* La PAGE seule sur le papier : ni titre d'écran, ni onglets, ni recherche, ni quai, ni bulle. */
+    body.print-page .read-main>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
+    body.print-page #crisisDock,body.print-page .sd-hint-w,body.print-page #blkReturn{display:none!important}
+    #sessionDock{display:none!important}   /* le quai est FIXÉ : sans cela il se répète sur chaque page */
+    .app{min-height:0!important;background:var(--paper)!important}   /* une hauteur d'ÉCRAN imprimait une page vide */
+    html{background:var(--paper)!important}
+    body.print-page .sv-wrap{margin:0!important}body.print-page main{padding:0!important}   /* 18 px de marge suffisaient à ouvrir une page de plus */
+    /* Une cellule ne se coupe pas ; une décision reste avec ce qui la suit (sa fourche, son rail) ; une
+       fourche, elle, PEUT se couper entre deux cellules — la garder entière repoussait la moitié de
+       l'algorithme à la page suivante en laissant une demi-page blanche. */
+    .sv-cell,.sv-band,.sv-jrow,.sv-band-top>*,.sv-ref>*{break-inside:avoid}
+    .sv-band{break-after:avoid}
     .sv-cartouche{break-after:avoid}
     .sv-band-doses,.sv-band-top{break-inside:avoid}
     /* 3. L'état de session, retiré à la racine : classes d'état neutralisées, marqueurs masqués. */
