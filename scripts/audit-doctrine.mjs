@@ -7295,6 +7295,90 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
    sites en pointeur grossier (sans lui, le bloc tactile ne s'applique pas et le vert ne vaut
    rien) ; `clip` se calcule `hidden` quand l'autre axe est `auto`, c'est ce que l'on attend. Et
    l'échelle doit faire grandir la FENÊTRE (le seul défileur), jamais un axe interne. */
+/* ══ A344 · LE TRACÉ NE TOUCHE RIEN, ET LE PAPIER SE PAGINE AVANT D'ÊTRE PEINT (v5.29.4) ═══════
+   Deux invariants que seul un RENDU peut donner, et que l'auteur a signalés à l'usage (« les flèches
+   commencent à l'intérieur du bloc », « elles se superposent », « elles passent au-dessus des
+   blocs ») : (1) aucun segment du calque ne PÉNÈTRE un élément visible de l'algorithme — cellule,
+   boîte de décision, intitulé de branche, pilule, numéro ; (2) deux segments colinéaires ne se
+   SUPERPOSENT jamais (trois sorties vers la même cible descendaient dans le même couloir, 615 px
+   l'un sur l'autre). Puis l'impression : le paginateur POSE les sauts, donc il sait où le calque
+   doit être coupé — sans lui, la flèche reste où le flux non paginé l'avait mise et désigne le
+   mauvais bloc. On mesure sur la fiche de l'audit, qui porte une décision imbriquée. */
+await sec('A344 · le tracé ne touche rien, et le papier se pagine avant d\'être peint', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:1400}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await page.waitForFunction(()=>!document.querySelector('.boot-load'));
+  /* PAS `amorce()` ici, à dessein : comme la sonde de la grille, celle-ci injecte SA fiche — une
+     décision imbriquée, un renvoi de boucle et une sortie, c'est-à-dire les trois formes de voie. */
+  await page.evaluate(async()=>{
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
+    await new Promise(r=>setTimeout(r,150));
+    const it=(n)=>Array.from({length:n},(_,i)=>'Étape '+(i+1)+' :: réponse attendue '+(i+1));
+    const f=migrate({id:'aud-a344',title:'Audit — voies',start:'a',blocks:[
+      {id:'a',kind:'do',title:'Début',items:it(4),next:'d1'},
+      {id:'d1',kind:'decision',title:'Rythme',question:'Choquable ?',options:[
+        {label:'Choquable',target:'b1'},{label:'Non choquable',target:'b9'},{label:'Reprise',target:'fin'}]},
+      {id:'b1',kind:'do',title:'Choc',items:it(4),next:'ca'},
+      {id:'b9',kind:'do',title:'Sans choc',items:it(4),next:'ca'},
+      {id:'ca',kind:'do',title:'Causes',items:it(5),next:'d1'},
+      {id:'fin',kind:'do',title:'Reprise d’activité',items:it(3),next:null}]});
+    await Data.put(f);fiches.push(f);
+    state.view='read';state.fiche=f;state.readMode='static';render();
+    await new Promise(r=>setTimeout(r,700));});
+  const r=await page.evaluate(()=>{
+    const sheet=document.querySelector('.sv-sheet'),sr=sheet.getBoundingClientRect();
+    const rel=e=>{const b=e.getBoundingClientRect();return {l:b.left-sr.left,t:b.top-sr.top,r:b.right-sr.left,b:b.bottom-sr.top};};
+    const segs=[];
+    document.querySelectorAll('.sv-gut path').forEach(p=>{const cls=p.getAttribute('class');if(cls==='lph'||cls==='sph')return;
+      let x=0,y=0;p.getAttribute('d').replace(/([MHVL])\s*(-?[\d.]+)(?:\s+(-?[\d.]+))?/g,(_,c,a,b)=>{
+        const A=parseFloat(a),B=b===undefined?null:parseFloat(b);
+        if(c==='M'){x=A;y=B;}else{let nx=x,ny=y;if(c==='H')nx=A;else if(c==='V')ny=A;else{nx=A;ny=B;}
+          segs.push({x1:x,y1:y,x2:nx,y2:ny});x=nx;y=ny;}return '';});});
+    /* Ce qu'un trait ne doit JAMAIS toucher : une cellule ou un numéro (il passerait « à travers un
+       bloc »), un intitulé de branche, une pilule, et tout TEXTE d'une boîte de décision. La boîte
+       elle-même n'est pas testée : c'est de sa PASTILLE de destination que les voies partent. */
+    const els=[...document.querySelectorAll('.sv-algo .sv-cell,.sv-algo .sv-sh2,.sv-algo .sv-jump,.sv-algo .sv-num,.sv-algo .sv-band .sv-h,.sv-algo .sv-q,.sv-algo .sv-opt .lb')].map(rel);
+    const dans=[];
+    segs.forEach(s=>els.forEach(E=>{
+      const x1=Math.min(s.x1,s.x2),x2=Math.max(s.x1,s.x2),y1=Math.min(s.y1,s.y2),y2=Math.max(s.y1,s.y2);
+      /* ⚠ ON TESTE L'APPARTENANCE AU RECTANGLE RÉTRÉCI DE 2 px, PAS UN RECOUVREMENT : un segment est
+         DÉGÉNÉRÉ (épaisseur nulle), donc son recouvrement sur l'axe mince vaut toujours 0 — écrite
+         « recouvrement > 2 » sur les deux axes, la condition ne pouvait JAMAIS être vraie et le
+         contrôle était vert parce qu'il était aveugle (constaté en décalant tout le calque). */
+      if(x1<=E.r-2&&x2>=E.l+2&&y1<=E.b-2&&y2>=E.t+2)dans.push(1);}));
+    const sup=[];
+    for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){
+      const a=segs[i],b=segs[j];
+      if(Math.abs(a.x1-a.x2)<1&&Math.abs(b.x1-b.x2)<1&&Math.abs(a.x1-b.x1)<3){
+        const o=Math.min(Math.max(a.y1,a.y2),Math.max(b.y1,b.y2))-Math.max(Math.min(a.y1,a.y2),Math.min(b.y1,b.y2));if(o>4)sup.push(1);}
+      if(Math.abs(a.y1-a.y2)<1&&Math.abs(b.y1-b.y2)<1&&Math.abs(a.y1-b.y1)<3){
+        const o=Math.min(Math.max(a.x1,a.x2),Math.max(b.x1,b.x2))-Math.max(Math.min(a.x1,a.x2),Math.min(b.x1,b.x2));if(o>4)sup.push(1);}}
+    return {segs:segs.length,dans:dans.length,sup:sup.length};});
+  t('témoin : le calque porte bien des voies', r.segs>0, JSON.stringify(r));
+  t('A344 · aucun segment ne pénètre une cellule, une boîte, un intitulé, une pilule ou un numéro',
+    r.dans===0, r.dans+' pénétration(s)');
+  t('A344 · aucune superposition de deux voies colinéaires', r.sup===0, r.sup+' superposition(s)');
+  /* LE PAPIER : on passe par le VRAI gestionnaire d'impression, pas par un état reconstruit. */
+  const pr=await page.evaluate(async()=>{window.dispatchEvent(new Event('beforeprint'));
+    await new Promise(r=>setTimeout(r,600));
+    return {page:document.body.classList.contains('print-page'),mode:state.readMode,tab:state.allTab,
+      pages:_svPages?_svPages.length:0,coupes:document.querySelectorAll('.sv-cut').length,
+      nogut:document.body.classList.contains('print-nogut'),
+      journal:!!document.querySelector('.ov-wrap,.pc-wrap')};});
+  t('A344 · imprimer une aide imprime LA PAGE, jamais le journal d\'une session',
+    pr.page===true&&pr.mode==='static'&&pr.tab==='page'&&pr.journal===false, JSON.stringify(pr));
+  t('A344 · le paginateur a posé ses pages, et il n\'a pas renoncé',
+    pr.pages>=1&&pr.nogut===false, JSON.stringify(pr));
+  const ap=await page.evaluate(async()=>{window.dispatchEvent(new Event('afterprint'));
+    await new Promise(r=>setTimeout(r,400));
+    return {page:document.body.classList.contains('print-page'),coupes:document.querySelectorAll('.sv-cut').length,pages:_svPages};});
+  t('A344 · et l\'écran retrouve son état : ni classe d\'impression, ni saut, ni pagination',
+    ap.page===false&&ap.coupes===0&&ap.pages===null, JSON.stringify(ap));
+  await page.close();
+}
+});
+
 await sec('LA PAGE · un seul axe vertical, dans main comme dans la fenêtre « Tableau »', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

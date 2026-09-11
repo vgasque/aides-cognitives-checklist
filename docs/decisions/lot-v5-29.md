@@ -100,17 +100,41 @@ en pied PARTOUT désormais, plus seulement sous 1000 px) ; la largeur d'auteur e
 `scale` (A133) ; 44 px de cible sur tout ce qui se tape ; l'avertissement de validation ; « ⤢
 Ajusté » = un tap, jamais mémorisé (48 % à 390 px, contre 32 % avant).
 
-**LES VOIES PARTENT DU BORD DE LA BOÎTE, JAMAIS DE LA LIGNE (v5.29.3, signalé à l'usage : « les
-flèches commencent encore à l'intérieur du bloc en superposant au texte et traversent des blocs »).**
-Une ligne « SI … ALLER À n » occupe toute la largeur intérieure de sa boîte : partir de son bord
-droit, c'était partir SUR le dernier mot et traverser la bordure — MESURÉ à 27 px de trait dans la
-boîte, six fois sur les deux fiches réelles (sonde : chaque segment du calque contre chaque cellule).
-Une voie garde donc l'ORDONNÉE de sa ligne (l'œil fait le lien) et prend l'ABSCISSE de sa boîte ;
-une pilule, elle, est déjà sa propre boîte. Et un COLLECTEUR descend juste ce qu'il faut, dans
-l'INTERSTICE de 12 px à gauche de sa branche — il descendait au bas de la fourche entière en longeant
-la colonne des numéros, soit un grand rectangle vide qui se lit comme un trait à travers l'algorithme.
-La barre se pose 14 px sous la source la plus basse, relevée au besoin pour passer SOUS toute colonne
-sœur que le chemin longerait. Mesuré après : **zéro croisement** sur les deux fiches.
+**LA DESTINATION EST UNE PASTILLE, ET C'EST ELLE QUI DONNE AU TRAIT SON BORD (v5.29.3-4).** Signalé
+à l'usage : « les flèches commencent à l'intérieur du bloc en superposant au texte », puis « les
+options à droite dans les blocs sont encadrées, contrairement à l'app ». Une ligne « SI … ALLER À n »
+occupe toute la largeur intérieure de sa boîte : partir de son bord droit, c'était partir SUR le
+dernier mot — mesuré à 27 px de trait dans la boîte, six fois sur les deux fiches réelles (sonde :
+chaque segment du calque contre chaque élément visible). La destination devient donc une PASTILLE,
+comme sur la maquette retenue : « CONTINUER ↓ 4 » garde le registre de la décision (cadre ambre
+plein, on reste dans le fil), « ALLER À 7 » et « REVENIR À 2 » sont des SAUTS donc portent le registre
+des voies (cadre bleu POINTILLÉ, fond bleu pâle), « ▪ FIN » ne mène nulle part et reste un mot.
+Au-delà du repérage, elle donne au trait un BORD d'où partir : **une SORTIE part de son bord droit**
+— elle est à droite de la ligne, le trait s'éloigne aussitôt du texte ; **un RETOUR part du bord
+gauche de la BOÎTE**, car depuis la pastille il traverserait le libellé de sa propre ligne (mesuré :
+deux fois sur l'état de mal, « Récidive — reprise de l'algorithme » barré par son propre trait).
+
+**UN BUS, PAS N TRAITS SUPERPOSÉS (v5.29.4, signalé : « il reste des soucis de superposition »).**
+Trois décisions de l'état de mal sortent vers le même bloc 13 : chacune descendait dans le couloir de
+droite, **615 px l'une sur l'autre**. Chaque ligne rejoint désormais le couloir par un tiret
+horizontal, et la descente est UNIQUE, du plus haut départ à la barre d'entrée. Toutes les voies
+passent par un REGISTRE DES COULOIRS partagé : une abscisse déjà prise glisse de 5 px — sans lui, la
+voie de retour interne d'une colonne et l'interstice d'un collecteur tombaient au même pixel. Et un
+COLLECTEUR descend dans l'INTERSTICE de 12 px à gauche de sa branche, 14 px sous la source la plus
+basse (relevé pour passer sous une colonne sœur), au lieu de longer la colonne des numéros jusqu'au
+bas de la fourche — un grand rectangle vide qui se lisait comme un trait à travers l'algorithme.
+**Une pointe s'arrête à 5 px du numéro** : celui-ci porte un halo de 3 px et un `z-index`, il passe
+donc DEVANT le calque et masquait le bout de la flèche (« l'arrow bleu n'est pas visible »).
+
+**LE TÉMOIN, ET POURQUOI IL ÉTAIT AVEUGLE (v5.29.4).** `audit-doctrine` mesure deux invariants sur un
+rendu : aucun segment ne pénètre une cellule, un numéro, un intitulé, une pilule ou un texte de
+décision ; aucune superposition de deux voies colinéaires. ⚠ Sa première écriture testait un
+RECOUVREMENT sur les deux axes — or un segment est DÉGÉNÉRÉ (épaisseur nulle), son recouvrement sur
+l'axe mince vaut toujours 0 : la condition ne pouvait jamais être vraie, et le contrôle était vert
+parce qu'il était aveugle. Constaté en décalant tout le calque, corrigé en testant l'APPARTENANCE au
+rectangle rétréci de 2 px, vérifié capable d'échouer — et il a immédiatement trouvé les deux retours
+qui barraient leur propre libellé. La boîte de décision n'est pas testée en entier : c'est de sa
+pastille que les voies partent, ce sont donc ses TEXTES qu'on protège.
 
 **IMPRESSION (v5.29.1, complétée v5.29.3).** « Exporter en PDF » imprime LA PAGE — demande de
 l'auteur : « vérifie que quand on clique sur imprimer cette aide ça imprime bien cette page, pas les
@@ -131,17 +155,31 @@ d'écran et `.sv-wrap` portait 18 px de marge, d'où une page vide en fin de doc
   pixel près : sans cela le contenu se refluerait et les voies mesurées seraient fausses. Mesuré :
   colonne racine 670 px inchangée, texte de 11 à 198 mm sur 210, même nombre de pages que le
   navigateur respecte `@page` ou impose ses marges.
-· ⚠ **LES VOIES MESURÉES NE S'IMPRIMENT PAS, ET C'EST UNE QUESTION DE JUSTESSE** (v5.29.3). Le calque
-  est UN élément absolu à l'échelle de la feuille : la pagination le coupe net, alors qu'elle POUSSE
-  le contenu (une cellule ne se coupe pas). Mesuré sur l'ACR : le bloc visé descend de 37 à 64 mm sur
-  sa page selon ce qui a été repoussé, tandis que la flèche reste où le flux non paginé l'avait mise
-  — elle désigne alors le mauvais bloc, et une voie coupée par un saut de page ne mène visiblement
-  nulle part. Mieux vaut rien qu'un tracé faux. Rien n'est perdu : la ligne « SI … ALLER À n » et la
-  pilule « ↺ revenir à n » sont la VÉRITÉ TEXTUELLE (A134), et le dessin de STRUCTURE — tronc,
-  fourche, rail — vit dans le FLUX (pseudo-éléments des rangées), donc il suit la pagination et reste
-  juste. Retirer `break-inside:avoid` ne sauve rien : mesuré, il reste un blanc résiduel, donc un
-  décalage. Un paginateur mesuré reste la seule voie pour retrouver les traits sur le papier ; il ne
-  s'écrira que si l'usage le réclame.
+· **LE PAGINATEUR MESURÉ (v5.29.4) — ET LES VOIES REVIENNENT SUR LE PAPIER.** Le calque est UN
+  élément absolu à l'échelle de la feuille : la pagination le coupe net, alors qu'elle POUSSE le
+  contenu (une cellule ne se coupe pas). Mesuré sur l'ACR : le bloc visé descend de 37 à 64 mm sur sa
+  page selon ce qui a été repoussé, pendant que la flèche reste où le flux non paginé l'avait mise —
+  elle désigne alors le mauvais bloc. Tant qu'on ne savait pas OÙ tombent les coupes, la seule
+  réponse juste était de ne rien tracer (v5.29.3). `svPaginate` POSE donc les sauts lui-même, et les
+  connaît : hauteur utile d'une page MESURÉE (un témoin en millimètres — 96 dpi n'est pas une
+  promesse), blocs insécables parcourus dans l'ordre du flux, `break-before:page` avant celui qui
+  déborderait, et il rend pour chaque page l'ordonnée où elle commence et le décalage du calque.
+  `svPaintArrows` écrit alors ses chemins en POINTS (et non en `d`), les coupe aux frontières et
+  décale chaque morceau : un trait sort en bas d'une page et reprend en haut de la suivante, à la
+  bonne cellule. ⚠ **IL PEUT RENONCER, ET IL LE DIT** : un bloc plus haut qu'une page ne se place
+  pas, `body.print-nogut` masque alors le calque — mieux vaut rien qu'un tracé faux, la ligne écrite
+  portant tout (A134).
+  · **Périmètre** : on ne pagine que ce que les voies traversent (cartouche, bande d'entrée, rangées
+    de l'algorithme) ; la référence et les doses sont des GRILLES de fin de document — les traiter
+    comme insécables coûtait une page entière, et aucune voie n'y va.
+  · **Coût mesuré** : une rangée insécable haute (une fourche) qui ne tient pas dans la fin de page y
+    laisse du blanc — l'état de mal passe de 3 à 4 pages. C'est le prix de traits justes, et le
+    comportement normal de toute pagination à blocs insécables.
+  · **La feuille imprimée garde EXACTEMENT sa géométrie d'écran** (largeur, padding, bordure rendue
+    transparente) : le calque est posé en coordonnées mesurées à l'écran, un padding différent le
+    décalerait — mesuré à 28 px, le couloir de droite passait alors SUR le texte des cellules. Elle
+    est simplement CENTRÉE dans les 210 mm, ce qui lui laisse les 7 mm de blanc voulus, et comme
+    `@page` ne pose aucune marge horizontale, aucun moteur n'en ajoute par-dessus.
 · Ce qui se coupe et ce qui ne se coupe pas : une cellule et une décision jamais, la décision reste
   avec ce qui la suit, un intitulé de branche avec sa première cellule ; une FOURCHE peut se couper
   entre deux cellules — la garder entière repoussait la moitié de l'algorithme à la page suivante en

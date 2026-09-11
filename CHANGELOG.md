@@ -1,5 +1,39 @@
 # Journal des modifications
 
+## [5.29.4] — 2026-09-11
+### La destination devient une pastille, les voies cessent de se superposer, et le papier se pagine avant d'être peint (A344)
+
+- **Signalés à l'usage** : « il reste des soucis de superposition des flèches, et des flèches qui
+  passent au-dessus des blocs » ; « les options à droite dans les blocs sont encadrées, contrairement
+  à l'app » ; « le bout de la flèche n'est pas visible » ; « puis fais le paginateur mesuré ».
+- **La destination est une pastille**, comme sur la maquette retenue : « CONTINUER ↓ 4 » au registre
+  de la décision (cadre ambre plein), « ALLER À 7 » et « REVENIR À 2 » au registre des voies (cadre
+  bleu pointillé, fond pâle), « ▪ FIN » reste un mot. Elle donne surtout au trait un bord d'où
+  partir : une sortie part du bord droit de la pastille, un retour du bord gauche de la boîte — de la
+  pastille il traversait le libellé de sa propre ligne (mesuré deux fois sur l'état de mal).
+- **Un bus, pas n traits superposés** : trois décisions sortaient vers le même bloc et descendaient
+  dans le même couloir, **615 px l'une sur l'autre**. Les lignes rejoignent le couloir par un tiret,
+  la descente est unique. Toutes les voies passent par un registre de couloirs partagé (une abscisse
+  prise glisse de 5 px), et le collecteur d'une fourche descend dans l'interstice de sa branche au
+  lieu de longer la colonne des numéros. Une pointe s'arrête à 5 px du numéro, qui porte un halo et
+  passait devant elle.
+- **Le paginateur mesuré, et les voies reviennent sur le papier** : `svPaginate` pose lui-même les
+  sauts de page, donc il les connaît — hauteur utile mesurée en millimètres, blocs insécables dans
+  l'ordre du flux, saut avant celui qui déborderait. Les chemins s'écrivent en points, se coupent aux
+  frontières et se décalent : un trait sort en bas d'une page et reprend en haut de la suivante, à la
+  bonne cellule. Il peut renoncer et le dit (un bloc plus haut qu'une page), le calque restant alors
+  masqué. Coût mesuré : l'état de mal passe de 3 à 4 pages, une fourche insécable laissant du blanc.
+- **La feuille imprimée garde sa géométrie d'écran** et se centre dans les 210 mm : un padding
+  différent décalait le calque de 28 px, et le couloir de droite passait sur le texte des cellules.
+- **Témoin** (`audit-doctrine`) : aucun segment ne pénètre une cellule, un numéro, un intitulé, une
+  pilule ou un texte de décision ; aucune superposition ; imprimer une aide imprime la Page ; le
+  paginateur a posé ses pages ; l'écran retrouve son état. ⚠ Sa première écriture était **aveugle** —
+  elle testait un recouvrement sur les deux axes alors qu'un segment a une épaisseur nulle, donc la
+  condition ne pouvait jamais être vraie. Corrigée en testant l'appartenance, vérifiée capable
+  d'échouer, elle a immédiatement trouvé deux vrais défauts.
+- Doctrine A344 (trois addenda), index, `design/ds` régénéré, CHANGELOG à 20 ([5.24.2] archivée).
+- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.29.3] — 2026-09-11
 ### Les voies partent du bord de la boîte ; la feuille imprimée EST la page A4 (A344)
 
@@ -470,20 +504,3 @@
 - **Garde-fous** : témoins d'audit-doctrine réalignés (boutons sous « Parcours » et au-dessus de
   l'aperçu, zéro « Prise en charge » avant la session), tests Q4 réécrits, `.conf-eh` purgé avec
   épitaphe. Doctrine A330 dans `docs/decisions/lot-v5-25.md` ; formes refusées consignées.
-
-## [5.24.2] — 2026-09-06
-### L'audit du partage passe de 220 s à ~75 s ; l'invité reprend le cloud à la sonde (A329)
-
-- **Mesuré d'abord** : chaque section imprime désormais sa durée (`⏱`). Sur une tranche de 220 s, la
-  section E2E des bascules pesait 167 à 208 s à elle seule ; à l'intérieur, une attente de 35 s (la
-  montre de 30 s de l'invité sur une offre de canal perdue) et 7 à 9 s à chaque retour du réseau
-  (l'invité attendait son prochain sondage pour reprendre le cloud).
-- **L'app** : l'invité en direct qui tient un billet cloud et dont le canal faiblit reprend le cloud
-  dès que la sonde de joignabilité répond (≤ 8 s), plus seulement à son prochain sondage (repli
-  jusqu'à 30 s) — la promesse d'A322 tenue à la lettre.
-- **Le harnais** : la section E2E devient cinq sections autonomes sur un banc partagé
-  (`bancRelais`), jouées en cinq tranches ; montre d'offre réglable au banc (`__acKickMs`, 30 s
-  inchangés en production) ; trois attentes fixes ramenées à ce qu'elles prouvent, une attente de
-  300 ms passée sur condition. Résultat : harnais `partage` 220 s → 72 s de temps mural, passe complète 415 s → 251 s (pool 4).
-- Doctrine A329 dans `docs/decisions/lot-v5-24.md` ; index `AGENTS.md`/`docs/README.md` à A327-A329.
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.

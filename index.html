@@ -287,7 +287,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-/eY/rae9KiulgmBoi/dje/FFP3V+OIELEFuW1h9Fbnc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-YqdcRb2I2Toq+IszksEq+/+NDmrHi+OnHd5qF76hAqc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -5382,9 +5382,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-opt .si{font-family:var(--mono);font-weight:600;color:var(--verify);flex:none;width:18px}
   .sv-opt .lb{flex:0 1 auto;min-width:0;color:var(--verify);font-weight:700}
   .sv-opt .ld{flex:1 1 12px;min-width:12px;border-bottom:1px dotted var(--verify-bd);transform:translateY(-3px)}
-  .sv-opt .to{flex:none;font-family:var(--mono);font-size:var(--t-cap);font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--verify)}
-  .sv-opt .to.out,.sv-opt .to.back{color:var(--link)}
-  .sv-opt .to.fin{color:var(--ok)}
+  /* LA DESTINATION EST UNE PASTILLE, PAS UN MOT (dessin de la maquette retenue) : elle se repère
+     d'un coup d'œil dans la boîte, et surtout elle donne au trait un BORD d'où partir — sans quoi
+     il partirait sur la dernière lettre. « Continuer » garde le registre de la décision (ambre
+     plein, on reste dans le fil) ; « aller à » et « revenir à » sont des SAUTS, donc le registre
+     des voies (bleu, trait pointillé) ; « fin » ne mène nulle part et reste un mot. */
+  .sv-opt .to{flex:none;font-family:var(--mono);font-size:var(--t-cap);font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--verify);border:1px solid var(--verify-bd);border-radius:3px;padding:0 6px;line-height:18px}
+  .sv-opt .to.out,.sv-opt .to.back{color:var(--link);border-style:dashed;border-color:var(--primary);background:var(--primary-soft)}
+  .sv-opt .to.fin{color:var(--ok);border-color:transparent;padding:0}
   .sv-opt .sv-tk{color:var(--ok)}
   .sv-offtag{font-weight:600;color:var(--ink-soft)}
   /* LA FOURCHE (deux branches à contenu, pleine largeur) : barre sous la décision, une descente par
@@ -7490,15 +7495,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (soit toujours sur A4 ≈ 794 px : le contenu du rail était donc imprimé EN DOUBLE), et le titre
      changeait de corps (21 / 24 px). Un document clinique imprimé ne peut pas dépendre de la
      fenêtre où l'on se trouvait au moment de l'impression. On neutralise donc les trois. */
-  /* LA FEUILLE EST LA PAGE (A344, v5.29.3 — signalé à l'usage : « l'impression rajoute des marges
-     sur A4 »). Les marges horizontales sont posées par la feuille ELLE-MÊME, pas par `@page` : un
-     navigateur qui ignore les marges de `@page` (c'est le cas de WebKit) y ajoutait les siennes,
-     puis réduisait la feuille pour l'y faire tenir — d'où une image plus petite ENTOURÉE de blanc.
-     Avec `margin:0` horizontal, la feuille occupe les 210 mm et porte son blanc dans son padding ;
-     si un moteur impose quand même ses marges, il réduit le tout PROPORTIONNELLEMENT, ce qui reste
-     la plus grande image possible et ne rogne jamais rien. Le padding se CALCULE pour que la zone
-     de contenu garde la largeur d'auteur au pixel près (710 px = 740 − 2 de bordure − 28 de
-     padding d'écran) : sans cela le contenu se refluerait et les voies mesurées seraient fausses. */
+  /* AUCUNE MARGE HORIZONTALE DE PAGE (A344, v5.29.3 — signalé à l'usage : « l'impression rajoute
+     des marges sur A4 »). La feuille fait 740 px, soit 195,8 mm : centrée dans les 210 mm elle
+     laisse 7 mm de blanc de chaque côté, ce qui est la marge VOULUE. Les marges de `@page`
+     s'ajoutaient à ce blanc, et un moteur qui les ignore (WebKit) ajoutait les siennes puis
+     réduisait la feuille pour l'y faire tenir — image plus petite ENTOURÉE de blanc. Avec `0`
+     horizontal, ce cas se réduit à une mise à l'échelle PROPORTIONNELLE, jamais un rognage. */
   @page{size:A4;margin:10mm 0}
   @media print{
     /* 1. Le zoom de confort d'écran n'a aucun sens sur papier : le PDF part toujours à 100 %. */
@@ -7560,20 +7562,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .sv-calant.z>.sv-sheet{position:static!important;transform:none!important}
     /* A344 : la feuille GARDE sa largeur d'auteur sur le papier (A4 à 7 mm de marge = 741 px) — les
        voies mesurées ne sont justes qu'à cette géométrie ; reflouer la feuille les décalerait. */
-    .sv-sheet{width:210mm!important;border:0;padding:0 calc((210mm - 710px) / 2);margin:0}
+    /* La feuille garde EXACTEMENT sa géométrie d'écran — largeur, padding, bordure : le calque des
+       voies est posé dessus en coordonnées mesurées à l'écran, un padding différent le décalerait
+       (mesuré : 28 px, le couloir de droite passait alors SUR le texte des cellules). Elle est
+       simplement CENTRÉE dans les 210 mm, ce qui lui laisse 7 mm de blanc de chaque côté — et comme
+       `@page` ne pose aucune marge horizontale, aucun moteur n'en ajoute par-dessus. */
+    .sv-sheet{border-color:transparent;margin:0 auto}
     /* La PAGE seule sur le papier : ni titre d'écran, ni onglets, ni recherche, ni quai, ni bulle. */
     body.print-page .read-main>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
     body.print-page #crisisDock,body.print-page .sd-hint-w,body.print-page #blkReturn{display:none!important}
     #sessionDock{display:none!important}   /* le quai est FIXÉ : sans cela il se répète sur chaque page */
-    /* ⚠ LES VOIES MESURÉES NE S'IMPRIMENT PAS, ET C'EST UNE QUESTION DE JUSTESSE (v5.29.3, mesuré).
-       Le calque est UN élément absolu à l'échelle de la feuille : la pagination le coupe net, alors
-       qu'elle POUSSE le contenu (une cellule ne se coupe pas). Mesuré sur l'ACR : le bloc visé
-       descend de 37 à 64 mm sur sa page selon ce qui a été repoussé, tandis que la flèche reste où
-       le flux non paginé l'avait mise — elle désigne alors le mauvais bloc. Mieux vaut rien qu'un
-       tracé faux. Rien n'est perdu : la ligne « SI … ALLER À n » et la pilule « ↺ revenir à n » sont
-       la VÉRITÉ TEXTUELLE (A134), et le dessin de STRUCTURE — tronc, fourche, rail — vit dans le
-       FLUX (pseudo-éléments des rangées) : il suit la pagination et reste juste. */
-    .sv-gut{display:none!important}
+    .sv-cut{break-before:page!important}
+    body.print-nogut .sv-gut{display:none!important}   /* le paginateur a renoncé : pas de tracé faux */
     .app{min-height:0!important;background:var(--paper)!important}   /* une hauteur d'ÉCRAN imprimait une page vide */
     html{background:var(--paper)!important}
     body.print-page .sv-wrap{margin:0!important}body.print-page main{padding:0!important}   /* 18 px de marge suffisaient à ouvrir une page de plus */
@@ -8221,7 +8221,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.29.3';
+const APP_VERSION='5.29.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21402,6 +21402,48 @@ function svSheetHtml(f,plein){
    gauche du numéro ; collecteur sous une fourche ; tiret vers le rail), et la RÉUNION des branches
    d'un rail par la voie intérieure. Mêmes précautions qu'avant : mesures ÷ zoomF() ÷ échelle, calque
    DANS la feuille, une passe groupée, jamais pendant un geste. Le CALANT de l'échelle se pose ici aussi. */
+/* ══ A344 · LE PAGINATEUR MESURÉ (v5.29.4) ════════════════════════════════════════════════════
+   POURQUOI IL EXISTE : le calque des voies est UN élément absolu à l'échelle de la feuille. La
+   pagination le coupe net, alors qu'elle POUSSE le contenu (une cellule ne se coupe pas) — mesuré
+   sur l'ACR, le bloc visé descend de 37 à 64 mm sur sa page selon ce qui a été repoussé, pendant
+   que la flèche reste où le flux non paginé l'avait mise. Tant qu'on ne savait pas OÙ tombent les
+   coupes, la seule réponse juste était de ne rien tracer sur le papier (v5.29.3).
+   CE QU'IL FAIT : il POSE lui-même les sauts, donc il les connaît. Hauteur utile d'une page
+   MESURÉE (jamais un littéral : elle dépend du DPI de rendu et du réglage de taille du texte),
+   blocs insécables parcourus dans l'ordre du flux, saut avant celui qui déborderait ; il rend la
+   liste des pages avec, pour chacune, l'ordonnée où elle commence dans le flux et le décalage à
+   appliquer au calque. `svPaintArrows` coupe alors chaque voie aux frontières et décale chaque
+   morceau — un trait sort en bas d'une page et reprend en haut de la suivante, à la bonne cellule.
+   ⚠ IL PEUT ÉCHOUER, ET IL LE DIT : un bloc plus haut qu'une page ne se place pas (`null`), et le
+   calque reste alors masqué — mieux vaut rien qu'un tracé faux, la ligne écrite porte tout. */
+let _svPages=null;
+function svPaginate(racine){
+  const sheet=(racine||main).querySelector('.sv-sheet');if(!sheet)return null;
+  const algo=sheet.querySelector('.sv-algo>.sv-col');if(!algo)return null;
+  sheet.querySelectorAll('.sv-cut').forEach(e=>e.classList.remove('sv-cut'));
+  /* Hauteur utile = page moins les marges de `@page` (10 mm en haut et en bas) : on la MESURE avec
+     un témoin en millimètres plutôt que de la calculer — 96 dpi n'est pas une promesse. */
+  const t=document.createElement('div');
+  t.style.cssText='height:calc(297mm - 20mm);position:absolute;left:0;top:0;visibility:hidden;pointer-events:none';
+  sheet.appendChild(t);const Z=zoomF();const H=t.offsetHeight;t.remove();
+  if(!(H>200))return null;
+  /* ON NE PAGINE QUE CE QUE LES VOIES TRAVERSENT : cartouche, bande d'entrée, rangées de
+     l'algorithme. La référence et les doses sont des GRILLES en fin de document — les traiter comme
+     insécables coûtait une page entière, et aucune voie n'y va : elles se coupent librement. */
+  const blocs=[];
+  for(const el of [...sheet.children]){
+    if(el.classList.contains('sv-gut'))continue;
+    if(el.contains(algo)){[...algo.children].forEach(r=>blocs.push(r));break;}
+    blocs.push(el);}
+  if(!blocs.length)return null;
+  const sr=sheet.getBoundingClientRect();
+  const box=el=>{const b=el.getBoundingClientRect();return {t:(b.top-sr.top)/Z,b:(b.bottom-sr.top)/Z};};
+  const pages=[{y:0,d:0}];let start=0,k=0;
+  for(const el of blocs){
+    const r=box(el);
+    if(r.b-r.t>H+1){return null;}                 // un bloc plus haut qu'une page : on renonce
+    if(r.b-start>H){k++;start=r.t;pages.push({y:start,d:k*H-start});el.classList.add('sv-cut');}}
+  return pages;}
 function svPaintArrows(racine){
   const wrap=(racine||main).querySelector('.sv-wrap');if(!wrap)return;
   const sheet=wrap.querySelector('.sv-sheet');if(!sheet)return;
@@ -21425,31 +21467,67 @@ function svPaintArrows(racine){
        fois sur les deux fiches réelles. On garde l'ORDONNÉE de la ligne (l'œil fait le lien) et on
        prend l'ABSCISSE de la boîte. Une pilule, elle, est déjà sa propre boîte. */
     const src=s=>{const el=s.alt?q('[data-svalt="'+CSS.escape(s.alt)+'"]'):q('[data-svpill="'+CSS.escape(s.pill)+'"]');
-      if(!el)return null;const a=R(el);const bx=R(el.closest('.sv-band,.sv-jrow'))||a;
-      return {t:a.t,b:a.b,cy:a.cy,l:bx.l,r:bx.r,cx:bx.cx};};
+      if(!el)return null;
+      /* Une SORTIE part du bord droit de la PASTILLE de destination (elle est à droite de la ligne,
+         donc le trait s'éloigne aussitôt du texte) ; un RETOUR part du bord gauche de la BOÎTE — de
+         la pastille, il traverserait le libellé de sa propre ligne (mesuré : deux fois sur l'état
+         de mal, « Récidive — reprise de l'algorithme » barré par son propre trait). */
+      const p=el.querySelector?el.querySelector('.to'):null;   // la pastille de destination
+      const a=R(p||el),bx=R(el.closest('.sv-band,.sv-jrow'))||a;
+      return {t:a.t,b:a.b,cy:a.cy,l:bx.l,r:a.r,cx:a.cx};};
     const rootR=col(T.root.id);
     const LANE=rootR?rootR.r+14:0,LANE2=rootR?rootR.r+6:0;
-    const P=(d,cls)=>{gh+=`<path class="${cls}" d="${d}"/>`;};
-    const hDown=(x,y,cls)=>{gh+=`<path class="${cls}" d="M${x-4.5} ${y-6} L${x} ${y} L${x+4.5} ${y-6} Z"/>`;};
-    const hRight=(x,y,cls)=>{gh+=`<path class="${cls}" d="M${x-6} ${y-4.5} L${x} ${y} L${x-6} ${y+4.5} Z"/>`;};
-    const hUp=(x,y,cls)=>{gh+=`<path class="${cls}" d="M${x-4.5} ${y+6} L${x} ${y} L${x+4.5} ${y+6} Z"/>`;};
+    /* Un chemin s'écrit en POINTS, jamais en `d` : c'est ce qui permet au paginateur de le couper
+       aux frontières de page et de décaler chaque morceau (A344, v5.29.4). Sans pagination, la
+       polyligne se sérialise telle quelle. */
+    const PG=_svPages;
+    const dec=y=>{if(!PG)return y;for(let i=PG.length-1;i>=0;i--)if(y>=PG[i].y-0.01)return y+PG[i].d;return y+PG[0].d;};
+    const POLY=(pts,cls)=>{
+      if(!PG){gh+=`<path class="${cls}" d="M${pts.map((p,i)=>i?p.join(' '):p.join(' ')).join(' L')}"/>`;return;}
+      // découper chaque segment aux frontières, puis décaler chaque morceau dans sa page
+      const bords=PG.slice(1).map(p=>p.y);
+      let cur=[pts[0]];
+      const sortie=[];
+      for(let i=1;i<pts.length;i++){
+        const a=pts[i-1],b=pts[i];
+        if(Math.abs(a[0]-b[0])<0.01){                      // vertical : seul cas qui peut enjamber
+          const lo=Math.min(a[1],b[1]),hi=Math.max(a[1],b[1]);
+          const cut=bords.filter(y=>y>lo+0.01&&y<hi-0.01).sort((u,v)=>(a[1]<b[1]?u-v:v-u));
+          cut.forEach(y=>{cur.push([a[0],y]);sortie.push(cur);cur=[[a[0],y]];});}
+        cur.push(b);}
+      sortie.push(cur);
+      sortie.forEach(seg=>{if(seg.length<2)return;
+        const d='M'+seg.map(q=>N(q[0])+' '+N(dec(q[1]))).join(' L');
+        gh+=`<path class="${cls}" d="${d}"/>`;});};
+    const P=(d,cls)=>{gh+=`<path class="${cls}" d="${d}"/>`;void P;};
+    /* ⚠ UNE POINTE S'ARRÊTE AVANT LE HALO DU NUMÉRO (signalé à l'usage : « le bout de la flèche
+       n'est pas visible »). Le numéro porte `box-shadow:0 0 0 3px` et `z-index:1` : il passe DEVANT
+       le calque, et une pointe posée à 1 px de son bord disparaissait dessous. On s'arrête à 5. */
+    const hDown=(x,y,cls)=>{const Y=dec(y);gh+=`<path class="${cls}" d="M${x-4.5} ${Y-6} L${x} ${Y} L${x+4.5} ${Y-6} Z"/>`;};
+    const hRight=(x,y,cls)=>{const Y=dec(y);gh+=`<path class="${cls}" d="M${x-6} ${Y-4.5} L${x} ${Y} L${x-6} ${Y+4.5} Z"/>`;};
+    const hUp=(x,y,cls)=>{const Y=dec(y);gh+=`<path class="${cls}" d="M${x-4.5} ${Y+6} L${x} ${Y} L${x+4.5} ${Y+6} Z"/>`;};
     const N=v=>Math.round(v*10)/10;
-    // (3) sorties, groupées par cible : une barre, une entrée.
+    /* (3) SORTIES — UN BUS, PAS N TRAITS SUPERPOSÉS (signalé à l'usage, mesuré : trois « ALLER À 13 »
+       descendaient dans le MÊME couloir, 615 px l'un sur l'autre). Chaque ligne rejoint le couloir par
+       un tiret horizontal ; la descente est UNIQUE, du plus haut départ à la barre d'entrée. */
     const byT={};T.edges.filter(e=>e.k==='exit').forEach(e=>{(byT[e.to]=byT[e.to]||[]).push(e);});
     Object.keys(byT).forEach(to=>{const t=badge(to);if(!t)return;
       // La cible ouvre une colonne de fourche : la sortie rejoint la barre de la fourche (une seule entrée).
       const fc=T.firstOf[to];const fkEl=fc&&(T.cols.find(c=>c.id===fc)||{}).kind!=='root'&&q('[data-svcol="'+fc+'"]')&&q('[data-svcol="'+fc+'"]').closest('.sv-fork');
-      const fk=fkEl?R(fkEl):null;const barY=fk?fk.t-8:t.t-10;const xs=[t.cx];
-      byT[to].forEach(e=>{const a=src(e.src);if(!a)return;xs.push(LANE);
-        P(`M${N(a.r+2)} ${N(a.cy)} H${N(LANE)} V${N(barY)}`,'lp');});
-      P(`M${N(Math.min(...xs))} ${N(barY)} H${N(Math.max(...xs))} M${N(t.cx)} ${N(barY)} V${N(t.t-1)}`,'lp');
-      hDown(N(t.cx),N(t.t-1),'lph');});
-    // (4) retours : voie de gauche de la colonne (décalée par voie), gauche du numéro cible.
-    const lanes={};
-    const laneX=cid=>{const c=col(cid);if(!c)return 0;lanes[cid]=(lanes[cid]||0)+1;return c.l-7-(lanes[cid]-1)*5;};
+      const fk=fkEl?R(fkEl):null;const barY=fk?fk.t-8:t.t-10;
+      const legs=byT[to].map(e=>src(e.src)).filter(Boolean);if(!legs.length)return;
+      legs.forEach(a=>POLY([[a.r+2,a.cy],[LANE,a.cy]],'lp'));
+      POLY([[LANE,Math.min(...legs.map(a=>a.cy))],[LANE,barY],[t.cx,barY],[t.cx,t.t-5]],'lp');
+      hDown(N(t.cx),N(t.t-5),'lph');});
+    /* (4) RETOURS — UN REGISTRE DES COULOIRS, PARTAGÉ (mesuré : la voie de retour interne d'une
+       colonne et l'interstice d'un collecteur tombaient au même pixel). Toute voie passe par ce
+       point unique : si l'abscisse voulue est déjà prise, elle glisse de 5 px vers la gauche. */
+    const prises=[];
+    const libre=x=>{let v=x;let n=0;while(prises.some(p=>Math.abs(p-v)<4)&&n++<12)v-=5;prises.push(v);return v;};
+    const laneX=cid=>{const c=col(cid);if(!c)return 0;return libre(c.l-7);};
     T.edges.filter(e=>e.k==='loop').forEach(e=>{const a=src(e.src),t=badge(e.to);if(!a||!t)return;
       const x=laneX(e.col);
-      P(`M${N(a.l-2)} ${N(a.cy)} H${N(x)} V${N(t.cy)} H${N(t.l-1)}`,'lp');hRight(N(t.l-1),N(t.cy),'lph');});
+      POLY([[a.l-2,a.cy],[x,a.cy],[x,t.cy],[t.l-5,t.cy]],'lp');hRight(N(t.l-5),t.cy,'lph');});
     // collecteur sous la fourche : chaque bout de branche descend, la barre rejoint la voie du parent.
     /* ⚠ UN COLLECTEUR DESCEND JUSTE CE QU'IL FAUT, ET DANS LE GAP — PAS SUR LE TRONC (signalé à
        l'usage : « les flèches traversent des blocs »). Il descendait au bas de la fourche ENTIÈRE,
@@ -21462,26 +21540,32 @@ function svPaintArrows(racine){
       const x=laneX(e.parent);
       const gapX=cid=>{const me=col(cid);if(!me)return x;
         const g=sibs.filter(r=>r.r<=me.l+1).sort((a,b)=>b.r-a.r)[0];
-        return g?(g.r+me.l)/2:x;};
+        return g?libre((g.r+me.l)/2):x;};
       const legs=[];let barY=0;
       e.srcs.forEach(s=>{const a=src(s);if(!a)return;const sx=gapX(s.col);legs.push({a,sx});if(a.cy+14>barY)barY=a.cy+14;});
       if(!legs.length)return;
       const rx=Math.max(...legs.map(l=>l.sx));
       sibs.forEach(r=>{if(r.l<rx-1&&r.b+8>barY)barY=r.b+8;});
-      legs.forEach(l=>P(`M${N(l.a.l-2)} ${N(l.a.cy)} H${N(l.sx)} V${N(barY)}`,'lp'));
-      P(`M${N(rx)} ${N(barY)} H${N(x)} V${N(t.cy)} H${N(t.l-1)}`,'lp');hRight(N(t.l-1),N(t.cy),'lph');});
+      /* Une branche dont l'interstice EST la voie de remontée n'y descend pas : elle la rejoint à sa
+         hauteur, sinon l'aller et le retour se superposent sur le même x (mesuré : 27 px). */
+      legs.forEach(l=>POLY(Math.abs(l.sx-x)>2
+        ?[[l.a.l-2,l.a.cy],[l.sx,l.a.cy],[l.sx,barY]]
+        :[[l.a.l-2,l.a.cy],[x,l.a.cy]],'lp'));
+      POLY([[rx,barY],[x,barY],[x,t.cy],[t.l-5,t.cy]],'lp');hRight(N(t.l-5),t.cy,'lph');});
     // tiret vers le rail : la branche revient à la décision qui la distribue — ▲, elle « remonte ».
     T.edges.filter(e=>e.k==='rail').forEach(e=>{const a=src(e.src);const lvl=R(q('[data-svcol="'+e.col+'"]')&&q('[data-svcol="'+e.col+'"]').closest('.sv-lvl'));if(!a||!lvl)return;
       const rx=lvl.l-19+1;const first=badge((T.cols.find(c=>c.id===e.col)||{rows:[]}).rows.map(r=>r.id).find(Boolean)||'');
       const top=first?first.cy+8:a.cy-20;
-      P(`M${N(a.l-2)} ${N(a.cy)} H${N(rx)} V${N(top)}`,'lp');hUp(N(rx),N(top),'lph');});
+      POLY([[a.l-2,a.cy],[rx,a.cy],[rx,top]],'lp');hUp(N(rx),top,'lph');});
     // réunion des branches d'un rail : pilules « ↓ continuer n » → voie intérieure → barre → numéro.
     T.edges.filter(e=>e.k==='railMerge').forEach(e=>{const t=badge(e.to);if(!t)return;const barY=t.t-10;const xs=[t.cx,LANE2];
-      e.srcs.forEach(s=>{const a=src(s);if(!a)return;P(`M${N(a.r+2)} ${N(a.cy)} H${N(LANE2)} V${N(barY)}`,'sp');});
-      P(`M${N(Math.min(...xs))} ${N(barY)} H${N(Math.max(...xs))} M${N(t.cx)} ${N(barY)} V${N(t.t-1)}`,'sp');hDown(N(t.cx),N(t.t-1),'sph');});}
+      e.srcs.forEach(s=>{const a=src(s);if(!a)return;POLY([[a.r+2,a.cy],[LANE2,a.cy],[LANE2,barY]],'sp');});
+      POLY([[Math.min(...xs),barY],[Math.max(...xs),barY]],'sp');POLY([[t.cx,barY],[t.cx,t.t-5]],'sp');hDown(N(t.cx),t.t-5,'sph');});}
   {let gut=sheet.querySelector(':scope>.sv-gut');
    if(!gut){sheet.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=sheet.querySelector(':scope>.sv-gut');}
-   const W2=Math.max(16,sheet.offsetWidth),H=Math.max(16,sheet.offsetHeight);
+   const W2=Math.max(16,sheet.offsetWidth);
+   let H=Math.max(16,sheet.offsetHeight);
+   if(_svPages&&_svPages.length>1){const L=_svPages[_svPages.length-1];H=Math.max(H,L.y+L.d+(sheet.offsetHeight-L.y));}
    gut.setAttribute('viewBox','0 0 '+W2+' '+H);gut.setAttribute('width',W2);gut.setAttribute('height',H);
    gut.innerHTML=gh;}
   // Redessin à TOUT changement de géométrie de la feuille (taille du texte, police, viewport) :
@@ -26311,8 +26395,16 @@ window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)
   state.confOpen=true;state.showFlow=true;state.ovVerify=null;_printingOv=true;
   if(hasFlow(state.fiche)){state.readMode='static';state.allTab='page';document.body.classList.add('print-page');}
   else state.readMode='overview';
-  render();});
-window.addEventListener('afterprint',()=>{_printingOv=false;document.body.classList.remove('print-page');if(!_printSaved)return;
+  render();
+  /* Le papier se pagine AVANT d'être peint : les sauts posés, le calque sait où couper (A344). */
+  if(document.body.classList.contains('print-page')){
+    _svPages=svPaginate(main);
+    document.body.classList.toggle('print-nogut',!_svPages);
+    svPaintArrows(main);}});
+window.addEventListener('afterprint',()=>{_printingOv=false;
+  document.body.classList.remove('print-page','print-nogut');
+  _svPages=null;main.querySelectorAll('.sv-cut').forEach(e=>e.classList.remove('sv-cut'));
+  if(!_printSaved)return;
   state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.allTab=_printSaved.allTab;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});
 // Taille du texte : zoom CSS sur <html> (agrandit AUSSI les cibles tactiles, pas seulement la

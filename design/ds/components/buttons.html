@@ -5028,9 +5028,14 @@
   .sv-opt .si{font-family:var(--mono);font-weight:600;color:var(--verify);flex:none;width:18px}
   .sv-opt .lb{flex:0 1 auto;min-width:0;color:var(--verify);font-weight:700}
   .sv-opt .ld{flex:1 1 12px;min-width:12px;border-bottom:1px dotted var(--verify-bd);transform:translateY(-3px)}
-  .sv-opt .to{flex:none;font-family:var(--mono);font-size:var(--t-cap);font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--verify)}
-  .sv-opt .to.out,.sv-opt .to.back{color:var(--link)}
-  .sv-opt .to.fin{color:var(--ok)}
+  /* LA DESTINATION EST UNE PASTILLE, PAS UN MOT (dessin de la maquette retenue) : elle se repère
+     d'un coup d'œil dans la boîte, et surtout elle donne au trait un BORD d'où partir — sans quoi
+     il partirait sur la dernière lettre. « Continuer » garde le registre de la décision (ambre
+     plein, on reste dans le fil) ; « aller à » et « revenir à » sont des SAUTS, donc le registre
+     des voies (bleu, trait pointillé) ; « fin » ne mène nulle part et reste un mot. */
+  .sv-opt .to{flex:none;font-family:var(--mono);font-size:var(--t-cap);font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--verify);border:1px solid var(--verify-bd);border-radius:3px;padding:0 6px;line-height:18px}
+  .sv-opt .to.out,.sv-opt .to.back{color:var(--link);border-style:dashed;border-color:var(--primary);background:var(--primary-soft)}
+  .sv-opt .to.fin{color:var(--ok);border-color:transparent;padding:0}
   .sv-opt .sv-tk{color:var(--ok)}
   .sv-offtag{font-weight:600;color:var(--ink-soft)}
   /* LA FOURCHE (deux branches à contenu, pleine largeur) : barre sous la décision, une descente par
@@ -7136,15 +7141,12 @@
      (soit toujours sur A4 ≈ 794 px : le contenu du rail était donc imprimé EN DOUBLE), et le titre
      changeait de corps (21 / 24 px). Un document clinique imprimé ne peut pas dépendre de la
      fenêtre où l'on se trouvait au moment de l'impression. On neutralise donc les trois. */
-  /* LA FEUILLE EST LA PAGE (A344, v5.29.3 — signalé à l'usage : « l'impression rajoute des marges
-     sur A4 »). Les marges horizontales sont posées par la feuille ELLE-MÊME, pas par `@page` : un
-     navigateur qui ignore les marges de `@page` (c'est le cas de WebKit) y ajoutait les siennes,
-     puis réduisait la feuille pour l'y faire tenir — d'où une image plus petite ENTOURÉE de blanc.
-     Avec `margin:0` horizontal, la feuille occupe les 210 mm et porte son blanc dans son padding ;
-     si un moteur impose quand même ses marges, il réduit le tout PROPORTIONNELLEMENT, ce qui reste
-     la plus grande image possible et ne rogne jamais rien. Le padding se CALCULE pour que la zone
-     de contenu garde la largeur d'auteur au pixel près (710 px = 740 − 2 de bordure − 28 de
-     padding d'écran) : sans cela le contenu se refluerait et les voies mesurées seraient fausses. */
+  /* AUCUNE MARGE HORIZONTALE DE PAGE (A344, v5.29.3 — signalé à l'usage : « l'impression rajoute
+     des marges sur A4 »). La feuille fait 740 px, soit 195,8 mm : centrée dans les 210 mm elle
+     laisse 7 mm de blanc de chaque côté, ce qui est la marge VOULUE. Les marges de `@page`
+     s'ajoutaient à ce blanc, et un moteur qui les ignore (WebKit) ajoutait les siennes puis
+     réduisait la feuille pour l'y faire tenir — image plus petite ENTOURÉE de blanc. Avec `0`
+     horizontal, ce cas se réduit à une mise à l'échelle PROPORTIONNELLE, jamais un rognage. */
   @page{size:A4;margin:10mm 0}
   @media print{
     /* 1. Le zoom de confort d'écran n'a aucun sens sur papier : le PDF part toujours à 100 %. */
@@ -7206,20 +7208,18 @@
     .sv-calant.z>.sv-sheet{position:static!important;transform:none!important}
     /* A344 : la feuille GARDE sa largeur d'auteur sur le papier (A4 à 7 mm de marge = 741 px) — les
        voies mesurées ne sont justes qu'à cette géométrie ; reflouer la feuille les décalerait. */
-    .sv-sheet{width:210mm!important;border:0;padding:0 calc((210mm - 710px) / 2);margin:0}
+    /* La feuille garde EXACTEMENT sa géométrie d'écran — largeur, padding, bordure : le calque des
+       voies est posé dessus en coordonnées mesurées à l'écran, un padding différent le décalerait
+       (mesuré : 28 px, le couloir de droite passait alors SUR le texte des cellules). Elle est
+       simplement CENTRÉE dans les 210 mm, ce qui lui laisse 7 mm de blanc de chaque côté — et comme
+       `@page` ne pose aucune marge horizontale, aucun moteur n'en ajoute par-dessus. */
+    .sv-sheet{border-color:transparent;margin:0 auto}
     /* La PAGE seule sur le papier : ni titre d'écran, ni onglets, ni recherche, ni quai, ni bulle. */
     body.print-page .read-main>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
     body.print-page #crisisDock,body.print-page .sd-hint-w,body.print-page #blkReturn{display:none!important}
     #sessionDock{display:none!important}   /* le quai est FIXÉ : sans cela il se répète sur chaque page */
-    /* ⚠ LES VOIES MESURÉES NE S'IMPRIMENT PAS, ET C'EST UNE QUESTION DE JUSTESSE (v5.29.3, mesuré).
-       Le calque est UN élément absolu à l'échelle de la feuille : la pagination le coupe net, alors
-       qu'elle POUSSE le contenu (une cellule ne se coupe pas). Mesuré sur l'ACR : le bloc visé
-       descend de 37 à 64 mm sur sa page selon ce qui a été repoussé, tandis que la flèche reste où
-       le flux non paginé l'avait mise — elle désigne alors le mauvais bloc. Mieux vaut rien qu'un
-       tracé faux. Rien n'est perdu : la ligne « SI … ALLER À n » et la pilule « ↺ revenir à n » sont
-       la VÉRITÉ TEXTUELLE (A134), et le dessin de STRUCTURE — tronc, fourche, rail — vit dans le
-       FLUX (pseudo-éléments des rangées) : il suit la pagination et reste juste. */
-    .sv-gut{display:none!important}
+    .sv-cut{break-before:page!important}
+    body.print-nogut .sv-gut{display:none!important}   /* le paginateur a renoncé : pas de tracé faux */
     .app{min-height:0!important;background:var(--paper)!important}   /* une hauteur d'ÉCRAN imprimait une page vide */
     html{background:var(--paper)!important}
     body.print-page .sv-wrap{margin:0!important}body.print-page main{padding:0!important}   /* 18 px de marge suffisaient à ouvrir une page de plus */
