@@ -416,7 +416,7 @@ nomme une **densité** : combien de la fiche on veut voir.
 
 - **Un bloc** — le journal chronologique : ce que je fais, maintenant.
 - **Toute la fiche** — un conteneur à **trois onglets** : **Parcours** (les cartes de blocs
-  avec leurs items, inertes), **Page SFAR** (le tableau compact), **Schéma** (le SVG
+  avec leurs items, inertes), **Page** (l'aide entière sur une feuille, l'arbre dans la colonne des numéros), **Schéma** (le SVG
   navigable, avec son zoom et son plein écran).
 
 **Le sélecteur segmenté `#modeSeg` a été SUPPRIMÉ**, et c'est le cœur de la décision : un
@@ -495,7 +495,7 @@ qu'UNE fois. Sa numérotation est **COMMUNE** à toutes les vues (journal, chips
 ## Mode statique — le tableau (v4.13.0 / v4.14.0)
 
 Toute l'aide en **cellules télégraphiques carrelées** à joint 3 px, dans l'esprit des aides
-SFAR/CAMR. Tronc = cellules pleine largeur ; décision = **bande au registre ATTENTION**
+cognitives imprimées. Tronc = cellules pleine largeur ; décision = **bande au registre ATTENTION**
 (titre + question) + branches en colonnes ; **une seule colonne sous 640 px**, avec
 indentation et rail de branche (la fourche étant masquée en pile, rail + chip portent la
 structure).
@@ -589,7 +589,7 @@ append-only, arrêter un minuteur conserve son temps écoulé.
 *Pourquoi ce renversement :* la conception initiale bridait le scribe au motif que « celui
 qui lit ne décide pas ». C'était une mauvaise lecture — l'AC 120-71B §5.2.2.1 décrit une
 répartition de LA PAROLE, et dans ce modèle c'est **celui qui lit qui fait avancer la
-liste**, le lead étant celui dont les mains sont prises. La SFAR (« le lecteur : lire et
+liste**, le lead étant celui dont les mains sont prises. Le lecteur (« lire et
 GUIDER »), l'ECAM (le pilot monitoring actionne l'ECP) et surtout McEvoy 2014 — 99,5 %
 contre 70 %, où **le lecteur tenait l'unique appareil** — convergent.
 

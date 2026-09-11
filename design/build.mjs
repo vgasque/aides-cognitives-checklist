@@ -424,7 +424,7 @@ const planDemo = `
 </div>
 <p class="ds-cap">« Se repérer » : UNE seule vue depuis v4.25.0, l’ÉCHELLE — une ligne par bloc, retraits d0-3 avec chips d’étiquette (OUI ›), renvois mono abrégés (optAbbr pure : →3, ↺2, ▪fin), ligne dépliable in-place (étapes en lecture seule + « → aller à ce bloc »). Générée par flowPlan(f) PURE : le TRONC reprend au point de convergence (post-dominateur immédiat), une cible déjà décrite devient « ↺ reprendre à n » (les BOUCLES deviennent lisibles, ex. cycles 2 min d’un ACR), chaque bloc n’apparaît qu’UNE fois. flowPlan().order = NUMÉROTATION COMMUNE (plan, journal, chips, statique). INERTE côté cochage (leçon v4.6, RE-CONFIRMÉE en v4.12 : jamais de cases — la trace vit dans le journal) ; état LÉGER (✓, ● ici, ×n) et navigation seule. CHROME DÉSATURÉ dans le rail : l’état n’y est porté que par le marqueur, le rail oriente quand la colonne agit — s’il reprenait les aplats de l’action, deux surfaces se disputeraient le regard. Le « hors chemin » n’y est PAS en opacity (un texte à 50 % tombe sous AA) mais en encre douce + la mention en toutes lettres. La vue « Détails » (organigramme hybride) a été supprimée en v4.25.0 : seule des trois à recopier les étapes, elle rejouait la vue d’action au lieu de montrer AUTRE CHOSE — un SD ECAM ne redit pas l’E/WD.</p>`;
 
-/* ---- La PAGE : feuille SFAR à grille unique (v5.10.0, lot « Page ») ---- */
+/* ---- La PAGE : l'aide entière sur une feuille (v5.10.0, lot « Page » ; arbre en colonnes depuis A344) ---- */
 const staticDemo = `
 <div style="max-width:760px;overflow:auto">
 <div class="sv-wrap">
@@ -509,7 +509,7 @@ const cards = [
   { path: 'components/carepath.html', name: 'Parcours de soin', group: 'Mode crise', subtitle: 'Rail ①②③ (jamais d’ambre), bascule Dynamique / Statique', h: 1250, demo: carePathDemo, title: 'Parcours de soin' },
   { path: 'components/journal.html', name: 'Journal & fil condensé', group: 'Mode crise', subtitle: 'Cartes postées, ligne d’état, chips titrées, ligne-bilan ECL', h: 1450, demo: journalDemo, title: 'Journal de parcours' },
   { path: 'components/plan.html', name: 'Plan de l’aide', group: 'Mode crise', subtitle: 'Organigramme hybride : rails, branches, repli, ↺ reprendre à n', h: 1400, demo: planDemo, title: 'Plan de l’aide' },
-  { path: 'components/static.html', name: 'Mode statique', group: 'Mode crise', subtitle: 'Tableau SFAR : cellules, bande de décision, colonnes, renvois', h: 1450, demo: staticDemo, title: 'Mode statique' },
+  { path: 'components/static.html', name: 'Mode statique', group: 'Mode crise', subtitle: 'La Page : cellules, boîte de décision, fourche, rail, renvois', h: 1450, demo: staticDemo, title: 'Mode statique' },
   { path: 'components/challenge.html', name: 'Challenge-response', group: 'Mode crise', subtitle: 'Pilule « :: », mode Vérification (Do-Verify), mode lecteur', h: 1550, demo: challengeDemo, title: 'Challenge-response' },
   { path: 'components/notices.html', name: 'Notices, alertes & toasts', group: 'Composants', subtitle: 'Information, erreur de synchro, banderole ambre, toast', h: 1100, demo: noticesDemo, title: 'Notices & alertes' },
   { path: 'components/header.html', name: 'Barre d’en-tête', group: 'Composants', subtitle: 'Accueil (accent), bandeau de crise ALERTE, menu ⋯', h: 1600, demo: headerDemo, title: 'En-tête' },

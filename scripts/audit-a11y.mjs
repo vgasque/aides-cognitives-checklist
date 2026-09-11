@@ -274,7 +274,7 @@ const SURFACES = [
          blocks:[{id:'ba',kind:'do',title:'Gestes',items:['Un geste','Un autre']}]},
         {id:'a11yb',title:'Import — aide à relire',status:'draft',start:'bb',
          blocks:[{id:'bb',kind:'do',title:'Long',items:['1','2','3','4','5','6','7','8','9']}]}],
-        protocols:[{id:'a11yc',title:'Import — référence',status:'review',body:'Texte',sources:['SFAR']}]});
+        protocols:[{id:'a11yc',title:'Import — référence',status:'review',body:'Texte',sources:['Recos 2024']}]});
       readImportFile(new File([j],'a11y.json'));
       await new Promise(r=>setTimeout(r,600)); } },
   { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{

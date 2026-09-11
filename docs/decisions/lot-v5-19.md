@@ -378,7 +378,7 @@ d'éditeur passe aux classes `html.zw640/430/360` (640 rejoint ZOOM_W_STEPS), or
 spécificité égale entre zw, c'est lui qui départage, comme entre les media remplacées. Équivalence
 exacte à zoom 1 prouvée aux quatre témoins (620/420/350/700 px), deux moteurs ; sous zoom, le
 profil devient celui de la largeur effective. LES QUATRE PALIERS RESTANTS SANS zw (dir-grid 640,
-bandes SFAR 1000, rs-bar 924, tg-row 480, home 390) sont des paliers de COMPOSITION à dégradation
+bandes de la Page 1000, rs-bar 924, tg-row 480, home 390) sont des paliers de COMPOSITION à dégradation
 douce : aucun tort mesuré sous zoom, on ne convertit pas d'office — candidats si un signalement
 d'usage arrive, et ce paragraphe est leur adresse.
 

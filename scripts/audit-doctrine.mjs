@@ -393,16 +393,20 @@ await sec('Lot Page · une seule grille, la même image aux trois formats', asyn
   const mesure=async page=>page.evaluate(()=>{
     const sheet=document.querySelector('.sv-sheet'),algo=document.querySelector('.sv-algo');
     const cs=algo?getComputedStyle(algo):null;
+    void cs;
+    /* A344 : la grille à six pistes a laissé place à l'arbre en colonnes. Ce qu'on mesure désormais :
+       chaque numéro est à la MÊME abscisse dans sa colonne (28 px à gauche de sa cellule), aucune
+       cellule de l'algorithme n'est plus étroite que la moitié d'une fourche, et la place de chaque
+       bloc (colonne + rang) est la même aux trois largeurs. */
+    const nums=[...(algo?algo.querySelectorAll('.sv-num'):[])].map(e=>{const c=e.closest('.sv-col').getBoundingClientRect();return Math.round(e.getBoundingClientRect().left-c.left);});
     return {
       largeur:sheet?sheet.offsetWidth:0,
-      pistes:cs?cs.gridTemplateColumns.split(/\s+/).filter(Boolean).length:0,
       imbriquees:document.querySelectorAll('.sv-algo [style*="display:grid"]').length,
-      // La PLACE de chaque nœud : c'est elle qui doit être identique d'un format à l'autre.
-      places:[...(algo?algo.children:[])].map(e=>e.style.gridColumn+'@'+e.style.gridRow).join(' '),
+      numX:nums.join(' '),numAlign:nums.length>0&&nums.every(x=>x===nums[0]),
+      minCell:Math.min(...[...(algo?algo.querySelectorAll('.sv-cell,.sv-band'):[])].map(e=>Math.round(e.getBoundingClientRect().width))),
+      places:[...(algo?algo.querySelectorAll('[data-svgo]'):[])].map(e=>e.closest('.sv-col').dataset.svcol+'@'+[...e.parentNode.children].indexOf(e)).join(' '),
       // L'ordre du DOM et le texte : le test que le brief demande explicitement.
-      texte:sheet?sheet.textContent.replace(/\s+/g,' ').trim():'',
-      // Les branches restent CÔTE À CÔTE : deux options d'une même décision partagent leur ligne.
-      opts:[...(algo?algo.querySelectorAll('.sv-opt'):[])].map(e=>Math.round(e.getBoundingClientRect().top)).length};});
+      texte:sheet?sheet.textContent.replace(/\s+/g,' ').trim():''};});
   const p360=await openStatic(360,640), r360=await mesure(p360);
   const p768=await openStatic(768,1024), r768=await mesure(p768);
   const p1280=await openStatic(1280,900), r1280=await mesure(p1280);
@@ -416,9 +420,13 @@ await sec('Lot Page · une seule grille, la même image aux trois formats', asyn
   t('la feuille garde sa largeur d\'AUTEUR aux trois formats (aucun reflux)',
     r360.largeur===r768.largeur&&r768.largeur===r1280.largeur,
     JSON.stringify([r360.largeur,r768.largeur,r1280.largeur]));
-  t('six pistes partout — la grille est un fait de la fiche, pas de l\'écran',
-    r360.pistes===6&&r768.pistes===6&&r1280.pistes===6,
-    JSON.stringify([r360.pistes,r768.pistes,r1280.pistes]));
+  t('A344 · tous les numéros à la même abscisse dans leur colonne — le numéro est l\'ancre',
+    r1280.numAlign===true&&r360.numAlign===true, JSON.stringify([r1280.numX,r360.numX]));
+  /* Fourche à deux : 329 px par colonne, cellule à 297 ; un rail DANS une colonne de fourche (le cas de
+     cette fixture, décision imbriquée) descend d'un cran : 265. En dessous, on aurait recréé la division
+     par la profondeur qu'A134 puis A344 existent pour supprimer. */
+  t('A344 · aucune cellule de l\'algorithme sous 260 px (fourche à deux, rail au-delà, un cran par niveau)',
+    r1280.minCell>=260, String(r1280.minCell));
   t('la MÊME image : chaque nœud à la même place aux trois largeurs',
     r360.places===r768.places&&r768.places===r1280.places);
   /* INVARIANT 5 — l'ordre du DOM est identique aux trois paliers : les paliers sont des GRILLES,
@@ -1099,10 +1107,10 @@ for (const w of [320, 390]) {
     `champ ${r.champH} px / ${r.champFs}, flèches ${JSON.stringify(r.fleches)}`);
   t(`${w} · « Se repérer » a quitté la rangée de commandes`, r.planBtn===false);
   t(`${w} · trois façons de regarder l'aide entière`,
-    r.ong.join('|')==='Parcours|Page SFAR|Schéma', r.ong.join('|'));
+    r.ong.join('|')==='Parcours|Page|Schéma', r.ong.join('|'));
   /* LA PAGE RESTE LE DÉFAUT : un lot qui AJOUTE deux vues n'a pas à changer par surprise ce que
      voit celui qui n'a rien demandé. */
-  t(`${w} · … et la Page reste ce qu'on voit d'abord`, r.defaut==='Page SFAR'&&r.pageOk, r.defaut);
+  t(`${w} · … et la Page reste ce qu'on voit d'abord`, r.defaut==='Page'&&r.pageOk, r.defaut);
   t(`${w} · les onglets ne débordent pas`, r.debord!==null&&r.debord<=1, `${r.debord} px`);
   t(`${w} · … et restent des cibles de 44 px`, r.cible>=44, `${r.cible} px`);
   t(`${w} · « Parcours » montre la fiche en CARTES de blocs, et reste inerte`, r.parc===true);
@@ -3760,7 +3768,7 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
        avec des pièces manquantes. Un soin ne s'arrête pas parce qu'un PDF n'est pas là. */
     const pr = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
       const f=state.fiche;
-      f.docs=[{id:'zd1',name:'Protocole SFAR 2024',size:1024},{id:'zd2',name:'Fiche produit',size:512}];
+      f.docs=[{id:'zd1',name:'Protocole sédation 2024',size:1024},{id:'zd2',name:'Fiche produit',size:512}];
       await persist();render();await w(600);
       const L=()=>{const e=document.getElementById('preReady');
         return e&&!e.hidden?{cls:e.className,txt:e.textContent.replace(/\s+/g,' ').trim()}:null;};
@@ -3851,6 +3859,7 @@ await sec('PARCOURS · la réponse enroule, la branche se nomme', async () => {
     return {deb,ecr,avecR,
       brc:[...wrap.querySelectorAll('.pl-brc')].map(x=>x.textContent.trim()),
       jmp:[...wrap.querySelectorAll('.pc-jmp')].map(x=>x.textContent.trim()),
+      rows:[...wrap.querySelectorAll('.pc-row,.pc-card')].map(x=>x.textContent.trim().slice(0,40)),
       ck:wrap.querySelectorAll('[data-ck]').length,
       inerte:JSON.stringify(state.checked)===avant};},
     items(['⚠ Curariser :: succinylcholine, après vérification de la kaliémie et du délai de jeûne',
@@ -3863,8 +3872,10 @@ await sec('PARCOURS · la réponse enroule, la branche se nomme', async () => {
   /* Les DEUX branches de cette fiche sont sans carte — l'une rejoint le point de convergence
      (« → »), l'autre reboucle sur un bloc déjà décrit (« ↺ ») : les deux formes de renvoi que
      `flowPlan` sait émettre, donc les deux qui disparaissaient. */
+  /* A344 : « Oui — stabilisé » mène à « Suite », seule branche à contenu — elle porte donc sa
+     carte (la suite du tronc), et seule « Non — réfractaire » reste un renvoi (« ↺ »). */
   t('une branche sans carte affiche son renvoi au lieu de rien',
-    (r.jmp||[]).length===2&&r.jmp.some(x=>/^→/.test(x))&&r.jmp.some(x=>/^↺/.test(x)), JSON.stringify(r.jmp));
+    (r.jmp||[]).some(x=>/^↺/.test(x))&&((r.jmp||[]).some(x=>/^→/.test(x))||(r.rows||[]).some(x=>/Suite/.test(x))), JSON.stringify([r.jmp,r.rows]));
   t('la vue reste INERTE (aucun data-ck, rien ne se coche)', r.ck===0&&r.inerte===true, JSON.stringify({ck:r.ck,inerte:r.inerte}));
   await page.close();
 }
@@ -5993,7 +6004,7 @@ await sec('A129 · l\'atelier d\'import', async () => {
       {id:'impb',title:'ATELIER — aide brouillon',status:'draft',start:'bb',
        docs:[{id:'attimpb',name:'B.pdf',size:pdf.length}],
        blocks:[{id:'bb',kind:'do',title:'Bloc trop long',items:['1','2','3','4','5','6','7','8','9']}]}],
-      protocols:[{id:'impc',title:'ATELIER — référence',status:'review',body:'Un texte',sources:['SFAR 2024']}]};
+      protocols:[{id:'impc',title:'ATELIER — référence',status:'review',body:'Un texte',sources:['Recos 2024']}]};
     const zip=zipBuild([{name:'donnees.json',data:new TextEncoder().encode(JSON.stringify(doc))},
       {name:'documents/attimpa.pdf',data:pdf},{name:'documents/attimpb.pdf',data:pdf}]);
     readImportFile(new File([zip],'atelier.zip'));});
@@ -7033,11 +7044,15 @@ await sec('Parcours inerte · une décision montre TOUTES ses branches', async (
     const kids=racine?[...racine.children]:[];
     return {brc:kids.filter(e=>e.classList.contains('pl-brc')).map(e=>e.textContent.trim()),
       jmp:kids.filter(e=>e.classList.contains('pl-jmp')).map(e=>e.textContent.trim()),
+      rows:kids.filter(e=>e.classList.contains('pl-line')).map(e=>e.textContent.trim().slice(0,40)),
       opts:((fiches.find(x=>x.id==='aud-cond').blocks.find(b=>b.id==='d1')||{}).options||[]).length};});
   t('les deux branches de la décision sont nommées',r.brc.length===r.opts,
     `${r.brc.length} étiquette(s) pour ${r.opts} option(s) : ${JSON.stringify(r.brc)}`);
-  t('la branche sans rangée dit où elle mène',
-    r.jmp.some(x=>/Suite commune/.test(x)),JSON.stringify(r.jmp));
+  /* A344 : « Suite commune » n'est plus le point de convergence de cette décision (la boucle du
+     détour ne compte plus pour la post-dominance) — l'option ouvre sa propre branche, avec sa
+     rangée. L'invariant reste : chaque option montre quelque chose, un renvoi OU sa rangée. */
+  t('la branche sans rangée dit où elle mène — ou porte sa rangée',
+    r.jmp.some(x=>/Suite commune/.test(x))||r.rows.some(x=>/Suite commune/.test(x)),JSON.stringify([r.jmp,r.rows]));
   await page.close();
 }
 });
@@ -7271,7 +7286,7 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
 }
 });
 
-/* ══ FEUILLE SFAR · UN SEUL AXE VERTICAL, DANS MAIN COMME DANS LA FENÊTRE « TABLEAU » (v5.28.4, A343) ═
+/* ══ LA PAGE · UN SEUL AXE VERTICAL, DANS MAIN COMME DANS LA FENÊTRE « TABLEAU » (v5.28.4, A343) ═
    Signalé à l'usage : depuis « Tableau » de l'écran d'entrée (ou « Plein écran » du cran Toute la
    fiche), « le scroll vertical à l'intérieur de la page n'est pas bloqué et ça fait double
    scroll ». La règle tactile de C87 (axe vertical FERMÉ par `overflow-y:clip`, l'horizontal des
@@ -7280,7 +7295,7 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
    sites en pointeur grossier (sans lui, le bloc tactile ne s'applique pas et le vert ne vaut
    rien) ; `clip` se calcule `hidden` quand l'autre axe est `auto`, c'est ce que l'on attend. Et
    l'échelle doit faire grandir la FENÊTRE (le seul défileur), jamais un axe interne. */
-await sec('FEUILLE SFAR · un seul axe vertical, dans main comme dans la fenêtre « Tableau »', async () => {
+await sec('LA PAGE · un seul axe vertical, dans main comme dans la fenêtre « Tableau »', async () => {
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);

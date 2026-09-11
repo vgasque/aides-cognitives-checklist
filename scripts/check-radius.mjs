@@ -20,7 +20,7 @@ const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
    ⚠ 3 px SURVIT AUSSI, et c'est une déviation ASSUMÉE aux quatre crans du système. Les maquettes
    ne contiennent aucun des objets qui l'emploient : le CARRELAGE du mode statique (« cellules
    carrelées à joint 3 px », doctrine v4.13.0 — les arrondir à 8 en ferait des tuiles au lieu
-   d'un tableau SFAR), les barres de 3-4 px de haut, et le surlignage inline. Un système ne
+   d'un tableau compact), les barres de 3-4 px de haut, et le surlignage inline. Un système ne
    légifère pas sur ce qu'il n'a pas regardé ; on garde donc le cran de FILET, et on le dit. */
 const ECHELLE = [3, 8, 10, 12, 14, 999];
 /* EXEMPTIONS — nommées par leur sélecteur et MOTIVÉES, comme dans `check-type` : une exemption

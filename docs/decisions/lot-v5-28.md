@@ -374,7 +374,7 @@ juste). Vérifié capable d'échouer : l'ordre inversé (plus récent en haut) d
 lecture de hauteur dans `monUtil` ; `.mb-dot b` part avec le compte par point, que la phrase
 remplace.
 
-## A343 — la feuille SFAR n'a qu'UN axe vertical, dans `main` comme dans la fenêtre « Tableau »
+## A343 — la Page n'a qu'UN axe vertical, dans `main` comme dans la fenêtre « Tableau »
 
 **SIGNALÉ À L'USAGE (08/09/2026)** : « en mode plein écran, en cliquant sur le bouton Tableau sur la
 page de démarrage d'une aide, le scroll vertical à l'intérieur de la page n'est pas bloqué et ça
@@ -385,7 +385,7 @@ exactement comme c'est déjà le cas » dans le cran « Toute la fiche » et dan
 sur écran tactile — `overflow-y:clip`, parce qu'un axe `auto` rebondit sur iOS même sans un pixel à
 défiler et capture le pan du pouce — mais la règle était bornée à `main` : « le plein écran garde
 son défileur ». C'était vrai du SCHÉMA (`#flowFull` a son propre défileur, `.ff-scroll`, et pas de
-page dessous). C'était FAUX de la feuille SFAR : `svSheetHtml` se rend aussi dans `#planBody`, la
+page dessous). C'était FAUX de la Page : `svSheetHtml` se rend aussi dans `#planBody`, la
 fenêtre « Tableau » (`openPlanSheet('page')`, depuis « Tableau » de l'écran de démarrage et depuis
 « Plein écran » du cran Toute la fiche), et cette fenêtre est `.ai-modal`, donc DÉFILE ELLE-MÊME.
 Dedans, `.sv-scroll` gardait `overflow:auto` : un défileur dans le défileur — l'élastique iOS sous
@@ -402,7 +402,7 @@ schéma, a bien son défileur à lui). **Mesuré après** : `hidden` des deux c�
 l'échelle fait grandir la FENÊTRE (1018 → 1184 px de hauteur défilable à 120 %) et jamais un axe
 interne (0 px), le défilement horizontal des colonnes est intact.
 
-**Témoin** (`audit-doctrine`, « FEUILLE SFAR · un seul axe vertical, dans main comme dans la
+**Témoin** (`audit-doctrine`, « LA PAGE · un seul axe vertical, dans main comme dans la
 fenêtre « Tableau » ») : ouvre par le VRAI lien `[data-prelink="page"]`, vérifie d'abord que le
 régime tactile est émulé (sans lui le bloc ne s'applique pas et le vert ne vaudrait rien), lit le
 style calculé des deux sites, et exige que l'échelle grandisse la fenêtre. Vérifié capable

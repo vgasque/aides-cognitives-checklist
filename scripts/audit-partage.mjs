@@ -994,7 +994,7 @@ await sec(`PARTAGE · le bridage se VOIT, et les deux listes ne divergent pas �
       resetBloque = (av === ap);
     }
     /* … MAIS AVANCER EST OUVERT. C'est le renversement de la v4.55.0 : celui qui lit fait avancer
-       la liste (McEvoy 2014 — le lecteur tient l'unique appareil ; SFAR — « lire et GUIDER »). */
+       la liste (McEvoy 2014 — le lecteur tient l'unique appareil ; le lecteur « lit et GUIDE »). */
     /* « Continuer » n'existe qu'une fois le bloc complet — le lecteur a le même comportement, et
        mesurer avant, c'est mesurer un écran qui n'a rien à offrir. On coche donc d'abord, ce qui
        est de toute façon le verbe du scribe. */

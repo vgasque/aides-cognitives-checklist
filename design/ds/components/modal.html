@@ -4029,8 +4029,8 @@
      d'ajustement — c'est le défaut que la capsule vient de payer (6 px de débordement
      permanents). Les deux contrôles qui ne vivent dans aucune rangée ajustée (`.rt-x`, le champ
      de recherche du panneau) grossissent franchement. */
-  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk){position:relative}
-  :is(.sv-opt,.sv-jump,.tk-time,.rt-lnk)::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
+  :is(.sv-jump,.tk-time,.rt-lnk){position:relative}
+  :is(.sv-jump,.tk-time,.rt-lnk)::after{content:"";position:absolute;inset:-6px 0;border-radius:8px}
   /* ⚠ `.rt-x` A REJOINT LE HALO (v5.10.8), ET LA PHRASE CI-DESSUS EST DONC À MOITIÉ PÉRIMÉE : il
      ne vivait dans aucune rangée mesurée TANT QU'IL ÉTAIT HORS FLUX. Depuis qu'il est un enfant de
      `.rt-head`, grossir franchement veut dire épaissir la rangée — 48 px de bouton pour un titre
@@ -4874,14 +4874,14 @@
   .pl-stp li::before{content:"·";position:absolute;left:4px}
   .pl-stp li.crit{color:var(--critical);font-weight:600}
   .pl-stp li.vig{color:var(--verify);font-weight:600}
-  /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact façon aide SFAR/CAMR — généré depuis
+  /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact — l’aide entière sur une page, généré depuis
      flowPlan (numérotation commune), INERTE côté cochage (navigation seule). Cellules
      carrelées à joint 3 px ; bandes de décision au registre ATTENTION ; fourches ambre,
      convergences grises, retours bleus en gouttière — dessinés APRÈS le rendu
      (svPaintArrows, positions mesurées) et JAMAIS seuls : les pilules → n / ↺ n restent
      la vérité textuelle (pile étroite, impression). AUCUN texte bleu dans les cellules
      (décision utilisateur) : bleu = position (● ici) et reprise ↺ uniquement ;
-     réponse « :: » = pilule mono NEUTRE (.sv-r). */
+     réponse « :: » = réponse mono à droite de sa ligne (.sv-rs) ou dessous (.sv-rb) — A344. */
   /* ══ LOT « PAGE » (v5.10.0) — LA FEUILLE ═════════════════════════════════════════════════════
      Une PAGE, pas une colonne : cartouche daté, trois cellules d'entrée, l'algorithme et sa
      colonne de référence, les doses en pied. La largeur est une largeur d'AUTEUR (`--sheet-w`),
@@ -4889,8 +4889,10 @@
      sur le papier, et c'est cette image qui se mémorise.
      ÉPITAPHES — PURGÉS avec la mécanique des conteneurs imbriqués (règle 14, zéro émission
      vérifiée au grep) : `.sv-tb` (remplacé par `.sv-sheet` + `.sv-algo`), `.sv-decwrap`,
-     `.sv-cols`, `.sv-br`, `.sv-fork` et `.sv-merge` — la fourche est désormais `.sv-fk`, en divs
-     dans la grille, et la convergence est redevenue une pilule de texte. Partent avec eux les
+     `.sv-cols`, `.sv-fork` (première version) et `.sv-merge`. PUIS, en v5.29 (A344), la GRILLE
+     à six pistes elle-même (`.sv-fk`, `.fk-st/.fk-bar/.fk-arm`, `.sv-r`, `.sv-band-body.solo` et les
+     paliers d'écran de la feuille) : l'arbre se dessine désormais dans la colonne des numéros
+     (`.sv-col/.sv-row/.sv-num`, fourche `.sv-fork/.sv-br`, rail `.sv-lvl/.sv-rung`). Partent avec eux les
      bandes-questions COLLANTES (`svStickBands`) et leurs `top` cumulés : elles existaient pour la
      branche EMPILÉE sous 640 px, or la feuille ne s'empile plus — elle garde sa géométrie et
      c'est l'échelle qui s'adapte. La cause est partie, le mécanisme la suit. */
@@ -4918,68 +4920,69 @@
      forcée, ni image intermédiaire à la première peinture. */
   .sv-calant{position:relative}
   .sv-calant.z>.sv-sheet{position:absolute;top:0;left:0;transform-origin:top left}
-  .sv-sheet{position:relative;width:var(--sheet-w,1130px);background:var(--surface);border:1px solid var(--line-strong);border-radius:3px;padding:12px 14px}
+  .sv-sheet{position:relative;width:var(--sheet-w,740px);background:var(--surface);border:1px solid var(--line-strong);border-radius:3px;padding:12px 14px}
   /* CARTOUCHE — identité à gauche, révision et comptes à droite, avertissement de validation en
      bord. Registre ALERTE en CONTOUR (bord gauche + encre), JAMAIS un aplat : A11 réserve la
      masse colorée au minuteur échu, et une feuille teintée désensibiliserait au rouge des étapes
      vitales qu'elle porte. */
   .sv-cartouche{display:flex;align-items:flex-end;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:8px}
-  .sv-cid{flex:1;min-width:0}
+  .sv-cid{flex:1 1 300px;min-width:0}
   .sv-csur{font-size:var(--t-cap);font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .sv-ctitle{font-family:var(--f-title);font-size:21px;font-weight:700;line-height:1.15;color:var(--ink)}
-  .sv-cmeta{flex:none;text-align:right;font-size:var(--t-cap);font-weight:600;line-height:1.5;color:var(--ink-soft)}
+  .sv-cmeta{flex:0 1 auto;max-width:220px;text-align:right;font-size:var(--t-cap);font-weight:600;line-height:1.5;color:var(--ink-soft)}
   .sv-cmeta b{color:var(--ink)}
   .sv-cnt{display:block}
-  .sv-cwarn{flex:none;max-width:250px;border-left:3px solid var(--critical-bd);padding-left:8px;font-size:var(--t-cap);font-weight:700;line-height:1.45;color:var(--critical)}
+  .sv-cwarn{flex:0 1 auto;max-width:200px;border-left:3px solid var(--critical-bd);padding-left:8px;font-size:var(--t-cap);font-weight:700;line-height:1.45;color:var(--critical)}
   .sv-cwarn svg{vertical-align:-2px}
   /* LES TROIS BANDES. La composition change aux paliers, l'ORDRE DU DOM jamais : ce sont des
      GRILLES, pas un réordonnancement — un lecteur d'écran lit la même suite aux trois largeurs. */
   .sv-band-top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
   .sv-band-top.c1{grid-template-columns:1fr}
   .sv-band-top.c2{grid-template-columns:repeat(2,1fr)}
-  .sv-band-body{display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start}
-  .sv-band-body.solo{grid-template-columns:1fr}
-  /* LA GRILLE UNIQUE — six pistes, et AUCUNE grille imbriquée dedans : c'est l'invariant du lot.
-     La gouttière de gauche (16 px) est celle des retours ↺, peints par svPaintArrows. */
-  .sv-algo{display:grid;grid-template-columns:repeat(6,1fr);gap:4px 10px;align-items:start;margin-left:16px}
-  .sv-ref{display:grid;gap:4px;align-content:start}
+  .sv-band-body{margin-bottom:8px}
+  /* LA RÉFÉRENCE EN PIED, toujours (A344) : à largeur A4, une colonne à côté de l'algorithme ne
+     laisserait qu'une fourche à 200 px. Trois cellules, comme la bande d'entrée ; la composition ne
+     dépend plus de la fenêtre — c'est la même feuille au chariot, sur le téléphone et sur le papier. */
+  .sv-ref{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:start}
+  .sv-ref.c1{grid-template-columns:1fr}
+  .sv-ref.c2{grid-template-columns:repeat(2,1fr)}
   .sv-band-doses{border-top:2px solid var(--ink);margin-top:10px;padding-top:6px}
   .sv-dh{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);padding-bottom:2px}
   .sv-dz{display:grid;grid-template-columns:repeat(3,1fr);gap:0 12px}
   .sv-dz>div{font-size:var(--t-cap);line-height:1.45;padding:1px 0;border-bottom:1px solid var(--line);color:var(--ink)}
   .sv-dz span{font-family:var(--mono);color:var(--ink-soft)}
   .sv-foot{font-size:var(--t-cap);font-weight:600;line-height:1.45;color:var(--ink-soft);padding-top:4px;border-top:1px solid var(--line);margin-top:4px}
-  /* ═══ TABLETTE PORTRAIT — la référence descend en pied, sur deux cellules ═══
-     ⚠ ON NE PASSE PAS L'ALGORITHME À TROIS COLONNES DE PAGE ICI : à 768 px il lui resterait
-     ~300 px, où les branches d'une décision retomberaient en pile — mauvais échange. On préfère
-     une zone d'algorithme LARGE et une référence en pied : l'arbre est ce qu'on vient voir. */
-  @media (max-width:999.98px){
-    .sv-band-body{grid-template-columns:1fr}
-    .sv-ref{grid-template-columns:1fr 1fr;gap:8px}
-    .sv-dz{grid-template-columns:1fr 1fr}
-  }
-  /* ═══ TÉLÉPHONE — AUCUNE RÈGLE DE COMPOSITION, et c'est le point contre-intuitif du lot ═══
-     Une pile lisible EXISTE DÉJÀ : c'est l'onglet « Parcours », la fiche entière en cartes
-     empilées. Si la Page se refluait elle aussi, les deux onglets convergeraient vers le même
-     objet et l'un des trois ne gagnerait plus rien. En gardant sa géométrie, la Page reste ce que
-     les deux autres ne sont pas : une image qu'on reconnaît d'un coup d'œil, la même partout.
-     C'est la mémoire spatiale qui est en jeu — « les doses sont en bas » ne s'apprend que si
-     c'est vrai sur les trois appareils. */
-  /* ⚠ A8 — 44 px DE CIBLE SUR TOUT CE QUI SE TAPE, ET AUX TROIS FORMATS. Le brief bornait la
-     règle à « sous 640 px, au-dessus la densité prime » ; mesuré, cela ferait DEUX images de la
-     même feuille — or l'argument central du lot est qu'elle est la même partout, puisque c'est
-     l'image qu'on mémorise. Et le harnais d'accessibilité mesure justement à 390 px, session
-     ouverte : il l'a dit à la première passe (bande à 31 px, sortie à 32). Le plancher est donc
-     posé une fois pour toutes ; il rend la feuille un peu plus haute, ce qui est le bon côté du
-     compromis pour un document qu'on lit avec des gants. */
-  .sv-cell{border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);padding:6px 8px;cursor:pointer;min-width:0}
-  .sv-cell[role="button"],.sv-band,.sv-opt,.sv-jump{min-height:44px}
+  /* ═══ A344 — L'ARBRE EST LE FIL ═══
+     Une colonne de numéros de 28 px à gauche de chaque colonne de cellules ; tout trait de STRUCTURE
+     (tronc, fourche, rail) est un pseudo-élément à géométrie LOCALE — le segment d'une rangée va de
+     son numéro (top 32) au numéro de la suivante (bottom −12 : 8 d'écart + 4), sans rien mesurer ;
+     seules les voies (sorties, retours, réunions d'un rail) se mesurent dans svPaintArrows.
+     ⚠ 44 px de cible sur tout ce qui se tape (A8), aux trois formats : la feuille est la même partout. */
+  .sv-algo{margin:0 24px 0 16px}
+  .sv-col{display:flex;flex-direction:column;gap:8px;position:relative;min-width:0}
+  .sv-row{position:relative;margin-left:32px;min-width:0}
+  .sv-num{position:absolute;left:-32px;top:4px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:var(--t-meta);font-weight:700;color:var(--surface);background:var(--ink);border-radius:3px;box-shadow:0 0 0 3px var(--surface);z-index:1}
+  .sv-num.dec{background:var(--verify)}
+  /* Le tronc : un segment plein entre deux numéros qui se suivent — jamais après le dernier. */
+  .sv-col>.sv-row:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow)::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  .sv-col>.sv-row:has(+ .sv-fork)::after{bottom:-8px}
+  .sv-col>.sv-row:has(+ .sv-jrow)::after{bottom:-24px}
+  .sv-col>.sv-row:has(+ .sv-tgt)::after{bottom:-22px}
+  .sv-col>.sv-row:has(+ .sv-merged)::after{bottom:-22px}
+  /* Une pilule (« ↺ revenir », « ↓ continuer », « → aller ») se raccorde au tronc par un tiret. */
+  .sv-jrow::before{content:"";position:absolute;left:-19px;top:15px;width:19px;height:2px;background:var(--ink-soft)}
+  .sv-cell{border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);padding:4px 8px;cursor:pointer;min-width:0}
+  .sv-cell[role="button"],.sv-band{min-height:44px}
   .sv-cell:hover,.sv-band:hover{border-color:var(--primary)}
   .sv-cell:focus-visible,.sv-band:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .sv-cell.done{border-left:4px solid var(--done-line)}
   .sv-cell.cur,.sv-band.cur{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
   .sv-cell.off,.sv-band.off,.sv-opt.off{opacity:.55;border-style:dashed}
   .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
+  /* Une cible de sortie ou un bloc commun prend un peu d'air au-dessus : la barre d'entrée y vit. */
+  .sv-tgt,.sv-merged{margin-top:10px}
+  .sv-merged::before{content:"";position:absolute;left:-19px;top:-10px;height:14px;width:2px;background:var(--ink-soft)}
+  .sv-ah{position:absolute;left:-23px;top:-2px;width:0;height:0;border-top:6px solid var(--ink-soft);border-left:5px solid transparent;border-right:5px solid transparent}
   .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
   .sv-n{font-family:var(--mono);font-size:var(--t-cap);font-weight:700;color:var(--ink-soft);flex:none}
   .sv-t{flex:1;min-width:0;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow-wrap:break-word}
@@ -4988,45 +4991,70 @@
   .sv-here{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--primary);color:var(--on-primary);padding:0 6px;border-radius:999px}
   /* Compteur de passages « ×n » : encre DOUCE et non bleue, contrairement à son jumeau `.pl-x` du
      Plan — dans le statique, « aucun texte bleu dans les cellules » (décision utilisateur) : le
-     bleu n'y marque que la POSITION (`ici`) et la reprise `↺`. */
+     bleu n'y marque que la POSITION (`ici`) et les voies (sorties, retours). */
   .sv-x{font-family:var(--mono);font-size:var(--t-cap);font-weight:600;color:var(--ink-soft);margin-left:6px}
   .sv-off2{margin:2px 0 0;font-size:var(--t-cap);font-weight:600;color:var(--ink-soft)}
-  .sv-stp{margin:1px 0 0;padding:0;list-style:none}
-  .sv-stp li{position:relative;font-size:var(--t-cap);line-height:1.45;color:var(--ink);padding-left:12px;overflow-wrap:break-word}
-  .sv-stp li::before{content:"❑";position:absolute;left:0;color:var(--ink-soft)}
-  .sv-stp li.done{color:var(--ink-soft)}   /* coché = ✓ vert, texte JAMAIS barré (relecture) */
-  .sv-stp li.done::before{content:"✓";color:var(--ok);font-weight:700}
-  .sv-stp li.crit{color:var(--critical);font-weight:600}
-  .sv-stp li.crit::before{content:"⚠";color:var(--critical)}
-  .sv-stp li.vig{color:var(--verify);font-weight:600}
-  .sv-stp li.plain{padding-left:0}
-  .sv-stp li.plain::before{content:""}
+  .sv-fin{margin:4px 0 0;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok)}
+  /* LIGNES D'ÉTAPE façon ECAM (A344) : case · libellé · points de conduite · RÉPONSE attendue en mono
+     à droite — ou SOUS le libellé (`.sv-rb`) quand elle ne tient pas sur la ligne de sa colonne
+     (décidé au rendu sur la largeur utile, jamais mesuré). Registre par le glyphe ET la couleur :
+     ⚠ rouge, △ ambre, et la case prend la bordure du registre. Coché = ✓ vert dans la case, texte
+     en encre douce, JAMAIS barré (relecture). */
+  .sv-stp{margin:2px 0 0;padding:0;list-style:none}
+  .sv-stp li{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;padding:2px 0;font-size:var(--t-cap);line-height:1.35;color:var(--ink);border-bottom:1px solid var(--line)}
+  .sv-stp li:last-child{border-bottom:0;padding-bottom:1px}
+  .sv-lw{display:flex;gap:6px;flex:0 1 auto;min-width:0;align-items:baseline}
+  .sv-bx{flex:none;width:11px;height:11px;border:1.5px solid var(--ctl-line);border-radius:3px;align-self:flex-start;margin-top:2px;position:relative;box-sizing:border-box}
+  .sv-lab{flex:0 1 auto;min-width:0;overflow-wrap:break-word}
+  .sv-ldr{flex:1 1 14px;min-width:14px;height:0;border-bottom:1px dotted var(--line-strong);align-self:flex-end;margin-bottom:4px}
+  .sv-rs{flex:0 0 auto;margin-left:auto;text-align:right;font-family:var(--mono);font-size:var(--t-cap);font-weight:600;color:var(--ink);white-space:nowrap;line-height:1.35}
+  .sv-rb{flex:0 0 100%;padding-left:16px;font-family:var(--mono);font-size:var(--t-cap);font-weight:600;color:var(--ink);line-height:1.35}
+  .sv-stp li.done .sv-lab{color:var(--ink-soft)}
+  .sv-stp li.done .sv-bx{border-color:var(--ok)}
+  .sv-stp li.done .sv-bx::after{content:"✓";position:absolute;left:-1px;top:-4px;font-size:var(--t-cap);font-weight:700;line-height:1;color:var(--ok)}
+  .sv-stp li.crit .sv-lab{color:var(--critical);font-weight:700}
+  .sv-stp li.crit .sv-bx{border-color:var(--critical-bd)}
+  .sv-stp li.vig .sv-lab{color:var(--verify);font-weight:700}
+  .sv-stp li.vig .sv-bx{border-color:var(--verify-bd)}
   .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--verify)}
-  /* La pilule DOIT pouvoir se replier (une réponse longue en nowrap dépassait du cadre de sa
-     cellule) ; `inline-block` la fait passer à la ligne EN BLOC — `break-word` ne reste que pour
-     le cas où elle excède seule la colonne. */
-  .sv-r{display:inline-block;max-width:100%;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink);background:var(--tag-bg);border:1px solid var(--line);border-radius:8px;padding:0 6px;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-  /* Bande de décision : registre ATTENTION — titre en petites capitales + question en clair. */
-  .sv-band{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:6px 8px;cursor:pointer;min-width:0}
-  .sv-band .sv-jl{flex:1 1 100%;margin:0}
-  .sv-band .sv-n{color:var(--verify)}
-  .sv-band .sv-t{color:var(--verify);text-transform:none;font-weight:400;letter-spacing:0}
-  .sv-band .sv-t b{font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  /* LA DÉCISION CONTIENT SES ALTERNATIVES (QRH) : « SI ‹option› ……… CONTINUER ↓ n / ALLER À n /
+     REVENIR À n / ▪ FIN ». La ligne est la vérité ; la voie tracée n'est qu'un rappel de trajet. */
+  .sv-band{display:block;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:4px 8px 6px;cursor:pointer;min-width:0}
+  .sv-band .sv-jl{margin:0 0 4px}
+  .sv-band .sv-t{color:var(--verify)}
   .sv-band .sv-m{color:var(--verify)}
-  /* ═══ LA FOURCHE — DESSINÉE EN DIVS, PAS EN SVG ═══
-     Un calque SVG en position absolue exige des coordonnées, donc une mesure après rendu, donc un
-     recalage à chaque changement de contenu : ça a été tenté et ça a cassé deux fois (viewBox
-     déclaré ≠ boîte réelle → déformation non uniforme). En divs, la géométrie SUIT la grille sans
-     qu'on la mesure — les bras se posent en pourcentage de l'étendue de la fourche, calculés sur
-     le centre de chaque branche. */
-  .sv-fk{position:relative;height:18px;min-width:0}
-  .sv-fk .fk-st{position:absolute;top:0;width:2px;height:8px;background:var(--verify-bd)}
-  .sv-fk .fk-bar{position:absolute;top:6px;height:2px;background:var(--verify-bd)}
-  .sv-fk .fk-arm{position:absolute;top:6px;width:2px;height:8px;background:var(--verify-bd)}
-  .sv-fk .fk-arm::after{content:"";position:absolute;left:-4px;top:8px;width:0;height:0;border-top:6px solid var(--verify-bd);border-left:5px solid transparent;border-right:5px solid transparent}
-  .sv-opt{border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);color:var(--verify);font-size:var(--t-cap);font-weight:700;text-align:center;padding:4px;min-height:28px;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;line-height:1.3}
+  .sv-q{margin:0 0 4px;font-size:var(--t-cap);font-weight:800;color:var(--verify);line-height:1.35}
+  .sv-opt{display:flex;align-items:baseline;gap:6px;padding:1px 0 1px 4px;font-size:var(--t-cap);line-height:1.4;min-width:0}
+  .sv-opt .si{font-family:var(--mono);font-weight:600;color:var(--verify);flex:none;width:18px}
+  .sv-opt .lb{flex:0 1 auto;min-width:0;color:var(--verify);font-weight:700}
+  .sv-opt .ld{flex:1 1 12px;min-width:12px;border-bottom:1px dotted var(--verify-bd);transform:translateY(-3px)}
+  .sv-opt .to{flex:none;font-family:var(--mono);font-size:var(--t-cap);font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:var(--verify)}
+  .sv-opt .to.out,.sv-opt .to.back{color:var(--link)}
+  .sv-opt .to.fin{color:var(--ok)}
   .sv-opt .sv-tk{color:var(--ok)}
   .sv-offtag{font-weight:600;color:var(--ink-soft)}
+  /* LA FOURCHE (deux branches à contenu, pleine largeur) : barre sous la décision, une descente par
+     branche (jusqu'au premier numéro : intitulé 20 + 6 + 4), colonne qui continue jusqu'à la barre de
+     réunion quand la branche rejoint le bloc commun (`.cont`) — sinon la descente s'arrête au numéro. */
+  .sv-fork{display:flex;gap:12px;align-items:stretch;margin:8px 0 0}   /* pas de retrait : ses colonnes portent leurs numéros */
+  .sv-fork.sv-coll{margin-bottom:16px}
+  .sv-fork::before{content:"";position:absolute;left:13px;top:-8px;right:calc(50% - 20px);height:2px;background:var(--ink-soft)}
+  .sv-br{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column}
+  .sv-br::after{content:"";position:absolute;left:13px;top:-8px;height:38px;width:2px;background:var(--ink-soft)}
+  .sv-br.cont::after{height:auto;bottom:-10px}
+  .sv-br>.sv-ah{top:24px;left:9px}
+  .sv-mbar{position:absolute;left:13px;bottom:-10px;width:2px;height:2px;background:var(--ink-soft)}
+  .sv-fork.sv-mg-lr>.sv-mbar,.sv-fork.sv-mg-r>.sv-mbar{width:auto;right:calc(50% - 20px)}
+  .sv-sh2{display:flex;align-items:center;gap:8px;height:20px;margin:0 0 6px 32px;font-size:var(--t-cap);font-weight:800;color:var(--verify);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .sv-sh2 .si{font-family:var(--mono);font-weight:600;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--verify-bd);background:var(--verify-soft);border-radius:3px;padding:0 6px;line-height:18px;flex:none}
+  .sv-sh2>span:last-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
+  /* LE RAIL (trois branches ou plus, ou une fourche dans une colonne déjà partagée) : les branches
+     l'une sous l'autre en retrait, la colonne de la décision descend en trait plein et une équerre
+     entre dans le premier numéro de chacune ; il s'arrête à la dernière équerre. */
+  .sv-col>.sv-lvl::before{content:"";position:absolute;left:-19px;top:-12px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  .sv-col>.sv-lvl.last::before{bottom:auto;height:57px}
+  .sv-rung{position:absolute;left:-19px;top:43px;width:16px;height:2px;background:var(--ink-soft)}
+  .sv-rung::after{content:"";position:absolute;right:-3px;top:-4px;width:0;height:0;border-left:6px solid var(--ink-soft);border-top:5px solid transparent;border-bottom:5px solid transparent}
   /* Sections de la fiche en cellules : INERTES — pas de curseur main, registres ALERTE (chapeau)
      et ATTENTION (surveillances) par bord gauche + titre (jamais la couleur seule). */
   .sv-cell.sv-inert{cursor:default}
@@ -5038,18 +5066,20 @@
   .sv-cx{border-left:4px solid var(--ink-soft)}
   .sv-tm{border-left:4px solid var(--primary)}
   .sv-tm .sv-t{color:var(--link)}
-  /* RENVOIS — la pilule « → n » / « ↺ n » est la VÉRITÉ TEXTUELLE : le dessin ne porte jamais
-     seul une information (impression, lecteur d'écran). Boîte en trait POINTILLÉ : c'est une
-     sortie, pas un bloc à faire. */
+  /* RENVOIS — la pilule est la VÉRITÉ TEXTUELLE. Retour en bleu, « continuer » neutre plein
+     (c'est la suite, pas un saut), « aller à » en pointillé : c'est une sortie. 32 px + halo = 44. */
   .sv-jrow{display:flex;min-width:0}
-  .sv-jump{display:inline-flex;align-items:center;gap:4px;width:100%;min-height:32px;font-size:var(--t-cap);font-weight:700;font-family:var(--mono);color:var(--ink-soft);background:var(--surface);border:1px dashed var(--line-strong);border-radius:3px;padding:4px 6px;cursor:pointer;text-align:left}
+  .sv-jump{display:inline-flex;align-items:center;gap:4px;max-width:100%;min-height:32px;font-size:var(--t-cap);font-weight:700;font-family:var(--mono);color:var(--ink-soft);background:var(--surface);border:1px dashed var(--line-strong);border-radius:3px;padding:4px 8px;cursor:pointer;text-align:left}
   .sv-jump.loop{color:var(--link);background:var(--primary-soft);border-color:var(--primary)}
+  .sv-jump.cont{color:var(--ink);background:var(--tag-bg);border-style:solid}
   .sv-jump:hover{border-color:var(--primary)}
   .sv-jump:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .sv-end{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok);padding:2px}
   .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
-  .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.6}
+  .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.5;stroke-dasharray:4 3;stroke-linejoin:round}
   .sv-gut .lph{fill:var(--link)}
+  .sv-gut .sp{fill:none;stroke:var(--ink-soft);stroke-width:2;stroke-linejoin:round}
+  .sv-gut .sph{fill:var(--ink-soft)}
   /* Challenge « :: » (AC 120-71B) : cocher = readback porté par le CSS seul — le toggle chirurgical
      n'y touche pas. La cadence est une MONO AMBRE sans fond (A11 : son registre, pas celui de
      l'action) et son corps est --t-body — juste SOUS --t-item, jamais au-dessus (audit v5.10.0 :
@@ -6738,7 +6768,7 @@
   .dh-sub{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dh-chev{flex:none;color:var(--ink-soft)}
   /* Résultats-documents SOUS le champ de recherche d'une entité (mêmes rangées .doc-hit). */
-  /* marge BASSE comprise : en flux (« Toute la fiche ») la rangée touchait le tableau SFAR
+  /* marge BASSE comprise : en flux (« Toute la fiche ») la rangée touchait la Page
      en dessous — mesuré 0 px ; un résultat n'est pas un en-tête de section, il ne se colle pas
      à ce qui suit. */
   .pf-docs{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px}
@@ -7091,7 +7121,7 @@
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme
        avant. La doctrine complète vit au site de `.flow-scroll` ; la règle vit ICI parce que ce
        bloc est LE média tactile de la feuille (check-type le localise en première occurrence).
-       `.sv-scroll` SANS portée (v5.28.4, A343) : la feuille SFAR se rend aussi dans la fenêtre
+       `.sv-scroll` SANS portée (v5.28.4, A343) : la Page se rend aussi dans la fenêtre
        « Tableau » (#planBody), qui défile déjà — la borne `main` y laissait un axe `auto`, donc
        un double défilement (mesuré : overflow-y auto dedans, hidden dans main). */
     main .alg-panel .flow-scroll,main .flow-scroll,.sv-scroll{max-height:none;overflow-y:clip}
@@ -7106,6 +7136,7 @@
      (soit toujours sur A4 ≈ 794 px : le contenu du rail était donc imprimé EN DOUBLE), et le titre
      changeait de corps (21 / 24 px). Un document clinique imprimé ne peut pas dépendre de la
      fenêtre où l'on se trouvait au moment de l'impression. On neutralise donc les trois. */
+  @page{margin:10mm 7mm}
   @media print{
     /* 1. Le zoom de confort d'écran n'a aucun sens sur papier : le PDF part toujours à 100 %. */
     html{zoom:1!important}
@@ -7140,7 +7171,7 @@
     .crisis-footer .cf-stg{display:none}
     /* ══ LOT 4 · L'IMPRESSION DE LA FEUILLE (v5.10.0) ═══════════════════════════════════════════
        UNE PAGE CORRECTEMENT IMPRIMABLE EST UNE PAGE AFFICHABLE AU MUR, dans un local de garde ou
-       au dos d'un chariot — c'est l'usage d'origine des aides SFAR/CAMR, et il ne demande aucune
+       au dos d'un chariot — c'est l'usage d'origine des aides cognitives imprimées, et il ne demande aucune
        application. D'où le test de tout le lot : si la sortie papier est utilisable SANS
        l'application, la page est réussie. Elle ne l'était pas — elle sortait sans date, sans
        titre, sans doses.
@@ -7164,8 +7195,10 @@
     .sv-scroll{overflow:visible!important}
     .sv-calant,.sv-calant.z{width:auto!important;height:auto!important}
     .sv-calant.z>.sv-sheet{position:static!important;transform:none!important}
-    .sv-sheet{width:auto!important;border:0;padding:0}
-    .sv-cell,.sv-band,.sv-opt,.sv-jrow,.sv-algo>*,.sv-band-top>*,.sv-ref>*{break-inside:avoid}
+    /* A344 : la feuille GARDE sa largeur d'auteur sur le papier (A4 à 7 mm de marge = 741 px) — les
+       voies mesurées ne sont justes qu'à cette géométrie ; reflouer la feuille les décalerait. */
+    .sv-sheet{border:0}
+    .sv-cell,.sv-band,.sv-jrow,.sv-fork,.sv-band-top>*,.sv-ref>*{break-inside:avoid}
     .sv-cartouche{break-after:avoid}
     .sv-band-doses,.sv-band-top{break-inside:avoid}
     /* 3. L'état de session, retiré à la racine : classes d'état neutralisées, marqueurs masqués. */
@@ -7175,8 +7208,9 @@
     .sv-cell.off,.sv-band.off,.sv-opt.off{opacity:1!important;border-style:solid!important}
     .sv-opt.tk{background:var(--surface)!important}
     .sv-opt .sv-tk{display:none!important}
-    .sv-stp li.done{color:var(--ink)!important}
-    .sv-stp li.done::before{content:"❑"!important;color:var(--ink-soft)!important;font-weight:400!important}
+    .sv-stp li.done .sv-lab{color:var(--ink)!important}
+    .sv-stp li.done .sv-bx{border-color:var(--ctl-line)!important}
+    .sv-stp li.done .sv-bx::after{display:none!important}
     .sv-m{display:none!important}
     @media (orientation:portrait){.sv-dz{grid-template-columns:1fr 1fr!important}}
     @media (orientation:landscape){.sv-dz{grid-template-columns:repeat(3,1fr)!important}}}

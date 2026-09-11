@@ -1,7 +1,48 @@
 # Journal des modifications
 
+## [5.29.0] — 2026-09-11
+### La Page : l'arbre est le fil (A344)
+
+- **Brief de l'auteur** : mieux voir les étapes, mieux voir sur smartphone, garder l'esprit « tout
+  sur une page A4 ». Deux fiches réelles fournies pour mesurer les enjeux (arrêt cardiorespiratoire
+  2026, état de mal tonico-clonique à quinze blocs), douze planches explorées sur un canevas, la
+  douzième retenue : « super on part sur E12 », puis « ok implémente ».
+- **Mesuré avant** : à 1130 px la grille à six pistes rendait l'état de mal sur 2 432 px et, ajustée
+  à 390 px, tombait à 32 % (corps de 3,5 px) ; chaque décision de l'escalade rejouait une fourche
+  pleine largeur dont une branche n'était qu'un renvoi ; la sortie commune portait le numéro 5 et
+  « fin de l'algorithme » tombait au milieu de la feuille. À 11 px, une fiche à quinze blocs ne
+  tient sur un A4 dans aucune composition : ce qui se garde de l'A4 est la largeur.
+- **La composition est l'arbre.** Une colonne de largeur A4 (740 px), la référence en pied partout.
+  Le NUMÉRO est l'ancre de tout trait (entrée par le haut, retour par la gauche) ; la colonne des
+  numéros est la surface de dessin — tronc plein, fourche = barre + descentes, réunion = barre +
+  entrée ; une sortie s'écrit « SI … ALLER À n » dans la décision et se trace en pointillé par la
+  voie de droite ; un retour part du bout de la branche vers la voie de gauche (collecteur sous une
+  fourche, tiret et ▲ vers un rail) ; deux branches à contenu = fourche côte à côte, au-delà = rail
+  en retrait de 32 px avec une équerre par branche ; un trait ne croise jamais rien, sinon la ligne
+  écrite suffit. Tronc, fourche et rail se dessinent en CSS à géométrie locale, sans mesure ; seules
+  les voies se mesurent (`svPaintArrows`).
+- **Les cellules, façon ECAM** : case · libellé · points de conduite · réponse attendue en mono à
+  droite, ou sous le libellé quand elle ne tient pas sur la ligne de sa colonne. Registre par le
+  glyphe et la couleur, ✓ dans la case, texte jamais barré. « ▪ fin de l'algorithme » dans le bloc
+  terminal.
+- **La numérotation suit le tronc** (`flowPlan`, partagée par le journal, le Parcours et le
+  schéma) : les arêtes de retour ne comptent plus pour la post-dominance, la convergence d'une
+  décision est le plus proche post-dominateur commun à deux options au moins, les options hors
+  convergence sont des sorties chaînées après le tronc. État de mal : 1-12 puis 13 relais · 14
+  surveillance · 15 récidive ; ACR : 4 FV · 5 asystolie · 6 causes · 7 RACS.
+- **Mesuré après** (1280 × 900) : état de mal 740 × 2 992, ACR 740 × 1 839, les deux fiches d'exemple
+  sur une page A4 (959 et 929 px) ; « Ajusté » à 390 px = 48 %. L'onglet s'appelle « Page ».
+- `svTreePlan` (pure) remplace `svGridPlan`/`svDistribute` ; `.sv-fk`, `.sv-r`, les paliers d'écran
+  de la feuille et la colonne de référence latérale sont purgés ; `@page{margin:10mm 7mm}` pour
+  imprimer la feuille à sa largeur. Témoins : `tests.html` (svTreePlan, flowPlan sur graphe à
+  boucle et sur sortie hors convergence), `audit-doctrine` (numéros alignés, aucune cellule sous
+  260 px, même image aux trois largeurs ; deux témoins du Parcours suivent la nouvelle convergence).
+  Doctrine `docs/decisions/lot-v5-29.md`, index, `design/ds` régénéré, CHANGELOG à 20 ([5.23.8]
+  archivée).
+- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.28.4] — 2026-09-08
-### La feuille SFAR n'a qu'un axe vertical, dans la fenêtre « Tableau » comme dans la fiche (A343)
+### La Page n'a qu'un axe vertical, dans la fenêtre « Tableau » comme dans la fiche (A343)
 
 - **Signalé à l'usage** : depuis « Tableau » de l'écran de démarrage d'une aide (ou « Plein écran »
   du cran Toute la fiche), « le scroll vertical à l'intérieur de la page n'est pas bloqué et ça fait
@@ -9,7 +50,7 @@
 - **La cause est une portée** : la règle tactile de la v5.10.5 (C87 — axe vertical fermé par
   `overflow-y:clip`, parce qu'un axe `auto` rebondit sur iOS même vide et capture le pouce) était
   bornée à `main`, « le plein écran garde son défileur ». Vrai du schéma, qui a le sien ; faux de la
-  feuille SFAR, rendue aussi dans la fenêtre « Tableau », qui défile elle-même. Dedans, la feuille
+  Page, rendue aussi dans la fenêtre « Tableau », qui défile elle-même. Dedans, la feuille
   gardait un second axe : un défileur dans le défileur.
 - **Mesuré avant** (390 × 844, pointeur grossier, Chromium et WebKit) : `overflow-y: auto` dans la
   fenêtre, `hidden` dans la fiche. **Correctif** : la portée `main` est retirée pour `.sv-scroll`
@@ -471,22 +512,3 @@
 - Doctrine A326 dans `docs/decisions/lot-v5-23.md` ; index `AGENTS.md`/`docs/README.md` à
   A317-A326.
 - Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET après le numéro.
-
-## [5.23.8] — 2026-09-06
-### L'invité rechargé en direct retrouve la session ; « Connexion perdue » (A325)
-
-- **Demandes de l'auteur** : vérifier le rafraîchissement de la page invité pendant le direct ;
-  remplacer « Lien perdu » par une formulation claire ; vérifier que la bannière disparaît quand la
-  connexion revient et réapparaît si elle se perd de nouveau.
-- **Rechargement de l'invité en direct** : il ne tenait plus que le billet du hub local, mort avec
-  l'onglet — il se retrouvait chez lui. Son billet cloud est désormais gardé en `sessionStorage` ;
-  au démarrage, si le serveur répond, la session est retrouvée seule ; sinon le billet attend et la
-  sonde retente. Sans serveur ni canal : l'écran d'entrée et le code, seul chemin.
-- **« Connexion perdue »** partout (bannière, feuille, journal, réveil) ; la feuille précise
-  « partage manuel par l'écran en attendant » et le motif.
-- **La bannière n'a pas de mémoire** : repeinte au tick depuis l'état vivant, elle s'efface quand
-  la connexion revient et revient si elle se perd — deux cycles complets mesurés.
-- Garde-fous : cinq contrôles ajoutés à la section E2E des bascules d'`audit-partage` (47 → 52),
-  dont un vrai rechargement de la page invité, vérifiés capables d'échouer. Doctrine A325 dans
-  `docs/decisions/lot-v5-23.md`. CHANGELOG à 20 ([5.22.0] archivée).
-- Vérifié : `npm run check` complet, 1190 tests × 2 moteurs, audit COMPLET 26/26 après le numéro.

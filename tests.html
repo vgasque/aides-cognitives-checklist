@@ -428,7 +428,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   // cinq listes sur six, `f[k]` lu en direct alors que migrate SUPPRIME ces champs) est resté
   // vert pendant qu'on « restaurait à l'aveugle ».
   const fF=A.migrate({title:'T',status:'draft',local:'Ctx',confirmation:['c1'],verify:['v1'],
-    notForget:['n1'],differentials:['d1'],posology:['Adré : 0,5 mg'],sources:['SFAR 2024'],
+    notForget:['n1'],differentials:['d1'],posology:['Adré : 0,5 mg'],sources:['Recos 2024'],
     blocks:[{id:'b1',kind:'do',title:'B',items:['s1'].map(x=>A.v4MakeItem(A.uid('i'),'do',x))},{id:'b2',kind:'decision',title:'D',question:'Q ?',options:[{label:'Oui',target:'b1'}]}],
     timers:[{label:'Cycle',type:'interval',seconds:120}],counters:[{label:'Adré'}]});
   const fl=A.flattenFiche(fF);
@@ -439,7 +439,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('ne pas oublier (rôle do + memory)', fl.indexOf('Ne pas oublier · n1')>=0);
   ok('différentiel', fl.indexOf('Différentiels · d1')>=0);
   ok('posologie (son libellé manquait aussi de la table)', fl.indexOf('Posologie · Adré : 0,5 mg')>=0);
-  ok('références (resté un CHAMP, accès direct légitime)', fl.indexOf('Références · SFAR 2024')>=0);
+  ok('références (resté un CHAMP, accès direct légitime)', fl.indexOf('Références · Recos 2024')>=0);
   ok('étape préfixée par son bloc', fl.indexOf('Bloc « B » · s1')>=0);
   ok('question de décision', fl.indexOf('Bloc « D » · Q ?')>=0);
   ok('option de décision', fl.indexOf('Bloc « D » — option · Oui')>=0);
@@ -610,7 +610,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   ok('gras exclu des étapes (texte déjà en gras)', A.AI_PROMPT.indexOf('ne s\'applique PAS aux étapes')>=0);
 
   group('références des protocoles (v4.2.2)');
-  eq('migrateProtocol : références nettoyées/coercées', A.migrateProtocol({sources:['SFAR 2023',42]}).sources, ['SFAR 2023','42']);
+  eq('migrateProtocol : références nettoyées/coercées', A.migrateProtocol({sources:['Recos 2023',42]}).sources, ['Recos 2023','42']);
   ok('migrateProtocol : défaut = tableau', Array.isArray(A.migrateProtocol({}).sources));
   ok('blankProtocol : champ references présent', Array.isArray(A.blankProtocol().sources));
 
@@ -745,7 +745,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   group('mini-Markdown — encadrés typés + surlignage (v4.4.3)');
   eq('[!CAUTION] -> registre ALERTE', A.mdCallout('[!CAUTION] Ne pas dépasser 3 mg').kind, 'crit');
   eq('[!WARNING] -> ATTENTION', A.mdCallout('[!WARNING] Vérifier la dilution').kind, 'vig');
-  eq('[!NOTE] -> INFORMATION', A.mdCallout('[!NOTE] Seuil SFAR').kind, 'info');
+  eq('[!NOTE] -> INFORMATION', A.mdCallout('[!NOTE] Seuil retenu').kind, 'info');
   eq('[!TIP] -> CONFIRMATION', A.mdCallout('[!TIP] Objectif atteint').kind, 'ok');
   eq('casse indifférente', A.mdCallout('[!caution] x').kind, 'crit');
   eq('alias français', [A.mdCallout('[!alerte] x').kind,A.mdCallout('[!attention] x').kind,A.mdCallout('[!info] x').kind,A.mdCallout('[!ok] x').kind], ['crit','vig','info','ok']);
@@ -918,6 +918,37 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     pl2.items.some(it=>it.k==='link'&&it.to==='D'&&it.back===true)&&pl2.order.filter(x=>x==='D').length===1);
   ok('flowPlan : orphelin rattaché en fin de plan', pl2.order[pl2.order.length-1]==='X');
   ok('flowPlan : un bloc n’apparaît qu’UNE fois', new Set(pl2.order).size===pl2.order.length&&pl2.order.length===5);
+  /* A344 (v5.29.0) — LA CONVERGENCE IGNORE LES ARÊTES DE RETOUR, ET LE TRONC PASSE D'ABORD. Sur une
+     fiche qui reboucle (récidive → reprise au 2), tout chemin repassait par le tronc : le
+     post-dominateur d'une décision devenait la première étape de l'escalade, la sortie commune
+     était numérotée 5 et la fin tombait au milieu de la feuille. */
+  {const f=A.migrate({start:'b1',blocks:[
+     {id:'b1',kind:'do',next:'b2'},{id:'b2',kind:'do',next:'d1'},
+     {id:'d1',kind:'decision',options:[{label:'persiste',target:'b3'},{label:'arrêté',target:'r'}]},
+     {id:'b3',kind:'do',next:'d2'},
+     {id:'d2',kind:'decision',options:[{label:'persiste',target:'b4'},{label:'arrêté',target:'r'}]},
+     {id:'b4',kind:'do'},
+     {id:'r',kind:'do',next:'d3'},
+     {id:'d3',kind:'decision',options:[{label:'récidive',target:'b2'},{label:'stable',target:'r'}]}]});
+   const p=A.flowPlan(f);
+   eq('A344 : l’escalade est numérotée AVANT la sortie qu’elle partage, malgré la boucle de récidive',
+      p.order, ['b1','b2','d1','b3','d2','b4','r','d3']);
+   ok('A344 : la sortie commune est chaînée par la DERNIÈRE décision qui y mène ; les autres la désignent « → »',
+      p.items.some(it=>it.k==='link'&&it.to==='r'&&it.from==='d1'&&it.back===false)
+      &&p.items.filter(it=>it.k==='block'&&it.id==='r').length===1);
+   ok('A344 : « ↺ » se décide sur le NUMÉRO — les deux options de la récidive sont des retours',
+      p.items.filter(it=>it.k==='link'&&it.from==='d3').length===2&&p.items.filter(it=>it.k==='link'&&it.from==='d3').every(it=>it.back===true));}
+  {const f=A.migrate({start:'b1',blocks:[
+     {id:'b1',kind:'do',next:'d1'},
+     {id:'d1',kind:'decision',options:[{label:'choquable',target:'fv'},{label:'non choquable',target:'as'},{label:'RACS',target:'ro'}]},
+     {id:'fv',kind:'do',next:'ca'},{id:'as',kind:'do',next:'ca'},{id:'ca',kind:'do',next:'d1'},{id:'ro',kind:'do'}]});
+   const p=A.flowPlan(f);
+   eq('A344 : deux options qui se rejoignent font la convergence ; la troisième est une SORTIE chaînée après le tronc',
+      p.order, ['b1','d1','fv','as','ca','ro']);
+   ok('A344 : la sortie est écrite sur la décision (« → 6 ») et son bloc vit à la racine, après la boucle',
+      p.items.some(it=>it.k==='link'&&it.to==='ro'&&it.from==='d1'&&it.back===false)
+      &&p.items.some(it=>it.k==='block'&&it.id==='ro'&&it.depth===0)
+      &&p.items.filter(it=>it.k==='link'&&it.to==='ca'&&it.back===false).length===2);}
   // stepCR (v4.11.0) : « challenge :: réponse » — opt-in, première occurrence, moitiés vides.
   eq('stepCR : séparation challenge/réponse', A.stepCR('Adrénaline IM :: 0,01 mg/kg'), {c:'Adrénaline IM',r:'0,01 mg/kg'});
   eq('stepCR : sans «::» -> pas de zone réponse', A.stepCR('Éviction de l’allergène'), {c:'Éviction de l’allergène',r:null});
@@ -1244,7 +1275,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   /* LA LIGNE PASSE SUR LA DESTRUCTION, PAS SUR LA HIÉRARCHIE (v4.55.0, décision utilisateur).
      Elle passait sur « conduire ou suivre » — une mauvaise lecture d'AC 120-71B §5.2.2.1, qui
      décrit une répartition de la PAROLE et où c'est CELUI QUI LIT qui fait avancer la liste. La
-     SFAR (« le lecteur : lire et GUIDER »), l'ECAM (le pilot monitoring actionne l'ECP) et
+     la doctrine du lecteur (« lire et GUIDER »), l'ECAM (le pilot monitoring actionne l'ECP) et
      McEvoy 2014 (le lecteur tient l'unique appareil) disent tous la même chose : la conception
      précédente empêchait la configuration la mieux documentée du dossier. */
   ok('le scribe ne DÉTRUIT pas : ni décocher, ni remettre à zéro, ni clore',
@@ -2323,7 +2354,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     confirmation:['Œdème + hypotension'],
     notForget:['⚠ Retirer l’allergène','Position allongée'],
     verify:['△ Récidive à 6 h'],posology:['△ Adrénaline 0,5 mg IM'],
-    differentials:['Choc septique'],sources:['SFAR 2016'],
+    differentials:['Choc septique'],sources:['Recos 2016'],
     excursions:[{label:'Bronchospasme',target:'bx'}],
     links:['p2'],docs:[{id:'at1',name:'d.pdf',size:9}],
     images:[{id:'g1'}],timers:[{label:'Réévaluation',seconds:300}],counters:[{label:'Doses'}],
@@ -2640,79 +2671,78 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      Ce qu'on mesure ici est ce que le brief appelle la définition du fini — aucun bloc perdu ni
      dupliqué, les numéros restent ceux du plan, la sortie est déterministe, et la REPRISE DE
      LARGEUR : une branche profonde peut être PLUS LARGE que le tronc dont elle descend. */
-  group('Lot Page — répartition des pistes (svDistribute)');
-  eq('deux branches égales se partagent les six pistes', A.svDistribute(6,[2,2]), [3,3]);
-  eq('trois branches égales : 2+2+2 (six est divisible par deux ET par trois)', A.svDistribute(6,[1,1,1]), [2,2,2]);
-  /* LA REGLE QUI PRODUIT TOUT L'EFFET : au prorata de la HAUTEUR, reste à la plus haute — une
-     branche longue à côté d'une sortie d'une ligne prend cinq pistes, donc plus que le tronc. */
-  eq('branche longue contre sortie d’une ligne : 5 + 1', A.svDistribute(6,[7,1]), [5,1]);
-  eq('minimum UNE piste par branche, même écrasée', A.svDistribute(2,[10,1]), [1,1]);
-  eq('aucune branche → aucune piste', A.svDistribute(6,[]), []);
-  ok('déterministe : deux appels, même sortie',
-     JSON.stringify(A.svDistribute(6,[3,3,1]))===JSON.stringify(A.svDistribute(6,[3,3,1])));
-  ok('la somme ne dépasse jamais l’étendue',
-     [[6,[5,2,1]],[6,[1,1,1,1]],[4,[9,1]]].every(([sp,hs])=>A.svDistribute(sp,hs).reduce((a,b)=>a+b,0)===sp));
-
-  group('Lot Page — le tracé en grille unique (svGridPlan)');
+  /* ══ A344 (v5.29.0) — L'ARBRE EST LE FIL : svTreePlan remplace la grille à six pistes ══════════
+     PURE : lit la fiche et flowPlan, jamais le DOM ni l'état de session. Ce qu'on fige : aucun bloc
+     perdu ni dupliqué, une seule branche à contenu = la suite du tronc, deux = fourche côte à côte
+     à pleine largeur seulement, trois ou plus = rail, et les voies à tracer ne croisent jamais rien. */
+  group('A344 — l’arbre est le fil (svTreePlan)');
   const _pf=(blocks,start)=>A.migrate({id:'pg',title:'T',start:start||'b1',blocks});
+  const _ids=T=>{const out=[];T.cols.forEach(c=>c.rows.forEach(r=>{if(r.id&&(r.k==='cell'||r.k==='dec'))out.push(r.id);}));return out;};
   const _simple=_pf([{id:'b1',kind:'do',next:'d1'},
     {id:'d1',kind:'decision',question:'?',options:[{label:'oui',target:'b2'},{label:'non',target:'b3'}]},
     {id:'b2',kind:'do',next:'b4'},{id:'b3',kind:'do',next:'b4'},{id:'b4',kind:'do'}]);
-  const G=A.svGridPlan(_simple);
-  eq('six pistes, tronc sur quatre', [A.SV_TRACKS,A.SV_TRUNK], [6,4]);
+  const G=A.svTreePlan(_simple);
   ok('déterministe et pure : deux appels donnent la même sortie',
-     JSON.stringify(A.svGridPlan(_simple))===JSON.stringify(A.svGridPlan(_simple)));
-  /* AUCUN BLOC PERDU NI DUPLIQUÉ — l'invariant que le brief demande d'écrire AVANT le lot :
-     l'ensemble des blocs placés est exactement l'ordre de `flowPlan`. */
-  eq('aucun bloc perdu ni dupliqué',
-     G.nodes.filter(n=>n.k==='block'||n.k==='band').map(n=>n.id).sort(),
-     A.flowPlan(_simple).order.slice().sort());
-  ok('le tronc est centré : quatre pistes sur six, une libre de chaque côté',
-     G.nodes.filter(n=>n.k==='block'&&n.id==='b1').every(n=>n.col===2&&n.span===4));
-  ok('la fourche prend l’étendue ENTIÈRE du contexte',
-     G.nodes.filter(n=>n.k==='fork').every(n=>n.col===1&&n.span===6));
-  ok('un bras de fourche par branche, au CENTRE de chacune',
-     G.nodes.filter(n=>n.k==='fork').every(n=>n.bras.length===2));
-  ok('les options se posent sur les pistes de leur branche',
-     G.nodes.filter(n=>n.k==='opt').map(n=>n.col+':'+n.span).join(' ')==='1:3 4:3');
-  /* LA REPRISE DE LARGEUR — le tronc revient à sa position dès que les branches sont closes. */
-  ok('branches closes → le tronc reprend sa place',
-     G.nodes.some(n=>n.k==='block'&&n.id==='b4'&&n.col===2&&n.span===4));
-  ok('une seule ligne par nœud, jamais deux nœuds au même endroit',
-     new Set(G.nodes.map(n=>n.row+'/'+n.col)).size===G.nodes.length);
-  /* UNE BRANCHE PROFONDE PLUS LARGE QUE SA PARENTE — la propriété qui a motivé tout le lot. */
-  const _deep=_pf([{id:'b1',kind:'do',next:'d1'},
-    {id:'d1',kind:'decision',options:[{label:'long',target:'b2'},{label:'court',target:'z'}]},
-    {id:'b2',kind:'do',next:'b3'},{id:'b3',kind:'do',next:'b4'},{id:'b4',kind:'do',next:'b5'},
-    {id:'b5',kind:'do',next:'b6'},{id:'b6',kind:'do',next:'b7'},{id:'b7',kind:'do',next:'z'},
-    {id:'z',kind:'do'}]);
-  const D=A.svGridPlan(_deep);
-  ok('la branche longue prend CINQ pistes — plus que le tronc qui en a quatre',
-     D.nodes.some(n=>n.k==='block'&&n.id==='b2'&&n.span===5));
-  ok('la sortie d’une ligne garde sa piste',
-     D.nodes.some(n=>n.k==='opt'&&n.span===1));
-  /* FICHE SANS DÉCISION : le tronc seul, à quatre pistes sur six, sans grille dégénérée. */
+     JSON.stringify(A.svTreePlan(_simple))===JSON.stringify(A.svTreePlan(_simple)));
+  eq('aucun bloc perdu ni dupliqué', _ids(G).sort(), A.flowPlan(_simple).order.slice().sort());
+  eq('la colonne racine a la largeur d’auteur (A4, gouttières déduites)', G.root.w, A.SV_COL);
+  ok('deux branches à contenu → une FOURCHE côte à côte, deux colonnes de même largeur',
+     G.root.rows.some(r=>r.k==='fork'&&r.brs.length===2&&G.cols.find(c=>c.id===r.brs[0].colId).w===G.cols.find(c=>c.id===r.brs[1].colId).w));
+  ok('…qui se réunissent sur le bloc commun : les deux branches continuent, le bloc commun est marqué',
+     G.root.rows.some(r=>r.k==='fork'&&r.merge==='lr'&&r.mergeTo==='b4')&&G.root.rows.some(r=>r.k==='cell'&&r.id==='b4'&&r.merged));
+  ok('chaque branche finit par une pilule « continuer » — la vérité textuelle, avant le dessin',
+     G.cols.filter(c=>c.kind==='fl'||c.kind==='fr').every(c=>{const l=c.rows[c.rows.length-1];return l.k==='pill'&&l.kind==='cont'&&l.to==='b4';}));
+  // UNE SEULE BRANCHE À CONTENU = la suite du tronc, dans la même colonne ; l'autre option s'ÉCRIT.
+  const _one=_pf([{id:'b1',kind:'do',next:'d1'},
+    {id:'d1',kind:'decision',options:[{label:'suite',target:'b2'},{label:'sortie',target:'z'}]},
+    {id:'b2',kind:'do',next:'b3'},{id:'b3',kind:'do',next:'z'},{id:'z',kind:'do'}]);
+  const O=A.svTreePlan(_one);
+  eq('une seule branche à contenu : tout reste dans la colonne racine', O.cols.length, 1);
+  eq('…et sans pilule vers le bloc qui suit (le tronc continue, le trait suffit)', O.root.rows.filter(r=>r.k==='pill').length, 0);
+  ok('l’option qui n’est qu’un renvoi devient une ligne « aller à » DANS la décision',
+     O.root.rows.some(r=>r.k==='dec'&&r.alts.some(a=>a.kind==='out'&&a.tgt==='z')&&r.alts.some(a=>a.kind==='go'&&a.tgt==='b2')));
+  ok('…tracée comme une SORTIE (voie de droite → haut du numéro) ; la cible prend de l’air',
+     O.edges.some(e=>e.k==='exit'&&e.to==='z')&&O.root.rows.some(r=>r.id==='z'&&r.tgt));
+  // TROIS BRANCHES OU PLUS = un RAIL ; une fourche dans une colonne déjà partagée aussi.
+  const _rail=_pf([{id:'d1',kind:'decision',options:[1,2,3].map(i=>({label:'o'+i,target:'x'+i}))}]
+    .concat([1,2,3].map(i=>({id:'x'+i,kind:'do',next:'j'}))).concat([{id:'j',kind:'do'}]),'d1');
+  const Rl=A.svTreePlan(_rail);
+  eq('trois branches à contenu → trois rangées de rail, en retrait de 32 px',
+     [Rl.root.rows.filter(r=>r.k==='lvl').length, Rl.cols.filter(c=>c.kind==='rail').every(c=>c.w===A.SV_COL-32)], [3,true]);
+  ok('la dernière rangée du rail est marquée (le rail s’arrête à son équerre)',
+     Rl.root.rows.filter(r=>r.k==='lvl').pop().last===true);
+  ok('les branches du rail se réunissent par la voie intérieure sur le bloc commun',
+     Rl.edges.some(e=>e.k==='railMerge'&&e.to==='j'&&e.srcs.length===3));
+  const _nest=_pf([{id:'b1',kind:'do',next:'d1'},
+    {id:'d1',kind:'decision',options:[{label:'g',target:'g1'},{label:'d',target:'d2'}]},
+    {id:'g1',kind:'do'},
+    {id:'d2',kind:'decision',options:[{label:'a',target:'a1'},{label:'b',target:'b2'}]},
+    {id:'a1',kind:'do'},{id:'b2',kind:'do'}]);
+  const Nn=A.svTreePlan(_nest);
+  ok('une fourche DANS une colonne de fourche devient un rail (jamais moins de ~280 px par cellule)',
+     Nn.cols.some(c=>c.kind==='fr'&&c.rows.filter(r=>r.k==='lvl').length===2)&&!Nn.cols.some(c=>c.kind!=='root'&&c.rows.some(r=>r.k==='fork')));
+  // RETOURS : même colonne → voie de gauche ; depuis une fourche vers le bloc d'avant → collecteur.
+  const _loop=_pf([{id:'b1',kind:'do',next:'d1'},
+    {id:'d1',kind:'decision',options:[{label:'a',target:'a1'},{label:'b',target:'b2'}]},
+    {id:'a1',kind:'do',next:'d1'},{id:'b2',kind:'do',next:'d1'}]);
+  ok('deux branches qui reviennent à la décision : UN collecteur sous la fourche, deux sources',
+     A.svTreePlan(_loop).edges.some(e=>e.k==='collect'&&e.to==='d1'&&e.srcs.length===2));
+  const _self=_pf([{id:'b1',kind:'do',next:'b2'},{id:'b2',kind:'do',next:'b1'}]);
+  ok('retour dans la même colonne : voie de gauche de CETTE colonne',
+     A.svTreePlan(_self).edges.some(e=>e.k==='loop'&&e.to==='b1'&&e.col==='c0'));
   const _lin=_pf([{id:'b1',kind:'do',next:'b2'},{id:'b2',kind:'do'}]);
-  const L=A.svGridPlan(_lin);
-  ok('procédure linéaire : que du tronc, aucune fourche',
-     L.nodes.every(n=>n.k!=='fork'&&n.k!=='opt')&&L.nodes.filter(n=>n.k==='block').every(n=>n.col===2&&n.span===4));
-  eq('fiche vide → aucun nœud', A.svGridPlan(A.migrate({id:'v',title:'v',blocks:[]})).nodes, []);
-  /* REPLI — plus de branches que de pistes : on EMPILE à pleine étendue plutôt que d'émietter.
-     « En cas de doute, le repli est le rendu simple, jamais le rendu embrouillé. » */
-  const _many=_pf([{id:'d1',kind:'decision',options:[1,2,3,4,5,6,7].map(i=>({label:'o'+i,target:'x'+i}))}]
-    .concat([1,2,3,4,5,6,7].map(i=>({id:'x'+i,kind:'do'}))),'d1');
-  const M=A.svGridPlan(_many);
-  ok('sept branches sur six pistes → empilement à pleine étendue, jamais des pistes à zéro',
-     M.nodes.filter(n=>n.k==='opt').every(n=>n.span===6)&&M.nodes.every(n=>n.span>=1));
+  ok('procédure linéaire : une colonne, aucune arête à mesurer, la fin DANS la dernière cellule',
+     A.svTreePlan(_lin).cols.length===1&&A.svTreePlan(_lin).edges.length===0&&A.svTreePlan(_lin).root.rows.some(r=>r.id==='b2'&&r.fin));
+  eq('fiche vide → aucune rangée', A.svTreePlan(A.migrate({id:'v',title:'v',blocks:[]})).root.rows, []);
 
   group('Lot Page — le cartouche');
   /* ⚠ L'AVERTISSEMENT DE VALIDATION est le seul point du lot qui touche à la sécurité : une
      feuille imprimée et affichée au mur sans « générée par IA — à relire et valider » est un
      danger. Le motif est celui que le prompt d'import IMPOSE. */
-  const _sw=['Recos SFAR 2024 — SFAR, 2024','Fiche générée par IA le 03/08/2026 à partir de la source ci-dessus — à relire et valider avant usage.'];
+  const _sw=['Recos sédation 2024 — société savante, 2024','Fiche générée par IA le 03/08/2026 à partir de la source ci-dessus — à relire et valider avant usage.'];
   eq('l’avertissement de validation est reconnu', A.svValidWarn({sources:_sw}).length, 1);
-  eq('…et il ne compte pas comme une source', A.svSources({sources:_sw}), ['Recos SFAR 2024 — SFAR, 2024']);
-  eq('pas d’avertissement → rien à annoncer', A.svValidWarn({sources:['SFAR 2024']}), []);
+  eq('…et il ne compte pas comme une source', A.svSources({sources:_sw}), ['Recos sédation 2024 — société savante, 2024']);
+  eq('pas d’avertissement → rien à annoncer', A.svValidWarn({sources:['Recos 2024']}), []);
   eq('aucune source → aucune des deux listes',
      [A.svValidWarn({}),A.svSources({})], [[],[]]);
   /* Le compte du cartouche est celui de `carryParts` — un seul calcul — plus les posologies, la
