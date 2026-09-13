@@ -1,4 +1,4 @@
-# Aides cognitives — Lignes directrices du design (v5.0, relu v5.19.5)
+# Aides cognitives — Lignes directrices du design (v5.0, relu v5.29.4)
 
 PWA médicale monofichier, utilisée **en urgence vitale, sous stress** : la clarté et la
 robustesse priment sur toute considération esthétique. Tout choix de design se juge à
@@ -18,6 +18,31 @@ versions, dont tout le chantier du partage de session, **puis à la v4.55 pendan
 chantier v5** : il a décrit trois surfaces supprimées (le rail ①②③, le mode lecteur, la
 bascule Guidé/Statique) jusqu'à ce que l'auteur le demande. À relire à chaque lot qui
 touche une surface — c'est la seule protection dont il dispose.
+
+> **RELECTURE v5.29.4 (13/09/2026).** Dix lots depuis la relecture précédente (v5.20 à v5.29,
+> A286-A344). Les sections dont la SURFACE a changé sont réécrites ci-dessous, et **cinq faits
+> carrément FAUX** ont été corrigés — aucun n'était visible à la relecture, parce que le fichier
+> ne décrivait pas une surface DISPARUE mais une surface REMPLACÉE :
+> - **l'échelle typographique** s'est refermée sur SEPT AUTRES crans en v5.6 (§ Typographie) —
+>   le fichier donnait encore `19 · 18 · 16,5 · 15,5` et une bande d'affichage séparée ;
+> - **la largeur du rail de lecture** est un token unique depuis A310 (§ Grille & formes) ;
+> - **`#crisisCtrl` / `#crisisDock`**, encore donnés ici comme l'architecture du mode crise,
+>   sont purgés depuis la v5.6 : l'état est monté dans une CAPSULE, les commandes sont
+>   descendues dans un DOCK (§ Patterns signés) ;
+> - **« police système »** : trois familles sont EMBARQUÉES depuis la v5.6 (§ Typographie) ;
+> - **l'échelle des rayons** tient en quatre crans `--r-1..4`, la pilule n'existe plus
+>   (§ Grille & formes).
+>
+> Ce qui a été repris, avec son adresse dans `docs/decisions/` (index : `docs/README.md`) :
+> - **Le mode crise** — capsule + dock (refonte v5.6), arrivée du quai (A331, lot v5.26), fin
+>   de session au pied du volet et du rail (A336), menu ⋯ qui cesse de répéter le dock (A337).
+> - **La Page** — l'ancien « mode statique » n'existe plus : l'arbre EST le fil (A344, lot
+>   v5.29), une colonne de largeur A4 dont la colonne des numéros est la surface de dessin.
+> - **Le partage** — le sans-serveur (A198-A221, lot v5.14) et tout le chantier « seamless »
+>   (A317-A329, A332) : l'app choisit le canal, l'état visible tient en UN mot.
+> - **L'accueil** — méta d'une rangée refaite (A338), gestion descendue au pouce (A287),
+>   gestionnaire de catégories en liste et palette OKLCH (A308-A316), `homeScope()` (A304).
+> - **Les garde-fous** — 24 contrôles `check-*`, 21 harnais d'audit (§ Les garde-fous).
 
 > **RELECTURE v5.19.5 (audit, 31/08/2026).** Les PRINCIPES de ce fichier (couleur, registres,
 > typographie, saillance, cascade, garde-fous) restent exacts ; sa nomenclature a été vérifiée
@@ -106,11 +131,23 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
 
 ## Typographie
 
-- Police système (`--sans`) ; mono (`--mono`, tabular-nums) réservée aux valeurs qui
-  défilent (chronos, compteurs, numéros d'étape) et aux codes courts.
-- **ÉCHELLE FERMÉE — sept paliers de texte** : `19 · 18 · 16,5 · 15,5 · 13,5 · 12 · 11`,
-  plus une bande d'AFFICHAGE au-dessus de 20 px (`20 · 24 · 26 · 34 · 40`) pour les chronos
-  et le moniteur, qui n'entrent pas en concurrence avec du texte. La feuille portait
+- **TROIS FAMILLES EMBARQUÉES** (refonte v5.6), donc identiques hors ligne et d'un appareil à
+  l'autre : `--f-ui` (Manrope) pour l'interface, `--f-mono` (IBM Plex Mono, tabular-nums) pour
+  les valeurs qui DÉFILENT — chronos, compteurs, numéros d'étape — et les codes courts,
+  `--f-title` (Source Serif 4) pour la marque. Chacune a sa pile de repli système déclarée, et
+  les anciens noms (`--sans`, `--mono`, `--serif`) y pointent. ⚠ Ce n'est plus « police
+  système », comme ce fichier l'a écrit jusqu'à la v5.29.4 — et une `font-family` posée en
+  clair est SILENCIEUSE : `check-fonts.mjs` l'interdit.
+- **Les sept crans sont des TOKENS, jamais des nombres** : `--t-cap` 11 · `--t-meta` 12 ·
+  `--t-body` 13,5 · `--t-item` 15 · `--t-step` 17,5 · `--t-step-l` 21 · `--t-val` 24. Le nom
+  dit l'EMPLOI — l'étape courante est `--t-step`, l'étape critique `--t-step-l`.
+- **ÉCHELLE FERMÉE — sept paliers, UNE SEULE BANDE** (refonte v5.6, A6) :
+  `24 · 21 · 17,5 · 15 · 13,5 · 12 · 11`. ⚠ **Ce n'est plus l'échelle `19 · 18 · 16,5 · 15,5`
+  décrite ici jusqu'à la v5.29.4**, ni la bande d'AFFICHAGE séparée (`20 · 24 · 26 · 34 · 40`)
+  qui la coiffait : le grand corps appartient désormais à l'ACTE et non au chrono — l'étape
+  courante monte à 17,5 px et l'étape critique à 21, là où un chrono trônait à 40 pendant
+  qu'une étape vitale plafonnait à 15,5. 24 px reste, comme cran haut des VALEURS mono
+  (`--t-val`, chrono d'alarme du volet). La feuille portait
   **seize** corps entre 10 et 19 px : deux textes à 13 et 13,5 px ne se lisent pas comme deux
   NIVEAUX, ils se lisent comme une inattention. `scripts/check-type.mjs` la fait respecter ;
   toute exemption est **nommée par son sélecteur et motivée** dans le script.
@@ -119,7 +156,11 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   de texte du produit — chaque déclaration était pourtant légale, donc rien ne pouvait le
   voir. `check-type` porte un CLIQUET (`PLANCHER_MAX`) posé au niveau atteint : la valeur ne
   peut que descendre. Il mesure des DÉCLARATIONS, pas des éléments à l'écran — il empêche la
-  dérive de s'aggraver, il ne prouve pas qu'elle a cessé.
+  dérive de s'aggraver, il ne prouve pas qu'elle a cessé. **Le cliquet est à 177 (v5.29.4), et
+  il a REMONTÉ**, ce que la règle interdit — chaque fois contre un ÉCHANGE écrit sur place :
+  les étiquettes des touches du dock, l'intitulé « ▤ Consulter », l'en-tête de la carte de bloc.
+  Du chrome REMPLACÉ, jamais ajouté, dans la refonte qui fait justement monter l'étape courante
+  à 17,5 px. Une remontée sans échange écrit est un échec.
 - **Deux valeurs de SERVICE qui ne sont pas des paliers** : `16` (plancher des champs sur
   écran tactile, contrainte du moteur) et `14` (l'un des quatre « A » du sélecteur de taille,
   dont l'écart de corps EST l'information).
@@ -135,14 +176,20 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   la moins critique passe en tonal (`--primary-soft`).
 - Grammaire des boutons de gestion : **pointillé** = créer, **contour** = gérer /
   secondaire, **plein** = action primaire.
-- En lecture, toutes les actions secondaires vivent dans le **menu ⋯** (rangées 44 px,
-  séparateurs entre groupes, action destructrice DERNIÈRE et rouge — jamais première).
-  **Ordre = logique ECAM E/WD → SD** : la conduite EN COURS d'abord (Complications,
-  Se repérer, Schéma, Consulter, Moniteur), puis le cycle de vie de la session, puis la
-  gestion, puis les exports. **Jamais deux entrées d'un même menu avec le même dessin**,
-  ni deux dessins quasi identiques côte à côte.
-- En crise, le chrome s'efface : aucune notification flottante qui ARRIVE, une seule zone
-  fixe en haut, jamais en bas.
+- En lecture, les actions secondaires vivent dans le **menu ⋯** : rangées de hauteur
+  PRÉVISIBLE (44 px, 52 avec sous-titre), intertitres, ouvertures en TUILES, action
+  destructrice DERNIÈRE, dans une rangée de danger encadrée en pied. **Ordre = logique ECAM
+  E/WD → SD** : la conduite EN COURS d'abord, puis le cycle de vie de la session, puis la
+  gestion, puis les exports. **Jamais deux entrées d'un même menu avec le même dessin**, ni
+  deux dessins quasi identiques côte à côte.
+- **EN SESSION, LE MENU NE RÉPÈTE PAS LE DOCK** (A337, lot v5.28) : Complications et Consulter
+  en SORTENT — ils sont à deux touches au pouce, et une double entrée fait hésiter sur laquelle
+  fait quoi (c'est la double entrée de la v4.26.1, reprise à l'envers). Ce qui décrit l'aide se
+  replie derrière « L'aide › ». Mesuré : **14 rangées → 7** pendant le soin.
+- En crise, le chrome s'efface : **aucune notification flottante qui ARRIVE**. La règle
+  « une seule zone fixe, en haut, jamais en bas » a été LEVÉE en v5.6, et il faut le dire —
+  elle visait les notifications, pas une surface de commandes stable : l'état vit en haut
+  (capsule), les commandes en bas (dock), sous le pouce (§ Patterns signés).
 
 ## Interaction
 
@@ -152,6 +199,14 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   clavier (Entrée/Espace). Le focus ne doit **jamais être masqué par une couche
   collante** (WCAG 2.2 § 2.4.11) : le défilement induit par le focus est celui du
   NAVIGATEUR, il ne se pilote que par `scroll-padding-top`.
+- **DANS UNE FENÊTRE, LE PIÈGE À TABULATION DÉPLACE LUI-MÊME LE FOCUS** (A313) : WebKit saute
+  les boutons par défaut et l'ordre natif SORTAIT de la fenêtre. Il pose aussi l'anneau à la
+  main — `:focus-visible` ne s'allume pas sur un focus programmatique ouvert à la souris
+  (A237), et un état juste mais invisible ne vaut rien. **Le halo est réservé aux boutons ; un
+  champ s'allume par sa BORDURE.** Le focus d'ouverture va sur l'ACTION, jamais sur la croix.
+- **Un halo de cible se vérifie en CAPTURE, pas en géométrie** (A278) : `elementFromPoint` au
+  centre et aux quatre coins. Un `::after` de 44 px peut être parfaitement dimensionné et ne
+  rien recevoir — c'est ce qui rendait deux survols inertes pendant des versions.
 - Action destructrice en crise = geste **« maintenir »** (jauge `--alarm` qui se
   remplit), jamais un simple tap ; la réinitialisation d'un minuteur ANNONCE ce qu'elle
   redonnera (« ↺ 05:00 »).
@@ -181,7 +236,8 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   rognaient en silence avant qu'on ne le décide. On rend les pixels par la **recette des
   écarts et rembourrages**, jamais par un renommage ni une seconde ligne.
 - **Paliers — ÉCHELLE FERMÉE ET AUTO-EXÉCUTOIRE depuis la v5.0.0** :
-  **360 · 400 · 430 · 480 · 560 · 640 · 780 · 924 · 1000 · 1200**.
+  **360 · 390 · 400 · 430 · 480 · 560 · 640 · 780 · 924 · 1000 · 1200** (onze depuis le lot
+  v5.18, qui a DÉCLARÉ 390).
   Elle était DÉCLARATIVE, et elle avait fui : **douze** paliers réels pour **neuf** déclarés
   — `480` et `924` n'y figuraient pas, et `900` y figurait sans exister nulle part. Une
   échelle fermée qui a fui est une échelle ouverte qu'on croit fermée.
@@ -191,12 +247,17 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   `779.98` et `780` comme UN seul palier.
   - **924 est DÉRIVÉ**, pas arbitraire : 860 (largeur de checklist) + 2 × 32 de marge, le
     point où la barre de compte-rendu peut se centrer sur la colonne.
+  - **390** est la largeur d'un iPhone courant : c'est le palier où le bouton de création de
+    l'accueil reprend son MOT (sous 390, la marque et le « ＋ » seul se partagent la ligne).
   - **480** vient de la rangée du vocabulaire du journal (v4.52.0). Il est désormais
     DÉCLARÉ ; son repli éventuel sur 430 reste un changement visible, donc une décision
     à prendre séparément.
 - Largeurs par vue : accueil = sidebar 255 px + grille ≤ 1320 px (coque FIXE ≥ 780 :
   seuls la sidebar et le contenu défilent) ; fiche ≤ 860 px + **rail de lecture dès
-  780 px**, 300 → 320 (≥ 1000) → 360 px (≥ 1200) ; protocole ≤ 780 px.
+  780 px**, dont la largeur est un TOKEN UNIQUE `--col-state` — **280 px de 780 à 999, 320 px
+  ≥ 1000** (A310 : le dock flottant lit le même token ; quand la valeur avait été recopiée en
+  littéral, il s'arrêtait 42 px avant la colonne). Au-delà de **1200**, une TROISIÈME colonne
+  d'orientation (`--col-orient`, 240 px) : plan | checklist | état. Protocole ≤ 780 px.
 - **Les éditeurs ne sont PAS alignés sur leur vue de lecture** — cette ligne l'affirmait,
   c'était faux et mesuré tel quel (1400 px rend 900 + 320, jamais 860 + 360). L'éditeur
   de FICHE est une colonne d'édition **fluide** (1fr) + aperçu sticky 320 px dès 1000 px ;
@@ -204,10 +265,12 @@ Le **logo de marque** (accueil seulement) est posé en **masque CSS** sur un apl
   changement visible, à décider séparément.
 - **Deux seuils distincts, à ne jamais refusionner** : 780 = rail de LECTURE ;
   1000 = aperçu en direct des ÉDITEURS.
-- **Rayons — ÉCHELLE FERMÉE** : `3 · 6 · 8 · 11 · 14 · 18 · 999` px
-  (`--radius` 14 cartes, `--radius-md` 11 boutons/champs, `--radius-sm` petits contrôles,
-  999 pastilles). Il y avait **dix-neuf valeurs distinctes pour trois tokens** ;
-  `scripts/check-radius.mjs` ferme la liste.
+- **Rayons — ÉCHELLE FERMÉE À QUATRE CRANS** (v5.6) : `--r-1` 8 · `--r-2` 10 · `--r-3` 12 ·
+  `--r-4` 14 px, les anciens noms y pointant (`--radius` = `--r-4` cartes, `--radius-md` =
+  `--r-3` boutons et champs, `--radius-sm` = `--r-1`). **La pilule n'existe pas** : `999` ne
+  survit que pour les chips de filtre, où la pilule EST la forme du composant, et `3` pour les
+  plus petits contrôles. Il y avait **dix-neuf valeurs distinctes pour trois tokens** ;
+  `scripts/check-radius.mjs` ferme la liste (`3 · 8 · 10 · 12 · 14 · 999`).
 - **Espacement — ÉCHELLE FERMÉE** (v5.0.0) : `0 · 1 · 2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 ·
   18 · 20 · 24 · 28 · 32 · 40 · 48 · 56 · 64 · 72 · 96` px. C'était la **moitié ouverte** du
   design system — 1 356 déclarations, aucun token, aucun garde-fou. L'échelle a été choisie
@@ -246,21 +309,42 @@ Trois réponses, et le choix se déduit de ce que coûte l'information cachée :
 - **Barre d'en-tête claire** (couleur du fond) : la couleur d'identité se retire dans
   les accents ; en lecture le titre remplace la marque, et le « ‹ » porte le TITRE de la
   fiche d'origine quand on est arrivé par un lien (pile de retour, plafond 8).
-- **DEUX RANGÉES COLLANTES, DEUX NATURES** (v4.25.0) — `#crisisCtrl` (les COMMANDES :
-  bascule de mode, ⤢ Se repérer, ⤢ Consulter) **au-dessus** de `#crisisDock` (l'ÉTAT :
-  chrono de session, minuteurs). C'est l'architecture ECAM à la lettre : sur un Airbus
-  les commandes vivent sur l'ECP, un panneau DISTINCT de l'affichage. Fusionnées, elles
-  se disputaient la place à chaque ajout ; séparées, l'arbitrage disparaît.
-  - Dans les commandes : le MODE d'abord (il gouverne l'existence de « Se repérer »),
-    puis un écart FIXE, puis les deux ouvertures — l'écart sépare les deux natures sans
-    ajouter de trait, et il est fixe, non `flex:1` (pousser les ouvertures au bord droit
-    les éloignerait de tout sur grand écran).
-  - Dans l'état, ordre FIXE `⤢ Plan · ● Session · minuteurs` : les constants AVANT la
-    partie variable, sinon un contrôle placé après un nombre variable de minuteurs ne
-    peut rester immobile qu'ancré au bord (vide central) ou avec des créneaux vides
-    (trou). La constance positionnelle est la règle cardinale d'une zone d'état.
-  - **Le bandeau de crise reste BLANC** : un aplat rouge permanent désensibilise au
-    rouge. Le statut s'annonce en TEXTE (« ■ Mode crise »).
+- **LE MODE CRISE A DEUX OBJETS : une CAPSULE d'état en haut, un DOCK de commandes au pouce**
+  (refonte v5.6, lot 2). ⚠ Ceci REMPLACE les « deux rangées collantes » `#crisisCtrl` /
+  `#crisisDock` (v4.25.0) décrites ici jusqu'à la v5.29.4 — la rangée de commandes est purgée
+  depuis la v5.6, et `check-ids` a trouvé trois lecteurs fantômes qui la cherchaient encore.
+  L'ESPRIT de la v4.25.0 est conservé — commandes ≠ état, c'est l'architecture ECP/ECAM d'un
+  Airbus — mais sa FORME est inversée : l'état MONTE dans la capsule (matière système, jamais
+  occultée), les commandes DESCENDENT sous le pouce. Mesuré : chrome haut **175 → ~112 px** à
+  390 px, trois `border-bottom` empilés en moins.
+  - **« Chrome bas proscrit » a été rouverte FRONTALEMENT**, et la règle visait autre chose :
+    les NOTIFICATIONS FLOTTANTES (règle 11), pas une surface de commandes STABLE. Trois risques
+    nommés et traités au code : zone sûre iOS, clavier virtuel (le dock s'efface au focus d'un
+    champ — le clavier EST la surface de saisie) et 320 px (touches au glyphe seul,
+    `aria-label` conservé).
+  - **Quatre touches de largeur égale, à position CONSTANTE** : ⤢ Tout voir · ▤ Consulter (les
+    OUVERTURES) · ⚡ Complications · ⏱ Noter l'heure (les GESTES). **Une seule est REMPLIE** —
+    « Noter l'heure », le geste le plus fréquent d'une réanimation et le seul qui ÉCRIVE sans
+    rien ouvrir. Hors session, deux touches seulement : Exercice au CONTOUR, « Démarrer la
+    session » REMPLI ; les deux jeux ne coexistent jamais. Règle du ⚡ : une seule complication
+    → son NOM en toutes lettres, plusieurs → « Complications · n » — un nombre n'est jamais nu.
+  - **Les volets montent du dock sur GESTE, jamais spontanément** : fermeture triple (re-tap de
+    la touche, ✕ ≥ 44 px, tap hors volet), hauteur plafonnée à **~45 % de la fenêtre** — jamais
+    plein écran, le contexte reste lisible au-dessus. L'alarme reste TOUJOURS en vue, la
+    capsule étant en HAUT et les volets en BAS (règle FMA de l'ECAM). L'occultation COMMANDÉE
+    est conforme ECAM/QRH ; ce que la doctrine interdit est l'occultation NON commandée.
+  - **Dans la capsule, l'ordre des segments est FIXE, les constants AVANT la partie variable**
+    (les minuteurs) : un contrôle placé après un nombre variable de segments ne peut rester
+    immobile qu'ancré au bord (vide central) ou avec des créneaux vides (trou). La constance
+    positionnelle est la règle cardinale d'une zone d'état. Au **cockpit** (≥ 1200 px), la
+    capsule monte DANS l'en-tête (`body.chrome-hdr`) : même contenu, même ordre.
+  - **Le bandeau de crise reste BLANC** : un aplat rouge permanent désensibilise au rouge. Le
+    statut s'annonce en TEXTE (« ■ Mode crise »). Il porte en outre l'étape ① du partage,
+    COMPRESSÉE (A327-A328) — jamais une seconde pilule.
+  - **LA FIN DE SESSION SE LIT LÀ OÙ LA SESSION SE LIT** (A336, lot v5.28) : une rangée
+    « Terminer la session… » au pied du VOLET (écran étroit) et du RAIL (écran large), au
+    contour, qui annonce sa « confirmation demandée » — la fenêtre reste la seule porte. UN
+    SEUL bouton permanent, aucun rappel : les formes refusées sont listées dans le lot.
 - **Une bascule de mode est un SÉLECTEUR SEGMENTÉ, jamais un interrupteur** : « Guidé » et
   « Statique » sont deux modes PAIRS, aucun n'est la négation de l'autre. Un bouton d'état
   y serait ambigu — dit-il où je suis ou où je vais ? — et l'erreur coûterait le
@@ -303,21 +387,28 @@ fréquence d'usage), **répertoire A→Z**, **rail alphabétique** (tap = saut, 
 il DISPARAÎT s'il ne tient pas en hauteur — jamais de lettres coupées). En recherche : liste
 plate triée par pertinence, avec extraits contextuels.
 
-**La rangée du répertoire est à hauteur FIXE (71 px)** — le défaut d'origine n'était pas le
-style mais la hauteur VARIABLE (52 à 86 px mesurés selon le repli des pilules) : un annuaire
-sans pas régulier ne se parcourt pas. Titre sur 2 lignes, **méta sur UNE seule**, ellipsée —
-et son ORDRE est celui de l'importance, puisque c'est la QUEUE qui tombe : nature, état,
-discriminant, catégorie, puis code et date, qui sont ce qu'on peut perdre. La méta est du
-**texte séparé par des points, jamais une suite de chips** : une chip a une largeur
-incompressible et se coupe net, un texte s'ellipse proprement. Deux natures d'items : les
-**DURS** (chrono, registre, statut, date, nature) ne rétrécissent jamais — un chiffre amputé
-est pire qu'absent ; les **SOUPLES** rétrécissent chacun pour soi, donc le plus long cède le
-plus et aucun ne disparaît.
+**Le PAS de la rangée est régulier, sa hauteur ne l'est pas** — le défaut d'origine n'était pas
+le style mais la hauteur VARIABLE (52 à 86 px mesurés selon le repli des pilules) : un annuaire
+sans pas régulier ne se parcourt pas. Mais une hauteur FIXE clippait l'extrait de recherche en
+plein milieu d'une ligne. La rangée est donc bornée PAR LE BAS et jamais figée : **60 px** dans
+la liste éditoriale, **71** en recherche (l'extrait s'ajoute), **76** sous 360 px effectifs, où
+la méta prend deux lignes.
 
-⚠ **Les 71 px sont le rythme de l'ANNUAIRE, pas une propriété de la rangée.** En RECHERCHE
-elle porte en plus l'extrait contextuel, et la hauteur fixe le clippait en plein milieu d'une
-ligne : sous `.dir-grid.flat` elle reprend sa hauteur naturelle, `min-height` gardant le pas —
-donc deux hauteurs possibles, jamais N.
+**La méta dit UNE IDENTITÉ à gauche et UN ÉTAT à droite** (A338, lot v5.28) — et cet ordre-là
+n'est plus celui d'une queue qui tombe :
+
+- à gauche, l'**identité** : nature · discriminant · ● catégorie, alignés sur la LIGNE DE BASE
+  (nature 11 px, texte 12 px) ;
+- à droite, **un seul état, en MOTS**, le plus urgent l'emportant :
+  *En cours* (chrono vivant) › *Brouillon* › *À relire* › *À compléter* › *Sans date* ›
+  *À revérifier* › *Validée + date*. **Sans glyphe, sans point, sans mono** : l'ambre y signifie
+  « cela attend quelque chose de VOUS », rien d'autre.
+- ce qui s'abrège est **la catégorie, puis le discriminant — jamais la nature, jamais l'état**.
+  Sous 360 px effectifs, identité et état ne tiennent pas sur une ligne (mesuré : 268 px pour
+  208) : l'état passe SOUS l'identité, sur TOUTES les rangées — jamais sur certaines seulement.
+
+La méta reste du **texte séparé par des points, jamais une suite de chips** : une chip a une
+largeur incompressible et se coupe net, un texte s'ellipse proprement.
 
 **« Session en cours » cumule trois canaux à coût nul** : liseré au registre CONFIRMATION,
 teinte de rangée, et la DATE qui cède la place au **chrono vivant** (une place déjà prise —
@@ -340,6 +431,24 @@ ce qu'est une aide, on lui doit un résultat et pas un cours.
 un geste qu'on ne fait jamais sous stress. Mais **un état actif ne se cache JAMAIS** — dès
 qu'un filtre est posé, les rangées sont rendues en permanence et le déclencheur disparaît ;
 un filtre caché serait bien pire que trois rangées permanentes.
+
+**LA GESTION DESCEND AU POUCE** (A287, lot v5.20) : la rangée de gestion quitte le socle sous
+780 px et rejoint la pilule d'accès — le patron de « Rejoindre une session », qui n'invente
+aucune fenêtre. Au-dessus de 780, elle reste la barre du haut.
+
+**Le gestionnaire de catégories est une LISTE** (A308-A316, lot v5.22) : rangées de 44 px,
+« Ajouter » en tête, **une seule palette ouverte à la fois**, repliée derrière un bouton
+« palette » quand la couleur est un preset. Les couleurs se choisissent sur un anneau **OKLCH
+L 0,48 · C 0,08** — la chroma maximale tenable dans le gamut, où les deux contrastes tiennent
+par construction, avec un garde-fou de proximité de 4,0 ΔE ; l'anneau est ANCRÉ sur les presets
+(écart nul aux treize degrés), un degré ne rendant jamais deux couleurs. Sur « Toutes », une
+BANDE COLLANTE par bibliothèque reprend le dessin d'une rangée d'accueil.
+
+**Une seule source dit OÙ l'on est** : `homeScope()` (A304). Le champ `state.scope` est MORT à
+l'accueil depuis la refonte v5.18 — sept de ses lecteurs ont survécu et disaient faux (une
+commande « Sélectionner » morte, une destination qui vidait la liste). Corollaire de méthode :
+**rendre VARIABLE une condition jusque-là constante oblige à re-vérifier qui la rejoue** — le
+bouton de création restait périmé au tap de la colonne.
 
 ## Les placards — exercice, invité (v4.27.0 / v4.55.4)
 
@@ -387,6 +496,29 @@ annexes (journal, galerie, documents, note).
   pas démarré**, puis **replié en une ligne qui annonce son compte** (lot T3) — 126 px
   rendus à 320 px. Le registre, le glyphe et le mot restent : seule la surface part.
 
+## L'écran de démarrage d'une aide (A330, lot v5.25)
+
+Avant la session, l'écran d'entrée se lit comme un **écran de démarrage**, pas comme une fiche
+en réduction : **trois chapitres de même niveau, SANS numéro** — « ■ Quand l'utiliser »,
+« ■ Ne pas oublier », « Parcours » —, dont les intitulés SORTENT de leurs cadres (un titre
+enfermé dans sa carte se lit comme une étiquette, pas comme un chapitre).
+
+- **L'aperçu du plan est À PLAT** : ni carte, ni « 0/4 », ni « ICI ». Rien n'a commencé —
+  afficher un compteur à zéro ou une position, c'est annoncer un état qui n'existe pas.
+- **Rien ne démarre tant qu'on consulte**, et le rail « En session » le dit : les minuteurs y
+  sont « à lancer ». Seul le chrono de session part au démarrage.
+- Sur-titre « Avant la session », Tableau et Schéma à largeur de CONTENU sous le titre, queue
+  sous filet. Les formes REFUSÉES par l'auteur sont listées dans le lot — ne pas les
+  reproposer.
+
+**IL RESTE UN GESTE APRÈS AVOIR OUVERT UNE CARTE, ET LE QUAI LE DIT** (A331, lot v5.26) : à
+l'arrivée sur une fiche, la capsule se relève UNE FOIS, puis trois anneaux s'en éloignent —
+**fini à 4,8 s**, sous les 5 s de WCAG 2.2.2, et **jamais de boucle**. L'anneau entoure la
+CAPSULE, jamais le bouton seul. Tant qu'aucune session n'a été démarrée sur l'appareil, une
+bulle d'apprentissage vit 16 px au-dessus du dock — statique, donc hors 2.2.2 — puis plus
+jamais. Formes refusées : fondu en boucle, onde débordante, anneau DANS le bouton, marque
+rouge sur le bouton.
+
 ## Le rail de LECTURE, dès 780 px (v4.23.0)
 
 Action et orientation de front — l'idéal ECAM (E/WD et SD simultanés). De haut en bas :
@@ -416,8 +548,12 @@ nomme une **densité** : combien de la fiche on veut voir.
 
 - **Un bloc** — le journal chronologique : ce que je fais, maintenant.
 - **Toute la fiche** — un conteneur à **trois onglets** : **Parcours** (les cartes de blocs
-  avec leurs items, inertes), **Page** (l'aide entière sur une feuille, l'arbre dans la colonne des numéros), **Schéma** (le SVG
-  navigable, avec son zoom et son plein écran).
+  avec leurs items, inertes), **Page** (l'aide entière sur une feuille de largeur A4, l'arbre
+  tracé dans la colonne des numéros — § La Page), **Schéma** (le SVG navigable, avec son zoom
+  et son plein écran).
+  ⚠ **La Page n'a qu'UN axe vertical** (A343) : la fenêtre qui la porte défilait elle-même en
+  plus du document, sur les deux moteurs. Le défileur du SCHÉMA, lui, garde le sien — il a un
+  contenu plus large que l'écran, ce que la Page n'a jamais.
 
 **Le sélecteur segmenté `#modeSeg` a été SUPPRIMÉ**, et c'est le cœur de la décision : un
 segmenté **remplace la vue de travail et ne ramène personne**. On prend du recul, on trouve
@@ -491,26 +627,63 @@ qu'UNE fois. Sa numérotation est **COMMUNE** à toutes les vues (journal, chips
 - **Registre jamais masqué par un état** : un bloc de DÉCISION garde sa bordure ambre même
   quand il est le bloc courant. La POSITION est portée, elle, par la pilule « VOUS ÊTES
   ICI » — un canal par signification.
+- **La numérotation vient de `flowPlan`, et elle numérote LE TRONC D'ABORD** (A344) : les
+  arêtes de retour sortent de la post-dominance, une convergence est le post-dominateur commun
+  à DEUX options au moins, et les sorties se chaînent APRÈS le tronc. Elle est COMMUNE au
+  journal, au Parcours, à la Page et au Schéma — c'est ce qui autorise « ↺ reprendre à n ».
+- **LE RETRAIT DE PROFONDEUR EST UN TOKEN ADDITIF** (`--pl-ind` : 12 · 24 · 32, A339) ajouté à
+  la gouttière de CHAQUE régime, jamais une échelle absolue. Quatre échelles absolues
+  coexistaient et chaque régime les effaçait par un raccourci `padding` plus spécifique :
+  étiquettes de branche toutes au même x avant le soin, **toutes les rangées à 10 px en
+  session — un arbre plat**, et les trois retraits de l'aperçu n'avaient JAMAIS rien fait. Le
+  témoin qui gardait l'alignement était vert PARCE QUE tout était à plat : il ne comparait pas
+  les niveaux ENTRE EUX.
 
-## Mode statique — le tableau (v4.13.0 / v4.14.0)
+## La Page — l'arbre EST le fil (A344, lot v5.29)
 
-Toute l'aide en **cellules télégraphiques carrelées** à joint 3 px, dans l'esprit des aides
-cognitives imprimées. Tronc = cellules pleine largeur ; décision = **bande au registre ATTENTION**
-(titre + question) + branches en colonnes ; **une seule colonne sous 640 px**, avec
-indentation et rail de branche (la fourche étant masquée en pile, rail + chip portent la
-structure).
+Toute l'aide sur **une feuille de largeur A4 (740 px)**, référence en pied. Elle remplace le
+« mode statique » en cellules carrelées décrit ici jusqu'à la v5.29.4 : mesuré avant, une aide
+à quinze blocs faisait **2 432 px de large** à 1130 px de fenêtre, ajustée à 32 % sur un
+téléphone — corps de 3,5 px, c'est-à-dire illisible. Après : 740 × 2 992, et **48 % à 390 px**.
 
-- **INERTE côté cochage**, comme le plan : l'état de session est PEINT en lecture seule.
-- Taper une cellule = y aller. **Jamais de démarrage de session, jamais de défilement** :
-  rien ne bouge sous le doigt (flash d'acquittement).
+- **Le NUMÉRO est l'ancre de tout trait** : une entrée arrive par le haut, un retour par la
+  gauche. La **colonne des numéros EST la surface de dessin** — tronc plein, fourche = barre +
+  descentes, rail à équerres au-delà de deux branches. Tronc, fourche et rail sont en CSS à
+  géométrie locale, **sans aucune mesure** ; seules les voies se mesurent.
+- **Une sortie s'ÉCRIT avant de se tracer** : « SI … ALLER À n », puis un pointillé par la voie
+  de droite. La ligne écrite est la vérité ; le trait la confirme.
+- **La destination est une PASTILLE encadrée** — « CONTINUER ↓ 4 » au registre de la décision
+  (ambre plein), « ALLER À 7 » / « REVENIR À 2 » au registre des voies (bleu pointillé). Elle
+  donne au trait un bord d'où partir : **une sortie part du bord de la PASTILLE, un retour du
+  bord de la BOÎTE** (depuis la pastille, il barrait le libellé de sa propre ligne).
+- **UN BUS, PAS N TRAITS SUPERPOSÉS** : trois décisions qui sortent vers le même bloc
+  descendent dans UN couloir (615 px l'un sur l'autre, mesurés, avant correction) ; les lignes
+  le rejoignent par un tiret. Registre de couloirs partagé — une abscisse prise glisse de 5 px.
+- **Un trait ne croise jamais rien**, et ce n'est pas une intention : la sonde d'audit compare
+  chaque segment du calque à chaque cellule des deux fiches réelles, et le compte doit être
+  ZÉRO. ⚠ Sa première écriture était AVEUGLE (recouvrement sur deux axes pour un segment
+  d'épaisseur nulle) ; corrigée, vérifiée capable d'échouer, elle a trouvé deux vrais défauts.
+- **Cellules façon ECAM** : case · libellé · points de conduite · réponse mono à droite, ou
+  dessous quand la largeur manque. « ▪ FIN » est un mot dans le bloc terminal, jamais un
+  symbole isolé au milieu de la feuille.
+- **INERTE côté cochage**, comme le plan : l'état de session y est PEINT en lecture seule.
+  Taper une cellule = y aller ; jamais de démarrage de session, jamais de défilement sous le
+  doigt (flash d'acquittement).
 - **AUCUN texte bleu dans les cellules** : le bleu ne marque QUE la position (● ici) et la
-  reprise ↺. La réponse attendue y est une pilule mono **neutre**.
-- Les flèches (fourche ambre, convergence grise, retours bleus) sont **mesurées après
-  rendu**. Empilé, elles disparaissent : **la flèche n'est jamais seule**, l'information
-  reste textuelle.
-- **L'intitulé de décision est COLLANT sous 640 px** : en pile, la bande-question sortait de
-  l'écran pendant qu'on lisait ses étapes — 844 px de contenu lus sans elle, mesuré, contre
-  0 px côte à côte. Le bornage à ce palier n'est pas esthétique, c'est la borne du problème.
+  reprise ↺. La réponse attendue est une pilule mono **neutre**.
+
+**À l'impression, la feuille EST la page** (210 mm, rembourrage calculé pour garder la largeur
+d'auteur au pixel près — sinon reflux, et les voies mesurées désignent le mauvais bloc). Les
+marges horizontales ne viennent pas de `@page`, qu'un moteur peut ignorer en ajoutant les
+siennes puis en réduisant la feuille. **« Exporter en PDF » imprime LA PAGE**, jamais la vue
+d'ensemble d'une session en cours (le gestionnaire `beforeprint` la forçait depuis la v4.18.0 :
+on imprimait le journal du soin en croyant imprimer l'aide).
+
+**Le paginateur MESURE, donc il connaît ses sauts** : hauteur utile mesurée par un témoin en
+millimètres, blocs insécables dans l'ordre du flux, saut posé avant celui qui déborderait — et
+les chemins, écrits en POINTS, sont **coupés aux frontières et décalés** : un trait sort en bas
+d'une page et reprend en haut de la suivante, à la bonne cellule. Il **renonce et le dit** si un
+bloc dépasse une page entière ; un intitulé de branche ne finit jamais une page seul.
 
 ## Listes d'étapes — normal = LIGNE, signalé = BOÎTE
 
@@ -561,11 +734,18 @@ du REGISTRE, l'écart est un ÉTAT DE LA PASSE — la pilule, mot + glyphe, suff
 **Garde-fou télégraphique** non bloquant : un bloc > 7 étapes ou un challenge > 110
 caractères est signalé à la rédaction — une checklist ne se lit pas en paragraphes.
 
-## Partage de session en direct (v4.46.0 → v4.55.4)
+## Partage de session en direct (v4.46.0 → v5.26, A198-A221 et A317-A332)
 
 Une session de crise se remplit à plusieurs : l'hôte partage, un invité rejoint par code
 ou QR, **sans avoir installé l'app**. C'est le premier chantier qui fait sortir une
 session de l'appareil.
+
+**IL PEUT SE PASSER DE SERVEUR** (A198-A221, lot v5.14) : quand le cloud est injoignable, la
+session voyage en direct entre deux appareils du même réseau, ou **PAR L'ÉCRAN** — des QR
+affichés et lus d'un téléphone à l'autre, décodés par une bibliothèque vendorisée. C'est la
+deuxième exception à la règle zéro-dépendance du projet, et elle a été prise comme telle. Ce
+qui ne change pas d'un pixel : le format transmis. Un secours optique ne transporte pas plus
+que le cloud.
 
 **Règle fondatrice : le partage est un miroir ADDITIF, jamais une dépendance.** Aucun
 chemin d'interface n'attend un appel réseau — ni au tap, ni au rendu, ni à la fin de
@@ -596,6 +776,41 @@ contre 70 %, où **le lecteur tenait l'unique appareil** — convergent.
 **Sur l'ambiguïté « qui fait quoi »** (§5.5, qu'Airbus supprime en n'ayant qu'un seul ECP),
 la réponse constante du projet : **on n'interdit pas, on ANNONCE** — une avance venue d'en
 face pose « avancé par ‹rôle› » sur la carte courante, à côté de « Vous êtes ici ».
+
+### Le canal se choisit TOUT SEUL, et il se DIT (A317-A329, lots v5.23-v5.24)
+
+Demande de l'auteur : « le maître mot c'est seamless ». Le transport a donc cessé d'être une
+question posée à l'utilisateur — mais il n'est jamais devenu invisible pour autant.
+
+- **UN SEUL ÉTAT VISIBLE : « ● Partagé »**, quel que soit le canal. Le transport se lit dans la
+  feuille et aux transitions, pas dans la zone d'état — un soignant n'a pas à savoir par quel
+  tuyau passe sa session.
+- **L'app décide** : serveur joignable → en ligne ; serveur muet + adresse locale → en direct ;
+  sinon PAR L'ÉCRAN d'office (QR). Plus de sélecteur en tête de feuille, mais une **ligne
+  d'état (mode + raison)** et des **étapes NUMÉROTÉES dont le bouton EST l'étape** (hôte
+  ① Montrer ② Recevoir ; invité ① Recevoir ② Renvoyer ; ③ refaire). La porte de secours est
+  nommée : « Mode : automatique › ».
+- **Une panne se détecte en moins de 5 s** (la sonde tranche au premier raté) et **la transition
+  se VOIT** : un mot de 8 s au quai, par une PORTE UNIQUE (`slSay`) — jamais deux chemins qui
+  annoncent le même fait. Les cinq dernières transitions sont horodatées dans un **journal du
+  lien**, en mémoire seulement, montré dans les deux feuilles.
+- **Le retour en ligne se fait SEUL** après une panne (trois sondes OK, ≥ 60 s en direct, feuille
+  fermée, invités à ramener) — **jamais contre un choix manuel**. Au réveil, un hôte aux canaux
+  morts revient seul si le retour est armé ; sinon il lit « ● Lien à refaire ».
+- **« Connexion perdue » est un ÉTAT, pas un silence** (A324-A325) : une source unique, une
+  rangée ambre de 41 px dans le quai collant, quatre gestes nommés (Recevoir · Renvoyer ·
+  Montrer la progression · Se reconnecter) et un « ⓘ Pourquoi ». L'hôte comme l'invité
+  retrouvent leur session après un rechargement, par un billet de reprise.
+- **Ce que la panne fait aux GESTES** (A332) : l'arrêt d'un minuteur est daté à l'heure de
+  l'ÉVÈNEMENT chez l'autre, jamais à l'heure de la charge ; l'hôte n'est jamais refusé pour
+  péremption (sa coche, faite lien figé, était perdue) ; et le bridage d'un invité périmé **se
+  VOIT et se DIT**. Un invité que plus rien n'atteint lit « △ Hôte silencieux · ① Recevoir » —
+  l'absence de nouvelles est une information, pas un écran qui ment.
+
+**LA PASSATION DE LA MAIN EST BORNÉE** (A302) : le rôle ne borne QUE le fil. Les droits de
+PROPRIÉTÉ — arrêter, couper, rouvrir, réécrire un rôle — ne se transfèrent jamais, et l'hôte
+n'est jamais bridé sur son propre écran. « Reprendre la main » existe comme PORTE : un
+mécanisme sans porte est un piège.
 
 ### Ce que le partage n'a PAS le droit de faire à l'écran
 
@@ -707,8 +922,16 @@ Le mouvement est un signal, pas une décoration. En situation de soin :
   l'animation, sans changer le rendu d'un pixel**. Le gain est de la MARGE CPU et de
   l'AUTONOMIE sur appareil lent, pas de la fluidité : ne pas le vendre pour autre chose.
   Les propriétés de PEINTURE seule (couleurs, ombres, contours) ne sont pas concernées.
-- Le mouvement est réservé à l'alarme : minuteurs et chapeau « Ne pas oublier » n'animent
-  jamais. Tout est inerte sous `prefers-reduced-motion`.
+- Le mouvement est réservé à l'alarme et à **une seule invitation, bornée** : l'arrivée du
+  quai (A331 — une relevée, trois anneaux, fini à 4,8 s, jamais de boucle). Minuteurs et
+  chapeau « Ne pas oublier » n'animent jamais. Tout est inerte sous `prefers-reduced-motion`.
+- **RESTAURER UNE POSITION DE DÉFILEMENT, C'EST LE FAIRE DEUX FOIS** (A340) : tout en bas d'un
+  protocole, fermer une photo remontait la page — la restauration n'était pas fausse mais TROP
+  TÔT. Mesuré sur iPhone : la position est juste juste après la fermeture, puis WebKit repose
+  la sienne (0) à la frame SUIVANTE. Elle se repose donc aussi APRÈS le layout, sans jamais
+  contrarier un geste en cours, et pour TOUTES les fenêtres. Corollaire de témoin : trente
+  configurations de banc étaient vertes — **un témoin doit MODÉLISER l'anomalie du moteur**,
+  pas seulement rejouer le geste.
 - **Piège de mesure** : le réglage de taille du texte est un zoom CSS — toute mesure relue
   doit être divisée par ce zoom avant d'être réinjectée.
 - **Toute sonde qui lit une géométrie après `focus()` doit ATTENDRE** (v4.45.0) : sur
@@ -779,16 +1002,27 @@ Un garde-fou ne rend pas le système pur, il **l'empêche de dériver**. Ceux du
 | Contrôle | Ce qu'il ferme |
 |---|---|
 | `check-colors` | aucun hex hors DÉCLARATION de token |
-| `check-type` | sept paliers de texte + bande d'affichage, **et un QUOTA du plancher** |
-| `check-space` | 21 valeurs d'espacement |
-| `check-radius` | sept rayons |
-| `check-paliers` | les dix paliers de largeur, comparés au code |
+| `check-type` | sept paliers de texte, **et un QUOTA du plancher** (cliquet) |
+| `check-space` · `check-radius` | 21 valeurs d'espacement · sept rayons |
+| `check-paliers` | les onze paliers de largeur, comparés au code |
+| `check-fonts` | trois familles embarquées, trois tokens (une `font-family` en clair est muette) |
 | `check-anim` | aucune propriété de MISE EN PAGE animée |
 | `check-classes` | toute classe émise est stylée, et réciproquement |
+| `check-ids` · `check-tokens` · `check-fns` | un id, un token, une fonction : **déclaré ↔ lu**, dans les deux sens |
 | `check-icons` | aucun nom d'icône fantôme (un nom absent rend un `<svg>` VIDE, en silence) |
 | `check-syntax` | la feuille de style parse (un commentaire mal fermé AVALE la règle suivante) |
+| `check-ring` | la respiration du bord de découpe d'une fenêtre (l'anneau de focus entier) |
+| `check-stick` | rien ne s'ancre sur `--hdr-h` sans compter le décalage du clavier |
+| `check-actions` · `check-actest` | un `data-*` émis a un lecteur ; une clé de test est citée |
 
-Et côté mesure, `npm run audit` (18 harnais qui MESURENT au lieu d'affirmer) : `audit-a11y`
+Les vingt-quatre `check-*` jouent en une seconde, sans dépendance : c'est ce qui permet de les
+exiger à CHAQUE commit. Les trois symétriques (`ids`, `tokens`, `fns`) sont nés ROUGES — ils
+ont trouvé, le jour de leur écriture, un token LU mais jamais déclaré (`--hover` : deux survols
+inertes en production) et vingt croix mortes.
+
+Et côté mesure, `npm run audit` (**21 harnais** qui MESURENT au lieu d'affirmer, joués en
+parallèle et en TRANCHES — une passe complète tient en ~4 min là où la chaîne séquentielle en
+coûtait 10 et cachait tout ce qui suivait le premier rouge) : `audit-a11y`
 balaye les surfaces **et les états** — il n'ouvrait que le repos, et deux violations AA ont
 vécu à l'écran sans qu'il les voie ; `audit-budget` mesure une **répartition** (chrome ≤ 30 %
 de la hauteur, au moins une étape cochable visible), le seul qui ne juge pas une propriété
@@ -848,3 +1082,31 @@ restait vert pendant que la date disparaissait chez l'utilisateur.
   `differentials`) : elles sont devenues des items à RÔLE dans le pool `items[]`. C'est la
   levée explicite de la règle 12, avec un chemin de reprise écrit AVANT le changement et
   vivant hors de l'application (`docs/conversion-v3-vers-v4.md`).
+
+**Retraits des lots v5.6 à v5.29** (tous vérifiés au grep — une purge à moitié faite est pire
+qu'aucune purge, règle 14) :
+
+- **La rangée de commandes `#crisisCtrl`** (v5.6) : ses ouvertures sont devenues deux touches du
+  dock. Trois lecteurs la cherchaient encore en v5.10.2, dont un qui recalculait sa hauteur à
+  chaque évènement de défilement — pour un élément inexistant.
+- **Le tableau de l'accueil ≥ 1200 px, `home-slim` et les « rescues »** (lot v5.18) : une seule
+  liste éditoriale, quelle que soit la largeur.
+- **Le bouton de filtres ≥ 780 px** (lot v5.18) : les deux clés de la sidebar FILTRENT
+  directement — un filtre posé ne se cache jamais derrière un bouton.
+- **Le pied du moniteur** (`.mon-foot`, `.mb-dot b` — A342) : la bande portait déjà un point par
+  repère, mais ANONYME, pendant que le pied disait quoi et quand sans position — deux objets
+  pour un fait. Le dernier repère se pose désormais SUR la bande, à son instant.
+- **La grille de la feuille et sa colonne latérale** (`svGridPlan`, `.sv-fk`, `.sv-r`, A344),
+  avec les paliers d'écran qui l'ajustaient : la Page a une largeur d'auteur, elle ne s'ajuste
+  plus.
+- **L'emoji ⚡** (A335) : remplacé sur quinze sites par un glyphe REMPLI (`--bolt`) — un emoji
+  change de dessin avec le système, ce qu'un registre ne peut pas se permettre. Il survit dans
+  les `<option>` d'un sélecteur natif, qui n'accepte pas de SVG.
+- **Six tokens morts et vingt `#id` morts** (A280, A289) : trouvés par les garde-fous
+  symétriques le jour de leur écriture. Le cas inverse valait plus cher encore — `--hover`
+  était LU par deux règles et n'avait jamais été DÉCLARÉ : deux survols inertes en production,
+  invisibles à toute relecture, puisque chaque ligne prise isolément était légale.
+- **L'instrumentation des relances iOS** (A307) : elle part avec son diagnostic, clos par la
+  mesure — 33 relances complètes pour 109 reprises sur 7 jours, aucune cause d'éviction
+  retenue. **Le poids du monofichier est un non-sujet runtime** : les octets de source pèsent
+  quelques pour cent d'un processus WebKit.
