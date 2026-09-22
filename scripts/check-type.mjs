@@ -46,10 +46,13 @@ const AFFICHAGES = PALIERS;
 /* Exemptions NOMMÉES par leur sélecteur, avec leur motif. Une exemption anonyme ne vaut rien —
    elle rouvre la porte qu'on vient de fermer. */
 const EXEMPTIONS = [
-  /* v5.6 : les quatre « A » du sélecteur de taille sont désormais QUATRE CRANS DE L'ÉCHELLE
-     (12 · 13,5 · 15 · 17,5) — l'échantillon montre le système au lieu d'y faire exception. */
+  /* v5.6 : les quatre « A » du sélecteur de taille sont désormais TROIS CRANS DE L'ÉCHELLE
+     (12 · 15 · 17,5 — v5.30, maquette v5) — l'échantillon montre le système au lieu d'y faire exception. */
   { rx: /input|textarea|select|\.auth-field|\.tg-row|\.join-sel|coarse/i, val: 16,
     motif: 'plancher de 16 px des champs sur écran tactile (règle 9)' },
+  /* v5.30 (maquette v5, exception ASSUMÉE par l'auteur) : le titre de l'écran de bienvenue — un
+     écran hors crise, vu une fois — est composé à 38 px, hors échelle. Nulle part ailleurs. */
+  { rx: /\.wl-t/, val: 38, motif: 'titre de l’écran de bienvenue (exception assumée, maquette v5)' },
 ];
 
 const src = await readFile(ROOT + 'index.html', 'utf8');

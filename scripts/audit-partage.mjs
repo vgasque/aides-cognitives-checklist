@@ -221,13 +221,19 @@ await sec(`PARTAGE · un décochage distant ne recompose pas le journal`, async 
        le nœud d'avant n'est plus dans le document, le DOM a été refait. C'est exactement le mode
        de défaillance mesuré en v4.42.0 — le nœud sous le doigt détaché, et le tap avalé. */
     const temoin = document.querySelector('[data-ck="' + CSS.escape(cibles[0].dataset.ck) + '"]');
-    const avant = temoin ? temoin.getBoundingClientRect().top : null;
+    /* La dérive se mesure PAR RAPPORT AU JOURNAL : sous charge, la sonde de lien peut déclarer
+       « Connexion perdue » pendant la mesure et poser sa rangée de 41 px dans le quai collant — le
+       fil descend d'un bloc sans être reconstruit (mesuré : dérive absolue 41, deux passes
+       complètes). Ce que le témoin garde, c'est la position DANS le fil. */
+    const rel = () => temoin ? temoin.getBoundingClientRect().top - (temoin.closest('.ov-journal') || document.body).getBoundingClientRect().top : null;
+    const avant = rel(), avantAbs = temoin ? temoin.getBoundingClientRect().top : null;
     Share.onEvents([{ seq: 9, id: 'e9', actor: 'autre', kind: 'uncheck', payload: { k } }]);
     await new Promise(x => setTimeout(x, 300));
     return { banniere, attache: !!(temoin && document.contains(temoin)),
       decoche: !state.checked[k], flowEnded: state.flowEnded,
-      derive: (avant != null && temoin && document.contains(temoin))
-        ? Math.round(temoin.getBoundingClientRect().top - avant) : null };
+      derive: (avant != null && temoin && document.contains(temoin)) ? Math.round(rel() - avant) : null,
+      deriveAbs: (avantAbs != null && temoin && document.contains(temoin)) ? Math.round(temoin.getBoundingClientRect().top - avantAbs) : null,
+      lien: (typeof slLink === 'function') ? JSON.stringify(slLink()) : null };
   });
   // Sans cette garde, la sonde ne traverserait pas la branche et passerait au vert pour rien.
   t('la bannière de fin est bien présente (la branche est atteinte)', r.banniere === true);
@@ -235,7 +241,8 @@ await sec(`PARTAGE · un décochage distant ne recompose pas le journal`, async 
   t('l’état de fin d’algorithme est remis à false', r.flowEnded === false);
   t('le journal n’est PAS reconstruit (le nœud d’avant est TOUJOURS attaché)', r.attache === true,
     'nœud détaché : le DOM a été refait sous le doigt');
-  t('et rien ne bouge (≤ 1 px)', r.derive !== null && Math.abs(r.derive) <= 1, `dérive ${r.derive}`);
+  t('et rien ne bouge dans le fil (≤ 1 px)', r.derive !== null && Math.abs(r.derive) <= 1,
+    `dérive ${r.derive} (absolue ${r.deriveAbs}, lien ${r.lien})`);
   await page.close();
 }
 });
@@ -701,10 +708,14 @@ for (const [w, h] of [[390, 844], [744, 1133], [760, 900], [1280, 900]]) {
        dans les mêmes conditions, plutôt qu'à une valeur écrite à la main. */
     const monTop = mes(document.querySelector('#shareModal .ai-top'));
     const monX = mes(document.querySelector('#shareModal .ai-x'));
-    closeShareSheet(); openCatMgr(); await new Promise(x => setTimeout(x, 250));
-    const refTop = mes(document.querySelector('#catModal .ai-top'));
-    const refX = mes(document.querySelector('#catModal .ai-x'));
-    closeCatMgr(); openShareSheet(); await new Promise(x => setTimeout(x, 250));
+    /* v5.30 (A352) : la référence est un DIALOGUE de même coque (feuille pleine largeur < 780,
+       carte 480 au-delà) — « Gérer les catégories » est devenu une page-fenêtre (gabarit document,
+       ✕ en pastille) et « Affichage » reste centrée sous 780. « Nouvelle bibliothèque », par sa
+       vraie porte (elle demande l'administrateur). */
+    closeShareSheet(); myIsAppAdmin = true; openNewLib(); await new Promise(x => setTimeout(x, 250));
+    const refTop = mes(document.querySelector('#newLibModal .ai-top'));
+    const refX = mes(document.querySelector('#newLibModal .ai-x'));
+    closeNewLib(true); openShareSheet(); await new Promise(x => setTimeout(x, 250));
     const partCard = !!document.querySelector('#shareModal .ai-card');
     closeShareSheet(); Share.stop();
     // 2. L'écran d'entrée de l'invité.
@@ -1146,7 +1157,7 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
        après le lot — on mesurait un écart entre deux objets, pas un déplacement. Même leçon qu'en
        A65 : à travers un re-rendu, on re-interroge le DOM — et l'on vérifie que le sélecteur
        désigne encore la même chose. */
-    const REPERE = '.annex-row';
+    const REPERE = '.local';   /* v5.30 (A354) : la rangée Consulter est partie — l'info locale est le dernier contenu */
 
     /* ⚠ ET ON LUI DONNE DE QUOI DÉFILER (v5.6, A46). Une fois garé sous le bas du bout, il ne
        restait que 46 px avant la borne de défilement — donc un document qui rétrécit de plus de
@@ -2071,7 +2082,10 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
    l'opacité serait vert des deux côtés et ne prouverait rien. */
 await sec(`PARTAGE · le menu ⋯ reste flottant sous un placard — moteur ${NOM_MOTEUR}`, async () => {
 {
-  const page = await br.newPage({ viewport: { width: 390, height: 844 } });
+  /* A361 : sous 780 px le menu ⋯ est une FEUILLE fixée sur <body> — le placard ne peut plus
+     l'atteindre ; le menu ANCRÉ, seul exposé à la règle, se mesure à 1000 px. La feuille se
+     vérifie ensuite à 390 : fixée, hors de l'en-tête, sans rallonger la barre. */
+  const page = await br.newPage({ viewport: { width: 1000, height: 844 } });
   await session(page);
   const mesure = await page.evaluate(async () => {
     const out = {};
@@ -2097,6 +2111,21 @@ await sec(`PARTAGE · le menu ⋯ reste flottant sous un placard — moteur ${NO
     out.inv = await lire('inv');
     return out;
   });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await new Promise(x => setTimeout(x, 400));
+  const feuille = await page.evaluate(async () => {
+    const h = document.querySelector('header.bar');
+    h.classList.add('exo', 'ttl-on'); await new Promise(x => setTimeout(x, 300));
+    const h0 = h.getBoundingClientRect().height;
+    openMoreMenu(); await new Promise(x => setTimeout(x, 250));
+    const m = document.getElementById('moreMenu');
+    const r = { pos: getComputedStyle(m).position, surBody: m.parentNode === document.body,
+      bas: +(window.innerHeight - m.getBoundingClientRect().bottom).toFixed(1),
+      barre: +(h.getBoundingClientRect().height - h0).toFixed(1) };
+    closeMoreMenu(); h.classList.remove('exo', 'ttl-on'); return r; });
+  t('390 px : le menu ⋯ est une feuille fixée sur <body>, au bas de l’écran',
+    feuille.pos === 'fixed' && feuille.surBody && Math.abs(feuille.bas) <= 1, JSON.stringify(feuille));
+  t('390 px : … sans rallonger la barre', Math.abs(feuille.barre) <= 1, `${feuille.barre} px`);
   const { nu, exo, inv } = mesure;
   t('témoin : sans placard, le menu flotte sous l’en-tête',
     nu.pos === 'absolute' && nu.sousEnTete > 0, `${nu.pos} / +${nu.sousEnTete} px`);

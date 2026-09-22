@@ -53,7 +53,6 @@
      éclairci de 17/1a ; encre --on-sys-fill 8,7:1). PAS un alias de --act : ne pas le dériver en
      color-mix (la v5.6 a retiré ce bloc), ne pas le redéclarer en sombre. Le coût, nommé : le
      bleu du quai n'est plus le bleu de la page — déjà le régime des trois autres registres. */
-  --act-sys:#7ab3f0;
   /* Le ROUGE et l'ENCRE-SUR-APLAT de la matière système. Mêmes motifs que --warn-sys : la capsule
      et le dock sont sombres dans les DEUX thèmes, leurs registres ont donc des valeurs propres et
      FIXES — comme --lb-cap/--lb-ink pour la lightbox. --crit-sys tient 4,5:1 sur --sys (le --crit
@@ -72,12 +71,19 @@
   --f-title:'Source Serif 4',Georgia,'Times New Roman',serif;
   --t-cap:11px;--t-meta:12px;--t-body:13.5px;--t-item:15px;--t-step:17.5px;--t-step-l:21px;--t-val:24px;
   --w-ui:600;--w-strong:700;
+  /* A13, réaffecté v5.30 (maquette v5) : le glyphe de COMMANDE (‹ ⋯ ✕ chevrons) dans une touche
+     de 44 px monte à 17,5 — un cran de l'échelle, jamais une valeur libre. */
+  --g-cmd:17.5px;
   /* ─── 5. RAYONS — fermés à 4 crans, la pilule n'existe pas ──────────────────────────────
      Exception unique : les chips de filtre, où la pilule EST la forme du composant. */
   --r-1:8px;--r-2:10px;--r-3:12px;--r-4:14px;
+  --side-w:250px;   /* colonne gauche de l'accueil (planche large) : une largeur, trois lecteurs */
   /* ─── 6. OMBRE — une seule, sous la matière TRAVAIL ─────────────────────────────────────
      La nuit ne projette pas : elle borde (--shadow-work:none en sombre). */
   --shadow-work:0 6px 24px rgba(20,24,29,.06);
+  /* Le bloc COURANT en session porte en plus cette ombre (v5.30, maquette v5) : même encre, même
+     direction, un cran plus dense — la seule carte qui se détache. `none` la nuit, comme l'autre. */
+  --shadow-cur:0 12px 32px rgba(20,24,29,.12);
   /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
   /* LA GRILLE CANONIQUE EN TOKENS (7b) : orientation · action · état, et leur gouttière. Une
      seule source — le dock s'aligne dessus, et un changement de largeur de colonne n'a plus deux
@@ -131,7 +137,7 @@
      bande de flou backdrop-filter. La nuit ne projette pas (none en sombre) : la séparation vient
      de --sys-edge. Détail : doctrine-css.md C3. */
   --shadow-up:0 -12px 32px rgba(20,24,29,.26);
-  --shadow-bar:none;--shadow-primary:var(--shadow-work);--shadow-primary-sm:none;
+  --shadow-bar:none;--shadow-primary-sm:none;
   --scrim-soft:rgba(20,24,29,.45);--scrim:rgba(20,24,29,.55);--scrim-full:rgba(20,24,29,.92);
   /* Divers sans rapport avec la direction, conservés tels quels. --sab : la MARGE BASSE DU
      MATÉRIEL (indicateur d'accueil iPhone) exposée au JS — `env()` ne se lit pas depuis un

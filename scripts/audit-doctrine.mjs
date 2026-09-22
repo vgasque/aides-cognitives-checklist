@@ -36,7 +36,7 @@ await sec('ECAM · constance positionnelle du quai', async () => {
      ce qui l'occupe, c'est-à-dire l'AXE DE DENSITÉ et « Consulter ». L'invariant ECAM est
      inchangé (un contrôle est toujours au même endroit quel que soit l'état du quai) ; c'est la
      liste des contrôles qui a changé, pas la règle. */
-  const a=await snap(), pa=await geo('allBtn'), ra=await geo('refBtn');
+  const a=await snap(), pa=await geo('allBtn');   /* v5.30 (A354) : plus de touche Consulter */
   // faire varier l'état : ajouter des minuteurs (la partie VARIABLE du quai)
   const nAv=await page.evaluate(()=>Object.keys(Runtime.timers).length);
   await page.evaluate(async()=>{
@@ -51,10 +51,9 @@ await sec('ECAM · constance positionnelle du quai', async () => {
   await page.waitForTimeout(300);
   const nAp=await page.evaluate(()=>Object.keys(Runtime.timers).length);
   t('témoin : l\'état a bien varié (minuteurs ajoutés)', nAp>nAv, `${nAv} → ${nAp}`);
-  const b=await snap(), pb=await geo('allBtn'), rb=await geo('refBtn');
+  const b=await snap(), pb=await geo('allBtn');
   t('ordre du quai identique quel que soit l\'état', JSON.stringify(a)===JSON.stringify(b), a+'\n      → '+b);
   t('axe de densité immobile (px)', pa!==null&&pa===pb, `${pa} → ${pb}`);
-  t('bouton Réf. immobile (px)', ra===rb, `${ra} → ${rb}`);
   // Débordement JAMAIS silencieux : on fait ÉCHOIR 3 minuteurs d'intervalle, le quai n'en
   // montre que 2 en large — le 3ᵉ doit être annoncé par un « +n », jamais escamoté.
   const ov=await page.evaluate(async()=>{
@@ -98,8 +97,7 @@ await sec('AC 120-71B · memory items en accès direct', async () => {
   t('non recopié dans la feuille Consulter (source unique)', !r.dupRef);
   // QRH : la procédure abrégée reste sous les yeux, la référence est appelée
   const refInert=await page.evaluate(async()=>{
-    const rb=document.getElementById('refBtn');if(!rb)return 'pas de bouton';
-    rb.click();await new Promise(r=>setTimeout(r,350));
+    openRefSheet();await new Promise(r=>setTimeout(r,350));   /* v5.30 (A354) : la feuille n'a plus de touche au quai */
     const boxes=document.querySelectorAll('#refModal input[type=checkbox],#refModal .stp');
     const starts=document.querySelectorAll('#refModal [data-navgo],#refModal #sessStart');
     return {boxes:boxes.length,starts:starts.length};});
@@ -182,7 +180,11 @@ await sec('Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de t
         await new Promise(x=>setTimeout(x,60));
         const rows=[...m.querySelectorAll('.mm-row')];
         const der=rows.length?rows[rows.length-1].getBoundingClientRect():null;
-        const out={bas:+b.bottom.toFixed(1),visible:+visible.toFixed(1),n:rows.length,
+        // A361 : la FEUILLE (fixée) descend jusqu'au bord — sa marge basse porte --sab ; c'est sa
+        // dernière rangée qui doit rester au-dessus de l'indicateur, et elle est mesurée ci-dessous.
+        const feuille=getComputedStyle(m).position==='fixed';
+        const out={bas:+b.bottom.toFixed(1),visible:+(feuille?((vv&&vv.height)?vv.height:window.innerHeight):visible).toFixed(1),
+          derMax:+visible.toFixed(1),n:rows.length,
           derBas:der?+der.bottom.toFixed(1):null,derHaut:der?+der.top.toFixed(1):null};
         closeMoreMenu();
         document.documentElement.style.removeProperty('--sab');
@@ -191,7 +193,7 @@ await sec('Chrome · le menu ⋯ tient dans l\'écran (390/430 × 4 tailles de t
       t(`${nom} : le menu tient dans la zone visible`, r.bas<=r.visible+0.5,
         `bas ${r.bas} px / visible ${r.visible} px (${r.n} rangées)`);
       t(`${nom} : la dernière rangée est atteignable`,
-        r.derBas!=null&&r.derBas<=r.visible+0.5&&r.derHaut>=0,
+        r.derBas!=null&&r.derBas<=r.derMax+0.5&&r.derHaut>=0,
         `dernière rangée ${r.derHaut}–${r.derBas} px / visible ${r.visible} px`);
     }
   }
@@ -238,15 +240,15 @@ await sec('ECAM · dock de session sans rognage (320/360/375/390)', async () => 
       `bord droit ${r.right} px / viewport ${r.vw} px`);
     t(`aucun rognage par le conteneur à ${w} px`, r.right<=r.bordInterne+0.5&&r.deborde<=0.5,
       `dernière touche à ${r.right} px, bord interne ${r.bordInterne} px, débordement ${r.deborde} px`);
-    t(`les quatre touches tiennent sur UNE rangée à ${w} px`, r.rangs===1&&r.n===4,
+    t(`les quatre touches tiennent sur UNE rangée à ${w} px`, r.rangs===1&&r.n===4,   /* v5.30 (A354) : Consulter parti */
       `${r.n} touche(s) sur ${r.rangs} rangée(s)`);
     /* A2 — à 320 px les OUVERTURES perdent leur étiquette, jamais leur nom accessible ; les
        GESTES gardent leurs mots à toutes les largeurs, parce qu'ils ÉCRIVENT. */
     t(`le nom accessible de chaque touche est intact à ${w} px`,
-      /Tout voir|Revenir|bloc/i.test(r.aria)&&/Consulter/i.test(r.aria)
+      /Tout voir|Revenir|bloc/i.test(r.aria)
       &&/Noter/i.test(r.aria)&&/omplication/i.test(r.aria), r.aria);
     if(w>=360) t(`les libellés visibles sont intacts à ${w} px`,
-      /Tout voir|Un bloc/i.test(r.libelles)&&/Consulter/i.test(r.libelles), r.libelles);
+      /Tout voir|Un bloc/i.test(r.libelles)&&/Fin/.test(r.libelles), r.libelles);
   }
   /* SOUS LA PLUS GRANDE TAILLE DE TEXTE — le trou de couverture qui avait produit le défaut de la
      v4.73.1 : le réglage de taille du texte est un `zoom` sur `<html>`, la place réellement
@@ -263,7 +265,7 @@ await sec('ECAM · dock de session sans rognage (320/360/375/390)', async () => 
       t(`${w} px à ${z} % : le dock tient sur UNE rangée`, r.rangs===1,
         `${r.n} touche(s) sur ${r.rangs} rangée(s)`);
       t(`${w} px à ${z} % : les noms accessibles sont intacts`,
-        /Tout voir|Revenir|bloc/i.test(r.aria)&&/Consulter/i.test(r.aria), r.aria);
+        /Tout voir|Revenir|bloc/i.test(r.aria)&&/Terminer/i.test(r.aria), r.aria);
     }
   }
   await page.evaluate(()=>applyZoom(100));
@@ -384,7 +386,7 @@ await sec('Lot Page · une seule grille, la même image aux trois formats', asyn
     /* PAS `amorce()` ici, à dessein : cette sonde injecte SA fiche et ne pose pas les exemples —
        le clic « Commencer » seul n'est pas une copie du geste partagé, c'est un autre trajet. */
     await page.evaluate(async f=>{
-      const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
+      const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');if(b)b.click();
       await new Promise(r=>setTimeout(r,120));
       const nf=migrate(JSON.parse(JSON.stringify(f)));await Data.put(nf);fiches.push(nf);
       state.view='read';state.fiche=nf;state.readMode='static';render();
@@ -957,7 +959,7 @@ for (const w of [320, 360, 390, 430]) {
   /* v5.6 (A9) : la capsule a un gabarit CONSTANT de 50 px, quel que soit son état — le rappel
      « n minuteurs · n compteurs » habille un chevron qui existe déjà, il ne coûte rien. Le
      nombre change (52 → 50, la capsule ayant remplacé la rangée) ; la propriété, non. */
-  t(`${w} · … et sans coûter de hauteur (50 px)`, r.repos.h===50, `${r.repos.h} px`);
+  t(`${w} · … et sans coûter de hauteur (64 px, v5.30 — 56 sous 360 px effectifs)`, r.repos.h===(w<360?56:64), `${r.repos.h} px`);
   /* ⚠ CE TÉMOIN MESURAIT UN MÉCANISME, PAS UNE PROPRIÉTÉ (corrigé en v5.6). Il exigeait que le
      rappel S'EFFACE dès qu'un minuteur est armé — c'était la règle d'alors (`!want.length`), et
      elle avait un trou : quand la boucle d'ajustement RETIRE le segment faute de place, le rappel
@@ -1151,21 +1153,23 @@ await sec('T9 · une seule bibliothèque, le type en filtre', async () => {
        Le repli lui-même a ses propres témoins, juste en dessous. */
     const deplier=async()=>{const b=document.querySelector('[data-filttog]');if(b){b.click();await w(450);}};
     await deplier();
-    const px=()=>{const e=document.querySelector('.typebar [data-section].on');return e?(e.dataset.section||null):null;};
-    const crans=[...document.querySelectorAll('.typebar [data-section]')].map(e=>e.textContent.trim());
-    const actif=(document.querySelector('.typebar [data-section].on')||{}).textContent||'';
+    /* v5.30 (A353) : les crans de type sont le segment « Afficher » de la feuille Affichage. */
+    const cran=v=>document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`);
+    const px=()=>{const e=document.querySelector('#viewSheetBody [data-vs^="filt:"].on');return e?e.dataset.vs.split(':')[1]:null;};
+    const crans=[...document.querySelectorAll('#viewSheetBody [data-vs^="filt:"]')].map(e=>e.textContent.trim());
+    const actif=(document.querySelector('#viewSheetBody [data-vs^="filt:"].on')||{}).textContent||'';
     const tout=n(),pTout=px();
-    document.querySelector('.typebar [data-section="fiches"]').click(); await w(500);
+    cran('fiches').click(); await w(500);
     const aides=n(),pAides=px();
-    document.querySelector('.typebar [data-section="protocols"]').click(); await w(500);
+    cran('protocols').click(); await w(500);
     const prot=n(),pProt=px();
-    document.querySelector('.typebar [data-section="all"]').click(); await w(500);
-    await deplier();   // « Tout » = aucun filtre actif : la rangée s'est repliée, on la rouvre
+    cran('all').click(); await w(500);
+    closeViewSheet(); await w(300);
     state.q='décontamination';render();await w(500);
     const q=n();state.q='';render();await w(400);
     return {crans,actif,tout,aides,prot,q,pTout,pAides,pProt,nF:fiches.length,nP:protocols.length,
       tabbar:document.querySelectorAll('#tabBar,#tabSeg').length};});
-  t('le type est un FILTRE à trois crans', r.crans.join('|')==='Tout|Aides|Protocoles', r.crans.join('|'));
+  t('le type est un FILTRE à trois crans (+ « À relire », A349)', r.crans.join('|')==='Tout|Aides|Protocoles|À relire', r.crans.join('|'));
   /* « Tout » est le DÉFAUT : chercher un SUJET ne doit pas exiger de savoir d'abord de quel TYPE
      il est — c'est toute la thèse de R4. */
   t('… et « Tout » est ce qu\'on voit en arrivant', /Tout/.test(r.actif), r.actif);
@@ -1278,7 +1282,9 @@ await sec('Audit design · la feuille de filtres', async () => {
   await page.waitForFunction(()=>!document.querySelector('.boot-load'));
   await amorce(page);
   const r = await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const rangees=()=>document.querySelectorAll('.typebar,.scopebar,.catbar').length;
+    /* v5.30 (A353) : les familles sont les groupes de la feuille Affichage, comptés feuille OUVERTE
+       (son corps garde son contenu une fois fermée — compter le pli serait la leçon du rail, v5.4.3). */
+    const rangees=()=>document.getElementById('viewSheet').classList.contains('on')?document.querySelectorAll('#viewSheetBody .vs-g').length:0;
     const tog=()=>{const b=document.getElementById('filtTog');return b&&!b.hidden&&b.offsetParent?b:null;};
     /* On mesure le BORD DROIT : le déclencheur grossit du chiffre qu'il porte, mais il est le
        dernier objet de sa rangée — sa position apprise est celle de son bord droit. */
@@ -1295,8 +1301,8 @@ await sec('Audit design · la feuille de filtres', async () => {
        propriété du lot n'est plus « le repli remonte le contenu » (il n'y a plus de repli) mais
        « ouvrir ne déplace RIEN », ce qui est strictement plus fort. */
     const hdrH=()=>Math.round(document.querySelector('header.bar').getBoundingClientRect().height);
-    const feuille=()=>document.getElementById('filtSheet').classList.contains('on');
-    const familles=()=>[...document.querySelectorAll('#filtSheetBody .scope-lbl')]
+    const feuille=()=>document.getElementById('viewSheet').classList.contains('on');
+    const familles=()=>[...document.querySelectorAll('#viewSheetBody .vs-h')]
       .filter(e=>e.offsetParent!==null).length;
     /* v5.18 (décision utilisateur, maquette Zero) : HORS recherche, la pilule est SEULE — aucun
        déclencheur nulle part. Les filtres vivent dans la FONCTION RECHERCHE : chercher fait
@@ -1326,9 +1332,11 @@ await sec('Audit design · la feuille de filtres', async () => {
        contre le CHAMP DE RECHERCHE, et il y reste » : même rangée, à sa droite, dans l'écran. */
     /* v5.18 : le déclencheur vit dans la RANGÉE DE RECHERCHE, au-dessus de la pilule, dans le
        dock — la géométrie qui compte : au-dessus de la boîte, aligné à droite, dans l'écran. */
+    /* v5.30 (A353, changement d'avis de l'auteur) : le bouton ROND vit À GAUCHE de la recherche,
+       sur sa rangée, en permanence. */
     const geo=(()=>{const b=tog(),q=document.querySelector('.hdr-search .srch-box');
       if(!b||!q)return null;const rb=b.getBoundingClientRect(),rq=q.getBoundingClientRect();
-      return {auDessus:Math.round(rb.bottom)<=Math.round(rq.top)+1,
+      return {aGauche:Math.round(rb.right)<=Math.round(rq.left)+1&&Math.abs((rb.top+rb.bottom)-(rq.top+rq.bottom))<=4,
               h:Math.round(rb.height), w:Math.round(rb.width),
               dansDock:!!b.closest('#homeDock'),
               dansEcran:Math.round(rb.right)<=innerWidth};})();
@@ -1345,12 +1353,12 @@ await sec('Audit design · la feuille de filtres', async () => {
     tog().click(); await w(500);
     const ouvRangees=rangees(), ouvTog=!!tog(), yOuvert=yPremier();
     const ouvFeuille=feuille(), ouvFam=familles(), hOuvert=hdrH();
-    const piedAvant=(document.getElementById('filtSheetGo')||{}).textContent||'';
+    const piedAvant=(document.getElementById('viewSheetGo')||{}).textContent||'';
     const nRangees=document.querySelectorAll('.dir-row').length;
     /* On pose un filtre : à partir de là, le déclencheur doit le DIRE, et ne jamais s'en aller. */
-    document.querySelector('.typebar [data-section="fiches"]').click(); await w(500);
+    document.querySelector('#viewSheetBody [data-vs="filt:fiches"]').click(); await w(500);
     const actifRangees=rangees(), actifTog=!!tog(), actifEtat=etat();
-    const chipOn=!!document.querySelector('.typebar [data-section="fiches"].on');
+    const chipOn=!!document.querySelector('#viewSheetBody [data-vs="filt:fiches"].on');
     /* Et il doit le rester après un re-rendu complet, pas seulement juste après le clic. */
     render(); await w(500);
     const apresRender=rangees(), apresTog=!!tog(), apresEtat=etat();
@@ -1360,7 +1368,7 @@ await sec('Audit design · la feuille de filtres', async () => {
        cinq » (v4.70.1). On veut un ROUGE lisible, pas une exception. */
     tog()?.click(); await w(500);
     /* ⚠ ON MESURE LA FEUILLE, PLUS LE NOMBRE DE RANGÉES (v5.6). Les chips vivent désormais dans
-       `#filtSheetBody`, qui GARDE son contenu une fois la feuille fermée — compter les rangées
+       `#viewSheetBody`, qui GARDE son contenu une fois la feuille fermée — compter les rangées
        du document reviendrait à compter l'intérieur d'un pli, la leçon déjà payée sur le rail
        (v5.4.3). Ce qui compte est que la SURFACE soit refermée et que l'annonce demeure. */
     const repliActifRangees=feuille()?1:0, repliActifEtat=etat(), xRepliActif=bordD();
@@ -1372,31 +1380,30 @@ await sec('Audit design · la feuille de filtres', async () => {
       return {rangeePartie:!d||d.hidden,ligne:!!f,texte:f?f.textContent.trim():''};})();
     if(porte.ligne){document.querySelector('.dir-hf').click();await w(400);
       porte.ouvre=feuille();
-      if(porte.ouvre){document.getElementById('filtSheetGo').click();await w(300);}}
+      if(porte.ouvre){document.getElementById('viewSheetGo').click();await w(300);}}
     qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
     /* Deux filtres : le chiffre COMPTE, il ne se contente pas d'exister.
        ⚠ Les chips sont re-rendues à chaque geste : on RE-INTERROGE le DOM, une référence gardée
        d'avant le clic désignerait un nœud détaché et le geste ne ferait rien. */
     tog()?.click(); await w(400);
-    const cat2=[...document.querySelectorAll('.catbar [data-cat]')].find(b=>b.dataset.cat);
+    const cat2=[...document.querySelectorAll('#viewSheetBody [data-cat]')].find(b=>b.dataset.cat);
     const avaitCat=!!cat2; if(cat2)cat2.click(); await w(500);
     const deuxEtat=etat();
-    document.querySelector('.typebar [data-section="all"]').click(); await w(400);
-    document.querySelector('.catbar [data-cat=""]')?.click(); await w(500);
+    document.querySelector('#viewSheetBody [data-vs="filt:all"]').click(); await w(400);
+    document.querySelector('#viewSheetBody [data-cat=""]')?.click(); await w(500);
     const zeroEtat=etat();
     /* Le pied ANNONCE puis ferme : on mesure les deux, et que l'annonce du déclencheur reprenne
        la main derrière (l'état ne peut pas se perdre entre deux surfaces). */
     tog()?.click(); await w(400);
-    const cat3=[...document.querySelectorAll('#filtSheetBody [data-cat]')].find(b=>b.dataset.cat);
+    const cat3=[...document.querySelectorAll('#viewSheetBody [data-cat]')].find(b=>b.dataset.cat);
     if(cat3)cat3.click(); await w(400);
-    const piedApres=(document.getElementById('filtSheetGo')||{}).textContent||'';
+    const piedApres=(document.getElementById('viewSheetGo')||{}).textContent||'';
     const nApres=document.querySelectorAll('.dir-row').length;
-    document.getElementById('filtSheetGo').click(); await w(400);
+    document.getElementById('viewSheetGo').click(); await w(400);
     const fermee=!feuille(), etatApresPied=etat();
-    document.querySelector('#filtSheetClear')&&0;
     tog()?.click(); await w(300);
-    document.getElementById('filtSheetClear').click(); await w(400);
-    const apresClear=etat(); document.getElementById('filtSheetGo').click(); await w(300);
+    document.getElementById('viewSheetClear').click(); await w(400);
+    const apresClear=etat(); document.getElementById('viewSheetGo').click(); await w(300);
     return {hRepli,hOuvert,ouvFeuille,ouvFam,piedAvant,nRangees,piedApres,nApres,fermee,etatApresPied,apresClear,
             reposTog,reposRangee,chercheRangee,chercheChips,chipDirect,porte,
             repliRangees,repliTog,yRepli,xRepli,geo,apresScroll,ouvRangees,ouvTog,yOuvert,
@@ -1411,10 +1418,10 @@ await sec('Audit design · la feuille de filtres', async () => {
      chiffre en dur qui ne vaudrait que pour un état de connexion. */
   t('témoin : le cas est constitué (des rangées existent une fois dépliées)',
     r.ouvRangees>=2, `${r.ouvRangees} rangée(s)`);
-  /* v5.18 (décision utilisateur) : HORS recherche, la pilule est SEULE — les filtres vivent
-     dans la fonction recherche. */
-  t('hors recherche, la pilule est SEULE (aucun déclencheur, aucune rangée)',
-    r.reposTog===false&&r.reposRangee===false, `déclencheur ${r.reposTog}, rangée ${r.reposRangee}`);
+  /* v5.30 (A353, changement d'avis de l'auteur — renverse A238 sur ce point) : le bouton rond est
+     LÀ en permanence ; seules les chips de type suivent la recherche. */
+  t('hors recherche, le bouton rond est là et la rangée de chips absente',
+    r.reposTog===true&&r.reposRangee===false, `déclencheur ${r.reposTog}, rangée ${r.reposRangee}`);
   t('chercher fait paraître la rangée de filtres, crans de type compris',
     r.chercheRangee===true&&r.repliTog===true&&r.chercheChips.length===3,
     JSON.stringify(r.chercheChips));
@@ -1459,8 +1466,8 @@ await sec('Audit design · la feuille de filtres', async () => {
     JSON.stringify(r.apresClear));
   /* v5.0.3 posait le déclencheur CONTRE la recherche ; v5.18 (maquette Zero) le fait entrer
      DANS la boîte — plus d'îlot séparé sur téléphone. */
-  t('la rangée vit AU-DESSUS de la pilule, dans le dock',
-    !!r.geo&&r.geo.auDessus===true&&r.geo.dansEcran&&r.geo.dansDock===true,
+  t('le bouton vit À GAUCHE de la recherche, sur sa rangée, dans le dock',
+    !!r.geo&&r.geo.aGauche===true&&r.geo.dansEcran&&r.geo.dansDock===true,
     JSON.stringify(r.geo));
   /* ⚠ ET IL Y RESTE APRÈS DÉFILEMENT — c'est le défaut signalé : il changeait d'adresse selon
      l'endroit où l'on se trouvait dans la page. Le témoin mesure donc les DEUX états. */
@@ -1587,8 +1594,10 @@ await sec('Accueil · le verrou logo + mot-marque', async () => {
     await amorce(page);
     await page.waitForTimeout(250);
     const r = await page.evaluate(async ()=>{
-      const l=document.querySelector('.brand-logo');
-      if(!l||!l.offsetParent) return {pose:false};
+      /* v5.30 (A351) : dès 780 la marque vit dans la colonne (.hs-brand), plus dans l'en-tête. */
+      const l=[...document.querySelectorAll('.brand-logo')].find(e=>e.getClientRects().length);
+      if(!l) return {pose:false};
+      const host=l.closest('header.bar,.hs-brand');
       const img=new Image();img.src='logo-glyph.svg';await img.decode();
       const N=256,c=document.createElement('canvas');c.width=c.height=N;
       const x=c.getContext('2d');x.drawImage(img,0,0,N,N);
@@ -1596,8 +1605,8 @@ await sec('Accueil · le verrou logo + mot-marque', async () => {
       let x0=N,x1=-1;
       for(let j=0;j<N;j++)for(let i=0;i<N;i++)
         if(d[(j*N+i)*4+3]>12){if(i<x0)x0=i;if(i>x1)x1=i;}
-      const rl=l.getBoundingClientRect(),rb=document.querySelector('.brand').getBoundingClientRect();
-      const pad=parseFloat(getComputedStyle(document.querySelector('header.bar')).paddingLeft);
+      const rl=l.getBoundingClientRect(),rb=host.querySelector('.brand,.hs-brand-t').getBoundingClientRect();
+      const pad=host.getBoundingClientRect().left+parseFloat(getComputedStyle(host).paddingLeft);
       const encre={g:rl.left+rl.width*(x0/N), d:rl.right-rl.width*((N-1-x1)/N)};
       return {pose:true, blanc:+((x0/N)*100).toFixed(1), marge:pad,
         deltaG:+(encre.g-pad).toFixed(2), ecart:+(rb.left-encre.d).toFixed(2),
@@ -1662,7 +1671,7 @@ await sec('Accueil · la gouttière du rail A→Z', async () => {
     const g = await page.evaluate(async()=>{
       const util=()=>{const h=document.querySelector('.home-main'),c=getComputedStyle(h);
         return Math.round(h.clientWidth-parseFloat(c.paddingLeft)-parseFloat(c.paddingRight));};
-      const ecart=()=>{const gr=document.querySelector('.grp-row'),nx=gr&&gr.nextElementSibling;
+      const ecart=()=>{const gr=document.querySelector('.dir-sum'),nx=gr&&gr.nextElementSibling;   /* v5.30 : la ligne de compte porte les commandes */
         return (gr&&nx)?Math.round(nx.getBoundingClientRect().top-gr.getBoundingClientRect().bottom):null;};
       const avec={util:util(),ecart:ecart()};
       fiches.length=0;protocols.length=0;render();
@@ -1705,6 +1714,7 @@ await sec('Accueil large · le défilement survit au re-rendu', async () => {
       for(let k=0;k<3;k++){const n=JSON.parse(JSON.stringify(f));
         n.id='y'+i+'-'+k;n.title='Fiche '+i+'.'+k;n.category=c.id;n.library=(k?'lib1':'');
         fiches.push(migrate(n));}}
+    setHomeGroup('bib');   // le ✎ d'une bibliothèque ne vit que dans ce rangement (v5.30 : catégorie par défaut)
     render();await new Promise(r=>setTimeout(r,400));
     /* ⚠ On RE-INTERROGE à chaque fois : le nœud d'avant le rendu est détaché (cf. en-tête). */
     const q=s=>document.querySelector(s);
@@ -1949,7 +1959,7 @@ await sec('T13 · les fiches d\'exemple exercent la doctrine qu\'elles enseignen
        paragraphes, position du CTA, bandeau) — l'amorçage est son SUJET, pas sa mise en condition. */
     const m=document.getElementById('welcomeModal');
     const paras=m.querySelectorAll('p').length;
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');
     if(b)b.click(); await w(300);
     const cta=[...document.querySelectorAll('button')].find(x=>x.textContent.includes("fiches d'exemple"));
     const av=cta?cta.getBoundingClientRect():null;
@@ -2086,13 +2096,16 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
     const secs=[];for(let i=1;i<=30;i++)secs.push('## Section '+i,'texte '+i);
     const lg=migrateProtocol({id:'pzL',title:'Longue',kind:'reference',body:'# Grand\n\n'+secs.join('\n\n')});
     protocols.push(lg);openProtocolRead('pzL');await w(600);
-    const dk=await (async()=>{const d=document.querySelector('details.ref-toc'),bar=document.getElementById('refBar');
+    const dk=await (async()=>{const d=document.querySelector('details.ref-toc'),bar=document.querySelector('.ref-tocwrap');
       if(!d||!bar)return {pos:'—',visibleLoin:null,loin:0,borne:0,defile:'',liens:0,corpsLien:'',
         ecart:999,fond:'—',hdrLine:'—',sousLaBarre:null,dansLaBarre:false};
       const hd=document.querySelector('header.bar');
       const cb=getComputedStyle(bar),ch=getComputedStyle(hd);const l=d.querySelector('.rt-lnk');
-      const ec=Math.round(bar.getBoundingClientRect().top-hd.getBoundingClientRect().bottom);
       const sous=document.querySelector('.md-body').getBoundingClientRect().top>=bar.getBoundingClientRect().bottom;
+      /* v5.30 : le sommaire vit SOUS le titre (voie étroite) — au repos il est dans le flux, sous
+         `.read-head` ; l'écart à l'en-tête se mesure une fois DÉFILÉ, quand il s'est collé. */
+      const rh=document.querySelector('.read-head');
+      const sousTitre=(rh&&rh.getClientRects().length)?bar.getBoundingClientRect().top>=rh.getBoundingClientRect().bottom-1:true;
       /* ⚠ ON COMPTE LES `toggle`, ON NE REGARDE PAS SEULEMENT L'ÉTAT FINAL — première version
          de ce témoin, qui restait VERTE sur le défaut : la mesure de hauteur refermait puis
          rouvrait le panneau, donc l'état final était bien « ouvert » et le défilement, acquis
@@ -2115,11 +2128,15 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
       window.scrollTo(0,1200);
       const loin=Math.round(window.scrollY);
       const vis=d.getBoundingClientRect().top>=0&&d.getBoundingClientRect().top<300;
+      const ec=Math.round(bar.getBoundingClientRect().top-hd.getBoundingClientRect().bottom);
       const survit=d.open&&d.scrollTop>0&&nt===1;
       window.scrollTo(0,0);d.open=false;
+      /* v5.30 : la barre porte une CARTE (« Sommaire · n sections ») ; la barre elle-même prolonge
+         l'en-tête — même ambiance, même absence de filet (maquette v5). */
+      const cc=getComputedStyle(bar);
       return {pos:cb.position,visibleLoin:vis,loin,borne:Math.round(b),defile:ov,liens:nb,corpsLien:cl,survit,
-        ecart:ec,fond:cb.backgroundColor===ch.backgroundColor?'identique':cb.backgroundColor,
-        hdrLine:ch.borderBottomWidth,barLine:cb.borderBottomWidth,sousLaBarre:sous,
+        ecart:ec,fond:cc.backgroundColor===ch.backgroundColor?'identique':cc.backgroundColor,
+        hdrLine:ch.borderBottomWidth,barLine:cc.borderBottomWidth,sousLaBarre:sous,sousTitre,
         dansLaBarre:bar.contains(d)};})();
     openProtocolRead('pz');await w(500);
     const toc2=document.querySelector('.ref-toc');
@@ -2174,14 +2191,14 @@ for (const W of [390, 999, 1000, 1199, 1200, 1400]) {
        la CONTINUITÉ (écart nul, même fond, un SEUL filet — celui du bas), pas seulement la
        position : « collé » et « fusionné » ne sont pas la même chose, et c'est le second qui
        était demandé. */
-    t(`${W} · … il est en en-tête (fixed), pas un dépliant du flux`,
-      r.dock.pos==='fixed'&&r.dock.dansLaBarre===true&&r.dock.visibleLoin===true, JSON.stringify(r.dock));
+    t(`${W} · … il vit sous le titre et se COLLE sous l'en-tête une fois défilé (sticky)`,
+      r.dock.pos==='sticky'&&r.dock.dansLaBarre===true&&r.dock.visibleLoin===true&&r.dock.sousTitre===true, JSON.stringify(r.dock));
   t('témoin : la page a bien défilé loin (le cas est rencontré)',
     r.dock.loin>=600, `${r.dock.loin} px défilés`);
     /* Le fond commun fait le BLOC, le filet dit qu'il a deux ÉTAGES (demande utilisateur) : les
        deux rangées sont bordées, comme #crisisCtrl au-dessus de #crisisDock. */
-    t(`${W} · … et il PROLONGE le bandeau : écart nul, même fond, un filet par étage`,
-      r.dock.ecart===0&&r.dock.fond==='identique'&&parseFloat(r.dock.hdrLine)>0&&parseFloat(r.dock.barLine)>0,
+    t(`${W} · … et, collé, il PROLONGE le bandeau : écart nul, même fond, même filet`,
+      r.dock.ecart===0&&r.dock.fond==='identique'&&parseFloat(r.dock.hdrLine)===parseFloat(r.dock.barLine),   // v5.30 : même filet (l'en-tête n'en a plus, maquette v5)
       `écart ${r.dock.ecart} px · fond ${r.dock.fond} · filets hdr ${r.dock.hdrLine} / barre ${r.dock.barLine}`);
     t(`${W} · … et le dépliage ne se défait pas tout seul (défilement conservé)`,
       r.dock.survit===true, `ouvert+défilé+un seul toggle=${r.dock.survit}`);
@@ -2423,7 +2440,7 @@ await sec('BANDEAU · il ne porte plus que l’exception', async () => {
        peinte. La propriété que K6 promet est « le discriminant est LISIBLE quand le titre est
        tronqué » ; on mesure donc qu'il est rendu, qu'il porte le bon texte, et qu'il n'est PAS
        dans la chaîne qui s'ellipse. */
-    const bd=document.querySelector('#brandSur .bs-d');
+    const bd=document.getElementById('brandDisc');   // v5.30 : sur la ligne du titre, hors de sa chaîne ellipsée
     const discVu=!!bd&&!bd.hidden&&bd.getBoundingClientRect().width>0&&/adulte/.test(bd.textContent);
     const crise=Object.assign(lire(),{titreBarre:bt.textContent.trim(),
       disc:discVu&&!bt.contains(bd)&&bt.scrollWidth>bt.clientWidth,
@@ -2719,7 +2736,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
     const live=document.querySelector('.dir-live');
     const av=live?live.textContent.trim():null;
     await w(1300);
-    return {n:rows.length,hauteurs:H,
+    return {n:rows.length,hauteurs:H,cartes:!!document.querySelector('.dir-book:not(.compact)')&&innerWidth<780,
       corps:[...new Set(titres.map(b=>getComputedStyle(b).fontSize))],
       tronques:titres.filter(b=>b.scrollHeight>b.clientHeight+1).length,
       deborde:rows.filter(x=>x.scrollWidth>x.clientWidth+1).length,
@@ -2788,7 +2805,10 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
       live:!!document.querySelector('.dir-row.live'),
       chronoAvance:live?live.textContent.trim()!==av:false};});
   t(`${W} · témoin : plusieurs rangées sont mesurées`, r.n>=2, `${r.n}`);
-  t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
+  /* v5.30 : en voie étroite, vue détaillée, la rangée est une CARTE dont la hauteur suit son contenu
+     (maquette v5) — le rythme unique reste la règle du LIVRE (compact, ou ≥ 780). */
+  if(r.cartes)t(`${W} · les cartes tiennent le plancher de 76 px`, Math.min(...r.hauteurs)>=76, JSON.stringify(r.hauteurs));
+  else t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
   t(`${W} · … et rien n'en déborde`, r.deborde===0, `${r.deborde} rangée(s)`);
   /* ⚠ 16,5 px DEPUIS L'AUDIT DESIGN v5.0.0 (A3-1) — et le contrôle EXPRIME DÉSORMAIS SON
      INTENTION plutôt qu'un chiffre. Il figeait « 15,5 px » en dur, ce qui était la bonne
@@ -3055,13 +3075,13 @@ await sec('ACCUEIL · un geste de chrome ne change pas de vue', async () => {
   const x=await page.$('#noticeX');
   if(!x)t('témoin : un bandeau fermable est présent', false, 'aucune croix');
   else{
-    t('témoin : un bandeau fermable est présent, et les 2 invites sont là',
-      c0.n===1&&c0.k===2, JSON.stringify(c0));
+    t('témoin : un bandeau fermable est présent, et l\'invite « ＋ Créer » est là',   /* v5.30 (A353) : une seule */
+      c0.n===1&&c0.k===1, JSON.stringify(c0));
     await x.click();await page.waitForTimeout(500);
     const c1=await page.evaluate(()=>({n:document.querySelectorAll('.emp-intro').length,
       k:document.querySelectorAll('[data-emptynew]').length,s:state.section}));
-    t('fermer un bandeau n\'efface pas une des deux invites',
-      c1.n===1&&c1.k===2&&c1.s==='all', JSON.stringify(c1));}
+    t('fermer un bandeau n\'efface pas l\'invite',
+      c1.n===1&&c1.k===1&&c1.s==='all', JSON.stringify(c1));}
   await page.close();
 }
 });
@@ -3082,7 +3102,7 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
   // ⚠ PAS `amorce()` ici : elle POSE les fiches d'exemple, or le sujet mesuré est la bibliothèque
   // VIDE. On traverse l'écran de bienvenue et l'on s'arrête là — c'est le vrai point d'entrée.
   await page.evaluate(()=>{const b=[...document.querySelectorAll('button')]
-    .find(x=>/Commencer/.test(x.textContent));if(b)b.click();});
+    .find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');if(b)b.click();});
   await page.waitForFunction(()=>document.body.classList.contains('view-home'));
   const lire=()=>page.evaluate(()=>({
     cartes:document.querySelectorAll('.emp-intro').length,
@@ -3099,7 +3119,8 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
     icVides:[...document.querySelectorAll('.emp-ic svg')].filter(s=>!s.innerHTML.trim()).length}));
   /* v5.19.1 : en vue « Tout », les deux natures tiennent dans UN bandeau (elles y sont
      comparées, ce que deux cartes empilées ne faisaient pas) — d'où 1 bandeau pour 2 boutons. */
-  for(const [sec,att,nb] of [['all',['fiches','protocols'],1],['fiches',['fiches'],1],['protocols',['protocols'],1]]){
+  /* v5.30 (A353) : un seul « ＋ Créer » en vue « Tout » (`any` : la feuille choisit le type). */
+  for(const [sec,att,nb] of [['all',['any'],1],['fiches',['fiches'],1],['protocols',['protocols'],1]]){
     await page.evaluate(s=>{state.section=s;state.q='';state.cat='';render();},sec);
     await page.waitForTimeout(300);
     const r=await lire();
@@ -3112,8 +3133,9 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
      ⚠ ON VÉRIFIE QUE LE BOUTON EXISTE AVANT DE LE CLIQUER : un `page.click` sur un sélecteur
      absent lève, et un harnais qui PLANTE en emporte cinq (leçon v4.70.1). Ici l'absence est
      déjà signalée par le témoin de comptage ci-dessus ; celui-ci doit échouer, pas exploser. */
+  /* v5.30 (A353) : en vue « Tout » l'invite est unique (`any`) — le bouton typé vit dans la vue FILTRÉE. */
   for(const k of ['protocols','fiches']){
-    await page.evaluate(()=>{state.section='all';render();});
+    await page.evaluate(k=>{state.section=k;render();},k);
     await page.waitForTimeout(250);
     if(!await page.$(`[data-emptynew="${k}"]`)){
       t(`« ${k} » ouvre le dialogue Créer sur SON type`, false, 'bouton absent');
@@ -3129,7 +3151,7 @@ await sec('ACCUEIL · l\'état vide n\'offre que ce qu\'on peut créer ici', asy
         cran:on?on.dataset.createkind:null,section:state.section};});
     t(`« ${k} » ouvre le dialogue Créer sur SON type`, r.ouvert===true&&r.cran===k,
       `ouvert=${r.ouvert} cran=${r.cran}`);
-    t(`… sans filtrer la liste derrière le dialogue`, r.section==='all', `section=${r.section}`);
+    t(`… sans changer le filtre derrière le dialogue`, r.section===k, `section=${r.section}`);
     await page.keyboard.press('Escape');await page.waitForTimeout(250);
   }
   /* SOUS UN FILTRE : aucune carte, aucun bouton — on doit un résultat, pas un cours. */
@@ -3329,29 +3351,26 @@ await sec('QUAI · le geste d’entrée se détache de sa barre (planches 17-18)
         const v=m.slice(0,3).map(x=>{const u=(+x)/255;return u<=0.03928?u/12.92:Math.pow((u+0.055)/1.055,2.4);});
         return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2];};
       const ratio=(a,b)=>{const l1=lum(a),l2=lum(b);return +(((Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05))).toFixed(2);};
-      const sd=document.querySelector('.sd-in'),sb=document.getElementById('sessStart'),
-            ek=document.getElementById('exoKey');
-      const csd=getComputedStyle(sd),csb=getComputedStyle(sb);
-      /* La couleur du périmètre se lit dans l'ombre INTERNE calculée du quai. */
-      const shadow=csd.boxShadow||'';
-      const edge=(shadow.match(/rgba?\([^)]+\)/)||[null])[0];
+      const sb=document.getElementById('sessStart'),ek=document.getElementById('exoKey');
+      const csb=getComputedStyle(sb),cse=getComputedStyle(ek),page=getComputedStyle(document.body).backgroundColor;
+      /* v5.30 (maquette v5) : hors session le quai n'a PLUS de matière — l'aplat se mesure contre la PAGE,
+         et c'est le bouton lui-même qui porte son ombre de carte et son filet. */
+      const edge=(csb.borderTopColor||'');
       return {
-        aplat:ratio(csb.backgroundColor,csd.backgroundColor),
-        inset:/inset/.test(shadow), montante:/-12px/.test(shadow),
-        edgeR:edge?ratio(edge,getComputedStyle(document.body).backgroundColor):0,
+        aplat:ratio(csb.backgroundColor,page),
+        ombre:csb.boxShadow!=='none', exoOmbre:cse.boxShadow!=='none',
+        edgeR:edge?ratio(edge,page):0, exoTrait:cse.borderTopStyle==='dashed',
         ekW:ek.getBoundingClientRect().width,
         ekLblCache:getComputedStyle(ek.querySelector('.dp-lbl')).display==='none',
         ekNom:(ek.getAttribute('aria-label')||'').length>3};});
     const T=theme==='dark'?'sombre':'clair';
-    t(`${T} · l'aplat du geste d'entrée tient 3:1 sur sa barre (limite de composant, 1.4.11)`,
+    t(`${T} · l'aplat du geste d'entrée tient 3:1 sur la page (limite de composant, 1.4.11)`,
       r.aplat>=3, `${r.aplat}:1`);
+    if(theme==='light')t('clair · « Démarrer » et « Exercice » portent leur ombre de carte (le quai n\'a plus de barre)',
+      r.ombre===true&&r.exoOmbre===true);   // la nuit ne projette pas (--shadow-work: none) : le filet fait la limite
+    t(`${T} · « Exercice » se distingue par son contour POINTILLÉ`, r.exoTrait===true);
     if(theme==='dark'){
-      t('sombre · le quai est bordé (périmètre en ombre INTERNE, pas d\'ombre portée)',
-        r.inset===true&&r.montante===false);
-      t('sombre · le périmètre tient 3:1 contre l\'ambiance', r.edgeR>=3, `${r.edgeR}:1`);
-    }else{
-      t('clair · l\'ombre montante élargie est posée sur le quai (le jour projette)',
-        r.montante===true&&r.inset===false);
+      t('sombre · le filet de « Démarrer » tient 3:1 contre l\'ambiance', r.edgeR>=3, `${r.edgeR}:1`);
     }
     t(`${T} · « Exercice » au glyphe seul garde sa cible (≥ 44 px) et son nom accessible`,
       r.ekLblCache===true&&r.ekW>=44&&r.ekNom===true,
@@ -3680,7 +3699,7 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     document.getElementById('sessStart').click();await w(600);
     const apres={fs:Y('.forget-strip'),carte:Y('.ov-block'),
       n:document.querySelectorAll('.forget-strip').length,
-      replie:!!document.querySelector('.forget-strip.fs-foldable')};
+      replie:!!document.querySelector('.forget-strip.fold-card [data-sessfold]')};   /* v5.30 (A358) : même carte que les autres */
     return {avant,apres};});
   const a=r.avant,b=r.apres;
   t('hors session : les critères viennent EN PREMIER',
@@ -3688,8 +3707,10 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
   t('hors session : le chapeau reste AU-DESSUS du bouton',
     a.fs!=null&&a.btn!=null&&a.fs<a.btn, `chapeau ${a.fs}, bouton ${a.btn}`);
   t('le chapeau n’est rendu QU’UNE fois', a.n===1&&b.n===1, `${a.n} avant, ${b.n} après`);
-  t('en session : le chapeau replié revient en tête, au-dessus de la carte',
-    b.fs!=null&&b.carte!=null&&b.fs<b.carte&&b.replie===true,
+  /* v5.30 (décision de l'auteur, maquette v5) : en session le chapeau est la PREMIÈRE carte dépliable
+     SOUS le bloc courant — memory items toujours dans le flux, mais après ce qu'on est en train de faire. */
+  t('en session : le chapeau replié est la première carte SOUS le bloc courant',
+    b.fs!=null&&b.carte!=null&&b.fs>b.carte&&b.replie===true,
     `chapeau ${b.fs}, carte ${b.carte}, repliable=${b.replie}`);
   await page.close();
 }
@@ -3715,9 +3736,9 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
       const av={titres, consulter:document.querySelectorAll('main .annex-row').length,
         /* v5.25.0 : « Prise en charge » n'existe plus avant la session — le chapitre « Parcours »
            le remplace, et Tableau / Schéma vivent SOUS son titre, AU-DESSUS de la première rangée. */
-        liens:Y('.pre-links'), parc:(()=>{const h=[...document.querySelectorAll('.pre-ch')]
+        liens:Y('.pre-links'), parc:(()=>{const h=[...document.querySelectorAll('.pre-ch,.fold-head')]   /* v5.30 : en étroit, « Parcours » est l'en-tête d'une carte dépliable */
           .find(x=>/Parcours/.test(x.textContent));return h?Math.round(h.getBoundingClientRect().top):null;})(),
-        rang1:Y('.pre-lad .pl-line'), pec:document.querySelectorAll('main .cp-h').length,
+        rang1:Y('.pre-lad .pl-line,.pre-lad .pf-row'), pec:document.querySelectorAll('main .cp-h').length,   /* v5.30 : en étroit, le parcours à plat (.pf-row) */
         hLien:(()=>{const b=document.querySelector('.pre-link');return b?Math.round(b.getBoundingClientRect().height):null;})(),
         rangee:(()=>{const l=document.querySelector('.rail-lad .pl-line');return l?Math.round(l.getBoundingClientRect().height):null;})()};
       /* SCHÉMA : il n'ouvrait RIEN — `openFlowFull(f)` prend la fiche et l'appel l'omettait. */
@@ -3750,7 +3771,9 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     t(`${nom} · … et ce sont des boutons de 44 px`, r.av.hLien>=44, `${r.av.hLien} px`);
     /* Le parcours se resserre AVANT le soin — et pas d'un cheveu : la rangée passe sous les 44 px
        de la crise, qui ne s'appliquent pas ici, en restant au-dessus du plancher hors crise. */
-    t(`${nom} · le parcours d'entrée est compact (32 ≤ h < 44)`,
+    /* v5.30 : en voie étroite le parcours d'entrée est la liste à plat de la maquette (rangée à
+       titre 17,5 + étapes) ; la rangée compacte ne vaut plus qu'au cockpit. */
+    if(W>=1200)t(`${nom} · le parcours d'entrée est compact (32 ≤ h < 44)`,
       r.av.rangee>=32&&r.av.rangee<44, `${r.av.rangee} px`);
     t(`${nom} · « Schéma » ouvre RÉELLEMENT le schéma`,
       r.svg.ouvert===true&&r.svg.noeuds>0, JSON.stringify(r.svg));
@@ -3805,7 +3828,7 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
       blocks:[{id:'b1',kind:'do',title:'Mesures immédiates',items:ITEMS}]});
     await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
     const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top+scrollY):null;};
-    return {conf:!!document.querySelector('.conf-block'),fs:Y('.forget-strip'),btn:Y('#sessStart')};},
+    return {conf:!!document.querySelector('.fold-card[data-sf="when"]'),fs:Y('.forget-strip'),btn:Y('#sessStart')};},
     items(['⚠ Adrénaline IM :: 0,5 mg','Arrêter l’exposition']));
   t('témoin : la fiche sans critères n’a pas de condition d’entrée', r.conf===false);
   t('sans critères : le chapeau reste en tête, au-dessus du bouton',
@@ -4053,7 +4076,7 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
 await sec('v5.6 · trois gabarits de fenêtre', async () => {
 {
   const GABARITS=[420,480,720];
-  const OUV={filtSheet:"document.getElementById('filtTog').click()", authModal:'openAuth()',
+  const OUV={viewSheet:"document.getElementById('filtTog').click()", authModal:'openAuth()',
              catModal:'openCatMgr()', sessModal:'openSessHist()', storageModal:'openStorageInfo()',
              reportModal:null};
   for(const W of [390,1100]){
@@ -4080,7 +4103,7 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
         return {id:c.id||c.className.split(' ').slice(0,2).join('.'),mw,px:px?+px[1]:null};
       }).filter(x=>x.px!==null&&![420,480,720].includes(x.px));
       const out={enLigne,horsGabarit,fen:{}};
-      const cmds={filtSheet:()=>document.getElementById('filtTog').click(), authModal:()=>openAuth(),
+      const cmds={viewSheet:()=>document.getElementById('filtTog').click(), authModal:()=>openAuth(),
                   catModal:()=>openCatMgr(), sessModal:()=>openSessHist(), storageModal:()=>openStorageInfo()};
       for(const [id,go] of Object.entries(cmds)){
         try{go();}catch(e){out.fen[id]={err:e.message};continue;}
@@ -4094,7 +4117,7 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
            n'a pas de squelette (ce que le contrôle suivant attrape). */
         let deb=0;if(b){b.scrollTop=99999;deb=Math.round(b.scrollTop);b.scrollTop=0;}
         const rt=t.getBoundingClientRect();
-        out.fen[id]={w:Math.round(rc.width),h:Math.round(rc.height),corps:!!b,defile:deb>0,
+        out.fen[id]={w:Math.round(rc.width),h:Math.round(rc.height),corps:!!b,defile:deb>0,page:m.classList.contains('page'),
           /* Le titre reste dans la carte ET à l'écran, quoi qu'il arrive au corps. */
           titreDansCarte:rt.top>=rc.top-1, titreVisible:rt.top>=-1&&rt.bottom<=innerHeight+1,
           police:(()=>{const cs=getComputedStyle(t.querySelector('h3'));
@@ -4117,14 +4140,15 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
          là où il a le choix. */
       if(W>=780) t(`${W} · ${id} tient l'un des trois gabarits`, GABARITS.includes(f.w), `${f.w} px`);
       t(`${W} · ${id} : le titre ne s'en va jamais`, f.titreDansCarte&&f.titreVisible, JSON.stringify(f));
-      t(`${W} · ${id} : un seul titre de fenêtre (17.5/800)`, f.police==='17.5/800', f.police);
+      /* v5.30 (A352) : une PAGE-FENÊTRE (destination) titre à 24/800, un dialogue à 17,5/800. */
+      t(`${W} · ${id} : un seul titre de fenêtre (${f.page?'24/800, page-fenêtre':'17.5/800'})`, f.police===(f.page?'24/800':'17.5/800'), f.police);
     }
     /* LE PLACEMENT DIT LA NATURE (décision utilisateur) : « Filtrer » est un CHOIX — il ne prend
        jamais toute la hauteur, même sous 780 ; « Compte » est un DOCUMENT — il devient une
        feuille pleine hauteur. Deux régimes, lisibles sur le contenu, jamais sur la largeur. */
     if(W<780){
-      t(`${W} · un CHOIX reste une fenêtre centrée (Filtrer)`,
-        r.fen.filtSheet&&r.fen.filtSheet.pleineHauteur===false, JSON.stringify(r.fen.filtSheet));
+      t(`${W} · un CHOIX reste une fenêtre centrée (Affichage)`,
+        r.fen.viewSheet&&r.fen.viewSheet.pleineHauteur===false, JSON.stringify(r.fen.viewSheet));
       t(`${W} · un DOCUMENT devient une feuille pleine hauteur (Compte)`,
         r.fen.authModal&&r.fen.authModal.pleineHauteur===true, JSON.stringify(r.fen.authModal));
     }
@@ -4211,7 +4235,8 @@ await sec('v5.6 · la rangée d\'actions de l\'en-tête', async () => {
     const lec=await mesure();const hLec=await hdrH();
     for(const [nom,m] of [['accueil',acc],['lecture',lec]]){
       const v=Object.entries(m);
-      t(`${W} · ${nom} : témoin — la rangée porte au moins deux contrôles`, v.length>=2, JSON.stringify(Object.keys(m)));
+      /* v5.30 (A351) : ≥ 780 l'accueil ne garde que « Créer » — le compte et l'historique sont dans la colonne. */
+      t(`${W} · ${nom} : témoin — la rangée porte au moins ${W>=780&&nom==='accueil'?'un':'deux'} contrôle(s)`, v.length>=(W>=780&&nom==='accueil'?1:2), JSON.stringify(Object.keys(m)));
       /* Les GLYPHES ont tous le même carré ; « Créer » en large porte son mot et s'allonge, mais
          sa HAUTEUR reste celle de la rangée — c'est l'alignement qui se lit, pas la largeur. */
       const hs=[...new Set(v.map(([,x])=>x.h))], ys=[...new Set(v.map(([,x])=>x.y))];
@@ -4379,8 +4404,6 @@ await sec('v5.6 · la hiérarchie des séparations du rail', async () => {
   await ouvrirFiche(page,'Anaphylaxie');
   await demarrerSession(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-    const b=[...document.querySelectorAll('button')].find(x=>/Consulter/.test(x.textContent));
-    if(b)b.click();await w(600);
     const side=document.querySelector('.read-side');if(!side)return {err:'pas de rail'};
     const px=v=>Math.round(parseFloat(v)||0);
     const fam=[...side.querySelectorAll('.rail-sec')].map(e=>{const cs=getComputedStyle(e);
@@ -4395,13 +4418,13 @@ await sec('v5.6 · la hiérarchie des séparations du rail', async () => {
       const b=getComputedStyle(e,'::before');
       return {bt:px(b.height)||px(getComputedStyle(e).borderTopWidth),
               dx:px(b.left), pseudo:b.content!=='none'};});
-    const col=side.querySelector('.ref-col');
-    return {fam,cartes,items,colBb:col?px(getComputedStyle(col).borderBottomWidth):null,
-            colMb:col?px(getComputedStyle(col).marginBottom):null};});
+    return {fam,cartes,items};});
 
-  t('témoin : le cas est constitué (plusieurs familles, deux cartes, des items)',
-    !r.err&&r.fam.length>=2&&r.cartes.length>=2&&r.items.length>=2,
-    JSON.stringify({fam:r.fam.length,cartes:r.cartes.length,items:r.items.length}));
+  /* v5.30 (A354) : la colonne « Consulter » du cockpit n'existe plus — ses deux témoins (cartes non
+     collées, frontière de l'excursion) sont partis avec elle. */
+  t('témoin : le cas est constitué (plusieurs familles, des items)',
+    !r.err&&r.fam.length>=2&&r.items.length>=2,
+    JSON.stringify({fam:r.fam.length,items:r.items.length}));
   /* ⚠ LA PROPRIÉTÉ A ÉTÉ CORRIGÉE PAR L'AUTEUR : le filet de FAMILLE devait rester (il donne au
      rail sa structure) ; c'est l'item qui devait changer de nature. On mesure donc les DEUX
      niveaux et surtout ce qui les DISTINGUE, plutôt que l'absence de l'un des deux. */
@@ -4410,12 +4433,6 @@ await sec('v5.6 · la hiérarchie des séparations du rail', async () => {
   t('… et l\'item garde le sien, mais EN RETRAIT — les deux ne se confondent plus',
     r.items.filter(x=>x.bt>0&&x.dx>=6).length>=1&&r.items.every(x=>x.bt===0||x.dx>=6),
     JSON.stringify(r.items));
-  /* « CONSULTER » : deux cartes ne se touchent pas. */
-  t('les deux cartes de « Consulter » ne sont plus collées',
-    r.cartes.slice(1).every(c=>c.mt>=8), JSON.stringify(r.cartes));
-  /* Et la frontière de l'excursion suit la même règle que les familles. */
-  t('… et la frontière de l\'excursion est du niveau FAMILLE',
-    r.colBb>=1&&r.colMb>=16, `bordure ${r.colBb}, marge ${r.colMb}`);
   await page.close();
 }
 });
@@ -4557,7 +4574,7 @@ await sec('v5.6 · ⏱ un compteur s\'incrémente depuis le volet, sans doubler 
   await demarrerSession(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const key=[...document.querySelectorAll('#crisisDockBar button,.sd-key')]
-      .find(b=>/NOTER/i.test(b.textContent));
+      .find(b=>/NOTER|JOURNAL/i.test(b.textContent))   /* v5.30 : la touche dit « Journal · n » */;
     if(!key)return {err:'touche ⏱ introuvable'};
     key.click(); await w(500);
     const chip=document.querySelector('.ds-chip.ds-cnt');
@@ -4713,10 +4730,12 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
   /* Un bloc de DÉCISION n'a pas d'étapes à re-constater : il en reste exclu. */
   t('témoin : une décision est bien atteinte', r.decAtteinte===true);
   t('un bloc de décision n\'a pas de « Vérifier »', r.surDecision===false);
-  t('… son titre passe DEVANT sa question (hiérarchie)',
-    !!r.hier&&r.hier.titre>r.hier.question, JSON.stringify(r.hier));
-  t('… et la question partage le corps de ses options',
-    !!r.hier&&r.hier.question===r.hier.option, JSON.stringify(r.hier));
+  /* v5.30 (A345) : sur une carte de décision la QUESTION est l'acte (--t-step-l) ; le titre la
+     situe d'un cran en dessous, et les options, des cartes de travail, restent sous la question. */
+  t('… sa question passe DEVANT son titre (hiérarchie v5.30)',
+    !!r.hier&&r.hier.question>r.hier.titre, JSON.stringify(r.hier));
+  t('… et les options restent sous le corps de la question',
+    !!r.hier&&r.hier.question>r.hier.option, JSON.stringify(r.hier));
   await page.close();
 }
 });
@@ -4758,6 +4777,7 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
        palier — A6 le dit en toutes lettres). */
     const tailles={};
     document.querySelectorAll('body *').forEach(el=>{
+      if(!el.getClientRects().length)return;   // sans boîte (fenêtre fermée), pas de taille à l'écran
       if(el.closest('.flow-scroll'))return;
       /* `<option>` est peint par le SYSTÈME dans sa liste déroulante, pas par la feuille : sa
          taille n'appartient à aucune échelle de la page, et son parent `<select>` est déjà
@@ -4932,6 +4952,57 @@ await sec('v5.6 · A9/A6/A11 — hauteurs d\'état, échelle au rendu, une seule
     !!nuit&&nuit.systemeVsTravail>1.03, nuit?`${nuit.systemeVsTravail}:1`:'—');
   t('nuit · … sans rien coûter à l\'encre (≥ 4,5:1)', !!nuit&&nuit.encre>=4.5,
     nuit?`${nuit.encre}:1`:'—');
+  await page.close();
+}
+});
+
+/* ══ v5.30 — A345 : LA MARQUE D'UNE ÉTAPE CRITIQUE (variante « 6b », décision typo v5) ═════════
+   A11 est ROUVERT : toutes les étapes d'une liste partagent le même corps (--t-step) et la même
+   colonne de texte ; le danger est porté par le MOT en étiquette au-dessus du libellé, la BORDURE
+   de la case et le préfixe lecteur d'écran — aucun glyphe ⚠/△ rendu, aucune encre colorée sur le
+   texte. Mesuré sur la fiche d'exemple (une ⚠, une △), avant et après cochage. Même page que la
+   session 6b du quai : « Fin » au quai, capsule de 64 px, pastille numérotée. */
+await sec('v5.30 · A345 — la marque d\'une étape critique (6b)', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    /* La valeur d'un token est un HEX : on la fait CALCULER par le moteur pour la comparer à une couleur peinte. */
+    const cv=n=>{const e=document.createElement('i');e.style.color='var('+n+')';document.body.appendChild(e);const c=getComputedStyle(e).color;e.remove();return c;};
+    const norm=c=>{const m=String(c).match(/\d+/g);return m?m.slice(0,3).join(','):'';};
+    const lis=[...document.querySelectorAll('ol.steps li')];
+    const mes=()=>lis.map(li=>{const t=li.querySelector('.txt'),b=li.querySelector('.box');const cs=getComputedStyle(t);
+      return {crit:li.classList.contains('crit'),vig:li.classList.contains('vigil'),fs:cs.fontSize,x:Math.round(t.getBoundingClientRect().left),
+        h:Math.round(li.getBoundingClientRect().height),bd:norm(getComputedStyle(b).borderTopColor),bw:getComputedStyle(b).borderTopWidth,
+        mk:(li.querySelector('.stp-mk')||{}).textContent||'',sr:(li.querySelector('.sr-only')||{}).textContent||'',
+        glyph:/[⚠△]/.test(t.textContent)};});
+    const avant=mes();
+    const crit=lis.find(li=>li.classList.contains('crit'));crit.click();await w(400);
+    const apres=mes();
+    return {avant,apres,crit:norm(cv('--crit')),warnLine:norm(cv('--warn-line')),ctl:norm(cv('--ctl-line')),
+      cap:Math.round(document.getElementById('cbTimers').getBoundingClientRect().height),
+      fin:!!document.querySelector('#endKey:not([hidden])'),
+      ovn:(document.querySelector('.ov-block.cur .ov-n')||{}).textContent||''};},);
+  const A=r.avant;
+  t('témoin : la fiche d\'exemple porte une étape critique ET une étape de vigilance', A.some(x=>x.crit)&&A.some(x=>x.vig));
+  t('A345 · toutes les étapes partagent le MÊME corps (--t-step)', new Set(A.map(x=>x.fs)).size===1&&A[0].fs==='17.5px', A.map(x=>x.fs).join(' '));
+  t('A345 · … et la même colonne de texte', new Set(A.map(x=>x.x)).size===1, A.map(x=>x.x).join(' '));
+  t('A345 · le mot porte le registre : « Critique » / « Vigilance » au-dessus du libellé',
+    A.every(x=>x.crit?x.mk==='Critique':(x.vig?x.mk==='Vigilance':x.mk==='')), A.map(x=>x.mk||'—').join(' · '));
+  t('A345 · aucun glyphe ⚠/△ rendu dans une rangée', A.every(x=>!x.glyph));
+  t('A345 · le lecteur d\'écran est prévenu avant le libellé', A.every(x=>x.crit?/critique/i.test(x.sr):(x.vig?/vigilance/i.test(x.sr):true)));
+  t('A345 · la bordure de la case porte le registre (rouge / ambre / neutre), même épaisseur',
+    A.every(x=>x.bd===(x.crit?r.crit:(x.vig?r.warnLine:r.ctl)))&&new Set(A.map(x=>x.bw)).size===1, A.map(x=>x.bd+'/'+x.bw).join(' | '));
+  const c0=A.findIndex(x=>x.crit);
+  t('A345 · cochée, l\'étape critique garde corps, colonne et hauteur (A9)',
+    r.apres[c0].fs===A[c0].fs&&r.apres[c0].x===A[c0].x&&Math.abs(r.apres[c0].h-A[c0].h)<=1, `${A[c0].h} → ${r.apres[c0].h} px`);
+  t('v5.30 · la capsule tient sur UNE ligne de 64 px', r.cap===64, r.cap+' px');
+  t('v5.30 · « Fin » vit dans le quai en session', r.fin===true);
+  t('v5.30 · la pastille du bloc courant ne porte que son numéro', /^\d+$/.test(r.ovn.trim()), JSON.stringify(r.ovn));
   await page.close();
 }
 });
@@ -5251,8 +5322,8 @@ await sec('v5.6 · veille, minuteur et compteur ad hoc', async () => {
   t('… et un repère étiqueté ne le change pas', /＋\s*Minuteur$/.test(r.nomme), r.nomme);
   t('… son tap déplie QUATRE durées, sans aucun champ',
     r.durees.length===4&&r.champs===0, JSON.stringify(r.durees)+' · '+r.champs+' champ(s)');
-  t('… la durée choisie est celle du minuteur créé, qui naît SANS nom',
-    !!r.tm&&r.tm.sec===180&&r.tm.label===''&&r.tm.running===true, JSON.stringify(r.tm));
+  t('… la durée choisie est celle du minuteur créé, qui naît nommé par sa durée (v5.30)',
+    !!r.tm&&r.tm.sec===180&&r.tm.label==='3 min'&&r.tm.running===true, JSON.stringify(r.tm));
   t('… et sa rangée porte de quoi le nommer', r.nommable===true, `${r.nommable}`);
   t('＋ Compteur : créé À 1, avec son repère horodaté',
     r.cn.val===1&&r.cn.reperes===1, JSON.stringify(r.cn));
@@ -5384,7 +5455,7 @@ await sec('v5.6 · le volet du dock suit la barre flottante', async () => {
     await ouvrirFiche(page,'Anaphylaxie');
     await demarrerSession(page);
     const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-      const k=[...document.querySelectorAll('.sd-key')].find(x=>/NOTER/i.test(x.textContent));
+      const k=[...document.querySelectorAll('.sd-key')].find(x=>/NOTER|JOURNAL/i.test(x.textContent));   /* v5.30 : « Journal · n » */
       if(!k)return {err:'touche ⏱ introuvable'};
       k.click();await w(500);
       const c=document.querySelector('.ds-card'),d=document.querySelector('#sessionDock .sd-in');
@@ -5584,7 +5655,7 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
   const lire = () => page.evaluate(() => {
     const rl = main.querySelector('.ov-runline'), j = main.querySelector('.ov-journal');
     return { carte: !!main.querySelector('.conf-block.entry'),
-      flux: !!main.querySelector('.conf-block:not(.entry)'),
+      flux: !!main.querySelector('.conf-block:not(.entry):not(.fold-card)'),   /* v5.30 : cartes dépliables à part */
       lbl: rl ? rl.textContent.replace(/\s+/g, ' ').trim() : null,
       enTete: !!(rl && j && j.firstElementChild && j.firstElementChild.contains(rl)),
       y: rl ? Math.round(rl.getBoundingClientRect().top + window.scrollY) : null,
@@ -5636,6 +5707,11 @@ await sec('P1 · le retour au bloc courant', async () => {
   const page=await session(390);
   const vu=()=>page.evaluate(()=>{const b=document.getElementById('blkReturn');
     return !!b&&!b.hidden&&!!b.querySelector('.bkr');});
+  /* v5.30 (A351) : À vérifier & co sont des cartes REPLIÉES sous le bloc — page trop courte pour
+     sortir la carte courante de la zone utile (mesuré : 448 px de défilement pour 530 de carte).
+     On les déplie : elles font partie de la page. */
+  await page.evaluate(()=>document.querySelectorAll('.fold-card.closed [data-sessfold]').forEach(b=>b.click()));
+  await page.waitForTimeout(300);
   const hautCarte=()=>page.evaluate(()=>{const c=document.querySelector('.ov-block.cur,.sv-cell.cur,.nav-wrap');
     return c?Math.round(c.getBoundingClientRect().top):null;});
   await page.waitForTimeout(500);
@@ -5670,7 +5746,7 @@ await sec('P1 · le retour au bloc courant', async () => {
      barre n'est pas là — c'est-à-dire précisément quand le défaut qu'on couvre est présent — et
      ce blocage emporte la tranche entière, sans un mot. On prend la poignée, on la teste, et
      l'absence devient un ROUGE lisible au lieu d'un timeout. */
-  const bkr=await page.$('.bkr');
+  const bkr=(await vu())?await page.$('.bkr'):null;   /* une poignée CACHÉE ferait pendre click() 30 s */
   if(!bkr){t('un tap ramène la carte sous les couches collantes', false, 'barre absente');
     t('… et la barre s\'efface d\'elle-même une fois revenu', false, 'barre absente');}
   else{
@@ -7275,7 +7351,8 @@ await sec('Catégories · une bande collante par bibliothèque', async () => {
     out.defile=bd.scrollHeight>bd.clientHeight+40;
     bd.scrollTop=220;await w(250);
     const b=bd.querySelector('.cm-l').getBoundingClientRect(),t=bd.getBoundingClientRect();
-    out.tientEnHaut=Math.abs(b.top-t.top)<=1;out.aDefile=bd.scrollTop>150;
+    /* v5.30 (A352) : le corps respire de 4 px sur les deux axes — la bande colle au bord de CONTENU. */
+    out.tientEnHaut=Math.abs(b.top-(t.top+parseFloat(getComputedStyle(bd).paddingTop)))<=1;out.aDefile=bd.scrollTop>150;
     closeCatMgr();await w(150);return out;});
   t('une section par bibliothèque éditable (Perso + 2)',r.sections===3,JSON.stringify(r.bandes));
   t('la bande dit le nom, « partagée » et le compte',/^Espace personnel\s*8$/.test(r.bandes[0]||'')&&/^SMUR 31\s*partagée\s*1$/.test(r.bandes[1]||''),JSON.stringify(r.bandes));
@@ -7312,7 +7389,7 @@ await sec('A344 · le tracé ne touche rien, et le papier se pagine avant d\'êt
   /* PAS `amorce()` ici, à dessein : comme la sonde de la grille, celle-ci injecte SA fiche — une
      décision imbriquée, un renvoi de boucle et une sortie, c'est-à-dire les trois formes de voie. */
   await page.evaluate(async()=>{
-    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent));if(b)b.click();
+    const b=[...document.querySelectorAll('button')].find(x=>/Commencer/.test(x.textContent))||document.querySelector('#welcomeModal.on .ai-x');if(b)b.click();
     await new Promise(r=>setTimeout(r,150));
     const it=(n)=>Array.from({length:n},(_,i)=>'Étape '+(i+1)+' :: réponse attendue '+(i+1));
     const f=migrate({id:'aud-a344',title:'Audit — voies',start:'a',blocks:[

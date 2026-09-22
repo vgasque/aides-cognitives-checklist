@@ -61,7 +61,9 @@ const FORMATS = [
  * clinique, et une checklist sans ligne à cocher n'est pas une checklist quel que soit le
  * réglage. */
 const ZOOMS = [100, 115, 130];
-const seuilChrome = z => (z <= 100 ? 30 : 36);
+/* v5.30 : la capsule passe de 50 à 64 px (maquette v5, décision de l'auteur) — +14 px de chrome
+   permanent, soit 2 points à 640 px de haut ; le cliquet est reposé au niveau ATTEINT (32 / 39). */
+const seuilChrome = z => (z <= 100 ? 32 : 39);
 
 /* ⚠ L'ENVELOPPE DE SUPPORT EST DÉCLARÉE ICI, ET C'EST LA PREMIÈRE FOIS QU'ELLE L'EST QUELQUE PART.
  * Le dossier déclare servir 320 px — mais 320 px de QUOI ? Sous le réglage de texte, la mise en

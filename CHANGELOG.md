@@ -1,5 +1,120 @@
 # Journal des modifications
 
+## [5.30.0] — 2026-09-22
+### La refonte v5 : la marque d'une étape critique, « Fin » au quai, l'accueil et la fiche alignés sur la maquette (A345-A351)
+
+- **Demande de l'auteur** : implémenter la maquette v5 (smartphone à fidélité haute, planche large
+  en grille A) dans l'ordre tokens → étapes critiques → accueil → fiche → session → protocole →
+  paliers → pliables, sans nouveau token ni valeur hors échelle, en réutilisant l'existant. La
+  décision typographique jointe est normative : l'échelle A6 reste fermée à sept crans, seule
+  l'affectation monte d'un cran.
+- **Tokens** : `--g-cmd` (glyphe de commande, 17,5) et `--shadow-cur` (l'ombre du seul bloc
+  courant, `none` la nuit) ; aucun autre.
+- **A345 — la marque d'une étape critique (« 6b »), A11 rouvert** : toutes les étapes d'une liste
+  partagent le même corps (17,5 en session, 15 en lecture) et la même colonne ; le danger est porté
+  par le MOT en étiquette au-dessus du libellé (« CRITIQUE » / « VIGILANCE »), la bordure de la case
+  (36 px, 2,5 px au registre) et le préfixe lecteur d'écran — aucun glyphe ⚠/△, aucune encre colorée
+  sur le texte. Une fabrique (`stepMarkHtml`) pour la rangée cochable et l'aperçu à plat. Rangées de
+  64 px arrondies sur l'ambiance, cochée en vert doux avec case pleine ; titre de bloc et question à
+  21 ; carte de décision ambre doux, options 15/800, issue prise à la matière système. L'encre de
+  « VIGILANCE » est `--warn` : `--warn-line` sur `--warn-soft` tombe à 3,19:1 la nuit (calculé).
+- **A346 — « Fin » au quai** : touche au registre critique de la matière système, ouvre la fenêtre
+  « Terminer la session ? » (seule porte, inchangée) dont la confirmation se MAINTIENT 1,2 s
+  (relâcher annule ; clavier direct) par la mécanique de remise à zéro des minuteurs. Les touches
+  constantes du quai restent ; « Se repérer · Schéma » en rangée sous le bloc courant (< 1200) ; budget de chrome reposé à
+  32 / 39 % (capsule 64 px).
+- **A347 — accueil** : plus d'intertitre « Répertoire » (ligne de compte, « Affichage » à pastille,
+  Sélectionner), rangement par catégorie par défaut, rangées 64 px / méta 13,5, badges d'attente
+  achromatiques (seul « À revérifier » reste ambre), tuiles 76 px à liseré 6 px et point pulsant,
+  livres en grille dès 780. **Fiche** : sur-titre CATÉGORIE · CODE à pastille carrée, chips 12/800,
+  trois cartes dépliables à état par fiche (« Quand l'utiliser », « Ne pas oublier », « Parcours »,
+  critères et rappels à 17,5), statut de l'éditeur en segmenté à pastille glissante. **Session** :
+  capsule de 64 px sur une ligne (chrono 24, tuiles à barre 3 px), « + Minuteur » 1 · 2 · 3 · 5 min
+  libellé par la durée, pastille numérotée du bloc sur la ligne du titre.
+- **A348 — large et pliables** : la capsule ne monte dans l'en-tête qu'au cockpit (≥ 1200) ; grille
+  du protocole sur `--col-orient` ; dépliant « Sommaire · n sections » avec compte par titre et
+  sections sans résultat repliées en recherche ; `horizontal-viewport-segments:2` — deux volets,
+  gouttière 24 px sur la pliure, quai borné au volet gauche.
+- **A349 — seconde passe sur les captures** (demande de l'auteur) : « Journal · n » au quai (le tap
+  pose l'heure puis relit le journal), premier compteur en tuile dans la capsule ; accueil en CARTES
+  (voie étroite), feuille « Affichage » (afficher · trier · regrouper · densité), « Sessions » dans
+  l'en-tête ; écran de bienvenue de la maquette (trois portes) ; « Créer » par deux cartes de type ;
+  parcours de l'écran d'entrée en liste numérotée avec renvois écrits (`preFlowFlatHtml`) ;
+  « Parcours · x/y », pilule « EN COURS », « Ne pas oublier » en carte ; historique des sessions en
+  cartes ; sommaire de protocole en carte, titres 17,5, chevron à gauche ; identité de l'éditeur
+  ouverte, porte « Ajouter » en bouton flottant tonal (la palette garde toutes ses options).
+- **A350 — troisième passe, la cohérence du style** (demandes de l'auteur : « l'ENSEMBLE du style »,
+  « les sélecteurs glissants comme la maquette », « plus d'en-tête blanche sur smartphone ») : UNE
+  pastille glissante pour tous les segmentés (piste `--amb-2`, pastille blanche à ombre, encre
+  `--ink`) ; l'en-tête sur l'ambiance sans filet, commandes en pastilles de 40 px (« + » rempli, compte
+  sur `--primary-soft`), titre de lecture en sans 15/700, sur-titre réduit à CATÉGORIE · MODE sous
+  430 ; quai hors session sans matière (« Démarrer » rempli `--act`, « Exercice » pointillé) ;
+  lecture : titre 24/800 dans la page, méta en une ligne 13,5, options sur deux colonnes,
+  « Continuer » rempli, « Mode écran » ; taille du texte à trois crans ; éditeur : champs `--amb-2`
+  à filet 1,5 px, intitulés 12/800, cartes blanches, chapeau à badge « ! » ; fenêtre Compte en
+  cartes ; « Sessions » en cartes ; carte « Session en cours » de l'accueil en carte blanche (plus de
+  bande verte, « Reprendre » bleu — demande de l'auteur). `--act-sys` purgé. Écran de bienvenue : titre 38 rendu (il perdait
+  contre `.ai-card h3`).
+- **A351 — relecture de l'auteur sur les captures** : la pastille se glisse partout (feuille Affichage,
+  statut) ; carte « Session en cours » à liseré vert (téléphone) et bande système (large) ; le titre
+  n'est jamais écrit deux fois (dans la page au téléphone, dans la barre dès 780, discriminant sur la
+  ligne du titre) ; réponse attendue en mono neutre ; colonne gauche de la planche large (marque,
+  Aides · Sessions · Moi, « Gérer » en lien, compte au pied, en-tête réduit à recherche + Créer) ; bordure
+  bleue du bloc courant ; en session « Ne pas oublier » PUIS À vérifier, différentiels, repères en cartes
+  dépliables SOUS le bloc ; « Mode écran » au menu ⋯ ; titres de protocole à chevron droit sans
+  indentation ; socle de l'accueil supprimé au téléphone (Rejoindre → Sessions, Gérer → Affichage) ;
+  sommaire de protocole sous le titre, collant en défilant ; compte des cartes contre le chevron.
+- **A352 — cinquième passe (relecture de l'auteur)** : DEUX MATIÈRES DE FENÊTRE — les six destinations
+  (Sessions, Compte, Catégories, Stockage, Bibliothèque, Versions) deviennent des page-fenêtres
+  (`.ai-modal.page` : fond d'ambiance, cartes, titre 24, pastille de fermeture ; plein écran au téléphone,
+  panneau au gabarit document dès 780), les dialogues restent des cartes blanches ; barre de sélection ≥ 780 en carte
+  entière ; `.btn` à la matière v5 (primaire `--act` plein, `--shadow-primary` purgé) ; anneaux de focus
+  jamais rognés (corps de fenêtre respirant sur les deux axes, anneau intérieur sous `overflow:hidden`,
+  colonne) ; cartes d'historique resserrées (17,5 / 44 px) ; Compte en cartes (appareil, connexion,
+  vocabulaire) ; recherche large à 40 px ; logo et code de session dans la recherche MESURÉS conformes.
+  Quatre témoins adaptés à A351 (dont un qui PENDAIT 30 s sur une barre cachée).
+- **A353 — sixième passe** : bandeau système en BULLE (trois largeurs) ; UNE feuille « Affichage » pour
+  le rangement ET les filtres (la feuille Filtrer est purgée, groupe Catégorie et pied « Tout effacer ·
+  Voir les n résultats » repris), ouverte par le bouton ROND à gauche de la recherche (52 px, permanent,
+  même matière qu'elle — renverse A238 sur ce point), un seul « ＋ Créer » à l'état vide,
+  « Moi » porte les initiales du compte (pied « Compte » supprimé), « · discriminant » respire dans
+  l'en-tête, Tableau · Schéma alignés, consigne du dialogue Terminer dégagée, croix du bilan centrée ;
+  préférences d'affichage vérifiées persistantes, commentaire du tableau ≥ 1200 corrigé ; fenêtre Compte
+  relue à la mesure (quatre paliers, rien sous 12, graisse 650 purgée) et **`.btn` à 15/700 partout**.
+- **A354 — septième passe** : « Références » en carte dépliable sous les cartes de session (schémas,
+  documents, sources, renvois), « Consulter » quitte le quai, le bas de fiche et la colonne du cockpit
+  (quatre touches de largeur égale, « Fin » au gabarit commun) ; « Mode écran » retiré ; le rail perd
+  « Terminer la session… » ; la capsule ne monte dans l'en-tête qu'au bureau (≥ 1440), une tablette en
+  paysage garde la bande.
+- **A355 — huitième passe (canevas)** : un filet discret entre les touches du quai ; la rangée « session en
+  cours » perd son aplat vert (carte blanche, liseré 6 px, « ● En cours » en vert), en vue détaillée et compacte.
+- **A356 — neuvième passe** : légende « réponse attendue » à la voix mono des réponses, plus de « Terminer la
+  session… » dans le volet du quai (A336 amendée : la session se termine au quai), contraste des boutons de la
+  carte « Session en cours » (bord critique au téléphone, encre et bord `--crit-sys` et « Reprendre » plein sur la bande).
+- **A357 — dixième passe (canevas)** : une seule grammaire pour les cinq dépliants de session (tête commune
+  avec compte et chevron, rangées à filet sans marque, réponse ou dose en mono, Références sans carte imbriquée).
+- **A358 — onzième passe** : UNE carte dépliable (`foldCardHtml`) pour l'écran d'entrée et la session — même
+  tête, même corps, même rangées ; « Ne pas oublier » perd son gestionnaire à part ; seconde ligne des
+  différentiels et des repères en corps 13,5 ; « Sources » dans la carte Références.
+- **A359 — douzième passe** : barre de sélection, dialogues et « Rejoindre » sur la matière des boutons v5 ;
+  texte de la recherche du téléphone à 17,5 et icône de filtre à 24 ; la dernière carte d'un groupe de
+  l'accueil garde son bord bas (invisible en sombre).
+- **A360 — treizième passe** : la feuille « Actions » de la sélection (téléphone/tablette) parle la
+  grammaire du menu ⋯ — icône, sous-ligne et chevron par rangée (`openPickMenu` : `ic`/`sub`/`chev`),
+  matière de travail, en-tête 17,5 sans filet, rangées 52 px à filets entre elles, danger à l'écart.
+- **A361 — quatorzième passe** : UN dessin de menu — `menuRowHtml` émet la rangée `.mm-row` du menu ⋯
+  et des sélecteurs, coque `.popmenu` ancrée ou en feuille ; le menu ⋯ devient une FEUILLE BASSE sous
+  780 px (montée sur `<body>`, voile, poignée) ; le pied danger encadré a vécu (A337 amendée).
+- **A362 — quinzième passe** : à l'accueil en cartes, 8 px entre les cartes d'un groupe et 24 px avant
+  chaque intertitre (elles se touchaient) ; le livre compact ne change pas. Le témoin partage « rien ne
+  bouge » mesure la dérive dans le fil (la rangée « Connexion perdue » du quai le décalait sous charge).
+- **Écarts restants, à décider avec l'auteur** (doctrine A350-A362) : volets Outils/Journal blancs, quai à trois tuiles, bibliothèques dans Moi, Sessions/Moi en vraies vues de la colonne
+  ≥ 780 ; deux formes refusées d'A330 reprises sur maquette
+  (intitulés dans les cartes, Parcours dépliable — ouvert par défaut).
+- Témoin `audit-doctrine` « v5.30 · A345 » ; doctrine `docs/decisions/lot-v5-30.md`, index,
+  `design/ds` régénéré, CHANGELOG à 20 ([5.25.0] archivée).
+- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro.
+
 ## [5.29.4] — 2026-09-11
 ### La destination devient une pastille, les voies cessent de se superposer, et le papier se pagine avant d'être peint (A344)
 
@@ -478,29 +593,3 @@
 - **Correction** : la carte porte 6 px en haut et en bas, la liste 4/4 ; le lien de sortie, quand
   il existe, reprend les 6 px du bas pour rester au ras du cadre. Mesuré après : 15/15 sans lien,
   lien au ras avec, hauteur de carte inchangée dans ce cas.
-
-## [5.25.0] — 2026-09-06
-### L'écran d'entrée d'une aide se lit comme un écran de démarrage (A330)
-
-- **Demande de l'auteur** : « comprendre que c'est juste un écran de démarrage, que l'action se
-  situe après ; le plan n'est qu'un plan ». Mesuré avant : « Prise en charge » en titre, des
-  rangées blanches numérotées qui invitent au tap, des compteurs « 0/4 », et le seul mot qui disait
-  le contraire — « inerte » — à 11 px gris clair. Maquettes itérées sur canvas.
-- **Trois chapitres de même niveau, sans numéro** : les intitulés qui existaient sortent de leurs
-  cadres — « ■ Quand l'utiliser », « ■ Ne pas oublier », « Parcours » (sous-ligne « Aperçu — se
-  déroule après le démarrage ») —, un filet et un blanc ouvrent chacun. En session, rien ne change.
-- **Le plan est un aperçu à plat** : ni carte, ni pastille, ni « 0/4 » ; numéros, titres et renvois
-  gris ; la rangée de décision se tait quand ses branches sont étiquetées ; rangées de 32 px,
-  toujours dépliables. « Surveiller ensuite » reste au rail. Tableau et Schéma vivent sous le titre
-  « Parcours », à largeur de contenu, alignés à gauche.
-- **Rien ne démarre sauf le chrono** (correction de l'auteur) : le rail « Ce qui démarrera » devient
-  « En session » (« démarre avec la session » / « 2:00 cyclique, à lancer ») ; sur téléphone,
-  « Minuteurs à disposition en session : Cycle RCP 2:00 · Adrénaline 4:00. » remplace la ligne
-  « 5 blocs · 2 minuteurs · … ».
-- **Le sur-titre dit l'état** : « Avant la session · adulte », encre neutre, dans le logement que
-  « ■ Mode crise » prend au premier geste. Cockpit : même grammaire dans la colonne de gauche, sans
-  « ICI ». Notes locales, note personnelle et pied passent en queue sous un filet ; la porte « Le
-  tableau ne colle pas ? » à l'encre normale.
-- **Garde-fous** : témoins d'audit-doctrine réalignés (boutons sous « Parcours » et au-dessus de
-  l'aperçu, zéro « Prise en charge » avant la session), tests Q4 réécrits, `.conf-eh` purgé avec
-  épitaphe. Doctrine A330 dans `docs/decisions/lot-v5-25.md` ; formes refusées consignées.

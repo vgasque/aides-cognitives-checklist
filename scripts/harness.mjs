@@ -180,7 +180,9 @@ export async function amorce(page) {
   try { await page.evaluate(() => { window.__acNetOk = true; }); } catch (e) {}
   await page.waitForFunction(() => !document.querySelector('.boot-load'));
   await page.evaluate(() => {
-    const b = [...document.querySelectorAll('button')].find(x => /Commencer/.test(x.textContent));
+    /* v5.30 : l'écran de bienvenue propose « Découvrir avec 2 exemples » (ajoute les fiches
+       d'exemple et ferme) ; l'ancienne porte « Commencer » reste comprise. */
+    const b = [...document.querySelectorAll('button')].find(x => /Découvrir avec 2 exemples|Commencer/.test(x.textContent));
     if (b) b.click();
   });
   await page.waitForFunction(() =>

@@ -289,7 +289,7 @@ try {
   /* Ouvert depuis sa RANGÉE (sans recherche) : ni surlignage ni pilule — on vient LIRE. La rangée
      de documents d'une FICHE vit dans la feuille « Consulter » (v4.25.3), pas dans le flux : on y
      va par le vrai bouton. */
-  await page.evaluate(() => { const b = document.getElementById('refBtn'); if (!b) throw new Error('refBtn absent'); b.click(); });
+  await page.evaluate(() => openRefSheet());   /* v5.30 (A354) : la porte est la tuile du menu ⋯ (openRefSheet), plus une touche au quai */
   await page.waitForFunction(() => document.getElementById('refModal').classList.contains('on'), null, { timeout: 8000 });
   await page.evaluate(() => { const b = document.querySelector('#refModal [data-att]'); if (!b) throw new Error('rangée document absente de Consulter'); b.click(); });
   await page.waitForFunction(() => document.getElementById('pdfModal').classList.contains('on'), null, { timeout: 20000 }).catch(() => {});

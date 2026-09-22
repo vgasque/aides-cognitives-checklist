@@ -568,7 +568,8 @@ const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   renderEditor();await w(450);
   const guides=[...document.querySelectorAll('details.crit-guide')].map(x=>x.open);
   const porte=document.getElementById('edAddOpen');
-  const prim=getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+  /* v5.30 (maquette v5) : la porte est le bouton flottant TONAL — fond --primary-soft, glyphe --act. */
+  const prim=getComputedStyle(document.documentElement).getPropertyValue('--primary-soft').trim();
   const bidon=document.createElement('span');bidon.style.background=prim;document.body.appendChild(bidon);
   const attendu=getComputedStyle(bidon).backgroundColor;bidon.remove();
   const res={guides,porteFond:getComputedStyle(porte).backgroundColor,attendu,
@@ -584,7 +585,7 @@ const R4=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return res;});
 t('le guide rouge/ambre est REPLIÉ par défaut sur tous les blocs',
   R4.guides.length>0&&R4.guides.every(x=>!x), JSON.stringify(R4.guides));
-t('la porte est le bouton REMPLI de l’écran', R4.porteFond===R4.attendu, `${R4.porteFond} vs ${R4.attendu}`);
+t('la porte est le bouton flottant TONAL de la maquette v5', R4.porteFond===R4.attendu, `${R4.porteFond} vs ${R4.attendu}`);
 t('… et « ▶ Essayer » n’est plus primaire', !R4.essayerPrimaire);
 t('minuteur, compteur, complication : chacun arrive DANS l’écran',
   Object.values(R4.vus).every(Boolean), JSON.stringify(R4.vus));
@@ -644,7 +645,7 @@ const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   /* (5) LA PORTE A DE LA PROFONDEUR : élévation de niveau 3 + voile au-dessus. */
   const porte=document.getElementById('edAddOpen');
   const voile=getComputedStyle(porte,'::before');
-  const up=getComputedStyle(document.documentElement).getPropertyValue('--shadow-up').trim();
+  const up=getComputedStyle(document.documentElement).getPropertyValue('--shadow-work').trim();   // v5.30 : l'ombre de carte de la maquette
   const bidon=document.createElement('span');bidon.style.boxShadow=up;document.body.appendChild(bidon);
   const attendu=getComputedStyle(bidon).boxShadow;bidon.remove();
   return {agrege,idem,detache,retrait,compteur,nomme,lRepos,lPris,
@@ -672,9 +673,8 @@ t('la marque « en déplacement » ne rétrécit plus le champ',
    les angles ne suivent pas le rayon, et il éclaircissait vers `--bg` au lieu d'assombrir — « à
    l'envers », littéralement. On mesure donc les DEUX propriétés : l'ombre vaut `--shadow-up`
    (décalage NÉGATIF, du côté d'où vient le contenu) et il n'y a plus AUCUN voile. */
-t('la porte porte l’ombre montante', V.porteOmbre===V.porteAttendue,
+t('la porte porte l’ombre de carte (--shadow-work, maquette v5)', V.porteOmbre===V.porteAttendue,
   `${V.porteOmbre} vs ${V.porteAttendue}`);
-t('… avec un décalage vertical NÉGATIF', /-\d+px/.test(V.porteOmbre), V.porteOmbre);
 t('… et plus aucun voile rectangulaire', V.voile==='none', V.voile);
 
 console.log('=== v4.78.0 : le placard d’essai ne survit pas au retour en édition ===');
@@ -750,7 +750,7 @@ const W=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const ref=getComputedStyle(document.getElementById('f-title'));
   const champ={rembourrage:parseFloat(cs.paddingTop)>=8,
     rayon:parseFloat(cs.borderTopLeftRadius)>=8,
-    largeurFilet:Math.round(parseFloat(cs.borderTopWidth)),
+    largeurFilet:Math.round(parseFloat(cs.borderTopWidth))-Math.round(parseFloat(ref.borderTopWidth))+1,   // = 1 si même filet que le champ de référence
     fond:cs.backgroundColor===ref.backgroundColor};
   return {chrono,cycle,compteur,minApresCompteur,champ};});
 
