@@ -1013,3 +1013,49 @@ le reste de la cible — 40 + 2 × 2, 36 + 2 × 4, 32 + 2 × 6 = 44, chaque pali
 « Créer » porte son mot, l'écart entre boutons passe à 6 pour rendre 4 px à la réserve. Les croix des
 fenêtres (M 40) portent un halo de 2 pour rester des cibles de 44 en session (a11y « compte-rendu »,
 « feuille Plan » rouges avant).
+
+### A376 — huit retouches de cohérence après 5.30.5, et l'Échelle s'en va (25/09/2026)
+
+Liste de l'auteur, dans l'ordre. **1 · Une bulle pour toutes les notices** : « 2 exemples ajoutés »
+(bandeau système, A353) et « Vous êtes l'auteur… » (`.notice`) avaient deux dessins — liseré gauche
+de 4 px, bord `--primary` plein, rayon petit d'un côté ; bulle `--primary-200`, rayon `--r-4` de
+l'autre. `.notice` prend le dessin de la bulle. **2 · Moi** : les actions de « Sur cet appareil »
+s'espacent (12) et, dès 780, se posent en rangée à largeur de contenu — un bouton de 720 px pour
+« Un problème ? » ne disait rien de plus. **3 · Cockpit** : la ligne « Parcours · Fait · n étapes »
+collait à 4 px de l'en-tête qui porte la capsule (mesuré ; 12 sous la capsule ailleurs) — 16 px de
+marge sous `body.chrome-hdr`. **4 · Une seule barre d'outils** : Schéma en ligne (`.fz`), Schéma
+plein écran (`.ff-bar`), Page (`.sv-zb`) et les ‹ › de toute recherche (`.rt-fnav .mini`) avaient
+chacun leur boîte (42 × 40 surface/line, 44 ctl-line r-1, 32 et 44) — une règle commune : M 40,
+matière de travail v5.30 (`--work`, `--work-line`, ombre de travail, `--r-3`), corps 13,5/700,
+valeur mono 13,5. **5 · « Vérifier :: »** : secondaire de la rangée de flux, à la hauteur de la
+primaire (XL 56), matière calme `--amb-2`, corps 15 — il était un bouton 12/700 à bordure de
+contrôle d'un autre âge. **6 · Options d'une décision** : le corps des étapes en session (17,5,
+A345) au lieu de 15/800, et le renvoi « → bloc n · titre » ne coupe plus le titre à 17 caractères
+en JS — l'ellipse CSS prend la place disponible (« tronqué très tôt même sur ordinateur »).
+**7 · « Le tableau ne colle pas ? »** : la carte où l'on est amené se signale 2,4 s (anneau `--act`
+qui s'efface, peinture seule ; sous `prefers-reduced-motion` l'anneau reste posé le même temps) —
+l'ouverture et le défilement restent l'information, l'anneau la souligne (AA : jamais une couleur
+seule). **8 · Le parcours n'a plus qu'UN dessin** : la liste numérotée à renvois écrits (A349,
+`preFlowFlatHtml`) rend désormais aussi la feuille « Se repérer », la colonne du cockpit (avant et
+pendant la session) et le rail 780-1199 ; elle accepte l'état de session (`{md, off}` de
+`planCtx`) et marque la rangée courante `cur` (fond `--primary-soft`, numéro bleu, `aria-current`),
+un bloc coché `done` (numéro vert), un bloc hors chemin `off` (numéro pointillé, 0,62). Le plan
+reste INERTE (rien ne se coche là). `ovPlanLadderHtml` (l'« Échelle », v4.25.0) n'avait plus
+d'appelant : purgée avec ses 65 règles et treize classes (`.pl-line`, `.pl-lx`, `.pl-ref`, `.pl-x`,
+`.pl-stp`…), épitaphe dans la feuille ; `.pl-brc`, `.pl-here`, `.pl-sech`, `.pl-r` restent, émises
+par « Toute la fiche ». Le repli par ligne de la feuille (`state.ovFold['l:…']`) part avec elle.
+Corollaire : l'item 2 d'A374 (nœuds 13,5, renvois 12 de l'Échelle) est sans objet — la liste a ses
+corps (titre 17,5, étapes 15, renvois 13,5).
+
+**Addendum A376 — ce que la purge a déplacé.** (a) Le losange d'une décision porte SON numéro dans
+la liste (il portait « ? ») : un renvoi « → aller à 2 » doit trouver un 2. (b) Les jalons de boucle
+s'annoncent dans la liste (`.pf-jl`, condition en toutes lettres, registre VIGILANCE) comme dans
+« Toute la fiche » — l'Échelle les portait, la liste ne pouvait pas les taire. (c) Cibles de la règle
+9 : la barre d'outils M 40 et les renvois en ligne (32) de la liste portent un halo (2 et 6) qui fait
+44 dans les surfaces de session (feuille Plan, statique, recherche active) ; les ‹ › d'une recherche
+passent à 44, hauteur du champ qu'ils accompagnent. (d) Neuf sections de `audit-doctrine.mjs`
+mesuraient l'Échelle ; adaptées à la liste — « le retrait dit la profondeur » (A339) devient « la
+liste écrit les chemins » : deux décisions nommées, un segment « Chemin n » signé, une seule colonne
+de numéros ; « registres et cohérence » mesure désormais le registre de la DÉCISION (ambre doux,
+A345) au lieu d'interdire l'ambre à une chip ; la « rangée compacte » du parcours d'entrée (32 ≤ h <
+44) est sans objet, la liste est lisible (h ≥ 44).

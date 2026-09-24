@@ -123,7 +123,7 @@ await sec('ECAM · naviguer ≠ agir', async () => {
   // ces deux contrôles passaient SANS avoir rien cliqué (faux positif permanent). D'où le
   // `clique` remonté et vérifié : un contrôle qui ne peut pas échouer ne prouve rien.
   const after=await page.evaluate(async()=>{
-    const nd=document.querySelector('.pl-line[data-plln]');
+    const nd=document.querySelector('.pf-row[data-plln]');   // A376 : la feuille rend la liste numérotée
     if(nd)nd.click();
     await new Promise(r=>setTimeout(r,300));
     return {clique:!!nd,live:Object.keys(liveSessions||{}).length,checked:JSON.stringify(Runtime.checked||{})};});
@@ -901,7 +901,7 @@ for (const w of [320, 360, 390]) {
          const d = Math.round(r2.right - br2.right);
          if (d > pire) { pire = d; qui = (el.className || el.tagName) + ''; } }); }
      o.planDebord = pire; o.planQui = qui;
-     o.planNbLignes = document.querySelectorAll('#planModal .pl-line').length;}
+     o.planNbLignes = document.querySelectorAll('#planModal .pf-row').length;}   // A376 : rangées de la liste
     document.getElementById('planX').click(); await new Promise(x => setTimeout(x, 300));
 
     /* (b) LA CROIX DU PANNEAU MINUTEURS RESTE DANS LE CADRE. On mesure contre le bord INTÉRIEUR,
@@ -2490,85 +2490,55 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
        seconde fois. Le témoin démarre donc la session — c'est l'état où la colonne vit. */
     document.getElementById('sessStart').click();await w(700);});
   const R=await page.evaluate(()=>{
-    /* ⚠ UNE SEULE COLONNE À LA FOIS : à 1280 px le plan existe À GAUCHE *et* dans le rail de
-       droite. Comparer un intertitre de l'une à une rangée de l'autre mesure l'écart entre deux
-       colonnes, pas l'alignement — première version du témoin, rouge pour cette raison. */
+    /* A376 : la colonne rend la LISTE numérotée (A349, un seul dessin du parcours) — mêmes propriétés,
+       autre anatomie : une décision est une rangée au registre de la DÉCISION (ambre doux, A345), ses
+       branches sont nommées et disent où elles mènent, chaque rangée porte son numéro dans la même
+       colonne. ⚠ UNE SEULE COLONNE À LA FOIS (leçon d'origine) : à 1280 px le plan existe à gauche
+       ET dans le rail de droite. ⚠ ON RÉSOUT LE TOKEN par une sonde peinte, on ne compare pas son nom
+       (douzième piège, v4.76.0). */
     const root=document.querySelector('.read-plan')||document.querySelector('.rail-lad')||document;
-    const ch=root.querySelector('.pl-brc span');
-    const sec=root.querySelector('.pl-sec.cx');
-    const sh=root.querySelector('.pl-sech'),ln=root.querySelector('.pl-line');
-    /* ⚠ ON RÉSOUT LE TOKEN, ON NE LE COMPARE PAS PAR SON NOM (douzième piège, v4.76.0) : lu dans
-       `--verify` il vaut « #… » alors que la couleur calculée d'un élément vaut « rgb(…) » —
-       comparer les deux ne peut JAMAIS être vrai, et le contrôle passait quoi qu'il arrive. On
-       peint une sonde et l'on lit ce que le moteur en fait. */
     const sonde=document.createElement('span');
-    sonde.style.cssText='color:var(--verify);background:var(--verify-soft);position:absolute;left:-9999px';
-    document.body.appendChild(sonde);
-    const amb=getComputedStyle(sonde).color,ambBg=getComputedStyle(sonde).backgroundColor;
-    sonde.remove();
-    return {chip:!!ch,chipBg:ch?getComputedStyle(ch).backgroundColor:'',chipInk:ch?getComputedStyle(ch).color:'',
-      ambre:amb,ambreBg:ambBg,sec:!!sec,railSec:sec?getComputedStyle(sec).borderLeftWidth:'0px',
-      railLigne:root.querySelector('.pl-line.cxl')?getComputedStyle(root.querySelector('.pl-line.cxl')).borderLeftWidth:'0px',
-      cxCol:root.querySelectorAll('.pl-line.cxl').length,
-      chipEcart:(()=>{const c=root.querySelector('.pl-brc');if(!c)return null;
-        const sp=c.querySelector('span'),nx=c.nextElementSibling;
-        const mk=nx&&nx.querySelector?nx.querySelector('.n'):null;
-        return (sp&&mk)?Math.round(sp.getBoundingClientRect().left-mk.getBoundingClientRect().left):null;})(),
-      ecarts:(()=>{const ns=[...root.querySelectorAll('.rail-head,.pl-line')];
-        const o=[];ns.forEach((e,i)=>{if(!e.classList.contains('rail-head'))return;
-          const nx=ns[i+1];if(nx)o.push(Math.round(nx.getBoundingClientRect().top-e.getBoundingClientRect().bottom));});
-        return o;})(),
-      marqueurs:(()=>{const ls=[...root.querySelectorAll('.pl-line')];
-        const sansMk=ls.filter(e=>!e.querySelector('.n')).length;
-        /* On ignore les rangées à fond plein (courante, faite) : leur encre est celle du fond. */
-        const enc=[...new Set(ls.filter(e=>!e.classList.contains('cur')&&!e.classList.contains('done'))
-          .map(e=>e.querySelector('.n')).filter(Boolean).map(e=>getComputedStyle(e).color))];
-        return {manquants:sansMk,encres:enc};})(),
-      /* ⚠ LA RÉFÉRENCE EST UNE PASTILLE AU REPOS : la rangée COURANTE est un aplat plein, son
-         filet vaut le primaire — la comparer au losange mesurait deux états, pas deux styles. */
-      pastilleFilet:(()=>{const p0=root.querySelector('.pl-line:not(.dec):not(.cxl):not(.wl):not(.cur):not(.done) .n');
-        return p0?getComputedStyle(p0).borderTopColor:'';})(),
-      losange:(()=>{const d=root.querySelector('.pl-line.dec .n');if(!d)return null;
-        const b4=getComputedStyle(d,'::before');
-        return {chiffre:d.textContent.trim(),filet:b4.borderTopColor,fond:b4.backgroundColor};})(),
-      /* ⚠ TOUS LES INTERTITRES DE LA COLONNE PARTENT DU MÊME x (demande utilisateur) : « À tout
-         moment » et « Surveiller » s'alignent sur « Parcours inerte » — et, en rail unique, sur
-         « Minuteurs & compteurs » et « Repères posologiques », qui sont des `.rail-title` sans
-         retrait. On compare le début du TEXTE, pas le bord de la boîte. */
-      /* ⚠ PAR COLONNE, PAS EN BLOC : en cockpit il y a DEUX colonnes (le plan à gauche, le rail à
-         droite) — les mélanger mesurerait l'écart entre deux colonnes, pas un alignement. */
+    sonde.style.cssText='color:var(--warn);background:var(--warn-soft);position:absolute;left:-9999px';
+    document.body.appendChild(sonde);const warn=getComputedStyle(sonde).color,warnBg=getComputedStyle(sonde).backgroundColor;sonde.remove();
+    const dec=root.querySelector('.pf-row.dec');const opts=dec?[...dec.querySelectorAll('.pf-opt')]:[];
+    const rows=[...root.querySelectorAll('.pf-row')];
+    return {dec:!!dec,decBg:dec?getComputedStyle(dec).backgroundColor:'',warn,warnBg,
+      branches:opts.map(o=>((o.querySelector('b')||{}).textContent||'').trim()),
+      branchesInk:[...new Set(opts.map(o=>{const b=o.querySelector('b');return b?getComputedStyle(b).color:'';}))],
+      branchesDest:opts.map(o=>!!o.querySelector('.pf-ref')||/▪ fin|ci-dessous/.test(o.textContent)),
+      cxCol:root.querySelectorAll('.pl-line.cxl,.pl-sec.cx').length,
+      ecarts:[...new Set(rows.filter(r=>!r.classList.contains('dec')).map(r=>{const t=r.querySelector('.pf-title'),li=r.querySelector('.pf-steps li');
+        return (t&&li)?Math.round(li.getBoundingClientRect().top-t.getBoundingClientRect().bottom):null;}).filter(v=>v!==null))],
+      marqueurs:{manquants:rows.filter(r=>!r.querySelector('.pf-badge')).length,
+        encres:[...new Set(rows.filter(r=>!['cur','done','off','dec'].some(c=>r.classList.contains(c))).map(r=>getComputedStyle(r.querySelector('.pf-badge')).color))]},
+      losange:(()=>{const d=root.querySelector('.pf-row.dec .pf-badge');return d?{chiffre:d.textContent.trim(),ink:getComputedStyle(d).color}:null;})(),
       xTitres:(()=>{const x=e=>{const c=getComputedStyle(e);
           return Math.round(e.getBoundingClientRect().left+parseFloat(c.paddingLeft)+parseFloat(c.borderLeftWidth));};
         const cols=[[...root.querySelectorAll('.rail-title,.pl-sech')]];
         const side=document.querySelector('.read-side');
         if(side&&side!==root)cols.push([...side.querySelectorAll('.rail-title,.pl-sech')]);
         return cols.filter(c=>c.length).map(c=>[...new Set(c.map(x))]);})()};});
-  t('témoin : une chip de branche est mesurée', R.chip===true, String(R.chip));
-  /* On compare l'ENCRE RÉSOLUE, on ne se fie pas au nom du token (douzième piège, v4.76.0). */
-  t('… et elle n’emprunte plus le registre ATTENTION',
-    R.chip&&R.chipInk!==R.ambre&&R.chipBg!==R.ambreBg,
-    `fond ${R.chipBg} · encre ${R.chipInk} (ambre ${R.ambre} / ${R.ambreBg})`);
-  /* ⚠ « À TOUT MOMENT » A QUITTÉ LA COLONNE (v5.0.0, demande utilisateur : « c'est inutile »).
-     Elle ORIENTE dans la séquence — or une complication n'y est justement pas, et l'endroit où on
-     l'attend est la carte du bloc ou la vue « Toute la fiche », qui la gardent toutes deux. */
-  t('la colonne ne porte plus de section « à tout moment »',
-    R.cxCol===0&&parseFloat(R.railLigne)===0, `${R.cxCol} rangée(s), liseré ${R.railLigne}`);
-  /* ⚠ LA CHIP DE BRANCHE S'ALIGNE SUR LE MARQUEUR DU BLOC QU'ELLE OUVRE (signalé à l'usage) :
-     elle portait les retraits du PLAN (20/32/48) quand la colonne resserre les siens (16/28/40). */
-  if(R.chipEcart!==null)t('la chip de branche s’aligne sur le marqueur du bloc enfant',
-    Math.abs(R.chipEcart)<=1, `${R.chipEcart} px`);
+  t('témoin : une décision est mesurée, avec ses branches nommées',
+    R.dec===true&&R.branches.length>=2&&R.branches.every(Boolean), JSON.stringify(R.branches));
+  /* A345/A349 (maquette de l'auteur) : la décision est ambre doux et ses branches portent le mot en
+     ambre — c'est le registre de la DÉCISION, pas un emprunt à ATTENTION (l'ancienne chip de branche
+     de l'Échelle n'y avait pas droit ; la liste, elle, DIT la décision). */
+  t('la décision porte le registre de la DÉCISION (ambre doux), ses branches le mot en ambre',
+    R.decBg===R.warnBg&&R.branchesInk.length===1&&R.branchesInk[0]===R.warn,
+    `fond ${R.decBg} (attendu ${R.warnBg}) · encre ${JSON.stringify(R.branchesInk)} (attendue ${R.warn})`);
+  t('la colonne ne porte plus de section « à tout moment »', R.cxCol===0, `${R.cxCol}`);
   /* ⚠ UN SEUL ÉCART ENTRE UN TITRE ET SES RANGÉES (demande utilisateur). */
-  t('chaque titre a le même écart avec ses rangées',
-    R.ecarts.length>=2&&[...new Set(R.ecarts)].length===1, JSON.stringify(R.ecarts));
-  /* ⚠ UNE SEULE ANATOMIE DE RANGÉE : chaque ligne porte un marqueur dans la MÊME colonne, et
+  t('chaque titre a le même écart avec ses rangées', R.ecarts.length===1, JSON.stringify(R.ecarts));
+  /* ⚠ UNE SEULE ANATOMIE DE RANGÉE : chaque rangée porte son numéro dans la MÊME colonne, et
      l'encre reste celle de la colonne — la FORME dit le registre, pas la couleur. */
   t('chaque rangée porte un marqueur, tous à la même encre',
     R.marqueurs.manquants===0&&R.marqueurs.encres.length===1,
     `${R.marqueurs.manquants} sans marqueur · encres ${JSON.stringify(R.marqueurs.encres)}`);
-  /* Le LOSANGE a le style de la pastille — même filet, même fond — et il PORTE son numéro. */
-  t('le losange d’une décision est chiffré et au style des pastilles',
-    !!(R.losange&&R.losange.chiffre&&R.losange.filet===R.pastilleFilet),
-    JSON.stringify(R.losange)+' vs filet pastille '+R.pastilleFilet);
+  /* Le LOSANGE porte SON numéro (« → aller à 2 » doit trouver un 2), au registre de la décision. */
+  t('le losange d’une décision est chiffré, au registre de la décision',
+    !!(R.losange&&/^\d+$/.test(R.losange.chiffre)&&R.losange.ink===R.warn), JSON.stringify(R.losange));
+  t('chaque branche dit où elle mène — renvoi, « ci-dessous » ou « fin »',
+    R.branchesDest.length>=2&&R.branchesDest.every(Boolean), JSON.stringify(R.branchesDest));
   t('dans CHAQUE colonne, les intertitres partent du même x',
     R.xTitres.every(c=>c.length<=1), JSON.stringify(R.xTitres));
   await page.close();
@@ -2584,7 +2554,7 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
    l'étiquette de branche reste sur le marqueur de la rangée qu'elle ouvre, à 1 px près (la rangée
    est une carte, l'étiquette non). Fiche à décision IMBRIQUÉE : le défaut ne se voit qu'à deux
    niveaux — d1 et d2 vivaient au même x. */
-await sec('PARCOURS · le retrait dit la profondeur (décisions imbriquées)', async () => {
+await sec('PARCOURS · la liste écrit les chemins (décisions imbriquées)', async () => {
 {
   const FICHE_IMB={id:'imb1',title:'Imbriquée — témoin',kind:'algo',start:'a',
     blocks:[
@@ -2605,46 +2575,31 @@ await sec('PARCOURS · le retrait dit la profondeur (décisions imbriquées)', a
   await page.evaluate(async f=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const nf=migrate(JSON.parse(JSON.stringify(f)));await Data.put(nf);fiches.push(nf);
     openRead(nf.id);await w(700);},FICHE_IMB);
-  /* Le retrait se lit sur le RENDU, jamais sur la règle : c'est un raccourci `padding` d'un autre
-     régime qui l'effaçait, et lui n'apparaît dans aucune des règles qu'on croirait lire. */
+  /* A376 : la liste numérotée N'INDENTE PAS — elle ÉCRIT le chemin (A339 rendu sans objet avec
+     l'Échelle) : une branche qui n'est pas la rangée suivante ouvre un segment « Chemin n » signé par
+     sa décision, chaque option dit où elle mène, et tous les numéros vivent dans UNE colonne. Trois
+     niveaux (d1 → d2 → b1/b2) doivent donner deux décisions nommées, au moins un segment et une seule
+     colonne de marqueurs — avant la session comme en session. */
   const lire=()=>page.evaluate(()=>{
-    const zone=document.querySelector('.pre-lad')||document.querySelector('.read-plan .rail-lad');
-    if(!zone)return null;
-    const px=e=>Math.round(parseFloat(getComputedStyle(e).paddingLeft)||0);
-    const par=c=>{const o={};zone.querySelectorAll('.'+c).forEach(e=>{
-      const d=[...e.classList].find(x=>/^d[0-3]$/.test(x))||'d0';(o[d]=o[d]||[]).push(px(e));});return o;};
-    /* L'étiquette PUIS sa rangée : on compare le début du texte de l'une au marqueur de l'autre. */
-    const paires=[];zone.querySelectorAll('.pl-brc').forEach(b=>{
-      const n=b.nextElementSibling;if(!n||!n.classList.contains('pl-line'))return;
-      const sp=b.querySelector('span'),mk=n.querySelector('.n');if(!sp||!mk)return;
-      paires.push(Math.round(sp.getBoundingClientRect().left-mk.getBoundingClientRect().left));});
-    return {ligne:par('pl-line'),brc:par('pl-brc'),jmp:par('pl-jmp'),paires};});
-  const croit=o=>{const k=Object.keys(o||{}).filter(d=>o[d].length).sort();
-    if(k.length<2)return false;
-    for(const d of k)if([...new Set(o[d])].length!==1)return false;   // un niveau, UN retrait
-    for(let i=1;i<k.length;i++)if(o[k[i]][0]<=o[k[i-1]][0])return false;
-    return true;};
-  const avant=await lire();
-  t('témoin : l’aperçu de l’écran de démarrage porte trois niveaux',
-    !!avant&&Object.keys(avant.ligne).length>=3, JSON.stringify(avant&&avant.ligne));
-  t('avant la session, le retrait CROÎT avec la profondeur (rangées)',
-    croit(avant&&avant.ligne), JSON.stringify(avant&&avant.ligne));
-  t('… et les étiquettes de branche suivent leur niveau',
-    croit(avant&&avant.brc), JSON.stringify(avant&&avant.brc));
-  t('… le renvoi d’une branche sans rangée n’est jamais plus à gauche que son niveau',
-    !!avant&&Object.keys(avant.jmp).every(d=>avant.jmp[d].every(v=>v>=(avant.ligne[d]||[0])[0])),
-    JSON.stringify({jmp:avant&&avant.jmp,ligne:avant&&avant.ligne}));
-  t('… et chaque étiquette reste sur le marqueur de la rangée qu’elle ouvre',
-    !!avant&&avant.paires.length>=2&&avant.paires.every(v=>Math.abs(v)<=1), JSON.stringify(avant&&avant.paires));
+    const zone=document.querySelector('.pre-lad')||document.querySelector('.read-plan .rail-lad');if(!zone)return null;
+    const rows=[...zone.querySelectorAll('.pf-row')];const decs=rows.filter(r=>r.classList.contains('dec'));
+    return {rangs:rows.length,decisions:decs.length,
+      branches:decs.map(d=>[...d.querySelectorAll('.pf-opt')].map(o=>({nom:((o.querySelector('b')||{}).textContent||'').trim(),dest:!!o.querySelector('.pf-ref')||/▪ fin|ci-dessous/.test(o.textContent)}))),
+      segments:zone.querySelectorAll('.pf-seg').length,segSrc:zone.querySelectorAll('.pf-seg .pf-src').length,
+      xBadges:[...new Set(rows.map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left)))]};});
+  const juge=(o,quand)=>{
+    t(`${quand} · témoin : les six blocs sont rendus, dont deux décisions`,
+      !!o&&o.rangs===6&&o.decisions===2, JSON.stringify(o&&{rangs:o.rangs,decisions:o.decisions}));
+    t(`${quand} · chaque décision nomme ses deux branches, et chacune dit où elle mène`,
+      !!o&&o.branches.length===2&&o.branches.every(b=>b.length===2&&b.every(x=>x.nom&&x.dest)), JSON.stringify(o&&o.branches));
+    t(`${quand} · une branche qui n'est pas la rangée suivante ouvre un segment « Chemin n », signé par sa décision`,
+      !!o&&o.segments>=1&&o.segSrc===o.segments, JSON.stringify(o&&{segments:o.segments,src:o.segSrc}));
+    t(`${quand} · tous les numéros vivent dans UNE colonne (la liste n'indente pas, elle écrit)`,
+      !!o&&o.xBadges.length===1, JSON.stringify(o&&o.xBadges));};
+  juge(await lire(),'avant la session');
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     document.getElementById('sessStart').click();await w(700);});
-  const apres=await lire();
-  t('en session, la colonne garde la même croissance (rangées)',
-    croit(apres&&apres.ligne), JSON.stringify(apres&&apres.ligne));
-  t('… étiquettes comprises',
-    croit(apres&&apres.brc), JSON.stringify(apres&&apres.brc));
-  t('… et l’étiquette reste sur le marqueur de sa rangée',
-    !!apres&&apres.paires.length>=2&&apres.paires.every(v=>Math.abs(v)<=1), JSON.stringify(apres&&apres.paires));
+  juge(await lire(),'en session');
   await page.close();
 }
 });
@@ -3243,7 +3198,7 @@ await sec('RÉGRESSIONS · déplacement, flèches, losange', async () => {
     /* 3 — LE LOSANGE NE DÉBORDE PAS SA RANGÉE. */
     state.readMode='overview';render();await w(400);
     const sb=document.getElementById('sessStart');if(sb)sb.click();await w(700);
-    const dec=document.querySelector('.pl-line.dec .n');
+    const dec=document.querySelector('.pf-row.dec .pf-badge');   // A376
     const los=dec?(()=>{const q=dec.getBoundingClientRect(),pr=dec.parentElement.getBoundingClientRect();
       return {gauche:Math.round(q.left-pr.left),haut:Math.round(q.top-pr.top)};})():null;
     return {bouge:av!==ap,nInt,fleches,attendu,los};});
@@ -3310,13 +3265,13 @@ await sec('PARCOURS INERTE · les marqueurs sont lisibles', async () => {
       const v=m.slice(0,3).map(x=>{const u=(+x)/255;return u<=0.03928?u/12.92:Math.pow((u+0.055)/1.055,2.4);});
       return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2];};
     const ratio=(a,b)=>{const l1=lum(a),l2=lum(b);return +(((Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05))).toFixed(2);};
-    const badges=[...document.querySelectorAll('.rail-lad .pl-line .n,.read-plan .pl-line .n')]
+    const badges=[...document.querySelectorAll('.rail-lad .pf-row .pf-badge,.read-plan .pf-row .pf-badge')]   // A376
       .filter(n=>n.textContent.trim()||n.querySelector('svg'))
       .map(n=>{const cs=getComputedStyle(n);
         return {txt:n.textContent.trim()||'✓',r:ratio(cs.color,cs.backgroundColor)};});
     /* Le contrôle doit RENCONTRER SON CAS : sans pastille pleine (bloc courant ou bloc fait) il
        mesurerait des contours gris et resterait vert sur le défaut. */
-    const pleines=[...document.querySelectorAll('.rail-lad .pl-line.cur .n,.read-plan .pl-line.cur .n')].length;
+    const pleines=[...document.querySelectorAll('.rail-lad .pf-row.cur .pf-badge,.read-plan .pf-row.cur .pf-badge')].length;
     return {badges,pleines,carte:getComputedStyle(document.querySelector('.rail-lad')||document.body).backgroundColor};});
   t('témoin : au moins une pastille PLEINE est mesurée', r.pleines>=1, `${r.pleines}`);
   t('aucun marqueur n’est de la couleur de son propre fond',
@@ -3744,7 +3699,7 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
           .find(x=>/Parcours/.test(x.textContent));return h?Math.round(h.getBoundingClientRect().top):null;})(),
         rang1:Y('.pre-lad .pl-line,.pre-lad .pf-row'), pec:document.querySelectorAll('main .cp-h').length,   /* v5.30 : en étroit, le parcours à plat (.pf-row) */
         hLien:(()=>{const b=document.querySelector('.pre-link');return b?Math.round(b.getBoundingClientRect().height):null;})(),
-        rangee:(()=>{const l=document.querySelector('.rail-lad .pl-line');return l?Math.round(l.getBoundingClientRect().height):null;})()};
+        rangee:(()=>{const l=document.querySelector('.rail-lad .pf-row');return l?Math.round(l.getBoundingClientRect().height):null;})()};   // A376 : la colonne rend la liste
       /* SCHÉMA : il n'ouvrait RIEN — `openFlowFull(f)` prend la fiche et l'appel l'omettait. */
       const bs=[...document.querySelectorAll('.pre-link')].find(x=>/Schéma/.test(x.textContent));
       if(bs)bs.click();await w(450);
@@ -3777,8 +3732,9 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
        de la crise, qui ne s'appliquent pas ici, en restant au-dessus du plancher hors crise. */
     /* v5.30 : en voie étroite le parcours d'entrée est la liste à plat de la maquette (rangée à
        titre 17,5 + étapes) ; la rangée compacte ne vaut plus qu'au cockpit. */
-    if(W>=1200)t(`${nom} · le parcours d'entrée est compact (32 ≤ h < 44)`,
-      r.av.rangee>=32&&r.av.rangee<44, `${r.av.rangee} px`);
+    /* A376 : la colonne rend la liste numérotée (titre 17,5 + étapes) — la rangée compacte de l'Échelle a vécu ; on vérifie qu'elle existe et qu'elle est lisible. */
+    if(W>=1200)t(`${nom} · le parcours d'entrée est rendu en liste lisible (h ≥ 44)`,
+      r.av.rangee>=44, `${r.av.rangee} px`);
     t(`${nom} · « Schéma » ouvre RÉELLEMENT le schéma`,
       r.svg.ouvert===true&&r.svg.noeuds>0, JSON.stringify(r.svg));
     t(`${nom} · « Tableau » ouvre une FEUILLE, avec sa sortie`,
@@ -4044,10 +4000,10 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
   // toutes lettres) et P4 annote les renvois de boucle de la période du cycle.
   const c3=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const bk=document.querySelector('.ov-block.cur [data-cxback]');if(bk)bk.click();await w(250);
-    const lad=[...document.querySelectorAll('.read-plan .pl-line')].find(l=>/Analyse du rythme/.test(l.textContent));
-    const srj=lad?/jalon de boucle/.test(lad.textContent):false;
-    if(lad)lad.click();await w(200);
-    const jll=document.querySelector('.read-plan .pl-jll');
+    /* A376 : la colonne rend la liste ; le jalon y est annoncé sur la rangée elle-même (.pf-jl), condition en toutes lettres. */
+    /* La rangée d'une décision porte sa QUESTION (« Rythme choquable… ? »), pas le titre du bloc. */
+    const lad=[...document.querySelectorAll('.read-plan .pf-row')].find(l=>/Analyse du rythme|Rythme choquable/.test(l.textContent));
+    const jll=lad?lad.querySelector('.pf-jl'):null;const srj=!!jll;
     const ab=document.getElementById('allBtn');if(ab)ab.click();await w(400);
     const svjl=[...document.querySelectorAll('.sv-jl')].map(e=>e.textContent).join('|');
     const svloop=[...document.querySelectorAll('.sv-jump.loop')].map(e=>e.textContent).join('|');
@@ -4058,7 +4014,7 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
        d'une décision. Le témoin suit le composant, il ne disparaît pas avec son ancien porteur. */
     const pcloop=[...document.querySelectorAll('.pc-row .pc-go')].filter(e=>/↺/.test(e.textContent)).map(e=>e.textContent).join('|');
     return {srj,jll:jll?jll.textContent:'',svjl,svloop,pcjl,pcloop};});
-  t('Échelle : la ligne ANNONCE le jalon et le détail déplié dit la condition',
+  t('Liste : la rangée ANNONCE le jalon, condition en toutes lettres',
     c3.srj===true&&/Chocs délivrés ≥ 3/.test(c3.jll), JSON.stringify({srj:c3.srj,jll:c3.jll.slice(0,60)}));
   t('Statique : la cellule porte le jalon, condition en toutes lettres', /Chocs délivrés ≥ 3/.test(c3.svjl), c3.svjl.slice(0,80));
   t('Parcours : idem, inerte', /Chocs délivrés ≥ 3/.test(c3.pcjl), c3.pcjl.slice(0,80));
@@ -5178,7 +5134,7 @@ await sec('v5.6 · une fiche d\'un seul bloc', async () => {
       return {apresCoches,carte:main.querySelectorAll('.ov-block').length,
         etapes:main.querySelectorAll('ol.steps li[data-ck]').length,
         vieuxRendu:!!main.querySelector('.nav-wrap'),
-        parcours:document.querySelectorAll('.read-plan .pl-line,.rail-lad .pl-line').length,
+        parcours:document.querySelectorAll('.read-plan .pf-row,.rail-lad .pf-row').length,   // A376
         bascule:!!document.querySelector('#dispBack,[data-dispback]'),
         /* Aucun filet suspendu au-dessus du vide : une section vide ne compte pas comme voisine. */
         filetOrphelin:side?[...side.querySelectorAll('.rail-sec')].some(e=>{
@@ -7123,11 +7079,13 @@ await sec('Parcours inerte · une décision montre TOUTES ses branches', async (
   await page.waitForFunction(()=>document.body.classList.contains('view-read'));
   await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
   const r=await page.evaluate(()=>{
+    /* A376 : la liste numérotée — une décision porte ses options en `.pf-opt` (le mot en gras), et chaque option montre un renvoi (`.pf-ref`), « ci-dessous » ou « fin ». */
     const racine=document.querySelector('.read-plan .rail-lad')||document.querySelector('.pre-lad');
-    const kids=racine?[...racine.children]:[];
-    return {brc:kids.filter(e=>e.classList.contains('pl-brc')).map(e=>e.textContent.trim()),
-      jmp:kids.filter(e=>e.classList.contains('pl-jmp')).map(e=>e.textContent.trim()),
-      rows:kids.filter(e=>e.classList.contains('pl-line')).map(e=>e.textContent.trim().slice(0,40)),
+    const dec=racine?racine.querySelector('.pf-row.dec'):null;
+    const opts=dec?[...dec.querySelectorAll('.pf-opt')]:[];
+    return {brc:opts.map(e=>((e.querySelector('b')||{}).textContent||'').trim()).filter(Boolean),
+      jmp:opts.map(e=>e.textContent.trim()),
+      rows:racine?[...racine.querySelectorAll('.pf-row .pf-title')].map(e=>e.textContent.trim().slice(0,40)):[],
       opts:((fiches.find(x=>x.id==='aud-cond').blocks.find(b=>b.id==='d1')||{}).options||[]).length};});
   t('les deux branches de la décision sont nommées',r.brc.length===r.opts,
     `${r.brc.length} étiquette(s) pour ${r.opts} option(s) : ${JSON.stringify(r.brc)}`);

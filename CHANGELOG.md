@@ -1,5 +1,29 @@
 # Journal des modifications
 
+## [5.30.6] — 2026-09-25
+Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échelle » du plan s'en va
+(A376, doctrine `docs/decisions/lot-v5-30.md`).
+- **Notices** : « Vous êtes l'auteur… » prend le dessin de la bulle système (même bord, même rayon,
+  même rembourrage) — deux dessins pour un même rôle.
+- **Moi** : « Exporter mes données » et « Un problème ? » espacés de 12 px ; dès 780 px, en rangée à
+  largeur de contenu au lieu de 720 px chacun.
+- **Cockpit** : la ligne « Parcours · Fait · n étapes » collait à 4 px de l'en-tête qui porte la
+  capsule ; 20 px, comme sous la capsule ailleurs.
+- **Une seule barre d'outils** : Schéma en ligne et plein écran, Page, et les ‹ › de toutes les
+  recherches partagent une règle — M 40, matière de travail v5.30, rayon 12, corps 13,5 gras.
+- **« Vérifier :: »** : secondaire de la rangée de flux, à la hauteur de « Continuer » (56), matière
+  calme, corps 15.
+- **Options d'une décision** : le corps des étapes en session (17,5) ; le renvoi « → bloc n · titre »
+  ne coupe plus le titre à 17 caractères, l'ellipse prend la place disponible.
+- **« Le tableau ne colle pas ? »** : la carte des différentiels se signale 2,4 s d'un anneau qui
+  s'efface (fixe sous `prefers-reduced-motion`, jamais une couleur seule).
+- **Le parcours n'a plus qu'un dessin** : la liste numérotée à renvois écrits (A349) rend aussi la
+  feuille « Se repérer », la colonne du cockpit et le rail 780-1199, avec l'état de session (rangée
+  courante en bleu et `aria-current`, blocs cochés en vert, hors chemin en pointillé ; rien ne se
+  coche là). L'ancienne Échelle n'avait plus d'appelant : purgée avec ses 65 règles et treize
+  classes, épitaphe posée dans la feuille.
+- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.30.5] — 2026-09-25
 Une échelle fermée pour les CONTRÔLES (A375, doctrine `docs/decisions/lot-v5-30.md`). Retour de
 l'auteur après l'audit typographique : les lettres tenaient leur échelle, les boîtes n'en avaient
@@ -609,15 +633,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   cause n'est pas connue) », puis ce qui est sûr — rien n'est perdu, ce que vous relevez lui
   parviendra, sa progression se mettra à jour à son retour ; sans réseau de son côté, recevez-la
   par l'écran. Info-bulle et sous-ligne de l'étape alignées.
-
-## [5.26.4] — 2026-09-07
-### « Hôte silencieux » ne dit plus la cause (A332, addendum)
-
-- **Question de l'auteur** : et si le téléphone de l'hôte se met en veille ou passe sur une autre
-  appli ? Alors l'hôte cesse de sonder et l'invité lit « Hôte silencieux » après 45 s — le fait
-  est vrai (son miroir n'est plus rafraîchi), mais le texte accusait le réseau.
-- **Ce qui change** : la cause ne s'affirme plus — « écran verrouillé, autre appli ou réseau, on
-  ne sait pas » —, puis ce qui est sûr : rien n'est perdu, ce que l'invité relève parviendra, et
-  la progression se remet à jour dès le retour de l'hôte. « Recevoir par l'écran » n'est proposé
-  que s'il n'a plus de réseau. Le seuil reste 45 s : l'app tient un verrou de veille pendant toute
-  session vive, l'écran de l'hôte ne s'éteint pas seul.

@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-HUy76UdZACRtzpmpTx9txWP0Tdx5vXaPcv617NKj5gg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-9ii+P7h1vwwx/qrw1qIxz4T0g8UY7gSGWrDQupUbnU8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2080,7 +2080,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      MEMO (neutre). Grammaire commune : bord gauche 4px + bordure de la couleur SÉMANTIQUE (le
      texte porte la même famille), glyphe/pictogramme + libellé — la couleur n'est jamais seule.
      .notice = registre INFORMATION par défaut (hors crise : synchro, mises à jour, conseils). */
-  .notice{background:var(--primary-soft);border:1px solid var(--primary);border-left:4px solid var(--primary);color:var(--ink);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;position:relative;padding-right:40px}
+  /* A376 : UNE bulle pour les notices d'accueil et le bandeau système (A353) — même bord --primary-200, même rayon, même rembourrage ; le liseré gauche de 4 px a vécu (deux dessins pour un même rôle, signalé). */
+  .notice{background:var(--primary-soft);border:1px solid var(--primary-200);color:var(--ink);border-radius:var(--r-4);padding:8px 14px;font-size:12px;line-height:1.35;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;position:relative;padding-right:40px}
   .notice[hidden]{display:none} /* le display:flex ci-dessus prime sinon sur [hidden] (même origine auteur) */
   .notice svg{flex-shrink:0;margin-top:1px;color:var(--primary-dk)}
   .notice.sync-err{background:var(--critical-soft);border-color:var(--critical);color:var(--critical);cursor:pointer}
@@ -2914,6 +2915,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .fold-head .conf-chev{flex:none}
   .fold-head .conf-sub{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   /* La porte de sortie du diagnostic (« Le tableau ne colle pas ? ») est la DERNIÈRE rangée de la carte. */
+  .fold-card.spot{animation:foldSpot 2.4s ease-out both}
+  @keyframes foldSpot{0%,55%{box-shadow:0 0 0 3px var(--act)}100%{box-shadow:var(--shadow-work)}}
+  @media (prefers-reduced-motion:reduce){.fold-card.spot{animation:none;box-shadow:0 0 0 3px var(--act)}}
   .fold-card .atyp-link{width:100%;margin:0;min-height:52px;padding:6px 0;border-top:1px solid var(--work-line);font-size:var(--t-item);font-weight:600;color:var(--act);text-align:left}
   .fold-card .atyp-link:hover{background:none;color:var(--act)}
   .fold-card .fs-list{display:block}
@@ -2923,10 +2927,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-flow{background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);border-radius:var(--r-4);overflow:hidden;margin-bottom:10px}
   .pre-flow .pre-lad{padding:0 8px 12px}
   /* Le parcours à plat (v5.30) */
+  /* A376 — L'ÉCHELLE EST PURGÉE : `ovPlanLadderHtml` et ses classes `.pl-line`, `.pl-lx`, `.pl-lxt`, `.pl-lnk`, `.pl-ref`, `.pl-jmp`, `.pl-phase`, `.pl-x`, `.pl-jlm`, `.pl-q`, `.pl-stp`, `.pl-jll`, `.pl-lbl` ont été RETIRÉES (65 règles) : la feuille « Se repérer », la colonne du cockpit et le rail 780-1199 rendent la liste numérotée à renvois écrits ci-dessous (A349), l'état de session peint en classes `cur`/`done`/`off`. Restent vivantes, émises par « Toute la fiche » : `.pl-brc`, `.pl-here`, `.pl-sech`, `.pl-r`. */
   .pf-flat{display:flex;flex-direction:column;gap:4px}
   .pf-row{display:flex;gap:12px;padding:6px 8px;border-radius:var(--r-4);position:relative}
   .pf-row.dec{background:var(--warn-soft);padding:8px 12px 8px 8px}
   .pf-row.flash{background:var(--primary-soft);box-shadow:inset 0 0 0 2px var(--act)}
+  /* A376 : l'état de session peint sur la liste (feuille « Se repérer », colonne du cockpit) — même registre que le journal : ICI en bleu, fait en vert, hors chemin en pointillé ; jamais une couleur seule, le numéro et le mot restent. */
+  .pf-row.cur{background:var(--primary-soft);box-shadow:inset 0 0 0 2px var(--act)}
+  .pf-row.cur .pf-badge{background:var(--primary);color:var(--on-primary)}
+  .pf-row.done .pf-badge{background:var(--ok);color:var(--on-primary)}
+  .pf-row.done .pf-title{color:var(--ink-2)}
+  .pf-row.off{opacity:.62}.pf-row.off .pf-badge{background:none;border:2px dashed var(--line-strong);color:var(--ink-2)}
   .pf-col{flex:none;width:28px;display:flex;flex-direction:column;align-items:center;gap:4px}
   .pf-badge{width:28px;height:28px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);display:grid;place-items:center;font-size:var(--t-body);font-weight:800}
   .pf-row.dec .pf-badge{width:20px;height:20px;margin:4px;border-radius:3px;transform:rotate(45deg);background:var(--warn-soft);border:2px solid var(--warn-line);color:var(--warn);font-size:var(--t-meta)}
@@ -2947,6 +2958,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-n{flex:none;width:20px;height:20px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);display:inline-grid;place-items:center;font-size:var(--t-cap);font-weight:800}
   .pf-rt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pf-end{font-size:var(--t-body);font-weight:800;color:var(--ok);padding-top:2px}
+  .pf-jl{font-size:var(--t-body);color:var(--ink-2);padding:2px 0}.pf-jl b{color:var(--warn)}   /* A376 : jalon de boucle — registre VIGILANCE, mot + glyphe */
   .pf-arr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;font-size:var(--t-meta);color:var(--ink-2)}
   .pf-arr>span{font-weight:700}
   .pf-src{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 8px 0 4px;border:0;border-radius:var(--r-1);background:var(--amb-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;color:var(--ink);cursor:pointer}
@@ -2956,6 +2968,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-src.pf-dec>span:first-child{color:var(--warn)}
   .pf-segr{flex:1;height:1px;background:var(--line)}
   :is(.pf-ref,.pf-src):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .pf-ref,.pf-src{position:relative}.pf-ref::after,.pf-src::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) */
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
      encre passe à --bg. En session, mêmes étages sans rail (écart 20 px) ; onglets = gabarit des
@@ -3120,14 +3133,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (règle 9). Aucune autre différence : c'est le même composant, au même endroit de la feuille. */
   .rt-find-all{padding:0 0 10px}
   .rt-find-all input{min-height:44px;font-size:16px}
-  .rt-find-all .rt-fnav .mini{width:44px;height:44px}
+
   /* ⚠ Le compte ne déplace JAMAIS les boutons qu'on tape : chiffres à chasse FIXE (tabular-nums)
      + largeur minimale absorbant trois caractères (mesuré : « › » bougeait de 7 px par clic). Et
      un double-tap sur ‹/› ne sélectionne pas de texte (geste, pas lecture — idiome du rail A→Z).
      Détail : doctrine-css.md C59. */
   .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft);
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-  .rt-fnav .mini{width:32px;height:32px}
+
   #pfCount{min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
   /* ⚠ UN SURLIGNAGE DÉFINIT SES DEUX COULEURS, JAMAIS UNE SEULE (défaut MESURÉ à l'audit, et il
      était le mien) : `color:inherit` prend l'encre du CONTEXTE et la pose sur un fond qui, lui,
@@ -3342,8 +3355,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Depuis que les rangées vivent sur le fond de la colonne, c'était la seule surface blanche de
      l'écran, donc la plus saillante — alors qu'elle porte du DÉTAIL. Elle prend la surface de
      second plan et un retrait, comme un contenu subordonné. */
-  .rail-lad .pl-lx,.read-plan .pl-lx{background:var(--surface-2);border-radius:var(--radius-sm);
-    margin:0 2px 6px 28px;padding:8px 10px}
   /* Volet du quai (v5.4.1→v5.6) : ouvert et fermé par l'utilisateur SEUL, JAMAIS d'auto-ouverture
      (règle 11) ; hauteur bornée sur --vvh ÷ --zf (règle 10), UN seul défileur, étage du chrome et
      non carte flottante. Largeur et collage = rembourrages de la CAPSULE (constantes CSS posées à
@@ -3495,8 +3506,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     color:var(--ink-soft);margin:16px 0 2px;padding:0;line-height:1.35}
   .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
   /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
-  .pl-line.wl .t{font-weight:600}
-  .pl-line.wl{cursor:default}
   /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
      paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
 
@@ -3516,8 +3525,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rp-acts{flex-direction:row;justify-content:flex-end}
     .rp-acts .btn{width:auto;min-height:44px}
   }
-  .pl-phase{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);margin:12px 0 4px;padding-top:8px;border-top:1px solid var(--line)}
   /* (L'accusé de réception du bloc et ses chips de suggestion sont PURGÉS avec le geste qui les
      appelait — cf. la note de `tkNoteNow` : le geste ⏱ a déménagé au dock, sa réponse aussi.) */
   .eds-hors{margin-top:12px}
@@ -3787,10 +3794,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      une même carte, v5.6) ; la DESTINATION garde `--act`. Détail : doctrine-css.md C73. */
   /* v5.30 (maquette v5) : la carte de décision est AMBRE DOUX, ses options des cartes de travail
      à ombre (15/800, destination 12) ; l'issue PRISE passe à la matière SYSTÈME. */
-  .opt{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;text-align:left;background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);border-radius:var(--r-4);padding:12px 14px;min-height:62px;font-size:var(--t-item);font-weight:800;color:var(--ink);width:100%;cursor:pointer}
+  .opt{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;text-align:left;background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);border-radius:var(--r-4);padding:12px 14px;min-height:62px;font-size:var(--t-item);font-weight:700;color:var(--ink);width:100%;cursor:pointer}
+  body.crisis-live .opt{font-size:var(--t-step)}   /* A376 : le corps des étapes en session (A345), pour les options aussi (signalé) */
   .opt .opt-go{margin-left:0}
   .opt:hover{background:var(--amb-2)}.opt .arr{margin-left:auto;color:var(--ok);font-weight:800}
-  .opt-go{margin-left:auto;flex:none;font-size:var(--t-meta);font-weight:600;color:var(--ink-2);white-space:nowrap}
+  .opt-go{margin-left:auto;flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-meta);font-weight:600;color:var(--ink-2);white-space:nowrap}
   .opt[disabled]{opacity:.55;cursor:default}.opt.taken{opacity:1;background:var(--sys);color:var(--sys-ink);border-color:var(--sys);box-shadow:none}.opt.taken .arr{color:var(--ok-sys)}.opt.taken .opt-go{color:var(--sys-ink-2)}
   .flow-ctrl{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
   /* Zone aria-live (sr-only). Complications : ALERTE en CONTOUR, jamais rempli. Exercice : placard
@@ -3928,7 +3936,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      « Vérifier » neutre. Sélecteur (0,2,0) requis pour battre `.ov-redo` quel que soit l'ordre.
      Pied : « Vérifier :: » à gauche, « Continuer » dernier, un seul rang. Détail : doctrine-css.md C76. */
   .flow-ctrl.has-ver{display:flex;gap:8px;align-items:stretch}
-  .flow-ctrl.has-ver .blk-ver{flex:none;min-height:44px;padding:0 14px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+  .flow-ctrl.has-ver .blk-ver{flex:none;min-height:56px;padding:0 16px;border:1px solid transparent;border-radius:var(--r-4);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-item);font-weight:700;white-space:nowrap;cursor:pointer}
   .flow-ctrl.has-ver .blk-ver:hover{background:var(--amb-2)}
   .flow-ctrl.has-ver .blk-ver:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .flow-ctrl.has-ver .btn.cont{flex:1;min-width:0}
@@ -3957,8 +3965,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .jl-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Le jalon dans les trois vues de STRUCTURE : INERTE, encre douce, condition en gras — jamais
      d'aplat (l'Échelle est désaturée par doctrine ; le registre VIVANT est sur la carte du bout). */
-  .pl-jll{list-style:none;margin:4px 0 0;padding:0;font-size:12px;color:var(--ink-soft)}
-  .pl-jll li{padding:2px 0}
   .pc-jl{font-size:12px;color:var(--ink-soft);padding:4px 0}
   /* Éditeur des jalons : carte au ton du chrome (--surface-2), et le champ NUMÉRIQUE reçoit son
      gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
@@ -4674,10 +4680,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      encre/fond fixes (--qr-ink), bordure = zone de silence. Détail : doctrine-css.md C87. */
   .qr{display:block;width:240px;height:240px;max-width:100%;border-radius:8px;border:1px solid var(--line)}
   .flow-zoom{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-  .fz{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:42px;height:40px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
-  .fz:hover{background:var(--surface-2)}.fz-r{width:auto;padding:0 10px;font-size:12px}
+  .fz,.sv-zb,.rt-fnav .mini{border:1px solid var(--work-line);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);min-width:40px;height:40px;min-height:40px;padding:0 12px;border-radius:var(--r-3);font-family:inherit;font-size:var(--t-body);font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}   /* A376 : une seule barre d'outils (Schéma, Page, plein écran, ‹ › des recherches), sur la matière de travail v5.30, M 40 */
+  .fz:hover,.sv-zb:hover,.rt-fnav .mini:hover{background:var(--amb-2)}.fz-r{width:auto}
+  .fz,.sv-zb{position:relative}.fz::after,.sv-zb::after{content:"";position:absolute;inset:-2px}   /* A376 : M 40 + halo = cible 44, la feuille Plan et le schéma vivent en session (règle 9) */
+  .rt-fnav .mini{min-width:44px;height:44px;min-height:44px}   /* A376 : les ‹ › d'une recherche sont les compagnons d'un champ de 44 — même hauteur (L) */
   .fz-spc{flex:1}
-  .fzv{font-family:var(--mono);font-size:12px;color:var(--ink-soft);min-width:46px;text-align:center}
+  .fzv,.sv-zv{font-family:var(--mono);font-size:var(--t-body);font-weight:700;color:var(--ink-2);min-width:48px;text-align:center}
   /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
   #flowFull{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
   #flowFull.on{display:flex}
@@ -5127,6 +5135,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ov-t{order:2;flex:1 1 auto;min-width:0;font-size:var(--t-step-l);font-weight:800;color:var(--ink);line-height:1.2;letter-spacing:-.01em;margin:0;overflow-wrap:break-word}
   .ov-c{order:4}.ov-chev{order:5;margin-left:0}
   .ov-head{padding:12px 16px 4px}
+  body.chrome-hdr .ov-wrap>.ov-prog{margin-top:16px}   /* A376 : au cockpit la capsule vit dans l'en-tête et la ligne « Parcours » lui collait à 4 px (mesuré) ; 20 px comme ailleurs */
   /* Pilule « EN COURS » du bloc courant (maquette v5) — la position en toutes lettres, en plus du compte. */
   .ov-cur{order:3;flex:none;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}
   /* « Parcours · x/y étapes » : la ligne d'étage au-dessus du journal, en session. */
@@ -5291,16 +5300,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      franc (fond tonal + bordure --primary + graisse 800), et le choix se MÉMORISE. */
   .ov-plan-h{flex-wrap:wrap}
   /* Nœud du plan : carte compacte NAVIGANTE (taper = y aller) — jamais de case à cocher ici. */
-  .pl-x{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--primary);margin-left:6px}
   /* Marqueur de JALON de l'Échelle (v5.5.0) — SA classe, pas `.pl-x` : celle-ci est à 3,94:1
      (attrapé par audit-a11y à la première mesure — le ×n, conditionnel, n'y passait jamais).
      Encre douce = 4,5:1+, et le △ reste une FORME dans une colonne désaturée. */
-  .pl-jlm{font-size:12px;font-weight:600;color:var(--ink-soft);margin-left:6px}
-  .pl-q{font-size:11px;font-weight:400;font-style:italic;color:var(--ink-soft);margin:4px 2px 0}
   /* Liens de structure : convergence « → n » / reprise « ↺ n » — défilement DANS le plan. */
-  .pl-lnk{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--tag-bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer;font-family:inherit;text-align:left}
-  .pl-lnk:hover{border-color:var(--primary)}
-  .pl-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Échelle ECAM (mode compact) : les renvois S'ENROULENT, jamais tronqués (débordement mesuré dès
      4 options à 320 px) — dans un PLAN, une branche cachée est une branche qu'on ne saura pas
      prendre. Chaque bloc est une CARTE (v5.6) mais le MARQUEUR reste une PASTILLE : un numéro fondu
@@ -5309,8 +5312,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A374 : le titre de rail n'était stylé qu'au-dessus de 780 (11 px) — au téléphone il tombait sur le 16 px
      du navigateur. Une règle, un corps (meta), aux deux largeurs. */
   .rail-title{font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  .pl-line{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px 6px calc(12px + var(--pl-ind,0px));
-    background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);cursor:pointer}
   /* ⚠ LE RETRAIT DE PROFONDEUR EST ADDITIF, ET IL A UNE SOURCE UNIQUE (v5.28.1, signalé à l'usage).
      Chaque régime écrivait ses retraits ABSOLUS, et chacun pose sa gouttière par un RACCOURCI
      `padding` — qui écrase le `padding-left` des classes de profondeur où qu'elles soient (spécificité
@@ -5318,24 +5319,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Mesuré : étiquettes de branche toutes à 8 px avant le soin, TOUTES les rangées à 10 px en
      session — l'arbre était plat. Le retrait devient un token AJOUTÉ à la gouttière du régime :
      un raccourci ne peut plus l'effacer sans effacer la gouttière. Détail : lot-v5-28.md A339. */
-  .pl-line.d1,.pl-brc.d1,.pl-jmp.d1{--pl-ind:12px}
-  .pl-line.d2,.pl-brc.d2,.pl-jmp.d2{--pl-ind:24px}
-  .pl-line.d3,.pl-brc.d3,.pl-jmp.d3{--pl-ind:32px}
-  .pl-line .n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft);
-    background:var(--surface);border:1.5px solid var(--line-strong)}
-  .pl-line.done .n{background:var(--ok);border-color:var(--ok);color:var(--on-primary)}
-  .pl-line.cur .n{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+  .pl-brc.d1{--pl-ind:12px}
+  .pl-brc.d2{--pl-ind:24px}
+  .pl-brc.d3{--pl-ind:32px}
   /* ⚠ Le losange a EXACTEMENT le style de la pastille ; le carré tourné vit en `::before` À
      L'INTÉRIEUR (26 px à 45° = 37 de diagonale, rogné — leçon v5.0.0), le chiffre reste droit.
      ⚠ `z-index:-1` sans contexte d'empilement passe SOUS le fond du parent : `isolation:isolate`
      sur la pastille, sinon le losange est invisible. Détail : doctrine-css.md C102. */
-  .pl-line.dec .n{border:0;background:none;position:relative;isolation:isolate}
-  .pl-line.dec .n::before{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;
-    margin:-10px 0 0 -10px;border:1.5px solid var(--line-strong);background:var(--surface);
-    border-radius:3px;transform:rotate(45deg);z-index:-1}
-  .pl-line.dec.cur .n::before{background:var(--primary);border-color:var(--primary)}
-  .pl-line.dec.done .n::before{background:var(--ok);border-color:var(--ok)}
   /* La page d'AVANT le soin : le parcours inerte prend la grammaire de la colonne d'orientation
      (mêmes rangées, mêmes marqueurs — une seule façon de lire « la liste des blocs »), et les
      autres vues sont des LIENS de texte, jamais des tuiles : l'action de l'écran est au dock. */
@@ -5366,52 +5356,35 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sans avoir démarré — le bouton paraîtrait ne rien faire (on retomberait sur cette page). Le
      détail d'une ligne reste dépliable ; c'est le SAUT qui n'a pas de sens ici. `display:none`
      le retire aussi de la tabulation, ce qu'un simple masquage visuel ne ferait pas. */
-  .pre-lad .pl-lnk{display:none}
   /* ⚠ AVANT le soin, le parcours se resserre (A79 puis v5.7 : rangée 44 → 38 → 34 px, pastille
      26 → 22) : seuls REMBOURRAGE et ÉCART cèdent, jamais un mot ni un corps de texte. Le PLANCHER
      est 32 px (cible hors crise) et il n'est pas négociable — c'est lui qui borne l'exercice, pas
      le goût ; en crise, le 44 px ne se négocie pas (bascule COMMANDÉE par le démarrage, A9 tenue).
      Détail : doctrine-css.md C103. */
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line{min-height:34px;padding:2px 10px 2px calc(10px + var(--pl-ind,0px));gap:8px}
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
   /* L'étiquette de branche n'est PAS une cible — c'est un intertitre : elle rend son rembourrage
      comme les rangées rendent le leur, et prend LEUR gouttière (l'alignement chip → marqueur du
      bloc enfant en découle, à l'épaisseur du filet près). Posée ICI, avant l'aperçu à plat qui
      s'en écarte : c'est l'ordre de source qui départage, à spécificité égale. */
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){padding:2px 8px 0 calc(10px + var(--pl-ind,0px))}
   /* Les SÉPARATIONS de section coûtaient 36 et 51 px de vide mesurés pour deux intertitres de
      19 px. On garde la hiérarchie (plus d'air au-dessus qu'au-dessous, A70) en la resserrant. */
   body.view-read:not(.crisis-live) .rail-lad .rail-head{margin-top:12px}
   /* L'APERÇU À PLAT (v5.25.0) : ni carte ni pastille — numéro gris, titre gris, renvois gris ;
      la rangée garde le plancher de 32 px (cible hors crise) et reste dépliable. Spécificité
      alignée sur la compaction juste au-dessus (même nombre de classes, posée après). */
-  body.view-read .pre-lad.flat .pl-line{background:none;border:0;min-height:32px;padding:2px 0 2px var(--pl-ind,0px);gap:8px}
-  body.view-read .pre-lad.flat .pl-line .n{width:18px;height:auto;border:0;border-radius:0;background:none;justify-content:flex-end;color:var(--ink-3);font-size:var(--t-meta)}
-  body.view-read .pre-lad.flat .pl-line.dec .n::before{display:none}
-  body.view-read .pre-lad.flat .pl-line .t{color:var(--ink-2);font-size:var(--t-body)}
-  body.view-read .pre-lad.flat .pl-line .g,body.view-read .pre-lad.flat .pl-ref{color:var(--ink-3)}
-  body.view-read .pre-lad.flat :is(.pl-brc,.pl-jmp){padding:4px 0 0 var(--pl-ind,0px)}
   body.view-read .pre-lad.flat .pl-brc span{background:none;border:0;padding:0;color:var(--ink-3)}
-  body.view-read .pre-lad.flat .pl-line.wl .n{font-size:var(--t-body)}
   body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
   /* ⚠ En session, même dessin — mais le PAS reste 44 px, et c'est de l'arithmétique : dessin 38 px
      + halo de 3 (A8 : la cible vient du halo) sur la gouttière de 6 déjà là (A66) = 44 exactement.
      Le pas se prend sur la RANGÉE, jamais sur l'écart ni la marge basse des titres (témoin rougit).
      L'écart restant avec l'avant-session (36 px) EST le pas : irréductible tant que les rangées
      sont tapables — audit-a11y rougirait. Détail : doctrine-css.md C104. */
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line{min-height:38px;padding:2px 10px 2px calc(10px + var(--pl-ind,0px));gap:8px;
-    position:relative}
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line::after{content:'';position:absolute;inset:-3px}
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) .pl-line .n{width:22px;height:22px}
   /* L'étiquette de branche n'est pas une cible : elle suit le dessin compact des deux régimes. */
-  body.view-read.crisis-live :is(.read-plan,.pre-lad) :is(.pl-brc,.pl-jmp){min-height:28px;padding:2px 10px 2px calc(10px + var(--pl-ind,0px))}
   /* ⚠ ON NE TOUCHE QUE LA MARGE HAUTE : la BASSE fixe l'écart entre un titre et ses rangées, et
      un témoin exige qu'il soit le MÊME pour tous les titres de la colonne. En session, un des
      deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
      paire ([10, 8] mesurés). La respiration se prend au-DESSUS, où elle n'engage personne. */
   body.view-read.crisis-live .rail-lad .rail-head{margin-top:12px}
   body.view-read.crisis-live .rail-lad .pl-sech{margin-top:10px}
-  body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .pl-line .n{width:24px;height:24px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .rail-lad{gap:4px}
   body.view-read:not(.crisis-live) .pre-lad{gap:4px}
   /* Des BOUTONS de contour (`--ctl-line`, seul filet 3:1 — A67 ; glyphe 15 px, A13), jamais
@@ -5446,15 +5419,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      par son numéro, un item de surveillance ellipsé perd son contenu clinique — il ENROULE.
      Ce sont les seules rangées de la colonne à ne pas être des cartes, et la différence de
      forme dit exactement ce qu'elle doit dire : ceci n'a pas de rang. */
-  .pl-line.wl{background:none;border:0;border-radius:0;min-height:0;padding:4px 0;cursor:default;
-    align-items:baseline;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
-  .pl-line.wl .t{white-space:normal;overflow:visible;font-size:var(--t-meta);color:var(--ink-2)}
-  .pl-line.wl .n.mk{width:auto;height:auto;color:inherit}
   /* Les marqueurs de queue : la FORME dit le registre, l'encre reste celle de la colonne. */
-  .pl-line .n.mk{border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:800}
-  .pl-line .t{flex:1;min-width:0;font-size:var(--t-body);font-weight:600;color:var(--ink);   /* A374 : 12 → 13,5, la feuille était la plus petite surface de l'app */
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pl-line.cur .t{font-weight:800}
   /* La chip de branche : SEULE sur sa ligne, en retrait du niveau qu'elle ouvre. */
   .pl-brc{padding:8px 8px 4px calc(12px + var(--pl-ind,0px))}
   /* ⚠ NEUTRE, ET C'EST DOCTRINAL (signalé à l'usage : « ça ressort beaucoup par rapport au reste
@@ -5474,45 +5439,23 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      retrait aligné sur l'étiquette qu'elle suit. Inerte : le renvoi TAPABLE vit sur la rangée de
      la décision juste au-dessus (`.pl-ref`) — deux cibles pour un même saut se disputeraient le
      doigt dans une colonne de 223 px. */
-  .pl-jmp{padding:2px 8px 6px calc(12px + var(--pl-ind,0px));font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-soft);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pl-jmp.loop{color:var(--link)}
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
      s'abrègent (`optAbbr`) donc ils tiennent ; s'ils ne tiennent pas, c'est le TITRE qui cède —
      un titre ellipsé se devine, un renvoi tronqué ne se répare pas. */
-  .pl-line .g{flex:none;max-width:52%;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-2);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
-  .pl-here{color:var(--act);font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-  .pl-line .g b{font-weight:700;color:var(--ink-2)}
-  .pl-line .g b.tk{color:var(--ok)}
-  .pl-line .g .fin{color:var(--ok);font-weight:700}
-  .pl-line .pl-ref{color:var(--act);font-weight:700;cursor:pointer;padding:0 1px;font-size:var(--t-meta)}   /* A374 : renvois 11 → 12 */
-  .pl-line.dec .t{color:var(--ink)}
+  .pl-here{color:var(--act);font-weight:800;letter-spacing:.07em;text-transform:uppercase}   /* A374 : renvois 11 → 12 */
   /* Le bloc COURANT prend le filet d'accent, pas un aplat : la colonne reste désaturée, et
      « ICI » dit la position en toutes lettres (la couleur n'est jamais seule). */
-  .pl-line.cur{border-color:var(--act)}
-  .pl-line.cur .t{color:var(--ink)}
   /* HORS CHEMIN : pointillé + encre douce + la MENTION en toutes lettres (jamais l'opacité, qui
      tombe sous AA — leçon v5.0.0/A1-1). */
-  .pl-line.off{border-style:dashed;background:none}
-  .pl-line.off .t,.pl-line.off .g{color:var(--ink-3)}
-  .pl-line:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .pl-line.flash{background:var(--primary-soft)}
-  .pl-lx{padding:6px 10px 10px 32px;background:var(--surface);border-bottom:1px solid var(--line)}
-  .pl-lx .pl-lxt{margin:0 0 2px;font-size:12px;font-weight:700;color:var(--ink)}
   /* Étapes du détail de l'Échelle — RESTAURÉES (valeurs v4.24.0) : la purge v4.25.0 les avait
      emportées alors que `.pl-stp` est toujours ÉMISE (leçon règle 14 : zéro émission au grep). La
      distinction ⚠ rouge / △ ambre passe par teinte ET graisse, sans glyphe (`stepText` retire le
      préfixe) ; sujet TRANSVERSE aux deux vues — ne jamais corriger dans une seule.
      Détail : doctrine-css.md C106. */
-  .pl-stp{margin:4px 0 0;padding:0;list-style:none}
   /* A345 en LECTURE : même corps --t-item pour toutes, point neutre, texte neutre ; seule
      l'étiquette de registre (`.stp-mk`) distingue l'étape critique ou de vigilance. */
-  .pl-stp li{font-size:var(--t-item);font-weight:400;color:var(--ink-2);line-height:1.35;padding:4px 0 4px 14px;position:relative;overflow-wrap:break-word}
-  .pl-stp li::before{content:"";position:absolute;left:2px;top:12px;width:6px;height:6px;border-radius:50%;background:var(--line-strong)}
-  .pl-stp li .stp-mk{margin-bottom:2px}
   /* ===== MODE STATIQUE (v4.13.0) : TABLEAU compact — l’aide entière sur une page, généré depuis
      flowPlan (numérotation commune), INERTE côté cochage (navigation seule). Cellules
      carrelées à joint 3 px ; bandes de décision au registre ATTENTION ; fourches ambre,
@@ -5545,14 +5488,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      est posé/levé par svApplyZoom sur la mesure du défileur ; en voie étroite le mot passe à
      la ligne (flex-wrap ci-dessus), il ne pousse jamais les boutons hors de portée. */
   .sv-ovf{min-width:0;font-size:var(--t-cap);font-weight:600;color:var(--ink-2)}
-  .sv-zb{min-height:44px;padding:0 10px;background:var(--surface);border:1px solid var(--ctl-line);border-radius:var(--r-1);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700;cursor:pointer}
-  .sv-zb:hover{background:var(--amb-2)}
+
   /* La porte plein écran porte son VERBE et son glyphe : c'est une ouverture, pas un réglage
      d'échelle — elle prend donc le registre de l'ACTION et se sépare du reste de la rangée. */
-  .sv-zfull{display:inline-flex;align-items:center;gap:6px;margin-right:6px;color:var(--link);border-color:var(--primary)}
+  .sv-zfull{margin-right:6px}
   .sv-zfull svg{flex:none}
   .sv-zb:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .sv-zv{font-family:var(--mono);font-size:var(--t-cap);font-weight:700;color:var(--ink-soft);min-width:40px;text-align:center}
+
   /* A356 : la Page n'a qu'UN axe vertical — celui de la fenêtre — à TOUT pointeur (A343 ne le clôturait qu'au tactile,
      et la feuille A4 défilait encore en elle-même à la souris) ; l'horizontal reste celui de la feuille. */
   .sv-scroll{overflow-x:auto;overflow-y:clip;-webkit-overflow-scrolling:touch}
@@ -6080,7 +6022,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pend-badge.pending{color:var(--verify);background:var(--verify-soft)}
   .pend-badge.rejected{color:var(--critical);background:var(--critical-soft)}
   .auth-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.55;margin:12px 0 18px}
-  .auth-actions{display:flex;flex-direction:column;gap:10px}
+  .auth-actions{display:flex;flex-direction:column;gap:12px}
+  /* A376 : dans la carte « Sur cet appareil », les actions se posent en rangée dès 780 et gardent leur largeur de contenu — un bouton de 720 px pour « Un problème ? » ne disait rien de plus (signalé). */
+  @media (min-width:780px){.acct-card .auth-actions{flex-direction:row;flex-wrap:wrap}.acct-card .auth-actions .btn{width:auto;flex:0 1 auto;padding-inline:20px}.acct-card .auth-actions .btn.primary+.btn{margin-top:0}}
   /* Zone structurante de la fenêtre Compte (« Cet appareil », « Administration ») : frontière
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
@@ -7166,11 +7110,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        PLAN quand la colonne resserrait les siens — 4 px d'écart, exactement là où l'œil cherche
        une verticale. Depuis A339 l'alignement est STRUCTUREL : rangée et étiquette partagent la
        gouttière du régime et ajoutent le MÊME `--pl-ind` ; il n'y a plus de triplet à recopier. */
-    .rail-lad .pl-line.cur .t{font-weight:800}
     /* « Hors chemin » : PAS d'opacité (un texte à 50% tombe sous le seuil AA — audit v4.23.0) ;
        encre douce + la mention en toutes lettres, la couleur n'est jamais seule. */
-    .rail-lad .pl-line.off .n{color:var(--ink-3)}
-    .rail-lad .pl-line.off .t::after{content:" · hors chemin";font-weight:500;font-size:var(--t-cap);color:var(--ink-3)}
     /* Seule la PREMIÈRE grille colle à l'en-tête ; `.rt-counters` GARDE son margin-top, sinon la
        dernière carte de minuteur et la première de compteur se touchent (retour d'usage). */
     body.view-read .read-side .rt-grid{margin-top:0}
@@ -8491,7 +8432,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.30.5';
+const APP_VERSION='5.30.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -19460,7 +19401,7 @@ function ovInstHtml(f,id,idx,topo,pres){
     const _topo={};flowPlan(f).order.forEach((id,i)=>{_topo[id]=i+1;});
     const _dest=o=>{const t=o&&o.target;if(!t)return '<span class="opt-go">▪ fin</span>';
       const n=_topo[t],ti=stripBold(((f.blocks||[]).find(x=>x.id===t)||{}).title||'');
-      return `<span class="opt-go">→ ${n?'bloc '+n:''}${ti?(n?' · ':'')+esc(ti.length>18?ti.slice(0,17)+'…':ti):''}</span>`;};
+      return `<span class="opt-go">→ ${n?'bloc '+n:''}${ti?(n?' · ':'')+esc(ti):''}</span>`;};   // A376 : plus de coupe à 17 caractères — le CSS ellipse à la place disponible
     const opts=(b.options||[]).map((o,i)=>{const sel=taken&&o===taken;return `<button type="button" class="opt${sel?' taken':''}" data-ovopt="${esc(o.target||'')}"><span class="ftxt">${fmt(o.label)||'Option '+(i+1)}</span>${sel?'<span class="arr">✓</span>':_dest(o)}</button>`;}).join('');
     /* ⚠ LE RETOUR D'EXCURSION EXISTE AUSSI SUR UN BLOC DE DÉCISION (défaut PRÉEXISTANT, trouvé
        par le témoin d'état d'`audit-a11y` : il exigeait que l'état se CONSTRUISE, et il ne se
@@ -19624,7 +19565,7 @@ function ovPlanHtml(f){
      Le SCHÉMA n'est pas perdu : il rejoint le menu ⋯ et s'ouvre en PLEIN ÉCRAN avec zoom
      (`openFlowFull`, visionneuse préexistante) — un accès direct chacun, comme l'ECP d'Airbus a
      une touche par page plutôt qu'un onglet à faire défiler. */
-  return `<div class="ov-plan-h"><span class="ovs-t">Se repérer</span><span class="ovs-sub">· une ligne par bloc, tap = détails</span></div><div class="ov-plan">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
+  return `<div class="ov-plan-h"><span class="ovs-t">Se repérer</span><span class="ovs-sub">· le parcours en liste, un renvoi = un saut</span></div><div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f,{md,off})}</div>`;}
 /* ===== FEUILLE « PLAN » plein écran (v4.23.0) =====
    Une FEUILLE, jamais un onglet (modèle ECAM E/WD + SD : synoptique appelé puis relâché). Rien
    n'est dupliqué : même flowPlan, même numérotation, mêmes gestes (data-plgo/data-plref/data-plln).
@@ -19850,7 +19791,9 @@ function openFoldCard(k){const f=state.fiche;if(!f)return;
   ['when','forget','flow','verify','diff','pos','refs'].forEach(x=>{const key=preFoldKey(x),open=x===k;
     if(PRE_CLOSED.has(x)){if(open)s.add(key);else s.delete(key);}else{if(open)s.delete(key);else s.add(key);}});
   mdFoldSet(f.id,s);render();
-  const c=main.querySelector('[data-sf="'+k+'"]');if(c)c.scrollIntoView({block:'start'});}
+  const c=main.querySelector('[data-sf="'+k+'"]');if(c){c.scrollIntoView({block:'start'});
+    /* A376 : la carte où l'on vient d'être amené se signale 2,4 s (anneau --act qui s'efface — peinture seule, jamais de mise en page ; sous reduced-motion l'anneau reste posé le même temps). Le renvoi et l'ouverture restent l'information, l'anneau la souligne. */
+    c.classList.remove('spot');void c.offsetWidth;c.classList.add('spot');setTimeout(()=>c.classList.remove('spot'),2400);}}
 {
  /* Les DEUX touches hors session : câblées UNE FOIS, avec les autres — elles vivent hors de
     `main`, donc elles survivent aux re-rendus (c'est tout l'intérêt du dock). `startSessionGesture`
@@ -19987,10 +19930,8 @@ function openFoldCard(k){const f=state.fiche;if(!f)return;
      // Une seule structure possible : la LIGNE de l'Échelle. Le repli `.pl-nd[data-plgo]` visait
      // l'organigramme « Détails » supprimé en v4.25.0 — il ne pouvait que renvoyer null, tout en
      // laissant croire que deux structures coexistaient (donc qu'il fallait maintenir les deux).
-     const el=body.querySelector('.pl-line[data-plln="'+k+'"]');
+     const el=body.querySelector('.pf-row[data-plln="'+k+'"]');   // A376 : la feuille rend la liste numérotée (pf-row), l'Échelle a vécu
      if(el){scrollWithin(planModal,el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
-   const pl=t.closest('[data-plln]');
-   if(pl){const id=pl.dataset.plln;state.ovFold['l:'+id]=!state.ovFold['l:'+id];renderPlanSheet();return;}
    // (Les nœuds du SVG sont câblés par bindSvgNav, pas ici : un double traitement produirait
    //  deux sauts, donc deux passages dans le journal.)
    const pg=t.closest('[data-plgo]');
@@ -20205,10 +20146,9 @@ function railLadHtml(f){
      « Parcours », Tableau / Schéma sous le titre, aperçu à plat SANS « ICI » (on n'est nulle
      part), « Surveiller ensuite » gardé (colonne d'orientation). */
   if(!Runtime.started){
-    const md2={};Object.keys(md).forEach(k=>{md2[k]=Object.assign({},md[k],{cur:false});});
     return preChapH('Parcours',{sub:'Aperçu — se déroule après le démarrage.'})+preLinksHtml(f)
-      +`<div class="ov-plan rail-lad pre-lad flat">${ovPlanLadderHtml(f,plan,num,md2,off,{flat:true})}</div>`;}
-  return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span></div><div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`;}
+      +`<div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f)}</div>`;}
+  return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span></div><div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f,{md,off})}</div>`;}
 /* ═══ v5.4.2-r — LE RAIL SE RÉÉQUILIBRE À 780-1199 px (R1+R2, décision utilisateur, mesuré :
    60 % du contenu enterré). R1 : le JOURNAL remonte contre les compteurs (replié < 1200, déplié
    en cockpit). R2 : < 1200 l'ÉCHELLE devient un dépliant qui annonce compte + position (« ici :
@@ -20218,7 +20158,7 @@ function railLadHtml(f){
    corps de l'Échelle (source = flux ③). Détail : doctrine-js.md J157. */
 function railLadParts(f){
   const _pc=planCtx(f);if(!_pc)return null;const {plan,num,md,off}=_pc;
-  return {n:plan.order.length,body:`<div class="ov-plan rail-lad">${ovPlanLadderHtml(f,plan,num,md,off)}</div>`};}
+  return {n:plan.order.length,body:`<div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f,{md,off})}</div>`};}
 function railHereTxt(f){
   const id=state.nav[state.navPos];if(!id)return '';
   const plan=flowPlan(f);const i=plan.order.indexOf(id);if(i<0)return '';
@@ -20304,100 +20244,6 @@ function repaintRailLad(){
   host.innerHTML=h;
   if(box)box.scrollTop=y;
   bindRailLad();bindRailTm();}
-function ovPlanLadderHtml(f,plan,num,md,off,opt){opt=opt||{};
-  /* LE PARCOURS INERTE PORTE LA FICHE ENTIÈRE (v5.0.0, lot M6, maquette `proto-r4`) — pas
-     seulement la chaîne des blocs. Trois sections l'encadrent, et elles ne sont PAS décoratives :
-     « Quand l'utiliser » est la condition d'entrée QRH (on entre, ou l'on n'entre pas),
-     « ⚡ À tout moment » dit ce qui n'a PAS de rang (une excursion n'est jamais « l'étape
-     d'après »), « △ Surveiller » dit ce qui vient APRÈS les gestes. Sans elles, la colonne
-     d'orientation taisait précisément les trois choses qu'on ne trouve pas dans la colonne
-     d'action au moment où l'on s'oriente.
-     TOUT Y EST INERTE (doctrine du plan, re-confirmée trois fois) : aucune case, aucun démarrage. */
-  const items=plan.items;let h='',depth=0,prevK='';const pend=[];
-  /* LA PHASE REGROUPE, ELLE NE CLASSE PAS : l'ordre des blocs est inchangé — on insère un
-     intertitre quand la phase CHANGE. Un bloc sans phase n'en affiche aucune (héritage compris),
-     donc une fiche qui n'en déclare pas se lit exactement comme avant. */
-  let phCur=null;
-  const arrow=(from,to)=>((num[to]||1e9)<(num[from]||0)?'↺':'→')+(num[to]||'?');
-  /* L'étiquette de branche a UN seul site de fabrication : elle sert à la première rangée d'une
-     branche ET à la branche qui n'en a AUCUNE (juste dessous). */
-  const brc=(lbl,d)=>`<div class="pl-brc d${Math.min(d,3)}"><span>${esc(String(stripBold(lbl)).trim().toUpperCase().slice(0,22))}</span></div>`;
-  const titreDe=id=>{const b=(f.blocks||[]).find(x=>x.id===id);return b?stripBold(b.title||''):'';};
-  items.forEach(it=>{
-    if(it.k==='bropen'){depth++;pend[depth]=it.label;prevK='bropen';return;}
-    if(it.k==='brclose'){pend[depth]=null;depth--;prevK='brclose';return;}
-    if(it.k==='link'||it.k==='end'){
-      /* ⚠ UNE BRANCHE PEUT N'AVOIR AUCUNE RANGÉE À ELLE — ET ELLE DISPARAISSAIT EN ENTIER
-         (v5.17.4, signalé à l'usage) : cas ORDINAIRE d'une option qui rejoint la convergence en un
-         seul `link` de `flowPlan`, que `brclose` effaçait. Règle reprise d'`ovParcoursHtml` (jmp) :
-         l'étiquette, puis où mène la branche ; les liens qui SUIVENT une rangée restent tus (la
-         colonne de renvois les porte). Détail : doctrine-js.md J159. */
-      if(prevK==='bropen'&&pend[depth]){
-        const lb=pend[depth];pend[depth]=null;
-        const t=it.k==='end'?'▪ fin'
-          :(it.back?'↺ ':'→ ')+(num[it.to]||'?')+' '+titreDe(it.to);
-        h+=brc(lb,it.depth)+`<div class="pl-jmp d${Math.min(it.depth,3)}${it.back?' loop':''}">${esc(t)}</div>`;}
-      prevK=it.k;return;}
-    if(it.k!=='block')return;   // rien d'autre ne se rend ici
-    prevK='block';
-    const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
-    const dec=b.kind==='decision';const m=md[it.id]||{};
-    const steps=dec?[]:clean(stepsOf(b));
-    let g='';
-    if(dec){const opts=b.options||[];const ab=optAbbr(opts.map(o=>(o&&o.label)||''));
-      g=opts.map((o,oi)=>{const tgt=(o&&o.target&&num[o.target])?o.target:null;
-        const tk2=!!(m.taken&&o&&o.target===m.taken);
-        return `<b${tk2?' class="tk"':''}>${tk2?'✓':''}${esc(ab[oi])}</b>${tgt?`<span class="pl-ref" data-plref="${esc(tgt)}">${arrow(it.id,tgt)}</span>`:'▪'}`;}).join(' ');
-      /* À PLAT (v5.25.0) : les étiquettes de branche disent déjà « oui → 3 · non → 4 » — la
-         colonne se tait si TOUTES les options portent un libellé ; sinon les renvois restent. */
-      if(opt.flat&&opts.length&&opts.every(o=>o&&o.label))g='';}
-    else{const nx=(b.next&&num[b.next])?b.next:null;
-      g=(opt.flat?'':(steps.length?((m.done||0)+'/'+steps.length):'—')+' ')+(nx?`<span class="pl-ref" data-plref="${esc(nx)}">${arrow(it.id,nx)}</span>`:'<span class="fin">▪fin</span>');}
-    const lblRaw=pend[depth];if(pend[depth])pend[depth]=null;
-    /* LA CHIP DE BRANCHE EST SEULE SUR SA LIGNE (v5.0.0, maquette de la sidebar) : partagée avec
-       le titre, elle le comprimait et se lisait comme une étiquette DU bloc, alors qu'elle nomme
-       la BRANCHE qui y mène — c'est-à-dire ce qui vient AVANT lui. Au-dessus et en retrait, elle
-       se lit comme ce qu'elle est : un intertitre de branche. Le mot entier, pas six lettres :
-       « CHOQUABLE » et « NON CHOQUABLE » ne se distinguent que par leur début. */
-    const lbl=lblRaw?brc(lblRaw,it.depth):'';
-    {const ph=phaseOf(f,it.id);
-     if(ph&&ph!==phCur){phCur=ph;h+=`<div class="pl-phase">${esc(ph)}</div>`;}}
-    const open=!!state.ovFold['l:'+it.id];
-    /* ⚠ LE LOSANGE PORTE SON NUMÉRO, ET IL A LE STYLE DES PASTILLES (demande utilisateur) : même
-       filet, même fond, mêmes états — seule la FORME change. La doctrine disait « la décision est
-       un embranchement, elle n'a pas de numéro à porter » ; or `flowPlan` lui en attribue un, il
-       est cité par le journal et par le statique, et le taire ici obligeait à compter les rangées
-       pour retrouver « le bloc 2 ». Et l'ambre part avec : c'était le seul registre du marqueur
-       dans une colonne désaturée. */
-    /* JALONS (v5.5.0) : la ligne ANNONCE qu'il en existe (marqueur △ — une FORME, pas une couleur :
-       la colonne est désaturée, le registre reste dans la colonne d'action), le détail déplié les
-       dit en toutes lettres, condition comprise. Rien de caché qui ne s'annonce. */
-    const njl=(Array.isArray(b.milestones)?b.milestones:[]).length;
-    h+=lbl+`<div class="pl-line d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}" data-plln="${esc(it.id)}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"><span class="n" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):(num[it.id]||'·')}</span><span class="t">${esc(b.title)||(dec?'Décision':'Étapes')}${(m.total||0)>1?`<span class="pl-x">×${m.total}</span>`:''}${njl?`<span class="pl-jlm" aria-hidden="true">△</span><span class="sr-only">${njl} jalon${njl>1?'s':''} de boucle</span>`:''}</span><span class="g">${m.cur?'<b class="pl-here">ICI</b>':g}</span></div>`;
-    if(open){
-      const det=dec?(b.question?`<div class="pl-q">${fmt(b.question)}</div>`:'')
-        :(steps.length?`<ul class="pl-stp">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${stepMarkHtml(s)}${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`:'');
-      const jlx=njl?`<ul class="pl-jll">${b.milestones.map(j=>`<li>△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</li>`).join('')}</ul>`:'';
-      h+=`<div class="pl-lx"><p class="pl-lxt">${esc(b.title)||''}</p>${det}${jlx}<button type="button" class="pl-lnk" data-plgo="${esc(it.id)}">→ aller à ce bloc</button></div>`;}
-  });
-  /* ⚠ « À TOUT MOMENT » (v4.26.0) A QUITTÉ CETTE COLONNE (v5.0.0, demande utilisateur) : une
-     complication n'est pas dans la séquence — elle vit sur la carte du bloc et dans « Toute la
-     fiche ». `.pl-sec.cx` et `.pl-line.cxl` PURGÉS. « △ SURVEILLER — APRÈS LES GESTES » : COPIE
-     d'orientation inerte des items `watch`, registre ATTENTION jamais rouge (on surveille ce qui
-     dérive, pas ce qui tue) ; mêmes RANGÉES que les blocs (nom / valeur mono — pas une seconde
-     grammaire). Détail : doctrine-js.md J160. */
-  {const w=clean(listOf(f,'verify'));
-   /* « Surveiller ENSUITE » : sur 240 px, « après les gestes » passait sur deux lignes — un titre
-      haché n'est plus un titre (même règle que l'en-tête de zone, v4.59.0). */
-   if(w.length&&!opt.noWatch){h+=`<div class="rail-head"><span class="rail-title">Surveiller ensuite</span><span class="rail-n">${w.length}</span></div>`
-     +w.map(x=>{const cr=stepCR(stepText(x));
-       return `<div class="pl-line wl"><span class="n mk" aria-hidden="true">△</span><span class="t">${fmt(cr.c)}</span><span class="g">${cr.r?esc(cr.r):''}</span></div>`;}).join('');}}
-  return h;}
-// Facteur de la taille du texte (réglage utilisateur = zoom CSS sur <html>) : les rectangles
-// mesurés (getBoundingClientRect) sont en pixels VISUELS (× zoom) alors que les styles posés
-// (tops sticky du plan, tracés SVG) sont en pixels CSS — TOUTE mesure réinjectée doit être
-// divisée par ce facteur, sinon fil épinglé et flèches dérivent dès que la taille ≠ 100 %
-// (v4.13.1).
 function zoomF(){return (parseFloat(document.documentElement.style.zoom)||100)/100;}
 /* PALIERS DE LARGEUR EFFECTIVE (v4.73.1) — le pendant de `--zf` pour les SEUILS (règle 10) : sous
    `zoom` la mise en page dispose de largeur ÷ zoom, qu'une media query ne voit pas. Équivalent
@@ -21064,7 +20910,8 @@ function preLastSessHtml(f){
    depuis n » quand plusieurs chemins mènent au bloc ; « Chemin k » quand la suite ne découle pas
    du bloc précédent. La numérotation reste celle de `flowPlan` (tronc d'abord, A344) : le journal,
    la Page et le schéma disent le même numéro. Aucun « ICI » : la session n'a pas commencé. */
-function preFlowFlatHtml(f){
+/* A376 : la liste numérotée à renvois écrits (A349) devient LE dessin du parcours partout — écran d'entrée, colonne du cockpit, feuille « Se repérer ». `st` = {md, off} de planCtx : en session la rangée du bloc courant se marque `cur`, un bloc entièrement coché `done`, un bloc hors chemin `off` (rien n'est coché ici : le plan reste inerte). */
+function preFlowFlatHtml(f,st){st=st||null;
   const plan=flowPlan(f);if(!plan.order.length)return '';
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
   const byId=blocksById(f.blocks||[]);
@@ -21086,6 +20933,7 @@ function preFlowFlatHtml(f){
     const steps=dec?[]:clean(stepsOf(b));
     let body='';
     if(steps.length)body+=`<ul class="pf-steps">${steps.map(s=>{const cr=stepCR(stepText(s));return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${stepMarkHtml(s)}${fmt(cr.c)}${cr.r?` <span class="pl-r">${fmt(cr.r)}</span>`:''}</li>`;}).join('')}</ul>`;
+    {const jl=(Array.isArray(b.milestones)?b.milestones:[]).map(j=>`<div class="pf-jl">△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</div>`).join('');if(jl)body+=jl;}   // A376 : le jalon de boucle s'annonce dans la liste, condition en toutes lettres (comme « Toute la fiche »)
     if(dec)body+=`<div class="pf-opts">${(b.options||[]).map(o=>{const t=o&&o.target&&byId[o.target]?o.target:null;const lb=esc((o&&o.label)||'');
         if(t&&next&&next.id===t)return `<div class="pf-opt"><b>${lb}</b><span>↓ ci-dessous</span></div>`;
         if(!t)return `<div class="pf-opt"><b>${lb}</b><span>▪ fin</span></div>`;
@@ -21093,7 +20941,8 @@ function preFlowFlatHtml(f){
     else if(b.next&&byId[b.next]&&!(next&&next.id===b.next))body+=`<div class="pf-jump">${ref(b.next,num[b.next]<=num[b.id]?'↺ puis retour à':'↳ puis')}</div>`;
     else if(!b.next)body+=`<div class="pf-end">■ Fin du parcours</div>`;
     const arr=arrivals.length?`<div class="pf-arr"><span>← aussi depuis</span>${arrivals.map(src).join('')}</div>`:'';
-    h+=seg+`<div class="pf-row${dec?' dec':''}${rail?' rail':''}" data-plln="${esc(b.id)}"><div class="pf-col"><span class="pf-badge" aria-hidden="true"><span>${dec?'?':num[b.id]}</span></span></div><div class="pf-main"><div class="pf-title">${esc(titre(b))}</div>${arr}${body}</div></div>`;});
+    const m=st&&st.md?st.md[b.id]:null;const stc=(m&&m.cur?' cur':'')+(m&&m.complete?' done':'')+(st&&st.off&&st.off.has(b.id)?' off':'');
+    h+=seg+`<div class="pf-row${dec?' dec':''}${rail?' rail':''}${stc}" data-plln="${esc(b.id)}"${m&&m.cur?' aria-current="step"':''}><div class="pf-col"><span class="pf-badge" aria-hidden="true"><span>${num[b.id]}</span></span></div><div class="pf-main"><div class="pf-title">${esc(titre(b))}</div>${arr}${body}</div></div>`;});
   return `<div class="pf-flat">${h}</div>`;}
 function preSessionHtml(f,avecParcours){
   return `<div class="pre-wrap">${avecParcours?`<div class="rail-lad pre-lad flat">${preFlowFlatHtml(f)}</div>`:''}</div>`;}
