@@ -933,3 +933,41 @@ reste collée au body pour toute la session, et plus aucune bulle « Coller » n
 jusqu'au rechargement. Correctif : la fin du geste s'écoute aussi sur le document (capture), et un
 champ qui prend le focus retire la classe par ceinture (un champ au focus n'est jamais sous un
 « Maintenir »). Témoin : appui, bouton retiré du DOM, pointerup sur le document → classe retirée.
+
+### A374 — les tailles de texte, mesurées sur 46 surfaces, et six écarts refermés (24/09/2026)
+
+Demande de l'auteur : « refais un audit pour vérifier divergence/cohérence taille des polices sur
+absolument toutes les fenêtres » (exemple : cartes d'accueil contre bandeau de recherche). MESURÉ, pas
+lu : tailles calculées par le navigateur sur 46 surfaces (accueil, feuilles, fenêtres, lecture,
+session, éditeurs, protocole, invité) à 390 px avec pointeur tactile émulé et à 1100 px, 1 632
+textes ; Partage et Moniteur non ouverts par la sonde (à mesurer). Artefact Design : tableau rôle ×
+surface, histogramme, écarts (https://claude.ai/artifact/TeXKDLV6Ra6rwGc5SjRmHd).
+
+**Ce que la mesure dit.** L'échelle fermée (11 · 12 · 13,5 · 15 · 17,5 · 21 · 24) est respectée —
+une seule valeur hors échelle, 16 px, qui est le PLANCHER DES CHAMPS (règle 9, `input,textarea,select
+{font-size:16px}` : Safari iOS zoome en dessous) et reste tel quel : le remplacer par 15 + bloc tactile
+rapetisserait les champs au bureau pour rien. Mais l'échelle est lue par le bas : 11, 12 et 13,5 px
+portent 60 % des textes. Lecture, session et protocole sont conformes à A345 (24 · 21 · 17,5 en session,
+15 en lecture · cartes 15 · méta 12-13,5 · sur-titres 11) et ne bougent pas.
+
+**Six écarts refermés, tous vérifiés à la sonde après correction (390 tactile et 1100).**
+1. Accueil : titre de carte 17,5/700 contre recherche du dock 15/400 au téléphone — A359 annonçait
+   17,5, la règle `#homeDock .hdr-search input` disait item. → step (17,5) SOUS 780 seulement ; en
+   large la carte est à 15/600 (A359) et la recherche reste à item.
+2. Feuille « Se repérer » : nœuds 12, renvois 11, et le titre de rail n'était stylé qu'AU-DESSUS de
+   780 (11 px) — au téléphone il tombait sur le 16 px du navigateur, un élément non stylé. → nœuds
+   body (13,5), renvois meta (12), titre de rail meta (12) aux deux largeurs, une seule règle
+   (« adapte un peu en restant cohérent », demande de l'auteur).
+3. Menu ⋯ : tuiles « Se repérer » / « Schéma » à 11 px, le corps d'un sur-titre, contre 15 pour les
+   rangées. → body (13,5/700). Les intertitres restent à 11 : c'est le corps de TOUS les sur-titres.
+4. Méta qui rétrécissaient en large sans décision écrite : catégorie de rangée 12 → 11, note de
+   confidentialité du compte 13,5 → 11. → 12 et 13,5 aux deux largeurs. Le titre de carte 17,5 → 15
+   (A359) est la seule exception écrite et reste.
+5. Nature de rangée « AIDE / PROTOCOLE » 11 → 12 (meta), sur la ligne de la catégorie qu'elle précède.
+6. Éditeur : libellé de champ et texte d'aide au même corps (12). → libellé body (13,5/800, approche
+   .05em), aide inchangée (12).
+
+**Question posée et réponse de l'auteur.** Stockage, Versions et Catégories titrent à 24 px comme des
+pages-fenêtres (A352), Créer et Confirmer à 17,5 comme des dialogues. Réponse : « utilise ceux de la
+doctrine, je ne suis pas sûr, n'en fais pas une règle absolue » — rien ne change, A352 fait foi, et le
+classement page/dialogue de ces trois fenêtres reste ouvert.

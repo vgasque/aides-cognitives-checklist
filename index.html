@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vc+Dk5CmYQTtGeZAHPZ6VXn8epAUcBLy287N8qNOLrc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-eJc8wRZg5mcKF0t3hVRLvgdvmtq3ceNNMIT0jGNcTnA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1032,7 +1032,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A337 : les OUVERTURES en TUILES — elles ouvrent une vue, elles ne font rien ; quatre rangées
      (176 px) tiennent en 56. Même classe `.mm-row` : clavier, focus et témoins inchangés. */
   .mm-tiles{display:flex;gap:4px}
-  .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:56px;padding:6px 4px;background:var(--surface-2);font-size:11px;font-weight:700;text-align:center;line-height:1.1}
+  .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:56px;padding:6px 4px;background:var(--surface-2);font-size:var(--t-body);font-weight:700;text-align:center;line-height:1.1}
   .mm-row.mm-tile .mm-ic{width:auto}
   .mm-row.mm-tile:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
   .mm-row.inert{cursor:default}
@@ -1260,6 +1260,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
     body.view-home footer.tools :is(#footSum,#footFold){display:none}   /* maquette v5 : pas de socle au téléphone — l'état vit dans Moi */
     body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
+    #homeDock .hdr-search input{font-size:var(--t-step)}   /* A374 : 17,5 au téléphone (A359 l'écrivait, la règle disait item), face aux titres de carte à 17,5/700 ; item en large où la carte est à 15 */
     body.view-home footer.tools{border-top:0}
   }
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
@@ -2262,7 +2263,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-l{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;padding:8px 16px 6px;
     background:var(--bg);box-shadow:0 1px 0 var(--line);
     font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
-  .dir-l .dir-ll{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dir-l .dir-ll{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--t-meta)}   /* A374 : 12 aux deux largeurs (11 en large avant) */
   .dir-lr{flex:1}
   .dir-ln{flex:none;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft)}
   .dir-lk{flex:none;display:inline-flex;color:var(--ink-soft)}
@@ -2529,7 +2530,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      détail de goût : mesuré, la pastille coûtait 16 px de chrome par rangée et faisait basculer
      la ligne dans l'ellipse à quatre colonnes, sur des données ORDINAIRES. Registre neutre,
      jamais une couleur de sens (règle 8) ; item DUR, donc jamais rétréci. */
-  .dir-kind{flex:none;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  .dir-kind{flex:none;font-size:var(--t-meta);font-weight:800;letter-spacing:.06em;text-transform:uppercase;
     color:var(--ink-soft)}
   .dir-sub b{font-weight:700;color:var(--ink)}
   /* A338 : UN état par rangée, en mots, calé à droite — le plus urgent l'emporte ; ambre = attend
@@ -4475,11 +4476,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @keyframes toastPulse{0%,100%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 0 rgba(242,176,28,0)}50%{box-shadow:0 10px 30px rgba(50,35,0,.34),0 0 0 7px rgba(242,176,28,.5)}}
   /* editor */
   .field{margin-bottom:18px}
-  .field>label{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+  .field>label{display:block;font-size:var(--t-body);font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}   /* A374 : 12 → 13,5, le libellé se distingue de son aide (12) */
   /* Ligne label + bouton (ex. « B » du contexte local) : le bouton reste HORS du <label>
      (un bouton DANS un label devient son contrôle implicite -> cliquer le libellé cliquait le bouton). */
   .field .lab-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-  .field .lab-row>label{display:block;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+  .field .lab-row>label{display:block;font-size:var(--t-body);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
   .field .hint{font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-2);font-size:12px}
   .field input[type=text],.field textarea,.field select{width:100%;min-height:48px;padding:10px 14px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink)}
   .field .ed-title-in{min-height:52px;font-size:17.5px;font-weight:700}
@@ -5299,6 +5300,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      prendre. Chaque bloc est une CARTE (v5.6) mais le MARQUEUR reste une PASTILLE : un numéro fondu
      dans le titre rendrait l'état à la couleur seule (règle 8) ; pas de liseré sur une rangée
      ordinaire (deux canaux pour un état). Détail : doctrine-css.md C101. */
+  /* A374 : le titre de rail n'était stylé qu'au-dessus de 780 (11 px) — au téléphone il tombait sur le 16 px
+     du navigateur. Une règle, un corps (meta), aux deux largeurs. */
+  .rail-title{font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .pl-line{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px 6px calc(12px + var(--pl-ind,0px));
     background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);cursor:pointer}
   /* ⚠ LE RETRAIT DE PROFONDEUR EST ADDITIF, ET IL A UNE SOURCE UNIQUE (v5.28.1, signalé à l'usage).
@@ -5442,7 +5446,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-line.wl .n.mk{width:auto;height:auto;color:inherit}
   /* Les marqueurs de queue : la FORME dit le registre, l'encre reste celle de la colonne. */
   .pl-line .n.mk{border:0;background:none;font-family:inherit;font-size:13.5px;font-weight:800}
-  .pl-line .t{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);
+  .pl-line .t{flex:1;min-width:0;font-size:var(--t-body);font-weight:600;color:var(--ink);   /* A374 : 12 → 13,5, la feuille était la plus petite surface de l'app */
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl-line.cur .t{font-weight:800}
   /* La chip de branche : SEULE sur sa ligne, en retrait du niveau qu'elle ouvre. */
@@ -5478,7 +5482,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pl-line .g b{font-weight:700;color:var(--ink-2)}
   .pl-line .g b.tk{color:var(--ok)}
   .pl-line .g .fin{color:var(--ok);font-weight:700}
-  .pl-line .pl-ref{color:var(--act);font-weight:700;cursor:pointer;padding:0 1px}
+  .pl-line .pl-ref{color:var(--act);font-weight:700;cursor:pointer;padding:0 1px;font-size:var(--t-meta)}   /* A374 : renvois 11 → 12 */
   .pl-line.dec .t{color:var(--ink)}
   /* Le bloc COURANT prend le filet d'accent, pas un aplat : la colonne reste désaturée, et
      « ICI » dit la position en toutes lettres (la couleur n'est jamais seule). */
@@ -6083,7 +6087,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      déconnexion — l'espacement fait partie de la protection. */
   .auth-actions .btn.primary+.btn{margin-top:14px}
   .auth-hero{text-align:center;margin-bottom:18px}
-  .auth-privacy{font-size:11px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0;text-align:center}
+  .auth-privacy{font-size:var(--t-body);color:var(--ink-soft);line-height:1.5;margin:8px 0 0;text-align:center}   /* A374 : 13,5 aux deux largeurs (11 en large avant) */
   /* Le message vide ne réserve plus ~60px sous le bouton (rythme inégal, audit v4.5). */
   .auth-msg:empty{display:none}
   .auth-hero-ic{width:56px;height:56px;border-radius:14px;background:var(--primary-soft);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
@@ -7109,7 +7113,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        devine, un bouton renvoyé à la ligne coûte une rangée entière. */
     .rail-sec:has(.rail-lad) .rail-head{flex-wrap:nowrap}
     .rail-sec:has(.rail-lad) .rail-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .rail-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+    .rail-title{white-space:nowrap}
     /* v5.4.2-r — DÉPLIANTS DU RAIL (R1+R2, cf. doctrine près de railLadParts) : le résumé reprend
        la grammaire .rail-head (il EST un en-tête de zone), cible 44 px, chevron qui dit l'état,
        et la position courante en queue ellipsée. Chevron en transform seul (check-anim). */
@@ -8480,7 +8484,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.30.3';
+const APP_VERSION='5.30.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.

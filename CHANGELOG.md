@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.30.4] — 2026-09-24
+Audit typographique demandé par l'auteur, MESURÉ sur 46 surfaces à 390 px (tactile) et 1100 px
+(A374, doctrine `docs/decisions/lot-v5-30.md`) : l'échelle fermée est respectée, mais six écarts
+de rôle la contredisaient. Tous refermés et re-mesurés.
+- **Accueil** : recherche du dock à 17,5 px au téléphone, face aux titres de carte 17,5 gras (A359
+  l'écrivait, la règle disait 15) ; en large elle reste à 15, comme la carte. Nature de rangée
+  « AIDE / PROTOCOLE » 11 → 12, catégorie 12 aux deux largeurs (11 en large avant).
+- **Feuille « Se repérer »** : nœuds 12 → 13,5, renvois 11 → 12, titre de rail 12 aux deux largeurs —
+  il n'était stylé qu'au-dessus de 780 px et tombait sur le 16 px du navigateur au téléphone.
+- **Menu ⋯** : tuiles « Se repérer » et « Schéma » 11 → 13,5 gras (corps de commande, pas de sur-titre).
+- **Compte** : note de confidentialité 13,5 aux deux largeurs (11 en large avant).
+- **Éditeur** : libellés de champ 12 → 13,5, l'aide reste à 12 — la question se distingue de son explication.
+- Laissés tels quels, motivés dans A374 : le 16 px des champs (plancher iOS, règle 9) et les titres
+  de fenêtre 24 / 17,5 (A352 fait foi, classement de Stockage, Versions et Catégories encore ouvert).
+- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.30.3] — 2026-09-24
 Retours de l'auteur sur 5.30.2 (A373, doctrine `docs/decisions/lot-v5-30.md`).
 - **Le contenu descend sous le fondu d'iOS 27, et c'est réversible en une ligne** : le sol d'A370
@@ -604,34 +620,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   gestes de l'hôte gardés ; un partage expiré pendant une longue coupure dit « Se reconnecter ».
 - **Garde-fous** : section « hôte seul » réécrite autour de la bouée, section « invité hors du
   réseau commun » (9 contrôles au total), vérifiées capables d'échouer sur le code d'avant.
-
-## [5.26.2] — 2026-09-07
-### Ce que la panne fait aux gestes du partage (A332)
-
-- **Signalé par l'auteur** : « arrêté depuis » n'apparaissait que chez celui qui avait arrêté le
-  minuteur ; que se passe-t-il quand un participant perd internet mais garde le Wi-Fi, ou perd
-  les deux ; et « quand les deux appareils passent hors ligne, l'invité ne peut plus rien cocher,
-  puis au retour en ligne chacun avance de son côté ». Tout a été MESURÉ au banc avant de corriger
-  (carte des situations dans la doctrine).
-- **Le minuteur arrêté est daté chez l'autre** : l'arrêt reçu prend l'heure de l'évènement (jamais
-  une clé de charge nouvelle — la liste blanche serveur est intacte), l'armement l'efface ; à la
-  jointure et par l'écran aussi. Avant, l'autre écran n'avait rien, ou gardait la date de son
-  propre arrêt précédent.
-- **L'hôte ne perd plus ses gestes faits pendant une panne** : lien figé, une coche de l'hôte
-  n'entrait pas dans la file (refusée pour péremption après que la base de comparaison avait
-  avancé) et n'atteignait jamais le journal ni l'invité. L'hôte n'est plus jamais refusé pour
-  péremption : la file persistée porte ses gestes au retour.
-- **Panne côté hôte seul** (portail captif de l'hôte, invités qui gardent internet) : l'hôte
-  basculait en direct sans qu'aucun invité le suive, puis restait en direct pour toujours au retour
-  du réseau — chacun avançait de son côté. Il revient désormais seul sur le MÊME partage par son
-  billet, même sans invité sur son hub, et les invités restés en ligne rattrapent ses gestes.
-- **La reprise de l'invité repeint l'écran** : revenu seul après une panne, il reconstruisait son
-  état sans le montrer et gardait l'écran d'avant la coupure. Le journal est rejoué par la voie
-  vivante.
-- **Le bridage de l'invité périmé se voit** : ses coches restent suspendues tant que le lien est
-  figé (décision gardée : elles ne remontent pas par l'écran), mais les contrôles le montrent
-  désormais, et la feuille comme le bandeau disent que seuls ses repères datés (« Noter l'heure »)
-  repartent.
-- **Garde-fous** : 4 tests unitaires (date d'arrêt = heure de l'évènement, aucune clé de charge
-  nouvelle, pli optique), 2 sections d'`audit-partage` (9 contrôles), vérifiées capables d'échouer
-  (6 rouges sur le code d'avant).
