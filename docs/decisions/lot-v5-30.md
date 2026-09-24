@@ -971,3 +971,45 @@ portent 60 % des textes. Lecture, session et protocole sont conformes à A345 (2
 pages-fenêtres (A352), Créer et Confirmer à 17,5 comme des dialogues. Réponse : « utilise ceux de la
 doctrine, je ne suis pas sûr, n'en fais pas une règle absolue » — rien ne change, A352 fait foi, et le
 classement page/dialogue de ces trois fenêtres reste ouvert.
+
+### A375 — une échelle fermée pour les CONTRÔLES : S 32 · M 40 · L 44 · XL 56, rangées 52 (25/09/2026)
+
+Retour de l'auteur après A374 : « la différence de taille des polices n'est pas cohérente… sur
+l'accueil la taille des boutons est beaucoup plus petite que les cartes, la barre de recherche paraît
+petite bien qu'elle soit de la bonne taille, Sélectionner beaucoup plus gros que les boutons
+d'en-tête », puis « bigger is not better ». MESURÉ (sonde de contrôles : boîte de chaque bouton,
+champ, segment, rangée, carte sur 46 surfaces à 390 px tactile) : les LETTRES tenaient leur échelle,
+les BOÎTES n'en avaient aucune — 18 hauteurs de bouton (28 → 70 px), champs 40 · 44 · 48 selon la
+fenêtre, segments 35 · 36 · 40 · 44, rangées 52 · 54 · 70 · 103 ; sur le seul accueil : en-tête 36,
+Sélectionner 40 × 130 avec icône et fond plein, filtre 44, recherche 44, carte 115.
+
+**L'échelle** (comme les 7 corps de texte et les 21 pas d'espacement) : S 32 (discret, en ligne :
+mini-boutons de l'éditeur, chips, ✕ de bandeau, épingle, bulle d'historique) · M 40 (CHROME : boutons
+d'en-tête de toutes les vues, pilules d'accueil « Sélectionner » et filtre, `.btn.sm`, ✕ des fenêtres)
+· L 44 (action standard et saisie : `.btn`, champs, segments, touches du quai en session — halo 44) ·
+XL 56 (l'action primaire d'un écran : Démarrer, Exercice, Continuer, Découvrir, porte « Ajouter à
+cette aide ») · rangées de liste 52 (menu ⋯ et ses tuiles, cartes dépliables, réglages du compte,
+bloc du journal). Corps : 12 · 13,5 · 15 · 17,5 ; icônes 14 · 18 · 20 ; rayons 8 · 12 · 12 · 14.
+**Tout descend ou s'aligne** ; la seule montée est l'en-tête d'accueil 36 → 40, choisie par l'auteur
+(« essaie 40 et on verra »), pour un seul chrome avec la page de lecture.
+
+**Trois décisions de l'auteur.** Chrome 40. Titre de carte d'accueil au téléphone 17,5 → **15/700**,
+comme en large (renverse A359 sur ce point ; « bigger is not better » : la carte cessait d'être
+l'objet le plus haut de l'écran pour une raison de lettres — mesurée 115 → 92 px). « Sélectionner » :
+pilule M 40 SANS icône, sur la matière du chrome (`--amb-2`, sans ombre) — « tant qu'il y a une
+cohérence ».
+
+**Mesuré après** (390 px) : boutons 32 · 40 · 44 · 52 · 56 · 64 pour 190 des 202 mesurés ; les
+restes sont des libellés sur DEUX lignes (« Cochez les étapes restantes », « + Jalon de boucle », « Le
+tableau ne colle pas ? », « Rédiger avec l'IA ») dont la boîte suit le texte, et deux champs
+en ligne de l'éditeur. Champs 40 · 44 (65 des 103). Segments 32 · 44 seulement. Accueil : 40 · 40 ·
+40 · 40 · 44 · 92. Le garde-fou `check-ctrl` (hauteurs de contrôle sur la liste fermée) reste À
+ÉCRIRE : sans lui, les dix-huit hauteurs reviendront — noté comme dette, pas comme fait.
+
+**Addendum A375 — les paliers étroits de l'en-tête d'accueil.** Trois boutons de 40 ne tiennent pas avec
+la marque sous 400 px (réserve mesurée : 0 px à 360, contre ≥ 8 exigés par le témoin) : aux paliers
+`zw400` et `zw360` ils restent à 36 et 32, c'est leur rôle de compression (règle 10), et le HALO fait
+le reste de la cible — 40 + 2 × 2, 36 + 2 × 4, 32 + 2 × 6 = 44, chaque palier son halo. À 430-559, où
+« Créer » porte son mot, l'écart entre boutons passe à 6 pour rendre 4 px à la réserve. Les croix des
+fenêtres (M 40) portent un halo de 2 pour rester des cibles de 44 en session (a11y « compte-rendu »,
+« feuille Plan » rouges avant).

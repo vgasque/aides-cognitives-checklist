@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-eJc8wRZg5mcKF0t3hVRLvgdvmtq3ceNNMIT0jGNcTnA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-HUy76UdZACRtzpmpTx9txWP0Tdx5vXaPcv617NKj5gg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -909,9 +909,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      dans la feuille, et à spécificité de classe l'ORDRE trancherait (piège de cascade du projet). */
   html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-lbl{display:none}
   html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview .pv-ic{display:inline;font-size:15px}
-  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:36px;padding:0;justify-content:center}
+  html.zw430 :is(body.view-edit,body.view-pedit) #hdrPreview{width:40px;padding:0;justify-content:center}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 10px}
   html.zw430 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:6px}
+  html.zw430 header.bar.home .hdr-acts{gap:6px}   /* A375 : trois boutons de 40 (36 avant) — la réserve de l'en-tête retombe ≥ 8 px */
+  html.zw560 header.bar.home .hdr-acts{gap:6px}   /* A375 : « + Créer » porte son mot à ce palier : 4 px rendus à la réserve */
+  html.zw400:not(.zw360) body.view-home header.bar.home :is(.hdr-new,.bar-acct){width:36px;height:36px}   /* A375 : sous 400 px, trois boutons de 40 ne tiennent plus avec la marque — palier de compression, 36 + halo 4 = 44 */
+  html.zw400:not(.zw360) body.view-home header.bar.home .hdr-hist{height:36px}
+  html.zw400 header.bar.home .hdr-acts{gap:4px}   /* A375 : réserve ≥ 8 px à 360-399 */
   /* Halos bornés à la moitié de l'écart : sans cela, deux cibles voisines de la barre d'éditeur
      se recouvrent (mesuré 2 px à 390, 4 à 320) et le tap part au dernier élément du DOM. */
   html.zw430 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-3px}
@@ -929,6 +934,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     header.bar:not(.home) .id-row{gap:4px}
   }
   html.zw360 :is(body.view-edit,body.view-pedit) .hdr-acts{gap:4px}
+  html.zw360 header.bar.home .hdr-acts{gap:4px}
   html.zw360 :is(body.view-edit,body.view-pedit) :is(.hdr-act2,.hdr-more,.bar-acct,.hdr-back)::after{inset-inline:-2px}
   html.zw360 :is(body.view-edit,body.view-pedit) .hdr-act2{padding:0 8px}
   .id-row .brand{flex:0 1 auto}
@@ -1032,7 +1038,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A337 : les OUVERTURES en TUILES — elles ouvrent une vue, elles ne font rien ; quatre rangées
      (176 px) tiennent en 56. Même classe `.mm-row` : clavier, focus et témoins inchangés. */
   .mm-tiles{display:flex;gap:4px}
-  .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:56px;padding:6px 4px;background:var(--surface-2);font-size:var(--t-body);font-weight:700;text-align:center;line-height:1.1}
+  .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:52px;padding:6px 4px;background:var(--surface-2);font-size:var(--t-body);font-weight:700;text-align:center;line-height:1.1}
   .mm-row.mm-tile .mm-ic{width:auto}
   .mm-row.mm-tile:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
   .mm-row.inert{cursor:default}
@@ -1041,7 +1047,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mm-row.danger .mm-ic{color:currentColor}
   .mm-row.danger:hover{background:color-mix(in srgb,var(--critical) 8%,transparent)}
   /* SPEC §5 (éditeurs) : actions dans l'EN-TÊTE — Aperçu (tonal) + Enregistrer (rempli, à droite). */
-  .hdr-act2{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:14px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
+  .hdr-act2{display:inline-flex;align-items:center;height:40px;padding:0 14px;border:0;border-radius:14px;background:var(--primary-soft);color:var(--primary-dk);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;flex:none}
   .hdr-act2:hover{background:var(--primary-100)}
   /* K5 (v4.72.0) — L'ÉTAT D'ENREGISTREMENT, à la place du bouton qui le demandait. Encre douce :
      c'est une CONFIRMATION passive, elle ne réclame rien et ne doit pas tirer l'œil ; seul
@@ -1049,7 +1055,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Le compte de relecture : registre ATTENTION (l'ambre du « c'est là qu'on se trompe »), JAMAIS
      rouge — aucune de ces remarques n'empêche d'enregistrer, et le volet le dit en toutes lettres.
      Masqué à zéro remarque : un « △ 0 » permanent serait le bruit que le volet évite déjà. */
-  .hdr-rev{flex:none;position:relative;min-width:36px;height:36px;padding:0 8px;display:inline-flex;align-items:center;gap:4px;
+  .hdr-rev{flex:none;position:relative;min-width:40px;height:40px;padding:0 8px;display:inline-flex;align-items:center;gap:4px;
     border:1px solid var(--verify-bd);border-radius:14px;background:var(--verify-soft);color:var(--verify);
     font-family:inherit;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;cursor:pointer}
   .hdr-rev::after{content:"";position:absolute;inset:-4px}
@@ -1058,7 +1064,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hdr-rev[hidden]{display:none}
   /* Le « ↶ » de l'anneau d'annulation : gabarit des contrôles de barre (36 px + halo pour la cible
      de 44), encre douce — c'est un recours, pas une action primaire. */
-  .hdr-undo{flex:none;position:relative;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:14px;background:var(--surface-2);color:var(--ink);cursor:pointer}
+  .hdr-undo{flex:none;position:relative;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:14px;background:var(--surface-2);color:var(--ink);cursor:pointer}
   .hdr-undo::after{content:"";position:absolute;inset:-4px}
   .hdr-undo:hover{background:var(--surface-3)}
   .hdr-undo:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -1180,7 +1186,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home .hdr-new .hdr-new-lbl{display:inline}
     /* v5.30 : avec « Sessions » à côté, le mot « Créer » ne tient plus sur la ligne sous 430 px effectifs. */
     html.zw430 body.view-home .hdr-new .hdr-new-lbl{display:none}
-    html.zw430 body.view-home .hdr-new{width:36px;padding:0}
+    html.zw430 body.view-home .hdr-new{width:40px;padding:0}
   }
 
   /* La session en cours (maquette) : registre CONFIRMATION — le SEUL aplat teinté de l'accueil,
@@ -1217,7 +1223,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dock-filt[hidden]{display:none}
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
   /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
-  #homeDock .filt-tog{width:44px;height:44px;min-height:44px}
+  #homeDock .filt-tog{width:40px;height:40px;min-height:40px}   /* A375 : M 40 avec le chrome */
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
      est un bouton discret (même encre d'action).
@@ -1592,7 +1598,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      un dock par-dessus un clavier virtuel ne laisse plus rien du contenu. Il revient à la
      fermeture. Aucune hauteur de flux n'est en jeu (il est fixe) : rien ne saute. */
   body.kb-open #sessionDock{display:none}
-  .sd-key{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:50px;min-width:0;padding:0 6px;border:0;border-radius:var(--r-2);background:none;color:var(--sys-ink-2);font-family:inherit;cursor:pointer}
+  .sd-key{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:44px;min-width:0;padding:0 6px;border:0;border-radius:var(--r-2);background:none;color:var(--sys-ink-2);font-family:inherit;cursor:pointer}
   /* HALO DE CIBLE (v4.32.0) : ces deux boutons vivent dans la zone de CRISE, où le seuil est de
      44 px — ils étaient mesurés à 38. Le défaut a échappé au harnais parce que son SCOPE listait
      #crisisDock (l'état) mais PAS #crisisCtrl (les commandes) : le trou de couverture cachait un
@@ -1642,7 +1648,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      --act-sys (v5.15.0, planche 18/2a : --act ne tenait que 1,68:1 contre le quai, la forme du
      bouton se confondait avec sa propre barre). Le libellé prend le corps de l'ACTE (A6 :
      « le grand corps appartient à l'acte » — --t-step), sans changer le gabarit de 50 px. */
-  .sd-key.sd-exo{flex:0 0 auto;min-height:60px;padding:0 14px;border-radius:var(--r-4);background:var(--work);border:1.5px dashed var(--act);color:var(--act);box-shadow:var(--shadow-work)}
+  .sd-key.sd-exo{flex:0 0 auto;min-height:56px;padding:0 14px;border-radius:var(--r-4);background:var(--work);border:1.5px dashed var(--act);color:var(--act);box-shadow:var(--shadow-work)}
   .sd-key.sd-exo:hover{background:var(--work);filter:brightness(.98)}
   /* ARMÉ : registre de SÉLECTION sur la matière système — l'exercice n'est ni une alerte ni une
      vigilance, c'est un MODE choisi ; et la touche annonce désormais l'annulation, donc son état
@@ -1650,7 +1656,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sd-key.sd-exo.on{background:var(--primary-soft);border-style:solid;color:var(--act)}
   /* v5.30 (maquette v5) : hors session le quai n'a pas de matière — deux boutons posés sur la page. */
   .sd-in:has(.sd-start:not([hidden])){background:none;box-shadow:none;padding:0;gap:8px}
-  .sd-key.sd-start{flex:1;min-height:60px;border-radius:var(--r-4);background:var(--act);color:var(--on-primary);border:1px solid var(--work-line);box-shadow:var(--shadow-work)}
+  .sd-key.sd-start{flex:1;min-height:56px;border-radius:var(--r-4);background:var(--act);color:var(--on-primary);border:1px solid var(--work-line);box-shadow:var(--shadow-work)}
   .sd-key.sd-start .dp-lbl{font-size:var(--t-step);letter-spacing:.01em;text-transform:none}
   /* Le survol n'ajoute pas un SECOND bleu, il éclaire le même (--primary-hi ramenait l'ancien
      bleu à la souris et le défaut de fusion réapparaissait). Le fond est RE-déclaré : sans lui,
@@ -1971,18 +1977,18 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Sous 560, les pastilles de l'accueil reviennent à 36 px de dessin (halo 4 = cible 44) : à 40 px la
      rangée marque + trois actions perdait sa réserve de 8 px dès 430. */
   @media (max-width:559.98px){
-    header.bar.home :is(.hdr-new,.hdr-hist,.bar-acct){height:36px}
-    header.bar.home :is(.hdr-hist,.bar-acct){width:36px}
-    header.bar.home :is(.hdr-new,.hdr-hist,.bar-acct)::after{inset:-4px}
+    header.bar.home :is(.hdr-new,.hdr-hist,.bar-acct){height:40px}   /* A375 : chrome M 40, comme la page de lecture */
+    header.bar.home :is(.hdr-hist,.bar-acct){width:40px}
+    header.bar.home :is(.hdr-new,.hdr-hist,.bar-acct)::after{inset:-2px}   /* A375 : boutons de 40, halo 2 → cible 44 */
   }
   @media (max-width:399.98px){
     header.bar.home .id-row{column-gap:4px}
     header.bar.home .hdr-acts{gap:4px}
     /* L'écart tombe à 4 px : les halos horizontaux tombent à 2, sinon deux cibles voisines se
        recouvrent (cf. la note du palier 360). Cible 36 × 44, au-dessus du plancher hors crise. */
-    header.bar.home :is(.hdr-new,.bar-acct)::after{inset:-4px -2px}
+    header.bar.home :is(.hdr-new,.bar-acct)::after{inset:-4px}   /* A375 : à ce palier les boutons redescendent à 36 (compression) — halo 4 → 44 */
     header.bar.home .hdr-hist{width:32px}   /* l'historique n'est pas une cible mesurée à 44 de large : il rend 4 px de réserve à la rangée */
-    header.bar.home .hdr-hist::after{inset:-4px -2px}
+    header.bar.home .hdr-hist::after{inset:-4px}
     /* L'ÉCART DU VERROU RESTE UN ÉCART DE VERROU. Le `column-gap` tombe à 4 px pour rendre de la
        largeur à toute la rangée ; appliqué au couple logo + mot-marque, il les fait se toucher
        (3,9 px optiques mesurés) — or leur écart n'est pas une gouttière entre deux objets, c'est
@@ -1998,10 +2004,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        (0,4,1) gagne par la SPÉCIFICITÉ, jamais par l'ordre (dix-septième piège de cascade). ⚠ Et
        le halo ne mord pas la cible du voisin : à 320 px il se borne à 1 px en largeur — sinon deux
        halos se recouvrent et le tap part au dernier élément du DOM. Détail : doctrine-css.md C30. */
-    header.bar.home .hdr-new::after{inset:-6px -1px}
+    header.bar.home .hdr-new::after{inset:-6px}   /* 32 + 12 = 44 */
     /* Sous 360 px, l'avatar descend à 32 px de dessin comme « Créer » : 6 px de halo rendent la
        cible de 44 au pixel près. */
-    header.bar.home .bar-acct::after{inset:-6px -1px}
+    header.bar.home .bar-acct::after{inset:-6px}
   }
   .brand{display:flex;flex-direction:column;line-height:1.1;flex:1;min-width:0}
   /* h1 du document (plan lecteur d'écran) stylé comme la marque — pas de typo de h1 par défaut. */
@@ -2116,7 +2122,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      une alarme). Pilule 36px min, bordure --line-strong (3:1) au repos. */
   /* `.scopebtn` (chips TYPE de la feuille de filtres) partage la grammaire : son habillage
      propre est parti avec la purge de `.scopebar` (v5.18) — même famille, même recette. */
-  .catchip,.scopebtn{display:inline-flex;align-items:center;gap:6px;min-height:36px;border:1px solid var(--line-strong);background:var(--surface);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s;color:var(--ink)}
+  .catchip,.scopebtn{display:inline-flex;align-items:center;gap:6px;min-height:32px;border:1px solid var(--line-strong);background:var(--surface);padding:0 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,color .12s;color:var(--ink)}
   /* Zone de tap >= 44px sans grossir la pastille (halo cliquable, même technique que #cbTimers
      et .tag.todo) : pastilles filtrées/choisies au pouce en mobile, tap fréquent (HIG/MD3). */
   .catchip,.scopebtn{position:relative}
@@ -2171,7 +2177,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mem-email{font-size:13.5px;color:var(--ink);word-break:break-all}.mem-you{color:var(--ink-soft);font-weight:400}
   .mem-act{display:flex;gap:8px;align-items:center;flex:none}
   .mem-act select{padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--input-bg);color:var(--ink);font-size:12px;font-weight:600}
-  .mem-act .mini.del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;position:relative}
+  .mem-act .mini.del{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;position:relative}
   .mem-act .mini.del::after{content:"";position:absolute;inset:-4px}   /* halo -> cible tactile 44px */
   .mem-act .mini.del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
   /* (Le bloc « 16px sur écrans tactiles » vit désormais en FIN de feuille, en une seule source
@@ -2298,7 +2304,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Il pousse à droite : le groupement reste à sa place apprise, et rien ne bouge quand la
      sélection s'ouvre ou se ferme. */
   /* v5.30.1 : « Affichage » et « Sélectionner » sont voisins — UN dessin de bouton (matière .btn, 40 px, 13,5/700). */
-  .sel-tog,.rang-btn{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1px solid var(--work-line);border-radius:var(--r-3);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-family:inherit;font-size:var(--t-body);font-weight:700;white-space:nowrap;cursor:pointer}
+  .sel-tog,.rang-btn{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border:1px solid transparent;border-radius:var(--r-3);background:var(--amb-2);box-shadow:none;color:var(--ink);font-family:inherit;font-size:var(--t-body);font-weight:700;white-space:nowrap;cursor:pointer}
   .sel-tog{margin-left:auto}
   .sel-tog:hover{background:var(--amb-2)}
   .sel-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -2314,7 +2320,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Rien de coché : le compte n'est pas une information, c'est une attente — encre secondaire. */
   .sel-bar[data-n="0"] .sel-n{color:var(--ink-2)}
   /* ⚠ LE SECOND SÉLECTEUR N'EST PAS UN DOUBLON — c'est le piège de cascade du projet, attrapé par
-     le témoin de la planche (mesuré : 38 px là où 40 était écrit). `.btn.sm{min-height:38px}` vaut
+     le témoin de la planche (mesuré : 38 px là où 40 était écrit). `.btn.sm{min-height:40px}` vaut
      (0,2,0) comme `.sel-bar .btn`, et il est déclaré BEAUCOUP plus bas dans la feuille : à
      spécificité égale, l'ordre décide, et c'était lui. `.sel-bar .btn.sm` vaut (0,3,0) et tranche
      sans dépendre de l'ordre. (Même famille que `.cbt-n` v4.23.5 et `.ls-card .btn.sm` v5.x.) */
@@ -2572,7 +2578,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .dir-book:not(.compact) .dir-row{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);min-height:76px;padding:12px 12px 12px 20px;overflow:hidden}
     .dir-book:not(.compact) .dir-grid>.dir-row:last-child{border-bottom:1px solid var(--work-line)}
     .dir-book:not(.compact) .dir-row::before{left:0;top:0;bottom:0;width:6px;border-radius:0}
-    .dir-book:not(.compact) .dir-row .card-open{font-size:var(--t-step);font-weight:700}
+    .dir-book:not(.compact) .dir-row .card-open{font-size:var(--t-item);font-weight:700}   /* A375 : 15/700 comme en large (choix de l’auteur, « bigger is not better ») — A359 disait 17,5 */
     .dir-book:not(.compact) .dir-sub{flex-wrap:wrap;white-space:normal;row-gap:4px;margin-top:4px}
     .dir-book:not(.compact) .dir-disc{order:-1;flex:1 0 100%;font-size:var(--t-body);font-weight:600;color:var(--ink)}
     /* A359 (signalé : « bordure du bas de certaines cartes invisible en sombre ») : le livre à filets efface le filet
@@ -2592,7 +2598,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.view-home #hdrNew:hover{background:var(--act);filter:brightness(1.06)}
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
   .vs-h{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-  .vs-seg .seg-btn{min-height:40px;padding:0 4px;font-size:var(--t-body);white-space:nowrap}
+  .vs-seg .seg-btn{min-height:44px;padding:0 4px;font-size:var(--t-body);white-space:nowrap}   /* A375 : un seul segment, L 44 */
   html.zw360 .vs-seg .seg-btn{padding:0 2px;font-size:var(--t-meta)}   /* 320 px : « Protocoles » et « Catégorie » ne tiennent pas à 13,5 (mesuré) */
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
   .vs-row span:first-of-type{flex:1}
@@ -2610,7 +2616,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      avec 4 px de rembourrage à droite il en dépassait de 5, donc était rogné (`overflow:hidden`),
      et la cible se retrouvait amputée du côté du pouce. Le rembourrage droit passe à 9 px : 26 + 9
      + 9 = 44, exactement la cible, et plus rien ne sort. */
-  .dir-row .pinbtn{min-width:28px;min-height:28px;position:relative}
+  .dir-row .pinbtn{min-width:32px;min-height:32px;position:relative}
   /* ⚠ Le halo de l'épingle mordait de 4 px sur la cible du bouton-titre (mesuré au balayage) :
      dans cette bande on épinglait au lieu d'ouvrir. Il reste GÉNÉREUX en hauteur (la rangée fait
      71 px) et se borne en largeur à l'écart réel — cible 26 + 12 = 38 px, au-dessus du plancher
@@ -2869,7 +2875,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.30 (maquette v5) : les trois cartes de l'écran d'entrée — « Quand l'utiliser », « Ne pas
      oublier », « Parcours » — partagent un EN-TÊTE dépliable (badge 26 px, titre 15/700, compte,
      chevron) ; critères et rappels au corps --t-step. */
-  .conf-head.fold-head{min-height:54px;padding:0 16px;gap:12px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
+  .conf-head.fold-head{min-height:52px;padding:0 16px;gap:12px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
   .fh-ic{flex:none;width:26px;height:26px;border-radius:var(--r-1);display:grid;place-items:center;font-size:var(--t-body);font-weight:800;line-height:1;background:var(--primary-soft);color:var(--act)}
   .fh-ic.crit{background:var(--crit-soft);color:var(--crit)}
   .fh-t{flex:1;min-width:0}
@@ -2908,7 +2914,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .fold-head .conf-chev{flex:none}
   .fold-head .conf-sub{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
   /* La porte de sortie du diagnostic (« Le tableau ne colle pas ? ») est la DERNIÈRE rangée de la carte. */
-  .fold-card .atyp-link{width:100%;margin:0;padding:10px 0;border-top:1px solid var(--work-line);font-size:var(--t-item);font-weight:600;color:var(--act);text-align:left}
+  .fold-card .atyp-link{width:100%;margin:0;min-height:52px;padding:6px 0;border-top:1px solid var(--work-line);font-size:var(--t-item);font-weight:600;color:var(--act);text-align:left}
   .fold-card .atyp-link:hover{background:none;color:var(--act)}
   .fold-card .fs-list{display:block}
   .fold-card .fs-i{display:block;font-size:var(--t-item);line-height:1.4;padding:10px 0;min-height:44px;border-top:1px solid var(--work-line);color:var(--ink)}
@@ -3121,7 +3127,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Détail : doctrine-css.md C59. */
   .rt-fnav{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft);
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-  .rt-fnav .mini{width:30px;height:30px}
+  .rt-fnav .mini{width:32px;height:32px}
   #pfCount{min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
   /* ⚠ UN SURLIGNAGE DÉFINIT SES DEUX COULEURS, JAMAIS UNE SEULE (défaut MESURÉ à l'audit, et il
      était le mien) : `color:inherit` prend l'encre du CONTEXTE et la pose sur un fond qui, lui,
@@ -3922,7 +3928,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      « Vérifier » neutre. Sélecteur (0,2,0) requis pour battre `.ov-redo` quel que soit l'ordre.
      Pied : « Vérifier :: » à gauche, « Continuer » dernier, un seul rang. Détail : doctrine-css.md C76. */
   .flow-ctrl.has-ver{display:flex;gap:8px;align-items:stretch}
-  .flow-ctrl.has-ver .blk-ver{flex:none;min-height:46px;padding:0 14px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
+  .flow-ctrl.has-ver .blk-ver{flex:none;min-height:44px;padding:0 14px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
   .flow-ctrl.has-ver .blk-ver:hover{background:var(--amb-2)}
   .flow-ctrl.has-ver .blk-ver:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .flow-ctrl.has-ver .btn.cont{flex:1;min-width:0}
@@ -4482,7 +4488,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .field .lab-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
   .field .lab-row>label{display:block;font-size:var(--t-body);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
   .field .hint{font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-2);font-size:12px}
-  .field input[type=text],.field textarea,.field select{width:100%;min-height:48px;padding:10px 14px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink)}
+  .field input[type=text],.field textarea,.field select{width:100%;min-height:44px;padding:8px 14px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink)}
   .field .ed-title-in{min-height:52px;font-size:17.5px;font-weight:700}
   .field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--primary);border-color:transparent}
   .row2{display:flex;gap:12px}.row2>.field{flex:1;min-width:0}
@@ -4509,7 +4515,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .li.li-vigil input[type=text]{border-color:var(--verify);background:var(--verify-soft);color:var(--verify)}
   .li.li-crit .li-num{color:var(--critical)}
   .li.li-vigil .li-num{color:var(--verify)}
-  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:34px;height:42px;border-radius:var(--radius-sm);font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:32px;height:32px;align-self:center;border-radius:var(--radius-sm);font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .mini:hover{background:var(--surface-2);color:var(--ink)}.mini.del:hover,.cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
   /* Étapes d'un bloc : les boutons ↑ ↓ × sont sur une ligne (non flex) -> petit espace entre eux. */
   .blk .li .mini+.mini{margin-left:6px}
@@ -4541,9 +4547,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .endsess-state[hidden]{display:none}
   .dlg-consequences{margin:0 0 16px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
   .endsess-actions{display:flex;gap:8px}
-  .btn-continue-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-hover);border-radius:8px;background:transparent;color:var(--ink);font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
+  .btn-continue-sess{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line-hover);border-radius:8px;background:transparent;color:var(--ink);font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
   .btn-continue-sess:hover{background:var(--surface-2)}
-  .btn-end-sess{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;background:var(--critical-bd);color:var(--on-primary);border:0;border-radius:8px;font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
+  .btn-end-sess{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;background:var(--critical-bd);color:var(--on-primary);border:0;border-radius:8px;font-family:inherit;font-size:var(--t-item);font-weight:700;cursor:pointer}
   html[data-theme="dark"] .btn-end-sess{color:var(--bg)}
   .btn-end-sess:hover{filter:brightness(1.06)}
   :is(.btn-continue-sess,.btn-end-sess):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
@@ -4554,10 +4560,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      divulgation progressive, coût visuel constant quel que soit le nombre de catégories.
      (Remplace l'ancienne rangée .catpick/.catpill de toutes les catégories.) ----- */
   .cat-picker{position:relative;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-  .cat-chip-selected{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--catcol) 14%,transparent);border:1.5px solid var(--catcol);color:var(--catcol);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .cat-chip-selected{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border-radius:14px;background:color-mix(in srgb,var(--catcol) 14%,transparent);border:1.5px solid var(--catcol);color:var(--catcol);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   html[data-theme="dark"] .cat-chip-selected{color:color-mix(in srgb,var(--catcol) 60%,var(--ink))}   /* contraste texte en sombre */
   .cat-chip-selected.none{background:transparent;border-color:var(--line-strong);color:var(--ink-soft)}
-  .cat-chip-other{display:inline-flex;align-items:center;padding:8px 12px;border-radius:14px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .cat-chip-other{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:14px;border:1.5px solid var(--line-strong);background:transparent;color:var(--ink-soft);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .cat-chip-other:hover,.cat-chip-selected:hover{filter:brightness(.97)}
   /* Menu ancré (même patron que le menu ⋯) : rangées 44px pastille + nom + ✓ sur la courante.
      overscroll-behavior:contain (v4.4.4) : arrivé en butée de liste, le glissement ne « fuit »
@@ -4719,10 +4725,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
   .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
   .blk .li input[type=text]{flex:1;min-width:0}
-  .blk .li .mini{width:38px;height:38px}
+  .blk .li .mini{width:32px;height:32px}
   /* Un outil qui porte son MOT (lot M1) cesse d'être un bouton carré : sans cela le texte
      débordait de la boîte. La largeur suit le contenu, la hauteur reste la cible. */
-  .blk .li .mini:has(.mini-w){width:auto;min-width:38px;padding:0 10px;gap:0}
+  .blk .li .mini:has(.mini-w){width:auto;min-width:32px;padding:0 10px;gap:0}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
      et s'écrit avant de se déplacer, et le champ est ce qu'on manipule le plus. */
   /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
@@ -4759,7 +4765,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* v5.30 (maquette v5) : la porte devient un BOUTON FLOTTANT tonal (60 px, --r-4, glyphe 21 sur
      --primary-soft), calé à droite ; son nom accessible garde le mot. Le MENU qu'elle ouvre — la
      palette (bloc, décision, minuteur, dose, schéma…) — ne perd aucune option. */
-  .ed-door{width:60px;height:60px;min-height:60px;margin-left:auto;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--primary-soft);color:var(--act);border:1px solid var(--work-line);box-shadow:var(--shadow-work)}
+  .ed-door{width:56px;height:56px;min-height:56px;margin-left:auto;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--primary-soft);color:var(--act);border:1px solid var(--work-line);box-shadow:var(--shadow-work)}
   .ed-door:hover{background:var(--primary-100)}
   .edd-p{flex:none;width:auto;height:auto;display:grid;place-items:center;border-radius:0;background:none;color:var(--act);font-size:var(--t-step-l);font-weight:600;line-height:1}
   .edd-l,.edd-c{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -5033,7 +5039,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tm-reset.holding,.btn-end-sess.holding{background-color:var(--surface-2);background-image:linear-gradient(color-mix(in srgb,var(--alarm) 60%,transparent),color-mix(in srgb,var(--alarm) 60%,transparent));background-repeat:no-repeat;background-size:0% 100%;animation:holdfill var(--hold-ms,.8s) linear forwards}
   @keyframes holdfill{to{background-size:100% 100%}}
   .endsess-hint{margin:14px 0 0;text-align:center;font-size:var(--t-body);color:var(--ink-2)}
-  .btn.sm{padding:8px 12px;font-size:var(--t-body);font-weight:700;min-height:38px}.btn:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  .btn.sm{padding:8px 12px;font-size:var(--t-body);font-weight:700;min-height:40px}.btn:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   /* Registre CONFIRMATION sur un bouton (V5) : « Continuer » quand le bloc est entièrement coché. */
   .btn.okay{background:var(--ok);border-color:var(--ok);color:var(--surface)}
   .btn.okay:hover{background:color-mix(in srgb,var(--ok) 88%,var(--ink));border-color:var(--ok)}
@@ -5041,7 +5047,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      POURQUOI (« Cochez les étapes restantes (2) ») ; actif = vert plein + destination annoncée. */
   /* v5.30 (maquette v5) : « Continuer » est un bouton PLEIN (--act) de 60 px, --r-4 ; tant qu'il
      reste des étapes, une surface d'ambiance (« Cochez les étapes restantes (n) »). */
-  .btn.cont{flex:1 1 auto;width:100%;min-height:60px;font-weight:800;font-size:var(--t-step);border-radius:var(--r-4);border:1px solid var(--work-line);background:var(--act);color:var(--on-primary);box-shadow:var(--shadow-work);display:flex;align-items:center;justify-content:center;gap:6px}
+  .btn.cont{flex:1 1 auto;width:100%;min-height:56px;font-weight:800;font-size:var(--t-step);border-radius:var(--r-4);border:1px solid var(--work-line);background:var(--act);color:var(--on-primary);box-shadow:var(--shadow-work);display:flex;align-items:center;justify-content:center;gap:6px}
   .btn.cont.idle{background:var(--amb-2);border-color:transparent;box-shadow:none;color:var(--ink-2);cursor:default}
   .btn.cont.idle:hover{background:transparent}
   /* §8 fin d'algorithme : état annoncé + la session CONTINUE (Terminer ≠ terminer la session). */
@@ -5099,7 +5105,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `margin-left:auto` ; la pilule ne se déplace pas (c'est un état). Détail : doctrine-css.md C97. */
   .ov-acts{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start;padding:0 12px 10px}
   .ov-acts>:first-child{margin-left:auto}   /* seul le PREMIER bouton pousse ; les suivants se collent à lui */
-  .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:10px;min-height:44px;padding:0;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
+  .ov-tgl{flex:1 1 230px;min-width:0;display:flex;align-items:center;gap:10px;min-height:52px;padding:0;background:none;border:0;cursor:pointer;font-family:inherit;text-align:left}
   .ov-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   /* « BLOC 7 » : une ÉTIQUETTE, plus une pastille. La pastille numérotée disait la position par
      un aplat bleu de plus ; le numéro suffit, et il reste le même que celui du plan, du statique
@@ -5128,7 +5134,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
      titre et le compte, libellé qui s'abrège avant de toucher le compte, cible 44 par halo ; elle s'allume
      une fois quand un bloc coché la rejoint (ombre seule : peinture, jamais de mise en page). */
-  .ov-prog>.ov-runline{flex:0 1 auto;min-width:0;width:auto;min-height:28px;height:28px;margin:0 auto;padding:0 10px;justify-content:flex-start;position:relative;border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
+  .ov-prog>.ov-runline{flex:0 1 auto;min-width:0;width:auto;min-height:32px;height:32px;margin:0 auto;padding:0 10px;justify-content:flex-start;position:relative;border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
   .ov-prog>.ov-runline::after{content:"";position:absolute;inset:-8px 0}
   .ov-prog>.ov-runline .ovr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;padding-top:1px}   /* +1 px : le texte 12/700 paraissait haut face à l'icône de 14 ; interligne 1,35 — à 1, le débordement masqué des points de suspension TRONQUAIT les jambages (signalé) */
   .ov-runline .ovr-ic{display:inline-flex;flex:none;color:var(--ink-2)}
@@ -6014,7 +6020,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dev-line b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
   /* Un réglage = son libellé et son contrôle sur la MÊME ligne quand la place existe ; sous
      430 px le contrôle passe dessous plutôt que de comprimer l'un ou l'autre. */
-  .set-row{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;min-height:60px;padding:8px 8px 8px 18px;margin-bottom:6px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work)}
+  .set-row{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;min-height:52px;padding:2px 8px 2px 18px;margin-bottom:6px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work)}
   .set-row .set-l{flex:1 1 auto;font-size:15px;font-weight:700;color:var(--ink)}
   .set-row .statuseg{flex:none}
   /* ⚠ LA RANGÉE D'ACCENTS PLIE, ELLE NE FIGE PAS SA LARGEUR (v5.10.5, signalé à l'usage avec
@@ -6251,7 +6257,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .join-lab{display:block;margin:0 0 4px;font-size:12px;font-weight:700;color:var(--ink-soft)}
   /* MONO, TRÈS GRAND : on recopie un code lu sur l'écran d'un collègue, souvent debout, parfois de
      loin. Très au-dessus des 16 px sous lesquels Safari iOS zoome au focus (règle 9). */
-  .join-code{width:100%;box-sizing:border-box;margin:0 0 14px;padding:12px 14px;font-family:var(--mono);
+  .join-code{width:100%;box-sizing:border-box;margin:0 0 14px;padding:10px 14px;font-family:var(--mono);
     font-size:24px;font-weight:700;letter-spacing:.07em;text-align:center;text-transform:uppercase;color:var(--ink);
     font-variant-numeric:tabular-nums;background:var(--input-bg);border:1px solid var(--line-strong);border-radius:8px}
   @media (max-width:359.98px){.join-code{font-size:24px;letter-spacing:3px}}
@@ -6272,7 +6278,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #joinScreen .join-err{margin:0 0 12px;padding:8px 10px;font-size:13.5px;line-height:1.4;color:var(--critical);
     background:var(--critical-soft);border-left:4px solid var(--critical-bd);border-radius:0 8px 8px 0}
   #joinScreen .join-err[hidden]{display:none}
-  .join-go{width:100%;min-height:48px;font-size:15px}
+  .join-go{width:100%;min-height:44px;font-size:15px}
   /* ── Partage en direct / par l'écran (v5.14.2, remédiation d'après maquettes) ──
      La caméra est BORNÉE (signalé tablette : « la fenêtre photo dépasse du cadre ») : jamais de
      hauteur en vh (règle 10), un ratio et une largeur maximale suffisent. Notices = registre
@@ -6415,7 +6421,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      deux régimes, et il se lit sur la nature du contenu. */
   .ai-modal.dlg-center{align-items:center}
   .dlg-confirm .ai-card{max-width:var(--dlg-confirm);box-shadow:0 12px 40px rgba(0,0,0,.3)}
-  .dlg-confirm .ai-x{font-size:15px;color:var(--ink-soft)}
+  .dlg-confirm .ai-x{color:var(--ink-soft)}
   /* v4.3.1 : les confirmations DESTRUCTRICES (#confirmModal, opts.danger — supprimer une fiche,
      un protocole, la bibliothèque…) reprennent le registre du dialogue « Terminer la session »
      (SPEC crise §3) : rouge système PLEIN (--critical-bd) + texte blanc, au lieu du contour rouge.
@@ -6488,7 +6494,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      inattention (l'argument qui a fermé l'échelle typographique en v4.71.1). */
   .ai-card h3{margin:0;font-size:var(--t-step);font-weight:800;flex:1}
   /* Fermeture des fenêtres : cible 44x44 (marges négatives -> l'en-tête de la carte ne grossit pas). */
-  .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;margin:-10px -10px -10px 0;flex:none}
+  .ai-card .ai-x{background:none;border:0;color:var(--ink-soft);font-size:17.5px;line-height:1;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;margin:-10px -10px -10px 0;flex:none}
   .ai-card .ai-x:hover{background:var(--surface-2);color:var(--ink)}
   .ai-card p{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5}
   /* v5.30 (A353) : légendes et intertitres en capitales restent à 12 dans une fenêtre — `.ai-card p` l'emportait. */
@@ -6546,10 +6552,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ai-modal.page .ai-top{align-items:center;margin-bottom:12px}
   .ai-modal.page .ai-card .ai-x{width:40px;height:40px;margin:0;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink);font-size:17.5px}
   .ai-modal.page .ai-card .ai-x:hover{background:var(--amb-2)}
-  .ai-modal.page .ai-card .ai-x{position:relative}.ai-modal.page .ai-card .ai-x::after{content:"";position:absolute;inset:-3px}   /* cible 44 : -3 car le filet de 1 px est hors du padding-box */
+  .ai-card .ai-x{position:relative}.ai-card .ai-x::after{content:"";position:absolute;inset:-2px}   /* A375 : M 40 + halo = cible 44 (règle 9 en session) */
+  .ai-modal.page .ai-card .ai-x::after{inset:-3px}   /* cible 44 : -3 car le filet de 1 px est hors du padding-box */
   .ai-modal.page .cm-list{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);overflow:hidden}
   @media (min-width:780px){.ai-modal.page .ai-card{max-width:var(--dlg-atelier)}}   /* le gabarit DOCUMENT, pas un quatrième */
-  .dlg-480 .ai-x{font-size:15px;color:var(--ink-soft)}
+  .dlg-480 .ai-x{color:var(--ink-soft)}
   .crt-list{display:grid;gap:10px;grid-auto-rows:1fr;margin-bottom:4px}   /* rangées égales : toutes les cartes = la plus haute */
   /* v5.30 : la carte de TYPE porte un badge 44 px (✓ rempli pour l'aide, ≡ pour le protocole). */
   .crt-badge{width:44px;height:44px;border-radius:var(--r-3);display:grid;place-items:center;font-size:var(--g-cmd);font-weight:800;background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work)}
@@ -6729,7 +6736,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .wl-p2{font-size:var(--t-item)}
   .wl-p strong{color:var(--ink)}
   .wl-act{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-  .wl-btn{min-height:60px;border-radius:var(--r-4);font-size:var(--t-step);font-weight:800;box-shadow:var(--shadow-cur)}
+  .wl-btn{min-height:56px;border-radius:var(--r-4);font-size:var(--t-step);font-weight:800;box-shadow:var(--shadow-cur)}
   .wl-sec{min-height:56px;background:var(--work);border:1px solid var(--work-line);color:var(--ink);font-weight:700;box-shadow:var(--shadow-up)}
   .wl-links{display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap;color:var(--ink-2);font-size:var(--t-item)}
   .wl-lnk{min-height:44px;padding:0 10px;border:0;background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--act);cursor:pointer}
@@ -7396,7 +7403,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      lieu de le laisser découvrir — registre ATTENTION (glyphe + mots, la couleur jamais seule). */
   .mi-un{flex:1 1 100%;font-size:12px;font-weight:600;color:var(--verify)}
   /* .mini a une LARGEUR FIXE (boutons carrés × ↑ ↓) : ici les libellés varient -> largeur auto. */
-  .md-toolbar .mini{width:auto;min-width:36px;height:34px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
+  .md-toolbar .mini{width:auto;min-width:32px;height:32px;padding:0 10px;font-size:13.5px;font-weight:600;white-space:nowrap}
   #p-body{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:var(--mono);font-size:13.5px;line-height:1.55;resize:vertical}
   .md-prev-h{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin:12px 0 6px}
   .md-preview{border:1px dashed var(--line-strong);border-radius:var(--radius-sm);padding:12px 14px;background:var(--surface-2);min-height:44px;line-height:1.55}
@@ -7530,7 +7537,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .cm-prev{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .cm-pv.solid{display:inline-flex;align-items:center;padding:8px 12px;border-radius:14px;color:var(--on-primary);font-size:12px;font-weight:700}
   .cm-pv-note{margin-left:auto;font-size:var(--t-cap);font-weight:600}.cm-pv-note.ok{color:var(--ok)}.cm-pv-note.warn{color:var(--verify)}
-  .cm-del{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;cursor:pointer}
+  .cm-del{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:15px;cursor:pointer}
   .cm-del:hover{color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
   .cm-confirm{margin:8px 0 10px;padding:10px;border:1px solid var(--critical-bd);background:var(--critical-soft);border-radius:8px}
   .cm-confirm p{font-size:12px;color:var(--ink);margin:0 0 8px;line-height:1.45}
@@ -8484,7 +8491,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.30.4';
+const APP_VERSION='5.30.5';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14366,7 +14373,7 @@ const selRowCls=x=>state.selOn?(' selm'+(selSet().has(x.id)?' selon':'')):'';
 // commande morte).
 function selTogHtml(){
   if(state.selOn||!canEditScope(homeScope()))return '';
-  return `<button type="button" class="sel-tog" id="selTog">${uiIcon('check',13,{sw:3})}Sélectionner</button>`;}
+  return `<button type="button" class="sel-tog" id="selTog">Sélectionner</button>`;}   // A375 : pilule M 40 du chrome, sans icône
 /* La barre d'actions. Elle NE DIT QUE CE QU'ELLE SAIT (A83) : le compte, et pour chaque commande
    la raison de sa fermeture quand elle est fermée. « Catégorie » se ferme sur une sélection
    éparpillée entre bibliothèques ; tout se ferme à zéro coché. */

@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.30.5] — 2026-09-25
+Une échelle fermée pour les CONTRÔLES (A375, doctrine `docs/decisions/lot-v5-30.md`). Retour de
+l'auteur après l'audit typographique : les lettres tenaient leur échelle, les boîtes n'en avaient
+aucune — mesuré, 18 hauteurs de bouton entre 28 et 70 px, champs 40 · 44 · 48, segments 35 à 44 ;
+sur le seul accueil : en-tête 36, « Sélectionner » 40 × 130, filtre 44, recherche 44, carte 115.
+« Bigger is not better » : tout descend ou s'aligne, une seule montée.
+- **S 32** : mini-boutons de l'éditeur (32 à 48 avant), chips de catégorie, ✕ de bandeau, épingle,
+  bulle d'historique, barre d'outils Markdown.
+- **M 40** : boutons d'en-tête de toutes les vues (l'accueil monte de 36 à 40 — la seule montée,
+  choisie), filtre rond, « Sélectionner » en pilule SANS icône sur la matière du chrome, `.btn.sm`,
+  ✕ de toutes les fenêtres avec un seul glyphe.
+- **L 44** : champs de l'éditeur (48), touches du quai en session (50), boutons de « Terminer » (46),
+  « Rejoindre » (48), segments de la feuille Affichage (40).
+- **XL 56** : Démarrer, Exercice, Continuer, Découvrir, porte « Ajouter à cette aide » (60 avant).
+- **Rangées 52** : cartes dépliables (54), tuiles du menu ⋯ (56), réglages du compte (70), bloc du
+  journal (50).
+- **Cartes d'accueil au téléphone** : titre 17,5 → 15/700 comme en large (décision de l'auteur,
+  renverse A359 sur ce point) — la carte passe de 115 à 92 px.
+- Mesuré après, à 390 px : boutons sur 32 · 40 · 44 · 52 · 56 · 64 pour 190 des 202, le reste étant
+  des libellés sur deux lignes. Dette dite : le garde-fou `check-ctrl` reste à écrire.
+- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.30.4] — 2026-09-24
 Audit typographique demandé par l'auteur, MESURÉ sur 46 surfaces à 390 px (tactile) et 1100 px
 (A374, doctrine `docs/decisions/lot-v5-30.md`) : l'échelle fermée est respectée, mais six écarts
@@ -599,24 +621,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   la progression se remet à jour dès le retour de l'hôte. « Recevoir par l'écran » n'est proposé
   que s'il n'a plus de réseau. Le seuil reste 45 s : l'app tient un verrou de veille pendant toute
   session vive, l'écran de l'hôte ne s'éteint pas seul.
-
-## [5.26.3] — 2026-09-07
-### La bouée de bascule, et l'invité que rien n'atteint (A332, addendum)
-
-- **Questions de l'auteur** : « et si pas de retour de l'hôte ? une bouée envoyée lors du passage
-  de l'hôte en direct pour forcer les autres ? » ; « quid si un invité n'est pas sur le même
-  réseau ? » ; « quid de la reprise en ligne après perte totale réseau et Wi-Fi ? ».
-- **La bouée** : à sa bascule en direct, l'hôte le crie sur chaque canal dormant — le relais est
-  mort pour lui, mais le canal vit. L'invité qui la reçoit suit en direct même si son propre relais
-  répond encore, son billet cloud gardé ; au retour de l'hôte, il repasse en ligne seul. Avant, un
-  invité dont le relais répondait restait sur un partage que plus personne n'alimentait.
-- **L'invité hors du réseau commun**, que ni le direct ni la bouée n'atteignent, lit désormais
-  « △ Hôte silencieux · ① Recevoir » dans le quai au-delà de 45 s sans nouvelles de l'hôte, et sa
-  feuille dit ce qui reste vrai : ses gestes arrivent au journal et l'hôte les lira à son retour ;
-  sa progression à lui se reçoit par l'écran. Rien n'est jugé : une heure recopiée, effacée dès que
-  l'hôte reparle. Ses coches ne sont pas suspendues.
-- **Reprise après perte totale** : mesurée dans les trois cas (canal mort à la coupure, canal
-  survivant quelques secondes, rechargement pendant la panne) — même partage repris des deux côtés,
-  gestes de l'hôte gardés ; un partage expiré pendant une longue coupure dit « Se reconnecter ».
-- **Garde-fous** : section « hôte seul » réécrite autour de la bouée, section « invité hors du
-  réseau commun » (9 contrôles au total), vérifiées capables d'échouer sur le code d'avant.
