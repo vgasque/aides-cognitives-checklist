@@ -145,6 +145,13 @@
   --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
   --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
   --sab:env(safe-area-inset-bottom,0px);
+  /* A373 — CONTOURNEMENT iOS 27, RÉVERSIBLE EN UNE LIGNE : le système délave et floute le bord haut
+     d'une app installée sur l'inset de l'heure ET ~16 pt au-delà (mesuré, A370). Tout ce qui se
+     cale sous l'heure lit --sat = inset + ce décalage, au lieu de l'inset nu ; le sol ::before le
+     couvre. Nul là où il n'y a pas d'inset (navigateur, Mac) grâce au min(). LE JOUR OÙ APPLE
+     CORRIGE : --ios27-top:0px, rien d'autre à toucher. */
+  --ios27-top:min(env(safe-area-inset-top,0px),16px);
+  --sat:calc(env(safe-area-inset-top,0px) + var(--ios27-top));
   }
 
 /* Thème sombre */

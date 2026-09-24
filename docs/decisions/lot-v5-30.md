@@ -897,3 +897,39 @@ actif (`blur()`) AVANT de remplacer le DOM, sur tous ses chemins (succès, éche
 passage, une adresse refusée par le contrôle local n'efface plus le champ (`_authStep.email`
 gardé). ⚠ À CONFIRMER sur l'iPhone : si la fenêtre disparaît encore, mesurer `visualViewport.offsetTop`
 au moment du re-rendu.
+
+### A373 — le contenu descend sous le fondu d'iOS 27, et c'est réversible en une ligne (24/09/2026)
+
+Retour de l'auteur sur 5.30.2 : « c'est encore un peu gênant » au repos. Le sol d'A370 rend le voile
+invisible sur l'inset, mais son FONDU (~16 pt au-delà, mesuré) tombe sur le haut de l'en-tête. Décision
+de l'auteur : descendre le contenu d'autant, **en le nommant** pour pouvoir revenir en arrière si Apple
+corrige. Mécanisme : un token `--ios27-top:min(env(safe-area-inset-top,0px),16px)` — nul partout où il
+n'y a pas d'inset (navigateur, Mac), 16 px dès qu'il y en a un — et `--sat:calc(env(safe-area-inset-top)
++ var(--ios27-top))`, que lisent DÉSORMAIS tous les consommateurs de l'inset haut (quinze sites : en-tête,
+sol `::before`, `.dir-l`/`.sel-bar`, alertes, plein écran du schéma, moniteur, croix de la lightbox,
+fenêtres et pages-fenêtres, barres PDF et Page, lien d'évitement). Le sol couvre donc l'inset ET le
+fondu ; l'en-tête commence sous les deux. **Retour arrière : `--ios27-top:0px`, rien d'autre.** Les
+navigateurs ne changent pas d'un pixel (sonde : sol 0 et en-tête inchangés sans inset ; sous un inset
+simulé de 62 + 16 = 78 px, sol 78 px, en-tête à 90 px de rembourrage). `--sab` reste l'inset bas nu.
+
+**Le pied de l'accueil au téléphone retrouve le numéro de version** (rangée `.foot-min`, visible au seul
+accueil < 780 ; le socle complet reste la règle en large), et **« Un problème ? » vit dans Moi / Mon
+compte** (carte « Sur cet appareil », dans les deux états, connecté ou non) : il ouvre la fenêtre de
+stockage, qui porte « Réparer l'application » — la maquette v5 avait masqué tout le socle au téléphone
+(A347), et avec lui la seule issue d'une app installée bloquée sur une vieille version. Première
+version au pied de page, déplacée dans Moi à la demande de l'auteur.
+
+**Le code de connexion se colle** : signalé « je ne peux plus coller mon code dans la barre ». Aucun
+bloqueur trouvé dans le code (pas de `user-select`, pas de `paste` intercepté, pas de re-rendu au
+focus) ; non reproductible sans appareil. Durcissement : un collage ne garde que les CHIFFRES (un
+code copié depuis Mail arrive souvent avec des espaces ou du texte autour), `enterkeyhint="done"` et
+Entrée valide. Le chemin prévu reste la suggestion d'iOS au-dessus du clavier
+(`autocomplete="one-time-code"`, que Mail alimente depuis iOS 17). Précision de l'auteur : **la bulle « Coller » est ABSENTE**. Sur iOS, c'est
+la signature d'un `-webkit-touch-callout:none` au-dessus du champ — et le seul qui couvre TOUTE la page
+est `body.hold-noselect` (posée par `holdToReset` pendant un « Maintenir », qui bloque sélection et
+bulles autour du bouton). Sa fin ne s'écoutait que SUR LE BOUTON : un bouton de remise à zéro re-rendu
+pendant l'appui (tick des minuteurs, `renderKeepAnchor`) est DÉTACHÉ avant son pointerup, la classe
+reste collée au body pour toute la session, et plus aucune bulle « Coller » n'apparaît nulle part —
+jusqu'au rechargement. Correctif : la fin du geste s'écoute aussi sur le document (capture), et un
+champ qui prend le focus retire la classe par ceinture (un champ au focus n'est jamais sous un
+« Maintenir »). Témoin : appui, bouton retiré du DOM, pointerup sur le document → classe retirée.

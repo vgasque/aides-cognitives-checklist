@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-0IunA2D/aw8aK2DeNf6hsPqcshRVD4JWGzbMwnX+4eQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-vc+Dk5CmYQTtGeZAHPZ6VXn8epAUcBLy287N8qNOLrc='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -531,6 +531,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
   --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
   --sab:env(safe-area-inset-bottom,0px);
+  /* A373 — CONTOURNEMENT iOS 27, RÉVERSIBLE EN UNE LIGNE : le système délave et floute le bord haut
+     d'une app installée sur l'inset de l'heure ET ~16 pt au-delà (mesuré, A370). Tout ce qui se
+     cale sous l'heure lit --sat = inset + ce décalage, au lieu de l'inset nu ; le sol ::before le
+     couvre. Nul là où il n'y a pas d'inset (navigateur, Mac) grâce au min(). LE JOUR OÙ APPLE
+     CORRIGE : --ios27-top:0px, rien d'autre à toucher. */
+  --ios27-top:min(env(safe-area-inset-top,0px),16px);
+  --sat:calc(env(safe-area-inset-top,0px) + var(--ios27-top));
   }
   @keyframes alarmPulse{0%,100%{opacity:1}50%{opacity:.55}}
   /* Tokens FIXES DES DEUX THÈMES (jamais surchargés en sombre) : --lb-cap/--lb-ink (lightbox,
@@ -853,7 +860,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.kbd .azrail{display:none}
   /* v5.30 (maquette v5) : l'en-tête vit sur l'AMBIANCE — ni aplat blanc ni filet ; ses commandes sont des
      pastilles blanches (retour, ⋯, thème, historique), « + » rempli, le compte sur --primary-soft. */
-  header.bar{position:sticky;top:0;z-index:20;background:var(--amb);color:var(--ink);border-bottom:0;padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
+  header.bar{position:sticky;top:0;z-index:20;background:var(--amb);color:var(--ink);border-bottom:0;padding:calc(12px + var(--sat)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
   .id-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
      éléments souples (retour, titre, segments chrono) rétrécissent avec ellipse/clip. Seul
@@ -1140,7 +1147,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home .list-title{margin-top:16px}
     /* ZONE SÛRE DU HAUT (signalé sur iPhone installé : « le bandeau de sélection se retrouve
        sous l'heure », idem intertitres collants) : l'en-tête est STATIQUE depuis v5.18 — il ne
-       coiffe plus l'écran une fois défilé, et plus rien ne portait env(safe-area-inset-top).
+       coiffe plus l'écran une fois défilé, et plus rien ne portait l'inset haut.
        Un SOL fixe couvre la bande de l'encoche (le contenu ne défile plus sous l'heure), et
        les collants s'arrêtent dessous. ÷ --zf : règle 10 (env est en px réels). En navigateur,
        env vaut 0 : tout ceci est inerte. */
@@ -1148,7 +1155,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        bord haut d'une app installée et y mélange ce qui passe dessous ; un aplat opaque ne donne rien à
        flouter (signalements iOS 27 : MeshMonitor #5286, grappa-irc #2190). Sous les fenêtres (z 55). */
     body:is(.view-home,.view-read,.view-pread,.view-edit,.view-pedit)::before{content:"";position:fixed;left:0;right:0;top:0;z-index:90;
-      height:calc(env(safe-area-inset-top,0px) / var(--zf,1));background:var(--bg);pointer-events:none}
+      height:calc(var(--sat) / var(--zf,1));background:var(--bg);pointer-events:none}
     /* z 90 : AU-DESSUS des fenêtres (55) et des feuilles (70) — c'est le contenu d'une page-fenêtre qui
        défile sous l'heure (Moi, Sessions) que le verre floute ; sous l'écran d'entrée de l'invité (96) et
        les alertes (80). ⚠ CE SOL NE SUPPRIME PAS LE VERRE, IL LE REND INVISIBLE (A370, sonde rouge au
@@ -1158,8 +1165,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        de WebKit n'y change rien dans une app installée iOS 27). Sur un aplat uni le voile ne se voit pas ; il reste
        le fondu de 16 pt sous le sol, celui de toute app native iOS 26+. pointer-events:none : la zone
        est celle du système (tap = remonter en haut), jamais une cible. */
-    body.view-home .dir-l{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
-    body.view-home .sel-bar{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
+    body.view-home .dir-l{top:calc(var(--sat) / var(--zf,1))}
+    body.view-home .sel-bar{top:calc(var(--sat) / var(--zf,1))}
   }
   /* Maquette v5.18 : en VOIE ÉTROITE, la marque a la taille d'un titre de document (l'en-tête
      d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du
@@ -1252,6 +1259,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (max-width:779.98px){
     body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
     body.view-home footer.tools :is(#footSum,#footFold){display:none}   /* maquette v5 : pas de socle au téléphone — l'état vit dans Moi */
+    body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
     body.view-home footer.tools{border-top:0}
   }
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
@@ -4452,7 +4460,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   :is(.ls-card .btn,.ls-card .ls-end,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--primary-dk);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
-  #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
+  #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--sat)) 12px 0;pointer-events:none}
   /* Banderole d'alarme : AMBRE, jamais le vert de l'en-tête (les deux bandeaux se confondraient).
      ⚠ 520 n'est PAS une quatrième largeur de fenêtre (audit 9b) : elle mesure une PHRASE, ne pas
      la rattacher à un gabarit. Et elle n'apparaît JAMAIS session sous les yeux (`onTimerFired`,
@@ -4666,7 +4674,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
   #flowFull{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
   #flowFull.on{display:flex}
-  #flowFull .ff-bar{display:flex;align-items:center;gap:6px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
+  #flowFull .ff-bar{display:flex;align-items:center;gap:6px;padding:calc(9px + var(--sat)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
   #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
   /* ═══ K1 (v4.64.0, audit design — maquettes MK) : ON ÉDITE DANS LA GRAMMAIRE DE LECTURE ═══
      L'éditeur était un FORMULAIRE : champs empilés d'un côté, aperçu de l'autre — l'auteur
@@ -5765,7 +5773,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* MODE MONITEUR (D3) : même coquille que le lecteur (z 92, sous le flash d'alarme à 99),
      corps calibrés pour une lecture À DEUX MÈTRES. Registres INCHANGÉS : un minuteur échu y est
      ambre + le mot « échu », jamais la couleur seule. */
-  #monMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
+  #monMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column;padding:calc(14px + var(--sat)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
   #monMode.on{display:flex}
   @supports (height:100dvh){#monMode{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}}   /* --vvt : cf. « une hauteur ne suffit pas » (couches plein écran) */
   .mon-top{display:flex;align-items:baseline;gap:12px;flex:none}
@@ -5886,6 +5894,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      15,4 px). Détail : doctrine-css.md C109. */
   footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:0}
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
+  footer.tools .foot-min{display:none}   /* A373 : rangée du téléphone seulement (cf. bloc < 780) */
   .tools-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
   .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:24px}
   /* La pastille de synchro était le seul OBJET du pied (pilule de 22,7 px au milieu de lignes de
@@ -6155,7 +6164,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'une image, ~70 signes par ligne. La rabattre sur 480 ou 720 réglerait une cohérence de
      fenêtres sur un objet qui n'en est pas une, et casserait la seule chose qu'elle mesure. */
   .lightbox .cap{color:var(--lb-cap);font-size:13.5px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
+  .lightbox .x{position:absolute;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
   /* « ai- » : préfixe HISTORIQUE devenu générique des modales — ne pas y lire un lien avec l'IA,
      renommer casserait sélecteurs CSS+JS pour un gain nul. ⚠ On contraint le GESTE, pas la boîte :
      `touch-action:pan-y`, jamais `overflow-x:hidden` (rejeté par l'auteur : il TRONQUE, et WebKit
@@ -6163,7 +6172,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      contrainte la plus stricte des ancêtres ; étendre fenêtre par fenêtre.
      Détail : doctrine-css.md C110. */
   #authModal{touch-action:pan-y}
-  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
+  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + var(--sat)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
   /* ⚠ Axe X des fenêtres FERMÉ (`overflow-x:clip`, v5.10.5 : 2 px d'arrondi au zoom fractionnaire
      suffisent à ouvrir le panoramique iOS — le contenu, lui, ne déborde jamais). Hauteur : `--vvh`
      (visualViewport, posé en JS) est la seule vérité, dvh = repli, ÷ --zf (règle v4.24.0) ; et la
@@ -6226,7 +6235,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ci-dessous promet. Aucun z-index de course : rien d'autre n'existe à ce moment. */
   #joinScreen{position:fixed;inset:0;z-index:96;background:var(--bg);overflow-y:auto;
     display:flex;align-items:flex-start;justify-content:center;
-    padding:calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
+    padding:calc(20px + var(--sat)) 16px calc(20px + env(safe-area-inset-bottom))}
   #joinScreen[hidden]{display:none}
   /* Calquée sur `.ai-card` (centrage `margin:auto`, échelle typo) ; géométrie imposée par un `#id`,
      JAMAIS par l'ordre de déclaration — 6ᵉ incident de cascade (cf. `.read-grid`, `.cbt-n`,
@@ -6356,7 +6365,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bouge, jamais. Détail : doctrine-css.md C115. */
   .plan-modal{padding:0;background:var(--bg);overscroll-behavior:none}
   .plan-modal .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
-  .pm-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .pm-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + var(--sat)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
   .pm-ttl{flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
@@ -6442,7 +6451,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      à contenu court et hétérogène (confirmations, écran de bienvenue) gardent la modale pour
      défileur — leur imposer un squelette exigerait d'inventer un corps là où il n'y en a pas. */
   .ai-card:has(>.ai-body){display:flex;flex-direction:column;
-    max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
+    max-height:calc(100dvh / var(--zf,1) - 36px - var(--sat) - env(safe-area-inset-bottom));overflow:hidden}
   /* ⚠ `overflow-y:auto` SEUL FAIT DE X UN `auto` IMPLICITE (v5.10.5, suite du dossier
      « fenêtre compte » : l'axe fermé sur `.ai-modal` n'a rien changé — l'instrumentation disait
      « fenêtre −1 px · CORPS +2 px » : le défileur qui portait les 2 px d'arrondi, c'est CE
@@ -6692,7 +6701,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        (0,3,0) battait le `padding:0` des feuilles plein écran (18-65 px de fond nu sur la barre
        collante, safe-area comprise). 9ᵉ piège de cascade ; on exclut la CLASSE, jamais des fenêtres
        nommées, pour que la prochaine hérite de l'exclusion. Détail : doctrine-css.md C117. */
-    .ai-modal:not(.pdf-modal):not(.dlg-confirm):not(.dlg-center):not(.sheet-full) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm):not(.dlg-center):not(.sheet-full) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + var(--sat)) 16px calc(18px + env(safe-area-inset-bottom))}
   }
   /* Rangée d'action du dialogue de bienvenue. Sous 780 px la fenêtre est PLEIN ÉCRAN (règle
      ci-dessus) : le contenu s'arrête à mi-écran et « Commencer » flottait dans ~700 px de vide,
@@ -7460,7 +7469,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
   .pdf-modal{padding:0}
   .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg);position:relative}   /* repère de la pilule .pdf-fnav */
-  .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
+  .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + var(--sat)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
   .pdf-title{flex:1;min-width:0;font-size:15px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
   .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
   .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex:none}
@@ -7540,7 +7549,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      sous-dimensionné de l'écran de crise n'était pas défendable. Le rembourrage vertical monte
      de 10 à 12 px : 13,5 × 1,45 + 24 ≈ 44, sans toucher au corps ni au dessin. */
   .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--link);font-weight:700;font-size:13.5px;line-height:1.45;padding:12px 16px;border-radius:8px;transition:top .12s}
-  .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
+  .skiplink:focus-visible{top:calc(10px + var(--sat));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
   /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
      Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */
   body.crisis-live footer.tools :is(.tools-actions,.storage-gauge){display:none}
@@ -8110,6 +8119,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
          deux commandes et un état. Au nominal les quatre lignes se replient en une ; dès qu'un
          fait appelle un geste, elles reprennent la parole telles quelles. -->
     <div class="storage-gauge foot-sum" id="footSum" hidden></div>
+    <!-- A373 : au téléphone le socle est masqué (maquette v5) — reste la version (« Un problème ? » vit dans Moi). -->
+    <div class="foot-min"><span class="lbl" id="footVer"></span></div>
     <div id="footFold">
     <div class="tools-status"><div class="sync-chip" id="syncChip" hidden></div><span class="lbl" id="count"></span></div>
     <div class="storage-gauge" id="storageInfo"></div>
@@ -8469,7 +8480,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.30.2';
+const APP_VERSION='5.30.3';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12816,17 +12827,23 @@ setInterval(tickAll,300);
 // déclenche rien. Pas de fenêtre modale (réservée, elle, à la réinitialisation de SESSION).
 function holdToReset(btn,doAction,ms){if(!btn)return;let to=null;const lbl=btn.innerHTML;ms=ms||800;btn.style.setProperty('--hold-ms',ms+'ms');
   const clearSel=()=>{try{const s=window.getSelection&&window.getSelection();if(s&&s.removeAllRanges)s.removeAllRanges();}catch(_){}};
-  const cancel=()=>{if(to){clearTimeout(to);to=null;}btn.classList.remove('holding');btn.innerHTML=lbl;document.body.classList.remove('hold-noselect');};
+  /* A373 : la fin du geste s'écoute sur le DOCUMENT, pas seulement sur le bouton — un bouton de
+     remise à zéro re-rendu PENDANT l'appui (tick des minuteurs) est détaché avant son pointerup,
+     et `hold-noselect` restait collée au body : plus aucune bulle « Coller » ni sélection dans toute
+     l'app jusqu'au rechargement (signalé : « coller absent » sur le code de connexion). */
+  const offDoc=()=>['pointerup','pointercancel'].forEach(ev=>document.removeEventListener(ev,cancel,true));
+  const cancel=()=>{if(to){clearTimeout(to);to=null;}btn.classList.remove('holding');btn.innerHTML=lbl;document.body.classList.remove('hold-noselect');offDoc();};
   const begin=e=>{if(btn.disabled)return;if(e&&e.cancelable)e.preventDefault();cancel();clearSel();
     // Pendant l'appui prolongé : on bloque TOUTE sélection de texte (sinon iPhone sélectionne le
     // texte autour du bouton) et on efface une sélection éventuelle.
     // void offsetWidth : force un reflow entre retrait et re-pose de .holding -> l'animation de
     // jauge REDÉMARRE toujours, même si deux pointerdown arrivent dans la même frame.
     document.body.classList.add('hold-noselect');void btn.offsetWidth;btn.classList.add('holding');
+    ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,cancel,true));
     // On ne change QUE le libellé (pas tout le bouton) -> la structure sur 2 lignes est conservée :
     // la HAUTEUR du bouton ne change pas pendant l'appui (sinon il « rapetissait » au clic).
     const lab=btn.querySelector('.tmr-lab');if(lab)lab.textContent='Maintenir…';else btn.textContent='Maintenir…';
-    to=setTimeout(()=>{to=null;btn.classList.remove('holding');document.body.classList.remove('hold-noselect');clearSel();doAction();},ms);};
+    to=setTimeout(()=>{to=null;btn.classList.remove('holding');document.body.classList.remove('hold-noselect');offDoc();clearSel();doAction();},ms);};
   btn.addEventListener('pointerdown',begin);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,cancel));
   btn.addEventListener('contextmenu',e=>e.preventDefault());
   // Alternative CLAVIER (WCAG : pas de geste obligatoire) : Entrée/Espace déclenchent directement.
@@ -19930,7 +19947,8 @@ function openFoldCard(k){const f=state.fiche;if(!f)return;
     DANS le dock, et s'effacer sous les doigts de qui écrit dedans serait absurde. */
  {const isField=el=>!!el&&(el.matches('input,textarea,select')||el.isContentEditable);
   const kb=on=>document.body.classList.toggle('kb-open',on);
-  document.addEventListener('focusin',e=>{if(isField(e.target)&&!e.target.closest('#dockSheet'))kb(true);});
+  document.addEventListener('focusin',e=>{if(isField(e.target)&&!e.target.closest('#dockSheet'))kb(true);
+    document.body.classList.remove('hold-noselect');});   // A373 : ceinture — un champ au focus n'est jamais sous un « Maintenir »
   document.addEventListener('focusout',e=>{if(isField(e.target))setTimeout(()=>{
     if(!isField(document.activeElement)||document.activeElement.closest('#dockSheet'))kb(false);},60);});
   /* ⚠ UNE CLASSE POSÉE AU FOCUS ET RETIRÉE AU BLUR EST ORPHELINE SI LE CHAMP EST DÉTRUIT (v5.6,
@@ -26243,7 +26261,8 @@ function accountPrefsHtml(slot){
   const HINT={90:'S · 90 %',100:'M · 100 %',115:'L · 115 %',130:'XL · 130 %'};
   return `<div class="acct-zone"><div class="auth-stats-h">Sur cet appareil</div>
     <div class="acct-card"><p class="dev-line"><b>${fiches.length}</b> aide${fiches.length>1?'s':''} · <b>${protocols.length}</b> protocole${protocols.length>1?'s':''} · <b>${nl}</b> bibliothèque${nl>1?'s':''}</p>
-    ${slot?`<div class="auth-actions">${slot}</div>`:''}</div>
+    ${slot?`<div class="auth-actions">${slot}</div>`:''}
+    <div class="auth-actions"><button type="button" class="btn" id="acctTrouble">Un problème ?</button></div></div>   ${''/* A373 : réparer l'application (fenêtre de stockage) — demande de l'auteur : dans Moi, pas au pied */}
     <div class="auth-stats-h">Affichage</div>
     ${''/* ⚠ LE THÈME REJOINT LES RÉGLAGES (7a, « Points ouverts ») : il vivait dans l'en-tête de
       l'accueil, où il occupait une des quatre rangées collantes les plus disputées du produit
@@ -26330,6 +26349,7 @@ function bindTagsPref(body){
     setTimeout(()=>{const ins=document.querySelectorAll('#authModal [data-tgl]');
       const last=ins[ins.length-1];if(last){last.focus();last.select();}},60);};}}
 function bindAccountPrefs(body){
+  {const t=body.querySelector('#acctTrouble');if(t)t.onclick=openStorageInfo;}   // A373 : « Un problème ? » → fenêtre de stockage, qui porte « Réparer l'application »
   /* LA PASTILLE GLISSE, DONC ON NE RE-REND PAS. Un `renderAuth()` reconstruirait le sélecteur et
      la pastille SAUTERAIT à sa nouvelle place — c'est exactement le défaut qu'un rejeu de
      glissement avait dû contourner ailleurs, tant que la bascule de mode était re-rendue
@@ -26416,11 +26436,14 @@ function renderAuthLogin(body){
       catch(e){_authStep.msg='Échec de l\'envoi : '+e.message;_authStep.msgcls='err';renderAuth();}};
   }else{
     body.innerHTML=`<div class="auth-hero"><div class="auth-hero-ic">${uiIcon('lock',26)}</div><h4>Saisissez le code</h4><p class="auth-sub">Un code a été envoyé à <b>${esc(_authStep.email)}</b>.</p></div>
-      <input class="auth-field auth-code" id="authCode" inputmode="numeric" autocomplete="one-time-code" placeholder="••••••••">
+      <input class="auth-field auth-code" id="authCode" inputmode="numeric" autocomplete="one-time-code" enterkeyhint="done" placeholder="••••••••">
       <button class="btn primary auth-full" id="authVerify">Valider</button>
       <div style="text-align:center;margin-top:10px"><button class="tlink" id="authBack">← Changer d'e-mail</button></div>
       <p class="auth-msg ${_authStep.msgcls}">${esc(_authStep.msg)}</p>`;
     body.querySelector('#authBack').onclick=()=>{_authStep.mode='email';_authStep.msg='';renderAuth();};
+    {const ci=body.querySelector('#authCode');   // A373 : un code collé depuis Mail arrive avec espaces ou texte autour — on ne garde que les chiffres
+      ci.addEventListener('paste',e=>{const t=(e.clipboardData||window.clipboardData);const txt=t?t.getData('text'):'';if(!txt)return;e.preventDefault();ci.value=(ci.value+txt).replace(/\D/g,'').slice(0,12);});
+      ci.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();v.click();}});}
     const v=body.querySelector('#authVerify');
     v.onclick=async()=>{if(v.disabled)return;   // anti double-clic (même principe que l'envoi du code)
       const code=(body.querySelector('#authCode').value||'').replace(/\D/g,'');if(!code){_authStep.msg='Saisissez le code reçu.';_authStep.msgcls='err';return renderAuth();}
@@ -26511,6 +26534,7 @@ function renderStorageInfo(){const body=document.getElementById('storageBody');i
     const ok=await repairApp();   // false = refus hors connexion (l'app recharge sinon)
     if(ok===false){rb.disabled=false;rb.textContent='Réparer l\'application';}};}
 function openStorageInfo(){renderStorageInfo();storageModal.classList.add('on');}
+{const fv=document.getElementById('footVer');if(fv)fv.textContent='v'+APP_VERSION;}   // A373 : version au pied du téléphone, posée une fois au démarrage
 function closeStorageInfo(){storageModal.classList.remove('on');}
 bindModalDismiss(storageModal,closeStorageInfo);
 // Fenêtre ouverte au clic sur la pastille « Erreur de synchro » : explique la cause précise

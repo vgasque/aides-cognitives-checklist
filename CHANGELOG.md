@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.30.3] — 2026-09-24
+Retours de l'auteur sur 5.30.2 (A373, doctrine `docs/decisions/lot-v5-30.md`).
+- **Le contenu descend sous le fondu d'iOS 27, et c'est réversible en une ligne** : le sol d'A370
+  rend le voile invisible sur l'inset, mais son fondu (~16 pt au-delà) tombait sur le haut de
+  l'en-tête. Un token nommé porte le contournement — `--ios27-top:min(env(safe-area-inset-top),16px)`
+  et `--sat` = inset + ce décalage, lu par les quinze consommateurs de l'inset haut (en-tête, sol,
+  colonne et barre de sélection, alertes, plein écran, moniteur, fenêtres, barres PDF et Page, lien
+  d'évitement). Nul sans inset : les navigateurs ne bougent pas d'un pixel. **Le jour où Apple
+  corrige : `--ios27-top:0px`, rien d'autre.**
+- **Version au pied de l'accueil au téléphone**, et **« Un problème ? » dans Moi / Mon compte**
+  (carte « Sur cet appareil », connecté ou non) : ouvre la fenêtre de stockage qui porte « Réparer
+  l'application » — la maquette v5 avait masqué le socle au téléphone, et avec lui la seule issue
+  d'une app installée bloquée sur une vieille version.
+- **Le code de connexion se colle à nouveau** : la bulle « Coller » était absente parce que la classe
+  du geste « Maintenir » (qui bloque sélection et bulles pendant l'appui) restait collée au body
+  quand le bouton de remise à zéro était re-rendu pendant l'appui — plus aucune bulle nulle part
+  jusqu'au rechargement. La fin du geste s'écoute désormais sur le document, et un champ qui prend
+  le focus retire la classe par ceinture. Un collage ne garde que les chiffres, Entrée valide.
+- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.30.2] — 2026-09-24
 Trois signalements d'iPhone, mesurés au simulateur iOS 27 avant d'être traités (A370-A372,
 doctrine `docs/decisions/lot-v5-30.md`).
@@ -615,12 +635,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
 - **Garde-fous** : 4 tests unitaires (date d'arrêt = heure de l'évènement, aucune clé de charge
   nouvelle, pli optique), 2 sections d'`audit-partage` (9 contrôles), vérifiées capables d'échouer
   (6 rouges sur le code d'avant).
-
-## [5.26.1] — 2026-09-06
-### Les anneaux seuls, un temps après l'affichage (A331, addendum)
-
-- **Demande de l'auteur** : plus de relèvement du quai à l'arrivée, seulement les trois anneaux —
-  et qu'ils partent un peu après l'affichage de la page, pas d'emblée.
-- **Ce qui change** : le premier anneau part à 800 ms, puis 2,1 s et 3,4 s ; tout est fini à
-  4,7 s, toujours sous les 5 s. Le quai est simplement là, immobile, dès l'ouverture. Le
-  `@keyframes` du relèvement est purgé.

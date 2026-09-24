@@ -176,6 +176,13 @@
   --lb-cap:#cfe0dd;--lb-ink:#fff;--qr-ink:#14181d;
   --pdf-hl:rgba(255,213,0,.4);--pdf-hl-ring:rgba(199,138,0,.85);
   --sab:env(safe-area-inset-bottom,0px);
+  /* A373 — CONTOURNEMENT iOS 27, RÉVERSIBLE EN UNE LIGNE : le système délave et floute le bord haut
+     d'une app installée sur l'inset de l'heure ET ~16 pt au-delà (mesuré, A370). Tout ce qui se
+     cale sous l'heure lit --sat = inset + ce décalage, au lieu de l'inset nu ; le sol ::before le
+     couvre. Nul là où il n'y a pas d'inset (navigateur, Mac) grâce au min(). LE JOUR OÙ APPLE
+     CORRIGE : --ios27-top:0px, rien d'autre à toucher. */
+  --ios27-top:min(env(safe-area-inset-top,0px),16px);
+  --sat:calc(env(safe-area-inset-top,0px) + var(--ios27-top));
   }
   @keyframes alarmPulse{0%,100%{opacity:1}50%{opacity:.55}}
   /* Tokens FIXES DES DEUX THÈMES (jamais surchargés en sombre) : --lb-cap/--lb-ink (lightbox,
@@ -498,7 +505,7 @@
   html.kbd .azrail{display:none}
   /* v5.30 (maquette v5) : l'en-tête vit sur l'AMBIANCE — ni aplat blanc ni filet ; ses commandes sont des
      pastilles blanches (retour, ⋯, thème, historique), « + » rempli, le compte sur --primary-soft. */
-  header.bar{position:sticky;top:0;z-index:20;background:var(--amb);color:var(--ink);border-bottom:0;padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
+  header.bar{position:sticky;top:0;z-index:20;background:var(--amb);color:var(--ink);border-bottom:0;padding:calc(12px + var(--sat)) 18px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;row-gap:8px}
   .id-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;width:100%;min-width:0}
   /* HORS ACCUEIL, l'en-tête tient sur UNE ligne à toutes les largeurs : pas de repli — les
      éléments souples (retour, titre, segments chrono) rétrécissent avec ellipse/clip. Seul
@@ -785,7 +792,7 @@
     body.view-home .list-title{margin-top:16px}
     /* ZONE SÛRE DU HAUT (signalé sur iPhone installé : « le bandeau de sélection se retrouve
        sous l'heure », idem intertitres collants) : l'en-tête est STATIQUE depuis v5.18 — il ne
-       coiffe plus l'écran une fois défilé, et plus rien ne portait env(safe-area-inset-top).
+       coiffe plus l'écran une fois défilé, et plus rien ne portait l'inset haut.
        Un SOL fixe couvre la bande de l'encoche (le contenu ne défile plus sous l'heure), et
        les collants s'arrêtent dessous. ÷ --zf : règle 10 (env est en px réels). En navigateur,
        env vaut 0 : tout ceci est inerte. */
@@ -793,7 +800,7 @@
        bord haut d'une app installée et y mélange ce qui passe dessous ; un aplat opaque ne donne rien à
        flouter (signalements iOS 27 : MeshMonitor #5286, grappa-irc #2190). Sous les fenêtres (z 55). */
     body:is(.view-home,.view-read,.view-pread,.view-edit,.view-pedit)::before{content:"";position:fixed;left:0;right:0;top:0;z-index:90;
-      height:calc(env(safe-area-inset-top,0px) / var(--zf,1));background:var(--bg);pointer-events:none}
+      height:calc(var(--sat) / var(--zf,1));background:var(--bg);pointer-events:none}
     /* z 90 : AU-DESSUS des fenêtres (55) et des feuilles (70) — c'est le contenu d'une page-fenêtre qui
        défile sous l'heure (Moi, Sessions) que le verre floute ; sous l'écran d'entrée de l'invité (96) et
        les alertes (80). ⚠ CE SOL NE SUPPRIME PAS LE VERRE, IL LE REND INVISIBLE (A370, sonde rouge au
@@ -803,8 +810,8 @@
        de WebKit n'y change rien dans une app installée iOS 27). Sur un aplat uni le voile ne se voit pas ; il reste
        le fondu de 16 pt sous le sol, celui de toute app native iOS 26+. pointer-events:none : la zone
        est celle du système (tap = remonter en haut), jamais une cible. */
-    body.view-home .dir-l{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
-    body.view-home .sel-bar{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
+    body.view-home .dir-l{top:calc(var(--sat) / var(--zf,1))}
+    body.view-home .sel-bar{top:calc(var(--sat) / var(--zf,1))}
   }
   /* Maquette v5.18 : en VOIE ÉTROITE, la marque a la taille d'un titre de document (l'en-tête
      d'accueil y est du contenu) et « Créer » garde son mot. En voie LARGE l'en-tête reste du
@@ -897,6 +904,7 @@
   @media (max-width:779.98px){
     body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
     body.view-home footer.tools :is(#footSum,#footFold){display:none}   /* maquette v5 : pas de socle au téléphone — l'état vit dans Moi */
+    body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
     body.view-home footer.tools{border-top:0}
   }
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
@@ -4097,7 +4105,7 @@
   :is(.ls-card .btn,.ls-card .ls-end,.ds-chip,.ds-in,.sd-key.sd-exo){border-color:var(--ctl-sys)}
   .tag.libtag{display:inline-flex;align-items:center;gap:4px;background:var(--primary-soft);color:var(--primary-dk);max-width:55vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tag.libtag svg{flex:none;opacity:.85}
   /* Banderoles d'alerte (minuteur d'une session non visible) */
-  #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
+  #alerts{position:fixed;left:0;right:0;top:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;padding:calc(8px + var(--sat)) 12px 0;pointer-events:none}
   /* Banderole d'alarme : AMBRE, jamais le vert de l'en-tête (les deux bandeaux se confondraient).
      ⚠ 520 n'est PAS une quatrième largeur de fenêtre (audit 9b) : elle mesure une PHRASE, ne pas
      la rattacher à un gabarit. Et elle n'apparaît JAMAIS session sous les yeux (`onTimerFired`,
@@ -4311,7 +4319,7 @@
   /* Plein écran de l'algorithme SVG (zoom + défilement, pinch natif) */
   #flowFull{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
   #flowFull.on{display:flex}
-  #flowFull .ff-bar{display:flex;align-items:center;gap:6px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
+  #flowFull .ff-bar{display:flex;align-items:center;gap:6px;padding:calc(9px + var(--sat)) 12px 9px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-bar)}
   #flowFull .ff-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px;background:var(--paper)}
   /* ═══ K1 (v4.64.0, audit design — maquettes MK) : ON ÉDITE DANS LA GRAMMAIRE DE LECTURE ═══
      L'éditeur était un FORMULAIRE : champs empilés d'un côté, aperçu de l'autre — l'auteur
@@ -5410,7 +5418,7 @@
   /* MODE MONITEUR (D3) : même coquille que le lecteur (z 92, sous le flash d'alarme à 99),
      corps calibrés pour une lecture À DEUX MÈTRES. Registres INCHANGÉS : un minuteur échu y est
      ambre + le mot « échu », jamais la couleur seule. */
-  #monMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
+  #monMode{position:fixed;inset:0;z-index:92;background:var(--bg);display:none;flex-direction:column;padding:calc(14px + var(--sat)) 18px calc(14px + env(safe-area-inset-bottom));cursor:pointer}
   #monMode.on{display:flex}
   @supports (height:100dvh){#monMode{bottom:auto;top:calc(var(--vvt,0px) / var(--zf,1));height:calc(var(--vvh,100dvh) / var(--zf,1))}}   /* --vvt : cf. « une hauteur ne suffit pas » (couches plein écran) */
   .mon-top{display:flex;align-items:baseline;gap:12px;flex:none}
@@ -5531,6 +5539,7 @@
      15,4 px). Détail : doctrine-css.md C109. */
   footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:0}
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
+  footer.tools .foot-min{display:none}   /* A373 : rangée du téléphone seulement (cf. bloc < 780) */
   .tools-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
   .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:24px}
   /* La pastille de synchro était le seul OBJET du pied (pilule de 22,7 px au milieu de lignes de
@@ -5800,7 +5809,7 @@
      d'une image, ~70 signes par ligne. La rabattre sur 480 ou 720 réglerait une cohérence de
      fenêtres sur un objet qui n'en est pas une, et casserait la seule chose qu'elle mesure. */
   .lightbox .cap{color:var(--lb-cap);font-size:13.5px;text-align:center;max-width:600px}
-  .lightbox .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
+  .lightbox .x{position:absolute;top:calc(14px + var(--sat));right:16px;background:rgba(255,255,255,.15);color:var(--lb-ink);border:0;width:46px;height:46px;border-radius:50%;font-size:15px}
   /* « ai- » : préfixe HISTORIQUE devenu générique des modales — ne pas y lire un lien avec l'IA,
      renommer casserait sélecteurs CSS+JS pour un gain nul. ⚠ On contraint le GESTE, pas la boîte :
      `touch-action:pan-y`, jamais `overflow-x:hidden` (rejeté par l'auteur : il TRONQUE, et WebKit
@@ -5808,7 +5817,7 @@
      contrainte la plus stricte des ancêtres ; étendre fenêtre par fenêtre.
      Détail : doctrine-css.md C110. */
   #authModal{touch-action:pan-y}
-  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
+  .ai-modal{position:fixed;inset:0;background:var(--scrim);z-index:55;display:none;align-items:flex-start;justify-content:center;padding:calc(18px + var(--sat)) 14px calc(18px + env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;overflow-x:clip}
   /* ⚠ Axe X des fenêtres FERMÉ (`overflow-x:clip`, v5.10.5 : 2 px d'arrondi au zoom fractionnaire
      suffisent à ouvrir le panoramique iOS — le contenu, lui, ne déborde jamais). Hauteur : `--vvh`
      (visualViewport, posé en JS) est la seule vérité, dvh = repli, ÷ --zf (règle v4.24.0) ; et la
@@ -5871,7 +5880,7 @@
      ci-dessous promet. Aucun z-index de course : rien d'autre n'existe à ce moment. */
   #joinScreen{position:fixed;inset:0;z-index:96;background:var(--bg);overflow-y:auto;
     display:flex;align-items:flex-start;justify-content:center;
-    padding:calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom))}
+    padding:calc(20px + var(--sat)) 16px calc(20px + env(safe-area-inset-bottom))}
   #joinScreen[hidden]{display:none}
   /* Calquée sur `.ai-card` (centrage `margin:auto`, échelle typo) ; géométrie imposée par un `#id`,
      JAMAIS par l'ordre de déclaration — 6ᵉ incident de cascade (cf. `.read-grid`, `.cbt-n`,
@@ -6001,7 +6010,7 @@
      bouge, jamais. Détail : doctrine-css.md C115. */
   .plan-modal{padding:0;background:var(--bg);overscroll-behavior:none}
   .plan-modal .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
-  .pm-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .pm-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + var(--sat)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
   .pm-ttl{flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
@@ -6087,7 +6096,7 @@
      à contenu court et hétérogène (confirmations, écran de bienvenue) gardent la modale pour
      défileur — leur imposer un squelette exigerait d'inventer un corps là où il n'y en a pas. */
   .ai-card:has(>.ai-body){display:flex;flex-direction:column;
-    max-height:calc(100dvh / var(--zf,1) - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden}
+    max-height:calc(100dvh / var(--zf,1) - 36px - var(--sat) - env(safe-area-inset-bottom));overflow:hidden}
   /* ⚠ `overflow-y:auto` SEUL FAIT DE X UN `auto` IMPLICITE (v5.10.5, suite du dossier
      « fenêtre compte » : l'axe fermé sur `.ai-modal` n'a rien changé — l'instrumentation disait
      « fenêtre −1 px · CORPS +2 px » : le défileur qui portait les 2 px d'arrondi, c'est CE
@@ -6337,7 +6346,7 @@
        (0,3,0) battait le `padding:0` des feuilles plein écran (18-65 px de fond nu sur la barre
        collante, safe-area comprise). 9ᵉ piège de cascade ; on exclut la CLASSE, jamais des fenêtres
        nommées, pour que la prochaine hérite de l'exclusion. Détail : doctrine-css.md C117. */
-    .ai-modal:not(.pdf-modal):not(.dlg-confirm):not(.dlg-center):not(.sheet-full) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
+    .ai-modal:not(.pdf-modal):not(.dlg-confirm):not(.dlg-center):not(.sheet-full) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:calc(18px + var(--sat)) 16px calc(18px + env(safe-area-inset-bottom))}
   }
   /* Rangée d'action du dialogue de bienvenue. Sous 780 px la fenêtre est PLEIN ÉCRAN (règle
      ci-dessus) : le contenu s'arrête à mi-écran et « Commencer » flottait dans ~700 px de vide,
@@ -7105,7 +7114,7 @@
   /* ----- Visionneuse PDF : fenêtre plein écran (barre d'outils + pages défilantes) ----- */
   .pdf-modal{padding:0}
   .pdf-card{display:flex;flex-direction:column;width:100%;height:calc(100dvh / var(--zf,1));background:var(--bg);position:relative}   /* repère de la pilule .pdf-fnav */
-  .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
+  .pdf-bar{display:flex;align-items:center;gap:8px;flex:none;padding:calc(8px + var(--sat)) calc(10px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--surface);border-bottom:1px solid var(--line)}
   .pdf-title{flex:1;min-width:0;font-size:15px;font-weight:620;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
   .pdf-tools{display:flex;align-items:center;gap:6px;flex:none}
   .pdf-bar .ai-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex:none}
@@ -7185,7 +7194,7 @@
      sous-dimensionné de l'écran de crise n'était pas défendable. Le rembourrage vertical monte
      de 10 à 12 px : 13,5 × 1,45 + 24 ≈ 44, sans toucher au corps ni au dessin. */
   .skiplink{position:absolute;left:10px;top:-60px;z-index:200;background:var(--surface);color:var(--link);font-weight:700;font-size:13.5px;line-height:1.45;padding:12px 16px;border-radius:8px;transition:top .12s}
-  .skiplink:focus-visible{top:calc(10px + env(safe-area-inset-top));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
+  .skiplink:focus-visible{top:calc(10px + var(--sat));box-shadow:var(--shadow-lg);outline:2px solid var(--primary);outline-offset:2px}
   /* Session en cours : le pied de page se réduit à l'ÉTAT (nb de fiches, synchro) — Exporter/
      Importer/Thème/zoom n'ont rien à faire dans le champ visuel pendant une crise. */
   body.crisis-live footer.tools :is(.tools-actions,.storage-gauge){display:none}
