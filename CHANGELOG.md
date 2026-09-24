@@ -1,5 +1,30 @@
 # Journal des modifications
 
+## [5.30.2] — 2026-09-24
+Trois signalements d'iPhone, mesurés au simulateur iOS 27 avant d'être traités (A370-A372,
+doctrine `docs/decisions/lot-v5-30.md`).
+- **iOS 27, le verre flou du bord haut (A370)** : ce n'est pas l'app — le système compose son
+  propre voile PAR-DESSUS la vue web, sur tout l'inset de l'heure puis en fondu sur ~16 pt, quel
+  que soit ce que la page fixe dessous (sonde rouge : un sol opaque est lui-même délavé ; un vrai
+  `<div>` fixé, testable au toucher ou non, subit la même chose). Le remède retenu rend le voile
+  invisible : un sol de la couleur du fond sous l'heure sur TOUTES les vues (accueil, lecture,
+  édition, aides et protocoles), au-dessus des fenêtres et des feuilles — reste le fondu de 16 pt
+  au défilement, celui de toute app native iOS 26+ ; en thème sombre, rien ne se voit. Le `<head>`
+  portait DEUX balises de style de barre d'état (`default` d'A368 puis `black-translucent`) : la
+  seconde l'emportait, A368 n'a jamais été en vigueur — une seule désormais, `black-translucent`.
+  Le style `default` a été mesuré : barre grise opaque plus sombre que la page, contenu jamais
+  flouté, mais mise en page à reprendre (inset nul) — non retenu, choix laissé à l'auteur.
+  ⚠ Réinstaller l'app pour la balise ; le sol arrive par la mise à jour.
+- **Le pied de lecture qu'on croyait masqué (A371)** : « Cet appareil seulement · x Mo · vX » en
+  bas d'une fiche ou d'un protocole n'était pas `footer.tools` (déjà masqué depuis des versions —
+  le correctif de 5.30.1 était mort) mais une rangée émise par le rendu. Purgée avec son CSS, son
+  rafraîchissement et sa règle d'impression ; le doublon de 5.30.1 part avec.
+- **« Recevoir le code » (A372)** : la fenêtre Compte disparaissait sur iPhone après l'envoi
+  (état posé, position perdue — non reproduit au simulateur). Le formulaire relâche désormais le
+  champ actif AVANT de remplacer le DOM, pour que le clavier se ferme par la voie normale et que
+  les deux viewports se recollent ; et « E-mail invalide » ne vide plus le champ.
+- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.30.1] — 2026-09-24
 Suite de la refonte v5 : les décisions restantes sont prises, la feuille « Consulter » a vécu, et
 la page de lecture s'aligne sur une seule grammaire de cartes, de menus et de flèches (A363-A369,
@@ -599,22 +624,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
 - **Ce qui change** : le premier anneau part à 800 ms, puis 2,1 s et 3,4 s ; tout est fini à
   4,7 s, toujours sous les 5 s. Le quai est simplement là, immobile, dès l'ouverture. Le
   `@keyframes` du relèvement est purgé.
-
-## [5.26.0] — 2026-09-06
-### Il reste un geste après avoir ouvert une carte, et le quai le dit (A331)
-
-- **Demande de l'auteur** : attirer l'attention sur le fait qu'après avoir ouvert une aide, il
-  faut encore démarrer la session — sans fondu en boucle (WCAG 2.2.2). Maquettes et démonstration
-  rejouable validées sur canvas ; les formes refusées sont consignées dans la doctrine.
-- **L'arrivée du quai** : à l'ouverture d'une fiche, avant la session, la capsule se relève une
-  fois (14 px, 280 ms) puis trois anneaux s'en éloignent de 12 px et s'effacent, à 0,9, 2,2 et
-  3,5 s — tout est fini à 4,8 s, rien ne boucle. L'anneau entoure la capsule entière, jamais le
-  bouton seul : il ne touche ni la touche Exercice ni le bouton. Sombre le jour, clair la nuit ;
-  nul sous « réduire les animations » ; jamais rejoué tant qu'on reste sur la fiche.
-- **La bulle d'apprentissage**, 16 px au-dessus du quai, pointée sur le bouton : « Rien n'est
-  lancé tant que vous consultez. Étapes, minuteurs, partage : "Démarrer la session". » Elle reste
-  tant qu'aucune session n'a été démarrée sur l'appareil, puis disparaît pour de bon. La réserve
-  de bas de page suit sa hauteur.
-- **« Exo. »** : sous 430 px la touche Exercice garde un mot tronqué au lieu de perdre son libellé.
-- **Garde-fous** : cliquet `pointer-events:none` de `check-anim` monté à 23 (l'anneau est un
-  annonciateur pur). Doctrine A331 dans `docs/decisions/lot-v5-26.md`, index mis à jour.

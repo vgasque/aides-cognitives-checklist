@@ -809,3 +809,91 @@ l'HISTORIQUE des étapes — on coche les étapes dessous puis ça va dans l'his
 - Témoin « Diagnostic confirmé vit dans le journal, en tête » : « en tête » = sur la ligne
   « Parcours » ; le libellé absorbé se reconnaît à « Fait ».
 
+### A370 — iOS 27 : le verre flou du bord haut, mesuré (24/09/2026)
+
+**Le signalement.** « Sur iOS 27 sur iPhone il y a une bande floue » en haut de l'app installée, encore
+là après la réinstallation d'A368. Piste de l'auteur : un fil Reddit « iOS 27 beta blurs the top edge
+of installed PWAs ».
+
+**Ce que disent les forums et les dépôts** (MacRumors, MeshMonitor #5286, grappa-irc #2190, dozzle
+#5222, fin-app #411, holy-grails #191, mono-agent #1028, Frigate #24414) : depuis iOS 26 le système
+remplit l'inset de la barre d'état d'un « scroll edge effect » Liquid Glass — un voile + flou en
+DÉGRADÉ, pas un filet — et iOS 27 l'a rendu franc. Aucune balise ni propriété ne l'éteint ;
+`env(safe-area-inset-top)` ne grandit pas pour l'absorber. Deux camps de remède, tous deux contestés
+par leurs propres auteurs : (a) sol opaque fixé sous l'heure (MeshMonitor, mono-agent — « à confirmer
+sur appareil ») ; (b) retirer `black-translucent` pour `default` (fin-app, holy-grails) — dozzle l'a
+fait puis mesuré « amélioration négligeable : la bande est ancrée à la zone sûre, où que la page
+dessine ». Certains mainteneurs (Frigate) classent le sujet côté Apple et ne corrigent pas.
+
+**Ce qui a été mesuré ici, au simulateur iOS 27.0 (iPhone 17, app ajoutée à l'écran d'accueil).**
+1. Le style `default` d'A368 n'a JAMAIS été en vigueur : le `<head>` portait DEUX balises
+   `apple-mobile-web-app-status-bar-style`, `default` (A368) puis `black-translucent` (historique),
+   et la seconde l'emportait — « réinstallée, la bande est toujours là » mesurait donc l'état
+   d'avant. Une seule balise désormais, `black-translucent`, avec son commentaire.
+2. Sonde rouge : le sol fixé sous l'heure (`body::before`, hauteur `env(safe-area-inset-top)`,
+   opaque, pleine largeur, z 90, PAS `pointer-events:none` pour ce test) est bien peint — et lu
+   rgb(245,136,137) au lieu de rouge pur : le système compose SA couche PAR-DESSUS la page (voile
+   blanc ≈ 50 %), sur l'inset entier (0 → 60 pt) puis en fondu jusqu'à ≈ 76 pt, où le titre d'une
+   carte qui passe dessous est flouté. Rendre le sol testable au toucher n'a rien changé, et un VRAI
+   `<div>` fixé (l'hypothèse « WebKit ramène un `::before` à son hôte au hit-test ») non plus : mêmes
+   mesures. La sonde `LocalFrameView::fixedContainerEdges` de WebKit (un fixé opaque ≥ 90 % de large
+   au point (centre, 4 px) colore la bande) ne SUPPRIME pas cette couche dans une app installée
+   iOS 27. Et la bande se voit AU REPOS aussi (signalement de l'auteur, page tout en haut) : le voile
+   éclaircit l'inset et son fondu s'arrête à ≈ 76 pt, juste au-dessus de l'en-tête — c'est le bord
+   de ce fondu qu'on voit, pas du contenu flouté.
+3. Le remède retenu est donc celui d'un voile qu'on ne peut pas retirer : le rendre INVISIBLE. Sur
+   un aplat uni (`--bg`), voile et flou ne se voient pas ; reste le fondu de ~16 pt sous l'inset,
+   là où une carte qui défile passe dessous — c'est le comportement de toute app native iOS 26+
+   (Réglages, Mail). Le sol couvre TOUTES les vues (accueil, lecture, édition, aides et
+   protocoles), z 90 au-dessus des fenêtres (55) et des feuilles (70) : une page-fenêtre (Moi,
+   Sessions) fait défiler son contenu sous l'heure. Coût nommé : sous un voile de feuille, la
+   bande de l'heure reste claire pendant que la page s'assombrit.
+4. Le style `default`, MESURÉ cette fois (seconde icône « Aides cog. D » ajoutée depuis Safari avec la
+   balise unique à `default`) : la barre d'état devient un verre gris OPAQUE — plus sombre que la page
+   d'environ 15 niveaux (rgb 223-233 contre 244), dégradé de ~10 pt sous son bord — et le contenu
+   n'est plus JAMAIS flouté au défilement (coupé net au bord de la vue web). Donc pas « rien »
+   comme dozzle, mais une autre bande : sombre et nette au lieu de claire et fondue. Et l'app n'est
+   pas écrite pour `env(safe-area-inset-top)` = 0 : sur la fiche, l'en-tête collant a disparu et
+   la page a débordé à droite au premier défilement — choisir `default` demanderait une passe sur
+   tous les lecteurs de l'inset (`--sab`, paliers, chrome collant). Reste au choix de l'auteur.
+5. Écartés : allonger le sol de 16-20 pt sous l'inset pour effacer aussi le fondu — sur l'accueil
+   l'en-tête est STATIQUE (A238) et son titre commence à ≈ 81 pt, le sol le couperait ; il
+   faudrait descendre tout l'accueil de 20 px. Retirer `viewport-fit=cover` — la page ne passerait
+   plus sous l'heure, mais dozzle a mesuré la bande au même endroit et l'app perdrait le bord à
+   bord. Les deux restent des choix possibles de l'auteur, pas des corrections.
+
+En THÈME SOMBRE au repos, colonne de pixels : rgb(13,16,19) de 10 à 87 pt, identique au fond — le
+voile du système suit le thème et ne se voit pas ; la bande est un sujet du thème clair.
+⚠ À VÉRIFIER SUR L'IPHONE après mise à jour (le sol arrive par la mise à jour, la balise unique
+exige une réinstallation) ; une capture de l'iPhone au repos dirait si le voile y est plus fort qu'au
+simulateur.
+
+### A371 — le pied de lecture qu'on croyait masqué (24/09/2026)
+
+A366, point 11 (« plus de pied de page en lecture ») avait posé `body.view-read footer.tools
+{display:none}` — une règle DÉJÀ présente depuis des versions (`:is(body.view-read,…) footer.tools`),
+donc un correctif mort : le pied visible en lecture n'était pas `footer.tools` mais une rangée
+`.crisis-footer` émise par `readFooterHtml()` dans le rendu de la fiche ET du protocole (état de
+stockage à gauche, version à droite). Trouvé parce que l'app installée du simulateur montrait encore
+« Cet appareil seulement · 4,7 Mo · v5.30.1 » alors que toutes ses copies en cache portaient la
+règle : quand une règle « ne prend pas », vérifier D'ABORD que l'élément visible est celui qu'elle
+vise. Purgé (règle 14) : la fabrique, ses deux sites d'émission, son rafraîchissement dans
+`updateStorageInfo` (et les deux appels qui ne servaient qu'à lui), les quatre règles CSS dont celle
+d'impression, et le doublon de v5.30.1. Le papier perd sa ligne de version : la validation et le
+code sont déjà dans la méta du haut de page (raison même de cette ligne, v5.0).
+
+### A372 — « Recevoir le code » : la fenêtre qui disparaît sous le clavier (24/09/2026)
+
+Signalé sur iPhone : après « Recevoir le code », la page-fenêtre « Compte & synchronisation » a
+disparu ; fermer et rouvrir a montré l'étape du code. L'état (`_authStep.mode='code'`) avait donc
+bien été posé et la fenêtre rendue — c'est sa POSITION qui était perdue. NON reproduit au
+simulateur (chemin d'erreur, adresse invalide puis délai réseau : la fenêtre reste), ni en WebKit
+de bureau (envoi simulé : fenêtre en place, étape du code présente). Cause la plus probable, par
+la doctrine du viewport visuel (J208, `unpan`) : le champ e-mail est encore ACTIF sous le clavier
+quand `renderAuth()` remplace le DOM ; un champ retiré ne fait ni `blur` ni `focusout`, le clavier
+se ferme sans passer par la voie normale, et WebKit peut laisser les deux viewports décollés —
+la fenêtre fixée reste remontée hors écran. Correctif défensif : `renderAuth()` relâche le champ
+actif (`blur()`) AVANT de remplacer le DOM, sur tous ses chemins (succès, échec, invalide). Au
+passage, une adresse refusée par le contrôle local n'efface plus le champ (`_authStep.email`
+gardé). ⚠ À CONFIRMER sur l'iPhone : si la fenêtre disparaît encore, mesurer `visualViewport.offsetTop`
+au moment du re-rendu.

@@ -789,8 +789,20 @@
        Un SOL fixe couvre la bande de l'encoche (le contenu ne défile plus sous l'heure), et
        les collants s'arrêtent dessous. ÷ --zf : règle 10 (env est en px réels). En navigateur,
        env vaut 0 : tout ceci est inerte. */
-    body.view-home::before{content:"";position:fixed;left:0;right:0;top:0;z-index:16;
+    /* A370 : le SOL couvre la bande de l'encoche sur TOUTES les vues — iOS 27 peint un verre flou sur le
+       bord haut d'une app installée et y mélange ce qui passe dessous ; un aplat opaque ne donne rien à
+       flouter (signalements iOS 27 : MeshMonitor #5286, grappa-irc #2190). Sous les fenêtres (z 55). */
+    body:is(.view-home,.view-read,.view-pread,.view-edit,.view-pedit)::before{content:"";position:fixed;left:0;right:0;top:0;z-index:90;
       height:calc(env(safe-area-inset-top,0px) / var(--zf,1));background:var(--bg);pointer-events:none}
+    /* z 90 : AU-DESSUS des fenêtres (55) et des feuilles (70) — c'est le contenu d'une page-fenêtre qui
+       défile sous l'heure (Moi, Sessions) que le verre floute ; sous l'écran d'entrée de l'invité (96) et
+       les alertes (80). ⚠ CE SOL NE SUPPRIME PAS LE VERRE, IL LE REND INVISIBLE (A370, sonde rouge au
+       simulateur iOS 27) : le système peint SA couche PAR-DESSUS la page — voile blanc ≈ 50 % + flou sur
+       l'inset (62 pt) et ~16 pt au-delà — quel que soit ce que la page fixe dessous (pseudo-élément
+       OU vrai <div> fixé, testable au toucher ou non : mêmes mesures ; la sonde fixedContainerEdges
+       de WebKit n'y change rien dans une app installée iOS 27). Sur un aplat uni le voile ne se voit pas ; il reste
+       le fondu de 16 pt sous le sol, celui de toute app native iOS 26+. pointer-events:none : la zone
+       est celle du système (tap = remonter en haut), jamais une cible. */
     body.view-home .dir-l{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
     body.view-home .sel-bar{top:calc(env(safe-area-inset-top,0px) / var(--zf,1))}
   }
@@ -5508,11 +5520,6 @@
   svg .fnode.fn-off{opacity:.45}
   svg .fnode .fn-badge{display:none}
   svg .fnode.fn-ok .fn-badge{display:block}
-  /* §12 pied de contenu : défile avec la fiche, jamais fixe. */
-  .crisis-footer{margin-top:16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--ink-soft);font-weight:600}
-  /* En SESSION de crise, l'état de stockage disparaît du pied de lecture — exactement comme il
-     disparaît du pied de la sidebar (aucun signal non actionnable pendant un soin). */
-  body.crisis-live .crisis-footer .cf-stg{display:none}
   /* (SPEC §6 : plus de pied d'éditeur — les actions vivent dans l'en-tête sticky, Supprimer en
      fin de formulaire, cf. .ed-del. Le mécanisme kb-open, qui masquait l'ancienne barre basse au
      clavier virtuel, est PURGÉ avec elle — règle 14.) */
@@ -5523,7 +5530,6 @@
      dessin (marque, texte, chevron) et les 32 px dus par la règle 9 (`#storageInfo` était à
      15,4 px). Détail : doctrine-css.md C109. */
   footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:0}
-  body.view-read footer.tools,body.view-pread footer.tools{display:none}   /* v5.30.1 : en lecture, ni état de l'appareil ni version — inutiles là (demande de l'auteur) */
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
   .tools-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
   .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:24px}
@@ -5580,8 +5586,8 @@
   /* Toutes les commandes du pied sont masquées en voie large (la colonne les porte) : leur
      conteneur ne doit pas garder sa marge, qui ajoutait 6 px avant la synthèse. */
   .home-side .tools-actions{margin-bottom:0}
-  /* Registres du libellé de stockage — partagés par les DEUX pieds (sidebar et vues de lecture). */
-  .storage-gauge .pers-warn,.crisis-footer .pers-warn{color:var(--verify)}
+  /* Registre du libellé de stockage (pied de la sidebar). */
+  .storage-gauge .pers-warn{color:var(--verify)}
   /* Le nominal ne cherche pas l'œil : pas d'aplat vert (cf. « P3-11 : nominal = neutre » plus
      bas, et `.pers-warn` qui colore le TEXTE). Un aplat permanent désensibiliserait à l'ambre. */
   /* La synthèse est une RANGÉE, pas une phrase suivie d'un lien (mesuré 47,4 px avec un `.tlink`
@@ -7436,7 +7442,6 @@
     .ov-block{break-inside:avoid}.ov-block.closed .ov-body{display:block}
     /* v4.12.0 : plan imprimé en une colonne (flux de page), branches dépliées, sans sticky. */
     /* v4.22.1 : le fil épinglé est un état d'ÉCRAN — sur papier, carte complète et sans chip. */
-    .crisis-footer .cf-stg{display:none}
     /* ══ LOT 4 · L'IMPRESSION DE LA FEUILLE (v5.10.0) ═══════════════════════════════════════════
        UNE PAGE CORRECTEMENT IMPRIMABLE EST UNE PAGE AFFICHABLE AU MUR, dans un local de garde ou
        au dos d'un chariot — c'est l'usage d'origine des aides cognitives imprimées, et il ne demande aucune

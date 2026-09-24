@@ -23,6 +23,9 @@ const r=await p.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
  const al=document.getElementById('atypLink');if(al)al.click();await w(500);
  const apresDiff=etat();
  const diff=document.querySelector('[data-sf="diff"]');const rd=diff?diff.getBoundingClientRect():null;
+ // A371 : sans pied de lecture, la page peut être trop courte pour amener la carte sous le chrome —
+ // « en haut » vaut alors « au plancher du défilement » (la page ne peut pas aller plus loin).
+ const se=document.scrollingElement;const auPlancher=se.scrollTop>=se.scrollHeight-innerHeight-1;
  // « Documents · n » vit dans « Parcours » : on l'ouvre pour l'atteindre
  const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await w(400);}
  const dl=document.querySelector('[data-prelink="docs"]');if(dl)dl.click();await w(500);
@@ -30,11 +33,11 @@ const r=await p.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
  const refs=document.querySelector('[data-sf="refs"]');
  document.getElementById('hdrMore').click();await w(300);
  const tuiles=[...document.querySelectorAll('#moreMenu .mm-tile')].map(x=>x.textContent.trim());closeMoreMenu();
- return {avant,apresDiff,diffEnHaut:rd?rd.top>=0&&rd.top<200:null,apresDocs,refsDocs:!!(refs&&refs.querySelector('[data-att]')),tuiles,feuille:!!document.getElementById('refModal')};});
+ return {avant,apresDiff,diffEnHaut:rd?(rd.top>=0&&(rd.top<200||auPlancher)):null,apresDocs,refsDocs:!!(refs&&refs.querySelector('[data-att]')),tuiles,feuille:!!document.getElementById('refModal')};});
 t('avant la session, Parcours et les quatre cartes sont FERMÉES d’office', ['flow','verify','diff','pos','refs'].every(k=>r.avant[k]==='fermée'), JSON.stringify(r.avant));
 t('« Quand l’utiliser » et « Ne pas oublier » restent ouvertes d’office', r.avant.when==='ouverte'&&r.avant.forget==='ouverte', JSON.stringify(r.avant));
 t('« Le tableau ne colle pas ? » ouvre la carte des différentiels SEULE', r.apresDiff.diff==='ouverte'&&Object.entries(r.apresDiff).every(([k,v])=>k==='diff'||v==='fermée'), JSON.stringify(r.apresDiff));
-t('… et l’amène en haut de l’écran', r.diffEnHaut===true, JSON.stringify(r.diffEnHaut));
+t('… et l’amène en haut de l’écran (ou au plancher du défilement, page courte)', r.diffEnHaut===true, JSON.stringify(r.diffEnHaut));
 t('« Documents · n » ouvre la carte Références, qui porte les documents', r.apresDocs.refs==='ouverte'&&r.refsDocs===true, JSON.stringify(r.apresDocs));
 t('plus aucune tuile « Consulter » au menu ⋯, plus de feuille dans le document', !r.tuiles.some(x=>/Consulter/.test(x))&&r.feuille===false, JSON.stringify(r.tuiles));
 // EN SESSION : la carte « Références », et plus aucun « Consulter »
