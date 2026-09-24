@@ -26,7 +26,7 @@ import { readFileSync } from 'node:fs';
    s'édite pas pour faire passer le contrôle, elle s'édite pour acter un palier de plus. */
 // 390 : palier v5.18 (maquette « Zero », 390 px) — sous lui, l'en-tête d'accueil rend son mot
 // « Créer » et la marque redescend à 21 px (la ligne n'a pas la place des deux).
-const PALIERS = [360, 390, 400, 430, 480, 560, 640, 780, 924, 1000, 1200, 1440];   // 1440 : capsule dans l'en-tête au seul bureau (A354)
+const PALIERS = [360, 390, 400, 430, 480, 560, 640, 780, 1000, 1200, 1440];   // 1440 : capsule dans l'en-tête au seul bureau (A354) ; 924 est parti avec la feuille « Consulter » (A367)
 
 /* Exemptions NOMMÉES et MOTIVÉES — comme dans check-type. Une exemption anonyme rouvrirait la porte
    qu'on vient de fermer. (Aucune à ce jour : les douze paliers mesurés se rangent tous dans

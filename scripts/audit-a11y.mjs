@@ -57,7 +57,7 @@ const AUDIT = `(() => {
   const CRISE=document.body.classList.contains('view-read')&&!!document.getElementById('crisisDock')
               &&!document.getElementById('crisisDock').hidden;
   const SCOPE=window.__acScope||(CRISE?'body'
-    :'#crisisBand,.brand-sur,#crisisDock,#sessionDock,#dockSheet,#planModal,#refModal,.read-side,.annex-row,.dir-wrap,.azrail,.list-edit,.pos-more');
+    :'#crisisBand,.brand-sur,#crisisDock,#sessionDock,#dockSheet,#planModal,.read-side,.annex-row,.dir-wrap,.azrail,.list-edit,.pos-more');
   const roots=[...document.querySelectorAll(SCOPE)].filter(visible);
   const seen=new Set();
   roots.forEach(root=>{
@@ -207,7 +207,6 @@ const SURFACES = [
   { nom:'lecture étroite',     w:390,  prep:'read' },
   { nom:'lecture + rail',      w:1280, prep:'read' },
   { nom:'feuille Plan',        w:1280, prep:'plan' },
-  { nom:'feuille Consulter',   w:1280, prep:'ref'  },
   { nom:'éditeur',             w:1100, prep:'edit' },
   { nom:'dialogue Créer',      w:390,  prep:'dlg:openCreateDlg',  scope:'#createModal' },
   { nom:'gérer catégories',    w:390,  prep:'dlg:openCatMgr',     scope:'#catModal' },
@@ -504,7 +503,6 @@ for (const theme of ['light','dark']) {
       if(kind==='plan'){const b=document.getElementById('planBtn');
         if(b)b.click();else if(typeof openPlanSheet==='function')openPlanSheet();
         await new Promise(r=>setTimeout(r,300));}
-      if(kind==='ref'){openRefSheet();await new Promise(r=>setTimeout(r,300));}   /* v5.30 (A354) : porte du menu ⋯, plus de touche au quai */
     }, S.prep && S.prep.indexOf('dlg:')===0 ? null : S.prep); }
     // Fenêtres ouvertes par leur VRAI point d'entrée (jamais un classList.add('on') : une modale
     // forcée vide n'a pas le contenu qu'on veut mesurer, et produirait des verdicts faux).

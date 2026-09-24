@@ -289,9 +289,15 @@ try {
   /* Ouvert depuis sa RANGÉE (sans recherche) : ni surlignage ni pilule — on vient LIRE. La rangée
      de documents d'une FICHE vit dans la feuille « Consulter » (v4.25.3), pas dans le flux : on y
      va par le vrai bouton. */
-  await page.evaluate(() => openRefSheet());   /* v5.30 (A354) : la porte est la tuile du menu ⋯ (openRefSheet), plus une touche au quai */
-  await page.waitForFunction(() => document.getElementById('refModal').classList.contains('on'), null, { timeout: 8000 });
-  await page.evaluate(() => { const b = document.querySelector('#refModal [data-att]'); if (!b) throw new Error('rangée document absente de Consulter'); b.click(); });
+  /* A367 : la liste des documents vit dans la carte « Références » de la page — « Documents · n » l'ouvre (la carte « Parcours » d'abord, repliée d'office). */
+  /* Ici la fiche est en mode « Toute la fiche » : pas d'écran d'entrée, donc pas de lien « Documents » —
+     la carte Références vit sous la fiche, on l'ouvre par sa tête. */
+  await page.evaluate(async () => { const dl = document.querySelector('[data-prelink="docs"]');
+    if (dl) { dl.click(); return; }
+    const h = document.querySelector('[data-prefold="refs"]'); if (!h) throw new Error('ni lien « Documents » ni carte Références');
+    if (h.getAttribute('aria-expanded') !== 'true') h.click(); });
+  await page.waitForFunction(() => !!document.querySelector('[data-sf="refs"]:not(.closed) [data-att]'), null, { timeout: 8000 });
+  await page.evaluate(() => { document.querySelector('[data-sf="refs"] [data-att]').click(); });
   await page.waitForFunction(() => document.getElementById('pdfModal').classList.contains('on'), null, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(500);
   const lireSeul = await page.evaluate(() => ({
@@ -300,8 +306,6 @@ try {
   t(lireSeul.on && lireSeul.hl === 0 && lireSeul.pill, 'ouvert depuis sa rangée : ni surlignage ni pilule (on vient lire)', JSON.stringify(lireSeul));
   await page.evaluate(() => closePdfViewer());
   // La feuille « Consulter » est restée dessous : on la ferme par son ✕ avant de sortir.
-  await page.evaluate(() => { document.querySelector('#refModal .ai-x')?.click(); });
-  await page.waitForFunction(() => !document.getElementById('refModal').classList.contains('on'), null, { timeout: 5000 });
   await page.click('#hdrBack');
   await page.waitForFunction(() => document.body.classList.contains('view-home'));
 

@@ -1,5 +1,41 @@
 # Journal des modifications
 
+## [5.30.1] — 2026-09-24
+Suite de la refonte v5 : les décisions restantes sont prises, la feuille « Consulter » a vécu, et
+la page de lecture s'aligne sur une seule grammaire de cartes, de menus et de flèches (A363-A369,
+doctrine `docs/decisions/lot-v5-30.md`).
+- **Décisions de l'auteur** : les volets Outils et Journal restent sur la matière système, le quai
+  garde ses quatre touches (écarts d'A350 clos) ; « Moi » liste les bibliothèques avec leur rôle
+  (A364) ; **Sessions et Moi sont des VUES de la colonne ≥ 780 px** (A365) — mêmes portes, mêmes
+  rendus que les pages-fenêtres, qui restent la règle au téléphone et depuis une fiche ; au
+  franchissement de 780 la surface change de peau sans se perdre.
+- **Accueil** : un seul filet au pied de la colonne ; la feuille « Affichage » a le même contenu à
+  toutes les largeurs ; « Affichage » et « Sélectionner » sont un même bouton ; recherche et filtre
+  du bas à 44 px (retour sur A359) ; titre de la carte « Session en cours » 17,5/800 partout ;
+  la croix du rappel « Session terminée » est bornée à 32 px ; les sous-feuilles de la sélection
+  (bibliothèque, catégorie) proposent « ‹ Actions » (A366).
+- **Page de lecture** : les quatre cartes de la session (À vérifier, différentiels, repères,
+  Références) existent AVANT la session, fermées d'office comme « Parcours », en mode « Toute la
+  fiche » et sur une aide sans parcours aussi ; une seule fabrique (`foldCardsH`). **La feuille
+  « Consulter » est retirée** (A367) : « Le tableau ne colle pas ? » et « Documents · n » mènent à
+  la carte de la page, ouverte seule ; rien d'autre n'y menait (vérifié au grep). Plus de pied de
+  page en lecture ; ligne des minuteurs à la gouttière ; « Repères posologiques » sans trait sous
+  son titre ; tuiles du menu ⋯ sans filet ; « Parcours » repliée à 56 px comme les autres.
+- **En session — la bulle d'historique** (A369, planche A) : la ligne-bilan devient une bulle
+  centrée entre « PARCOURS » et le compte (« Fait · 1→2 · diagnostic confirmé », icône
+  d'historique, 28 px, matière discrète), qui s'allume une fois quand un bloc coché la rejoint ; un
+  tap l'ouvre en carte de rangées. 40 px rendus au premier bloc. Les colonnes latérales s'arrêtent
+  au-dessus du quai et ne bougent plus à l'ouverture. Compte et chevron du bloc en cours et des
+  rangées d'historique comme sur les cartes ; **un seul chevron** (`uiIcon('chev')`, trait, gris,
+  tourné par une classe) sur toute la page de lecture — cartes, bloc, historique, bulle, rails,
+  aperçu du schéma.
+- **iOS 27** : barre d'état déclarée en style « default » contre le verre flou posé par le système
+  sur le haut du contenu (A368) — à vérifier sur l'appareil.
+- **Garde-fous** : `audit-consulter` réécrit autour des cartes ; témoins adaptés (fenêtres
+  ouvertes depuis une fiche en large, Parcours ouverte pour lire ses liens, dérive du journal
+  mesurée DANS le fil, croix du rappel centrée, menu ⋯ en feuille) ; palier 924 retiré, `data-rs`
+  purgé ; [5.25.1] archivée.
+
 ## [5.30.0] — 2026-09-22
 ### La refonte v5 : la marque d'une étape critique, « Fin » au quai, l'accueil et la fiche alignés sur la maquette (A345-A351)
 
@@ -582,14 +618,3 @@
 - **« Exo. »** : sous 430 px la touche Exercice garde un mot tronqué au lieu de perdre son libellé.
 - **Garde-fous** : cliquet `pointer-events:none` de `check-anim` monté à 23 (l'anneau est un
   annonciateur pur). Doctrine A331 dans `docs/decisions/lot-v5-26.md`, index mis à jour.
-
-## [5.25.1] — 2026-09-06
-### La carte « Quand l'utiliser » respire pareil en haut et en bas (A330, addendum)
-
-- **Signalé sur main** : sans diagnostic différentiel, le cadre « Quand l'utiliser » avait moins de
-  respiration sous le dernier critère qu'au-dessus du premier (mesuré à 390 px : 15 px contre 4).
-  Depuis que le titre vit au-dessus du cadre (v5.25.0), seul le lien « Le tableau ne colle pas ? »
-  fermait la carte — et il n'existe que si la fiche déclare des différentiels.
-- **Correction** : la carte porte 6 px en haut et en bas, la liste 4/4 ; le lien de sortie, quand
-  il existe, reprend les 6 px du bas pour rester au ras du cadre. Mesuré après : 15/15 sans lien,
-  lien au ras avec, hauteur de carte inchangée dans ce cas.

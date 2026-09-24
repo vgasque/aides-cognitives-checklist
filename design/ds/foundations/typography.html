@@ -673,6 +673,8 @@
   .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:56px;padding:6px 4px;background:var(--surface-2);font-size:11px;font-weight:700;text-align:center;line-height:1.1}
   .mm-row.mm-tile .mm-ic{width:auto}
   .mm-row.mm-tile:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
+  .mm-row.inert{cursor:default}
+  .mm-row.inert:hover{background:none}
   .mm-row.danger{color:var(--critical);font-weight:700}
   .mm-row.danger .mm-ic{color:currentColor}
   .mm-row.danger:hover{background:color-mix(in srgb,var(--critical) 8%,transparent)}
@@ -817,7 +819,8 @@
     body.view-home .ls-card .sess-dot{grid-area:dot;margin-top:6px}
     body.view-home .ls-card .ls-info{grid-area:info;gap:2px}
     body.view-home .ls-info .ls-k{font-size:12px;letter-spacing:.08em;color:var(--sys-ink-2)}
-    body.view-home .ls-info .ls-t{font-size:21px;font-weight:700;line-height:1.25;color:var(--sys-ink)}
+    /* v5.30.1 : même corps qu'en large (17,5/800) — le 21 d'A351 paraissait trop grand au téléphone (signalé). */
+    body.view-home .ls-info .ls-t{font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--sys-ink)}
     body.view-home .ls-info .ls-w{font-size:var(--t-item);color:var(--sys-ink-2)}
     body.view-home .ls-chrono{grid-area:chrono;color:var(--sys-ink)}
     body.view-home .ls-card .btn.primary{grid-area:rep;min-height:48px;background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
@@ -839,9 +842,9 @@
   .dock-filt{flex:1 1 100%;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 0 0}
   .dock-filt[hidden]{display:none}
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
-  #homeDock .filt-tog{width:52px;height:52px;min-height:52px}
-  #homeDock .filt-tog>svg{width:24px;height:24px}
-  #homeDock .hdr-search input{min-height:52px;font-size:var(--t-step)}   /* A359 : le texte suit la hauteur du champ (52 px) */
+  /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
+  #homeDock .filt-tog{width:44px;height:44px;min-height:44px}
+  #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
      est un bouton discret (même encre d'action).
      ⚠ LA CIBLE NE PEUT PAS VENIR DU SEUL HALO ICI (audit design v5.19, mesuré) : le bouton vit
@@ -1491,6 +1494,8 @@
      pas et elle ne conditionne rien. Registre neutre — aucune couleur sémantique. */
   .carry-line{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--ink-soft);
     font-variant-numeric:tabular-nums}
+  /* v5.30.1 : dans la carte « Parcours » la ligne prend la gouttière des rangées (16) — elle collait au bord. */
+  .pre-flow>.carry-line{margin:10px 16px 4px}
   /* P7 (v5.7) — registre ATTENTION en TEXTE : c'est un point de vigilance (« vous ne connaissez
      peut-être pas cette version »), jamais une alerte, jamais un aplat (A11). */
   .rev-since{font-size:12px;font-weight:700;color:var(--verify)}
@@ -1916,8 +1921,10 @@
      pas un troisième, et la justification ne s'appuie sur aucun précédent (A72).
      Il pousse à droite : le groupement reste à sa place apprise, et rien ne bouge quand la
      sélection s'ouvre ou se ferme. */
-  .sel-tog{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
-  .sel-tog:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  /* v5.30.1 : « Affichage » et « Sélectionner » sont voisins — UN dessin de bouton (matière .btn, 40 px, 13,5/700). */
+  .sel-tog,.rang-btn{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1px solid var(--work-line);border-radius:var(--r-3);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-family:inherit;font-size:var(--t-body);font-weight:700;white-space:nowrap;cursor:pointer}
+  .sel-tog{margin-left:auto}
+  .sel-tog:hover{background:var(--amb-2)}
   .sel-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* ⚠ Barre de sélection : couche COLLANTE, PREMIER élément de la colonne sous l'en-tête réel
      (`--hdr-h` mesurée par `syncHdrScroll`, jamais une constante) ; deux défileurs, deux décalages —
@@ -2035,11 +2042,8 @@
      openPickMenu (.catmenu), monté dans .rang-wrap au pointeur fin. */
   .rang-wrap{position:relative;display:inline-flex;flex:none}
   /* v5.30 (maquette v5) : « Affichage » — bouton texte au registre de l'action, cible 44 px. */
-  .rang-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;
-    border:0;border-radius:var(--r-3);background:none;
-    color:var(--act);font-family:inherit;font-size:var(--t-body);font-weight:800;white-space:nowrap;cursor:pointer}
   .rang-btn b{color:var(--ink);font-weight:800}
-  .rang-btn:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .rang-btn:hover{background:var(--amb-2)}
   .rang-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Dans le livre, les rangées n'ont plus de carte à elles : un filet les sépare, et la dernière
      d'un groupe n'en porte pas (c'est l'intertitre suivant qui borne). */
@@ -2463,7 +2467,11 @@
   .conf-head{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:10px 12px;cursor:pointer;font-family:inherit;text-align:left;min-height:48px}
   .conf-head .block-h{margin-bottom:0;color:var(--ink-soft)}
   .conf-sub{flex:1;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:var(--g-cmd);padding:0 4px;flex:none}
+  /* A369 — UN chevron (icône, trait) pour les cartes, le bloc, l'historique, la bulle, les rails et
+     l'aperçu du schéma : bas fermé, haut ouvert. */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev) svg{transform:rotate(90deg)}
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
   /* AVANT LA SESSION (v5.6, maquette) : l'encadré de la condition d'entrée. Contour d'alerte,
@@ -2494,6 +2502,7 @@
   .fold-card .sf-body{padding:0 16px 6px}
   .fold-card .sf-body .block{margin:0}
   .fold-card .sf-body .block-h{display:none}
+  .fold-card .sf-body .block-h+.pos-card::before{display:none}   /* v5.30.1 : le trait ::before d'une carte posologique séparait aussi la PREMIÈRE du titre (signalé) */
   /* v5.30 (A357, canevas « Dépliants de session v5 », planche A) : UNE grammaire de rangée pour les cinq
      dépliants — texte 15 dès la gouttière (aucune marque : la tête dit déjà la famille, A345), réponse ou
      dose en mono dessous (`.sf-ans`, la voix des réponses attendues), un filet ENTRE les rangées et aucun
@@ -3163,6 +3172,10 @@
   .care-flat{margin:0 0 6px}
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}
+  /* v5.30.1 : les cartes dépliables portent leur propre marge (10) — l'étage n'en ajoute pas, et la
+     carte « Parcours » repliée mesurait 62 px contre 56 (signalé). */
+  .cf-stage.pre-flow,.cf-stage.pre-cards{padding-bottom:0}
+  .care-flat>.cf-stage:first-child:has(.fold-card){padding-bottom:10px}   /* = la marge d'une carte : « Ne pas oublier » → « Parcours » à 10 comme les autres */
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
      seule la couleur suit l'état, comme h-verify suit le sien. */
@@ -3264,7 +3277,6 @@
   .alg-head{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:10px 12px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit;text-align:left}
   .alg-k{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .alg-sub{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .alg-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
   .alg-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .alg-panel .flow-zoom{padding:8px 12px 0}
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
@@ -4009,7 +4021,7 @@
      il atterrissait AU MILIEU, collé à « Compte-rendu » (retour utilisateur v4.29.2). Le geste
      standard : carte `position:relative`, ✕ ANCRÉ en haut à droite à toutes les largeurs —
      le padding droit de la carte lui réserve la place, le texte ne passe jamais dessous. */
-  .last-sess .notice-x{top:0;bottom:0;right:6px;margin:auto 0}   /* v5.30 : centrée sur la hauteur, à côté de « Compte-rendu » */
+  .last-sess .notice-x{top:calc(50% - 16px);right:6px;width:32px;height:32px}   /* v5.30.1 : centrée ET bornée — étirée sur toute la hauteur, son survol s'allongeait (signalé) */
   /* ══ LA SESSION VIVE EST LE SEUL OBJET SOMBRE DE L'ACCUEIL (v5.6, lot 5) ═══════════════════
      Trois matières, trois natures : sombre = SYSTÈME. Sur l'accueil il n'y a normalement RIEN de
      système — c'est un écran de travail et d'ambiance. Une session qui TOURNE est l'exception :
@@ -4195,10 +4207,11 @@
   .mm-ctx{display:flex;flex-direction:column;gap:2px;padding:0 0 10px}
   .mm-ctx b{font-size:var(--t-step);font-weight:700;color:var(--ink)}
   .mm-ctx span{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  .popmenu.sheet .mm-row{min-height:52px;padding:6px 0;border-radius:0}
-  .popmenu.sheet .mm-row:not(:first-child){border-top:1px solid var(--work-line)}
-  .popmenu.sheet :is(.popmenu-head,.mm-head,.mm-tiles)+.mm-row,.popmenu.sheet .mm-tile{border-top:0}
-  .popmenu.sheet .mm-tile{border-radius:8px}
+  :is(.popmenu.sheet,.acct-list) .mm-row{padding:6px 0;border-radius:0}
+  :is(.popmenu.sheet,.acct-list) .mm-row:not(:first-child){border-top:1px solid var(--work-line)}
+  .popmenu.sheet .mm-row{min-height:52px}
+  .popmenu.sheet :is(.popmenu-head,.mm-head,.mm-tiles)+.mm-row,.popmenu.sheet .mm-row.mm-tile{border-top:0}   /* `.mm-row.mm-tile` : la règle des filets pèse (0,4,0) */
+  .popmenu.sheet .mm-row.mm-tile{border-radius:8px}
   .popmenu.sheet .mm-lb{white-space:normal}
   .popmenu.sheet .mm-head{padding:14px 0 4px}
   .popmenu.sheet .mm-row.danger{margin-top:10px;padding-top:12px}
@@ -4262,7 +4275,6 @@
   .fp-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
   .fp-tgl .flow-prev-h{margin:0}
   .fp-n{margin-left:auto;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
-  .fp-chev{flex:none;color:var(--link);font-size:11px;font-weight:800}
   .flow-prev:not(.on) .fp-box{position:relative;max-height:168px;overflow:hidden}
   .flow-prev:not(.on) .fp-box::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;
     background:linear-gradient(to bottom,transparent,var(--paper));pointer-events:none}
@@ -4731,16 +4743,32 @@
      `overflow-wrap:break-word` : c'est le filet, pas la cause (le corps fixe 21 px l'était).
      Détail : doctrine-css.md C98. */
   .ov-t{order:2;flex:1 1 auto;min-width:0;font-size:var(--t-step-l);font-weight:800;color:var(--ink);line-height:1.2;letter-spacing:-.01em;margin:0;overflow-wrap:break-word}
-  .ov-c{order:4}.ov-chev{order:5}
+  .ov-c{order:4}.ov-chev{order:5;margin-left:0}
   .ov-head{padding:12px 16px 4px}
   /* Pilule « EN COURS » du bloc courant (maquette v5) — la position en toutes lettres, en plus du compte. */
   .ov-cur{order:3;flex:none;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}
   /* « Parcours · x/y étapes » : la ligne d'étage au-dessus du journal, en session. */
-  .ov-prog{display:flex;align-items:baseline;gap:8px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-  .ov-prog span:last-child{margin-left:auto;font-size:var(--t-body);font-weight:700;letter-spacing:0;text-transform:none}
+  .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
+     titre et le compte, libellé qui s'abrège avant de toucher le compte, cible 44 par halo ; elle s'allume
+     une fois quand un bloc coché la rejoint (ombre seule : peinture, jamais de mise en page). */
+  .ov-prog>.ov-runline{flex:0 1 auto;min-width:0;width:auto;min-height:28px;height:28px;margin:0 auto;padding:0 10px;justify-content:flex-start;position:relative;border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
+  .ov-prog>.ov-runline::after{content:"";position:absolute;inset:-8px 0}
+  .ov-prog>.ov-runline .ovr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;padding-top:1px}   /* +1 px : le texte 12/700 paraissait haut face à l'icône de 14 ; interligne 1,35 — à 1, le débordement masqué des points de suspension TRONQUAIT les jambages (signalé) */
+  .ov-runline .ovr-ic{display:inline-flex;flex:none;color:var(--ink-2)}
+  /* la bulle se CENTRE entre le titre et le compte (marges auto) — spécificité au-dessus de `body.crisis-live .ov-runline` et de `.ov-prog span:last-child` */
+  .ov-wrap .ov-prog>.ov-runline{margin:0 auto;background:var(--amb-2);box-shadow:none}   /* (0,3,0) : passe devant `body.crisis-live .ov-runline` (0,2,1) ; matière DISCRÈTE — la carte blanche en dessous garde la vedette (signalé) */
+  .ov-prog>.ov-runline+span:last-child{margin-left:0}
+  .ov-runline .conf-chev{margin-left:0;padding:0}
+  .ov-runline .conf-chev svg{width:16px;height:16px}   /* dans la bulle de 28 px, un cran plus petit que sur les cartes (demande de l'auteur) */
+  .ov-runline.bump{animation:ovBump .7s ease}
+  @keyframes ovBump{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px var(--ok-soft)}}
+  @media (prefers-reduced-motion:reduce){.ov-runline.bump{animation:none}}
+  .ov-prog>span:last-child{margin-left:auto;flex:none;white-space:nowrap;   /* enfant DIRECT : sans le `>`, la règle attrapait le chevron de la bulle */font-size:var(--t-body);font-weight:700;letter-spacing:0;text-transform:none}   /* A369 : le compte ne se coupe pas, c'est la bulle qui s'abrège */
   /* Sous 360 px effectifs (320 px, ou 320 × 130 %), la première étape doit rester au-dessus du pli : la ligne
      « Parcours » et la pilule cèdent, le compte du bloc revient sur la carte. */
-  html.zw360 .ov-prog,html.zw360 .ov-cur{display:none}
+  html.zw360 .ov-cur{display:none}
+  html.zw360 .ov-prog>span:first-child{display:none}   /* A369 : la ligne reste — elle porte l'historique ; seul le mot cède */
   html.zw360 .ov-block.cur:not(.closed) .ov-c{display:inline}
   /* … et l'étape redescend d'un cran (--t-item), rangée 56 px : à 246 px effectifs, le corps 17,5
      enroulait la première étape sur quatre lignes, sous le pli. Palier de compression, pas une
@@ -4781,9 +4809,9 @@
      d'accent) ; il ne restait qu'une pilule bleue de plus dans un écran qui en compte assez.
      Ce qui subsiste dans l'en-tête de carte est le COMPTE (« 2/5 »), qui, lui, dit quelque chose
      que rien d'autre ne dit. */
-  .ov-c{order:2;flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2)}
+  .ov-c{order:2;flex:none;margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A369 : le compte du bloc s'écrit comme celui des cartes dépliables (13,5/600), plus en mono 11 */
   .ov-block.done .ov-c{color:var(--ok)}
-  .ov-chev{order:3;flex:none;color:var(--ink-2);font-size:11px;font-weight:700}
+  .ov-chev{order:3;flex:none}   /* A369 : encre, corps et graisse viennent de la règle commune aux cartes (`.conf-chev,.ov-chev`) */
   /* ⚠ PENDANT LA PASSE, L'EN-TÊTE EST UNE SEULE RANGÉE (v5.6, signalé à l'usage : « sur vérifier,
      l'option pour fermer ne tient pas sur une ligne — texte et croix ne sont pas sur la même
      ligne, même en desktop »). La rangée de la carte est faite pour porter le titre sur toute la
@@ -4841,18 +4869,14 @@
   body.crisis-live .ov-runline{margin:0 0 4px}
   .ov-runline:hover{color:var(--ink)}
   .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
-  .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
-  /* ⚠ LE CHEVRON PREND L'ENCRE DE SA LIGNE (v5.6) : en `--ink-3` il mesurait 2,13:1, et rien ne
-     le voyait — la ligne-bilan n'existait qu'après un passage achevé, donc sur aucune des surfaces
-     qu'`audit-a11y` monte. Le déplacement de « Diagnostic confirmé » l'y a fait entrer, et le
-     harnais a parlé aussitôt : un défaut HORS PORTÉE n'est pas un défaut absent (leçon v4.75.0,
-     rejouée à l'identique). `aria-hidden` n'exempte pas du seuil — le glyphe reste peint. */
-  .ov-runline .ovr-chev{color:inherit;font-weight:800}
+  /* Le chevron de la ligne-bilan est celui des cartes (`.conf-chev`, A369) : encre `--link`, 4,5:1 —
+     l'ancien `--ink-3` mesurait 2,13:1 (v5.6), et `aria-hidden` n'exempte pas du seuil. */
   /* Déplié : une carte de rangées à filet — la grammaire du parcours, pour que « la liste des
      blocs » se lise pareil partout. */
   .ov-hist{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);
     padding:0 16px;margin:2px 0 8px}
   .ov-hist .ov-runline{margin:0;justify-content:flex-start}
+  .ov-hist>:first-child{border-top:0}   /* A369 : la carte ouverte commence par une rangée — pas de filet sous le bord (signalé) */
   /* Les critères confirmés, dans le dépliant du journal : même rangée que les blocs faits, mais
      INERTE — un critère n'est pas un passage où l'on saute (doctrine du plan). Le ■ est celui de
      la carte « Quand l'utiliser », pour qu'on reconnaisse la même liste. */
@@ -4860,7 +4884,7 @@
     font-size:var(--t-meta);color:var(--ink-2);text-align:left}
   .ovh-crit .ovh-mk{color:var(--critical);font-weight:800;flex:none}
   .ovh-crit .ovh-t{flex:1 1 auto;min-width:0}
-  .ovh-row{display:flex;gap:10px;align-items:baseline;width:100%;min-height:44px;padding:10px 0;
+  .ovh-row{display:flex;gap:10px;align-items:center;width:100%;min-height:44px;padding:10px 0;   /* A369 : centré — la coche et le chevron ne s'alignent pas sur une ligne de base */
     background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
     font-family:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
   .ovh-row:hover{color:var(--ink)}
@@ -4868,7 +4892,8 @@
   .ovh-ok{flex:none;color:var(--ok);font-weight:800}
   .ovh-t{flex:1;min-width:0}
   .ovh-x{color:var(--ink-3);font-weight:600}
-  .ovh-n{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
+  .ovh-n{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}   /* A369 : même écriture que le compte des cartes */
+  .ovh-row .conf-chev{margin-left:0}
   .ovh-a{flex:none;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     font-size:var(--t-cap);font-weight:700;color:var(--act)}
   /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
@@ -5498,6 +5523,7 @@
      dessin (marque, texte, chevron) et les 32 px dus par la règle 9 (`#storageInfo` était à
      15,4 px). Détail : doctrine-css.md C109. */
   footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:0}
+  body.view-read footer.tools,body.view-pread footer.tools{display:none}   /* v5.30.1 : en lecture, ni état de l'appareil ni version — inutiles là (demande de l'auteur) */
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
   .tools-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
   .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:24px}
@@ -5550,7 +5576,7 @@
      bas de page, et ses marques tombaient donc à 26 px quand celles de la colonne tombent à 24.
      À zéro, ses rangées rejoignent exactement la grille de la colonne — et son filet fait la même
      largeur que `.hs-sep` (la boîte de contenu de l'étage), avec le même 12/12 autour. */
-  .home-side footer.tools{align-items:stretch;border-top:1px solid var(--line);padding:12px 0 0;margin-top:10px}
+  .home-side footer.tools{align-items:stretch;border-top:0;padding:10px 0 0;margin-top:0}   /* v5.30.1 : le filet est le .hs-sep du pied — deux traits et rien entre (signalé) */
   /* Toutes les commandes du pied sont masquées en voie large (la colonne les porte) : leur
      conteneur ne doit pas garder sa marge, qui ajoutait 6 px avant la synthèse. */
   .home-side .tools-actions{margin-bottom:0}
@@ -5678,6 +5704,9 @@
   /* Zone structurante de la fenêtre Compte (« Cet appareil », « Administration ») : frontière
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
+  /* Bibliothèques dans Moi (A364) : rangées de menu à filets dans la carte, gouttière de la carte. */
+  .acct-list{padding:0 12px}   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
+  .acct-list .catmenu-new{width:100%;margin:8px 0 10px}
   .auth-actions .btn{width:100%;justify-content:center}
   /* Zone tampon entre l'action FRÉQUENTE (Synchroniser, primary) et les actions de compte qui
      suivent (Se déconnecter…) : un tap légèrement trop bas ne doit pas déclencher une
@@ -5964,62 +5993,17 @@
      reste flex-start : `stretch` fige la carte à l'écran et le seul défileur devient la page
      DERRIÈRE (bogue constaté) ; min-height:100dvh ; overscroll-behavior:none — rien derrière ne
      bouge, jamais. Détail : doctrine-css.md C115. */
-  :is(.plan-modal,.ref-modal){padding:0;background:var(--bg);overscroll-behavior:none}
-  :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
-  :is(.pm-bar,.rs-bar){position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
-  :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .plan-modal{padding:0;background:var(--bg);overscroll-behavior:none}
+  .plan-modal .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
+  .pm-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .pm-ttl{flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
-  :is(.plan-modal,.ref-modal) .ai-x{flex:none;position:static}
+  .plan-modal .ai-x{flex:none;position:static}
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
-  :is(.pm-body,.rs-body){flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
-  /* Feuille « Consulter » : sections repliables natives (<details> — clavier et lecteur d'écran
-     gratuits, aucun état à mémoriser). Surveillances dépliée d'office : registre le plus
-     impérieux de la feuille. Les copies (rappels, surveillances, posologie) ne se replient pas
-     comme les couches de consultation — elles s'ouvrent d'emblée. */
-  /* Corps plafonné et centré (mêmes 860px que la checklist) ; la barre suit le MÊME plafond pour
-     que le titre et le ✕ s'alignent sur les bords du contenu, pas sur ceux de l'écran. */
-  .rs-body{display:flex;flex-direction:column;gap:10px;max-width:860px;margin:0 auto;width:100%}
-  @media (min-width:924px){.rs-bar{padding-left:calc(50% - 430px);padding-right:calc(50% - 430px)}}
-  /* ══ UNE SECTION EST UN INTERTITRE DANS UNE CARTE (v5.6, maquette) ═══════════════════════
-     Elle était une RANGÉE-MENU de 52 px, en 13,5/800 encre pleine, avec un chevron et un survol
-     teinté : le titre pesait autant que le contenu, et cinq sections faisaient 260 px de
-     titres avant la première ligne utile. La maquette en fait ce qu'ils sont — des intertitres
-     de document (11 px, petites capitales, `--ink-3`), à l'intérieur de la carte qu'ils
-     coiffent. Le `<details>` RESTE (clavier et lecteur d'écran gratuits, repli possible) : ce
-     qui change est le dessin, pas la capacité.
-     ⚠ LA CIBLE RESTE À 44 px, et ce n'est pas négociable en mode crise — la maquette dessine un
-     intertitre de 27 px, on garde son ASPECT et on lui rend sa hauteur en rembourrage. Un halo
-     `::after` n'était PAS une option : sur une rangée pleine largeur, il recouvrirait la
-     première ligne de contenu, et un tap destiné à lire replierait la section. */
-  .rs-sec{background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);padding:0 16px 12px}
-  .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:44px;
-    font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;
-    color:var(--ink-2);cursor:pointer}
-  .rs-sec>summary::-webkit-details-marker{display:none}
-  .rs-sec>summary::after{content:"▾";margin-left:auto;color:var(--ink-3);font-size:var(--t-body);flex:none}
-  .rs-sec[open]>summary::after{content:"▴"}
-  .rs-sec>summary:hover{color:var(--ink-2)}
-  .rs-sec>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .rs-sec .rs-in{padding:0}
-  /* ⚠ LA LISTE DES RÉFÉRENCES EST STYLÉE PAR `.ai-card ol` — donc PAS quand la feuille
-     s'ouvre dans la COLONNE du cockpit (A15, ≥ 1200 px), qui n'est pas une fenêtre : elle
-     y retombait sur le 16 px par défaut du navigateur (mesuré au balayage v5.6, seule taille
-     hors échelle du rendu large). On l'attache à la SECTION, qui est le porteur commun aux
-     deux logements — c'est la règle « un composant, un habillage » appliquée à sa liste. */
-  .rs-sec ol{font-size:var(--t-body);color:var(--ink-2);margin:0 0 12px;padding-left:20px;line-height:1.5}
-  /* Documents DANS la feuille : rangées à filet, pas des cartes empilées dans une carte. */
-  .rs-sec .att-list{display:block}
-  .rs-sec .att-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;
-    padding:0 2px;min-height:48px}
-  .rs-sec .att-list .att-row:last-child{border-bottom:0}
-  .rs-sec .att-row:hover{background:none;color:var(--act)}
-  .rs-sec .att-size{font-size:var(--t-cap);color:var(--ink-3)}
-  /* Les sections rendues par staticBlock/attListHtml apportent leur propre .block : on neutralise
-     leur cadre pour ne pas empiler deux cartes. */
-  .rs-body :is(.block,.notes-block){background:none;border:0;border-radius:0;padding:0;margin:0;box-shadow:none}
+  .pm-body{flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
   /* staticBlock/attListHtml portent leur propre titre de section : dans la feuille c'est le
      <summary> qui l'énonce — sans ça le titre s'affiche deux fois de suite. */
   .rs-sec .rs-in .block-h{display:none}
@@ -6029,14 +6013,11 @@
      ne distingue ni le fond ni le bord n'est pas un contrôle, c'est du texte (WCAG 2.2 § 1.4.11).
      Il prend le token des bordures de composant, comme la case à cocher et le déclencheur de
      filtres : 3,4:1 en clair, 3,7 en sombre. */
-  .rs-flash{animation:rsFlash 1.1s ease}
-  @keyframes rsFlash{0%,100%{box-shadow:none}18%{box-shadow:0 0 0 3px var(--primary-200)}}
-  @media (prefers-reduced-motion:reduce){.rs-flash{animation:none}}
   /* Dans la feuille, le plan n'a plus d'en-tête propre (la barre la porte) et prend toute la
      largeur utile — plafonnée pour que les branches côte à côte restent lisibles. */
   .pm-body .ov-plan-h{display:none}
   .pm-body .ov-plan{max-width:1100px;margin:0 auto}
-  @media (max-width:429.98px){:is(.pm-bar,.rs-bar){gap:8px;padding-left:12px;padding-right:12px}:is(.pm-body,.rs-body){padding-left:12px;padding-right:12px}}
+  @media (max-width:429.98px){.pm-bar{gap:8px;padding-left:12px;padding-right:12px}.pm-body{padding-left:12px;padding-right:12px}}
   /* CONFIRMATIONS : petite carte CENTRÉE verticalement, à toutes les largeurs — jamais en plein
      écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
   /* L'ANNEAU D'OUVERTURE D'UNE FENÊTRE — cf. `_dlgEnter` (v5.17.5). MÊME dessin que
@@ -6187,7 +6168,7 @@
      travail, titre 24, fermeture en pastille — plein écran au téléphone, panneau au gabarit document dès 780
      (le form-sheet). Un DIALOGUE (confirmer, choisir, régler) reste une carte blanche. */
   .ai-modal.page .ai-card{background:var(--amb)}
-  .ai-modal.page .ai-card h3{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .ai-modal.page .ai-card h3,.hv-title{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1}   /* le titre d'une PAGE : fenêtre (A352) ou vue de colonne (A365) */
   .ai-modal.page .ai-top{align-items:center;margin-bottom:12px}
   .ai-modal.page .ai-card .ai-x{width:40px;height:40px;margin:0;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink);font-size:17.5px}
   .ai-modal.page .ai-card .ai-x:hover{background:var(--amb-2)}
@@ -6638,6 +6619,10 @@
        coins, bord haut), collée au bord du défileur. */
     .home-main>.sel-bar{top:0;margin:0 0 12px;padding:0 10px}
     .home-main>*{max-width:1320px}
+    /* SESSIONS ET MOI EN VUES DE LA COLONNE (v5.30.1, A365) : le gabarit DOCUMENT de la page-fenêtre
+       (720, titre 24/800) posé dans la colonne principale — la colonne gauche reste active. */
+    .home-main>.hv-page{max-width:var(--dlg-atelier);width:100%;margin-inline:auto}   /* centrée comme la page-fenêtre (signalé) */
+    .hv-title{margin:0 0 12px}
     /* v5.30 (planche large, grille A) : le répertoire en LIVRES côte à côte — un par groupe. */
     .dir-book{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start}
     .dir-book .dir-g{margin-bottom:0}
@@ -6725,7 +6710,11 @@
        34 px, A8/A133), l'échelle reste un GESTE (« ⤢ Ajusté »). --stick-top : mesuré par
        syncHdrScroll, jamais une constante. HAUTEUR DÉFINIE (pas max-height) : sans elle `flex:1`
        n'a rien à répartir (défaut v4.23.0). Détail : doctrine-css.md C125. */
-    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+    /* A369 : les colonnes s'ARRÊTENT AU-DESSUS DU QUAI (`--dock-h` retiré de leur hauteur). Elles
+       passaient 64 px dessous, et une colonne collante plus haute que l'espace sous elle bute contre
+       le bas de sa rangée de grille : colonne principale courte, elles SUIVAIENT toute croissance
+       (mesuré : +50 px à l'ouverture de l'historique, page défilée). */
+    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
     /* UN SEUL défileur (v4.23.0) : pas de zones bornées, l'ILLIMITÉ passe en dernier (minuteurs →
        posologie → Échelle → horodatage). Deux niveaux de séparation, deux dessins (v5.6, corrigé
@@ -6758,8 +6747,6 @@
     .rail-fold summary::-webkit-details-marker{display:none}
     .rail-fold summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
     .rail-fold summary:hover .rail-title{color:var(--ink)}
-    .rail-fold .rf-chev{margin-left:auto;color:var(--ink-soft);font-size:12px;transition:transform .15s}
-    .rail-fold[open] .rf-chev{transform:rotate(180deg)}
     .rail-fold .rf-here{color:var(--ink-soft);font-size:12px;letter-spacing:0;text-transform:none;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
     /* dans le dépliant, le panneau du journal est une SECTION, pas une carte dans la carte — et
        son titre interne se tait : le résumé le porte déjà (deux fois le même mot, §5.5). */
@@ -6822,7 +6809,7 @@
        traversent la structure pour atteindre les champs. Elle n'apparaît qu'à 1200 px, comme le
        cockpit de lecture : à 1000, les trois colonnes laisseraient trop peu à l'écriture. */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:none}
-    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
     /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
        `ovPlanLadderHtml` désaturé que dans le rail — seul le logement change. */

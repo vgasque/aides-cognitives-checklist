@@ -634,3 +634,178 @@ posait sa rangée de 41 px dans le quai — le fil descendait d'un bloc sans êt
 absolue 41 sur deux passes complètes, 0 en isolation). L'absolue et l'état du lien restent en
 diagnostic dans le message du témoin.
 
+## Lot v5.30.1 — les décisions restantes sont prises
+
+### A363 — deux signalements et deux écarts clos (24/09/2026)
+
+Décisions de l'auteur sur les écarts d'A350 : **(1) les volets Outils et Journal RESTENT sur la
+matière système** (« volets restent en fond sombre ») — clos, la maquette n'est pas suivie sur ce
+point ; **(2) le quai garde ses quatre touches** (« on a déjà enlevé une tuile dans le 5.30 »,
+A354) — clos. Restent (3) et (4), traités ci-dessous.
+
+Deux signalements : le **titre de la carte « Session en cours » de l'accueil** était plus grand au
+téléphone (21/700, A351) qu'en large (17,5/800) — « ça me paraît trop grand » : même corps partout,
+17,5/800. Et la ligne **« Minuteurs à disposition en session »** collait au bord gauche de la carte
+« Parcours » (marge 0 contre une gouttière de 16 pour tout le reste, 19 px sous elle contre 0 au-
+dessus) : elle prend la gouttière des rangées (`.pre-flow>.carry-line{margin:10px 16px 4px}`).
+
+### A364 — Moi liste les bibliothèques avec leur rôle
+
+Écart (6) d'A350, tranché « ok pour rapatrier ». Dans la fenêtre Compte (et la vue Moi, A365), une
+zone « Bibliothèques » après la carte d'identité : Perso (« votre bibliothèque · n éléments ») puis
+les partagées triées par nom, chacune une RANGÉE DE MENU (`menuRowHtml`, A361 — icône, nom,
+sous-ligne « Rôle · n éléments ») ; seule une bibliothèque ADMINISTRÉE est un bouton (chevron,
+ouvre « Modifier la bibliothèque »), les autres sont des rangées INERTES (`inert` : un `<div>`,
+jamais un bouton mort — A305) ; « ＋ Nouvelle bibliothèque » pour l'administrateur de l'instance.
+Connecté seulement : sans compte il n'y a ni rôle ni partage à lister. Les filets entre rangées
+sont la règle de la feuille (`:is(.popmenu.sheet,.acct-list) .mm-row`).
+
+### A365 — Sessions et Moi sont des VUES de la colonne ≥ 780
+
+Écart (4), « OK go sur ce lot ». La grille A fait d'Aides · Sessions · Moi les entrées de la colonne
+gauche ; jusqu'ici Sessions et Moi ouvraient une page-fenêtre PAR-DESSUS l'accueil, juste au
+téléphone, mais un voile sur une planche large qui garde sa colonne. Désormais :
+
+1. **Les portes ne changent pas** : `openSessHist()` (sans fiche) et `openAuth()` décident —
+   sur l'accueil ≥ 780 (`homeTabsOn`) elles posent `state.homeTab` et re-rendent ; partout ailleurs
+   (téléphone, depuis une fiche, historique d'UNE fiche) elles ouvrent la page-fenêtre comme avant.
+   Le contenu est rendu par les MÊMES fonctions : `renderSessHist`/`renderAuth` visent la vue
+   (`#sessView`/`#meView`) si elle est rendue, la fenêtre sinon — aucun second rendu.
+2. **La vue** (`renderHomeTab`) : colonne gauche intacte et ACTIVE, colonne principale au gabarit
+   DOCUMENT de la page-fenêtre (720, titre 24/800 — une seule déclaration avec `.ai-modal.page h3`).
+   La rangée de navigation active porte `aria-current`, plus d'`aria-haspopup` (ce ne sont plus des
+   dialogues). « Créer » se cache hors de la liste ; un filtre de la colonne ou une saisie dans la
+   recherche RAMÈNENT à la liste (chercher, c'est chercher une aide) ; le retour système ferme la vue
+   vers la liste (`_histBackAction`, sentinelle armée à l'ouverture) ; la sélection multiple se
+   termine en changeant de vue.
+3. **Au franchissement de 780** (`syncHomeTabs`, sur le `change` de `mqHomeWide`) la surface change
+   de peau sans se perdre : une vue ouverte devient la page-fenêtre correspondante en étroit, une
+   page-fenêtre globale ouverte devient la vue en large. ⚠ Le pane du navigateur de l'éditeur
+   n'émet PAS ce `change` sous émulation (mesuré) : la conversion se vérifie en appelant
+   `_onHomeBp()` à la main, un vrai redimensionnement l'émet.
+4. **Témoins** : « trois gabarits de fenêtre » (1100) et « le bouton focalisé se voit » (1280)
+   ouvraient Compte et Sessions depuis l'accueil — la page-fenêtre, seule mesurée, s'ouvre désormais
+   depuis une fiche ; `audit-modeseg` (900) lit `#dispSeg` dans la vue Moi sans y toucher ; les
+   surfaces a11y à 390 restent des fenêtres.
+
+### A366 — troisième liste de l'auteur (24/09/2026) : onze points
+
+1. **Pied de la colonne gauche** : deux traits et rien entre (le `.hs-sep` du pied ET le
+   `border-top` du pied de page) — le pied de page perd son trait.
+2. **La feuille « Affichage » a le MÊME contenu à toutes les largeurs** : les chips de catégorie et
+   la rangée « Gérer » n'étaient émises qu'en étroit (la colonne filtre déjà en large, A238) ; les
+   deux conditions de largeur tombent — un seul contenu, la colonne reste un raccourci.
+3. **« Affichage » et « Sélectionner » sont voisins** : un seul dessin (matière `.btn`, 40 px,
+   13,5/700, `--r-3`) — l'un faisait 44 px sans bord en bleu, l'autre 32 px à filet en 12/700.
+4. **Les vues Sessions et Moi se centrent** dans la colonne principale (720, `margin-inline:auto`),
+   comme la page-fenêtre.
+5. **Les quatre cartes de la session existent AVANT la session** (À vérifier, différentiels,
+   repères, Références) sous « Parcours » — une fabrique `foldCardsH(attr,isOpen)` sert les deux
+   moments ; avant la session elles sont FERMÉES D'OFFICE, « Parcours » aussi (demande de
+   l'auteur) : `PRE_CLOSED`, ouverture mémorisée par fiche sous la clé « o:‹k› » (« Quand
+   l'utiliser » et « Ne pas oublier » restent ouvertes d'office, clé nue = fermée ; aucune
+   inversion pour les appareils qui portent l'ancienne clé « flow »). La carte Références se câble à
+   l'ouverture par le même `bindRefsCard`.
+6. **Tuiles du menu ⋯ en feuille** : un filet coupait « Se repérer » et « Schéma » — la règle des
+   filets pèse (0,4,0) avec son `:not(:first-child)`, l'exemption des tuiles pesait (0,3,0) ;
+   `.mm-row.mm-tile`.
+7. **« Parcours » repliée mesurait 62 px** contre 56 : l'étage `.cf-stage` ajoutait ses 6 px de
+   `:last-child`, et le premier étage ses 20 — les cartes portent leur marge (10), les étages n'en
+   ajoutent plus (le premier garde 10, la marge d'une carte).
+8. **✕ de « Session terminée »** (rappel de l'accueil) : centrée par `top:0;bottom:0;margin:auto`,
+   elle s'étirait sur toute la hauteur et son survol le montrait — 32 × 32, `top:calc(50% - 16px)`.
+9. **« ‹ Actions » dans les sous-feuilles** (bibliothèque, catégorie) ouvertes depuis la feuille
+   Actions : `openPickMenu` accepte `back:{label,sub,fn}` (rangée `menuRowHtml` dans l'en-tête
+   collant, icône `backto`) ; `_selFromSheet` ne le propose que depuis la feuille.
+10. « Consulter » : analyse remise à l'auteur (non tranché).
+11. **Plus de pied de page en lecture** d'une aide ou d'un protocole (état de l'appareil, version)
+    : `body.view-read`/`.view-pread` le masquent ; il reste à l'accueil et dans Moi.
+12. **« Repères posologiques » avait un trait persistant sous son titre** (téléphone et tablette
+    portrait, où la carte existe) : chaque `.pos-card` porte un trait `::before` de séparation et
+    l'exemption `:first-child` ne visait plus la première carte, précédée du titre de bloc masqué —
+    `.block-h+.pos-card::before{display:none}` (mesuré à 375 et 768, avant et pendant la session).
+    Témoin « Tableau/Schéma vivent sous Parcours » : il ouvre la carte, repliée d'office.
+
+### A367 — la feuille « Consulter » a vécu (24/09/2026, décision de l'auteur)
+
+Analyse remise (A366 point 10) puis « fais-le, et vérifie que rien ne mène à elle ». Depuis A366 la
+page porte les quatre cartes avant la session : la feuille ne montrait plus que ce que la page a
+déjà, un étage plus bas. Purge au grep, règle 14 : la fenêtre `#refModal` et ses six fonctions
+(`refSheetOpen`, `renderRefSheet`, `openRefSheet`, `closeRefSheet`, `refOpenNow`, `syncRefBtn`),
+`refContentKinds`, le CSS `.ref-modal/.rs-bar/.rs-ttl/.rs-body/.rs-flash` (la feuille Plan garde
+les siens), le palier 924 (il ne servait qu'à elle — `check-paliers` l'a vu), l'attribut `data-rs`
+que plus personne ne lisait (`check-actions`), la tuile « Consulter » du menu ⋯ et la surface
+a11y « feuille Consulter ». **Ses trois portes mènent désormais à LA CARTE de la page**
+(`openFoldCard(k)` : ouverte SEULE, les six autres repliées, amenée en haut de l'écran) : « Le
+tableau ne colle pas ? » → différentiels ; « Documents · n » → Références (qui porte les
+documents) ; la tuile disparaît. **Rien d'autre n'y menait** — la recherche de l'accueil ouvre
+un document trouvé DIRECTEMENT dans la visionneuse (`data-docgo`), la recherche d'un protocole
+vit dans son sommaire ; vérifié au grep (`openRefSheet` : trois appelants, tous reroutés).
+`bindRefBody(root,f)` perd son défilement de section, `refSheetHtml` reste la fabrique des cartes.
+Harnais : `audit-consulter` réécrit autour des cartes (fermées d'office, lien → carte seule et en
+haut, documents dans Références, plus de tuile ni de feuille, carte Références inerte en session,
+aucune carte morte) ; `audit-pdfsearch` ouvre le document par « Documents · n » ; doctrine
+« memory items » mesure l'inertie de la carte Références.
+
+### A368 — barre d'état iOS 27, et la recherche du bas (24/09/2026)
+
+**Bande floue en haut sur iOS 27** (absente d'iOS 26, « ça floute un peu le début du contenu ») :
+le code n'a aucun `backdrop-filter` — c'est le système qui pose un verre flou sur la zone de barre
+d'état quand le contenu passe dessous (`viewport-fit=cover` sans style de barre d'état déclaré).
+`apple-mobile-web-app-status-bar-style: default` : le contenu commence SOUS la barre d'état, que
+le système peint à la `theme-color` (déjà suivie par le thème) ; la zone sûre basse est
+inchangée. ⚠ Non mesurable au pane ni au simulateur iOS 26.5 : à VÉRIFIER sur l'iPhone en iOS 27
+(l'auteur), et si la bande reste, la piste suivante est la couleur de thème seule.
+**Recherche et filtre du bas** : l'auteur revient sur les 52 px d'A359 (« un peu trop grands ») —
+44 (la cible tactile), texte 15, icône 20 ; `height` posé, le rembourrage du champ le portait à 47.
+
+### A369 — la bulle d'historique sur la ligne « Parcours » (24/09/2026, planche A)
+
+Demande de l'auteur : diminuer l'espace entre « PARCOURS · x/12 étapes » et le premier bloc, où
+vivait la ligne-bilan « ✓ … diagnostic confirmé ⌄ » (44 px + marges : 76 px avant le bloc,
+mesurés). Planche A retenue, avec une exigence : « il faut que ce soit clair que c'est bien
+l'HISTORIQUE des étapes — on coche les étapes dessous puis ça va dans l'historique au-dessus ».
+
+- **Une phrase de gauche à droite** : PARCOURS (ce que c'est) · la BULLE (ce qui est fait et
+  replié — icône d'historique, « Fait · 1→2 · diagnostic confirmé », chevron ; un tap l'ouvre)
+  · le compte (où l'on en est). Pilule blanche de 28 px sur la ligne, cible 44 par halo ; le
+  libellé s'abrège par points de suspension, le compte ne se coupe jamais (`flex:none`). La
+  pilule mesure son TEXTE (`flex:0 1 auto`) — grandissante, elle s'étirait sur toute la ligne en
+  large et son chevron partait au bout (signalé sur capture) ; elle se CENTRE entre le titre et
+  le compte (marges auto, sélecteur à trois classes pour passer devant la marge de session) ; le
+  chevron est UN SEUL DESSIN pour toute la page de lecture (`chevHtml` : `uiIcon('chev', 20)` en trait 2,2,
+  gris `--ink-2`, tourné vers le bas fermé et vers le haut ouvert par la classe `open` — cartes, bloc,
+  historique, bulle, rails, aperçu du schéma ; capture de l'auteur : « un trait plein, pas rempli », la
+  flèche fine « › » d'avant v5.30. Les triangles ▾/▴ et le caractère ⌄ ont vécu ; jamais `--ink-3`, un
+  glyphe `aria-hidden` reste peint et mesuré 2,13:1 en v5.6) ; la carte ouverte
+  n'a pas de filet sous son bord ; le texte 12/700 est descendu d'un pixel face à l'icône, avec un
+  interligne de 1,35 (à 1, le débordement masqué des points de suspension tronquait les jambages) ;
+  matière DISCRÈTE (`--amb-2`, sans ombre — elle faisait de l'ombre au bloc). Un seul
+  bloc fait s'écrit « 1 », pas « 1→1 ». 36 px avant le premier bloc au lieu de 76.
+- **Le mouvement se voit** : quand un bloc coché rejoint la bulle, elle s'allume une fois
+  (`.bump`, ombre `--ok-soft` 0,7 s — peinture seule, rien de mis en page ; éteinte sous
+  `prefers-reduced-motion`). `renderOvOnly` compare le texte de la bulle d'un rendu à l'autre.
+- **Une seule bulle** : la PREMIÈRE série de blocs faits (avant tout bloc affiché) et la
+  confirmation d'entrée montent sur la ligne (`histPill`), ouvertes elles déposent leurs rangées
+  en carte en tête du journal (`histRows`) ; une série plus bas (après une excursion) reste une
+  ligne du fil, même fabrique `runPill`. Sans ligne « Parcours » (aucune étape comptée) la bulle
+  reprend la tête du fil. Sous 360 px effectifs la ligne RESTE (elle porte l'historique), seul le
+  mot « Parcours » cède (amende la règle « écarts du préambule »).
+- **Les colonnes latérales ne bougent plus à l'ouverture** (signalé « surtout avec plusieurs
+  blocs dans l'historique », mesuré +50 px à 1280 page défilée) : une colonne collante plus haute
+  que l'espace sous elle bute contre le bas de sa rangée de grille et SUIT toute croissance de la
+  colonne principale. Elles passaient 64 px sous le quai : leur hauteur retire désormais
+  `--dock-h`, elles s'arrêtent au-dessus du quai (mesuré : 148 px avant, pendant, après, page en
+  haut, défilée et au bout). Deux voies écartées et mesurées : un plancher de hauteur sur la grille
+  (la marge basse de `main` fait scroller plus loin que la rangée ne peut absorber) et l'ancrage du
+  bloc courant (`renderOvOnlyKeepAnchor` : page courte, la compensation se cogne au défilement
+  maximal et les colonnes non collées montent).
+- **Une seule écriture pour compter et déplier** (demande de l'auteur) : le compte du bloc
+  (`.ov-c`) et celui des rangées d'historique (`.ovh-n`) s'écrivent comme celui des cartes
+  dépliables (13,5/600 `--ink-2`, plus de mono 11) ; le chevron du bloc (`.ov-chev`) et celui des
+  rangées d'historique (elles en gagnent un, `.conf-chev` ▾) sont celui des cartes (17,5/800
+  `--link`) — une règle commune `.conf-chev,.ov-chev` ; les rangées d'historique se centrent
+  (`align-items:center`, la coche et le chevron ne s'alignaient pas sur une ligne de base).
+- Témoin « Diagnostic confirmé vit dans le journal, en tête » : « en tête » = sur la ligne
+  « Parcours » ; le libellé absorbé se reconnaît à « Fait ».
+

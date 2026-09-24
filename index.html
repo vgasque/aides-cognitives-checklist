@@ -278,6 +278,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f4f5f7">
+<!-- A368 : barre d’état iOS en style « default » — le contenu commence SOUS elle. Sans ce style, avec viewport-fit=cover, iOS 27 pose un verre FLOU sur la zone de barre d’état et le haut du contenu (signalé sur iPhone ; absent d’iOS 26). La zone sûre basse est inchangée. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <!-- Referrer-Policy en <meta> : c'est le SEUL des cinq en-têtes de `_headers` qui ait un
      équivalent balise, donc le seul récupérable là où `_headers` est ignoré (GitHub Pages,
      intranet nu — cf. docs/deploiement-et-conformite.md § 1.1). HSTS et nosniff n'existent qu'en
@@ -287,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-AnLnwCwKs+E+d/U0sIldEQgZWCshVxKwRcLGxcpxJys='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-q7ONioxNSTx4AFnBaxVVakFc+4JllRGQ4kzNp3xaGek='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1027,6 +1029,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mm-row.mm-tile{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:6px;min-height:56px;padding:6px 4px;background:var(--surface-2);font-size:11px;font-weight:700;text-align:center;line-height:1.1}
   .mm-row.mm-tile .mm-ic{width:auto}
   .mm-row.mm-tile:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
+  .mm-row.inert{cursor:default}
+  .mm-row.inert:hover{background:none}
   .mm-row.danger{color:var(--critical);font-weight:700}
   .mm-row.danger .mm-ic{color:currentColor}
   .mm-row.danger:hover{background:color-mix(in srgb,var(--critical) 8%,transparent)}
@@ -1171,7 +1175,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home .ls-card .sess-dot{grid-area:dot;margin-top:6px}
     body.view-home .ls-card .ls-info{grid-area:info;gap:2px}
     body.view-home .ls-info .ls-k{font-size:12px;letter-spacing:.08em;color:var(--sys-ink-2)}
-    body.view-home .ls-info .ls-t{font-size:21px;font-weight:700;line-height:1.25;color:var(--sys-ink)}
+    /* v5.30.1 : même corps qu'en large (17,5/800) — le 21 d'A351 paraissait trop grand au téléphone (signalé). */
+    body.view-home .ls-info .ls-t{font-size:var(--t-step);font-weight:800;line-height:1.25;color:var(--sys-ink)}
     body.view-home .ls-info .ls-w{font-size:var(--t-item);color:var(--sys-ink-2)}
     body.view-home .ls-chrono{grid-area:chrono;color:var(--sys-ink)}
     body.view-home .ls-card .btn.primary{grid-area:rep;min-height:48px;background:var(--sys-ink);border-color:var(--sys-ink);color:var(--sys)}
@@ -1193,9 +1198,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dock-filt{flex:1 1 100%;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 0 0}
   .dock-filt[hidden]{display:none}
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
-  #homeDock .filt-tog{width:52px;height:52px;min-height:52px}
-  #homeDock .filt-tog>svg{width:24px;height:24px}
-  #homeDock .hdr-search input{min-height:52px;font-size:var(--t-step)}   /* A359 : le texte suit la hauteur du champ (52 px) */
+  /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
+  #homeDock .filt-tog{width:44px;height:44px;min-height:44px}
+  #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
      est un bouton discret (même encre d'action).
      ⚠ LA CIBLE NE PEUT PAS VENIR DU SEUL HALO ICI (audit design v5.19, mesuré) : le bouton vit
@@ -1845,6 +1850,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      pas et elle ne conditionne rien. Registre neutre — aucune couleur sémantique. */
   .carry-line{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--ink-soft);
     font-variant-numeric:tabular-nums}
+  /* v5.30.1 : dans la carte « Parcours » la ligne prend la gouttière des rangées (16) — elle collait au bord. */
+  .pre-flow>.carry-line{margin:10px 16px 4px}
   /* P7 (v5.7) — registre ATTENTION en TEXTE : c'est un point de vigilance (« vous ne connaissez
      peut-être pas cette version »), jamais une alerte, jamais un aplat (A11). */
   .rev-since{font-size:12px;font-weight:700;color:var(--verify)}
@@ -2270,8 +2277,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      pas un troisième, et la justification ne s'appuie sur aucun précédent (A72).
      Il pousse à droite : le groupement reste à sa place apprise, et rien ne bouge quand la
      sélection s'ouvre ou se ferme. */
-  .sel-tog{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);color:var(--ink-2);font-family:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
-  .sel-tog:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  /* v5.30.1 : « Affichage » et « Sélectionner » sont voisins — UN dessin de bouton (matière .btn, 40 px, 13,5/700). */
+  .sel-tog,.rang-btn{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1px solid var(--work-line);border-radius:var(--r-3);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-family:inherit;font-size:var(--t-body);font-weight:700;white-space:nowrap;cursor:pointer}
+  .sel-tog{margin-left:auto}
+  .sel-tog:hover{background:var(--amb-2)}
   .sel-tog:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* ⚠ Barre de sélection : couche COLLANTE, PREMIER élément de la colonne sous l'en-tête réel
      (`--hdr-h` mesurée par `syncHdrScroll`, jamais une constante) ; deux défileurs, deux décalages —
@@ -2389,11 +2398,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      openPickMenu (.catmenu), monté dans .rang-wrap au pointeur fin. */
   .rang-wrap{position:relative;display:inline-flex;flex:none}
   /* v5.30 (maquette v5) : « Affichage » — bouton texte au registre de l'action, cible 44 px. */
-  .rang-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;
-    border:0;border-radius:var(--r-3);background:none;
-    color:var(--act);font-family:inherit;font-size:var(--t-body);font-weight:800;white-space:nowrap;cursor:pointer}
   .rang-btn b{color:var(--ink);font-weight:800}
-  .rang-btn:hover{background:var(--surface-2);border-color:var(--ink-soft)}
+  .rang-btn:hover{background:var(--amb-2)}
   .rang-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* Dans le livre, les rangées n'ont plus de carte à elles : un filet les sépare, et la dernière
      d'un groupe n'en porte pas (c'est l'intertitre suivant qui borne). */
@@ -2817,7 +2823,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .conf-head{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:10px 12px;cursor:pointer;font-family:inherit;text-align:left;min-height:48px}
   .conf-head .block-h{margin-bottom:0;color:var(--ink-soft)}
   .conf-sub{flex:1;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .conf-chev{margin-left:auto;color:var(--link);font-weight:800;font-size:var(--g-cmd);padding:0 4px;flex:none}
+  /* A369 — UN chevron (icône, trait) pour les cartes, le bloc, l'historique, la bulle, les rails et
+     l'aperçu du schéma : bas fermé, haut ouvert. */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev) svg{transform:rotate(90deg)}
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
   /* AVANT LA SESSION (v5.6, maquette) : l'encadré de la condition d'entrée. Contour d'alerte,
@@ -2848,6 +2858,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .fold-card .sf-body{padding:0 16px 6px}
   .fold-card .sf-body .block{margin:0}
   .fold-card .sf-body .block-h{display:none}
+  .fold-card .sf-body .block-h+.pos-card::before{display:none}   /* v5.30.1 : le trait ::before d'une carte posologique séparait aussi la PREMIÈRE du titre (signalé) */
   /* v5.30 (A357, canevas « Dépliants de session v5 », planche A) : UNE grammaire de rangée pour les cinq
      dépliants — texte 15 dès la gouttière (aucune marque : la tête dit déjà la famille, A345), réponse ou
      dose en mono dessous (`.sf-ans`, la voix des réponses attendues), un filet ENTRE les rangées et aucun
@@ -3517,6 +3528,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .care-flat{margin:0 0 6px}
   .cf-stage{padding:0 0 20px}
   .cf-stage:last-child{padding-bottom:6px}
+  /* v5.30.1 : les cartes dépliables portent leur propre marge (10) — l'étage n'en ajoute pas, et la
+     carte « Parcours » repliée mesurait 62 px contre 56 (signalé). */
+  .cf-stage.pre-flow,.cf-stage.pre-cards{padding-bottom:0}
+  .care-flat>.cf-stage:first-child:has(.fold-card){padding-bottom:10px}   /* = la marge d'une carte : « Ne pas oublier » → « Parcours » à 10 comme les autres */
   .cf-stage.on>.cp-h{color:var(--primary-dk)}
   /* En-tête d'étape : MÊME registre typographique que .block-h (un seul style de titres) —
      seule la couleur suit l'état, comme h-verify suit le sien. */
@@ -3618,7 +3633,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .alg-head{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:10px 12px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;font-family:inherit;text-align:left}
   .alg-k{flex:none;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .alg-sub{flex:1;min-width:0;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .alg-chev{flex:none;color:var(--link);font-size:15px;font-weight:800}
   .alg-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
   .alg-panel .flow-zoom{padding:8px 12px 0}
   .alg-panel .flow-scroll{border:0;border-radius:0;margin-bottom:8px;max-height:300px;-webkit-overflow-scrolling:touch}
@@ -4363,7 +4377,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      il atterrissait AU MILIEU, collé à « Compte-rendu » (retour utilisateur v4.29.2). Le geste
      standard : carte `position:relative`, ✕ ANCRÉ en haut à droite à toutes les largeurs —
      le padding droit de la carte lui réserve la place, le texte ne passe jamais dessous. */
-  .last-sess .notice-x{top:0;bottom:0;right:6px;margin:auto 0}   /* v5.30 : centrée sur la hauteur, à côté de « Compte-rendu » */
+  .last-sess .notice-x{top:calc(50% - 16px);right:6px;width:32px;height:32px}   /* v5.30.1 : centrée ET bornée — étirée sur toute la hauteur, son survol s'allongeait (signalé) */
   /* ══ LA SESSION VIVE EST LE SEUL OBJET SOMBRE DE L'ACCUEIL (v5.6, lot 5) ═══════════════════
      Trois matières, trois natures : sombre = SYSTÈME. Sur l'accueil il n'y a normalement RIEN de
      système — c'est un écran de travail et d'ambiance. Une session qui TOURNE est l'exception :
@@ -4549,10 +4563,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mm-ctx{display:flex;flex-direction:column;gap:2px;padding:0 0 10px}
   .mm-ctx b{font-size:var(--t-step);font-weight:700;color:var(--ink)}
   .mm-ctx span{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  .popmenu.sheet .mm-row{min-height:52px;padding:6px 0;border-radius:0}
-  .popmenu.sheet .mm-row:not(:first-child){border-top:1px solid var(--work-line)}
-  .popmenu.sheet :is(.popmenu-head,.mm-head,.mm-tiles)+.mm-row,.popmenu.sheet .mm-tile{border-top:0}
-  .popmenu.sheet .mm-tile{border-radius:8px}
+  :is(.popmenu.sheet,.acct-list) .mm-row{padding:6px 0;border-radius:0}
+  :is(.popmenu.sheet,.acct-list) .mm-row:not(:first-child){border-top:1px solid var(--work-line)}
+  .popmenu.sheet .mm-row{min-height:52px}
+  .popmenu.sheet :is(.popmenu-head,.mm-head,.mm-tiles)+.mm-row,.popmenu.sheet .mm-row.mm-tile{border-top:0}   /* `.mm-row.mm-tile` : la règle des filets pèse (0,4,0) */
+  .popmenu.sheet .mm-row.mm-tile{border-radius:8px}
   .popmenu.sheet .mm-lb{white-space:normal}
   .popmenu.sheet .mm-head{padding:14px 0 4px}
   .popmenu.sheet .mm-row.danger{margin-top:10px;padding-top:12px}
@@ -4616,7 +4631,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .fp-tgl:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius-sm)}
   .fp-tgl .flow-prev-h{margin:0}
   .fp-n{margin-left:auto;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
-  .fp-chev{flex:none;color:var(--link);font-size:11px;font-weight:800}
   .flow-prev:not(.on) .fp-box{position:relative;max-height:168px;overflow:hidden}
   .flow-prev:not(.on) .fp-box::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;
     background:linear-gradient(to bottom,transparent,var(--paper));pointer-events:none}
@@ -5085,16 +5099,32 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      `overflow-wrap:break-word` : c'est le filet, pas la cause (le corps fixe 21 px l'était).
      Détail : doctrine-css.md C98. */
   .ov-t{order:2;flex:1 1 auto;min-width:0;font-size:var(--t-step-l);font-weight:800;color:var(--ink);line-height:1.2;letter-spacing:-.01em;margin:0;overflow-wrap:break-word}
-  .ov-c{order:4}.ov-chev{order:5}
+  .ov-c{order:4}.ov-chev{order:5;margin-left:0}
   .ov-head{padding:12px 16px 4px}
   /* Pilule « EN COURS » du bloc courant (maquette v5) — la position en toutes lettres, en plus du compte. */
   .ov-cur{order:3;flex:none;padding:4px 10px;border-radius:var(--r-1);background:var(--act);color:var(--on-primary);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1}
   /* « Parcours · x/y étapes » : la ligne d'étage au-dessus du journal, en session. */
-  .ov-prog{display:flex;align-items:baseline;gap:8px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-  .ov-prog span:last-child{margin-left:auto;font-size:var(--t-body);font-weight:700;letter-spacing:0;text-transform:none}
+  .ov-prog{display:flex;align-items:center;gap:10px;min-height:28px;margin:0 4px 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  /* A369 — la BULLE D'HISTORIQUE sur la ligne « Parcours » (planche A) : pilule blanche de 28 px entre le
+     titre et le compte, libellé qui s'abrège avant de toucher le compte, cible 44 par halo ; elle s'allume
+     une fois quand un bloc coché la rejoint (ombre seule : peinture, jamais de mise en page). */
+  .ov-prog>.ov-runline{flex:0 1 auto;min-width:0;width:auto;min-height:28px;height:28px;margin:0 auto;padding:0 10px;justify-content:flex-start;position:relative;border:1px solid var(--work-line);border-radius:999px;background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
+  .ov-prog>.ov-runline::after{content:"";position:absolute;inset:-8px 0}
+  .ov-prog>.ov-runline .ovr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;padding-top:1px}   /* +1 px : le texte 12/700 paraissait haut face à l'icône de 14 ; interligne 1,35 — à 1, le débordement masqué des points de suspension TRONQUAIT les jambages (signalé) */
+  .ov-runline .ovr-ic{display:inline-flex;flex:none;color:var(--ink-2)}
+  /* la bulle se CENTRE entre le titre et le compte (marges auto) — spécificité au-dessus de `body.crisis-live .ov-runline` et de `.ov-prog span:last-child` */
+  .ov-wrap .ov-prog>.ov-runline{margin:0 auto;background:var(--amb-2);box-shadow:none}   /* (0,3,0) : passe devant `body.crisis-live .ov-runline` (0,2,1) ; matière DISCRÈTE — la carte blanche en dessous garde la vedette (signalé) */
+  .ov-prog>.ov-runline+span:last-child{margin-left:0}
+  .ov-runline .conf-chev{margin-left:0;padding:0}
+  .ov-runline .conf-chev svg{width:16px;height:16px}   /* dans la bulle de 28 px, un cran plus petit que sur les cartes (demande de l'auteur) */
+  .ov-runline.bump{animation:ovBump .7s ease}
+  @keyframes ovBump{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 3px var(--ok-soft)}}
+  @media (prefers-reduced-motion:reduce){.ov-runline.bump{animation:none}}
+  .ov-prog>span:last-child{margin-left:auto;flex:none;white-space:nowrap;   /* enfant DIRECT : sans le `>`, la règle attrapait le chevron de la bulle */font-size:var(--t-body);font-weight:700;letter-spacing:0;text-transform:none}   /* A369 : le compte ne se coupe pas, c'est la bulle qui s'abrège */
   /* Sous 360 px effectifs (320 px, ou 320 × 130 %), la première étape doit rester au-dessus du pli : la ligne
      « Parcours » et la pilule cèdent, le compte du bloc revient sur la carte. */
-  html.zw360 .ov-prog,html.zw360 .ov-cur{display:none}
+  html.zw360 .ov-cur{display:none}
+  html.zw360 .ov-prog>span:first-child{display:none}   /* A369 : la ligne reste — elle porte l'historique ; seul le mot cède */
   html.zw360 .ov-block.cur:not(.closed) .ov-c{display:inline}
   /* … et l'étape redescend d'un cran (--t-item), rangée 56 px : à 246 px effectifs, le corps 17,5
      enroulait la première étape sur quatre lignes, sous le pli. Palier de compression, pas une
@@ -5135,9 +5165,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      d'accent) ; il ne restait qu'une pilule bleue de plus dans un écran qui en compte assez.
      Ce qui subsiste dans l'en-tête de carte est le COMPTE (« 2/5 »), qui, lui, dit quelque chose
      que rien d'autre ne dit. */
-  .ov-c{order:2;flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-2)}
+  .ov-c{order:2;flex:none;margin-left:auto;font-size:var(--t-body);font-weight:600;color:var(--ink-2)}   /* A369 : le compte du bloc s'écrit comme celui des cartes dépliables (13,5/600), plus en mono 11 */
   .ov-block.done .ov-c{color:var(--ok)}
-  .ov-chev{order:3;flex:none;color:var(--ink-2);font-size:11px;font-weight:700}
+  .ov-chev{order:3;flex:none}   /* A369 : encre, corps et graisse viennent de la règle commune aux cartes (`.conf-chev,.ov-chev`) */
   /* ⚠ PENDANT LA PASSE, L'EN-TÊTE EST UNE SEULE RANGÉE (v5.6, signalé à l'usage : « sur vérifier,
      l'option pour fermer ne tient pas sur une ligne — texte et croix ne sont pas sur la même
      ligne, même en desktop »). La rangée de la carte est faite pour porter le titre sur toute la
@@ -5195,18 +5225,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   body.crisis-live .ov-runline{margin:0 0 4px}
   .ov-runline:hover{color:var(--ink)}
   .ov-runline:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--r-1)}
-  .ov-runline .ovr-ok{color:var(--ok);font-weight:800}
-  /* ⚠ LE CHEVRON PREND L'ENCRE DE SA LIGNE (v5.6) : en `--ink-3` il mesurait 2,13:1, et rien ne
-     le voyait — la ligne-bilan n'existait qu'après un passage achevé, donc sur aucune des surfaces
-     qu'`audit-a11y` monte. Le déplacement de « Diagnostic confirmé » l'y a fait entrer, et le
-     harnais a parlé aussitôt : un défaut HORS PORTÉE n'est pas un défaut absent (leçon v4.75.0,
-     rejouée à l'identique). `aria-hidden` n'exempte pas du seuil — le glyphe reste peint. */
-  .ov-runline .ovr-chev{color:inherit;font-weight:800}
+  /* Le chevron de la ligne-bilan est celui des cartes (`.conf-chev`, A369) : encre `--link`, 4,5:1 —
+     l'ancien `--ink-3` mesurait 2,13:1 (v5.6), et `aria-hidden` n'exempte pas du seuil. */
   /* Déplié : une carte de rangées à filet — la grammaire du parcours, pour que « la liste des
      blocs » se lise pareil partout. */
   .ov-hist{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-3);
     padding:0 16px;margin:2px 0 8px}
   .ov-hist .ov-runline{margin:0;justify-content:flex-start}
+  .ov-hist>:first-child{border-top:0}   /* A369 : la carte ouverte commence par une rangée — pas de filet sous le bord (signalé) */
   /* Les critères confirmés, dans le dépliant du journal : même rangée que les blocs faits, mais
      INERTE — un critère n'est pas un passage où l'on saute (doctrine du plan). Le ■ est celui de
      la carte « Quand l'utiliser », pour qu'on reconnaisse la même liste. */
@@ -5214,7 +5240,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     font-size:var(--t-meta);color:var(--ink-2);text-align:left}
   .ovh-crit .ovh-mk{color:var(--critical);font-weight:800;flex:none}
   .ovh-crit .ovh-t{flex:1 1 auto;min-width:0}
-  .ovh-row{display:flex;gap:10px;align-items:baseline;width:100%;min-height:44px;padding:10px 0;
+  .ovh-row{display:flex;gap:10px;align-items:center;width:100%;min-height:44px;padding:10px 0;   /* A369 : centré — la coche et le chevron ne s'alignent pas sur une ligne de base */
     background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
     font-family:inherit;font-size:var(--t-body);font-weight:600;text-align:left;cursor:pointer}
   .ovh-row:hover{color:var(--ink)}
@@ -5222,7 +5248,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .ovh-ok{flex:none;color:var(--ok);font-weight:800}
   .ovh-t{flex:1;min-width:0}
   .ovh-x{color:var(--ink-3);font-weight:600}
-  .ovh-n{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
+  .ovh-n{flex:none;font-size:var(--t-body);font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}   /* A369 : même écriture que le compte des cartes */
+  .ovh-row .conf-chev{margin-left:0}
   .ovh-a{flex:none;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     font-size:var(--t-cap);font-weight:700;color:var(--act)}
   /* ----- PLAN DE L'AIDE (v4.10.0) : arbre indenté façon algorithme papier ----- */
@@ -5852,6 +5879,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      dessin (marque, texte, chevron) et les 32 px dus par la règle 9 (`#storageInfo` était à
      15,4 px). Détail : doctrine-css.md C109. */
   footer.tools{border-top:1px solid var(--line);padding:8px 18px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:0}
+  body.view-read footer.tools,body.view-pread footer.tools{display:none}   /* v5.30.1 : en lecture, ni état de l'appareil ni version — inutiles là (demande de l'auteur) */
   footer.tools .lbl{font-size:11px;color:var(--ink-soft)}
   .tools-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:6px}
   .tools-status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:24px}
@@ -5904,7 +5932,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas de page, et ses marques tombaient donc à 26 px quand celles de la colonne tombent à 24.
      À zéro, ses rangées rejoignent exactement la grille de la colonne — et son filet fait la même
      largeur que `.hs-sep` (la boîte de contenu de l'étage), avec le même 12/12 autour. */
-  .home-side footer.tools{align-items:stretch;border-top:1px solid var(--line);padding:12px 0 0;margin-top:10px}
+  .home-side footer.tools{align-items:stretch;border-top:0;padding:10px 0 0;margin-top:0}   /* v5.30.1 : le filet est le .hs-sep du pied — deux traits et rien entre (signalé) */
   /* Toutes les commandes du pied sont masquées en voie large (la colonne les porte) : leur
      conteneur ne doit pas garder sa marge, qui ajoutait 6 px avant la synthèse. */
   .home-side .tools-actions{margin-bottom:0}
@@ -6032,6 +6060,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Zone structurante de la fenêtre Compte (« Cet appareil », « Administration ») : frontière
      nette entre gérer MON COMPTE et gérer CET APPAREIL (audit v4.5). */
   .acct-zone{margin-top:18px}
+  /* Bibliothèques dans Moi (A364) : rangées de menu à filets dans la carte, gouttière de la carte. */
+  .acct-list{padding:0 12px}   /* rangées et filets : règle commune avec la feuille (`:is(.popmenu.sheet,.acct-list)`) */
+  .acct-list .catmenu-new{width:100%;margin:8px 0 10px}
   .auth-actions .btn{width:100%;justify-content:center}
   /* Zone tampon entre l'action FRÉQUENTE (Synchroniser, primary) et les actions de compte qui
      suivent (Se déconnecter…) : un tap légèrement trop bas ne doit pas déclencher une
@@ -6318,62 +6349,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      reste flex-start : `stretch` fige la carte à l'écran et le seul défileur devient la page
      DERRIÈRE (bogue constaté) ; min-height:100dvh ; overscroll-behavior:none — rien derrière ne
      bouge, jamais. Détail : doctrine-css.md C115. */
-  :is(.plan-modal,.ref-modal){padding:0;background:var(--bg);overscroll-behavior:none}
-  :is(.plan-modal,.ref-modal) .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
-  :is(.pm-bar,.rs-bar){position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
-  :is(.pm-ttl,.rs-ttl){flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .plan-modal{padding:0;background:var(--bg);overscroll-behavior:none}
+  .plan-modal .ai-card{max-width:none;width:100%;min-height:calc(100dvh / var(--zf,1));border-radius:0;margin:0;padding:0;display:flex;flex-direction:column;box-shadow:none}
+  .pm-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .pm-ttl{flex:1;min-width:0;margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* En étroit, le sélecteur passe à la LIGNE plutôt que d'écraser le titre (mesuré : « Plan —
      Anaphylaxie (choc anaphylactique) » tombait à « Plan — A… » à 390px). L'ordre visuel garde
      titre puis ✕ sur la 1ʳᵉ ligne — la fermeture reste au même endroit qu'ailleurs. */
-  :is(.plan-modal,.ref-modal) .ai-x{flex:none;position:static}
+  .plan-modal .ai-x{flex:none;position:static}
   /* Pas de min-height:0 ici : il autoriserait le corps à se comprimer sous la taille de son
      contenu — c'est ce qui rendait le plan invisible au-delà d'un écran. */
-  :is(.pm-body,.rs-body){flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
-  /* Feuille « Consulter » : sections repliables natives (<details> — clavier et lecteur d'écran
-     gratuits, aucun état à mémoriser). Surveillances dépliée d'office : registre le plus
-     impérieux de la feuille. Les copies (rappels, surveillances, posologie) ne se replient pas
-     comme les couches de consultation — elles s'ouvrent d'emblée. */
-  /* Corps plafonné et centré (mêmes 860px que la checklist) ; la barre suit le MÊME plafond pour
-     que le titre et le ✕ s'alignent sur les bords du contenu, pas sur ceux de l'écran. */
-  .rs-body{display:flex;flex-direction:column;gap:10px;max-width:860px;margin:0 auto;width:100%}
-  @media (min-width:924px){.rs-bar{padding-left:calc(50% - 430px);padding-right:calc(50% - 430px)}}
-  /* ══ UNE SECTION EST UN INTERTITRE DANS UNE CARTE (v5.6, maquette) ═══════════════════════
-     Elle était une RANGÉE-MENU de 52 px, en 13,5/800 encre pleine, avec un chevron et un survol
-     teinté : le titre pesait autant que le contenu, et cinq sections faisaient 260 px de
-     titres avant la première ligne utile. La maquette en fait ce qu'ils sont — des intertitres
-     de document (11 px, petites capitales, `--ink-3`), à l'intérieur de la carte qu'ils
-     coiffent. Le `<details>` RESTE (clavier et lecteur d'écran gratuits, repli possible) : ce
-     qui change est le dessin, pas la capacité.
-     ⚠ LA CIBLE RESTE À 44 px, et ce n'est pas négociable en mode crise — la maquette dessine un
-     intertitre de 27 px, on garde son ASPECT et on lui rend sa hauteur en rembourrage. Un halo
-     `::after` n'était PAS une option : sur une rangée pleine largeur, il recouvrirait la
-     première ligne de contenu, et un tap destiné à lire replierait la section. */
-  .rs-sec{background:var(--work);border:1px solid var(--line);border-radius:var(--r-3);padding:0 16px 12px}
-  .rs-sec>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:44px;
-    font-size:var(--t-cap);font-weight:800;letter-spacing:.09em;text-transform:uppercase;
-    color:var(--ink-2);cursor:pointer}
-  .rs-sec>summary::-webkit-details-marker{display:none}
-  .rs-sec>summary::after{content:"▾";margin-left:auto;color:var(--ink-3);font-size:var(--t-body);flex:none}
-  .rs-sec[open]>summary::after{content:"▴"}
-  .rs-sec>summary:hover{color:var(--ink-2)}
-  .rs-sec>summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
-  .rs-sec .rs-in{padding:0}
-  /* ⚠ LA LISTE DES RÉFÉRENCES EST STYLÉE PAR `.ai-card ol` — donc PAS quand la feuille
-     s'ouvre dans la COLONNE du cockpit (A15, ≥ 1200 px), qui n'est pas une fenêtre : elle
-     y retombait sur le 16 px par défaut du navigateur (mesuré au balayage v5.6, seule taille
-     hors échelle du rendu large). On l'attache à la SECTION, qui est le porteur commun aux
-     deux logements — c'est la règle « un composant, un habillage » appliquée à sa liste. */
-  .rs-sec ol{font-size:var(--t-body);color:var(--ink-2);margin:0 0 12px;padding-left:20px;line-height:1.5}
-  /* Documents DANS la feuille : rangées à filet, pas des cartes empilées dans une carte. */
-  .rs-sec .att-list{display:block}
-  .rs-sec .att-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;
-    padding:0 2px;min-height:48px}
-  .rs-sec .att-list .att-row:last-child{border-bottom:0}
-  .rs-sec .att-row:hover{background:none;color:var(--act)}
-  .rs-sec .att-size{font-size:var(--t-cap);color:var(--ink-3)}
-  /* Les sections rendues par staticBlock/attListHtml apportent leur propre .block : on neutralise
-     leur cadre pour ne pas empiler deux cartes. */
-  .rs-body :is(.block,.notes-block){background:none;border:0;border-radius:0;padding:0;margin:0;box-shadow:none}
+  .pm-body{flex:1;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
   /* staticBlock/attListHtml portent leur propre titre de section : dans la feuille c'est le
      <summary> qui l'énonce — sans ça le titre s'affiche deux fois de suite. */
   .rs-sec .rs-in .block-h{display:none}
@@ -6383,14 +6369,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      ne distingue ni le fond ni le bord n'est pas un contrôle, c'est du texte (WCAG 2.2 § 1.4.11).
      Il prend le token des bordures de composant, comme la case à cocher et le déclencheur de
      filtres : 3,4:1 en clair, 3,7 en sombre. */
-  .rs-flash{animation:rsFlash 1.1s ease}
-  @keyframes rsFlash{0%,100%{box-shadow:none}18%{box-shadow:0 0 0 3px var(--primary-200)}}
-  @media (prefers-reduced-motion:reduce){.rs-flash{animation:none}}
   /* Dans la feuille, le plan n'a plus d'en-tête propre (la barre la porte) et prend toute la
      largeur utile — plafonnée pour que les branches côte à côte restent lisibles. */
   .pm-body .ov-plan-h{display:none}
   .pm-body .ov-plan{max-width:1100px;margin:0 auto}
-  @media (max-width:429.98px){:is(.pm-bar,.rs-bar){gap:8px;padding-left:12px;padding-right:12px}:is(.pm-body,.rs-body){padding-left:12px;padding-right:12px}}
+  @media (max-width:429.98px){.pm-bar{gap:8px;padding-left:12px;padding-right:12px}.pm-body{padding-left:12px;padding-right:12px}}
   /* CONFIRMATIONS : petite carte CENTRÉE verticalement, à toutes les largeurs — jamais en plein
      écran (une question d'une ligne n'occupe pas 100dvh) ni collée en haut. */
   /* L'ANNEAU D'OUVERTURE D'UNE FENÊTRE — cf. `_dlgEnter` (v5.17.5). MÊME dessin que
@@ -6541,7 +6524,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      travail, titre 24, fermeture en pastille — plein écran au téléphone, panneau au gabarit document dès 780
      (le form-sheet). Un DIALOGUE (confirmer, choisir, régler) reste une carte blanche. */
   .ai-modal.page .ai-card{background:var(--amb)}
-  .ai-modal.page .ai-card h3{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .ai-modal.page .ai-card h3,.hv-title{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1}   /* le titre d'une PAGE : fenêtre (A352) ou vue de colonne (A365) */
   .ai-modal.page .ai-top{align-items:center;margin-bottom:12px}
   .ai-modal.page .ai-card .ai-x{width:40px;height:40px;margin:0;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink);font-size:17.5px}
   .ai-modal.page .ai-card .ai-x:hover{background:var(--amb-2)}
@@ -6992,6 +6975,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        coins, bord haut), collée au bord du défileur. */
     .home-main>.sel-bar{top:0;margin:0 0 12px;padding:0 10px}
     .home-main>*{max-width:1320px}
+    /* SESSIONS ET MOI EN VUES DE LA COLONNE (v5.30.1, A365) : le gabarit DOCUMENT de la page-fenêtre
+       (720, titre 24/800) posé dans la colonne principale — la colonne gauche reste active. */
+    .home-main>.hv-page{max-width:var(--dlg-atelier);width:100%;margin-inline:auto}   /* centrée comme la page-fenêtre (signalé) */
+    .hv-title{margin:0 0 12px}
     /* v5.30 (planche large, grille A) : le répertoire en LIVRES côte à côte — un par groupe. */
     .dir-book{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start}
     .dir-book .dir-g{margin-bottom:0}
@@ -7079,7 +7066,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        34 px, A8/A133), l'échelle reste un GESTE (« ⤢ Ajusté »). --stick-top : mesuré par
        syncHdrScroll, jamais une constante. HAUTEUR DÉFINIE (pas max-height) : sans elle `flex:1`
        n'a rien à répartir (défaut v4.23.0). Détail : doctrine-css.md C125. */
-    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+    /* A369 : les colonnes s'ARRÊTENT AU-DESSUS DU QUAI (`--dock-h` retiré de leur hauteur). Elles
+       passaient 64 px dessous, et une colonne collante plus haute que l'espace sous elle bute contre
+       le bas de sa rangée de grille : colonne principale courte, elles SUIVAIENT toute croissance
+       (mesuré : +50 px à l'ouverture de l'historique, page défilée). */
+    body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
     /* UN SEUL défileur (v4.23.0) : pas de zones bornées, l'ILLIMITÉ passe en dernier (minuteurs →
        posologie → Échelle → horodatage). Deux niveaux de séparation, deux dessins (v5.6, corrigé
@@ -7112,8 +7103,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .rail-fold summary::-webkit-details-marker{display:none}
     .rail-fold summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
     .rail-fold summary:hover .rail-title{color:var(--ink)}
-    .rail-fold .rf-chev{margin-left:auto;color:var(--ink-soft);font-size:12px;transition:transform .15s}
-    .rail-fold[open] .rf-chev{transform:rotate(180deg)}
     .rail-fold .rf-here{color:var(--ink-soft);font-size:12px;letter-spacing:0;text-transform:none;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
     /* dans le dépliant, le panneau du journal est une SECTION, pas une carte dans la carte — et
        son titre interne se tait : le résumé le porte déjà (deux fois le même mot, §5.5). */
@@ -7176,7 +7165,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        traversent la structure pour atteindre les champs. Elle n'apparaît qu'à 1200 px, comme le
        cockpit de lecture : à 1000, les trois colonnes laisseraient trop peu à l'écriture. */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:none}
-    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);overflow-y:auto;
+    body.view-read .read-plan{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-right:1px solid var(--line);padding:14px 16px 16px 0;display:flex;flex-direction:column}
     /* Le plan de gauche reste INERTE au cochage (décision figée) : c'est le même
        `ovPlanLadderHtml` désaturé que dans le rail — seul le logement change. */
@@ -8436,13 +8425,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Accès en PULL uniquement (rangée en fin d'action, bouton du quai, menu ⋯) — jamais d'ouverture
      automatique : seule l'alarme pousse. La NOTE personnelle reste dans le flux (seul bloc à état
      éditable : l'y déplacer casserait la restauration de défilement de son éditeur). -->
-<div class="ai-modal ref-modal sheet-full" id="refModal" role="dialog" aria-modal="true" aria-labelledby="refModalTitle">
-  <div class="ai-card">
-    <div class="rs-bar">
-      <h3 class="rs-ttl" id="refModalTitle">Consulter</h3>
-      <button class="ai-x" id="refX" aria-label="Fermer">×</button>
-    </div>
-    <div class="rs-body" id="refBody"></div>
   </div>
 </div>
 <!-- Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) : TOUJOURS cette confirmation,
@@ -8483,7 +8465,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.30.0';
+const APP_VERSION='5.30.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13132,9 +13114,8 @@ function applyViewChrome(){
          référents pour un même signe (AC 120-71B § 5.5) et l'inflation qui vide le registre.
          Quand Consulter est ouvert PAR-DESSUS l'excursion « Tout voir », c'est LUI le sommet de
          pile : « Un bloc » reste présent et actif (il dépile les deux niveaux d'un tap), mais
-         il rend le vert au retour du dessus. `syncRefBtn` rejoue cette règle à chaque
-         ouverture/fermeture de la consultation. */
-      ab.classList.toggle('dp-back',!chezSoi&&!refOpenNow());
+         il rend le vert au retour du dessus. */
+      ab.classList.toggle('dp-back',!chezSoi);
       ab.querySelector('.dp-lbl').textContent=st?'Un bloc':'Tout voir';
       ab.setAttribute('aria-label',chezSoi
         ?(st?'Voir un bloc à la fois':'Tout voir — la fiche entière, puis retour au bloc')
@@ -13143,7 +13124,6 @@ function applyViewChrome(){
       /* A106 : le glyphe vient de la table, jamais d'un tracé recopié — les deux SVG littéraux
          qui vivaient ici ET dans la coque statique sont partis avec l'entrée `backto`. */
       ic.innerHTML=uiIcon(chezSoi?'expand':'backto',13,{sw:2.2});}}
-   if(!enSession)closeRefSheet();   // la feuille (porte du menu ⋯ AVANT la session) ne survit pas à l'entrée en session
    /* ⚡︎ — RÈGLE DU LIBELLÉ : une seule complication → son NOM en toutes lettres (« ⚡︎ Choc
       réfractaire ») ; plusieurs → « Complications · n ». Un nombre n'est jamais nu, et l'on sait
       ce qu'on ouvre avant de l'ouvrir. La touche N'EXISTE PAS quand la fiche n'en déclare
@@ -13476,6 +13456,7 @@ function paintSeg(root,attr,idx){
     if(!document.documentElement.classList.contains('kbd'))return;
     if(Math.abs(e.touches[0].clientY-_ty)>10)qi.blur();},{passive:true});}
  qi.addEventListener('input',e=>{syncQClear();if(state.view!=='library')return;
+   if(homeTab()!=='aides')state.homeTab='aides';   // chercher, c'est chercher une aide (A365)
    state.q=e.target.value;state.libLimit=LIB_PAGE;
    clearTimeout(_qDebounce);_qDebounce=setTimeout(()=>{if(state.view==='library')render();},150);});}
 /* CROIX D'EFFACEMENT (v5.0.3, demande utilisateur) : elle n'existe QUE s'il y a quelque chose à
@@ -13493,7 +13474,22 @@ function syncQClear(){const qi=document.getElementById('q'),x=document.getElemen
 // Bascule étroit/large (seuil 780px de l'échelle fermée) : l'accueil change de STRUCTURE
 // (chips + tab bar <-> colonne gauche) -> re-rendu au franchissement du seuil.
 const mqHomeWide=window.matchMedia('(min-width:780px)');
-const _onHomeBp=()=>{if(state.view==='library')render();};
+/* SESSIONS ET MOI SONT DES VUES DE LA COLONNE (v5.30.1, A365) : ≥ 780 sur l'accueil, la colonne
+   principale les montre À LA PLACE de la liste (la colonne gauche reste active, aucun voile) ;
+   ailleurs — téléphone, ou depuis une fiche — les MÊMES portes ouvrent la page-fenêtre. Au
+   franchissement de 780 la surface change de peau sans se perdre (`syncHomeTabs`). */
+const homeTab=()=>state.homeTab||'aides';
+const homeTabsOn=()=>state.view==='library'&&mqHomeWide.matches;
+function setHomeTab(t){if(homeTab()===t&&state.view==='library')return;
+  state.homeTab=t;if(state.selOn)selEnd();if(t!=='aides')_histArm();render();
+  const s=main.querySelector('.home-main');if(s)s.scrollTop=0;}
+function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
+  if(!mqHomeWide.matches){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();return;}
+  let t2=null;
+  if(sessModal.classList.contains('on')&&_sessFiche==='*'){closeSessHist();t2='sessions';}
+  if(authModal.classList.contains('on')){closeAuth();t2='me';}
+  if(t2)setHomeTab(t2);}
+const _onHomeBp=()=>{if(state.view!=='library')return;syncHomeTabs();render();};
 if(mqHomeWide.addEventListener)mqHomeWide.addEventListener('change',_onHomeBp);else if(mqHomeWide.addListener)mqHomeWide.addListener(_onHomeBp);
 // Vue fiche TRÈS large (>= 1000px, canvas turn 6) : minuteurs/compteurs + horodatage passent en
 // COLONNE DROITE collante (toujours visibles pendant la checklist) — re-rendu au seuil.
@@ -13812,13 +13808,14 @@ function homeSideHtml(){
   const acct=(()=>{const u=Auth.user();const em=(Auth.signedIn()&&u&&u.email)?String(u.email).trim():'';
     return {ini:em?esc(em.slice(0,2).toUpperCase()):''};})();
   const liveDot=Object.keys(liveSessions).length?'<span class="hs-live" role="img" aria-label="session en cours"></span>':'';
+  const tab=homeTab(),cur=k=>tab===k?' aria-current="page"':'';
   return `<aside class="home-side">
     <div class="hs-top">
       <div class="hs-brand"><span class="brand-logo" aria-hidden="true"></span><span class="hs-brand-t">Aides cognitives</span></div>
       <nav class="hs-nav" aria-label="Sections">
-        ${hsRow({on:true,cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),attrs:'aria-current="page"'})}
-        ${hsRow({cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot,attrs:'data-sesshist aria-haspopup="dialog"'})}
-        ${hsRow({cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}</span>`:uiIcon('user',16),attrs:'data-navme aria-haspopup="dialog"'})}
+        ${hsRow({on:tab==='aides',cls:'hs-navrow',label:'Aides',mark:uiIcon('list',16),attrs:'data-navaides'+cur('aides')})}
+        ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot,attrs:'data-sesshist'+cur('sessions')})}
+        ${hsRow({on:tab==='me',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}</span>`:uiIcon('user',16),attrs:'data-navme'+cur('me')})}
       </nav>
       <div class="hs-h">Bibliothèques</div>${bibIdx}
       ${myIsAppAdmin?hsRow({cls:'quiet',label:'Nouvelle bibliothèque',attrs:'data-newlib',
@@ -13851,7 +13848,7 @@ function syncNewBtn(){const hn=document.getElementById('hdrNew');if(!hn)return;
   /* v5.30 (maquette v5) : « Sessions » (horloge) voisine de « Créer » à l'accueil. */
   {const hh=document.getElementById('hdrHist');if(hh){hh.hidden=state.view!=='library';
     if(!hh.hidden&&!hh.querySelector('svg')){hh.innerHTML=uiIcon('history',16,{sw:2.2});hh.onclick=()=>openSessHist();}}}
-  if(state.view!=='library'||!canEditScope(homeScope())){hn.hidden=true;return;}
+  if(state.view!=='library'||homeTab()!=='aides'||!canEditScope(homeScope())){hn.hidden=true;return;}
   hn.hidden=false;
   hn.title=state.section==='protocols'?'Créer un protocole':'Créer une aide cognitive';
   hn.onclick=()=>openCreateDlg();}   // dialogue « Créer » (SPEC §2.1) : 3 méthodes
@@ -13995,20 +13992,23 @@ function bindHomeChrome(rerender){
   /* Une BIBLIOTHÈQUE de la colonne gauche FILTRE la vue (v5.18, décision utilisateur) :
      « Toutes » ou re-tap = retour à l'union. Le RANGEMENT n'est jamais touché — un verbe par
      commande (le mélange des deux était l'incohérence signalée). */
+  // Un filtre de la colonne s'applique à la LISTE : depuis Sessions ou Moi il y ramène (A365).
+  const rr=()=>{if(homeTab()!=='aides')state.homeTab='aides';rerender();};
   main.querySelectorAll('.home-side [data-libsel]').forEach(b=>b.onclick=()=>{
     const v=b.dataset.libsel;
     state.homeLib=(v==='*'||state.homeLib===v)?null:v;
-    rerender();});
+    rr();});
   /* Une CATÉGORIE de la colonne gauche FILTRE — même cran que la feuille du pouce (state.cat),
      re-tap = retirer. C'est elle qui remplace le déclencheur de filtre en voie large. */
   main.querySelectorAll('.home-side [data-cat]').forEach(b=>b.onclick=()=>{
-    state.cat=(state.cat===b.dataset.cat)?null:b.dataset.cat;rerender();});
+    state.cat=(state.cat===b.dataset.cat)?null:b.dataset.cat;rr();});
   // « Toutes les catégories » : retour à l'union, sans toucher à la bibliothèque (un verbe par
   // commande). Idempotent — re-taper la rangée déjà active ne fait rien.
   main.querySelectorAll('.home-side [data-catall]').forEach(b=>b.onclick=()=>{
-    if(state.cat===null)return;state.cat=null;rerender();});
+    if(state.cat===null)return;state.cat=null;rr();});
   // Historique GLOBAL des sessions (v4.56.0, demande utilisateur) : la fenêtre existante en mode
   // « toutes les fiches » — l'entrée par fiche du menu ⋯ est inchangée.
+  qsa('[data-navaides]').forEach(b=>b.onclick=()=>setHomeTab('aides'));
   qsa('[data-sesshist]').forEach(b=>b.onclick=()=>openSessHist());
   qsa('[data-navme]').forEach(b=>b.onclick=()=>openAuth());
   /* REJOINDRE SANS CODE NI RÉSEAU (v5.14.2, signalé à l'usage : « impossible de rejoindre —
@@ -14421,7 +14421,9 @@ function openSelActs(trigger){
     :selLibsMot(libs.length);
   openPickMenu(trigger.parentNode,{aria:'Actions sur la sélection',sheet:true,trigger,options:opts,
     head:`<b>${esc(n+' coché'+(n>1?'s':''))}</b><span>${esc(port)}</span>`,
-    onPick:v=>{const b=document.getElementById(v);if(b)b.click();}});}
+    onPick:v=>{const b=document.getElementById(v);if(b){_selFromSheet=true;try{b.click();}finally{_selFromSheet=false;}}}});}
+let _selFromSheet=false;   // la sous-feuille ouverte DEPUIS la feuille Actions y propose le retour
+const selBack=()=>_selFromSheet?{label:'Actions',sub:'retour aux actions',fn:()=>openSelActs(document.getElementById('selDo'))}:null;
 // Écriture d'un lot : chaque entité repasse par SON point de persistance (fiches et protocoles
 // sont des clones, mais pas le même store ni le même assainisseur) — jamais un `Data.put` direct.
 async function selWrite(ent){for(const e of ent){e.o.updatedAt=Date.now();
@@ -14526,12 +14528,12 @@ function bindSelBar(cfg){
   {const b=document.getElementById('selNone');if(b)b.onclick=()=>{selSet().clear();redo();};}
   {const b=document.getElementById('selDo');if(b)b.onclick=()=>openSelActs(b);}
   {const b=document.getElementById('selLib');if(b)b.onclick=()=>openPickMenu(b.parentNode,
-     {aria:'Bibliothèque',sheet:true,trigger:selTrig(b),options:impLibOptions(),
+     {aria:'Bibliothèque',sheet:true,trigger:selTrig(b),options:impLibOptions(),back:selBack(),
       value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'';})(),
       onPick:v=>selMoveLib(v||null,redo)});}
   {const b=document.getElementById('selCat');if(b&&!b.disabled)b.onclick=()=>{
      const lib=(selEnt()[0]||{o:{}}).o.library||null;
-     openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),
+     openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),back:selBack(),
        options:catOpts(catsSorted(lib)),
        value:(()=>{const v=[...new Set(selEnt().map(e=>e.o.category||''))];return v.length===1?v[0]:'';})(),
        onPick:v=>selSetCat(v,redo),
@@ -14563,6 +14565,14 @@ function bindSelLongPress(cfg){
         if(navigator.vibrate)try{navigator.vibrate(12);}catch(_){}
         selStart(id);redo();},500);};
     row.onpointerup=stop;row.onpointercancel=stop;row.onpointerleave=stop;});}
+/* La colonne principale en vue Sessions ou Moi (A365) : même gabarit que la page-fenêtre (720,
+   titre 24/800), même corps — `renderSessHist`/`renderAuth` visent la vue si elle est rendue. */
+function renderHomeTab(cfg){const t=homeTab();
+  main.innerHTML=homeSideHtml()+`<div class="home-main"><section class="hv-page">`
+    +(t==='sessions'?`<h2 class="hv-title">Sessions</h2><div id="sessView"></div>`:`<h2 class="hv-title">Moi</h2><div id="meView"></div>`)
+    +`</section></div>`;
+  if(t==='sessions'){_sessFiche='*';renderSessHist();}else renderAuth();
+  bindHomeChrome(cfg.rerender);placeFooter();}
 function renderHomeList(cfg){
   const q=txNorm(state.q);
   /* v5.18 — la liste est l'UNION des bibliothèques accessibles : le RANGEMENT en fait des
@@ -14587,6 +14597,7 @@ function renderHomeList(cfg){
       if(l2.length){corrige={saisi:String(state.q||'').trim(),montre:fx};list=l2;}}}
   // La STRUCTURE dépend de la largeur (colonne gauche en large) : mqHomeWide re-rend au seuil.
   const wide=mqHomeWide.matches;
+  if(wide&&homeTab()!=='aides'){renderHomeTab(cfg);return;}
   /* Le déclencheur de filtre est PEINT à chaque rendu (statique dans le dock, jamais recréé) ;
      type + catégorie s'ouvrent en feuille à TOUTES les largeurs depuis v5.18. */
   syncFiltTog(true);
@@ -15857,10 +15868,10 @@ let _pickClose=null;
 /* UNE rangée de menu (A361), pour le menu ⋯ comme pour les sélecteurs : icône (`ic`, chaîne vide =
    slot gardé pour l'alignement) OU pastille de catégorie (`dot`), libellé, sous-ligne, queue
    (`tail` : coche, chevron). `attrs` vient de l'appelant, déjà échappé. */
-function menuRowHtml(o){
-  return `<button type="button" class="mm-row${o.danger?' danger':''}"${o.attrs?' '+o.attrs:''}${o.disabled?' disabled':''}>`
+function menuRowHtml(o){const tag=o.inert?'div':'button';   // `inert` : une rangée qui INFORME sans répondre au tap (jamais un bouton mort)
+  return `<${tag}${o.inert?'':' type="button"'} class="mm-row${o.danger?' danger':''}${o.inert?' inert':''}"${o.attrs?' '+o.attrs:''}${o.disabled?' disabled':''}>`
     +(o.ic!=null?`<span class="mm-ic" aria-hidden="true">${o.ic}</span>`:o.dot?`<span class="cat-dot" style="--catcol:${o.col||'var(--line-strong)'}"></span>`:'')
-    +`<span class="mm-tx"><span class="mm-lb">${esc(o.label)}</span>${o.sub?`<span class="mm-sub">${esc(o.sub)}</span>`:''}</span>${o.tail||''}</button>`;}
+    +`<span class="mm-tx"><span class="mm-lb">${esc(o.label)}</span>${o.sub?`<span class="mm-sub">${esc(o.sub)}</span>`:''}</span>${o.tail||''}</${tag}>`;}
 function openPickMenu(host,opts){
   if(_pickClose)_pickClose(false);
   const O=opts.options||[],val=String(opts.value==null?'':opts.value),trigger=opts.trigger;
@@ -15872,7 +15883,7 @@ function openPickMenu(host,opts){
   // ancré) ou par la largeur — le seuil de la feuille de style d'hier, à l'identique.
   const sheet=!!opts.sheet||window.innerWidth<780;
   const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'');menu.setAttribute('role','listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
-  menu.innerHTML=`<div class="popmenu-head">${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
+  menu.innerHTML=`<div class="popmenu-head">${opts.back?menuRowHtml({label:opts.back.label,sub:opts.back.sub,ic:uiIcon('backto',18),attrs:'data-pickback'}):''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'');
   const veil=document.createElement('div');veil.className='popmenu-veil'+(sheet?' sheet':'');
@@ -15914,6 +15925,7 @@ function openPickMenu(host,opts){
   document.addEventListener('keydown',keys,true);
   menu.querySelectorAll('[data-pickopt]').forEach(b=>b.onclick=()=>{const v=b.dataset.pickopt;close(false);opts.onPick(v);});
   if(opts.action){const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);opts.action.fn();};}
+  {const bk=menu.querySelector('[data-pickback]');if(bk)bk.onclick=()=>{close(false);opts.back.fn();};}   // v5.30.1 : « ‹ Actions », pour jongler entre les sous-feuilles
   const fl=menu.querySelector('.catmenu-filter');
   if(fl){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
       menu.querySelectorAll('.mm-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});});
@@ -18618,7 +18630,7 @@ function renderRead(){
         `<ul class="flat confirm entry">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>`
         +(diffH?`<button type="button" class="atyp-link" id="atypLink">Le tableau ne colle pas ? → ${clean(listOf(f,'differentials')).length} diagnostic${clean(listOf(f,'differentials')).length>1?'s':''} à éliminer ▸</button>`:''),
         {cls:'entry'});}
-    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}Diagnostic confirmé</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
+    return `<section class="conf-block"><button type="button" class="conf-head" id="confToggle" aria-expanded="${open?'true':'false'}"><span role="heading" aria-level="2" class="block-h h-confirm">${headerIcon('h-confirm')}Diagnostic confirmé</span><span class="conf-sub">· ${confItems.length} élément${confItems.length>1?'s':''}</span>${chevHtml(open)}</button>${open?`<ul class="flat confirm">${confItems.map(x=>`<li><span class="ftxt">${fmt(x)}</span></li>`).join('')}</ul>${diffH?`<button type="button" class="atyp-link" id="atypLink">Tableau atypique ? → Diagnostics différentiels ▸</button>`:''}`:''}</section>`;})();
 
   /* ⚠ POSÉ AVANT QUE LE JOURNAL NE SOIT CONSTRUIT : `overviewSection` court plus haut dans
      `renderRead`, et un drapeau posé après lui n'arrivait qu'au rendu SUIVANT — la confirmation
@@ -18749,7 +18761,7 @@ function renderRead(){
   // Bouton de démarrage EXPLICITE ; un seul bouton rempli par écran ; jamais bloquant.
   // v4.13.0/v4.18.0 : plus de panneau « Algorithme » avant le journal (ECAM E/WD → SD, SVG =
   // « Schéma » de la section Plan) ; il ne subsiste que sans algorithme. Détail : doctrine-js.md J135.
-  const algH=(f.blocks&&f.blocks.length&&!useSv&&!useOv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span><span class="alg-chev" aria-hidden="true">${state.showFlow?'▴':'▾'}</span></button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
+  const algH=(f.blocks&&f.blocks.length&&!useSv&&!useOv)?`<div class="alg-panel"><button type="button" class="alg-head" id="flowToggle" aria-expanded="${state.showFlow?'true':'false'}"><span class="alg-k">Algorithme</span><span class="alg-sub">${algSubHtml(blockDone,blockTot)}</span>${chevHtml(state.showFlow,'alg-chev')}</button>${state.showFlow?flowBlock(f,true)+'<div class="flow-hint">Schéma = vue d’ensemble · un nœud = y aller · étapes à cocher en-dessous ↓</div>':''}</div>`:'';
   const localH=f.local&&f.local.trim()?`<div class="local">${fmt(f.local)}</div>`:'';
   /* DÉCLARÉ ICI, PAS PLUS BAS : le lot T3 a payé une zone morte temporelle (`started` lu avant sa
      déclaration → ReferenceError, invisible aux tests qui n'exercent pas de rendu). M2a (v5.0.0) —
@@ -18760,13 +18772,18 @@ function renderRead(){
   /* v5.30 (décision de l'auteur, maquette v5) : en session, ce qui n'est pas le bloc courant vit SOUS lui, en
      cartes dépliables fermées — « Ne pas oublier » en première (memory items, AC 120-71B), puis À vérifier,
      différentiels, repères. État transitoire par session (`state.sessFold`), jamais persisté. */
-  const sessFoldH=(agirDabord&&!state.previewFrom)?(()=>{state.sessFold=state.sessFold||new Set();
-    const card=(k,ic,title,n,inner,crit)=>inner?foldCardHtml(k,ic,title,n,state.sessFold.has(k),inner,{crit,attr:'data-sessfold'}):'';
+  /* v5.30.1 : les MÊMES quatre cartes (À vérifier, différentiels, repères, Références) avant et
+     pendant la session — une fabrique, deux états : par fiche et fermées d'office avant
+     (`data-prefold`), transitoires pendant (`data-sessfold`). */
+  const foldCardsH=(attr,isOpen)=>{
+    const card=(k,ic,title,n,inner,crit)=>inner?foldCardHtml(k,ic,title,n,isOpen(k),inner,{crit,attr}):'';
     const nV=clean(listOf(f,'verify')).length,nD=clean(listOf(f,'differentials')).length,nP=clean(listOf(f,'posology')).length;
     /* v5.30 (A354) : « Références » — schémas, documents, sources, renvois — en carte sous les autres ;
        la touche « Consulter » du quai et la rangée sous la fiche sont parties avec (une seule porte). */
     const nR=(f.images||[]).length+(f.docs||[]).length+clean(f.sources).length+(f.links||[]).map(id=>relTarget(id)).filter(Boolean).length;
-    return forgetStrip+card('verify','△','À vérifier',nV,verifyH)+card('diff','?','Diagnostics différentiels',nD,diffH)+card('pos','℞','Repères posologiques',nP,wideRead?'':posH)+card('refs','▤','Références',nR,nR?refSheetHtml(f,true):'');})():'';   // en large, le rail porte déjà les repères
+    return card('verify','△','À vérifier',nV,verifyH)+card('diff','?','Diagnostics différentiels',nD,diffH)+card('pos','℞','Repères posologiques',nP,wideRead?'':posH)+card('refs','▤','Références',nR,nR?refSheetHtml(f,true):'');};
+  const sessFoldH=(agirDabord&&!state.previewFrom)?(()=>{state.sessFold=state.sessFold||new Set();
+    return forgetStrip+foldCardsH('data-sessfold',k=>state.sessFold.has(k));})():'';  // en large, le rail porte déjà les repères
   /* DÉCLARÉ ICI, AVANT LE `if(useSv)` : la coque de `main.innerHTML` le lit aussi (c'est LUI qui
      décide si le chapeau est encore rendu en tête de colonne). Posé dans la branche, il serait
      hors de portée — même zone morte que celle payée au lot T3. */
@@ -18817,7 +18834,8 @@ function renderRead(){
    const flowOpen=preFoldOpen(f,'flow'),nDec=(f.blocks||[]).filter(b=>b.kind==='decision').length,nBl=(f.blocks||[]).length-nDec;
    if(body)stages.push(avantSession
      ?{cls:'on pre-flow'+(flowOpen?'':' closed'),head:'',chap:foldHeadHtml('flow','⇣','Parcours',`${nBl} bloc${nBl>1?'s':''}${nDec?` · ${nDec} décision${nDec>1?'s':''}`:''}`,flowOpen),body:flowOpen?body:''}
-     :{cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});}
+     :{cls:state.flowEnded?'done':(started?'on':(confBlockH?'off':'on')),head:'Prise en charge',body});
+}
   // v4.23.0 : ③ ne garde que « △ À vérifier » — ce qui tue reste dans le FLUX (AC 120-71B) ;
   // les différentiels partent dans la feuille Consulter (lien « Tableau atypique ? » de ①).
   /* ⚠ PAS AVANT LA SESSION (v5.6) : « Surveiller ensuite » revient dès le premier geste (voie
@@ -18825,6 +18843,10 @@ function renderRead(){
      la page de garde. Détail : doctrine-js.md J139. */
   if(verifyH&&!avantSession&&!agirDabord)stages.push({cls:state.flowEnded?'on':'off',head:'Surveillances &amp; pièges',body:verifyH});   // en session : carte dépliable sous le bloc
   }
+  /* v5.30.1 : AVANT la session, les quatre cartes fermées d'office — sous « Parcours » sur l'écran
+     d'entrée, sous la fiche en mode « Toute la fiche » ou sur une aide sans parcours (A367 : la
+     feuille « Consulter » a vécu, la carte est la seule porte des documents et des références). */
+  if(!started&&!state.previewFrom){const pc=foldCardsH('data-prefold',k=>preFoldOpen(f,k));if(pc)stages.push({cls:'on pre-cards',head:'',body:pc});}
   /* LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE EN SESSION (règle v4.4.0 ROUVERTE, cf. AGENTS.md).
      Il numérote un PARCOURS — orienter quelqu'un qui découvre la fiche — et c'est exactement ce
      dont on n'a plus besoin une fois qu'on exécute. Deux conséquences, et la seconde est la
@@ -18943,11 +18965,11 @@ function bindReadEvents(f,blk,cur){
   /* La carte « Références » se câble À L'OUVERTURE (documents, schémas, renvois) : ses vignettes PDF
      comptent comme une ouverture (règle pdf.js), une carte fermée n'en demande donc aucune. */
   const bindRefsCard=()=>{const sec=main.querySelector('[data-sf="refs"]:not(.closed) .sf-body');
-    if(sec&&state.fiche&&!_refsBound.has(sec)){_refsBound.add(sec);bindRefBody(sec,state.fiche,null,null);}};
+    if(sec&&state.fiche&&!_refsBound.has(sec)){_refsBound.add(sec);bindRefBody(sec,state.fiche);}};
   bindRefsCard();
   main.querySelectorAll('[data-sessfold]').forEach(b=>b.onclick=()=>{const k=b.dataset.sessfold,sec=b.closest('.fold-card'),body=sec&&sec.querySelector('.sf-body');if(!body)return;
     const open=body.hidden;body.hidden=!open;sec.classList.toggle('closed',!open);b.setAttribute('aria-expanded',open?'true':'false');
-    const ch=b.querySelector('.conf-chev');if(ch)ch.textContent=open?'▴':'▾';
+    const ch=b.querySelector('.conf-chev');if(ch)ch.classList.toggle('open',open);
     state.sessFold=state.sessFold||new Set();if(open)state.sessFold.add(k);else state.sessFold.delete(k);bindRefsCard();});
   // Démarrage EXPLICITE de la session (v4.3.2) : même chemin que la 1ʳᵉ action (ensureStarted).
   // « Confirmé — démarrer » REPLIE délibérément l'étape ① (acquittement par l'action, ECAM) —
@@ -18958,7 +18980,7 @@ function bindReadEvents(f,blk,cur){
   // « Tableau atypique ? » (étape ①) : les différentiels vivent désormais dans la feuille
   // Consulter (v4.23.0). Le lien y atterrit DIRECTEMENT, section dépliée et mise en évidence —
   // sans ce ciblage on aurait remplacé un accès direct par une chasse au trésor.
-  {const al=document.getElementById('atypLink');if(al)al.onclick=()=>openRefSheet('diff');}
+  {const al=document.getElementById('atypLink');if(al)al.onclick=()=>openFoldCard('diff');}   // A367 : vers LA carte, plus une feuille
   // Menu ⋯ (SPEC §4) — a remplacé la barre « Autorat » de bas de page. En crise, « Modifier »
   // reste visible mais désactivé (mention explicite) : l'édition demeure à deux taps délibérés.
   const started=Runtime.started;
@@ -18968,14 +18990,13 @@ function bindReadEvents(f,blk,cur){
      l'étanchéité) et une PORTE DE SORTIE (`Share.stop()` n'avait aucun appelant). I8 (v5.10.2) :
      les quatre rangées de CONDUITE communes sortent en fabrique (§ 5.5) ; le SOUS-TITRE de
      « Consulter » reste un PARAMÈTRE (fiche dépouillée SHARE_KEEP). Détail : doctrine-js.md J141. */
-  /* A337 : EN SESSION LE MENU NE RÉPÈTE PAS LE DOCK — « Complication » et « Consulter » y sont des
-     touches constantes, toujours visibles (la double entrée datait de v4.26.1, avant le dock de
-     v5.6). Les OUVERTURES restantes tiennent en UNE rangée de tuiles. Détail : lot-v5-28.md A337. */
-  const conduiteTiles=subConsulter=>{const t=[
+  /* A337 : EN SESSION LE MENU NE RÉPÈTE PAS LE DOCK — « Complication » y est une touche constante
+     (la double entrée datait de v4.26.1, avant le dock de v5.6). Les OUVERTURES tiennent en UNE
+     rangée de tuiles. A367 : « Consulter » a vécu, la page porte ses cartes. Détail : lot-v5-28.md A337. */
+  const conduiteTiles=()=>{const t=[
     ...(Runtime.started&&Runtime.ficheId===f.id?[{label:'Moniteur',ic:uiIcon('expand',18),sub:'appareil posé, lisible à 2 m',act:monOpen}]:[]),
     ...(hasFlow(f)&&state.readMode!=='static'?[{label:'Se repérer',ic:uiIcon('ladder',18),sub:'échelle des blocs',act:openPlanSheet}]:[]),
-    ...(hasFlow(f)?[{label:'Schéma',ic:uiIcon('flow',18),sub:'schéma de l’algorithme, plein écran',act:()=>openFlowFull(f)}]:[]),
-    ...(!started&&refContentKinds(f).length?[{label:'Consulter',ic:uiIcon('book',18),sub:subConsulter,act:()=>openRefSheet()}]:[])];
+    ...(hasFlow(f)?[{label:'Schéma',ic:uiIcon('flow',18),sub:'schéma de l’algorithme, plein écran',act:()=>openFlowFull(f)}]:[])];
     return t.length?[{tiles:t}]:[];};
   _moreBuild=null;
   if(!state.previewFrom&&sharedShown())_moreBuild=()=>setMoreMenu([
@@ -18988,7 +19009,7 @@ function bindReadEvents(f,blk,cur){
       ? [{label:'Prendre la main',ic:'⇄',sub:'vous conduirez la checklist',
           act:()=>{if(Share.takeLead()){announce('Vous avez pris la main.');shareMenuRefresh();}}}]
       : []),
-    ...conduiteTiles('ce qui a été transmis'),
+    ...conduiteTiles(),
     /* CONTINUER SEUL — n'apparaît QUE quand le lien est silencieux. C'est le repli hors dispositif
        (AC 120-64 §9.a) : plutôt qu'un écran figé, l'invité reprend la main sur l'instantané qu'il a
        déjà. La rangée n'existe pas tant que le lien est bon — proposer de bifurquer à quelqu'un qui
@@ -19015,7 +19036,7 @@ function bindReadEvents(f,blk,cur){
           sub:sharedTitle(),act:backToShared},'sep']
       : []),
     ...(!started&&cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:boltIcon(15),sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
-    ...conduiteTiles('surveillances, documents…'),
+    ...conduiteTiles(),
     {head:'Session'},
     /* PARTAGER — dans le groupe de la CONDUITE EN COURS, jamais dans le chrome de crise : la
        rangée de commandes n'a que 2,1 px de marge à 320 px, et un contrôle qui apparaîtrait selon
@@ -19095,7 +19116,7 @@ function bindReadEvents(f,blk,cur){
        l'omettait — `buildFlowSVG(undefined)` ne rend rien, en silence. */
     if(k==='page'){openPlanSheet('page');return;}
     if(k==='svg'){openFlowFull(f);return;}
-    if(k==='docs')openRefSheet('docs');});
+    if(k==='docs')openFoldCard('refs');});   // A367 : la carte Références porte les documents
   // Sortie du bandeau « le partage a été interrompu » (invité, lien mort) : même geste que la
   // rangée du menu ⋯, donc même fonction — jamais une seconde porte qui dirait autre chose.
   {const q=document.getElementById('soQuit');if(q)q.onclick=quitShare;}
@@ -19278,7 +19299,7 @@ const confCritsHtml=it=>it.map(x=>`<div class="ovh-row ovh-crit"><span class="ov
 function confTraceRow(f){
   const it=confCrits(f);if(!it.length)return '';
   const k='r:confdet',open=state.ovFold[k]===false;
-  return `<button type="button" class="ovh-row" data-ovrun="${k}" aria-expanded="${open?'true':'false'}" title="Diagnostic confirmé · ${it.length} critère${it.length>1?'s':''} · taper pour ${open?'replier':'déplier'}"><span class="ovh-ok" aria-hidden="true">✓</span><span class="ovh-t">Diagnostic confirmé<span class="ovh-x"> · ${it.length} critère${it.length>1?'s':''}</span></span><span class="ovr-chev" aria-hidden="true">${open?'⌃':'⌄'}</span></button>`
+  return `<button type="button" class="ovh-row" data-ovrun="${k}" aria-expanded="${open?'true':'false'}" title="Diagnostic confirmé · ${it.length} critère${it.length>1?'s':''} · taper pour ${open?'replier':'déplier'}"><span class="ovh-ok" aria-hidden="true">✓</span><span class="ovh-t">Diagnostic confirmé<span class="ovh-x"> · ${it.length} critère${it.length>1?'s':''}</span></span>${chevHtml(open)}</button>`
     +(open?confCritsHtml(it):'');}
 const confTraceLbl=f=>confCrits(f).length?'diagnostic confirmé':'';
 let _printingOv=false;   // v4.16.0 : l'impression déplie TOUT le fil (aucune chip sur le papier)
@@ -19300,6 +19321,10 @@ function overviewSection(f){
   // (consultation transitoire, même règle que les chips — ovDropOpens la referme au
   // prochain geste de navigation). Clé stable : l'index du PREMIER passage de la rangée.
   let insts='';let run=[],runIdx=[],runTt=[];
+  let histPill='',histRows='';
+  /* A369 — LA BULLE D'HISTORIQUE : ce que l'on coche dessous MONTE ici. Icône d'historique, « Fait · … »,
+     chevron ; entre « Parcours » et le compte, elle dit ce qui est fait et replié, un tap l'ouvre. */
+  const runPill=(key,label,tt,open)=>`<button type="button" class="ov-runline${open?' open':''}" data-ovrun="${key}" aria-expanded="${open?'true':'false'}" title="${esc(tt)} · taper pour ${open?'replier':'déplier'}"><span class="ovr-ic" aria-hidden="true">${uiIcon('history',14)}</span><span class="ovr-t">Fait · ${label}</span>${chevHtml(open)}</button>`;
   const confL=confTraceLbl(f),confR=!!confL;let confPosee=false;
   const flush=()=>{if(!run.length)return;
     const key='r:'+runIdx[0];
@@ -19317,10 +19342,14 @@ function overviewSection(f){
        recomposent à chaque largeur. La rangée dit le titre ENTIER, le passage et le compte,
        et la pile se lit d'un coup d'œil comme le parcours de la colonne d'orientation : une
        seule grammaire pour « la liste des blocs » dans tout le produit. */
-    if(state.ovFold[key]!==false){
-      const a=topo[state.nav[runIdx[0]]]||'·',b=topo[state.nav[runIdx[runIdx.length-1]]]||'·';
-      insts+=`<button type="button" class="ov-runline" data-ovrun="${key}" aria-expanded="false" title="${esc(runTt.join(' · '))}${sfx} · taper pour déplier"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''} · ${a}→${b}${sfx}<span class="ovr-chev" aria-hidden="true">⌄</span></button>`;}
-    else insts+=`<div class="ov-hist"><button type="button" class="ov-runline open" data-ovrun="${key}" aria-expanded="true"><span class="ovr-ok" aria-hidden="true">✓</span>${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''}${sfx}<span class="ovr-chev" aria-hidden="true">⌃</span></button>${pre}${runIdx.map(i=>ovHistRowHtml(f,state.nav[i],i,topo)).join('')}</div>`;
+    const a=topo[state.nav[runIdx[0]]]||'·',b=topo[state.nav[runIdx[runIdx.length-1]]]||'·';
+    const open=state.ovFold[key]===false,label=`${a===b?a:a+'→'+b}${sfx}`,tt=`${run.length} bloc${run.length>1?'s':''} fait${run.length>1?'s':''} · ${runTt.join(' · ')}${sfx}`;
+    /* A369 : la PREMIÈRE série (avant tout bloc affiché) monte sur la ligne « Parcours » — c'est
+       l'HISTORIQUE, entre le titre et le compte ; une série plus bas (après une excursion) reste
+       une ligne du fil. Ouverte, ses rangées forment une carte en tête du journal. */
+    if(!insts&&!histPill){histPill=runPill(key,label,tt,open);if(open)histRows=`<div class="ov-hist">${pre}${runIdx.map(i=>ovHistRowHtml(f,state.nav[i],i,topo)).join('')}</div>`;}
+    else if(!open)insts+=runPill(key,label,tt,false);
+    else insts+=`<div class="ov-hist">${runPill(key,label,tt,true)}${pre}${runIdx.map(i=>ovHistRowHtml(f,state.nav[i],i,topo)).join('')}</div>`;
     run=[];runIdx=[];runTt=[];};
   state.nav.forEach((id,i)=>{
     if(pres[i]==='chip'){run.push(1);runIdx.push(i);
@@ -19330,10 +19359,9 @@ function overviewSection(f){
   /* Aucune ligne-bilan n'ouvrait le journal (premier passage encore en cours, ou déplié à la
      main) : la confirmation prend sa propre ligne — même anatomie, même place, seul le compte
      manque. C'est ce qui fait qu'elle ne se déplace jamais. */
-  if(confR&&!confPosee){const k='r:conf';
-    insts=(state.ovFold[k]===false
-      ?`<div class="ov-hist"><button type="button" class="ov-runline open" data-ovrun="${k}" aria-expanded="true"><span class="ovr-ok" aria-hidden="true">✓</span>${confL}<span class="ovr-chev" aria-hidden="true">⌃</span></button>${confCritsHtml(confCrits(f))}</div>`
-      :`<button type="button" class="ov-runline" data-ovrun="${k}" aria-expanded="false" title="${esc(confL)} · taper pour déplier"><span class="ovr-ok" aria-hidden="true">✓</span>${confL}<span class="ovr-chev" aria-hidden="true">⌄</span></button>`)+insts;}
+  if(confR&&!confPosee){const k='r:conf',open=state.ovFold[k]===false;   // A369 : en tête, donc sur la ligne « Parcours »
+    histPill=runPill(k,confL,confL,open)+histPill;
+    if(open)histRows=`<div class="ov-hist">${confCritsHtml(confCrits(f))}</div>`+histRows;}
   const endH=state.flowEnded?'<div class="flow-end">Algorithme terminé — surveillance en cours</div>':'';
   const controls='';   // v4.23.8 : « Recommencer » a rejoint le menu ⋯ (cf. restartCourse)
   /* « Parcours » ne s'annonce plus en session : l'étage qui le contient s'appelle « Prise en
@@ -19346,8 +19374,9 @@ function overviewSection(f){
      TOUTES les étapes de l'aide, pas seulement du bloc courant. */
   const prog=(()=>{if(!Runtime.started)return '';const md=minimapData(f,state.nav,state.navSeq,state.checked,state.navPos);
     const d=md.reduce((a,m)=>a+(m.done||0),0),t=md.reduce((a,m)=>a+(m.tot||0),0);
-    return t?`<div class="ov-prog"><span>Parcours</span><span>${d}/${t} étapes</span></div>`:'';})();
-  const inner=controls+secH+prog+`<div class="ov-journal">${insts}${endH}</div>`;
+    return t?`<div class="ov-prog"><span>Parcours</span>${histPill}<span>${d}/${t} étapes</span></div>`:'';})();
+  if(!prog&&histPill)insts=histPill+insts;   // sans ligne « Parcours » (aucune étape comptée), la bulle reprend la tête du fil
+  const inner=controls+secH+prog+`<div class="ov-journal">${histRows}${insts}${endH}</div>`;
   // Compteur du panneau Algorithme : l'instance du BOUT (là où l'on agit).
   const tipDone=blockTip(f,cur);   // I8 v5.10.2 : compteur du bout, une seule fabrique
   return {blk,cur,navHtml:`<div class="ov-wrap">${inner}</div>`,inner,
@@ -19372,7 +19401,7 @@ function ovHistRowHtml(f,id,idx,topo){
   else{const st=clean(stepsOf(b)),n=st.length;
     let k=0;for(let j=0;j<n;j++)if(state.checked[state.navSeq[idx]+':'+id+':'+j])k++;
     right=`<span class="ovh-n">${k}/${n}</span>`;}
-  return `<button type="button" class="ovh-row" data-ovix="${idx}" title="${esc(tt)} · taper pour déplier"><span class="ovh-ok" aria-hidden="true">✓</span><span class="ovh-t">${topo[id]||'·'} · ${esc(tt)}${pi.total>1?`<span class="ovh-x"> · passage ${pi.pass}/${pi.total}</span>`:''}</span>${right}</button>`;}
+  return `<button type="button" class="ovh-row" data-ovix="${idx}" title="${esc(tt)} · taper pour déplier"><span class="ovh-ok" aria-hidden="true">✓</span><span class="ovh-t">${topo[id]||'·'} · ${esc(tt)}${pi.total>1?`<span class="ovh-x"> · passage ${pi.pass}/${pi.total}</span>`:''}</span>${right}${chevHtml(false)}</button>`;}
 /* L'ÉTIQUETTE DE BLOC — « Bloc n », en petites capitales grises, et le ✓ quand il est complet.
    Ni pastille ni aplat : le numéro est celui du plan, du statique et du schéma (`flowPlan().order`),
    et il n'a pas besoin d'un disque bleu pour se lire. */
@@ -19535,7 +19564,7 @@ function ovInstHtml(f,id,idx,topo,pres){
        cartes PASSÉES, qui n'ont pas de pied d'action — l'en-tête y est le seul endroit possible.
        Et pendant la passe, le ✕ reste en tête : c'est une sortie, pas une action de la liste. */
     :((!tip&&complete&&!dec)?`<button type="button" class="ov-redo" data-ovredo="${esc(id)}" title="Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle">${uiIcon('undo',13)} Refaire</button>`:'');
-  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span>${tip&&!closed?'<span class="ov-cur">En cours</span>':''}<span class="ov-c">${count}</span><span class="ov-chev" aria-hidden="true">${closed&&!verifying?'▾':'▴'}</span></button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
+  return `<section class="ov-block${tip?' cur':''}${complete?' done':''}${dec?' dec':''}${verifying?' vfy':''}${closed&&!verifying?' closed':''}" data-ovb="${esc(id)}" data-ovi="${idx}" data-ovn="${topo[id]||''}"${tip?' aria-current="step"':''}><div class="ov-head"><button type="button" class="ov-tgl" data-ovtgl="${idx}" aria-expanded="${closed&&!verifying?'false':'true'}"><span class="ov-n">${ovNumHtml(complete,topo[id],!!(Runtime.cxBack||{})[seq])}</span><span class="ov-t">${esc(b.title)||(dec?'Décision':'Étapes')}${passTag}${cxTag}${takenH}${navByTag(tip,seq)}</span>${tip&&!closed?'<span class="ov-cur">En cours</span>':''}<span class="ov-c">${count}</span>${chevHtml(!(closed&&!verifying),'ov-chev')}</button>${btns?`<div class="ov-acts">${btns}</div>`:''}</div><div class="ov-body">${bodyH}</div></section>`;}
 /* PLAN DE L'AIDE — « Se repérer » (v4.12.0, UNE vue depuis v4.25.0) : rendu de flowPlan, INERTE
    côté cochage, sert à NAVIGUER. L'ÉCHELLE (ovPlanLadderHtml, compact ECAM) : une ligne par bloc,
    retraits avec étiquette de branche (« OUI › »), renvois mono abrégés (optAbbr), tap = détails
@@ -19732,9 +19761,7 @@ bindModalDismiss(planModal,closePlanSheet);
    flux (seul bloc à état éditable). Ouverture en PULL seulement ; `sect` déplie une section
    précise (« Tableau atypique ? » atterrit DIRECTEMENT sur les différentiels).
    Détail : doctrine-js.md J151. */
-const refModal=document.getElementById('refModal');
 const _refsBound=new WeakSet();   // corps de carte « Références » déjà câblés (A354)
-function refSheetOpen(){return refModal.classList.contains('on');}
 /* Rangée d'accès en fin de colonne d'action. Elle fait ce que le bouton du quai ne sait pas
    faire : ÉNONCER ce qui existe (son sous-titre nomme les sections présentes) — une icône
    persistante donne l'accès, pas la découverte. Les deux coexistent pour ça. */
@@ -19743,14 +19770,6 @@ function refSheetOpen(){return refModal.classList.contains('on');}
    bouton et ouvrirait une feuille VIDE. Le sous-titre annonce donc ce qu'on va réellement y
    trouver — surveillances et posologie n'y figurent plus (v4.25.3). */
 /* Ce que la feuille Consulter a à montrer — sert de PRÉDICAT au menu ⋯ (jamais de porte vide). */
-function refContentKinds(f){
-  const has=[];
-  if(clean(listOf(f,'differentials')).length)has.push('Différentiels');
-  if((f.images||[]).length)has.push('Schémas');
-  if((f.docs||[]).length)has.push('Documents');
-  if(clean(f.sources).length)has.push('Références');
-  if(((f.links||[]).map(id=>relTarget(id)).filter(Boolean)).length)has.push('Voir aussi');
-  return has;}
 function refSheetHtml(f,sansDiff){
   /* DOCUMENT, PAS MENU (v4.25.0) — audit : quatre sections sur cinq étaient repliées, soit 216 px
      de titres pour ~380 px de vide, et la seule ouverte d'office était une COPIE de ce qui est déjà
@@ -19758,7 +19777,7 @@ function refSheetHtml(f,sansDiff){
      ~977 px, soit une chiquenaude de défilement — contre quatre taps et l'invisibilité totale.
      En QRH, la section amplifiée est un document qu'on FAIT DÉFILER. Les replis restent possibles
      (jamais persistés), mais l'état initial est OUVERT. */
-  const sec=(key,title,inner)=>inner?`<details class="rs-sec" open data-rs="${key}"><summary>${esc(title)}</summary><div class="rs-in">${inner}</div></details>`:'';
+  const sec=(key,title,inner)=>inner?`<details class="rs-sec" open><summary>${esc(title)}</summary><div class="rs-in">${inner}</div></details>`:'';   // A367 : plus de `data-rs`, personne ne ciblait plus une section
   // (surveillances et posologie ne sont plus recopiées ici — cf. le commentaire de `body`)
   /* LE DESSIN DE LA MAQUETTE (v5.0.0, lot M10) : une RANGÉE par entrée — case inerte
      (`aria-hidden`, sans `data-ck` : la feuille Consulter est INERTE depuis v4.23.0, harnais),
@@ -19795,38 +19814,22 @@ function refSheetHtml(f,sansDiff){
 /* Mêmes gestes qu'en flux, re-câblés dans la feuille OU la colonne (les câblages d'origine sont
    portés par `main`, qui ne les contient pas) — LE commun des deux régimes qu'A15 exige : deux
    rendus séparés auraient divergé, c'est la leçon du cœur de cochage (v4.42.0). */
-function bindRefBody(root,f,scrollHost,sect){
+function bindRefBody(root,f){
   root.querySelectorAll('[data-att]').forEach(b=>b.onclick=()=>{const a=(f.docs||[]).find(x=>x.id===b.dataset.att);if(a)openPdfViewer(a,f);});
   hydrateAttThumbs(f);
-  root.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>{closeRefSheet();openRel(b.dataset.openrel);});
-  root.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
-  if(sect){const d=root.querySelector('[data-rs="'+sect+'"]');
-    if(d){d.open=true;scrollWithin(scrollHost,d,'start');d.classList.add('rs-flash');setTimeout(()=>d.classList.remove('rs-flash'),1200);}}}
-function renderRefSheet(sect){
-  const f=state.fiche;if(!f||!refSheetOpen())return;
-  const body=document.getElementById('refBody');
-  body.innerHTML=refSheetHtml(f);
-  bindRefBody(body,f,refModal,sect);}
-/* v5.30 (A354) : la feuille est la porte d'AVANT la session (menu ⋯) ; en session son contenu vit dans la
-   carte « Références » sous le bloc. La colonne du cockpit (A15) et la touche du quai sont parties. */
-function openRefSheet(sect){
-  if(!state.fiche)return;
-  refModal.classList.add('on');renderRefSheet(sect);syncRefBtn();}
-function closeRefSheet(){
-  if(refSheetOpen())refModal.classList.remove('on');
-  syncRefBtn();}
-/* Le retour porte la MÊME grammaire que « ↩ Un bloc » : même glyphe, même vert rempli, même
-   place. Une excursion se referme toujours par le contrôle qui l'a ouverte. */
-function refOpenNow(){return refSheetOpen();}
-function syncRefBtn(){
-  const on=refOpenNow();
-  /* Le vert change de main AVEC la pile (v5.19.1) : ouvrir Consulter le prend à « Un bloc »,
-     le fermer le lui rend — même règle que dans `applyViewChrome`, rejouée ici parce que
-     l'ouverture/fermeture de la consultation ne repasse pas toujours par un rendu complet. */
-  const ab=document.getElementById('allBtn');
-  if(ab&&!ab.hidden)ab.classList.toggle('dp-back',state.readMode!==currentReadMode()&&!on);}
-bindModalDismiss(refModal,closeRefSheet);
-{const rx=document.getElementById('refX');if(rx)rx.onclick=closeRefSheet;
+  root.querySelectorAll('[data-openrel]').forEach(b=>b.onclick=()=>openRel(b.dataset.openrel));
+  root.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));}
+/* v5.30.1 (A367) — LA FEUILLE « CONSULTER » A VÉCU : depuis A366 la page porte ses cartes avant la
+   session, la feuille ne montrait plus que ce que la page a déjà. « Le tableau ne colle pas ? » et
+   « Documents · n » mènent donc À LA CARTE (différentiels, Références) : ouverte SEULE, les autres
+   repliées, amenée en haut de l'écran — un lien vers un endroit de la page, plus une excursion. */
+function openFoldCard(k){const f=state.fiche;if(!f)return;
+  const s=mdFoldGet(f.id);
+  ['when','forget','flow','verify','diff','pos','refs'].forEach(x=>{const key=preFoldKey(x),open=x===k;
+    if(PRE_CLOSED.has(x)){if(open)s.add(key);else s.delete(key);}else{if(open)s.delete(key);else s.add(key);}});
+  mdFoldSet(f.id,s);render();
+  const c=main.querySelector('[data-sf="'+k+'"]');if(c)c.scrollIntoView({block:'start'});}
+{
  /* Les DEUX touches hors session : câblées UNE FOIS, avec les autres — elles vivent hors de
     `main`, donc elles survivent aux re-rendus (c'est tout l'intérêt du dock). `startSessionGesture`
     reste le point d'écriture unique du démarrage, partagé avec le carrelage statique d'hier. */
@@ -20200,14 +20203,14 @@ function railHereTxt(f){
   const circ='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮'[i]||String(i+1);
   return '· ici : '+circ+' '+stripBold((b&&b.title)||'');}
 function railLadSum(f,n){
-  return `<summary class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${n}</span><span class="rf-here">${esc(railHereTxt(f))}</span><span class="rf-chev" aria-hidden="true">▾</span></summary>`;}
+  return `<summary class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${n}</span><span class="rf-here">${esc(railHereTxt(f))}</span>${chevHtml(false,'rf-chev')}</summary>`;}
 function railLadSec(f){
   const p=railLadParts(f);if(!p)return '';
   const open=state.railLadOpen===true;   // < 1200 : replié par défaut — c'était déjà sous le pli
   return `<div class="rail-sec"><details class="rail-fold" data-rfold="lad"${open?' open':''}>${railLadSum(f,p.n)}${p.body}</details></div>`;}
 function railTkSum(){
   const n=(Runtime.events||[]).length;
-  return `<summary class="rail-head"><span class="rail-title">Journal des actions</span>${n?`<span class="rail-n">${n}</span>`:''}<span class="rf-chev" aria-hidden="true">▾</span></summary>`;}
+  return `<summary class="rail-head"><span class="rail-title">Journal des actions</span>${n?`<span class="rail-n">${n}</span>`:''}${chevHtml(false,'rf-chev')}</summary>`;}
 function railTkSec(tkH){
   const open=state.railTkOpen!==undefined?state.railTkOpen:mqCock.matches;   // cockpit : déplié (4 zones)
   return `<div class="rail-sec"><details class="rail-fold" data-rfold="tk"${open?' open':''}>${railTkSum()}${tkH}</details></div>`;}
@@ -20881,7 +20884,7 @@ function bindOverviewEvents(f){
     const tg=t.closest('[data-ovtgl]');
     if(tg){const sec=tg.closest('.ov-block');const closed=sec.classList.toggle('closed');
       state.ovFold[tg.dataset.ovtgl]=closed;tg.setAttribute('aria-expanded',closed?'false':'true');
-      const ch=sec.querySelector('.ov-chev');if(ch)ch.textContent=closed?'▾':'▴';return;}
+      const ch=sec.querySelector('.ov-chev');if(ch)ch.classList.toggle('open',!closed);return;}
     const op=t.closest('[data-ovopt]');if(op){ovAnswer(f,op);return;}
     const en=t.closest('[data-ovend]');
     if(en){if(en.getAttribute('aria-disabled')==='true')return;   // le libellé dit pourquoi (ECAM)
@@ -20911,6 +20914,7 @@ async function restartCourse(f){
 /* Re-rendu CIBLÉ de la vue d'ensemble : reconstruit l'INTÉRIEUR de
    .ov-wrap (Recommencer, structures) sans toucher au reste de la vue — le conteneur garde ses
    écouteurs délégués. Structure inattendue -> repli complet sûr. */
+let _ovRunTxt='';
 function renderOvOnly(){
   /* La touche ⚡︎ dépend de la POSITION : une navigation la réévalue (cf. syncCxKey). */
   try{syncCxKey(state.view==='read'&&!!Runtime.fiche);}catch(e){}
@@ -20919,6 +20923,10 @@ function renderOvOnly(){
   captureFlow();
   const N=overviewSection(f);
   wrap.innerHTML=N.inner;
+  /* A369 : quand un bloc coché rejoint l'historique, la bulle s'allume une fois (peinture seule). */
+  {const pl=wrap.querySelector('.ov-prog>.ov-runline'),tx=pl?pl.textContent:'';
+   if(pl&&_ovRunTxt&&tx!==_ovRunTxt){pl.classList.add('bump');setTimeout(()=>pl.classList.remove('bump'),800);}
+   _ovRunTxt=tx;}
   wrap.querySelectorAll('img[data-full]').forEach(im=>im.onclick=()=>openLightbox(im.dataset.full,im.dataset.cap||''));
   // v4.18.0 : le SVG vit dans le Plan (affichage « Schéma ») — rebrancher zoom/plein
   // écran/navigation après le re-rendu ciblé (bindFlowZoom peint aussi l'état, v4.7.0).
@@ -20927,9 +20935,6 @@ function renderOvOnly(){
   // v4.23.0 : le plan n'est plus dans .ov-wrap — s'il est OUVERT en feuille, il porte l'état de
   // session (✓, ● ici, hors chemin) et doit donc se repeindre avec le journal.
   if(planSheetOpen())renderPlanSheet();
-  // Idem pour Consulter : les repères posologiques y sont classés pour le BLOC COURANT, qui
-  // vient de changer.
-  if(refSheetOpen())renderRefSheet();
   // …et pour l'Échelle du RAIL (correctif) : elle porte le même état de session (✓ dernier
   // passage, ● ici, hors chemin) et vivait hors du re-rendu ciblé — donc périmée dès la
   // deuxième coche. C'est la même règle que les deux feuilles ci-dessus, appliquée à la
@@ -21076,10 +21081,20 @@ function preSessionHtml(f,avecParcours){
    diagnostique », « À garder en tête ») et numéros REFUSÉS par l'auteur : ne pas les reproposer. */
 /* Cartes dépliables de l'écran d'entrée (v5.30, maquette v5) : état PAR FICHE, mémorisé avec les
    replis de lecture (`mdFold*`, clés when / forget / flow) ; en-tête commun aux trois. */
-const preFoldOpen=(f,k)=>!mdFoldGet(f.id).has(k);
-function preFoldToggle(f,k){const s=mdFoldGet(f.id);if(s.has(k))s.delete(k);else s.add(k);mdFoldSet(f.id,s);render();}
+/* v5.30.1 : « Parcours » et les quatre cartes de session sont FERMÉES d'office avant la session
+   (demande de l'auteur) ; leur ouverture se mémorise sous la clé « o:‹k› » — « Quand l'utiliser »
+   et « Ne pas oublier » restent ouvertes d'office (clé nue = fermée). Aucune inversion pour les
+   appareils qui portent déjà l'ancienne clé « flow ». */
+const PRE_CLOSED=new Set(['flow','verify','diff','pos','refs']);
+const preFoldKey=k=>PRE_CLOSED.has(k)?'o:'+k:k;
+const preFoldOpen=(f,k)=>{const s=mdFoldGet(f.id),key=preFoldKey(k);return PRE_CLOSED.has(k)?s.has(key):!s.has(key);};
+function preFoldToggle(f,k){const s=mdFoldGet(f.id),key=preFoldKey(k);if(s.has(key))s.delete(key);else s.add(key);mdFoldSet(f.id,s);render();}
+/* UN SEUL CHEVRON pour tout ce qui se déplie sur la page de lecture (A369, demande de l'auteur : « un
+   trait plein, pas rempli » — la flèche fine « › » d'avant v5.30) : l'icône vectorielle de l'app,
+   tournée vers le bas fermé, vers le haut ouvert (classe `open`, jamais un caractère à réécrire). */
+function chevHtml(open,cls){return `<span class="${cls||'conf-chev'}${open?' open':''}" aria-hidden="true">${uiIcon('chev',20,{sw:2.2})}</span>`;}
 function foldHeadHtml(k,ic,title,count,open,crit,attr){
-  return `<button type="button" class="conf-head fold-head" ${attr||'data-prefold'}="${k}" aria-expanded="${open?'true':'false'}"><span class="fh-ic${crit?' crit':''}" aria-hidden="true">${ic}</span><span role="heading" aria-level="2" class="fh-t">${esc(title)}</span><span class="conf-sub">${esc(count)}</span><span class="conf-chev" aria-hidden="true">${open?'▴':'▾'}</span></button>`;}
+  return `<button type="button" class="conf-head fold-head" ${attr||'data-prefold'}="${k}" aria-expanded="${open?'true':'false'}"><span class="fh-ic${crit?' crit':''}" aria-hidden="true">${ic}</span><span role="heading" aria-level="2" class="fh-t">${esc(title)}</span><span class="conf-sub">${esc(count)}</span>${chevHtml(open)}</button>`;}
 /* v5.30 (A358) : UNE carte dépliable pour l'écran d'entrée ET la session — même fabrique, même grammaire de
    rangées (`.fold-card .sf-body`) ; seuls diffèrent l'ÉTAT (par fiche avant la session — mdFold —, transitoire
    pendant — state.sessFold) et la PORTE (`data-prefold` re-rend, `data-sessfold` bascule sur place). */
@@ -23128,7 +23143,7 @@ function renderEditor(){_renderN++;
     </fieldset>
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
-      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span><span class="fp-chev" aria-hidden="true">${ouv?'▴':'▾'}</span></button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
+      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
     & compteurs, et complications est vide, ça fait bizarre »). Depuis la porte unique « ＋ » de
     la v4.65.0, c'est ELLE qui présente les types disponibles, avec leur glyphe et leur phrase :
@@ -23216,7 +23231,7 @@ function renderEditor(){_renderN++;
    if(ft)ft.onclick=()=>{
      const box=ft.closest('.flow-prev');const on=!box.classList.contains('on');
      box.classList.toggle('on',on);ft.setAttribute('aria-expanded',on?'true':'false');
-     const ch=ft.querySelector('.fp-chev');if(ch)ch.textContent=on?'▴':'▾';
+     const ch=ft.querySelector('.fp-chev');if(ch)ch.classList.toggle('open',on);
      try{localStorage.setItem('ac-flowprev-open',on?'1':'');}catch(e){}};}
 }
 // Câblage des écouteurs du formulaire (seconde moitié de l'ancien renderEditor) : champs simples,
@@ -24890,8 +24905,8 @@ function viewSheetGroups(){
 function paintViewSheet(){const body=document.getElementById('viewSheetBody');if(!body)return;
   const catG=`<div class="vs-g vs-cats"><div class="vs-h" id="vsh-cat">Catégorie</div><div class="chiprow" role="group" aria-labelledby="vsh-cat">${catChipsHtml()}</div></div>`;
   body.innerHTML=viewSheetGroups().map((g,gi)=>{const i=Math.max(0,g.o.findIndex(x=>x[0]===g.v));
-    return (gi===1&&!mqHomeWide.matches?catG:'')+`<div class="vs-g"><div class="vs-h" id="vsh-${g.k}">${esc(g.t)}</div><div class="seg vs-seg" role="radiogroup" aria-labelledby="vsh-${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-vs="${g.k}:${v}">${esc(l)}</button>`).join('')}</div></div>`;}).join('')
-    +((mqHomeWide.matches||!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrDeux()?(catMgrOn()?'Gérer les catégories et les bibliothèques':'Gérer les bibliothèques'):'Gérer les catégories'}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
+    return (gi===1?catG:'')+`<div class="vs-g"><div class="vs-h" id="vsh-${g.k}">${esc(g.t)}</div><div class="seg vs-seg" role="radiogroup" aria-labelledby="vsh-${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-vs="${g.k}:${v}">${esc(l)}</button>`).join('')}</div></div>`;}).join('')
+    +((!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrDeux()?(catMgrOn()?'Gérer les catégories et les bibliothèques':'Gérer les bibliothèques'):'Gérer les catégories'}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
   body.querySelectorAll('[data-vs]').forEach(b=>b.onclick=()=>{const [k,v]=b.dataset.vs.split(':');
     if(k==='filt'){state.homeRev=v==='review';setSection(v==='review'?'all':v,true,{keepCat:true});}
     else if(k==='sort')setHomePref('homeSort',v);
@@ -26006,7 +26021,7 @@ async function loadInstanceStats(){const box=document.getElementById('authStats'
     +`<p class="ist-d">+ ${esc(fmtBytes(pdf))} de documents PDF</p>`
     +'</div>';
   {const ap=box.querySelector('#authPending');if(ap)ap.onclick=()=>{closeAuth();openPending();};}}
-function renderAuth(){const body=document.getElementById('authBody');if(!body)return;
+function renderAuth(){const body=document.getElementById('meView')||document.getElementById('authBody');if(!body)return;
   if(Auth.signedIn()){const u=Auth.user()||{};
     // wipe : la case « effacer aussi cet appareil » (fenêtre de confirmation) était cochée
     // (appareil partagé) — les fiches restent dans le cloud, seule la copie locale du compte
@@ -26182,11 +26197,14 @@ function renderAuthAccount(body,u,doOut){
     body.innerHTML=`<div class="acct-card"><div class="auth-card-in"><div class="auth-avatar">${esc(ini)}</div><div class="auth-id"><div class="auth-email">${esc(u.email||'')}</div>${authStateHtml()}</div></div>
         <div class="acct-acts"><button class="btn" id="authSync">Synchroniser</button><button class="btn" id="authExport">Exporter</button><button class="btn acct-out" id="authOut">Se déconnecter</button></div></div>
       <p class="st-hint acct-promise">Votre bibliothèque personnelle suit ce compte sur <b>tous vos appareils connectés</b>.</p>
+      ${acctLibsHtml()}
       ${accountPrefsHtml()}
       ${myIsAppAdmin?`<div class="acct-zone"><div id="authStats" class="inst-stats-wrap" aria-label="État de l'instance"><div class="auth-stats-h">Administration</div><p class="ist-d">Chargement…</p></div><p class="auth-admin-note">Compte administrateur : la suppression se fait depuis la console d’administration (garde-fou).</p></div>`:`<div class="mem-danger"><p class="mem-section-h danger-h">Zone sensible</p>
         <button class="btn outline-danger" id="authDelete">Supprimer mon compte et mes données…</button>
         <p class="danger-caption">Supprime le compte, les fiches synchronisées et les partages. Action irréversible — confirmation demandée.</p></div>`}`;
     bindAccountPrefs(body);
+    body.querySelectorAll('[data-libedit]').forEach(b=>b.onclick=()=>openMembers(b.dataset.libedit));
+    {const nl=body.querySelector('[data-newlib]');if(nl)nl.onclick=openNewLib;}
     // La fenêtre RESTE ouverte : la ligne d'état juste au-dessus (authStateHtml, mise à jour en
     // direct par setSyncChip) montre « Synchro en cours » puis le résultat -> vrai retour visuel,
     // là où fermer la fenêtre laissait l'utilisateur sans aucune confirmation.
@@ -26206,6 +26224,18 @@ function renderAuthAccount(body,u,doOut){
 /* ----- Fenêtre Compte : préférences PAR UTILISATEUR (V5, canvas turn 6) — compteurs de
    l'appareil, taille du texte S/M/L/XL, « Exporter mes données ». Affichées connecté COMME
    déconnecté (l'export ne doit jamais exiger un compte : c'est la seule copie de secours). ----- */
+/* MOI LISTE LES BIBLIOTHÈQUES AVEC LEUR RÔLE (v5.30.1, A364 — maquette v5) : Perso puis les
+   partagées, une rangée de menu chacune (nom · rôle · compte) ; seule une bibliothèque ADMINISTRÉE
+   répond au tap (« Modifier la bibliothèque »), les autres sont des rangées inertes. */
+function acctLibsHtml(){
+  const cnt=id=>(fiches||[]).filter(f=>!f.deletedAt&&(f.library||null)===id).length+(protocols||[]).filter(x=>!x.deletedAt&&(x.library||null)===id).length;
+  const n=v=>`${v} élément${v>1?'s':''}`;
+  const chev=`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`;
+  const rows=[menuRowHtml({label:'Perso',sub:'votre bibliothèque · '+n(cnt(null)),ic:uiIcon('user',20),inert:true})]
+    .concat(sortedLibraries().map(l=>{const admin=l.role==='admin'||myIsAppAdmin;
+      return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),inert:!admin,
+        attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:'',tail:admin?chev:''});}));
+  return `<div class="acct-zone"><div class="auth-stats-h">Bibliothèques</div><div class="acct-card acct-list">${rows.join('')}${myIsAppAdmin?`<button type="button" class="catmenu-new" data-newlib>＋ Nouvelle bibliothèque</button>`:''}</div></div>`;}
 function accountPrefsHtml(slot){
   // Zone « CET APPAREIL », identique dans les deux états (repères stables — audit v4.5) :
   // état des données -> [action sur ces données, si fournie] -> préférence d'affichage.
@@ -26429,7 +26459,8 @@ function renderAuthLogin(body){
       Sync.full();};
   }}
 const authModal=document.getElementById('authModal');
-function openAuth(){_authDelete=false;authModal.classList.add('on');renderAuth();
+function openAuth(){_authDelete=false;
+  if(homeTabsOn())setHomeTab('me');else{authModal.classList.add('on');renderAuth();}
   if(Auth.signedIn()){refreshAccountStatus().then(renderAuth).catch(()=>{}); // rafraîchit un statut potentiellement périmé, sans bloquer l'ouverture
     confirmHeldEdits();}   // re-propose les modifications hors connexion laissées en attente (✕ à la question précédente)
 }
@@ -29688,9 +29719,10 @@ bindModalDismiss(versModal,closeVersions);
 function sessStamp(ms){const d=new Date(ms||0);
   return d.toLocaleDateString('fr-FR')+' · '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
 const sessModal=document.getElementById('sessModal');let _sessFiche=null;
-function openSessHist(ficheId){_sessFiche=ficheId||'*';sessModal.classList.add('on');renderSessHist();}
+function openSessHist(ficheId){if(!ficheId&&homeTabsOn()){setHomeTab('sessions');return;}
+  _sessFiche=ficheId||'*';sessModal.classList.add('on');renderSessHist();}
 function closeSessHist(){sessModal.classList.remove('on');_sessFiche=null;}
-function renderSessHist(){const body=document.getElementById('sessBody');if(!body||!_sessFiche)return;
+function renderSessHist(){const body=document.getElementById('sessView')||document.getElementById('sessBody');if(!body||!_sessFiche)return;
   const glob=_sessFiche==='*';
   const ss=sessions.filter(x=>(glob||x.ficheId===_sessFiche)&&(glob||x.id!==Runtime.sessionId)).sort((a,b)=>(b.live?1:0)-(a.live?1:0)||b.savedAt-a.savedAt);   // v5.30 : la session vive en tête (maquette v5)
   const joinRow=(glob&&!Object.keys(liveSessions).length)?`<button type="button" class="sess-join" id="sessJoin"><span class="hj-ic" aria-hidden="true">⇄</span><span>Rejoindre une session en cours</span><span class="hs-chev" aria-hidden="true">›</span></button>`:'';
@@ -30079,6 +30111,7 @@ function _histBackAction(){
   const ff=document.getElementById('flowFull');
   if(ff&&ff.classList.contains('on'))return closeFlowFull;
   if(lb&&lb.classList.contains('on'))return closeLightbox;
+  if(state.view==='library'&&homeTab()!=='aides')return()=>setHomeTab('aides');   // A365
   const hb=document.getElementById('hdrBack');
   if(hb&&!hb.hidden&&state.view!=='library')return()=>hb.click();
   return null;

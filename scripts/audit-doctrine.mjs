@@ -89,19 +89,21 @@ await sec('AC 120-71B · memory items en accès direct', async () => {
   const r=await page.evaluate(()=>{
     const strip=document.querySelector('.forget-strip,#forgetStrip,.ov-forget');
     const inMain=!!strip&&!!strip.closest('#main');
-    const inSheet=!!strip&&!!strip.closest('#refModal,#planModal');
+    const inSheet=!!strip&&!!strip.closest('#planModal');
     return {present:!!strip,inMain,inSheet,
       // rien de vital ne doit exister UNIQUEMENT dans une feuille repliable
-      dupRef:!!document.querySelector('#refModal .forget-strip')};});
+      dupRef:document.querySelectorAll('.forget-strip').length>1};});
   t('« Ne pas oublier » présent dans le FLUX principal', r.present&&r.inMain&&!r.inSheet, JSON.stringify(r));
-  t('non recopié dans la feuille Consulter (source unique)', !r.dupRef);
+  t('non recopié ailleurs (source unique)', !r.dupRef);
   // QRH : la procédure abrégée reste sous les yeux, la référence est appelée
   const refInert=await page.evaluate(async()=>{
-    openRefSheet();await new Promise(r=>setTimeout(r,350));   /* v5.30 (A354) : la feuille n'a plus de touche au quai */
-    const boxes=document.querySelectorAll('#refModal input[type=checkbox],#refModal .stp');
-    const starts=document.querySelectorAll('#refModal [data-navgo],#refModal #sessStart');
-    return {boxes:boxes.length,starts:starts.length};});
-  t('feuille Consulter INERTE (aucune coche, aucun démarrage)',
+    /* A367 : la feuille « Consulter » a vécu — c'est la carte « Références » de la page qui reste
+       INERTE (documents, schémas, renvois : rien à cocher, rien qui démarre). */
+    const h=document.querySelector('[data-prefold="refs"],[data-sessfold="refs"]');if(!h)return {absent:true,boxes:0,starts:0};
+    if(h.closest('.fold-card').classList.contains('closed')){h.click();await new Promise(r=>setTimeout(r,350));}
+    const c=document.querySelector('[data-sf="refs"] .sf-body');
+    return {boxes:c.querySelectorAll('input[type=checkbox],.stp').length,starts:c.querySelectorAll('[data-navgo],#sessStart').length};});
+  t('carte Références INERTE (aucune coche, aucun démarrage)',
     typeof refInert==='object'&&refInert.boxes===0&&refInert.starts===0, JSON.stringify(refInert));
   await page.close();
 }
@@ -3732,6 +3734,8 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
     await ouvrirFiche(page,/Anaphylaxie/);
     const r = await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
       const Y=s=>{const e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().top):null;};
+      // A366 : « Parcours » est repliée d'office avant la session — on l'ouvre pour lire son contenu.
+      {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await w(400);}}
       const titres=[...document.querySelectorAll('main .cp-h')].map(e=>e.textContent.trim());
       const av={titres, consulter:document.querySelectorAll('main .annex-row').length,
         /* v5.25.0 : « Prise en charge » n'existe plus avant la session — le chapitre « Parcours »
@@ -4103,8 +4107,11 @@ await sec('v5.6 · trois gabarits de fenêtre', async () => {
         return {id:c.id||c.className.split(' ').slice(0,2).join('.'),mw,px:px?+px[1]:null};
       }).filter(x=>x.px!==null&&![420,480,720].includes(x.px));
       const out={enLigne,horsGabarit,fen:{}};
-      const cmds={viewSheet:()=>document.getElementById('filtTog').click(), authModal:()=>openAuth(),
-                  catModal:()=>openCatMgr(), sessModal:()=>openSessHist(), storageModal:()=>openStorageInfo()};
+      /* A365 : ≥ 780 sur l'accueil, Compte et Sessions sont des VUES de la colonne — la
+         page-fenêtre, seule mesurée ici, s'ouvre alors depuis une fiche. */
+      const surFiche=()=>{if(innerWidth>=780&&state.view==='library')openRead(fiches[0].id);};
+      const cmds={viewSheet:()=>document.getElementById('filtTog').click(), authModal:()=>{surFiche();openAuth();},
+                  catModal:()=>openCatMgr(), sessModal:()=>{surFiche();openSessHist();}, storageModal:()=>openStorageInfo()};
       for(const [id,go] of Object.entries(cmds)){
         try{go();}catch(e){out.fen[id]={err:e.message};continue;}
         await w(450);
@@ -5657,7 +5664,7 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
     return { carte: !!main.querySelector('.conf-block.entry'),
       flux: !!main.querySelector('.conf-block:not(.entry):not(.fold-card)'),   /* v5.30 : cartes dépliables à part */
       lbl: rl ? rl.textContent.replace(/\s+/g, ' ').trim() : null,
-      enTete: !!(rl && j && j.firstElementChild && j.firstElementChild.contains(rl)),
+      enTete: !!(rl && (rl.closest('.ov-prog') || (j && j.firstElementChild && j.firstElementChild.contains(rl)))),   /* A369 : la bulle vit sur la ligne « Parcours » */
       y: rl ? Math.round(rl.getBoundingClientRect().top + window.scrollY) : null,
       rangees: [...main.querySelectorAll('.ov-hist .ovh-row:not(.ovh-crit)')].length,
       rangeeConf: [...main.querySelectorAll('.ovh-row')]
@@ -5679,7 +5686,7 @@ await sec('v5.6 · « Diagnostic confirmé » vit dans le journal, en tête', as
     const n = main.querySelector('[data-ovnext]'); if (n) n.click(); await w(500); });
   const d1 = await lire();
   t('témoin : la ligne-bilan des blocs faits l\'a bien absorbée',
-    /blocs? faits?/.test(d1.lbl || '') && /diagnostic confirmé/i.test(d1.lbl || ''), d1.lbl);
+    /Fait/.test(d1.lbl || '') && /diagnostic confirmé/i.test(d1.lbl || ''), d1.lbl);
   t('… et la ligne n\'a pas déménagé (A107)',
     d1.enTete === true && d1.y != null && Math.abs(d1.y - d0.y) <= 2, `${d0.y} → ${d1.y} px`);
 
@@ -7154,7 +7161,7 @@ await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris',
       const cs=getComputedStyle(a);
       return {el:a.id||a.className||a.tagName,
         anneau:cs.outlineStyle!=='none'&&parseFloat(cs.outlineWidth)>0};});};
-  const souris=async()=>{await page.mouse.move(640,500);await page.mouse.down();await page.mouse.up();};
+  const souris=async(y)=>{await page.mouse.move(640,y||500);await page.mouse.down();await page.mouse.up();};
   const fermer=async sel=>{await page.evaluate(s=>{const x=document.querySelector(s);if(x)x.click();},sel);
     await page.waitForTimeout(180);};
 
@@ -7172,7 +7179,9 @@ await sec('Fenêtres · le bouton focalisé se voit, même ouvert à la souris',
   t('… et c\'est « Annuler » (Entrée ne supprime pas)',!!r&&r.el==='confirmNo',JSON.stringify(r));
   await fermer('#confirmModal .ai-x');
 
-  await souris();
+  // A365 : sur l'accueil ≥ 780, Compte est une VUE — la fenêtre se mesure depuis une fiche (souris sur la barre).
+  await page.evaluate(()=>openRead(fiches[0].id));await page.waitForTimeout(300);
+  await souris(30);
   await page.evaluate(()=>document.getElementById('acctTop').click());
   r=await anneau();
   t('fenêtre Compte : le point d\'entrée porte un anneau',!!r&&r.anneau,JSON.stringify(r));
@@ -7464,7 +7473,9 @@ await sec('LA PAGE · un seul axe vertical, dans main comme dans la fenêtre « 
   const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const axes=el=>el?{oy:getComputedStyle(el).overflowY,ox:getComputedStyle(el).overflowX}:null;
     const out={coarse:matchMedia('(pointer:coarse)').matches};
-    // LE VRAI POINT D'ENTRÉE : le lien « Tableau » de l'écran de démarrage.
+    // LE VRAI POINT D'ENTRÉE : le lien « Tableau » de l'écran de démarrage — dans la carte
+    // « Parcours », repliée d'office (A366) : on l'ouvre d'abord.
+    {const fb=document.querySelector('[data-prefold="flow"]');if(fb&&fb.getAttribute('aria-expanded')!=='true'){fb.click();await w(400);}}
     document.querySelector('[data-prelink="page"]').click();await w(400);
     const m=document.getElementById('planModal'),sc=m.querySelector('#planBody .sv-scroll');
     out.fenetre=m.classList.contains('on');out.fen=axes(sc);out.fenAxe=axes(m).oy;
