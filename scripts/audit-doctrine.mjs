@@ -5060,6 +5060,24 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   t('A377 · « Oui » quitte la boucle : le minuteur s’arrête et le dit', b.sortie===true);
   await page.close();
 }
+{ // Fiche d'exemple Anaphylaxie : l'injection cochée compte ET relance la réévaluation (timerId).
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=Runtime.fiche,c=f.counters[0],t=Runtime.timers[c.timerId];
+    const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>/Adrénaline IM/.test(x.textContent));
+    const o={liens:f.items.filter(x=>x.counts===c.id).length,avant:!!(t&&t.running)};
+    li.click();await w(300);
+    o.cn=Runtime.counters[c.id]||0;o.run=!!(t&&t.running);
+    return o;});
+  t('A377 · Anaphylaxie : les deux injections comptent (2 liens, pas plus)', r.liens===2, String(r.liens));
+  t('A377 · … cocher l’adrénaline IM compte 1 et lance la réévaluation', r.avant===false&&r.cn===1&&r.run===true, JSON.stringify(r));
+  await page.close();
+}
 });
 
 /* ══ v5.6 — « ＋ AJOUTER » DEPUIS UN CHAMP FOCALISÉ AJOUTE VRAIMENT UNE LIGNE ════════════════

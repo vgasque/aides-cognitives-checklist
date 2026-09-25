@@ -101,9 +101,19 @@ sans minuteur ni compteur dans la fiche, rien n'est proposé.
 création gagne une section « MINUTEURS ET COMPTEURS LIÉS AUX ÉTAPES » : 0 à 3 liens par fiche,
 0 ou 1 minuteur de bloc, seulement quand la source associe explicitement le geste et le délai (ou
 le compte), jamais sur une surveillance ; un cycle continu (RCP) reste un minuteur de fiche ; une
-vérification finale (n° 17). La fiche d'exemple ACR montre l'usage : trois liens sur quatorze
-étapes — « Choc immédiat » compte les chocs (et le jalon « 3 CEE » suit seul), les deux
-« Adrénaline » lancent « prochaine dose ».
+vérification finale (n° 17). **Les deux fiches d'exemple** (proposées au premier lancement)
+montrent l'usage, chacune avec au plus trois liens :
+
+- **ACR** — « Choc immédiat » compte les chocs (le jalon « 3 CEE » suit seul), les deux
+  « Adrénaline » lancent « prochaine dose ». Le cycle RCP reste un minuteur de fiche (règle du
+  prompt, et `cycleHint` n'annote qu'un minuteur à cycles unique).
+- **Anaphylaxie** — les deux injections IM (bloc initial, bloc réfractaire) comptent sur
+  « Adrénaline IM », et ce compteur relance la « Réévaluation après adrénaline » par son
+  `timerId` déjà existant (v4.5) : une coche = le compte + les 5 min, sans lien nouveau.
+
+Aucune des deux ne porte de minuteur de BLOC, et c'est voulu : aucune n'a de tentative bornée par
+passage (le cas de la laryngoscopie). En inventer une pour la montrer contredirait la parcimonie ;
+le témoin d'audit l'exerce sur une fiche injectée.
 
 **Réutilisation, pas de doublon.** Demande de l'auteur : commentaires courts, fonctions
 existantes réemployées. `tmRestart` est LE geste « relancer depuis zéro » (lien de coche, minuteur de
@@ -126,5 +136,6 @@ boucle, lien d'étape, pas deux fois), `wtTimerModel` (repos, en cours = valeur 
 échu, indice, chronomètre, sortie), `wtCountModel`, `linkArmSnap` (prototype banni). Sondes
 navigateur (Chromium) : ACR — coche du choc 0 → 1 puis retour et repère barré, adrénaline lancée
 puis rendue à l'arrêt dans les 10 s ; intubation — minuteur de bloc lancé avec la session, réarmé
-à « Non », arrêté à « Oui » (sortie de boucle), annoncé dans la Page ; éditeur — sélecteur à 32 px
+à « Non », arrêté à « Oui » (sortie de boucle), annoncé dans la Page ; Anaphylaxie — deux liens
+exactement, et la coche de l'adrénaline IM compte 1 et lance la réévaluation ; éditeur — sélecteur à 32 px
 (une règle `.field select` l'emportait en spécificité), légendes annoncées sous les étapes liées.

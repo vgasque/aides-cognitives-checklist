@@ -20,7 +20,12 @@ l'auteur, choisie sur trois versions de maquettes.
   bloc ; rien n'est proposé si la fiche n'a ni minuteur ni compteur.
 - **Prompt IA de création** : nouvelle section « Minuteurs et compteurs liés », 0 à 3 liens par
   fiche et 0 ou 1 minuteur de bloc, seulement quand la source lie le geste au délai ou au compte ;
-  vérification finale n° 17. La fiche d'exemple ACR montre l'usage sur 3 étapes sur 14.
+  vérification finale n° 17.
+- **Fiches d'exemple** (proposées au premier lancement) : dans l'**ACR**, cocher « Choc immédiat »
+  compte le choc, et cocher l'une des deux « Adrénaline » lance « prochaine dose ». Dans
+  l'**Anaphylaxie**, les deux injections IM comptent sur « Adrénaline IM », et ce compteur relance
+  la réévaluation à 5 min. Pas de minuteur de bloc dans les exemples : aucune des deux fiches n'a
+  de tentative bornée par passage.
 - **Conformité** : § 2 de `docs/deploiement-et-conformite.md` complété avant le code (déclencheur
   toujours un geste de l'équipe, rien ne décide, tout se défait).
 - **Sans doublon** : une seule fonction pour relancer un minuteur (quatre copies auparavant ; le ⟲
@@ -29,7 +34,7 @@ l'auteur, choisie sur trois versions de maquettes.
   du graphe des blocs est partagé avec le grisé « hors chemin » ; glyphes pris dans la table
   d'icônes commune ; commentaires ramenés à une ligne, la doctrine vit dans le lot.
 - **Témoins** : 31 tests unitaires (modèle, sortie de boucle, légende) et une section
-  `audit-doctrine` « A377 » (17 contrôles). Aucun changement côté serveur.
+  `audit-doctrine` « A377 » (19 contrôles, dont la fiche d'exemple Anaphylaxie). Aucun changement côté serveur.
 
 ## [5.30.6] — 2026-09-25
 Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échelle » du plan s'en va

@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-P9i0Epinb71amgmsnHcDZnXhK4VrrzTnENtDGyjgMs0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-PnpQqGpxHtKkgh2TAklZqVtn419EnxVZjeZWAZfvQRw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11053,7 +11053,7 @@ function migrateProtocol(p){if(!p||typeof p!=='object')p={};
    CE N'EST PAS UNE TROISIÈME FICHE — la contrainte de l'audit est explicite : aucune aide
    cognitive livrée en plus. On enrichit le CONTENU des deux existantes, ce qui est autorisé.
    LES VALEURS RESTENT DES PLACEHOLDERS À ADAPTER : ces fiches arrivent en brouillon et le disent. */
-function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=uid('b');
+function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=uid('b'),tRe=uid('t'),nAdr=uid('n');
   const f=migrate({id:uid(),title:'Anaphylaxie (choc anaphylactique)',discriminant:'adulte',code:'ANA',category:catId||'',validatedAt:'2025-01',
     local:'Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)',
     confirmation:['Exposition possible (aliment, médicament, piqûre…)','Signes cutanéo-muqueux : urticaire, œdème','Hypotension / collapsus, tachycardie','Bronchospasme, dyspnée, désaturation'],
@@ -11071,8 +11071,9 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
     excursions:[{label:'Bronchospasme réfractaire',target:bx}],
     // (v4.4.1 : plus de chrono « Temps écoulé » — le chrono GLOBAL de session le rend redondant.)
     // `onDue` : une alarme qui NOMME le minuteur dit QUOI a sonné, jamais QUOI FAIRE (K7).
-    timers:[{id:uid('t'),label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true,onDue:'Réévaluer : 2ᵉ dose IM si pas d’amélioration'}],
-    counters:[{id:uid('n'),label:'Injections d’adrénaline',step:1,start:0}],
+    timers:[{id:tRe,label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true,onDue:'Réévaluer : 2ᵉ dose IM si pas d’amélioration'}],
+    // A377 : chaque injection cochée compte, et le compteur relance la réévaluation (lien `timerId`).
+    counters:[{id:nAdr,label:'Adrénaline IM',step:1,start:0,timerId:tRe}],
     start:b1,
     // v4.11.1 : les exemples ILLUSTRENT les registres ⚠/△ et le format « challenge :: réponse »
     // (la pilule = valeur à confirmer en lecture) — les valeurs restent des placeholders à adapter.
@@ -11098,6 +11099,7 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
   {const b=f.blocks.find(x=>x.id===b1);
    const it=b?bItems(b).find(x=>/Adrénaline IM/.test(x.do)):null;
    if(it){it.memory=true;it.dual=true;}}
+  f.blocks.forEach(b=>{if(b.id===b1||b.id===b3)bItems(b).forEach(x=>{if(/^(2ᵉ a|A)drénaline IM/.test(x.do))x.counts=nAdr;});});   // A377 : les deux injections
   return f;}
 // Deuxième fiche d'exemple : arrêt cardiaque. Illustre une DÉCISION rebouclée (le rythme est
 // réévalué à chaque cycle) et un minuteur À CYCLE de 2 min (RCP). À relire/valider avant tout usage.
