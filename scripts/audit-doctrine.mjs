@@ -5090,6 +5090,57 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
 }
 });
 
+/* ══ v5.31 · A380 — ESSAIS X1 « HORIZON » ET X2 « BANDE » ════════════════════════════════════════
+   Deux présentations au choix de l'appareil (Moi › Affichage). Ce qui ne se négocie pas : X1 ne
+   dessine QUE les minuteurs lancés, à leur temps restant (aucune extrapolation), l'échu sur
+   « maintenant », aucune étiquette hors de l'axe ; X2 garde un seul journal et ouvre le volet. */
+await sec('v5.31 · A380 — essais X1 horizon et X2 bande', async () => {
+  const monter=async(w,h,es)=>{const page=await br.newPage({viewport:{width:w,height:h},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.addInitScript(l=>{for(const k of l)localStorage.setItem('ac-essai-'+k,'1');},es);
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);await ouvrirFiche(page,'Arrêt cardiaque');await demarrerSession(page);
+    await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+      const tm=re=>Object.values(Runtime.timers).find(t=>re.test(t.label));
+      toggleTimer(tm(/Cycle/));toggleTimer(tm(/Adrénaline/));tm(/Cycle/).lastStart-=40000;await w(700);});
+    return page;};
+  {const page=await monter(390,844,['x1']);
+   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+     const el=document.getElementById('cbTimers'),ax=el.querySelector('.hz');
+     const ms=()=>[...el.querySelectorAll('.hz-m')];
+     const x=m=>+getComputedStyle(m).getPropertyValue('--x');
+     const o={cls:essaiOn('x1'),n:ms().length,run:Object.values(Runtime.timers).filter(t=>t.type==='interval'&&t.running).length};
+     const cy=ms().find(m=>/Cycle/.test(m.textContent)),ad=ms().find(m=>/Adrénaline/.test(m.textContent));
+     o.ordre=!!(cy&&ad&&x(cy)<x(ad));
+     const a=ax.getBoundingClientRect();
+     o.dedans=ms().every(m=>{const r=m.querySelector('.hz-t').getBoundingClientRect();return r.left>=a.left-1&&r.right<=a.right+1;});
+     const t=Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
+     t.lastStart=Date.now()-241000;await w(900);
+     const d=ms().find(m=>m.classList.contains('due'));
+     o.echu=!!d&&x(d)===0;o.nApres=ms().length;
+     essaiSet('x1',false);await w(700);o.tuiles=!el.querySelector('.hz')&&!!el.querySelector('.seg[data-seg]');
+     return o;});
+   t('A380 · X1 : l’essai se lit sur la page (classe posée au démarrage)', r.cls===true);
+   t('A380 · X1 : un point par minuteur LANCÉ, aucun de plus (rien d’extrapolé)', r.n===r.run&&r.n===2, `${r.n}/${r.run}`);
+   t('A380 · X1 : le plus proche est le plus à gauche', r.ordre===true);
+   t('A380 · X1 : aucune étiquette ne sort de l’axe', r.dedans===true);
+   t('A380 · X1 : l’échu se pose sur « maintenant » et y reste', r.echu===true&&r.nApres===2);
+   t('A380 · X1 : repasser en tuiles rend la capsule d’origine', r.tuiles===true);
+   await page.close();}
+  {const page=await monter(820,1180,['x2']);
+   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+     const el=document.getElementById('cbTimers');
+     const o={segs:el.querySelectorAll('.seg:not(.glb)').length,railTm:!!document.querySelector('.read-side .rt-grid')};
+     el.click();await w(600);
+     o.volet=!!document.querySelector('.rt-dock .rt-panel');o.tk=document.querySelectorAll('.tk-panel').length;
+     return o;});
+   t('A380 · X2 : la bande porte les instruments dès 780 px', r.segs>=1, String(r.segs));
+   t('A380 · X2 : le rail ne répète pas les minuteurs', r.railTm===false);
+   t('A380 · X2 : toucher la bande ouvre le volet des corrections', r.volet===true);
+   t('A380 · X2 : un seul journal dans la page (celui du rail)', r.tk===1, String(r.tk));
+   await page.close();}
+});
+
 /* ══ v5.6 — « ＋ AJOUTER » DEPUIS UN CHAMP FOCALISÉ AJOUTE VRAIMENT UNE LIGNE ════════════════
    Signalé à l'usage : « si j'ai tapé du texte dans le champ et que j'appuie directement sur
    ＋ Rappel, la ligne n'est pas ajoutée — il referme le bloc mais n'ajoute rien ; pareil pour la

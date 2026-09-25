@@ -34,6 +34,16 @@ l'auteur, choisie sur trois versions de maquettes.
   discrète se vide pendant les 10 s d'annulation, l'échéance se pose en fondu. Dans l'éditeur, la
   légende apparaît sous l'étape dès que le lien est choisi. Rien ne boucle, rien ne change de
   hauteur, et rien ne bouge en mouvement réduit.
+- **Éditeur** : un minuteur d'intervalle neuf ne repart plus seul par défaut (A379) ; reboucler se
+  coche. Le cycle RCP de l'ACR, lui, reste à cycles (décision de l'auteur).
+- **Deux essais d'affichage à juger en conditions réelles** (A380), dans Moi › Affichage, sur
+  l'appareil seulement, éteints par défaut :
+  - **Capsule « horizon »** : les minuteurs en cours posés sur un axe de 5 min, à leur temps
+    restant. Rien n'est extrapolé : ni cycle suivant, ni échéance future ; l'échu se pose sur
+    « maintenant ».
+  - **Instruments en bande** : dès la tablette, la capsule porte les minuteurs et les compteurs
+    comme au téléphone et ouvre le volet des corrections ; la colonne de droite garde le journal
+    et les repères posologiques.
 - **Conformité** : § 2 de `docs/deploiement-et-conformite.md` complété avant le code (déclencheur
   toujours un geste de l'équipe, rien ne décide, tout se défait).
 - **Sans doublon** : une seule fonction pour relancer un minuteur (quatre copies auparavant ; le ⟲
@@ -42,7 +52,7 @@ l'auteur, choisie sur trois versions de maquettes.
   du graphe des blocs est partagé avec le grisé « hors chemin » ; glyphes pris dans la table
   d'icônes commune ; commentaires ramenés à une ligne, la doctrine vit dans le lot.
 - **Témoins** : 33 tests unitaires (modèle, sortie de boucle, légende) et une section
-  `audit-doctrine` « A377 » (25 contrôles, dont la fiche d'exemple Anaphylaxie, les mouvements et la sonnerie). Aucun changement côté serveur.
+  `audit-doctrine` « A377 » (25 contrôles, dont la fiche d'exemple Anaphylaxie, les mouvements et la sonnerie) et une section « A380 » (10 contrôles, les deux essais). Aucun changement côté serveur.
 
 ## [5.30.6] — 2026-09-25
 Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échelle » du plan s'en va

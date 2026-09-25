@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-v6qgX+Rii6PWMS1PhIVcWzGl4pjXMBrdR9inOehWHaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Ins7i1sNa0ztxFOcXRxQJw/mJC0NNb/yJJo4vXfi/K8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1821,6 +1821,27 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg.cnt{min-width:84px}
   #cbTimers .seg:not(.glb) .seg-l{color:var(--sys-ink)}   /* sur la tuile (--sys-2), l'encre secondaire tombe à 3,1:1 */
   #cbTimers .seg.due{min-width:96px}
+  /* ESSAI X1 ▼ — capsule « horizon » (A380) : un axe de 5 min, un point par minuteur en cours, à son
+     temps restant ; « 5 min » hors de l'axe (40 px réservés à droite) pour qu'aucune étiquette ne le couvre. */
+  #cbTimers .hz{position:relative;flex:1 1 auto;min-width:120px;align-self:stretch;margin:0 8px 0 4px;overflow:hidden}   /* une étiquette ne déborde jamais sur le chrono */
+  #cbTimers .hz-l{position:absolute;left:0;right:40px;top:50%;height:2px;margin-top:-1px;background:var(--sys-line)}
+  #cbTimers .hz-0{position:absolute;left:0;top:50%;width:2px;height:12px;margin-top:-6px;background:var(--ok-sys)}
+  #cbTimers .hz-k{position:absolute;top:50%;width:1px;height:8px;margin-top:-4px;background:var(--sys-line)}
+  #cbTimers .hz-5{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2)}
+  #cbTimers .hz-m{position:absolute;top:0;bottom:0;left:calc(var(--x,0) * (100% - 40px));width:0}
+  #cbTimers .hz-d{position:absolute;left:-4px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ok-sys)}
+  #cbTimers .hz-t{position:absolute;left:-4px;top:2px;display:flex;gap:4px;align-items:baseline;white-space:nowrap;font-size:var(--t-cap);font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--sys-ink)}
+  #cbTimers .hz-m.b .hz-t{top:auto;bottom:2px}
+  #cbTimers .hz~.seg.cnt{min-width:64px}
+  #cbTimers .hz-n{max-width:72px;overflow:hidden;text-overflow:ellipsis}
+  #cbTimers .hz-v{font-family:var(--mono);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
+  #cbTimers .hz-m:is(.soon,.due) .hz-d{background:var(--warn-sys)}
+  #cbTimers .hz-m.due .hz-t{color:var(--warn-sys)}
+  /* ESSAI X1 ▲ */
+  /* ESSAI X2 ▼ — instruments en bande (A380) : la bande garde la largeur de la colonne d'action (A356),
+     le volet s'y aligne au lieu de couvrir le rail. */
+  @media (min-width:780px){html.essai-x2 .rt-dock{left:18px;right:calc(var(--col-state) + var(--col-gap) + 18px)}}
+  /* ESSAI X2 ▲ */
   /* Le bloc courant OUVERT dit sa position par la pilule ; le compte vit dans « Parcours · x/y ». */
   .ov-block.cur:not(.closed) .ov-c{display:none}
   body.chrome-hdr #cbTimers{min-height:30px;padding:0;gap:14px}
@@ -8963,6 +8984,15 @@ const READ_MODES=['overview','static'];   // ('guided' PURGÉ v5.20.9, A296 — 
 function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';
   return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
+/* ESSAI (A380) — deux présentations à juger en conditions réelles, réglage d'APPAREIL (pas de synchro).
+   Tout le code d'un essai est entre ses balises « ESSAI Xn ▼ … ▲ » ou derrière `essaiOn('xn')` :
+   le garder ou le retirer se fait au grep (procédure : lot-v5-31.md A380). */
+const ESSAIS={x1:['Capsule','Tuiles','Horizon'],x2:['Instruments','Colonne','Bande']};
+const essaiOn=k=>document.documentElement.classList.contains('essai-'+k);
+function essaiSet(k,on){try{on?localStorage.setItem('ac-essai-'+k,'1'):localStorage.removeItem('ac-essai-'+k);}catch(e){}
+  document.documentElement.classList.toggle('essai-'+k,!!on);}
+Object.keys(ESSAIS).forEach(k=>{let on=false;try{on=localStorage.getItem('ac-essai-'+k)==='1';}catch(e){}
+  document.documentElement.classList.toggle('essai-'+k,on);});
 /* Le PLAN n'a plus qu'UNE vue (l'Échelle) depuis v4.25.0 : PLAN_VIEWS / currentPlanView /
    setPlanViewPref et le champ state.ovPlanView ont été supprimés avec le sélecteur d'affichage.
    Rien à mémoriser, donc — et si un jour une seconde vue revenait, sa préférence resterait LOCALE
@@ -9390,7 +9420,7 @@ function placeCrisisChrome(){
   if(!dk||!slot)return;
   // v5.30 (A354) : la capsule ne monte dans l'en-tête qu'au BUREAU (≥ 1440, `mqHdrCap`) ; en deçà —
   // tablettes comprises, en paysage aussi — elle reste sous l'en-tête, à sa forme pleine.
-  if(!(mqHdrCap.matches&&state.view==='read'&&state.fiche))return;
+  if(!(mqHdrCap.matches&&state.view==='read'&&state.fiche)||essaiOn('x2'))return;   // ESSAI X2 : la bande reste sous l'en-tête
   if(dk.parentNode!==slot)slot.appendChild(dk);
   // A328 : le bandeau « par l'écran » ne monte PAS dans l'en-tête (il y couvrait le titre) — il reste
   // dans le flux, sous l'en-tête, en rangée compacte collante ; même patron nomade, jamais recréé.
@@ -12652,7 +12682,7 @@ function updateRtStrip(now){
   // Segments : jusqu'à DEUX minuteurs étiquetés (échus d'abord, puis les plus urgents), « +n »,
   // puis GLOBAL (chrono de session — démarre à la 1ʳᵉ action, décision produit V5) et « remonter ».
   const withRem=run.map(rtWith).sort((a,b)=>a.rem-b.rem);
-  const wideRail=mqRail.matches;
+  const bande=mqRail.matches&&essaiOn('x2'),wideRail=mqRail.matches&&!bande;   // ESSAI X2 : en bande, la composition du téléphone
   // CE QUE PORTE LE QUAI (v4.23.0, décision utilisateur) : < 1000px chrono de session + UN minuteur
   // étiqueté + « +n » ; ≥ 1000px le rail droit porte DÉJÀ tous les minuteurs — le quai ne garde que
   // l'état de session et l'ALARME (redondance de l'alarme VOULUE ; celle du nominal, non).
@@ -12669,7 +12699,7 @@ function updateRtStrip(now){
      INERTE au-delà de 780 px. ⚠ « +n » NE CHANGE PAS (`pool=dueList`) : un imminent n'est pas
      une alarme ; s'il ne tient pas, le rappel du chevron l'annonce. Détail : doctrine-js.md J49. */
   const soonList=withRem.filter(x=>x.soon);
-  const want=wideRail?dueList.concat(soonList).slice(0,2):withRem.slice(0,1);
+  const want=wideRail?dueList.concat(soonList).slice(0,2):withRem.slice(0,bande?3:1);
   /* LA COULEUR ÉTAIT SEULE DANS LA ZONE LA PLUS CRITIQUE DE L'APP (correctif, règle 8) : l'échu
      du quai ne se distinguait d'un nominal que par la teinte. LE MOT NE PEUT PAS ÊTRE ÉCRIT EN
      CLAIR ICI (mesuré) : `.seg-l` en ellipse rognerait un suffixe d'abord, et allonger le segment
@@ -12748,7 +12778,7 @@ function updateRtStrip(now){
   /* v5.30 (maquette v5) : en voie étroite, le PREMIER compteur entre dans la capsule en tuile
      (libellé + valeur, `data-cntval` repeint par setCounterVal) ; le rappel ne compte que ce qui
      n'est pas montré. Sacrifié avant tout minuteur (kc = 0), jamais l'inverse. */
-  const cnts=(!wideRail&&started&&crisis)?((Runtime.fiche&&Runtime.fiche.counters)||[]).filter(c=>c&&c.id).slice(0,1):[];
+  const cnts=(!wideRail&&started&&crisis)?((Runtime.fiche&&Runtime.fiche.counters)||[]).filter(c=>c&&c.id).slice(0,bande?2:1):[];
   const cntOf=kc=>cnts.slice(0,kc).map(c=>'<span class="seg cnt"><span class="seg-l">'+esc(c.label||'Compteur')+'</span><span class="seg-t" data-cntval="'+esc(c.id)+'">'+esc(String((Runtime.counters||{})[c.id]||0))+'</span></span>').join('');
   const chevLblOf=(n,kc)=>{const ct=Math.max(0,decl.t-n),cc=Math.max(0,decl.c-(kc||0));
     return (!wideRail&&started&&(ct||cc))
@@ -12792,6 +12822,31 @@ function updateRtStrip(now){
   const poserVals=(root,n)=>{const ts=root.querySelectorAll('.seg-t'),vals=valsFor(n);
     for(let i=0;i<ts.length&&i<vals.length;i++){if(ts[i].textContent!==vals[i])ts[i].textContent=vals[i];}};
   const paintVals=(n)=>poserVals(el,n);
+  /* ESSAI X1 ▼ — capsule « horizon » (A380) : les minuteurs d'intervalle EN COURS posés à leur temps
+     restant sur 5 min, rien d'autre — ni échéance future, ni cycle suivant ; l'échu se pose sur
+     « maintenant ». La structure ne porte aucune valeur (pas de réécriture au tick) : positions et
+     textes sont peints à part. */
+  if(essaiOn('x1')&&!wideRail&&started){
+    const hz=withRem.filter(x=>x.t.type==='interval').slice(0,3),kc=el.clientWidth>=360?cnts.length:0;   // l'axe d'abord : sous 360, pas de tuile de compteur
+    const h=glob+'<span class="hz" aria-hidden="true"><span class="hz-l"></span><span class="hz-0"></span>'
+      +[1,2,3,4].map(i=>'<span class="hz-k" style="left:'+i*20+'%"></span>').join('')
+      +hz.map((x,i)=>'<span class="hz-m'+(x.rem<0?' due':(x.soon?' soon':''))+(i%2?' b':'')+'" data-hz="'+esc(x.t.id)+'"><span class="hz-d"></span><span class="hz-t"><span class="hz-n">'+(x.rem<0?'△ ':'')+esc(tmName(x.t).split(/ [—–-] /)[0])+'</span><span class="hz-v"></span></span></span>').join('')
+      +'<span class="hz-5">5 min</span></span><span class="sr-only hz-sr"></span>'+cntOf(kc)+chevOf(hz.length?'':chevLblOf(0,kc));
+    el.hidden=false;_rtsFitKey='';
+    if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
+    paintVals(0);
+    const ax=el.querySelector('.hz'),W=ax?ax.clientWidth:0;   // étiquette calée dans l'axe, jamais rognée
+    hz.forEach(x=>{const m=el.querySelector('.hz-m[data-hz="'+CSS.escape(x.t.id)+'"]');if(!m)return;
+      const fx=x.rem<0?0:Math.min(1,x.rem/300000),tv=x.rem<0?'échu':x.d.val,v=m.querySelector('.hz-v'),lb=m.querySelector('.hz-t');
+      m.style.setProperty('--x',fx.toFixed(4));
+      if(v.textContent!==tv)v.textContent=tv;
+      const xp=fx*(W-40);lb.style.left=Math.round(Math.max(0,Math.min(xp-4,W-lb.offsetWidth))-xp)+'px';});
+    const sr=el.querySelector('.hz-sr'),st=hz.map(x=>tmName(x.t)+' '+(x.rem<0?'échu':x.d.val)).join(', ');
+    if(sr&&sr.textContent!==st)sr.textContent=st;
+    if(_cf){const nd=el.querySelector('.hz-m[data-hz="'+CSS.escape(_cf)+'"]:not(.due)');_capFresh=null;
+      if(nd){nd.classList.add('seg-in');nd.addEventListener('animationend',()=>nd.classList.remove('seg-in'),{once:true});}}
+    syncDock();return;}
+  /* ESSAI X1 ▲ */
   const htmlOf=(n,noChev,nu,kc)=>glob+segOf(want.slice(0,n))+moreOf(n)+cntOf(kc||0)+(noChev?'':chevOf(nu?'':chevLblOf(n,kc)));
   const write=(n,noChev,nu,kc)=>{const h=htmlOf(n,noChev,nu,kc);
     if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
@@ -12875,7 +12930,7 @@ function updateRtStrip(now){
       `state.rtOpen` porte l'ENDROIT ('dock' | 'flow'), pas seulement l'état. v5.4.1 : VOLET FIXE
       (`.rt-dock`), `_histArm()` à l'ouverture comme toute surface qui recouvre (doctrine
       v4.30.0). Détail : doctrine-js.md J58. */
-   if(!mqRail.matches){const open=!state.rtOpen;state.rtOpen=open?'dock':false;
+   if(!mqRail.matches||essaiOn('x2')){const open=!state.rtOpen;state.rtOpen=open?'dock':false;   // ESSAI X2
      if(open){_rollOnce=true;                       // le déroulé appartient à CE tap, et à lui seul
        _histArm();}
      renderKeepAnchor('#cbTimers');return;}
@@ -18185,7 +18240,8 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
      vit). En LARGE, rien ne change : rail, et '' quand il n'y a rien à montrer (le journal y a
      sa propre section). Le panneau s'ouvre par le quai (#cbTimers) — jamais automatiquement,
      l'échéance s'annonce sur place (règle 11). */
-  if(!mqRail.matches&&!state.rtOpen)return '';
+  const rail=mqRail.matches&&!essaiOn('x2');   // ESSAI X2 : en bande, le contenu du volet
+  if(!rail&&!state.rtOpen)return '';
   /* ⚠ LE RAIL NE SE TAIT PLUS QUAND LA FICHE N'A RIEN (v5.6, signalé à l'usage : « lorsque la
      session n'a pas de minuteur ou chronomètre pré-défini, l'option d'ajouter ne s'affiche
      pas »). Le panneau entier sortait à vide — donc les deux PORTES avec lui, et il devenait
@@ -18194,7 +18250,7 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
      AFFIRME quelque chose (« 0 minuteur »), pas deux boutons qui ouvrent une capacité — c'est la
      même distinction que le chapeau « Ne pas oublier », affiché vide parce qu'il INVITE (v4.76.0).
      Le panneau ne disparaît donc que HORS session : sans soin en cours, il n'y a rien à créer. */
-  if(mqRail.matches&&!tl.length&&!minis.length&&!cl.length&&!Runtime.started)return '';
+  if(rail&&!tl.length&&!minis.length&&!cl.length&&!Runtime.started)return '';
   /* ⚠ LES DEUX INTERRUPTEURS (son/veille) FORMENT UN GROUPE INSÉCABLE (v5.6, signalé, mesuré) :
      ils enroulent ENSEMBLE, jamais l'un sous l'autre ; l'AVERTISSEMENT part en premier (pas un
      réglage). ⚠ `.rt-wl` purgée avec sa cause (règle 14, A103). ⚠ Le groupe a quitté l'en-tête de
@@ -18234,7 +18290,7 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
   /* (A336 amendée en A354/A356 : la rangée « Terminer la session… » du rail puis du volet est partie — « Fin » au quai
      est la seule porte, à toute largeur ; la fenêtre « Terminer la session ? » reste la confirmation.) */
   // LARGE (rail) : titre de section + cartes À NU (canvas) — pas de boîte, pas de ✕.
-  if(mqRail.matches){
+  if(rail){
     return `<div class="rail-head"><span class="rail-title">Minuteurs</span>${nt>1?`<span class="rail-n">${nt}</span>`:''}</div>${timersC}`
       +`<div class="rail-head rail-fam"><span class="rail-title">Compteurs</span>${cl.length>1?`<span class="rail-n">${cl.length}</span>`:''}</div>`
       +(cl.length?`<div class="rt-counters">${cl.map(counterCard).join('')}</div>`:'')
@@ -18253,7 +18309,7 @@ function runtimePanel(f){const tl=tmLiveOrder(Object.values(Runtime.timers).filt
   // ÉTROIT : boîte repliable (✕) — le JOURNAL y vit aussi depuis la v5.4.0 (un seul dépliant,
   // cf. le bloc doctrinal au-dessus de runtimePanel) : `.tk-panel` garde sa classe, donc
   // renderTkOnly le trouve et le remplace où qu'il loge.
-  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs${famN(nt)}</b><button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${timekeeperPanel()}<div class="rt-set">${sound}</div></div>`;}
+  return `<div class="rt-panel"><div class="rt-head">${uiIcon('stopwatch',16,{cls:'rt-ic'})}<b>Minuteurs${famN(nt)}</b><button class="rt-x" id="rtClose" aria-label="Replier les minuteurs et le journal">×</button></div>${cards}${mqRail.matches?'':timekeeperPanel()}<div class="rt-set">${sound}</div></div>`;}
 /* timekeeperPanel : journal d'horodatage (Runtime.events / session.events) ; heure CORRIGEABLE,
    non destructive (`e.origT` + retour). REPÈRE RÉFÉRENTIEL (v4.47.0) : `{type:'counter', id, v}`,
    libellé DÉRIVÉ au RENDU par rang chronologique (« Action N » à l'écriture divergeait à deux
@@ -18853,7 +18909,7 @@ function renderRead(){
     +(avantSession?`<div class="rail-sec">${preStartHtml(f)}</div>`
         +(posRail?`<div class="rail-sec">${posRail}</div>`:'')
         +preLastSessHtml(f)
-      :`<div class="rail-sec">${rtH}</div>`
+      :(essaiOn('x2')?'':`<div class="rail-sec">${rtH}</div>`)   // ESSAI X2 : les instruments passent en bande
     /* v5.4.2-r (R1) : le JOURNAL contre les compteurs, en dépliant — les trois familles de
        traçabilité voisines à toutes les largeurs (la décision v5.4.0 portée au rail). Puis la
        posologie ; puis, sous 1200 seulement, l'Échelle en dépliant (R2 — cf. doctrine près de
@@ -18967,7 +19023,7 @@ function renderRead(){
     if(i>0)stages.unshift(stages.splice(i,1)[0]);}
   /* LE DÉPLIANT DU QUAI : rendu EN TÊTE de la colonne d'action, donc juste sous le quai qui l'a
      ouvert. En large (≥ 780 px) le rail porte déjà les minuteurs — il n'y a rien à déplier. */
-  const dockPanel=(!wideRead&&state.rtOpen==='dock')
+  const dockPanel=((!wideRead||essaiOn('x2'))&&state.rtOpen==='dock')   // ESSAI X2
     ?`<div class="rt-dock${_rollOnce?' rt-roll':''}">${rtH}</div>`:'';
   _rollOnce=false;   // consommée : le prochain rendu ne re-déroule pas un volet déjà ouvert
   /* ⚠ ACTION 3 DE L'AUDIT — LE PRÉAMBULE AVANT LA PREMIÈRE ÉTAPE. Mesuré à 320 × 640, session
@@ -22801,7 +22857,7 @@ function edAdd(f,kind,pre){
   if(kind==='steps')f.blocks.push({id:uid('b'),kind:'do',title:'',steps:[''],image:null,next:null});
   else if(kind==='decision')f.blocks.push({id:uid('b'),kind:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});
   else if(kind==='stopwatch')f.timers.push({id:uid('t'),label:'',type:'stopwatch'});
-  else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:(pre&&pre.seconds>0&&pre.seconds<=86400)?pre.seconds:120,autoloop:true});
+  else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:(pre&&pre.seconds>0&&pre.seconds<=86400)?pre.seconds:120,autoloop:false});   // A379 : pas de reprise seule par défaut
   else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
   else if(kind==='cx')(f.excursions=f.excursions||[]).push({label:'',target:''});
   else if(ED_ADD_LIST[kind]){const key=ED_ADD_LIST[kind];edPut(f,key,edList(f,key).concat(''));}
@@ -26424,6 +26480,11 @@ function accountPrefsHtml(slot){
         `<button type="button" class="seg-btn${currentReadMode()===k?' on':''}" data-disp="${k}" role="radio" aria-checked="${currentReadMode()===k?'true':'false'}">${esc(l)}</button>`).join('')
     }</div></div>
     <div class="st-hint" style="margin-bottom:4px">Le format dans lequel une aide s'ouvre. Pendant un soin, « ⤢ Tout voir » montre la fiche entière et <b>ramène au bloc</b> sans changer ce réglage.</div>
+    ${Object.keys(ESSAIS).map(k=>{const [l,a,b]=ESSAIS[k],on=essaiOn(k);   // ESSAI (A380)
+      return `<div class="set-row" style="margin-top:12px"><span class="set-l" id="es${k}Lbl">Essai · ${esc(l)}</span>
+    <div class="seg${on?' i1':''}" data-essai="${k}" role="radiogroup" aria-labelledby="es${k}Lbl"><span class="seg-pill" aria-hidden="true"></span>${
+      [[0,a],[1,b]].map(([v,t])=>`<button type="button" class="seg-btn${+on===v?' on':''}" data-ev="${v}" role="radio" aria-checked="${+on===v?'true':'false'}">${esc(t)}</button>`).join('')}</div></div>`;}).join('')}
+    <div class="st-hint" style="margin-bottom:4px">Essais d'affichage de la session, sur cet appareil seulement : <b>Horizon</b> dessine les minuteurs en cours sur les 5 prochaines minutes ; <b>Bande</b> met les instruments sous le titre dès la tablette, la colonne de droite gardant le journal et les repères posologiques.</div>
     ${Auth.signedIn()?`<div class="set-row" style="margin-top:12px"><span class="set-l" id="acLbl">Couleur d'accent</span>
     <div class="accent-row" role="radiogroup" aria-labelledby="acLbl">${ACCENT_IDS.map(a=>`<button type="button" class="acc-sw a-${a||'clinique'}${currentAccent()===a?' on':''}" data-accent="${a}" role="radio" aria-checked="${currentAccent()===a?'true':'false'}" title="${ACCENT_LBL[a]}" aria-label="Accent ${ACCENT_LBL[a]}"></button>`).join('')}</div></div>
     <div class="st-hint" style="margin-bottom:4px">Colore le <b>disque de votre compte</b>, en haut à droite — et rien d'autre.<details class="acct-more"><summary>En savoir plus</summary>Sur un appareil partagé, il dit d'un coup d'œil à quel compte appartient cette fenêtre. L'accent s'arrête là : dans cette application une couleur porte toujours un sens — rouge ce qui tue si on l'oublie, ambre là où l'on se trompe, vert ce qui est confirmé — et une teinte répandue sur l'écran entrerait en concurrence avec eux.</details></div>`:''}
@@ -26529,6 +26590,11 @@ function bindAccountPrefs(body){
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
     peindre();bindSegDrag(ds);}}
+  body.querySelectorAll('[data-essai]').forEach(sg=>{const k=sg.dataset.essai,btns=[...sg.querySelectorAll('[data-ev]')];   // ESSAI (A380)
+    const peindre=()=>{const on=essaiOn(k);sg.classList.toggle('i1',on);
+      btns.forEach(b=>{const v=b.dataset.ev==='1'===on;b.classList.toggle('on',v);b.setAttribute('aria-checked',v?'true':'false');b.tabIndex=v?0:-1;});};
+    btns.forEach(b=>b.onclick=()=>{essaiSet(k,b.dataset.ev==='1');peindre();_rtsFitKey='';});
+    peindre();bindSegDrag(sg);});
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{
     const on=!sessSyncOn();

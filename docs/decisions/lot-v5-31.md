@@ -196,11 +196,62 @@ geste suivant ou à un arrêt à la main. L'application ne prédit rien : ni la 
 heure. Fiche Anaphylaxie corrigée (`autoloop:false`), prompt IA : section « NE PAS ANTICIPER » et
 nuance sur les boucles de cycle.
 
-**Reste ouvert (à trancher par l'auteur).** Le cycle RCP de l'ACR repart lui aussi à la sonnerie
-(`autoloop`), avec le même écart analyse → reprise du massage. Il n'est pas modifié ici : le
-rattacher au geste demanderait soit un minuteur de bloc sur « Choquable / Non choquable » (entrée
-à la réponse, quelques secondes avant la reprise), soit un second lien sur « Choc immédiat », qui
-porte déjà le compte des chocs (un seul lien par étape).
+**Tranché par l'auteur.** Le cycle RCP de l'ACR RESTE à cycles (un rythme de relais, décision de
+l'auteur). Dans l'éditeur, un minuteur d'intervalle NEUF naît sans `autoloop` (il était coché
+d'office) : reboucler devient un choix, jamais un défaut. Les fantômes des cycles suivants du
+moniteur (`monBandData`) restent en l'état, non tranchés.
 
 **Témoin.** `audit-doctrine` A377 : sonnerie simulée sur la fiche Anaphylaxie, la réévaluation
 reste échue et arrêtée.
+
+## A380 — deux essais d'affichage, à juger en conditions réelles (v5.31.0)
+
+**La demande.** « X1 : une option pour switcher en utilisation telle, je n'arrive pas à choisir. X2
+pareil. Il faut utiliser en conditions réelles. Et fais en sorte que je puisse ensuite te dire
+quelle proposition conserver, et que tu puisses garder ou supprimer l'une ou l'autre très
+facilement. » Maquettes : canevas « Session — instruments et parcours », page « Pistes ».
+
+**Où l'on choisit.** Moi › Affichage, deux segmentés : « Essai · Capsule » (Tuiles | Horizon) et
+« Essai · Instruments » (Colonne | Bande). Réglage d'APPAREIL (`ac-essai-x1`, `ac-essai-x2`), jamais
+synchronisé : on compare sur sa tablette sans rien imposer au reste de l'équipe. Défaut : les deux
+éteints, l'application est alors identique à l'octet près de son comportement d'avant.
+
+**X1 — capsule « horizon ».** Là où la capsule a la composition du téléphone, les tuiles de
+minuteurs laissent place à un AXE de 5 min : un point par minuteur d'intervalle EN COURS (au plus
+trois), posé à son temps restant, son nom court et sa valeur (celle de `timerDisplay`) en
+étiquette ; l'échu se pose sur « maintenant » (ambre, △, « échu ») et y reste. **Rien n'est
+extrapolé** (règle de l'auteur, A379) : l'axe ne lit pas le parcours, ne dessine ni cycle suivant ni
+échéance à venir ; au-delà de 5 min le point reste au bord et la valeur dit le reste. Les
+étiquettes alternent au-dessus et au-dessous et sont calées par la mesure dans l'axe (jamais sur
+le chrono). La tuile du premier compteur reste si la capsule fait 360 px ou plus. Structure sans
+valeurs (aucune réécriture au tick), positions et textes peints à part, comme la capsule d'origine.
+
+**X2 — instruments en bande.** Dès 780 px la capsule garde la composition du TÉLÉPHONE (chrono,
+jusqu'à trois minuteurs par échéance, deux compteurs, rappel de ce qui est caché) au lieu de ne
+porter que les échéances imminentes ; la toucher ouvre le VOLET des corrections, comme au
+téléphone, aligné sur la colonne d'action ; le rail ne garde que le journal, les repères
+posologiques et le parcours. La bande garde la largeur de la colonne d'action (A356 : la bande
+étirée sur le rail avait été jugée trop grande) et ne monte pas dans l'en-tête à 1440.
+
+**Procédure — le jour où l'auteur tranche.** Tout le code d'un essai est entre ses balises
+`ESSAI Xn ▼ … ▲` (CSS et JS) ou derrière `essaiOn('xn')` ; `grep -n "ESSAI X1\|essaiOn('x1')"`
+les liste tous.
+- **Retirer X1** : supprimer le bloc JS et le bloc CSS balisés « ESSAI X1 » ; retirer `x1` de `ESSAIS`
+  et la partie X1 de la section d'audit A380.
+- **Garder X1** : dans `updateRtStrip`, la condition devient `if(!wideRail&&started)` ; retirer `x1`
+  de `ESSAIS`, les balises deviennent un commentaire ordinaire ; la partie X1 de l'audit reste,
+  sans `addInitScript`.
+- **Retirer X2** : remplacer chaque `essaiOn('x2')` par `false` et simplifier (`bande` disparaît,
+  `wideRail=mqRail.matches`, tranches `slice(0,1)`, `rail=mqRail.matches`, `timekeeperPanel()`
+  inconditionnel dans le volet, `renderRead` et `placeCrisisChrome` d'origine) ; supprimer le bloc
+  CSS « ESSAI X2 » et la partie X2 de l'audit.
+- **Garder X2** : remplacer `essaiOn('x2')` par `true` ; la composition « large » de la capsule
+  (échéances imminentes seulement) et la section « Minuteurs / Compteurs » du rail deviennent du
+  code mort et PARTENT au grep (règle 14), leurs témoins d'audit avec.
+- **Quand les deux sont tranchés** : supprimer `ESSAIS`, `essaiOn`, `essaiSet`, la boucle de
+  démarrage, les rangées « Essai · » de Moi et leur liaison, la famille `essai-` de
+  `check-classes.mjs`, et purger les clés `ac-essai-*` au démarrage.
+
+**Témoins.** `audit-doctrine` A380 : X1 — un point par minuteur lancé et pas un de plus, ordre des
+échéances, étiquettes dans l'axe, l'échu sur « maintenant », retour aux tuiles ; X2 — instruments
+dans la bande à 820 px, rail sans minuteurs, volet au toucher, un seul journal.
