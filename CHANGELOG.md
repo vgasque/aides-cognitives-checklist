@@ -23,6 +23,11 @@ l'auteur, choisie sur trois versions de maquettes.
   vérification finale n° 17. La fiche d'exemple ACR montre l'usage sur 3 étapes sur 14.
 - **Conformité** : § 2 de `docs/deploiement-et-conformite.md` complété avant le code (déclencheur
   toujours un geste de l'équipe, rien ne décide, tout se défait).
+- **Sans doublon** : une seule fonction pour relancer un minuteur (quatre copies auparavant ; le ⟲
+  d'un minuteur ad hoc et la relance par un compteur lèvent désormais aussi l'acquittement), une
+  pour le « + » d'un compteur, une pour le nom par défaut d'un minuteur (sept copies) ; le parcours
+  du graphe des blocs est partagé avec le grisé « hors chemin » ; glyphes pris dans la table
+  d'icônes commune ; commentaires ramenés à une ligne, la doctrine vit dans le lot.
 - **Témoins** : 31 tests unitaires (modèle, sortie de boucle, légende) et une section
   `audit-doctrine` « A377 » (17 contrôles). Aucun changement côté serveur.
 

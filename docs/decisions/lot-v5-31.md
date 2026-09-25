@@ -105,6 +105,15 @@ vérification finale (n° 17). La fiche d'exemple ACR montre l'usage : trois lie
 étapes — « Choc immédiat » compte les chocs (et le jalon « 3 CEE » suit seul), les deux
 « Adrénaline » lancent « prochaine dose ».
 
+**Réutilisation, pas de doublon.** Demande de l'auteur : commentaires courts, fonctions
+existantes réemployées. `tmRestart` est LE geste « relancer depuis zéro » (lien de coche, minuteur de
+bloc, compteur lié, ⟲ d'un ad hoc — quatre copies auparavant, dont deux qui oubliaient de lever
+l'acquittement). `cnInc` / `cnBump` portent le « + » d'un compteur (bouton, coche liée, chip du
+journal). `cnEvents` sert le compte rendu de la carte et la légende. `tmName` remplace sept copies de
+« nom ou Minuteur/Chronomètre ». `blkReach` (graphe des blocs) sert aussi `offPathSet`. Les glyphes
+de la légende viennent de `uiIcon` (`stopwatch`, et `counter` ajouté à la table), sauf l'anneau, qui
+porte une valeur. La doctrine vit ici ; le code ne garde qu'une ligne et le renvoi.
+
 **Formes écartées, à ne pas reproposer.** La v1 (pastille pleine largeur, piste, bande de bloc à
 24 px — le plus gros chiffre de la carte était un minuteur) ; la pastille bleue de la v3 brute
 (raisons ci-dessus) ; un témoin tapable (faux tap garanti à côté de la case) ; l'échéance qui

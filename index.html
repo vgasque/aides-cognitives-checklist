@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Lo/6P8RtbHc9MAoLEXEmGWz/OK/NIfwigG80e/UJp7I='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-P9i0Epinb71amgmsnHcDZnXhK4VrrzTnENtDGyjgMs0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3735,14 +3735,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps li .stp-vf{flex:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
   ol.steps li .stp-vf.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
   ol.steps li .stp-vf.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
-  /* A377 — LA LÉGENDE D'UN OBJET LIÉ (témoin d'étape, v3 ajustée validée par l'auteur ; cf.
-     `wtTimerModel`). Une ligne de 24 px réservée dans TOUS les états (A9 : l'échéance ne change
-     aucune hauteur), 6 px sous le libellé, corps 13,5 — deux crans sous l'étape. Le débord de
-     8 px à gauche garde le TEXTE aligné sur le libellé quand la pastille ambre s'allume. Couleur
-     sur le glyphe et la valeur seulement ; l'aplat ambre n'existe qu'à l'échéance (A11). */
+  /* A377 — légende d'un objet lié : 24 px réservés dans tous les états (A9), aplat ambre à
+     l'échéance seulement (A11) ; le débord de 8 px garde le texte aligné sur le libellé. */
   .wt{display:flex;align-items:center;gap:6px;width:fit-content;max-width:calc(100% + 8px);box-sizing:border-box;height:24px;margin:6px 0 0 -8px;padding:0 8px;border-radius:var(--r-1);min-width:0;font-size:var(--t-body);font-weight:600;line-height:24px;letter-spacing:0;text-transform:none;color:var(--ink-2);white-space:nowrap}
   .wt-g{flex:none;width:14px;height:14px;color:var(--ink-2);overflow:visible}
-  .wt-ln{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
   .wt-r0{fill:none;stroke:var(--primary-200);stroke-width:2.2}
   .wt-r1{fill:none;stroke:currentColor;stroke-width:2.2;stroke-dasharray:28.27;stroke-linecap:round;transform:rotate(-90deg);transform-origin:6px 6px}
   .wt-v{flex:none;font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
@@ -4952,9 +4948,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     font-size:12px;line-height:1.45;color:var(--verify)}
   .blk .li:focus-within .li-note{display:block}
   .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
-  /* A377 — ce que fait la coche : pointillé tant que rien n'est lié (« créer »), plein et bleu
-     quand un lien existe. Le lien se lit AUSSI au repos, sous l'étape (`.wt-ed`, la légende
-     annoncée) : les outils, eux, n'existent qu'au focus. */
+  /* A377 — « ce que fait la coche » : pointillé sans lien (créer), bleu avec ; lu au repos par `.wt-ed`. */
   .li-tools .li-lk{flex:0 1 auto;min-width:0;max-width:240px;height:32px;min-height:32px;padding:0 8px;border:1px dashed var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700}
   .li-tools .li-lk.on{border-style:solid;border-color:var(--act);color:var(--act)}
   .blk .li .wt-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
@@ -10514,9 +10508,7 @@ function v4SanItem(x,i){
   const it={id:safeId(o.id)||uid('i'),role:V4_ROLES.indexOf(o.role)>=0?o.role:'do',
     do:sstr(o.do,500),expect:sstr(o.expect,200),level:lv,
     memory:!!o.memory,dual:!!o.dual,note:sstr(o.note,500)};
-  /* A377 — LIENS DE COCHE : `starts` (id d'un minuteur) OU `counts` (id d'un compteur). Référence
-     brute ici, RÉSOLUE plus bas dans `migrate` (seul point où les ids de minuteurs et compteurs
-     existent) ; absents = aucune clé, pour que l'item sans lien reste identique à l'octet. */
+  // A377 : `starts` OU `counts`, résolus plus bas dans migrate ; sans lien, aucune clé.
   {const s=safeCatRef(o.starts),c=safeCatRef(o.counts);if(s)it.starts=s;else if(c)it.counts=c;}
   return it;}
 /* LE MIROIR EST RÉGÉNÉRÉ, JAMAIS RÉCONCILIÉ : les items gagnent toujours (une réconciliation
@@ -11013,9 +11005,7 @@ function migrate(f){if(!f||typeof f!=='object')f={};
          const go=(typeof j.go==='string'&&exT[j.go])?j.go:'';
          return {at,n:Math.min(99,n),counter,text,go};})
        .filter(Boolean);});
-   /* A377 — LES LIENS SE RÉSOLVENT ICI, où les ids finaux des minuteurs et compteurs existent
-      (même règle que les jalons et `counters[].timerId`) : une référence qui ne résout pas ne sort
-      jamais vivante de migrate. Minuteur de BLOC : n'importe quel minuteur de la fiche. */
+   // A377 : liens résolus ici comme les jalons ; une référence pendante est retirée.
    const tmIds=Object.create(null);f.timers.forEach(t=>{tmIds[t.id]=1;});
    f.blocks.forEach(b=>{if(b.timer&&!tmIds[b.timer])delete b.timer;});
    f.items.forEach(it=>{
@@ -11164,11 +11154,7 @@ function seed2(catId){const b1=uid('b'),bd=uid('b'),b2=uid('b'),b3=uid('b'),bx=u
   {const b=f.blocks.find(x=>x.id===b1);
    const it=b?bItems(b).find(x=>/RCP imm/.test(x.do)):null;
    if(it){it.memory=true;}}
-  /* A377 — LES LIENS DE COCHE, AVEC PARCIMONIE : trois étapes sur quatorze, et seulement là où le
-     geste coché EST l'évènement que l'équipe devrait sinon reporter à la main. Le choc coché
-     compte (et le jalon « 3 CEE » suit tout seul) ; l'adrénaline cochée lance le délai de la
-     prochaine dose. Le cycle RCP reste un minuteur de fiche : il tourne en continu, il n'est pas
-     le minuteur d'un bloc. */
+  // A377, avec parcimonie : le choc coché compte, l'adrénaline cochée lance « prochaine dose ».
   {const adr=(f.timers[1]||{}).id;
    f.blocks.forEach(b=>{if(b.id!==b2&&b.id!==b3)return;
      bItems(b).forEach(x=>{if(/^Choc imm/.test(x.do))x.counts=cn1;else if(adr&&/^Adrénaline/.test(x.do))x.starts=adr;});});}
@@ -11248,6 +11234,11 @@ function latestPass(nav,navSeq,blockId){nav=nav||[];let idx=-1,total=0;
 // Index {id -> bloc}, PREMIER gagnant — l'invariant partagé des quatre lecteurs du plan
 // (offPathSet, flowPlan, minimapData, svTreePlan) : un id dupliqué garde sa première définition.
 function blocksById(blocks){const byId={};blocks.forEach(b=>{if(b&&b.id&&!byId[b.id])byId[b.id]=b;});return byId;}
+// Graphe des blocs : suites d'un bloc d'étapes, cibles d'une décision ; ensemble atteignable depuis `from`.
+const blkSucc=b=>!b?[]:(b.kind==='decision'?(b.options||[]).map(o=>o&&o.target).filter(Boolean):(b.next?[b.next]:[]));
+function blkReach(f,from){const by=blocksById((f&&f.blocks)||[]),seen=new Set(),q=[from];
+  while(q.length){const id=q.pop();if(!id||seen.has(id)||!by[id])continue;seen.add(id);q.push(...blkSucc(by[id]));}
+  return seen;}
 function offPathSet(f,nav,navPos){const blocks=(f&&f.blocks)||[];const out=new Set();if(!blocks.length)return out;
   const byId=blocksById(blocks);
   const keep={};(nav||[]).forEach(id=>{keep[id]=true;});
@@ -11256,11 +11247,7 @@ function offPathSet(f,nav,navPos){const blocks=(f&&f.blocks)||[];const out=new S
   // Tête de chemin irrésoluble (bloc supprimé par une édition, aperçu d'un brouillon) : repli
   // sur le bloc de départ — sinon RIEN ne serait atteignable et tout serait grisé.
   const head=nav&&nav[np];
-  const seen={},q=[byId[head]?head:(byId[f.start]?f.start:(blocks[0]&&blocks[0].id))];
-  while(q.length){const id=q.shift();if(!id||seen[id]||!byId[id])continue;seen[id]=true;keep[id]=true;
-    const b=byId[id];
-    if(b.kind==='decision')(b.options||[]).forEach(o=>{if(o&&o.target)q.push(o.target);});
-    else if(b.next)q.push(b.next);}
+  blkReach(f,byId[head]?head:(byId[f.start]?f.start:(blocks[0]&&blocks[0].id))).forEach(id=>{keep[id]=true;});
   blocks.forEach(b=>{if(b&&b.id&&!keep[b.id])out.add(b.id);});
   return out;}
 // Rang du passage de l'instance idx du journal parmi les visites du MÊME bloc (1-based) + total.
@@ -12017,8 +12004,7 @@ function snapshotSession(R,live){const now=Date.now();const tsnap={};
     extraCounters:(R.adhocCounters||[]).map(c=>({id:c.id,label:c.label})),
     linkArm:linkArmSnap(R.linkArm),   // A377 : qui a armé quel minuteur (bloc, sortie de boucle)
     events:(R.events||[]).map(e=>({...e}))};}
-/* A377 — la carte des armements, bornée : {idMinuteur:{b:idBloc|'', x:heure d'arrêt de sortie}}.
-   Même forme en écriture (instantané) et en lecture (assainisseur) : une seule fonction. */
+// A377 : {idMinuteur:{b:idBloc|'', x:arrêt de sortie}}, bornée — instantané et assainisseur.
 function linkArmSnap(src){const m=Object.create(null);let n=0;
   if(src&&typeof src==='object')for(const k of Object.keys(src)){if(n>=200)break;
     if(!SAFE_ID.test(k)||BAD_KEYS.indexOf(k)>=0)continue;const a=src[k];if(!a||typeof a!=='object')continue;
@@ -12258,8 +12244,7 @@ function ensureStarted(){if(Runtime.started||!Runtime.fiche)return false;
   if(!Runtime.sessionId)Runtime.sessionId=uid('s');
   if(!Runtime.name)Runtime.name=autoSessName(Runtime.fiche);
   liveSessions[Runtime.ficheId]=Runtime;
-  /* A377 : le minuteur du bloc où la session démarre part AVEC elle (décision de l'auteur —
-     amende A330 sur ce seul cas : ce minuteur-là n'est plus « à lancer »). */
+  // A377 : le minuteur du bloc de départ part avec la session (amende A330).
   linkEnter(Runtime.fiche,Runtime.nav[Runtime.nav.length-1],{noExit:true});
   requestNotifyPermission();persistLive(Runtime,true);return true;}
 // Terminer : fige en historique (live=false), arrête les minuteurs, sort du registre vif.
@@ -12355,7 +12340,7 @@ function onTimerFired(R,t){beep();
   /* K7 : l'alarme annonce L'ACTION quand l'auteur l'a écrite (`onDue`), le NOM sinon. Une alarme
      qui dit seulement quoi a sonné laisse la décision entière à qui l'entend ; l'ECAM pose
      l'action au pied de l'alerte. Le nom reste dans le libellé complet, jamais perdu. */
-  const nom=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
+  const nom=tmName(t);
   const tl=(t.onDue||'').trim()?(nom+' — '+String(t.onDue).trim()):nom;
   if(activeVisible){flash(t.id);}   // carte clignotée si visible + flash écran bref (cf. flash())
   else{showBanner(R.ficheId,ft,tl);flashScreen();
@@ -12384,105 +12369,65 @@ function toggleTimer(t){const now=Date.now();t.ack=false;
     t.stoppedAt=now;t.stopClosed=false;}
   else{ensureAudio();_capFresh=t.id;if(t.type==='interval'&&t.elapsedMs>=(t.seconds*1000||1))t.elapsedMs=0;t.lastStart=now;t.running=true;t.stoppedAt=0;t.stopClosed=false;}}
 function resetTimer(t){t.running=false;t.elapsedMs=0;t.cycles=0;t.lastStart=0;t.ack=false;t.stoppedAt=0;t.stopClosed=false;}
-/* ═══ A377 (v5.31.0) — LIENS DE COCHE ET MINUTEUR DE BLOC ════════════════════════════════════
-   L'AUTEUR lie une étape à un objet de SA fiche : `it.starts` (la coche lance un minuteur) ou
-   `it.counts` (la coche compte + pas). Un bloc peut porter `b.timer` (lancé à chaque ENTRÉE par
-   un geste de conduite ; au bloc où la session démarre, avec elle). Le déclencheur est TOUJOURS
-   un geste de l'équipe (qualification § 2 de docs/deploiement-et-conformite.md, écrite avant).
-   Trois garde-fous d'auteur validés : (1) décocher dans les 10 s rend le minuteur à son état
-   d'avant — après, il continue et s'arrête depuis sa tuile ; (2) un minuteur de bloc s'arrête
-   quand le parcours quitte sa boucle (STRUCTUREL : le bloc n'est plus atteignable) ; (3) à
-   l'échéance, RIEN n'est choisi ni défilé — l'alarme reste celle de tout minuteur.
-   ⚠ LES EFFETS VIVENT DANS LE GESTE LOCAL (applyCheck, portes de conduite), JAMAIS dans
-   l'application d'un état reçu : l'effet part par le fil comme n'importe quel état (shareDiff
-   compare des instantanés), et le rejouer à la réception compterait deux fois. Détail : lot-v5-31. */
-const LINK_GRACE_MS=10000;
-function linkOf(it){if(!it)return null;
-  if(it.starts)return {k:'tm',id:it.starts};
-  if(it.counts)return {k:'cn',id:it.counts};
-  return null;}
-// Graphe PUR des blocs : suites d'un bloc d'étapes, cibles d'une décision.
-function blkSucc(b){if(!b)return [];
-  return b.kind==='decision'?(b.options||[]).map(o=>o&&o.target).filter(Boolean):(b.next?[b.next]:[]);}
-function blkReach(f,from){const by=blocksById((f&&f.blocks)||[]);const seen=new Set();const st=[from];
-  while(st.length){const id=st.pop();if(!id||seen.has(id)||!by[id])continue;seen.add(id);blkSucc(by[id]).forEach(n=>st.push(n));}
-  return seen;}
-function blkInLoop(f,id){const by=blocksById((f&&f.blocks)||[]);
-  return blkSucc(by[id]).some(n=>blkReach(f,n).has(id));}
-/* Les minuteurs de BLOC à arrêter quand le parcours arrive sur `toId` : leur bloc est dans une
-   boucle ET n'est plus atteignable depuis `toId`. Un bloc hors boucle n'arrête jamais le sien
-   (rien ne dit qu'on en « sort »). PURE : la carte des armements est passée. */
-function loopExitStops(f,arm,toId){const out=[];
-  for(const tid of Object.keys(arm||{})){const a=arm[tid];
-    if(!a||!a.b||a.x||a.b===toId)continue;
-    if(blkInLoop(f,a.b)&&!blkReach(f,toId).has(a.b))out.push(tid);}
-  return out;}
-// Armer = repartir de zéro, en marche. Rend l'état d'avant (pour l'annulation de 10 s).
-function linkArm(R,tid,bid){const t=R&&R.timers&&R.timers[tid];if(!t)return null;
-  const prev={running:t.running,elapsedMs:t.elapsedMs,cycles:t.cycles,lastStart:t.lastStart,
-    stoppedAt:t.stoppedAt,stopClosed:t.stopClosed,ack:t.ack};
-  R.linkArm=R.linkArm||{};const prevArm=R.linkArm[tid]||null;
-  t.elapsedMs=0;t.lastStart=Date.now();t.running=true;t.ack=false;t.stoppedAt=0;t.stopClosed=false;
-  R.linkArm[tid]={b:bid||'',x:0};
-  try{ensureAudio();}catch(e){}
-  _capFresh=tid;
-  return {prev,prevArm};}
-/* + pas sur un compteur, avec son repère au journal et la relance de SON minuteur lié — le geste
-   du « + » de la carte, factorisé : la coche liée et le bouton font exactement la même chose. */
-function cnBump(id,step){const R=Runtime;R.counters[id]=(R.counters[id]||0)+step;
+/* A377 — liens de coche (`it.starts` / `it.counts`) et minuteur de bloc (`b.timer`). Effets dans le
+   geste LOCAL seulement (applyCheck, portes de conduite) : le partage les transporte comme tout
+   état. Détail : docs/decisions/lot-v5-31.md. */
+const LINK_GRACE_MS=10000;   // décocher dans ce délai rend le minuteur à son état d'avant
+const linkOf=it=>!it?null:(it.starts?{k:'tm',id:it.starts}:(it.counts?{k:'cn',id:it.counts}:null));
+// Relancer depuis zéro : lien de coche, minuteur de bloc, compteur lié, ⟲ d'un ad hoc.
+function tmRestart(t){t.elapsedMs=0;t.lastStart=Date.now();t.running=true;t.ack=false;t.stoppedAt=0;t.stopClosed=false;ensureAudio();}
+// Le « + » d'un compteur : valeur et relance de son minuteur lié. `cnBump` y ajoute le repère.
+function cnInc(id,step){const R=Runtime;R.counters[id]=(+R.counters[id]||0)+step;
   const cc=((R.fiche&&R.fiche.counters)||[]).find(x=>x.id===id);
-  if(cc&&cc.timerId&&R.timers[cc.timerId]){const t=R.timers[cc.timerId];t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();}
-  R.events=R.events||[];
-  const ev={id:uid('e'),t:vfNow(),label:'',ref:{type:'counter',id:id,v:R.counters[id]}};
-  R.events.push(ev);return ev;}
-/* L'effet d'une coche liée. Appelé par `applyCheck`, APRÈS l'écriture de l'état et le garde de
-   rôle (un scribe peut cocher donc armer/compter, pas décocher — la garde est déjà passée). */
+  if(cc&&cc.timerId&&R.timers[cc.timerId])tmRestart(R.timers[cc.timerId]);}
+function cnBump(id,step){cnInc(id,step);const R=Runtime;
+  const ev={id:uid('e'),t:vfNow(),label:'',ref:{type:'counter',id,v:R.counters[id]}};
+  (R.events=R.events||[]).push(ev);return ev;}
+// Repères vivants d'un compteur, du plus ancien au plus récent (compte rendu, légende, annulation).
+const cnEvents=id=>(Runtime.events||[]).filter(e=>e&&e.ref&&e.ref.type==='counter'&&e.ref.id===id&&!e.voidAt);
+// L'étape d'une clé de coche « visite:bloc:index » (null pour une décision).
+function ckItem(f,k){const p=String(k||'').split(':');if(p.length!==3)return null;
+  const b=blocksById((f&&f.blocks)||[])[p[1]];
+  return b&&b.kind!=='decision'?{b,it:bItems(b)[+p[2]]}:null;}
+const blkInLoop=(f,id)=>blkSucc(blocksById((f&&f.blocks)||[])[id]).some(n=>blkReach(f,n).has(id));
+// Minuteurs de bloc à arrêter en arrivant sur `toId` : leur bloc boucle et n'est plus atteignable. PURE.
+function loopExitStops(f,arm,toId){const vus=blkReach(f,toId);
+  return Object.keys(arm||{}).filter(tid=>{const a=arm[tid];return !!(a&&a.b&&!a.x&&!vus.has(a.b)&&blkInLoop(f,a.b));});}
+// Armer depuis zéro ; rend l'état d'avant (annulation de 10 s).
+function linkArm(R,tid,bid){const t=R.timers[tid];if(!t)return null;
+  R.linkArm=R.linkArm||{};const r={prev:{...t},prevArm:R.linkArm[tid]||null};
+  tmRestart(t);_capFresh=tid;R.linkArm[tid]={b:bid||'',x:0};
+  return r;}
+// Effet d'une coche liée (garde de rôle déjà passée). Décocher : − pas et repère barré ; minuteur rendu sous 10 s.
 function linkOnCheck(k,on){
-  const R=Runtime,f=R&&R.fiche;if(!f)return null;
-  const m=/^(\d+):([^:]+):(\d+)$/.exec(String(k||''));if(!m)return null;
-  const b=(f.blocks||[]).find(x=>x&&x.id===m[2]);if(!b||b.kind==='decision')return null;
-  const L=linkOf(bItems(b)[+m[3]]);if(!L)return null;
+  const R=Runtime,f=R&&R.fiche,ci=ckItem(f,k),L=linkOf(ci&&ci.it);if(!L)return null;
   R.linkGrace=R.linkGrace||{};
-  if(L.k==='tm'){
-    if(!R.timers[L.id])return null;
-    if(on){const r=linkArm(R,L.id,'');R.linkArm[L.id].ck=k;
-      R.linkGrace[k]={real:Date.now(),tid:L.id,prev:r.prev,prevArm:r.prevArm};}
+  if(L.k==='tm'){if(!R.timers[L.id])return null;
+    if(on){R.linkGrace[k]={real:Date.now(),tid:L.id,...linkArm(R,L.id,'')};R.linkArm[L.id].ck=k;}
     else{const g=R.linkGrace[k];delete R.linkGrace[k];
-      if(g&&Date.now()-g.real<LINK_GRACE_MS&&R.timers[g.tid]){
-        Object.assign(R.timers[g.tid],g.prev);
+      if(g&&Date.now()-g.real<LINK_GRACE_MS){Object.assign(R.timers[g.tid],g.prev);
         if(g.prevArm)R.linkArm[g.tid]=g.prevArm;else delete R.linkArm[g.tid];}}
     return L;}
   const c=(f.counters||[]).find(x=>x&&x.id===L.id);if(!c)return null;
   const step=c.step||1;
-  if(on){const ev=cnBump(L.id,step);ev.ck=k;}
-  else{const before=R.counters[L.id]||0;R.counters[L.id]=Math.max(0,before-step);
-    /* Le repère de CETTE coche s'annule (barré, réversible — jamais effacé). Repli pour une coche
-       venue d'un autre écran (le `ck` ne voyage pas) : le dernier repère vivant à cette valeur. */
-    const evs=R.events||[];let e=null;
-    for(let i=evs.length-1;i>=0&&!e;i--){const x=evs[i];if(x&&x.ck===k&&!x.voidAt)e=x;}
-    for(let i=evs.length-1;i>=0&&!e;i--){const x=evs[i];
-      if(x&&!x.voidAt&&x.ref&&x.ref.type==='counter'&&x.ref.id===L.id&&x.ref.v===before)e=x;}
-    if(e)e.voidAt=vfNow();}
+  if(on){cnBump(L.id,step).ck=k;return L;}
+  const before=R.counters[L.id]||0;R.counters[L.id]=Math.max(0,before-step);
+  // Le repère de cette coche ; repli (coche d'un autre écran, `ck` ne voyage pas) : le dernier à cette valeur.
+  const evs=cnEvents(L.id).reverse(),e=evs.find(x=>x.ck===k)||evs.find(x=>x.ref.v===before);
+  if(e)e.voidAt=vfNow();
   return L;}
-/* Porte de CONDUITE vers `toId` (Continuer, réponse, nouveau passage, complication, démarrage) :
-   arrête d'abord les minuteurs de bloc dont on quitte la boucle, puis arme celui du bloc atteint.
-   Jamais depuis une consultation (plan, cellule du tableau, nœud du schéma : naviguer ≠ agir). */
-function linkEnter(f,toId,opts){
-  const R=Runtime;if(!R||!R.started||!f||!toId)return false;
-  let ch=false;
-  if(!(opts&&opts.noExit)){
-    loopExitStops(f,R.linkArm,toId).forEach(tid=>{const t=R.timers[tid];if(!t)return;
-      if(t.running)toggleTimer(t);else t.ack=true;   // échu et quitté : l'alarme n'a plus d'objet
-      R.linkArm[tid].x=Date.now();ch=true;});}
-  const b=((f.blocks||[]).find(x=>x&&x.id===toId));
-  if(b&&b.timer&&R.timers[b.timer]){linkArm(R,b.timer,b.id);ch=true;}
-  if(ch)try{updateRtStrip();}catch(e){}
-  return ch;}
-// Repeinture après une coche liée : compteurs, cartes et capsule, journal, légendes.
+// Porte de CONDUITE vers `toId` : arrêt des minuteurs dont on quitte la boucle, puis celui du bloc atteint.
+function linkEnter(f,toId,opts){const R=Runtime;if(!R||!R.started||!f||!toId)return;
+  if(!(opts&&opts.noExit))loopExitStops(f,R.linkArm,toId).forEach(tid=>{const t=R.timers[tid];if(!t)return;
+    if(t.running)toggleTimer(t);else t.ack=true;   // échu et quitté : l'alarme n'a plus d'objet
+    R.linkArm[tid].x=Date.now();});
+  const b=blocksById(f.blocks||[])[toId];
+  if(b&&b.timer&&R.timers[b.timer])linkArm(R,b.timer,b.id);
+  updateRtStrip();}
 function linkRepaint(L){if(!L)return;
-  try{if(L.k==='cn'){setCounterVal(L.id);renderTkOnly();}
-    else{const t=Runtime.timers[L.id];if(t)syncTimerBtns(t);refreshTimersDOM();updateRtStrip();}
-    paintWitness();}catch(e){}}
+  if(L.k==='cn'){setCounterVal(L.id);renderTkOnly();}
+  else{syncTimerBtns(Runtime.timers[L.id]);refreshTimersDOM();updateRtStrip();}
+  paintWitness();}
 /* Remplissage de la barre de progression d'un minuteur (cf. `.tm-bar`) : SOURCE UNIQUE de la
    chaîne, partagée par le gabarit `timerCard` et le tick `refreshTimersDOM`. Une source unique
    parce que le tick compare la valeur AVANT d'écrire (anti-churn, ~3,3 passages/s) : deux
@@ -16274,6 +16219,7 @@ function uiIcon(name,size,opts){opts=opts||{};const P={
   warn:WARN_GLYPH,
   alarm:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M5.2 3.4L2.8 5.5M18.8 3.4l2.4 2.1"/>',
   stopwatch:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
+  counter:'<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M12 8v8M8 12h8"/>',   // A377 : légende d'un compteur lié
   sparkles:'<path fill="currentColor" d="M11 4l1.7 4.3L17 10l-4.3 1.7L11 16l-1.7-4.3L5 10l4.3-1.7z"/><path fill="currentColor" d="M18.5 14.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>',
   pen:'<path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/>',
   palette:'<path d="M12 3a9 9 0 100 18c1.2 0 2-.9 2-2 0-.6-.3-1-.5-1.4-.3-.5-.3-1.2.2-1.6.4-.3.9-.5 1.4-.5H17a4 4 0 004-4c0-4.8-4-8.5-9-8.5z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/>',
@@ -18020,7 +17966,9 @@ function timerPaused(t){return !t.running&&timerStarted(t)&&!timerDue(t);}
 function tmLabelParts(label){const t=String(label||'').trim();
   const m=t.match(/^(.*\S)\s*\(([^()]{2,})\)$/);
   return m?{name:m[1],meta:m[2]}:{name:t,meta:''};}
-function timerStateLabel(t){const lbl=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
+// Nom affiché d'un minuteur, précision retirée, ou son défaut par nature.
+const tmName=t=>tmLabelParts(t&&t.label).name||(t&&t.type==='interval'?'Minuteur':'Chronomètre');
+function timerStateLabel(t){const lbl=tmName(t);
   return timerDue(t)?'■ '+lbl+' — à réévaluer':(timerPaused(t)?lbl+' — en pause':lbl);}
 // Icône + texte du bouton principal (jamais icône seule).
 function timerBtnHtml(t){return uiIcon(t.running?'pause':'play',13)+timerBtnLabel(t);}
@@ -18090,7 +18038,7 @@ function counterCard(c){const v=Runtime.counters[c.id]||0;const lbl=esc(c.label)
    même grammaire que l'accusé « ✓ 02:16 noté » du lot M7, pour qu'on n'apprenne qu'un seul
    patron. Elle n'existe que s'il y a quelque chose à dire : aucun repère, aucune ligne. */
 function cnLogTxt(id,now){
-  const evs=(Runtime.events||[]).filter(e=>e&&e.ref&&e.ref.type==='counter'&&e.ref.id===id&&!e.voidAt);
+  const evs=cnEvents(id);
   if(!evs.length)return '';
   const t0=(Runtime&&Runtime.startedAt)||0,last=evs[evs.length-1].t;
   /* ⚠ UN TEMPS ÉCOULÉ SE DIT « T+ », UNE HEURE SE DIT ENTIÈRE (demande utilisateur) : « 04:12 »
@@ -19330,7 +19278,7 @@ function bindReadEvents(f,blk,cur){
     delete Runtime.timers[b.dataset.tmrm];persistLive(Runtime,true);render();});
   // ⟲ des rangées compactes : RELANCE le minuteur ad hoc (repart du plein, démarre aussitôt).
   main.querySelectorAll('[data-tmrestart]').forEach(b=>b.onclick=()=>{const t=Runtime.timers[b.dataset.tmrestart];if(!t)return;
-    t.elapsedMs=0;t.lastStart=Date.now();t.running=true;ensureAudio();persistLive(Runtime,true);render();});
+    tmRestart(t);persistLive(Runtime,true);render();});
   // (La bascule de mode est câblée UNE FOIS, hors de `main` — cf. #modeSeg plus bas.)
   // Navigation + cochage — rebranchés aussi par renderOvOnly (journal).
   /* ⚠ LA MÊME RÉSOLUTION QUE `renderRead`, ET C'EST LA MÊME FONCTION (v5.6). Elle était RECOPIÉE
@@ -19383,7 +19331,6 @@ function bindReadEvents(f,blk,cur){
   main.querySelectorAll('[data-tmreset]').forEach(b=>holdToReset(b,()=>{const t=Runtime.timers[b.dataset.tmreset];resetTimer(t);syncTimerBtns(t);refreshTimersDOM();persistLive(Runtime);}));
   main.querySelectorAll('[data-cninc]').forEach(b=>b.onclick=()=>{const id=b.dataset.cninc;tick();
     // Compteur LIÉ (canvas : bolus adrénaline) : le « ＋ » RELANCE le minuteur associé (repart du plein).
-    // A377 : le geste est factorisé dans `cnBump`, que la coche liée emprunte à l'identique.
     /* INCRÉMENTER HORODATE (v4.47.0). « Choc n° 3 » sans que personne n'ait à taper quoi que ce
        soit : c'est l'heure qui compte cliniquement, et c'est précisément ce qu'on oublie de noter
        sous stress. Le repère porte une RÉFÉRENCE, pas un mot — il traverse donc le partage sans
@@ -20029,10 +19976,7 @@ function openFoldCard(k){const f=state.fiche;if(!f)return;
       const cid=pk.dataset.tkcnt;
       if(cid){
         Runtime.counters=Runtime.counters||{};
-        Runtime.counters[cid]=(+Runtime.counters[cid]||0)+1;
-        const cc=((Runtime.fiche&&Runtime.fiche.counters)||[]).find(x=>x.id===cid);
-        if(cc&&cc.timerId&&Runtime.timers[cc.timerId]){const tm=Runtime.timers[cc.timerId];
-          tm.elapsedMs=0;tm.lastStart=Date.now();tm.running=true;ensureAudio();}
+        cnInc(cid,1);
         ref={type:'counter',id:safeId(cid,'c'),v:Runtime.counters[cid]};
         setCounterVal(cid);}
       // La référence prend la place du mot tapé : le libellé se DÉRIVE, il est donc le même sur
@@ -20734,104 +20678,68 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
     const cls=(stepIsCrit(st)?'crit ':(stepIsVigil(st)?'vigil ':''))+(ck?'done':'')+(vg?' vgap':'')
       +((opts.cur===i)?' cur-step':'');
     const dual=dl?'<span class="stp-x2" title="À confirmer par les deux (AC 120-71B §5.2.2.5)">×2<span class="sr-only"> — à confirmer par les deux</span></span>':'';
-    /* A377 : la légende de l'objet lié, sur le passage le plus récent du bloc seulement (un passage
-       ancien est replié, et c'est le dernier qui porte l'état vivant). */
-    const wt=(opts.wt&&its&&linkOf(its[i]))?wtSpanHtml('s|'+k):'';
+    const wt=(opts.wt&&its&&linkOf(its[i]))?wtSpanHtml('s|'+k):'';   // A377 : passage le plus récent seulement
     return `<li data-ck="${esc(k)}" class="${cls}${dl?' dual':''}${wt?' has-wt':''}" role="checkbox" aria-checked="${ck?'true':'false'}" tabindex="0"><span class="box">${ck?uiIcon('check',19,{sw:3,cls:''}):''}</span>${stepTxtHtml(st,{mark:true,after:wt})}${dual}${tag}</li>`;}).join('');
   return `<ol class="steps${opts.cls?' '+opts.cls:''}">${lis}</ol>`;}
-/* ═══ A377 — LA LÉGENDE D'UN OBJET LIÉ (« témoin d'étape ») ════════════════════════════════════
-   Version retenue par l'auteur après trois maquettes (canevas « Témoins d'étape », v3 ajustée) :
-   UNE ligne de 24 px, 6 px sous le libellé, corps 13,5 — deux crans sous l'étape (17,5), qui reste
-   le texte fort. La VALEUR ouvre la ligne (mono 700, jamais tronquée), le texte suit (ellipse).
-   Gris au repos · BLEU SANS FOND quand ça tourne (anneau + valeur : l'aplat est réservé à ce qui
-   exige une action maintenant, A11) · PASTILLE AMBRE PÂLE à l'échéance, avec le mot « Échu ».
-   AUCUNE HAUTEUR NE CHANGE SANS GESTE (A9) : la ligne réserve ses 24 px dans tous les états — ni
-   l'échéance ni la fin du délai d'annulation n'ajoutent de ligne. Lecture seule : le témoin ne se
-   tape pas, la case reste le seul geste. UNE SOURCE : la valeur vient de `timerDisplay`, le calcul
-   de la tuile de la capsule. Le modèle est PUR (testé) ; `paintWitness` ne réécrit une légende
-   que si son modèle a changé — une réécriture relancerait l'animation du chiffre neuf. */
+/* A377 — la légende d'un objet lié : une ligne de 24 px dans tous les états (A9), la valeur d'abord
+   (celle de la tuile), gris au repos, bleu sans fond en cours (A11), pastille ambre à l'échéance.
+   Modèles PURS ; `paintWitness` ne réécrit que si le modèle change. Détail : lot-v5-31.md. */
 const WT_RING_C=28.27;   // circonférence de l'anneau (r 4,5 dans une boîte de 12)
-function wtTimerModel(t,now,ctx){
-  if(!t)return null;ctx=ctx||{};
-  const iv=t.type==='interval';
-  const name=tmLabelParts(t.label).name||(iv?'Minuteur':'Chronomètre');
-  const d=timerDisplay(t,now);
-  const started=!!(t.running||t.elapsedMs>0);
-  if(iv&&timerDue(t))
-    return {cls:'due',g:'ring',off:0,e:'Échu',v:'',n:'· '+((t.onDue||'').trim()||name)};
-  if(t.running){
-    if(!iv)return {cls:'up',g:'watch',v:'↑ '+d.val,n:'· '+(ctx.hint||name)};
-    return {cls:'run',g:'ring',off:+(WT_RING_C*(1-d.bw/100)).toFixed(2),v:d.val,n:'· '+(ctx.hint||name)};}
-  if(started)return {cls:'',g:'watch',v:d.val,n:'· '+name+' · '+(ctx.exited?'arrêté, sortie de la boucle':'arrêté')};
+function wtTimerModel(t,now,ctx){if(!t)return null;ctx=ctx||{};
+  const iv=t.type==='interval',name=tmName(t),d=timerDisplay(t,now);
+  if(iv&&timerDue(t))return {cls:'due',g:'ring',off:0,e:'Échu',v:'',n:'· '+((t.onDue||'').trim()||name)};
+  if(t.running)return iv?{cls:'run',g:'ring',off:+(WT_RING_C*(1-d.bw/100)).toFixed(2),v:d.val,n:'· '+(ctx.hint||name)}
+    :{cls:'up',g:'watch',v:'↑ '+d.val,n:'· '+(ctx.hint||name)};
+  if(timerStarted(t))return {cls:'',g:'watch',v:d.val,n:'· '+name+' · '+(ctx.exited?'arrêté, sortie de la boucle':'arrêté')};
   return {cls:'',g:'watch',v:iv?fmtMs((t.seconds||0)*1000):'↑',n:(ctx.lat||'à la coche')+' · '+name};}
-/* Compteur. `ev` = le repère posé par CETTE coche (null : coche venue d'un autre écran, ou pas de
-   coche). `last` = le dernier repère vivant du compteur. Les heures sont celles du journal. */
-function wtCountModel(c,cur,done,ev,last,now){
-  if(!c)return null;
+// `ev` = le repère de CETTE coche, `last` = le dernier repère vivant ; heures du journal.
+function wtCountModel(c,cur,done,ev,last,now){if(!c)return null;
   const name=tmLabelParts(c.label).name||'Compteur',step=c.step||1;
   const ago=t=>(now-t<10000)?'à l’instant':'il y a '+fmtMs(now-t);
   if(done&&ev&&ev.ref)return {cls:'',g:'count',va:String(Math.max(0,(+ev.ref.v||0)-step)),vb:String(+ev.ref.v||0),fresh:now-ev.t<1800,n:'· '+name+' · '+ago(ev.t)};
   if(done)return {cls:'',g:'count',v:String(cur),n:'· '+name};
   return {cls:'',g:'count',v:cur+' → '+(cur+step),n:'à la coche · '+name+(last?' · dernier '+ago(last.t):'')};}
-const WT_G={
-  watch:'<svg class="wt-g" viewBox="0 0 12 12" aria-hidden="true"><circle class="wt-ln" cx="6" cy="6.8" r="4.2"/><path class="wt-ln" d="M6 4.6v2.2l1.3 1M4.6 1.2h2.8"/></svg>',
-  count:'<svg class="wt-g" viewBox="0 0 12 12" aria-hidden="true"><rect class="wt-ln" x="1.2" y="1.2" width="9.6" height="9.6" rx="3"/><path class="wt-ln" d="M6 3.8v4.4M3.8 6h4.4"/></svg>'};
 function wtInner(m){if(!m)return '';
   const g=m.g==='ring'
     ?`<svg class="wt-g" viewBox="0 0 12 12" aria-hidden="true"><circle class="wt-r0" cx="6" cy="6" r="4.5"/><circle class="wt-r1" cx="6" cy="6" r="4.5" style="stroke-dashoffset:${+m.off||0}"/></svg>`
-    :(WT_G[m.g]||'');
-  const v=m.vb!=null
-    ?`<span class="wt-v">${esc(m.va)} → <span class="wt-vb${m.fresh?' wt-go':''}">${esc(m.vb)}</span></span>`
+    :uiIcon(m.g==='count'?'counter':'stopwatch',14,{sw:1.8,cls:'wt-g'});
+  const v=m.vb!=null?`<span class="wt-v">${esc(m.va)} → <span class="wt-vb${m.fresh?' wt-go':''}">${esc(m.vb)}</span></span>`
     :(m.v?`<span class="wt-v">${esc(m.v)}</span>`:'');
   return g+(m.e?`<span class="wt-e">${esc(m.e)}</span>`:'')+v+`<span class="wt-n">${esc(m.n)}</span>`;}
-/* Le modèle d'une légende VIVANTE, désignée par sa clé : « s|visite:bloc:index » (étape) ou
-   « b|idBloc » (minuteur de bloc). Lit Runtime ; rend null si le lien ne résout plus. */
+// Modèle d'une légende VIVANTE : « s|visite:bloc:index » (étape) ou « b|idBloc » (minuteur de bloc).
 function wtModelFor(spec,now,vnow){
   const R=Runtime,f=R&&R.fiche;if(!f)return null;
-  const bar=String(spec||'').indexOf('|');const kind=spec.slice(0,bar),a=spec.slice(bar+1);
-  const tmOf=id=>{const t=R.timers&&R.timers[id];if(!t)return null;
-    const def=(f.timers||[]).find(x=>x&&x.id===id)||{};return Object.assign({},t,{onDue:def.onDue||''});};
-  const arm=R.linkArm||{};
-  if(kind==='b'){const b=(f.blocks||[]).find(x=>x&&x.id===a);if(!b||!b.timer)return null;
-    return wtTimerModel(tmOf(b.timer),now,{lat:'à chaque entrée',exited:!!(arm[b.timer]&&arm[b.timer].x)});}
-  const m=/^(\d+):([^:]+):(\d+)$/.exec(a);if(!m)return null;
-  const b=(f.blocks||[]).find(x=>x&&x.id===m[2]);if(!b)return null;
-  const L=linkOf(bItems(b)[+m[3]]);if(!L)return null;
+  const i=String(spec||'').indexOf('|'),kind=spec.slice(0,i),a=spec.slice(i+1),arm=R.linkArm||{};
+  const tmOf=id=>R.timers[id]&&{...R.timers[id],onDue:((f.timers||[]).find(x=>x&&x.id===id)||{}).onDue||''};
+  const ctxTm=(id,o)=>({...o,exited:!!(arm[id]&&arm[id].x)});
+  if(kind==='b'){const b=blocksById(f.blocks||[])[a];
+    return b&&b.timer?wtTimerModel(tmOf(b.timer),now,ctxTm(b.timer,{lat:'à chaque entrée'})):null;}
+  const ci=ckItem(f,a),L=linkOf(ci&&ci.it);if(!L)return null;
   const done=!!(state.checked&&state.checked[a]);
   if(L.k==='tm'){const t=tmOf(L.id);if(!t)return null;
-    let hint='';
-    if(t.running){
-      const g=(R.linkGrace||{})[a];
-      if(done&&g&&now-g.real<LINK_GRACE_MS)hint='décocher annule · '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s';
-      else if(!done&&arm[L.id]&&arm[L.id].ck===a)hint='décochée, le minuteur continue';
-      else if(!done)hint=t.type==='interval'?'la coche relance à '+fmtMs((t.seconds||0)*1000):'la coche relance';}
-    return wtTimerModel(t,now,{lat:'à la coche',hint,exited:!!(arm[L.id]&&arm[L.id].x)});}
+    const g=(R.linkGrace||{})[a];let hint='';
+    if(t.running)hint=done?(g&&now-g.real<LINK_GRACE_MS?'décocher annule · '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s':'')
+      :(arm[L.id]&&arm[L.id].ck===a?'décochée, le minuteur continue'
+        :'la coche relance'+(t.type==='interval'?' à '+fmtMs((t.seconds||0)*1000):''));
+    return wtTimerModel(t,now,ctxTm(L.id,{lat:'à la coche',hint}));}
   const c=(f.counters||[]).find(x=>x&&x.id===L.id);if(!c)return null;
-  const evs=R.events||[];let ev=null,last=null;
-  for(let i=evs.length-1;i>=0;i--){const x=evs[i];if(!x||x.voidAt||!x.ref||x.ref.type!=='counter'||x.ref.id!==L.id)continue;
-    if(!last)last=x;if(done&&x.ck===a){ev=x;break;}if(!done)break;}
-  return wtCountModel(c,(R.counters||{})[L.id]||0,done,ev,last,vnow);}
-function wtSpanHtml(spec,blk){
-  const m=wtModelFor(spec,Date.now(),vfNow());if(!m)return '';
+  const evs=cnEvents(L.id);
+  return wtCountModel(c,R.counters[L.id]||0,done,done?evs.slice().reverse().find(x=>x.ck===a)||null:null,evs[evs.length-1]||null,vnow);}
+function wtSpanHtml(spec,blk){const m=wtModelFor(spec,Date.now(),vfNow());if(!m)return '';
   return `<span class="wt${m.cls?' '+m.cls:''}${blk?' wt-blk':''}" data-wt="${esc(spec)}" data-wth="${esc(JSON.stringify(m))}">${wtInner(m)}</span>`;}
-// Repeinture au tick et après une coche liée — chirurgicale, par classe (les ids de tuile sont pris).
-function paintWitness(){
-  const els=main.querySelectorAll('[data-wt]');if(!els.length)return;
+// Repeinture au tick et après une coche liée, par classe (les ids de tuile sont pris).
+function paintWitness(){const els=main.querySelectorAll('[data-wt]');if(!els.length)return;
   const now=Date.now(),vn=vfNow();
   els.forEach(el=>{const m=wtModelFor(el.dataset.wt,now,vn);if(!m)return;
     const cls='wt'+(m.cls?' '+m.cls:'')+(el.classList.contains('wt-blk')?' wt-blk':'');
     if(el.className!==cls)el.className=cls;
     const h=JSON.stringify(m);if(el.dataset.wth!==h){el.dataset.wth=h;el.innerHTML=wtInner(m);}});}
-/* Les liens ANNONCÉS, sans état (parcours à plat, Page imprimée) : la même grammaire au repos. */
-function wtStaticHtml(f,it,b,cls){
-  const c=cls||'wt wt-flat';
-  if(b&&b.timer){const t=(f.timers||[]).find(x=>x&&x.id===b.timer);if(!t)return '';
-    return `<span class="${c}">${wtInner(wtTimerModel(Object.assign({elapsedMs:0,running:false},t),0,{lat:'à chaque entrée'}))}</span>`;}
-  const L=linkOf(it);if(!L)return '';
-  if(L.k==='tm'){const t=(f.timers||[]).find(x=>x&&x.id===L.id);if(!t)return '';
-    return `<span class="${c}">${wtInner(wtTimerModel(Object.assign({elapsedMs:0,running:false},t),0,{lat:'à la coche'}))}</span>`;}
-  const n=(f.counters||[]).find(x=>x&&x.id===L.id);if(!n)return '';
-  return `<span class="${c}">${wtInner({cls:'',g:'count',v:'＋'+(n.step||1),n:'à la coche · '+(tmLabelParts(n.label).name||'Compteur')})}</span>`;}
+// Le lien ANNONCÉ, sans état (parcours à plat, Page, éditeur) : la légende au repos.
+function wtStaticHtml(f,it,b,cls){const L=b?(b.timer?{k:'tm',id:b.timer}:null):linkOf(it);if(!L)return '';
+  const o=((L.k==='tm'?f.timers:f.counters)||[]).find(x=>x&&x.id===L.id);if(!o)return '';
+  const m=L.k==='tm'?wtTimerModel({...o,elapsedMs:0,cycles:0,running:false},0,{lat:b?'à chaque entrée':'à la coche'})
+    :{cls:'',g:'count',v:'＋'+(o.step||1),n:'à la coche · '+(tmLabelParts(o.label).name||'Compteur')};
+  return `<span class="${cls||'wt wt-flat'}">${wtInner(m)}</span>`;}
 function ovToggleStep(f,li,kb){
   const k=li.dataset.ck;
   const sec=li.closest('.ov-block');
@@ -21147,13 +21055,13 @@ function carryLineHtml(f){
      `carryParts` reste le calcul de l'atelier d'import (A130), la phrase d'entrée a divergé
      À DESSEIN : là-bas on juge une fiche, ici on s'apprête à soigner. */
   const tl=(f.timers||[]);if(!tl.length)return '';
-  const nm=t=>{const n=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
+  const nm=t=>{const n=tmName(t);
     const per=t.type==='interval'?fmtMs((t.seconds||0)*1000).replace(/^0(\d):/,'$1:'):'';
     return n+(per?' '+per:'');};
   return `<div class="carry-line">Minuteurs à disposition en session : ${esc(tl.map(nm).join(' · '))}.</div>`;}
 function preStartHtml(f){
   const tl=(f.timers||[]);
-  const li=t=>{const nm=esc(tmLabelParts(t.label).name)||(t.type==='interval'?'Minuteur':'Chronomètre');
+  const li=t=>{const nm=esc(tmName(t));
     const per=t.type==='interval'?fmtMs((t.seconds||0)*1000).replace(/^0(\d):/,'$1:'):'';
     /* ⚠ RIEN NE PART SAUF LE CHRONO (v5.25.0, correction de l'auteur) : « Ce qui démarrera »
        affirmait que les minuteurs partaient avec la session — ils sont À DISPOSITION, à lancer. */
@@ -21597,7 +21505,7 @@ function svRefHtml(f){
   const tl=(f.timers||[]),cl=(f.counters||[]);
   if(tl.length||cl.length){
     const li=[];
-    tl.forEach(t=>{const nm=tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre');
+    tl.forEach(t=>{const nm=tmName(t);
       const per=t.type==='interval'?fmtMs((t.seconds||0)*1000).replace(/^0(\d):/,'$1:'):'';
       li.push({c:`⏱ <b>${esc(nm)}</b>${per?' — '+esc(per):''}`,plain:true});});
     cl.forEach(c=>li.push({c:`＃ <b>${esc(c.label||'Compteur')}</b>`,plain:true}));
@@ -23085,22 +22993,21 @@ function jalonEditor(b){
     const goSel=exs.length?`<select data-jlgo="${i}" aria-label="Renvoi du jalon vers une complication (facultatif)"><option value="">sans renvoi</option>${exs.map(c=>`<option value="${esc(c.target)}"${c.target===j.go?' selected':''}>⚡ ${esc(c.label||'Complication')}</option>`).join('')}</select>`:'';
     return `<div class="jl-edit"><div class="jl-e1"><select data-jlat="${i}" aria-label="Condition du jalon"><option value="pass"${j.at!=='count'?' selected':''}>au nᵉ passage</option><option value="count"${j.at==='count'?' selected':''}${cns.length?'':' disabled'}>quand un compteur atteint n</option></select><input type="number" data-jln="${i}" value="${j.n}" min="1" max="99" inputmode="numeric" aria-label="Seuil n du jalon">${cnSel}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
   return `${js.length?`<div class="sub">Jalons de boucle — mis en avant quand le compte y est</div>${rows}`:''}${js.length<3?`<button class="add-line" data-jladd title="Un rappel qui se met en avant au nᵉ passage du bloc, ou quand un compteur atteint un seuil (ex. 3 CEE → envisager une FV réfractaire)">+ Jalon de boucle (au nᵉ passage, à n chocs…)</button>`:''}`;}
-/* A377 — CE QUE FAIT LA COCHE (sélecteur de ligne) et LE MINUTEUR DU BLOC. Aucun contrôle mort :
-   sans minuteur ni compteur dans la fiche, rien n'est proposé. Les valeurs sont des ids de la
-   fiche (jamais une saisie) ; migrate résout et rejette ce qui pend. */
+/* A377 — « ce que fait la coche » (ligne) et « minuteur du bloc ». Rien si la fiche n'a ni minuteur
+   ni compteur (aucun contrôle mort) ; migrate rejette ce qui pend. */
+const tmOptLbl=t=>'⏱ '+esc(tmName(t))+(t.type==='interval'?' · '+fmtMs((+t.seconds||0)*1000):'');
 function edLinkSel(b,i){const f=state.draft||{};
   const ts=(f.timers||[]).filter(t=>t&&t.id),cs=(f.counters||[]).filter(c=>c&&c.id);
   if(!ts.length&&!cs.length)return '';
-  const it=bItems(b)[i]||{};const cur=it.starts?'t:'+it.starts:(it.counts?'n:'+it.counts:'');
-  const nm=(x,d)=>esc(tmLabelParts(x.label).name||d);
+  const it=bItems(b)[i]||{},cur=it.starts?'t:'+it.starts:(it.counts?'n:'+it.counts:'');
+  const opt=(v,l)=>`<option value="${esc(v)}"${cur===v?' selected':''}>${l}</option>`;
   return `<select class="li-lk${cur?' on':''}" data-lk="${i}" aria-label="Ce que fait la coche de l’étape ${i+1}" title="La coche peut lancer un minuteur ou compter — à réserver aux gestes essentiels"><option value="">Coche : rien d’autre</option>`
-    +(ts.length?`<optgroup label="La coche lance">${ts.map(t=>`<option value="t:${esc(t.id)}"${cur==='t:'+t.id?' selected':''}>⏱ ${nm(t,t.type==='interval'?'Minuteur':'Chronomètre')}${t.type==='interval'?' · '+fmtMs((+t.seconds||0)*1000):''}</option>`).join('')}</optgroup>`:'')
-    +(cs.length?`<optgroup label="La coche compte">${cs.map(c=>`<option value="n:${esc(c.id)}"${cur==='n:'+c.id?' selected':''}>＋${Math.max(1,+c.step||1)} ${nm(c,'Compteur')}</option>`).join('')}</optgroup>`:'')
+    +(ts.length?`<optgroup label="La coche lance">${ts.map(t=>opt('t:'+t.id,tmOptLbl(t))).join('')}</optgroup>`:'')
+    +(cs.length?`<optgroup label="La coche compte">${cs.map(c=>opt('n:'+c.id,'＋'+Math.max(1,+c.step||1)+' '+esc(tmLabelParts(c.label).name||'Compteur'))).join('')}</optgroup>`:'')
     +`</select>`;}
-function edBlkTimerHtml(b){const f=state.draft||{};
-  const ts=(f.timers||[]).filter(t=>t&&t.id);if(!ts.length)return '';
+function edBlkTimerHtml(b){const ts=((state.draft||{}).timers||[]).filter(t=>t&&t.id);if(!ts.length)return '';
   return `<div class="sub">Minuteur du bloc</div><select class="blk-tm${b.timer?' on':''}" data-btm aria-label="Minuteur lancé à chaque entrée dans le bloc"><option value="">Aucun</option>`
-    +ts.map(t=>`<option value="${esc(t.id)}"${b.timer===t.id?' selected':''}>⏱ ${esc(tmLabelParts(t.label).name||(t.type==='interval'?'Minuteur':'Chronomètre'))}${t.type==='interval'?' · '+fmtMs((+t.seconds||0)*1000):''}</option>`).join('')
+    +ts.map(t=>`<option value="${esc(t.id)}"${b.timer===t.id?' selected':''}>${tmOptLbl(t)}</option>`).join('')
     +`</select><p class="blk-tm-h">Lancé à chaque entrée dans le bloc ; au bloc de départ, avec la session. Arrêté quand le parcours quitte la boucle. À l’échéance, rien n’est choisi à votre place.</p>`;}
 /* Chapeau commun des DEUX gabarits de bloc (badge, titre, phase, poignée, « Bloc de départ ») —
    deux branches d'une même fonction qui recopiaient ce préfixe à l'identique. */
@@ -23658,8 +23565,7 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-jlgo]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlgo];if(j)j.go=e.target.value;}));
     card.querySelectorAll('[data-jln]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jln];if(!j)return;const n=Math.round(Number(e.target.value));if(n>=1)j.n=Math.min(99,n);}));
     card.querySelectorAll('[data-jltx]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jltx];if(j)j.text=e.target.value;}));
-    /* A377 — ce que fait la coche d'une étape (« t:id » lance, « n:id » compte), et le minuteur du
-       bloc. Un seul lien par étape : choisir l'un efface l'autre, comme migrate le garantit. */
+    // A377 : « t:id » lance, « n:id » compte — un seul lien par étape ; minuteur du bloc.
     card.querySelectorAll('[data-lk]').forEach(s=>s.addEventListener('change',e=>{const it=bItems(b)[+e.target.dataset.lk];if(!it)return;
       const v=String(e.target.value||'');delete it.starts;delete it.counts;
       if(v.slice(0,2)==='t:')it.starts=v.slice(2);else if(v.slice(0,2)==='n:')it.counts=v.slice(2);
@@ -23939,7 +23845,7 @@ function edSnapshot(kind){
   d.timers=(d.timers||[]).map(t=>({id:t.id,label:(t.label||'').trim(),type:t.type==='interval'?'interval':'stopwatch',seconds:Math.max(0,parseInt(t.seconds||0)||0),autoloop:!!t.autoloop,onDue:(t.onDue||'').trim()}));
   d.counters=(d.counters||[]).map(c=>({id:c.id,label:(c.label||'').trim(),step:Math.max(1,parseInt(c.step||1)||1),start:parseInt(c.start||0)||0,timerId:(d.timers||[]).some(t=>t.id===c.timerId)?c.timerId:''}));
   d.excursions=(d.excursions||[]).filter(c=>c&&(c.label||'').trim()&&c.target);
-  /* A377 — un minuteur ou un compteur supprimé emporte ses liens (même règle que `timerId`). */
+  // A377 : un minuteur ou un compteur supprimé emporte ses liens.
   {const tm=new Set(d.timers.map(t=>t.id)),cn=new Set(d.counters.map(c=>c.id));
    d.blocks.forEach(b=>{if(b.timer&&!tm.has(b.timer))delete b.timer;});
    poolOf(d).forEach(it=>{if(it.starts&&!tm.has(it.starts))delete it.starts;
