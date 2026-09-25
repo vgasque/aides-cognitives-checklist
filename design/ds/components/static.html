@@ -3380,6 +3380,35 @@
   ol.steps li .stp-vf{flex:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
   ol.steps li .stp-vf.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
   ol.steps li .stp-vf.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
+  /* A377 — LA LÉGENDE D'UN OBJET LIÉ (témoin d'étape, v3 ajustée validée par l'auteur ; cf.
+     `wtTimerModel`). Une ligne de 24 px réservée dans TOUS les états (A9 : l'échéance ne change
+     aucune hauteur), 6 px sous le libellé, corps 13,5 — deux crans sous l'étape. Le débord de
+     8 px à gauche garde le TEXTE aligné sur le libellé quand la pastille ambre s'allume. Couleur
+     sur le glyphe et la valeur seulement ; l'aplat ambre n'existe qu'à l'échéance (A11). */
+  .wt{display:flex;align-items:center;gap:6px;width:fit-content;max-width:calc(100% + 8px);box-sizing:border-box;height:24px;margin:6px 0 0 -8px;padding:0 8px;border-radius:var(--r-1);min-width:0;font-size:var(--t-body);font-weight:600;line-height:24px;letter-spacing:0;text-transform:none;color:var(--ink-2);white-space:nowrap}
+  .wt-g{flex:none;width:14px;height:14px;color:var(--ink-2);overflow:visible}
+  .wt-ln{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+  .wt-r0{fill:none;stroke:var(--primary-200);stroke-width:2.2}
+  .wt-r1{fill:none;stroke:currentColor;stroke-width:2.2;stroke-dasharray:28.27;stroke-linecap:round;transform:rotate(-90deg);transform-origin:6px 6px}
+  .wt-v{flex:none;font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+  .wt-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .wt-e{flex:none;font-weight:800;color:var(--warn)}
+  .wt-vb{display:inline-block}
+  .wt.run .wt-g,.wt.run .wt-v,.wt.up .wt-g,.wt.up .wt-v{color:var(--act)}
+  .wt.due{background:var(--warn-soft);box-shadow:inset 0 0 0 1px var(--warn-line)}
+  .wt.due .wt-g{color:var(--warn)}
+  .wt.due .wt-n{color:var(--ink)}
+  .wt.due .wt-r0{stroke:transparent}
+  .wt-blk{margin-top:4px}   /* sous le titre d'un bloc : le titre à 21 px a déjà son interligne */
+  ol.steps li.has-wt{align-items:flex-start}
+  ol.steps li.has-wt .txt{padding-top:6px}   /* 1ʳᵉ ligne du libellé centrée sur la case de 36 px */
+  .wt-flat{height:20px;margin:2px 0 0 -8px;font-size:var(--t-meta);line-height:20px}   /* parcours à plat : annoncé, sans état */
+  .wt-flat .wt-g{width:12px;height:12px}
+  .sv-stp li .wt-sv,.wt-sv{flex-basis:100%;height:auto;margin:1px 0 0;padding:0;font-size:var(--t-cap);line-height:1.35}   /* Page : au corps de la feuille */
+  .wt-sv .wt-g{width:12px;height:12px}
+  @keyframes wtRoll{0%{transform:translateY(55%);opacity:0}100%{transform:none;opacity:1}}
+  @keyframes wtOk{0%,35%{color:var(--ok)}100%{color:var(--ink)}}
+  @media (prefers-reduced-motion:no-preference){.wt-go{animation:wtRoll .36s cubic-bezier(.2,.8,.2,1),wtOk 1.8s ease}}
   /* PAS de bandeau ambre sur une étape en écart (v4.25.2 : le liseré est le canal du REGISTRE ;
      l'écart est porté par la pilule « △ écart »). Case à GAUCHE, ordre naturel du DOM sans
      `order` — la colonne de cases ne doit JAMAIS se décaler ; case 26 px, la CIBLE est la rangée
@@ -4568,6 +4597,15 @@
     font-size:12px;line-height:1.45;color:var(--verify)}
   .blk .li:focus-within .li-note{display:block}
   .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
+  /* A377 — ce que fait la coche : pointillé tant que rien n'est lié (« créer »), plein et bleu
+     quand un lien existe. Le lien se lit AUSSI au repos, sous l'étape (`.wt-ed`, la légende
+     annoncée) : les outils, eux, n'existent qu'au focus. */
+  .li-tools .li-lk{flex:0 1 auto;min-width:0;max-width:240px;height:32px;min-height:32px;padding:0 8px;border:1px dashed var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700}
+  .li-tools .li-lk.on{border-style:solid;border-color:var(--act);color:var(--act)}
+  .blk .li .wt-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
+  .blk-tm{width:100%;height:44px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
+  .blk-tm.on{border-color:var(--act)}
+  .blk-tm-h{margin:6px 0 0;font-size:var(--t-meta);line-height:1.45;color:var(--ink-2)}
   .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
@@ -7344,7 +7382,7 @@
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text]{font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.field .blk-tm,.blk-tm{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme

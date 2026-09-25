@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [5.31.0] — 2026-09-25
+La coche d'une étape peut lancer un minuteur ou compter, un bloc peut porter son minuteur, et une
+ligne discrète le dit sous l'étape (A377, doctrine `docs/decisions/lot-v5-31.md`). Demande de
+l'auteur, choisie sur trois versions de maquettes.
+- **La coche lance** (`starts` sur une étape) : cocher « Adrénaline 1 mg IV » lance « Adrénaline —
+  prochaine dose » depuis zéro. **La coche compte** (`counts`) : cocher « Choc » ajoute 1 au
+  compteur et pose l'heure au journal, comme le « + » de la carte.
+- **Le bloc minute** (`timer` sur un bloc) : le minuteur repart à chaque entrée dans le bloc
+  (Continuer, réponse, nouveau passage) ; au bloc où la session démarre, avec elle. Il s'arrête
+  quand le parcours quitte la boucle. À l'échéance, rien n'est choisi et rien ne défile.
+- **Tout se défait par la case** : décocher retire le + 1 et barre le repère ; décocher dans les
+  10 s rend le minuteur à son état d'avant. Après, il continue et s'arrête depuis sa tuile.
+- **Une légende d'une ligne** sous l'étape liée et sous le titre du bloc : 24 px réservés dans tous
+  les états, la valeur d'abord (celle de la tuile), gris au repos, bleu sans fond quand ça tourne,
+  pastille ambre pâle avec « Échu » à l'échéance. Aucune hauteur ne change sans geste. Annoncée sans
+  état dans le parcours à plat, la Page et l'éditeur.
+- **Éditeur** : « Ce que fait la coche » dans les outils d'une étape, « Minuteur du bloc » sous le
+  bloc ; rien n'est proposé si la fiche n'a ni minuteur ni compteur.
+- **Prompt IA de création** : nouvelle section « Minuteurs et compteurs liés », 0 à 3 liens par
+  fiche et 0 ou 1 minuteur de bloc, seulement quand la source lie le geste au délai ou au compte ;
+  vérification finale n° 17. La fiche d'exemple ACR montre l'usage sur 3 étapes sur 14.
+- **Conformité** : § 2 de `docs/deploiement-et-conformite.md` complété avant le code (déclencheur
+  toujours un geste de l'équipe, rien ne décide, tout se défait).
+- **Témoins** : 31 tests unitaires (modèle, sortie de boucle, légende) et une section
+  `audit-doctrine` « A377 » (17 contrôles). Aucun changement côté serveur.
+
 ## [5.30.6] — 2026-09-25
 Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échelle » du plan s'en va
 (A376, doctrine `docs/decisions/lot-v5-30.md`).
@@ -624,12 +650,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   archivée).
 - Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
   version.
-
-## [5.26.5] — 2026-09-07
-### « Hôte silencieux » : la phrase passe au registre neutre (A332, addendum)
-
-- **Remarque de l'auteur** : « écran verrouillé, autre appli ou réseau, on ne sait pas » était
-  un peu familier. La feuille dit désormais « (écran verrouillé, autre application ou réseau : la
-  cause n'est pas connue) », puis ce qui est sûr — rien n'est perdu, ce que vous relevez lui
-  parviendra, sa progression se mettra à jour à son retour ; sans réseau de son côté, recevez-la
-  par l'écran. Info-bulle et sous-ligne de l'étape alignées.

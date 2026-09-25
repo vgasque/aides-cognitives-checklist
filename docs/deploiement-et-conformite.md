@@ -343,6 +343,32 @@ qualification serait à rouvrir. L'interdit existant sur le partage — « étap
 n minutes » — reste entier : un jalon n'observe pas l'inaction, il accompagne un compte que
 l'équipe tient.
 
+#### Le cas des minuteurs et compteurs liés aux étapes (v5.31.0)
+
+L'auteur d'une fiche peut désormais lier une étape à un minuteur ou à un compteur **de la même
+fiche** (« la coche de *Adrénaline 1 mg IV* lance *Adrénaline — prochaine dose* 4:00 », « la coche
+de *Choc* compte + 1 »), et poser un minuteur sur un bloc (« *Tentative* 1:00, à chaque entrée »).
+Sous l'étape, une légende d'une ligne montre l'état de l'objet lié. Passé à la grille :
+
+- **Aucune sortie individualisée n'est créée.** Le lien est écrit par l'auteur ; le déclencheur est
+  un **geste de l'équipe** (cocher, avancer dans le parcours). Le logiciel exécute ce que l'équipe
+  aurait fait à la main sur la tuile du minuteur ou le « + » du compteur — c'est la famille exacte du
+  compteur qui relance un minuteur (v4.5), déjà en service.
+- **Aucune donnée de patient.** Les durées sont celles de l'auteur, les comptes sont ceux des gestes.
+- **Rien ne décide à la place de l'équipe.** À l'échéance d'un minuteur de bloc, **aucune réponse
+  n'est choisie** et rien ne défile : la question attend. L'alarme reste celle, inchangée, de tout
+  minuteur. L'unique automatisme — l'arrêt d'un minuteur de bloc quand le parcours quitte sa boucle —
+  est **structurel** (le bloc n'est plus atteignable dans l'algorithme de l'auteur), jamais clinique.
+- **Tout se défait.** Décocher retire le + 1 et barre le repère au journal ; décocher dans les
+  10 s qui suivent une coche rend le minuteur à son état d'avant.
+- **Qualification MDCG 2019-11** : *afficher/archiver*, comme un minuteur ou un compteur manuel.
+
+**La ligne à ne pas franchir, nommée.** Le jour où un lien se déclencherait sur autre chose qu'un
+geste de l'équipe (inaction, valeur saisie, paramètre patient), où l'échéance choisirait une
+branche ou avancerait le parcours, ou où une légende mesurerait le temps écoulé depuis une étape
+**non** cochée, la qualification serait à rouvrir. Une légende ne dit jamais « en attente depuis » :
+elle date un geste fait, jamais une omission.
+
 ### Ce qui ferait BASCULER l'app en dispositif médical (à éviter, ou à assumer)
 Toute fonctionnalité produisant une **recommandation ou un calcul individualisé** :
 
