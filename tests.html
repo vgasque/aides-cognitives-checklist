@@ -1040,6 +1040,71 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('cycleTxt : période non ronde en minutes + secondes',
      A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:90}]}), ' · toutes les 1 min 30 s');}
 
+  group('Témoins d’étape — liens de coche et minuteur de bloc (v5.31.0, A377)');
+  {const f=A.migrate({title:'Intubation',
+     timers:[{id:'t1',label:'Tentative',type:'interval',seconds:60},{id:'t2',label:'Garrot',type:'stopwatch'}],
+     counters:[{id:'n1',label:'Choc',step:1,start:0}],
+     start:'b1',blocks:[
+       {id:'b1',kind:'do',title:'Tentative',timer:'t1',items:[
+         {id:'i1',do:'Optimiser',starts:'t2'},
+         {id:'i2',do:'Choc',counts:'n1'},
+         {id:'i3',do:'Les deux',starts:'t1',counts:'n1'},
+         {id:'i4',do:'Fantôme',starts:'zzz'},
+         {id:'i5',do:'Hostile',counts:'__proto__'},
+         {id:'i6',do:'Sans lien'}],next:'b2'},
+       {id:'b2',kind:'decision',title:'Réussie ?',question:'Réussie ?',timer:'zzz',options:[{label:'Oui',target:'b3'},{label:'Non',target:'b1'}]},
+       {id:'b3',kind:'do',title:'Vérif',items:['Capno'].map(x=>A.v4MakeItem(A.uid('i'),'do',x)),next:null}]});
+   const it=id=>f.items.find(x=>x.id===id)||{};
+   eq('migrate : un lien vers un minuteur déclaré est conservé', it('i1').starts, 't2');
+   eq('migrate : un lien vers un compteur déclaré est conservé', it('i2').counts, 'n1');
+   ok('migrate : UN seul lien par étape — « starts » l’emporte, « counts » tombe', it('i3').starts==='t1'&&!('counts' in it('i3')));
+   ok('migrate : une référence qui ne résout pas ne sort jamais vivante', !('starts' in it('i4')));
+   ok('migrate : un identifiant hostile est rejeté', !('counts' in it('i5')));
+   ok('migrate : une étape sans lien n’a AUCUNE clé de lien (l’item reste identique à l’octet)', !('starts' in it('i6'))&&!('counts' in it('i6')));
+   eq('migrate : minuteur de bloc valide conservé', f.blocks[0].timer, 't1');
+   ok('migrate : minuteur de bloc pendant retiré', !('timer' in f.blocks[1]));
+   eq('linkOf : minuteur', A.linkOf(it('i1')), {k:'tm',id:'t2'});
+   eq('linkOf : compteur', A.linkOf(it('i2')), {k:'cn',id:'n1'});
+   eq('linkOf : rien', A.linkOf(it('i6')), null);
+   eq('blkReach : depuis la question, les deux issues et le retour sont atteignables', [...A.blkReach(f,'b2')].sort(), ['b1','b2','b3']);
+   eq('blkReach : depuis la fin, rien d’autre', [...A.blkReach(f,'b3')], ['b3']);
+   ok('blkInLoop : le bloc rebouclé par « Non » est dans une boucle', A.blkInLoop(f,'b1'));
+   ok('blkInLoop : le bloc de fin n’y est pas', !A.blkInLoop(f,'b3'));
+   eq('loopExitStops : « Oui » vers la vérification arrête le minuteur de la tentative (sortie de boucle)',
+     A.loopExitStops(f,{t1:{b:'b1',x:0}},'b3'), ['t1']);
+   eq('loopExitStops : la question est dans la boucle — le minuteur continue', A.loopExitStops(f,{t1:{b:'b1',x:0}},'b2'), []);
+   eq('loopExitStops : un minuteur armé par une ÉTAPE ne s’arrête jamais de lui-même', A.loopExitStops(f,{t2:{b:'',x:0}},'b3'), []);
+   eq('loopExitStops : déjà arrêté à la sortie — pas deux fois', A.loopExitStops(f,{t1:{b:'b1',x:5}},'b3'), []);
+   const T=o=>Object.assign({label:'Tentative',type:'interval',seconds:60,elapsedMs:0,running:false,lastStart:0,onDue:''},o);
+   eq('wtTimerModel : au repos — gris, la durée d’abord, le déclencheur en toutes lettres',
+     A.wtTimerModel(T({}),0,{lat:'à chaque entrée'}), {cls:'',g:'watch',v:'01:00',n:'à chaque entrée · Tentative'});
+   {const m=A.wtTimerModel(T({running:true,lastStart:1000}),31000,{});
+    ok('wtTimerModel : en cours — bleu sans fond, valeur = celle de la tuile (timerDisplay)', m.cls==='run'&&m.g==='ring'&&m.v==='00:30'&&m.n==='· Tentative');
+    ok('wtTimerModel : l’anneau restant suit le temps restant (moitié ≈ demi-circonférence)', Math.abs(m.off-14.135)<0.02);}
+   eq('wtTimerModel : échu — pastille ambre, le mot « Échu », la ligne d’action de l’auteur',
+     A.wtTimerModel(T({elapsedMs:60000,onDue:'Réoxygéner'}),0,{}), {cls:'due',g:'ring',off:0,e:'Échu',v:'',n:'· Réoxygéner'});
+   eq('wtTimerModel : un indice (annulation 10 s) remplace le nom, jamais la valeur',
+     A.wtTimerModel(T({running:true,lastStart:0}),1000,{hint:'décocher annule · 9 s'}).n, '· décocher annule · 9 s');
+   ok('wtTimerModel : chronomètre en cours — le temps monte, et le dit',
+     A.wtTimerModel(T({type:'stopwatch',label:'Garrot',running:true,lastStart:0}),65000,{}).v==='↑ 01:05');
+   {const m=A.wtTimerModel(T({running:true,lastStart:1000}),1120,{gr:120});
+    ok('wtTimerModel : relancé depuis zéro à l’instant — âge porté (l’anneau se remplit en phase)', m.arm===120&&m.gr===120);}
+   ok('wtTimerModel : passé le mouvement, plus d’âge (le modèle se stabilise)',
+     !('arm' in A.wtTimerModel(T({running:true,lastStart:0}),5000,{})));
+   ok('wtTimerModel : arrêté à la sortie de la boucle — dit pourquoi',
+     /sortie de la boucle/.test(A.wtTimerModel(T({elapsedMs:20000}),0,{exited:true}).n));
+   const C={label:'Choc (joules)',step:1};   // la précision entre parenthèses est reléguée (tmLabelParts)
+   eq('wtCountModel : avant la coche — le compte d’avant et d’après',
+     A.wtCountModel(C,2,false,null,null,0), {cls:'',g:'count',v:'2 → 3',n:'à la coche · Choc'});
+   eq('wtCountModel : juste après la coche — le chiffre neuf, « à l’instant »',
+     A.wtCountModel(C,3,true,{t:1000,ref:{v:3}},null,1500), {cls:'',g:'count',va:'2',vb:'3',fresh:true,n:'· Choc · à l’instant'});
+   eq('wtCountModel : plus tard — « il y a », sans seuil ni couleur',
+     A.wtCountModel(C,3,true,{t:1000,ref:{v:3}},null,100000).n, '· Choc · il y a 01:39');
+   ok('wtCountModel : « dernier il y a » date un geste FAIT, jamais une omission',
+     /dernier il y a 00:30/.test(A.wtCountModel(C,1,false,null,{t:0},30000).n));
+   eq('linkArmSnap : borne les ids (prototype banni) et les champs',
+     A.linkArmSnap(JSON.parse('{"t1":{"b":"b1","x":"3","ck":"1:b1:0"},"__proto__":{"b":"x"},"bad id":{"b":"b"}}')), {t1:{b:'b1',x:3}});}
+
   group('Repères posologiques — rapprochement RÉSILIENT (v4.23.0)');
   eq('posoName : ce qui précède le premier « : »', A.posoName('**Adrénaline IM** : adulte 0,5 mg'), 'Adrénaline IM');
   eq('posoName : préfixe ⚠ retiré', A.posoName('⚠ Adrénaline IV : titrée'), 'Adrénaline IV');

@@ -1466,6 +1466,25 @@
   #cbTimers .seg.cnt{min-width:84px}
   #cbTimers .seg:not(.glb) .seg-l{color:var(--sys-ink)}   /* sur la tuile (--sys-2), l'encre secondaire tombe à 3,1:1 */
   #cbTimers .seg.due{min-width:96px}
+  /* ESSAI X1 ▼ horizon (A380) — 40 px à droite pour « 5 min », hors de portée des étiquettes. */
+  #cbTimers .hz{position:relative;flex:1 1 auto;min-width:120px;align-self:stretch;margin:0 8px 0 4px;overflow:hidden}   /* une étiquette ne déborde jamais sur le chrono */
+  #cbTimers .hz-l{position:absolute;left:0;right:40px;top:50%;height:2px;margin-top:-1px;background:var(--sys-line)}
+  #cbTimers .hz-0{position:absolute;left:0;top:50%;width:2px;height:12px;margin-top:-6px;background:var(--ok-sys)}
+  #cbTimers .hz-k{position:absolute;top:50%;left:calc(var(--x) * (100% - 40px));width:1px;height:8px;margin-top:-4px;background:var(--sys-line)}
+  #cbTimers .hz-5{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2)}
+  #cbTimers .hz-m{position:absolute;top:0;bottom:0;left:calc(var(--x,0) * (100% - 40px));width:0}
+  #cbTimers .hz-d{position:absolute;left:-4px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ok-sys)}
+  #cbTimers .hz-t{position:absolute;left:-4px;top:2px;display:flex;gap:4px;align-items:baseline;white-space:nowrap;font-size:var(--t-cap);font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--sys-ink)}
+  #cbTimers .hz-m.b .hz-t{top:auto;bottom:2px}
+  #cbTimers .hz~.seg.cnt{min-width:64px}
+  #cbTimers .hz-n{max-width:72px;overflow:hidden;text-overflow:ellipsis}
+  #cbTimers .hz-v{font-family:var(--mono);font-size:var(--t-meta);font-weight:700;letter-spacing:0;text-transform:none}
+  #cbTimers .hz-m:is(.soon,.due) .hz-d{background:var(--warn-sys)}
+  #cbTimers .hz-m.due .hz-t{color:var(--warn-sys)}
+  /* ESSAI X1 ▲ */
+  /* ESSAI X2 ▼ bande (A380) — le volet s'aligne sur la bande, largeur de la colonne d'action (A356). */
+  @media (min-width:780px){html.essai-x2 .rt-dock{left:18px;right:calc(var(--col-state) + var(--col-gap) + 18px)}}
+  /* ESSAI X2 ▲ */
   /* Le bloc courant OUVERT dit sa position par la pilule ; le compte vit dans « Parcours · x/y ». */
   .ov-block.cur:not(.closed) .ov-c{display:none}
   body.chrome-hdr #cbTimers{min-height:30px;padding:0;gap:14px}
@@ -3380,6 +3399,48 @@
   ol.steps li .stp-vf{flex:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:.2px}
   ol.steps li .stp-vf.ok{color:var(--ok);background:var(--ok-soft);border:1px solid var(--done-line)}
   ol.steps li .stp-vf.gap{color:var(--verify);background:var(--verify-soft);border:1px solid var(--verify-bd)}
+  /* A377 — légende d'un objet lié : 24 px réservés dans tous les états (A9), aplat ambre à
+     l'échéance seulement (A11) ; le débord de 8 px garde le texte aligné sur le libellé. */
+  .wt{display:flex;align-items:center;gap:6px;width:fit-content;max-width:calc(100% + 8px);box-sizing:border-box;height:24px;margin:6px 0 0 -8px;padding:0 8px;border-radius:var(--r-1);min-width:0;font-size:var(--t-body);font-weight:600;line-height:24px;letter-spacing:0;text-transform:none;color:var(--ink-2);white-space:nowrap}
+  .wt-g{flex:none;width:14px;height:14px;color:var(--ink-2);overflow:visible}
+  .wt-r0{fill:none;stroke:var(--primary-200);stroke-width:2.2}
+  .wt-r1{fill:none;stroke:currentColor;stroke-width:2.2;stroke-dasharray:28.27;stroke-linecap:round;transform:rotate(-90deg);transform-origin:6px 6px}
+  .wt-v{flex:none;font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+  .wt-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .wt-e{flex:none;font-weight:800;color:var(--warn)}
+  .wt-vb{display:inline-block}
+  .wt.run .wt-g,.wt.run .wt-v,.wt.up .wt-g,.wt.up .wt-v{color:var(--act)}
+  .wt.due{background:var(--warn-soft);box-shadow:inset 0 0 0 1px var(--warn-line)}
+  .wt.due .wt-g{color:var(--warn)}
+  .wt.due .wt-n{color:var(--ink)}
+  .wt.due .wt-r0{stroke:transparent}
+  .wt-blk{margin-top:4px}   /* sous le titre d'un bloc : le titre à 21 px a déjà son interligne */
+  ol.steps li.has-wt{align-items:flex-start}
+  ol.steps li.has-wt .txt{padding-top:6px}   /* 1ʳᵉ ligne du libellé centrée sur la case de 36 px */
+  .wt-flat{height:20px;margin:2px 0 0 -8px;font-size:var(--t-meta);line-height:20px}   /* parcours à plat : annoncé, sans état */
+  .wt-flat .wt-g{width:12px;height:12px}
+  .sv-stp li .wt-sv,.wt-sv{flex-basis:100%;height:auto;margin:1px 0 0;padding:0;font-size:var(--t-cap);line-height:1.35}   /* Page : au corps de la feuille */
+  .wt-sv .wt-g{width:12px;height:12px}
+  /* Mouvements — chacun répond à UN geste et dit ce qu'il a fait (lot-v5-31.md, A378) : cocher
+     fait MONTER (le chiffre) ou REMPLIR (l'anneau, relancé depuis zéro), décocher fait REDESCENDRE ;
+     le filet sous « décocher annule » se vide avec la fenêtre de 10 s ; l'échéance se pose en
+     fondu. transform/opacity/peinture seulement, une fois ; phase par --wt-d (délai négatif). */
+  @keyframes wtRoll{0%{transform:translateY(55%);opacity:0}100%{transform:none;opacity:1}}
+  @keyframes wtBack{0%{transform:translateY(-55%);opacity:0}100%{transform:none;opacity:1}}
+  @keyframes wtOk{0%,35%{color:var(--ok)}100%{color:var(--ink)}}
+  @keyframes wtArm{from{stroke-dashoffset:28.27}}
+  .wt-gr{position:relative}
+  @media (prefers-reduced-motion:no-preference){
+    .wt-go{animation:wtRoll .36s var(--ease-out),wtOk 1.8s ease}
+    .wt-v.wt-arm{animation:wtRoll .36s var(--ease-out) var(--wt-d,0s) both}
+    .wt-back{animation:wtBack .36s var(--ease-out) var(--wt-d,0s) both}
+    .wt-arm .wt-r1{animation:wtArm .36s var(--ease-out) var(--wt-d,0s) both}
+    /* Jauge et non soulignement (un souligné se lirait « tapable ») : piste pâle, remplissage qui se
+       vide — le dessin de la barre de vie des bulles (.t-life). 10 s = LINK_GRACE_MS. */
+    .wt-gr::before,.wt-gr::after{content:'';position:absolute;left:.75em;right:0;bottom:1px;height:2px;border-radius:var(--r-1);background:currentColor;opacity:.14}
+    .wt-gr::after{opacity:.42;transform-origin:left;animation:tLife 10s linear var(--wt-d,0s) both}
+    .wt{transition:background-color var(--dur-2) var(--ease-out),box-shadow var(--dur-2) var(--ease-out)}
+    .wt-new{animation:cbIn .16s ease-out both}}
   /* PAS de bandeau ambre sur une étape en écart (v4.25.2 : le liseré est le canal du REGISTRE ;
      l'écart est porté par la pilule « △ écart »). Case à GAUCHE, ordre naturel du DOM sans
      `order` — la colonne de cases ne doit JAMAIS se décaler ; case 26 px, la CIBLE est la rangée
@@ -4568,6 +4629,13 @@
     font-size:12px;line-height:1.45;color:var(--verify)}
   .blk .li:focus-within .li-note{display:block}
   .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
+  /* A377 — « ce que fait la coche » : pointillé sans lien (créer), bleu avec ; lu au repos par `.wt-ed`. */
+  .li-tools .li-lk{flex:0 1 auto;min-width:0;max-width:240px;height:32px;min-height:32px;padding:0 8px;border:1px dashed var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700}
+  .li-tools .li-lk.on{border-style:solid;border-color:var(--act);color:var(--act)}
+  .blk .li .wt-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
+  .blk-tm{width:100%;height:44px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
+  .blk-tm.on{border-color:var(--act)}
+  .blk-tm-h{margin:6px 0 0;font-size:var(--t-meta);line-height:1.45;color:var(--ink-2)}
   .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
@@ -7344,7 +7412,7 @@
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text]{font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.field .blk-tm,.blk-tm{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme

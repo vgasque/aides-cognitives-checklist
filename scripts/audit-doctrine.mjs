@@ -4970,6 +4970,174 @@ await sec('v5.30 · A345 — la marque d\'une étape critique (6b)', async () =>
 }
 });
 
+/* ══ v5.31 · A377 — LA COCHE LANCE, LA COCHE COMPTE, LE BLOC MINUTE ══════════════════════════
+   Mesuré par le VRAI point d'entrée (coche tapée, « Continuer », réponse), jamais par un état
+   reconstruit. (1) ACR d'exemple : la coche du choc compte + 1 et pose son repère, décocher le
+   retire et BARRE le repère ; la coche de l'adrénaline lance « prochaine dose », décocher dans les
+   10 s rend le minuteur à l'arrêt. (2) A9 : la légende réserve 24 px dans TOUS les états — ni la
+   coche, ni l'échéance ne changent la hauteur de la rangée. (3) Minuteur de BLOC sur une fiche
+   injectée : lancé avec la session, réarmé à « Non », arrêté à « Oui » (sortie de boucle) ;
+   consulter un bloc jamais visité (plan) n'arme rien — naviguer ≠ conduire ; à l'échéance, rien
+   n'est choisi (le fil ne bouge pas). */
+await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const cur=()=>document.querySelector('.ov-block.cur');
+    for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('[data-ck]')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}
+    cur().querySelector('[data-ovnext]').click();await w(300);
+    [...cur().querySelectorAll('[data-ovopt]')][0].click();await w(300);
+    const row=re=>[...cur().querySelectorAll('[data-ck]')].find(x=>re.test(x.textContent));
+    const cn=()=>{const c=Runtime.fiche.counters[0];return Runtime.counters[c.id]||0;};
+    const adr=()=>Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
+    const hW=li=>{const e=li.querySelector('.wt');return e?Math.round(e.getBoundingClientRect().height):-1;};
+    const o={},an=el=>el?el.getAnimations({subtree:true}).map(a=>a.animationName).join(','):'';
+    let li=row(/Choc imm/);o.hChoc0=Math.round(li.getBoundingClientRect().height);o.wChoc0=hW(li);o.cn0=cn();
+    li.click();await w(300);li=row(/Choc imm/);
+    o.cn1=cn();o.hChoc1=Math.round(li.getBoundingClientRect().height);o.wChoc1=hW(li);o.txtChoc1=li.querySelector('.wt').textContent;o.mvOn=an(li.querySelector('.wt'));
+    o.ev1=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&!e.voidAt).length;
+    li.click();await w(30);o.mvOff=an(row(/Choc imm/).querySelector('.wt'));await w(270);
+    o.cn2=cn();o.void2=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&e.voidAt).length;
+    li=row(/^\s*Vigilance|Adrénaline/)||row(/Adrénaline/);
+    const hA0=Math.round(li.getBoundingClientRect().height);
+    li.click();await w(30);o.mvArm=an(row(/Adrénaline/).querySelector('.wt'));await w(270);li=row(/Adrénaline/);
+    o.adrRun=adr().running;o.clsRun=li.querySelector('.wt').className;
+    li.click();await w(300);li=row(/Adrénaline/);
+    o.adrUndo=!adr().running&&adr().elapsedMs===0;
+    li.click();await w(300);adr().lastStart=Date.now()-241000;await w(900);li=row(/Adrénaline/);
+    o.clsDue=li.querySelector('.wt').className;o.wDue=hW(li);o.hA0=hA0;o.hA1=Math.round(li.getBoundingClientRect().height);
+    return o;});
+  t('A377 · la coche du choc compte + 1', r.cn0===0&&r.cn1===1, `${r.cn0} → ${r.cn1}`);
+  t('A377 · … et pose son repère au journal', r.ev1===1);
+  t('A377 · la légende dit le compte d’avant et d’après', /0 → 1/.test(r.txtChoc1), r.txtChoc1);
+  t('A377 · décocher retire le + 1 et BARRE le repère (jamais effacé)', r.cn2===0&&r.void2===1, `${r.cn2} · ${r.void2} barré`);
+  t('A377 · A9 — cocher ne change pas la hauteur de la rangée liée', Math.abs(r.hChoc1-r.hChoc0)<=1, `${r.hChoc0} → ${r.hChoc1} px`);
+  t('A377 · la légende réserve 24 px, au repos comme après la coche', r.wChoc0===24&&r.wChoc1===24, `${r.wChoc0} / ${r.wChoc1}`);
+  t('A377 · la coche de l’adrénaline lance « prochaine dose », en bleu sans fond', r.adrRun===true&&/\brun\b/.test(r.clsRun), r.clsRun);
+  t('A377 · décocher dans les 10 s rend le minuteur à son état d’avant', r.adrUndo===true);
+  t('A378 · cocher fait MONTER le chiffre neuf', /wtRoll/.test(r.mvOn), r.mvOn);
+  t('A378 · décocher le fait REDESCENDRE', /wtBack/.test(r.mvOff), r.mvOff);
+  t('A378 · la coche REMPLIT l’anneau (relancé depuis zéro) et la jauge des 10 s part', /wtArm/.test(r.mvArm)&&/tLife/.test(r.mvArm), r.mvArm);
+  t('A377 · à l’échéance, pastille ambre sur la MÊME ligne de 24 px', /\bdue\b/.test(r.clsDue)&&r.wDue===24, `${r.clsDue} · ${r.wDue}`);
+  t('A377 · A9 — l’échéance ne change pas la hauteur de la rangée', Math.abs(r.hA1-r.hA0)<=1, `${r.hA0} → ${r.hA1} px`);
+  const b=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=migrate({id:'a377iot',title:'Sonde A377',timers:[{id:'t1',label:'Tentative',type:'interval',seconds:60}],start:'b1',blocks:[
+      {id:'b1',kind:'do',title:'Tentative',timer:'t1',items:[{id:'i1',do:'Optimiser'}],next:'b2'},
+      {id:'b2',kind:'decision',title:'Réussie ?',question:'Réussie ?',options:[{label:'Oui',target:'b3'},{label:'Non',target:'b1'}]},
+      {id:'b3',kind:'do',title:'Vérification',items:[{id:'i3',do:'Capno'}],next:null},
+      {id:'b4',kind:'do',title:'Hors chemin',timer:'t1',items:[{id:'i4',do:'Rien'}],next:null}]});
+    await Data.put(f);fiches.push(f);openRead(f.id);await w(400);
+    const t1=()=>Runtime.timers.t1,o={};
+    o.avant=t1().running;
+    document.getElementById('sessStart').click();await w(40);
+    o.mvBlk=[...document.querySelectorAll('.ov-block.cur .wt-blk .wt-r1')].some(e=>e.getAnimations().some(a=>a.animationName==='wtArm'));await w(460);
+    o.demarre=t1().running;o.wBlk=!!document.querySelector('.ov-block.cur .wt-blk');
+    const cur=()=>document.querySelector('.ov-block.cur');
+    cur().querySelector('[data-ck]').click();await w(150);
+    t1().lastStart=Date.now()-30000;
+    cur().querySelector('[data-ovnext]').click();await w(300);
+    o.surQuestion=t1().running&&t1().lastStart<Date.now()-25000;
+    t1().lastStart=Date.now()-61000;await w(700);
+    o.fil=Runtime.nav.join('>');
+    [...cur().querySelectorAll('[data-ovopt]')].find(x=>/Non/.test(x.textContent)).click();await w(300);
+    o.rearme=t1().running&&Date.now()-t1().lastStart<3000;
+    cur().querySelector('[data-ck]').click();await w(150);
+    cur().querySelector('[data-ovnext]').click();await w(300);
+    [...cur().querySelectorAll('[data-ovopt]')].find(x=>/Oui/.test(x.textContent)).click();await w(300);
+    o.sortie=!t1().running&&!!(Runtime.linkArm.t1&&Runtime.linkArm.t1.x);
+    /* CONSULTER en dernier : un bloc jamais visité entre au bout du journal (A-comportement du
+       plan), mais il n'est pas CONDUIT — son minuteur de bloc (le même t1) ne doit pas repartir. */
+    const s0=t1().lastStart;jumpToBlock(f,'b4');await w(300);
+    o.consulte=!t1().running&&t1().lastStart===s0;
+    return o;});
+  t('A377 · minuteur de bloc : rien avant la session', b.avant===false);
+  t('A377 · … lancé AVEC la session au bloc de départ, légende sous le titre', b.demarre===true&&b.wBlk===true);
+  t('A378 · … et son anneau se remplit à l’entrée', b.mvBlk===true);
+  t('A377 · … il continue pendant la question (même boucle)', b.surQuestion===true);
+  t('A377 · à l’échéance, rien n’est choisi : le fil ne bouge pas', b.fil==='b1>b2', b.fil);
+  t('A377 · « Non » rentre dans le bloc : le minuteur repart de zéro', b.rearme===true);
+  t('A377 · consulter un bloc jamais visité n’arme rien (naviguer ≠ conduire)', b.consulte===true);
+  t('A377 · « Oui » quitte la boucle : le minuteur s’arrête et le dit', b.sortie===true);
+  await page.close();
+}
+{ // Fiche d'exemple Anaphylaxie : l'injection cochée compte ET relance la réévaluation (timerId) ; sous mouvement réduit.
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Anaphylaxie');
+  await demarrerSession(page);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const f=Runtime.fiche,c=f.counters[0],t=Runtime.timers[c.timerId];
+    const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>/Adrénaline IM/.test(x.textContent));
+    const o={liens:f.items.filter(x=>x.counts===c.id).length,avant:!!(t&&t.running)};
+    li.click();await w(30);o.mv=document.querySelector('.ov-block.cur').getAnimations({subtree:true}).filter(a=>/^wt|tLife/.test(a.animationName)).length;await w(270);
+    o.cn=Runtime.counters[c.id]||0;o.run=!!(t&&t.running);
+    t.lastStart=Date.now()-301000;tickAll();await w(300);   // la sonnerie : rien ne repart seul
+    o.echu=timerDue(t)&&!t.running;
+    return o;});
+  t('A377 · Anaphylaxie : les deux injections comptent (2 liens, pas plus)', r.liens===2, String(r.liens));
+  t('A377 · … cocher l’adrénaline IM compte 1 et lance la réévaluation', r.avant===false&&r.cn===1&&r.run===true, JSON.stringify(r));
+  t('A378 · mouvement réduit : la légende ne bouge pas, l’état change quand même', r.mv===0&&r.cn===1, String(r.mv));
+  t('A379 · à la sonnerie la réévaluation reste « Échu » : elle repart à la prochaine injection cochée, jamais seule', r.echu===true);
+  await page.close();
+}
+});
+
+// v5.31 · A380 — essais X1 « horizon » et X2 « bande » (Moi › Affichage).
+await sec('v5.31 · A380 — essais X1 horizon et X2 bande', async () => {
+  const monter=async(w,h,es)=>{const page=await br.newPage({viewport:{width:w,height:h},hasTouch:true});
+    page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+    await page.addInitScript(l=>{for(const k of l)localStorage.setItem('ac-essai-'+k,'1');},es);
+    await page.goto(`http://localhost:${port}/index.html`);
+    await amorce(page);await ouvrirFiche(page,'Arrêt cardiaque');await demarrerSession(page);
+    await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+      const tm=re=>Object.values(Runtime.timers).find(t=>re.test(t.label));
+      toggleTimer(tm(/Cycle/));toggleTimer(tm(/Adrénaline/));tm(/Cycle/).lastStart-=40000;await w(700);});
+    return page;};
+  {const page=await monter(390,844,['x1']);
+   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+     const el=document.getElementById('cbTimers'),ax=el.querySelector('.hz');
+     const ms=()=>[...el.querySelectorAll('.hz-m')];
+     const x=m=>+getComputedStyle(m).getPropertyValue('--x');
+     const o={cls:essaiOn('x1'),n:ms().length,run:Object.values(Runtime.timers).filter(t=>t.type==='interval'&&t.running).length};
+     const cy=ms().find(m=>/Cycle/.test(m.textContent)),ad=ms().find(m=>/Adrénaline/.test(m.textContent));
+     o.ordre=!!(cy&&ad&&x(cy)<x(ad));
+     const a=ax.getBoundingClientRect();
+     o.dedans=ms().every(m=>{const r=m.querySelector('.hz-t').getBoundingClientRect();return r.left>=a.left-1&&r.right<=a.right+1;});
+     const t=Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
+     t.lastStart=Date.now()-241000;await w(900);
+     const d=ms().find(m=>m.classList.contains('due'));
+     o.echu=!!d&&x(d)===0;o.nApres=ms().length;
+     essaiSet('x1',false);await w(700);o.tuiles=!el.querySelector('.hz')&&!!el.querySelector('.seg[data-seg]');
+     return o;});
+   t('A380 · X1 : l’essai se lit sur la page (classe posée au démarrage)', r.cls===true);
+   t('A380 · X1 : un point par minuteur LANCÉ, aucun de plus (rien d’extrapolé)', r.n===r.run&&r.n===2, `${r.n}/${r.run}`);
+   t('A380 · X1 : le plus proche est le plus à gauche', r.ordre===true);
+   t('A380 · X1 : aucune étiquette ne sort de l’axe', r.dedans===true);
+   t('A380 · X1 : l’échu se pose sur « maintenant » et y reste', r.echu===true&&r.nApres===2);
+   t('A380 · X1 : repasser en tuiles rend la capsule d’origine', r.tuiles===true);
+   await page.close();}
+  {const page=await monter(820,1180,['x2']);
+   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+     const el=document.getElementById('cbTimers');
+     const o={segs:el.querySelectorAll('.seg:not(.glb)').length,railTm:!!document.querySelector('.read-side .rt-grid')};
+     el.click();await w(600);
+     o.volet=!!document.querySelector('.rt-dock .rt-panel');o.tk=document.querySelectorAll('.tk-panel').length;
+     return o;});
+   t('A380 · X2 : la bande porte les instruments dès 780 px', r.segs>=1, String(r.segs));
+   t('A380 · X2 : le rail ne répète pas les minuteurs', r.railTm===false);
+   t('A380 · X2 : toucher la bande ouvre le volet des corrections', r.volet===true);
+   t('A380 · X2 : un seul journal dans la page (celui du rail)', r.tk===1, String(r.tk));
+   await page.close();}
+});
+
 /* ══ v5.6 — « ＋ AJOUTER » DEPUIS UN CHAMP FOCALISÉ AJOUTE VRAIMENT UNE LIGNE ════════════════
    Signalé à l'usage : « si j'ai tapé du texte dans le champ et que j'appuie directement sur
    ＋ Rappel, la ligne n'est pas ajoutée — il referme le bloc mais n'ajoute rien ; pareil pour la
