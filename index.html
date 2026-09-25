@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-hpiGkAx4IFA7CTHnl0+xMellsKISTGjncvdGFUBv45w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-z2qSFn32jjxT8SRQ9whh6dI8is5l/wkg3wgAXsYR3fk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1266,7 +1266,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
     body.view-home footer.tools :is(#footSum,#footFold){display:none}   /* maquette v5 : pas de socle au téléphone — l'état vit dans Moi */
     body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
-    #homeDock .hdr-search input{font-size:var(--t-step)}   /* A374 : 17,5 au téléphone (A359 l'écrivait, la règle disait item), face aux titres de carte à 17,5/700 ; item en large où la carte est à 15 */
     body.view-home footer.tools{border-top:0}
   }
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
@@ -2170,7 +2169,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
   /* Même corps que `.sb-x` : une seule croix de fermeture dans tout le fichier (v5.0.0). */
-  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
+  .notice-x{position:absolute;top:1px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}   /* centrée sur la 1ʳᵉ ligne ; tient dans une notice d'une ligne */
   .notice-x:hover{background:rgba(0,0,0,.07)}
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
@@ -2871,9 +2870,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .conf-sub{flex:1;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   /* A369 — UN chevron (icône, trait) pour les cartes, le bloc, l'historique, la bulle, les rails et
      l'aperçu du schéma : bas fermé, haut ouvert. */
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev) svg{transform:rotate(90deg)}
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev) svg{transform:rotate(90deg)}
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
   /* AVANT LA SESSION (v5.6, maquette) : l'encadré de la condition d'entrée. Contour d'alerte,
@@ -2964,6 +2963,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-row.rail .pf-col::after{content:"";flex:1;width:2px;background:var(--line-strong);margin-bottom:-14px}
   .pf-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:4px}
   .pf-title{font-size:var(--t-step);font-weight:800;line-height:1.3;text-wrap:pretty}
+  .pf-tg{display:flex;align-items:flex-start;gap:4px;width:calc(100% + 4px);min-height:32px;margin:-4px 0 0 -4px;padding:4px;font-size:var(--t-item);overflow-wrap:anywhere;background:none;border:0;border-radius:var(--r-1);color:inherit;font-family:inherit;text-align:left;cursor:pointer}
+  .pf-tg:hover{background:var(--amb-2)}
+  .pf-tg>span:not(.pf-chev){flex:1;min-width:0}
   .pf-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
   .pf-steps li{position:relative;padding:2px 0 2px 18px;font-size:var(--t-item);line-height:1.35;color:var(--ink-2)}
   .pf-steps li::before{content:"";position:absolute;left:4px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line-strong)}
@@ -3748,6 +3750,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      --warn-line, 3,2:1 sur --warn-soft la nuit). */
   .stp-mk{display:block;width:fit-content;margin:0 0 4px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;line-height:1;text-transform:uppercase;background:var(--crit-soft);color:var(--crit)}
   :is(.vigil,.vig) .stp-mk{background:var(--warn-soft);color:var(--warn)}
+  /* A381 : l'étiquette se loge dans une marge haute réservée, hors du flux — la case reste centrée sur le libellé,
+     comme dans une rangée sans étiquette. 60 = rembourrage 12 + case 36 + écart 12 (paliers zw ci-dessous). */
+  ol.steps li:has(.stp-mk){position:relative;padding-top:32px}
+  ol.steps li .stp-mk{position:absolute;top:8px;left:60px;margin:0;line-height:12px}
+  html.zw360 ol.steps li .stp-mk{left:58px}
+  html.zw300 ol.steps li .stp-mk{left:56px}
+  :is(html.zw360,html.zw300) ol.steps li:has(.stp-mk){padding-top:32px}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
      la couleur ne fait que le renforcer (WCAG 1.4.1). */
@@ -7765,7 +7774,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.field .blk-tm,.blk-tm{font-size:16px}
     .tk-time-edit{width:96px}
@@ -8500,7 +8509,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.31.0';
+const APP_VERSION='5.31.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20327,7 +20336,7 @@ function railLadHtml(f){
   if(!Runtime.started){
     return preChapH('Parcours',{sub:'Aperçu — se déroule après le démarrage.'})+preLinksHtml(f)
       +`<div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f)}</div>`;}
-  return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span></div><div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f,{md,off})}</div>`;}
+  return `<div class="rail-head"><span class="rail-title">Parcours inerte</span><span class="rail-n">${plan.order.length}</span></div><div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f,{md,off,fold:true})}</div>`;}
 /* ═══ v5.4.2-r — LE RAIL SE RÉÉQUILIBRE À 780-1199 px (R1+R2, décision utilisateur, mesuré :
    60 % du contenu enterré). R1 : le JOURNAL remonte contre les compteurs (replié < 1200, déplié
    en cockpit). R2 : < 1200 l'ÉCHELLE devient un dépliant qui annonce compte + position (« ici :
@@ -20337,7 +20346,7 @@ function railLadHtml(f){
    corps de l'Échelle (source = flux ③). Détail : doctrine-js.md J157. */
 function railLadParts(f){
   const _pc=planCtx(f);if(!_pc)return null;const {plan,num,md,off}=_pc;
-  return {n:plan.order.length,body:`<div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f,{md,off})}</div>`};}
+  return {n:plan.order.length,body:`<div class="ov-plan rail-lad pre-lad flat">${preFlowFlatHtml(f,{md,off,fold:true})}</div>`};}
 function railHereTxt(f){
   const id=state.nav[state.navPos];if(!id)return '';
   const plan=flowPlan(f);const i=plan.order.indexOf(id);if(i<0)return '';
@@ -20392,11 +20401,11 @@ function bindRailLad(){
     if(pr){const k=CSS.escape(pr.dataset.plref);const el=lad.querySelector('[data-plln="'+k+'"]');
       if(el){scrollWithin(box,el);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}return;}
     const pg=t.closest('[data-plgo]');if(pg){jumpToBlock(state.fiche,pg.dataset.plgo);return;}
-    const pl=t.closest('[data-plln]');
-    if(pl){const id=pl.dataset.plln;state.ovFold['l:'+id]=!state.ovFold['l:'+id];
-      renderKeepAnchor('.rail-lad [data-plln="'+CSS.escape(id)+'"]');}};
+    const fb=t.closest('[data-plfold]');
+    if(fb){const id=fb.dataset.plfold;state.ovFold['l:'+id]=fb.getAttribute('aria-expanded')!=='true';
+      repaintRailLad();const nb=main.querySelector('.rail-lad [data-plfold="'+CSS.escape(id)+'"]');if(nb)nb.focus({preventScroll:true});}};
   lad.onclick=e=>act(e.target);
-  lad.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' ')return;
+  lad.onkeydown=e=>{if(e.key!=='Enter'&&e.key!==' '||e.target.closest('[data-plfold]'))return;
     const t=e.target.closest('[data-plln],[data-plgo],[data-plref]');if(!t)return;e.preventDefault();act(t);};
 }
 /* REPEINDRE LE PLAN DU RAIL sur un re-rendu CIBLÉ. Le défilement propre de la colonne est
@@ -21196,7 +21205,10 @@ function preFlowFlatHtml(f,st){st=st||null;
     else if(!b.next)body+=`<div class="pf-end">■ Fin du parcours</div>`;
     const arr=arrivals.length?`<div class="pf-arr"><span>← aussi depuis</span>${arrivals.map(src).join('')}</div>`:'';
     const m=st&&st.md?st.md[b.id]:null;const stc=(m&&m.cur?' cur':'')+(m&&m.complete?' done':'')+(st&&st.off&&st.off.has(b.id)?' off':'');
-    h+=seg+`<div class="pf-row${dec?' dec':''}${rail?' rail':''}${stc}" data-plln="${esc(b.id)}"${m&&m.cur?' aria-current="step"':''}><div class="pf-col"><span class="pf-badge" aria-hidden="true"><span>${num[b.id]}</span></span></div><div class="pf-main"><div class="pf-title">${esc(titre(b))}</div>${wtStaticHtml(f,null,b)}${arr}${body}</div></div>`;});
+    // A381 : dans le rail de session, un bloc d'étapes se plie à son titre (déplié d'office : le bloc courant) ; une décision reste ouverte, ses branches SONT le chemin.
+    const fo=st&&st.fold&&!dec?('l:'+b.id in state.ovFold?state.ovFold['l:'+b.id]:!!(m&&m.cur)):null;
+    const tt=fo===null?`<div class="pf-title">${esc(titre(b))}</div>`:`<button type="button" class="pf-title pf-tg" data-plfold="${esc(b.id)}" aria-expanded="${fo}"><span>${esc(titre(b))}</span>${chevHtml(fo,'pf-chev')}</button>`;
+    h+=seg+`<div class="pf-row${dec?' dec':''}${rail?' rail':''}${stc}" data-plln="${esc(b.id)}"${m&&m.cur?' aria-current="step"':''}><div class="pf-col"><span class="pf-badge" aria-hidden="true"><span>${num[b.id]}</span></span></div><div class="pf-main">${tt}${fo===false?'':wtStaticHtml(f,null,b)+arr+body}</div></div>`;});
   return `<div class="pf-flat">${h}</div>`;}
 function preSessionHtml(f,avecParcours){
   return `<div class="pre-wrap">${avecParcours?`<div class="rail-lad pre-lad flat">${preFlowFlatHtml(f)}</div>`:''}</div>`;}

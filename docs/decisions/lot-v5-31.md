@@ -255,3 +255,49 @@ les liste tous.
 **Témoins.** `audit-doctrine` A380 : X1 — un point par minuteur lancé et pas un de plus, ordre des
 échéances, étiquettes dans l'axe, l'échu sur « maintenant », retour aux tuiles ; X2 — instruments
 dans la bande à 820 px, rail sans minuteurs, volet au toucher, un seul journal.
+
+## A381 — quatre retouches mesurées (v5.31.1)
+
+**La croix d'une notice se centre sur la première ligne.** `.notice-x` était posée à 4 px du haut
+avec une cible de 32 px, dans une notice d'une ligne de 34 px : elle débordait de 2 px vers le bas
+et paraissait décentrée. Elle est maintenant à 1 px du haut, donc centrée sur la première ligne,
+quelle que soit la hauteur de la notice.
+
+**Recherche de l'accueil : 16 px au téléphone.** Le 17,5 d'A374 datait d'un accueil plus gros.
+16 px est le plancher tactile (règle 9, Safari iOS zoome en dessous). Le champ rejoint donc la liste
+du bloc `(hover:none) and (pointer:coarse)` et quitte le palier < 780. Sans écran tactile, il reste
+à 15 px (`--t-item`).
+
+**L'étiquette CRITIQUE / VIGILANCE sort du flux.** La rangée d'étape centre sa case
+(`align-items:center`). Avec l'étiquette dans `.txt`, la case se centrait sur étiquette + libellé
++ détail et descendait de ~10 px par rapport aux rangées voisines, ce qui était visible à la
+lecture. L'étiquette est désormais en `position:absolute` dans une marge haute réservée de 32 px
+(`li:has(.stp-mk)`), alignée sur la colonne du texte (60 / 58 / 56 px selon le palier `zw`). La
+case reste centrée sur le libellé.
+- **Écarté** : aligner toutes les cases sur la première ligne (`flex-start`). Cela déplace aussi
+  les pastilles `.stp-x2` / `.stp-vf` et change toutes les rangées pour corriger celles qui
+  portent une étiquette.
+- ⚠ **Piège** : les raccourcis `padding` des paliers `zw360` / `zw300` sont plus spécifiques et
+  remettaient la marge haute à 8 px. La réserve est donc redite sous ces deux paliers.
+
+**Le parcours du rail se plie bloc par bloc.** `preFlowFlatHtml(f,{md,off,fold:true})`, appelé
+seulement par la colonne du cockpit et le rail 780-1199, fait de chaque titre un bouton
+(`data-plfold`, `aria-expanded`, chevron de la famille `.conf-chev`).
+- **Une décision ne se plie pas** : ses branches (« → aller à n », « ↓ ci-dessous ») SONT le
+  chemin ; les masquer rendrait la colonne muette sur ce qu'elle doit dire. Quatre témoins
+  (branches nommées, registre ambre, destinations, décisions imbriquées) l'ont rappelé à la
+  première passe.
+- **Déplié d'office** : le bloc courant seul. Un choix explicite vit dans
+  `state.ovFold['l:'+id]`, remis à zéro par `openRead`.
+- **Titre en 15 px** (`--t-item`) dans ce seul mode : à 17,5 px, un mot long (« Reconnaissance »)
+  débordait sous le chevron dans une colonne de 220 px.
+- **La feuille « Se repérer » et l'écran d'entrée ne plient pas** : ce sont des lectures
+  complètes, pas une colonne d'orientation.
+- **Pourquoi c'était mort** : `bindRailLad` basculait déjà `ovFold['l:'+id]` au toucher d'une
+  rangée, mais depuis A376 plus personne ne lisait cette clé. Le geste re-rendait la vue à
+  l'identique. Il est maintenant porté par un vrai bouton : Entrée et Espace passent par le clic
+  natif (le `keydown` du rail l'ignore) et le focus se repose sur le bouton après le repeint.
+
+**Mesuré** (1512 × 945, ACR en session) : 3 blocs d'étapes pliables, 1 déplié, la décision ouverte, parcours entier visible ; un clic, puis
+Entrée : 2, puis 1 déplié ; focus conservé. 340 px (`zw360`) : rangées à étiquette 98 et 80 px,
+étiquette à 58 px, case centrée sur le libellé.

@@ -1,5 +1,22 @@
 # Journal des modifications
 
+## [5.31.1] — 2026-09-25
+Quatre retouches signalées à l'usage (A381, doctrine `docs/decisions/lot-v5-31.md`).
+- **Notice « Vous êtes l'auteur… »** : la croix dépassait d'une notice d'une ligne (posée 4 px sous
+  le haut, 32 px de haut pour une notice de 34). Elle se centre désormais sur la première ligne.
+- **Recherche de l'accueil** : 16 px au téléphone au lieu de 17,5, en accord avec le reste de
+  l'accueil. 16 px est le plancher d'iOS : en dessous, Safari zoome au toucher. 15 px sans écran
+  tactile.
+- **Cases des étapes CRITIQUE / VIGILANCE** : l'étiquette se loge dans une marge haute réservée,
+  hors du flux. La case reste centrée sur le libellé, au même endroit que dans une rangée sans
+  étiquette (elle était centrée sur l'ensemble étiquette + libellé + détail, donc visiblement
+  plus basse).
+- **Colonne « Parcours inerte » du bureau** (et rail 780-1199) : chaque bloc se plie à son titre,
+  seul le bloc courant est déplié d'office. Une décision reste ouverte, puisque ses branches
+  sont le chemin. Un chevron par bloc, au clavier comme au toucher. Le
+  parcours de l'ACR tient désormais en entier à l'écran. Toucher un bloc de cette colonne ne
+  faisait plus rien depuis la v5.30.6 (bascule orpheline) : ce geste revit ici.
+
 ## [5.31.0] — 2026-09-25
 La coche d'une étape peut lancer un minuteur ou compter, un bloc peut porter son minuteur, et une
 ligne discrète le dit sous l'étape (A377 à A380, doctrine `docs/decisions/lot-v5-31.md`). Demande de
@@ -646,36 +663,5 @@ doctrine `docs/decisions/lot-v5-30.md`).
   jalon » garde l'emoji dans ses `<option>` (pas de SVG possible, décision de l'auteur).
 - Doctrine A335 dans `docs/decisions/lot-v5-27.md`, `design/ds/` régénéré. CHANGELOG à 20
   ([5.23.2] archivée).
-- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
-  version.
-
-## [5.27.0] — 2026-09-07
-### « Reprendre » revient sur l'étape interrompue, et la barre de retour ne survit plus à la fiche (A333-A334)
-
-- **Reprise après complication (A333)** — signalé par l'auteur : « ouvre une nouvelle étape,
-  devrait revenir vers l'ancienne et placer le bloc complication juste avant ; un bloc laissé
-  ouvert, c'est perturbant ». Mesuré avant : trois passages pour un geste (l'ancien replié avec sa
-  coche, la carte ⚡, un neuf vide). Désormais « ↩ Reprendre » RAMÈNE le passage interrompu au
-  bout du journal — même visite, coches gardées, plus de « passage 1/2 » — et la carte ⚡ se range
-  juste avant lui (`navRestore`, en place : `state.nav` reste l'alias de `Runtime.nav`). Ce
-  choix RENVERSE A126 (« nouveau passage, cases neuves ») par décision de l'auteur — et le
-  bouton l'a toujours dit : « ↩ Reprendre — ‹bloc› → » annonce un retour, pas un passage neuf ;
-  le texte d'origine est barré dans `conventions-de-code.md`, pas effacé.
-- **Ce que le réordonnement entraîne** : les replis, indexés par position, suivent leur visite
-  (`ovFoldRemap`, rejoué aussi chez l'invité qui reçoit le fil) ; « l'entrée suivante du fil »
-  saute les excursions (`navNextIdx`, pure) — sans cela une décision déjà répondue se rouvrait
-  parce qu'une carte ⚡ s'était rangée entre elle et sa cible (mesuré : la décision reste une
-  chip, sa réponse reste affichée, re-taper la réponse défile au lieu de reposter). Sans ancre
-  ni passage à retrouver, l'ancien chemin reste (passage neuf) — jamais un journal cassé.
-- **Barre « ↩ Bloc… » (A334)** — signalé : « apparaît sur la page d'accueil lorsqu'on termine la
-  session et qu'elle est visible ; est-ce la seule situation ? » Non : mesuré aux quatre portes,
-  « Terminer » la laissait pour toujours (le tick des minuteurs, seul à la resynchroniser,
-  s'arrête avec la session) et le retour d'en-tête une seconde. `render()` la resynchronise à
-  tout changement de vue.
-- Garde-fous : `audit-complications` et `audit-doctrine` réécrits sur la nouvelle règle (même
-  visite, coches gardées, une seule carte du bloc, ⚡ juste avant), un test unitaire
-  (`instComplete` saute une excursion). Doctrine A333-A334 dans `docs/decisions/lot-v5-27.md`
-  (nouveau fichier du lot), index AGENTS.md et docs/README.md. CHANGELOG à 20 ([5.23.1]
-  archivée).
 - Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
   version.

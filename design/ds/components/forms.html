@@ -911,7 +911,6 @@
     body.view-home footer.tools{padding-bottom:calc(96px + var(--sab,0px))}
     body.view-home footer.tools :is(#footSum,#footFold){display:none}   /* maquette v5 : pas de socle au téléphone — l'état vit dans Moi */
     body.view-home footer.tools .foot-min{display:flex;align-items:center;justify-content:flex-end;min-height:32px}   /* A373 */
-    #homeDock .hdr-search input{font-size:var(--t-step)}   /* A374 : 17,5 au téléphone (A359 l'écrivait, la règle disait item), face aux titres de carte à 17,5/700 ; item en large où la carte est à 15 */
     body.view-home footer.tools{border-top:0}
   }
   /* Zone haute de crise, HORS de l'en-tête (hauteur d'en-tête CONSTANTE — un en-tête qui se
@@ -1815,7 +1814,7 @@
   .linkbtn{background:none;border:0;color:var(--primary);font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:0;margin-left:auto}
   .linkbtn:hover{text-decoration:underline}
   /* Même corps que `.sb-x` : une seule croix de fermeture dans tout le fichier (v5.0.0). */
-  .notice-x{position:absolute;top:4px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
+  .notice-x{position:absolute;top:1px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}   /* centrée sur la 1ʳᵉ ligne ; tient dans une notice d'une ligne */
   .notice-x:hover{background:rgba(0,0,0,.07)}
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
@@ -2516,9 +2515,9 @@
   .conf-sub{flex:1;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   /* A369 — UN chevron (icône, trait) pour les cartes, le bloc, l'historique, la bulle, les rails et
      l'aperçu du schéma : bas fermé, haut ouvert. */
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev) svg{transform:rotate(90deg)}
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev) svg{transform:rotate(90deg)}
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
   /* AVANT LA SESSION (v5.6, maquette) : l'encadré de la condition d'entrée. Contour d'alerte,
@@ -2609,6 +2608,9 @@
   .pf-row.rail .pf-col::after{content:"";flex:1;width:2px;background:var(--line-strong);margin-bottom:-14px}
   .pf-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:4px}
   .pf-title{font-size:var(--t-step);font-weight:800;line-height:1.3;text-wrap:pretty}
+  .pf-tg{display:flex;align-items:flex-start;gap:4px;width:calc(100% + 4px);min-height:32px;margin:-4px 0 0 -4px;padding:4px;font-size:var(--t-item);overflow-wrap:anywhere;background:none;border:0;border-radius:var(--r-1);color:inherit;font-family:inherit;text-align:left;cursor:pointer}
+  .pf-tg:hover{background:var(--amb-2)}
+  .pf-tg>span:not(.pf-chev){flex:1;min-width:0}
   .pf-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
   .pf-steps li{position:relative;padding:2px 0 2px 18px;font-size:var(--t-item);line-height:1.35;color:var(--ink-2)}
   .pf-steps li::before{content:"";position:absolute;left:4px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line-strong)}
@@ -3393,6 +3395,13 @@
      --warn-line, 3,2:1 sur --warn-soft la nuit). */
   .stp-mk{display:block;width:fit-content;margin:0 0 4px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;line-height:1;text-transform:uppercase;background:var(--crit-soft);color:var(--crit)}
   :is(.vigil,.vig) .stp-mk{background:var(--warn-soft);color:var(--warn)}
+  /* A381 : l'étiquette se loge dans une marge haute réservée, hors du flux — la case reste centrée sur le libellé,
+     comme dans une rangée sans étiquette. 60 = rembourrage 12 + case 36 + écart 12 (paliers zw ci-dessous). */
+  ol.steps li:has(.stp-mk){position:relative;padding-top:32px}
+  ol.steps li .stp-mk{position:absolute;top:8px;left:60px;margin:0;line-height:12px}
+  html.zw360 ol.steps li .stp-mk{left:58px}
+  html.zw300 ol.steps li .stp-mk{left:56px}
+  :is(html.zw360,html.zw300) ol.steps li:has(.stp-mk){padding-top:32px}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
      la couleur ne fait que le renforcer (WCAG 1.4.1). */
@@ -7410,7 +7419,7 @@
      existe pour empêcher, et le trou était silencieux. La liste est désormais GARDÉE par
      `check-type` : un champ compact déclaré hors d'elle échoue au commit. */
   @media (hover:none) and (pointer:coarse){
-    .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
+    .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
     .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.field .blk-tm,.blk-tm{font-size:16px}
     .tk-time-edit{width:96px}
