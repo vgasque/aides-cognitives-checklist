@@ -1466,12 +1466,11 @@
   #cbTimers .seg.cnt{min-width:84px}
   #cbTimers .seg:not(.glb) .seg-l{color:var(--sys-ink)}   /* sur la tuile (--sys-2), l'encre secondaire tombe à 3,1:1 */
   #cbTimers .seg.due{min-width:96px}
-  /* ESSAI X1 ▼ — capsule « horizon » (A380) : un axe de 5 min, un point par minuteur en cours, à son
-     temps restant ; « 5 min » hors de l'axe (40 px réservés à droite) pour qu'aucune étiquette ne le couvre. */
+  /* ESSAI X1 ▼ horizon (A380) — 40 px à droite pour « 5 min », hors de portée des étiquettes. */
   #cbTimers .hz{position:relative;flex:1 1 auto;min-width:120px;align-self:stretch;margin:0 8px 0 4px;overflow:hidden}   /* une étiquette ne déborde jamais sur le chrono */
   #cbTimers .hz-l{position:absolute;left:0;right:40px;top:50%;height:2px;margin-top:-1px;background:var(--sys-line)}
   #cbTimers .hz-0{position:absolute;left:0;top:50%;width:2px;height:12px;margin-top:-6px;background:var(--ok-sys)}
-  #cbTimers .hz-k{position:absolute;top:50%;width:1px;height:8px;margin-top:-4px;background:var(--sys-line)}
+  #cbTimers .hz-k{position:absolute;top:50%;left:calc(var(--x) * (100% - 40px));width:1px;height:8px;margin-top:-4px;background:var(--sys-line)}
   #cbTimers .hz-5{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2)}
   #cbTimers .hz-m{position:absolute;top:0;bottom:0;left:calc(var(--x,0) * (100% - 40px));width:0}
   #cbTimers .hz-d{position:absolute;left:-4px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ok-sys)}
@@ -1483,8 +1482,7 @@
   #cbTimers .hz-m:is(.soon,.due) .hz-d{background:var(--warn-sys)}
   #cbTimers .hz-m.due .hz-t{color:var(--warn-sys)}
   /* ESSAI X1 ▲ */
-  /* ESSAI X2 ▼ — instruments en bande (A380) : la bande garde la largeur de la colonne d'action (A356),
-     le volet s'y aligne au lieu de couvrir le rail. */
+  /* ESSAI X2 ▼ bande (A380) — le volet s'aligne sur la bande, largeur de la colonne d'action (A356). */
   @media (min-width:780px){html.essai-x2 .rt-dock{left:18px;right:calc(var(--col-state) + var(--col-gap) + 18px)}}
   /* ESSAI X2 ▲ */
   /* Le bloc courant OUVERT dit sa position par la pilule ; le compte vit dans « Parcours · x/y ». */

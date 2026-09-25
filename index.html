@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-Ins7i1sNa0ztxFOcXRxQJw/mJC0NNb/yJJo4vXfi/K8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-hpiGkAx4IFA7CTHnl0+xMellsKISTGjncvdGFUBv45w='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1821,12 +1821,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .seg.cnt{min-width:84px}
   #cbTimers .seg:not(.glb) .seg-l{color:var(--sys-ink)}   /* sur la tuile (--sys-2), l'encre secondaire tombe à 3,1:1 */
   #cbTimers .seg.due{min-width:96px}
-  /* ESSAI X1 ▼ — capsule « horizon » (A380) : un axe de 5 min, un point par minuteur en cours, à son
-     temps restant ; « 5 min » hors de l'axe (40 px réservés à droite) pour qu'aucune étiquette ne le couvre. */
+  /* ESSAI X1 ▼ horizon (A380) — 40 px à droite pour « 5 min », hors de portée des étiquettes. */
   #cbTimers .hz{position:relative;flex:1 1 auto;min-width:120px;align-self:stretch;margin:0 8px 0 4px;overflow:hidden}   /* une étiquette ne déborde jamais sur le chrono */
   #cbTimers .hz-l{position:absolute;left:0;right:40px;top:50%;height:2px;margin-top:-1px;background:var(--sys-line)}
   #cbTimers .hz-0{position:absolute;left:0;top:50%;width:2px;height:12px;margin-top:-6px;background:var(--ok-sys)}
-  #cbTimers .hz-k{position:absolute;top:50%;width:1px;height:8px;margin-top:-4px;background:var(--sys-line)}
+  #cbTimers .hz-k{position:absolute;top:50%;left:calc(var(--x) * (100% - 40px));width:1px;height:8px;margin-top:-4px;background:var(--sys-line)}
   #cbTimers .hz-5{position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:var(--t-cap);font-weight:700;color:var(--sys-ink-2)}
   #cbTimers .hz-m{position:absolute;top:0;bottom:0;left:calc(var(--x,0) * (100% - 40px));width:0}
   #cbTimers .hz-d{position:absolute;left:-4px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ok-sys)}
@@ -1838,8 +1837,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #cbTimers .hz-m:is(.soon,.due) .hz-d{background:var(--warn-sys)}
   #cbTimers .hz-m.due .hz-t{color:var(--warn-sys)}
   /* ESSAI X1 ▲ */
-  /* ESSAI X2 ▼ — instruments en bande (A380) : la bande garde la largeur de la colonne d'action (A356),
-     le volet s'y aligne au lieu de couvrir le rail. */
+  /* ESSAI X2 ▼ bande (A380) — le volet s'aligne sur la bande, largeur de la colonne d'action (A356). */
   @media (min-width:780px){html.essai-x2 .rt-dock{left:18px;right:calc(var(--col-state) + var(--col-gap) + 18px)}}
   /* ESSAI X2 ▲ */
   /* Le bloc courant OUVERT dit sa position par la pilule ; le compte vit dans « Parcours · x/y ». */
@@ -8984,9 +8982,8 @@ const READ_MODES=['overview','static'];   // ('guided' PURGÉ v5.20.9, A296 — 
 function currentReadMode(){try{const m=localStorage.getItem(spaceKey('ac-read-mode'))||'';
   return READ_MODES.indexOf(m)>=0?m:'overview';}catch(e){return 'overview';}}
 function setReadModePref(m){if(READ_MODES.indexOf(m)<0)return;try{localStorage.setItem(spaceKey('ac-read-mode'),m);}catch(e){}schedulePrefsPush();}
-/* ESSAI (A380) — deux présentations à juger en conditions réelles, réglage d'APPAREIL (pas de synchro).
-   Tout le code d'un essai est entre ses balises « ESSAI Xn ▼ … ▲ » ou derrière `essaiOn('xn')` :
-   le garder ou le retirer se fait au grep (procédure : lot-v5-31.md A380). */
+/* ESSAIS (A380) — réglage d'appareil, à trancher en conditions réelles. Code balisé « ESSAI Xn ▼/▲ »
+   ou derrière `essaiOn('xn')` ; garder/retirer : procédure dans lot-v5-31.md A380. */
 const ESSAIS={x1:['Capsule','Tuiles','Horizon'],x2:['Instruments','Colonne','Bande']};
 const essaiOn=k=>document.documentElement.classList.contains('essai-'+k);
 function essaiSet(k,on){try{on?localStorage.setItem('ac-essai-'+k,'1'):localStorage.removeItem('ac-essai-'+k);}catch(e){}
@@ -12822,31 +12819,26 @@ function updateRtStrip(now){
   const poserVals=(root,n)=>{const ts=root.querySelectorAll('.seg-t'),vals=valsFor(n);
     for(let i=0;i<ts.length&&i<vals.length;i++){if(ts[i].textContent!==vals[i])ts[i].textContent=vals[i];}};
   const paintVals=(n)=>poserVals(el,n);
-  /* ESSAI X1 ▼ — capsule « horizon » (A380) : les minuteurs d'intervalle EN COURS posés à leur temps
-     restant sur 5 min, rien d'autre — ni échéance future, ni cycle suivant ; l'échu se pose sur
-     « maintenant ». La structure ne porte aucune valeur (pas de réécriture au tick) : positions et
-     textes sont peints à part. */
+  const fresh=()=>{if(!_cf)return;const nd=el.querySelector('[data-seg="'+CSS.escape(_cf)+'"]:not(.due)');
+    if(nd){_capFresh=null;nd.classList.add('seg-in');nd.addEventListener('animationend',()=>nd.classList.remove('seg-in'),{once:true});}
+    else if(!run.some(t=>t.id===_cf))_capFresh=null;};
+  // ESSAI X1 ▼ horizon (A380) : minuteurs lancés à leur temps restant sur 5 min ; rien d'extrapolé, l'échu sur « maintenant ».
   if(essaiOn('x1')&&!wideRail&&started){
-    const hz=withRem.filter(x=>x.t.type==='interval').slice(0,3),kc=el.clientWidth>=360?cnts.length:0;   // l'axe d'abord : sous 360, pas de tuile de compteur
+    const hz=withRem.filter(x=>x.t.type==='interval').slice(0,3),kc=el.clientWidth>=360?cnts.length:0,val=x=>x.rem<0?'échu':x.d.val;
     const h=glob+'<span class="hz" aria-hidden="true"><span class="hz-l"></span><span class="hz-0"></span>'
-      +[1,2,3,4].map(i=>'<span class="hz-k" style="left:'+i*20+'%"></span>').join('')
-      +hz.map((x,i)=>'<span class="hz-m'+(x.rem<0?' due':(x.soon?' soon':''))+(i%2?' b':'')+'" data-hz="'+esc(x.t.id)+'"><span class="hz-d"></span><span class="hz-t"><span class="hz-n">'+(x.rem<0?'△ ':'')+esc(tmName(x.t).split(/ [—–-] /)[0])+'</span><span class="hz-v"></span></span></span>').join('')
+      +[.2,.4,.6,.8].map(f=>'<span class="hz-k" style="--x:'+f+'"></span>').join('')
+      +hz.map((x,i)=>'<span class="hz-m'+(x.rem<0?' due':x.soon?' soon':'')+(i%2?' b':'')+'" data-seg="'+esc(x.t.id)+'"><span class="hz-d"></span><span class="hz-t"><span class="hz-n">'+(x.rem<0?'△ ':'')+esc(tmName(x.t).split(/ [—–-] /)[0])+'</span><span class="hz-v"></span></span></span>').join('')
       +'<span class="hz-5">5 min</span></span><span class="sr-only hz-sr"></span>'+cntOf(kc)+chevOf(hz.length?'':chevLblOf(0,kc));
     el.hidden=false;_rtsFitKey='';
     if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
     paintVals(0);
-    const ax=el.querySelector('.hz'),W=ax?ax.clientWidth:0;   // étiquette calée dans l'axe, jamais rognée
-    hz.forEach(x=>{const m=el.querySelector('.hz-m[data-hz="'+CSS.escape(x.t.id)+'"]');if(!m)return;
-      const fx=x.rem<0?0:Math.min(1,x.rem/300000),tv=x.rem<0?'échu':x.d.val,v=m.querySelector('.hz-v'),lb=m.querySelector('.hz-t');
-      m.style.setProperty('--x',fx.toFixed(4));
-      if(v.textContent!==tv)v.textContent=tv;
-      const xp=fx*(W-40);lb.style.left=Math.round(Math.max(0,Math.min(xp-4,W-lb.offsetWidth))-xp)+'px';});
-    const sr=el.querySelector('.hz-sr'),st=hz.map(x=>tmName(x.t)+' '+(x.rem<0?'échu':x.d.val)).join(', ');
-    if(sr&&sr.textContent!==st)sr.textContent=st;
-    if(_cf){const nd=el.querySelector('.hz-m[data-hz="'+CSS.escape(_cf)+'"]:not(.due)');_capFresh=null;
-      if(nd){nd.classList.add('seg-in');nd.addEventListener('animationend',()=>nd.classList.remove('seg-in'),{once:true});}}
-    syncDock();return;}
-  /* ESSAI X1 ▲ */
+    const W=el.querySelector('.hz').clientWidth;
+    el.querySelectorAll('.hz-m').forEach((m,i)=>{const x=hz[i],fx=x.rem<0?0:Math.min(1,x.rem/300000),xp=fx*(W-40),v=m.querySelector('.hz-v'),lb=m.querySelector('.hz-t');
+      m.style.setProperty('--x',fx.toFixed(4));if(v.textContent!==val(x))v.textContent=val(x);
+      lb.style.left=Math.round(Math.max(0,Math.min(xp-4,W-lb.offsetWidth))-xp)+'px';});   // étiquette calée dans l'axe
+    const sr=el.querySelector('.hz-sr'),st=hz.map(x=>tmName(x.t)+' '+val(x)).join(', ');if(sr.textContent!==st)sr.textContent=st;
+    fresh();syncDock();return;}
+  // ESSAI X1 ▲
   const htmlOf=(n,noChev,nu,kc)=>glob+segOf(want.slice(0,n))+moreOf(n)+cntOf(kc||0)+(noChev?'':chevOf(nu?'':chevLblOf(n,kc)));
   const write=(n,noChev,nu,kc)=>{const h=htmlOf(n,noChev,nu,kc);
     if(h!==_rtsHtml){_rtsHtml=h;el.innerHTML=h;}
@@ -12914,12 +12906,7 @@ function updateRtStrip(now){
      La chaîne reste alors identique d'un tick à l'autre, donc le quai n'est pas réécrit du tout et
      le nœud survit à son animation. Le drapeau tombe quand le segment est PEINT, ou quand le
      minuteur a cessé de tourner entre-temps — sinon il attendrait indéfiniment. */
-  if(_cf){
-    const nd=el.querySelector('.seg[data-seg="'+CSS.escape(_cf)+'"]:not(.due)');
-    if(nd){_capFresh=null;nd.classList.add('seg-in');
-      nd.addEventListener('animationend',()=>nd.classList.remove('seg-in'),{once:true});}
-    else if(!run.some(t=>t.id===_cf))_capFresh=null;}
-  syncDock();}
+  fresh();syncDock();}
 {const cbt=document.getElementById('cbTimers');
  // V5 : la barre BASCULE le panneau minuteurs en étroit (< 1000px, chevron ▾/▴) ; en large la
  // colonne droite l'affiche déjà -> simple défilement jusqu'au panneau.
@@ -26593,7 +26580,7 @@ function bindAccountPrefs(body){
   body.querySelectorAll('[data-essai]').forEach(sg=>{const k=sg.dataset.essai,btns=[...sg.querySelectorAll('[data-ev]')];   // ESSAI (A380)
     const peindre=()=>{const on=essaiOn(k);sg.classList.toggle('i1',on);
       btns.forEach(b=>{const v=b.dataset.ev==='1'===on;b.classList.toggle('on',v);b.setAttribute('aria-checked',v?'true':'false');b.tabIndex=v?0:-1;});};
-    btns.forEach(b=>b.onclick=()=>{essaiSet(k,b.dataset.ev==='1');peindre();_rtsFitKey='';});
+    btns.forEach(b=>b.onclick=()=>{essaiSet(k,b.dataset.ev==='1');peindre();});
     peindre();bindSegDrag(sg);});
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{

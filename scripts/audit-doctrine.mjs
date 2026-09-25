@@ -5090,10 +5090,7 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
 }
 });
 
-/* ══ v5.31 · A380 — ESSAIS X1 « HORIZON » ET X2 « BANDE » ════════════════════════════════════════
-   Deux présentations au choix de l'appareil (Moi › Affichage). Ce qui ne se négocie pas : X1 ne
-   dessine QUE les minuteurs lancés, à leur temps restant (aucune extrapolation), l'échu sur
-   « maintenant », aucune étiquette hors de l'axe ; X2 garde un seul journal et ouvre le volet. */
+// v5.31 · A380 — essais X1 « horizon » et X2 « bande » (Moi › Affichage).
 await sec('v5.31 · A380 — essais X1 horizon et X2 bande', async () => {
   const monter=async(w,h,es)=>{const page=await br.newPage({viewport:{width:w,height:h},hasTouch:true});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
