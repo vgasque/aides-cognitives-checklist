@@ -4996,16 +4996,16 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     const cn=()=>{const c=Runtime.fiche.counters[0];return Runtime.counters[c.id]||0;};
     const adr=()=>Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
     const hW=li=>{const e=li.querySelector('.wt');return e?Math.round(e.getBoundingClientRect().height):-1;};
-    const o={};
+    const o={},an=el=>el?el.getAnimations({subtree:true}).map(a=>a.animationName).join(','):'';
     let li=row(/Choc imm/);o.hChoc0=Math.round(li.getBoundingClientRect().height);o.wChoc0=hW(li);o.cn0=cn();
     li.click();await w(300);li=row(/Choc imm/);
-    o.cn1=cn();o.hChoc1=Math.round(li.getBoundingClientRect().height);o.wChoc1=hW(li);o.txtChoc1=li.querySelector('.wt').textContent;
+    o.cn1=cn();o.hChoc1=Math.round(li.getBoundingClientRect().height);o.wChoc1=hW(li);o.txtChoc1=li.querySelector('.wt').textContent;o.mvOn=an(li.querySelector('.wt'));
     o.ev1=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&!e.voidAt).length;
-    li.click();await w(300);
+    li.click();await w(30);o.mvOff=an(row(/Choc imm/).querySelector('.wt'));await w(270);
     o.cn2=cn();o.void2=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&e.voidAt).length;
     li=row(/^\s*Vigilance|Adrénaline/)||row(/Adrénaline/);
     const hA0=Math.round(li.getBoundingClientRect().height);
-    li.click();await w(300);li=row(/Adrénaline/);
+    li.click();await w(30);o.mvArm=an(row(/Adrénaline/).querySelector('.wt'));await w(270);li=row(/Adrénaline/);
     o.adrRun=adr().running;o.clsRun=li.querySelector('.wt').className;
     li.click();await w(300);li=row(/Adrénaline/);
     o.adrUndo=!adr().running&&adr().elapsedMs===0;
@@ -5020,6 +5020,9 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   t('A377 · la légende réserve 24 px, au repos comme après la coche', r.wChoc0===24&&r.wChoc1===24, `${r.wChoc0} / ${r.wChoc1}`);
   t('A377 · la coche de l’adrénaline lance « prochaine dose », en bleu sans fond', r.adrRun===true&&/\brun\b/.test(r.clsRun), r.clsRun);
   t('A377 · décocher dans les 10 s rend le minuteur à son état d’avant', r.adrUndo===true);
+  t('A378 · cocher fait MONTER le chiffre neuf', /wtRoll/.test(r.mvOn), r.mvOn);
+  t('A378 · décocher le fait REDESCENDRE', /wtBack/.test(r.mvOff), r.mvOff);
+  t('A378 · la coche REMPLIT l’anneau (relancé depuis zéro) et la jauge des 10 s part', /wtArm/.test(r.mvArm)&&/tLife/.test(r.mvArm), r.mvArm);
   t('A377 · à l’échéance, pastille ambre sur la MÊME ligne de 24 px', /\bdue\b/.test(r.clsDue)&&r.wDue===24, `${r.clsDue} · ${r.wDue}`);
   t('A377 · A9 — l’échéance ne change pas la hauteur de la rangée', Math.abs(r.hA1-r.hA0)<=1, `${r.hA0} → ${r.hA1} px`);
   const b=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
@@ -5031,7 +5034,8 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     await Data.put(f);fiches.push(f);openRead(f.id);await w(400);
     const t1=()=>Runtime.timers.t1,o={};
     o.avant=t1().running;
-    document.getElementById('sessStart').click();await w(500);
+    document.getElementById('sessStart').click();await w(40);
+    o.mvBlk=[...document.querySelectorAll('.ov-block.cur .wt-blk .wt-r1')].some(e=>e.getAnimations().some(a=>a.animationName==='wtArm'));await w(460);
     o.demarre=t1().running;o.wBlk=!!document.querySelector('.ov-block.cur .wt-blk');
     const cur=()=>document.querySelector('.ov-block.cur');
     cur().querySelector('[data-ck]').click();await w(150);
@@ -5053,6 +5057,7 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     return o;});
   t('A377 · minuteur de bloc : rien avant la session', b.avant===false);
   t('A377 · … lancé AVEC la session au bloc de départ, légende sous le titre', b.demarre===true&&b.wBlk===true);
+  t('A378 · … et son anneau se remplit à l’entrée', b.mvBlk===true);
   t('A377 · … il continue pendant la question (même boucle)', b.surQuestion===true);
   t('A377 · à l’échéance, rien n’est choisi : le fil ne bouge pas', b.fil==='b1>b2', b.fil);
   t('A377 · « Non » rentre dans le bloc : le minuteur repart de zéro', b.rearme===true);
@@ -5060,22 +5065,24 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
   t('A377 · « Oui » quitte la boucle : le minuteur s’arrête et le dit', b.sortie===true);
   await page.close();
 }
-{ // Fiche d'exemple Anaphylaxie : l'injection cochée compte ET relance la réévaluation (timerId).
+{ // Fiche d'exemple Anaphylaxie : l'injection cochée compte ET relance la réévaluation (timerId) ; sous mouvement réduit.
   const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
   await page.goto(`http://localhost:${port}/index.html`);
   await amorce(page);
   await ouvrirFiche(page,'Anaphylaxie');
   await demarrerSession(page);
+  await page.emulateMedia({reducedMotion:'reduce'});
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const f=Runtime.fiche,c=f.counters[0],t=Runtime.timers[c.timerId];
     const li=[...document.querySelectorAll('.ov-block.cur [data-ck]')].find(x=>/Adrénaline IM/.test(x.textContent));
     const o={liens:f.items.filter(x=>x.counts===c.id).length,avant:!!(t&&t.running)};
-    li.click();await w(300);
+    li.click();await w(30);o.mv=document.querySelector('.ov-block.cur').getAnimations({subtree:true}).filter(a=>/^wt|tLife/.test(a.animationName)).length;await w(270);
     o.cn=Runtime.counters[c.id]||0;o.run=!!(t&&t.running);
     return o;});
   t('A377 · Anaphylaxie : les deux injections comptent (2 liens, pas plus)', r.liens===2, String(r.liens));
   t('A377 · … cocher l’adrénaline IM compte 1 et lance la réévaluation', r.avant===false&&r.cn===1&&r.run===true, JSON.stringify(r));
+  t('A378 · mouvement réduit : la légende ne bouge pas, l’état change quand même', r.mv===0&&r.cn===1, String(r.mv));
   await page.close();
 }
 });

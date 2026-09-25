@@ -139,3 +139,38 @@ puis rendue à l'arrêt dans les 10 s ; intubation — minuteur de bloc lancé a
 à « Non », arrêté à « Oui » (sortie de boucle), annoncé dans la Page ; Anaphylaxie — deux liens
 exactement, et la coche de l'adrénaline IM compte 1 et lance la réévaluation ; éditeur — sélecteur à 32 px
 (une règle `.field select` l'emportait en spécificité), légendes annoncées sous les étapes liées.
+
+## A378 — les micro-mouvements de la légende disent ce que le geste a fait (v5.31.0)
+
+**La demande.** « Des micro-animations très discrètes, non bloquantes mais LOGIQUES […] dans
+l'objectif d'améliorer la compréhension des mécanismes de ces ajouts, et une cohérence globale,
+à la Apple. » La règle retenue : **chaque mouvement répond à UN geste et en dit l'effet** ; aucun
+ne s'anime seul, aucun ne boucle (le vocabulaire des micro-animations v4.3.2 et, en crise, « le
+geste et l'alarme seuls », token § 8).
+
+| Geste | Mouvement | Ce qu'il enseigne |
+|---|---|---|
+| Cocher une étape qui compte | le chiffre neuf MONTE, vert puis encre (existant) ; la tuile du compteur pousse (`cnPop`, existant) | la coche a ajouté 1, et ce 1 est dans la tuile |
+| Cocher une étape qui lance / entrer dans un bloc minuté | l'anneau se REMPLIT depuis vide (`wtArm`, 360 ms) ; la tuile du minuteur entre (`seg-in`, existant) | relancé DEPUIS ZÉRO, et c'est ce minuteur-là |
+| Chronomètre lancé | la valeur monte (`wtRoll`) | il part |
+| Décocher (compte, ou minuteur dans les 10 s) | la valeur REDESCEND (`wtBack`, miroir de `wtRoll`) | le geste est défait, on revient à l'état d'avant |
+| Fenêtre d'annulation | une JAUGE de 2 px sous « décocher annule · N s » se vide en 10 s (`tLife`, le dessin de la barre de vie des bulles) | combien de temps reste pour défaire |
+| Échéance | la pastille ambre se pose en fondu (`--dur-2`) — l'alarme, elle, reste celle du minuteur | un état, pas un deuxième signal |
+| Éditeur : choisir « La coche lance / compte » | la légende NAÎT sous la ligne (`cbIn`), sans attendre un re-rendu | ce que la coche fera, dit tout de suite |
+
+**Mécanique.** Le modèle porte l'ÂGE du mouvement (`arm`, `gr`, `back`, en ms, seulement pendant
+`WT_MV_MS` ou la fenêtre de grâce) et la légende l'écrit en délai NÉGATIF (`--wt-d`) : la
+réécriture au tick ne relance donc rien, elle reprend en phase (mesuré : jauge à 0,69 à 3 s).
+Le retour se date au runtime (`linkBack`, en mémoire comme `linkGrace`). transform, opacité et
+peinture seulement (`check-anim`), jamais de hauteur (A9) ; tout vit sous
+`prefers-reduced-motion:no-preference` — en mouvement réduit l'état change, rien ne bouge, la jauge
+disparaît (le « N s » écrit reste). La jauge n'est PAS un soulignement : un souligné se lirait
+« tapable », et le témoin ne se tape pas (piste pâle + remplissage, décalée après le « · »).
+
+**Écarté.** L'anneau qui se vide en continu (mouvement permanent : la légende change par seconde,
+c'est assez) ; un pouls à l'échéance (l'alarme existe, deux pouls se disputeraient — et A331 a
+refusé les boucles) ; un fondu à chaque seconde du texte.
+
+**Témoins.** `audit-doctrine` A377 : monter, redescendre, remplir + jauge, remplissage à l'entrée
+du bloc, rien sous mouvement réduit (l'état change quand même) ; `tests.html` : âge porté puis
+retiré du modèle.

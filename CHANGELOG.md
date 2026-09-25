@@ -25,7 +25,13 @@ l'auteur, choisie sur trois versions de maquettes.
   compte le choc, et cocher l'une des deux « Adrénaline » lance « prochaine dose ». Dans
   l'**Anaphylaxie**, les deux injections IM comptent sur « Adrénaline IM », et ce compteur relance
   la réévaluation à 5 min. Pas de minuteur de bloc dans les exemples : aucune des deux fiches n'a
-  de tentative bornée par passage.
+  de tentative bornée par passage. « — noter l’heure » disparaît de l’adrénaline IM : la coche
+  pose désormais l’heure au journal.
+- **Micro-mouvements** (A378), chacun répondant à un geste : cocher fait monter le chiffre ou
+  remplir l'anneau (minuteur relancé depuis zéro), décocher fait redescendre la valeur, une jauge
+  discrète se vide pendant les 10 s d'annulation, l'échéance se pose en fondu. Dans l'éditeur, la
+  légende apparaît sous l'étape dès que le lien est choisi. Rien ne boucle, rien ne change de
+  hauteur, et rien ne bouge en mouvement réduit.
 - **Conformité** : § 2 de `docs/deploiement-et-conformite.md` complété avant le code (déclencheur
   toujours un geste de l'équipe, rien ne décide, tout se défait).
 - **Sans doublon** : une seule fonction pour relancer un minuteur (quatre copies auparavant ; le ⟲
@@ -33,8 +39,8 @@ l'auteur, choisie sur trois versions de maquettes.
   pour le « + » d'un compteur, une pour le nom par défaut d'un minuteur (sept copies) ; le parcours
   du graphe des blocs est partagé avec le grisé « hors chemin » ; glyphes pris dans la table
   d'icônes commune ; commentaires ramenés à une ligne, la doctrine vit dans le lot.
-- **Témoins** : 31 tests unitaires (modèle, sortie de boucle, légende) et une section
-  `audit-doctrine` « A377 » (19 contrôles, dont la fiche d'exemple Anaphylaxie). Aucun changement côté serveur.
+- **Témoins** : 33 tests unitaires (modèle, sortie de boucle, légende) et une section
+  `audit-doctrine` « A377 » (24 contrôles, dont la fiche d'exemple Anaphylaxie et les mouvements). Aucun changement côté serveur.
 
 ## [5.30.6] — 2026-09-25
 Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échelle » du plan s'en va

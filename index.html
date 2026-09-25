@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-PnpQqGpxHtKkgh2TAklZqVtn419EnxVZjeZWAZfvQRw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-W+HIeF3bDpj6ouudsdEh+TKiselx8yfpJjmuBDLWWzg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3757,9 +3757,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .wt-flat .wt-g{width:12px;height:12px}
   .sv-stp li .wt-sv,.wt-sv{flex-basis:100%;height:auto;margin:1px 0 0;padding:0;font-size:var(--t-cap);line-height:1.35}   /* Page : au corps de la feuille */
   .wt-sv .wt-g{width:12px;height:12px}
+  /* Mouvements — chacun répond à UN geste et dit ce qu'il a fait (lot-v5-31.md, A378) : cocher
+     fait MONTER (le chiffre) ou REMPLIR (l'anneau, relancé depuis zéro), décocher fait REDESCENDRE ;
+     le filet sous « décocher annule » se vide avec la fenêtre de 10 s ; l'échéance se pose en
+     fondu. transform/opacity/peinture seulement, une fois ; phase par --wt-d (délai négatif). */
   @keyframes wtRoll{0%{transform:translateY(55%);opacity:0}100%{transform:none;opacity:1}}
+  @keyframes wtBack{0%{transform:translateY(-55%);opacity:0}100%{transform:none;opacity:1}}
   @keyframes wtOk{0%,35%{color:var(--ok)}100%{color:var(--ink)}}
-  @media (prefers-reduced-motion:no-preference){.wt-go{animation:wtRoll .36s cubic-bezier(.2,.8,.2,1),wtOk 1.8s ease}}
+  @keyframes wtArm{from{stroke-dashoffset:28.27}}
+  .wt-gr{position:relative}
+  @media (prefers-reduced-motion:no-preference){
+    .wt-go{animation:wtRoll .36s var(--ease-out),wtOk 1.8s ease}
+    .wt-v.wt-arm{animation:wtRoll .36s var(--ease-out) var(--wt-d,0s) both}
+    .wt-back{animation:wtBack .36s var(--ease-out) var(--wt-d,0s) both}
+    .wt-arm .wt-r1{animation:wtArm .36s var(--ease-out) var(--wt-d,0s) both}
+    /* Jauge et non soulignement (un souligné se lirait « tapable ») : piste pâle, remplissage qui se
+       vide — le dessin de la barre de vie des bulles (.t-life). 10 s = LINK_GRACE_MS. */
+    .wt-gr::before,.wt-gr::after{content:'';position:absolute;left:.75em;right:0;bottom:1px;height:2px;border-radius:var(--r-1);background:currentColor;opacity:.14}
+    .wt-gr::after{opacity:.42;transform-origin:left;animation:tLife 10s linear var(--wt-d,0s) both}
+    .wt{transition:background-color var(--dur-2) var(--ease-out),box-shadow var(--dur-2) var(--ease-out)}
+    .wt-new{animation:cbIn .16s ease-out both}}
   /* PAS de bandeau ambre sur une étape en écart (v4.25.2 : le liseré est le canal du REGISTRE ;
      l'écart est porté par la pilule « △ écart »). Case à GAUCHE, ordre naturel du DOM sans
      `order` — la colonne de cases ne doit JAMAIS se décaler ; case 26 px, la CIBLE est la rangée
@@ -11078,7 +11095,7 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
     // v4.11.1 : les exemples ILLUSTRENT les registres ⚠/△ et le format « challenge :: réponse »
     // (la pilule = valeur à confirmer en lecture) — les valeurs restent des placeholders à adapter.
     blocks:[
-      {id:b1,kind:'do',title:'Mesures immédiates',image:null,items:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local — noter l’heure','△ Allonger, jambes surélevées :: ne jamais verticaliser (désamorçage)','O₂ fort débit, voie veineuse, remplissage'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
+      {id:b1,kind:'do',title:'Mesures immédiates',image:null,items:['Retirer / arrêter l’allergène si possible','Appeler à l’aide — désigner un lecteur','⚠ Adrénaline IM, face antéro-latérale de cuisse :: dose du protocole local','△ Allonger, jambes surélevées :: ne jamais verticaliser (désamorçage)','O₂ fort débit, voie veineuse, remplissage'].map(x=>v4MakeItem(uid('i'),'do',x)),next:bd},
       {id:bd,kind:'decision',title:'Réévaluation',image:null,question:'Amélioration après adrénaline et remplissage ?',options:[{label:'Oui — stabilisé',target:b2},{label:'Non — réfractaire',target:b3}]},
       {id:b2,kind:'do',title:'Stabilisé',image:null,items:['Surveillance prolongée (réaction biphasique)','Tracer doses et horaires','Orientation hospitalière, bilan allergologique à distance'].map(x=>v4MakeItem(uid('i'),'do',x)),next:null},
       /* PARCIMONIE PAR FICHE (v5.0.0, décision utilisateur — la règle que le prompt IA impose) :
@@ -12403,17 +12420,17 @@ function linkArm(R,tid,bid){const t=R.timers[tid];if(!t)return null;
 // Effet d'une coche liée (garde de rôle déjà passée). Décocher : − pas et repère barré ; minuteur rendu sous 10 s.
 function linkOnCheck(k,on){
   const R=Runtime,f=R&&R.fiche,ci=ckItem(f,k),L=linkOf(ci&&ci.it);if(!L)return null;
-  R.linkGrace=R.linkGrace||{};
+  R.linkGrace=R.linkGrace||{};R.linkBack=R.linkBack||{};
   if(L.k==='tm'){if(!R.timers[L.id])return null;
     if(on){R.linkGrace[k]={real:Date.now(),tid:L.id,...linkArm(R,L.id,'')};R.linkArm[L.id].ck=k;}
     else{const g=R.linkGrace[k];delete R.linkGrace[k];
-      if(g&&Date.now()-g.real<LINK_GRACE_MS){Object.assign(R.timers[g.tid],g.prev);
+      if(g&&Date.now()-g.real<LINK_GRACE_MS){Object.assign(R.timers[g.tid],g.prev);R.linkBack[k]=Date.now();
         if(g.prevArm)R.linkArm[g.tid]=g.prevArm;else delete R.linkArm[g.tid];}}
     return L;}
   const c=(f.counters||[]).find(x=>x&&x.id===L.id);if(!c)return null;
   const step=c.step||1;
   if(on){cnBump(L.id,step).ck=k;return L;}
-  const before=R.counters[L.id]||0;R.counters[L.id]=Math.max(0,before-step);
+  const before=R.counters[L.id]||0;R.counters[L.id]=Math.max(0,before-step);R.linkBack[k]=Date.now();
   // Le repère de cette coche ; repli (coche d'un autre écran, `ck` ne voyage pas) : le dernier à cette valeur.
   const evs=cnEvents(L.id).reverse(),e=evs.find(x=>x.ck===k)||evs.find(x=>x.ref.v===before);
   if(e)e.voidAt=vfNow();
@@ -20687,11 +20704,15 @@ function stepsListHtml(steps,seq,blockId,opts){opts=opts||{};
    (celle de la tuile), gris au repos, bleu sans fond en cours (A11), pastille ambre à l'échéance.
    Modèles PURS ; `paintWitness` ne réécrit que si le modèle change. Détail : lot-v5-31.md. */
 const WT_RING_C=28.27;   // circonférence de l'anneau (r 4,5 dans une boîte de 12)
+const WT_MV_MS=360;      // durée d'un mouvement de légende (= wtRoll) ; au-delà, plus d'âge au modèle
 function wtTimerModel(t,now,ctx){if(!t)return null;ctx=ctx||{};
   const iv=t.type==='interval',name=tmName(t),d=timerDisplay(t,now);
   if(iv&&timerDue(t))return {cls:'due',g:'ring',off:0,e:'Échu',v:'',n:'· '+((t.onDue||'').trim()||name)};
-  if(t.running)return iv?{cls:'run',g:'ring',off:+(WT_RING_C*(1-d.bw/100)).toFixed(2),v:d.val,n:'· '+(ctx.hint||name)}
-    :{cls:'up',g:'watch',v:'↑ '+d.val,n:'· '+(ctx.hint||name)};
+  if(t.running){const m=iv?{cls:'run',g:'ring',off:+(WT_RING_C*(1-d.bw/100)).toFixed(2),v:d.val,n:'· '+(ctx.hint||name)}
+      :{cls:'up',g:'watch',v:'↑ '+d.val,n:'· '+(ctx.hint||name)};
+    const age=now-t.lastStart;if(!t.elapsedMs&&age>=0&&age<WT_MV_MS)m.arm=age;   // relancé depuis zéro à l'instant
+    if(ctx.gr!=null)m.gr=ctx.gr;
+    return m;}
   if(timerStarted(t))return {cls:'',g:'watch',v:d.val,n:'· '+name+' · '+(ctx.exited?'arrêté, sortie de la boucle':'arrêté')};
   return {cls:'',g:'watch',v:iv?fmtMs((t.seconds||0)*1000):'↑',n:(ctx.lat||'à la coche')+' · '+name};}
 // `ev` = le repère de CETTE coche, `last` = le dernier repère vivant ; heures du journal.
@@ -20702,12 +20723,15 @@ function wtCountModel(c,cur,done,ev,last,now){if(!c)return null;
   if(done)return {cls:'',g:'count',v:String(cur),n:'· '+name};
   return {cls:'',g:'count',v:cur+' → '+(cur+step),n:'à la coche · '+name+(last?' · dernier '+ago(last.t):'')};}
 function wtInner(m){if(!m)return '';
+  const ph=x=>` style="--wt-d:-${Math.round(+x||0)}ms"`,arm=m.arm!=null,vm=m.back!=null?' wt-back':(arm&&m.g!=='ring'?' wt-arm':'');
   const g=m.g==='ring'
-    ?`<svg class="wt-g" viewBox="0 0 12 12" aria-hidden="true"><circle class="wt-r0" cx="6" cy="6" r="4.5"/><circle class="wt-r1" cx="6" cy="6" r="4.5" style="stroke-dashoffset:${+m.off||0}"/></svg>`
+    ?`<svg class="wt-g${arm?' wt-arm':''}" viewBox="0 0 12 12" aria-hidden="true"${arm?ph(m.arm):''}><circle class="wt-r0" cx="6" cy="6" r="4.5"/><circle class="wt-r1" cx="6" cy="6" r="4.5" style="stroke-dashoffset:${+m.off||0}"/></svg>`
     :uiIcon(m.g==='count'?'counter':'stopwatch',14,{sw:1.8,cls:'wt-g'});
+  const vp=vm?ph(m.back!=null?m.back:m.arm):'';
   const v=m.vb!=null?`<span class="wt-v">${esc(m.va)} → <span class="wt-vb${m.fresh?' wt-go':''}">${esc(m.vb)}</span></span>`
-    :(m.v?`<span class="wt-v">${esc(m.v)}</span>`:'');
-  return g+(m.e?`<span class="wt-e">${esc(m.e)}</span>`:'')+v+`<span class="wt-n">${esc(m.n)}</span>`;}
+    :(m.v?`<span class="wt-v${vm}"${vp}>${esc(m.v)}</span>`:'');
+  return g+(m.e?`<span class="wt-e">${esc(m.e)}</span>`:'')+v
+    +`<span class="wt-n${m.gr!=null?' wt-gr':''}"${m.gr!=null?ph(m.gr):''}>${esc(m.n)}</span>`;}
 // Modèle d'une légende VIVANTE : « s|visite:bloc:index » (étape) ou « b|idBloc » (minuteur de bloc).
 function wtModelFor(spec,now,vnow){
   const R=Runtime,f=R&&R.fiche;if(!f)return null;
@@ -20717,16 +20741,19 @@ function wtModelFor(spec,now,vnow){
   if(kind==='b'){const b=blocksById(f.blocks||[])[a];
     return b&&b.timer?wtTimerModel(tmOf(b.timer),now,ctxTm(b.timer,{lat:'à chaque entrée'})):null;}
   const ci=ckItem(f,a),L=linkOf(ci&&ci.it);if(!L)return null;
-  const done=!!(state.checked&&state.checked[a]);
+  const done=!!(state.checked&&state.checked[a]),bk=!done&&(R.linkBack||{})[a],back=bk&&now-bk<WT_MV_MS?now-bk:null;
+  let m;
   if(L.k==='tm'){const t=tmOf(L.id);if(!t)return null;
-    const g=(R.linkGrace||{})[a];let hint='';
-    if(t.running)hint=done?(g&&now-g.real<LINK_GRACE_MS?'décocher annule · '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s':'')
+    const g=(R.linkGrace||{})[a],inG=done&&g&&now-g.real<LINK_GRACE_MS;let hint='';
+    if(t.running)hint=done?(inG?'décocher annule · '+Math.ceil((LINK_GRACE_MS-(now-g.real))/1000)+' s':'')
       :(arm[L.id]&&arm[L.id].ck===a?'décochée, le minuteur continue'
         :'la coche relance'+(t.type==='interval'?' à '+fmtMs((t.seconds||0)*1000):''));
-    return wtTimerModel(t,now,ctxTm(L.id,{lat:'à la coche',hint}));}
-  const c=(f.counters||[]).find(x=>x&&x.id===L.id);if(!c)return null;
-  const evs=cnEvents(L.id);
-  return wtCountModel(c,R.counters[L.id]||0,done,done?evs.slice().reverse().find(x=>x.ck===a)||null:null,evs[evs.length-1]||null,vnow);}
+    m=wtTimerModel(t,now,ctxTm(L.id,{lat:'à la coche',hint,gr:inG&&t.running?now-g.real:null}));}
+  else{const c=(f.counters||[]).find(x=>x&&x.id===L.id);if(!c)return null;
+    const evs=cnEvents(L.id);
+    m=wtCountModel(c,R.counters[L.id]||0,done,done?evs.slice().reverse().find(x=>x.ck===a)||null:null,evs[evs.length-1]||null,vnow);}
+  if(m&&back!=null)m.back=back;   // décochée à l'instant : la valeur redescend
+  return m;}
 function wtSpanHtml(spec,blk){const m=wtModelFor(spec,Date.now(),vfNow());if(!m)return '';
   return `<span class="wt${m.cls?' '+m.cls:''}${blk?' wt-blk':''}" data-wt="${esc(spec)}" data-wth="${esc(JSON.stringify(m))}">${wtInner(m)}</span>`;}
 // Repeinture au tick et après une coche liée, par classe (les ids de tuile sont pris).
@@ -23571,7 +23598,9 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-lk]').forEach(s=>s.addEventListener('change',e=>{const it=bItems(b)[+e.target.dataset.lk];if(!it)return;
       const v=String(e.target.value||'');delete it.starts;delete it.counts;
       if(v.slice(0,2)==='t:')it.starts=v.slice(2);else if(v.slice(0,2)==='n:')it.counts=v.slice(2);
-      e.target.classList.toggle('on',!!v);}));
+      e.target.classList.toggle('on',!!v);
+      const li=e.target.closest('.li'),old=li&&li.querySelector('.wt-ed');if(old)old.remove();   // la légende suit le choix, sans re-rendu
+      if(li)e.target.closest('.li-tools').insertAdjacentHTML('afterend',wtStaticHtml(state.draft||{},it,null,'wt wt-flat wt-ed wt-new'));}));
     {const bt=card.querySelector('[data-btm]');if(bt)bt.addEventListener('change',e=>{if(e.target.value)b.timer=e.target.value;else delete b.timer;
       bt.classList.toggle('on',!!e.target.value);});}
     const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>pickFile('image',edImgTaker(f,bid),false);

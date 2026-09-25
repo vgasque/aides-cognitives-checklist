@@ -1087,6 +1087,10 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
      A.wtTimerModel(T({running:true,lastStart:0}),1000,{hint:'décocher annule · 9 s'}).n, '· décocher annule · 9 s');
    ok('wtTimerModel : chronomètre en cours — le temps monte, et le dit',
      A.wtTimerModel(T({type:'stopwatch',label:'Garrot',running:true,lastStart:0}),65000,{}).v==='↑ 01:05');
+   {const m=A.wtTimerModel(T({running:true,lastStart:1000}),1120,{gr:120});
+    ok('wtTimerModel : relancé depuis zéro à l’instant — âge porté (l’anneau se remplit en phase)', m.arm===120&&m.gr===120);}
+   ok('wtTimerModel : passé le mouvement, plus d’âge (le modèle se stabilise)',
+     !('arm' in A.wtTimerModel(T({running:true,lastStart:0}),5000,{})));
    ok('wtTimerModel : arrêté à la sortie de la boucle — dit pourquoi',
      /sortie de la boucle/.test(A.wtTimerModel(T({elapsedMs:20000}),0,{exited:true}).n));
    const C={label:'Choc (joules)',step:1};   // la précision entre parenthèses est reléguée (tmLabelParts)

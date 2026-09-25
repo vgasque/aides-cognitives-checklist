@@ -3402,9 +3402,26 @@
   .wt-flat .wt-g{width:12px;height:12px}
   .sv-stp li .wt-sv,.wt-sv{flex-basis:100%;height:auto;margin:1px 0 0;padding:0;font-size:var(--t-cap);line-height:1.35}   /* Page : au corps de la feuille */
   .wt-sv .wt-g{width:12px;height:12px}
+  /* Mouvements — chacun répond à UN geste et dit ce qu'il a fait (lot-v5-31.md, A378) : cocher
+     fait MONTER (le chiffre) ou REMPLIR (l'anneau, relancé depuis zéro), décocher fait REDESCENDRE ;
+     le filet sous « décocher annule » se vide avec la fenêtre de 10 s ; l'échéance se pose en
+     fondu. transform/opacity/peinture seulement, une fois ; phase par --wt-d (délai négatif). */
   @keyframes wtRoll{0%{transform:translateY(55%);opacity:0}100%{transform:none;opacity:1}}
+  @keyframes wtBack{0%{transform:translateY(-55%);opacity:0}100%{transform:none;opacity:1}}
   @keyframes wtOk{0%,35%{color:var(--ok)}100%{color:var(--ink)}}
-  @media (prefers-reduced-motion:no-preference){.wt-go{animation:wtRoll .36s cubic-bezier(.2,.8,.2,1),wtOk 1.8s ease}}
+  @keyframes wtArm{from{stroke-dashoffset:28.27}}
+  .wt-gr{position:relative}
+  @media (prefers-reduced-motion:no-preference){
+    .wt-go{animation:wtRoll .36s var(--ease-out),wtOk 1.8s ease}
+    .wt-v.wt-arm{animation:wtRoll .36s var(--ease-out) var(--wt-d,0s) both}
+    .wt-back{animation:wtBack .36s var(--ease-out) var(--wt-d,0s) both}
+    .wt-arm .wt-r1{animation:wtArm .36s var(--ease-out) var(--wt-d,0s) both}
+    /* Jauge et non soulignement (un souligné se lirait « tapable ») : piste pâle, remplissage qui se
+       vide — le dessin de la barre de vie des bulles (.t-life). 10 s = LINK_GRACE_MS. */
+    .wt-gr::before,.wt-gr::after{content:'';position:absolute;left:.75em;right:0;bottom:1px;height:2px;border-radius:var(--r-1);background:currentColor;opacity:.14}
+    .wt-gr::after{opacity:.42;transform-origin:left;animation:tLife 10s linear var(--wt-d,0s) both}
+    .wt{transition:background-color var(--dur-2) var(--ease-out),box-shadow var(--dur-2) var(--ease-out)}
+    .wt-new{animation:cbIn .16s ease-out both}}
   /* PAS de bandeau ambre sur une étape en écart (v4.25.2 : le liseré est le canal du REGISTRE ;
      l'écart est porté par la pilule « △ écart »). Case à GAUCHE, ordre naturel du DOM sans
      `order` — la colonne de cases ne doit JAMAIS se décaler ; case 26 px, la CIBLE est la rangée
