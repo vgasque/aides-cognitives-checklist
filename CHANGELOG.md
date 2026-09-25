@@ -2,8 +2,9 @@
 
 ## [5.31.0] — 2026-09-25
 La coche d'une étape peut lancer un minuteur ou compter, un bloc peut porter son minuteur, et une
-ligne discrète le dit sous l'étape (A377, doctrine `docs/decisions/lot-v5-31.md`). Demande de
-l'auteur, choisie sur trois versions de maquettes.
+ligne discrète le dit sous l'étape (A377 à A380, doctrine `docs/decisions/lot-v5-31.md`). Demande de
+l'auteur, choisie sur trois versions de maquettes ; puis des micro-mouvements logiques, la règle
+« ne pas anticiper » et deux essais d'affichage à juger en conditions réelles.
 - **La coche lance** (`starts` sur une étape) : cocher « Adrénaline 1 mg IV » lance « Adrénaline —
   prochaine dose » depuis zéro. **La coche compte** (`counts`) : cocher « Choc » ajoute 1 au
   compteur et pose l'heure au journal, comme le « + » de la carte.
