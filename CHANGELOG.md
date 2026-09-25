@@ -24,7 +24,9 @@ l'auteur, choisie sur trois versions de maquettes.
 - **Fiches d'exemple** (proposées au premier lancement) : dans l'**ACR**, cocher « Choc immédiat »
   compte le choc, et cocher l'une des deux « Adrénaline » lance « prochaine dose ». Dans
   l'**Anaphylaxie**, les deux injections IM comptent sur « Adrénaline IM », et ce compteur relance
-  la réévaluation à 5 min. Pas de minuteur de bloc dans les exemples : aucune des deux fiches n'a
+  la réévaluation à 5 min. Elle ne repart plus seule à la sonnerie (A379) : entre la sonnerie et
+  l'injection, 30 s d'analyse ou un choc peuvent passer. Elle reste « Échu » jusqu'à la coche
+  suivante. Le prompt IA gagne la règle « ne pas anticiper ». Pas de minuteur de bloc dans les exemples : aucune des deux fiches n'a
   de tentative bornée par passage. « — noter l’heure » disparaît de l’adrénaline IM : la coche
   pose désormais l’heure au journal.
 - **Micro-mouvements** (A378), chacun répondant à un geste : cocher fait monter le chiffre ou
@@ -40,7 +42,7 @@ l'auteur, choisie sur trois versions de maquettes.
   du graphe des blocs est partagé avec le grisé « hors chemin » ; glyphes pris dans la table
   d'icônes commune ; commentaires ramenés à une ligne, la doctrine vit dans le lot.
 - **Témoins** : 33 tests unitaires (modèle, sortie de boucle, légende) et une section
-  `audit-doctrine` « A377 » (24 contrôles, dont la fiche d'exemple Anaphylaxie et les mouvements). Aucun changement côté serveur.
+  `audit-doctrine` « A377 » (25 contrôles, dont la fiche d'exemple Anaphylaxie, les mouvements et la sonnerie). Aucun changement côté serveur.
 
 ## [5.30.6] — 2026-09-25
 Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échelle » du plan s'en va

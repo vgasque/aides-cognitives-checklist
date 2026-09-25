@@ -5079,10 +5079,13 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     const o={liens:f.items.filter(x=>x.counts===c.id).length,avant:!!(t&&t.running)};
     li.click();await w(30);o.mv=document.querySelector('.ov-block.cur').getAnimations({subtree:true}).filter(a=>/^wt|tLife/.test(a.animationName)).length;await w(270);
     o.cn=Runtime.counters[c.id]||0;o.run=!!(t&&t.running);
+    t.lastStart=Date.now()-301000;tickAll();await w(300);   // la sonnerie : rien ne repart seul
+    o.echu=timerDue(t)&&!t.running;
     return o;});
   t('A377 · Anaphylaxie : les deux injections comptent (2 liens, pas plus)', r.liens===2, String(r.liens));
   t('A377 · … cocher l’adrénaline IM compte 1 et lance la réévaluation', r.avant===false&&r.cn===1&&r.run===true, JSON.stringify(r));
   t('A378 · mouvement réduit : la légende ne bouge pas, l’état change quand même', r.mv===0&&r.cn===1, String(r.mv));
+  t('A379 · à la sonnerie la réévaluation reste « Échu » : elle repart à la prochaine injection cochée, jamais seule', r.echu===true);
   await page.close();
 }
 });

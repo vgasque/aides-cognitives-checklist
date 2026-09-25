@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-W+HIeF3bDpj6ouudsdEh+TKiselx8yfpJjmuBDLWWzg='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-v6qgX+Rii6PWMS1PhIVcWzGl4pjXMBrdR9inOehWHaQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -11088,8 +11088,8 @@ function seed(catId){const b1=uid('b'),b2=uid('b'),b3=uid('b'),bd=uid('b'),bx=ui
     excursions:[{label:'Bronchospasme réfractaire',target:bx}],
     // (v4.4.1 : plus de chrono « Temps écoulé » — le chrono GLOBAL de session le rend redondant.)
     // `onDue` : une alarme qui NOMME le minuteur dit QUOI a sonné, jamais QUOI FAIRE (K7).
-    timers:[{id:tRe,label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:true,onDue:'Réévaluer : 2ᵉ dose IM si pas d’amélioration'}],
-    // A377 : chaque injection cochée compte, et le compteur relance la réévaluation (lien `timerId`).
+    timers:[{id:tRe,label:'Réévaluation après adrénaline',type:'interval',seconds:300,autoloop:false,onDue:'Réévaluer : 2ᵉ dose IM si pas d’amélioration'}],
+    // A377/A379 : l'injection cochée compte et relance la réévaluation (`timerId`) ; jamais seule à la sonnerie.
     counters:[{id:nAdr,label:'Adrénaline IM',step:1,start:0,timerId:tRe}],
     start:b1,
     // v4.11.1 : les exemples ILLUSTRENT les registres ⚠/△ et le format « challenge :: réponse »
@@ -24631,7 +24631,8 @@ MINUTEURS, COMPTEURS, BOUCLES
     bloc "Surveillance" -> décision "Nouvelle crise convulsive ?"
        option "Oui" -> retour au bloc de traitement précédent (ex. "Anticonvulsivant")
        option "Non" -> poursuivre / surveiller
-  Associe un minuteur de cycle (interval, autoloop) à ces boucles.
+  Associe un minuteur de cycle (interval, autoloop) à ces boucles — sauf si le délai court
+  depuis un geste (dose, injection) : voir « NE PAS ANTICIPER » plus bas.
 - Dans une boucle : SEULEMENT ce qui se REFAIT à chaque cycle (réévaluation, analyse du
   rythme, revue des causes réversibles…). Gestes UNIQUES (accès vasculaire, intubation,
   pose de pads…) → bloc HORS boucle : chaque tour affiche des cases neuves, un geste
@@ -24682,6 +24683,11 @@ MINUTEURS ET COMPTEURS LIÉS AUX ÉTAPES (facultatif — RARE, réservé à l'es
   stress. Aucun lien sur une étape de surveillance, de vérification ou d'information.
 - Un minuteur à cycles qui tourne en continu (cycle RCP) reste un minuteur de FICHE : ne
   l'accroche ni à une étape ni à un bloc.
+- NE PAS ANTICIPER : un délai qui court DEPUIS un geste (prochaine dose, réévaluation après
+  une injection) a "autoloop": false et repart à la COCHE de ce geste ("starts", ou "counts"
+  sur un compteur dont "timerId" le relance), JAMAIS seul à la sonnerie : entre la sonnerie
+  et l'administration, il peut se passer 30 s (analyse du rythme, un choc). À l'échéance il
+  reste « Échu » jusqu'au geste suivant.
 - L'objet visé doit EXISTER dans "timers" / "counters" (même "id"). Sinon, ne pose pas le lien.
 
 COMPLICATIONS « À TOUT MOMENT » (champ complications, facultatif)

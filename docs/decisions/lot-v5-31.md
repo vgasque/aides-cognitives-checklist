@@ -174,3 +174,33 @@ refusé les boucles) ; un fondu à chaque seconde du texte.
 **Témoins.** `audit-doctrine` A377 : monter, redescendre, remplir + jauge, remplissage à l'entrée
 du bloc, rien sous mouvement réduit (l'état change quand même) ; `tests.html` : âge porté puis
 retiré du modèle.
+
+## A379 — ne pas anticiper : un délai repart au geste, jamais à la sonnerie (v5.31.0)
+
+**Le signalement de l'auteur.** « Il ne faut pas surautomatiser. Le minuteur a sonné : il peut se
+passer 30 s entre l'analyse du rythme et l'administration du mg — il peut aussi y avoir un CEE
+entre-temps. Donc ne pas redémarrer le minuteur automatiquement, et ne pas vouloir anticiper les
+choses. »
+
+**Ce que le code faisait.** Un minuteur à cycles (`autoloop`) se remet à zéro À LA SONNERIE
+(`tickAll`) et n'est jamais « Échu » (`timerDue` l'exclut). La fiche d'exemple Anaphylaxie, en
+v5.31.0, cumulait les deux : « Réévaluation après adrénaline » repartait seule toutes les 5 min
+ET à chaque injection cochée — l'intervalle affiché dérivait donc de l'intervalle réel dès le
+premier retard d'administration.
+
+**La règle.** Un délai qui court DEPUIS un geste (prochaine dose, réévaluation après injection)
+n'a pas `autoloop` : il repart à la COCHE de ce geste (`starts`, ou `counts` sur un compteur dont
+`timerId` le relance) — le moment réel de l'administration, dit par l'équipe. À l'échéance il reste
+« Échu », sans compter le temps écoulé depuis (l'interdit « en attente depuis », § 2), jusqu'au
+geste suivant ou à un arrêt à la main. L'application ne prédit rien : ni la dose suivante, ni son
+heure. Fiche Anaphylaxie corrigée (`autoloop:false`), prompt IA : section « NE PAS ANTICIPER » et
+nuance sur les boucles de cycle.
+
+**Reste ouvert (à trancher par l'auteur).** Le cycle RCP de l'ACR repart lui aussi à la sonnerie
+(`autoloop`), avec le même écart analyse → reprise du massage. Il n'est pas modifié ici : le
+rattacher au geste demanderait soit un minuteur de bloc sur « Choquable / Non choquable » (entrée
+à la réponse, quelques secondes avant la reprise), soit un second lien sur « Choc immédiat », qui
+porte déjà le compte des chocs (un seul lien par étape).
+
+**Témoin.** `audit-doctrine` A377 : sonnerie simulée sur la fiche Anaphylaxie, la réévaluation
+reste échue et arrêtée.
