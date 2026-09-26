@@ -108,28 +108,27 @@ const d5=await p.evaluate(async()=>{
  return {dec:cur.classList.contains('dec'),btn:!!k&&!k.hidden};});
 t('le déclencheur vit AUSSI sur un bloc de décision courant', d5.dec&&d5.btn, JSON.stringify(d5));
 console.log('=== échelle / statique / externe / sans ===');
-/* ⚠ « À TOUT MOMENT » A QUITTÉ LA COLONNE D'ORIENTATION (v5.0.0, demande utilisateur : « c'est
-   inutile ») — elle oriente dans la SÉQUENCE, or une complication n'y est pas. Le contrôle suit le
-   composant plutôt que de disparaître avec lui (règle 14) : la section vit toujours dans la vue
-   « Toute la fiche », onglet Parcours, et c'est là qu'on vérifie les deux invariants — elle EXISTE,
-   et le tronc n'est pas pollué par son bloc. */
+/* A388/A389 : « À TOUT MOMENT » FERME LE PARCOURS, dans ses trois lieux (colonne, carte d'entrée, feuille
+   « Se repérer ») — l'onglet « Parcours » de « Tout voir » qui la portait a vécu. Deux invariants : la section
+   EXISTE, une rangée par complication, avec un éclair et SANS numéro ; et le tronc numéroté n'est pas
+   pollué par son bloc. (Les sélecteurs d'avant visaient l'Échelle purgée en A376 : ils passaient à vide.) */
 const d6=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
- const lad=document.querySelector('.read-side .rail-lad');
- const colonne={cx:lad?lad.querySelectorAll('.pl-line.cxl').length:0,
-   pollue:[...(lad?lad.querySelectorAll('.pl-line .t'):[])].some(x=>/Laryngo/.test(x.textContent))};
- document.getElementById('allBtn').click();await w(700);
- document.querySelector('[data-alltab="parcours"]').click();await w(600);
- const sec=[...document.querySelectorAll('.pc-wrap .pl-sech')].some(x=>/tout moment/i.test(x.textContent));
- const cartes=document.querySelectorAll('.pc-wrap .pc-card.exc').length;
- document.getElementById('allBtn').click();await w(600);
- return {colonne,sec,cartes};});
-t('la colonne d’orientation ne porte plus la section', d6.colonne.cx===0&&!d6.colonne.pollue, JSON.stringify(d6.colonne));
-t('« Toute la fiche » : section « À tout moment », une carte', d6.sec&&d6.cartes===1, JSON.stringify(d6));
+ const lad=document.querySelector('.read-plan .pf-flat,.read-side .pf-flat');
+ const lire=r=>({exc:r?r.querySelectorAll('.pf-row.exc').length:0,
+   sec:r?[...r.querySelectorAll('.pf-segl')].some(x=>/tout moment/i.test(x.textContent)):false,
+   numero:r?[...r.querySelectorAll('.pf-row.exc .pf-badge')].some(x=>/\d/.test(x.textContent)):true,
+   pollue:r?[...r.querySelectorAll('.pf-row:not(.exc) .pf-title')].some(x=>/Laryngo/.test(x.textContent)):true});
+ const colonne=lire(lad);
+ openPlanSheet();await w(500);
+ const feuille=lire(document.querySelector('#planModal .pf-flat'));
+ closePlanSheet();await w(300);
+ return {colonne,feuille};});
+t('colonne : « À tout moment » ferme la liste, une rangée ⚡ sans numéro, tronc non pollué',
+  d6.colonne.sec&&d6.colonne.exc===1&&!d6.colonne.numero&&!d6.colonne.pollue, JSON.stringify(d6.colonne));
+t('« Se repérer » : idem', d6.feuille.sec&&d6.feuille.exc===1&&!d6.feuille.numero&&!d6.feuille.pollue, JSON.stringify(d6.feuille));
 const d7=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
  document.getElementById('allBtn').click();await w(600);
- /* ⚠ ON REVIENT À L'ONGLET « PAGE » : le contrôle précédent a laissé « Parcours » sélectionné, et
-    l'onglet n'est pas persisté mais il survit à la fermeture de la feuille. Sans cela on mesure la
-    vue en cartes en croyant mesurer le tableau. */
+ /* On s'assure d'être sur « Page » (l'onglet survit à la fermeture de « Tout voir »). */
  {const pg=document.querySelector('[data-alltab="page"]');if(pg)pg.click();}await w(600);
  /* ⚠ CE TÉMOIN A CHANGÉ DE PORTEUR, PAS D'OBJET (lot Page, v5.10.0). La section « ⚡ À tout
     moment » vivait en PIED du tableau, sous une bande-intertitre ; depuis la feuille, une
@@ -174,7 +173,7 @@ t('cible EXTERNE : ouvre l’autre aide', d8.ouvert, JSON.stringify(d8));
 const d9=await p.evaluate(async()=>{const f2=fiches.find(x=>x.id===window.__autre);f2.excursions=[];
  render();await new Promise(r=>setTimeout(r,400));
  const k=document.getElementById('cxKey');
- return {btn:(k&&!k.hidden)?1:0,sec:document.querySelectorAll('.pl-sech.cx').length};});
+ return {btn:(k&&!k.hidden)?1:0,sec:document.querySelectorAll('main .pf-row.exc').length};});   // A389 : la rangée ⚡ du parcours (la feuille refermée garde son contenu : on mesure la page)
 t('fiche SANS complications : zéro chrome ⚡', d9.btn===0&&d9.sec===0, JSON.stringify(d9));
 console.log('=== éditeur : sélecteur filtrable à deux groupes ===');
 const d10=await p.evaluate(async()=>{

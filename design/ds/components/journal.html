@@ -2229,9 +2229,10 @@
      jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
      carte quand il y en a une, sur le blanc du livre sinon. */
   .dir-book .dir-row.live::before{width:4px}   /* compact : le livre à filets garde un liseré plus fin */
-  /* v5.30 (maquette v5) — VOIE ÉTROITE, vue DÉTAILLÉE : une CARTE par rangée (liseré 6 px,
-     titre 17,5, discriminant sur sa ligne, méta 13,5) ; la vue COMPACTE garde le livre à filets. */
-  @media (max-width:779.98px){
+  /* v5.30 (maquette v5) — vue DÉTAILLÉE : une CARTE par rangée (liseré 6 px, titre 15/700,
+     discriminant sur sa ligne, méta 13,5) ; la vue COMPACTE garde le livre à filets. A389 : à TOUTES
+     les largeurs — elle n'existait que sous 780 px, et « Détaillée » / « Compacte » rendaient la même
+     chose sur tablette et bureau. */
     /* A362 : les cartes d'un groupe se touchaient (0 px, coins 14 qui se chevauchaient) et un
        groupe n'était séparé du suivant que par 10 px — 8 px ENTRE les cartes, 24 px AVANT chaque
        intertitre, 10 px sous lui (planche A) ; le livre compact à filets ne change pas. */
@@ -2255,7 +2256,6 @@
     html.zw360 .dir-book:not(.compact) .dir-id{display:contents}
     html.zw360 .dir-book:not(.compact) .dir-st{margin-left:auto;padding-left:6px}
     html.zw360 .hdr-hist{display:none}   /* 320 px : la marque et les deux actions ne laissent pas la place ; l'historique reste au pied */
-  }
   /* Feuille « Affichage » */
   .hdr-hist{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
   body.view-home #hdrNew{background:var(--act);color:var(--on-primary);border-radius:var(--r-4)}
@@ -2590,7 +2590,7 @@
   .pre-flow{background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);border-radius:var(--r-4);overflow:hidden;margin-bottom:10px}
   .pre-flow .pre-lad{padding:0 8px 12px}
   /* Le parcours à plat (v5.30) */
-  /* A376 — L'ÉCHELLE EST PURGÉE : `ovPlanLadderHtml` et ses classes `.pl-line`, `.pl-lx`, `.pl-lxt`, `.pl-lnk`, `.pl-ref`, `.pl-jmp`, `.pl-phase`, `.pl-x`, `.pl-jlm`, `.pl-q`, `.pl-stp`, `.pl-jll`, `.pl-lbl` ont été RETIRÉES (65 règles) : la feuille « Se repérer », la colonne du cockpit et le rail 780-1199 rendent la liste numérotée à renvois écrits ci-dessous (A349), l'état de session peint en classes `cur`/`done`/`off`. Restent vivantes, émises par « Toute la fiche » : `.pl-brc`, `.pl-here`, `.pl-sech` (`.pl-r` purgée en A388 : la réponse du parcours est `.pf-r`, au corps du texte). */
+  /* A376 — L'ÉCHELLE EST PURGÉE : `ovPlanLadderHtml` et ses classes `.pl-line`, `.pl-lx`, `.pl-lxt`, `.pl-lnk`, `.pl-ref`, `.pl-jmp`, `.pl-phase`, `.pl-x`, `.pl-jlm`, `.pl-q`, `.pl-stp`, `.pl-jll`, `.pl-lbl` ont été RETIRÉES (65 règles) : la feuille « Se repérer », la colonne du cockpit et le rail 780-1199 rendent la liste numérotée à renvois écrits ci-dessous (A349), l'état de session peint en classes `cur`/`done`/`off`. `.pl-r` purgée en A388 (la réponse du parcours est `.pf-r`) ; `.pl-brc`, `.pl-here`, `.pl-sech` purgées en A389 avec l'onglet « Parcours » de « Tout voir » qui les émettait. */
   .pf-flat{display:flex;flex-direction:column;gap:4px}
   .pf-row{display:flex;gap:12px;padding:6px 8px;border-radius:var(--r-4);position:relative}
   .pf-row.dec{background:var(--warn-soft);padding:8px 12px 8px 8px}
@@ -2650,8 +2650,6 @@
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
   .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);white-space:nowrap}
-  .mo-rule{display:block;width:fit-content;margin:2px 0 0;font-size:var(--t-meta);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}   /* A382 : la règle du moment, sans état */
-  .sv-stp li .mo-rule{flex-basis:100%;font-size:var(--t-cap)}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -2705,6 +2703,9 @@
      On répare EN (1,1,2), jamais par l'ordre ; 14 px — un objet interactif ne finit pas au
      contact d'une bordure de coupure. */
   .ref-tocwrap>.ref-toc[open]{padding-bottom:14px}
+  .ed-toc-l{padding-top:4px}   /* A390 : la Structure de l'éditeur dans le dépliant du sommaire — rangées `.eds-row` de la colonne */
+  .ed-toc .rail-head{display:flex;align-items:baseline;gap:8px;margin:12px 0 4px}
+  .ed-toc .rail-n{font-size:var(--t-cap);font-weight:700;color:var(--ink-2)}
   details.ref-toc{background:none;border:0;border-radius:0}
   /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
      maintenu à l'écran pour que la sortie ne parte jamais hors de portée. Replié il ne recouvre
@@ -2912,90 +2913,6 @@
   .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line)}
   .eds-ph:first-child{margin-top:0;padding-top:0;border-top:0}
-  /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
-     colonne : elle ORIENTE, la colonne d'action AGIT — deux surfaces ne se disputent pas le
-     regard au même niveau de saillance. */
-  /* L'ONGLET « PARCOURS » (v5.6, maquette) : la SÉQUENCE en rangées — une par bloc, l'état dans
-     la marque, les renvois à droite ; seul le bloc COURANT développe ses items. Le contenu
-     complet, c'est l'onglet « Page ». Les cartes `.pc-card` restent pour les trois sections
-     encadrantes (condition d'entrée, à tout moment, surveiller) : ce ne sont pas des blocs de
-     la séquence, et la différence de forme le dit. */
-  .pc-sub{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:600;color:var(--ink-3);margin:2px 0 10px}
-  .pc-sub b{font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-  .pc-rows{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:10px}
-  .pc-row{background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);padding:10px 14px;
-    font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  .pc-row.d1{margin-left:12px}.pc-row.d2{margin-left:24px}.pc-row.d3{margin-left:32px}
-  .pc-rh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  .pc-mk{flex:none;color:var(--ok);font-weight:800;display:inline-flex;align-items:center}
-  .pc-mk:empty{display:none}
-  .pc-rt{flex:1;min-width:0}
-  .pc-x{color:var(--ink-3);font-size:var(--t-meta);font-weight:600}
-  .pc-gn{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
-  .pc-go{flex:none;max-width:52%;font-size:var(--t-cap);font-weight:700;color:var(--act);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pc-off{flex:none;font-size:var(--t-cap);color:var(--ink-3)}
-  /* Le bloc courant : filet d'accent, jamais un aplat — la vue reste une vue d'ORIENTATION. */
-  .pc-row.cur{border-color:var(--act);color:var(--ink)}
-  .pc-row.off{border-style:dashed;color:var(--ink-3)}
-  .pc-row.cur .pc-rh{padding-bottom:8px}
-  .pc-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);
-    border-radius:var(--radius-md);padding:10px 12px;margin:0 0 10px}
-  /* Seuls `entry` et `exc` sont émis (ovParcoursHtml) : les états d1-d3, cur, done, dec, off de
-     la vue spatiale v4.6 sont purgés (assainissement v5.20.x) — l'état d'un passage vit sur `.pc-row`. */
-  .pc-card.exc{border-left-color:var(--critical-bd)}
-  .pc-card.entry{background:var(--surface-2)}
-  .pc-h{display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
-  .pc-n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--on-primary);background:var(--primary)}
-  /* Badge neutre par défaut ; `.ok` (déclaré APRÈS, même spécificité) reprend le vert. L'écriture
-     d'origine `:not(.cur):not(.done)` — états morts — pesait (0,4,0) et écrasait `.ok` : le ✓ de
-     « Quand l'utiliser » s'affichait sur fond neutre, prouvé à la sonde deux moteurs (v5.20.2). */
-  .pc-card .pc-n{background:var(--surface);color:var(--ink-soft);border:1.5px solid var(--line-strong)}
-  .pc-n.ok{background:var(--ok);color:var(--on-primary);border:0}
-  .pc-ht{flex:1;min-width:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
-  /* L'item : case INERTE (aucun `data-ck`, `aria-hidden`), texte, valeur attendue en pilule mono. */
-  /* ⚠ LA RÉPONSE ATTENDUE PREND SA PROPRE LIGNE (v5.0.9, signalé à l'usage, capture à l'appui) :
-     `.pc-r` était `flex:none` dans une rangée qui n'ENROULAIT PAS, donc le seul objet compressible
-     était le GESTE (`.pc-t`, `min-width:0`) — mesuré, « Curariser… » tombait à 12 px de large
-     (« C ») pendant que la pilule sortait de la carte de 260 px. On perdait ainsi l'information
-     principale ET la secondaire. Le remède est déjà écrit dans ce fichier, pour ce défaut exact,
-     sur la feuille « Consulter » : `.rs-v` (`flex:1 1 100%` + retrait de la case). Une seule
-     grammaire — on enroule, on ne tronque jamais (doctrine des renvois de l'Échelle, v4.55.3 :
-     « dans un PLAN, une branche cachée est une branche qu'on ne saura pas prendre »).
-     Le retrait de 32 px = la case (22) plus l'écart (10) : la pilule s'aligne sur le texte. */
-  .pc-it{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
-  .pc-it:last-of-type{border-bottom:0}
-  .pc-box{flex:none;width:22px;height:22px;border-radius:8px;border:2px solid var(--line-strong)}
-  .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
-  .pc-r{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
-    border-radius:8px;padding:2px 6px;overflow-wrap:anywhere}
-  /* Boîte signalée : le rembourrage horizontal est COMPENSÉ par une marge négative (patron du
-     bleed d'ol.steps, v4.23.5) — la case reste sur la même verticale que les lignes normales,
-     la teinte déborde dans le rembourrage de la carte au lieu de décaler le contenu. */
-  .pc-it.crit{background:var(--critical-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
-  .pc-it.crit .pc-t{color:var(--critical);font-weight:800}
-  .pc-it.crit .pc-box{border-color:var(--critical-bd)}
-  .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
-  .pc-it.vig .pc-t{color:var(--verify);font-weight:800}
-  .pc-it.vig .pc-box{border-color:var(--verify-bd)}
-  /* Le pied d'une carte et le renvoi d'une branche SANS carte (boucle ou fin) disent la MÊME
-     chose — « et ensuite, où ? » — et partagent donc une seule déclaration : deux boîtes mono à
-     un palier d'écart se liraient comme deux niveaux là où il n'y en a qu'un (et le quota du
-     plancher typographique n'a pas à payer une redite). Seuls les retraits diffèrent : le renvoi
-     s'aligne sur l'étiquette de branche qu'il suit. Inerte — la vue entière l'est. */
-  .pc-foot,.pc-jmp{padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
-    font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
-  .pc-foot{margin-top:6px}
-  .pc-jmp{margin:0 0 8px}
-  .pc-jmp.d1{margin-left:20px}.pc-jmp.d2{margin-left:32px}.pc-jmp.d3{margin-left:48px}
-  .pc-jmp.loop{color:var(--link);background:var(--primary-soft)}
-  .pc-q{font-size:13.5px;font-weight:700;color:var(--verify);margin:2px 0 6px}
-  .pc-opts{display:flex;flex-wrap:wrap;gap:6px}
-  .pc-opt{font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);
-    border:1px solid var(--verify-bd);border-radius:8px;padding:2px 8px}
-  .pc-opt.tk{color:var(--ok);background:var(--done-bg);border-color:var(--done-line)}
-  .pc-opt b{font-family:var(--mono);font-weight:700}
   /* ══ « CONSULTER » EST UN DOCUMENT, DONC DES LIGNES (v5.6, maquette — demande utilisateur :
      « rends surveiller, documents etc. plus inline ») ════════════════════════════════════════
      LA CASE INERTE EST PURGÉE, ET C'EST LE MÊME ARGUMENT QU'EN v5.0.0/M1 POUR L'ÉDITEUR : une
@@ -3163,14 +3080,7 @@
   .rt-dock :is(.tk-el,.tk-from,.tk-sug){color:var(--sys-ink-2)}
   .rt-dock .tk-lab{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
   .rt-dock :is(.tk-del,.tk-time){color:var(--sys-ink-2)}
-  /* ⚠ UN seul dessin d'intertitre dans la colonne : `.pl-cxh` est PURGÉE avec sa règle et ses
-     sondes (règle 14), `.pl-sech` reste seule. Tous les intertitres partent du MÊME x (18 px,
-     mesuré — on n'extrapole pas d'une surface à l'autre) ; les rangées gardent leur retrait de
-     2 px ; marge basse 10 px / haute 20 px pour tout en-tête de queue. Détail : doctrine-css.md C65. */
   .rail-lad .rail-head{margin:20px 0 4px}
-  .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);margin:16px 0 2px;padding:0;line-height:1.35}
-  .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
   /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
   /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
      paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
@@ -3436,8 +3346,6 @@
   .wt-blk{margin-top:4px}   /* sous le titre d'un bloc : le titre à 21 px a déjà son interligne */
   ol.steps li.has-wt{align-items:flex-start}
   ol.steps li.has-wt .txt{padding-top:6px}   /* 1ʳᵉ ligne du libellé centrée sur la case de 36 px */
-  .sv-stp li .wt-sv,.wt-sv{flex-basis:100%;height:auto;margin:1px 0 0;padding:0;font-size:var(--t-cap);line-height:1.35}   /* Page : au corps de la feuille */
-  .wt-sv .wt-g{width:12px;height:12px}
   /* Mouvements — chacun répond à UN geste et dit ce qu'il a fait (lot-v5-31.md, A378) : cocher
      fait MONTER (le chiffre) ou REMPLIR (l'anneau, relancé depuis zéro), décocher fait REDESCENDRE ;
      le filet sous « décocher annule » se vide avec la fenêtre de 10 s ; l'échéance se pose en
@@ -3689,9 +3597,6 @@
   .jl-row.on+.jl-row{border-top:0}
   .jl-go{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid var(--critical-bd);border-radius:var(--radius-sm);background:var(--surface);font-family:inherit;font-size:13.5px;font-weight:700;color:var(--critical);cursor:pointer;flex:0 0 auto}
   .jl-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  /* Le jalon dans les trois vues de STRUCTURE : INERTE, encre douce, condition en gras — jamais
-     d'aplat (l'Échelle est désaturée par doctrine ; le registre VIVANT est sur la carte du bout). */
-  .pc-jl{font-size:12px;color:var(--ink-soft);padding:4px 0}
   /* Éditeur des jalons : carte au ton du chrome (--surface-2), et le champ NUMÉRIQUE reçoit son
      gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
   .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px 10px;border-radius:var(--r-3);background:var(--verify-soft)}
@@ -5133,16 +5038,6 @@
   /* A374 : le titre de rail n'était stylé qu'au-dessus de 780 (11 px) — au téléphone il tombait sur le 16 px
      du navigateur. Une règle, un corps (meta), aux deux largeurs. */
   .rail-title{font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  /* ⚠ LE RETRAIT DE PROFONDEUR EST ADDITIF, ET IL A UNE SOURCE UNIQUE (v5.28.1, signalé à l'usage).
-     Chaque régime écrivait ses retraits ABSOLUS, et chacun pose sa gouttière par un RACCOURCI
-     `padding` — qui écrase le `padding-left` des classes de profondeur où qu'elles soient (spécificité
-     plus haute).
-     Mesuré : étiquettes de branche toutes à 8 px avant le soin, TOUTES les rangées à 10 px en
-     session — l'arbre était plat. Le retrait devient un token AJOUTÉ à la gouttière du régime :
-     un raccourci ne peut plus l'effacer sans effacer la gouttière. Détail : lot-v5-28.md A339. */
-  .pl-brc.d1{--pl-ind:12px}
-  .pl-brc.d2{--pl-ind:24px}
-  .pl-brc.d3{--pl-ind:32px}
   /* ⚠ Le losange a EXACTEMENT le style de la pastille ; le carré tourné vit en `::before` À
      L'INTÉRIEUR (26 px à 45° = 37 de diagonale, rogné — leçon v5.0.0), le chiffre reste droit.
      ⚠ `z-index:-1` sans contexte d'empilement passe SOUS le fond du parent : `isolation:isolate`
@@ -5192,8 +5087,6 @@
   /* L'APERÇU À PLAT (v5.25.0) : ni carte ni pastille — numéro gris, titre gris, renvois gris ;
      la rangée garde le plancher de 32 px (cible hors crise) et reste dépliable. Spécificité
      alignée sur la compaction juste au-dessus (même nombre de classes, posée après). */
-  body.view-read .pre-lad.flat .pl-brc span{background:none;border:0;padding:0;color:var(--ink-3)}
-  body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
   /* ⚠ En session, même dessin — mais le PAS reste 44 px, et c'est de l'arithmétique : dessin 38 px
      + halo de 3 (A8 : la cible vient du halo) sur la gouttière de 6 déjà là (A66) = 44 exactement.
      Le pas se prend sur la RANGÉE, jamais sur l'écart ni la marge basse des titres (témoin rougit).
@@ -5205,7 +5098,6 @@
      deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
      paire ([10, 8] mesurés). La respiration se prend au-DESSUS, où elle n'engage personne. */
   body.view-read.crisis-live .rail-lad .rail-head{margin-top:12px}
-  body.view-read.crisis-live .rail-lad .pl-sech{margin-top:10px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .rail-lad{gap:4px}
   body.view-read:not(.crisis-live) .pre-lad{gap:4px}
   /* Des BOUTONS de contour (`--ctl-line`, seul filet 3:1 — A67 ; glyphe 15 px, A13), jamais
@@ -5242,33 +5134,11 @@
      Ce sont les seules rangées de la colonne à ne pas être des cartes, et la différence de
      forme dit exactement ce qu'elle doit dire : ceci n'a pas de rang. */
   /* Les marqueurs de queue : la FORME dit le registre, l'encre reste celle de la colonne. */
-  /* La chip de branche : SEULE sur sa ligne, en retrait du niveau qu'elle ouvre. */
-  .pl-brc{padding:8px 8px 4px calc(12px + var(--pl-ind,0px))}
-  /* ⚠ NEUTRE, ET C'EST DOCTRINAL (signalé à l'usage : « ça ressort beaucoup par rapport au reste
-     de la page, je ne suis pas sûr que ce soit approuvé ECAM/QRH/FAA » — la remarque est juste).
-     Cette chip nomme la BRANCHE qui mène au bloc ; ce n'est ni une alerte ni un point de
-     vigilance. En ambre plein elle empruntait le registre ATTENTION dans une colonne dont toute
-     la doctrine est la DÉSATURATION (v4.23.0 : « l'état n'y est plus porté que par le marqueur,
-     aucun texte coloré ») — donc elle criait plus fort que le contenu clinique qu'elle indexe,
-     exactement l'inflation que le dossier combat pour le rouge. Pastille NEUTRE (`--tag-bg`),
-     le registre reste au point où l'on CHOISIT : les options `.opt` de la carte de décision. */
-  .pl-brc span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;
-    color:var(--tag-ink);background:var(--tag-bg);border:1px solid var(--line);
-    border-radius:8px;padding:2px 8px}
-  /* LE RENVOI D'UNE BRANCHE SANS RANGÉE (v5.17.4) : une option qui rejoint le tronc, reboucle ou
-     finit n'a pas de bloc à elle — sa seule chose à dire est « et ensuite, où ? ». Même objet que
-     `.pc-jmp` dans la vue « Parcours », donc même grammaire : boîte mono discrète, encre douce,
-     retrait aligné sur l'étiquette qu'elle suit. Inerte : le renvoi TAPABLE vit sur la rangée de
-     la décision juste au-dessus (`.pl-ref`) — deux cibles pour un même saut se disputeraient le
-     doigt dans une colonne de 223 px. */
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
      s'abrègent (`optAbbr`) donc ils tiennent ; s'ils ne tiennent pas, c'est le TITRE qui cède —
      un titre ellipsé se devine, un renvoi tronqué ne se répare pas. */
-  .pl-here{color:var(--act);font-weight:800;letter-spacing:.07em;text-transform:uppercase}   /* A374 : renvois 11 → 12 */
-  /* Le bloc COURANT prend le filet d'accent, pas un aplat : la colonne reste désaturée, et
-     « ICI » dit la position en toutes lettres (la couleur n'est jamais seule). */
   /* HORS CHEMIN : pointillé + encre douce + la MENTION en toutes lettres (jamais l'opacité, qui
      tombe sous AA — leçon v5.0.0/A1-1). */
   /* Étapes du détail de l'Échelle — RESTAURÉES (valeurs v4.24.0) : la purge v4.25.0 les avait
@@ -5369,7 +5239,11 @@
   .sv-num{position:absolute;left:-32px;top:4px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:var(--t-meta);font-weight:700;color:var(--surface);background:var(--ink);border-radius:3px;box-shadow:0 0 0 3px var(--surface);z-index:1}
   .sv-num.dec{background:var(--verify)}
   /* Le tronc : un segment plein entre deux numéros qui se suivent — jamais après le dernier. */
-  .sv-col>.sv-row:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow)::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  /* ⚠ A391 : les exclusions vivent dans `:where()` (spécificité nulle). Écrites en `:not()`, elles portaient la règle à
+     (0,6,0) : les quatre prolongements ci-dessous (0,3,0) ne s'appliquaient JAMAIS — le tronc s'arrêtait 12 px avant le
+     raccord d'une pilule (signalé à l'usage : « problème de jonction »), 4 px sous la barre d'une fourche, et ne
+     rejoignait pas une cible décalée. */
+  .sv-col>.sv-row:where(:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow))::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:2px;background:var(--ink-soft)}
   .sv-col>.sv-row:has(+ .sv-fork)::after{bottom:-8px}
   .sv-col>.sv-row:has(+ .sv-jrow)::after{bottom:-24px}
   .sv-col>.sv-row:has(+ .sv-tgt)::after{bottom:-22px}
@@ -5421,7 +5295,14 @@
   .sv-stp li.crit .sv-bx{border-color:var(--critical-bd)}
   .sv-stp li.vig .sv-lab{color:var(--verify);font-weight:700}
   .sv-stp li.vig .sv-bx{border-color:var(--verify-bd)}
-  .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--verify)}
+  .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--ink-2)}   /* A391 : « Si … : » comme le parcours, plus d'ambre */
+  .sv-jl svg{vertical-align:-2px}
+  /* A391 : réglages de coche en mots — le qualificatif passe SOUS le libellé (aligné sur lui), l'en-tête « Si … : »
+     coiffe les étapes consécutives au même seuil, qu'un filet relie. */
+  .sv-stp li>.pf-q{flex:0 0 100%;padding-left:16px;font-size:var(--t-cap)}   /* comme la réponse repliée (.sv-rb) */
+  .sv-stp li.sv-gh{display:block;padding-top:4px;color:var(--ink-2);border-bottom:0}
+  .sv-stp li.sv-g{margin-left:4px;padding-left:8px;border-left:2px solid var(--line-strong)}
+  .sv-bt{margin:0 0 2px;font-size:var(--t-cap);color:var(--ink-2)}
   /* LA DÉCISION CONTIENT SES ALTERNATIVES (QRH) : « SI ‹option› ……… CONTINUER ↓ n / ALLER À n /
      REVENIR À n / ▪ FIN ». La ligne est la vérité ; la voie tracée n'est qu'un rappel de trajet. */
   .sv-band{display:block;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:4px 8px 6px;cursor:pointer;min-width:0}
@@ -6769,9 +6650,16 @@
        (720, titre 24/800) posé dans la colonne principale — la colonne gauche reste active. */
     .home-main>.hv-page{max-width:var(--dlg-atelier);width:100%;margin-inline:auto}   /* centrée comme la page-fenêtre (signalé) */
     .hv-title{margin:0 0 12px}
-    /* v5.30 (planche large, grille A) : le répertoire en LIVRES côte à côte — un par groupe. */
-    .dir-book{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start}
-    .dir-book .dir-g{margin-bottom:0}
+    /* A389 : UNE colonne à toutes les largeurs — les livres côte à côte d'A347 tronquaient la méta à 320 px
+       (« Ré… », « CH »). Mesure bornée à 960 px ; la ligne de compte suit la même borne. */
+    .dir-book,.dir-h.dir-sum{max-width:960px}
+    /* Compacte, au bureau (≥ 1200 px effectifs, palier `zw1200` — règle 10) : titre et méta sur UNE ligne, la méta à
+       droite ; en dessous, deux lignes comme au téléphone (mesuré à 900 px : titres et état coupés). */
+    html:not(.zw1200) .dir-book.compact .dir-row{min-height:48px}
+    html:not(.zw1200) .dir-book.compact .dir-main{display:flex;align-items:baseline;gap:16px}
+    html:not(.zw1200) .dir-book.compact .dir-row .card-open{flex:1 1 auto;min-width:0}
+    html:not(.zw1200) .dir-book.compact .dir-row .card-open .dir-t{-webkit-line-clamp:1;max-height:1.2em}
+    html:not(.zw1200) .dir-book.compact .dir-sub{flex:0 1 auto;max-width:60%;margin-top:0}
     /* v5.30 (planche large) : la colonne tient TOUTE la hauteur, l'en-tête ne couvre que la colonne
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
@@ -6988,6 +6876,7 @@
     body.view-read .read-grid.cockpit{grid-template-columns:var(--col-orient) minmax(0,1fr) var(--col-state)}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
+    body.view-edit .ed-tocwrap{display:none}   /* A390 : la colonne Structure prend le relais du dépliant */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}

@@ -4046,6 +4046,8 @@
 
 ## J171 — ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — demande
 
+> **Épitaphe (A389, `lot-v5-35.md`)** : l'onglet « Parcours » de « Tout voir » et `ovParcoursHtml` sont PURGÉS — il redisait la feuille « Se repérer ».
+
 ```
   /* ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — demande
      utilisateur : « mets à jour parcours dans tout voir pour que ça corresponde au nouveau

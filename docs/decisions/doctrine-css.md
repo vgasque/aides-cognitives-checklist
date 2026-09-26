@@ -1735,6 +1735,8 @@
 
 ## C65 — ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
 
+> **Épitaphe (A389, `lot-v5-35.md`)** : `.pl-sech` est PURGÉE avec l'onglet « Parcours » de « Tout voir », seul à l'émettre.
+
 ```
   /* ⚠ UN SEUL DESSIN D'INTERTITRE dans la colonne (signalé à l'usage : « à tout moment plus à
      droite que le reste, hors numérotation qui sort de nulle part »). Il y en avait DEUX —

@@ -985,7 +985,7 @@ for (const w of [320, 360, 390, 430]) {
    sans rebrancher ses écouteurs le réduit à une IMAGE, et c'est ce qui s'est produit à la première
    passe (mesuré : zoom figé à 100 %, état de session non peint). On mesure donc le zoom, la
    peinture d'état et la navigabilité, pas la présence. */
-await sec('T8 · axe de densité — « toute la fiche » se regarde de trois façons', async () => {
+await sec('T8 · axe de densité — « toute la fiche » se regarde de deux façons', async () => {
 for (const w of [320, 390]) {
   const page = await br.newPage({viewport:{width:w,height:844},hasTouch:true});
   page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
@@ -1016,20 +1016,8 @@ for (const w of [320, 390]) {
     const tabs=document.querySelector('.all-tabs');
     const debord=tabs?Math.round(tabs.scrollWidth-tabs.clientWidth):null;
     const cible=Math.min(...[...document.querySelectorAll('.at-b')].map(e=>e.getBoundingClientRect().height));
-    document.querySelector('[data-alltab="parcours"]').click(); await wt(400);
-    /* v5.0.0 (M9) : « Parcours » N'EST PLUS l'Échelle — c'est la fiche entière en CARTES de
-       blocs, avec leurs items, et INERTE. Le contrôle mesure les trois : la présence des cartes,
-       la présence des items, et l'impossibilité de cocher (aucun `data-ck` émis, `state.checked`
-       inchangé après un clic sur une case). Sans la troisième, on validerait une vue qui
-       RESSEMBLE à la fiche et qui la MODIFIERAIT. */
-    const avCk=JSON.stringify(state.checked);
-    {const b0=document.querySelector('.pc-box');if(b0)b0.click();}
-    await wt(250);
-    const parc=!!document.querySelector('.pc-wrap')&&!document.querySelector('.sv-sheet')
-      &&document.querySelectorAll('.pc-card').length>=2
-      &&document.querySelectorAll('.pc-it').length>=2
-      &&document.querySelectorAll('.pc-wrap [data-ck]').length===0
-      &&JSON.stringify(state.checked)===avCk;
+    /* A389 : l'onglet « Parcours » a VÉCU — il redisait la feuille « Se repérer » (A388). On mesure son absence. */
+    const parc=!document.querySelector('[data-alltab="parcours"]');
     document.querySelector('[data-alltab="schema"]').click(); await wt(600);
     const zAv=(document.querySelector('.all-svg .fzv')||{}).textContent||'';
     const zb=document.querySelector('.all-svg [data-zoom="in"]'); if(zb)zb.click(); await wt(300);
@@ -1050,11 +1038,10 @@ for (const w of [320, 390]) {
     const champH=Math.round(qEl.getBoundingClientRect().height),champFs=getComputedStyle(qEl).fontSize;
     const fleches=[...document.querySelectorAll('.rt-find-all .rt-fnav .mini')]
       .map(b=>Math.round(Math.min(b.getBoundingClientRect().width,b.getBoundingClientRect().height)));
-    document.querySelector('[data-alltab="parcours"]').click(); await wt(600);
-    const hitsParcours=document.querySelectorAll('.pc-wrap mark.pf-h').length;
     document.querySelector('[data-alltab="schema"]').click(); await wt(600);
     const champSchema=!!document.getElementById('pfQ'),marksSchema=document.querySelectorAll('mark.pf-h').length;
     document.querySelector('[data-alltab="page"]').click(); await wt(600);
+    const hitsParcours=document.querySelectorAll('.sv-sheet mark.pf-h').length;   // A389 : la requête survit au passage par le Schéma
     {const q=document.getElementById('pfQ');q.value='';q.dispatchEvent(new Event('input',{bubbles:true}));}
     await wt(350);
     const identique=document.querySelector('.sv-sheet').innerHTML===avantHtml;
@@ -1102,7 +1089,7 @@ for (const w of [320, 390]) {
   t(`${w} · on peut CHERCHER dans l'aide entière`,
     r.hits>0&&/\d+ \/ \d+/.test(r.cpt||''), `${r.hits} occurrence(s), compteur « ${r.cpt} »`);
   t(`${w} · … elle surligne et saute, elle ne FILTRE pas`, r.cache===0, `${r.cache} cellule(s) masquée(s)`);
-  t(`${w} · … la requête suit l'onglet`, r.hitsParcours>0, `${r.hitsParcours} occurrence(s) en Parcours`);
+  t(`${w} · … la requête survit au passage par le Schéma`, r.hitsParcours>0, `${r.hitsParcours} occurrence(s) au retour sur la Page`);
   t(`${w} · … pas de champ sur le SCHÉMA (le SVG n'accepte pas de mark)`,
     r.champSchema===false&&r.marksSchema===0, `champ=${r.champSchema} marques=${r.marksSchema}`);
   t(`${w} · … et effacer rend le document IDENTIQUE`, r.identique===true, String(r.identique));
@@ -1110,14 +1097,14 @@ for (const w of [320, 390]) {
     r.champH>=44&&r.champFs==='16px'&&r.fleches.every(v=>v>=44),
     `champ ${r.champH} px / ${r.champFs}, flèches ${JSON.stringify(r.fleches)}`);
   t(`${w} · « Se repérer » a quitté la rangée de commandes`, r.planBtn===false);
-  t(`${w} · trois façons de regarder l'aide entière`,
-    r.ong.join('|')==='Parcours|Page|Schéma', r.ong.join('|'));
+  t(`${w} · deux façons de regarder l'aide entière (A389 : « Parcours » vit dans « Se repérer »)`,
+    r.ong.join('|')==='Page|Schéma', r.ong.join('|'));
   /* LA PAGE RESTE LE DÉFAUT : un lot qui AJOUTE deux vues n'a pas à changer par surprise ce que
      voit celui qui n'a rien demandé. */
   t(`${w} · … et la Page reste ce qu'on voit d'abord`, r.defaut==='Page'&&r.pageOk, r.defaut);
   t(`${w} · les onglets ne débordent pas`, r.debord!==null&&r.debord<=1, `${r.debord} px`);
   t(`${w} · … et restent des cibles de 44 px`, r.cible>=44, `${r.cible} px`);
-  t(`${w} · « Parcours » montre la fiche en CARTES de blocs, et reste inerte`, r.parc===true);
+  t(`${w} · l'onglet « Parcours » a quitté « Tout voir »`, r.parc===true);
   t(`${w} · le SCHÉMA garde son zoom (il n'est pas une image)`, r.zAv!==r.zAp, `${r.zAv} → ${r.zAp}`);
   t(`${w} · … et son état de session PEINT`, r.peint===true);
   /* NAVIGUER ≠ AGIR : taper un nœud y va, il ne coche RIEN. Invariant v4.7.0, qu'un changement de
@@ -2697,7 +2684,7 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
     const live=document.querySelector('.dir-live');
     const av=live?live.textContent.trim():null;
     await w(1300);
-    return {n:rows.length,hauteurs:H,cartes:!!document.querySelector('.dir-book:not(.compact)')&&innerWidth<780,
+    return {n:rows.length,hauteurs:H,cartes:!!document.querySelector('.dir-book:not(.compact)'),   // A389 : la vue détaillée est en cartes à TOUTES les largeurs
       corps:[...new Set(titres.map(b=>getComputedStyle(b).fontSize))],
       tronques:titres.filter(b=>b.scrollHeight>b.clientHeight+1).length,
       deborde:rows.filter(x=>x.scrollWidth>x.clientWidth+1).length,
@@ -2766,8 +2753,8 @@ for (const W of [330, 390, 700, 1000, 1400, 1600]) {
       live:!!document.querySelector('.dir-row.live'),
       chronoAvance:live?live.textContent.trim()!==av:false};});
   t(`${W} · témoin : plusieurs rangées sont mesurées`, r.n>=2, `${r.n}`);
-  /* v5.30 : en voie étroite, vue détaillée, la rangée est une CARTE dont la hauteur suit son contenu
-     (maquette v5) — le rythme unique reste la règle du LIVRE (compact, ou ≥ 780). */
+  /* v5.30 : vue détaillée, la rangée est une CARTE dont la hauteur suit son contenu (maquette v5 ; à toutes les
+     largeurs depuis A389) — le rythme unique reste la règle du LIVRE, c'est-à-dire la vue compacte. */
   if(r.cartes)t(`${W} · les cartes tiennent le plancher de 76 px`, Math.min(...r.hauteurs)>=76, JSON.stringify(r.hauteurs));
   else t(`${W} · toutes les rangées ont la MÊME hauteur`, r.hauteurs.length===1, JSON.stringify(r.hauteurs));
   t(`${W} · … et rien n'en déborde`, r.deborde===0, `${r.deborde} rangée(s)`);
@@ -3802,7 +3789,8 @@ await sec('CHAPEAU · condition d’entrée → memory items → bouton', async 
 });
 
 /* ── LE PARCOURS MONTRE TOUT CE QU'IL PROMET (v5.0.9) ───────────────────────────────────────
-   Trois défauts signalés à l'usage, tous dans l'onglet « Parcours » de « Toute la fiche ».
+   Trois défauts signalés à l'usage, dans l'onglet « Parcours » de « Toute la fiche » — mesurés depuis A389 sur le
+   parcours de « Se repérer », qui le remplace.
    (1) La réponse attendue était `flex:none` dans une rangée qui n'enroulait pas : le seul objet
    compressible était le GESTE, qui tombait à quelques pixels pendant que la pilule sortait de la
    carte. Le témoin CONSTRUIT SON CAS — une réponse volontairement longue, sur l'écran le plus
@@ -3827,42 +3815,38 @@ await sec('PARCOURS · la réponse enroule, la branche se nomme', async () => {
         {id:'b3',kind:'do',title:'Suite',items:[],next:null}]});
     await Data.put(f);fiches.push(f);openRead(f.id);await w(450);
     document.getElementById('sessStart').click();await w(500);
-    document.getElementById('allBtn').click();await w(600);
-    document.querySelector('[data-alltab="parcours"]').click();await w(600);
-    const wrap=document.querySelector('.pc-wrap');if(!wrap)return {err:'pas de .pc-wrap'};
+    /* A389 : l'onglet « Parcours » a vécu — ses propriétés se mesurent sur le parcours de « Se repérer » (A388). */
+    openPlanSheet();await w(600);
+    const wrap=document.querySelector('#planModal .pf-flat');if(!wrap)return {err:'pas de parcours dans « Se repérer »'};
     const deb=[],ecr=[];let avecR=0;
-    /* ⚠ v5.6 : la SÉQUENCE est une pile de RANGÉES, et seul le bloc COURANT développe ses items
-       (les autres n'affichent que leur compte — le contenu complet, c'est l'onglet « Page »).
-       Le porteur d'un `.pc-it` est donc `.pc-row.cur` OU une des trois cartes encadrantes ; ne
-       scanner que `.pc-card` rendait un ensemble vide, donc un témoin faux. */
-    wrap.querySelectorAll('.pc-card,.pc-row').forEach(c=>{const cb=c.getBoundingClientRect();
-      c.querySelectorAll('.pc-it').forEach(it=>{
-        const tx=it.querySelector('.pc-t'),rp=it.querySelector('.pc-r');
+    wrap.querySelectorAll('.pf-row').forEach(c=>{const cb=c.getBoundingClientRect();
+      c.querySelectorAll('.pf-steps li').forEach(it=>{
+        const tx=it.querySelector('.pf-lb'),rp=it.querySelector('.pf-r');
         if(tx&&tx.getBoundingClientRect().width<60)ecr.push(tx.textContent.slice(0,24));
         if(!rp)return;avecR++;const rb=rp.getBoundingClientRect();
         if(rb.right>cb.right+.5||rb.left<cb.left-.5)deb.push({t:(tx||{}).textContent,d:Math.round(rb.right-cb.right)});});});
     const avant=state.checked&&JSON.stringify(state.checked);
-    const it0=wrap.querySelector('.pc-it');if(it0)it0.click();await w(150);
+    const it0=wrap.querySelector('.pf-steps li');if(it0)it0.click();await w(150);
     return {deb,ecr,avecR,
-      brc:[...wrap.querySelectorAll('.pl-brc')].map(x=>x.textContent.trim()),
-      jmp:[...wrap.querySelectorAll('.pc-jmp')].map(x=>x.textContent.trim()),
-      rows:[...wrap.querySelectorAll('.pc-row,.pc-card')].map(x=>x.textContent.trim().slice(0,40)),
+      brc:[...wrap.querySelectorAll('.pf-row.dec .pf-opt b')].map(x=>x.textContent.trim()),
+      jmp:[...wrap.querySelectorAll('.pf-row.dec .pf-opt')].map(x=>x.textContent.trim()),
+      rows:[...wrap.querySelectorAll('.pf-row .pf-title')].map(x=>x.textContent.trim().slice(0,40)),
       ck:wrap.querySelectorAll('[data-ck]').length,
       inerte:JSON.stringify(state.checked)===avant};},
     items(['⚠ Curariser :: succinylcholine, après vérification de la kaliémie et du délai de jeûne',
       'Ventilation :: PaCO2 35–45 mmHg']));
   t('témoin : le cas est RENCONTRÉ (des réponses attendues sont rendues)', r.avecR>=2, JSON.stringify({avecR:r.avecR,err:r.err}));
-  t('la réponse attendue ne sort jamais de sa carte', (r.deb||[]).length===0, JSON.stringify(r.deb));
+  t('la réponse attendue ne sort jamais de sa rangée', (r.deb||[]).length===0, JSON.stringify(r.deb));
   t('… et elle n’écrase pas le geste', (r.ecr||[]).length===0, JSON.stringify(r.ecr));
   t('CHAQUE branche de la décision porte son étiquette',
-    (r.brc||[]).length===2&&/OUI/.test(r.brc[0])&&/NON/.test(r.brc[1]), JSON.stringify(r.brc));
+    (r.brc||[]).length===2&&/^Oui/.test(r.brc[0])&&/^Non/.test(r.brc[1]), JSON.stringify(r.brc));
   /* Les DEUX branches de cette fiche sont sans carte — l'une rejoint le point de convergence
      (« → »), l'autre reboucle sur un bloc déjà décrit (« ↺ ») : les deux formes de renvoi que
      `flowPlan` sait émettre, donc les deux qui disparaissaient. */
   /* A344 : « Oui — stabilisé » mène à « Suite », seule branche à contenu — elle porte donc sa
      carte (la suite du tronc), et seule « Non — réfractaire » reste un renvoi (« ↺ »). */
   t('une branche sans carte affiche son renvoi au lieu de rien',
-    (r.jmp||[]).some(x=>/^↺/.test(x))&&((r.jmp||[]).some(x=>/^→/.test(x))||(r.rows||[]).some(x=>/Suite/.test(x))), JSON.stringify([r.jmp,r.rows]));
+    (r.jmp||[]).some(x=>/↺/.test(x))&&((r.jmp||[]).some(x=>/→|ci-dessous/.test(x))||(r.rows||[]).some(x=>/Suite/.test(x))), JSON.stringify([r.jmp,r.rows]));
   t('la vue reste INERTE (aucun data-ck, rien ne se coche)', r.ck===0&&r.inerte===true, JSON.stringify({ck:r.ck,inerte:r.inerte}));
   await page.close();
 }
@@ -4011,22 +3995,20 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
     {const tg=lad&&lad.querySelector('[data-plfold][aria-expanded="false"]');if(tg){tg.click();await w(200);
       lad=[...document.querySelectorAll('.read-plan .pf-row')].find(l=>/Analyse du rythme|Rythme choquable/.test(l.textContent));}}
     const jll=lad?lad.querySelector('.pf-jl'):null;const srj=!!jll;
+    /* A389 : l'onglet « Parcours » a vécu — le parcours se lit dans la colonne (A388), dépliée comme le ferait l'utilisateur. */
+    {const ta=document.querySelector('.read-plan [data-plall="1"]');if(ta){ta.click();await w(250);}}
+    const pcjl=[...document.querySelectorAll('.read-plan .pf-jl')].map(e=>e.textContent).join('|');
+    const pcloop=[...document.querySelectorAll('.read-plan .pf-jump')].filter(e=>/↺/.test(e.textContent)).map(e=>e.textContent).join('|');
     const ab=document.getElementById('allBtn');if(ab)ab.click();await w(400);
     const svjl=[...document.querySelectorAll('.sv-jl')].map(e=>e.textContent).join('|');
     const svloop=[...document.querySelectorAll('.sv-jump.loop')].map(e=>e.textContent).join('|');
-    const pt=document.querySelector('[data-alltab="parcours"]');if(pt)pt.click();await w(300);
-    const pcjl=[...document.querySelectorAll('.pc-jl')].map(e=>e.textContent).join('|');
-    /* v5.6 : le renvoi de boucle a quitté le pied de carte pour la COLONNE DE DROITE de la
-       rangée — c'est la même information (où va-t-on après) au même endroit que les renvois
-       d'une décision. Le témoin suit le composant, il ne disparaît pas avec son ancien porteur. */
-    const pcloop=[...document.querySelectorAll('.pc-row .pc-go')].filter(e=>/↺/.test(e.textContent)).map(e=>e.textContent).join('|');
     return {srj,jll:jll?jll.textContent:'',svjl,svloop,pcjl,pcloop};});
   t('Liste : la rangée ANNONCE le jalon, condition en toutes lettres',
     c3.srj===true&&/Chocs délivrés ≥ 3/.test(c3.jll), JSON.stringify({srj:c3.srj,jll:c3.jll.slice(0,60)}));
   t('Statique : la cellule porte le jalon, condition en toutes lettres', /Chocs délivrés ≥ 3/.test(c3.svjl), c3.svjl.slice(0,80));
-  t('Parcours : idem, inerte', /Chocs délivrés ≥ 3/.test(c3.pcjl), c3.pcjl.slice(0,80));
+  t('Parcours (colonne dépliée) : idem, inerte', /Chocs délivrés ≥ 3/.test(c3.pcjl), c3.pcjl.slice(0,80));
   t('P4 : les renvois de boucle portent la période du cycle (statique ET parcours)',
-    /toutes les 2 min/.test(c3.svloop)&&/toutes les 2 min/.test(c3.pcloop),
+    /toutes les 2\smin/.test(c3.svloop)&&/toutes les 2\smin/.test(c3.pcloop),
     JSON.stringify({sv:c3.svloop.slice(0,60),pc:c3.pcloop.slice(0,60)}));
   await page.close();
 }
@@ -7333,6 +7315,162 @@ for (const [W,H,Z] of [[390,844,100],[320,568,100],[844,390,130]]) {
 }}
 });
 
+/* ══ A391 — LA PAGE : UNE ENTRÉE, UNE POINTE ; LES RETOURS PAR LE BAS ; L'ÉCHELLE MESURÉE ; LES MOMENTS EN MOTS ════
+   (1) Une sortie qui vise la première rangée d'une branche de fourche rejoignait la barre à 8 px près et posait une
+   SECONDE pointe collée à celle de la fourche. (2) Un retour depuis une pilule traversait le tronc de sa colonne et
+   courait sur la bordure d'une pilule voisine. (3) Peintes pendant l'animation d'ouverture du Tableau, toutes les
+   voies étaient décalées d'1,5 %. (4) Les réglages de coche s'écrivent comme dans le parcours (A388). */
+await sec('Page · A391 entrées, retours, échelle, moments en mots', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:1100}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const it=a=>a.map(x=>v4MakeItem(uid('i'),'do',x));
+    const f=migrate({id:'a391',title:'Sonde A391',start:'b1',blocks:[
+      {id:'b1',kind:'do',title:'Départ',items:it(['a']),next:'d0'},
+      {id:'d0',kind:'decision',title:'Gravité',question:'Q ?',options:[{label:'Non',target:'b2'},{label:'Oui — grave',target:'b13'}]},
+      {id:'b2',kind:'do',title:'Traitement',items:it(['t']),next:'d1'},
+      {id:'d1',kind:'decision',title:'Évolution',question:'Q2 ?',options:[{label:'Récidive',target:'b12'},{label:'Contrôlé',target:'b13'}]},
+      {id:'b12',kind:'do',title:'Deux',items:it(['m']),next:null},
+      {id:'b13',kind:'do',title:'Relais',items:it(['o']),next:null}]});
+    await Data.put(f);fiches.push(f);openRead(f.id);await w(300);openPlanSheet('page');await w(900);
+    const sheet=document.querySelector('#planModal .sv-sheet'),sr=sheet.getBoundingClientRect(),Z=sr.width/sheet.offsetWidth;
+    const b13=sheet.querySelector('[data-svgo="b13"]'),brEl=b13.closest('.sv-br'),fk=b13.closest('.sv-fork');
+    const X=v=>Math.round(v*10)/10,bar={x:X((brEl.getBoundingClientRect().left-sr.left)/Z+14),y:X((fk.getBoundingClientRect().top-sr.top)/Z-7)};
+    const pts=[...sheet.querySelectorAll('.sv-gut path.lp')].map(p=>p.getAttribute('d').match(/-?[\d.]+/g).map(Number));
+    const fin=pts.some(a=>Math.abs(a[a.length-2]-bar.x)<1&&Math.abs(a[a.length-1]-bar.y)<1);
+    const tete=[...sheet.querySelectorAll('.sv-gut path.lph')].some(p=>{const n=p.getAttribute('d').match(/-?[\d.]+/g).map(Number);return Math.abs(n[2]-bar.x)<8&&n[3]>bar.y;});
+    const tgt=b13.classList.contains('sv-tgt');
+    closePlanSheet();await w(200);
+    // ACR : retours par le bas, contenu en mots
+    const acr=fiches.find(x=>/Arrêt cardiaque/.test(x.title));openRead(acr.id);await w(300);openPlanSheet('page');await w(900);
+    const sh=document.querySelector('#planModal .sv-sheet'),s2=sh.getBoundingClientRect(),Z2=s2.width/sh.offsetWidth;
+    const pills=[...sh.querySelectorAll('[data-svpill]')].map(el=>{const b=el.getBoundingClientRect();return {l:(b.left-s2.left)/Z2,b:(b.bottom-s2.top)/Z2};});
+    const segs=[...sh.querySelectorAll('.sv-gut path.lp')].map(p=>p.getAttribute('d').match(/-?[\d.]+/g).map(Number));
+    const parLeBas=pills.length>=2&&pills.every(pl=>segs.some(a=>Math.abs(a[0]-(pl.l+16))<1.5&&Math.abs(a[1]-pl.b)<1.5));
+    const txt=sh.textContent;
+    /* Jonction : le tronc qui mène à une pilule descend jusqu'à son raccord (le prolongement était écrasé par la
+       spécificité des :not()). Pointe : un vrai trait la précède (≥ 10 px), elle n'est pas posée sur le coude. */
+    const jonctions=[...sh.querySelectorAll('.sv-jrow')].map(j=>{const pv=j.previousElementSibling;const pa=getComputedStyle(pv,'::after'),jb=getComputedStyle(j,'::before');
+      return Math.round((pv.getBoundingClientRect().bottom-s2.top)/Z2-parseFloat(pa.bottom))-Math.round((j.getBoundingClientRect().top-s2.top)/Z2+parseFloat(jb.top)+1);});
+    const avantPointe=[...sh.querySelectorAll('.sv-gut path.lph')].map(h=>{const n=h.getAttribute('d').match(/-?[\d.]+/g).map(Number);
+      const tip=[n[2],n[3]];const seg=segs.find(a=>Math.abs(a[a.length-2]-tip[0])<0.6&&Math.abs(a[a.length-1]-tip[1])<0.6);
+      return seg?Math.round(Math.hypot(seg[seg.length-2]-seg[seg.length-4],seg[seg.length-1]-seg[seg.length-3])):0;});
+    return {fin,tete,tgt,parLeBas,pills:pills.length,jonctions,avantPointe,
+      gh:[...sh.querySelectorAll('.sv-stp li.sv-gh')].map(e=>e.textContent.trim()),
+      q:[...sh.querySelectorAll('.sv-stp .pf-q')].map(e=>e.textContent.trim()),
+      caps:/CHOCS DÉLIVRÉS ≥ 3 · UNE SEULE FOIS|À L’ÉCHÉANCE/.test(txt)||!!sh.querySelector('.mo-rule,.wt-sv'),
+      jl:(sh.querySelector('.sv-jl')||{}).textContent||'',
+      schema:(()=>{const d=document.createElement('div');d.innerHTML=buildFlowSVG(acr,false);const tx=[...d.querySelectorAll('text')].map(t=>t.textContent);
+        return {si:tx.filter(t=>/^Si Chocs délivrés ≥ [35]/.test(t)).length,q:tx.filter(t=>/toutes les 4\u00a0min|si pas déjà faite|\+1 Chocs délivrés/.test(t)).length};})()};});
+  t('sortie vers une branche de fourche : elle finit SUR la barre, au sommet de la branche',r.fin,JSON.stringify(r));
+  t('… sans seconde pointe, et sans marge de cible',!r.tete&&!r.tgt,JSON.stringify({tete:r.tete,tgt:r.tgt}));
+  t('retours depuis une pilule : ils partent de son BAS',r.parLeBas,JSON.stringify({pills:r.pills,ok:r.parLeBas}));
+  t('le tronc rejoint le raccord de chaque pilule (au pixel)',r.jonctions.length>=2&&r.jonctions.every(d=>Math.abs(d)<=1),JSON.stringify(r.jonctions));
+  t('une pointe de retour est précédée d\'un vrai trait (≥ 10 px), jamais posée sur le coude',r.avantPointe.length>=1&&r.avantPointe.every(v=>v>=10),JSON.stringify(r.avantPointe));
+  t('Page : « Si seuil : » coiffe les étapes consécutives au même seuil',r.gh.length===2&&/^Si Chocs délivrés ≥ 3/.test(r.gh[0]),JSON.stringify(r.gh));
+  t('… les réglages en mots, plus de capitales ni de légende à icône',!r.caps&&r.q.some(x=>/toutes les 4\smin/.test(x))&&r.q.some(x=>/si pas déjà faite/.test(x)),JSON.stringify(r.q));
+  t('Schéma : les mêmes « Si seuil : » (groupes et jalon) et les réglages en mots sous les étapes',r.schema.si>=3&&r.schema.q>=4,JSON.stringify(r.schema));
+  t('… le jalon se lit « Si … : »',/^Si Chocs délivrés ≥ 3/.test(r.jl.trim()),r.jl.slice(0,70));
+  await page.close();
+}
+});
+
+/* ══ A390 — LA STRUCTURE DE L'ÉDITEUR SOUS 1200 px ; L'APERÇU SUIT LA VRAIE PAGE ═══════════════════════
+   (1) Sous 1200 px la colonne Structure n'existait pas : elle devient le dépliant collant du sommaire des
+   protocoles, fermé d'office, qui se referme au saut. (2) « Essayer » rendait la page d'avant la v5.30 — ni
+   cartes, ni quai, ni minuteurs — parce qu'une quinzaine de conditions écartaient l'aperçu ; il suit désormais
+   la vraie lecture, avant comme pendant l'essai, sans rien écrire. (3) Les replis de l'aperçu ne s'enregistrent pas. */
+await sec('Éditeur · A390 Structure repliable, aperçu fidèle', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const lecture=await page.evaluate(()=>[...document.querySelectorAll('main .fold-head .fh-t')].map(e=>e.textContent.trim()));
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const id=state.fiche.id;
+    const replis0=JSON.stringify([...mdFoldGet(id)]);
+    await openEdit(id);await w(500);
+    const d=document.querySelector('details.ed-toc');const o={toc:!!d,ferme:d&&!d.open,
+      colle:d?getComputedStyle(d.parentElement).position:'',rangs:d?d.querySelectorAll('[data-edgo]').length:0};
+    window.scrollTo(0,2000);await w(150);
+    d.querySelector('summary').click();await w(200);o.ouvert=d.open;
+    const b=d.querySelectorAll('[data-edgo]')[2];const bid=b.dataset.edgo;b.click();await w(500);
+    const el=document.querySelector('.blk[data-bid="'+bid+'"]').getBoundingClientRect();
+    o.refermeApresSaut=!document.querySelector('details.ed-toc').open;o.blocVisible=el.top<innerHeight&&el.bottom>0;
+    document.getElementById('hdrPreview').click();await w(600);
+    o.cartesAvant=[...document.querySelectorAll('main .fold-head .fh-t')].map(e=>e.textContent.trim());
+    o.demarrer=(document.querySelector('#sessStart:not([hidden]) .dp-lbl')||{}).textContent||'';
+    o.exo=!document.getElementById('exoKey').hidden;
+    {const fb=document.querySelector('[data-prefold="when"]');if(fb)fb.click();await w(250);}
+    document.getElementById('sessStart').click();await w(600);
+    o.essai=Runtime.started&&Runtime.essai;o.vives=Object.keys(liveSessions).length;
+    o.quai=[...document.querySelectorAll('#sessionDock .sd-key:not([hidden])')].map(k=>k.id);
+    o.cartesSession=document.querySelectorAll('main [data-sessfold]').length;
+    document.getElementById('hdrBack').click();await w(400);
+    o.replisIntacts=JSON.stringify([...mdFoldGet(id)])===replis0;
+    return o;});
+  t('éditeur 390 px : la Structure est un dépliant collant, fermé d\'office, une rangée par bloc',
+    r.toc&&r.ferme&&r.colle==='sticky'&&r.rangs>=5,JSON.stringify(r));
+  t('… il s\'ouvre, se referme au saut, et le bloc visé est à l\'écran',r.ouvert&&r.refermeApresSaut&&r.blocVisible,JSON.stringify(r));
+  t('aperçu, avant l\'essai : les MÊMES cartes que la vraie lecture',JSON.stringify(r.cartesAvant)===JSON.stringify(lecture),JSON.stringify({apercu:r.cartesAvant,lecture}));
+  t('… le quai démarre « l\'essai », sans exercice',/l’essai/.test(r.demarrer)&&!r.exo,JSON.stringify({d:r.demarrer,exo:r.exo}));
+  t('pendant l\'essai : le quai de session et les cartes sous le bloc, sans session vive enregistrée',
+    r.essai&&r.vives===0&&['endKey','allBtn','tkKey'].every(k=>r.quai.includes(k))&&r.cartesSession>=3,JSON.stringify(r));
+  t('les replis faits dans l\'aperçu ne s\'enregistrent pas sur l\'aide',r.replisIntacts===true);
+  await page.close();
+}
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const d=await page.evaluate(async()=>{await openEdit(state.fiche.id);await new Promise(x=>setTimeout(x,400));
+    const t=document.querySelector('.ed-tocwrap'),c=document.querySelector('.ed-struct');
+    return {toc:t?getComputedStyle(t).display:'absent',col:c?getComputedStyle(c).display:'absent'};});
+  t('≥ 1200 px : la colonne Structure prend le relais, le dépliant se retire',d.toc==='none'&&d.col==='flex',JSON.stringify(d));
+  await page.close();
+}
+});
+
+/* ══ A389 — L'ACCUEIL EN UNE COLONNE ; « DÉTAILLÉE » ET « COMPACTE » DIFFÈRENT À TOUTE LARGEUR ══════════
+   Les livres côte à côte (A347, 320 px par groupe) tronquaient la méta ; et le réglage de densité n'agissait que
+   sous 780 px — sur tablette et bureau les deux choix rendaient la même chose. La colonne gauche ne porte plus
+   de ✎ par bibliothèque ni « Nouvelle bibliothèque » : un « Gérer » (Moi › Bibliothèques) les remplace. */
+await sec('Accueil · A389 une colonne, deux densités, gestion des bibliothèques', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:1000}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const mesure=()=>page.evaluate(()=>{const r=[...document.querySelectorAll('.dir-book .dir-row')];
+    const xs=[...new Set([...document.querySelectorAll('.dir-book .dir-g')].map(g=>Math.round(g.getBoundingClientRect().left)))];
+    return {n:r.length,xs,h:[...new Set(r.map(x=>Math.round(x.getBoundingClientRect().height)))],
+      coupes:r.filter(x=>{const s=x.querySelector('.dir-sub');return s&&s.scrollWidth>s.clientWidth+1;}).length,
+      uneLigne:r.every(x=>{const t=x.querySelector('.card-open'),m=x.querySelector('.dir-sub');return t&&m&&Math.abs(t.getBoundingClientRect().top-m.getBoundingClientRect().top)<12;})};});
+  await page.evaluate(()=>{const cats=categories.slice(0,3);const base=fiches[0];
+    for(let i=0;i<12;i++)fiches.push(migrate({...JSON.parse(JSON.stringify(base)),id:'a389-'+i,title:'Aide de mesure numéro '+(i+1),discriminant:i%4?'':'adulte',category:cats[i%3].id,code:''}));
+    state.homeGroup='cat';state.homeCompact=false;render();});
+  await page.waitForTimeout(300);
+  const det=await mesure();
+  await page.evaluate(()=>{state.homeCompact=true;render();});await page.waitForTimeout(300);
+  const cmp=await mesure();
+  t('témoin : la liste est rendue en plusieurs groupes',det.n>=12,JSON.stringify(det.n));
+  t('une seule colonne (tous les groupes au même x), aux deux densités',det.xs.length===1&&cmp.xs.length===1,JSON.stringify([det.xs,cmp.xs]));
+  t('aucune méta coupée, aux deux densités',det.coupes===0&&cmp.coupes===0,JSON.stringify([det.coupes,cmp.coupes]));
+  t('« Compacte » diffère de « Détaillée » en large : titre et méta sur une ligne, rangées plus basses',
+    cmp.uneLigne&&!det.uneLigne&&Math.max(...cmp.h)<Math.min(...det.h),JSON.stringify({det:det.h,cmp:cmp.h}));
+  const side=await page.evaluate(()=>{const s=document.querySelector('.home-side');
+    return {edit:s?s.querySelectorAll('[data-libedit]').length:-1,neu:s?s.querySelectorAll('[data-newlib]').length:-1,
+      gerer:s?s.querySelectorAll('[data-libmgr]').length:-1,attendu:mgrDeux()};});
+  t('colonne gauche : ni ✎ par bibliothèque ni « Nouvelle bibliothèque » ; « Gérer » seulement s\'il y a à gérer',
+    side.edit===0&&side.neu===0&&side.gerer===(side.attendu?1:0),JSON.stringify(side));
+  await page.close();
+}
+});
+
 /* ══ A388 — LE LIEU FIXE DENSITÉ ET REPLI ; LES RÉGLAGES DE COCHE S'ÉCRIVENT EN MOTS ════════════
    La colonne (cockpit ≥ 1200) naît REPLIÉE avant comme pendant la session — la version d'avant ne
    pliait qu'en session, et la liste faisait 1 540 px dans 670. Une décision repliée garde ses
@@ -7372,7 +7510,7 @@ await sec('Parcours · A388 lieu, repli, conditions en mots', async () => {
   t('… étapes à 13,5 px dans la colonne',tout.etape===13.5,String(tout.etape));
   t('deux étapes CONSÉCUTIVES au même seuil partagent UN en-tête « Si … : »',tout.gh.length===2&&/^Si Chocs délivrés ≥ 3/.test(tout.gh[0])&&/≥ 5/.test(tout.gh[1]),JSON.stringify(tout.gh));
   t('les réglages de coche s\'écrivent en mots (compte, échéance, une seule fois)',
-    tout.q.some(x=>/\+1 Chocs délivrés/.test(x))&&tout.q.some(x=>/toutes les 4 min/.test(x))&&tout.q.some(x=>/si pas déjà faite/.test(x)),JSON.stringify(tout.q));
+    tout.q.some(x=>/\+1 Chocs délivrés/.test(x))&&tout.q.some(x=>/toutes les 4\smin/.test(x))&&tout.q.some(x=>/si pas déjà faite/.test(x)),JSON.stringify(tout.q));
   t('le mot CRITIQUE / VIGILANCE ne décale pas le libellé (une seule abscisse), sans aplat, calé à droite',
     tout.xs.length===1&&/rgba\(0, 0, 0, 0\)|transparent/.test(tout.mkFond)&&tout.mkFlot==='right',JSON.stringify({xs:tout.xs,fond:tout.mkFond,flot:tout.mkFlot}));
   const sess=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
@@ -7748,7 +7886,7 @@ await sec('A344 · le tracé ne touche rien, et le papier se pagine avant d\'êt
     return {page:document.body.classList.contains('print-page'),mode:state.readMode,tab:state.allTab,
       pages:_svPages?_svPages.length:0,coupes:document.querySelectorAll('.sv-cut').length,
       nogut:document.body.classList.contains('print-nogut'),
-      journal:!!document.querySelector('.ov-wrap,.pc-wrap')};});
+      journal:!!document.querySelector('.ov-wrap')};});
   t('A344 · imprimer une aide imprime LA PAGE, jamais le journal d\'une session',
     pr.page===true&&pr.mode==='static'&&pr.tab==='page'&&pr.journal===false, JSON.stringify(pr));
   t('A344 · le paginateur a posé ses pages, et il n\'a pas renoncé',

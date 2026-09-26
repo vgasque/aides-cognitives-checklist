@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-heXfA2Wf6HdKI5PMQbAvnakHW+cBi6fBFcURc82r4Lk='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-ZGC0dq5R34gKw4sk14FKmNnveeCS6nXjFsxxo/0b+zI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2584,9 +2584,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      jamais : la teinte de confirmation s'applique dans les deux dispositions, sur le blanc de la
      carte quand il y en a une, sur le blanc du livre sinon. */
   .dir-book .dir-row.live::before{width:4px}   /* compact : le livre à filets garde un liseré plus fin */
-  /* v5.30 (maquette v5) — VOIE ÉTROITE, vue DÉTAILLÉE : une CARTE par rangée (liseré 6 px,
-     titre 17,5, discriminant sur sa ligne, méta 13,5) ; la vue COMPACTE garde le livre à filets. */
-  @media (max-width:779.98px){
+  /* v5.30 (maquette v5) — vue DÉTAILLÉE : une CARTE par rangée (liseré 6 px, titre 15/700,
+     discriminant sur sa ligne, méta 13,5) ; la vue COMPACTE garde le livre à filets. A389 : à TOUTES
+     les largeurs — elle n'existait que sous 780 px, et « Détaillée » / « Compacte » rendaient la même
+     chose sur tablette et bureau. */
     /* A362 : les cartes d'un groupe se touchaient (0 px, coins 14 qui se chevauchaient) et un
        groupe n'était séparé du suivant que par 10 px — 8 px ENTRE les cartes, 24 px AVANT chaque
        intertitre, 10 px sous lui (planche A) ; le livre compact à filets ne change pas. */
@@ -2610,7 +2611,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     html.zw360 .dir-book:not(.compact) .dir-id{display:contents}
     html.zw360 .dir-book:not(.compact) .dir-st{margin-left:auto;padding-left:6px}
     html.zw360 .hdr-hist{display:none}   /* 320 px : la marque et les deux actions ne laissent pas la place ; l'historique reste au pied */
-  }
   /* Feuille « Affichage » */
   .hdr-hist{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
   body.view-home #hdrNew{background:var(--act);color:var(--on-primary);border-radius:var(--r-4)}
@@ -2945,7 +2945,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pre-flow{background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);border-radius:var(--r-4);overflow:hidden;margin-bottom:10px}
   .pre-flow .pre-lad{padding:0 8px 12px}
   /* Le parcours à plat (v5.30) */
-  /* A376 — L'ÉCHELLE EST PURGÉE : `ovPlanLadderHtml` et ses classes `.pl-line`, `.pl-lx`, `.pl-lxt`, `.pl-lnk`, `.pl-ref`, `.pl-jmp`, `.pl-phase`, `.pl-x`, `.pl-jlm`, `.pl-q`, `.pl-stp`, `.pl-jll`, `.pl-lbl` ont été RETIRÉES (65 règles) : la feuille « Se repérer », la colonne du cockpit et le rail 780-1199 rendent la liste numérotée à renvois écrits ci-dessous (A349), l'état de session peint en classes `cur`/`done`/`off`. Restent vivantes, émises par « Toute la fiche » : `.pl-brc`, `.pl-here`, `.pl-sech` (`.pl-r` purgée en A388 : la réponse du parcours est `.pf-r`, au corps du texte). */
+  /* A376 — L'ÉCHELLE EST PURGÉE : `ovPlanLadderHtml` et ses classes `.pl-line`, `.pl-lx`, `.pl-lxt`, `.pl-lnk`, `.pl-ref`, `.pl-jmp`, `.pl-phase`, `.pl-x`, `.pl-jlm`, `.pl-q`, `.pl-stp`, `.pl-jll`, `.pl-lbl` ont été RETIRÉES (65 règles) : la feuille « Se repérer », la colonne du cockpit et le rail 780-1199 rendent la liste numérotée à renvois écrits ci-dessous (A349), l'état de session peint en classes `cur`/`done`/`off`. `.pl-r` purgée en A388 (la réponse du parcours est `.pf-r`) ; `.pl-brc`, `.pl-here`, `.pl-sech` purgées en A389 avec l'onglet « Parcours » de « Tout voir » qui les émettait. */
   .pf-flat{display:flex;flex-direction:column;gap:4px}
   .pf-row{display:flex;gap:12px;padding:6px 8px;border-radius:var(--r-4);position:relative}
   .pf-row.dec{background:var(--warn-soft);padding:8px 12px 8px 8px}
@@ -3005,8 +3005,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
   .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);white-space:nowrap}
-  .mo-rule{display:block;width:fit-content;margin:2px 0 0;font-size:var(--t-meta);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}   /* A382 : la règle du moment, sans état */
-  .sv-stp li .mo-rule{flex-basis:100%;font-size:var(--t-cap)}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -3060,6 +3058,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      On répare EN (1,1,2), jamais par l'ordre ; 14 px — un objet interactif ne finit pas au
      contact d'une bordure de coupure. */
   .ref-tocwrap>.ref-toc[open]{padding-bottom:14px}
+  .ed-toc-l{padding-top:4px}   /* A390 : la Structure de l'éditeur dans le dépliant du sommaire — rangées `.eds-row` de la colonne */
+  .ed-toc .rail-head{display:flex;align-items:baseline;gap:8px;margin:12px 0 4px}
+  .ed-toc .rail-n{font-size:var(--t-cap);font-weight:700;color:var(--ink-2)}
   details.ref-toc{background:none;border:0;border-radius:0}
   /* OUVERT, il RECOUVRE le texte : il prend alors son ombre et se borne, avec l'intitulé
      maintenu à l'écran pour que la sortie ne parte jamais hors de portée. Replié il ne recouvre
@@ -3267,90 +3268,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
     color:var(--ink-soft);margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--line)}
   .eds-ph:first-child{margin-top:0;padding-top:0;border-top:0}
-  /* Les trois sections qui encadrent le parcours inerte (M6). Désaturées comme le reste de la
-     colonne : elle ORIENTE, la colonne d'action AGIT — deux surfaces ne se disputent pas le
-     regard au même niveau de saillance. */
-  /* L'ONGLET « PARCOURS » (v5.6, maquette) : la SÉQUENCE en rangées — une par bloc, l'état dans
-     la marque, les renvois à droite ; seul le bloc COURANT développe ses items. Le contenu
-     complet, c'est l'onglet « Page ». Les cartes `.pc-card` restent pour les trois sections
-     encadrantes (condition d'entrée, à tout moment, surveiller) : ce ne sont pas des blocs de
-     la séquence, et la différence de forme le dit. */
-  .pc-sub{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:var(--t-cap);font-weight:600;color:var(--ink-3);margin:2px 0 10px}
-  .pc-sub b{font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-  .pc-rows{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:10px}
-  .pc-row{background:var(--work);border:1px solid var(--line);border-radius:var(--r-2);padding:10px 14px;
-    font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
-  .pc-row.d1{margin-left:12px}.pc-row.d2{margin-left:24px}.pc-row.d3{margin-left:32px}
-  .pc-rh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  .pc-mk{flex:none;color:var(--ok);font-weight:800;display:inline-flex;align-items:center}
-  .pc-mk:empty{display:none}
-  .pc-rt{flex:1;min-width:0}
-  .pc-x{color:var(--ink-3);font-size:var(--t-meta);font-weight:600}
-  .pc-gn{flex:none;font-family:var(--mono);font-size:var(--t-cap);color:var(--ink-3)}
-  .pc-go{flex:none;max-width:52%;font-size:var(--t-cap);font-weight:700;color:var(--act);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pc-off{flex:none;font-size:var(--t-cap);color:var(--ink-3)}
-  /* Le bloc courant : filet d'accent, jamais un aplat — la vue reste une vue d'ORIENTATION. */
-  .pc-row.cur{border-color:var(--act);color:var(--ink)}
-  .pc-row.off{border-style:dashed;color:var(--ink-3)}
-  .pc-row.cur .pc-rh{padding-bottom:8px}
-  .pc-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);
-    border-radius:var(--radius-md);padding:10px 12px;margin:0 0 10px}
-  /* Seuls `entry` et `exc` sont émis (ovParcoursHtml) : les états d1-d3, cur, done, dec, off de
-     la vue spatiale v4.6 sont purgés (assainissement v5.20.x) — l'état d'un passage vit sur `.pc-row`. */
-  .pc-card.exc{border-left-color:var(--critical-bd)}
-  .pc-card.entry{background:var(--surface-2)}
-  .pc-h{display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
-  .pc-n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono);font-size:11px;font-weight:700;color:var(--on-primary);background:var(--primary)}
-  /* Badge neutre par défaut ; `.ok` (déclaré APRÈS, même spécificité) reprend le vert. L'écriture
-     d'origine `:not(.cur):not(.done)` — états morts — pesait (0,4,0) et écrasait `.ok` : le ✓ de
-     « Quand l'utiliser » s'affichait sur fond neutre, prouvé à la sonde deux moteurs (v5.20.2). */
-  .pc-card .pc-n{background:var(--surface);color:var(--ink-soft);border:1.5px solid var(--line-strong)}
-  .pc-n.ok{background:var(--ok);color:var(--on-primary);border:0}
-  .pc-ht{flex:1;min-width:0;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
-  /* L'item : case INERTE (aucun `data-ck`, `aria-hidden`), texte, valeur attendue en pilule mono. */
-  /* ⚠ LA RÉPONSE ATTENDUE PREND SA PROPRE LIGNE (v5.0.9, signalé à l'usage, capture à l'appui) :
-     `.pc-r` était `flex:none` dans une rangée qui n'ENROULAIT PAS, donc le seul objet compressible
-     était le GESTE (`.pc-t`, `min-width:0`) — mesuré, « Curariser… » tombait à 12 px de large
-     (« C ») pendant que la pilule sortait de la carte de 260 px. On perdait ainsi l'information
-     principale ET la secondaire. Le remède est déjà écrit dans ce fichier, pour ce défaut exact,
-     sur la feuille « Consulter » : `.rs-v` (`flex:1 1 100%` + retrait de la case). Une seule
-     grammaire — on enroule, on ne tronque jamais (doctrine des renvois de l'Échelle, v4.55.3 :
-     « dans un PLAN, une branche cachée est une branche qu'on ne saura pas prendre »).
-     Le retrait de 32 px = la case (22) plus l'écart (10) : la pilule s'aligne sur le texte. */
-  .pc-it{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
-  .pc-it:last-of-type{border-bottom:0}
-  .pc-box{flex:none;width:22px;height:22px;border-radius:8px;border:2px solid var(--line-strong)}
-  .pc-t{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--ink)}
-  .pc-r{flex:1 1 100%;margin-left:32px;font-family:var(--mono);font-size:11px;background:var(--tag-bg);color:var(--tag-ink);
-    border-radius:8px;padding:2px 6px;overflow-wrap:anywhere}
-  /* Boîte signalée : le rembourrage horizontal est COMPENSÉ par une marge négative (patron du
-     bleed d'ol.steps, v4.23.5) — la case reste sur la même verticale que les lignes normales,
-     la teinte déborde dans le rembourrage de la carte au lieu de décaler le contenu. */
-  .pc-it.crit{background:var(--critical-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
-  .pc-it.crit .pc-t{color:var(--critical);font-weight:800}
-  .pc-it.crit .pc-box{border-color:var(--critical-bd)}
-  .pc-it.vig{background:var(--verify-soft);border-radius:var(--radius-sm);padding:6px 8px;margin:2px -8px}
-  .pc-it.vig .pc-t{color:var(--verify);font-weight:800}
-  .pc-it.vig .pc-box{border-color:var(--verify-bd)}
-  /* Le pied d'une carte et le renvoi d'une branche SANS carte (boucle ou fin) disent la MÊME
-     chose — « et ensuite, où ? » — et partagent donc une seule déclaration : deux boîtes mono à
-     un palier d'écart se liraient comme deux niveaux là où il n'y en a qu'un (et le quota du
-     plancher typographique n'a pas à payer une redite). Seuls les retraits diffèrent : le renvoi
-     s'aligne sur l'étiquette de branche qu'il suit. Inerte — la vue entière l'est. */
-  .pc-foot,.pc-jmp{padding:6px 8px;background:var(--surface-2);border-radius:var(--radius-sm);
-    font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
-  .pc-foot{margin-top:6px}
-  .pc-jmp{margin:0 0 8px}
-  .pc-jmp.d1{margin-left:20px}.pc-jmp.d2{margin-left:32px}.pc-jmp.d3{margin-left:48px}
-  .pc-jmp.loop{color:var(--link);background:var(--primary-soft)}
-  .pc-q{font-size:13.5px;font-weight:700;color:var(--verify);margin:2px 0 6px}
-  .pc-opts{display:flex;flex-wrap:wrap;gap:6px}
-  .pc-opt{font-size:11px;font-weight:700;color:var(--verify);background:var(--verify-soft);
-    border:1px solid var(--verify-bd);border-radius:8px;padding:2px 8px}
-  .pc-opt.tk{color:var(--ok);background:var(--done-bg);border-color:var(--done-line)}
-  .pc-opt b{font-family:var(--mono);font-weight:700}
   /* ══ « CONSULTER » EST UN DOCUMENT, DONC DES LIGNES (v5.6, maquette — demande utilisateur :
      « rends surveiller, documents etc. plus inline ») ════════════════════════════════════════
      LA CASE INERTE EST PURGÉE, ET C'EST LE MÊME ARGUMENT QU'EN v5.0.0/M1 POUR L'ÉDITEUR : une
@@ -3518,14 +3435,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .rt-dock :is(.tk-el,.tk-from,.tk-sug){color:var(--sys-ink-2)}
   .rt-dock .tk-lab{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
   .rt-dock :is(.tk-del,.tk-time){color:var(--sys-ink-2)}
-  /* ⚠ UN seul dessin d'intertitre dans la colonne : `.pl-cxh` est PURGÉE avec sa règle et ses
-     sondes (règle 14), `.pl-sech` reste seule. Tous les intertitres partent du MÊME x (18 px,
-     mesuré — on n'extrapole pas d'une surface à l'autre) ; les rangées gardent leur retrait de
-     2 px ; marge basse 10 px / haute 20 px pour tout en-tête de queue. Détail : doctrine-css.md C65. */
   .rail-lad .rail-head{margin:20px 0 4px}
-  .pl-sech{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
-    color:var(--ink-soft);margin:16px 0 2px;padding:0;line-height:1.35}
-  .pl-sech span{font-weight:700;color:var(--ink-soft);letter-spacing:.04em}
   /* Sans pastille, le texte d'une rangée de queue commence au bord — comme dans la maquette. */
   /* Une complication porte le liseré ROUGE : c'est le seul endroit de la colonne où un registre
      paraît, et il dit « ceci n'est pas dans la séquence, ceci arrive ». */
@@ -3791,8 +3701,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .wt-blk{margin-top:4px}   /* sous le titre d'un bloc : le titre à 21 px a déjà son interligne */
   ol.steps li.has-wt{align-items:flex-start}
   ol.steps li.has-wt .txt{padding-top:6px}   /* 1ʳᵉ ligne du libellé centrée sur la case de 36 px */
-  .sv-stp li .wt-sv,.wt-sv{flex-basis:100%;height:auto;margin:1px 0 0;padding:0;font-size:var(--t-cap);line-height:1.35}   /* Page : au corps de la feuille */
-  .wt-sv .wt-g{width:12px;height:12px}
   /* Mouvements — chacun répond à UN geste et dit ce qu'il a fait (lot-v5-31.md, A378) : cocher
      fait MONTER (le chiffre) ou REMPLIR (l'anneau, relancé depuis zéro), décocher fait REDESCENDRE ;
      le filet sous « décocher annule » se vide avec la fenêtre de 10 s ; l'échéance se pose en
@@ -4044,9 +3952,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .jl-row.on+.jl-row{border-top:0}
   .jl-go{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border:1px solid var(--critical-bd);border-radius:var(--radius-sm);background:var(--surface);font-family:inherit;font-size:13.5px;font-weight:700;color:var(--critical);cursor:pointer;flex:0 0 auto}
   .jl-go:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  /* Le jalon dans les trois vues de STRUCTURE : INERTE, encre douce, condition en gras — jamais
-     d'aplat (l'Échelle est désaturée par doctrine ; le registre VIVANT est sur la carte du bout). */
-  .pc-jl{font-size:12px;color:var(--ink-soft);padding:4px 0}
   /* Éditeur des jalons : carte au ton du chrome (--surface-2), et le champ NUMÉRIQUE reçoit son
      gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
   .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px 10px;border-radius:var(--r-3);background:var(--verify-soft)}
@@ -5488,16 +5393,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A374 : le titre de rail n'était stylé qu'au-dessus de 780 (11 px) — au téléphone il tombait sur le 16 px
      du navigateur. Une règle, un corps (meta), aux deux largeurs. */
   .rail-title{font-size:var(--t-meta);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
-  /* ⚠ LE RETRAIT DE PROFONDEUR EST ADDITIF, ET IL A UNE SOURCE UNIQUE (v5.28.1, signalé à l'usage).
-     Chaque régime écrivait ses retraits ABSOLUS, et chacun pose sa gouttière par un RACCOURCI
-     `padding` — qui écrase le `padding-left` des classes de profondeur où qu'elles soient (spécificité
-     plus haute).
-     Mesuré : étiquettes de branche toutes à 8 px avant le soin, TOUTES les rangées à 10 px en
-     session — l'arbre était plat. Le retrait devient un token AJOUTÉ à la gouttière du régime :
-     un raccourci ne peut plus l'effacer sans effacer la gouttière. Détail : lot-v5-28.md A339. */
-  .pl-brc.d1{--pl-ind:12px}
-  .pl-brc.d2{--pl-ind:24px}
-  .pl-brc.d3{--pl-ind:32px}
   /* ⚠ Le losange a EXACTEMENT le style de la pastille ; le carré tourné vit en `::before` À
      L'INTÉRIEUR (26 px à 45° = 37 de diagonale, rogné — leçon v5.0.0), le chiffre reste droit.
      ⚠ `z-index:-1` sans contexte d'empilement passe SOUS le fond du parent : `isolation:isolate`
@@ -5547,8 +5442,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* L'APERÇU À PLAT (v5.25.0) : ni carte ni pastille — numéro gris, titre gris, renvois gris ;
      la rangée garde le plancher de 32 px (cible hors crise) et reste dépliable. Spécificité
      alignée sur la compaction juste au-dessus (même nombre de classes, posée après). */
-  body.view-read .pre-lad.flat .pl-brc span{background:none;border:0;padding:0;color:var(--ink-3)}
-  body.view-read:not(.crisis-live) .rail-lad .pl-sech{margin-top:10px}
   /* ⚠ En session, même dessin — mais le PAS reste 44 px, et c'est de l'arithmétique : dessin 38 px
      + halo de 3 (A8 : la cible vient du halo) sur la gouttière de 6 déjà là (A66) = 44 exactement.
      Le pas se prend sur la RANGÉE, jamais sur l'écart ni la marge basse des titres (témoin rougit).
@@ -5560,7 +5453,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      deux titres échappe au sélecteur `.rail-lad` — les réduire toutes les deux désaccordait la
      paire ([10, 8] mesurés). La respiration se prend au-DESSUS, où elle n'engage personne. */
   body.view-read.crisis-live .rail-lad .rail-head{margin-top:12px}
-  body.view-read.crisis-live .rail-lad .pl-sech{margin-top:10px}
   body.view-read:not(.crisis-live) :is(.read-plan,.pre-lad) .rail-lad{gap:4px}
   body.view-read:not(.crisis-live) .pre-lad{gap:4px}
   /* Des BOUTONS de contour (`--ctl-line`, seul filet 3:1 — A67 ; glyphe 15 px, A13), jamais
@@ -5597,33 +5489,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Ce sont les seules rangées de la colonne à ne pas être des cartes, et la différence de
      forme dit exactement ce qu'elle doit dire : ceci n'a pas de rang. */
   /* Les marqueurs de queue : la FORME dit le registre, l'encre reste celle de la colonne. */
-  /* La chip de branche : SEULE sur sa ligne, en retrait du niveau qu'elle ouvre. */
-  .pl-brc{padding:8px 8px 4px calc(12px + var(--pl-ind,0px))}
-  /* ⚠ NEUTRE, ET C'EST DOCTRINAL (signalé à l'usage : « ça ressort beaucoup par rapport au reste
-     de la page, je ne suis pas sûr que ce soit approuvé ECAM/QRH/FAA » — la remarque est juste).
-     Cette chip nomme la BRANCHE qui mène au bloc ; ce n'est ni une alerte ni un point de
-     vigilance. En ambre plein elle empruntait le registre ATTENTION dans une colonne dont toute
-     la doctrine est la DÉSATURATION (v4.23.0 : « l'état n'y est plus porté que par le marqueur,
-     aucun texte coloré ») — donc elle criait plus fort que le contenu clinique qu'elle indexe,
-     exactement l'inflation que le dossier combat pour le rouge. Pastille NEUTRE (`--tag-bg`),
-     le registre reste au point où l'on CHOISIT : les options `.opt` de la carte de décision. */
-  .pl-brc span{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;
-    color:var(--tag-ink);background:var(--tag-bg);border:1px solid var(--line);
-    border-radius:8px;padding:2px 8px}
-  /* LE RENVOI D'UNE BRANCHE SANS RANGÉE (v5.17.4) : une option qui rejoint le tronc, reboucle ou
-     finit n'a pas de bloc à elle — sa seule chose à dire est « et ensuite, où ? ». Même objet que
-     `.pc-jmp` dans la vue « Parcours », donc même grammaire : boîte mono discrète, encre douce,
-     retrait aligné sur l'étiquette qu'elle suit. Inerte : le renvoi TAPABLE vit sur la rangée de
-     la décision juste au-dessus (`.pl-ref`) — deux cibles pour un même saut se disputeraient le
-     doigt dans une colonne de 223 px. */
   /* `white-space:normal` + `min-width:0` : chaque renvoi reste insécable (`.pl-line .g > span`
      n'existe pas — les renvois sont séparés par des espaces), mais le groupe passe à la ligne. */
   /* Les renvois sont une COLONNE DE DROITE : ils ne poussent plus le titre à la ligne. Ils
      s'abrègent (`optAbbr`) donc ils tiennent ; s'ils ne tiennent pas, c'est le TITRE qui cède —
      un titre ellipsé se devine, un renvoi tronqué ne se répare pas. */
-  .pl-here{color:var(--act);font-weight:800;letter-spacing:.07em;text-transform:uppercase}   /* A374 : renvois 11 → 12 */
-  /* Le bloc COURANT prend le filet d'accent, pas un aplat : la colonne reste désaturée, et
-     « ICI » dit la position en toutes lettres (la couleur n'est jamais seule). */
   /* HORS CHEMIN : pointillé + encre douce + la MENTION en toutes lettres (jamais l'opacité, qui
      tombe sous AA — leçon v5.0.0/A1-1). */
   /* Étapes du détail de l'Échelle — RESTAURÉES (valeurs v4.24.0) : la purge v4.25.0 les avait
@@ -5724,7 +5594,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-num{position:absolute;left:-32px;top:4px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:var(--t-meta);font-weight:700;color:var(--surface);background:var(--ink);border-radius:3px;box-shadow:0 0 0 3px var(--surface);z-index:1}
   .sv-num.dec{background:var(--verify)}
   /* Le tronc : un segment plein entre deux numéros qui se suivent — jamais après le dernier. */
-  .sv-col>.sv-row:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow)::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  /* ⚠ A391 : les exclusions vivent dans `:where()` (spécificité nulle). Écrites en `:not()`, elles portaient la règle à
+     (0,6,0) : les quatre prolongements ci-dessous (0,3,0) ne s'appliquaient JAMAIS — le tronc s'arrêtait 12 px avant le
+     raccord d'une pilule (signalé à l'usage : « problème de jonction »), 4 px sous la barre d'une fourche, et ne
+     rejoignait pas une cible décalée. */
+  .sv-col>.sv-row:where(:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow))::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:2px;background:var(--ink-soft)}
   .sv-col>.sv-row:has(+ .sv-fork)::after{bottom:-8px}
   .sv-col>.sv-row:has(+ .sv-jrow)::after{bottom:-24px}
   .sv-col>.sv-row:has(+ .sv-tgt)::after{bottom:-22px}
@@ -5776,7 +5650,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-stp li.crit .sv-bx{border-color:var(--critical-bd)}
   .sv-stp li.vig .sv-lab{color:var(--verify);font-weight:700}
   .sv-stp li.vig .sv-bx{border-color:var(--verify-bd)}
-  .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--verify)}
+  .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--ink-2)}   /* A391 : « Si … : » comme le parcours, plus d'ambre */
+  .sv-jl svg{vertical-align:-2px}
+  /* A391 : réglages de coche en mots — le qualificatif passe SOUS le libellé (aligné sur lui), l'en-tête « Si … : »
+     coiffe les étapes consécutives au même seuil, qu'un filet relie. */
+  .sv-stp li>.pf-q{flex:0 0 100%;padding-left:16px;font-size:var(--t-cap)}   /* comme la réponse repliée (.sv-rb) */
+  .sv-stp li.sv-gh{display:block;padding-top:4px;color:var(--ink-2);border-bottom:0}
+  .sv-stp li.sv-g{margin-left:4px;padding-left:8px;border-left:2px solid var(--line-strong)}
+  .sv-bt{margin:0 0 2px;font-size:var(--t-cap);color:var(--ink-2)}
   /* LA DÉCISION CONTIENT SES ALTERNATIVES (QRH) : « SI ‹option› ……… CONTINUER ↓ n / ALLER À n /
      REVENIR À n / ▪ FIN ». La ligne est la vérité ; la voie tracée n'est qu'un rappel de trajet. */
   .sv-band{display:block;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:4px 8px 6px;cursor:pointer;min-width:0}
@@ -7124,9 +7005,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        (720, titre 24/800) posé dans la colonne principale — la colonne gauche reste active. */
     .home-main>.hv-page{max-width:var(--dlg-atelier);width:100%;margin-inline:auto}   /* centrée comme la page-fenêtre (signalé) */
     .hv-title{margin:0 0 12px}
-    /* v5.30 (planche large, grille A) : le répertoire en LIVRES côte à côte — un par groupe. */
-    .dir-book{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start}
-    .dir-book .dir-g{margin-bottom:0}
+    /* A389 : UNE colonne à toutes les largeurs — les livres côte à côte d'A347 tronquaient la méta à 320 px
+       (« Ré… », « CH »). Mesure bornée à 960 px ; la ligne de compte suit la même borne. */
+    .dir-book,.dir-h.dir-sum{max-width:960px}
+    /* Compacte, au bureau (≥ 1200 px effectifs, palier `zw1200` — règle 10) : titre et méta sur UNE ligne, la méta à
+       droite ; en dessous, deux lignes comme au téléphone (mesuré à 900 px : titres et état coupés). */
+    html:not(.zw1200) .dir-book.compact .dir-row{min-height:48px}
+    html:not(.zw1200) .dir-book.compact .dir-main{display:flex;align-items:baseline;gap:16px}
+    html:not(.zw1200) .dir-book.compact .dir-row .card-open{flex:1 1 auto;min-width:0}
+    html:not(.zw1200) .dir-book.compact .dir-row .card-open .dir-t{-webkit-line-clamp:1;max-height:1.2em}
+    html:not(.zw1200) .dir-book.compact .dir-sub{flex:0 1 auto;max-width:60%;margin-top:0}
     /* v5.30 (planche large) : la colonne tient TOUTE la hauteur, l'en-tête ne couvre que la colonne
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
@@ -7343,6 +7231,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     body.view-read .read-grid.cockpit{grid-template-columns:var(--col-orient) minmax(0,1fr) var(--col-state)}
     /* K11 au même palier : structure 220, écriture 1fr, aperçu 320. */
     :is(body.view-edit,body.view-pedit) .read-grid.ed-cockpit{grid-template-columns:220px minmax(0,1fr) 320px}
+    body.view-edit .ed-tocwrap{display:none}   /* A390 : la colonne Structure prend le relais du dépliant */
     :is(body.view-edit,body.view-pedit) .ed-struct{display:flex;flex-direction:column;order:-1;
       position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px);
       overflow-y:auto;border-right:1px solid var(--line);padding:14px 16px 16px 0}
@@ -8620,7 +8509,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.34.0';
+const APP_VERSION='5.35.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9405,8 +9294,11 @@ function mdRender(src,ctx){ctx=ctx||{};
 const MD_FOLD_MAX=50;                      // au-delà, on oublie les plus anciennes (borne écrite)
 function mdFoldAll(){try{const o=JSON.parse(localStorage.getItem(spaceKey('ac-fold'))||'{}');
   return (o&&typeof o==='object'&&!Array.isArray(o))?o:{};}catch(e){return {};}}
-function mdFoldGet(id){const o=mdFoldAll(),v=id?o[id]:null;return new Set(Array.isArray(v)?v:[]);}
+// A390 : en aperçu (« Essayer »), déplier / replier ne s'enregistre pas — une mémoire vive, vidée à chaque ouverture.
+let _pvFold=Object.create(null);
+function mdFoldGet(id){const o=state.previewFrom?_pvFold:mdFoldAll(),v=id?o[id]:null;return new Set(Array.isArray(v)?v:[]);}
 function mdFoldSet(id,set){if(!id)return;
+  if(state.previewFrom){if(set.size)_pvFold[id]=[...set];else delete _pvFold[id];return;}
   try{const o=mdFoldAll();
     if(set.size)o[id]=[...set];else delete o[id];
     // Borne : on ne garde que les MD_FOLD_MAX dernières entrées écrites (l'ordre d'insertion des
@@ -10979,7 +10871,7 @@ function posRailHtml(f){const c=posoCardsHtml(listOf(f,'posology'),curBlockHay(f
   if(!c)return '';const n=clean(listOf(f,'posology')).length;
   return `<div class="rail-head"><span class="rail-title">Repères posologiques</span>${n>1?`<span class="rail-n">${n}</span>`:''}</div>${c}`;}
 function repaintPoso(){
-  const f=state.fiche;if(!f||state.previewFrom)return;
+  const f=state.fiche;if(!f)return;
   const keep=(host,html)=>{const ko=!!host.querySelector('details.pos-more[open]');
     host.innerHTML=html;
     if(ko){const d=host.querySelector('details.pos-more');if(d)d.open=true;}};
@@ -11576,7 +11468,7 @@ function jalonCondLbl(f,j){
    l'Échelle) restent nus : leur largeur est comptée depuis v4.55.3. */
 function cycleHint(f){const ts=((f&&f.timers)||[]).filter(t=>t&&t.type==='interval'&&t.autoloop&&t.seconds>0);
   return ts.length===1?ts[0]:null;}
-const durTxt=s=>s%60===0?(s/60)+' min':(s<60?s+' s':Math.floor(s/60)+' min '+(s%60)+' s');   // A388 : une durée en mots, partagée par le cycle et le parcours
+const durTxt=s=>s%60===0?(s/60)+'\u00a0min':(s<60?s+'\u00a0s':Math.floor(s/60)+'\u00a0min '+(s%60)+'\u00a0s');   // A391 : nombre et unité insécables   // A388 : une durée en mots, partagée par le cycle et le parcours
 function cycleTxt(f){const t=cycleHint(f);if(!t)return '';
   return ' · toutes les '+durTxt(t.seconds);}
 // État AFFICHABLE de chaque bloc (ordre du PLAN — numérotation commune) — source unique des
@@ -12590,10 +12482,6 @@ function visitNeed(b,seq,checked){const its=bItems(b),ck=checked||{};let tot=0,d
   return {tot,dn};}
 // L'étiquette du moment : [classe, mot]. La condition s'écrit comme celle d'un jalon.
 const momFromLbl=(f,it)=>{const c=((f&&f.counters)||[]).find(x=>x&&x.id===it.from.counter);return (tmLabelParts(c&&c.label).name||'Compteur')+' ≥ '+it.from.n;};
-// La règle annoncée sans état (parcours à plat, Page).
-function momRuleHtml(f,it){if(!it||!(it.from||it.repeat))return '';
-  const t=[it.from?momFromLbl(f,it):'',MOM_WORD[it.repeat]||''].filter(Boolean).join(' · ');
-  return `<span class="mo-rule">${esc(t)}</span>`;}
 function momTag(f,it,mo){if(!mo)return null;
   const fl=()=>momFromLbl(f,it);
   if(mo.st==='wait')return mo.why==='due'?['mo','À l’échéance']:['mo',fl()];
@@ -13181,7 +13069,7 @@ function confirmEndSession(R){
   return new Promise(res=>{_endSessResolve=res;
     const ttl=(R&&R.fiche&&R.fiche.title)||'Aide cognitive';
     const dur=fmtMs(Date.now()-((R&&R.startedAt)||Date.now()));
-    document.getElementById('endSessTitle').textContent=R&&R.exercise?'Terminer l’exercice ?':'Terminer la session ?';
+    document.getElementById('endSessTitle').textContent=R&&R.essai?'Terminer l’essai ?':(R&&R.exercise?'Terminer l’exercice ?':'Terminer la session ?');
     document.getElementById('endSessCtx').innerHTML=(R&&R.exercise?'<strong>▲ Exercice</strong> — ':'')+esc(ttl)+' — durée <strong>'+dur+'</strong>';
     /* P2 — l'état AVANT le choix, comme les conséquences le sont depuis la v4.3.0. */
     const st=document.getElementById('endSessState'),lignes=endSessOpenTxt(R);
@@ -13198,7 +13086,9 @@ holdToReset(document.getElementById('endSessYes'),()=>_endSessClose(true),1200);
 bindModalDismiss(document.getElementById('endSessModal'),()=>_endSessClose(false));
 // Terminer depuis l'écran de crise : archive, remet la fiche à zéro et RETOURNE À L'ACCUEIL
 // (spec §3.6 — la session « quitte l'accueil », l'utilisateur aussi a fini son intervention).
-async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
+async function endCurrentSession(){if(!Runtime.started)return;if(!await confirmEndSession(Runtime))return;const f=Runtime.fiche;
+  if(Runtime.essai&&state.previewFrom==='edit'){endSession(Runtime);openDraftPreview();return;}   // A390 : finir un essai le rejoue depuis le début, sans quitter l'aperçu
+  endSession(Runtime);freshRuntime(f,null);state.fiche=null;state.view='library';render();}
 // Reprendre une session de l'historique (ou vive) : recharge dans un runtime, la réactive (vive) et
 // ouvre la fiche. Si une session vive existe déjà pour cette fiche, on la rouvre telle quelle.
 function resumeSession(id){const s=sessions.find(x=>x.id===id);if(!s)return;const f=fiches.find(x=>x.id===s.ficheId);if(!f){toast('⚠ Fiche introuvable.');return;}flowScroll={left:null,top:0};state.readMode=currentReadMode();state.ovFold={};state.ovVerify=null;
@@ -13381,8 +13271,8 @@ function applyViewChrome(){
       retrouver ce site. */
    else {['exo','inv','ess'].forEach(c=>{cb.classList.remove(c);
      document.querySelector('header.bar').classList.remove(c);});}
-   // Accès permanent au Plan : seulement là où un plan existe (fiche À ALGORITHME), hors aperçu
-   // de brouillon, et hors mode STATIQUE — où le tableau EST déjà la vue d'ensemble (doctrine
+   // Accès permanent au Plan : seulement là où un plan existe (fiche À ALGORITHME ; l'aperçu compris
+   // depuis A390), et hors mode STATIQUE — où le tableau EST déjà la vue d'ensemble (doctrine
    // v4.13.0 : pas de panneau « Algorithme » en statique). Fermer la feuille si elle survivait
    // à un changement de vue ou de mode.
    /* LOT T8 — « Se repérer » A QUITTÉ LA RANGÉE DE COMMANDES : son Échelle est l'onglet
@@ -13391,7 +13281,7 @@ function applyViewChrome(){
       bouton. (Le lecteur `#planBtn` — null depuis T8, gardé un temps par un `if(pb)` après avoir
       coûté un démarrage entier en `pb.hidden` sur null — est PURGÉ en v5.10.2 : seul le
       `closePlanSheet` conditionnel était encore vivant.) */
-   {const okPlan=crisis&&!state.previewFrom&&hasFlow(state.fiche)&&state.readMode!=='static';
+   {const okPlan=crisis&&hasFlow(state.fiche)&&state.readMode!=='static';
     if(!okPlan)closePlanSheet();}
    // « Réf. » : accès permanent à la couche de consultation. Pas de condition d'algorithme (une
    // fiche mono-bloc a aussi des annexes) ; masqué en aperçu de brouillon et hors lecture.
@@ -13411,7 +13301,7 @@ function applyViewChrome(){
        fiche » — retirée le jour même à la demande de l'auteur : « enlève le bouton “un bloc”
        dans la barre flottante avant que la session n'ait démarré ». Hors session, le dock reste
        ce que la v5.6 en dit ; l'aller-retour Un bloc ⇄ Toute la fiche vit EN session.) */
-    const okAll=enSession&&!state.previewFrom&&hasFlow(state.fiche);
+    const okAll=enSession&&hasFlow(state.fiche);
     ab.hidden=!okAll;
     if(okAll){const st=state.readMode==='static';
       /* ⚠ LE VERT NE DIT QU'UNE CHOSE : « VOUS ÊTES LOIN DE CHEZ VOUS, CECI VOUS Y RAMÈNE »
@@ -13452,10 +13342,10 @@ function applyViewChrome(){
    /* v5.30 (maquette v5) : « Fin » au registre critique de la matière système — ouvre la fenêtre
       « Terminer la session ? », dont la confirmation se MAINTIENT (A346). Jamais chez l'invité. */
    {const ek=document.getElementById('endKey');
-    ek.hidden=!(enSession&&!state.previewFrom&&!sharedShown());
+    ek.hidden=!(enSession&&!sharedShown());
     if(!ek.hidden&&!ek.querySelector('svg'))ek.querySelector('.dp-ic').innerHTML=uiIcon('stop',13,{sw:2.2});}
    {const tk=document.getElementById('tkKey');
-    tk.hidden=!(enSession&&!state.previewFrom);
+    tk.hidden=!enSession;
     /* A106 : ⏱︎ était le CARACTÈRE, il devient le tracé. Peint une fois — `syncDock` court à
        chaque rendu, et réécrire un SVG identique à chaque passage serait du churn pur. */
     if(!tk.hidden&&!tk.querySelector('svg'))tk.querySelector('.dp-ic').innerHTML=uiIcon('stopwatch',13,{sw:2.2});
@@ -13467,13 +13357,14 @@ function applyViewChrome(){
       Le geste d'entrée rejoint le dock (décision de l'auteur) : position CONSTANTE au pouce —
       ce que `.sess-start.afloat` (v4.73.0) cherchait, purgée avec le bouton du flux (règle 14).
       LE LIBELLÉ PORTE TOUJOURS LA CONFIRMATION : « Confirmé — démarrer la session » dès qu'il y a
-      des critères (doctrine QRH v4.3.2). CHEZ L'INVITÉ ET EN APERÇU D'ESSAI, RIEN :
-      `ensureStarted` refuse, et un contrôle visible sans effet est ce que la v4.47.0 a supprimé.
+      des critères (doctrine QRH v4.3.2). CHEZ L'INVITÉ SANS TRACE, RIEN : `ensureStarted` refuse,
+      et un contrôle visible sans effet est ce que la v4.47.0 a supprimé. EN APERÇU, le geste démarre
+      l'ESSAI (K5 — A390 : l'aperçu suit la vraie page, quai compris), et l'exercice n'y est pas offert.
       Détail : doctrine-js.md J68. */
    /* v5.33.2 : la condition est celle d'`ensureStarted` — un invité sur SON appareil démarre sur SES
       aides (v5.14.18) ; seul l'invité sans trace n'a rien à démarrer. La fiche partagée, elle, est
       déjà `started`. */
-   {const avant=crisis&&!Runtime.started&&!state.previewFrom
+   {const avant=crisis&&!Runtime.started
       &&(()=>{try{return !(Share.mode==='guest'&&SHARE_NOTRACE);}catch(e){return true;}})();
     const sb=document.getElementById('sessStart'),ek=document.getElementById('exoKey');
     if(sb){sb.hidden=!avant;
@@ -13483,7 +13374,7 @@ function applyViewChrome(){
            RÉELLE — la pire méprise que le placard d'exercice existe pour empêcher. « l'exercice »
            tient dans la même largeur que « la session » (deux caractères de plus), donc rien à
            arbitrer côté responsive : mesuré sans débordement de 320 à 430 px. */
-        const quoi=Runtime.exercise?'l’exercice':'la session';
+        const quoi=state.previewFrom?'l’essai':(Runtime.exercise?'l’exercice':'la session');
         const l=(n?'Confirmé — démarrer ':'Démarrer ')+quoi;
         sb.querySelector('.dp-lbl').textContent=l;
         sb.setAttribute('aria-label',l+(Runtime.exercise
@@ -13491,8 +13382,8 @@ function applyViewChrome(){
           :' — chrono, minuteurs et journal ; démarre aussi à la première action'));}}
     /* La touche d'exercice porte son ÉTAT : armée, elle annonce l'annulation — sinon le seul
        moyen de revenir en arrière serait de deviner qu'un re-tap fonctionne. */
-    if(ek){ek.hidden=!avant;
-      if(avant){const on=!!Runtime.exercise;
+    if(ek){ek.hidden=!avant||!!state.previewFrom;   // A390 : l'essai n'est pas un exercice (rien d'enregistré de toute façon)
+      if(!ek.hidden){const on=!!Runtime.exercise;
         ek.classList.toggle('on',on);
         ek.setAttribute('aria-pressed',on?'true':'false');
         ek.querySelector('.dp-lbl').textContent=on?'Annuler':'Exercice';
@@ -14084,9 +13975,9 @@ function homeSideHtml(){
     const on=state.homeLib===g.key;
     return hsRow({on,label:esc(g.L),tail:num(g.items.length),
       attrs:`data-libsel="${esc(g.key)}" aria-pressed="${on?'true':'false'}"`,
-      act:admin?`<button class="hs-act" data-libedit="${esc(g.lib.id)}" title="Modifier la bibliothèque" aria-label="Modifier la bibliothèque « ${esc(g.L)} »">${uiIcon('pen',14)}</button>`
-        :(ro?`<span class="hs-act" title="Lecture seule — bibliothèque institutionnelle">${uiIcon('lock',14)}</span>`
-        :(g.lib?`<span class="hs-act" title="Lecture-écriture">${uiIcon('lockopen',14)}</span>`:''))});}).join('');
+      // A389 : plus de ✎ par rangée — la gestion passe par « Gérer » (Moi › Bibliothèques) ; la rangée ne dit que son accès.
+      act:ro?`<span class="hs-act" title="Lecture seule — bibliothèque institutionnelle">${uiIcon('lock',14)}</span>`
+        :(g.lib?`<span class="hs-act" title="${admin?'Administrée':'Lecture-écriture'}">${uiIcon('lockopen',14)}</span>`:'')});}).join('');
   /* ⚠ UNE RANGÉE PAR NOM (signalé à l'usage). Le filtre de catégorie compare par NOM à travers
      l'union (v5.18) : deux homonymes de bibliothèques différentes produisaient DEUX rangées qui
      filtraient exactement la même chose, ne différant que par la couleur de leur pastille. On
@@ -14136,9 +14027,7 @@ function homeSideHtml(){
         ${hsRow({on:tab==='sessions',cls:'hs-navrow',label:'Sessions',mark:uiIcon('history',16),tail:liveDot,attrs:'data-sesshist'+cur('sessions')})}
         ${hsRow({on:tab==='me',cls:'hs-navrow',label:'Moi',mark:acct.ini?`<span class="hs-avatar" aria-hidden="true">${acct.ini}</span>`:uiIcon('user',16),attrs:'data-navme'+cur('me')})}
       </nav>
-      <div class="hs-h">Bibliothèques</div>${bibIdx}
-      ${myIsAppAdmin?hsRow({cls:'quiet',label:'Nouvelle bibliothèque',attrs:'data-newlib',
-        mark:uiIcon('plus',14)}):''}
+      <div class="hs-h">Bibliothèques${mgrDeux()?'<button type="button" class="hs-lnk" data-libmgr aria-label="Gérer les bibliothèques">Gérer</button>':''}</div>${bibIdx}
       <div class="hs-sep"></div>
     </div>
     <div class="hs-scroll">
@@ -14330,6 +14219,7 @@ function bindHomeChrome(rerender){
   qsa('[data-navaides]').forEach(b=>b.onclick=()=>setHomeTab('aides'));
   qsa('[data-sesshist]').forEach(b=>b.onclick=()=>openSessHist());
   qsa('[data-navme]').forEach(b=>b.onclick=()=>openAuth());
+  qsa('[data-libmgr]').forEach(b=>b.onclick=openLibMgr);   // A389 : même patron que « Gérer » des catégories
   /* REJOINDRE SANS CODE NI RÉSEAU (v5.14.2, signalé à l'usage : « impossible de rejoindre —
      la fenêtre exige un code ou un lien, donc internet »). L'écran d'entrée devient joignable
      d'un geste depuis l'accueil : c'est LUI qui porte « Scanner le code de l'hôte » et
@@ -16571,7 +16461,7 @@ function bindNoteBlock(id,rerender){
    ambrés, pastille « DÉPART », halo bleu sur le bloc courant. Détail : doctrine-js.md J95. */
 // Enroulement de texte (retour à la ligne sur les mots) pour le SVG : aucune troncature,
 // coupe les mots trop longs. Renvoie un tableau de lignes.
-function wrapText(str,maxChars){const words=String(str||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);const lines=[];let cur='';
+function wrapText(str,maxChars){const words=String(str||'').replace(/[^\S\u00a0]+/g,' ').trim().split(' ').filter(Boolean);const lines=[];let cur='';
   const push=()=>{if(cur){lines.push(cur);cur='';}};
   words.forEach(w=>{while(w.length>maxChars){push();lines.push(w.slice(0,maxChars));w=w.slice(maxChars);}if(!cur)cur=w;else if(cur.length+1+w.length<=maxChars)cur+=' '+w;else{push();cur=w;}});
   push();return lines.length?lines:[''];}
@@ -16615,7 +16505,7 @@ function _buildFlowSVG(f){
        ((b.kind!=='decision')?[b.next]:(b.options||[]).map(o=>o&&o.target))
          .forEach(t=>{if(t&&byId[t]&&!vus.has(t)){vus.add(t);q.push(t);}});}
      decl.forEach(t=>{if(!vus.has(t))cxIds.add(t);});}}
-  const C={blocks,byId,start,cx:cxIds};
+  const C={f,blocks,byId,start,cx:cxIds};
   flowMeasure(C);   // 1. dimensions de chaque bloc (texte enroulé, jamais tronqué)
   flowPlace(C);     // 2. niveaux (BFS) + ordre dans la rangée (barycentre) + positions
   flowRoute(C);     // 3. arêtes (avant / retour / latérales / auto-réf) + pastilles d'étiquette
@@ -16637,11 +16527,24 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
     // réserve le même bandeau, pour la même raison, avec sa pastille « ⚡ À TOUT MOMENT ».
     const startStrip=(isStart||isCx)?17:0;
     const headerH=Math.max(TH,headerLines.length*TLH+12)+startStrip;const items=[];
-    if(dec){if(b.question)items.push({kind:'q',lines:wrapText(stripBold(b.question),TXT_MAX)});(b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',num:i+1,lines:wrapText(stripBold(o.label)||('Option '+(i+1)),TXT_MAX-3)}));}
-    else{clean(stepsOf(b)).forEach((s,i)=>{const cr=stepCR(stepText(s));items.push({kind:'step',num:i+1,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-3)});});}
+    /* A391 : le Schéma écrit les réglages de coche comme le parcours et la Page — « Si seuil : » par groupe (étapes en
+       retrait le long d'un filet), le reste en petit sous l'étape, le jalon sous la question, le minuteur de bloc en tête. */
+    const F=C.f||{};
+    if(dec){if(b.question)items.push({kind:'q',lines:wrapText(stripBold(b.question),TXT_MAX)});
+      (Array.isArray(b.milestones)?b.milestones:[]).forEach(j=>{const go=j.go&&C.byId[j.go];
+        items.push({kind:'jl',lines:wrapText('Si '+jalonCondLbl(F,j)+' : '+stripBold(j.text||'')+(go?' → '+stripBold(go.title||''):''),TXT_MAX)});});
+      (b.options||[]).filter(o=>o.label||o.target).forEach((o,i)=>items.push({kind:'opt',num:i+1,lines:wrapText(stripBold(o.label)||('Option '+(i+1)),TXT_MAX-3)}));}
+    else{const steps=clean(stepsOf(b)),its=bItems(b);
+      {const bt=blkTimerTxt(F,b);if(bt)items.push({kind:'bt',lines:wrapText(bt,TXT_MAX)});}
+      stepGroups(its,steps.length).forEach(g=>{
+        if(g.from)items.push({kind:'gh',lines:wrapText('Si '+momFromLbl(F,g.it)+' :',TXT_MAX)});
+        g.ix.forEach(i=>{const s=steps[i],cr=stepCR(stepText(s)),gi=!!g.from;
+          const main=wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-(gi?5:3)),q=stepQualTxt(F,its[i]);
+          const sub=q?wrapText('· '+q,TXT_MAX-(gi?6:4)):[];
+          items.push({kind:'step',num:i+1,g:gi,nMain:main.length,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:main.concat(sub)});});});}
     const cl=items.reduce((n,it)=>n+it.lines.length,0);
     let mxc=0;headerLines.forEach(l=>{mxc=Math.max(mxc,l.length*1.12);});
-    items.forEach(it=>it.lines.forEach((l,li)=>{const pre=(it.kind==='step'||it.kind==='opt')?(li===0?String(it.num).length+2:1.5):0;mxc=Math.max(mxc,l.length+pre);}));
+    items.forEach(it=>it.lines.forEach((l,li)=>{const pre=((it.kind==='step'||it.kind==='opt')?(li===0?String(it.num).length+2:1.5):0)+(it.g?2:0);mxc=Math.max(mxc,l.length+pre);}));
     let base=Math.round(mxc*CW)+22;
     const img=b.image||null;// image du bloc (déjà validée par migrate -> safeImg)
     LAY[b.id]={dec,cx:isCx,headerLines,headerH,startStrip,items,img,h:headerH+HPAD+cl*LH+(img?(IMG_GAP+IMG_H):0)+HPAD,w:Math.max(MINW,Math.min(MAXW,base))};});
@@ -16872,6 +16775,13 @@ function flowNodesSVG(C){const{blocks,pos,LAY,start}=C;const{LH,TLH,HPAD,IMG_H,I
     L.items.forEach(it=>{it.lines.forEach((ln,li)=>{const y=iy+12;
       if(it.kind==='q'){g+=`<text x="10" y="${y}" font-size="10.5" font-style="italic" fill="#7a5900" font-family="'Manrope',system-ui,sans-serif">${esc(ln)}</text>`;}
       else if(it.kind==='opt'){const pre=li===0?`<tspan font-weight="700" fill="#7a5900">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5" fill="#7a5900" font-family="'Manrope',system-ui,sans-serif">${pre}${esc(ln)}</text>`;}
+      else if(it.kind==='gh'||it.kind==='jl'||it.kind==='bt'){   // A391 : « Si … : », jalon, minuteur de bloc — en gris, « Si » en gras
+        const si=li===0&&it.kind!=='bt'&&/^Si /.test(ln);
+        g+=`<text x="10" y="${y}" font-size="10" fill="#5b6570" font-family="'Manrope',system-ui,sans-serif">${si?`<tspan font-weight="800" fill="#101b28">Si</tspan> ${esc(ln.slice(3))}`:esc(ln)}</text>`;}
+      else if(it.g||li>=(it.nMain||it.lines.length)){   // étape d'un groupe (retrait + filet) et/ou ligne de réglage
+        const dx=it.g?10:0;if(it.g)g+=`<rect x="12" y="${iy+1}" width="1.5" height="${LH}" fill="#c5d2df"/>`;
+        if(li>=(it.nMain||it.lines.length))g+=`<text x="${22+dx}" y="${y}" font-size="9.5" fill="#5b6570" font-family="'Manrope',system-ui,sans-serif">${esc(ln)}</text>`;
+        else{const pre=li===0?`<tspan font-weight="700" fill="#5b6570">${it.num}. </tspan>`:'';g+=`<text x="${(li===0?12:22)+dx}" y="${y}" font-size="10.5"${(it.crit||it.vig)?' font-weight="700"':''} fill="${it.crit?'#a32e1f':(it.vig?'#7a5900':'#101b28')}" font-family="'Manrope',system-ui,sans-serif">${pre}${esc(ln)}</text>`;}}
       else{const pre=li===0?`<tspan font-weight="700" fill="#5b6570">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5"${(it.crit||it.vig)?' font-weight="700"':''} fill="${it.crit?'#a32e1f':(it.vig?'#7a5900':'#101b28')}" font-family="'Manrope',system-ui,sans-serif">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
     // Image du bloc DANS le SVG : vignette ajustée (meet) + petite loupe ; cliquable -> plein écran.
@@ -19006,12 +18916,12 @@ function renderRead(){
   // minuteurs/notes/outils de gestion, bandeau + barre « Retour à l'édition ».
   const preview=!!state.previewFrom;
   const wideRead=mqRail.matches;   // v5.6 : rail dès 1000 px (maquette ; c'était 780 en v4.23.0)
-  const rtH=preview?'':runtimePanel(f);
+  const rtH=runtimePanel(f);   // A390 : l'essai a son Runtime — ses minuteurs se montrent comme en session
   /* v5.4.0 : en ÉTROIT le journal vit DANS le panneau (cf. runtimePanel) — deux `.tk-panel` dans
      le DOM et renderTkOnly ne remplacerait que la première copie. v5.4.2 : le panneau n'existant
      plus que dans le VOLET du quai (rangée du flux supprimée), tkH n'existe plus DU TOUT en
      étroit — y compris pour une fiche sans minuteur, servie par le volet comme les autres. */
-  const tkH=(preview||!mqRail.matches)?'':timekeeperPanel();
+  const tkH=!mqRail.matches?'':timekeeperPanel();
   // Repères posologiques (canvas) : cartes — préfixe « ⚠ » = carte au registre ALERTE.
   // Inline sous « À vérifier » en étroit, dans la colonne droite en large.
   // Repères posologiques : carte = NOM (avant le premier « : », gras retiré) + corps —
@@ -19029,7 +18939,7 @@ function renderRead(){
      statique et en aperçu. ⚠ Pas de colonne de plan AVANT le soin (v5.6, duplication v4.70.1).
      ⚠ Déclarée ICI : `ladRail` la lit (zone morte temporelle, lot T3). Plus de condition sur le
      mode global (v5.14.18) : sur SES aides l'invité garde l'entrée normale. Détail : doctrine-js.md J133. */
-  const gesteEntree=!Runtime.started&&!state.previewFrom;
+  const gesteEntree=!Runtime.started;   // A390 : en aperçu, le geste démarre l'ESSAI (ensureStarted)
   const ladRail=(()=>{
     /* ⚠ `hasFlow` N'EST PAS LE BON CRITÈRE ICI (v5.6, signalé à l'usage : « avec un seul bloc
        d'une seule étape, le parcours inerte ne s'affiche pas »). `hasFlow` répond « y a-t-il un
@@ -19037,7 +18947,7 @@ function renderRead(){
        fiche » ne montrerait rien de plus) ; ce n'en est pas une pour la colonne d'orientation,
        qui porte AUSSI « Quand l'utiliser » et « Surveiller ensuite ». Une fiche d'un bloc a donc
        bien un parcours : une rangée, plus ses deux sections d'encadrement. */
-    if(!wideRead||useSv||preview||!(f.blocks&&f.blocks.length))return '';
+    if(!wideRead||useSv||!(f.blocks&&f.blocks.length))return '';
     /* Avant le soin, la colonne n'existe QU'AU COCKPIT : sous 1200 le parcours vit au centre
        (7c), et l'y laisser en double afficherait la même liste deux fois côte à côte. */
     if(!started&&gesteEntree&&!mqCock.matches)return '';
@@ -19114,7 +19024,7 @@ function renderRead(){
        la touche « Consulter » du quai et la rangée sous la fiche sont parties avec (une seule porte). */
     const nR=(f.images||[]).length+(f.docs||[]).length+clean(f.sources).length+(f.links||[]).map(id=>relTarget(id)).filter(Boolean).length;
     return card('verify','△','À vérifier',nV,verifyH)+card('diff','?','Diagnostics différentiels',nD,diffH)+card('pos','℞','Repères posologiques',nP,wideRead?'':posH)+card('refs','▤','Références',nR,nR?refSheetHtml(f,true):'');};
-  const sessFoldH=(agirDabord&&!state.previewFrom)?(()=>{state.sessFold=state.sessFold||new Set();
+  const sessFoldH=agirDabord?(()=>{state.sessFold=state.sessFold||new Set();
     return forgetStrip+foldCardsH('data-sessfold',k=>state.sessFold.has(k));})():'';  // en large, le rail porte déjà les repères
   /* DÉCLARÉ ICI, AVANT LE `if(useSv)` : la coque de `main.innerHTML` le lit aussi (c'est LUI qui
      décide si le chapeau est encore rendu en tête de colonne). Posé dans la branche, il serait
@@ -19178,7 +19088,7 @@ function renderRead(){
   /* v5.30.1 : AVANT la session, les quatre cartes fermées d'office — sous « Parcours » sur l'écran
      d'entrée, sous la fiche en mode « Toute la fiche » ou sur une aide sans parcours (A367 : la
      feuille « Consulter » a vécu, la carte est la seule porte des documents et des références). */
-  if(!started&&!state.previewFrom){const pc=foldCardsH('data-prefold',k=>preFoldOpen(f,k));if(pc)stages.push({cls:'on pre-cards',head:'',body:pc});}
+  if(!started){const pc=foldCardsH('data-prefold',k=>preFoldOpen(f,k));if(pc)stages.push({cls:'on pre-cards',head:'',body:pc});}
   /* LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE EN SESSION (règle v4.4.0 ROUVERTE, cf. AGENTS.md).
      Il numérote un PARCOURS — orienter quelqu'un qui découvre la fiche — et c'est exactement ce
      dont on n'a plus besoin une fois qu'on exécute. Deux conséquences, et la seconde est la
@@ -19358,7 +19268,10 @@ function bindReadEvents(f,blk,cur){
     'sep',
     {label:'Quitter le partage…',ic:uiIcon('stop',16),danger:true,sub:'vous ne suivrez plus la session',act:quitShare}
   ]);
-  else if(!state.previewFrom)_moreBuild=()=>setMoreMenu([
+  else if(state.previewFrom)_moreBuild=()=>setMoreMenu([   // A390 : l'essai garde ce qui sert à le dérouler, rien de gestion ni de partage
+    ...(!started&&cxAll(f).length?[{label:'Complication'+(cxAll(f).length>1?'s ('+cxAll(f).length+')':''),ic:boltIcon(15),sub:'à tout moment',act:()=>cxOpenFromMenu(f)}]:[]),
+    ...conduiteTiles()]);
+  else _moreBuild=()=>setMoreMenu([
     /* L'invité qui consulte UNE AUTRE aide garde un chemin de RETOUR à position constante —
        c'était le « impossible de revenir » signalé. */
     ...(sharedSessionLive()
@@ -19692,7 +19605,7 @@ function overviewSection(f){
   const controls='';   // v4.23.8 : « Recommencer » a rejoint le menu ⋯ (cf. restartCourse)
   /* « Parcours » ne s'annonce plus en session : l'étage qui le contient s'appelle « Prise en
      charge » et la carte au-dessous porte son numéro — trois titres pour un seul objet. */
-  const secH=(Runtime.started&&!state.previewFrom)?'':`<div class="ov-sec-h">Parcours</div>`;
+  const secH=Runtime.started?'':`<div class="ov-sec-h">Parcours</div>`;
   // v4.23.0 : le PLAN a quitté le journal — il vit dans la feuille plein écran #planModal,
   // appelée d'un tap depuis le quai (⤢). Dans le flux il alourdissait la page et s'éloignait à
   // mesure que le journal grandissait : il fallait dérouler tout le parcours pour l'atteindre.
@@ -20405,7 +20318,7 @@ function cxKeyLabel(s){s=String(s||'').trim();
   return tete||s;}
 function syncCxKey(crisis){
   {const ck=document.getElementById('cxKey');if(!ck)return;
-    const list=crisis&&!state.previewFrom?cxAll(state.fiche):[];
+    const list=crisis?cxAll(state.fiche):[];
     /* ⚠ ON NE PROPOSE PAS D'ENTRER LÀ OÙ L'ON EST DÉJÀ (v5.0.0, signalé à l'usage). À UN SEUL
        événement, la touche PORTE son nom : la voir pendant qu'on exécute CE bloc laisse croire
        qu'on n'y est pas encore. Elle disparaît donc — et ce n'est pas un bouton mort qu'on
@@ -20510,9 +20423,7 @@ function railLadHtml(f){
      ouvrait la feuille `#planModal`, laquelle rend `ovPlanHtml` — c'est-à-dire EXACTEMENT ce que
      cette colonne montre déjà : 8 rangées identiques, 281 caractères ici contre 326 là (l'écart
      n'est que l'ellipse des titres). Sa seule valeur ajoutée était la LARGEUR (223 → 1280 px).
-     ⚠ ET L'ONGLET « PARCOURS » NE FAIT PAS DOUBLON AVEC ELLE, contrairement à ce qu'on pouvait
-     croire : il rend `ovParcoursHtml`, soit 7 CARTES et 22 items pour 1 321 caractères — un autre
-     objet, pas un autre habillage. C'est la FEUILLE qui doublonne la COLONNE.
+     (L'onglet « Parcours » de « Tout voir » a vécu en A389 : depuis A388 il redisait la feuille.)
      La feuille reste joignable par le menu ⋯ « Se repérer » : rien n'est perdu, sauf un tap. */
   /* v5.25.0 : AVANT la session, la colonne prend la grammaire de l'écran d'entrée — chapitre
      « Parcours », Tableau / Schéma sous le titre, aperçu à plat SANS « ICI » (on n'est nulle
@@ -21044,12 +20955,8 @@ function paintWitness(){const els=main.querySelectorAll('[data-wt]');if(!els.len
     const cls='wt'+(m.cls?' '+m.cls:'')+(el.classList.contains('wt-blk')?' wt-blk':'');
     if(el.className!==cls)el.className=cls;
     const h=JSON.stringify(m);if(el.dataset.wth!==h){el.dataset.wth=h;el.innerHTML=wtInner(m);}});}
-// Le lien ANNONCÉ, sans état (Page) : la légende au repos — le parcours l'écrit en mots (A388, pfStepQual).
-function wtStaticHtml(f,it,b,cls){const L=b?(b.timer?{k:'tm',id:b.timer}:null):linkOf(it);if(!L)return '';
-  const o=((L.k==='tm'?f.timers:f.counters)||[]).find(x=>x&&x.id===L.id);if(!o)return '';
-  const m=L.k==='tm'?wtTimerModel({...o,elapsedMs:0,cycles:0,running:false},0,{lat:b?'à chaque entrée':'à la coche'})
-    :{cls:'',g:'count',v:'＋'+(o.step||1),n:'à la coche · '+(tmLabelParts(o.label).name||'Compteur')};
-  return `<span class="${cls||'wt'}">${wtInner(m)}</span>`;}
+// (A391 : `wtStaticHtml` et `momRuleHtml` — la légende et la règle « au repos » — sont PURGÉES : parcours et Page
+//  écrivent les réglages de coche en mots, `pfStepQual` et `blkTimerTxt`.)
 // A382 : « Faire maintenant » = une coche comme une autre (effets de lien compris).
 function momNow(k){if(!applyCheck(k,true))return;linkRepaint(_linkLast);renderOvOnlyKeepAnchor('[data-ck="'+CSS.escape(k)+'"]');momWatch(false);}
 function ovToggleStep(f,li,kb){
@@ -21318,17 +21225,15 @@ function renderOvOnly(){
    Détail : doctrine-js.md J168. */
 // (`svBranchIssue` et `svLoopTargets` PURGÉES v5.10.2 — appelants partis au lot v5.10.0 (A137) ;
 //  règle 14, témoins partis avec elles.)
-const ALL_TABS=['parcours','page','schema'];
+const ALL_TABS=['page','schema'];
 /* L'ONGLET RÉELLEMENT AFFICHÉ — repli compris. `state.allTab` vaut `undefined` tant qu'`openRead`
    n'a pas tourné, et le rendu retombe alors sur « page » : tout lecteur qui teste `==='page'` sans
    ce repli se trompe d'onglet dans ce cas-là (constaté sur `syncPgWide`, qui laissait la Page dans
    la largeur de « Parcours »). Un seul point de décision. */
 const allTabCur=()=>ALL_TABS.indexOf(state.allTab)>=0?state.allTab:'page';
-const ALL_TAB_LBL={parcours:'Parcours',page:'Page',schema:'Schéma'};
-/* L'ONGLET « PARCOURS » N'EST PAS L'ÉCHELLE (v5.0.0, maquette) : la fiche ENTIÈRE en cartes
-   empilées, imbrication comprise. Cases DESSINÉES ET INERTES (écart assumé à « jamais de cases
-   dans le plan » : c'est la fiche montrée d'un bloc) — inertie par ABSENCE de `data-ck`, cases
-   `aria-hidden`, sous-titre « rien ne s'y coche » ; ne démarre rien (invariants du plan, harnais). */
+const ALL_TAB_LBL={page:'Page',schema:'Schéma'};
+/* A389 : l'onglet « Parcours » de « Tout voir » a VÉCU (`ovParcoursHtml`, cartes `.pc-*`, `.pl-brc/.pl-here/.pl-sech`) — il redisait
+   la feuille « Se repérer », qui rend le même parcours (A388). Restent la Page et le Schéma. */
 /* LA PAGE D'AVANT LE SOIN (v5.6, maquettes 1b/1c) : autres vues en liens de TEXTE (ouvertures
    secondaires, saillance au dock), chaque lien passe par le VRAI chemin — pas de second point
    d'entrée. « CE QUI DÉMARRERA · n » (7c) : information de DÉCISION, aucun contrôle. */
@@ -21416,17 +21321,30 @@ const pfFoldOpen=(place,id)=>{const k=pfFoldKey(place,id);return k in state.ovFo
 function pfSt(f,place){if(place==='card'||(place==='col'&&!Runtime.started))return {place};
   const pc=planCtx(f);return pc?{md:pc.md,off:pc.off,place}:{place};}
 // A388 : ce que règle l'étape, en mots, à la suite de son libellé — le seuil vit dans l'en-tête « Si … : » de son groupe.
-function pfStepQual(f,it){if(!it)return '';
+const guil=n=>'«\u00a0'+n+'\u00a0»';   // A391 : des guillemets qui ne se séparent pas de leur nom
+function stepQualTxt(f,it){if(!it)return '';
   const T=id=>(f.timers||[]).find(x=>x&&x.id===id),C=it.counts&&(f.counters||[]).find(x=>x&&x.id===it.counts);
   const dur=t=>t&&t.type==='interval'&&t.seconds>0?' ('+durTxt(t.seconds)+')':'';
   const t=T(momTid(f,it)),q=[];
   if(it.repeat==='once')q.push('si pas déjà faite');
   else if(it.repeat==='need')q.push('au besoin');
-  else if(it.repeat==='due'&&t)q.push(t.type==='interval'&&t.seconds>0?'toutes les '+durTxt(t.seconds):'quand « '+tmName(t)+' » ne tourne pas');
+  else if(it.repeat==='due'&&t)q.push(t.type==='interval'&&t.seconds>0?'toutes les '+durTxt(t.seconds):'quand '+guil(tmName(t))+' ne tourne pas');
   if(C){const r=C.timerId&&it.repeat!=='due'?T(C.timerId):null;
-    q.push('+'+Math.max(1,+C.step||1)+' '+(tmLabelParts(C.label).name||'Compteur')+(r?' · relance « '+tmName(r)+' »'+dur(r):''));}
-  else if(it.starts&&it.repeat!=='due'){const x=T(it.starts);if(x)q.push('lance « '+tmName(x)+' »'+dur(x));}
-  return q.length?` <span class="pf-q">· ${esc(q.join(' · '))}</span>`:'';}
+    q.push('+'+Math.max(1,+C.step||1)+' '+(tmLabelParts(C.label).name||'Compteur')+(r?' · relance '+guil(tmName(r))+dur(r):''));}
+  else if(it.starts&&it.repeat!=='due'){const x=T(it.starts);if(x)q.push('lance '+guil(tmName(x))+dur(x));}
+  return q.join(' · ');}
+function pfStepQual(f,it){const t=stepQualTxt(f,it);return t?` <span class="pf-q">· ${esc(t)}</span>`:'';}   // A391 : HTML du parcours et de la Page ; le Schéma prend le texte
+// A391 : des étapes CONSÉCUTIVES au même seuil (`from`) forment un groupe — l'ordre de l'auteur n'est jamais changé.
+// Rend [{from|null, ix:[…]}] ; partagé par le parcours et la Page.
+function stepGroups(its,n){const out=[];
+  for(let i=0;i<n;){const fr=its[i]&&its[i].from;
+    if(!fr){out.push({from:null,ix:[i]});i++;continue;}
+    const g={from:fr,it:its[i],ix:[]};while(i<n&&its[i]&&its[i].from&&its[i].from.counter===fr.counter&&its[i].from.n===fr.n)g.ix.push(i++);
+    out.push(g);}
+  return out;}
+// A391 : le minuteur d'un bloc, en mots (parcours et Page).
+function blkTimerTxt(f,b){const t=b&&b.timer&&(f.timers||[]).find(x=>x&&x.id===b.timer);
+  return t?'lance '+guil(tmName(t))+(t.type==='interval'&&t.seconds>0?' ('+durTxt(t.seconds)+')':'')+' à chaque entrée':'';}
 function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
   const plan=flowPlan(f);if(!plan.order.length)return '';
   const num={};plan.order.forEach((id,i)=>{num[id]=i+1;});
@@ -21444,14 +21362,11 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
   const liH=(s,it)=>{const cr=stepCR(stepText(s));
     return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${stepMarkHtml(s)}<span class="pf-lb">${fmt(cr.c)}</span>${cr.r?` <span class="pf-r">— ${fmt(cr.r)}</span>`:''}${pfStepQual(f,it)}</li>`;};
   // A388 : des étapes CONSÉCUTIVES au même seuil partagent un en-tête « Si … : » — l'ordre de l'auteur n'est jamais changé.
-  const stepsH=b=>{const steps=clean(stepsOf(b)),its=bItems(b);let ul='';
-    for(let i=0;i<steps.length;){const fr=its[i]&&its[i].from;
-      if(!fr){ul+=liH(steps[i],its[i]);i++;continue;}
-      let j=i,g='';while(j<steps.length&&its[j]&&its[j].from&&its[j].from.counter===fr.counter&&its[j].from.n===fr.n){g+=liH(steps[j],its[j]);j++;}
-      ul+=`<li class="pf-grp"><div class="pf-gh"><b class="pf-si">Si</b> ${esc(momFromLbl(f,its[i]))} :</div><ul class="pf-gs">${g}</ul></li>`;i=j;}
+  const stepsH=b=>{const steps=clean(stepsOf(b)),its=bItems(b);
+    const ul=stepGroups(its,steps.length).map(g=>{const lis=g.ix.map(i=>liH(steps[i],its[i])).join('');
+      return g.from?`<li class="pf-grp"><div class="pf-gh"><b class="pf-si">Si</b> ${esc(momFromLbl(f,g.it))} :</div><ul class="pf-gs">${lis}</ul></li>`:lis;}).join('');
     return ul?`<ul class="pf-steps">${ul}</ul>`:'';};
-  const blkTm=b=>{const t=b.timer&&(f.timers||[]).find(x=>x&&x.id===b.timer);
-    return t?`<div class="pf-bt">lance « ${esc(tmName(t))} »${t.type==='interval'&&t.seconds>0?' ('+esc(durTxt(t.seconds))+')':''} à chaque entrée</div>`:'';};
+  const blkTm=b=>{const x=blkTimerTxt(f,b);return x?`<div class="pf-bt">${esc(x)}</div>`:'';};
   const head=(b,m,open,badge,cls,attrs)=>{const cur=!!(m&&m.cur);
     return `<div class="pf-row${cls}" data-plln="${esc(b.id)}"${cur?' aria-current="step"':''}${attrs||''}><div class="pf-col"><span class="pf-badge" aria-hidden="true">${badge}</span></div><div class="pf-main"><button type="button" class="pf-title pf-tg" data-plfold="${esc(b.id)}" aria-expanded="${open}"><span>${esc(titre(b))}</span>${cur?'<span class="pf-here">Ici</span>':''}${chevHtml(open,'pf-chev')}</button>`;};
   let h='',prevRail=true,path=1,anyClosed=false;
@@ -21569,95 +21484,13 @@ function preLinksHtml(f){
     +(hasFlow(f)?`<button type="button" class="pre-link" data-prelink="svg">${uiIcon('flow',15)}Schéma</button>`:'')
     +(nd?`<button type="button" class="pre-link" data-prelink="docs">${uiIcon('doc',15)}Documents · ${nd}</button>`:'')
     +`</div>`+(nd?`<div class="pre-ready" id="preReady" hidden></div>`:'');}
-function ovParcoursHtml(f){
-  /* ══ « PARCOURS » EST LA SÉQUENCE, « PAGE » EST LE CONTENU (v5.6, maquette — deux onglets qui
-     disaient la même chose, proscrit par AC 120-71B §5.5) ═══════════════════════════════════════
-     PARCOURS = une rangée par bloc (état dans la marque, renvois à droite) ; PAGE = tableau
-     statique. Une seule exception (maquette) : le bloc COURANT montre ses items. « Quand
-     l'utiliser » RESTE (lot M6, condition d'entrée QRH — seul endroit du cran qui la porte).
-     TOUT Y EST INERTE (doctrine du plan) : aucun `data-ck`. Détail : doctrine-js.md J171. */
-  const _pc=planCtx(f);if(!_pc)return '';const {plan,num,md,off}=_pc;
-  const bx='<span class="pc-box" aria-hidden="true"></span>';
-  const item=st=>{const cr=stepCR(stepText(st));
-    const cl=stepIsCrit(st)?' crit':(stepIsVigil(st)?' vig':'');
-    return `<div class="pc-it${cl}">${bx}<span class="pc-t">${cl===' crit'?uiIcon('warn',14)+' ':(cl===' vig'?'△ ':'')}${fmt(cr.c)}</span>${cr.r?`<span class="pc-r">${esc(cr.r)}</span>`:''}</div>`;};
-  const nb=plan.order.length;
-  let h=`<div class="pc-sub"><b>Fiche entière · ${nb} bloc${nb>1?'s':''}</b><span>lecture — la coche vit au bloc</span></div>`;
-  {const ent=clean(listOf(f,'confirmation')),ddx=clean(listOf(f,'differentials'));
-   if(ent.length||ddx.length){
-     h+=`<section class="pc-card entry"><div class="pc-h"><span class="pc-n ok" aria-hidden="true">${uiIcon('check',13,{sw:3,cls:''})}</span><span class="pc-ht">Quand l’utiliser</span></div>`
-       +ent.map(item).join('')
-       +(ddx.length?`<div class="pc-foot">Ça ne colle pas ? → ${ddx.length} diagnostic${ddx.length>1?'s':''} à éliminer</div>`:'')
-       +'</section>';}}
-  /* L'étiquette de branche s'émet à l'OUVERTURE de la branche, jamais devant sa première carte :
-     une branche n'en contient pas toujours (v5.0.9). Et un renvoi ne se rend que si la branche
-     n'a AUCUNE rangée — sinon la colonne de droite de la rangée précédente le dit déjà. */
-  let depth=0,prev='';
-  const jmp=(d,txt,loop)=>`<div class="pc-jmp d${Math.min(d,3)}${loop?' loop':''}">${txt}</div>`;
-  const titreDe=id=>{const b=(f.blocks||[]).find(x=>x.id===id);return b?esc(stripBold(b.title||'')):'';};
-  const arrow=(from,to)=>((num[to]||1e9)<(num[from]||0)?'↺':'→')+(num[to]||'?');
-  let rows='';
-  plan.items.forEach(it=>{
-    if(it.k==='bropen'){depth++;prev='bropen';
-      rows+=`<div class="pl-brc d${Math.min(depth,3)}"><span>${esc(String(stripBold(it.label||'')).trim().toUpperCase().slice(0,22))}</span></div>`;return;}
-    if(it.k==='brclose'){depth--;prev='brclose';return;}
-    if(it.k==='link'||it.k==='end'){
-      if(prev!=='bropen')return;prev=it.k;
-      rows+=it.k==='end'?jmp(depth,'▪ fin de prise en charge')
-        :jmp(depth,(it.back?'↺ reprendre à ':'→ ')+(num[it.to]||'?')+' '+titreDe(it.to)+(it.back?cycleTxt(f):''),it.back);
-      return;}
-    if(it.k!=='block')return;
-    prev='block';
-    const b=f.blocks.find(x=>x.id===it.id);if(!b)return;
-    const dec=b.kind==='decision',m=md[it.id]||{};
-    const steps=dec?[]:clean(stepsOf(b));
-    /* LA COLONNE DE DROITE : pour une décision, les renvois (registre ACTION — c'est là qu'on
-       choisit) ; pour un bloc d'étapes, le compte en mono neutre ; hors chemin, la mention en
-       toutes lettres (la couleur n'est jamais seule). */
-    let g='';
-    if(off.has(it.id))g='<span class="pc-off">hors chemin</span>';
-    else if(dec){const opts=b.options||[];const ab=optAbbr(opts.map(o=>(o&&o.label)||''));
-      g='<span class="pc-go">'+opts.map((o,oi)=>{const t=(o&&o.target&&num[o.target])?o.target:null;
-        return esc(ab[oi])+(t?' '+arrow(it.id,t):'');}).join(' · ')+'</span>';}
-    else{const nx0=(b.next&&num[b.next])?num[b.next]:0;
-      /* P4 (v5.5.0) : un `next` qui REMONTE est une boucle — le renvoi le dit avec le vocabulaire
-         de l'Échelle (« ↺ n ») et porte la PÉRIODE du cycle quand elle est sans ambiguïté (UN
-         seul minuteur à cycles). Il vit dans la colonne de droite, comme les renvois d'une
-         décision : c'est la même information — où l'on va après. */
-      const lp=!!nx0&&nx0<(num[it.id]||0);
-      g=`<span class="pc-gn">${(m.done||0)}/${steps.length}</span>`
-        +`<span class="pc-go">${nx0?(lp?'↺ '+nx0+cycleTxt(f):'→ '+nx0):'▪ fin'}</span>`;}
-    const marks=(m.total||0)>1?` · ×${m.total}`:'';
-    rows+=`<div class="pc-row d${Math.min(it.depth,3)}${m.complete?' done':''}${m.cur?' cur':''}${off.has(it.id)?' off':''}${dec?' dec':''}">`
-      +`<div class="pc-rh"><span class="pc-mk" aria-hidden="true">${m.complete?uiIcon('check',13,{sw:3,cls:''}):''}</span>`
-      +`<span class="pc-rt">${num[it.id]||'·'} · ${esc(b.title)||(dec?'Décision':'Étapes')}${marks?`<span class="pc-x">${marks}</span>`:''}</span>`
-      +(m.cur?'<b class="pl-here">ICI</b>':'')+g+'</div>';
-    /* Le bloc COURANT développe ses items (maquette) — et lui seul : c'est la rangée qui répond
-       à « où j'en suis ». Ses jalons suivent, en toutes lettres, inertes. */
-    if(m.cur){const jl=(Array.isArray(b.milestones)?b.milestones:[]).map(j=>`<div class="pc-jl">△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</div>`).join('');
-      rows+=jl+(dec?((b.question?`<div class="pc-q">${fmt(b.question)}</div>`:'')
-          +'<div class="pc-opts">'+((b.options||[]).map(o=>{const t=o&&o.target&&num[o.target];
-            return `<span class="pc-opt${(m.taken&&o&&o.target===m.taken)?' tk':''}">${esc(stripBold((o&&o.label)||'option'))}${t?` <b>→ ${t}</b>`:''}</span>`;}).join(''))+'</div>')
-        :steps.map(item).join(''));}
-    rows+='</div>';});
-  h+=`<div class="pc-rows">${rows}</div>`;
-  /* Les deux sections hors séquence ferment la vue, dans le même ordre que la colonne. */
-  {const det=cxDetached(f);
-   if(det.length)h+='<div class="pl-sech">À tout moment</div>'
-     +det.map(c=>`<section class="pc-card exc"><div class="pc-h"><span class="pc-n" aria-hidden="true">${boltIcon(14)}</span><span class="pc-ht">${esc(c.label)}</span></div>`
-       +((f.blocks.find(x=>x.id===c.target)?clean(stepsOf(f.blocks.find(x=>x.id===c.target))).map(item).join(''):'<div class="pc-foot">↗ ouvre une autre aide</div>'))
-       +'</section>').join('');}
-  {const w=clean(listOf(f,'verify'));
-   if(w.length)h+='<div class="pl-sech">Surveiller ensuite</div>'
-     +`<section class="pc-card">${w.map(item).join('')}</section>`;}
-  return `<div class="pc-wrap">${h}</div>`;}
 function staticSection(f){
   state.navPos=state.nav.length-1;   // même règle que le journal : la position EST le bout
   const cur=state.nav[state.navPos];
   const blk=f.blocks.find(b=>b.id===cur)||f.blocks.find(b=>b.id===f.start)||f.blocks[0];
   const tipDone=blockTip(f,cur);   // I8 v5.10.2 : compteur du bout, une seule fabrique
-  /* LOT T8 — « TOUTE LA FICHE » = un cran de densité, TROIS rendus EXISTANTS rassemblés (PAGE =
-     tableau statique, PARCOURS = Échelle, SCHÉMA = `buildFlowSVG`) — aucun réécrit (contrainte du
+  /* LOT T8 — « TOUTE LA FICHE » = un cran de densité, DEUX rendus EXISTANTS rassemblés depuis A389 (PAGE =
+     tableau statique, SCHÉMA = `buildFlowSVG` ; le parcours vit dans « Se repérer ») — aucun réécrit (contrainte du
      plan : on reperdrait flèches mesurées, contre-inversion, cache, navigation par nœud). La PAGE
      reste le défaut ; onglet jamais persisté (consultation, pas réglage). Détail : doctrine-js.md J172. */
   const tab=allTabCur();
@@ -21671,8 +21504,7 @@ function staticSection(f){
        la vue d'ensemble reste entière). Pas sur le SCHÉMA (un mark n'est pas un nœud SVG valide —
        l'onglet n'offre pas le champ). Détail : doctrine-js.md J173. */
     +(tab==='schema'?'':protoFindHtml('Chercher dans l’aide…','Chercher dans cette aide','rt-find-all'));
-  const corps=tab==='parcours'?ovParcoursHtml(f)
-             :tab==='schema'?`<div class="all-svg">${flowBlock(f,true)}</div>`
+  const corps=tab==='schema'?`<div class="all-svg">${flowBlock(f,true)}</div>`
              :svSheetHtml(f,true);
   const inner=onglets+corps;
   return {blk,cur,navHtml:`<div class="sv-wrap">${inner}</div>`,inner,
@@ -22000,13 +21832,17 @@ function svTreePlan(f){
       if(!e){e={k:'collect',to,parent:col.parentId,cols:[],srcs:[]};edges.push(e);}
       e.srcs.push(Object.assign({col:col.id},src));if(e.cols.indexOf(col.id)<0)e.cols.push(col.id);return;}
     if(col.kind==='rail'&&sameCol(tc,parentOf[col.id])){edges.push({k:'rail',src,to,col:col.id});return;}};
+  // A391 : la première rangée d'une branche de fourche a déjà son entrée (barre + pointe de la fourche) : une sortie
+  // qui la vise REJOINT cette entrée, elle ne lui ajoute ni marge de cible ni seconde pointe.
+  const ouvreFourche=id=>{const c=colOf[id];return !!c&&(c.kind==='fl'||c.kind==='fr')&&!!c.rows[0]&&c.rows[0].id===id;};
+  const cible=id=>{if(rowOf[id]&&!ouvreFourche(id))rowOf[id].tgt=true;};
   cols.forEach(col=>col.rows.forEach(r=>{
     if(r.k==='dec')r.alts.forEach(a=>{
-      if(a.kind==='out'){const tc=colOf[a.tgt];if(tc&&col.right&&tc.right){edges.push({k:'exit',src:{alt:r.id+'/'+a.tgt},to:a.tgt});if(rowOf[a.tgt])rowOf[a.tgt].tgt=true;}}
+      if(a.kind==='out'){const tc=colOf[a.tgt];if(tc&&col.right&&tc.right){edges.push({k:'exit',src:{alt:r.id+'/'+a.tgt},to:a.tgt});cible(a.tgt);}}
       else if(a.kind==='back')loopEdge({alt:r.id+'/'+a.tgt},a.tgt,col);});
     if(r.k==='pill'){
       if(r.kind==='loop')loopEdge({pill:r.from},r.to,col);
-      else if(r.kind==='out'){const tc=colOf[r.to];if(tc&&col.right&&tc.right){edges.push({k:'exit',src:{pill:r.from},to:r.to});if(rowOf[r.to])rowOf[r.to].tgt=true;}}
+      else if(r.kind==='out'){const tc=colOf[r.to];if(tc&&col.right&&tc.right){edges.push({k:'exit',src:{pill:r.from},to:r.to});cible(r.to);}}
       else if(r.kind==='cont'&&col.kind==='rail'&&col.right){
         let e=edges.find(x=>x.k==='railMerge'&&x.to===r.to&&x.parent===col.parentId);
         if(!e){e={k:'railMerge',to:r.to,parent:col.parentId,srcs:[]};edges.push(e);if(rowOf[r.to])rowOf[r.to].tgt=true;}
@@ -22026,14 +21862,20 @@ function svStepsHtml(list,cw,opt){
   return `<ul class="sv-stp">${list.map((x,ix)=>{
     const lab=x.c,r=x.r||'';
     const fits=!r||(plain(lab).length*6+plain(r).length*6.6+56<=(cw||620));
-    const cls=[x.k||'',x.done?'done':'',x.plain?'plain':''].filter(Boolean).join(' ');
+    if(x.gh)return `<li class="sv-gh">${x.gh}</li>`;   // A391 : l'en-tête « Si … : » d'un groupe d'étapes
+    const cls=[x.k||'',x.done?'done':'',x.plain?'plain':'',x.g?'sv-g':''].filter(Boolean).join(' ');
     return `<li${cls?` class="${cls}"`:''}><span class="sv-lw">${x.plain?'':'<span class="sv-bx"></span>'}<span class="sv-lab">${x.k==='crit'?'⚠ ':(x.k==='vig'?'△ ':'')}${lab}</span></span>`
       +(r?(fits?`<span class="sv-ldr"></span><span class="sv-rs">${r}</span>`:`<span class="sv-rb">${r}</span>`):'')+(x.w||'')+`</li>`;}).join('')}</ul>`;}
+// A391 : les réglages de coche s'écrivent comme dans le parcours — « Si seuil : » par groupe, le reste en mots sous l'étape.
 function svBlockSteps(b,cw,seq,id){
   const steps=clean(stepsOf(b));if(!steps.length)return '';
-  return svStepsHtml(steps.map((s,ix)=>{const cr=stepCR(stepText(s));
-    return {c:fmt(cr.c),r:cr.r?fmt(cr.r):'',k:stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':''),done:!!(seq&&id&&state.checked[seq+':'+id+':'+ix]),
-      w:momRuleHtml(ownerOf(b)||{},bItems(b)[ix])+wtStaticHtml(ownerOf(b)||{},bItems(b)[ix],null,'wt wt-sv')};}),cw);}
+  const f=ownerOf(b)||{},its=bItems(b),list=[];
+  const one=(ix,g)=>{const s=steps[ix],cr=stepCR(stepText(s));
+    return {c:fmt(cr.c),r:cr.r?fmt(cr.r):'',g,k:stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':''),done:!!(seq&&id&&state.checked[seq+':'+id+':'+ix]),w:pfStepQual(f,its[ix])};};
+  stepGroups(its,steps.length).forEach(g=>{
+    if(g.from)list.push({gh:`<b class="pf-si">Si</b> ${esc(momFromLbl(f,g.it))} :`});
+    g.ix.forEach(ix=>list.push(one(ix,!!g.from)));});
+  return svStepsHtml(list,cw);}
 function svAlgoHtml(f){
   const _pc=planCtx(f);if(!_pc)return '';const {num,md,off}=_pc;
   const T=svTreePlan(f);if(!T.root.rows.length)return '';
@@ -22043,7 +21885,8 @@ function svAlgoHtml(f){
     bits.push(dec?(m.complete?'<span class="sv-ok">✓</span>':'?')
       :(m.tot?(m.complete?`<span class="sv-ok">✓ ${m.done}/${m.tot}</span>`:`${m.done||0}/${m.tot}`):'—'));
     return bits.join('');};
-  const jalonsH=b=>(Array.isArray(b.milestones)?b.milestones:[]).map(j=>`<p class="sv-jl">△ <b>${esc(jalonCondLbl(f,j))}</b> — ${fmt(j.text)}</p>`).join('');
+  const jalonsH=b=>(Array.isArray(b.milestones)?b.milestones:[]).map(j=>{const go=j.go&&(f.blocks||[]).find(x=>x.id===j.go);   // A391 : comme le parcours
+    return `<p class="sv-jl"><b class="pf-si">Si</b> ${esc(jalonCondLbl(f,j))} : ${fmt(j.text)}${go?` · ${boltIcon(12)} ${esc(stripBold(go.title||''))}`:''}</p>`;}).join('');
   const titre=id=>{const t=(f.blocks||[]).find(x=>x.id===id);return esc(stripBold((t&&t.title)||'?'));};
   const byCol={};T.cols.forEach(c=>{byCol[c.id]=c;});
   const cw=col=>col.w-32-18;
@@ -22054,7 +21897,7 @@ function svAlgoHtml(f){
       +(r.merged?'<i class="sv-ah" aria-hidden="true"></i>':'')
       +`<span class="sv-num" aria-hidden="true">${num[r.id]||'·'}</span>`
       +`<p class="sv-h"><span class="sv-t">${esc(b.title)||'Étapes'}</span><span class="sv-m">${metaH(r.id,false)}</span></p>`
-      +wtStaticHtml(f,null,b,'wt wt-sv')
+      +(blkTimerTxt(f,b)?`<p class="sv-bt">${esc(blkTimerTxt(f,b))}</p>`:'')
       +`${isOff?'<p class="sv-off2">hors chemin</p>':''}${svBlockSteps(b,cw(col),seq,r.id)}${jalonsH(b)}`
       +(r.fin?'<p class="sv-fin">▪ fin de l’algorithme</p>':'')+`</div>`;};
   const dbox=(r,col)=>{const b=(f.blocks||[]).find(x=>x.id===r.id);if(!b)return '';
@@ -22121,7 +21964,7 @@ function svPaginate(racine){
      un témoin en millimètres plutôt que de la calculer — 96 dpi n'est pas une promesse. */
   const t=document.createElement('div');
   t.style.cssText='height:calc(297mm - 20mm);position:absolute;left:0;top:0;visibility:hidden;pointer-events:none';
-  sheet.appendChild(t);const Z=zoomF();const H=t.offsetHeight;t.remove();
+  sheet.appendChild(t);const H=t.offsetHeight;t.remove();
   if(!(H>200))return null;
   /* ON NE PAGINE QUE CE QUE LES VOIES TRAVERSENT : cartouche, bande d'entrée, rangées de
      l'algorithme. La référence et les doses sont des GRILLES en fin de document — les traiter comme
@@ -22133,6 +21976,7 @@ function svPaginate(racine){
     blocs.push(el);}
   if(!blocs.length)return null;
   const sr=sheet.getBoundingClientRect();
+  const Z=(sheet.offsetWidth?sr.width/sheet.offsetWidth:0)||zoomF();   // A391 : l'échelle rendue, comme svPaintArrows
   const box=el=>{const b=el.getBoundingClientRect();return {t:(b.top-sr.top)/Z,b:(b.bottom-sr.top)/Z};};
   const pages=[{y:0,d:0}];let start=0,k=0;
   for(const el of blocs){
@@ -22145,8 +21989,13 @@ function svPaintArrows(racine){
   const sheet=wrap.querySelector('.sv-sheet');if(!sheet)return;
   const algo=sheet.querySelector('.sv-algo');
   svApplyZoom(racine||main);
-  const Z=zoomF()*(svZoom||1);
   const sr=sheet.getBoundingClientRect();
+  /* A391 : L'ÉCHELLE SE MESURE, ELLE NE SE DÉDUIT PAS (signalé à l'usage : « des traits à 90° qui ne se rejoignent
+     pas »). `zoomF() × svZoom` ignorait la transformation d'OUVERTURE de la fenêtre Tableau : peintes pendant
+     l'animation (échelle ≈ 0,985), toutes les voies étaient décalées d'1,5 % — 6 px à mi-feuille, là où un pointillé
+     devait rejoindre un trait plein — et rien ne les redessinait ensuite. Largeur rendue ÷ largeur de mise en page :
+     animation, zoom de la feuille et taille du texte d'un seul coup. */
+  const Z=(sheet.offsetWidth?sr.width/sheet.offsetWidth:0)||zoomF()*(svZoom||1);
   const R=el=>{if(!el)return null;const r=el.getBoundingClientRect();
     const l=(r.left-sr.left)/Z,t=(r.top-sr.top)/Z,w=r.width/Z,h=r.height/Z;
     return {l,t,r:l+w,b:t+h,cx:l+w/2,cy:t+h/2};};
@@ -22178,8 +22027,13 @@ function svPaintArrows(racine){
        polyligne se sérialise telle quelle. */
     const PG=_svPages;
     const dec=y=>{if(!PG)return y;for(let i=PG.length-1;i>=0;i--)if(y>=PG[i].y-0.01)return y+PG[i].d;return y+PG[0].d;};
+    /* A391 : un trait POINTILLÉ s'écrit segment par segment — un coude qui tombait dans un blanc du motif
+       semblait ne pas rejoindre son voisin (signalé à l'usage). Chaque segment commence sur un tiret. */
+    const emit=(seg,cls)=>{const ps=seg.map(q=>[N(q[0]),N(dec(q[1]))]);
+      if(cls!=='lp'){gh+=`<path class="${cls}" d="M${ps.map(q=>q.join(' ')).join(' L')}"/>`;return;}
+      for(let i=1;i<ps.length;i++)gh+=`<path class="${cls}" d="M${ps[i-1].join(' ')} L${ps[i].join(' ')}"/>`;};
     const POLY=(pts,cls)=>{
-      if(!PG){gh+=`<path class="${cls}" d="M${pts.map((p,i)=>i?p.join(' '):p.join(' ')).join(' L')}"/>`;return;}
+      if(!PG){emit(pts,cls);return;}
       // découper chaque segment aux frontières, puis décaler chaque morceau dans sa page
       const bords=PG.slice(1).map(p=>p.y);
       let cur=[pts[0]];
@@ -22192,9 +22046,7 @@ function svPaintArrows(racine){
           cut.forEach(y=>{cur.push([a[0],y]);sortie.push(cur);cur=[[a[0],y]];});}
         cur.push(b);}
       sortie.push(cur);
-      sortie.forEach(seg=>{if(seg.length<2)return;
-        const d='M'+seg.map(q=>N(q[0])+' '+N(dec(q[1]))).join(' L');
-        gh+=`<path class="${cls}" d="${d}"/>`;});};
+      sortie.forEach(seg=>{if(seg.length>=2)emit(seg,cls);});};
     const P=(d,cls)=>{gh+=`<path class="${cls}" d="${d}"/>`;void P;};
     /* ⚠ UNE POINTE S'ARRÊTE AVANT LE HALO DU NUMÉRO (signalé à l'usage : « le bout de la flèche
        n'est pas visible »). Le numéro porte `box-shadow:0 0 0 3px` et `z-index:1` : il passe DEVANT
@@ -22210,20 +22062,37 @@ function svPaintArrows(racine){
     Object.keys(byT).forEach(to=>{const t=badge(to);if(!t)return;
       // La cible ouvre une colonne de fourche : la sortie rejoint la barre de la fourche (une seule entrée).
       const fc=T.firstOf[to];const fkEl=fc&&(T.cols.find(c=>c.id===fc)||{}).kind!=='root'&&q('[data-svcol="'+fc+'"]')&&q('[data-svcol="'+fc+'"]').closest('.sv-fork');
-      const fk=fkEl?R(fkEl):null;const barY=fk?fk.t-8:t.t-10;
+      const fk=fkEl?R(fkEl):null;
       const legs=byT[to].map(e=>src(e.src)).filter(Boolean);if(!legs.length)return;
       legs.forEach(a=>POLY([[a.r+2,a.cy],[LANE,a.cy]],'lp'));
-      POLY([[LANE,Math.min(...legs.map(a=>a.cy))],[LANE,barY],[t.cx,barY],[t.cx,t.t-5]],'lp');
+      const y0=Math.min(...legs.map(a=>a.cy));
+      /* A391 : la cible OUVRE une branche de fourche — la sortie rejoint la barre de la fourche (`.sv-fork::before`,
+         centre à fk.t-7) au sommet de SA branche (`.sv-br::after`, centre à 14 px du bord) : la pointe de la fourche
+         dit l'entrée. Avant : un second trait 8 px au-dessus de la barre et une seconde pointe collée à la sienne. */
+      if(fk){const brR=R(q('[data-svcol="'+fc+'"]').closest('.sv-br'));
+        if(brR){POLY([[LANE,y0],[LANE,fk.t-7],[brR.l+14,fk.t-7]],'lp');return;}}
+      const barY=t.t-10;
+      POLY([[LANE,y0],[LANE,barY],[t.cx,barY],[t.cx,t.t-5]],'lp');
       hDown(N(t.cx),N(t.t-5),'lph');});
     /* (4) RETOURS — UN REGISTRE DES COULOIRS, PARTAGÉ (mesuré : la voie de retour interne d'une
        colonne et l'interstice d'un collecteur tombaient au même pixel). Toute voie passe par ce
        point unique : si l'abscisse voulue est déjà prise, elle glisse de 5 px vers la gauche. */
     const prises=[];
     const libre=x=>{let v=x;let n=0;while(prises.some(p=>Math.abs(p-v)<4)&&n++<12)v-=5;prises.push(v);return v;};
-    const laneX=cid=>{const c=col(cid);if(!c)return 0;return libre(c.l-7);};
+    /* A391 : LA VOIE DE RETOUR S'ÉCARTE DE 18 px (signalé à l'usage, capture entourée). À 7 px du numéro, il restait
+       2 px de trait horizontal avant la pointe (6 px de long, arrêtée 5 px avant le numéro) : la pointe se posait SUR
+       le coude, à cheval sur la voie verticale, et ne visait plus rien. À 18 px, un vrai trait la mène au numéro.
+       La feuille garde sa marge (numéros à 33 px de son bord) : trois voies tiennent avant le bord. */
+    const laneX=cid=>{const c=col(cid);if(!c)return 0;return Math.max(3,libre(c.l-18));};
+    /* A391 : un retour qui part d'une PILULE sort par son BAS. Par son bord gauche, il repassait sur le raccord qui
+       ENTRE dans la pilule (`.sv-jrow::before`) puis traversait le tronc de sa colonne. Après une pilule, le tronc
+       ne continue pas : descendre sous elle ne croise rien. */
+    const piedPilule=a=>[a.l+16,a.b];
     T.edges.filter(e=>e.k==='loop').forEach(e=>{const a=src(e.src),t=badge(e.to);if(!a||!t)return;
       const x=laneX(e.col);
-      POLY([[a.l-2,a.cy],[x,a.cy],[x,t.cy],[t.l-5,t.cy]],'lp');hRight(N(t.l-5),t.cy,'lph');});
+      if(e.src.pill){const [px,py]=piedPilule(a);POLY([[px,py],[px,py+10],[x,py+10],[x,t.cy],[t.l-5,t.cy]],'lp');}
+      else POLY([[a.l-2,a.cy],[x,a.cy],[x,t.cy],[t.l-5,t.cy]],'lp');
+      hRight(N(t.l-5),t.cy,'lph');});
     // collecteur sous la fourche : chaque bout de branche descend, la barre rejoint la voie du parent.
     /* ⚠ UN COLLECTEUR DESCEND JUSTE CE QU'IL FAUT, ET DANS LE GAP — PAS SUR LE TRONC (signalé à
        l'usage : « les flèches traversent des blocs »). Il descendait au bas de la fourche ENTIÈRE,
@@ -22238,13 +22107,18 @@ function svPaintArrows(racine){
         const g=sibs.filter(r=>r.r<=me.l+1).sort((a,b)=>b.r-a.r)[0];
         return g?libre((g.r+me.l)/2):x;};
       const legs=[];let barY=0;
-      e.srcs.forEach(s=>{const a=src(s);if(!a)return;const sx=gapX(s.col);legs.push({a,sx});if(a.cy+14>barY)barY=a.cy+14;});
+      /* A391 : une PILULE descend de son bas, tout droit (même raison que la boucle) ; la barre passe SOUS toutes les
+         colonnes qu'elle longe, au lieu de courir sur la bordure d'une pilule. Une ligne de décision garde l'interstice. */
+      e.srcs.forEach(s=>{const a=src(s);if(!a)return;
+        if(s.pill){const [px,py]=piedPilule(a);legs.push({a,sx:px,pied:py});if(py+10>barY)barY=py+10;return;}
+        const sx=gapX(s.col);legs.push({a,sx});if(a.cy+14>barY)barY=a.cy+14;});
       if(!legs.length)return;
       const rx=Math.max(...legs.map(l=>l.sx));
-      sibs.forEach(r=>{if(r.l<rx-1&&r.b+8>barY)barY=r.b+8;});
+      sibs.forEach(r=>{if(r.l<rx-1&&r.b+10>barY)barY=r.b+10;});
       /* Une branche dont l'interstice EST la voie de remontée n'y descend pas : elle la rejoint à sa
          hauteur, sinon l'aller et le retour se superposent sur le même x (mesuré : 27 px). */
-      legs.forEach(l=>POLY(Math.abs(l.sx-x)>2
+      legs.forEach(l=>POLY(l.pied!=null?[[l.sx,l.pied],[l.sx,barY]]
+        :Math.abs(l.sx-x)>2
         ?[[l.a.l-2,l.a.cy],[l.sx,l.a.cy],[l.sx,barY]]
         :[[l.a.l-2,l.a.cy],[x,l.a.cy]],'lp'));
       POLY([[rx,barY],[x,barY],[x,t.cy],[t.l-5,t.cy]],'lp');hRight(N(t.l-5),t.cy,'lph');});
@@ -22299,9 +22173,8 @@ function bindStaticEvents(f){
      finirait par diverger de la première. */
   {const fs=wrap.querySelector('.all-svg .flow-scroll');
    if(fs){bindFlowZoom();applyFlowZoom();restoreFlow();flowPaintState(fs,f);bindSvgNav(fs,f);}}
-  /* LA RACINE SUIT L'ONGLET, ET LA REQUÊTE EST REJOUÉE. Les deux onglets textuels n'ont pas le
-     même conteneur (`.pc-wrap` pour Parcours, `.sv-sheet` pour la Page) : chercher dans l'ancien
-     après un changement d'onglet ne trouverait rien et laisserait croire que le mot n'y est pas.
+  /* LA REQUÊTE EST REJOUÉE à chaque rendu de l'onglet textuel (la Page, `.sv-sheet` ; A389 : « Parcours » a vécu) :
+     sans quoi le mot surligné disparaîtrait au retour du Schéma.
      La racine de la Page est la FEUILLE ENTIÈRE depuis le lot Page (v5.10.0) : la recherche
      couvre donc aussi le cartouche, la colonne de référence et les doses — c'est-à-dire tout ce
      que le lot vient d'y mettre, et qui serait resté introuvable si la racine était restée le
@@ -22309,13 +22182,13 @@ function bindStaticEvents(f){
      `_pfQ` garde la requête en vie le temps de la feuille — c'est une consultation, donc elle
      n'est ni persistée ni synchronisée (même règle que `state.allTab`). */
   {const q=wrap.querySelector('#pfQ');
-   if(q){bindProtoFind(state.allTab==='parcours'?'.pc-wrap':'.sv-sheet',f);
+   if(q){bindProtoFind('.sv-sheet',f);
      if(_pfQ){q.value=_pfQ;pfRun(_pfQ);}}
    else _pfHits=[];}
   const handle=t=>{
     /* CHANGER D'ONGLET NE RE-REND QUE CE CRAN (`renderSvOnly`), jamais la page : la rangée
        d'onglets est le seul objet qui ne doit pas bouger sous le doigt qui vient de la taper.
-       L'ancre de défilement est remise en haut du cran — les trois onglets n'ont ni la même
+       L'ancre de défilement est remise en haut du cran — les onglets n'ont ni la même
        hauteur ni les mêmes repères, conserver `scrollY` d'une vue à l'autre ne voudrait rien dire
        (même raisonnement que la bascule de densité, v4.74.2). */
     {const at=t.closest('[data-alltab]');
@@ -23541,7 +23414,7 @@ function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type=
 /* ----- APERÇU EN DIRECT des éditeurs (V5, canvas turn 6) : colonne droite collante à >= 1000px
    (mini-rendu du brouillon, mis à jour à la saisie) + « Ouvrir l'aperçu complet » ; en dessous,
    le bouton « Aperçu » du pied d'éditeur ouvre la vue lecture du brouillon en MODE APERÇU. ----- */
-function openDraftPreview(){state.previewFrom='edit';
+function openDraftPreview(){state.previewFrom='edit';_pvFold=Object.create(null);state.sessFold=new Set();
   state.fiche=migrate(JSON.parse(JSON.stringify(state.draft)));
   /* BAC À SABLE (v4.6.0) : coches et chemin DÉTACHÉS de toute session réelle — une session vive
      d'une AUTRE fiche ne doit jamais recevoir les coches d'un brouillon.
@@ -23555,14 +23428,14 @@ function openDraftPreview(){state.previewFrom='edit';
   freshRuntime(state.fiche,null);Runtime.essai=true;
   /* ⚠ SIGNALÉ À L'USAGE (v5.0.0) : un auteur qui lisait en « Toute la fiche » puis pressait
      « ▶ Essayer » n'obtenait RIEN — l'essai reprenait la préférence de lecture, donc le cran
-     « Toute la fiche », dont les trois onglets (Parcours · Page · Schéma) sont des vues de
+     « Toute la fiche », dont les onglets (Page · Schéma ; Parcours jusqu'à A389) sont des vues de
      CONSULTATION : aucune ne déroule une session, et l'écran restait celui d'avant.
      « ▶ Essayer » a UN objet : voir se COMPORTER ce qu'on vient d'écrire. Il ouvre donc toujours
      le cran « Un bloc », le seul où l'on coche et où l'on avance. La PRÉFÉRENCE n'est pas
      touchée : on force la vue de l'essai, on ne réécrit pas le réglage de l'auteur. */
   state.readMode=currentReadMode();state.allTab='page';_pfQ='';state.cxOpen=false;state.tkSheet=null;state.ovFold={};state.ovVerify=null;state.flowEnded=false;state.confOpen=undefined;
   state.view='read';render();}
-function openPDraftPreview(){state.previewFrom='protocolEdit';
+function openPDraftPreview(){state.previewFrom='protocolEdit';_pvFold=Object.create(null);
   state.protocol=migrateProtocol(JSON.parse(JSON.stringify(state.pdraft)));state.view='protocolRead';render();}
 /* K11 (v4.70.0, maquette du poste d'écriture) — LA COLONNE STRUCTURE. À grande largeur, l'auteur
    perd le fil : une fiche à huit blocs se parcourt au défilement, et l'on ne sait plus où l'on
@@ -23576,7 +23449,7 @@ function openPDraftPreview(){state.previewFrom='protocolEdit';
 function syncPhaseList(f){const dl=document.getElementById('phaseList');if(!dl)return;
   const vals=PHASE_CORE.concat(phasesOf(f||{}).filter(p=>PHASE_CORE.indexOf(p)<0));
   dl.innerHTML=vals.map(v=>`<option value="${esc(v)}"></option>`).join('');}
-function edStructHtml(f){
+function edStructHtml(f,o){o=o||{};
   const bs=(f.blocks||[]);
   /* ⚠ SIGNALÉ À L'USAGE (v5.0.0) : la colonne restait VIDE tant qu'il n'y avait qu'un bloc — la
      règle « à un seul bloc, il n'y a rien à repérer » est vraie pour NAVIGUER, fausse pour
@@ -23584,7 +23457,7 @@ function edStructHtml(f){
      ce qu'elle montrera. Une colonne large et vide se lit comme une panne, pas comme un état. */
   const exc=(f.excursions||[]);
   if(!bs.length&&!exc.length)return '';
-  return `<div class="rail-head"><span class="rail-title">Structure</span><span class="rail-n">${bs.length}</span></div>`
+  return (o.nohead?'':`<div class="rail-head"><span class="rail-title">Structure</span><span class="rail-n">${bs.length}</span></div>`)
     /* ⚠ LE RAPPEL DES PHASES EST LA COLONNE ELLE-MÊME (demande utilisateur). Écrire une phase
        bloc par bloc sans jamais voir le découpage, c'est décider à l'aveugle : l'intertitre
        n'apparaît qu'AU CHANGEMENT de phase — c'est-à-dire là où l'auteur a effectivement décidé
@@ -23603,6 +23476,11 @@ function edStructHtml(f){
     +(exc.length?`<div class="rail-head eds-hors"><span class="rail-title">${boltIcon(12)} À tout moment</span><span class="rail-n">hors numérotation</span></div>`
       +exc.map(c=>{const bb=bs.find(x=>x.id===c.target);
         return `<button type="button" class="eds-row exc"${bb?` data-edgo="${esc(bb.id)}"`:''}><span class="eds-n">${boltIcon(13)}</span><span class="eds-t">${esc(c.label||'Complication')}</span><span class="eds-c">${bb?'bloc':'autre aide ↗'}</span></button>`;}).join(''):'');}
+/* A390 : SOUS 1200 px, LA STRUCTURE EST LE DÉPLIANT DU SOMMAIRE DES PROTOCOLES (même dessin, mêmes classes) :
+   collant sous l'en-tête, fermé d'office — une ligne quand on n'en a pas besoin. Toucher un bloc le referme et
+   amène le bloc à l'écran. L'état ouvert survit aux re-rendus de l'éditeur, pas à sa réouverture. */
+function edTocHtml(f){const h=edStructHtml(f,{nohead:true});if(!h)return '';const n=(f.blocks||[]).length;
+  return `<div class="ref-tocwrap ed-tocwrap"><details class="ref-toc ed-toc"${state.edTocOpen?' open':''}><summary class="rt-sum"><span class="rt-h">Structure</span><span class="rt-n">${n} bloc${n>1?'s':''}</span></summary><div class="ed-toc-l">${h}</div></details></div>`;}
 /* LA COLONNE DE DROITE PORTE L'ALGORITHME, PLUS UNE MAQUETTE (demande utilisateur, K1 v4.64.0 :
    le milieu EST le rendu). Le schéma monte dans la colonne COLLANTE ; sous 1000 px il reprend le
    flux. ⚠ IL NE SE REDESSINE PAS À LA FRAPPE (comportement d'avant, pas une régression) :
@@ -23664,6 +23542,7 @@ function renderEditor(){_renderN++;
   const isNew=!fiches.some(x=>x.id===f.id);
   const wideEdit=mqReadWide.matches;
   main.innerHTML=`${wideEdit?`<div class="read-grid ed-cockpit"><div class="read-main">`:''}`+`
+    ${edTocHtml(f)}
     ${edGrabBanner(f)}
     ${editorMetaFieldsHtml(f,'f',{titleLabel:'Titre de la situation',titlePh:'ex. Intoxication aux anesthésiques locaux',scopeHint:'où ranger cette fiche',codePh:'ex. URG-ANA-01',fem:true})}
     ${''/* v4.4.1 : les champs suivent l'ORDRE DE LECTURE du parcours de soin (chapeau « Ne pas
@@ -23761,7 +23640,9 @@ function renderEditor(){_renderN++;
      focus volé (l'auteur cherche, il n'écrit pas encore) ni de modification. */
   main.querySelectorAll('[data-edgo]').forEach(b=>b.onclick=()=>{
     const el=main.querySelector('.blk[data-bid="'+CSS.escape(b.dataset.edgo)+'"]');if(!el)return;
+    {const d=b.closest('details.ed-toc');if(d){d.open=false;state.edTocOpen=false;}}   // A390 : le dépliant se referme avant le saut
     revGoFlash(el);});
+  {const d=main.querySelector('details.ed-toc');if(d)d.ontoggle=()=>{state.edTocOpen=d.open;};}
   {const gx=document.getElementById('edGrabX');if(gx)gx.onclick=edGrabDrop;}
   /* Échap repose l'objet — geste d'annulation universel de l'app (modales, lecteur, plan). Posé
      UNE fois, à la première ouverture d'éditeur : `_edEscBound` évite d'empiler un écouteur par
@@ -24559,7 +24440,7 @@ function openRead(id){const f=fiches.find(x=>x.id===id);if(!f)return;bumpUsage(i
   // sous stress ; le schéma (vue d'ensemble, utile à froid) reste à un tap (« Voir l'algorithme »).
   bindStateToRuntime();state.fiche=Runtime.fiche;state.showFlow=false;
   state.view='read';render();}
-async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
+async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;state.edTocOpen=false;
   // Le rôle peut avoir changé côté serveur pendant que l'app était ouverte (pas de synchro
   // périodique) : fiche PARTAGÉE + en ligne -> profil revérifié AVANT le contrôle local.
   // Hors-ligne on laisse passer (local-first) ; _reclaimBlocked rattrapera au push.
@@ -24591,7 +24472,7 @@ async function openEdit(id){const f=fiches.find(x=>x.id===id);if(!f)return;
 async function newFiche(){const lib=homeScope();
   if(!canEditScope(lib)){toast('Lecture seule : vous ne pouvez pas créer de fiche dans cette bibliothèque.');return;}
   if(lib&&!await confirmNewInLib(lib,true))return;
-  const d=blankFiche();d.library=lib;state.draft=d;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
+  const d=blankFiche();d.library=lib;state.draft=d;state.edTocOpen=false;draftNewAtts=[];state.noteEdit=false;state.draftRestored=null;draftBase=JSON.stringify(d);_lastParked=null;state.view='edit';render();}
 
 /* ===== Lightbox ===== (agrandissement d'une image au clic, avec légende) */
 const lb=document.getElementById('lightbox');
@@ -26831,7 +26712,7 @@ function acctLibsHtml(){
     .concat(sortedLibraries().map(l=>{const admin=l.role==='admin'||myIsAppAdmin;
       return menuRowHtml({label:l.name||'Bibliothèque partagée',sub:(ROLE_FR[l.role]||'Lecteur')+' · '+n(cnt(l.id)),ic:uiIcon('book',20),inert:!admin,
         attrs:admin?`data-libedit="${esc(l.id)}" aria-label="Modifier la bibliothèque « ${esc(l.name||'')} »"`:'',tail:admin?chev:''});}));
-  return `<div class="acct-zone"><div class="auth-stats-h">Bibliothèques</div><div class="acct-card acct-list">${rows.join('')}${myIsAppAdmin?`<button type="button" class="catmenu-new" data-newlib>＋ Nouvelle bibliothèque</button>`:''}</div></div>`;}
+  return `<div class="acct-zone" id="acctLibs"><div class="auth-stats-h">Bibliothèques</div><div class="acct-card acct-list">${rows.join('')}${myIsAppAdmin?`<button type="button" class="catmenu-new" data-newlib>＋ Nouvelle bibliothèque</button>`:''}</div></div>`;}
 function accountPrefsHtml(slot){
   // Zone « CET APPAREIL », identique dans les deux états (repères stables — audit v4.5) :
   // état des données -> [action sur ces données, si fournie] -> préférence d'affichage.
@@ -27076,6 +26957,8 @@ function openAuth(){_authDelete=false;
     confirmHeldEdits();}   // re-propose les modifications hors connexion laissées en attente (✕ à la question précédente)
 }
 function closeAuth(){authModal.classList.remove('on');}
+// A389 : « Gérer » des bibliothèques (colonne de l'accueil) — Moi, posé sur sa section Bibliothèques.
+function openLibMgr(){openAuth();requestAnimationFrame(()=>{const z=document.getElementById('acctLibs');if(z)z.scrollIntoView({block:'start'});});}
 document.getElementById('acctTop').onclick=openAuth;
 bindModalDismiss(authModal,closeAuth);
 

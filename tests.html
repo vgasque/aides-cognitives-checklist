@@ -1034,11 +1034,11 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    ok('un bloc sans jalons expose un tableau vide (défaut posé par migrate)',
      Array.isArray(f.blocks[1].milestones)&&f.blocks[1].milestones.length===0);}
   {eq('cycleHint : UN SEUL minuteur à cycles → sa période annote la boucle',
-     A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:120},{type:'stopwatch',seconds:0}]}), ' · toutes les 2 min');
+     A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:120},{type:'stopwatch',seconds:0}]}), ' · toutes les 2\u00a0min');
    eq('cycleHint : DEUX minuteurs à cycles → rien (annoter serait une devinette)',
      A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:120},{type:'interval',autoloop:true,seconds:300}]}), '');
    eq('cycleTxt : période non ronde en minutes + secondes',
-     A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:90}]}), ' · toutes les 1 min 30 s');}
+     A.cycleTxt({timers:[{type:'interval',autoloop:true,seconds:90}]}), ' · toutes les 1\u00a0min 30\u00a0s');}
 
   group('Témoins d’étape — liens de coche et minuteur de bloc (v5.31.0, A377)');
   {const f=A.migrate({title:'Intubation',

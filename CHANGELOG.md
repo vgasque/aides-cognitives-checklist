@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.35.0] — 2026-09-26
+L'accueil en une colonne, l'éditeur plus navigable, un aperçu fidèle, et une Page et un Schéma lisibles (A389-A391, doctrine `docs/decisions/lot-v5-35.md`).
+- **Accueil (tablette, bureau) : une seule colonne.** La grille de 2 ou 3 colonnes coupait les
+  informations sous les titres ; la liste tient désormais en une colonne. « Détaillée » affiche une
+  carte par aide ; « Compacte » tient sur une ligne au bureau (titre à gauche, informations à droite).
+  Les deux réglages rendaient la même chose au-delà de 780 px : c'est corrigé.
+- **Bibliothèques** : dans la colonne de gauche, le crayon et « Nouvelle bibliothèque » laissent place à
+  un « Gérer » qui ouvre « Moi » à la section Bibliothèques.
+- **« Tout voir »** perd l'onglet « Parcours », qui redisait « Se repérer » : il reste Page et Schéma.
+- **Éditeur (tablette, téléphone) : la Structure revient.** Une carte « Structure · n blocs » reste collée
+  sous l'en-tête, fermée par défaut ; toucher un bloc la referme et amène le bloc à l'écran.
+- **« Essayer » montre la vraie page** : cartes, parcours, quai (Démarrer l'essai, Fin, Tout voir, ⚡,
+  Journal) et minuteurs, comme en session. « Fin » rejoue l'essai depuis le début. Rien n'est enregistré,
+  et ouvrir ou replier une carte dans l'aperçu ne change plus l'aide elle-même.
+- **Page (Tableau) : des traits qui se rejoignent.** Le tronc touche enfin la pilule « revenir à… » ; un
+  renvoi vers une branche de fourche rejoint la barre de la fourche (une seule pointe) ; un retour part
+  du bas de sa pilule et ne croise plus rien ; la pointe d'un retour arrive par un vrai trait ; les
+  tracés ne sont plus décalés quand la fenêtre s'ouvre.
+- **Page et Schéma : les conditions en toutes lettres**, comme dans le parcours : « Si Chocs délivrés ≥ 3 : »
+  en tête des étapes concernées, puis « · toutes les 4 min », « · si pas déjà faite », « · +1 Chocs délivrés ».
+  Le jalon se lit « Si … : … » ; les durées et les noms entre guillemets ne se coupent plus en fin de ligne.
+
 ## [5.34.0] — 2026-09-26
 Le parcours se lit d'un coup d'œil : dans la colonne, dans la carte « Parcours » et dans la feuille « Se repérer » (A388, doctrine `docs/decisions/lot-v5-34.md`).
 - **Colonne repliée par défaut.** À gauche du bureau (dès 1200 px) et dans le rail de droite, le
@@ -580,25 +602,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   Doctrine `docs/decisions/lot-v5-29.md`, index, `design/ds` régénéré, CHANGELOG à 20 ([5.23.8]
   archivée).
 - Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.28.4] — 2026-09-08
-### La Page n'a qu'un axe vertical, dans la fenêtre « Tableau » comme dans la fiche (A343)
-
-- **Signalé à l'usage** : depuis « Tableau » de l'écran de démarrage d'une aide (ou « Plein écran »
-  du cran Toute la fiche), « le scroll vertical à l'intérieur de la page n'est pas bloqué et ça fait
-  double scroll » — alors que dans la fiche et dans la feuille Consulter, l'axe est fermé.
-- **La cause est une portée** : la règle tactile de la v5.10.5 (C87 — axe vertical fermé par
-  `overflow-y:clip`, parce qu'un axe `auto` rebondit sur iOS même vide et capture le pouce) était
-  bornée à `main`, « le plein écran garde son défileur ». Vrai du schéma, qui a le sien ; faux de la
-  Page, rendue aussi dans la fenêtre « Tableau », qui défile elle-même. Dedans, la feuille
-  gardait un second axe : un défileur dans le défileur.
-- **Mesuré avant** (390 × 844, pointeur grossier, Chromium et WebKit) : `overflow-y: auto` dans la
-  fenêtre, `hidden` dans la fiche. **Correctif** : la portée `main` est retirée pour `.sv-scroll`
-  (ses deux sites de rendu vivent dans un défileur de page) ; `.flow-scroll` garde la sienne.
-  **Mesuré après** : même axe fermé des deux côtés, l'échelle fait grandir la fenêtre et jamais un
-  axe interne, le défilement horizontal des colonnes intact.
-- **Témoin** (`audit-doctrine`) : ouvre par le vrai lien « Tableau », vérifie que le régime tactile
-  est émulé, lit le style calculé des deux sites, exige que l'échelle grandisse la fenêtre. Vérifié
-  capable d'échouer sur l'état d'avant.
-- Doctrine A343 + addendum C87, index (`AGENTS.md`, `docs/README.md`), `design/ds` régénéré,
-  CHANGELOG à 20 ([5.23.7] archivée).

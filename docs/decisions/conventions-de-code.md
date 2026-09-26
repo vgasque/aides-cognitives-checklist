@@ -2664,7 +2664,7 @@
   seconde grammaire pour des objets qui se lisent pareil). **NI « Quand l'utiliser » NI les étapes
   en ligne** : la maquette ne les y met pas, et la colonne tient dans 240 px parce qu'elle ne
   montre rien du contenu.
-  **(2) L'ONGLET « PARCOURS » DE « TOUTE LA FICHE » N'EST PAS L'ÉCHELLE** (`ovParcoursHtml`) : on y
+  **(2) L'ONGLET « PARCOURS » DE « TOUTE LA FICHE » N'EST PAS L'ÉCHELLE** (`ovParcoursHtml`) [onglet PURGÉ en A389 — il redisait « Se repérer »] : on y
   dispose de toute la largeur et l'on vient voir LA FICHE ENTIÈRE — donc des CARTES de blocs
   empilées avec leurs items, imbrication comprise, précédées de la carte « Quand l'utiliser » (la
   condition d'entrée n'a de sens QUE là). ⚠ **LES CASES Y SONT DESSINÉES, ET C'EST UN ÉCART ASSUMÉ**
