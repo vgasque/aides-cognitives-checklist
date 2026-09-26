@@ -7731,6 +7731,44 @@ await sec('LA PAGE · un seul axe vertical, dans main comme dans la fenêtre « 
   await page.close();
 });
 
+/* v5.33.2 (signalé à l'usage iPhone) : (1) corriger une heure DANS le volet du quai — `kb-open` restait
+   posée après la validation (le champ part avec le panneau pendant son blur, son `focusout` n'atteint
+   plus le document) : dock masqué, bas de `main` qui saute ; et sous `html.kbd` le volet redevenait du
+   flux (garde « champ du volet » posée comme celle de l'en-tête). (2) PAYSAGE de téléphone : le rail
+   collant de hauteur fixe ne gardait que 110 px pour 1 058 de contenu — `zh500` le rend au flux. */
+await sec('v5.33.2 · volet du quai : corriger une heure rend le dock ; rail en paysage', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);await ouvrirFiche(page,/cardiaque/i);await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    const tk=document.getElementById('tkKey');tk.click();await w(200);dockSheetClose();
+    document.getElementById('cbTimers').click();await w(400);
+    const t=document.querySelector('.rt-dock [data-tktime]');if(!t)return {err:'pas de journal dans le volet'};
+    t.click();await w(150);
+    const inp=document.querySelector('.rt-dock .tk-time-edit');
+    const pose=document.body.classList.contains('kb-open');
+    // le clavier se simule par la classe que son poseur écrirait : champ du volet → PAS de `kbd`
+    window._vvhSync&&window._vvhSync();
+    const kbd=document.documentElement.classList.contains('kbd');
+    inp.value='1630';inp.blur();await w(250);
+    return {pose,kbd,kbOpen:document.body.classList.contains('kb-open'),
+      dock:getComputedStyle(document.getElementById('sessionDock')).display,
+      vol:!!document.querySelector('.rt-dock'),t:(document.querySelector('.rt-dock .tk-time')||{}).textContent};});
+  t('témoin : le champ d\'heure du volet pose bien `kb-open` au focus',!r.err&&r.pose===true,JSON.stringify(r));
+  t('après validation, `kb-open` tombe : le dock revient',r.kbOpen===false&&r.dock!=='none',JSON.stringify(r));
+  t('… le volet reste ouvert et l\'heure est corrigée',r.vol===true&&r.t==='16:30:00',JSON.stringify(r));
+  await page.setViewportSize({width:844,height:340});await page.waitForTimeout(400);
+  const l=await page.evaluate(()=>{const s=document.querySelector('.read-side');
+    return {zh:document.documentElement.classList.contains('zh500'),pos:getComputedStyle(s).position,sh:s.scrollHeight,ch:s.clientHeight};});
+  t('paysage 844 × 340 : le rail est rendu au flux, tout son contenu visible',l.zh&&l.pos==='static'&&l.ch>=l.sh-1,JSON.stringify(l));
+  await page.setViewportSize({width:1024,height:700});await page.waitForTimeout(400);
+  const g=await page.evaluate(()=>{const s=document.querySelector('.read-side');
+    return {zh:document.documentElement.classList.contains('zh500'),pos:getComputedStyle(s).position};});
+  t('… mais une tablette (1024 × 700) garde son rail collant',!g.zh&&g.pos==='sticky',JSON.stringify(g));
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 

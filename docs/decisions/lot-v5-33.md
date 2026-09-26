@@ -95,3 +95,124 @@ champ ne l'atteignait (bordure carrée du navigateur) ; la cible se dessine comm
 **Textes** : « ×2 Confirmée par les deux » dit sa portée (« en session, marquée ×2 : les deux soignants
 la vérifient à voix haute ») ; « Libellé de « Continuer » » est dit facultatif ; 8 px sous
 « Importance ».
+
+## A385 — l'invité figé garde ses gestes ; sa propre session reste la sienne (v5.33.2)
+
+**Signalé par l'auteur** (26/09/2026) : (1) « invité d'un partage en ligne, la connexion se coupe →
+il ne peut plus rien modifier » ; (2) « l'invité quitte la session en cours, rouvre la même aide sur
+son profil, lance un exercice ou une session normale → il revient sur la page de la session
+partagée ».
+
+**Mesuré d'abord** (sonde sur le banc relais d'`audit-partage`) :
+
+| Situation | Avant | Cause |
+|---|---|---|
+| Invité en ligne, lien figé (> `staleLimit`) | coche refusée, rien en file, contrôles grisés (`body.share-stale`) | `canWrite` exigeait `!isStale()` — arbitrage d'A332 (« ne pas rouvrir les coches à l'invité figé ») |
+| Invité revenu à l'accueil, même aide rouverte, SA session démarrée ; l'hôte coche 4 étapes et avance | les 4 coches et le bloc de l'hôte s'inscrivent dans la session LOCALE de l'invité (même fiche, mêmes clés) — elle devient la session partagée | `Share.onEvents` appliquait au `Runtime` courant, quel qu'il soit |
+| Hôte qui consulte une AUTRE aide pendant le partage ; l'invité coche | la coche entre dans l'autre aide, et manque à la session partagée | même cause, côté hôte — **non corrigé ici** (voir plus bas) |
+
+**Ce qui change** :
+1. **L'invité figé écrit** (renverse l'arbitrage d'A332, décision de l'auteur) : `canWrite` ne regarde
+   plus la péremption, seulement le statut et le rôle — l'invité suit la règle de l'hôte (A332 point 2).
+   Ses gestes entrent dans la file persistée et partent au retour du réseau, par n'importe quel
+   transport (la file voyage déjà aux bascules, v5.14.22). Le quai dit toujours « figé » ; la classe
+   `share-stale` et son grisé sont purgés (le grisé reste celui de `share-dead`, statuts morts) ; la
+   feuille et le bandeau disent « vos gestes partiront au retour du réseau » au lieu de « coches
+   suspendues ». L'objection d'A332 — « écrasées à la resynchronisation » — est levée : `_cycle`
+   POUSSE avant de tirer, `resume()` ne touche pas la file, et « Recevoir » par l'écran rejoue
+   désormais la file par-dessus l'instantané de l'hôte (`slOptiqueGot`). Un « Quitter » avec des gestes
+   non partis le dit déjà (`shareUnsent`). Ordre : le journal range par ARRIVÉE ; une coche faite
+   figé arrivée après un décochage du conducteur sur la même étape la recoche — un geste additif,
+   et décocher reste au conducteur.
+2. **Chez l'invité, un lot ne s'applique qu'à la session partagée** (`onEvents` : `Runtime.started`
+   et sans dossier local — la seule session sans `sessionId`). Le pli continue d'accumuler dans
+   `_cycle`, `openSharedFiche` reconstruit au retour (« Revenir à la session partagée »). Les
+   rangées de passation et de départ (menu, annonces) restent traitées.
+3. **Une bascule automatique n'arrache plus l'invité à SA session** : `slSbGuestSwitch` et `slGcJoin`
+   n'ouvrent la session partagée que si elle est à l'écran (`sharedShown()`).
+4. **« Démarrer » / « Exercice » au quai suivent `ensureStarted`** : un invité sur son appareil les
+   voit sur SES aides (v5.14.18 l'autorisait, le quai les cachait — seul le menu ⋯ y menait) ; seul
+   l'invité sans trace n'a rien à démarrer.
+
+**Reste dit et non corrigé** : côté HÔTE, consulter une autre aide pendant un partage expose la même
+fuite (le lot s'applique au `Runtime` affiché) — la cible juste est `liveSessions[fiche partagée]`,
+mais les appliqueurs lisent l'état global (`state`, `Runtime`) : correctif à part. **Corrigé en A387** (ci-dessous).
+
+**Garde-fous** : `tests.html` — un invité périmé GARDE l'écriture ; `audit-partage` — section
+« l'invité sur SA session de la même aide » (3 contrôles : Démarrer visible et session locale, zéro
+coche de l'hôte dedans, retour qui les montre) et section « lien figé » réécrite (l'invité figé coche,
+file à 1, quai « figé » ; au retour les coches se croisent — clé de l'invité distincte de celle de
+l'hôte, sans quoi le contrôle était vert par la coche de l'hôte). Rejoués sur le code d'avant : 4
+rouges.
+
+## A386 — le volet du quai sous le clavier, et le rail en paysage (v5.33.2)
+
+**Signalé par l'auteur** (26/09/2026, iPhone) : (1) « toucher l'heure dans le journal d'actions
+referme le volet au premier coup, puis ça marche mais tout le contenu saute à chaque fois » ;
+(2) « en paysage, la colonne de droite a un contenu tronqué » (capture : deux cartes de minuteur, la
+seconde coupée).
+
+**Mesuré** — au banc (deux moteurs, tactile émulé) puis sur le **simulateur iOS 27** (iPhone 17 Pro,
+Safari, vrai clavier) :
+1. Clavier ouvert, `html.kbd` rendait le volet (`.rt-dock`) au flux (`position:static`, décision
+   v5.13 « rien n'est épinglé ») : il quittait l'écran pour sa place dans le DOM, en tête de colonne,
+   emportant le champ touché — d'où « refermé ». L'en-tête avait déjà son exception (v5.14.1 : le
+   champ qui ouvre le clavier y vit, il reste le chrome de frappe) ; le volet ne l'avait pas.
+2. Valider l'heure re-rend le panneau (`renderTkOnly`) PENDANT le blur du champ : son `focusout`
+   n'atteint plus le document, `body.kb-open` restait posée — dock masqué (`display:none`) et bas de
+   `main` qui change (`body.dock-on.kb-open main{padding-bottom:0}`) : le saut. Mesuré aux deux
+   moteurs : `kb-open` vraie et dock `none` après validation.
+3. Le volet est fixe et de hauteur constante (`svh`, v5.4.2) : Safari ne remonte pas un champ d'une
+   couche fixe — une rangée basse du journal finissait sous la barre du clavier, pastilles
+   « −1/−2/−5 min » comprises (vu au simulateur).
+4. Paysage 844 × 340 : le rail collant a pour hauteur la fenêtre moins en-tête, quai et dock — **110 px
+   pour 1 058 px de contenu**.
+
+**Ce qui change** :
+1. La garde de `html.kbd` s'étend au volet : un champ qui y vit garde le volet (et le chrome) en place.
+2. `renderTkOnly` resynchronise `kb-open` (`_kbSync`, le poseur unique déjà rejoué à chaque rendu).
+3. Un champ du volet qui prend le focus fait défiler **le volet seul** (jamais la page), une fois, du
+   strict nécessaire pour passer au-dessus du clavier — rembourrage provisoire s'il manque de course,
+   retiré à la sortie du champ.
+4. `zh500` (hauteur effective < 500 = `innerHeight ÷ zoom`, classe posée par `syncZoomWidth` comme
+   les `zw*`, règle 10) : le rail redevient du flux (`position:static`, hauteur de son contenu). Les
+   téléphones en paysage sont tous sous 440 px, une tablette au-dessus de 670 : aucun basculement au
+   repli de la barre d'outils.
+
+**Garde-fous** : `audit-doctrine`, section « volet du quai : corriger une heure rend le dock ; rail en
+paysage » (5 contrôles, 2 rouges sur le code d'avant). Le comportement sous clavier réel (points 1 et
+3) ne se pilote pas en headless : vérifié au simulateur iOS — volet ouvert, champ et pastilles
+au-dessus du clavier, « −2 min » appliqué, dock revenu.
+
+## A387 — l'hôte qui consulte une autre aide : les gestes de l'invité vont à la session partagée
+
+**Trouvé en corrigeant A385** (le pendant côté hôte, reproduit au banc relais d'`audit-partage`) :
+pendant un partage, l'hôte ouvre une AUTRE aide (`openRead(autre)`). Deux défauts :
+
+| Situation | Avant | Cause |
+|---|---|---|
+| L'invité coche, incrémente | la coche entre dans l'aide AFFICHÉE ; la session partagée (`liveSessions[fiche partagée]`) ne la reçoit jamais — curseur avancé, geste perdu ; au retour, l'étape est vide | `Share.onEvents` applique au `Runtime` courant |
+| L'hôte démarre une session locale sur l'autre aide et coche | 2 évènements partent sur le fil de l'invité (coches et navigation d'une AUTRE fiche) | `shareEmitDiff` n'avait de garde que chez l'invité ; `persistAllLive` (passage en arrière-plan) exposait le même trou dès deux sessions vives |
+| En plus, à chaque lot reçu hors écran | `shareRebase()` recalait la base de diff sur l'AUTRE aide | idem |
+
+**Ce qui change** :
+1. **`Share.hostedRt()`** : la session que l'hôte partage = `liveSessions[Share.fiche.id]`, qu'elle
+   soit à l'écran ou non (une recherche, pas une référence gardée : pas d'objet périmé).
+2. **L'état se sépare de la peinture** dans les appliqueurs : `shareStateLive(R,e)` (coche,
+   compteur, minuteur, repère, annexe, début de session), `shareNavState(R,p)` et `shareVfState(R,e)`
+   écrivent l'état sur une session DONNÉE ; `sharePaintLive` et `shareApplyAnchored` les appellent
+   sur `Runtime` puis peignent, exactement comme avant. L'état n'est écrit qu'une fois (leçon
+   v4.42.0 : deux copies d'un même cœur divergent).
+3. **`onEvents`, hôte hors de sa session** : `shareApplyAway` applique le lot à la session hébergée
+   en état seul — rien ne se peint, rien de la VUE ne bouge (replis, mention « avancé par… »,
+   `flowEnded`, état de vue que `openRead` remet de toute façon à faux) —, puis la base de diff
+   suit la session hébergée et elle s'enregistre (`persistLive`). Aucune annonce : l'écran parle
+   d'autre chose. La prise de main reste inscrite.
+4. **`shareEmitDiff`, hôte** : seule la session hébergée émet. `flowEnded` ne se lit que sur la
+   session affichée (sinon celui de la base).
+
+**Garde-fous** : `audit-partage`, section « A387 · l'hôte sur une autre aide » (5 contrôles : témoin
+d'aide affichée, coche et compteur dans la session partagée et pas dans l'aide affichée, zéro
+évènement émis par la session locale de l'autre aide, coche peinte au retour). Sur le code d'avant :
+4 rouges. Le contrôle du compteur passait À VIDE dans sa première écriture (le « + » vit dans le
+volet replié sous 1000 px) : il passe par le cœur du geste (`cnInc`) et exige une valeur > 0.

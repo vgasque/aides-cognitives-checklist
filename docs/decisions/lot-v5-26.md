@@ -115,6 +115,7 @@ sur le relais et reçoivent tout au retour de l'hôte (ci-dessous).
    exactement ce que « Renvoyer » transporte (maquette 05). **Arbitrage** : on ne rouvre PAS les
    coches à l'invité figé — elles ne remontent pas par l'écran et seraient écrasées à la
    resynchronisation ; « Continuer seul » reste le repli pour qui veut conduire sa propre copie.
+   **⚠ Arbitrage RENVERSÉ en v5.33.2 (A385, `lot-v5-33.md`)** : l'invité figé garde ses gestes.
 
 **Ce qui reste dit et non corrigé** : un invité dont le relais répond ne suit pas un hôte passé en
 direct (il faudrait un signal hors relais ; le retour de l'hôte le rattrape désormais) ; un invité

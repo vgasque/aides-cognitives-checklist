@@ -875,12 +875,12 @@ await sec(`PARTAGE · le scribe ajoute, il ne défait pas — moteur ${NOM_MOTEU
     const noeud = document.contains(li);
     // 3. Le prédicat, aux deux copies du cœur de cochage.
     const predicat = { cocheOK: canToggleStep(true), decocheKO: !canToggleStep(false) };
-    // 4. Lien figé : plus rien n'est transmis, même une coche.
+    // 4. Lien figé (v5.33.2) : la coche est GARDÉE en file, elle partira au retour du réseau.
     Share.lastOk = Date.now() - 600000;
     const q3 = emis();
     const li2 = document.querySelectorAll('[data-ck]')[1];
     if (li2) li2.click(); await new Promise(x => setTimeout(x, 250));
-    const q4 = emis(), fige = !canToggleStep(true);
+    const q4 = emis(), fige = canToggleStep(true);
     return { coche, emisCoche: q1 - q0, toujours, emisDecoche: q2 - q1,
       derive: [y1 - y0, y2 - y1], noeud, predicat, fige, emisFige: q4 - q3,
       toasts: document.querySelectorAll('.toast').length - toastsAvant,
@@ -894,7 +894,7 @@ await sec(`PARTAGE · le scribe ajoute, il ne défait pas — moteur ${NOM_MOTEU
   t('la ligne n’est pas reconstruite', r.noeud === true);
   t('le prédicat est le même aux deux copies du cochage',
     r.predicat.cocheOK === true && r.predicat.decocheKO === true, JSON.stringify(r.predicat));
-  t('lien figé : plus rien n’est transmis', r.fige === true && r.emisFige === 0, `${r.emisFige}`);
+  t('lien figé : la coche est gardée en file (v5.33.2)', r.fige === true && r.emisFige === 1, `${r.emisFige}`);
   t('aucune banderole, aucune fenêtre (règle 11)', r.toasts === 0 && r.modales === 0);
   await page.close();
 }
@@ -1093,6 +1093,7 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
     await new Promise(x => setTimeout(x, 200)); return true; });
   const r = await page.evaluate(async () => {
     Share.mode = 'guest'; Share.role = 'scribe'; Share.me = 'inv'; Share.status = 'active';
+    Runtime.sessionId = null;   // v5.33.2 : la session d'un invité n'a pas de dossier local (openSharedFiche)
     Share.lastOk = Date.now(); Share.offset = 0; Share._defer = [];
     window.scrollTo(0, 300);
     await new Promise(x => setTimeout(x, 250));
@@ -2158,6 +2159,7 @@ await sec(`PARTAGE · l'attribution ne survit pas à un geste local — moteur $
     const o = {};
     Share._io.push = async () => ({ ok: true, server_time: new Date().toISOString() });
     Share.mode = 'guest'; Share.role = 'lead'; Share.me = 'pInv'; Share.status = 'active';
+    Runtime.sessionId = null;   // v5.33.2 : la session d'un invité n'a pas de dossier local (openSharedFiche)
     Share.lastOk = Date.now(); Share.offset = 0;
     // La liste telle que le serveur la renvoie : l'hôte y porte « Hôte » (schema.sql).
     Share.participants = [{ id: 'pHote', label: 'Hôte', role: 'lead', owner: true },
@@ -2781,7 +2783,65 @@ await sec('v5.26.3 · invité hors du réseau commun : l\'hôte silencieux se DI
   await close();
 });
 
-await sec('v5.26.2 · lien figé : minuteur daté, file de l\'hôte, bridage VISIBLE de l\'invité, reprise repeinte (A332)', async () => {
+/* v5.33.2 (signalé) : l'invité quitte la session partagée, rouvre LA MÊME aide sur son profil et y
+   démarre sa session — les gestes de l'hôte s'inscrivaient dans SA session (mêmes clés, même fiche),
+   qui « revenait » à la session partagée. Ils ne s'appliquent plus qu'à la session partagée ; le pli
+   les garde, et le retour les montre. */
+await sec('v5.33.2 · l\'invité sur SA session de la même aide : rien de l\'hôte n\'y entre', async () => {
+  const { H, G, close } = await bancRelais();
+  await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); });
+  // Le banc partage le stockage de l'hôte : l'invité ne doit pas hériter de SA session vive.
+  const fid = await G.evaluate(() => { for (const k in liveSessions) delete liveSessions[k]; return Runtime.ficheId; });
+  await G.evaluate(async id => { document.getElementById('hdrBack').click(); await new Promise(r => setTimeout(r, 300));
+    openRead(id); await new Promise(r => setTimeout(r, 300)); }, fid);
+  const cles = await G.evaluate(async () => { const b = document.getElementById('sessStart'); const vis = !b.hidden; b.click();
+    await new Promise(r => setTimeout(r, 400)); return { vis, sid: !!Runtime.sessionId }; });
+  t('l\'invité sur son appareil voit « Démarrer » sur sa propre aide, et démarre SA session', cles.vis && cles.sid, JSON.stringify(cles));
+  const hk = await H.evaluate(async () => { const els = [...document.querySelectorAll('[data-ck]')].slice(0, 3);
+    for (const el of els) { el.click(); await new Promise(r => setTimeout(r, 150)); } return els.map(e => e.dataset.ck); });
+  await G.waitForFunction(k => Share.fold && Share.fold.checked && Share.fold.checked[k], hk[2], { timeout: 20000 }).catch(() => {});
+  const loc = await G.evaluate(ks => ({ fuite: ks.filter(k => Runtime.checked[k]).length, sid: !!Runtime.sessionId, partage: sharedShown(), q: Share._q.length }), hk);
+  t('les coches de l\'hôte n\'entrent pas dans la session locale de l\'invité, qui reste la sienne', loc.fuite === 0 && loc.sid && !loc.partage && loc.q === 0, JSON.stringify(loc));
+  const ret = await G.evaluate(async ks => { backToShared(); await new Promise(r => setTimeout(r, 400));
+    return { partage: sharedShown(), vues: ks.filter(k => Runtime.checked[k]).length }; }, hk);
+  t('… et « Revenir à la session partagée » les montre toutes', ret.partage && ret.vues === hk.length, JSON.stringify(ret));
+  await close();
+});
+/* A387 — l'HÔTE qui consulte une AUTRE aide pendant le partage : les gestes de l'invité s'appliquaient
+   au `Runtime` affiché (l'autre aide) et manquaient à la session partagée ; et la session locale de
+   l'autre aide émettait ses coches sur le fil de l'invité (`shareEmitDiff` n'avait de garde que chez
+   l'invité). Les lots vont à la session HÉBERGÉE, en état seul, sans rien peindre ; rien d'une autre
+   session ne part. */
+await sec('A387 · l\'hôte sur une autre aide : les gestes de l\'invité vont à la session partagée', async () => {
+  const { H, G, close } = await bancRelais();
+  await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); });
+  const ids = await H.evaluate(async () => { const sid = Runtime.ficheId; const autre = fiches.find(f => f.id !== sid);
+    openRead(autre.id); await new Promise(r => setTimeout(r, 400)); return { sid, autre: autre.id, rt: Runtime.ficheId }; });
+  const g = await G.evaluate(async () => { const els = [...document.querySelectorAll('[data-ck]')].filter(e => !Runtime.checked[e.dataset.ck]);
+    els[0].click(); await new Promise(r => setTimeout(r, 200));
+    // le « + » vit dans le volet replié sous 1000 px : on passe par le cœur du geste (cnInc) et l'émission (persistLive)
+    const cid = Object.keys(Runtime.counters)[0]; if (cid) { cnInc(cid, 1); persistLive(Runtime); }
+    await new Promise(r => setTimeout(r, 300)); return { k: els[0].dataset.ck, cid, v: cid ? Runtime.counters[cid] : null }; });
+  const recu = await H.waitForFunction(({ sid, k }) => !!(liveSessions[sid] && liveSessions[sid].checked[k]), { sid: ids.sid, k: g.k }, { timeout: 20000 }).then(() => true).catch(() => false);
+  const h = await H.evaluate(({ sid, k, cid }) => ({ rt: Runtime.ficheId, fuite: !!Runtime.checked[k],
+    cnt: cid ? liveSessions[sid].counters[cid] : null, dom: !!document.querySelector('[data-ck="' + CSS.escape(k) + '"]') }), { sid: ids.sid, k: g.k, cid: g.cid });
+  t('témoin : l\'hôte affiche bien une AUTRE aide', ids.rt === ids.autre && ids.autre !== ids.sid, JSON.stringify(ids));
+  t('la coche de l\'invité entre dans la session PARTAGÉE, pas dans l\'aide affichée', recu && !h.fuite, 'reçue=' + recu + ' ' + JSON.stringify(h));
+  t('… et son compteur aussi', !!g.cid && g.v > 0 && h.cnt === g.v, JSON.stringify({ hote: h.cnt, invite: g.v }));
+  // L'hôte démarre une session LOCALE sur l'autre aide et y coche : rien ne doit partir sur le fil.
+  const e0 = await G.evaluate(() => Share.applied);
+  await H.evaluate(async () => { document.getElementById('sessStart').click(); await new Promise(r => setTimeout(r, 300));
+    const el = document.querySelector('[data-ck]'); if (el) el.click(); await new Promise(r => setTimeout(r, 300)); });
+  await G.waitForTimeout(4000);
+  const e1 = await G.evaluate(() => Share.applied);
+  t('une session locale sur l\'autre aide n\'émet RIEN sur le fil de l\'invité', e1 === e0, 'évènements reçus : ' + (e1 - e0));
+  // Retour sur la session partagée : la coche y est, à l'écran.
+  const ret = await H.evaluate(async ({ sid, k }) => { openRead(sid); await new Promise(r => setTimeout(r, 400));
+    const li = document.querySelector('[data-ck="' + CSS.escape(k) + '"]'); return { coche: !!Runtime.checked[k], peinte: !!(li && li.classList.contains('done')) }; }, { sid: ids.sid, k: g.k });
+  t('… et au retour sur la session partagée, la coche de l\'invité est là', ret.coche && ret.peinte, JSON.stringify(ret));
+  await close();
+});
+await sec('v5.26.2 · lien figé : minuteur daté, file de l\'hôte ET de l\'invité (v5.33.2), reprise repeinte (A332)', async () => {
   const { H, G, close } = await bancRelais();
   await H.evaluate(() => { document.getElementById('shareModal').classList.remove('on'); });
   // Un minuteur arrêté par l'hôte est DATÉ chez l'invité (l'heure de l'évènement, jamais une charge).
@@ -2804,18 +2864,18 @@ await sec('v5.26.2 · lien figé : minuteur daté, file de l\'hôte, bridage VIS
   const hq = await H.evaluate(async () => { const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck]);
     el.click(); await new Promise(r => setTimeout(r, 300)); return { k: el.dataset.ck, on: !!Runtime.checked[el.dataset.ck], q: Share._q.length }; });
   t('l\'hôte figé COCHE : le geste entre dans la file (A332 — il était refusé, base avancée, perdu)', hq.on && hq.q === 1, JSON.stringify(hq));
-  const gq = await G.evaluate(async () => { await new Promise(r => setTimeout(r, 1200));
-    const stale = document.body.classList.contains('share-stale');
-    const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck]);
-    el.click(); await new Promise(r => setTimeout(r, 300)); return { on: !!Runtime.checked[el.dataset.ck], stale, q: Share._q.length }; });
-  t('l\'invité figé est bridé, et ça se VOIT (body.share-stale) ; rien n\'entre dans sa file', !gq.on && gq.stale && gq.q === 0, JSON.stringify(gq));
+  const gq = await G.evaluate(async hk => { await new Promise(r => setTimeout(r, 1200));
+    // une AUTRE clé que celle de l'hôte : sinon « reçue chez l'hôte » serait vrai par sa propre coche
+    const el = [...document.querySelectorAll('[data-ck]')].find(e => !Runtime.checked[e.dataset.ck] && e.dataset.ck !== hk);
+    el.click(); await new Promise(r => setTimeout(r, 300)); return { k: el.dataset.ck, on: !!Runtime.checked[el.dataset.ck], tag: shareGlobTag(), q: Share._q.length }; }, hq.k);
+  t('l\'invité figé COCHE : le geste entre dans sa file, le quai dit « figé » (v5.33.2, renverse A332)', gq.on && gq.tag === 'figé' && gq.q === 1, JSON.stringify(gq));
   // Le réseau revient : la coche de l'hôte rejoint l'invité, le bridage tombe.
   await H.evaluate(() => { window.__acNetOk = true; Share._io = window.__ioSain; Share._ioRest = window.__ioSain; window.__bc.onmessage = window.__bcSain; Share._kick(0); });
   await G.evaluate(() => { window.__acNetOk = true; Share._io.pull = window.__pullSain; Share._io.push = window.__pushSain; Share._kick(0); });
   const vu = await G.waitForFunction(k => !!Runtime.checked[k] && !Share.isStale(), hq.k, { timeout: 40000 }).then(() => true).catch(() => false);
-  // la classe se pose au TICK (une seconde) : on attend qu'il passe, on ne lit pas l'instant du retour
-  const leve = vu && await G.waitForFunction(() => !document.body.classList.contains('share-stale'), null, { timeout: 5000 }).then(() => true).catch(() => false);
-  t('… au retour, la coche de l\'hôte faite lien figé atteint l\'invité, et le bridage tombe', vu && leve, 'vue=' + vu + ' levé=' + leve);
+  const recu = vu && await H.waitForFunction(k => !!Runtime.checked[k], gq.k, { timeout: 20000 }).then(() => true).catch(() => false);
+  const garde = recu && await G.evaluate(k => !!Runtime.checked[k] && Share._q.length === 0, gq.k);
+  t('… au retour, les coches faites lien figé se croisent : celle de l\'hôte chez l\'invité, celle de l\'invité chez l\'hôte', vu && recu && garde, 'vue=' + vu + ' reçue=' + recu + ' gardée=' + garde);
   // Panne de l'INVITÉ seul, canal dormant vivant : il tente le direct (l'hôte ne sert pas), se fige ; l'hôte continue.
   const dc = await G.waitForFunction(() => !!slSb.dc, null, { timeout: 30000 }).then(() => true).catch(() => false);
   await G.evaluate(() => { window.__acNetOk = false; Share._io.pull = async () => { throw new Error('portail'); }; Share._io.push = async () => { throw new Error('portail'); }; });

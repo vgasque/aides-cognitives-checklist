@@ -4068,16 +4068,16 @@
      Les gestes restent CLIQUABLES : `bindLeadGuard` doit conserver la main pour annoncer le refus
      au lecteur d'écran — un contrôle éteint qui n'explique rien ne vaut pas mieux qu'un contrôle
      vif qui ne fait rien. */
-  body:is(.share-dead,.share-stale) #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
+  body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
     [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkKey),
-  body:is(.share-dead,.share-stale) #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
+  body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* La case à cocher perd son cadre fort : c'est le seul contrôle dont l'AFFORDANCE est un cadre,
      et le laisser à `--line-strong` la ferait encore lire comme « à cocher ». */
-  body:is(.share-dead,.share-stale) #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
+  body.share-dead #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
      été reconnu — elle n'a donc aucun coût d'attention le reste du temps, et à l'instant où elle
      s'affiche elle est la seule chose à faire sur cet écran. Registre INFORMATION de la taxonomie
@@ -6829,6 +6829,10 @@
        (mesuré : +50 px à l'ouverture de l'historique, page défilée). */
     body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
+    /* v5.33.2 — PAYSAGE DE TÉLÉPHONE (`zh500`, hauteur effective < 500 : classe JS, règle 10) : un
+       rail collant de hauteur fixe n'y laissait que 110 px pour 1 058 de contenu (844 × 340). Il
+       défile avec la page, tout entier ; l'état vif reste dans la capsule. */
+    html.zh500 body.view-read .read-side{position:static;height:auto;overflow:visible}
     /* UN SEUL défileur (v4.23.0) : pas de zones bornées, l'ILLIMITÉ passe en dernier (minuteurs →
        posologie → Échelle → horodatage). Deux niveaux de séparation, deux dessins (v5.6, corrigé
        par l'auteur) : filet de FAMILLE franc pleine largeur — ne pas le retirer —, séparateur

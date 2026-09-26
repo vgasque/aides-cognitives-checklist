@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-F4Gn1DiFcyPxfTwzO856CcS49PDUDY/KbCy4eMLSI9M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-P89CUPtcgCg/k//Hc+Tz5fq7cioAuf+3Zoo/AM0S9Us='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4423,16 +4423,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Les gestes restent CLIQUABLES : `bindLeadGuard` doit conserver la main pour annoncer le refus
      au lecteur d'écran — un contrôle éteint qui n'explique rien ne vaut pas mieux qu'un contrôle
      vif qui ne fait rien. */
-  body:is(.share-dead,.share-stale) #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
+  body.share-dead #main :is([data-ck],[data-cninc],[data-cndec],[data-cnreset],[data-tmtoggle],[data-tmreset],
     [data-ovnext],[data-ovend],[data-ovredo],[data-ovopt],[data-plgo],[data-svgo],[data-svref],
     [data-rmok],[data-rmgap],[data-cxback],
     [data-ovverify],[data-ovvok],[data-ovvgap],[data-tkdel],[data-tktime],#tkKey),
-  body:is(.share-dead,.share-stale) #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
+  body.share-dead #main .btn:is([data-ovnext],[data-ovend],[data-ovopt],[data-ovverify]){
     color:var(--ink-soft);border-color:var(--line);background:var(--surface-2);
     box-shadow:none;cursor:not-allowed;font-weight:600}
   /* La case à cocher perd son cadre fort : c'est le seul contrôle dont l'AFFORDANCE est un cadre,
      et le laisser à `--line-strong` la ferait encore lire comme « à cocher ». */
-  body:is(.share-dead,.share-stale) #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
+  body.share-dead #main [data-ck] .box{border-color:var(--line);background:var(--surface-2)}
   /* ELLE DOIT SAUTER AUX YEUX (retour utilisateur). Cette ligne n'apparaît QUE lorsqu'un code a
      été reconnu — elle n'a donc aucun coût d'attention le reste du temps, et à l'instant où elle
      s'affiche elle est la seule chose à faire sur cet écran. Registre INFORMATION de la taxonomie
@@ -7184,6 +7184,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        (mesuré : +50 px à l'ouverture de l'historique, page défilée). */
     body.view-read .read-side{position:sticky;top:calc(var(--stick-top,64px) + 8px);height:calc(100vh / var(--zf,1) - var(--stick-top,64px) - 20px - var(--dock-h,0px));overflow-y:auto;
       border-left:1px solid var(--line);padding:14px 2px 16px 16px;display:flex;flex-direction:column}
+    /* v5.33.2 — PAYSAGE DE TÉLÉPHONE (`zh500`, hauteur effective < 500 : classe JS, règle 10) : un
+       rail collant de hauteur fixe n'y laissait que 110 px pour 1 058 de contenu (844 × 340). Il
+       défile avec la page, tout entier ; l'état vif reste dans la capsule. */
+    html.zh500 body.view-read .read-side{position:static;height:auto;overflow:visible}
     /* UN SEUL défileur (v4.23.0) : pas de zones bornées, l'ILLIMITÉ passe en dernier (minuteurs →
        posologie → Échelle → horodatage). Deux niveaux de séparation, deux dessins (v5.6, corrigé
        par l'auteur) : filet de FAMILLE franc pleine largeur — ne pas le retirer —, séparateur
@@ -8583,7 +8587,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.33.1';
+const APP_VERSION='5.33.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -12771,9 +12775,6 @@ const TM_SOON_MS=20000;
 let _rtsHtml='',_rtsFitKey='',_rtsFit=0,_rtsNoChev=false,_rtsNu=true,_rtsKc=0,_rtsGhost=null;
 function updateRtStrip(now){
   now=now||Date.now();
-  /* A332 : le bridage de l'invité PÉRIMÉ se voit (le commentaire d'`emit` le promettait « à venir ») —
-     même dessin que `share-dead`, posé au tick puisque la péremption est un état qui bat. */
-  try{document.body.classList.toggle('share-stale',Share.mode==='guest'&&Share.status==='active'&&Share.isStale());}catch(e){}
   const crisis=state.view==='read'&&!!Runtime.fiche;
   // ÉCHU NON ACQUITTÉ (registre ATTENTION, règle ECAM v4.2.0) : un minuteur d'intervalle arrivé
   // au bout et non bouclé RESTE affiché en AMBRE dans la barre tant qu'il n'est ni relancé ni
@@ -13436,8 +13437,11 @@ function applyViewChrome(){
       des critères (doctrine QRH v4.3.2). CHEZ L'INVITÉ ET EN APERÇU D'ESSAI, RIEN :
       `ensureStarted` refuse, et un contrôle visible sans effet est ce que la v4.47.0 a supprimé.
       Détail : doctrine-js.md J68. */
+   /* v5.33.2 : la condition est celle d'`ensureStarted` — un invité sur SON appareil démarre sur SES
+      aides (v5.14.18) ; seul l'invité sans trace n'a rien à démarrer. La fiche partagée, elle, est
+      déjà `started`. */
    {const avant=crisis&&!Runtime.started&&!state.previewFrom
-      &&(()=>{try{return Share.mode!=='guest';}catch(e){return true;}})();
+      &&(()=>{try{return !(Share.mode==='guest'&&SHARE_NOTRACE);}catch(e){return true;}})();
     const sb=document.getElementById('sessStart'),ek=document.getElementById('exoKey');
     if(sb){sb.hidden=!avant;
       if(avant){const n=clean(listOf(state.fiche,'confirmation')).length;
@@ -17313,7 +17317,6 @@ function canToggleStep(on){
 function refuseStep(on){
   try{
     if(Share.status!=='active')announce('Le partage est arrêté : votre action n’est pas transmise.');
-    else if(Share.isStale())announce('Lien interrompu : votre action n’est pas transmise.');
     else announce(on?'Vous ne pouvez pas cocher cette étape.'
                     :'Décocher revient à celui qui conduit la checklist.');
   }catch(e){}}
@@ -17649,7 +17652,13 @@ function shareEmitDiff(R){
        session (la sienne, sur ses aides) est LOCALE et ne doit jamais alimenter le fil de
        l'hôte : ses clés parleraient d'une autre fiche. */
     if(Share.mode==='guest'&&R.sessionId)return 0;
-    const now=shareSnap(R,!!state.flowEnded);
+    /* A387 — chez l'HÔTE, seule la session hébergée émet : une autre session vive (autre aide
+       consultée, ou `persistAllLive` au passage en arrière-plan) diffait SES clés contre la base de
+       la session partagée, et l'invité recevait coches et navigation d'une autre fiche. */
+    const Hr=Share.hostedRt();
+    if(Hr&&R!==Hr)return 0;
+    // `flowEnded` est un état de VUE : il ne se lit que sur la session affichée.
+    const now=shareSnap(R,R===Runtime?!!state.flowEnded:!!(_shareBase&&_shareBase.flowEnded));
     if(!_shareBase){_shareBase=now;return 0;}
     const evs=shareDiff(_shareBase,now);
     _shareBase=now;
@@ -18878,6 +18887,10 @@ function renderTkOnly(){
   // v5.4.2-r : le résumé du dépliant du rail annonce le compte — il suit chaque repère.
   {const sm=document.querySelector('.read-side .rail-fold[data-rfold="tk"] summary');
    if(sm)sm.outerHTML=railTkSum().replace('<summary class="rail-head">','<summary class="rail-head">');}
+  /* v5.33.2 : le champ d'heure part avec l'ancien panneau PENDANT son blur — son `focusout` n'atteint
+     plus le document, `kb-open` restait posée (dock masqué, bas de `main` qui saute). */
+  try{window._kbSync&&window._kbSync();
+    const d=document.querySelector('.rt-dock');if(d&&!d.contains(document.activeElement))d.style.paddingBottom='';}catch(e){}
   bindTk();return true;}
 
 /* ===== Read (mode crise / lecture) =====
@@ -20210,6 +20223,24 @@ function openFoldCard(k){const f=state.fiche;if(!f)return;
   const kb=on=>document.body.classList.toggle('kb-open',on);
   document.addEventListener('focusin',e=>{if(isField(e.target)&&!e.target.closest('#dockSheet'))kb(true);
     document.body.classList.remove('hold-noselect');});   // A373 : ceinture — un champ au focus n'est jamais sous un « Maintenir »
+  /* v5.33.2 — UN CHAMP DU VOLET DU QUAI RESTE AU-DESSUS DU CLAVIER. Le volet est fixe et de hauteur
+     constante (svh, v5.4.2) : Safari ne remonte pas un champ d'une couche fixe, la rangée éditée
+     finissait sous la barre du clavier. Une fois le clavier ouvert, on fait défiler LE VOLET seul
+     (jamais la page), une fois, du strict nécessaire — rembourrage provisoire s'il manque de course. */
+  document.addEventListener('focusin',e=>{
+    const d=isField(e.target)&&e.target.closest('.rt-dock');if(!d)return;
+    const el=e.target.closest('.tk-item')||e.target,vv=window.visualViewport;
+    let fait=false;
+    const run=()=>{if(fait||document.activeElement!==e.target)return;fait=true;
+      const bas=(vv?vv.offsetTop+vv.height:window.innerHeight)-12;
+      const over=el.getBoundingClientRect().bottom-bas;if(over<=0)return;
+      const course=d.scrollHeight-d.clientHeight-d.scrollTop;
+      if(course<over)d.style.paddingBottom=(over-course)+'px';
+      d.scrollTop+=over;};
+    if(vv)vv.addEventListener('resize',()=>setTimeout(run,60),{once:true});
+    setTimeout(run,450);});
+  document.addEventListener('focusout',e=>{const d=e.target&&e.target.closest&&e.target.closest('.rt-dock');
+    if(d)setTimeout(()=>{if(!d.contains(document.activeElement))d.style.paddingBottom='';},60);});
   document.addEventListener('focusout',e=>{if(isField(e.target))setTimeout(()=>{
     if(!isField(document.activeElement)||document.activeElement.closest('#dockSheet'))kb(false);},60);});
   /* ⚠ UNE CLASSE POSÉE AU FOCUS ET RETIRÉE AU BLUR EST ORPHELINE SI LE CHAMP EST DÉTRUIT (v5.6,
@@ -20569,6 +20600,9 @@ function syncZoomWidth(){
   const cl=document.documentElement.classList;
   const av=cl.contains('zw1200');
   ZOOM_W_STEPS.forEach(b=>cl.toggle('zw'+b,w<b));
+  /* v5.33.2 : HAUTEUR effective < 500 (téléphone en paysage) — le rail collant n'y gardait que
+     110 px sous l'en-tête, le quai et le dock (mesuré à 844 × 340) : il redevient du flux (CSS). */
+  cl.toggle('zh500',window.innerHeight/zoomF()<500);
   /* Franchir le palier 1200 re-rend la liste (le tableau ≥ 1200 a vécu — v5.18 ; reste la barre de
      sélection, qui déplie ses actes à 1200). Idempotent hors accueil. */
   if(av!==cl.contains('zw1200')&&state.view==='library')try{render();}catch(e){}
@@ -20696,27 +20730,50 @@ let _shareRemote=false;
    (le geste n'est pas le sien — différence exacte avec `ovAdvanceRender`) : `#srLive` et la carte
    informent. `muet` : appliquer SANS peindre quand l'écran affiche autre chose — l'état doit
    entrer (cf. `onEvents`), pas le rendu. Détail : doctrine-js.md J164. */
+/* A387 — l'état d'une navigation et d'une trace de vérification, sur une session donnée (même
+   usage que `shareStateLive`). */
+function shareNavState(R,p){
+  const nn=shareNavNorm(p.nav,p.navSeq);if(!nn)return null;
+  const avant=(R.navSeq||[]).slice();
+  R.nav=nn.nav;R.navSeq=nn.navSeq;
+  // Le compteur de visites doit dépasser tout ce qui a été minté ailleurs, sinon une visite
+  // LOCALE ultérieure réutiliserait un numéro déjà pris — et deux passages partageraient
+  // leurs clés de cochage.
+  R.seq=Math.max(R.seq||0,...nn.navSeq);
+  // L'ancre d'excursion suit la navigation qu'elle qualifie — régime « anchored », donc
+  // REMPLACÉE comme nav/navSeq, jamais fusionnée (cf. shareCxbNorm, v5.10.5).
+  R.cxBack=cxbForFiche(shareCxbNorm(p.cxb,nn.navSeq),R.fiche);
+  return {nn,avant};}
+function shareVfState(R,e){
+  const p=e.payload||{},k=_fkey(p.k);if(!k)return false;
+  const v={a:e.actor,t:_fnum(p.t,e.ts)};
+  R.verified=R.verified||{};R.vgaps=R.vgaps||{};
+  if(e.kind==='verify'){R.verified[k]=v;delete R.vgaps[k];}
+  else{R.vgaps[k]=v;delete R.verified[k];}
+  return true;}
+/* A387 — L'HÔTE CONSULTE UNE AUTRE AIDE : le lot va à la session HÉBERGÉE, en état seul — rien ne
+   se peint (l'écran montre une autre aide) et rien de la VUE ne bouge (replis, mention d'auteur,
+   `flowEnded`, qui n'est pas un état de session : `openRead` le remet à faux au retour). */
+function shareApplyAway(R,evs){
+  let n=0;
+  for(const e of evs){
+    if(e.kind==='nav'){if(shareNavState(R,e.payload||{}))n++;}
+    else if(e.kind==='verify'||e.kind==='gap'){if(shareVfState(R,e))n++;}
+    else if(shareStateLive(R,e))n++;}
+  return n;}
 function shareApplyAnchored(f,evs,muet){
   let n=0;
   for(const e of evs){
     const p=e.payload||{};
     if(e.kind==='nav'){
-      const nn=shareNavNorm(p.nav,p.navSeq);
+      /* ÉCRIRE DANS `Runtime`, PUIS RE-LIER — jamais dans `state` seul. `bindStateToRuntime`
+         fait de `state.nav` un ALIAS du tableau de `Runtime` : lui affecter un tableau NEUF
+         casse l'alias en silence, et l'application se met à lire deux navigations différentes
+         selon l'endroit. C'est ce qui s'est produit à la première écriture de cette fonction,
+         attrapé par la sonde et non par la relecture. */
+      const _av=shareNavState(Runtime,p),nn=_av&&_av.nn;
       if(nn){
-        /* ÉCRIRE DANS `Runtime`, PUIS RE-LIER — jamais dans `state` seul. `bindStateToRuntime`
-           fait de `state.nav` un ALIAS du tableau de `Runtime` : lui affecter un tableau NEUF
-           casse l'alias en silence, et l'application se met à lire deux navigations différentes
-           selon l'endroit. C'est ce qui s'est produit à la première écriture de cette fonction,
-           attrapé par la sonde et non par la relecture. */
-        const _avantSeq=(Runtime.navSeq||[]).slice();
-        Runtime.nav=nn.nav;Runtime.navSeq=nn.navSeq;
-        // Le compteur de visites doit dépasser tout ce qui a été minté ailleurs, sinon une visite
-        // LOCALE ultérieure réutiliserait un numéro déjà pris — et deux passages partageraient
-        // leurs clés de cochage.
-        Runtime.seq=Math.max(Runtime.seq||0,...nn.navSeq);
-        // L'ancre d'excursion suit la navigation qu'elle qualifie — régime « anchored », donc
-        // REMPLACÉE comme nav/navSeq, jamais fusionnée (cf. shareCxbNorm, v5.10.5).
-        Runtime.cxBack=cxbForFiche(shareCxbNorm(p.cxb,nn.navSeq),f);
+        const _avantSeq=_av.avant;
         bindStateToRuntime();      // pose aussi navPos au BOUT : le journal n'a pas de curseur
         ovFoldRemap(_avantSeq,nn.navSeq);   // A333 : un fil réordonné chez l'hôte, mes replis suivent leur visite
         /* ATTRIBUTION POSÉE ICI, ET NULLE PART AILLEURS. C'est le seul point où une navigation
@@ -20743,11 +20800,7 @@ function shareApplyAnchored(f,evs,muet){
        et un état recalculé depuis le journal ne divergent pas : les deux posent `{a,t}` et
        effacent le registre opposé, une étape ne pouvant pas être à la fois constatée et en écart. */
     else if(e.kind==='verify'||e.kind==='gap'){
-      const k=_fkey(p.k);
-      if(k){const v={a:e.actor,t:_fnum(p.t,e.ts)};
-        if(e.kind==='verify'){Runtime.verified[k]=v;delete Runtime.vgaps[k];}
-        else{Runtime.vgaps[k]=v;delete Runtime.verified[k];}
-        bindStateToRuntime();n++;}}
+      if(shareVfState(Runtime,e)){bindStateToRuntime();n++;}}
   }
   if(!n)return 0;
   if(muet)return n;   // l'état est entré ; le prochain rendu de cette fiche le montrera
@@ -20774,21 +20827,19 @@ function shareApplyAnchored(f,evs,muet){
     if(nv){const r=nv.getBoundingClientRect();
       if(r.top<stickBase()+4||r.bottom>window.innerHeight-4)ovScrollEl(nv);}}
   return n;}
-function sharePaintLive(f,e){
+/* A387 — L'ÉTAT D'UN ÉVÈNEMENT VIVANT, SANS RIEN PEINDRE, SUR UNE SESSION DONNÉE. Écrit une fois :
+   `sharePaintLive` l'applique à la session affichée puis peint ; `shareApplyAway` l'applique à la
+   session hébergée quand l'hôte consulte une autre aide. Rend faux si rien n'a changé ; pour une
+   coche {k,on}, pour un minuteur l'objet minuteur. */
+function shareStateLive(R,e){
   const p=e.payload||{};
   if(e.kind==='check'||e.kind==='uncheck'){
     const k=p.k;if(!k)return false;
     const on=e.kind==='check';
-    if(on){state.checked[k]=true;delete state.vgaps[k];}
-    else{delete state.checked[k];delete state.verified[k];state.flowEnded=false;}
-    // Étape HORS ÉCRAN (repliée, autre passage, journal non rendu) : l'état est à jour, il n'y a
-    // simplement rien à peindre. Ce n'est pas un échec.
-    const li=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');
-    if(!li)return true;
-    paintCkLi(li,k,on);
-    const sec=li.closest('.ov-block');
-    if(sec){_shareRemote=true;try{ovAfterCheck(f,sec,k);}finally{_shareRemote=false;}}
-    return true;}
+    R.verified=R.verified||{};R.vgaps=R.vgaps||{};
+    if(on){R.checked[k]=true;delete R.vgaps[k];}
+    else{delete R.checked[k];delete R.verified[k];}
+    return {k,on};}
   /* ANNEXE D'UN DÉTACHÉ. Elle entre au JOURNAL, à sa place chronologique, et NULLE PART ailleurs :
      ni coche, ni navigation, ni minuteur. Fusionner l'état d'un appareil qui a bifurqué produirait
      un résultat plausible et faux — les clés de cochage encodent un numéro de VISITE minté
@@ -20796,25 +20847,25 @@ function sharePaintLive(f,e){
      pas le même passage. Ce n'est pas un conflit arbitrable, c'est une collision d'espace de noms.
      Le relevé, lui, remonte : une heure reste une heure. */
   if(e.kind==='offline_mark'){
-    Runtime.events=Runtime.events||[];
+    R.events=R.events||[];
     const id=safeId('ax-'+(p.t||0)+'-'+(e.seq||0),'e');
-    if(Runtime.events.some(x=>x.id===id))return false;      // le fil peut rejouer un lot
-    Runtime.events.push({id:id,t:+p.t||Share.now(),a:e.actor||null,annex:true,
+    if(R.events.some(x=>x.id===id))return false;      // le fil peut rejouer un lot
+    R.events.push({id:id,t:+p.t||Share.now(),a:e.actor||null,annex:true,
       /* AUCUN LIBELLÉ N'EST LU DU RÉSEAU. Cette ligne lisait `p.label` — vestige inoffensif entre
          deux clients de cette version (aucun émetteur n'en met), mais c'était une PORTE : un
          client modifié aurait pu pousser un mot arbitraire, qui se serait affiché sur l'écran
          d'en face. La règle 15 vaut aussi à la RÉCEPTION, sinon elle ne vaut rien. Le libellé se
          DÉRIVE de la référence, et de rien d'autre. */
       ref:tkRefNorm(p.ref)});
-    Runtime.events.sort((a,b)=>a.t-b.t);renderTkOnly();return true;}
+    R.events.sort((a,b)=>a.t-b.t);return true;}
   if(e.kind==='session_start'){
     if(!(+p.t))return false;
-    Runtime.startedAt=+p.t;updateRtStrip();return true;}
+    R.startedAt=+p.t;return true;}
   if(e.kind==='counter'){
-    if(p.id==null||!(p.id in Runtime.counters))return false;
-    Runtime.counters[p.id]=+p.v||0;setCounterVal(p.id);return true;}
+    if(p.id==null||!(p.id in R.counters))return false;
+    R.counters[p.id]=+p.v||0;return true;}
   if(e.kind==='timer_arm'||e.kind==='timer_stop'||e.kind==='timer_reset'){
-    const t=Runtime.timers[p.id];if(!t)return false;
+    const t=R.timers[p.id];if(!t)return false;
     // L'ANCRE ABSOLUE voyage : c'est elle qui fait que les deux appareils affichent la même valeur
     // sans échanger quoi que ce soit ensuite. Convertie en heure LOCALE via le décalage mesuré —
     // sinon un téléphone à l'horloge décalée afficherait un cycle de RCP faux.
@@ -20824,32 +20875,47 @@ function sharePaintLive(f,e){
        (jamais un champ de charge), en heure locale ; sans cela le récepteur n'avait rien, ou
        gardait la date de SON propre arrêt précédent. */
     t.stoppedAt=p.running?0:((_ets(e)||Share.now())-Share.offset);t.stopClosed=false;
-    syncTimerBtns(t);refreshTimersDOM();updateRtStrip();return true;}
+    return t;}
   if(e.kind==='mark'){
     // La RÉFÉRENCE traverse, jamais le mot : le libellé est rendu ici depuis NOTRE copie de la
     // fiche. `tkRefNorm` la valide — un `ref` venu du fil n'est pas plus digne de confiance qu'un
     // import (règle 5 : toute donnée entrante passe par un point d'entrée qui la nettoie).
     // L'ACTEUR SUIT LE REPÈRE. `shareFold` le conserve, la peinture le perdait : un compte-rendu
     // ne peut pas dire qui a fait quoi si l'attribution s'arrête au pli.
-    const _id=safeId(p.id,'e'),_ex=(Runtime.events||[]).find(x=>x.id===_id);
+    R.events=R.events||[];
+    const _id=safeId(p.id,'e'),_ex=R.events.find(x=>x.id===_id);
     if(_ex){
       /* MISE À JOUR EN PLACE. Le repère existe déjà : on ne repose pas une seconde ligne pour le
          même geste. Le libellé MANUEL local n'est pas touché — il est souverain (`tkLabels`), et
          l'écraser reviendrait à faire dicter par le réseau un mot que quelqu'un a tapé ici. */
       _ex.t=+p.t||_ex.t;_ex.ref=tkRefNorm(p.ref);if(e.actor)_ex.a=e.actor;
-      Runtime.events.sort((x,y)=>x.t-y.t);renderTkOnly();return true;}
-    Runtime.events.push({id:_id,t:+p.t||Share.now(),a:e.actor||null,
-      /* AUCUN LIBELLÉ N'EST LU DU RÉSEAU. Cette ligne lisait `p.label` — vestige inoffensif entre
-         deux clients de cette version (aucun émetteur n'en met), mais c'était une PORTE : un
-         client modifié aurait pu pousser un mot arbitraire, qui se serait affiché sur l'écran
-         d'en face. La règle 15 vaut aussi à la RÉCEPTION, sinon elle ne vaut rien. Le libellé se
-         DÉRIVE de la référence, et de rien d'autre. */
-      ref:tkRefNorm(p.ref)});
-    Runtime.events.sort((a,b)=>a.t-b.t);renderTkOnly();return true;}
+      R.events.sort((x,y)=>x.t-y.t);return true;}
+    R.events.push({id:_id,t:+p.t||Share.now(),a:e.actor||null,
+      ref:tkRefNorm(p.ref)});   // aucun libellé lu du réseau (règle 15, cf. l'annexe ci-dessus)
+    R.events.sort((a,b)=>a.t-b.t);return true;}
   if(e.kind==='mark_void'){
-    const m=(Runtime.events||[]).find(x=>x.id===p.id);if(!m)return false;
-    m.voidAt=p.on?(+p.t||Share.now()):null;renderTkOnly();return true;}
+    const m=(R.events||[]).find(x=>x.id===p.id);if(!m)return false;
+    m.voidAt=p.on?(+p.t||Share.now()):null;return true;}
   return false;}
+function sharePaintLive(f,e){
+  const r=shareStateLive(Runtime,e);if(!r)return false;
+  const p=e.payload||{};
+  if(e.kind==='check'||e.kind==='uncheck'){
+    const k=r.k,on=r.on;
+    if(!on)state.flowEnded=false;
+    // Étape HORS ÉCRAN (repliée, autre passage, journal non rendu) : l'état est à jour, il n'y a
+    // simplement rien à peindre. Ce n'est pas un échec.
+    const li=main.querySelector('[data-ck="'+CSS.escape(k)+'"]');
+    if(!li)return true;
+    paintCkLi(li,k,on);
+    const sec=li.closest('.ov-block');
+    if(sec){_shareRemote=true;try{ovAfterCheck(f,sec,k);}finally{_shareRemote=false;}}
+    return true;}
+  if(e.kind==='session_start'){updateRtStrip();return true;}
+  if(e.kind==='counter'){setCounterVal(p.id);return true;}
+  if(e.kind==='timer_arm'||e.kind==='timer_stop'||e.kind==='timer_reset'){
+    syncTimerBtns(r);refreshTimersDOM();updateRtStrip();return true;}
+  renderTkOnly();return true;}   // offline_mark · mark · mark_void : le journal
 /* I4 (v4.62.0) — LA LISTE D'ÉTAPES N'EST ÉCRITE QU'UNE FOIS (elle l'était trois, et divergeait
    déjà) : ce générateur est le SURENSEMBLE, la trace do-verify apparaît partout. `opts.cur` sert
    la densité LECTEUR (même DOM, même `data-ck`, seule la mise en avant change, par classe).
@@ -27273,9 +27339,12 @@ const VVT_MIN_CLAVIER=60;
     /* v5.18.1 : le champ de l'accueil vit dans #homeDock (A249), FIXÉ au viewport visuel avec sa
        propre géométrie clavier : pour lui la classe DOIT se poser (en-tête d'accueil exempté du
        retrait) ; la garde ne vaut que pour un champ d'en-tête HORS dock. Détail : doctrine-js.md J206. */
+    /* v5.33.2 (signalé : corriger une heure du journal DANS le volet du quai le refermait, puis
+       tout sautait) : sous `html.kbd` le volet redevenait du flux, en tête de colonne — le champ
+       touché partait avec lui. Même garde que l'en-tête : le volet est alors le chrome de frappe. */
     const dansHdr=(()=>{try{const a=document.activeElement;
       if(a&&a.closest&&a.closest('#homeDock'))return false;
-      return !!(a&&a.closest&&a.closest('header.bar'));}catch(e){return false;}})();
+      return !!(a&&a.closest&&(a.closest('header.bar')||a.closest('.rt-dock')));}catch(e){return false;}})();
     document.documentElement.classList.toggle('kbd',clavier&&!dansHdr);};
   /* v4.29.7 : iOS peut CORRIGER la géométrie de la WebView SANS resize sur visualViewport — on
      écoute large ET on resynchronise à chaque tic de `tickAll` (300 ms, AVANT le garde d'activité,
@@ -28211,6 +28280,8 @@ const Share={
      Tout chemin CLOUD commence par restaurer `_ioRest`. */
   _ioRest:null,
 
+  /* A387 : la session que CET hôte partage — celle de sa fiche, qu'elle soit ou non à l'écran. */
+  hostedRt(){return (this.mode==='host'&&this.fiche&&this.fiche.id&&liveSessions[this.fiche.id])||null;},
   /* ===== Share · horloge de Cristian et fraîcheur (now/staleMs/isStale/canWrite) ===== */
   // Heure SERVEUR estimée. Tout ce qui est horodaté passe par ici — pas seulement les minuteurs :
   // sans cela, deux appareils dont les horloges divergent produiraient un compte-rendu dont
@@ -28225,10 +28296,10 @@ const Share={
   staleLimit(){return Math.max(SHARE_STALE_MS,Math.round(2.5*this._base()));},
   isStale(){return this.mode!=='off'&&this.staleMs()>this.staleLimit();},
   pending(){return this._q.length;},
-  // Un invité périmé ou coupé PERD VISIBLEMENT l'écriture : il ne doit jamais cocher dans le vide
-  // en croyant contribuer à une réanimation en cours.
-  canWrite(kind){return this.mode!=='off'&&this.status==='active'&&!this.isStale()&&
-    shareCan(this.role,kind);},
+  /* Un invité COUPÉ (statut mort) perd l'écriture. Un invité PÉRIMÉ la garde (v5.33.2, renverse
+     l'arbitrage d'A332) : ses gestes entrent dans la file persistée et partent au retour du
+     réseau, comme ceux de l'hôte — le quai dit « figé », rien n'est perdu. */
+  canWrite(kind){return this.mode!=='off'&&this.status==='active'&&shareCan(this.role,kind);},
 
   /* Empreinte du flux REÇU, à comparer à celle que le serveur calcule sur le flux ÉCRIT.
      Même entrée, même algorithme (SHA-256, natif des deux côtés) : aucune implémentation maison à
@@ -28273,17 +28344,14 @@ const Share={
      l'a faite. La file est PERSISTÉE — tout l'état vivant du projet l'est, précisément parce qu'un
      onglet mobile meurt, et une file en mémoire perdrait la trace au moment où elle compte. */
   emit(kind,payload){
-    /* `canWrite` PLUTÔT QUE `shareCan` : le rôle ne suffit pas. Un invité coupé, détaché, ou dont
-       l'écran est PÉRIMÉ ne doit rien émettre — sinon il alimente le fil depuis un état dont il
-       sait qu'il n'est plus garanti. Le prédicat existait et n'avait aucun appelant : le
-       commentaire promettait « un invité périmé ou coupé PERD VISIBLEMENT l'écriture » et rien ne
-       le rendait vrai. (Ce qu'il coche localement reste à l'écran, marqué non transmis : c'est
-       l'objet du bridage visible, à venir — mais rien ne part.) */
+    /* `canWrite` PLUTÔT QUE `shareCan` : le rôle ne suffit pas — un invité coupé ou détaché
+       n'émet rien. Un invité PÉRIMÉ, lui, émet en file depuis v5.33.2 (A385). */
     if(this.mode==='off')return null;
     /* A332 : l'HÔTE n'est jamais refusé pour PÉREMPTION — sa session locale fait autorité, et la
        file persistée existe précisément pour porter ses gestes après la panne. Mesuré : une coche
-       faite lien figé n'entrait pas dans la file (base avancée, geste perdu pour toujours). */
-    const can=this.mode==='host'?(this.status==='active'&&shareCan(this.role,kind)):this.canWrite(kind);
+       faite lien figé n'entrait pas dans la file (base avancée, geste perdu pour toujours).
+       v5.33.2 : l'invité suit la même règle (cf. canWrite). */
+    const can=this.canWrite(kind);
     if(!can){
       /* UN REFUS N'EST PAS UN SILENCE. `shareEmitDiff` avance la base de comparaison AVANT
          d'émettre : un genre refusé ici laissait donc l'état LOCAL modifié, la base alignée
@@ -28480,6 +28548,21 @@ const Share={
       else if(p.to&&_hoOffer){_hoOffer=false;try{shareMenuRefresh();}catch(_){}}   // offerte à un autre
       if(p.take&&this.mode==='host'){_hoTake=e.actor;anno=true;}
     }
+    /* v5.33.2 (signalé : l'invité qui rouvre LA MÊME aide sur son profil et y démarre sa session
+       « revenait » sur la session partagée) : chez l'invité, l'état ne s'applique qu'à la session
+       PARTAGÉE — seule session sans dossier local. Sur la sienne, les gestes de l'hôte s'y
+       inscrivaient (mêmes clés, même fiche). Le pli continue d'accumuler (`_cycle`) ;
+       `openSharedFiche` reconstruit au retour. */
+    if(this.mode==='guest'&&!(Runtime.started&&!Runtime.sessionId))return;
+    /* A387 — l'HÔTE consulte une autre aide : le lot va à la session HÉBERGÉE (`hostedRt`), en état
+       seul, puis s'enregistre ; la base de diff la suit (sans quoi le prochain enregistrement
+       renverrait à l'invité ce qu'il vient d'envoyer). Aucune annonce : l'écran parle d'autre chose. */
+    const Hr=this.hostedRt();
+    if(Hr&&Hr!==Runtime){
+      const n=shareApplyAway(Hr,ev.filter(e=>!(e.actor&&e.actor===this.me)&&shareApplyMode(e.kind)!=='none'));
+      if(n){_shareBase=shareSnap(Hr,!!(_shareBase&&_shareBase.flowEnded));persistLive(Hr);}
+      if(_hoTake){const who=_hoTake;_hoTake=null;this.grantLead(who).then(ok=>{if(ok)announce('Vous avez passé la main.');});}
+      return;}
     for(const e of ev){
       if(e.actor&&e.actor===this.me)continue;           // (3) jamais ses propres évènements
       const mode=shareApplyMode(e.kind);
@@ -28907,7 +28990,7 @@ function slStatusHtml(word,mode,why,manual){
 function slWhy(mode){
   const l=slLink();
   if(l.lost&&l.why!=='expired')return 'Connexion perdue à '+fmtHM(l.since)+' — aucun réseau : chacun vise l’écran de l’autre, à tour de rôle.'
-    +(Share.mode==='guest'?' Vos coches sont suspendues ; seuls vos repères datés (« Noter l’heure ») repartent.':'');   // A332
+    +(Share.mode==='guest'?' Continuez : vos gestes sont gardés et partiront au retour du réseau.':'');   // v5.33.2 (renverse A332)
   /* v5.26.4 (question de l'auteur : « et si son téléphone se met en veille, passe sur une autre
      appli ? ») : la CAUSE ne s'affirme pas — écran verrouillé, autre appli ou réseau, on ne sait
      pas. Le fait, lui, est sûr : le miroir n'est plus rafraîchi, et rien n'est perdu. */
@@ -29456,6 +29539,8 @@ async function slOptiqueGot(o,say){
   // La fiche passe par migrate() (openSharedFiche) ; le pli passe par slFoldSan — c'était le
   // seul intrant distant pris BRUT (audit v5.19.4).
   Share.fold=slFoldSan(o.snap);
+  // v5.33.2 : l'invité en ligne garde ses gestes non transmis (file) par-dessus l'instantané de l'hôte.
+  if(Share.mode==='guest'&&Share._q.length)Share.fold=shareFold(Share._q.map(e=>Object.assign({actor:Share.me},e)),Share.fold);
   if(Share.mode!=='guest')Share.offset=o.at-Date.now(); // l'heure de l'hôte devient la référence (l'invité en ligne garde celle du serveur)
   _slMirror={sess:String(o.sess),at:o.at,
     /* Ce que l'hôte a DÉJÀ : ses propres repères reçus dans l'instantané — la base du calcul
@@ -29564,7 +29649,7 @@ function slLinkPaint(){const el=document.getElementById('linkBar');if(!el)return
     :l.lost&&l.why==='expired'?act('join','Se reconnecter…')
     :hote?act('show','① Montrer')+act('rx','② Recevoir'):act('rx','① Recevoir')+act('ret','② Renvoyer');
   const titre=hq?'L’hôte ne donne plus signe depuis '+esc(fmtHM(l.hostSince))+' — cause non connue (veille, autre application ou réseau)\u00a0; rien n’est perdu'
-    :l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since))+(hote?'':' — coches suspendues, repères seuls'):'Mode par l’écran — chacun vise l’écran de l’autre';
+    :l.lost?'Connexion perdue depuis '+esc(fmtHM(l.since))+(hote?'':' — vos gestes partiront au retour du réseau'):'Mode par l’écran — chacun vise l’écran de l’autre';
   el.innerHTML='<span class="lk-txt" aria-hidden="true">△</span><span class="lk-txt" title="'+titre+'">'+(hq?'Hôte silencieux':'Par l’écran')+'</span>'+acts
     +'<button type="button" class="lk-act why" data-lk="why" aria-label="Pourquoi ? — les étapes du partage" title="Pourquoi ?">'+uiIcon('info',16)+'</button>';
   el.hidden=false;
@@ -29715,7 +29800,7 @@ async function slSbGuestSwitch(){
       r=await Share.joinByCode('AAAA2222',lbl).catch(()=>null);}
     if(r&&r.ok){slSb.dc=null;slSb.pc=null;
       if(portee.length){Share._q=portee.concat(Share._q);Share._saveQ();Share._kick(0);}
-      openSharedFiche();
+      if(sharedShown())openSharedFiche();   // v5.33.2 : une bascule automatique n'arrache pas l'invité à SA session
       slSay('Suivi en direct','Vous suivez en direct.');}
     /* échec (l'hôte n'a pas encore basculé ?) : le canal est GARDÉ, la prochaine détection
        de panne retentera — jamais de boucle serrée, le rythme est celui du sondage. */
@@ -29796,7 +29881,7 @@ async function slGcJoin(code){
       r=await Share.joinByCode(String(code||''),lbl).catch(()=>null);}
     if(r&&r.ok){
       if(portee.length){Share._q=portee.concat(Share._q);Share._saveQ();Share._kick(0);}
-      openSharedFiche();
+      if(sharedShown())openSharedFiche();   // v5.33.2, cf. slSbGuestSwitch
       try{announce('Vous suivez en ligne.');}catch(e){}}
     else Share._io=ioAvant;
   }finally{_slSwitching=false;}}

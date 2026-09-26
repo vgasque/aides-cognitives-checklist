@@ -1615,7 +1615,7 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    S._fails=6;
    ok('la péremption NE DÉPEND PAS du repli exponentiel',S.isStale());
    S._fails=0;
-   ok('un invité périmé perd l’écriture, visiblement',!S.canWrite('check'));
+   ok('v5.33.2 : un invité périmé GARDE l’écriture (ses gestes partent au retour du réseau)',S.canWrite('check'));
    // AU REPOS LA CADENCE RALENTIT, ET LE SEUIL SUIT : un silence de 6 s est NORMAL quand on ne
    // sonde que toutes les 5 s. C'est exactement le faux positif que la constante produisait.
    S._act=Date.now()-60000;S.lastOk=Date.now()-6000;
