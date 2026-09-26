@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-gLIM96KB7TEdUpYOvSpI0OQkBP+yrJ+IGRrLGjClhXI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-lnNZJsgZxVbU9v7jDmZgE3DEo/V810CN8D3djisfjxw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -4017,7 +4017,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
   .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px 10px;border-radius:var(--r-3);background:var(--verify-soft)}
   .jl-edit :is(select,input){min-height:40px;border:1px solid var(--verify-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
-  .jl-e1 select{flex:1 1 150px;min-width:0}
+  .jl-e1 select{flex:1 1 100px;min-width:0}
   .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .jl-e1 .tk-del{margin-left:auto}
@@ -4968,19 +4968,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
   /* ══ A383 — la rangée d'étape (maquettes E1-E3) : poignée · texte 17,5/700 · bouton « Réglages » ; dessous la
      réponse attendue, puis ce qui est réglé en pastilles. Filet entre étapes. 40 = poignée 32 + écart 8. */
-  .blk .li{padding-block:6px}
+  .blk .li{padding-block:4px}
+  .blk .li input[data-sf],.blk .li input[data-sf]:focus{padding-block:4px;min-height:0}   /* 32 px : cible hors crise tenue */
   .blk .li+.li{border-top:1px solid var(--work-line)}
   .blk .li input[data-sf]{font-size:17.5px;font-weight:700}
   .blk .li input[data-sf]::placeholder{color:var(--ink-soft);font-weight:600}
-  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;margin:-8px 0 0 40px;padding-block:2px;font-weight:600;color:var(--ink-2)}
-  .blk .li input.li-exp[data-sx]:focus{margin:-8px 0 0 40px;padding:2px 4px}
+  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;min-height:0;margin:-4px 0 0 40px;padding-block:2px;font-weight:600;color:var(--ink-2)}
+  .blk .li input.li-exp[data-sx]:focus{margin:-4px 0 0 40px;padding:2px 4px}
   .blk .li:has(input:focus) input.li-exp[data-sx]:not(:focus){background:var(--amb-2);border-radius:var(--r-2)}
-  .li-set{flex:none;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:var(--r-3);background:none;color:var(--ink-soft);cursor:pointer}
+  .li-set{flex:none;display:grid;place-items:center;width:40px;height:40px;margin-block:-4px;padding:0;border:0;border-radius:var(--r-3);background:none;color:var(--ink-soft);cursor:pointer}
   .li-set:hover{background:var(--surface-2);color:var(--ink)}
   .li-set.on{background:var(--primary-soft);color:var(--act)}
   .li-set:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-  .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 2px 40px}
-  .li-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-size:12px;font-weight:700}
+  .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px;margin:0 0 2px 40px}
+  .li-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-size:12px;font-weight:700}
   .li-chip.crit,.li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
   .li-chip.vig{background:var(--verify-soft);color:var(--warn)}
   .li-chip.x2{font-family:var(--mono)}   /* la chasse fixe de « ×2 » en lecture (.stp-x2) */
@@ -4991,7 +4992,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   html.zw430 .blk-top .blk-loop{order:3;margin-left:40px}   /* sous le titre, aligné sur son texte ; la poignée reste en bout de ligne */
   html.zw430 .blk-top .grab{order:2}
   .blk-foot{display:flex;justify-content:flex-end;margin-top:8px}
-  .bo-del{color:var(--critical);min-height:44px}
   /* « Options du bloc » (maquette E6) : carte dépliable de l'app ; rangées de menu, valeur en pastille à droite. */
   .bo-card .conf-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .bo-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:52px;padding:6px 0;border-top:1px solid var(--work-line)}
@@ -5009,16 +5009,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .tg-sw[aria-disabled="true"]{cursor:default}
   .tg-sw:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   @media (prefers-reduced-motion:reduce){.tg-sw::after{transition:none}}
-  /* La feuille « Réglages de l'étape » (maquettes E4, E5, E7) : feuille basse au téléphone (grammaire de
-     la feuille ⋯, A361), panneau latéral dès 780 — la liste des étapes reste lisible à côté. */
+  /* La feuille « Réglages de l'étape » (maquettes E4, E5) : feuille basse au téléphone (grammaire de la
+     feuille ⋯, A361), fenêtre centrée dès 780 (celle de « Affichage ») — un panneau latéral sous voile
+     n'aurait rien montré de plus. */
   #stepSetModal{align-items:flex-end;padding:0}
   #stepSetModal .ai-card{max-width:none;width:100%;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;box-shadow:var(--shadow-up)}
   .sst-hd{display:block;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
   #stepSetModal .ai-top{align-items:center}
   #stepSetModal .ai-x.sst-ok{width:auto;height:40px;margin:0;padding:0 16px;border:0;border-radius:var(--r-2);background:var(--act);color:var(--on-primary);font-family:inherit;font-size:15px;font-weight:700}
   @media (min-width:780px){
-    #stepSetModal{align-items:stretch;justify-content:flex-end;padding:12px}
-    #stepSetModal .ai-card{max-width:400px;max-height:none;border-radius:var(--r-4);padding:16px 20px 20px}
+    #stepSetModal{align-items:center;padding:24px}
+    #stepSetModal .ai-card{max-width:480px;max-height:calc(100dvh / var(--zf,1) - 48px);border-radius:var(--r-4);padding:16px 20px 20px}
     .sst-hd{display:none}}
   .sst-step{margin:2px 0 0;font-size:13.5px;font-weight:600;color:var(--ink-2)}
   .sst-h{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
@@ -5033,9 +5034,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sst-sel:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .sst-in{display:flex;gap:8px;margin-top:8px}
   .sst-in .sst-sel{flex:1;min-width:0}
-  .sst-stp{flex:none;display:flex;align-items:center;min-height:44px;border-radius:var(--r-3);background:var(--amb-2)}
-  .sst-stp button{width:40px;height:44px;border:0;background:none;font-family:inherit;font-size:21px;font-weight:700;color:var(--ink);cursor:pointer}
-  .sst-stp b{min-width:24px;text-align:center;font-family:var(--mono);font-size:17.5px}
+  .num-stp{flex:none;display:flex;align-items:center;min-height:44px;border-radius:var(--r-3);background:var(--amb-2)}
+  .num-stp button{width:40px;height:44px;border:0;background:none;font-family:inherit;font-size:21px;font-weight:700;color:var(--ink);cursor:pointer}
+  .num-stp button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:var(--r-2)}
+  .num-stp b{min-width:24px;text-align:center;font-family:var(--mono);font-size:17.5px}
+  .jl-edit .num-stp{min-height:40px;background:var(--work)}
+  .jl-edit .num-stp button{height:40px}
+  .jl-ge{flex:none;font-size:15px;font-weight:700;color:var(--warn)}
   .sst-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:var(--r-3);background:var(--amb-2)}
   .sst-grid button{min-height:44px;padding:4px 8px;border:1px solid transparent;border-radius:var(--r-2);background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-2);cursor:pointer}
   .sst-grid button small{display:block;font-size:11px;font-weight:600;color:var(--ink-2)}
@@ -5044,10 +5049,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sst-grid button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .sst-note{margin:8px 0 0;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
   .sst-note.ko{color:var(--warn)}
-  .sst-sep{margin-top:16px}
-  .sst-mk{display:flex;flex-wrap:wrap;gap:4px 16px}
-  .sst-mk .linkbtn{min-height:44px;margin:0}
-  .sst-del{margin:16px 0 0}
+  .sst-note.sst-sep{margin-top:20px}
+  .sst-mk{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .sst-foot{display:flex;margin-top:20px}
   .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
@@ -8291,7 +8295,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   <div class="ai-top"><h3 id="edAddTitle">Ajouter à la fiche</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
   <div class="ed-palette ai-body" id="edAddBody"></div>
 </div></div>
-<!-- A383 : les réglages d'UNE étape (importance, ce que fait la coche, moment) — feuille basse, panneau latéral dès 780 ;
+<!-- A383 : les réglages d'UNE étape (importance, ce que fait la coche, moment) — feuille basse, fenêtre centrée dès 780 ;
      corps peint à l'ouverture (`stepSetPaint`). -->
 <div class="ai-modal dlg-center sst-modal" id="stepSetModal" role="dialog" aria-modal="true" aria-labelledby="stepSetTitle"><div class="ai-card">
   <span class="sst-hd" aria-hidden="true"></span>
@@ -22889,7 +22893,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
   const ref=new Set();fiches.concat(protocols).forEach(x=>(x.docs||[]).forEach(a=>ref.add(a.id)));
   for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${esc(b.id)}" ${b.id===value?'selected':''}>${esc(String(b.title||'').trim()||('Bloc sans titre ('+(blocks.indexOf(b)+1)+')'))}</option>`).join('');return `<select data-target aria-label="Bloc suivant"><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
-function imageEditor(b){return b.image?`<span class="imgrow"><img src="${b.image}" alt=""><button type="button" class="linkbtn bo-del" data-bimgdel>Retirer</button></span>`:`<button type="button" class="linkbtn" data-bimg>+ Ajouter</button>`;}
+function imageEditor(b){return b.image?`<span class="imgrow"><img src="${b.image}" alt=""><button type="button" class="btn sm danger" data-bimgdel>Retirer</button></span>`:`<button type="button" class="linkbtn" data-bimg>+ Ajouter</button>`;}
 /* ═══ MK5-b (v4.64.0) — RÉORDONNER PAR « PRENDRE / POSER », DEUX TAPS, ZÉRO MAINTIEN ═══════════
    Un TAP sur la poignée ⠿ SOULÈVE l'objet et réécrit la page en CIBLES ; un TAP sur un
    interstice le pose. Pas de maintien, pas de glisser : c'est le point de défaillance du drag au
@@ -23197,9 +23201,8 @@ function jalonEditor(b){
   const cns=(f.counters||[]).filter(c=>c&&c.id);
   const exs=(f.excursions||[]).filter(c=>c&&c.label&&c.target);
   const rows=js.map((j,i)=>{
-    const cnSel=j.at==='count'?`<select data-jlcn="${i}" aria-label="Compteur mesuré par le jalon">${cns.map(c=>`<option value="${esc(c.id)}"${c.id===j.counter?' selected':''}>${esc(c.label||'Compteur')}</option>`).join('')}</select>`:'';
     const goSel=exs.length?`<select data-jlgo="${i}" aria-label="Renvoi du jalon vers une complication (facultatif)"><option value="">sans renvoi</option>${exs.map(c=>`<option value="${esc(c.target)}"${c.target===j.go?' selected':''}>⚡ ${esc(c.label||'Complication')}</option>`).join('')}</select>`:'';
-    return `<div class="jl-edit"><div class="jl-e1"><select data-jlat="${i}" aria-label="Condition du jalon"><option value="pass"${j.at!=='count'?' selected':''}>au nᵉ passage</option><option value="count"${j.at==='count'?' selected':''}${cns.length?'':' disabled'}>quand un compteur atteint n</option></select><input type="number" data-jln="${i}" value="${j.n}" min="1" max="99" inputmode="numeric" aria-label="Seuil n du jalon">${cnSel}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
+    return `<div class="jl-edit"><div class="jl-e1"><select data-jlsrc="${i}" aria-label="Ce que compte le jalon"><option value="pass"${j.at!=='count'?' selected':''}>Passages du bloc</option>${cns.map(c=>`<option value="${esc(c.id)}"${j.at==='count'&&c.id===j.counter?' selected':''}>${esc(tmLabelParts(c.label).name||'Compteur')}</option>`).join('')}</select><span class="jl-ge" aria-hidden="true">≥</span>${numStpHtml('data-jlstep',i,j.n,'Seuil du jalon')}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
   return rows;}
 /* A377 — « ce que fait la coche » (ligne) et « minuteur du bloc ». Rien si la fiche n'a ni minuteur
    ni compteur (aucun contrôle mort) ; migrate rejette ce qui pend. */
@@ -23219,8 +23222,8 @@ function edBlkTimerHtml(b){const ts=((state.draft||{}).timers||[]).filter(t=>t&&
   return `<select class="bo-pill${b.timer?' on':''}" data-btm aria-label="Minuteur lancé à chaque entrée dans le bloc"><option value="">Aucun</option>`
     +ts.map(t=>`<option value="${esc(t.id)}"${b.timer===t.id?' selected':''}>${tmOptLbl(t)}</option>`).join('')+`</select>`;}
 /* ══ A383 — ÉCRIRE D'ABORD, RÉGLER ENSUITE, JAMAIS À PLUS D'UN TOUCHER (maquettes E1-E7) ═══════════
-   Toucher le texte d'une étape n'ouvre rien. Un bouton au bout de la ligne ouvre UNE feuille (panneau
-   latéral dès 780) à trois sections nommées — importance · ce que fait la coche · moment ; ce qui est
+   Toucher le texte d'une étape n'ouvre rien. Un bouton au bout de la ligne ouvre UNE feuille (fenêtre
+   centrée dès 780) à trois sections nommées — importance · ce que fait la coche · moment ; ce qui est
    réglé se lit au repos en pastilles sous l'étape. Ce qui ne peut servir à rien n'est pas montré :
    moment, minuteur du bloc et jalons seulement si le bloc se répète (`blkInLoop`) ou s'ils sont posés. */
 const critGuideHtml=()=>`<details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('info',14)} Rouge, ambre, réponse attendue</summary><b class="cg-r">${uiIcon('warn',11)} Critique</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Vigilance</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). « ! » ou « ? » en tête d'étape pose le registre. <b>Réponse attendue</b> : sous l'étape (ex. « Adrénaline IM » → « 0,01 mg/kg — max 0,5 mg ») — elle devient la pilule à confirmer en lecture (challenge-response).</details>`;
@@ -23238,7 +23241,7 @@ function edStepSum(f,it,s){if(!it)return '';const T=(f.timers||[]).find(x=>x&&x.
 // Repeint les pastilles d'une rangée sans re-rendu (raccourci « ! » / « ? » : le curseur reste).
 function edSumPaint(li,b,i){const f=state.draft||{},h=edStepSum(f,bItems(b)[i],String(stepsOf(b)[i]||'')),o=li.querySelector('.li-sum');
   if(o)o.outerHTML=h;else if(h)li.querySelector('.li-exp').insertAdjacentHTML('afterend',h);}
-const BLK_DEL='<div class="blk-foot"><button type="button" class="linkbtn bo-del" data-bdel>Supprimer le bloc</button></div>';
+const BLK_DEL='<div class="blk-foot"><button type="button" class="btn sm danger" data-bdel>Supprimer le bloc</button></div>';
 const swHtml=(on,attrs)=>`<button type="button" class="tg-sw${on?' on':''}" role="switch" aria-checked="${!!on}" ${attrs}></button>`;
 // « Options du bloc » : la carte dépliable de l'app, ouverte d'office quand une option est posée (le départ seul ne compte pas).
 function blkOptsHtml(b,blocks){const f=state.draft||{},loop=blkInLoop(f,b.id),dep=blocks._start===b.id,ph=String(b.phase||'').trim(),nj=(b.milestones||[]).length;
@@ -23259,6 +23262,8 @@ const newTimerObj=(sec,lbl)=>({id:uid('t'),label:lbl||'',type:'interval',seconds
 const newCounterObj=lbl=>({id:uid('n'),label:lbl||'',step:1,start:0});
 let _sst=null;   // {bid,i} : l'étape que la feuille règle
 function stepSetCtx(){const f=state.draft,b=_sst&&f&&(f.blocks||[]).find(x=>x&&x.id===_sst.bid),it=b&&bItems(b)[_sst.i];return it?{f,b,i:_sst.i,it}:null;}
+// Pas −/+ (seuil d'un moment, d'un jalon) : `attr="i:±1"` porte le sens ; la valeur s'annonce.
+const numStpHtml=(attr,i,n,lbl)=>`<span class="num-stp" role="group" aria-label="${lbl}"><button type="button" ${attr}="${i}:-1" aria-label="Moins un">−</button><b aria-live="polite">${n}</b><button type="button" ${attr}="${i}:1" aria-label="Plus un">+</button></span>`;
 // Sélecteur segmenté de l'app (pastille glissante), une clé data-* par cran.
 const segHtml=(k,lbl,opts,i)=>`<div class="seg" role="radiogroup" aria-labelledby="${lbl}" style="--seg-n:${opts.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>`
   +opts.map(([v,l,x],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i}" data-${k}="${v}"${x||''}>${l}</button>`).join('')+`</div>`;
@@ -23270,17 +23275,17 @@ function stepSetHtml(f,b,i){const it=bItems(b)[i]||{},s=String(stepsOf(b)[i]||''
     +`<h4 class="sst-h" id="sstImp">Importance</h4>`+segHtml('ssreg','sstImp',[[0,'Normale'],[1,'△ Vigilance'],[2,uiIcon('warn',14)+' Critique']],reg)
     +tog('mem','★ Rappel en mémoire','affichée aussi dans « Ne pas oublier »',!!it.memory)+tog('dual','×2 Confirmée par les deux','double contrôle',!!it.dual)
     +`<h4 class="sst-h">Ce que fait la coche</h4>`
-    +(hasTC?edLinkSel(b,i):`<p class="sst-note">La fiche n’a ni minuteur ni compteur.</p><div class="sst-mk"><button type="button" class="linkbtn" data-sstmk="t">＋ Créer un minuteur</button><button type="button" class="linkbtn" data-sstmk="n">＋ Créer un compteur</button></div>`)
+    +(hasTC?edLinkSel(b,i):`<p class="sst-note">La fiche n’a ni minuteur ni compteur.</p><div class="sst-mk"><button type="button" class="btn sm" data-sstmk="t">＋ Créer un minuteur</button><button type="button" class="btn sm" data-sstmk="n">＋ Créer un compteur</button></div>`)
     +(loop||fr||r?`<h4 class="sst-h" id="sstFr">Moment${loop?' <i>· le bloc se répète</i>':''}</h4>`
       +segHtml('ssfrom','sstFr',[[0,'Dès le 1ᵉʳ passage'],[1,'À partir d’un compte',cs.length?'':' aria-disabled="true"']],fr?1:0)
       +(fr?`<div class="sst-in"><select class="sst-sel" data-momfr aria-label="Compteur">${cs.map(c=>`<option value="${esc(c.id)}"${c.id===fr.counter?' selected':''}>${esc(tmLabelParts(c.label).name||'Compteur')}</option>`).join('')}</select>`
-        +`<span class="sst-stp"><button type="button" data-ssn="-1" aria-label="Seuil moins un">−</button><b aria-live="polite">${fr.n}</b><button type="button" data-ssn="1" aria-label="Seuil plus un">+</button></span></div>`
+        +numStpHtml('data-ssn','n',fr.n,'Seuil du compteur')+`</div>`
         :(cs.length?'':`<p class="sst-note">La fiche n’a pas de compteur.</p>`))
       +`<h4 class="sst-h" id="sstRp">Puis revient</h4><div class="sst-grid" role="radiogroup" aria-labelledby="sstRp">`
       +rp.map(([v,l,sub])=>`<button type="button" role="radio" aria-checked="${v===r}" data-ssrp="${v}"${v==='due'&&!tid&&r!=='due'?' aria-disabled="true"':''}>${l}${sub?`<small>${sub}</small>`:''}</button>`).join('')+`</div>`
       +(r==='due'&&!tid?'<p class="sst-note ko">△ La coche ne relance aucun minuteur : l’étape est lue « à chaque passage ».</p>':'')
       :`<p class="sst-note sst-sep">Le moment d’une étape — à partir d’un compte, à une échéance, une seule fois — se règle dans un bloc qui se répète.</p>`)
-    +`<button type="button" class="linkbtn bo-del sst-del" data-rmstep>Supprimer l’étape</button>`;}
+    +`<div class="sst-foot"><button type="button" class="btn sm danger" data-rmstep>Supprimer l’étape</button></div>`;}
 const stepSetEl=()=>document.getElementById('stepSetModal');
 const stepRowSel=(bid,i)=>'.blk[data-bid="'+CSS.escape(bid)+'"] .li[data-si="'+i+'"]';
 function stepSetPaint(focus){const c=stepSetCtx();if(!c){stepSetClose();return;}
@@ -23308,7 +23313,7 @@ function stepSetApply(focus,lk){const k=_sst;keepAnchor(stepRowSel(k.bid,k.i),re
     else if(t.getAttribute('aria-disabled')==='true'){const g=bd.querySelector('[data-lk],[data-sstmk]');if(g)g.focus();}
     else if(d.ssfrom!=null){const cs=(f.counters||[]).filter(x=>x&&x.id);
       if(+d.ssfrom)it.from={counter:(it.from&&it.from.counter)||cs[0].id,n:(it.from&&it.from.n)||3};else delete it.from;stepSetApply('[data-ssfrom="'+d.ssfrom+'"]');}
-    else if(d.ssn&&it.from){it.from.n=Math.max(1,Math.min(99,it.from.n+(+d.ssn)));stepSetApply('[data-ssn="'+d.ssn+'"]');}
+    else if(d.ssn&&it.from){it.from.n=Math.max(1,Math.min(99,it.from.n+(+d.ssn.split(':')[1])));stepSetApply('[data-ssn="'+d.ssn+'"]');}
     else if(d.ssrp!=null){if(d.ssrp)it.repeat=d.ssrp;else delete it.repeat;stepSetApply('[data-ssrp="'+d.ssrp+'"]');}
     else if(t.hasAttribute('data-rmstep')){bItemDel(b,i);if(!bItems(b).length)bItemAdd(b,0,newStepItem(''));
       _sst=null;modalHandoffClose(stepSetEl());keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
@@ -23837,15 +23842,13 @@ function bindEditorEvents(f){
       const nl=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] .jl-edit:last-of-type input[data-jltx]');
       if(nl)nl.focus({preventScroll:true});};}
     card.querySelectorAll('[data-jldel]').forEach(btn=>btn.onclick=()=>{(b.milestones||[]).splice(+btn.dataset.jldel,1);keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);});
-    card.querySelectorAll('[data-jlat]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlat];if(!j)return;
-      j.at=e.target.value==='count'?'count':'pass';
-      /* Basculer vers « compteur » pré-pointe le premier compteur de la fiche : un jalon 'count'
-         sans compteur serait rejeté par migrate — on ne fabrique jamais cet état. */
-      if(j.at==='count'&&!j.counter){const c0=(((state.draft||{}).counters)||[])[0];j.counter=c0?c0.id:'';}
-      renderEditor();}));
-    card.querySelectorAll('[data-jlcn]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlcn];if(j)j.counter=e.target.value;}));
+    // Jalon : la liste dit CE QUI compte (passages ou compteur), le pas dit le seuil — une phrase, « Chocs délivrés ≥ 3 ».
+    card.querySelectorAll('[data-jlsrc]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlsrc];if(!j)return;
+      const v=e.target.value;if(v==='pass'){j.at='pass';}else{j.at='count';j.counter=v;}}));
+    card.querySelectorAll('[data-jlstep]').forEach(btn=>btn.onclick=()=>{const [i,d]=btn.dataset.jlstep.split(':'),j=(b.milestones||[])[+i];if(!j)return;
+      j.n=Math.max(1,Math.min(99,(+j.n||1)+(+d)));keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
+      const n=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] [data-jlstep="'+btn.dataset.jlstep+'"]');if(n)n.focus({preventScroll:true});});
     card.querySelectorAll('[data-jlgo]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlgo];if(j)j.go=e.target.value;}));
-    card.querySelectorAll('[data-jln]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jln];if(!j)return;const n=Math.round(Number(e.target.value));if(n>=1)j.n=Math.min(99,n);}));
     card.querySelectorAll('[data-jltx]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jltx];if(j)j.text=e.target.value;}));
     // A377 : minuteur du bloc (liens de coche et moment : fenêtre « Réglages de l'étape », A383).
     {const bt=card.querySelector('[data-btm]');if(bt)bt.addEventListener('change',e=>{if(e.target.value)b.timer=e.target.value;else delete b.timer;
