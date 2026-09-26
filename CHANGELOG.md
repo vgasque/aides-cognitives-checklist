@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.34.0] — 2026-09-26
+Le parcours se lit d'un coup d'œil : dans la colonne, dans la carte « Parcours » et dans la feuille « Se repérer » (A388, doctrine `docs/decisions/lot-v5-34.md`).
+- **Colonne repliée par défaut.** À gauche du bureau (dès 1200 px) et dans le rail de droite, le
+  parcours ne montre plus que les titres, avant comme pendant la session. Un bloc se déplie d'un
+  toucher sur son titre, « Tout déplier » ouvre tout. Une décision repliée garde ses réponses sur
+  une ligne (« Oui ↓ 3 · Non → 4 »), et en session la réponse choisie porte ✓. Le bloc en cours dit
+  « Ici ». Texte un cran plus petit (13,5 px) : la liste de l'arrêt cardiaque passe de 1 540 à 510 px.
+- **Même geste partout.** La carte « Parcours » et la feuille « Se repérer » ont les mêmes chevrons,
+  mais restent dépliées à l'ouverture. Replier ne fait pas sauter la page et ne ferme pas la feuille.
+- **Les conditions de cochage en toutes lettres.** Les étapes qui ne se font qu'à partir d'un seuil
+  sont regroupées sous « **Si** Chocs délivrés ≥ 3 : ». Le reste suit l'étape en gris : « si pas déjà
+  faite », « toutes les 4 min », « au besoin », « +1 Chocs délivrés », « relance « Réévaluation » (5 min) ».
+  Les étiquettes en capitales et les légendes à icône disparaissent du parcours.
+- **Boucles, jalons et complications.** « ↺ retour à 2 · toutes les 2 min » ; un jalon se lit
+  « Si Chocs délivrés ≥ 3 : … » avec un renvoi ⚡ vers sa complication ; les complications sont
+  listées en fin de parcours, sous « À tout moment ».
+- **Critique et Vigilance** : dans le parcours, le mot en couleur, sans fond, se place à droite de la
+  première ligne. Le texte de l'étape ne se décale plus. La carte de session ne change pas.
+- **Réponse attendue** : elle suit l'étape après un tiret, dans le texte (plus de police à chasse fixe
+  bleue). Le titre de la colonne devient « Parcours » (au lieu de « Parcours inerte »), et Tableau ·
+  Schéma tiennent sur une ligne.
+
 ## [5.33.2] — 2026-09-26
 Deux bugs du partage de session côté invité (A385) et leur pendant côté hôte (A387), puis deux bugs d'affichage au téléphone (A386) — doctrine `docs/decisions/lot-v5-33.md`.
 - **Connexion coupée : l'invité peut continuer.** Quand le lien se figeait (plus de réponse depuis
@@ -580,48 +602,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   capable d'échouer sur l'état d'avant.
 - Doctrine A343 + addendum C87, index (`AGENTS.md`, `docs/README.md`), `design/ds` régénéré,
   CHANGELOG à 20 ([5.23.7] archivée).
-
-## [5.28.3] — 2026-09-08
-### Le dernier repère quitte le pied du moniteur et se pose sur la bande, à son instant (A342)
-
-- **Demande de l'auteur** : « et si on mettait plutôt le dernier repère sur la timeline de manière
-  générale ? ». Ça faisait sens pour une raison précise : la bande portait **déjà** un point par
-  repère des deux dernières minutes, mais ils étaient **anonymes** ; le pied disait *quoi* et
-  *quand* sans aucune position dans le temps. Deux objets pour un seul fait, chacun amputé de la
-  moitié de l'autre.
-- **L'échelle est le vrai problème, et elle se mesure** : la zone du passé fait 101 px pour 120 s,
-  soit **1 px ≈ 1,2 s**. Quatre repères d'un ACR en 80 s tiennent dans 61 px quand une étiquette en
-  fait 90 à 115 : deux repères qui se suivent ne peuvent jamais tenir côte à côte.
-- **La règle : l'étiquette COMMENCE à son instant.** Son bord gauche est le moment, il n'y a donc
-  aucun segment horizontal — et donc rien à croiser. Le plus récent occupe la rangée du **bas**,
-  contre la bande ; les plus anciens montent. La propriété tient par construction, à n'importe quel
-  nombre de repères : le trait d'un repère plus ancien est toujours à gauche des étiquettes des plus
-  récents, qui commencent plus à droite que lui. (Le premier dessin alignait les étiquettes à
-  gauche ; c'est ce segment horizontal qui fabriquait les croisements — l'auteur l'a vu.)
-- **Ce qui n'est pas nommé est compté** : « **+ 3 repères avant** », la phrase que la bande dit déjà
-  de l'autre côté (« + 1 minuteur plus tard »), retournée vers le passé. Écarté : « 4 gestes en
-  1 min 20 » — *geste* est un second mot pour ce que l'app appelle partout un **repère**, et la
-  durée est déjà dessinée par l'étalement des points.
-- **Sept points de robustesse, tenus et mesurés** : le plus récent ne fusionne **jamais** (la
-  fusion des points trop proches ne vaut plus que pour les muets) ; libellé borné à 18 signes ; le
-  trait de rappel reste **1 px en encre douce** (2 px en encre pleine est le registre « daté ») ;
-  les étiquettes ne dérivent pas l'une par rapport à l'autre ; **hors des −2 min**, demi-point au
-  bord gauche et âge en toutes lettres, de sorte que le dernier repère existe toujours quelque part
-  — c'est ce que le pied garantissait ; le nombre de noms est une **mesure** (`min(3, rangs)`, le
-  budget des échéances : trois en portrait, un seul à 130 % en paysage) ; la bande apparaît dès
-  **un** repère, puisqu'il n'a plus d'autre endroit où se dire.
-- **Mesuré après, 20 configurations** (390×844, 320×568, 844×390 à 100 et 130 % ; rafale de quatre,
-  un seul, deux, huit serrés, dernier hors fenêtre) : zéro croisement, zéro chevauchement, rien hors
-  cadre, zéro recouvrement du grand chiffre, compte exact.
-- **Témoin** « MONITEUR · le passé se nomme, et il tient en rafale » (12 combinaisons). ⚠ Un trait
-  se glisse **sous** sa propre étiquette de 3 px — c'est le rattachement, pas un croisement : le
-  contrôle ne compte que les traits qui traversent l'étiquette d'une AUTRE rangée (sa première
-  version comptait les siens et rougissait sur un dessin juste). Vérifié capable d'échouer : l'ordre
-  inversé donne 8 rouges. Témoins `monBandData` réécrits (trois nommés au plus, ce sont les plus
-  récents, eux ne fusionnent jamais).
-- **Purge** (règle 14) : `.mon-foot` / `#monFoot` — élément, CSS, rendu et lecture de hauteur — et
-  `.mb-dot b`, le compte par point que la phrase remplace. L'afficheur regagne 46 px.
-- Doctrine A342 dans `docs/decisions/lot-v5-28.md`, index `AGENTS.md` / `docs/README.md`,
-  CHANGELOG à 20 ([5.23.6] archivée).
-- Vérifié : `npm run check` complet, 1200 tests × 2 moteurs, audit COMPLET 29/29 après le numéro
-  de version.

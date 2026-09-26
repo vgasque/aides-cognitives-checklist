@@ -2490,7 +2490,9 @@ await sec('PARCOURS INERTE · registres et cohérence du groupe', async () => {
     /* v5.6 — LA COLONNE D'ORIENTATION N'EXISTE QU'EN SESSION : avant le premier geste, la page
        porte elle-même le parcours inerte (maquettes 1b/1c) et la colonne l'afficherait une
        seconde fois. Le témoin démarre donc la session — c'est l'état où la colonne vit. */
-    document.getElementById('sessStart').click();await w(700);});
+    document.getElementById('sessStart').click();await w(700);
+    /* A388 : la colonne naît repliée — on déplie tout pour mesurer les rangées ouvertes. */
+    const tout=document.querySelector('.read-plan [data-plall="1"]');if(tout){tout.click();await w(250);}});
   const R=await page.evaluate(()=>{
     /* A376 : la colonne rend la LISTE numérotée (A349, un seul dessin du parcours) — mêmes propriétés,
        autre anatomie : une décision est une rangée au registre de la DÉCISION (ambre doux, A345), ses
@@ -4004,7 +4006,10 @@ await sec('QRH · jalons de boucle — le compte, jamais la mémoire', async () 
     const bk=document.querySelector('.ov-block.cur [data-cxback]');if(bk)bk.click();await w(250);
     /* A376 : la colonne rend la liste ; le jalon y est annoncé sur la rangée elle-même (.pf-jl), condition en toutes lettres. */
     /* La rangée d'une décision porte sa QUESTION (« Rythme choquable… ? »), pas le titre du bloc. */
-    const lad=[...document.querySelectorAll('.read-plan .pf-row')].find(l=>/Analyse du rythme|Rythme choquable/.test(l.textContent));
+    let lad=[...document.querySelectorAll('.read-plan .pf-row')].find(l=>/Analyse du rythme|Rythme choquable/.test(l.textContent));
+    /* A388 : la colonne naît repliée — on déplie la décision par son chevron, comme l'utilisateur. */
+    {const tg=lad&&lad.querySelector('[data-plfold][aria-expanded="false"]');if(tg){tg.click();await w(200);
+      lad=[...document.querySelectorAll('.read-plan .pf-row')].find(l=>/Analyse du rythme|Rythme choquable/.test(l.textContent));}}
     const jll=lad?lad.querySelector('.pf-jl'):null;const srj=!!jll;
     const ab=document.getElementById('allBtn');if(ab)ab.click();await w(400);
     const svjl=[...document.querySelectorAll('.sv-jl')].map(e=>e.textContent).join('|');
@@ -7326,6 +7331,64 @@ for (const [W,H,Z] of [[390,844,100],[320,568,100],[844,390,130]]) {
   t(`${P} : le pied a disparu, la bande porte seule le dernier repère`, r.pied===0, String(r.pied));
   await page.close();
 }}
+});
+
+/* ══ A388 — LE LIEU FIXE DENSITÉ ET REPLI ; LES RÉGLAGES DE COCHE S'ÉCRIVENT EN MOTS ════════════
+   La colonne (cockpit ≥ 1200) naît REPLIÉE avant comme pendant la session — la version d'avant ne
+   pliait qu'en session, et la liste faisait 1 540 px dans 670. Une décision repliée garde ses
+   branches (A381). La carte d'entrée et la feuille naissent dépliées, avec les mêmes chevrons. Les
+   étapes au même seuil partagent UN en-tête « Si … : » ; le registre est un mot sans aplat qui ne
+   décale pas le libellé ; les complications ferment la liste. */
+await sec('Parcours · A388 lieu, repli, conditions en mots', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const col=()=>page.evaluate(()=>{const r=document.querySelector('.read-plan .pf-flat');if(!r)return null;
+    const t=r.querySelector('.pf-title');
+    return {rows:r.querySelectorAll('.pf-row').length,ouverts:r.querySelectorAll('[data-plfold][aria-expanded="true"]').length,
+      etapes:r.querySelectorAll('.pf-steps li').length,
+      branches:[...r.querySelectorAll('.pf-row.dec .pf-brief .pf-opt')].map(o=>({nom:((o.querySelector('b')||{}).textContent||'').trim(),dest:!!o.querySelector('.pf-ref')||/fin/.test(o.textContent)})),
+      titre:t?parseFloat(getComputedStyle(t).fontSize):0,exc:r.querySelectorAll('.pf-row.exc').length,tout:(r.querySelector('[data-plall]')||{}).textContent||''};});
+  const avant=await col();
+  t('colonne, avant la session : tout est replié (aucune étape rendue)',!!avant&&avant.ouverts===0&&avant.etapes===0,JSON.stringify(avant));
+  t('… une décision repliée garde TOUTES ses branches, chacune avec sa destination',!!avant&&avant.branches.length===2&&avant.branches.every(b=>b.nom&&b.dest),JSON.stringify(avant&&avant.branches));
+  t('… densité de colonne : titre à 13,5 px',!!avant&&avant.titre===13.5,String(avant&&avant.titre));
+  t('… la complication « à tout moment » ferme la liste',!!avant&&avant.exc===1,String(avant&&avant.exc));
+  const tout=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));document.querySelector('.read-plan [data-plall]').click();await w(250);
+    const r=document.querySelector('.read-plan .pf-flat');
+    const b3=[...r.querySelectorAll('.pf-row')].find(x=>/^Choquable/.test(x.querySelector('.pf-title').textContent.trim()));
+    const gh=b3?[...b3.querySelectorAll('.pf-gh')].map(e=>e.textContent.trim()):[];
+    const q=b3?[...b3.querySelectorAll('.pf-q')].map(e=>e.textContent.trim()):[];
+    const b1=[...r.querySelectorAll('.pf-row')].find(x=>/Reconnaissance/.test(x.textContent));
+    const xs=b1?[...new Set([...b1.querySelectorAll('.pf-steps > li .pf-lb')].map(l=>Math.round(l.getBoundingClientRect().left)))]:[];
+    const mk=b1?b1.querySelector('.stp-mk'):null;
+    return {ouverts:r.querySelectorAll('[data-plfold][aria-expanded="false"]').length,gh,q,xs,
+      mkFond:mk?getComputedStyle(mk).backgroundColor:'',mkFlot:mk?getComputedStyle(mk).float:'',focus:document.activeElement&&document.activeElement.hasAttribute('data-plall'),
+      etape:(()=>{const li=r.querySelector('.pf-steps li');return li?parseFloat(getComputedStyle(li).fontSize):0;})()};});
+  t('« Tout déplier » ouvre chaque bloc, et le focus reste sur le bouton',tout.ouverts===0&&tout.focus===true,JSON.stringify({o:tout.ouverts,f:tout.focus}));
+  t('… étapes à 13,5 px dans la colonne',tout.etape===13.5,String(tout.etape));
+  t('deux étapes CONSÉCUTIVES au même seuil partagent UN en-tête « Si … : »',tout.gh.length===2&&/^Si Chocs délivrés ≥ 3/.test(tout.gh[0])&&/≥ 5/.test(tout.gh[1]),JSON.stringify(tout.gh));
+  t('les réglages de coche s\'écrivent en mots (compte, échéance, une seule fois)',
+    tout.q.some(x=>/\+1 Chocs délivrés/.test(x))&&tout.q.some(x=>/toutes les 4 min/.test(x))&&tout.q.some(x=>/si pas déjà faite/.test(x)),JSON.stringify(tout.q));
+  t('le mot CRITIQUE / VIGILANCE ne décale pas le libellé (une seule abscisse), sans aplat, calé à droite',
+    tout.xs.length===1&&/rgba\(0, 0, 0, 0\)|transparent/.test(tout.mkFond)&&tout.mkFlot==='right',JSON.stringify({xs:tout.xs,fond:tout.mkFond,flot:tout.mkFlot}));
+  const sess=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
+    openRead(state.fiche.id);await w(400);   // rouvrir remet les replis à zéro : on mesure le défaut, pas le « Tout déplier » d'au-dessus
+    document.getElementById('sessStart').click();await w(700);
+    const r=document.querySelector('.read-plan .pf-flat');
+    return {ouverts:r.querySelectorAll('[data-plfold][aria-expanded="true"]').length,ici:(r.querySelector('.pf-row.cur .pf-here')||{}).textContent||''};});
+  t('en session, la colonne reste repliée ; le bloc courant dit « Ici »',sess.ouverts===0&&/Ici/i.test(sess.ici),JSON.stringify(sess));
+  const feuille=await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));openPlanSheet();await w(350);
+    const r=document.querySelector('#planModal .pf-flat');const n=r.querySelectorAll('[data-plfold]').length,o=r.querySelectorAll('[data-plfold][aria-expanded="true"]').length;
+    r.querySelector('[data-plfold]').click();await w(200);
+    return {n,o,apres:document.querySelectorAll('#planModal [data-plfold][aria-expanded="false"]').length,ouverte:planModal.classList.contains('on')};});
+  t('« Se repérer » : chaque bloc a son chevron, tout est déplié d\'office, et replier ne ferme pas la feuille',
+    feuille.n>=5&&feuille.o===feuille.n&&feuille.apres===1&&feuille.ouverte,JSON.stringify(feuille));
+  await page.close();
+}
 });
 
 /* ══ UNE DÉCISION MONTRE TOUTES SES BRANCHES, MÊME CELLES QUI N'ONT PAS DE BLOC ══════════════

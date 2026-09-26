@@ -287,7 +287,7 @@
   que ⚠/△ : opt-in, export v3 inchangé, ancien client lisible) — `stepCR` (pure, APRÈS
   `stepText`, première occurrence) ; rendu `stepTxtHtml` (guidé + journal : pilule mono
   `.stp-r` = réponse attendue, readback « ✓ » vert au cochage porté par le CSS seul), plan
-  (`.pl-r`), SVG (« challenge — réponse ») ; le compte-rendu garde la chaîne brute.
+  (`.pl-r` ; depuis A388, `.pf-r` : « — réponse » au corps du texte, en gris), SVG (« challenge — réponse ») ; le compte-rendu garde la chaîne brute.
   **Mode Vérification** (Do-Verify, journal) : `state.ovVerify={idx,i,gaps}` transitoire ;
   la passe redéroule TOUTES les étapes (déjà cochées comprises) — « Constaté ✓ » coche la
   MÊME clé, « △ Écart » avance SANS cocher et ne DÉCOCHE JAMAIS (la coche est la trace ;

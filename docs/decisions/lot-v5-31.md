@@ -89,7 +89,7 @@ La maquette v3 ajustée, au pixel :
   (`data-wth`) : une réécriture relancerait l'animation.
 - **Lecture seule** : le témoin ne se tape pas, la case reste le seul geste.
 - **Où** : sous l'étape, sur le passage LE PLUS RÉCENT du bloc (un passage ancien est replié) ;
-  sous le titre du bloc pour son minuteur. Annoncée SANS ÉTAT dans le parcours à plat (`wt-flat`),
+  sous le titre du bloc pour son minuteur. Annoncée SANS ÉTAT dans le parcours à plat (`wt-flat` ; en mots depuis A388, `pfStepQual`),
   la Page (`wt-sv`) et l'éditeur, sous la ligne liée (`wt-ed`).
 
 **Éditeur.** Dans les outils d'une étape (au focus), un sélecteur « Coche : rien d'autre / La coche
