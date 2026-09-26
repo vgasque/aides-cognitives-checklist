@@ -2615,6 +2615,8 @@
   .pf-steps li{position:relative;padding:2px 0 2px 18px;font-size:var(--t-item);line-height:1.35;color:var(--ink-2)}
   .pf-steps li::before{content:"";position:absolute;left:4px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--line-strong)}
   .pf-steps li .stp-mk{margin-bottom:2px}
+  .mo-rule{display:block;width:fit-content;margin:2px 0 0;font-size:var(--t-meta);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}   /* A382 : la règle du moment, sans état */
+  .sv-stp li .mo-rule{flex-basis:100%;font-size:var(--t-cap)}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -3397,11 +3399,29 @@
   :is(.vigil,.vig) .stp-mk{background:var(--warn-soft);color:var(--warn)}
   /* A381 : l'étiquette se loge dans une marge haute réservée, hors du flux — la case reste centrée sur le libellé,
      comme dans une rangée sans étiquette. 60 = rembourrage 12 + case 36 + écart 12 (paliers zw ci-dessous). */
-  ol.steps li:has(.stp-mk){position:relative;padding-top:32px}
-  ol.steps li .stp-mk{position:absolute;top:8px;left:60px;margin:0;line-height:12px}
-  html.zw360 ol.steps li .stp-mk{left:58px}
-  html.zw300 ol.steps li .stp-mk{left:56px}
-  :is(html.zw360,html.zw300) ol.steps li:has(.stp-mk){padding-top:32px}
+  ol.steps li:has(.stp-mks){position:relative;padding-top:32px}
+  ol.steps li .stp-mks{position:absolute;top:8px;left:60px;display:flex;gap:6px}
+  ol.steps li .stp-mks .stp-mk{margin:0;line-height:12px}
+  html.zw360 ol.steps li .stp-mks{left:58px}
+  html.zw300 ol.steps li .stp-mks{left:56px}
+  :is(html.zw360,html.zw300) ol.steps li:has(.stp-mks){padding-top:32px}
+  /* A382 — le moment d'une étape : la règle en étiquette, la progression sur la ligne du dessous ; pas encore = pointillé, sans case. */
+  .stp-mk.mo{background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ink-2);color:var(--ink)}
+  .stp-mk.mo-ok{background:var(--ok-soft);box-shadow:none;color:var(--ok)}
+  .stp-mk.mo-due{background:var(--warn-soft);box-shadow:none;color:var(--warn)}
+  .stp-mk.mo-n{background:var(--amb-2);box-shadow:none;color:var(--ink-2)}
+  ol.steps li:is(.mo-wait,.mo-gone){background:none;cursor:default;box-shadow:inset 0 0 0 1.5px var(--line)}
+  ol.steps li.mo-wait{box-shadow:none;outline:1.5px dashed var(--ctl-line);outline-offset:-2px}
+  ol.steps li.mo-wait .box{border-style:dashed;background:none}
+  ol.steps li.mo-gone .box{background:var(--ink-2);border-color:transparent}
+  ol.steps li:is(.mo-wait,.mo-gone) .txt{color:var(--ink-2)}
+  .mo-line{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .mo-line .wt{flex:0 1 auto;min-width:0;margin-top:0}
+  .stp-now{position:relative;flex:none;margin-left:auto;height:28px;padding:0 10px;border:0;border-radius:var(--r-1);background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ctl-line);font-family:inherit;font-size:var(--t-meta);font-weight:700;white-space:nowrap;color:var(--ink);cursor:pointer}
+  .stp-now::after{content:"";position:absolute;inset:-8px -4px}   /* cible 44 px (règle 9, halo admis) */
+  .mo-pips{display:inline-flex;gap:2px}
+  .mo-pips i{width:8px;height:8px;border-radius:3px;box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
+  .mo-pips i.on{background:var(--ink-2);box-shadow:none}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
      la couleur ne fait que le renforcer (WCAG 1.4.1). */
@@ -4641,6 +4661,11 @@
   /* A377 — « ce que fait la coche » : pointillé sans lien (créer), bleu avec ; lu au repos par `.wt-ed`. */
   .li-tools .li-lk{flex:0 1 auto;min-width:0;max-width:240px;height:32px;min-height:32px;padding:0 8px;border:1px dashed var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700}
   .li-tools .li-lk.on{border-style:solid;border-color:var(--act);color:var(--act)}
+  .li-tools{flex-wrap:wrap}
+  .li-tools .li-lkn{flex:none;width:56px;height:32px;min-height:32px;padding:0 8px;border:1px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font-family:inherit;font-size:var(--t-meta);font-weight:700}
+  .blk .li .mo-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
+  .blk .li .mo-ed:empty{display:none}
+  .mo-rule.mo-warn{text-transform:none;letter-spacing:0;color:var(--warn)}
   .blk .li .wt-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
   .blk-tm{width:100%;height:44px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
   .blk-tm.on{border-color:var(--act)}
@@ -7421,7 +7446,7 @@
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.field .blk-tm,.blk-tm{font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.li-tools .li-lkn,.field .blk-tm,.blk-tm{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme

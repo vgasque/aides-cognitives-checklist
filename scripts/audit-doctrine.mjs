@@ -5003,6 +5003,7 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
     o.ev1=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&!e.voidAt).length;
     li.click();await w(30);o.mvOff=an(row(/Choc imm/).querySelector('.wt'));await w(270);
     o.cn2=cn();o.void2=(Runtime.events||[]).filter(e=>e.ref&&e.ref.type==='counter'&&e.voidAt).length;
+    {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;renderOvOnly();await w(200);}   // A382 : l'adrénaline du bloc choquable commence au 3ᵉ choc
     li=row(/^\s*Vigilance|Adrénaline/)||row(/Adrénaline/);
     const hA0=Math.round(li.getBoundingClientRect().height);
     li.click();await w(30);o.mvArm=an(row(/Adrénaline/).querySelector('.wt'));await w(270);li=row(/Adrénaline/);
@@ -5091,6 +5092,56 @@ await sec('v5.31 · A377 — liens de coche et minuteur de bloc', async () => {
 });
 
 // v5.31 · A380 — essais X1 « horizon » et X2 « bande » (Moi › Affichage).
+
+/* ══ v5.32 · A382 — LE MOMENT D'UNE ÉTAPE ══════════════════════════════════════════════════════
+   ACR d'exemple, bloc choquable : avant le 3ᵉ choc l'adrénaline attend (pointillé, sans case, ne
+   retient pas « Continuer ») ; au seuil la case revient sur place ; après la dose elle attend
+   l'échéance, qui lui rend sa case ; l'amiodarone 300, faite une fois, n'en a plus. */
+await sec('v5.32 · A382 — le moment d’une étape', async () => {
+{
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,'Arrêt cardiaque');
+  await demarrerSession(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const cur=()=>document.querySelector('.ov-block.cur');
+    const tout=async()=>{for(let g=0;g<8;g++){const li=[...cur().querySelectorAll('li[data-ck]:not([data-cko])')].find(x=>!x.classList.contains('done'));if(!li)break;li.click();await w(150);}};
+    const rang=re=>[...cur().querySelectorAll('ol.steps li')].find(x=>re.test(x.textContent));
+    const cont=cur=>{const b=cur.querySelector('[data-ovnext]');return b&&b.getAttribute('aria-disabled')!=='true';};
+    const oui=async()=>{[...cur().querySelectorAll('[data-ovopt]')][0].click();await w(300);rang(/Choc imm/).click();await w(350);};
+    const adr=()=>Object.values(Runtime.timers).find(t=>/Adrénaline/.test(t.label));
+    const o={};
+    await tout();cur().querySelector('[data-ovnext]').click();await w(300);await oui();
+    let a=rang(/Adrénaline/);
+    o.p1={wait:a.classList.contains('mo-wait'),ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,pips:a.querySelectorAll('.mo-pips i.on').length,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
+    rang(/300 mg/).querySelector('[data-cknow]').click();await w(300);
+    o.now=!!Object.keys(state.checked).find(k=>state.checked[k]&&rang(/300 mg/)&&rang(/300 mg/).dataset.ck===k);
+    {const c=Runtime.fiche.counters[0];Runtime.counters[c.id]=3;}await w(1300);   // le tick voit le compte changer
+    a=rang(/Adrénaline/);
+    o.seuil={ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,cont:cont(cur())};
+    a.click();await w(400);
+    await tout();cur().querySelector('[data-ovnext]').click();await w(300);await oui();
+    a=rang(/Adrénaline/);
+    o.p2={wait:a.classList.contains('mo-wait'),tag:a.querySelector('.stp-mks').textContent,run:/\brun\b/.test((a.querySelector('.wt')||{}).className||''),gone:rang(/300 mg/).classList.contains('mo-gone'),cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
+    {const t=adr();t.running=false;t.elapsedMs=t.seconds*1000;t.lastStart=0;}await w(1300);
+    a=rang(/Adrénaline/);
+    o.echu={ck:a.hasAttribute('data-ck'),tag:a.querySelector('.stp-mks').textContent,cont:cont(cur()),h:Math.round(a.getBoundingClientRect().height)};
+    return o;});
+  t('A382 · avant le seuil : l’étape reste visible, en pointillé, sans case', r.p1.wait&&!r.p1.ck, JSON.stringify(r.p1));
+  t('A382 · … sa règle en étiquette et le compte qui manque', /≥ 3/.test(r.p1.tag)&&r.p1.pips===1, r.p1.tag+' · '+r.p1.pips);
+  t('A382 · … et « Continuer » ne l’attend pas', r.p1.cont===true);
+  t('A382 · « Faire maintenant » coche l’étape (une coche comme une autre)', r.now===true);
+  t('A382 · au seuil, la case revient sur place et « Continuer » l’attend', r.seuil.ck&&/✓/.test(r.seuil.tag)&&r.seuil.cont===false, JSON.stringify(r.seuil));
+  t('A382 · après la dose : attend l’échéance, le minuteur en cours sous l’étape', r.p2.wait&&/échéance/i.test(r.p2.tag)&&r.p2.run&&r.p2.cont, JSON.stringify(r.p2));
+  t('A382 · « une seule fois », faite : plus de case', r.p2.gone===true);
+  t('A382 · à l’échéance, la case revient (Échu) et « Continuer » l’attend — rien ne repart seul', r.echu.ck&&/Échu/.test(r.echu.tag)&&r.echu.cont===false, JSON.stringify(r.echu));
+  t('A382 · A9 — attendre ou retenir ne change pas la hauteur de la rangée', Math.abs(r.p2.h-r.echu.h)<=4&&Math.abs(r.p1.h-r.echu.h)<=4, `${r.p1.h} / ${r.p2.h} / ${r.echu.h} px`);
+  await page.close();
+}
+});
+
 await sec('v5.31 · A380 — essais X1 horizon et X2 bande', async () => {
   const monter=async(w,h,es)=>{const page=await br.newPage({viewport:{width:w,height:h},hasTouch:true});
     page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});

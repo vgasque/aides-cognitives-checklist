@@ -369,6 +369,28 @@ branche ou avancerait le parcours, ou où une légende mesurerait le temps écou
 **non** cochée, la qualification serait à rouvrir. Une légende ne dit jamais « en attente depuis » :
 elle date un geste fait, jamais une omission.
 
+#### Le cas du « moment » d'une étape (v5.32.0)
+
+L'auteur peut dire **quand** une étape se présente dans un bloc parcouru plusieurs fois :
+*commence* dès le 1ᵉʳ passage ou à partir d'un compte (« après le 3ᵉ choc »), *puis revient* à
+chaque passage, à l'échéance du minuteur que lance sa coche, une seule fois, ou au besoin. Tant que
+son moment n'est pas venu, l'étape reste visible (en pointillé, sa règle écrite au-dessus, le compte
+qui manque dessous) et ne retient pas « Continuer ». Passé à la grille :
+
+- **Aucune sortie individualisée n'est créée.** La règle est celle de l'auteur, appliquée à un
+  **compte saisi par l'équipe** (coche ou « + ») ou à un **minuteur lancé par une coche** — le régime
+  exact des jalons de boucle (v5.5.0), déjà qualifié.
+- **Rien n'est caché ni décidé.** L'étape en attente reste lue ; « Faire maintenant » la coche en un
+  toucher, sans justification — l'équipe garde toujours la main (le compteur peut être mis à jour
+  après coup). Une échéance rend la case à l'étape, elle ne relance rien et n'avance rien.
+- **Repli sûr.** Si la règle ne peut plus s'appliquer (minuteur retiré de la fiche), l'étape
+  redevient une étape « à chaque passage » : elle ne disparaît jamais.
+- **Qualification MDCG 2019-11** : *afficher/archiver*.
+
+**La ligne à ne pas franchir, nommée.** Une condition fondée sur autre chose qu'un compte ou un
+minuteur de l'équipe (paramètre patient, inaction, heure écoulée depuis une étape non cochée), ou
+une étape qui disparaîtrait sans trace, rouvrirait la qualification.
+
 ### Ce qui ferait BASCULER l'app en dispositif médical (à éviter, ou à assumer)
 Toute fonctionnalité produisant une **recommandation ou un calcul individualisé** :
 

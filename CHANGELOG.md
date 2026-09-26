@@ -1,5 +1,32 @@
 # Journal des modifications
 
+## [5.32.0] — 2026-09-26
+Une étape peut dire QUAND elle se présente dans un bloc parcouru plusieurs fois (A382, doctrine
+`docs/decisions/lot-v5-32.md`). Demande de l'auteur, sur maquettes revues fil par fil : au 1ᵉʳ choc,
+il fallait cocher l'adrénaline « après le 3ᵉ choc » pour pouvoir avancer.
+- **Commence** : dès le 1ᵉʳ passage, ou quand un compteur atteint un seuil (« Chocs délivrés ≥ 3 »).
+  **Puis revient** : à chaque passage, à l'échéance du minuteur que relance sa coche, une seule
+  fois, ou au besoin.
+- **Avant son moment**, l'étape reste visible, en pointillé et sans case, avec sa règle au-dessus
+  et ce qui manque dessous (pastilles · « encore 2 », ou le minuteur qui court). « Continuer » ne
+  l'attend pas. « Faire maintenant » la coche quand même, en un toucher.
+- **Quand le moment vient**, la case revient sur place, à la même hauteur, sans défilement ni
+  alerte : « ✓ Chocs délivrés ≥ 3 », ou « Échu » en ambre. Rien ne repart seul.
+- **Une seule fois** : une fois faite, « Faite », plus de case. **Au besoin** : cochable, jamais
+  attendue.
+- **Éditeur** : « Commence » et « Puis » dans les outils de l'étape, réglés sur place. « À
+  l'échéance » reste grisé avec sa raison quand la coche ne relance aucun minuteur. Si le minuteur
+  disparaît, l'étape redevient « à chaque passage » et l'éditeur le signale.
+- **Parcours à plat et Page** annoncent la règle sous l'étape.
+- **Prompt IA** : il sait poser ces moments (seulement quand la source les énonce), écrire deux
+  doses comme deux étapes, et ne plus laisser le seuil dans le libellé.
+- **Fiches d'exemple** : dans l'**ACR**, l'adrénaline commence au 3ᵉ choc puis revient à
+  l'échéance de « prochaine dose », l'amiodarone 300 mg (3ᵉ choc) et 150 mg (5ᵉ) ne se font qu'une
+  fois ; dans l'**Anaphylaxie**, l'adrénaline IM du bloc réfractaire revient à l'échéance de la
+  réévaluation.
+- Réglementaire : § 2 « Le cas du moment d'une étape » (règle de l'auteur appliquée à un compte ou
+  un minuteur de l'équipe, régime des jalons).
+
 ## [5.31.1] — 2026-09-25
 Quatre retouches signalées à l'usage (A381, doctrine `docs/decisions/lot-v5-31.md`).
 - **Notice « Vous êtes l'auteur… »** : la croix dépassait d'une notice d'une ligne (posée 4 px sous
@@ -641,27 +668,5 @@ doctrine `docs/decisions/lot-v5-30.md`).
   `audit-retour`, `audit-doctrine` (date lue dans `.dir-st`). Doctrine dans
   `docs/decisions/lot-v5-28.md` (nouveau), index AGENTS.md / docs/README.md, `design/ds/`
   régénéré. CHANGELOG à 20 ([5.23.3] archivée).
-- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
-  version.
-
-## [5.27.1] — 2026-09-07
-### La barre de retour colle au quai, et les deux retours portent l'icône (A335)
-
-- **Demande de l'auteur** : rapprocher un peu la barre verte « retour au bloc » de la barre
-  flottante, et remplacer les ↩ par une icône (barre et bouton « Reprendre » d'une complication).
-- **Mesuré** : 8 px en navigateur — mais `#blkReturn` et `#dockSheet` ajoutaient
-  `env(safe-area-inset-bottom)` à `--dock-h`, qui le contient déjà (hauteur mesurée du quai) :
-  42 px sur un iPhone installé. Le terme en double est retiré des deux règles ; 8 px partout,
-  prouvé à inset simulé (méthode A286).
-- **Icône `backto`** (celle de « Un bloc ») sur la barre et sur « Reprendre — ‹bloc› → », dans
-  le flux du texte pour rester collée au mot au passage à la ligne.
-- **Deux finitions** vues à la capture : « Bloc Bloc 1 » (préfixe en double) et les tags
-  « ⚡ complication » / « passage 1/2 » repris dans le libellé de la barre.
-- **L'éclair aussi** (demande de l'auteur) : les quinze « ⚡ » emoji restants passent par la
-  fabrique `boltIcon` ; classe `bolt`, seul glyphe REMPLI de la famille (`--bolt`/`--bolt-edge`,
-  deux thèmes) pour ressortir autant que l'emoji qu'il remplace. Le sélecteur « renvoi du
-  jalon » garde l'emoji dans ses `<option>` (pas de SVG possible, décision de l'auteur).
-- Doctrine A335 dans `docs/decisions/lot-v5-27.md`, `design/ds/` régénéré. CHANGELOG à 20
-  ([5.23.2] archivée).
 - Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
   version.
