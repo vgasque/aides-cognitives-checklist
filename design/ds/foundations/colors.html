@@ -2849,7 +2849,7 @@
      fois la même chose et volait un tiers de la largeur au geste, qui est le contenu. C'est la
      grammaire MK-flux du dossier : au REPOS, aucun chrome ; à l'ÉDITION, les outils paraissent. */
   .blk .li .li-exp{display:none}
-  .blk .li:is(:has(input:focus),.has-exp) .li-exp{display:block}
+  .blk .li:is(.ed-on,.has-exp) .li-exp{display:block}   /* .ed-on : focus DANS la rangée, posé en JS (v5.33.1) */
   /* Un memory item posé sur une ÉTAPE apparaît ici en LECTURE SEULE : il se modifie dans son
      bloc, pas dans le chapeau — le chapeau ne le possède pas, il l'agrège. */
   /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
@@ -2865,8 +2865,6 @@
      n°5, encore lui). */
   .ed-forget .li input[type=text]:disabled{background:var(--surface-2);border-color:var(--line);
     color:var(--ink-soft);cursor:not-allowed;-webkit-text-fill-color:var(--ink-soft);opacity:1}
-  .fg-go{flex:none;color:var(--ink-soft)}
-  .fg-go:hover{color:var(--ink);background:var(--surface-2)}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
   /* La phase : une étiquette d'ORGANISATION (aucune couleur sémantique), rangée dans « Options du
@@ -3606,13 +3604,16 @@
      OÙ l'on va. Même remède que le bandeau de déplacement (v4.74.0) et que la ligne d'état : on
      empile, la croix reste ancrée en haut à droite avec sa place réservée. */
   .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
-    position:relative;padding-right:32px}
-  .cx-edit-row .tk-del{position:absolute;right:0;top:0}
+    position:relative;padding-right:48px}   /* place de la croix : 40 + 8 (elle chevauchait la cible) */
+  .cx-edit-row .ed-ic.del{position:absolute;right:0;top:0}
   @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
+  /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
+  .cx-edit-row input[type=text]{min-height:40px;padding-block:8px;font-size:15px}
+  .cx-edit-row .btn.cx-tgt{justify-content:flex-start;height:40px;min-height:40px;padding:0 14px;border:1.5px solid var(--line-strong);border-radius:var(--r-3);background:var(--amb-2);box-shadow:none;color:var(--ink);font-size:15px;font-weight:400}
   .pick-h{margin:10px 2px 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   /* ⚠ `.cx-btn`, `.cx-n`, `.cx-chev`, `.cx-item*` ET `.cx-list` SONT PURGÉS (v5.6, règle 14) :
      l'index des complications a quitté la carte pour le VOLET DU DOCK (`.ds-row`), qui le rend
@@ -3665,7 +3666,7 @@
   .jl-e1 select{flex:1 1 100px;min-width:0}
   .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
-  .jl-e1 .tk-del{margin-left:auto}
+  .jl-e1 .ed-ic.del{margin-left:auto}
   /* ÉPITAPHE — `.sv-cxband` est PURGÉE avec la section « ⚡ À tout moment » du PIED du tableau
      (lot Page, v5.10.0) : les complications ne sont pas la suite de l'algorithme, elles sont ce
      qui peut survenir pendant qu'on le déroule — elles vivent donc dans la COLONNE DE RÉFÉRENCE,
@@ -4332,7 +4333,6 @@
   .st-seg{min-height:44px}   /* segment du `.seg` de statut : dessin porté par .seg-btn */
   .st-hint{font-size:var(--t-meta);color:var(--ink-soft);margin-top:4px}
   /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
-  .crit-tgl.vig{color:var(--verify);border-color:var(--verify);background:var(--verify-soft);font-size:13.5px;font-weight:800}
   /* Consigne d'usage rouge/ambre (v4.2.2) : affichée UNE fois par bloc d'étapes, au point de
      décision (doctrine utilisateur — rouge = ce qui tue si oublié ; ambre = risque d'erreur). */
   .crit-guide{font-size:11px;color:var(--ink-soft);line-height:1.55;margin:-2px 0 8px}
@@ -4609,22 +4609,34 @@
   .li-note{display:none;flex:1 1 100%;order:4;margin:2px 0 4px 32px;padding:8px 10px;
     background:var(--verify-soft);border-left:3px solid var(--verify-bd);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
     font-size:12px;line-height:1.45;color:var(--verify)}
-  .blk .li:has(input:focus) .li-note{display:block}
-  .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
+  .blk .li.ed-on .li-note{display:block}
   /* ══ A383 — la rangée d'étape (maquettes E1-E3) : poignée · texte 17,5/700 · bouton « Réglages » ; dessous la
      réponse attendue, puis ce qui est réglé en pastilles. Filet entre étapes. 40 = poignée 32 + écart 8. */
   .blk .li{padding-block:4px}
-  .blk .li input[data-sf],.blk .li input[data-sf]:focus{padding-block:4px;min-height:0}   /* 32 px : cible hors crise tenue */
+  .blk .li input[data-sf],.blk .li input[data-sf]:focus{min-height:0}   /* rembourrage 8 : gabarit des listes du chapeau (~40 px) */
   .blk .li+.li{border-top:1px solid var(--work-line)}
-  .blk .li input[data-sf]{font-size:17.5px;font-weight:700}
+  .blk .li input[data-sf]{font-size:15px;font-weight:700}   /* v5.33.1 : corps des listes du chapeau (16 au toucher) — la session reste à 17,5 */
   .blk .li input[data-sf]::placeholder{color:var(--ink-soft);font-weight:600}
-  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;min-height:0;margin:-4px 0 0 40px;padding-block:2px;font-weight:600;color:var(--ink-2)}
-  .blk .li input.li-exp[data-sx]:focus{margin:-4px 0 0 40px;padding:2px 4px}
-  .blk .li:has(input:focus) input.li-exp[data-sx]:not(:focus){background:var(--amb-2);border-radius:var(--r-2)}
-  .li-set{flex:none;display:grid;place-items:center;width:40px;height:40px;margin-block:-4px;padding:0;border:0;border-radius:var(--r-3);background:none;color:var(--ink-soft);cursor:pointer}
+  /* Sous le titre, même colonne que lui : 40 à gauche (poignée), 48 à droite (« Réglages » 40 + 8).
+     Au REPOS une ligne de texte serrée sous le titre (−8 reprend son rembourrage) ; à l'ÉDITION un champ
+     du gabarit des listes (rembourrage 8), 6 px sous le titre — l'anneau de focus fait 3. */
+  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;min-height:0;margin:-8px 48px 0 40px;padding:2px 4px;font-size:15px;font-weight:600;color:var(--ink-2)}
+  .blk .li.ed-on input.li-exp[data-sx],.blk .li input.li-exp[data-sx]:focus{margin:2px 48px 0 40px;padding:8px 4px}
+  .blk .li.ed-on input.li-exp[data-sx]:not(:focus){background:var(--amb-2);border-radius:var(--r-2)}
+  .li-set{flex:none;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:var(--r-3);background:none;color:var(--ink-soft);cursor:pointer}
   .li-set:hover{background:var(--surface-2);color:var(--ink)}
   .li-set.on{background:var(--primary-soft);color:var(--act)}
   .li-set:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* v5.33.1 : UN dessin pour les boutons d'outil de l'éditeur — la matière blanche des boutons M 40 de l'app
+     (`.fz` : « − / + / Rétablir ») : sans elle le B se fondait dans le gris de la ligne éditée. Croix de
+     suppression (rouge au survol), gras B, △ du repère à vérifier (ambre quand posé), → vers le bloc d'un
+     rappel. Remplace quatre dessins (`.mini` bordé, sa variante rouge, `.tk-del` gris, cases B/△). */
+  .ed-ic{flex:none;display:inline-grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid var(--work-line);border-radius:var(--r-3);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
+  .ed-ic:hover{background:var(--surface-2)}
+  .ed-ic.del{color:var(--ink-soft);font-size:21px;font-weight:400}
+  .ed-ic.del:hover{border-color:var(--critical-line);background:var(--critical-soft);color:var(--critical)}
+  .ed-ic.vig{border-color:var(--verify-bd);background:var(--verify-soft);color:var(--warn)}
+  .ed-ic:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px;margin:0 0 2px 40px}
   .li-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-size:12px;font-weight:700}
   .li-chip.crit,.li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
@@ -4673,6 +4685,7 @@
   #stepSetBody .seg-btn.on[data-ssreg="2"]{color:var(--critical)}
   #stepSetBody .seg-btn[aria-disabled="true"]{color:var(--ink-soft)}
   .sst-tg{display:flex;align-items:center;gap:12px;min-height:52px}
+  .seg+.sst-tg{margin-top:8px}   /* l'interrupteur ne colle pas au sélecteur « Importance » */
   .sst-tl{flex:1;min-width:0;font-size:15px;font-weight:700;color:var(--ink)}
   .sst-tl small{display:block;font-size:12px;font-weight:600;color:var(--ink-2)}
   .sst-sel{width:100%;min-height:44px;padding:0 12px;border:0;border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:15px;font-weight:700}
@@ -4697,7 +4710,6 @@
   .sst-note.sst-sep{margin-top:20px}
   .sst-mk{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .sst-foot{display:flex;margin-top:20px}
-  .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
   /* K7 — la CARTE d'édition d'un minuteur : l'anatomie de celle du rail (fond de surface, filet,
@@ -4710,7 +4722,7 @@
      objets sans rapport. `align-self:stretch` la fait suivre la croix quelle qu'en soit la hauteur —
      donc rien à re-régler si l'un des deux change un jour. */
   .tme-top .grab{align-self:stretch;width:34px;height:auto}
-  .tme-top .mini{align-self:stretch;height:auto}
+  .tme-top .ed-ic{align-self:stretch;height:auto;min-height:40px}
   .tme-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
   /* LES CHAMPS NUMÉRIQUES ONT LE GABARIT DES AUTRES (v4.78.0, signalé à l'usage : « il s'est passé
      quoi avec les sélecteurs de chiffres des minuteurs et compteurs ? »). Deux causes cumulées.
@@ -4752,6 +4764,9 @@
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2)}
   .blk .sub{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:12px 0 4px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  /* v5.33.1 : les champs d'un bloc (question, réponses, cibles) au gabarit des étapes — M 40, 15 px (16 au toucher). */
+  .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]){min-height:40px;padding-block:8px;font-size:15px}
+  .blk :is(.optedit select,select[data-target]){height:40px;padding-block:0}   /* le rembourrage d'un <select> le portait à 41,5 */
   .optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
   /* v5.30 (maquette v5) : un bouton est une pièce de TRAVAIL (blanc, filet, ombre courte) ; le
@@ -7472,7 +7487,8 @@
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select){font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
+    .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme

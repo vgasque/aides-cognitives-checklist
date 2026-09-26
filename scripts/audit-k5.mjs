@@ -628,7 +628,7 @@ const V=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   renderEditor();await w(500);
   const carte=document.querySelector('.tmedit[data-ci]');
   const top=carte?carte.querySelector('.tme-top'):null;
-  const g=top?top.querySelector('[data-lgrab]'):null,x=top?top.querySelector('.mini.del'):null;
+  const g=top?top.querySelector('[data-lgrab]'):null,x=top?top.querySelector('.ed-ic.del'):null;
   const ctr=e=>{const q=e.getBoundingClientRect();return Math.round(q.y+q.height/2);};
   const compteur={carte:!!carte,poignee:!!g,croix:!!x,
     memeRangee:(g&&x)?Math.abs(ctr(g)-ctr(x))<=1:false,
@@ -767,7 +767,7 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     cur:getComputedStyle(e).cursor,dis:!!e.disabled}:null;
   const lire=()=>{const b=document.querySelector('.blk:not(.blk-dec)');
     return {stepDel:cs(b.querySelector('[data-bdel]')),
-      bold:cs(document.querySelector('.list-edit .bld')),
+      bold:cs(document.querySelector('.list-edit [data-bold]')),
       poignee:cs(document.querySelector('.blk-top [data-grab]'))};};
   const inp=document.querySelector('.blk:not(.blk-dec) .li input[data-sf]');inp.focus();await w(200);
   const avant=lire();

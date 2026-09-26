@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-evlpKwdMQXZ7aGM1QVCQSXA0et/tIbP2xBvUKFm9s2M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-F4Gn1DiFcyPxfTwzO856CcS49PDUDY/KbCy4eMLSI9M='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3204,7 +3204,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      fois la même chose et volait un tiers de la largeur au geste, qui est le contenu. C'est la
      grammaire MK-flux du dossier : au REPOS, aucun chrome ; à l'ÉDITION, les outils paraissent. */
   .blk .li .li-exp{display:none}
-  .blk .li:is(:has(input:focus),.has-exp) .li-exp{display:block}
+  .blk .li:is(.ed-on,.has-exp) .li-exp{display:block}   /* .ed-on : focus DANS la rangée, posé en JS (v5.33.1) */
   /* Un memory item posé sur une ÉTAPE apparaît ici en LECTURE SEULE : il se modifie dans son
      bloc, pas dans le chapeau — le chapeau ne le possède pas, il l'agrège. */
   /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
@@ -3220,8 +3220,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      n°5, encore lui). */
   .ed-forget .li input[type=text]:disabled{background:var(--surface-2);border-color:var(--line);
     color:var(--ink-soft);cursor:not-allowed;-webkit-text-fill-color:var(--ink-soft);opacity:1}
-  .fg-go{flex:none;color:var(--ink-soft)}
-  .fg-go:hover{color:var(--ink);background:var(--surface-2)}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
   /* La phase : une étiquette d'ORGANISATION (aucune couleur sémantique), rangée dans « Options du
@@ -3961,13 +3959,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      OÙ l'on va. Même remède que le bandeau de déplacement (v4.74.0) et que la ligne d'état : on
      empile, la croix reste ancrée en haut à droite avec sa place réservée. */
   .cx-edit-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;
-    position:relative;padding-right:32px}
-  .cx-edit-row .tk-del{position:absolute;right:0;top:0}
+    position:relative;padding-right:48px}   /* place de la croix : 40 + 8 (elle chevauchait la cible) */
+  .cx-edit-row .ed-ic.del{position:absolute;right:0;top:0}
   @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
+  /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
+  .cx-edit-row input[type=text]{min-height:40px;padding-block:8px;font-size:15px}
+  .cx-edit-row .btn.cx-tgt{justify-content:flex-start;height:40px;min-height:40px;padding:0 14px;border:1.5px solid var(--line-strong);border-radius:var(--r-3);background:var(--amb-2);box-shadow:none;color:var(--ink);font-size:15px;font-weight:400}
   .pick-h{margin:10px 2px 6px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   /* ⚠ `.cx-btn`, `.cx-n`, `.cx-chev`, `.cx-item*` ET `.cx-list` SONT PURGÉS (v5.6, règle 14) :
      l'index des complications a quitté la carte pour le VOLET DU DOCK (`.ds-row`), qui le rend
@@ -4020,7 +4021,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .jl-e1 select{flex:1 1 100px;min-width:0}
   .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
-  .jl-e1 .tk-del{margin-left:auto}
+  .jl-e1 .ed-ic.del{margin-left:auto}
   /* ÉPITAPHE — `.sv-cxband` est PURGÉE avec la section « ⚡ À tout moment » du PIED du tableau
      (lot Page, v5.10.0) : les complications ne sont pas la suite de l'algorithme, elles sont ce
      qui peut survenir pendant qu'on le déroule — elles vivent donc dans la COLONNE DE RÉFÉRENCE,
@@ -4687,7 +4688,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .st-seg{min-height:44px}   /* segment du `.seg` de statut : dessin porté par .seg-btn */
   .st-hint{font-size:var(--t-meta);color:var(--ink-soft);margin-top:4px}
   /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
-  .crit-tgl.vig{color:var(--verify);border-color:var(--verify);background:var(--verify-soft);font-size:13.5px;font-weight:800}
   /* Consigne d'usage rouge/ambre (v4.2.2) : affichée UNE fois par bloc d'étapes, au point de
      décision (doctrine utilisateur — rouge = ce qui tue si oublié ; ambre = risque d'erreur). */
   .crit-guide{font-size:11px;color:var(--ink-soft);line-height:1.55;margin:-2px 0 8px}
@@ -4964,22 +4964,34 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .li-note{display:none;flex:1 1 100%;order:4;margin:2px 0 4px 32px;padding:8px 10px;
     background:var(--verify-soft);border-left:3px solid var(--verify-bd);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
     font-size:12px;line-height:1.45;color:var(--verify)}
-  .blk .li:has(input:focus) .li-note{display:block}
-  .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
+  .blk .li.ed-on .li-note{display:block}
   /* ══ A383 — la rangée d'étape (maquettes E1-E3) : poignée · texte 17,5/700 · bouton « Réglages » ; dessous la
      réponse attendue, puis ce qui est réglé en pastilles. Filet entre étapes. 40 = poignée 32 + écart 8. */
   .blk .li{padding-block:4px}
-  .blk .li input[data-sf],.blk .li input[data-sf]:focus{padding-block:4px;min-height:0}   /* 32 px : cible hors crise tenue */
+  .blk .li input[data-sf],.blk .li input[data-sf]:focus{min-height:0}   /* rembourrage 8 : gabarit des listes du chapeau (~40 px) */
   .blk .li+.li{border-top:1px solid var(--work-line)}
-  .blk .li input[data-sf]{font-size:17.5px;font-weight:700}
+  .blk .li input[data-sf]{font-size:15px;font-weight:700}   /* v5.33.1 : corps des listes du chapeau (16 au toucher) — la session reste à 17,5 */
   .blk .li input[data-sf]::placeholder{color:var(--ink-soft);font-weight:600}
-  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;min-height:0;margin:-4px 0 0 40px;padding-block:2px;font-weight:600;color:var(--ink-2)}
-  .blk .li input.li-exp[data-sx]:focus{margin:-4px 0 0 40px;padding:2px 4px}
-  .blk .li:has(input:focus) input.li-exp[data-sx]:not(:focus){background:var(--amb-2);border-radius:var(--r-2)}
-  .li-set{flex:none;display:grid;place-items:center;width:40px;height:40px;margin-block:-4px;padding:0;border:0;border-radius:var(--r-3);background:none;color:var(--ink-soft);cursor:pointer}
+  /* Sous le titre, même colonne que lui : 40 à gauche (poignée), 48 à droite (« Réglages » 40 + 8).
+     Au REPOS une ligne de texte serrée sous le titre (−8 reprend son rembourrage) ; à l'ÉDITION un champ
+     du gabarit des listes (rembourrage 8), 6 px sous le titre — l'anneau de focus fait 3. */
+  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;min-height:0;margin:-8px 48px 0 40px;padding:2px 4px;font-size:15px;font-weight:600;color:var(--ink-2)}
+  .blk .li.ed-on input.li-exp[data-sx],.blk .li input.li-exp[data-sx]:focus{margin:2px 48px 0 40px;padding:8px 4px}
+  .blk .li.ed-on input.li-exp[data-sx]:not(:focus){background:var(--amb-2);border-radius:var(--r-2)}
+  .li-set{flex:none;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:var(--r-3);background:none;color:var(--ink-soft);cursor:pointer}
   .li-set:hover{background:var(--surface-2);color:var(--ink)}
   .li-set.on{background:var(--primary-soft);color:var(--act)}
   .li-set:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* v5.33.1 : UN dessin pour les boutons d'outil de l'éditeur — la matière blanche des boutons M 40 de l'app
+     (`.fz` : « − / + / Rétablir ») : sans elle le B se fondait dans le gris de la ligne éditée. Croix de
+     suppression (rouge au survol), gras B, △ du repère à vérifier (ambre quand posé), → vers le bloc d'un
+     rappel. Remplace quatre dessins (`.mini` bordé, sa variante rouge, `.tk-del` gris, cases B/△). */
+  .ed-ic{flex:none;display:inline-grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid var(--work-line);border-radius:var(--r-3);background:var(--work);box-shadow:var(--shadow-work);color:var(--ink);font-family:inherit;font-size:15px;font-weight:800;cursor:pointer}
+  .ed-ic:hover{background:var(--surface-2)}
+  .ed-ic.del{color:var(--ink-soft);font-size:21px;font-weight:400}
+  .ed-ic.del:hover{border-color:var(--critical-line);background:var(--critical-soft);color:var(--critical)}
+  .ed-ic.vig{border-color:var(--verify-bd);background:var(--verify-soft);color:var(--warn)}
+  .ed-ic:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px;margin:0 0 2px 40px}
   .li-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-size:12px;font-weight:700}
   .li-chip.crit,.li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
@@ -5028,6 +5040,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #stepSetBody .seg-btn.on[data-ssreg="2"]{color:var(--critical)}
   #stepSetBody .seg-btn[aria-disabled="true"]{color:var(--ink-soft)}
   .sst-tg{display:flex;align-items:center;gap:12px;min-height:52px}
+  .seg+.sst-tg{margin-top:8px}   /* l'interrupteur ne colle pas au sélecteur « Importance » */
   .sst-tl{flex:1;min-width:0;font-size:15px;font-weight:700;color:var(--ink)}
   .sst-tl small{display:block;font-size:12px;font-weight:600;color:var(--ink-2)}
   .sst-sel{width:100%;min-height:44px;padding:0 12px;border:0;border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:15px;font-weight:700}
@@ -5052,7 +5065,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sst-note.sst-sep{margin-top:20px}
   .sst-mk{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .sst-foot{display:flex;margin-top:20px}
-  .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
   /* K7 — la CARTE d'édition d'un minuteur : l'anatomie de celle du rail (fond de surface, filet,
@@ -5065,7 +5077,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      objets sans rapport. `align-self:stretch` la fait suivre la croix quelle qu'en soit la hauteur —
      donc rien à re-régler si l'un des deux change un jour. */
   .tme-top .grab{align-self:stretch;width:34px;height:auto}
-  .tme-top .mini{align-self:stretch;height:auto}
+  .tme-top .ed-ic{align-self:stretch;height:auto;min-height:40px}
   .tme-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
   /* LES CHAMPS NUMÉRIQUES ONT LE GABARIT DES AUTRES (v4.78.0, signalé à l'usage : « il s'est passé
      quoi avec les sélecteurs de chiffres des minuteurs et compteurs ? »). Deux causes cumulées.
@@ -5107,6 +5119,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2)}
   .blk .sub{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:12px 0 4px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  /* v5.33.1 : les champs d'un bloc (question, réponses, cibles) au gabarit des étapes — M 40, 15 px (16 au toucher). */
+  .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]){min-height:40px;padding-block:8px;font-size:15px}
+  .blk :is(.optedit select,select[data-target]){height:40px;padding-block:0}   /* le rembourrage d'un <select> le portait à 41,5 */
   .optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
   /* v5.30 (maquette v5) : un bouton est une pièce de TRAVAIL (blanc, filet, ombre courte) ; le
@@ -7827,7 +7842,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select){font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select),.blk .li input.li-exp[data-sx],.blk .li input[data-sf],
+    .blk :is(input[data-bf="question"],.optedit input,.optedit select,select[data-target]),.cx-edit-row input[type=text]{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme
@@ -8567,7 +8583,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.33.0';
+const APP_VERSION='5.33.1';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -16218,7 +16234,6 @@ function bindEditorMetaFields(d,prefix,o){
    if(fv)fv.addEventListener('change',()=>{const raw=fv.value.trim();if(!raw){d.validatedAt='';fv.classList.remove('val-bad');return;}const norm=parseValidation(raw);if(norm){d.validatedAt=norm;fv.value=valToDisplay(norm);fv.classList.remove('val-bad');}else{fv.classList.add('val-bad');}});}
   // État SEGMENTÉ 3 états : la pastille GLISSE (peinte sur place, sans re-rendu) ; phrase d'aide
   // et badge d'en-tête suivent.
-  main.querySelectorAll('.statuseg').forEach(r=>bindSegDrag(r,i=>{const b=r.querySelectorAll('.st-seg')[i];if(b&&!b.classList.contains('on'))b.click();}));
   main.querySelectorAll('.st-seg').forEach((b,i)=>b.onclick=()=>{d.status=b.dataset.status==='valid'?'':b.dataset.status;
     const root=b.closest('.statuseg');paintSeg(root,'data-status',i);
     root.querySelectorAll('.st-seg').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
@@ -19981,45 +19996,38 @@ bindModalDismiss(planModal,closePlanSheet);
       même place, qui porte maintenant le retour. */
    seg.focus({preventScroll:true});};
   seg.onclick=()=>go(state.readMode==='static'?'overview':'static');
-  /* GLISSER LA PASTILLE (v4.29.0, HIG iOS — demande utilisateur) : sur un sélecteur segmenté la
-     pastille se laisse TRAÎNER au doigt, engagement au RELÂCHEMENT (≥ moitié du trajet). Direct
-     manipulation : la pastille suit le doigt même sous prefers-reduced-motion (c'est le geste
-     lui-même, pas un mouvement autonome) ; seul le rattrapage final passe par la transition CSS.
-     Un tap reste un tap (seuil 6 px) ; un drag n'émet jamais le click du bouton sous le doigt
-     (garde isTrusted). Vaut AUSSI pour la tab bar Aides/Protocoles et le dialogue Créer : les
-     trois sont des sélecteurs segmentés à pastille (pas de vraies tab bars iOS), et le commit ne
-     se fait qu'au relâchement — rien de lourd ne se re-rend pendant le geste. */
-  window.bindSegDrag=function(root){
-    if(!root)return;const pill=root.querySelector('.seg-pill');if(!pill)return;
-    /* v4.71.1 : N segments. `nmax` sort du DOM et l'index de départ du bouton ACTIF — plus de
-       `.i1`, qui ne savait compter que jusqu'à deux et qui ne dit rien d'un sélecteur à quatre
-       paliers. Le comportement à deux est identique au pixel : nmax vaut alors 1. */
-    let x0=0,drag=false,pid=null,wv=0,base=0,cur=0,just=false,nmax=1;
-    root.addEventListener('pointerdown',e=>{
-      if(e.button)return;const btns=root.querySelectorAll('.seg-btn');if(btns.length<2)return;
-      nmax=btns.length-1;
-      x0=e.clientX;drag=false;pid=e.pointerId;
-      const i=[...btns].findIndex(b=>b.classList.contains('on'));
-      cur=base=i<0?0:i;
-      wv=btns[1].getBoundingClientRect().left-btns[0].getBoundingClientRect().left;});
-    root.addEventListener('pointermove',e=>{
-      if(pid!==e.pointerId||wv<=0)return;
-      const dx=e.clientX-x0;
-      if(!drag){if(Math.abs(dx)<6)return;drag=true;try{root.setPointerCapture(pid);}catch(_){}pill.style.transition='none';}
-      cur=Math.max(0,Math.min(nmax,base+dx/wv));
-      pill.style.transform='translateX('+(cur*wv/zoomF())+'px)';});
-    const end=e=>{
-      if(pid!==e.pointerId)return;pid=null;
-      if(!drag)return;
-      drag=false;pill.style.transition='';pill.style.transform='';
-      just=true;setTimeout(()=>{just=false;},120);
-      const to=Math.max(0,Math.min(nmax,Math.round(cur)));   /* ≥ moitié du trajet, N paliers */
-      if(to!==base){const btns=root.querySelectorAll('.seg-btn');if(btns[to])btns[to].click();}};
-    root.addEventListener('pointerup',end);root.addEventListener('pointercancel',end);
-    root.addEventListener('click',e=>{if(just&&e.isTrusted){e.stopPropagation();e.preventDefault();}},true);};
-  bindSegDrag(seg);
-  bindSegDrag(document.getElementById('createSeg'));
   seg.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();go(e.key==='ArrowLeft'?'dynamic':'static');};}}
+/* GLISSER LA PASTILLE (v4.29.0, HIG iOS — demande utilisateur) : sur un sélecteur segmenté la
+   pastille se laisse TRAÎNER au doigt, engagement au RELÂCHEMENT (≥ moitié du trajet, N paliers).
+   Direct manipulation : la pastille suit le doigt même sous prefers-reduced-motion ; seul le
+   rattrapage final passe par la transition CSS. Un tap reste un tap (seuil 6 px) ; un drag n'émet
+   jamais le click du bouton sous le doigt (garde isTrusted) — l'engagement est un click SYNTHÉTIQUE
+   sur le cran visé, donc chaque sélecteur garde son propre câblage.
+   v5.33.1 : DÉLÉGUÉ UNE FOIS AU DOCUMENT. Chaque sélecteur devait appeler `bindSegDrag()` à sa
+   naissance, et chaque sélecteur neuf l'oubliait (dernier en date : « Importance », A383). Tout
+   `.seg` qui porte une `.seg-pill` directe glisse désormais, où et quand qu'il naisse. */
+{let root=null,pill=null,x0=0,drag=false,pid=null,wv=0,base=0,cur=0,nmax=1,just=null;
+ document.addEventListener('pointerdown',e=>{root=null;if(e.button)return;
+   const r=e.target.closest&&e.target.closest('.seg'),p=r&&r.querySelector(':scope>.seg-pill');if(!p)return;
+   const btns=r.querySelectorAll('.seg-btn');if(btns.length<2)return;
+   root=r;pill=p;nmax=btns.length-1;x0=e.clientX;drag=false;pid=e.pointerId;
+   const i=[...btns].findIndex(b=>b.classList.contains('on'));cur=base=i<0?0:i;
+   wv=btns[1].getBoundingClientRect().left-btns[0].getBoundingClientRect().left;});
+ document.addEventListener('pointermove',e=>{
+   if(!root||pid!==e.pointerId||wv<=0)return;
+   const dx=e.clientX-x0;
+   if(!drag){if(Math.abs(dx)<6)return;drag=true;try{root.setPointerCapture(pid);}catch(_){}pill.style.transition='none';}
+   cur=Math.max(0,Math.min(nmax,base+dx/wv));
+   pill.style.transform='translateX('+(cur*wv/zoomF())+'px)';});
+ const end=e=>{
+   if(!root||pid!==e.pointerId)return;const r=root;root=null;pid=null;
+   if(!drag)return;
+   drag=false;pill.style.transition='';pill.style.transform='';
+   just=r;setTimeout(()=>{just=null;},120);
+   const to=Math.max(0,Math.min(nmax,Math.round(cur)));
+   if(to!==base){const b=r.querySelectorAll('.seg-btn')[to];if(b)b.click();}};
+ document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);
+ document.addEventListener('click',e=>{if(just&&e.isTrusted&&just.contains(e.target)){e.stopPropagation();e.preventDefault();}},true);}
 /* ===== FEUILLE « CONSULTER » (v4.23.0) =====
    Deux natures : COPIES (une même source, deux rendus — jamais de divergence) et ORIGINAUX
    (différentiels, schémas, documents, références, voir aussi). La NOTE personnelle reste dans le
@@ -22478,8 +22486,8 @@ function forgetEditorHtml(f){
       +(bloc?`<span class="fg-st" aria-hidden="true">★</span>`:'')
       +`<input type="text" value="${esc(stepText(u.t))}" data-fgt="${i}"${bloc?' disabled':''} placeholder="…" `
       +`aria-label="Ne pas oublier — ligne ${i+1}${bloc?' (posée sur une étape)':''}">`
-      +(bloc?`<button type="button" class="mini fg-go" data-edgo="${esc(u.bid)}" title="Se modifie dans « ${esc(u.src)} »" aria-label="Aller au bloc « ${esc(u.src)} » où cette ligne se modifie">→</button>`
-        :`<button class="mini del" data-fgdel="${i}" aria-label="Supprimer la ligne">×</button>`)
+      +(bloc?`<button type="button" class="ed-ic" data-edgo="${esc(u.bid)}" title="Se modifie dans « ${esc(u.src)} »" aria-label="Aller au bloc « ${esc(u.src)} » où cette ligne se modifie">→</button>`
+        :`<button type="button" class="ed-ic del" data-fgdel="${i}" aria-label="Supprimer la ligne">×</button>`)
       +`</div>`;});
   const n=U.length,reste=Math.max(0,4-n);
   return `<fieldset class="field list-edit ed-forget"><label>Ne pas oublier <span class="hint">4 rappels maximum — ils s’affichent en permanence, en tête de fiche</span>`
@@ -22502,7 +22510,7 @@ function listEditor(legend,hint,key,arr,ordered,opts){opts=opts||{};
      édition, SOUS la ligne, dans `.li-tools` — ce qui leur donne gratuitement le remède
      anti-vol-de-clic de la v4.77.0, dont le sélecteur est `.li-tools button`. */
   const rows=edGrabRows(key,_src,(v,i)=>{const crit=opts.crit&&(stepIsCrit(v)||stepIsVigil(v));
-  return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${edGrabHandleL(key,i,_src.length,'la ligne')}${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}"><span class="li-tools">${boldBtnHtml()}${opts.crit?`<button class="mini crit-tgl${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}<span class="li-sp"></span><button class="mini del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></span></div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
+  return `<div class="li${crit?' li-vigil':''}${edGrabClsL(key,i)}" data-i="${i}">${edGrabHandleL(key,i,_src.length,'la ligne')}${ordered?`<span class="li-num">${String(i+1).padStart(2,'0')}</span>`:''}<input type="text" value="${esc(opts.crit?stepText(v):v)}" data-key="${key}" data-idx="${i}"${opts.crit?' data-critlist':''} placeholder="…" aria-label="${esc(legend)} — ligne ${i+1}"><span class="li-tools">${boldBtnHtml()}${opts.crit?`<button type="button" class="ed-ic${crit?' vig':''}" data-lcrit="${i}" data-lkey="${key}" title="${crit?'Repère à VÉRIFIER (carte ambre : risque d’erreur — dose, dilution, voie) — toucher : normal':'Repère normal — toucher : à vérifier (carte ambre)'}">△</button>`:''}<span class="li-sp"></span><button type="button" class="ed-ic del" data-rm="${key}" data-idx="${i}" aria-label="Supprimer la ligne">×</button></span></div>`;});/* Le CHAPEAU porte son compte « n/4 » à droite du titre, et la porte dit ce qu'il RESTE :
    « ＋ Rappel (1 restant) ». Le garde-fou ambre ne parle qu'AU-DELÀ de 4 — avant, le compte suffit
    et il informe sans alerter. C'est la différence entre un plafond qu'on voit approcher et une
    remontrance qu'on subit. */
@@ -22734,7 +22742,7 @@ function reviewNotes(f){
     if(t)out.push({at:'b:'+b.id,cible:(b.title||'').trim()||'Bloc d’étapes',txt:t});});
   return out;}
 // Bouton « Gras » : entoure la sélection du champ voisin de ** (rendu <b> en lecture via fmt()).
-function boldBtnHtml(){return '<button type="button" class="mini bld" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
+function boldBtnHtml(){return '<button type="button" class="ed-ic" data-bold aria-label="Mettre la sélection en gras" title="Gras — sélectionnez du texte puis cliquez (ou Ctrl/Cmd-B). Réservez-le aux doses et interdictions critiques.">B</button>';}
 // Documents PDF joignables depuis les AUTRES fiches du MÊME périmètre (Perso, ou même bibliothèque
 // partagée — jamais inter-périmètres : le chemin de stockage cloud encode le périmètre de sécurité).
 // Rattacher un document existant = PARTAGE : le même id est référencé par plusieurs fiches, le
@@ -22747,7 +22755,7 @@ function attachablePdfs(f){const have=new Set((f.docs||[]).map(a=>a.id));const s
 // (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
 function attFieldsetHtml(entity){
   return `<fieldset class="field ed-card"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
-      ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-ix" data-ixstate="${esc(a.id)}"></span><span class="att-size">${fmtBytes(a.size)}</span><button class="mini del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
+      ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-ix" data-ixstate="${esc(a.id)}"></span><span class="att-size">${fmtBytes(a.size)}</span><button type="button" class="ed-ic del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
       ${upDropHtml('pdf','addPdf','Ajouter un PDF ('+fmtBytes(MAX_PDF_BYTES)+' max)')}
       ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
       :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
@@ -23202,7 +23210,7 @@ function jalonEditor(b){
   const exs=(f.excursions||[]).filter(c=>c&&c.label&&c.target);
   const rows=js.map((j,i)=>{
     const goSel=exs.length?`<select data-jlgo="${i}" aria-label="Renvoi du jalon vers une complication (facultatif)"><option value="">sans renvoi</option>${exs.map(c=>`<option value="${esc(c.target)}"${c.target===j.go?' selected':''}>⚡ ${esc(c.label||'Complication')}</option>`).join('')}</select>`:'';
-    return `<div class="jl-edit"><div class="jl-e1"><select data-jlsrc="${i}" aria-label="Ce que compte le jalon"><option value="pass"${j.at!=='count'?' selected':''}>Passages du bloc</option>${cns.map(c=>`<option value="${esc(c.id)}"${j.at==='count'&&c.id===j.counter?' selected':''}>${esc(tmLabelParts(c.label).name||'Compteur')}</option>`).join('')}</select><span class="jl-ge" aria-hidden="true">≥</span>${numStpHtml('data-jlstep',i,j.n,'Seuil du jalon')}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
+    return `<div class="jl-edit"><div class="jl-e1"><select data-jlsrc="${i}" aria-label="Ce que compte le jalon"><option value="pass"${j.at!=='count'?' selected':''}>Passages du bloc</option>${cns.map(c=>`<option value="${esc(c.id)}"${j.at==='count'&&c.id===j.counter?' selected':''}>${esc(tmLabelParts(c.label).name||'Compteur')}</option>`).join('')}</select><span class="jl-ge" aria-hidden="true">≥</span>${numStpHtml('data-jlstep',i,j.n,'Seuil du jalon')}<button type="button" class="ed-ic del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
   return rows;}
 /* A377 — « ce que fait la coche » (ligne) et « minuteur du bloc ». Rien si la fiche n'a ni minuteur
    ni compteur (aucun contrôle mort) ; migrate rejette ce qui pend. */
@@ -23253,7 +23261,7 @@ function blkOptsHtml(b,blocks){const f=state.draft||{},loop=blkInLoop(f,b.id),de
   return foldCardHtml(b.id,uiIcon('tune',16),'Options du bloc',sum.join(' · ')||'Aucune',open,
     row('Bloc de départ',dep?'le parcours commence ici':'',swHtml(dep,`data-start aria-labelledby="${esc(lid)}"${dep?' aria-disabled="true" title="Pour changer, choisissez un autre bloc de départ"':''}`),lid)
     +row('Phase',ph?'':'facultative',phaseFieldHtml(b))
-    +(nl?row('Libellé de « Continuer »','',`<input type="text" class="bo-pill" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="${esc(nxt||'Continuer')}" aria-label="Libellé du bouton Continuer">`):'')
+    +(nl?row('Libellé de « Continuer »','facultatif',`<input type="text" class="bo-pill" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="${esc(nxt||'Continuer')}" aria-label="Libellé du bouton Continuer">`):'')
     +(tm?row('Minuteur du bloc','à chaque entrée',tm):'')
     +(loop||nj?row('Jalons de boucle',rep,nj<3?'<button type="button" class="linkbtn" data-jladd>+ Jalon</button>':'')+jalonEditor(b):'')
     +row('Image','',imageEditor(b)),{cls:'bo-card',attr:'data-bopt'});}
@@ -23273,7 +23281,7 @@ function stepSetHtml(f,b,i){const it=bItems(b)[i]||{},s=String(stepsOf(b)[i]||''
   const rp=[['','À chaque passage'],['due','À l’échéance',T?'de « '+esc(tmName(T))+' »':'aucun minuteur lié'],['once','Une seule fois'],['need','Au besoin']];
   return `<p class="sst-step">${esc(String(it.do||'').trim()||'Étape '+(i+1))}${String(it.expect||'').trim()?' — '+esc(it.expect):''}</p>`
     +`<h4 class="sst-h" id="sstImp">Importance</h4>`+segHtml('ssreg','sstImp',[[0,'Normale'],[1,'△ Vigilance'],[2,uiIcon('warn',14)+' Critique']],reg)
-    +tog('mem','★ Rappel en mémoire','affichée aussi dans « Ne pas oublier »',!!it.memory)+tog('dual','×2 Confirmée par les deux','double contrôle',!!it.dual)
+    +tog('mem','★ Rappel en mémoire','affichée aussi dans « Ne pas oublier »',!!it.memory)+tog('dual','×2 Confirmée par les deux','en session, marquée ×2 : les deux soignants la vérifient à voix haute',!!it.dual)
     +`<h4 class="sst-h">Ce que fait la coche</h4>`
     +(hasTC?edLinkSel(b,i):`<p class="sst-note">La fiche n’a ni minuteur ni compteur.</p><div class="sst-mk"><button type="button" class="btn sm" data-sstmk="t">＋ Créer un minuteur</button><button type="button" class="btn sm" data-sstmk="n">＋ Créer un compteur</button></div>`)
     +(loop||fr||r?`<h4 class="sst-h" id="sstFr">Moment${loop?' <i>· le bloc se répète</i>':''}</h4>`
@@ -23321,11 +23329,16 @@ function stepSetApply(focus,lk){const k=_sst;keepAnchor(stepRowSel(k.bid,k.i),re
   bd.addEventListener('change',e=>{const t=e.target,c=stepSetCtx();if(!c)return;const {it}=c,v=String(t.value||'');
     if(t.matches('[data-lk]')){delete it.starts;delete it.counts;if(v.slice(0,2)==='t:')it.starts=v.slice(2);else if(v.slice(0,2)==='n:')it.counts=v.slice(2);stepSetApply('[data-lk]',true);}
     else if(t.matches('[data-momfr]')&&it.from){it.from.counter=v;stepSetApply('[data-momfr]');}});}}
+/* La rangée d'étape reste OUVERTE tant que le focus reste en elle (v5.33.1). `:has(input:focus)` se
+   relâchait ENTRE le blur du titre et le focus de la réponse attendue : le champ vide passait à
+   display:none, le navigateur abandonnait le focus et le clic tombait sur l'étape suivante. */
+main.addEventListener('focusin',e=>{const li=e.target.closest('.blk .li');if(li)li.classList.add('ed-on');});
+main.addEventListener('focusout',e=>{const li=e.target.closest('.blk .li');if(li&&!li.contains(e.relatedTarget))li.classList.remove('ed-on');});
 /* Chapeau commun des DEUX gabarits de bloc (badge, titre, « se répète », poignée). A383 : phase et
    « Bloc de départ » vivent dans « Options du bloc ». */
 function blkTopHtml(b,badge,ph,al){
   return `<div class="blk-top">${badge}<input type="text" data-bf="title" value="${esc(b.title)}" placeholder="${ph}" aria-label="${al}">${blkInLoop(state.draft,b.id)?'<span class="blk-loop" title="Le parcours revient à ce bloc">↺ Se répète</span>':''}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div>`;}
-function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,'<span class="blk-n dec" aria-hidden="true">◆</span>','Titre (ex. Réévaluation)','Titre de la décision')}<div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${blkOptsHtml(b,blocks)}${BLK_DEL}</div>`;}
+function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,'<span class="blk-n dec" aria-hidden="true">◆</span>','Titre (ex. Réévaluation)','Titre de la décision')}<div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button type="button" class="ed-ic del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${blkOptsHtml(b,blocks)}${BLK_DEL}</div>`;}
   return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,`<span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span>`,'Titre (ex. Mesures immédiates)','Titre du bloc')}<div class="sub">Étapes</div>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span>${stepSetBtn(b,i,s)}<input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)">${edStepSum(state.draft||{},bItems(b)[i],s)}${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${blkOptsHtml(b,blocks)}${BLK_DEL}</div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
@@ -23338,7 +23351,7 @@ function cxEditorRow(c,i,f,n){
   const blk=(f.blocks||[]).find(b=>b.id===c.target);
   const ext=blk?null:relTarget(c.target);
   const nom=blk?('Bloc — '+(String(stripBold(blk.title||''))||blk.id)):(ext?(ext.title||'Sans titre'):'');
-  return `<div class="cx-edit-row${edGrabClsL('excursions',i)}">${edGrabHandleL('excursions',i,n||0,'la complication')}<span class="cx-edit-ic" aria-hidden="true">${boltIcon(14)}</span><input data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="tk-del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
+  return `<div class="cx-edit-row${edGrabClsL('excursions',i)}">${edGrabHandleL('excursions',i,n||0,'la complication')}<span class="cx-edit-ic" aria-hidden="true">${boltIcon(14)}</span><input type="text" data-cxlab="${i}" value="${esc(c.label)}" maxlength="120" placeholder="Événement (ex. Laryngospasme)"><button type="button" class="btn sm cx-tgt${nom?'':' cx-tgt-vide'}" data-cxpicker="${i}" aria-haspopup="dialog">${nom?esc(nom):'Choisir la cible…'}</button><button type="button" class="ed-ic del" data-cxdel="${i}" aria-label="Supprimer cette complication">×</button></div>`;}
 /* K7 (v4.70.0, maquette MK3) — LE MINUTEUR SE RÈGLE DANS SA CARTE DE LECTURE. C'était une rangée
    de champs alignés ; c'est maintenant la carte telle qu'elle apparaîtra dans le rail : nom en
    casse de phrase, précision en méta (`tmLabelParts` la sépare déjà à l'affichage), durée, type,
@@ -23347,7 +23360,7 @@ function cxEditorRow(c,i,f,n){
    c'est l'auteur qui la connaît, pas l'application. */
 function timerEditorRow(t,i,n){const iv=t.type==='interval';const mm=Math.floor((t.seconds||0)/60),ss=(t.seconds||0)%60;
   return `<div class="tmedit${edGrabClsL('timers',i)}" data-ti="${i}">
-    <div class="tme-top"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline (5 à 10 min)':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${edGrabHandleL('timers',i,n||0,'le minuteur')}<button class="mini del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>
+    <div class="tme-top"><span class="blk-type tm-kind">${iv?'Cycle':'Chrono'}</span><input type="text" data-tf="label" value="${esc(t.label)}" placeholder="${iv?'ex. Cycle adrénaline (5 à 10 min)':'ex. Temps écoulé'}" aria-label="${iv?'Nom du cycle':'Nom du chronomètre'}">${edGrabHandleL('timers',i,n||0,'le minuteur')}<button type="button" class="ed-ic del" data-tdel="${i}" aria-label="Supprimer ce minuteur">×</button></div>
     ${iv?`<div class="tme-row"><span class="tme-l">Durée</span><input type="number" min="0" data-tmin value="${mm}" aria-label="Durée du cycle — minutes"><span class="tme-u">min</span><input type="number" min="0" max="59" data-tsec value="${ss}" aria-label="Durée du cycle — secondes"><span class="tme-u">s</span><label class="tme-loop"><input type="checkbox" data-tloop ${t.autoloop?'checked':''} aria-label="Relancer le cycle automatiquement">se relance</label></div>`:''}
     ${''/* UN CHRONOMÈTRE NE SONNE JAMAIS (v4.78.0, signalé à l'usage : « un chronomètre n'arrive pas
     à échéance, donc ne sonne pas »). Le champ « À l'échéance » lui était pourtant proposé : on
@@ -23367,7 +23380,7 @@ function counterEditorRow(c,i,timers,n){const ivs=(timers||[]).filter(t=>t.type=
      (K7) : un EN-TÊTE (nom · ⠿ · ✕) puis les réglages dessous. On reprend la même, aux mêmes
      classes — pas une ligne de CSS nouvelle, et deux objets voisins qui se ressemblent enfin. */
   return `<div class="tmedit${edGrabClsL('counters',i)}" data-ci="${i}">
-    <div class="tme-top"><span class="blk-type tm-kind">Compteur</span><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur">${edGrabHandleL('counters',i,n||0,'le compteur')}<button class="mini del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>
+    <div class="tme-top"><span class="blk-type tm-kind">Compteur</span><input type="text" data-cf="label" value="${esc(c.label)}" placeholder="ex. Adrénaline (mg)" aria-label="Nom du compteur">${edGrabHandleL('counters',i,n||0,'le compteur')}<button type="button" class="ed-ic del" data-cdel="${i}" aria-label="Supprimer ce compteur">×</button></div>
     <div class="tme-row"><span class="tme-l">Pas</span><input type="number" data-cstep value="${c.step||1}" style="width:64px" aria-label="Pas du compteur"><span class="tme-l" style="min-width:56px">Départ</span><input type="number" data-cstart value="${c.start||0}" style="width:64px" aria-label="Valeur de départ du compteur"></div>
     ${ivs.length?`<div class="tme-row"><span class="tme-l">Le ＋ relance</span><select data-clink aria-label="Minuteur relancé par le ＋ du compteur" title="Le « ＋ » du compteur relance ce minuteur (ex. bolus -> cycle)"><option value="">rien</option>${ivs.map(t=>`<option value="${esc(t.id)}"${c.timerId===t.id?' selected':''}>« ${esc(t.label)||'Minuteur'} »</option>`).join('')}</select></div>`:''}
     <p class="tme-h">Son libellé nomme les repères du journal des actions et le compteur du compte-rendu : court et lisible hors contexte.</p>
@@ -25344,7 +25357,6 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
     if(_viewRerender)_viewRerender();else render();paintViewFoot();});
   body.querySelectorAll('[data-cat]').forEach(x=>x.onclick=()=>{const c=x.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;
     if(_viewRerender)_viewRerender();else render();paintViewSheet();});
-  body.querySelectorAll('.vs-seg').forEach(r=>bindSegDrag(r,i=>{const b=r.querySelectorAll('[data-vs]')[i];if(b&&!b.classList.contains('on'))b.click();}));   // la pastille se glisse aussi ici
   const cm=body.querySelector('[data-catmgr]');if(cm)cm.onclick=()=>{closeViewSheet();openHomeMgr();};   // la feuille « Gérer » (A287) ou le gestionnaire, selon ce qui se gère
   paintViewFoot();}
 /* LE PIED ANNONCE LE RÉSULTAT — le compte de la liste RÉELLEMENT rendue dessous, jamais un second
@@ -26785,8 +26797,7 @@ function bindAccountPrefs(body){
     const peindre=()=>{const m=_themeMode();ts.style.setProperty('--seg-i',Math.max(0,K.indexOf(m)));
       btns.forEach(b=>{const on=b.dataset.theme===m;
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
-    btns.forEach(b=>b.onclick=()=>{applyTheme(b.dataset.theme);schedulePrefsPush();peindre();});
-    bindSegDrag(ts,i=>{applyTheme(K[i]);schedulePrefsPush();peindre();});}}
+    btns.forEach(b=>b.onclick=()=>{applyTheme(b.dataset.theme);schedulePrefsPush();peindre();});}}
   {const zs=body.querySelector('#zoomSeg');
    if(zs){const btns=[...zs.querySelectorAll('[data-zoom]')];
     const peindre=()=>{const z=currentZoom();
@@ -26799,7 +26810,7 @@ function bindAccountPrefs(body){
       const n=Math.max(0,Math.min(ZOOM_STEPS.length-1,(i<0?0:i)+d));
       applyZoom(ZOOM_STEPS[n]);schedulePrefsPush();peindre();
       const on=zs.querySelector('.seg-btn.on');if(on)on.focus();};
-    peindre();bindSegDrag(zs);}}
+    peindre();}}
   /* MÊME MÉCANIQUE, MÊME RAISON : on peint sur place plutôt que de re-rendre, sinon la pastille
      SAUTE au lieu de glisser. Rien d'autre de la fenêtre ne dépend de ce réglage — il ne prend
      effet qu'à la PROCHAINE ouverture d'une aide (changer l'écran d'une fiche ouverte serait une
@@ -26811,12 +26822,12 @@ function bindAccountPrefs(body){
       btns.forEach(b=>{const on=b.dataset.disp===m;
         b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');b.tabIndex=on?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{setReadModePref(b.dataset.disp);peindre();});
-    peindre();bindSegDrag(ds);}}
+    peindre();}}
   body.querySelectorAll('[data-essai]').forEach(sg=>{const k=sg.dataset.essai,btns=[...sg.querySelectorAll('[data-ev]')];   // ESSAI (A380)
     const peindre=()=>{const on=essaiOn(k);sg.classList.toggle('i1',on);
       btns.forEach(b=>{const v=b.dataset.ev==='1'===on;b.classList.toggle('on',v);b.setAttribute('aria-checked',v?'true':'false');b.tabIndex=v?0:-1;});};
     btns.forEach(b=>b.onclick=()=>{essaiSet(k,b.dataset.ev==='1');peindre();});
-    peindre();bindSegDrag(sg);});
+    peindre();});
   body.querySelectorAll('[data-accent]').forEach(b=>b.onclick=()=>{applyAccent(b.dataset.accent);schedulePrefsPush();renderAuth();});
   {const tg=body.querySelector('#ssTog');if(tg)tg.onclick=async()=>{
     const on=!sessSyncOn();

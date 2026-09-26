@@ -1394,6 +1394,9 @@
   reduced-motion (direct manipulation = le geste lui-même, pas un mouvement autonome) ; seul le
   rattrapage final passe par la transition CSS. Couvert par `scripts/audit-modeseg.mjs` : écart
   pastille/segment actif dans les DEUX thèmes + immobilité des libellés à la bascule + drag réel.
+  **v5.33.1 — `bindSegDrag` n'existe plus** : le glisser est DÉLÉGUÉ une fois au document, et vaut
+  pour tout `.seg` portant une `.seg-pill` directe. Chaque sélecteur neuf oubliait l'appel (dernier :
+  « Importance » de la feuille de réglages d'étape, A383) — un nouveau sélecteur glisse sans rien câbler.
   `#modeSeg` vit hors de `main` : câblé UNE FOIS, il survit aux re-rendus — donc plus besoin de
   rejouer le glissement de la pastille (`.seg-replay` n'a plus lieu d'être ici).
   **`--ctrl-h`** (posée par `syncHdrScroll`, ÷ `zoomF()`) = hauteur de la rangée de commandes : le
