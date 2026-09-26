@@ -2643,9 +2643,6 @@
      chips, 44 px ; « ×2 » = registre NEUTRE, mono tabulaire. Détail : doctrine-css.md C56. */
   .stp-x2{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--tag-bg);
     color:var(--tag-ink);font-family:var(--mono);font-size:11px;font-weight:700;vertical-align:2px}
-  /* ★ — registre ALERTE, et ici c'est justifié : un memory item est par définition « ce qui tue
-     si on l'oublie », le registre même du chapeau qu'il rejoint. */
-  .mem-tgl.on{background:var(--critical-soft);color:var(--critical);border-color:var(--critical-bd)}
   /* RANGÉE D'ITEM (maquette proto-large) : poignée à GAUCHE, plus de case inerte, DEUX champs.
      La marque de registre remplace la case : elle DIT le registre au lieu d'inviter à cocher. */
   /* B4 — les deux moitiés de la condition d'entrée sont NUES dans leur fieldset commun : deux
@@ -2869,10 +2866,8 @@
      Répétée à vide sur chaque rangée, la phrase « réponse attendue (facultatif) » disait cinq
      fois la même chose et volait un tiers de la largeur au geste, qui est le contenu. C'est la
      grammaire MK-flux du dossier : au REPOS, aucun chrome ; à l'ÉDITION, les outils paraissent. */
-  .blk .li .li-arrow,.blk .li .li-exp{display:none}
-  .blk .li:focus-within .li-arrow,.blk .li:focus-within .li-exp{display:block}
-  .blk .li.has-exp .li-arrow,.blk .li.has-exp .li-exp{display:block}
-  .blk .li .li-arrow{align-self:center}
+  .blk .li .li-exp{display:none}
+  .blk .li:is(:has(input:focus),.has-exp) .li-exp{display:block}
   /* Un memory item posé sur une ÉTAPE apparaît ici en LECTURE SEULE : il se modifie dans son
      bloc, pas dans le chapeau — le chapeau ne le possède pas, il l'agrège. */
   /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
@@ -2892,23 +2887,14 @@
   .fg-go:hover{color:var(--ink);background:var(--surface-2)}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
-  /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
-     un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
-     ce qui s'appliquera sans avoir à la retaper. */
-  .blk-phase{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:flex-end}
-  /* ⚠ MÊME BOÎTE QUE LE CHAMP D'À CÔTÉ (signalé à l'usage : « pas la même taille que l'input texte
-     d'à côté »). Deux contrôles d'une même rangée qui ne font pas la même hauteur se lisent comme
-     deux niveaux, alors qu'ils sont pairs — l'un nomme le bloc, l'autre le range. Mesuré avant :
-     39 px contre 43. La hauteur est alignée par `align-self:stretch`, donc elle SUIT le champ
-     titre quelle que soit la taille du texte, au lieu d'être recopiée en dur. */
-  .blk-phase{align-self:stretch}
-  .blk-phase :is(input,select){width:132px;max-width:100%;min-width:0;font-size:11px;padding:4px 8px;border:1px dashed var(--line-strong);
-    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit;height:100%}
-  .blk-phase input{text-align:right}
+  /* La phase : une étiquette d'ORGANISATION (aucune couleur sémantique), rangée dans « Options du
+     bloc » depuis A383. En filigrane (pointillé, encre douce), la phase HÉRITÉE du bloc précédent. */
+  .blk-phase{flex:none;display:flex;max-width:100%}
+  .blk-phase :is(input,select){width:200px;max-width:100%;min-width:0;min-height:40px;padding:0 10px;border:1.5px solid var(--ctl-line);
+    border-radius:var(--r-2);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
   .blk-phase.inh :is(input,select){border-style:dotted;color:var(--ink-soft)}
-  .blk-phase :is(input,select):focus{border-style:solid;border-color:var(--primary);outline:none;text-align:left}
-  @media (max-width:429.98px){.blk-phase :is(input,select){width:92px}}
+  .blk-phase :is(input,select):focus{border-style:solid;border-color:var(--primary);outline:none}
   /* Intertitre de PHASE dans la colonne Structure : un simple repère de groupe, sans surface ni
      couleur — la colonne oriente, elle n'agit pas. */
   .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
@@ -3198,23 +3184,15 @@
   .eds-hors{margin-top:12px}
   .eds-row.exc .eds-n{color:var(--critical)}
 
-  /* La flèche dit ce que « :: » disait : à gauche ce qui se PRONONCE, à droite ce qui se RÉPOND. */
-  .li-arrow{flex:none;color:var(--ink-soft);font-size:13.5px;font-weight:700}
   /* ⚠ UNE SEULE VOIX DANS LA RANGÉE (signalé à l'usage : « réponse attendue a l'air plus gros —
      c'est peut-être parce que la police est différente »). Le constat est juste et la cause est
      bien celle-là : les deux champs sont au MÊME corps (16 px, plancher tactile), mais une chasse
      fixe a une hauteur d'x plus grande et une chasse plus large — à taille égale elle paraît plus
      grosse. Le champ prend donc la police du geste ; LA CHASSE FIXE RESTE OÙ ELLE PORTE DU SENS,
      c'est-à-dire sur la PILULE de lecture (`.stp-r`), où elle distingue la réponse attendue du
-     texte de l'étape. Dans un champ, la flèche disait déjà ce que la police répétait. */
+     texte de l'étape. A383 : dans un bloc, la réponse passe SOUS l'étape (plus de flèche). */
   .li .li-exp{flex:0 1 34%;min-width:0;font-size:12px;color:var(--ink-soft)}
   .li .li-exp:focus{color:var(--ink)}
-  /* Les outils portent leur MOT (règle 8 étendue aux glyphes) — il s'efface sous 400 px, où la
-     rangée n'a plus la place et où le `title` reste. */
-  .mini-w{margin-left:4px;font-size:11px;font-weight:700;letter-spacing:.02em}
-  @media (max-width:399.98px){.mini-w{display:none}}
-  .x2-tgl{font-family:var(--mono);font-weight:700}
-  .x2-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
   .all-tabs{display:flex;gap:4px;margin:0 0 10px;border-bottom:1px solid var(--line)}
   .at-b{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;
     padding:0 12px;min-height:44px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);
@@ -4375,7 +4353,6 @@
   .st-seg{min-height:44px}   /* segment du `.seg` de statut : dessin porté par .seg-btn */
   .st-hint{font-size:var(--t-meta);color:var(--ink-soft);margin-top:4px}
   /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
-  .crit-tgl.on{color:var(--critical);border-color:var(--critical);background:var(--critical-soft)}
   .crit-tgl.vig{color:var(--verify);border-color:var(--verify);background:var(--verify-soft);font-size:13.5px;font-weight:800}
   /* Consigne d'usage rouge/ambre (v4.2.2) : affichée UNE fois par bloc d'étapes, au point de
      décision (doctrine utilisateur — rouge = ce qui tue si oublié ; ambre = risque d'erreur). */
@@ -4466,12 +4443,9 @@
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
-  .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
+  .blk .li{display:flex;gap:4px 8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
   .blk .li input[type=text]{flex:1;min-width:0}
   .blk .li .mini{width:32px;height:32px}
-  /* Un outil qui porte son MOT (lot M1) cesse d'être un bouton carré : sans cela le texte
-     débordait de la boîte. La largeur suit le contenu, la hauteur reste la cible. */
-  .blk .li .mini:has(.mini-w){width:auto;min-width:32px;padding:0 10px;gap:0}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
      et s'écrit avant de se déplacer, et le champ est ce qu'on manipule le plus. */
   /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
@@ -4638,11 +4612,10 @@
      que les rangées suivantes ne bougent pas non plus. L'ombre teintée est l'ANNEAU de focus
      (WCAG 2.4.7 — la sonde d'audit ne compte qu'outline/box-shadow, un bord seul ne suffit pas). */
   .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--act);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:0 0 0 3px var(--primary-100)}
-  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
+  .blk .li:has(input:focus){background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
   /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
   .li-tools{display:none;gap:6px;flex:1 1 100%;order:3;margin-left:32px}
-  .blk .li:focus-within .li-tools{display:inline-flex}
   /* La POIGNÉE vit à droite de la ligne, visible au repos : c'est l'affordance du
      réordonnancement, elle ne se découvre pas au tap. En encre douce — un repère, pas une action.
      Le ✕ s'ÉCARTE des réglages (`.li-sp` pousse au bord) : un geste destructeur ne se met jamais
@@ -4656,17 +4629,47 @@
   .li-note{display:none;flex:1 1 100%;order:4;margin:2px 0 4px 32px;padding:8px 10px;
     background:var(--verify-soft);border-left:3px solid var(--verify-bd);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
     font-size:12px;line-height:1.45;color:var(--verify)}
-  .blk .li:focus-within .li-note{display:block}
+  .blk .li:has(input:focus) .li-note{display:block}
   .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
-  /* A377 — « ce que fait la coche » : pointillé sans lien (créer), bleu avec ; lu au repos par `.wt-ed`. */
-  .li-tools .li-lk{flex:0 1 auto;min-width:0;max-width:240px;height:32px;min-height:32px;padding:0 8px;border:1px dashed var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700}
-  .li-tools .li-lk.on{border-style:solid;border-color:var(--act);color:var(--act)}
-  .li-tools{flex-wrap:wrap}
-  .li-tools .li-lkn{flex:none;width:56px;height:32px;min-height:32px;padding:0 8px;border:1px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font-family:inherit;font-size:var(--t-meta);font-weight:700}
-  .blk .li .mo-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
-  .blk .li .mo-ed:empty{display:none}
   .mo-rule.mo-warn{text-transform:none;letter-spacing:0;color:var(--warn)}
-  .blk .li .wt-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
+  /* ══ A383 — la rangée d'étape : texte, bouton « Réglages » au bout (bleu quand quelque chose est
+     réglé), réponse attendue DESSOUS, puis ce qui est réglé, lu au repos. 40 = poignée 32 + écart 8. */
+  .blk .li .li-set{width:40px;height:40px;border-color:transparent;background:none;color:var(--ink-soft)}
+  .blk .li .li-set.on{background:var(--primary-soft);color:var(--act)}
+  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;margin:-8px 0 0 40px;padding-block:2px}
+  .blk .li input.li-exp[data-sx]:focus{margin:-8px 0 0 40px;padding:2px 4px}
+  .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:2px 0 0 40px}
+  .li-chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:var(--r-1);background:var(--tag-bg);color:var(--tag-ink);font-size:var(--t-meta);font-weight:700}
+  .li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
+  .blk-loop{flex:none;padding:2px 8px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);font-size:var(--t-meta);font-weight:800}
+  .blk-foot{display:flex;justify-content:flex-end;margin-top:12px}
+  /* « Options du bloc » : carte dépliable de l'app (foldCardHtml), rangées libellé | contrôle à 52 px. */
+  .bo-card .conf-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bo-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:52px;padding:6px 0;border-top:1px solid var(--work-line)}
+  .bo-row:first-child{border-top:0}
+  .bo-row.col{flex-direction:column;align-items:stretch}
+  .bo-l{flex:1 1 auto;min-width:0;font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  .bo-s{display:block;font-size:var(--t-body);font-weight:500;color:var(--ink-2)}
+  .bo-v{font-size:var(--t-body);font-weight:700;color:var(--ok)}
+  .bo-row input[data-bnextlbl]{width:100%;min-height:44px;padding:8px 12px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit}
+  .bo-row .imgrow{margin:0}
+  /* La fenêtre « Réglages de l'étape » : trois sections nommées, contrôles de l'échelle L 44. */
+  .sst-step{margin:0 0 4px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
+  .sst-h{margin:20px 0 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .sst-sub{display:block;font-size:var(--t-body);font-weight:500;color:var(--ink-2);letter-spacing:0;text-transform:none}
+  .sst-h .sst-sub{display:inline}
+  #stepSetBody .set-row{margin:8px 0 0}
+  .sst-sel{width:100%;min-height:44px;padding:0 12px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-item)}
+  .sst-sel.on{border-color:var(--act)}
+  .sst-f{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+  .sst-f>label{font-size:var(--t-body);font-weight:700;color:var(--ink-2)}
+  .sst-in{display:flex;gap:8px}
+  .sst-n{flex:none;width:80px;min-height:44px;padding:0 12px;border:1.5px solid var(--act);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-item)}
+  #stepSetBody .mo-ed{display:block;margin-top:8px}
+  .sst-note{margin:0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  .sst-mk{display:flex;flex-wrap:wrap;gap:4px 16px}
+  .sst-mk .linkbtn{min-height:44px;margin:0}
+  .sst-foot{display:flex;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
   .blk-tm{width:100%;height:44px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
   .blk-tm.on{border-color:var(--act)}
   .blk-tm-h{margin:6px 0 0;font-size:var(--t-meta);line-height:1.45;color:var(--ink-2)}
@@ -4724,7 +4727,6 @@
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2)}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px}
-  .startbtn{border:1px solid var(--line);background:var(--input-bg);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   .optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
@@ -7262,7 +7264,7 @@
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -7446,7 +7448,7 @@
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.li-tools .li-lkn,.field .blk-tm,.blk-tm{font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,.sst-n,.bo-row input[data-bnextlbl],.field .blk-tm,.blk-tm{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme

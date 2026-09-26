@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-pLcymxq28uoQlcIcUKfF/LmhbOWGDkIn/NLPS6xHT1A='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-SVrvg+e7aLKI+By9vkVG9yHDYoM0XHE2qBFF1eZhmT8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2998,9 +2998,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      chips, 44 px ; « ×2 » = registre NEUTRE, mono tabulaire. Détail : doctrine-css.md C56. */
   .stp-x2{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--tag-bg);
     color:var(--tag-ink);font-family:var(--mono);font-size:11px;font-weight:700;vertical-align:2px}
-  /* ★ — registre ALERTE, et ici c'est justifié : un memory item est par définition « ce qui tue
-     si on l'oublie », le registre même du chapeau qu'il rejoint. */
-  .mem-tgl.on{background:var(--critical-soft);color:var(--critical);border-color:var(--critical-bd)}
   /* RANGÉE D'ITEM (maquette proto-large) : poignée à GAUCHE, plus de case inerte, DEUX champs.
      La marque de registre remplace la case : elle DIT le registre au lieu d'inviter à cocher. */
   /* B4 — les deux moitiés de la condition d'entrée sont NUES dans leur fieldset commun : deux
@@ -3224,10 +3221,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Répétée à vide sur chaque rangée, la phrase « réponse attendue (facultatif) » disait cinq
      fois la même chose et volait un tiers de la largeur au geste, qui est le contenu. C'est la
      grammaire MK-flux du dossier : au REPOS, aucun chrome ; à l'ÉDITION, les outils paraissent. */
-  .blk .li .li-arrow,.blk .li .li-exp{display:none}
-  .blk .li:focus-within .li-arrow,.blk .li:focus-within .li-exp{display:block}
-  .blk .li.has-exp .li-arrow,.blk .li.has-exp .li-exp{display:block}
-  .blk .li .li-arrow{align-self:center}
+  .blk .li .li-exp{display:none}
+  .blk .li:is(:has(input:focus),.has-exp) .li-exp{display:block}
   /* Un memory item posé sur une ÉTAPE apparaît ici en LECTURE SEULE : il se modifie dans son
      bloc, pas dans le chapeau — le chapeau ne le possède pas, il l'agrège. */
   /* Un memory item posé sur une ÉTAPE : le texte, puis le renvoi vers le bloc où il vit — sur sa
@@ -3247,23 +3242,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .fg-go:hover{color:var(--ink);background:var(--surface-2)}
   /* La phase vit sur l'en-tête du bloc, discrète : c'est une étiquette d'ORGANISATION, pas un
      registre — elle ne prend donc aucune couleur sémantique. */
-  /* La phase : un champ DISCRET dans l'en-tête, à droite — une étiquette d'ORGANISATION, jamais
-     un registre, donc aucune couleur sémantique. En filigrane, la phase HÉRITÉE : l'auteur voit
-     ce qui s'appliquera sans avoir à la retaper. */
-  .blk-phase{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:flex-end}
-  /* ⚠ MÊME BOÎTE QUE LE CHAMP D'À CÔTÉ (signalé à l'usage : « pas la même taille que l'input texte
-     d'à côté »). Deux contrôles d'une même rangée qui ne font pas la même hauteur se lisent comme
-     deux niveaux, alors qu'ils sont pairs — l'un nomme le bloc, l'autre le range. Mesuré avant :
-     39 px contre 43. La hauteur est alignée par `align-self:stretch`, donc elle SUIT le champ
-     titre quelle que soit la taille du texte, au lieu d'être recopiée en dur. */
-  .blk-phase{align-self:stretch}
-  .blk-phase :is(input,select){width:132px;max-width:100%;min-width:0;font-size:11px;padding:4px 8px;border:1px dashed var(--line-strong);
-    border-radius:var(--radius-sm);background:none;color:var(--ink);font-family:inherit;height:100%}
-  .blk-phase input{text-align:right}
+  /* La phase : une étiquette d'ORGANISATION (aucune couleur sémantique), rangée dans « Options du
+     bloc » depuis A383. En filigrane (pointillé, encre douce), la phase HÉRITÉE du bloc précédent. */
+  .blk-phase{flex:none;display:flex;max-width:100%}
+  .blk-phase :is(input,select){width:200px;max-width:100%;min-width:0;min-height:40px;padding:0 10px;border:1.5px solid var(--ctl-line);
+    border-radius:var(--r-2);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
   .blk-phase.inh :is(input,select){border-style:dotted;color:var(--ink-soft)}
-  .blk-phase :is(input,select):focus{border-style:solid;border-color:var(--primary);outline:none;text-align:left}
-  @media (max-width:429.98px){.blk-phase :is(input,select){width:92px}}
+  .blk-phase :is(input,select):focus{border-style:solid;border-color:var(--primary);outline:none}
   /* Intertitre de PHASE dans la colonne Structure : un simple repère de groupe, sans surface ni
      couleur — la colonne oriente, elle n'agit pas. */
   .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
@@ -3553,23 +3539,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .eds-hors{margin-top:12px}
   .eds-row.exc .eds-n{color:var(--critical)}
 
-  /* La flèche dit ce que « :: » disait : à gauche ce qui se PRONONCE, à droite ce qui se RÉPOND. */
-  .li-arrow{flex:none;color:var(--ink-soft);font-size:13.5px;font-weight:700}
   /* ⚠ UNE SEULE VOIX DANS LA RANGÉE (signalé à l'usage : « réponse attendue a l'air plus gros —
      c'est peut-être parce que la police est différente »). Le constat est juste et la cause est
      bien celle-là : les deux champs sont au MÊME corps (16 px, plancher tactile), mais une chasse
      fixe a une hauteur d'x plus grande et une chasse plus large — à taille égale elle paraît plus
      grosse. Le champ prend donc la police du geste ; LA CHASSE FIXE RESTE OÙ ELLE PORTE DU SENS,
      c'est-à-dire sur la PILULE de lecture (`.stp-r`), où elle distingue la réponse attendue du
-     texte de l'étape. Dans un champ, la flèche disait déjà ce que la police répétait. */
+     texte de l'étape. A383 : dans un bloc, la réponse passe SOUS l'étape (plus de flèche). */
   .li .li-exp{flex:0 1 34%;min-width:0;font-size:12px;color:var(--ink-soft)}
   .li .li-exp:focus{color:var(--ink)}
-  /* Les outils portent leur MOT (règle 8 étendue aux glyphes) — il s'efface sous 400 px, où la
-     rangée n'a plus la place et où le `title` reste. */
-  .mini-w{margin-left:4px;font-size:11px;font-weight:700;letter-spacing:.02em}
-  @media (max-width:399.98px){.mini-w{display:none}}
-  .x2-tgl{font-family:var(--mono);font-weight:700}
-  .x2-tgl.on{background:var(--primary-soft);color:var(--primary-dk);border-color:var(--primary)}
   .all-tabs{display:flex;gap:4px;margin:0 0 10px;border-bottom:1px solid var(--line)}
   .at-b{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;
     padding:0 12px;min-height:44px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-soft);
@@ -4730,7 +4708,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .st-seg{min-height:44px}   /* segment du `.seg` de statut : dessin porté par .seg-btn */
   .st-hint{font-size:var(--t-meta);color:var(--ink-soft);margin-top:4px}
   /* Bascule du type d'étape (éditeur de blocs) : ⚠ critique (rouge) / △ vigilance (ambre). */
-  .crit-tgl.on{color:var(--critical);border-color:var(--critical);background:var(--critical-soft)}
   .crit-tgl.vig{color:var(--verify);border-color:var(--verify);background:var(--verify-soft);font-size:13.5px;font-weight:800}
   /* Consigne d'usage rouge/ambre (v4.2.2) : affichée UNE fois par bloc d'étapes, au point de
      décision (doctrine utilisateur — rouge = ce qui tue si oublié ; ambre = risque d'erreur). */
@@ -4821,12 +4798,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Une ÉTAPE : la case inerte à gauche, comme en lecture — le champ prend la place du texte. */
   /* Les étapes d'un BLOC vivent hors de `.list-edit` : leur rangée n'avait donc aucune règle de
      flex — les trois objets (case, champ, outils) s'empilaient dès qu'on a ajouté la case. */
-  .blk .li{display:flex;gap:8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
+  .blk .li{display:flex;gap:4px 8px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
   .blk .li input[type=text]{flex:1;min-width:0}
   .blk .li .mini{width:32px;height:32px}
-  /* Un outil qui porte son MOT (lot M1) cesse d'être un bouton carré : sans cela le texte
-     débordait de la boîte. La largeur suit le contenu, la hauteur reste la cible. */
-  .blk .li .mini:has(.mini-w){width:auto;min-width:32px;padding:0 10px;gap:0}
   /* Sous 400 px, les outils passent SOUS le champ plutôt que de le comprimer : une étape se lit
      et s'écrit avant de se déplacer, et le champ est ce qu'on manipule le plus. */
   /* Sous 400 px, les outils se compactent (32 px, écart 5) pour rendre de la largeur au CHAMP —
@@ -4993,11 +4967,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      que les rangées suivantes ne bougent pas non plus. L'ombre teintée est l'ANNEAU de focus
      (WCAG 2.4.7 — la sonde d'audit ne compte qu'outline/box-shadow, un bord seul ne suffit pas). */
   .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--act);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:0 0 0 3px var(--primary-100)}
-  .blk .li:focus-within{background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
+  .blk .li:has(input:focus){background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
   /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
   .li-tools{display:none;gap:6px;flex:1 1 100%;order:3;margin-left:32px}
-  .blk .li:focus-within .li-tools{display:inline-flex}
   /* La POIGNÉE vit à droite de la ligne, visible au repos : c'est l'affordance du
      réordonnancement, elle ne se découvre pas au tap. En encre douce — un repère, pas une action.
      Le ✕ s'ÉCARTE des réglages (`.li-sp` pousse au bord) : un geste destructeur ne se met jamais
@@ -5011,17 +4984,47 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .li-note{display:none;flex:1 1 100%;order:4;margin:2px 0 4px 32px;padding:8px 10px;
     background:var(--verify-soft);border-left:3px solid var(--verify-bd);border-radius:0 var(--radius-sm) var(--radius-sm) 0;
     font-size:12px;line-height:1.45;color:var(--verify)}
-  .blk .li:focus-within .li-note{display:block}
+  .blk .li:has(input:focus) .li-note{display:block}
   .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
-  /* A377 — « ce que fait la coche » : pointillé sans lien (créer), bleu avec ; lu au repos par `.wt-ed`. */
-  .li-tools .li-lk{flex:0 1 auto;min-width:0;max-width:240px;height:32px;min-height:32px;padding:0 8px;border:1px dashed var(--ctl-line);border-radius:var(--r-1);background:var(--work);color:var(--ink-2);font-family:inherit;font-size:var(--t-meta);font-weight:700}
-  .li-tools .li-lk.on{border-style:solid;border-color:var(--act);color:var(--act)}
-  .li-tools{flex-wrap:wrap}
-  .li-tools .li-lkn{flex:none;width:56px;height:32px;min-height:32px;padding:0 8px;border:1px solid var(--act);border-radius:var(--r-1);background:var(--work);color:var(--act);font-family:inherit;font-size:var(--t-meta);font-weight:700}
-  .blk .li .mo-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
-  .blk .li .mo-ed:empty{display:none}
   .mo-rule.mo-warn{text-transform:none;letter-spacing:0;color:var(--warn)}
-  .blk .li .wt-ed{order:3;flex:1 1 100%;margin:2px 0 0 24px}
+  /* ══ A383 — la rangée d'étape : texte, bouton « Réglages » au bout (bleu quand quelque chose est
+     réglé), réponse attendue DESSOUS, puis ce qui est réglé, lu au repos. 40 = poignée 32 + écart 8. */
+  .blk .li .li-set{width:40px;height:40px;border-color:transparent;background:none;color:var(--ink-soft)}
+  .blk .li .li-set.on{background:var(--primary-soft);color:var(--act)}
+  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;margin:-8px 0 0 40px;padding-block:2px}
+  .blk .li input.li-exp[data-sx]:focus{margin:-8px 0 0 40px;padding:2px 4px}
+  .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:2px 0 0 40px}
+  .li-chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:var(--r-1);background:var(--tag-bg);color:var(--tag-ink);font-size:var(--t-meta);font-weight:700}
+  .li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
+  .blk-loop{flex:none;padding:2px 8px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);font-size:var(--t-meta);font-weight:800}
+  .blk-foot{display:flex;justify-content:flex-end;margin-top:12px}
+  /* « Options du bloc » : carte dépliable de l'app (foldCardHtml), rangées libellé | contrôle à 52 px. */
+  .bo-card .conf-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bo-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:52px;padding:6px 0;border-top:1px solid var(--work-line)}
+  .bo-row:first-child{border-top:0}
+  .bo-row.col{flex-direction:column;align-items:stretch}
+  .bo-l{flex:1 1 auto;min-width:0;font-size:var(--t-item);font-weight:600;color:var(--ink)}
+  .bo-s{display:block;font-size:var(--t-body);font-weight:500;color:var(--ink-2)}
+  .bo-v{font-size:var(--t-body);font-weight:700;color:var(--ok)}
+  .bo-row input[data-bnextlbl]{width:100%;min-height:44px;padding:8px 12px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit}
+  .bo-row .imgrow{margin:0}
+  /* La fenêtre « Réglages de l'étape » : trois sections nommées, contrôles de l'échelle L 44. */
+  .sst-step{margin:0 0 4px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
+  .sst-h{margin:20px 0 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .sst-sub{display:block;font-size:var(--t-body);font-weight:500;color:var(--ink-2);letter-spacing:0;text-transform:none}
+  .sst-h .sst-sub{display:inline}
+  #stepSetBody .set-row{margin:8px 0 0}
+  .sst-sel{width:100%;min-height:44px;padding:0 12px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-item)}
+  .sst-sel.on{border-color:var(--act)}
+  .sst-f{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+  .sst-f>label{font-size:var(--t-body);font-weight:700;color:var(--ink-2)}
+  .sst-in{display:flex;gap:8px}
+  .sst-n{flex:none;width:80px;min-height:44px;padding:0 12px;border:1.5px solid var(--act);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-item)}
+  #stepSetBody .mo-ed{display:block;margin-top:8px}
+  .sst-note{margin:0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  .sst-mk{display:flex;flex-wrap:wrap;gap:4px 16px}
+  .sst-mk .linkbtn{min-height:44px;margin:0}
+  .sst-foot{display:flex;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
   .blk-tm{width:100%;height:44px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
   .blk-tm.on{border-color:var(--act)}
   .blk-tm-h{margin:6px 0 0;font-size:var(--t-meta);line-height:1.45;color:var(--ink-2)}
@@ -5079,7 +5082,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2)}
   .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px}
-  .startbtn{border:1px solid var(--line);background:var(--input-bg);color:var(--ink-soft);border-radius:8px;padding:6px 12px;min-height:32px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   .optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
@@ -7617,7 +7619,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      bas. Ne reste qu'une petite marge de respiration. */
   .rt-panel{scroll-margin-top:6px}
   /* Focus clavier visible sur TOUS les contrôles interactifs (uniforme avec .btn/.card). */
-  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.startbtn,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  :is(.catchip,.cat-chip-selected,.cat-chip-other,.catmenu-new,.tlink,.linkbtn,.mini,.fz,.scopebtn,.opt,.add-line,.notice-x,.tk-del,.cm-del,.cm-dot,.cm-sw .sw,.ai-x,.rel-x,.back,ol.steps li):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .rt-panel :is(.tm-btn,.cn-btn,.rt-sound,.tm-reset,.cn-reset):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   header.bar .bar-acct:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   /* En-tête « titré » (.titled, posé par setBarTitle) : dans TOUTE vue fiche/protocole — lecture
@@ -7801,7 +7803,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.li-tools .li-lk,.li-tools .li-lkn,.field .blk-tm,.blk-tm{font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,.sst-n,.bo-row input[data-bnextlbl],.field .blk-tm,.blk-tm{font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme
@@ -8268,6 +8270,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal" id="edAddModal" role="dialog" aria-modal="true" aria-labelledby="edAddTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="edAddTitle">Ajouter à la fiche</h3><button class="ai-x" id="edAddX" aria-label="Fermer">×</button></div>
   <div class="ed-palette ai-body" id="edAddBody"></div>
+</div></div>
+<!-- A383 : les réglages d'UNE étape (importance, ce que fait la coche, moment) — corps peint à l'ouverture (`stepSetPaint`). -->
+<div class="ai-modal dlg-center" id="stepSetModal" role="dialog" aria-modal="true" aria-labelledby="stepSetTitle"><div class="ai-card dlg-480">
+  <div class="ai-top"><h3 id="stepSetTitle">Réglages de l’étape</h3><button class="ai-x" aria-label="Fermer">×</button></div>
+  <div class="ai-body" id="stepSetBody"></div>
 </div></div>
 <!-- LA FEUILLE « AFFICHAGE » (v5.30, A353) : rangement ET filtres — type, catégorie, tri, regroupement,
      densité — visibles d'un coup, un pied qui ANNONCE le résultat avant de fermer. Le corps est peint
@@ -16338,6 +16345,7 @@ function pinIcon(on){return '<svg width="18" height="18" viewBox="0 0 24 24" fil
 // pour aucune, ou 'chev' pour les chevrons de cartes stylés à part). TOUTE icône répétée dans
 // les gabarits doit venir d'ICI — un doublon inline finit par diverger (taille, graisse, dessin).
 function uiIcon(name,size,opts){opts=opts||{};const P={
+  tune:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
   gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
   bell:'<path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
   // Organigramme (v4.25.0) : un nœud en haut, deux branches — le Schéma de l'algorithme.
@@ -22859,7 +22867,7 @@ async function purgeDraftAtts(){const ids=draftNewAtts;draftNewAtts=[];
   const ref=new Set();fiches.concat(protocols).forEach(x=>(x.docs||[]).forEach(a=>ref.add(a.id)));
   for(const id of ids){if(!ref.has(id)){try{await IDB.delAtt(id);}catch(e){}}}}
 function targetSelect(blocks,selfId,value){const opts=blocks.filter(b=>b.id!==selfId).map(b=>`<option value="${esc(b.id)}" ${b.id===value?'selected':''}>${esc(String(b.title||'').trim()||('Bloc sans titre ('+(blocks.indexOf(b)+1)+')'))}</option>`).join('');return `<select data-target aria-label="Bloc suivant"><option value="" ${!value?'selected':''}>— Fin / aucun —</option>${opts}</select>`;}
-function imageEditor(b){return `<div class="sub">Image du bloc (option)</div><div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
+function imageEditor(b){return `<div class="imgrow">${b.image?`<img src="${b.image}" alt=""><button class="btn sm danger" data-bimgdel>Retirer</button>`:`<button class="btn sm" data-bimg>+ Image / capture</button>`}</div>`;}
 /* ═══ MK5-b (v4.64.0) — RÉORDONNER PAR « PRENDRE / POSER », DEUX TAPS, ZÉRO MAINTIEN ═══════════
    Un TAP sur la poignée ⠿ SOULÈVE l'objet et réécrit la page en CIBLES ; un TAP sur un
    interstice le pose. Pas de maintien, pas de glisser : c'est le point de défaillance du drag au
@@ -22950,8 +22958,8 @@ function edAdd(f,kind,pre){
   if(kind==='steps')f.blocks.push({id:uid('b'),kind:'do',title:'',steps:[''],image:null,next:null});
   else if(kind==='decision')f.blocks.push({id:uid('b'),kind:'decision',title:'',question:'',image:null,options:[{label:'Oui',target:''},{label:'Non',target:''}]});
   else if(kind==='stopwatch')f.timers.push({id:uid('t'),label:'',type:'stopwatch'});
-  else if(kind==='interval')f.timers.push({id:uid('t'),label:'',type:'interval',seconds:(pre&&pre.seconds>0&&pre.seconds<=86400)?pre.seconds:120,autoloop:false});   // A379 : pas de reprise seule par défaut
-  else if(kind==='counter')f.counters.push({id:uid('n'),label:'',step:1,start:0});
+  else if(kind==='interval')f.timers.push(newTimerObj(pre&&pre.seconds));
+  else if(kind==='counter')f.counters.push(newCounterObj());
   else if(kind==='cx')(f.excursions=f.excursions||[]).push({label:'',target:''});
   else if(ED_ADD_LIST[kind]){const key=ED_ADD_LIST[kind];edPut(f,key,edList(f,key).concat(''));}
   edAddHandoff();renderEditor();
@@ -23170,7 +23178,7 @@ function jalonEditor(b){
     const cnSel=j.at==='count'?`<select data-jlcn="${i}" aria-label="Compteur mesuré par le jalon">${cns.map(c=>`<option value="${esc(c.id)}"${c.id===j.counter?' selected':''}>${esc(c.label||'Compteur')}</option>`).join('')}</select>`:'';
     const goSel=exs.length?`<select data-jlgo="${i}" aria-label="Renvoi du jalon vers une complication (facultatif)"><option value="">sans renvoi</option>${exs.map(c=>`<option value="${esc(c.target)}"${c.target===j.go?' selected':''}>⚡ ${esc(c.label||'Complication')}</option>`).join('')}</select>`:'';
     return `<div class="jl-edit"><div class="jl-e1"><select data-jlat="${i}" aria-label="Condition du jalon"><option value="pass"${j.at!=='count'?' selected':''}>au nᵉ passage</option><option value="count"${j.at==='count'?' selected':''}${cns.length?'':' disabled'}>quand un compteur atteint n</option></select><input type="number" data-jln="${i}" value="${j.n}" min="1" max="99" inputmode="numeric" aria-label="Seuil n du jalon">${cnSel}<button type="button" class="tk-del" data-jldel="${i}" aria-label="Supprimer ce jalon">×</button></div><input type="text" data-jltx="${i}" value="${esc(j.text)}" maxlength="140" placeholder="ex. 3 CEE sans RACS — envisager une FV réfractaire" aria-label="Texte du jalon (mis en avant au seuil, registre ambre)">${goSel}</div>`;}).join('');
-  return `${js.length?`<div class="sub">Jalons de boucle — mis en avant quand le compte y est</div>${rows}`:''}${js.length<3?`<button class="add-line" data-jladd title="Un rappel qui se met en avant au nᵉ passage du bloc, ou quand un compteur atteint un seuil (ex. 3 CEE → envisager une FV réfractaire)">+ Jalon de boucle (au nᵉ passage, à n chocs…)</button>`:''}`;}
+  return `${rows}${js.length<3?`<button class="add-line" data-jladd title="Un rappel qui se met en avant au nᵉ passage du bloc, ou quand un compteur atteint un seuil (ex. 3 CEE → envisager une FV réfractaire)">+ Jalon (au nᵉ passage, à n chocs…)</button>`:''}`;}
 /* A377 — « ce que fait la coche » (ligne) et « minuteur du bloc ». Rien si la fiche n'a ni minuteur
    ni compteur (aucun contrôle mort) ; migrate rejette ce qui pend. */
 const tmOptLbl=t=>'⏱ '+esc(tmName(t))+(t.type==='interval'?' · '+fmtMs((+t.seconds||0)*1000):'');
@@ -23179,36 +23187,112 @@ function edLinkSel(b,i){const f=state.draft||{};
   if(!ts.length&&!cs.length)return '';
   const it=bItems(b)[i]||{},cur=it.starts?'t:'+it.starts:(it.counts?'n:'+it.counts:'');
   const opt=(v,l)=>`<option value="${esc(v)}"${cur===v?' selected':''}>${l}</option>`;
-  return `<select class="li-lk${cur?' on':''}" data-lk="${i}" aria-label="Ce que fait la coche de l’étape ${i+1}" title="La coche peut lancer un minuteur ou compter — à réserver aux gestes essentiels"><option value="">Coche : rien d’autre</option>`
+  return `<select class="sst-sel${cur?' on':''}" data-lk="${i}" aria-label="Ce que fait la coche" title="La coche peut lancer un minuteur ou compter — à réserver aux gestes essentiels"><option value="">Rien d’autre</option>`
     +(ts.length?`<optgroup label="La coche lance">${ts.map(t=>opt('t:'+t.id,tmOptLbl(t))).join('')}</optgroup>`:'')
     +(cs.length?`<optgroup label="La coche compte">${cs.map(c=>opt('n:'+c.id,'＋'+Math.max(1,+c.step||1)+' '+esc(tmLabelParts(c.label).name||'Compteur'))).join('')}</optgroup>`:'')
     +`</select>`;}
 /* A382 — le moment : « commence » (1ᵉʳ passage | compteur ≥ n) et « puis » ; « à l'échéance » suit le
    minuteur que relance la coche : sans lui, l'option reste visible, grisée, et dit pourquoi. */
-function edMomSel(b,i){const f=state.draft||{},it=bItems(b)[i]||{},cs=(f.counters||[]).filter(c=>c&&c.id),fr=it.from,r=it.repeat||'';
-  const o=(v,l,on,dis)=>`<option value="${esc(v)}"${on?' selected':''}${dis?' disabled':''}>${l}</option>`;
-  return `<select class="li-lk${fr?' on':''}" data-momfr="${i}" aria-label="Quand l’étape ${i+1} commence">${o('','Dès le 1ᵉʳ passage',!fr)}`
-    +(cs.length?cs.map(c=>o(c.id,'À partir de : '+esc(tmLabelParts(c.label).name||'Compteur'),fr&&fr.counter===c.id)).join(''):o('x','À partir d’un compte — aucun compteur',false,true))+`</select>`
-    +(fr?edMomN(i,fr.n):'')
-    +`<select class="li-lk${r?' on':''}" data-momrp="${i}" aria-label="Puis l’étape ${i+1} revient">${o('','Puis : à chaque passage',!r)}${edMomDue(f,it)}${o('once','Puis : une seule fois',r==='once')}${o('need','Puis : au besoin',r==='need')}</select>`;}
-const edMomN=(i,n)=>`<input type="number" class="li-lkn" data-momn="${i}" value="${n}" min="1" max="99" inputmode="numeric" aria-label="Seuil du compteur">`;
-function edMomDue(f,it){const tid=momTid(f,it);
-  return `<option value="due"${it.repeat==='due'?' selected':''}${tid||it.repeat==='due'?'':' disabled'}>Puis : à l’échéance${tid?'':' — aucun minuteur lié'}</option>`;}
+function edMomFr(b,i){const f=state.draft||{},it=bItems(b)[i]||{},cs=(f.counters||[]).filter(c=>c&&c.id),fr=it.from;
+  return `<select class="sst-sel${fr?' on':''}" id="sstFr" data-momfr="${i}">${momOpt('','Dès le 1ᵉʳ passage',!fr)}`
+    +(cs.length?cs.map(c=>momOpt(c.id,'À partir de : '+esc(tmLabelParts(c.label).name||'Compteur'),fr&&fr.counter===c.id)).join(''):momOpt('x','À partir d’un compte — aucun compteur',false,true))+`</select>`
+    +(fr?edMomN(i,fr.n):'');}
+function edMomRp(b,i){const f=state.draft||{},it=bItems(b)[i]||{},r=it.repeat||'';
+  return `<select class="sst-sel${r?' on':''}" id="sstRp" data-momrp="${i}">${momOpt('','À chaque passage',!r)}${edMomDue(f,it)}${momOpt('once','Une seule fois',r==='once')}${momOpt('need','Au besoin',r==='need')}</select>`;}
+const momOpt=(v,l,on,dis)=>`<option value="${esc(v)}"${on?' selected':''}${dis?' disabled':''}>${l}</option>`;
+const edMomN=(i,n)=>`<input type="number" class="sst-n" data-momn="${i}" value="${n}" min="1" max="99" inputmode="numeric" aria-label="Seuil du compteur">`;
+function edMomDue(f,it){const tid=momTid(f,it),t=tid&&(f.timers||[]).find(x=>x&&x.id===tid);
+  return momOpt('due','À l’échéance'+(t?' de « '+esc(tmName(t))+' »':' — aucun minuteur lié'),it.repeat==='due',!tid&&it.repeat!=='due');}
 // La règle au repos ; « à l'échéance » sans minuteur est signalée (le rendu la lit « à chaque passage »).
-const edMomRule=(f,it)=>`<span class="mo-ed">${it&&it.repeat==='due'&&!momTid(f,it)?'<span class="mo-rule mo-warn">△ À l’échéance, mais la coche ne relance aucun minuteur — lue « à chaque passage »</span>':momRuleHtml(f,it)}</span>`;
-// Repeint la règle au repos et, si la coche a changé, l'option « à l'échéance » (sans re-rendu : le focus reste).
-function edMomPaint(li,it,i){if(!li)return;const f=state.draft||{},r=li.querySelector('.mo-ed');if(r)r.outerHTML=edMomRule(f,it);
-  const d=i!=null&&li.querySelector('[data-momrp] option[value="due"]');if(d)d.outerHTML=edMomDue(f,it);}
+const edMomRule=(f,it)=>{const r=it&&it.repeat==='due'&&!momTid(f,it)?'<span class="mo-rule mo-warn">△ À l’échéance, mais la coche ne relance aucun minuteur — lue « à chaque passage »</span>':momRuleHtml(f,it);
+  return r?`<span class="mo-ed">${r}</span>`:'';};
 function edBlkTimerHtml(b){const ts=((state.draft||{}).timers||[]).filter(t=>t&&t.id);if(!ts.length)return '';
-  return `<div class="sub">Minuteur du bloc</div><select class="blk-tm${b.timer?' on':''}" data-btm aria-label="Minuteur lancé à chaque entrée dans le bloc"><option value="">Aucun</option>`
+  return `<select class="blk-tm${b.timer?' on':''}" data-btm aria-label="Minuteur lancé à chaque entrée dans le bloc"><option value="">Aucun</option>`
     +ts.map(t=>`<option value="${esc(t.id)}"${b.timer===t.id?' selected':''}>${tmOptLbl(t)}</option>`).join('')
     +`</select><p class="blk-tm-h">Lancé à chaque entrée dans le bloc ; au bloc de départ, avec la session. Arrêté quand le parcours quitte la boucle. À l’échéance, rien n’est choisi à votre place.</p>`;}
-/* Chapeau commun des DEUX gabarits de bloc (badge, titre, phase, poignée, « Bloc de départ ») —
-   deux branches d'une même fonction qui recopiaient ce préfixe à l'identique. */
-function blkTopHtml(b,blocks,badge,ph,al){
-  return `<div class="blk-top">${badge}<input type="text" data-bf="title" value="${esc(b.title)}" placeholder="${ph}" aria-label="${al}">${phaseFieldHtml(b)}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div><button class="startbtn ${blocks._start===b.id?'on':''}" data-start>${blocks._start===b.id?'✓ ':''}Bloc de départ</button>`;}
-function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,blocks,'<span class="blk-n dec" aria-hidden="true">◆</span>','Titre (ex. Réévaluation)','Titre de la décision')}<div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${edBlkTimerHtml(b)}${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
-  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,blocks,`<span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span>`,'Titre (ex. Mesures immédiates)','Titre du bloc')}<div class="sub">Étapes (cochables en mode crise)</div><details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. <b>Réponse attendue</b> : « challenge :: réponse » (ex. « Adrénaline IM :: 0,01 mg/kg — max 0,5 mg ») — la réponse devient la pilule à confirmer en lecture (challenge-response).</details>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',14):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span><span class="li-arrow" aria-hidden="true">→</span><input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)"><span class="li-tools"><button class="mini crit-tgl${stepIsCrit(s)?' on':(stepIsVigil(s)?' vig':'')}" data-crit="${i}" title="${stepIsCrit(s)?'Étape CRITIQUE (rouge : ce qui tue si oublié) — toucher : vigilance (ambre)':(stepIsVigil(s)?'Étape VIGILANCE (ambre : risque d’erreur — dose, voie, seuil) — toucher : étape normale':'Étape normale — toucher : critique (rouge : ce qui tue si oublié)')}">${stepIsVigil(s)?'△':uiIcon('warn',14)}<span class="mini-w">${stepIsCrit(s)?'vital':(stepIsVigil(s)?'vérifier':'registre')}</span></button><button class="mini mem-tgl${(bItems(b)[i]||{}).memory?' on':''}" data-mem="${i}" aria-pressed="${(bItems(b)[i]||{}).memory?'true':'false'}" title="${(bItems(b)[i]||{}).memory?'Memory item — apparaît AUSSI dans « Ne pas oublier » ; toucher : étape ordinaire':'Étape ordinaire — toucher : memory item (elle rejoint « Ne pas oublier »)'}">★<span class="mini-w">mémoire</span></button><button class="mini x2-tgl${(bItems(b)[i]||{}).dual?' on':''}" data-dual="${i}" aria-pressed="${(bItems(b)[i]||{}).dual?'true':'false'}" title="${(bItems(b)[i]||{}).dual?'Confirmé par les DEUX — toucher : confirmation simple':'Confirmation simple — toucher : à confirmer par les deux (AC 120-71B §5.2.2.5)'}">×2<span class="mini-w">double</span></button>${edLinkSel(b,i)}${edMomSel(b,i)}<span class="li-sp"></span><button class="mini del" data-rmstep="${i}" aria-label="Supprimer l'étape">×</button></span>${edMomRule(state.draft||{},bItems(b)[i])}${wtStaticHtml(state.draft||{},bItems(b)[i],null,'wt wt-flat wt-ed')}${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${b.next?`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="Libellé du bouton Continuer (ex. réévaluation à 5 min)" aria-label="Libellé du bouton Continuer" style="margin-top:6px">`:''}${edBlkTimerHtml(b)}${jalonEditor(b)}${imageEditor(b)}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm danger" data-bdel style="margin-left:auto">Supprimer le bloc</button></div></div>`;}
+/* ══ A383 — ÉCRIRE D'ABORD, RÉGLER ENSUITE, JAMAIS À PLUS D'UN TOUCHER ═══════════════════════════
+   Toucher le texte d'une étape n'ouvre rien. Un bouton au bout de la ligne ouvre UNE fenêtre à trois
+   sections nommées (importance · ce que fait la coche · moment) ; ce qui est réglé se lit au repos sous
+   l'étape. Ce qui ne peut servir à rien n'est pas montré : moment, minuteur du bloc et jalons
+   seulement si le bloc se répète (`blkInLoop`) — ou s'ils sont déjà posés. */
+const critGuideHtml=()=>`<details class="crit-guide"${(()=>{try{return localStorage.getItem('ac-cg-open')?' open':'';}catch(e){return '';}})()}><summary>${uiIcon('warn',11)} Rouge, △ ambre, réponse attendue — règles d'usage</summary><b class="cg-r">${uiIcon('warn',11)} Rouge</b> : ce qui tue si on l'oublie (memory item, geste vital). <b class="cg-a">△ Ambre</b> : là où l'on risque de se tromper (dose/dilution à vérifier avant injection, contre-indication à écarter, confusion voie/site/produit, seuil à contrôler avant de poursuivre). Les deux → rouge. « ! » ou « ? » en tête d'étape pose le registre. <b>Réponse attendue</b> : sous l'étape (ex. « Adrénaline IM » → « 0,01 mg/kg — max 0,5 mg ») — elle devient la pilule à confirmer en lecture (challenge-response).</details>`;
+const stepSetOn=(s,it)=>stepIsCrit(s)||stepIsVigil(s)||!!(it&&(it.memory||it.dual||it.starts||it.counts||it.from||it.repeat));
+const stepSetBtn=(b,i,s)=>`<button type="button" class="mini li-set${stepSetOn(s,bItems(b)[i])?' on':''}" data-stepset="${i}" aria-haspopup="dialog" aria-label="Réglages de l’étape ${i+1}" title="Importance, ce que fait la coche, moment">${uiIcon('tune',18)}</button>`;
+function edStepSum(f,it){const h=(it&&it.memory?'<span class="li-chip mem">★ Mémoire</span>':'')+(it&&it.dual?'<span class="li-chip">×2 Double</span>':'')
+    +wtStaticHtml(f,it,null,'wt wt-flat wt-ed')+edMomRule(f,it);
+  return h?`<span class="li-sum">${h}</span>`:'';}
+const BLK_DEL='<div class="blk-foot"><button class="btn sm danger" data-bdel>Supprimer le bloc</button></div>';
+// « Options du bloc » : la carte dépliable de l'app, ouverte d'office quand une option est posée (le départ seul ne compte pas).
+function blkOptsHtml(b,blocks){const f=state.draft||{},loop=blkInLoop(f,b.id),dep=blocks._start===b.id,ph=String(b.phase||'').trim(),nj=(b.milestones||[]).length;
+  const nl=b.kind!=='decision'&&b.next,sum=[dep&&'Départ',ph,nl&&String(b.nextLbl||'').trim()&&'« Continuer » renommé',b.timer&&'Minuteur',nj&&nj+' jalon'+(nj>1?'s':''),b.image&&'Image'].filter(Boolean);
+  const o=state.edBlkOpt||{},open=b.id in o?o[b.id]:sum.length>(dep?1:0);
+  const row=(l,sub,ctl,col)=>`<div class="bo-row${col?' col':''}"><span class="bo-l">${l}${sub?`<span class="bo-s">${sub}</span>`:''}</span>${ctl}</div>`,rep='le bloc se répète';
+  const tm=(loop||b.timer)&&edBlkTimerHtml(b);
+  return foldCardHtml(b.id,uiIcon('tune',16),'Options du bloc',sum.join(' · ')||'Aucune',open,
+    row('Bloc de départ',dep?'le parcours commence ici':'',dep?'<span class="bo-v">✓ Oui</span>':'<button type="button" class="linkbtn" data-start>Commencer ici</button>')
+    +row('Phase',ph?'':'facultative, héritée du bloc précédent',phaseFieldHtml(b))
+    +(nl?row('Libellé de « Continuer »','',`<input type="text" data-bnextlbl value="${esc(b.nextLbl||'')}" maxlength="120" placeholder="ex. réévaluation à 5 min" aria-label="Libellé du bouton Continuer">`,true):'')
+    +(tm?row('Minuteur du bloc',rep,tm,true):'')
+    +(loop||nj?row('Jalons de boucle',rep,jalonEditor(b),true):'')
+    +row('Image','',imageEditor(b),true),{cls:'bo-card',attr:'data-bopt'});}
+// Objets neufs : une seule recette pour la porte « ＋ » et pour la fenêtre de l'étape.
+const newTimerObj=(sec,lbl)=>({id:uid('t'),label:lbl||'',type:'interval',seconds:sec>0&&sec<=86400?sec:120,autoloop:false});   // A379 : pas de reprise seule par défaut
+const newCounterObj=lbl=>({id:uid('n'),label:lbl||'',step:1,start:0});
+let _sst=null;   // {bid,i} : l'étape que la fenêtre règle
+function stepSetCtx(){const f=state.draft,b=_sst&&f&&(f.blocks||[]).find(x=>x&&x.id===_sst.bid),it=b&&bItems(b)[_sst.i];return it?{f,b,i:_sst.i,it}:null;}
+function stepSetHtml(f,b,i){const it=bItems(b)[i]||{},s=String(stepsOf(b)[i]||''),reg=stepIsCrit(s)?2:(stepIsVigil(s)?1:0),loop=blkInLoop(f,b.id);
+  const hasTC=(f.timers||[]).some(t=>t&&t.id)||(f.counters||[]).some(c=>c&&c.id);
+  const tog=(k,l,sub,on)=>`<div class="set-row"><span class="set-l" id="sst-${k}">${l}<span class="sst-sub">${sub}</span></span><button type="button" class="ss-tog${on?' on':''}" data-sst="${k}" role="switch" aria-checked="${on}" aria-labelledby="sst-${k}"><span class="ss-dot" aria-hidden="true"></span>${on?'Oui':'Non'}</button></div>`;
+  return `<p class="sst-step">${esc(String(it.do||'').trim()||'Étape '+(i+1))}${String(it.expect||'').trim()?`<span class="sst-sub">${esc(it.expect)}</span>`:''}</p>`
+    +`<h4 class="sst-h" id="sstImp">Importance</h4><div class="seg" role="radiogroup" aria-labelledby="sstImp" style="--seg-n:3;--seg-i:${reg}"><span class="seg-pill" aria-hidden="true"></span>`
+    +['Normale','△ Vigilance',uiIcon('warn',14)+' Critique'].map((l,k)=>`<button type="button" class="seg-btn${k===reg?' on':''}" role="radio" aria-checked="${k===reg}" data-ssreg="${k}">${l}</button>`).join('')+`</div>`
+    +tog('mem','★ Rappel en mémoire','aussi dans « Ne pas oublier »',!!it.memory)+tog('dual','×2 Confirmée par les deux','double contrôle',!!it.dual)
+    +`<h4 class="sst-h">Ce que fait la coche</h4>`
+    +(hasTC?edLinkSel(b,i):`<p class="sst-note">La fiche n’a ni minuteur ni compteur.</p><div class="sst-mk"><button type="button" class="linkbtn" data-sstmk="t">＋ Créer un minuteur</button><button type="button" class="linkbtn" data-sstmk="n">＋ Créer un compteur</button></div>`)
+    +(loop||it.from||it.repeat?`<h4 class="sst-h">Moment${loop?' <span class="sst-sub">· le bloc se répète</span>':''}</h4>`
+      +`<div class="sst-f"><label for="sstFr">Commence</label><div class="sst-in">${edMomFr(b,i)}</div></div>`
+      +`<div class="sst-f"><label for="sstRp">Puis revient</label>${edMomRp(b,i)}</div>${edMomRule(f,it)}`
+      :`<p class="sst-note">Le moment d’une étape — à partir d’un compte, à une échéance, une seule fois — se règle dans un bloc qui se répète.</p>`)
+    +`<div class="sst-foot"><button type="button" class="btn sm danger" data-rmstep>Supprimer l’étape</button></div>`;}
+const stepSetEl=()=>document.getElementById('stepSetModal');
+const stepRowSel=(bid,i)=>'.blk[data-bid="'+CSS.escape(bid)+'"] .li[data-si="'+i+'"]';
+function stepSetPaint(focus){const c=stepSetCtx();if(!c){stepSetClose();return;}
+  const bd=document.getElementById('stepSetBody');bd.innerHTML=stepSetHtml(c.f,c.b,c.i);
+  if(focus){const e=bd.querySelector(focus);if(e)e.focus();}}
+function stepSetOpen(bid,i){_sst={bid,i};stepSetPaint();stepSetEl().classList.add('on');}
+// Le bouton d'origine a été remplacé par le re-rendu : le focus revient à son successeur.
+function stepSetClose(){const k=_sst;_sst=null;
+  const nb=k&&main.querySelector(stepRowSel(k.bid,k.i)+' .li-set');if(nb)_modalReturnFocus=nb;
+  stepSetEl().classList.remove('on');}
+// Un réglage : le brouillon change, l'éditeur se re-rend ancré sur la rangée, la fenêtre se repeint (focus gardé).
+function stepSetApply(focus,lk){const k=_sst;keepAnchor(stepRowSel(k.bid,k.i),renderEditor);
+  if(lk){const w=main.querySelector(stepRowSel(k.bid,k.i)+' .wt-ed');if(w)w.classList.add('wt-new');}   // A378 : la légende naît
+  stepSetPaint(focus);}
+{const m=stepSetEl(),bd=document.getElementById('stepSetBody');
+ if(m&&bd){bindModalDismiss(m,stepSetClose);
+  bd.addEventListener('click',e=>{const t=e.target.closest('button'),c=t&&stepSetCtx();if(!c)return;const {f,b,i,it}=c,d=t.dataset;
+    if(d.ssreg!=null){const x=stepText(String(stepsOf(b)[i]||''));setStepStr(b,i,[x,'△ '+x,'⚠ '+x][+d.ssreg]);stepSetApply('[data-ssreg="'+d.ssreg+'"]');}
+    else if(d.sst){const k=d.sst==='mem'?'memory':'dual';it[k]=!it[k];stepSetApply('[data-sst="'+d.sst+'"]');}
+    else if(t.dataset.sstmk){const l=stepText(String(stepsOf(b)[i]||'')).trim().slice(0,40);
+      if(t.dataset.sstmk==='n'){const o=newCounterObj(l);(f.counters=f.counters||[]).push(o);it.counts=o.id;}
+      else{const o=newTimerObj(120,l);(f.timers=f.timers||[]).push(o);it.starts=o.id;}
+      stepSetApply('[data-lk]',true);}
+    else if(t.hasAttribute('data-rmstep')){bItemDel(b,i);if(!bItems(b).length)bItemAdd(b,0,newStepItem(''));
+      _sst=null;modalHandoffClose(stepSetEl());keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
+      const n=main.querySelector(stepRowSel(b.id,Math.min(i,bItems(b).length-1))+' input[data-sf]');if(n)n.focus({preventScroll:true});}});
+  bd.addEventListener('change',e=>{const t=e.target,c=stepSetCtx();if(!c)return;const {it}=c,v=String(t.value||'');
+    if(t.matches('[data-lk]')){delete it.starts;delete it.counts;if(v.slice(0,2)==='t:')it.starts=v.slice(2);else if(v.slice(0,2)==='n:')it.counts=v.slice(2);stepSetApply('[data-lk]',true);}
+    else if(t.matches('[data-momfr]')){if(v)it.from={counter:v,n:(it.from&&it.from.n)||3};else delete it.from;stepSetApply('[data-momfr]');}
+    else if(t.matches('[data-momrp]')){if(v)it.repeat=v;else delete it.repeat;stepSetApply('[data-momrp]');}});
+  // Le seuil se tape : l'éditeur suit, la fenêtre n'est pas repeinte (le champ garde le curseur).
+  bd.addEventListener('input',e=>{const t=e.target,c=stepSetCtx(),n=Math.round(+t.value);
+    if(c&&t.matches('[data-momn]')&&c.it.from&&n>=1){c.it.from.n=Math.min(99,n);keepAnchor(stepRowSel(_sst.bid,_sst.i),renderEditor);}});}}
+/* Chapeau commun des DEUX gabarits de bloc (badge, titre, « se répète », poignée). A383 : phase et
+   « Bloc de départ » vivent dans « Options du bloc ». */
+function blkTopHtml(b,badge,ph,al){
+  return `<div class="blk-top">${badge}<input type="text" data-bf="title" value="${esc(b.title)}" placeholder="${ph}" aria-label="${al}">${blkInLoop(state.draft,b.id)?'<span class="blk-loop" title="Le parcours revient à ce bloc">↺ Se répète</span>':''}<button class="mini grab" draggable="true" data-grab="b:${esc(b.id)}" aria-label="Déplacer ce bloc" title="Déplacer le bloc — touchez, puis touchez la destination">⠿</button></div>`;}
+function blockEditor(b,blocks){if(b.kind==='decision'){return `<div class="blk blk-dec${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,'<span class="blk-n dec" aria-hidden="true">◆</span>','Titre (ex. Réévaluation)','Titre de la décision')}<div class="sub">Question</div><input type="text" data-bf="question" value="${esc(b.question)}" placeholder="ex. Réponse à l'adrénaline ?" aria-label="Question posée" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)"><div class="sub">Réponses → bloc cible</div>${(b.options.length?b.options:[{label:'',target:''}]).map((o,i)=>`<div class="optedit" data-oi="${i}"><input type="text" data-of="label" value="${esc(o.label)}" placeholder="ex. Oui" aria-label="Libellé de la réponse ${i+1}">${targetSelect(blocks,b.id,o.target)}<button class="mini del" data-optdel="${i}" aria-label="Supprimer la réponse">×</button></div>`).join('')}<button class="add-line" data-addopt>+ Ajouter une réponse</button>${blkOptsHtml(b,blocks)}${BLK_DEL}</div>`;}
+  return `<div class="blk${edGrabCls('b',b.id)}" data-bid="${esc(b.id)}">${blkTopHtml(b,`<span class="blk-n" aria-hidden="true">${(blocks||[]).indexOf(b)+1}</span>`,'Titre (ex. Mesures immédiates)','Titre du bloc')}<div class="sub">Étapes (cochables en mode crise)</div>${(stepsOf(b).length?stepsOf(b):['']).map((s,i)=>`${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+i,i===0?'Poser en tête':'Poser ici',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<div class="li${stepIsCrit(s)?' li-crit':(stepIsVigil(s)?' li-vigil':'')}${((bItems(b)[i]||{}).expect||'').trim()?' has-exp':''}${edGrabCls('s',b.id,i)}" data-si="${i}"><button class="mini grab li-grab" draggable="true" data-grab="s:${i}" aria-label="Déplacer l'étape ${i+1}" title="Déplacer — touchez, puis touchez la destination">⠿</button><span class="li-fw"><span class="li-mk" aria-hidden="true">${stepIsCrit(s)?uiIcon('warn',14):(stepIsVigil(s)?'△':'')}</span><input type="text" data-sf value="${esc((bItems(b)[i]||{}).do||'')}" placeholder="Nouvelle étape…" aria-label="Étape ${i+1} — ce qui se prononce"></span>${stepSetBtn(b,i,s)}<input type="text" class="li-exp" data-sx="${i}" value="${esc((bItems(b)[i]||{}).expect||'')}" placeholder="réponse attendue (facultatif)" aria-label="Étape ${i+1} — réponse attendue (facultatif)">${edStepSum(state.draft||{},bItems(b)[i])}${(()=>{const nt=stepNote(s);return nt?`<span class="li-note" role="status">△ <b>Relecture</b> — ${esc(nt)}</span>`:'';})()}</div>`).join('')}${(state.edGrab&&state.edGrab.kind==='s')?edDrop('b:'+b.id+':'+(stepsOf(b).length||0),'Poser en fin',edGrabIsCrit()&&state.edGrab.bid!==b.id):''}<p class="nf-guard" data-stepguard role="status">${stepGuardTxt(stepsOf(b),'bloc')}</p><button class="add-line" data-addstep>+ Ajouter une étape</button><div class="sub">Étape suivante</div>${targetSelect(blocks,b.id,b.next)}${blkOptsHtml(b,blocks)}${BLK_DEL}</div>`;}
 /* Éditeur des COMPLICATIONS (v4.26.0) : libellé de l'ÉVÉNEMENT + cible. La cible est soit un
    bloc de CETTE fiche (le sélecteur liste les blocs en premier), soit une AUTRE aide ou un
    protocole (demande utilisateur : « une complication peut ouvrir une nouvelle aide cognitive ») —
@@ -23409,7 +23493,7 @@ function renderEditor(){_renderN++;
     </fieldset>
     <fieldset class="field"><label>Prise en charge <span class="hint">listes d'étapes + décisions conditionnelles</span></label>${wideEdit?'':(()=>{const n=(f.blocks||[]).length;if(!n)return '';
       const ouv=(()=>{try{return !!localStorage.getItem('ac-flowprev-open');}catch(e){return false;}})();
-      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
+      return `<div class="flow-prev${ouv?' on':''}"><button type="button" class="fp-tgl" id="fpTgl" aria-expanded="${ouv?'true':'false'}"><span class="flow-prev-h">Algorithme — aperçu automatique</span><span class="fp-n">${n} bloc${n>1?'s':''}</span>${chevHtml(ouv,'fp-chev')}</button><div class="fp-box">${flowBlock(f)}</div></div>`;})()}${critGuideHtml()}${f.blocks.map((b,bi)=>((state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+bi,bi===0?'Poser avant le bloc 1':'Poser ici'):'')+blockEditor(b,blocks)).join('')}${(state.edGrab&&state.edGrab.kind==='b')?edDrop('B:'+f.blocks.length,'Poser en fin de fiche'):''}</fieldset>
     ${''/* UNE SECTION VIDE N'ENSEIGNE PLUS RIEN (signalé à l'usage : « lorsque la liste minuteurs
     & compteurs, et complications est vide, ça fait bizarre »). Depuis la porte unique « ＋ » de
     la v4.65.0, c'est ELLE qui présente les types disponibles, avec leur glyphe et leur phrase :
@@ -23601,9 +23685,7 @@ function bindEditorEvents(f){
         const li=e.target.closest('.li');
         if(li){li.classList.toggle('li-crit',sc.mark==='⚠ ');li.classList.toggle('li-vigil',sc.mark==='△ ');
           const bx=li.querySelector('.li-mk');if(bx)bx.innerHTML=sc.mark==='⚠ '?uiIcon('warn',14):'△';
-          const tg=li.querySelector('.crit-tgl');
-          if(tg){tg.classList.toggle('on',sc.mark==='⚠ ');tg.classList.toggle('vig',sc.mark==='△ ');
-            tg.innerHTML=sc.mark==='△ '?'△':uiIcon('warn',14);}}}
+          const sb=li.querySelector('.li-set');if(sb)sb.classList.add('on');}}
       setStepStr(b,i,pfx+e.target.value);scheduleFlowPreview(f);
       const g=card.querySelector('[data-stepguard]');if(g)g.textContent=stepGuardTxt(stepsOf(b),'bloc');
       revPanelRefresh(f);}));   // K2 : le bilan suit la frappe, sans re-rendre l'éditeur
@@ -23657,7 +23739,11 @@ function bindEditorEvents(f){
       keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"]',renderEditor);
       const ls=[...main.querySelectorAll('.blk[data-bid="'+CSS.escape(b.id)+'"] input[data-sf]')];
       if(ls.length)ls[ls.length-1].focus();};
-    card.querySelectorAll('[data-rmstep]').forEach(btn=>btn.onclick=()=>{bItemDel(b,+btn.dataset.rmstep);if(!bItems(b).length)bItemAdd(b,0,newStepItem(''));renderEditor();});
+    card.querySelectorAll('[data-stepset]').forEach(btn=>btn.onclick=()=>stepSetOpen(b.id,+btn.dataset.stepset));
+    // Options du bloc : bascule sur place (patron `data-sessfold`), mémorisée pour la session d'édition.
+    {const h=card.querySelector('[data-bopt]');if(h)h.onclick=()=>{const sec=h.closest('.fold-card'),body=sec.querySelector('.sf-body'),op=body.hidden;
+      body.hidden=!op;sec.classList.toggle('closed',!op);h.setAttribute('aria-expanded',op?'true':'false');
+      const ch=h.querySelector('.conf-chev');if(ch)ch.classList.toggle('open',op);(state.edBlkOpt=state.edBlkOpt||{})[b.id]=op;};}
     // Bascule du TYPE d'étape (SPEC §2.2) : cycle normale -> ⚠ critique (rouge) -> △ vigilance
     // (ambre) -> normale, par préfixe dans la chaîne (exports v3 inchangés).
     /* LE SECOND CHAMP ÉCRIT `expect` DIRECTEMENT (v5.0.0) — il n'y a plus de « :: » à composer.
@@ -23676,30 +23762,6 @@ function bindEditorEvents(f){
       it.expect=e.target.value;
       const li=e.target.closest('.li');if(li)li.classList.toggle('has-exp',!!String(e.target.value||'').trim());
       scheduleFlowPreview(f);}));
-    card.querySelectorAll('[data-mem]').forEach(btn=>btn.onclick=()=>{
-      const it=bItems(b)[+btn.dataset.mem];if(!it)return;it.memory=!it.memory;
-      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+btn.dataset.mem)+'"]',renderEditor);
-      const nl=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+btn.dataset.mem)+'"] input[data-sf]');
-      if(nl)nl.focus({preventScroll:true});});
-    card.querySelectorAll('[data-dual]').forEach(btn=>btn.onclick=()=>{
-      const it=bItems(b)[+btn.dataset.dual];if(!it)return;it.dual=!it.dual;
-      /* Le focus revient au champ : qualifier une étape est un geste qu'on ENCHAÎNE, et un
-         re-rendu remplace l'<input> (leçon v4.78.0). */
-      keepAnchor('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+btn.dataset.dual)+'"]',renderEditor);
-      const nl=main.querySelector('.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+(+btn.dataset.dual)+'"] input[data-sf]');
-      if(nl)nl.focus({preventScroll:true});});
-    card.querySelectorAll('[data-crit]').forEach(btn=>btn.onclick=()=>{const i=+btn.dataset.crit;const s=String(stepsOf(b)[i]||'');
-      setStepStr(b,i,stepIsCrit(s)?('△ '+stepText(s)):(stepIsVigil(s)?stepText(s):('⚠ '+stepText(s))));
-      /* ON REND LE FOCUS AU CHAMP (v4.78.0, signalé à l'usage : « appuyer sur le bouton
-         critique/vigilance referme le bandeau — on ne peut plus recliquer ni modifier le texte, il
-         faut de nouveau sélectionner »). La bascule re-rend l'éditeur, donc l'`<input>` est un
-         NOUVEAU nœud : le focus est perdu, `:focus-within` tombe, les outils disparaissent. Or
-         qualifier une étape est un geste qu'on enchaîne (⚠ puis △ pour comparer, ou ⚠ puis
-         corriger le mot) : la rangée doit rester en édition. `preventScroll` parce que la position
-         est déjà la bonne — c'est le geste de l'auteur, pas une navigation. */
-      const anc='.blk[data-bid="'+CSS.escape(b.id)+'"] .li[data-si="'+i+'"] input[data-sf]';
-      renderEditor();
-      const f2=main.querySelector(anc);if(f2)f2.focus({preventScroll:true});});
     /* PRENDRE : le tap sur ⠿ soulève l'objet et réécrit la page en cibles (un seul re-rendu). */
     /* PRENDRE — ET NE RIEN DÉPLACER SOUS LES YEUX. Signalé à l'usage : « il y a un problème de
        scroll lorsqu'on clique sur le bouton déplacer ». Mesuré : 326 px de saut. Deux causes
@@ -23759,24 +23821,7 @@ function bindEditorEvents(f){
     card.querySelectorAll('[data-jlgo]').forEach(s=>s.addEventListener('change',e=>{const j=(b.milestones||[])[+e.target.dataset.jlgo];if(j)j.go=e.target.value;}));
     card.querySelectorAll('[data-jln]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jln];if(!j)return;const n=Math.round(Number(e.target.value));if(n>=1)j.n=Math.min(99,n);}));
     card.querySelectorAll('[data-jltx]').forEach(inp=>inp.addEventListener('input',e=>{const j=(b.milestones||[])[+e.target.dataset.jltx];if(j)j.text=e.target.value;}));
-    // A377 : « t:id » lance, « n:id » compte — un seul lien par étape ; minuteur du bloc.
-    card.querySelectorAll('[data-lk]').forEach(s=>s.addEventListener('change',e=>{const it=bItems(b)[+e.target.dataset.lk];if(!it)return;
-      const v=String(e.target.value||'');delete it.starts;delete it.counts;
-      if(v.slice(0,2)==='t:')it.starts=v.slice(2);else if(v.slice(0,2)==='n:')it.counts=v.slice(2);
-      e.target.classList.toggle('on',!!v);
-      const li=e.target.closest('.li'),old=li&&li.querySelector('.wt-ed');if(old)old.remove();   // la légende suit le choix, sans re-rendu
-      if(li)(li.querySelector('.mo-ed')||e.target.closest('.li-tools')).insertAdjacentHTML('afterend',wtStaticHtml(state.draft||{},it,null,'wt wt-flat wt-ed wt-new'));
-      edMomPaint(li,it,+e.target.dataset.lk);}));
-    // A382 : le moment se règle sur place (les outils restent ouverts).
-    card.querySelectorAll('[data-momfr]').forEach(s=>s.addEventListener('change',e=>{const i=+e.target.dataset.momfr,it=bItems(b)[i];if(!it)return;
-      const v=e.target.value,n=e.target.parentNode.querySelector('[data-momn]');
-      if(v){it.from={counter:v,n:(it.from&&it.from.n)||3};if(!n)e.target.insertAdjacentHTML('afterend',edMomN(i,it.from.n));}else{delete it.from;if(n)n.remove();}
-      e.target.classList.toggle('on',!!v);edMomPaint(e.target.closest('.li'),it,i);}));
-    card.querySelectorAll('[data-momrp]').forEach(s=>s.addEventListener('change',e=>{const it=bItems(b)[+e.target.dataset.momrp];if(!it)return;
-      if(e.target.value)it.repeat=e.target.value;else delete it.repeat;
-      e.target.classList.toggle('on',!!e.target.value);edMomPaint(e.target.closest('.li'),it);}));
-    card.addEventListener('input',e=>{const t=e.target.closest('[data-momn]');if(!t)return;const it=bItems(b)[+t.dataset.momn],n=Math.round(+t.value);
-      if(it&&it.from&&n>=1){it.from.n=Math.min(99,n);edMomPaint(t.closest('.li'),it);}});
+    // A377 : minuteur du bloc (liens de coche et moment : fenêtre « Réglages de l'étape », A383).
     {const bt=card.querySelector('[data-btm]');if(bt)bt.addEventListener('change',e=>{if(e.target.value)b.timer=e.target.value;else delete b.timer;
       bt.classList.toggle('on',!!e.target.value);});}
     const bi=card.querySelector('[data-bimg]');if(bi)bi.onclick=()=>pickFile('image',edImgTaker(f,bid),false);

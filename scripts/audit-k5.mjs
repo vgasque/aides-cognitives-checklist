@@ -202,7 +202,8 @@ const g=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const cible=ins[ins.length-1]; cible.value=v; cible.dispatchEvent(new Event('input',{bubbles:true}));
     await w(700);}
   const base=_edUndo.length, nBase=nb(), pubBase=pub();
-  [...document.querySelectorAll('.blk [data-rmstep]')].pop().click(); await w(300);
+  [...document.querySelectorAll('.blk .li-set')].pop().click(); await w(250);
+  document.querySelector('#stepSetBody [data-rmstep]').click(); await w(300);
   etat.push({e:'suppression',n:nb(),pile:_edUndo.length,visible:!bouton().hidden,pub:pub()});
   const inp=document.querySelectorAll('.blk .li input[data-sf]')[0];
   const txt0=inp.value;
@@ -230,7 +231,8 @@ t('on redescend jusqu’au point de départ', E[4].pile===g.base, `${E[4].pile} 
 /* Cmd/Ctrl-Z NE VOLE JAMAIS LE UNDO NATIF D'UN CHAMP : dans un `input`, le raccourci appartient
    au navigateur. Le témoin mesure la PROPRIÉTÉ (l'anneau n'a pas bougé), pas l'intention. */
 const g2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  document.querySelector('.blk [data-rmstep]').click(); await w(250);
+  document.querySelector('.blk .li-set').click(); await w(250);
+  document.querySelector('#stepSetBody [data-rmstep]').click(); await w(250);
   const av=_edUndo.length;
   const inp=document.querySelector('.blk .li input[data-sf]'); inp.focus();
   inp.dispatchEvent(new KeyboardEvent('keydown',{key:'z',metaKey:true,bubbles:true,cancelable:true}));
@@ -246,7 +248,8 @@ t('Ctrl-Z hors champ annule bien', g2.horsChamp===g2.av-1, JSON.stringify(g2));
 /* Sortir de l'éditeur vide l'anneau : c'est un GESTE, pas un état du brouillon (même statut que
    `state.edGrab`). Le filet de plus longue portée reste le point de version de v4.72.0. */
 const g3=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
-  document.querySelector('.blk [data-rmstep]').click(); await w(250);
+  document.querySelector('.blk .li-set').click(); await w(250);
+  document.querySelector('#stepSetBody [data-rmstep]').click(); await w(250);
   const av=_edUndo.length;
   document.getElementById('hdrBack').click(); await w(800);
   return {av,apres:_edUndo.length,cache:document.getElementById('hdrUndo').hidden};});
@@ -535,31 +538,31 @@ t('… et rend la main au formulaire', R2.rendu.titre);
 t('abandonner ne DÉCALE rien (poignée)', Math.abs(R2.deriveRepose)<=2, `${R2.deriveRepose} px`);
 t('abandonner ne DÉCALE rien (Échap)', Math.abs(R2.deriveEchap)<=2, `${R2.deriveEchap} px`);
 
-console.log('=== v4.77.0 : les outils d’une étape agissent vraiment ===');
-/* DE VRAIS CLICS, PAS UN `.focus()` : `.li-tools` n'existe qu'en `:focus-within`, et un focus
-   PROGRAMMATIQUE ne le déclenche pas de façon fiable en headless (même leçon que l'anneau de focus
-   dans `audit-a11y`, qui a dû passer par de vraies touches Tab). Surtout, le défaut EST une
-   séquence de pointeur — pointerdown qui vole le focus, `display:none`, plus de `click`. Il faut
-   donc la rejouer telle quelle : Playwright émet pointerdown/mousedown/mouseup/click. */
+console.log('=== A383 : écrire n’ouvre rien, les réglages agissent vraiment ===');
+/* DE VRAIS CLICS (Playwright : pointerdown/mousedown/mouseup/click) — le vol de clic de la v4.77.0
+   est une séquence de pointeur. Écrire (toucher le texte) ne fait paraître AUCUN réglage ; le bouton
+   « Réglages » ouvre la fenêtre, dont le registre et la suppression agissent sur le brouillon. */
 {
   const CH='.blk:not(.blk-dec) .li input[data-sf]';
   const cle=await p.evaluate(()=>{const b=document.querySelector('.blk:not(.blk-dec)');return b?b.dataset.bid:null;});
   const etapes=async()=>p.evaluate(id=>bItems(state.draft.blocks.find(b=>b.id===id)||{}).map(v4ItemToStr),cle);
   await p.click(CH); await p.waitForTimeout(250);
-  const vus=await p.evaluate(()=>{const e=document.querySelector('.blk:not(.blk-dec) .li-tools');
-    return e?getComputedStyle(e).display:'absent';});
-  t('les outils apparaissent quand l’étape est en édition', vus!=='none'&&vus!=='absent', vus);
+  const vus=await p.evaluate(()=>{const li=document.querySelector('.blk:not(.blk-dec) .li');
+    return {reglages:li.querySelectorAll('select,.seg,.li-tools').length,fenetre:document.getElementById('stepSetModal').classList.contains('on'),
+      bouton:!!li.querySelector('.li-set')};});
+  t('écrire une étape n’ouvre aucun réglage', vus.reglages===0&&!vus.fenetre&&vus.bouton, JSON.stringify(vus));
   const av=await etapes();
-  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-tools .crit-tgl');
-  await p.waitForTimeout(400);
+  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-set'); await p.waitForTimeout(350);
+  await p.click('#stepSetBody [data-ssreg]:not(.on)'); await p.waitForTimeout(400);
   const ap=await etapes();
-  t('le bouton ⚠ change bien le registre', av[0]!==ap[0], `« ${av[0]} » → « ${ap[0]} »`);
-  await p.click(CH); await p.waitForTimeout(250);
+  t('le registre choisi dans la fenêtre change bien l’étape', av[0]!==ap[0], `« ${av[0]} » → « ${ap[0]} »`);
+  const r=await p.evaluate(()=>({ouverte:document.getElementById('stepSetModal').classList.contains('on'),
+    focus:!!(document.activeElement&&document.activeElement.matches('#stepSetBody [data-ssreg].on'))}));
+  t('… la fenêtre reste ouverte, le focus sur le cran choisi', r.ouverte&&r.focus, JSON.stringify(r));
   const n0=(await etapes()).length;
-  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-tools .del');
-  await p.waitForTimeout(450);
+  await p.click('#stepSetBody [data-rmstep]'); await p.waitForTimeout(450);
   const n1=(await etapes()).length;
-  t('le bouton ✕ supprime bien l’étape', n1===n0-1, `${n0} → ${n1}`);
+  t('« Supprimer l’étape » supprime bien l’étape', n1===n0-1, `${n0} → ${n1}`);
 }
 
 console.log('=== v4.77.0 : guide replié, porte remplie, ajouts amenés à l’écran ===');
@@ -688,21 +691,6 @@ const V2=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
 t('l’essai pose bien la hachure sur la barre', V2.enEssai);
 t('… et le retour en édition la RETIRE', !V2.apres&&!V2.bandeau, JSON.stringify(V2));
 
-console.log('=== v4.78.0 : la bascule ⚠ garde la rangée en édition ===');
-{
-  const CH='.blk:not(.blk-dec) .li input[data-sf]';
-  await p.click(CH); await p.waitForTimeout(250);
-  await p.click('.blk:not(.blk-dec) .li[data-si="0"] .li-tools .crit-tgl');
-  await p.waitForTimeout(450);
-  const r=await p.evaluate(()=>{const li=document.querySelector('.blk:not(.blk-dec) .li[data-si="0"]');
-    const inp=li?li.querySelector('input[data-sf]'):null;
-    return {focus:document.activeElement===inp,
-      outils:li?getComputedStyle(li.querySelector('.li-tools')).display:'absent'};});
-  t('après la bascule ⚠, le champ garde le focus', r.focus, JSON.stringify(r));
-  t('… donc les outils restent affichés', r.outils!=='none'&&r.outils!=='absent', r.outils);
-}
-
-
 console.log('=== v4.78.0 : chronomètre, champs numériques, cible de défilement ===');
 const W=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   if(state.previewFrom){document.getElementById('hdrBack').click();await w(800);}
@@ -778,7 +766,7 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const cs=e=>e?{c:getComputedStyle(e).color,bg:getComputedStyle(e).backgroundColor,
     cur:getComputedStyle(e).cursor,dis:!!e.disabled}:null;
   const lire=()=>{const b=document.querySelector('.blk:not(.blk-dec)');
-    return {stepDel:cs(b.querySelector('.li-tools .del')),
+    return {stepDel:cs(b.querySelector('[data-bdel]')),
       bold:cs(document.querySelector('.list-edit .bld')),
       poignee:cs(document.querySelector('.blk-top [data-grab]'))};};
   const inp=document.querySelector('.blk:not(.blk-dec) .li input[data-sf]');inp.focus();await w(200);
@@ -792,7 +780,7 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const apres=lire();
   return {avant,pendant,apres,attenduBg};});
 
-t('le ✕ d’une étape est ROUGE au repos (le contrôle rencontre son cas)',
+t('« Supprimer le bloc » est ROUGE au repos (le contrôle rencontre son cas)',
   G.avant.stepDel.c!==G.pendant.stepDel.c, `${G.avant.stepDel.c} → ${G.pendant.stepDel.c}`);
 t('pendant un déplacement, le ✕ et le B sont grisés',
   G.pendant.stepDel.bg===G.attenduBg&&G.pendant.bold.bg===G.attenduBg, JSON.stringify(G.pendant));
@@ -906,18 +894,18 @@ t('les deux champs de la rangée ont la même voix (corps ET police)',
   U.fsDo===U.fsEx&&U.famDo===U.famEx, `${U.fsDo}/${U.famDo} vs ${U.fsEx}/${U.famEx}`);
 t('une réponse attendue AJOUTÉE s’affiche hors focus', U.apresAjout===true, String(U.apresAjout));
 t('… et EFFACÉE, elle disparaît', U.apresEffacement===false, String(U.apresEffacement));
-/* ⚠ MESURÉ À 1280 px, ET C'EST LÀ QUE LE DÉFAUT VIT : à 390 le sélecteur retombait par hasard
-   sur la hauteur du champ voisin, si bien qu'un témoin étroit restait vert sur l'écart (39 px
-   contre 43, mesurés en large). Un contrôle qui ne rencontre pas son cas ne le couvre pas. */
+/* A383 : la phase a quitté l'en-tête du bloc pour « Options du bloc ». Elle y reste un SÉLECTEUR, à la
+   hauteur M de l'échelle des contrôles (A375) — mesuré à 1280 comme avant, carte ouverte par son vrai geste. */
 await p.setViewportSize({width:1280,height:900});
 const PH=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   await openEdit(fiches[0].id);await w(700);
-  const ph=document.querySelector('.blk-phase select'),ti=document.querySelector('.blk-top input[data-bf="title"]');
+  const h=document.querySelector('.blk [data-bopt]');if(h&&h.getAttribute('aria-expanded')!=='true'){h.click();await w(200);}
+  const ph=document.querySelector('.bo-row .blk-phase select');
   return {tag:ph?ph.tagName:'—',ph:ph?Math.round(ph.getBoundingClientRect().height):0,
-    ti:ti?Math.round(ti.getBoundingClientRect().height):0};});
+    horsTete:!document.querySelector('.blk-top .blk-phase')};});
 await p.setViewportSize({width:390,height:900});
-t('la phase est un SÉLECTEUR, à la boîte de son voisin',
-  PH.tag==='SELECT'&&Math.abs(PH.ph-PH.ti)<=1, `${PH.tag} ${PH.ph} px vs ${PH.ti} px`);
+t('la phase est un SÉLECTEUR des options du bloc, hauteur M (≥ 40 px)',
+  PH.tag==='SELECT'&&PH.ph>=40&&PH.horsTete, JSON.stringify(PH));
 t('le chapeau est UNE liste : la ligne héritée y est une rangée fermée',
   U.heritee===true&&U.ferme===true&&U.memeBoite===true,
   `héritée=${U.heritee} fermée=${U.ferme} même boîte=${U.memeBoite}`);
