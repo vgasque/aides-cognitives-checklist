@@ -64,6 +64,11 @@ const r=await p.evaluate(()=>{
        S'il tombait à l'import, une IA fidèle produirait un fichier mutilé en silence — le
        défaut de contrat exact de la v5.0.0, rejoué sur un champ neuf. */
     ditJalon:/"milestones"/.test(P)&&/n'invente jamais un/.test(P),
+    // A382 — le moment d'une étape : documenté, et un item "from"/"repeat" traverse migrate().
+    ditMoment:/"from"/.test(P)&&/"repeat"/.test(P)&&/MOMENT D'UNE ÉTAPE/.test(P),
+    mom:(()=>{const g=A.migrate({title:'T',start:'b1',timers:[{id:'t1',label:'Dose',type:'interval',seconds:240,autoloop:false}],counters:[{id:'n1',label:'Chocs',step:1}],
+      blocks:[{id:'b1',kind:'do',next:'b1',items:[{do:'Adrénaline',expect:'1 mg',starts:'t1',from:{counter:'n1',n:3},repeat:'due'},{do:'X',from:{counter:'zz',n:2},repeat:'bof'}]}]});
+      const [a,b]=g.items||[];return {a:a&&{fr:a.from,rp:a.repeat},b:b&&{fr:b.from||null,rp:b.repeat||null}};})(),
     jl:(()=>{const bj=(f.blocks||[]).find(b=>Array.isArray(b.milestones)&&b.milestones.length);
       if(!bj)return null;const j=bj.milestones[0];
       return {at:j.at,counter:j.counter,n:j.n,go:j.go,textOk:!!j.text};})(),
@@ -114,6 +119,9 @@ if(r.parse){
   t('le prompt DOCUMENTE les jalons de boucle ("milestones") et interdit d’inventer un seuil', r.ditJalon===true);
   t('le jalon du schéma traverse migrate() — compteur résolu, renvoi vers l’excursion',
     !!(r.jl&&r.jl.at==='count'&&r.jl.counter==='n1'&&r.jl.n===3&&r.jl.go==='cx1'&&r.jl.textOk), JSON.stringify(r.jl));
+  t('le prompt DOCUMENTE le moment d’une étape ("from" / "repeat")', r.ditMoment===true);
+  t('… qui traverse migrate() ; un compteur inconnu ou une valeur hors liste tombe',
+    !!(r.mom&&r.mom.a&&r.mom.a.fr&&r.mom.a.fr.counter==='n1'&&r.mom.a.fr.n===3&&r.mom.a.rp==='due'&&r.mom.b&&r.mom.b.fr===null&&r.mom.b.rp===null), JSON.stringify(r.mom));
   console.log('  · longueur du prompt : '+r.promptLen+' caractères');
 }
 console.log(`\n${ok}/${ok+ko} OK${ko?` — ${ko} ÉCHEC(S)`:''}`);

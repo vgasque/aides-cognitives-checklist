@@ -276,6 +276,13 @@ const SURFACES = [
         protocols:[{id:'a11yc',title:'Import — référence',status:'review',body:'Texte',sources:['Recos 2024']}]});
       readImportFile(new File([j],'a11y.json'));
       await new Promise(r=>setTimeout(r,600)); } },
+  /* A383 : la feuille « Réglages de l'étape », ouverte par son bouton, sur une étape d'un bloc qui se
+     répète — les trois sections (importance, coche, moment) sont alors toutes rendues. */
+  { nom:'réglages de l\'étape', w:390,  scope:'#stepSetModal', fn: async()=>{
+      const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
+      openEdit(f.id);await new Promise(r=>setTimeout(r,500));
+      const li=[...document.querySelectorAll('.blk .li')].find(l=>/Adrénaline/.test(l.querySelector('input[data-sf]').value));
+      li.querySelector('.li-set').click();await new Promise(r=>setTimeout(r,300)); } },
   { nom:'lier une aide',       w:390,  scope:'#relPickModal', fn: async()=>{
       const f=fiches.find(x=>/Arrêt cardiaque/.test(x.title));
       openEdit(f.id);await new Promise(r=>setTimeout(r,500));

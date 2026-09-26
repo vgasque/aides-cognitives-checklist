@@ -1075,6 +1075,19 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('loopExitStops : la question est dans la boucle — le minuteur continue', A.loopExitStops(f,{t1:{b:'b1',x:0}},'b2'), []);
    eq('loopExitStops : un minuteur armé par une ÉTAPE ne s’arrête jamais de lui-même', A.loopExitStops(f,{t2:{b:'',x:0}},'b3'), []);
    eq('loopExitStops : déjà arrêté à la sortie — pas deux fois', A.loopExitStops(f,{t1:{b:'b1',x:5}},'b3'), []);
+   // A382 — le moment d'une étape (pur) : cn = compte, tm = état du minuteur, before = cochée à un passage antérieur.
+   {const M=(it,c,t,bf,tid)=>A.momentOf(it,()=>c,()=>t,!!bf,tid||'');
+    const fr={counter:'n1',n:3};
+    eq('momentOf : sans moment — rien (à chaque passage)', M({do:'x'},0,''), null);
+    eq('momentOf : avant le seuil — en attente, ne retient pas', M({from:fr},2,''), {st:'wait',why:'from'});
+    eq('momentOf : au seuil — la case revient, retient', M({from:fr},3,''), {st:'met',req:1});
+    eq('momentOf : à l’échéance, minuteur en cours — en attente', M({from:fr,repeat:'due'},4,'run',0,'t1'), {st:'wait',why:'due'});
+    eq('momentOf : à l’échéance, minuteur échu — retient', M({repeat:'due'},0,'due',0,'t1'), {st:'due',req:1});
+    eq('momentOf : à l’échéance, minuteur jamais lancé — la 1ʳᵉ fois retient', M({from:fr,repeat:'due'},3,'',0,'t1'), {st:'met',req:1});
+    eq('momentOf : « à l’échéance » sans minuteur — repli « à chaque passage »', M({repeat:'due'},0,'run'), null);
+    eq('momentOf : une seule fois, déjà faite — plus de case', M({from:fr,repeat:'once'},5,'',1), {st:'gone'});
+    eq('momentOf : une seule fois, pas encore faite — retient', M({repeat:'once'},0,''), null);
+    eq('momentOf : au besoin — jamais attendue', M({repeat:'need'},0,''), {st:'need'});}
    const T=o=>Object.assign({label:'Tentative',type:'interval',seconds:60,elapsedMs:0,running:false,lastStart:0,onDue:''},o);
    eq('wtTimerModel : au repos — gris, la durée d’abord, le déclencheur en toutes lettres',
      A.wtTimerModel(T({}),0,{lat:'à chaque entrée'}), {cls:'',g:'watch',v:'01:00',n:'à chaque entrée · Tentative'});

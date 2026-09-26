@@ -1,5 +1,69 @@
 # Journal des modifications
 
+## [5.33.0] — 2026-09-26
+L'éditeur s'allège : on écrit d'abord, on règle ensuite, jamais à plus d'un toucher (A383, doctrine
+`docs/decisions/lot-v5-33.md`). Demande de l'auteur après audit mesuré (ACR, 390 px : une étape
+touchée passait de 70 à plus de 500 px, onze commandes) ; maquettes E1-E7 et captures validées.
+- **Écrire n'ouvre plus rien** : toucher le texte d'une étape n'allume que ses champs. Un bouton
+  « Réglages » au bout de la ligne ouvre une feuille (basse au téléphone, centrée dès 780) à trois
+  sections nommées : importance (Normale · Vigilance · Critique, Mémoire, ×2), ce que fait la coche,
+  moment (« Dès le 1ᵉʳ passage / À partir d'un compte », seuil −/+, « Puis revient » en quatre cases).
+  Sans minuteur ni compteur, « ＋ Créer un minuteur / un compteur » les crée et les lie sur place.
+- **Ce qui est réglé se lit au repos**, en pastilles sous l'étape : Critique, Vigilance, ★ Mémoire,
+  ×2, « lance … », « +1 … », « Chocs délivrés ≥ 3 », « à l'échéance ». La réponse attendue passe sous
+  le texte ; les étapes sont plus compactes (≈ −20 %).
+- **Ce qui ne peut servir à rien n'est plus montré** : le moment, le minuteur du bloc et les jalons
+  n'apparaissent que si le bloc se répète (« ↺ Se répète ») ou s'ils sont déjà posés.
+- **« Options du bloc »** en carte dépliable, résumé à droite, ouverte d'office quand une option est
+  posée : bloc de départ, phase (qui quitte l'en-tête), libellé de « Continuer », minuteur du bloc,
+  jalons, image. Un jalon se lit comme une phrase : « Chocs délivrés ≥ − 3 + ». Les règles d'usage
+  ne sont plus répétées à chaque bloc.
+- Témoins : section A383 d'`audit-doctrine`, `audit-k5` et `audit-a11y` (la feuille est mesurée).
+
+## [5.32.0] — 2026-09-26
+Une étape peut dire QUAND elle se présente dans un bloc parcouru plusieurs fois (A382, doctrine
+`docs/decisions/lot-v5-32.md`). Demande de l'auteur, sur maquettes revues fil par fil : au 1ᵉʳ choc,
+il fallait cocher l'adrénaline « après le 3ᵉ choc » pour pouvoir avancer.
+- **Commence** : dès le 1ᵉʳ passage, ou quand un compteur atteint un seuil (« Chocs délivrés ≥ 3 »).
+  **Puis revient** : à chaque passage, à l'échéance du minuteur que relance sa coche, une seule
+  fois, ou au besoin.
+- **Avant son moment**, l'étape reste visible, en pointillé et sans case, avec sa règle au-dessus
+  et ce qui manque dessous (pastilles · « encore 2 », ou le minuteur qui court). « Continuer » ne
+  l'attend pas. « Faire maintenant » la coche quand même, en un toucher.
+- **Quand le moment vient**, la case revient sur place, à la même hauteur, sans défilement ni
+  alerte : « ✓ Chocs délivrés ≥ 3 », ou « Échu » en ambre. Rien ne repart seul.
+- **Une seule fois** : une fois faite, « Faite », plus de case. **Au besoin** : cochable, jamais
+  attendue.
+- **Éditeur** : « Commence » et « Puis » dans les outils de l'étape, réglés sur place. « À
+  l'échéance » reste grisé avec sa raison quand la coche ne relance aucun minuteur. Si le minuteur
+  disparaît, l'étape redevient « à chaque passage » et l'éditeur le signale.
+- **Parcours à plat et Page** annoncent la règle sous l'étape.
+- **Prompt IA** : il sait poser ces moments (seulement quand la source les énonce), écrire deux
+  doses comme deux étapes, et ne plus laisser le seuil dans le libellé.
+- **Fiches d'exemple** : dans l'**ACR**, l'adrénaline commence au 3ᵉ choc puis revient à
+  l'échéance de « prochaine dose », l'amiodarone 300 mg (3ᵉ choc) et 150 mg (5ᵉ) ne se font qu'une
+  fois ; dans l'**Anaphylaxie**, l'adrénaline IM du bloc réfractaire revient à l'échéance de la
+  réévaluation.
+- Réglementaire : § 2 « Le cas du moment d'une étape » (règle de l'auteur appliquée à un compte ou
+  un minuteur de l'équipe, régime des jalons).
+
+## [5.31.1] — 2026-09-25
+Quatre retouches signalées à l'usage (A381, doctrine `docs/decisions/lot-v5-31.md`).
+- **Notice « Vous êtes l'auteur… »** : la croix dépassait d'une notice d'une ligne (posée 4 px sous
+  le haut, 32 px de haut pour une notice de 34). Elle se centre désormais sur la première ligne.
+- **Recherche de l'accueil** : 16 px au téléphone au lieu de 17,5, en accord avec le reste de
+  l'accueil. 16 px est le plancher d'iOS : en dessous, Safari zoome au toucher. 15 px sans écran
+  tactile.
+- **Cases des étapes CRITIQUE / VIGILANCE** : l'étiquette se loge dans une marge haute réservée,
+  hors du flux. La case reste centrée sur le libellé, au même endroit que dans une rangée sans
+  étiquette (elle était centrée sur l'ensemble étiquette + libellé + détail, donc visiblement
+  plus basse).
+- **Colonne « Parcours inerte » du bureau** (et rail 780-1199) : chaque bloc se plie à son titre,
+  seul le bloc courant est déplié d'office. Une décision reste ouverte, puisque ses branches
+  sont le chemin. Un chevron par bloc, au clavier comme au toucher. Le
+  parcours de l'ACR tient désormais en entier à l'écran. Toucher un bloc de cette colonne ne
+  faisait plus rien depuis la v5.30.6 (bascule orpheline) : ce geste revit ici.
+
 ## [5.31.0] — 2026-09-25
 La coche d'une étape peut lancer un minuteur ou compter, un bloc peut porter son minuteur, et une
 ligne discrète le dit sous l'étape (A377 à A380, doctrine `docs/decisions/lot-v5-31.md`). Demande de
@@ -593,89 +657,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   `design/ds` régénéré, CHANGELOG à 20 ([5.23.4] archivée).
 - Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET 29/29 après le numéro
   de version.
-
-## [5.28.0] — 2026-09-08
-### « Terminer la session » se trouve là où la session se lit, le menu ⋯ ne répète plus le dock, et la méta des cartes d'accueil dit un état en mots (A336-A338)
-
-- **Demandes de l'auteur**, dessinées d'abord sur un canevas (quatre pistes, puis le menu, puis
-  sept options de méta), validées avant tout code.
-- **A336 — Terminer la session.** Une rangée « Terminer la session… — confirmation demandée »
-  ferme le volet de session (étroit) et le rail d'état (large), sous un intertitre « Session ·
-  depuis HH:MM ». Contour, jamais un aplat ; le tap ouvre la fenêtre « Terminer la session ? »,
-  qui reste la SEULE porte. Jamais chez l'invité ni en aperçu. Un seul bouton permanent, pas de
-  rappels ; formes refusées listées dans la doctrine.
-- **A337 — Menu ⋯.** Trois natures de rangée de plus (`{head}`, `{tiles}`, `{fold}`) : les
-  ouvertures (Moniteur, Se repérer, Schéma, Consulter hors session) en tuiles, des intertitres
-  « Session » / « L'aide », le sous-titre SOUS le libellé sur une ligne (rangées 44 ou 52 px),
-  largeur 300 px, la rangée danger en pied encadré. **En session le menu ne répète pas le dock** :
-  Complication et Consulter en sortent (remplace la double entrée de v4.26.1) ; la gestion de
-  l'aide se replie derrière « L'aide › ». 14 → 7 rangées en session. « Recommencer le parcours »
-  n'existe qu'en session. Piège mesuré : le pli re-rend le menu, le clic remontait au document
-  et le fermait (`stopPropagation`).
-- **A338 — Méta des cartes d'accueil** (option J). À gauche l'identité : nature · discriminant ·
-  ● catégorie ; à droite UN état en mots, le plus urgent : En cours 12:04 › Brouillon / À relire ›
-  À compléter › Sans date › À revérifier 06/2023 › Validée 01/2025. Une taille, une graisse, aucun
-  glyphe ni point, l'ambre pour ce qui attend. « Validé » n'apparaît plus qu'avec sa date ;
-  le code sort de la rangée. Ligne de base alignée (écart 1 px mesuré) ; la catégorie s'abrège
-  la première, le discriminant ensuite (plancher 4 em), jamais la nature ni l'état. Sous 360 px
-  effectifs l'état passe sous l'identité, hauteur de rangée unique 76 px (320 : aucun
-  débordement).
-- Témoins adaptés : `audit-complications` (aucune rangée Complication en session),
-  `audit-retour`, `audit-doctrine` (date lue dans `.dir-st`). Doctrine dans
-  `docs/decisions/lot-v5-28.md` (nouveau), index AGENTS.md / docs/README.md, `design/ds/`
-  régénéré. CHANGELOG à 20 ([5.23.3] archivée).
-- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
-  version.
-
-## [5.27.1] — 2026-09-07
-### La barre de retour colle au quai, et les deux retours portent l'icône (A335)
-
-- **Demande de l'auteur** : rapprocher un peu la barre verte « retour au bloc » de la barre
-  flottante, et remplacer les ↩ par une icône (barre et bouton « Reprendre » d'une complication).
-- **Mesuré** : 8 px en navigateur — mais `#blkReturn` et `#dockSheet` ajoutaient
-  `env(safe-area-inset-bottom)` à `--dock-h`, qui le contient déjà (hauteur mesurée du quai) :
-  42 px sur un iPhone installé. Le terme en double est retiré des deux règles ; 8 px partout,
-  prouvé à inset simulé (méthode A286).
-- **Icône `backto`** (celle de « Un bloc ») sur la barre et sur « Reprendre — ‹bloc› → », dans
-  le flux du texte pour rester collée au mot au passage à la ligne.
-- **Deux finitions** vues à la capture : « Bloc Bloc 1 » (préfixe en double) et les tags
-  « ⚡ complication » / « passage 1/2 » repris dans le libellé de la barre.
-- **L'éclair aussi** (demande de l'auteur) : les quinze « ⚡ » emoji restants passent par la
-  fabrique `boltIcon` ; classe `bolt`, seul glyphe REMPLI de la famille (`--bolt`/`--bolt-edge`,
-  deux thèmes) pour ressortir autant que l'emoji qu'il remplace. Le sélecteur « renvoi du
-  jalon » garde l'emoji dans ses `<option>` (pas de SVG possible, décision de l'auteur).
-- Doctrine A335 dans `docs/decisions/lot-v5-27.md`, `design/ds/` régénéré. CHANGELOG à 20
-  ([5.23.2] archivée).
-- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
-  version.
-
-## [5.27.0] — 2026-09-07
-### « Reprendre » revient sur l'étape interrompue, et la barre de retour ne survit plus à la fiche (A333-A334)
-
-- **Reprise après complication (A333)** — signalé par l'auteur : « ouvre une nouvelle étape,
-  devrait revenir vers l'ancienne et placer le bloc complication juste avant ; un bloc laissé
-  ouvert, c'est perturbant ». Mesuré avant : trois passages pour un geste (l'ancien replié avec sa
-  coche, la carte ⚡, un neuf vide). Désormais « ↩ Reprendre » RAMÈNE le passage interrompu au
-  bout du journal — même visite, coches gardées, plus de « passage 1/2 » — et la carte ⚡ se range
-  juste avant lui (`navRestore`, en place : `state.nav` reste l'alias de `Runtime.nav`). Ce
-  choix RENVERSE A126 (« nouveau passage, cases neuves ») par décision de l'auteur — et le
-  bouton l'a toujours dit : « ↩ Reprendre — ‹bloc› → » annonce un retour, pas un passage neuf ;
-  le texte d'origine est barré dans `conventions-de-code.md`, pas effacé.
-- **Ce que le réordonnement entraîne** : les replis, indexés par position, suivent leur visite
-  (`ovFoldRemap`, rejoué aussi chez l'invité qui reçoit le fil) ; « l'entrée suivante du fil »
-  saute les excursions (`navNextIdx`, pure) — sans cela une décision déjà répondue se rouvrait
-  parce qu'une carte ⚡ s'était rangée entre elle et sa cible (mesuré : la décision reste une
-  chip, sa réponse reste affichée, re-taper la réponse défile au lieu de reposter). Sans ancre
-  ni passage à retrouver, l'ancien chemin reste (passage neuf) — jamais un journal cassé.
-- **Barre « ↩ Bloc… » (A334)** — signalé : « apparaît sur la page d'accueil lorsqu'on termine la
-  session et qu'elle est visible ; est-ce la seule situation ? » Non : mesuré aux quatre portes,
-  « Terminer » la laissait pour toujours (le tick des minuteurs, seul à la resynchroniser,
-  s'arrête avec la session) et le retour d'en-tête une seconde. `render()` la resynchronise à
-  tout changement de vue.
-- Garde-fous : `audit-complications` et `audit-doctrine` réécrits sur la nouvelle règle (même
-  visite, coches gardées, une seule carte du bloc, ⚡ juste avant), un test unitaire
-  (`instComplete` saute une excursion). Doctrine A333-A334 dans `docs/decisions/lot-v5-27.md`
-  (nouveau fichier du lot), index AGENTS.md et docs/README.md. CHANGELOG à 20 ([5.23.1]
-  archivée).
-- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
-  version.
