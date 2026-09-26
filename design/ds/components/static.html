@@ -2838,28 +2838,10 @@
       background:none;border:0;border-radius:0;padding:10px 0;
       max-height:calc(100dvh / var(--zf,1) - var(--stick-top,64px) - 24px);overflow-y:auto}
   }
-  /* LA MARQUE DE REGISTRE NE PREND PLUS DE PLACE DANS LA RANGÉE (v5.0.0) — et c'est ce qui
-     ALIGNE LES FLÈCHES. Chaque `.li` est sa propre boîte : si la marque est un item de la rangée,
-     les rangées marquées décalent tout ce qui suit, et les flèches partent en escalier. En la
-     posant en SUPERPOSITION sur le rembourrage gauche du champ, la boîte du champ commence au
-     même x sur toutes les rangées — donc la flèche aussi. Et l'on ne paie pas les ~50 px que
-     coûterait une colonne réservée, qui à 320 px se prendraient sur le texte. */
-  .li-mk{position:absolute;left:0;top:50%;transform:translateY(-50%);width:20px;
-    display:flex;align-items:center;justify-content:center;color:var(--critical);pointer-events:none}
+  /* A383 : le registre d'une étape de bloc se dit par une PASTILLE sous l'étape (« Critique », « Vigilance »),
+     plus par une marque posée dans le champ. */
   .blk .li{position:relative}
-  /* ⚠ Seizième piège de cascade : un `padding-left` LONGHAND perdait contre un `padding` raccourci
-     déclaré après à même spécificité (l'icône passait sous le texte, mesuré) — on passe par `:is()`
-     à (0,5,1), gagnant quel que soit l'ordre, repos ET focus. Et l'anneau de focus revient en
-     teinte TONALE (--shadow-primary-sm devenue none en v5.6, vu par audit-a11y — état
-     d'interaction, pas élévation). Détail : doctrine-css.md C60. */
-  .blk .li input[data-sf]{padding-left:10px}
-  .blk .li:is(.li-crit,.li-vigil) input[data-sf],
-  .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{padding-left:24px}
-  /* Une rangée SIGNALÉE réserve déjà 24 px à sa marque : le débord GAUCHE du focus (margin -6px,
-     cf. MK-flux) déplacerait son texte — on l'annule pour elle seule, le droit reste en débord. */
-  .blk .li:is(.li-crit,.li-vigil) input[data-sf]:focus{margin-left:0}
-  .li-vigil .li-mk{color:var(--verify)}
-  /* Le champ et sa marque forment un seul objet de la rangée : c'est LUI qui s'étire. */
+  /* Le champ est l'objet de la rangée qui s'étire. */
   .li-fw{position:relative;flex:1;min-width:0;display:flex}
   .li-fw input{flex:1;min-width:0}
   /* LA RÉPONSE ATTENDUE NE SE MONTRE QUE SI ELLE EXISTE — ou pendant qu'on écrit la ligne.
@@ -2889,12 +2871,9 @@
      registre — elle ne prend donc aucune couleur sémantique. */
   /* La phase : une étiquette d'ORGANISATION (aucune couleur sémantique), rangée dans « Options du
      bloc » depuis A383. En filigrane (pointillé, encre douce), la phase HÉRITÉE du bloc précédent. */
-  .blk-phase{flex:none;display:flex;max-width:100%}
-  .blk-phase :is(input,select){width:200px;max-width:100%;min-width:0;min-height:40px;padding:0 10px;border:1.5px solid var(--ctl-line);
-    border-radius:var(--r-2);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
+  .blk-phase{flex:0 1 auto;display:flex;min-width:0;max-width:60%}
   .blk-phase input::placeholder{color:var(--ink-soft);font-style:italic}
-  .blk-phase.inh :is(input,select){border-style:dotted;color:var(--ink-soft)}
-  .blk-phase :is(input,select):focus{border-style:solid;border-color:var(--primary);outline:none}
+  .blk-phase.inh :is(input,select){color:var(--ink-soft)}
   /* Intertitre de PHASE dans la colonne Structure : un simple repère de groupe, sans surface ni
      couleur — la colonne oriente, elle n'agit pas. */
   .eds-ph{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
@@ -3681,7 +3660,9 @@
   .pc-jl{font-size:12px;color:var(--ink-soft);padding:4px 0}
   /* Éditeur des jalons : carte au ton du chrome (--surface-2), et le champ NUMÉRIQUE reçoit son
      gabarit EXPLICITEMENT — input[type=number] n'hérite de rien (leçon v4.78.0). */
-  .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2)}
+  .jl-edit{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;padding:8px 10px;border-radius:var(--r-3);background:var(--verify-soft)}
+  .jl-edit :is(select,input){min-height:40px;border:1px solid var(--verify-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
+  .jl-e1 select{flex:1 1 150px;min-width:0}
   .jl-e1{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .jl-e1 input[type=number]{width:70px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--ink);font-family:inherit}
   .jl-e1 .tk-del{margin-left:auto}
@@ -4230,9 +4211,7 @@
   /* Étape/ligne TYPÉE dans l'éditeur (v4.3.0) : le marqueur ⚠/△ ne vit plus DANS le champ texte
      (effaçable à la main = changement de type accidentel) — c'est l'ENCADRÉ du champ qui porte
      le registre (bordure + fond doux + encre), comme la rangée correspondante en lecture. */
-  .li.li-crit input[type=text]{border-color:var(--critical-bd);background:var(--critical-soft);color:var(--critical)}
   .li.li-vigil input[type=text]{border-color:var(--verify);background:var(--verify-soft);color:var(--verify)}
-  .li.li-crit .li-num{color:var(--critical)}
   .li.li-vigil .li-num{color:var(--verify)}
   .mini{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);width:32px;height:32px;align-self:center;border-radius:var(--radius-sm);font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
   .mini:hover{background:var(--surface-2);color:var(--ink)}.mini.del:hover,.cm-del:hover{color:var(--critical);border-color:var(--critical-line);background:var(--critical-soft)}
@@ -4419,7 +4398,9 @@
   .blk.blk-dec{background:var(--verify-soft);border-color:var(--verify-bd);border-left-color:var(--verify-bd)}
   /* L'en-tête du bloc : le TITRE est le champ, comme en lecture il est le titre de la carte —
      mêmes corps (16,5 px / 640), la pilule de type à gauche. */
-  .blk .blk-top input[type=text]{font-size:17.5px;font-weight:700}
+  /* A383 : le titre du bloc est du TEXTE au repos (21/800, comme les étapes : MK-flux), un champ au focus. */
+  .blk .blk-top input[data-bf="title"]{flex:1 1 180px;font-size:21px;font-weight:800;padding:4px 6px;background:transparent;border-color:transparent}
+  .blk .blk-top input[data-bf="title"]:focus{background:var(--amb-2);border-color:var(--act);outline:none;box-shadow:0 0 0 3px var(--primary-100)}
   /* Le CHAPEAU d'édition reprend le cadre rouge de `.forget-strip`, au trait près. */
   /* v5.30 (maquette v5) : le chapeau d'édition est une carte blanche à badge « ! » (dessin de .fh-ic.crit), plus un cadre rouge. */
   .ed-forget{background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-4);box-shadow:var(--shadow-work);padding:10px 12px;margin-bottom:16px}
@@ -4612,8 +4593,7 @@
      que les rangées suivantes ne bougent pas non plus. L'ombre teintée est l'ANNEAU de focus
      (WCAG 2.4.7 — la sonde d'audit ne compte qu'outline/box-shadow, un bord seul ne suffit pas). */
   .blk .li input[type=text]:focus{background:var(--input-bg);border:1.5px solid var(--act);padding:8px 10px;margin:0 -6px;outline:none;box-shadow:0 0 0 3px var(--primary-100)}
-  .blk .li:has(input:focus){background:var(--surface-2);border-radius:var(--radius-sm);padding:6px;margin:-6px -6px -4px}
-  /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
+    /* Les outils vivent SOUS la ligne, et n'existent qu'en édition (K3). La poignée ⠿, elle, reste
      visible au repos : c'est l'affordance du réordonnancement, elle ne se découvre pas au tap. */
   .li-tools{display:none;gap:6px;flex:1 1 100%;order:3;margin-left:32px}
   /* La POIGNÉE vit à droite de la ligne, visible au repos : c'est l'affordance du
@@ -4631,48 +4611,88 @@
     font-size:12px;line-height:1.45;color:var(--verify)}
   .blk .li:has(input:focus) .li-note{display:block}
   .li-tools .mini.del{color:var(--critical);border-color:var(--critical-line)}
-  .mo-rule.mo-warn{text-transform:none;letter-spacing:0;color:var(--warn)}
-  /* ══ A383 — la rangée d'étape : texte, bouton « Réglages » au bout (bleu quand quelque chose est
-     réglé), réponse attendue DESSOUS, puis ce qui est réglé, lu au repos. 40 = poignée 32 + écart 8. */
-  .blk .li .li-set{width:40px;height:40px;border-color:transparent;background:none;color:var(--ink-soft)}
-  .blk .li .li-set.on{background:var(--primary-soft);color:var(--act)}
-  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;margin:-8px 0 0 40px;padding-block:2px}
+  /* ══ A383 — la rangée d'étape (maquettes E1-E3) : poignée · texte 17,5/700 · bouton « Réglages » ; dessous la
+     réponse attendue, puis ce qui est réglé en pastilles. Filet entre étapes. 40 = poignée 32 + écart 8. */
+  .blk .li{padding-block:6px}
+  .blk .li+.li{border-top:1px solid var(--work-line)}
+  .blk .li input[data-sf]{font-size:17.5px;font-weight:700}
+  .blk .li input[data-sf]::placeholder{color:var(--ink-soft);font-weight:600}
+  .blk .li input.li-exp[data-sx]{order:2;flex:1 1 100%;margin:-8px 0 0 40px;padding-block:2px;font-weight:600;color:var(--ink-2)}
   .blk .li input.li-exp[data-sx]:focus{margin:-8px 0 0 40px;padding:2px 4px}
-  .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:2px 0 0 40px}
-  .li-chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:var(--r-1);background:var(--tag-bg);color:var(--tag-ink);font-size:var(--t-meta);font-weight:700}
-  .li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
-  .blk-loop{flex:none;padding:2px 8px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);font-size:var(--t-meta);font-weight:800}
-  .blk-foot{display:flex;justify-content:flex-end;margin-top:12px}
-  /* « Options du bloc » : carte dépliable de l'app (foldCardHtml), rangées libellé | contrôle à 52 px. */
+  .blk .li:has(input:focus) input.li-exp[data-sx]:not(:focus){background:var(--amb-2);border-radius:var(--r-2)}
+  .li-set{flex:none;display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:var(--r-3);background:none;color:var(--ink-soft);cursor:pointer}
+  .li-set:hover{background:var(--surface-2);color:var(--ink)}
+  .li-set.on{background:var(--primary-soft);color:var(--act)}
+  .li-set:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 2px 40px}
+  .li-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-size:12px;font-weight:700}
+  .li-chip.crit,.li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
+  .li-chip.vig{background:var(--verify-soft);color:var(--warn)}
+  .li-chip.x2{font-family:var(--mono)}   /* la chasse fixe de « ×2 » en lecture (.stp-x2) */
+  .li-chip.lk{background:var(--primary-soft);color:var(--act)}
+  .li-chip.mo{background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ink-2);color:var(--ink)}
+  .li-chip.mo.ko{background:var(--verify-soft);box-shadow:none;color:var(--warn)}
+  .blk-loop{flex:none;padding:2px 8px;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  html.zw430 .blk-top .blk-loop{order:3;margin-left:40px}   /* sous le titre, aligné sur son texte ; la poignée reste en bout de ligne */
+  html.zw430 .blk-top .grab{order:2}
+  .blk-foot{display:flex;justify-content:flex-end;margin-top:8px}
+  .bo-del{color:var(--critical);min-height:44px}
+  /* « Options du bloc » (maquette E6) : carte dépliable de l'app ; rangées de menu, valeur en pastille à droite. */
   .bo-card .conf-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .bo-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:52px;padding:6px 0;border-top:1px solid var(--work-line)}
   .bo-row:first-child{border-top:0}
-  .bo-row.col{flex-direction:column;align-items:stretch}
-  .bo-l{flex:1 1 auto;min-width:0;font-size:var(--t-item);font-weight:600;color:var(--ink)}
-  .bo-s{display:block;font-size:var(--t-body);font-weight:500;color:var(--ink-2)}
-  .bo-v{font-size:var(--t-body);font-weight:700;color:var(--ok)}
-  .bo-row input[data-bnextlbl]{width:100%;min-height:44px;padding:8px 12px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit}
-  .bo-row .imgrow{margin:0}
-  /* La fenêtre « Réglages de l'étape » : trois sections nommées, contrôles de l'échelle L 44. */
-  .sst-step{margin:0 0 4px;font-size:var(--t-item);font-weight:700;color:var(--ink)}
-  .sst-h{margin:20px 0 8px;font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-  .sst-sub{display:block;font-size:var(--t-body);font-weight:500;color:var(--ink-2);letter-spacing:0;text-transform:none}
-  .sst-h .sst-sub{display:inline}
-  #stepSetBody .set-row{margin:8px 0 0}
-  .sst-sel{width:100%;min-height:44px;padding:0 12px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-item)}
-  .sst-sel.on{border-color:var(--act)}
-  .sst-f{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-  .sst-f>label{font-size:var(--t-body);font-weight:700;color:var(--ink-2)}
-  .sst-in{display:flex;gap:8px}
-  .sst-n{flex:none;width:80px;min-height:44px;padding:0 12px;border:1.5px solid var(--act);border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:var(--t-item)}
-  #stepSetBody .mo-ed{display:block;margin-top:8px}
-  .sst-note{margin:0;font-size:var(--t-body);line-height:1.45;color:var(--ink-2)}
+  .bo-l{flex:1 1 110px;min-width:0;font-size:15px;font-weight:600;color:var(--ink)}
+  .bo-s{display:block;font-size:13.5px;font-weight:500;color:var(--ink-2)}
+  :is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select){min-width:0;max-width:100%;width:150px;height:40px;padding:0 12px;border:0;border-radius:var(--r-2);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:15px;font-weight:700}
+  input.bo-pill::placeholder{color:var(--ink-soft);font-weight:600}
+  .bo-pill:focus-visible,.bo-row .blk-phase :is(input,select):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .bo-row .imgrow{gap:8px}
+  .tg-sw{flex:none;position:relative;width:44px;height:26px;padding:0;border:0;border-radius:999px;background:var(--ctl-line);cursor:pointer}
+  .tg-sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--work);box-shadow:var(--shadow-work);transition:transform .2s cubic-bezier(.3,1.2,.4,1)}
+  .tg-sw.on{background:var(--ok)}
+  .tg-sw.on::after{transform:translateX(18px)}
+  .tg-sw[aria-disabled="true"]{cursor:default}
+  .tg-sw:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.tg-sw::after{transition:none}}
+  /* La feuille « Réglages de l'étape » (maquettes E4, E5, E7) : feuille basse au téléphone (grammaire de
+     la feuille ⋯, A361), panneau latéral dès 780 — la liste des étapes reste lisible à côté. */
+  #stepSetModal{align-items:flex-end;padding:0}
+  #stepSetModal .ai-card{max-width:none;width:100%;margin:0;border-radius:var(--r-4) var(--r-4) 0 0;padding:8px 16px calc(16px + var(--sab));max-height:calc(92dvh / var(--zf,1));overflow-y:auto;box-shadow:var(--shadow-up)}
+  .sst-hd{display:block;width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:0 auto 8px}
+  #stepSetModal .ai-top{align-items:center}
+  #stepSetModal .ai-x.sst-ok{width:auto;height:40px;margin:0;padding:0 16px;border:0;border-radius:var(--r-2);background:var(--act);color:var(--on-primary);font-family:inherit;font-size:15px;font-weight:700}
+  @media (min-width:780px){
+    #stepSetModal{align-items:stretch;justify-content:flex-end;padding:12px}
+    #stepSetModal .ai-card{max-width:400px;max-height:none;border-radius:var(--r-4);padding:16px 20px 20px}
+    .sst-hd{display:none}}
+  .sst-step{margin:2px 0 0;font-size:13.5px;font-weight:600;color:var(--ink-2)}
+  .sst-h{display:flex;align-items:baseline;gap:6px;margin:16px 0 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .sst-h i{font-style:normal;font-weight:700;letter-spacing:0;text-transform:none;color:var(--act)}
+  #stepSetBody .seg-btn.on[data-ssreg="1"]{color:var(--warn)}
+  #stepSetBody .seg-btn.on[data-ssreg="2"]{color:var(--critical)}
+  #stepSetBody .seg-btn[aria-disabled="true"]{color:var(--ink-soft)}
+  .sst-tg{display:flex;align-items:center;gap:12px;min-height:52px}
+  .sst-tl{flex:1;min-width:0;font-size:15px;font-weight:700;color:var(--ink)}
+  .sst-tl small{display:block;font-size:12px;font-weight:600;color:var(--ink-2)}
+  .sst-sel{width:100%;min-height:44px;padding:0 12px;border:0;border-radius:var(--r-3);background:var(--amb-2);color:var(--ink);font-family:inherit;font-size:15px;font-weight:700}
+  .sst-sel:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sst-in{display:flex;gap:8px;margin-top:8px}
+  .sst-in .sst-sel{flex:1;min-width:0}
+  .sst-stp{flex:none;display:flex;align-items:center;min-height:44px;border-radius:var(--r-3);background:var(--amb-2)}
+  .sst-stp button{width:40px;height:44px;border:0;background:none;font-family:inherit;font-size:21px;font-weight:700;color:var(--ink);cursor:pointer}
+  .sst-stp b{min-width:24px;text-align:center;font-family:var(--mono);font-size:17.5px}
+  .sst-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:var(--r-3);background:var(--amb-2)}
+  .sst-grid button{min-height:44px;padding:4px 8px;border:1px solid transparent;border-radius:var(--r-2);background:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-2);cursor:pointer}
+  .sst-grid button small{display:block;font-size:11px;font-weight:600;color:var(--ink-2)}
+  .sst-grid button[aria-checked="true"]{background:var(--work);border-color:var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
+  .sst-grid button[aria-disabled="true"]{color:var(--ink-soft)}
+  .sst-grid button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .sst-note{margin:8px 0 0;font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+  .sst-note.ko{color:var(--warn)}
+  .sst-sep{margin-top:16px}
   .sst-mk{display:flex;flex-wrap:wrap;gap:4px 16px}
   .sst-mk .linkbtn{min-height:44px;margin:0}
-  .sst-foot{display:flex;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
-  .blk-tm{width:100%;height:44px;padding:0 12px;border:1px solid var(--ctl-line);border-radius:var(--r-2);background:var(--work);color:var(--ink);font-family:inherit;font-size:var(--t-body)}
-  .blk-tm.on{border-color:var(--act)}
-  .blk-tm-h{margin:6px 0 0;font-size:var(--t-meta);line-height:1.45;color:var(--ink-2)}
+  .sst-del{margin:16px 0 0}
   .li-tools .mini.del:hover{background:var(--critical-soft)}
   /* La PASTILLE de bloc — celle de la lecture, au trait près : ronde, numérotée, bleue ; losange
      ambre pour une décision (le registre, comme la carte). */
@@ -4726,7 +4746,7 @@
      (Les variantes steps/decision, jamais émises — l'éditeur n'a que tm-kind —, sont purgées.) */
   .blk-type.tm-kind{background:var(--tag-bg);color:var(--tag-ink);font-family:var(--mono);letter-spacing:0}
   .blk-top input,.optedit input{flex:1 1 140px;min-width:0;padding:8px 10px;border:1.5px solid var(--ctl-line);border-radius:var(--r-3);background:var(--amb-2)}
-  .blk .sub{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px}
+  .blk .sub{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:12px 0 4px}
   .optedit{display:flex;gap:8px;margin-bottom:8px;align-items:center}
   .optedit select{flex:1;min-width:0}
   .imgrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.imgrow img{height:54px;border-radius:8px;border:1px solid var(--line)}
@@ -7448,7 +7468,7 @@
   @media (hover:none) and (pointer:coarse){
     .hdr-search input,#homeDock .hdr-search input,#p-body,.note-ta,.catmenu-filter,.tk-lab,.tk-time-edit,.cm-name,.cm-add input,input.gcap,
     .mem-act select,.invite-row select,.invite-row input,.mi-sc,.rt-find input,
-    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,.sst-n,.bo-row input[data-bnextlbl],.field .blk-tm,.blk-tm{font-size:16px}
+    .blk-phase :is(input,select),.ed-forget .li input[type=text],.tme-top input[type=text],.sst-sel,:is(input[type=text],select).bo-pill,.bo-row .blk-phase :is(input,select),.jl-edit :is(input,select){font-size:16px}
     .tk-time-edit{width:96px}
     /* Plans INLINE (v5.10.5) : hauteur entière et axe vertical CLOS — un axe `auto` rebondit sur
        iOS même sans débordement et capture le pouce ; l'horizontal des colonnes défile comme
