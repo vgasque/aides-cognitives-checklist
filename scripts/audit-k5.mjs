@@ -817,8 +817,8 @@ const M1=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   return {nInp:inp.length,do1,exp1,exp2:it2.expect,
     premier:li.firstElementChild?li.firstElementChild.className:'',
     cases:document.querySelectorAll('.li-box').length,
-    marques:document.querySelectorAll('.li-mk').length,
-    mots:[...document.querySelectorAll('.mini-w')].slice(0,3).map(x=>x.textContent.trim()),
+    marques:document.querySelectorAll('.blk .li-chip:is(.crit,.vig)').length,   // A383 : le registre se dit en pastille
+    reg:(document.querySelector('.blk .li-set')||{getAttribute:()=>''}).getAttribute('aria-label'),
     deb:Math.round(mx-r.right)};});
 
 t('B1 — la rangée d’item porte DEUX champs (`do` et `expect`)', M1.nInp===2, `${M1.nInp} champ(s)`);
@@ -828,7 +828,7 @@ t('… retaper le geste n’EFFACE PAS la réponse attendue', M1.exp2==='30 mg',
 t('A4 — plus AUCUNE case à cocher dans l’éditeur', M1.cases===0&&M1.marques>0,
   `${M1.cases} case(s), ${M1.marques} marque(s)`);
 t('B7 — la poignée ⠿ est le PREMIER objet de la rangée', /li-grab/.test(M1.premier), M1.premier);
-t('B2 — les outils portent leur MOT', /^(registre|vital|vérifier)$/.test(M1.mots[0])&&M1.mots[1]==='mémoire'&&M1.mots[2]==='double', M1.mots.join('·'));
+t('B2 — le bouton « Réglages » porte son nom (A383 : les outils vivent dans la feuille)', /^Réglages de l’étape \d+$/.test(M1.reg||''), String(M1.reg));
 t('… et la rangée ne déborde pas à 320 px', M1.deb<=0, `${M1.deb} px hors de la boîte`);
 await p.setViewportSize({width:390,height:900});
 
@@ -843,13 +843,16 @@ const U=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   /* (1) LA MARQUE DE REGISTRE NE PASSE PAS SOUS LE TEXTE. Le défaut n'existait qu'au FOCUS —
      un `padding` raccourci de la règle `:focus`, déclarée 1 350 lignes plus bas, écrasait le
      `padding-left` longhand qui réserve la place de l'icône. Le témoin doit donc FOCALISER. */
-  const li=document.querySelector('.blk .li.li-crit')||document.querySelector('.blk .li');
-  const inp=li.querySelector('input[data-sf]'),mk=li.querySelector('.li-mk');
+  /* A383 : le registre est une PASTILLE sous l'étape ; le texte d'une étape signalée commence au même x
+     que celui d'une étape ordinaire, même au focus. */
+  const li=[...document.querySelectorAll('.blk .li')].find(x=>x.querySelector('.li-chip:is(.crit,.vig)'))||document.querySelector('.blk .li');
+  const lo=[...document.querySelectorAll('.blk .li')].find(x=>!x.querySelector('.li-chip:is(.crit,.vig)'))||li;
+  const inp=li.querySelector('input[data-sf]');
   inp.focus();await w(200);
   const ci=getComputedStyle(inp),ri=inp.getBoundingClientRect();
-  const svg=mk&&mk.querySelector('svg'),rs=(svg||mk||inp).getBoundingClientRect();
-  const marque=li.classList.contains('li-crit')||li.classList.contains('li-vigil');
-  const chevauche=marque&&(ri.left+parseFloat(ci.paddingLeft)+parseFloat(ci.borderLeftWidth))<rs.right;
+  const ro=lo.querySelector('input[data-sf]').getBoundingClientRect();
+  const marque=!!li.querySelector('.li-chip:is(.crit,.vig)');
+  const chevauche=marque&&Math.abs((ri.left+parseFloat(ci.paddingLeft))-(ro.left+4))>2;
   /* (7) UNE SEULE VOIX : les deux champs de la rangée, même corps ET même police. */
   const ex=li.querySelector('.li-exp');const ce=getComputedStyle(ex);
   /* (2) LA RÉPONSE ATTENDUE SUIT LA FRAPPE, SANS RE-RENDU : la classe `has-exp` décide de son
@@ -889,7 +892,7 @@ const U=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     memeBoite,deplace,herTxt,apresTxt};});
 
 t('témoin : la rangée mesurée porte bien une marque de registre', U.marque===true, String(U.marque));
-t('la marque ⚠ ne passe pas SOUS le texte, même au focus', U.chevauche===false, `chevauche=${U.chevauche}`);
+t('le texte d’une étape signalée commence au même x que les autres, même au focus', U.chevauche===false, `décalé=${U.chevauche}`);
 t('les deux champs de la rangée ont la même voix (corps ET police)',
   U.fsDo===U.fsEx&&U.famDo===U.famEx, `${U.fsDo}/${U.famDo} vs ${U.fsEx}/${U.famEx}`);
 t('une réponse attendue AJOUTÉE s’affiche hors focus', U.apresAjout===true, String(U.apresAjout));

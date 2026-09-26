@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.33.0] — 2026-09-26
+L'éditeur s'allège : on écrit d'abord, on règle ensuite, jamais à plus d'un toucher (A383, doctrine
+`docs/decisions/lot-v5-33.md`). Demande de l'auteur après audit mesuré (ACR, 390 px : une étape
+touchée passait de 70 à plus de 500 px, onze commandes) ; maquettes E1-E7 et captures validées.
+- **Écrire n'ouvre plus rien** : toucher le texte d'une étape n'allume que ses champs. Un bouton
+  « Réglages » au bout de la ligne ouvre une feuille (basse au téléphone, centrée dès 780) à trois
+  sections nommées : importance (Normale · Vigilance · Critique, Mémoire, ×2), ce que fait la coche,
+  moment (« Dès le 1ᵉʳ passage / À partir d'un compte », seuil −/+, « Puis revient » en quatre cases).
+  Sans minuteur ni compteur, « ＋ Créer un minuteur / un compteur » les crée et les lie sur place.
+- **Ce qui est réglé se lit au repos**, en pastilles sous l'étape : Critique, Vigilance, ★ Mémoire,
+  ×2, « lance … », « +1 … », « Chocs délivrés ≥ 3 », « à l'échéance ». La réponse attendue passe sous
+  le texte ; les étapes sont plus compactes (≈ −20 %).
+- **Ce qui ne peut servir à rien n'est plus montré** : le moment, le minuteur du bloc et les jalons
+  n'apparaissent que si le bloc se répète (« ↺ Se répète ») ou s'ils sont déjà posés.
+- **« Options du bloc »** en carte dépliable, résumé à droite, ouverte d'office quand une option est
+  posée : bloc de départ, phase (qui quitte l'en-tête), libellé de « Continuer », minuteur du bloc,
+  jalons, image. Un jalon se lit comme une phrase : « Chocs délivrés ≥ − 3 + ». Les règles d'usage
+  ne sont plus répétées à chaque bloc.
+- Témoins : section A383 d'`audit-doctrine`, `audit-k5` et `audit-a11y` (la feuille est mesurée).
+
 ## [5.32.0] — 2026-09-26
 Une étape peut dire QUAND elle se présente dans un bloc parcouru plusieurs fois (A382, doctrine
 `docs/decisions/lot-v5-32.md`). Demande de l'auteur, sur maquettes revues fil par fil : au 1ᵉʳ choc,
@@ -637,36 +657,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
   `design/ds` régénéré, CHANGELOG à 20 ([5.23.4] archivée).
 - Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET 29/29 après le numéro
   de version.
-
-## [5.28.0] — 2026-09-08
-### « Terminer la session » se trouve là où la session se lit, le menu ⋯ ne répète plus le dock, et la méta des cartes d'accueil dit un état en mots (A336-A338)
-
-- **Demandes de l'auteur**, dessinées d'abord sur un canevas (quatre pistes, puis le menu, puis
-  sept options de méta), validées avant tout code.
-- **A336 — Terminer la session.** Une rangée « Terminer la session… — confirmation demandée »
-  ferme le volet de session (étroit) et le rail d'état (large), sous un intertitre « Session ·
-  depuis HH:MM ». Contour, jamais un aplat ; le tap ouvre la fenêtre « Terminer la session ? »,
-  qui reste la SEULE porte. Jamais chez l'invité ni en aperçu. Un seul bouton permanent, pas de
-  rappels ; formes refusées listées dans la doctrine.
-- **A337 — Menu ⋯.** Trois natures de rangée de plus (`{head}`, `{tiles}`, `{fold}`) : les
-  ouvertures (Moniteur, Se repérer, Schéma, Consulter hors session) en tuiles, des intertitres
-  « Session » / « L'aide », le sous-titre SOUS le libellé sur une ligne (rangées 44 ou 52 px),
-  largeur 300 px, la rangée danger en pied encadré. **En session le menu ne répète pas le dock** :
-  Complication et Consulter en sortent (remplace la double entrée de v4.26.1) ; la gestion de
-  l'aide se replie derrière « L'aide › ». 14 → 7 rangées en session. « Recommencer le parcours »
-  n'existe qu'en session. Piège mesuré : le pli re-rend le menu, le clic remontait au document
-  et le fermait (`stopPropagation`).
-- **A338 — Méta des cartes d'accueil** (option J). À gauche l'identité : nature · discriminant ·
-  ● catégorie ; à droite UN état en mots, le plus urgent : En cours 12:04 › Brouillon / À relire ›
-  À compléter › Sans date › À revérifier 06/2023 › Validée 01/2025. Une taille, une graisse, aucun
-  glyphe ni point, l'ambre pour ce qui attend. « Validé » n'apparaît plus qu'avec sa date ;
-  le code sort de la rangée. Ligne de base alignée (écart 1 px mesuré) ; la catégorie s'abrège
-  la première, le discriminant ensuite (plancher 4 em), jamais la nature ni l'état. Sous 360 px
-  effectifs l'état passe sous l'identité, hauteur de rangée unique 76 px (320 : aucun
-  débordement).
-- Témoins adaptés : `audit-complications` (aucune rangée Complication en session),
-  `audit-retour`, `audit-doctrine` (date lue dans `.dir-st`). Doctrine dans
-  `docs/decisions/lot-v5-28.md` (nouveau), index AGENTS.md / docs/README.md, `design/ds/`
-  régénéré. CHANGELOG à 20 ([5.23.3] archivée).
-- Vérifié : `npm run check` complet, 1196 tests × 2 moteurs, audit COMPLET après le numéro de
-  version.
