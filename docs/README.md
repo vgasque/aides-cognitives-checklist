@@ -59,6 +59,8 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A393 | `lot-v5-36.md` | Le PDF enregistré porte le nom de l'aide ; la pastille « Chemin » tient dans la colonne |
 | A394 | `lot-v5-36.md` | « Branche » remplace « Chemin n » : blocs indentés le long d'un trait unique (coin + filet), « ■ Fin » (amende A376) |
 | A395 | `lot-v5-36.md` | Page : le jalon suit les réponses en ligne « SI … [⚡] », en gris ; un seul dessin de « SI » (amende A391) |
+| A396 | `lot-v5-37.md` | La revue « à tout moment » : bloc `review` hors tronc, étape-revue (nom hérité), grille dans la boîte, coches `visite:revue:index`, faite d'elle-même |
+| A397 | `lot-v5-37.md` | La bande des repères du bloc : `item.poso`, un repère par étape liée, « fait · à faire · à préparer » venus de la coche, repliable, détail `item.note` ; icônes `pill`/`grid` |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

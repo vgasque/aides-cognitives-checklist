@@ -1,5 +1,34 @@
 # Journal des modifications
 
+## [5.37.0] — 2026-09-27
+La revue « à tout moment » et la bande des repères du bloc (A396-A397, doctrine `docs/decisions/lot-v5-37.md`).
+- **Revue « à tout moment ».** Une question que l'équipe se pose pendant tout le soin — les causes
+  réversibles (4H / 4T) de l'arrêt cardiaque — devient une liste d'hypothèses cochable. Elle se pose
+  dans le fil comme une étape, dans chaque bloc où l'on doit y penser, avec le nom de la revue ; un
+  toucher sur la rangée déplie les hypothèses dans sa boîte, chacune se coche sur place, la revue est
+  faite d'elle-même quand toutes sont cochées et ne retient jamais « Continuer ». À chaque passage
+  de la boucle, tout est à recocher ; « Nouvelle revue » remet la revue courante à zéro. Elle reste
+  ouvrable à tout moment sous le bloc, sous le même nom, et se lit dans la colonne « À tout moment »
+  du parcours et dans la Page. Les coches voyagent par le partage comme celles des étapes.
+- **Repères de ce bloc.** Un repère posologique peut être lié à une étape (Réglages de l'étape ›
+  « Repère posologique »). En session, les repères des étapes du bloc forment une bande au pied du
+  bloc, dans l'ordre des étapes, avec un mot venu de la coche : fait · à faire · à préparer — pendant
+  l'adrénaline, l'amiodarone est déjà lisible. La bande se replie d'un toucher (un seul état pour la
+  session, la tête repliée garde le compte et le résumé) ; un toucher sur une ligne ouvre le détail
+  du repère (préparation, dilution, administration), que l'éditeur écrit sous la ligne du repère.
+  Les rangées d'étapes ne changent pas : la boîte grise entière reste la coche.
+- **Éditeur.** Porte « Revue » de la palette ; carte propre pour chaque revue (titre, hypothèses avec
+  leur indice, réglages) ; sections « Revue » et « Repère posologique » dans la feuille Réglages d'une
+  étape ; détail sous chaque repère posologique.
+- **Icônes.** Le glyphe ℞ est remplacé par une pilule dessinée comme les autres icônes ; la revue
+  porte une grille.
+- **Fiches d'exemple** : dans l'ACR, la revue des causes réversibles est posée dans les deux blocs
+  de la boucle et l'adrénaline comme l'amiodarone sont liées à leur repère ; dans l'anaphylaxie,
+  l'adrénaline IM et le remplissage le sont aussi.
+- **Génération par IA** : bloc `review` et renvoi `review` d'un item (règle 19) ; un repère peut
+  s'écrire en objet avec un `id` et une `note`, et chaque étape qui dose un produit y renvoie par
+  `poso` (règle 20).
+
 ## [5.36.0] — 2026-09-27
 Imprimer la Page sans surprise, exporter une sélection, les liens des PDF, et des branches qui se lisent comme des branches (A392-A395, doctrine `docs/decisions/lot-v5-36.md`).
 - **Impression de la Page.** Sans l'option « imprimer les arrière-plans », les traits du tronc et des
@@ -564,26 +593,4 @@ doctrine `docs/decisions/lot-v5-30.md`).
   décision. Une cellule plus haute qu'une page reste un problème de contenu (l'éditeur signale au-delà
   de 8 étapes) ; un paginateur mesuré ne s'écrira que sur une fiche réelle qui imprime mal.
 - Doctrine A344 (addendum), CHANGELOG à 20 ([5.24.0] archivée).
-- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.29.1] — 2026-09-11
-### « Exporter en PDF » imprime la Page (A344, impression)
-
-- **Demande de l'auteur** : « vérifie que quand on clique sur imprimer cette aide ça imprime bien
-  cette page — pas les historiques de sessions ». Mesuré avant : le gestionnaire d'impression
-  forçait la vue d'ensemble (journal + plan Détails) depuis v4.18.0 ; session en cours, c'est le
-  journal de cette session qui partait sur le papier, et le quai de session, fixé, se répétait au
-  bas de chaque page.
-- **Ce qui s'imprime est la Page** : cran Page forcé au moment d'imprimer pour toute aide à plus
-  d'un bloc (une aide mono-bloc garde la vue d'ensemble dépliée), `body.print-page` masque tout ce
-  qui n'est pas la feuille (titre d'écran, onglets, recherche, bulle, retour au bloc), le quai est
-  masqué sans condition, la coque ne réclame plus une hauteur d'écran et la marge sous la feuille
-  n'ouvre plus une page vide.
-- **Mesuré page par page** (Chromium, A4, après le vrai `beforeprint`) : état de mal sur 3 pages,
-  ACR sur 2 ; les voies mesurées restent alignées d'une page à l'autre (une sortie émise page 1 entre
-  dans son bloc page 2). Une cellule et une décision ne se coupent jamais, la décision reste avec ce
-  qui la suit, une fourche peut se couper entre deux cellules — la garder entière repoussait la
-  moitié de l'algorithme à la page suivante en laissant une demi-page blanche. Ouvert : une fourche
-  plus haute qu'une page.
-- Doctrine A344 (addendum impression), index, CHANGELOG à 20 ([5.23.9] archivée).
 - Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.

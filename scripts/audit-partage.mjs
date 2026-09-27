@@ -1098,7 +1098,7 @@ await sec(`PARTAGE · le miroir suit quand l'hôte avance — moteur ${NOM_MOTEU
     window.scrollTo(0, 300);
     await new Promise(x => setTimeout(x, 250));
 
-    const blocs = (state.fiche.blocks || []).map(b => b.id);
+    const blocs = (state.fiche.blocks || []).filter(b => b.kind !== 'review').map(b => b.id);   // A396 : une revue n'est pas une étape du fil, on n'y navigue pas
     const cible = blocs.find(id => Runtime.nav.indexOf(id) < 0);
     const navApres = Runtime.nav.concat([cible]);
     const seqApres = Runtime.navSeq.concat([(Runtime.seq || 1) + 1]);

@@ -2515,9 +2515,9 @@
   .conf-sub{flex:1;font-size:12px;font-weight:700;color:var(--link);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   /* A369 — UN chevron (icône, trait) pour les cartes, le bloc, l'historique, la bulle, les rails et
      l'aperçu du schéma : bas fermé, haut ouvert. */
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev) svg{transform:rotate(90deg)}
-  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev,.k-chev,.pb-chev){margin-left:auto;flex:none;display:inline-flex;color:var(--ink-2);padding:0 2px}   /* gris (capture de l'auteur) — `--ink-2`, pas `--ink-3` : le glyphe reste peint, 2,13:1 en v5.6 */
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev,.k-chev,.pb-chev) svg{transform:rotate(90deg)}
+  :is(.conf-chev,.ov-chev,.rf-chev,.fp-chev,.alg-chev,.pf-chev,.k-chev,.pb-chev).open svg,details[open]>summary .rf-chev svg{transform:rotate(-90deg)}   /* les rails sont des <details> : l'état vient de l'attribut */
   .conf-head:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:8px}
   .conf-block ul.flat{margin:0;padding:10px 12px 12px;border-top:1px solid var(--line)}
   /* AVANT LA SESSION (v5.6, maquette) : l'encadré de la condition d'entrée. Contour d'alerte,
@@ -3343,6 +3343,44 @@
   .stp-now::after{content:"";position:absolute;inset:-8px -4px}   /* cible 44 px (règle 9, halo admis) */
   .mo-pips{display:inline-flex;gap:2px}
   .mo-pips i{width:8px;height:8px;border-radius:3px;box-shadow:inset 0 0 0 1.5px var(--ctl-line)}
+  /* A396 — l'étape-revue : la rangée est la PORTE de sa revue (case pointillée, pleine à n/n), la grille des
+     hypothèses se déplie DANS sa boîte — rien entre les rangées. Détail : lot-v5-37.md. */
+  ol.steps li.rev-row{align-items:flex-start}
+  ol.steps li.rev-row>.box{border-style:dashed;background:none}
+  ol.steps li.rev-row.done>.box{border-style:solid}
+  ol.steps li.rev-row>.txt{padding-top:6px}
+  .kline{display:flex;align-items:center;gap:6px;height:24px;margin-top:6px;font-size:var(--t-body);font-weight:600;line-height:24px;color:var(--act)}
+  .kline .wt-g{color:var(--act)}
+  .kline b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700}
+  .kline.ok,.kline.ok .wt-g{color:var(--ok)}
+  .rev-grid{margin:8px 0 2px;padding:2px 12px 10px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-2)}
+  ol.steps.rev{margin:0}
+  ol.steps.rev li{min-height:48px;padding:6px 0;border-radius:0;background:none;border-top:1px solid var(--work-line)}
+  ol.steps.rev li:first-child{border-top:0}
+  ol.steps.rev li+li{margin-top:0}
+  ol.steps.rev li .box{width:28px;height:28px;border-radius:var(--r-1)}
+  ol.steps.rev li .txt{font-size:var(--t-item)}
+  ol.steps.rev li .stp-r{font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
+  ol.steps.rev li.done{background:none}
+  .rev-foot{display:flex;justify-content:flex-end;padding-top:8px}
+  .fold-card .sf-body .rev-grid{margin:0;padding:0 0 10px;border:0}
+  /* A397 — la bande des repères du bloc : un repère par étape liée, dans l'ordre des étapes, un mot venu de la coche ;
+     repliable d'un tap sur sa tête, un seul état pour la session, la tête repliée garde le compte et le résumé. */
+  .pband{margin:12px 0 0;padding-top:8px;border-top:1px solid var(--work-line)}
+  .pb-head,.pb-row{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--hit);border:0;background:none;font-family:inherit;color:var(--ink);text-align:left;cursor:pointer;border-radius:var(--r-1)}
+  .pb-head{padding:0 8px}
+  .pb-t{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .pb-n{font-family:var(--mono);font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .pb-sum{margin-left:auto;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
+  .pband.closed .pb-body{display:none}
+  .pb-row{align-items:flex-start;padding:6px 8px}
+  .pb-ic{flex:none;width:20px;height:20px;margin-top:2px;border-radius:var(--r-1);display:grid;place-items:center;background:var(--primary-soft);color:var(--act)}
+  .pb-tx{flex:1;min-width:0;font-family:var(--mono);font-size:var(--t-body);font-weight:600;line-height:1.45;overflow-wrap:break-word}
+  .pb-nm{font-family:var(--f-ui);font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+  .pb-stt{flex:none;margin-top:2px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.06em;line-height:1;text-transform:uppercase;background:var(--amb-2);color:var(--ink-2)}
+  .pb-stt.on{background:var(--primary-soft);color:var(--act)}
+  .pb-stt.ok{background:var(--ok-soft);color:var(--ok)}
+  .pb-det{margin:0 0 6px 40px;padding:8px 12px;border-radius:var(--r-2);background:var(--amb);font-size:var(--t-body);font-weight:600;line-height:1.4;color:var(--ink)}
   .mo-pips i.on{background:var(--ink-2);box-shadow:none}
   /* TRACE DE VÉRIFICATION (v4.23.0) — visible APRÈS la passe, donc durable. Pilule compacte :
      « ✓✓ constaté » (CONFIRMATION) ou « △ écart » (ATTENTION). Le glyphe et le mot portent le sens,
@@ -4598,6 +4636,11 @@
   .ed-ic.vig{border-color:var(--verify-bd);background:var(--verify-soft);color:var(--warn)}
   .ed-ic:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .li-sum{order:3;flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px;margin:0 0 2px 40px}
+  /* A396/A397 — dans l'éditeur : la carte d'une revue (badge grille), le détail d'un repère sous sa ligne. */
+  .blk-n.rev{display:grid;place-items:center}
+  .blk.blk-rev{border-color:var(--primary-200)}
+  .li-note-in{order:4;flex:1 1 100%;margin:0 0 4px 40px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--r-2);background:var(--input-bg);font-size:var(--t-body);font-weight:600;color:var(--ink)}
+  .sv-rev .sv-t{font-weight:800}
   .li-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-size:12px;font-weight:700}
   .li-chip.crit,.li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
   .li-chip.vig{background:var(--verify-soft);color:var(--warn)}

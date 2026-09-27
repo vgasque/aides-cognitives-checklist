@@ -1075,6 +1075,27 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    eq('loopExitStops : la question est dans la boucle — le minuteur continue', A.loopExitStops(f,{t1:{b:'b1',x:0}},'b2'), []);
    eq('loopExitStops : un minuteur armé par une ÉTAPE ne s’arrête jamais de lui-même', A.loopExitStops(f,{t2:{b:'',x:0}},'b3'), []);
    eq('loopExitStops : déjà arrêté à la sortie — pas deux fois', A.loopExitStops(f,{t1:{b:'b1',x:5}},'b3'), []);
+   // A396/A397 — revue « à tout moment » et bande des repères (purs).
+   {const F=A.migrate({title:'R',blocks:[
+       {id:'b1',kind:'do',title:'Bloc',items:[{do:'Adrénaline',expect:'1 mg',poso:'d1'},{do:'x',review:'rv'},{do:'Amiodarone',poso:'d2'},{do:'Sans lien'},{do:'Adrénaline bis',poso:'d1'}],next:null},
+       {id:'rv',kind:'review',title:'Rechercher les causes',items:['Hypoxie :: FiO2','Hypovolémie']}],
+     items:[{id:'d1',role:'dose',do:'**ADRÉNALINE — IV/IO** : 1 mg / 3–5 min',note:'dilution'},{id:'d2',role:'dose',do:'AMIODARONE : 300 mg'}],start:'b1'});
+    const rb=A.revBlocks(F)[0],b1=F.blocks.find(b=>b.id==='b1');
+    eq('revBlocks : un bloc review, hors tronc, sans next', [rb.kind,rb.next===undefined,rb.title], ['review',true,'Rechercher les causes']);
+    eq('migrate : l’étape-revue prend le nom de sa revue', A.bItems(b1)[1].do, 'Rechercher les causes');
+    eq('migrate : un renvoi qui ne résout pas est retiré', A.migrate({title:'R',blocks:[{id:'b',kind:'do',items:[{do:'x',review:'nope',poso:'nope'}],next:null}],start:'b'}).items.some(it=>it.review||it.poso), false);
+    eq('revState : 0 sur 2 puis faite à 2/2', [A.revState(rb,1,{}),A.revState(rb,1,{'1:rv:0':1,'1:rv:1':1,'2:rv:0':1})], [{k:0,n:2,done:false},{k:2,n:2,done:true}]);
+    eq('revState : les coches d’un autre passage ne comptent pas', A.revState(rb,2,{'1:rv:0':1,'1:rv:1':1,'2:rv:0':1}).k, 1);
+    const band=A.posBandModel(F,b1,1,{'1:b1:0':1});
+    eq('posBandModel : un repère par étape liée, sans doublon, dans l’ordre', band.map(r=>r.id), ['d1','d2']);
+    eq('posBandModel : fait · à faire · à préparer viennent de la coche', band.map(r=>r.stt), ['fait','à faire']);
+    eq('posBandModel : nom, corps, détail lus une fois', [band[0].name,band[0].body,band[0].note], ['ADRÉNALINE — IV/IO','1 mg / 3–5 min','dilution']);
+    eq('posBandModel : l’étape-revue ne bloque pas « à faire »', A.posBandModel(F,b1,1,{}).map(r=>r.stt), ['à faire','à préparer']);}
+   // A397 — un repère écrit en objet {id,text,note} (prompt IA) garde son id pour les renvois `poso`.
+   {const G=A.migrate({title:'P',posology:[{id:'d9',text:'△ **X — IV** : 1 mg',note:'dilution 1/10'},'**Y** : 2 mg',{text:''}],blocks:[{id:'b',kind:'do',items:[{do:'X',poso:'d9'}],next:null}],start:'b'});
+    const d=A.roleItems(G,'dose');
+    eq('migrate : le repère-objet garde son id, son texte et sa note', [d.length,d[0].id,d[0].level,d[0].note,A.v4ItemToStr(d[0])], [2,'d9',2,'dilution 1/10','△ **X — IV** : 1 mg']);
+    eq('migrate : le renvoi poso vers ce repère résout', A.bItems(G.blocks[0])[0].poso, 'd9');}
    // A382 — le moment d'une étape (pur) : cn = compte, tm = état du minuteur, before = cochée à un passage antérieur.
    {const M=(it,c,t,bf,tid)=>A.momentOf(it,()=>c,()=>t,!!bf,tid||'');
     const fr={counter:'n1',n:3};

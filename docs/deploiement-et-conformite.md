@@ -406,6 +406,16 @@ Toute fonctionnalité produisant une **recommandation ou un calcul individualis�
 Si l'une de ces fonctions devient souhaitable, elle doit faire l'objet d'une **évaluation
 réglementaire dédiée** (classification, marquage CE, système qualité) **avant** développement.
 
+### La revue « à tout moment » et la bande des repères (v5.37)
+Une **revue** est une liste d'hypothèses écrite par l'auteur (causes réversibles 4H/4T…), cochable
+pendant la session. Une coche est un **enregistrement** de ce que l'équipe a considéré, au même titre
+qu'une étape cochée : le logiciel n'en déduit rien, ne calcule rien, n'alerte pas sur une hypothèse
+non cochée ni sur une revue non faite. La **bande des repères** d'un bloc recopie les repères
+posologiques que l'auteur a liés à ses étapes et leur accole un mot qui vient de la coche de l'étape
+(« fait », « à faire », « à préparer ») — jamais d'un minuteur ni d'une donnée patient. Qualification
+inchangée : support de contenu, communication d'un état. Ligne à ne pas franchir : un rappel que le
+logiciel déclencherait de lui-même (« causes non revues depuis n minutes ») serait une inférence.
+
 ### Bonnes pratiques à conserver pour rester dans ce cadre
 - Ne jamais introduire de saisie de données patient.
 - Garder les minuteurs/compteurs génériques (non liés à un patient).
