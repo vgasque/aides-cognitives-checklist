@@ -2044,7 +2044,7 @@
      balisage). La barre y est celle d'hier, mais à ordre IMPOSÉ et sans repli possible. */
   html:not(.zw1200) .sel-do{display:none}
   html:not(.zw1200) .sel-acts{display:contents}
-  html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 14px}
+  html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 10px}   /* A392 : quatre actes (Exporter en plus) — à 14 px de marge, le compte « n cochés » était tronqué à 1200 px (29 px manquants) */
   html:not(.zw1200) .sel-x .sel-g{display:none}
   /* DÉPLIÉE, LA LIGNE SE LIT EN DEUX GROUPES : ce qui décrit la SÉLECTION (le compte et les deux
      faces du segment) à gauche, ce qui AGIT sur elle à droite. La séparation se fait par une
@@ -2603,8 +2603,12 @@
   .pf-row.off{opacity:.62}.pf-row.off .pf-badge{background:none;border:2px dashed var(--line-strong);color:var(--ink-2)}
   .pf-col{flex:none;width:28px;display:flex;flex-direction:column;align-items:center;gap:4px}
   .pf-badge{width:28px;height:28px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);display:grid;place-items:center;font-size:var(--t-body);font-weight:800}
-  .pf-row.dec .pf-badge{width:20px;height:20px;margin:4px;border-radius:3px;transform:rotate(45deg);background:var(--warn-soft);border:2px solid var(--warn-line);color:var(--warn);font-size:var(--t-meta)}
-  .pf-row.dec .pf-badge>span{transform:rotate(-45deg)}
+  /* A392 : la PASTILLE reste droite et le LOSANGE se dessine dessous (::before tourné) — tourner la pastille puis contre-tourner
+     le chiffre le décentrait (mesuré : 1,6 px en colonne, le « 2 » touchait le bord). Même boîte que les autres numéros. */
+  .pf-row.dec .pf-badge{position:relative;isolation:isolate;background:none;border:0;color:var(--warn);font-size:var(--t-meta)}
+  .pf-row.dec .pf-badge::before{content:"";position:absolute;inset:4px;z-index:-1;transform:rotate(45deg);border-radius:3px;background:var(--warn-soft);border:2px solid var(--warn-line)}
+  .pf-row.dec .pf-badge>span{line-height:1}
+  .pf-row.dec.off .pf-badge::before{background:none;border-style:dashed;border-color:var(--line-strong)}
   .pf-row.rail .pf-col::after{content:"";flex:1;width:2px;background:var(--line-strong);margin-bottom:-14px}
   .pf-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:4px}
   .pf-title{font-size:var(--t-step);font-weight:800;line-height:1.3;text-wrap:pretty}
@@ -2619,6 +2623,10 @@
   .pf-lb{color:var(--ink);font-weight:500}
   .pf-r{color:var(--ink-2)}
   .pf-q{font-size:var(--t-meta);color:var(--ink-2)}
+  /* A392 : « une seule fois » déjà faite — le vert de la confirmation, avec son ✓ ; le libellé passe en encre douce. */
+  .pf-q.faite .q-now{color:var(--ok);font-weight:700}.pf-q .q-pr{display:none}
+  li.faite>.pf-lb{color:var(--ink-2)}
+  .fq .fq-d,.fq.faite .fq-t{display:none}.fq.faite .fq-d{display:inline}
   /* A388 : « Si … : » coiffe les étapes CONSÉCUTIVES au même seuil ; le filet dit jusqu'où la condition porte. */
   .pf-steps li.pf-grp{padding-left:0}.pf-steps li.pf-grp::before{display:none}
   .pf-gh{margin:2px 0 4px;font-size:var(--t-meta);color:var(--ink-2)}
@@ -2642,14 +2650,20 @@
   .pf-flat.dense .pf-row.dec{padding:6px 8px 6px 6px}
   .pf-flat.dense .pf-col{width:22px}
   .pf-flat.dense .pf-badge{width:22px;height:22px;font-size:var(--t-meta)}
-  .pf-flat.dense .pf-row.dec .pf-badge{width:16px;height:16px;margin:4px 0 0;font-size:var(--t-cap)}   /* tourné, 16 px occupe les 22 de la colonne : les numéros restent sur UNE verticale */
+  .pf-flat.dense .pf-row.dec .pf-badge{font-size:var(--t-cap)}
+  .pf-flat.dense .pf-row.dec .pf-badge::before{inset:3px}   /* 16 px tournés : le losange occupe les 22 de la colonne */
   .pf-flat.dense .pf-title{font-size:var(--t-body)}
   .pf-flat.dense .pf-steps li{padding-left:14px;font-size:var(--t-body)}
   .pf-flat.dense .pf-steps li::before{left:2px;top:8px}
   .pf-flat.dense .pf-steps li.pf-grp{padding-left:0}
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
-  .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);white-space:nowrap}
+  .pf-flat.dense .pf-br{margin-top:12px}
+  .pf-flat.dense .pf-br>.pf-row{margin-left:14px}
+  .pf-flat.dense .pf-br::before{left:7px;width:8px}
+  .pf-flat.dense .pf-br>.pf-seg{margin:0;padding:0 12px 0 20px}   /* A393 : 12 px de jeu à droite — la pastille ne frôle jamais le filet de la colonne */
+  .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);min-width:0;flex:0 1 auto;text-align:left}   /* A393 : une réponse longue passe à la ligne DANS la pastille, jamais au-delà du bord */
+  .pf-flat.dense .pf-src.pf-dec>span:not(:last-child){flex:none}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -2667,7 +2681,15 @@
   .pf-segl{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
   .pf-src.pf-dec{background:var(--warn-soft);min-height:44px;font-size:var(--t-body);gap:6px}
   .pf-src.pf-dec>span:first-child{color:var(--warn)}
-  .pf-segr{flex:1;height:1px;background:var(--line)}
+  .pf-segr{flex:1;min-width:12px;height:1px;background:var(--line)}   /* A393 : le filet reste visible, la pastille ne touche jamais le bord */
+  /* A394 : une BRANCHE — son en-tête « ↳ Branche », puis ses blocs indentés le long d'un filet vertical qui descend du ↳
+     jusqu'à son dernier bloc ; la branche suivante repart de la marge. Blanc AVANT (elle se détache), serré APRÈS l'en-tête. */
+  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:20px}
+  .pf-br>.pf-seg{margin:0;padding:0 8px 0 24px;min-height:44px}
+  .pf-br>.pf-row{margin-left:20px}
+  /* UN SEUL trait, une seule épaisseur : le filet part du milieu de l'en-tête, tourne vers « Branche » par un coin
+     arrondi et descend le long de la branche (le ↳ de police, plus fin, se superposait au filet — refusé). */
+  .pf-br::before{content:"";position:absolute;left:9px;top:22px;bottom:6px;width:10px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
   :is(.pf-ref,.pf-src):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pf-ref,.pf-src,.pf-tg,.pf-all{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
@@ -5243,13 +5265,15 @@
      (0,6,0) : les quatre prolongements ci-dessous (0,3,0) ne s'appliquaient JAMAIS — le tronc s'arrêtait 12 px avant le
      raccord d'une pilule (signalé à l'usage : « problème de jonction »), 4 px sous la barre d'une fourche, et ne
      rejoignait pas une cible décalée. */
-  .sv-col>.sv-row:where(:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow))::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  /* A392 : les traits de la Page sont des BORDURES, pas des fonds — sans « imprimer les arrière-plans », un fond ne s'imprime
+     pas et il ne restait sur le papier que les pointes (signalé à l'usage, PDF à l'appui). */
+  .sv-col>.sv-row:where(:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow))::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-col>.sv-row:has(+ .sv-fork)::after{bottom:-8px}
   .sv-col>.sv-row:has(+ .sv-jrow)::after{bottom:-24px}
   .sv-col>.sv-row:has(+ .sv-tgt)::after{bottom:-22px}
   .sv-col>.sv-row:has(+ .sv-merged)::after{bottom:-22px}
   /* Une pilule (« ↺ revenir », « ↓ continuer », « → aller ») se raccorde au tronc par un tiret. */
-  .sv-jrow::before{content:"";position:absolute;left:-19px;top:15px;width:19px;height:2px;background:var(--ink-soft)}
+  .sv-jrow::before{content:"";position:absolute;left:-19px;top:15px;width:19px;height:0;border-top:2px solid var(--ink-soft)}
   .sv-cell{border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);padding:4px 8px;cursor:pointer;min-width:0}
   .sv-cell[role="button"],.sv-band{min-height:44px}
   .sv-cell:hover,.sv-band:hover{border-color:var(--primary)}
@@ -5260,7 +5284,7 @@
   .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
   /* Une cible de sortie ou un bloc commun prend un peu d'air au-dessus : la barre d'entrée y vit. */
   .sv-tgt,.sv-merged{margin-top:10px}
-  .sv-merged::before{content:"";position:absolute;left:-19px;top:-10px;height:14px;width:2px;background:var(--ink-soft)}
+  .sv-merged::before{content:"";position:absolute;left:-19px;top:-10px;height:14px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-ah{position:absolute;left:-23px;top:-2px;width:0;height:0;border-top:6px solid var(--ink-soft);border-left:5px solid transparent;border-right:5px solid transparent}
   .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
   .sv-n{font-family:var(--mono);font-size:var(--t-cap);font-weight:700;color:var(--ink-soft);flex:none}
@@ -5295,8 +5319,17 @@
   .sv-stp li.crit .sv-bx{border-color:var(--critical-bd)}
   .sv-stp li.vig .sv-lab{color:var(--verify);font-weight:700}
   .sv-stp li.vig .sv-bx{border-color:var(--verify-bd)}
-  .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--ink-2)}   /* A391 : « Si … : » comme le parcours, plus d'ambre */
-  .sv-jl svg{vertical-align:-2px}
+  /* A395 : UN dessin de « SI » dans la Page — celui des réponses (chasse fixe, 600) ; ambre pour une réponse, GRIS pour un
+     seuil (jalon, groupe d'étapes). Le jalon passe sous un pointillé, après les réponses ou les étapes. */
+  .sv-jl{margin:4px 0 0;padding-top:4px;border-top:1px dotted var(--line-strong)}
+  .sv-band .sv-jl{border-top-color:var(--verify-bd)}
+  .sv-opt.jl .si,.sv-si{font-family:var(--mono);font-weight:600;color:var(--ink-2)}
+  .sv-si{margin-right:2px}
+  .sv-opt.jl .lb{font-weight:400;color:var(--ink-2)}
+  .sv-opt.jl .lb b{font-weight:700;color:var(--ink)}
+  .sv-opt.jl .ld{border-bottom-color:var(--line-strong)}
+  .sv-opt .to.jl{display:inline-flex;align-items:center;gap:4px;font-family:inherit;text-transform:none;letter-spacing:0;color:var(--ink-2);border-color:var(--line-strong)}
+  .sv-opt .to.jl svg{flex:none}
   /* A391 : réglages de coche en mots — le qualificatif passe SOUS le libellé (aligné sur lui), l'en-tête « Si … : »
      coiffe les étapes consécutives au même seuil, qu'un filet relie. */
   .sv-stp li>.pf-q{flex:0 0 100%;padding-left:16px;font-size:var(--t-cap)}   /* comme la réponse repliée (.sv-rb) */
@@ -5306,7 +5339,6 @@
   /* LA DÉCISION CONTIENT SES ALTERNATIVES (QRH) : « SI ‹option› ……… CONTINUER ↓ n / ALLER À n /
      REVENIR À n / ▪ FIN ». La ligne est la vérité ; la voie tracée n'est qu'un rappel de trajet. */
   .sv-band{display:block;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:4px 8px 6px;cursor:pointer;min-width:0}
-  .sv-band .sv-jl{margin:0 0 4px}
   .sv-band .sv-t{color:var(--verify)}
   .sv-band .sv-m{color:var(--verify)}
   .sv-q{margin:0 0 4px;font-size:var(--t-cap);font-weight:800;color:var(--verify);line-height:1.35}
@@ -5329,12 +5361,12 @@
      réunion quand la branche rejoint le bloc commun (`.cont`) — sinon la descente s'arrête au numéro. */
   .sv-fork{display:flex;gap:12px;align-items:stretch;margin:8px 0 0}   /* pas de retrait : ses colonnes portent leurs numéros */
   .sv-fork.sv-coll{margin-bottom:16px}
-  .sv-fork::before{content:"";position:absolute;left:13px;top:-8px;right:calc(50% - 20px);height:2px;background:var(--ink-soft)}
+  .sv-fork::before{content:"";position:absolute;left:13px;top:-8px;right:calc(50% - 20px);height:0;border-top:2px solid var(--ink-soft)}
   .sv-br{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column}
-  .sv-br::after{content:"";position:absolute;left:13px;top:-8px;height:38px;width:2px;background:var(--ink-soft)}
+  .sv-br::after{content:"";position:absolute;left:13px;top:-8px;height:38px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-br.cont::after{height:auto;bottom:-10px}
   .sv-br>.sv-ah{top:24px;left:9px}
-  .sv-mbar{position:absolute;left:13px;bottom:-10px;width:2px;height:2px;background:var(--ink-soft)}
+  .sv-mbar{position:absolute;left:13px;bottom:-10px;width:2px;height:0;border-top:2px solid var(--ink-soft)}
   .sv-fork.sv-mg-lr>.sv-mbar,.sv-fork.sv-mg-r>.sv-mbar{width:auto;right:calc(50% - 20px)}
   .sv-sh2{display:flex;align-items:center;gap:8px;height:20px;margin:0 0 6px 32px;font-size:var(--t-cap);font-weight:800;color:var(--verify);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .sv-sh2 .si{font-family:var(--mono);font-weight:600;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--verify-bd);background:var(--verify-soft);border-radius:3px;padding:0 6px;line-height:18px;flex:none}
@@ -5342,9 +5374,9 @@
   /* LE RAIL (trois branches ou plus, ou une fourche dans une colonne déjà partagée) : les branches
      l'une sous l'autre en retrait, la colonne de la décision descend en trait plein et une équerre
      entre dans le premier numéro de chacune ; il s'arrête à la dernière équerre. */
-  .sv-col>.sv-lvl::before{content:"";position:absolute;left:-19px;top:-12px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  .sv-col>.sv-lvl::before{content:"";position:absolute;left:-19px;top:-12px;bottom:-12px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-col>.sv-lvl.last::before{bottom:auto;height:57px}
-  .sv-rung{position:absolute;left:-19px;top:43px;width:16px;height:2px;background:var(--ink-soft)}
+  .sv-rung{position:absolute;left:-19px;top:43px;width:16px;height:0;border-top:2px solid var(--ink-soft)}
   .sv-rung::after{content:"";position:absolute;right:-3px;top:-4px;width:0;height:0;border-left:6px solid var(--ink-soft);border-top:5px solid transparent;border-bottom:5px solid transparent}
   /* Sections de la fiche en cellules : INERTES — pas de curseur main, registres ALERTE (chapeau)
      et ATTENTION (surveillances) par bord gauche + titre (jamais la couleur seule). */
@@ -5367,6 +5399,8 @@
   .sv-jump:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .sv-end{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok);padding:2px}
   .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
+  .sv-gutk{overflow:visible}   /* calque d’une page suivante : ses voies peuvent déborder de la rangée qui le porte */
+  .sv-pgb{position:relative;height:12px}   /* A392 : la cale qui ouvre une page imprimée porte le calque de cette page (.sv-gutk) */
   .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.5;stroke-dasharray:4 3;stroke-linejoin:round}
   .sv-gut .lph{fill:var(--link)}
   .sv-gut .sp{fill:none;stroke:var(--ink-soft);stroke-width:2;stroke-linejoin:round}
@@ -7147,6 +7181,9 @@
   .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
+  .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
+  .pdf-lnk:hover{background:var(--primary-soft);mix-blend-mode:multiply}
+  .pdf-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
   .pdf-msg{color:var(--ink-soft);text-align:center;padding:32px 16px;font-size:13.5px}
   /* Petit écran (v4.19.2, retour d'usage) : la barre passe sur DEUX rangées — titre + ✕ en
      haut, outils en pleine largeur dessous. Depuis le bouton ⤓ (v4.19.0), une seule rangée
@@ -7508,10 +7545,12 @@
        `@page` ne pose aucune marge horizontale, aucun moteur n'en ajoute par-dessus. */
     .sv-sheet{border-color:transparent;margin:0 auto}
     /* La PAGE seule sur le papier : ni titre d'écran, ni onglets, ni recherche, ni quai, ni bulle. */
-    body.print-page .read-main>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
+    /* A392 : la feuille peut vivre DANS `.care-flat` (une étape de plus sous elle) — l'ancien sélecteur, limité aux enfants
+       directs, masquait alors le conteneur ENTIER : page blanche, mesurée à l'impression Chromium. */
+    body.print-page .read-main>:not(.sv-wrap):not(:has(.sv-wrap)),body.print-page .care-flat>.cf-stage:not(:has(.sv-wrap)),body.print-page .cf-stage:has(>.sv-wrap)>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
     body.print-page #crisisDock,body.print-page .sd-hint-w,body.print-page #blkReturn{display:none!important}
     #sessionDock{display:none!important}   /* le quai est FIXÉ : sans cela il se répète sur chaque page */
-    .sv-cut{break-before:page!important}
+    .sv-pgb{break-before:page!important}
     body.print-nogut .sv-gut{display:none!important}   /* le paginateur a renoncé : pas de tracé faux */
     .app{min-height:0!important;background:var(--paper)!important}   /* une hauteur d'ÉCRAN imprimait une page vide */
     html{background:var(--paper)!important}
@@ -7534,6 +7573,12 @@
     .sv-stp li.done .sv-bx{border-color:var(--ctl-line)!important}
     .sv-stp li.done .sv-bx::after{display:none!important}
     .sv-m{display:none!important}
+    /* A392 : le numéro d'un bloc est un CADRE sur papier — pastille pleine à l'écran, mais sans « imprimer les arrière-plans »
+       son fond partait et il ne restait qu'un chiffre blanc à peine visible (signalé). Une bordure s'imprime toujours :
+       même rendu avec ou sans arrière-plans. */
+    .sv-num{box-sizing:border-box;background:var(--paper)!important;color:var(--ink)!important;border:2px solid var(--ink)}
+    .sv-num.dec{color:var(--verify)!important;border-color:var(--verify-bd)}
+    .pf-q.faite .q-now{display:none!important}.pf-q.faite .q-pr{display:inline!important}li.faite>.pf-lb{color:inherit!important}   /* A392 : « ✓ faite » est un état de session */
     @media (orientation:portrait){.sv-dz{grid-template-columns:1fr 1fr!important}}
     @media (orientation:landscape){.sv-dz{grid-template-columns:repeat(3,1fr)!important}}}
   /* ===== Windows High Contrast (forced-colors) — v4.30.0, premier filet =====

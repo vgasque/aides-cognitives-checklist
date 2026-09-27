@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-ZGC0dq5R34gKw4sk14FKmNnveeCS6nXjFsxxo/0b+zI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-87CHN44yHwan5t9OihU5YNpugLYxDQD/CUkaWDGUpqE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -2399,7 +2399,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      balisage). La barre y est celle d'hier, mais à ordre IMPOSÉ et sans repli possible. */
   html:not(.zw1200) .sel-do{display:none}
   html:not(.zw1200) .sel-acts{display:contents}
-  html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 14px}
+  html:not(.zw1200) .sel-bar .sel-acts .btn{padding:0 10px}   /* A392 : quatre actes (Exporter en plus) — à 14 px de marge, le compte « n cochés » était tronqué à 1200 px (29 px manquants) */
   html:not(.zw1200) .sel-x .sel-g{display:none}
   /* DÉPLIÉE, LA LIGNE SE LIT EN DEUX GROUPES : ce qui décrit la SÉLECTION (le compte et les deux
      faces du segment) à gauche, ce qui AGIT sur elle à droite. La séparation se fait par une
@@ -2958,8 +2958,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-row.off{opacity:.62}.pf-row.off .pf-badge{background:none;border:2px dashed var(--line-strong);color:var(--ink-2)}
   .pf-col{flex:none;width:28px;display:flex;flex-direction:column;align-items:center;gap:4px}
   .pf-badge{width:28px;height:28px;border-radius:var(--r-1);background:var(--sys);color:var(--sys-ink);display:grid;place-items:center;font-size:var(--t-body);font-weight:800}
-  .pf-row.dec .pf-badge{width:20px;height:20px;margin:4px;border-radius:3px;transform:rotate(45deg);background:var(--warn-soft);border:2px solid var(--warn-line);color:var(--warn);font-size:var(--t-meta)}
-  .pf-row.dec .pf-badge>span{transform:rotate(-45deg)}
+  /* A392 : la PASTILLE reste droite et le LOSANGE se dessine dessous (::before tourné) — tourner la pastille puis contre-tourner
+     le chiffre le décentrait (mesuré : 1,6 px en colonne, le « 2 » touchait le bord). Même boîte que les autres numéros. */
+  .pf-row.dec .pf-badge{position:relative;isolation:isolate;background:none;border:0;color:var(--warn);font-size:var(--t-meta)}
+  .pf-row.dec .pf-badge::before{content:"";position:absolute;inset:4px;z-index:-1;transform:rotate(45deg);border-radius:3px;background:var(--warn-soft);border:2px solid var(--warn-line)}
+  .pf-row.dec .pf-badge>span{line-height:1}
+  .pf-row.dec.off .pf-badge::before{background:none;border-style:dashed;border-color:var(--line-strong)}
   .pf-row.rail .pf-col::after{content:"";flex:1;width:2px;background:var(--line-strong);margin-bottom:-14px}
   .pf-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:4px}
   .pf-title{font-size:var(--t-step);font-weight:800;line-height:1.3;text-wrap:pretty}
@@ -2974,6 +2978,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-lb{color:var(--ink);font-weight:500}
   .pf-r{color:var(--ink-2)}
   .pf-q{font-size:var(--t-meta);color:var(--ink-2)}
+  /* A392 : « une seule fois » déjà faite — le vert de la confirmation, avec son ✓ ; le libellé passe en encre douce. */
+  .pf-q.faite .q-now{color:var(--ok);font-weight:700}.pf-q .q-pr{display:none}
+  li.faite>.pf-lb{color:var(--ink-2)}
+  .fq .fq-d,.fq.faite .fq-t{display:none}.fq.faite .fq-d{display:inline}
   /* A388 : « Si … : » coiffe les étapes CONSÉCUTIVES au même seuil ; le filet dit jusqu'où la condition porte. */
   .pf-steps li.pf-grp{padding-left:0}.pf-steps li.pf-grp::before{display:none}
   .pf-gh{margin:2px 0 4px;font-size:var(--t-meta);color:var(--ink-2)}
@@ -2997,14 +3005,20 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-flat.dense .pf-row.dec{padding:6px 8px 6px 6px}
   .pf-flat.dense .pf-col{width:22px}
   .pf-flat.dense .pf-badge{width:22px;height:22px;font-size:var(--t-meta)}
-  .pf-flat.dense .pf-row.dec .pf-badge{width:16px;height:16px;margin:4px 0 0;font-size:var(--t-cap)}   /* tourné, 16 px occupe les 22 de la colonne : les numéros restent sur UNE verticale */
+  .pf-flat.dense .pf-row.dec .pf-badge{font-size:var(--t-cap)}
+  .pf-flat.dense .pf-row.dec .pf-badge::before{inset:3px}   /* 16 px tournés : le losange occupe les 22 de la colonne */
   .pf-flat.dense .pf-title{font-size:var(--t-body)}
   .pf-flat.dense .pf-steps li{padding-left:14px;font-size:var(--t-body)}
   .pf-flat.dense .pf-steps li::before{left:2px;top:8px}
   .pf-flat.dense .pf-steps li.pf-grp{padding-left:0}
   .pf-flat.dense :is(.pf-opt,.pf-ref,.pf-jl,.pf-end){font-size:var(--t-meta)}
   .pf-flat.dense .pf-seg{margin:12px 0 4px;padding:0 6px}
-  .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);white-space:nowrap}
+  .pf-flat.dense .pf-br{margin-top:12px}
+  .pf-flat.dense .pf-br>.pf-row{margin-left:14px}
+  .pf-flat.dense .pf-br::before{left:7px;width:8px}
+  .pf-flat.dense .pf-br>.pf-seg{margin:0;padding:0 12px 0 20px}   /* A393 : 12 px de jeu à droite — la pastille ne frôle jamais le filet de la colonne */
+  .pf-flat.dense .pf-src.pf-dec{min-height:32px;font-size:var(--t-meta);min-width:0;flex:0 1 auto;text-align:left}   /* A393 : une réponse longue passe à la ligne DANS la pastille, jamais au-delà du bord */
+  .pf-flat.dense .pf-src.pf-dec>span:not(:last-child){flex:none}
   .pf-opt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:32px;padding:0 4px;font-size:var(--t-body)}
   .pf-opt b{font-weight:800;color:var(--warn)}
   .pf-opt>span{color:var(--ink-2)}
@@ -3022,7 +3036,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pf-segl{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
   .pf-src.pf-dec{background:var(--warn-soft);min-height:44px;font-size:var(--t-body);gap:6px}
   .pf-src.pf-dec>span:first-child{color:var(--warn)}
-  .pf-segr{flex:1;height:1px;background:var(--line)}
+  .pf-segr{flex:1;min-width:12px;height:1px;background:var(--line)}   /* A393 : le filet reste visible, la pastille ne touche jamais le bord */
+  /* A394 : une BRANCHE — son en-tête « ↳ Branche », puis ses blocs indentés le long d'un filet vertical qui descend du ↳
+     jusqu'à son dernier bloc ; la branche suivante repart de la marge. Blanc AVANT (elle se détache), serré APRÈS l'en-tête. */
+  .pf-br{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:20px}
+  .pf-br>.pf-seg{margin:0;padding:0 8px 0 24px;min-height:44px}
+  .pf-br>.pf-row{margin-left:20px}
+  /* UN SEUL trait, une seule épaisseur : le filet part du milieu de l'en-tête, tourne vers « Branche » par un coin
+     arrondi et descend le long de la branche (le ↳ de police, plus fin, se superposait au filet — refusé). */
+  .pf-br::before{content:"";position:absolute;left:9px;top:22px;bottom:6px;width:10px;border-left:2px solid var(--line-strong);border-top:2px solid var(--line-strong);border-top-left-radius:var(--r-1)}
   :is(.pf-ref,.pf-src):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .pf-ref,.pf-src,.pf-tg,.pf-all{position:relative}:is(.pf-ref,.pf-src,.pf-tg,.pf-all)::after{content:"";position:absolute;inset:-6px 0}   /* A376 : renvoi en ligne de 32 + halo 6 = cible 44 (la liste vit aussi en session) ; A388 : titres pliables et « Tout déplier » aussi */
   /* ⚠ Bouton de démarrage au DOCK (v5.6) ; purgés avec lui (règle 14) : `.sess-start`, `.ss-hint`,
@@ -5598,13 +5620,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      (0,6,0) : les quatre prolongements ci-dessous (0,3,0) ne s'appliquaient JAMAIS — le tronc s'arrêtait 12 px avant le
      raccord d'une pilule (signalé à l'usage : « problème de jonction »), 4 px sous la barre d'une fourche, et ne
      rejoignait pas une cible décalée. */
-  .sv-col>.sv-row:where(:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow))::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  /* A392 : les traits de la Page sont des BORDURES, pas des fonds — sans « imprimer les arrière-plans », un fond ne s'imprime
+     pas et il ne restait sur le papier que les pointes (signalé à l'usage, PDF à l'appui). */
+  .sv-col>.sv-row:where(:not(:last-child):not(.sv-fork):not(.sv-lvl):not(.sv-jrow))::after{content:"";position:absolute;left:-19px;top:32px;bottom:-12px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-col>.sv-row:has(+ .sv-fork)::after{bottom:-8px}
   .sv-col>.sv-row:has(+ .sv-jrow)::after{bottom:-24px}
   .sv-col>.sv-row:has(+ .sv-tgt)::after{bottom:-22px}
   .sv-col>.sv-row:has(+ .sv-merged)::after{bottom:-22px}
   /* Une pilule (« ↺ revenir », « ↓ continuer », « → aller ») se raccorde au tronc par un tiret. */
-  .sv-jrow::before{content:"";position:absolute;left:-19px;top:15px;width:19px;height:2px;background:var(--ink-soft)}
+  .sv-jrow::before{content:"";position:absolute;left:-19px;top:15px;width:19px;height:0;border-top:2px solid var(--ink-soft)}
   .sv-cell{border:1px solid var(--line-strong);border-radius:3px;background:var(--surface);padding:4px 8px;cursor:pointer;min-width:0}
   .sv-cell[role="button"],.sv-band{min-height:44px}
   .sv-cell:hover,.sv-band:hover{border-color:var(--primary)}
@@ -5615,7 +5639,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-cell.flash,.sv-band.flash{outline:3px solid var(--primary-soft);outline-offset:1px}
   /* Une cible de sortie ou un bloc commun prend un peu d'air au-dessus : la barre d'entrée y vit. */
   .sv-tgt,.sv-merged{margin-top:10px}
-  .sv-merged::before{content:"";position:absolute;left:-19px;top:-10px;height:14px;width:2px;background:var(--ink-soft)}
+  .sv-merged::before{content:"";position:absolute;left:-19px;top:-10px;height:14px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-ah{position:absolute;left:-23px;top:-2px;width:0;height:0;border-top:6px solid var(--ink-soft);border-left:5px solid transparent;border-right:5px solid transparent}
   .sv-h{display:flex;align-items:baseline;gap:6px;margin:0;min-width:0}
   .sv-n{font-family:var(--mono);font-size:var(--t-cap);font-weight:700;color:var(--ink-soft);flex:none}
@@ -5650,8 +5674,17 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-stp li.crit .sv-bx{border-color:var(--critical-bd)}
   .sv-stp li.vig .sv-lab{color:var(--verify);font-weight:700}
   .sv-stp li.vig .sv-bx{border-color:var(--verify-bd)}
-  .sv-jl{margin:2px 0 0;font-size:var(--t-cap);line-height:1.45;color:var(--ink-2)}   /* A391 : « Si … : » comme le parcours, plus d'ambre */
-  .sv-jl svg{vertical-align:-2px}
+  /* A395 : UN dessin de « SI » dans la Page — celui des réponses (chasse fixe, 600) ; ambre pour une réponse, GRIS pour un
+     seuil (jalon, groupe d'étapes). Le jalon passe sous un pointillé, après les réponses ou les étapes. */
+  .sv-jl{margin:4px 0 0;padding-top:4px;border-top:1px dotted var(--line-strong)}
+  .sv-band .sv-jl{border-top-color:var(--verify-bd)}
+  .sv-opt.jl .si,.sv-si{font-family:var(--mono);font-weight:600;color:var(--ink-2)}
+  .sv-si{margin-right:2px}
+  .sv-opt.jl .lb{font-weight:400;color:var(--ink-2)}
+  .sv-opt.jl .lb b{font-weight:700;color:var(--ink)}
+  .sv-opt.jl .ld{border-bottom-color:var(--line-strong)}
+  .sv-opt .to.jl{display:inline-flex;align-items:center;gap:4px;font-family:inherit;text-transform:none;letter-spacing:0;color:var(--ink-2);border-color:var(--line-strong)}
+  .sv-opt .to.jl svg{flex:none}
   /* A391 : réglages de coche en mots — le qualificatif passe SOUS le libellé (aligné sur lui), l'en-tête « Si … : »
      coiffe les étapes consécutives au même seuil, qu'un filet relie. */
   .sv-stp li>.pf-q{flex:0 0 100%;padding-left:16px;font-size:var(--t-cap)}   /* comme la réponse repliée (.sv-rb) */
@@ -5661,7 +5694,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* LA DÉCISION CONTIENT SES ALTERNATIVES (QRH) : « SI ‹option› ……… CONTINUER ↓ n / ALLER À n /
      REVENIR À n / ▪ FIN ». La ligne est la vérité ; la voie tracée n'est qu'un rappel de trajet. */
   .sv-band{display:block;border:1px solid var(--verify-bd);border-radius:3px;background:var(--verify-soft);padding:4px 8px 6px;cursor:pointer;min-width:0}
-  .sv-band .sv-jl{margin:0 0 4px}
   .sv-band .sv-t{color:var(--verify)}
   .sv-band .sv-m{color:var(--verify)}
   .sv-q{margin:0 0 4px;font-size:var(--t-cap);font-weight:800;color:var(--verify);line-height:1.35}
@@ -5684,12 +5716,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      réunion quand la branche rejoint le bloc commun (`.cont`) — sinon la descente s'arrête au numéro. */
   .sv-fork{display:flex;gap:12px;align-items:stretch;margin:8px 0 0}   /* pas de retrait : ses colonnes portent leurs numéros */
   .sv-fork.sv-coll{margin-bottom:16px}
-  .sv-fork::before{content:"";position:absolute;left:13px;top:-8px;right:calc(50% - 20px);height:2px;background:var(--ink-soft)}
+  .sv-fork::before{content:"";position:absolute;left:13px;top:-8px;right:calc(50% - 20px);height:0;border-top:2px solid var(--ink-soft)}
   .sv-br{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column}
-  .sv-br::after{content:"";position:absolute;left:13px;top:-8px;height:38px;width:2px;background:var(--ink-soft)}
+  .sv-br::after{content:"";position:absolute;left:13px;top:-8px;height:38px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-br.cont::after{height:auto;bottom:-10px}
   .sv-br>.sv-ah{top:24px;left:9px}
-  .sv-mbar{position:absolute;left:13px;bottom:-10px;width:2px;height:2px;background:var(--ink-soft)}
+  .sv-mbar{position:absolute;left:13px;bottom:-10px;width:2px;height:0;border-top:2px solid var(--ink-soft)}
   .sv-fork.sv-mg-lr>.sv-mbar,.sv-fork.sv-mg-r>.sv-mbar{width:auto;right:calc(50% - 20px)}
   .sv-sh2{display:flex;align-items:center;gap:8px;height:20px;margin:0 0 6px 32px;font-size:var(--t-cap);font-weight:800;color:var(--verify);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .sv-sh2 .si{font-family:var(--mono);font-weight:600;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--verify-bd);background:var(--verify-soft);border-radius:3px;padding:0 6px;line-height:18px;flex:none}
@@ -5697,9 +5729,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* LE RAIL (trois branches ou plus, ou une fourche dans une colonne déjà partagée) : les branches
      l'une sous l'autre en retrait, la colonne de la décision descend en trait plein et une équerre
      entre dans le premier numéro de chacune ; il s'arrête à la dernière équerre. */
-  .sv-col>.sv-lvl::before{content:"";position:absolute;left:-19px;top:-12px;bottom:-12px;width:2px;background:var(--ink-soft)}
+  .sv-col>.sv-lvl::before{content:"";position:absolute;left:-19px;top:-12px;bottom:-12px;width:0;border-left:2px solid var(--ink-soft)}
   .sv-col>.sv-lvl.last::before{bottom:auto;height:57px}
-  .sv-rung{position:absolute;left:-19px;top:43px;width:16px;height:2px;background:var(--ink-soft)}
+  .sv-rung{position:absolute;left:-19px;top:43px;width:16px;height:0;border-top:2px solid var(--ink-soft)}
   .sv-rung::after{content:"";position:absolute;right:-3px;top:-4px;width:0;height:0;border-left:6px solid var(--ink-soft);border-top:5px solid transparent;border-bottom:5px solid transparent}
   /* Sections de la fiche en cellules : INERTES — pas de curseur main, registres ALERTE (chapeau)
      et ATTENTION (surveillances) par bord gauche + titre (jamais la couleur seule). */
@@ -5722,6 +5754,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .sv-jump:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
   .sv-end{font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ok);padding:2px}
   .sv-gut{position:absolute;left:0;top:0;pointer-events:none}
+  .sv-gutk{overflow:visible}   /* calque d’une page suivante : ses voies peuvent déborder de la rangée qui le porte */
+  .sv-pgb{position:relative;height:12px}   /* A392 : la cale qui ouvre une page imprimée porte le calque de cette page (.sv-gutk) */
   .sv-gut .lp{fill:none;stroke:var(--link);stroke-width:1.5;stroke-dasharray:4 3;stroke-linejoin:round}
   .sv-gut .lph{fill:var(--link)}
   .sv-gut .sp{fill:none;stroke:var(--ink-soft);stroke-width:2;stroke-linejoin:round}
@@ -7502,6 +7536,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
+  .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
+  .pdf-lnk:hover{background:var(--primary-soft);mix-blend-mode:multiply}
+  .pdf-lnk:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
   .pdf-msg{color:var(--ink-soft);text-align:center;padding:32px 16px;font-size:13.5px}
   /* Petit écran (v4.19.2, retour d'usage) : la barre passe sur DEUX rangées — titre + ✕ en
      haut, outils en pleine largeur dessous. Depuis le bouton ⤓ (v4.19.0), une seule rangée
@@ -7863,10 +7900,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        `@page` ne pose aucune marge horizontale, aucun moteur n'en ajoute par-dessus. */
     .sv-sheet{border-color:transparent;margin:0 auto}
     /* La PAGE seule sur le papier : ni titre d'écran, ni onglets, ni recherche, ni quai, ni bulle. */
-    body.print-page .read-main>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
+    /* A392 : la feuille peut vivre DANS `.care-flat` (une étape de plus sous elle) — l'ancien sélecteur, limité aux enfants
+       directs, masquait alors le conteneur ENTIER : page blanche, mesurée à l'impression Chromium. */
+    body.print-page .read-main>:not(.sv-wrap):not(:has(.sv-wrap)),body.print-page .care-flat>.cf-stage:not(:has(.sv-wrap)),body.print-page .cf-stage:has(>.sv-wrap)>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
     body.print-page #crisisDock,body.print-page .sd-hint-w,body.print-page #blkReturn{display:none!important}
     #sessionDock{display:none!important}   /* le quai est FIXÉ : sans cela il se répète sur chaque page */
-    .sv-cut{break-before:page!important}
+    .sv-pgb{break-before:page!important}
     body.print-nogut .sv-gut{display:none!important}   /* le paginateur a renoncé : pas de tracé faux */
     .app{min-height:0!important;background:var(--paper)!important}   /* une hauteur d'ÉCRAN imprimait une page vide */
     html{background:var(--paper)!important}
@@ -7889,6 +7928,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .sv-stp li.done .sv-bx{border-color:var(--ctl-line)!important}
     .sv-stp li.done .sv-bx::after{display:none!important}
     .sv-m{display:none!important}
+    /* A392 : le numéro d'un bloc est un CADRE sur papier — pastille pleine à l'écran, mais sans « imprimer les arrière-plans »
+       son fond partait et il ne restait qu'un chiffre blanc à peine visible (signalé). Une bordure s'imprime toujours :
+       même rendu avec ou sans arrière-plans. */
+    .sv-num{box-sizing:border-box;background:var(--paper)!important;color:var(--ink)!important;border:2px solid var(--ink)}
+    .sv-num.dec{color:var(--verify)!important;border-color:var(--verify-bd)}
+    .pf-q.faite .q-now{display:none!important}.pf-q.faite .q-pr{display:inline!important}li.faite>.pf-lb{color:inherit!important}   /* A392 : « ✓ faite » est un état de session */
     @media (orientation:portrait){.sv-dz{grid-template-columns:1fr 1fr!important}}
     @media (orientation:landscape){.sv-dz{grid-template-columns:repeat(3,1fr)!important}}}
   /* ===== Windows High Contrast (forced-colors) — v4.30.0, premier filet =====
@@ -8435,7 +8480,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
   <div class="pdf-card">
     <div class="pdf-bar"><h3 id="pdfModalTitle" class="pdf-title">Document</h3>
-      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button><button class="fz" id="pdfDl" title="Télécharger le document" aria-label="Télécharger le document"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button></div>
+      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" id="pdfToc" hidden aria-haspopup="listbox">Sommaire</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button><button class="fz" id="pdfDl" title="Télécharger le document" aria-label="Télécharger le document"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button></div>
       <button class="ai-x" aria-label="Fermer le document">×</button></div>
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
     <!-- Occurrences de la recherche DANS le document (v5.3.0) : pilule flottante, présente
@@ -8509,7 +8554,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.35.0';
+const APP_VERSION='5.36.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -9732,7 +9777,11 @@ function flowPaintState(container,f){if(!container||!f)return;
   container.querySelectorAll('g[data-fnode]').forEach(g=>{const m=by[g.getAttribute('data-fnode')];
     g.classList.toggle('fn-cur',!!(m&&m.cur));
     g.classList.toggle('fn-ok',!!(m&&m.complete));
-    g.classList.toggle('fn-off',!!(m&&m.off));});}
+    g.classList.toggle('fn-off',!!(m&&m.off));});
+  // A392 : « une seule fois » déjà faite dans la session
+  const byB=blocksById(f.blocks||[]);
+  container.querySelectorAll('g.fq[data-once]').forEach(g=>{const [bid,i]=g.getAttribute('data-once').split(':');const b=byB[bid];
+    g.classList.toggle('faite',!!b&&onceFaite(bItems(b)[+i],bid,+i));});}
 /* ═══ COMPLICATIONS « À TOUT MOMENT » (v4.26.0) — entrée PAR L'ÉVÉNEMENT ═══
    (QRH non-normal / ECAM : on traite puis on REVIENT, jamais laissé à la mémoire.) cxEnter local =
    TOUJOURS un nouveau passage (≠ jumpToBlock) ; cxResume = RETOUR SUR LE PASSAGE INTERROMPU,
@@ -14587,6 +14636,7 @@ function selBarHtml(){
     <span class="sel-acts">
       <button type="button" class="btn sm" id="selLib" aria-label="${esc(SEL_ACTES.lib)}">Bibliothèque…</button>
       <button type="button" class="btn sm" id="selCat"${catOk?'':' disabled'} aria-label="${esc(SEL_ACTES.cat)}">Catégorie…</button>
+      <button type="button" class="btn sm" id="selExp" aria-label="${esc(SEL_ACTES.exp)}">Exporter…</button>
       <button type="button" class="btn sm danger" id="selDel" aria-label="${esc(selDelLabel(n))}">Supprimer…</button>
       <span class="sel-sep" aria-hidden="true"></span>
     </span>`:''}
@@ -14594,7 +14644,7 @@ function selBarHtml(){
   </div>`;}
 /* Les intitulés LONGS — ceux de la feuille, et le seul nom accessible de chaque acte. Écrits une
    fois : la barre les reprend en `aria-label` sur ses libellés courts, le tiroir les affiche. */
-const SEL_ACTES={lib:'Déplacer vers une bibliothèque…',cat:'Ranger dans une catégorie…'};
+const SEL_ACTES={lib:'Déplacer vers une bibliothèque…',cat:'Ranger dans une catégorie…',exp:'Exporter la sélection…'};
 const selDelLabel=n=>'Supprimer '+(n>1?('les '+n+' éléments'):'l\'élément')+'…';
 /* « 3 cochés · deux bibliothèques » — le mot, pas le chiffre : deux nombres collés (« 3 · 2 »)
    se lisent comme un seul. Au-delà de neuf on retombe sur le chiffre, qui reste exact. */
@@ -14624,6 +14674,7 @@ function openSelActs(trigger){
   // La catégorie ne se propose que sur une destination COMMUNE (cf. selSetCat) : sur une
   // sélection éparpillée la rangée n'existe pas, et l'en-tête de la feuille dit pourquoi.
   if(libs.length===1)opts.push({val:'selCat',name:SEL_ACTES.cat,ic:uiIcon('tag',20),sub:'choisir la catégorie',chev:true});
+  opts.push({val:'selExp',name:SEL_ACTES.exp,ic:uiIcon('download',20),sub:'un seul fichier, réimportable (.json ou .zip)'});   // A392
   opts.push({val:'selDel',name:selDelLabel(n),ic:uiIcon('trash',20),sub:'confirmation demandée',danger:true});
   const port=libs.length===1
     ?(lib?(libName(lib)||'Bibliothèque partagée'):'Votre bibliothèque')
@@ -14748,7 +14799,14 @@ function bindSelBar(cfg){
        onPick:v=>selSetCat(v,redo),
        action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(lib)}});};}
   {const b=document.getElementById('selDel');if(b)b.onclick=()=>selDelete(redo);}
+  {const b=document.getElementById('selExp');if(b)b.onclick=selExport;}
   bindSelLongPress(cfg);}
+/* A392 : EXPORTER LA SÉLECTION — un seul fichier, la MÊME enveloppe que l'export global (`exportData` : version 3,
+   catégories utilisées, protocoles à part, documents au choix), donc réimportable tel quel. La sélection ne sort pas. */
+function selExport(){const ent=selEnt();if(!ent.length)return;
+  const fs=ent.filter(e=>e.kind==='f').map(e=>e.o),ps=ent.filter(e=>e.kind==='p').map(e=>e.o);
+  const nom=ent.length===1?(ent[0].kind==='f'?'fiche-':'protocole-')+fileSlug(ent[0].o.title):'selection-'+ent.length+'-elements';
+  exportData(fs,nom,null,ps);}
 /* APPUI LONG : le raccourci qu'on tente d'instinct sur téléphone. Il n'ouvre le mode que sur la
    rangée pressée, et il est TENU par trois gardes, parce qu'un mode de gestion ouvert par accident
    sur l'écran d'accès serait exactement ce que la règle 11 proscrit ailleurs :
@@ -16539,9 +16597,13 @@ function flowMeasure(C){const{blocks,start}=C;const{TH,LH,TLH,HPAD,TXT_MAX,TITLE
       stepGroups(its,steps.length).forEach(g=>{
         if(g.from)items.push({kind:'gh',lines:wrapText('Si '+momFromLbl(F,g.it)+' :',TXT_MAX)});
         g.ix.forEach(i=>{const s=steps[i],cr=stepCR(stepText(s)),gi=!!g.from;
-          const main=wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-(gi?5:3)),q=stepQualTxt(F,its[i]);
+          const main=wrapText(stripBold(cr.r?cr.c+' — '+cr.r:cr.c),TXT_MAX-(gi?5:3)),q=stepQualTxt(F,its[i],{sansOnce:true});
           const sub=q?wrapText('· '+q,TXT_MAX-(gi?6:4)):[];
-          items.push({kind:'step',num:i+1,g:gi,nMain:main.length,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:main.concat(sub)});});});}
+          /* A392 : « une seule fois » sur SA ligne, avec ses deux textes — le dessin est mis en cache sans état, c'est
+             `flowPaintState` qui choisit (classe `faite`). La ligne réserve la place du plus long. */
+          const once=its[i]&&its[i].repeat==='once'?{bid:b.id,i}:null;
+          if(once)sub.push('· '+ONCE_FAITE);
+          items.push({kind:'step',num:i+1,g:gi,nMain:main.length,once,crit:stepIsCrit(s),vig:stepIsVigil(s),lines:main.concat(sub)});});});}
     const cl=items.reduce((n,it)=>n+it.lines.length,0);
     let mxc=0;headerLines.forEach(l=>{mxc=Math.max(mxc,l.length*1.12);});
     items.forEach(it=>it.lines.forEach((l,li)=>{const pre=((it.kind==='step'||it.kind==='opt')?(li===0?String(it.num).length+2:1.5):0)+(it.g?2:0);mxc=Math.max(mxc,l.length+pre);}));
@@ -16780,7 +16842,9 @@ function flowNodesSVG(C){const{blocks,pos,LAY,start}=C;const{LH,TLH,HPAD,IMG_H,I
         g+=`<text x="10" y="${y}" font-size="10" fill="#5b6570" font-family="'Manrope',system-ui,sans-serif">${si?`<tspan font-weight="800" fill="#101b28">Si</tspan> ${esc(ln.slice(3))}`:esc(ln)}</text>`;}
       else if(it.g||li>=(it.nMain||it.lines.length)){   // étape d'un groupe (retrait + filet) et/ou ligne de réglage
         const dx=it.g?10:0;if(it.g)g+=`<rect x="12" y="${iy+1}" width="1.5" height="${LH}" fill="#c5d2df"/>`;
-        if(li>=(it.nMain||it.lines.length))g+=`<text x="${22+dx}" y="${y}" font-size="9.5" fill="#5b6570" font-family="'Manrope',system-ui,sans-serif">${esc(ln)}</text>`;
+        if(it.once&&li===it.lines.length-1){const at=` x="${22+dx}" y="${y}" font-size="9.5" font-family="'Manrope',system-ui,sans-serif"`;
+          g+=`<g class="fq" data-once="${esc(it.once.bid)}:${it.once.i}"><text class="fq-t"${at} fill="#5b6570">· si pas déjà faite</text><text class="fq-d"${at} fill="#1d7a50" font-weight="700">· ${esc(ONCE_FAITE)}</text></g>`;}
+        else if(li>=(it.nMain||it.lines.length))g+=`<text x="${22+dx}" y="${y}" font-size="9.5" fill="#5b6570" font-family="'Manrope',system-ui,sans-serif">${esc(ln)}</text>`;
         else{const pre=li===0?`<tspan font-weight="700" fill="#5b6570">${it.num}. </tspan>`:'';g+=`<text x="${(li===0?12:22)+dx}" y="${y}" font-size="10.5"${(it.crit||it.vig)?' font-weight="700"':''} fill="${it.crit?'#a32e1f':(it.vig?'#7a5900':'#101b28')}" font-family="'Manrope',system-ui,sans-serif">${pre}${esc(ln)}</text>`;}}
       else{const pre=li===0?`<tspan font-weight="700" fill="#5b6570">${it.num}. </tspan>`:'';g+=`<text x="${li===0?12:22}" y="${y}" font-size="10.5"${(it.crit||it.vig)?' font-weight="700"':''} fill="${it.crit?'#a32e1f':(it.vig?'#7a5900':'#101b28')}" font-family="'Manrope',system-ui,sans-serif">${pre}${esc(ln)}</text>`;}
       iy+=LH;});});
@@ -19017,8 +19081,8 @@ function renderRead(){
   /* v5.30.1 : les MÊMES quatre cartes (À vérifier, différentiels, repères, Références) avant et
      pendant la session — une fabrique, deux états : par fiche et fermées d'office avant
      (`data-prefold`), transitoires pendant (`data-sessfold`). */
-  const foldCardsH=(attr,isOpen)=>{
-    const card=(k,ic,title,n,inner,crit)=>inner?foldCardHtml(k,ic,title,n,isOpen(k),inner,{crit,attr}):'';
+  const foldCardsH=(attr,isOpen,seules)=>{
+    const card=(k,ic,title,n,inner,crit)=>inner&&(!seules||seules.indexOf(k)>=0)?foldCardHtml(k,ic,title,n,isOpen(k),inner,{crit,attr}):'';
     const nV=clean(listOf(f,'verify')).length,nD=clean(listOf(f,'differentials')).length,nP=clean(listOf(f,'posology')).length;
     /* v5.30 (A354) : « Références » — schémas, documents, sources, renvois — en carte sous les autres ;
        la touche « Consulter » du quai et la rangée sous la fiche sont parties avec (une seule porte). */
@@ -19088,7 +19152,9 @@ function renderRead(){
   /* v5.30.1 : AVANT la session, les quatre cartes fermées d'office — sous « Parcours » sur l'écran
      d'entrée, sous la fiche en mode « Toute la fiche » ou sur une aide sans parcours (A367 : la
      feuille « Consulter » a vécu, la carte est la seule porte des documents et des références). */
-  if(!started){const pc=foldCardsH('data-prefold',k=>preFoldOpen(f,k));if(pc)stages.push({cls:'on pre-cards',head:'',body:pc});}
+  /* A392 (signalé : « redondants avec la Page ») : en mode Page, la feuille porte déjà À vérifier, les diagnostics à
+     éliminer et les doses — seule « Références » reste, porte unique des documents, schémas et renvois (A367). */
+  if(!started){const pc=foldCardsH('data-prefold',k=>preFoldOpen(f,k),useSv?['refs']:null);if(pc)stages.push({cls:'on pre-cards',head:'',body:pc});}
   /* LE RAIL ①②③ CESSE D'ÊTRE L'OSSATURE EN SESSION (règle v4.4.0 ROUVERTE, cf. AGENTS.md).
      Il numérote un PARCOURS — orienter quelqu'un qui découvre la fiche — et c'est exactement ce
      dont on n'a plus besoin une fois qu'on exécute. Deux conséquences, et la seconde est la
@@ -21308,9 +21374,9 @@ function preLastSessHtml(f){
 /* LE PARCOURS À PLAT DE L'ÉCRAN D'ENTRÉE (v5.30, maquette v5 « Parcours complexe ») : une liste
    numérotée comme un algorithme papier — numéro (pastille système, losange pour une décision),
    titre 17,5, étapes en dessous avec leur marque de registre, et les RENVOIS écrits : « → aller à
-   n », « ↺ retour à n », « ↓ ci-dessous », « ↳ puis n », « ▪ Fin du parcours » ; « ← aussi
-   depuis n » quand plusieurs chemins mènent au bloc ; « Chemin k » quand la suite ne découle pas
-   du bloc précédent. La numérotation reste celle de `flowPlan` (tronc d'abord, A344) : le journal,
+   n », « ↺ retour à n », « ↓ ci-dessous », « ↳ puis n », « ■ Fin » ; « ← aussi
+   depuis n » quand plusieurs chemins mènent au bloc ; « ↳ Branche » quand la suite ne découle pas
+   du bloc précédent (A394, était « Chemin k »). La numérotation reste celle de `flowPlan` (tronc d'abord, A344) : le journal,
    la Page et le schéma disent le même numéro. Aucun « ICI » : la session n'a pas commencé. */
 /* A376 : la liste numérotée à renvois écrits (A349) devient LE dessin du parcours partout — écran d'entrée, colonne du cockpit, feuille « Se repérer ». `st` = {md, off} de planCtx : en session la rangée du bloc courant se marque `cur`, un bloc entièrement coché `done`, un bloc hors chemin `off` (rien n'est coché ici : le plan reste inerte). */
 /* A388 : le LIEU (`st.place` : 'card' écran d'entrée, 'sheet' « Se repérer », 'col' colonne du cockpit et rail)
@@ -21322,18 +21388,25 @@ function pfSt(f,place){if(place==='card'||(place==='col'&&!Runtime.started))retu
   const pc=planCtx(f);return pc?{md:pc.md,off:pc.off,place}:{place};}
 // A388 : ce que règle l'étape, en mots, à la suite de son libellé — le seuil vit dans l'en-tête « Si … : » de son groupe.
 const guil=n=>'«\u00a0'+n+'\u00a0»';   // A391 : des guillemets qui ne se séparent pas de leur nom
-function stepQualTxt(f,it){if(!it)return '';
+/* A392 : une étape « une seule fois » déjà cochée dans la session (mode guidé) n'est plus à faire — le parcours, la Page et
+   le Schéma le DISENT. Hors mode guidé rien n'est coché, donc rien ne change ; sur papier, jamais (état de session). */
+const onceFaite=(it,bid,i)=>!!(it&&it.repeat==='once')&&!!Runtime.started&&Object.keys(state.checked||{}).some(k=>state.checked[k]&&k.endsWith(':'+bid+':'+i));
+const ONCE_FAITE='✓ faite — plus à refaire';
+function stepQualTxt(f,it,o){if(!it)return '';o=o||{};
   const T=id=>(f.timers||[]).find(x=>x&&x.id===id),C=it.counts&&(f.counters||[]).find(x=>x&&x.id===it.counts);
   const dur=t=>t&&t.type==='interval'&&t.seconds>0?' ('+durTxt(t.seconds)+')':'';
   const t=T(momTid(f,it)),q=[];
-  if(it.repeat==='once')q.push('si pas déjà faite');
+  if(it.repeat==='once'){if(!o.sansOnce)q.push(o.faite?ONCE_FAITE:'si pas déjà faite');}
   else if(it.repeat==='need')q.push('au besoin');
   else if(it.repeat==='due'&&t)q.push(t.type==='interval'&&t.seconds>0?'toutes les '+durTxt(t.seconds):'quand '+guil(tmName(t))+' ne tourne pas');
   if(C){const r=C.timerId&&it.repeat!=='due'?T(C.timerId):null;
     q.push('+'+Math.max(1,+C.step||1)+' '+(tmLabelParts(C.label).name||'Compteur')+(r?' · relance '+guil(tmName(r))+dur(r):''));}
   else if(it.starts&&it.repeat!=='due'){const x=T(it.starts);if(x)q.push('lance '+guil(tmName(x))+dur(x));}
   return q.join(' · ');}
-function pfStepQual(f,it){const t=stepQualTxt(f,it);return t?` <span class="pf-q">· ${esc(t)}</span>`:'';}   // A391 : HTML du parcours et de la Page ; le Schéma prend le texte
+function pfStepQual(f,it,faite){const t=stepQualTxt(f,it);if(!t)return '';   // A391 : HTML du parcours et de la Page ; le Schéma prend le texte
+  if(!faite)return ` <span class="pf-q">· ${esc(t)}</span>`;
+  // A392 : les deux textes voyagent — l'écran montre « ✓ faite », le papier la règle (l'état de session ne s'imprime pas).
+  return ` <span class="pf-q faite"><span class="q-now">· ${esc(stepQualTxt(f,it,{faite:true}))}</span><span class="q-pr">· ${esc(t)}</span></span>`;}
 // A391 : des étapes CONSÉCUTIVES au même seuil (`from`) forment un groupe — l'ordre de l'auteur n'est jamais changé.
 // Rend [{from|null, ix:[…]}] ; partagé par le parcours et la Page.
 function stepGroups(its,n){const out=[];
@@ -21359,22 +21432,31 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
   const entries={};
   order.forEach(b=>{if(b.kind==='decision')(b.options||[]).forEach(o=>{if(o&&o.target&&byId[o.target])(entries[o.target]=entries[o.target]||[]).push({from:b,label:o.label||''});});
     else if(b.next&&byId[b.next])(entries[b.next]=entries[b.next]||[]).push({from:b,label:null});});
-  const liH=(s,it)=>{const cr=stepCR(stepText(s));
-    return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}">${stepMarkHtml(s)}<span class="pf-lb">${fmt(cr.c)}</span>${cr.r?` <span class="pf-r">— ${fmt(cr.r)}</span>`:''}${pfStepQual(f,it)}</li>`;};
+  const liH=(s,it,faite)=>{const cr=stepCR(stepText(s));
+    return `<li class="${stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':'')}${faite?' faite':''}">${stepMarkHtml(s)}<span class="pf-lb">${fmt(cr.c)}</span>${cr.r?` <span class="pf-r">— ${fmt(cr.r)}</span>`:''}${pfStepQual(f,it,faite)}</li>`;};
+  const faiteF=(bid,i,it)=>!!(st&&st.md)&&onceFaite(it,bid,i);   // l'état ne se lit qu'avec la session (colonne, feuille)
   // A388 : des étapes CONSÉCUTIVES au même seuil partagent un en-tête « Si … : » — l'ordre de l'auteur n'est jamais changé.
   const stepsH=b=>{const steps=clean(stepsOf(b)),its=bItems(b);
-    const ul=stepGroups(its,steps.length).map(g=>{const lis=g.ix.map(i=>liH(steps[i],its[i])).join('');
+    const ul=stepGroups(its,steps.length).map(g=>{const lis=g.ix.map(i=>liH(steps[i],its[i],faiteF(b.id,i,its[i]))).join('');
       return g.from?`<li class="pf-grp"><div class="pf-gh"><b class="pf-si">Si</b> ${esc(momFromLbl(f,g.it))} :</div><ul class="pf-gs">${lis}</ul></li>`:lis;}).join('');
     return ul?`<ul class="pf-steps">${ul}</ul>`:'';};
   const blkTm=b=>{const x=blkTimerTxt(f,b);return x?`<div class="pf-bt">${esc(x)}</div>`:'';};
   const head=(b,m,open,badge,cls,attrs)=>{const cur=!!(m&&m.cur);
     return `<div class="pf-row${cls}" data-plln="${esc(b.id)}"${cur?' aria-current="step"':''}${attrs||''}><div class="pf-col"><span class="pf-badge" aria-hidden="true">${badge}</span></div><div class="pf-main"><button type="button" class="pf-title pf-tg" data-plfold="${esc(b.id)}" aria-expanded="${open}"><span>${esc(titre(b))}</span>${cur?'<span class="pf-here">Ici</span>':''}${chevHtml(open,'pf-chev')}</button>`;};
-  let h='',prevRail=true,path=1,anyClosed=false;
+  let h='',prevRail=true,inBr=false,anyClosed=false;
   order.forEach((b,i)=>{const next=order[i+1],prev=order[i-1],dec=b.kind==='decision';
     const leads=nb=>!!nb&&(dec?(b.options||[]).some(o=>o&&o.target===nb.id):b.next===nb.id);
     const ents=entries[b.id]||[];let seg='';
-    if(i>0&&!prevRail){path++;const e0=ents[0];
-      seg=`<div class="pf-seg"><span class="pf-segl">Chemin ${path}</span>${e0?`<button type="button" class="pf-src pf-dec" data-plref="${esc(e0.from.id)}"><span aria-hidden="true">◇</span><span class="pf-n">${num[e0.from.id]}</span><span>${e0.label?`réponse « ${esc(place==='col'?court(e0.label):e0.label)} »`:'suite'}</span></button>`:''}<span class="pf-segr"></span></div>`;}
+    /* A394 : une suite qui ne découle pas du bloc précédent est une BRANCHE — « Branche ◇ n « réponse » », plus de
+       compteur (« Chemin 2 » disait un rang de liste et se confondait avec le numéro de la décision). Ses blocs sont
+       indentés le long d'un filet qui part de l'en-tête (un coin, pas de glyphe) jusqu'à la branche suivante : on voit où elle commence et où elle finit. */
+    if(i>0&&!prevRail){const e0=ents[0],n0=e0&&num[e0.from.id];let lab,pill='',aria;
+      if(e0&&e0.from.kind==='decision'){const lb=e0.label?(place==='col'?court(e0.label):stripBold(e0.label)):'';
+        lab='Branche';aria='Branche de la décision '+n0+(lb?', réponse '+guil(lb):'');
+        pill=`<button type="button" class="pf-src pf-dec" data-plref="${esc(e0.from.id)}"><span aria-hidden="true">◇</span><span class="pf-n">${n0}</span>${lb?`<span>${esc(guil(lb))}</span>`:''}</button>`;}
+      else if(e0){lab='Suite de';aria='Suite du bloc '+n0;pill=`<button type="button" class="pf-src" data-plref="${esc(e0.from.id)}"><span class="pf-n">${n0}</span></button>`;}
+      else{lab='Autre entrée';aria=lab;}
+      seg=(inBr?'</div>':'')+`<div class="pf-br" role="group" aria-label="${esc(aria)}"><div class="pf-seg"><span class="pf-segl">${lab}</span>${pill}</div>`;inBr=true;}
     const arrivals=ents.filter((e,k)=>!(prevRail&&prev&&e.from.id===prev.id)&&!(i>0&&!prevRail&&k===0));
     const rail=leads(next);prevRail=rail;
     const m=st&&st.md?st.md[b.id]:null;const stc=(m&&m.cur?' cur':'')+(m&&m.complete?' done':'')+(st&&st.off&&st.off.has(b.id)?' off':'');
@@ -21393,9 +21475,10 @@ function preFlowFlatHtml(f,st){st=st||null;const place=(st&&st.place)||'card';
         const pris=!!(m&&t&&m.taken===t),lb=court(o&&o.label);
         return `<span class="pf-opt${pris?' pris':''}"><b>${pris?'✓ ':''}${esc(lb)}</b>${dest(o,t,true)}</span>`;}).join('<span class="pf-sep" aria-hidden="true">·</span>')}</div>`;
     else if(open&&b.next&&byId[b.next]&&!(next&&next.id===b.next))body+=`<div class="pf-jump">${num[b.next]<=num[b.id]?ref(b.next,'↺ retour à',1)+(cycleTxt(f)?`<span class="pf-cy">${esc(cycleTxt(f))}</span>`:''):ref(b.next,'↳ puis')}</div>`;
-    else if(open&&!b.next)body+=`<div class="pf-end">■ Fin du parcours</div>`;
+    else if(open&&!b.next)body+=`<div class="pf-end">■ Fin</div>`;   // A394 : la fin de CE chemin — il peut y en avoir plusieurs
     const arr=open&&arrivals.length?`<div class="pf-arr"><span>← aussi depuis</span>${arrivals.map(src).join('')}</div>`:'';
     h+=seg+head(b,m,open,`<span>${num[b.id]}</span>`,(dec?' dec':'')+(rail?' rail':'')+stc)+arr+body+'</div></div>';});
+  if(inBr)h+='</div>';
   // A388 : les complications « à tout moment » (hors chaîne, donc hors numérotation) ferment la liste, un éclair pour numéro.
   if(exc.length){h+=`<div class="pf-seg"><span class="pf-segl">À tout moment</span><span class="pf-segr"></span></div>`;
     const ici=Runtime.started&&st&&st.md?state.nav[state.navPos]:null;
@@ -21871,9 +21954,9 @@ function svBlockSteps(b,cw,seq,id){
   const steps=clean(stepsOf(b));if(!steps.length)return '';
   const f=ownerOf(b)||{},its=bItems(b),list=[];
   const one=(ix,g)=>{const s=steps[ix],cr=stepCR(stepText(s));
-    return {c:fmt(cr.c),r:cr.r?fmt(cr.r):'',g,k:stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':''),done:!!(seq&&id&&state.checked[seq+':'+id+':'+ix]),w:pfStepQual(f,its[ix])};};
+    return {c:fmt(cr.c),r:cr.r?fmt(cr.r):'',g,k:stepIsCrit(s)?'crit':(stepIsVigil(s)?'vig':''),done:!!(seq&&id&&state.checked[seq+':'+id+':'+ix]),w:pfStepQual(f,its[ix],onceFaite(its[ix],b.id,ix))};};
   stepGroups(its,steps.length).forEach(g=>{
-    if(g.from)list.push({gh:`<b class="pf-si">Si</b> ${esc(momFromLbl(f,g.it))} :`});
+    if(g.from)list.push({gh:`<span class="sv-si">SI</span> ${esc(momFromLbl(f,g.it))} :`});   // A395 : le « SI » de la Page
     g.ix.forEach(ix=>list.push(one(ix,!!g.from)));});
   return svStepsHtml(list,cw);}
 function svAlgoHtml(f){
@@ -21885,8 +21968,11 @@ function svAlgoHtml(f){
     bits.push(dec?(m.complete?'<span class="sv-ok">✓</span>':'?')
       :(m.tot?(m.complete?`<span class="sv-ok">✓ ${m.done}/${m.tot}</span>`:`${m.done||0}/${m.tot}`):'—'));
     return bits.join('');};
-  const jalonsH=b=>(Array.isArray(b.milestones)?b.milestones:[]).map(j=>{const go=j.go&&(f.blocks||[]).find(x=>x.id===j.go);   // A391 : comme le parcours
-    return `<p class="sv-jl"><b class="pf-si">Si</b> ${esc(jalonCondLbl(f,j))} : ${fmt(j.text)}${go?` · ${boltIcon(12)} ${esc(stripBold(go.title||''))}`:''}</p>`;}).join('');
+  /* A395 : le jalon se lit comme une RÉPONSE de la Page — même ligne « SI … ……… [destination] », mais en gris (il dépend
+     d'un compteur, il ne répond pas à la question) et APRÈS les réponses : la question se lit d'un tenant avec elles. */
+  const jalonsH=b=>{const js=(Array.isArray(b.milestones)?b.milestones:[]).map(j=>{const go=j.go&&(f.blocks||[]).find(x=>x.id===j.go);
+    return `<div class="sv-opt jl"><span class="si">SI</span><span class="lb">${esc(jalonCondLbl(f,j))} : ${fmt(j.text)}</span>${go?`<span class="ld"></span><span class="to jl">${boltIcon(12)} ${esc(stripBold(go.title||''))}</span>`:''}</div>`;}).join('');
+    return js?`<div class="sv-jl">${js}</div>`:'';};
   const titre=id=>{const t=(f.blocks||[]).find(x=>x.id===id);return esc(stripBold((t&&t.title)||'?'));};
   const byCol={};T.cols.forEach(c=>{byCol[c.id]=c;});
   const cw=col=>col.w-32-18;
@@ -21908,7 +21994,7 @@ function svAlgoHtml(f){
     return `<div class="sv-row sv-band${m.cur?' cur':''}${isOff?' off':''}${rowCls(r)}" data-svgo="${esc(r.id)}" role="button" tabindex="0"${m.cur?' aria-current="true"':''} aria-label="${esc(stripBold(b.title||'Décision'))} — aller à ce bloc">`
       +`<span class="sv-num dec" aria-hidden="true">${num[r.id]||'·'}</span>`
       +`<p class="sv-h"><span class="sv-t"><b>${esc(b.title)||'Décision'}</b></span><span class="sv-m">${metaH(r.id,true)}</span></p>`
-      +(b.question?`<p class="sv-q">${fmt(b.question)}</p>`:'')+jalonsH(b)+alts+`</div>`;};
+      +(b.question?`<p class="sv-q">${fmt(b.question)}</p>`:'')+alts+jalonsH(b)+`</div>`;};
   /* Les pilules restent la VÉRITÉ TEXTUELLE : le dessin ne porte jamais seul une information
      (impression, lecteur d'écran, branche repliée). */
   const pill=r=>{const g=r.kind==='loop'?'↺ revenir à ':(r.kind==='cont'?'↓ continuer ':'→ aller à ');
@@ -21956,10 +22042,16 @@ function svSheetHtml(f,plein){
    ⚠ IL PEUT ÉCHOUER, ET IL LE DIT : un bloc plus haut qu'une page ne se place pas (`null`), et le
    calque reste alors masqué — mieux vaut rien qu'un tracé faux, la ligne écrite porte tout. */
 let _svPages=null;
+/* A392 : une page imprimée s'ouvre sur une CALE (`.sv-pgb`, 12 px, saut de page posé sur elle) insérée AVANT la mesure —
+   écran et papier ont donc la même géométrie. Une vraie boîte, pas une marge : Chromium supprime la marge haute d'une
+   rangée après un saut forcé, et un calque posé dans cette marge sortait de la page. La frontière passe 4 px sous le haut
+   de la cale : sous le pied des pilules de la page d'avant (≤ 10 px sous elles, soit 2 px dans la cale), au-dessus de
+   l'approche de la cible (barre à 10 px de son numéro). */
+const SV_PGB=4;
 function svPaginate(racine){
   const sheet=(racine||main).querySelector('.sv-sheet');if(!sheet)return null;
   const algo=sheet.querySelector('.sv-algo>.sv-col');if(!algo)return null;
-  sheet.querySelectorAll('.sv-cut').forEach(e=>e.classList.remove('sv-cut'));
+  sheet.querySelectorAll('.sv-pgb').forEach(e=>e.remove());
   /* Hauteur utile = page moins les marges de `@page` (10 mm en haut et en bas) : on la MESURE avec
      un témoin en millimètres plutôt que de la calculer — 96 dpi n'est pas une promesse. */
   const t=document.createElement('div');
@@ -21978,17 +22070,27 @@ function svPaginate(racine){
   const sr=sheet.getBoundingClientRect();
   const Z=(sheet.offsetWidth?sr.width/sheet.offsetWidth:0)||zoomF();   // A391 : l'échelle rendue, comme svPaintArrows
   const box=el=>{const b=el.getBoundingClientRect();return {t:(b.top-sr.top)/Z,b:(b.bottom-sr.top)/Z};};
-  const pages=[{y:0,d:0}];let start=0,k=0;
+  /* A392 : UNE MARGE DE SÉCURITÉ — la hauteur réellement imprimable dépend du dialogue d'impression (en-têtes et pieds
+     de page, marges du moteur) et de ce qui précède la feuille, que rien ne mesure d'ici. Si le navigateur coupait
+     AVANT nous, un calque se retrouvait à cheval sur deux pages. 48 px (≈ 13 mm) couvrent ces écarts. */
+  const HS=H-48;
+  const pages=[{y:0,el:null}];let start=0;
   for(const el of blocs){
     const r=box(el);
-    if(r.b-r.t>H+1){return null;}                 // un bloc plus haut qu'une page : on renonce
-    if(r.b-start>H){k++;start=r.t;pages.push({y:start,d:k*H-start});el.classList.add('sv-cut');}}
+    if(r.b-r.t>HS+1){return null;}                // un bloc plus haut qu'une page : on renonce
+    /* A392 : la page s'ouvre sur une cale (cf. SV_PGB) — l'arrivée des voies s'imprime avec sa cible. */
+    if(r.b-start>HS){el.insertAdjacentHTML('beforebegin','<div class="sv-pgb" aria-hidden="true"></div>');
+      const cale=el.previousElementSibling;start=box(cale).t;pages.push({y:start+SV_PGB,el:cale});}}
   return pages;}
 function svPaintArrows(racine){
   const wrap=(racine||main).querySelector('.sv-wrap');if(!wrap)return;
   const sheet=wrap.querySelector('.sv-sheet');if(!sheet)return;
   const algo=sheet.querySelector('.sv-algo');
   svApplyZoom(racine||main);
+  /* A392 : UNE PAGINATION PÉRIMÉE SE REFAIT. Le passage à la largeur A4 pendant l'impression peut re-rendre la page (écouteurs
+     de largeur) : cales et calques paginés partaient avec l'ancien DOM, et seules les voies de la page 1 survivaient. */
+  if((!racine||racine===main)&&document.body.classList.contains('print-page')&&(!_svPages||_svPages.some(p=>p.el&&!p.el.isConnected))){
+    _svPages=svPaginate(main);document.body.classList.toggle('print-nogut',!_svPages);}
   const sr=sheet.getBoundingClientRect();
   /* A391 : L'ÉCHELLE SE MESURE, ELLE NE SE DÉDUIT PAS (signalé à l'usage : « des traits à 90° qui ne se rejoignent
      pas »). `zoomF() × svZoom` ignorait la transformation d'OUVERTURE de la fenêtre Tableau : peintes pendant
@@ -21999,7 +22101,7 @@ function svPaintArrows(racine){
   const R=el=>{if(!el)return null;const r=el.getBoundingClientRect();
     const l=(r.left-sr.left)/Z,t=(r.top-sr.top)/Z,w=r.width/Z,h=r.height/Z;
     return {l,t,r:l+w,b:t+h,cx:l+w/2,cy:t+h/2};};
-  let gh='';
+  const GH=[''];   // A392 : un calque par page (GH[k])
   if(algo&&state.fiche){
     const T=svTreePlan(state.fiche);
     const q=s=>algo.querySelector(s);
@@ -22026,12 +22128,20 @@ function svPaintArrows(racine){
        aux frontières de page et de décaler chaque morceau (A344, v5.29.4). Sans pagination, la
        polyligne se sérialise telle quelle. */
     const PG=_svPages;
-    const dec=y=>{if(!PG)return y;for(let i=PG.length-1;i>=0;i--)if(y>=PG[i].y-0.01)return y+PG[i].d;return y+PG[0].d;};
+    /* A392 : UN CALQUE PAR PAGE, ACCROCHÉ À LA RANGÉE QUI L'OUVRE (signalé à l'usage, PDF à l'appui : voies décalées d'une
+       page, « très rallongées », une page blanche en fin). Un calque unique décalé page par page supposait connues la
+       hauteur imprimable et la position de la feuille sur le papier — ni l'une ni l'autre ne l'est (en-têtes, pieds de
+       page, marges du moteur). Chaque morceau de voie se dessine désormais dans le calque de SA page, en coordonnées
+       locales ; le calque suit la rangée où que le navigateur la pose, et ne dépasse jamais sa page. */
+    const pg=y=>{if(!PG)return 0;for(let i=PG.length-1;i>0;i--)if(y>=PG[i].y-0.01)return i;return 0;};
+    const put=(k,str)=>{GH[k]=(GH[k]||'')+str;};
+    const loc=(k,y)=>PG?y-PG[k].y:y;
     /* A391 : un trait POINTILLÉ s'écrit segment par segment — un coude qui tombait dans un blanc du motif
        semblait ne pas rejoindre son voisin (signalé à l'usage). Chaque segment commence sur un tiret. */
-    const emit=(seg,cls)=>{const ps=seg.map(q=>[N(q[0]),N(dec(q[1]))]);
-      if(cls!=='lp'){gh+=`<path class="${cls}" d="M${ps.map(q=>q.join(' ')).join(' L')}"/>`;return;}
-      for(let i=1;i<ps.length;i++)gh+=`<path class="${cls}" d="M${ps[i-1].join(' ')} L${ps[i].join(' ')}"/>`;};
+    const emit=(seg,cls)=>{const ys=seg.map(q=>q[1]),k=pg((Math.min(...ys)+Math.max(...ys))/2);
+      const ps=seg.map(q=>[N(q[0]),N(loc(k,q[1]))]);
+      if(cls!=='lp'){put(k,`<path class="${cls}" d="M${ps.map(q=>q.join(' ')).join(' L')}"/>`);return;}
+      for(let i=1;i<ps.length;i++)put(k,`<path class="${cls}" d="M${ps[i-1].join(' ')} L${ps[i].join(' ')}"/>`);};
     const POLY=(pts,cls)=>{
       if(!PG){emit(pts,cls);return;}
       // découper chaque segment aux frontières, puis décaler chaque morceau dans sa page
@@ -22047,13 +22157,14 @@ function svPaintArrows(racine){
         cur.push(b);}
       sortie.push(cur);
       sortie.forEach(seg=>{if(seg.length>=2)emit(seg,cls);});};
-    const P=(d,cls)=>{gh+=`<path class="${cls}" d="${d}"/>`;void P;};
+
     /* ⚠ UNE POINTE S'ARRÊTE AVANT LE HALO DU NUMÉRO (signalé à l'usage : « le bout de la flèche
        n'est pas visible »). Le numéro porte `box-shadow:0 0 0 3px` et `z-index:1` : il passe DEVANT
        le calque, et une pointe posée à 1 px de son bord disparaissait dessous. On s'arrête à 5. */
-    const hDown=(x,y,cls)=>{const Y=dec(y);gh+=`<path class="${cls}" d="M${x-4.5} ${Y-6} L${x} ${Y} L${x+4.5} ${Y-6} Z"/>`;};
-    const hRight=(x,y,cls)=>{const Y=dec(y);gh+=`<path class="${cls}" d="M${x-6} ${Y-4.5} L${x} ${Y} L${x-6} ${Y+4.5} Z"/>`;};
-    const hUp=(x,y,cls)=>{const Y=dec(y);gh+=`<path class="${cls}" d="M${x-4.5} ${Y+6} L${x} ${Y} L${x+4.5} ${Y+6} Z"/>`;};
+    const tri=(k,pts,cls)=>put(k,`<path class="${cls}" d="M${pts.map(q=>N(q[0])+' '+N(q[1])).join(' L')} Z"/>`);
+    const hDown=(x,y,cls)=>{const k=pg(y-3),Y=loc(k,y);tri(k,[[x-4.5,Y-6],[x,Y],[x+4.5,Y-6]],cls);};
+    const hRight=(x,y,cls)=>{const k=pg(y),Y=loc(k,y);tri(k,[[x-6,Y-4.5],[x,Y],[x-6,Y+4.5]],cls);};
+    const hUp=(x,y,cls)=>{const k=pg(y+3),Y=loc(k,y);tri(k,[[x-4.5,Y+6],[x,Y],[x+4.5,Y+6]],cls);};
     const N=v=>Math.round(v*10)/10;
     /* (3) SORTIES — UN BUS, PAS N TRAITS SUPERPOSÉS (signalé à l'usage, mesuré : trois « ALLER À 13 »
        descendaient dans le MÊME couloir, 615 px l'un sur l'autre). Chaque ligne rejoint le couloir par
@@ -22133,11 +22244,16 @@ function svPaintArrows(racine){
       POLY([[Math.min(...xs),barY],[Math.max(...xs),barY]],'sp');POLY([[t.cx,barY],[t.cx,t.t-5]],'sp');hDown(N(t.cx),t.t-5,'sph');});}
   {let gut=sheet.querySelector(':scope>.sv-gut');
    if(!gut){sheet.insertAdjacentHTML('beforeend','<svg class="sv-gut" aria-hidden="true"></svg>');gut=sheet.querySelector(':scope>.sv-gut');}
-   const W2=Math.max(16,sheet.offsetWidth);
-   let H=Math.max(16,sheet.offsetHeight);
-   if(_svPages&&_svPages.length>1){const L=_svPages[_svPages.length-1];H=Math.max(H,L.y+L.d+(sheet.offsetHeight-L.y));}
-   gut.setAttribute('viewBox','0 0 '+W2+' '+H);gut.setAttribute('width',W2);gut.setAttribute('height',H);
-   gut.innerHTML=gh;}
+   sheet.querySelectorAll('.sv-gutk').forEach(e=>e.remove());
+   const W2=Math.max(16,sheet.offsetWidth),SH=Math.max(16,sheet.offsetHeight),PG=_svPages;
+   const svgAt=(g,w,h,html)=>{g.setAttribute('viewBox','0 0 '+w+' '+h);g.setAttribute('width',w);g.setAttribute('height',h);g.innerHTML=html;};
+   // A392 : page 1 dans la feuille ; les suivantes accrochées à la cale qui les ouvre (`.sv-pgb`, positionnée).
+   svgAt(gut,W2,Math.max(16,PG&&PG.length>1?PG[1].y:SH),GH[0]||'');
+   if(PG)for(let k=1;k<PG.length;k++){const el=PG[k].el;if(!el)continue;
+     const sr2=sheet.getBoundingClientRect(),er=el.getBoundingClientRect(),Zk=(sheet.offsetWidth?sr2.width/sheet.offsetWidth:1)||1;
+     el.insertAdjacentHTML('beforeend','<svg class="sv-gut sv-gutk" aria-hidden="true"></svg>');
+     const g=el.lastElementChild;g.style.left=(-(er.left-sr2.left)/Zk)+'px';g.style.top=SV_PGB+'px';
+     svgAt(g,W2,Math.max(16,(k+1<PG.length?PG[k+1].y:SH)-PG[k].y),GH[k]||'');}}
   // Redessin à TOUT changement de géométrie de la feuille (taille du texte, police, viewport) :
   // ResizeObserver — la superposition est en absolu, la peinture ne re-déclenche donc rien.
   if(!svPaintArrows._ro&&window.ResizeObserver){
@@ -24510,6 +24626,7 @@ let _pvAtt=null; // métadonnées {id,name} du document affiché — posées dè
 function closePdfViewer(){
   if(_pv){try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
   _pvAtt=null;
+  {const b=document.getElementById('pdfToc');if(b)b.hidden=true;}
   const sc=document.getElementById('pdfScroll');if(sc)sc.innerHTML='';
   {const hlEl=document.getElementById('pdfHl');if(hlEl)hlEl.hidden=true;}
   pdfModal.classList.remove('on');}
@@ -24614,6 +24731,43 @@ async function pdfPaintHl(s){
         d.style.height=Math.max(6,Math.round(hgt*k*1.28))+'px';
         s.el.appendChild(d);
         i=norm.indexOf(t,i+1);}}}}
+/* A392 : LES LIENS DU DOCUMENT DEVIENNENT CLIQUABLES (demande de l'auteur). La visionneuse ne rend que des canevas : on lit
+   les annotations « Link » de la page (déjà dans pdf.js, aucune dépendance) et l'on pose une zone transparente sur chacune.
+   ⚠ LE PDF EST UN CONTENU NON MAÎTRISÉ : une adresse externe n'est suivie que si son protocole est http(s), mailto ou tel
+   (jamais `javascript:` ni `data:`), dans un nouvel onglet, sans `opener` ; tout passe par des propriétés DOM, jamais du HTML. */
+const PDF_URL_OK=/^(https?:|mailto:|tel:)/i;
+async function pdfDestPage(dest){if(!_pv||!dest)return 0;
+  try{const d=typeof dest==='string'?await _pv.doc.getDestination(dest):dest;
+    if(!Array.isArray(d)||!d[0])return 0;
+    return (typeof d[0]==='number'?d[0]:await _pv.doc.getPageIndex(d[0]))+1;}catch(e){return 0;}}
+function pdfGoPage(n){const sc=document.getElementById('pdfScroll'),el=sc&&sc.querySelector('.pdf-page[data-p="'+n+'"]');
+  if(el)sc.scrollTop=Math.max(0,el.offsetTop-8);}
+async function pdfPaintLinks(s){
+  if(!_pv||!s.page||!s.canvas)return;
+  if(!s.annots){try{s.annots=(await s.page.getAnnotations({intent:'display'})).filter(a=>a&&a.subtype==='Link'&&(a.url||a.dest));}catch(e){s.annots=[];}}
+  if(!_pv||!s.canvas)return;
+  s.el.querySelectorAll('.pdf-lnk').forEach(x=>x.remove());
+  const vp=s.page.getViewport({scale:_pv.cssW/s.vp.width});
+  s.annots.forEach(a=>{let url=null;
+    if(a.url){try{url=new URL(a.url).href;}catch(e){return;}if(!PDF_URL_OK.test(url))return;}
+    const r=vp.convertToViewportRectangle(a.rect),l=Math.min(r[0],r[2]),t=Math.min(r[1],r[3]);
+    const el=document.createElement(url?'a':'button');el.className='pdf-lnk';
+    el.style.left=l+'px';el.style.top=t+'px';el.style.width=Math.abs(r[2]-r[0])+'px';el.style.height=Math.abs(r[3]-r[1])+'px';
+    if(url){el.href=url;el.target='_blank';el.rel='noopener noreferrer';el.title=url;el.setAttribute('aria-label','Lien : '+url);}
+    else{el.type='button';el.setAttribute('aria-label','Aller à la page liée');
+      el.onclick=async()=>{const n=await pdfDestPage(a.dest);if(n)pdfGoPage(n);};}
+    s.el.appendChild(el);});}
+/* A392 : LE SOMMAIRE DU DOCUMENT (signets du PDF, `getOutline`). Le bouton n'existe que s'il y a un sommaire ; un tap sur un
+   titre mène à sa page. Trois niveaux au plus, dans l'ordre du document. */
+async function pdfTocInit(){const b=document.getElementById('pdfToc');if(!b||!_pv)return;b.hidden=true;
+  let o=null;try{o=await _pv.doc.getOutline();}catch(e){}
+  const flat=[];const walk=(items,d)=>(items||[]).forEach(it=>{if(!it||flat.length>=200)return;
+    flat.push({title:String(it.title||'').trim()||'Sans titre',dest:it.dest,d});if(d<2)walk(it.items,d+1);});
+  walk(o,0);if(!_pv||!flat.length)return;
+  _pv.toc=flat;b.hidden=false;
+  b.onclick=()=>openPickMenu(b.parentNode,{aria:'Sommaire du document',sheet:true,trigger:b,
+    options:_pv.toc.map((x,i)=>({val:String(i),name:(x.d?'– '.repeat(x.d):'')+x.title,dot:false})),
+    onPick:async v=>{const x=_pv&&_pv.toc[+v];if(!x)return;const n=await pdfDestPage(x.dest);if(n)pdfGoPage(n);}});}
 async function renderPdfPage(s){if(!_pv||s.rendering)return;
   if(s.canvas&&s.renderedW===_pv.cssW)return;   // déjà rendue à cette échelle
   s.rendering=true;
@@ -24629,6 +24783,7 @@ async function renderPdfPage(s){if(!_pv||s.rendering)return;
     if(!_pv||!s.vis||_pv.cssW!==targetW){c.width=c.height=0;s.rendering=false;if(_pv&&s.vis)renderPdfPage(s);return;}
     releasePdfPage(s);s.el.innerHTML='';s.el.appendChild(c);s.canvas=c;s.renderedW=targetW;
     if(_pv.hl)pdfPaintHl(s);
+    pdfPaintLinks(s);   // A392 : liens du document (adresses externes, renvois internes)
   }catch(e){}
   s.rendering=false;}
 /* `page` (facultatif, 1-based) : ouvrir DIRECTEMENT à une page. `hl` (facultatif) : termes
@@ -24699,6 +24854,7 @@ async function openPdfViewer(att,entity,page,hl){
     const el=sc.querySelector('.pdf-page[data-p="'+page+'"]');
     if(el)sc.scrollTop=Math.max(0,el.offsetTop-8);}
   pdfRenderNear();   // premières pages rendues sans attendre l'observer
+  pdfTocInit();      // A392 : bouton « Sommaire » si le document en a un
 }
 
 /* ===== Prompt IA ===== (fenêtre d'aide pour générer une fiche importable via une IA)
@@ -25639,7 +25795,8 @@ async function exportData(list,baseName,cats,protos){
     // On retire les champs de sync PUREMENT LOCAUX -> un contenu importé ailleurs devient celui de
     // l'importateur (pas d'owner/biblio d'autrui) ; `updatedAt` est conservé (last-write-wins).
     delete c.dirty;delete c.ownerId;delete c.library;return c;};
-  const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>list.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(strip)};
+  const tous=list.concat(protos||[]);   // A392 : un export de protocoles seuls emportait zéro catégorie
+  const out={version:3,origin:spaceTag(currentSpace()),categories:(cats||categories.filter(c=>tous.some(f=>f.category===c.id))).map(c=>({id:c.id,name:c.name,color:c.color})),fiches:list.map(strip)};
   if(Array.isArray(protos)&&protos.length)out.protocols=protos.map(strip);
   // Documents référencés (dédoublonnés : un document partagé entre fiches n'est embarqué qu'une fois).
   const attIds=[];{const seen=new Set();
@@ -27215,6 +27372,16 @@ async function dupToPerso(kind,src){
 // « Exporter en PDF » : impression navigateur (les styles @media print masquent barres et
 // panneaux) — sur iOS/macOS/Android le dialogue propose « Enregistrer en PDF ».
 function exportPdfCurrent(){window.print();}
+/* A393 : « Enregistrer en PDF » propose le TITRE du document comme nom de fichier — celui de l'aide ou du protocole
+   imprimé, pas « Aides cognitives ». Posé à `beforeprint` (menu comme ⌘P), rendu à `afterprint`. */
+let _printTitle=null;
+function printTitleOn(){if(_printTitle!==null)return;
+  const o=state.view==='read'&&state.fiche?state.fiche:state.view==='protocolRead'&&state.protocol?state.protocol:null;
+  const t=o?String(stripBold(o.title||'')).replace(/\s+/g,' ').trim():'';if(!t)return;
+  _printTitle=document.title;document.title=t;}
+function printTitleOff(){if(_printTitle===null)return;document.title=_printTitle;_printTitle=null;}
+window.addEventListener('beforeprint',()=>{try{if(Share.mode==='guest')return;}catch(e){}printTitleOn();});
+window.addEventListener('afterprint',printTitleOff);
 // Le contenu REPLIÉ (confirmation diagnostique, carte des blocs) n'existe pas dans le DOM :
 // on le déplie le temps de l'impression, puis on restaure l'état exact (audit v4.5).
 let _printSaved=null;
@@ -27242,7 +27409,7 @@ window.addEventListener('beforeprint',()=>{if(state.view!=='read'||!state.fiche)
     svPaintArrows(main);}});
 window.addEventListener('afterprint',()=>{_printingOv=false;
   document.body.classList.remove('print-page','print-nogut');
-  _svPages=null;main.querySelectorAll('.sv-cut').forEach(e=>e.classList.remove('sv-cut'));
+  _svPages=null;main.querySelectorAll('.sv-pgb').forEach(e=>e.remove());
   if(!_printSaved)return;
   state.confOpen=_printSaved.confOpen;state.showFlow=_printSaved.showFlow;state.readMode=_printSaved.readMode||state.readMode;state.allTab=_printSaved.allTab;_printSaved=null;
   if(state.view==='read'&&state.fiche)render();});

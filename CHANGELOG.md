@@ -1,5 +1,31 @@
 # Journal des modifications
 
+## [5.36.0] — 2026-09-27
+Imprimer la Page sans surprise, exporter une sélection, les liens des PDF, et des branches qui se lisent comme des branches (A392-A395, doctrine `docs/decisions/lot-v5-36.md`).
+- **Impression de la Page.** Sans l'option « imprimer les arrière-plans », les traits du tronc et des
+  fourches disparaissaient, et les numéros de bloc aussi : ils s'impriment désormais dans tous les cas
+  (traits en bordures, numéros encadrés). Les voies pointillées ne sont plus décalées d'une page ni
+  « rallongées », quels que soient les en-têtes, pieds de page et marges ; la page blanche en fin de
+  document et la page blanche au bureau (1280 px) ont disparu.
+- **Le PDF enregistré porte le nom de l'aide** (ou du protocole), et non plus « Aides cognitives ».
+- **Mode Page** : les cartes « À vérifier » et « Diagnostics » sous la feuille redisaient la Page ;
+  seule « Références » reste.
+- **Page : les jalons se lisent comme les réponses.** Dans une décision, le jalon vient après les
+  réponses, sur une ligne « SI Chocs délivrés ≥ 3 : … ……… [⚡ FV réfractaire] », en gris ; les en-têtes
+  de groupe d'étapes prennent le même « SI ». Le jalon ne coupe plus la question de ses réponses.
+- **Parcours : « Branche » au lieu de « Chemin 2 ».** Une suite qui ne découle pas du bloc précédent
+  s'annonce « Branche ◇ 2 « Non » » (la décision et sa réponse, un toucher y mène) ; ses blocs sont
+  décalés d'un cran le long d'un trait gris. « ■ Fin » remplace « Fin du parcours ». La bulle ne touche
+  plus le bord de la colonne.
+- **Parcours : le chiffre des losanges est centré.**
+- **« ✓ faite — plus à refaire »** : en mode guidé, une étape « une seule fois » déjà cochée le dit
+  dans le parcours, la Page et le Schéma (jamais sur papier).
+- **Exporter plusieurs aides ou protocoles d'un coup** : en mode Sélection, « Exporter… » produit un
+  seul fichier, réimportable tel quel (avec les documents joints au choix).
+- **PDF joints : liens cliquables et sommaire.** Les liens web (http, https, mailto, tel) s'ouvrent dans
+  un nouvel onglet, les renvois internes mènent à leur page, et un bouton « Sommaire » apparaît quand
+  le document a des signets.
+
 ## [5.35.0] — 2026-09-26
 L'accueil en une colonne, l'éditeur plus navigable, un aperçu fidèle, et une Page et un Schéma lisibles (A389-A391, doctrine `docs/decisions/lot-v5-35.md`).
 - **Accueil (tablette, bureau) : une seule colonne.** La grille de 2 ou 3 colonnes coupait les
@@ -560,45 +586,4 @@ doctrine `docs/decisions/lot-v5-30.md`).
   moitié de l'algorithme à la page suivante en laissant une demi-page blanche. Ouvert : une fourche
   plus haute qu'une page.
 - Doctrine A344 (addendum impression), index, CHANGELOG à 20 ([5.23.9] archivée).
-- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.29.0] — 2026-09-11
-### La Page : l'arbre est le fil (A344)
-
-- **Brief de l'auteur** : mieux voir les étapes, mieux voir sur smartphone, garder l'esprit « tout
-  sur une page A4 ». Deux fiches réelles fournies pour mesurer les enjeux (arrêt cardiorespiratoire
-  2026, état de mal tonico-clonique à quinze blocs), douze planches explorées sur un canevas, la
-  douzième retenue : « super on part sur E12 », puis « ok implémente ».
-- **Mesuré avant** : à 1130 px la grille à six pistes rendait l'état de mal sur 2 432 px et, ajustée
-  à 390 px, tombait à 32 % (corps de 3,5 px) ; chaque décision de l'escalade rejouait une fourche
-  pleine largeur dont une branche n'était qu'un renvoi ; la sortie commune portait le numéro 5 et
-  « fin de l'algorithme » tombait au milieu de la feuille. À 11 px, une fiche à quinze blocs ne
-  tient sur un A4 dans aucune composition : ce qui se garde de l'A4 est la largeur.
-- **La composition est l'arbre.** Une colonne de largeur A4 (740 px), la référence en pied partout.
-  Le NUMÉRO est l'ancre de tout trait (entrée par le haut, retour par la gauche) ; la colonne des
-  numéros est la surface de dessin — tronc plein, fourche = barre + descentes, réunion = barre +
-  entrée ; une sortie s'écrit « SI … ALLER À n » dans la décision et se trace en pointillé par la
-  voie de droite ; un retour part du bout de la branche vers la voie de gauche (collecteur sous une
-  fourche, tiret et ▲ vers un rail) ; deux branches à contenu = fourche côte à côte, au-delà = rail
-  en retrait de 32 px avec une équerre par branche ; un trait ne croise jamais rien, sinon la ligne
-  écrite suffit. Tronc, fourche et rail se dessinent en CSS à géométrie locale, sans mesure ; seules
-  les voies se mesurent (`svPaintArrows`).
-- **Les cellules, façon ECAM** : case · libellé · points de conduite · réponse attendue en mono à
-  droite, ou sous le libellé quand elle ne tient pas sur la ligne de sa colonne. Registre par le
-  glyphe et la couleur, ✓ dans la case, texte jamais barré. « ▪ fin de l'algorithme » dans le bloc
-  terminal.
-- **La numérotation suit le tronc** (`flowPlan`, partagée par le journal, le Parcours et le
-  schéma) : les arêtes de retour ne comptent plus pour la post-dominance, la convergence d'une
-  décision est le plus proche post-dominateur commun à deux options au moins, les options hors
-  convergence sont des sorties chaînées après le tronc. État de mal : 1-12 puis 13 relais · 14
-  surveillance · 15 récidive ; ACR : 4 FV · 5 asystolie · 6 causes · 7 RACS.
-- **Mesuré après** (1280 × 900) : état de mal 740 × 2 992, ACR 740 × 1 839, les deux fiches d'exemple
-  sur une page A4 (959 et 929 px) ; « Ajusté » à 390 px = 48 %. L'onglet s'appelle « Page ».
-- `svTreePlan` (pure) remplace `svGridPlan`/`svDistribute` ; `.sv-fk`, `.sv-r`, les paliers d'écran
-  de la feuille et la colonne de référence latérale sont purgés ; `@page{margin:10mm 7mm}` pour
-  imprimer la feuille à sa largeur. Témoins : `tests.html` (svTreePlan, flowPlan sur graphe à
-  boucle et sur sortie hors convergence), `audit-doctrine` (numéros alignés, aucune cellule sous
-  260 px, même image aux trois largeurs ; deux témoins du Parcours suivent la nouvelle convergence).
-  Doctrine `docs/decisions/lot-v5-29.md`, index, `design/ds` régénéré, CHANGELOG à 20 ([5.23.8]
-  archivée).
 - Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.

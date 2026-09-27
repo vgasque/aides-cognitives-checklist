@@ -2566,27 +2566,27 @@ await sec('PARCOURS · la liste écrit les chemins (décisions imbriquées)', as
   await page.evaluate(async f=>{const w=m=>new Promise(r=>setTimeout(r,m));
     const nf=migrate(JSON.parse(JSON.stringify(f)));await Data.put(nf);fiches.push(nf);
     openRead(nf.id);await w(700);},FICHE_IMB);
-  /* A376 : la liste numérotée N'INDENTE PAS — elle ÉCRIT le chemin (A339 rendu sans objet avec
-     l'Échelle) : une branche qui n'est pas la rangée suivante ouvre un segment « Chemin n » signé par
-     sa décision, chaque option dit où elle mène, et tous les numéros vivent dans UNE colonne. Trois
-     niveaux (d1 → d2 → b1/b2) doivent donner deux décisions nommées, au moins un segment et une seule
-     colonne de marqueurs — avant la session comme en session. */
+  /* A376 : la liste numérotée ÉCRIT le chemin : chaque option dit où elle mène. A394 (amende A376) : une suite qui
+     n'est pas la rangée suivante ouvre une BRANCHE (« ↳ Branche », signée par sa décision), dont les blocs sont
+     INDENTÉS d'un cran — deux colonnes de numéros au plus : le tronc, et les branches un cran à droite. Trois
+     niveaux (d1 → d2 → b1/b2) — avant la session comme en session. */
   const lire=()=>page.evaluate(()=>{
     const zone=document.querySelector('.pre-lad')||document.querySelector('.read-plan .rail-lad');if(!zone)return null;
     const rows=[...zone.querySelectorAll('.pf-row')];const decs=rows.filter(r=>r.classList.contains('dec'));
     return {rangs:rows.length,decisions:decs.length,
       branches:decs.map(d=>[...d.querySelectorAll('.pf-opt')].map(o=>({nom:((o.querySelector('b')||{}).textContent||'').trim(),dest:!!o.querySelector('.pf-ref')||/▪ fin|ci-dessous/.test(o.textContent)}))),
-      segments:zone.querySelectorAll('.pf-seg').length,segSrc:zone.querySelectorAll('.pf-seg .pf-src').length,
-      xBadges:[...new Set(rows.map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left)))]};});
+      segments:zone.querySelectorAll('.pf-br>.pf-seg').length,segSrc:zone.querySelectorAll('.pf-br>.pf-seg .pf-src').length,
+      xTronc:[...new Set(rows.filter(r=>!r.closest('.pf-br')).map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left)))],
+      xBr:[...new Set(rows.filter(r=>r.closest('.pf-br')).map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left)))]};});
   const juge=(o,quand)=>{
     t(`${quand} · témoin : les six blocs sont rendus, dont deux décisions`,
       !!o&&o.rangs===6&&o.decisions===2, JSON.stringify(o&&{rangs:o.rangs,decisions:o.decisions}));
     t(`${quand} · chaque décision nomme ses deux branches, et chacune dit où elle mène`,
       !!o&&o.branches.length===2&&o.branches.every(b=>b.length===2&&b.every(x=>x.nom&&x.dest)), JSON.stringify(o&&o.branches));
-    t(`${quand} · une branche qui n'est pas la rangée suivante ouvre un segment « Chemin n », signé par sa décision`,
+    t(`${quand} · une suite qui n'est pas la rangée suivante ouvre une BRANCHE, signée par sa décision`,
       !!o&&o.segments>=1&&o.segSrc===o.segments, JSON.stringify(o&&{segments:o.segments,src:o.segSrc}));
-    t(`${quand} · tous les numéros vivent dans UNE colonne (la liste n'indente pas, elle écrit)`,
-      !!o&&o.xBadges.length===1, JSON.stringify(o&&o.xBadges));};
+    t(`${quand} · deux colonnes de numéros au plus : le tronc, et les branches un cran à droite`,
+      !!o&&o.xTronc.length===1&&o.xBr.length===1&&o.xBr[0]-o.xTronc[0]>=12, JSON.stringify(o&&{tronc:o.xTronc,branches:o.xBr}));};
   juge(await lire(),'avant la session');
   await page.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
     document.getElementById('sessStart').click();await w(700);});
@@ -7315,6 +7315,117 @@ for (const [W,H,Z] of [[390,844,100],[320,568,100],[844,390,130]]) {
 }}
 });
 
+/* ══ A392 — IMPRESSION DE LA PAGE, PAGE SANS DOUBLON, LOSANGE CENTRÉ, EXPORT D'UNE SÉLECTION, LIENS PDF, « ✓ FAITE » ══════
+   (1) Les traits du tronc et des fourches sont des BORDURES (un fond ne s'imprime pas sans « arrière-plans »). (2) Le papier
+   se pagine par CALES (`.sv-pgb`) qui portent chacune le calque de leur page (`.sv-gutk`) — plus un calque unique décalé par
+   une hauteur de page que rien ne connaît. (3) En mode Page, seule la carte « Références » reste sous la feuille. (4) Le
+   chiffre d'un losange est centré (pastille droite, losange en ::before). (5) La sélection s'exporte. (6) « ✓ faite ». */
+await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »', async () => {
+{
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await page.evaluate(async()=>{const it=a=>a.map(x=>v4MakeItem(uid('i'),'do',x));const cn=uid('n');
+  const f=migrate({id:'zprint',title:'Arrêt cardiorespiratoire (fixture)',start:'b1',
+    confirmation:['Inconscient + respiration anormale','Activité convulsive brève possible','Si monitoré : scope · SpO2 · EtCO2'],
+    notForget:['NE PAS interrompre le MCE > 5 s','FV de toute amplitude → choquer','PAS de Ca, bicarbonate','Réfractaire = 3 chocs inefficaces'],
+    verify:['EtCO2 : confirme la sonde','EtCO2 bas isolé ≠ critère d’arrêt','Ventilateur : Vt 6-8 mL/kg'],differentials:['Pseudo-AESP'],
+    posology:['△ ADRÉNALINE — IV : 1 mg','△ AMIODARONE — IV : 300 mg','LIDOCAÏNE — IV : 100 mg'],sources:['ERC 2025'],
+    counters:[{id:cn,label:'CEE',step:1,start:0}],
+    blocks:[
+    {id:'b1',kind:'do',title:'Mesures immédiates',items:it(['Renfort + répartition des rôles','⚠ MCE 100–120/min · 5–6 cm','Noter l’heure · chariot','△ Vérifier l’absence de LATA']),next:'b2'},
+    {id:'b2',kind:'do',title:'Accès & voies aériennes',items:it(['Pads antéro-latéraux','Scope · SpO2 · capnographie','Voie IV — 1re intention','IOT · pause MCE < 5 s','⚠ Capnographie : tracé EtCO2','Bilan : GDS · iono · Hb']),next:'d3'},
+    {id:'d3',kind:'decision',title:'Analyse du rythme',question:'Rythme à l’analyse ?',options:[{label:'Choquable',target:'b4'},{label:'Non choquable',target:'b5'},{label:'RACS',target:'b7'}]},
+    {id:'b4',kind:'do',title:'FV / TV sans pouls',items:it(['⚠ 1 CEE :: ≥ 150 J biphasique','⚠ Reprise MCE immédiate :: 2 min','⚠ Adrénaline :: 1 mg IVD, puis / 3–5 min','Amiodarone :: 300 mg IV','Amiodarone :: 150 mg IV']),next:'b6'},
+    {id:'b5',kind:'do',title:'Asystolie / AESP',items:it(['⚠ Adrénaline :: 1 mg IV dès que possible','⚠ Reprise MCE immédiate :: 2 min','△ Asystolie : rechercher des ondes P']),next:'b6'},
+    {id:'b6',kind:'do',title:'Causes réversibles',items:it(['Hypoxie · Hypovolémie','Hypo/hyperkaliémie','Hypothermie','Thrombose · Tamponnade · Pneumothorax · Toxiques','△ POCUS : tamponnade · pneumothorax','Si EP :: thrombolyse ; poursuivre RCP 60-90 min']),next:'d3'},
+    {id:'b7',kind:'do',title:'Reprise d’activité (RACS)',items:it(['ABCDE · traiter la cause','SpO2 cible :: 94-98 %','PaCO2 normale :: 37-45 mmHg','PAS :: > 100 mmHg','ECG 12 dérivations','Contrôle de la température :: < 37.5°C','Coronarographie si indication']),next:null}]});
+  f.blocks.find(b=>b.id==='b4').items.forEach(x=>{if(/^1 CEE/.test(x.do))x.counts=cn;if(/^Amiodarone/.test(x.do)){x.from={counter:cn,n:/300/.test(x.expect)?3:5};x.repeat='once';}});
+  await Data.put(f);fiches.push(f);openRead(f.id);});
+  await page.waitForTimeout(400);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    setReadModePref('static');openRead('zprint');await w(500);
+    const cartes=[...document.querySelectorAll('main [data-prefold]')].map(b=>b.dataset.prefold);
+    const tronc=(c=>({borderLeftWidth:c.borderLeftWidth,backgroundColor:c.backgroundColor}))(getComputedStyle(document.querySelector('.sv-col>.sv-row.sv-cell:not(:last-child)'),'::after'));   // lu TOUT DE SUITE : l'objet est vivant
+    const titre0=document.title;window.dispatchEvent(new Event('beforeprint'));await w(400);
+    const titreImp=document.title;
+    const cales=document.querySelectorAll('.sv-pgb').length,calques=[...document.querySelectorAll('.sv-pgb>.sv-gutk')].map(g=>g.querySelectorAll('path').length);
+    render();await w(300);svPaintArrows(main);   // un re-rendu pendant l'impression : la pagination se refait
+    const apres=document.querySelectorAll('.sv-pgb>.sv-gutk').length;
+    window.dispatchEvent(new Event('afterprint'));await w(300);setReadModePref('overview');
+    const titreApres=document.title;
+    return {titre0,titreImp,titreApres,cartes,trBord:tronc.borderLeftWidth,trFond:tronc.backgroundColor,cales,calques,apres,resteCales:document.querySelectorAll('.sv-pgb').length};});
+  t('mode Page : sous la feuille, seule « Références » (le reste est DANS la Page)',JSON.stringify(r.cartes)==='["refs"]',JSON.stringify(r.cartes));
+  t('le tronc est une BORDURE (s\'imprime sans « arrière-plans »)',r.trBord==='2px'&&/rgba\(0, 0, 0, 0\)|transparent/.test(r.trFond),JSON.stringify({b:r.trBord,f:r.trFond}));
+  t('impression : une cale par page suivante, qui porte son calque de voies',r.cales>=1&&r.calques.length===r.cales&&r.calques.every(n=>n>=1),JSON.stringify({cales:r.cales,calques:r.calques}));
+  t('… un re-rendu pendant l\'impression refait la pagination (calques toujours dans le document)',r.apres===r.cales,JSON.stringify({apres:r.apres}));
+  t('… et tout disparaît après l\'impression',r.resteCales===0,String(r.resteCales));
+  t('A393 : le PDF enregistré porte le nom de l\'aide (titre du document), rendu après l\'impression',r.titreImp==='Arrêt cardiorespiratoire (fixture)'&&r.titreApres===r.titre0,JSON.stringify({pendant:r.titreImp,apres:r.titreApres}));
+  await page.emulateMedia({media:'print'});   // le numéro d'un bloc reste un CADRE sans « arrière-plans »
+  const nums=await page.evaluate(()=>[...document.querySelectorAll('.sv-num')].map(n=>getComputedStyle(n).borderTopWidth));
+  await page.emulateMedia({media:'screen'});
+  t('impression : chaque numéro de bloc de la Page est encadré (bordure, pas seulement un fond)',nums.length>0&&nums.every(b=>parseFloat(b)>=2),JSON.stringify(nums));
+  const segs=await page.evaluate(async()=>{openRead('zprint');await new Promise(x=>setTimeout(x,400));const all=document.querySelector('.pf-flat.dense [data-plall="1"]');if(all){all.click();await new Promise(x=>setTimeout(x,200));}
+    const col=document.querySelector('.pf-flat.dense');
+    return {txt:col.textContent,br:[...col.querySelectorAll('.pf-br')].map(b=>{const g=b.querySelector('.pf-seg'),pl=g.querySelector('.pf-src'),rail=getComputedStyle(b,'::before');
+      const x=r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left);
+      return {tete:g.querySelector('.pf-segl').textContent.trim(),aria:b.getAttribute('aria-label'),jeu:pl?Math.round(col.getBoundingClientRect().right-pl.getBoundingClientRect().right):99,
+        rail:rail.borderLeftWidth===rail.borderTopWidth&&parseFloat(rail.borderLeftWidth)>=2&&b.getBoundingClientRect().height-parseFloat(rail.top)-parseFloat(rail.bottom)>40,rangs:[...b.querySelectorAll(':scope>.pf-row')].map(x)};}),
+      tronc:[...col.querySelectorAll(':scope>.pf-row')].map(r=>Math.round(r.querySelector('.pf-badge').getBoundingClientRect().left))};});
+  t('A393 : colonne — la pastille d\'une branche tient dans la colonne, à 12 px au moins du bord',segs.br.some(b=>b.jeu<99)&&segs.br.every(b=>b.jeu>=12),JSON.stringify(segs.br.map(b=>b.jeu)));
+  t('A394 : « Branche » sans glyphe de police (plus de « Chemin n »), groupe nommé par sa décision, « ■ Fin » (plus « Fin du parcours »)',segs.br.length>=2&&segs.br.every(b=>/^(Branche|Suite de|Autre entrée)$/.test(b.tete)&&/^(Branche de la décision \d+|Suite du bloc|Autre entrée)/.test(b.aria||''))&&!/Chemin \d|Fin du parcours/.test(segs.txt)&&/■ Fin/.test(segs.txt),JSON.stringify(segs.br.map(b=>[b.tete,b.aria])));
+  t('A394 : les blocs d\'une branche sont indentés d\'un cran le long d\'UN trait (coin + filet, même épaisseur)',segs.br.length>0&&segs.br.every(b=>b.rail&&b.rangs.length>0&&b.rangs.every(x=>x-segs.tronc[0]>=12))&&new Set(segs.tronc).size===1,JSON.stringify({tronc:segs.tronc,br:segs.br.map(b=>({r:b.rangs,rail:b.rail}))}));
+  await page.close();
+}
+{
+  const page=await br.newPage({viewport:{width:1280,height:900},acceptDownloads:true});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  await ouvrirFiche(page,/Arrêt cardiaque/);
+  const d=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    const b=document.querySelector('.read-plan .pf-row.dec .pf-badge'),sp=b.querySelector('span'),rg=document.createRange();rg.selectNodeContents(sp);
+    const t=rg.getBoundingClientRect(),bb=b.getBoundingClientRect();
+    const f=state.fiche;document.getElementById('sessStart').click();await w(500);
+    const bl=f.blocks.find(x=>/^Choquable/.test(x.title)),i=bItems(bl).findIndex(x=>/Amiodarone/.test(x.do)&&/300/.test(x.expect));
+    state.checked['1:'+bl.id+':'+i]=true;render();await w(300);
+    document.querySelector('.read-plan [data-plall="1"]').click();await w(250);
+    return {dx:Math.abs((t.left+t.width/2)-(bb.left+bb.width/2)),dy:Math.abs((t.top+t.height/2)-(bb.top+bb.height/2)),
+      faite:[...document.querySelectorAll('.read-plan .pf-q.faite .q-now')].map(e=>e.textContent.trim()),
+      schema:(()=>{const x=document.createElement('div');x.innerHTML=buildFlowSVG(f,false);flowPaintState(x,f);return [...x.querySelectorAll('g.fq')].map(g=>g.classList.contains('faite'));})()};});
+  t('losange : le chiffre est centré (< 0,6 px)',d.dx<0.6&&d.dy<0.6,JSON.stringify({dx:d.dx,dy:d.dy}));
+  t('« une seule fois » déjà cochée : « ✓ faite » dans le parcours et le Schéma, pas l\'autre',
+    d.faite.length===1&&/✓ faite/.test(d.faite[0])&&JSON.stringify(d.schema)==='[true,false]',JSON.stringify({faite:d.faite,schema:d.schema}));
+  await page.evaluate(()=>{state.view='library';render();});await page.waitForTimeout(300);
+  const [dl]=await Promise.all([page.waitForEvent('download'),page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    document.getElementById('selTog').click();await w(200);document.getElementById('selAll').click();await w(200);document.getElementById('selExp').click();})]);
+  const txt=await (await import('node:fs')).promises.readFile(await dl.path(),'utf8');const j=JSON.parse(txt);
+  t('la sélection s\'exporte en UN fichier réimportable (version 3, aides et catégories)',j.version===3&&j.fiches.length>=2&&j.categories.length>=1,JSON.stringify({v:j.version,n:j.fiches.length,c:j.categories.length}));
+  await page.close();
+}
+/* Liens du lecteur PDF : un PDF fabriqué par Chromium (lien externe, lien `javascript:`, renvoi interne, signets). WebKit ne
+   sait pas imprimer en PDF depuis Playwright : le contrôle y est sauté, et il le dit. */
+{
+  let pdfB64=null;
+  try{const g=await br.newPage();await g.setContent('<h1 id="a">Section A</h1><p><a href="https://www.erc.edu/">ERC</a> <a href="javascript:alert(1)">piège</a> <a href="#b">vers B</a></p><div style="height:1300px"></div><h1 id="b">Section B</h1>');
+    pdfB64=(await g.pdf({format:'A4',outline:true,tagged:true})).toString('base64');await g.close();}catch(e){}
+  if(!pdfB64)console.log('  · liens PDF : contrôle sauté (moteur sans impression PDF)');
+  else{const page=await br.newPage({viewport:{width:1280,height:900}});
+    await page.goto(`http://localhost:${port}/index.html`);await amorce(page);await ouvrirFiche(page,/Arrêt cardiaque/);
+    const r=await page.evaluate(async b64=>{const w=m=>new Promise(x=>setTimeout(x,m));const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)).buffer;
+      await attPut({id:'a392pdf',buf:bin,size:bin.byteLength,type:'application/pdf',createdAt:Date.now(),dirty:0});
+      await openPdfViewer({id:'a392pdf',name:'liens.pdf'},state.fiche);await w(1500);
+      const l=[...document.querySelectorAll('#pdfScroll .pdf-lnk')];const sc=document.getElementById('pdfScroll');
+      const ext=l.filter(a=>a.tagName==='A').map(a=>({href:a.getAttribute('href'),rel:a.rel,t:a.target}));
+      const bt=l.find(a=>a.tagName==='BUTTON');if(bt)bt.click();await w(500);const saut=sc.scrollTop;
+      const toc=document.getElementById('pdfToc');return {ext,saut,toc:!toc.hidden};},pdfB64);
+    t('lecteur PDF : le lien externe est cliquable (http(s) seulement, noopener), le lien javascript: ne l\'est pas',
+      r.ext.length===1&&r.ext[0].href==='https://www.erc.edu/'&&/noopener/.test(r.ext[0].rel)&&r.ext[0].t==='_blank',JSON.stringify(r.ext));
+    t('… un renvoi interne mène à sa page, et le sommaire du document est offert',r.saut>100&&r.toc,JSON.stringify({saut:r.saut,toc:r.toc}));
+    await page.close();}
+}
+});
+
 /* ══ A391 — LA PAGE : UNE ENTRÉE, UNE POINTE ; LES RETOURS PAR LE BAS ; L'ÉCHELLE MESURÉE ; LES MOMENTS EN MOTS ════
    (1) Une sortie qui vise la première rangée d'une branche de fourche rejoignait la barre à 8 px près et posait une
    SECONDE pointe collée à celle de la fourche. (2) Un retour depuis une pilule traversait le tronc de sa colonne et
@@ -7362,6 +7473,11 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
       q:[...sh.querySelectorAll('.sv-stp .pf-q')].map(e=>e.textContent.trim()),
       caps:/CHOCS DÉLIVRÉS ≥ 3 · UNE SEULE FOIS|À L’ÉCHÉANCE/.test(txt)||!!sh.querySelector('.mo-rule,.wt-sv'),
       jl:(sh.querySelector('.sv-jl')||{}).textContent||'',
+      si:(()=>{const band=sh.querySelector('.sv-band:has(.sv-jl)');if(!band)return null;const kids=[...band.children];
+        const cs=e=>e&&getComputedStyle(e);const rep=band.querySelector('.sv-opt:not(.jl) .si'),jal=band.querySelector('.sv-opt.jl .si'),grp=sh.querySelector('.sv-gh .sv-si');
+        return {apres:kids.indexOf(band.querySelector('.sv-jl'))>kids.indexOf([...band.querySelectorAll(':scope>.sv-opt')].pop()),
+          police:[rep,jal,grp].every(e=>e&&cs(e).fontFamily===cs(rep).fontFamily&&cs(e).fontWeight===cs(rep).fontWeight),
+          gris:!!jal&&!!grp&&cs(jal).color!==cs(rep).color&&cs(jal).color===cs(grp).color,dest:!!band.querySelector('.sv-opt.jl .to.jl svg')};})(),
       schema:(()=>{const d=document.createElement('div');d.innerHTML=buildFlowSVG(acr,false);const tx=[...d.querySelectorAll('text')].map(t=>t.textContent);
         return {si:tx.filter(t=>/^Si Chocs délivrés ≥ [35]/.test(t)).length,q:tx.filter(t=>/toutes les 4\u00a0min|si pas déjà faite|\+1 Chocs délivrés/.test(t)).length};})()};});
   t('sortie vers une branche de fourche : elle finit SUR la barre, au sommet de la branche',r.fin,JSON.stringify(r));
@@ -7369,10 +7485,12 @@ await sec('Page · A391 entrées, retours, échelle, moments en mots', async () 
   t('retours depuis une pilule : ils partent de son BAS',r.parLeBas,JSON.stringify({pills:r.pills,ok:r.parLeBas}));
   t('le tronc rejoint le raccord de chaque pilule (au pixel)',r.jonctions.length>=2&&r.jonctions.every(d=>Math.abs(d)<=1),JSON.stringify(r.jonctions));
   t('une pointe de retour est précédée d\'un vrai trait (≥ 10 px), jamais posée sur le coude',r.avantPointe.length>=1&&r.avantPointe.every(v=>v>=10),JSON.stringify(r.avantPointe));
-  t('Page : « Si seuil : » coiffe les étapes consécutives au même seuil',r.gh.length===2&&/^Si Chocs délivrés ≥ 3/.test(r.gh[0]),JSON.stringify(r.gh));
+  t('Page : « SI seuil : » coiffe les étapes consécutives au même seuil',r.gh.length===2&&/^SI\s*Chocs délivrés ≥ 3/.test(r.gh[0]),JSON.stringify(r.gh));
   t('… les réglages en mots, plus de capitales ni de légende à icône',!r.caps&&r.q.some(x=>/toutes les 4\smin/.test(x))&&r.q.some(x=>/si pas déjà faite/.test(x)),JSON.stringify(r.q));
   t('Schéma : les mêmes « Si seuil : » (groupes et jalon) et les réglages en mots sous les étapes',r.schema.si>=3&&r.schema.q>=4,JSON.stringify(r.schema));
-  t('… le jalon se lit « Si … : »',/^Si Chocs délivrés ≥ 3/.test(r.jl.trim()),r.jl.slice(0,70));
+  t('… le jalon se lit « SI … : »',/^SI\s*Chocs délivrés ≥ 3/.test(r.jl.trim()),r.jl.slice(0,70));
+  t('A395 : le jalon d\'une décision suit ses réponses, en ligne « SI … [⚡ destination] »',!!r.si&&r.si.apres&&r.si.dest,JSON.stringify(r.si));
+  t('A395 : un seul dessin de « SI » dans la Page (réponses, jalon, groupes) — gris pour un seuil, ambre pour une réponse',!!r.si&&r.si.police&&r.si.gris,JSON.stringify(r.si));
   await page.close();
 }
 });

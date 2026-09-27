@@ -55,6 +55,10 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A389 | `lot-v5-35.md` | Accueil en une colonne (960 px), « Détaillée » cartes / « Compacte » une ligne au bureau ; « Gérer » les bibliothèques vers Moi ; « Tout voir » sans l'onglet « Parcours » (purge `.pc-*`) |
 | A390 | `lot-v5-35.md` | Structure de l'éditeur en dépliant collant sous 1200 px ; aperçu « Essayer » fidèle à la vraie page (cartes, quai, minuteurs), « Fin » rejoue l'essai ; replis de l'aperçu non enregistrés |
 | A391 | `lot-v5-35.md` | Page : sortie vers une branche de fourche qui rejoint sa barre (une pointe), retours de pilule par le bas, échelle des voies mesurée (animation d'ouverture), pointillés par segment ; moments en mots comme le parcours |
+| A392 | `lot-v5-36.md` | Impression de la Page (bordures, une cale et un calque par page, repagination), Page sans cartes en double, losange centré, export d'une sélection, liens et sommaire des PDF, « ✓ faite » |
+| A393 | `lot-v5-36.md` | Le PDF enregistré porte le nom de l'aide ; la pastille « Chemin » tient dans la colonne |
+| A394 | `lot-v5-36.md` | « Branche » remplace « Chemin n » : blocs indentés le long d'un trait unique (coin + filet), « ■ Fin » (amende A376) |
+| A395 | `lot-v5-36.md` | Page : le jalon suit les réponses en ligne « SI … [⚡] », en gris ; un seul dessin de « SI » (amende A391) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |
