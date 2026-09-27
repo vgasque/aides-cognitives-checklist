@@ -101,3 +101,17 @@ l'état, la colonne tombait à 90 px au téléphone et coupait « ADRÉNALI|NE �
 règle 10), l'état passe sous le nom. La tête repliée garde libellé et compte sur une ligne, le résumé dessous
 (insécable par état : « 1 à préparer » ne se coupe plus). (3) L'icône `pill` a une moitié PLEINE : à 13 px, la
 capsule au trait se lisait comme un maillon de chaîne.
+
+## A399 (v5.37.2) — deux alignements, mesurés
+
+**La capsule CRITIQUE / VIGILANCE d'une hypothèse est ANCRÉE SUR SON LIBELLÉ** (`.txt` en `position:relative`,
+capsule en `bottom:100%` + 4 px, bord gauche = bord du texte), et non plus sur la rangée par un décalage en px :
+A398 supposait une case de 28 px et une gouttière de 12, or sous 360 px effectifs la capsule partait 10 px à
+gauche du texte (13 px à 130 %). Mesuré à 0,0 px à 320, 390, 390 × 130 % et 1280. Les étapes ordinaires, déjà à
+0,0 à ces quatre cas, ne changent pas.
+
+**La tête de la bande des repères est sur la grille des rangées** : son icône dans la colonne de 20 px (`.pb-hic`),
+le compte DANS le titre sur sa ligne de base (11 px en capitales et 15 px mono se centraient chacun de son côté),
+et repliée au téléphone, le résumé dessous, dans la colonne du titre. Titre, résumé et noms des repères partent
+du même bord (36 px) à toutes les largeurs — l'icône de 15 px posée sans colonne décalait le titre de 7 px par
+rapport aux noms.

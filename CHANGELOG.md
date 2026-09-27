@@ -1,5 +1,14 @@
 # Journal des modifications
 
+## [5.37.2] — 2026-09-27
+Deux alignements, mesurés (A399, doctrine `docs/decisions/lot-v5-37.md`).
+- **Capsule CRITIQUE / VIGILANCE d'une hypothèse** : elle s'aligne exactement sur le début du
+  libellé en dessous, à toutes les largeurs et tailles de texte (sur téléphone étroit elle partait
+  10 px à gauche du texte).
+- **« Repères de ce bloc » replié** : le titre, le résumé (« 2 à préparer ») et les noms des repères
+  partent du même bord ; l'icône est dans la même colonne que celle des repères et le compte est sur
+  la ligne du titre.
+
 ## [5.37.1] — 2026-09-27
 Revue et repères du bloc : cinq retours d'usage (A398, doctrine `docs/decisions/lot-v5-37.md`).
 - **La revue des causes réversibles se partage entre les blocs.** Cochée dans « Choquable », elle
@@ -569,35 +578,4 @@ doctrine `docs/decisions/lot-v5-30.md`).
   condition ne pouvait jamais être vraie. Corrigée en testant l'appartenance, vérifiée capable
   d'échouer, elle a immédiatement trouvé deux vrais défauts.
 - Doctrine A344 (trois addenda), index, `design/ds` régénéré, CHANGELOG à 20 ([5.24.2] archivée).
-- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.29.3] — 2026-09-11
-### Les voies partent du bord de la boîte ; la feuille imprimée EST la page A4 (A344)
-
-- **Signalé à l'usage** : « les flèches commencent encore à l'intérieur du bloc en superposant au
-  texte et traversent des blocs », et « l'impression au format PDF rajoute des marges sur A4, quitte
-  à ajuster la taille globale proportionnellement ».
-- **Mesuré avant** (sonde : chaque segment du calque contre chaque cellule des deux fiches réelles) :
-  **six croisements**, tous du même type — une ligne « SI … ALLER À n » occupe toute la largeur
-  intérieure de sa boîte, donc partir de son bord droit, c'était partir sur le dernier mot et
-  traverser la bordure, 27 px de trait dans la boîte. **Correctif** : une voie garde l'ordonnée de sa
-  ligne et prend l'abscisse de sa BOÎTE. Et le collecteur d'une fourche descend désormais dans
-  l'interstice de 12 px à gauche de sa branche, 14 px sous la source la plus basse (relevé au besoin
-  pour passer sous une colonne sœur) — il descendait au bas de la fourche entière en longeant la
-  colonne des numéros, soit un grand rectangle vide lu comme un trait à travers l'algorithme.
-  **Mesuré après : zéro croisement.**
-- **La feuille imprimée est la page** : `width:210mm` et un padding calculé
-  (`calc((210mm - 710px) / 2)`) qui garde la zone de contenu à la largeur d'auteur au pixel près —
-  sans quoi le contenu se refluerait. Les marges horizontales ne viennent plus de `@page`, qu'un
-  moteur peut ignorer (WebKit) en ajoutant les siennes puis en réduisant la feuille pour l'y faire
-  tenir, d'où une image plus petite entourée de blanc. Mesuré : colonne racine 670 px inchangée,
-  texte de 11 à 198 mm sur 210, même nombre de pages selon que `@page` est respecté ou non.
-- ⚠ **Les voies mesurées ne s'impriment plus, et c'est une question de justesse** : le calque est un
-  élément absolu à l'échelle de la feuille, que la pagination coupe net alors qu'elle POUSSE le
-  contenu. Mesuré sur l'ACR : le bloc visé descend de 37 à 64 mm sur sa page selon ce qui a été
-  repoussé, pendant que la flèche reste où le flux non paginé l'avait mise — elle désigne le mauvais
-  bloc. Rien n'est perdu : la ligne « SI … ALLER À n » et la pilule « ↺ revenir à n » sont la vérité
-  textuelle depuis A134, et le dessin de structure (tronc, fourche, rail) vit dans le flux, donc il
-  suit la pagination et reste juste.
-- Doctrine A344 (deux addenda), index, `design/ds` régénéré, CHANGELOG à 20 ([5.24.1] archivée).
 - Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.

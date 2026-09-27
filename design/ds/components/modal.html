@@ -3364,11 +3364,13 @@
   ol.steps.rev li .box{width:28px;height:28px;border-radius:var(--r-1)}
   ol.steps.rev li .txt{font-size:var(--t-item)}
   ol.steps.rev li .stp-r{font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
-  /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, à SA colonne (case 28 +
-     12 de gouttière, sans marge de rangée) ; la place réservée de la rangée ordinaire (60 px, 32 en haut) posait le
-     mot SUR le libellé. `:root` : les paliers zw360/zw300 de la règle générale ne doivent pas la reprendre. */
+  /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, ANCRÉE SUR LUI (bord gauche
+     du texte, 4 px au-dessus) et non sur la rangée : un décalage écrit en px supposait une case et une gouttière
+     fixes, et sous 360 px effectifs la capsule partait 10 px à gauche du texte (13 à 130 %). La rangée garde la
+     place (28 px en haut). `:root` : les paliers zw360/zw300 de la règle générale ne doivent pas la reprendre. */
   :root ol.steps.rev li:has(>.txt>.stp-mks){padding-top:28px}
-  :root ol.steps.rev li .stp-mks{top:6px;left:40px}
+  :root ol.steps.rev li>.txt:has(>.stp-mks){position:relative}
+  :root ol.steps.rev li>.txt>.stp-mks{top:auto;left:0;bottom:100%;margin-bottom:4px}
   ol.steps.rev li.done{background:none}
   .rev-foot{display:flex;justify-content:flex-end;padding-top:8px}
   .fold-card .sf-body .rev-grid{margin:0;padding:0 0 10px;border:0}
@@ -3378,12 +3380,15 @@
   /* A398 : deux GRILLES — tête : libellé · compte · résumé · chevron (le résumé passe dessous au téléphone étroit) ;
      rangée : icône · nom · état · chevron, la posologie dessous sur toute la largeur. */
   .pb-head,.pb-row{display:grid;align-items:center;column-gap:8px;width:100%;min-height:var(--hit);border:0;background:none;font-family:inherit;color:var(--ink);text-align:left;cursor:pointer;border-radius:var(--r-1)}
-  .pb-head{grid-template-columns:auto auto minmax(0,1fr) auto;padding:0 8px}
-  .pb-t{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-  .pb-n{font-family:var(--mono);font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* La tête est sur la GRILLE DES RANGÉES (icône dans la colonne de 20 px) : titre, résumé et noms des repères
+     partent du même bord, et le compte se pose sur la ligne de base du titre. */
+  .pb-head{grid-template-columns:20px minmax(0,1fr) auto auto;padding:0 8px}
+  .pb-hic{display:grid;place-items:center;color:var(--ink-2)}
+  .pb-t{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .pb-n{font-family:var(--mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2)}
   .pb-sum{justify-self:end;text-align:right;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   html.zw430 .pband.closed .pb-head{row-gap:2px;padding:6px 8px}
-  html.zw430 .pband.closed .pb-sum{grid-row:2;grid-column:1/-1;justify-self:start;text-align:left;padding-left:20px}
+  html.zw430 .pband.closed .pb-sum{grid-row:2;grid-column:2/4;justify-self:start;text-align:left}
   html.zw430 .pband.closed .pb-head .pb-chev{grid-row:1;grid-column:4}
   .pband.closed .pb-body{display:none}
   .pb-row{grid-template-columns:20px minmax(0,1fr) auto auto;align-items:start;row-gap:2px;padding:6px 8px}

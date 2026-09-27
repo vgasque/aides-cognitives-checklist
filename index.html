@@ -289,7 +289,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-XcMZecrjleVOJMa9JC9bW+NqUVNxIrYfLAZQVijaztU='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-0uFiNwDnI10Wpsw5rQeL5NldxXMs4Bu+JasG5mUL/zE=' 'sha256-knA77jWUG9/9rYRB3suvY66A49tp66WQtmud5spx7aw='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -3719,11 +3719,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   ol.steps.rev li .box{width:28px;height:28px;border-radius:var(--r-1)}
   ol.steps.rev li .txt{font-size:var(--t-item)}
   ol.steps.rev li .stp-r{font-family:var(--f-ui);font-size:var(--t-meta);letter-spacing:0;text-transform:none}
-  /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, à SA colonne (case 28 +
-     12 de gouttière, sans marge de rangée) ; la place réservée de la rangée ordinaire (60 px, 32 en haut) posait le
-     mot SUR le libellé. `:root` : les paliers zw360/zw300 de la règle générale ne doivent pas la reprendre. */
+  /* A398 : une hypothèse CRITIQUE / VIGILANCE — l'étiquette se pose au-dessus du libellé, ANCRÉE SUR LUI (bord gauche
+     du texte, 4 px au-dessus) et non sur la rangée : un décalage écrit en px supposait une case et une gouttière
+     fixes, et sous 360 px effectifs la capsule partait 10 px à gauche du texte (13 à 130 %). La rangée garde la
+     place (28 px en haut). `:root` : les paliers zw360/zw300 de la règle générale ne doivent pas la reprendre. */
   :root ol.steps.rev li:has(>.txt>.stp-mks){padding-top:28px}
-  :root ol.steps.rev li .stp-mks{top:6px;left:40px}
+  :root ol.steps.rev li>.txt:has(>.stp-mks){position:relative}
+  :root ol.steps.rev li>.txt>.stp-mks{top:auto;left:0;bottom:100%;margin-bottom:4px}
   ol.steps.rev li.done{background:none}
   .rev-foot{display:flex;justify-content:flex-end;padding-top:8px}
   .fold-card .sf-body .rev-grid{margin:0;padding:0 0 10px;border:0}
@@ -3733,12 +3735,15 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A398 : deux GRILLES — tête : libellé · compte · résumé · chevron (le résumé passe dessous au téléphone étroit) ;
      rangée : icône · nom · état · chevron, la posologie dessous sur toute la largeur. */
   .pb-head,.pb-row{display:grid;align-items:center;column-gap:8px;width:100%;min-height:var(--hit);border:0;background:none;font-family:inherit;color:var(--ink);text-align:left;cursor:pointer;border-radius:var(--r-1)}
-  .pb-head{grid-template-columns:auto auto minmax(0,1fr) auto;padding:0 8px}
-  .pb-t{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
-  .pb-n{font-family:var(--mono);font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  /* La tête est sur la GRILLE DES RANGÉES (icône dans la colonne de 20 px) : titre, résumé et noms des repères
+     partent du même bord, et le compte se pose sur la ligne de base du titre. */
+  .pb-head{grid-template-columns:20px minmax(0,1fr) auto auto;padding:0 8px}
+  .pb-hic{display:grid;place-items:center;color:var(--ink-2)}
+  .pb-t{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  .pb-n{font-family:var(--mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2)}
   .pb-sum{justify-self:end;text-align:right;font-size:var(--t-meta);font-weight:600;color:var(--ink-2)}
   html.zw430 .pband.closed .pb-head{row-gap:2px;padding:6px 8px}
-  html.zw430 .pband.closed .pb-sum{grid-row:2;grid-column:1/-1;justify-self:start;text-align:left;padding-left:20px}
+  html.zw430 .pband.closed .pb-sum{grid-row:2;grid-column:2/4;justify-self:start;text-align:left}
   html.zw430 .pband.closed .pb-head .pb-chev{grid-row:1;grid-column:4}
   .pband.closed .pb-body{display:none}
   .pb-row{grid-template-columns:20px minmax(0,1fr) auto auto;align-items:start;row-gap:2px;padding:6px 8px}
@@ -8614,7 +8619,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.37.1';
+const APP_VERSION='5.37.2';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21112,7 +21117,7 @@ function posBandHtml(f,b,seq){const rows=posBandModel(f,b,seq,state.checked,(it,
      (dans une colonne étroite entre l'icône et l'état, le nom se coupait au milieu du mot à 320 px). */
   const line=r=>{const o=!!(state.posOpen&&state.posOpen[r.id]);
     return `<button type="button" class="pb-row${o?' open':''}" data-pbrow="${esc(r.id)}" aria-expanded="${o?'true':'false'}"><span class="pb-ic" aria-hidden="true">${uiIcon('pill',15,{cls:''})}</span>${r.name?`<span class="pb-nm">${esc(r.name)}</span>`:`<span class="pb-bd solo">${fmt(r.body)}</span>`}<span class="pb-stt${SC[r.stt]?' '+SC[r.stt]:''}">${r.stt}</span>${chevHtml(o,'pb-chev')}${r.name&&r.body?`<span class="pb-bd">${fmt(r.body)}</span>`:''}</button>${o?`<div class="pb-det">${r.note?fmt(r.note).replace(/\n/g,'<br>'):'Aucun détail rédigé.'}</div>`:''}`;};
-  return `<div class="pband${open?'':' closed'}"><button type="button" class="pb-head" data-pbtg aria-expanded="${open?'true':'false'}"><span class="pb-t">${uiIcon('pill',15,{cls:''})} Repères de ce bloc</span><span class="pb-n">${rows.length}</span><span class="pb-sum">${open?'':esc(sum)}</span>${chevHtml(open,'pb-chev')}</button><div class="pb-body">${rows.map(line).join('')}</div></div>`;}
+  return `<div class="pband${open?'':' closed'}"><button type="button" class="pb-head" data-pbtg aria-expanded="${open?'true':'false'}"><span class="pb-hic" aria-hidden="true">${uiIcon('pill',15,{cls:''})}</span><span class="pb-t">Repères de ce bloc <span class="pb-n">${rows.length}</span></span><span class="pb-sum">${open?'':esc(sum)}</span>${chevHtml(open,'pb-chev')}</button><div class="pb-body">${rows.map(line).join('')}</div></div>`;}
 /* A377 — la légende d'un objet lié : une ligne de 24 px dans tous les états (A9), la valeur d'abord
    (celle de la tuile), gris au repos, bleu sans fond en cours (A11), pastille ambre à l'échéance.
    Modèles PURS ; `paintWitness` ne réécrit que si le modèle change. Détail : lot-v5-31.md. */
