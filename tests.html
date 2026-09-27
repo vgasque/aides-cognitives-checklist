@@ -1090,7 +1090,17 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
     eq('posBandModel : un repère par étape liée, sans doublon, dans l’ordre', band.map(r=>r.id), ['d1','d2']);
     eq('posBandModel : fait · à faire · à préparer viennent de la coche', band.map(r=>r.stt), ['fait','à faire']);
     eq('posBandModel : nom, corps, détail lus une fois', [band[0].name,band[0].body,band[0].note], ['ADRÉNALINE — IV/IO','1 mg / 3–5 min','dilution']);
-    eq('posBandModel : l’étape-revue ne bloque pas « à faire »', A.posBandModel(F,b1,1,{}).map(r=>r.stt), ['à faire','à préparer']);}
+    eq('posBandModel : l’étape-revue ne bloque pas « à faire »', A.posBandModel(F,b1,1,{}).map(r=>r.stt), ['à faire','à préparer']);
+    // A398 — une revue par session : clé `r:revue:index`, les coches d'une session antérieure la rejoignent.
+    eq('REV_SEQ : un préfixe accepté par le partage', /^[A-Za-z0-9_-]{1,64}$/.test(A.REV_SEQ), true);
+    eq('revKeysLift : visite:revue:index → r:revue:index, les étapes ordinaires inchangées',
+      Object.keys(A.revKeysLift(F,{'3:rv:0':true,'5:rv:1':true,'5:rv:0':false,'1:b1:0':true})).sort(), ['1:b1:0','r:rv:0','r:rv:1']);
+    eq('revState : même revue vue de deux blocs = mêmes coches', A.revState(rb,A.REV_SEQ,A.revKeysLift(F,{'3:rv:0':true,'5:rv:1':true})), {k:2,n:2,done:true});
+    // A398 — le moment de l'étape : avant lui « à préparer » (et elle ne retient pas les suivantes), faite à un passage précédent « fait ».
+    const mo=(st,req)=>(it,i)=>i===0?(req?{st,req}:{st}):null;
+    eq('posBandModel : avant son moment, « à préparer » — la suivante reste « à faire »', A.posBandModel(F,b1,1,{},mo('wait')).map(r=>r.stt), ['à préparer','à faire']);
+    eq('posBandModel : faite à un passage précédent, « fait »', A.posBandModel(F,b1,1,{},mo('gone')).map(r=>r.stt), ['fait','à faire']);
+    eq('posBandModel : moment venu, rien ne change', A.posBandModel(F,b1,1,{},mo('met',1)).map(r=>r.stt), ['à faire','à préparer']);}
    // A397 — un repère écrit en objet {id,text,note} (prompt IA) garde son id pour les renvois `poso`.
    {const G=A.migrate({title:'P',posology:[{id:'d9',text:'△ **X — IV** : 1 mg',note:'dilution 1/10'},'**Y** : 2 mg',{text:''}],blocks:[{id:'b',kind:'do',items:[{do:'X',poso:'d9'}],next:null}],start:'b'});
     const d=A.roleItems(G,'dose');
