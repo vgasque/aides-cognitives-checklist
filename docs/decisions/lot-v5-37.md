@@ -65,3 +65,39 @@ administration) — l'éditeur l'écrit sous la ligne du repère.
 
 **L'icône.** Le glyphe ℞ en dur est remplacé par `uiIcon('pill')` (trait 2, boîte 24), et la revue par
 `uiIcon('grid')`.
+
+## A398 (v5.37.1) — cinq retours d'usage sur la revue et la bande des repères
+
+**La revue est UNE par session (amende A396).** Ses hypothèses se cochaient sous `visite:revue:index` : chaque
+passage de la boucle repartait de zéro, donc dans l'ACR la revue posée dans « Choquable » et celle posée dans
+« Non choquable » ne se voyaient JAMAIS (un passage n'entre que dans l'un des deux). Or les causes réversibles
+s'explorent au fil de l'arrêt, pas toutes les deux minutes. La clé devient `r:revue:index` (`REV_SEQ`) : les
+mêmes coches partout où la revue est posée (étape-revue de chaque bloc, carte sous le bloc), « Nouvelle revue »
+la remet à zéro pour toute la session. Le préfixe tient dans `SHARE_KEY_RX` et aucun lecteur des clés ne lit la
+visite (compte-rendu, `ckItem`, `stepTextFromKey` lisent revue et index) : partage, assainisseurs et compte-rendu
+inchangés. Une session reprise née avant ce correctif voit ses coches rejoindre la revue (`revKeysLift`, dans
+`buildRuntime`, seul point de reprise).
+
+**Collision de noms de classe.** L'étape-revue portait `.rev-row` — déjà la rangée de la liste « à relire »
+(colonne, `span{12px ; encre douce}`, survol qui soulève). L'étape et TOUTE sa grille en héritaient : case posée
+AU-DESSUS du libellé, hypothèses et étiquettes CRITIQUE / VIGILANCE rapetissées et grisées. Renommée `rv-step`.
+Et `ol.steps li:has(.stp-mks)` voyait les étiquettes des hypothèses IMBRIQUÉES (32 px vides au-dessus de
+l'étape-revue) : le sélecteur ne regarde plus que les enfants directs (`:has(>.txt>.stp-mks)`).
+
+**Une hypothèse CRITIQUE / VIGILANCE.** La place réservée à l'étiquette est celle de la rangée ordinaire
+(60 px à gauche, 32 en haut) ; dans la grille (case 28, sans marge de rangée) le mot se posait SUR le libellé.
+La grille a sa place (40 px, 28 en haut), et `:root` pour que les paliers zw360/zw300 ne la reprennent pas.
+
+**Avant son moment, pas de CRITIQUE / VIGILANCE (idée de l'auteur).** Une étape en attente de son moment (A382 :
+pointillé, sans case) ne dit que sa règle ; le mot de registre revient avec la case, au moment où le geste se
+fait. Seulement dans la liste de session (le parcours, la Page et l'éditeur, qui ne sont pas des cases à cocher,
+gardent le mot). Faite à un passage précédent, elle le garde, grisée.
+
+**La bande des repères.** (1) Le MOT suit aussi le moment : avant le moment de l'étape liée, « à préparer » (et
+elle ne retient pas « à faire » des suivantes, comme elle ne retient pas « Continuer ») ; faite à un passage
+précédent (« une seule fois »), « fait » — `posBandModel` reçoit le moment en argument, reste pure. (2) Une rangée
+se lit en DEUX lignes : icône · nom · état · chevron, la posologie dessous sur toute la largeur ; entre l'icône et
+l'état, la colonne tombait à 90 px au téléphone et coupait « ADRÉNALI|NE ». Sous 430 px effectifs (`zw430`,
+règle 10), l'état passe sous le nom. La tête repliée garde libellé et compte sur une ligne, le résumé dessous
+(insécable par état : « 1 à préparer » ne se coupe plus). (3) L'icône `pill` a une moitié PLEINE : à 13 px, la
+capsule au trait se lisait comme un maillon de chaîne.

@@ -1,5 +1,24 @@
 # Journal des modifications
 
+## [5.37.1] — 2026-09-27
+Revue et repères du bloc : cinq retours d'usage (A398, doctrine `docs/decisions/lot-v5-37.md`).
+- **La revue des causes réversibles se partage entre les blocs.** Cochée dans « Choquable », elle
+  est retrouvée telle quelle dans « Non choquable » : c'est UNE revue pour toute la session, quel
+  que soit le bloc qui la pose, et elle ne repart plus de zéro à chaque tour de boucle. « Nouvelle
+  revue » la remet à zéro. Une session en cours reprise après la mise à jour garde ses coches.
+- **Hypothèses « critique » ou « vigilance » lisibles.** L'étiquette se posait sur le libellé de
+  l'hypothèse ; elle se place au-dessus. L'étape-revue elle-même avait sa case AU-DESSUS du texte,
+  des hypothèses grisées et rapetissées (un nom de classe déjà pris par la liste « à relire ») :
+  corrigé.
+- **Pas de CRITIQUE / VIGILANCE avant le moment d'une étape.** Une étape qui attend son moment
+  (en pointillé, sans case) n'affiche que sa règle ; le mot revient avec la case.
+- **Repères de ce bloc.** Un repère dont l'étape n'a pas encore atteint son moment est « à
+  préparer », plus « à faire » ; faite à un passage précédent (« une seule fois »), « fait ». Chaque
+  repère se lit en deux lignes — nom et état en tête, posologie dessous sur toute la largeur — et le
+  nom ne se coupe plus au milieu du mot sur téléphone ; sous 430 px, l'état passe sous le nom. Bande
+  repliée : le résumé (« 2 à préparer ») passe sous le titre au téléphone au lieu de s'écraser à côté.
+- **Icône des repères** : la gélule a une moitié pleine — elle se lisait comme un maillon de chaîne.
+
 ## [5.37.0] — 2026-09-27
 La revue « à tout moment » et la bande des repères du bloc (A396-A397, doctrine `docs/decisions/lot-v5-37.md`).
 - **Revue « à tout moment ».** Une question que l'équipe se pose pendant tout le soin — les causes
@@ -581,16 +600,4 @@ doctrine `docs/decisions/lot-v5-30.md`).
   textuelle depuis A134, et le dessin de structure (tronc, fourche, rail) vit dans le flux, donc il
   suit la pagination et reste juste.
 - Doctrine A344 (deux addenda), index, `design/ds` régénéré, CHANGELOG à 20 ([5.24.1] archivée).
-- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.29.2] — 2026-09-11
-### Impression : un intitulé de branche ne finit jamais une page seul (A344)
-
-- Suite de la mesure page par page de v5.29.1 : une fourche plus haute qu'une page se déroule
-  cellule par cellule comme le tronc (mesuré sur l'état de mal : coupe entre 13 et 14, le trait de
-  la colonne reprend page suivante) ; restait le cas de l'intitulé « si ‹option› » en bas de page,
-  sa première cellule partant page suivante — `break-after:avoid` sur l'intitulé, comme sur la
-  décision. Une cellule plus haute qu'une page reste un problème de contenu (l'éditeur signale au-delà
-  de 8 étapes) ; un paginateur mesuré ne s'écrira que sur une fiche réelle qui imprime mal.
-- Doctrine A344 (addendum), CHANGELOG à 20 ([5.24.0] archivée).
 - Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
