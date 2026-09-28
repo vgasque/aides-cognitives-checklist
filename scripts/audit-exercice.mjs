@@ -45,7 +45,7 @@ t('le placard SUIT LE TITRE : en-tête hachuré au défilement, quai PROPRE, hac
 const e1b=await p.evaluate(async()=>{
  const probe=c=>{const d=document.createElement('div');d.style.color=`var(${c})`;document.body.appendChild(d);
    const v=getComputedStyle(d).color;d.remove();return (v.match(/\d+/g)||[0,0,0]).slice(0,3).map(Number);};
- const delta=()=>{const a=probe('--surface'),b=probe('--primary-soft');return a.reduce((t2,x,i)=>t2+Math.abs(x-b[i]),0);};
+ const delta=()=>{const a=probe('--work'),b=probe('--primary-soft');return a.reduce((t2,x,i)=>t2+Math.abs(x-b[i]),0);};
  const dl=delta();
  document.documentElement.dataset.theme='dark';await new Promise(r=>setTimeout(r,120));
  const dd=delta();

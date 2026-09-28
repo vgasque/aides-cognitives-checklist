@@ -75,11 +75,11 @@ let net = src.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '))
 }
 
 const ligne = i => net.slice(0, i).split('\n').length;
-const OK_CSS = /^(var\(--(sans|mono|serif|f-ui|f-mono|f-title)\)|inherit)$/;
+const OK_CSS = /^(var\(--(f-ui|f-mono|f-title)\)|inherit)$/;   // v5.38.1 (A416) : les alias --sans/--mono/--serif ont été purgés
 for (const m of net.matchAll(/font-family\s*:\s*([^;}"']+)/g)) {
   const v = m[1].trim();
   if (OK_CSS.test(v)) continue;
-  fautes.push(`index.html:${ligne(m.index)}  font-family:${v}  — passer par --sans / --mono / --serif`);
+  fautes.push(`index.html:${ligne(m.index)}  font-family:${v}  — passer par --f-ui / --f-mono / --f-title`);
 }
 
 /* ---- 3. Les attributs SVG portent la pile en clair, et commencent par une famille embarquée ---- */

@@ -39,21 +39,21 @@ const scopedCss = appCss.replaceAll('html[data-theme="dark"]', '[data-theme="dar
 /* ---- Habillage propre aux fiches (préfixe ds- : jamais de collision) ---- */
 const dsCss = `
   body{margin:0;padding:0}
-  .ds-scope{background:var(--bg);color:var(--ink);padding:20px 22px 26px;font-family:var(--sans)}
-  .ds-lab{font:700 10px/1 var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 16px}
+  .ds-scope{background:var(--amb);color:var(--ink);padding:20px 22px 26px;font-family:var(--f-ui)}
+  .ds-lab{font:700 10px/1 var(--f-mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 16px}
   .ds-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
   .ds-col{display:flex;flex-direction:column;gap:12px;margin:0 0 14px}
   .ds-cap{font-size:11px;color:var(--ink-soft);margin:-6px 0 14px}
   .ds-item{display:flex;flex-direction:column;gap:5px;align-items:flex-start}
-  .ds-item>small{font:600 10px/1.3 var(--mono);color:var(--ink-soft)}
-  .ds-sw{width:104px;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+  .ds-item>small{font:600 10px/1.3 var(--f-mono);color:var(--ink-soft)}
+  .ds-sw{width:104px;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--work)}
   .ds-sw>i{display:block;height:44px}
-  .ds-sw>b{display:block;font:600 9.5px/1.3 var(--mono);padding:5px 7px;color:var(--ink);word-break:break-all}
+  .ds-sw>b{display:block;font:600 9.5px/1.3 var(--f-mono);padding:5px 7px;color:var(--ink);word-break:break-all}
   .ds-sw>small{display:block;font-size:9.5px;line-height:1.3;padding:0 7px 6px;color:var(--ink-soft)}
   .ds-static .toast{position:static;left:auto;bottom:auto;transform:none;opacity:1;pointer-events:auto;max-width:520px}
   .ds-static #alerts,.ds-static .alerts{position:static;padding:0;align-items:flex-start}
   .ds-type{margin:0 0 16px}
-  .ds-type>small{display:block;font:600 10px/1 var(--mono);color:var(--ink-soft);margin-bottom:4px}
+  .ds-type>small{display:block;font:600 10px/1 var(--f-mono);color:var(--ink-soft);margin-bottom:4px}
   /* (L'habillage .ds-reader, qui ramenait le mode lecteur plein écran dans le flux de l'aperçu,
    * est PARTI AVEC LUI — la surface a été retirée au lot T14, v5.0.0. Ce build publiait encore sa
    * fiche : on montrait un composant inexistant, dont plus aucune classe rm-* n'avait de règle.
@@ -99,7 +99,7 @@ const colorsDemo = `
 <div class="ds-row">${[
   ['critical', 'TEXTE / icônes vital-destructif'], ['critical-bd', 'BORDURES rouges'], ['critical-soft', 'fonds vermillon'], ['critical-line', 'bordures douces vermillon'],
 ].map(([v, n]) => swatch(v, n)).join('')}</div>
-<p class="ds-cap">TROIS ROUGES distincts, jamais fusionnés : --critical (texte/icônes), --critical-bd (bordures des cartes et bandeaux rouges), et le rouge « Urgences » de PALETTE (#b6382f) — couleur de CATÉGORIE (liseré/pastille), jamais un signal d’alerte.</p>
+<p class="ds-cap">TROIS ROUGES distincts, jamais fusionnés : --crit (texte/icônes), --crit-line (bordures des cartes et bandeaux rouges), et le rouge « Urgences » de PALETTE (#b6382f) — couleur de CATÉGORIE (liseré/pastille), jamais un signal d’alerte.</p>
 <div class="ds-row">${[
   ['done-bg', 'étape cochée — fond'], ['done-line', 'étape cochée — bordure'], ['done-ink', 'étape cochée — texte'],
   ['tag-bg', 'pilules neutres — fond'], ['tag-ink', 'pilules neutres — texte'],
@@ -116,7 +116,7 @@ const colorsDemo = `
   <div class="ds-item"><span class="acc-sw a-framboise"></span><small>framboise</small></div>
   <div class="ds-item"><span class="acc-sw a-ardoise"></span><small>ardoise</small></div>
 </div>
-<p class="ds-cap">Sémantique FIXE : erreur / danger / arrêt d’un processus vivant = --critical ; décision / attente / avertissement = --verify ; confirmation = --ok — jamais l’inverse. --soft est DÉCORATIF seulement (texte secondaire = --ink-soft). COULEUR D’ACCENT par utilisateur (v4.5) : 5 nuances AA + bleu par défaut, CONNECTÉ seulement ; portée = accueil entier + en-tête de toutes les vues ; le contenu clinique (crise, protocoles, éditeurs) reste bleu clinique ; jamais de vert/ambre/rouge en accent (registres réservés).</p>`;
+<p class="ds-cap">Sémantique FIXE : erreur / danger / arrêt d’un processus vivant = --crit ; décision / attente / avertissement = --warn ; confirmation = --ok — jamais l’inverse. --ink-3 est DÉCORATIF seulement (texte secondaire = --ink-soft). COULEUR D’ACCENT par utilisateur (v4.5) : 5 nuances AA + bleu par défaut, CONNECTÉ seulement ; portée = accueil entier + en-tête de toutes les vues ; le contenu clinique (crise, protocoles, éditeurs) reste bleu clinique ; jamais de vert/ambre/rouge en accent (registres réservés).</p>`;
 
 const typeDemo = `
 <div class="ds-type"><small>Marque / titre d’en-tête — .brand-name · 18px / 800</small><span style="font-size:18px;font-weight:800;letter-spacing:-.2px">Aides cognitives</span></div>
@@ -126,28 +126,28 @@ const typeDemo = `
 <div class="ds-type"><small>Titre de section — .block-h · 11px / 800 capitales espacées (registre UNIQUE de titres)</small><span class="block-h" style="margin:0">Prise en charge</span></div>
 <div class="ds-type"><small>Corps d’étape — ol.steps .txt · 16px</small><span style="font-size:16px;line-height:1.45">Allonger le patient, surélever les jambes.</span></div>
 <div class="ds-type"><small>Contenu rédigé — .md-body · 15px / 1.55</small><span style="font-size:15px;line-height:1.55">Texte courant des protocoles (mini-Markdown).</span></div>
-<div class="ds-type"><small>Temps — .tm-val · mono 26px / 700 tabular-nums (34px dans le rail de crise ≥ 1000px)</small><span style="font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1px;font-variant-numeric:tabular-nums">04:32</span></div>
+<div class="ds-type"><small>Temps — .tm-val · mono 26px / 700 tabular-nums (34px dans le rail de crise ≥ 1000px)</small><span style="font-family:var(--f-mono);font-size:26px;font-weight:700;letter-spacing:1px;font-variant-numeric:tabular-nums">04:32</span></div>
 <div class="ds-type"><small>Étiquette — .tag · 11px / 600 (plancher de l’app)</small><span class="tag">Adulte</span></div>
 <div class="ds-type"><small>Statut — .status-tag · 10.5px / 700 (pilule-capitale graisseuse : exception unique au plancher, spec canvas)</small><span class="status-tag">✓ Validée</span></div>
-<p class="ds-cap">Police système (var(--sans)) ; mono (var(--mono)) réservée aux valeurs qui défilent (chronos, compteurs, numéros d’étape). Plancher typographique 11px pour tout texte courant — app consultée sous stress ; seules les pilules-capitales à forte graisse (.status-tag, .tm-label) descendent à 10.5px.</p>`;
+<p class="ds-cap">Police système (var(--f-ui)) ; mono (var(--f-mono)) réservée aux valeurs qui défilent (chronos, compteurs, numéros d’étape). Plancher typographique 11px pour tout texte courant — app consultée sous stress ; seules les pilules-capitales à forte graisse (.status-tag, .tm-label) descendent à 10.5px.</p>`;
 
 const shapeDemo = `
 <div class="ds-row">
-  <div class="ds-item"><div style="width:88px;height:56px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)"></div><small>--radius 14px · cartes</small></div>
-  <div class="ds-item"><div style="width:88px;height:56px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md)"></div><small>--radius-md 11px · boutons, champs</small></div>
-  <div class="ds-item"><div style="width:88px;height:56px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm)"></div><small>--radius-sm 9px · petits contrôles</small></div>
-  <div class="ds-item"><div style="width:88px;height:36px;background:var(--surface);border:1px solid var(--line);border-radius:20px"></div><small>20px · pastilles / tags</small></div>
+  <div class="ds-item"><div style="width:88px;height:56px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-4)"></div><small>--r-4 14px · cartes</small></div>
+  <div class="ds-item"><div style="width:88px;height:56px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-3)"></div><small>--r-3 11px · boutons, champs</small></div>
+  <div class="ds-item"><div style="width:88px;height:56px;background:var(--work);border:1px solid var(--line);border-radius:var(--r-1)"></div><small>--r-1 9px · petits contrôles</small></div>
+  <div class="ds-item"><div style="width:88px;height:36px;background:var(--work);border:1px solid var(--line);border-radius:20px"></div><small>20px · pastilles / tags</small></div>
 </div>
 <div class="ds-row">
-  <div class="ds-item"><div style="width:120px;height:64px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow)"></div><small>--shadow · cartes</small></div>
-  <div class="ds-item"><div style="width:120px;height:64px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg)"></div><small>--shadow-lg · survol / flottant</small></div>
+  <div class="ds-item"><div style="width:120px;height:64px;background:var(--work);border-radius:var(--r-4);box-shadow:var(--shadow-work)"></div><small>--shadow-work · cartes</small></div>
+  <div class="ds-item"><div style="width:120px;height:64px;background:var(--work);border-radius:var(--r-4);box-shadow:var(--shadow-work)"></div><small>--shadow-work · survol / flottant</small></div>
 </div>
 <div class="ds-col" style="font-size:13px;line-height:1.6;max-width:560px">
   <div><b>Breakpoints (échelle FERMÉE)</b> : 430 / 560 / 640 / 780 / 900 / 1000 / 1200 px — aucun nouveau palier sans décision explicite (référence : AGENTS.md, § Largeurs).</div>
   <div><b>Largeurs par vue</b> : accueil = sidebar 255px + grille ≤ 1320px, COQUE FIXE ≥ 780 (seuls la sidebar et le contenu défilent) ; fiche ≤ 860px + rail minuteurs 320 → 360px ; protocole ≤ 780px ; éditeurs alignés sur leur lecture + aperçu sticky 360px (≥ 1000).</div>
   <div><b>Cibles tactiles</b> : ≥ 32 px partout, ≥ 44 px pour les contrôles du mode crise ; halo cliquable (::after) quand le contrôle visuel est plus petit (boutons 36–40px de la barre, pastilles de chips).</div>
-  <div><b>Focus clavier</b> : outline 2px var(--primary), offset 2px, sur tout contrôle.</div>
-  <div><b>Anti-accident</b> : geste « maintenir » (jauge --alarm) pour le destructif en crise ; garde temporelle 700 ms (.guarded, opacité réduite) entre deux boutons « retour » empilés (logique ECAM).</div>
+  <div><b>Focus clavier</b> : outline 2px var(--act), offset 2px, sur tout contrôle.</div>
+  <div><b>Anti-accident</b> : geste « maintenir » (jauge --crit-line) pour le destructif en crise ; garde temporelle 700 ms (.guarded, opacité réduite) entre deux boutons « retour » empilés (logique ECAM).</div>
 </div>`;
 
 const catDemo = `
@@ -156,19 +156,19 @@ const catDemo = `
 <div class="ds-row">${PALETTE.slice(0, 5).map((c, i) => `<span class="tag cat" style="--c:${c};--catcol:${c}"><span class="cat-dot"></span>Catégorie ${i + 1}</span>`).join('')}</div>
 <p class="ds-cap">.tag.cat — pastille + étiquette teintée ≤ 15 % avec texte de la couleur (règle SPEC crise §1 : jamais d’aplat ; la couleur n’est jamais seule) : lecture de fiche.</p>
 <div class="ds-row"><span class="tag cat neutral" style="--catcol:${PALETTE[8]}"><span class="cat-dot"></span>Urgences</span><span class="tag cat neutral" style="--catcol:${PALETTE[3]}"><span class="cat-dot"></span>Voies aériennes</span></div>
-<p class="ds-cap">.tag.cat.neutral — sur les CARTES d’accueil la pilule reste NEUTRE (--tag-bg/--tag-ink) : le liseré gauche 4px porte la couleur, la pastille l’identifie dans la méta.</p>
+<p class="ds-cap">.tag.cat.neutral — sur les CARTES d’accueil la pilule reste NEUTRE (--amb-2/--ink-2) : le liseré gauche 4px porte la couleur, la pastille l’identifie dans la méta.</p>
 <div class="ds-row">${PALETTE.slice(5, 9).map((c, i) => `<button class="catchip"><span class="cat-dot" style="--catcol:${c}"></span>Filtre ${i + 1}</button>`).join('')}</div>
 <p class="ds-cap">.catchip — la couleur de catégorie ne vit qu’en PASTILLE à anneau (SPEC crise §1a, v4.3.0) ; la sélection est le bleu système, jamais la couleur.</p>`;
 
 const buttonsDemo = `
 <div class="ds-row"><button class="btn primary">Enregistrer</button><button class="btn">Annuler</button><button class="btn danger">Supprimer</button><button class="btn" disabled>Désactivé</button><button class="btn sm">Petit (.sm)</button></div>
-<p class="ds-cap">.btn — 44px min ; UN SEUL bouton rempli (--primary) par écran ; .danger = liseré vermillon, fond au survol seulement.</p>
+<p class="ds-cap">.btn — 44px min ; UN SEUL bouton rempli (--act) par écran ; .danger = liseré vermillon, fond au survol seulement.</p>
 <div class="ds-row"><button class="btn-new" style="min-height:44px"><svg class="tic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Créer</button><button class="btn-new tonal" style="min-height:44px">Créer (tonal)</button><button class="add-line" style="width:220px">+ Ajouter une ligne</button><button class="btn">Gérer les catégories</button></div>
 <p class="ds-cap">Grammaire des boutons de gestion : POINTILLÉ = créer (.btn-new, .add-line), CONTOUR = gérer / secondaire, PLEIN = action primaire. « Créer » passe en tonal (--primary-soft) quand un « Reprendre » plein est déjà affiché.</p>
 <div class="ds-row"><button class="btn cont idle" aria-disabled="true" style="max-width:300px">Cochez les étapes restantes (2)</button><button class="btn cont okay" style="max-width:300px">Continuer — réévaluation à 5 min →</button></div>
 <p class="ds-cap">.btn.cont — UN bouton, deux états : inactif il DIT pourquoi (et combien il reste — jamais muet), actif il ANNONCE la destination (champ nextLbl du bloc) et passe au registre CONFIRMATION (--ok) ; dernier bloc = « Terminer l’algorithme ✓ » (qui n’arrête PAS la session).</p>
 <div class="ds-row"><button class="btn btn-hold"><span class="tmr-lab">Recommencer</span><span class="tmr-hint">Maintenir</span></button><button class="back"><svg class="tic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Retour</button><button class="linkbtn">Gérer</button><button class="tlink">Exporter</button></div>
-<p class="ds-cap">.btn-hold — geste « maintenir » anti-accidentel (jauge --alarm) ; .back, .linkbtn, .tlink — actions secondaires ; un « retour » venant d’apparaître sous le doigt est inhibé 700 ms (.guarded).</p>
+<p class="ds-cap">.btn-hold — geste « maintenir » anti-accidentel (jauge --crit-line) ; .back, .linkbtn, .tlink — actions secondaires ; un « retour » venant d’apparaître sous le doigt est inhibé 700 ms (.guarded).</p>
 <div class="ds-row"><button class="mini">↑</button><button class="mini">↓</button><button class="mini del">×</button></div>
 <p class="ds-cap">.mini — micro-contrôles d’éditeur.</p>`;
 
@@ -176,9 +176,9 @@ const chipsDemo = `
 <div class="ds-row"><button class="catchip on">Toutes</button><button class="catchip"><span class="cat-dot" style="--catcol:${PALETTE[0]}"></span>Adulte</button><button class="catchip"><span class="cat-dot" style="--catcol:${PALETTE[6]}"></span>Pédiatrie</button><button class="catchip mgr">Gérer…</button></div>
 <p class="ds-cap">.catchip — filtres de catégories : pastille .cat-dot à anneau + nom ; .on = sélection BLEU SYSTÈME (jamais la couleur de la catégorie, v4.3.0) ; .mgr = action en retrait (pointillés).</p>
 <div class="ds-row"><span class="status-tag">✓ Validée</span><span class="status-tag">△ À relire</span><span class="status-tag">○ Brouillon</span><span class="tag todo">△ À compléter</span><span class="tag live">● En cours</span><span class="tag sess">3 sauvegardées</span><span class="tag flow">Algorithme</span><span class="tag libtag"><svg class="tic" width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7l2 3h7v13H4z"/></svg> Bibliothèque SMUR</span></div>
-<p class="ds-cap">.status-tag — pilule ACHROMATIQUE unique pour les 3 statuts (--tag-bg/--tag-ink), affichée sur cartes, lecture et éditeurs (y compris « ✓ Validée ») ; .tag.todo est cliquable (souligné pointillé = affordance détail) ; .tag.live = session vive (vert --ok, état annoncé en texte).</p>
+<p class="ds-cap">.status-tag — pilule ACHROMATIQUE unique pour les 3 statuts (--amb-2/--ink-2), affichée sur cartes, lecture et éditeurs (y compris « ✓ Validée ») ; .tag.todo est cliquable (souligné pointillé = affordance détail) ; .tag.live = session vive (vert --ok, état annoncé en texte).</p>
 <div class="ds-row"><span class="sync-chip off">Hors ligne</span><span class="sync-chip ok">Synchronisé</span><span class="sync-chip busy">Synchro…</span><span class="sync-chip pending">En attente</span><span class="sync-chip err">Erreur</span></div>
-<p class="ds-cap">.sync-chip — état de synchro, jamais bloquant : ok = --ok, attente = --verify, erreur = --critical, inactif = --line-strong.</p>
+<p class="ds-cap">.sync-chip — état de synchro, jamais bloquant : ok = --ok, attente = --warn, erreur = --crit, inactif = --line-strong.</p>
 <div class="ds-row">
   <span class="bar-acct on ini-on" style="position:static"><span class="acct-ini">VG</span><span class="acct-dot"></span></span>
   <span class="bar-acct" style="position:static"><svg class="ic-outline" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20.5v-1a5 5 0 015-5h3a5 5 0 015 5v1"/></svg></span>
@@ -216,7 +216,7 @@ const formsDemo = `
   <div class="field"><label>Catégorie</label><div class="cat-picker"><button class="cat-chip-selected" style="--catcol:${PALETTE[2]}"><span class="cat-dot"></span>Toxicologie</button><button class="cat-chip-other">Autre…</button></div></div>
   <input class="auth-field auth-code" value="482913" aria-label="Code reçu">
 </div>
-<p class="ds-cap">Fond des champs = --input-bg (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --primary ; police 16px (anti-zoom iOS).</p>`;
+<p class="ds-cap">Fond des champs = --work (jamais codé en dur) ; bordure --line-strong (≥ 3:1) ; focus = outline 2px --act ; police 16px (anti-zoom iOS).</p>`;
 
 const listsDemo = `
 <div style="max-width:560px">
@@ -231,14 +231,14 @@ const listsDemo = `
   </div>
   <div class="flow-nav"><button id="navBack">‹ Bloc précédent</button><button class="btn-hold"><span class="tmr-lab">↺ Recommencer</span><span class="tmr-hint">maintenir</span></button></div>
   <div class="flow-end">Algorithme terminé — surveillance en cours</div>
-  <section class="block" style="margin-top:16px"><div class="block-h h-verify"><span class="sec-badge"><svg class="sec-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--verify)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></span>Vérifier</div>
+  <section class="block" style="margin-top:16px"><div class="block-h h-verify"><span class="sec-badge"><svg class="sec-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></span>Vérifier</div>
     <ul class="flat verify"><li>Pression artérielle toutes les 5 min</li><li>Signes de bronchospasme</li></ul>
   </section>
   <section class="block"><div class="block-h h-diff"><span class="pip"></span>Diagnostics différentiels</div>
     <ul class="flat diff"><li>Malaise vagal</li><li>Œdème de Quincke isolé</li></ul>
   </section>
 </div>
-<p class="ds-cap">Étapes 64px, case 36px à DROITE ; cochée = vert doux --done-* (texte lisible, pas de biffure agressive) ; ⚠ critique = rouge --critical ; △ vigilance = ambre. Le titre du bloc porte le compte vivant « n/t coché ». .flow-nav TOUJOURS présente (Précédent désactivé au 1er bloc ; Recommencer = maintenir). .flow-end = fin d’algorithme, registre CONFIRMATION — elle n’arrête PAS la session. Un SEUL registre de titres (.block-h, petites capitales) ; couleur sémantique portée par pip + badge, jamais seule.</p>`;
+<p class="ds-cap">Étapes 64px, case 36px à DROITE ; cochée = vert doux --done-* (texte lisible, pas de biffure agressive) ; ⚠ critique = rouge --crit ; △ vigilance = ambre. Le titre du bloc porte le compte vivant « n/t coché ». .flow-nav TOUJOURS présente (Précédent désactivé au 1er bloc ; Recommencer = maintenir). .flow-end = fin d’algorithme, registre CONFIRMATION — elle n’arrête PAS la session. Un SEUL registre de titres (.block-h, petites capitales) ; couleur sémantique portée par pip + badge, jamais seule.</p>`;
 
 const decisionDemo = `
 <div style="max-width:560px">
@@ -321,7 +321,7 @@ const runtimeDemo = `
     <button class="rt-add">＋ Minuteur</button>
   </div>
 </div>
-<p class="ds-cap">Le panneau suit le THÈME (plus de panneau sombre forcé). L’état change le TEXTE de l’étiquette (« — en pause », « ■ … — à réévaluer »), jamais la couleur seule ; échu = AMBRE (--verify-bd/--verify-hi, pas de rouge : c’est une attente, pas une erreur) ; barre 4px du temps RESTANT — elle SE VIDE. « ↺ 05:00 » annonce ce que redonnera la réinitialisation (geste maintenir, DÉSACTIVÉ pendant que ça tourne). En crise : rail à droite ≥ 1000px (temps 34px), panneau repliable en étroit. .tm-mini = minuteur AD HOC (rangée 48px, ⟲ relance, ✕ retire) ajouté en session sans modifier la fiche.</p>`;
+<p class="ds-cap">Le panneau suit le THÈME (plus de panneau sombre forcé). L’état change le TEXTE de l’étiquette (« — en pause », « ■ … — à réévaluer »), jamais la couleur seule ; échu = AMBRE (--warn-line/--warn-line, pas de rouge : c’est une attente, pas une erreur) ; barre 4px du temps RESTANT — elle SE VIDE. « ↺ 05:00 » annonce ce que redonnera la réinitialisation (geste maintenir, DÉSACTIVÉ pendant que ça tourne). En crise : rail à droite ≥ 1000px (temps 34px), panneau repliable en étroit. .tm-mini = minuteur AD HOC (rangée 48px, ⟲ relance, ✕ retire) ajouté en session sans modifier la fiche.</p>`;
 
 const sessionDemo = `
 <div style="max-width:560px">
@@ -333,7 +333,7 @@ const sessionDemo = `
 
 const modalDemo = `
 <div style="max-width:560px">
-  <div class="ai-card dlg-480" style="box-shadow:var(--shadow-lg)">
+  <div class="ai-card dlg-480" style="box-shadow:var(--shadow-work)">
     <div class="ai-top"><h3>Créer une aide cognitive</h3><button class="ai-x">×</button></div>
     <div class="ds-col" style="margin:0">
       <button class="crt-card"><span class="crt-ic" aria-hidden="true"><svg class="tic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span><span><span class="crt-t">Rédiger moi-même</span><br><span class="crt-d">Éditeur complet : étapes, décisions, minuteurs, images.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
@@ -341,7 +341,7 @@ const modalDemo = `
       <button class="crt-card"><span class="crt-ic" aria-hidden="true"><svg class="tic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></span><span><span class="crt-t">Importer un fichier</span><br><span class="crt-d">.json exporté ou généré — la fiche arrive en Brouillon.</span></span><span class="crt-chev" aria-hidden="true">›</span></button>
     </div>
   </div>
-  <div class="ai-card dlg-480" style="box-shadow:var(--shadow-lg);margin-top:16px">
+  <div class="ai-card dlg-480" style="box-shadow:var(--shadow-work);margin-top:16px">
     <div class="ai-top"><h3>Bibliothèque SMUR</h3><button class="ai-x">×</button></div>
     <div class="dlg-actions"><button class="btn">Annuler</button><button class="btn primary">Enregistrer</button></div>
     <div class="mem-list"><div class="mem-row"><span class="mem-avatar">VG</span><span class="mem-info"><span class="mem-email">victor@chu.fr <span class="mem-you">(vous)</span></span></span><span class="mem-act"><span class="ro-badge">Propriétaire</span></span></div></div>
@@ -350,22 +350,22 @@ const modalDemo = `
 </div>
 <p class="ds-cap">.dlg-480 — gabarit UNIQUE des fenêtres de gestion (480px, titre 17px/800, croix 44px, Échap / tap hors carte, focus géré) ; plein écran &lt; 640px SAUF .dlg-confirm (confirmations 420px, TOUJOURS centrées). Annuler/Enregistrer vivent SOUS LE CHAMP qu'ils enregistrent (le nom) — les changements de membres, eux, s'appliquent immédiatement ; la ZONE SENSIBLE est séparée par un filet et vient en DERNIER, jamais près des actions courantes. Dialogue Créer : 3 méthodes en cartes 82px (icônes SVG uiIcon 26px uniformes), carte « Reprendre le brouillon » quand un brouillon auto-enregistré existe.</p>
 <div style="max-width:400px">
-  <div class="ai-card endsess-dlg" style="box-shadow:var(--shadow-lg)">
+  <div class="ai-card endsess-dlg" style="box-shadow:var(--shadow-work)">
     <h3 class="dlg-title">Terminer la session ?</h3>
     <p class="dlg-context"><strong>Arrêt cardiaque adulte</strong> — session en cours depuis <strong>12 min</strong>.</p>
     <p class="dlg-consequences">Le chrono global et tous les minuteurs s'arrêtent. La session quitte l'accueil. Le déroulé horodaté reste consultable dans l'historique.</p>
     <div class="endsess-actions"><button class="btn-continue-sess">Poursuivre</button><button class="btn-end-sess">Terminer</button></div>
   </div>
 </div>
-<p class="ds-cap">Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) — SEULE porte de sortie d'une session (menu ⋯, fin d'algorithme, ✕ du bandeau : jamais d'arrêt direct). Contexte (titre + durée) puis CONSÉQUENCES annoncées AVANT le choix ; « Poursuivre » = action sûre (contour, focus initial, Échap) ; « Terminer » = rouge système PLEIN (--critical-bd), l'un des SEULS de l'app — même largeur : la grammaire contour/plein porte seule la différence. Toujours centré, même sur mobile.</p>
+<p class="ds-cap">Dialogue « Terminer la session ? » (SPEC crise §3, v4.3.0) — SEULE porte de sortie d'une session (menu ⋯, fin d'algorithme, ✕ du bandeau : jamais d'arrêt direct). Contexte (titre + durée) puis CONSÉQUENCES annoncées AVANT le choix ; « Poursuivre » = action sûre (contour, focus initial, Échap) ; « Terminer » = rouge système PLEIN (--crit-line), l'un des SEULS de l'app — même largeur : la grammaire contour/plein porte seule la différence. Toujours centré, même sur mobile.</p>
 <div id="confirmModal" style="max-width:420px">
-  <div class="ai-card" style="box-shadow:var(--shadow-lg)">
+  <div class="ai-card" style="box-shadow:var(--shadow-work)">
     <div class="ai-top"><h3>Confirmer</h3><button class="ai-x" aria-label="Fermer">×</button></div>
     <p style="white-space:pre-line;font-size:14.5px;color:var(--ink)">Supprimer cette fiche ? Ses sessions archivées seront aussi supprimées.</p>
     <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn">Annuler</button><button class="btn danger">Supprimer</button></div>
   </div>
 </div>
-<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une fiche, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --critical-bd + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p>`;
+<p class="ds-cap">Confirmation DESTRUCTRICE (v4.3.1) — #confirmModal en mode danger (supprimer une fiche, un protocole, la bibliothèque…) reprend le registre du dialogue « Terminer la session » : bouton principal rouge PLEIN --crit-line + texte blanc, UNIQUEMENT dans la fenêtre de confirmation finale. Les boutons « Supprimer » de fin de formulaire et des zones sensibles restent en CONTOUR (.outline-danger / .btn.danger hors confirmation = liseré vermillon). ✕ / Échap / fond = abandon, distinct du bouton secondaire.</p>`;
 
 /* ---- Parcours de soin : rail ①②③ + bascule Dynamique/Statique (v4.4.0, v4.16.0) ---- */
 const carePathDemo = `

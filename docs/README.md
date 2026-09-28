@@ -79,6 +79,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A413 | `lot-v5-38.md` | « Créer » neutre au téléphone, tonal en large |
 | A414 | `lot-v5-38.md` | « Vérifier » sans « :: » |
 | A415 | `lot-v5-38.md` | La bulle d'apprentissage devient la sous-ligne du geste d'entrée (amende A331) |
+| A416 | `lot-v5-38.md` | Les 38 alias purs purgés (table de correspondance), `check-tokens` refuse tout alias pur ; bleus pâles NON fusionnés (pas de survol) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

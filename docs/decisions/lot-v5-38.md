@@ -1,4 +1,4 @@
-# Lot v5.38 — l'audit UX du 27/09/2026 (A400-A415)
+# Lot v5.38 — l'audit UX du 27/09/2026 (A400-A416)
 
 > Fichier normatif, suite de [`lot-v5-37.md`](lot-v5-37.md) (A396-A399). Les numéros A sont des adresses :
 > ne jamais renuméroter. Audit design demandé par l'auteur (cinq axes : normes ECAM/QRH/AC 120-71B et
@@ -150,6 +150,38 @@ urgence. La phrase entre DANS le bouton, en sous-ligne, sous la même règle (ta
 démarré de session, `startHintSeen`) : « Lance le chrono · minuteurs prêts ». Exacte — démarrer ne lance
 que le chrono, les minuteurs sont « à lancer » (A330) ; « et compteurs » ne tenait qu'à partir de 390 px.
 `#dockHint`, `.sd-hint*` et `body.dock-hint` purgés (règle 14, zéro émission au grep).
+
+## A416 — les alias purs sont purgés (v5.38.1)
+
+La refonte v5.6 avait gardé les anciens noms en ALIAS (« partie 9 : les anciens noms pointent vers les
+nouveaux ») pour qu'aucune règle n'ait à changer. Ils avaient survécu : **38 alias purs**, ~1 000
+lectures, deux noms pour chaque valeur, et une doctrine qui citait `--critical`/`--verify` quand le code
+lisait `--crit`/`--warn`. Inventaire mesuré (toutes les déclarations, tous les contextes) : un alias
+est PUR s'il vaut partout le même `var(--x)`. Ses déclarations sont retirées, toute mention renommée
+(index.html, `design/build.mjs`, harnais, contrôles, AGENTS.md) ; `check-fonts` n'accepte plus que
+`--f-ui`/`--f-mono`/`--f-title`, et `check-tokens` gagne un TROISIÈME SENS : aucun alias pur (rouge sur
+l'ancien code : 38 signalés). Preuve d'équivalence : styles calculés de 4 714 éléments sur huit écrans
+(accueil, catégories, avant-session, session, volet, « Terminer ? », menu ; 390 clair et sombre, 1024)
+— **0 différence** avant/après.
+
+**Restent, et c'est voulu** : les alias CONTEXTUELS, vrais tokens sémantiques — `--ink-soft` (`--ink`
+en contraste renforcé), `--on-primary` (valeur propre la nuit), `--alarm-bd` (`--warn-sys` la nuit),
+`--line`, et les variables locales `--tcol`/`--tbd`. **Pas de fusion des bleus pâles** (correction de
+l'audit, C5) : `--primary-100` n'est pas un doublon de `--primary-soft`, c'est le PAS DE SURVOL des
+éléments posés sur lui (« + » du compteur, actions du bandeau, bouton Compte) ; fusionner effaçait ce
+retour. Qu'il soit à peine visible (ΔE ≈ 1,5) est une autre question, laissée ouverte.
+
+Table de correspondance — les fichiers de `docs/decisions/`, repris à l'octet, gardent les anciens noms :
+
+| Ancien | Canonique | Ancien | Canonique | Ancien | Canonique |
+|---|---|---|---|---|---|
+| `--bg` | `--amb` | `--primary`, `--primary-dk`, `--primary-hi`, `--link`, `--flow-cur` | `--act` | `--alert`, `--alert-hi` | `--warn-sys` |
+| `--surface`, `--input-bg` | `--work` | `--done-bg` | `--ok-soft` | `--alert-strong` | `--warn-line` |
+| `--surface-2`, `--surface-3`, `--tag-bg` | `--amb-2` | `--critical` | `--crit` | `--alert-ink` | `--warn-sys-bg` |
+| `--line-hover` | `--line-strong` | `--critical-soft` | `--crit-soft` | `--rt-card` / `--rt-line` / `--rt-ink` | `--sys` / `--sys-line` / `--sys-ink` |
+| `--soft` | `--ink-3` | `--critical-bd`, `--alarm` | `--crit-line` | `--radius` / `-md` / `-sm` | `--r-4` / `--r-3` / `--r-1` |
+| `--tag-ink` | `--ink-2` | `--verify` / `--verify-soft` | `--warn` / `--warn-soft` | `--serif` / `--sans` / `--mono` | `--f-title` / `--f-ui` / `--f-mono` |
+| | | `--verify-bd`, `--verify-hi` | `--warn-line` | `--shadow`, `--shadow-lg` | `--shadow-work` |
 
 ## Formes refusées (ne pas reproposer)
 

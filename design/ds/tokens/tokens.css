@@ -32,7 +32,7 @@
      A11 : l'APLAT est réservé à ce qui exige une action MAINTENANT (alarme active) — une seule
      masse colorée à l'écran. Une étape critique se MARQUE (case + ⚠ + corps + cadence), sans
      cadre ni fond : mesuré à cinq étapes, l'aplat happe l'œil et détruit la lecture de la
-     séquence. UN seul ambre (--verify et --alert fusionnent en --warn) et UN seul rouge. */
+     séquence. UN seul ambre (--warn et --warn-sys fusionnent en --warn) et UN seul rouge. */
   --ok-rgb:29,122,56;--ok:rgb(var(--ok-rgb));--ok-soft:#e8f2ea;
   --warn:#7a5900;--warn-line:#b45309;--warn-soft:#fbf3dc;
   /* L'ÉCLAIR de complication (v5.27.1, A335) : rempli comme l'emoji qu'il remplace, bord foncé. */
@@ -100,9 +100,7 @@
   --hit:44px;
   /* ─── 8. MOUVEMENT — hors crise springs autorisés ; en crise, le geste et l'alarme seuls ── */
   --ease-out:cubic-bezier(.2,.8,.2,1);--dur-2:200ms;
-  /* ══ 9. ALIAS — les anciens noms pointent vers les nouveaux ═══════════════════════════════ */
-  --bg:var(--amb);--surface:var(--work);--surface-2:var(--amb-2);--surface-3:var(--amb-2);
-  --input-bg:var(--work);--line-hover:var(--line-strong);
+  /* ══ 9. TOKENS DÉRIVÉS — valeurs propres ou redéfinies selon le contexte (plus aucun alias pur, A416) ══ */
   /* ⚠ `--paper` N'EST PAS UN ALIAS DE `--work`, et le harnais QR l'a rattrapé (« 390×844 dark ·
      l'image peinte est relue par le décodeur d'Apple » : ÉCHEC). C'est un token FIXE DES DEUX
      THÈMES — le canevas BLANC du SVG d'algorithme, des pages PDF, de l'impression et du fond de
@@ -111,26 +109,13 @@
      scanner, c'est-à-dire au pire moment. Le SVG d'algorithme, lui, est peint pour fond clair
      puis contre-inversé : un papier sombre l'aurait inversé deux fois. */
   --paper:#ffffff;
-  --ink-soft:var(--ink-2);--soft:var(--ink-3);--tag-ink:var(--ink-2);--tag-bg:var(--amb-2);
-  --primary:var(--act);--primary-dk:var(--act);--primary-hi:var(--act);
+  --ink-soft:var(--ink-2);   /* contextuel : --ink en contraste renforcé */
   --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;
-  --on-primary:var(--work);--link:var(--act);--flow-cur:var(--act);
-  --done-bg:var(--ok-soft);--done-line:#bfd8c6;
-  --critical:var(--crit);--critical-soft:var(--crit-soft);--critical-line:#ecc4bc;
-  --critical-bd:var(--crit-line);--alarm:var(--crit-line);
-  /* ⚠ FUSION DES DEUX AMBRES — le seul point qui casse visuellement. --verify (« à vérifier »)
-     et --alert (« échéance ») disaient deux choses avec deux teintes ; désormais un seul ambre,
-     et la distinction passe par le MOT. L'ambre d'alerte vivait sur fond SOMBRE : il pointe donc
-     vers --warn-sys, qui a ses valeurs dédiées pour tenir 4,5:1 sur la matière système. */
-  --verify:var(--warn);--verify-soft:var(--warn-soft);--verify-line:#eddfb6;
-  --verify-bd:var(--warn-line);--verify-hi:var(--warn-line);
-  --alert:var(--warn-sys);--alert-hi:var(--warn-sys);--alert-strong:var(--warn-line);--alert-ink:var(--warn-sys-bg);
-  --rt-card:var(--sys);--rt-line:var(--sys-line);--rt-ink:var(--sys-ink);
-  --radius:var(--r-4);--radius-md:var(--r-3);--radius-sm:var(--r-1);
-  --serif:var(--f-title);--sans:var(--f-ui);--mono:var(--f-mono);
-  /* Une seule matière projette : tous les anciens noms d'ombre y pointent. Les VOILES, eux, ne
-     sont pas des élévations — un voile assombrit, il n'élève pas : ils restent à l'encre. */
-  --shadow:var(--shadow-work);--shadow-lg:var(--shadow-work);
+  --on-primary:var(--work);
+  --done-line:#bfd8c6;
+  --critical-line:#ecc4bc;
+  --verify-line:#eddfb6;
+  /* Les VOILES ne sont pas des élévations — un voile assombrit, il n'élève pas : ils restent à l'encre. */
   /* ⚠ `--shadow-up` N'EST PAS UN ALIAS DE `--shadow-work` : ombre MONTANTE (même encre — une
      seule matière projette, seule la direction change —, élargie et densifiée v5.15.0). Deux
      pistes ESSAYÉES ET ÉCARTÉES, à ne pas reproposer « pour renforcer » : fondu vers l'ambiance,

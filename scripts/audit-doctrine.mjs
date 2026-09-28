@@ -1981,7 +1981,7 @@ await sec('T13 · les fiches d\'exemple exercent la doctrine qu\'elles enseignen
 /* LA PASTILLE DU PARCOURS INERTE DOIT ÊTRE LISIBLE (v5.0.0, défaut mesuré puis corrigé).
    Elle est `aria-hidden` — donc HORS du champ d'`audit-a11y`, qui mesure le texte accessible — et
    c'est exactement pour cela qu'un numéro BLEU SUR BLEU a pu vivre sans que rien ne crie : un
-   reste du dessin PLAT (`.rail-lad .pl-line.cur .n{color:var(--link)}`) peignait l'encre de la
+   reste du dessin PLAT (`.rail-lad .pl-line.cur .n{color:var(--act)}`) peignait l'encre de la
    couleur du fond que la nouvelle pastille pleine venait de poser. Un défaut hors scope n'est pas
    un défaut absent (leçon v4.75.0) : on lui donne un scope.
    On ne mesure PAS un seuil WCAG ici (le glyphe n'est pas du texte au sens de la norme) — on
@@ -6400,7 +6400,7 @@ await sec('A130 · doublons annoncés, catégories filtrées', async () => {
       rel:(r.querySelector('.imp-rel')||{}).textContent||'',
       relW:!!(r.querySelector('.imp-rel')||{classList:{contains:()=>false}}).classList.contains('warn'),
       relC:r.querySelector('.imp-rel')?getComputedStyle(r.querySelector('.imp-rel')).color:'',
-      verify:getComputedStyle(document.documentElement).getPropertyValue('--verify').trim(),
+      verify:getComputedStyle(document.documentElement).getPropertyValue('--warn').trim(),
       sub:(r.querySelector('.imp-sub')||{}).textContent||'',
       key:(r.querySelector('[data-impsel]')||{}).getAttribute('data-impsel')}))}));
   t('le cas est rencontré : deux rangées, et la collision est possible (même espace)',

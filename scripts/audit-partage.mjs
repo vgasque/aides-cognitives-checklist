@@ -1981,9 +1981,9 @@ await sec(`PARTAGE · le placard de l'invité et les réponses directes — mote
     /* LA COULEUR DE L'ÉTIQUETTE, mesurée et non supposée (v4.76.0) : `#crisisBand .cb-tag` vaut
        (1,1,0) et écrasait le bleu du placard invité, écrit en (0,2,0) — « ▪ Vous suivez » sortait
        donc en ROUGE, dans le seul registre qu'elle ne devait pas emprunter, depuis la v4.55.4.
-       On compare à `--primary-dk` résolu, jamais à une chaîne en dur. */
+       On compare à `--act` résolu, jamais à une chaîne en dur. */
     {const el = band.querySelector('.cb-tag');
-     const attendu = getComputedStyle(document.documentElement).getPropertyValue('--primary-dk').trim();
+     const attendu = getComputedStyle(document.documentElement).getPropertyValue('--act').trim();
      const bidon = document.createElement('span'); bidon.style.color = attendu;
      document.body.appendChild(bidon);
      o.inviteCouleur = getComputedStyle(el).color;

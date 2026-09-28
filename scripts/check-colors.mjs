@@ -77,7 +77,7 @@ if (bad.length) {
 /* ═══ LA BARRE SYSTÈME (v5.0.0, audit) ═══════════════════════════════════════════════════════
    CE CONTRÔLE EXISTE PARCE QUE LE PRÉCÉDENT S'ARRÊTAIT AU <style>, ET QUE LA FUITE ÉTAIT DEHORS.
    `themeColorCurrent()` et le script de boot peignent la barre d'état du téléphone avec deux hex
-   ÉCRITS EN CLAIR DANS LE JS. Ils valaient `--bg` à l'écriture ; `--bg` sombre est passé de
+   ÉCRITS EN CLAIR DANS LE JS. Ils valaient `--amb` à l'écriture ; `--amb` sombre est passé de
    `#121d2b` à `#0a0a0c` en v4.71.0 et personne n'a suivi — pendant six versions, la barre d'état
    d'un iPhone en thème sombre était peinte d'un bleu marine qui n'existait plus dans la palette,
    sur 44 px, juste au-dessus de l'annonciateur de mode. Le fichier était vert de bout en bout.
@@ -88,7 +88,7 @@ if (bad.length) {
      2. chaque valeur est un token RÉEL de son thème, pas une couleur inventée ;
      3. c'est bien `--amb` (la barre système prolonge l'EN-TÊTE ; depuis la refonte v5.6, celui-ci
         est en AMBIANCE — les matières ont remplacé les bandes). Sans ce troisième point, remettre
-        `--bg` demain repasserait au vert tout en refaisant exactement le défaut d'origine.
+        `--amb` demain repasserait au vert tout en refaisant exactement le défaut d'origine.
 
    LE RESTE DES LITTÉRAUX DU JS N'EST PAS INSPECTÉ, ET C'EST MOTIVÉ : ce sont des copies FIGÉES,
    pas des suiveurs de token. `PALETTE`/`defaultCats` (couleurs de CATÉGORIE — hors palette de
@@ -104,7 +104,7 @@ const hex6 = h => {
   const s = String(h || '').toLowerCase();
   return s.length === 4 ? '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] : s;
 };
-/* v5.6 : le token visé peut être un ALIAS (--surface:var(--work)). On suit UNE indirection —
+/* v5.6 : le token visé peut être un ALIAS (--work:var(--work)). On suit UNE indirection —
    au-delà, c'est une chaîne d'alias, et une chaîne d'alias sur une couleur de chrome est
    exactement ce qu'on ne veut pas avoir à démêler pour savoir de quelle couleur est la barre. */
 const tokenOf = (block, name, depth = 0) => {

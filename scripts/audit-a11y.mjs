@@ -4,7 +4,7 @@
      • contraste : texte >= 4.5:1 (>= 3:1 si "grand texte"), composants/bordures >= 3:1
      • cibles : >= 44px en mode crise (règle projet), >= 24px partout (WCAG 2.5.8)
      • focus visible au CLAVIER (parcours Tab réel, pas un .focus() programmatique)
-     • règles projet : jamais --soft en couleur de texte, « hors chemin » jamais par opacité seule
+     • règles projet : jamais --ink-3 en couleur de texte, « hors chemin » jamais par opacité seule
 */
 import { serveApp, moteur, NOM_MOTEUR, ROOT, amorce, ouvrirFiche, demarrerSession, trancheArg } from './harness.mjs';
 
@@ -112,8 +112,8 @@ const AUDIT = `(() => {
           const need=big?3:4.5;
           if(rr<need-0.01) out.contrast.push({sel:el.className||el.tagName,px:fs,ratio:+rr.toFixed(2),need,txt:el.textContent.trim().slice(0,28)});
         }
-        // règle projet : --soft est DÉCORATIF, jamais une couleur de texte
-        const soft=getComputedStyle(document.documentElement).getPropertyValue('--soft').trim();
+        // règle projet : --ink-3 est DÉCORATIF, jamais une couleur de texte
+        const soft=getComputedStyle(document.documentElement).getPropertyValue('--ink-3').trim();
         if(soft){const s=parse(soft)||null;const f2=parse(cs.color);
           if(s&&f2&&Math.abs(s.r-f2.r)<2&&Math.abs(s.g-f2.g)<2&&Math.abs(s.b-f2.b)<2)
             out.soft.push({sel:el.className||el.tagName,txt:el.textContent.trim().slice(0,28)});}
@@ -433,7 +433,7 @@ const SURFACES = [
       const o=document.querySelector('[data-ovopt]'); if(o)o.click();
       await new Promise(r=>setTimeout(r,700)); } },
   { nom:'état · contrôles fermés (scribe)', w:390, prep:'read', must:'body.share-scribe', fn: async()=>{
-      /* La grammaire de « fermé » du fichier — encre douce, filet neutre, `--surface-2`, ombre
+      /* La grammaire de « fermé » du fichier — encre douce, filet neutre, `--amb-2`, ombre
          retirée — sert TROIS régimes (scribe, mode déplacement, lien mort). WCAG 1.4.3 exempte
          les composants inactifs du seuil, mais la sonde vérifie le reste de la surface, et
          surtout que le grisé ne déborde pas sur le contenu CLINIQUE, qui doit rester lisible. */
@@ -548,7 +548,7 @@ for (const theme of ['light','dark']) {
     report('typo < 11px', res.typo, x=>`${x.px}px · ${x.sel} · « ${x.txt} »`);
     report('contraste insuffisant', res.contrast, x=>`${x.ratio}:1 (seuil ${x.need}) · ${x.px}px · ${x.sel} · « ${x.txt} »`);
     report('cible trop petite', res.targets, x=>`${x.w}×${x.h} (seuil ${x.need}) · ${x.sel} · « ${x.txt} »`);
-    report('--soft utilisé comme couleur de TEXTE', res.soft, x=>`${x.sel} · « ${x.txt} »`);
+    report('--ink-3 utilisé comme couleur de TEXTE', res.soft, x=>`${x.sel} · « ${x.txt} »`);
     report('règle projet', res.misc, x=>`${x.sel} — ${x.pb}`);
 
     // ---- focus visible : VRAIES touches Tab (`:focus-visible` ne s'applique qu'au clavier —

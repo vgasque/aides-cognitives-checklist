@@ -673,7 +673,7 @@ t('un bloc sans titre se NOMME, il ne s’identifie pas', V.nomme);
 t('la marque « en déplacement » ne rétrécit plus le champ',
   V.lPris>=V.lRepos-2, `${V.lRepos} px au repos → ${V.lPris} px pris`);
 /* L'OMBRE SUIT LA FORME, ET ELLE MONTE (v4.78.0) : un dégradé en `::before` est un RECTANGLE dont
-   les angles ne suivent pas le rayon, et il éclaircissait vers `--bg` au lieu d'assombrir — « à
+   les angles ne suivent pas le rayon, et il éclaircissait vers `--amb` au lieu d'assombrir — « à
    l'envers », littéralement. On mesure donc les DEUX propriétés : l'ombre vaut `--shadow-up`
    (décalage NÉGATIF, du côté d'où vient le contenu) et il n'y a plus AUCUN voile. */
 t('la porte porte l’ombre de carte (--shadow-work, maquette v5)', V.porteOmbre===V.porteAttendue,
@@ -773,7 +773,7 @@ const G=await p.evaluate(async()=>{const w=m=>new Promise(r=>setTimeout(r,m));
   const avant=lire();
   document.querySelector('.blk-top [data-grab]').click();await w(500);
   const pendant=lire();
-  const surface2=getComputedStyle(document.documentElement).getPropertyValue('--surface-2').trim();
+  const surface2=getComputedStyle(document.documentElement).getPropertyValue('--amb-2').trim();
   const bidon=document.createElement('span');bidon.style.background=surface2;document.body.appendChild(bidon);
   const attenduBg=getComputedStyle(bidon).backgroundColor;bidon.remove();
   document.getElementById('edGrabX').click();await w(600);
