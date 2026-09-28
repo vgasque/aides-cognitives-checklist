@@ -110,7 +110,9 @@
      puis contre-inversé : un papier sombre l'aurait inversé deux fois. */
   --paper:#ffffff;
   --ink-soft:var(--ink-2);   /* contextuel : --ink en contraste renforcé */
-  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;
+  /* --primary-100 = le PAS DE SURVOL des éléments posés sur --primary-soft (et le halo de focus des champs) :
+     5,4 ΔE du repos le jour, 6,2 la nuit — il en valait 1,6 et 0 (invisible), A417. */
+  --primary-soft:#e3ecf7;--primary-100:#cddbf0;--primary-200:#b9cde6;
   --on-primary:var(--work);
   --done-line:#bfd8c6;
   --critical-line:#ecc4bc;

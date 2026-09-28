@@ -141,7 +141,9 @@
      puis contre-inversé : un papier sombre l'aurait inversé deux fois. */
   --paper:#ffffff;
   --ink-soft:var(--ink-2);   /* contextuel : --ink en contraste renforcé */
-  --primary-soft:#e3ecf7;--primary-100:#dce7f5;--primary-200:#b9cde6;
+  /* --primary-100 = le PAS DE SURVOL des éléments posés sur --primary-soft (et le halo de focus des champs) :
+     5,4 ΔE du repos le jour, 6,2 la nuit — il en valait 1,6 et 0 (invisible), A417. */
+  --primary-soft:#e3ecf7;--primary-100:#cddbf0;--primary-200:#b9cde6;
   --on-primary:var(--work);
   --done-line:#bfd8c6;
   --critical-line:#ecc4bc;
@@ -205,7 +207,7 @@
      (seuil du harnais : 30) — la hachure d'exercice devenait douteuse la nuit, c'est-à-dire
      exactement ce que la v4.28.0 avait corrigé et que le témoin existe pour empêcher. On rend
      l'écart par le BLEU, pas par la lumière : 35 mesurés, et la teinte reste une teinte. */
-  --primary-soft:#12263f;--primary-100:#12263f;--primary-200:#2c4b6e;
+  --primary-soft:#12263f;--primary-100:#1b3556;--primary-200:#2c4b6e;
   --critical-line:#3a1f1c;--verify-line:#3a2f12;--done-line:#1e3a28;--on-primary:#0d0f13;
   --scrim-soft:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.62);--scrim-full:rgba(0,0,0,.94);
   --hover-dk:#1c1d21;--hover-dk-hi:#26282e;--flow-hl-dk:#4e8fd9;

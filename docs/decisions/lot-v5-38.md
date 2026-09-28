@@ -1,4 +1,4 @@
-# Lot v5.38 — l'audit UX du 27/09/2026 (A400-A416)
+# Lot v5.38 — l'audit UX du 27/09/2026 (A400-A417)
 
 > Fichier normatif, suite de [`lot-v5-37.md`](lot-v5-37.md) (A396-A399). Les numéros A sont des adresses :
 > ne jamais renuméroter. Audit design demandé par l'auteur (cinq axes : normes ECAM/QRH/AC 120-71B et
@@ -182,6 +182,17 @@ Table de correspondance — les fichiers de `docs/decisions/`, repris à l'octet
 | `--soft` | `--ink-3` | `--critical-bd`, `--alarm` | `--crit-line` | `--radius` / `-md` / `-sm` | `--r-4` / `--r-3` / `--r-1` |
 | `--tag-ink` | `--ink-2` | `--verify` / `--verify-soft` | `--warn` / `--warn-soft` | `--serif` / `--sans` / `--mono` | `--f-title` / `--f-ui` / `--f-mono` |
 | | | `--verify-bd`, `--verify-hi` | `--warn-line` | `--shadow`, `--shadow-lg` | `--shadow-work` |
+
+## A417 — le survol bleu pâle devient visible (v5.38.2)
+
+A416 l'avait établi : `--primary-100` est le PAS DE SURVOL des éléments posés sur `--primary-soft`
+(« + » du compteur, actions du bandeau, bouton Compte, rangée active de la colonne gauche) et le halo
+de focus des champs de l'éditeur. Il valait 1,6 ΔE du repos le jour — sous le seuil de perception — et
+0 la nuit (valeur identique à `--primary-soft`). Nouvelles valeurs, montrées sur captures en survol
+réel avant d'être appliquées : jour #cddbf0 (5,4 ΔE), nuit #1b3556 (6,2 ΔE), toujours en deçà de
+`--primary-200` pour qu'un survol ne se lise pas comme une sélection ; texte `--act` dessus 6,7:1 et
+6,0:1. Effets voulus sur les autres lecteurs du token : halo de focus plus lisible, « Filtrer » actif et
+badge de confirmation un cran plus soutenus.
 
 ## Formes refusées (ne pas reproposer)
 
