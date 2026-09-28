@@ -15,12 +15,17 @@ const AUDIT = `(() => {
   const px=v=>parseFloat(v)||0;
   const parse=c=>{const m=String(c).match(/rgba?\\(([^)]+)\\)/);if(!m)return null;
     const p=m[1].split(',').map(x=>parseFloat(x));return {r:p[0],g:p[1],b:p[2],a:p.length>3?p[3]:1};};
-  const over=(f,b)=>({r:f.r*f.a+b.r*(1-f.a),g:f.g*f.a+b.g*(1-f.a),b:f.b*f.a+b.b*(1-f.a),a:1});
+  /* Composition « source over » AVEC l'alpha du dessous : l'ancienne forme rendait a:1 dès le
+     premier mélange, si bien que deux voiles translucides empilés (bouton blanc 7 % sur carte blanche
+     7 %) devenaient un fond BLANC opaque — faux « + » à 1,21:1 dans le volet Outils, et faux verts
+     possibles pour un texte sombre sur la même pile (audit UX 27/09/2026). */
+  const over=(f,b)=>{const a=f.a+b.a*(1-f.a);if(a<=0)return {r:0,g:0,b:0,a:0};
+    const m=k=>(f[k]*f.a+b[k]*b.a*(1-f.a))/a;return {r:m('r'),g:m('g'),b:m('b'),a};};
   function bgOf(el){
     let e=el,acc=null;
     while(e&&e.nodeType===1){
       const c=parse(getComputedStyle(e).backgroundColor);
-      if(c&&c.a>0){ acc=acc?over(acc,c):c; if(acc.a>=1||c.a>=1) return acc.a>=1?acc:over(acc,{r:255,g:255,b:255,a:1}); }
+      if(c&&c.a>0){ acc=acc?over(acc,c):c; if(acc.a>=0.999) return acc; }
       e=e.parentElement;
     }
     const body=parse(getComputedStyle(document.body).backgroundColor)||{r:255,g:255,b:255,a:1};
@@ -374,6 +379,11 @@ const SURFACES = [
         t.running=true;t.elapsedMs=0;t.lastStart=Date.now()-((src.seconds||60)*1000+9000);}
       if(typeof tickAll==='function')tickAll();
       await new Promise(r=>setTimeout(r,500)); } },
+  /* Le volet Outils ouvert n'était mesuré par aucune surface : « MAINTENIR » y tenait 2,64:1
+     (collision de cascade, audit UX 27/09/2026 N1). Minuteur arrêté : la remise à zéro est active. */
+  { nom:'état · volet Outils', w:390, prep:'read', must:'.rt-dock .tm-reset .tmr-hint', fn: async()=>{
+      const k=document.getElementById('cbTimers'); if(k)k.click();
+      await new Promise(r=>setTimeout(r,600)); } },
   { nom:'état · index ⚡ déplié', w:390, prep:'read', must:'#dockSheet .ds-row', fn: async()=>{
       const f=state.fiche;
       f.excursions=[{label:'Laryngospasme',target:f.blocks[1].id},

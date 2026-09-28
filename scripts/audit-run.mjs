@@ -113,6 +113,7 @@ const HARNAIS = [
   { nom: 'audit-zoom-scroll',   poids: 3 },
   { nom: 'audit-consulter',     poids: 3 },
   { nom: 'audit-historique',    poids: 3 },
+  { nom: 'audit-pliables',      poids: 8 },
   { nom: 'audit-prompt',        poids: 1 },
 ];
 

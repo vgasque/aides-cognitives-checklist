@@ -190,11 +190,18 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
   }
 
   group('curseur : un degré, une couleur (A312)');
-  ok('au degré d’un preset, le curseur rend le preset (vermillon à 19°)', A.catHueSnap(19,null)==='#b23240', A.catHueSnap(19,null));
+  {const p0=A.PALETTE[0],d0=A.catHueDeg(p0);ok('au degré d’un preset, le curseur rend le preset (le premier du nuancier)', A.catHueSnap(d0,null)===p0, A.catHueSnap(d0,null));}
   ok('chaque preset se retrouve à son degré', A.PALETTE.every(p=>A.catHueSnap(A.catHueDeg(p),null)===p));
   ok('hors preset : l’anneau', A.catHueSnap(100,null)===A.catHueHex(100));
   ok('la couleur d’origine du pli prime à son degré', A.catHueSnap(A.catHueDeg('#123456'),'#123456')==='#123456');
-  ok('A314 : l’anneau rend le vermillon à 19° sans accrochage', A.dEok('#b23240',A.catHueHex(19))<0.5, A.catHueHex(19));
+  {const p0=A.PALETTE[0];ok('A314 : l’anneau rend un preset à son degré sans accrochage', A.dEok(p0,A.catHueHex(A.catHueDeg(p0)))<0.5, A.catHueHex(A.catHueDeg(p0)));}
+  /* C3 (audit UX 27/09/2026) : aucune couleur du nuancier n'est plus proche d'un registre que deux presets entre eux. */
+  {const REG=['#a32e1f','#c43d34','#7a5900','#b45309','#1d7a38'];let m=9,mp=9;A.PALETTE.forEach(c=>REG.forEach(r=>{m=Math.min(m,A.dEok(c,r));}));
+   for(let i=0;i<A.PALETTE.length;i++)for(let j=i+1;j<A.PALETTE.length;j++)mp=Math.min(mp,A.dEok(A.PALETTE[i],A.PALETTE[j]));
+   ok('C3 : un preset est toujours plus loin d’un registre que de son voisin le plus proche', m>mp, 'registre '+m.toFixed(2)+' · voisin '+mp.toFixed(2));
+   ok('C3 : « Urgences » par défaut n’est plus rouge', !/#b23240/i.test(JSON.stringify(A.PALETTE)));}
+  ok('C3 : l’ancien vermillon stocké est signalé, et sa teinte voisine ne l’est plus', A.catRegNear('#b23240')&&!A.catRegNear(A.catSafeTwin('#b23240')), A.catSafeTwin('#b23240'));
+  ok('C3 : aucun preset n’est signalé', !A.PALETTE.some(A.catRegNear), A.PALETTE.filter(A.catRegNear).join(' '));
 
   group('txNorm() / recherche plein texte');
   eq('accents et casse normalisés', A.txNorm('Réanimation ÉCG'), 'reanimation ecg');
@@ -3075,6 +3082,32 @@ async function run(A){   // async : zipParse (lecture des exports .zip) renvoie 
    const d=A.impDiff(mk('Ancien'),mk('Nouveau'),false);
    ok('sur une aide, le titre entrant est annoncé comme un ajout',
       d.plus.some(x=>/Nouveau/.test(x))&&d.moins.some(x=>/Ancien/.test(x)), JSON.stringify(d));}
+
+  group('N4 — le nom court de la capsule et du quai (autoShort, autoShortHead)');
+  eq('un nom qui tient reste entier', A.autoShort('Cycle RCP',14), 'Cycle RCP');
+  eq('la parenthèse finale tombe d’abord', A.autoShort('Amiodarone (2e dose)',14), 'Amiodarone');
+  eq('minuteur : mots-outils retirés, premiers mots abrégés, le dernier (le discriminant) gardé', A.autoShort('Réévaluation après adrénaline',14), 'Rééval. adrén.');
+  ok('deux minuteurs voisins restent distincts une fois abrégés',
+     A.autoShort('Réévaluation après adrénaline',14)!==A.autoShort('Réévaluation après remplissage',14),
+     A.autoShort('Réévaluation après remplissage',14));
+  ok('l’abréviation respecte le budget', A.autoShort('Hypotension persistante réfractaire au remplissage',14).length<=16);
+  eq('complication : on retire les derniers mots, jamais on n’abrège le premier', A.autoShortHead('Bronchospasme réfractaire',20), 'Bronchospasme');
+  eq('complication courte : entière', A.autoShortHead('Choc réfractaire',20), 'Choc réfractaire');
+  eq('un seul mot trop long reste entier (la césure s’en charge)', A.autoShortHead('Hyperkaliémiesévèreréfractaire',20), 'Hyperkaliémiesévèreréfractaire');
+  eq('touche ⚡ : la précision entre parenthèses tombe', A.cxShort({label:'FV réfractaire (CEE inefficaces)'}), 'FV réfractaire');
+  eq('le nom court de l’auteur l’emporte', A.tmShort({label:'Réévaluation après adrénaline',short:'Rééval. adré'}), 'Rééval. adré');
+  {const f=A.migrate({id:'s1',title:'T',start:'b1',blocks:[{id:'b1',kind:'do',title:'B',items:['Un geste']}],
+     timers:[{id:'t1',label:'A',type:'interval',seconds:60,short:'   '},{id:'t2',label:'B',type:'interval',seconds:60,short:'x'.repeat(40)}],
+     counters:[{id:'c1',label:'C',short:'Adré'}],excursions:[{label:'L',target:'b1',short:'Laryngo'}]});
+   ok('migrate : un nom court vide n’ajoute aucun champ', !('short' in f.timers[0]), JSON.stringify(f.timers[0]));
+   eq('migrate : le nom court est borné à 24 caractères', f.timers[1].short.length, 24);
+   eq('migrate : compteur et complication gardent leur nom court', f.counters[0].short+'|'+f.excursions[0].short, 'Adré|Laryngo');}
+
+  group('N2 — un rappel du chapeau sur une ligne (forgetItemHtml)');
+  {const h=A.forgetItemHtml('⚠ RCP immédiate :: 30:2 — sans délai');
+   ok('la syntaxe de saisie ne s’affiche plus (ni « :: » ni « ⚠ »)', !/::|⚠/.test(h), h);
+   ok('le registre est dit en mot, la réponse suit en gris', /fs-mk[^>]*>Critique</.test(h)&&/fs-r[^>]*> · 30:2/.test(h), h);}
+  ok('un rappel sans registre ni réponse reste le texte seul', A.forgetItemHtml('Minimiser les interruptions')==='Minimiser les interruptions', A.forgetItemHtml('Minimiser les interruptions'));
 }
 
 // Ouvert en double-cliquant le fichier (file://) : le navigateur isole les iframes (origine

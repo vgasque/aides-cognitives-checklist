@@ -63,6 +63,22 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A397 | `lot-v5-37.md` | La bande des repères du bloc : `item.poso`, un repère par étape liée, « fait · à faire · à préparer » venus de la coche, repliable, détail `item.note` ; icônes `pill`/`grid` |
 | A398 | `lot-v5-37.md` | Une revue par session (`r:revue:index`, amende A396), collision `.rev-row` → `rv-step`, étiquettes de la grille, pas de CRITIQUE/VIGILANCE avant le moment, bande : « à préparer » avant le moment, rangées en deux lignes, gélule à moitié pleine |
 | A399 | `lot-v5-37.md` | La capsule CRITIQUE/VIGILANCE d'une hypothèse s'ancre sur son libellé (plus de décalage en px) ; la tête de la bande des repères sur la grille des rangées |
+| A400 | `lot-v5-38.md` | Le volet Outils mesuré (« MAINTENIR » 2,64 → 6,33:1, encre de nuit du volet), surface ajoutée à `audit-a11y`, et le harnais compose enfin l'alpha (deux voiles empilés ≠ blanc opaque) |
+| A401 | `lot-v5-38.md` | Un rappel du chapeau sur une ligne, au dessin du parcours (`forgetItemHtml`) — plus la syntaxe de saisie |
+| A402 | `lot-v5-38.md` | « ×2 » devient l'étiquette « Double contrôle », alignée sur CRITIQUE |
+| A403 | `lot-v5-38.md` | Nom court (`short`, facultatif) sinon abrégé d'office (`autoShort`/`autoShortHead`) ; capsule et quai à 13,5, quai en casse de phrase, césure française |
+| A404 | `lot-v5-38.md` | 44 px actifs hors crise par halo (épingle, notice, bandeau) |
+| A405 | `lot-v5-38.md` | Pliables : `--hinge`, gouttière = charnière + 24, capsule/quai/fenêtres bornés au volet gauche ; harnais `audit-pliables` |
+| A406 | `lot-v5-38.md` | Le rouge réservé à CRITIQUE et à l'alarme (Mode crise, Fin, complication, critères) |
+| A407 | `lot-v5-38.md` | Barre de minuteur neutre (poste de pilotage sombre) ; règle 8 réécrite |
+| A408 | `lot-v5-38.md` | Nuancier sorti des registres (vermillon retiré, Urgences en prune, quatre presets), garde-fou `catRegNear` au gestionnaire |
+| A409 | `lot-v5-38.md` | « Terminer ? » : encadré neutre, l'étape vitale oubliée au registre critique |
+| A410 | `lot-v5-38.md` | Capsule à la largeur du chrono quand les minuteurs sont au rail |
+| A411 | `lot-v5-38.md` | Réponse attendue en mono casse de phrase (AC 120-71B / HF-STD-001) |
+| A412 | `lot-v5-38.md` | « Journal » devient « Horodater » |
+| A413 | `lot-v5-38.md` | « Créer » neutre au téléphone, tonal en large |
+| A414 | `lot-v5-38.md` | « Vérifier » sans « :: » |
+| A415 | `lot-v5-38.md` | La bulle d'apprentissage devient la sous-ligne du geste d'entrée (amende A331) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

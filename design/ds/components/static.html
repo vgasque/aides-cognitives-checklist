@@ -251,6 +251,10 @@
      n'avait aucun bord. TROIS côtés : le haut est la jointure, où la capsule pose déjà son trait
      (un anneau complet doublerait la ligne). Inerte le jour (--sys-edge transparent). */
   [data-theme="dark"] .rt-dock{box-shadow:inset 1px 0 0 var(--sys-edge),inset -1px 0 0 var(--sys-edge),inset 0 -1px 0 var(--sys-edge)}
+  /* La nuit, les cartes du volet posent --sys-2 (blanc 12 %) sur la matière éclaircie : #9aa5b3 y
+     tombait à 3,13:1 (libellés, durées, « MAINTENIR »). Encre secondaire relevée DANS le volet
+     seulement : 4,62:1 sur carte, 6,70:1 sur la matière nue (audit UX 27/09/2026, N1). */
+  [data-theme="dark"] .rt-dock{--sys-ink-2:#c0c8d3}
   /* ≥ 1200 px la capsule QUITTE la matière système (body.chrome-hdr : elle monte dans l'en-tête,
      fond transparent) : aucun anneau — on cerclerait un objet qui n'existe plus comme surface. */
   [data-theme="dark"] body.chrome-hdr #cbTimers{box-shadow:none}
@@ -941,7 +945,7 @@
      hauteur qui ne coûte RIEN : la rangée d'identité porte déjà deux lignes hors crise
      (marque + sous-titre), le sur-titre prend la place du sous-titre. Hauteur d'en-tête
      CONSTANTE quel que soit l'état (corollaire A9). */
-  .brand-sur{display:flex;align-items:baseline;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--crit);line-height:1.2;white-space:nowrap}
+  .brand-sur{display:flex;align-items:baseline;min-width:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);line-height:1.2;white-space:nowrap}   /* C1 : « ■ Mode crise » n'est pas une alarme — le glyphe et le mot, pas le rouge */
   .brand-sur[hidden]{display:none}
   /* LE SUR-TITRE PORTE DEUX FAITS, DANS DEUX REGISTRES (audit externe v5.10.0, cf. l'épitaphe de
      `.bt-d`). Le MODE garde l'alerte ; le DISCRIMINANT est de l'IDENTITÉ et prend l'encre neutre —
@@ -1109,10 +1113,10 @@
      grille canonique calculée en CSS, aucune mesure JS. Détail : doctrine-css.md C20. */
   @media (min-width:780px){
     #sessionDock{padding-inline:20px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
-    #sessionDock .sd-in,#sessionDock .sd-hint-w{max-width:none;margin-right:calc(var(--col-state) + var(--col-gap))}
+    #sessionDock .sd-in{max-width:none;margin-right:calc(var(--col-state) + var(--col-gap))}
   }
   @media (min-width:1200px){
-    #sessionDock .sd-in,#sessionDock .sd-hint-w{margin-left:calc(var(--col-orient) + var(--col-gap))}
+    #sessionDock .sd-in{margin-left:calc(var(--col-orient) + var(--col-gap))}
   }
   #sessionDock[hidden]{display:none}
   /* ═══ L'ARRIVÉE SUR UNE FICHE (v5.26.0, A331 — canvas + démo validés par l'auteur) ═══════════
@@ -1131,12 +1135,6 @@
   .sd-in::after{content:"";position:absolute;inset:0;border-radius:var(--r-4);pointer-events:none}
   #sessionDock.sd-arrive .sd-in::after{animation:sd-ring 1300ms ease-out 800ms 3 both}
   @media (prefers-reduced-motion:reduce){#sessionDock.sd-arrive .sd-in::after{animation:none}}
-  .sd-hint-w{display:flex;justify-content:center}
-  .sd-hint{position:relative;display:block;max-width:100%;margin:0 0 16px;background:var(--work);border:1px solid var(--work-line);border-radius:var(--r-2);box-shadow:var(--shadow-work);padding:10px 14px;text-align:center;pointer-events:auto}
-  .sd-hint[hidden]{display:none}
-  .sd-hint-t{font-size:var(--t-body);font-weight:700;line-height:18px;color:var(--ink)}
-  .sd-hint-s{font-size:var(--t-meta);font-weight:600;line-height:16.5px;color:var(--ink-2);margin-top:2px}
-  .sd-hint::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;margin-left:-6px;background:var(--work);border-right:1px solid var(--work-line);border-bottom:1px solid var(--work-line);transform:rotate(45deg)}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
      dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */
   /* RÉSERVE, PAS ESPACEMENT : la hauteur réelle du dock (50 de touche + 5+5 de coque + 10 de
@@ -1144,7 +1142,6 @@
      étape d'un bloc naîtrait DERRIÈRE lui. Ne pas l'arrondir sur l'échelle d'espacement : elle
      suit le dessin du dock, pas le rythme de la page. */
   body.dock-on main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-  body.dock-on.dock-hint main{padding-bottom:calc(158px + env(safe-area-inset-bottom,0px))}   /* + la bulle (58) et son écart (16) */
   body.dock-on.kb-open main{padding-bottom:0}
   /* LES VOLETS DU DOCK — V3 : plafonnés à 45 % de la hauteur VISIBLE (--vvh, la seule mesure
      qu'iOS ne fausse pas ; ÷ --zf, règle 10), jamais plein écran. Ils montent DU dock, donc au-
@@ -1274,10 +1271,11 @@
      deux ouvertures passent au glyphe seul et se contentent de 46 px — deux touches à mot, deux
      touches à glyphe, chaque paire égale à elle-même. */
   .sd-key.sd-tk{background:var(--sys-key);color:var(--sys-ink)}
-  .sd-key.sd-cx{color:var(--crit-sys)}
+  .sd-key.sd-cx{color:var(--warn-sys)}   /* C1 : ambre au repos, comme l'éclair ; le rouge reste à l'alarme */
   /* « Fin » (v5.30, A354) : même gabarit que ses voisines (glyphe sur mot, largeur égale) ; seul le
      registre critique système la distingue. */
-  .sd-key.sd-end{color:var(--crit-sys)}
+  .sd-key.sd-end{color:var(--sys-ink-2)}   /* C1 : le mot au gris des touches secondaires ; le ■ garde le rouge de l'arrêt */
+  .sd-key.sd-end .dp-ic{color:var(--crit-sys)}
   .sd-key.sd-end .dp-lbl{-webkit-line-clamp:1}
   /* ⚠ OUVERTE, LA TOUCHE ⚡ NE PREND PAS LE CREUX GÉNÉRIQUE (v5.15.0, attrapé par audit-a11y en
      posant 17/1a) : sur la matière nocturne ÉCLAIRCIE, le fond .on (--sys-2, 12 % de blanc
@@ -1302,6 +1300,9 @@
   .sd-in:has(.sd-start:not([hidden])){background:none;box-shadow:none;padding:0;gap:8px}
   .sd-key.sd-start{flex:1;min-height:56px;border-radius:var(--r-4);background:var(--act);color:var(--on-primary);border:1px solid var(--work-line);box-shadow:var(--shadow-work)}
   .sd-key.sd-start .dp-lbl{font-size:var(--t-step);letter-spacing:.01em;text-transform:none}
+  .sd-key.sd-start:has(.sd-sub:not([hidden])){flex-direction:column;gap:0}
+  .sd-key.sd-start .sd-sub{display:block;font-size:var(--t-meta);font-weight:600;line-height:1.3;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;opacity:.9}
+  .sd-key.sd-start .sd-sub[hidden]{display:none}
   /* Le survol n'ajoute pas un SECOND bleu, il éclaire le même (--primary-hi ramenait l'ancien
      bleu à la souris et le défaut de fusion réapparaissait). Le fond est RE-déclaré : sans lui,
      le survol générique .sd-key:hover (--sys-2) reprendrait la main à spécificité égale. */
@@ -1328,7 +1329,7 @@
      la touche ⚡︎ porte le NOM d'une complication quand il n'y en a qu'une, et « FV RÉFRA… » ne dit
      pas où l'on va. Deux lignes au plus — au-delà, la touche grandirait sous le doigt. */
   .sd-key .dp-lbl.sd-name{text-transform:none;letter-spacing:0;font-weight:700}
-  .sd-key .dp-lbl{font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word}
+  .sd-key .dp-lbl{font-size:var(--t-body);font-weight:800;letter-spacing:0;text-transform:none;line-height:1.1;text-align:center;max-width:100%;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}   /* N5 : 13,5 (lu à distance), en casse de phrase — en capitales « HORODATER » demandait 82 px pour 73 à 390 (mesuré) ; N4 : césure avant toute coupe au milieu du mot */
   /* A2 — à 320 px les DEUX OUVERTURES passent au glyphe seul (aria-label conservé) ; hors du
      contrat « le mot Crise jamais au glyphe seul », qui ne vise que le STATUT — les GESTES gardent
      leurs mots. ⚠ Ce palier est une CLASSE `zw*`, jamais une media query (règle 10, déjà enfreinte
@@ -1426,7 +1427,7 @@
      flux NON coupé — mesuré à 488 px sur un quai de 320. Elle gonflait `scrollWidth`, c'est-à-dire
      qu'elle MENTAIT à la boucle d'ajustement, qui retirait un segment pour un débordement
      imaginaire. Confinée ici, elle est coupée avec le reste et ne pèse plus rien. */
-  #cbTimers .seg-l{position:relative;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--sys-ink-2);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #cbTimers .seg-l{position:relative;font-size:var(--t-body);font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:var(--sys-ink-2);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Très étroit : segments resserrés — l'ellipse des intitulés vient du min-width:0 du segment
      (plus de plafond en vw : la rangée occupe toute la largeur, elle n'a plus à se disputer la
      place avec le thème et le compte comme dans l'ancienne pastille d'en-tête). */
@@ -1458,7 +1459,7 @@
   #cbTimers .seg-t{font-size:var(--t-step);letter-spacing:0;line-height:1}
   #cbTimers .seg.glb .seg-t{font-size:var(--t-val)}
   #cbTimers .seg-bar{display:block;width:100%;min-width:0;height:3px;border-radius:3px;background:var(--sys-line);overflow:hidden}
-  #cbTimers .seg-fill{display:block;height:100%;width:100%;background:var(--ok-sys);transform-origin:left;transition:transform 1s linear}
+  #cbTimers .seg-fill{display:block;height:100%;width:100%;background:var(--sys-ink-2);transform-origin:left;transition:transform 1s linear}
   #cbTimers .seg.due{padding:0 10px}
   #cbTimers .seg.due .seg-fill{background:var(--warn-sys)}
   #cbTimers .cbt-decl{align-self:center}
@@ -1769,6 +1770,12 @@
   .sys-banner .sb-x{background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;flex:none}
   .sys-banner .sb-x:hover{background:var(--primary-100)}
   .sys-banner :is(.sb-act,.sb-x):focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  /* Cibles de 32 dessinées, 44 actives (audit UX 27/09/2026, N6 — HIG 44 pt) : le halo porte la zone,
+     le dessin ne bouge pas. Les deux boutons du bandeau sont VOISINS : halo vertical pour « J'ai
+     compris », et la croix ne s'étend que vers le bord, jamais sur son voisin. */
+  .sys-banner :is(.sb-act,.sb-x){position:relative}
+  .sys-banner .sb-act::after{content:"";position:absolute;inset:-6px 0}
+  .sys-banner .sb-x::after{content:"";position:absolute;inset:-6px -6px -6px 0}
   body:not(.view-home) .sys-banner{display:none}
   .search{flex:1;position:relative;display:flex;align-items:center}
   .search svg{position:absolute;left:12px;color:var(--ink-soft);pointer-events:none}
@@ -1816,6 +1823,7 @@
   /* Même corps que `.sb-x` : une seule croix de fermeture dans tout le fichier (v5.0.0). */
   .notice-x{position:absolute;top:1px;right:4px;background:none;border:0;color:var(--ink-soft);font-size:15px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}   /* centrée sur la 1ʳᵉ ligne ; tient dans une notice d'une ligne */
   .notice-x:hover{background:rgba(0,0,0,.07)}
+  .notice-x::after{content:"";position:absolute;inset:-6px}   /* 32 dessinés, 44 actifs (N6) */
   /* Icônes SVG « de texte » (uiIcon, remplacent les emojis) : alignées sur la ligne de base. */
   svg.tic{vertical-align:-2.5px;flex:none}
   /* L'éclair est le seul glyphe REMPLI de la famille : il remplace l'emoji ⚡ (couleur sur iOS,
@@ -2258,8 +2266,15 @@
     html.zw360 .hdr-hist{display:none}   /* 320 px : la marque et les deux actions ne laissent pas la place ; l'historique reste au pied */
   /* Feuille « Affichage » */
   .hdr-hist{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--r-4);background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink)}
-  body.view-home #hdrNew{background:var(--act);color:var(--on-primary);border-radius:var(--r-4)}
-  body.view-home #hdrNew:hover{background:var(--act);filter:brightness(1.06)}
+  /* « Créer » n'est plus le seul bouton plein de l'accueil : dans un outil d'urgence, l'accueil
+     sert d'abord à TROUVER (audit UX 27/09/2026, P3). Au téléphone, le dessin de l'historique
+     voisin ; en large, le tonal d'« Affichage » et « Sélectionner ». */
+  body.view-home #hdrNew{background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);color:var(--ink);border-radius:var(--r-4)}
+  body.view-home #hdrNew:hover{background:var(--amb-2)}
+  @media (min-width:780px){
+    body.view-home #hdrNew{background:var(--amb-2);border-color:transparent;box-shadow:none;color:var(--act)}
+    body.view-home #hdrNew:hover{background:var(--line)}
+  }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
   .vs-h{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
   .vs-seg .seg-btn{min-height:44px;padding:0 4px;font-size:var(--t-body);white-space:nowrap}   /* A375 : un seul segment, L 44 */
@@ -2281,6 +2296,7 @@
      et la cible se retrouvait amputée du côté du pouce. Le rembourrage droit passe à 9 px : 26 + 9
      + 9 = 44, exactement la cible, et plus rien ne sort. */
   .dir-row .pinbtn{min-width:32px;min-height:32px;position:relative}
+  .dir-row .pinbtn::after{content:"";position:absolute;inset:-6px}   /* 32 dessinés, 44 actifs (N6) */
   /* ⚠ Le halo de l'épingle mordait de 4 px sur la cible du bouton-titre (mesuré au balayage) :
      dans cette bande on épinglait au lieu d'ouvrir. Il reste GÉNÉREUX en hauteur (la rangée fait
      71 px) et se borne en largeur à l'écart réel — cible 26 + 12 = 38 px, au-dessus du plancher
@@ -2587,6 +2603,9 @@
   .fold-card .fs-i{display:block;font-size:var(--t-item);line-height:1.4;padding:10px 0;min-height:44px;border-top:1px solid var(--work-line);color:var(--ink)}
   .fold-card .fs-i:first-child{border-top:0}
   .fold-card .fs-i::before{display:none}
+  .fs-i .fs-mk{float:right;margin:4px 0 0 8px;font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;line-height:1.2;text-transform:uppercase;color:var(--crit)}   /* N2 : le dessin du parcours (A388) */
+  .fs-i .fs-mk.vig{color:var(--warn)}
+  .fs-i .fs-r{color:var(--ink-2)}
   .pre-flow{background:var(--work);border:1px solid var(--work-line);box-shadow:var(--shadow-work);border-radius:var(--r-4);overflow:hidden;margin-bottom:10px}
   .pre-flow .pre-lad{padding:0 8px 12px}
   /* Le parcours à plat (v5.30) */
@@ -2696,8 +2715,6 @@
      la mécanique `.afloat`. Rail ①②③ : JAMAIS d'ambre/rouge dans les pastilles ; en sombre leur
      encre passe à --bg. En session, mêmes étages sans rail (écart 20 px) ; onglets = gabarit des
      chips, 44 px ; « ×2 » = registre NEUTRE, mono tabulaire. Détail : doctrine-css.md C56. */
-  .stp-x2{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--tag-bg);
-    color:var(--tag-ink);font-family:var(--mono);font-size:11px;font-weight:700;vertical-align:2px}
   /* RANGÉE D'ITEM (maquette proto-large) : poignée à GAUCHE, plus de case inerte, DEUX champs.
      La marque de registre remplace la case : elle DIT le registre au lieu d'inviter à cocher. */
   /* B4 — les deux moitiés de la condition d'entrée sont NUES dans leur fieldset commun : deux
@@ -3071,7 +3088,9 @@
      au survol, donc aussi au toucher iOS (survol collant). Même piège qu'au bloc nocturne ~670 ;
      invisible à une sonde qui dispatche pointerdown sans bouger le pointeur. */
   .rt-dock .tm-btn:not(.holding):hover{background:var(--sys-2)}
-  .rt-dock .tmr-hint{color:var(--sys-ink-2)}
+  /* `.tm-reset .tmr-hint` (plus bas, même spécificité) repeignait « MAINTENIR » en --ink-soft sur la
+     matière système : 2,64:1 mesuré (audit UX 27/09/2026, N1). Le second sélecteur l'emporte. */
+  .rt-dock .tmr-hint,.rt-dock .tm-reset .tmr-hint{color:var(--sys-ink-2)}
   .rt-dock .tm-mini{background:var(--sys-2);border:1px solid var(--sys-line);color:var(--sys-ink)}
   .rt-dock .tmm-b{color:var(--sys-ink-2)}
   .rt-dock .rt-add{border:1px dashed var(--sys-line);color:var(--sys-ink-2)}
@@ -3319,6 +3338,7 @@
      --warn-line, 3,2:1 sur --warn-soft la nuit). */
   .stp-mk{display:block;width:fit-content;margin:0 0 4px;padding:4px 6px;border-radius:var(--r-1);font-size:var(--t-cap);font-weight:800;letter-spacing:.08em;line-height:1;text-transform:uppercase;background:var(--crit-soft);color:var(--crit)}
   :is(.vigil,.vig) .stp-mk{background:var(--warn-soft);color:var(--warn)}
+  .stp-mk.mk-dual{background:var(--amb-2);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--ctl-line)}   /* N3 : une consigne, pas un registre de danger */
   /* A381 : l'étiquette se loge dans une marge haute réservée, hors du flux — la case reste centrée sur le libellé,
      comme dans une rangée sans étiquette. 60 = rembourrage 12 + case 36 + écart 12 (paliers zw ci-dessous). */
   ol.steps li:has(>.txt>.stp-mks){position:relative;padding-top:32px}
@@ -3632,6 +3652,8 @@
   @media (max-width:559.98px){.cx-edit-row .cx-tgt{max-width:none;flex:1 0 100%}}
   .cx-edit-row .cx-edit-ic{flex:none;color:var(--critical);font-weight:800}
   .cx-edit-row input{flex:1;min-width:0}
+  .cx-edit-row .cx-short{order:9;flex:1 0 100%;display:flex;align-items:center;gap:8px;min-width:0}
+  .cx-edit-row .cx-short span{flex:none;min-width:82px;font-size:var(--t-cap);font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
   .cx-edit-row .cx-tgt{flex:1;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
   .cx-edit-row .cx-tgt-vide{color:var(--ink-soft);border-style:dashed}
   /* v5.33.1 : événement et cible au gabarit des champs du bloc (M 40, 15 px) — la cible se lit comme le <select> d'une réponse. */
@@ -3663,7 +3685,7 @@
   /* Le retour en tête de carte : il ouvre le corps, donc pas de marge haute — c'est lui qui
      commence, et l'écart le sépare de ce qui suit. */
   .flow-ctrl.cx-back-top{margin:0 0 10px}
-  .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--critical);background:var(--critical-soft);border:1px solid var(--critical-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}
+  .cx-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);border:1px solid var(--verify-line);border-radius:999px;padding:1px 8px;vertical-align:1px;white-space:nowrap}   /* C1 : ambre, comme la touche ⚡ */
   /* JALONS DE BOUCLE (v5.5.0, P1) — modèle ECL : la ligne existe dès le premier passage
      (estompée, condition en toutes lettres, progression vivante en mono), seul son ÉTAT change au
      seuil. Paire --verify/--verify-soft = celle des étapes △, déjà auditée ; le renvoi ⚡ reprend
@@ -4258,10 +4280,13 @@
   /* P2 (v5.7) — CE QUI RESTE OUVERT. Registre ATTENTION en CONTOUR, jamais en aplat : un
      aplat ambre dans une fenêtre de sortie mettrait la même masse colorée qu'une alarme sur
      une information qui n'en est pas une (A11). Le glyphe et le mot portent le registre. */
-  .endsess-state{margin:0 0 14px;padding:10px 12px;border:1px solid var(--verify-line);
-    border-radius:var(--r-2);background:var(--verify-soft);color:var(--verify);
+  /* C4 : l'encadré est NEUTRE — chaque ligne porte son registre (l'étape vitale oubliée en rouge). */
+  .endsess-state{margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);
+    border-radius:var(--r-2);background:var(--amb-2);color:var(--ink);
     font-size:13.5px;font-weight:700;line-height:1.4}
   .endsess-state div{display:flex;gap:8px;align-items:flex-start}
+  .endsess-state .es-crit{color:var(--crit);align-items:center}
+  .endsess-state .es-crit .stp-mk{margin:0;flex:none}
   .endsess-state div+div{margin-top:4px}
   .endsess-state[hidden]{display:none}
   .dlg-consequences{margin:0 0 16px;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
@@ -4666,7 +4691,6 @@
   .li-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-size:12px;font-weight:700}
   .li-chip.crit,.li-chip.mem{background:var(--critical-soft);color:var(--critical)}   /* ★ : registre du chapeau qu'il rejoint */
   .li-chip.vig{background:var(--verify-soft);color:var(--warn)}
-  .li-chip.x2{font-family:var(--mono)}   /* la chasse fixe de « ×2 » en lecture (.stp-x2) */
   .li-chip.lk{background:var(--primary-soft);color:var(--act)}
   .li-chip.mo{background:var(--work);box-shadow:inset 0 0 0 1.5px var(--ink-2);color:var(--ink)}
   .li-chip.mo.ko{background:var(--verify-soft);box-shadow:none;color:var(--warn)}
@@ -4945,7 +4969,7 @@
      800 + registre (voir aussi `.stp-r`) : elle reste la ligne dominante. ⚠ Ne pas « corriger »
      `overflow-wrap:break-word` : c'est le filet, pas la cause (le corps fixe 21 px l'était).
      Détail : doctrine-css.md C98. */
-  .ov-t{order:2;flex:1 1 auto;min-width:0;font-size:var(--t-step-l);font-weight:800;color:var(--ink);line-height:1.2;letter-spacing:-.01em;margin:0;overflow-wrap:break-word}
+  .ov-t{order:2;flex:1 1 auto;min-width:0;font-size:var(--t-step-l);font-weight:800;color:var(--ink);line-height:1.2;letter-spacing:-.01em;margin:0;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
   .ov-c{order:4}.ov-chev{order:5;margin-left:0}
   .ov-head{padding:12px 16px 4px}
   body.chrome-hdr .ov-wrap>.ov-prog{margin-top:16px}   /* A376 : au cockpit la capsule vit dans l'en-tête et la ligne « Parcours » lui collait à 4 px (mesuré) ; 20 px comme ailleurs */
@@ -5086,7 +5110,7 @@
      la carte « Quand l'utiliser », pour qu'on reconnaisse la même liste. */
   .ovh-crit{display:flex;align-items:baseline;gap:8px;padding:8px 12px 8px 32px;border-top:1px solid var(--work-line);
     font-size:var(--t-meta);color:var(--ink-2);text-align:left}
-  .ovh-crit .ovh-mk{color:var(--critical);font-weight:800;flex:none}
+  .ovh-crit .ovh-mk{color:var(--ink-2);font-weight:800;flex:none}   /* C1 : critère d'entrée, pas une étape critique */
   .ovh-crit .ovh-t{flex:1 1 auto;min-width:0}
   .ovh-row{display:flex;gap:10px;align-items:center;width:100%;min-height:44px;padding:10px 0;   /* A369 : centré — la coche et le chevron ne s'alignent pas sur une ligne de base */
     background:none;border:0;border-top:1px solid var(--line);color:var(--ink-2);
@@ -5475,7 +5499,7 @@
      l'action) et son corps est --t-body — juste SOUS --t-item, jamais au-dessus (audit v5.10.0 :
      un canal au plancher 11 px n'est pas un canal) ; le cliquet de check-type suit.
      Détail : doctrine-css.md C107. */
-  ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--mono);font-size:var(--t-body);font-weight:600;letter-spacing:.5px;color:var(--ink-2);text-transform:uppercase;line-height:1.35}   /* v5.30 : une VALEUR à relire, pas un registre — l'ambre reste au mot VIGILANCE */
+  ol.steps li .stp-r{display:block;margin-top:2px;font-family:var(--mono);font-size:var(--t-body);font-weight:600;letter-spacing:0;color:var(--ink-2);text-transform:none;line-height:1.35}   /* H4 (audit UX 27/09/2026) : casse de phrase — la réponse reste distincte du libellé (défi-réponse) par la police, les capitales ralentissaient la lecture (FAA HF-STD-001 : casse mixte pour le texte lu) */   /* v5.30 : une VALEUR à relire, pas un registre — l'ambre reste au mot VIGILANCE */
   /* ⚠ ENCORE `--ink-3` EN ENCRE DE TEXTE (v5.6, trouvé en inversant la portée) : 2,32:1 en clair
      et 4,11:1 en sombre sur la réponse attendue d'une étape COCHÉE — c'est-à-dire l'état le plus
      fréquent de l'écran, et exactement la faute que la v5.0.0 a corrigée sur le texte de l'étape
@@ -6838,6 +6862,10 @@
     #crisisDock{padding:8px 18px}
     #crisisDock .dock-in{margin:0;max-width:calc(100% - var(--col-state) - var(--col-gap))}
     #cbTimers{padding:6px}   /* même hauteur qu'au téléphone : 64 px (le rembourrage 10 px de la bande d'avant faisait 72) */
+    /* Minuteurs partis au rail : la capsule ne porte plus que le chrono. Elle garde sa silhouette de
+       téléphone, à la largeur de son contenu, plutôt qu'une bande sombre vide (audit UX, H2). */
+    #cbTimers:not(:has(.seg:not(.glb))){flex:0 0 auto;width:max-content}
+    #cbTimers:not(:has(.seg:not(.glb))) .seg.glb{border-right:0;padding-right:8px}   /* le filet ne sépare plus rien */
     /* ⚠ ÉPITAPHE — `.pg-wide` purgée (règle 14) : élargir la colonne d'action déplaçait l'ÉTAT vif
        en pleine session, refusé à l'usage ; l'ajustement d'office reste refusé (k = 0,775 → cible
        34 px, A8/A133), l'échelle reste un GESTE (« ⤢ Ajusté »). --stick-top : mesuré par
@@ -7269,6 +7297,9 @@
   .cm-ln{flex:none;margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft)}
   .cm-l+.cm-add{margin-top:12px}
   .cm-row{border-top:1px solid var(--line)}
+  .cm-reg{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 0 8px 40px;font-size:var(--t-meta);font-weight:700;color:var(--warn)}   /* C3 */
+  .cm-reg .linkbtn{display:inline-flex;align-items:center;gap:6px;min-height:32px;font-size:var(--t-meta)}
+  .cm-regsw{width:14px;height:14px;border-radius:3px;flex:none}
   .cm-list>.cm-row:last-child{border-bottom:1px solid var(--line)}
   .cm-row.open,.cm-row.ask{background:var(--bg);margin:0 -4px;padding:0 4px;border-radius:8px;border-color:transparent}   /* .ask : confirmation de suppression, même sol que la palette */
   .cm-top{display:grid;grid-template-columns:32px minmax(0,1fr) 76px 34px;gap:8px;align-items:center;min-height:44px}   /* compte à largeur fixe : l'input ne varie plus d'une rangée à l'autre */
@@ -7613,7 +7644,7 @@
     /* A392 : la feuille peut vivre DANS `.care-flat` (une étape de plus sous elle) — l'ancien sélecteur, limité aux enfants
        directs, masquait alors le conteneur ENTIER : page blanche, mesurée à l'impression Chromium. */
     body.print-page .read-main>:not(.sv-wrap):not(:has(.sv-wrap)),body.print-page .care-flat>.cf-stage:not(:has(.sv-wrap)),body.print-page .cf-stage:has(>.sv-wrap)>:not(.sv-wrap),body.print-page .sv-wrap>:not(.sv-scroll),
-    body.print-page #crisisDock,body.print-page .sd-hint-w,body.print-page #blkReturn{display:none!important}
+    body.print-page #crisisDock,body.print-page #blkReturn{display:none!important}
     #sessionDock{display:none!important}   /* le quai est FIXÉ : sans cela il se répète sur chaque page */
     .sv-pgb{break-before:page!important}
     body.print-nogut .sv-gut{display:none!important}   /* le paginateur a renoncé : pas de tracé faux */
@@ -7670,12 +7701,22 @@
   /* ===== ÉCRANS PLIABLES (v5.30, planche large) =====
      Ouvert (deux segments côte à côte) : deux volets égaux, gouttière 24 px centrée sur la PLIURE
      — aucun contrôle ne la chevauche : le quai et sa feuille s'arrêtent au volet gauche, les
-     options d'une décision passent en une colonne. Fermé, rien ne change (disposition étroite). */
+     options d'une décision passent en une colonne. Fermé, rien ne change (disposition étroite).
+     La CHARNIÈRE a une épaisseur (Surface Duo : 34 px) : gouttière = charnière + 24, et chaque objet
+     s'arrête à 12 px de son volet. La capsule n'était pas bornée et traversait la charnière en
+     session (audit UX 27/09/2026, N7 — mesuré par émulation CDP). */
   @media (horizontal-viewport-segments:2){
-    body.view-read .read-grid,body.view-read .read-grid.cockpit{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 24px}
+    :root{--hinge:calc(env(viewport-segment-left 1 0,0px) - env(viewport-segment-right 0 0,0px))}
+    body.view-read .read-grid,body.view-read .read-grid.cockpit{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 calc(var(--hinge) + 24px)}
     body.view-read .read-plan{display:none}
     .options{grid-template-columns:1fr}
-    #sessionDock .sd-in,#sessionDock .sd-hint-w,#dockSheet .ds-card{margin-left:0;margin-right:calc(50% + 12px)}
+    #sessionDock .sd-in,#dockSheet .ds-card{margin-left:0;margin-right:calc(50% + var(--hinge) / 2 + 12px)}
+    #crisisDock .dock-in{margin:0;max-width:calc(50% - var(--hinge) / 2 - 12px)}
+    /* Les FENÊTRES se centraient sur l'écran, donc sur la charnière : « Terminer la session ? »
+       coupée en deux (mesuré, audit-pliables). Le voile borne sa zone au volet gauche, celui du quai ;
+       chaque fenêtre y garde sa largeur et s'y centre. `[class]` hisse la spécificité (0,3,2) au-dessus
+       du plein écran étroit (0,3,0), qui remettait la marge à zéro. */
+    html body .ai-modal.on[class]{padding-right:calc(50% + var(--hinge) / 2 + 12px)}
   }
   /* ===== GARDE D'ENCADREMENT (v5.0.0, audit) =====
      Ce que le document peut faire là où `frame-ancestors` n'est pas servi (GitHub Pages est la

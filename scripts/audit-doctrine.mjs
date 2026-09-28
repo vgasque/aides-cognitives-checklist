@@ -4526,7 +4526,7 @@ await sec('v5.6 · ⏱ un compteur s\'incrémente depuis le volet, sans doubler 
   await demarrerSession(page);
   const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
     const key=[...document.querySelectorAll('#crisisDockBar button,.sd-key')]
-      .find(b=>/NOTER|JOURNAL/i.test(b.textContent))   /* v5.30 : la touche dit « Journal · n » */;
+      .find(b=>/HORODATER|NOTER|JOURNAL/i.test(b.textContent))   /* v5.30 : « Journal · n », « Horodater · n » depuis l’audit UX (P1) */;
     if(!key)return {err:'touche ⏱ introuvable'};
     key.click(); await w(500);
     const chip=document.querySelector('.ds-chip.ds-cnt');
@@ -4666,7 +4666,7 @@ await sec('A7 · « Vérifier » sur un bloc sans challenge', async () => {
   /* Le libellé est celui de la MAQUETTE (décision de l'auteur) : « :: » nomme la passe
      challenge-réponse, il n'annonce pas un pré-requis du bloc — c'est la CONDITION qui était
      fautive, pas le mot. */
-  t('… et il porte le libellé de la maquette', r.txt==='Vérifier ::', r.txt);
+  t('… et il porte son libellé, sans le symbole d’auteur « :: » (audit UX 27/09/2026, P4)', r.txt==='Vérifier', r.txt);
   t('… à gauche de « Continuer », dans la même rangée de pied (A7)',
     !!r.geo&&r.geo.gauche===true&&r.geo.rangee===true, JSON.stringify(r.geo));
   t('… cible ≥ 44 px', !!r.geo&&r.geo.h>=44, r.geo?r.geo.h+' px':'—');
@@ -5681,7 +5681,7 @@ await sec('v5.6 · le volet du dock suit la barre flottante', async () => {
     await ouvrirFiche(page,'Anaphylaxie');
     await demarrerSession(page);
     const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
-      const k=[...document.querySelectorAll('.sd-key')].find(x=>/NOTER|JOURNAL/i.test(x.textContent));   /* v5.30 : « Journal · n » */
+      const k=[...document.querySelectorAll('.sd-key')].find(x=>/HORODATER|NOTER|JOURNAL/i.test(x.textContent));   /* « Horodater · n » (audit UX, P1) */
       if(!k)return {err:'touche ⏱ introuvable'};
       k.click();await w(500);
       const c=document.querySelector('.ds-card'),d=document.querySelector('#sessionDock .sd-in');
@@ -7784,14 +7784,14 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     const rows=()=>[...bd.querySelectorAll('.cm-row')];
     rows()[0].querySelector('[data-pick]').click();await w(200);
     out.ouvertes1=bd.querySelectorAll('.cm-row.open').length;
-    out.pastillesOuvertes=bd.querySelectorAll('.cm-row.open [data-setcol]').length;
+    out.pastillesOuvertes=bd.querySelectorAll('.cm-row.open .cm-sw [data-setcol]').length;out.nPal=PALETTE.length;   // A408 : le nuancier compte 12 presets — on lit sa taille
     out.focusPastille=!!document.activeElement&&document.activeElement.matches('[data-pick]');
     rows()[1].querySelector('[data-pick]').click();await w(200);
     out.ouvertes2=bd.querySelectorAll('.cm-row.open').length;
     out.ouverteEstLa2e=rows()[1].classList.contains('open');
     let row=bd.querySelector('.cm-row.open');const cid=row.dataset.cid,cat=categories.find(c=>c.id===cid&&!c.library);
     // A315 : le curseur est replié derrière le bouton « palette » (14ᵉ pastille) et se déplie au tap.
-    out.curseurCache=!row.querySelector('[data-hue]')&&!!row.querySelector('[data-huetog]')&&row.querySelectorAll('.cm-sw button').length===14;
+    out.curseurCache=!row.querySelector('[data-hue]')&&!!row.querySelector('[data-huetog]')&&row.querySelectorAll('.cm-sw button').length===PALETTE.length+1;
     row.querySelector('[data-huetog]').click();await w(200);row=bd.querySelector('.cm-row.open');
     const orig=cat.color,hu=row.querySelector('[data-hue]');out.curseurOuvert=!!hu;
     // A316 : la pastille choisie (échelle 1,12 + anneau 4 px) ne mord sur aucune voisine, palette comprise.
@@ -7805,7 +7805,7 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
     hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);const sur120=cat.color;
     hu.value=String(catHueDeg(orig));hu.dispatchEvent(new Event('input'));await w(60);
     out.retour=cat.color===orig&&sur120!==orig;
-    hu.value='19';hu.dispatchEvent(new Event('input'));await w(60);out.preset19=cat.color;
+    out.p0=PALETTE[0];hu.value=String(catHueDeg(PALETTE[0]));hu.dispatchEvent(new Event('input'));await w(60);out.preset19=cat.color;   // A408 : le vermillon a quitté le nuancier — le premier preset à son degré
     hu.value='120';hu.dispatchEvent(new Event('input'));await w(60);
     out.couleur=cat.color;out.hexValide=/^#[0-9a-f]{6}$/.test(cat.color);out.lisible=catLisible(cat.color);
     const [rr,gg,bb]=hexToRgb(cat.color).map(v=>Math.round(v*255));
@@ -7831,16 +7831,16 @@ await sec('Catégories · une palette à la fois, Ajouter en tête, même fenêt
   t('aucune pastille tant qu\'aucune palette n\'est ouverte',r.pastillesFermees===0,`${r.pastillesFermees}`);
   t('« Ajouter » précède la liste et reste à l\'écran',r.ajoutAvant&&r.ajoutVisible,JSON.stringify([r.ajoutAvant,r.ajoutVisible]));
   t('rangée de 44 px',Math.abs(r.hauteurRangee-44)<1,`${r.hauteurRangee}`);
-  t('une palette ouverte = 13 pastilles, une seule rangée ouverte',r.ouvertes1===1&&r.pastillesOuvertes===13,JSON.stringify([r.ouvertes1,r.pastillesOuvertes]));
+  t('une palette ouverte = toutes les pastilles du nuancier, une seule rangée ouverte',r.ouvertes1===1&&r.pastillesOuvertes===r.nPal,JSON.stringify([r.ouvertes1,r.pastillesOuvertes,r.nPal]));
   t('le focus revient sur la pastille',r.focusPastille===true,`${r.focusPastille}`);
   t('ouvrir une autre rangée ferme la première',r.ouvertes2===1&&r.ouverteEstLa2e,JSON.stringify([r.ouvertes2,r.ouverteEstLa2e]));
   t('curseur : hex valide, lisible, pastille peinte en direct',r.hexValide&&r.lisible&&r.pointSuit,JSON.stringify([r.couleur,r.lisible,r.pointSuit,r.note]));
   t('… enregistré au relâchement',r.persist===true,`${r.persist}`);
   t('la pastille choisie garde ≥ 1,5 px de jeu avec toute voisine, palette comprise (A316)',r.jeu>=1.5,`jeu ${(r.jeu||0).toFixed(2)} px`);
   t('renommer repeint l\'aperçu (A316)',Array.isArray(r.apercuNom)&&r.apercuNom.length===2&&r.apercuNom.every(x=>x==='Réa nommée'),JSON.stringify(r.apercuNom));
-  t('le curseur est replié derrière le bouton palette (14ᵉ pastille) et se déplie au tap (A315)',r.curseurCache===true&&r.curseurOuvert===true,JSON.stringify([r.curseurCache,r.curseurOuvert]));
+  t('le curseur est replié derrière le bouton palette (dernière pastille) et se déplie au tap (A315)',r.curseurCache===true&&r.curseurOuvert===true,JSON.stringify([r.curseurCache,r.curseurOuvert]));
   t('… et s\'ouvre d\'office quand la couleur n\'est pas un preset',r.autoOuvert===true,`${r.autoOuvert}`);
-  t('revenir au degré d\'origine rend la couleur d\'origine, et 19° rend le vermillon (A312)',r.retour===true&&r.preset19==='#b23240',JSON.stringify([r.retour,r.preset19]));
+  t('revenir au degré d\'origine rend la couleur d\'origine, et le degré d\'un preset rend ce preset (A312)',r.retour===true&&r.preset19===r.p0,JSON.stringify([r.retour,r.preset19,r.p0]));
   t('éditeur de FICHE : « Nouvelle catégorie » ouvre la fenêtre en liste',r.ficheVue==='edit'&&r.porteFiche==='ok',JSON.stringify([r.ficheVue,r.porteFiche]));
   t('éditeur de PROTOCOLE : idem',r.protoVue==='protocolEdit'&&r.porteProto==='ok',JSON.stringify([r.protoVue,r.porteProto]));
   await page.close();

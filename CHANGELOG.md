@@ -1,5 +1,39 @@
 # Journal des modifications
 
+## [5.38.0] — 2026-09-27
+Un audit design de l'application, mesuré puis maquetté sur l'app réelle, et ce qu'il a changé
+(A400-A415, doctrine `docs/decisions/lot-v5-38.md`).
+- **Lisible à distance.** Les noms de la barre des minuteurs et des touches du bas passent de 11 à
+  13,5 px, en casse de phrase sur la barre du bas. Un nom trop long s'abrège tout seul (« Réévaluation
+  après adrénaline » devient « Rééval. adrén. », « Bronchospasme réfractaire » devient
+  « Bronchospasme ») ; un champ facultatif « Nom court » dans l'éditeur permet de choisir le sien. Les
+  mots longs se coupent à la syllabe, avec un tiret, et plus au milieu du mot.
+- **Le rouge ne sert plus qu'à ce qui compte.** « Mode crise » n'est plus en rouge, « Fin » garde son
+  carré rouge mais son mot passe en gris, la touche de complication et son étiquette passent à
+  l'ambre. Dans « Terminer la session ? », l'étape vitale oubliée est maintenant en rouge, avec le mot
+  CRITIQUE. La barre d'un minuteur qui tourne est neutre ; il ne prend de couleur qu'à l'échéance.
+- **Catégories.** La teinte vermillon, presque identique au rouge d'alerte, quitte le nuancier ;
+  « Urgences » passe en prune et quatre teintes proches de l'ambre ou du vert d'alerte glissent un peu.
+  Vos catégories existantes gardent leur couleur : « Gérer les catégories » signale celles qui sont trop
+  proches d'une couleur d'alerte et propose la teinte voisine d'un tap.
+- **Écrans pliables (Surface Duo, Pixel Fold, Galaxy Z Fold).** Rien ne se pose plus sur la charnière :
+  la barre des minuteurs, la barre du bas et les fenêtres restent dans le volet gauche. La fenêtre
+  « Terminer la session ? » était coupée en deux par la charnière.
+- **Mots.** « Journal » devient « Horodater » (le geste reste le même : l'heure est notée d'un tap).
+  « ×2 » devient l'étiquette « Double contrôle ». « Vérifier :: » devient « Vérifier ». Les réponses
+  attendues s'écrivent en casse de phrase.
+- **« Ne pas oublier ».** Le rappel vital de l'arrêt cardiaque s'affichait avec sa syntaxe de saisie
+  (« ⚠ RCP immédiate :: 30:2 ») ; il se lit maintenant sur une ligne, CRITIQUE à droite.
+- **Avant la session.** La bulle qui masquait le contenu devient une ligne dans le bouton de
+  démarrage : « Lance le chrono · minuteurs prêts ».
+- **Accueil.** « Créer » n'est plus le bouton le plus visible ; l'étoile d'épinglage et les croix
+  répondent au doigt sur 44 px, sans changer de dessin. Sur tablette, la barre des minuteurs ne fait
+  plus que la largeur du chrono quand les minuteurs sont dans la colonne de droite.
+- **Contraste.** Dans le volet des minuteurs, « Maintenir » et une vingtaine de textes du thème sombre
+  étaient sous le seuil de lisibilité ; corrigé. Le contrôle automatique d'accessibilité mesure
+  désormais ce volet, calcule juste les fonds semi-transparents empilés, et un nouveau contrôle
+  vérifie les écrans pliables.
+
 ## [5.37.2] — 2026-09-27
 Deux alignements, mesurés (A399, doctrine `docs/decisions/lot-v5-37.md`).
 - **Capsule CRITIQUE / VIGILANCE d'une hypothèse** : elle s'aligne exactement sur le début du
@@ -545,37 +579,3 @@ doctrine `docs/decisions/lot-v5-30.md`).
 - Témoin `audit-doctrine` « v5.30 · A345 » ; doctrine `docs/decisions/lot-v5-30.md`, index,
   `design/ds` régénéré, CHANGELOG à 20 ([5.25.0] archivée).
 - Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro.
-
-## [5.29.4] — 2026-09-11
-### La destination devient une pastille, les voies cessent de se superposer, et le papier se pagine avant d'être peint (A344)
-
-- **Signalés à l'usage** : « il reste des soucis de superposition des flèches, et des flèches qui
-  passent au-dessus des blocs » ; « les options à droite dans les blocs sont encadrées, contrairement
-  à l'app » ; « le bout de la flèche n'est pas visible » ; « puis fais le paginateur mesuré ».
-- **La destination est une pastille**, comme sur la maquette retenue : « CONTINUER ↓ 4 » au registre
-  de la décision (cadre ambre plein), « ALLER À 7 » et « REVENIR À 2 » au registre des voies (cadre
-  bleu pointillé, fond pâle), « ▪ FIN » reste un mot. Elle donne surtout au trait un bord d'où
-  partir : une sortie part du bord droit de la pastille, un retour du bord gauche de la boîte — de la
-  pastille il traversait le libellé de sa propre ligne (mesuré deux fois sur l'état de mal).
-- **Un bus, pas n traits superposés** : trois décisions sortaient vers le même bloc et descendaient
-  dans le même couloir, **615 px l'une sur l'autre**. Les lignes rejoignent le couloir par un tiret,
-  la descente est unique. Toutes les voies passent par un registre de couloirs partagé (une abscisse
-  prise glisse de 5 px), et le collecteur d'une fourche descend dans l'interstice de sa branche au
-  lieu de longer la colonne des numéros. Une pointe s'arrête à 5 px du numéro, qui porte un halo et
-  passait devant elle.
-- **Le paginateur mesuré, et les voies reviennent sur le papier** : `svPaginate` pose lui-même les
-  sauts de page, donc il les connaît — hauteur utile mesurée en millimètres, blocs insécables dans
-  l'ordre du flux, saut avant celui qui déborderait. Les chemins s'écrivent en points, se coupent aux
-  frontières et se décalent : un trait sort en bas d'une page et reprend en haut de la suivante, à la
-  bonne cellule. Il peut renoncer et le dit (un bloc plus haut qu'une page), le calque restant alors
-  masqué. Coût mesuré : l'état de mal passe de 3 à 4 pages, une fourche insécable laissant du blanc.
-- **La feuille imprimée garde sa géométrie d'écran** et se centre dans les 210 mm : un padding
-  différent décalait le calque de 28 px, et le couloir de droite passait sur le texte des cellules.
-- **Témoin** (`audit-doctrine`) : aucun segment ne pénètre une cellule, un numéro, un intitulé, une
-  pilule ou un texte de décision ; aucune superposition ; imprimer une aide imprime la Page ; le
-  paginateur a posé ses pages ; l'écran retrouve son état. ⚠ Sa première écriture était **aveugle** —
-  elle testait un recouvrement sur les deux axes alors qu'un segment a une épaisseur nulle, donc la
-  condition ne pouvait jamais être vraie. Corrigée en testant l'appartenance, vérifiée capable
-  d'échouer, elle a immédiatement trouvé deux vrais défauts.
-- Doctrine A344 (trois addenda), index, `design/ds` régénéré, CHANGELOG à 20 ([5.24.2] archivée).
-- Vérifié : `npm run check` complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
