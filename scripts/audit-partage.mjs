@@ -2851,12 +2851,20 @@ await sec('A387 · l\'hôte sur une autre aide : les gestes de l\'invité vont �
   t('la coche de l\'invité entre dans la session PARTAGÉE, pas dans l\'aide affichée', recu && !h.fuite, 'reçue=' + recu + ' ' + JSON.stringify(h));
   t('… et son compteur aussi', !!g.cid && g.v > 0 && h.cnt === g.v, JSON.stringify({ hote: h.cnt, invite: g.v }));
   // L'hôte démarre une session LOCALE sur l'autre aide et y coche : rien ne doit partir sur le fil.
-  const e0 = await G.evaluate(() => Share.applied);
+  /* On compte ce qui arrive AU FIL de l'invité, `sig` exclus (v5.39.3) : `Share.applied` compte aussi
+     la plomberie de négociation du canal direct de secours — sous WebKit, offre et réponse passaient
+     dans la fenêtre (2 évènements `sig`, mesurés, aucune coche ni navigation) et rougissaient le
+     contrôle à tort. Témoin : l'invité a bien interrogé le fil pendant la fenêtre, sinon un zéro ne
+     prouverait rien. */
+  await G.evaluate(() => { window.__fil = { lus: 0, etat: [] }; const io = Share._io, pull = io.pull;
+    io.pull = async (...a) => { const r = await pull.apply(io, a); window.__fil.lus++;
+      if (r && r.events) for (const e of r.events) if (e.kind !== 'sig') window.__fil.etat.push(e.kind); return r; }; });
   await H.evaluate(async () => { document.getElementById('sessStart').click(); await new Promise(r => setTimeout(r, 300));
     const el = document.querySelector('[data-ck]'); if (el) el.click(); await new Promise(r => setTimeout(r, 300)); });
   await G.waitForTimeout(4000);
-  const e1 = await G.evaluate(() => Share.applied);
-  t('une session locale sur l\'autre aide n\'émet RIEN sur le fil de l\'invité', e1 === e0, 'évènements reçus : ' + (e1 - e0));
+  const fil = await G.evaluate(() => window.__fil);
+  t('témoin : l\'invité a lu le fil pendant la fenêtre', fil.lus >= 1, `${fil.lus} lecture(s)`);
+  t('une session locale sur l\'autre aide n\'émet RIEN sur le fil de l\'invité', fil.etat.length === 0, 'évènements reçus : ' + fil.etat.join(', '));
   // Retour sur la session partagée : la coche y est, à l'écran.
   const ret = await H.evaluate(async ({ sid, k }) => { openRead(sid); await new Promise(r => setTimeout(r, 400));
     const li = document.querySelector('[data-ck="' + CSS.escape(k) + '"]'); return { coche: !!Runtime.checked[k], peinte: !!(li && li.classList.contains('done')) }; }, { sid: ids.sid, k: g.k });

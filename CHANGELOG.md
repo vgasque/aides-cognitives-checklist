@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.39.3] — 2026-09-28
+Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
+- **Le rouge WebKit d'A387 n'était pas une fuite.** Sous WebKit, « une session locale sur l'autre aide
+  n'émet RIEN sur le fil de l'invité » échouait (2 ou 3 évènements reçus). Mesuré : ce sont des `sig`,
+  l'offre et la réponse de négociation du canal direct de secours, que WebKit achève plus tard. Aucune
+  coche ni navigation. Le contrôle ne compte plus que les évènements d'état (tout sauf `sig`), avec un
+  témoin qui prouve que l'invité a bien lu le fil pendant la fenêtre.
+- Vérifié capable d'échouer : la garde d'A387 neutralisée chez l'hôte, le contrôle rougit sur les deux
+  moteurs et nomme ce qui fuit (coche, décoche, compteur, minuteur, navigation, démarrage).
+- Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.39.2] — 2026-09-28
 Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
 - **Audit du temps des audits, mesuré.** Toutes les attentes fixes des 22 harnais ont été rejouées
@@ -404,26 +415,4 @@ Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échel
   courante en bleu et `aria-current`, blocs cochés en vert, hors chemin en pointillé ; rien ne se
   coche là). L'ancienne Échelle n'avait plus d'appelant : purgée avec ses 65 règles et treize
   classes, épitaphe posée dans la feuille.
-- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.30.5] — 2026-09-25
-Une échelle fermée pour les CONTRÔLES (A375, doctrine `docs/decisions/lot-v5-30.md`). Retour de
-l'auteur après l'audit typographique : les lettres tenaient leur échelle, les boîtes n'en avaient
-aucune — mesuré, 18 hauteurs de bouton entre 28 et 70 px, champs 40 · 44 · 48, segments 35 à 44 ;
-sur le seul accueil : en-tête 36, « Sélectionner » 40 × 130, filtre 44, recherche 44, carte 115.
-« Bigger is not better » : tout descend ou s'aligne, une seule montée.
-- **S 32** : mini-boutons de l'éditeur (32 à 48 avant), chips de catégorie, ✕ de bandeau, épingle,
-  bulle d'historique, barre d'outils Markdown.
-- **M 40** : boutons d'en-tête de toutes les vues (l'accueil monte de 36 à 40 — la seule montée,
-  choisie), filtre rond, « Sélectionner » en pilule SANS icône sur la matière du chrome, `.btn.sm`,
-  ✕ de toutes les fenêtres avec un seul glyphe.
-- **L 44** : champs de l'éditeur (48), touches du quai en session (50), boutons de « Terminer » (46),
-  « Rejoindre » (48), segments de la feuille Affichage (40).
-- **XL 56** : Démarrer, Exercice, Continuer, Découvrir, porte « Ajouter à cette aide » (60 avant).
-- **Rangées 52** : cartes dépliables (54), tuiles du menu ⋯ (56), réglages du compte (70), bloc du
-  journal (50).
-- **Cartes d'accueil au téléphone** : titre 17,5 → 15/700 comme en large (décision de l'auteur,
-  renverse A359 sur ce point) — la carte passe de 115 à 92 px.
-- Mesuré après, à 390 px : boutons sur 32 · 40 · 44 · 52 · 56 · 64 pour 190 des 202, le reste étant
-  des libellés sur deux lignes. Dette dite : le garde-fou `check-ctrl` reste à écrire.
 - Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.

@@ -127,9 +127,18 @@ geste suivant). La machine reste peu chargée (≈ 2 cœurs sur 8) : les harnais
   tort, pas le dédoublonnage. L'heure est fixée une fois.
 Ces quatre corrections tiennent à attentes divisées par deux ET triplées (58/58 contrôles).
 
-**Restent ouverts, signalés et non corrigés.** Sous WebKit, « une session locale sur l'autre aide n'émet RIEN sur le fil de
-l'invité » (A387) échoue déjà sur la v5.39.1 (3/3, deux ou trois évènements reçus) — la passe par défaut, sous Chromium,
-ne le voit pas. pdfsearch compte tantôt 1, tantôt 2 rectangles surlignés d'une passe à l'autre.
+**Restent ouverts, signalés et non corrigés.** pdfsearch compte tantôt 1, tantôt 2 rectangles surlignés d'une passe à
+l'autre (le contrôle passe dans les deux cas).
+
+**v5.39.3 — le rouge WebKit d'A387 était un biais du harnais, pas une fuite.** Sous WebKit, « une session locale sur
+l'autre aide n'émet RIEN sur le fil de l'invité » échouait déjà sur la v5.39.1 (3/3, deux ou trois évènements reçus ;
+la passe par défaut, sous Chromium, ne le voyait pas). Relevé de la NATURE des évènements lus par l'invité pendant la
+fenêtre : deux `sig` (offre et réponse de négociation du canal direct de secours, que WebKit achève plus tard), aucune
+coche ni navigation ; sous Chromium, aucun. Le contrôle comptait `Share.applied`, qui additionne aussi cette plomberie
+(`sig` est routé à `slSbOnSig`, jamais peint). Il compte désormais les seuls évènements d'état lus au fil (tout sauf
+`sig`), avec un TÉMOIN — l'invité a lu le fil au moins une fois pendant la fenêtre — sans lequel un zéro ne prouverait
+rien. Vérifié capable d'échouer : `Share.hostedRt` neutralisé chez l'hôte (le défaut d'origine d'A387), le contrôle rougit
+sur les deux moteurs et nomme `uncheck, counter, timer_stop, nav, session_start, check`.
 
 **Formes REFUSÉES** : convertir les attentes fixes en masse (le gain supposé ne résiste pas à la mesure, et la moindre
 réduction casse des contrôles) ; accélérer les délais de l'app au banc (`page.clock`, réglages ad hoc) — cela changerait ce
