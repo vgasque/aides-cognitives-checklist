@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.39.2] — 2026-09-28
+Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
+- **Audit du temps des audits, mesuré.** Toutes les attentes fixes des 22 harnais ont été rejouées
+  réduites à deux images, divisées par deux, puis triplées, et les 2 619 contrôles comparés un à un :
+  même divisées par deux, 31 contrôles changent. Ces attentes sont donc presque toutes utiles, et aucune
+  n'a été raccourcie en masse.
+- **pdfsearch : 66 s → 16 s.** Trois attentes testaient `window.attIx`, qui n'existe pas (`attIx` est une
+  constante du script), et payaient donc leur plafond entier (60 s) à chaque passe ; l'index est prêt en
+  1 à 85 ms. La fenêtre de 10 s dont profitait par accident le témoin « pdf.js pas chargé au démarrage »
+  est gardée, explicitement.
+- **Tranches équilibrées par durée.** Le lanceur enregistre la durée de chaque section et de chaque
+  tâche, et répartit les tranches par durée au lieu du modulo : doctrine 95-168 s → 119-120 s par
+  tranche, partage 41-100 s → 58-67 s ; poids d'ordonnancement re-mesurés. Passe complète ~295 → 279 s,
+  verdict identique sur les 2 619 contrôles. Sans mesure (CI), rien ne change.
+- **Fiabilité de quatre contrôles de partage**, qui dépendaient de la vitesse du harnais : le compteur
+  d'A387 est attendu avec la coche ; « le billet mort ne traîne pas » ne dépend plus du vrai serveur ;
+  la grammaire des fenêtres se mesure après l'animation d'ouverture ; le rejeu de « continuer seul »
+  porte enfin la même heure que l'original. Tous tiennent à attentes divisées par deux et triplées.
+- Vérifié : check complet, 1280 tests × 2 moteurs, audit complet après le numéro de version.
+
 ## [5.39.1] — 2026-09-28
 Deux correctifs signalés à l'usage (A419, doctrine `docs/decisions/lot-v5-39.md`).
 - **Connexion.** Appuyer sur Entrée (ou « Envoyer » au clavier du téléphone) dans le champ e-mail envoie
@@ -406,20 +426,4 @@ sur le seul accueil : en-tête 36, « Sélectionner » 40 × 130, filtre 44, rec
   renverse A359 sur ce point) — la carte passe de 115 à 92 px.
 - Mesuré après, à 390 px : boutons sur 32 · 40 · 44 · 52 · 56 · 64 pour 190 des 202, le reste étant
   des libellés sur deux lignes. Dette dite : le garde-fou `check-ctrl` reste à écrire.
-- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.30.4] — 2026-09-24
-Audit typographique demandé par l'auteur, MESURÉ sur 46 surfaces à 390 px (tactile) et 1100 px
-(A374, doctrine `docs/decisions/lot-v5-30.md`) : l'échelle fermée est respectée, mais six écarts
-de rôle la contredisaient. Tous refermés et re-mesurés.
-- **Accueil** : recherche du dock à 17,5 px au téléphone, face aux titres de carte 17,5 gras (A359
-  l'écrivait, la règle disait 15) ; en large elle reste à 15, comme la carte. Nature de rangée
-  « AIDE / PROTOCOLE » 11 → 12, catégorie 12 aux deux largeurs (11 en large avant).
-- **Feuille « Se repérer »** : nœuds 12 → 13,5, renvois 11 → 12, titre de rail 12 aux deux largeurs —
-  il n'était stylé qu'au-dessus de 780 px et tombait sur le 16 px du navigateur au téléphone.
-- **Menu ⋯** : tuiles « Se repérer » et « Schéma » 11 → 13,5 gras (corps de commande, pas de sur-titre).
-- **Compte** : note de confidentialité 13,5 aux deux largeurs (11 en large avant).
-- **Éditeur** : libellés de champ 12 → 13,5, l'aide reste à 12 — la question se distingue de son explication.
-- Laissés tels quels, motivés dans A374 : le 16 px des champs (plancher iOS, règle 9) et les titres
-  de fenêtre 24 / 17,5 (A352 fait foi, classement de Stockage, Versions et Catégories encore ouvert).
 - Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.

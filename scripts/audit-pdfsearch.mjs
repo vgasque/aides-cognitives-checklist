@@ -101,7 +101,11 @@ try {
   t(true, 'le document est joint à la fiche');
 
   const attId = await page.evaluate(() => (state.draft.docs || [])[0].id);
-  await page.waitForFunction(id => window.attIx && attIx.has(id), attId, { timeout: 20000 })
+  /* ⚠ `attIx` est un `const` du script classique de l'app : il n'est PAS une propriété de
+     `window`. Jusqu'en v5.39.1 ces trois attentes testaient `window.attIx` — toujours faux —
+     et payaient leur plafond entier (20 + 10 + 30 s) à chaque passe ; mesuré : l'index est prêt
+     en 1 à 85 ms. Plafonds inchangés : un index qui n'arrive pas échoue comme avant. */
+  await page.waitForFunction(id => typeof attIx !== 'undefined' && attIx.has(id), attId, { timeout: 20000 })
     .catch(() => {});
   const ix = await page.evaluate(id => {
     const h = attIx.get(id);
@@ -136,9 +140,14 @@ try {
   sec('trouver depuis la recherche — sur une page RECHARGÉE');
   await page.goto(URL_APP);
   await page.waitForFunction(() => typeof fiches !== 'undefined' && !!document.querySelector('.card-open'));
-  await page.waitForFunction(id => window.attIx && attIx.has(id), attId, { timeout: 10000 }).catch(() => {});
+  await page.waitForFunction(id => typeof attIx !== 'undefined' && attIx.has(id), attId, { timeout: 10000 }).catch(() => {});
   t(await page.evaluate(id => attIx.has(id), attId), 'l’index est relu au démarrage suivant');
 
+  /* FENÊTRE DU TÉMOIN, rendue EXPLICITE (v5.39.2) : l'attente cassée ci-dessus donnait au témoin
+     `_pdfjs === null` 10 s d'observation après le démarrage — il prouvait donc aussi, sans le
+     dire, que rien ne charge pdf.js dans les 10 s qui suivent (règle 13 : jamais au démarrage ;
+     la file d'indexation part au repos, plafond 2,5 s). On garde ces 10 s pour ne rien affaiblir. */
+  await page.waitForTimeout(10000);
   const pdfAvant = await page.evaluate(() => _pdfjs === null);
   await page.fill('#q', 'anterolaterale');
   await page.waitForFunction(() => document.querySelectorAll('.doc-hit').length > 0, null, { timeout: 5000 })
@@ -331,7 +340,7 @@ try {
      absent (il vient d'être jeté ci-dessus) et l'on attend : `ixLoadAll` doit mettre en file. */
   await page.goto(URL_APP);
   await page.waitForFunction(() => typeof fiches !== 'undefined' && !!document.querySelector('.card-open'));
-  await page.waitForFunction(id => window.attIx && attIx.has(id), attId, { timeout: 30000 }).catch(() => {});
+  await page.waitForFunction(id => typeof attIx !== 'undefined' && attIx.has(id), attId, { timeout: 30000 }).catch(() => {});
   t(await page.evaluate(id => attIx.has(id), attId),
     'un document non indexé se rattrape AU DÉMARRAGE, sans clic (auto-indexation)');
 

@@ -22,6 +22,14 @@
  * tronqué est pire qu'un rouge. Mesuré après découpe : 216,7 s → ~120 s de temps mural, aucun
  * verdict changé.
  *
+ * TRANCHES ÉQUILIBRÉES ET POIDS APPRIS (v5.39.2). Le modulo avait fini par grouper les sections
+ * lourdes (doctrine 3/4 : 168 s contre 95 pour 2/4 ; partage 1/5 : 98 contre 32). Chaque passe
+ * enregistre désormais la durée ⏱ de chaque section et de chaque tâche (`mesures`, par moteur,
+ * dans `.audit-etat.json`) ; la suivante répartit les sections par durée (plan AC_PLAN transmis
+ * aux tranches, cf. secRunner) et ordonne le pool sur les durées réelles. Sans mesure (CI,
+ * premier passage), le modulo et les poids déclarés s'appliquent — exactement comme avant.
+ * Préalable vérifié : les 155 sections de doctrine et partage, jouées SEULES, sont toutes vertes.
+ *
  * ORDONNANCEMENT : les plus lourds partent en PREMIER (poids mesurés ci-dessous), sinon un
  * mastodonte lancé en dernier fixe seul le temps mural. Pool borné à AC_JOBS (défaut 4) : les
  * sondes portent des attentes en temps réel, et un pool trop large les affamerait en CPU — un
@@ -90,30 +98,33 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
    condition du rejeu par sections de `--rouges`. `deps` : fichiers HORS scripts/<nom>.mjs que le
    harnais lit ou exécute, à entrer dans son empreinte. */
 const HARNAIS = [
-  { nom: 'audit-doctrine',      poids: 217, tranches: 4, sections: true },
-  { nom: 'audit-a11y',          poids: 128, tranches: 2 },
-  { nom: 'audit-partage',       poids: 76,  tranches: 5, sections: true },
+  // Poids re-mesurés le 28/09/2026 (v5.39.2) : ils avaient dérivé du simple au double (doctrine
+  // déclaré 217 pour 478 mesurés). Ils ne servent plus qu'en l'ABSENCE de mesure — la passe
+  // précédente fournit les durées réelles (`.audit-etat.json`, clés `durees`/`taches`).
+  { nom: 'audit-doctrine',      poids: 478, tranches: 4, sections: true },
+  { nom: 'audit-partage',       poids: 343, tranches: 5, sections: true },
+  { nom: 'audit-a11y',          poids: 154, tranches: 2 },
   { nom: 'audit-k5',            poids: 67 },
-  { nom: 'audit-pdfsearch',     poids: 66 },
-  { nom: 'audit-complications', poids: 13 },
-  { nom: 'audit-upload',        poids: 12 },
-  { nom: 'audit-qr',            poids: 12, deps: ['scripts/qr-decode.swift'] },
+  { nom: 'audit-pdfsearch',     poids: 16 },
+  { nom: 'audit-exercice',      poids: 12 },
+  { nom: 'audit-complications', poids: 11 },
+  { nom: 'audit-qr',            poids: 11, deps: ['scripts/qr-decode.swift'] },
+  { nom: 'audit-budget',        poids: 11 },
+  { nom: 'audit-modeseg',       poids: 6 },
+  { nom: 'audit-upload',        poids: 4 },
+  { nom: 'audit-session-card',  poids: 4 },
+  { nom: 'audit-verify-live',   poids: 4 },
+  { nom: 'audit-retour',        poids: 4 },
+  { nom: 'audit-verify',        poids: 3 },
+  { nom: 'audit-consulter',     poids: 3 },
+  { nom: 'audit-pliables',      poids: 3 },
+  { nom: 'audit-historique',    poids: 2 },
+  { nom: 'audit-zoom-scroll',   poids: 2 },
   // `deps` porte sw.js : c'est le SUJET de ce harnais, et il n'est lu par aucun autre. Sans cette
   // déclaration, corriger le worker n'invaliderait pas son vert en cache — le seul contrôle
   // dynamique du hors-ligne serait « réutilisé » sans avoir rejoué (v5.17.3).
-  { nom: 'audit-sw',            poids: 12, deps: ['sw.js'] },
-  { nom: 'audit-exercice',      poids: 12 },
-  { nom: 'audit-modeseg',       poids: 6 },
-  { nom: 'audit-session-card',  poids: 5 },
-  { nom: 'audit-budget',        poids: 5 },
-  { nom: 'audit-verify-live',   poids: 5 },
-  { nom: 'audit-retour',        poids: 4 },
-  { nom: 'audit-verify',        poids: 4 },
-  { nom: 'audit-stockage',      poids: 4 },
-  { nom: 'audit-zoom-scroll',   poids: 3 },
-  { nom: 'audit-consulter',     poids: 3 },
-  { nom: 'audit-historique',    poids: 3 },
-  { nom: 'audit-pliables',      poids: 8 },
+  { nom: 'audit-sw',            poids: 1, deps: ['sw.js'] },
+  { nom: 'audit-stockage',      poids: 1 },
   { nom: 'audit-prompt',        poids: 1 },
 ];
 
@@ -181,6 +192,35 @@ function sectionsRouges(sortie) {
   }
   if (horsSection || !rouges.size) return null;
   return [...rouges];
+}
+
+/* DURÉES PAR SECTION (v5.39.2), lues dans la sortie d'un harnais à secRunner : l'en-tête
+   `══ nom ══` puis la ligne `⏱ x s` que secRunner imprime à la fin de chaque section. */
+function dureesSections(sortie) {
+  const d = {};
+  let cur = null;
+  for (const l of sortie.split('\n')) {
+    const m = /^══ (.+) ══$/.exec(l);
+    if (m) { cur = m[1]; continue; }
+    const t = /^\s*⏱ ([\d.]+) s$/.exec(l);
+    if (t && cur !== null) { d[cur] = +t[1]; cur = null; }
+  }
+  return d;
+}
+
+/* PLAN DE TRANCHES ÉQUILIBRÉ : la plus longue section d'abord, dans la tranche la moins chargée
+   (glouton LPT). Déterministe : égalités départagées par le nom, puis par le numéro de tranche.
+   Rend { affect: {nom: k}, charges: [s…] }. Une section inconnue du plan tombe au modulo dans
+   secRunner — aucune ne peut donc être perdue, et ##SEC le vérifie de toute façon. */
+function planTranches(durees, n) {
+  const secs = Object.entries(durees).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+  const charges = Array(n).fill(0), affect = {};
+  for (const [nom, s] of secs) {
+    let k = 0;
+    for (let j = 1; j < n; j++) if (charges[j] < charges[k]) k = j;
+    charges[k] += s; affect[nom] = k + 1;
+  }
+  return { affect, charges };
 }
 
 /* Ciblage : `npm run audit -- partage qr` (préfixe `audit-` facultatif), `--rouges`, `--force`.
@@ -251,6 +291,11 @@ if (!partiel && !drapeaux.has('--force')) {
    Sous --rouges, un harnais à sections dont les sections rouges sont CONNUES devient UN processus
    `--grep` sur leurs noms exacts (ancrés, échappés) ; `grep` porte le nombre de sections
    attendues, vérifié au retour. */
+/* Poids d'ordonnancement : la durée MESURÉE de la tâche à la passe précédente (`taches`), à
+   défaut le poids déclaré. Un plan de tranches, quand les durées par section sont connues,
+   fournit à la fois l'affectation (AC_PLAN, lu par secRunner) et la charge de chaque tranche. */
+const mesures = (etatPrec.mesures || {})[moteur]?.taches || {};
+const dureesPrec = (etatPrec.mesures || {})[moteur]?.durees || {};
 const taches = [];
 for (const h of aJouer) {
   const secs = modeRouges && h.sections ? (etatPrec.sections || {})[h.nom] : null;
@@ -258,9 +303,15 @@ for (const h of aJouer) {
     const motif = '^(?:' + secs.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')$';
     taches.push({ nom: h.nom, label: `${h.nom} --grep ×${secs.length}`, args: ['--grep', motif], poids: 6 * secs.length, grep: secs.length });
   } else if (h.tranches) {
-    for (let k = 1; k <= h.tranches; k++)
-      taches.push({ nom: h.nom, label: `${h.nom} ${k}/${h.tranches}`, args: ['--shard', `${k}/${h.tranches}`], poids: h.poids / h.tranches });
-  } else taches.push({ nom: h.nom, label: h.nom, args: [], poids: h.poids });
+    const durees = h.sections ? dureesPrec[h.nom] : null;
+    const plan = durees && Object.keys(durees).length ? planTranches(durees, h.tranches) : null;
+    const env = plan ? { AC_PLAN: JSON.stringify({ n: h.tranches, affect: plan.affect }) } : null;
+    for (let k = 1; k <= h.tranches; k++) {
+      const label = `${h.nom} ${k}/${h.tranches}`;
+      taches.push({ nom: h.nom, label, args: ['--shard', `${k}/${h.tranches}`], env,
+        poids: plan ? plan.charges[k - 1] : (mesures[label] ?? h.poids / h.tranches) });
+    }
+  } else taches.push({ nom: h.nom, label: h.nom, args: [], poids: mesures[h.nom] ?? h.poids });
 }
 taches.sort((a, b) => b.poids - a.poids);
 
@@ -286,7 +337,8 @@ console.log(`Audit ${partiel ? 'partiel' : 'complet'} — ${aJouer.length} harna
 function lancer(t) {
   return new Promise(res => {
     const t0 = Date.now();
-    const p = spawn(process.execPath, [SCRIPTS + t.nom + '.mjs', ...t.args], { env: process.env });
+    const { AC_PLAN: _herite, ...envBase } = process.env; // un plan ne vient QUE du lanceur
+    const p = spawn(process.execPath, [SCRIPTS + t.nom + '.mjs', ...t.args], { env: { ...envBase, ...(t.env || {}) } });
     let sortie = '';
     p.stdout.on('data', d => { sortie += d; });
     p.stderr.on('data', d => { sortie += d; });
@@ -403,7 +455,23 @@ if (rouges.length) {
       }
     }
   }
-  ecrireEtat({ quand, moteur, rouges: [...rougesEtat], sections: sectionsEtat, verts: vertsEtat });
+  /* MESURES (v5.39.2), PAR MOTEUR — WebKit n'a pas les durées de Chromium. `taches` : durée de
+     chaque tâche jouée (hors rejeu --grep, qui n'en dit rien) ; `durees` : durée de chaque section
+     des harnais à secRunner. Un harnais joué EN ENTIER et vert remplace sa carte (les sections
+     supprimées en sortent) ; sinon on fusionne (une section non atteinte garde sa dernière durée). */
+  const mesuresEtat = { ...(etat.mesures || {}) };
+  const m = { taches: { ...(mesuresEtat[moteur]?.taches || {}) }, durees: { ...(mesuresEtat[moteur]?.durees || {}) } };
+  for (const r of resultats) if (!r.grep) m.taches[r.label] = +r.s;
+  for (const h of liste) {
+    const runs = parHarnais.get(h.nom);
+    if (!runs || !h.sections) continue;
+    const vues = {};
+    for (const r of runs) Object.assign(vues, dureesSections(r.sortie));
+    const entier = !runs.some(r => r.grep) && runs.every(r => r.code === 0) && runs.length === (h.tranches || 1);
+    m.durees[h.nom] = entier ? vues : { ...(m.durees[h.nom] || {}), ...vues };
+  }
+  mesuresEtat[moteur] = m;
+  ecrireEtat({ quand, moteur, rouges: [...rougesEtat], sections: sectionsEtat, verts: vertsEtat, mesures: mesuresEtat });
 }
 
 console.log(`\n${rouges.length ? '✗' : '✓'} ${resultats.length - rouges.length}/${resultats.length} tâches vertes (${aJouer.length} harnais joués${reutilises.length ? `, ${reutilises.length} réutilisés` : ''}) en ${total}s${partiel ? ' — PASSE PARTIELLE (la passe complète reste due avant commit)' : ''}.`);

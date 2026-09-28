@@ -695,8 +695,15 @@ for (const [w, h] of [[390, 844], [744, 1133], [760, 900], [1280, 900]]) {
     const mes = (el) => { if (!el) return null; const b = el.getBoundingClientRect();
       return { w: Math.round(b.width), top: Math.round(b.top), bas: Math.round(b.bottom),
         g: Math.round(b.left), d: Math.round(b.right) }; };
+    /* v5.39.2 : on mesure une fenêtre REPOSÉE. `riseIn` (0,22 s, mise à l'échelle) rétrécit la
+       carte tant qu'elle court, et l'attente fixe de 250 ms ne laissait que 30 ms de marge (vu :
+       357 contre 358 px sous charge). S'AJOUTE aux attentes existantes, bornée à 1 s ; les
+       animations infinies (pastilles pulsantes) sont exclues, sinon l'attente courrait au plafond. */
+    const calme = async sel => { const el = document.querySelector(sel); if (!el) return;
+      const a = el.getAnimations({ subtree: true }).filter(x => x.effect && x.effect.getTiming().iterations !== Infinity);
+      await Promise.race([Promise.all(a.map(x => x.finished.catch(() => {}))), new Promise(x => setTimeout(x, 1000))]); };
     // 1. La fenêtre d'appariement, ouverte par son vrai chemin.
-    await startShare(state.fiche); await new Promise(x => setTimeout(x, 900));
+    await startShare(state.fiche); await new Promise(x => setTimeout(x, 900)); await calme('#shareModal');
     const part = mes(document.querySelector('#shareModal .ai-card'));
     // SOUS 780 px l'app transforme toute fenêtre en feuille PLEINE LARGEUR : c'est sa convention.
     // Ce qui doit rester borné, c'est le CONTENU — sinon le code et le QR se perdent au milieu
@@ -712,14 +719,14 @@ for (const [w, h] of [[390, 844], [744, 1133], [760, 900], [1280, 900]]) {
        carte 480 au-delà) — « Gérer les catégories » est devenu une page-fenêtre (gabarit document,
        ✕ en pastille) et « Affichage » reste centrée sous 780. « Nouvelle bibliothèque », par sa
        vraie porte (elle demande l'administrateur). */
-    closeShareSheet(); myIsAppAdmin = true; openNewLib(); await new Promise(x => setTimeout(x, 250));
+    closeShareSheet(); myIsAppAdmin = true; openNewLib(); await new Promise(x => setTimeout(x, 250)); await calme('#newLibModal');
     const refTop = mes(document.querySelector('#newLibModal .ai-top'));
     const refX = mes(document.querySelector('#newLibModal .ai-x'));
     closeNewLib(true); openShareSheet(); await new Promise(x => setTimeout(x, 250));
     const partCard = !!document.querySelector('#shareModal .ai-card');
     closeShareSheet(); Share.stop();
     // 2. L'écran d'entrée de l'invité.
-    openJoinScreen('K7M2P4Q9'); await new Promise(x => setTimeout(x, 200));
+    openJoinScreen('K7M2P4Q9'); await new Promise(x => setTimeout(x, 200)); await calme('#joinScreen');
     const join = mes(document.querySelector('.join-card'));
     const joinCard = !!document.querySelector('.join-card.ai-card');
     const titre = !!document.querySelector('#joinScreen .ai-top h3');
@@ -801,14 +808,18 @@ await sec(`PARTAGE · continuer seul — moteur ${NOM_MOTEUR}`, async () => {
     Share.lastOk = Date.now(); Share.offset = 0;
     const avant = { coches: Object.keys(state.checked).length, ev: (Runtime.events || []).length,
       nav: state.nav.length };
+    /* L'identité d'une annexe est `ax-<t>-<seq>` : le rejeu doit porter le MÊME `t`. Deux appels à
+       `Date.now()` pouvaient différer d'une milliseconde — le « rejeu » devenait alors un autre
+       évènement, et le doublon, légitime, faisait rougir la section (vu sous charge ; v5.39.2). */
+    const t1 = Date.now() - 60000, t2 = Date.now() - 30000;
     Share.onEvents([
       { seq: 9, id: 'ax1', actor: 'renfort', kind: 'offline_mark',
-        payload: { t: Date.now() - 60000, ref: null } },
+        payload: { t: t1, ref: null } },
       { seq: 10, id: 'ax2', actor: 'renfort', kind: 'offline_mark',
-        payload: { t: Date.now() - 30000, ref: null } },
+        payload: { t: t2, ref: null } },
       // Rejoué : le fil peut resservir un lot après une reprise — jamais de doublon.
       { seq: 9, id: 'ax1', actor: 'renfort', kind: 'offline_mark',
-        payload: { t: Date.now() - 60000, ref: null } },
+        payload: { t: t1, ref: null } },
     ]);
     // Attente sur CONDITION (v5.24.2) : à 300 ms fixes, la section rougissait sous charge (pool 8).
     for (let i = 0; i < 30 && (Runtime.events || []).length < avant.ev + 2; i++) await new Promise(x => setTimeout(x, 100));
@@ -1535,9 +1546,15 @@ await sec(`PARTAGE · un rechargement ne perd plus la session — moteur ${NOM_M
      l'invité n'a rien à saisir, son code est brûlé depuis longtemps. */
   await page.evaluate(() => sessionStorage.setItem('ac-share-tk',
     JSON.stringify({ s: 's9', k: 'SECRET-0123456789abcd', m: 'p9', r: 'scribe' })));
+  /* BANC HERMÉTIQUE (v5.39.2) : après le rechargement, `Share.resume` interrogeait le VRAI
+     Supabase avec un faux secret — le verdict dépendait de la latence du poste (rouge vu sous
+     charge et à attentes réduites). La requête échoue désormais d'office, comme le dit le
+     commentaire ci-dessous ; `resume` efface le billet sur tout échec, réseau ou refus. */
+  await page.route('**/*.supabase.co/**', r => r.abort());
   await page.reload();
   await page.waitForFunction(() => !document.querySelector('.boot-load'));
   await page.waitForTimeout(800);
+  await page.waitForFunction(() => !sessionStorage.getItem('ac-share-tk'), null, { timeout: 5000 }).catch(() => {});
   const ap = await page.evaluate(() => ({
     billet: !!sessionStorage.getItem('ac-share-tk'),
     entree: !document.getElementById('joinScreen').hidden,
@@ -2823,6 +2840,11 @@ await sec('A387 · l\'hôte sur une autre aide : les gestes de l\'invité vont �
     const cid = Object.keys(Runtime.counters)[0]; if (cid) { cnInc(cid, 1); persistLive(Runtime); }
     await new Promise(r => setTimeout(r, 300)); return { k: els[0].dataset.ck, cid, v: cid ? Runtime.counters[cid] : null }; });
   const recu = await H.waitForFunction(({ sid, k }) => !!(liveSessions[sid] && liveSessions[sid].checked[k]), { sid: ids.sid, k: g.k }, { timeout: 20000 }).then(() => true).catch(() => false);
+  /* Le compteur part 200 ms APRÈS la coche : rien ne garantit qu'ils voyagent dans le même lot.
+     On l'attend donc lui aussi (v5.39.2) — lu dès l'arrivée de la coche, il n'était vert que si
+     le harnais allait assez vite (attentes triplées : hôte 0, invité 1). Même assertion. */
+  if (recu && g.cid) await H.waitForFunction(({ sid, cid, v }) => liveSessions[sid] && liveSessions[sid].counters[cid] === v,
+    { sid: ids.sid, cid: g.cid, v: g.v }, { timeout: 20000 }).catch(() => {});
   const h = await H.evaluate(({ sid, k, cid }) => ({ rt: Runtime.ficheId, fuite: !!Runtime.checked[k],
     cnt: cid ? liveSessions[sid].counters[cid] : null, dom: !!document.querySelector('[data-ck="' + CSS.escape(k) + '"]') }), { sid: ids.sid, k: g.k, cid: g.cid });
   t('témoin : l\'hôte affiche bien une AUTRE aide', ids.rt === ids.autre && ids.autre !== ids.sid, JSON.stringify(ids));

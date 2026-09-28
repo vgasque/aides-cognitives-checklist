@@ -125,7 +125,26 @@ export const items = arr => (arr || []).map(s => {
  *
  *     node scripts/audit-doctrine.mjs --grep quai      → les seules sections dont le nom matche
  *     node scripts/audit-doctrine.mjs --shard 2/4      → une section sur quatre (modulo, ordre gardé)
+ *
+ * TRANCHES ÉQUILIBRÉES (v5.39.2). Le modulo laissait doctrine 3/4 à 168 s contre 95 (les lourdes
+ * tombaient ensemble). audit-run passe désormais, avec --shard, un PLAN `AC_PLAN` = {n, affect:
+ * {nom: k}} calculé sur les durées ⏱ de la passe précédente ; une section absente du plan
+ * (nouvelle, renommée) retombe sur le modulo. Chaque section reste donc jouée par UNE tranche et
+ * une seule — le contrôle ##SEC d'audit-run le vérifie comme avant. Les 155 sections de doctrine
+ * et partage ont été jouées SEULES avant ce changement (toutes vertes) : l'ordre de regroupement ne
+ * change aucun verdict. Sans AC_PLAN (CI, premier passage, lancement à la main), rien ne change.
  */
+function planArg(tranche) {
+  const brut = process.env.AC_PLAN;
+  if (!brut || !tranche) return null;
+  let p;
+  try { p = JSON.parse(brut); } catch { console.error('AC_PLAN illisible (JSON attendu).'); process.exit(1); }
+  if (!p || p.n !== tranche.n || !p.affect || typeof p.affect !== 'object'
+      || Object.values(p.affect).some(k => !Number.isInteger(k) || k < 1 || k > p.n)) {
+    console.error(`AC_PLAN incohérent avec --shard ${tranche.k}/${tranche.n}.`); process.exit(1);
+  }
+  return p.affect;
+}
 export function trancheArg() {
   const argv = process.argv.slice(2);
   const i = argv.indexOf('--shard');
@@ -144,13 +163,16 @@ export function grepArg() {
 }
 
 export function secRunner() {
-  const grep = grepArg(), tranche = trancheArg();
+  const grep = grepArg(), tranche = trancheArg(), plan = planArg(tranche);
   let idx = 0, joues = 0;
   const noms = [];
   async function sec(nom, fn) {
     const i = idx++; noms.push(nom);
     if (grep && !grep.test(nom)) return;
-    if (tranche && i % tranche.n !== tranche.k - 1) return;
+    if (tranche) {
+      const k = plan && Object.hasOwn(plan, nom) ? plan[nom] : (i % tranche.n) + 1;
+      if (k !== tranche.k) return;
+    }
     joues++;
     console.log('\n══ ' + nom + ' ══');
     const t0 = Date.now();
@@ -163,7 +185,7 @@ export function secRunner() {
       console.error('\n✗ ciblage sans AUCUNE section correspondante — sections connues :\n  · ' + noms.join('\n  · '));
       process.exit(1);
     }
-    console.log(`##SEC joues=${joues} total=${idx}` + (tranche ? ` tranche=${tranche.k}/${tranche.n}` : ''));
+    console.log(`##SEC joues=${joues} total=${idx}` + (tranche ? ` tranche=${tranche.k}/${tranche.n}` : '') + (plan ? ' plan=durées' : ''));
     if (grep || tranche) console.log(`⚠ PASSE PARTIELLE — ${joues}/${idx} sections` +
       (tranche ? ` (tranche ${tranche.k}/${tranche.n})` : '') + ' ; le harnais entier reste dû avant commit.');
     return { joues, total: idx, partiel: !!(grep || tranche) };

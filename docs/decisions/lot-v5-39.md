@@ -76,3 +76,61 @@ avec une aide et un protocole d'une bibliothèque partagée, donne le bon type d
 demande de l'auteur : ce filtre n'avait pas le défaut, il ne passe par aucun id) ; Entrée dans le champ e-mail déclenche l'envoi
 (appel réseau remplacé). Trois contrôles sur quatre échouent sur la v5.39.0 : le quatrième, la rangée Perso, passait
 déjà par chance, puisque c'est elle que la recherche par id trouvait en premier.
+
+## A420 (v5.39.2) — le temps des audits se MESURE : presque aucune attente n'est inutile
+
+**Demande de l'auteur : « optimiser le temps des audits sans supprimer de choses », puis « ces temps sont-ils vraiment
+inutiles ? méfie-toi des harnais ».** Une première relecture du code (huit lectures, 22 harnais) estimait à −430 s ce que
+rapporterait la conversion des attentes fixes en attentes sur condition, en supposant que `render`, `openRead`,
+`tickAll`… produisent leur effet sur-le-champ. **La mesure l'a démentie**, et c'est elle qui fait foi.
+
+**Méthode (copies jetables, sondes intactes).** Les 491 sommeils et 121 `waitForTimeout` des harnais ont été transformés
+puis les 2 619 contrôles comparés un à un à une passe de référence (bruit de fond mesuré entre deux passes normales : nul).
+
+| Attentes | Temps cumulé | Contrôles qui changent |
+|---|---|---|
+| telles quelles | 1 189 s | 0 |
+| ≈ 2 images | 427 s | 66 au rouge, 5 harnais plantent (416 contrôles non joués) |
+| divisées par 2 | 767 s | 31 (doctrine, partage, k5, a11y, pdfsearch, retour) |
+| triplées | 2 732 s | 6, et un plantage (partage) |
+
+Transitions, anti-rebonds, écritures IndexedDB, ticks et réseau sont réels : **les attentes fixes ne se raccourcissent pas
+en masse**. Écartés aussi, mesures à l'appui : bloquer le service worker (0 s de gagné sur une tranche de 96 s), passer le
+pool à 6 (trois rouges de charge), retirer les « attentes mortes » (relues : chacune laisse finir une transition avant le
+geste suivant). La machine reste peu chargée (≈ 2 cœurs sur 8) : les harnais attendent l'app, ils ne calculent pas.
+
+**Ce qui est prouvé et appliqué.**
+1. **pdfsearch payait 60 s de délais par un défaut de condition.** `waitForFunction` de toute la passe chronométrés
+   (1 693 appels) : les trois seuls qui expirent en vert sont ceux de pdfsearch, qui testaient `window.attIx` — `attIx`
+   est un `const` du script classique, jamais propriété de `window`. L'index est prêt en 1 à 85 ms. Le témoin « pdf.js
+   pas chargé » (règle 13) profitait par accident de 10 s d'observation après le démarrage : **elles sont gardées,
+   explicitement**, pour ne pas l'affaiblir. 66 → 16 s, 40/40 contrôles identiques.
+2. **Tranches équilibrées par durée.** Le modulo groupait les lourdes (doctrine 3/4 : 168 s contre 95 ; partage 1/5 : 98
+   contre 32). `audit-run` enregistre la durée ⏱ de chaque section et de chaque tâche (`mesures`, par moteur, dans
+   `.audit-etat.json`) et transmet aux tranches un plan glouton (la plus longue d'abord, tranche la moins chargée)
+   `AC_PLAN` ; une section absente du plan retombe au modulo, un plan illisible ou hors bornes ÉCHOUE, un `AC_PLAN` du
+   terminal n'atteint jamais un enfant, et le contrôle ##SEC de couverture est inchangé. **Préalable : les 155 sections
+   de doctrine et partage, jouées SEULES, sont toutes vertes** — l'ordre de regroupement ne change aucun verdict.
+   Mesuré : doctrine 119-120 s par tranche, partage 58-67 s, passe complète ~295 → 279 s, 2 619 contrôles identiques.
+   Le gain sur la passe complète est modeste parce que le pool de 4 est plein : il porte surtout sur les passes ciblées.
+3. **Poids d'ordonnancement re-mesurés** (doctrine déclaré 217 pour 478 réels) ; ils ne servent plus qu'à défaut de mesure.
+
+**Les biais trouvés dans les harnais — un vert qui ne tenait qu'à la vitesse du harnais.**
+- A387 « … et son compteur aussi » : le compteur, parti 200 ms après la coche, était lu dès l'arrivée de la coche. Il est
+  maintenant attendu lui aussi.
+- « Le billet mort ne traîne pas » : `Share.resume` interrogeait le VRAI Supabase après rechargement. La requête est
+  désormais refusée par le banc (`page.route`) ; l'app efface le billet sur tout échec, réseau comme refus.
+- Grammaire des fenêtres : une largeur lue 250 ms après une animation de 220 ms (357 contre 358 px sous charge). Le
+  harnais attend désormais la fin des animations finies, EN PLUS des attentes existantes (plafond 1 s).
+- « Continuer seul » : l'évènement « rejoué » recalculait `Date.now()`. L'identité d'une annexe étant `ax-<t>-<seq>`, une
+  milliseconde d'écart en faisait un autre évènement, et le doublon observé sous charge était légitime : le harnais avait
+  tort, pas le dédoublonnage. L'heure est fixée une fois.
+Ces quatre corrections tiennent à attentes divisées par deux ET triplées (58/58 contrôles).
+
+**Restent ouverts, signalés et non corrigés.** Sous WebKit, « une session locale sur l'autre aide n'émet RIEN sur le fil de
+l'invité » (A387) échoue déjà sur la v5.39.1 (3/3, deux ou trois évènements reçus) — la passe par défaut, sous Chromium,
+ne le voit pas. pdfsearch compte tantôt 1, tantôt 2 rectangles surlignés d'une passe à l'autre.
+
+**Formes REFUSÉES** : convertir les attentes fixes en masse (le gain supposé ne résiste pas à la mesure, et la moindre
+réduction casse des contrôles) ; accélérer les délais de l'app au banc (`page.clock`, réglages ad hoc) — cela changerait ce
+qui est prouvé ; regrouper les petits harnais dans un seul processus (2 à 3 s pour un rouge moins lisible).
