@@ -7258,12 +7258,38 @@
      au-dessus de la barre (doctrine du dock — jamais de superposition au contenu clinique), hauteur
      MESURÉE `--pdfhl-r` (pdfHlSync), 0 sans pilule. ⚠ Mesure en `offsetHeight`, jamais le rect :
      il rendrait des px visuels à diviser par zoomF() (règle 10). Détail : doctrine-css.md C130. */
-  .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-scroll{flex:1;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
   .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
   .pdf-lnk:hover{background:var(--primary-soft);mix-blend-mode:multiply}
   .pdf-lnk:focus-visible{outline:2px solid var(--act);outline-offset:1px}
+  /* A418 : le sommaire du PDF, OPTIONNEL (bouton « Sommaire », aria-expanded). Étroit : bande sous la barre, bornée ;
+     dès 1000 px : colonne à gauche des pages (`.toc-side`). Section en cours en bleu (registre du bloc courant). */
+  #pdfToc[aria-expanded="true"]{background:var(--primary-soft);border-color:var(--primary-200);color:var(--act)}
+  .pdf-toc{flex:none;background:var(--work);border-bottom:1px solid var(--line);box-shadow:var(--shadow-work);
+    padding:8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));
+    max-height:calc(56dvh / var(--zf,1));overflow-y:auto;overscroll-behavior:contain}
+  .pdf-th{display:flex;align-items:center;gap:8px;min-height:40px;margin-bottom:4px}
+  .pdf-th .rt-h{flex:1;padding-bottom:0}
+  .pdf-tmin{width:40px;padding:0;flex:none}
+  .pdf-tmin[aria-expanded="true"] svg{transform:rotate(180deg)}   /* ‹ replier ; replié : ≡ */
+  .pdf-card:not(.toc-side) .pdf-tmin{display:none}   /* étroit : le bouton « Sommaire » de la barre ouvre et ferme la bande */
+  .pdf-card.toc-side #pdfToc{display:none}   /* large : la colonne porte son propre bouton */
+  .pdf-card.toc-min>.pdf-toc>:not(.pdf-th),.pdf-card.toc-min .pdf-th>.rt-h{display:none}
+  .pdf-toc .rt-lnk{display:flex;align-items:baseline;gap:8px;white-space:normal;line-height:1.35}
+  .pdf-toc .rt-3{padding-left:32px;font-weight:500;color:var(--ink-soft)}
+  .pdf-toc .rt-lnk[aria-current]{background:var(--primary-soft);color:var(--act);font-weight:700}
+  .pdf-tt{flex:1;min-width:0}
+  .pdf-tp{flex:none;font-size:11px;font-weight:600;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .pdf-card.toc-side{display:grid;grid-template-columns:var(--col-orient) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .pdf-card.toc-side>.pdf-bar{grid-column:1/-1}
+  .pdf-card.toc-side>.pdf-toc{grid-column:1;grid-row:2;max-height:none;min-height:0;background:var(--amb);border-bottom:0;
+    border-right:1px solid var(--line);box-shadow:none;padding:10px 8px calc(10px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+  .pdf-card.toc-side>.pdf-scroll{grid-column:2;grid-row:2;min-height:0}
+  .pdf-card.toc-side>.pdf-fnav{left:calc(50% + var(--col-orient) / 2)}
+  .pdf-card.toc-side.toc-min{grid-template-columns:56px minmax(0,1fr)}   /* repliée : le seul bouton ≡ (8 + 40 + 8) */
+  .pdf-card.toc-side.toc-min>.pdf-fnav{left:calc(50% + 28px)}
   .pdf-msg{color:var(--ink-soft);text-align:center;padding:32px 16px;font-size:13.5px}
   /* Petit écran (v4.19.2, retour d'usage) : la barre passe sur DEUX rangées — titre + ✕ en
      haut, outils en pleine largeur dessous. Depuis le bouton ⤓ (v4.19.0), une seule rangée

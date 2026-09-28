@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-JT8BgnQrrgqHq7alCrYrAf/7T88fyic9cyIkz6lDmQI='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-jftIhmKX2Nw3Xmsu4jzXyWJqHqNpODdy7+y8Wnxyig0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -7614,12 +7614,38 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      au-dessus de la barre (doctrine du dock — jamais de superposition au contenu clinique), hauteur
      MESURÉE `--pdfhl-r` (pdfHlSync), 0 sans pilule. ⚠ Mesure en `offsetHeight`, jamais le rect :
      il rendrait des px visuels à diviser par zoomF() (règle 10). Détail : doctrine-css.md C130. */
-  .pdf-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+  .pdf-scroll{flex:1;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px calc(10px + env(safe-area-inset-right)) calc(12px + var(--pdfhl-r,0px) + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
   .pdf-page{position:relative;margin:0 auto 10px;background:var(--paper);box-shadow:0 1px 4px rgba(0,0,0,.22)}
   .pdf-page canvas{display:block;width:100%;height:100%}
   .pdf-lnk{position:absolute;display:block;padding:0;border:0;background:none;cursor:pointer;border-radius:3px}   /* A392 : zone cliquable d'un lien du document */
   .pdf-lnk:hover{background:var(--primary-soft);mix-blend-mode:multiply}
   .pdf-lnk:focus-visible{outline:2px solid var(--act);outline-offset:1px}
+  /* A418 : le sommaire du PDF, OPTIONNEL (bouton « Sommaire », aria-expanded). Étroit : bande sous la barre, bornée ;
+     dès 1000 px : colonne à gauche des pages (`.toc-side`). Section en cours en bleu (registre du bloc courant). */
+  #pdfToc[aria-expanded="true"]{background:var(--primary-soft);border-color:var(--primary-200);color:var(--act)}
+  .pdf-toc{flex:none;background:var(--work);border-bottom:1px solid var(--line);box-shadow:var(--shadow-work);
+    padding:8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));
+    max-height:calc(56dvh / var(--zf,1));overflow-y:auto;overscroll-behavior:contain}
+  .pdf-th{display:flex;align-items:center;gap:8px;min-height:40px;margin-bottom:4px}
+  .pdf-th .rt-h{flex:1;padding-bottom:0}
+  .pdf-tmin{width:40px;padding:0;flex:none}
+  .pdf-tmin[aria-expanded="true"] svg{transform:rotate(180deg)}   /* ‹ replier ; replié : ≡ */
+  .pdf-card:not(.toc-side) .pdf-tmin{display:none}   /* étroit : le bouton « Sommaire » de la barre ouvre et ferme la bande */
+  .pdf-card.toc-side #pdfToc{display:none}   /* large : la colonne porte son propre bouton */
+  .pdf-card.toc-min>.pdf-toc>:not(.pdf-th),.pdf-card.toc-min .pdf-th>.rt-h{display:none}
+  .pdf-toc .rt-lnk{display:flex;align-items:baseline;gap:8px;white-space:normal;line-height:1.35}
+  .pdf-toc .rt-3{padding-left:32px;font-weight:500;color:var(--ink-soft)}
+  .pdf-toc .rt-lnk[aria-current]{background:var(--primary-soft);color:var(--act);font-weight:700}
+  .pdf-tt{flex:1;min-width:0}
+  .pdf-tp{flex:none;font-size:11px;font-weight:600;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .pdf-card.toc-side{display:grid;grid-template-columns:var(--col-orient) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .pdf-card.toc-side>.pdf-bar{grid-column:1/-1}
+  .pdf-card.toc-side>.pdf-toc{grid-column:1;grid-row:2;max-height:none;min-height:0;background:var(--amb);border-bottom:0;
+    border-right:1px solid var(--line);box-shadow:none;padding:10px 8px calc(10px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+  .pdf-card.toc-side>.pdf-scroll{grid-column:2;grid-row:2;min-height:0}
+  .pdf-card.toc-side>.pdf-fnav{left:calc(50% + var(--col-orient) / 2)}
+  .pdf-card.toc-side.toc-min{grid-template-columns:56px minmax(0,1fr)}   /* repliée : le seul bouton ≡ (8 + 40 + 8) */
+  .pdf-card.toc-side.toc-min>.pdf-fnav{left:calc(50% + 28px)}
   .pdf-msg{color:var(--ink-soft);text-align:center;padding:32px 16px;font-size:13.5px}
   /* Petit écran (v4.19.2, retour d'usage) : la barre passe sur DEUX rangées — titre + ✕ en
      haut, outils en pleine largeur dessous. Depuis le bouton ⤓ (v4.19.0), une seule rangée
@@ -8571,8 +8597,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
   <div class="pdf-card">
     <div class="pdf-bar"><h3 id="pdfModalTitle" class="pdf-title">Document</h3>
-      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" id="pdfToc" hidden aria-haspopup="listbox">Sommaire</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button><button class="fz" id="pdfDl" title="Télécharger le document" aria-label="Télécharger le document"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button></div>
+      <button class="fz fz-r" id="pdfToc" hidden aria-expanded="false" aria-controls="pdfTocNav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Sommaire</button>
+      <div class="pdf-tools"><button class="fz" data-pz="out" aria-label="Dézoomer">−</button><span class="fzv" id="pdfZoomVal">100%</span><button class="fz" data-pz="in" aria-label="Zoomer">+</button><button class="fz fz-r" data-pz="page">Page</button><button class="fz fz-r" data-pz="fit">Largeur</button><button class="fz" id="pdfDl" title="Télécharger le document" aria-label="Télécharger le document"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button></div>
       <button class="ai-x" aria-label="Fermer le document">×</button></div>
+    <nav class="pdf-toc" id="pdfTocNav" hidden aria-label="Sommaire du document"></nav>
     <div class="pdf-scroll" id="pdfScroll" tabindex="0"></div>
     <!-- Occurrences de la recherche DANS le document (v5.3.0) : pilule flottante, présente
          seulement quand la visionneuse a été ouverte depuis un résultat. On navigue par PAGE
@@ -8645,7 +8673,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.38.2';
+const APP_VERSION='5.39.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -24890,7 +24918,7 @@ let _pvAtt=null; // métadonnées {id,name} du document affiché — posées dè
 function closePdfViewer(){
   if(_pv){try{_pv.observer&&_pv.observer.disconnect();}catch(e){}try{_pv.doc.destroy();}catch(e){}_pv=null;}
   _pvAtt=null;
-  {const b=document.getElementById('pdfToc');if(b)b.hidden=true;}
+  pdfTocReset();
   const sc=document.getElementById('pdfScroll');if(sc)sc.innerHTML='';
   {const hlEl=document.getElementById('pdfHl');if(hlEl)hlEl.hidden=true;}
   pdfModal.classList.remove('on');}
@@ -24904,7 +24932,9 @@ document.getElementById('pdfDl').onclick=async()=>{if(!_pvAtt)return;
   let buf=null;try{buf=await attBuf(await IDB.getAtt(_pvAtt.id));}catch(e){}
   if(!buf){toast('⚠ Document indisponible sur cet appareil.');return;}
   dlBlob(new Blob([buf],{type:'application/pdf'}),attDlName(_pvAtt.name));};
-window.addEventListener('resize',()=>{if(_pv&&pdfModal.classList.contains('on')){pdfApplyScale();pdfRenderNear();}});
+window.addEventListener('resize',()=>{if(_pv&&pdfModal.classList.contains('on')){
+  if(_pv.toc&&_pv.tocWide!==mqReadWide.matches)pdfTocSet(mqReadWide.matches&&pdfTocPref(),true);   // A418 : le régime change avec la largeur
+  pdfApplyScale();pdfRenderNear();}});
 // Rend IMMÉDIATEMENT les pages proches de l'écran (±1 hauteur d'écran), par géométrie : à
 // l'ouverture et après un zoom, on n'attend pas le premier passage de l'IntersectionObserver
 // (sinon page blanche d'une frame — et filet de sûreté si l'observer tarde). renderPdfPage
@@ -25000,12 +25030,21 @@ async function pdfPaintHl(s){
    ⚠ LE PDF EST UN CONTENU NON MAÎTRISÉ : une adresse externe n'est suivie que si son protocole est http(s), mailto ou tel
    (jamais `javascript:` ni `data:`), dans un nouvel onglet, sans `opener` ; tout passe par des propriétés DOM, jamais du HTML. */
 const PDF_URL_OK=/^(https?:|mailto:|tel:)/i;
-async function pdfDestPage(dest){if(!_pv||!dest)return 0;
+/* A418 : une destination donne sa page ET sa hauteur dans la page (XYZ, FitH, FitBH) — on atterrit sur le titre, pas en haut
+   de la page. ⚠ Les hauteurs se lisent depuis le DÉFILEUR (`.pdf-scroll` positionné) : lues depuis la carte, elles comptaient
+   la barre, et chaque saut arrivait ~60 px trop bas. */
+async function pdfDestPos(dest){if(!_pv||!dest)return {p:0,top:null};
   try{const d=typeof dest==='string'?await _pv.doc.getDestination(dest):dest;
-    if(!Array.isArray(d)||!d[0])return 0;
-    return (typeof d[0]==='number'?d[0]:await _pv.doc.getPageIndex(d[0]))+1;}catch(e){return 0;}}
-function pdfGoPage(n){const sc=document.getElementById('pdfScroll'),el=sc&&sc.querySelector('.pdf-page[data-p="'+n+'"]');
-  if(el)sc.scrollTop=Math.max(0,el.offsetTop-8);}
+    if(!Array.isArray(d)||!d[0])return {p:0,top:null};
+    const p=(typeof d[0]==='number'?d[0]:await _pv.doc.getPageIndex(d[0]))+1,k=d[1]&&d[1].name;
+    const top=k==='XYZ'?d[3]:(k==='FitH'||k==='FitBH')?d[2]:null;
+    return {p,top:typeof top==='number'?top:null};}catch(e){return {p:0,top:null};}}
+function pdfPosY(n,top){const s=_pv&&_pv.pages[n-1];if(!s)return null;
+  const w=s.vp?s.vp.width:_pv.baseW,h=s.vp?s.vp.height:_pv.baseH;
+  const y=top==null?0:Math.max(0,Math.min(h,s.vp?s.vp.convertToViewportPoint(0,top)[1]:h-top));
+  return s.el.offsetTop+y*(_pv.cssW/w);}
+function pdfGoPage(n,top){const sc=document.getElementById('pdfScroll'),y=pdfPosY(n,top);
+  if(sc&&y!=null)sc.scrollTop=Math.max(0,y-8);}
 async function pdfPaintLinks(s){
   if(!_pv||!s.page||!s.canvas)return;
   if(!s.annots){try{s.annots=(await s.page.getAnnotations({intent:'display'})).filter(a=>a&&a.subtype==='Link'&&(a.url||a.dest));}catch(e){s.annots=[];}}
@@ -25019,19 +25058,65 @@ async function pdfPaintLinks(s){
     el.style.left=l+'px';el.style.top=t+'px';el.style.width=Math.abs(r[2]-r[0])+'px';el.style.height=Math.abs(r[3]-r[1])+'px';
     if(url){el.href=url;el.target='_blank';el.rel='noopener noreferrer';el.title=url;el.setAttribute('aria-label','Lien : '+url);}
     else{el.type='button';el.setAttribute('aria-label','Aller à la page liée');
-      el.onclick=async()=>{const n=await pdfDestPage(a.dest);if(n)pdfGoPage(n);};}
+      el.onclick=async()=>{const d=await pdfDestPos(a.dest);if(d.p)pdfGoPage(d.p,d.top);};}
     s.el.appendChild(el);});}
 /* A392 : LE SOMMAIRE DU DOCUMENT (signets du PDF, `getOutline`). Le bouton n'existe que s'il y a un sommaire ; un tap sur un
-   titre mène à sa page. Trois niveaux au plus, dans l'ordre du document. */
-async function pdfTocInit(){const b=document.getElementById('pdfToc');if(!b||!_pv)return;b.hidden=true;
-  let o=null;try{o=await _pv.doc.getOutline();}catch(e){}
+   titre mène à sa page. Trois niveaux au plus, dans l'ordre du document.
+   A418 : comme le sommaire d'un protocole, mais OPTIONNEL. Dès 1000 px c'est une colonne à gauche des pages, qui se REPLIE
+   en un petit bouton ≡ (choix retenu sur l'appareil, ouverte d'office) ; en dessous, une bande sous la barre, ouverte par le
+   bouton « Sommaire », fermée d'office et refermée après un choix (elle prend la place du document). Section en cours en bleu. */
+function pdfTocPref(){try{return localStorage.getItem('ac-pdf-toc')!=='0';}catch(e){return true;}}
+function pdfTocReset(){const b=document.getElementById('pdfToc'),n=document.getElementById('pdfTocNav');
+  if(b){b.hidden=true;b.setAttribute('aria-expanded','false');}
+  if(n){n.hidden=true;n.textContent='';n.closest('.pdf-card').classList.remove('toc-side','toc-min');}}
+function pdfTocSet(open,keep){if(!_pv||!_pv.toc)return;
+  const n=document.getElementById('pdfTocNav'),wide=mqReadWide.matches,card=n.closest('.pdf-card');
+  const w0=card.classList.contains('toc-side')+':'+card.classList.contains('toc-min'),sc=document.getElementById('pdfScroll');
+  const ratio=sc.scrollHeight?sc.scrollTop/sc.scrollHeight:0;
+  n.hidden=!wide&&!open;card.classList.toggle('toc-side',wide);card.classList.toggle('toc-min',wide&&!open);_pv.tocWide=wide;
+  document.getElementById('pdfToc').setAttribute('aria-expanded',String(!wide&&open));
+  const m=n.querySelector('.pdf-tmin');
+  if(m){m.setAttribute('aria-expanded',String(open));m.setAttribute('aria-label',open?'Replier le sommaire':'Afficher le sommaire');
+    m.title=open?'Replier le sommaire':'Sommaire';m.innerHTML=uiIcon(open?'chev':'list',18);}
+  if(wide&&!keep){try{localStorage.setItem('ac-pdf-toc',open?'1':'0');}catch(e){}}
+  // La colonne change la largeur des pages : on remet à l'échelle en gardant la même place dans le document.
+  if(w0!==card.classList.contains('toc-side')+':'+card.classList.contains('toc-min')){pdfApplyScale();sc.scrollTop=ratio*sc.scrollHeight;pdfRenderNear();}
+  if(open)pdfTocSpy();}
+/* Section en cours : le dernier titre passé sous la ligne de lecture (haut du défileur) ; en bas du document, le dernier
+   visible. Après un choix dans le sommaire, c'est CE titre qui reste en cours tant qu'on n'a pas défilé (`tocPin`) — un
+   titre voisin sur la même ligne ne le lui prend pas. */
+function pdfTocSpy(){const n=document.getElementById('pdfTocNav');if(!_pv||!_pv.toc||n.hidden)return;
+  const sc=document.getElementById('pdfScroll'),pin=_pv.tocPin;
+  let cur=-1;
+  if(pin&&Math.abs(sc.scrollTop-pin.y)<2)cur=pin.i;
+  else{_pv.tocPin=null;
+    const y0=sc.scrollTop+sc.clientHeight>=sc.scrollHeight-2?sc.scrollHeight:sc.scrollTop+Math.min(96,sc.clientHeight*0.2);
+    let best=-1;_pv.toc.forEach((x,i)=>{const y=x.p?pdfPosY(x.p,x.top):null;if(y!=null&&y<=y0&&y>=best){best=y;cur=i;}});}
+  n.querySelectorAll('[data-ti]').forEach(b=>{if(+b.dataset.ti===cur)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');});}
+{let _spyF=0;document.getElementById('pdfScroll').addEventListener('scroll',()=>{if(_spyF)return;
+  _spyF=requestAnimationFrame(()=>{_spyF=0;pdfTocSpy();});},{passive:true});}
+async function pdfTocInit(){const b=document.getElementById('pdfToc');if(!b||!_pv)return;const pv=_pv;
+  let o=null;try{o=await pv.doc.getOutline();}catch(e){}
   const flat=[];const walk=(items,d)=>(items||[]).forEach(it=>{if(!it||flat.length>=200)return;
     flat.push({title:String(it.title||'').trim()||'Sans titre',dest:it.dest,d});if(d<2)walk(it.items,d+1);});
-  walk(o,0);if(!_pv||!flat.length)return;
-  _pv.toc=flat;b.hidden=false;
-  b.onclick=()=>openPickMenu(b.parentNode,{aria:'Sommaire du document',sheet:true,trigger:b,
-    options:_pv.toc.map((x,i)=>({val:String(i),name:(x.d?'– '.repeat(x.d):'')+x.title,dot:false})),
-    onPick:async v=>{const x=_pv&&_pv.toc[+v];if(!x)return;const n=await pdfDestPage(x.dest);if(n)pdfGoPage(n);}});}
+  walk(o,0);if(_pv!==pv||!flat.length)return;
+  for(const x of flat)Object.assign(x,await pdfDestPos(x.dest));
+  if(_pv!==pv)return;
+  pv.toc=flat;b.hidden=false;
+  const n=document.getElementById('pdfTocNav');n.textContent='';
+  const h=document.createElement('div');h.className='pdf-th';h.innerHTML='<span class="rt-h">Sommaire</span>';
+  const m=document.createElement('button');m.type='button';m.className='fz pdf-tmin';m.setAttribute('aria-controls','pdfTocNav');
+  m.onclick=()=>pdfTocSet(n.closest('.pdf-card').classList.contains('toc-min'));h.appendChild(m);n.appendChild(h);
+  flat.forEach((x,i)=>{const l=document.createElement('button');l.type='button';l.dataset.ti=i;
+    l.className='rt-lnk'+(x.d===1?' rt-2':x.d>1?' rt-3':'');
+    const t=document.createElement('span');t.className='pdf-tt';t.textContent=x.title;l.appendChild(t);
+    if(x.p){const pg=document.createElement('span');pg.className='pdf-tp';pg.textContent=x.p;l.appendChild(pg);}
+    l.onclick=()=>{const k=_pv&&_pv.toc[+l.dataset.ti];if(!k||!k.p)return;
+      if(!mqReadWide.matches)pdfTocSet(false);
+      pdfGoPage(k.p,k.top);_pv.tocPin={i:+l.dataset.ti,y:document.getElementById('pdfScroll').scrollTop};pdfTocSpy();};
+    n.appendChild(l);});
+  b.onclick=()=>pdfTocSet(n.hidden);
+  pdfTocSet(mqReadWide.matches&&pdfTocPref(),true);}
 async function renderPdfPage(s){if(!_pv||s.rendering)return;
   if(s.canvas&&s.renderedW===_pv.cssW)return;   // déjà rendue à cette échelle
   s.rendering=true;
@@ -25074,6 +25159,7 @@ async function openPdfViewer(att,entity,page,hl){
   const sc=document.getElementById('pdfScroll');
   document.getElementById('pdfModalTitle').textContent=att.name||'Document';
   sc.innerHTML='<div class="pdf-msg">Ouverture du document…</div>';
+  pdfTocReset();
   pdfModal.classList.add('on');
   // Deux échecs BIEN DISTINCTS : le chargement de la visionneuse (vendor/pdfjs absent du cache —
   // ex. hors-ligne avec un service worker antérieur à la 4.0.0) n'est PAS un fichier endommagé.

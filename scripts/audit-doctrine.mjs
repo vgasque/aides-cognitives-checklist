@@ -7418,10 +7418,37 @@ await sec('Page · A392 impression, doublons, losange, export, « ✓ faite »',
       const l=[...document.querySelectorAll('#pdfScroll .pdf-lnk')];const sc=document.getElementById('pdfScroll');
       const ext=l.filter(a=>a.tagName==='A').map(a=>({href:a.getAttribute('href'),rel:a.rel,t:a.target}));
       const bt=l.find(a=>a.tagName==='BUTTON');if(bt)bt.click();await w(500);const saut=sc.scrollTop;
-      const toc=document.getElementById('pdfToc');return {ext,saut,toc:!toc.hidden};},pdfB64);
+      /* A418 : ≥ 1000 px, colonne ouverte d'office (numéros de page, section en cours), repliée en UN bouton ≡, choix retenu. */
+      const card=document.querySelector('.pdf-card'),nav=document.getElementById('pdfTocNav'),W=()=>document.querySelector('.pdf-page').offsetWidth;
+      sc.scrollTop=0;await w(200);
+      const lk=()=>[...nav.querySelectorAll('.rt-lnk')];
+      const col={side:card.classList.contains('toc-side')&&!nav.hidden,n:lk().length,pages:lk().map(l=>l.querySelector('.pdf-tp')?.textContent),
+        cur0:lk().findIndex(l=>l.hasAttribute('aria-current')),x:Math.round(sc.getBoundingClientRect().left),w:W()};
+      lk()[1].click();await w(400);col.saut=sc.scrollTop;col.cur1=lk().findIndex(l=>l.hasAttribute('aria-current'));
+      nav.querySelector('.pdf-tmin').click();await w(300);
+      const vis=[...nav.querySelectorAll('*')].filter(e=>e.getClientRects().length&&!e.closest('.pdf-tmin')&&!e.querySelector('.pdf-tmin'));
+      col.min={cls:card.classList.contains('toc-min'),larg:Math.round(nav.getBoundingClientRect().width),visibles:vis.map(e=>e.className),
+        pref:localStorage.getItem('ac-pdf-toc'),w:W(),garde:sc.scrollTop>100};
+      nav.querySelector('.pdf-tmin').click();await w(300);col.rouvre=!card.classList.contains('toc-min')&&localStorage.getItem('ac-pdf-toc')==='1';
+      return {ext,saut,col};},pdfB64);
     t('lecteur PDF : le lien externe est cliquable (http(s) seulement, noopener), le lien javascript: ne l\'est pas',
       r.ext.length===1&&r.ext[0].href==='https://www.erc.edu/'&&/noopener/.test(r.ext[0].rel)&&r.ext[0].t==='_blank',JSON.stringify(r.ext));
-    t('… un renvoi interne mène à sa page, et le sommaire du document est offert',r.saut>100&&r.toc,JSON.stringify({saut:r.saut,toc:r.toc}));
+    t('… un renvoi interne mène à sa page',r.saut>100,JSON.stringify({saut:r.saut}));
+    const c=r.col;
+    t('A418 : ≥ 1000 px, le sommaire est une colonne à gauche des pages, avec les numéros de page et la section en cours',
+      c.side&&c.n===2&&c.pages[0]==='1'&&+c.pages[1]>=2&&c.x>=240&&c.cur0===0&&c.saut>100&&c.cur1===1,JSON.stringify(c));
+    t('A418 : la colonne se replie en UN petit bouton (≤ 56 px), les pages s\'élargissent, la place est gardée, le choix est retenu',
+      c.min.cls&&c.min.larg<=56&&c.min.visibles.length===0&&c.min.pref==='0'&&c.min.w>c.w&&c.min.garde&&c.rouvre,JSON.stringify(c.min));
+    /* Étroit : bande sous la barre, fermée d'office, ouverte par « Sommaire », refermée après un choix. */
+    await page.setViewportSize({width:390,height:844});await page.waitForTimeout(400);
+    const e=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const b=document.getElementById('pdfToc'),nav=document.getElementById('pdfTocNav'),sc=document.getElementById('pdfScroll');
+      document.querySelector('#pdfModal [data-pz="fit"]').click();await w(300);   // pleine largeur : le document dépasse l'écran
+      sc.scrollTop=0;const r={ferme:nav.hidden&&!document.querySelector('.pdf-card').classList.contains('toc-side'),bouton:b.getClientRects().length>0};
+      b.click();await w(200);r.ouvre=!nav.hidden&&b.getAttribute('aria-expanded')==='true'&&nav.getBoundingClientRect().top>=b.closest('.pdf-bar').getBoundingClientRect().bottom-1;
+      r.tmin=nav.querySelector('.pdf-tmin').getClientRects().length;
+      nav.querySelectorAll('.rt-lnk')[1].click();await w(400);r.apres=nav.hidden&&sc.scrollTop>100;r.y=sc.scrollTop;r.h=nav.hidden;return r;});
+    t('A418 : étroit, le sommaire est une bande sous la barre, fermée d\'office, ouverte par « Sommaire », refermée après un choix',
+      e.ferme&&e.bouton&&e.ouvre&&e.tmin===0&&e.apres,JSON.stringify(e));
     await page.close();}
 }
 });

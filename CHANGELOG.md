@@ -1,5 +1,19 @@
 # Journal des modifications
 
+## [5.39.0] — 2026-09-28
+Le sommaire d'un PDF joint se consulte comme celui d'un protocole, et reste une option (A418, doctrine
+`docs/decisions/lot-v5-39.md`).
+- **Sur ordinateur et tablette en paysage (1000 px et plus).** Quand le PDF a des signets, son sommaire
+  est une colonne à gauche des pages, avec le numéro de page de chaque titre et la section en cours en
+  bleu. Un petit bouton le replie en une icône ≡, qui le rouvre d'un tap ; l'appareil retient le choix.
+- **Au téléphone.** Le bouton « Sommaire », sur la ligne du titre, ouvre la liste sous la barre ; elle se
+  referme dès qu'on a choisi un titre.
+- **On arrive sur le titre, plus en haut de la page.** Un signet ou un renvoi interne du PDF mène
+  exactement là où il pointe. Les sauts de la visionneuse (sommaire, liens, occurrences d'une recherche)
+  arrivaient aussi environ 60 px trop bas : corrigé.
+- **Barre d'outils du téléphone.** Avec un sommaire, elle débordait (« Largeur » coupé, bouton de
+  téléchargement hors de l'écran) ; « Sommaire » remonte sur la ligne du titre et tout tient.
+
 ## [5.38.2] — 2026-09-28
 Le survol bleu pâle devient visible (A417, doctrine `docs/decisions/lot-v5-38.md`).
 - **Survol.** Les boutons posés sur le fond bleu pâle (« + » du compteur, « J'ai compris » du bandeau,
@@ -418,29 +432,4 @@ Retours de l'auteur sur 5.30.2 (A373, doctrine `docs/decisions/lot-v5-30.md`).
   quand le bouton de remise à zéro était re-rendu pendant l'appui — plus aucune bulle nulle part
   jusqu'au rechargement. La fin du geste s'écoute désormais sur le document, et un champ qui prend
   le focus retire la classe par ceinture. Un collage ne garde que les chiffres, Entrée valide.
-- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
-
-## [5.30.2] — 2026-09-24
-Trois signalements d'iPhone, mesurés au simulateur iOS 27 avant d'être traités (A370-A372,
-doctrine `docs/decisions/lot-v5-30.md`).
-- **iOS 27, le verre flou du bord haut (A370)** : ce n'est pas l'app — le système compose son
-  propre voile PAR-DESSUS la vue web, sur tout l'inset de l'heure puis en fondu sur ~16 pt, quel
-  que soit ce que la page fixe dessous (sonde rouge : un sol opaque est lui-même délavé ; un vrai
-  `<div>` fixé, testable au toucher ou non, subit la même chose). Le remède retenu rend le voile
-  invisible : un sol de la couleur du fond sous l'heure sur TOUTES les vues (accueil, lecture,
-  édition, aides et protocoles), au-dessus des fenêtres et des feuilles — reste le fondu de 16 pt
-  au défilement, celui de toute app native iOS 26+ ; en thème sombre, rien ne se voit. Le `<head>`
-  portait DEUX balises de style de barre d'état (`default` d'A368 puis `black-translucent`) : la
-  seconde l'emportait, A368 n'a jamais été en vigueur — une seule désormais, `black-translucent`.
-  Le style `default` a été mesuré : barre grise opaque plus sombre que la page, contenu jamais
-  flouté, mais mise en page à reprendre (inset nul) — non retenu, choix laissé à l'auteur.
-  ⚠ Réinstaller l'app pour la balise ; le sol arrive par la mise à jour.
-- **Le pied de lecture qu'on croyait masqué (A371)** : « Cet appareil seulement · x Mo · vX » en
-  bas d'une fiche ou d'un protocole n'était pas `footer.tools` (déjà masqué depuis des versions —
-  le correctif de 5.30.1 était mort) mais une rangée émise par le rendu. Purgée avec son CSS, son
-  rafraîchissement et sa règle d'impression ; le doublon de 5.30.1 part avec.
-- **« Recevoir le code » (A372)** : la fenêtre Compte disparaissait sur iPhone après l'envoi
-  (état posé, position perdue — non reproduit au simulateur). Le formulaire relâche désormais le
-  champ actif AVANT de remplacer le DOM, pour que le clavier se ferme par la voie normale et que
-  les deux viewports se recollent ; et « E-mail invalide » ne vide plus le champ.
 - Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.
