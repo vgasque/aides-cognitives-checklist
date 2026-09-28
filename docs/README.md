@@ -82,6 +82,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A416 | `lot-v5-38.md` | Les 38 alias purs purgés (table de correspondance), `check-tokens` refuse tout alias pur ; bleus pâles NON fusionnés (pas de survol) |
 | A417 | `lot-v5-38.md` | Le survol bleu pâle devient visible (`--primary-100` : 1,6 → 5,4 ΔE le jour, 0 → 6,2 la nuit) |
 | A418 | `lot-v5-39.md` | Le sommaire d'un PDF joint : colonne repliable en un bouton ≡ dès 1000 px, bande sous la barre en dessous ; numéros de page, section en cours, saut sur le titre (`pdfDestPos`), sauts de la visionneuse ~60 px trop bas corrigés |
+| A419 | `lot-v5-39.md` | Le filtre de catégorie retient le NOM (`catKey`) : une catégorie renommée garde l'id de son homonyme d'une autre bibliothèque, et le filtre visait la mauvaise ; Entrée envoie l'e-mail de connexion |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

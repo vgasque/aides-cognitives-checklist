@@ -1,4 +1,4 @@
-# Lot v5.39 — le sommaire d'un PDF joint, optionnel (A418)
+# Lot v5.39 — le sommaire d'un PDF joint, optionnel (A418) ; filtre de catégorie par nom, connexion par Entrée (A419)
 
 > Fichier normatif, suite de [`lot-v5-38.md`](lot-v5-38.md) (A400-A417). Les numéros A sont des adresses :
 > ne jamais renuméroter. Demande de l'auteur du 28/09/2026.
@@ -46,3 +46,33 @@ est désormais positionné, et les hauteurs se lisent depuis le défileur.
   choix qui fait défiler.
 
 Ces contrôles échouent sur la version précédente, qui n'avait pas de `#pdfTocNav`.
+
+## A419 (v5.39.1) — le filtre de catégorie retient un NOM ; Entrée envoie l'e-mail
+
+**1. Signalé : « sur Toutes, en large, les filtres n'ont pas l'air de fonctionner tout le temps ».** Reproduit au banc.
+L'id d'une catégorie dérive de son nom D'ORIGINE (`detCatId`, « Urgences » → `c-urgences`). Renommée (« Urgences
+adultes » dans le Perso), elle garde cet id, que porte aussi « Urgences » d'une autre bibliothèque. Depuis la v5.18, le
+filtre compare par NOM à travers l'union (A299), mais il retrouvait ce nom par « la première catégorie qui porte cet
+id » (`_catFiltName`). Taper « Urgences » filtrait donc sur « Urgences adultes », et c'est cette rangée qui s'allumait.
+Même défaut dans la feuille « Affichage », dont les pastilles portaient l'id.
+
+**Correctif : `state.cat` retient le nom normalisé (`catKey` = `txNorm(nom)`)**, la clé que le filtre, la colonne
+(une rangée par nom) et les pastilles utilisaient déjà pour regrouper. Plus aucune lecture ne passe par un id. Deux
+suites nécessaires :
+- **renommer** la catégorie filtrée fait suivre le filtre si plus aucune catégorie ne porte l'ancien nom. Sans cela,
+  le filtre deviendrait invisible, ce que la doctrine interdit (« un filtre posé ne doit jamais être invisible ») ;
+- **supprimer** une catégorie en déplaçant ses éléments reporte le filtre sur la catégorie cible.
+
+Un id reste la bonne clé partout où l'on agit sur UNE catégorie précise (gestionnaire, sélecteur de l'éditeur,
+déplacement) : il y est toujours lu avec sa bibliothèque (`catOf`, `catItems`).
+
+**2. Signalé : à l'écran de connexion, Entrée dans le champ e-mail n'envoyait rien.** Le champ du code avait son geste
+Entrée (A373), pas celui de l'adresse. Il a maintenant le même (`keydown` Entrée → le bouton, hors composition IME),
+et `enterkeyhint="send"` pour que le clavier du téléphone affiche « Envoyer ».
+
+**Témoins** (section `audit-doctrine` « Accueil · A419 … ») : deux homonymes au même id d'origine, chacune ne montre
+que ses aides et n'allume que sa rangée, dans la colonne ET la feuille ; « Afficher » (Aides / Protocoles) sur « Toutes »,
+avec une aide et un protocole d'une bibliothèque partagée, donne le bon type dans les cinq rangements (vérifié à la
+demande de l'auteur : ce filtre n'avait pas le défaut, il ne passe par aucun id) ; Entrée dans le champ e-mail déclenche l'envoi
+(appel réseau remplacé). Trois contrôles sur quatre échouent sur la v5.39.0 : le quatrième, la rangée Perso, passait
+déjà par chance, puisque c'est elle que la recherche par id trouvait en premier.

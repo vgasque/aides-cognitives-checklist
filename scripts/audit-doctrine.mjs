@@ -5450,7 +5450,7 @@ await sec('v5.6 · un filtre posé agit aussi en recherche', async () => {
     /* On prend la catégorie d'UNE fiche réellement présente : un identifiant inventé ne
        filtrerait rien et le contrôle mesurerait le vide. */
     const vues=[...document.querySelectorAll('.dir-row')];
-    const cats=[...new Set(fiches.map(f=>f.category).filter(Boolean))];
+    const cats=[...new Set(fiches.map(f=>catKey(catOf(f))).filter(Boolean))];   // A419 : le filtre retient le NOM (clé)
     if(cats.length<2)return {err:'moins de deux catégories — cas non constitué'};
     state.cat=cats[0];render();await w(450);
     const avecA=n(),titA=titres();
@@ -6633,10 +6633,10 @@ await sec('ACCUEIL · les catégories vides ne mènent nulle part', async () => 
     const tous=categories.length;
     const vides=categories.filter(c=>!fiches.concat(protocols).some(x=>x.category===c.id));
     /* LE CAS DU GARDE : une catégorie SÉLECTIONNÉE dont le compte est à zéro. */
-    state.cat=vides.length?vides[0].id:null;render();await w(400);
+    state.cat=vides.length?catKey(vides[0]):null;render();await w(400);   // A419 : clé de nom
     const selVide=lire();
     state.cat=null;render();await w(200);
-    return {tous,nVides:vides.length,nominal,selVide,videId:vides.length?vides[0].id:null};});
+    return {tous,nVides:vides.length,nominal,selVide,videId:vides.length?catKey(vides[0]):null};});
   // ON RENCONTRE SON CAS : sans catégorie vide au départ, l'absence de rangée ne prouverait rien.
   t('le cas est rencontré : des catégories sont vides sur une installation neuve',
     r.nVides>=1, `${r.nVides} vide(s) sur ${r.tous}`);
@@ -6648,6 +6648,69 @@ await sec('ACCUEIL · les catégories vides ne mènent nulle part', async () => 
   t('GARDE · une catégorie SÉLECTIONNÉE reste visible même à zéro',
     !!r.videId&&r.selVide.some(x=>x.id===r.videId&&x.on&&x.c==='0'),
     JSON.stringify(r.selVide.filter(x=>x.on)));
+  await page.close();
+});
+
+/* ══ A419 — LE FILTRE DE CATÉGORIE RETIENT UN NOM, PAS UN ID ; ENTRÉE ENVOIE L'E-MAIL ══════════════════════════════
+   (1) Signalé : sur « Toutes », en large, les filtres « ne marchent pas tout le temps ». L'id d'une catégorie dérive de
+   son nom d'origine : renommée, elle garde l'id de son homonyme d'une autre bibliothèque, et le filtre retrouvait le nom
+   par « la première catégorie qui porte cet id » — donc le mauvais. (2) Signalé : à l'écran de connexion, Entrée dans le
+   champ e-mail n'envoyait rien. */
+await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));
+    myLibraries.length=0;myLibraries.push({id:'lib-a',name:'Bibliothèque A',role:'admin'});
+    categories.find(c=>c.id==='c-urgences'&&!c.library).name='Urgences adultes';   // renommée : garde l'id d'origine
+    categories.push({id:'c-urgences',name:'Urgences',color:'#7a2f6b',library:'lib-a'});
+    const mk=(id,t,lib)=>{const f=JSON.parse(JSON.stringify(fiches[0]));f.id=id;f.title=t;f.library=lib;f.category='c-urgences';fiches.push(f);};
+    mk('p419','Perso adultes',null);mk('a419','Biblio urgences','lib-a');
+    state.homeLib=null;render();await w(300);
+    const ids=()=>[...main.querySelectorAll('.dir-row')].map(x=>x.textContent).join('|');
+    const out={};
+    for(const [k,nom] of [['bib','Urgences'],['perso','Urgences adultes']]){
+      [...document.querySelectorAll('.home-side [data-cat]')].find(x=>x.querySelector('.hs-name').textContent===nom).click();await w(300);
+      out[k]={bib:/Biblio urgences/.test(ids()),perso:/Perso adultes/.test(ids()),
+        on:[...document.querySelectorAll('.home-side [data-cat][aria-pressed="true"]')].map(x=>x.querySelector('.hs-name').textContent)};
+      document.querySelector('.home-side [data-catall]').click();await w(300);}
+    /* Même filtre depuis la feuille « Affichage » : la pastille « Urgences » ne s'allume qu'elle, et filtre juste. */
+    document.getElementById('filtTog').click();await w(300);
+    [...document.querySelectorAll('#viewSheetBody [data-cat]')].find(x=>x.textContent.trim()==='Urgences').click();await w(300);
+    out.feuille={bib:/Biblio urgences/.test(ids()),perso:/Perso adultes/.test(ids()),
+      on:[...document.querySelectorAll('#viewSheetBody .catchip.on')].map(x=>x.textContent.trim())};
+    /* « Afficher » (Aides / Protocoles / À relire) sur « Toutes », éléments d'une bibliothèque compris, dans chaque
+       rangement (signalé en même temps ; il n'a pas le défaut : il ne passe par aucun id). */
+    state.cat='';render();await w(200);
+    {const p=JSON.parse(JSON.stringify(protocols[0]||blankProtocol()));p.id='pp419';p.title='Proto biblio';p.library='lib-a';p.status='review';protocols.push(p);}
+    const kinds=()=>{const ids=[...main.querySelectorAll('.dir-row [data-open]')].map(b=>b.dataset.open);
+      return [ids.filter(i=>fiches.some(x=>x.id===i)).length,ids.filter(i=>protocols.some(x=>x.id===i)).length,ids.includes('a419')?1:0,ids.includes('pp419')?1:0].join(',');};
+    const nF=fiches.filter(x=>canEditFiche(x)||x.status!=='draft').length,nP=protocols.filter(x=>canEditFiche(x)||x.status!=='draft').length;
+    const vu=[],attendu=[];
+    for(const g of ['cat','none','kind','bib','az']){
+      document.querySelector(`#viewSheetBody [data-vs="group:${g}"]`).click();await w(250);
+      for(const [v,e] of [['all',[nF,nP,1,1]],['fiches',[nF,0,1,0]],['protocols',[0,nP,0,1]]]){
+        document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`).click();await w(250);vu.push(g+':'+v+'='+kinds());attendu.push(g+':'+v+'='+e.join(','));}}
+    out.types={ok:vu.join(' ')===attendu.join(' '),vu};
+    document.querySelector('#viewSheetBody [data-vs="group:cat"]').click();await w(200);
+    closeViewSheet();state.cat='';render();await w(200);
+    /* Connexion : Entrée dans le champ e-mail déclenche l'envoi (l'appel réseau est remplacé). */
+    let envoye='';Auth.sendCode=async e=>{envoye=e;};
+    _authStep.mode='email';_authStep.msg='';openAuth();await w(300);
+    const em=document.getElementById('authEmail');em.value='test@example.org';
+    em.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await w(300);
+    out.auth={envoye,msg:(document.querySelector('.auth-msg')||{}).textContent||'',code:!!document.getElementById('authCode')};
+    return out;});
+  t('A419 : « Urgences » (bibliothèque) ne montre que ses aides, et seule sa rangée s\'allume',
+    r.bib.bib&&!r.bib.perso&&JSON.stringify(r.bib.on)==='["Urgences"]',JSON.stringify(r.bib));
+  t('A419 : « Urgences adultes » (Perso, même id d\'origine) ne montre que les siennes',
+    r.perso.perso&&!r.perso.bib&&JSON.stringify(r.perso.on)==='["Urgences adultes"]',JSON.stringify(r.perso));
+  t('A419 : la feuille « Affichage » filtre de même, une seule pastille allumée',
+    r.feuille.bib&&!r.feuille.perso&&JSON.stringify(r.feuille.on)==='["Urgences"]',JSON.stringify(r.feuille));
+  t('A419 : « Afficher » Aides / Protocoles sur « Toutes » — le bon type, bibliothèque partagée comprise, dans les cinq rangements',
+    r.types.ok,JSON.stringify(r.types.vu));
+  t('A419 : Entrée dans le champ e-mail envoie le code (ou dit pourquoi il ne part pas)',
+    r.auth.envoye==='test@example.org'||/Hors ligne/.test(r.auth.msg),JSON.stringify(r.auth));
   await page.close();
 });
 
