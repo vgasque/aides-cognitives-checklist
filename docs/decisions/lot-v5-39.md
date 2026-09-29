@@ -198,3 +198,93 @@ un état nominal ne s'affiche pas en gras (poste de pilotage sombre). Hiérarchi
 titre 15 > discriminant 13,5 > méta 12. Glyphe, mot, aplat et couleurs d'A338/A347 inchangés ; plancher
 11 px respecté.
 
+## A423 — au téléphone, la recherche et le filtre FLOTTENT sur un bord doux (amende A222 sur ce seul lieu)
+
+**Demande de l'auteur** : « pourquoi la barre de recherche et le bouton filtre ont un fond gris en dessous ?
+On ne pouvait pas laisser transparent comme sur les design récents d'app ? »
+
+**Ce qui était là.** `#homeDock` (< 780 px) posait une BANDE de la couleur du fond (`--amb`) sous le cercle
+filtre et la recherche, fondu de 20 px sur l'arête haute. Elle paraissait grise parce que ce qui défile
+dessous est une carte blanche. Ce n'était pas une exigence WCAG : les commandes sont opaques, leur texte
+garde son contraste quel que soit le fond ; c'était l'application d'A222 (« matière opaque »).
+
+**Vérifié sur les systèmes (sources dans la conversation d'origine, 29/09/2026).** iOS 26 : la recherche
+descend en bas (Safari, Musique, Plans, Notes, Mail), les commandes sont des éléments SÉPARÉS qui flottent
+— une capsule pour la recherche, des cercles pour les boutons (Mail : filtre à gauche, recherche à côté) —
+et, dessous, un « effet de bord » doux (flou et estompage progressifs), pas une bande. L'ombre de ces
+éléments est DISCRÈTE et gérée par le système (plus faible sur fond clair). Material 3 Expressive : barres
+d'outils flottantes, élevées par défaut. Le VERRE translucide, lui, est écarté : son contraste dépend de ce
+qui passe dessous (NN/G a mesuré 1,5:1 là où il faut 4,5:1) — A222 tient pour la matière des commandes.
+
+**Décision.** Plus de bande. Le cercle filtre et la capsule de recherche restent OPAQUES et SÉPARÉS ; ils
+flottent avec `--shadow-float` (plus légère que `--shadow-work`, `none` la nuit) et, la nuit, le contour
+`--ctl-line` (3:1) les borde — ils passent sur des cartes de leur propre teinte. Sous eux, `#homeDock::before`
+dessine le bord doux : flou 12 px, voile du fond à 94 → 86 % derrière les commandes (le texte ne transparaît
+ni entre les puces de type pendant une recherche, ni sous la capsule), puis estompage sur les 40 px au-dessus,
+masqué (`--edge-mask`). Commandes à L 44 toutes deux (paires de la même rangée, échelle A375) ; la capsule
+prend le rayon 999 (la pilule, jusqu'ici réservée aux chips et jetons ronds, s'étend à cette capsule).
+Clavier ouvert : le bord doux s'efface, le dock reprend sa matière opaque d'A249 (`html.kbd`). ≥ 780 px :
+rien ne change (le dock est une rangée de l'en-tête).
+
+**Formes écartées** : la bande seule allongée (fondu long, B) ; la capsule UNIQUE qui avale le filtre (îlot,
+C/D) — ce n'est pas le modèle des systèmes, qui séparent les éléments ; le fond totalement transparent sans
+voile — le texte des cartes passait entre les deux commandes ; une ombre marquée — les systèmes ne la
+portent pas.
+
+**Mesuré** (390 px, jour et nuit, au repos · filtre actif · pendant une recherche) ; check complet, tests,
+audit complet (seuls les deux rouges d'environnement connus). ⚠ Le flou (`backdrop-filter`) est à juger sur
+iPhone, en défilement : le navigateur de test ne le rend que faiblement.
+
+## A424 — ranger une sélection éparpillée : par nom, dans la bibliothèque de chacun
+
+**Signalé** : « pourquoi on ne peut plus modifier une catégorie sur la sélection multiple ? » L'acte n'avait
+pas disparu : il n'était offert que si les cochés partageaient UNE bibliothèque (lot v5.12) — toujours vrai
+tant que l'accueil montrait une bibliothèque à la fois, rarement depuis qu'il montre leur union (v5.18).
+La rangée s'effaçait alors de la feuille « Actions », et seul le compte (« · deux bibliothèques ») le disait.
+
+**Décision.** L'acte est toujours offert. Une catégorie n'existant que dans une bibliothèque, on choisit un
+NOM : chaque élément va dans la catégorie de ce nom de SA bibliothèque ; là où le nom manque, il reste
+INCHANGÉ (rien n'est créé, rien n'est vidé). Le sélecteur le dit AVANT le geste, dans la grammaire des
+feuilles existantes (A360/A361) :
+- en-tête : « Ranger 3 éléments » / « Perso · SMUR 75 », puis une NOTICE douce (patron `.notice` de
+  l'accueil, ⓘ, sans croix) : « 2 bibliothèques différentes. Chacun ira dans la catégorie du même nom de la
+  sienne ; là où ce nom n'existe pas, il ne change pas. » ; sous-ligne de l'acte dans « Actions » : « par nom,
+  dans la bibliothèque de chacun » ;
+- les noms se RANGENT sous des intertitres qui disent où ils existent (`.mm-head` du menu ⋯, option `{head,n}`
+  de `openPickMenu`) : « DANS LES DEUX BIBLIOTHÈQUES » (« Dans toutes… » au-delà de deux), « SEULEMENT DANS
+  PERSO », « DANS PERSO ET SMUR 75 » ; le partage, identique pour tout le groupe, est dit UNE fois sous
+  l'intertitre (« 1 dans Perso · 2 dans SMUR 75 », « 1 rangé · 2 inchangés ») — les rangées ne portent que le
+  nom (la première version répétait une sous-ligne par rangée : illisible, signalé) ; les groupes « partout »
+  d'abord ; le filtre masque un intertitre dont le groupe est vide ; aucune rangée cochée quand les catégories
+  actuelles diffèrent (défaut antérieur : « Sans catégorie » se cochait) ;
+- le toast reprend le partage : « 3 éléments rangés dans « Urgences » — 1 dans Perso, 2 dans SMUR 75 »,
+  et ce qui est resté inchangé, en avertissement.
+Une seule bibliothèque : le sélecteur d'avant (ni en-tête, ni sous-ligne).
+
+**Code.** `selCatPlan` est la seule source du partage (sous-lignes avant, toast après) ; `catNamed` est la
+seule correspondance par nom, partagée avec « Déplacer vers une bibliothèque » (`selMoveLib` la recopiait) ;
+les noms de bibliothèque passent par `impLibName`. La barre ne ferme plus « Catégorie… » (`catOk` purgé).
+
+**Témoin** : `audit-doctrine`, section « A424 » (8 contrôles : compte, acte, notice, intertitres et partage, ordre, geste, une seule bibliothèque) — rouge sur le code d'avant (7/8), vert après.
+
+## A425 — sur un écran très large, la colonne de l'accueil se centre (amende A389)
+
+**Demande de l'auteur**, après exploration de six mises en page du bureau (une grille par groupe, groupes en
+marge, liste + aperçu, groupes en colonnes façon magazine, carte étalée, Compacte) : garder la colonne unique
+d'A389 — c'est la seule qui se lit de haut en bas sans rompre l'ordre (le « magazine » doublait la densité mais
+coupait l'alphabet en colonnes) — et la **centrer**. Elle collait à gauche de l'espace principal, un vide à droite.
+
+**Règle.** ≥ 780 px, tout ce que porte `.home-main` (sélection, session en cours, notices, liste) partage la colonne
+de 960 px, centrée (`margin-inline:auto`). L'en-tête (recherche, « Créer ») et le bandeau système suivent le même
+axe par `--home-g` = max(24 px, (largeur − colonne gauche − 960) / 2) — un pourcentage de marge se prend sur la
+largeur du corps, la même base que l'espace principal. En dessous d'environ 1260 px, `--home-g` vaut 24 px : rien
+ne change. La carte « Session en cours » perd son plafond de 780 px et prend la largeur de la colonne. Les vues
+Sessions et Moi gardent leur gabarit document (A365), déjà centré.
+
+**Mesuré** (1024, 1440, 1920 px) : liste, ligne de compte, session en cours et barre de sélection au même bord ;
+barre de sélection sur UNE ligne de 56 px, ses quatre actes visibles ≥ 1200. **Limite dite** : avec une barre de
+défilement CLASSIQUE (Windows, navigateur de test), l'en-tête est décalé de la moitié de cette barre (7 px) — la
+colonne se centre dans le défileur, l'en-tête dans la page ; nul sur iPad et Mac (barres superposées). Réserver la
+gouttière des deux côtés (`scrollbar-gutter: stable both-edges`) l'annulerait au prix d'un décalage de 15 px entre
+780 et 1260 px, là où tout est aligné aujourd'hui : écarté.
+

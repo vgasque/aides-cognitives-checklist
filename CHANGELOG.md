@@ -1,5 +1,25 @@
 # Journal des modifications
 
+## [5.39.6] — 2026-09-29
+Trois retours d'usage (A423 à A425, doctrine `docs/decisions/lot-v5-39.md`).
+- **Au téléphone, la recherche flotte sur la liste.** La bande grise sous la recherche et le bouton filtre
+  disparaît : les deux commandes, opaques, flottent séparément au-dessus de la liste, qui s'efface doucement en
+  passant dessous (flou et voile du fond, sans arête). C'est la disposition des apps récentes (iOS 26, Material 3),
+  sans leur verre translucide, dont le contraste dépend de ce qui passe dessous. Ombre légère le jour, contour la
+  nuit ; recherche en forme de pilule, filtre et recherche à la même hauteur (44 px).
+- **Ranger dans une catégorie une sélection qui mêle plusieurs bibliothèques.** L'action n'était proposée que si
+  les cartes cochées étaient dans la même bibliothèque, ce qui arrivait rarement depuis que l'accueil les réunit
+  toutes. Elle est maintenant toujours là : on choisit un nom, et chaque carte va dans la catégorie de ce nom de sa
+  propre bibliothèque. Avant le geste, une notice dit que les bibliothèques diffèrent, et la liste est rangée sous
+  des intertitres (« Dans les deux bibliothèques », « Seulement dans Perso »…) qui disent combien de cartes vont où
+  et combien restent inchangées. Rien n'est créé ni vidé en silence ; le message final reprend le partage.
+  Au passage, « Sans catégorie » ne se coche plus à tort quand les cartes ont des catégories différentes.
+- **Sur un écran très large, l'accueil se centre.** La colonne des cartes (960 px) collait à gauche avec un vide à
+  droite ; elle se centre, et la recherche, « Créer », le bandeau et la carte « Session en cours » suivent le même
+  axe. Rien ne change sous 1260 px environ.
+- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
+  deux rouges d'environnement déjà connus ; nouveau témoin « A424 » (8 contrôles), rouge avant, vert après.
+
 ## [5.39.5] — 2026-09-29
 Signalé à l'usage (A422, doctrine `docs/decisions/lot-v5-39.md`).
 - **Cartes d'accueil : l'état ne rivalise plus avec le titre.** Les pastilles « Brouillon », « À compléter »,
@@ -347,20 +367,3 @@ il fallait cocher l'adrénaline « après le 3ᵉ choc » pour pouvoir avancer.
   réévaluation.
 - Réglementaire : § 2 « Le cas du moment d'une étape » (règle de l'auteur appliquée à un compte ou
   un minuteur de l'équipe, régime des jalons).
-
-## [5.31.1] — 2026-09-25
-Quatre retouches signalées à l'usage (A381, doctrine `docs/decisions/lot-v5-31.md`).
-- **Notice « Vous êtes l'auteur… »** : la croix dépassait d'une notice d'une ligne (posée 4 px sous
-  le haut, 32 px de haut pour une notice de 34). Elle se centre désormais sur la première ligne.
-- **Recherche de l'accueil** : 16 px au téléphone au lieu de 17,5, en accord avec le reste de
-  l'accueil. 16 px est le plancher d'iOS : en dessous, Safari zoome au toucher. 15 px sans écran
-  tactile.
-- **Cases des étapes CRITIQUE / VIGILANCE** : l'étiquette se loge dans une marge haute réservée,
-  hors du flux. La case reste centrée sur le libellé, au même endroit que dans une rangée sans
-  étiquette (elle était centrée sur l'ensemble étiquette + libellé + détail, donc visiblement
-  plus basse).
-- **Colonne « Parcours inerte » du bureau** (et rail 780-1199) : chaque bloc se plie à son titre,
-  seul le bloc courant est déplié d'office. Une décision reste ouverte, puisque ses branches
-  sont le chemin. Un chevron par bloc, au clavier comme au toucher. Le
-  parcours de l'ACR tient désormais en entier à l'écran. Toucher un bloc de cette colonne ne
-  faisait plus rien depuis la v5.30.6 (bascule orpheline) : ce geste revit ici.

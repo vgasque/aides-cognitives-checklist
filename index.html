@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-wn9ja82xMGn8zqOw7sX+YBExJz1fm+76FlOMqlpIkS4='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-zwznxRepLykNLjnPsvGTlwwB0adlnfm+Q1gnJKXuCjE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -471,6 +471,12 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Le bloc COURANT en session porte en plus cette ombre (v5.30, maquette v5) : même encre, même
      direction, un cran plus dense — la seule carte qui se détache. `none` la nuit, comme l'autre. */
   --shadow-cur:0 12px 32px rgba(20,24,29,.12);
+  /* A423 : l'ombre des commandes qui FLOTTENT sur la liste (recherche et filtre de l'accueil au
+     téléphone). Plus légère que --shadow-work, à la façon des éléments flottants d'iOS 26 : la
+     séparation vient du bord doux dessous, l'ombre ne fait que poser. `none` la nuit (contour). */
+  --shadow-float:0 1px 2px rgba(20,24,29,.06),0 6px 16px rgba(20,24,29,.08);
+  /* Masque du bord doux (A423) : seul son alpha compte ; déclaré ici, règle 7. */
+  --edge-mask:#000;
   /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
   /* LA GRILLE CANONIQUE EN TOKENS (7b) : orientation · action · état, et leur gouttière. Une
      seule source — le dock s'aligne dessus, et un changement de largeur de colonne n'a plus deux
@@ -555,7 +561,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   --bolt:#fbbf24;--bolt-edge:#f59e0b;
   --crit:#ff7a70;--crit-line:#ff7a70;--crit-soft:#211114;
   --act:#8fb8e8;
-  --shadow-work:none;--shadow-up:none;--shadow-cur:none;
+  --shadow-work:none;--shadow-up:none;--shadow-cur:none;--shadow-float:none;
   /* Alias de nuit : les anciens noms qui avaient une valeur sombre propre. */
   /* ⚠ LA TEINTE DE SÉLECTION SE CREUSE D'AUTANT QUE LA MATIÈRE S'EST ÉCLAIRCIE (v5.6, variante C).
      Le placard d'exercice est un APLAT `--primary-soft` hachuré, posé sur la matière de travail :
@@ -1203,10 +1209,21 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   #homeDock{display:none}
   /* v5.30 (A353, changement d'avis de l'auteur) : le filtre est un bouton ROND à gauche de la recherche,
      toujours là ; les chips de type (recherche en cours) prennent la rangée du dessus. */
+  /* A423 (demande de l'auteur : « comme les apps récentes ») : plus de BANDE sous la recherche.
+     Le filtre (cercle) et la recherche (capsule) FLOTTENT, séparés, sur la liste — le modèle d'iOS 26
+     (Mail, Notes) et des barres flottantes de Material 3 — et la liste s'efface dessous par un BORD
+     DOUX (::before : flou progressif + voile du fond, sans arête). Les commandes restent OPAQUES : pas
+     de verre translucide, dont le contraste dépend de ce qui passe dessous (A222, mesures NN/G). */
   body.view-home #homeDock{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
     position:fixed;left:0;right:0;bottom:0;z-index:20;
-    padding:18px 12px calc(12px + var(--sab,0px));
-    background:linear-gradient(to top,var(--amb) calc(100% - 20px),transparent)}
+    padding:0 16px calc(12px + var(--sab,0px))}
+  @media (max-width:779.98px){
+    body.view-home #homeDock::before{content:"";position:absolute;left:0;right:0;bottom:0;top:-40px;z-index:-1;pointer-events:none;
+      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      background:linear-gradient(to top,color-mix(in srgb,var(--amb) 94%,transparent) 0,color-mix(in srgb,var(--amb) 86%,transparent) calc(100% - 64px),color-mix(in srgb,var(--amb) 40%,transparent) calc(100% - 24px),transparent);
+      -webkit-mask-image:linear-gradient(to top,var(--edge-mask) calc(100% - 40px),transparent);mask-image:linear-gradient(to top,var(--edge-mask) calc(100% - 40px),transparent)}
+    html.kbd body.view-home #homeDock::before{display:none}
+  }
   /* La rangée des filtres de recherche : chips de type + déclencheur de la feuille. Elle
      n'existe QUE pendant une recherche (syncFiltTog) — hors recherche, la pilule est seule. */
   /* padding haut/droit : le badge-compte déborde du bouton de 4 px, et un défileur horizontal
@@ -1215,7 +1232,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dock-filt[hidden]{display:none}
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
   /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
-  #homeDock .filt-tog{width:40px;height:40px;min-height:40px}   /* A375 : M 40 avec le chrome */
+  /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
+  #homeDock .filt-tog{width:44px;height:44px;min-height:44px;box-shadow:var(--shadow-float)}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
      est un bouton discret (même encre d'action).
@@ -1232,7 +1250,14 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .dir-hf::after{content:"";position:absolute;inset:-8px}
   .dir-hf:hover{text-decoration:underline}
   .dir-hf:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  #homeDock .hdr-search input{border-radius:var(--r-4);box-shadow:var(--shadow-work)}   /* maquette v5 : même rayon que les cartes */
+  /* A423 : capsule (pleinement arrondie, comme le cercle voisin) et ombre de flottaison ; la nuit, sans
+     ombre, le contour --ctl-line (3:1) borde les deux commandes, qui passent sur des cartes de leur teinte. */
+  #homeDock .hdr-search input{border-radius:999px;box-shadow:var(--shadow-float)}
+  @media (max-width:779.98px){
+    #homeDock .hdr-search input{padding-left:40px}
+    #homeDock .hdr-search .srch-box>svg{left:16px}
+    html[data-theme="dark"] #homeDock :is(.filt-tog,.hdr-search input){border-color:var(--ctl-line)}
+  }
   /* Clavier ouvert : le dock LOGE le champ qu'on tape — il ne se retire jamais (v5.13). Son bas
      épouse EXACTEMENT le viewport visuel : top = vvt + vvh, remonté de sa PROPRE hauteur
      (translateY(-100%) — AUCUNE constante de hauteur : l'ancrage par constante laissait un vide
@@ -4692,6 +4717,9 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mm-ctx{display:flex;flex-direction:column;gap:2px;padding:0 0 10px}
   .mm-ctx b{font-size:var(--t-step);font-weight:700;color:var(--ink)}
   .mm-ctx span{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .mm-ctx .notice{margin:8px 0 0;padding-right:14px;font-size:var(--t-body);font-weight:500}   /* A424 : notice d'en-tête, sans croix */
+  .mm-ctx .notice b{font-size:inherit}
+  .mm-head-n{display:block;margin-top:2px;font-size:var(--t-meta);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}   /* A424 : le partage du groupe, une fois */
   :is(.popmenu.sheet,.acct-list) .mm-row{padding:6px 0;border-radius:0}
   :is(.popmenu.sheet,.acct-list) .mm-row:not(:first-child){border-top:1px solid var(--work-line)}
   .popmenu.sheet .mm-row{min-height:52px}
@@ -7126,8 +7154,10 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        ou 84 px si l'on avait laissé la hauteur libre : les deux cassent la contrainte de 56.
        v5.30 (maquette v5) : l'en-tête blanc a disparu — la barre est une CARTE entière (quatre
        coins, bord haut), collée au bord du défileur. */
-    .home-main>.sel-bar{top:0;margin:0 0 12px;padding:0 10px}
-    .home-main>*{max-width:1320px}
+    .home-main>.sel-bar{top:0;margin:0 auto 12px;padding:0 10px}
+    /* A425 : la colonne de l'accueil (960, A389) se CENTRE dans l'espace qui reste — sur un écran très large elle
+       collait à gauche, un vide à droite. Tout ce qui la précède (sélection, session en cours, notices) suit le même axe. */
+    .home-main>*{max-width:960px;margin-inline:auto}
     /* SESSIONS ET MOI EN VUES DE LA COLONNE (v5.30.1, A365) : le gabarit DOCUMENT de la page-fenêtre
        (720, titre 24/800) posé dans la colonne principale — la colonne gauche reste active. */
     .home-main>.hv-page{max-width:var(--dlg-atelier);width:100%;margin-inline:auto}   /* centrée comme la page-fenêtre (signalé) */
@@ -7146,8 +7176,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
     body.view-home main{padding-left:var(--side-w)}
-    body.view-home header.bar{margin-left:var(--side-w);padding-left:24px}
-    body.view-home #sysBanner{margin:0 24px 14px calc(var(--side-w) + 24px)}
+    /* A425 : recherche, « Créer » et bandeau système suivent l'AXE de la colonne centrée (--home-g : la gouttière
+       qui centre 960 px dans l'espace à droite de la colonne gauche ; un % de marge se prend sur la largeur du corps). */
+    body.view-home{--home-g:max(24px,calc((100% - var(--side-w) - 960px) / 2))}
+    body.view-home header.bar{margin-left:var(--side-w);padding-inline:var(--home-g)}
+    body.view-home #sysBanner{margin:0 var(--home-g) 14px calc(var(--side-w) + var(--home-g))}
     body.view-home header.bar :is(.brand-logo,.brand,#hdrHist,#acctTop){display:none}
     .hs-brand{display:flex;align-items:center;gap:10px;padding:4px 6px 10px}
     .hs-brand .brand-logo{display:block;width:32px;height:32px;margin:0 -4px 0 -6px}   /* même verrou d'encre que l'en-tête */
@@ -7165,7 +7198,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     .home-side .cat-dot{border-radius:3px}
     .hs-avatar{width:22px;height:22px;border-radius:50%;background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
     /* La session en cours ≥ 780 : la BANDE système de la planche large — le vert ne reste qu'au point, « Reprendre » en tuile. */
-    body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px;max-width:780px}
+    body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px}   /* A425 : la largeur de la colonne */
     /* A356 : sur la BANDE, « Terminer » prend le registre critique système (l'encre --crit y tenait 2,24:1 en clair),
        et « Reprendre » un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
     body.view-home .ls-card .ls-end{border:1.5px solid var(--crit-sys);color:var(--crit-sys)}
@@ -8689,7 +8722,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.39.5';
+const APP_VERSION='5.39.6';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -14837,15 +14870,11 @@ function selBarHtml(){
   if(!state.selOn)return '';
   const ent=selEnt(),n=ent.length;
   const libs=[...new Set(ent.map(e=>e.o.library||null))];
-  const catOk=n>0&&libs.length===1;
-  /* Le compte est un `status` (il change sans que le focus bouge — un lecteur d'écran doit
-     l'entendre) et le SEUL élément élastique de la ligne : il bouge dans son propre espace.
-     ⚠ C'EST LE COMPTE QUI DIT POURQUOI « Catégorie… » EST FERMÉE (planche 20, consigne 7) : un
-     `title` n'existe pas au doigt ; les `title` longs partent avec (consigne 4). RIEN DE COCHÉ,
-     RIEN DE MORT : la touche d'actes N'EXISTE PAS plutôt que grisée.
-     Détail : doctrine-js.md J86. */
+  /* Le compte est un `status` (lu sans que le focus bouge) et le SEUL élément élastique de la ligne.
+     Il dit aussi qu'une sélection est ÉPARPILLÉE (« · deux bibliothèques ») : A424, la catégorie s'y
+     range par nom. Rien de coché : la touche d'actes N'EXISTE PAS. Détail : doctrine-js.md J86. */
   const cpt=n?(n+' coché'+(n>1?'s':'')):'Rien de coché';
-  const motif=(n&&!catOk)?' · '+selLibsMot(libs.length):'';
+  const motif=(n&&libs.length>1)?' · '+selLibsMot(libs.length):'';
   /* UN SEUL NOM ACCESSIBLE PAR ACTE (consigne 5) : celui de la feuille. Sur la ligne, le libellé
      VISIBLE nomme la DESTINATION plutôt que le geste — « Déplacer… » et « Ranger… » étaient deux
      verbes voisins qui ne disaient ni ce qu'on déplace ni où l'on range ; dans la feuille, où la
@@ -14859,7 +14888,7 @@ function selBarHtml(){
     <button type="button" class="btn sm primary sel-do" id="selDo" aria-haspopup="listbox" aria-expanded="false">Actions${uiIcon('chev',11,{sw:2.4})}</button>
     <span class="sel-acts">
       <button type="button" class="btn sm" id="selLib" aria-label="${esc(SEL_ACTES.lib)}">Bibliothèque…</button>
-      <button type="button" class="btn sm" id="selCat"${catOk?'':' disabled'} aria-label="${esc(SEL_ACTES.cat)}">Catégorie…</button>
+      <button type="button" class="btn sm" id="selCat" aria-label="${esc(SEL_ACTES.cat)}">Catégorie…</button>
       <button type="button" class="btn sm" id="selExp" aria-label="${esc(SEL_ACTES.exp)}">Exporter…</button>
       <button type="button" class="btn sm danger" id="selDel" aria-label="${esc(selDelLabel(n))}">Supprimer…</button>
       <span class="sel-sep" aria-hidden="true"></span>
@@ -14895,14 +14924,11 @@ function openSelActs(trigger){
      cette ligne suit sans qu'on y touche. */
   {const nn=document.getElementById('selNone');
    if(nn&&!nn.offsetParent&&!nn.disabled)opts.unshift({val:'selNone',name:'Tout décocher',ic:uiIcon('undo',20)});}
-  // La catégorie ne se propose que sur une destination COMMUNE (cf. selSetCat) : sur une
-  // sélection éparpillée la rangée n'existe pas, et l'en-tête de la feuille dit pourquoi.
-  if(libs.length===1)opts.push({val:'selCat',name:SEL_ACTES.cat,ic:uiIcon('tag',20),sub:'choisir la catégorie',chev:true});
+  opts.push({val:'selCat',name:SEL_ACTES.cat,ic:uiIcon('tag',20),chev:true,
+    sub:libs.length>1?'par nom, dans la bibliothèque de chacun':'choisir la catégorie'});   // A424
   opts.push({val:'selExp',name:SEL_ACTES.exp,ic:uiIcon('download',20),sub:'un seul fichier, réimportable (.json ou .zip)'});   // A392
   opts.push({val:'selDel',name:selDelLabel(n),ic:uiIcon('trash',20),sub:'confirmation demandée',danger:true});
-  const port=libs.length===1
-    ?(lib?(libName(lib)||'Bibliothèque partagée'):'Votre bibliothèque')
-    :selLibsMot(libs.length);
+  const port=libs.length===1?impLibName(lib):selLibsMot(libs.length);
   openPickMenu(trigger.parentNode,{aria:'Actions sur la sélection',sheet:true,trigger,options:opts,
     head:`<b>${esc(n+' coché'+(n>1?'s':''))}</b><span>${esc(port)}</span>`,
     onPick:v=>{const b=document.getElementById(v);if(b){_selFromSheet=true;try{b.click();}finally{_selFromSheet=false;}}}});}
@@ -14936,9 +14962,7 @@ async function selMoveLib(lib,redo){
     if((e.o.library||null)===lib)return;
     const av=e.o.category?categories.find(c=>c.id===e.o.category&&catScope(c)===(e.o.library||null)):null;
     e.o.library=lib||null;
-    if(av){const slug=catSlug(av.name);
-      const eq=slug?catsForScope(lib).find(c=>catSlug(c.name)===slug):null;
-      e.o.category=eq?eq.id:'';if(!eq)perdues++;}
+    if(av){const eq=catNamed(lib,av.name);e.o.category=eq?eq.id:'';if(!eq)perdues++;}
     else e.o.category='';});
   await selWrite(ent);
   /* ⚠ LA DESTINATION DEVIENT LA VUE — via `homeLib`, pas `scope` : depuis la v5.18 la colonne
@@ -14952,12 +14976,53 @@ async function selMoveLib(lib,redo){
     +(perdues?' · '+perdues+' catégorie'+(perdues>1?'s':'')+' sans équivalent : '+(perdues>1?'elles ont':'elle a')+' été retirée'+(perdues>1?'s':''):'')+'.',
     perdues?7000:4000,!!perdues);
   redo();}
-async function selSetCat(cat,redo){
+/* A424 — RANGER PAR NOM. Une catégorie n'existe que DANS une bibliothèque (ses ids ne valent que là) :
+   choisir « Urgences », c'est ranger chaque élément dans la catégorie de ce nom de SA bibliothèque.
+   Là où ce nom n'existe pas, l'élément reste inchangé — rien n'est créé ni vidé en silence.
+   `selCatPlan` est la seule source : la sous-ligne de la rangée (avant) et le toast (après) la lisent. */
+const catNamed=(lib,name)=>{const s=catSlug(name);return s?catsForScope(lib).find(c=>catSlug(c.name)===s)||null:null;};
+const nb=(k,mot)=>k+' '+mot+(k>1?'s':'');
+function selCatPlan(ent,name){const par=new Map();   // bibliothèque → {n, cat}
+  ent.forEach(e=>{const l=e.o.library||null;if(!par.has(l))par.set(l,{n:0,cat:name?catNamed(l,name):null});par.get(l).n++;});
+  const libs=[...par].map(([l,v])=>({lib:l,nom:impLibName(l),...v}));
+  return {libs,ok:libs.filter(x=>!name||x.cat),manque:libs.filter(x=>name&&!x.cat)};}
+/* Sélection éparpillée : une NOTICE douce (patron `.notice` de l'accueil) dit que les bibliothèques diffèrent,
+   et les noms se rangent sous un INTERTITRE qui dit où ils existent et, une fois, combien vont où (`.mm-head`,
+   patron du menu ⋯) — le partage est le même pour tout le groupe. Une seule bibliothèque : le sélecteur d'avant. */
+function openSelCat(b,redo){
   const ent=selEnt();if(!ent.length)return;
-  ent.forEach(e=>{e.o.category=cat||'';});
-  await selWrite(ent);
-  const c=cat?categories.find(x=>x.id===cat):null;
-  toast(ent.length+' élément'+(ent.length>1?'s rangés':' rangé')+(c?' dans « '+c.name+' »':' sans catégorie')+'.');
+  const libs=[...new Set(ent.map(e=>e.o.library||null))],multi=libs.length>1;
+  const vus=new Map();   // une rangée par NOM (slug), sur les bibliothèques de la sélection
+  libs.forEach(l=>catsSorted(l).forEach(c=>{const k=catSlug(c.name);if(k&&!vus.has(k))vus.set(k,c);}));
+  const cur=[...new Set(ent.map(e=>{const c=categories.find(x=>x.id===e.o.category&&catScope(x)===(e.o.library||null));return c?catSlug(c.name):'';}))];
+  const ligne=(c,sub)=>({val:catSlug(c.name),name:c.name,col:safeColor(c.color),sub});
+  let options=[{val:'',name:'Sans catégorie',col:'',sub:multi?'retire la catégorie des '+nb(ent.length,'élément'):''}];
+  if(!multi)options=options.concat([...vus.values()].sort(byCatName).map(c=>ligne(c,'')));
+  else{const grp=new Map();   // « où le nom existe » → {plan, rangées} ; partout d'abord
+    const som=l=>l.reduce((t,x)=>t+x.n,0);
+    [...vus.values()].sort(byCatName).forEach(c=>{const p=selCatPlan(ent,c.name),k=p.manque.length?p.ok.map(x=>x.nom).join(' et '):'';
+      if(!grp.has(k))grp.set(k,{p,rows:[]});grp.get(k).rows.push(ligne(c,''));});
+    [...grp].sort(([a],[b])=>(a!=='')-(b!=='')||a.localeCompare(b)).forEach(([k,{p,rows}])=>{
+      options.push({head:k?(k.includes(' et ')?'Dans ':'Seulement dans ')+k:(libs.length>2?'Dans toutes les bibliothèques':'Dans les deux bibliothèques'),
+        n:k?nb(som(p.ok),'rangé')+' · '+nb(som(p.manque),'inchangé'):p.ok.map(x=>x.n+' dans '+x.nom).join(' · ')});
+      options=options.concat(rows);});}
+  const noms=libs.map(impLibName);
+  openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),back:selBack(),options,
+    head:multi?`<b>${esc('Ranger '+nb(ent.length,'élément'))}</b><span>${esc(noms.join(' · '))}</span>`
+      +`<div class="notice">${uiIcon('info',15)}<div><b>${esc(noms.length+' bibliothèques différentes.')}</b> ${esc('Chacun ira dans la catégorie du même nom de la sienne ; là où ce nom n’existe pas, il ne change pas.')}</div></div>`:'',
+    value:cur.length===1?cur[0]:'-',   // catégories mêlées : aucune rangée cochée ('-' n'est jamais un slug)
+    onPick:v=>selSetCat(v?vus.get(v).name:'',redo),
+    action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(multi?CAT_ALL:libs[0])}});}
+async function selSetCat(name,redo){
+  const ent=selEnt();if(!ent.length)return;
+  const p=selCatPlan(ent,name),multi=p.libs.length>1;
+  const faits=ent.filter(e=>{const x=p.libs.find(y=>y.lib===(e.o.library||null));
+    if(name&&!x.cat)return false;e.o.category=name?x.cat.id:'';return true;});
+  await selWrite(faits);
+  const lieu=multi&&name&&p.ok.length?' — '+p.ok.map(x=>x.n+' dans '+x.nom).join(', '):'';
+  const reste=p.manque.map(x=>nb(x.n,'élément')+' inchangé'+(x.n>1?'s':'')+' : pas de « '+name+' » dans '+x.nom).join(' · ');
+  toast((faits.length?nb(faits.length,'élément')+(faits.length>1?' rangés':' rangé')+(name?' dans « '+name+' »':' sans catégorie')+lieu:'')
+    +(faits.length&&reste?' · ':'')+reste+'.',reste?7000:4000,!!reste);
   redo();}
 /* SUPPRESSION EN LOT — CONFIRMATION FORTE (décision de l'auteur). La fenêtre ÉNUMÈRE ce qui va
    disparaître et la case est l'accusé de lecture de cette liste : sans elle, le bouton reste
@@ -15015,13 +15080,7 @@ function bindSelBar(cfg){
      {aria:'Bibliothèque',sheet:true,trigger:selTrig(b),options:impLibOptions(),back:selBack(),
       value:(()=>{const l=[...new Set(selEnt().map(e=>e.o.library||null))];return l.length===1?(l[0]||''):'';})(),
       onPick:v=>selMoveLib(v||null,redo)});}
-  {const b=document.getElementById('selCat');if(b&&!b.disabled)b.onclick=()=>{
-     const lib=(selEnt()[0]||{o:{}}).o.library||null;
-     openPickMenu(b.parentNode,{aria:'Catégorie',sheet:true,trigger:selTrig(b),back:selBack(),
-       options:catOpts(catsSorted(lib)),
-       value:(()=>{const v=[...new Set(selEnt().map(e=>e.o.category||''))];return v.length===1?v[0]:'';})(),
-       onPick:v=>selSetCat(v,redo),
-       action:{label:'＋ Nouvelle catégorie',fn:()=>openCatMgr(lib)}});};}
+  {const b=document.getElementById('selCat');if(b)b.onclick=()=>openSelCat(b,redo);}
   {const b=document.getElementById('selDel');if(b)b.onclick=()=>selDelete(redo);}
   {const b=document.getElementById('selExp');if(b)b.onclick=selExport;}
   bindSelLongPress(cfg);}
@@ -16364,7 +16423,8 @@ function menuRowHtml(o){const tag=o.inert?'div':'button';   // `inert` : une ran
 function openPickMenu(host,opts){
   if(_pickClose)_pickClose(false);
   const O=opts.options||[],val=String(opts.value==null?'':opts.value),trigger=opts.trigger;
-  const row=o=>{const v=String(o.val==null?'':o.val),sel=v===val;
+  const row=o=>{if(o.head)return `<div class="mm-head" role="presentation">${esc(o.head)}${o.n?`<span class="mm-head-n">${esc(o.n)}</span>`:''}</div>`;   // intertitre (A424)
+    const v=String(o.val==null?'':o.val),sel=v===val;
     return menuRowHtml({label:o.name,sub:o.sub,ic:o.ic,dot:!o.ic&&o.dot!==false,col:o.col,danger:o.danger,
       attrs:`role="option" aria-selected="${sel?'true':'false'}" data-pickopt="${esc(v)}"${o.tt?` title="${esc(o.tt)}"`:''}`,
       tail:(sel?`<span class="mm-ck">${uiIcon('check',15,{sw:2.6})}</span>`:'')+(o.chev?`<span class="mm-chev" aria-hidden="true">${uiIcon('chev',18)}</span>`:'')});};
@@ -16372,7 +16432,7 @@ function openPickMenu(host,opts){
   // ancré) ou par la largeur — le seuil de la feuille de style d'hier, à l'identique.
   const sheet=!!opts.sheet||window.innerWidth<780;
   const menu=document.createElement('div');menu.className='catmenu popmenu'+(sheet?' sheet':'');menu.setAttribute('role','listbox');menu.setAttribute('aria-label',opts.aria||'Choisir');
-  menu.innerHTML=`<div class="popmenu-head">${opts.back?menuRowHtml({label:opts.back.label,sub:opts.back.sub,ic:uiIcon('backto',18),attrs:'data-pickback'}):''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
+  menu.innerHTML=`<div class="popmenu-head">${opts.back?menuRowHtml({label:opts.back.label,sub:opts.back.sub,ic:uiIcon('backto',18),attrs:'data-pickback'}):''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre||8)?`<input class="catmenu-filter" type="text" placeholder="Filtrer…" aria-label="Filtrer ${esc((opts.aria||'les options').toLowerCase())}">`:''}</div>`
     +O.map(row).join('')
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'');
   const veil=document.createElement('div');veil.className='popmenu-veil'+(sheet?' sheet':'');
@@ -16417,7 +16477,10 @@ function openPickMenu(host,opts){
   {const bk=menu.querySelector('[data-pickback]');if(bk)bk.onclick=()=>{close(false);opts.back.fn();};}   // v5.30.1 : « ‹ Actions », pour jongler entre les sous-feuilles
   const fl=menu.querySelector('.catmenu-filter');
   if(fl){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
-      menu.querySelectorAll('.mm-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});});
+      menu.querySelectorAll('.mm-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});
+      menu.querySelectorAll(':scope>.mm-head').forEach(h=>{let n=h.nextElementSibling,vis=false;   // un intertitre suit son groupe
+        while(n&&n.classList.contains('mm-row')){if(n.style.display!=='none'){vis=true;break;}n=n.nextElementSibling;}
+        h.style.display=vis?'':'none';});});
     fl.focus();}
   else{const first=menu.querySelector('.mm-row');if(first)first.focus();}
   veil.onclick=()=>close(false);}

@@ -86,6 +86,9 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A420 | `lot-v5-39.md` | Le temps des audits se mesure : attentes fixes presque toutes utiles (rejouées réduites et triplées), pdfsearch ne paie plus 60 s de délais, tranches équilibrées par durée mesurée (`AC_PLAN`), quatre contrôles de partage qui dépendaient de la vitesse du harnais |
 | A421 | `lot-v5-39.md` | « Afficher » ouvert par le bouton « Affichage » repeignait la vue d'ouverture par-dessus le type choisi (`viewSheetRedo`) ; l'anneau d'arrivée du quai devient un trait composé (`transform`/`opacity`, amende A331 sur la technique) |
 | A422 | `lot-v5-39.md` | L'état d'une carte d'accueil passe au palier méta (12, 700 s'il attend quelque chose) : il était en 13,5/800, plus gras que le titre |
+| A423 | `lot-v5-39.md` | Au téléphone, la recherche et le filtre flottent, opaques et séparés, sur un bord doux (plus de bande) — le modèle d'iOS 26 sans le verre ; `--shadow-float` |
+| A424 | `lot-v5-39.md` | Ranger une sélection sur plusieurs bibliothèques : par nom, chacun dans la sienne, le sélecteur dit qui va où avant le geste (`selCatPlan`, `catNamed`) |
+| A425 | `lot-v5-39.md` | Accueil sur écran très large : la colonne de 960 px se centre, l'en-tête et le bandeau suivent son axe (`--home-g`) ; six mises en page explorées, la colonne unique gardée pour son ordre de lecture |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

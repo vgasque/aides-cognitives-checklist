@@ -115,6 +115,12 @@
   /* Le bloc COURANT en session porte en plus cette ombre (v5.30, maquette v5) : même encre, même
      direction, un cran plus dense — la seule carte qui se détache. `none` la nuit, comme l'autre. */
   --shadow-cur:0 12px 32px rgba(20,24,29,.12);
+  /* A423 : l'ombre des commandes qui FLOTTENT sur la liste (recherche et filtre de l'accueil au
+     téléphone). Plus légère que --shadow-work, à la façon des éléments flottants d'iOS 26 : la
+     séparation vient du bord doux dessous, l'ombre ne fait que poser. `none` la nuit (contour). */
+  --shadow-float:0 1px 2px rgba(20,24,29,.06),0 6px 16px rgba(20,24,29,.08);
+  /* Masque du bord doux (A423) : seul son alpha compte ; déclaré ici, règle 7. */
+  --edge-mask:#000;
   /* ─── 7. CIBLES — A8 : aucun contrôle sous 44 px en crise, ± des compteurs compris ─────── */
   /* LA GRILLE CANONIQUE EN TOKENS (7b) : orientation · action · état, et leur gouttière. Une
      seule source — le dock s'aligne dessus, et un changement de largeur de colonne n'a plus deux
@@ -199,7 +205,7 @@
   --bolt:#fbbf24;--bolt-edge:#f59e0b;
   --crit:#ff7a70;--crit-line:#ff7a70;--crit-soft:#211114;
   --act:#8fb8e8;
-  --shadow-work:none;--shadow-up:none;--shadow-cur:none;
+  --shadow-work:none;--shadow-up:none;--shadow-cur:none;--shadow-float:none;
   /* Alias de nuit : les anciens noms qui avaient une valeur sombre propre. */
   /* ⚠ LA TEINTE DE SÉLECTION SE CREUSE D'AUTANT QUE LA MATIÈRE S'EST ÉCLAIRCIE (v5.6, variante C).
      Le placard d'exercice est un APLAT `--primary-soft` hachuré, posé sur la matière de travail :
@@ -847,10 +853,21 @@
   #homeDock{display:none}
   /* v5.30 (A353, changement d'avis de l'auteur) : le filtre est un bouton ROND à gauche de la recherche,
      toujours là ; les chips de type (recherche en cours) prennent la rangée du dessus. */
+  /* A423 (demande de l'auteur : « comme les apps récentes ») : plus de BANDE sous la recherche.
+     Le filtre (cercle) et la recherche (capsule) FLOTTENT, séparés, sur la liste — le modèle d'iOS 26
+     (Mail, Notes) et des barres flottantes de Material 3 — et la liste s'efface dessous par un BORD
+     DOUX (::before : flou progressif + voile du fond, sans arête). Les commandes restent OPAQUES : pas
+     de verre translucide, dont le contraste dépend de ce qui passe dessous (A222, mesures NN/G). */
   body.view-home #homeDock{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
     position:fixed;left:0;right:0;bottom:0;z-index:20;
-    padding:18px 12px calc(12px + var(--sab,0px));
-    background:linear-gradient(to top,var(--amb) calc(100% - 20px),transparent)}
+    padding:0 16px calc(12px + var(--sab,0px))}
+  @media (max-width:779.98px){
+    body.view-home #homeDock::before{content:"";position:absolute;left:0;right:0;bottom:0;top:-40px;z-index:-1;pointer-events:none;
+      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      background:linear-gradient(to top,color-mix(in srgb,var(--amb) 94%,transparent) 0,color-mix(in srgb,var(--amb) 86%,transparent) calc(100% - 64px),color-mix(in srgb,var(--amb) 40%,transparent) calc(100% - 24px),transparent);
+      -webkit-mask-image:linear-gradient(to top,var(--edge-mask) calc(100% - 40px),transparent);mask-image:linear-gradient(to top,var(--edge-mask) calc(100% - 40px),transparent)}
+    html.kbd body.view-home #homeDock::before{display:none}
+  }
   /* La rangée des filtres de recherche : chips de type + déclencheur de la feuille. Elle
      n'existe QUE pendant une recherche (syncFiltTog) — hors recherche, la pilule est seule. */
   /* padding haut/droit : le badge-compte déborde du bouton de 4 px, et un défileur horizontal
@@ -859,7 +876,8 @@
   .dock-filt[hidden]{display:none}
   .df-chips{display:flex;align-items:center;gap:8px;flex:none}
   /* v5.30.1 (A368) : l'auteur revient sur les 52 px d'A359 — « un peu trop grands en bas » : 44 (la cible tactile), texte 15, icône 20. */
-  #homeDock .filt-tog{width:40px;height:40px;min-height:40px}   /* A375 : M 40 avec le chrome */
+  /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
+  #homeDock .filt-tog{width:44px;height:44px;min-height:44px;box-shadow:var(--shadow-float)}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
   /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
      est un bouton discret (même encre d'action).
@@ -876,7 +894,14 @@
   .dir-hf::after{content:"";position:absolute;inset:-8px}
   .dir-hf:hover{text-decoration:underline}
   .dir-hf:focus-visible{outline:2px solid var(--act);outline-offset:2px}
-  #homeDock .hdr-search input{border-radius:var(--r-4);box-shadow:var(--shadow-work)}   /* maquette v5 : même rayon que les cartes */
+  /* A423 : capsule (pleinement arrondie, comme le cercle voisin) et ombre de flottaison ; la nuit, sans
+     ombre, le contour --ctl-line (3:1) borde les deux commandes, qui passent sur des cartes de leur teinte. */
+  #homeDock .hdr-search input{border-radius:999px;box-shadow:var(--shadow-float)}
+  @media (max-width:779.98px){
+    #homeDock .hdr-search input{padding-left:40px}
+    #homeDock .hdr-search .srch-box>svg{left:16px}
+    [data-theme="dark"] #homeDock :is(.filt-tog,.hdr-search input){border-color:var(--ctl-line)}
+  }
   /* Clavier ouvert : le dock LOGE le champ qu'on tape — il ne se retire jamais (v5.13). Son bas
      épouse EXACTEMENT le viewport visuel : top = vvt + vvh, remonté de sa PROPRE hauteur
      (translateY(-100%) — AUCUNE constante de hauteur : l'ancrage par constante laissait un vide
@@ -4336,6 +4361,9 @@
   .mm-ctx{display:flex;flex-direction:column;gap:2px;padding:0 0 10px}
   .mm-ctx b{font-size:var(--t-step);font-weight:700;color:var(--ink)}
   .mm-ctx span{font-size:var(--t-body);font-weight:600;color:var(--ink-2)}
+  .mm-ctx .notice{margin:8px 0 0;padding-right:14px;font-size:var(--t-body);font-weight:500}   /* A424 : notice d'en-tête, sans croix */
+  .mm-ctx .notice b{font-size:inherit}
+  .mm-head-n{display:block;margin-top:2px;font-size:var(--t-meta);font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-2)}   /* A424 : le partage du groupe, une fois */
   :is(.popmenu.sheet,.acct-list) .mm-row{padding:6px 0;border-radius:0}
   :is(.popmenu.sheet,.acct-list) .mm-row:not(:first-child){border-top:1px solid var(--work-line)}
   .popmenu.sheet .mm-row{min-height:52px}
@@ -6770,8 +6798,10 @@
        ou 84 px si l'on avait laissé la hauteur libre : les deux cassent la contrainte de 56.
        v5.30 (maquette v5) : l'en-tête blanc a disparu — la barre est une CARTE entière (quatre
        coins, bord haut), collée au bord du défileur. */
-    .home-main>.sel-bar{top:0;margin:0 0 12px;padding:0 10px}
-    .home-main>*{max-width:1320px}
+    .home-main>.sel-bar{top:0;margin:0 auto 12px;padding:0 10px}
+    /* A425 : la colonne de l'accueil (960, A389) se CENTRE dans l'espace qui reste — sur un écran très large elle
+       collait à gauche, un vide à droite. Tout ce qui la précède (sélection, session en cours, notices) suit le même axe. */
+    .home-main>*{max-width:960px;margin-inline:auto}
     /* SESSIONS ET MOI EN VUES DE LA COLONNE (v5.30.1, A365) : le gabarit DOCUMENT de la page-fenêtre
        (720, titre 24/800) posé dans la colonne principale — la colonne gauche reste active. */
     .home-main>.hv-page{max-width:var(--dlg-atelier);width:100%;margin-inline:auto}   /* centrée comme la page-fenêtre (signalé) */
@@ -6790,8 +6820,11 @@
        principale (recherche + Créer) — marque, sections, compte vivent dans la colonne. */
     .home-side{position:fixed;top:0;left:0;bottom:0;z-index:5}
     body.view-home main{padding-left:var(--side-w)}
-    body.view-home header.bar{margin-left:var(--side-w);padding-left:24px}
-    body.view-home #sysBanner{margin:0 24px 14px calc(var(--side-w) + 24px)}
+    /* A425 : recherche, « Créer » et bandeau système suivent l'AXE de la colonne centrée (--home-g : la gouttière
+       qui centre 960 px dans l'espace à droite de la colonne gauche ; un % de marge se prend sur la largeur du corps). */
+    body.view-home{--home-g:max(24px,calc((100% - var(--side-w) - 960px) / 2))}
+    body.view-home header.bar{margin-left:var(--side-w);padding-inline:var(--home-g)}
+    body.view-home #sysBanner{margin:0 var(--home-g) 14px calc(var(--side-w) + var(--home-g))}
     body.view-home header.bar :is(.brand-logo,.brand,#hdrHist,#acctTop){display:none}
     .hs-brand{display:flex;align-items:center;gap:10px;padding:4px 6px 10px}
     .hs-brand .brand-logo{display:block;width:32px;height:32px;margin:0 -4px 0 -6px}   /* même verrou d'encre que l'en-tête */
@@ -6809,7 +6842,7 @@
     .home-side .cat-dot{border-radius:3px}
     .hs-avatar{width:22px;height:22px;border-radius:50%;background:var(--primary-soft);color:var(--act);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
     /* La session en cours ≥ 780 : la BANDE système de la planche large — le vert ne reste qu'au point, « Reprendre » en tuile. */
-    body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px;max-width:780px}
+    body.view-home .ls-card{background:var(--sys);color:var(--sys-ink);border:0;border-radius:var(--r-4);min-height:64px;padding:10px 18px}   /* A425 : la largeur de la colonne */
     /* A356 : sur la BANDE, « Terminer » prend le registre critique système (l'encre --crit y tenait 2,24:1 en clair),
        et « Reprendre » un fond qui se détache (--sys-2 à 12 % ne tenait que 1,45:1). */
     body.view-home .ls-card .ls-end{border:1.5px solid var(--crit-sys);color:var(--crit-sys)}

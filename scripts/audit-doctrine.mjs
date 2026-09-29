@@ -6730,6 +6730,56 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
   await page.close();
 });
 
+/* ══ A424 — RANGER UNE SÉLECTION ÉPARPILLÉE : PAR NOM, DANS LA BIBLIOTHÈQUE DE CHACUN ══════════════════
+   « Catégorie… » disparaissait dès que la sélection mêlait deux bibliothèques — le cas courant depuis que
+   l'accueil est leur union (v5.18). Le sélecteur dit maintenant où va chacun AVANT le geste. */
+await sec('Accueil · A424 ranger par nom une sélection sur deux bibliothèques', async () => {
+  const page=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);
+  await amorce(page);
+  const r=await page.evaluate(async()=>{const w=m=>new Promise(x=>setTimeout(x,m));const out={};
+    myLibraries.length=0;myLibraries.push({id:'lib-a',name:'SMUR 75',role:'admin'});
+    categories.push({id:'c-urg-a',name:'Urgences',color:'#7a2f6b',library:'lib-a'},{id:'c-trauma',name:'Trauma',color:'#116b4c',library:'lib-a'});
+    const mk=(id,lib,cat)=>{const f=JSON.parse(JSON.stringify(fiches[0]));f.id=id;f.title=id;f.library=lib;f.category=cat;fiches.push(f);return f;};
+    const p=fiches[0],a1=mk('a424-1','lib-a','c-urg-a'),a2=mk('a424-2','lib-a','');const pCat=p.category;
+    state.homeLib=null;render();await w(300);
+    document.getElementById('selTog').click();await w(250);
+    for(const id of [p.id,a1.id,a2.id]){main.querySelector(`[data-selid="${id}"]`).click();await w(100);}
+    out.cpt=document.getElementById('selN').textContent;
+    const rangs=()=>Object.fromEntries([...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>[x.querySelector('.mm-lb').textContent,(x.querySelector('.mm-sub')||{}).textContent||'']));
+    document.getElementById('selDo').click();await w(300);
+    out.acte=rangs()['Ranger dans une catégorie…'];
+    const ranger=document.querySelector('.popmenu [data-pickopt="selCat"]');if(!ranger)return out;   // rangée absente : rouge, pas une panne
+    ranger.click();await w(300);
+    out.tete=(document.querySelector('.popmenu .mm-ctx')||{}).textContent||'';
+    const R=rangs();out.ordre=Object.keys(R).slice(0,2).join('|');
+    /* intertitres : où le nom existe + le partage, une fois ; chaque nom sous le sien */
+    const grp={};let h='';document.querySelectorAll('.popmenu .mm-head,.popmenu [data-pickopt]').forEach(x=>{
+      if(x.classList.contains('mm-head'))h=x.textContent;else if(h)(grp[h]=grp[h]||[]).push(x.querySelector('.mm-lb').textContent);});
+    out.grp=grp;
+    out.coche=[...document.querySelectorAll('.popmenu [aria-selected="true"]')].length;
+    [...document.querySelectorAll('.popmenu [data-pickopt]')].find(x=>x.querySelector('.mm-lb').textContent==='Trauma').click();await w(300);
+    out.apres=[a1.category,a2.category,p.category===pCat];
+    out.toast=[...document.querySelectorAll('.toast')].map(x=>x.textContent).join('|');
+    /* une seule bibliothèque : ni en-tête, ni sous-ligne — le sélecteur d'avant */
+    selSet().clear();selSet().add(a1.id);selSet().add(a2.id);render();await w(250);
+    document.getElementById('selDo').click();await w(300);
+    document.querySelector('.popmenu [data-pickopt="selCat"]').click();await w(300);
+    out.seule={tete:!!document.querySelector('.popmenu .mm-ctx'),sub:rangs().Urgences};
+    return out;});
+  t('A424 : le compte dit que la sélection mêle deux bibliothèques', /deux bibliothèques/.test(r.cpt), r.cpt);
+  t('A424 : « Ranger dans une catégorie… » reste offert, sa sous-ligne dit la règle', /par nom/.test(r.acte||''), String(r.acte));
+  t('A424 : une notice dit que les bibliothèques diffèrent et ce qui en découle', /2 bibliothèques différentes/.test(r.tete||'')&&/ne change pas/.test(r.tete||''), String(r.tete));
+  const G=r.grp||{};
+  t('A424 : « Dans les deux bibliothèques » porte Urgences et le partage (1 dans Perso · 2 dans SMUR 75)', (G['Dans les deux bibliothèques1 dans Perso · 2 dans SMUR 75']||[]).includes('Urgences'), JSON.stringify(Object.keys(G)));
+  t('A424 : « Seulement dans SMUR 75 » porte Trauma et ce qui reste inchangé', (G['Seulement dans SMUR 752 rangés · 1 inchangé']||[]).includes('Trauma'), JSON.stringify(Object.keys(G)));
+  t('A424 : les noms communs aux deux bibliothèques d\'abord, aucune rangée cochée sur des catégories mêlées', r.ordre==='Sans catégorie|Urgences'&&r.coche===0, r.ordre+' coché='+r.coche);
+  t('A424 : « Trauma » range les deux de SMUR 75, laisse Perso inchangé, et le toast le dit', (r.apres||[]).join()==='c-trauma,c-trauma,true'&&/inchangé/.test(r.toast)&&/Perso/.test(r.toast), JSON.stringify(r.apres)+' '+r.toast);
+  t('A424 : une seule bibliothèque — le sélecteur d\'avant, sans en-tête ni sous-ligne', !!r.seule&&!r.seule.tete&&!r.seule.sub, JSON.stringify(r.seule));
+  await page.close();
+});
+
 /* ══ LA PORTE « ＋ » DE L'ÉDITEUR AMÈNE SUR CE QU'ELLE CRÉE (v5.10.8) ═══════════════════════════
    CETTE SECTION EXISTE PARCE QUE RIEN NE REGARDAIT CE CHEMIN. Signalé à l'usage : « en mode
    édition, quand on clique sur ajouter (étape, chronomètre, minuteur, compteur…) le scroll ne
