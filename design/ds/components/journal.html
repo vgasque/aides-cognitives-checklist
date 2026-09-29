@@ -879,21 +879,16 @@
   /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
   #homeDock .filt-tog{width:44px;height:44px;min-height:44px;box-shadow:var(--shadow-float)}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
-  /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
-     est un bouton discret (même encre d'action).
-     ⚠ LA CIBLE NE PEUT PAS VENIR DU SEUL HALO ICI (audit design v5.19, mesuré) : le bouton vit
-     dans `.dir-hs`, qui est en overflow:hidden pour ellipser les longs résumés — le ::after de
-     -8px y était ROGNÉ, et un tap à 5 px du rectangle atteignait .dir-wrap, pas le bouton
-     (elementFromPoint ; zone réelle 72×18, sous les 24 px de WCAG 2.5.8). Le dessin porte donc
-     lui-même les 24 px (inline-flex centré — la rangée .dir-h absorbe les ~6 px), et le halo ne
-     reste qu'en BONUS là où le clip le laisse vivre. La sonde de capture d'audit-a11y garde
-     désormais ce cas (« halo rogné, capture perdue »). */
-  .dir-hf{position:relative;display:inline-flex;align-items:center;min-height:24px;
-    border:0;background:none;padding:0;margin:0;font:inherit;
-    color:var(--act);cursor:pointer;border-radius:var(--r-1)}
-  .dir-hf::after{content:"";position:absolute;inset:-8px}
-  .dir-hf:hover{text-decoration:underline}
-  .dir-hf:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A429 (P4) : les filtres posés en PUCES sous la ligne de compte — bleu : un état actif, jamais un registre de
+     danger (règle 8). Cibles de 32 px (règle 9) ; la croix a sa propre cible. */
+  .af-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+  .af-chip{display:inline-flex;align-items:center;min-height:32px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary-200);color:var(--act);max-width:100%}
+  .af-l{display:inline-flex;align-items:center;gap:6px;min-height:32px;min-width:0;padding:0 4px 0 12px;border:0;background:none;color:inherit;font:inherit;font-size:var(--t-body);font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .af-l b{font-weight:800}
+  .af-x{flex:none;width:32px;height:32px;border:0;border-radius:999px;background:none;color:inherit;font:inherit;font-size:17.5px;line-height:1;cursor:pointer}
+  .af-x:hover{background:var(--primary-100)}
+  :is(.af-l,.af-x):focus-visible{outline:2px solid var(--act);outline-offset:1px;border-radius:999px}
+  .af-all{margin-left:4px;min-height:32px}
   /* A423 : capsule (pleinement arrondie, comme le cercle voisin) et ombre de flottaison ; la nuit, sans
      ombre, le contour --ctl-line (3:1) borde les deux commandes, qui passent sur des cartes de leur teinte. */
   #homeDock .hdr-search input{border-radius:999px;box-shadow:var(--shadow-float)}
@@ -2305,6 +2300,13 @@
   }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
   .vs-h{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
+  .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
+  .vs-part{display:flex;align-items:center;gap:8px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .vs-pic{flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act)}
+  .vs-pt{margin:0;font-size:var(--t-item);font-weight:800;color:var(--ink)}
+  .vs-pn{font-size:var(--t-meta);font-weight:700;color:var(--act)}
+  .vs-part .linkbtn{min-height:32px}
   .vs-seg .seg-btn{min-height:44px;padding:0 4px;font-size:var(--t-body);white-space:nowrap}   /* A375 : un seul segment, L 44 */
   html.zw360 .vs-seg .seg-btn{padding:0 2px;font-size:var(--t-meta)}   /* 320 px : « Protocoles » et « Catégorie » ne tiennent pas à 13,5 (mesuré) */
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
@@ -5830,7 +5832,8 @@
      simulateur 402 pt (3 px) et sur bureau (ça tient) — c'est la largeur du POINT du zoom et de
      l'appareil réels qui l'a révélé : borner, jamais figer, une rangée qui sait passer à la
      ligne. */
-  .set-row .accent-row{flex:0 1 auto;min-width:0;max-width:100%}
+  .set-row .accent-row{flex:0 1 auto;min-width:0;max-width:100%;padding:6px 0}   /* A426 : l'anneau de la pastille choisie (4 px + ×1,08) a sa place, la rangée ne touche plus le bord */
+  .set-row:has(>.accent-row){padding-block:8px}
   .auth-card-in{display:flex;align-items:center;gap:12px;margin-bottom:4px}
   .auth-avatar{width:44px;height:44px;border-radius:var(--r-3);background:var(--primary-soft);color:var(--act);display:flex;align-items:center;justify-content:center;font-size:17.5px;font-weight:800;flex:none}
   .auth-id{min-width:0}
@@ -6715,7 +6718,7 @@
   .hs-wrap.on .hs-n{color:var(--ink-2)}
   .hs-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .hs-row .hs-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hs-n{color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums}
+  .hs-n{color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums;min-width:3ch;text-align:right}   /* A426 : colonne de largeur fixe — le cadenas qui la précède ne bouge plus entre 1 et 3 chiffres */
   .hs-row svg{flex:none}
   /* Rangée bibliothèque (canvas) : [ zone pick flex:1 | colonne 34px ] — la colonne existe sur
      TOUTES les rangées (compteurs alignés) : crayon ✎ (admin), cadenas non interactif (lecture

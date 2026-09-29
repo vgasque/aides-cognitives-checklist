@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-zwznxRepLykNLjnPsvGTlwwB0adlnfm+Q1gnJKXuCjE='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UANs8Uc5xLBdkDuO71Zbf9EVm/7oqr/XLjy0ZyY4yNs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1235,21 +1235,16 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* A423 : L 44, la hauteur du champ voisin — deux commandes paires de la même rangée (échelle A375). */
   #homeDock .filt-tog{width:44px;height:44px;min-height:44px;box-shadow:var(--shadow-float)}
   #homeDock .hdr-search input{height:44px;min-height:44px;font-size:var(--t-item)}   /* height : le rembourrage du champ le portait à 47 */
-  /* La porte des filtres HORS recherche : le fragment « filtres : … » de la ligne Répertoire
-     est un bouton discret (même encre d'action).
-     ⚠ LA CIBLE NE PEUT PAS VENIR DU SEUL HALO ICI (audit design v5.19, mesuré) : le bouton vit
-     dans `.dir-hs`, qui est en overflow:hidden pour ellipser les longs résumés — le ::after de
-     -8px y était ROGNÉ, et un tap à 5 px du rectangle atteignait .dir-wrap, pas le bouton
-     (elementFromPoint ; zone réelle 72×18, sous les 24 px de WCAG 2.5.8). Le dessin porte donc
-     lui-même les 24 px (inline-flex centré — la rangée .dir-h absorbe les ~6 px), et le halo ne
-     reste qu'en BONUS là où le clip le laisse vivre. La sonde de capture d'audit-a11y garde
-     désormais ce cas (« halo rogné, capture perdue »). */
-  .dir-hf{position:relative;display:inline-flex;align-items:center;min-height:24px;
-    border:0;background:none;padding:0;margin:0;font:inherit;
-    color:var(--act);cursor:pointer;border-radius:var(--r-1)}
-  .dir-hf::after{content:"";position:absolute;inset:-8px}
-  .dir-hf:hover{text-decoration:underline}
-  .dir-hf:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+  /* A429 (P4) : les filtres posés en PUCES sous la ligne de compte — bleu : un état actif, jamais un registre de
+     danger (règle 8). Cibles de 32 px (règle 9) ; la croix a sa propre cible. */
+  .af-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+  .af-chip{display:inline-flex;align-items:center;min-height:32px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary-200);color:var(--act);max-width:100%}
+  .af-l{display:inline-flex;align-items:center;gap:6px;min-height:32px;min-width:0;padding:0 4px 0 12px;border:0;background:none;color:inherit;font:inherit;font-size:var(--t-body);font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .af-l b{font-weight:800}
+  .af-x{flex:none;width:32px;height:32px;border:0;border-radius:999px;background:none;color:inherit;font:inherit;font-size:17.5px;line-height:1;cursor:pointer}
+  .af-x:hover{background:var(--primary-100)}
+  :is(.af-l,.af-x):focus-visible{outline:2px solid var(--act);outline-offset:1px;border-radius:999px}
+  .af-all{margin-left:4px;min-height:32px}
   /* A423 : capsule (pleinement arrondie, comme le cercle voisin) et ombre de flottaison ; la nuit, sans
      ombre, le contour --ctl-line (3:1) borde les deux commandes, qui passent sur des cartes de leur teinte. */
   #homeDock .hdr-search input{border-radius:999px;box-shadow:var(--shadow-float)}
@@ -2661,6 +2656,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   }
   .vs-g{display:flex;flex-direction:column;gap:8px;padding:6px 0 10px}
   .vs-h{font-size:var(--t-meta);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+  /* A429 (P1) : deux parties nommées dans la feuille « Affichage » — Filtrer (compte, « Tout effacer ») puis Présenter. */
+  .vs-sec{border:1px solid var(--work-line);border-radius:var(--r-4);padding:12px 14px 4px;margin-bottom:12px}
+  .vs-part{display:flex;align-items:center;gap:8px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .vs-pic{flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:var(--r-1);background:var(--primary-soft);color:var(--act)}
+  .vs-pt{margin:0;font-size:var(--t-item);font-weight:800;color:var(--ink)}
+  .vs-pn{font-size:var(--t-meta);font-weight:700;color:var(--act)}
+  .vs-part .linkbtn{min-height:32px}
   .vs-seg .seg-btn{min-height:44px;padding:0 4px;font-size:var(--t-body);white-space:nowrap}   /* A375 : un seul segment, L 44 */
   html.zw360 .vs-seg .seg-btn{padding:0 2px;font-size:var(--t-meta)}   /* 320 px : « Protocoles » et « Catégorie » ne tiennent pas à 13,5 (mesuré) */
   .vs-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 8px;margin-top:6px;border:0;border-top:1px solid var(--line);background:none;font-family:inherit;font-size:var(--t-item);font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
@@ -6186,7 +6188,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      simulateur 402 pt (3 px) et sur bureau (ça tient) — c'est la largeur du POINT du zoom et de
      l'appareil réels qui l'a révélé : borner, jamais figer, une rangée qui sait passer à la
      ligne. */
-  .set-row .accent-row{flex:0 1 auto;min-width:0;max-width:100%}
+  .set-row .accent-row{flex:0 1 auto;min-width:0;max-width:100%;padding:6px 0}   /* A426 : l'anneau de la pastille choisie (4 px + ×1,08) a sa place, la rangée ne touche plus le bord */
+  .set-row:has(>.accent-row){padding-block:8px}
   .auth-card-in{display:flex;align-items:center;gap:12px;margin-bottom:4px}
   .auth-avatar{width:44px;height:44px;border-radius:var(--r-3);background:var(--primary-soft);color:var(--act);display:flex;align-items:center;justify-content:center;font-size:17.5px;font-weight:800;flex:none}
   .auth-id{min-width:0}
@@ -7071,7 +7074,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .hs-wrap.on .hs-n{color:var(--ink-2)}
   .hs-row:focus-visible{outline:2px solid var(--act);outline-offset:-2px}
   .hs-row .hs-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hs-n{color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums}
+  .hs-n{color:var(--ink-soft);font-weight:500;font-size:12px;flex:none;font-variant-numeric:tabular-nums;min-width:3ch;text-align:right}   /* A426 : colonne de largeur fixe — le cadenas qui la précède ne bouge plus entre 1 et 3 chiffres */
   .hs-row svg{flex:none}
   /* Rangée bibliothèque (canvas) : [ zone pick flex:1 | colonne 34px ] — la colonne existe sur
      TOUTES les rangées (compteurs alignés) : crayon ✎ (admin), cadenas non interactif (lecture
@@ -8461,7 +8464,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
 <div class="ai-modal dlg-center" id="viewSheet" role="dialog" aria-modal="true" aria-labelledby="viewSheetTitle"><div class="ai-card dlg-480">
   <div class="ai-top"><h3 id="viewSheetTitle">Affichage</h3><button class="ai-x" aria-label="Fermer">×</button></div>
   <div id="viewSheetBody" class="ai-body"></div>
-  <div class="fs-foot"><button type="button" class="btn ghost" id="viewSheetClear">Tout effacer</button><button type="button" class="btn primary" id="viewSheetGo"></button></div>
+  <div class="fs-foot"><button type="button" class="btn primary" id="viewSheetGo"></button></div>
 </div></div>
 <!-- GÉRER, EN VOIE ÉTROITE (v5.20.0) : la contrepartie des rangées de gestion de la colonne
      gauche, qui n'existe pas sous 780 px. Elle n'invente aucune fenêtre — le corps est peint à
@@ -8722,7 +8725,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.39.6';
+const APP_VERSION='5.39.7';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -13918,6 +13921,9 @@ let _qDebounce=null;   // debounce du champ de recherche (voir l'écouteur 'inpu
    avec le chrome, on ne peut donc pas câbler bouton par bouton. */
 /* Le déclencheur OUVRE LA FEUILLE « Affichage » (v5.30, A353 : rangement et filtres ne font qu'une
    feuille). Délégué : le bouton rond du dock est statique, le fragment « filtres : … » est re-rendu. */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-afx]');if(!b)return;
+  dropFilter(b.dataset.afx);render();
+  const n=main.querySelector('.af-x')||document.getElementById('rangBtn')||document.getElementById('filtTog');if(n&&n.offsetParent)n.focus({preventScroll:true});});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-filttog]');
   if(b){if(viewSheet.classList.contains('on'))closeViewSheet();else openViewSheet();}});
 /* Les crans de type de la rangée de recherche : ils AGISSENT sans quitter la recherche (la
@@ -14181,18 +14187,31 @@ function setSection(s,keepQuery,opts){opts=opts||{};
    nom accessible). Ordre et libellés inchangés (lot M4b). Détail : doctrine-js.md J75. */
 /* COMBIEN de filtres agissent — c'est ce chiffre que porte le déclencheur (v5.0.3). Le type
    compte pour un dès qu'il quitte « Tout », la bibliothèque dès qu'elle quitte « Perso ». */
-function filtersCount(){return (state.homeLib!=null?1:0)+(state.section!=='all'?1:0)+(state.cat?1:0);}
+function filtersCount(){return filtersList().length;}
 /* LE RÉSUMÉ DES FILTRES, EN TOUTES LETTRES, DANS L'EN-TÊTE DE SECTION (v5.6, lot 5). Ranger les
    filtres derrière un déclencheur ne se paie qu'à une condition : qu'un filtre POSÉ reste
    annoncé là où l'on lit la liste qu'il restreint. Le badge chiffré du déclencheur dit COMBIEN ;
    ce résumé dit LESQUELS — et sans lui, on chercherait une aide dans un corpus amputé sans
    savoir pourquoi elle n'y est pas, qui est le pire mode de défaillance de cet écran. */
-function filtersSummary(){
-  const p=[];
-  if(state.homeLib!=null)p.push(state.homeLib===''?'Perso':(libName(state.homeLib)||'bibliothèque partagée'));
-  if(state.section==='fiches')p.push('aides');else if(state.section==='protocols')p.push('références');
-  if(state.cat){const c=categories.find(x=>catKey(x)===state.cat);if(c)p.push(c.name);}
-  return p.length?` · <button type="button" class="dir-hf" data-filttog aria-haspopup="dialog" aria-label="Modifier l'affichage et les filtres — ${esc(p.join(' · '))}">filtres : ${esc(p.join(' · '))}</button>`:'';}
+/* A429 — LES FILTRES POSÉS, UNE LISTE : les puces de la page, le compte du déclencheur et « Tout effacer » la lisent.
+   « À relire » y entre (il restreint la liste ; l'ancien compte l'oubliait, `section` restant à « all »). */
+function filtersList(){const p=[];
+  if(state.homeRev)p.push({k:'type',t:'Afficher',v:'À relire'});
+  else if(state.section==='fiches'||state.section==='protocols')p.push({k:'type',t:'Afficher',v:state.section==='fiches'?'Aides':'Protocoles'});
+  if(state.homeLib!=null)p.push({k:'lib',t:'Bibliothèque',v:state.homeLib===''?'Perso':(libName(state.homeLib)||'Bibliothèque partagée')});
+  if(state.cat){const c=categories.find(x=>catKey(x)===state.cat);p.push({k:'cat',t:'Catégorie',v:c?c.name:state.cat,col:c?safeColor(c.color):''});}
+  return p;}
+function dropFilter(k){const all=k==='all';
+  if(all||k==='type'){state.homeRev=false;if(state.section!=='all'){state.section='all';try{localStorage.setItem(spaceKey('ac-section'),'all');}catch(e){}}}
+  if(all||k==='lib')state.homeLib=null;
+  if(all||k==='cat')state.cat='';
+  state.libLimit=LIB_PAGE;}
+/* P4 : une puce par filtre posé, sous la ligne de compte — la valeur se LIT là où l'on lit la liste ; la puce rouvre
+   la feuille, sa croix retire ce filtre seul. Remplace la phrase « filtres : … » (A278). */
+function filtersBarHtml(){const p=filtersList();if(!p.length)return '';
+  return `<div class="af-bar" role="group" aria-label="Filtres posés">`+p.map(f=>`<span class="af-chip"><button type="button" class="af-l" data-filttog aria-haspopup="dialog">${f.col?`<span class="cat-dot" style="--catcol:${f.col}"></span>`:''}${esc(f.t)} : <b>${esc(f.v)}</b></button>`
+    +`<button type="button" class="af-x" data-afx="${f.k}" aria-label="${esc('Retirer le filtre '+f.t+' : '+f.v)}">\u00d7</button></span>`).join('')
+    +(p.length>1?`<button type="button" class="linkbtn af-all" data-afx="all">Tout effacer</button>`:'')+`</div>`;}
 /* « Rangé par <clé> ⌄ » (maquette v5.18) : une PHRASE qui DIT l'état avant d'offrir de le
    changer — un segmenté demande d'inférer le cran actif. Le menu est openPickMenu : la listbox
    maison (ancrée au pointeur fin, feuille en étroit, focus/Échap/voile déjà audités). */
@@ -14242,6 +14261,13 @@ const SEC_T=[['all','Tout'],['fiches','Aides'],['protocols','Protocoles']];
 // de liste : « Nom — partagée · lecture seule — n fiches/protocoles », cf. renderHomeList.)
 // Rangée de catégories en chips (accueil ÉTROIT) : mêmes pastilles pour fiches et protocoles.
 // Chips de catégorie de la feuille « Affichage » (v5.30, A353) : mêmes pastilles pour fiches et protocoles.
+/* A428 : les bibliothèques en puces, même dessin que les catégories ; absentes s'il n'y en a qu'une. */
+function libChipsHtml(){const bibs=bibGroups(homeVis()).filter(g=>g.key!=null);if(bibs.length<2)return '';
+  const chip=(key,label,ic,on)=>`<button class="catchip${on?' on':''}" data-vslib="${esc(key)}" aria-pressed="${on?'true':'false'}">${ic}${esc(label)}</button>`;
+  return `<div class="vs-g vs-cats"><div class="vs-h" id="vsh-lib">Bibliothèque</div><div class="chiprow" role="group" aria-labelledby="vsh-lib">`
+    +chip('*','Toutes','',state.homeLib==null)
+    +bibs.map(g=>chip(g.key,g.L,g.lib?uiIcon(canEditScope(g.lib.id)?'book':'lock',13):uiIcon('user',13),state.homeLib===g.key)).join('')
+    +`</div></div>`;}
 function catChipsHtml(){
   return `<button class="catchip${!state.cat?' on':''}" data-cat="">Toutes</button>`
     +catsUtilesAll().map(c=>catChipHtml(c,state.cat===catKey(c),'catchip','data-cat')).join('');}
@@ -14258,6 +14284,8 @@ function hsRow(o){const tin=!o.act&&o.tail?o.tail:'';
     +`<button class="hs-row" ${o.attrs||''}><span class="hs-mk">${o.mark||''}</span>`
     +`<span class="hs-name">${o.label}</span>${tin}</button>${o.act||''}${tin?'':(o.tail||'')}</div>`;}
 const HS_RING='<span class="hs-ring"></span>';
+/* Ce que l'accueil peut montrer (brouillons d'autrui exclus) — la colonne gauche et la feuille « Affichage » comptent ici. */
+const homeVis=()=>(fiches||[]).concat(protocols||[]).filter(x=>x&&(canEditFiche(x)||x.status!=='draft'));
 function homeSideHtml(){
   /* v5.18 (décision utilisateur) — LA SIDEBAR FILTRE, À UNE SEULE GRAMMAIRE ; « Rangé par »
      LIT. Bibliothèques : « Toutes » (défaut, l'union) ou une seule — un filtre de VUE, patron
@@ -14265,7 +14293,7 @@ function homeSideHtml(){
      cran que la feuille (state.cat). Comptes STABLES : la visibilité seule (brouillons d'autrui
      exclus), pas les filtres courants — un compte qui bouge sous le geste se lit comme une
      erreur. Le clic ne touche JAMAIS au rangement (un verbe par commande). */
-  const visAll=(fiches||[]).concat(protocols||[]).filter(x=>x&&(canEditFiche(x)||x.status!=='draft'));
+  const visAll=homeVis();
   const bibs=bibGroups(visAll);
   const scope=visAll.filter(homeLibOn);
   /* Compte PAR OBJET de catégorie (Map), jamais par id : deux bibliothèques peuvent porter le
@@ -15195,7 +15223,6 @@ function renderHomeList(cfg){
             :gk==='kind'?kindGroups(list.slice().sort(srt))
             :gk==='none'?[{L:'',items:list.slice().sort(srt)}]
                        :azGroups(list.slice().sort(srt),x=>x.title||'');
-    const filtTail=filtersSummary();
     /* Les comptes de TENUE À JOUR (brouillons, validations > 2 ans) vivent dans l'en-tête du
        répertoire : c'est le seul endroit où ce travail se voit sans le chercher. */
     /* L'intertitre d'une section dit ce qu'on doit savoir AVANT d'y entrer : nom, compte —
@@ -15231,11 +15258,12 @@ function renderHomeList(cfg){
       /* v5.30 (maquette v5) : plus d'intertitre « Répertoire » — la ligne dit le compte et porte
          « Affichage » (rangement, catégories). */
       +`<div class="dir-h dir-sum"><span class="dir-hs">${(()=>{const q=list.filter(x=>protocols.indexOf(x)>=0).length,pp=list.length-q,r=list.filter(x=>x.status==='draft'||x.status==='review'||staleDate(x.validatedAt)).length;
-          return [pp?`${pp} parcours`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}${filtTail}</span>${state.selOn?'':homeRangHtml()}${selTogHtml()}</div>`
+          return [pp?`${pp} parcours`:'',q?`${q} protocole${q>1?'s':''}`:'',r?`${r} à relire`:''].filter(Boolean).join(' · ')||'Aucune aide';})()}</span>${state.selOn?'':homeRangHtml()}${selTogHtml()}</div>`
+      +(state.selOn?'':filtersBarHtml())
       +`<div class="dir-book${state.homeCompact?' compact':''}">`
       +az.map(g=>`<div class="dir-g" data-azg="${esc(g.L)}">${secHead(g)}<div class="dir-grid">${g.items.map(rowFor).join('')}</div></div>`).join('')
       +`</div>`
-      :emptyHtml}</div>`;
+      :((state.selOn?'':filtersBarHtml())+emptyHtml)}</div>`;   /* A429 : « aucun résultat » est justement là où l'on retire un filtre */
     /* Le rail n'indexe que l'ALPHABET (v5.18) : en rangement bibliothèque ou catégories, les
        intertitres collants orientent déjà — et en voie large c'est la colonne gauche qui indexe. */
     if(gk==='az'&&list.length&&az.length>=2)railHtml=`<nav class="azrail" id="azRail" aria-label="Aller à la lettre">${az.map(g=>`<button type="button" data-azl="${esc(g.L)}" aria-label="Aller à ${esc(g.L)}" title="${esc(g.L)}">${esc(g.L)}</button>`).join('')}</nav>`;
@@ -25991,7 +26019,7 @@ function openViewSheet(rerender){_viewRerender=rerender||null;viewSheet.classLis
 function closeViewSheet(){if(!viewSheet.classList.contains('on'))return;viewSheet.classList.remove('on');_bgUnlock();syncFiltTog(true);
   const t=document.getElementById('filtTog');
   if(t&&!t.hidden&&t.offsetParent)t.focus({preventScroll:true});
-  else{const f=main.querySelector('.dir-hf');if(f)f.focus({preventScroll:true});}}
+  else{const f=main.querySelector('.af-l');if(f)f.focus({preventScroll:true});}}
 bindModalDismiss(viewSheet,closeViewSheet);
 function viewSheetGroups(){
   const filt=state.homeRev?'review':(state.section||'all');
@@ -26000,14 +26028,21 @@ function viewSheetGroups(){
     {k:'sort',t:'Trier',v:state.homeSort||'alpha',o:[['alpha','A → Z'],['recent','Plus récentes']]},
     {k:'group',t:'Regrouper',v:homeGroupKey(),o:[['none','Non'],['kind','Type'],['cat','Catég.'],['bib','Biblio.'],['az','A–Z']]},
     {k:'dens',t:'Densité',v:state.homeCompact?'1':'0',o:[['0','Détaillée'],['1','Compacte']]}];}
-/* v5.30 (A353) : UNE feuille pour l'affichage ET les filtres — « Afficher » (type), « Catégorie »
-   (chips), puis Trier · Regrouper · Densité ; pied « Tout effacer · Voir les n résultats » repris de
-   la feuille Filtrer. Chaque geste agit en direct derrière la feuille, qui se repeint. */
+/* v5.30 (A353) : UNE feuille pour l'affichage ET les filtres. A429 (P1) : deux parties NOMMÉES — « Filtrer » (ce qui
+   restreint : afficher, bibliothèque, catégorie ; compte et « Tout effacer » à son titre) puis « Présenter » (ce qui
+   range : trier, regrouper, densité). Chaque geste agit en direct derrière la feuille, qui se repeint. */
 function paintViewSheet(){const body=document.getElementById('viewSheetBody');if(!body)return;
-  const catG=`<div class="vs-g vs-cats"><div class="vs-h" id="vsh-cat">Catégorie</div><div class="chiprow" role="group" aria-labelledby="vsh-cat">${catChipsHtml()}</div></div>`;
-  body.innerHTML=viewSheetGroups().map((g,gi)=>{const i=Math.max(0,g.o.findIndex(x=>x[0]===g.v));
-    return (gi===1?catG:'')+`<div class="vs-g"><div class="vs-h" id="vsh-${g.k}">${esc(g.t)}</div><div class="seg vs-seg" role="radiogroup" aria-labelledby="vsh-${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-vs="${g.k}:${v}">${esc(l)}</button>`).join('')}</div></div>`;}).join('')
+  const seg=g=>{const i=Math.max(0,g.o.findIndex(x=>x[0]===g.v));
+    return `<div class="vs-g"><div class="vs-h" id="vsh-${g.k}">${esc(g.t)}</div><div class="seg vs-seg" role="radiogroup" aria-labelledby="vsh-${g.k}" style="--seg-n:${g.o.length};--seg-i:${i}"><span class="seg-pill" aria-hidden="true"></span>${g.o.map(([v,l],j)=>`<button type="button" class="seg-btn${j===i?' on':''}" role="radio" aria-checked="${j===i?'true':'false'}" data-vs="${g.k}:${v}"${g.k==='filt'&&j===i?' data-dlgfocus':''}>${esc(l)}</button>`).join('')}</div></div>`;};   // focus d'ouverture sur le cran actif d'« Afficher », jamais sur « Tout effacer »
+  const G=viewSheetGroups();
+  // Deux BLOCS encadrés, chacun son titre et son icône DEDANS : ce qui restreint, puis ce qui range.
+  const part=(id,ic,t,tail,inner)=>`<section class="vs-sec" aria-labelledby="${id}"><div class="vs-part"><span class="vs-pic" aria-hidden="true">${uiIcon(ic,16)}</span><h4 class="vs-pt" id="${id}">${t}</h4>${tail}</div>${inner}</section>`;
+  body.innerHTML=part('vsp-f','filter','Filtrer','<span class="vs-pn" id="vsN"></span><button type="button" class="linkbtn" id="viewSheetClear">Tout effacer</button>',
+      seg(G[0])+libChipsHtml()+`<div class="vs-g vs-cats"><div class="vs-h" id="vsh-cat">Catégorie</div><div class="chiprow" role="group" aria-labelledby="vsh-cat">${catChipsHtml()}</div></div>`)
+    +part('vsp-p','ladder','Présenter','',G.slice(1).map(seg).join(''))
     +((!(catMgrOn()||mgrDeux()))?'':`<button type="button" class="vs-row" data-catmgr>${uiIcon('gear',15)}<span>${mgrDeux()?(catMgrOn()?'Gérer les catégories et les bibliothèques':'Gérer les bibliothèques'):'Gérer les catégories'}</span><span class="hs-chev" aria-hidden="true">›</span></button>`);
+  /* « Tout effacer » remet les familles de FILTRE à leur cran neutre d'un geste ; il ne paraît que s'il y a à effacer. */
+  document.getElementById('viewSheetClear').onclick=()=>{dropFilter('all');render();paintViewSheet();};
   body.querySelectorAll('[data-vs]').forEach(b=>b.onclick=()=>{const [k,v]=b.dataset.vs.split(':');
     if(k==='filt'){state.homeRev=v==='review';setSection(v==='review'?'all':v,true,{keepCat:true});}
     else if(k==='sort')setHomePref('homeSort',v);
@@ -26016,6 +26051,9 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
     const root=b.closest('.seg');paintSeg(root,'data-vs',[...root.querySelectorAll('[data-vs]')].indexOf(b));
     root.querySelectorAll('[data-vs]').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
     viewSheetRedo();paintViewFoot();});
+  /* A428 : filtrer par bibliothèque au téléphone et à la tablette — le cran de la colonne gauche (`state.homeLib`). */
+  body.querySelectorAll('[data-vslib]').forEach(x=>x.onclick=()=>{const v=x.dataset.vslib;
+    state.homeLib=v==='*'?null:v;state.libLimit=LIB_PAGE;viewSheetRedo();paintViewSheet();});
   body.querySelectorAll('[data-cat]').forEach(x=>x.onclick=()=>{const c=x.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;
     viewSheetRedo();paintViewSheet();});
   const cm=body.querySelector('[data-catmgr]');if(cm)cm.onclick=()=>{closeViewSheet();openHomeMgr();};   // la feuille « Gérer » (A287) ou le gestionnaire, selon ce qui se gère
@@ -26027,16 +26065,12 @@ function paintViewFoot(){
   if(!go)return;
   const n=main.querySelectorAll('.dir-row').length;
   go.textContent=n?`Voir ${n===1?'le résultat':'les '+n+' résultats'}`:'Aucun résultat';
-  const k=filtersCount();
-  if(cl){cl.hidden=!k;cl.textContent=`Tout effacer${k?' ('+k+')':''}`;}}
+  const k=filtersCount(),nn=document.getElementById('vsN');
+  if(cl)cl.hidden=!k;
+  if(nn)nn.textContent=k?k+' actif'+(k>1?'s':''):'';}
 const mgrSheet=document.getElementById('mgrSheet');
 bindModalDismiss(mgrSheet,closeMgrSheet);
 document.getElementById('viewSheetGo').onclick=closeViewSheet;
-/* « Tout effacer » remet les familles de FILTRE à leur cran neutre d'un geste — on ne défait pas un
-   corpus restreint chip par chip. Il n'apparaît que s'il y a quelque chose à effacer. */
-document.getElementById('viewSheetClear').onclick=()=>{
-  state.homeLib=null;state.homeRev=false;state.section='all';state.cat='';state.libLimit=LIB_PAGE;
-  render();paintViewSheet();};
 const catModal=document.getElementById('catModal');
 let catDelId=null,catPickKey=null,catPickOrig=null,catHueOpen=null,_catHost='catMgrBody';   // hôte courant : fenêtre (éditeur) ou panneau inline (accueil)
 /* Contenu d'une catégorie — L'UNION fiches + protocoles, comme la colonne gauche (signalé :
@@ -27985,15 +28019,24 @@ const VVT_MIN_CLAVIER=60;
      hors clavier, un `offsetTop` non nul est TOUJOURS incohérent. Recollage par `scrollBy` de
      l'offset (le contenu visible ne bouge pas d'un pixel). Jamais en continu : resize du viewport
      visuel, perte de focus, retour de bfcache. Détail : doctrine-js.md J208. */
+  /* A427 (signalé, captures iPhone : au retour dans l'app installée, bande vide en haut, ou quai remonté au milieu) :
+     trois angles morts. (1) Une app installée rouverte depuis le sélecteur n'émet PAS `pageshow`, seulement
+     `visibilitychange` : on y recolle aussi, deux fois (iOS repose sa géométrie en retard). (2) La garde « un champ
+     a le focus » valait pour « clavier ouvert » — après un retour le focus peut rester sans clavier : on garde la
+     DÉFINITION (le viewport visuel plus court que celui de mise en page). (3) Le décalage peut être NÉGATIF (zone
+     visible au-dessus de la page : bande vide en haut, quai poussé sous l'écran) — `scrollBy` n'y peut rien en
+     haut de page ; un aller-retour d'un pixel force WebKit à recoller les deux viewports. */
   const unpan=()=>{
     if(vv.scale>1.02)return;
-    const ae=document.activeElement;
-    if(ae&&(/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)||ae.isContentEditable))return;
+    if((window.innerHeight-vv.height)>VVT_MIN_CLAVIER)return;   // clavier ouvert : le décalage est légitime
     const o=vv.offsetTop;
-    if(o>=1)window.scrollBy(0,o);};
+    if(o>=1)window.scrollBy(0,o);
+    else if(o<=-1){window.scrollBy(0,1);window.scrollBy(0,-1);}};
   vv.addEventListener('resize',()=>setTimeout(unpan,60));
   window.addEventListener('focusout',()=>setTimeout(unpan,250));
-  window.addEventListener('pageshow',()=>setTimeout(unpan,60));}}
+  window.addEventListener('pageshow',()=>setTimeout(unpan,60));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible')return;
+    [60,400].forEach(ms=>setTimeout(()=>{set();unpan();},ms));});}}
 // En mode Auto, suit en DIRECT les changements de thème du système.
 if(window.matchMedia){try{matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{if((localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto')==='auto')applyTheme('auto');});}catch(e){}}
 applyTheme(localStorage.getItem(spaceKey('ac-theme'))||localStorage.getItem('ac-theme')||'auto');

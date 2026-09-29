@@ -288,3 +288,59 @@ colonne se centre dans le défileur, l'en-tête dans la page ; nul sur iPad et M
 gouttière des deux côtés (`scrollbar-gutter: stable both-edges`) l'annulerait au prix d'un décalage de 15 px entre
 780 et 1260 px, là où tout est aligné aujourd'hui : écarté.
 
+## A426 — deux défauts d'affichage : le cadenas des bibliothèques, la couleur d'accent
+
+- **Cadenas de la colonne gauche** : il précède le nombre (`hsRow` : acte puis queue), et le nombre n'avait pas
+  de largeur fixe — le cadenas bougeait entre 1 et 2 chiffres. `.hs-n` prend une colonne de 3 ch, alignée à droite
+  (le « nombre au bord droit » d'A275 le dit déjà). Mesuré : cadenas au même x avec 12 et 1.
+- **Couleur d'accent (Moi)** : `.set-row` a 2 px de rembourrage vertical, pensé pour un contrôle en ligne ; quand
+  les pastilles passent à la ligne, elles touchaient le bord bas, et l'anneau de la choisie (4 px, ×1,08)
+  débordait. La rangée de pastilles prend 6 px de marge verticale et son cadre 8 px (`:has(>.accent-row)`).
+
+## A427 — au retour dans l'app installée, les deux viewports se recollent
+
+**Signalé (captures iPhone)** : après avoir quitté puis rouvert l'app, une bande vide en haut de l'accueil (la
+recherche poussée sous l'écran), ou, sur une fiche, le quai « Confirmé — démarrer la session » au milieu de l'écran.
+**Lecture** : le viewport visuel décalé par rapport à celui de mise en page — vers le haut dans le premier cas, vers
+le bas dans le second ; les couches fixes suivent le second, le contenu se voit dans le premier. Le recollage
+`unpan` (v5.10.4) avait trois angles morts : il n'écoutait pas `visibilitychange` (une app installée rouverte depuis
+le sélecteur n'émet pas `pageshow`) ; il renonçait dès qu'un champ avait le focus, même clavier fermé ; il ne
+traitait qu'un décalage positif. **Correctif** : recollage au retour visible (à 60 et 400 ms, iOS repose sa
+géométrie en retard, `--vvh`/`--vvt`/`html.kbd` relus d'abord) ; garde réduite à sa définition (clavier ouvert =
+viewport visuel plus court de plus de `VVT_MIN_CLAVIER`) ; décalage négatif recollé par un aller-retour d'un pixel.
+**Non reproductible hors appareil** : Chromium ne décale jamais les deux viewports sans pincement — à confirmer sur
+l'iPhone, en quittant l'app champ de recherche actif puis sans.
+
+## A428 — filtrer par bibliothèque dans la feuille « Affichage »
+
+Au téléphone et à la tablette, la bibliothèque ne se choisissait que par son RANGEMENT (regrouper par
+bibliothèque) ; seule la colonne gauche du bureau la FILTRAIT. La feuille gagne la famille « Bibliothèque », avant
+« Catégorie », au dessin de ses puces : « Toutes », « Perso », chaque bibliothèque (livre, ou cadenas en lecture
+seule) — le même cran que la colonne (`state.homeLib`), donc « Tout effacer », le compte des filtres et la phrase
+« filtres : … » le prennent déjà en compte. Absente s'il n'y a qu'une bibliothèque. `homeVis()` devient la source
+unique de « ce que l'accueil peut montrer » (colonne et feuille).
+
+## A429 — la feuille « Affichage » en deux parties ; les filtres posés en puces sur la page (P1 + P4)
+
+**Demande de l'auteur**, sur cinq propositions maquettées (actuel, deux parties, deux onglets, liste de réglages,
+filtres posés sur la page) : P1 + P4. Avec la bibliothèque (A428), la feuille empilait six familles sans ordre lisible.
+
+**P1 — deux parties nommées.** « Filtrer » (Afficher, Bibliothèque, Catégorie : ce qui RESTREINT) puis « Présenter »
+(Trier, Regrouper, Densité : ce qui RANGE). Chacune est une SECTION ENCADRÉE (`.vs-sec`, filet `--work-line`, `--r-4`)
+dont l'en-tête porte une pastille d'icône (`filter`, `ladder`) et un titre au corps de rangée, filet dessous : un simple
+filet entre les deux ne se lisait pas comme deux structures (retour de l'auteur). Le titre de « Filtrer » porte le compte (« 2 actifs ») et
+« Tout effacer », qui quitte le pied ; le pied ne dit plus que le résultat (« Voir les 12 résultats »). Focus
+d'ouverture sur le cran actif d'« Afficher » (`data-dlgfocus`) — jamais sur « Tout effacer ».
+
+**P4 — les filtres posés en puces.** Sous la ligne de compte, une puce par filtre (« Bibliothèque : CH Le Mans × ») :
+la puce rouvre la feuille, sa croix retire ce filtre seul, « Tout effacer » à partir de deux. Elles remplacent la
+phrase « filtres : … » (`.dir-hf`, purgée avec son CSS — A278 visait sa cible ; les puces portent 32 px, la croix sa
+propre cible). **Elles restent dans l'état « Aucun résultat »** : c'est là qu'on retire un filtre (la phrase y
+disparaissait). Bleu : un état actif, jamais un registre de danger (règle 8).
+
+**Une source.** `filtersList()` décrit les filtres posés ; le compte du déclencheur (`filtersCount`), les puces et
+« Tout effacer » la lisent ; `dropFilter(k)` retire un filtre ou tous. **Défaut corrigé au passage** : « À relire »
+n'était pas compté (il passe par `homeRev`, `section` restant à « all ») — le déclencheur disait 0 sur une liste
+restreinte. **Témoins** : `audit-a11y` mesure la surface « filtres posés » sur `.af-bar`, `audit-doctrine` ouvre la
+feuille par une puce (`.af-l`) et « Tout effacer » par son id, désormais dans le corps de la feuille.
+

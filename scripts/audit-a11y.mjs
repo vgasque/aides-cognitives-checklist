@@ -339,12 +339,12 @@ const SURFACES = [
       fiches.length=0; protocols.length=0;
       state.section='all'; state.q=''; state.cat=''; state.view='library';
       render(); await new Promise(r=>setTimeout(r,400)); } },
-  /* FILTRES POSÉS (audit design v5.19) : le déclencheur « filtres : … » (.dir-hf) n'existe
+  /* FILTRES POSÉS (audit design v5.19 ; A429 : les puces .af-bar remplacent la phrase .dir-hf) : le déclencheur n'existe
      qu'avec un filtre actif — il ne vivait donc dans AUCUNE surface mesurée, et son halo rogné
      par .dir-hs (overflow:hidden) est resté invisible au harnais. Un défaut hors scope n'est
      pas un défaut absent (leçon v4.75.0, redite). Le filtre se pose par l'état que l'app lit
      elle-même (state.section), puis render() décide — on ne fabrique pas l'écran. */
-  { nom:'état · filtres posés', w:1100, must:'.dir-hf', fn: async()=>{
+  { nom:'état · filtres posés', w:1100, must:'.af-bar', fn: async()=>{
       state.section='fiches'; state.view='library'; render();
       await new Promise(r=>setTimeout(r,400)); } },
   { nom:'état · recherche active', w:390, prep:'read', must:'mark.pf-h', fn: async()=>{

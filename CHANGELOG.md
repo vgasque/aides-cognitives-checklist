@@ -1,5 +1,27 @@
 # Journal des modifications
 
+## [5.39.7] — 2026-09-29
+Retours d'usage sur l'accueil et le téléphone (A426 à A429, doctrine `docs/decisions/lot-v5-39.md`).
+- **Filtrer par bibliothèque.** La feuille « Affichage » propose une rangée « Bibliothèque » (Toutes, Perso, et
+  chaque bibliothèque partagée, cadenas si lecture seule), en plus du regroupement par bibliothèque. Elle
+  n'apparaît que s'il y a au moins deux bibliothèques ; le choix est le même que dans la colonne gauche du bureau.
+- **Une feuille « Affichage » en deux parties.** « Filtrer » (Afficher, Bibliothèque, Catégorie : ce qui
+  restreint) et « Présenter » (Trier, Regrouper, Densité : ce qui range) sont deux sections encadrées, chacune
+  avec son icône et son titre. Le compte des filtres actifs et « Tout effacer » passent dans l'en-tête de
+  « Filtrer » ; le pied ne dit plus que le résultat. À l'ouverture, le focus va sur le choix actif d'« Afficher ».
+- **Les filtres posés en puces sur la liste.** Sous la ligne de compte, une puce par filtre (« Bibliothèque :
+  CH Le Mans × ») : toucher la puce rouvre la feuille, sa croix retire ce seul filtre, « Tout effacer » à partir
+  de deux. Elles restent visibles quand aucun résultat ne correspond, là où l'on en a besoin. Elles remplacent la
+  phrase « filtres : … ».
+- **Cadenas alignés dans la colonne gauche** : les nombres ont une colonne de largeur fixe, les cadenas ne
+  bougent plus d'une rangée à l'autre.
+- **Couleur d'accent dans « Moi »** : la rangée de pastilles ne touche plus le bord de la carte.
+- **Retour dans l'app sur iPhone** : en revenant après l'avoir quittée (surtout avec la recherche active), le haut
+  de la page pouvait rester hors écran et le quai cessait de flotter. L'app recale la vue au retour au premier
+  plan. À vérifier sur l'appareil : le défaut ne se reproduit pas hors de Safari iOS.
+- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet — seuls restent les
+  deux rouges connus de ce poste (en-tête d'accueil à 320 px, barre de sélection).
+
 ## [5.39.6] — 2026-09-29
 Trois retours d'usage (A423 à A425, doctrine `docs/decisions/lot-v5-39.md`).
 - **Au téléphone, la recherche flotte sur la liste.** La bande grise sous la recherche et le bouton filtre
@@ -340,30 +362,3 @@ touchée passait de 70 à plus de 500 px, onze commandes) ; maquettes E1-E7 et c
   jalons, image. Un jalon se lit comme une phrase : « Chocs délivrés ≥ − 3 + ». Les règles d'usage
   ne sont plus répétées à chaque bloc.
 - Témoins : section A383 d'`audit-doctrine`, `audit-k5` et `audit-a11y` (la feuille est mesurée).
-
-## [5.32.0] — 2026-09-26
-Une étape peut dire QUAND elle se présente dans un bloc parcouru plusieurs fois (A382, doctrine
-`docs/decisions/lot-v5-32.md`). Demande de l'auteur, sur maquettes revues fil par fil : au 1ᵉʳ choc,
-il fallait cocher l'adrénaline « après le 3ᵉ choc » pour pouvoir avancer.
-- **Commence** : dès le 1ᵉʳ passage, ou quand un compteur atteint un seuil (« Chocs délivrés ≥ 3 »).
-  **Puis revient** : à chaque passage, à l'échéance du minuteur que relance sa coche, une seule
-  fois, ou au besoin.
-- **Avant son moment**, l'étape reste visible, en pointillé et sans case, avec sa règle au-dessus
-  et ce qui manque dessous (pastilles · « encore 2 », ou le minuteur qui court). « Continuer » ne
-  l'attend pas. « Faire maintenant » la coche quand même, en un toucher.
-- **Quand le moment vient**, la case revient sur place, à la même hauteur, sans défilement ni
-  alerte : « ✓ Chocs délivrés ≥ 3 », ou « Échu » en ambre. Rien ne repart seul.
-- **Une seule fois** : une fois faite, « Faite », plus de case. **Au besoin** : cochable, jamais
-  attendue.
-- **Éditeur** : « Commence » et « Puis » dans les outils de l'étape, réglés sur place. « À
-  l'échéance » reste grisé avec sa raison quand la coche ne relance aucun minuteur. Si le minuteur
-  disparaît, l'étape redevient « à chaque passage » et l'éditeur le signale.
-- **Parcours à plat et Page** annoncent la règle sous l'étape.
-- **Prompt IA** : il sait poser ces moments (seulement quand la source les énonce), écrire deux
-  doses comme deux étapes, et ne plus laisser le seuil dans le libellé.
-- **Fiches d'exemple** : dans l'**ACR**, l'adrénaline commence au 3ᵉ choc puis revient à
-  l'échéance de « prochaine dose », l'amiodarone 300 mg (3ᵉ choc) et 150 mg (5ᵉ) ne se font qu'une
-  fois ; dans l'**Anaphylaxie**, l'adrénaline IM du bloc réfractaire revient à l'échéance de la
-  réévaluation.
-- Réglementaire : § 2 « Le cas du moment d'une étape » (règle de l'auteur appliquée à un compte ou
-  un minuteur de l'équipe, régime des jalons).

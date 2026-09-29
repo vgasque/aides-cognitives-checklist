@@ -89,6 +89,10 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A423 | `lot-v5-39.md` | Au téléphone, la recherche et le filtre flottent, opaques et séparés, sur un bord doux (plus de bande) — le modèle d'iOS 26 sans le verre ; `--shadow-float` |
 | A424 | `lot-v5-39.md` | Ranger une sélection sur plusieurs bibliothèques : par nom, chacun dans la sienne, le sélecteur dit qui va où avant le geste (`selCatPlan`, `catNamed`) |
 | A425 | `lot-v5-39.md` | Accueil sur écran très large : la colonne de 960 px se centre, l'en-tête et le bandeau suivent son axe (`--home-g`) ; six mises en page explorées, la colonne unique gardée pour son ordre de lecture |
+| A426 | `lot-v5-39.md` | Cadenas de la colonne gauche alignés (colonne du nombre à 3 ch) ; pastilles d'accent décollées du cadre |
+| A427 | `lot-v5-39.md` | Au retour dans l'app installée, les viewports visuel et de mise en page se recollent (`visibilitychange`, garde clavier, décalage négatif) |
+| A428 | `lot-v5-39.md` | Filtrer par bibliothèque dans la feuille « Affichage » (même cran que la colonne gauche, `homeVis()`) |
+| A429 | `lot-v5-39.md` | Feuille « Affichage » en deux parties (Filtrer / Présenter) ; filtres posés en puces effaçables sous la ligne de compte, même sans résultat (`filtersList`, `dropFilter`) ; « À relire » compté |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

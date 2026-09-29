@@ -1361,13 +1361,13 @@ await sec('Audit design · la feuille de filtres', async () => {
        du document reviendrait à compter l'intérieur d'un pli, la leçon déjà payée sur le rail
        (v5.4.3). Ce qui compte est que la SURFACE soit refermée et que l'annonce demeure. */
     const repliActifRangees=feuille()?1:0, repliActifEtat=etat(), xRepliActif=bordD();
-    /* HORS recherche, un filtre ACTIF reste annoncé ET modifiable : le fragment « filtres : … »
-       de la ligne Répertoire est la porte de la feuille (la rangée, elle, n'existe plus). */
+    /* HORS recherche, un filtre ACTIF reste annoncé ET modifiable : sa puce sous la ligne de compte (A429, ex-phrase
+       « filtres : … ») est la porte de la feuille (la rangée, elle, n'existe plus). */
     qi.value='';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
     const porte=(()=>{const d=document.getElementById('dockFilt');
-      const f=document.querySelector('.dir-hf');
+      const f=document.querySelector('.af-l');
       return {rangeePartie:!d||d.hidden,ligne:!!f,texte:f?f.textContent.trim():''};})();
-    if(porte.ligne){document.querySelector('.dir-hf').click();await w(400);
+    if(porte.ligne){document.querySelector('.af-l').click();await w(400);
       porte.ouvre=feuille();
       if(porte.ouvre){document.getElementById('viewSheetGo').click();await w(300);}}
     qi.value='a';qi.dispatchEvent(new Event('input',{bubbles:true}));await w(450);
@@ -6678,7 +6678,7 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
     document.getElementById('filtTog').click();await w(300);
     [...document.querySelectorAll('#viewSheetBody [data-cat]')].find(x=>x.textContent.trim()==='Urgences').click();await w(300);
     out.feuille={bib:/Biblio urgences/.test(ids()),perso:/Perso adultes/.test(ids()),
-      on:[...document.querySelectorAll('#viewSheetBody .catchip.on')].map(x=>x.textContent.trim())};
+      on:[...document.querySelectorAll('#viewSheetBody .catchip[data-cat].on')].map(x=>x.textContent.trim())};
     /* « Afficher » (Aides / Protocoles / À relire) sur « Toutes », éléments d'une bibliothèque compris, dans chaque
        rangement (signalé en même temps ; il n'a pas le défaut : il ne passe par aucun id). */
     state.cat='';render();await w(200);
