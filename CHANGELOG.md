@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.39.4] — 2026-09-29
+Deux retours d'usage (A421, doctrine `docs/decisions/lot-v5-39.md`).
+- **« Afficher » Aides / Protocoles filtre enfin.** Ouverte par le bouton « Affichage » de la liste, la
+  feuille changeait bien de type, puis repeignait aussitôt la liste d'ouverture (« Tout ») par-dessus :
+  le choix semblait sans effet. Même chose pour un tri, un regroupement ou une catégorie choisis après
+  avoir changé de type. La feuille re-rend désormais la liste du type choisi, quel que soit le bouton qui
+  l'a ouverte. Le témoin d'A419 ouvrait la feuille par le bouton rond, le seul chemin sans défaut : un
+  second témoin passe par « Affichage », rouge avant le correctif, vert après.
+- **L'anneau autour de « Démarrer la session » est plus fluide.** Il animait une ombre, repeinte à chaque
+  image pendant l'affichage d'une fiche neuve, d'où les saccades, sur iPhone surtout. C'est maintenant un
+  trait de 2 px qui s'éloigne de la capsule par transformation et s'efface en fondu, deux propriétés que
+  le processeur graphique compose sans rien repeindre. Il apparaît en fondu au lieu de surgir à pleine
+  encre, et s'éloigne d'un seul mouvement, sans temps mort à chaque anneau. Mêmes trois anneaux, même
+  départ (800 ms), fini à 4,7 s ; toujours rien sous « réduire les animations ».
+- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), audit complet.
+
 ## [5.39.3] — 2026-09-28
 Outillage d'audit seulement : l'application ne change pas (A420, doctrine `docs/decisions/lot-v5-39.md`).
 - **Le rouge WebKit d'A387 n'était pas une fuite.** Sous WebKit, « une session locale sur l'autre aide
@@ -392,27 +408,3 @@ l'auteur, choisie sur trois versions de maquettes ; puis des micro-mouvements lo
   d'icônes commune ; commentaires ramenés à une ligne, la doctrine vit dans le lot.
 - **Témoins** : 33 tests unitaires (modèle, sortie de boucle, légende) et une section
   `audit-doctrine` « A377 » (25 contrôles, dont la fiche d'exemple Anaphylaxie, les mouvements et la sonnerie) et une section « A380 » (10 contrôles, les deux essais). Aucun changement côté serveur.
-
-## [5.30.6] — 2026-09-25
-Huit retouches de cohérence listées par l'auteur après 5.30.5, et l'« Échelle » du plan s'en va
-(A376, doctrine `docs/decisions/lot-v5-30.md`).
-- **Notices** : « Vous êtes l'auteur… » prend le dessin de la bulle système (même bord, même rayon,
-  même rembourrage) — deux dessins pour un même rôle.
-- **Moi** : « Exporter mes données » et « Un problème ? » espacés de 12 px ; dès 780 px, en rangée à
-  largeur de contenu au lieu de 720 px chacun.
-- **Cockpit** : la ligne « Parcours · Fait · n étapes » collait à 4 px de l'en-tête qui porte la
-  capsule ; 20 px, comme sous la capsule ailleurs.
-- **Une seule barre d'outils** : Schéma en ligne et plein écran, Page, et les ‹ › de toutes les
-  recherches partagent une règle — M 40, matière de travail v5.30, rayon 12, corps 13,5 gras.
-- **« Vérifier :: »** : secondaire de la rangée de flux, à la hauteur de « Continuer » (56), matière
-  calme, corps 15.
-- **Options d'une décision** : le corps des étapes en session (17,5) ; le renvoi « → bloc n · titre »
-  ne coupe plus le titre à 17 caractères, l'ellipse prend la place disponible.
-- **« Le tableau ne colle pas ? »** : la carte des différentiels se signale 2,4 s d'un anneau qui
-  s'efface (fixe sous `prefers-reduced-motion`, jamais une couleur seule).
-- **Le parcours n'a plus qu'un dessin** : la liste numérotée à renvois écrits (A349) rend aussi la
-  feuille « Se repérer », la colonne du cockpit et le rail 780-1199, avec l'état de session (rangée
-  courante en bleu et `aria-current`, blocs cochés en vert, hors chemin en pointillé ; rien ne se
-  coche là). L'ancienne Échelle n'avait plus d'appelant : purgée avec ses 65 règles et treize
-  classes, épitaphe posée dans la feuille.
-- Vérifié : check complet, 1202 tests × 2 moteurs, audit complet après le numéro de version.

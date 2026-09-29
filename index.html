@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Dcl2KmK09vtYe93OoXYEKkKrXemKC+agoznZrdYUP74='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-0+3EcPUzgjSLrQpvqphy9fo/Gp4L/Jns1uVeJKeJ1oM='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -1474,9 +1474,19 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      Peinture seulement (box-shadow) ; nul sous
      prefers-reduced-motion. Le fondu en boucle, l'onde bleue débordante, l'anneau dans le bouton
      ont été REFUSÉS : ne pas les reproposer. */
-  @keyframes sd-ring{0%{box-shadow:0 0 0 0 var(--dock-ring)}60%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 12px transparent}}
-  .sd-in::after{content:"";position:absolute;inset:0;border-radius:var(--r-4);pointer-events:none}
-  #sessionDock.sd-arrive .sd-in::after{animation:sd-ring 1300ms ease-out 800ms 3 both}
+  /* A421 (v5.39.4, « plus fluide ») : l'anneau ne REPEINT plus rien. Il animait un `box-shadow` —
+     une peinture par image, sur le fil principal, pendant le rendu d'une fiche neuve : c'est là
+     qu'il saccadait (iPhone surtout). C'est désormais un TRAIT de 2 px dessiné une fois, à sa place
+     finale (12 px autour de la capsule), qui part de la capsule par `transform` et se fond par
+     `opacity` — deux propriétés COMPOSÉES. Un `outline` et non une bordure à `inset:-12px` : le
+     contour n'entre jamais dans le débordement de la capsule (mesuré par le témoin ECAM « sans
+     rognage »), et il suit le rayon de la boîte, agrandi de son décalage. L'échelle de départ ramène le trait sur le bord de la
+     capsule, axe par axe (--sd-sx/--sd-sy, posés par `syncDock` : 12 px pèsent peu sur 360 de
+     large, beaucoup sur 56 de haut). Il NAÎT en fondu (il surgissait à pleine encre) et s'éloigne
+     sans palier mort (le 60-100 % immobile hachait le rythme) : même durée, même nombre, fini à 4,7 s. */
+  @keyframes sd-ring{0%{opacity:0;transform:scale(var(--sd-sx,.94),var(--sd-sy,.7))}20%{opacity:1}100%{opacity:0;transform:none}}
+  .sd-in::after{content:"";position:absolute;inset:0;border-radius:var(--r-4);outline:2px solid var(--dock-ring);outline-offset:10px;pointer-events:none;opacity:0}
+  #sessionDock.sd-arrive .sd-in::after{will-change:transform,opacity;animation:sd-ring 1300ms cubic-bezier(.22,.61,.36,1) 800ms 3 both}
   @media (prefers-reduced-motion:reduce){#sessionDock.sd-arrive .sd-in::after{animation:none}}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
      dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */
@@ -8673,7 +8683,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.39.3';
+const APP_VERSION='5.39.4';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20671,12 +20681,18 @@ function syncDock(){
      {const sb=document.getElementById('sessStart');
       const avant=!d.hidden&&!Runtime.started&&!!sb&&!sb.hidden;
       const fid=avant&&state.fiche?state.fiche.id:null;
-      if(fid&&_dockArriveFor!==fid){_dockArriveFor=fid;d.classList.remove('sd-arrive');void d.offsetWidth;d.classList.add('sd-arrive');}
-      if(!fid){_dockArriveFor=null;d.classList.remove('sd-arrive');}
       /* P5 (audit UX 27/09/2026) : la bulle, qui masquait le contenu, devient la SOUS-LIGNE du geste
          d'entrée — même règle (tant que l'appareil n'a jamais démarré de session), rien ne flotte. */
       const sub=document.getElementById('sessStartSub');
-      if(sub)sub.hidden=!(avant&&!startHintSeen());}
+      if(sub)sub.hidden=!(avant&&!startHintSeen());
+      /* A421 : l'échelle de départ de l'anneau se MESURE après la sous-ligne (elle change la hauteur) ;
+         ratio sans unité, donc indifférent au zoom de texte une fois les 12 px ramenés à l'écran. */
+      if(fid&&_dockArriveFor!==fid){_dockArriveFor=fid;
+        const r=d.querySelector('.sd-in').getBoundingClientRect(),m=24*zoomF();
+        if(r.width&&r.height){d.style.setProperty('--sd-sx',(r.width/(r.width+m)).toFixed(4));
+          d.style.setProperty('--sd-sy',(r.height/(r.height+m)).toFixed(4));}
+        d.classList.remove('sd-arrive');void d.offsetWidth;d.classList.add('sd-arrive');}
+      if(!fid){_dockArriveFor=null;d.classList.remove('sd-arrive');}}
      /* ⚠ LA HAUTEUR DU DOCK EST UNE MESURE, PAS UN NOMBRE ÉCRIT (v5.6, signalé à l'usage : « la
         mini-fenêtre n'est plus adaptée à la nouvelle taille de la barre flottante, et elle est
         décalée par moments »). Le volet se posait à `bottom:64px` en dur — une valeur juste le
@@ -25895,6 +25911,13 @@ bindModalDismiss(createModal,closeCreateDlg);
 /* ── Feuille « Affichage » (v5.30, maquette v5) : afficher · trier · regrouper · densité, quatre
    segmentés à pastille ; chaque cran re-range la liste derrière la feuille. ── */
 const viewSheet=document.getElementById('viewSheet');let _viewRerender=null;
+/* A421 : LE RE-RENDU SUIT LE TYPE CHOISI, JAMAIS LA VUE D'OUVERTURE (signalé : « Afficher » Aides /
+   Protocoles « ne filtre pas »). Ouverte par le bouton « Affichage » de la liste, la feuille reçoit
+   `cfg.rerender` — la vue du moment (renderAll sur « Tout ») : `setSection` rendait la bonne liste,
+   puis ce rappel figé repeignait AUSSITÔT la liste « Tout » par-dessus. À l'accueil, c'est donc
+   `renderLibrary`, qui aiguille selon `state.section`, qui re-rend ; le témoin d'A419 passait par
+   le bouton rond (sans rappel) et ne voyait pas ce chemin. */
+function viewSheetRedo(){if(state.view==='library')renderLibrary();else if(_viewRerender)_viewRerender();else render();}
 function openViewSheet(rerender){_viewRerender=rerender||null;viewSheet.classList.add('on');_bgLock();_histArm();paintViewSheet();syncFiltTog(true);}
 function closeViewSheet(){if(!viewSheet.classList.contains('on'))return;viewSheet.classList.remove('on');_bgUnlock();syncFiltTog(true);
   const t=document.getElementById('filtTog');
@@ -25923,9 +25946,9 @@ function paintViewSheet(){const body=document.getElementById('viewSheetBody');if
     else if(k==='dens')setHomePref('homeCompact',v==='1');
     const root=b.closest('.seg');paintSeg(root,'data-vs',[...root.querySelectorAll('[data-vs]')].indexOf(b));
     root.querySelectorAll('[data-vs]').forEach(x=>x.setAttribute('aria-checked',x===b?'true':'false'));
-    if(_viewRerender)_viewRerender();else render();paintViewFoot();});
+    viewSheetRedo();paintViewFoot();});
   body.querySelectorAll('[data-cat]').forEach(x=>x.onclick=()=>{const c=x.dataset.cat;state.cat=(c&&state.cat===c)?'':c;state.libLimit=LIB_PAGE;
-    if(_viewRerender)_viewRerender();else render();paintViewSheet();});
+    viewSheetRedo();paintViewSheet();});
   const cm=body.querySelector('[data-catmgr]');if(cm)cm.onclick=()=>{closeViewSheet();openHomeMgr();};   // la feuille « Gérer » (A287) ou le gestionnaire, selon ce qui se gère
   paintViewFoot();}
 /* LE PIED ANNONCE LE RÉSULTAT — le compte de la liste RÉELLEMENT rendue dessous, jamais un second

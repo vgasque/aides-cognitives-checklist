@@ -143,3 +143,42 @@ sur les deux moteurs et nomme `uncheck, counter, timer_stop, nav, session_start,
 **Formes REFUSÉES** : convertir les attentes fixes en masse (le gain supposé ne résiste pas à la mesure, et la moindre
 réduction casse des contrôles) ; accélérer les délais de l'app au banc (`page.clock`, réglages ad hoc) — cela changerait ce
 qui est prouvé ; regrouper les petits harnais dans un seul processus (2 à 3 s pour un rouge moins lisible).
+
+## A421 — « Afficher » suit le type choisi ; l'anneau d'arrivée ne repeint plus (v5.39.4)
+
+**Signalé à l'usage** : « problème de filtrage persistant entre Aides et Protocoles dans le menu
+Affichage, ça ne filtre pas » ; « rendre l'animation autour de Commencer la session plus fluide ».
+
+**Le filtre. Cause mesurée.** La feuille « Affichage » a DEUX portes : le bouton rond de la recherche
+(`[data-filttog]`, `openViewSheet()` sans rappel) et le bouton « Affichage » de la liste (`#rangBtn`,
+`openViewSheet(cfg.rerender)`). Par la seconde, la feuille gardait la vue d'OUVERTURE comme rappel
+(`renderAll` sur « Tout ») : « Aides » appelait `setSection`, qui rendait la bonne liste, puis ce rappel
+figé repeignait l'union par-dessus. Tout geste suivant de la même feuille (tri, regroupement, densité,
+catégorie) ramenait aussi la vue d'ouverture. Le témoin d'A419 (« vérifié sans défaut ») ouvrait par le
+bouton rond, le seul chemin sain : il ne pouvait pas voir celui-ci.
+**Correctif** : `viewSheetRedo()`, seule porte de re-rendu de la feuille ; à l'accueil elle appelle
+`renderLibrary`, qui aiguille selon `state.section` ; ailleurs le rappel reçu, sinon `render()`.
+**Témoin** (`audit-doctrine`, section A419) : quatre crans par `#rangBtn`, chacun suivi d'un tri dans la
+même feuille, comptes d'aides et de protocoles attendus. Rouge sur le code d'avant, vert après.
+
+**L'anneau (amende A331 sur la TECHNIQUE, pas sur le signal).** Il animait un `box-shadow` d'étalement
+0 → 12 px : une peinture par image sur le fil principal, précisément pendant le rendu d'une fiche neuve
+(les saccades se voyaient sur iPhone). Il surgissait aussi à pleine encre au bord de la capsule, et le
+palier immobile 60-100 % de chaque itération hachait le rythme. Désormais :
+- `.sd-in::after` est un TRAIT de 2 px (`--dock-ring`) dessiné une fois à sa place finale : un
+  `outline` décalé de 10 px sur une boîte à la taille de la capsule (`inset:0`), et non une bordure à
+  `inset:-12px` — celle-ci entrait dans le débordement de la capsule et le témoin ECAM « sans rognage »
+  rougissait (12 px, à toutes les largeurs) ; un contour n'y entre jamais et suit le rayon de la boîte ; il part de la capsule par `transform:scale(--sd-sx,--sd-sy)`
+  et s'efface par `opacity` — deux propriétés composées, rien n'est repeint ;
+- l'échelle de départ est MESURÉE par axe dans `syncDock` au moment où `sd-arrive` se pose, après la
+  sous-ligne du bouton (qui change la hauteur) : 12 px pèsent 3 % sur 360 px de large, 30 % sur 56 de
+  haut, une échelle uniforme décollerait le trait du bord. Ratio sans unité : les 12 px sont ramenés à
+  l'écran par `zoomF()` (vérifié à 130 % : 0,70 en hauteur comme à 100 %) ;
+- fondu d'entrée (0 → 1 sur 20 %), puis un seul mouvement décéléré (`cubic-bezier(.22,.61,.36,1)`)
+  jusqu'à l'effacement, sans palier.
+Inchangé : trois anneaux, départ à 800 ms, 1,3 s chacun, fini à 4,7 s (WCAG 2.2.2), autour de la
+CAPSULE entière et jamais du bouton seul, rien sous `prefers-reduced-motion`. Mesuré à 390 (clair et
+sombre, images figées à 0, 10, 25, 50, 80 %) et à 1440 px.
+**Forme refusée ici** : garder l'ombre en changeant seulement la courbe — le coût de peinture, cause des
+saccades, restait entier.
+

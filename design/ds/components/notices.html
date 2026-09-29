@@ -1118,9 +1118,19 @@
      Peinture seulement (box-shadow) ; nul sous
      prefers-reduced-motion. Le fondu en boucle, l'onde bleue débordante, l'anneau dans le bouton
      ont été REFUSÉS : ne pas les reproposer. */
-  @keyframes sd-ring{0%{box-shadow:0 0 0 0 var(--dock-ring)}60%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 12px transparent}}
-  .sd-in::after{content:"";position:absolute;inset:0;border-radius:var(--r-4);pointer-events:none}
-  #sessionDock.sd-arrive .sd-in::after{animation:sd-ring 1300ms ease-out 800ms 3 both}
+  /* A421 (v5.39.4, « plus fluide ») : l'anneau ne REPEINT plus rien. Il animait un `box-shadow` —
+     une peinture par image, sur le fil principal, pendant le rendu d'une fiche neuve : c'est là
+     qu'il saccadait (iPhone surtout). C'est désormais un TRAIT de 2 px dessiné une fois, à sa place
+     finale (12 px autour de la capsule), qui part de la capsule par `transform` et se fond par
+     `opacity` — deux propriétés COMPOSÉES. Un `outline` et non une bordure à `inset:-12px` : le
+     contour n'entre jamais dans le débordement de la capsule (mesuré par le témoin ECAM « sans
+     rognage »), et il suit le rayon de la boîte, agrandi de son décalage. L'échelle de départ ramène le trait sur le bord de la
+     capsule, axe par axe (--sd-sx/--sd-sy, posés par `syncDock` : 12 px pèsent peu sur 360 de
+     large, beaucoup sur 56 de haut). Il NAÎT en fondu (il surgissait à pleine encre) et s'éloigne
+     sans palier mort (le 60-100 % immobile hachait le rythme) : même durée, même nombre, fini à 4,7 s. */
+  @keyframes sd-ring{0%{opacity:0;transform:scale(var(--sd-sx,.94),var(--sd-sy,.7))}20%{opacity:1}100%{opacity:0;transform:none}}
+  .sd-in::after{content:"";position:absolute;inset:0;border-radius:var(--r-4);outline:2px solid var(--dock-ring);outline-offset:10px;pointer-events:none;opacity:0}
+  #sessionDock.sd-arrive .sd-in::after{will-change:transform,opacity;animation:sd-ring 1300ms cubic-bezier(.22,.61,.36,1) 800ms 3 both}
   @media (prefers-reduced-motion:reduce){#sessionDock.sd-arrive .sd-in::after{animation:none}}
   /* RÉSERVE DE PLACE. Un dock FIXE ne prend aucune hauteur au flux : sans ce rembourrage, la
      dernière étape d'un bloc naîtrait DERRIÈRE lui — exactement ce qu'on ne peut pas cacher. */

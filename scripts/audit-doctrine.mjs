@@ -6694,6 +6694,20 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
     out.types={ok:vu.join(' ')===attendu.join(' '),vu};
     document.querySelector('#viewSheetBody [data-vs="group:cat"]').click();await w(200);
     closeViewSheet();state.cat='';render();await w(200);
+    /* A421 : le MÊME geste par le bouton « Affichage » de la liste (#rangBtn), qui passe `cfg.rerender` à la
+       feuille — la vue d'ouverture (renderAll sur « Tout ») repeignait l'union par-dessus le type choisi.
+       Le témoin ci-dessus ouvrait par le bouton rond, sans rappel : il ne pouvait pas voir ce chemin. */
+    {const vuR=[],attR=[];
+     for(const [v,e] of [['fiches',[nF,0,1,0]],['protocols',[0,nP,0,1]],['all',[nF,nP,1,1]],['protocols',[0,nP,0,1]]]){
+       if(!viewSheet.classList.contains('on')){const rb=main.querySelector('#rangBtn');if(!rb){vuR.push('pas de #rangBtn');break;}rb.click();await w(250);}
+       document.querySelector(`#viewSheetBody [data-vs="filt:${v}"]`).click();await w(250);
+       /* puis un geste de RANGEMENT dans la même feuille : il ne doit pas non plus ramener la vue d'ouverture */
+       document.querySelector('#viewSheetBody [data-vs="sort:recent"]').click();await w(200);
+       vuR.push(v+'='+kinds());attR.push(v+'='+e.join(','));closeViewSheet();await w(150);}
+     out.rang={ok:vuR.join(' ')===attR.join(' '),vu:vuR};
+     main.querySelector('#rangBtn').click();await w(200);
+     document.querySelector('#viewSheetBody [data-vs="sort:alpha"]').click();
+     document.querySelector('#viewSheetBody [data-vs="filt:all"]').click();await w(200);closeViewSheet();await w(150);}
     /* Connexion : Entrée dans le champ e-mail déclenche l'envoi (l'appel réseau est remplacé). */
     let envoye='';Auth.sendCode=async e=>{envoye=e;};
     _authStep.mode='email';_authStep.msg='';openAuth();await w(300);
@@ -6709,6 +6723,8 @@ await sec('Accueil · A419 filtre de catégorie par nom ; connexion par Entrée'
     r.feuille.bib&&!r.feuille.perso&&JSON.stringify(r.feuille.on)==='["Urgences"]',JSON.stringify(r.feuille));
   t('A419 : « Afficher » Aides / Protocoles sur « Toutes » — le bon type, bibliothèque partagée comprise, dans les cinq rangements',
     r.types.ok,JSON.stringify(r.types.vu));
+  t('A421 : « Afficher » Aides / Protocoles par le bouton « Affichage » de la liste — le type choisi tient, rangement compris',
+    r.rang.ok,JSON.stringify(r.rang.vu));
   t('A419 : Entrée dans le champ e-mail envoie le code (ou dit pourquoi il ne part pas)',
     r.auth.envoye==='test@example.org'||/Hors ligne/.test(r.auth.msg),JSON.stringify(r.auth));
   await page.close();
