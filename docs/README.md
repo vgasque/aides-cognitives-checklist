@@ -85,6 +85,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A419 | `lot-v5-39.md` | Le filtre de catégorie retient le NOM (`catKey`) : une catégorie renommée garde l'id de son homonyme d'une autre bibliothèque, et le filtre visait la mauvaise ; Entrée envoie l'e-mail de connexion |
 | A420 | `lot-v5-39.md` | Le temps des audits se mesure : attentes fixes presque toutes utiles (rejouées réduites et triplées), pdfsearch ne paie plus 60 s de délais, tranches équilibrées par durée mesurée (`AC_PLAN`), quatre contrôles de partage qui dépendaient de la vitesse du harnais |
 | A421 | `lot-v5-39.md` | « Afficher » ouvert par le bouton « Affichage » repeignait la vue d'ouverture par-dessus le type choisi (`viewSheetRedo`) ; l'anneau d'arrivée du quai devient un trait composé (`transform`/`opacity`, amende A331 sur la technique) |
+| A422 | `lot-v5-39.md` | L'état d'une carte d'accueil passe au palier méta (12, 700 s'il attend quelque chose) : il était en 13,5/800, plus gras que le titre |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

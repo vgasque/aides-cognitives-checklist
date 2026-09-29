@@ -182,3 +182,19 @@ sombre, images figées à 0, 10, 25, 50, 80 %) et à 1440 px.
 **Forme refusée ici** : garder l'ombre en changeant seulement la courbe — le coût de peinture, cause des
 saccades, restait entier.
 
+## A422 — l'état d'une carte d'accueil est une méta (v5.39.5)
+
+**Signalé à l'usage** : « pourquoi les bulles Brouillon, Sans date… ont une police presque aussi grande
+voire plus grande que le titre des cartes ? »
+
+**Mesuré** (390 et 1280 px, détaillée et compacte) : titre `.dir-t` 15/700 (15/600 en compacte) ;
+état `.dir-st` 13,5 hérité du corps de `.dir-sub`, et le badge `.dir-st.b` le portait à **800** sur un
+aplat `--amb-2` — plus gras que le titre, et l'aplat ajoutait de la masse. « AIDE » (`.dir-kind`), à
+12/800 en capitales, était déjà au palier méta : la ligne mêlait deux paliers.
+
+**Décision** : `.dir-st` prend `--t-meta` (12) ; 700 pour ce qui attend quelque chose (`.b`, `.w`
+« À revérifier », `.dir-live` « En cours »), poids de la ligne pour le nominal (« Validée + date ») —
+un état nominal ne s'affiche pas en gras (poste de pilotage sombre). Hiérarchie de la carte :
+titre 15 > discriminant 13,5 > méta 12. Glyphe, mot, aplat et couleurs d'A338/A347 inchangés ; plancher
+11 px respecté.
+

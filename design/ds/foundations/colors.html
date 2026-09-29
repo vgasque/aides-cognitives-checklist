@@ -2211,11 +2211,17 @@
   /* A338 : UN état par rangée, en mots, calé à droite — le plus urgent l'emporte ; ambre = attend
      quelque chose de vous. Sous 360 px effectifs, identité et état ne tiennent pas sur une ligne
      (mesuré : 268 px pour 208) : l'état passe SOUS l'identité, sur toutes les rangées. */
-  .dir-st{flex:none;margin-left:auto;padding-left:6px}
+  /* A422 (v5.39.5, signalé : « les bulles Brouillon, Sans date… presque aussi grandes que le titre ») :
+     l'état est une MÉTA, il prend le palier méta (12), en 700 s'il attend quelque chose (badge, « À
+     revérifier », « En cours ») et au poids de la ligne s'il est nominal (« Validée ») — il héritait du corps de la ligne
+     (13,5) et le badge le montait à 800, PLUS gras que le titre (15/700) sur un fond plein : il pesait
+     autant que lui. Hiérarchie de la carte : titre 15/700 > discriminant 13,5 > méta 12. */
+  .dir-st{flex:none;margin-left:auto;padding-left:6px;font-size:var(--t-meta)}
   .dir-st.w{color:var(--warn)}
+  .dir-st:is(.b,.w,.dir-live){font-weight:700}
   /* v5.30 : badge d'attente ACHROMATIQUE (glyphe + mot, fond --amb-2) — l'ambre ne reste qu'à
      « À revérifier ». */
-  .dir-st.b{padding:1px 8px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);font-weight:800;line-height:1.25}
+  .dir-st.b{padding:1px 8px;border-radius:var(--r-1);background:var(--amb-2);color:var(--ink-2);line-height:1.25}
   .dir-live{font-variant-numeric:tabular-nums}
   html.zw360 .dir-sub{flex-direction:column;align-items:stretch;gap:2px}
   html.zw360 .dir-id{display:flex;align-items:baseline;gap:10px;min-width:0}
@@ -2284,7 +2290,7 @@
      vivant « ● En cours 12:04 » en vert — un glyphe et un mot, jamais un fond (règle 8). Même dessin en
      vue compacte (livre à filets) : liseré et mot, rien d'autre. */
   .dir-row.live::before{background:var(--ok);width:6px}
-  .dir-st.dir-live{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--ok)}
+  .dir-st.dir-live{display:inline-flex;align-items:center;gap:6px;color:var(--ok)}
   .dir-st.dir-live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
   .dir-row .pinbtn{position:relative;z-index:1}
   /* Épingle : cible tactile 40px, étoile SVG pleine ambrée quand actif. */

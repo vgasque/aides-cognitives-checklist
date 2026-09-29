@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.39.5] — 2026-09-29
+Signalé à l'usage (A422, doctrine `docs/decisions/lot-v5-39.md`).
+- **Cartes d'accueil : l'état ne rivalise plus avec le titre.** Les pastilles « Brouillon », « À compléter »,
+  « Sans date », « À relire » étaient en 13,5 px et en gras 800, sur fond gris, alors que le titre est en
+  15 px et en gras 700 : plus grasses que lui, elles pesaient presque autant. L'état passe au palier des
+  autres informations de la carte (12 px, comme « AIDE »), en gras 700 quand il attend quelque chose
+  (pastilles, « À revérifier », « En cours ») et au poids normal quand il est nominal (« Validée »).
+  Même règle en liste compacte et au bureau.
+- Vérifié : check complet, 1280 tests sous Chromium, audit complet (seuls restent les deux rouges
+  d'environnement déjà présents avant ce changement).
+
 ## [5.39.4] — 2026-09-29
 Deux retours d'usage (A421, doctrine `docs/decisions/lot-v5-39.md`).
 - **« Afficher » Aides / Protocoles filtre enfin.** Ouverte par le bouton « Affichage » de la liste, la
@@ -353,58 +364,3 @@ Quatre retouches signalées à l'usage (A381, doctrine `docs/decisions/lot-v5-31
   sont le chemin. Un chevron par bloc, au clavier comme au toucher. Le
   parcours de l'ACR tient désormais en entier à l'écran. Toucher un bloc de cette colonne ne
   faisait plus rien depuis la v5.30.6 (bascule orpheline) : ce geste revit ici.
-
-## [5.31.0] — 2026-09-25
-La coche d'une étape peut lancer un minuteur ou compter, un bloc peut porter son minuteur, et une
-ligne discrète le dit sous l'étape (A377 à A380, doctrine `docs/decisions/lot-v5-31.md`). Demande de
-l'auteur, choisie sur trois versions de maquettes ; puis des micro-mouvements logiques, la règle
-« ne pas anticiper » et deux essais d'affichage à juger en conditions réelles.
-- **La coche lance** (`starts` sur une étape) : cocher « Adrénaline 1 mg IV » lance « Adrénaline —
-  prochaine dose » depuis zéro. **La coche compte** (`counts`) : cocher « Choc » ajoute 1 au
-  compteur et pose l'heure au journal, comme le « + » de la carte.
-- **Le bloc minute** (`timer` sur un bloc) : le minuteur repart à chaque entrée dans le bloc
-  (Continuer, réponse, nouveau passage) ; au bloc où la session démarre, avec elle. Il s'arrête
-  quand le parcours quitte la boucle. À l'échéance, rien n'est choisi et rien ne défile.
-- **Tout se défait par la case** : décocher retire le + 1 et barre le repère ; décocher dans les
-  10 s rend le minuteur à son état d'avant. Après, il continue et s'arrête depuis sa tuile.
-- **Une légende d'une ligne** sous l'étape liée et sous le titre du bloc : 24 px réservés dans tous
-  les états, la valeur d'abord (celle de la tuile), gris au repos, bleu sans fond quand ça tourne,
-  pastille ambre pâle avec « Échu » à l'échéance. Aucune hauteur ne change sans geste. Annoncée sans
-  état dans le parcours à plat, la Page et l'éditeur.
-- **Éditeur** : « Ce que fait la coche » dans les outils d'une étape, « Minuteur du bloc » sous le
-  bloc ; rien n'est proposé si la fiche n'a ni minuteur ni compteur.
-- **Prompt IA de création** : nouvelle section « Minuteurs et compteurs liés », 0 à 3 liens par
-  fiche et 0 ou 1 minuteur de bloc, seulement quand la source lie le geste au délai ou au compte ;
-  vérification finale n° 17.
-- **Fiches d'exemple** (proposées au premier lancement) : dans l'**ACR**, cocher « Choc immédiat »
-  compte le choc, et cocher l'une des deux « Adrénaline » lance « prochaine dose ». Dans
-  l'**Anaphylaxie**, les deux injections IM comptent sur « Adrénaline IM », et ce compteur relance
-  la réévaluation à 5 min. Elle ne repart plus seule à la sonnerie (A379) : entre la sonnerie et
-  l'injection, 30 s d'analyse ou un choc peuvent passer. Elle reste « Échu » jusqu'à la coche
-  suivante. Le prompt IA gagne la règle « ne pas anticiper ». Pas de minuteur de bloc dans les exemples : aucune des deux fiches n'a
-  de tentative bornée par passage. « — noter l’heure » disparaît de l’adrénaline IM : la coche
-  pose désormais l’heure au journal.
-- **Micro-mouvements** (A378), chacun répondant à un geste : cocher fait monter le chiffre ou
-  remplir l'anneau (minuteur relancé depuis zéro), décocher fait redescendre la valeur, une jauge
-  discrète se vide pendant les 10 s d'annulation, l'échéance se pose en fondu. Dans l'éditeur, la
-  légende apparaît sous l'étape dès que le lien est choisi. Rien ne boucle, rien ne change de
-  hauteur, et rien ne bouge en mouvement réduit.
-- **Éditeur** : un minuteur d'intervalle neuf ne repart plus seul par défaut (A379) ; reboucler se
-  coche. Le cycle RCP de l'ACR, lui, reste à cycles (décision de l'auteur).
-- **Deux essais d'affichage à juger en conditions réelles** (A380), dans Moi › Affichage, sur
-  l'appareil seulement, éteints par défaut :
-  - **Capsule « horizon »** : les minuteurs en cours posés sur un axe de 5 min, à leur temps
-    restant. Rien n'est extrapolé : ni cycle suivant, ni échéance future ; l'échu se pose sur
-    « maintenant ».
-  - **Instruments en bande** : dès la tablette, la capsule porte les minuteurs et les compteurs
-    comme au téléphone et ouvre le volet des corrections ; la colonne de droite garde le journal
-    et les repères posologiques.
-- **Conformité** : § 2 de `docs/deploiement-et-conformite.md` complété avant le code (déclencheur
-  toujours un geste de l'équipe, rien ne décide, tout se défait).
-- **Sans doublon** : une seule fonction pour relancer un minuteur (quatre copies auparavant ; le ⟲
-  d'un minuteur ad hoc et la relance par un compteur lèvent désormais aussi l'acquittement), une
-  pour le « + » d'un compteur, une pour le nom par défaut d'un minuteur (sept copies) ; le parcours
-  du graphe des blocs est partagé avec le grisé « hors chemin » ; glyphes pris dans la table
-  d'icônes commune ; commentaires ramenés à une ligne, la doctrine vit dans le lot.
-- **Témoins** : 33 tests unitaires (modèle, sortie de boucle, légende) et une section
-  `audit-doctrine` « A377 » (25 contrôles, dont la fiche d'exemple Anaphylaxie, les mouvements et la sonnerie) et une section « A380 » (10 contrôles, les deux essais). Aucun changement côté serveur.
