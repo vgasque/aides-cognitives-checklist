@@ -645,4 +645,22 @@ extension JS {
     }
     /// `String(n)` pour un nombre (formatage JS : entiers sans « .0 », sinon représentation courte).
     public static func numStr(_ n: Double) -> String { JSON.formatNumber(n) }
+
+    /// `a > b` de JavaScript sur deux valeurs JSON (undefined = nil) : deux chaînes se comparent
+    /// par unités UTF-16, sinon ToNumber des deux côtés (NaN → faux).
+    public static func greater(_ a: JSON?, _ b: JSON?) -> Bool {
+        if case .string(let x)? = a, case .string(let y)? = b { return Array(y.utf16).lexicographicallyPrecedes(Array(x.utf16)) }
+        return number(a) > number(b)
+    }
+    /// `a === b` de JavaScript (undefined === undefined ; deux objets lus ne sont jamais le même).
+    public static func strictEq(_ a: JSON?, _ b: JSON?) -> Bool {
+        switch (a, b) {
+        case (nil, nil): return true
+        case (.null?, .null?): return true
+        case (.bool(let x)?, .bool(let y)?): return x == y
+        case (.number(let x)?, .number(let y)?): return x == y
+        case (.string(let x)?, .string(let y)?): return x == y
+        default: return false
+        }
+    }
 }
