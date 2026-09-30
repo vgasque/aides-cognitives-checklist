@@ -80,6 +80,9 @@ final class AppModel {
     // MARK: État ajouté — zone COMPTE / CRÉER / IMPORT (réservé)
     // MARK: État ajouté — zone MODE CRISE (réservé)
     // MARK: État ajouté — zone ÉDITEUR (réservé)
+    /// Bibliothèque de destination d'une CRÉATION en cours (id du brouillon neuf → id de
+    /// bibliothèque, "" = Perso) — posée par `startNewFiche`/`startNewReference`.
+    var editorNewScopes: [String: String] = [:]
     // MARK: État ajouté — zone RÉFÉRENCE / PDF (réservé)
     // MARK: État ajouté — zone PARTAGE (réservé)
 
