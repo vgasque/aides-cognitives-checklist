@@ -153,6 +153,7 @@ final class AppModel {
             path = [.fiche(R.ficheId)]
         }
         if auth.signedIn { Task { await sync.full() } }
+        applyDemoIfAsked()
     }
 
     /// Recopie les collections du cœur dans l'état observé.
