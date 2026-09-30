@@ -6,6 +6,10 @@ import UIKit
 #endif
 
 /// Où l'on est (pile de navigation).
+/// Les onglets racine (iOS 27 : `TabView` adaptable — barre d'onglets au téléphone, barre latérale
+/// sur iPad et Mac). La recherche est un onglet à part entière (rôle `.search`), comme le veut la HIG.
+enum RootTab: Hashable { case aides, sessions, me, search }
+
 enum Route: Hashable {
     case fiche(String)
     case reference(String)
@@ -58,7 +62,17 @@ final class AppModel {
     private(set) var pins: [String] = []
     /// Révision de l'état vivant : incrémentée à chaque geste et à chaque battement (300 ms).
     private(set) var rev = 0
-    var path: [Route] = []
+    /// Onglet racine (iOS 27 : barre d'onglets système au téléphone, barre latérale sur iPad/Mac).
+    var rootTab: RootTab = .aides
+    /// UNE pile de navigation PAR onglet (comportement système : changer d'onglet garde sa pile).
+    var paths: [RootTab: [Route]] = [:]
+    /// La pile de l'onglet affiché : c'est là qu'une ouverture pousse son écran.
+    var path: [Route] {
+        get { paths[rootTab] ?? [] }
+        set { paths[rootTab] = newValue }
+    }
+    /// État de l'accueil, partagé par l'onglet « Aides » et l'onglet de recherche.
+    let home = HomeState()
     /// Runtime de l'aide ouverte (vive ou non).
     var current: RuntimeSession?
     var toast: Toast?
@@ -157,7 +171,8 @@ final class AppModel {
         library.onLocalWrite = { [weak self] in self?.sync.schedule() }
         library.load()
         current = nil
-        path = []
+        paths = [:]
+        rootTab = .aides
         refresh()
     }
 
@@ -300,12 +315,12 @@ final class AppModel {
         if let R = engine.live[f.id] { engine.end(R) }
         library.delete(f)
         for s in sessions where s["ficheId"]?.string == f.id { if let id = s["id"]?.string { library.deleteSession(id, syncHistory: false) } }
-        path.removeAll { $0 == .fiche(f.id) || $0 == .editFiche(f.id) }
+        for k in paths.keys { paths[k]?.removeAll { $0 == .fiche(f.id) || $0 == .editFiche(f.id) } }
         refresh()
     }
     func delete(_ p: Reference) {
         library.delete(p)
-        path.removeAll { $0 == .reference(p.id) || $0 == .editReference(p.id) }
+        for k in paths.keys { paths[k]?.removeAll { $0 == .reference(p.id) || $0 == .editReference(p.id) } }
         refresh()
     }
     func togglePin(_ id: String) { library.togglePin(id); refresh() }
@@ -391,11 +406,13 @@ extension AppModel: SyncHost {
     func syncDidReassign(_ kind: SyncEntityKind, from oldId: String, to newId: String) {
         library.load()
         if let R = engine.live[oldId], let f = library.fiches.first(where: { $0.id == newId }) { R.fiche = f; R.ficheId = newId }
-        path = path.map { r in
-            switch r {
-            case .fiche(let i) where i == oldId: return .fiche(newId)
-            case .reference(let i) where i == oldId: return .reference(newId)
-            default: return r
+        for k in paths.keys {
+            paths[k] = paths[k]?.map { r in
+                switch r {
+                case .fiche(let i) where i == oldId: return .fiche(newId)
+                case .reference(let i) where i == oldId: return .reference(newId)
+                default: return r
+                }
             }
         }
         refresh()

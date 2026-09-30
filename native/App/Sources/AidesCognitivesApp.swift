@@ -25,29 +25,21 @@ struct AidesCognitivesApp: App {
     }
 }
 
-/// La coque : accueil (ou écran de bienvenue), pile de navigation, bandeau d'alarme, toasts.
+/// La coque (iOS 27, Liquid Glass) : onglets SYSTÈME — Aides · Sessions · Moi · Recherche —
+/// en barre d'onglets flottante au téléphone et en barre latérale sur iPad et Mac
+/// (`.sidebarAdaptable`). Une pile de navigation par onglet ; l'écran de bienvenue passe avant.
+/// Le mode crise masque la barre d'onglets : le quai de session est la seule barre du bas.
 struct RootView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         @Bindable var model = model
         GeometryReader { geo in
-            NavigationStack(path: $model.path) {
-                Group {
-                    if model.onboarded || !model.fiches.isEmpty || !model.references.isEmpty {
-                        HomeView()
-                    } else {
-                        WelcomeView()
-                    }
-                }
-                .navigationDestination(for: Route.self) { r in
-                    switch r {
-                    case .fiche(let id): ReadFicheView(ficheId: id)
-                    case .reference(let id): ReferenceReadView(referenceId: id)
-                    case .editFiche(let id): FicheEditorView(ficheId: id)
-                    case .editReference(let id): ReferenceEditorView(referenceId: id)
-                    case .pdf(let id, let name): PDFViewerView(attachmentId: id, name: name)
-                    }
+            Group {
+                if model.onboarded || !model.fiches.isEmpty || !model.references.isEmpty {
+                    tabs
+                } else {
+                    NavigationStack(path: pathBinding(.aides)) { WelcomeView().withRoutes() }
                 }
             }
             .environment(\.widthClass, WidthClass.of(geo.size.width / (CGFloat(model.textScale) / 100)))
@@ -78,6 +70,94 @@ struct RootView: View {
         }
         .animation(.easeOut(duration: 0.2), value: model.toast)
         .animation(.easeOut(duration: 0.2), value: model.banner)
+    }
+
+    private var tabs: some View {
+        @Bindable var model = model
+        return TabView(selection: $model.rootTab) {
+            Tab("Aides", systemImage: "checklist", value: RootTab.aides) {
+                NavigationStack(path: pathBinding(.aides)) { HomeView().withRoutes() }
+            }
+            Tab("Sessions", systemImage: "clock.arrow.circlepath", value: RootTab.sessions) {
+                NavigationStack(path: pathBinding(.sessions)) { SessionsTabView().withRoutes() }
+            }
+            .badge(model.homeLiveSessions.isEmpty ? 0 : model.homeLiveSessions.count)
+            Tab("Moi", systemImage: "person.crop.circle", value: RootTab.me) {
+                NavigationStack(path: pathBinding(.me)) { MeTabView().withRoutes() }
+            }
+            .badge(model.auth.signedIn && model.syncStatus.state.isTappable ? Text(verbatim: "!") : nil)
+            Tab(value: RootTab.search, role: .search) {
+                NavigationStack(path: pathBinding(.search)) { HomeView(searchMode: true).withRoutes() }
+            }
+        }
+        .tabViewStyle(.sidebarAdaptable)
+        #if os(iOS)
+        .tabBarMinimizeBehavior(.onScrollDown)
+        #endif
+        // La recherche n'agit que dans son onglet : en sortir rend la liste entière aux « Aides ».
+        .onChange(of: model.rootTab) { old, new in
+            if old == .search && new != .search { model.home.q = "" }
+        }
+    }
+
+    private func pathBinding(_ tab: RootTab) -> Binding<[Route]> {
+        Binding(get: { model.paths[tab] ?? [] }, set: { model.paths[tab] = $0 })
+    }
+}
+
+extension View {
+    /// Les écrans poussés, identiques dans chaque onglet. La lecture d'une aide masque la barre
+    /// d'onglets (mode crise : aucune autre barre que le quai, règle 11).
+    func withRoutes() -> some View {
+        navigationDestination(for: Route.self) { r in
+            switch r {
+            case .fiche(let id):
+                ReadFicheView(ficheId: id)
+                    #if os(iOS)
+                    .toolbar(.hidden, for: .tabBar)
+                    #endif
+            case .reference(let id): ReferenceReadView(referenceId: id)
+            case .editFiche(let id): FicheEditorView(ficheId: id)
+            case .editReference(let id): ReferenceEditorView(referenceId: id)
+            case .pdf(let id, let name): PDFViewerView(attachmentId: id, name: name)
+            }
+        }
+    }
+}
+
+/// Onglet « Sessions » : l'historique, titre système.
+struct SessionsTabView: View {
+    var body: some View {
+        ScrollView {
+            SessionsHistoryView(ficheId: nil, embedded: true)
+                .frame(maxWidth: 720, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+        }
+        .background(T.amb.ignoresSafeArea())
+        .navigationTitle("Sessions")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
+    }
+}
+
+/// Onglet « Moi » : compte, synchronisation, bibliothèques, réglages.
+struct MeTabView: View {
+    var body: some View {
+        ScrollView {
+            AccountView()
+                .frame(maxWidth: 720, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+        }
+        .background(T.amb.ignoresSafeArea())
+        .navigationTitle("Moi")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
     }
 }
 
