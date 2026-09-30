@@ -1,0 +1,3136 @@
+[
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": "REST 403 {\"code\":\"42501\"}"
+  },
+  "output": 403
+ },
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": "REST 500"
+  },
+  "output": 500
+ },
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": "REST 12"
+  },
+  "output": 12
+ },
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": "NET timeout 25000 ms"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": "Failed to fetch"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": ""
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": "xREST 401"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "restErrStatus",
+   "arg": "REST abc"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "isPersoRepairCandidate",
+   "arg": [
+    "REST 403 x",
+    true
+   ]
+  },
+  "output": true
+ },
+ {
+  "input": {
+   "fn": "isPersoRepairCandidate",
+   "arg": [
+    "REST 403 x",
+    false
+   ]
+  },
+  "output": false
+ },
+ {
+  "input": {
+   "fn": "isPersoRepairCandidate",
+   "arg": [
+    "REST 401 x",
+    true
+   ]
+  },
+  "output": false
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "REST 401 JWT expired"
+  },
+  "output": {
+   "title": "Session expirée",
+   "detail": "Votre connexion au compte a expiré. Reconnectez-vous depuis la fenêtre « Compte » pour reprendre la synchronisation."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "REST 403 new row violates row-level security policy"
+  },
+  "output": {
+   "title": "Écriture refusée",
+   "detail": "Le serveur a refusé d'enregistrer certaines fiches. Cause la plus fréquente : vos droits sur une bibliothèque partagée ont changé (rôle modifié ou accès retiré par un administrateur) — ces fiches restent lisibles mais vos modifications n'y sont plus publiées. Autre cause possible : une fiche venue d'un autre compte (import) porte un identifiant déjà pris ; l'app la répare alors automatiquement à la prochaine tentative. Le reste de votre bibliothèque continue de se synchroniser."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "REST 413 Payload too large"
+  },
+  "output": {
+   "title": "Contenu trop volumineux",
+   "detail": "Une fiche contient des images trop lourdes, ou un document PDF dépasse la taille maximale autorisée (15 Mo). Réduisez ou supprimez des images, ou allégez le document, puis réessayez."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "REST 409 conflict"
+  },
+  "output": {
+   "title": "Conflit de données",
+   "detail": "Une incohérence a été détectée en enregistrant vos données. Nouvelle tentative automatique en cours ; si le problème persiste, exportez vos fiches par sécurité (fenêtre Compte → « Exporter mes données »)."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "REST 503 Service Unavailable"
+  },
+  "output": {
+   "title": "Service indisponible",
+   "detail": "Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "REST 500"
+  },
+  "output": {
+   "title": "Service indisponible",
+   "detail": "Le service de synchronisation rencontre un problème de son côté (indépendant de votre appareil ou de votre connexion). Nouvelle tentative automatique en cours."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "NetworkError when attempting to fetch resource."
+  },
+  "output": {
+   "title": "Serveur injoignable",
+   "detail": "La connexion Internet semble fonctionner, mais le service de synchronisation n'a pas répondu (réseau instable, Wi-Fi d'hôtel/hôpital filtrant, coupure temporaire...). Nouvelle tentative automatique en cours ; vos modifications restent sur cet appareil en attendant."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "Load failed"
+  },
+  "output": {
+   "title": "Serveur injoignable",
+   "detail": "La connexion Internet semble fonctionner, mais le service de synchronisation n'a pas répondu (réseau instable, Wi-Fi d'hôtel/hôpital filtrant, coupure temporaire...). Nouvelle tentative automatique en cours ; vos modifications restent sur cet appareil en attendant."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "The database connection is closing."
+  },
+  "output": {
+   "title": "Stockage momentanément indisponible",
+   "detail": "L'accès au stockage de cet appareil s'est interrompu pendant la synchronisation — le plus souvent parce que l'application est ouverte dans un autre onglet, ou parce que la page était en train d'être rechargée. Aucune donnée n'est perdue : vos fiches restent sur cet appareil et la synchronisation reprend automatiquement. Si le message revient, fermez les autres onglets de l'application puis rechargez cette page."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "InvalidStateError: idb-closed"
+  },
+  "output": {
+   "title": "Stockage momentanément indisponible",
+   "detail": "L'accès au stockage de cet appareil s'est interrompu pendant la synchronisation — le plus souvent parce que l'application est ouverte dans un autre onglet, ou parce que la page était en train d'être rechargée. Aucune donnée n'est perdue : vos fiches restent sur cet appareil et la synchronisation reprend automatiquement. Si le message revient, fermez les autres onglets de l'application puis rechargez cette page."
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "NET timeout 25000 ms"
+  },
+  "output": {
+   "title": "Erreur inattendue",
+   "detail": "Détail technique : NET timeout 25000 ms"
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "quelque chose xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "output": {
+   "title": "Erreur inattendue",
+   "detail": "Détail technique : quelque chose xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncError",
+   "arg": "REST 404 not found"
+  },
+  "output": {
+   "title": "Erreur inattendue",
+   "detail": "Détail technique : REST 404 not found"
+  }
+ },
+ {
+  "input": {
+   "fn": "explainSyncErrorTypeError",
+   "arg": "Failed to fetch"
+  },
+  "output": {
+   "title": "Serveur injoignable",
+   "detail": "La connexion Internet semble fonctionner, mais le service de synchronisation n'a pas répondu (réseau instable, Wi-Fi d'hôtel/hôpital filtrant, coupure temporaire...). Nouvelle tentative automatique en cours ; vos modifications restent sur cet appareil en attendant."
+  }
+ },
+ {
+  "input": {
+   "fn": "pullMissedIds",
+   "arg": [
+    [
+     {
+      "id": "a",
+      "updated_at": "2026-09-01T10:00:00.000Z",
+      "deleted_at": null
+     },
+     {
+      "id": "b",
+      "updated_at": "2026-09-01T10:00:00.000Z",
+      "deleted_at": "2026-09-01T10:00:00.000Z"
+     },
+     {
+      "id": "c",
+      "updated_at": "2026-09-01T10:00:00.500Z",
+      "deleted_at": null
+     },
+     {
+      "id": "d",
+      "updated_at": "2026-09-01T09:00:00.000Z",
+      "deleted_at": null
+     },
+     {
+      "id": "bad id",
+      "updated_at": "2026-09-01T10:00:00.000Z"
+     },
+     {
+      "id": "__proto__",
+      "updated_at": "2026-09-01T10:00:00.000Z"
+     },
+     {
+      "id": 7,
+      "updated_at": "2026-09-01T10:00:00.000Z"
+     },
+     {
+      "updated_at": "2026-09-01T10:00:00.000Z"
+     },
+     {
+      "id": "e",
+      "updated_at": "garbage"
+     }
+    ],
+    {
+     "c": {
+      "updatedAt": 1788256800000
+     },
+     "d": {
+      "updatedAt": 1788256800000
+     },
+     "e": {
+      "updatedAt": 0
+     },
+     "b": {
+      "updatedAt": 1
+     }
+    }
+   ]
+  },
+  "output": [
+   "a",
+   "b",
+   "c",
+   "__proto__",
+   "7"
+  ]
+ },
+ {
+  "input": {
+   "fn": "canReturnToAnon",
+   "arg": [
+    "pending",
+    false,
+    3
+   ]
+  },
+  "output": true
+ },
+ {
+  "input": {
+   "fn": "canReturnToAnon",
+   "arg": [
+    "rejected",
+    false,
+    1
+   ]
+  },
+  "output": true
+ },
+ {
+  "input": {
+   "fn": "canReturnToAnon",
+   "arg": [
+    "approved",
+    false,
+    3
+   ]
+  },
+  "output": false
+ },
+ {
+  "input": {
+   "fn": "canReturnToAnon",
+   "arg": [
+    "pending",
+    true,
+    3
+   ]
+  },
+  "output": false
+ },
+ {
+  "input": {
+   "fn": "canReturnToAnon",
+   "arg": [
+    "pending",
+    false,
+    0
+   ]
+  },
+  "output": false
+ },
+ {
+  "input": {
+   "fn": "canReturnToAnon",
+   "arg": [
+    null,
+    false,
+    2
+   ]
+  },
+  "output": false
+ },
+ {
+  "input": {
+   "fn": "dbNameFor",
+   "arg": [
+    "",
+    ""
+   ]
+  },
+  "output": "ac-db"
+ },
+ {
+  "input": {
+   "fn": "dbNameFor",
+   "arg": [
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": "ac-db"
+ },
+ {
+  "input": {
+   "fn": "dbNameFor",
+   "arg": [
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    ""
+   ]
+  },
+  "output": "ac-db-5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+ },
+ {
+  "input": {
+   "fn": "dbNameFor",
+   "arg": [
+    "",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": "ac-db-anon"
+ },
+ {
+  "input": {
+   "fn": "dbNameFor",
+   "arg": [
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    null
+   ]
+  },
+  "output": "ac-db-5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+ },
+ {
+  "input": {
+   "fn": "spaceKeyFor",
+   "arg": [
+    "ac-pins",
+    "",
+    ""
+   ]
+  },
+  "output": "ac-pins"
+ },
+ {
+  "input": {
+   "fn": "spaceKeyFor",
+   "arg": [
+    "ac-pins",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": "ac-pins"
+ },
+ {
+  "input": {
+   "fn": "spaceKeyFor",
+   "arg": [
+    "ac-pins",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "other"
+   ]
+  },
+  "output": "ac-pins@5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+ },
+ {
+  "input": {
+   "fn": "spaceKeyFor",
+   "arg": [
+    "ac-pins",
+    "",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": "ac-pins@anon"
+ },
+ {
+  "input": {
+   "fn": "spaceTag",
+   "arg": ""
+  },
+  "output": "spztntfp"
+ },
+ {
+  "input": {
+   "fn": "spaceTag",
+   "arg": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+  },
+  "output": "sp71b1bp"
+ },
+ {
+  "input": {
+   "fn": "spaceTag",
+   "arg": "é€𝄞"
+  },
+  "output": "spcag2a6"
+ },
+ {
+  "input": {
+   "fn": "sanitizePins",
+   "arg": [
+    "f1",
+    "bad id",
+    5,
+    "__proto__",
+    "p0",
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "p5",
+    "p6",
+    "p7",
+    "p8",
+    "p9",
+    "p10",
+    "p11",
+    "p12",
+    "p13",
+    "p14",
+    "p15",
+    "p16",
+    "p17",
+    "p18",
+    "p19",
+    "p20",
+    "p21",
+    "p22",
+    "p23",
+    "p24",
+    "p25",
+    "p26",
+    "p27",
+    "p28",
+    "p29",
+    "p30",
+    "p31",
+    "p32",
+    "p33",
+    "p34",
+    "p35",
+    "p36",
+    "p37",
+    "p38",
+    "p39",
+    "p40",
+    "p41",
+    "p42",
+    "p43",
+    "p44",
+    "p45",
+    "p46",
+    "p47",
+    "p48",
+    "p49",
+    "p50",
+    "p51",
+    "p52",
+    "p53",
+    "p54",
+    "p55",
+    "p56",
+    "p57",
+    "p58",
+    "p59"
+   ]
+  },
+  "output": [
+   "f1",
+   "p0",
+   "p1",
+   "p2",
+   "p3",
+   "p4",
+   "p5",
+   "p6",
+   "p7",
+   "p8",
+   "p9",
+   "p10",
+   "p11",
+   "p12",
+   "p13",
+   "p14",
+   "p15",
+   "p16",
+   "p17",
+   "p18",
+   "p19",
+   "p20",
+   "p21",
+   "p22",
+   "p23",
+   "p24",
+   "p25",
+   "p26",
+   "p27",
+   "p28",
+   "p29",
+   "p30",
+   "p31",
+   "p32",
+   "p33",
+   "p34",
+   "p35",
+   "p36",
+   "p37",
+   "p38",
+   "p39",
+   "p40",
+   "p41",
+   "p42",
+   "p43",
+   "p44",
+   "p45"
+  ]
+ },
+ {
+  "input": {
+   "fn": "sanitizePins",
+   "arg": "nope"
+  },
+  "output": []
+ },
+ {
+  "input": {
+   "fn": "sanitizeUsage",
+   "arg": {
+    "f1": {
+     "n": 3.7,
+     "t": 12.9
+    },
+    "bad id": {
+     "n": 1,
+     "t": 1
+    },
+    "f2": {
+     "n": 0,
+     "t": 5
+    },
+    "f3": {
+     "n": 20000,
+     "t": -5
+    },
+    "f4": "x",
+    "f5": {
+     "n": "4",
+     "t": "9"
+    }
+   }
+  },
+  "output": {
+   "f1": {
+    "n": 3,
+    "t": 12
+   },
+   "f3": {
+    "n": 9999,
+    "t": 0
+   },
+   "f5": {
+    "n": 4,
+    "t": 9
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "sanitizeUsage",
+   "arg": {
+    "u0": {
+     "n": 1,
+     "t": 1000
+    },
+    "u1": {
+     "n": 1,
+     "t": 1001
+    },
+    "u2": {
+     "n": 1,
+     "t": 1002
+    },
+    "u3": {
+     "n": 1,
+     "t": 1003
+    },
+    "u4": {
+     "n": 1,
+     "t": 1004
+    },
+    "u5": {
+     "n": 1,
+     "t": 1005
+    },
+    "u6": {
+     "n": 1,
+     "t": 1006
+    },
+    "u7": {
+     "n": 1,
+     "t": 1007
+    },
+    "u8": {
+     "n": 1,
+     "t": 1008
+    },
+    "u9": {
+     "n": 1,
+     "t": 1009
+    },
+    "u10": {
+     "n": 1,
+     "t": 1010
+    },
+    "u11": {
+     "n": 1,
+     "t": 1011
+    },
+    "u12": {
+     "n": 1,
+     "t": 1012
+    },
+    "u13": {
+     "n": 1,
+     "t": 1013
+    },
+    "u14": {
+     "n": 1,
+     "t": 1014
+    },
+    "u15": {
+     "n": 1,
+     "t": 1015
+    },
+    "u16": {
+     "n": 1,
+     "t": 1016
+    },
+    "u17": {
+     "n": 1,
+     "t": 1017
+    },
+    "u18": {
+     "n": 1,
+     "t": 1018
+    },
+    "u19": {
+     "n": 1,
+     "t": 1019
+    },
+    "u20": {
+     "n": 1,
+     "t": 1020
+    },
+    "u21": {
+     "n": 1,
+     "t": 1021
+    },
+    "u22": {
+     "n": 1,
+     "t": 1022
+    },
+    "u23": {
+     "n": 1,
+     "t": 1023
+    },
+    "u24": {
+     "n": 1,
+     "t": 1024
+    },
+    "u25": {
+     "n": 1,
+     "t": 1025
+    },
+    "u26": {
+     "n": 1,
+     "t": 1026
+    },
+    "u27": {
+     "n": 1,
+     "t": 1027
+    },
+    "u28": {
+     "n": 1,
+     "t": 1028
+    },
+    "u29": {
+     "n": 1,
+     "t": 1029
+    },
+    "u30": {
+     "n": 1,
+     "t": 1030
+    },
+    "u31": {
+     "n": 1,
+     "t": 1031
+    },
+    "u32": {
+     "n": 1,
+     "t": 1032
+    },
+    "u33": {
+     "n": 1,
+     "t": 1033
+    },
+    "u34": {
+     "n": 1,
+     "t": 1034
+    },
+    "u35": {
+     "n": 1,
+     "t": 1035
+    },
+    "u36": {
+     "n": 1,
+     "t": 1036
+    },
+    "u37": {
+     "n": 1,
+     "t": 1037
+    },
+    "u38": {
+     "n": 1,
+     "t": 1038
+    },
+    "u39": {
+     "n": 1,
+     "t": 1039
+    },
+    "u40": {
+     "n": 1,
+     "t": 1040
+    },
+    "u41": {
+     "n": 1,
+     "t": 1041
+    },
+    "u42": {
+     "n": 1,
+     "t": 1042
+    },
+    "u43": {
+     "n": 1,
+     "t": 1043
+    },
+    "u44": {
+     "n": 1,
+     "t": 1044
+    },
+    "u45": {
+     "n": 1,
+     "t": 1045
+    },
+    "u46": {
+     "n": 1,
+     "t": 1046
+    },
+    "u47": {
+     "n": 1,
+     "t": 1047
+    },
+    "u48": {
+     "n": 1,
+     "t": 1048
+    },
+    "u49": {
+     "n": 1,
+     "t": 1049
+    },
+    "u50": {
+     "n": 1,
+     "t": 1050
+    },
+    "u51": {
+     "n": 1,
+     "t": 1051
+    },
+    "u52": {
+     "n": 1,
+     "t": 1052
+    },
+    "u53": {
+     "n": 1,
+     "t": 1053
+    },
+    "u54": {
+     "n": 1,
+     "t": 1054
+    },
+    "u55": {
+     "n": 1,
+     "t": 1055
+    },
+    "u56": {
+     "n": 1,
+     "t": 1056
+    },
+    "u57": {
+     "n": 1,
+     "t": 1057
+    },
+    "u58": {
+     "n": 1,
+     "t": 1058
+    },
+    "u59": {
+     "n": 1,
+     "t": 1059
+    },
+    "u60": {
+     "n": 1,
+     "t": 1060
+    },
+    "u61": {
+     "n": 1,
+     "t": 1061
+    },
+    "u62": {
+     "n": 1,
+     "t": 1062
+    },
+    "u63": {
+     "n": 1,
+     "t": 1063
+    },
+    "u64": {
+     "n": 1,
+     "t": 1064
+    },
+    "u65": {
+     "n": 1,
+     "t": 1065
+    },
+    "u66": {
+     "n": 1,
+     "t": 1066
+    },
+    "u67": {
+     "n": 1,
+     "t": 1067
+    },
+    "u68": {
+     "n": 1,
+     "t": 1068
+    },
+    "u69": {
+     "n": 1,
+     "t": 1069
+    },
+    "u70": {
+     "n": 1,
+     "t": 1070
+    },
+    "u71": {
+     "n": 1,
+     "t": 1071
+    },
+    "u72": {
+     "n": 1,
+     "t": 1072
+    },
+    "u73": {
+     "n": 1,
+     "t": 1073
+    },
+    "u74": {
+     "n": 1,
+     "t": 1074
+    },
+    "u75": {
+     "n": 1,
+     "t": 1075
+    },
+    "u76": {
+     "n": 1,
+     "t": 1076
+    },
+    "u77": {
+     "n": 1,
+     "t": 1077
+    },
+    "u78": {
+     "n": 1,
+     "t": 1078
+    },
+    "u79": {
+     "n": 1,
+     "t": 1079
+    },
+    "u80": {
+     "n": 1,
+     "t": 1080
+    },
+    "u81": {
+     "n": 1,
+     "t": 1081
+    },
+    "u82": {
+     "n": 1,
+     "t": 1082
+    },
+    "u83": {
+     "n": 1,
+     "t": 1083
+    },
+    "u84": {
+     "n": 1,
+     "t": 1084
+    },
+    "u85": {
+     "n": 1,
+     "t": 1085
+    },
+    "u86": {
+     "n": 1,
+     "t": 1086
+    },
+    "u87": {
+     "n": 1,
+     "t": 1087
+    },
+    "u88": {
+     "n": 1,
+     "t": 1088
+    },
+    "u89": {
+     "n": 1,
+     "t": 1089
+    },
+    "u90": {
+     "n": 1,
+     "t": 1090
+    },
+    "u91": {
+     "n": 1,
+     "t": 1091
+    },
+    "u92": {
+     "n": 1,
+     "t": 1092
+    },
+    "u93": {
+     "n": 1,
+     "t": 1093
+    },
+    "u94": {
+     "n": 1,
+     "t": 1094
+    },
+    "u95": {
+     "n": 1,
+     "t": 1095
+    },
+    "u96": {
+     "n": 1,
+     "t": 1096
+    },
+    "u97": {
+     "n": 1,
+     "t": 1097
+    },
+    "u98": {
+     "n": 1,
+     "t": 1098
+    },
+    "u99": {
+     "n": 1,
+     "t": 1099
+    },
+    "u100": {
+     "n": 1,
+     "t": 1100
+    },
+    "u101": {
+     "n": 1,
+     "t": 1101
+    },
+    "u102": {
+     "n": 1,
+     "t": 1102
+    },
+    "u103": {
+     "n": 1,
+     "t": 1103
+    },
+    "u104": {
+     "n": 1,
+     "t": 1104
+    },
+    "u105": {
+     "n": 1,
+     "t": 1105
+    },
+    "u106": {
+     "n": 1,
+     "t": 1106
+    },
+    "u107": {
+     "n": 1,
+     "t": 1107
+    },
+    "u108": {
+     "n": 1,
+     "t": 1108
+    },
+    "u109": {
+     "n": 1,
+     "t": 1109
+    },
+    "u110": {
+     "n": 1,
+     "t": 1110
+    },
+    "u111": {
+     "n": 1,
+     "t": 1111
+    },
+    "u112": {
+     "n": 1,
+     "t": 1112
+    },
+    "u113": {
+     "n": 1,
+     "t": 1113
+    },
+    "u114": {
+     "n": 1,
+     "t": 1114
+    },
+    "u115": {
+     "n": 1,
+     "t": 1115
+    },
+    "u116": {
+     "n": 1,
+     "t": 1116
+    },
+    "u117": {
+     "n": 1,
+     "t": 1117
+    },
+    "u118": {
+     "n": 1,
+     "t": 1118
+    },
+    "u119": {
+     "n": 1,
+     "t": 1119
+    },
+    "u120": {
+     "n": 1,
+     "t": 1120
+    },
+    "u121": {
+     "n": 1,
+     "t": 1121
+    },
+    "u122": {
+     "n": 1,
+     "t": 1122
+    },
+    "u123": {
+     "n": 1,
+     "t": 1123
+    },
+    "u124": {
+     "n": 1,
+     "t": 1124
+    },
+    "u125": {
+     "n": 1,
+     "t": 1125
+    },
+    "u126": {
+     "n": 1,
+     "t": 1126
+    },
+    "u127": {
+     "n": 1,
+     "t": 1127
+    },
+    "u128": {
+     "n": 1,
+     "t": 1128
+    },
+    "u129": {
+     "n": 1,
+     "t": 1129
+    },
+    "u130": {
+     "n": 1,
+     "t": 1130
+    },
+    "u131": {
+     "n": 1,
+     "t": 1131
+    },
+    "u132": {
+     "n": 1,
+     "t": 1132
+    },
+    "u133": {
+     "n": 1,
+     "t": 1133
+    },
+    "u134": {
+     "n": 1,
+     "t": 1134
+    },
+    "u135": {
+     "n": 1,
+     "t": 1135
+    },
+    "u136": {
+     "n": 1,
+     "t": 1136
+    },
+    "u137": {
+     "n": 1,
+     "t": 1137
+    },
+    "u138": {
+     "n": 1,
+     "t": 1138
+    },
+    "u139": {
+     "n": 1,
+     "t": 1139
+    },
+    "u140": {
+     "n": 1,
+     "t": 1140
+    },
+    "u141": {
+     "n": 1,
+     "t": 1141
+    },
+    "u142": {
+     "n": 1,
+     "t": 1142
+    },
+    "u143": {
+     "n": 1,
+     "t": 1143
+    },
+    "u144": {
+     "n": 1,
+     "t": 1144
+    },
+    "u145": {
+     "n": 1,
+     "t": 1145
+    },
+    "u146": {
+     "n": 1,
+     "t": 1146
+    },
+    "u147": {
+     "n": 1,
+     "t": 1147
+    },
+    "u148": {
+     "n": 1,
+     "t": 1148
+    },
+    "u149": {
+     "n": 1,
+     "t": 1149
+    },
+    "u150": {
+     "n": 1,
+     "t": 1150
+    },
+    "u151": {
+     "n": 1,
+     "t": 1151
+    },
+    "u152": {
+     "n": 1,
+     "t": 1152
+    },
+    "u153": {
+     "n": 1,
+     "t": 1153
+    },
+    "u154": {
+     "n": 1,
+     "t": 1154
+    },
+    "u155": {
+     "n": 1,
+     "t": 1155
+    },
+    "u156": {
+     "n": 1,
+     "t": 1156
+    },
+    "u157": {
+     "n": 1,
+     "t": 1157
+    },
+    "u158": {
+     "n": 1,
+     "t": 1158
+    },
+    "u159": {
+     "n": 1,
+     "t": 1159
+    },
+    "u160": {
+     "n": 1,
+     "t": 1160
+    },
+    "u161": {
+     "n": 1,
+     "t": 1161
+    },
+    "u162": {
+     "n": 1,
+     "t": 1162
+    },
+    "u163": {
+     "n": 1,
+     "t": 1163
+    },
+    "u164": {
+     "n": 1,
+     "t": 1164
+    },
+    "u165": {
+     "n": 1,
+     "t": 1165
+    },
+    "u166": {
+     "n": 1,
+     "t": 1166
+    },
+    "u167": {
+     "n": 1,
+     "t": 1167
+    },
+    "u168": {
+     "n": 1,
+     "t": 1168
+    },
+    "u169": {
+     "n": 1,
+     "t": 1169
+    },
+    "u170": {
+     "n": 1,
+     "t": 1170
+    },
+    "u171": {
+     "n": 1,
+     "t": 1171
+    },
+    "u172": {
+     "n": 1,
+     "t": 1172
+    },
+    "u173": {
+     "n": 1,
+     "t": 1173
+    },
+    "u174": {
+     "n": 1,
+     "t": 1174
+    },
+    "u175": {
+     "n": 1,
+     "t": 1175
+    },
+    "u176": {
+     "n": 1,
+     "t": 1176
+    },
+    "u177": {
+     "n": 1,
+     "t": 1177
+    },
+    "u178": {
+     "n": 1,
+     "t": 1178
+    },
+    "u179": {
+     "n": 1,
+     "t": 1179
+    },
+    "u180": {
+     "n": 1,
+     "t": 1180
+    },
+    "u181": {
+     "n": 1,
+     "t": 1181
+    },
+    "u182": {
+     "n": 1,
+     "t": 1182
+    },
+    "u183": {
+     "n": 1,
+     "t": 1183
+    },
+    "u184": {
+     "n": 1,
+     "t": 1184
+    },
+    "u185": {
+     "n": 1,
+     "t": 1185
+    },
+    "u186": {
+     "n": 1,
+     "t": 1186
+    },
+    "u187": {
+     "n": 1,
+     "t": 1187
+    },
+    "u188": {
+     "n": 1,
+     "t": 1188
+    },
+    "u189": {
+     "n": 1,
+     "t": 1189
+    },
+    "u190": {
+     "n": 1,
+     "t": 1190
+    },
+    "u191": {
+     "n": 1,
+     "t": 1191
+    },
+    "u192": {
+     "n": 1,
+     "t": 1192
+    },
+    "u193": {
+     "n": 1,
+     "t": 1193
+    },
+    "u194": {
+     "n": 1,
+     "t": 1194
+    },
+    "u195": {
+     "n": 1,
+     "t": 1195
+    },
+    "u196": {
+     "n": 1,
+     "t": 1196
+    },
+    "u197": {
+     "n": 1,
+     "t": 1197
+    },
+    "u198": {
+     "n": 1,
+     "t": 1198
+    },
+    "u199": {
+     "n": 1,
+     "t": 1199
+    },
+    "u200": {
+     "n": 1,
+     "t": 1200
+    },
+    "u201": {
+     "n": 1,
+     "t": 1201
+    },
+    "u202": {
+     "n": 1,
+     "t": 1202
+    },
+    "u203": {
+     "n": 1,
+     "t": 1203
+    },
+    "u204": {
+     "n": 1,
+     "t": 1204
+    }
+   }
+  },
+  "output": {
+   "u5": {
+    "n": 1,
+    "t": 1005
+   },
+   "u6": {
+    "n": 1,
+    "t": 1006
+   },
+   "u7": {
+    "n": 1,
+    "t": 1007
+   },
+   "u8": {
+    "n": 1,
+    "t": 1008
+   },
+   "u9": {
+    "n": 1,
+    "t": 1009
+   },
+   "u10": {
+    "n": 1,
+    "t": 1010
+   },
+   "u11": {
+    "n": 1,
+    "t": 1011
+   },
+   "u12": {
+    "n": 1,
+    "t": 1012
+   },
+   "u13": {
+    "n": 1,
+    "t": 1013
+   },
+   "u14": {
+    "n": 1,
+    "t": 1014
+   },
+   "u15": {
+    "n": 1,
+    "t": 1015
+   },
+   "u16": {
+    "n": 1,
+    "t": 1016
+   },
+   "u17": {
+    "n": 1,
+    "t": 1017
+   },
+   "u18": {
+    "n": 1,
+    "t": 1018
+   },
+   "u19": {
+    "n": 1,
+    "t": 1019
+   },
+   "u20": {
+    "n": 1,
+    "t": 1020
+   },
+   "u21": {
+    "n": 1,
+    "t": 1021
+   },
+   "u22": {
+    "n": 1,
+    "t": 1022
+   },
+   "u23": {
+    "n": 1,
+    "t": 1023
+   },
+   "u24": {
+    "n": 1,
+    "t": 1024
+   },
+   "u25": {
+    "n": 1,
+    "t": 1025
+   },
+   "u26": {
+    "n": 1,
+    "t": 1026
+   },
+   "u27": {
+    "n": 1,
+    "t": 1027
+   },
+   "u28": {
+    "n": 1,
+    "t": 1028
+   },
+   "u29": {
+    "n": 1,
+    "t": 1029
+   },
+   "u30": {
+    "n": 1,
+    "t": 1030
+   },
+   "u31": {
+    "n": 1,
+    "t": 1031
+   },
+   "u32": {
+    "n": 1,
+    "t": 1032
+   },
+   "u33": {
+    "n": 1,
+    "t": 1033
+   },
+   "u34": {
+    "n": 1,
+    "t": 1034
+   },
+   "u35": {
+    "n": 1,
+    "t": 1035
+   },
+   "u36": {
+    "n": 1,
+    "t": 1036
+   },
+   "u37": {
+    "n": 1,
+    "t": 1037
+   },
+   "u38": {
+    "n": 1,
+    "t": 1038
+   },
+   "u39": {
+    "n": 1,
+    "t": 1039
+   },
+   "u40": {
+    "n": 1,
+    "t": 1040
+   },
+   "u41": {
+    "n": 1,
+    "t": 1041
+   },
+   "u42": {
+    "n": 1,
+    "t": 1042
+   },
+   "u43": {
+    "n": 1,
+    "t": 1043
+   },
+   "u44": {
+    "n": 1,
+    "t": 1044
+   },
+   "u45": {
+    "n": 1,
+    "t": 1045
+   },
+   "u46": {
+    "n": 1,
+    "t": 1046
+   },
+   "u47": {
+    "n": 1,
+    "t": 1047
+   },
+   "u48": {
+    "n": 1,
+    "t": 1048
+   },
+   "u49": {
+    "n": 1,
+    "t": 1049
+   },
+   "u50": {
+    "n": 1,
+    "t": 1050
+   },
+   "u51": {
+    "n": 1,
+    "t": 1051
+   },
+   "u52": {
+    "n": 1,
+    "t": 1052
+   },
+   "u53": {
+    "n": 1,
+    "t": 1053
+   },
+   "u54": {
+    "n": 1,
+    "t": 1054
+   },
+   "u55": {
+    "n": 1,
+    "t": 1055
+   },
+   "u56": {
+    "n": 1,
+    "t": 1056
+   },
+   "u57": {
+    "n": 1,
+    "t": 1057
+   },
+   "u58": {
+    "n": 1,
+    "t": 1058
+   },
+   "u59": {
+    "n": 1,
+    "t": 1059
+   },
+   "u60": {
+    "n": 1,
+    "t": 1060
+   },
+   "u61": {
+    "n": 1,
+    "t": 1061
+   },
+   "u62": {
+    "n": 1,
+    "t": 1062
+   },
+   "u63": {
+    "n": 1,
+    "t": 1063
+   },
+   "u64": {
+    "n": 1,
+    "t": 1064
+   },
+   "u65": {
+    "n": 1,
+    "t": 1065
+   },
+   "u66": {
+    "n": 1,
+    "t": 1066
+   },
+   "u67": {
+    "n": 1,
+    "t": 1067
+   },
+   "u68": {
+    "n": 1,
+    "t": 1068
+   },
+   "u69": {
+    "n": 1,
+    "t": 1069
+   },
+   "u70": {
+    "n": 1,
+    "t": 1070
+   },
+   "u71": {
+    "n": 1,
+    "t": 1071
+   },
+   "u72": {
+    "n": 1,
+    "t": 1072
+   },
+   "u73": {
+    "n": 1,
+    "t": 1073
+   },
+   "u74": {
+    "n": 1,
+    "t": 1074
+   },
+   "u75": {
+    "n": 1,
+    "t": 1075
+   },
+   "u76": {
+    "n": 1,
+    "t": 1076
+   },
+   "u77": {
+    "n": 1,
+    "t": 1077
+   },
+   "u78": {
+    "n": 1,
+    "t": 1078
+   },
+   "u79": {
+    "n": 1,
+    "t": 1079
+   },
+   "u80": {
+    "n": 1,
+    "t": 1080
+   },
+   "u81": {
+    "n": 1,
+    "t": 1081
+   },
+   "u82": {
+    "n": 1,
+    "t": 1082
+   },
+   "u83": {
+    "n": 1,
+    "t": 1083
+   },
+   "u84": {
+    "n": 1,
+    "t": 1084
+   },
+   "u85": {
+    "n": 1,
+    "t": 1085
+   },
+   "u86": {
+    "n": 1,
+    "t": 1086
+   },
+   "u87": {
+    "n": 1,
+    "t": 1087
+   },
+   "u88": {
+    "n": 1,
+    "t": 1088
+   },
+   "u89": {
+    "n": 1,
+    "t": 1089
+   },
+   "u90": {
+    "n": 1,
+    "t": 1090
+   },
+   "u91": {
+    "n": 1,
+    "t": 1091
+   },
+   "u92": {
+    "n": 1,
+    "t": 1092
+   },
+   "u93": {
+    "n": 1,
+    "t": 1093
+   },
+   "u94": {
+    "n": 1,
+    "t": 1094
+   },
+   "u95": {
+    "n": 1,
+    "t": 1095
+   },
+   "u96": {
+    "n": 1,
+    "t": 1096
+   },
+   "u97": {
+    "n": 1,
+    "t": 1097
+   },
+   "u98": {
+    "n": 1,
+    "t": 1098
+   },
+   "u99": {
+    "n": 1,
+    "t": 1099
+   },
+   "u100": {
+    "n": 1,
+    "t": 1100
+   },
+   "u101": {
+    "n": 1,
+    "t": 1101
+   },
+   "u102": {
+    "n": 1,
+    "t": 1102
+   },
+   "u103": {
+    "n": 1,
+    "t": 1103
+   },
+   "u104": {
+    "n": 1,
+    "t": 1104
+   },
+   "u105": {
+    "n": 1,
+    "t": 1105
+   },
+   "u106": {
+    "n": 1,
+    "t": 1106
+   },
+   "u107": {
+    "n": 1,
+    "t": 1107
+   },
+   "u108": {
+    "n": 1,
+    "t": 1108
+   },
+   "u109": {
+    "n": 1,
+    "t": 1109
+   },
+   "u110": {
+    "n": 1,
+    "t": 1110
+   },
+   "u111": {
+    "n": 1,
+    "t": 1111
+   },
+   "u112": {
+    "n": 1,
+    "t": 1112
+   },
+   "u113": {
+    "n": 1,
+    "t": 1113
+   },
+   "u114": {
+    "n": 1,
+    "t": 1114
+   },
+   "u115": {
+    "n": 1,
+    "t": 1115
+   },
+   "u116": {
+    "n": 1,
+    "t": 1116
+   },
+   "u117": {
+    "n": 1,
+    "t": 1117
+   },
+   "u118": {
+    "n": 1,
+    "t": 1118
+   },
+   "u119": {
+    "n": 1,
+    "t": 1119
+   },
+   "u120": {
+    "n": 1,
+    "t": 1120
+   },
+   "u121": {
+    "n": 1,
+    "t": 1121
+   },
+   "u122": {
+    "n": 1,
+    "t": 1122
+   },
+   "u123": {
+    "n": 1,
+    "t": 1123
+   },
+   "u124": {
+    "n": 1,
+    "t": 1124
+   },
+   "u125": {
+    "n": 1,
+    "t": 1125
+   },
+   "u126": {
+    "n": 1,
+    "t": 1126
+   },
+   "u127": {
+    "n": 1,
+    "t": 1127
+   },
+   "u128": {
+    "n": 1,
+    "t": 1128
+   },
+   "u129": {
+    "n": 1,
+    "t": 1129
+   },
+   "u130": {
+    "n": 1,
+    "t": 1130
+   },
+   "u131": {
+    "n": 1,
+    "t": 1131
+   },
+   "u132": {
+    "n": 1,
+    "t": 1132
+   },
+   "u133": {
+    "n": 1,
+    "t": 1133
+   },
+   "u134": {
+    "n": 1,
+    "t": 1134
+   },
+   "u135": {
+    "n": 1,
+    "t": 1135
+   },
+   "u136": {
+    "n": 1,
+    "t": 1136
+   },
+   "u137": {
+    "n": 1,
+    "t": 1137
+   },
+   "u138": {
+    "n": 1,
+    "t": 1138
+   },
+   "u139": {
+    "n": 1,
+    "t": 1139
+   },
+   "u140": {
+    "n": 1,
+    "t": 1140
+   },
+   "u141": {
+    "n": 1,
+    "t": 1141
+   },
+   "u142": {
+    "n": 1,
+    "t": 1142
+   },
+   "u143": {
+    "n": 1,
+    "t": 1143
+   },
+   "u144": {
+    "n": 1,
+    "t": 1144
+   },
+   "u145": {
+    "n": 1,
+    "t": 1145
+   },
+   "u146": {
+    "n": 1,
+    "t": 1146
+   },
+   "u147": {
+    "n": 1,
+    "t": 1147
+   },
+   "u148": {
+    "n": 1,
+    "t": 1148
+   },
+   "u149": {
+    "n": 1,
+    "t": 1149
+   },
+   "u150": {
+    "n": 1,
+    "t": 1150
+   },
+   "u151": {
+    "n": 1,
+    "t": 1151
+   },
+   "u152": {
+    "n": 1,
+    "t": 1152
+   },
+   "u153": {
+    "n": 1,
+    "t": 1153
+   },
+   "u154": {
+    "n": 1,
+    "t": 1154
+   },
+   "u155": {
+    "n": 1,
+    "t": 1155
+   },
+   "u156": {
+    "n": 1,
+    "t": 1156
+   },
+   "u157": {
+    "n": 1,
+    "t": 1157
+   },
+   "u158": {
+    "n": 1,
+    "t": 1158
+   },
+   "u159": {
+    "n": 1,
+    "t": 1159
+   },
+   "u160": {
+    "n": 1,
+    "t": 1160
+   },
+   "u161": {
+    "n": 1,
+    "t": 1161
+   },
+   "u162": {
+    "n": 1,
+    "t": 1162
+   },
+   "u163": {
+    "n": 1,
+    "t": 1163
+   },
+   "u164": {
+    "n": 1,
+    "t": 1164
+   },
+   "u165": {
+    "n": 1,
+    "t": 1165
+   },
+   "u166": {
+    "n": 1,
+    "t": 1166
+   },
+   "u167": {
+    "n": 1,
+    "t": 1167
+   },
+   "u168": {
+    "n": 1,
+    "t": 1168
+   },
+   "u169": {
+    "n": 1,
+    "t": 1169
+   },
+   "u170": {
+    "n": 1,
+    "t": 1170
+   },
+   "u171": {
+    "n": 1,
+    "t": 1171
+   },
+   "u172": {
+    "n": 1,
+    "t": 1172
+   },
+   "u173": {
+    "n": 1,
+    "t": 1173
+   },
+   "u174": {
+    "n": 1,
+    "t": 1174
+   },
+   "u175": {
+    "n": 1,
+    "t": 1175
+   },
+   "u176": {
+    "n": 1,
+    "t": 1176
+   },
+   "u177": {
+    "n": 1,
+    "t": 1177
+   },
+   "u178": {
+    "n": 1,
+    "t": 1178
+   },
+   "u179": {
+    "n": 1,
+    "t": 1179
+   },
+   "u180": {
+    "n": 1,
+    "t": 1180
+   },
+   "u181": {
+    "n": 1,
+    "t": 1181
+   },
+   "u182": {
+    "n": 1,
+    "t": 1182
+   },
+   "u183": {
+    "n": 1,
+    "t": 1183
+   },
+   "u184": {
+    "n": 1,
+    "t": 1184
+   },
+   "u185": {
+    "n": 1,
+    "t": 1185
+   },
+   "u186": {
+    "n": 1,
+    "t": 1186
+   },
+   "u187": {
+    "n": 1,
+    "t": 1187
+   },
+   "u188": {
+    "n": 1,
+    "t": 1188
+   },
+   "u189": {
+    "n": 1,
+    "t": 1189
+   },
+   "u190": {
+    "n": 1,
+    "t": 1190
+   },
+   "u191": {
+    "n": 1,
+    "t": 1191
+   },
+   "u192": {
+    "n": 1,
+    "t": 1192
+   },
+   "u193": {
+    "n": 1,
+    "t": 1193
+   },
+   "u194": {
+    "n": 1,
+    "t": 1194
+   },
+   "u195": {
+    "n": 1,
+    "t": 1195
+   },
+   "u196": {
+    "n": 1,
+    "t": 1196
+   },
+   "u197": {
+    "n": 1,
+    "t": 1197
+   },
+   "u198": {
+    "n": 1,
+    "t": 1198
+   },
+   "u199": {
+    "n": 1,
+    "t": 1199
+   },
+   "u200": {
+    "n": 1,
+    "t": 1200
+   },
+   "u201": {
+    "n": 1,
+    "t": 1201
+   },
+   "u202": {
+    "n": 1,
+    "t": 1202
+   },
+   "u203": {
+    "n": 1,
+    "t": 1203
+   },
+   "u204": {
+    "n": 1,
+    "t": 1204
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "sanitizeUsage",
+   "arg": [
+    1,
+    2
+   ]
+  },
+  "output": {}
+ },
+ {
+  "input": {
+   "fn": "mergeUsage",
+   "arg": [
+    {
+     "a": {
+      "n": 2,
+      "t": 10
+     },
+     "b": {
+      "n": 5,
+      "t": 1
+     },
+     "c": {
+      "n": 1,
+      "t": 1
+     }
+    },
+    {
+     "a": {
+      "n": 2,
+      "t": 20
+     },
+     "b": {
+      "n": 4,
+      "t": 99
+     },
+     "d": {
+      "n": 1,
+      "t": 3
+     }
+    }
+   ]
+  },
+  "output": {
+   "a": {
+    "n": 2,
+    "t": 20
+   },
+   "b": {
+    "n": 5,
+    "t": 1
+   },
+   "c": {
+    "n": 1,
+    "t": 1
+   },
+   "d": {
+    "n": 1,
+    "t": 3
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "sanitizeTags",
+   "arg": [
+    {
+     "k": "tk1",
+     "l": "Médecin régulateur",
+     "a": [
+      "mru",
+      "regul",
+      "",
+      "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f"
+     ]
+    },
+    {
+     "l": "Médecin régulateur"
+    },
+    {
+     "label": "Ancien format",
+     "alias": [
+      "af"
+     ]
+    },
+    {
+     "k": "tk1",
+     "l": "doublon"
+    },
+    {
+     "l": "   "
+    },
+    null,
+    "str",
+    {
+     "l": "Été chaud !"
+    },
+    {
+     "l": "!!!"
+    },
+    {
+     "k": "bad key",
+     "l": "Clé invalide"
+    }
+   ]
+  },
+  "output": [
+   {
+    "k": "tk1",
+    "l": "Médecin régulateur",
+    "a": [
+     "mru",
+     "regul",
+     "xxxxxxxxxxxxxxxxxxxxxxxx",
+     "a",
+     "b",
+     "c",
+     "d"
+    ]
+   },
+   {
+    "k": "t-medecin-regulateur",
+    "l": "Médecin régulateur",
+    "a": []
+   },
+   {
+    "k": "t-ancien-format",
+    "l": "Ancien format",
+    "a": [
+     "af"
+    ]
+   },
+   {
+    "k": "t-ete-chaud-",
+    "l": "Été chaud !",
+    "a": []
+   },
+   {
+    "k": "t--",
+    "l": "!!!",
+    "a": []
+   },
+   {
+    "k": "tmunw22pg1n36tihw",
+    "l": "Clé invalide",
+    "a": []
+   }
+  ]
+ },
+ {
+  "input": {
+   "fn": "catSlug",
+   "arg": "Anesthésie"
+  },
+  "output": "anesthesie"
+ },
+ {
+  "input": {
+   "fn": "catSlug",
+   "arg": "SMUR — Pédiatrie"
+  },
+  "output": "smur-pediatrie"
+ },
+ {
+  "input": {
+   "fn": "catSlug",
+   "arg": "  Équipe déchocage  "
+  },
+  "output": "equipe-dechocage"
+ },
+ {
+  "input": {
+   "fn": "catSlug",
+   "arg": "!!!"
+  },
+  "output": ""
+ },
+ {
+  "input": {
+   "fn": "catSlug",
+   "arg": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "output": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+ },
+ {
+  "input": {
+   "fn": "catSlug",
+   "arg": "Œuf ÇA ß"
+  },
+  "output": "uf-ca"
+ },
+ {
+  "input": {
+   "fn": "catSlug",
+   "arg": ""
+  },
+  "output": ""
+ },
+ {
+  "input": {
+   "fn": "attStoragePath",
+   "arg": [
+    "L1",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "a1"
+   ]
+  },
+  "output": "l/L1/a1.pdf"
+ },
+ {
+  "input": {
+   "fn": "attStoragePath",
+   "arg": [
+    null,
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "a1"
+   ]
+  },
+  "output": "u/5b7c1f0e-8a1d-4c0e-9f00-0123456789ab/a1.pdf"
+ },
+ {
+  "input": {
+   "fn": "attStoragePath",
+   "arg": [
+    "",
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "a2"
+   ]
+  },
+  "output": "u/5b7c1f0e-8a1d-4c0e-9f00-0123456789ab/a2.pdf"
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09-30T08:56:13.046123+00:00"
+  },
+  "output": 1790758573046
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09-30T08:56:13.046Z"
+  },
+  "output": 1790758573046
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09-30T08:56:13+02:00"
+  },
+  "output": 1790751373000
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09-30T08:56:13.9+0530"
+  },
+  "output": 1790738773900
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09-30"
+  },
+  "output": 1790726400000
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09"
+  },
+  "output": 1788220800000
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026"
+  },
+  "output": 1767225600000
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "1970-01-01T00:00:00Z"
+  },
+  "output": 0
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-02-30T00:00:00Z"
+  },
+  "output": 1772409600000
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "garbage"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09-30T24:00:00Z"
+  },
+  "output": 1790812800000
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2026-09-30T08:56Z"
+  },
+  "output": 1790758560000
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "+002026-09-30T08:56:13.046Z"
+  },
+  "output": 1790758573046
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "2024-02-29T23:59:59.999Z"
+  },
+  "output": 1709251199999
+ },
+ {
+  "input": {
+   "fn": "dateParse",
+   "arg": "1969-12-31T23:59:59.999Z"
+  },
+  "output": -1
+ },
+ {
+  "input": {
+   "fn": "toISOString",
+   "arg": 0
+  },
+  "output": "1970-01-01T00:00:00.000Z"
+ },
+ {
+  "input": {
+   "fn": "toISOString",
+   "arg": 1790000000000
+  },
+  "output": "2026-09-21T14:13:20.000Z"
+ },
+ {
+  "input": {
+   "fn": "toISOString",
+   "arg": 1790000000000.9
+  },
+  "output": "2026-09-21T14:13:20.000Z"
+ },
+ {
+  "input": {
+   "fn": "toISOString",
+   "arg": -1
+  },
+  "output": "1969-12-31T23:59:59.999Z"
+ },
+ {
+  "input": {
+   "fn": "toISOString",
+   "arg": 253402300799999
+  },
+  "output": "9999-12-31T23:59:59.999Z"
+ },
+ {
+  "input": {
+   "fn": "toISOString",
+   "arg": 1000000000000000
+  },
+  "output": "+033658-09-27T01:46:40.000Z"
+ },
+ {
+  "input": {
+   "fn": "toISOString",
+   "arg": -62198755200000
+  },
+  "output": "-000001-01-01T00:00:00.000Z"
+ },
+ {
+  "input": {
+   "fn": "ficheToRow",
+   "arg": [
+    {
+     "id": "f1",
+     "title": "T",
+     "library": "L1",
+     "updatedAt": 1790000000000,
+     "deletedAt": null,
+     "dirty": true,
+     "extraX": [
+      1
+     ]
+    },
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": {
+   "id": "f1",
+   "owner": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+   "library_id": "L1",
+   "data": {
+    "id": "f1",
+    "title": "T",
+    "library": "L1",
+    "updatedAt": 1790000000000,
+    "deletedAt": null,
+    "extraX": [
+     1
+    ]
+   },
+   "updated_at": "2026-09-21T14:13:20.000Z",
+   "deleted_at": null
+  }
+ },
+ {
+  "input": {
+   "fn": "ficheToRow",
+   "arg": [
+    {
+     "id": "f2",
+     "title": "T",
+     "library": null,
+     "updatedAt": 1790000000000,
+     "deletedAt": 1790000000005,
+     "dirty": false
+    },
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": {
+   "id": "f2",
+   "owner": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+   "library_id": null,
+   "data": {
+    "id": "f2",
+    "title": "T",
+    "library": null,
+    "updatedAt": 1790000000000,
+    "deletedAt": 1790000000005
+   },
+   "updated_at": "2026-09-21T14:13:20.000Z",
+   "deleted_at": "2026-09-21T14:13:20.005Z"
+  }
+ },
+ {
+  "input": {
+   "fn": "ficheFromRow",
+   "arg": {
+    "id": "f9",
+    "owner": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "library_id": "L2",
+    "updated_at": "2026-09-30T08:56:13.046123+00:00",
+    "deleted_at": null,
+    "data": {
+     "id": "autre",
+     "title": "Distante",
+     "library": "X",
+     "ownerId": "Y",
+     "updatedAt": 1,
+     "dirty": true,
+     "v": 4,
+     "kind": "procedure",
+     "items": [],
+     "blocks": [],
+     "futur": {
+      "a": 1
+     }
+    }
+   }
+  },
+  "output": {
+   "id": "f9",
+   "title": "Distante",
+   "library": "L2",
+   "ownerId": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+   "updatedAt": 1790758573046,
+   "v": 4,
+   "kind": "procedure",
+   "items": [],
+   "blocks": [],
+   "futur": {
+    "a": 1
+   },
+   "deletedAt": null,
+   "validatedAt": "",
+   "category": "",
+   "order": 1790759646775,
+   "images": [],
+   "docs": [],
+   "status": "validated",
+   "code": "",
+   "discriminant": "",
+   "links": [],
+   "updatedBy": "",
+   "local": "",
+   "sources": [],
+   "excursions": [],
+   "start": null,
+   "timers": [],
+   "counters": []
+  }
+ },
+ {
+  "input": {
+   "fn": "ficheFromRow",
+   "arg": {
+    "id": "f8",
+    "owner": null,
+    "library_id": null,
+    "updated_at": "2026-09-30T08:56:13Z",
+    "deleted_at": "2026-09-30T09:00:00Z",
+    "data": null
+   }
+  },
+  "output": {
+   "id": "f8",
+   "updatedAt": 1790758573000,
+   "deletedAt": 1790758800000,
+   "ownerId": null,
+   "library": null,
+   "v": 4,
+   "kind": "procedure",
+   "title": "",
+   "validatedAt": "",
+   "category": "",
+   "order": 1790759646775,
+   "images": [],
+   "docs": [],
+   "status": "validated",
+   "code": "",
+   "discriminant": "",
+   "links": [],
+   "updatedBy": "",
+   "local": "",
+   "sources": [],
+   "excursions": [],
+   "blocks": [
+    {
+     "id": "bmunw22pj11h9mpp1",
+     "kind": "do",
+     "title": "Prise en charge",
+     "items": [],
+     "image": null,
+     "next": null,
+     "phase": "",
+     "imageW": 0,
+     "imageH": 0,
+     "nextLbl": "",
+     "milestones": []
+    }
+   ],
+   "start": "bmunw22pj11h9mpp1",
+   "items": [],
+   "timers": [],
+   "counters": []
+  }
+ },
+ {
+  "input": {
+   "fn": "protocolFromRow",
+   "arg": {
+    "id": "p1",
+    "owner": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+    "library_id": "L1",
+    "updated_at": "2026-09-30T08:56:13.5Z",
+    "deleted_at": null,
+    "data": {
+     "title": "Réf",
+     "body": "# T",
+     "attachments": [
+      {
+       "id": "d1",
+       "name": "x.pdf",
+       "size": 10
+      }
+     ]
+    }
+   }
+  },
+  "output": {
+   "title": "Réf",
+   "body": "# T",
+   "attachments": [
+    {
+     "id": "d1",
+     "name": "x.pdf",
+     "size": 10
+    }
+   ],
+   "id": "p1",
+   "updatedAt": 1790758573500,
+   "deletedAt": null,
+   "ownerId": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+   "library": "L1",
+   "validatedAt": "",
+   "category": "",
+   "order": 1790759646775,
+   "images": [],
+   "docs": [],
+   "status": "validated",
+   "code": "",
+   "discriminant": "",
+   "links": [],
+   "updatedBy": "",
+   "sources": []
+  }
+ },
+ {
+  "input": {
+   "fn": "sessionToRow",
+   "arg": [
+    {
+     "id": "s1",
+     "ficheId": "f1",
+     "live": false,
+     "exercise": 1,
+     "savedAt": 1790000000000,
+     "updatedAt": 1790000000010,
+     "deletedAt": null,
+     "dirty": true,
+     "linkArm": {
+      "t1": {
+       "b": "b1",
+       "x": 0
+      }
+     },
+     "verified": {
+      "1:b1:0": 1
+     },
+     "vgaps": {},
+     "stepTexts": {},
+     "checked": {
+      "1:b1:0": true
+     },
+     "futur": "ok"
+    },
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": {
+   "id": "s1",
+   "owner": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+   "data": {
+    "id": "s1",
+    "ficheId": "f1",
+    "live": false,
+    "exercise": 1,
+    "savedAt": 1790000000000,
+    "checked": {
+     "1:b1:0": true
+    },
+    "futur": "ok",
+    "vElsewhere": true
+   },
+   "exercise": true,
+   "updated_at": "2026-09-21T14:13:20.010Z",
+   "deleted_at": null
+  }
+ },
+ {
+  "input": {
+   "fn": "sessionToRow",
+   "arg": [
+    {
+     "id": "s2",
+     "ficheId": "f1",
+     "savedAt": 1790000000000,
+     "verified": {},
+     "vgaps": {},
+     "stepTexts": "ab",
+     "deletedAt": 1790000000001
+    },
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": {
+   "id": "s2",
+   "owner": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+   "data": {
+    "id": "s2",
+    "ficheId": "f1",
+    "savedAt": 1790000000000,
+    "vElsewhere": true
+   },
+   "exercise": false,
+   "updated_at": "2026-09-21T14:13:20.000Z",
+   "deleted_at": "2026-09-21T14:13:20.001Z"
+  }
+ },
+ {
+  "input": {
+   "fn": "sessionToRow",
+   "arg": [
+    {
+     "id": "s3",
+     "ficheId": "f1",
+     "updatedAt": 0,
+     "savedAt": 1790000000003
+    },
+    "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab"
+   ]
+  },
+  "output": {
+   "id": "s3",
+   "owner": "5b7c1f0e-8a1d-4c0e-9f00-0123456789ab",
+   "data": {
+    "id": "s3",
+    "ficheId": "f1",
+    "savedAt": 1790000000003
+   },
+   "exercise": false,
+   "updated_at": "2026-09-21T14:13:20.003Z",
+   "deleted_at": null
+  }
+ },
+ {
+  "input": {
+   "fn": "sessionFromRow",
+   "arg": {
+    "id": "s1",
+    "exercise": true,
+    "updated_at": "2026-09-30T08:56:13.046Z",
+    "deleted_at": null,
+    "data": {
+     "ficheId": "f1",
+     "ficheTitle": "T",
+     "live": false,
+     "checked": {
+      "1:b1:0": true,
+      "bad": 1
+     },
+     "verified": {
+      "1:b1:0": 1
+     },
+     "vElsewhere": true,
+     "events": [
+      {
+       "id": "e1",
+       "t": 5,
+       "ref": {
+        "type": "core",
+        "k": "renfort"
+       }
+      }
+     ],
+     "nav": [
+      "b1"
+     ],
+     "navSeq": [
+      1
+     ],
+     "futur": [
+      1
+     ]
+    }
+   }
+  },
+  "output": {
+   "ficheId": "f1",
+   "ficheTitle": "T",
+   "live": false,
+   "checked": {
+    "1:b1:0": true
+   },
+   "verified": {},
+   "vElsewhere": true,
+   "events": [
+    {
+     "id": "e1",
+     "t": 5,
+     "ref": {
+      "type": "core",
+      "k": "renfort"
+     }
+    }
+   ],
+   "nav": [
+    "b1"
+   ],
+   "navSeq": [
+    1
+   ],
+   "futur": [
+    1
+   ],
+   "name": "",
+   "startedAt": 0,
+   "savedAt": 0,
+   "aidRev": 0,
+   "exercise": true,
+   "vgaps": {},
+   "stepTexts": {},
+   "counters": {},
+   "timers": {},
+   "cxBack": {},
+   "extraTimers": [],
+   "extraCounters": [],
+   "linkArm": {},
+   "id": "s1",
+   "updatedAt": 1790758573046,
+   "deletedAt": null
+  }
+ },
+ {
+  "input": {
+   "fn": "sessionFromRow",
+   "arg": {
+    "id": "s2",
+    "exercise": false,
+    "updated_at": "2026-09-30T08:56:13Z",
+    "deleted_at": "2026-09-30T09:00:00Z",
+    "data": {
+     "v": 2,
+     "enc": "xyz"
+    }
+   }
+  },
+  "output": {
+   "v": 2,
+   "enc": "xyz",
+   "ficheId": "fmunw22pk1cwtbxg1",
+   "ficheTitle": "",
+   "name": "",
+   "startedAt": 0,
+   "savedAt": 0,
+   "aidRev": 0,
+   "live": false,
+   "exercise": false,
+   "checked": {},
+   "verified": {},
+   "vgaps": {},
+   "stepTexts": {},
+   "nav": [],
+   "navSeq": [],
+   "counters": {},
+   "timers": {},
+   "cxBack": {},
+   "extraTimers": [],
+   "extraCounters": [],
+   "linkArm": {},
+   "events": [],
+   "id": "s2",
+   "updatedAt": 1790758573000,
+   "deletedAt": 1790758800000
+  }
+ }
+]
