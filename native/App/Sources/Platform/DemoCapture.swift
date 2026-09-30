@@ -36,6 +36,8 @@ extension AppModel {
                 act(R) { e, R in _ = e.toggleStep(R, "1:\(b):1") }
             }
         case "edit":
+            // Une session vive ferait d'abord demander « Terminer la session et modifier ? ».
+            if let R = engine.live[f.id] { endSession(R) }
             path = [.editFiche(f.id)]
         case "reference":
             if let p = references.first { openReference(p.id) }
