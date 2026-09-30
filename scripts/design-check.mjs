@@ -27,11 +27,12 @@ const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8'
 // Tokens.generated.swift : l'app native lit les MÊMES tokens (native/tools/build-tokens.mjs) —
 // un token changé dans index.html sans régénération ferait dériver l'app en silence.
 const GEN = ['design/ds/components', 'design/ds/foundations', 'design/ds/tokens',
-  'native/App/Sources/Design/Tokens.generated.swift'];
+  'native/App/Sources/Design/Tokens.generated.swift', 'native/DESIGN-COMPOSANTS.md'];
 
 // 1. Régénérer design/ds/ depuis index.html.
 execFileSync('node', ['design/build.mjs'], { cwd: root, stdio: 'inherit' });
 execFileSync('node', ['native/tools/build-tokens.mjs'], { cwd: root, stdio: 'inherit' });
+execFileSync('node', ['scripts/check-components.mjs', '--doc'], { cwd: root, stdio: 'inherit' });
 
 // 2. La sortie GÉNÉRÉE diffère-t-elle de ce qui est versionné ?
 const changed = git('status', '--porcelain', '--', ...GEN).trim();
@@ -47,7 +48,7 @@ console.log(changed.split('\n').map(l => '   ' + l.trim()).join('\n'));
 if (strict) {
   // Ne pas polluer l'espace de travail CI : restaurer les seuls fichiers GÉNÉRÉS.
   git('checkout', '--', ...GEN);
-  console.error('\n✗ Régénère et committe avant de pousser :  npm run design:build && git add design/ds native/App/Sources/Design/Tokens.generated.swift');
+  console.error('\n✗ Régénère et committe avant de pousser :  npm run design:build && git add design/ds native/App/Sources/Design/Tokens.generated.swift native/DESIGN-COMPOSANTS.md');
   process.exit(1);
 }
 

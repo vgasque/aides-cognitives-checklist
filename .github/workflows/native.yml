@@ -12,9 +12,9 @@ name: Native
 on:
   push:
     branches: [native-apple]
-    paths: ['native/**', 'index.html', 'design/**', '.github/workflows/native.yml']
+    paths: ['native/**', 'index.html', 'design/**', 'scripts/check-components.mjs', '.github/workflows/native.yml']
   pull_request:
-    paths: ['native/**', '.github/workflows/native.yml']
+    paths: ['native/**', 'index.html', 'design/**', 'scripts/check-components.mjs', '.github/workflows/native.yml']
   workflow_dispatch:
 
 concurrency:
@@ -37,6 +37,7 @@ jobs:
       - name: Design system (échelles de la PWA, tokens générés à jour)
         run: |
           node native/tools/check-swift-design.mjs
+          node scripts/check-components.mjs
           node native/tools/build-tokens.mjs >/dev/null
           git diff --exit-code -- native/App/Sources/Design/Tokens.generated.swift \
             || { echo "✗ Tokens.generated.swift a dérivé d'index.html : npm run design:build"; exit 1; }

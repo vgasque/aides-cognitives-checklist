@@ -83,6 +83,23 @@ index.html (:root, thème sombre, prefers-contrast, accents, PALETTE)
 - `Design/Tokens.swift` (écrit à la main) ne garde que les outils et ce que le CSS ne déclare
   pas encore en token (échelle des contrôles A375, bande d'affichage, paliers de largeur).
 
+### Composants jumeaux
+
+Le DESSIN d'un composant ne se génère pas (du SwiftUI ne se déduit pas d'une règle CSS) : on
+garantit donc qu'aucune modification n'est OUBLIÉE de l'autre côté. `design/components.json`
+relie chaque famille de classes CSS (`.dir-…`, `.rt-…`, `.pf-…`) à ses types SwiftUI ;
+`scripts/check-components.mjs` (CI) hache le CSS de chaque famille et échoue quand il a changé
+depuis la dernière relecture du jumeau, en nommant les types Swift à revoir. Une nouvelle
+famille CSS sans jumeau fait aussi échouer. Tableau lisible et table de traduction PWA → iOS 27 :
+[`DESIGN-COMPOSANTS.md`](DESIGN-COMPOSANTS.md) (généré).
+
+| Tu changes… | Ce qui se passe |
+|---|---|
+| un token (couleur, taille, rayon, ombre) | automatique : `npm run design:build`, les deux suivent |
+| une échelle (espace, texte, rayons) | automatique : `check-swift-design` lit les échelles de la PWA |
+| le CSS d'un composant | la CI désigne le composant Swift à revoir ; relu → `--ack <id>` |
+| une nouvelle famille CSS | la CI exige de lui donner un jumeau (ou de l'écarter nommément) |
+
 ## Parité avec la PWA : l'oracle
 
 La PWA reste la **source de vérité**. `tools/oracle.mjs` charge `index.html?__actest` dans
