@@ -1,0 +1,80 @@
+2026-09-30 15:35:02.099 Df AidesCognitives[18611:d9c0] [com.apple.BacklightServices:scenes] 0x105c37390 setDelegate:<0x105c37360 _UIBacklightEnvironment> hasDelegate:YES for environment:sceneID:fr.aidescognitives.app-default
+2026-09-30 15:35:02.100 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:02.100 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:EventDeferring] [0x105ed9420] Initialized with scene: <UIWindowScene: 0x1054fbd90>; behavior: <_UIEventDeferringBehavior_iOS: 0x105fa4420>; availableForProcess: 1, systemShellManagesKeyboardFocus: 1
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9d4] [com.apple.BackBoard:EventDelivery] BKSHIDEventObserver - connection activation
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.BackBoard:EventDelivery] policyStatus:<BKSHIDEventDeliveryPolicyObserver: 0x105c60360; process scope; status: target> was:none
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Setting default evaluation strategy for UIUserInterfaceIdiomPhone to LastOneWins
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Scene target of keyboard event deferring environment did change: 1; scene: UIWindowScene: 0x1054fbd90; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Afr.aidescognitives.app-default
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:EventDeferring] [0x105ed9420] Scene target of event deferring environments did update: scene: 0x1054fbd90; current systemShellManagesKeyboardFocus: 1; systemShellManagesKeyboardFocusForScene: 1; eligibleForRecordRemoval: 1;
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Scene became target of keyboard event deferring environment: UIWindowScene: 0x1054fbd90; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Afr.aidescognitives.app-default
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Stack[KeyWindow] 0x105c36fd0: Taking no further action for migration from LastOneWins -> SystemShellManaged as there are no scenes
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Setting default evaluation strategy for UIUserInterfaceIdiomPhone to SystemShellManaged
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Key window needs update: 0; currentKeyWindowScene: 0x0; evaluatedKeyWindowScene: 0x1054fbd90; currentApplicationKeyWindow: 0x0; evaluatedApplicationKeyWindow: 0x0; reason: UIWindowScene: 0x1054fbd90: Window scene became target of keyboard environment
+2026-09-30 15:35:02.102 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:02.103 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:02.105 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:02.151 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:Orientation] <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376) Scene updated orientation preferences: none -> ( Pu Ll Lr )
+2026-09-30 15:35:02.160 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Key window API is scene-level: YES
+2026-09-30 15:35:02.160 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] UIWindowScene: 0x1054fbd90: Window became key in scene: UIWindow: 0x105e2c400; contextId: 0x8B20845D: reason: UIWindowScene: 0x1054fbd90: Window requested to become key in scene: 0x105e2c400
+2026-09-30 15:35:02.160 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Key window needs update: 1; currentKeyWindowScene: 0x0; evaluatedKeyWindowScene: 0x1054fbd90; currentApplicationKeyWindow: 0x0; evaluatedApplicationKeyWindow: 0x105e2c400; reason: UIWindowScene: 0x1054fbd90: Window requested to become key in scene: 0x105e2c400
+2026-09-30 15:35:02.160 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Window did become application key: UIWindow: 0x105e2c400; contextId: 0x8B20845D; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Afr.aidescognitives.app-default
+2026-09-30 15:35:02.160 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:EventDeferring] [0x105ed9420] Begin local event deferring requested for token: 0x105c62100; environments: 1; reason: UIWindowScene: 0x1054fbd90: Begin event deferring in keyboardFocus for window: 0x105e2c400
+2026-09-30 15:35:02.162 Df AidesCognitives[18611:d9c8] [com.apple.BackBoard:EventDelivery] policyStatus:<BKSHIDEventDeliveryPolicyObserver: 0x105c60360; token: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Afr.aidescognitives.app-default; status: ancestor> was:target
+2026-09-30 15:35:02.163 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:02.164 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:fr.aidescognitives.app-default  persistentID: 01F18C49-B33E-441E-836E-8FDFB4D4D376
+2026-09-30 15:35:02.164 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:Application] Ignoring already applied deactivation reason: 5; deactivation reasons: 2080
+2026-09-30 15:35:02.164 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:Application] Deactivation reason added: 12; deactivation reasons: 2080 -> 6176; animating application lifecycle event: 1
+2026-09-30 15:35:02.164 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:Application] Deactivation reason removed: 11; deactivation reasons: 6176 -> 4128; animating application lifecycle event: 1
+2026-09-30 15:35:02.164 Df AidesCognitives[18611:d9c0] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneIntelligenceSupportSettings> on FBSSceneSettings
+2026-09-30 15:35:02.165 Df AidesCognitives[18611:d9d5] [com.apple.UIIntelligenceSupport:xpc] establishing connection to agent
+2026-09-30 15:35:02.165 Df AidesCognitives[18611:d9d5] [com.apple.xpc:session] [0x105e4d0e0] Session created.
+2026-09-30 15:35:02.165 Df AidesCognitives[18611:d9d5] [com.apple.xpc:session] [0x105e4d0e0] Session created from connection [0x106812a80]
+2026-09-30 15:35:02.165 Df AidesCognitives[18611:d9d5] [com.apple.xpc:connection] [0x106812a80] activating connection: mach=true listener=false peer=false name=com.apple.uiintelligencesupport.agent
+2026-09-30 15:35:02.165 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:02.165 Df AidesCognitives[18611:d9d5] [com.apple.xpc:session] [0x105e4d0e0] Session activated
+2026-09-30 15:35:02.169 A  AidesCognitives[18611:d9c0] (CoreFoundation) Updating Key-Value Observers Of Preferences
+2026-09-30 15:35:02.301 Df AidesCognitives[18611:d9d4] [com.apple.xpc:connection] [0x106811040] activating connection: mach=true listener=false peer=false name=com.apple.fontservicesd
+2026-09-30 15:35:02.556 Df AidesCognitives[18611:d9c0] [PrototypeTools:domain] Not observing PTDefaults on customer install.
+2026-09-30 15:35:02.621 Df AidesCognitives[18611:d9c8] [com.apple.UIKit:BackgroundTask] Ending background task with UIBackgroundTaskIdentifier: 2
+2026-09-30 15:35:02.621 Df AidesCognitives[18611:d9c8] [com.apple.UIKit:BackgroundTask] Ending task with identifier 2 and description: <_UIBackgroundTaskInfo: 0x105ebd7c0>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 828 (elapsed = 1), _expireHandler: <__NSGlobalBlock__: 0x1e78c84e8>
+2026-09-30 15:35:02.621 Df AidesCognitives[18611:d9c8] [com.apple.UIKit:BackgroundTask] Decrementing reference count for assertion <BKSProcessAssertion: 0x105501740> (used by background task with identifier 2: <_UIBackgroundTaskInfo: 0x105ebd7c0>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 828 (elapsed = 1))
+2026-09-30 15:35:02.744 Df AidesCognitives[18611:d9c0] [com.apple.xpc:connection] [0x11574e800] activating connection: mach=true listener=false peer=false name=com.apple.distributed_notifications@1v3
+2026-09-30 15:35:02.933 A  AidesCognitives[18611:d9c0] (CoreFoundation) Updating Key-Value Observers Of Preferences
+2026-09-30 15:35:03.024 Df AidesCognitives[18611:d9d4] [com.apple.UIKit:BackgroundTask] Ending background task with UIBackgroundTaskIdentifier: 1
+2026-09-30 15:35:03.024 Df AidesCognitives[18611:d9d4] [com.apple.UIKit:BackgroundTask] Ending task with identifier 1 and description: <_UIBackgroundTaskInfo: 0x105c88e80>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 828 (elapsed = 1), _expireHandler: (null)
+2026-09-30 15:35:03.025 Df AidesCognitives[18611:d9d4] [com.apple.UIKit:BackgroundTask] Decrementing reference count for assertion <BKSProcessAssertion: 0x105501740> (used by background task with identifier 1: <_UIBackgroundTaskInfo: 0x105c88e80>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 828 (elapsed = 1))
+2026-09-30 15:35:03.025 Df AidesCognitives[18611:d9d4] [com.apple.UIKit:BackgroundTask] Will invalidate assertion: <BKSProcessAssertion: 0x105501740> for task identifier: 1
+2026-09-30 15:35:03.136 A  AidesCognitives[18611:d9d4] (RunningBoardServices) didChangeInheritances
+2026-09-30 15:35:03.654 Df AidesCognitives[18611:d9c8] [com.apple.calls.callkit:Default] Call host has no calls
+2026-09-30 15:35:04.417 Df AidesCognitives[18611:d9c0] [com.apple.xpc:connection] [0x12573a6c0] activating connection: mach=true listener=false peer=false name=com.apple.IOSurface.Remote
+2026-09-30 15:35:04.447 Df AidesCognitives[18611:d9c0] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:1 [F9AD0090-7E03-480E-BB1E-E320C069204B] (reporting strategy default)>
+2026-09-30 15:35:04.447 Df AidesCognitives[18611:d9c0] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:2 [0BE262A1-81FD-438B-90E0-FF881F206E8A] (reporting strategy default)>
+2026-09-30 15:35:04.447 Df AidesCognitives[18611:d9c0] [com.apple.network:activity] Set activity <nw_activity 50:1 [F9AD0090-7E03-480E-BB1E-E320C069204B] (reporting strategy default)> as the global parent
+2026-09-30 15:35:04.451 A  AidesCognitives[18611:d9d4] (RunningBoardServices) didChangeInheritances
+2026-09-30 15:35:04.457 A  AidesCognitives[18611:d9d4] (RunningBoardServices) didChangeInheritances
+2026-09-30 15:35:04.624 A  AidesCognitives[18611:d9d4] (RunningBoardServices) didChangeInheritances
+2026-09-30 15:35:04.739 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:UpdateScheduler] Target list changed: <CADisplay:LCD PurpleMain>
+2026-09-30 15:35:04.740 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:fr.aidescognitives.app-default  persistentID: 01F18C49-B33E-441E-836E-8FDFB4D4D376
+2026-09-30 15:35:04.740 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:04.741 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:EventDeferring] [0x105ed9420] Scene target of event deferring environments did update: scene: 0x1054fbd90; current systemShellManagesKeyboardFocus: 1; systemShellManagesKeyboardFocusForScene: 1; eligibleForRecordRemoval: 1;
+2026-09-30 15:35:04.741 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyWindow] Scene became target of keyboard event deferring environment: UIWindowScene: 0x1054fbd90; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Afr.aidescognitives.app-default
+2026-09-30 15:35:04.755 Df AidesCognitives[18611:d9c0] [com.apple.Accessibility:AXCommon] Read Per-App on Init: Smart invert = (null)
+2026-09-30 15:35:04.772 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 1, <UIWindowScene: 0x1054fbd90> (01F18C49-B33E-441E-836E-8FDFB4D4D376)
+2026-09-30 15:35:04.775 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:fr.aidescognitives.app-default  persistentID: 01F18C49-B33E-441E-836E-8FDFB4D4D376
+2026-09-30 15:35:04.775 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:Application] Deactivation reason removed: 12; deactivation reasons: 4128 -> 32; animating application lifecycle event: 1
+2026-09-30 15:35:04.775 Df AidesCognitives[18611:d9c0] [com.apple.KeyboardArbiter:Client] Send setDeactivating: N (-DeactivationReason:SuspendedEventsOnly)
+2026-09-30 15:35:04.777 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:Application] Deactivation reason removed: 5; deactivation reasons: 32 -> 0; animating application lifecycle event: 0
+2026-09-30 15:35:04.834 Df AidesCognitives[18611:d9c0] [com.apple.UserNotifications:Connections] [fr.aidescognitives.app] Creating a user notification center
+2026-09-30 15:35:04.835 Df AidesCognitives[18611:d9c0] [com.apple.UserNotifications:Connections] [fr.aidescognitives.app] Removing all pending notification requests
+2026-09-30 15:35:04.837 Df AidesCognitives[18611:d9c0] [com.apple.xpc:connection] [0x106a84280] activating connection: mach=true listener=false peer=false name=com.apple.usernotifications.listener
+2026-09-30 15:35:05.236 Df AidesCognitives[18611:d9c0] [com.apple.KeyboardArbiter:Client] startConnection
+2026-09-30 15:35:05.237 Df AidesCognitives[18611:d9c0] [com.apple.xpc:connection] [0x1156703c0] activating connection: mach=true listener=false peer=false name=com.apple.UIKit.KeyboardManagement.hosted
+2026-09-30 15:35:05.242 Df AidesCognitives[18611:d9c0] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-09-30 15:35:05.243 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyboardSceneDelegate] forceReloadInputViews
+2026-09-30 15:35:05.243 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyboardSceneDelegate] Reloading input views for key-window scene responder: <(null): 0x0; > force:Y
+2026-09-30 15:35:05.245 Df AidesCognitives[18611:d9c0] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-09-30 15:35:05.284 Df AidesCognitives[18611:d9c0] [com.apple.network:activity] <nw_activity 50:1 [F9AD0090-7E03-480E-BB1E-E320C069204B] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 4183ms
+2026-09-30 15:35:05.284 Df AidesCognitives[18611:d9c0] [com.apple.network:activity] <nw_activity 50:2 [0BE262A1-81FD-438B-90E0-FF881F206E8A] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 4182ms
+2026-09-30 15:35:05.284 Df AidesCognitives[18611:d9c0] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [F9AD0090-7E03-480E-BB1E-E320C069204B] (global parent) (reporting strategy default) complete (reason success)>
+2026-09-30 15:35:05.284 Df AidesCognitives[18611:d9c0] [com.apple.network:activity] Unset the global parent activity
+2026-09-30 15:35:05.284 Df AidesCognitives[18611:d9c0] [com.apple.app_launch_measurement:ApplicationLaunch] alm_release_pageins_recording_assertion: releasing pageins recording assertion
