@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { extractTokens, toJSON } from './tokens.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'design', 'ds');
@@ -532,5 +533,9 @@ mkdirSync(join(OUT, 'tokens'), { recursive: true });
 writeFileSync(join(OUT, 'tokens', 'tokens.css'),
   `/* Tokens extraits de index.html (source de vérité) — ne pas éditer ici. */\n${rootTokens}\n\n/* Thème sombre */\n${darkTokens.replace('html[data-theme="dark"]', '[data-theme="dark"]')}\n\n/* Palette des catégories (PALETTE, index.html) */\n:root{${PALETTE.map((c, i) => `--cat-${i + 1}:${c}`).join(';')}}\n`);
 console.log('  ✓ tokens/tokens.css');
+/* tokens.json : les mêmes tokens RÉSOLUS (var(), thèmes, contraste élevé, accents), au format
+ * « Design Tokens » — consommés par l'app native (native/tools/build-tokens.mjs). */
+writeFileSync(join(OUT, 'tokens', 'tokens.json'), toJSON(extractTokens(html)));
+console.log('  ✓ tokens/tokens.json');
 
 console.log(`\nGénéré dans design/ds/ — ${cards.length} fiches + tokens.css`);

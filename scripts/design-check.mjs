@@ -24,10 +24,14 @@ const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8'
 // il ne doit ni compter comme une dérive, ni — surtout — être restauré par --strict (une
 // première version de ce script faisait `git checkout -- design/ds` et a effacé une
 // réécriture non committée de GUIDELINES.md).
-const GEN = ['design/ds/components', 'design/ds/foundations', 'design/ds/tokens'];
+// Tokens.generated.swift : l'app native lit les MÊMES tokens (native/tools/build-tokens.mjs) —
+// un token changé dans index.html sans régénération ferait dériver l'app en silence.
+const GEN = ['design/ds/components', 'design/ds/foundations', 'design/ds/tokens',
+  'native/App/Sources/Design/Tokens.generated.swift'];
 
 // 1. Régénérer design/ds/ depuis index.html.
 execFileSync('node', ['design/build.mjs'], { cwd: root, stdio: 'inherit' });
+execFileSync('node', ['native/tools/build-tokens.mjs'], { cwd: root, stdio: 'inherit' });
 
 // 2. La sortie GÉNÉRÉE diffère-t-elle de ce qui est versionné ?
 const changed = git('status', '--porcelain', '--', ...GEN).trim();

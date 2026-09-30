@@ -58,6 +58,26 @@ native/
     └── build-seeds.mjs    fiches d'exemple extraites de la PWA
 ```
 
+## Design system : une source, deux rendus
+
+Les **valeurs** de design de l'app (58 couleurs à variantes jour / nuit / contraste élevé,
+échelle typographique, rayons, mesures, ombres, mouvement, accents, nuancier des catégories) ne
+sont **jamais recopiées** : elles sont GÉNÉRÉES depuis les tokens CSS d'`index.html`.
+
+```
+index.html (:root, thème sombre, prefers-contrast, accents, PALETTE)
+   └─ design/tokens.mjs (extraction + résolution des var())
+        ├─ design/ds/tokens/tokens.json          (format « Design Tokens »)
+        └─ native/tools/build-tokens.mjs → App/Sources/Design/Tokens.generated.swift
+```
+
+- `npm run design:build` régénère tout ; `npm run design:check` (CI) échoue si
+  `Tokens.generated.swift` n'est plus à jour avec `index.html`.
+- Noms mécaniques : `--crit-soft` → `T.critSoft`, `--t-step-l` → `TypeScale.stepL`,
+  `--r-3` → `Radius.r3`, `--shadow-work` → `Shadows.work`, `--dur-2` → `Motion.dur2`.
+- `Design/Tokens.swift` (écrit à la main) ne garde que les outils et ce que le CSS ne déclare
+  pas encore en token (échelle des contrôles A375, bande d'affichage, paliers de largeur).
+
 ## Parité avec la PWA : l'oracle
 
 La PWA reste la **source de vérité**. `tools/oracle.mjs` charge `index.html?__actest` dans

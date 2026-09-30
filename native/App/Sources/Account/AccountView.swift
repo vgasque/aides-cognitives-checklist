@@ -731,16 +731,8 @@ enum AcctSyncDot {
 
 /// Couleurs d'accent (`body[data-accent]`) : elles ne teintent QUE le disque du compte.
 enum AcctAccent {
-    static func color(_ id: String) -> Color {
-        switch id {
-        case "teal": return Color(light: 0x0f766e, dark: 0x0d9488)
-        case "violet": return Color(light: 0x6d28d9, dark: 0x8b5cf6)
-        case "indigo": return Color(light: 0x4338ca, dark: 0x6366f1)
-        case "framboise": return Color(light: 0xbe185d, dark: 0xdb2777)
-        case "ardoise": return Color(light: 0x475569, dark: 0x64748b)
-        default: return T.act
-        }
-    }
+    /// Valeurs GÉNÉRÉES depuis `body[data-accent]` de la PWA (`Accent`, Tokens.generated.swift).
+    static func color(_ id: String) -> Color { Accent.color(id) ?? T.act }
 }
 
 // MARK: - « Sur cet appareil » et préférences (`accountPrefsHtml`)

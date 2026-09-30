@@ -5,23 +5,40 @@ import UIKit
 import AppKit
 #endif
 
-// Système de design repris À LA VALEUR des tokens de `index.html` (`:root` et
-// `html[data-theme="dark"]`) — source de vérité inchangée : la PWA.
+// Système de design — partie ÉCRITE À LA MAIN. Les VALEURS (couleurs, échelle typographique,
+// rayons, mesures, ombres, mouvement, accents, nuancier) sont GÉNÉRÉES depuis les tokens CSS de
+// la PWA dans `Tokens.generated.swift` (`npm run design:build`) : ne jamais les recopier ici.
+// Ce fichier ne garde que les outils (couleurs à variantes, ombres) et ce que le CSS ne déclare
+// pas encore comme token (échelle des contrôles A375, bande d'affichage, paliers de largeur).
 //
 // Règle 8 (registres, A407) : ROUGE = ce qui tue si on l'oublie, et l'alarme active ;
 // AMBRE = là où l'on risque de se tromper, et l'échéance ; VERT = fait / nominal ;
 // BLEU = l'action et le bloc courant. Une couleur n'est JAMAIS seule : toujours un glyphe et un mot.
 
 extension Color {
-    /// Couleur qui suit le thème (clair / sombre) du système ou le réglage de l'app.
-    init(light: UInt32, dark: UInt32, lightAlpha: Double = 1, darkAlpha: Double = 1) {
+    /// Couleur qui suit le thème (clair / sombre) et « Augmenter le contraste » — la forme que
+    /// prennent les tokens générés. Sans variante de contraste, elle vaut la variante normale.
+    init(light: UInt32, dark: UInt32, lightAlpha: Double = 1, darkAlpha: Double = 1,
+         lightContrast: UInt32? = nil, darkContrast: UInt32? = nil,
+         lightContrastAlpha: Double? = nil, darkContrastAlpha: Double? = nil) {
+        let lc = lightContrast ?? light, dc = darkContrast ?? dark
+        let lca = lightContrastAlpha ?? (lightContrast == nil ? lightAlpha : 1)
+        let dca = darkContrastAlpha ?? (darkContrast == nil ? darkAlpha : 1)
         #if canImport(UIKit)
         self.init(uiColor: UIColor { tc in
-            tc.userInterfaceStyle == .dark ? UIColor(hex: dark, alpha: darkAlpha) : UIColor(hex: light, alpha: lightAlpha)
+            let hi = tc.accessibilityContrast == .high
+            return tc.userInterfaceStyle == .dark
+                ? UIColor(hex: hi ? dc : dark, alpha: hi ? dca : darkAlpha)
+                : UIColor(hex: hi ? lc : light, alpha: hi ? lca : lightAlpha)
         })
         #elseif canImport(AppKit)
         self.init(nsColor: NSColor(name: nil) { ap in
-            ap.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(hex: dark, alpha: darkAlpha) : NSColor(hex: light, alpha: lightAlpha)
+            switch ap.bestMatch(from: [.aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua]) {
+            case .darkAqua?: return NSColor(hex: dark, alpha: darkAlpha)
+            case .accessibilityHighContrastAqua?: return NSColor(hex: lc, alpha: lca)
+            case .accessibilityHighContrastDarkAqua?: return NSColor(hex: dc, alpha: dca)
+            default: return NSColor(hex: light, alpha: lightAlpha)
+            }
         })
         #endif
     }
@@ -55,73 +72,25 @@ extension NSColor {
 }
 #endif
 
-/// Les tokens de couleur (noms repris de la PWA, sans le préfixe `--`).
-enum T {
-    // 1. Matières
-    static let amb = Color(light: 0xf4f5f7, dark: 0x0d0f13)          // ambiance (fond de page)
-    static let amb2 = Color(light: 0xeceef1, dark: 0x101318)
-    static let work = Color(light: 0xffffff, dark: 0x1e232b)         // matière travail (cartes)
-    static let workLine = Color(light: 0x14181d, dark: 0x667080, lightAlpha: 0.08)
-    static let sys = Color(light: 0x1d232b, dark: 0x333b47)          // matière système (quai, capsule)
-    static let sysHi = Color(light: 0x2b333e, dark: 0x3d4653)
-    static let sys2 = Color(light: 0xffffff, dark: 0xffffff, lightAlpha: 0.07, darkAlpha: 0.12)
-    static let sysLine = Color(light: 0xffffff, dark: 0xffffff, lightAlpha: 0.18, darkAlpha: 0.16)
-    static let sysEdge = Color(light: 0x000000, dark: 0x7c879a, lightAlpha: 0, darkAlpha: 1)
-    static let sysInk = Color(hex: 0xe6eaf0)
-    static let sysInk2 = Color(hex: 0x9aa5b3)
-    static let line = Color(light: 0xe3e6ea, dark: 0x2c313a)
-    static let lineStrong = Color(light: 0xc3ccd6, dark: 0x2c313a)
-    static let ctlLine = Color(light: 0x828c98, dark: 0x6b7480)
-    static let ctlSys = Color(light: 0x6a7381, dark: 0x7c879a)
-    // 2. Encres
-    static let ink = Color(light: 0x14181d, dark: 0xe6eaf0)
-    static let ink2 = Color(light: 0x5b6472, dark: 0x9aa5b3)
-    static let ink3 = Color(light: 0xa3abb6, dark: 0x707c8c)
-    // 3. Registres
-    static let ok = Color(light: 0x1d7a38, dark: 0x4ade80)
-    static let okSoft = Color(light: 0xe8f2ea, dark: 0x12241a)
-    static let warn = Color(light: 0x7a5900, dark: 0xfbbf24)
-    static let warnLine = Color(hex: 0xb45309)
-    static let warnSoft = Color(light: 0xfbf3dc, dark: 0x2b2005)
-    static let bolt = Color(light: 0xf5b800, dark: 0xfbbf24)
-    static let boltEdge = Color(light: 0x8a5200, dark: 0xf59e0b)
-    static let warnSys = Color(hex: 0xfbbf24)
-    static let warnSysBg = Color(hex: 0x3c2b06)
-    static let okSys = Color(hex: 0x4ade80)
-    static let critSys = Color(hex: 0xff9d94)
-    static let onSysFill = Color(hex: 0x0d0f13)
-    static let crit = Color(light: 0xa32e1f, dark: 0xff7a70)
-    static let critLine = Color(light: 0xc43d34, dark: 0xff7a70)
-    static let critSoft = Color(light: 0xfbf0ee, dark: 0x211114)
-    static let act = Color(light: 0x17477f, dark: 0x8fb8e8)
-    static let primarySoft = Color(light: 0xe3ecf7, dark: 0x12263f)
-    static let primary100 = Color(light: 0xcddbf0, dark: 0x1b3556)
-    static let primary200 = Color(light: 0xb9cde6, dark: 0x2c4b6e)
-    static let onPrimary = Color(light: 0xffffff, dark: 0x0d0f13)
-    static let doneLine = Color(light: 0xbfd8c6, dark: 0x1e3a28)
-    static let criticalLine = Color(light: 0xecc4bc, dark: 0x3a1f1c)
-    static let verifyLine = Color(light: 0xeddfb6, dark: 0x3a2f12)
-    static let paper = Color(hex: 0xffffff)                          // fixe des deux thèmes (QR, impression)
-    static let scrim = Color(light: 0x14181d, dark: 0x000000, lightAlpha: 0.55, darkAlpha: 0.62)
-
-    /// Nuancier des catégories (A408 : sorti des registres).
-    static let categoryPresets: [String] = [
-        "#905a39", "#6f684a", "#4f6727", "#116b4c", "#226a71", "#1f6f96",
-        "#45556b", "#0d5b56", "#5156b6", "#755a96", "#7a2f6b", "#95516c",
-    ]
+/// Ombre d'un token `--shadow-*` (générée) ; `nil` quand la PWA déclare `none`.
+struct ShadowToken {
+    var color: Color
+    var radius: CGFloat
+    var x: CGFloat
+    var y: CGFloat
+}
+extension View {
+    /// Applique une ombre de token (aucune si le token vaut `none`, ou la nuit quand la PWA
+    /// l'éteint : « la nuit ne projette pas, elle borde »).
+    @ViewBuilder func shadow(_ token: ShadowToken?) -> some View {
+        if let token { shadow(color: token.color, radius: token.radius, x: token.x, y: token.y) } else { self }
+    }
 }
 
-/// Échelle typographique FERMÉE (A6) : aucune valeur entre les crans.
-/// Dynamic Type : chaque cran suit le réglage de taille du texte du système (`relativeTo:`),
-/// ce qui remplace le zoom `--zf` de la PWA.
-enum TypeScale {
-    static let cap: CGFloat = 11      // plancher (règle 9)
-    static let meta: CGFloat = 12
-    static let body: CGFloat = 13.5
-    static let item: CGFloat = 15
-    static let step: CGFloat = 17.5
-    static let stepL: CGFloat = 21
-    static let val: CGFloat = 24
+/// Bande d'AFFICHAGE (≥ 20 px) de `check-type` (20 · 24 · 26 · 34 · 40) — pas un token CSS.
+/// Les crans du texte (`TypeScale.cap` … `.val`) sont générés depuis `--t-*`.
+/// Dynamic Type : le réglage de taille de l'app (`\.textScale`) remplace le zoom `--zf`.
+extension TypeScale {
     static let display: [CGFloat] = [20, 24, 26, 34, 40]
 }
 
@@ -137,22 +106,15 @@ extension Font {
     }
 }
 
-/// Échelle FERMÉE des contrôles (A375) : S 32 · M 40 · L 44 · XL 56 · rangées 52.
+/// Échelle FERMÉE des contrôles (A375) : S 32 · M 40 · L 44 · XL 56 · rangées 52. Pas encore un
+/// token CSS (le garde-fou `check-ctrl` de la PWA reste à écrire) : à générer dès qu'il le sera.
 enum Ctrl {
     static let s: CGFloat = 32
     static let m: CGFloat = 40
-    static let l: CGFloat = 44       // cible minimale en crise (règle 9)
+    static let l: CGFloat = Metrics.hit   // cible minimale en crise (règle 9, `--hit`)
     static let xl: CGFloat = 56
     static let row: CGFloat = 52
     static let stepRow: CGFloat = 64
-}
-
-/// Rayons (4 crans).
-enum Radius {
-    static let r1: CGFloat = 8
-    static let r2: CGFloat = 10
-    static let r3: CGFloat = 12
-    static let r4: CGFloat = 14
 }
 
 /// Paliers de largeur de la PWA (mesurés en points de la fenêtre, déjà divisés par le zoom).
