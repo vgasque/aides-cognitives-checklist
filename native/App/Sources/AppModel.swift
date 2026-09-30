@@ -142,7 +142,10 @@ final class AppModel {
         profile = sync.profile
         library.libraries = profile.libraries
         refresh()
-        library.collectGarbageAttachments()
+        // Les PDF joints à un brouillon PARQUÉ (aide ou référence pas encore enregistrée) sont
+        // encore référencés : les ramasser ferait perdre la pièce jointe au lancement suivant.
+        let parkedAtts = Set(["f", "p"].flatMap { (library.draftPark($0)?["newAtts"]?.array ?? []).compactMap(\.string) })
+        library.collectGarbageAttachments(extraReferenced: parkedAtts)
         startTicking()
         // F5 : une seule session vive, dernier geste il y a moins de 10 min → on atterrit dans le soin.
         if engine.live.count == 1, let R = engine.live.values.first, JS.now() - (R.lastActAt ?? R.startedAt) <= 600_000 {
