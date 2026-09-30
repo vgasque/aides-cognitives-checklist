@@ -412,6 +412,18 @@ public enum Live {
         default: return nil
         }
     }
+    /// `tkLabels(events, f, tags, ex)` : le libellé de chaque repère du journal — renommage manuel
+    /// souverain, sinon la référence résolue, sinon « Action n » (rang parmi les repères génériques).
+    /// Source unique du journal, du compte rendu et des noms du moniteur (`monBandData`).
+    public static func tkLabels(_ events: [JSON], _ f: Fiche?, tags: JSON?, extra: Extra? = nil) -> [String] {
+        var n = 0
+        return events.map { e in
+            if let l = e["label"]?.string, !l.isEmpty { return l }
+            if let l = tagLabel(e["ref"], f, tags: tags, extra: extra), !l.isEmpty { return l }
+            n += 1
+            return "Action \(n)"
+        }
+    }
     /// Proposition classée (`tagRank`).
     public struct RankedTag: Equatable, Sendable { public var ref: JSON; public var label: String; public var src: String; public var i: Int; public var score: Int }
     /// `tagRank(q, items)` : on RÉORDONNE, on ne filtre jamais ; les alias comptent comme le libellé.

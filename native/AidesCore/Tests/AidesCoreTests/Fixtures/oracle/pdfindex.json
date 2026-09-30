@@ -1,0 +1,2309 @@
+[
+ {
+  "input": {
+   "k": "tokens",
+   "texts": [
+    "",
+    "Adrénaline IM 0,5 mg",
+    "L’œdème de Quincke — ANAPHYLAXIE (grade III)",
+    "a b cd e2 xa b cd e2 xa b cd e2 x",
+    "ÉÉÉ çà où",
+    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx yy",
+    "Crise convulsive ≥ 5 min : benzodiazépine",
+    "😀 émoji et naïveté"
+   ]
+  },
+  "output": {
+   "tokens": [
+    [],
+    [
+     "adrenaline",
+     "im",
+     "mg"
+    ],
+    [
+     "deme",
+     "de",
+     "quincke",
+     "anaphylaxie",
+     "grade",
+     "iii"
+    ],
+    [
+     "cd",
+     "e2",
+     "xa",
+     "cd",
+     "e2",
+     "xa",
+     "cd",
+     "e2"
+    ],
+    [
+     "eee",
+     "ca",
+     "ou"
+    ],
+    [
+     "yy"
+    ],
+    [
+     "crise",
+     "convulsive",
+     "min",
+     "benzodiazepine"
+    ],
+    [
+     "emoji",
+     "et",
+     "naivete"
+    ]
+   ],
+   "v": 1
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": []
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 0,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 1,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [
+     "aa"
+    ]
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 1,
+    "terms": 1,
+    "dict": [
+     0,
+     97,
+     97,
+     10
+    ],
+    "post": [
+     1,
+     1
+    ]
+   },
+   "pagesOf": [
+    [
+     0
+    ]
+   ],
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [
+     "aa",
+     "aa",
+     "bb"
+    ],
+    [
+     "bb"
+    ],
+    [],
+    [
+     "aa"
+    ]
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 4,
+    "terms": 2,
+    "dict": [
+     0,
+     97,
+     97,
+     10,
+     0,
+     98,
+     98,
+     10
+    ],
+    "post": [
+     1,
+     9,
+     1,
+     3
+    ]
+   },
+   "pagesOf": [
+    [
+     0,
+     3
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 7,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 1,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 1,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 1,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 5,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 9,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 23,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 15,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 59,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+     "kg"
+    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 61,
+    "terms": 1,
+    "dict": [
+     0,
+     107,
+     103,
+     10
+    ],
+    "post": [
+     0,
+     1,
+     43
+    ]
+   },
+   "pagesOf": [
+    [
+     43
+    ]
+   ],
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+     "z9"
+    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 53,
+    "terms": 1,
+    "dict": [
+     0,
+     122,
+     57,
+     10
+    ],
+    "post": [
+     0,
+     1,
+     9
+    ]
+   },
+   "pagesOf": [
+    [
+     9
+    ]
+   ],
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+     "ab"
+    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 35,
+    "terms": 1,
+    "dict": [
+     0,
+     97,
+     98,
+     10
+    ],
+    "post": [
+     0,
+     1,
+     19
+    ]
+   },
+   "pagesOf": [
+    [
+     19
+    ]
+   ],
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    [
+     19
+    ],
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 43,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 83,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 27,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "pages": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ]
+  },
+  "output": {
+   "rec": {
+    "v": 1,
+    "pages": 35,
+    "terms": 0,
+    "dict": [],
+    "post": []
+   },
+   "pagesOf": null,
+   "search": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "corrupt"
+  },
+  "output": [
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      1,
+      1,
+      1,
+      3,
+      1,
+      6
+     ]
+    },
+    "ok": true,
+    "pagesOf": [
+     [
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      2
+     ]
+    ],
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 2,
+     "pages": 3,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      1,
+      1,
+      1,
+      3,
+      1,
+      6
+     ]
+    },
+    "ok": false,
+    "pagesOf": null,
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 0,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      1,
+      1,
+      1,
+      3,
+      1,
+      6
+     ]
+    },
+    "ok": false,
+    "pagesOf": null,
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 9,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      1,
+      1,
+      1,
+      3,
+      1,
+      6
+     ]
+    },
+    "ok": false,
+    "pagesOf": null,
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10
+     ],
+     "post": [
+      1,
+      1,
+      1,
+      3,
+      1,
+      6
+     ]
+    },
+    "ok": false,
+    "pagesOf": null,
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      1
+     ]
+    },
+    "ok": false,
+    "pagesOf": null,
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      0,
+      200,
+      200,
+      200,
+      200,
+      1
+     ]
+    },
+    "ok": false,
+    "pagesOf": null,
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 1,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      1,
+      1,
+      1,
+      3,
+      1,
+      6
+     ]
+    },
+    "ok": true,
+    "pagesOf": [
+     [
+      0
+     ],
+     [
+      0
+     ],
+     []
+    ],
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      0,
+      98,
+      98,
+      10,
+      0,
+      99,
+      99,
+      10
+     ],
+     "post": [
+      1,
+      255,
+      0,
+      5,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ]
+    },
+    "ok": true,
+    "pagesOf": [
+     [
+      0,
+      1,
+      2
+     ],
+     [
+      1
+     ],
+     [
+      0,
+      0,
+      0
+     ]
+    ],
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "rec": {
+     "v": 1,
+     "pages": 3,
+     "terms": 3,
+     "dict": [
+      0,
+      97,
+      97,
+      10,
+      5,
+      98,
+      10,
+      1,
+      99,
+      10
+     ],
+     "post": [
+      1,
+      1,
+      1,
+      3,
+      1,
+      6
+     ]
+    },
+    "ok": true,
+    "pagesOf": [
+     [
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      2
+     ]
+    ],
+    "search": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   }
+  ]
+ }
+]
