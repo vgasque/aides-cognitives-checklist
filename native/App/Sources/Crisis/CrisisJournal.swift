@@ -340,7 +340,7 @@ struct CrCardHead: View {
                     badge(isCx: isCx)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(b.title.isEmpty ? (dec ? "Décision" : "Étapes") : b.title)
-                            .aFont(line ? TypeScale.item : (dec ? TypeScale.step : TypeScale.stepL), line ? .bold : (dec ? .bold : .heavy))
+                            .aFont(titleSize(line: line, dec: dec), titleWeight(line: line, dec: dec))
                             .foregroundStyle(line && complete && !dec ? T.ok : T.ink)
                             .lineLimit(line ? 1 : nil)
                             .multilineTextAlignment(.leading)
@@ -382,6 +382,15 @@ struct CrCardHead: View {
         .padding(.horizontal, line ? 8 : 16)
         .padding(.top, line ? 4 : 12)
         .padding(.bottom, line ? 4 : 4)
+    }
+
+    /// Titre de bloc 21/800 ; décision 17,5/700 ; carte repliée sur une ligne 15/700.
+    private func titleSize(line: Bool, dec: Bool) -> CGFloat {
+        if line { return TypeScale.item }
+        return dec ? TypeScale.step : TypeScale.stepL
+    }
+    private func titleWeight(line: Bool, dec: Bool) -> Font.Weight {
+        (line || dec) ? .bold : .heavy
     }
 
     private func badge(isCx: Bool) -> some View {
@@ -697,7 +706,12 @@ struct CrStepRow: View {
             content(on: on, mo: mo, wait: wait, gone: gone)
                 .accessibilityElement(children: .contain)
         } else {
-            Button { CrAct(model: model, vs: vs, R: R).toggleStep(key) } label: {
+            Button {
+                // A9 : cocher dans une carte PASSÉE ne la condense pas sous le doigt — elle reste
+                // dépliée jusqu'au prochain geste de navigation (`ovDropOpens`).
+                if visit != R.nav.count - 1 { vs.ovFold[String(visit)] = false }
+                CrAct(model: model, vs: vs, R: R).toggleStep(key)
+            } label: {
                 content(on: on, mo: mo, wait: false, gone: false)
             }
             .buttonStyle(.plain)
