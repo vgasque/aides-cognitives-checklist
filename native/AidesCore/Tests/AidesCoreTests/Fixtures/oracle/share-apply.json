@@ -1,0 +1,2376 @@
+[
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "check",
+     "payload": {
+      "k": "1:b1:1"
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true,
+     "1:b1:1": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {}
+   },
+   "res": [
+    true
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "uncheck",
+     "payload": {
+      "k": "1:b1:0"
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {},
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {},
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "counter",
+     "payload": {
+      "id": "c1",
+      "v": "5"
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "counter",
+     "payload": {
+      "id": "zz",
+      "v": 2
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 5
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true,
+    false
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 250,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "timer_arm",
+     "payload": {
+      "anchor": 1727697500000,
+      "cycles": 2,
+      "elapsedMs": 100,
+      "id": "t1",
+      "running": true
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 2,
+      "elapsedMs": 100,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 1727697499750,
+      "running": true,
+      "stoppedAt": 0,
+      "stopClosed": false
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": -40,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "timer_stop",
+     "payload": {
+      "anchor": 0,
+      "cycles": 1,
+      "elapsedMs": 9000,
+      "id": "t1",
+      "running": false
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 1,
+      "elapsedMs": 9000,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 1790769600040,
+      "stopClosed": false
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "timer_arm",
+     "payload": {
+      "id": "inconnu",
+      "running": true,
+      "anchor": 5
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    false
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "mark",
+     "payload": {
+      "id": "e1",
+      "ref": {
+       "type": "counter",
+       "id": "c1",
+       "v": 3
+      },
+      "t": 2000
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "mark",
+     "payload": {
+      "id": "e9",
+      "label": "X",
+      "ref": {
+       "type": "bad"
+      },
+      "t": 1500
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e9",
+      "t": 1500,
+      "a": "p2",
+      "ref": null
+     },
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "counter",
+       "id": "c1",
+       "v": 3
+      },
+      "t": 2000,
+      "a": "p2"
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true,
+    true
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "mark_void",
+     "payload": {
+      "id": "e2",
+      "on": true,
+      "t": 3500
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "mark_void",
+     "payload": {
+      "id": "e1",
+      "on": false,
+      "t": 0
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "mark_void",
+     "payload": {
+      "id": "zz",
+      "on": true,
+      "t": 1
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000,
+      "voidAt": null
+     },
+     {
+      "id": "e2",
+      "t": 3000,
+      "voidAt": 3500
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true,
+    true,
+    false
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "offline_mark",
+     "payload": {
+      "ref": {
+       "type": "poso",
+       "i": 2
+      },
+      "t": 2500,
+      "was": "check"
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "offline_mark",
+     "payload": {
+      "ref": null,
+      "t": 2500
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "ax-2500-7",
+      "t": 2500,
+      "a": "p2",
+      "annex": true,
+      "ref": {
+       "type": "poso",
+       "i": 2
+      }
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true,
+    false
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "session_start",
+     "payload": {
+      "t": 777,
+      "exo": true
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "session_start",
+     "payload": {
+      "t": 0
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 777,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    true,
+    false
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "nav",
+     "payload": {
+      "cxb": {
+       "2": {
+        "id": "b2",
+        "t": 4
+       },
+       "3": {
+        "id": "bX",
+        "t": 1
+       }
+      },
+      "nav": [
+       "b1",
+       "b2",
+       "b1"
+      ],
+      "navSeq": [
+       1,
+       5,
+       3
+      ]
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ],
+   "nav": true
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1",
+     "b2",
+     "b1"
+    ],
+    "navSeq": [
+     1,
+     5,
+     3
+    ],
+    "seq": 5,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    [
+     1
+    ]
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "nav",
+     "payload": {
+      "nav": [
+       "b1"
+      ],
+      "navSeq": []
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ],
+   "nav": true
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    null
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "verify",
+     "payload": {
+      "k": "1:b1:1",
+      "t": 42
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "gap",
+     "payload": {
+      "k": "1:b1:0",
+      "t": 43
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "verify",
+     "payload": {
+      "k": "bad",
+      "t": 1
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ],
+   "vf": true
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:1": {
+      "a": "p2",
+      "t": 42
+     }
+    },
+    "vgaps": {
+     "1:b1:0": {
+      "a": "p2",
+      "t": 43
+     }
+    }
+   },
+   "res": [
+    true,
+    true,
+    false
+   ]
+  }
+ },
+ {
+  "input": {
+   "R": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1
+    ],
+    "seq": 1,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "offset": 0,
+   "away": true,
+   "me": "p1",
+   "evs": [
+    {
+     "actor": "p2",
+     "kind": "check",
+     "payload": {
+      "k": "2:b2:0"
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p1",
+     "kind": "check",
+     "payload": {
+      "k": "2:b2:1"
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "presence",
+     "payload": {
+      "state": "quit"
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "nav",
+     "payload": {
+      "nav": [
+       "b1",
+       "b2"
+      ],
+      "navSeq": [
+       1,
+       2
+      ]
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "verify",
+     "payload": {
+      "k": "2:b2:0",
+      "t": 9
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "flow_end",
+     "payload": {
+      "on": true
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    },
+    {
+     "actor": "p2",
+     "kind": "handoff",
+     "payload": {
+      "take": true
+     },
+     "seq": 7,
+     "ts": "2026-09-30T12:00:00.000Z"
+    }
+   ]
+  },
+  "output": {
+   "R": {
+    "checked": {
+     "1:b1:0": true,
+     "2:b2:0": true
+    },
+    "counters": {
+     "c1": 1
+    },
+    "cxBack": {},
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LOCAL",
+      "ref": {
+       "type": "core",
+       "k": "bilan"
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": 3000
+     }
+    ],
+    "fiche": {
+     "id": "f1",
+     "blocks": [
+      {
+       "id": "b1"
+      },
+      {
+       "id": "b2"
+      }
+     ]
+    },
+    "nav": [
+     "b1",
+     "b2"
+    ],
+    "navSeq": [
+     1,
+     2
+    ],
+    "seq": 2,
+    "startedAt": 500,
+    "timers": {
+     "t1": {
+      "cycles": 0,
+      "elapsedMs": 0,
+      "id": "t1",
+      "label": "RCP",
+      "lastStart": 0,
+      "running": false,
+      "stoppedAt": 0
+     }
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "x",
+      "t": 1
+     },
+     "2:b2:0": {
+      "a": "p2",
+      "t": 9
+     }
+    },
+    "vgaps": {
+     "1:b1:1": {
+      "a": "y",
+      "t": 2
+     }
+    }
+   },
+   "res": [
+    3
+   ]
+  }
+ }
+]

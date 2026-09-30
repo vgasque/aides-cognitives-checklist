@@ -1,0 +1,2670 @@
+[
+ {
+  "input": {
+   "fn": "code",
+   "arg": "k7m2-qx9p"
+  },
+  "output": {
+   "norm": "K7M2QX9P",
+   "valid": true,
+   "bad": [],
+   "fmt": "K7M2-QX9P"
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": "K7M2QX9P"
+  },
+  "output": {
+   "norm": "K7M2QX9P",
+   "valid": true,
+   "bad": [],
+   "fmt": "K7M2-QX9P"
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": "k7m2qx9"
+  },
+  "output": {
+   "norm": "K7M2QX9",
+   "valid": false,
+   "bad": [],
+   "fmt": "K7M2QX9"
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": "K0M1QX9P"
+  },
+  "output": {
+   "norm": "K0M1QX9P",
+   "valid": false,
+   "bad": [
+    "0",
+    "1"
+   ],
+   "fmt": "K0M1-QX9P"
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": " ab cd ef gh "
+  },
+  "output": {
+   "norm": "ABCDEFGH",
+   "valid": true,
+   "bad": [],
+   "fmt": "ABCD-EFGH"
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": "ßSSSSSSS"
+  },
+  "output": {
+   "norm": "SSSSSSSSS",
+   "valid": false,
+   "bad": [],
+   "fmt": "SSSSSSSSS"
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": "IIIIOOOO"
+  },
+  "output": {
+   "norm": "IIIIOOOO",
+   "valid": false,
+   "bad": [
+    "I",
+    "O"
+   ],
+   "fmt": "IIII-OOOO"
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": ""
+  },
+  "output": {
+   "norm": "",
+   "valid": false,
+   "bad": [],
+   "fmt": ""
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": null
+  },
+  "output": {
+   "norm": "",
+   "valid": false,
+   "bad": [],
+   "fmt": ""
+  }
+ },
+ {
+  "input": {
+   "fn": "code",
+   "arg": "23456789"
+  },
+  "output": {
+   "norm": "23456789",
+   "valid": true,
+   "bad": [],
+   "fmt": "2345-6789"
+  }
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "#j=K7M2QX9P"
+  },
+  "output": "K7M2QX9P"
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "https://x.org/a/index.html#j=k7m2-qx9p"
+  },
+  "output": "K7M2QX9P"
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "#x=1&j=K7M2QX9P"
+  },
+  "output": "K7M2QX9P"
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "#j=K7M2QX9"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "#j="
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "#j=!!&j=K7M2QX9P"
+  },
+  "output": "K7M2QX9P"
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "j=K7M2QX9P"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "fromHash",
+   "arg": "#J=K7M2QX9P"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "payload",
+   "arg": {
+    "id": "f1",
+    "v": 4,
+    "kind": "fiche",
+    "title": "ACR",
+    "discriminant": "adulte",
+    "code": "ACR-01",
+    "status": "validated",
+    "validatedAt": "2026-01",
+    "category": "c1",
+    "library": "L1",
+    "sources": [
+     "x"
+    ],
+    "images": [
+     {
+      "id": "i1"
+     }
+    ],
+    "docs": [],
+    "links": [],
+    "order": 3,
+    "ownerId": "u",
+    "complications": [
+     {
+      "label": "x",
+      "target": "f2"
+     }
+    ],
+    "start": "b1",
+    "excursions": [],
+    "updatedAt": 1,
+    "extraField": 5,
+    "blocks": [
+     {
+      "id": "b1",
+      "title": "Bloc 1",
+      "image": "i1",
+      "items": [
+       "s1"
+      ]
+     },
+     {
+      "id": "b2",
+      "title": "Bloc 2"
+     },
+     null
+    ],
+    "timers": [
+     {
+      "id": "t1",
+      "label": "RCP",
+      "seconds": 120
+     }
+    ],
+    "counters": [
+     {
+      "id": "c1",
+      "label": "Chocs"
+     }
+    ],
+    "items": [
+     {
+      "id": "s1",
+      "do": "Masser"
+     }
+    ]
+   }
+  },
+  "output": {
+   "id": "f1",
+   "title": "ACR",
+   "discriminant": "adulte",
+   "code": "ACR-01",
+   "status": "validated",
+   "validatedAt": "2026-01",
+   "blocks": [
+    {
+     "id": "b1",
+     "title": "Bloc 1",
+     "items": [
+      "s1"
+     ]
+    },
+    {
+     "id": "b2",
+     "title": "Bloc 2"
+    },
+    {}
+   ],
+   "start": "b1",
+   "timers": [
+    {
+     "id": "t1",
+     "label": "RCP",
+     "seconds": 120
+    }
+   ],
+   "counters": [
+    {
+     "id": "c1",
+     "label": "Chocs"
+    }
+   ],
+   "items": [
+    {
+     "id": "s1",
+     "do": "Masser"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "payload",
+   "arg": {
+    "id": "x",
+    "title": null
+   }
+  },
+  "output": {
+   "id": "x",
+   "title": null,
+   "blocks": []
+  }
+ },
+ {
+  "input": {
+   "fn": "payload",
+   "arg": null
+  },
+  "output": {
+   "blocks": []
+  }
+ },
+ {
+  "input": {
+   "fn": "can",
+   "arg": null
+  },
+  "output": {
+   "lead/sig": true,
+   "lead/check": true,
+   "lead/verify": true,
+   "lead/gap": true,
+   "lead/counter": true,
+   "lead/timer_arm": true,
+   "lead/timer_stop": true,
+   "lead/mark": true,
+   "lead/mark_void": true,
+   "lead/nav": true,
+   "lead/flow_end": true,
+   "lead/cx": true,
+   "lead/presence": true,
+   "lead/detach": true,
+   "lead/offline_mark": true,
+   "lead/handoff": true,
+   "lead/uncheck": true,
+   "lead/timer_reset": true,
+   "lead/end": true,
+   "lead/session_start": true,
+   "lead/zz": false,
+   "scribe/sig": true,
+   "scribe/check": true,
+   "scribe/verify": true,
+   "scribe/gap": true,
+   "scribe/counter": true,
+   "scribe/timer_arm": true,
+   "scribe/timer_stop": true,
+   "scribe/mark": true,
+   "scribe/mark_void": true,
+   "scribe/nav": true,
+   "scribe/flow_end": true,
+   "scribe/cx": true,
+   "scribe/presence": true,
+   "scribe/detach": true,
+   "scribe/offline_mark": true,
+   "scribe/handoff": true,
+   "scribe/uncheck": false,
+   "scribe/timer_reset": false,
+   "scribe/end": false,
+   "scribe/session_start": false,
+   "scribe/zz": false,
+   "x/sig": false,
+   "x/check": false,
+   "x/verify": false,
+   "x/gap": false,
+   "x/counter": false,
+   "x/timer_arm": false,
+   "x/timer_stop": false,
+   "x/mark": false,
+   "x/mark_void": false,
+   "x/nav": false,
+   "x/flow_end": false,
+   "x/cx": false,
+   "x/presence": false,
+   "x/detach": false,
+   "x/offline_mark": false,
+   "x/handoff": false,
+   "x/uncheck": false,
+   "x/timer_reset": false,
+   "x/end": false,
+   "x/session_start": false,
+   "x/zz": false,
+   "null/sig": false,
+   "null/check": false,
+   "null/verify": false,
+   "null/gap": false,
+   "null/counter": false,
+   "null/timer_arm": false,
+   "null/timer_stop": false,
+   "null/mark": false,
+   "null/mark_void": false,
+   "null/nav": false,
+   "null/flow_end": false,
+   "null/cx": false,
+   "null/presence": false,
+   "null/detach": false,
+   "null/offline_mark": false,
+   "null/handoff": false,
+   "null/uncheck": false,
+   "null/timer_reset": false,
+   "null/end": false,
+   "null/session_start": false,
+   "null/zz": false
+  }
+ },
+ {
+  "input": {
+   "fn": "applyMode",
+   "arg": [
+    "check",
+    "nav",
+    "verify",
+    "sig",
+    "offline_mark",
+    "session_start",
+    "inconnu",
+    "end",
+    "cx"
+   ]
+  },
+  "output": [
+   "live",
+   "anchored",
+   "deferred",
+   "none",
+   "live",
+   "live",
+   "deferred",
+   "none",
+   "anchored"
+  ]
+ },
+ {
+  "input": {
+   "fn": "vf",
+   "arg": [
+    {
+     "a": "p",
+     "t": 5
+    },
+    12,
+    {
+     "t": "x"
+    },
+    [
+     1
+    ],
+    "str",
+    null,
+    {
+     "a": 0,
+     "t": 3
+    },
+    true
+   ]
+  },
+  "output": {
+   "norm": [
+    {
+     "a": "p",
+     "t": 5
+    },
+    {
+     "a": null,
+     "t": 12
+    },
+    {
+     "a": null,
+     "t": 0
+    },
+    {
+     "a": null,
+     "t": 0
+    },
+    null,
+    null,
+    {
+     "a": null,
+     "t": 3
+    },
+    null
+   ],
+   "time": [
+    5,
+    12,
+    0,
+    0,
+    0,
+    0,
+    3,
+    0
+   ],
+   "actor": [
+    "p",
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "map": {
+    "0": {
+     "a": "p",
+     "t": 5
+    },
+    "1": {
+     "a": null,
+     "t": 12
+    },
+    "2": {
+     "a": null,
+     "t": 0
+    },
+    "3": {
+     "a": null,
+     "t": 0
+    },
+    "6": {
+     "a": null,
+     "t": 3
+    }
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "navNorm",
+   "arg": [
+    [
+     "b1",
+     "b2"
+    ],
+    [
+     1,
+     "2"
+    ]
+   ]
+  },
+  "output": {
+   "nav": [
+    "b1",
+    "b2"
+   ],
+   "navSeq": [
+    1,
+    2
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "navNorm",
+   "arg": [
+    [
+     "b1",
+     "__proto__",
+     "x y"
+    ],
+    [
+     0,
+     2.6,
+     "z"
+    ]
+   ]
+  },
+  "output": {
+   "nav": [
+    "b1",
+    "bmunwar3ruuqqyqdr",
+    "bmunwar3rovyg831j"
+   ],
+   "navSeq": [
+    1,
+    3,
+    1
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "navNorm",
+   "arg": [
+    [
+     "b1"
+    ],
+    []
+   ]
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "navNorm",
+   "arg": [
+    [],
+    []
+   ]
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "navNorm",
+   "arg": [
+    "b1",
+    [
+     1
+    ]
+   ]
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "cxbNorm",
+   "arg": [
+    {
+     "1": {
+      "id": "b2",
+      "t": 4
+     },
+     "2": {
+      "id": "__proto__"
+     },
+     "3": {
+      "id": "b1"
+     },
+     "9": "str",
+     "4.4": {
+      "id": "b3",
+      "t": "x"
+     },
+     "x": {
+      "id": "b1"
+     }
+    },
+    [
+     1,
+     2,
+     4
+    ]
+   ]
+  },
+  "output": {
+   "1": {
+    "id": "b2",
+    "t": 4
+   },
+   "2": {
+    "id": "bmunwar3r1an6tfc1",
+    "t": 0
+   },
+   "4": {
+    "id": "b3",
+    "t": 0
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "cxbNorm",
+   "arg": [
+    [
+     {
+      "id": "b1"
+     }
+    ],
+    [
+     1
+    ]
+   ]
+  },
+  "output": {}
+ },
+ {
+  "input": {
+   "fn": "cxbForFiche",
+   "arg": [
+    {
+     "1": {
+      "id": "b1",
+      "t": 1
+     },
+     "2": {
+      "id": "zz",
+      "t": 1
+     },
+     "3": null
+    },
+    {
+     "id": "f1",
+     "v": 4,
+     "kind": "fiche",
+     "title": "ACR",
+     "discriminant": "adulte",
+     "code": "ACR-01",
+     "status": "validated",
+     "validatedAt": "2026-01",
+     "category": "c1",
+     "library": "L1",
+     "sources": [
+      "x"
+     ],
+     "images": [
+      {
+       "id": "i1"
+      }
+     ],
+     "docs": [],
+     "links": [],
+     "order": 3,
+     "ownerId": "u",
+     "complications": [
+      {
+       "label": "x",
+       "target": "f2"
+      }
+     ],
+     "start": "b1",
+     "excursions": [],
+     "updatedAt": 1,
+     "extraField": 5,
+     "blocks": [
+      {
+       "id": "b1",
+       "title": "Bloc 1",
+       "image": "i1",
+       "items": [
+        "s1"
+       ]
+      },
+      {
+       "id": "b2",
+       "title": "Bloc 2"
+      },
+      null
+     ],
+     "timers": [
+      {
+       "id": "t1",
+       "label": "RCP",
+       "seconds": 120
+      }
+     ],
+     "counters": [
+      {
+       "id": "c1",
+       "label": "Chocs"
+      }
+     ],
+     "items": [
+      {
+       "id": "s1",
+       "do": "Masser"
+      }
+     ]
+    }
+   ]
+  },
+  "output": {
+   "1": {
+    "id": "b1",
+    "t": 1
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "snap",
+   "arg": {
+    "checked": {
+     "1:b1:0": true
+    },
+    "counters": {
+     "c1": 1,
+     "c2": "3",
+     "c3": "x"
+    },
+    "cxBack": {
+     "2": {
+      "id": "b1",
+      "t": 5
+     },
+     "3": "bad",
+     "4": {
+      "t": 1
+     }
+    },
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT LIBRE",
+      "ref": {
+       "id": "c1",
+       "type": "counter",
+       "v": 1
+      },
+      "t": 1000
+     },
+     {
+      "id": "e2",
+      "t": "2000",
+      "voidAt": 2500
+     }
+    ],
+    "exercise": 1,
+    "nav": [
+     "b1",
+     "b2"
+    ],
+    "navSeq": [
+     1,
+     2
+    ],
+    "startedAt": 500,
+    "stopClosed": true,
+    "timers": {
+     "t1": {
+      "elapsedMs": 1200,
+      "cycles": 1,
+      "lastStart": 900,
+      "running": true
+     },
+     "t2": null,
+     "t3": {
+      "elapsedMs": "50",
+      "running": 0,
+      "stoppedAt": 77
+     }
+    },
+    "verified": {
+     "1:b1:0": 1234,
+     "1:b1:1": {
+      "a": "p1",
+      "t": "5"
+     },
+     "1:b1:2": "x",
+     "1:b1:3": [
+      1
+     ]
+    },
+    "vgaps": {
+     "2:b2:0": {
+      "t": 9
+     }
+    }
+   }
+  },
+  "output": {
+   "checked": {
+    "1:b1:0": true
+   },
+   "verified": {
+    "1:b1:0": {
+     "a": null,
+     "t": 1234
+    },
+    "1:b1:1": {
+     "a": "p1",
+     "t": 5
+    },
+    "1:b1:3": {
+     "a": null,
+     "t": 0
+    }
+   },
+   "vgaps": {
+    "2:b2:0": {
+     "a": null,
+     "t": 9
+    }
+   },
+   "counters": {
+    "c1": 1,
+    "c2": 3,
+    "c3": 0
+   },
+   "timers": {
+    "t1": {
+     "running": true,
+     "elapsedMs": 1200,
+     "cycles": 1,
+     "anchor": 900,
+     "stoppedAt": 0
+    },
+    "t2": {
+     "running": false,
+     "elapsedMs": 0,
+     "cycles": 0,
+     "anchor": 0,
+     "stoppedAt": 0
+    },
+    "t3": {
+     "running": false,
+     "elapsedMs": 50,
+     "cycles": 0,
+     "anchor": 0,
+     "stoppedAt": 77
+    }
+   },
+   "events": [
+    {
+     "id": "e1",
+     "t": 1000,
+     "ref": {
+      "id": "c1",
+      "type": "counter",
+      "v": 1
+     },
+     "voidAt": null
+    },
+    {
+     "id": "e2",
+     "t": 2000,
+     "ref": null,
+     "voidAt": 2500
+    }
+   ],
+   "nav": [
+    "b1",
+    "b2"
+   ],
+   "navSeq": [
+    1,
+    2
+   ],
+   "flowEnded": true,
+   "cxb": {
+    "2": {
+     "id": "b1",
+     "t": 5
+    }
+   },
+   "exercise": true,
+   "startedAt": 500
+  }
+ },
+ {
+  "input": {
+   "fn": "snap",
+   "arg": null
+  },
+  "output": {
+   "checked": {},
+   "verified": {},
+   "vgaps": {},
+   "counters": {},
+   "timers": {},
+   "events": [],
+   "nav": [],
+   "navSeq": [],
+   "flowEnded": false,
+   "cxb": {},
+   "exercise": false,
+   "startedAt": 0
+  }
+ },
+ {
+  "input": {
+   "fn": "snap",
+   "arg": {
+    "checked": {
+     "a": 1
+    }
+   }
+  },
+  "output": {
+   "checked": {
+    "a": 1
+   },
+   "verified": {},
+   "vgaps": {},
+   "counters": {},
+   "timers": {},
+   "events": [],
+   "nav": [],
+   "navSeq": [],
+   "flowEnded": false,
+   "cxb": {},
+   "exercise": false,
+   "startedAt": 0
+  }
+ },
+ {
+  "input": {
+   "fn": "diff",
+   "arg": [
+    null,
+    {
+     "checked": {
+      "1:b1:0": true
+     },
+     "counters": {
+      "c1": 1,
+      "c2": "3",
+      "c3": "x"
+     },
+     "cxBack": {
+      "2": {
+       "id": "b1",
+       "t": 5
+      },
+      "3": "bad",
+      "4": {
+       "t": 1
+      }
+     },
+     "events": [
+      {
+       "id": "e1",
+       "label": "MOT LIBRE",
+       "ref": {
+        "id": "c1",
+        "type": "counter",
+        "v": 1
+       },
+       "t": 1000
+      },
+      {
+       "id": "e2",
+       "t": "2000",
+       "voidAt": 2500
+      }
+     ],
+     "exercise": 1,
+     "nav": [
+      "b1",
+      "b2"
+     ],
+     "navSeq": [
+      1,
+      2
+     ],
+     "startedAt": 500,
+     "stopClosed": true,
+     "timers": {
+      "t1": {
+       "elapsedMs": 1200,
+       "cycles": 1,
+       "lastStart": 900,
+       "running": true
+      },
+      "t2": null,
+      "t3": {
+       "elapsedMs": "50",
+       "running": 0,
+       "stoppedAt": 77
+      }
+     },
+     "verified": {
+      "1:b1:0": 1234,
+      "1:b1:1": {
+       "a": "p1",
+       "t": "5"
+      },
+      "1:b1:2": "x",
+      "1:b1:3": [
+       1
+      ]
+     },
+     "vgaps": {
+      "2:b2:0": {
+       "t": 9
+      }
+     }
+    },
+    "s-local"
+   ]
+  },
+  "output": [
+   {
+    "kind": "check",
+    "payload": {
+     "k": "1:b1:0"
+    }
+   },
+   {
+    "kind": "verify",
+    "payload": {
+     "k": "1:b1:0",
+     "t": 1234
+    }
+   },
+   {
+    "kind": "verify",
+    "payload": {
+     "k": "1:b1:1",
+     "t": 5
+    }
+   },
+   {
+    "kind": "verify",
+    "payload": {
+     "k": "1:b1:3",
+     "t": 0
+    }
+   },
+   {
+    "kind": "gap",
+    "payload": {
+     "k": "2:b2:0",
+     "t": 9
+    }
+   },
+   {
+    "kind": "counter",
+    "payload": {
+     "id": "c1",
+     "v": 1
+    }
+   },
+   {
+    "kind": "counter",
+    "payload": {
+     "id": "c2",
+     "v": 3
+    }
+   },
+   {
+    "kind": "counter",
+    "payload": {
+     "id": "c3",
+     "v": 0
+    }
+   },
+   {
+    "kind": "timer_arm",
+    "payload": {
+     "id": "t1",
+     "running": true,
+     "elapsedMs": 1200,
+     "cycles": 1,
+     "anchor": 900
+    }
+   },
+   {
+    "kind": "timer_stop",
+    "payload": {
+     "id": "t2",
+     "running": false,
+     "elapsedMs": 0,
+     "cycles": 0,
+     "anchor": 0
+    }
+   },
+   {
+    "kind": "timer_stop",
+    "payload": {
+     "id": "t3",
+     "running": false,
+     "elapsedMs": 50,
+     "cycles": 0,
+     "anchor": 0
+    }
+   },
+   {
+    "kind": "mark",
+    "payload": {
+     "id": "e1",
+     "t": 1000,
+     "ref": {
+      "id": "c1",
+      "type": "counter",
+      "v": 1
+     }
+    }
+   },
+   {
+    "kind": "mark",
+    "payload": {
+     "id": "e2",
+     "t": 2000,
+     "ref": null
+    }
+   },
+   {
+    "kind": "mark_void",
+    "payload": {
+     "id": "e2",
+     "on": true,
+     "t": 2500
+    }
+   },
+   {
+    "kind": "nav",
+    "payload": {
+     "nav": [
+      "b1",
+      "b2"
+     ],
+     "navSeq": [
+      1,
+      2
+     ],
+     "cxb": {
+      "2": {
+       "id": "b1",
+       "t": 5
+      }
+     }
+    }
+   },
+   {
+    "kind": "session_start",
+    "payload": {
+     "t": 500,
+     "exo": true,
+     "id": "s-local"
+    }
+   }
+  ]
+ },
+ {
+  "input": {
+   "fn": "diff",
+   "arg": [
+    {
+     "checked": {
+      "1:b1:0": true
+     },
+     "counters": {
+      "c1": 1,
+      "c2": "3",
+      "c3": "x"
+     },
+     "cxBack": {
+      "2": {
+       "id": "b1",
+       "t": 5
+      },
+      "3": "bad",
+      "4": {
+       "t": 1
+      }
+     },
+     "events": [
+      {
+       "id": "e1",
+       "label": "MOT LIBRE",
+       "ref": {
+        "id": "c1",
+        "type": "counter",
+        "v": 1
+       },
+       "t": 1000
+      },
+      {
+       "id": "e2",
+       "t": "2000",
+       "voidAt": 2500
+      }
+     ],
+     "exercise": 1,
+     "nav": [
+      "b1",
+      "b2"
+     ],
+     "navSeq": [
+      1,
+      2
+     ],
+     "startedAt": 500,
+     "stopClosed": true,
+     "timers": {
+      "t1": {
+       "elapsedMs": 1200,
+       "cycles": 1,
+       "lastStart": 900,
+       "running": true
+      },
+      "t2": null,
+      "t3": {
+       "elapsedMs": "50",
+       "running": 0,
+       "stoppedAt": 77
+      }
+     },
+     "verified": {
+      "1:b1:0": 1234,
+      "1:b1:1": {
+       "a": "p1",
+       "t": "5"
+      },
+      "1:b1:2": "x",
+      "1:b1:3": [
+       1
+      ]
+     },
+     "vgaps": {
+      "2:b2:0": {
+       "t": 9
+      }
+     }
+    },
+    {
+     "checked": {
+      "1:b1:1": true
+     },
+     "counters": {
+      "c1": 2,
+      "c2": "3",
+      "c3": "x"
+     },
+     "cxBack": {},
+     "events": [
+      {
+       "id": "e1",
+       "ref": {
+        "id": "c1",
+        "type": "counter",
+        "v": 2
+       },
+       "t": 1000
+      },
+      {
+       "id": "e2",
+       "t": "2000"
+      },
+      {
+       "id": "e3",
+       "ref": {
+        "k": "bilan",
+        "type": "core"
+       },
+       "t": 3000,
+       "voidAt": 3100
+      }
+     ],
+     "exercise": 1,
+     "nav": [
+      "b1",
+      "b2",
+      "b3"
+     ],
+     "navSeq": [
+      1,
+      2,
+      3
+     ],
+     "startedAt": 600,
+     "timers": {
+      "t1": {
+       "elapsedMs": 1200,
+       "cycles": 1,
+       "lastStart": 900,
+       "running": false,
+       "stoppedAt": 1500
+      },
+      "t3": {
+       "elapsedMs": "50",
+       "running": 0,
+       "stoppedAt": 77
+      }
+     },
+     "verified": {
+      "1:b1:0": {
+       "a": "p2",
+       "t": 1234
+      },
+      "1:b1:1": {
+       "a": "p1",
+       "t": "5"
+      }
+     },
+     "vgaps": {
+      "2:b2:0": {
+       "t": 9
+      },
+      "2:b2:1": 5
+     }
+    },
+    null
+   ]
+  },
+  "output": [
+   {
+    "kind": "check",
+    "payload": {
+     "k": "1:b1:1"
+    }
+   },
+   {
+    "kind": "uncheck",
+    "payload": {
+     "k": "1:b1:0"
+    }
+   },
+   {
+    "kind": "verify",
+    "payload": {
+     "k": "1:b1:0",
+     "t": 1234
+    }
+   },
+   {
+    "kind": "gap",
+    "payload": {
+     "k": "2:b2:1",
+     "t": 5
+    }
+   },
+   {
+    "kind": "counter",
+    "payload": {
+     "id": "c1",
+     "v": 2
+    }
+   },
+   {
+    "kind": "timer_stop",
+    "payload": {
+     "id": "t1",
+     "running": false,
+     "elapsedMs": 1200,
+     "cycles": 1,
+     "anchor": 900
+    }
+   },
+   {
+    "kind": "mark",
+    "payload": {
+     "id": "e1",
+     "t": 1000,
+     "ref": {
+      "id": "c1",
+      "type": "counter",
+      "v": 2
+     }
+    }
+   },
+   {
+    "kind": "mark_void",
+    "payload": {
+     "id": "e2",
+     "on": false,
+     "t": 0
+    }
+   },
+   {
+    "kind": "mark",
+    "payload": {
+     "id": "e3",
+     "t": 3000,
+     "ref": {
+      "k": "bilan",
+      "type": "core"
+     }
+    }
+   },
+   {
+    "kind": "mark_void",
+    "payload": {
+     "id": "e3",
+     "on": true,
+     "t": 3100
+    }
+   },
+   {
+    "kind": "nav",
+    "payload": {
+     "nav": [
+      "b1",
+      "b2",
+      "b3"
+     ],
+     "navSeq": [
+      1,
+      2,
+      3
+     ],
+     "cxb": {}
+    }
+   },
+   {
+    "kind": "session_start",
+    "payload": {
+     "t": 600,
+     "exo": true
+    }
+   }
+  ]
+ },
+ {
+  "input": {
+   "fn": "diff",
+   "arg": [
+    {
+     "checked": {
+      "1:b1:0": true
+     },
+     "counters": {
+      "c1": 1,
+      "c2": "3",
+      "c3": "x"
+     },
+     "cxBack": {
+      "2": {
+       "id": "b1",
+       "t": 5
+      },
+      "3": "bad",
+      "4": {
+       "t": 1
+      }
+     },
+     "events": [
+      {
+       "id": "e1",
+       "label": "MOT LIBRE",
+       "ref": {
+        "id": "c1",
+        "type": "counter",
+        "v": 1
+       },
+       "t": 1000
+      },
+      {
+       "id": "e2",
+       "t": "2000",
+       "voidAt": 2500
+      }
+     ],
+     "exercise": 1,
+     "nav": [
+      "b1",
+      "b2"
+     ],
+     "navSeq": [
+      1,
+      2
+     ],
+     "startedAt": 500,
+     "stopClosed": true,
+     "timers": {
+      "t1": {
+       "elapsedMs": 1200,
+       "cycles": 1,
+       "lastStart": 900,
+       "running": true
+      },
+      "t2": null,
+      "t3": {
+       "elapsedMs": "50",
+       "running": 0,
+       "stoppedAt": 77
+      }
+     },
+     "verified": {
+      "1:b1:0": 1234,
+      "1:b1:1": {
+       "a": "p1",
+       "t": "5"
+      },
+      "1:b1:2": "x",
+      "1:b1:3": [
+       1
+      ]
+     },
+     "vgaps": {
+      "2:b2:0": {
+       "t": 9
+      }
+     }
+    },
+    {
+     "checked": {
+      "1:b1:0": true
+     },
+     "counters": {
+      "c1": 1,
+      "c2": "3",
+      "c3": "x"
+     },
+     "cxBack": {
+      "2": {
+       "id": "b1",
+       "t": 5
+      },
+      "3": "bad",
+      "4": {
+       "t": 1
+      }
+     },
+     "events": [
+      {
+       "id": "e1",
+       "label": "MOT LIBRE",
+       "ref": {
+        "id": "c1",
+        "type": "counter",
+        "v": 1
+       },
+       "t": 1000
+      },
+      {
+       "id": "e2",
+       "t": "2000",
+       "voidAt": 2500
+      }
+     ],
+     "exercise": 1,
+     "nav": [
+      "b1",
+      "b2"
+     ],
+     "navSeq": [
+      1,
+      2
+     ],
+     "startedAt": 500,
+     "stopClosed": true,
+     "timers": {
+      "t1": {
+       "elapsedMs": 1200,
+       "cycles": 1,
+       "lastStart": 900,
+       "running": true
+      },
+      "t2": null,
+      "t3": {
+       "elapsedMs": "50",
+       "running": 0,
+       "stoppedAt": 77
+      }
+     },
+     "verified": {
+      "1:b1:0": 1234,
+      "1:b1:1": {
+       "a": "p1",
+       "t": "5"
+      },
+      "1:b1:2": "x",
+      "1:b1:3": [
+       1
+      ]
+     },
+     "vgaps": {
+      "2:b2:0": {
+       "t": 9
+      }
+     }
+    },
+    null
+   ]
+  },
+  "output": []
+ },
+ {
+  "input": {
+   "fn": "diff",
+   "arg": [
+    {
+     "checked": {
+      "a": false
+     }
+    },
+    {
+     "checked": {
+      "a": false,
+      "b": 0,
+      "c": true
+     }
+    },
+    null
+   ]
+  },
+  "output": [
+   {
+    "kind": "check",
+    "payload": {
+     "k": "a"
+    }
+   },
+   {
+    "kind": "check",
+    "payload": {
+     "k": "b"
+    }
+   },
+   {
+    "kind": "check",
+    "payload": {
+     "k": "c"
+    }
+   },
+   {
+    "kind": "uncheck",
+    "payload": {
+     "k": "a"
+    }
+   }
+  ]
+ },
+ {
+  "input": {
+   "fn": "fold",
+   "arg": [
+    [
+     {
+      "seq": 1,
+      "id": "u1",
+      "actor": "p1",
+      "kind": "check",
+      "payload": {
+       "k": "1:b1:0"
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 2,
+      "id": "u2",
+      "actor": "p1",
+      "kind": "check",
+      "payload": {
+       "k": "bad key"
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 3,
+      "id": "u3",
+      "actor": "p2",
+      "kind": "verify",
+      "payload": {
+       "k": "1:b1:0",
+       "t": 111
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 4,
+      "id": "u4",
+      "actor": "p2",
+      "kind": "gap",
+      "payload": {
+       "k": "1:b1:0",
+       "t": 222
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 5,
+      "id": "u5",
+      "kind": "verify",
+      "payload": {
+       "k": "1:b1:1",
+       "t": 3
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 6,
+      "id": "u6",
+      "actor": "p1",
+      "kind": "counter",
+      "payload": {
+       "id": "c1",
+       "v": "4"
+      }
+     },
+     {
+      "seq": 7,
+      "id": "u7",
+      "actor": "p1",
+      "kind": "counter",
+      "payload": {
+       "v": 4
+      }
+     },
+     {
+      "seq": 8,
+      "id": "u8",
+      "actor": "p1",
+      "kind": "timer_arm",
+      "payload": {
+       "anchor": 5000,
+       "cycles": 1,
+       "elapsedMs": 100,
+       "id": "t1",
+       "running": true
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 9,
+      "id": "u9",
+      "actor": "p1",
+      "kind": "timer_stop",
+      "payload": {
+       "anchor": 5000,
+       "cycles": "x",
+       "elapsedMs": 900,
+       "id": "t2",
+       "running": false
+      },
+      "ts": "2026-09-30T12:00:01.5+00:00"
+     },
+     {
+      "seq": 10,
+      "id": "u10",
+      "actor": "p1",
+      "kind": "timer_reset",
+      "payload": {
+       "id": "t3",
+       "running": false
+      },
+      "ts": 1727697600000
+     },
+     {
+      "seq": 11,
+      "id": "u11",
+      "actor": "p1",
+      "kind": "nav",
+      "payload": {
+       "cxb": {
+        "2": {
+         "id": "b1",
+         "t": 3
+        }
+       },
+       "nav": [
+        "b1",
+        "b2"
+       ],
+       "navSeq": [
+        1,
+        2
+       ]
+      }
+     },
+     {
+      "seq": 12,
+      "id": "u12",
+      "actor": "p1",
+      "kind": "nav",
+      "payload": {
+       "nav": [
+        "b1"
+       ],
+       "navSeq": [
+        1,
+        2
+       ]
+      }
+     },
+     {
+      "seq": 13,
+      "id": "u13",
+      "actor": "p1",
+      "kind": "flow_end",
+      "payload": {
+       "on": 1
+      }
+     },
+     {
+      "seq": 14,
+      "id": "u14",
+      "actor": "p1",
+      "kind": "session_start",
+      "payload": {
+       "exo": true,
+       "id": "s-host",
+       "t": 1234
+      }
+     },
+     {
+      "seq": 15,
+      "id": "u15",
+      "actor": "p1",
+      "kind": "session_start",
+      "payload": {
+       "t": 0
+      }
+     },
+     {
+      "seq": 16,
+      "id": "u16",
+      "actor": "p1",
+      "kind": "mark",
+      "payload": {
+       "id": "e1",
+       "ref": {
+        "id": "c1",
+        "type": "counter",
+        "v": 2.4
+       },
+       "t": 100
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 17,
+      "id": "u17",
+      "actor": "p2",
+      "kind": "mark",
+      "payload": {
+       "id": "e1",
+       "ref": {
+        "type": "nope"
+       },
+       "t": "x"
+      },
+      "ts": "2026-09-30T12:00:00.000Z"
+     },
+     {
+      "seq": 18,
+      "id": "u18",
+      "actor": "p2",
+      "kind": "mark",
+      "payload": {
+       "id": "e2",
+       "label": "MOT",
+       "ref": {
+        "k": "bilan",
+        "type": "core"
+       },
+       "t": 300
+      }
+     },
+     {
+      "seq": 19,
+      "id": "u19",
+      "actor": "p2",
+      "kind": "mark_void",
+      "payload": {
+       "id": "e2",
+       "on": true,
+       "t": 0
+      }
+     },
+     {
+      "seq": 20,
+      "id": "u20",
+      "actor": "p2",
+      "kind": "mark_void",
+      "payload": {
+       "id": "e1",
+       "on": true,
+       "t": 777
+      }
+     },
+     {
+      "seq": 21,
+      "id": "u21",
+      "actor": "p2",
+      "kind": "mark_void",
+      "payload": {
+       "id": "e1",
+       "on": false
+      }
+     },
+     {
+      "seq": 22,
+      "id": "u22",
+      "actor": "p3",
+      "kind": "offline_mark",
+      "payload": {
+       "ref": {
+        "i": 3,
+        "type": "poso"
+       },
+       "t": 999,
+       "was": "check"
+      }
+     },
+     {
+      "seq": 23,
+      "id": "u23",
+      "actor": "p1",
+      "kind": "sig",
+      "payload": {
+       "t": "o"
+      }
+     },
+     {
+      "seq": 24,
+      "id": "u24",
+      "actor": "p1",
+      "kind": "uncheck",
+      "payload": {
+       "k": "1:b1:0"
+      }
+     },
+     {
+      "seq": 25,
+      "id": "u25",
+      "actor": "p1",
+      "kind": "mark",
+      "payload": {
+       "id": "e9",
+       "t": 5
+      }
+     },
+     {
+      "seq": 26,
+      "id": "u26",
+      "actor": "p1",
+      "kind": "presence",
+      "payload": {}
+     },
+     {
+      "seq": 27,
+      "id": "u27",
+      "kind": "check",
+      "payload": null
+     }
+    ],
+    null
+   ]
+  },
+  "output": {
+   "checked": {},
+   "verified": {
+    "1:b1:1": {
+     "t": 3
+    }
+   },
+   "vgaps": {
+    "1:b1:0": {
+     "a": "p2",
+     "t": 222
+    }
+   },
+   "counters": {
+    "c1": 4
+   },
+   "timers": {
+    "t1": {
+     "running": true,
+     "elapsedMs": 100,
+     "cycles": 1,
+     "anchor": 5000,
+     "stoppedAt": 0
+    },
+    "t2": {
+     "running": false,
+     "elapsedMs": 900,
+     "cycles": 0,
+     "anchor": 5000,
+     "stoppedAt": 1790769601500
+    },
+    "t3": {
+     "running": false,
+     "elapsedMs": 0,
+     "cycles": 0,
+     "anchor": 0,
+     "stoppedAt": 1727697600000
+    }
+   },
+   "nav": [
+    "b1",
+    "b2"
+   ],
+   "navSeq": [
+    1,
+    2
+   ],
+   "cxb": {
+    "2": {
+     "id": "b1",
+     "t": 3
+    }
+   },
+   "events": [
+    {
+     "id": "e1",
+     "t": 100,
+     "ref": null,
+     "a": "p2",
+     "voidAt": null
+    },
+    {
+     "id": "e2",
+     "t": 300,
+     "ref": {
+      "type": "core",
+      "k": "bilan"
+     },
+     "a": "p2",
+     "voidAt": 1
+    },
+    {
+     "id": "e9",
+     "t": 5,
+     "ref": null,
+     "a": "p1"
+    }
+   ],
+   "flowEnded": true,
+   "annex": [
+    {
+     "t": 999,
+     "ref": {
+      "type": "poso",
+      "i": 3
+     },
+     "a": "p3"
+    }
+   ],
+   "startedAt": 1234,
+   "exercise": false,
+   "sessId": "s-host"
+  }
+ },
+ {
+  "input": {
+   "fn": "fold",
+   "arg": [
+    [
+     {
+      "actor": "p",
+      "kind": "check",
+      "payload": {
+       "k": "2:b2:0"
+      }
+     }
+    ],
+    {
+     "annex": [
+      {
+       "t": 1
+      }
+     ],
+     "checked": {
+      "1:b1:0": true
+     },
+     "sessId": "old"
+    }
+   ]
+  },
+  "output": {
+   "checked": {
+    "1:b1:0": true,
+    "2:b2:0": true
+   },
+   "verified": {},
+   "vgaps": {},
+   "counters": {},
+   "timers": {},
+   "nav": [],
+   "navSeq": [],
+   "cxb": {},
+   "events": [],
+   "flowEnded": false,
+   "annex": [
+    {
+     "t": 1
+    }
+   ],
+   "startedAt": 0,
+   "exercise": false,
+   "sessId": "old"
+  }
+ },
+ {
+  "input": {
+   "fn": "foldSan",
+   "arg": {
+    "checked": {
+     "1:b1:0": 1,
+     "bad": true,
+     "2:b:1": 0
+    },
+    "counters": {
+     "c1": "2",
+     "x y": 1
+    },
+    "cxb": {
+     "1": {
+      "id": "b1",
+      "t": 2
+     },
+     "5": {
+      "id": "b2"
+     }
+    },
+    "events": [
+     {
+      "id": "e1",
+      "label": "MOT",
+      "ref": {
+       "type": "timer",
+       "id": "t1"
+      },
+      "t": "5",
+      "voidAt": "6"
+     },
+     {
+      "id": 12345,
+      "t": null,
+      "voidAt": null
+     },
+     null,
+     "x",
+     [
+      1
+     ]
+    ],
+    "exercise": 1,
+    "flowEnded": "yes",
+    "nav": [
+     "b1",
+     "b2"
+    ],
+    "navSeq": [
+     1,
+     2
+    ],
+    "sessId": "ignored",
+    "startedAt": "77",
+    "timers": {
+     "t1": {
+      "anchor": 5,
+      "cycles": 1,
+      "elapsedMs": 2,
+      "running": 1,
+      "stoppedAt": 3
+     },
+     "t2": 5
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "p",
+      "t": 1
+     },
+     "1:b1:1": 5,
+     "1:b1:2": "x"
+    },
+    "vgaps": "nope"
+   }
+  },
+  "output": {
+   "checked": {
+    "1:b1:0": true,
+    "2:b:1": false
+   },
+   "verified": {
+    "1:b1:0": {
+     "a": "p",
+     "t": 1
+    },
+    "1:b1:1": {
+     "a": null,
+     "t": 5
+    }
+   },
+   "vgaps": {},
+   "counters": {
+    "c1": 2
+   },
+   "timers": {
+    "t1": {
+     "running": true,
+     "elapsedMs": 2,
+     "cycles": 1,
+     "anchor": 5,
+     "stoppedAt": 3
+    },
+    "t2": {
+     "running": false,
+     "elapsedMs": 0,
+     "cycles": 0,
+     "anchor": 0,
+     "stoppedAt": 0
+    }
+   },
+   "events": [
+    {
+     "id": "e1",
+     "t": 5,
+     "ref": {
+      "type": "timer",
+      "id": "t1"
+     },
+     "voidAt": 6
+    },
+    {
+     "id": "12345",
+     "t": 0,
+     "ref": null,
+     "voidAt": null
+    },
+    {
+     "id": "",
+     "t": 0,
+     "ref": null,
+     "voidAt": null
+    }
+   ],
+   "nav": [
+    "b1",
+    "b2"
+   ],
+   "navSeq": [
+    1,
+    2
+   ],
+   "cxb": {
+    "1": {
+     "id": "b1",
+     "t": 2
+    }
+   },
+   "flowEnded": true,
+   "exercise": true,
+   "startedAt": 77
+  }
+ },
+ {
+  "input": {
+   "fn": "foldSan",
+   "arg": null
+  },
+  "output": {
+   "checked": {},
+   "verified": {},
+   "vgaps": {},
+   "counters": {},
+   "timers": {},
+   "events": [],
+   "nav": [],
+   "navSeq": [],
+   "cxb": {},
+   "flowEnded": false,
+   "exercise": false,
+   "startedAt": 0
+  }
+ },
+ {
+  "input": {
+   "fn": "foldSan",
+   "arg": {
+    "nav": [
+     "b1"
+    ],
+    "navSeq": [
+     1,
+     2
+    ]
+   }
+  },
+  "output": {
+   "checked": {},
+   "verified": {},
+   "vgaps": {},
+   "counters": {},
+   "timers": {},
+   "events": [],
+   "nav": [],
+   "navSeq": [],
+   "cxb": {},
+   "flowEnded": false,
+   "exercise": false,
+   "startedAt": 0
+  }
+ },
+ {
+  "input": {
+   "fn": "hash",
+   "arg": {
+    "checked": {
+     "1:b1:0": true,
+     "1:b1:1": false,
+     "z:b:1": true
+    },
+    "counters": {
+     "c1": 2.5,
+     "c2": 0
+    },
+    "flowEnded": true,
+    "nav": [
+     "b1",
+     "b2"
+    ],
+    "navSeq": [
+     1,
+     2
+    ],
+    "timers": {
+     "t1": {
+      "cycles": 3
+     },
+     "t2": {}
+    },
+    "verified": {
+     "1:b1:0": {}
+    },
+    "vgaps": {}
+   }
+  },
+  "output": "y4uvag"
+ },
+ {
+  "input": {
+   "fn": "hash",
+   "arg": {}
+  },
+  "output": "1qn8h3c"
+ },
+ {
+  "input": {
+   "fn": "offset",
+   "arg": [
+    {
+     "t0": 1000,
+     "t1": 1100,
+     "srv": 5000
+    },
+    {
+     "t0": 2000,
+     "t1": 2500,
+     "srv": 9000
+    },
+    {
+     "t0": 3000,
+     "t1": 3080,
+     "srv": 7100
+    }
+   ]
+  },
+  "output": 4005
+ },
+ {
+  "input": {
+   "fn": "offset",
+   "arg": [
+    {
+     "t0": 1000,
+     "t1": 1100,
+     "srv": 5000
+    },
+    {
+     "t0": 3000,
+     "t1": 3080,
+     "srv": 7101
+    }
+   ]
+  },
+  "output": 4006
+ },
+ {
+  "input": {
+   "fn": "offset",
+   "arg": [
+    {
+     "t0": 1000,
+     "t1": 900,
+     "srv": 5000
+    }
+   ]
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "offset",
+   "arg": []
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "iso",
+   "arg": [
+    "2026-09-30T12:34:56.789+00:00",
+    "2026-09-30T12:34:57.012345+00:00",
+    "2026-09-30T12:34:56Z",
+    "2026-09-30T12:34:56.7Z",
+    "2026-09-30T14:34:56.789+02:00",
+    "2026-09-30T08:04:56-04:30",
+    "1999-12-31T23:59:59.999Z",
+    "2026-02-29T00:00:00Z",
+    "garbage",
+    ""
+   ]
+  },
+  "output": [
+   1790771696789,
+   1790771697012,
+   1790771696000,
+   1790771696700,
+   1790771696789,
+   1790771696000,
+   946684799999,
+   1772323200000,
+   null,
+   null
+  ]
+ },
+ {
+  "input": {
+   "fn": "isoOut",
+   "arg": [
+    0,
+    1727697600000,
+    1727697600123.9,
+    951782400000,
+    -1,
+    253402300799999
+   ]
+  },
+  "output": [
+   "1970-01-01T00:00:00.000Z",
+   "2024-09-30T12:00:00.000Z",
+   "2024-09-30T12:00:00.123Z",
+   "2000-02-29T00:00:00.000Z",
+   "1969-12-31T23:59:59.999Z",
+   "9999-12-31T23:59:59.999Z"
+  ]
+ },
+ {
+  "input": {
+   "fn": "stream",
+   "arg": [
+    [
+     "1:3f2c1a9e-0000-4000-8000-000000000001",
+     "2:3f2c1a9e-0000-4000-8000-000000000002"
+    ],
+    [],
+    [
+     "é:€"
+    ]
+   ]
+  },
+  "output": [
+   "6ec9c0f4e2db9a22f0d063c204ce1b4951568174e9b2a7893192d3cf585bb3e5",
+   "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "c3b844174621e8c85f89d53a46573a42a6cc5f062523c54364cfb2341c64ffd5"
+  ]
+ },
+ {
+  "input": {
+   "fn": "whitelist",
+   "arg": {
+    "a": 1,
+    "anchor": 5,
+    "code": "X",
+    "cxb": {
+     "1": {}
+    },
+    "k": "k",
+    "label": "MOT",
+    "nav": [
+     1
+    ],
+    "o": "o",
+    "ref": {
+     "type": "x",
+     "label": "nested"
+    },
+    "state": "quit",
+    "take": true
+   }
+  },
+  "output": {
+   "pl": {
+    "a": 1,
+    "anchor": 5,
+    "code": "X",
+    "k": "k",
+    "nav": [
+     1
+    ],
+    "o": "o",
+    "ref": {
+     "type": "x",
+     "label": "nested"
+    },
+    "take": true
+   },
+   "keys": [
+    "k",
+    "t",
+    "id",
+    "v",
+    "running",
+    "elapsedMs",
+    "cycles",
+    "anchor",
+    "nav",
+    "navSeq",
+    "on",
+    "exo",
+    "ref",
+    "was",
+    "to",
+    "take",
+    "o",
+    "a",
+    "code"
+   ],
+   "keep": [
+    "id",
+    "title",
+    "discriminant",
+    "code",
+    "status",
+    "validatedAt",
+    "blocks",
+    "start",
+    "timers",
+    "counters",
+    "items"
+   ],
+   "any": [
+    "sig",
+    "check",
+    "verify",
+    "gap",
+    "counter",
+    "timer_arm",
+    "timer_stop",
+    "mark",
+    "mark_void",
+    "nav",
+    "flow_end",
+    "cx",
+    "presence",
+    "detach",
+    "offline_mark",
+    "handoff"
+   ],
+   "lead": [
+    "uncheck",
+    "timer_reset",
+    "end",
+    "session_start"
+   ],
+   "travels": [
+    "checked",
+    "verified",
+    "vgaps",
+    "nav",
+    "navSeq",
+    "counters",
+    "timers",
+    "events",
+    "flowEnded",
+    "cxBack"
+   ],
+   "local": [
+    "confOpen",
+    "ovFold",
+    "ovVerify",
+    "navPos",
+    "rtOpen",
+    "railTkOpen",
+    "railLadOpen",
+    "showFlow",
+    "readMode",
+    "previewFrom",
+    "cxOpen",
+    "tkSheet",
+    "railTmOpen",
+    "tmAddOpen"
+   ],
+   "alpha": "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+  }
+ }
+]
