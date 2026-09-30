@@ -21,3 +21,4 @@ node_modules/
 /native/*.xcodeproj/
 /native/DerivedData/
 xcuserdata/
+native/captures/

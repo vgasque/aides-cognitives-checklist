@@ -133,6 +133,15 @@ jobs:
               xcrun simctl terminate "$D" $BID 2>/dev/null || true; sleep 1
               xcrun simctl launch "$D" $BID -ac-demo $s; sleep 6
               xcrun simctl io "$D" screenshot "../shots/$2-$(printf %02d $n)-$s-$3.png"
+              # Diagnostic (premier passage seulement) : pile du processus (un écran blanc = fil
+              # principal bloqué ?) et journal de l'app.
+              if [ "$2-$3" = "iphone-light" ]; then
+                P=$(pgrep -f "AidesCognitives.app/AidesCognitives" | head -n 1)
+                if [ -n "$P" ]; then sample "$P" 2 -mayDie -file "../shots/diag-$s-sample.txt" >/dev/null 2>&1 || true
+                else echo "processus absent (plantage ?)" > "../shots/diag-$s-sample.txt"; fi
+                xcrun simctl spawn "$D" log show --last 20s --style compact \
+                  --predicate 'process == "AidesCognitives"' 2>/dev/null | tail -n 80 > "../shots/diag-$s-log.txt" || true
+              fi
               n=$((n+1))
             done
           }
@@ -140,11 +149,12 @@ jobs:
           shoot "${{ steps.sim.outputs.phone }}" iphone dark
           if [ -n "${{ steps.sim.outputs.pad }}" ]; then shoot "${{ steps.sim.outputs.pad }}" ipad light; fi
           ls -la ../shots
+          for f in ~/Library/Logs/DiagnosticReports/AidesCognitives*; do [ -f "$f" ] && head -c 60000 "$f" > "../shots/diag-crash-$(basename "$f").txt"; done || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: captures
-          path: shots/*.png
+          path: shots/*
           if-no-files-found: warn
       - name: Publier les captures (branche native-captures)
         if: github.event_name == 'push'
@@ -153,6 +163,7 @@ jobs:
           for f in shots/*.png; do
             sips -s format jpeg -s formatOptions 70 -Z 1400 "$f" --out "pub/$(basename "${f%.png}").jpg" >/dev/null
           done
+          cp shots/*.txt pub/ 2>/dev/null || true
           cd pub
           git init -q && git checkout -q -b native-captures
           git add . && git -c user.name="ci" -c user.email="ci@users.noreply.github.com" commit -qm "Captures de ${GITHUB_SHA}"

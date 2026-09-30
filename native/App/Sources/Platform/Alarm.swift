@@ -84,6 +84,8 @@ final class Alarm {
 /// tout est annulé au retour (l'état calculé depuis l'horloge murale reste la source de vérité).
 enum Notifier {
     static func requestPermission() {
+        // Mode démo (captures d'écran de la CI) : pas de dialogue système par-dessus l'écran.
+        if ProcessInfo.processInfo.arguments.contains("-ac-demo") { return }
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
     /// `dueAt` en ms depuis l'époque.

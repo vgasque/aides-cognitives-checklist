@@ -378,7 +378,10 @@ struct CrDock: View {
         VStack(spacing: 2) {
             Image(systemName: glyph).font(.system(size: 15, weight: .bold)).foregroundStyle(glyphColor)
             if let label {
-                Text(label).aFont(TypeScale.body, .heavy).foregroundStyle(ink).lineLimit(2).multilineTextAlignment(.center)
+                // A403 : libellés du quai à 13,5, sur UNE ligne (jamais coupés au milieu d'un mot :
+                // « Horodat/er ») — le texte se resserre plutôt que de passer à la ligne.
+                Text(label).aFont(13.5, .heavy).foregroundStyle(ink).lineLimit(1)
+                    .minimumScaleFactor(0.75).allowsTightening(true)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 50)

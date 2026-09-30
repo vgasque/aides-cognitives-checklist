@@ -12,6 +12,7 @@ extension AppModel {
         guard let i = args.firstIndex(of: "-ac-demo"), i + 1 < args.count else { return }
         let screen = args[i + 1]
         if fiches.isEmpty { addExamples() }
+        if references.isEmpty { addDemoReference() }
         finishOnboarding()
         paths = [:]
         rootTab = .aides
@@ -41,5 +42,36 @@ extension AppModel {
         default:
             break
         }
+    }
+
+    /// Une référence d'exemple (les exemples livrés ne sont que des aides).
+    private func addDemoReference() {
+        var p = Reference(id: Guard.uid("p"))
+        p.title = "Anaphylaxie — repères de l'adulte"
+        p.category = categories.first { $0.name == "Urgences" }?.id ?? categories.first?.id ?? ""
+        p.status = .draft
+        p.body = """
+        # Reconnaître
+        Atteinte **cutanéo-muqueuse** brutale associée à une atteinte respiratoire, circulatoire ou digestive.
+
+        > [!ALERTE] L'adrénaline IM ne se diffère pas.
+
+        # Traiter
+        ## Adrénaline IM
+        - Face antérolatérale de cuisse
+        - Répéter toutes les **5 min** si besoin
+        - [ ] Dose tracée sur la feuille
+
+        ## Remplissage
+        | Situation | Volume |
+        |:--|--:|
+        | Hypotension | 20 mL/kg |
+        | Persistance | à répéter |
+
+        # Surveiller
+        Réaction biphasique possible : ==surveillance prolongée==.
+        """
+        _ = save(p)
+        refresh()
     }
 }
