@@ -1,0 +1,59 @@
+# Application NATIVE (native/) — iPhone, iPad, Mac.
+#
+# Deux vérifications, séparées à dessein :
+#  1. le cœur métier (AidesCore) se TESTE (`swift test`) — il ne dépend que de Foundation ;
+#  2. l'application SwiftUI se COMPILE pour iOS (simulateur) et pour macOS. Rien n'est signé :
+#     la signature et la distribution restent un geste de l'auteur, dans Xcode.
+# Le projet Xcode n'est pas versionné : il est GÉNÉRÉ par XcodeGen depuis native/project.yml.
+name: Native
+
+on:
+  push:
+    branches: [native-apple]
+    paths: ['native/**', '.github/workflows/native.yml']
+  pull_request:
+    paths: ['native/**', '.github/workflows/native.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version de Xcode
+        run: xcodebuild -version && swift --version
+      - name: Tests du cœur (AidesCore)
+        working-directory: native/AidesCore
+        run: swift test 2>&1 | tail -n 60
+
+  app:
+    runs-on: macos-15
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        destination: ['generic/platform=iOS Simulator', 'generic/platform=macOS']
+    steps:
+      - uses: actions/checkout@v4
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Générer le projet
+        working-directory: native
+        run: xcodegen generate
+      - name: Compiler (${{ matrix.destination }})
+        working-directory: native
+        run: |
+          set -o pipefail
+          xcodebuild -project AidesCognitives.xcodeproj -scheme AidesCognitives \
+            -destination '${{ matrix.destination }}' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build 2>&1 \
+            | tee build.log | grep -E "error:|warning: unre|BUILD (SUCCEEDED|FAILED)" | head -n 300
+      - name: Journal des erreurs
+        if: failure()
+        working-directory: native
+        run: grep -E "error:" build.log | sort -u | head -n 400
