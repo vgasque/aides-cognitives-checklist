@@ -4,7 +4,9 @@
 const TEXTS = ['', 'Adrénaline IM 0,5 mg', 'L’œdème de Quincke — ANAPHYLAXIE (grade III)', 'a b cd e2 x'.repeat(3), 'ÉÉÉ çà où', 'x'.repeat(30) + ' yy',
   'Crise convulsive ≥ 5 min : benzodiazépine', '😀 émoji et naïveté'];
 let seed = 777;
-const rnd = n => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed % n; };
+// Générateur congruentiel sur 32 bits EXACTS (Math.imul) : en flottant, le produit dépassait 2^53 et
+// la suite dégénérait vers zéro (constaté : des documents « tirés au sort » tous vides).
+const rnd = n => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return (seed >>> 8) % n; };
 const WORDS = ['adrenaline', 'adre', 'dose', 'mg', 'kg', 'choc', 'chocs', 'anaphylaxie', 'ab', 'abc', 'abcd', 'zz', 'z9', '10', '100', 'ivse', 'iv', 'intraveineuse', 'x'.repeat(24), 'bolus'];
 const DOCS = [[], [[]], [['aa']], [['aa', 'aa', 'bb'], ['bb'], [], ['aa']]];
 for (let d = 0; d < 30; d++) {
@@ -33,3 +35,6 @@ export function run(inputs) {
       pagesOf: h ? Array.from({ length: h.n }, (_, i) => ixPagesOf(h, i)) : null, search: Q.map(q => ixSearch(h, q)) }; });
   });
 }
+
+// Fixture compacte (JSON sans indentation).
+export const compact = true;

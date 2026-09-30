@@ -58,3 +58,7 @@ export function run(inputs) {
       imp: J(impDiff(prev, f, false)) };
   });
 }
+
+// Fixture compacte ; la fiche brute n'y est pas recopiée (la sortie `f` porte sa forme migrée).
+export const compact = true;
+export const slim = ({ fiche, fiches, ...rest }) => rest;

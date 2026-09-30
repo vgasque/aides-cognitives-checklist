@@ -48,3 +48,6 @@ export function run(inputs) {
     };
   });
 }
+
+// Fixture compacte (JSON sans indentation).
+export const compact = true;

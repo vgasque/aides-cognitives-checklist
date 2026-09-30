@@ -27,7 +27,9 @@ const FRAG = ['# T', '## Sous-titre', '### x', 'texte **g**', '- a', '- [ ] t', 
   '> [!tip]', '| a | b |', '|---|:-:|', '| 1 | 2 |', '```', '---', '![c](img:i1)', '![c](img:zz)', '', ' ', '*i* ==m==', '`c`', 'x | y',
   '[l](https://a.b)', '[a](att:d1)', '> ⚠ alerte', '* item', '12. douze', '1234. non'];
 let seed = 12345;
-const rnd = n => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed % n; };
+// Générateur congruentiel sur 32 bits EXACTS (Math.imul) : en flottant, le produit dépassait 2^53 et
+// la suite dégénérait vers zéro (constaté : des documents « tirés au sort » tous vides).
+const rnd = n => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return (seed >>> 8) % n; };
 for (let d = 0; d < 60; d++) {
   const n = 3 + rnd(18), L = [];
   for (let i = 0; i < n; i++) L.push(FRAG[rnd(FRAG.length)]);
@@ -71,3 +73,6 @@ export function run(inputs) {
     return null;
   });
 }
+
+// Fixture compacte (JSON sans indentation).
+export const compact = true;

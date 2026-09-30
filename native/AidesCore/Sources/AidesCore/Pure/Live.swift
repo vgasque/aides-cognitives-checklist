@@ -66,8 +66,11 @@ public enum Live {
             if t.type == .interval && t.running { return max(0, t.per - (t.elapsedMs + (now - t.lastStart))) }
             return .infinity
         }
-        return list.enumerated().map { ($0.offset, $0.element, rk($0.element)) }
-            .sorted { $0.2 != $1.2 ? $0.2 < $1.2 : $0.0 < $1.0 }.map(\.1)
+        // Types écrits : l'inférence d'une chaîne de fermetures sur des n-uplets coûtait ~45 s de compilation.
+        var keyed: [(i: Int, t: TimerRun, r: Double)] = []
+        for (i, t) in list.enumerated() { keyed.append((i, t, rk(t))) }
+        keyed.sort { (a: (i: Int, t: TimerRun, r: Double), b: (i: Int, t: TimerRun, r: Double)) -> Bool in a.r != b.r ? a.r < b.r : a.i < b.i }
+        return keyed.map { (x: (i: Int, t: TimerRun, r: Double)) -> TimerRun in x.t }
     }
 
     /// `monPick(timers, now)` : ce que le MONITEUR montre — un échu l'emporte toujours, sinon le plus
@@ -361,8 +364,10 @@ public enum Live {
         let mx = max(1, n == 0 ? 5 : n)
         func est(_ t: TagOption) -> Bool { garantis.contains(t.ref["type"]?.string ?? "") }
         let tete = Array(all.filter(est).prefix(mx))
-        let reste = all.enumerated().filter { !est($0.element) }.map { (t: $0.element, r: rang($0.element), i: $0.offset) }
-            .sorted { $0.r != $1.r ? $0.r < $1.r : $0.i < $1.i }.map(\.t)
+        var keyed: [(t: TagOption, r: Int, i: Int)] = []
+        for (i, t) in all.enumerated() where !est(t) { keyed.append((t, rang(t), i)) }
+        keyed.sort { (a: (t: TagOption, r: Int, i: Int), b: (t: TagOption, r: Int, i: Int)) -> Bool in a.r != b.r ? a.r < b.r : a.i < b.i }
+        let reste: [TagOption] = keyed.map { (x: (t: TagOption, r: Int, i: Int)) -> TagOption in x.t }
         return Array((tete + reste).prefix(mx))
     }
     static let rxTagCut = JSRegExp(#"\s*[—–(,;].*$"#)

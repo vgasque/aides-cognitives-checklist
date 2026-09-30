@@ -95,3 +95,7 @@ export function run(inputs) {
     };
   });
 }
+
+// Fixture compacte ; la fiche brute n'y est pas recopiée (la sortie `f` porte sa forme migrée).
+export const compact = true;
+export const slim = ({ fiche, fiches, ...rest }) => rest;

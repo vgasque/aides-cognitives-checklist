@@ -61,6 +61,10 @@ final class CatColorOracleTests: XCTestCase {
                 assertJSONEqual(Proj.strs([-30, 360, 725, 12.5].map { CatColor.hueHex($0) }), o["extra"]!, "catHueHex (hors bornes)")
                 assertJSONEqual(Proj.strs((0..<360).map { CatColor.hueSnap($0, orig: $0 % 7 != 0 ? nil : "#7a2f6b") }), o["snap"]!, "catHueSnap")
                 assertJSONEqual(Proj.strs(CatColor.palette), o["palette"]!, "PALETTE")
+                assertJSONEqual(.array(["#123456", "#abcdef", "#8d5c39", "#e11d48"].map { c -> JSON in
+                    let d = CatColor.hueDeg(c)!
+                    return Proj.strs([CatColor.hueSnap(d, orig: c), CatColor.hueSnap((d + 1) % 360, orig: c)])
+                }), o["orig"]!, "catHueSnap (origine hors palette)")
                 continue
             }
             let cols = c.input["cols"]!.array!.map { $0.string! }

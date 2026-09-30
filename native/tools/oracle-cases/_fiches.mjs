@@ -59,7 +59,9 @@ const MAIN = [
 
 // Générateur à graine.
 let seed = 424242;
-const rnd = n => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed % n; };
+// Générateur congruentiel sur 32 bits EXACTS (Math.imul) : en flottant, le produit dépassait 2^53 et
+// la suite dégénérait vers zéro (constaté : des documents « tirés au sort » tous vides).
+const rnd = n => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return (seed >>> 8) % n; };
 const pick = a => a[rnd(a.length)];
 const TXT = ['Adrénaline IM', '⚠ Masser fort', '△ Vérifier dose :: 0,01 mg/kg', 'Oxygène', 'à compléter', 'Bilan :: complet', 'Voie veineuse',
   '**Gras** geste', 'Appeler renfort', 'Scope · PA · SpO2 + ECG', 'x'.repeat(120), ''];
@@ -135,7 +137,7 @@ export const FICHES = [...MAIN, ...Array.from({ length: 70 }, (_, k) => randomFi
 export function scenarios(f, k) {
   const ids = (f.blocks || []).map(b => b.id);
   let s = 99 + k;
-  const r = n => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s % n; };
+  const r = n => { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return (s >>> 8) % n; };
   const out = [{ nav: [], navSeq: [], checked: {}, navPos: null }];
   if (!ids.length) return out;
   for (let v = 0; v < 3; v++) {
