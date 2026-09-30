@@ -12,7 +12,7 @@ final class JSONTests: XCTestCase {
         XCTAssertEqual(j["f"], .object([:]))
     }
     func testRoundTrip() throws {
-        let j: JSON = ["x": [1, 2.5, "t", true, nil]]
+        let j: JSON = ["x": [1, 2.5, "t", true, .null]]
         XCTAssertEqual(try JSON.parse(j.data()), j)
     }
 }

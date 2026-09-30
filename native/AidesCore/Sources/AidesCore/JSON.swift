@@ -118,8 +118,9 @@ public enum JSON: Equatable, Hashable, Sendable {
 }
 
 extension JSON: ExpressibleByStringLiteral, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral,
-                ExpressibleByBooleanLiteral, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral,
-                ExpressibleByNilLiteral {
+                ExpressibleByBooleanLiteral, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+    // ⚠ PAS de `ExpressibleByNilLiteral` : `cond ? nil : x` s'inférerait en `JSON.null` au lieu de
+    // l'optionnel vide — piège rencontré, qui transformait « pas de session » en « session null ».
     public init(stringLiteral v: String) { self = .string(v) }
     public init(integerLiteral v: Int) { self = .number(Double(v)) }
     public init(floatLiteral v: Double) { self = .number(v) }
@@ -130,7 +131,6 @@ extension JSON: ExpressibleByStringLiteral, ExpressibleByIntegerLiteral, Express
         for (k, v) in e { o[k] = v }
         self = .object(o)
     }
-    public init(nilLiteral: ()) { self = .null }
 }
 
 extension JSON: Codable {

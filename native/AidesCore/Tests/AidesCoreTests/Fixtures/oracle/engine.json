@@ -1,0 +1,2493 @@
+[
+ {
+  "input": {
+   "fn": "graph",
+   "fiche": {
+    "id": "fx1",
+    "title": "Anaphylaxie",
+    "discriminant": "adulte",
+    "code": "ANA",
+    "category": "c-urg",
+    "validatedAt": "janv 2026",
+    "status": "review",
+    "order": 1700000000001,
+    "updatedAt": 1700000000500,
+    "local": "Tél renfort : à compléter",
+    "sources": [
+     "Réf 1",
+     null,
+     5
+    ],
+    "items": [
+     {
+      "id": "i1",
+      "role": "dose",
+      "do": "ADRÉNALINE IM 0,5 mg",
+      "level": 2
+     },
+     {
+      "id": "i2",
+      "role": "do",
+      "do": "Adrénaline IM",
+      "expect": "0,5 mg",
+      "level": 3,
+      "memory": true,
+      "dual": true,
+      "counts": "n1",
+      "poso": "i1",
+      "repeat": "due"
+     },
+     {
+      "id": "i3",
+      "role": "do",
+      "do": "Recherche causes",
+      "review": "rv"
+     },
+     {
+      "id": "i4",
+      "role": "do",
+      "do": "Choc",
+      "starts": "t1",
+      "counts": "n1",
+      "from": {
+       "counter": "n1",
+       "n": 3
+      }
+     },
+     {
+      "id": "i5",
+      "role": "entry",
+      "do": "Urticaire"
+     },
+     {
+      "id": "i6",
+      "role": "weird",
+      "do": "x",
+      "level": "7",
+      "poso": "i5"
+     },
+     {
+      "id": "i7",
+      "role": "do",
+      "do": "y",
+      "from": {
+       "counter": "zz",
+       "n": 2
+      },
+      "starts": "tX"
+     }
+    ],
+    "excursions": [
+     {
+      "label": "Bronchospasme",
+      "target": "bx",
+      "short": "  Bronch.  "
+     },
+     {
+      "label": "",
+      "target": "bx"
+     },
+     {
+      "label": "Sans cible"
+     },
+     {
+      "label": "ACR",
+      "target": "other-fiche"
+     }
+    ],
+    "blocks": [
+     {
+      "id": "b1",
+      "kind": "do",
+      "title": "Mesures",
+      "phase": "Immédiate",
+      "items": [
+       "i2",
+       "i4",
+       "Nouvelle étape",
+       "⚠ Crit :: rép",
+       "",
+       "   ",
+       {
+        "id": "inl",
+        "do": "inline"
+       }
+      ],
+      "next": "bd",
+      "nextLbl": "Réévaluer",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "count",
+        "n": 3,
+        "counter": "n1",
+        "text": "3 doses",
+        "go": "bx"
+       },
+       {
+        "at": "pass",
+        "n": 0,
+        "text": "x"
+       },
+       {
+        "at": "count",
+        "n": 2,
+        "counter": "zz",
+        "text": "y"
+       },
+       {
+        "at": "pass",
+        "n": 150,
+        "text": "z",
+        "go": "nope"
+       }
+      ],
+      "custom": {
+       "a": 1
+      }
+     },
+     {
+      "id": "bd",
+      "type": "decision",
+      "title": "Réévaluation",
+      "question": "Amélioré ?",
+      "options": [
+       {
+        "label": "Oui",
+        "target": "b2"
+       },
+       {
+        "label": "Non",
+        "target": "missing"
+       },
+       null
+      ],
+      "items": [
+       "raw"
+      ],
+      "next": "b1"
+     },
+     {
+      "id": "b2",
+      "kind": "do",
+      "title": "Stabilisé",
+      "items": [
+       "i3"
+      ],
+      "next": null,
+      "timer": "tNope"
+     },
+     {
+      "id": "bx",
+      "kind": "do",
+      "title": "Bronchospasme",
+      "items": [
+       "Salbutamol"
+      ],
+      "next": null
+     },
+     {
+      "id": "rv",
+      "kind": "review",
+      "title": "4H / 4T",
+      "items": [
+       "Hypoxie",
+       "Hypovolémie"
+      ],
+      "next": "b1",
+      "nextLbl": "x",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "pass",
+        "n": 1,
+        "text": "t"
+       }
+      ]
+     },
+     {
+      "id": "b1",
+      "kind": "steps",
+      "title": "Doublon d'id",
+      "items": []
+     }
+    ],
+    "start": "b1",
+    "timers": [
+     {
+      "id": "t1",
+      "label": "Réévaluation",
+      "type": "interval",
+      "seconds": "300",
+      "autoloop": 1,
+      "onDue": "Réévaluer"
+     },
+     {
+      "id": "t1",
+      "label": "Doublon",
+      "type": "x",
+      "seconds": 999999
+     },
+     {
+      "label": "sans id",
+      "seconds": -5.5
+     }
+    ],
+    "counters": [
+     {
+      "id": "n1",
+      "label": "Adrénaline",
+      "step": 0,
+      "start": -3,
+      "timerId": "t1",
+      "short": "Adré"
+     },
+     {
+      "id": "n2",
+      "label": "B",
+      "step": "2.5",
+      "start": "12",
+      "timerId": "__proto__"
+     }
+    ],
+    "images": [
+     {
+      "id": "im1",
+      "data": "data:image/png;base64,iVBORw0KGgo=",
+      "w": "100",
+      "h": 50.6,
+      "caption": "Légende",
+      "scale": 33
+     },
+     {
+      "id": "im2",
+      "data": "javascript:alert(1)"
+     },
+     {
+      "id": "__proto__",
+      "data": "data:image/webp;base64,AAAA",
+      "scale": 42
+     }
+    ],
+    "docs": [
+     {
+      "id": "d1",
+      "name": "proto",
+      "size": 123.4
+     },
+     {
+      "id": "bad id",
+      "name": "x.pdf"
+     },
+     {
+      "id": "d2",
+      "name": "../../etc/passwd.PDF",
+      "size": 99999999999
+     }
+    ],
+    "links": [
+     "f2",
+     "__proto__",
+     "bad id",
+     5
+    ],
+    "ownerId": "u-1",
+    "library": "lib-1",
+    "deletedAt": null,
+    "dirty": 1,
+    "futureField": {
+     "keep": true
+    }
+   }
+  },
+  "output": {
+   "reach": {
+    "b1": [
+     "b1",
+     "b2",
+     "bd"
+    ],
+    "bd": [
+     "b2",
+     "bd"
+    ],
+    "b2": [
+     "b2"
+    ],
+    "bx": [
+     "bx"
+    ],
+    "rv": [
+     "rv"
+    ],
+    "bmunvla6n1aszv2l1": [
+     "bmunvla6n1aszv2l1"
+    ]
+   },
+   "inLoop": {
+    "b1": false,
+    "bd": false,
+    "b2": false,
+    "bx": false,
+    "rv": false,
+    "bmunvla6n1aszv2l1": false
+   },
+   "exits": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "latest": [
+    {
+     "idx": 5,
+     "seq": 6,
+     "pass": 3,
+     "total": 3
+    },
+    {
+     "idx": 1,
+     "seq": 2,
+     "pass": 1,
+     "total": 1
+    },
+    {
+     "idx": 4,
+     "seq": 5,
+     "pass": 1,
+     "total": 1
+    },
+    {
+     "idx": 3,
+     "seq": 4,
+     "pass": 1,
+     "total": 1
+    },
+    null,
+    null
+   ],
+   "pass": [
+    {
+     "pass": 1,
+     "total": 3
+    },
+    {
+     "pass": 1,
+     "total": 1
+    },
+    {
+     "pass": 2,
+     "total": 3
+    },
+    {
+     "pass": 1,
+     "total": 1
+    },
+    {
+     "pass": 1,
+     "total": 1
+    },
+    {
+     "pass": 3,
+     "total": 3
+    },
+    {
+     "pass": 0,
+     "total": 0
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "moments"
+  },
+  "output": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   {
+    "st": "gone"
+   },
+   {
+    "st": "gone"
+   },
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   null,
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   null,
+   {
+    "st": "due",
+    "req": 1
+   },
+   null,
+   {
+    "st": "due",
+    "req": 1
+   },
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   null,
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   null,
+   {
+    "st": "due",
+    "req": 1
+   },
+   null,
+   {
+    "st": "due",
+    "req": 1
+   },
+   null,
+   null,
+   null,
+   null,
+   null,
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   null,
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   null,
+   {
+    "st": "due",
+    "req": 1
+   },
+   null,
+   {
+    "st": "due",
+    "req": 1
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "due",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "due",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "wait",
+    "why": "due"
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "due",
+    "req": 1
+   },
+   {
+    "st": "met",
+    "req": 1
+   },
+   {
+    "st": "due",
+    "req": 1
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "wait",
+    "why": "from"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   },
+   {
+    "st": "need"
+   }
+  ]
+ },
+ {
+  "input": {
+   "fn": "jalons",
+   "fiche": {
+    "id": "fx1",
+    "title": "Anaphylaxie",
+    "discriminant": "adulte",
+    "code": "ANA",
+    "category": "c-urg",
+    "validatedAt": "janv 2026",
+    "status": "review",
+    "order": 1700000000001,
+    "updatedAt": 1700000000500,
+    "local": "Tél renfort : à compléter",
+    "sources": [
+     "Réf 1",
+     null,
+     5
+    ],
+    "items": [
+     {
+      "id": "i1",
+      "role": "dose",
+      "do": "ADRÉNALINE IM 0,5 mg",
+      "level": 2
+     },
+     {
+      "id": "i2",
+      "role": "do",
+      "do": "Adrénaline IM",
+      "expect": "0,5 mg",
+      "level": 3,
+      "memory": true,
+      "dual": true,
+      "counts": "n1",
+      "poso": "i1",
+      "repeat": "due"
+     },
+     {
+      "id": "i3",
+      "role": "do",
+      "do": "Recherche causes",
+      "review": "rv"
+     },
+     {
+      "id": "i4",
+      "role": "do",
+      "do": "Choc",
+      "starts": "t1",
+      "counts": "n1",
+      "from": {
+       "counter": "n1",
+       "n": 3
+      }
+     },
+     {
+      "id": "i5",
+      "role": "entry",
+      "do": "Urticaire"
+     },
+     {
+      "id": "i6",
+      "role": "weird",
+      "do": "x",
+      "level": "7",
+      "poso": "i5"
+     },
+     {
+      "id": "i7",
+      "role": "do",
+      "do": "y",
+      "from": {
+       "counter": "zz",
+       "n": 2
+      },
+      "starts": "tX"
+     }
+    ],
+    "excursions": [
+     {
+      "label": "Bronchospasme",
+      "target": "bx",
+      "short": "  Bronch.  "
+     },
+     {
+      "label": "",
+      "target": "bx"
+     },
+     {
+      "label": "Sans cible"
+     },
+     {
+      "label": "ACR",
+      "target": "other-fiche"
+     }
+    ],
+    "blocks": [
+     {
+      "id": "b1",
+      "kind": "do",
+      "title": "Mesures",
+      "phase": "Immédiate",
+      "items": [
+       "i2",
+       "i4",
+       "Nouvelle étape",
+       "⚠ Crit :: rép",
+       "",
+       "   ",
+       {
+        "id": "inl",
+        "do": "inline"
+       }
+      ],
+      "next": "bd",
+      "nextLbl": "Réévaluer",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "count",
+        "n": 3,
+        "counter": "n1",
+        "text": "3 doses",
+        "go": "bx"
+       },
+       {
+        "at": "pass",
+        "n": 0,
+        "text": "x"
+       },
+       {
+        "at": "count",
+        "n": 2,
+        "counter": "zz",
+        "text": "y"
+       },
+       {
+        "at": "pass",
+        "n": 150,
+        "text": "z",
+        "go": "nope"
+       }
+      ],
+      "custom": {
+       "a": 1
+      }
+     },
+     {
+      "id": "bd",
+      "type": "decision",
+      "title": "Réévaluation",
+      "question": "Amélioré ?",
+      "options": [
+       {
+        "label": "Oui",
+        "target": "b2"
+       },
+       {
+        "label": "Non",
+        "target": "missing"
+       },
+       null
+      ],
+      "items": [
+       "raw"
+      ],
+      "next": "b1"
+     },
+     {
+      "id": "b2",
+      "kind": "do",
+      "title": "Stabilisé",
+      "items": [
+       "i3"
+      ],
+      "next": null,
+      "timer": "tNope"
+     },
+     {
+      "id": "bx",
+      "kind": "do",
+      "title": "Bronchospasme",
+      "items": [
+       "Salbutamol"
+      ],
+      "next": null
+     },
+     {
+      "id": "rv",
+      "kind": "review",
+      "title": "4H / 4T",
+      "items": [
+       "Hypoxie",
+       "Hypovolémie"
+      ],
+      "next": "b1",
+      "nextLbl": "x",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "pass",
+        "n": 1,
+        "text": "t"
+       }
+      ]
+     },
+     {
+      "id": "b1",
+      "kind": "steps",
+      "title": "Doublon d'id",
+      "items": []
+     }
+    ],
+    "start": "b1",
+    "timers": [
+     {
+      "id": "t1",
+      "label": "Réévaluation",
+      "type": "interval",
+      "seconds": "300",
+      "autoloop": 1,
+      "onDue": "Réévaluer"
+     },
+     {
+      "id": "t1",
+      "label": "Doublon",
+      "type": "x",
+      "seconds": 999999
+     },
+     {
+      "label": "sans id",
+      "seconds": -5.5
+     }
+    ],
+    "counters": [
+     {
+      "id": "n1",
+      "label": "Adrénaline",
+      "step": 0,
+      "start": -3,
+      "timerId": "t1",
+      "short": "Adré"
+     },
+     {
+      "id": "n2",
+      "label": "B",
+      "step": "2.5",
+      "start": "12",
+      "timerId": "__proto__"
+     }
+    ],
+    "images": [
+     {
+      "id": "im1",
+      "data": "data:image/png;base64,iVBORw0KGgo=",
+      "w": "100",
+      "h": 50.6,
+      "caption": "Légende",
+      "scale": 33
+     },
+     {
+      "id": "im2",
+      "data": "javascript:alert(1)"
+     },
+     {
+      "id": "__proto__",
+      "data": "data:image/webp;base64,AAAA",
+      "scale": 42
+     }
+    ],
+    "docs": [
+     {
+      "id": "d1",
+      "name": "proto",
+      "size": 123.4
+     },
+     {
+      "id": "bad id",
+      "name": "x.pdf"
+     },
+     {
+      "id": "d2",
+      "name": "../../etc/passwd.PDF",
+      "size": 99999999999
+     }
+    ],
+    "links": [
+     "f2",
+     "__proto__",
+     "bad id",
+     5
+    ],
+    "ownerId": "u-1",
+    "library": "lib-1",
+    "deletedAt": null,
+    "dirty": 1,
+    "futureField": {
+     "keep": true
+    }
+   }
+  },
+  "output": {
+   "prog": [
+    {
+     "cur": 0,
+     "goal": 3,
+     "active": false
+    },
+    {
+     "cur": 2,
+     "goal": 3,
+     "active": false
+    },
+    {
+     "cur": 3,
+     "goal": 3,
+     "active": true
+    },
+    {
+     "cur": 99,
+     "goal": 3,
+     "active": true
+    }
+   ],
+   "lbl": [
+    "Adrénaline ≥ 3"
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "snapshot",
+   "fiche": {
+    "id": "fx1",
+    "title": "Anaphylaxie",
+    "discriminant": "adulte",
+    "code": "ANA",
+    "category": "c-urg",
+    "validatedAt": "janv 2026",
+    "status": "review",
+    "order": 1700000000001,
+    "updatedAt": 1700000000500,
+    "local": "Tél renfort : à compléter",
+    "sources": [
+     "Réf 1",
+     null,
+     5
+    ],
+    "items": [
+     {
+      "id": "i1",
+      "role": "dose",
+      "do": "ADRÉNALINE IM 0,5 mg",
+      "level": 2
+     },
+     {
+      "id": "i2",
+      "role": "do",
+      "do": "Adrénaline IM",
+      "expect": "0,5 mg",
+      "level": 3,
+      "memory": true,
+      "dual": true,
+      "counts": "n1",
+      "poso": "i1",
+      "repeat": "due"
+     },
+     {
+      "id": "i3",
+      "role": "do",
+      "do": "Recherche causes",
+      "review": "rv"
+     },
+     {
+      "id": "i4",
+      "role": "do",
+      "do": "Choc",
+      "starts": "t1",
+      "counts": "n1",
+      "from": {
+       "counter": "n1",
+       "n": 3
+      }
+     },
+     {
+      "id": "i5",
+      "role": "entry",
+      "do": "Urticaire"
+     },
+     {
+      "id": "i6",
+      "role": "weird",
+      "do": "x",
+      "level": "7",
+      "poso": "i5"
+     },
+     {
+      "id": "i7",
+      "role": "do",
+      "do": "y",
+      "from": {
+       "counter": "zz",
+       "n": 2
+      },
+      "starts": "tX"
+     }
+    ],
+    "excursions": [
+     {
+      "label": "Bronchospasme",
+      "target": "bx",
+      "short": "  Bronch.  "
+     },
+     {
+      "label": "",
+      "target": "bx"
+     },
+     {
+      "label": "Sans cible"
+     },
+     {
+      "label": "ACR",
+      "target": "other-fiche"
+     }
+    ],
+    "blocks": [
+     {
+      "id": "b1",
+      "kind": "do",
+      "title": "Mesures",
+      "phase": "Immédiate",
+      "items": [
+       "i2",
+       "i4",
+       "Nouvelle étape",
+       "⚠ Crit :: rép",
+       "",
+       "   ",
+       {
+        "id": "inl",
+        "do": "inline"
+       }
+      ],
+      "next": "bd",
+      "nextLbl": "Réévaluer",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "count",
+        "n": 3,
+        "counter": "n1",
+        "text": "3 doses",
+        "go": "bx"
+       },
+       {
+        "at": "pass",
+        "n": 0,
+        "text": "x"
+       },
+       {
+        "at": "count",
+        "n": 2,
+        "counter": "zz",
+        "text": "y"
+       },
+       {
+        "at": "pass",
+        "n": 150,
+        "text": "z",
+        "go": "nope"
+       }
+      ],
+      "custom": {
+       "a": 1
+      }
+     },
+     {
+      "id": "bd",
+      "type": "decision",
+      "title": "Réévaluation",
+      "question": "Amélioré ?",
+      "options": [
+       {
+        "label": "Oui",
+        "target": "b2"
+       },
+       {
+        "label": "Non",
+        "target": "missing"
+       },
+       null
+      ],
+      "items": [
+       "raw"
+      ],
+      "next": "b1"
+     },
+     {
+      "id": "b2",
+      "kind": "do",
+      "title": "Stabilisé",
+      "items": [
+       "i3"
+      ],
+      "next": null,
+      "timer": "tNope"
+     },
+     {
+      "id": "bx",
+      "kind": "do",
+      "title": "Bronchospasme",
+      "items": [
+       "Salbutamol"
+      ],
+      "next": null
+     },
+     {
+      "id": "rv",
+      "kind": "review",
+      "title": "4H / 4T",
+      "items": [
+       "Hypoxie",
+       "Hypovolémie"
+      ],
+      "next": "b1",
+      "nextLbl": "x",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "pass",
+        "n": 1,
+        "text": "t"
+       }
+      ]
+     },
+     {
+      "id": "b1",
+      "kind": "steps",
+      "title": "Doublon d'id",
+      "items": []
+     }
+    ],
+    "start": "b1",
+    "timers": [
+     {
+      "id": "t1",
+      "label": "Réévaluation",
+      "type": "interval",
+      "seconds": "300",
+      "autoloop": 1,
+      "onDue": "Réévaluer"
+     },
+     {
+      "id": "t1",
+      "label": "Doublon",
+      "type": "x",
+      "seconds": 999999
+     },
+     {
+      "label": "sans id",
+      "seconds": -5.5
+     }
+    ],
+    "counters": [
+     {
+      "id": "n1",
+      "label": "Adrénaline",
+      "step": 0,
+      "start": -3,
+      "timerId": "t1",
+      "short": "Adré"
+     },
+     {
+      "id": "n2",
+      "label": "B",
+      "step": "2.5",
+      "start": "12",
+      "timerId": "__proto__"
+     }
+    ],
+    "images": [
+     {
+      "id": "im1",
+      "data": "data:image/png;base64,iVBORw0KGgo=",
+      "w": "100",
+      "h": 50.6,
+      "caption": "Légende",
+      "scale": 33
+     },
+     {
+      "id": "im2",
+      "data": "javascript:alert(1)"
+     },
+     {
+      "id": "__proto__",
+      "data": "data:image/webp;base64,AAAA",
+      "scale": 42
+     }
+    ],
+    "docs": [
+     {
+      "id": "d1",
+      "name": "proto",
+      "size": 123.4
+     },
+     {
+      "id": "bad id",
+      "name": "x.pdf"
+     },
+     {
+      "id": "d2",
+      "name": "../../etc/passwd.PDF",
+      "size": 99999999999
+     }
+    ],
+    "links": [
+     "f2",
+     "__proto__",
+     "bad id",
+     5
+    ],
+    "ownerId": "u-1",
+    "library": "lib-1",
+    "deletedAt": null,
+    "dirty": 1,
+    "futureField": {
+     "keep": true
+    }
+   },
+   "session": null,
+   "now": 1700000100000
+  },
+  "output": {
+   "id": "s0",
+   "ficheId": "fx1",
+   "ficheTitle": "Anaphylaxie",
+   "aidRev": 0,
+   "name": "N",
+   "savedAt": 1700000100000,
+   "startedAt": 1700000099000,
+   "live": true,
+   "checked": {},
+   "verified": {},
+   "vgaps": {},
+   "stepTexts": {},
+   "cxBack": {},
+   "exercise": false,
+   "nav": [
+    "bloyw608078c1we16"
+   ],
+   "navSeq": [
+    1
+   ],
+   "counters": {
+    "n1": 0,
+    "n2": 12
+   },
+   "timers": {
+    "t1": {
+     "elapsedMs": 0,
+     "cycles": 0,
+     "running": false,
+     "stoppedAt": 0
+    },
+    "tloyw60801qdngo41": {
+     "elapsedMs": 0,
+     "cycles": 0,
+     "running": false,
+     "stoppedAt": 0
+    },
+    "tloyw60807s1hi81c": {
+     "elapsedMs": 0,
+     "cycles": 0,
+     "running": false,
+     "stoppedAt": 0
+    }
+   },
+   "extraTimers": [],
+   "extraCounters": [],
+   "linkArm": {},
+   "events": []
+  }
+ },
+ {
+  "input": {
+   "fn": "snapshot",
+   "fiche": {
+    "id": "fx1",
+    "title": "Anaphylaxie",
+    "discriminant": "adulte",
+    "code": "ANA",
+    "category": "c-urg",
+    "validatedAt": "janv 2026",
+    "status": "review",
+    "order": 1700000000001,
+    "updatedAt": 1700000000500,
+    "local": "Tél renfort : à compléter",
+    "sources": [
+     "Réf 1",
+     null,
+     5
+    ],
+    "items": [
+     {
+      "id": "i1",
+      "role": "dose",
+      "do": "ADRÉNALINE IM 0,5 mg",
+      "level": 2
+     },
+     {
+      "id": "i2",
+      "role": "do",
+      "do": "Adrénaline IM",
+      "expect": "0,5 mg",
+      "level": 3,
+      "memory": true,
+      "dual": true,
+      "counts": "n1",
+      "poso": "i1",
+      "repeat": "due"
+     },
+     {
+      "id": "i3",
+      "role": "do",
+      "do": "Recherche causes",
+      "review": "rv"
+     },
+     {
+      "id": "i4",
+      "role": "do",
+      "do": "Choc",
+      "starts": "t1",
+      "counts": "n1",
+      "from": {
+       "counter": "n1",
+       "n": 3
+      }
+     },
+     {
+      "id": "i5",
+      "role": "entry",
+      "do": "Urticaire"
+     },
+     {
+      "id": "i6",
+      "role": "weird",
+      "do": "x",
+      "level": "7",
+      "poso": "i5"
+     },
+     {
+      "id": "i7",
+      "role": "do",
+      "do": "y",
+      "from": {
+       "counter": "zz",
+       "n": 2
+      },
+      "starts": "tX"
+     }
+    ],
+    "excursions": [
+     {
+      "label": "Bronchospasme",
+      "target": "bx",
+      "short": "  Bronch.  "
+     },
+     {
+      "label": "",
+      "target": "bx"
+     },
+     {
+      "label": "Sans cible"
+     },
+     {
+      "label": "ACR",
+      "target": "other-fiche"
+     }
+    ],
+    "blocks": [
+     {
+      "id": "b1",
+      "kind": "do",
+      "title": "Mesures",
+      "phase": "Immédiate",
+      "items": [
+       "i2",
+       "i4",
+       "Nouvelle étape",
+       "⚠ Crit :: rép",
+       "",
+       "   ",
+       {
+        "id": "inl",
+        "do": "inline"
+       }
+      ],
+      "next": "bd",
+      "nextLbl": "Réévaluer",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "count",
+        "n": 3,
+        "counter": "n1",
+        "text": "3 doses",
+        "go": "bx"
+       },
+       {
+        "at": "pass",
+        "n": 0,
+        "text": "x"
+       },
+       {
+        "at": "count",
+        "n": 2,
+        "counter": "zz",
+        "text": "y"
+       },
+       {
+        "at": "pass",
+        "n": 150,
+        "text": "z",
+        "go": "nope"
+       }
+      ],
+      "custom": {
+       "a": 1
+      }
+     },
+     {
+      "id": "bd",
+      "type": "decision",
+      "title": "Réévaluation",
+      "question": "Amélioré ?",
+      "options": [
+       {
+        "label": "Oui",
+        "target": "b2"
+       },
+       {
+        "label": "Non",
+        "target": "missing"
+       },
+       null
+      ],
+      "items": [
+       "raw"
+      ],
+      "next": "b1"
+     },
+     {
+      "id": "b2",
+      "kind": "do",
+      "title": "Stabilisé",
+      "items": [
+       "i3"
+      ],
+      "next": null,
+      "timer": "tNope"
+     },
+     {
+      "id": "bx",
+      "kind": "do",
+      "title": "Bronchospasme",
+      "items": [
+       "Salbutamol"
+      ],
+      "next": null
+     },
+     {
+      "id": "rv",
+      "kind": "review",
+      "title": "4H / 4T",
+      "items": [
+       "Hypoxie",
+       "Hypovolémie"
+      ],
+      "next": "b1",
+      "nextLbl": "x",
+      "timer": "t1",
+      "milestones": [
+       {
+        "at": "pass",
+        "n": 1,
+        "text": "t"
+       }
+      ]
+     },
+     {
+      "id": "b1",
+      "kind": "steps",
+      "title": "Doublon d'id",
+      "items": []
+     }
+    ],
+    "start": "b1",
+    "timers": [
+     {
+      "id": "t1",
+      "label": "Réévaluation",
+      "type": "interval",
+      "seconds": "300",
+      "autoloop": 1,
+      "onDue": "Réévaluer"
+     },
+     {
+      "id": "t1",
+      "label": "Doublon",
+      "type": "x",
+      "seconds": 999999
+     },
+     {
+      "label": "sans id",
+      "seconds": -5.5
+     }
+    ],
+    "counters": [
+     {
+      "id": "n1",
+      "label": "Adrénaline",
+      "step": 0,
+      "start": -3,
+      "timerId": "t1",
+      "short": "Adré"
+     },
+     {
+      "id": "n2",
+      "label": "B",
+      "step": "2.5",
+      "start": "12",
+      "timerId": "__proto__"
+     }
+    ],
+    "images": [
+     {
+      "id": "im1",
+      "data": "data:image/png;base64,iVBORw0KGgo=",
+      "w": "100",
+      "h": 50.6,
+      "caption": "Légende",
+      "scale": 33
+     },
+     {
+      "id": "im2",
+      "data": "javascript:alert(1)"
+     },
+     {
+      "id": "__proto__",
+      "data": "data:image/webp;base64,AAAA",
+      "scale": 42
+     }
+    ],
+    "docs": [
+     {
+      "id": "d1",
+      "name": "proto",
+      "size": 123.4
+     },
+     {
+      "id": "bad id",
+      "name": "x.pdf"
+     },
+     {
+      "id": "d2",
+      "name": "../../etc/passwd.PDF",
+      "size": 99999999999
+     }
+    ],
+    "links": [
+     "f2",
+     "__proto__",
+     "bad id",
+     5
+    ],
+    "ownerId": "u-1",
+    "library": "lib-1",
+    "deletedAt": null,
+    "dirty": 1,
+    "futureField": {
+     "keep": true
+    }
+   },
+   "now": 1700000200000,
+   "session": {
+    "id": "s1",
+    "name": "Test",
+    "startedAt": 1700000000000,
+    "savedAt": 1700000050000,
+    "aidRev": 17,
+    "live": true,
+    "exercise": true,
+    "checked": {
+     "1:b1:0": true,
+     "1:b1:1": false,
+     "2:rv:0": true,
+     "r:rv:1": true
+    },
+    "verified": {
+     "1:b1:0": {
+      "a": "p1",
+      "t": 5
+     }
+    },
+    "vgaps": {
+     "1:b1:1": 9
+    },
+    "cxBack": {
+     "3": "b1",
+     "4": {
+      "id": "bd",
+      "t": 44
+     }
+    },
+    "nav": [
+     "b1",
+     "bd",
+     "bx",
+     "b2"
+    ],
+    "navSeq": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "counters": {
+     "n1": 3,
+     "n2": 7,
+     "c9": 2
+    },
+    "timers": {
+     "t1": {
+      "elapsedMs": 120000,
+      "cycles": 1,
+      "running": true,
+      "stoppedAt": 0
+     }
+    },
+    "extraTimers": [
+     {
+      "id": "tx1",
+      "label": "PA",
+      "seconds": 120,
+      "autoloop": false
+     }
+    ],
+    "extraCounters": [
+     {
+      "id": "c9",
+      "label": "Chocs"
+     }
+    ],
+    "linkArm": {
+     "t1": {
+      "b": "b1",
+      "x": 0
+     }
+    },
+    "events": [
+     {
+      "id": "e1",
+      "t": 1700000010000,
+      "label": "",
+      "ref": {
+       "type": "counter",
+       "id": "n1",
+       "v": 1
+      }
+     }
+    ],
+    "futureKey": "garde-moi"
+   }
+  },
+  "output": {
+   "id": "s1",
+   "ficheId": "fx1",
+   "ficheTitle": "Anaphylaxie",
+   "aidRev": 0,
+   "name": "Test",
+   "savedAt": 1700000200000,
+   "startedAt": 1700000000000,
+   "live": true,
+   "checked": {
+    "1:b1:0": true,
+    "1:b1:1": false,
+    "r:rv:1": true,
+    "r:rv:0": true
+   },
+   "verified": {
+    "1:b1:0": {
+     "a": "p1",
+     "t": 5
+    }
+   },
+   "vgaps": {
+    "1:b1:1": {
+     "a": null,
+     "t": 9
+    }
+   },
+   "stepTexts": {
+    "1:b1:0": {
+     "b": "Mesures",
+     "s": "⚠ Adrénaline IM :: 0,5 mg"
+    },
+    "r:rv:1": {
+     "b": "4H / 4T",
+     "s": "Hypovolémie"
+    },
+    "r:rv:0": {
+     "b": "4H / 4T",
+     "s": "Hypoxie"
+    },
+    "1:b1:1": {
+     "b": "Mesures",
+     "s": "Choc"
+    }
+   },
+   "cxBack": {
+    "3": {
+     "id": "b1",
+     "t": 0
+    },
+    "4": {
+     "id": "bd",
+     "t": 44
+    }
+   },
+   "exercise": true,
+   "nav": [
+    "b1",
+    "bd",
+    "bx",
+    "b2"
+   ],
+   "navSeq": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "counters": {
+    "n1": 3,
+    "n2": 7,
+    "c9": 2
+   },
+   "timers": {
+    "t1": {
+     "elapsedMs": 120000,
+     "cycles": 1,
+     "running": false,
+     "stoppedAt": 1700000050000
+    },
+    "tloyw85ds1n6m9f76": {
+     "elapsedMs": 0,
+     "cycles": 0,
+     "running": false,
+     "stoppedAt": 0
+    },
+    "tloyw85ds1hy2b5lz": {
+     "elapsedMs": 0,
+     "cycles": 0,
+     "running": false,
+     "stoppedAt": 0
+    },
+    "tx1": {
+     "elapsedMs": 0,
+     "cycles": 0,
+     "running": false,
+     "stoppedAt": 0
+    }
+   },
+   "extraTimers": [
+    {
+     "id": "tx1",
+     "label": "PA",
+     "seconds": 120,
+     "autoloop": false
+    }
+   ],
+   "extraCounters": [
+    {
+     "id": "c9",
+     "label": "Chocs"
+    }
+   ],
+   "linkArm": {
+    "t1": {
+     "b": "b1",
+     "x": 0
+    }
+   },
+   "events": [
+    {
+     "id": "e1",
+     "t": 1700000010000,
+     "label": "",
+     "ref": {
+      "type": "counter",
+      "id": "n1",
+      "v": 1
+     }
+    }
+   ]
+  }
+ }
+]

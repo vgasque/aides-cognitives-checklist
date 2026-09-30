@@ -26,8 +26,13 @@ func normalizeGenerated(_ out: JSON, input: JSON) -> JSON {
             return .string(map[s]!)
         case .array(let a): return .array(a.map(walk))
         case .object(let o):
+            // Clés GÉNÉRÉES (ids régénérés utilisés comme clés) : renommées par l'ordre de leur
+            // VALEUR normalisée, seule chose qui ne dépende pas de l'aléa.
             var r: [String: JSON] = [:]
-            for k in o.keys.sorted() { r[k] = walk(o[k]!) }
+            let gen = o.keys.filter(isGen)
+            for k in o.keys.sorted() where !isGen(k) { r[k] = walk(o[k]!) }
+            let vals = gen.map { (k: $0, v: walk(o[$0]!)) }.sorted { $0.v.text() < $1.v.text() }
+            for (i, x) in vals.enumerated() { r["<genkey\(i)>"] = x.v }
             return .object(r)
         default: return j
         }

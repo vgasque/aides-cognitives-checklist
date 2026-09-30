@@ -220,7 +220,7 @@ public enum Sanitize {
         } else {
             let bid = Guard.uid("b")
             let t = out.title.isEmpty ? "Prise en charge" : out.title
-            rawBlocks = [.object(["id": .string(bid), "kind": "do", "title": .string(JS.prefix(t, 300)), "items": [], "image": nil, "next": nil])]
+            rawBlocks = [.object(["id": .string(bid), "kind": "do", "title": .string(JS.prefix(t, 300)), "items": [], "image": .null, "next": .null])]
             start = .string(bid)
         }
         var idMap: [String: String] = [:]
