@@ -364,8 +364,9 @@ struct CrDock: View {
             VStack(spacing: 2) {
                 CrBolt(size: 15)
                 Text(one ? CrisisPure.cxShort(cxs[0]) : "Complications · \(cxs.count)")
+                    // A403 : même règle que les autres touches — une ligne, jamais coupée dans un mot.
                     .aFont(TypeScale.body, one ? .bold : .heavy).foregroundStyle(T.warn)
-                    .lineLimit(2).multilineTextAlignment(.center)
+                    .lineLimit(1).minimumScaleFactor(0.75).allowsTightening(true)
             }
             .frame(maxWidth: .infinity, minHeight: 50)
         }

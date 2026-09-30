@@ -119,8 +119,18 @@ extension View {
                     .toolbar(.hidden, for: .tabBar)
                     #endif
             case .reference(let id): ReferenceReadView(referenceId: id)
-            case .editFiche(let id): FicheEditorView(ficheId: id)
-            case .editReference(let id): ReferenceEditorView(referenceId: id)
+            // L'éditeur a sa propre barre du bas (« Ajouter à cette aide ») : la barre d'onglets
+            // s'efface, comme la PWA qui donne tout l'écran à l'édition.
+            case .editFiche(let id):
+                FicheEditorView(ficheId: id)
+                    #if os(iOS)
+                    .toolbar(.hidden, for: .tabBar)
+                    #endif
+            case .editReference(let id):
+                ReferenceEditorView(referenceId: id)
+                    #if os(iOS)
+                    .toolbar(.hidden, for: .tabBar)
+                    #endif
             case .pdf(let id, let name): PDFViewerView(attachmentId: id, name: name)
             }
         }
