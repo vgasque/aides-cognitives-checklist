@@ -96,6 +96,9 @@ final class AppModel {
     /// Bandeau système de l'accueil (C1 §1.2) : UN message à la fois, masque la notice d'auteur.
     var homeSysBanner: String?
     // MARK: État ajouté — zone COMPTE / CRÉER / IMPORT (réservé)
+    /// Fichiers .json / .zip à faire passer par l'atelier d'import (dépôt sur l'accueil, « Ouvrir
+    /// avec… ») : la coque présente `ImportWorkshopView(request:)` tant que ce champ est posé.
+    var importRequest: ImportRequest?
     // MARK: État ajouté — zone MODE CRISE (réservé)
     // MARK: État ajouté — zone ÉDITEUR (réservé)
     // MARK: État ajouté — zone RÉFÉRENCE / PDF (réservé)
