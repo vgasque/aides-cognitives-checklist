@@ -544,6 +544,7 @@ final class ReferenceDraft {
         }
     }
     func requestFocus(_ key: String) { reqN += 1; focusRequest = EdRequest(key: key, n: reqN) }
+    func scrollTo(_ key: String) { reqN += 1; scrollRequest = EdRequest(key: key, n: reqN) }
     func goFlash(_ key: String) {
         reqN += 1
         scrollRequest = EdRequest(key: key, n: reqN)

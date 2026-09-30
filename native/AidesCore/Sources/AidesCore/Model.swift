@@ -21,7 +21,10 @@ public enum Status: String, Codable, CaseIterable, Sendable {
 }
 
 /// Le MOMENT d'une étape dans un bloc parcouru plusieurs fois (A382).
-public struct ItemFrom: Equatable, Hashable, Sendable { public var counter: String; public var n: Int }
+public struct ItemFrom: Equatable, Hashable, Sendable {
+    public var counter: String; public var n: Int
+    public init(counter: String, n: Int) { self.counter = counter; self.n = n }
+}
 public enum Repeat: String, CaseIterable, Sendable { case due, once, need }
 
 /// Un ITEM — l'unité de contenu (A-T6) : un objet à IDENTITÉ, plus une chaîne à une position.
