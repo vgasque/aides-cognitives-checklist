@@ -241,7 +241,8 @@ public final class LocalStore {
     public func moveData(from: String, to: String) throws {
         let src = open(from), dst = open(to)
         for (a, b) in [(src.fiches, dst.fiches), (src.protocols, dst.protocols), (src.sessions, dst.sessions), (src.backups, dst.backups)] {
-            for j in a.all() { if let id = j["id"]?.string { try b.put(id, j) } }
+            // Les sauvegardes de version sont indexées par `bid`, pas par `id` (elles étaient perdues).
+            for j in a.all() { if let id = j["id"]?.string ?? j["bid"]?.string { try b.put(id, j) } }
         }
         for (k, v) in src.meta.values { dst.meta.values[k] = v }
         dst.meta.save()

@@ -163,8 +163,12 @@ final class AppModel {
 
     /// Bascule d'espace (connexion d'un autre compte) : tout l'état en mémoire est remplacé —
     /// l'équivalent natif du rechargement de page de la PWA. Jamais de mélange entre comptes.
-    func switchSpace(to space: String) {
-        engine.persistAll()
+    func switchSpace(to space: String, persistLive: Bool = true) {
+        // Les sessions vives appartiennent à l'espace qu'on QUITTE : enregistrées là (sauf quand
+        // cet espace vient d'être effacé), puis retirées du moteur — sinon leur prochaine
+        // écriture atterrirait dans l'espace du compte suivant.
+        if persistLive { engine.persistAll() }
+        for R in Array(engine.live.values) { if let sid = R.sessionId { engine.drop(sessionId: sid) } }
         store.currentSpace = space
         let s = store.open(space)
         library = Library(space: s)
@@ -173,6 +177,7 @@ final class AppModel {
         library.identity = { [weak self] in (self?.auth.signedIn ?? false, self?.auth.email) }
         library.onLocalWrite = { [weak self] in self?.sync.schedule() }
         library.load()
+        engine.restore(sessions: library.sessions, fiches: Dictionary(library.fiches.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a }))
         current = nil
         paths = [:]
         rootTab = .aides
@@ -377,7 +382,7 @@ final class AppModel {
         if wipe {
             let sp = store.currentSpace
             store.wipeSpace(sp)
-            switchSpace(to: sp)
+            switchSpace(to: sp, persistLive: false)
         }
         profile = Profile()
         library.libraries = []
