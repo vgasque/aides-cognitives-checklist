@@ -47,7 +47,7 @@ console.log(changed.split('\n').map(l => '   ' + l.trim()).join('\n'));
 if (strict) {
   // Ne pas polluer l'espace de travail CI : restaurer les seuls fichiers GÉNÉRÉS.
   git('checkout', '--', ...GEN);
-  console.error('\n✗ Régénère et committe avant de pousser :  npm run design:build && git add design/ds');
+  console.error('\n✗ Régénère et committe avant de pousser :  npm run design:build && git add design/ds native/App/Sources/Design/Tokens.generated.swift');
   process.exit(1);
 }
 
