@@ -93,9 +93,9 @@ final class LiveOracleTests: XCTestCase {
             assertJSONEqual(.array(sug.map { .array($0.map(Proj.tagOpt)) }), o["sug"]!, "\(L) tagSuggest")
             let b0: JSON = .string(ids.first ?? "x")
             var refs: [JSON] = all.map(\.ref)
-            refs += [["type": "counter", "id": "n1", "v": "3"], ["type": "counter", "id": "zz", "v": nil], ["type": "counter", "id": "n1", "v": 2.6],
-                     ["type": "step", "b": b0, "i": "1"], ["type": "step", "b": b0, "i": 1.5], ["type": "step", "b": b0, "i": -1], ["type": "step", "b": b0, "i": nil],
-                     ["type": "poso", "i": 0], ["type": "poso", "i": 99], ["type": "core", "k": "nope"], ["type": "tag", "k": "mru"], ["type": "x"], nil, "str", ["type": "timer", "id": "z1"]]
+            refs += [["type": "counter", "id": "n1", "v": "3"], ["type": "counter", "id": "zz", "v": .null], ["type": "counter", "id": "n1", "v": 2.6],
+                     ["type": "step", "b": b0, "i": "1"], ["type": "step", "b": b0, "i": 1.5], ["type": "step", "b": b0, "i": -1], ["type": "step", "b": b0, "i": .null],
+                     ["type": "poso", "i": 0], ["type": "poso", "i": 99], ["type": "core", "k": "nope"], ["type": "tag", "k": "mru"], ["type": "x"], .null, "str", ["type": "timer", "id": "z1"]]
             let b0i: JSON = .string(ids.first ?? "x")
             let tkEvs = evs + [["t": 1, "label": "Renommé", "ref": ["type": "core", "k": "renfort"]], ["t": 2], .null, ["t": 3, "ref": ["type": "step", "b": b0i, "i": 0]]]
             assertJSONEqual(Proj.strs(Live.tkLabels(tkEvs, f, tags: tags, extra: ex)), o["tk"]!, "\(L) tkLabels")

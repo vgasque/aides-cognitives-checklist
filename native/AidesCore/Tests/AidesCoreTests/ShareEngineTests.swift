@@ -259,7 +259,7 @@ final class ShareEngineTests: XCTestCase {
         XCTAssertEqual(r.method, "POST"); XCTAssertEqual(r.url, "https://x.supabase.co/rest/v1/rpc/share_pull")
         XCTAssertEqual(r.headers["apikey"], "sb_publishable_K"); XCTAssertEqual(r.headers["Authorization"], "Bearer JWT")
         XCTAssertEqual(r.headers["Content-Type"], "application/json")
-        XCTAssertEqual(try JSON.parse(r.body!), ["p_secret": nil, "p_share": "sh 1", "p_since": 7])
+        XCTAssertEqual(try JSON.parse(r.body!), ["p_secret": .null, "p_share": "sh 1", "p_since": 7])
         _ = try await io.revoke(share: "sh 1", pid: "a/b")
         r = http.requests.last!
         XCTAssertEqual(r.method, "PATCH")
