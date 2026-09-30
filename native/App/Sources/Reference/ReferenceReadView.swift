@@ -654,7 +654,7 @@ struct ReferenceReadView: View {
     }
 
     private func duplicate(_ p: Reference) {
-        _ = Exporter.duplicateToPerso(p, library: model.library)
+        _ = Importer.duplicateToPerso(p, library: model.library)
         model.refresh()
         model.toast("✓ Copie créée dans « Perso » — état Brouillon", seconds: 3.5)
     }
