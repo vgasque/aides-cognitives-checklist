@@ -29,7 +29,7 @@ const page = await browser.newPage();
 await page.goto(`http://localhost:${port}/index.html?__actest`);
 await page.waitForFunction(() => !!window.__ac_test__);
 let n = 0;
-for (const f of (await readdir(CASES)).filter(x => x.endsWith('.mjs')).sort()) {
+for (const f of (await readdir(CASES)).filter(x => x.endsWith('.mjs') && !x.startsWith('_')).sort()) {   // « _x.mjs » = module partagé, pas un cas
   const name = f.replace(/\.mjs$/, '');
   if (only.length && !only.includes(name)) continue;
   const mod = await import(CASES + f);
