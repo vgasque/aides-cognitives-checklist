@@ -1,10 +1,11 @@
 import SwiftUI
 import AidesCore
 
-// COLONNE GAUCHE (≥ 780) — port de `homeSideHtml` / `hsRow` (C1 §3.5, A269-A285, A389).
-// Trois étages, un seul défile : en haut la marque, la navigation (Aides · Sessions · Moi) et les
-// bibliothèques ; au milieu les catégories (seul étage qui défile) ; au pied l'état (synchro,
-// version). Les comptes sont STABLES : ils disent la visibilité, jamais les autres filtres.
+// COLONNE DES FILTRES (≥ 780) — port de `homeSideHtml` / `hsRow` (C1 §3.5, A269-A285, A389).
+// iOS 27 : la marque et la navigation (Aides · Sessions · Moi) sont passées à la barre latérale
+// SYSTÈME (onglets adaptables) ; cette colonne ne garde que ce qui FILTRE la liste.
+// Trois étages, un seul défile : en haut les bibliothèques ; au milieu les catégories (seul étage
+// qui défile) ; au pied l'état (synchro, version). Les comptes sont STABLES : ils disent la visibilité, jamais les autres filtres.
 
 struct HomeSidebar: View {
     @Environment(AppModel.self) private var model
@@ -28,27 +29,11 @@ struct HomeSidebar: View {
 
     private var top: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 8) {
-                Image(systemName: "checkmark.square.fill").font(.system(size: 26, weight: .bold)).foregroundStyle(T.act)
-                    .accessibilityHidden(true)
-                Text("Aides cognitives").aFont(TypeScale.step, .semibold, .title).foregroundStyle(T.ink)
-                    .lineLimit(1).minimumScaleFactor(0.8)
-                    .accessibilityAddTraits(.isHeader)
-            }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 4)
-
-            navRow("Aides", icon: "list.bullet", on: st.tab == .aides) { st.tab = .aides }
-            navRow("Sessions", icon: "clock.arrow.circlepath", on: st.tab == .sessions, live: !model.homeLiveSessions.isEmpty) {
-                st.endSelection(); st.tab = .sessions
-            }
-            meRow
-
             HStack {
                 Overline(text: "Bibliothèques")
                 Spacer()
                 if model.profile.isAppAdmin || model.profile.libraries.contains(where: { $0.role == .admin }) {
-                    Button("Gérer") { st.endSelection(); st.tab = .me }
+                    Button("Gérer") { st.endSelection(); model.rootTab = .me }
                         .buttonStyle(.plain)
                         .aFont(TypeScale.meta, .bold).foregroundStyle(T.act)
                         .frame(minHeight: Ctrl.s)
@@ -64,58 +49,12 @@ struct HomeSidebar: View {
         }
     }
 
-    private func navRow(_ label: String, icon: String, on: Bool, live: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: icon).font(.system(size: 15, weight: .semibold)).frame(width: 24)
-                Text(label).aFont(TypeScale.item, .bold)
-                Spacer()
-                if live {
-                    Circle().fill(T.ok).frame(width: 8, height: 8)
-                        .accessibilityLabel("session en cours")
-                }
-            }
-            .padding(.horizontal, 8)
-            .frame(minHeight: Ctrl.l)
-            .foregroundStyle(on ? T.act : T.ink)
-            .background(on ? T.primarySoft : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(on ? .isSelected : [])
-    }
-
-    private var meRow: some View {
-        let email = model.auth.email ?? ""
-        let on = st.tab == .me
-        return Button { st.endSelection(); st.tab = .me } label: {
-            HStack(spacing: 10) {
-                if model.auth.signedIn && !email.isEmpty {
-                    Text(verbatim: String(email.prefix(2)).uppercased()).aFont(TypeScale.cap, .heavy)
-                        .foregroundStyle(T.onPrimary).frame(width: 24, height: 24).background(T.act, in: Circle())
-                } else {
-                    Image(systemName: "person").font(.system(size: 15, weight: .semibold)).frame(width: 24)
-                }
-                Text("Moi").aFont(TypeScale.item, .bold)
-                Spacer()
-            }
-            .padding(.horizontal, 8)
-            .frame(minHeight: Ctrl.l)
-            .foregroundStyle(on ? T.act : T.ink)
-            .background(on ? T.primarySoft : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(on ? .isSelected : [])
-    }
-
     /// Rangée de bibliothèque (`hsRow`) : marque · libellé · accès · compte au bord droit.
     /// Re-toucher la rangée active revient à « Toutes » ; ne touche jamais au rangement.
     private func libRow(key: String?, label: String, count: Int) -> some View {
         let on = st.lib == key
         return Button {
             st.lib = (key == nil || st.lib == key) ? nil : key
-            st.tab = .aides
         } label: {
             HStack(spacing: 10) {
                 Group {
@@ -217,7 +156,6 @@ struct HomeSidebar: View {
         let on = st.cat == key
         return Button {
             if key == nil { st.cat = nil } else { st.cat = on ? nil : key }
-            st.tab = .aides
         } label: {
             HStack(spacing: 10) {
                 Group {
@@ -249,7 +187,7 @@ struct HomeSidebar: View {
                 let s = model.syncStatus
                 Button {
                     if s.state == .err { sheet = .syncError }
-                    else if s.state == .pending || s.state == .rejected { st.tab = .me }
+                    else if s.state == .pending || s.state == .rejected { model.rootTab = .me }
                 } label: {
                     HStack(spacing: 6) {
                         HomeSyncDot(state: s.state)

@@ -1,7 +1,25 @@
 # Aides cognitives — application native (iPhone, iPad, Mac)
 
 Réécriture native de la PWA (`../index.html`), en **Swift / SwiftUI**, une seule base de code
-pour iOS 17+, iPadOS 17+ et macOS 14+ (app Mac native, pas Catalyst).
+pour **iOS 26+, iPadOS 26+ et macOS 26+** (app Mac native, pas Catalyst), compilée avec
+**Xcode 27** (SDK iOS 27 / macOS 27).
+
+## Design : iOS 27 (Liquid Glass)
+
+L'interface suit les recommandations d'Apple de 2026 (HIG : Materials, Toolbars, Tab bars,
+Sidebars, Buttons, Sheets) :
+
+- **coque système** : onglets *Aides · Sessions · Moi · Rechercher* (`TabView` adaptable —
+  barre d'onglets flottante qui se réduit au défilement sur iPhone, barre latérale sur iPad et
+  Mac), une pile de navigation par onglet, recherche dans son propre onglet avec ses portées
+  (*Tout · Aides · Protocoles*) ;
+- **verre réservé à la couche fonctionnelle** (barres, quai de session, capsule, bandeaux
+  flottants) — le contenu (cartes, étapes, listes) reste opaque et garde les registres de la PWA
+  (rouge / ambre / vert / bleu, toujours avec un mot) ;
+- **barres d'outils** en symboles SF, une seule action proéminente (`.glassProminent`) au bord
+  droit ; boutons de contenu en **capsules** ; feuilles avec ✕ à gauche, ✓ à droite, détentes ;
+- le **mode crise masque la barre d'onglets** : le quai de session est la seule barre du bas, et
+  rien ne l'interrompt (règle 11).
 
 ## Pourquoi Swift (et pas TypeScript)
 
@@ -51,7 +69,7 @@ leurs sorties dans `AidesCore/Tests/AidesCoreTests/Fixtures/oracle/`. Les tests 
 ```bash
 npm ci                                  # à la racine du dépôt (Playwright)
 node native/tools/oracle.mjs            # régénère toutes les fixtures
-cd native/AidesCore && swift test       # macOS ou Linux (Swift 5.10+)
+cd native/AidesCore && swift test       # macOS ou Linux (Swift 5.10+) — le cœur vise encore iOS 17 / macOS 14
 ```
 
 ## Compiler et lancer l'app
@@ -70,7 +88,8 @@ celle de la PWA.
 ## Intégration continue
 
 `.github/workflows/native.yml` : tests du cœur sur macOS, puis compilation de l'app pour le
-simulateur iOS et pour macOS (sans signature).
+simulateur iOS et pour macOS (sans signature), sur l'image `macos-26` avec Xcode 27 quand elle
+le fournit.
 
 ## Écarts assumés vis-à-vis de la PWA
 

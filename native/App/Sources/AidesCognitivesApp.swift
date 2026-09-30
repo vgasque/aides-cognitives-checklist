@@ -70,6 +70,8 @@ struct RootView: View {
         }
         .animation(.easeOut(duration: 0.2), value: model.toast)
         .animation(.easeOut(duration: 0.2), value: model.banner)
+        // Atelier d'import (fichiers déposés, « Ouvrir avec… ») : une porte, où que l'on soit.
+        .sheet(item: $model.importRequest) { r in ImportWorkshopView(request: r) }
     }
 
     private var tabs: some View {
@@ -143,22 +145,10 @@ struct SessionsTabView: View {
     }
 }
 
-/// Onglet « Moi » : compte, synchronisation, bibliothèques, réglages.
+/// Onglet « Moi » : compte, synchronisation, bibliothèques, réglages. `AccountView` se sait
+/// racine d'onglet (grand titre « Moi », pas de ✕) quand elle n'est pas présentée en feuille.
 struct MeTabView: View {
-    var body: some View {
-        ScrollView {
-            AccountView()
-                .frame(maxWidth: 720, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity)
-        }
-        .background(T.amb.ignoresSafeArea())
-        .navigationTitle("Moi")
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.large)
-        #endif
-    }
+    var body: some View { AccountView() }
 }
 
 /// Alarme d'un minuteur d'une AUTRE aide que celle affichée : bandeau 10 s, un tap ouvre l'aide.
@@ -178,7 +168,9 @@ struct AlarmBannerView: View {
                 .accessibilityLabel("Fermer")
         }
         .padding(.leading, 16)
-        .background(T.warnSys, in: RoundedRectangle(cornerRadius: Radius.r3))
+        .padding(.vertical, 4)
+        // Verre teinté AMBRE (règle 8 : l'échéance), mot + glyphe : la couleur n'est jamais seule.
+        .floatingGlass(cornerRadius: 28, tint: T.warnSys, interactive: true)
         .padding(.horizontal, 16)
         .contentShape(Rectangle())
         .onTapGesture {

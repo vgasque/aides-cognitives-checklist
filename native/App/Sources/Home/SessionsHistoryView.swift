@@ -22,22 +22,25 @@ struct SessionsHistoryView: View {
             if embedded {
                 content
             } else {
-                VStack(spacing: 0) {
-                    HStack {
-                        Text("Sessions").aFont(TypeScale.display[1], .heavy).foregroundStyle(T.ink)
-                            .accessibilityAddTraits(.isHeader)
-                        Spacer()
-                        Button { dismiss() } label: {
-                            Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).frame(width: Ctrl.m, height: Ctrl.m)
-                        }
-                        .buttonStyle(.plain).foregroundStyle(T.ink2)
-                        .accessibilityLabel("Fermer")
-                    }
-                    .padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 8)
+                // Feuille (iOS 27) : titre système, ✕ en `.cancellationAction`, détentes.
+                NavigationStack {
                     ScrollView {
                         content.padding(.horizontal, 20).padding(.bottom, 24)
                     }
+                    .navigationTitle("Sessions")
+                    #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                    #endif
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button { dismiss() } label: { Image(systemName: "xmark") }
+                                .accessibilityLabel("Fermer")
+                                .keyboardShortcut(.cancelAction)
+                        }
+                    }
                 }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
                 .background(T.amb.ignoresSafeArea())
             }
         }

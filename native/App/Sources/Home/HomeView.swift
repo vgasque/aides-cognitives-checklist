@@ -1,16 +1,20 @@
 import SwiftUI
 import AidesCore
 
-// L'ACCUEIL — port de `renderLibrary` / `renderHomeList` / `homeSideHtml` (C1 §1, §3).
+// L'ACCUEIL — port de `renderLibrary` / `renderHomeList` / `homeSideHtml` (C1 §1, §3), sur la
+// grammaire iOS 27 (Liquid Glass).
+//
+// La coque est SYSTÈME (cf. `RootView`) : onglets Aides · Sessions · Moi · Recherche, barre
+// d'onglets flottante au téléphone, barre latérale sur iPad et Mac. L'accueil n'a donc plus ni
+// en-tête dessiné, ni quai de recherche, ni disque de compte : un grand titre, une barre d'outils
+// (« Affichage » en symbole, « Créer » en action PROÉMINENTE à droite) et la recherche dans son
+// onglet (avec ses portées « Tout · Aides · Protocoles »).
 //
 // Deux compositions, décidées par la largeur EFFECTIVE (`\.widthClass`, déjà divisée par la
 // taille du texte) :
-//  • téléphone (< 780) : UNE colonne qui défile en entier, en-tête statique (il part avec la
-//    page), recherche + filtre FLOTTANT au pouce en bas (A423 — pas la recherche système dans la
-//    barre de navigation : la position est une décision de dessin), rail A→Z à droite ;
-//  • ≥ 780 : colonne gauche fixe de 250 pt (bibliothèques, catégories, Sessions, Moi) + colonne
-//    principale de 960 pt au plus, centrée, qui défile seule. Sessions et Moi y sont des VUES de
-//    la colonne principale (A365) ; au téléphone, des fenêtres.
+//  • téléphone (< 780) : UNE colonne qui défile en entier, rail A→Z à droite ;
+//  • ≥ 780 : colonne des FILTRES (bibliothèques, catégories, état de la synchro) à gauche, liste
+//    de 960 pt au plus, centrée, qui défile seule. Sessions et Moi sont des onglets.
 
 /// Les fenêtres que l'accueil présente (une à la fois).
 enum HomeSheet: Identifiable, Equatable {
@@ -41,16 +45,23 @@ enum HomeSheet: Identifiable, Equatable {
 struct HomeView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.widthClass) private var wc
-    @State private var st = HomeState()
-    @State private var loadedSpace: String?
+    /// true = l'accueil affiché DANS l'onglet de recherche (champ système, portées, une colonne).
+    var searchMode = false
     @State private var sheet: HomeSheet?
     @State private var qText = ""
-    @FocusState private var searchFocused: Bool
     @State private var exporter = HomeExportJob()
+
+    private var st: HomeState { model.home }
 
     var body: some View {
         let corpus = HomeCorpus(model: model)
         layout(corpus)
+            .navigationTitle(searchMode ? "Rechercher" : "Aides")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.large)
+            #endif
+            .toolbar { toolbar(corpus) }
+            .modifier(HomeSearchable(on: searchMode, st: st, qText: $qText))
             .sheet(item: $sheet) { s in
                 HomeSheetHost(sheet: s, st: st, corpus: corpus, sheetBinding: $sheet, exporter: exporter)
             }
@@ -58,6 +69,7 @@ struct HomeView: View {
             .onAppear {
                 loadPrefsIfNeeded()
                 consumeRequest()
+                qText = st.q
             }
             .onChange(of: model.store.currentSpace) { loadPrefsIfNeeded() }
             .onChange(of: model.homeRequest) { consumeRequest() }
@@ -67,88 +79,123 @@ struct HomeView: View {
             .onChange(of: st.compact) { _, v in model.setHomePref("ac-home-compact", v ? "1" : "0") }
             // La sélection se referme en quittant l'accueil (§3.11).
             .onChange(of: model.path) { _, p in if !p.isEmpty { st.endSelection() } }
-            // `syncHomeTabs` : franchir 780 convertit une présentation dans l'autre.
-            .onChange(of: wc) { _, w in
-                if w == .phone && st.tab != .aides {
-                    let t = st.tab
-                    st.tab = .aides
-                    sheet = t == .sessions ? .sessions : .account
-                } else if w != .phone, sheet == .sessions || sheet == .account {
-                    st.tab = sheet == .sessions ? .sessions : .me
-                    sheet = nil
-                }
-            }
-            // Recherche différée de 150 ms (`#q` : `input` → re-rendu) ; taper ramène à « Aides ».
+            // Recherche différée de 150 ms (`#q` : `input` → re-rendu).
             .task(id: qText) {
-                if qText == st.q { return }
+                guard searchMode, qText != st.q else { return }
                 try? await Task.sleep(nanoseconds: 150_000_000)
                 if Task.isCancelled { return }
                 st.q = qText
-                st.tab = .aides
                 st.libLimit = 60
             }
             .onChange(of: st.q) { _, v in if v != qText { qText = v } }
             .background {
-                // ⌘K (Mac, iPad avec clavier) : place le curseur dans la recherche (§17.2).
-                Button("Rechercher") { st.tab = .aides; searchFocused = true }
+                // ⌘K (Mac, iPad avec clavier) : ouvre l'onglet de recherche (§17.2).
+                Button("Rechercher") { model.rootTab = .search }
                     .keyboardShortcut("k", modifiers: .command)
                     .opacity(0)
                     .accessibilityHidden(true)
             }
-            #if os(iOS)
-            .toolbar(.hidden, for: .navigationBar)
-            #endif
     }
 
     @ViewBuilder
     private func layout(_ corpus: HomeCorpus) -> some View {
-        if wc == .phone {
-            HomePhoneLayout(st: st, corpus: corpus, sheet: $sheet, qText: $qText, searchFocused: $searchFocused, exporter: exporter)
+        if wc == .phone || searchMode {
+            HomePhoneLayout(st: st, corpus: corpus, sheet: $sheet, exporter: exporter, rail: !searchMode && wc == .phone)
         } else {
-            HomeWideLayout(st: st, corpus: corpus, sheet: $sheet, qText: $qText, searchFocused: $searchFocused, exporter: exporter)
+            HomeWideLayout(st: st, corpus: corpus, sheet: $sheet, exporter: exporter)
+        }
+    }
+
+    /// Barre d'outils (HIG iOS 27) : au plus deux groupes — « Affichage » en symbole, puis
+    /// « Créer », SEULE action proéminente, au bord droit.
+    @ToolbarContentBuilder
+    private func toolbar(_ corpus: HomeCorpus) -> some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            let n = st.activeFilterCount
+            let label = "Affichage et filtres" + (n > 0 ? " — \(n) actif" + (n > 1 ? "s" : "") : "")
+            Button { sheet = .display } label: {
+                Image(systemName: n > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease")
+            }
+            .accessibilityLabel(label)
+            .help(label)
+        }
+        if !searchMode && corpus.canEdit(scope: st.lib ?? "") {
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+            ToolbarItem(placement: .primaryAction) {
+                let label = st.section == .protocols ? "Créer un protocole" : "Créer une aide cognitive"
+                Button { sheet = .create } label: { Image(systemName: "plus") }
+                    .buttonStyle(.glassProminent)
+                    .accessibilityLabel(label)
+                    .help(label)
+            }
         }
     }
 
     private func loadPrefsIfNeeded() {
         let sp = model.store.currentSpace
-        if loadedSpace == sp { return }
-        loadedSpace = sp
+        if st.loadedSpace == sp { return }
+        st.loadedSpace = sp
         st.load(from: model)
         st.endSelection()
         st.lib = nil; st.cat = nil
     }
     /// Porte choisie sur l'écran de bienvenue (§2) : l'accueil l'ouvre dès qu'il est là.
     private func consumeRequest() {
-        guard let r = model.homeRequest else { return }
+        guard !searchMode, let r = model.homeRequest else { return }
         model.homeRequest = nil
         switch r {
         case .create: sheet = .create
         case .join: sheet = .join
-        case .account:
-            if wc == .phone { sheet = .account } else { st.tab = .me }
+        case .account: model.rootTab = .me
+        }
+    }
+}
+
+/// Recherche SYSTÈME de l'onglet « Rechercher » : champ dans la barre (flottant au pouce sur
+/// iPhone), portées « Tout · Aides · Protocoles » sous le champ.
+private struct HomeSearchable: ViewModifier {
+    var on: Bool
+    let st: HomeState
+    @Binding var qText: String
+    func body(content: Content) -> some View {
+        @Bindable var st = st
+        if on {
+            content
+                .searchable(text: $qText, prompt: "Aide, protocole, mot-clé…")
+                .searchScopes($st.section, activation: .onSearchPresentation) {
+                    ForEach(HomeSection.allCases, id: \.self) { s in Text(s.chip).tag(s) }
+                }
+                .onChange(of: st.section) { st.rev = false }
+                .autocorrectionDisabled()
+                #if os(iOS)
+                .textInputAutocapitalization(.never)
+                #endif
+        } else {
+            content
         }
     }
 }
 
 // MARK: - Compositions
 
-/// Téléphone : une seule colonne, dock flottant en bas.
+/// Téléphone (et onglet de recherche) : une seule colonne.
 struct HomePhoneLayout: View {
     @Environment(AppModel.self) private var model
     let st: HomeState
     let corpus: HomeCorpus
     @Binding var sheet: HomeSheet?
-    @Binding var qText: String
-    var searchFocused: FocusState<Bool>.Binding
     let exporter: HomeExportJob
+    var rail = true
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    HomePhoneHeader(st: st, corpus: corpus, sheet: $sheet)
                     HomeMainContent(st: st, corpus: corpus, sheet: $sheet, exporter: exporter)
+                        .frame(maxWidth: 960, alignment: .leading)
                         .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .frame(maxWidth: .infinity)
                     HStack {
                         Spacer()
                         Text(verbatim: "v" + AppModel.appVersion).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
@@ -160,24 +207,19 @@ struct HomePhoneLayout: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .overlay(alignment: .trailing) {
-                HomeAZRail(st: st, corpus: corpus, proxy: proxy)
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                HomeSearchDock(st: st, qText: $qText, sheet: $sheet, searchFocused: searchFocused, wide: false)
+                if rail { HomeAZRail(st: st, corpus: corpus, proxy: proxy) }
             }
         }
         .background(T.amb.ignoresSafeArea())
     }
 }
 
-/// ≥ 780 : colonne gauche fixe + colonne principale bornée à 960, centrée.
+/// ≥ 780 : colonne des filtres + liste centrée.
 struct HomeWideLayout: View {
     @Environment(AppModel.self) private var model
     let st: HomeState
     let corpus: HomeCorpus
     @Binding var sheet: HomeSheet?
-    @Binding var qText: String
-    var searchFocused: FocusState<Bool>.Binding
     let exporter: HomeExportJob
 
     var body: some View {
@@ -185,165 +227,20 @@ struct HomeWideLayout: View {
             HomeSidebar(st: st, corpus: corpus, sheet: $sheet)
                 .frame(width: 250)
             Rectangle().fill(T.line).frame(width: 1).ignoresSafeArea()
-            VStack(spacing: 0) {
-                if st.tab == .aides {
-                    HStack(spacing: 8) {
-                        HomeSearchDock(st: st, qText: $qText, sheet: $sheet, searchFocused: searchFocused, wide: true)
-                        HomeCreateButton(corpus: corpus, st: st, sheet: $sheet, wide: true)
-                    }
+            ScrollView {
+                HomeMainContent(st: st, corpus: corpus, sheet: $sheet, exporter: exporter)
                     .frame(maxWidth: 960)
                     .padding(.horizontal, 22)
-                    .padding(.vertical, 10)
+                    .padding(.top, 12)
+                    .padding(.bottom, 32)
                     .frame(maxWidth: .infinity)
-                }
-                mainColumn
             }
         }
         .background(T.amb.ignoresSafeArea())
     }
-
-    @ViewBuilder
-    private var mainColumn: some View {
-        switch st.tab {
-        case .aides:
-            ScrollViewReader { _ in
-                ScrollView {
-                    HomeMainContent(st: st, corpus: corpus, sheet: $sheet, exporter: exporter)
-                        .frame(maxWidth: 960)
-                        .padding(.horizontal, 22)
-                        .padding(.top, 18)
-                        .padding(.bottom, 32)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-        case .sessions:
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Sessions").aFont(TypeScale.display[1], .heavy).foregroundStyle(T.ink)
-                        .accessibilityAddTraits(.isHeader)
-                    SessionsHistoryView(ficheId: nil, embedded: true)
-                }
-                .frame(maxWidth: 720, alignment: .leading)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 24)
-                .frame(maxWidth: .infinity)
-            }
-        case .me:
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Moi").aFont(TypeScale.display[1], .heavy).foregroundStyle(T.ink)
-                        .accessibilityAddTraits(.isHeader)
-                    AccountView()
-                }
-                .frame(maxWidth: 720, alignment: .leading)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 24)
-                .frame(maxWidth: .infinity)
-            }
-        }
-    }
 }
 
-// MARK: - En-tête (téléphone)
-
-/// En-tête statique du téléphone (§3.3.1) : logo, « Aides cognitives », Sessions, Créer, compte.
-struct HomePhoneHeader: View {
-    @Environment(AppModel.self) private var model
-    let st: HomeState
-    let corpus: HomeCorpus
-    @Binding var sheet: HomeSheet?
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "checkmark.square.fill")
-                .font(.system(size: 26, weight: .bold))
-                .foregroundStyle(T.act)
-                .accessibilityHidden(true)
-            Text("Aides cognitives").aFont(TypeScale.stepL, .semibold, .title).foregroundStyle(T.ink)
-                .lineLimit(1).minimumScaleFactor(0.8)
-                .accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 4)
-            Button { sheet = .sessions } label: {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 17, weight: .semibold))
-                    .frame(width: Ctrl.m, height: Ctrl.m)
-                    .background(T.work, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: Radius.r2, style: .continuous).strokeBorder(T.workLine))
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(T.ink)
-            .accessibilityLabel("Sessions — historique")
-            .help("Sessions")
-            HomeCreateButton(corpus: corpus, st: st, sheet: $sheet, wide: false)
-            HomeAccountDisc(sheet: $sheet)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-    }
-}
-
-/// « ＋ Créer » (`#hdrNew`) : seulement quand la portée affichée est modifiable.
-struct HomeCreateButton: View {
-    @Environment(AppModel.self) private var model
-    let corpus: HomeCorpus
-    let st: HomeState
-    @Binding var sheet: HomeSheet?
-    var wide: Bool
-
-    var body: some View {
-        if st.tab == .aides && corpus.canEdit(scope: st.lib ?? "") {
-            Button { sheet = .create } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "plus").font(.system(size: 15, weight: .bold))
-                    Text("Créer").aFont(TypeScale.item, .bold)
-                }
-                .padding(.horizontal, 12)
-                .frame(minHeight: Ctrl.m)
-                .foregroundStyle(wide ? T.act : T.onPrimary)
-                .background(wide ? T.amb2 : T.act, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(st.section == .protocols ? "Créer un protocole" : "Créer une aide cognitive")
-            .help(st.section == .protocols ? "Créer un protocole" : "Créer une aide cognitive")
-        }
-    }
-}
-
-/// Disque du compte (`#acctTop`) : initiales quand connecté, pastille d'état de la synchro.
-struct HomeAccountDisc: View {
-    @Environment(AppModel.self) private var model
-    @Binding var sheet: HomeSheet?
-
-    var body: some View {
-        let email = model.auth.email ?? ""
-        let signed = model.auth.signedIn
-        Button { sheet = .account } label: {
-            ZStack(alignment: .bottomTrailing) {
-                Group {
-                    if signed && !email.isEmpty {
-                        Text(verbatim: String(email.prefix(2)).uppercased()).aFont(TypeScale.body, .heavy)
-                            .foregroundStyle(T.onPrimary)
-                            .frame(width: Ctrl.m, height: Ctrl.m)
-                            .background(T.act, in: Circle())
-                    } else {
-                        Image(systemName: "person.fill").font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(T.ink)
-                            .frame(width: Ctrl.m, height: Ctrl.m)
-                            .background(T.work, in: Circle())
-                            .overlay(Circle().strokeBorder(T.workLine))
-                    }
-                }
-                if signed { HomeSyncDot(state: model.syncStatus.state).offset(x: 2, y: 2) }
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Compte et synchronisation")
-        .help(signed && !email.isEmpty ? "Compte — " + email : "Compte")
-    }
-}
-
-/// Pastille d'état de la synchro (jamais une couleur seule : l'état se dit en mots ailleurs,
+/// Pastille d'état de la synchro (jamais une couleur seule : l'état se dit en mots à côté,
 /// et la pastille porte un glyphe).
 struct HomeSyncDot: View {
     var state: SyncState
@@ -369,117 +266,6 @@ struct HomeSyncDot: View {
             .frame(width: 14, height: 14).background(color, in: Circle())
             .overlay(Circle().strokeBorder(T.amb, lineWidth: 1.5))
             .accessibilityHidden(true)
-    }
-}
-
-// MARK: - Recherche et filtre (dock)
-
-/// `#homeDock` : bouton rond « Affichage et filtres » + champ de recherche en capsule ; pendant
-/// une recherche, les puces « Tout · Aides · Protocoles » au-dessus (§3.4).
-struct HomeSearchDock: View {
-    @Environment(AppModel.self) private var model
-    let st: HomeState
-    @Binding var qText: String
-    @Binding var sheet: HomeSheet?
-    var searchFocused: FocusState<Bool>.Binding
-    var wide: Bool
-
-    var body: some View {
-        VStack(spacing: 8) {
-            if !st.q.isEmpty && st.tab == .aides {
-                HStack(spacing: 6) {
-                    ForEach(HomeSection.allCases, id: \.self) { s in
-                        Button { st.section = s; st.rev = false } label: {
-                            Chip(text: s.chip, selected: st.section == s && !st.rev)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(st.section == s && !st.rev ? .isSelected : [])
-                    }
-                    Spacer()
-                }
-            }
-            HStack(spacing: 8) {
-                filterButton
-                searchField
-            }
-        }
-        .padding(.horizontal, wide ? 0 : 16)
-        .padding(.top, wide ? 0 : 12)
-        .padding(.bottom, wide ? 0 : 12)
-        .background {
-            if !wide {
-                LinearGradient(colors: [T.amb.opacity(0), T.amb.opacity(0.92), T.amb], startPoint: .top, endPoint: .bottom)
-                    .ignoresSafeArea()
-            }
-        }
-    }
-
-    private var filterButton: some View {
-        let n = st.activeFilterCount
-        let open = sheet == .display
-        let base = open ? "Fermer l'affichage et les filtres" : "Affichage et filtres"
-        let label = base + (n > 0 ? " — \(n) actif" + (n > 1 ? "s" : "") : "")
-        return Button { sheet = open ? nil : .display } label: {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "line.3.horizontal.decrease")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(n > 0 ? T.act : T.ink)
-                    .frame(width: Ctrl.l, height: Ctrl.l)
-                    .background(n > 0 ? T.primarySoft : T.work, in: Circle())
-                    .overlay(Circle().strokeBorder(n > 0 ? T.act : T.workLine))
-                    .shadow(color: .black.opacity(wide ? 0 : 0.12), radius: 8, y: 3)
-                if n > 0 {
-                    Text(verbatim: "\(n)").aFont(TypeScale.cap, .heavy).foregroundStyle(T.onPrimary)
-                        .frame(minWidth: 18, minHeight: 18)
-                        .background(T.act, in: Circle())
-                        .offset(x: 3, y: -3)
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
-        .help(label)
-    }
-
-    private var searchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass").font(.system(size: 16, weight: .semibold)).foregroundStyle(T.ink2)
-                .accessibilityHidden(true)
-            TextField("Rechercher une aide, un protocole…", text: $qText)
-                .aFont(16, .regular)   // 16 : sous 16 pt, iOS zoome au focus (règle 9)
-                .foregroundStyle(T.ink)
-                .focused(searchFocused)
-                .autocorrectionDisabled()
-                .submitLabel(.search)
-                #if os(iOS)
-                .textInputAutocapitalization(.never)
-                #endif
-                .accessibilityLabel("Rechercher")
-            if !qText.isEmpty {
-                Button {
-                    qText = ""; st.q = ""
-                    searchFocused.wrappedValue = true
-                } label: {
-                    Image(systemName: "xmark.circle.fill").font(.system(size: 17)).foregroundStyle(T.ink3)
-                        .frame(width: 32, height: 32)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Effacer la recherche")
-                .help("Effacer la recherche")
-            } else if wide {
-                Text(verbatim: "⌘K").aFont(TypeScale.meta, .bold, .mono).foregroundStyle(T.ink3)
-                    .padding(.horizontal, 6).padding(.vertical, 2)
-                    .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(T.line))
-                    .accessibilityHidden(true)
-            }
-        }
-        .padding(.leading, 14)
-        .padding(.trailing, 6)
-        .frame(height: Ctrl.l)
-        .background(T.work, in: Capsule())
-        .overlay(Capsule().strokeBorder(T.workLine))
-        .shadow(color: .black.opacity(wide ? 0 : 0.12), radius: 8, y: 3)
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -684,7 +470,7 @@ struct HomeSyncNotice: View {
         let s = model.syncStatus
         if model.auth.signedIn, let b = s.homeBanner(lastError: model.sync.lastError) {
             Button {
-                if s.state == .err { sheet = .syncError } else { sheet = .account }
+                if s.state == .err { sheet = .syncError } else { model.rootTab = .me }
             } label: {
                 HStack(alignment: .top, spacing: 10) {
                     Image(systemName: s.state == .pending ? "lock.fill" : (s.state == .rejected ? "nosign" : "exclamationmark.triangle.fill"))

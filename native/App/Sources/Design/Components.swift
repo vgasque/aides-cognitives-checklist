@@ -68,6 +68,11 @@ struct Overline: View {
 }
 
 // MARK: Boutons (échelle fermée S 32 · M 40 · L 44 · XL 56)
+//
+// iOS 27 (HIG « Buttons ») : dans le CONTENU, des CAPSULES ; une pile verticale peut prendre le
+// rectangle arrondi. On distingue les actions par le STYLE, jamais par la taille ; au plus une ou
+// deux proéminentes par vue. Le VERRE est réservé à la couche fonctionnelle (barres, quai,
+// capsule de session, commandes flottantes) : ces styles-ci restent OPAQUES.
 
 enum BtnKind { case primary, secondary, danger, quiet, confirm }
 
@@ -82,7 +87,7 @@ struct AButtonStyle: ButtonStyle {
             case .primary: return (T.act, T.onPrimary, .clear)
             case .confirm: return (T.ok, T.onPrimary, .clear)
             case .danger: return (T.critSoft, T.crit, T.critLine)
-            case .secondary: return (T.work, T.ink, T.ctlLine)
+            case .secondary: return (T.amb2, T.ink, .clear)
             case .quiet: return (.clear, T.act, .clear)
             }
         }()
@@ -90,19 +95,38 @@ struct AButtonStyle: ButtonStyle {
             .aFont(TypeScale.item, .bold)
             .lineLimit(2)
             .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, height >= Ctrl.l ? 20 : 14)
             .frame(minHeight: height)
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .foregroundStyle(fg)
-            .background(bg, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).strokeBorder(border, lineWidth: 1))
-            .opacity(enabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
-            .contentShape(Rectangle())
+            .background(bg, in: Capsule())
+            .overlay(Capsule().strokeBorder(border, lineWidth: 1))
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(enabled ? (configuration.isPressed ? 0.85 : 1) : 0.45)
+            .animation(.spring(duration: 0.2), value: configuration.isPressed)
+            .contentShape(Capsule())
     }
 }
 extension ButtonStyle where Self == AButtonStyle {
     static func a(_ kind: BtnKind = .secondary, _ height: CGFloat = Ctrl.l, full: Bool = false) -> AButtonStyle {
         AButtonStyle(kind: kind, height: height, fullWidth: full)
+    }
+}
+
+// MARK: Verre (couche fonctionnelle seulement)
+
+extension View {
+    /// Liquid Glass « regular » (jamais « clear » : le mode crise prime sur l'effet) pour une
+    /// commande FLOTTANTE — quai de session, capsule, bandeau d'alarme, toast. `tint` porte un
+    /// ÉTAT (alarme ambre, session verte), jamais une décoration. Le système adapte le verre à
+    /// « Réduire la transparence », « Augmenter le contraste » et au curseur de transparence.
+    func floatingGlass(tint: Color? = nil, interactive: Bool = false) -> some View {
+        glassEffect(interactive ? Glass.regular.tint(tint).interactive() : Glass.regular.tint(tint), in: Capsule())
+    }
+    /// Même verre, dans un rectangle arrondi (plusieurs lignes, panneau flottant).
+    func floatingGlass(cornerRadius: CGFloat, tint: Color? = nil, interactive: Bool = false) -> some View {
+        glassEffect(interactive ? Glass.regular.tint(tint).interactive() : Glass.regular.tint(tint),
+                    in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 }
 
@@ -130,10 +154,10 @@ struct HoldButton: View {
                     Rectangle().fill((kind == .danger ? T.critLine : T.act).opacity(0.22)).frame(width: g.size.width * progress)
                 }
             }
-            .background(kind == .danger ? T.critSoft : T.work)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).strokeBorder(kind == .danger ? T.critLine : T.ctlLine))
-            .contentShape(Rectangle())
+            .background(kind == .danger ? T.critSoft : T.amb2)
+            .clipShape(Capsule())
+            .overlay(Capsule().strokeBorder(kind == .danger ? T.critLine : Color.clear))
+            .contentShape(Capsule())
             .gesture(DragGesture(minimumDistance: 0)
                 .onChanged { _ in if !holding { start() } }
                 .onEnded { _ in cancel() })
@@ -243,9 +267,10 @@ struct ToastView: View {
     var body: some View {
         Text(toast.text)
             .aFont(TypeScale.body, .semibold)
-            .foregroundStyle(T.sysInk)
-            .padding(.horizontal, 16).padding(.vertical, 12)
-            .background(T.sys, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
+            .foregroundStyle(T.ink)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 20).padding(.vertical, 12)
+            .floatingGlass(cornerRadius: 24)
             .padding(.horizontal, 16)
             .accessibilityAddTraits(.updatesFrequently)
     }

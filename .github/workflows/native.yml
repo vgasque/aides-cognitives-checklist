@@ -4,6 +4,8 @@
 #  1. le cœur métier (AidesCore) se TESTE (`swift test`) — il ne dépend que de Foundation ;
 #  2. l'application SwiftUI se COMPILE pour iOS (simulateur) et pour macOS. Rien n'est signé :
 #     la signature et la distribution restent un geste de l'auteur, dans Xcode.
+# Cibles minimales iOS / iPadOS / macOS 26 (Liquid Glass sans `#available`) ; compilé avec le SDK
+# le plus récent disponible (Xcode 27 si l'image l'offre, sinon le Xcode par défaut, ≥ 26).
 # Le projet Xcode n'est pas versionné : il est GÉNÉRÉ par XcodeGen depuis native/project.yml.
 name: Native
 
@@ -21,10 +23,15 @@ concurrency:
 
 jobs:
   core:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Choisir Xcode (27 si présent)
+        run: |
+          X=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -n 1)
+          if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
+          xcodebuild -version
       - name: Version de Xcode
         run: xcodebuild -version && swift --version
       - name: Tests du cœur (AidesCore)
@@ -32,7 +39,7 @@ jobs:
         run: swift test 2>&1 | tail -n 60
 
   app:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -40,6 +47,11 @@ jobs:
         destination: ['generic/platform=iOS Simulator', 'generic/platform=macOS']
     steps:
       - uses: actions/checkout@v4
+      - name: Choisir Xcode (27 si présent)
+        run: |
+          X=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -n 1)
+          if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
+          xcodebuild -version
       - name: XcodeGen
         run: brew install xcodegen
       - name: Générer le projet

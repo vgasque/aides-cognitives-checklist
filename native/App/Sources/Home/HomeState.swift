@@ -8,7 +8,6 @@ import AidesCore
 // (type affiché, rangement, tri, densité) sont persistés par espace (clés `ac-section`,
 // `ac-home-group`, `ac-home-sort`, `ac-home-compact`).
 
-enum HomeTab: String { case aides, sessions, me }
 
 /// Type affiché (« Afficher »), `state.section`.
 enum HomeSection: String, CaseIterable {
@@ -33,7 +32,8 @@ enum HomeRequest: Equatable { case create, account, join }
 @MainActor
 @Observable
 final class HomeState {
-    var tab: HomeTab = .aides
+    /// Espace dont les préférences sont chargées (une fois par espace, pour les deux onglets).
+    @ObservationIgnored var loadedSpace: String?
     var section: HomeSection = .all
     /// « Afficher : À relire ».
     var rev = false

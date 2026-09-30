@@ -193,8 +193,7 @@ struct HomeDisplaySheet: View {
         if cats || libs {
             Button {
                 if cats { sheet = .catMgr(st.lib) }
-                else if wc == .phone { sheet = .account }
-                else { st.tab = .me; sheet = nil }
+                else { model.rootTab = .me; sheet = nil }
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "gearshape").font(.system(size: 15, weight: .semibold))
