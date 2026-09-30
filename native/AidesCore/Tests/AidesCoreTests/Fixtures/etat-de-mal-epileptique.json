@@ -1,0 +1,71 @@
+{
+  "version": 3,
+  "categories": [
+    { "id": "c-urgences", "name": "Urgences", "color": "#1f5fa6" }
+  ],
+  "fiches": [
+    {
+      "id": "ex-eme",
+      "title": "État de mal épileptique de l'adulte",
+      "category": "c-urgences",
+      "validation": "2025-01",
+      "status": "draft",
+      "localInfo": "Avis neurologue / réanimateur : …\nEmplacement des anti-épileptiques de 2e ligne : …\n(adaptez à votre établissement)",
+      "confirmation": [
+        "Crise convulsive ≥ 5 min",
+        "Ou crises répétées sans reprise de conscience entre les crises"
+      ],
+      "verify": [
+        "Glycémie capillaire dès l'abord",
+        "Voie veineuse, monitorage, O₂",
+        "Heure de début notée → démarrer le chrono"
+      ],
+      "notForget": [
+        "Hypoglycémie : à corriger immédiatement",
+        "Benzodiazépine à dose pleine, sans délai (sous-dosage = échec)",
+        "Rechercher la cause : toxique, sevrage, lésion, infection, métabolique",
+        "Grossesse → penser éclampsie : MgSO₄ (protocole)"
+      ],
+      "differentials": [
+        "Crises psychogènes non épileptiques",
+        "Syncope convulsivante",
+        "Mouvements anormaux d'autre origine (frissons, décérébration…)"
+      ],
+      "references": [
+        "Exemple à relire et compléter — recommandations en vigueur (SFMU / SRLF / ILAE)"
+      ],
+      "images": [],
+      "timers": [
+        { "id": "ex-eme-t1", "label": "Durée totale", "type": "stopwatch" },
+        { "id": "ex-eme-t2", "label": "Réévaluation (5 min)", "type": "interval", "seconds": 300, "autoloop": true }
+      ],
+      "counters": [
+        { "id": "ex-eme-c1", "label": "Doses de benzodiazépine", "step": 1, "start": 0 }
+      ],
+      "start": "ex-eme-b1",
+      "blocks": [
+        { "id": "ex-eme-b1", "type": "steps", "title": "1ʳᵉ ligne — mesures immédiates", "image": null, "steps": [
+          "Protéger le patient, libérer les voies aériennes, O₂",
+          "Glycémie capillaire → corriger une hypoglycémie",
+          "Benzodiazépine à dose pleine (protocole local)"
+        ], "next": "ex-eme-d1" },
+        { "id": "ex-eme-d1", "type": "decision", "title": "Réévaluation à 5 min", "image": null,
+          "question": "La crise persiste-t-elle ?",
+          "options": [
+            { "label": "Oui — persiste", "target": "ex-eme-b2" },
+            { "label": "Non — cédée", "target": "ex-eme-b3" }
+          ] },
+        { "id": "ex-eme-b2", "type": "steps", "title": "2ᵉ ligne", "image": null, "steps": [
+          "2ᵉ dose de benzodiazépine si non faite",
+          "Anti-épileptique de 2ᵉ ligne IV (protocole local)",
+          "Anticiper l'échec : avis réanimation, préparer l'ISR"
+        ], "next": "ex-eme-d1" },
+        { "id": "ex-eme-b3", "type": "steps", "title": "Crise cédée", "image": null, "steps": [
+          "Surveillance rapprochée (récidive possible)",
+          "Rechercher et traiter la cause",
+          "EEG / imagerie / biologie selon contexte"
+        ], "next": null }
+      ]
+    }
+  ]
+}

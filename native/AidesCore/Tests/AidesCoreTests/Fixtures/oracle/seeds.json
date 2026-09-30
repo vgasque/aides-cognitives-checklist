@@ -1,0 +1,1980 @@
+[
+ {
+  "input": "seed",
+  "output": {
+   "fiche": {
+    "id": "fmunv5w2uop2wx31l",
+    "title": "Anaphylaxie (choc anaphylactique)",
+    "discriminant": "adulte",
+    "code": "ANA",
+    "category": "",
+    "validatedAt": "2025-01",
+    "local": "Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)",
+    "sources": [
+     "Exemple à compléter — recommandations en vigueur"
+    ],
+    "images": [],
+    "excursions": [
+     {
+      "label": "Bronchospasme réfractaire",
+      "target": "bmunv5w2u1qls1up1"
+     }
+    ],
+    "timers": [
+     {
+      "id": "tmunv5w2u1o3ca6r1",
+      "label": "Réévaluation après adrénaline",
+      "type": "interval",
+      "seconds": 300,
+      "autoloop": false,
+      "onDue": "Réévaluer : 2ᵉ dose IM si pas d’amélioration"
+     }
+    ],
+    "counters": [
+     {
+      "id": "nmunv5w2u1lj42gff",
+      "label": "Adrénaline IM",
+      "step": 1,
+      "start": 0,
+      "timerId": "tmunv5w2u1o3ca6r1"
+     }
+    ],
+    "start": "bmunv5w2u14hjl5n1",
+    "blocks": [
+     {
+      "id": "bmunv5w2u14hjl5n1",
+      "kind": "do",
+      "title": "Mesures immédiates",
+      "image": null,
+      "items": [
+       "imunv5w2u18e68y11",
+       "imunv5w2ucy9iio1p",
+       "imunv5w2ur8w91vct",
+       "imunv5w2u1aj93vm3",
+       "imunv5w2uk6g4otpj"
+      ],
+      "next": "bmunv5w2u1c2snjgs",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1c2snjgs",
+      "kind": "decision",
+      "title": "Réévaluation",
+      "image": null,
+      "question": "Amélioration après adrénaline et remplissage ?",
+      "options": [
+       {
+        "label": "Oui — stabilisé",
+        "target": "bmunv5w2u1lcaavz1"
+       },
+       {
+        "label": "Non — réfractaire",
+        "target": "bmunv5w2u7tq34e1a"
+       }
+      ],
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1lcaavz1",
+      "kind": "do",
+      "title": "Stabilisé",
+      "image": null,
+      "items": [
+       "imunv5w2uy2k0r15t",
+       "imunv5w2u13msvfm9",
+       "imunv5w2u18c3dqad"
+      ],
+      "next": null,
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1qls1up1",
+      "kind": "do",
+      "title": "Bronchospasme réfractaire",
+      "image": null,
+      "items": [
+       "imunv5w2u11mxja31",
+       "imunv5w2u1pbgbhu1",
+       "imunv5w2u2urt9yqu"
+      ],
+      "next": null,
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u7tq34e1a",
+      "kind": "do",
+      "title": "Réfractaire",
+      "image": null,
+      "items": [
+       "imunv5w2u1328nnq1",
+       "imunv5w2u1v4vllha",
+       "imunv5w2u1xqqgikx",
+       "imunv5w2uzg56coua"
+      ],
+      "next": "bmunv5w2u1c2snjgs",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     }
+    ],
+    "v": 4,
+    "kind": "procedure",
+    "order": 1790758145190,
+    "docs": [],
+    "status": "validated",
+    "links": [],
+    "updatedBy": "",
+    "updatedAt": 1790758145190,
+    "deletedAt": null,
+    "ownerId": null,
+    "library": null,
+    "items": [
+     {
+      "id": "imunv5w2vlkgzpi12",
+      "role": "entry",
+      "do": "Exposition possible (aliment, médicament, piqûre…)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vtkip3zr2",
+      "role": "entry",
+      "do": "Signes cutanéo-muqueux : urticaire, œdème",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vtpldnn1d",
+      "role": "entry",
+      "do": "Hypotension / collapsus, tachycardie",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1pryqv14",
+      "role": "entry",
+      "do": "Bronchospasme, dyspnée, désaturation",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vkam03j8w",
+      "role": "do",
+      "do": "Adrénaline IM = 1ʳᵉ intention, ne pas retarder",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v179xepgg",
+      "role": "do",
+      "do": "Allonger, jambes surélevées — ne pas verticaliser",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v17kwzsg1",
+      "role": "do",
+      "do": "Surveillance prolongée : réaction biphasique possible",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v11jnsol1",
+      "role": "watch",
+      "do": "Voie veineuse de bon calibre",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1m18dzhp",
+      "role": "watch",
+      "do": "Monitorage complet, O₂",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1f5uija1",
+      "role": "watch",
+      "do": "Prélèvement tryptase à organiser (à l’hôpital)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1eq5zxoe",
+      "role": "dose",
+      "do": "**ADRÉNALINE — IM** : adulte 0,5 mg (0,01 mg/kg, max 0,5) — à répéter à 5 min si besoin",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v15lufzgz",
+      "role": "dose",
+      "do": "**REMPLISSAGE — IV** : cristalloïdes 20 mL/kg en débit libre",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1iwtiz81",
+      "role": "ddx",
+      "do": "Asthme aigu grave",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2virzsfuak",
+      "role": "ddx",
+      "do": "Malaise vagal",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1c9yj0vx",
+      "role": "ddx",
+      "do": "Œdème laryngé d’autre origine",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1xr7citi",
+      "role": "ddx",
+      "do": "Choc d’autre cause (septique, hémorragique)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u18e68y11",
+      "role": "do",
+      "do": "Retirer / arrêter l’allergène si possible",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2ucy9iio1p",
+      "role": "do",
+      "do": "Appeler à l’aide — désigner un lecteur",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2ur8w91vct",
+      "role": "do",
+      "do": "Adrénaline IM, face antéro-latérale de cuisse",
+      "expect": "dose du protocole local",
+      "level": 3,
+      "memory": true,
+      "dual": true,
+      "note": "",
+      "counts": "nmunv5w2u1lj42gff",
+      "poso": "imunv5w2v1eq5zxoe"
+     },
+     {
+      "id": "imunv5w2u1aj93vm3",
+      "role": "do",
+      "do": "Allonger, jambes surélevées",
+      "expect": "ne jamais verticaliser (désamorçage)",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2uk6g4otpj",
+      "role": "do",
+      "do": "O₂ fort débit, voie veineuse, remplissage",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2v15lufzgz"
+     },
+     {
+      "id": "imunv5w2uy2k0r15t",
+      "role": "do",
+      "do": "Surveillance prolongée (réaction biphasique)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u13msvfm9",
+      "role": "do",
+      "do": "Tracer doses et horaires",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u18c3dqad",
+      "role": "do",
+      "do": "Orientation hospitalière, bilan allergologique à distance",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u11mxja31",
+      "role": "do",
+      "do": "Salbutamol nébulisé",
+      "expect": "dose du protocole local",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u1pbgbhu1",
+      "role": "do",
+      "do": "Réévaluer la ventilation, envisager l’intubation",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u2urt9yqu",
+      "role": "do",
+      "do": "Ne pas retarder l’adrénaline",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u1328nnq1",
+      "role": "do",
+      "do": "Adrénaline IM",
+      "expect": "dose suivante, à la réévaluation",
+      "level": 3,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "counts": "nmunv5w2u1lj42gff",
+      "repeat": "due",
+      "poso": "imunv5w2v1eq5zxoe"
+     },
+     {
+      "id": "imunv5w2u1v4vllha",
+      "role": "do",
+      "do": "Renforcer le remplissage",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2v15lufzgz"
+     },
+     {
+      "id": "imunv5w2u1xqqgikx",
+      "role": "do",
+      "do": "Adrénaline IV titrée",
+      "expect": "équipe entraînée, protocole local",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2uzg56coua",
+      "role": "do",
+      "do": "Renfort réanimation / SMUR",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     }
+    ]
+   }
+  }
+ },
+ {
+  "input": "seed2",
+  "output": {
+   "fiche": {
+    "id": "fmunv5w2ww1vuevl8",
+    "title": "Arrêt cardiaque (ACR) — algorithme",
+    "discriminant": "adulte",
+    "code": "ACR",
+    "category": "",
+    "validatedAt": "2025-01",
+    "local": "Réanimateur / renfort : …\nEmplacement défibrillateur : …\n(adaptez à votre établissement)",
+    "sources": [
+     "Exemple à compléter — recommandations ERC/ILCOR en vigueur"
+    ],
+    "images": [],
+    "timers": [
+     {
+      "id": "tmunv5w2w1c20pi8h",
+      "label": "Cycle RCP (2 min)",
+      "type": "interval",
+      "seconds": 120,
+      "autoloop": true,
+      "onDue": "Analyse du rythme — relais du masseur"
+     },
+     {
+      "id": "tmunv5w2w1pyd2zq1",
+      "label": "Adrénaline — prochaine dose",
+      "type": "interval",
+      "seconds": 240,
+      "autoloop": false,
+      "onDue": "Adrénaline 1 mg IV — relancer après injection"
+     }
+    ],
+    "counters": [
+     {
+      "id": "nmunv5w2wmqxtd11v",
+      "label": "Chocs délivrés",
+      "step": 1,
+      "start": 0,
+      "timerId": ""
+     },
+     {
+      "id": "nmunv5w2wy6beh016",
+      "label": "Adrénaline (mg)",
+      "step": 1,
+      "start": 0,
+      "timerId": ""
+     }
+    ],
+    "excursions": [
+     {
+      "label": "FV réfractaire (CEE inefficaces)",
+      "target": "bmunv5w2w1ryewxlb"
+     }
+    ],
+    "start": "bmunv5w2wawzk60sw",
+    "blocks": [
+     {
+      "id": "bmunv5w2wawzk60sw",
+      "kind": "do",
+      "title": "Reconnaissance & alerte",
+      "image": null,
+      "items": [
+       "imunv5w2w1vzh4mez",
+       "imunv5w2w223c4f7o",
+       "imunv5w2wochluf1o",
+       "imunv5w2wkk06lo15"
+      ],
+      "next": "bmunv5w2wvr8wbo6y",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2wvr8wbo6y",
+      "kind": "decision",
+      "title": "Analyse du rythme",
+      "image": null,
+      "question": "Rythme choquable (FV / TV sans pouls) ?",
+      "options": [
+       {
+        "label": "Oui — choquable",
+        "target": "bmunv5w2ww7ph443r"
+       },
+       {
+        "label": "Non — non choquable",
+        "target": "bmunv5w2wl7099ule"
+       }
+      ],
+      "milestones": [
+       {
+        "at": "count",
+        "n": 3,
+        "counter": "nmunv5w2wmqxtd11v",
+        "text": "3 CEE sans RACS — envisager une **FV réfractaire**",
+        "go": "bmunv5w2w1ryewxlb"
+       }
+      ],
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0
+     },
+     {
+      "id": "bmunv5w2ww7ph443r",
+      "kind": "do",
+      "title": "Choquable (FV / TVsp)",
+      "image": null,
+      "items": [
+       "imunv5w2w1tsa5vo1",
+       "imunv5w2wpo5slov6",
+       "imunv5w2wman49gea",
+       "imunv5w2w19kvup71",
+       "imunv5w2w1micqml1"
+      ],
+      "next": "bmunv5w2wvr8wbo6y",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2wl7099ule",
+      "kind": "do",
+      "title": "Non choquable (AESP / asystolie)",
+      "image": null,
+      "items": [
+       "imunv5w2wtsodfk1g",
+       "imunv5w2w1m1qljf1",
+       "imunv5w2w1q58ddc1"
+      ],
+      "next": "bmunv5w2wvr8wbo6y",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2w16drjuj8",
+      "kind": "review",
+      "title": "Rechercher les causes réversibles (4H / 4T)",
+      "image": null,
+      "items": [
+       "imunv5w2wtecpza1m",
+       "imunv5w2w1843r2z1",
+       "imunv5w2w1odzdxyx",
+       "imunv5w2wuhazy51t",
+       "imunv5w2w1ymo39m1",
+       "imunv5w2w8oss1efd",
+       "imunv5w2w151s7auk",
+       "imunv5w2w1j9kuquk"
+      ],
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2w1ryewxlb",
+      "kind": "do",
+      "title": "FV réfractaire",
+      "image": null,
+      "items": [
+       "imunv5w2w3qxt8xuz",
+       "imunv5w2w6p4nrk13",
+       "imunv5w2x1w9wepug"
+      ],
+      "next": null,
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     }
+    ],
+    "v": 4,
+    "kind": "procedure",
+    "order": 1790758145193,
+    "docs": [],
+    "status": "validated",
+    "links": [],
+    "updatedBy": "",
+    "updatedAt": 1790758145193,
+    "deletedAt": null,
+    "ownerId": null,
+    "library": null,
+    "items": [
+     {
+      "id": "imunv5w2x1ugivsm1",
+      "role": "entry",
+      "do": "Inconscient, ne réagit pas",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2x1sdslj7y",
+      "role": "entry",
+      "do": "Pas de respiration normale (ou gasps)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2x1otht7b1",
+      "role": "entry",
+      "do": "Pas de pouls central en 10 s",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xsifehatj",
+      "role": "do",
+      "do": "MCE de qualité : 100–120/min, 5–6 cm, relâchement complet",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2x16zsryi4",
+      "role": "do",
+      "do": "Minimiser les interruptions (< 10 s)",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xbzng5q1e",
+      "role": "do",
+      "do": "Rechercher les causes réversibles (4H / 4T)",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xi11a411q",
+      "role": "watch",
+      "do": "Chariot d’urgence + défibrillateur",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xdf5s0o13",
+      "role": "watch",
+      "do": "Plan dur sous le thorax",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xpgr41f1m",
+      "role": "watch",
+      "do": "Désigner un meneur et un lecteur",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xaqtqwddo",
+      "role": "dose",
+      "do": "**ADRÉNALINE — IV/IO** : 1 mg toutes les 3–5 min (après le 3ᵉ choc si choquable)",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xnn93wmhu",
+      "role": "dose",
+      "do": "**AMIODARONE — IV/IO** : 300 mg après le 3ᵉ choc, puis 150 mg après le 5ᵉ",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2x1od4mlo1",
+      "role": "ddx",
+      "do": "4H",
+      "expect": "hypoxie · hypovolémie · hypo/hyperkaliémie · hypothermie",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2xytxq7p1i",
+      "role": "ddx",
+      "do": "4T",
+      "expect": "thrombose (coronaire/pulmonaire) · pneumoThorax · tamponnade · toxiques",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w1vzh4mez",
+      "role": "do",
+      "do": "Vérifier conscience et respiration",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w223c4f7o",
+      "role": "do",
+      "do": "Alerter, appeler du renfort + défibrillateur",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2wochluf1o",
+      "role": "do",
+      "do": "Relais du masseur",
+      "expect": "toutes les 2 min — annoncer le changement",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2wkk06lo15",
+      "role": "do",
+      "do": "RCP immédiate",
+      "expect": "30:2 — sans délai",
+      "level": 3,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w1tsa5vo1",
+      "role": "do",
+      "do": "Choc immédiat",
+      "expect": "puis reprise RCP 2 min",
+      "level": 3,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "counts": "nmunv5w2wmqxtd11v"
+     },
+     {
+      "id": "imunv5w2wpo5slov6",
+      "role": "do",
+      "do": "Adrénaline",
+      "expect": "1 mg, puis / 3–5 min",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2xaqtqwddo",
+      "starts": "tmunv5w2w1pyd2zq1",
+      "repeat": "due",
+      "from": {
+       "counter": "nmunv5w2wmqxtd11v",
+       "n": 3
+      }
+     },
+     {
+      "id": "imunv5w2wman49gea",
+      "role": "do",
+      "do": "Amiodarone",
+      "expect": "300 mg",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2xnn93wmhu",
+      "from": {
+       "counter": "nmunv5w2wmqxtd11v",
+       "n": 3
+      },
+      "repeat": "once"
+     },
+     {
+      "id": "imunv5w2w19kvup71",
+      "role": "do",
+      "do": "Amiodarone",
+      "expect": "150 mg",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2xnn93wmhu",
+      "from": {
+       "counter": "nmunv5w2wmqxtd11v",
+       "n": 5
+      },
+      "repeat": "once"
+     },
+     {
+      "id": "imunv5w2w1micqml1",
+      "role": "do",
+      "do": "Rechercher les causes réversibles (4H / 4T)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "review": "bmunv5w2w16drjuj8"
+     },
+     {
+      "id": "imunv5w2wtsodfk1g",
+      "role": "do",
+      "do": "RCP 2 min sans interruption",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w1m1qljf1",
+      "role": "do",
+      "do": "Adrénaline",
+      "expect": "1 mg immédiatement, puis / 3–5 min",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2xaqtqwddo",
+      "starts": "tmunv5w2w1pyd2zq1",
+      "repeat": "due"
+     },
+     {
+      "id": "imunv5w2w1q58ddc1",
+      "role": "do",
+      "do": "Rechercher les causes réversibles (4H / 4T)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "review": "bmunv5w2w16drjuj8"
+     },
+     {
+      "id": "imunv5w2wtecpza1m",
+      "role": "do",
+      "do": "Hypoxie",
+      "expect": "voies aériennes, FiO₂",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w1843r2z1",
+      "role": "do",
+      "do": "Hypovolémie",
+      "expect": "remplissage, hémorragie ?",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w1odzdxyx",
+      "role": "do",
+      "do": "Hypo / hyperkaliémie",
+      "expect": "ionogramme, gaz du sang",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2wuhazy51t",
+      "role": "do",
+      "do": "Hypothermie",
+      "expect": "température centrale",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w1ymo39m1",
+      "role": "do",
+      "do": "Thrombose",
+      "expect": "coronaire · pulmonaire",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w8oss1efd",
+      "role": "do",
+      "do": "pneumoThorax",
+      "expect": "exsufflation",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w151s7auk",
+      "role": "do",
+      "do": "Tamponnade",
+      "expect": "échographie",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w1j9kuquk",
+      "role": "do",
+      "do": "Toxiques",
+      "expect": "antidote",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w3qxt8xuz",
+      "role": "do",
+      "do": "Changer la position des pads",
+      "expect": "antéro-postérieure",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2w6p4nrk13",
+      "role": "do",
+      "do": "Vérifier contact, gel et énergie maximale",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2x1w9wepug",
+      "role": "do",
+      "do": "Poursuivre RCP — analyse toutes les 2 min inchangée",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     }
+    ]
+   }
+  }
+ },
+ {
+  "input": "seed-idem",
+  "output": {
+   "input": {
+    "id": "fmunv5w2uop2wx31l",
+    "title": "Anaphylaxie (choc anaphylactique)",
+    "discriminant": "adulte",
+    "code": "ANA",
+    "category": "",
+    "validatedAt": "2025-01",
+    "local": "Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)",
+    "sources": [
+     "Exemple à compléter — recommandations en vigueur"
+    ],
+    "images": [],
+    "excursions": [
+     {
+      "label": "Bronchospasme réfractaire",
+      "target": "bmunv5w2u1qls1up1"
+     }
+    ],
+    "timers": [
+     {
+      "id": "tmunv5w2u1o3ca6r1",
+      "label": "Réévaluation après adrénaline",
+      "type": "interval",
+      "seconds": 300,
+      "autoloop": false,
+      "onDue": "Réévaluer : 2ᵉ dose IM si pas d’amélioration"
+     }
+    ],
+    "counters": [
+     {
+      "id": "nmunv5w2u1lj42gff",
+      "label": "Adrénaline IM",
+      "step": 1,
+      "start": 0,
+      "timerId": "tmunv5w2u1o3ca6r1"
+     }
+    ],
+    "start": "bmunv5w2u14hjl5n1",
+    "blocks": [
+     {
+      "id": "bmunv5w2u14hjl5n1",
+      "kind": "do",
+      "title": "Mesures immédiates",
+      "image": null,
+      "items": [
+       "imunv5w2u18e68y11",
+       "imunv5w2ucy9iio1p",
+       "imunv5w2ur8w91vct",
+       "imunv5w2u1aj93vm3",
+       "imunv5w2uk6g4otpj"
+      ],
+      "next": "bmunv5w2u1c2snjgs",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1c2snjgs",
+      "kind": "decision",
+      "title": "Réévaluation",
+      "image": null,
+      "question": "Amélioration après adrénaline et remplissage ?",
+      "options": [
+       {
+        "label": "Oui — stabilisé",
+        "target": "bmunv5w2u1lcaavz1"
+       },
+       {
+        "label": "Non — réfractaire",
+        "target": "bmunv5w2u7tq34e1a"
+       }
+      ],
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1lcaavz1",
+      "kind": "do",
+      "title": "Stabilisé",
+      "image": null,
+      "items": [
+       "imunv5w2uy2k0r15t",
+       "imunv5w2u13msvfm9",
+       "imunv5w2u18c3dqad"
+      ],
+      "next": null,
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1qls1up1",
+      "kind": "do",
+      "title": "Bronchospasme réfractaire",
+      "image": null,
+      "items": [
+       "imunv5w2u11mxja31",
+       "imunv5w2u1pbgbhu1",
+       "imunv5w2u2urt9yqu"
+      ],
+      "next": null,
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u7tq34e1a",
+      "kind": "do",
+      "title": "Réfractaire",
+      "image": null,
+      "items": [
+       "imunv5w2u1328nnq1",
+       "imunv5w2u1v4vllha",
+       "imunv5w2u1xqqgikx",
+       "imunv5w2uzg56coua"
+      ],
+      "next": "bmunv5w2u1c2snjgs",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     }
+    ],
+    "v": 4,
+    "kind": "procedure",
+    "order": 1790758145190,
+    "docs": [],
+    "status": "validated",
+    "links": [],
+    "updatedBy": "",
+    "updatedAt": 1790758145190,
+    "deletedAt": null,
+    "ownerId": null,
+    "library": null,
+    "items": [
+     {
+      "id": "imunv5w2vlkgzpi12",
+      "role": "entry",
+      "do": "Exposition possible (aliment, médicament, piqûre…)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vtkip3zr2",
+      "role": "entry",
+      "do": "Signes cutanéo-muqueux : urticaire, œdème",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vtpldnn1d",
+      "role": "entry",
+      "do": "Hypotension / collapsus, tachycardie",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1pryqv14",
+      "role": "entry",
+      "do": "Bronchospasme, dyspnée, désaturation",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vkam03j8w",
+      "role": "do",
+      "do": "Adrénaline IM = 1ʳᵉ intention, ne pas retarder",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v179xepgg",
+      "role": "do",
+      "do": "Allonger, jambes surélevées — ne pas verticaliser",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v17kwzsg1",
+      "role": "do",
+      "do": "Surveillance prolongée : réaction biphasique possible",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v11jnsol1",
+      "role": "watch",
+      "do": "Voie veineuse de bon calibre",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1m18dzhp",
+      "role": "watch",
+      "do": "Monitorage complet, O₂",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1f5uija1",
+      "role": "watch",
+      "do": "Prélèvement tryptase à organiser (à l’hôpital)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1eq5zxoe",
+      "role": "dose",
+      "do": "**ADRÉNALINE — IM** : adulte 0,5 mg (0,01 mg/kg, max 0,5) — à répéter à 5 min si besoin",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v15lufzgz",
+      "role": "dose",
+      "do": "**REMPLISSAGE — IV** : cristalloïdes 20 mL/kg en débit libre",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1iwtiz81",
+      "role": "ddx",
+      "do": "Asthme aigu grave",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2virzsfuak",
+      "role": "ddx",
+      "do": "Malaise vagal",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1c9yj0vx",
+      "role": "ddx",
+      "do": "Œdème laryngé d’autre origine",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1xr7citi",
+      "role": "ddx",
+      "do": "Choc d’autre cause (septique, hémorragique)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u18e68y11",
+      "role": "do",
+      "do": "Retirer / arrêter l’allergène si possible",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2ucy9iio1p",
+      "role": "do",
+      "do": "Appeler à l’aide — désigner un lecteur",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2ur8w91vct",
+      "role": "do",
+      "do": "Adrénaline IM, face antéro-latérale de cuisse",
+      "expect": "dose du protocole local",
+      "level": 3,
+      "memory": true,
+      "dual": true,
+      "note": "",
+      "counts": "nmunv5w2u1lj42gff",
+      "poso": "imunv5w2v1eq5zxoe"
+     },
+     {
+      "id": "imunv5w2u1aj93vm3",
+      "role": "do",
+      "do": "Allonger, jambes surélevées",
+      "expect": "ne jamais verticaliser (désamorçage)",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2uk6g4otpj",
+      "role": "do",
+      "do": "O₂ fort débit, voie veineuse, remplissage",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2v15lufzgz"
+     },
+     {
+      "id": "imunv5w2uy2k0r15t",
+      "role": "do",
+      "do": "Surveillance prolongée (réaction biphasique)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u13msvfm9",
+      "role": "do",
+      "do": "Tracer doses et horaires",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u18c3dqad",
+      "role": "do",
+      "do": "Orientation hospitalière, bilan allergologique à distance",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u11mxja31",
+      "role": "do",
+      "do": "Salbutamol nébulisé",
+      "expect": "dose du protocole local",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u1pbgbhu1",
+      "role": "do",
+      "do": "Réévaluer la ventilation, envisager l’intubation",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u2urt9yqu",
+      "role": "do",
+      "do": "Ne pas retarder l’adrénaline",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u1328nnq1",
+      "role": "do",
+      "do": "Adrénaline IM",
+      "expect": "dose suivante, à la réévaluation",
+      "level": 3,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "counts": "nmunv5w2u1lj42gff",
+      "repeat": "due",
+      "poso": "imunv5w2v1eq5zxoe"
+     },
+     {
+      "id": "imunv5w2u1v4vllha",
+      "role": "do",
+      "do": "Renforcer le remplissage",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2v15lufzgz"
+     },
+     {
+      "id": "imunv5w2u1xqqgikx",
+      "role": "do",
+      "do": "Adrénaline IV titrée",
+      "expect": "équipe entraînée, protocole local",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2uzg56coua",
+      "role": "do",
+      "do": "Renfort réanimation / SMUR",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     }
+    ]
+   },
+   "output": {
+    "id": "fmunv5w2uop2wx31l",
+    "title": "Anaphylaxie (choc anaphylactique)",
+    "discriminant": "adulte",
+    "code": "ANA",
+    "category": "",
+    "validatedAt": "2025-01",
+    "local": "Renfort / réanimateur : …\nSAMU – régulation : …\n(adaptez à votre pratique)",
+    "sources": [
+     "Exemple à compléter — recommandations en vigueur"
+    ],
+    "images": [],
+    "excursions": [
+     {
+      "label": "Bronchospasme réfractaire",
+      "target": "bmunv5w2u1qls1up1"
+     }
+    ],
+    "timers": [
+     {
+      "id": "tmunv5w2u1o3ca6r1",
+      "label": "Réévaluation après adrénaline",
+      "type": "interval",
+      "seconds": 300,
+      "autoloop": false,
+      "onDue": "Réévaluer : 2ᵉ dose IM si pas d’amélioration"
+     }
+    ],
+    "counters": [
+     {
+      "id": "nmunv5w2u1lj42gff",
+      "label": "Adrénaline IM",
+      "step": 1,
+      "start": 0,
+      "timerId": "tmunv5w2u1o3ca6r1"
+     }
+    ],
+    "start": "bmunv5w2u14hjl5n1",
+    "blocks": [
+     {
+      "id": "bmunv5w2u14hjl5n1",
+      "kind": "do",
+      "title": "Mesures immédiates",
+      "image": null,
+      "items": [
+       "imunv5w2u18e68y11",
+       "imunv5w2ucy9iio1p",
+       "imunv5w2ur8w91vct",
+       "imunv5w2u1aj93vm3",
+       "imunv5w2uk6g4otpj"
+      ],
+      "next": "bmunv5w2u1c2snjgs",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1c2snjgs",
+      "kind": "decision",
+      "title": "Réévaluation",
+      "image": null,
+      "question": "Amélioration après adrénaline et remplissage ?",
+      "options": [
+       {
+        "label": "Oui — stabilisé",
+        "target": "bmunv5w2u1lcaavz1"
+       },
+       {
+        "label": "Non — réfractaire",
+        "target": "bmunv5w2u7tq34e1a"
+       }
+      ],
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1lcaavz1",
+      "kind": "do",
+      "title": "Stabilisé",
+      "image": null,
+      "items": [
+       "imunv5w2uy2k0r15t",
+       "imunv5w2u13msvfm9",
+       "imunv5w2u18c3dqad"
+      ],
+      "next": null,
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u1qls1up1",
+      "kind": "do",
+      "title": "Bronchospasme réfractaire",
+      "image": null,
+      "items": [
+       "imunv5w2u11mxja31",
+       "imunv5w2u1pbgbhu1",
+       "imunv5w2u2urt9yqu"
+      ],
+      "next": null,
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     },
+     {
+      "id": "bmunv5w2u7tq34e1a",
+      "kind": "do",
+      "title": "Réfractaire",
+      "image": null,
+      "items": [
+       "imunv5w2u1328nnq1",
+       "imunv5w2u1v4vllha",
+       "imunv5w2u1xqqgikx",
+       "imunv5w2uzg56coua"
+      ],
+      "next": "bmunv5w2u1c2snjgs",
+      "phase": "",
+      "imageW": 0,
+      "imageH": 0,
+      "nextLbl": "",
+      "milestones": []
+     }
+    ],
+    "v": 4,
+    "kind": "procedure",
+    "order": 1790758145190,
+    "docs": [],
+    "status": "validated",
+    "links": [],
+    "updatedBy": "",
+    "updatedAt": 1790758145190,
+    "deletedAt": null,
+    "ownerId": null,
+    "library": null,
+    "items": [
+     {
+      "id": "imunv5w2vlkgzpi12",
+      "role": "entry",
+      "do": "Exposition possible (aliment, médicament, piqûre…)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vtkip3zr2",
+      "role": "entry",
+      "do": "Signes cutanéo-muqueux : urticaire, œdème",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vtpldnn1d",
+      "role": "entry",
+      "do": "Hypotension / collapsus, tachycardie",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1pryqv14",
+      "role": "entry",
+      "do": "Bronchospasme, dyspnée, désaturation",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2vkam03j8w",
+      "role": "do",
+      "do": "Adrénaline IM = 1ʳᵉ intention, ne pas retarder",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v179xepgg",
+      "role": "do",
+      "do": "Allonger, jambes surélevées — ne pas verticaliser",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v17kwzsg1",
+      "role": "do",
+      "do": "Surveillance prolongée : réaction biphasique possible",
+      "expect": "",
+      "level": 1,
+      "memory": true,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v11jnsol1",
+      "role": "watch",
+      "do": "Voie veineuse de bon calibre",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1m18dzhp",
+      "role": "watch",
+      "do": "Monitorage complet, O₂",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1f5uija1",
+      "role": "watch",
+      "do": "Prélèvement tryptase à organiser (à l’hôpital)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1eq5zxoe",
+      "role": "dose",
+      "do": "**ADRÉNALINE — IM** : adulte 0,5 mg (0,01 mg/kg, max 0,5) — à répéter à 5 min si besoin",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v15lufzgz",
+      "role": "dose",
+      "do": "**REMPLISSAGE — IV** : cristalloïdes 20 mL/kg en débit libre",
+      "expect": "",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1iwtiz81",
+      "role": "ddx",
+      "do": "Asthme aigu grave",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2virzsfuak",
+      "role": "ddx",
+      "do": "Malaise vagal",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1c9yj0vx",
+      "role": "ddx",
+      "do": "Œdème laryngé d’autre origine",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2v1xr7citi",
+      "role": "ddx",
+      "do": "Choc d’autre cause (septique, hémorragique)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u18e68y11",
+      "role": "do",
+      "do": "Retirer / arrêter l’allergène si possible",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2ucy9iio1p",
+      "role": "do",
+      "do": "Appeler à l’aide — désigner un lecteur",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2ur8w91vct",
+      "role": "do",
+      "do": "Adrénaline IM, face antéro-latérale de cuisse",
+      "expect": "dose du protocole local",
+      "level": 3,
+      "memory": true,
+      "dual": true,
+      "note": "",
+      "counts": "nmunv5w2u1lj42gff",
+      "poso": "imunv5w2v1eq5zxoe"
+     },
+     {
+      "id": "imunv5w2u1aj93vm3",
+      "role": "do",
+      "do": "Allonger, jambes surélevées",
+      "expect": "ne jamais verticaliser (désamorçage)",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2uk6g4otpj",
+      "role": "do",
+      "do": "O₂ fort débit, voie veineuse, remplissage",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2v15lufzgz"
+     },
+     {
+      "id": "imunv5w2uy2k0r15t",
+      "role": "do",
+      "do": "Surveillance prolongée (réaction biphasique)",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u13msvfm9",
+      "role": "do",
+      "do": "Tracer doses et horaires",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u18c3dqad",
+      "role": "do",
+      "do": "Orientation hospitalière, bilan allergologique à distance",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u11mxja31",
+      "role": "do",
+      "do": "Salbutamol nébulisé",
+      "expect": "dose du protocole local",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u1pbgbhu1",
+      "role": "do",
+      "do": "Réévaluer la ventilation, envisager l’intubation",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u2urt9yqu",
+      "role": "do",
+      "do": "Ne pas retarder l’adrénaline",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2u1328nnq1",
+      "role": "do",
+      "do": "Adrénaline IM",
+      "expect": "dose suivante, à la réévaluation",
+      "level": 3,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "counts": "nmunv5w2u1lj42gff",
+      "repeat": "due",
+      "poso": "imunv5w2v1eq5zxoe"
+     },
+     {
+      "id": "imunv5w2u1v4vllha",
+      "role": "do",
+      "do": "Renforcer le remplissage",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": "",
+      "poso": "imunv5w2v15lufzgz"
+     },
+     {
+      "id": "imunv5w2u1xqqgikx",
+      "role": "do",
+      "do": "Adrénaline IV titrée",
+      "expect": "équipe entraînée, protocole local",
+      "level": 2,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     },
+     {
+      "id": "imunv5w2uzg56coua",
+      "role": "do",
+      "do": "Renfort réanimation / SMUR",
+      "expect": "",
+      "level": 1,
+      "memory": false,
+      "dual": false,
+      "note": ""
+     }
+    ]
+   }
+  }
+ }
+]

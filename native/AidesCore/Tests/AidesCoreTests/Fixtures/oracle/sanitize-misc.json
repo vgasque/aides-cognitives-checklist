@@ -1,0 +1,562 @@
+[
+ {
+  "input": {
+   "fn": "sanitizeSession",
+   "arg": {
+    "id": "s1",
+    "ficheId": "f1",
+    "ficheTitle": "T",
+    "name": "n",
+    "startedAt": "12",
+    "savedAt": 5,
+    "live": 1,
+    "exercise": 0,
+    "checked": {
+     "1:b1:0": true,
+     "bad key": true,
+     "1:b1:12345": true,
+     "2:b2:3": 1
+    },
+    "nav": [
+     "b1",
+     "b2",
+     "__proto__"
+    ],
+    "navSeq": [
+     1,
+     "2",
+     -4
+    ],
+    "counters": {
+     "n1": "3",
+     "x y": 1,
+     "n2": "abc"
+    },
+    "timers": {
+     "t1": {
+      "elapsedMs": 1500,
+      "cycles": 2,
+      "running": 1
+     },
+     "t2": null
+    },
+    "cxBack": {
+     "2": "b1",
+     "3": {
+      "id": "b2",
+      "t": 99
+     },
+     "x": "b"
+    },
+    "extraTimers": [
+     {
+      "id": "e1",
+      "label": "PA",
+      "seconds": 300,
+      "autoloop": true
+     },
+     null
+    ],
+    "extraCounters": [
+     {
+      "label": "Chocs"
+     }
+    ],
+    "linkArm": {
+     "t1": {
+      "b": "b1",
+      "x": "7"
+     }
+    },
+    "events": [
+     {
+      "id": "e1",
+      "t": "100",
+      "label": "Renommé",
+      "ref": {
+       "type": "counter",
+       "id": "n1",
+       "v": 2.6
+      }
+     },
+     {
+      "id": "e2",
+      "t": 5,
+      "ref": {
+       "type": "core",
+       "k": "renfort"
+      },
+      "voidAt": null
+     },
+     {
+      "id": "e3",
+      "t": 6,
+      "ref": {
+       "type": "core",
+       "k": "nope"
+      }
+     },
+     {
+      "id": "e4",
+      "ref": {
+       "type": "step",
+       "b": "b1",
+       "i": "2"
+      }
+     },
+     {
+      "id": "e5",
+      "ref": {
+       "type": "poso",
+       "i": -1
+      }
+     },
+     {
+      "id": "e6",
+      "ref": {
+       "type": "tag",
+       "k": "x"
+      },
+      "a": "acteur",
+      "annex": true
+     },
+     null,
+     "str"
+    ],
+    "futureField": [
+     1,
+     2
+    ]
+   }
+  },
+  "output": {
+   "id": "s1",
+   "ficheId": "f1",
+   "ficheTitle": "T",
+   "name": "n",
+   "startedAt": 12,
+   "savedAt": 5,
+   "live": true,
+   "exercise": false,
+   "checked": {
+    "1:b1:0": true,
+    "2:b2:3": 1
+   },
+   "nav": [
+    "b1",
+    "b2",
+    "bmunv8rwz1y0xh10i"
+   ],
+   "navSeq": [
+    1,
+    2,
+    1
+   ],
+   "counters": {
+    "n1": 3,
+    "n2": 0
+   },
+   "timers": {
+    "t1": {
+     "elapsedMs": 1500,
+     "cycles": 2,
+     "running": true,
+     "stoppedAt": 0
+    },
+    "t2": {
+     "elapsedMs": 0,
+     "cycles": 0,
+     "running": false,
+     "stoppedAt": 0
+    }
+   },
+   "cxBack": {
+    "2": {
+     "id": "b1",
+     "t": 0
+    },
+    "3": {
+     "id": "b2",
+     "t": 99
+    }
+   },
+   "extraTimers": [
+    {
+     "id": "e1",
+     "label": "PA",
+     "seconds": 300,
+     "autoloop": true
+    },
+    {
+     "id": "tmunv8rwz1np1w6e1",
+     "label": "",
+     "seconds": 0,
+     "autoloop": false
+    }
+   ],
+   "extraCounters": [
+    {
+     "id": "nmunv8rwz9tg0a48q",
+     "label": "Chocs"
+    }
+   ],
+   "linkArm": {
+    "t1": {
+     "b": "b1",
+     "x": 7
+    }
+   },
+   "events": [
+    {
+     "id": "e1",
+     "t": 100,
+     "label": "Renommé",
+     "ref": {
+      "type": "counter",
+      "id": "n1",
+      "v": 3
+     }
+    },
+    {
+     "id": "e2",
+     "t": 5,
+     "ref": {
+      "type": "core",
+      "k": "renfort"
+     },
+     "voidAt": 0
+    },
+    {
+     "id": "e3",
+     "t": 6
+    },
+    {
+     "id": "e4",
+     "ref": {
+      "type": "step",
+      "b": "b1",
+      "i": 2
+     },
+     "t": 0
+    },
+    {
+     "id": "e5",
+     "t": 0
+    },
+    {
+     "id": "e6",
+     "ref": {
+      "type": "tag",
+      "k": "x"
+     },
+     "a": "acteur",
+     "annex": true,
+     "t": 0
+    }
+   ],
+   "futureField": [
+    1,
+    2
+   ],
+   "aidRev": 0,
+   "verified": {},
+   "vgaps": {},
+   "stepTexts": {}
+  }
+ },
+ {
+  "input": {
+   "fn": "sanitizeSession",
+   "arg": {
+    "nav": [
+     "a"
+    ],
+    "navSeq": []
+   }
+  },
+  "output": {
+   "nav": [],
+   "navSeq": [],
+   "ficheId": "fmunv8rx01fi0zk41",
+   "ficheTitle": "",
+   "name": "",
+   "startedAt": 0,
+   "savedAt": 0,
+   "aidRev": 0,
+   "live": false,
+   "exercise": false,
+   "checked": {},
+   "verified": {},
+   "vgaps": {},
+   "stepTexts": {},
+   "counters": {},
+   "timers": {},
+   "cxBack": {},
+   "extraTimers": [],
+   "extraCounters": [],
+   "linkArm": {},
+   "events": []
+  }
+ },
+ {
+  "input": {
+   "fn": "migrateProtocol",
+   "arg": {
+    "id": "p1",
+    "title": "Référence",
+    "body": "# Titre\n\nTexte",
+    "sources": [
+     "a"
+    ],
+    "status": "draft",
+    "order": 1700000000000,
+    "attachments": [
+     {
+      "id": "d"
+     }
+    ],
+    "libraryId": "L",
+    "extraX": 1,
+    "dirty": true
+   }
+  },
+  "output": {
+   "id": "p1",
+   "title": "Référence",
+   "body": "# Titre\n\nTexte",
+   "sources": [
+    "a"
+   ],
+   "status": "draft",
+   "order": 1700000000000,
+   "attachments": [
+    {
+     "id": "d"
+    }
+   ],
+   "libraryId": "L",
+   "extraX": 1,
+   "validatedAt": "",
+   "category": "",
+   "images": [],
+   "docs": [],
+   "code": "",
+   "discriminant": "",
+   "links": [],
+   "updatedBy": "",
+   "updatedAt": 1700000000000,
+   "deletedAt": null,
+   "ownerId": null,
+   "library": null
+  }
+ },
+ {
+  "input": {
+   "fn": "migrateProtocol",
+   "arg": {
+    "id": "bad id",
+    "order": 1700000000001,
+    "body": 12,
+    "docs": [
+     {
+      "id": "d1",
+      "name": "doc"
+     }
+    ]
+   }
+  },
+  "output": {
+   "id": "pmunv8rx18k9mzlze",
+   "order": 1700000000001,
+   "body": "12",
+   "docs": [
+    {
+     "id": "d1",
+     "name": "doc.pdf",
+     "size": 0
+    }
+   ],
+   "title": "",
+   "validatedAt": "",
+   "category": "",
+   "images": [],
+   "status": "validated",
+   "code": "",
+   "discriminant": "",
+   "links": [],
+   "updatedBy": "",
+   "updatedAt": 1700000000001,
+   "deletedAt": null,
+   "ownerId": null,
+   "library": null,
+   "sources": []
+  }
+ },
+ {
+  "input": {
+   "fn": "sanitizeCats",
+   "arg": [
+    {
+     "id": "c1",
+     "name": "Urgences",
+     "color": "#1f5fa6",
+     "library": "L1"
+    },
+    {
+     "id": "__proto__",
+     "name": 5,
+     "color": "red"
+    },
+    null
+   ]
+  },
+  "output": [
+   {
+    "id": "c1",
+    "name": "Urgences",
+    "color": "#1f5fa6",
+    "library": "L1"
+   },
+   {
+    "id": "cmunv8rx21k7zuox1",
+    "name": "5",
+    "color": "#45556b",
+    "library": null
+   },
+   {
+    "id": "cmunv8rx21d6o4io1",
+    "name": "",
+    "color": "#45556b",
+    "library": null
+   }
+  ]
+ },
+ {
+  "input": {
+   "fn": "sanitizeNotes",
+   "arg": {
+    "f1": {
+     "t": "note",
+     "at": 5,
+     "dirty": true
+    },
+    "bad id": {
+     "t": "x"
+    },
+    "f2": "str",
+    "f3": {
+     "t": 7
+    }
+   }
+  },
+  "output": {
+   "f1": {
+    "t": "note",
+    "at": 5,
+    "dirty": true
+   },
+   "f3": {
+    "t": "7",
+    "at": 0
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "2026-01"
+  },
+  "output": "2026-01"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "2026-13"
+  },
+  "output": ""
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "202602"
+  },
+  "output": "2026-02"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "022026"
+  },
+  "output": "2026-02"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "janvier 2026"
+  },
+  "output": "2026-01"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "fév 26"
+  },
+  "output": "2026-02"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "01/2026"
+  },
+  "output": "2026-01"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "2026/01"
+  },
+  "output": "2026-01"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "1-2026"
+  },
+  "output": "2026-01"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "12/25"
+  },
+  "output": "2025-12"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "rien"
+  },
+  "output": ""
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": ""
+  },
+  "output": ""
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "Déc. 2024"
+  },
+  "output": "2024-12"
+ },
+ {
+  "input": {
+   "fn": "parseValidation",
+   "arg": "7 2031"
+  },
+  "output": "2031-07"
+ }
+]

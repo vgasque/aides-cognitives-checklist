@@ -1,0 +1,675 @@
+[
+ {
+  "id": "ex-eme",
+  "title": "État de mal épileptique de l'adulte",
+  "category": "c-urgences",
+  "validation": "2025-01",
+  "status": "draft",
+  "localInfo": "Avis neurologue / réanimateur : …\nEmplacement des anti-épileptiques de 2e ligne : …\n(adaptez à votre établissement)",
+  "confirmation": [
+   "Crise convulsive ≥ 5 min",
+   "Ou crises répétées sans reprise de conscience entre les crises"
+  ],
+  "verify": [
+   "Glycémie capillaire dès l'abord",
+   "Voie veineuse, monitorage, O₂",
+   "Heure de début notée → démarrer le chrono"
+  ],
+  "notForget": [
+   "Hypoglycémie : à corriger immédiatement",
+   "Benzodiazépine à dose pleine, sans délai (sous-dosage = échec)",
+   "Rechercher la cause : toxique, sevrage, lésion, infection, métabolique",
+   "Grossesse → penser éclampsie : MgSO₄ (protocole)"
+  ],
+  "differentials": [
+   "Crises psychogènes non épileptiques",
+   "Syncope convulsivante",
+   "Mouvements anormaux d'autre origine (frissons, décérébration…)"
+  ],
+  "references": [
+   "Exemple à relire et compléter — recommandations en vigueur (SFMU / SRLF / ILAE)"
+  ],
+  "images": [],
+  "timers": [
+   {
+    "id": "ex-eme-t1",
+    "label": "Durée totale",
+    "type": "stopwatch"
+   },
+   {
+    "id": "ex-eme-t2",
+    "label": "Réévaluation (5 min)",
+    "type": "interval",
+    "seconds": 300,
+    "autoloop": true
+   }
+  ],
+  "counters": [
+   {
+    "id": "ex-eme-c1",
+    "label": "Doses de benzodiazépine",
+    "step": 1,
+    "start": 0
+   }
+  ],
+  "start": "ex-eme-b1",
+  "blocks": [
+   {
+    "id": "ex-eme-b1",
+    "type": "steps",
+    "title": "1ʳᵉ ligne — mesures immédiates",
+    "image": null,
+    "steps": [
+     "Protéger le patient, libérer les voies aériennes, O₂",
+     "Glycémie capillaire → corriger une hypoglycémie",
+     "Benzodiazépine à dose pleine (protocole local)"
+    ],
+    "next": "ex-eme-d1"
+   },
+   {
+    "id": "ex-eme-d1",
+    "type": "decision",
+    "title": "Réévaluation à 5 min",
+    "image": null,
+    "question": "La crise persiste-t-elle ?",
+    "options": [
+     {
+      "label": "Oui — persiste",
+      "target": "ex-eme-b2"
+     },
+     {
+      "label": "Non — cédée",
+      "target": "ex-eme-b3"
+     }
+    ]
+   },
+   {
+    "id": "ex-eme-b2",
+    "type": "steps",
+    "title": "2ᵉ ligne",
+    "image": null,
+    "steps": [
+     "2ᵉ dose de benzodiazépine si non faite",
+     "Anti-épileptique de 2ᵉ ligne IV (protocole local)",
+     "Anticiper l'échec : avis réanimation, préparer l'ISR"
+    ],
+    "next": "ex-eme-d1"
+   },
+   {
+    "id": "ex-eme-b3",
+    "type": "steps",
+    "title": "Crise cédée",
+    "image": null,
+    "steps": [
+     "Surveillance rapprochée (récidive possible)",
+     "Rechercher et traiter la cause",
+     "EEG / imagerie / biologie selon contexte"
+    ],
+    "next": null
+   }
+  ],
+  "order": 1700000000000
+ },
+ {
+  "id": "ex-acc",
+  "title": "Accouchement inopiné en pré-hospitalier",
+  "category": "c-smur",
+  "validation": "2025-01",
+  "status": "draft",
+  "localInfo": "Régulation / renfort pédiatrique (SMUR néonatal) : …\nMaternité de secteur : …\n(adaptez à votre pratique)",
+  "confirmation": [
+   "Envie de pousser irrépressible / présentation visible à la vulve",
+   "Contractions rapprochées (< 3 min), travail rapide",
+   "Score d'imminence élevé (Malinas / SPIA selon pratique locale)"
+  ],
+  "verify": [
+   "Kit accouchement + matériel néonatal prêts (clamps, lange, bonnet)",
+   "Cellule / pièce chauffée, intimité préservée",
+   "Régulation prévenue : renfort pédiatrique, orientation"
+  ],
+  "notForget": [
+   "On n'empêche pas un accouchement imminent : s'installer plutôt que partir",
+   "Lutte contre l'hypothermie du nouveau-né : sécher, bonnet, peau à peau",
+   "Délivrance : ne JAMAIS tirer sur le cordon",
+   "Surveiller le saignement maternel (risque d'hémorragie du post-partum)"
+  ],
+  "differentials": [
+   "Faux travail (transport possible)",
+   "Urgence obstétricale associée : procidence du cordon, siège, hémorragie"
+  ],
+  "references": [
+   "Exemple à relire et compléter — recommandations en vigueur (SFMU / SFAR / ILCOR nouveau-né)"
+  ],
+  "images": [],
+  "timers": [
+   {
+    "id": "ex-acc-t1",
+    "label": "Temps depuis la naissance",
+    "type": "stopwatch"
+   },
+   {
+    "id": "ex-acc-t2",
+    "label": "Réévaluation Apgar (5 min)",
+    "type": "interval",
+    "seconds": 300,
+    "autoloop": true
+   }
+  ],
+  "counters": [],
+  "start": "ex-acc-b1",
+  "blocks": [
+   {
+    "id": "ex-acc-b1",
+    "type": "steps",
+    "title": "Préparation",
+    "image": null,
+    "steps": [
+     "Installer la patiente, intimité, chauffage",
+     "Kit accouchement ouvert, matériel néonatal à portée",
+     "Contact régulation : renfort / orientation"
+    ],
+    "next": "ex-acc-d1"
+   },
+   {
+    "id": "ex-acc-d1",
+    "type": "decision",
+    "title": "Imminence",
+    "image": null,
+    "question": "Accouchement imminent (envie de pousser, présentation visible) ?",
+    "options": [
+     {
+      "label": "Oui — sur place",
+      "target": "ex-acc-b2"
+     },
+     {
+      "label": "Non — transport",
+      "target": "ex-acc-b3"
+     }
+    ]
+   },
+   {
+    "id": "ex-acc-b2",
+    "type": "steps",
+    "title": "Accouchement sur place",
+    "image": null,
+    "steps": [
+     "Accompagner la sortie de la tête (ne pas tirer)",
+     "Vérifier un circulaire du cordon",
+     "Noter l'heure de naissance → démarrer le chrono",
+     "Sécher, stimuler, peau à peau, bonnet"
+    ],
+    "next": "ex-acc-d2"
+   },
+   {
+    "id": "ex-acc-d2",
+    "type": "decision",
+    "title": "État du nouveau-né",
+    "image": null,
+    "question": "Nouveau-né vigoureux (crie, tonique, respire) ?",
+    "options": [
+     {
+      "label": "Oui — vigoureux",
+      "target": "ex-acc-b4"
+     },
+     {
+      "label": "Non",
+      "target": "ex-acc-b5"
+     }
+    ]
+   },
+   {
+    "id": "ex-acc-b4",
+    "type": "steps",
+    "title": "Suites & délivrance",
+    "image": null,
+    "steps": [
+     "Apgar à 1, 5 et 10 min (minuteur)",
+     "Clampage du cordon selon protocole local",
+     "Délivrance : surveiller, ne pas tirer sur le cordon",
+     "Surveiller le saignement maternel",
+     "Transport mère + enfant au chaud"
+    ],
+    "next": null
+   },
+   {
+    "id": "ex-acc-b5",
+    "type": "steps",
+    "title": "Nouveau-né non vigoureux",
+    "image": null,
+    "steps": [
+     "Sécher, stimuler, libérer les voies aériennes",
+     "Ventilation au masque : insufflations initiales puis réévaluer (protocole)",
+     "FC < 60/min malgré ventilation efficace → MCE (protocole)",
+     "Renfort pédiatrique / SMUR néonatal"
+    ],
+    "next": "ex-acc-d2"
+   },
+   {
+    "id": "ex-acc-b3",
+    "type": "steps",
+    "title": "Transport avant accouchement",
+    "image": null,
+    "steps": [
+     "Installation adaptée, surveillance continue",
+     "Kit accouchement à portée de main pendant le trajet",
+     "Réévaluer l'imminence en route"
+    ],
+    "next": "ex-acc-d1"
+   }
+  ],
+  "order": 1700000000001
+ },
+ {
+  "id": "fx1",
+  "title": "Anaphylaxie",
+  "discriminant": "adulte",
+  "code": "ANA",
+  "category": "c-urg",
+  "validatedAt": "janv 2026",
+  "status": "review",
+  "order": 1700000000001,
+  "updatedAt": 1700000000500,
+  "local": "Tél renfort : à compléter",
+  "sources": [
+   "Réf 1",
+   null,
+   5
+  ],
+  "items": [
+   {
+    "id": "i1",
+    "role": "dose",
+    "do": "ADRÉNALINE IM 0,5 mg",
+    "level": 2
+   },
+   {
+    "id": "i2",
+    "role": "do",
+    "do": "Adrénaline IM",
+    "expect": "0,5 mg",
+    "level": 3,
+    "memory": true,
+    "dual": true,
+    "counts": "n1",
+    "poso": "i1",
+    "repeat": "due"
+   },
+   {
+    "id": "i3",
+    "role": "do",
+    "do": "Recherche causes",
+    "review": "rv"
+   },
+   {
+    "id": "i4",
+    "role": "do",
+    "do": "Choc",
+    "starts": "t1",
+    "counts": "n1",
+    "from": {
+     "counter": "n1",
+     "n": 3
+    }
+   },
+   {
+    "id": "i5",
+    "role": "entry",
+    "do": "Urticaire"
+   },
+   {
+    "id": "i6",
+    "role": "weird",
+    "do": "x",
+    "level": "7",
+    "poso": "i5"
+   },
+   {
+    "id": "i7",
+    "role": "do",
+    "do": "y",
+    "from": {
+     "counter": "zz",
+     "n": 2
+    },
+    "starts": "tX"
+   }
+  ],
+  "excursions": [
+   {
+    "label": "Bronchospasme",
+    "target": "bx",
+    "short": "  Bronch.  "
+   },
+   {
+    "label": "",
+    "target": "bx"
+   },
+   {
+    "label": "Sans cible"
+   },
+   {
+    "label": "ACR",
+    "target": "other-fiche"
+   }
+  ],
+  "blocks": [
+   {
+    "id": "b1",
+    "kind": "do",
+    "title": "Mesures",
+    "phase": "Immédiate",
+    "items": [
+     "i2",
+     "i4",
+     "Nouvelle étape",
+     "⚠ Crit :: rép",
+     "",
+     "   ",
+     {
+      "id": "inl",
+      "do": "inline"
+     }
+    ],
+    "next": "bd",
+    "nextLbl": "Réévaluer",
+    "timer": "t1",
+    "milestones": [
+     {
+      "at": "count",
+      "n": 3,
+      "counter": "n1",
+      "text": "3 doses",
+      "go": "bx"
+     },
+     {
+      "at": "pass",
+      "n": 0,
+      "text": "x"
+     },
+     {
+      "at": "count",
+      "n": 2,
+      "counter": "zz",
+      "text": "y"
+     },
+     {
+      "at": "pass",
+      "n": 150,
+      "text": "z",
+      "go": "nope"
+     }
+    ],
+    "custom": {
+     "a": 1
+    }
+   },
+   {
+    "id": "bd",
+    "type": "decision",
+    "title": "Réévaluation",
+    "question": "Amélioré ?",
+    "options": [
+     {
+      "label": "Oui",
+      "target": "b2"
+     },
+     {
+      "label": "Non",
+      "target": "missing"
+     },
+     null
+    ],
+    "items": [
+     "raw"
+    ],
+    "next": "b1"
+   },
+   {
+    "id": "b2",
+    "kind": "do",
+    "title": "Stabilisé",
+    "items": [
+     "i3"
+    ],
+    "next": null,
+    "timer": "tNope"
+   },
+   {
+    "id": "bx",
+    "kind": "do",
+    "title": "Bronchospasme",
+    "items": [
+     "Salbutamol"
+    ],
+    "next": null
+   },
+   {
+    "id": "rv",
+    "kind": "review",
+    "title": "4H / 4T",
+    "items": [
+     "Hypoxie",
+     "Hypovolémie"
+    ],
+    "next": "b1",
+    "nextLbl": "x",
+    "timer": "t1",
+    "milestones": [
+     {
+      "at": "pass",
+      "n": 1,
+      "text": "t"
+     }
+    ]
+   },
+   {
+    "id": "b1",
+    "kind": "steps",
+    "title": "Doublon d'id",
+    "items": []
+   }
+  ],
+  "start": "b1",
+  "timers": [
+   {
+    "id": "t1",
+    "label": "Réévaluation",
+    "type": "interval",
+    "seconds": "300",
+    "autoloop": 1,
+    "onDue": "Réévaluer"
+   },
+   {
+    "id": "t1",
+    "label": "Doublon",
+    "type": "x",
+    "seconds": 999999
+   },
+   {
+    "label": "sans id",
+    "seconds": -5.5
+   }
+  ],
+  "counters": [
+   {
+    "id": "n1",
+    "label": "Adrénaline",
+    "step": 0,
+    "start": -3,
+    "timerId": "t1",
+    "short": "Adré"
+   },
+   {
+    "id": "n2",
+    "label": "B",
+    "step": "2.5",
+    "start": "12",
+    "timerId": "__proto__"
+   }
+  ],
+  "images": [
+   {
+    "id": "im1",
+    "data": "data:image/png;base64,iVBORw0KGgo=",
+    "w": "100",
+    "h": 50.6,
+    "caption": "Légende",
+    "scale": 33
+   },
+   {
+    "id": "im2",
+    "data": "javascript:alert(1)"
+   },
+   {
+    "id": "__proto__",
+    "data": "data:image/webp;base64,AAAA",
+    "scale": 42
+   }
+  ],
+  "docs": [
+   {
+    "id": "d1",
+    "name": "proto",
+    "size": 123.4
+   },
+   {
+    "id": "bad id",
+    "name": "x.pdf"
+   },
+   {
+    "id": "d2",
+    "name": "../../etc/passwd.PDF",
+    "size": 99999999999
+   }
+  ],
+  "links": [
+   "f2",
+   "__proto__",
+   "bad id",
+   5
+  ],
+  "ownerId": "u-1",
+  "library": "lib-1",
+  "deletedAt": null,
+  "dirty": 1,
+  "futureField": {
+   "keep": true
+  }
+ },
+ {
+  "id": "__proto__",
+  "title": {
+   "x": 1
+  },
+  "code": [
+   "A",
+   "B"
+  ],
+  "category": "#fff\"><img onerror=alert(1)>",
+  "status": "???",
+  "order": 1700000000002,
+  "validatedAt": "13/2026",
+  "confirmation": [
+   "⚠️ critique",
+   "△ vigilance :: rép",
+   "!exclam",
+   "",
+   null,
+   {
+    "id": "cx1",
+    "text": "obj",
+    "note": "n"
+   },
+   {
+    "text": "   "
+   }
+  ],
+  "notForget": [
+   "mémoire"
+  ],
+  "posology": [
+   "dose"
+  ],
+  "blocks": [
+   {
+    "id": "x\"onerror",
+    "title": 5,
+    "image": "data:image/png;base64,\"><script>",
+    "items": [
+     "s1"
+    ],
+    "next": "x\"onerror"
+   },
+   null,
+   "str",
+   {
+    "kind": "decision",
+    "options": [
+     {
+      "target": null
+     }
+    ]
+   }
+  ],
+  "timers": "nope",
+  "counters": [
+   null
+  ],
+  "excursions": "x",
+  "images": null,
+  "libraryId": "__proto__",
+  "localInfo": "ancien",
+  "related": [
+   "f9"
+  ],
+  "references": [
+   "r"
+  ]
+ },
+ {
+  "order": 1700000000003,
+  "title": "Plate",
+  "steps": [
+   "a",
+   "b"
+  ]
+ },
+ {
+  "order": 1700000000004,
+  "validatedAt": "202602",
+  "blocks": [
+   {
+    "id": "a"
+   },
+   {
+    "id": "a"
+   }
+  ],
+  "start": "zz"
+ },
+ {
+  "order": 1700000000005,
+  "validatedAt": "022026"
+ },
+ {
+  "order": 1700000000006,
+  "validatedAt": "fév. 26"
+ },
+ {
+  "order": 1700000000007,
+  "validatedAt": "2026/01"
+ },
+ {
+  "order": 1700000000008,
+  "validatedAt": "1-2026"
+ },
+ {
+  "order": 1700000000009,
+  "validatedAt": "n'importe quoi de très long"
+ },
+ {
+  "order": 1700000000010,
+  "updatedAt": "x",
+  "deletedAt": 12
+ }
+]

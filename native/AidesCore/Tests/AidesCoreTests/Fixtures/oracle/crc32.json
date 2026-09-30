@@ -1,0 +1,14 @@
+[
+ {
+  "input": "",
+  "output": 0
+ },
+ {
+  "input": "bonjour",
+  "output": 2780229832
+ },
+ {
+  "input": "é€𝄞",
+  "output": 2602858998
+ }
+]

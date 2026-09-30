@@ -15,3 +15,9 @@ node_modules/
 
 # État du lanceur d'audits (cache de passe verte + rouges à rejouer) — jamais versionné.
 /.audit-etat.json
+
+# Application native (native/) : sorties de compilation et projet Xcode GÉNÉRÉ par XcodeGen.
+/native/AidesCore/.build/
+/native/*.xcodeproj/
+/native/DerivedData/
+xcuserdata/
