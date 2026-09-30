@@ -368,6 +368,7 @@ struct EdTitleBlock: View {
     var body: some View {
         let n = EdKit.reviewNotes(ed.d).count
         let s = EdSaveText.text(ed.save, at: ed.savedAt, short: wc == .phone)
+        let revLabel: String = "\(n) remarque" + (n > 1 ? "s" : "") + " de relecture — aucune n’empêche d’enregistrer"
         VStack(spacing: 1) {
             Text(JS.trim(ed.d.title).isEmpty ? "Nouvelle fiche" : ed.d.title)
                 .aFont(TypeScale.item, .bold).foregroundStyle(T.ink).lineLimit(1)
@@ -383,8 +384,8 @@ struct EdTitleBlock: View {
                         Text("△ \(n)").foregroundStyle(T.warn).padding(.horizontal, 6).background(T.warnSoft, in: Capsule())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("\(n) remarque" + (n > 1 ? "s" : "") + " de relecture — aucune n’empêche d’enregistrer")
-                    .help("\(n) remarque" + (n > 1 ? "s" : "") + " de relecture — aucune n’empêche d’enregistrer")
+                    .accessibilityLabel(revLabel)
+                    .help(revLabel)
                 }
             }
             .aFont(TypeScale.cap, .semibold)
