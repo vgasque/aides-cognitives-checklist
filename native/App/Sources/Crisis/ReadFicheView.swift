@@ -67,65 +67,67 @@ struct CrisisScreen: View {
     @Environment(AppModel.self) private var model
     @Environment(\.textScale) private var textScale
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var lastStarted = false
+    @State private var width: CGFloat = 390
 
     var body: some View {
         let _ = model.rev
         @Bindable var b = vs
-        GeometryReader { geo in
-            let w = geo.size.width / max(0.5, textScale)
-            let ctx = CrCtx(R: R, f: R.fiche, e: model.engine, plan: CrisisPure.flowPlan(R.fiche),
-                            now: JS.now(), w: w, wc: WidthClass.of(w))
-            layout(ctx)
-                .environment(\.widthClass, ctx.wc)
-        }
-        .background(T.amb.ignoresSafeArea())
-        .navigationTitle(R.fiche.title.isEmpty ? "Aide" : R.fiche.title)
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        .toolbar { toolbarContent }
-        .sheet(item: $b.sheet) { s in CrSheetHost(sheet: s, R: R, vs: vs) }
-        #if os(iOS)
-        .fullScreenCover(isPresented: $b.monitorOpen) { CrMonitorView(R: R, vs: vs) }
-        #else
-        .sheet(isPresented: $b.monitorOpen) { CrMonitorView(R: R, vs: vs).frame(minWidth: 720, minHeight: 520) }
-        #endif
-        .confirmationDialog("Recommencer le parcours ?", isPresented: $b.confirmRestart, titleVisibility: .visible) {
-            Button("Recommencer", role: .destructive) { act.restartCourse() }
-            Button("Annuler", role: .cancel) {}
-        } message: {
-            Text("Le chemin parcouru est effacé et l’aide repart du début. Le chrono de session, les minuteurs, les compteurs et le compte-rendu sont CONSERVÉS.")
-        }
-        .confirmationDialog(R.exercise ? "Nouvel exercice ?" : "Passer en exercice ?", isPresented: $b.confirmExercise, titleVisibility: .visible) {
-            Button(R.exercise ? "Nouvel exercice" : "Terminer et exercer", role: .destructive) { act.armExercise() }
-            Button("Annuler", role: .cancel) {}
-        } message: {
-            Text(R.exercise ? "Un exercice est déjà en cours. En recommencer un nouveau ?"
-                 : "Une session réelle est en cours sur cette fiche. La terminer pour passer en exercice ? Elle est archivée — son compte-rendu reste disponible.")
-        }
-        .overlay {
-            if vs.flashOn {
-                T.warnSys.opacity(0.4).ignoresSafeArea().allowsHitTesting(false).transition(.opacity)
+        let w = width / max(0.5, textScale)
+        let ctx = CrCtx(R: R, f: R.fiche, e: model.engine, plan: CrisisPure.flowPlan(R.fiche),
+                        now: JS.now(), w: w, wc: WidthClass.of(w))
+        layout(ctx)
+            .environment(\.widthClass, ctx.wc)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+            .background(T.amb.ignoresSafeArea())
+            // Barre de navigation SYSTÈME : titre = l'aide, retour automatique, ⋯ en menu.
+            .navigationTitle(R.fiche.title.isEmpty ? "Aide" : R.fiche.title)
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar { toolbarContent }
+            .sheet(item: $b.sheet) { s in CrSheetHost(sheet: s, R: R, vs: vs) }
+            #if os(iOS)
+            .fullScreenCover(isPresented: $b.monitorOpen) { CrMonitorView(R: R, vs: vs) }
+            #else
+            .sheet(isPresented: $b.monitorOpen) { CrMonitorView(R: R, vs: vs).frame(minWidth: 720, minHeight: 520) }
+            #endif
+            .confirmationDialog("Recommencer le parcours ?", isPresented: $b.confirmRestart, titleVisibility: .visible) {
+                Button("Recommencer", role: .destructive) { act.restartCourse() }
+                Button("Annuler", role: .cancel) {}
+            } message: {
+                Text("Le chemin parcouru est effacé et l’aide repart du début. Le chrono de session, les minuteurs, les compteurs et le compte-rendu sont CONSERVÉS.")
             }
-        }
-        .overlay {
-            if vs.endOpen { CrEndDialog(R: R, vs: vs) }
-        }
-        .onAppear {
-            lastStarted = R.started
-            model.applyWake(crisisOnScreen: R.started)
-            primeWatch()
-        }
-        .onDisappear { model.applyWake(crisisOnScreen: false) }
-        .onChange(of: model.rev) { _, _ in watch() }
-        .onChange(of: scenePhase) { _, p in
-            // Q2 : au retour après ≥ 2 min, la carte vive le dit (sans son, sans fenêtre, sans défilement).
-            guard p == .active, R.started else { return }
-            let last = R.lastActAt ?? R.startedAt
-            if JS.now() - last >= 120_000 { vs.resumeSince = last }
-        }
+            .confirmationDialog(R.exercise ? "Nouvel exercice ?" : "Passer en exercice ?", isPresented: $b.confirmExercise, titleVisibility: .visible) {
+                Button(R.exercise ? "Nouvel exercice" : "Terminer et exercer", role: .destructive) { act.armExercise() }
+                Button("Annuler", role: .cancel) {}
+            } message: {
+                Text(R.exercise ? "Un exercice est déjà en cours. En recommencer un nouveau ?"
+                     : "Une session réelle est en cours sur cette fiche. La terminer pour passer en exercice ? Elle est archivée — son compte-rendu reste disponible.")
+            }
+            .overlay {
+                if vs.flashOn {
+                    T.warnSys.opacity(0.4).ignoresSafeArea().allowsHitTesting(false).transition(.opacity)
+                }
+            }
+            .overlay {
+                if vs.endOpen { CrEndDialog(R: R, vs: vs) }
+            }
+            .onAppear {
+                // Préférence « Ouvrir les aides en » : la Page (mode statique) plutôt qu'un bloc.
+                if !vs.readModeApplied { vs.readModeApplied = true; if model.readMode == "static" && ctx.hasFlow { vs.showAll = true } }
+                lastStarted = R.started
+                model.applyWake(crisisOnScreen: R.started)
+                primeWatch()
+            }
+            .onDisappear { model.applyWake(crisisOnScreen: false) }
+            .onChange(of: model.rev) { _, _ in watch() }
+            .onChange(of: scenePhase) { _, p in
+                // Q2 : au retour après ≥ 2 min, la carte vive le dit (sans son, sans fenêtre, sans défilement).
+                guard p == .active, R.started else { return }
+                let last = R.lastActAt ?? R.startedAt
+                if JS.now() - last >= 120_000 { vs.resumeSince = last }
+            }
     }
 
     private var act: CrAct { CrAct(model: model, vs: vs, R: R) }
@@ -139,6 +141,7 @@ struct CrisisScreen: View {
             if showCol {
                 CrCockpitColumn(ctx: ctx, vs: vs)
                     .frame(width: 240)
+                    .padding(.leading, 20)
                     .accessibilitySortPriority(0)
             }
             CrActionColumn(ctx: ctx, vs: vs)
@@ -147,27 +150,31 @@ struct CrisisScreen: View {
             if ctx.wc != .phone {
                 CrRail(ctx: ctx, vs: vs)
                     .frame(width: ctx.w >= 1000 ? 320 : 280)
+                    .padding(.trailing, 20)
                     .accessibilitySortPriority(1)
             }
         }
-        .padding(.horizontal, ctx.wc == .phone ? 0 : 20)
     }
 
-    // MARK: En-tête
+    // MARK: Barre d'outils (symboles SF, ⋯ en menu système)
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) { CrBrandBar(R: R) }
         ToolbarItemGroup(placement: .primaryAction) {
             Button {
                 let all = ThemePref.allCases
                 let i = all.firstIndex(of: model.theme) ?? 0
                 model.theme = all[(i + 1) % all.count]
             } label: {
-                Image(systemName: "circle.lefthalf.filled").frame(width: Ctrl.m, height: Ctrl.m)
+                Image(systemName: "circle.lefthalf.filled")
             }
             .accessibilityLabel("Thème — " + model.theme.label)
-            CrMoreButton(R: R, vs: vs)
+            Menu {
+                CrMoreMenu(R: R, vs: vs)
+            } label: {
+                Image(systemName: "ellipsis")
+            }
+            .accessibilityLabel("Actions")
         }
     }
 
@@ -217,69 +224,11 @@ struct CrisisScreen: View {
     }
 }
 
-/// Le bloc de marque de la barre : sur-titre « CATÉGORIE · CODE · MODE » + titre.
-struct CrBrandBar: View {
-    let R: RuntimeSession
-    @Environment(AppModel.self) private var model
-    @Environment(\.widthClass) private var wc
-
-    var body: some View {
-        let f = R.fiche
-        let cat = model.categories.first { $0.id == f.category }
-        VStack(spacing: 1) {
-            HStack(spacing: 5) {
-                if let cat { CategoryDot(color: cat.color, size: 8) }
-                Text(overline(cat: cat)).aFont(TypeScale.cap, .heavy).tracking(0.6)
-                    .foregroundStyle(modeColor).lineLimit(1)
-            }
-            if R.started || wc != .phone {
-                HStack(spacing: 4) {
-                    Text(f.title.isEmpty ? "Aide" : f.title)
-                        .aFont(wc == .phone ? TypeScale.item : TypeScale.step, wc == .phone ? .bold : .heavy)
-                        .foregroundStyle(T.ink).lineLimit(1)
-                    if !f.discriminant.isEmpty {
-                        Text("· " + f.discriminant).aFont(TypeScale.body, .semibold).foregroundStyle(T.ink2).lineLimit(1)
-                    }
-                }
-            }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
-    }
-    private var modeColor: Color { R.exercise ? T.act : T.ink2 }
-    private func overline(cat: Category?) -> String {
-        var parts: [String] = []
-        if let cat { parts.append(cat.name.uppercased()) }
-        if !R.fiche.code.isEmpty && wc != .phone { parts.append(R.fiche.code.uppercased()) }
-        if R.exercise { parts.append("▲ EXERCICE") }
-        else if R.started { parts.append("■ MODE CRISE") }
-        else if CrisisPure.hasFlow(R.fiche) { parts.append("AVANT LA SESSION") }
-        return parts.joined(separator: " · ")
-    }
-}
-
-/// Le bouton ⋯ et son menu (feuille basse au téléphone, bulle ancrée dès 780).
-struct CrMoreButton: View {
-    let R: RuntimeSession
-    let vs: CrisisViewState
-    var body: some View {
-        @Bindable var b = vs
-        Button { vs.menuOpen = true } label: {
-            Image(systemName: "ellipsis").frame(width: Ctrl.m, height: Ctrl.m)
-        }
-        .accessibilityLabel("Actions")
-        .popover(isPresented: $b.menuOpen) {
-            CrMoreMenu(R: R, vs: vs)
-                .frame(minWidth: 300, idealWidth: 320)
-                #if os(iOS)
-                .presentationDetents([.medium, .large])
-                #endif
-        }
-    }
-}
-
 // MARK: - La colonne d'action (capsule · journal · quai)
 
+/// Le CONTENU défile sous deux commandes FLOTTANTES en Liquid Glass « regular » : la capsule
+/// (état, en haut) et le quai (commandes, en bas), posées par `safeAreaInset` — le bord de
+/// défilement du système les sépare du contenu, rien n'est peint derrière elles.
 struct CrActionColumn: View {
     let ctx: CrCtx
     let vs: CrisisViewState
@@ -288,78 +237,51 @@ struct CrActionColumn: View {
     @State private var geom = CrGeomBox()
 
     var body: some View {
-        let avant = !ctx.started && ctx.hasFlow
-        VStack(spacing: 0) {
-            if ctx.started {
-                CrCapsule(ctx: ctx, vs: vs)
-                    .padding(.horizontal, ctx.narrow430 ? 12 : 14)
-                    .padding(.vertical, 8)
-                    .background(T.amb)
-            }
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        if ctx.R.exercise { CrExerciseBand(ctx: ctx, vs: vs) }
-                        CrPageHead(ctx: ctx)
-                        if avant {
-                            CrEntryView(ctx: ctx, vs: vs)
-                        } else if vs.showAll {
-                            CrAllView(ctx: ctx, vs: vs)
-                        } else {
-                            CrJournalView(ctx: ctx, vs: vs, geom: geom)
-                            CrSessionFolds(ctx: ctx, vs: vs)
-                            CrTail(ctx: ctx)
-                        }
-                    }
-                    .padding(.horizontal, ctx.narrow360 ? 12 : 16)
-                    .padding(.top, 8)
-                    .padding(.bottom, 32)
-                    .frame(maxWidth: 820, alignment: .leading)
-                    .frame(maxWidth: .infinity)
-                }
-                .coordinateSpace(name: "crScroll")
-                .background(GeometryReader { g in
-                    Color.clear
-                        .onAppear { geom.viewH = g.size.height }
-                        .onChange(of: g.size.height) { _, h in geom.viewH = h }
-                })
-                .overlay(alignment: .top) {
-                    if vs.voletOpen && ctx.wc == .phone && ctx.started {
-                        GeometryReader { g in
-                            ZStack(alignment: .top) {
-                                Color.black.opacity(0.001)
-                                    .onTapGesture { vs.voletOpen = false }
-                                    .accessibilityHidden(true)
-                                CrVolet(ctx: ctx, vs: vs)
-                                    .frame(maxHeight: g.size.height * 0.8, alignment: .top)
-                                    .padding(.horizontal, 14)
-                                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
-                            }
-                        }
+        let avant = !ctx.started && ctx.hasFlow && !vs.showAll
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    if ctx.R.exercise { CrExerciseBand(ctx: ctx, vs: vs) }
+                    CrPageHead(ctx: ctx)
+                    if avant {
+                        CrEntryView(ctx: ctx, vs: vs)
+                    } else if vs.showAll {
+                        CrAllView(ctx: ctx, vs: vs)
+                    } else {
+                        CrJournalView(ctx: ctx, vs: vs, geom: geom)
+                        CrSessionFolds(ctx: ctx, vs: vs)
+                        CrTail(ctx: ctx)
                     }
                 }
-                .overlay(alignment: .bottom) { bottomOverlays }
-                .onChange(of: vs.pendingScroll) { _, v in handleScroll(v, proxy) }
+                .padding(.horizontal, ctx.narrow360 ? 12 : 16)
+                .padding(.top, 8)
+                .padding(.bottom, 24)
+                .frame(maxWidth: 820, alignment: .leading)
+                .frame(maxWidth: .infinity)
             }
-            CrDock(ctx: ctx, vs: vs)
+            .coordinateSpace(.named("crScroll"))
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { geom.viewH = $0 }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if ctx.started {
+                    CrCapsule(ctx: ctx, vs: vs)
+                        .frame(maxWidth: 820)
+                        .padding(.horizontal, ctx.narrow430 ? 12 : 16)
+                        .padding(.vertical, 6)
+                }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(spacing: 8) {
+                    if ctx.started && !vs.tipVisible && !vs.showAll && ctx.tipIdx >= 0 {
+                        CrReturnBar(ctx: ctx, vs: vs)
+                    }
+                    CrDock(ctx: ctx, vs: vs)
+                }
+                .frame(maxWidth: 660)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+            }
+            .onChange(of: vs.pendingScroll) { _, v in handleScroll(v, proxy) }
         }
-    }
-
-    @ViewBuilder
-    private var bottomOverlays: some View {
-        VStack(spacing: 8) {
-            if ctx.started && !vs.tipVisible && !vs.showAll && ctx.tipIdx >= 0 && vs.dockSheet == .closed {
-                CrReturnBar(ctx: ctx, vs: vs)
-            }
-            switch vs.dockSheet {
-            case .closed: EmptyView()
-            case .stamp(let id): CrStampSheet(ctx: ctx, vs: vs, evId: id)
-            case .cx: CrCxSheet(ctx: ctx, vs: vs)
-            }
-        }
-        .frame(maxWidth: 660)
-        .padding(.horizontal, 14)
-        .padding(.bottom, 8)
     }
 
     /// Défilement DEMANDÉ : « !id » force, sinon seulement si la nouvelle carte n'est pas entièrement visible.
@@ -385,24 +307,27 @@ struct CrActionColumn: View {
 
 // MARK: - Tête de page, bande d'exercice, queue
 
-/// Titre de la page (téléphone, avant la session) + méta + notices d'état.
+/// Sur-titre « CATÉGORIE · CODE · MODE » (le titre est celui de la barre système : jamais écrit
+/// deux fois), discriminant, méta et notices d'état avant la session.
 struct CrPageHead: View {
     let ctx: CrCtx
     @Environment(AppModel.self) private var model
 
     var body: some View {
         let f = ctx.f
+        let cat = model.categories.first { $0.id == f.category }
         VStack(alignment: .leading, spacing: 6) {
-            if ctx.wc == .phone && !ctx.started {
-                Text(f.title.isEmpty ? "Aide" : f.title)
-                    .aFont(TypeScale.val, .heavy).foregroundStyle(T.ink)
-                    .accessibilityAddTraits(.isHeader)
-                if !f.discriminant.isEmpty {
-                    Text(f.discriminant).aFont(TypeScale.step, .semibold).foregroundStyle(T.ink2)
-                }
+            HStack(spacing: 5) {
+                if let cat { CategoryDot(color: cat.color, size: 8) }
+                Text(overline(cat: cat)).aFont(TypeScale.cap, .heavy).tracking(0.6)
+                    .foregroundStyle(ctx.R.exercise ? T.act : T.ink2).lineLimit(1)
+            }
+            .accessibilityElement(children: .combine)
+            if !f.discriminant.isEmpty && !ctx.started {
+                Text(f.discriminant).aFont(TypeScale.step, .semibold).foregroundStyle(T.ink2)
             }
             if !ctx.started {
-                meta
+                meta(cat: cat)
                 if f.status == .draft {
                     notice("Brouillon", " — cette fiche n'a pas encore été validée pour l'usage clinique.")
                 } else if f.status == .review {
@@ -410,13 +335,22 @@ struct CrPageHead: View {
                 }
             }
         }
-        .padding(.bottom, ctx.started ? 0 : 6)
+        .padding(.bottom, 6)
+    }
+
+    private func overline(cat: Category?) -> String {
+        var parts: [String] = []
+        if let cat { parts.append(cat.name.uppercased()) }
+        if !ctx.f.code.isEmpty && !ctx.narrow430 { parts.append(ctx.f.code.uppercased()) }
+        if ctx.R.exercise { parts.append("▲ EXERCICE") }
+        else if ctx.started { parts.append("■ MODE CRISE") }
+        else if ctx.hasFlow { parts.append("AVANT LA SESSION") }
+        return parts.joined(separator: " · ")
     }
 
     @ViewBuilder
-    private var meta: some View {
+    private func meta(cat: Category?) -> some View {
         let f = ctx.f
-        let cat = model.categories.first { $0.id == f.category }
         let lib = model.library.libraryName(f.library)
         HStack(spacing: 6) {
             if f.library != nil {
@@ -425,10 +359,7 @@ struct CrPageHead: View {
                     .accessibilityLabel("Bibliothèque partagée : " + (lib.isEmpty ? "Partagée" : lib))
                 Text("·")
             }
-            if let cat {
-                CategoryDot(color: cat.color, size: 8)
-                Text(cat.name)
-            }
+            if let cat { Text(cat.name) }
             if !f.code.isEmpty { Text("·"); Text(f.code).aFont(TypeScale.meta, .semibold, .mono) }
             if f.status == .validated {
                 Text("·")

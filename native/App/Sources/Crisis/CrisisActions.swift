@@ -53,7 +53,7 @@ struct CrAct {
     }
     func armExercise() {
         model.armExercise(R.fiche)
-        vs.ovFold = [:]; vs.verify = nil; vs.dockSheet = .closed
+        vs.ovFold = [:]; vs.verify = nil; vs.sheet = nil
     }
     func cancelExercise() {
         model.cancelExercise(R.fiche)
@@ -134,7 +134,7 @@ struct CrAct {
     // MARK: Complications (`cxGo` / `cxEnter` / `cxResume`)
 
     func cxGo(_ c: CrisisPure.Cx) {
-        vs.dockSheet = .closed
+        vs.sheet = nil
         guard c.isBlock else { model.openLinked(c.target); return }
         dropOpens()
         let navPos = R.nav.count - 1
@@ -217,16 +217,16 @@ struct CrAct {
 
     /// « Horodater » : l'HEURE est prise au tap ; la feuille ne fait que nommer.
     func stamp() {
-        if case .stamp = vs.dockSheet { vs.dockSheet = .closed; return }
+        if case .stamp? = vs.sheet { vs.sheet = nil; return }
         var id = ""
         run { e, R in id = e.stamp(R) }
-        vs.dockSheet = .stamp(id)
+        vs.sheet = .stamp(id)
     }
     func label(_ id: String, _ text: String) { run { e, R in e.labelEvent(R, id, text) } }
     func tag(_ id: String, _ cand: CrisisPure.TagCand) {
         run { e, R in e.tagEvent(R, id, ref: cand.ref) }
         if cand.type == "counter", let ev = R.events.first(where: { $0.id == id }) {
-            let nm = Report.tagLabel(ev.ref, R.fiche, tags: model.library.tags) ?? cand.label
+            let nm = Live.tagLabel(ev.ref, R.fiche, tags: crTags(model), extra: CrisisPure.extra(R)) ?? cand.label
             crAnnounce("Compteur incrémenté : " + nm + " — repère horodaté")
         } else {
             crAnnounce("Repère étiqueté : " + cand.label)
@@ -241,8 +241,7 @@ struct CrAct {
     /// Confirmation MAINTENUE (1,2 s) : la session s'archive, puis retour à l'accueil.
     func endSession() {
         vs.endOpen = false
-        vs.dockSheet = .closed
-        vs.voletOpen = false
+        vs.sheet = nil
         vs.verify = nil
         vs.ovFold = [:]
         model.endSession(R)

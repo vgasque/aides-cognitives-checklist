@@ -82,7 +82,7 @@ struct CrTimersSection: View {
         let o = CrisisPure.tmLiveOrder(list, now: now)
         let ids = o.map(\.id)
         if vs.tmFrozen != ids {
-            DispatchQueue.main.async { vs.tmFrozen = ids }
+            Task { @MainActor in vs.tmFrozen = ids }
         }
         return o
     }
@@ -606,7 +606,7 @@ struct CrEventRow: View {
             .keyboardType(.numbersAndPunctuation)
             #endif
             .onSubmit {
-                if let h = CrisisPure.tkParseTime(timeText) {
+                if let h = Txt.tkParseTime(timeText) {
                     act.correctTime(ev.id, CrisisPure.correctedTime(ev.t, h))
                     editTime = false
                 } else {
@@ -617,7 +617,7 @@ struct CrEventRow: View {
             }
             .onChange(of: timeFocus) { _, f in
                 guard !f, editTime else { return }
-                if let h = CrisisPure.tkParseTime(timeText) { act.correctTime(ev.id, CrisisPure.correctedTime(ev.t, h)) }
+                if let h = Txt.tkParseTime(timeText) { act.correctTime(ev.id, CrisisPure.correctedTime(ev.t, h)) }
                 else { crAnnounce("Heure non reconnue — repère inchangé") }
                 editTime = false
             }
@@ -635,8 +635,7 @@ struct CrEventRow: View {
     private func suggestions(_ act: CrAct) -> some View {
         // SIMPLIFICATION : les compteurs ne sont pas proposés ici (l'étiquette d'un compteur
         // l'incrémente dans le moteur — `tagEvent` ; le volet ne COMPTE pas, B1 §15.4).
-        let all = CrisisPure.tagAll(ctx.f, tags: model.library.tags, R: ctx.R).filter { $0.type != "counter" }
-        let hits = CrisisPure.tagMatch(all, query: text)
+        let hits = CrisisPure.tagMatch(ctx.f, tags: crTags(model), R: ctx.R, query: text, excludeTypes: ["counter"])
         if !hits.isEmpty {
             CrWrap(spacing: 6) {
                 ForEach(Array(hits.enumerated()), id: \.offset) { _, c in
@@ -695,60 +694,56 @@ struct CrSettingsRow: View {
     }
 }
 
-// MARK: - Le volet du téléphone (matière système, suspendu sous la capsule)
+// MARK: - Le panneau du téléphone (feuille à détentes : l'écran de crise reste actif dessous)
 
-struct CrVolet: View {
-    let ctx: CrCtx
+struct CrPanelSheet: View {
+    let R: RuntimeSession
     let vs: CrisisViewState
-    var body: some View {
-        let shape = UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: Radius.r3,
-                                           bottomTrailingRadius: Radius.r3, topTrailingRadius: 0, style: .continuous)
-        // Court : il tient sans défileur ; long : il défile SEUL (jamais la page).
-        ViewThatFits(in: .vertical) {
-            inner
-            ScrollView { inner }.scrollDismissesKeyboard(.interactively)
-        }
-        .background(T.sys, in: shape)
-        .overlay(shape.stroke(T.sysEdge, lineWidth: 1))
-        .clipShape(shape)
-        .shadow(color: Color.black.opacity(0.3), radius: 16, y: 8)
-    }
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
 
-    private var inner: some View {
-        let pal = CrPal(sys: true)
-        let R = ctx.R
+    var body: some View {
+        let _ = model.rev
+        let ctx = CrCtx(R: R, f: R.fiche, e: model.engine, plan: CrisisPure.flowPlan(R.fiche), now: JS.now(), w: 390, wc: .phone)
+        let pal = CrPal(sys: false)
         let nT = R.orderedTimers.count
         let nC = ctx.f.counters.count + R.adhocCounters.count
-        let hasJalons = ctx.f.blocks.contains { !$0.milestones.isEmpty }
-        return VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Image(systemName: "stopwatch").foregroundStyle(pal.ink2)
-                CrFamHead(title: "Minuteurs", count: nT, pal: pal)
-                Spacer()
-                Button { vs.voletOpen = false } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(pal.ink2)
-                        .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
+        let nJ = ctx.f.blocks.reduce(0) { $0 + $1.milestones.count }
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    CrFamHead(title: "Minuteurs", count: nT, pal: pal)
+                    CrTimersSection(ctx: ctx, vs: vs, pal: pal)
+                    CrAddRow(ctx: ctx, vs: vs, pal: pal, showCounter: false)
+                    Divider()
+                    CrFamHead(title: "Compteurs", count: nC, pal: pal)
+                    CrCountersSection(ctx: ctx, vs: vs, pal: pal)
+                    CrAddRow(ctx: ctx, vs: vs, pal: pal, showTimer: false)
+                    if nJ > 0 {
+                        Divider()
+                        CrFamHead(title: "Jalons", count: nJ, pal: pal)
+                        CrJalonsSection(ctx: ctx, pal: pal)
+                    }
+                    Divider()
+                    CrFamHead(title: "Journal des actions", count: R.events.count, pal: pal)
+                    CrEventJournal(ctx: ctx, vs: vs, pal: pal)
+                    Divider()
+                    CrSettingsRow(pal: pal)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Replier les minuteurs et le journal")
+                .padding(16)
             }
-            CrTimersSection(ctx: ctx, vs: vs, pal: pal)
-            CrAddRow(ctx: ctx, vs: vs, pal: pal, showCounter: false)
-            Rectangle().fill(pal.line).frame(height: 1)
-            CrFamHead(title: "Compteurs", count: nC, pal: pal)
-            CrCountersSection(ctx: ctx, vs: vs, pal: pal)
-            CrAddRow(ctx: ctx, vs: vs, pal: pal, showTimer: false)
-            if hasJalons {
-                Rectangle().fill(pal.line).frame(height: 1)
-                CrFamHead(title: "Jalons", count: ctx.f.blocks.reduce(0) { $0 + $1.milestones.count }, pal: pal)
-                CrJalonsSection(ctx: ctx, pal: pal)
+            .scrollDismissesKeyboard(.interactively)
+            .background(T.amb)
+            .navigationTitle("Minuteurs")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { dismiss() } label: { Image(systemName: "checkmark") }
+                        .accessibilityLabel("Replier les minuteurs et le journal")
+                }
             }
-            Rectangle().fill(pal.line).frame(height: 1)
-            CrFamHead(title: "Journal des actions", count: R.events.count, pal: pal)
-            CrEventJournal(ctx: ctx, vs: vs, pal: pal)
-            Rectangle().fill(pal.line).frame(height: 1)
-            CrSettingsRow(pal: pal)
         }
-        .padding(14)
     }
 }

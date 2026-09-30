@@ -19,15 +19,13 @@ struct CrVerify: Equatable {
     var gaps: [Int]
 }
 
-/// Feuille du quai ouverte (`#dockSheet`) — une seule à la fois.
-enum CrDockSheet: Equatable {
-    case closed
+/// Fenêtres DEMANDÉES par l'utilisateur (jamais ouvertes seules : règle 11) — UNE à la fois.
+/// Les feuilles du quai (« Horodater », « Complications ») et le panneau des instruments du
+/// téléphone sont des feuilles à détentes qui laissent l'écran de crise actif dessous.
+enum CrSheet: Identifiable, Equatable {
     case stamp(String)   // id du repère posé
     case cx
-}
-
-/// Fenêtres DEMANDÉES par l'utilisateur (jamais ouvertes seules : règle 11).
-enum CrSheet: Identifiable, Equatable {
+    case panel
     case parcours
     case page
     case schema
@@ -36,6 +34,9 @@ enum CrSheet: Identifiable, Equatable {
     case export(URL)
     var id: String {
         switch self {
+        case .stamp(let s): return "stamp-" + s
+        case .cx: return "cx"
+        case .panel: return "panel"
         case .parcours: return "parcours"
         case .page: return "page"
         case .schema: return "schema"
@@ -52,9 +53,6 @@ final class CrisisViewState {
     /// Replis du journal : clé = index de visite (« 3 »), « r:3 » (ligne d'historique), « r:conf ».
     var ovFold: [String: Bool] = [:]
     var verify: CrVerify?
-    /// Volet du téléphone (minuteurs · compteurs · journal) — `state.rtOpen === 'dock'`.
-    var voletOpen = false
-    var dockSheet: CrDockSheet = .closed
     var tmAddOpen = false
     /// Cartes de minuteur dépliées dans le rail (commandes visibles).
     var railTimerOpen: Set<String> = []
@@ -95,6 +93,8 @@ final class CrisisViewState {
     var confirmDeleteTimer: String?
     var confirmDeleteCounter: String?
     var arrivalPlayed = false
+    /// « Ouvrir les aides en : toute la fiche (Page) » appliqué une fois à l'ouverture.
+    var readModeApplied = false
     var entryFoldLoaded = ""
     /// Cartes de l'écran d'entrée (par aide, mémorisées sur l'appareil).
     var preOpen: [String: Bool] = [:]

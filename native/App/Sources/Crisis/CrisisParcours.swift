@@ -85,11 +85,7 @@ struct CrParcoursList: View {
 
     /// `offPathSet` : blocs ni visités ni atteignables depuis la tête (session seulement).
     private func offPath() -> Set<String> {
-        let R = ctx.R
-        guard R.started, let head = R.nav.last else { return [] }
-        let reach = Graph.reach(ctx.f, from: head)
-        let seen = Set(R.nav)
-        return Set(ctx.f.blocks.map(\.id).filter { !reach.contains($0) && !seen.contains($0) })
+        CrisisPure.offPath(ctx.R)
     }
 }
 

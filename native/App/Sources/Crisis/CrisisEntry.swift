@@ -165,7 +165,7 @@ struct CrPosoRows: View {
                 VStack(spacing: 0) {
                     if i > 0 { Rectangle().fill(T.line).frame(height: 1) }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(p.name).aFont(TypeScale.item, .bold).foregroundStyle(it.level >= 2 ? T.warn : T.ink)
+                        if !p.name.isEmpty { Text(p.name).aFont(TypeScale.item, .bold).foregroundStyle(it.level >= 2 ? T.warn : T.ink) }
                         if !p.body.isEmpty { BoldText(text: p.body, size: TypeScale.body, weight: .semibold, color: T.ink2) }
                     }
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
@@ -184,26 +184,26 @@ struct CrPosoCards: View {
     var body: some View {
         let dose = Pool.list(ctx.f, .dose).map { JS.trim($0.legacyString) }.filter { !$0.isEmpty }
         let hay = ctx.tipBlock.map { b in b.title + " " + Graph.cleanSteps(ctx.f, b).joined(separator: " ") } ?? ""
-        let ranked = CrisisPure.posoRank(dose, hay: hay)
-        let head = ranked.count > 3 ? ranked.filter { $0.flagged || $0.score > 0 } : ranked
-        let headOk = head.isEmpty ? Array(ranked.prefix(3)) : head
-        let rest = ranked.count > 3 ? ranked.filter { r in !headOk.contains(where: { $0.s == r.s }) } : []
+        let sp = CrisisPure.posoSplit(dose, hay: hay)
+        let rest = sp.rest
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(Array(headOk.enumerated()), id: \.offset) { _, r in card(r.s, r.flagged) }
+            ForEach(Array(sp.head.enumerated()), id: \.offset) { _, r in card(r.s, r.crit) }
             if !rest.isEmpty {
                 Button { vs.posoMoreOpen.toggle() } label: {
                     Text((vs.posoMoreOpen ? "− " : "＋ ") + "\(rest.count) autres repères").aFont(TypeScale.body, .bold).foregroundStyle(T.act)
                         .frame(minHeight: Ctrl.l).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                if vs.posoMoreOpen { ForEach(Array(rest.enumerated()), id: \.offset) { _, r in card(r.s, r.flagged) } }
+                if vs.posoMoreOpen { ForEach(Array(rest.enumerated()), id: \.offset) { _, r in card(r.s, r.crit) } }
             }
         }
     }
     private func card(_ s: String, _ flagged: Bool) -> some View {
         let p = CrisisPure.posoParts(s)
         return VStack(alignment: .leading, spacing: 2) {
-            Text((flagged ? "△ " : "") + p.name.uppercased()).aFont(TypeScale.meta, .bold).foregroundStyle(flagged ? T.warn : T.ink2)
+            if !p.name.isEmpty || flagged {
+                Text((flagged ? "△ " : "") + p.name.uppercased()).aFont(TypeScale.meta, .bold).foregroundStyle(flagged ? T.warn : T.ink2)
+            }
             if !p.body.isEmpty { BoldText(text: p.body, size: TypeScale.body, weight: .semibold, color: T.ink) }
         }
         .padding(10)

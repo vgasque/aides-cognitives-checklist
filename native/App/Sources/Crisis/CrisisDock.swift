@@ -1,9 +1,10 @@
 import SwiftUI
 import AidesCore
 
-// LA CAPSULE (état, en haut) ET LE QUAI (commandes, en bas) — les deux seuls objets sombres de
-// l'écran (matière système), trouvables sans lire. Port de `updateRtStrip`, `#sessionDock`,
-// `#dockSheet`, `#blkReturn`.
+// LA CAPSULE (état, en haut) ET LE QUAI (commandes, en bas) — les deux COMMANDES FLOTTANTES du
+// mode crise, en Liquid Glass « regular » (jamais « clear ») ; le contenu défile dessous. Port de
+// `updateRtStrip`, `#sessionDock`, `#dockSheet`, `#blkReturn`. L'alarme y est portée par une
+// TEINTE ambre + « △ » + le mot (règle 8 : une couleur n'est jamais seule).
 
 // MARK: - Mise en rangée qui passe à la ligne (puces)
 
@@ -40,43 +41,38 @@ struct CrCapsule: View {
     let vs: CrisisViewState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    var body: some View {
-        let R = ctx.R
-        let now = ctx.now
-        let phone = ctx.wc == .phone
-        let shown = shownTimers()
-        Button {
-            if phone { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { vs.voletOpen.toggle() } }
-            else { vs.railScroll = "timers-\(Int(now))" }
-        } label: {
-            HStack(spacing: 6) {
-                globalSegment(R, now)
-                if phone {
-                    ViewThatFits(in: .horizontal) {
-                        ForEach(variants(shown), id: \.self) { v in
-                            row(shown, v)
-                        }
-                    }
-                } else {
-                    row(shown, Variant(n: min(2, shown.count), counter: false, recall: shown.isEmpty, chevron: false))
-                }
-            }
-            .padding(6)
-            .frame(maxWidth: .infinity, minHeight: ctx.narrow360 ? 56 : 64, alignment: .leading)
-            .background(T.sys, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous).strokeBorder(T.sysEdge, lineWidth: 1))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Minuteurs en cours — afficher le panneau")
-        .accessibilityValue(summary(shown, now))
-    }
-
     struct Variant: Hashable {
         var n: Int
         var counter: Bool
         var recall: Bool
         var chevron: Bool
+    }
+
+    var body: some View {
+        let phone = ctx.wc == .phone
+        let shown = shownTimers()
+        GlassEffectContainer(spacing: 6) {
+            HStack(spacing: 6) {
+                Button { tap(phone) } label: { globalSegment }
+                    .buttonStyle(.plain)
+                    .glassEffect(.regular.interactive(), in: .capsule)
+                    .accessibilityLabel(globalA11y + " — minuteurs en cours, afficher le panneau")
+                if phone {
+                    ViewThatFits(in: .horizontal) {
+                        ForEach(variants(shown), id: \.self) { v in row(shown, v, phone: true) }
+                    }
+                } else {
+                    row(shown, Variant(n: min(2, shown.count), counter: false, recall: shown.isEmpty, chevron: false), phone: false)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: ctx.narrow360 ? 44 : 52, alignment: .leading)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func tap(_ phone: Bool) {
+        if phone { vs.sheet = (vs.sheet == .panel) ? nil : .panel }
+        else { vs.railScroll = "timers-\(Int(ctx.now))" }
     }
 
     /// Minuteurs à montrer : au téléphone tout ce qui tourne ou sonne ; en large, échus + bientôt échus (≤ 2).
@@ -111,92 +107,115 @@ struct CrCapsule: View {
     }
 
     @ViewBuilder
-    private func row(_ shown: [TimerState], _ v: Variant) -> some View {
+    private func row(_ shown: [TimerState], _ v: Variant, phone: Bool) -> some View {
         let R = ctx.R
         let visible = Array(shown.prefix(v.n))
         let dueHidden = shown.dropFirst(v.n).filter { $0.isDueDock && !$0.ack }.count
         HStack(spacing: 6) {
-            ForEach(visible, id: \.id) { t in timerTile(t) }
+            ForEach(visible, id: \.id) { t in timerTile(t, phone: phone) }
             if dueHidden > 0 {
-                Text("+\(dueHidden)").aFont(TypeScale.meta, .bold).foregroundStyle(T.warnSys)
+                Text("△ +\(dueHidden)").aFont(TypeScale.meta, .heavy).foregroundStyle(T.onSysFill)
+                    .padding(.horizontal, 10).frame(minHeight: 36)
+                    .glassEffect(.regular.tint(T.warnSys), in: .capsule)
                     .accessibilityLabel("\(dueHidden) autre(s) minuteur(s) échu(s)")
             }
             if v.counter, let c = ctx.f.counters.first {
-                counterTile(c, R.counters[c.id] ?? 0)
+                counterTile(c, R.counters[c.id] ?? 0, phone: phone)
             }
             Spacer(minLength: 0)
             if v.chevron {
-                HStack(spacing: 4) {
-                    if v.recall && v.n == 0 {
-                        let r = recallText()
-                        if !r.isEmpty { Text(r).aFont(TypeScale.meta, .bold).foregroundStyle(T.sysInk2).lineLimit(1) }
+                Button { tap(phone) } label: {
+                    HStack(spacing: 4) {
+                        if v.recall && v.n == 0 {
+                            let r = recallText()
+                            if !r.isEmpty { Text(r).aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2).lineLimit(1) }
+                        }
+                        Image(systemName: vs.sheet == .panel ? "chevron.up" : "chevron.down").font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(T.ink2)
                     }
-                    Text(vs.voletOpen ? "▴" : "▾").aFont(TypeScale.meta, .bold).foregroundStyle(T.sysInk2)
+                    .padding(.horizontal, 12)
+                    .frame(minWidth: Ctrl.l, minHeight: Ctrl.l)
+                    .contentShape(Capsule())
                 }
+                .buttonStyle(.plain)
+                .glassEffect(.regular.interactive(), in: .capsule)
                 .fixedSize()
+                .accessibilityLabel("Minuteurs en cours — afficher le panneau")
             }
         }
     }
 
-    private func globalSegment(_ R: RuntimeSession, _ now: Double) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+    private var globalA11y: String {
+        let R = ctx.R
+        return (R.exercise ? "Exercice" : "Session") + " — durée " + (R.startedAt > 0 ? Fmt.ms(ctx.now - R.startedAt) : "inconnue")
+    }
+
+    private var globalSegment: some View {
+        let R = ctx.R
+        return VStack(alignment: .leading, spacing: 0) {
             Text(R.exercise ? "▲ EXERCICE" : "● SESSION")
                 .aFont(TypeScale.body, .heavy)
-                .foregroundStyle(R.exercise ? T.act : T.okSys)
+                .foregroundStyle(R.exercise ? T.act : T.ok)
                 .lineLimit(1)
-            Text(R.startedAt > 0 ? Fmt.ms(now - R.startedAt) : "—")
+            Text(R.startedAt > 0 ? Fmt.ms(ctx.now - R.startedAt) : "—")
                 .aFont(TypeScale.val, .bold, .mono)
-                .foregroundStyle(T.sysInk)
+                .foregroundStyle(T.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
-        .padding(.leading, 8).padding(.trailing, 12)
-        .frame(minWidth: 92, alignment: .leading)
-        .overlay(alignment: .trailing) { Rectangle().fill(T.sysLine).frame(width: 1).padding(.vertical, 6) }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel((R.exercise ? "Exercice" : "Session") + " — durée " + (R.startedAt > 0 ? Fmt.ms(now - R.startedAt) : "inconnue"))
+        .padding(.horizontal, 14).padding(.vertical, 4)
+        .frame(minWidth: 92, minHeight: ctx.narrow360 ? 44 : 52, alignment: .leading)
+        .contentShape(Capsule())
     }
 
-    private func timerTile(_ t: TimerState) -> some View {
+    private func timerTile(_ t: TimerState, phone: Bool) -> some View {
         let now = ctx.now
         let due = t.isDueDock && !t.ack
         let soon = !due && CrisisPure.isSoon(t, now)
-        let ink: Color = (due || soon) ? T.warnSys : T.sysInk
-        // Pulsation de l'échu (1 → 0,55 → 1 en 2 s), calculée depuis l'horloge : jamais sous « réduire les animations ».
+        let ink: Color = due ? T.onSysFill : (soon ? T.warn : T.ink)
+        // Pulsation du MOT de l'échu (1 → 0,55 → 1 en 2 s), calculée depuis l'horloge ; rien sous « réduire les animations ».
         let phase = now.truncatingRemainder(dividingBy: 2000) / 2000
         let pulse = (due && !reduceMotion) ? 1 - 0.45 * sin(Double.pi * phase) : 1
         let frac = t.type == .interval && t.period > 0 ? max(0, min(1, t.remaining(now) / t.period)) : 1
-        return VStack(alignment: .leading, spacing: 2) {
-            Text(((due || soon) ? "△ " : "") + CrisisPure.tmShort(t).uppercased())
-                .aFont(TypeScale.body, .heavy).foregroundStyle(ink).lineLimit(1)
-            Text(t.display(now)).aFont(TypeScale.step, .bold, .mono).foregroundStyle(ink).lineLimit(1)
-            GeometryReader { g in
-                ZStack(alignment: .leading) {
-                    Rectangle().fill(T.sysLine)
-                    Rectangle().fill(due ? T.warnSys : T.sysInk2).frame(width: g.size.width * frac)
+        let glass: Glass = due ? Glass.regular.tint(T.warnSys).interactive() : Glass.regular.interactive()
+        return Button { tap(phone) } label: {
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 4) {
+                    Text(((due || soon) ? "△ " : "") + CrisisPure.tmShort(t).uppercased())
+                        .aFont(TypeScale.body, .heavy).foregroundStyle(ink).lineLimit(1)
+                    if due { Text("ÉCHU").aFont(TypeScale.cap, .heavy).foregroundStyle(ink).opacity(pulse) }
                 }
+                Text(t.display(now)).aFont(TypeScale.step, .bold, .mono).foregroundStyle(ink).lineLimit(1)
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(T.line)
+                        Capsule().fill(due ? T.onSysFill : T.ink2).frame(width: g.size.width * frac)
+                    }
+                }
+                .frame(height: 3)
             }
-            .frame(height: 3)
-            .clipShape(Capsule())
+            .padding(.horizontal, 14).padding(.vertical, 6)
+            .frame(minWidth: 96, minHeight: ctx.narrow360 ? 44 : 52, alignment: .leading)
+            .contentShape(Capsule())
         }
-        .padding(.horizontal, 10).padding(.vertical, 6)
-        .frame(minWidth: 96, minHeight: ctx.narrow360 ? 44 : 52, alignment: .leading)
-        .background(due ? T.warnSysBg : T.sys2, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).strokeBorder(due ? T.warnSys : Color.clear, lineWidth: 1))
-        .opacity(pulse)
-        .accessibilityElement(children: .ignore)
+        .buttonStyle(.plain)
+        .glassEffect(glass, in: .capsule)
         .accessibilityLabel(t.name + " : " + t.display(now) + (due ? ", échu" : (soon ? ", bientôt échu" : "")))
+        .accessibilityHint("Afficher le panneau des minuteurs")
     }
 
-    private func counterTile(_ c: CounterDef, _ v: Double) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(CrisisPure.cnShort(c).uppercased()).aFont(TypeScale.body, .heavy).foregroundStyle(T.sysInk).lineLimit(1)
-            Text(crNum(v)).aFont(TypeScale.step, .bold, .mono).foregroundStyle(T.sysInk)
+    private func counterTile(_ c: CounterDef, _ v: Double, phone: Bool) -> some View {
+        Button { tap(phone) } label: {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(CrisisPure.cnShort(c).uppercased()).aFont(TypeScale.body, .heavy).foregroundStyle(T.ink).lineLimit(1)
+                Text(crNum(v)).aFont(TypeScale.step, .bold, .mono).foregroundStyle(T.ink)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 6)
+            .frame(minWidth: 84, minHeight: ctx.narrow360 ? 44 : 52, alignment: .leading)
+            .contentShape(Capsule())
         }
-        .padding(.horizontal, 10).padding(.vertical, 6)
-        .frame(minWidth: 84, minHeight: ctx.narrow360 ? 44 : 52, alignment: .leading)
-        .background(T.sys2, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-        .accessibilityElement(children: .ignore)
+        .buttonStyle(.plain)
+        .glassEffect(.regular.interactive(), in: .capsule)
         .accessibilityLabel((c.label.isEmpty ? "Compteur" : c.label) + " : " + crNum(v))
     }
 
@@ -212,9 +231,6 @@ struct CrCapsule: View {
         if pause > 0 { p.append("⏸ \(pause) en pause") }
         return p.joined(separator: " · ")
     }
-    private func summary(_ shown: [TimerState], _ now: Double) -> String {
-        shown.map { $0.name + " " + $0.display(now) + ($0.isDueDock && !$0.ack ? ", échu" : "") }.joined(separator: ", ")
-    }
 }
 
 // MARK: - Le quai
@@ -228,20 +244,12 @@ struct CrDock: View {
     @State private var ringPhase: CGFloat = 0
 
     var body: some View {
-        Group {
-            if ctx.started { sessionDock } else { entryDock }
-        }
-        .frame(maxWidth: 660)
-        .padding(.horizontal, 14)
-        .padding(.top, 6)
-        .padding(.bottom, 10)
-        .frame(maxWidth: .infinity)
-        .background(T.amb)
+        if ctx.started { sessionDock } else { entryDock }
     }
 
     private var act: CrAct { CrAct(model: model, vs: vs, R: ctx.R) }
 
-    // MARK: Avant la session : « Exercice » + « Démarrer la session »
+    // MARK: Avant la session : « Exercice » + « Démarrer la session » (la seule action proéminente)
 
     private var entryDock: some View {
         let R = ctx.R
@@ -249,41 +257,35 @@ struct CrDock: View {
         let base = R.exercise ? "l’exercice" : "la session"
         let label = (crit ? "Confirmé — démarrer " : "Démarrer ") + base
         let hint = CrLocal.bool("start-hint") != true
-        return HStack(spacing: 10) {
-            Button {
-                if R.exercise { act.cancelExercise() }
-                else { act.armExercise() }
-            } label: {
-                HStack(spacing: 6) {
-                    Text("▲").aFont(TypeScale.body, .heavy)
-                    Text(R.exercise ? "Annuler" : (ctx.narrow430 ? "Exo." : "Exercice")).aFont(TypeScale.item, .bold)
+        return GlassEffectContainer(spacing: 10) {
+            HStack(spacing: 10) {
+                Button {
+                    if R.exercise { act.cancelExercise() } else { act.armExercise() }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("▲").aFont(TypeScale.body, .heavy)
+                        Text(R.exercise ? "Annuler" : (ctx.narrow430 ? "Exo." : "Exercice")).aFont(TypeScale.item, .bold)
+                    }
+                    .foregroundStyle(T.act)
+                    .padding(.horizontal, 8)
+                    .frame(minHeight: Ctrl.xl)
                 }
-                .foregroundStyle(T.act)
-                .padding(.horizontal, 14)
-                .frame(minHeight: Ctrl.xl)
-                .background(R.exercise ? T.primarySoft : T.work, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous)
-                    .strokeBorder(T.act, style: StrokeStyle(lineWidth: 1.5, dash: R.exercise ? [] : [5, 4])))
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(R.exercise ? "Annuler l’exercice — la session n’a pas démarré" : "Répéter en exercice — rien n’est enregistré comme soin")
-            .accessibilityAddTraits(R.exercise ? .isSelected : [])
+                .buttonStyle(.glass)
+                .accessibilityLabel(R.exercise ? "Annuler l’exercice — la session n’a pas démarré" : "Répéter en exercice — rien n’est enregistré comme soin")
+                .accessibilityAddTraits(R.exercise ? .isSelected : [])
 
-            Button { act.start() } label: {
-                VStack(spacing: 2) {
-                    Text(label).aFont(TypeScale.step, .heavy).lineLimit(2).multilineTextAlignment(.center)
-                    if hint { Text("Lance le chrono · minuteurs prêts").aFont(TypeScale.meta, .semibold).opacity(0.85) }
+                Button { act.start() } label: {
+                    VStack(spacing: 1) {
+                        Text(label).aFont(TypeScale.step, .heavy).lineLimit(2).multilineTextAlignment(.center)
+                        if hint { Text("Lance le chrono · minuteurs prêts").aFont(TypeScale.meta, .semibold).opacity(0.85) }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: Ctrl.xl)
                 }
-                .foregroundStyle(T.onPrimary)
-                .padding(.horizontal, 12)
-                .frame(maxWidth: .infinity, minHeight: Ctrl.xl)
-                .background(T.act, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
-                .contentShape(Rectangle())
+                .buttonStyle(.glassProminent)
+                .tint(T.act)
+                .accessibilityLabel(label + (R.exercise ? " — répétition sans patient ; démarre aussi à la première action"
+                                                       : " — chrono, minuteurs et journal ; démarre aussi à la première action"))
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(label + (R.exercise ? " — répétition sans patient ; démarre aussi à la première action"
-                                                   : " — chrono, minuteurs et journal ; démarre aussi à la première action"))
         }
         .overlay { arrivalRings }
         .onAppear {
@@ -304,8 +306,8 @@ struct CrDock: View {
     private var arrivalRings: some View {
         if ringOn {
             // L'anneau part du bord du quai et s'en éloigne en s'effaçant (transform + opacité seulement).
-            RoundedRectangle(cornerRadius: Radius.r4, style: .continuous)
-                .stroke(T.sys.opacity(0.85), lineWidth: 2)
+            Capsule()
+                .stroke(T.ink.opacity(0.7), lineWidth: 2)
                 .scaleEffect(x: 1 + 0.04 * ringPhase, y: 1 + 0.3 * ringPhase)
                 .opacity(Double(1 - ringPhase))
                 .allowsHitTesting(false)
@@ -321,93 +323,79 @@ struct CrDock: View {
         let here = R.nav.last ?? ""
         let showCx = !cxs.isEmpty && !(cxs.count == 1 && cxs[0].target == here)
         let n = R.events.count
-        return HStack(spacing: 4) {
-            key(glyph: Image(systemName: "stop.fill"), glyphColor: T.critSys, label: "Fin",
-                a11y: "Terminer la session — confirmation demandée") { vs.endOpen = true }
-            if ctx.hasFlow {
-                sep
-                allKey
+        return GlassEffectContainer(spacing: 8) {
+            HStack(spacing: 8) {
+                key(glyph: "stop.fill", glyphColor: T.crit, label: "Fin", a11y: "Terminer la session — confirmation demandée") {
+                    vs.endOpen = true
+                }
+                if ctx.hasFlow { allKey }
+                if showCx { cxKey(cxs) }
+                key(glyph: "stopwatch", glyphColor: T.ink, label: "Horodater" + (n > 0 ? " · \(n)" : ""),
+                    a11y: "Horodater — noter l’heure d’un geste, puis le nommer") { act.stamp() }
             }
-            if showCx {
-                sep
-                cxKey(cxs)
-            }
-            sep
-            key(glyph: Image(systemName: "stopwatch"), glyphColor: T.sysInk, label: "Horodater" + (n > 0 ? " · \(n)" : ""),
-                a11y: "Horodater — noter l’heure d’un geste, puis le nommer", recessed: true) { act.stamp() }
         }
-        .padding(6)
-        .background(T.sys, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous).strokeBorder(T.sysEdge, lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.18), radius: 16, y: -6)
     }
 
-    private var sep: some View { Rectangle().fill(T.sysLine).frame(width: 1, height: 28).accessibilityHidden(true) }
-
+    /// « Tout voir » / « Un bloc » : quand l'écran n'est PAS au format d'origine, la touche se
+    /// teinte en vert — « ceci vous ramène ».
+    @ViewBuilder
     private var allKey: some View {
-        let away = vs.showAll
-        return Button {
+        let page = vs.showAll
+        let away = page != (model.readMode == "static")
+        let b = Button {
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.3)) { vs.showAll.toggle() }
-            vs.dockSheet = .closed
         } label: {
-            VStack(spacing: 2) {
-                Image(systemName: away ? "arrow.uturn.backward" : "arrow.up.left.and.arrow.down.right").font(.system(size: 15, weight: .bold))
-                if !ctx.narrow360 { Text(away ? "Un bloc" : "Tout voir").aFont(TypeScale.body, .heavy).lineLimit(2) }
-            }
-            .foregroundStyle(away ? T.onSysFill : T.sysInk2)
-            .frame(maxWidth: ctx.narrow360 ? 46 : .infinity, minHeight: 50)
-            .background(away ? T.okSys : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-            .contentShape(Rectangle())
+            keyLabel(glyph: page ? "arrow.uturn.backward" : "arrow.up.left.and.arrow.down.right",
+                     glyphColor: away ? T.onPrimary : T.ink, label: ctx.narrow360 ? nil : (page ? "Un bloc" : "Tout voir"),
+                     ink: away ? T.onPrimary : T.ink)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(away ? "Revenir au bloc en cours" : "Tout voir — la fiche entière, puis retour au bloc")
+        .accessibilityLabel(page ? (away ? "Revenir au bloc en cours" : "Voir un bloc à la fois")
+                                 : (away ? "Revenir à la fiche entière" : "Tout voir — la fiche entière, puis retour au bloc"))
+        if away { b.buttonStyle(.glassProminent).tint(T.ok) } else { b.buttonStyle(.glass) }
     }
 
     private func cxKey(_ cxs: [CrisisPure.Cx]) -> some View {
         let one = cxs.count == 1
-        let open = vs.dockSheet == .cx
+        let open = vs.sheet == .cx
         return Button {
             if one { act.cxGo(cxs[0]) }
-            else { vs.dockSheet = open ? .closed : .cx }
+            else { vs.sheet = open ? nil : .cx }
         } label: {
             VStack(spacing: 2) {
                 CrBolt(size: 15)
                 Text(one ? CrisisPure.cxShort(cxs[0]) : "Complications · \(cxs.count)")
-                    .aFont(TypeScale.body, one ? .bold : .heavy).lineLimit(2).multilineTextAlignment(.center)
-            }
-            .foregroundStyle(T.warnSys)
-            .frame(maxWidth: .infinity, minHeight: 50)
-            .background(open ? T.sysHi : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(one ? "Complication : " + cxs[0].label + " — interrompt le parcours, retour prévu"
-                                : "\(cxs.count) complications prévues — à tout moment")
-        .accessibilityValue(one ? "" : (open ? "déplié" : "replié"))
-    }
-
-    private func key(glyph: Image, glyphColor: Color, label: String, a11y: String, recessed: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 2) {
-                glyph.font(.system(size: 15, weight: .bold)).foregroundStyle(glyphColor)
-                Text(label).aFont(TypeScale.body, .heavy).foregroundStyle(recessed ? T.sysInk : T.sysInk2)
+                    .aFont(TypeScale.body, one ? .bold : .heavy).foregroundStyle(T.warn)
                     .lineLimit(2).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(recessed ? T.sys2 : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(a11y)
+        .buttonStyle(.glass)
+        .accessibilityLabel(one ? "Complication : " + cxs[0].label + " — interrompt le parcours, retour prévu"
+                                : "\(cxs.count) complications prévues — à tout moment")
+    }
+
+    private func keyLabel(glyph: String, glyphColor: Color, label: String?, ink: Color) -> some View {
+        VStack(spacing: 2) {
+            Image(systemName: glyph).font(.system(size: 15, weight: .bold)).foregroundStyle(glyphColor)
+            if let label {
+                Text(label).aFont(TypeScale.body, .heavy).foregroundStyle(ink).lineLimit(2).multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 50)
+    }
+
+    private func key(glyph: String, glyphColor: Color, label: String, a11y: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { keyLabel(glyph: glyph, glyphColor: glyphColor, label: label, ink: T.ink) }
+            .buttonStyle(.glass)
+            .accessibilityLabel(a11y)
     }
 }
 
-// MARK: - Retour au bloc en cours (#blkReturn)
+// MARK: - Retour au bloc en cours (#blkReturn) — « ceci vous ramène » : verre teinté vert
 
 struct CrReturnBar: View {
     let ctx: CrCtx
     let vs: CrisisViewState
-    @Environment(AppModel.self) private var model
 
     var body: some View {
         let i = ctx.tipIdx
@@ -424,13 +412,10 @@ struct CrReturnBar: View {
                     Text("\(need.dn)/\(need.tot)").aFont(TypeScale.meta, .bold, .mono).opacity(0.75)
                 }
             }
-            .foregroundStyle(T.onSysFill)
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, minHeight: Ctrl.l)
-            .background(T.okSys, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-            .contentShape(Rectangle())
+            .frame(maxWidth: .infinity, minHeight: Ctrl.l - 8)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glassProminent)
+        .tint(T.ok)
         .accessibilityLabel("Revenir au bloc en cours — " + title)
         .transition(.opacity)
     }
@@ -439,52 +424,56 @@ struct CrReturnBar: View {
 // MARK: - Feuille « Horodater » (le repère est DÉJÀ écrit ; la feuille le nomme)
 
 struct CrStampSheet: View {
-    let ctx: CrCtx
+    let R: RuntimeSession
     let vs: CrisisViewState
     let evId: String
     @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
     @State private var text = ""
     @State private var loaded = false
 
     var body: some View {
-        let R = ctx.R
+        let _ = model.rev
         let ev = R.events.first { $0.id == evId }
         let t0 = R.startedAt > 0 ? R.startedAt : (R.events.first?.t ?? 0)
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text("⏱ REPÈRE POSÉ ·").aFont(TypeScale.cap, .heavy).foregroundStyle(T.sysInk2)
-                Text("T+" + Fmt.ms(max(0, (ev?.t ?? ctx.now) - t0))).aFont(TypeScale.meta, .bold, .mono).foregroundStyle(T.sysInk)
-                Text("✓ au journal").aFont(TypeScale.meta, .bold).foregroundStyle(T.okSys)
-                Spacer()
-                Button { vs.dockSheet = .closed } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(T.sysInk2)
-                        .frame(width: 48, height: 48)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Text("⏱ REPÈRE POSÉ ·").aFont(TypeScale.cap, .heavy).foregroundStyle(T.ink2)
+                        Text("T+" + Fmt.ms(max(0, (ev?.t ?? JS.now()) - t0))).aFont(TypeScale.meta, .bold, .mono).foregroundStyle(T.ink)
+                        Text("✓ au journal").aFont(TypeScale.meta, .bold).foregroundStyle(T.ok)
+                    }
+                    CrCritWarn(R: R)
+                    TextField("Nommer (facultatif) — déjà enregistré", text: $text)
+                        .textFieldStyle(.plain)
+                        .aFont(16, .semibold)
+                        .foregroundStyle(T.ink)
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: 48)
+                        .background(T.amb2, in: Capsule())
+                        .accessibilityLabel("Nommer le repère")
+                        .onChange(of: text) { _, v in
+                            guard loaded else { return }
+                            CrAct(model: model, vs: vs, R: R).label(evId, v)
+                        }
+                        .onSubmit { dismiss() }
+                    chips
+                    if R.events.count >= 2 { list(t0) }
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Fermer")
+                .padding(16)
             }
-            CrCritWarn(ctx: ctx)
-            TextField("", text: $text, prompt: Text("Nommer (facultatif) — déjà enregistré").foregroundColor(T.sysInk2))
-                .textFieldStyle(.plain)
-                .aFont(16, .semibold)
-                .foregroundStyle(T.sysInk)
-                .padding(.horizontal, 12)
-                .frame(minHeight: 48)
-                .background(T.sys2, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: Radius.r2, style: .continuous).strokeBorder(T.sysLine, lineWidth: 1))
-                .accessibilityLabel("Nommer le repère")
-                .onChange(of: text) { _, v in
-                    guard loaded else { return }
-                    CrAct(model: model, vs: vs, R: R).label(evId, v)
+            .navigationTitle("Horodater")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { dismiss() } label: { Image(systemName: "checkmark") }
+                        .accessibilityLabel("Terminer")
                 }
-                .onSubmit { vs.dockSheet = .closed }
-            chips
-            if R.events.count >= 2 { list(t0) }
+            }
         }
-        .padding(.horizontal, 14).padding(.bottom, 12)
-        .background(T.sys, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).strokeBorder(T.sysEdge, lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.35), radius: 16, y: -4)
         .onAppear {
             text = ev?.label ?? ""
             loaded = true
@@ -493,14 +482,12 @@ struct CrStampSheet: View {
 
     @ViewBuilder
     private var chips: some View {
-        let R = ctx.R
-        let all = CrisisPure.tagAll(ctx.f, tags: model.library.tags, R: R)
-        let sug = CrisisPure.tagSuggest(all, blockId: R.nav.last, n: 6, guaranteed: ["counter"])
+        let sug = CrisisPure.tagSuggest(R.fiche, tags: crTags(model), R: R, blockId: R.nav.last, n: 6, guaranteed: ["counter"])
         CrWrap(spacing: 8) {
             ForEach(Array(sug.enumerated()), id: \.offset) { _, c in
                 Button {
                     CrAct(model: model, vs: vs, R: R).tag(evId, c)
-                    vs.dockSheet = .closed
+                    dismiss()
                 } label: { chipLabel(c) }
                 .buttonStyle(.plain)
                 .accessibilityLabel(chipA11y(c))
@@ -511,45 +498,47 @@ struct CrStampSheet: View {
     @ViewBuilder
     private func chipLabel(_ c: CrisisPure.TagCand) -> some View {
         HStack(spacing: 6) {
-            Text(Report.tagShort(c.label)).aFont(TypeScale.meta, .bold).foregroundStyle(T.sysInk).lineLimit(1)
+            Text(Live.tagShort(c.label)).aFont(TypeScale.meta, .bold).foregroundStyle(T.ink).lineLimit(1)
             if c.type == "counter", let cid = c.ref["id"]?.string {
-                let cur = ctx.R.counters[cid] ?? 0
-                let step = Double(max(1, ctx.f.counters.first { $0.id == cid }?.step ?? 1))
-                Text(crNum(cur) + " → " + crNum(cur + step)).aFont(TypeScale.cap, .heavy, .mono).foregroundStyle(T.sysInk2)
+                let cur = R.counters[cid] ?? 0
+                let step = Double(max(1, R.fiche.counters.first { $0.id == cid }?.step ?? 1))
+                Text(crNum(cur) + " → " + crNum(cur + step)).aFont(TypeScale.cap, .heavy, .mono).foregroundStyle(T.ink2)
                     .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(T.sys2, in: Capsule())
+                    .background(T.amb2, in: Capsule())
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 14)
         .frame(minHeight: Ctrl.l)
-        .overlay(Capsule().strokeBorder(T.sysLine, lineWidth: 1))
+        .background(T.work, in: Capsule())
+        .overlay(Capsule().strokeBorder(T.ctlLine, lineWidth: 1))
         .contentShape(Capsule())
     }
     private func chipA11y(_ c: CrisisPure.TagCand) -> String {
         guard c.type == "counter", let cid = c.ref["id"]?.string else { return c.label }
-        let cur = ctx.R.counters[cid] ?? 0
-        let step = Double(max(1, ctx.f.counters.first { $0.id == cid }?.step ?? 1))
+        let cur = R.counters[cid] ?? 0
+        let step = Double(max(1, R.fiche.counters.first { $0.id == cid }?.step ?? 1))
         return c.label + " — incrémenter à " + crNum(cur + step) + " et nommer ce repère"
     }
 
     private func list(_ t0: Double) -> some View {
-        let R = ctx.R
         let labs = Report.eventLabels(R.events, R.fiche, tags: model.library.tags, extras: crExtras(R))
-        return ScrollView {
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(Array(R.events.enumerated()), id: \.element.id) { i, e in
-                    HStack(spacing: 8) {
-                        Text("T+" + Fmt.ms(max(0, e.t - t0))).aFont(TypeScale.meta, .bold, .mono).foregroundStyle(T.okSys)
-                        Text(labs[i]).aFont(TypeScale.meta, e.id == evId ? .heavy : .medium).foregroundStyle(T.sysInk)
-                            .strikethrough(e.isVoid).lineLimit(1)
-                    }
+        return VStack(alignment: .leading, spacing: 6) {
+            ForEach(Array(R.events.enumerated()), id: \.element.id) { i, e in
+                HStack(spacing: 8) {
+                    Text("T+" + Fmt.ms(max(0, e.t - t0))).aFont(TypeScale.meta, .bold, .mono).foregroundStyle(T.ok)
+                    Text(i < labs.count ? labs[i] : "").aFont(TypeScale.meta, e.id == evId ? .heavy : .medium).foregroundStyle(T.ink)
+                        .strikethrough(e.isVoid).lineLimit(1)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxHeight: 160)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 4)
     }
 }
+
+/// Le vocabulaire personnel du journal (préférence `ac-tags` de l'espace, synchronisée).
+@MainActor
+func crTags(_ m: AppModel) -> JSON? { m.library.space.prefs["ac-tags"] }
 
 /// Les objets AD HOC de la session, pour nommer leurs repères (`rtExtra`).
 func crExtras(_ R: RuntimeSession) -> Report.Extras {
@@ -559,17 +548,16 @@ func crExtras(_ R: RuntimeSession) -> Report.Extras {
 
 /// Rappel d'interruption (`dockSheetWarn`) : étapes critiques non cochées du bloc en cours.
 struct CrCritWarn: View {
-    let ctx: CrCtx
+    let R: RuntimeSession
     var body: some View {
-        let R = ctx.R
-        let i = ctx.tipIdx
-        if let b = ctx.tipBlock, b.kind != .decision {
-            let seq = ctx.seq(i)
-            let n = Graph.cleanSteps(ctx.f, b).enumerated().filter { Steps.isCrit($0.element) && !R.isChecked("\(seq):\(b.id):\($0.offset)") }.count
+        let i = R.nav.count - 1
+        if let id = R.nav.last, let b = R.fiche.blocks.first(where: { $0.id == id }), b.kind != .decision {
+            let seq = i < R.navSeq.count && R.navSeq[i] != 0 ? R.navSeq[i] : 1
+            let n = Graph.cleanSteps(R.fiche, b).enumerated().filter { Steps.isCrit($0.element) && !R.isChecked("\(seq):\(b.id):\($0.offset)") }.count
             if n > 0 {
                 Text("⚠ \(n) " + (n > 1 ? "étapes critiques" : "étape critique") + " en attente dans « " + (b.title.isEmpty ? "Étapes" : b.title) + " »")
                     .aFont(TypeScale.cap, .bold)
-                    .foregroundStyle(T.critSys)
+                    .foregroundStyle(T.crit)
                     .padding(.horizontal, 8).padding(.vertical, 6)
                     .overlay(RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).strokeBorder(T.critLine, lineWidth: 1))
             }
@@ -580,70 +568,65 @@ struct CrCritWarn: View {
 // MARK: - Feuille « Complications » (≥ 2 déclarées)
 
 struct CrCxSheet: View {
-    let ctx: CrCtx
+    let R: RuntimeSession
     let vs: CrisisViewState
     @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        let cxs = CrisisPure.cxAll(ctx.f)
-        let here = ctx.R.nav.last ?? ""
-        let curTitle = ctx.tipBlock.map { $0.title.isEmpty ? "le parcours" : $0.title } ?? "le parcours"
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 8) {
-                CrBolt(size: 13)
-                Text("COMPLICATIONS PRÉVUES ICI · \(cxs.count)").aFont(TypeScale.cap, .heavy).foregroundStyle(T.critSys)
-                Spacer()
-                Button { vs.dockSheet = .closed } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(T.sysInk2).frame(width: 48, height: 48)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Fermer")
-            }
-            CrCritWarn(ctx: ctx).padding(.bottom, 6)
-            ScrollView {
-                VStack(spacing: 0) {
+        let _ = model.rev
+        let cxs = CrisisPure.cxAll(R.fiche)
+        let here = R.nav.last ?? ""
+        let curTitle = R.fiche.blocks.first { $0.id == here }.map { $0.title.isEmpty ? "le parcours" : $0.title } ?? "le parcours"
+        NavigationStack {
+            List {
+                Section {
+                    CrCritWarn(R: R)
                     ForEach(cxs, id: \.self) { c in
                         let inIt = c.isBlock && c.target == here
-                        Button { CrAct(model: model, vs: vs, R: ctx.R).cxGo(c) } label: {
-                            row(c, inIt: inIt, curTitle: curTitle)
-                        }
-                        .buttonStyle(.plain)
+                        Button {
+                            dismiss()
+                            CrAct(model: model, vs: vs, R: R).cxGo(c)
+                        } label: { row(c, inIt: inIt, curTitle: curTitle) }
                         .disabled(inIt)
+                    }
+                } header: {
+                    HStack(spacing: 6) {
+                        CrBolt(size: 12)
+                        Text("Complications prévues ici · \(cxs.count)")
                     }
                 }
             }
-            .frame(maxHeight: 320)
+            .navigationTitle("Complications")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { Image(systemName: "xmark") }
+                        .accessibilityLabel("Fermer")
+                }
+            }
         }
-        .padding(.horizontal, 14).padding(.bottom, 10)
-        .background(T.sys, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).strokeBorder(T.sysEdge, lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.35), radius: 16, y: -4)
     }
 
     private func row(_ c: CrisisPure.Cx, inIt: Bool, curTitle: String) -> some View {
         let dest: String
         if inIt { dest = "vous y êtes" }
         else if c.isBlock {
-            let t = ctx.block(c.target)?.title ?? ""
+            let t = R.fiche.blocks.first { $0.id == c.target }?.title ?? ""
             dest = "→ " + (t.isEmpty ? "Complication" : t) + " · retour ↩ " + curTitle
         } else {
             dest = "→ " + (externalTitle(c.target) ?? "aide introuvable") + " ↗"
         }
-        return VStack(spacing: 0) {
-            Rectangle().fill(T.sysLine).frame(height: 1)
-            CrWrap(spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(HTML.stripBold(c.label)).aFont(TypeScale.body, .bold).foregroundStyle(T.sysInk)
-                    Text(inIt ? "vous y êtes" : (c.isBlock ? "interrompt le parcours — retour prévu" : "ouvre une autre aide"))
-                        .aFont(TypeScale.cap, .semibold).foregroundStyle(T.sysInk2)
-                }
-                Text(dest).aFont(TypeScale.cap, .bold).foregroundStyle(T.sysInk2)
-            }
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-            .contentShape(Rectangle())
-            .opacity(inIt ? 0.6 : 1)
+        return VStack(alignment: .leading, spacing: 3) {
+            Text(HTML.stripBold(c.label)).aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
+            Text(inIt ? "vous y êtes" : (c.isBlock ? "interrompt le parcours — retour prévu" : "ouvre une autre aide"))
+                .aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
+            Text(dest).aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2)
         }
+        .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+        .contentShape(Rectangle())
     }
     private func externalTitle(_ id: String) -> String? {
         model.fiches.first { $0.id == id }?.title ?? model.references.first { $0.id == id }?.title

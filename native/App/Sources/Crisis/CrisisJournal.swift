@@ -77,7 +77,7 @@ struct CrProgressLine: View {
     let headRun: [Int]?
 
     var body: some View {
-        let p = CrisisPure.progress(ctx.R, ctx.plan)
+        let p = CrisisPure.progress(ctx.R)
         let conf = !Pool.list(ctx.f, .entry).isEmpty
         VStack(alignment: .leading, spacing: 8) {
             if p.tot > 0 || headRun != nil || conf {
@@ -373,14 +373,9 @@ struct CrCardHead: View {
             }
             if !isTip && complete && !dec && !line {
                 Button { CrAct(model: model, vs: vs, R: R).redo(b.id) } label: {
-                    Label("Refaire", systemImage: "arrow.uturn.backward")
-                        .aFont(TypeScale.meta, .bold).foregroundStyle(T.ink)
-                        .padding(.horizontal, 12)
-                        .frame(minHeight: Ctrl.l)
-                        .overlay(RoundedRectangle(cornerRadius: Radius.r2, style: .continuous).strokeBorder(T.line, lineWidth: 1))
-                        .contentShape(Rectangle())
+                    Label("Refaire", systemImage: "arrow.uturn.backward").aFont(TypeScale.meta, .bold)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.a(.secondary, Ctrl.l))
                 .accessibilityHint("Refaire ce bloc : nouvelle carte au bout du journal — celle-ci reste telle quelle")
             }
         }
@@ -463,13 +458,8 @@ struct CrCardBody: View {
                         Text("Reprendre — " + (bt.isEmpty ? "le parcours" : bt) + " →").aFont(TypeScale.step, .heavy)
                             .multilineTextAlignment(.leading)
                     }
-                    .foregroundStyle(T.onPrimary)
-                    .padding(.horizontal, 16)
-                    .frame(maxWidth: .infinity, minHeight: Ctrl.xl)
-                    .background(T.act, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.a(.primary, Ctrl.xl, full: true))
             }
             if let img = b.image { CrDataImage(dataURI: img) }
             if isTip, let since = vs.resumeSince { resumeLine(since) }
@@ -536,13 +526,9 @@ struct CrControls: View {
         HStack(spacing: 10) {
             if hasSteps {
                 Button { act.verifyStart(idx) } label: {
-                    Text("Vérifier").aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
-                        .padding(.horizontal, 16)
-                        .frame(minHeight: Ctrl.xl)
-                        .background(T.amb2, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
-                        .contentShape(Rectangle())
+                    Text("Vérifier").aFont(TypeScale.item, .bold)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.a(.secondary, Ctrl.xl))
                 .accessibilityHint("Do-Verify : redérouler ce bloc étape par étape — « Constaté ✓ » coche, « △ Écart » avance sans cocher")
             }
             if let nx = b.next, let nb = ctx.block(nx) {
@@ -561,13 +547,8 @@ struct CrControls: View {
             Text(label).aFont(TypeScale.step, .heavy)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(enabled ? T.onPrimary : T.ink2)
-                .padding(.horizontal, 14)
-                .frame(maxWidth: .infinity, minHeight: Ctrl.xl)
-                .background(enabled ? T.act : T.amb2, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous).strokeBorder(T.workLine, lineWidth: 1))
-                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.a(enabled ? .primary : .secondary, Ctrl.xl, full: true))
         .accessibilityHint(enabled ? "" : "Indisponible tant que des étapes restent à cocher")
     }
 }
@@ -864,9 +845,9 @@ struct CrStepRow: View {
             }
             Button { CrAct(model: model, vs: vs, R: R).doNow(key) } label: {
                 Text("Faire maintenant").aFont(TypeScale.meta, .bold).foregroundStyle(T.act)
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 12)
                     .frame(minHeight: 28)
-                    .overlay(RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).strokeBorder(T.act, lineWidth: 1))
+                    .overlay(Capsule().strokeBorder(T.act, lineWidth: 1))
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
             }
@@ -1031,10 +1012,7 @@ struct CrPosoBand: View {
     let seq: Int
 
     var body: some View {
-        let R = ctx.R
-        let e = ctx.e
-        let rows = CrisisPure.posBandModel(ctx.f, b, seq: seq, isChecked: { R.isChecked($0) },
-                                          moOf: { it, i in e.stepMoment(R, it, seq: seq, blockId: b.id, index: i) })
+        let rows = CrisisPure.posBandModel(ctx.f, b, seq: seq, R: ctx.R, e: ctx.e)
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
                 Rectangle().fill(T.line).frame(height: 1)
@@ -1147,31 +1125,23 @@ struct CrVerifyView: View {
                 let k = "\(seq):\(b.id):\(v.i)"
                 HStack(spacing: 10) {
                     Button { act.verifyOK(k) } label: {
-                        Text("Constaté ✓").aFont(TypeScale.item, .heavy).foregroundStyle(T.onPrimary)
-                            .frame(maxWidth: .infinity, minHeight: Ctrl.row)
-                            .background(T.ok, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-                            .contentShape(Rectangle())
+                        Text("Constaté ✓").aFont(TypeScale.item, .heavy)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.a(.confirm, Ctrl.row, full: true))
                     .layoutPriority(2)
                     Button { act.verifyGap(k, v.i) } label: {
                         Text("△ Écart").aFont(TypeScale.item, .heavy).foregroundStyle(T.warn)
                             .frame(maxWidth: .infinity, minHeight: Ctrl.row)
-                            .background(T.warnSoft, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).strokeBorder(T.warnLine, lineWidth: 2))
-                            .contentShape(Rectangle())
+                            .background(T.warnSoft, in: Capsule())
+                            .overlay(Capsule().strokeBorder(T.warnLine, lineWidth: 2))
+                            .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
                 }
             } else {
                 endBox(steps: steps, seq: seq)
-                Button { act.verifyEnd() } label: {
-                    Text("Terminer la vérification").aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
-                        .frame(maxWidth: .infinity, minHeight: Ctrl.l)
-                        .background(T.amb2, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                Button("Terminer la vérification") { act.verifyEnd() }
+                    .buttonStyle(.a(.secondary, Ctrl.l, full: true))
             }
         }
     }

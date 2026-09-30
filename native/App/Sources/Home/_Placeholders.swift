@@ -19,11 +19,6 @@ struct CategoryManagerView: View {
     var body: some View { Text("Catégories").aFont(TypeScale.stepL, .bold).foregroundStyle(T.ink).padding() }
 }
 
-struct ReportView: View {
-    var sessionId: String
-    var body: some View { Text("Compte-rendu de session").aFont(TypeScale.stepL, .bold).foregroundStyle(T.ink).padding() }
-}
-
 struct JoinSessionView: View {
     var body: some View { Text("Rejoindre une session").aFont(TypeScale.stepL, .bold).foregroundStyle(T.ink).padding() }
 }
