@@ -1,0 +1,5906 @@
+[
+ {
+  "input": {
+   "k": "doc",
+   "src": "# Anaphylaxie\n\n## Reconnaître\n- Urticaire **généralisée**\n- Hypotension < 90\n  - sous-point\n  1. sous ordonné\n\n## Traiter\n1. Adrénaline IM :: 0,5 mg\n2) Remplissage\n\n> [!WARNING] Vérifier la dilution\n> ligne 2\n\n| Produit | Dose | Voie |\n|:--|:-:|--:|\n| Adré | 0,01 mg/kg | IM |\n| NaCl | 20 mL/kg |\n\n![Schéma](img:i1)\n![](img:i2)\n![x](img:absent)\n![bad](img:i3)\n\n---\nFin"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "Anaphylaxie"
+    },
+    {
+     "t": "h2",
+     "text": "Reconnaître"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "Urticaire **généralisée**",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "Hypotension < 90",
+       "sub": {
+        "t": "ol",
+        "items": [
+         "sous ordonné"
+        ]
+       },
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Traiter"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "Adrénaline IM :: 0,5 mg",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "Remplissage",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "Vérifier la dilution",
+      "ligne 2"
+     ]
+    },
+    {
+     "t": "tbl",
+     "align": [
+      "l",
+      "c",
+      "r"
+     ],
+     "head": [
+      "Produit",
+      "Dose",
+      "Voie"
+     ],
+     "rows": [
+      [
+       "Adré",
+       "0,01 mg/kg",
+       "IM"
+      ],
+      [
+       "NaCl",
+       "20 mL/kg",
+       ""
+      ]
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "Schéma",
+     "id": "i1"
+    },
+    {
+     "t": "img",
+     "caption": "",
+     "id": "i2"
+    },
+    {
+     "t": "img",
+     "caption": "x",
+     "id": "absent"
+    },
+    {
+     "t": "img",
+     "caption": "bad",
+     "id": "i3"
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "Fin"
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">Anaphylaxie</h1><h2 class=\"md-h2\">Reconnaître</h2><ul class=\"md-ul\"><li>Urticaire <b>généralisée</b></li><li>Hypotension &lt; 90<ol class=\"md-ol\"><li>sous ordonné</li></ol></li></ul><h2 class=\"md-h2\">Traiter</h2><ol class=\"md-ol\"><li>Adrénaline IM :: 0,5 mg</li><li>Remplissage</li></ol><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>Vérifier la dilution<br>ligne 2</blockquote><div class=\"md-tw\" tabindex=\"0\" role=\"region\" aria-label=\"Tableau\"><table class=\"md-tbl\"><thead><tr><th class=\"ta-l\" scope=\"col\">Produit</th><th class=\"ta-c\" scope=\"col\">Dose</th><th class=\"ta-r\" scope=\"col\">Voie</th></tr></thead><tbody><tr><td class=\"ta-l\">Adré</td><td class=\"ta-c\">0,01 mg/kg</td><td class=\"ta-r\">IM</td></tr><tr><td class=\"ta-l\">NaCl</td><td class=\"ta-c\">20 mL/kg</td><td class=\"ta-r\"></td></tr></tbody></table></div><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"Schéma\" alt=\"Schéma\" loading=\"lazy\" decoding=\"async\"><figcaption>Schéma</figcaption></figure><figure class=\"md-fig\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-cap=\"\" alt=\"\" loading=\"lazy\" decoding=\"async\"></figure><hr class=\"md-hr\"><p class=\"md-p\">Fin</p>",
+   "strip": "Anaphylaxie  Reconnaître Urticaire généralisée Hypotension < 90 sous-point sous ordonné  Traiter Adrénaline IM :: 0,5 mg Remplissage  Vérifier la dilution ligne 2  Produit Dose Voie  Adré 0,01 mg/kg IM NaCl 20 mL/kg  Schéma  x bad   Fin",
+   "folds": [
+    {
+     "k": "anaphylaxie~1",
+     "id": "mdsect-anaphylaxie-1"
+    },
+    {
+     "k": "reconnaitre~1",
+     "id": "mdsect-reconnaitre-1"
+    },
+    {
+     "k": "traiter~1",
+     "id": "mdsect-traiter-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "```\n| a | b |\n|---|---|\n# pas un titre\n```\ntexte"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "code",
+     "lines": [
+      "| a | b |",
+      "|---|---|",
+      "# pas un titre"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte"
+     ]
+    }
+   ],
+   "html": "<pre class=\"md-code\"><code>| a | b |\n|---|---|\n# pas un titre</code></pre><p class=\"md-p\">texte</p>",
+   "strip": " a b  pas un titre  texte",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "```js\nnon refermé\n> rien"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "code",
+     "lines": [
+      "non refermé",
+      "> rien"
+     ]
+    }
+   ],
+   "html": "<pre class=\"md-code\"><code>non refermé\n&gt; rien</code></pre>",
+   "strip": " non refermé rien",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "- [ ] à faire\n- [x] fait\n- [X] fait aussi\n- [] pas tâche\n- [y] pas tâche\n* [ ]\n1. [x] ordonnée\n  - [ ] sous-item reste texte"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "à faire",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      },
+      {
+       "text": "fait",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      },
+      {
+       "text": "fait aussi",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      },
+      {
+       "text": "[] pas tâche",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "[y] pas tâche",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "ordonnée",
+       "sub": {
+        "t": "ul",
+        "items": [
+         "[ ] sous-item reste texte"
+        ]
+       },
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">à faire</span></li><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">fait</span></li><li class=\"md-task done\" data-task=\"2\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">fait aussi</span></li><li>[] pas tâche</li><li>[y] pas tâche</li><li class=\"md-task\" data-task=\"3\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\"></span></li></ul><ol class=\"md-ol\"><li class=\"md-task done\" data-task=\"4\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">ordonnée<ul class=\"md-ul\"><li>[ ] sous-item reste texte</li></ul></span></li></ol>",
+   "strip": "à faire fait fait aussi [] pas tâche [y] pas tâche  ordonnée sous-item reste texte",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "> [!caution] danger\n> [!info] seconde ligne garde le marqueur\n\n> ⚠️ glyphe\n\n> △\n\n> [!constructor] quirk\n\n> [!inconnu] reste\n\n>sans espace\n> [!OK]\n> [!Astuce]   espaces"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "danger",
+      "[!info] seconde ligne garde le marqueur"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "glyphe"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": []
+    },
+    {
+     "t": "q",
+     "lines": [
+      "quirk"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "[!inconnu] reste"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "sans espace",
+      "[!OK]",
+      "[!Astuce]   espaces"
+     ]
+    }
+   ],
+   "html": "<blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>danger<br>[!info] seconde ligne garde le marqueur</blockquote><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>glyphe</blockquote><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span></blockquote><blockquote class=\"md-q\">quirk</blockquote><blockquote class=\"md-q\">[!inconnu] reste</blockquote><blockquote class=\"md-q\">sans espace<br>[!OK]<br>[!Astuce]   espaces</blockquote>",
+   "strip": "danger seconde ligne garde le marqueur  ⚠️ glyphe  △  quirk  reste  sans espace  espaces",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "#### quatre\n#sans espace\n# \n##  deux espaces\n### Titre ~ spécial & <b>\n# Titre\n# Titre\npara"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "#### quatre",
+      "#sans espace"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": ""
+    },
+    {
+     "t": "h2",
+     "text": "deux espaces"
+    },
+    {
+     "t": "h3",
+     "text": "Titre ~ spécial & <b>"
+    },
+    {
+     "t": "h1",
+     "text": "Titre"
+    },
+    {
+     "t": "h1",
+     "text": "Titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "para"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">#### quatre<br>#sans espace</p><h1 class=\"md-h1\"></h1><h2 class=\"md-h2\">deux espaces</h2><h3 class=\"md-h3\">Titre ~ spécial &amp; &lt;b&gt;</h3><h1 class=\"md-h1\">Titre</h1><h1 class=\"md-h1\">Titre</h1><p class=\"md-p\">para</p>",
+   "strip": "#### quatre #sans espace  deux espaces Titre ~ spécial & <b> Titre Titre para",
+   "folds": [
+    {
+     "k": "s~1",
+     "id": "mdsect-s-1"
+    },
+    {
+     "k": "deux-espaces~1",
+     "id": "mdsect-deux-espaces-1"
+    },
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": "titre~1",
+     "id": "mdsect-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "ligne 1\nligne 2\n- item\npara après liste\n  - orphelin sous-liste"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "ligne 1",
+      "ligne 2"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "para après liste",
+      "  - orphelin sous-liste"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">ligne 1<br>ligne 2</p><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\">para après liste<br>  - orphelin sous-liste</p>",
+   "strip": "ligne 1 ligne 2 item para après liste orphelin sous-liste",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "| a | b\n|---|---|\n\n| x |\n| y |\n\n|a|b|c|\n|-|:-|\n|1|2|3|4|\n|1|\n| esc \\| pipe | ok |\n|---|"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "| a | b",
+      "|---|---|"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| x |",
+      "| y |"
+     ]
+    },
+    {
+     "t": "tbl",
+     "align": [
+      "",
+      "l"
+     ],
+     "head": [
+      "a",
+      "b",
+      "c"
+     ],
+     "rows": [
+      [
+       "1",
+       "2",
+       "3"
+      ],
+      [
+       "1",
+       "",
+       ""
+      ],
+      [
+       "esc | pipe",
+       "ok",
+       ""
+      ]
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">| a | b<br>|---|---|</p><p class=\"md-p\">| x |<br>| y |</p><div class=\"md-tw\" tabindex=\"0\" role=\"region\" aria-label=\"Tableau\"><table class=\"md-tbl\"><thead><tr><th scope=\"col\">a</th><th class=\"ta-l\" scope=\"col\">b</th><th scope=\"col\">c</th></tr></thead><tbody><tr><td>1</td><td class=\"ta-l\">2</td><td>3</td></tr><tr><td>1</td><td class=\"ta-l\"></td><td></td></tr><tr><td>esc | pipe</td><td class=\"ta-l\">ok</td><td></td></tr></tbody></table></div><p class=\"md-p\">|---|</p>",
+   "strip": "| a | b   x y  a b c  1 2 3 4 1 esc | pipe ok ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "a **gras** et *ital* et ==surligné== et `code **pas gras**`\n[lien](https://exemple.org/a?b=1&c=2) [doc](att:doc_1) [js](javascript:alert(1)) [proto](att:__proto__)\n***a** *a**b* x *y* *z* **a*b** ==a=b=="
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "a **gras** et *ital* et ==surligné== et `code **pas gras**`",
+      "[lien](https://exemple.org/a?b=1&c=2) [doc](att:doc_1) [js](javascript:alert(1)) [proto](att:__proto__)",
+      "***a** *a**b* x *y* *z* **a*b** ==a=b=="
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">a <b>gras</b> et <i>ital</i> et <mark class=\"md-mk\">surligné</mark> et <code class=\"md-ci\">code **pas gras**</code><br><a href=\"https://exemple.org/a?b=1&amp;c=2\" target=\"_blank\" rel=\"noopener noreferrer\">lien</a> <a href=\"#\" data-mdatt=\"doc_1\">doc</a> [js](javascript:alert(1)) [proto](att:__proto__)<br><i><b>a</b> </i>a**b<i> x </i>y<i> </i>z* **a*b** ==a=b==</p>",
+   "strip": "a gras et ital et surligné et code pas gras lien doc [js](javascript:alert(1)) proto a a**b x y z* **a*b** ==a=b==",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "[t](https://x.org/a*b*c) [t2](https://x.org/q==v==w) **[lien](https://x.org)** [**gras**](http://x.org)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "[t](https://x.org/a*b*c) [t2](https://x.org/q==v==w) **[lien](https://x.org)** [**gras**](http://x.org)"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><a href=\"https://x.org/a<i>b</i>c\" target=\"_blank\" rel=\"noopener noreferrer\">t</a> <a href=\"https://x.org/q<mark class=\"md-mk\">v</mark>w\" target=\"_blank\" rel=\"noopener noreferrer\">t2</a> <b><a href=\"https://x.org\" target=\"_blank\" rel=\"noopener noreferrer\">lien</a></b> <a href=\"http://x.org\" target=\"_blank\" rel=\"noopener noreferrer\"><b>gras</b></a></p>",
+   "strip": "t t2 lien gras",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "<script>alert(\"x\")</script> & ' \" `a` ``b`` `c\n`d`"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "<script>alert(\"x\")</script> & ' \" `a` ``b`` `c",
+      "`d`"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; &#39; &quot; <code class=\"md-ci\">a</code> `<code class=\"md-ci\">b</code><code class=\"md-ci\"> </code>c<br><code class=\"md-ci\">d</code></p>",
+   "strip": "<script>alert(\"x\")</script> & ' \" a `b c d",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# H1\n### H3\ntexte\n## H2\n# H1\n## vide\n## Suite\ncontenu\n### Fin"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "H1"
+    },
+    {
+     "t": "h3",
+     "text": "H3"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "H2"
+    },
+    {
+     "t": "h1",
+     "text": "H1"
+    },
+    {
+     "t": "h2",
+     "text": "vide"
+    },
+    {
+     "t": "h2",
+     "text": "Suite"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "contenu"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "Fin"
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">H1</h1><h3 class=\"md-h3\">H3</h3><p class=\"md-p\">texte</p><h2 class=\"md-h2\">H2</h2><h1 class=\"md-h1\">H1</h1><h2 class=\"md-h2\">vide</h2><h2 class=\"md-h2\">Suite</h2><p class=\"md-p\">contenu</p><h3 class=\"md-h3\">Fin</h3>",
+   "strip": "H1 H3 texte H2 H1 vide Suite contenu Fin",
+   "folds": [
+    {
+     "k": "h1~1",
+     "id": "mdsect-h1-1"
+    },
+    {
+     "k": "h3~1",
+     "id": "mdsect-h3-1"
+    },
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": "h1~2",
+     "id": "mdsect-h1-2"
+    },
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": "suite~1",
+     "id": "mdsect-suite-1"
+    },
+    {
+     "k": null,
+     "id": null
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "\r\n# crlf\r\n- item\r\n> q\r\n| a |\r\n|---|\r\n"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "# crlf\r",
+      "- item\r",
+      "> q\r"
+     ]
+    },
+    {
+     "t": "tbl",
+     "align": [
+      ""
+     ],
+     "head": [
+      "a"
+     ],
+     "rows": []
+    }
+   ],
+   "html": "<p class=\"md-p\"># crlf\r<br>- item\r<br>&gt; q\r</p><div class=\"md-tw\" tabindex=\"0\" role=\"region\" aria-label=\"Tableau\"><table class=\"md-tbl\"><thead><tr><th scope=\"col\">a</th></tr></thead><tbody></tbody></table></div>",
+   "strip": "\r crlf\r item\r q\r a  ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "1. un\n2. deux\n- puce\n3. trois\n  1) sous\n  - autre sous\n\n***\n- - -\n--*"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "un",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "deux",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "puce",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "trois",
+       "sub": {
+        "t": "ul",
+        "items": [
+         "autre sous"
+        ]
+       },
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "- -",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "--*"
+     ]
+    }
+   ],
+   "html": "<ol class=\"md-ol\"><li>un</li><li>deux</li></ol><ul class=\"md-ul\"><li>puce</li></ul><ol class=\"md-ol\"><li>trois<ul class=\"md-ul\"><li>autre sous</li></ul></li></ol><hr class=\"md-hr\"><ul class=\"md-ul\"><li>- -</li></ul><p class=\"md-p\">--*</p>",
+   "strip": "un deux puce trois sous autre sous   - - --*",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "![xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx](img:i1)\n[yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy](https://x.org)\n[zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz](https://x.org)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "![xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx](img:i1)",
+      "[yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy](https://x.org)",
+      "[zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz](https://x.org)"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">![xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx](img:i1)<br>[yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy](https://x.org)<br><a href=\"https://x.org\" target=\"_blank\" rel=\"noopener noreferrer\">zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz</a></p>",
+   "strip": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx [yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy](https://x.org) zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "😀 **émoji** [😀](https://x.org) `😀`\n> ℹ️ info emoji\n| 😀 | é |\n|---|---|"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "😀 **émoji** [😀](https://x.org) `😀`"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "info",
+     "lines": [
+      "info emoji"
+     ]
+    },
+    {
+     "t": "tbl",
+     "align": [
+      "",
+      ""
+     ],
+     "head": [
+      "😀",
+      "é"
+     ],
+     "rows": []
+    }
+   ],
+   "html": "<p class=\"md-p\">😀 <b>émoji</b> <a href=\"https://x.org\" target=\"_blank\" rel=\"noopener noreferrer\">😀</a> <code class=\"md-ci\">😀</code></p><blockquote class=\"md-q md-call info\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8v5M12 16h.01\" stroke-linecap=\"round\"/></svg>Information</span>info emoji</blockquote><div class=\"md-tw\" tabindex=\"0\" role=\"region\" aria-label=\"Tableau\"><table class=\"md-tbl\"><thead><tr><th scope=\"col\">😀</th><th scope=\"col\">é</th></tr></thead><tbody></tbody></table></div>",
+   "strip": "😀 émoji 😀 😀 ℹ️ info emoji 😀 é ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": ""
+  },
+  "output": {
+   "blocks": [],
+   "html": "",
+   "strip": "",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "    \n\t\n"
+  },
+  "output": {
+   "blocks": [],
+   "html": "",
+   "strip": "     \t ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# Même titre\ncorps\n# Même titre\ncorps\n# même  titre !\ncorps\n# ???\ncorps\n# \ncorps"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "Même titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "corps"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "Même titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "corps"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "même  titre !"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "corps"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "???"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "corps"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": ""
+    },
+    {
+     "t": "p",
+     "lines": [
+      "corps"
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">Même titre</h1><p class=\"md-p\">corps</p><h1 class=\"md-h1\">Même titre</h1><p class=\"md-p\">corps</p><h1 class=\"md-h1\">même  titre !</h1><p class=\"md-p\">corps</p><h1 class=\"md-h1\">???</h1><p class=\"md-p\">corps</p><h1 class=\"md-h1\"></h1><p class=\"md-p\">corps</p>",
+   "strip": "Même titre corps Même titre corps même  titre ! corps ??? corps  corps",
+   "folds": [
+    {
+     "k": "meme-titre~1",
+     "id": "mdsect-meme-titre-1"
+    },
+    {
+     "k": "meme-titre~2",
+     "id": "mdsect-meme-titre-2"
+    },
+    {
+     "k": "meme-titre~3",
+     "id": "mdsect-meme-titre-3"
+    },
+    {
+     "k": "s~1",
+     "id": "mdsect-s-1"
+    },
+    {
+     "k": "s~2",
+     "id": "mdsect-s-2"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "*i* ==m==\n---\n| a | b |\n![c](img:zz)\n[a](att:d1)\n## Sous-titre\n*i* ==m==\n> ⚠ alerte\n```\n```\n# T\n> ⚠ alerte\nx | y"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": []
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><hr class=\"md-hr\"><p class=\"md-p\">| a | b |</p><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a></p><h2 class=\"md-h2\">Sous-titre</h2><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><pre class=\"md-code\"><code></code></pre><h1 class=\"md-h1\">T</h1><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\">x | y</p>",
+   "strip": "i m  a b c a Sous-titre i m ⚠ alerte   T ⚠ alerte x | y",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    },
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "```\n12. douze\nx | y\n12. douze\n[l](https://a.b)\n### x\n[l](https://a.b)\n| 1 | 2 |\n![c](img:i1)\n![c](img:i1)\n  - s"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "code",
+     "lines": [
+      "12. douze",
+      "x | y",
+      "12. douze",
+      "[l](https://a.b)",
+      "### x",
+      "[l](https://a.b)",
+      "| 1 | 2 |",
+      "![c](img:i1)",
+      "![c](img:i1)",
+      "  - s"
+     ]
+    }
+   ],
+   "html": "<pre class=\"md-code\"><code>12. douze\nx | y\n12. douze\n[l](https://a.b)\n### x\n[l](https://a.b)\n| 1 | 2 |\n![c](img:i1)\n![c](img:i1)\n  - s</code></pre>",
+   "strip": " douze x | y douze l x l 1 2 c c s",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "## Sous-titre\n> q\n> q\n### x\n*i* ==m==\n![c](img:i1)\n![c](img:i1)\nx | y\n* item\nx | y\n`c`"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q",
+      "q"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "`c`"
+     ]
+    }
+   ],
+   "html": "<h2 class=\"md-h2\">Sous-titre</h2><blockquote class=\"md-q\">q<br>q</blockquote><h3 class=\"md-h3\">x</h3><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">x | y</p><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\">x | y<br><code class=\"md-ci\">c</code></p>",
+   "strip": "Sous-titre q q x i m c c x | y item x | y c",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    },
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "\n \n[l](https://a.b)\n> ⚠ alerte\ntexte **g**"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\">texte <b>g</b></p>",
+   "strip": "   l ⚠ alerte texte g",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "> [!tip]\nx | y\n| a | b |\n| a | b |\nx | y\n[a](att:d1)\n![c](img:zz)\n> q\n12. douze\n* item\n| a | b |\n* item\n \n---\n  2) s\n*i* ==m==\n- [x] u\n12. douze\n![c](img:zz)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "| a | b |",
+      "| a | b |",
+      "x | y",
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s",
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    }
+   ],
+   "html": "<blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">x | y<br>| a | b |<br>| a | b |<br>x | y<br><a href=\"#\" data-mdatt=\"d1\">a</a></p><blockquote class=\"md-q\">q</blockquote><ol class=\"md-ol\"><li>douze</li></ol><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\">| a | b |</p><ul class=\"md-ul\"><li>item</li></ul><hr class=\"md-hr\"><p class=\"md-p\">  2) s<br><i>i</i> <mark class=\"md-mk\">m</mark></p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><ol class=\"md-ol\"><li>douze</li></ol>",
+   "strip": " x | y a b a b x | y a c q douze item a b item    s i m u douze c",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "*i* ==m==\n12. douze\n- [x] u\n`c`\n|---|:-:|\n[l](https://a.b)\n---\n|---|:-:|\n|---|:-:|\n  2) s\n`c`\ntexte **g**\n[a](att:d1)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`",
+      "|---|:-:|",
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "tbl",
+     "align": [
+      "",
+      "c"
+     ],
+     "head": [
+      "---",
+      ":-:"
+     ],
+     "rows": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s",
+      "`c`",
+      "texte **g**",
+      "[a](att:d1)"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><ol class=\"md-ol\"><li>douze</li></ol><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\"><code class=\"md-ci\">c</code><br>|---|:-:|<br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><hr class=\"md-hr\"><div class=\"md-tw\" tabindex=\"0\" role=\"region\" aria-label=\"Tableau\"><table class=\"md-tbl\"><thead><tr><th scope=\"col\">---</th><th class=\"ta-c\" scope=\"col\">:-:</th></tr></thead><tbody></tbody></table></div><p class=\"md-p\">  2) s<br><code class=\"md-ci\">c</code><br>texte <b>g</b><br><a href=\"#\" data-mdatt=\"d1\">a</a></p>",
+   "strip": "i m douze u c  l    s c texte g a",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# T\n \n# T\n12. douze\n---\n- [ ] t\n1234. non\n- a\n- a"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      }
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">T</h1><h1 class=\"md-h1\">T</h1><ol class=\"md-ol\"><li>douze</li></ol><hr class=\"md-hr\"><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><p class=\"md-p\">1234. non</p><ul class=\"md-ul\"><li>a</li><li>a</li></ul>",
+   "strip": "T   T douze  t 1234. non a a",
+   "folds": [
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": " \n[a](att:d1)\n> [!WARNING] w\n \nx | y\n[l](https://a.b)\n\n- a\n```\n12. douze\n> [!tip]"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "12. douze",
+      "> [!tip]"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a></p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\">x | y<br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><ul class=\"md-ul\"><li>a</li></ul><pre class=\"md-code\"><code>12. douze\n&gt; [!tip]</code></pre>",
+   "strip": "  a w   x | y l  a  douze ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "|---|:-:|\n![c](img:i1)\n* item"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">|---|:-:|</p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><ul class=\"md-ul\"><li>item</li></ul>",
+   "strip": " c item",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "1234. non\n---\n \n| 1 | 2 |\n> [!tip]"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    }
+   ],
+   "html": "<p class=\"md-p\">1234. non</p><hr class=\"md-hr\"><p class=\"md-p\">| 1 | 2 |</p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote>",
+   "strip": "1234. non    1 2 ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "* item\n \n  - s\n- [x] u\nx | y\n[a](att:d1)\n12. douze\n### x\n| 1 | 2 |"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  - s"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |"
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\">  - s</p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\">x | y<br><a href=\"#\" data-mdatt=\"d1\">a</a></p><ol class=\"md-ol\"><li>douze</li></ol><h3 class=\"md-h3\">x</h3><p class=\"md-p\">| 1 | 2 |</p>",
+   "strip": "item   s u x | y a douze x 1 2",
+   "folds": [
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "|---|:-:|\n---\n- [x] u\n![c](img:i1)\n- [ ] t\nx | y\n| 1 | 2 |\n![c](img:zz)\n> ⚠ alerte"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">|---|:-:|</p><hr class=\"md-hr\"><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><p class=\"md-p\">x | y<br>| 1 | 2 |</p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote>",
+   "strip": "  u c t x | y 1 2 c ⚠ alerte",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "1. o\n- [ ] t\n![c](img:zz)\n| 1 | 2 |\n- [x] u\n\n1. o\n`c`\n| 1 | 2 |\n- [ ] t\n  2) s\n![c](img:zz)\n1. o\n  2) s\n "
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`",
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": {
+        "t": "ol",
+        "items": [
+         "s"
+        ]
+       },
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": {
+        "t": "ol",
+        "items": [
+         "s"
+        ]
+       },
+       "task": null
+      }
+     ]
+    }
+   ],
+   "html": "<ol class=\"md-ol\"><li>o</li></ol><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><p class=\"md-p\">| 1 | 2 |</p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><ol class=\"md-ol\"><li>o</li></ol><p class=\"md-p\"><code class=\"md-ci\">c</code><br>| 1 | 2 |</p><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"2\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t<ol class=\"md-ol\"><li>s</li></ol></span></li></ul><ol class=\"md-ol\"><li>o<ol class=\"md-ol\"><li>s</li></ol></li></ol>",
+   "strip": "o t c 1 2 u  o c 1 2 t s c o s  ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "---\n  - s\n|---|:-:|\n```\n- [x] u\n> ⚠ alerte\n![c](img:i1)\n![c](img:i1)\n> [!WARNING] w\n- a\n[l](https://a.b)\n### x\n1. o\n> [!tip]\n## Sous-titre"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  - s",
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "- [x] u",
+      "> ⚠ alerte",
+      "![c](img:i1)",
+      "![c](img:i1)",
+      "> [!WARNING] w",
+      "- a",
+      "[l](https://a.b)",
+      "### x",
+      "1. o",
+      "> [!tip]",
+      "## Sous-titre"
+     ]
+    }
+   ],
+   "html": "<hr class=\"md-hr\"><p class=\"md-p\">  - s<br>|---|:-:|</p><pre class=\"md-code\"><code>- [x] u\n&gt; ⚠ alerte\n![c](img:i1)\n![c](img:i1)\n&gt; [!WARNING] w\n- a\n[l](https://a.b)\n### x\n1. o\n&gt; [!tip]\n## Sous-titre</code></pre>",
+   "strip": " s   u ⚠ alerte c c w a l x o  Sous-titre",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "## Sous-titre\n|---|:-:|\n \n1. o\n\n[a](att:d1)\n### x\n# T\n1. o\n> ⚠ alerte\nx | y\n1. o\n> [!tip]\n### x\n1. o\n \nx | y\n* item\n1234. non"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    }
+   ],
+   "html": "<h2 class=\"md-h2\">Sous-titre</h2><p class=\"md-p\">|---|:-:|</p><ol class=\"md-ol\"><li>o</li></ol><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a></p><h3 class=\"md-h3\">x</h3><h1 class=\"md-h1\">T</h1><ol class=\"md-ol\"><li>o</li></ol><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\">x | y</p><ol class=\"md-ol\"><li>o</li></ol><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><h3 class=\"md-h3\">x</h3><ol class=\"md-ol\"><li>o</li></ol><p class=\"md-p\">x | y</p><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\">1234. non</p>",
+   "strip": "Sous-titre    o  a x T o ⚠ alerte x | y o  x o   x | y item 1234. non",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    },
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# T\n| 1 | 2 |\n*i* ==m==\n  2) s\n[a](att:d1)\n  - s\n- [x] u\nx | y\n[a](att:d1)\n![c](img:i1)\n*i* ==m=="
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |",
+      "*i* ==m==",
+      "  2) s",
+      "[a](att:d1)",
+      "  - s"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">T</h1><p class=\"md-p\">| 1 | 2 |<br><i>i</i> <mark class=\"md-mk\">m</mark><br>  2) s<br><a href=\"#\" data-mdatt=\"d1\">a</a><br>  - s</p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\">x | y<br><a href=\"#\" data-mdatt=\"d1\">a</a></p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p>",
+   "strip": "T 1 2 i m s a s u x | y a c i m",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "| a | b |\n> [!tip]\n> [!tip]\n> [!WARNING] w\n[l](https://a.b)\n[l](https://a.b)\n- [ ] t\n> [!tip]\n1. o\n[a](att:d1)\n> q\n- a\n---"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": [
+      "[!tip]",
+      "[!WARNING] w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)",
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "hr"
+    }
+   ],
+   "html": "<p class=\"md-p\">| a | b |</p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span>[!tip]<br>[!WARNING] w</blockquote><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><ol class=\"md-ol\"><li>o</li></ol><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a></p><blockquote class=\"md-q\">q</blockquote><ul class=\"md-ul\"><li>a</li></ul><hr class=\"md-hr\">",
+   "strip": "a b   w l l t  o a q a ",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "x | y\n# T\n![c](img:i1)\n \nx | y\n> q\n---\n\n| 1 | 2 |\n  2) s\n\n[l](https://a.b)\n![c](img:zz)\n> [!tip]\n1. o\n![c](img:zz)\n![c](img:i1)\n`c`\n# T"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |",
+      "  2) s"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    }
+   ],
+   "html": "<p class=\"md-p\">x | y</p><h1 class=\"md-h1\">T</h1><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">x | y</p><blockquote class=\"md-q\">q</blockquote><hr class=\"md-hr\"><p class=\"md-p\">| 1 | 2 |<br>  2) s</p><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><ol class=\"md-ol\"><li>o</li></ol><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\"><code class=\"md-ci\">c</code></p><h1 class=\"md-h1\">T</h1>",
+   "strip": "x | y T c   x | y q   1 2 s  l c  o c c c T",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": null,
+     "id": null
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "- [ ] t\n- [x] u\n1. o\ntexte **g**\n\n \n[a](att:d1)\n  - s\n> [!WARNING] w\n1234. non\n> ⚠ alerte\n[l](https://a.b)\n*i* ==m==\n> [!tip]\n| a | b |"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      },
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)",
+      "  - s"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)",
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><ol class=\"md-ol\"><li>o</li></ol><p class=\"md-p\">texte <b>g</b></p><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a><br>  - s</p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\">1234. non</p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br><i>i</i> <mark class=\"md-mk\">m</mark></p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">| a | b |</p>",
+   "strip": "t u o texte g    a s w 1234. non ⚠ alerte l i m  a b",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "* item\n`c`\n> [!WARNING] w\n![c](img:i1)\n  2) s\n[l](https://a.b)\n- [x] u\nx | y\n \n \n`c`"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s",
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\"><code class=\"md-ci\">c</code></p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">  2) s<br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\">x | y</p><p class=\"md-p\"><code class=\"md-ci\">c</code></p>",
+   "strip": "item c w c s l u x | y     c",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "\n1. o\n## Sous-titre\n*i* ==m==\n> ⚠ alerte\n1234. non\n- [ ] t\n| a | b |\n- [ ] t\n> ⚠ alerte\ntexte **g**\ntexte **g**\n```\n1. o\n| a | b |"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**",
+      "texte **g**"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "1. o",
+      "| a | b |"
+     ]
+    }
+   ],
+   "html": "<ol class=\"md-ol\"><li>o</li></ol><h2 class=\"md-h2\">Sous-titre</h2><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\">1234. non</p><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><p class=\"md-p\">| a | b |</p><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\">texte <b>g</b><br>texte <b>g</b></p><pre class=\"md-code\"><code>1. o\n| a | b |</code></pre>",
+   "strip": " o Sous-titre i m ⚠ alerte 1234. non t a b t ⚠ alerte texte g texte g  o a b",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "- [ ] t\n## Sous-titre\n \n12. douze\n| a | b |\n- [x] u\n> ⚠ alerte\n[a](att:d1)\n| 1 | 2 |\n```\n|---|:-:|\n \n*i* ==m==\n> ⚠ alerte\n  - s\ntexte **g**\n> [!tip]\n---\n- a"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)",
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "|---|:-:|",
+      " ",
+      "*i* ==m==",
+      "> ⚠ alerte",
+      "  - s",
+      "texte **g**",
+      "> [!tip]",
+      "---",
+      "- a"
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><h2 class=\"md-h2\">Sous-titre</h2><ol class=\"md-ol\"><li>douze</li></ol><p class=\"md-p\">| a | b |</p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a><br>| 1 | 2 |</p><pre class=\"md-code\"><code>|---|:-:|\n \n*i* ==m==\n&gt; ⚠ alerte\n  - s\ntexte **g**\n&gt; [!tip]\n---\n- a</code></pre>",
+   "strip": "t Sous-titre   douze a b u ⚠ alerte a 1 2     i m ⚠ alerte s texte g   a",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": " \n1234. non\n`c`\n## Sous-titre\n> q\n> [!tip]\n### x\n### x\n  - s\nx | y\n* item\n![c](img:i1)\n`c`"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "1234. non",
+      "`c`"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q",
+      "[!tip]"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  - s",
+      "x | y"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">1234. non<br><code class=\"md-ci\">c</code></p><h2 class=\"md-h2\">Sous-titre</h2><blockquote class=\"md-q\">q<br>[!tip]</blockquote><h3 class=\"md-h3\">x</h3><h3 class=\"md-h3\">x</h3><p class=\"md-p\">  - s<br>x | y</p><ul class=\"md-ul\"><li>item</li></ul><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\"><code class=\"md-ci\">c</code></p>",
+   "strip": "  1234. non c Sous-titre q  x x s x | y item c c",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    },
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "`c`\n> [!tip]\n|---|:-:|\n# T\n[l](https://a.b)\n[a](att:d1)\n- [x] u\n> [!WARNING] w\n \n> q\n### x\n- [x] u\nx | y"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)",
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><code class=\"md-ci\">c</code></p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">|---|:-:|</p><h1 class=\"md-h1\">T</h1><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br><a href=\"#\" data-mdatt=\"d1\">a</a></p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><blockquote class=\"md-q\">q</blockquote><h3 class=\"md-h3\">x</h3><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\">x | y</p>",
+   "strip": "c   T l a u w   q x u x | y",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "- [x] u\n|---|:-:|\n*i* ==m==\n---\n* item\n# T\n> [!tip]\n1. o\n  2) s\n1234. non\n* item\n> ⚠ alerte\n```\n| a | b |\n*i* ==m==\n \n1234. non\n- [x] u\n### x"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|",
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": {
+        "t": "ol",
+        "items": [
+         "s"
+        ]
+       },
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "| a | b |",
+      "*i* ==m==",
+      " ",
+      "1234. non",
+      "- [x] u",
+      "### x"
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\">|---|:-:|<br><i>i</i> <mark class=\"md-mk\">m</mark></p><hr class=\"md-hr\"><ul class=\"md-ul\"><li>item</li></ul><h1 class=\"md-h1\">T</h1><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><ol class=\"md-ol\"><li>o<ol class=\"md-ol\"><li>s</li></ol></li></ol><p class=\"md-p\">1234. non</p><ul class=\"md-ul\"><li>item</li></ul><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><pre class=\"md-code\"><code>| a | b |\n*i* ==m==\n \n1234. non\n- [x] u\n### x</code></pre>",
+   "strip": "u  i m  item T  o s 1234. non item ⚠ alerte  a b i m   1234. non u x",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "[l](https://a.b)\n[a](att:d1)\n1. o\n## Sous-titre\n`c`\n* item\n`c`\n  - s\n- [x] u\ntexte **g**\n`c`\n## Sous-titre\n![c](img:i1)\n# T\n![c](img:i1)\n1234. non\n```\n> [!tip]\n| a | b |"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)",
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`",
+      "  - s"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**",
+      "`c`"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "> [!tip]",
+      "| a | b |"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br><a href=\"#\" data-mdatt=\"d1\">a</a></p><ol class=\"md-ol\"><li>o</li></ol><h2 class=\"md-h2\">Sous-titre</h2><p class=\"md-p\"><code class=\"md-ci\">c</code></p><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\"><code class=\"md-ci\">c</code><br>  - s</p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\">texte <b>g</b><br><code class=\"md-ci\">c</code></p><h2 class=\"md-h2\">Sous-titre</h2><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><h1 class=\"md-h1\">T</h1><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">1234. non</p><pre class=\"md-code\"><code>&gt; [!tip]\n| a | b |</code></pre>",
+   "strip": "l a o Sous-titre c item c s u texte g c Sous-titre c T c 1234. non   a b",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    },
+    {
+     "k": "sous-titre~2",
+     "id": "mdsect-sous-titre-2"
+    },
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "1234. non\n> q\n12. douze\n# T\n* item\n\n12. douze\nx | y\ntexte **g**"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "texte **g**"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">1234. non</p><blockquote class=\"md-q\">q</blockquote><ol class=\"md-ol\"><li>douze</li></ol><h1 class=\"md-h1\">T</h1><ul class=\"md-ul\"><li>item</li></ul><ol class=\"md-ol\"><li>douze</li></ol><p class=\"md-p\">x | y<br>texte <b>g</b></p>",
+   "strip": "1234. non q douze T item  douze x | y texte g",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "[l](https://a.b)\n  - s\n---\n![c](img:i1)\n1234. non"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)",
+      "  - s"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br>  - s</p><hr class=\"md-hr\"><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">1234. non</p>",
+   "strip": "l s  c 1234. non",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "*i* ==m==\n12. douze\n> [!tip]\n---\n  2) s\n![c](img:zz)\n> [!tip]\n\n> [!WARNING] w\n| 1 | 2 |\n- [ ] t\n|---|:-:|\n# T\n| a | b |\n| 1 | 2 |\n|---|:-:|\n  - s\n```\n"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "tbl",
+     "align": [
+      "",
+      "c"
+     ],
+     "head": [
+      "1",
+      "2"
+     ],
+     "rows": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  - s"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      ""
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><ol class=\"md-ol\"><li>douze</li></ol><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><hr class=\"md-hr\"><p class=\"md-p\">  2) s</p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\">| 1 | 2 |</p><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><p class=\"md-p\">|---|:-:|</p><h1 class=\"md-h1\">T</h1><p class=\"md-p\">| a | b |</p><div class=\"md-tw\" tabindex=\"0\" role=\"region\" aria-label=\"Tableau\"><table class=\"md-tbl\"><thead><tr><th scope=\"col\">1</th><th class=\"ta-c\" scope=\"col\">2</th></tr></thead><tbody></tbody></table></div><p class=\"md-p\">  - s</p><pre class=\"md-code\"><code></code></pre>",
+   "strip": "i m douze   s c   w 1 2 t  T a b 1 2  s  ",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# T\n### x\n> [!tip]\n| a | b |\n1. o\n> [!WARNING] w\n[a](att:d1)\n[l](https://a.b)\n  2) s"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)",
+      "[l](https://a.b)",
+      "  2) s"
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">T</h1><h3 class=\"md-h3\">x</h3><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">| a | b |</p><ol class=\"md-ol\"><li>o</li></ol><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a><br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br>  2) s</p>",
+   "strip": "T x  a b o w a l s",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "![c](img:zz)\n> ⚠ alerte\n> q\n\n> [!tip]\nx | y\n* item\n|---|:-:|\n```\n> [!tip]\n* item"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte",
+      "q"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "> [!tip]",
+      "* item"
+     ]
+    }
+   ],
+   "html": "<blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte<br>q</blockquote><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">x | y</p><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\">|---|:-:|</p><pre class=\"md-code\"><code>&gt; [!tip]\n* item</code></pre>",
+   "strip": "c ⚠ alerte q   x | y item    item",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "---\n![c](img:i1)\n  2) s\n![c](img:i1)\n  - s\n\n> ⚠ alerte\n> q\n[l](https://a.b)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "hr"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  - s"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte",
+      "q"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)"
+     ]
+    }
+   ],
+   "html": "<hr class=\"md-hr\"><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">  2) s</p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">  - s</p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte<br>q</blockquote><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p>",
+   "strip": " c s c s  ⚠ alerte q l",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# T\n## Sous-titre\n1234. non\n  - s\n> q\n\n- [ ] t\n```\n\n[a](att:d1)\n  2) s"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non",
+      "  - s"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "",
+      "[a](att:d1)",
+      "  2) s"
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">T</h1><h2 class=\"md-h2\">Sous-titre</h2><p class=\"md-p\">1234. non<br>  - s</p><blockquote class=\"md-q\">q</blockquote><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><pre class=\"md-code\"><code>\n[a](att:d1)\n  2) s</code></pre>",
+   "strip": "T Sous-titre 1234. non s q  t   a s",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# T\n\nx | y\n- [ ] t\n![c](img:i1)\n`c`\n|---|:-:|\n  2) s\nx | y\n- [x] u\n![c](img:zz)\n# T\n> q"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`",
+      "|---|:-:|",
+      "  2) s",
+      "x | y"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">T</h1><p class=\"md-p\">x | y</p><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\"><code class=\"md-ci\">c</code><br>|---|:-:|<br>  2) s<br>x | y</p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><h1 class=\"md-h1\">T</h1><blockquote class=\"md-q\">q</blockquote>",
+   "strip": "T  x | y t c c  s x | y u c T q",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": "t~2",
+     "id": "mdsect-t-2"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "```\n> [!WARNING] w\n- [ ] t"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "code",
+     "lines": [
+      "> [!WARNING] w",
+      "- [ ] t"
+     ]
+    }
+   ],
+   "html": "<pre class=\"md-code\"><code>&gt; [!WARNING] w\n- [ ] t</code></pre>",
+   "strip": " w t",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "> [!WARNING] w\n[a](att:d1)\n![c](img:zz)\n[a](att:d1)\nx | y\n### x\nx | y\n`c`\n|---|:-:|\n> [!WARNING] w\n`c`\n> ⚠ alerte\n---\n  2) s\n| 1 | 2 |\n## Sous-titre\n* item"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)",
+      "x | y"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "`c`",
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s",
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    }
+   ],
+   "html": "<blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a></p><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a><br>x | y</p><h3 class=\"md-h3\">x</h3><p class=\"md-p\">x | y<br><code class=\"md-ci\">c</code><br>|---|:-:|</p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\"><code class=\"md-ci\">c</code></p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><hr class=\"md-hr\"><p class=\"md-p\">  2) s<br>| 1 | 2 |</p><h2 class=\"md-h2\">Sous-titre</h2><ul class=\"md-ul\"><li>item</li></ul>",
+   "strip": "w a c a x | y x x | y c  w c ⚠ alerte  s 1 2 Sous-titre item",
+   "folds": [
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    },
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "- [x] u\n\n[a](att:d1)\n# T\n> [!tip]"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a></p><h1 class=\"md-h1\">T</h1><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote>",
+   "strip": "u  a T ",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "* item\n- [x] u\n- [x] u"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      },
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li>item</li><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul>",
+   "strip": "item u u",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "![c](img:zz)\n  2) s\n \n12. douze\n  - s\n\n1. o\n```\n  2) s\n> ⚠ alerte\n[l](https://a.b)\nx | y\n\n12. douze\n> q\n*i* ==m==\n[a](att:d1)\n> [!WARNING] w\n1. o"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": {
+        "t": "ul",
+        "items": [
+         "s"
+        ]
+       },
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "  2) s",
+      "> ⚠ alerte",
+      "[l](https://a.b)",
+      "x | y",
+      "",
+      "12. douze",
+      "> q",
+      "*i* ==m==",
+      "[a](att:d1)",
+      "> [!WARNING] w",
+      "1. o"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">  2) s</p><ol class=\"md-ol\"><li>douze<ul class=\"md-ul\"><li>s</li></ul></li></ol><ol class=\"md-ol\"><li>o</li></ol><pre class=\"md-code\"><code>  2) s\n&gt; ⚠ alerte\n[l](https://a.b)\nx | y\n\n12. douze\n&gt; q\n*i* ==m==\n[a](att:d1)\n&gt; [!WARNING] w\n1. o</code></pre>",
+   "strip": "c s   douze s  o  s ⚠ alerte l x | y  douze q i m a w o",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "|---|:-:|\n1. o\n![c](img:i1)\nx | y\n> [!tip]\n|---|:-:|\n1234. non\n| 1 | 2 |\n*i* ==m==\n### x\n```\n[a](att:d1)\n12. douze\n12. douze\n|---|:-:|\n[a](att:d1)\n* item\n  - s\n  2) s"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|",
+      "1234. non",
+      "| 1 | 2 |",
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "code",
+     "lines": [
+      "[a](att:d1)",
+      "12. douze",
+      "12. douze",
+      "|---|:-:|",
+      "[a](att:d1)",
+      "* item",
+      "  - s",
+      "  2) s"
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">|---|:-:|</p><ol class=\"md-ol\"><li>o</li></ol><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">x | y</p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">|---|:-:|<br>1234. non<br>| 1 | 2 |<br><i>i</i> <mark class=\"md-mk\">m</mark></p><h3 class=\"md-h3\">x</h3><pre class=\"md-code\"><code>[a](att:d1)\n12. douze\n12. douze\n|---|:-:|\n[a](att:d1)\n* item\n  - s\n  2) s</code></pre>",
+   "strip": " o c x | y   1234. non 1 2 i m x  a douze douze  a item s s",
+   "folds": [
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "> ⚠ alerte\n## Sous-titre\n|---|:-:|\n- a\n- a"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      }
+     ]
+    }
+   ],
+   "html": "<blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><h2 class=\"md-h2\">Sous-titre</h2><p class=\"md-p\">|---|:-:|</p><ul class=\"md-ul\"><li>a</li><li>a</li></ul>",
+   "strip": "⚠ alerte Sous-titre  a a",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "  - s\n`c`\n> q\n\n\n> [!WARNING] w\n# T\n![c](img:zz)\nx | y\n# T\n- [ ] t"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "  - s",
+      "`c`"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    }
+   ],
+   "html": "<p class=\"md-p\">  - s<br><code class=\"md-ci\">c</code></p><blockquote class=\"md-q\">q</blockquote><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><h1 class=\"md-h1\">T</h1><p class=\"md-p\">x | y</p><h1 class=\"md-h1\">T</h1><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul>",
+   "strip": "s c q   w T c x | y T t",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": "t~2",
+     "id": "mdsect-t-2"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "> q\n```\n[l](https://a.b)\n> ⚠ alerte\n| 1 | 2 |"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "[l](https://a.b)",
+      "> ⚠ alerte",
+      "| 1 | 2 |"
+     ]
+    }
+   ],
+   "html": "<blockquote class=\"md-q\">q</blockquote><pre class=\"md-code\"><code>[l](https://a.b)\n&gt; ⚠ alerte\n| 1 | 2 |</code></pre>",
+   "strip": "q  l ⚠ alerte 1 2",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "[l](https://a.b)\n`c`\n### x\n  - s\nx | y\n## Sous-titre\n> [!tip]"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)",
+      "`c`"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  - s",
+      "x | y"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    }
+   ],
+   "html": "<p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br><code class=\"md-ci\">c</code></p><h3 class=\"md-h3\">x</h3><p class=\"md-p\">  - s<br>x | y</p><h2 class=\"md-h2\">Sous-titre</h2><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote>",
+   "strip": "l c x s x | y Sous-titre ",
+   "folds": [
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    },
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "* item\n`c`\n12. douze\n![c](img:i1)\n| a | b |"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\"><code class=\"md-ci\">c</code></p><ol class=\"md-ol\"><li>douze</li></ol><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><p class=\"md-p\">| a | b |</p>",
+   "strip": "item c douze c a b",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "> [!tip]\n> [!WARNING] w\n*i* ==m==\n[a](att:d1)\n \n> [!tip]\n| a | b |\n[l](https://a.b)\n> [!WARNING] w\n> ⚠ alerte\n| 1 | 2 |"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": [
+      "[!WARNING] w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m==",
+      "[a](att:d1)"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |",
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w",
+      "⚠ alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |"
+     ]
+    }
+   ],
+   "html": "<blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span>[!WARNING] w</blockquote><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark><br><a href=\"#\" data-mdatt=\"d1\">a</a></p><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">| a | b |<br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w<br>⚠ alerte</blockquote><p class=\"md-p\">| 1 | 2 |</p>",
+   "strip": " w i m a    a b l w ⚠ alerte 1 2",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "1234. non\n12. douze\n![c](img:zz)\n- a\n### x"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    }
+   ],
+   "html": "<p class=\"md-p\">1234. non</p><ol class=\"md-ol\"><li>douze</li></ol><ul class=\"md-ul\"><li>a</li></ul><h3 class=\"md-h3\">x</h3>",
+   "strip": "1234. non douze c a x",
+   "folds": [
+    {
+     "k": null,
+     "id": null
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "* item\n1. o\nx | y\n[l](https://a.b)\n> [!WARNING] w\n| a | b |\n[l](https://a.b)\nx | y\n> q\n![c](img:zz)\n![c](img:i1)\n* item\n*i* ==m==\n## Sous-titre\n> ⚠ alerte\n`c`\n| a | b |\n![c](img:i1)\n"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |",
+      "[l](https://a.b)",
+      "x | y"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`",
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li>item</li></ul><ol class=\"md-ol\"><li>o</li></ol><p class=\"md-p\">x | y<br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\">| a | b |<br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a><br>x | y</p><blockquote class=\"md-q\">q</blockquote><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><h2 class=\"md-h2\">Sous-titre</h2><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><p class=\"md-p\"><code class=\"md-ci\">c</code><br>| a | b |</p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure>",
+   "strip": "item o x | y l w a b l x | y q c c item i m Sous-titre ⚠ alerte c a b c ",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "### x\n| 1 | 2 |\n[l](https://a.b)\n12. douze\n- [ ] t\n- [x] u\n> ⚠ alerte\n# T\n12. douze\n12. douze\n[l](https://a.b)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |",
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      },
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)"
+     ]
+    }
+   ],
+   "html": "<h3 class=\"md-h3\">x</h3><p class=\"md-p\">| 1 | 2 |<br><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><ol class=\"md-ol\"><li>douze</li></ol><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><h1 class=\"md-h1\">T</h1><ol class=\"md-ol\"><li>douze</li><li>douze</li></ol><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p>",
+   "strip": "x 1 2 l douze t u ⚠ alerte T douze douze l",
+   "folds": [
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    },
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "\n```\n12. douze"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "code",
+     "lines": [
+      "12. douze"
+     ]
+    }
+   ],
+   "html": "<pre class=\"md-code\"><code>12. douze</code></pre>",
+   "strip": "  douze",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "  2) s\n  - s\n![c](img:zz)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "  2) s",
+      "  - s"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    }
+   ],
+   "html": "<p class=\"md-p\">  2) s<br>  - s</p>",
+   "strip": "s s c",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "> [!WARNING] w\n\n> [!WARNING] w\ntexte **g**\n# T\n|---|:-:|\n> q\n \n> q\n> [!WARNING] w\n1. o\n> [!WARNING] w\n* item\n> q\n- [x] u\n* item\ntexte **g**\n![c](img:i1)\n### x"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q",
+      "[!WARNING] w"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "o",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      },
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    }
+   ],
+   "html": "<blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\">texte <b>g</b></p><h1 class=\"md-h1\">T</h1><p class=\"md-p\">|---|:-:|</p><blockquote class=\"md-q\">q</blockquote><blockquote class=\"md-q\">q<br>[!WARNING] w</blockquote><ol class=\"md-ol\"><li>o</li></ol><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><ul class=\"md-ul\"><li>item</li></ul><blockquote class=\"md-q\">q</blockquote><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li><li>item</li></ul><p class=\"md-p\">texte <b>g</b></p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><h3 class=\"md-h3\">x</h3>",
+   "strip": "w  w texte g T  q   q w o w item q u item texte g c x",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": null,
+     "id": null
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "![c](img:i1)\n---\nx | y\n> q\n\n  2) s\n![c](img:i1)\n- [ ] t\n12. douze\n  - s\n| 1 | 2 |\n- [x] u\n> q\n[a](att:d1)\nx | y\n### x\n- a\n- a\n"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": {
+        "t": "ul",
+        "items": [
+         "s"
+        ]
+       },
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[a](att:d1)",
+      "x | y"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      }
+     ]
+    }
+   ],
+   "html": "<figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><hr class=\"md-hr\"><p class=\"md-p\">x | y</p><blockquote class=\"md-q\">q</blockquote><p class=\"md-p\">  2) s</p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><ol class=\"md-ol\"><li>douze<ul class=\"md-ul\"><li>s</li></ul></li></ol><p class=\"md-p\">| 1 | 2 |</p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><blockquote class=\"md-q\">q</blockquote><p class=\"md-p\"><a href=\"#\" data-mdatt=\"d1\">a</a><br>x | y</p><h3 class=\"md-h3\">x</h3><ul class=\"md-ul\"><li>a</li><li>a</li></ul>",
+   "strip": "c  x | y q  s c t douze s 1 2 u q a x | y x a a ",
+   "folds": [
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "12. douze\n*i* ==m==\n* item\n*i* ==m==\n> q\n# T\n|---|:-:|\n### x\n> [!tip]\n![c](img:zz)\ntexte **g**\n> ⚠ alerte\n## Sous-titre\n> [!WARNING] w\n# T\n- [ ] t\n> ⚠ alerte"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m=="
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "|---|:-:|"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "q",
+     "kind": "ok",
+     "lines": []
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "crit",
+     "lines": [
+      "alerte"
+     ]
+    }
+   ],
+   "html": "<ol class=\"md-ol\"><li>douze</li></ol><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><ul class=\"md-ul\"><li>item</li></ul><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark></p><blockquote class=\"md-q\">q</blockquote><h1 class=\"md-h1\">T</h1><p class=\"md-p\">|---|:-:|</p><h3 class=\"md-h3\">x</h3><blockquote class=\"md-q md-call ok\"><span class=\"mc-k\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg>Confirmation</span></blockquote><p class=\"md-p\">texte <b>g</b></p><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote><h2 class=\"md-h2\">Sous-titre</h2><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><h1 class=\"md-h1\">T</h1><ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li></ul><blockquote class=\"md-q md-call crit\"><span class=\"mc-k\"><svg class=\"tic\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Alerte</span>alerte</blockquote>",
+   "strip": "douze i m item i m q T  x  c texte g ⚠ alerte Sous-titre w T t ⚠ alerte",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    },
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    },
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    },
+    {
+     "k": "t~2",
+     "id": "mdsect-t-2"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "1234. non\n \nx | y\n---\n![c](img:zz)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    }
+   ],
+   "html": "<p class=\"md-p\">1234. non</p><p class=\"md-p\">x | y</p><hr class=\"md-hr\">",
+   "strip": "1234. non   x | y  c",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "`c`\n- [x] u\n- [x] u\n| a | b |\n![c](img:zz)\n> q\ntexte **g**\nx | y\n![c](img:zz)\n1234. non\n> [!WARNING] w\n  2) s\n---\n[l](https://a.b)\n![c](img:i1)"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "`c`"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      },
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "texte **g**",
+      "x | y"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "1234. non"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "  2) s"
+     ]
+    },
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    }
+   ],
+   "html": "<p class=\"md-p\"><code class=\"md-ci\">c</code></p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><p class=\"md-p\">| a | b |</p><blockquote class=\"md-q\">q</blockquote><p class=\"md-p\">texte <b>g</b><br>x | y</p><p class=\"md-p\">1234. non</p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote><p class=\"md-p\">  2) s</p><hr class=\"md-hr\"><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure>",
+   "strip": "c u u a b c q texte g x | y c 1234. non w s  l c",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "# T\n*i* ==m==\n[a](att:d1)\n1234. non\n![c](img:i1)\n12. douze\nx | y\n| 1 | 2 |\n> [!WARNING] w"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "*i* ==m==",
+      "[a](att:d1)",
+      "1234. non"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "vig",
+     "lines": [
+      "w"
+     ]
+    }
+   ],
+   "html": "<h1 class=\"md-h1\">T</h1><p class=\"md-p\"><i>i</i> <mark class=\"md-mk\">m</mark><br><a href=\"#\" data-mdatt=\"d1\">a</a><br>1234. non</p><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><ol class=\"md-ol\"><li>douze</li></ol><p class=\"md-p\">x | y<br>| 1 | 2 |</p><blockquote class=\"md-q md-call vig\"><span class=\"mc-k\"><span class=\"mc-g\" aria-hidden=\"true\">△</span>Attention</span>w</blockquote>",
+   "strip": "T i m a 1234. non c douze x | y 1 2 w",
+   "folds": [
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "| a | b |\n## Sous-titre\n12. douze\n12. douze\n## Sous-titre\n| 1 | 2 |\n1234. non\n  - s\n### x"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "p",
+     "lines": [
+      "| a | b |"
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h2",
+     "text": "Sous-titre"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |",
+      "1234. non",
+      "  - s"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    }
+   ],
+   "html": "<p class=\"md-p\">| a | b |</p><h2 class=\"md-h2\">Sous-titre</h2><ol class=\"md-ol\"><li>douze</li><li>douze</li></ol><h2 class=\"md-h2\">Sous-titre</h2><p class=\"md-p\">| 1 | 2 |<br>1234. non<br>  - s</p><h3 class=\"md-h3\">x</h3>",
+   "strip": "a b Sous-titre douze douze Sous-titre 1 2 1234. non s x",
+   "folds": [
+    {
+     "k": "sous-titre~1",
+     "id": "mdsect-sous-titre-1"
+    },
+    {
+     "k": "sous-titre~2",
+     "id": "mdsect-sous-titre-2"
+    },
+    {
+     "k": null,
+     "id": null
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "- [ ] t\n* item\n`c`\ntexte **g**\ntexte **g**\n![c](img:zz)\n* item\n- a\n### x\n[l](https://a.b)\n### x\n# T\nx | y\n`c`\n- [x] u\n![c](img:i1)\n* item"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "t",
+       "sub": null,
+       "task": {
+        "done": false
+       }
+      },
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "`c`",
+      "texte **g**",
+      "texte **g**"
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "zz"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      },
+      {
+       "text": "a",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "[l](https://a.b)"
+     ]
+    },
+    {
+     "t": "h3",
+     "text": "x"
+    },
+    {
+     "t": "h1",
+     "text": "T"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "`c`"
+     ]
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "u",
+       "sub": null,
+       "task": {
+        "done": true
+       }
+      }
+     ]
+    },
+    {
+     "t": "img",
+     "caption": "c",
+     "id": "i1"
+    },
+    {
+     "t": "ul",
+     "items": [
+      {
+       "text": "item",
+       "sub": null,
+       "task": null
+      }
+     ]
+    }
+   ],
+   "html": "<ul class=\"md-ul\"><li class=\"md-task\" data-task=\"0\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">t</span></li><li>item</li></ul><p class=\"md-p\"><code class=\"md-ci\">c</code><br>texte <b>g</b><br>texte <b>g</b></p><ul class=\"md-ul\"><li>item</li><li>a</li></ul><h3 class=\"md-h3\">x</h3><p class=\"md-p\"><a href=\"https://a.b\" target=\"_blank\" rel=\"noopener noreferrer\">l</a></p><h3 class=\"md-h3\">x</h3><h1 class=\"md-h1\">T</h1><p class=\"md-p\">x | y<br><code class=\"md-ci\">c</code></p><ul class=\"md-ul\"><li class=\"md-task done\" data-task=\"1\"><span class=\"md-tkbox\" aria-hidden=\"true\"><svg class=\"tic\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12l5 5L20 6\"/></svg></span><span class=\"md-tktxt\">u</span></li></ul><figure class=\"md-fig w75\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" data-full=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==\" width=\"10\" height=\"10\" data-cap=\"c\" alt=\"c\" loading=\"lazy\" decoding=\"async\"><figcaption>c</figcaption></figure><ul class=\"md-ul\"><li>item</li></ul>",
+   "strip": "t item c texte g texte g c item a x l x T x | y c u c item",
+   "folds": [
+    {
+     "k": "x~1",
+     "id": "mdsect-x-1"
+    },
+    {
+     "k": null,
+     "id": null
+    },
+    {
+     "k": "t~1",
+     "id": "mdsect-t-1"
+    }
+   ]
+  }
+ },
+ {
+  "input": {
+   "k": "doc",
+   "src": "---\nx | y\n| 1 | 2 |\n12. douze\n> q\nx | y\n12. douze\n| 1 | 2 |\n```\n[l](https://a.b)\nx | y\n[a](att:d1)\n  2) s\n  - s\n1. o"
+  },
+  "output": {
+   "blocks": [
+    {
+     "t": "hr"
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y",
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "q",
+     "kind": "",
+     "lines": [
+      "q"
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "x | y"
+     ]
+    },
+    {
+     "t": "ol",
+     "items": [
+      {
+       "text": "douze",
+       "sub": null,
+       "task": null
+      }
+     ]
+    },
+    {
+     "t": "p",
+     "lines": [
+      "| 1 | 2 |"
+     ]
+    },
+    {
+     "t": "code",
+     "lines": [
+      "[l](https://a.b)",
+      "x | y",
+      "[a](att:d1)",
+      "  2) s",
+      "  - s",
+      "1. o"
+     ]
+    }
+   ],
+   "html": "<hr class=\"md-hr\"><p class=\"md-p\">x | y<br>| 1 | 2 |</p><ol class=\"md-ol\"><li>douze</li></ol><blockquote class=\"md-q\">q</blockquote><p class=\"md-p\">x | y</p><ol class=\"md-ol\"><li>douze</li></ol><p class=\"md-p\">| 1 | 2 |</p><pre class=\"md-code\"><code>[l](https://a.b)\nx | y\n[a](att:d1)\n  2) s\n  - s\n1. o</code></pre>",
+   "strip": " x | y 1 2 douze q x | y douze 1 2  l x | y a s s o",
+   "folds": []
+  }
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": ""
+  },
+  "output": ""
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "a"
+  },
+  "output": "a"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "**a**"
+  },
+  "output": "<b>a</b>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "**a** **b**"
+  },
+  "output": "<b>a</b> <b>b</b>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "*"
+  },
+  "output": "*"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "**"
+  },
+  "output": "**"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "***"
+  },
+  "output": "***"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "****a****"
+  },
+  "output": "**<b>a</b>**"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "*a*b*"
+  },
+  "output": "<i>a</i>b*"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "a*b"
+  },
+  "output": "a*b"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "*a *b*"
+  },
+  "output": "<i>a </i>b*"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "_a_"
+  },
+  "output": "_a_"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "=="
+  },
+  "output": "=="
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "===="
+  },
+  "output": "===="
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "==a==b=="
+  },
+  "output": "<mark class=\"md-mk\">a</mark>b=="
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "`"
+  },
+  "output": "`"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "``"
+  },
+  "output": "``"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "```"
+  },
+  "output": "<code class=\"md-ci\">`</code>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "`a``b`"
+  },
+  "output": "<code class=\"md-ci\">a</code><code class=\"md-ci\">b</code>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "a `b` c `d"
+  },
+  "output": "a <code class=\"md-ci\">b</code> c `d"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[a](b)"
+  },
+  "output": "[a](b)"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[a](https://x)"
+  },
+  "output": "<a href=\"https://x\" target=\"_blank\" rel=\"noopener noreferrer\">a</a>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[a](HTTP://X.ORG/\"q'<>`)"
+  },
+  "output": "<a href=\"HTTP://X.ORG/&quot;q&#39;&lt;&gt;\" target=\"_blank\" rel=\"noopener noreferrer\">a</a>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[a](att:x y)"
+  },
+  "output": "[a](att:x y)"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[](https://x)"
+  },
+  "output": "[](https://x)"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[a]( https://x)"
+  },
+  "output": "[a]( https://x)"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[a](https://x) [b](https://y)"
+  },
+  "output": "<a href=\"https://x\" target=\"_blank\" rel=\"noopener noreferrer\">a</a> <a href=\"https://y\" target=\"_blank\" rel=\"noopener noreferrer\">b</a>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "[[a](https://x)](https://y)"
+  },
+  "output": "<a href=\"https://x\" target=\"_blank\" rel=\"noopener noreferrer\">[a</a>](https://y)"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "& < > \" '"
+  },
+  "output": "&amp; &lt; &gt; &quot; &#39;"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "&amp;"
+  },
+  "output": "&amp;amp;"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "é *é* **é**"
+  },
+  "output": "é <i>é</i> <b>é</b>"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx fin"
+  },
+  "output": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "a\nb *c\nd*"
+  },
+  "output": "a\nb *c\nd*"
+ },
+ {
+  "input": {
+   "k": "inline",
+   "s": "`a\nb`"
+  },
+  "output": "<code class=\"md-ci\">a\nb</code>"
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": ""
+  },
+  "output": [
+   ""
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "|"
+  },
+  "output": [
+   ""
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "||"
+  },
+  "output": [
+   ""
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "| a |"
+  },
+  "output": [
+   "a"
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "a|b"
+  },
+  "output": [
+   "a",
+   "b"
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "|a|b|"
+  },
+  "output": [
+   "a",
+   "b"
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": " | a \\| b | c | "
+  },
+  "output": [
+   "a | b",
+   "c"
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "|c|c|c|c|c|c|c|c|c|c|c|c|c|c|"
+  },
+  "output": [
+   "c",
+   "c",
+   "c",
+   "c",
+   "c",
+   "c",
+   "c",
+   "c",
+   "c",
+   "c",
+   "c",
+   "c"
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "\\|"
+  },
+  "output": [
+   "\\"
+  ]
+ },
+ {
+  "input": {
+   "k": "cells",
+   "s": "| a \\\\| b |"
+  },
+  "output": [
+   "a \\| b"
+  ]
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": ""
+  },
+  "output": {
+   "kind": "",
+   "text": "",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "[!WARNING]"
+  },
+  "output": {
+   "kind": "vig",
+   "text": "",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "[!warning] txt"
+  },
+  "output": {
+   "kind": "vig",
+   "text": "txt",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "  [! note ]  txt"
+  },
+  "output": {
+   "kind": "info",
+   "text": "txt",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "[!x]"
+  },
+  "output": {
+   "kind": "",
+   "text": "[!x]",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "[!abcdefghijklm]"
+  },
+  "output": {
+   "kind": "",
+   "text": "[!abcdefghijklm]",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "[!Élan]"
+  },
+  "output": {
+   "kind": "",
+   "text": "[!Élan]",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "⚠️ a"
+  },
+  "output": {
+   "kind": "crit",
+   "text": "a",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "⚠ a"
+  },
+  "output": {
+   "kind": "crit",
+   "text": "a",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "✔"
+  },
+  "output": {
+   "kind": "ok",
+   "text": "",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "✓x"
+  },
+  "output": {
+   "kind": "ok",
+   "text": "x",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "ℹ️"
+  },
+  "output": {
+   "kind": "info",
+   "text": "",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "rien"
+  },
+  "output": {
+   "kind": "",
+   "text": "rien",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "[!OK] x"
+  },
+  "output": {
+   "kind": "ok",
+   "text": "x",
+   "fn": false
+  }
+ },
+ {
+  "input": {
+   "k": "callout",
+   "s": "[!constructor] c"
+  },
+  "output": {
+   "kind": null,
+   "text": "c",
+   "fn": true
+  }
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": ""
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[ ]"
+  },
+  "output": {
+   "done": false,
+   "text": ""
+  }
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[x]"
+  },
+  "output": {
+   "done": true,
+   "text": ""
+  }
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[X] t"
+  },
+  "output": {
+   "done": true,
+   "text": "t"
+  }
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[ ]t"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[x]  t"
+  },
+  "output": {
+   "done": true,
+   "text": "t"
+  }
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[y] t"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[] t"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": " [ ] t"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "k": "task",
+   "s": "[ ]\tt"
+  },
+  "output": {
+   "done": false,
+   "text": "t"
+  }
+ }
+]
