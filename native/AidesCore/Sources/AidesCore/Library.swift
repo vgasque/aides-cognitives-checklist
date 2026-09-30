@@ -8,15 +8,8 @@ import Foundation
 // `dirty` (« à pousser ») vit dans l'ENREGISTREMENT, jamais dans le modèle : `migrate` l'efface à
 // la relecture, et un objet réécrit sans lui perdrait sa poussée en attente (doctrine 16.6).
 
-public enum LibraryRole: String, Sendable { case viewer, editor, admin }
-
-public struct SharedLibrary: Equatable, Hashable, Identifiable, Sendable {
-    public var id: String
-    public var name: String
-    public var role: LibraryRole
-    public init(id: String, name: String, role: LibraryRole) { self.id = id; self.name = name; self.role = role }
-    public var canEdit: Bool { role == .editor || role == .admin }
-}
+/// Une bibliothèque partagée dont je suis membre (type du module compte : `LibraryInfo`).
+public typealias SharedLibrary = LibraryInfo
 
 public struct Backup: Equatable, Sendable {
     public var bid: String

@@ -262,7 +262,7 @@ final class AccountAPITests: XCTestCase {
                 return .json([["role": "editor", "library_id": "L2", "libraries": ["id": "L2", "name": "Zèbre"]],
                               ["role": "admin", "library_id": "L2", "libraries": ["id": "L2", "name": "Zèbre"]],
                               ["role": "viewer", "library_id": "L1", "libraries": ["id": "L1", "name": "Anesthésie"]],
-                              ["role": "admin", "library_id": "L3", "libraries": nil]])
+                              ["role": "admin", "library_id": "L3", "libraries": .null]])
             }
             return nil
         }
