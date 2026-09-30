@@ -211,7 +211,7 @@ struct ReferenceReadView: View {
         if let lib = p.library {
             let name = model.library.libraryName(lib)
             let ro = !model.library.canEdit(p)
-            Label((name.isEmpty ? "Partagée" : name) + (ro ? " · lecture seule" : ""), systemImage: ro ? "lock" : "book")
+            Label((name.isEmpty ? "Partagée" : name) + either(ro, " · lecture seule", ""), systemImage: ro ? "lock" : "book")
                 .labelStyle(RefMetaLabelStyle())
                 .help("Bibliothèque partagée")
         }
@@ -233,10 +233,10 @@ struct ReferenceReadView: View {
             Text(p.code).aFont(TypeScale.meta, .semibold, .mono).foregroundStyle(T.ink2)
         }
         let stale = Txt.staleDate(p.validatedAt, now: JS.now())
-        Text((stale ? "△ " : "") + Self.fmtDate(p.validatedAt))
+        Text(either(stale, "△ ", "") + Self.fmtDate(p.validatedAt))
             .aFont(TypeScale.meta, stale ? .bold : .regular)
             .foregroundStyle(stale ? T.warn : T.ink2)
-            .accessibilityLabel(Self.fmtDate(p.validatedAt) + (stale ? ", validation de plus de deux ans" : ""))
+            .accessibilityLabel(Self.fmtDate(p.validatedAt) + either(stale, ", validation de plus de deux ans", ""))
         if p.library != nil && !p.updatedBy.isEmpty {
             Text("· dernière modification par " + p.updatedBy).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                 .help("Auteur de la dernière modification")

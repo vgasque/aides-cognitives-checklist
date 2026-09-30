@@ -503,7 +503,7 @@ enum AcctFlatten {
                 for it in Pool.blockItems(f, b) { add(&L, "Bloc « " + t + " »", it.legacyString) }
             }
         }
-        for t in f.timers { add(&L, "Minuteur", t.label + (t.type == .interval ? " (\(t.seconds) s)" : " (chrono)")) }
+        for t in f.timers { add(&L, "Minuteur", t.label + either(t.type == .interval, " (\(t.seconds) s)", " (chrono)")) }
         for c in f.counters { add(&L, "Compteur", c.label) }
         return L
     }
@@ -565,7 +565,7 @@ func acctStatusLabel(_ s: Status, feminine: Bool) -> String {
     switch s {
     case .draft: return "○ Brouillon"
     case .review: return "△ À relire"
-    case .validated: return "✓ Validé" + (feminine ? "e" : "")
+    case .validated: return "✓ Validé" + either(feminine, "e", "")
     }
 }
 

@@ -243,7 +243,7 @@ struct ImportWorkshopView: View {
     private func workshop(_ f: Importer.File) -> some View {
         let n = rows.count
         Text((label.isEmpty ? "Ce fichier contient " : label + " contient ") + acctPlural(n, "élément", "éléments")
-             + (f.isZip ? " et ses documents PDF" : "")
+             + either(f.isZip, " et ses documents PDF", "")
              + ". Décochez ce que vous ne voulez pas, réglez où chacun va : rien n'est écrit avant votre validation. L'état (Validée / À relire / Brouillon) est celui du fichier.")
             .aFont(TypeScale.body, .regular)
             .foregroundStyle(T.ink)
@@ -307,7 +307,7 @@ struct ImportWorkshopView: View {
         let libText: String = n == 0 ? "Bibliothèque" : (commonLib.map { libName($0) } ?? "Plusieurs bibliothèques")
         let bandLib: String? = commonLib ?? nil
         return VStack(alignment: .leading, spacing: 8) {
-            Text(n > 0 ? "Ranger " + (n > 1 ? "les \(n) cochés" : "l'élément coché") + " dans" : "Cochez au moins un élément pour choisir sa destination")
+            Text(n > 0 ? "Ranger " + either(n > 1, "les \(n) cochés", "l'élément coché") + " dans" : "Cochez au moins un élément pour choisir sa destination")
                 .aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
             HStack(spacing: 8) {
                 if hasLibraryChoice {
@@ -352,7 +352,7 @@ struct ImportWorkshopView: View {
                               label: (text: String, color: String?, keep: Bool)) -> some View {
         let values = Set(rows.filter { keys.contains($0.id) }.map(\.destCategory))
         let current: String? = values.count == 1 ? values.first : nil
-        let aria = label.text + (label.keep ? " — la catégorie n'a pas été changée : celle du fichier sera retrouvée par son nom dans la destination, ou créée" : "") + " — toucher pour changer"
+        let aria = label.text + either(label.keep, " — la catégorie n'a pas été changée : celle du fichier sera retrouvée par son nom dans la destination, ou créée", "") + " — toucher pour changer"
         return Menu {
             Button { setCategory(Importer.keep, keys: keys) } label: {
                 if current == Importer.keep { Label("Garder la catégorie du fichier", systemImage: "checkmark") } else { Text("Garder la catégorie du fichier") }
@@ -448,7 +448,7 @@ struct ImportWorkshopView: View {
     private func askReplace(sel: [Importer.Row], scopeLabel lbl: String) {
         let hasProtos = sel.contains { $0.reference != nil }
         confirm = AcctConfirm(title: "Remplacer la bibliothèque",
-                              message: "Toutes les fiches" + (hasProtos ? " et tous les protocoles" : "") + " de " + lbl
+                              message: "Toutes les fiches" + either(hasProtos, " et tous les protocoles", "") + " de " + lbl
                                 + " seront supprimé(e)s puis remplacé(e)s par les \(sel.count) éléments cochés. Continuer ?",
                               yes: "Tout remplacer", danger: true) { r in
             if case .yes = r { write(merge: false, replaceDuplicates: false) }
@@ -568,7 +568,7 @@ private struct ImportRowView: View {
                     .accessibilityLabel("déjà présente dans votre bibliothèque")
                     .help("Une entité de même identifiant est déjà dans votre bibliothèque — la question « Doublons » qui suit décide de son sort, pour toutes celles-ci à la fois")
                 if let rel = row.relation, let t = Importer.relationText[rel] {
-                    Text((rel == .vieux ? "△ " : "") + t).aFont(TypeScale.meta, .bold)
+                    Text(either(rel == .vieux, "△ ", "") + t).aFont(TypeScale.meta, .bold)
                         .foregroundStyle(rel == .vieux ? T.warn : T.ink2)
                 }
             }
@@ -607,10 +607,10 @@ private struct ImportRowView: View {
         let nb = f.blocks.filter { $0.kind != .review }.count
         let tl = f.timers.count, cl = f.counters.count, cx = f.excursions.count
         var p: [String] = []
-        if nb > 0 { p.append("\(nb)" + (nb > 1 ? " blocs" : " bloc")) }
-        if tl > 0 { p.append("\(tl)" + (tl > 1 ? " minuteurs" : " minuteur")) }
-        if cl > 0 { p.append("\(cl)" + (cl > 1 ? " compteurs" : " compteur")) }
-        if cx > 0 { p.append("\(cx)" + (cx > 1 ? " complications déclarées" : " complication déclarée")) }
+        if nb > 0 { p.append("\(nb)" + either(nb > 1, " blocs", " bloc")) }
+        if tl > 0 { p.append("\(tl)" + either(tl > 1, " minuteurs", " minuteur")) }
+        if cl > 0 { p.append("\(cl)" + either(cl > 1, " compteurs", " compteur")) }
+        if cx > 0 { p.append("\(cx)" + either(cx > 1, " complications déclarées", " complication déclarée")) }
         return p
     }
 }

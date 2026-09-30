@@ -29,7 +29,7 @@ struct CrEntryView: View {
                             set("diff", true)
                             vs.pendingScroll = "!pre-diff"
                         } label: {
-                            Text("Le tableau ne colle pas ? → \(ddx.count) " + (ddx.count > 1 ? "diagnostics" : "diagnostic") + " à éliminer ▸")
+                            Text("Le tableau ne colle pas ? → \(ddx.count) " + either(ddx.count > 1, "diagnostics", "diagnostic") + " à éliminer ▸")
                                 .aFont(TypeScale.item, .semibold).foregroundStyle(T.act)
                                 .frame(maxWidth: .infinity, minHeight: Ctrl.l, alignment: .leading)
                                 .contentShape(Rectangle())
@@ -47,7 +47,7 @@ struct CrEntryView: View {
                 .id("pre-forget")
             }
             CrFoldCard(icon: CrIconSquare(glyph: "⇣", fg: T.ink, bg: T.amb2), title: "Parcours",
-                       count: "\(nBlk) bloc" + (nBlk > 1 ? "s" : "") + (nDec > 0 ? " · \(nDec) décision" + (nDec > 1 ? "s" : "") : ""),
+                       count: "\(nBlk) bloc" + either(nBlk > 1, "s", "") + (nDec > 0 ? " · \(nDec) décision" + either(nDec > 1, "s", "") : ""),
                        open: isOpen("flow", false), toggle: { toggle("flow", false) }) {
                 VStack(alignment: .leading, spacing: 10) {
                     CrLinksRow(ctx: ctx, vs: vs)
@@ -190,7 +190,7 @@ struct CrPosoCards: View {
             ForEach(Array(sp.head.enumerated()), id: \.offset) { _, r in card(r.s, r.crit) }
             if !rest.isEmpty {
                 Button { vs.posoMoreOpen.toggle() } label: {
-                    Text((vs.posoMoreOpen ? "− " : "＋ ") + "\(rest.count) autres repères").aFont(TypeScale.body, .bold).foregroundStyle(T.act)
+                    Text(either(vs.posoMoreOpen, "− ", "＋ ") + "\(rest.count) autres repères").aFont(TypeScale.body, .bold).foregroundStyle(T.act)
                         .frame(minHeight: Ctrl.l).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -202,7 +202,7 @@ struct CrPosoCards: View {
         let p = CrisisPure.posoParts(s)
         return VStack(alignment: .leading, spacing: 2) {
             if !p.name.isEmpty || flagged {
-                Text((flagged ? "△ " : "") + p.name.uppercased()).aFont(TypeScale.meta, .bold).foregroundStyle(flagged ? T.warn : T.ink2)
+                Text(either(flagged, "△ ", "") + p.name.uppercased()).aFont(TypeScale.meta, .bold).foregroundStyle(flagged ? T.warn : T.ink2)
             }
             if !p.body.isEmpty { BoldText(text: p.body, size: TypeScale.body, weight: .semibold, color: T.ink) }
         }

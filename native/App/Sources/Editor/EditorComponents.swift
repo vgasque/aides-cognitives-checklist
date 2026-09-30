@@ -275,7 +275,7 @@ struct EdDropTarget: View {
     var action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text((warn ? "△ " : "") + label)
+            Text(either(warn, "△ ", "") + label)
                 .aFont(TypeScale.body, .bold)
                 .foregroundStyle(warn ? T.warn : T.act)
                 .frame(maxWidth: .infinity, minHeight: Ctrl.l)

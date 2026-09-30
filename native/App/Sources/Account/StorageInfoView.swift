@@ -100,7 +100,7 @@ struct StorageInfoView: View {
         let size = used.map { acctFmtBytes($0) } ?? "…"
         let offline = !model.sync.isOnline()
         let text = (model.auth.signedIn ? "**Cloud** · " + size + " sur l'appareil" : "**Cet appareil seulement** · " + size + " · copie unique")
-            + (offline ? " · Hors ligne — tout fonctionne sur l’appareil" : "")
+            + either(offline, " · Hors ligne — tout fonctionne sur l’appareil", "")
         return HStack(spacing: 8) {
             Image(systemName: model.auth.signedIn ? "icloud" : "iphone").foregroundStyle(T.ink2)
             BoldText(text: text, size: TypeScale.body, color: T.ink)

@@ -40,7 +40,7 @@ struct CrAct {
     }
     private func dropOpens() { vs.ovFold = CrisisPure.ovDropOpens(vs.ovFold) }
     private func scrollTip(force: Bool) {
-        vs.pendingScroll = (force ? "!" : "") + "v\(R.nav.count - 1)"
+        vs.pendingScroll = either(force, "!", "") + "v\(R.nav.count - 1)"
     }
 
     // MARK: Démarrage, exercice

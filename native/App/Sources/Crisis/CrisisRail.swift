@@ -49,7 +49,7 @@ struct CrRail: View {
                 ForEach(f.timers, id: \.id) { t in
                     let nm = Fmt.timerName(label: t.label, type: t.type)
                     let v: String = t.type == .interval
-                        ? Fmt.ms(Double(t.seconds) * 1000) + (t.autoloop ? " cyclique, à lancer" : ", à lancer")
+                        ? Fmt.ms(Double(t.seconds) * 1000) + either(t.autoloop, " cyclique, à lancer", ", à lancer")
                         : "compte à partir de 0, à lancer"
                     preRow(nm, v)
                 }
@@ -80,7 +80,7 @@ struct CrRail: View {
             let st = s["startedAt"]?.number ?? sv
             let n = s["nav"]?.array?.count ?? 0
             VStack(alignment: .leading, spacing: 6) {
-                Text("Dernière session : " + Fmt.sessStamp(sv) + " · \(n) bloc" + (n > 1 ? "s" : "") + " · " + Fmt.ms(max(0, sv - st)))
+                Text("Dernière session : " + Fmt.sessStamp(sv) + " · \(n) bloc" + either(n > 1, "s", "") + " · " + Fmt.ms(max(0, sv - st)))
                     .aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
                 Button("Voir le compte-rendu") { vs.sheet = .report(id) }
                     .aFont(TypeScale.body, .bold).foregroundStyle(T.act).buttonStyle(.plain)

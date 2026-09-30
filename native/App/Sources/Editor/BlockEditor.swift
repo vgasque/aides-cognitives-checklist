@@ -359,7 +359,7 @@ struct BlockOptionsFold: View {
         if !ph.isEmpty { sum.append(ph) }
         if nl && !JS.trim(b.nextLbl).isEmpty { sum.append("« Continuer » renommé") }
         if b.timer != nil { sum.append("Minuteur") }
-        if nj > 0 { sum.append("\(nj) jalon" + (nj > 1 ? "s" : "")) }
+        if nj > 0 { sum.append("\(nj) jalon" + either(nj > 1, "s", "")) }
         if b.image != nil { sum.append("Image") }
         let open = ed.blockOptOpen[b.id] ?? (sum.count > (dep ? 1 : 0))
         return VStack(alignment: .leading, spacing: 10) {
@@ -486,7 +486,7 @@ struct PhaseField: View {
                 })) {
                 Text(her.isEmpty ? "Aucune" : her + " (héritée)").tag("")
                 ForEach(EdKit.phaseOptions(f, b), id: \.self) { v in
-                    Text(v + (cnt[v].map { " (\($0) bloc" + ($0 > 1 ? "s" : "") + ")" } ?? "")).tag(v)
+                    Text(v + (cnt[v].map { " (\($0) bloc" + either($0 > 1, "s", "") + ")" } ?? "")).tag(v)
                 }
                 Text("＋ Nouvelle phase…").tag("__new")
             }

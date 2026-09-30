@@ -280,7 +280,7 @@ enum CrisisPure {
             let digits = isRun ? String(k.dropFirst(2)) : k
             guard !digits.isEmpty, digits.allSatisfy({ $0.isASCII && $0.isNumber }), let ix = Int(digits) else { n[k] = v; continue }
             guard ix < before.count, let j = pos[before[ix]] else { continue }
-            n[(isRun ? "r:" : "") + String(j)] = v
+            n[either(isRun, "r:", "") + String(j)] = v
         }
         return n
     }

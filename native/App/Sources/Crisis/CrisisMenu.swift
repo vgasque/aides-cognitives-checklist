@@ -24,7 +24,7 @@ struct CrMoreMenu: View {
             } else {
                 Menu {
                     ForEach(cxs, id: \.self) { c in
-                        Button(HTML.stripBold(c.label) + (c.isBlock ? "" : " ↗")) { act.cxGo(c) }
+                        Button(HTML.stripBold(c.label) + either(c.isBlock, "", " ↗")) { act.cxGo(c) }
                     }
                 } label: { row("Complications (\(cxs.count))", "à tout moment", "bolt.fill") }
             }

@@ -285,3 +285,10 @@ extension EnvironmentValues {
         set { self[WidthClassKey.self] = newValue }
     }
 }
+
+// MARK: Chaînes
+
+/// `c ? a : b` pour des CHAÎNES, typé d'avance : au milieu d'une concaténation (`"…" + (n > 1 ?
+/// "s" : "") + …`), le ternaire sur deux littéraux fait exploser l'inférence de types du
+/// compilateur (« unable to type-check this expression in reasonable time »).
+@inline(__always) func either(_ c: Bool, _ a: String, _ b: String) -> String { c ? a : b }

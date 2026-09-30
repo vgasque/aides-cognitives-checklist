@@ -371,7 +371,7 @@ struct HomeDirState: View {
                 .aFont(TypeScale.meta, .bold).foregroundStyle(T.warn).fixedSize()
                 .help(HomeSearch.fmtDate(x.validatedAt) + " — plus de 2 ans : à revérifier")
         } else {
-            Text(verbatim: (x.isFiche ? "Validée " : "Validé ") + HomeSearch.fmtDateShort(x.validatedAt))
+            Text(verbatim: either(x.isFiche, "Validée ", "Validé ") + HomeSearch.fmtDateShort(x.validatedAt))
                 .aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2).fixedSize()
                 .help(HomeSearch.fmtDate(x.validatedAt))
         }
@@ -417,7 +417,7 @@ struct HomeTiles: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Text("Accès direct").aFont(TypeScale.item, .bold).foregroundStyle(T.ink).accessibilityAddTraits(.isHeader)
-                Text(verbatim: "\(tiles.count) épinglée" + (tiles.count > 1 ? "s" : "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
+                Text(verbatim: "\(tiles.count) épinglée" + either(tiles.count > 1, "s", "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
             }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: wc == .phone ? 165 : 290), spacing: 8)], spacing: 8) {
                 ForEach(tiles) { x in tile(x) }
@@ -460,7 +460,7 @@ struct HomeTiles: View {
         if !x.discriminant.isEmpty { parts.append(x.discriminant) }
         if !x.code.isEmpty { parts.append(x.code) }
         var s = parts.joined(separator: " ")
-        if let c = cat { s += (s.isEmpty ? "" : " · ") + c.name }
+        if let c = cat { s += either(s.isEmpty, "", " · ") + c.name }
         return Text(s).aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2).lineLimit(1)
     }
 }
@@ -482,7 +482,7 @@ struct HomeSummaryRow: View {
         let r = list.filter { $0.status == .draft || $0.status == .review || HomeSearch.staleDate($0.validatedAt) }.count
         var parts: [String] = []
         if f > 0 { parts.append("\(f) parcours") }
-        if p > 0 { parts.append("\(p) protocole" + (p > 1 ? "s" : "")) }
+        if p > 0 { parts.append("\(p) protocole" + either(p > 1, "s", "")) }
         if r > 0 { parts.append("\(r) à relire") }
         return parts.isEmpty ? "Aucune aide" : parts.joined(separator: " · ")
     }
@@ -824,8 +824,8 @@ struct HomeSearchResults: View {
         }
     }
     private func crossLabel(_ n: Int) -> String {
-        let lbl = st.section == .fiches ? "protocole" + (n > 1 ? "s" : "") : "aide" + (n > 1 ? "s" : "") + " cognitive" + (n > 1 ? "s" : "")
-        return "\(n) " + lbl + " correspond" + (n > 1 ? "ent" : "") + " aussi à cette recherche"
+        let lbl = st.section == .fiches ? "protocole" + either(n > 1, "s", "") : "aide" + either(n > 1, "s", "") + " cognitive" + either(n > 1, "s", "")
+        return "\(n) " + lbl + " correspond" + either(n > 1, "ent", "") + " aussi à cette recherche"
     }
 }
 

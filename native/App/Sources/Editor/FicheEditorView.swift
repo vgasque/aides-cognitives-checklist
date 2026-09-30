@@ -368,7 +368,7 @@ struct EdTitleBlock: View {
     var body: some View {
         let n = EdKit.reviewNotes(ed.d).count
         let s = EdSaveText.text(ed.save, at: ed.savedAt, short: wc == .phone)
-        let revLabel: String = "\(n) remarque" + (n > 1 ? "s" : "") + " de relecture — aucune n’empêche d’enregistrer"
+        let revLabel: String = "\(n) remarque" + either(n > 1, "s", "") + " de relecture — aucune n’empêche d’enregistrer"
         VStack(spacing: 1) {
             Text(JS.trim(ed.d.title).isEmpty ? "Nouvelle fiche" : ed.d.title)
                 .aFont(TypeScale.item, .bold).foregroundStyle(T.ink).lineLimit(1)
@@ -434,7 +434,7 @@ struct EdGrabBanner: View {
             var s = "bloc « " + (t.isEmpty ? "sans titre" : t) + " »"
             if b.kind != .decision {
                 let n = Graph.cleanSteps(f, b).count
-                s += " · \(n) étape" + (n > 1 ? "s" : "")
+                s += " · \(n) étape" + either(n > 1, "s", "")
             }
             return s
         case .step(_, let iid)?:
@@ -459,7 +459,7 @@ struct EdTocFold: View {
             Button { ed.tocOpen.toggle() } label: {
                 HStack {
                     Text("Structure").aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
-                    Text("\(n) bloc" + (n > 1 ? "s" : "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
+                    Text("\(n) bloc" + either(n > 1, "s", "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                     Spacer()
                     Image(systemName: ed.tocOpen ? "chevron.up" : "chevron.down").font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink2)
                 }
@@ -521,7 +521,7 @@ struct EdStructureList: View {
         let isDec = b.kind == .decision
         let t = JS.trim(b.title)
         let n = isDec ? b.options.count : Graph.cleanSteps(f, b).count
-        let count = isDec ? "\(n) branche" + (n > 1 ? "s" : "") : "\(n) étape" + (n > 1 ? "s" : "")
+        let count = isDec ? "\(n) branche" + either(n > 1, "s", "") : "\(n) étape" + either(n > 1, "s", "")
         Button {
             ed.tocOpen = false
             ed.goFlash("b:" + b.id)

@@ -25,7 +25,7 @@ struct CrMonitorView: View {
                     Text(R.startedAt > 0 ? Fmt.ms(now - R.startedAt) : "—")
                         .font(.system(size: min(46, max(30, g.size.width * 0.07)), weight: .bold, design: .monospaced).monospacedDigit())
                         .foregroundStyle(R.exercise ? T.act : T.ok)
-                        .accessibilityLabel((R.exercise ? "Exercice" : "Session") + " — durée " + Fmt.ms(now - R.startedAt))
+                        .accessibilityLabel(either(R.exercise, "Exercice", "Session") + " — durée " + Fmt.ms(now - R.startedAt))
                     Spacer()
                     Text("TAP = REVENIR").aFont(TypeScale.meta, .bold).tracking(0.8).foregroundStyle(T.ink2)
                 }
@@ -103,7 +103,7 @@ struct CrMonBand: View {
                 }
             }
             if older > 0 {
-                Text("+ \(older) repère" + (older > 1 ? "s" : "") + " avant").aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
+                Text("+ \(older) repère" + either(older > 1, "s", "") + " avant").aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
             } else if data.past.isEmpty, let e = lastEv {
                 Text("‹ " + (e.label.isEmpty ? "Repère" : e.label) + "  il y a " + ageTxt(now - e.t)).aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
             }
@@ -131,7 +131,7 @@ struct CrMonBand: View {
                 .frame(height: 22)
             }
             if data.dated.count > 4 {
-                Text("+ \(data.dated.count - 4) minuteur" + (data.dated.count - 4 > 1 ? "s" : "") + " plus tard").aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
+                Text("+ \(data.dated.count - 4) minuteur" + either(data.dated.count - 4 > 1, "s", "") + " plus tard").aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
             }
             if data.dated.contains(where: { !$0.ghosts.isEmpty }) {
                 Text("┄ tours suivants — si rien n'est touché").aFont(TypeScale.cap, .medium).foregroundStyle(T.ink2)
@@ -162,6 +162,6 @@ struct CrMonBand: View {
         let m = Int(ms / 60_000)
         if m < 60 { return "\(m) min" }
         let h = m / 60, r = m % 60
-        return "\(h) h " + (r < 10 ? "0\(r)" : "\(r)")
+        return "\(h) h " + either(r < 10, "0\(r)", "\(r)")
     }
 }

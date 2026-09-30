@@ -124,7 +124,7 @@ struct SessionsHistoryView: View {
         let started = s["startedAt"]?.number ?? saved
         let d = Fmt.ms(max(0, saved - (started == 0 ? saved : started)))
         let n = (s["checked"]?.object ?? [:]).values.filter(\.truthy).count
-        return "Durée " + d + (n > 0 ? " · \(n) étape" + (n > 1 ? "s" : "") + " cochée" + (n > 1 ? "s" : "") : "")
+        return "Durée " + d + (n > 0 ? " · \(n) étape" + either(n > 1, "s", "") + " cochée" + either(n > 1, "s", "") : "")
     }
 
     private func row(_ s: JSON) -> some View {

@@ -147,7 +147,7 @@ struct CrCapsule: View {
 
     private var globalA11y: String {
         let R = ctx.R
-        return (R.exercise ? "Exercice" : "Session") + " — durée " + (R.startedAt > 0 ? Fmt.ms(ctx.now - R.startedAt) : "inconnue")
+        return either(R.exercise, "Exercice", "Session") + " — durée " + (R.startedAt > 0 ? Fmt.ms(ctx.now - R.startedAt) : "inconnue")
     }
 
     private var globalSegment: some View {
@@ -226,8 +226,8 @@ struct CrCapsule: View {
         let nC = ctx.f.counters.count + R.adhocCounters.count
         let pause = R.orderedTimers.filter { $0.type == .interval && !$0.running && !$0.isDueDock && $0.elapsedMs > 0 }.count
         var p: [String] = []
-        if nT > 0 { p.append("\(nT) minuteur" + (nT > 1 ? "s" : "")) }
-        if nC > 0 { p.append("\(nC) compteur" + (nC > 1 ? "s" : "")) }
+        if nT > 0 { p.append("\(nT) minuteur" + either(nT > 1, "s", "")) }
+        if nC > 0 { p.append("\(nC) compteur" + either(nC > 1, "s", "")) }
         if pause > 0 { p.append("⏸ \(pause) en pause") }
         return p.joined(separator: " · ")
     }
@@ -255,7 +255,7 @@ struct CrDock: View {
         let R = ctx.R
         let crit = !Pool.list(ctx.f, .entry).isEmpty
         let base = R.exercise ? "l’exercice" : "la session"
-        let label = (crit ? "Confirmé — démarrer " : "Démarrer ") + base
+        let label = either(crit, "Confirmé — démarrer ", "Démarrer ") + base
         let hint = CrLocal.bool("start-hint") != true
         return GlassEffectContainer(spacing: 10) {
             HStack(spacing: 10) {
@@ -330,7 +330,7 @@ struct CrDock: View {
                 }
                 if ctx.hasFlow { allKey }
                 if showCx { cxKey(cxs) }
-                key(glyph: "stopwatch", glyphColor: T.ink, label: "Horodater" + (n > 0 ? " · \(n)" : ""),
+                key(glyph: "stopwatch", glyphColor: T.ink, label: "Horodater" + either(n > 0, " · \(n)", ""),
                     a11y: "Horodater — noter l’heure d’un geste, puis le nommer") { act.stamp() }
             }
         }
@@ -555,7 +555,7 @@ struct CrCritWarn: View {
             let seq = i < R.navSeq.count && R.navSeq[i] != 0 ? R.navSeq[i] : 1
             let n = Graph.cleanSteps(R.fiche, b).enumerated().filter { Steps.isCrit($0.element) && !R.isChecked("\(seq):\(b.id):\($0.offset)") }.count
             if n > 0 {
-                Text("⚠ \(n) " + (n > 1 ? "étapes critiques" : "étape critique") + " en attente dans « " + (b.title.isEmpty ? "Étapes" : b.title) + " »")
+                Text("⚠ \(n) " + either(n > 1, "étapes critiques", "étape critique") + " en attente dans « " + (b.title.isEmpty ? "Étapes" : b.title) + " »")
                     .aFont(TypeScale.cap, .bold)
                     .foregroundStyle(T.crit)
                     .padding(.horizontal, 8).padding(.vertical, 6)

@@ -161,7 +161,7 @@ struct CrRunPill: View {
             guard let a, let b else { return "\(ix.count) blocs" }
             return a == b ? "\(a)" : "\(a)→\(b)"
         }()
-        let label = "Fait · " + span + (conf ? " · diagnostic confirmé" : "")
+        let label = "Fait · " + span + either(conf, " · diagnostic confirmé", "")
         VStack(alignment: .leading, spacing: 8) {
             Button { vs.ovFold[key] = (vs.ovFold[key] == false) } label: {
                 HStack(spacing: 6) {
@@ -646,7 +646,7 @@ struct CrMilestones: View {
                             Button { CrAct(model: model, vs: vs, R: R).cxGo(go) } label: {
                                 HStack(spacing: 6) {
                                     CrBolt(size: 13)
-                                    Text(HTML.stripBold(go.label) + (go.isBlock ? "" : " ↗")).aFont(TypeScale.meta, .bold)
+                                    Text(HTML.stripBold(go.label) + either(go.isBlock, "", " ↗")).aFont(TypeScale.meta, .bold)
                                 }
                                 .foregroundStyle(T.crit)
                                 .padding(.horizontal, 12)
@@ -743,7 +743,7 @@ struct CrStepRow: View {
                 tags(on: on, mo: mo, lvl: lvl, wait: wait)
                 BoldText(text: cr.c, size: size, weight: .bold, color: (on || wait || gone) ? T.ink2 : T.ink)
                 if let r = cr.r {
-                    Text((on ? "✓ " : "") + r).aFont(TypeScale.body, .semibold, .mono).foregroundStyle(T.ink2)
+                    Text(either(on, "✓ ", "") + r).aFont(TypeScale.body, .semibold, .mono).foregroundStyle(T.ink2)
                 }
                 if wait, let mo { waitLine(mo) }
                 if let legend { CrWitnessLine(w: legend) }
@@ -951,7 +951,7 @@ struct CrReviewDoor: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityValue("\(st.k) sur \(st.n), " + word + (open ? ", déplié" : ", replié"))
+            .accessibilityValue("\(st.k) sur \(st.n), " + word + either(open, ", déplié", ", replié"))
             if open { CrReviewGrid(ctx: ctx, vs: vs, rb: rb).padding(.horizontal, 8).padding(.bottom, 8) }
         }
         .background(T.amb2, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
@@ -1127,9 +1127,9 @@ struct CrVerifyView: View {
             }
             Text("lisez le challenge, constatez l'état réel").aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
             HStack(spacing: 10) {
-                Text("✓✓ \(nOk) constaté" + (nOk > 1 ? "s" : "")).foregroundStyle(T.ok)
-                Text("△ \(nGap) écart" + (nGap > 1 ? "s" : "")).foregroundStyle(T.warn)
-                Text("\(rest) restante" + (rest > 1 ? "s" : "")).foregroundStyle(T.ink2)
+                Text("✓✓ \(nOk) constaté" + either(nOk > 1, "s", "")).foregroundStyle(T.ok)
+                Text("△ \(nGap) écart" + either(nGap > 1, "s", "")).foregroundStyle(T.warn)
+                Text("\(rest) restante" + either(rest > 1, "s", "")).foregroundStyle(T.ink2)
             }
             .aFont(TypeScale.meta, .heavy)
             ForEach(steps.indices, id: \.self) { i in
@@ -1196,8 +1196,8 @@ struct CrVerifyView: View {
             text = Text("\(n)/\(n) vérifiées — bloc confirmé ✓").bold()
         } else {
             let nums = g.map { String($0 + 1) }.joined(separator: ", ")
-            text = Text("\(n - g.count)/\(n) vérifiées · \(g.count) écart" + (g.count > 1 ? "s" : "")).bold()
-                + Text(" — étape" + (g.count > 1 ? "s " : " ") + nums + " non cochée" + (g.count > 1 ? "s" : "") + " (elles restent visibles dans le parcours)")
+            text = Text("\(n - g.count)/\(n) vérifiées · \(g.count) écart" + either(g.count > 1, "s", "")).bold()
+                + Text(" — étape" + either(g.count > 1, "s ", " ") + nums + " non cochée" + either(g.count > 1, "s", "") + " (elles restent visibles dans le parcours)")
         }
         return text.aFont(TypeScale.body, .medium)
             .foregroundStyle(g.isEmpty ? T.ok : T.warn)

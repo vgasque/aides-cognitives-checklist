@@ -110,7 +110,7 @@ struct CrTimerCard: View {
                 if vs.railTimerOpen.contains(t.id) { vs.railTimerOpen.remove(t.id) } else { vs.railTimerOpen.insert(t.id) }
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text((soon && !due ? "△ " : "") + t.stateLabel + (soon && !due ? " — bientôt échu" : ""))
+                    Text(either(soon && !due, "△ ", "") + t.stateLabel + either(soon && !due, " — bientôt échu", ""))
                         .aFont(compact ? TypeScale.cap : TypeScale.body, compact ? .bold : .semibold)
                         .foregroundStyle(compact ? pal.ink2 : color)
                         .lineLimit(compact ? 1 : 2)
@@ -128,7 +128,7 @@ struct CrTimerCard: View {
             .buttonStyle(.plain)
             if !compact { natureLine(now) }
             if t.isPaused && t.stoppedAt > 0 {
-                Text("△ arrêté depuis " + Fmt.ms(now - t.stoppedAt) + (t.stopClosed ? " — application fermée, le temps n’a pas été rattrapé" : ""))
+                Text("△ arrêté depuis " + Fmt.ms(now - t.stoppedAt) + either(t.stopClosed, " — application fermée, le temps n’a pas été rattrapé", ""))
                     .aFont(TypeScale.cap, .semibold).foregroundStyle(pal.warn)
             }
             if open { controls(due: due) }
@@ -139,7 +139,7 @@ struct CrTimerCard: View {
         .overlay(RoundedRectangle(cornerRadius: Radius.r2, style: .continuous).strokeBorder(due ? pal.warnLine : pal.line, lineWidth: due ? 1.5 : 1))
         .animation(.easeInOut(duration: 0.25), value: flashing)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(t.name + (soon && !due ? " — bientôt échu" : ""))
+        .accessibilityLabel(t.name + either(soon && !due, " — bientôt échu", ""))
     }
 
     @ViewBuilder
@@ -233,7 +233,7 @@ struct CrAdhocTimerRow: View {
                     .onChange(of: focused) { _, f in if !f && editing { commit(act) } }
                     .accessibilityLabel("Nom du minuteur")
             } else {
-                Text((due ? "■ " : "") + name).aFont(TypeScale.body, .bold).foregroundStyle(due ? pal.warn : pal.ink).lineLimit(1)
+                Text(either(due, "■ ", "") + name).aFont(TypeScale.body, .bold).foregroundStyle(due ? pal.warn : pal.ink).lineLimit(1)
             }
             Spacer(minLength: 4)
             Text(t.display(ctx.now)).aFont(TypeScale.item, .bold, .mono).foregroundStyle(due ? pal.warn : (t.running ? pal.run : pal.ink2))
@@ -540,7 +540,7 @@ struct CrEventRow: View {
                     .help("Cliquer pour corriger l'heure")
                     .accessibilityHint("Corriger l'heure")
                 }
-                Text(d == 0 ? "—" : (d > 0 ? "+" : "−") + Fmt.ms(abs(d))).aFont(TypeScale.cap, .medium, .mono).foregroundStyle(pal.ink2)
+                Text(d == 0 ? "—" : either(d > 0, "+", "−") + Fmt.ms(abs(d))).aFont(TypeScale.cap, .medium, .mono).foregroundStyle(pal.ink2)
                 TextField("Libellé…", text: $text)
                     .textFieldStyle(.plain)
                     .aFont(16, .medium)

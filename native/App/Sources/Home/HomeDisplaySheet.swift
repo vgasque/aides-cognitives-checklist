@@ -95,7 +95,7 @@ struct HomeDisplaySheet: View {
         return section(icon: "line.3.horizontal.decrease", title: "Filtrer", trailing: {
             if k > 0 {
                 HStack(spacing: 10) {
-                    Text(verbatim: "\(k) actif" + (k > 1 ? "s" : "")).aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
+                    Text(verbatim: "\(k) actif" + either(k > 1, "s", "")).aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
                     Button("Tout effacer") { withAnimation(.easeOut(duration: 0.15)) { st.dropAllFilters() } }
                         .buttonStyle(.plain).aFont(TypeScale.meta, .bold).foregroundStyle(T.act)
                         .frame(minHeight: Ctrl.s)

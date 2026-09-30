@@ -77,12 +77,12 @@ struct HomeEndSessionSheet: View {
                     if open.crit > 0 {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             RegisterTag(level: 3)
-                            Text(verbatim: "\(open.crit)" + (open.crit > 1 ? " étapes vitales non cochées" : " étape vitale non cochée") + (open.`where`.isEmpty ? "" : " — " + open.`where`))
+                            Text(verbatim: "\(open.crit)" + either(open.crit > 1, " étapes vitales non cochées", " étape vitale non cochée") + (open.`where`.isEmpty ? "" : " — " + open.`where`))
                                 .aFont(TypeScale.body, .semibold).foregroundStyle(T.crit)
                         }
                     }
                     if open.running > 0 {
-                        Text(verbatim: "⏱ \(open.running)" + (open.running > 1 ? " minuteurs en cours" : " minuteur en cours"))
+                        Text(verbatim: "⏱ \(open.running)" + either(open.running > 1, " minuteurs en cours", " minuteur en cours"))
                             .aFont(TypeScale.body, .regular).foregroundStyle(T.ink)
                     }
                 }
@@ -132,7 +132,7 @@ struct HomeSyncErrorSheet: View {
             }
             Text(info.detail).aFont(TypeScale.body, .regular).foregroundStyle(T.ink)
             if at > 0 {
-                Text(verbatim: "Dernier échec : " + hhmm(at) + (model.sync.retryPending ? " · nouvelle tentative automatique en cours" : ""))
+                Text(verbatim: "Dernier échec : " + hhmm(at) + either(model.sync.retryPending, " · nouvelle tentative automatique en cours", ""))
                     .aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
             }
             Button("Réessayer maintenant") {

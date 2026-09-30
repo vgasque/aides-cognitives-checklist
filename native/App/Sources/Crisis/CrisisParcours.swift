@@ -73,7 +73,7 @@ struct CrParcoursList: View {
             let n = ctx.num(it.id)
             let t = ctx.block(it.id)?.title ?? ""
             let cyc = it.back ? CrisisPure.cycleHint(ctx.f).map { " · toutes les " + Fmt.dur($0.seconds) } ?? "" : ""
-            Text((it.back ? "↺ retour à " : "↳ puis ") + (n.map { "\($0) · " } ?? "") + (t.isEmpty ? "Étapes" : t) + cyc)
+            Text(either(it.back, "↺ retour à ", "↳ puis ") + (n.map { "\($0) · " } ?? "") + (t.isEmpty ? "Étapes" : t) + cyc)
                 .aFont(place == .col ? TypeScale.meta : TypeScale.body, .semibold)
                 .foregroundStyle(it.back ? T.act : T.ink2)
                 .padding(.leading, CGFloat(it.depth) * 16 + 8)
@@ -102,7 +102,7 @@ struct CrPfBlockRow: View {
 
     var body: some View {
         let R = ctx.R
-        let key = (place == .col ? "lc:" : "l:") + b.id
+        let key = either(place == .col, "lc:", "l:") + b.id
         let defOpen = place == .card ? true : vs.colAllOpen
         let open = vs.colFold[key] ?? defOpen
         let dense = place == .col
@@ -249,7 +249,7 @@ struct CrPfBlockRow: View {
         let title = tb.title.isEmpty ? "Étapes" : tb.title
         guard let n = ctx.num(t) else { return "→ aller à " + title }
         let mine = ctx.num(b.id) ?? 0
-        return (n < mine ? "↺ retour à \(n) · " : "→ aller à \(n) · ") + title
+        return either(n < mine, "↺ retour à \(n) · ", "→ aller à \(n) · ") + title
     }
 }
 

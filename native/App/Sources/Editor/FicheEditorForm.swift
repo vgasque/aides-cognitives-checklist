@@ -255,7 +255,7 @@ struct EdIdentityFold: View {
         case .draft:
             return "Visible par vous seulement" + (shared ? (m.fiche ? " (masquée aux lecteurs de la bibliothèque)" : " (masqué aux lecteurs de la bibliothèque)") : "")
         case .review:
-            return "Visible" + (shared ? " par l’équipe" : "") + (m.fiche ? ", signalée à relire" : ", signalé à relire")
+            return "Visible" + either(shared, " par l’équipe", "") + either(m.fiche, ", signalée à relire", ", signalé à relire")
         case .validated:
             return m.fiche ? "Publiée — utilisable en situation" : "Publié — utilisable en situation"
         }
@@ -326,7 +326,7 @@ struct EdIdentityFold: View {
         if case .some(let t) = pendingLib { to = t }
         let n = libName(to).isEmpty ? "la bibliothèque partagée" : libName(to)
         let dr = m.status == .draft ? " pouvant éditer (brouillon masqué aux lecteurs)" : ""
-        return (m.fiche ? "Cette fiche va être publiée dans « \(n) » : elle sera visible par tous les membres" : "Ce protocole va être publié dans « \(n) » : il sera visible par tous les membres") + dr + "."
+        return either(m.fiche, "Cette fiche va être publiée dans « \(n) » : elle sera visible par tous les membres", "Ce protocole va être publié dans « \(n) » : il sera visible par tous les membres") + dr + "."
     }
 
     @ViewBuilder private func labeled<C: View>(_ label: String, _ hint: String, @ViewBuilder _ c: () -> C) -> some View {
@@ -373,7 +373,7 @@ struct ForgetEditor: View {
                     row(i, r.item, blockId: r.blockId, source: r.source ?? "", total: rows.count)
                 }
                 drop(rows.count, total: rows.count)
-                EdLinkButton(text: "＋ Rappel" + (reste > 0 ? " (\(reste) restant" + (reste > 1 ? "s" : "") + ")" : "")) {
+                EdLinkButton(text: "＋ Rappel" + (reste > 0 ? " (\(reste) restant" + either(reste > 1, "s", "") + ")" : "")) {
                     let it = Steps.makeItem(id: Guard.uid("i"), role: .do, raw: "", memory: true)
                     ed.structural { $0.items.append(it) }
                     ed.requestFocus("fg:" + it.id)
@@ -392,7 +392,7 @@ struct ForgetEditor: View {
             }
             if owned { Text("★").aFont(TypeScale.item, .bold).foregroundStyle(T.ink2).accessibilityHidden(true) }
             EdField(value: Steps.text(it.legacyString), placeholder: "…",
-                    label: "Ne pas oublier — ligne \(i + 1)" + (owned ? " (posée sur une étape)" : ""),
+                    label: "Ne pas oublier — ligne \(i + 1)" + either(owned, " (posée sur une étape)", ""),
                     focusKey: "fg:" + it.id, request: ed.focusRequest, disabled: owned, resync: ed.syncTick) { v in
                 let cr = Steps.challengeResponse(Steps.text(v))
                 ed.updateItem(it.id, typing: true) { x in x.do = cr.c; if let r = cr.r { x.expect = r } }
@@ -704,7 +704,7 @@ struct CareCard: View {
             Button { flowOpen.toggle() } label: {
                 HStack {
                     Text("Algorithme — aperçu automatique").aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
-                    Text("\(n) bloc" + (n > 1 ? "s" : "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
+                    Text("\(n) bloc" + either(n > 1, "s", "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                     Spacer()
                     Image(systemName: flowOpen ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(T.ink2)
                 }
@@ -1143,7 +1143,7 @@ struct EdDocsCard: View {
                 }
                 EdDropZone(title: "Ajouter un PDF (" + EdKit.fmtBytes(Guard.maxPdfBytes) + " max)", sub: "PDF — glissez ici ou cliquez · plusieurs à la fois", action: onAdd)
                 if attachable > 0 {
-                    EdLinkButton(text: "+ Joindre un document existant (\(attachable) disponible" + (attachable > 1 ? "s" : "") + ")…", action: onPickExisting)
+                    EdLinkButton(text: "+ Joindre un document existant (\(attachable) disponible" + either(attachable > 1, "s", "") + ")…", action: onPickExisting)
                 }
             }
         }
@@ -1191,7 +1191,7 @@ struct EdLinksCard: View {
                     }
                 }
                 if candidates > 0 {
-                    EdLinkButton(text: "+ Lier une aide ou un protocole (\(candidates) disponible" + (candidates > 1 ? "s" : "") + ")…", action: onAdd)
+                    EdLinkButton(text: "+ Lier une aide ou un protocole (\(candidates) disponible" + either(candidates > 1, "s", "") + ")…", action: onAdd)
                 } else {
                     Text("Rien d’autre à lier dans ce périmètre (Perso ou même bibliothèque).").aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                 }

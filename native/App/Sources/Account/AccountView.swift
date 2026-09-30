@@ -466,13 +466,13 @@ struct AccountView: View {
                     AcctAvatar(email: sessionEmail, size: 48, tint: T.ink2)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(sessionEmail).aFont(TypeScale.item, .bold).foregroundStyle(T.ink).lineLimit(2)
-                        Text((st == .rejected ? "△ " : "○ ") + st.label).aFont(TypeScale.meta, .bold).foregroundStyle(T.warn)
+                        Text(either(st == .rejected, "△ ", "○ ") + st.label).aFont(TypeScale.meta, .bold).foregroundStyle(T.warn)
                     }
                 }
                 Text((st == .rejected
                       ? "Votre demande de compte a été refusée par un administrateur. Vous pouvez supprimer cette demande ci-dessous, ou réessayer avec une autre adresse e-mail."
                       : "Votre e-mail est vérifié. Un administrateur doit maintenant approuver votre compte avant que vos fiches ne soient synchronisées dans le cloud. En attendant, l'app reste pleinement utilisable en local, sur cet appareil.")
-                     + (canReturn ? " Vos fiches ne sont enregistrées que sur cet appareil : vous pouvez les ramener « hors compte » pour les garder accessibles sans ce compte." : ""))
+                     + either(canReturn, " Vos fiches ne sont enregistrées que sur cet appareil : vous pouvez les ramener « hors compte » pour les garder accessibles sans ce compte.", ""))
                     .aFont(TypeScale.body, .regular).foregroundStyle(T.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 ImportFlow(spacing: 8, lineSpacing: 8) {
@@ -511,7 +511,7 @@ struct AccountView: View {
             ? "Vos \(n) fiches (avec notes et sessions) redeviendront des fiches locales « hors compte » sur cet appareil, consultables sans connexion."
             : "Votre fiche (avec notes et sessions) redeviendra une fiche locale « hors compte » sur cet appareil, consultable sans connexion."
         confirm = AcctConfirm(title: "Ramener les fiches hors compte",
-                              message: head + " Vous serez déconnecté de ce compte ; une connexion ultérieure proposera à nouveau de " + (n > 1 ? "les " : "l'") + "emporter.",
+                              message: head + " Vous serez déconnecté de ce compte ; une connexion ultérieure proposera à nouveau de " + either(n > 1, "les ", "l'") + "emporter.",
                               yes: "Ramener hors compte") { r in
             if case .yes = r { Task { @MainActor in await returnToAnon() } }
         }
@@ -551,7 +551,7 @@ struct AccountView: View {
                     Text(w).aFont(TypeScale.body, .semibold).foregroundStyle(T.warn)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                AcctCheckRow(label: "Effacer aussi les fiches enregistrées sur **cet appareil**" + (delReturn ? " **(attention : elles n'existent nulle part ailleurs)**" : ""),
+                AcctCheckRow(label: "Effacer aussi les fiches enregistrées sur **cet appareil**" + either(delReturn, " **(attention : elles n'existent nulle part ailleurs)**", ""),
                              isOn: $deleteWipe, danger: true)
                 BoldText(text: "Pour confirmer, tapez **SUPPRIMER** ci-dessous :", size: TypeScale.body, color: T.ink)
                 TextField("SUPPRIMER", text: $deleteTyped)
@@ -582,7 +582,7 @@ struct AccountView: View {
         guard model.sync.isOnline() else { deleteMsg = .err("Hors ligne : une connexion Internet est nécessaire pour recevoir le code."); return }
         let wipe = deleteWipe
         confirm = AcctConfirm(title: "Supprimer le compte",
-                              message: "Supprimer DÉFINITIVEMENT votre compte" + (wipe ? " et les données de cet appareil" : "") + " ? Un code de confirmation va vous être envoyé par e-mail.",
+                              message: "Supprimer DÉFINITIVEMENT votre compte" + either(wipe, " et les données de cet appareil", "") + " ? Un code de confirmation va vous être envoyé par e-mail.",
                               yes: "Recevoir le code", danger: true) { r in
             guard case .yes = r else { return }
             Task { @MainActor in
@@ -1125,7 +1125,7 @@ struct SyncErrorView: View {
             Text(info.detail).aFont(TypeScale.body, .regular).foregroundStyle(T.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if at > 0 {
-                Text("Dernier échec : " + hhmm(at) + (model.sync.retryPending ? " · nouvelle tentative automatique en cours" : ""))
+                Text("Dernier échec : " + hhmm(at) + either(model.sync.retryPending, " · nouvelle tentative automatique en cours", ""))
                     .aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
             }
             Button("Réessayer maintenant") {

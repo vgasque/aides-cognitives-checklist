@@ -14,7 +14,7 @@ import AidesCore
 private let selNum = ["zéro", "une", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf"]
 func homeSelLibsWord(_ k: Int) -> String { (k < selNum.count ? selNum[k] : String(k)) + " bibliothèques" }
 /// `nb(k, mot)` : « 3 éléments ».
-func homeNb(_ k: Int, _ mot: String) -> String { "\(k) " + mot + (k > 1 ? "s" : "") }
+func homeNb(_ k: Int, _ mot: String) -> String { "\(k) " + mot + either(k > 1, "s", "") }
 
 extension HomeCorpus {
     /// `selEnt()` : les éléments cochés, dans l'ordre du corpus.
@@ -53,7 +53,7 @@ struct HomeSelectionBar: View {
         let libs = Set(ent.map(\.libKey))
         let desk = wc == .cockpit
         HStack(spacing: 8) {
-            Text(verbatim: (n > 0 ? "\(n) coché" + (n > 1 ? "s" : "") : "Rien de coché") + (n > 0 && libs.count > 1 ? " · " + homeSelLibsWord(libs.count) : ""))
+            Text(verbatim: (n > 0 ? "\(n) coché" + either(n > 1, "s", "") : "Rien de coché") + (n > 0 && libs.count > 1 ? " · " + homeSelLibsWord(libs.count) : ""))
                 .aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
                 .lineLimit(1).minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -116,7 +116,7 @@ struct HomeSelectionBar: View {
     }
 }
 
-func homeSelDelLabel(_ n: Int) -> String { "Supprimer " + (n > 1 ? "les \(n) éléments" : "l'élément") + "…" }
+func homeSelDelLabel(_ n: Int) -> String { "Supprimer " + either(n > 1, "les \(n) éléments", "l'élément") + "…" }
 
 // MARK: - Gabarits de feuille (grammaire du menu : icône · libellé · sous-ligne · chevron)
 
@@ -204,7 +204,7 @@ struct HomeSelActionsSheet: View {
         let n = ent.count
         let libs = Array(Set(ent.map(\.libKey)))
         VStack(alignment: .leading, spacing: 0) {
-            HomeSheetHeader(title: "\(n) coché" + (n > 1 ? "s" : ""),
+            HomeSheetHeader(title: "\(n) coché" + either(n > 1, "s", ""),
                             sub: libs.count == 1 ? corpus.impLibName(libs[0]) : homeSelLibsWord(libs.count))
             ScrollView {
                 VStack(spacing: 0) {
@@ -287,12 +287,12 @@ struct HomeSelMoveLibSheet: View {
         if !entrants.isEmpty {
             let k = entrants.count
             confirm = ("Publier dans la bibliothèque partagée",
-                       "\(k) élément" + (k > 1 ? "s vont" : " va") + " être publié" + (k > 1 ? "s" : "") + " dans " + destText(key)
-                        + " : visible" + (k > 1 ? "s" : "") + " par tous les membres.", false)
+                       "\(k) élément" + either(k > 1, "s vont", " va") + " être publié" + either(k > 1, "s", "") + " dans " + destText(key)
+                        + " : visible" + either(k > 1, "s", "") + " par tous les membres.", false)
         } else if !sortants.isEmpty {
             let k = sortants.count
             confirm = ("Retirer de la bibliothèque partagée",
-                       "\(k) élément" + (k > 1 ? "s vont" : " va") + " quitter une bibliothèque partagée : les autres membres n'y auront plus accès. Prévenez-les avant si besoin.", true)
+                       "\(k) élément" + either(k > 1, "s vont", " va") + " quitter une bibliothèque partagée : les autres membres n'y auront plus accès. Prévenez-les avant si besoin.", true)
         } else {
             apply(key, ent)
         }
@@ -322,8 +322,8 @@ struct HomeSelMoveLibSheet: View {
         if st.lib != nil { st.lib = key }
         st.cat = nil
         let n = ent.count
-        model.toast("\(n) élément" + (n > 1 ? "s déplacés" : " déplacé") + " dans " + destText(key)
-                    + (lost > 0 ? " · \(lost) catégorie" + (lost > 1 ? "s" : "") + " sans équivalent : " + (lost > 1 ? "elles ont" : "elle a") + " été retirée" + (lost > 1 ? "s" : "") : "") + ".",
+        model.toast("\(n) élément" + either(n > 1, "s déplacés", " déplacé") + " dans " + destText(key)
+                    + (lost > 0 ? " · \(lost) catégorie" + either(lost > 1, "s", "") + " sans équivalent : " + either(lost > 1, "elles ont", "elle a") + " été retirée" + either(lost > 1, "s", "") : "") + ".",
                     seconds: lost > 0 ? 7 : 4)
         pending = nil
         sheet = nil
@@ -452,9 +452,9 @@ struct HomeSelCategorySheet: View {
         }
         let ok = p.filter { name.isEmpty || $0.cat != nil }, manque = p.filter { !name.isEmpty && $0.cat == nil }
         let lieu = multi && !name.isEmpty && !ok.isEmpty ? " — " + ok.map { "\($0.n) dans " + $0.nom }.joined(separator: ", ") : ""
-        let reste = manque.map { homeNb($0.n, "élément") + " inchangé" + ($0.n > 1 ? "s" : "") + " : pas de « " + name + " » dans " + $0.nom }.joined(separator: " · ")
+        let reste = manque.map { homeNb($0.n, "élément") + " inchangé" + either($0.n > 1, "s", "") + " : pas de « " + name + " » dans " + $0.nom }.joined(separator: " · ")
         var msg = ""
-        if done > 0 { msg = homeNb(done, "élément") + (done > 1 ? " rangés" : " rangé") + (name.isEmpty ? " sans catégorie" : " dans « " + name + " »") + lieu }
+        if done > 0 { msg = homeNb(done, "élément") + either(done > 1, " rangés", " rangé") + (name.isEmpty ? " sans catégorie" : " dans « " + name + " »") + lieu }
         if done > 0 && !reste.isEmpty { msg += " · " }
         msg += reste + "."
         model.toast(msg, seconds: reste.isEmpty ? 4 : 7)
@@ -478,7 +478,7 @@ struct HomeSelDeleteSheet: View {
         let ent = corpus.selected(st)
         let n = ent.count
         VStack(alignment: .leading, spacing: 14) {
-            Text("Supprimer \(n) élément" + (n > 1 ? "s" : "") + " ?").aFont(TypeScale.step, .heavy).foregroundStyle(T.ink)
+            Text("Supprimer \(n) élément" + either(n > 1, "s", "") + " ?").aFont(TypeScale.step, .heavy).foregroundStyle(T.ink)
                 .accessibilityAddTraits(.isHeader)
             ScrollView {
                 Text(message(ent)).aFont(TypeScale.body, .regular).foregroundStyle(T.ink)
@@ -512,11 +512,11 @@ struct HomeSelDeleteSheet: View {
         let noms = ent.map { $0.title.trimmingCharacters(in: .whitespaces).isEmpty ? "Sans titre" : $0.title.trimmingCharacters(in: .whitespaces) }
         let N = 10
         var liste = noms.prefix(N).map { " · " + $0 }.joined(separator: "\n")
-        if noms.count > N { let k = noms.count - N; liste += "\n · … et \(k) autre" + (k > 1 ? "s" : "") }
+        if noms.count > N { let k = noms.count - N; liste += "\n · … et \(k) autre" + either(k > 1, "s", "") }
         let part = ent.filter { !$0.libKey.isEmpty }.count
         var m = "Vont disparaître :\n" + liste
         if part > 0 {
-            m += "\n\nDont \(part) dans une bibliothèque partagée : " + (part > 1 ? "ils disparaîtront" : "il disparaîtra") + " aussi pour tous ses membres."
+            m += "\n\nDont \(part) dans une bibliothèque partagée : " + either(part > 1, "ils disparaîtront", "il disparaîtra") + " aussi pour tous ses membres."
         }
         return m + "\n\nCette action est irréversible."
     }
@@ -529,7 +529,7 @@ struct HomeSelDeleteSheet: View {
         }
         let n = ent.count
         st.endSelection()
-        model.toast("\(n) élément" + (n > 1 ? "s supprimés" : " supprimé") + ".")
+        model.toast("\(n) élément" + either(n > 1, "s supprimés", " supprimé") + ".")
         sheet = nil
     }
 }
@@ -567,7 +567,7 @@ final class HomeExportJob {
         fiches = items.compactMap(\.fiche)
         refs = items.compactMap(\.ref)
         if items.count == 1 {
-            base = (items[0].isFiche ? "fiche-" : "protocole-") + Exporter.slug(items[0].title)
+            base = either(items[0].isFiche, "fiche-", "protocole-") + Exporter.slug(items[0].title)
         } else {
             base = "selection-\(items.count)-elements"
         }

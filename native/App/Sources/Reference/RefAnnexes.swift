@@ -64,7 +64,7 @@ struct RefDocRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Ouvrir le document " + (a.name.isEmpty ? "document.pdf" : a.name) + (local ? "" : ", pas encore téléchargé sur cet appareil"))
+        .accessibilityLabel("Ouvrir le document " + (a.name.isEmpty ? "document.pdf" : a.name) + either(local, "", ", pas encore téléchargé sur cet appareil"))
     }
 }
 
@@ -89,7 +89,7 @@ struct RefDocThumb: View {
         .frame(width: 36, height: 46)
         .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(T.line))
         .accessibilityHidden(true)
-        .task(id: id + (local ? "1" : "0")) {
+        .task(id: id + either(local, "1", "0")) {
             guard local else { return }
             img = RefThumbs.thumb(id, url: model.library.space.attachmentURL(id))
         }
@@ -207,7 +207,7 @@ struct RefLinksCard: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel((r.isReference ? "Protocole : " : "Aide cognitive : ") + (r.title.isEmpty ? "Sans titre" : r.title))
+                    .accessibilityLabel(either(r.isReference, "Protocole : ", "Aide cognitive : ") + (r.title.isEmpty ? "Sans titre" : r.title))
                 }
             }
         }

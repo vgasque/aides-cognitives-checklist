@@ -396,7 +396,7 @@ struct PendingAccountsView: View {
                     .aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("Ces comptes ont vérifié leur e-mail (code reçu)"
-                     + (required ? " mais attendent votre approbation pour synchroniser leurs fiches dans le cloud" : "") + ".")
+                     + either(required, " mais attendent votre approbation pour synchroniser leurs fiches dans le cloud", "") + ".")
                     .aFont(TypeScale.body, .regular).foregroundStyle(T.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 if users.isEmpty {

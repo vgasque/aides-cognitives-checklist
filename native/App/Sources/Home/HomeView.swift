@@ -112,7 +112,7 @@ struct HomeView: View {
     private func toolbar(_ corpus: HomeCorpus) -> some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             let n = st.activeFilterCount
-            let label = "Affichage et filtres" + (n > 0 ? " — \(n) actif" + (n > 1 ? "s" : "") : "")
+            let label = "Affichage et filtres" + (n > 0 ? " — \(n) actif" + either(n > 1, "s", "") : "")
             Button { sheet = .display } label: {
                 Image(systemName: n > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease")
             }
@@ -373,7 +373,7 @@ struct HomeRecapCard: View {
                 .foregroundStyle(r.exercise ? T.act : T.ok)
                 .accessibilityHidden(true)
                 (Text(r.exercise ? "Exercice terminé" : "Session terminée").bold()
-                 + Text(verbatim: " — " + r.title + " · " + Fmt.ms(r.dur) + " · \(r.done)/\(r.passes) bloc" + (r.passes > 1 ? "s" : "") + " ✓"))
+                 + Text(verbatim: " — " + r.title + " · " + Fmt.ms(r.dur) + " · \(r.done)/\(r.passes) bloc" + either(r.passes > 1, "s", "") + " ✓"))
                     .aFont(TypeScale.body, .regular)
                     .foregroundStyle(T.ink)
                     .frame(maxWidth: .infinity, alignment: .leading)

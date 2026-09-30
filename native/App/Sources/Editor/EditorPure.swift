@@ -158,7 +158,7 @@ enum EdKit {
         }
         let lg = c.filter { JS.length(stripBold($0)) > 110 }.count
         if lg > 0 {
-            parts.append("\(lg) rappel" + (lg > 1 ? "s" : "") + " très long" + (lg > 1 ? "s" : "") + " — style télégraphique : au-delà de 110 caractères, le chapeau pousse la première action sous le bas de l’écran")
+            parts.append("\(lg) rappel" + either(lg > 1, "s", "") + " très long" + either(lg > 1, "s", "") + " — style télégraphique : au-delà de 110 caractères, le chapeau pousse la première action sous le bas de l’écran")
         }
         return parts.isEmpty ? "" : "△ " + parts.joined(separator: " · ")
     }
@@ -171,11 +171,11 @@ enum EdKit {
         if bloc { return parts.isEmpty ? "" : "△ " + parts.joined(separator: " · ") }
         let long = s.filter { JS.length(Steps.challengeResponse(Steps.text($0)).c) > 110 }.count
         if long > 0 {
-            parts.append("\(long) challenge" + (long > 1 ? "s" : "") + " très long" + (long > 1 ? "s" : "") + " — style télégraphique : une action courte, la valeur en réponse « challenge :: réponse »")
+            parts.append("\(long) challenge" + either(long > 1, "s", "") + " très long" + either(long > 1, "s", "") + " — style télégraphique : une action courte, la valeur en réponse « challenge :: réponse »")
         }
         let cumul = s.filter { sepCount(Steps.challengeResponse(Steps.text($0)).c) >= 2 }.count
         if cumul > 0 {
-            parts.append("\(cumul) étape" + (cumul > 1 ? "s" : "") + " cumulant plusieurs actions — une action cochable = une ligne (sinon on coche « à moitié fait »)")
+            parts.append("\(cumul) étape" + either(cumul > 1, "s", "") + " cumulant plusieurs actions — une action cochable = une ligne (sinon on coche « à moitié fait »)")
         }
         return parts.isEmpty ? "" : "△ " + parts.joined(separator: " · ")
     }
@@ -631,7 +631,7 @@ enum EdKit {
                 for s in Graph.stepsOf(f, b) { add("Bloc « " + t + " »", s) }
             }
         }
-        for t in f.timers { add("Minuteur", t.label + (t.type == .interval ? " (\(t.seconds) s)" : " (chrono)")) }
+        for t in f.timers { add("Minuteur", t.label + either(t.type == .interval, " (\(t.seconds) s)", " (chrono)")) }
         for c in f.counters { add("Compteur", c.label) }
         return L
     }
