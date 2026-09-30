@@ -77,6 +77,10 @@ final class AppModel {
     var readMode: String { didSet { library.space.prefs["ac-read-mode"] = .string(readMode) } }
 
     // MARK: État ajouté — zone ACCUEIL (réservé)
+    /// Fenêtre que l'accueil ouvre à son arrivée (porte choisie sur l'écran de bienvenue).
+    var homeRequest: HomeRequest?
+    /// Bandeau système de l'accueil (C1 §1.2) : UN message à la fois, masque la notice d'auteur.
+    var homeSysBanner: String?
     // MARK: État ajouté — zone COMPTE / CRÉER / IMPORT (réservé)
     // MARK: État ajouté — zone MODE CRISE (réservé)
     // MARK: État ajouté — zone ÉDITEUR (réservé)

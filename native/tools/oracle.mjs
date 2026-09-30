@@ -29,13 +29,16 @@ const page = await browser.newPage();
 await page.goto(`http://localhost:${port}/index.html?__actest`);
 await page.waitForFunction(() => !!window.__ac_test__);
 let n = 0;
-for (const f of (await readdir(CASES)).filter(x => x.endsWith('.mjs')).sort()) {
+for (const f of (await readdir(CASES)).filter(x => x.endsWith('.mjs') && !x.startsWith('_')).sort()) {   // « _x.mjs » = module partagé, pas un cas
   const name = f.replace(/\.mjs$/, '');
   if (only.length && !only.includes(name)) continue;
   const mod = await import(CASES + f);
   const outputs = await page.evaluate(mod.run, mod.inputs);
-  const cases = mod.inputs.map((input, i) => ({ input, output: outputs[i] === undefined ? null : outputs[i] }));
-  await writeFile(OUT + name + '.json', JSON.stringify(cases, null, 1) + '\n');
+  // Deux crochets FACULTATIFS d'un cas, pour les gros corpus : `slim(input)` allège l'entrée écrite
+  // dans la fixture (ex. la fiche brute, dont la sortie porte déjà la forme migrée) et `compact`
+  // écrit le JSON sans indentation. Les cas qui ne les déclarent pas sont écrits comme avant.
+  const cases = mod.inputs.map((input, i) => ({ input: mod.slim ? mod.slim(input) : input, output: outputs[i] === undefined ? null : outputs[i] }));
+  await writeFile(OUT + name + '.json', (mod.compact ? JSON.stringify(cases) : JSON.stringify(cases, null, 1)) + '\n');
   console.log(`oracle : ${name} — ${cases.length} cas`);
   n++;
 }

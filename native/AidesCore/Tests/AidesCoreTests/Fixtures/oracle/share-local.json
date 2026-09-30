@@ -1,0 +1,1055 @@
+[
+ {
+  "input": {
+   "fn": "sdp",
+   "arg": "v=0\r\no=- 8810094451223 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=candidate:1467250027 1 udp 2122260223 9b0e1adb-ef3c-4d91-9293-30c565438ab7.local 61735 typ host generation 0 network-id 1\r\na=candidate:1467250028 1 UDP 2122194687 192.168.1.10 54321 typ host generation 0\r\na=candidate:1467250028 1 udp 2122194687 192.168.1.10 54321 typ host generation 0\r\na=candidate:1467250029 2 udp 2122194686 192.168.1.10 54322 typ host generation 0\r\na=candidate:842163049 1 udp 1686052607 88.1.2.3 61735 typ srflx raddr 0.0.0.0 rport 0 generation 0\r\na=candidate:1 1 tcp 1518280447 192.168.1.10 9 typ host tcptype active\r\na=candidate:7 1 udp 2122129151 fe80::1 50000 typ host generation 0\r\na=ice-ufrag:wXyZ\r\na=ice-pwd:nLp3qTncIC1wOTaHc2jB39Q8\r\na=ice-options:trickle\r\na=fingerprint:sha-256 84:b1:86:E0:18:2F:11:7F:2F:5B:36:1C:D0:D7:4C:DD:8F:DB:5D:66:A9:12:EE:69:3E:29:81:6F:0D:89:87:F9\r\na=setup:actpass\r\na=mid:0\r\na=sctp-port:5000\r\na=max-message-size:262144\r\n"
+  },
+  "output": {
+   "u": "wXyZ",
+   "p": "nLp3qTncIC1wOTaHc2jB39Q8",
+   "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+   "s": "actpass",
+   "c": [
+    "9b0e1adb-ef3c-4d91-9293-30c565438ab7.local~61735",
+    "192.168.1.10~54321",
+    "fe80::1~50000"
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "sdp",
+   "arg": "v=0\r\no=- 8810094451223 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=candidate:1467250027 1 udp 2122260223 9b0e1adb-ef3c-4d91-9293-30c565438ab7.local 61735 typ host generation 0 network-id 1\r\na=candidate:1467250028 1 UDP 2122194687 192.168.1.10 54321 typ host generation 0\r\na=candidate:1467250028 1 udp 2122194687 192.168.1.10 54321 typ host generation 0\r\na=candidate:1467250029 2 udp 2122194686 192.168.1.10 54322 typ host generation 0\r\na=candidate:842163049 1 udp 1686052607 88.1.2.3 61735 typ srflx raddr 0.0.0.0 rport 0 generation 0\r\na=candidate:1 1 tcp 1518280447 192.168.1.10 9 typ host tcptype active\r\na=candidate:7 1 udp 2122129151 fe80::1 50000 typ host generation 0\r\na=ice-ufrag:AbCd\r\na=ice-pwd:nLp3qTncIC1wOTaHc2jB39Q8\r\na=ice-options:trickle\r\na=fingerprint:sha-256 84:b1:86:E0:18:2F:11:7F:2F:5B:36:1C:D0:D7:4C:DD:8F:DB:5D:66:A9:12:EE:69:3E:29:81:6F:0D:89:87:F9\r\na=setup:active\r\na=mid:0\r\na=sctp-port:5000\r\na=max-message-size:262144\r\n"
+  },
+  "output": {
+   "u": "AbCd",
+   "p": "nLp3qTncIC1wOTaHc2jB39Q8",
+   "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+   "s": "active",
+   "c": [
+    "9b0e1adb-ef3c-4d91-9293-30c565438ab7.local~61735",
+    "192.168.1.10~54321",
+    "fe80::1~50000"
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "sdp",
+   "arg": "garbage"
+  },
+  "output": {
+   "u": null,
+   "p": null,
+   "f": null,
+   "s": null,
+   "c": []
+  }
+ },
+ {
+  "input": {
+   "fn": "rebuild",
+   "arg": {
+    "u": "wXyZ",
+    "p": "pw",
+    "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+    "s": "active",
+    "c": [
+     "192.168.1.10~54321",
+     "x.local~1",
+     "noport"
+    ]
+   }
+  },
+  "output": "v=0\r\no=- 4262 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=msid-semantic: WMS\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:wXyZ\r\na=ice-pwd:pw\r\na=fingerprint:sha-256 84:B1:86:E0:18:2F:11:7F:2F:5B:36:1C:D0:D7:4C:DD:8F:DB:5D:66:A9:12:EE:69:3E:29:81:6F:0D:89:87:F9\r\na=setup:active\r\na=mid:0\r\na=sctp-port:5000\r\na=max-message-size:262144\r\na=candidate:1 1 udp 2113937151 192.168.1.10 54321 typ host generation 0\r\na=candidate:2 1 udp 2113937150 x.local 1 typ host generation 0\r\na=candidate:3 1 udp 2113937149 noport undefined typ host generation 0\r\na=end-of-candidates\r\n"
+ },
+ {
+  "input": {
+   "fn": "rebuild",
+   "arg": {
+    "u": "a",
+    "p": "b",
+    "f": "ABC",
+    "s": "actpass",
+    "c": []
+   }
+  },
+  "output": "v=0\r\no=- 4262 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=msid-semantic: WMS\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:a\r\na=ice-pwd:b\r\na=fingerprint:sha-256 AB:C\r\na=setup:actpass\r\na=mid:0\r\na=sctp-port:5000\r\na=max-message-size:262144\r\na=end-of-candidates\r\n"
+ },
+ {
+  "input": {
+   "fn": "rebuild",
+   "arg": {
+    "u": "a",
+    "p": "",
+    "f": "AB",
+    "s": "x",
+    "c": []
+   }
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "rebuild",
+   "arg": {
+    "u": "a",
+    "p": "b",
+    "f": "AB",
+    "s": "x",
+    "c": "nope"
+   }
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "pack",
+   "arg": {
+    "k": "j4x2",
+    "u": "wXyZ8aBc",
+    "p": "nLp3qTncIC1wOTaHc2jB39Q8",
+    "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+    "s": "actpass",
+    "c": [
+     "9b0e1adb-ef3c-4d91-9293-30c565438ab7.local~61735",
+     "192.168.1.10~54321"
+    ]
+   }
+  },
+  "output": {
+   "b64": "AQEEajR4Mgh3WHlaOGFCYxhuTHAzcVRuY0lDMXdPVGFIYzJqQjM5UTiEsYbgGC8Rfy9bNhzQ10zdj9tdZqkS7mk-KYFvDYmH-QIBmw4a2-88TZGSkzDFZUOKt_EnAMCoAQrUMQ",
+   "back": {
+    "s": "actpass",
+    "k": "j4x2",
+    "u": "wXyZ8aBc",
+    "p": "nLp3qTncIC1wOTaHc2jB39Q8",
+    "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+    "c": [
+     "9b0e1adb-ef3c-4d91-9293-30c565438ab7.local~61735",
+     "192.168.1.10~54321"
+    ]
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "pack",
+   "arg": {
+    "k": "zz",
+    "u": "u",
+    "p": "p",
+    "f": "84b186e0182f117f2f5b361cd0d74cdd8fdb5d66a912ee693e29816f0d8987f9",
+    "s": "active",
+    "c": [
+     "fe80::1~50000",
+     "10.0.0.300~70000",
+     "9B0E1ADB-EF3C-4D91-9293-30C565438AB7.LOCAL~1",
+     "host.lan~-1",
+     "a~b",
+     "1.2.3.4~5",
+     "6.7.8.9~10"
+    ]
+   }
+  },
+  "output": {
+   "b64": "AQACenoBdQFwhLGG4BgvEX8vWzYc0NdM3Y_bXWapEu5pPimBbw2Jh_kGAgdmZTgwOjoxw1AACgAALBFwAZsOGtvvPE2RkpMwxWVDircAAQIIaG9zdC5sYW7__wIBYQAAAAECAwQABQ",
+   "back": {
+    "s": "active",
+    "k": "zz",
+    "u": "u",
+    "p": "p",
+    "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+    "c": [
+     "fe80::1~50000",
+     "10.0.0.44~4464",
+     "9b0e1adb-ef3c-4d91-9293-30c565438ab7.local~1",
+     "host.lan~65535",
+     "a~0",
+     "1.2.3.4~5"
+    ]
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "pack",
+   "arg": {
+    "k": "é",
+    "u": "ü",
+    "p": "p",
+    "f": "GG",
+    "s": "actpass",
+    "c": []
+   }
+  },
+  "output": {
+   "b64": "AQECw6kCw7wBcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+   "back": {
+    "s": "actpass",
+    "k": "é",
+    "u": "ü",
+    "p": "p",
+    "f": "0000000000000000000000000000000000000000000000000000000000000000",
+    "c": []
+   }
+  }
+ },
+ {
+  "input": {
+   "fn": "unpack",
+   "arg": "AQEEajR4Mgh3WHlaOGFCYxhuTHAzcVRuY0lDMXdPVGFIYzJqQjM5UTiEsYbgGC8Rfy9bNhzQ10zdj9tdZqkS7mk-KYFvDYmH-QIBmw4a2-88TZGSkzDFZUOKt_EnAMCoAQrUMQ"
+  },
+  "output": {
+   "s": "actpass",
+   "k": "j4x2",
+   "u": "wXyZ8aBc",
+   "p": "nLp3qTncIC1wOTaHc2jB39Q8",
+   "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+   "c": [
+    "9b0e1adb-ef3c-4d91-9293-30c565438ab7.local~61735",
+    "192.168.1.10~54321"
+   ]
+  }
+ },
+ {
+  "input": {
+   "fn": "unpack",
+   "arg": "AgEEajR4"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "unpack",
+   "arg": ""
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "unpack",
+   "arg": "!!!"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "unpack",
+   "arg": "AQE"
+  },
+  "output": null
+ },
+ {
+  "input": {
+   "fn": "unpack",
+   "arg": "AQEEajR4Mgh3WHlaOGFCYxhuTHAzcVRuY0lDMXdPVGFIYzJqQjM5UTiEsYbgGC8Rfy9bNhzQ10zdj9tdZqkS7mk-KYFvDYmH-Q"
+  },
+  "output": {
+   "s": "actpass",
+   "k": "j4x2",
+   "u": "wXyZ8aBc",
+   "p": "nLp3qTncIC1wOTaHc2jB39Q8",
+   "f": "84B186E0182F117F2F5B361CD0D74CDD8FDB5D66A912EE693E29816F0D8987F9",
+   "c": []
+  }
+ },
+ {
+  "input": {
+   "fn": "rpc",
+   "arg": [
+    "{\"i\":1,\"n\":\"pull\",\"p\":{\"secret\":\"s\",\"since\":0}}",
+    "{\"i\":2,\"r\":null}",
+    "{\"i\":3,\"e\":\"timeout\"}",
+    "{\"i\":4}",
+    "{\"n\":\"x\"}",
+    "[1]",
+    "AC:GO",
+    "{\"i\":null,\"r\":1}",
+    "{\"i\":5,\"n\":\"\"}"
+   ]
+  },
+  "output": [
+   {
+    "i": 1,
+    "n": "pull",
+    "p": {
+     "secret": "s",
+     "since": 0
+    }
+   },
+   {
+    "i": 2,
+    "r": null
+   },
+   {
+    "i": 3,
+    "e": "timeout"
+   },
+   null,
+   null,
+   null,
+   null,
+   {
+    "i": null,
+    "r": 1
+   },
+   null
+  ]
+ },
+ {
+  "input": {
+   "fn": "rpcOut",
+   "arg": null
+  },
+  "output": [
+   {
+    "i": 3,
+    "n": "push",
+    "p": {
+     "secret": "s",
+     "events": []
+    }
+   },
+   {
+    "i": 3,
+    "r": {
+     "ok": true
+    }
+   },
+   {
+    "i": 4,
+    "e": "hub"
+   },
+   {
+    "i": 1,
+    "n": "end"
+   }
+  ]
+ },
+ {
+  "input": {
+   "fn": "localCand",
+   "arg": [
+    [
+     "10.1.2.3~1"
+    ],
+    [
+     "172.16.0.1~1"
+    ],
+    [
+     "172.32.0.1~1"
+    ],
+    [
+     "172.31.9.9~2"
+    ],
+    [
+     "169.254.1.1~3"
+    ],
+    [
+     "x.local~4"
+    ],
+    [
+     "88.1.2.3~5",
+     "fe80::1~6"
+    ],
+    [],
+    [
+     "172.16~1"
+    ],
+    [
+     "192.168.0.1"
+    ]
+   ]
+  },
+  "output": [
+   true,
+   true,
+   false,
+   true,
+   true,
+   true,
+   false,
+   false,
+   false,
+   true
+  ]
+ },
+ {
+  "input": {
+   "fn": "hub",
+   "arg": [
+    [
+     "join",
+     "Médecin avec un libellé beaucoup trop long pour tenir"
+    ],
+    [
+     "join",
+     ""
+    ],
+    [
+     "pull",
+     "S2",
+     0
+    ],
+    [
+     "pull",
+     "S1",
+     0
+    ],
+    [
+     "pull",
+     "nope",
+     0
+    ],
+    [
+     "push",
+     "S1",
+     [
+      {
+       "event_id": "e1",
+       "kind": "check",
+       "payload": {
+        "k": "1:b:0",
+        "label": "MOT"
+       },
+       "ts": "2026-09-30T12:00:00.000Z"
+      },
+      {
+       "event_id": "e1",
+       "kind": "check",
+       "payload": {
+        "k": "1:b:1"
+       }
+      },
+      {
+       "event_id": "e2",
+       "kind": "uncheck",
+       "payload": {
+        "k": "1:b:0"
+       }
+      },
+      {
+       "kind": "check"
+      },
+      null,
+      {
+       "event_id": "e3",
+       "kind": "mark",
+       "payload": {
+        "cxb": 1,
+        "id": "m1",
+        "ref": {
+         "type": "core",
+         "k": "bilan",
+         "extra": "x"
+        },
+        "t": 5
+       }
+      }
+     ]
+    ],
+    [
+     "push",
+     "S2",
+     [
+      {
+       "event_id": "h1",
+       "kind": "session_start",
+       "payload": {
+        "exo": false,
+        "id": "s",
+        "t": 9
+       }
+      },
+      {
+       "event_id": "h2",
+       "kind": "sig",
+       "payload": "str"
+      }
+     ]
+    ],
+    [
+     "pull",
+     "S3",
+     0
+    ],
+    [
+     "pull",
+     "S3",
+     2
+    ],
+    [
+     "setRole",
+     "p3",
+     "lead"
+    ],
+    [
+     "push",
+     "S3",
+     [
+      {
+       "event_id": "e4",
+       "kind": "uncheck",
+       "payload": {
+        "k": "1:b:0"
+       }
+      }
+     ]
+    ],
+    [
+     "revoke",
+     "p1"
+    ],
+    [
+     "revoke",
+     "p4"
+    ],
+    [
+     "pull",
+     "S4",
+     0
+    ],
+    [
+     "push",
+     "S4",
+     [
+      {
+       "event_id": "e5",
+       "kind": "check",
+       "payload": {}
+      }
+     ]
+    ],
+    [
+     "setRole",
+     "zz",
+     "lead"
+    ],
+    [
+     "join",
+     "a"
+    ],
+    [
+     "join",
+     "b"
+    ],
+    [
+     "join",
+     "c"
+    ],
+    [
+     "join",
+     "d"
+    ],
+    [
+     "join",
+     "e"
+    ],
+    [
+     "join",
+     "f"
+    ],
+    [
+     "end"
+    ],
+    [
+     "pull",
+     "S3",
+     0
+    ],
+    [
+     "push",
+     "S3",
+     []
+    ],
+    [
+     "join",
+     "z"
+    ]
+   ]
+  },
+  "output": [
+   {
+    "ok": true,
+    "share": "shl1",
+    "me": "p2",
+    "secret": "S2",
+    "role": "scribe",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    },
+    "since": 0,
+    "server_time": "2024-09-30T12:00:01.000Z"
+   },
+   {
+    "ok": true,
+    "share": "shl1",
+    "me": "p3",
+    "secret": "S3",
+    "role": "scribe",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    },
+    "since": 0,
+    "server_time": "2024-09-30T12:00:02.000Z"
+   },
+   {
+    "ok": true,
+    "status": "active",
+    "role": "scribe",
+    "me": "p2",
+    "events": [],
+    "seq": 0,
+    "n_events": 0,
+    "stream": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "participants": [
+     {
+      "id": "p1",
+      "label": "Hôte",
+      "role": "lead",
+      "owner": true,
+      "seen": 1727697600000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p2",
+      "label": "Médecin avec un libellé ",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697603000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p3",
+      "label": "Invité",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697602000,
+      "revoked": false,
+      "detached": false
+     }
+    ],
+    "server_time": "2024-09-30T12:00:03.000Z",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    }
+   },
+   {
+    "ok": true,
+    "status": "active",
+    "role": "lead",
+    "me": "p1",
+    "events": [],
+    "seq": 0,
+    "n_events": 0,
+    "stream": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "participants": [
+     {
+      "id": "p1",
+      "label": "Hôte",
+      "role": "lead",
+      "owner": true,
+      "seen": 1727697604000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p2",
+      "label": "Médecin avec un libellé ",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697603000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p3",
+      "label": "Invité",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697602000,
+      "revoked": false,
+      "detached": false
+     }
+    ],
+    "server_time": "2024-09-30T12:00:04.000Z"
+   },
+   {
+    "ok": false,
+    "err": "auth"
+   },
+   {
+    "ok": true,
+    "accepted": 3,
+    "rejected": 3,
+    "seq": 3,
+    "status": "active",
+    "server_time": "2024-09-30T12:00:06.000Z"
+   },
+   {
+    "ok": true,
+    "accepted": 1,
+    "rejected": 1,
+    "seq": 4,
+    "status": "active",
+    "server_time": "2024-09-30T12:00:07.000Z"
+   },
+   {
+    "ok": true,
+    "status": "active",
+    "role": "scribe",
+    "me": "p3",
+    "events": [
+     {
+      "seq": 1,
+      "id": "e1",
+      "actor": "p1",
+      "kind": "check",
+      "payload": {
+       "k": "1:b:0"
+      },
+      "ts": "2026-09-30T12:00:00.000Z",
+      "at": "2024-09-30T12:00:06.000Z"
+     },
+     {
+      "seq": 2,
+      "id": "e2",
+      "actor": "p1",
+      "kind": "uncheck",
+      "payload": {
+       "k": "1:b:0"
+      },
+      "ts": "2024-09-30T12:00:06.000Z",
+      "at": "2024-09-30T12:00:06.000Z"
+     },
+     {
+      "seq": 3,
+      "id": "e3",
+      "actor": "p1",
+      "kind": "mark",
+      "payload": {
+       "id": "m1",
+       "ref": {
+        "type": "core",
+        "k": "bilan",
+        "extra": "x"
+       },
+       "t": 5
+      },
+      "ts": "2024-09-30T12:00:06.000Z",
+      "at": "2024-09-30T12:00:06.000Z"
+     },
+     {
+      "seq": 4,
+      "id": "h2",
+      "actor": "p2",
+      "kind": "sig",
+      "payload": {},
+      "ts": "2024-09-30T12:00:07.000Z",
+      "at": "2024-09-30T12:00:07.000Z"
+     }
+    ],
+    "seq": 4,
+    "n_events": 4,
+    "stream": "6419da68d954e308123dfcc8014ba66728fc846ca023ef9aa9d04021328429d6",
+    "participants": [
+     {
+      "id": "p1",
+      "label": "Hôte",
+      "role": "lead",
+      "owner": true,
+      "seen": 1727697606000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p2",
+      "label": "Médecin avec un libellé ",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697607000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p3",
+      "label": "Invité",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697608000,
+      "revoked": false,
+      "detached": false
+     }
+    ],
+    "server_time": "2024-09-30T12:00:08.000Z",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    }
+   },
+   {
+    "ok": true,
+    "status": "active",
+    "role": "scribe",
+    "me": "p3",
+    "events": [
+     {
+      "seq": 3,
+      "id": "e3",
+      "actor": "p1",
+      "kind": "mark",
+      "payload": {
+       "id": "m1",
+       "ref": {
+        "type": "core",
+        "k": "bilan",
+        "extra": "x"
+       },
+       "t": 5
+      },
+      "ts": "2024-09-30T12:00:06.000Z",
+      "at": "2024-09-30T12:00:06.000Z"
+     },
+     {
+      "seq": 4,
+      "id": "h2",
+      "actor": "p2",
+      "kind": "sig",
+      "payload": {},
+      "ts": "2024-09-30T12:00:07.000Z",
+      "at": "2024-09-30T12:00:07.000Z"
+     }
+    ],
+    "seq": 4,
+    "n_events": 4,
+    "stream": "6419da68d954e308123dfcc8014ba66728fc846ca023ef9aa9d04021328429d6",
+    "participants": [
+     {
+      "id": "p1",
+      "label": "Hôte",
+      "role": "lead",
+      "owner": true,
+      "seen": 1727697606000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p2",
+      "label": "Médecin avec un libellé ",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697607000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p3",
+      "label": "Invité",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697609000,
+      "revoked": false,
+      "detached": false
+     }
+    ],
+    "server_time": "2024-09-30T12:00:09.000Z"
+   },
+   {
+    "ok": true
+   },
+   {
+    "ok": true,
+    "accepted": 1,
+    "rejected": 0,
+    "seq": 5,
+    "status": "active",
+    "server_time": "2024-09-30T12:00:11.000Z"
+   },
+   {
+    "ok": false
+   },
+   {
+    "ok": false
+   },
+   {
+    "ok": false,
+    "err": "auth"
+   },
+   {
+    "ok": false,
+    "err": "auth"
+   },
+   {
+    "ok": false
+   },
+   {
+    "ok": true,
+    "share": "shl1",
+    "me": "p4",
+    "secret": "S4",
+    "role": "scribe",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    },
+    "since": 5,
+    "server_time": "2024-09-30T12:00:17.000Z"
+   },
+   {
+    "ok": true,
+    "share": "shl1",
+    "me": "p5",
+    "secret": "S5",
+    "role": "scribe",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    },
+    "since": 5,
+    "server_time": "2024-09-30T12:00:18.000Z"
+   },
+   {
+    "ok": true,
+    "share": "shl1",
+    "me": "p6",
+    "secret": "S6",
+    "role": "scribe",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    },
+    "since": 5,
+    "server_time": "2024-09-30T12:00:19.000Z"
+   },
+   {
+    "ok": true,
+    "share": "shl1",
+    "me": "p7",
+    "secret": "S7",
+    "role": "scribe",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    },
+    "since": 5,
+    "server_time": "2024-09-30T12:00:20.000Z"
+   },
+   {
+    "ok": true,
+    "share": "shl1",
+    "me": "p8",
+    "secret": "S8",
+    "role": "scribe",
+    "fiche": {
+     "id": "f1",
+     "title": "T"
+    },
+    "since": 5,
+    "server_time": "2024-09-30T12:00:21.000Z"
+   },
+   {
+    "ok": false,
+    "err": "full"
+   },
+   {
+    "ok": true
+   },
+   {
+    "ok": true,
+    "status": "ended",
+    "events": [],
+    "seq": 5,
+    "n_events": 5,
+    "participants": [
+     {
+      "id": "p1",
+      "label": "Hôte",
+      "role": "lead",
+      "owner": true,
+      "seen": 1727697606000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p2",
+      "label": "Médecin avec un libellé ",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697607000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p3",
+      "label": "Invité",
+      "role": "lead",
+      "owner": false,
+      "seen": 1727697611000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p4",
+      "label": "a",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697617000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p5",
+      "label": "b",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697618000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p6",
+      "label": "c",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697619000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p7",
+      "label": "d",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697620000,
+      "revoked": false,
+      "detached": false
+     },
+     {
+      "id": "p8",
+      "label": "e",
+      "role": "scribe",
+      "owner": false,
+      "seen": 1727697621000,
+      "revoked": false,
+      "detached": false
+     }
+    ],
+    "server_time": "2024-09-30T12:00:24.000Z"
+   },
+   {
+    "ok": false,
+    "err": "ended"
+   },
+   {
+    "ok": false,
+    "err": "ended"
+   }
+  ]
+ }
+]
