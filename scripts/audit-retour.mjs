@@ -51,6 +51,25 @@ t('« ‹ » porte le TITRE de la fiche d’origine', r5.lbl===r5.lblA, r5.lbl);
 t('triple tap nerveux : on est sur l’ORIGINE, jamais à la bibliothèque (garde 700 ms + .guarded)',
   r5.apres.vue==='read'&&r5.apres.surOrigine&&r5.apres.guard, JSON.stringify(r5.apres));
 t('après la fenêtre de garde, « ‹ » sort vers la bibliothèque (pile vidée)', r5.fin==='library');
+console.log('=== retour SYSTÈME : une entrée d’historique par niveau (A430) ===');
+/* La capture que Safari (et le retour prédictif d'Android) fait glisser est celle de l'entrée
+   d'historique : la pile doit donc COMPTER les niveaux à l'écran, à chaque pas. */
+const hs=()=>p.evaluate(()=>({v:state.view,d:history.state&&history.state.d,L:_histLevels(),fid:state.fiche&&state.fiche.id,mod:_openModals().length}));
+const retour=async()=>{await p.evaluate(()=>history.back());await p.waitForTimeout(950);return hs();};
+await p.evaluate(()=>{state.view='library';render();});await p.waitForTimeout(300);
+await p.evaluate(()=>{openRead(window.__fid);openRel(window.__oid);openAuth();});await p.waitForTimeout(400);
+const h0=await hs();
+t('A → lien B → fenêtre : trois entrées, une par niveau', h0.d===3&&h0.L===3, JSON.stringify(h0));
+const [A,B]=await p.evaluate(()=>[window.__fid,window.__oid]);
+const h1=await retour(),h2=await retour(),h3=await retour();
+t('retour ×3 : fenêtre fermée, puis B → A, puis l’accueil — pile alignée à chaque pas',
+  h1.mod===0&&h1.fid===B&&h1.d===2&&h2.fid===A&&h2.d===1&&h3.v==='library'&&h3.d===0, JSON.stringify([h1,h2,h3]));
+await p.evaluate(()=>{openRead(window.__fid);openAuth();});await p.waitForTimeout(300);
+await p.evaluate(()=>_topModal().querySelector('.ai-x').click());await p.waitForTimeout(600);
+const h4=await hs();
+t('fermer par ✕ retire l’entrée (le retour suivant ne tombe pas à vide)', h4.d===1&&h4.L===1&&h4.mod===0, JSON.stringify(h4));
+const h5=await retour();await p.evaluate(()=>history.forward());await p.waitForTimeout(950);const h6=await hs();
+t('geste AVANT : rien ne se rouvre, l’historique redescend', h5.v==='library'&&h6.v==='library'&&h6.d===0, JSON.stringify(h6));
 /* (v5.30, A354 : le témoin « pile du QUAI » — Tout voir → Consulter → Un bloc — est parti avec la colonne
    Consulter du cockpit et sa touche ; « Un bloc » est désormais le seul retour du quai.) */
 await p.close();await br.close();srv.close();

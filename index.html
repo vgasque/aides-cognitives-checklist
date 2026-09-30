@@ -290,7 +290,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UANs8Uc5xLBdkDuO71Zbf9EVm/7oqr/XLjy0ZyY4yNs='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-8X6/aZ+UhdD1yNDelpzaWnPYH7TGM8RR71m4/a+Uqmc=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-q9YjCluJBh4TqZU7pVEHpUvUyMJH1WSmPKUp7TNTltQ='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -8725,7 +8725,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.39.7';
+const APP_VERSION='5.39.8';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -10180,7 +10180,7 @@ function bindFlowZoom(root){const R=root||main;
    if(fs&&state.view==='read'&&state.fiche){flowPaintState(fs,state.fiche);bindSvgNav(fs,state.fiche);}}}
 // Plein écran de l'algorithme : superpose le SVG (même peinture d'état), zoom + défilement
 // (pinch natif aussi). On centre horizontalement à l'ouverture. Taper un nœud = fermer + y aller.
-function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');_layerEnter(ov);_histArm();applyFlowZoom();bindSvgImages(sc);
+function openFlowFull(f){const ov=document.getElementById('flowFull');if(!ov)return;const sc=ov.querySelector('.ff-scroll');sc.innerHTML=buildFlowSVG(f);ov.classList.add('on');_layerEnter(ov);applyFlowZoom();bindSvgImages(sc);
   if(state.view==='read'&&state.fiche===f){flowPaintState(sc,f);bindSvgNav(sc,f,true);}
   sc.scrollLeft=centerOnStart(sc);sc.scrollTop=0;}
 function closeFlowFull(){const ov=document.getElementById('flowFull');if(ov){ov.classList.remove('on');const sc=ov.querySelector('.ff-scroll');if(sc)sc.innerHTML='';_layerLeave();}}
@@ -13280,11 +13280,9 @@ function updateRtStrip(now){
       1120 px) — le défilement automatique que la règle 11 interdit. LE DÉPLIANT APPARTIENT AU
       QUAI : ouvert par le quai il se rend SOUS lui, par la rangée du bas il s'ouvre en bas —
       `state.rtOpen` porte l'ENDROIT ('dock' | 'flow'), pas seulement l'état. v5.4.1 : VOLET FIXE
-      (`.rt-dock`), `_histArm()` à l'ouverture comme toute surface qui recouvre (doctrine
-      v4.30.0). Détail : doctrine-js.md J58. */
+      (`.rt-dock`), niveau de la pile de retour comme toute surface qui recouvre (A430). Détail : doctrine-js.md J58. */
    if(!mqRail.matches||essaiOn('x2')){const open=!state.rtOpen;state.rtOpen=open?'dock':false;   // ESSAI X2
-     if(open){_rollOnce=true;                       // le déroulé appartient à CE tap, et à lui seul
-       _histArm();}
+     if(open)_rollOnce=true;                        // le déroulé appartient à CE tap, et à lui seul
      renderKeepAnchor('#cbTimers');return;}
    const p=document.querySelector('.rt-panel');if(p)p.scrollIntoView({behavior:'smooth',block:'start'});};}
 function refreshTimersDOM(now){now=now||Date.now();
@@ -13830,7 +13828,7 @@ function render(){_renderN++;
   _lastView=state.view;_lastFicheId=_fid;
   // Retour système (v4.30.0) : hors accueil, la sentinelle d'historique doit être armée —
   // idempotent, et render() est LE point de passage de tout changement de vue.
-  if(state.view!=='library')_histArm();
+  _histSync();
   // v5.4.1 : en cockpit, le chrome de crise rejoint la colonne du plan — AVANT la resynchro des
   // couches collantes, pour que stickHeight() sache déjà que les rangées ne sont plus empilées
   // en haut (no-op si la vue n'a pas de slot ; le rescue d'applyViewChrome a déjà défait l'état).
@@ -14003,7 +14001,7 @@ const mqHomeWide=window.matchMedia('(min-width:780px)');
 const homeTab=()=>state.homeTab||'aides';
 const homeTabsOn=()=>state.view==='library'&&mqHomeWide.matches;
 function setHomeTab(t){if(homeTab()===t&&state.view==='library')return;
-  state.homeTab=t;if(state.selOn)selEnd();if(t!=='aides')_histArm();render();
+  state.homeTab=t;if(state.selOn)selEnd();render();
   const s=main.querySelector('.home-main');if(s)s.scrollTop=0;}
 function syncHomeTabs(){if(state.view!=='library')return;const t=homeTab();
   if(!mqHomeWide.matches){if(t==='aides')return;state.homeTab='aides';render();if(t==='sessions')openSessHist();else openAuth();return;}
@@ -17571,7 +17569,7 @@ function shareGlobTag(){
    avant la notice). Trois cas : pas de code → normal ; code sur appareil VIERGE → aucune empreinte
    (mémoire, aucun worker, aucune persistance), écran d'entrée À LA PLACE ; appareil déjà
    utilisateur → normal, écran par-dessus SAUF fiche de crise à l'écran (règle 11) : code GARÉ,
-   annoncé par le bandeau système. Fragment retiré de l'historique IMMÉDIATEMENT (`_histArm()`
+   annoncé par le bandeau système. Fragment retiré de l'historique IMMÉDIATEMENT (`_histSync()`
    recopie l'URL, fragment compris). Détail : doctrine-js.md J103. */
 let SHARE_JOIN=null, SHARE_NOTRACE=false, SHARE_RESUME=false;
 function shareBootDecide(){
@@ -17581,11 +17579,11 @@ function shareBootDecide(){
      et vient d'être rechargé — le cas où l'invité perdait tout. On ne montre donc pas l'écran
      d'entrée : il n'a rien à saisir, son code est brûlé depuis longtemps. */
   try{if(Share._ticketRead()){SHARE_RESUME=true;
-    if(c)try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+    if(c)try{history.replaceState(history.state,'',location.pathname+location.search);}catch(e){}
     return false;}}catch(e){}
   if(!c)return false;
   SHARE_JOIN=c;
-  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+  try{history.replaceState(history.state,'',location.pathname+location.search);}catch(e){}
   try{SHARE_NOTRACE=!Auth.signedIn()&&localStorage.getItem('ac-db-owner')===null
     &&localStorage.getItem('ac-space')===null;}catch(e){SHARE_NOTRACE=true;}
   return true;}
@@ -22752,7 +22750,6 @@ function monPick(timers,now){
 const monMode=()=>document.getElementById('monMode');
 const monOn=()=>{const el=monMode();return !!el&&el.classList.contains('on');};
 function monOpen(){const R=Runtime;if(!R||!R.fiche)return;
-  _histArm();   // surface plein écran : le retour système doit la fermer (v4.30.0)
   const el=monMode();el.classList.add('on');monRender();
   /* Le tap de FERMETURE est posé à l'ouverture et retiré à la fermeture : un écouteur permanent
      sur une surface masquée capterait des gestes destinés à la page. */
@@ -25005,7 +25002,7 @@ function openLightbox(src,cap){const im=document.getElementById('lbImg');im.src=
   // Le nom accessible de l'image est sa LÉGENDE quand elle en a une : `alt=""` la rendait
   // décorative alors qu'elle est le contenu même de la couche.
   im.alt=cap||'Image agrandie';
-  document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');_layerEnter(lb);_histArm();}
+  document.getElementById('lbCap').textContent=cap||'';lb.classList.add('on');_layerEnter(lb);}
 function closeLightbox(){lb.classList.remove('on');document.getElementById('lbImg').src='';_layerLeave();}
 document.getElementById('lbX').onclick=closeLightbox;lb.onclick=e=>{if(e.target===lb)closeLightbox();};
 // Plein écran de l'algorithme : boutons de zoom (mêmes que l'aperçu) + fermeture.
@@ -26015,7 +26012,7 @@ const viewSheet=document.getElementById('viewSheet');let _viewRerender=null;
    `renderLibrary`, qui aiguille selon `state.section`, qui re-rend ; le témoin d'A419 passait par
    le bouton rond (sans rappel) et ne voyait pas ce chemin. */
 function viewSheetRedo(){if(state.view==='library')renderLibrary();else if(_viewRerender)_viewRerender();else render();}
-function openViewSheet(rerender){_viewRerender=rerender||null;viewSheet.classList.add('on');_bgLock();_histArm();paintViewSheet();syncFiltTog(true);}
+function openViewSheet(rerender){_viewRerender=rerender||null;viewSheet.classList.add('on');_bgLock();paintViewSheet();syncFiltTog(true);}
 function closeViewSheet(){if(!viewSheet.classList.contains('on'))return;viewSheet.classList.remove('on');_bgUnlock();syncFiltTog(true);
   const t=document.getElementById('filtTog');
   if(t&&!t.hidden&&t.offsetParent)t.focus({preventScroll:true});
@@ -31194,18 +31191,22 @@ function modalHandoffClose(m){
   if(m)m.classList.remove('on');
   _modalReturnFocus=null;
   if(!_topModal())_bgUnlock(false);}
+// A430 : les couches de la pile de retour s'OBSERVENT ici — aucune ouverture ni fermeture n'a à s'en souvenir.
+const _H_WATCH=new Set(['joinScreen','dockSheet','monMode','flowFull','lightbox']);
 new MutationObserver(muts=>{muts.forEach(m=>{
-  const el=m.target;if(!el.classList||!el.classList.contains('ai-modal'))return;
+  const el=m.target;if(!el.classList)return;
+  if(el.classList.contains('ai-modal')||_H_WATCH.has(el.id))_histSync();
+  if(m.attributeName!=='class'||!el.classList.contains('ai-modal'))return;
   const wasOn=/\bon\b/.test(m.oldValue||''),isOn=el.classList.contains('on');
   /* `sheet-live` : fenêtre qui NE VERROUILLE PAS le fond. Une `.ai-modal` fige le défilement de la
      page derrière elle au pointeur grossier — bon comportement pour un dialogue bref, ruineux pour
      la fenêtre d'appariement, qui reste ouverte pendant toute la fenêtre d'admission et rendrait la
      checklist de crise INDÉFILABLE au moment où l'hôte en a besoin. Tout le reste du gestionnaire
      (focus initial, piège Tab, Échap, retour système) s'applique inchangé. */
-  if(isOn&&!wasOn){if(_openModals().length<=1&&!el.classList.contains('sheet-live')){_modalReturnFocus=document.activeElement;_bgLock();}_dlgEnter(el);_histArm();}
+  if(isOn&&!wasOn){if(_openModals().length<=1&&!el.classList.contains('sheet-live')){_modalReturnFocus=document.activeElement;_bgLock();}_dlgEnter(el);}
   else if(!isOn&&wasOn&&!_topModal()){_bgUnlock();
     if(_modalReturnFocus){try{_modalReturnFocus.focus();}catch(_){}_modalReturnFocus=null;}}
-});}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
+});}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','hidden'],attributeOldValue:true});
 document.addEventListener('keydown',e=>{
   const modal=_topModal();
   if(e.key==='Escape'){
@@ -31239,11 +31240,11 @@ document.addEventListener('keydown',e=>{
 // (kb-open PURGÉ, règle 14 : la classe n'avait plus AUCUN consommateur CSS depuis que les actions
 // d'éditeur vivent dans l'en-tête sticky — deux écouteurs posaient un drapeau que rien ne lisait.)
 
-/* ===== Bouton retour SYSTÈME (History API — v4.30.0, P1 de l'audit externe) =====
-   UNE entrée SENTINELLE ré-armée à chaque consommation, SANS routing : le retour système emprunte
-   le MÊME chemin que l'affordance visible (fenêtre du dessus → lecteur → schéma → image → « ‹ »
-   d'en-tête, pile readStack + garde 700 ms) ; à l'accueil nu il SORT de l'app ; un popstate vers
-   l'AVANT ne fait que ré-armer, jamais fermer ; scrollRestoration='manual'. Détail : doctrine-js.md J238. */
+/* ===== Bouton et geste retour SYSTÈME (History API — v4.30.0 ; pile réelle A430) =====
+   SANS routing : le retour emprunte le MÊME chemin que l'affordance visible ; à l'accueil nu il
+   SORT de l'app ; un geste AVANT ne rouvre rien. A430 : une entrée PAR NIVEAU ouvert (la
+   sentinelle unique ré-armée faisait glisser au balayage d'iOS une capture fausse, puis la
+   figeait). Détail : doctrine-js.md J238, lot-v5-39.md A430. */
 /* ===== Guide rouge/ambre de l'éditeur : repli PERSISTANT (v4.31.0, audit externe) =====
    'toggle' ne bulle pas -> écoute en CAPTURE ; le choix survit aux re-rendus et aux sessions.
    Détail : doctrine-js.md J238. */
@@ -31295,50 +31296,56 @@ document.addEventListener('keydown',e=>{
 });
 
 try{history.scrollRestoration='manual';}catch(e){}
-// Une sentinelle SURVIVANTE d'un rechargement (même document, entrée conservée) redevient une
-// entrée ordinaire — sinon le premier retour tombait dessus, était lu comme un geste « avant »
-// et ne fermait rien (appui mort, constaté à la sonde).
-if(history.state&&history.state.ac)try{history.replaceState(null,'');}catch(e){}
-let _histArmed=false;
-function _histArm(){if(_histArmed)return;try{history.pushState({ac:1},'');_histArmed=true;}catch(e){}}
-function _histBackAction(){
-  /* L'ÉCRAN D'ENTRÉE PASSE AVANT LES FENÊTRES : il est au-dessus de tout (z 96), et sur un
-     appareil vierge il n'a AUCUNE sortie — `closeJoinScreen` refuse alors, et le retour tombe
-     naturellement sur les chemins suivants. */
-  const js=document.getElementById('joinScreen');
-  if(js&&!js.hidden&&!SHARE_NOTRACE)return closeJoinScreen;
-  const m=_topModal();
-  if(m){const x=m.querySelector('.ai-x');
-    // Sans ✕ (ex. « Terminer la session ? ») : un clic SUR la fenêtre (cible = le voile) emprunte
-    // le chemin de bindModalDismiss — pour ce dialogue, « Poursuivre », JAMAIS « Terminer ».
-    return()=>{if(x)x.click();else m.dispatchEvent(new MouseEvent('click',{bubbles:true}));};}
-  /* v5.6 (V1) : un volet du dock RECOUVRE — le retour système le referme, par le même chemin que
-     son ✕, le re-tap de sa touche et le tap hors volet. Il passe AVANT le volet du quai : c'est
-     la couche du dessus (z 17 contre 14). */
-  {const sh=document.getElementById('dockSheet');if(sh&&!sh.hidden)return dockSheetClose;}
-  /* v5.4.1 : le volet du quai RECOUVRE — le retour système le referme, par le même chemin que
-     son ✕ et que le re-tap du quai (mêmes effets de bord, aucun état intermédiaire). */
-  if(state.rtOpen==='dock'&&document.querySelector('.rt-dock'))
-    return()=>{state.rtOpen=false;renderKeepAnchor('#cbTimers');};
-  if(monOn())return monClose;
-  const ff=document.getElementById('flowFull');
-  if(ff&&ff.classList.contains('on'))return closeFlowFull;
-  if(lb&&lb.classList.contains('on'))return closeLightbox;
-  if(state.view==='library'&&homeTab()!=='aides')return()=>setHomeTab('aides');   // A365
-  const hb=document.getElementById('hdrBack');
-  if(hb&&!hb.hidden&&state.view!=='library')return()=>hb.click();
-  return null;
-}
-window.addEventListener('popstate',e=>{
-  _histArmed=!!(e.state&&e.state.ac);
-  const act=_histBackAction();
-  // Un popstate est un GESTE de l'utilisateur : s'il reste une surface à fermer, on la ferme —
-  // même si l'entrée d'arrivée est une sentinelle résiduelle (le cas « avant » qui fermerait à
-  // tort est marginal et sans danger : la surface se rouvre d'un tap ; l'appui mort, lui, était
-  // systématique après rechargement).
-  if(act){try{act();}catch(_){/* le prochain geste retombera sur le bon chemin */}_histArm();}
-  else if(!_histArmed){try{history.back();}catch(_){}}   // accueil nu : traverser l'origine = sortir
-  // accueil nu SUR une sentinelle : rien à fermer, rien à faire — le prochain retour sortira.
+// Une entrée par NIVEAU ouvert, `{ac:_H_ID,d}` : `_H_ID` sépare ce document des entrées laissées
+// par un chargement précédent (lues « sous la base », d = -1).
+const _H_ID=Date.now().toString(36);
+try{history.replaceState({ac:_H_ID,d:0},'');}catch(e){}
+const _hEl=id=>document.getElementById(id);
+const _hOn=id=>{const e=_hEl(id);return !!e&&e.classList.contains('on');};
+// Niveaux de la VUE : accueil 0 (1 sur Sessions/Moi), lecture 1 + pile d'origine, éditeur =
+// sa page de lecture + 1 (1 s'il crée : il sort à l'accueil), aperçu = son éditeur + 1.
+function _hViewLevels(){const v=state.view,rs=(state.readStack||[]).length;
+  if(v==='library')return homeTab()!=='aides'?1:0;
+  const ed=w=>{const d=w==='edit'?state.draft:state.pdraft;return d&&(w==='edit'?fiches:protocols).some(x=>x.id===d.id)?2+rs:1;};
+  if(v==='edit'||v==='protocolEdit')return ed(v);
+  return state.previewFrom?ed(state.previewFrom)+1:1+rs;}
+/* LES COUCHES, du dessus vers le dessous : [niveaux ouverts, fermeture d'UN niveau]. Une table
+   pour compter ET pour fermer — le compte ne peut pas diverger du geste. Fermer = le chemin de
+   l'affordance visible (✕, « ‹ » avec sa pile et sa garde 700 ms). */
+const _H_LAYERS=[
+  [()=>{const j=_hEl('joinScreen');return j&&!j.hidden&&!SHARE_NOTRACE?1:0;},()=>closeJoinScreen],
+  [()=>_openModals().length,()=>{const m=_topModal(),x=m.querySelector('.ai-x');
+    // Sans ✕ (« Terminer la session ? ») : clic sur le voile = bindModalDismiss, donc « Poursuivre ».
+    return()=>{if(x)x.click();else m.dispatchEvent(new MouseEvent('click',{bubbles:true}));};}],
+  [()=>{const d=_hEl('dockSheet');return d&&!d.hidden?1:0;},()=>dockSheetClose],
+  [()=>state.rtOpen==='dock'&&document.querySelector('.rt-dock')?1:0,()=>()=>{state.rtOpen=false;renderKeepAnchor('#cbTimers');}],
+  [()=>monOn()?1:0,()=>monClose],
+  [()=>_hOn('flowFull')?1:0,()=>closeFlowFull],
+  [()=>_hOn('lightbox')?1:0,()=>closeLightbox],
+  [_hViewLevels,()=>state.view==='library'?()=>setHomeTab('aides'):()=>_hEl('hdrBack').click()]];
+const _histLevels=()=>_H_LAYERS.reduce((t,[n])=>t+n(),0);
+function _histBackAction(){const l=_H_LAYERS.find(([n])=>n()>0);return l?l[1]():null;}
+const _hDepth=()=>{const s=history.state;return s&&s.ac===_H_ID?s.d:-1;};
+let _hSkip=0,_hHold=0,_hQ=false;
+/* Aligne l'historique sur l'écran, une fois par tâche (microtâche, donc AVANT la peinture : la
+   capture que Safari ou le retour prédictif font glisser est celle de l'écran QU'ON QUITTE).
+   Monte en poussant ; descend par `history.go`, dont le popstate est ignoré (`_hSkip`). */
+function _histSync(){if(_hQ)return;_hQ=true;queueMicrotask(()=>{_hQ=false;
+  if(_hSkip)return;
+  const w=_hHold-Date.now();if(w>0){setTimeout(_histSync,w+10);return;}
+  const L=_histLevels(),d=_hDepth();
+  if(L>d&&(d>=0||L)){try{for(let i=d+1;i<=L;i++)history.pushState({ac:_H_ID,d:i},'');}catch(e){}}
+  else if(L<d){_hSkip++;history.go(L-d);
+    setTimeout(()=>{if(_hSkip){_hSkip=0;_histSync();}},1000);}});}   // popstate perdu : on se recale
+window.addEventListener('popstate',()=>{
+  if(_hSkip){_hSkip--;_histSync();return;}
+  const d=_hDepth(),L=_histLevels();
+  if(d<0&&!L){try{history.back();}catch(_){}return;}   // accueil nu, sous la base : sortir
+  if(d<L){const act=_histBackAction();
+    // JAMAIS de push dans le retour lui-même (capture d'iOS gelée) : on laisse la vue se poser.
+    _hHold=Date.now()+800;if(act)try{act();}catch(_){}
+    setTimeout(_histSync,810);}
+  else if(d>L)_histSync();   // geste AVANT : rien ne se rouvre, l'historique redescend
 });
 /* v5.4.1 : Échap referme le volet du quai — même chemin que son ✕ (aucun état intermédiaire).
    Jamais par-dessus une fenêtre ouverte : les modales gardent leur propre Échap et passent

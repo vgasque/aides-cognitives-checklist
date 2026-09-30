@@ -5582,6 +5582,10 @@
    l'éditeur (le markup relit la clé) et aux sessions. */
 ```
 
+> **Amendé par A430 (v5.39.8, `lot-v5-39.md`)** : la sentinelle unique devient une entrée d'historique PAR NIVEAU
+> ouvert (le balayage d'iOS fait glisser la capture de l'entrée précédente). Le reste du contrat tient : pas de
+> routage, même chemin que l'affordance visible, accueil nu = sortie, geste avant sans effet.
+
 ## J239 — MISE À JOUR VISIBLE : sw.js fait skipWaiting+claim (la nouvelle version s'installe seule),
 
 ```

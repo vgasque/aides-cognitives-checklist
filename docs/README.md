@@ -93,6 +93,7 @@ vit dans `AGENTS.md` (tableau « Où trouver quoi »).
 | A427 | `lot-v5-39.md` | Au retour dans l'app installée, les viewports visuel et de mise en page se recollent (`visibilitychange`, garde clavier, décalage négatif) |
 | A428 | `lot-v5-39.md` | Filtrer par bibliothèque dans la feuille « Affichage » (même cran que la colonne gauche, `homeVis()`) |
 | A429 | `lot-v5-39.md` | Feuille « Affichage » en deux parties (Filtrer / Présenter) ; filtres posés en puces effaçables sous la ligne de compte, même sans résultat (`filtersList`, `dropFilter`) ; « À relire » compté |
+| A430 | `lot-v5-39.md` | Retour système en PILE RÉELLE : une entrée d'historique par niveau ouvert (`_H_LAYERS`, `_histSync`), rien poussé dans le retour — le balayage d'iOS et le retour prédictif d'Android montrent le bon écran ; amende J238 (v4.30.0) |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |
 | J1-J239 | `doctrine-js.md` | Les commentaires longs du grand script d'index.html, repris à l'octet (A293) : un renvoi « doctrine-js.md J‹n› » dans le code se résout ici, sous l'id cité |

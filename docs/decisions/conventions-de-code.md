@@ -538,8 +538,9 @@
   (`replaceState(null)`) — sans ça, le premier retour tombait dessus, était lu comme un geste
   « avant » et ne fermait rien (constaté à la sonde). `history.scrollRestoration='manual'` (deux
   entrées, même document : une « restauration » de défilement entre elles ferait sauter la page).
-  Toute nouvelle surface plein écran doit appeler `_histArm()` à l'ouverture et entrer dans
-  `_histBackAction()`. **PIÈGE (vécu deux fois cette version)** : toute édition du script inline
+  **Amendé par A430 (v5.39.8) : une entrée PAR NIVEAU, plus de sentinelle.** Toute nouvelle
+  surface qui recouvre entre dans la table `_H_LAYERS` (niveaux + fermeture) et, si ce n'est pas
+  une `.ai-modal`, dans `_H_WATCH` — aucun appel à faire à l'ouverture ni à la fermeture. **PIÈGE (vécu deux fois cette version)** : toute édition du script inline
   exige `node scripts/csp-hashes.mjs` — sinon la CSP par hashs bloque le script et l'app ne boote
   plus ; et en DEV le service worker ressert l'ancien HTML tant qu'on ne l'a pas désinscrit
   (caches purgés) — tester un correctif sur la version précachée fait conclure à tort qu'il ne

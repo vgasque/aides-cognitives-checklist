@@ -1,4 +1,4 @@
-# Lot v5.39 — le sommaire d'un PDF joint, optionnel (A418) ; filtre de catégorie par nom, connexion par Entrée (A419)
+# Lot v5.39 — le sommaire d'un PDF joint, optionnel (A418) ; filtre de catégorie par nom, connexion par Entrée (A419) ; retour système en pile réelle (A430)
 
 > Fichier normatif, suite de [`lot-v5-38.md`](lot-v5-38.md) (A400-A417). Les numéros A sont des adresses :
 > ne jamais renuméroter. Demande de l'auteur du 28/09/2026.
@@ -343,4 +343,43 @@ disparaissait). Bleu : un état actif, jamais un registre de danger (règle 8).
 n'était pas compté (il passe par `homeRev`, `section` restant à « all ») — le déclencheur disait 0 sur une liste
 restreinte. **Témoins** : `audit-a11y` mesure la surface « filtres posés » sur `.af-bar`, `audit-doctrine` ouvre la
 feuille par une puce (`.af-l`) et « Tout effacer » par son id, désormais dans le corps de la feuille.
+
+## A430 — le retour système devient une vraie pile : une entrée d'historique par niveau (amende v4.30.0)
+
+**Demande de l'auteur.** « Lorsqu'on swipe vers la droite sur iPhone, Android ou même tablette/desktop, qu'il ait un
+comportement comme une app : retour à la page hiérarchiquement avant, sans devoir recharger la page ni faire freeze
+l'app. »
+
+**Cause (hypothèse, non mesurable ici).** v4.30.0 gardait UNE entrée sentinelle, ré-armée par `pushState` DANS le
+popstate. Le bouton retour d'Android n'en demande pas plus. Le balayage d'iOS, lui (et le retour prédictif des
+Chrome Android récents), fait glisser la CAPTURE de l'entrée précédente, prise quand on l'a quittée : avec une seule
+entrée, la capture montre souvent un autre écran que celui où l'on arrive. Et WebKit laisse cette capture par-dessus
+la page jusqu'à des signaux de rendu, au plus 3 s (`swipeSnapshotRemovalWatchdogDuration`, `ViewGestureController`) :
+une entrée poussée pendant le retour peut les retarder, d'où l'app « gelée » qui tourne en dessous.
+
+**Ce qui change — le seul point 3 de J238.** Une entrée `{ac, d}` par NIVEAU ouvert, poussée en microtâche (avant la
+peinture, donc la capture est celle de l'écran qu'on QUITTE) ; une fermeture par l'app redescend l'historique
+(`history.go`, popstate ignoré) ; aucune entrée n'est poussée dans le retour lui-même (on laisse la vue se poser,
+800 ms, puis on se recale). `ac` est propre au document : les entrées d'un chargement précédent se lisent « sous la
+base » — accueil nu, le retour les traverse et sort, comme avant.
+
+**Ce qui ne change pas.** Pas de routage (l'adresse reste `index.html`) ; le retour emprunte le chemin de l'affordance
+visible (✕, voile sans ✕ = « Poursuivre », « ‹ » avec sa pile d'origine et sa garde 700 ms) ; un geste AVANT ne
+rouvre rien ; en session, le retour n'arrête jamais la session.
+
+**Une table, pas deux listes.** `_H_LAYERS` range les couches du dessus vers le dessous — écran d'entrée, fenêtres,
+volet du quai, dépliant des minuteurs, moniteur, schéma plein écran, visionneuse, vue — chacune avec son nombre de
+niveaux ET sa fermeture : `_histLevels` et `_histBackAction` la lisent, ils ne peuvent pas diverger. Niveaux de la
+vue (`_hViewLevels`) : accueil 0 (1 sur Sessions/Moi), lecture 1 + pile d'origine, éditeur = sa lecture + 1 (1 s'il
+crée), aperçu = son éditeur + 1 — exactement ce que fait « ‹ ». Les ouvertures et fermetures ne s'en souviennent
+plus : l'observateur des fenêtres (classe ET `hidden`) et `render()` appellent `_histSync` — sept appels
+`_histArm()` dispersés sont partis.
+
+**Limites dites.** Un retour bloqué par la garde 700 ms (double balayage nerveux) est ré-empilé : c'est un geste
+mort, comme avant, pas une désynchronisation. Safari fait toujours glisser une image figée ; seule une app native
+montre l'écran vivant. **À vérifier sur l'appareil** (iPhone installé, Android à retour prédictif) : accueil → fiche
+→ retour ; fiche → fiche liée → retour ×2 ; une fenêtre ouverte → retour ; la même chose en session.
+
+**Témoins.** `audit-retour` (section A430) : trois niveaux = trois entrées, retour ×3 aligné à chaque pas, fermeture
+par ✕ qui retire l'entrée, geste avant qui ne rouvre rien — rouge sur le code d'avant.
 

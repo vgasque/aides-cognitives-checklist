@@ -1,5 +1,21 @@
 # Journal des modifications
 
+## [5.39.8] — 2026-09-30
+Le geste retour se comporte comme dans une app (A430, doctrine `docs/decisions/lot-v5-39.md`).
+- **Balayer vers la droite ramène à l'écran d'avant, sans rechargement ni gel.** L'app gardait une seule entrée
+  d'historique, recréée à chaque retour. Or le balayage d'iPhone (et le retour prédictif des Android récents) fait
+  glisser une capture de l'écran précédent : elle montrait souvent un autre écran que celui où l'on arrivait, et
+  pouvait rester figée à l'écran quelques secondes. L'historique a maintenant une entrée par niveau ouvert (fiche,
+  fiche liée, éditeur, fenêtre, volet, visionneuse, schéma, Sessions/Moi), si bien que la capture est celle du bon
+  écran, et rien n'est ajouté pendant le retour lui-même.
+- Fermer par ✕ ou « ‹ » retire l'entrée correspondante : le balayage suivant tombe juste. Balayer vers l'avant ne
+  rouvre rien ; depuis l'accueil, le retour quitte l'app ; en session, il ne l'arrête jamais (inchangé).
+- À vérifier sur l'appareil : accueil → fiche → retour ; fiche → fiche liée → retour ×2 ; une fenêtre ouverte →
+  retour ; la même chose en session.
+- Vérifié : check complet, 1280 tests sous Chromium (WebKit absent de ce poste), `audit-retour` 10/10 (nouvelle
+  section, rouge sur le code d'avant), audit complet — seuls restent les deux rouges connus de ce poste (en-tête
+  d'accueil à 320 px, barre de sélection).
+
 ## [5.39.7] — 2026-09-29
 Retours d'usage sur l'accueil et le téléphone (A426 à A429, doctrine `docs/decisions/lot-v5-39.md`).
 - **Filtrer par bibliothèque.** La feuille « Affichage » propose une rangée « Bibliothèque » (Toutes, Perso, et
@@ -341,24 +357,3 @@ Retours d'usage sur l'éditeur allégé de la v5.33 (A384, doctrine `docs/decisi
 - **Feuille de réglages** : « ×2 Confirmée par les deux » dit ce qu'elle fait (« en session, marquée
   ×2 : les deux soignants la vérifient à voix haute ») ; le libellé de « Continuer » est dit
   facultatif ; de l'air sous « Importance ».
-
-
-## [5.33.0] — 2026-09-26
-L'éditeur s'allège : on écrit d'abord, on règle ensuite, jamais à plus d'un toucher (A383, doctrine
-`docs/decisions/lot-v5-33.md`). Demande de l'auteur après audit mesuré (ACR, 390 px : une étape
-touchée passait de 70 à plus de 500 px, onze commandes) ; maquettes E1-E7 et captures validées.
-- **Écrire n'ouvre plus rien** : toucher le texte d'une étape n'allume que ses champs. Un bouton
-  « Réglages » au bout de la ligne ouvre une feuille (basse au téléphone, centrée dès 780) à trois
-  sections nommées : importance (Normale · Vigilance · Critique, Mémoire, ×2), ce que fait la coche,
-  moment (« Dès le 1ᵉʳ passage / À partir d'un compte », seuil −/+, « Puis revient » en quatre cases).
-  Sans minuteur ni compteur, « ＋ Créer un minuteur / un compteur » les crée et les lie sur place.
-- **Ce qui est réglé se lit au repos**, en pastilles sous l'étape : Critique, Vigilance, ★ Mémoire,
-  ×2, « lance … », « +1 … », « Chocs délivrés ≥ 3 », « à l'échéance ». La réponse attendue passe sous
-  le texte ; les étapes sont plus compactes (≈ −20 %).
-- **Ce qui ne peut servir à rien n'est plus montré** : le moment, le minuteur du bloc et les jalons
-  n'apparaissent que si le bloc se répète (« ↺ Se répète ») ou s'ils sont déjà posés.
-- **« Options du bloc »** en carte dépliable, résumé à droite, ouverte d'office quand une option est
-  posée : bloc de départ, phase (qui quitte l'en-tête), libellé de « Continuer », minuteur du bloc,
-  jalons, image. Un jalon se lit comme une phrase : « Chocs délivrés ≥ − 3 + ». Les règles d'usage
-  ne sont plus répétées à chaque bloc.
-- Témoins : section A383 d'`audit-doctrine`, `audit-k5` et `audit-a11y` (la feuille est mesurée).
