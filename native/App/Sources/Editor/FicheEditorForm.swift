@@ -168,7 +168,7 @@ struct EdIdentityFold: View {
                 }
                 Spacer(minLength: 8)
                 Text("Identité").aFont(TypeScale.meta, .bold).foregroundStyle(T.act)
-                Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(T.act)
+                Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.meta, .semibold).foregroundStyle(T.act)
             }
             .frame(minHeight: Ctrl.m).contentShape(Rectangle())
         }
@@ -706,7 +706,7 @@ struct CareCard: View {
                     Text("Algorithme — aperçu automatique").aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
                     Text("\(n) bloc" + either(n > 1, "s", "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                     Spacer()
-                    Image(systemName: flowOpen ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(T.ink2)
+                    Image(systemName: flowOpen ? "chevron.up" : "chevron.down").aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
                 }
                 .frame(minHeight: Ctrl.m).contentShape(Rectangle())
             }
@@ -1205,10 +1205,10 @@ struct EdLinksCard: View {
     }
     @ViewBuilder private func chip(_ id: String, _ title: String, _ isRef: Bool) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: isRef ? "book" : "doc.text").font(.system(size: 12)).foregroundStyle(T.ink2)
+            Image(systemName: isRef ? "book" : "doc.text").aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
             Text(title.isEmpty ? "Sans titre" : title).aFont(TypeScale.body, .semibold).foregroundStyle(T.ink).lineLimit(1)
             Button { onRemove(id) } label: {
-                Image(systemName: "xmark").font(.system(size: 11, weight: .bold)).foregroundStyle(T.ink2)
+                Image(systemName: "xmark").aFont(TypeScale.cap, .bold).foregroundStyle(T.ink2)
                     .frame(width: Ctrl.s, height: Ctrl.s).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -1324,7 +1324,7 @@ struct FicheDoor: View {
                 .frame(maxWidth: 760, minHeight: Ctrl.xl)
                 .background(T.work, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous).strokeBorder(T.workLine))
-                .shadow(color: Color.black.opacity(0.08), radius: 10, y: 4)
+                .shadow(Shadows.float)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

@@ -264,19 +264,19 @@ private struct CreateCard: View {
                 if let badge {
                     Text(badge).aFont(TypeScale.stepL, .bold).foregroundStyle(T.act)
                 } else if let icon {
-                    Image(systemName: icon).font(.system(size: 18, weight: .semibold)).foregroundStyle(T.act)
+                    Image(systemName: icon).aFont(TypeScale.step, .semibold).foregroundStyle(T.act)
                 }
             }
             .frame(width: Ctrl.m, height: Ctrl.m)
             .background(T.primarySoft, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
             .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title).aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
                 Text(sub).aFont(TypeScale.meta, .medium).foregroundStyle(T.ink2)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 6)
-            Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(T.ink3)
+            Image(systemName: "chevron.right").aFont(TypeScale.body, .bold).foregroundStyle(T.ink3)
         }
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: Ctrl.xl, alignment: .leading)

@@ -54,7 +54,7 @@ struct WorkCard<Content: View>: View {
             .background(T.work, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous)
                 .strokeBorder(highlighted ? T.act : T.workLine, lineWidth: highlighted ? 2 : (scheme == .dark ? 1 : 0.5)))
-            .shadow(color: scheme == .dark ? .clear : Color.black.opacity(highlighted ? 0.12 : 0.06), radius: highlighted ? 16 : 12, y: highlighted ? 12 : 6)
+            .shadow(highlighted ? Shadows.cur : Shadows.work)
     }
 }
 
@@ -270,7 +270,7 @@ struct ToastView: View {
             .foregroundStyle(T.ink)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 20).padding(.vertical, 12)
-            .floatingGlass(cornerRadius: 24)
+            .floatingGlass(cornerRadius: 24)  // design: verre fonctionnel, rayon de conteneur système (couche plateforme)
             .padding(.horizontal, 16)
             .accessibilityAddTraits(.updatesFrequently)
     }

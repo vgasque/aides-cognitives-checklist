@@ -148,7 +148,7 @@ struct HomeGroupView: View {
             Text(group.title).aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
                 .accessibilityAddTraits(.isHeader)
             if ro {
-                Image(systemName: "lock.fill").font(.system(size: 11)).foregroundStyle(T.ink2)
+                Image(systemName: "lock.fill").aFont(TypeScale.cap, .regular).foregroundStyle(T.ink2)
                     .accessibilityLabel("lecture seule")
                     .help("Lecture seule")
             }
@@ -187,7 +187,7 @@ struct HomeRow: View {
         HStack(alignment: .center, spacing: 10) {
             if selectable {
                 Image(systemName: selected ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 22, weight: .semibold))
+                    .aFont(TypeScale.stepL, .semibold)
                     .foregroundStyle(selected ? T.act : T.ctlLine)
                     .frame(width: Ctrl.s, height: Ctrl.s)
                     .accessibilityHidden(true)
@@ -329,8 +329,8 @@ struct HomeProvenanceTag: View {
     let corpus: HomeCorpus
     var body: some View {
         let name = key.isEmpty ? "Perso" : (corpus.libraryInfo(key)?.name.isEmpty == false ? corpus.libraryInfo(key)!.name : "Partagée")
-        HStack(spacing: 3) {
-            Image(systemName: key.isEmpty ? "person" : "book.closed").font(.system(size: 10, weight: .semibold))
+        HStack(spacing: 4) {
+            Image(systemName: key.isEmpty ? "person" : "book.closed").aFont(TypeScale.cap, .semibold)
             Text(name).aFont(TypeScale.meta, .medium).lineLimit(1)
         }
         .foregroundStyle(T.ink2)
@@ -380,7 +380,7 @@ struct HomeDirState: View {
     private func badge(_ s: String) -> some View {
         Text(s).aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2)
             .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(T.amb2, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .background(T.amb2, in: RoundedRectangle(cornerRadius: Radius.r1, style: .continuous))
             .fixedSize()
     }
 }
@@ -393,7 +393,7 @@ struct HomePinButton: View {
         let on = model.pins.contains(x.id)
         Button { model.homeTogglePin(x) } label: {
             Image(systemName: on ? "star.fill" : "star")
-                .font(.system(size: 18, weight: .semibold))
+                .aFont(TypeScale.step, .semibold)
                 .foregroundStyle(on ? T.act : T.ink3)
                 .frame(width: Ctrl.l, height: Ctrl.l)
                 .contentShape(Rectangle())
@@ -496,7 +496,7 @@ struct HomeSummaryRow: View {
             if !st.selOn {
                 Button { sheet = .display } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "list.bullet.indent").font(.system(size: 13, weight: .bold))
+                        Image(systemName: "list.bullet.indent").aFont(TypeScale.body, .bold)
                         Text("Affichage").aFont(TypeScale.body, .bold)
                     }
                     .padding(.horizontal, 12).frame(minHeight: Ctrl.m)
@@ -574,7 +574,7 @@ struct HomeFilterChips: View {
             }
             .buttonStyle(.plain)
             Button { drop(f.id) } label: {
-                Image(systemName: "xmark").font(.system(size: 11, weight: .bold))
+                Image(systemName: "xmark").aFont(TypeScale.cap, .bold)
                     .frame(width: Ctrl.s, height: Ctrl.s)
             }
             .buttonStyle(.plain)
@@ -700,7 +700,7 @@ struct HomeTeachingCard: View {
     }
     private func line(_ icon: String, _ c: Color, _ text: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: icon).font(.system(size: 13, weight: .bold)).foregroundStyle(c).frame(width: 18).accessibilityHidden(true)
+            Image(systemName: icon).aFont(TypeScale.body, .bold).foregroundStyle(c).frame(width: 18).accessibilityHidden(true)
             BoldText(text: text, size: TypeScale.body, color: T.ink)
         }
     }
@@ -729,7 +729,7 @@ struct HomeSearchResults: View {
                 Button { st.section = st.section == .fiches ? .protocols : .fiches } label: {
                     HStack {
                         Text(verbatim: crossLabel(r.cross)).aFont(TypeScale.body, .bold).multilineTextAlignment(.leading)
-                        Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold))
+                        Image(systemName: "chevron.right").aFont(TypeScale.body, .bold)
                     }
                     .foregroundStyle(T.act)
                     .frame(minHeight: Ctrl.m)

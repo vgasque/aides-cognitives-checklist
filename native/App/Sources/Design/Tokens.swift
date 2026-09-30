@@ -9,7 +9,7 @@ import AppKit
 // rayons, mesures, ombres, mouvement, accents, nuancier) sont GÉNÉRÉES depuis les tokens CSS de
 // la PWA dans `Tokens.generated.swift` (`npm run design:build`) : ne jamais les recopier ici.
 // Ce fichier ne garde que les outils (couleurs à variantes, ombres) et ce que le CSS ne déclare
-// pas encore comme token (échelle des contrôles A375, bande d'affichage, paliers de largeur).
+// pas encore comme token (échelle des contrôles A375, paliers de largeur).
 //
 // Règle 8 (registres, A407) : ROUGE = ce qui tue si on l'oublie, et l'alarme active ;
 // AMBRE = là où l'on risque de se tromper, et l'échéance ; VERT = fait / nominal ;
@@ -87,12 +87,9 @@ extension View {
     }
 }
 
-/// Bande d'AFFICHAGE (≥ 20 px) de `check-type` (20 · 24 · 26 · 34 · 40) — pas un token CSS.
-/// Les crans du texte (`TypeScale.cap` … `.val`) sont générés depuis `--t-*`.
-/// Dynamic Type : le réglage de taille de l'app (`\.textScale`) remplace le zoom `--zf`.
-extension TypeScale {
-    static let display: [CGFloat] = [20, 24, 26, 34, 40]
-}
+// (La « bande d'affichage » 20 · 24 · 26 · 34 · 40 a été SUPPRIMÉE par la PWA en v5.6, A6 : une
+// seule échelle, générée depuis `--t-*`. Le garde-fou `check-swift-design` lit ses paliers dans
+// `scripts/check-type.mjs`.)
 
 extension Font {
     static func ui(_ size: CGFloat, _ weight: Font.Weight = .semibold, relativeTo style: Font.TextStyle = .body) -> Font {

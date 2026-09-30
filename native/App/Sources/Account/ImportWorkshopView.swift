@@ -496,10 +496,10 @@ private struct ImportPill: View {
     var icon: String?
     var body: some View {
         HStack(spacing: 6) {
-            if let icon { Image(systemName: icon).font(.system(size: 12, weight: .semibold)) }
+            if let icon { Image(systemName: icon).aFont(TypeScale.meta, .semibold) }
             if let color { CategoryDot(color: color, size: 9) }
             Text(text).aFont(TypeScale.meta, .bold).lineLimit(2).multilineTextAlignment(.leading)
-            Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold)).foregroundStyle(T.ink2)
+            Image(systemName: "chevron.down").aFont(TypeScale.cap, .bold).foregroundStyle(T.ink2)
         }
         .foregroundStyle(T.ink)
         .padding(.horizontal, 10)
@@ -523,7 +523,7 @@ private struct ImportRowView: View {
             HStack(alignment: .top, spacing: 10) {
                 Button { row.checked.toggle() } label: {
                     Image(systemName: row.checked ? "checkmark.square.fill" : "square")
-                        .font(.system(size: 22, weight: .semibold))
+                        .aFont(TypeScale.stepL, .semibold)
                         .foregroundStyle(row.checked ? T.act : T.ctlLine)
                         .frame(width: Ctrl.l, height: Ctrl.l)
                         .contentShape(Rectangle())

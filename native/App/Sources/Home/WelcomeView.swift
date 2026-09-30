@@ -34,20 +34,20 @@ struct WelcomeView: View {
             HStack {
                 Spacer()
                 Button { model.finishOnboarding() } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).frame(width: Ctrl.m, height: Ctrl.m)
+                    Image(systemName: "xmark").aFont(TypeScale.item, .bold).frame(width: Ctrl.m, height: Ctrl.m)
                 }
                 .buttonStyle(.plain).foregroundStyle(T.ink2)
                 .accessibilityLabel("Fermer")
             }
             Text(verbatim: "✓")
-                .aFont(34, .heavy)
+                .aFont(34, .heavy)  // design: glyphe du logo de bienvenue, pas du texte courant
                 .foregroundStyle(T.onPrimary)
                 .frame(width: 56, height: 56)
                 .background(T.act, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
                 .accessibilityHidden(true)
             // Titre 38 : la SEULE exception nommée de l'échelle typographique (`check-type`).
             Text("Les bons gestes, cochés au bon moment.")
-                .aFont(38, .heavy, .title)
+                .aFont(38, .heavy, .title)  // design: titre de bienvenue, 38 (exception assumée de check-type, maquette v5)
                 .foregroundStyle(T.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)

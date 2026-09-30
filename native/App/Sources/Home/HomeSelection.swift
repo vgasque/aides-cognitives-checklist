@@ -78,14 +78,14 @@ struct HomeSelectionBar: View {
                     Button { sheet = .selActions } label: {
                         HStack(spacing: 4) {
                             Text("Actions")
-                            Image(systemName: "chevron.down").font(.system(size: 11, weight: .bold))
+                            Image(systemName: "chevron.down").aFont(TypeScale.cap, .bold)
                         }
                     }
                     .buttonStyle(.a(.primary, Ctrl.s))
                 }
             }
             Button { st.endSelection() } label: {
-                if desk { Text("Annuler") } else { Image(systemName: "xmark").font(.system(size: 14, weight: .bold)) }
+                if desk { Text("Annuler") } else { Image(systemName: "xmark").aFont(TypeScale.body, .bold) }
             }
             .buttonStyle(.a(.secondary, desk ? Ctrl.s : Ctrl.m))
             .accessibilityLabel("Quitter la sélection")
@@ -134,7 +134,7 @@ struct HomeSheetHeader: View {
                 }
                 Spacer()
                 Button { dismiss() } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).frame(width: Ctrl.m, height: Ctrl.m)
+                    Image(systemName: "xmark").aFont(TypeScale.item, .bold).frame(width: Ctrl.m, height: Ctrl.m)
                 }
                 .buttonStyle(.plain).foregroundStyle(T.ink2)
                 .accessibilityLabel("Fermer")
@@ -161,7 +161,7 @@ struct HomeMenuRow: View {
             HStack(spacing: 12) {
                 if let d = dot { CategoryDot(color: d, size: 12).frame(width: 24) }
                 else if let i = icon {
-                    Image(systemName: i).font(.system(size: 18, weight: .semibold)).frame(width: 24)
+                    Image(systemName: i).aFont(TypeScale.step, .semibold).frame(width: 24)
                         .foregroundStyle(danger ? T.crit : T.ink2)
                 }
                 VStack(alignment: .leading, spacing: 2) {
@@ -173,11 +173,11 @@ struct HomeMenuRow: View {
                 }
                 Spacer(minLength: 4)
                 if checked {
-                    Image(systemName: "checkmark").font(.system(size: 15, weight: .bold)).foregroundStyle(T.act)
+                    Image(systemName: "checkmark").aFont(TypeScale.item, .bold).foregroundStyle(T.act)
                         .accessibilityLabel("choisi")
                 }
                 if chevron {
-                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(T.ink3)
+                    Image(systemName: "chevron.right").aFont(TypeScale.body, .bold).foregroundStyle(T.ink3)
                         .accessibilityHidden(true)
                 }
             }
@@ -487,7 +487,7 @@ struct HomeSelDeleteSheet: View {
             .frame(maxHeight: 320)
             Button { read.toggle() } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: read ? "checkmark.square.fill" : "square").font(.system(size: 22, weight: .semibold))
+                    Image(systemName: read ? "checkmark.square.fill" : "square").aFont(TypeScale.stepL, .semibold)
                         .foregroundStyle(read ? T.crit : T.ctlLine)
                     Text("J'ai lu cette liste").aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
                     Spacer()

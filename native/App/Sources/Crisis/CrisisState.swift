@@ -155,12 +155,12 @@ struct CrIconSquare: View {
     var bg: Color
     var body: some View {
         Group {
-            if system { Image(systemName: glyph).font(.system(size: 13, weight: .bold)) }
+            if system { Image(systemName: glyph).aFont(TypeScale.body, .bold) }
             else { Text(glyph).aFont(TypeScale.body, .heavy) }
         }
         .foregroundStyle(fg)
         .frame(width: 26, height: 26)
-        .background(bg, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .background(bg, in: RoundedRectangle(cornerRadius: Radius.r1, style: .continuous))
         .accessibilityHidden(true)
     }
 }
@@ -185,7 +185,7 @@ struct CrFoldCard<Content: View>: View {
                     Spacer(minLength: 8)
                     if !count.isEmpty { Text(count).aFont(TypeScale.body, .semibold).foregroundStyle(T.ink2) }
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 14, weight: .semibold))
+                        .aFont(TypeScale.body, .semibold)
                         .rotationEffect(.degrees(open ? 180 : 0))
                         .foregroundStyle(T.ink2)
                         .accessibilityHidden(true)
@@ -205,7 +205,7 @@ struct CrFoldCard<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(T.work, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous).strokeBorder(T.workLine, lineWidth: 1))
-        .shadow(color: scheme == .dark ? .clear : Color.black.opacity(0.06), radius: 12, y: 6)
+        .shadow(Shadows.work)
         .padding(.top, 10)
     }
 }
@@ -236,7 +236,7 @@ struct CrTag: View {
             .aFont(TypeScale.cap, .heavy)
             .tracking(0.8)
             .foregroundStyle(fg)
-            .padding(.horizontal, 6).padding(.vertical, 3)
+            .padding(.horizontal, 6).padding(.vertical, 2)
             .background(bg, in: RoundedRectangle(cornerRadius: Radius.r1, style: .continuous))
             .overlay {
                 if let border {

@@ -130,7 +130,7 @@ struct CrCapsule: View {
                             let r = recallText()
                             if !r.isEmpty { Text(r).aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2).lineLimit(1) }
                         }
-                        Image(systemName: vs.sheet == .panel ? "chevron.up" : "chevron.down").font(.system(size: 13, weight: .bold))
+                        Image(systemName: vs.sheet == .panel ? "chevron.up" : "chevron.down").aFont(TypeScale.body, .bold)
                             .foregroundStyle(T.ink2)
                     }
                     .padding(.horizontal, 12)
@@ -376,7 +376,7 @@ struct CrDock: View {
 
     private func keyLabel(glyph: String, glyphColor: Color, label: String?, ink: Color) -> some View {
         VStack(spacing: 2) {
-            Image(systemName: glyph).font(.system(size: 15, weight: .bold)).foregroundStyle(glyphColor)
+            Image(systemName: glyph).aFont(TypeScale.item, .bold).foregroundStyle(glyphColor)
             if let label {
                 // A403 : libellés du quai à 13,5, sur UNE ligne (jamais coupés au milieu d'un mot :
                 // « Horodat/er ») — le texte se resserre plutôt que de passer à la ligne.
@@ -408,7 +408,7 @@ struct CrReturnBar: View {
         let need: (tot: Int, dn: Int)? = (b != nil && b!.kind != .decision) ? ctx.e.visitNeed(ctx.R, b!, seq: ctx.seq(i)) : nil
         Button { vs.pendingScroll = "!v\(i)" } label: {
             HStack(spacing: 8) {
-                Image(systemName: "arrow.uturn.backward").font(.system(size: 13, weight: .bold))
+                Image(systemName: "arrow.uturn.backward").aFont(TypeScale.body, .bold)
                 Text((n.map { "\($0) · " } ?? "") + JS.prefix(title, 40)).aFont(TypeScale.body, .bold).lineLimit(1)
                 Spacer(minLength: 4)
                 if let need, need.tot > 0 {
@@ -450,7 +450,7 @@ struct CrStampSheet: View {
                     CrCritWarn(R: R)
                     TextField("Nommer (facultatif) — déjà enregistré", text: $text)
                         .textFieldStyle(.plain)
-                        .aFont(16, .semibold)
+                        .aFont(16, .semibold)  // design: champ tactile, plancher 16 (règle 9, exemption de check-type)
                         .foregroundStyle(T.ink)
                         .padding(.horizontal, 14)
                         .frame(minHeight: 48)
@@ -622,7 +622,7 @@ struct CrCxSheet: View {
         } else {
             dest = "→ " + (externalTitle(c.target) ?? "aide introuvable") + " ↗"
         }
-        return VStack(alignment: .leading, spacing: 3) {
+        return VStack(alignment: .leading, spacing: 2) {
             Text(HTML.stripBold(c.label)).aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
             Text(inIt ? "vous y êtes" : (c.isBlock ? "interrompt le parcours — retour prévu" : "ouvre une autre aide"))
                 .aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)

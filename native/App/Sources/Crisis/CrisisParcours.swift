@@ -121,7 +121,7 @@ struct CrPfBlockRow: View {
                             .multilineTextAlignment(.leading)
                         if cur { Text("ICI").aFont(TypeScale.cap, .heavy).foregroundStyle(T.act) }
                         Spacer(minLength: 4)
-                        Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 11, weight: .bold)).foregroundStyle(T.ink2)
+                        Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.cap, .bold).foregroundStyle(T.ink2)
                     }
                     .frame(minHeight: 32)
                     .contentShape(Rectangle())
@@ -130,7 +130,7 @@ struct CrPfBlockRow: View {
                 .accessibilityValue(open ? "déplié" : "replié")
                 if R.started && place == .col {
                     Button { CrAct(model: model, vs: vs, R: R).jump(b.id) } label: {
-                        Image(systemName: "arrow.right.circle").font(.system(size: 15, weight: .semibold)).foregroundStyle(T.act)
+                        Image(systemName: "arrow.right.circle").aFont(TypeScale.item, .semibold).foregroundStyle(T.act)
                             .frame(width: Ctrl.s, height: Ctrl.s).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -162,9 +162,9 @@ struct CrPfBlockRow: View {
             } else {
                 RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).fill(done ? T.ok : (cur ? T.act : T.sys))
                 if let glyph {
-                    Image(systemName: glyph).font(.system(size: dense ? 10 : 12, weight: .bold)).foregroundStyle(glyph == "bolt.fill" ? T.bolt : T.sysInk)
+                    Image(systemName: glyph).aFont(dense ? TypeScale.cap : TypeScale.meta, .bold).foregroundStyle(glyph == "bolt.fill" ? T.bolt : T.sysInk)
                 } else if done {
-                    Image(systemName: "checkmark").font(.system(size: dense ? 10 : 12, weight: .heavy)).foregroundStyle(T.onPrimary)
+                    Image(systemName: "checkmark").aFont(dense ? TypeScale.cap : TypeScale.meta, .heavy).foregroundStyle(T.onPrimary)
                 } else {
                     Text(n.map { "\($0)" } ?? "·").aFont(dense ? TypeScale.meta : TypeScale.body, .heavy).foregroundStyle(T.sysInk)
                 }
@@ -293,7 +293,7 @@ struct CrLinksRow: View {
     private func link(_ sf: String, _ label: String, _ go: @escaping () -> Void) -> some View {
         Button(action: go) {
             HStack(spacing: 6) {
-                Image(systemName: sf).font(.system(size: 13, weight: .bold)).foregroundStyle(T.act)
+                Image(systemName: sf).aFont(TypeScale.body, .bold).foregroundStyle(T.act)
                 Text(label).aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
             }
             .padding(.horizontal, 12)

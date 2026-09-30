@@ -317,7 +317,7 @@ struct CrPageHead: View {
         let f = ctx.f
         let cat = model.categories.first { $0.id == f.category }
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 5) {
+            HStack(spacing: 4) {
                 if let cat { CategoryDot(color: cat.color, size: 8) }
                 Text(overline(cat: cat)).aFont(TypeScale.cap, .heavy).tracking(0.6)
                     .foregroundStyle(ctx.R.exercise ? T.act : T.ink2).lineLimit(1)

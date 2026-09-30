@@ -144,7 +144,7 @@ struct AcctHint: View {
                 Button { withAnimation(.easeOut(duration: 0.15)) { open.toggle() } } label: {
                     HStack(spacing: 4) {
                         Text("En savoir plus").aFont(TypeScale.meta, .bold)
-                        Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 10, weight: .bold))
+                        Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.cap, .bold)
                     }
                     .frame(minHeight: Ctrl.s)
                     .contentShape(Rectangle())
@@ -185,7 +185,7 @@ struct AcctSegmented<V: Hashable>: View {
                 segment(o)
             }
         }
-        .padding(3)
+        .padding(4)
         .background(T.amb2, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(accessibilityLabel)
@@ -208,7 +208,7 @@ struct AcctSegmented<V: Hashable>: View {
                     if on {
                         RoundedRectangle(cornerRadius: Radius.r2, style: .continuous)
                             .fill(T.work)
-                            .shadow(color: Color.black.opacity(0.08), radius: 3, y: 1)
+                            .shadow(Shadows.float)
                             .matchedGeometryEffect(id: "pastille", in: ns)
                     }
                 }
@@ -229,7 +229,7 @@ struct AcctCheckRow: View {
         Button { isOn.toggle() } label: {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Image(systemName: isOn ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 20, weight: .semibold))
+                    .aFont(TypeScale.stepL, .semibold)
                     .foregroundStyle(isOn ? (danger ? T.crit : T.act) : T.ctlLine)
                 BoldText(text: label, size: TypeScale.body, color: T.ink)
                     .multilineTextAlignment(.leading)
@@ -258,7 +258,7 @@ struct AcctMenuRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 17, weight: .semibold))
+                .aFont(TypeScale.step, .semibold)
                 .foregroundStyle(tint == T.ink ? T.ink2 : tint)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
@@ -271,7 +271,7 @@ struct AcctMenuRow: View {
             }
             Spacer(minLength: 8)
             if chevron {
-                Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(T.ink3)
+                Image(systemName: "chevron.right").aFont(TypeScale.body, .bold).foregroundStyle(T.ink3)
             }
         }
         .frame(minHeight: Ctrl.row)

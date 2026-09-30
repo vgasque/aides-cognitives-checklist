@@ -75,6 +75,11 @@ index.html (:root, thème sombre, prefers-contrast, accents, PALETTE)
   `Tokens.generated.swift` n'est plus à jour avec `index.html`.
 - Noms mécaniques : `--crit-soft` → `T.critSoft`, `--t-step-l` → `TypeScale.stepL`,
   `--r-3` → `Radius.r3`, `--shadow-work` → `Shadows.work`, `--dur-2` → `Motion.dur2`.
+- `native/tools/check-swift-design.mjs` (CI) est le JUMEAU des garde-fous CSS de la PWA :
+  aucune couleur littérale dans une vue, aucun `.font(.system(size:))` chiffré (tout passe par
+  `.aFont`, qui suit le réglage de taille du texte), corps, espacements et rayons sur les échelles
+  fermées — LUES dans `scripts/check-type.mjs`, `check-space.mjs` et `check-radius.mjs`, donc
+  jamais recopiées. Exemption : `// design: <motif>` sur la ligne, motif obligatoire.
 - `Design/Tokens.swift` (écrit à la main) ne garde que les outils et ce que le CSS ne déclare
   pas encore en token (échelle des contrôles A375, bande d'affichage, paliers de largeur).
 

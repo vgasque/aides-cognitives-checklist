@@ -38,7 +38,7 @@ struct CrNoteBlock: View {
                     TextField("Vos notes sur cette fiche.", text: $text, axis: .vertical)
                         .lineLimit(3...12)
                         .textFieldStyle(.plain)
-                        .aFont(16, .regular)
+                        .aFont(16, .regular)  // design: champ tactile, plancher 16 (règle 9, exemption de check-type)
                         .foregroundStyle(T.ink)
                         .padding(12)
                         .background(T.amb2, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))

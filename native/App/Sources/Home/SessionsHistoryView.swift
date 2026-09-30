@@ -83,7 +83,7 @@ struct SessionsHistoryView: View {
                         Text(verbatim: "⇄").aFont(TypeScale.stepL, .bold).foregroundStyle(T.act).accessibilityHidden(true)
                         Text("Rejoindre une session en cours").aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
                         Spacer()
-                        Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(T.ink3)
+                        Image(systemName: "chevron.right").aFont(TypeScale.body, .bold).foregroundStyle(T.ink3)
                             .accessibilityHidden(true)
                     }
                     .padding(.horizontal, 16)
@@ -167,7 +167,7 @@ struct SessionsHistoryView: View {
                         .help("Compte-rendu imprimable")
                         Spacer()
                         Button { toDelete = s } label: {
-                            Image(systemName: "xmark").font(.system(size: 14, weight: .bold)).frame(width: Ctrl.m, height: Ctrl.m)
+                            Image(systemName: "xmark").aFont(TypeScale.body, .bold).frame(width: Ctrl.m, height: Ctrl.m)
                         }
                         .buttonStyle(.plain).foregroundStyle(T.ink2)
                         .accessibilityLabel("Supprimer la session « " + name + " »")

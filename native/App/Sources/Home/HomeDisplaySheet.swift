@@ -68,7 +68,7 @@ struct HomeDisplaySheet: View {
                 Text("Affichage").aFont(TypeScale.step, .heavy).foregroundStyle(T.ink).accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button { dismiss() } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).frame(width: Ctrl.m, height: Ctrl.m)
+                    Image(systemName: "xmark").aFont(TypeScale.item, .bold).frame(width: Ctrl.m, height: Ctrl.m)
                 }
                 .buttonStyle(.plain).foregroundStyle(T.ink2)
                 .accessibilityLabel("Fermer")
@@ -150,12 +150,12 @@ struct HomeDisplaySheet: View {
 
     private func chipButton(_ text: String, icon: String?, dot: String?, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 5) {
+            HStack(spacing: 4) {
                 if let d = dot {
                     Circle().fill(Color(cssHex: d)).frame(width: 8, height: 8)
                         .overlay(Circle().strokeBorder(on ? T.onPrimary : Color.clear, lineWidth: 1))
                 }
-                if let i = icon { Image(systemName: i).font(.system(size: 11, weight: .semibold)) }
+                if let i = icon { Image(systemName: i).aFont(TypeScale.cap, .semibold) }
                 Text(text).aFont(TypeScale.meta, .bold).lineLimit(1)
             }
             .padding(.horizontal, 12)
@@ -196,11 +196,11 @@ struct HomeDisplaySheet: View {
                 else { model.rootTab = .me; sheet = nil }
             } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: "gearshape").font(.system(size: 15, weight: .semibold))
+                    Image(systemName: "gearshape").aFont(TypeScale.item, .semibold)
                     Text(cats && libs ? "Gérer les catégories et les bibliothèques" : (libs ? "Gérer les bibliothèques" : "Gérer les catégories"))
                         .aFont(TypeScale.body, .bold).multilineTextAlignment(.leading)
                     Spacer()
-                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(T.ink3)
+                    Image(systemName: "chevron.right").aFont(TypeScale.body, .bold).foregroundStyle(T.ink3)
                 }
                 .foregroundStyle(T.ink)
                 .padding(.horizontal, 14)
@@ -244,7 +244,7 @@ struct HomeDisplaySheet: View {
     private func section<Tr: View, C: View>(icon: String, title: String, @ViewBuilder trailing: () -> Tr, @ViewBuilder content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                Image(systemName: icon).font(.system(size: 13, weight: .bold)).foregroundStyle(T.ink2)
+                Image(systemName: icon).aFont(TypeScale.body, .bold).foregroundStyle(T.ink2)
                 Text(title).aFont(TypeScale.item, .bold).foregroundStyle(T.ink).accessibilityAddTraits(.isHeader)
                 Spacer()
                 trailing()

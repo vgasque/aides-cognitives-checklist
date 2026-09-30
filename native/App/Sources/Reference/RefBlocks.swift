@@ -127,7 +127,7 @@ struct RefHeadingView: View {
                     Button(action: onFold) {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .bold))
+                                .aFont(TypeScale.body, .bold)
                                 .foregroundStyle(T.ink3)
                                 .rotationEffect(.degrees(closed || searchCount == 0 ? 0 : 90))
                                 .animation(.easeOut(duration: 0.18), value: closed)
@@ -182,12 +182,12 @@ struct RefListView: View {
             Button { onTask(t.index, !done) } label: {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        RoundedRectangle(cornerRadius: Radius.r1, style: .continuous)
                             .fill(done ? T.ok : Color.clear)
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        RoundedRectangle(cornerRadius: Radius.r1, style: .continuous)
                             .strokeBorder(done ? T.ok : T.lineStrong, lineWidth: 2)
                         if done {
-                            Image(systemName: "checkmark").font(.system(size: 11, weight: .heavy)).foregroundStyle(T.work)
+                            Image(systemName: "checkmark").aFont(TypeScale.cap, .heavy).foregroundStyle(T.work)
                         }
                     }
                     .frame(width: 20, height: 20)
@@ -272,7 +272,7 @@ struct RefQuoteView: View {
                 .foregroundStyle(col.ink)
                 lines
             }
-            .padding(.vertical, 8).padding(.horizontal, 12).padding(.leading, 3)
+            .padding(.vertical, 8).padding(.horizontal, 12).padding(.leading, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(col.bg, in: RoundedRectangle(cornerRadius: Radius.r1, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).strokeBorder(col.line))
@@ -306,10 +306,10 @@ struct RefQuoteView: View {
     @ViewBuilder
     private func glyph(_ c: Markdown.Callout) -> some View {
         switch c {
-        case .crit: Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 12, weight: .bold))
+        case .crit: Image(systemName: "exclamationmark.triangle.fill").aFont(TypeScale.meta, .bold)
         case .vig: Text("△").aFont(TypeScale.meta, .heavy)
-        case .ok: Image(systemName: "checkmark").font(.system(size: 12, weight: .heavy))
-        case .info: Image(systemName: "info.circle").font(.system(size: 12, weight: .bold))
+        case .ok: Image(systemName: "checkmark").aFont(TypeScale.meta, .heavy)
+        case .info: Image(systemName: "info.circle").aFont(TypeScale.meta, .bold)
         }
     }
 

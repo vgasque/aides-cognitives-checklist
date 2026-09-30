@@ -89,11 +89,12 @@ const weightName = { 400: '.regular', 500: '.medium', 600: '.semibold', 700: '.b
 for (const [k, v] of Object.entries(t.other)) if (/^w-/.test(k) && weightName[v]) w(`    static let ${camel(k.slice(2))}: Font.Weight = ${weightName[v]}`);
 w('}');
 w();
-w('/// Ombres (`--shadow-*`) : première couche, rayon SwiftUI = flou CSS ÷ 2. `none` → nil.');
+w('/// Ombres (`--shadow-*`) : la couche la plus diffuse, rayon SwiftUI = flou CSS ÷ 2. `none` → nil.');
 w('enum Shadows {');
 for (const [k, v] of Object.entries(t.shadows)) {
   const n = camel(k.replace(/^shadow-/, ''));
-  const lay = (arr) => arr[0];
+  // La couche la plus diffuse porte l'élévation (la fine couche de contact ne se voit pas en SwiftUI).
+  const lay = (arr) => arr.reduce((a, b) => (a && a.blur >= b.blur ? a : b), null);
   const l = lay(v.light), d = lay(v.dark);
   if (!l || !l.color) { w(`    static let ${n}: ShadowToken? = nil`); continue; }
   const dd = d && d.color ? d : { x: 0, y: 0, blur: 0, color: { hex: '000000', a: 0 } };

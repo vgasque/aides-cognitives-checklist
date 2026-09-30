@@ -128,7 +128,7 @@ enum EdIntake {
         let space = CGColorSpaceCreateDeviceRGB()
         guard let ctx = CGContext(data: nil, width: cw, height: ch, bitsPerComponent: 8, bytesPerRow: 0, space: space,
                                   bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else { return nil }
-        ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))  // design: fond blanc du JPEG produit (donnée image, pas interface)
         ctx.fill(CGRect(x: 0, y: 0, width: cw, height: ch))
         ctx.interpolationQuality = .high
         ctx.draw(thumb, in: CGRect(x: 0, y: 0, width: cw, height: ch))

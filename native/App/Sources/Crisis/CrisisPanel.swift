@@ -159,7 +159,7 @@ struct CrTimerCard: View {
             }
         } else {
             HStack(spacing: 4) {
-                Image(systemName: "stopwatch").font(.system(size: 11, weight: .bold))
+                Image(systemName: "stopwatch").aFont(TypeScale.cap, .bold)
                 Text("Chronomètre · le temps monte").aFont(TypeScale.meta, .medium)
             }
             .foregroundStyle(pal.ink2)
@@ -182,7 +182,7 @@ struct CrTimerCard: View {
             }
             Button { act.toggleTimer(t.id) } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: t.running ? "pause.fill" : "play.fill").font(.system(size: 13, weight: .bold))
+                    Image(systemName: t.running ? "pause.fill" : "play.fill").aFont(TypeScale.body, .bold)
                     Text(t.buttonLabel).aFont(TypeScale.body, .heavy)
                 }
                 .foregroundStyle(pal.ink)
@@ -226,7 +226,7 @@ struct CrAdhocTimerRow: View {
             if editing {
                 TextField("Nom du minuteur", text: $text)
                     .textFieldStyle(.plain)
-                    .aFont(16, .semibold)
+                    .aFont(16, .semibold)  // design: champ tactile, plancher 16 (règle 9, exemption de check-type)
                     .foregroundStyle(pal.ink)
                     .focused($focused)
                     .onSubmit { commit(act) }
@@ -259,7 +259,7 @@ struct CrAdhocTimerRow: View {
     }
     private func iconBtn(_ sf: String, _ a11y: String, _ go: @escaping () -> Void) -> some View {
         Button(action: go) {
-            Image(systemName: sf).font(.system(size: 13, weight: .bold)).foregroundStyle(pal.ink2)
+            Image(systemName: sf).aFont(TypeScale.body, .bold).foregroundStyle(pal.ink2)
                 .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -365,7 +365,7 @@ struct CrCounterCard: View {
             HStack(spacing: 4) {
                 if editing {
                     TextField("Nom du compteur", text: $text)
-                        .textFieldStyle(.plain).aFont(16, .semibold).foregroundStyle(pal.ink)
+                        .textFieldStyle(.plain).aFont(16, .semibold).foregroundStyle(pal.ink)  // design: champ tactile, plancher 16 (règle 9, exemption de check-type)
                         .focused($focused)
                         .onSubmit { commit(act) }
                         .onChange(of: focused) { _, f in if !f && editing { commit(act) } }
@@ -378,7 +378,7 @@ struct CrCounterCard: View {
                             if (R.adhocCounters.first { $0.id == id }?.label ?? "").isEmpty {
                                 Text("— nommer").aFont(TypeScale.meta, .bold)
                             } else {
-                                Image(systemName: "pencil").font(.system(size: 12, weight: .bold))
+                                Image(systemName: "pencil").aFont(TypeScale.meta, .bold)
                             }
                         }
                         .foregroundStyle(pal.sys ? T.sysInk : T.act)
@@ -389,7 +389,7 @@ struct CrCounterCard: View {
                     Button {
                         if v > 0 { vs.confirmDeleteCounter = id } else { act.removeCounter(id) }
                     } label: {
-                        Image(systemName: "xmark").font(.system(size: 12, weight: .bold)).foregroundStyle(pal.ink2)
+                        Image(systemName: "xmark").aFont(TypeScale.meta, .bold).foregroundStyle(pal.ink2)
                             .frame(width: 32, height: 32).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -543,7 +543,7 @@ struct CrEventRow: View {
                 Text(d == 0 ? "—" : either(d > 0, "+", "−") + Fmt.ms(abs(d))).aFont(TypeScale.cap, .medium, .mono).foregroundStyle(pal.ink2)
                 TextField("Libellé…", text: $text)
                     .textFieldStyle(.plain)
-                    .aFont(16, .medium)
+                    .aFont(16, .medium)  // design: champ tactile, plancher 16 (règle 9, exemption de check-type)
                     .foregroundStyle(ev.isVoid ? pal.ink2 : pal.ink)
                     .strikethrough(ev.isVoid)
                     .disabled(ev.isVoid)
@@ -552,7 +552,7 @@ struct CrEventRow: View {
                     .onChange(of: labelFocus) { _, f in if !f { commitLabel(act) } }
                     .accessibilityLabel("Libellé du repère")
                 Button { act.toggleVoid(ev.id) } label: {
-                    Image(systemName: ev.isVoid ? "arrow.uturn.backward" : "xmark").font(.system(size: 12, weight: .bold))
+                    Image(systemName: ev.isVoid ? "arrow.uturn.backward" : "xmark").aFont(TypeScale.meta, .bold)
                         .foregroundStyle(pal.ink2).frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -596,7 +596,7 @@ struct CrEventRow: View {
     private func timeField(_ act: CrAct) -> some View {
         TextField("hh:mm:ss", text: $timeText)
             .textFieldStyle(.plain)
-            .aFont(16, .semibold, .mono)
+            .aFont(16, .semibold, .mono)  // design: champ tactile, plancher 16 (règle 9, exemption de check-type)
             .foregroundStyle(pal.ink)
             .frame(width: 110, height: Ctrl.l)
             .padding(.horizontal, 6)

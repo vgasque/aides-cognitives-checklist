@@ -68,7 +68,7 @@ struct BlockHeader: View {
             switch b.kind {
             case .do: Text("\(EdKit.blockNumber(ed.d, b.id))").aFont(TypeScale.body, .bold, .mono)
             case .decision: Text("◆").aFont(TypeScale.body, .bold)
-            case .review: Image(systemName: "square.grid.2x2").font(.system(size: 13, weight: .bold))
+            case .review: Image(systemName: "square.grid.2x2").aFont(TypeScale.body, .bold)
             }
         }
         .foregroundStyle(T.onPrimary)
@@ -241,7 +241,7 @@ struct StepRow: View {
         let on = EdKit.stepSetOn(it)
         Button { ed.sheet = .step(block: blockId, item: it.id) } label: {
             Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 17, weight: .semibold))
+                .aFont(TypeScale.step, .semibold)
                 .foregroundStyle(on ? T.act : T.ink2)
                 .frame(width: Ctrl.l, height: Ctrl.l)
                 .background(on ? T.primarySoft : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
@@ -369,7 +369,7 @@ struct BlockOptionsFold: View {
                     Text("Options du bloc").aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
                     Text(sum.isEmpty ? "Aucune" : sum.joined(separator: " · ")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2).lineLimit(1)
                     Spacer(minLength: 4)
-                    Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(T.ink3)
+                    Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink3)
                 }
                 .frame(minHeight: Ctrl.m).contentShape(Rectangle())
             }

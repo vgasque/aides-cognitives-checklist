@@ -121,7 +121,7 @@ struct HomeSyncErrorSheet: View {
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button { dismiss() } label: {
-                    Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).frame(width: Ctrl.m, height: Ctrl.m)
+                    Image(systemName: "xmark").aFont(TypeScale.item, .bold).frame(width: Ctrl.m, height: Ctrl.m)
                 }
                 .buttonStyle(.plain).foregroundStyle(T.ink2)
                 .accessibilityLabel("Fermer")

@@ -465,7 +465,7 @@ struct MarkdownToolbar: View {
             HStack(spacing: 4) {
                 ForEach(tools) { t in button(t) }
                 Button { importImage() } label: {
-                    Image(systemName: "photo").font(.system(size: 15, weight: .semibold)).foregroundStyle(T.ink2)
+                    Image(systemName: "photo").aFont(TypeScale.item, .semibold).foregroundStyle(T.ink2)
                         .frame(width: Ctrl.m, height: Ctrl.m).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -486,7 +486,7 @@ struct MarkdownToolbar: View {
                 if let g = t.glyph {
                     Text(g).aFont(TypeScale.body, .heavy)
                 } else if let ic = t.icon {
-                    Image(systemName: ic).font(.system(size: 15, weight: .semibold))
+                    Image(systemName: ic).aFont(TypeScale.item, .semibold)
                 }
             }
             .foregroundStyle(T.ink2)
@@ -523,7 +523,7 @@ struct SyntaxHelp: View {
                 HStack {
                     Text("Aide-mémoire de syntaxe").aFont(TypeScale.body, .semibold).foregroundStyle(T.act)
                     Spacer()
-                    Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(T.act)
+                    Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.meta, .semibold).foregroundStyle(T.act)
                 }
                 .frame(minHeight: Ctrl.m).contentShape(Rectangle())
             }
@@ -659,7 +659,7 @@ struct ReferenceDoor: View {
             .frame(maxWidth: 760, minHeight: Ctrl.xl)
             .background(T.work, in: RoundedRectangle(cornerRadius: Radius.r4, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: Radius.r4, style: .continuous).strokeBorder(T.workLine))
-            .shadow(color: Color.black.opacity(0.08), radius: 10, y: 4)
+            .shadow(Shadows.float)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

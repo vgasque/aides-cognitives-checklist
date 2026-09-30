@@ -178,7 +178,7 @@ struct EdSeg<V: Hashable>: View {
                 segButton(o.value, o.label)
             }
         }
-        .padding(3)
+        .padding(4)
         .background(T.amb2, in: RoundedRectangle(cornerRadius: Radius.r3, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(accessibility)
@@ -195,7 +195,7 @@ struct EdSeg<V: Hashable>: View {
                 .frame(maxWidth: .infinity, minHeight: Ctrl.s + 4)
                 .padding(.horizontal, 6)
                 .background(on ? T.work : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-                .shadow(color: on ? Color.black.opacity(0.08) : .clear, radius: 3, y: 1)
+                .shadow(on ? Shadows.float : nil)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -217,7 +217,7 @@ struct EdIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: system)
-                .font(.system(size: 15, weight: .semibold))
+                .aFont(TypeScale.item, .semibold)
                 .foregroundStyle(danger ? T.crit : (on ? T.act : T.ink2))
                 .frame(width: Ctrl.m, height: Ctrl.m)
                 .background(on ? T.primarySoft : Color.clear, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
@@ -357,7 +357,7 @@ struct EdPillView: View {
     var pill: EdKit.Pill
     var body: some View {
         HStack(spacing: 4) {
-            if let ic = pill.icon { Image(systemName: ic).font(.system(size: 11, weight: .bold)) }
+            if let ic = pill.icon { Image(systemName: ic).aFont(TypeScale.cap, .bold) }
             Text(pill.text).aFont(TypeScale.meta, .bold)
         }
         .padding(.horizontal, 8)
@@ -492,14 +492,14 @@ struct EdMenuRow: View {
                 if let glyph {
                     Text(glyph).aFont(TypeScale.item, .bold).foregroundStyle(T.ink2).frame(width: 24)
                 } else if let icon {
-                    Image(systemName: icon).font(.system(size: 16, weight: .semibold)).foregroundStyle(danger ? T.crit : T.ink2).frame(width: 24)
+                    Image(systemName: icon).aFont(TypeScale.item, .semibold).foregroundStyle(danger ? T.crit : T.ink2).frame(width: 24)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).aFont(TypeScale.item, .bold).foregroundStyle(danger ? T.crit : T.ink)
                     if !sub.isEmpty { Text(sub).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2) }
                 }
                 Spacer(minLength: 8)
-                if chevron { Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink3) }
+                if chevron { Image(systemName: "chevron.right").aFont(TypeScale.body, .semibold).foregroundStyle(T.ink3) }
             }
             .padding(.horizontal, 12)
             .frame(maxWidth: .infinity, minHeight: Ctrl.row, alignment: .leading)
@@ -517,7 +517,7 @@ struct EdDropZone: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: "square.and.arrow.down").font(.system(size: 17, weight: .semibold)).foregroundStyle(T.act)
+                Image(systemName: "square.and.arrow.down").aFont(TypeScale.step, .semibold).foregroundStyle(T.act)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).aFont(TypeScale.item, .bold).foregroundStyle(T.act)
                     Text(sub).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)

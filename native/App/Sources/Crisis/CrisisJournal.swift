@@ -112,9 +112,9 @@ struct CrProgressLine: View {
             vs.ovFold["r:conf"] = (vs.ovFold["r:conf"] == false) ? true : false
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: "clock.arrow.circlepath").font(.system(size: 12, weight: .bold))
+                Image(systemName: "clock.arrow.circlepath").aFont(TypeScale.meta, .bold)
                 Text("Fait · diagnostic confirmé").aFont(TypeScale.meta, .bold).lineLimit(1)
-                Image(systemName: vs.ovFold["r:conf"] == false ? "chevron.up" : "chevron.down").font(.system(size: 11, weight: .bold))
+                Image(systemName: vs.ovFold["r:conf"] == false ? "chevron.up" : "chevron.down").aFont(TypeScale.cap, .bold)
             }
             .foregroundStyle(T.ink)
             .padding(.horizontal, 12)
@@ -165,9 +165,9 @@ struct CrRunPill: View {
         VStack(alignment: .leading, spacing: 8) {
             Button { vs.ovFold[key] = (vs.ovFold[key] == false) } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "clock.arrow.circlepath").font(.system(size: 12, weight: .bold))
+                    Image(systemName: "clock.arrow.circlepath").aFont(TypeScale.meta, .bold)
                     Text(label).aFont(TypeScale.meta, .bold).lineLimit(1)
-                    Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 11, weight: .bold))
+                    Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.cap, .bold)
                 }
                 .foregroundStyle(T.ink)
                 .padding(.horizontal, 12)
@@ -244,7 +244,7 @@ struct CrHistoryCard: View {
             if pi.total > 1 { Text("· passage \(pi.pass)/\(pi.total)").aFont(TypeScale.meta, .medium).foregroundStyle(T.ink3) }
             Spacer(minLength: 6)
             Text(right).aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2).lineLimit(1)
-            Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(T.ink2)
+            Image(systemName: "chevron.right").aFont(TypeScale.cap, .bold).foregroundStyle(T.ink2)
         }
         .frame(minHeight: 44)
         .contentShape(Rectangle())
@@ -292,7 +292,7 @@ struct CrBlockCard: View {
                     .allowsHitTesting(false)
             }
         }
-        .shadow(color: (isTip && scheme != .dark) ? Color.black.opacity(0.12) : .clear, radius: 16, y: 12)
+        .shadow(isTip ? Shadows.cur : nil)
         .background {
             if isTip {
                 GeometryReader { g in
@@ -349,14 +349,14 @@ struct CrCardHead: View {
                     Spacer(minLength: 6)
                     if isTip && !line && !ctx.narrow360 {
                         Text("EN COURS").aFont(TypeScale.cap, .heavy).foregroundStyle(T.onPrimary)
-                            .padding(.horizontal, 6).padding(.vertical, 3)
-                            .background(T.act, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(T.act, in: RoundedRectangle(cornerRadius: Radius.r1, style: .continuous))
                     }
                     if !(isTip && !line) || ctx.narrow360 {
                         Text(count).aFont(TypeScale.body, .semibold).foregroundStyle(complete ? T.ok : T.ink2)
                     }
                     if !isTip {
-                        Image(systemName: "chevron.down").font(.system(size: 14, weight: .semibold))
+                        Image(systemName: "chevron.down").aFont(TypeScale.body, .semibold)
                             .rotationEffect(.degrees(line ? 0 : 180)).foregroundStyle(T.ink2)
                     }
                 }
@@ -398,7 +398,7 @@ struct CrCardHead: View {
         return ZStack {
             RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).fill(complete ? T.ok : T.sys)
             if complete {
-                Image(systemName: "checkmark").font(.system(size: 14, weight: .heavy)).foregroundStyle(T.onPrimary)
+                Image(systemName: "checkmark").aFont(TypeScale.body, .heavy).foregroundStyle(T.onPrimary)
             } else if isCx {
                 HStack(spacing: 1) {
                     CrBolt(size: 11)
@@ -422,7 +422,7 @@ struct CrCardHead: View {
                     Text("passage \(pi.pass)/\(pi.total)").aFont(TypeScale.meta, .semibold, .mono).foregroundStyle(T.act)
                 }
                 if isCx {
-                    HStack(spacing: 3) {
+                    HStack(spacing: 4) {
                         CrBolt(size: 10)
                         Text("COMPLICATION").aFont(TypeScale.cap, .heavy).foregroundStyle(T.warn)
                     }
@@ -463,7 +463,7 @@ struct CrCardBody: View {
                 let bt = ctx.block(back.id)?.title ?? ""
                 Button { act.resume(back.id) } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "arrow.uturn.backward").font(.system(size: 15, weight: .bold))
+                        Image(systemName: "arrow.uturn.backward").aFont(TypeScale.item, .bold)
                         Text("Reprendre — " + (bt.isEmpty ? "le parcours" : bt) + " →").aFont(TypeScale.step, .heavy)
                             .multilineTextAlignment(.leading)
                     }
@@ -501,12 +501,12 @@ struct CrCardBody: View {
 
     private func resumeLine(_ since: Double) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: "stopwatch").font(.system(size: 13, weight: .bold))
+            Image(systemName: "stopwatch").aFont(TypeScale.body, .bold)
             Text("Reprise après interruption — dernier geste il y a " + Fmt.ms(ctx.now - since))
                 .aFont(TypeScale.body, .semibold)
             Spacer(minLength: 4)
             Button { vs.resumeSince = nil } label: {
-                Image(systemName: "xmark").font(.system(size: 12, weight: .bold)).frame(width: Ctrl.l, height: Ctrl.l)
+                Image(systemName: "xmark").aFont(TypeScale.meta, .bold).frame(width: Ctrl.l, height: Ctrl.l)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Masquer le rappel de reprise")
@@ -778,10 +778,10 @@ struct CrStepRow: View {
                     .strokeBorder(T.ctlLine, style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
             } else if gone {
                 RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).fill(T.ink3)
-                Image(systemName: "checkmark").font(.system(size: 17, weight: .heavy)).foregroundStyle(T.work)
+                Image(systemName: "checkmark").aFont(TypeScale.step, .heavy).foregroundStyle(T.work)
             } else if on {
                 RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).fill(T.ok)
-                Image(systemName: "checkmark").font(.system(size: 19, weight: .heavy)).foregroundStyle(T.onPrimary)
+                Image(systemName: "checkmark").aFont(TypeScale.step, .heavy).foregroundStyle(T.onPrimary)
                     .transition(reduceMotion ? .identity : .scale(scale: 0.6).combined(with: .opacity))
             } else {
                 RoundedRectangle(cornerRadius: Radius.r3, style: .continuous).fill(T.work)
@@ -893,7 +893,7 @@ struct CrWitnessLine: View {
                 }
                 .frame(width: 12, height: 12)
             } else {
-                Image(systemName: w.glyph == "number" ? "number" : "stopwatch").font(.system(size: 12, weight: .bold))
+                Image(systemName: w.glyph == "number" ? "number" : "stopwatch").aFont(TypeScale.meta, .bold)
             }
             Text(w.value).aFont(TypeScale.body, w.due ? .heavy : .bold, w.due ? .ui : .mono)
                 .foregroundStyle(w.due ? T.warn : (w.running ? T.act : T.ink2))
@@ -930,17 +930,17 @@ struct CrReviewDoor: View {
                     ZStack {
                         RoundedRectangle(cornerRadius: Radius.r3, style: .continuous)
                             .strokeBorder(st.done ? T.ok : T.ctlLine, style: StrokeStyle(lineWidth: 2, dash: st.done ? [] : [4, 3]))
-                        if st.done { Image(systemName: "checkmark").font(.system(size: 17, weight: .heavy)).foregroundStyle(T.ok) }
+                        if st.done { Image(systemName: "checkmark").aFont(TypeScale.step, .heavy).foregroundStyle(T.ok) }
                     }
                     .frame(width: 36, height: 36)
                     VStack(alignment: .leading, spacing: 4) {
                         BoldText(text: text.isEmpty ? (rb.title.isEmpty ? "Revue" : rb.title) : text,
                                  size: ctx.started ? TypeScale.step : TypeScale.item, weight: .bold, color: T.ink)
                         HStack(spacing: 6) {
-                            Image(systemName: "square.grid.2x2").font(.system(size: 12, weight: .bold))
+                            Image(systemName: "square.grid.2x2").aFont(TypeScale.meta, .bold)
                             Text("\(st.k)/\(st.n)").aFont(TypeScale.meta, .bold, .mono)
                             Text(word).aFont(TypeScale.meta, .bold)
-                            Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 11, weight: .bold))
+                            Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.cap, .bold)
                         }
                         .foregroundStyle(st.done ? T.ok : T.act)
                     }
@@ -981,7 +981,7 @@ struct CrReviewGrid: View {
                             RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).fill(on ? T.ok : T.work)
                             RoundedRectangle(cornerRadius: Radius.r1, style: .continuous)
                                 .strokeBorder(on ? T.ok : (lvl == 3 ? T.crit : (lvl == 2 ? T.warnLine : T.ctlLine)), lineWidth: 2)
-                            if on { Image(systemName: "checkmark").font(.system(size: 14, weight: .heavy)).foregroundStyle(T.onPrimary) }
+                            if on { Image(systemName: "checkmark").aFont(TypeScale.body, .heavy).foregroundStyle(T.onPrimary) }
                         }
                         .frame(width: 28, height: 28)
                         VStack(alignment: .leading, spacing: 2) {
@@ -1032,12 +1032,12 @@ struct CrPosoBand: View {
                 Rectangle().fill(T.line).frame(height: 1)
                 Button { vs.pbandOpen.toggle() } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "pills").font(.system(size: 13, weight: .bold)).foregroundStyle(T.act).frame(width: 20)
+                        Image(systemName: "pills").aFont(TypeScale.body, .bold).foregroundStyle(T.act).frame(width: 20)
                         Text("REPÈRES DE CE BLOC").aFont(TypeScale.cap, .heavy).tracking(0.6).foregroundStyle(T.ink2)
                         Text("\(rows.count)").aFont(TypeScale.body, .bold, .mono).foregroundStyle(T.ink2)
                         Spacer(minLength: 4)
                         if !vs.pbandOpen { Text(summary(rows)).aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2).lineLimit(1) }
-                        Image(systemName: vs.pbandOpen ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .bold)).foregroundStyle(T.ink2)
+                        Image(systemName: vs.pbandOpen ? "chevron.up" : "chevron.down").aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2)
                     }
                     .frame(minHeight: Ctrl.l)
                     .contentShape(Rectangle())
@@ -1068,9 +1068,9 @@ struct CrPosoBand: View {
                 if open { vs.pbandDetail.remove(r.id) } else { vs.pbandDetail.insert(r.id) }
             } label: {
                 HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "pills").font(.system(size: 11, weight: .bold)).foregroundStyle(T.act)
+                    Image(systemName: "pills").aFont(TypeScale.cap, .bold).foregroundStyle(T.act)
                         .frame(width: 20, height: 20)
-                        .background(T.primarySoft, in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+                        .background(T.primarySoft, in: RoundedRectangle(cornerRadius: Radius.r1, style: .continuous))
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(r.name.uppercased()).aFont(TypeScale.body, .heavy).foregroundStyle(T.ink).lineLimit(2)
@@ -1079,7 +1079,7 @@ struct CrPosoBand: View {
                         if !r.body.isEmpty { Text(r.body).aFont(TypeScale.body, .semibold, .mono).foregroundStyle(T.ink2) }
                     }
                     Spacer(minLength: 0)
-                    Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 11, weight: .bold)).foregroundStyle(T.ink2)
+                    Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.cap, .bold).foregroundStyle(T.ink2)
                 }
                 .padding(.vertical, 8)
                 .contentShape(Rectangle())
@@ -1091,7 +1091,7 @@ struct CrPosoBand: View {
                     .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(T.amb, in: RoundedRectangle(cornerRadius: Radius.r2, style: .continuous))
-                    .padding(.leading, 30)
+                    .padding(.leading, 32)
             }
         }
     }

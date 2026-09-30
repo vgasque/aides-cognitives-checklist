@@ -412,7 +412,7 @@ struct EdGrabBanner: View {
             }
             Spacer(minLength: 4)
             Button { ed.grab = nil } label: {
-                Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(T.onPrimary)
+                Image(systemName: "xmark").aFont(TypeScale.item, .bold).foregroundStyle(T.onPrimary)
                     .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -461,7 +461,7 @@ struct EdTocFold: View {
                     Text("Structure").aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
                     Text("\(n) bloc" + either(n > 1, "s", "")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                     Spacer()
-                    Image(systemName: ed.tocOpen ? "chevron.up" : "chevron.down").font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink2)
+                    Image(systemName: ed.tocOpen ? "chevron.up" : "chevron.down").aFont(TypeScale.body, .semibold).foregroundStyle(T.ink2)
                 }
                 .padding(.horizontal, 16).frame(minHeight: Ctrl.m).contentShape(Rectangle())
             }
@@ -540,7 +540,7 @@ struct EdStructureList: View {
         let inside = f.blocks.contains { $0.id == c.target }
         let l = JS.trim(c.label)
         let content = HStack(spacing: 8) {
-            Image(systemName: "bolt.fill").font(.system(size: 12)).foregroundStyle(T.bolt).frame(width: 22)
+            Image(systemName: "bolt.fill").aFont(TypeScale.meta, .regular).foregroundStyle(T.bolt).frame(width: 22)
             Text(l.isEmpty ? "Complication" : l).aFont(TypeScale.body, .semibold).foregroundStyle(T.ink).lineLimit(2)
             Spacer(minLength: 4)
             Text(inside ? "bloc" : "autre aide ↗").aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
@@ -619,7 +619,7 @@ struct EdReviewPanel: View {
                             Text("Relecture · \(notes.count)").aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
                             Text(notes.map(\.cible).joined(separator: " · ")).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2).lineLimit(1)
                             Spacer(minLength: 0)
-                            Image(systemName: open ? "chevron.up" : "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(T.ink3)
+                            Image(systemName: open ? "chevron.up" : "chevron.down").aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink3)
                         }
                         .frame(minHeight: Ctrl.m).contentShape(Rectangle())
                     }
@@ -660,7 +660,7 @@ struct EdReviewPanel: View {
                 Button(o.btn) { onTake(o) }.buttonStyle(.a(.secondary, Ctrl.s))
                 Spacer()
                 Button { onDismiss(o.id) } label: {
-                    Image(systemName: "xmark").font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink2)
+                    Image(systemName: "xmark").aFont(TypeScale.body, .semibold).foregroundStyle(T.ink2)
                         .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

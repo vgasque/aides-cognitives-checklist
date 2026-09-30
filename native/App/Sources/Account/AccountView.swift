@@ -111,7 +111,7 @@ struct AccountView: View {
     private var loginEmail: some View {
         WorkCard {
             VStack(alignment: .leading, spacing: 12) {
-                Image(systemName: "envelope").font(.system(size: 24, weight: .semibold)).foregroundStyle(T.act)
+                Image(systemName: "envelope").aFont(TypeScale.val, .semibold).foregroundStyle(T.act)
                     .accessibilityHidden(true)
                 Text("Recevez un code par e-mail pour vous connecter ou créer votre compte.")
                     .aFont(TypeScale.item, .semibold).foregroundStyle(T.ink)
@@ -178,7 +178,7 @@ struct AccountView: View {
     private var loginCode: some View {
         WorkCard {
             VStack(alignment: .leading, spacing: 12) {
-                Image(systemName: "lock").font(.system(size: 24, weight: .semibold)).foregroundStyle(T.act)
+                Image(systemName: "lock").aFont(TypeScale.val, .semibold).foregroundStyle(T.act)
                     .accessibilityHidden(true)
                 Text("Saisissez le code").aFont(TypeScale.stepL, .bold).foregroundStyle(T.ink)
                     .accessibilityAddTraits(.isHeader)
@@ -338,7 +338,7 @@ struct AccountView: View {
                 Circle().fill(AcctSyncDot.color(st.state)).frame(width: 8, height: 8)
                 Text(line).aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
                 if st.state == .err {
-                    Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(T.ink3)
+                    Image(systemName: "chevron.right").aFont(TypeScale.cap, .bold).foregroundStyle(T.ink3)
                 }
             }
             .frame(minHeight: 24)
@@ -535,7 +535,7 @@ struct AccountView: View {
         let typedOK = JS.trim(deleteTyped).uppercased() == "SUPPRIMER"
         WorkCard {
             VStack(alignment: .leading, spacing: 12) {
-                Image(systemName: "exclamationmark.triangle").font(.system(size: 24, weight: .semibold)).foregroundStyle(T.crit)
+                Image(systemName: "exclamationmark.triangle").aFont(TypeScale.val, .semibold).foregroundStyle(T.crit)
                     .accessibilityHidden(true)
                 Text("Supprimer le compte ?").aFont(TypeScale.stepL, .bold).foregroundStyle(T.ink)
                     .accessibilityAddTraits(.isHeader)
@@ -605,7 +605,7 @@ struct AccountView: View {
     private var deleteStepTwo: some View {
         WorkCard {
             VStack(alignment: .leading, spacing: 12) {
-                Image(systemName: "lock").font(.system(size: 24, weight: .semibold)).foregroundStyle(T.crit)
+                Image(systemName: "lock").aFont(TypeScale.val, .semibold).foregroundStyle(T.crit)
                     .accessibilityHidden(true)
                 Text("Confirmez votre identité").aFont(TypeScale.stepL, .bold).foregroundStyle(T.ink)
                     .accessibilityAddTraits(.isHeader)
@@ -706,7 +706,7 @@ struct AcctFieldStyle: ViewModifier {
     var mono = false
     func body(content: Content) -> some View {
         content
-            .aFont(16, .regular, mono ? .mono : .ui)
+            .aFont(16, .regular, mono ? .mono : .ui)  // design: champ tactile, plancher 16 (règle 9, exemption de check-type)
             .textFieldStyle(.plain)
             .padding(.horizontal, 12)
             .frame(minHeight: Ctrl.l)
@@ -859,7 +859,7 @@ struct AccountPrefsBlock: View {
                             VStack(spacing: 4) {
                                 Circle().fill(AcctAccent.color(id)).frame(width: 30, height: 30)
                                     .overlay(Circle().strokeBorder(on ? T.ink : Color.clear, lineWidth: 2).padding(-4))
-                                    .overlay { if on { Image(systemName: "checkmark").font(.system(size: 12, weight: .heavy)).foregroundStyle(.white) } }
+                                    .overlay { if on { Image(systemName: "checkmark").aFont(TypeScale.meta, .heavy).foregroundStyle(T.paper) } }
                                 Text(label).aFont(TypeScale.cap, on ? .bold : .medium).foregroundStyle(on ? T.ink : T.ink2)
                             }
                             .frame(minWidth: Ctrl.l, minHeight: Ctrl.l)
@@ -1001,7 +1001,7 @@ private struct AcctTagRow: View {
                     }
             }
             Button(action: onDelete) {
-                Image(systemName: "xmark").font(.system(size: 13, weight: .bold))
+                Image(systemName: "xmark").aFont(TypeScale.body, .bold)
                     .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -1110,7 +1110,7 @@ struct SyncErrorView: View {
         let at = model.sync.lastErrorAt
         AcctWindow(title: "Erreur de synchronisation", maxWidth: 480, onClose: { dismiss() }) {
             HStack(alignment: .top, spacing: 10) {
-                Image(systemName: Self.symbol(info.icon)).font(.system(size: 20, weight: .semibold)).foregroundStyle(T.warn)
+                Image(systemName: Self.symbol(info.icon)).aFont(TypeScale.stepL, .semibold).foregroundStyle(T.warn)
                     .accessibilityHidden(true)
                 Text(info.title).aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
             }

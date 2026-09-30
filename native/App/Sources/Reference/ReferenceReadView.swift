@@ -222,7 +222,7 @@ struct ReferenceReadView: View {
             if p.validatedAt.isEmpty { Text("✓ Validé").aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2) }
         }
         if let c = model.library.category(of: p) {
-            HStack(spacing: 5) {
+            HStack(spacing: 4) {
                 CategoryDot(color: c.color)
                 Text(c.name).aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
             }
@@ -258,7 +258,7 @@ struct ReferenceReadView: View {
     private func notice(_ p: Reference) -> some View {
         if p.status == .draft || p.status == .review {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Image(systemName: "exclamationmark.triangle").font(.system(size: 14, weight: .bold)).foregroundStyle(T.warn)
+                Image(systemName: "exclamationmark.triangle").aFont(TypeScale.body, .bold).foregroundStyle(T.warn)
                     .accessibilityHidden(true)
                 (Text(p.status == .draft ? "Brouillon" : "À revérifier").bold()
                  + Text(p.status == .draft
@@ -389,7 +389,7 @@ struct ReferenceReadView: View {
                         Spacer(minLength: 8)
                         Text(find.active ? Self.resultsLabel(hits.total) : "\(n) section\(n > 1 ? "s" : "")")
                             .aFont(TypeScale.body, .regular).foregroundStyle(T.ink2)
-                        Image(systemName: "chevron.down").font(.system(size: 13, weight: .bold)).foregroundStyle(T.ink3)
+                        Image(systemName: "chevron.down").aFont(TypeScale.body, .bold).foregroundStyle(T.ink3)
                             .rotationEffect(.degrees(tocOpen ? 180 : 0))
                             .accessibilityHidden(true)
                     }
@@ -555,7 +555,7 @@ struct ReferenceReadView: View {
     private func hitPill(_ layout: RefLayout, _ hits: RefHits) -> some View {
         HStack(spacing: 4) {
             Button { go(find.cur - 1, soft: false, layout, hits) } label: {
-                Image(systemName: "chevron.left").font(.system(size: 15, weight: .semibold)).frame(width: Ctrl.l, height: Ctrl.l)
+                Image(systemName: "chevron.left").aFont(TypeScale.item, .semibold).frame(width: Ctrl.l, height: Ctrl.l)
             }
             .disabled(hits.total == 0)
             .accessibilityLabel("Occurrence précédente")
@@ -565,7 +565,7 @@ struct ReferenceReadView: View {
                 .frame(minWidth: 72)
                 .accessibilityAddTraits(.updatesFrequently)
             Button { go(find.cur + 1, soft: false, layout, hits) } label: {
-                Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold)).frame(width: Ctrl.l, height: Ctrl.l)
+                Image(systemName: "chevron.right").aFont(TypeScale.item, .semibold).frame(width: Ctrl.l, height: Ctrl.l)
             }
             .disabled(hits.total == 0)
             .accessibilityLabel("Occurrence suivante")
@@ -746,7 +746,7 @@ final class RefCache {
 struct RefMetaLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 4) {
-            configuration.icon.font(.system(size: 11, weight: .semibold))
+            configuration.icon.aFont(TypeScale.cap, .semibold)
             configuration.title.aFont(TypeScale.meta, .semibold)
         }
         .foregroundStyle(T.ink2)

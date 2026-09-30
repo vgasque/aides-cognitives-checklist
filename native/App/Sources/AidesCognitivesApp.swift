@@ -59,7 +59,7 @@ struct RootView: View {
         .overlay(alignment: .bottom) {
             if let t = model.toast {
                 ToastView(toast: t)
-                    .padding(.bottom, 90)
+                    .padding(.bottom, 96)
                     .transition(.opacity)
                     .task(id: t.id) {
                         try? await Task.sleep(nanoseconds: UInt64(t.seconds * 1_000_000_000))
@@ -170,7 +170,7 @@ struct AlarmBannerView: View {
         .padding(.leading, 16)
         .padding(.vertical, 4)
         // Verre teinté AMBRE (règle 8 : l'échéance), mot + glyphe : la couleur n'est jamais seule.
-        .floatingGlass(cornerRadius: 28, tint: T.warnSys, interactive: true)
+        .floatingGlass(cornerRadius: 28, tint: T.warnSys, interactive: true)  // design: verre fonctionnel, rayon de conteneur système (couche plateforme)
         .padding(.horizontal, 16)
         .contentShape(Rectangle())
         .onTapGesture {

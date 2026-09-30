@@ -62,7 +62,7 @@ struct HomeSidebar: View {
                     else if key == "" { Image(systemName: "person") }
                     else { Image(systemName: "book.closed") }
                 }
-                .font(.system(size: 13, weight: .semibold)).frame(width: 24)
+                .aFont(TypeScale.body, .semibold).frame(width: 24)
                 .accessibilityHidden(true)
                 Text(label).aFont(TypeScale.body, .semibold).lineLimit(1)
                 Spacer(minLength: 4)
@@ -84,11 +84,11 @@ struct HomeSidebar: View {
     private func accessIcon(_ key: String?) -> some View {
         if let k = key, !k.isEmpty, let l = corpus.libraryInfo(k) {
             if l.role.canEdit {
-                Image(systemName: "lock.open").font(.system(size: 11)).foregroundStyle(T.ink3)
+                Image(systemName: "lock.open").aFont(TypeScale.cap, .regular).foregroundStyle(T.ink3)
                     .help(l.role == .admin ? "Administrée" : "Lecture-écriture")
                     .accessibilityLabel(l.role == .admin ? "Administrée" : "Lecture-écriture")
             } else {
-                Image(systemName: "lock.fill").font(.system(size: 11)).foregroundStyle(T.ink2)
+                Image(systemName: "lock.fill").aFont(TypeScale.cap, .regular).foregroundStyle(T.ink2)
                     .help("Lecture seule — bibliothèque institutionnelle")
                     .accessibilityLabel("Lecture seule — bibliothèque institutionnelle")
             }
@@ -159,7 +159,7 @@ struct HomeSidebar: View {
         } label: {
             HStack(spacing: 10) {
                 Group {
-                    if key == nil { Image(systemName: "circle.dashed").font(.system(size: 13, weight: .semibold)) }
+                    if key == nil { Image(systemName: "circle.dashed").aFont(TypeScale.body, .semibold) }
                     else { HomeMultiDot(colors: colors) }
                 }
                 .frame(width: 24)

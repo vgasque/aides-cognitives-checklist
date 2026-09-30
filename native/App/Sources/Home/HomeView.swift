@@ -230,7 +230,7 @@ struct HomeWideLayout: View {
             ScrollView {
                 HomeMainContent(st: st, corpus: corpus, sheet: $sheet, exporter: exporter)
                     .frame(maxWidth: 960)
-                    .padding(.horizontal, 22)
+                    .padding(.horizontal, 24)
                     .padding(.top, 12)
                     .padding(.bottom, 32)
                     .frame(maxWidth: .infinity)
@@ -262,7 +262,7 @@ struct HomeSyncDot: View {
         }
     }
     var body: some View {
-        Image(systemName: glyph).font(.system(size: 7, weight: .black)).foregroundStyle(T.work)
+        Image(systemName: glyph).font(.system(size: 7, weight: .black)).foregroundStyle(T.work)  // design: glyphe dans une pastille de 14 pt, sous le plancher du texte
             .frame(width: 14, height: 14).background(color, in: Circle())
             .overlay(Circle().strokeBorder(T.amb, lineWidth: 1.5))
             .accessibilityHidden(true)
@@ -368,7 +368,7 @@ struct HomeRecapCard: View {
             HStack(spacing: 10) {
                 Group {
                     if r.exercise { Text(verbatim: "▲").aFont(TypeScale.item, .bold) }
-                    else { Image(systemName: "checkmark").font(.system(size: 15, weight: .heavy)) }
+                    else { Image(systemName: "checkmark").aFont(TypeScale.item, .heavy) }
                 }
                 .foregroundStyle(r.exercise ? T.act : T.ok)
                 .accessibilityHidden(true)
@@ -416,7 +416,7 @@ struct HomeLiveCards: View {
         let phone = wc == .phone
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 10) {
-                Circle().fill(phone ? T.okSys : T.ok).frame(width: 10, height: 10).padding(.top, 5)
+                Circle().fill(phone ? T.okSys : T.ok).frame(width: 10, height: 10).padding(.top, 4)
                     .accessibilityHidden(true)
                 Button { model.openFiche(R.ficheId) } label: {
                     VStack(alignment: .leading, spacing: 2) {

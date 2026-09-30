@@ -12,7 +12,7 @@ name: Native
 on:
   push:
     branches: [native-apple]
-    paths: ['native/**', '.github/workflows/native.yml']
+    paths: ['native/**', 'index.html', 'design/**', '.github/workflows/native.yml']
   pull_request:
     paths: ['native/**', '.github/workflows/native.yml']
   workflow_dispatch:
@@ -34,6 +34,12 @@ jobs:
           xcodebuild -version
       - name: Version de Xcode
         run: xcodebuild -version && swift --version
+      - name: Design system (échelles de la PWA, tokens générés à jour)
+        run: |
+          node native/tools/check-swift-design.mjs
+          node native/tools/build-tokens.mjs >/dev/null
+          git diff --exit-code -- native/App/Sources/Design/Tokens.generated.swift \
+            || { echo "✗ Tokens.generated.swift a dérivé d'index.html : npm run design:build"; exit 1; }
       - name: Tests du cœur (AidesCore)
         working-directory: native/AidesCore
         run: swift test 2>&1 | tail -n 60

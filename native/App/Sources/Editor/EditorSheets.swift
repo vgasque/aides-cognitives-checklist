@@ -442,7 +442,7 @@ struct EdVersionsSheet: View {
             if d.added.isEmpty && d.removed.isEmpty {
                 Text("Aucune différence de contenu (les images ne sont pas comparées).").aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
             } else {
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     if !d.added.isEmpty {
                         Text("Restaurer rétablirait :").aFont(TypeScale.meta, .bold).foregroundStyle(T.ink)
                         ForEach(Array(d.added.enumerated()), id: \.offset) { _, x in

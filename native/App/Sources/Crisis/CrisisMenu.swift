@@ -210,7 +210,7 @@ struct CrExportSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Image(systemName: "doc.badge.arrow.up").font(.system(size: 40, weight: .semibold)).foregroundStyle(T.act)
+                Image(systemName: "doc.badge.arrow.up").font(.system(size: 40, weight: .semibold)).foregroundStyle(T.act)  // design: pictogramme d’illustration d’un état vide, pas du texte
                     .accessibilityHidden(true)
                 Text(url.lastPathComponent).aFont(TypeScale.item, .bold).foregroundStyle(T.ink).multilineTextAlignment(.center)
                 ShareLink(item: url) {

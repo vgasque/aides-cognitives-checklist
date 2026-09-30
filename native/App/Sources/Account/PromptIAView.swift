@@ -127,7 +127,7 @@ struct ImportDropZone: View {
         Button { picking = true } label: {
             VStack(spacing: 6) {
                 Image(systemName: "square.and.arrow.down")
-                    .font(.system(size: large ? 28 : 22, weight: .semibold))
+                    .aFont(large ? TypeScale.val : TypeScale.stepL, .semibold)
                     .foregroundStyle(T.act)
                 Text(title).aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
                 Text(".json · .zip — glissez ici ou cliquez · plusieurs à la fois")

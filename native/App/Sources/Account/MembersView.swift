@@ -165,7 +165,7 @@ struct MembersView: View {
                 .fixedSize()
                 .accessibilityLabel("Rôle de " + m.email)
                 Button { askRemove(m) } label: {
-                    Image(systemName: "xmark").font(.system(size: 13, weight: .bold))
+                    Image(systemName: "xmark").aFont(TypeScale.body, .bold)
                         .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -447,7 +447,7 @@ struct PendingAccountsView: View {
                     .help("Supprimer la demande pour laisser une 2e chance")
             } else {
                 Button { askReject(u) } label: {
-                    Image(systemName: "xmark").font(.system(size: 13, weight: .bold))
+                    Image(systemName: "xmark").aFont(TypeScale.body, .bold)
                         .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

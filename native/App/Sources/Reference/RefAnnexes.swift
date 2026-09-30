@@ -56,7 +56,7 @@ struct RefDocRow: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink3)
+                Image(systemName: "chevron.right").aFont(TypeScale.body, .semibold).foregroundStyle(T.ink3)
                     .accessibilityHidden(true)
             }
             .padding(.horizontal, 4).padding(.vertical, 6)
@@ -78,16 +78,16 @@ struct RefDocThumb: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 6, style: .continuous).fill(T.amb2)
+            RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).fill(T.amb2)
             if let img {
                 Image(refPlatform: img).resizable().scaledToFit()
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.r1, style: .continuous))
             } else {
-                Image(systemName: "doc").font(.system(size: 16, weight: .semibold)).foregroundStyle(T.ink2)
+                Image(systemName: "doc").aFont(TypeScale.item, .semibold).foregroundStyle(T.ink2)
             }
         }
         .frame(width: 36, height: 46)
-        .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(T.line))
+        .overlay(RoundedRectangle(cornerRadius: Radius.r1, style: .continuous).strokeBorder(T.line))
         .accessibilityHidden(true)
         .task(id: id + either(local, "1", "0")) {
             guard local else { return }
@@ -128,7 +128,7 @@ struct RefDocHitRow: View {
     var body: some View {
         Button(action: open) {
             HStack(spacing: 10) {
-                Image(systemName: "doc.text.magnifyingglass").font(.system(size: 16, weight: .semibold)).foregroundStyle(T.act)
+                Image(systemName: "doc.text.magnifyingglass").aFont(TypeScale.item, .semibold).foregroundStyle(T.act)
                     .frame(width: 24).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(hit.name.isEmpty ? "document.pdf" : hit.name).aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
@@ -136,7 +136,7 @@ struct RefDocHitRow: View {
                     Text(sub).aFont(TypeScale.meta, .regular).foregroundStyle(T.ink2)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink3)
+                Image(systemName: "chevron.right").aFont(TypeScale.body, .semibold).foregroundStyle(T.ink3)
                     .accessibilityHidden(true)
             }
             .padding(.vertical, 6)
@@ -194,12 +194,12 @@ struct RefLinksCard: View {
                     Button { open(r.id) } label: {
                         HStack(spacing: 10) {
                             Image(systemName: r.isReference ? "book.closed" : "checklist")
-                                .font(.system(size: 15, weight: .semibold)).foregroundStyle(T.act)
+                                .aFont(TypeScale.item, .semibold).foregroundStyle(T.act)
                                 .frame(width: 24).accessibilityHidden(true)
                             Text(r.title.isEmpty ? "Sans titre" : r.title).aFont(TypeScale.item, .semibold).foregroundStyle(T.ink)
                                 .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            Image(systemName: "arrow.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink3)
+                            Image(systemName: "arrow.right").aFont(TypeScale.body, .semibold).foregroundStyle(T.ink3)
                                 .accessibilityHidden(true)
                         }
                         .padding(.horizontal, 4).padding(.vertical, 6)
@@ -238,7 +238,7 @@ struct RefSectionTitle: View {
     var text: String
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: icon).font(.system(size: 13, weight: .semibold)).foregroundStyle(T.ink2)
+            Image(systemName: icon).aFont(TypeScale.body, .semibold).foregroundStyle(T.ink2)
                 .accessibilityHidden(true)
             Text(text).aFont(TypeScale.item, .bold).foregroundStyle(T.ink)
         }
@@ -274,7 +274,7 @@ struct RefLightbox: View {
                                 .accessibilityLabel(item.caption.isEmpty ? "Image agrandie" : item.caption)
                         }
                         if !item.caption.isEmpty {
-                            Text(item.caption).aFont(TypeScale.body, .medium).foregroundStyle(Color(hex: 0xcfe0dd))
+                            Text(item.caption).aFont(TypeScale.body, .medium).foregroundStyle(T.lbCap)
                                 .multilineTextAlignment(.center)
                         }
                     }
@@ -286,7 +286,7 @@ struct RefLightbox: View {
                     .onEnded { _ in base = zoom })
                 .onTapGesture(count: 2) { withAnimation { zoom = zoom > 1 ? 1 : 2; base = zoom } }
             }
-            .background(Color.black.ignoresSafeArea())
+            .background(T.scrimFull.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { Image(systemName: "xmark") }

@@ -115,11 +115,11 @@ enum Weights {
     static let strong: Font.Weight = .bold
 }
 
-/// Ombres (`--shadow-*`) : première couche, rayon SwiftUI = flou CSS ÷ 2. `none` → nil.
+/// Ombres (`--shadow-*`) : la couche la plus diffuse, rayon SwiftUI = flou CSS ÷ 2. `none` → nil.
 enum Shadows {
     static let work: ShadowToken? = ShadowToken(color: Color(light: 0x14181d, dark: 0x000000, lightAlpha: 0.06, darkAlpha: 0), radius: 12, x: 0, y: 6)
     static let cur: ShadowToken? = ShadowToken(color: Color(light: 0x14181d, dark: 0x000000, lightAlpha: 0.12, darkAlpha: 0), radius: 16, x: 0, y: 12)
-    static let float: ShadowToken? = ShadowToken(color: Color(light: 0x14181d, dark: 0x000000, lightAlpha: 0.06, darkAlpha: 0), radius: 1, x: 0, y: 1)
+    static let float: ShadowToken? = ShadowToken(color: Color(light: 0x14181d, dark: 0x000000, lightAlpha: 0.08, darkAlpha: 0), radius: 8, x: 0, y: 6)
     static let up: ShadowToken? = ShadowToken(color: Color(light: 0x14181d, dark: 0x000000, lightAlpha: 0.26, darkAlpha: 0), radius: 16, x: 0, y: -12)
     static let bar: ShadowToken? = nil
     static let primarySm: ShadowToken? = nil

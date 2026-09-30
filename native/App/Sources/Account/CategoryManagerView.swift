@@ -220,7 +220,7 @@ struct CategoryManagerView: View {
         let list = rows(lib)
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Image(systemName: lib == nil ? "person" : "books.vertical").font(.system(size: 12, weight: .semibold)).foregroundStyle(T.ink2)
+                Image(systemName: lib == nil ? "person" : "books.vertical").aFont(TypeScale.meta, .semibold).foregroundStyle(T.ink2)
                 Text(lib == nil ? "Espace personnel" : libName(lib)).aFont(TypeScale.body, .bold).foregroundStyle(T.ink)
                 if lib != nil { Text("partagée").aFont(TypeScale.meta, .bold).foregroundStyle(T.ink2) }
                 Spacer()
@@ -382,7 +382,7 @@ private struct CatManagerRow: View {
                 .frame(width: 84, alignment: .trailing)
                 .lineLimit(1)
             Button(action: onAskDelete) {
-                Image(systemName: "xmark").font(.system(size: 13, weight: .bold))
+                Image(systemName: "xmark").aFont(TypeScale.body, .bold)
                     .frame(width: Ctrl.l, height: Ctrl.l).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -419,7 +419,7 @@ private struct CatManagerRow: View {
                 }
                 Button(action: onToggleHue) {
                     Image(systemName: "paintpalette")
-                        .font(.system(size: 14, weight: .semibold))
+                        .aFont(TypeScale.body, .semibold)
                         .frame(width: 32, height: 32)
                         .background(hueOpen ? T.primarySoft : T.amb2, in: Circle())
                         .overlay(Circle().strokeBorder(hueOpen ? T.act : T.ctlLine))
@@ -442,7 +442,7 @@ private struct CatManagerRow: View {
                 .frame(width: 32, height: 32)
                 .overlay(Circle().strokeBorder(T.work, lineWidth: on ? 3 : 0).padding(2))
                 .overlay(Circle().strokeBorder(on ? T.ink : Color.clear, lineWidth: 2))
-                .overlay { if on { Image(systemName: "checkmark").font(.system(size: 12, weight: .heavy)).foregroundStyle(.white) } }
+                .overlay { if on { Image(systemName: "checkmark").aFont(TypeScale.meta, .heavy).foregroundStyle(T.paper) } }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Teinte \(i + 1)")
@@ -488,7 +488,7 @@ private struct CatManagerRow: View {
                 .padding(.horizontal, 10).frame(minHeight: 26)
                 .background(Color(cssHex: tint), in: Capsule())
             Text(category.name.isEmpty ? " " : category.name).aFont(TypeScale.meta, .bold)
-                .foregroundStyle(.white)
+                .foregroundStyle(T.paper)
                 .padding(.horizontal, 10).frame(minHeight: 26)
                 .background(Color(cssHex: col), in: Capsule())
             Text(note.0).aFont(TypeScale.meta, .bold).foregroundStyle(note.1 ? T.ok : T.warn)
