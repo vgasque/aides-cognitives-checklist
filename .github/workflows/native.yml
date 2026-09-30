@@ -72,11 +72,14 @@ jobs:
 
   # CAPTURES D'ÉCRAN : l'app tourne dans le simulateur (iPhone puis iPad, clair puis sombre),
   # posée dans un état connu par `-ac-demo <écran>` (cf. App/Sources/Platform/DemoCapture.swift).
-  # Les images sortent en artefact « captures » ; rien n'est poussé dans le dépôt.
+  # Les images sortent en artefact « captures » et, sur un push de native-apple, en JPEG réduits sur
+# la branche ORPHELINE `native-captures` (réécrite à chaque passage ; elle ne porte que des images).
   shots:
     runs-on: macos-26
     needs: app
     timeout-minutes: 45
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Choisir Xcode (27 si présent)
@@ -143,3 +146,14 @@ jobs:
           name: captures
           path: shots/*.png
           if-no-files-found: warn
+      - name: Publier les captures (branche native-captures)
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p pub
+          for f in shots/*.png; do
+            sips -s format jpeg -s formatOptions 70 -Z 1400 "$f" --out "pub/$(basename "${f%.png}").jpg" >/dev/null
+          done
+          cd pub
+          git init -q && git checkout -q -b native-captures
+          git add . && git -c user.name="ci" -c user.email="ci@users.noreply.github.com" commit -qm "Captures de ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" native-captures
